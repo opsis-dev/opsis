@@ -3,11 +3,11 @@ import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remo
 import type { RecordingProps } from "../../shared/compile/recording";
 import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, typedBeats } from "../camera/action-log";
-import { DemoClip } from "../camera/DemoClip";
-import { KeycapHUD } from "../camera/KeycapHUD";
+import { DemoClip } from "../camera/demo-clip";
+import { KeycapHUD } from "../camera/keycap-hud";
 import { clamp as clampN } from "../camera/lib/camera";
 import { poseAt } from "../camera/lib/zoom";
-import { DesignWidthContext } from "../camera/WindowFrame";
+import { DesignWidthContext } from "../camera/window-frame";
 import { clamp } from "./anim";
 
 export const RecordingClip: React.FC<RecordingProps> = (props) => {

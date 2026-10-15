@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { Editor } from "../editor/Editor";
+import { Editor } from "../editor/editor";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";

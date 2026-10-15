@@ -42,7 +42,7 @@ import { fileUrl } from "./file-url";
 import { CATEGORY_COLORS } from "./ports";
 import { startRun } from "./run";
 import { useCompiledContext } from "./use-compiled";
-import { ZodForm, type FormContext, type SpotBackground } from "./ZodForm";
+import { ZodForm, type FormContext, type SpotBackground } from "./zod-form";
 
 const SITE_VAR = "Site address";
 

@@ -2,7 +2,7 @@ import type { Action, ActionLog } from "../../shared/schema/actions";
 import type { AnnotationSpec } from "../../shared/compile/recording";
 import { POINTER_KINDS } from "../../shared/compile/recording";
 import { chordGlyphs, type ClickEvent, type ClickLog, type KeyEvent } from "./lib/click-log";
-import type { Annotation } from "./Annotations";
+import type { Annotation } from "./annotations";
 
 export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = []): ClickLog {
   const actions = [...log.actions, ...extraBeats].sort((a, b) => a.t - b.t);

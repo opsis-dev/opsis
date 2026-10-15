@@ -1,4 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Settings } from "../app/Settings";
+import { Settings } from "../app/settings";
 
 export const Route = createFileRoute("/settings")({ component: Settings });

@@ -37,12 +37,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/u
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { Canvas } from "./Canvas";
-import { Inspector } from "./Inspector";
+import { Canvas } from "./canvas";
+import { Inspector } from "./inspector";
 import { autoLayout } from "./layout";
-import { LivePip, LiveToggle } from "./LivePip";
-import { AppBar } from "../app/AppBar";
-import { Palette, QuickAdd } from "./Palette";
+import { LivePip, LiveToggle } from "./live-pip";
+import { AppBar } from "../app/app-bar";
+import { Palette, QuickAdd } from "./palette";
 import {
   layoutStorage,
   openPanel,
@@ -51,10 +51,10 @@ import {
   usePanels,
   type PanelSide,
 } from "./panels";
-import { ReplayDialog } from "./ReplayDialog";
-import { PreviewDock } from "./PreviewDock";
+import { ReplayDialog } from "./replay-dialog";
+import { PreviewDock } from "./preview-dock";
 import { cancelRun, startRun } from "./run";
-import { RunPanel } from "./RunPanel";
+import { RunPanel } from "./run-panel";
 import { CompiledContext, useCompiled } from "./use-compiled";
 
 const mod = window.demoflow?.platform === "darwin" ? "⌘" : "Ctrl";

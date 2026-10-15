@@ -1,7 +1,7 @@
 import React from "react";
 import { Easing, interpolate } from "remotion";
 import type { AnnotationKind } from "../../shared/compile/recording";
-import { useDesignScale } from "./WindowFrame";
+import { useDesignScale } from "./window-frame";
 
 export type Annotation = {
   kind: AnnotationKind;

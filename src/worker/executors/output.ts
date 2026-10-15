@@ -239,11 +239,11 @@ export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ct
   );
   await writeFile(
     path.join(dir, "src", "index.ts"),
-    `import { registerRoot } from "remotion";\nimport "./video/video.css";\nimport { ExportRoot } from "./ExportRoot";\n\nregisterRoot(ExportRoot);\n`,
+    `import { registerRoot } from "remotion";\nimport "./video/video.css";\nimport { ExportRoot } from "./export-root";\n\nregisterRoot(ExportRoot);\n`,
   );
   await writeFile(
-    path.join(dir, "src", "ExportRoot.tsx"),
-    `import { Composition } from "remotion";\nimport { DemoTimeline } from "./video/DemoTimeline";\nimport timeline from "./timeline.json";\nimport type { TimelineSpec } from "./shared/schema/timeline";\n\nconst spec = timeline as TimelineSpec;\n\nexport const ExportRoot = () => (\n  <Composition id="DemoTimeline" component={DemoTimeline} defaultProps={spec} durationInFrames={spec.durationInFrames} fps={spec.fps} width={spec.width} height={spec.height} />\n);\n`,
+    path.join(dir, "src", "export-root.tsx"),
+    `import { Composition } from "remotion";\nimport { DemoTimeline } from "./video/demo-timeline";\nimport timeline from "./timeline.json";\nimport type { TimelineSpec } from "./shared/schema/timeline";\n\nconst spec = timeline as TimelineSpec;\n\nexport const ExportRoot = () => (\n  <Composition id="DemoTimeline" component={DemoTimeline} defaultProps={spec} durationInFrames={spec.durationInFrames} fps={spec.fps} width={spec.width} height={spec.height} />\n);\n`,
   );
   await writeFile(
     path.join(dir, "remotion.config.ts"),

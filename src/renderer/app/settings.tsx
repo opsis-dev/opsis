@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { PageBar } from "./AppBar";
+import { PageBar } from "./app-bar";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -20,7 +20,7 @@ import { Switch } from "@/renderer/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { useRunStore } from "../store/run";
 import { useWorkflowStore } from "../store/workflow";
-import { EnginePanel } from "./Setup";
+import { EnginePanel } from "./setup";
 
 const RETENTION: Array<[AppSettings["traces"]["retention"], string]> = [
   ["always", "Always"],

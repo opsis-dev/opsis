@@ -27,7 +27,7 @@ import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import type { FlowNodeData } from "./convert";
 import { NodeIcon } from "./icons";
-import { CardRows, NodeThumbnail, useCardRows } from "./NodeCard";
+import { CardRows, NodeThumbnail, useCardRows } from "./node-card";
 import { CATEGORY_COLORS, PORT_COLORS, portLabel } from "./ports";
 import { useCompiledContext } from "./use-compiled";
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "vitest";
 import { chordGlyphs, type KeyEvent } from "./click-log";
-import { KEYCAP_HOLD_S, keycapAt } from "../KeycapHUD";
+import { KEYCAP_HOLD_S, keycapAt } from "../keycap-hud";
 
 describe("chordGlyphs", () => {
   it("renders the reference's own chord", () => {

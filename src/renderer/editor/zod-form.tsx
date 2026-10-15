@@ -58,7 +58,7 @@ import { Textarea } from "@/renderer/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { cn } from "@/renderer/lib/utils";
 import { chordFromEvent } from "./keys";
-import { VarText, type VarInfo } from "./VarText";
+import { VarText, type VarInfo } from "./var-text";
 
 // oxlint-disable-next-line typescript/no-explicit-any
 type AnySchema = z.ZodType<any>;

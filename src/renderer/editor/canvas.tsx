@@ -22,7 +22,7 @@ import { ZoomSlider } from "@/renderer/components/zoom-slider";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { toFlowEdges, toFlowNodes, type FlowNodeData } from "./convert";
-import { FlowNode, GroupFlowNode, NoteFlowNode } from "./FlowNode";
+import { FlowNode, GroupFlowNode, NoteFlowNode } from "./flow-node";
 import { CATEGORY_COLORS, PORT_COLORS } from "./ports";
 
 export const NODE_DRAG_TYPE = "application/demoflow-node";

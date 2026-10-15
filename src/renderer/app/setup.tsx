@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { PageBar } from "./AppBar";
+import { PageBar } from "./app-bar";
 import { CheckCircle2, Download } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { EngineInstallEvent, EnvStatus } from "@/shared/ipc";

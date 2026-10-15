@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { chordGlyphs, type KeyEvent } from "./lib/click-log";
 import { settle } from "./lib/push";
-import { useDesignScale } from "./WindowFrame";
+import { useDesignScale } from "./window-frame";
 
 export const KEYCAP_H = 103;
 export const KEYCAP_MIN_W = 216;

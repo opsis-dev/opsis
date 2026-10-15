@@ -5,8 +5,8 @@ import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
-import { SETUP_SKIPPED_KEY } from "../app/Setup";
-import { useMenuShortcuts, useTitleBarColors } from "../app/AppBar";
+import { SETUP_SKIPPED_KEY } from "../app/setup";
+import { useMenuShortcuts, useTitleBarColors } from "../app/app-bar";
 
 function Root() {
   const navigate = useNavigate();

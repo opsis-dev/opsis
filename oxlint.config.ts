@@ -40,6 +40,7 @@ export default defineConfig({
     "import/no-unassigned-import": ["warn", { allow: ["**/*.css"] }],
     "react/hooks": "off",
     "import/no-cycle": "off",
+    "unicorn/filename-case": ["error", { case: "kebabCase", ignore: ["^__root\\.tsx$"] }],
   },
   overrides: [
     {

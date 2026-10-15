@@ -20,7 +20,7 @@ import { useRunStore } from "../store/run";
 import { useUiStore, type ReplayTab } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
-import { TracePanel } from "./TracePanel";
+import { TracePanel } from "./trace-panel";
 
 const seconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 

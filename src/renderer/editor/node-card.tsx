@@ -11,7 +11,7 @@ import { defaultParams } from "@/shared/nodes/registry";
 import type { NodeResult } from "@/shared/schema/values";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { interpolate, stableStringify } from "@/shared/vars";
-import { DemoTimeline } from "@/video/DemoTimeline";
+import { DemoTimeline } from "@/video/demo-timeline";
 import { cn } from "@/renderer/lib/utils";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";

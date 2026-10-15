@@ -1,7 +1,7 @@
 import React from "react";
 import { CURSOR_SCALE_EXP, type ClickLog } from "./lib/click-log";
 import { cursorAt } from "./lib/cursor";
-import { useDesignScale } from "./WindowFrame";
+import { useDesignScale } from "./window-frame";
 
 const HOT_X = 1;
 const HOT_Y = 1;

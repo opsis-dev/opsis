@@ -14,15 +14,15 @@ import { zoomAt, type ClickLog } from "./lib/zoom";
 import { BASE_POSE, poseToCss } from "./lib/camera";
 import { CHROME_H, WINDOW_FIT } from "./lib/window";
 import { backdropFile, isLightBackdrop, isLightGround } from "./lib/backdrop";
-import { Cursor } from "./Cursor";
-import { RimLight, Stage, useDesignScale, WindowFrame } from "./WindowFrame";
+import { Cursor } from "./cursor";
+import { RimLight, Stage, useDesignScale, WindowFrame } from "./window-frame";
 import { pushEnvelope, pushToCss, type PushSpec } from "./lib/push";
 import { cropClipPath, resolveCrop, type CropSpec, type ResolvedCrop } from "./lib/crop";
-import { KeycapHUD } from "./KeycapHUD";
+import { KeycapHUD } from "./keycap-hud";
 import type { ReelLook } from "./lib/look";
 import { resolvePreset, type ReelStyle } from "./lib/style";
 import type { CameraTuning } from "./lib/zoom";
-import { Annotations, type Annotation } from "./Annotations";
+import { Annotations, type Annotation } from "./annotations";
 
 const round = (n: number) => Math.round(n);
 

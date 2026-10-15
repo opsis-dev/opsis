@@ -3,7 +3,7 @@ import { Clapperboard } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { getNodeDef } from "@/shared/nodes/registry";
 import type { TimelineSpec } from "@/shared/schema/timeline";
-import { DemoTimeline } from "@/video/DemoTimeline";
+import { DemoTimeline } from "@/video/demo-timeline";
 import { Badge } from "@/renderer/components/ui/badge";
 import {
   Empty,

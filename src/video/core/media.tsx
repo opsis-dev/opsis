@@ -1,8 +1,8 @@
 import React from "react";
 import { AbsoluteFill, Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
-import { Backdrop } from "../camera/DemoClip";
-import { RimLight, Stage, WindowFrame } from "../camera/WindowFrame";
+import { Backdrop } from "../camera/demo-clip";
+import { RimLight, Stage, WindowFrame } from "../camera/window-frame";
 import { WINDOW_FIT } from "../camera/lib/window";
 import { isLightBackdrop } from "../camera/lib/backdrop";
 

@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useUiStore } from "../store/ui";
-import { PageBar } from "./AppBar";
+import { PageBar } from "./app-bar";
 import { Clapperboard, FolderOpen, Plus, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";

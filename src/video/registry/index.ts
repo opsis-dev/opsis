@@ -12,8 +12,8 @@ import {
   StudioBackdrop,
 } from "../core/backgrounds";
 import { ImageElement, StillElement, VideoElement, VideoLoop } from "../core/media";
-import { Placeholder } from "../core/Placeholder";
-import { RecordingClip } from "../core/RecordingClip";
+import { Placeholder } from "../core/placeholder";
+import { RecordingClip } from "../core/recording-clip";
 import { Callout, Captions, KineticHeadline, LowerThird, Title } from "../core/text";
 import { coreTransitions } from "../core/transitions";
 import { generatedElementLoaders } from "./components.generated";

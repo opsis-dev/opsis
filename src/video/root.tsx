@@ -2,7 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { EMPTY_SPEC, timelineSpecSchema, type TimelineSpec } from "../shared/schema/timeline";
 import { COMPOSITION_ID } from "./composition-id";
-import { DemoTimeline } from "./DemoTimeline";
+import { DemoTimeline } from "./demo-timeline";
 
 export { COMPOSITION_ID } from "./composition-id";
 
