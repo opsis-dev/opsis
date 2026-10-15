@@ -1,11 +1,19 @@
 {
   "name": "demoflow",
   "productName": "Demoflow",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Record a real website and turn it into a polished product demo.",
   "keywords": [],
   "license": "Apache-2.0",
+  "homepage": "https://github.com/bismitpanda/demoflow#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bismitpanda/demoflow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bismitpanda/demoflow/issues"
+  },
   "author": {
     "name": "Bismit Panda",
     "email": "adnaptimsib333@gmail.com"

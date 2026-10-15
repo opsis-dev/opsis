@@ -69,7 +69,10 @@ export function EnginePanel({ onDone }: { onDone?: () => void }) {
       {busy || event?.error ? (
         <CardContent className="flex flex-col gap-2">
           {event?.progress != null ? (
-            <div className="flex items-center gap-2">
+            <div
+              key={`${event.part}|${event.message.split(" · ")[0]}`}
+              className="flex items-center gap-2"
+            >
               <Progress className="flex-1" value={Math.round(event.progress * 100)} />
               <AnimatedPercent
                 className="text-muted-foreground w-10 text-right text-xs"
@@ -120,6 +123,11 @@ export function Setup() {
               and export.
             </p>
           </div>
+          <p className="text-muted-foreground text-xs">
+            Video export uses Remotion, which is free for individuals, non-profits and companies
+            with up to 3 employees. Larger companies need a Remotion company licence; enter its key
+            in Settings.
+          </p>
           <EnginePanel
             onDone={() => {
               try {

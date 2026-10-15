@@ -3,7 +3,11 @@ import { z } from "zod";
 import { BACKDROPS } from "../../video/camera/lib/backdrop";
 import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
 
-const source = { registry: "Demoflow", url: "https://github.com/", license: "Project" };
+const source = {
+  registry: "Demoflow",
+  url: "https://github.com/bismitpanda/demoflow",
+  license: "Apache-2.0",
+};
 const text = (def: string, description: string, widget?: "textarea") =>
   z
     .string()

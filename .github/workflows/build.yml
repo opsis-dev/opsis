@@ -1,0 +1,78 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run lint
+      - run: bun run format
+      - run: bun run test
+
+  build:
+    name: ${{ matrix.edition }} · ${{ matrix.os }}
+    needs: checks
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-26-intel]
+        edition: [full, lite]
+    runs-on: ${{ matrix.os }}
+    env:
+      DEMOFLOW_EDITION: ${{ matrix.edition }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y squashfs-tools fakeroot dpkg
+      - run: bun install --frozen-lockfile
+      - name: Cache the engine and browser licences
+        if: matrix.edition == 'full'
+        uses: actions/cache@v6
+        with:
+          path: |
+            resources/engine
+            ~/.cache/demoflow-chromium-credits
+          key: engine-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/engine/**', 'bun.lock') }}
+      - name: Build (deb and AppImage)
+        if: runner.os == 'Linux'
+        run: bun run make -- --targets deb,AppImage
+      - name: Build
+        if: runner.os != 'Linux'
+        run: bun run make
+      - name: Check the engine and its licences
+        if: matrix.edition == 'full'
+        shell: bash
+        run: |
+          test -f resources/engine/LICENSES.chromium.html
+          test -f resources/engine/ffmpeg/LICENSE.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: demoflow-${{ matrix.edition }}-${{ runner.os }}-${{ runner.arch }}
+          path: out/make/**
+          if-no-files-found: error

@@ -1,82 +1,104 @@
 # Demoflow
 
-A single Electron desktop app: a node-based editor ([xyflow](https://reactflow.dev)) that drives a real website with [Playwright](https://playwright.dev), turns the recording into a cinematic product demo with [Remotion](https://remotion.dev), and lets you stack motion-graphics elements, transitions, text, audio and FFmpeg nodes on top. Everything runs locally. See [PLAN.md](./PLAN.md) for the full spec.
+Record a real website and turn it into a polished product demo.
 
-## Quick start
+Demoflow is a desktop app with a node editor. Browser nodes drive a real website (clicks, typing, scrolling) and record it in one take; camera, cursor, text, motion-graphics, transition, audio and media nodes turn the recording into a finished video, exported in several shapes at once. Everything runs on your computer.
+
+> **Early preview.** Built and tested on Linux (dev, `.deb`, AppImage). Windows and macOS builds haven't been made or tested yet, and there are no signed installers or auto-updates. Expect rough edges.
+
+Built with [Electron](https://www.electronjs.org), [xyflow](https://reactflow.dev), [Playwright](https://playwright.dev), [Remotion](https://www.remotion.dev) and FFmpeg. See [PLAN.md](./PLAN.md) for the original spec and [`plans/`](./plans) for work that's planned but not built.
+
+## What it does
+
+- **Record:** 18 browser actions (go to page, click, type, hover, scroll, choose option, upload file, press keys, wait, check text, fake a response, freeze time, hide clutter, page scripts, chapters, HTML overlays…), sign in once and reuse the login, a live view of the recording browser, and a replay with a step-by-step trace of every take.
+- **Camera and cursor:** auto zoom on clicks, manual zooms, pans, follow the cursor, speed up quiet parts, speed ramps, crop, device frames, studio backdrops, motion blur; cursor styles, click ripples, keystroke chips, spotlights and highlight boxes.
+- **Graphics:** 132 elements — 23 built in, 109 curated from the [Remocn](https://remocn.dev), [snapcn](https://snapcn.dev) and [RemotionUI](https://remotionui.com) registries (text effects, overlays, charts, UI scenes, device mockups, backgrounds, effects), plus Lottie animations (`.json` and `.lottie`) and a mosaic effect for hiding private details.
+- **Transitions:** 25 (6 standard, 14 Remocn, 5 RemotionUI) plus a light-leak cut.
+- **Text and fonts:** 16 bundled font families; a font library you fill from font files or ZIPs, fonts installed on your computer, or free fonts downloaded online (only when you ask). Projects set fonts for text, headings and code, and copy the fonts they use so they open anywhere.
+- **Audio:** music with fades and ducking under sound effects, sound effects (7 built-in CC0 sounds or your own files), captions timed from a script.
+- **Media:** trim, join, speed, reverse, resize, convert, GIF, extract audio, even out volume, grab a frame, web-ready, file info.
+- **Export:** 16:9, 9:16, 1:1 and 4:5 in one go (tall shapes follow the action), still images in social sizes, or a standalone Remotion project.
+- **Editor:** 202 node types, 7 templates, undo/redo, groups, auto layout, card previews saved as stills, a preview that matches the export frame for frame.
+
+## Getting started
+
+Requirements: [Bun](https://bun.sh) and Node.js 22 or later.
 
 ```sh
 bun install
-bun start          # electron-forge start (Vite dev servers + Electron)
+bun start
 ```
 
-The full edition ships the engine (one Chrome Headless Shell for capture and render, plus FFmpeg/ffprobe). In dev and in the lite edition, install it once from Settings → Engine. Then **New project → Sample: TodoMVC → Run**: a live picture-in-picture shows what the capture browser is doing, and every capture can be replayed with its step timeline, and its Playwright trace (actions grouped by node, before/after screenshots, console, network, errors) opens in the Trace tab. The sample records `demo.playwright.dev/todomvc`, builds the auto-zoom camera track, adds a Remocn title and renders 16:9 + 9:16 MP4s into `<project>/.demoflow/out/`. Ready-made copies of every template live in [`examples/`](./examples) (File → Open).
+The first time, open **Settings → Engine → Set up engine**. It downloads the recording browser (Chrome Headless Shell) and FFmpeg into the app's data folder. Editing and preview work without it; recording and exporting need it. Then **New project → Sample: to-do app → Run**.
+
+Ready-made copies of every template are in [`examples/`](./examples) (**Open project…**).
+
+## Building
+
+| Command                                    | What it does                                                    |
+| ------------------------------------------ | --------------------------------------------------------------- |
+| `bun run make -- --targets deb,AppImage`   | Linux `.deb` and AppImage (the RPM maker also needs `rpmbuild`) |
+| `DEMOFLOW_EDITION=lite bun run make …`     | Leave the engine out; users set it up from Settings             |
+| `DEMOFLOW_OUT_DIR=~/.cache/demoflow-build` | Put build output outside the repo                               |
+
+The full edition bundles the engine and saves the recording browser's licence notices next to it. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks, then builds both editions on Linux (x64), Windows (x64) and macOS (Apple Silicon and Intel) and uploads the packages as artifacts. On systems that block unprivileged user namespaces (Ubuntu 24.04 and later), the AppImage starts without Chromium's sandbox; the `.deb` keeps it.
 
 ## Scripts
 
-| Script                                  | What it does                                                                                 |
-| --------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `bun start`                             | Run the app in development                                                                   |
-| `bun run package` / `bun run make`      | Package / build installers; `DEMOFLOW_EDITION=lite` leaves the engine out (default `full`)   |
-| `bun run typecheck`                     | `tsc --noEmit` (TypeScript 6.0.3)                                                            |
-| `bun run lint` / `bun run lint:fix`     | oxlint (`oxlint.config.ts`), incl. the frame-driven-animation guardrails                     |
-| `bun run format` / `bun run format:fix` | oxfmt (`oxfmt.config.ts`)                                                                    |
-| `bun run test`                          | vitest — compile(), graph, camera track, capture sync, cache, plus programatic-demo's suites |
-| `bun run registry:ingest`               | Re-install the curated Remocn/snapcn/RemotionUI elements and regenerate their manifests      |
-| `bun run routes`                        | Regenerate the TanStack Router route tree                                                    |
-| `bun run studio`                        | Remotion Studio on the `DemoTimeline` composition                                            |
-| `bun run examples`                      | Rewrite `examples/*/project.demoflow.json` from the templates                                |
+| Script                    | What it does                                                            |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `bun start`               | Run the app in development                                              |
+| `bun run typecheck`       | `tsc --noEmit` (TypeScript 6.0.3)                                       |
+| `bun run lint:fix`        | oxlint, including the frame-driven animation guardrails                 |
+| `bun run format:fix`      | oxfmt                                                                   |
+| `bun run test`            | vitest                                                                  |
+| `bun run registry:ingest` | Re-install the curated registry elements and regenerate their manifests |
+| `bun run fonts:bundle`    | Copy the bundled fonts from their Fontsource packages                   |
+| `bun run brand:icons`     | Render `brand/logo.svg` to the app icon PNGs                            |
+| `bun run routes`          | Regenerate the TanStack Router route tree                               |
+| `bun run studio`          | Remotion Studio on the `DemoTimeline` composition                       |
+| `bun run examples`        | Rewrite `examples/*/project.demoflow.json` from the templates           |
 
 ## Architecture
 
 ```
-Renderer (React 19 + shadcn/Base UI + xyflow)  ── preload (contextBridge: window.demoflow) ──  Main (Electron)
-   canvas · palette · zod inspector · <Player>                                                   windows · menus · dialogs
-   live compile (graph → TimelineSpec)                                                            projects · protocols · safeStorage
-                                                                                                   │ MessagePort
-                                                                                Worker (utilityProcess, one per job)
-                                                          engine: validate → topo-sort → sha256 cache → phase lanes → events
-                                                          capture (Playwright) · media (bundled FFmpeg) · render (@remotion/renderer)
+Renderer (React 19 + shadcn/Base UI + xyflow)  ── preload (window.demoflow) ──  Main (Electron)
+   canvas · node list · inspector · <Player>                                     window · menus · protocols
+   live compile (graph → TimelineSpec)                                           projects · logins · fonts · stills
+                                                                                      │ MessagePort
+                                                          Worker (utilityProcess)
+                                       engine: validate → topo-sort → sha256 cache → phase lanes → events
+                                       capture (Playwright) · media (FFmpeg) · render (@remotion/renderer)
 ```
 
-- **Nodes never generate Remotion code.** They produce artifacts (files) and compile to a `TimelineSpec`; one fixed composition, `DemoTimeline`, renders any spec by looking components up in a registry. The editor's `<Player>` and the worker's `renderMedia()` use the same composition, so **preview = render**.
-- **Browser nodes form a chain** (session in → session out). The Record/Still node closes it and the engine replays the whole chain in one continuous take, with programatic-demo's eased cursor glide, click log, clapperboard sync and camera track.
-- **Caching:** every node is hashed (`type + params + upstream hashes + engine version`); executed nodes cache under `.demoflow/cache/<hash>`. Edit one headline and only that branch recompiles; captures re-run only when their chain changes.
+- **Nodes never generate Remotion code.** They produce files and compile to a `TimelineSpec`; one composition, `DemoTimeline`, renders any spec. The editor's `<Player>` and the export use the same composition, so the preview matches the export.
+- **Browser nodes form a chain** that the Record node replays in one continuous take. Timing comes from the recorded frames' own timestamps, so cursor moves, clicks and camera zooms line up with the picture.
+- **Caching:** every node is hashed from its type, settings and upstream hashes; results are cached in `.demoflow/cache/<hash>`, so only changed branches run again.
 
 ```
 src/
-├─ main/       Electron main: window, menus, IPC, demoflow-file:// + demoflow-app:// protocols, projects, secrets, workers
+├─ main/       Electron main: window, menus, IPC, protocols, projects, secrets, fonts, card stills, workers
 ├─ preload/    typed window.demoflow API
-├─ shared/     runtime-neutral (UI + worker + Remotion bundle)
-│  ├─ schema/      zod: Workflow v1, ActionLog, TimelineSpec, values, events
-│  ├─ nodes/       node definitions (ports, zod params, compile()) — 167 nodes
-│  ├─ elements/    element manifests (core + generated Remocn/snapcn/RemotionUI metadata)
-│  ├─ compile/     graph → values → TimelineSpec
-│  └─ templates/   project templates (incl. the §14 sample)
-├─ worker/     utilityProcess: engine/, executors/, capture/ (Playwright), media/ (FFmpeg), render/ (Remotion)
-├─ video/      Remotion root: DemoTimeline, registry, core elements, camera/ (programatic-demo), elements/ (Remocn, snapcn, RemotionUI)
-└─ renderer/   React UI: routes (TanStack Router, hash history), editor/, store/ (Zustand + zundo), components/ (shadcn + React Flow UI)
+├─ engine/     engine paths, installer and licence notices (headless shell + FFmpeg)
+├─ traces/     compressed, deduplicated Playwright trace store
+├─ shared/     runtime-neutral: schema, nodes, elements, fonts, compile, templates
+├─ worker/     utilityProcess: engine, executors, capture (Playwright), media (FFmpeg), render (Remotion)
+├─ video/      Remotion root: DemoTimeline, registry, core elements, fonts, camera, registry elements
+└─ renderer/   React UI: routes, editor, fonts, store, components (shadcn + React Flow UI)
 ```
 
-## Node catalogue
+Contributor rules (no code comments, kebab-case files, pinned Remotion and TypeScript versions, what must not regress) are in [AGENTS.md](./AGENTS.md).
 
-Browser (18) · Capture (Record, Still, Login once) · Camera (Auto zoom, Manual zoom, Pan, Follow cursor, Idle speed-up, Speed ramp, Crop, Device frame, Backdrop, Motion blur) · Cursor (style, ripple, keystroke chips, spotlight, highlight box) · Text & overlays (title card, kinetic headline, lower third, callout, tooltip pinned to element, callout arrow, captions) · Transitions (6 from `@remotion/transitions`, 14 Remocn, 5 RemotionUI, light leak) · Backgrounds · Effects · Elements (UI blocks, charts, scenes, device mockups) · Audio (music bed, SFX, mix) · Timeline (sequence, stack, trim, loop, delay, speed, duration fit, branch) · Media/FFmpeg (import, trim, concat, speed, reverse, scale/pad, convert, GIF, extract audio, loudnorm, thumbnail, faststart, probe) · Output (render with 16:9/1:1/4:5/9:16 variants and follow-the-action reframing, still presets, export Remotion project).
+## Not built yet
 
-Element nodes are generated from the registry: 109 curated Remocn/snapcn/RemotionUI components (`scripts/registry-ingest.list.ts`) plus 21 Demoflow core elements. Colour-preset duplicates of the same shader and components that duplicate each other across registries are left out on purpose.
-
-## Decisions taken
-
-- **Scaffold:** `create-electron-app` (Forge 8 + Vite 8), with the Remotion pieces of `remotion-dev/template-electron` ported in (prebuilt bundle, compositor staging, render) and rendering moved into a utilityProcess.
-- **UI:** shadcn with **Base UI** and the **nova** preset; React Flow UI registry components on the canvas; TanStack Router with **file-based routes** over hash history.
-- **Inspector:** a custom zod 4 → shadcn renderer (no form library), writing straight to the store.
-- **FFmpeg:** GPLv3 `ffmpeg` and `ffprobe` builds from the pinned ffmpeg-static GitHub release, shipped as separate executables in the engine folder (`resources/engine/ffmpeg` in the full edition) with their licence.
-- **Versions:** latest of everything; all `remotion`/`@remotion/*` pinned to the same exact version (4.0.535); TypeScript 6.0.3 until 7.1 (Remotion needs `typescript.sys`).
-
-## Not in this build
-
-Per the agreed scope (§14 + the full local §6 catalogue + M5 media nodes): TTS / transcription / music ducking (M4), installer signing, auto-update and the CI matrix (M6), and AI assist (M7) are not implemented. Captions are timed from a script (`Captions from script`), not transcribed.
+- Voice-over, transcription and AI assist (milestones M4 and M7 in PLAN.md).
+- Timeline and Mixer panels ([`plans/timeline-and-mixer.md`](./plans/timeline-and-mixer.md)).
+- Windows and macOS builds haven't been run outside CI yet; their icons, code signing and auto-update don't exist.
 
 ## Licences
 
 Demoflow is licensed under the [Apache License 2.0](./LICENSE).
 
-Third-party notices are in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md). Remotion is used under its free licence (individuals and companies of up to 3 people); whoever owns rendered output at a larger company needs a Remotion company licence. Some snapcn and RemotionUI elements load fonts through `@remotion/google-fonts` (network); everything else is local.
+**Remotion is not open source.** Demoflow renders videos with [Remotion](https://www.remotion.dev), which is free for individuals, non-profits and companies with up to 3 employees. Larger companies need a [Remotion company licence](https://www.remotion.dev/license) and must enter its key in **Settings → Video export licence**.
+
+Bundled and vendored third-party code, fonts, sounds, FFmpeg and the recording browser keep their own licences; see [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).

@@ -15,6 +15,12 @@ export type InstallProgress = (
 
 const ffmpegTarget = (platform: string, arch: string) => `${platform}-${arch}`;
 
+export function megabytes(got: number, total: number | null): string {
+  if (total && total < 1_000_000) return `${Math.ceil(total / 1000)} KB`;
+  const mb = (n: number) => Math.round(n / 1_000_000);
+  return total ? `${mb(got)} of ${mb(total)} MB` : `${mb(got)} MB`;
+}
+
 async function download(
   url: string,
   dest: string,
@@ -56,8 +62,8 @@ export async function installFfmpeg(
       (got, total) =>
         onProgress(
           "ffmpeg",
-          total ? (i + got / total) / files.length : null,
-          `Downloading the video tools (${i + 1} of ${files.length})…`,
+          total ? got / total : null,
+          `Downloading the video tools (${i + 1} of ${files.length}) · ${megabytes(got, total)}`,
         ),
       signal,
     );
@@ -79,11 +85,15 @@ export async function installHeadlessShell(dir: string, onProgress: InstallProgr
   try {
     await ensureBrowser({
       onBrowserDownload: () => {
-        onProgress("headless-shell", 0, "Downloading the recording browser…");
+        onProgress("headless-shell", 0, "Downloading the recording browser · starting");
         return {
           version: null,
           onProgress: (x) =>
-            onProgress("headless-shell", x.percent / 100, "Downloading the recording browser…"),
+            onProgress(
+              "headless-shell",
+              x.percent,
+              `Downloading the recording browser · ${megabytes(x.downloadedBytes, x.totalSizeInBytes)}`,
+            ),
         };
       },
     });
@@ -93,13 +103,30 @@ export async function installHeadlessShell(dir: string, onProgress: InstallProgr
   onProgress("headless-shell", 1, "Recording browser ready");
 }
 
+export function calmProgress(onProgress: InstallProgress): InstallProgress {
+  let step = "";
+  let shown = -1;
+  let lastAt = 0;
+  return (part, progress, message) => {
+    const current = `${part}|${message.split(" · ")[0]}`;
+    const percent = progress == null ? -1 : Math.floor(progress * 100);
+    const now = Date.now();
+    if (current === step && percent === shown && now - lastAt < 500) return;
+    step = current;
+    shown = percent;
+    lastAt = now;
+    onProgress(part, progress, message);
+  };
+}
+
 export async function installEngine(
   dir: string,
   onProgress: InstallProgress,
   signal?: AbortSignal,
 ) {
-  await installFfmpeg(dir, onProgress, signal);
-  await installHeadlessShell(dir, onProgress);
+  const report = calmProgress(onProgress);
+  await installFfmpeg(dir, report, signal);
+  await installHeadlessShell(dir, report);
 }
 
 export async function removeEngine(dir: string) {

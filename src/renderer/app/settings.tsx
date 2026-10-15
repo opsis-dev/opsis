@@ -196,13 +196,61 @@ export function Settings() {
             </Card>
           ) : null}
 
+          {settings ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Video export licence</CardTitle>
+                <CardDescription>
+                  Demoflow renders videos with Remotion, which has its own licence. It's free for
+                  individuals, non-profits and companies with up to 3 employees. Larger companies
+                  need a Remotion company licence and must enter its key here.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="remotion-key">Company licence key</FieldLabel>
+                    <Input
+                      id="remotion-key"
+                      type="password"
+                      autoComplete="off"
+                      placeholder="Leave empty to use the free licence"
+                      value={settings.render.licenseKey}
+                      onChange={(e) =>
+                        update({ ...settings, render: { licenseKey: e.target.value } })
+                      }
+                    />
+                    <FieldDescription>
+                      Read the terms at{" "}
+                      <a
+                        href="https://www.remotion.dev/license"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline underline-offset-2"
+                      >
+                        remotion.dev/license
+                      </a>
+                      ; company licences are at{" "}
+                      <a
+                        href="https://www.remotion.pro"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline underline-offset-2"
+                      >
+                        remotion.pro
+                      </a>
+                      .
+                    </FieldDescription>
+                  </Field>
+                </FieldGroup>
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader>
               <CardTitle>About</CardTitle>
-              <CardDescription>
-                Everything runs on this computer. Video export is free for individuals and teams of
-                up to 3; larger companies need a Remotion company licence.
-              </CardDescription>
+              <CardDescription>Everything runs on this computer.</CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">

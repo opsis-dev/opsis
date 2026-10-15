@@ -1,5 +1,7 @@
 import { chmod, copyFile, cp, mkdir, rm } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
+import os from "node:os";
 import path from "node:path";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerRpm } from "@electron-forge/maker-rpm";
@@ -11,13 +13,15 @@ import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { installFfmpeg, installHeadlessShell } from "./src/engine/install";
-import { engineStatus } from "./src/engine/paths";
+import { writeChromiumCredits } from "./src/engine/chromium-credits";
+import { enginePaths, engineStatus } from "./src/engine/paths";
 import { getCompositorPackage } from "./src/worker/render/compositor-package";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./src/worker/render/bundle";
 
 const require = createRequire(import.meta.url);
 const ROOT = import.meta.dirname;
 const ENGINE_DIR = path.join(ROOT, "resources", "engine");
+const CHROMIUM_CREDITS = path.join(ENGINE_DIR, "LICENSES.chromium.html");
 const EXPORT_SRC_DIR = path.join(ROOT, "resources", "export-src");
 const LEGAL_FILES = [path.join(ROOT, "LICENSE"), path.join(ROOT, "THIRD_PARTY_NOTICES.md")];
 const EDITION = process.env.DEMOFLOW_EDITION === "lite" ? "lite" : "full";
@@ -69,7 +73,7 @@ async function stageEngine(platform: string, arch: string): Promise<void> {
     throw new Error(
       `The engine is staged for the host only; package ${platform}/${arch} on a matching machine.`,
     );
-  if (engineStatus(ENGINE_DIR).complete) return;
+  if (engineStatus(ENGINE_DIR).complete && existsSync(CHROMIUM_CREDITS)) return;
   await rm(ENGINE_DIR, { recursive: true, force: true });
   const log = (part: string, progress: number | null, message: string) =>
     process.stdout.write(
@@ -77,7 +81,15 @@ async function stageEngine(platform: string, arch: string): Promise<void> {
     );
   await installFfmpeg(ENGINE_DIR, log);
   await installHeadlessShell(ENGINE_DIR, log);
-  process.stdout.write("\n");
+  process.stdout.write("\n[engine] Saving the recording browser's licences\n");
+  const credits = await writeChromiumCredits(
+    enginePaths(ENGINE_DIR).headlessShell,
+    CHROMIUM_CREDITS,
+    path.join(os.homedir(), ".cache", "demoflow-chromium-credits"),
+  );
+  process.stdout.write(
+    `[engine] Chromium ${credits.version}: ${credits.bytes} bytes of licences\n`,
+  );
 }
 
 async function stageExportSource(): Promise<void> {

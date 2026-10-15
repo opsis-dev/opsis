@@ -24,6 +24,10 @@ export type GlRenderer = "angle" | "swangle" | "egl" | "vulkan" | "swiftshader" 
 
 let devBundle: Promise<string> | null = null;
 
+export function remotionLicenseKey(env: WorkerEnv): string {
+  return env.settings.render?.licenseKey.trim() || "free-license";
+}
+
 export function binariesDirectory(env: WorkerEnv): string | null {
   if (!env.isPackaged) return null;
   return path.join(
@@ -98,7 +102,7 @@ export async function renderTimeline(opts: {
       crf: opts.codec === "prores" || opts.codec === "gif" ? undefined : opts.crf,
       scale: opts.scale,
       cancelSignal,
-      licenseKey: "free-license",
+      licenseKey: remotionLicenseKey(opts.env),
       onProgress: ({ progress }) => opts.onProgress(progress),
     });
   } finally {
@@ -141,7 +145,7 @@ export async function renderFrame(opts: {
       scale: opts.scale,
       jpegQuality: opts.jpegQuality,
       cancelSignal,
-      licenseKey: "free-license",
+      licenseKey: remotionLicenseKey(opts.env),
     });
   } finally {
     opts.signal.removeEventListener("abort", onAbort);

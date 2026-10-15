@@ -15,6 +15,11 @@ export const appSettingsSchema = z.object({
       autoOpen: z.boolean().default(true),
     })
     .default({ fps: 12, autoOpen: true }),
+  render: z
+    .object({
+      licenseKey: z.string().max(200).default(""),
+    })
+    .default({ licenseKey: "" }),
 });
 
 export type AppSettings = z.infer<typeof appSettingsSchema>;

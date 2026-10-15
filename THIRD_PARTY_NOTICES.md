@@ -116,6 +116,14 @@ Used under the Remotion licence (https://www.remotion.dev/docs/license).
 
 The FFmpeg binaries are GPLv3 builds from the pinned ffmpeg-static GitHub release, shipped as separate executables in the engine folder (resources/engine/ffmpeg in the full edition, or downloaded into the app's data folder by the lite edition) together with their licence file. Source: https://ffmpeg.org/download.html · builds: https://github.com/eugeneware/ffmpeg-static
 
+## Chrome Headless Shell (recording and export browser)
+
+The full edition bundles Google's Chrome Headless Shell from Chrome for Testing (Chromium, BSD-3-Clause, plus the licences of every library it includes) in `resources/engine`. Its complete licence notices are in `resources/engine/LICENSES.chromium.html`, saved at build time from the `chrome://credits` page of the full Chrome for Testing build of the exact same version. The lite edition doesn't include the browser; Settings downloads it from Google onto the user's computer. Source: https://chromium.googlesource.com/chromium/src · builds: https://googlechromelabs.github.io/chrome-for-testing/
+
+## Remotion
+
+Videos are rendered with Remotion (https://www.remotion.dev), which is not under an open-source licence: it is free for individuals, non-profits and for-profit organisations with up to 3 employees, and larger companies need a Remotion company licence (https://www.remotion.dev/license). Demoflow passes the key entered in Settings → Video export licence, or the free licence when it is empty. Remotion packages are installed from npm and keep their own `LICENSE.md`.
+
 ## React Flow UI — src/renderer/components/{base-node,labeled-handle,…}.tsx
 
 MIT, https://github.com/xyflow/xyflow
