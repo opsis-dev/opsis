@@ -12,7 +12,11 @@ export function buildMenu(getWindow: () => BrowserWindow | null): void {
     submenu: section.items.map((item): MenuItemConstructorOptions => {
       if (item.kind === "separator") return { type: "separator" };
       if (item.kind === "role")
-        return { label: item.label, role: item.role, accelerator: item.accelerator };
+        return {
+          label: item.label,
+          role: item.role === "toggleMaximize" ? "zoom" : item.role,
+          accelerator: item.accelerator,
+        };
       return {
         label: item.label,
         accelerator: item.accelerator,
@@ -62,6 +66,16 @@ export function runWindowRole(win: BrowserWindow, role: WindowRole): void {
       return;
     case "togglefullscreen":
       win.setFullScreen(!win.isFullScreen());
+      return;
+    case "minimize":
+      win.minimize();
+      return;
+    case "toggleMaximize":
+      if (win.isMaximized()) win.unmaximize();
+      else win.maximize();
+      return;
+    case "close":
+      win.close();
       return;
     case "quit":
       app.quit();

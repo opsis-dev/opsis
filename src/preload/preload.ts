@@ -1,5 +1,11 @@
 import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from "electron";
-import { IPC, type DemoflowApi, type EngineInstallEvent, type MenuCommand } from "../shared/ipc";
+import {
+  IPC,
+  type DemoflowApi,
+  type EngineInstallEvent,
+  type MenuCommand,
+  type WindowState,
+} from "../shared/ipc";
 import type { LiveMessage } from "../shared/live";
 import type { RunEvent } from "../shared/schema/events";
 
@@ -50,6 +56,15 @@ const api: DemoflowApi = {
   },
   readTrace: (dir, traceId) => ipcRenderer.invoke(IPC.readTrace, dir, traceId),
   listSecrets: (dir) => ipcRenderer.invoke(IPC.listSecrets, dir),
+  listFonts: () => ipcRenderer.invoke(IPC.listFonts),
+  inspectFontFiles: (paths) => ipcRenderer.invoke(IPC.inspectFontFiles, paths),
+  inspectInstalledFonts: (faces) => ipcRenderer.invoke(IPC.inspectInstalledFonts, faces),
+  addInspectedFonts: (token, families) =>
+    ipcRenderer.invoke(IPC.addInspectedFonts, token, families),
+  removeFont: (id) => ipcRenderer.invoke(IPC.removeFont, id),
+  fontCatalog: () => ipcRenderer.invoke(IPC.fontCatalog),
+  downloadFont: (id) => ipcRenderer.invoke(IPC.downloadFont, id),
+  useFontInProject: (dir, fontId) => ipcRenderer.invoke(IPC.useFontInProject, dir, fontId),
   clearCache: (dir) => ipcRenderer.invoke(IPC.clearCache, dir),
   onMenuCommand: (listener) => {
     menuListeners.add(listener);
@@ -59,7 +74,8 @@ const api: DemoflowApi = {
     for (const listener of menuListeners) listener(command);
   },
   windowRole: (role) => ipcRenderer.invoke(IPC.windowRole, role),
-  setTitleBarColors: (colors) => ipcRenderer.invoke(IPC.titleBarColors, colors),
+  getWindowState: () => ipcRenderer.invoke(IPC.getWindowState),
+  onWindowState: (listener) => subscribe<WindowState>(IPC.windowState, listener),
   setTitle: (title) => ipcRenderer.send(IPC.setTitle, title),
 };
 

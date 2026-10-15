@@ -5,12 +5,14 @@ import type { Artifact } from "@/shared/schema/values";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import { Progress } from "@/renderer/components/ui/progress";
+import { TextShimmer } from "@/renderer/components/ui/text-shimmer";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { cn } from "@/renderer/lib/utils";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
+import { AnimatedPercent } from "../app/motion";
 import { cancelRun } from "./run";
 
 const fileUrl = (rel: string) =>
@@ -77,9 +79,13 @@ export function RunPanel() {
       <ScrollArea className="h-full">
         <div className="flex flex-col p-2">
           <div className="flex items-center justify-between px-2 pb-2">
-            <span className="text-sm font-medium">
-              {running ? "Running…" : lastError ? "Last run failed" : "Nodes"}
-            </span>
+            {running ? (
+              <TextShimmer as="span" className="text-sm font-medium" duration={1.6}>
+                Running…
+              </TextShimmer>
+            ) : (
+              <span className="text-sm font-medium">{lastError ? "Last run failed" : "Nodes"}</span>
+            )}
             {running ? (
               <Button size="xs" variant="outline" onClick={() => void cancelRun()}>
                 <Square data-icon="inline-start" />
@@ -130,7 +136,13 @@ export function RunPanel() {
                   ) : null}
                 </div>
                 {status === "running" && progress[n.id] ? (
-                  <Progress value={Math.round(progress[n.id].value * 100)} />
+                  <div className="flex items-center gap-2">
+                    <Progress className="flex-1" value={Math.round(progress[n.id].value * 100)} />
+                    <AnimatedPercent
+                      className="text-muted-foreground w-10 text-right text-[11px]"
+                      value={progress[n.id].value * 100}
+                    />
+                  </div>
                 ) : null}
               </button>
             );

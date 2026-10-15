@@ -28,6 +28,18 @@ import { APP_SCHEME, registerProtocolHandlers, registerSchemes } from "./protoco
 import { readSettings, writeSettings } from "./settings";
 import { readTrace } from "../traces/store";
 import { listSecrets } from "./secrets";
+import {
+  addInspectedFonts,
+  copyFontToProject,
+  downloadOnlineFont,
+  fontCatalog,
+  fontsDir,
+  inspectFontFiles,
+  inspectInstalledFonts,
+  listLibrary,
+  removeLibraryFont,
+} from "./fonts";
+import type { FontInstalledFace, WindowState } from "../shared/ipc";
 import { activeRunId, cancelRun, environment, installEngine, isRunning, startRun } from "./workers";
 
 if (started) app.quit();
@@ -45,19 +57,15 @@ function createWindow(): void {
     height: 1000,
     minWidth: 1100,
     minHeight: 700,
-    backgroundColor: "#09090b",
+    backgroundColor: "#101013",
+    icon: app.isPackaged
+      ? path.join(process.resourcesPath, "icons", "512.png")
+      : path.join(app.getAppPath(), "brand", "icons", "512.png"),
     title: "Demoflow",
     show: false,
     ...(process.platform === "darwin"
       ? { titleBarStyle: "hiddenInset" as const, trafficLightPosition: { x: 16, y: 16 } }
-      : {
-          titleBarStyle: "hidden" as const,
-          titleBarOverlay: {
-            color: TITLE_BAR.color,
-            symbolColor: TITLE_BAR.symbolColor,
-            height: TITLE_BAR.height,
-          },
-        }),
+      : { frame: false }),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -66,6 +74,15 @@ function createWindow(): void {
     },
   });
   mainWindow.once("ready-to-show", () => mainWindow?.show());
+  for (const name of [
+    "maximize",
+    "unmaximize",
+    "enter-full-screen",
+    "leave-full-screen",
+    "focus",
+    "blur",
+  ] as const)
+    mainWindow.on(name as "maximize", () => sendWindowState());
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/.test(url)) void shell.openExternal(url);
     return { action: "deny" };
@@ -81,8 +98,6 @@ function assertTrustedSender(event: IpcMainInvokeEvent): void {
   if (!mainWindow || event.sender.id !== mainWindow.webContents.id)
     throw new Error("Blocked IPC call from an unknown renderer.");
 }
-
-const TITLE_BAR = { color: "#0a0a0a", symbolColor: "#fafafa", height: 48 };
 
 function handle<A extends unknown[], R>(channel: string, fn: (...args: A) => Promise<R> | R): void {
   ipcMain.handle(channel, async (event, ...args) => {
@@ -107,12 +122,56 @@ function emitRun(event: RunEvent, total: { count: number; done: number }) {
   } else if (event.type === "run:done") {
     mainWindow?.setProgressBar(-1);
     if (Notification.isSupported() && !mainWindow?.isFocused()) {
-      new Notification({
-        title: event.ok ? "Render finished" : event.cancelled ? "Run cancelled" : "Run failed",
-        body: event.ok ? `${event.outputs.length} file(s) in .demoflow/out` : (event.error ?? ""),
-      }).show();
+      const count = event.outputs.length;
+      notifyRunDone(
+        event.ok ? "Export finished" : event.cancelled ? "Run stopped" : "Run failed",
+        event.ok
+          ? count === 1
+            ? "Your video is ready."
+            : `${count} files are ready.`
+          : event.cancelled
+            ? "The run was stopped before it finished."
+            : (event.error ?? "Something went wrong."),
+      );
     }
   }
+}
+
+function windowState(): WindowState {
+  return {
+    maximized: mainWindow?.isMaximized() ?? false,
+    fullscreen: mainWindow?.isFullScreen() ?? false,
+    focused: mainWindow?.isFocused() ?? false,
+  };
+}
+
+function sendWindowState(): void {
+  if (mainWindow && !mainWindow.isDestroyed())
+    mainWindow.webContents.send(IPC.windowState, windowState());
+}
+
+let lastNotification: Notification | null = null;
+
+function focusMainWindow(): void {
+  if (!mainWindow) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+  if (process.platform === "darwin") app.focus({ steal: true });
+}
+
+function notifyRunDone(title: string, body: string): void {
+  lastNotification?.close();
+  const notification = new Notification({ title, body });
+  notification.on("click", () => {
+    focusMainWindow();
+    if (lastNotification === notification) lastNotification = null;
+  });
+  notification.on("close", () => {
+    if (lastNotification === notification) lastNotification = null;
+  });
+  lastNotification = notification;
+  notification.show();
 }
 
 function registerIpc(): void {
@@ -163,6 +222,20 @@ function registerIpc(): void {
   handle(IPC.setSettings, (settings: AppSettings) => writeSettings(settings));
   handle(IPC.readTrace, (dir: string, traceId: string) => readTrace(dir, traceId));
   handle(IPC.listSecrets, (dir: string) => listSecrets(dir));
+  handle(IPC.listFonts, () => listLibrary());
+  handle(IPC.inspectFontFiles, (paths?: string[]) => inspectFontFiles(mainWindow, paths));
+  handle(IPC.inspectInstalledFonts, (faces: FontInstalledFace[]) => inspectInstalledFonts(faces));
+  handle(IPC.addInspectedFonts, (token: string, families: string[]) =>
+    addInspectedFonts(token, families),
+  );
+  handle(IPC.removeFont, (id: string) => removeLibraryFont(id));
+  handle(IPC.fontCatalog, () => fontCatalog());
+  handle(IPC.downloadFont, (id: string) => downloadOnlineFont(id));
+  handle(IPC.useFontInProject, async (dir: string, fontId: string) => {
+    const def = (await listLibrary()).find((f) => f.id === fontId);
+    if (!def) throw new Error("That font isn't in your library any more.");
+    return copyFontToProject(dir, def);
+  });
   handle(IPC.clearCache, (dir: string) => clearCache(dir));
   ipcMain.on(IPC.setTitle, (event, title: string) => {
     if (mainWindow && event.sender.id === mainWindow.webContents.id) mainWindow.setTitle(title);
@@ -170,16 +243,15 @@ function registerIpc(): void {
   handle(IPC.windowRole, (role: WindowRole) => {
     if (mainWindow) runWindowRole(mainWindow, role);
   });
-  handle(IPC.titleBarColors, (colors: { color: string; symbolColor: string }) => {
-    if (!mainWindow || process.platform === "darwin") return;
-    const valid = (c: string) => /^#[0-9a-f]{6}$/i.test(c);
-    if (!valid(colors.color) || !valid(colors.symbolColor)) return;
-    mainWindow.setTitleBarOverlay({ ...colors, height: TITLE_BAR.height });
-  });
+  handle(IPC.getWindowState, () => windowState());
 }
 
 app.whenReady().then(() => {
-  registerProtocolHandlers({ getProjectDir: () => projectDir, rendererDir: rendererDir() });
+  registerProtocolHandlers({
+    getProjectDir: () => projectDir,
+    getFontsDir: fontsDir,
+    rendererDir: rendererDir(),
+  });
   registerIpc();
   buildMenu(() => mainWindow);
   createWindow();

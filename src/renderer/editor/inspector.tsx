@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { downstreamOf, sessionChain, upstreamOf } from "@/shared/graph";
 import { CATEGORY_LABELS } from "@/shared/nodes/define";
 import { getNodeDef } from "@/shared/nodes/registry";
+import { hasWidget } from "@/shared/elements/introspect";
 import type { RecordingValue } from "@/shared/schema/values";
 import type { Workflow } from "@/shared/schema/workflow";
 import { PROJECT_NAME_VAR, workflowVars } from "@/shared/compile/compile";
@@ -43,6 +44,8 @@ import { CATEGORY_COLORS } from "./ports";
 import { startRun } from "./run";
 import { useCompiledContext } from "./use-compiled";
 import { ZodForm, type FormContext, type SpotBackground } from "./zod-form";
+import { FontPicker } from "../fonts/font-picker";
+import { SwapFade } from "../app/motion";
 
 const SITE_VAR = "Site address";
 
@@ -92,7 +95,9 @@ export function Inspector() {
   const node = selected.length === 1 ? workflow.nodes.find((n) => n.id === selected[0]) : undefined;
   return (
     <ScrollArea className="h-full">
-      {node ? <NodeInspector nodeId={node.id} /> : <ProjectInspector multi={selected.length} />}
+      <SwapFade id={node?.id ?? "project"}>
+        {node ? <NodeInspector nodeId={node.id} /> : <ProjectInspector multi={selected.length} />}
+      </SwapFade>
     </ScrollArea>
   );
 }
@@ -128,7 +133,10 @@ function NodeInspector({ nodeId }: { nodeId: string }) {
     vars: variableList(workflow),
     secrets,
     layers: Math.max(1, layers),
-    spotBackground: def.category === "Camera" ? spotBackground(workflow, nodeId, results) : null,
+    spotBackground:
+      def.category === "Camera" || hasWidget(def.params, "boxes")
+        ? spotBackground(workflow, nodeId, results)
+        : null,
     pickTarget: async (key) => {
       const url = pickerUrl(workflow, nodeId);
       if (!url) {
@@ -390,6 +398,39 @@ function ProjectInspector({ multi }: { multi: number }) {
           />
         </Field>
       </FieldGroup>
+      <FieldSet>
+        <FieldLegend variant="label">Fonts</FieldLegend>
+        <FieldDescription>
+          Every text in the video follows these unless a node picks its own font.
+        </FieldDescription>
+        <FieldGroup className="gap-3">
+          {(
+            [
+              ["main", "Text", undefined],
+              ["heading", "Headings", "Same as text"],
+              ["code", "Code", undefined],
+            ] as const
+          ).map(([role, label, empty]) => (
+            <Field key={role}>
+              <FieldLabel htmlFor={`wf-font-${role}`}>{label}</FieldLabel>
+              <FontPicker
+                id={`wf-font-${role}`}
+                value={s.fonts[role]}
+                emptyLabel={empty}
+                onChange={(family) => {
+                  const latest = useWorkflowStore.getState().workflow?.settings.fonts ?? s.fonts;
+                  setSettings({
+                    fonts: {
+                      ...latest,
+                      [role]: family || (role === "heading" ? "" : latest[role]),
+                    },
+                  });
+                }}
+              />
+            </Field>
+          ))}
+        </FieldGroup>
+      </FieldSet>
 
       <FieldSet>
         <FieldLegend variant="label">Variables</FieldLegend>

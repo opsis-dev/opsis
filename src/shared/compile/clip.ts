@@ -189,6 +189,7 @@ export function clipToSpec(clip: ClipValue, settings: WorkflowSettings): Timelin
     background: settings.background ?? (settings.theme === "light" ? "#fafafa" : "#09090b"),
     tracks: clip.tracks,
     audio: clip.audio,
+    fonts: settings.fonts,
   };
 }
 

@@ -10,8 +10,8 @@ export const FILE_SCHEME = "demoflow-file";
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' data: https://fonts.gstatic.com demoflow-file:",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self' data: demoflow-file:",
   "img-src 'self' data: blob: demoflow-file:",
   "media-src 'self' blob: demoflow-file:",
   "connect-src 'self' demoflow-file: blob: data:",
@@ -85,11 +85,17 @@ const inside = (root: string, file: string) => file === root || file.startsWith(
 
 export function registerProtocolHandlers(opts: {
   getProjectDir: () => string | null;
+  getFontsDir: () => string;
   rendererDir: string;
 }): void {
   protocol.handle(FILE_SCHEME, (request) => {
     const url = new URL(request.url);
-    const root = url.hostname === "project" ? opts.getProjectDir() : null;
+    const root =
+      url.hostname === "project"
+        ? opts.getProjectDir()
+        : url.hostname === "fonts"
+          ? opts.getFontsDir()
+          : null;
     if (!root) return new Response("No project open", { status: 404 });
     const file = path.resolve(root, decodeURIComponent(url.pathname).replace(/^\/+/, ""));
     if (!inside(path.resolve(root), file)) return new Response("Forbidden", { status: 403 });

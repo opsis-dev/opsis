@@ -1,19 +1,27 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useUiStore } from "../store/ui";
 import { PageBar } from "./app-bar";
-import { Clapperboard, FolderOpen, Plus, Settings } from "lucide-react";
+import { Stagger, StaggerItem } from "./motion";
+import {
+  Columns2,
+  Download,
+  File,
+  FolderOpen,
+  ListChecks,
+  Map as MapIcon,
+  Plus,
+  Rocket,
+  ScrollText,
+  Settings,
+  Smartphone,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { RecentProject } from "@/shared/ipc";
+import { acceleratorLabel } from "@/shared/menu";
 import { TEMPLATES } from "@/shared/templates";
 import { Button } from "@/renderer/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/renderer/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -22,16 +30,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/renderer/components/ui/dialog";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/renderer/components/ui/empty";
 import { Field, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
+import { Kbd } from "@/renderer/components/ui/kbd";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 
 export function Projects() {
@@ -40,9 +41,11 @@ export function Projects() {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("My launch video");
   const [template, setTemplate] = useState("todomvc");
+  const [engineMissing, setEngineMissing] = useState(false);
 
   useEffect(() => {
     void window.demoflow.listRecentProjects().then(setRecent);
+    void window.demoflow.getEnvironment().then((env) => setEngineMissing(!env.engine.complete));
     window.demoflow.setTitle("Demoflow");
     const pending = useUiStore.getState().pendingProjectAction;
     useUiStore.getState().setPendingProjectAction(null);
@@ -79,79 +82,134 @@ export function Projects() {
     }
   }
 
+  const startTemplate = (id: string) => {
+    setTemplate(id);
+    setCreating(true);
+  };
+  const platform = window.demoflow.platform;
+  const actions: Array<{
+    icon: typeof Plus;
+    label: string;
+    keys: string;
+    run: () => void;
+  }> = [
+    { icon: Plus, label: "New project…", keys: "CmdOrCtrl+N", run: () => setCreating(true) },
+    { icon: FolderOpen, label: "Open project…", keys: "CmdOrCtrl+O", run: () => void open() },
+    {
+      icon: Settings,
+      label: "Settings",
+      keys: "CmdOrCtrl+,",
+      run: () => void navigate({ to: "/settings" }),
+    },
+  ];
+
   return (
     <div className="flex h-screen flex-col">
       <PageBar title="" />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex min-h-full max-w-5xl flex-col gap-8 px-8 py-10">
-          <header className="flex items-center gap-3">
-            <span className="bg-primary text-primary-foreground grid size-10 place-items-center rounded-xl">
-              <Clapperboard />
-            </span>
-            <div className="flex-1">
-              <h1 className="text-2xl font-semibold tracking-tight">Demoflow</h1>
-              <p className="text-muted-foreground text-sm">
-                Record a real flow. Turn it into a cinematic product demo.
-              </p>
+        <div className="flex min-h-full items-center justify-center px-10 py-14">
+          <div className="grid w-full max-w-5xl grid-cols-1 gap-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+            <div className="flex min-w-0 flex-col gap-10">
+              <section className="flex flex-col gap-1">
+                <h2 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+                  Start
+                </h2>
+                {actions.map((a) => (
+                  <button
+                    key={a.label}
+                    type="button"
+                    onClick={a.run}
+                    className="group hover:bg-accent -mx-2 flex items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm"
+                  >
+                    <a.icon className="text-muted-foreground group-hover:text-foreground size-4" />
+                    <span className="flex-1">{a.label}</span>
+                    <Kbd>{acceleratorLabel(a.keys, platform)}</Kbd>
+                  </button>
+                ))}
+              </section>
+
+              <section className="flex min-w-0 flex-col gap-1">
+                <h2 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+                  Recent
+                </h2>
+                {recent.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    No projects yet. Start from a template to see a recording turn into a video.
+                  </p>
+                ) : (
+                  <Stagger className="flex flex-col">
+                    {recent.slice(0, 10).map((p) => (
+                      <StaggerItem key={p.dir}>
+                        <button
+                          type="button"
+                          onClick={() => void open(p.dir)}
+                          title={p.dir}
+                          className="hover:bg-accent -mx-2 flex w-full min-w-0 items-baseline gap-3 rounded-md px-2 py-1.5 text-left text-sm"
+                        >
+                          <span className="shrink-0 font-medium">{p.name}</span>
+                          <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs [direction:rtl]">
+                            <span dir="ltr">{p.dir}</span>
+                          </span>
+                          <span className="text-muted-foreground shrink-0 text-xs">
+                            {timeAgo(p.openedAt)}
+                          </span>
+                        </button>
+                      </StaggerItem>
+                    ))}
+                  </Stagger>
+                )}
+              </section>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Settings"
-              onClick={() => void navigate({ to: "/settings" })}
-            >
-              <Settings />
-            </Button>
-            <Button variant="outline" onClick={() => void open()}>
-              <FolderOpen data-icon="inline-start" />
-              Open…
-            </Button>
-            <Button onClick={() => setCreating(true)}>
-              <Plus data-icon="inline-start" />
-              New project
-            </Button>
-          </header>
 
-          {recent.length === 0 ? (
-            <Empty className="border">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Clapperboard />
-                </EmptyMedia>
-                <EmptyTitle>No projects yet</EmptyTitle>
-                <EmptyDescription>
-                  Start from the TodoMVC sample to see a recording turn into a finished video.
-                </EmptyDescription>
-              </EmptyHeader>
-              <EmptyContent>
-                <Button onClick={() => setCreating(true)}>
-                  <Plus data-icon="inline-start" />
-                  New project
-                </Button>
-              </EmptyContent>
-            </Empty>
-          ) : (
-            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {recent.map((p) => (
-                <Card
-                  key={p.dir}
-                  className="hover:border-primary/60 cursor-pointer transition-colors"
-                  onClick={() => void open(p.dir)}
-                >
-                  <CardHeader>
-                    <CardTitle className="truncate">{p.name}</CardTitle>
-                    <CardDescription className="truncate font-mono text-xs">
-                      {p.dir}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardFooter className="text-muted-foreground text-xs">
-                    Opened {new Date(p.openedAt).toLocaleString()}
-                  </CardFooter>
-                </Card>
-              ))}
-            </section>
-          )}
-
+            <div className="flex min-w-0 flex-col gap-10">
+              {engineMissing ? (
+                <Alert>
+                  <Download />
+                  <AlertTitle>Set up the recording engine</AlertTitle>
+                  <AlertDescription className="flex flex-col items-start gap-2">
+                    <span>
+                      Editing and preview work now. Recording and exporting need the engine.
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void navigate({ to: "/settings" })}
+                    >
+                      Open Settings
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+              <section className="flex flex-col gap-1">
+                <h2 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+                  Start from a template
+                </h2>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {TEMPLATES.map((t) => {
+                    const Icon = TEMPLATE_ICONS[t.id] ?? File;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => startTemplate(t.id)}
+                        className="group bg-card hover:bg-accent flex items-start gap-3 rounded-lg border p-3 text-left transition-colors"
+                      >
+                        <span className="bg-muted text-muted-foreground group-hover:text-foreground grid size-8 shrink-0 place-items-center rounded-md">
+                          <Icon className="size-4" />
+                        </span>
+                        <span className="flex min-w-0 flex-col gap-0.5">
+                          <span className="text-sm font-medium">{t.title}</span>
+                          <span className="text-muted-foreground line-clamp-2 text-xs">
+                            {t.description}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
+          </div>
           <Dialog open={creating} onOpenChange={setCreating}>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
@@ -208,4 +266,31 @@ export function Projects() {
       </div>
     </div>
   );
+}
+
+const TEMPLATE_ICONS: Record<string, typeof File> = {
+  blank: File,
+  todomvc: ListChecks,
+  "feature-launch": Rocket,
+  changelog: ScrollText,
+  onboarding: MapIcon,
+  "social-teaser": Smartphone,
+  "before-after": Columns2,
+};
+
+const RELATIVE = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+
+function timeAgo(at: number | string): string {
+  const seconds = (new Date(at).getTime() - Date.now()) / 1000;
+  const steps: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+    ["year", 31_536_000],
+    ["month", 2_592_000],
+    ["week", 604_800],
+    ["day", 86_400],
+    ["hour", 3_600],
+    ["minute", 60],
+  ];
+  for (const [unit, size] of steps)
+    if (Math.abs(seconds) >= size) return RELATIVE.format(Math.round(seconds / size), unit);
+  return "just now";
 }

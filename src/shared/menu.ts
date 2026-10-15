@@ -11,6 +11,9 @@ export type WindowRole =
   | "zoomIn"
   | "zoomOut"
   | "togglefullscreen"
+  | "minimize"
+  | "toggleMaximize"
+  | "close"
   | "quit";
 
 export type MenuEntry =

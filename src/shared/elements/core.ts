@@ -12,6 +12,12 @@ const text = (def: string, description: string, widget?: "textarea") =>
 const num = (def: number, min: number, max: number, description: string, step = 1) =>
   z.number().min(min).max(max).default(def).meta({ description, step });
 const color = (def: string, description: string) => zColor().default(def).meta({ description });
+const font = () =>
+  z.string().default("").meta({
+    description: "Font",
+    widget: "font",
+    help: "Project font follows the fonts set for the whole project.",
+  });
 const asset = (description: string, accept: string) =>
   z.string().default("").meta({ description, widget: "asset", accept });
 
@@ -39,6 +45,7 @@ const defs: ElementMetaInput[] = [
         .default("transparent")
         .meta({ description: "Background (color, gradient or 'transparent')" }),
       fontSize: num(112, 24, 260, "Font size"),
+      fontFamily: font(),
     }),
     fixedProps: {},
     defaultDurationInFrames: 75,
@@ -60,6 +67,7 @@ const defs: ElementMetaInput[] = [
       background: z.string().default("transparent").meta({ description: "Background" }),
       fontSize: num(104, 24, 240, "Font size"),
       wordStagger: num(4, 1, 20, "Frames between words"),
+      fontFamily: font(),
     }),
     fixedProps: {},
     defaultDurationInFrames: 90,
@@ -81,6 +89,7 @@ const defs: ElementMetaInput[] = [
       accent: color("#a78bfa", "Accent"),
       color: color("#fafafa", "Text color"),
       panel: color("rgba(10,10,12,0.72)", "Panel color"),
+      fontFamily: font(),
     }),
     fixedProps: {},
     defaultDurationInFrames: 120,
@@ -102,6 +111,7 @@ const defs: ElementMetaInput[] = [
         .meta({ description: "Label side" }),
       color: color("#fafafa", "Label color"),
       accent: color("#f43f5e", "Arrow color"),
+      fontFamily: font(),
     }),
     fixedProps: {},
     defaultDurationInFrames: 75,
@@ -125,6 +135,7 @@ const defs: ElementMetaInput[] = [
       fontSize: num(56, 16, 140, "Font size"),
       color: color("#ffffff", "Text color"),
       highlightColor: color("#facc15", "Highlight color"),
+      fontFamily: font(),
     }),
     fixedProps: {},
     defaultDurationInFrames: 150,
@@ -141,6 +152,58 @@ const defs: ElementMetaInput[] = [
       fit: z.enum(["contain", "cover", "fill"]).default("contain").meta({ description: "Fit" }),
       background: z.string().default("transparent").meta({ description: "Background" }),
       kenBurns: z.boolean().default(false).meta({ description: "Slow push-in" }),
+    }),
+    fixedProps: {},
+    defaultDurationInFrames: 90,
+  },
+  {
+    key: "core/mosaic",
+    title: "Mosaic",
+    description:
+      "Covers parts of the screen with coarse blocks, to hide keys, emails and personal details.",
+    category: "effect",
+    kind: "wrapper",
+    source,
+    schema: z.object({
+      boxes: z
+        .array(
+          z.object({
+            x: z.number().min(0).max(1),
+            y: z.number().min(0).max(1),
+            width: z.number().min(0).max(1),
+            height: z.number().min(0).max(1),
+          }),
+        )
+        .max(8)
+        .default([{ x: 0.62, y: 0.06, width: 0.3, height: 0.08 }])
+        .meta({
+          description: "Areas to cover",
+          widget: "boxes",
+          help: "Drag on the picture to add an area. The areas stay in place on screen; they don't follow the camera.",
+        }),
+      blockSize: num(24, 6, 72, "Block size", 2),
+    }),
+    fixedProps: {},
+    defaultDurationInFrames: 90,
+  },
+  {
+    key: "core/lottie",
+    title: "Lottie animation",
+    description:
+      "Plays an animation made in After Effects or downloaded from LottieFiles (.json or .lottie).",
+    category: "overlay",
+    kind: "component",
+    source,
+    schema: z.object({
+      src: asset("Animation file", ".json,.lottie"),
+      loop: z.boolean().default(true).meta({ description: "Loop" }),
+      speed: num(1, 0.25, 4, "Speed", 0.25),
+      backwards: z.boolean().default(false).meta({ description: "Play backwards" }),
+      fit: z
+        .enum(["contain", "cover"])
+        .default("contain")
+        .meta({ description: "Fit", labels: { contain: "Show all", cover: "Fill the frame" } }),
+      background: z.string().default("transparent").meta({ description: "Background" }),
     }),
     fixedProps: {},
     defaultDurationInFrames: 90,

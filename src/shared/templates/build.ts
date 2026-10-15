@@ -1,6 +1,7 @@
 import { defaultParams, getNodeDef, normalizeNode } from "../nodes/registry";
 import { CARD_WIDTH, estimateCardHeight } from "../nodes/size";
 import type { Workflow, WorkflowEdge, WorkflowNode, WorkflowSettings } from "../schema/workflow";
+import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 
 const GAP = 32;
 
@@ -80,7 +81,14 @@ export class GraphBuilder {
       version: 1,
       id: meta.id,
       name: meta.name,
-      settings: { width: 1920, height: 1080, fps: 30, theme: "dark", ...meta.settings },
+      settings: {
+        width: 1920,
+        height: 1080,
+        fps: 30,
+        theme: "dark",
+        fonts: DEFAULT_PROJECT_FONTS,
+        ...meta.settings,
+      },
       variables: meta.variables ?? {},
       nodes: this.nodes,
       edges: this.edges,

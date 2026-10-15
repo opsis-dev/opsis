@@ -32,6 +32,7 @@ import {
 import { Separator } from "@/renderer/components/ui/separator";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
+import { TextShimmer } from "@/renderer/components/ui/text-shimmer";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { useRunStore } from "../store/run";
@@ -229,9 +230,11 @@ function TopBar() {
       </Button>
       {running ? (
         <>
-          <span className="text-muted-foreground flex items-center gap-1.5 text-sm">
-            <Spinner />
-            Running
+          <span className="flex items-center gap-1.5 text-sm">
+            <Spinner className="text-muted-foreground" />
+            <TextShimmer as="span" duration={1.6}>
+              Running
+            </TextShimmer>
           </span>
           <Button size="sm" variant="outline" onClick={() => void cancelRun()}>
             <Square data-icon="inline-start" />
@@ -367,6 +370,7 @@ export function Editor() {
           >
             <ResizablePanel
               id="left"
+              className="bg-sidebar"
               style={{ overflow: "hidden" }}
               panelRef={panelRef("left")}
               defaultSize="17%"
@@ -394,6 +398,7 @@ export function Editor() {
                 <ResizableHandle />
                 <ResizablePanel
                   id="bottom"
+                  className="bg-sidebar"
                   style={{ overflow: "hidden" }}
                   panelRef={panelRef("bottom")}
                   defaultSize="40%"
@@ -409,6 +414,7 @@ export function Editor() {
             <ResizableHandle />
             <ResizablePanel
               id="right"
+              className="bg-sidebar"
               panelRef={panelRef("right")}
               defaultSize="24%"
               minSize="16%"

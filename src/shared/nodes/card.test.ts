@@ -3,8 +3,15 @@ import type { NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { elementName, secs, sentence, shortUrl } from "./card";
 import { defaultParams, getNodeDef, NODE_DEFS, normalizeNode, normalizeWorkflow } from "./registry";
+import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 
-const settings: WorkflowSettings = { width: 1920, height: 1080, fps: 30, theme: "dark" };
+const settings: WorkflowSettings = {
+  width: 1920,
+  height: 1080,
+  fps: 30,
+  theme: "dark",
+  fonts: DEFAULT_PROJECT_FONTS,
+};
 
 function rows(type: string, params: Record<string, unknown>, extra: Record<string, unknown> = {}) {
   const def = getNodeDef(type)!;
@@ -164,7 +171,7 @@ describe("node names", () => {
       version: 1,
       id: "w",
       name: "w",
-      settings: { width: 1920, height: 1080, fps: 30, theme: "dark" },
+      settings: { width: 1920, height: 1080, fps: 30, theme: "dark", fonts: DEFAULT_PROJECT_FONTS },
       variables: { BASE_URL: "https://x.test", Custom: "1" },
       nodes: [
         {

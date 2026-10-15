@@ -15,6 +15,7 @@ import {
 } from "@/renderer/components/ui/card";
 import { Progress } from "@/renderer/components/ui/progress";
 import { Spinner } from "@/renderer/components/ui/spinner";
+import { AnimatedPercent } from "./motion";
 
 export const SETUP_SKIPPED_KEY = "demoflow:setup-skipped";
 
@@ -67,7 +68,15 @@ export function EnginePanel({ onDone }: { onDone?: () => void }) {
       </CardHeader>
       {busy || event?.error ? (
         <CardContent className="flex flex-col gap-2">
-          {event?.progress != null ? <Progress value={Math.round(event.progress * 100)} /> : null}
+          {event?.progress != null ? (
+            <div className="flex items-center gap-2">
+              <Progress className="flex-1" value={Math.round(event.progress * 100)} />
+              <AnimatedPercent
+                className="text-muted-foreground w-10 text-right text-xs"
+                value={event.progress * 100}
+              />
+            </div>
+          ) : null}
           <p
             className={event?.error ? "text-destructive text-xs" : "text-muted-foreground text-xs"}
           >

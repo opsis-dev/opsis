@@ -5,6 +5,7 @@ import type { CaptionsValue } from "../schema/values";
 import { clip as clipText, quote, row } from "./card";
 import { defineNode, opt, port } from "./define";
 import { ms, text } from "./params";
+import { fontStack } from "../fonts";
 
 export const captionsFromTextNode = defineNode({
   type: "text.captionsFromText",
@@ -80,7 +81,13 @@ export const captionsNode = defineNode({
     const layer = itemClip(
       nodeId,
       "core/captions",
-      { ...params, captions: caps.captions },
+      {
+        ...params,
+        fontFamily: params.fontFamily
+          ? fontStack(String(params.fontFamily), { families: [] })
+          : undefined,
+        captions: caps.captions,
+      },
       msToFrames(end + 500, settings.fps),
     );
     return {

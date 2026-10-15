@@ -11,7 +11,9 @@ import {
   Starburst,
   StudioBackdrop,
 } from "../core/backgrounds";
+import { LottieElement } from "../core/lottie";
 import { ImageElement, StillElement, VideoElement, VideoLoop } from "../core/media";
+import { Mosaic } from "../core/mosaic";
 import { Placeholder } from "../core/placeholder";
 import { RecordingClip } from "../core/recording-clip";
 import { Callout, Captions, KineticHeadline, LowerThird, Title } from "../core/text";
@@ -34,6 +36,8 @@ const core: Record<string, AnyComponent> = {
   "core/callout": Callout,
   "core/captions": Captions,
   "core/image": ImageElement,
+  "core/lottie": LottieElement,
+  "core/mosaic": Mosaic,
   "core/video": VideoElement,
   "core/video-loop": VideoLoop,
   "core/solid": Solid,

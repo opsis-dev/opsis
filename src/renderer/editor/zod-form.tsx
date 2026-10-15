@@ -4,14 +4,17 @@ import {
   ChevronRight,
   Crosshair,
   FolderOpen,
+  Play,
   Plus,
   Trash2,
+  X,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import type { z } from "zod";
 import { fieldMeta, unwrap, type FieldMeta } from "@/shared/elements/introspect";
 import { QUALITY_PRESETS } from "@/shared/nodes/params";
 import { transitionTitle } from "@/shared/nodes/transitions";
+import { BUILTIN_SOUNDS, builtinSound } from "@/shared/sounds";
 import { BACKDROPS } from "@/video/camera/lib/backdrop";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -57,6 +60,8 @@ import { Switch } from "@/renderer/components/ui/switch";
 import { Textarea } from "@/renderer/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { cn } from "@/renderer/lib/utils";
+import { FontPicker } from "../fonts/font-picker";
+import { fileUrl } from "./file-url";
 import { chordFromEvent } from "./keys";
 import { VarText, type VarInfo } from "./var-text";
 
@@ -160,7 +165,7 @@ export function ZodForm({
               </Button>
             }
           />
-          <CollapsibleContent>
+          <CollapsibleContent className="h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-200 ease-out data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0">
             <FieldGroup className="gap-4 pt-3">{render(advanced)}</FieldGroup>
           </CollapsibleContent>
         </Collapsible>
@@ -198,6 +203,8 @@ function FieldControl({
 
   if (isColor(schema))
     return <ColorField id={id} label={label} value={String(value ?? "")} onChange={onChange} />;
+  if (meta.widget === "boxes")
+    return <BoxesField label={label} value={value} onChange={onChange} ctx={ctx} meta={meta} />;
 
   switch (def.type) {
     case "boolean":
@@ -417,6 +424,26 @@ function StringField({
           </InputGroup>
           <Help meta={meta} />
         </Field>
+      );
+    case "font":
+      return (
+        <Field>
+          <FieldLabel htmlFor={id}>{label}</FieldLabel>
+          <FontPicker id={id} value={value} onChange={onChange} emptyLabel="Project font" />
+          <Help meta={meta} />
+        </Field>
+      );
+    case "sound":
+      return (
+        <SoundField
+          id={id}
+          name={name}
+          label={label}
+          value={value}
+          onChange={onChange}
+          meta={meta}
+          ctx={ctx}
+        />
       );
     case "target":
       return (
@@ -742,6 +769,81 @@ function EnumField({
   );
 }
 
+const OWN_FILE = "own-file";
+
+function soundUrl(ref: string): string {
+  if (ref.startsWith("app:")) return ref.slice("app:".length);
+  return fileUrl(ref);
+}
+
+function SoundField({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  meta,
+  ctx,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  meta: FieldMeta;
+  ctx: FormContext;
+}) {
+  const builtin = builtinSound(value);
+  const ownLabel = value && !builtin ? (value.split("/").pop() ?? value) : "Your own file…";
+  const items = [
+    ...BUILTIN_SOUNDS.map((s) => ({ value: s.ref as string, label: s.label })),
+    { value: OWN_FILE, label: ownLabel },
+  ];
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <div className="flex gap-2">
+        <Select
+          items={items}
+          value={builtin ? builtin.ref : value ? OWN_FILE : null}
+          onValueChange={(v) => {
+            if (v === OWN_FILE) ctx.chooseAsset?.(name, meta.accept);
+            else if (v != null) onChange(String(v));
+          }}
+        >
+          <SelectTrigger id={id} className="min-w-0 flex-1">
+            <SelectValue placeholder="Choose a sound" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {BUILTIN_SOUNDS.map((s) => (
+                <SelectItem key={s.id} value={s.ref}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+            <SelectGroup>
+              <SelectItem value={OWN_FILE} disabled={!ctx.projectDir}>
+                {ownLabel}
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Play sound"
+          disabled={!value}
+          onClick={() => void new Audio(soundUrl(value)).play().catch(() => undefined)}
+        >
+          <Play />
+        </Button>
+      </div>
+      <Help meta={meta} />
+    </Field>
+  );
+}
+
 function SecretField({
   id,
   label,
@@ -973,6 +1075,150 @@ function SpotField({
         />
       </div>
       <Help meta={meta} />
+    </Field>
+  );
+}
+
+type Box = { x: number; y: number; width: number; height: number };
+type BoxDrag = { mode: "new" | "move"; index: number; x: number; y: number; origin: Box };
+
+const MAX_BOXES = 8;
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const round3 = (v: number) => Math.round(v * 1000) / 1000;
+const boxFrom = (x0: number, y0: number, x1: number, y1: number): Box => ({
+  x: round3(Math.min(x0, x1)),
+  y: round3(Math.min(y0, y1)),
+  width: round3(Math.abs(x1 - x0)),
+  height: round3(Math.abs(y1 - y0)),
+});
+
+function BoxesField({
+  label,
+  value,
+  onChange,
+  ctx,
+  meta,
+}: {
+  label: string;
+  value: unknown;
+  onChange: (v: unknown) => void;
+  ctx: FormContext;
+  meta: FieldMeta;
+}) {
+  const boxes = Array.isArray(value) ? (value as Box[]) : [];
+  const area = useRef<HTMLDivElement>(null);
+  const drag = useRef<BoxDrag | null>(null);
+  const [draft, setDraft] = useState<{ mode: BoxDrag["mode"]; index: number; box: Box } | null>(
+    null,
+  );
+  const bg = ctx.spotBackground;
+  const src = useMemo(() => (bg ? `${bg.src}#t=${bg.timeMs / 1000}` : null), [bg]);
+
+  const point = (e: React.PointerEvent): [number, number] => {
+    const r = area.current?.getBoundingClientRect();
+    if (!r) return [0, 0];
+    return [clamp01((e.clientX - r.left) / r.width), clamp01((e.clientY - r.top) / r.height)];
+  };
+  const start = (e: React.PointerEvent, mode: BoxDrag["mode"], index: number) => {
+    const [x, y] = point(e);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const origin = mode === "move" ? boxes[index] : boxFrom(x, y, x, y);
+    drag.current = { mode, index, x, y, origin };
+    setDraft({ mode, index, box: origin });
+  };
+  const move = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d) return;
+    const [x, y] = point(e);
+    const box =
+      d.mode === "new"
+        ? boxFrom(d.x, d.y, x, y)
+        : {
+            ...d.origin,
+            x: round3(Math.min(1 - d.origin.width, Math.max(0, d.origin.x + x - d.x))),
+            y: round3(Math.min(1 - d.origin.height, Math.max(0, d.origin.y + y - d.y))),
+          };
+    setDraft({ mode: d.mode, index: d.index, box });
+  };
+  const end = () => {
+    const d = drag.current;
+    drag.current = null;
+    setDraft(null);
+    if (!d || !draft) return;
+    const box = draft.box;
+    if (d.mode === "move") onChange(boxes.map((b, i) => (i === d.index ? box : b)));
+    else if (box.width > 0.01 && box.height > 0.01) onChange([...boxes, box]);
+  };
+  const shown = boxes.map((b, i) => (draft?.mode === "move" && draft.index === i ? draft.box : b));
+  const full = boxes.length >= MAX_BOXES;
+
+  return (
+    <Field>
+      <FieldLabel>{label}</FieldLabel>
+      <div
+        ref={area}
+        className={cn(
+          "bg-muted relative w-full touch-none overflow-hidden rounded-md border select-none",
+          full ? "cursor-default" : "cursor-crosshair",
+        )}
+        style={{ aspectRatio: String(ctx.aspect) }}
+        onPointerDown={(e) => !full && start(e, "new", boxes.length)}
+        onPointerMove={move}
+        onPointerUp={end}
+        onPointerCancel={end}
+      >
+        {src ? (
+          <video
+            src={src}
+            muted
+            preload="auto"
+            className="pointer-events-none absolute inset-0 size-full object-cover"
+          />
+        ) : null}
+        {shown.map((b, i) => (
+          <div
+            key={i}
+            className="border-primary bg-primary/25 absolute cursor-move border-2"
+            style={{
+              left: `${b.x * 100}%`,
+              top: `${b.y * 100}%`,
+              width: `${b.width * 100}%`,
+              height: `${b.height * 100}%`,
+            }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              start(e, "move", i);
+            }}
+          >
+            <button
+              type="button"
+              aria-label={`Remove area ${i + 1}`}
+              className="bg-background text-foreground absolute -top-2 -right-2 grid size-4 place-items-center rounded-full border"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => onChange(boxes.filter((_, j) => j !== i))}
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        ))}
+        {draft?.mode === "new" ? (
+          <div
+            className="border-primary bg-primary/25 pointer-events-none absolute border-2 border-dashed"
+            style={{
+              left: `${draft.box.x * 100}%`,
+              top: `${draft.box.y * 100}%`,
+              width: `${draft.box.width * 100}%`,
+              height: `${draft.box.height * 100}%`,
+            }}
+          />
+        ) : null}
+      </div>
+      <FieldDescription>
+        {full
+          ? `Up to ${MAX_BOXES} areas. Remove one to add another.`
+          : `${boxes.length} of ${MAX_BOXES} areas.`}{" "}
+        {meta.help}
+      </FieldDescription>
     </Field>
   );
 }

@@ -60,6 +60,16 @@ export function assetKeys(schema: z.ZodObject): string[] {
     .map(([k]) => k);
 }
 
+export function widgetKeys(schema: z.ZodObject, widget: string): string[] {
+  return Object.entries(schema.shape)
+    .filter(([, s]) => fieldMeta(s as AnySchema).widget === widget)
+    .map(([k]) => k);
+}
+
+export function hasWidget(schema: z.ZodObject, widget: string): boolean {
+  return Object.values(schema.shape).some((s) => fieldMeta(s as AnySchema).widget === widget);
+}
+
 export function projectRef(path: string): string {
   if (!path) return path;
   if (/^(project:|app:|https?:|data:|blob:|demoflow-file:)/.test(path)) return path;

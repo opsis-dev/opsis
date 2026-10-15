@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { isClip, itemClip, wrapClip } from "../compile/clip";
 import { ELEMENTS, elementNodeType, type ElementCategory, type ElementMeta } from "../elements";
-import { assetKeys, projectRef } from "../elements/introspect";
+import { assetKeys, projectRef, widgetKeys } from "../elements/introspect";
+import { fontStack } from "../fonts";
 import { frameSecs, quote, row, sentence, type CardRow } from "./card";
 import { defineNode, port, type NodeCategory, type NodeDef } from "./define";
 
@@ -71,6 +72,11 @@ export function elementProps(
 ): Record<string, unknown> {
   const { clipDuration: _drop, ...rest } = params;
   const props: Record<string, unknown> = { ...meta.fixedProps, ...rest };
+  for (const key of widgetKeys(meta.schema, "font")) {
+    const name = typeof props[key] === "string" ? (props[key] as string).trim() : "";
+    if (name) props[key] = fontStack(name, { families: [] });
+    else delete props[key];
+  }
   for (const key of assetKeys(meta.schema)) {
     if (typeof props[key] === "string") props[key] = projectRef(props[key] as string);
   }

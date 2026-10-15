@@ -5,6 +5,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Toaster } from "@/renderer/components/ui/sonner";
 import { TooltipProvider } from "@/renderer/components/ui/tooltip";
+import { MotionProvider } from "./app/motion";
 import { routeTree } from "./routeTree.gen";
 
 const router = createRouter({ routeTree, history: createHashHistory(), defaultPreload: "intent" });
@@ -20,9 +21,11 @@ if (!container) throw new Error("Renderer root element missing.");
 
 createRoot(container).render(
   <StrictMode>
-    <TooltipProvider>
-      <RouterProvider router={router} />
-      <Toaster richColors position="bottom-right" theme="dark" />
-    </TooltipProvider>
+    <MotionProvider>
+      <TooltipProvider>
+        <RouterProvider router={router} />
+        <Toaster richColors position="bottom-right" theme="dark" />
+      </TooltipProvider>
+    </MotionProvider>
   </StrictMode>,
 );

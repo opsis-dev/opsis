@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_PROJECT_FONTS, projectFontsSchema } from "../fonts/types";
 
 export const PORT_TYPES = [
   "session",
@@ -20,6 +21,7 @@ export const workflowSettingsSchema = z.object({
   fps: z.union([z.literal(30), z.literal(60)]).default(30),
   background: z.string().optional(),
   theme: z.enum(["light", "dark"]).default("dark"),
+  fonts: projectFontsSchema.default(DEFAULT_PROJECT_FONTS),
 });
 export type WorkflowSettings = z.infer<typeof workflowSettingsSchema>;
 
@@ -48,7 +50,13 @@ export const workflowSchema = z.object({
   version: z.literal(1),
   id: z.string(),
   name: z.string(),
-  settings: workflowSettingsSchema.default({ width: 1920, height: 1080, fps: 30, theme: "dark" }),
+  settings: workflowSettingsSchema.default({
+    width: 1920,
+    height: 1080,
+    fps: 30,
+    theme: "dark",
+    fonts: DEFAULT_PROJECT_FONTS,
+  }),
   variables: z.record(z.string(), z.string()).default({}),
   nodes: z.array(workflowNodeSchema),
   edges: z.array(workflowEdgeSchema),

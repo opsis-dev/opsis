@@ -20,6 +20,7 @@ import { Switch } from "@/renderer/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { useRunStore } from "../store/run";
 import { useWorkflowStore } from "../store/workflow";
+import { FontsPanel } from "../fonts/fonts-panel";
 import { EnginePanel } from "./setup";
 
 const RETENTION: Array<[AppSettings["traces"]["retention"], string]> = [
@@ -82,6 +83,8 @@ export function Settings() {
           </header>
 
           <EnginePanel />
+
+          <FontsPanel />
 
           {settings ? (
             <Card>

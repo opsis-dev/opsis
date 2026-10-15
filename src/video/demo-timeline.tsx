@@ -1,4 +1,4 @@
-import React, { createElement } from "react";
+import React, { createElement, useMemo } from "react";
 import {
   AbsoluteFill,
   Freeze,
@@ -10,6 +10,7 @@ import {
 } from "remotion";
 import { Audio } from "@remotion/media";
 import { remapFrame, type GroupProps } from "../shared/compile/clip";
+import { duckGain, duckingSpans, type DuckUnder, type Span } from "../shared/compile/duck";
 import type {
   AudioItem,
   TimelineItem,
@@ -25,6 +26,7 @@ import {
   resolveProps,
   useAssetBase,
 } from "./assets";
+import { FontProvider } from "./fonts/font-provider";
 import { getComponent, getPresentation, isKnownElement, useElements } from "./registry";
 
 export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
@@ -32,10 +34,10 @@ export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
     <ReframeProvider value={spec.reframe ?? "follow"}>
       <QualityProvider value={spec.quality ?? "exact"}>
         <AbsoluteFill style={{ background: spec.background ?? "#000", overflow: "hidden" }}>
-          <Tracks tracks={spec.tracks} />
-          {(spec.audio ?? []).map((a) => (
-            <AudioLayer key={a.id} item={a} />
-          ))}
+          <FontProvider fonts={spec.fonts} tracks={spec.tracks}>
+            <Tracks tracks={spec.tracks} />
+          </FontProvider>
+          <AudioLayers spec={spec} />
         </AbsoluteFill>
       </QualityProvider>
     </ReframeProvider>
@@ -186,7 +188,29 @@ function activeTransition(
   return null;
 }
 
-const AudioLayer: React.FC<{ item: AudioItem }> = ({ item }) => {
+const NO_SPANS: Span[] = [];
+
+const AudioLayers: React.FC<{ spec: TimelineSpec }> = ({ spec }) => {
+  const spansByUnder = useMemo(() => {
+    const out = new Map<DuckUnder, Span[]>();
+    for (const a of spec.audio ?? [])
+      if (a.duck && !out.has(a.duck.under)) out.set(a.duck.under, duckingSpans(spec, a.duck.under));
+    return out;
+  }, [spec]);
+  return (
+    <>
+      {(spec.audio ?? []).map((a) => (
+        <AudioLayer
+          key={a.id}
+          item={a}
+          spans={(a.duck && spansByUnder.get(a.duck.under)) || NO_SPANS}
+        />
+      ))}
+    </>
+  );
+};
+
+const AudioLayer: React.FC<{ item: AudioItem; spans: Span[] }> = ({ item, spans }) => {
   const base = useAssetBase();
   const { durationInFrames: total } = useVideoConfig();
   const duration = item.durationInFrames ?? Math.max(1, total - item.from);
@@ -206,7 +230,10 @@ const AudioLayer: React.FC<{ item: AudioItem }> = ({ item }) => {
           const outV = fadeOut
             ? interpolate(f, [duration - fadeOut, duration], [1, 0], { extrapolateLeft: "clamp" })
             : 1;
-          return baseVolume * Math.min(inV, outV);
+          const duck = item.duck
+            ? duckGain(item.from + f, spans, item.duck.level, item.duck.fadeFrames)
+            : 1;
+          return baseVolume * Math.min(inV, outV) * duck;
         }}
       />
     </Sequence>

@@ -1,6 +1,14 @@
-import { Menu } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
-import { acceleratorLabel, appMenu, matchesAccelerator, type MenuEntry } from "@/shared/menu";
+import { Copy, Menu, Minus, Square, X } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import type { WindowState } from "@/shared/ipc";
+import logoUrl from "../../../brand/logo.svg";
+import {
+  acceleratorLabel,
+  appMenu,
+  matchesAccelerator,
+  type MenuEntry,
+  type WindowRole,
+} from "@/shared/menu";
 import { Button } from "@/renderer/components/ui/button";
 import {
   DropdownMenu,
@@ -156,56 +164,96 @@ export function useMenuShortcuts(): void {
   }, []);
 }
 
-function hexOf(color: string): string | null {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 1;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-  ctx.fillStyle = color;
-  ctx.fillRect(0, 0, 1, 1);
-  const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-  return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
-}
-
-export function useTitleBarColors(): void {
+export function useWindowState(): WindowState {
+  const [state, setState] = useState<WindowState>({
+    maximized: false,
+    fullscreen: false,
+    focused: true,
+  });
   useEffect(() => {
     if (isMac) return;
-    const probe = document.createElement("div");
-    probe.className = "bg-background text-foreground";
-    document.body.appendChild(probe);
-    const style = getComputedStyle(probe);
-    const color = hexOf(style.backgroundColor);
-    const symbolColor = hexOf(style.color);
-    probe.remove();
-    if (color && symbolColor) void window.demoflow.setTitleBarColors({ color, symbolColor });
+    void window.demoflow.getWindowState().then(setState);
+    return window.demoflow.onWindowState(setState);
   }, []);
+  return state;
+}
+
+function WindowControls() {
+  const { maximized } = useWindowState();
+  const role = (r: WindowRole) => () => void window.demoflow.windowRole(r);
+  const base =
+    "text-muted-foreground hover:text-foreground grid h-full w-12 place-items-center transition-colors";
+  return (
+    <div className="flex h-full shrink-0 items-stretch">
+      <button
+        type="button"
+        aria-label="Minimize"
+        className={cn(base, "hover:bg-accent")}
+        onClick={role("minimize")}
+      >
+        <Minus className="size-4" strokeWidth={1.5} />
+      </button>
+      <button
+        type="button"
+        aria-label={maximized ? "Restore" : "Maximize"}
+        className={cn(base, "hover:bg-accent")}
+        onClick={role("toggleMaximize")}
+      >
+        {maximized ? (
+          <Copy className="size-3.5 -scale-x-100" strokeWidth={1.5} />
+        ) : (
+          <Square className="size-3.5" strokeWidth={1.5} />
+        )}
+      </button>
+      <button
+        type="button"
+        aria-label="Close"
+        className={cn(base, "hover:bg-destructive hover:text-white")}
+        onClick={role("close")}
+      >
+        <X className="size-4" strokeWidth={1.5} />
+      </button>
+    </div>
+  );
+}
+
+export function WindowBorder() {
+  const { maximized, fullscreen, focused } = useWindowState();
+  if (isMac || maximized || fullscreen) return null;
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "pointer-events-none fixed inset-0 z-50 border",
+        focused ? "border-white/12" : "border-white/7",
+      )}
+    />
+  );
 }
 
 export function AppBar({ children, className }: { children?: ReactNode; className?: string }) {
   return (
     <header
       className={cn(
-        "app-drag bg-background flex h-12 shrink-0 items-center gap-2 border-b pr-3",
-        isMac ? "pl-21" : "pl-2",
+        "app-drag bg-sidebar text-sidebar-foreground flex h-12 shrink-0 items-center border-b",
+        isMac ? "pr-3 pl-21" : "pl-2",
         className,
       )}
-      style={
-        isMac
-          ? undefined
-          : {
-              paddingRight:
-                "calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw) + 0.75rem)",
-            }
-      }
     >
-      {isMac ? null : (
-        <>
-          <WideMenu />
-          <CompactMenu />
-          {children ? <Separator orientation="vertical" className="mx-1 h-5 self-center" /> : null}
-        </>
-      )}
-      {children}
+      <div className="flex h-full min-w-0 flex-1 items-center gap-2">
+        <img src={logoUrl} alt="Demoflow" className="mx-1 size-5 shrink-0" draggable={false} />
+        {isMac ? null : (
+          <>
+            <WideMenu />
+            <CompactMenu />
+            {children ? (
+              <Separator orientation="vertical" className="mx-1 h-5 self-center" />
+            ) : null}
+          </>
+        )}
+        {children}
+      </div>
+      {isMac ? null : <WindowControls />}
     </header>
   );
 }

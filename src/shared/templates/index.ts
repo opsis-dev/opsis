@@ -286,23 +286,29 @@ function blank(name: string): Workflow {
 }
 
 export const TEMPLATES: TemplateInfo[] = [
-  { id: "blank", title: "Blank", description: "An empty canvas.", build: blank },
+  {
+    id: "blank",
+    title: "Blank",
+    description: "An empty canvas to build from scratch.",
+    build: blank,
+  },
   {
     id: "todomvc",
-    title: "Sample: TodoMVC",
-    description: "Records demo.playwright.dev/todomvc, auto-zooms, Remocn title, 16:9 + 9:16.",
+    title: "Sample: to-do app",
+    description:
+      "Records a sample to-do app with auto zoom and an opening title, in wide and tall shapes.",
     build: todoMvcSample,
   },
   {
     id: "feature-launch",
     title: "Feature launch",
-    description: "Kinetic headline → recorded flow with spotlight → CTA card.",
+    description: "A bold headline, a recorded flow with a spotlight, then a call to action.",
     build: featureLaunch,
   },
   {
     id: "changelog",
     title: "Changelog clip",
-    description: "Title, terminal session, chart with a lower third.",
+    description: "A title, a terminal session and a chart with a name label.",
     build: changelogClip,
   },
   {
@@ -314,7 +320,7 @@ export const TEMPLATES: TemplateInfo[] = [
   {
     id: "social-teaser",
     title: "Social teaser (9:16)",
-    description: "Vertical hook + follow-the-action recording + music bed.",
+    description: "A vertical opener, a recording that follows the action, and background music.",
     build: socialTeaser,
   },
   {

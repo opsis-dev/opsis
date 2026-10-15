@@ -5,6 +5,8 @@ import type { LastRun } from "./schema/values";
 import type { Workflow } from "./schema/workflow";
 import type { AppSettings } from "./settings";
 import type { TraceModel } from "./trace";
+import type { FontFamilyDef } from "./fonts/types";
+import type { PlannedFamily } from "./fonts/plan";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 
@@ -68,6 +70,34 @@ export type MenuCommand =
   | "view:toggle-right"
   | "edit:add-node";
 
+export type InspectedFamily = PlannedFamily;
+
+export type InspectedFonts = {
+  token: string;
+  families: InspectedFamily[];
+  license?: string;
+  skipped: number;
+};
+
+export type FontCatalogEntry = {
+  id: string;
+  family: string;
+  category: string;
+  variable: boolean;
+  styles: string[];
+  weights: number[];
+  license: string;
+  type: string;
+};
+
+export type FontInstalledFace = {
+  postscriptName: string;
+  format: "opentype" | "truetype";
+  data: ArrayBuffer;
+};
+
+export type WindowState = { maximized: boolean; fullscreen: boolean; focused: boolean };
+
 export interface DemoflowApi {
   platform: NodeJS.Platform;
   listRecentProjects(): Promise<RecentProject[]>;
@@ -99,8 +129,17 @@ export interface DemoflowApi {
   onMenuCommand(listener: (command: MenuCommand) => void): () => void;
   setTitle(title: string): void;
   windowRole(role: WindowRole): Promise<void>;
-  setTitleBarColors(colors: { color: string; symbolColor: string }): Promise<void>;
+  getWindowState(): Promise<WindowState>;
+  onWindowState(listener: (state: WindowState) => void): () => void;
   dispatchMenuCommand(command: MenuCommand): void;
+  listFonts(): Promise<FontFamilyDef[]>;
+  inspectFontFiles(paths?: string[]): Promise<InspectedFonts | null>;
+  inspectInstalledFonts(faces: FontInstalledFace[]): Promise<InspectedFonts>;
+  addInspectedFonts(token: string, families: string[]): Promise<FontFamilyDef[]>;
+  removeFont(id: string): Promise<void>;
+  fontCatalog(): Promise<FontCatalogEntry[]>;
+  downloadFont(id: string): Promise<FontFamilyDef>;
+  useFontInProject(dir: string, fontId: string): Promise<FontFamilyDef>;
 }
 
 export const IPC = {
@@ -128,7 +167,16 @@ export const IPC = {
   menu: "demoflow:menu",
   setTitle: "demoflow:window:title",
   windowRole: "demoflow:window:role",
-  titleBarColors: "demoflow:window:title-bar-colors",
+  getWindowState: "demoflow:window:get-state",
+  windowState: "demoflow:window:state",
+  listFonts: "demoflow:fonts:list",
+  inspectFontFiles: "demoflow:fonts:inspect-files",
+  inspectInstalledFonts: "demoflow:fonts:inspect-installed",
+  addInspectedFonts: "demoflow:fonts:add",
+  removeFont: "demoflow:fonts:remove",
+  fontCatalog: "demoflow:fonts:catalog",
+  downloadFont: "demoflow:fonts:download",
+  useFontInProject: "demoflow:fonts:use-in-project",
 } as const;
 
 declare global {

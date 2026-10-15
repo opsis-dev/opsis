@@ -1,10 +1,11 @@
-import { cp, mkdir, rm } from "node:fs/promises";
+import { chmod, copyFile, cp, mkdir, rm } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerRpm } from "@electron-forge/maker-rpm";
 import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
+import { MakerAppImage } from "@reforged/maker-appimage";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
@@ -95,7 +96,13 @@ async function stageExportSource(): Promise<void> {
   await cp(path.join(ROOT, "public"), path.join(EXPORT_SRC_DIR, "public"), { recursive: true });
 }
 
+const LINUX_CATEGORIES = ["AudioVideo", "Video"] as const;
+const APPIMAGE_LAUNCHER = "demoflow-launcher";
+const ICONS_DIR = path.join(ROOT, "brand", "icons");
+const icon = (size: number) => path.join(ICONS_DIR, `${size}.png`);
+
 const config: ForgeConfig = {
+  outDir: process.env.DEMOFLOW_OUT_DIR || "out",
   packagerConfig: {
     name: "Demoflow",
     executableName: "demoflow",
@@ -105,14 +112,51 @@ const config: ForgeConfig = {
     osxUniversal: {
       x64ArchFiles: DARWIN_UNIVERSAL_ARCH_FILES,
     },
-    extraResource: [...(EDITION === "full" ? [ENGINE_DIR] : []), EXPORT_SRC_DIR, ...LEGAL_FILES],
+    extraResource: [
+      ...(EDITION === "full" ? [ENGINE_DIR] : []),
+      EXPORT_SRC_DIR,
+      ICONS_DIR,
+      ...LEGAL_FILES,
+    ],
   },
   rebuildConfig: {},
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ["darwin"]), new MakerRpm({}), new MakerDeb({})],
+  makers: [
+    new MakerSquirrel({}),
+    new MakerZIP({}, ["darwin"]),
+    new MakerRpm({ options: { categories: [...LINUX_CATEGORIES] } }),
+    new MakerDeb({
+      options: { categories: [...LINUX_CATEGORIES], section: "video", icon: icon(512) },
+    }),
+    new MakerAppImage({
+      options: {
+        categories: [...LINUX_CATEGORIES],
+        bin: APPIMAGE_LAUNCHER,
+        icon: {
+          scalable: path.join(ROOT, "brand", "logo.svg"),
+          "512x512": icon(512),
+          "256x256": icon(256),
+          "128x128": icon(128),
+          "64x64": icon(64),
+          "48x48": icon(48),
+          "32x32": icon(32),
+          "16x16": icon(16),
+          default: "256x256",
+        },
+      },
+    }),
+  ],
   hooks: {
     prePackage: async (_forgeConfig, platform, arch) => {
       if (EDITION === "full") await stageEngine(platform, arch);
       await stageExportSource();
+    },
+    postPackage: async (_forgeConfig, { platform, outputPaths }) => {
+      if (platform !== "linux") return;
+      for (const out of outputPaths) {
+        const launcher = path.join(out, APPIMAGE_LAUNCHER);
+        await copyFile(path.join(ROOT, "scripts", "appimage-launcher.sh"), launcher);
+        await chmod(launcher, 0o755);
+      }
     },
     packageAfterCopy: async (_forgeConfig, buildPath, _electronVersion, platform, arch) => {
       await bundleRemotionProject({

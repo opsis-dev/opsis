@@ -9,8 +9,10 @@ import {
 } from "remotion";
 import { loadFonts } from "../camera/lib/font";
 import { clamp, entranceStyle, exitOpacity, type Entrance } from "./anim";
+import { roleStack } from "../../shared/fonts";
 
-const FONT = "Inter, system-ui, -apple-system, sans-serif";
+const HEADING_FONT = roleStack("heading");
+const MAIN_FONT = roleStack("main");
 
 const Bg: React.FC<{ background?: string }> = ({ background }) =>
   background && background !== "transparent" ? <AbsoluteFill style={{ background }} /> : null;
@@ -25,6 +27,7 @@ export const Title: React.FC<{
   accent?: string;
   background?: string;
   fontSize?: number;
+  fontFamily?: string;
 }> = ({
   eyebrow,
   title,
@@ -35,6 +38,7 @@ export const Title: React.FC<{
   accent = "#a78bfa",
   background,
   fontSize = 112,
+  fontFamily,
 }) => {
   loadFonts();
   const frame = useCurrentFrame();
@@ -49,7 +53,7 @@ export const Title: React.FC<{
           justifyContent: "center",
           padding: "0 9%",
           textAlign: align,
-          fontFamily: FONT,
+          fontFamily: fontFamily || HEADING_FONT,
           opacity: out,
           gap: fontSize * 0.22,
         }}
@@ -107,6 +111,7 @@ export const KineticHeadline: React.FC<{
   background?: string;
   fontSize?: number;
   wordStagger?: number;
+  fontFamily?: string;
 }> = ({
   text,
   color = "#fafafa",
@@ -114,6 +119,7 @@ export const KineticHeadline: React.FC<{
   background,
   fontSize = 104,
   wordStagger = 4,
+  fontFamily,
 }) => {
   loadFonts();
   const frame = useCurrentFrame();
@@ -147,7 +153,7 @@ export const KineticHeadline: React.FC<{
             justifyContent: "center",
             columnGap: fontSize * 0.28,
             rowGap: fontSize * 0.08,
-            fontFamily: FONT,
+            fontFamily: fontFamily || HEADING_FONT,
             fontSize,
             fontWeight: 780,
             letterSpacing: "-0.04em",
@@ -204,6 +210,7 @@ export const LowerThird: React.FC<{
   accent?: string;
   color?: string;
   panel?: string;
+  fontFamily?: string;
 }> = ({
   title,
   subtitle,
@@ -211,6 +218,7 @@ export const LowerThird: React.FC<{
   accent = "#a78bfa",
   color = "#fafafa",
   panel = "rgba(10,10,12,0.72)",
+  fontFamily,
 }) => {
   loadFonts();
   const frame = useCurrentFrame();
@@ -236,7 +244,7 @@ export const LowerThird: React.FC<{
           alignItems: "stretch",
           transform: `translateX(${x * k}px)`,
           opacity: Math.min(enter, 1 - exit),
-          fontFamily: FONT,
+          fontFamily: fontFamily || MAIN_FONT,
         }}
       >
         <div
@@ -277,7 +285,8 @@ export const Callout: React.FC<{
   side?: "top" | "bottom" | "left" | "right";
   color?: string;
   accent?: string;
-}> = ({ text, x, y, side = "top", color = "#fafafa", accent = "#f43f5e" }) => {
+  fontFamily?: string;
+}> = ({ text, x, y, side = "top", color = "#fafafa", accent = "#f43f5e", fontFamily }) => {
   loadFonts();
   const frame = useCurrentFrame();
   const { width, height, durationInFrames } = useVideoConfig();
@@ -319,7 +328,7 @@ export const Callout: React.FC<{
           borderRadius: 14 * k,
           background: accent,
           color,
-          fontFamily: FONT,
+          fontFamily: fontFamily || MAIN_FONT,
           fontWeight: 700,
           fontSize: 34 * k,
           opacity: draw,
@@ -341,6 +350,7 @@ export const Captions: React.FC<{
   fontSize?: number;
   color?: string;
   highlightColor?: string;
+  fontFamily?: string;
 }> = ({
   captions = [],
   style = "word-by-word",
@@ -348,6 +358,7 @@ export const Captions: React.FC<{
   fontSize = 56,
   color = "#ffffff",
   highlightColor = "#facc15",
+  fontFamily,
 }) => {
   loadFonts();
   const frame = useCurrentFrame();
@@ -384,7 +395,7 @@ export const Captions: React.FC<{
           flexWrap: "wrap",
           justifyContent: "center",
           gap: `0 ${fontSize * 0.28 * k}px`,
-          fontFamily: FONT,
+          fontFamily: fontFamily || MAIN_FONT,
           fontSize: fontSize * k,
           fontWeight: 800,
           textShadow: "0 4px 24px rgba(0,0,0,0.55)",

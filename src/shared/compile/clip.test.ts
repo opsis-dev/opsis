@@ -8,8 +8,15 @@ import {
   sequenceClips,
   clipToSpec,
 } from "./clip";
+import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 
-const settings = { width: 1920, height: 1080, fps: 30 as const, theme: "dark" as const };
+const settings = {
+  width: 1920,
+  height: 1080,
+  fps: 30 as const,
+  theme: "dark" as const,
+  fonts: DEFAULT_PROJECT_FONTS,
+};
 
 describe("remaps", () => {
   it("maps output frames to inner frames piecewise-linearly", () => {

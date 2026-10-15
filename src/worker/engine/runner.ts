@@ -121,7 +121,10 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
       .map(
         (e) => [e.targetHandle, `${hashes.get(e.source)}:${e.sourceHandle}`] as [string, string],
       );
-    hashes.set(id, nodeHash(node.type, interpolate(node.params ?? {}, vars), upstream));
+    const params = interpolate(node.params ?? {}, vars);
+    const keyed =
+      getNodeDef(node.type)?.phase === "render" ? { params, settings: workflow.settings } : params;
+    hashes.set(id, nodeHash(node.type, keyed, upstream));
   }
 
   const forced = new Set<string>();

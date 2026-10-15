@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { projectFontsSchema } from "../fonts/types";
 
 export const transitionRefSchema = z.object({
   kind: z.string(),
@@ -47,6 +48,16 @@ export const audioItemSchema = z.object({
   fadeInFrames: z.number().int().nonnegative().optional(),
   fadeOutFrames: z.number().int().nonnegative().optional(),
   nodeId: z.string().optional(),
+  role: z.enum(["music", "effect"]).optional(),
+  lengthFrames: z.number().int().positive().optional(),
+  keepMusic: z.boolean().optional(),
+  duck: z
+    .object({
+      level: z.number().min(0).max(1),
+      fadeFrames: z.number().int().nonnegative(),
+      under: z.enum(["all", "effects", "clips"]),
+    })
+    .optional(),
 });
 export type AudioItem = z.infer<typeof audioItemSchema>;
 
@@ -61,6 +72,7 @@ export const timelineSpecSchema = z.object({
   assets: z.object({ projectBase: z.string().optional() }).optional(),
   reframe: z.enum(["follow", "center", "fit"]).optional(),
   quality: z.enum(["fast", "exact"]).optional(),
+  fonts: projectFontsSchema.optional(),
 });
 export type TimelineSpec = z.infer<typeof timelineSpecSchema>;
 

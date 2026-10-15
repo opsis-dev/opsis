@@ -21,7 +21,7 @@ The full edition ships the engine (one Chrome Headless Shell for capture and ren
 | `bun run lint` / `bun run lint:fix`     | oxlint (`oxlint.config.ts`), incl. the frame-driven-animation guardrails                     |
 | `bun run format` / `bun run format:fix` | oxfmt (`oxfmt.config.ts`)                                                                    |
 | `bun run test`                          | vitest — compile(), graph, camera track, capture sync, cache, plus programatic-demo's suites |
-| `bun run registry:ingest`               | Re-install the curated Remocn/snapcn elements and regenerate their manifests                 |
+| `bun run registry:ingest`               | Re-install the curated Remocn/snapcn/RemotionUI elements and regenerate their manifests      |
 | `bun run routes`                        | Regenerate the TanStack Router route tree                                                    |
 | `bun run studio`                        | Remotion Studio on the `DemoTimeline` composition                                            |
 | `bun run examples`                      | Rewrite `examples/*/project.demoflow.json` from the templates                                |
@@ -49,19 +49,19 @@ src/
 ├─ shared/     runtime-neutral (UI + worker + Remotion bundle)
 │  ├─ schema/      zod: Workflow v1, ActionLog, TimelineSpec, values, events
 │  ├─ nodes/       node definitions (ports, zod params, compile()) — 167 nodes
-│  ├─ elements/    element manifests (core + generated Remocn/snapcn metadata)
+│  ├─ elements/    element manifests (core + generated Remocn/snapcn/RemotionUI metadata)
 │  ├─ compile/     graph → values → TimelineSpec
 │  └─ templates/   project templates (incl. the §14 sample)
 ├─ worker/     utilityProcess: engine/, executors/, capture/ (Playwright), media/ (FFmpeg), render/ (Remotion)
-├─ video/      Remotion root: DemoTimeline, registry, core elements, camera/ (programatic-demo), elements/ (Remocn, snapcn)
+├─ video/      Remotion root: DemoTimeline, registry, core elements, camera/ (programatic-demo), elements/ (Remocn, snapcn, RemotionUI)
 └─ renderer/   React UI: routes (TanStack Router, hash history), editor/, store/ (Zustand + zundo), components/ (shadcn + React Flow UI)
 ```
 
 ## Node catalogue
 
-Browser (18) · Capture (Record, Still, Login once) · Camera (Auto zoom, Manual zoom, Pan, Follow cursor, Idle speed-up, Speed ramp, Crop, Device frame, Backdrop, Motion blur) · Cursor (style, ripple, keystroke chips, spotlight, highlight box) · Text & overlays (title card, kinetic headline, lower third, callout, tooltip pinned to element, callout arrow, captions) · Transitions (6 from `@remotion/transitions`, 14 Remocn, light leak) · Backgrounds · Effects · Elements (UI blocks, charts, scenes, device mockups) · Audio (music bed, SFX, mix) · Timeline (sequence, stack, trim, loop, delay, speed, duration fit, branch) · Media/FFmpeg (import, trim, concat, speed, reverse, scale/pad, convert, GIF, extract audio, loudnorm, thumbnail, faststart, probe) · Output (render with 16:9/1:1/4:5/9:16 variants and follow-the-action reframing, still presets, export Remotion project).
+Browser (18) · Capture (Record, Still, Login once) · Camera (Auto zoom, Manual zoom, Pan, Follow cursor, Idle speed-up, Speed ramp, Crop, Device frame, Backdrop, Motion blur) · Cursor (style, ripple, keystroke chips, spotlight, highlight box) · Text & overlays (title card, kinetic headline, lower third, callout, tooltip pinned to element, callout arrow, captions) · Transitions (6 from `@remotion/transitions`, 14 Remocn, 5 RemotionUI, light leak) · Backgrounds · Effects · Elements (UI blocks, charts, scenes, device mockups) · Audio (music bed, SFX, mix) · Timeline (sequence, stack, trim, loop, delay, speed, duration fit, branch) · Media/FFmpeg (import, trim, concat, speed, reverse, scale/pad, convert, GIF, extract audio, loudnorm, thumbnail, faststart, probe) · Output (render with 16:9/1:1/4:5/9:16 variants and follow-the-action reframing, still presets, export Remotion project).
 
-Element nodes are generated from the registry: 76 curated Remocn/snapcn components (`scripts/registry-ingest.list.ts`) plus 21 Demoflow core elements. Colour-preset duplicates of the same shader and components that duplicate each other across registries are left out on purpose.
+Element nodes are generated from the registry: 109 curated Remocn/snapcn/RemotionUI components (`scripts/registry-ingest.list.ts`) plus 21 Demoflow core elements. Colour-preset duplicates of the same shader and components that duplicate each other across registries are left out on purpose.
 
 ## Decisions taken
 
@@ -79,4 +79,4 @@ Per the agreed scope (§14 + the full local §6 catalogue + M5 media nodes): TTS
 
 Demoflow is licensed under the [Apache License 2.0](./LICENSE).
 
-Third-party notices are in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md). Remotion is used under its free licence (individuals and companies of up to 3 people); whoever owns rendered output at a larger company needs a Remotion company licence. Some snapcn elements load fonts through `@remotion/google-fonts` (network); everything else is local.
+Third-party notices are in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md). Remotion is used under its free licence (individuals and companies of up to 3 people); whoever owns rendered output at a larger company needs a Remotion company licence. Some snapcn and RemotionUI elements load fonts through `@remotion/google-fonts` (network); everything else is local.

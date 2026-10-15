@@ -6,13 +6,12 @@ import { useUiStore } from "../store/ui";
 import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
 import { SETUP_SKIPPED_KEY } from "../app/setup";
-import { useMenuShortcuts, useTitleBarColors } from "../app/app-bar";
+import { useMenuShortcuts, WindowBorder } from "../app/app-bar";
 
 function Root() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   useMenuShortcuts();
-  useTitleBarColors();
 
   useEffect(
     () =>
@@ -60,7 +59,12 @@ function Root() {
     // oxlint-disable-next-line react/exhaustive-deps
   }, []);
 
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <WindowBorder />
+    </>
+  );
 }
 
 export const Route = createRootRoute({ component: Root });

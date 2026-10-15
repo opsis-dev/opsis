@@ -2,6 +2,7 @@ import { createElement } from "react";
 import {
   Anchor,
   AppWindow,
+  ArrowDownToLine,
   ArrowDownUp,
   ArrowRightLeft,
   AudioLines,
@@ -107,6 +108,7 @@ import {
 const ICONS: Record<string, LucideIcon> = {
   anchor: Anchor,
   "app-window": AppWindow,
+  "arrow-down-to-line": ArrowDownToLine,
   "arrow-down-up": ArrowDownUp,
   "arrow-right-left": ArrowRightLeft,
   "audio-lines": AudioLines,
