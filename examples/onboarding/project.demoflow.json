@@ -1,0 +1,315 @@
+{
+  "version": 1,
+  "id": "example_onboarding",
+  "name": "Onboarding walkthrough",
+  "settings": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "theme": "dark"
+  },
+  "variables": {
+    "Site address": "https://demo.playwright.dev/todomvc"
+  },
+  "nodes": [
+    {
+      "id": "session",
+      "type": "browser.session",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "storageState": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+      }
+    },
+    {
+      "id": "open",
+      "type": "browser.navigate",
+      "position": {
+        "x": 300,
+        "y": 0
+      },
+      "params": {
+        "url": "{{Site address}}",
+        "waitUntil": "load",
+        "after": 700
+      }
+    },
+    {
+      "id": "chapter1",
+      "type": "browser.chapter",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {
+        "title": "Create your first item",
+        "description": "",
+        "showInVideo": false,
+        "durationMs": 2000
+      }
+    },
+    {
+      "id": "type",
+      "type": "browser.type",
+      "position": {
+        "x": 900,
+        "y": 0
+      },
+      "params": {
+        "text": "Invite the team",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 600,
+        "cluster": "",
+        "zoom": true,
+        "frame": "",
+        "target": "What needs to be done?"
+      },
+      "label": "New item"
+    },
+    {
+      "id": "chapter2",
+      "type": "browser.chapter",
+      "position": {
+        "x": 1200,
+        "y": 0
+      },
+      "params": {
+        "title": "Mark it done",
+        "description": "",
+        "showInVideo": false,
+        "durationMs": 2000
+      }
+    },
+    {
+      "id": "done",
+      "type": "browser.click",
+      "position": {
+        "x": 1500,
+        "y": 0
+      },
+      "params": {
+        "after": 1400,
+        "cluster": "",
+        "zoom": true,
+        "frame": "",
+        "zoomScale": 0,
+        "travelMs": 0,
+        "hoverMs": 220,
+        "target": "css=.todo-list li:nth-child(1) .toggle"
+      },
+      "label": "Done"
+    },
+    {
+      "id": "record",
+      "type": "capture.record",
+      "position": {
+        "x": 1800,
+        "y": 0
+      },
+      "params": {
+        "fps": 30,
+        "quality": 90,
+        "establishMs": 700,
+        "endTailMs": 2500,
+        "cursor": "synthetic",
+        "showActions": false,
+        "mutates": ""
+      }
+    },
+    {
+      "id": "camera",
+      "type": "camera.autoZoom",
+      "position": {
+        "x": 1800,
+        "y": 356
+      },
+      "params": {
+        "zoom": true,
+        "maxScale": 1.74,
+        "hold": 1300,
+        "speed": 1.25,
+        "style": "classic",
+        "backdrop": "glaze",
+        "chrome": false,
+        "motionBlur": true
+      }
+    },
+    {
+      "id": "highlight",
+      "type": "cursor.highlightBox",
+      "position": {
+        "x": 1800,
+        "y": 712
+      },
+      "params": {
+        "match": "",
+        "text": "",
+        "color": "#a78bfa",
+        "padding": 10,
+        "leadMs": 250,
+        "holdMs": 1400
+      }
+    },
+    {
+      "id": "tooltip",
+      "type": "text.tooltip",
+      "position": {
+        "x": 1800,
+        "y": 1068
+      },
+      "params": {
+        "match": "Done",
+        "text": "Tick it off",
+        "color": "#18181b",
+        "padding": 10,
+        "leadMs": 250,
+        "holdMs": 1400
+      }
+    },
+    {
+      "id": "script",
+      "type": "text.captionsFromText",
+      "position": {
+        "x": 1200,
+        "y": 510
+      },
+      "params": {
+        "script": "Create an item. Then tick it off. That's it.",
+        "wordsPerMinute": 165,
+        "startMs": 1500,
+        "linePauseMs": 350
+      }
+    },
+    {
+      "id": "captions",
+      "type": "text.captions",
+      "position": {
+        "x": 2100,
+        "y": 510
+      },
+      "params": {
+        "style": "word-by-word",
+        "position": "bottom",
+        "fontSize": 56,
+        "color": "#ffffff",
+        "highlightColor": "#facc15"
+      }
+    },
+    {
+      "id": "render",
+      "type": "output.render",
+      "position": {
+        "x": 2400,
+        "y": 510
+      },
+      "params": {
+        "fileName": "{{Project name}}",
+        "codec": "h264",
+        "crf": 18,
+        "variants": ["16:9"],
+        "reframe": "follow",
+        "scale": 1,
+        "faststart": true,
+        "gl": "angle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "session.session->open.session",
+      "source": "session",
+      "sourceHandle": "session",
+      "target": "open",
+      "targetHandle": "session"
+    },
+    {
+      "id": "open.session->chapter1.session",
+      "source": "open",
+      "sourceHandle": "session",
+      "target": "chapter1",
+      "targetHandle": "session"
+    },
+    {
+      "id": "chapter1.session->type.session",
+      "source": "chapter1",
+      "sourceHandle": "session",
+      "target": "type",
+      "targetHandle": "session"
+    },
+    {
+      "id": "type.session->chapter2.session",
+      "source": "type",
+      "sourceHandle": "session",
+      "target": "chapter2",
+      "targetHandle": "session"
+    },
+    {
+      "id": "chapter2.session->done.session",
+      "source": "chapter2",
+      "sourceHandle": "session",
+      "target": "done",
+      "targetHandle": "session"
+    },
+    {
+      "id": "done.session->record.session",
+      "source": "done",
+      "sourceHandle": "session",
+      "target": "record",
+      "targetHandle": "session"
+    },
+    {
+      "id": "record.recording->camera.recording",
+      "source": "record",
+      "sourceHandle": "recording",
+      "target": "camera",
+      "targetHandle": "recording"
+    },
+    {
+      "id": "camera.clip->highlight.clip",
+      "source": "camera",
+      "sourceHandle": "clip",
+      "target": "highlight",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "highlight.clip->tooltip.clip",
+      "source": "highlight",
+      "sourceHandle": "clip",
+      "target": "tooltip",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "script.captions->captions.captions",
+      "source": "script",
+      "sourceHandle": "captions",
+      "target": "captions",
+      "targetHandle": "captions"
+    },
+    {
+      "id": "tooltip.clip->captions.clip",
+      "source": "tooltip",
+      "sourceHandle": "clip",
+      "target": "captions",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "captions.clip->render.timeline",
+      "source": "captions",
+      "sourceHandle": "clip",
+      "target": "render",
+      "targetHandle": "timeline"
+    }
+  ]
+}

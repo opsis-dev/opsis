@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "id": "example_feature_launch",
+  "name": "Feature launch",
+  "settings": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "theme": "dark"
+  },
+  "variables": {
+    "Site address": "https://example.com",
+    "Product name": "Acme"
+  },
+  "nodes": [
+    {
+      "id": "session",
+      "type": "browser.session",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "storageState": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+      }
+    },
+    {
+      "id": "open",
+      "type": "browser.navigate",
+      "position": {
+        "x": 300,
+        "y": 0
+      },
+      "params": {
+        "url": "{{Site address}}",
+        "waitUntil": "load",
+        "after": 700
+      }
+    },
+    {
+      "id": "cta",
+      "type": "browser.click",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {
+        "after": 1500,
+        "cluster": "",
+        "zoom": true,
+        "frame": "",
+        "zoomScale": 0,
+        "travelMs": 0,
+        "hoverMs": 220,
+        "target": "Get started"
+      },
+      "label": "Get started"
+    },
+    {
+      "id": "record",
+      "type": "capture.record",
+      "position": {
+        "x": 900,
+        "y": 0
+      },
+      "params": {
+        "fps": 30,
+        "quality": 90,
+        "establishMs": 700,
+        "endTailMs": 2500,
+        "cursor": "synthetic",
+        "showActions": false,
+        "mutates": ""
+      }
+    },
+    {
+      "id": "camera",
+      "type": "camera.autoZoom",
+      "position": {
+        "x": 900,
+        "y": 356
+      },
+      "params": {
+        "zoom": true,
+        "maxScale": 1.74,
+        "hold": 1300,
+        "speed": 1.25,
+        "style": "classic",
+        "backdrop": "glaze",
+        "chrome": false,
+        "motionBlur": true
+      }
+    },
+    {
+      "id": "spotlight",
+      "type": "cursor.spotlight",
+      "position": {
+        "x": 900,
+        "y": 712
+      },
+      "params": {
+        "match": "Get started",
+        "text": "",
+        "color": "rgba(0,0,0,0.55)",
+        "padding": 10,
+        "leadMs": 250,
+        "holdMs": 1400
+      }
+    },
+    {
+      "id": "headline",
+      "type": "fx.core.kinetic-headline",
+      "position": {
+        "x": 300,
+        "y": 340
+      },
+      "params": {
+        "text": "Introducing *{{Product name}}*",
+        "color": "#fafafa",
+        "emphasisColor": "#facc15",
+        "background": "#09090b",
+        "fontSize": 104,
+        "wordStagger": 4,
+        "clipDuration": 90
+      }
+    },
+    {
+      "id": "outro",
+      "type": "fx.core.title",
+      "position": {
+        "x": 600,
+        "y": 510
+      },
+      "params": {
+        "eyebrow": "",
+        "title": "Try {{Product name}} today",
+        "subtitle": "{{Site address}}",
+        "align": "center",
+        "entrance": "rise",
+        "color": "#fafafa",
+        "accent": "#a78bfa",
+        "background": "transparent",
+        "fontSize": 112,
+        "clipDuration": 75
+      }
+    },
+    {
+      "id": "sequence",
+      "type": "timeline.sequence",
+      "position": {
+        "x": 1200,
+        "y": 340
+      },
+      "params": {
+        "transition": "remocn/zoom-blur",
+        "transitionDuration": 15
+      }
+    },
+    {
+      "id": "render",
+      "type": "output.render",
+      "position": {
+        "x": 1500,
+        "y": 340
+      },
+      "params": {
+        "fileName": "{{Project name}}",
+        "codec": "h264",
+        "crf": 18,
+        "variants": ["16:9"],
+        "reframe": "follow",
+        "scale": 1,
+        "faststart": true,
+        "gl": "angle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "session.session->open.session",
+      "source": "session",
+      "sourceHandle": "session",
+      "target": "open",
+      "targetHandle": "session"
+    },
+    {
+      "id": "open.session->cta.session",
+      "source": "open",
+      "sourceHandle": "session",
+      "target": "cta",
+      "targetHandle": "session"
+    },
+    {
+      "id": "cta.session->record.session",
+      "source": "cta",
+      "sourceHandle": "session",
+      "target": "record",
+      "targetHandle": "session"
+    },
+    {
+      "id": "record.recording->camera.recording",
+      "source": "record",
+      "sourceHandle": "recording",
+      "target": "camera",
+      "targetHandle": "recording"
+    },
+    {
+      "id": "camera.clip->spotlight.clip",
+      "source": "camera",
+      "sourceHandle": "clip",
+      "target": "spotlight",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "headline.clip->sequence.in1",
+      "source": "headline",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "spotlight.clip->sequence.in2",
+      "source": "spotlight",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "outro.clip->sequence.in3",
+      "source": "outro",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in3"
+    },
+    {
+      "id": "sequence.clip->render.timeline",
+      "source": "sequence",
+      "sourceHandle": "clip",
+      "target": "render",
+      "targetHandle": "timeline"
+    }
+  ]
+}

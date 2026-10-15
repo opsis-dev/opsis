@@ -1,0 +1,405 @@
+{
+  "version": 1,
+  "id": "example_todomvc",
+  "name": "Sample: TodoMVC",
+  "settings": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "theme": "dark"
+  },
+  "variables": {
+    "Site address": "https://demo.playwright.dev/todomvc"
+  },
+  "nodes": [
+    {
+      "id": "session",
+      "type": "browser.session",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "storageState": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+      }
+    },
+    {
+      "id": "open",
+      "type": "browser.navigate",
+      "position": {
+        "x": 300,
+        "y": 0
+      },
+      "params": {
+        "url": "{{Site address}}/#/",
+        "waitUntil": "load",
+        "after": 900
+      }
+    },
+    {
+      "id": "todo1",
+      "type": "browser.type",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {
+        "text": "Record a real product flow",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 500,
+        "cluster": "add",
+        "zoom": true,
+        "frame": "",
+        "target": "What needs to be done?"
+      },
+      "label": "New todo"
+    },
+    {
+      "id": "todo2",
+      "type": "browser.type",
+      "position": {
+        "x": 900,
+        "y": 0
+      },
+      "params": {
+        "text": "Auto-zoom on every click",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 500,
+        "cluster": "add",
+        "zoom": true,
+        "frame": "",
+        "target": "What needs to be done?"
+      },
+      "label": "New todo"
+    },
+    {
+      "id": "todo3",
+      "type": "browser.type",
+      "position": {
+        "x": 1200,
+        "y": 0
+      },
+      "params": {
+        "text": "Render 16:9 and 9:16",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 1200,
+        "cluster": "add",
+        "zoom": true,
+        "frame": "",
+        "target": "What needs to be done?"
+      },
+      "label": "New todo"
+    },
+    {
+      "id": "complete",
+      "type": "browser.click",
+      "position": {
+        "x": 1500,
+        "y": 0
+      },
+      "params": {
+        "after": 1100,
+        "cluster": "done",
+        "zoom": true,
+        "frame": "",
+        "zoomScale": 0,
+        "travelMs": 0,
+        "hoverMs": 220,
+        "target": "Toggle Todo",
+        "targetRole": "checkbox"
+      },
+      "label": "Complete"
+    },
+    {
+      "id": "filter",
+      "type": "browser.click",
+      "position": {
+        "x": 1800,
+        "y": 0
+      },
+      "params": {
+        "after": 1500,
+        "cluster": "filter",
+        "zoom": true,
+        "frame": "",
+        "zoomScale": 0,
+        "travelMs": 0,
+        "hoverMs": 220,
+        "target": "Completed",
+        "targetRole": "link"
+      },
+      "label": "Completed filter"
+    },
+    {
+      "id": "record",
+      "type": "capture.record",
+      "position": {
+        "x": 2100,
+        "y": 0
+      },
+      "params": {
+        "fps": 30,
+        "quality": 90,
+        "establishMs": 700,
+        "endTailMs": 2500,
+        "cursor": "synthetic",
+        "showActions": false,
+        "mutates": ""
+      }
+    },
+    {
+      "id": "camera",
+      "type": "camera.autoZoom",
+      "position": {
+        "x": 2100,
+        "y": 356
+      },
+      "params": {
+        "zoom": true,
+        "maxScale": 1.74,
+        "hold": 1300,
+        "speed": 1.25,
+        "style": "classic",
+        "backdrop": "glaze",
+        "chrome": false,
+        "motionBlur": true
+      }
+    },
+    {
+      "id": "chips",
+      "type": "cursor.keystrokeChips",
+      "position": {
+        "x": 2100,
+        "y": 712
+      },
+      "params": {
+        "position": "bottom",
+        "typed": true,
+        "chords": true
+      }
+    },
+    {
+      "id": "intro-bg",
+      "type": "fx.remocn.shader-mesh-gradient",
+      "position": {
+        "x": 1200,
+        "y": 340
+      },
+      "params": {
+        "speed": 1,
+        "distortion": 0.6,
+        "swirl": 0.1,
+        "clipDuration": 75
+      }
+    },
+    {
+      "id": "intro-title",
+      "type": "fx.remocn.soft-blur-in",
+      "position": {
+        "x": 1200,
+        "y": 696
+      },
+      "params": {
+        "text": "TodoMVC in 20 seconds",
+        "blur": 12,
+        "fontSize": 104,
+        "color": "#fafafa",
+        "fontWeight": "600",
+        "speed": 1,
+        "clipDuration": 75
+      }
+    },
+    {
+      "id": "intro",
+      "type": "timeline.stack",
+      "position": {
+        "x": 1500,
+        "y": 340
+      },
+      "params": {
+        "duration": "first",
+        "offsetsMs": ""
+      }
+    },
+    {
+      "id": "outro",
+      "type": "fx.core.title",
+      "position": {
+        "x": 1500,
+        "y": 806
+      },
+      "params": {
+        "eyebrow": "Made with",
+        "title": "Demoflow",
+        "subtitle": "{{Site address}}",
+        "align": "center",
+        "entrance": "rise",
+        "color": "#fafafa",
+        "accent": "#a78bfa",
+        "background": "transparent",
+        "fontSize": 112,
+        "clipDuration": 75
+      }
+    },
+    {
+      "id": "sequence",
+      "type": "timeline.sequence",
+      "position": {
+        "x": 2400,
+        "y": 340
+      },
+      "params": {
+        "transition": "remocn/whip-pan",
+        "transitionDuration": 18
+      }
+    },
+    {
+      "id": "render",
+      "type": "output.render",
+      "position": {
+        "x": 2700,
+        "y": 340
+      },
+      "params": {
+        "fileName": "{{Project name}}",
+        "codec": "h264",
+        "crf": 18,
+        "variants": ["16:9", "9:16"],
+        "reframe": "follow",
+        "scale": 1,
+        "faststart": true,
+        "gl": "angle"
+      }
+    },
+    {
+      "id": "note",
+      "type": "core.note",
+      "position": {
+        "x": 0,
+        "y": 340
+      },
+      "params": {
+        "text": "Sample project.\n\n1. Press Run. Demoflow records the flow in a hidden browser.\n2. The preview updates with the real footage, camera moves and cursor.\n3. Finished videos appear in Outputs."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "session.session->open.session",
+      "source": "session",
+      "sourceHandle": "session",
+      "target": "open",
+      "targetHandle": "session"
+    },
+    {
+      "id": "open.session->todo1.session",
+      "source": "open",
+      "sourceHandle": "session",
+      "target": "todo1",
+      "targetHandle": "session"
+    },
+    {
+      "id": "todo1.session->todo2.session",
+      "source": "todo1",
+      "sourceHandle": "session",
+      "target": "todo2",
+      "targetHandle": "session"
+    },
+    {
+      "id": "todo2.session->todo3.session",
+      "source": "todo2",
+      "sourceHandle": "session",
+      "target": "todo3",
+      "targetHandle": "session"
+    },
+    {
+      "id": "todo3.session->complete.session",
+      "source": "todo3",
+      "sourceHandle": "session",
+      "target": "complete",
+      "targetHandle": "session"
+    },
+    {
+      "id": "complete.session->filter.session",
+      "source": "complete",
+      "sourceHandle": "session",
+      "target": "filter",
+      "targetHandle": "session"
+    },
+    {
+      "id": "filter.session->record.session",
+      "source": "filter",
+      "sourceHandle": "session",
+      "target": "record",
+      "targetHandle": "session"
+    },
+    {
+      "id": "record.recording->camera.recording",
+      "source": "record",
+      "sourceHandle": "recording",
+      "target": "camera",
+      "targetHandle": "recording"
+    },
+    {
+      "id": "camera.clip->chips.clip",
+      "source": "camera",
+      "sourceHandle": "clip",
+      "target": "chips",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "intro-bg.clip->intro.in1",
+      "source": "intro-bg",
+      "sourceHandle": "clip",
+      "target": "intro",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "intro-title.clip->intro.in2",
+      "source": "intro-title",
+      "sourceHandle": "clip",
+      "target": "intro",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "intro.clip->sequence.in1",
+      "source": "intro",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "chips.clip->sequence.in2",
+      "source": "chips",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "outro.clip->sequence.in3",
+      "source": "outro",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in3"
+    },
+    {
+      "id": "sequence.clip->render.timeline",
+      "source": "sequence",
+      "sourceHandle": "clip",
+      "target": "render",
+      "targetHandle": "timeline"
+    }
+  ]
+}

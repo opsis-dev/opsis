@@ -1,0 +1,58 @@
+import { z } from "zod";
+
+export const PORT_TYPES = [
+  "session",
+  "recording",
+  "clip",
+  "scene",
+  "audio",
+  "captions",
+  "image",
+  "media",
+  "timeline",
+  "file",
+] as const;
+export type PortType = (typeof PORT_TYPES)[number];
+
+export const workflowSettingsSchema = z.object({
+  width: z.number().int().min(16).max(7680).default(1920),
+  height: z.number().int().min(16).max(7680).default(1080),
+  fps: z.union([z.literal(30), z.literal(60)]).default(30),
+  background: z.string().optional(),
+  theme: z.enum(["light", "dark"]).default("dark"),
+});
+export type WorkflowSettings = z.infer<typeof workflowSettingsSchema>;
+
+export const workflowNodeSchema = z.object({
+  id: z.string().min(1),
+  type: z.string().min(1),
+  position: z.object({ x: z.number(), y: z.number() }),
+  params: z.record(z.string(), z.unknown()).default({}),
+  label: z.string().optional(),
+  disabled: z.boolean().optional(),
+  parentId: z.string().optional(),
+  size: z.object({ width: z.number(), height: z.number() }).optional(),
+});
+export type WorkflowNode = z.infer<typeof workflowNodeSchema>;
+
+export const workflowEdgeSchema = z.object({
+  id: z.string().min(1),
+  source: z.string(),
+  sourceHandle: z.string(),
+  target: z.string(),
+  targetHandle: z.string(),
+});
+export type WorkflowEdge = z.infer<typeof workflowEdgeSchema>;
+
+export const workflowSchema = z.object({
+  version: z.literal(1),
+  id: z.string(),
+  name: z.string(),
+  settings: workflowSettingsSchema.default({ width: 1920, height: 1080, fps: 30, theme: "dark" }),
+  variables: z.record(z.string(), z.string()).default({}),
+  nodes: z.array(workflowNodeSchema),
+  edges: z.array(workflowEdgeSchema),
+});
+export type Workflow = z.infer<typeof workflowSchema>;
+
+export const WORKFLOW_FILE = "project.demoflow.json";

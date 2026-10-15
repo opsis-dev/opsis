@@ -1,0 +1,18 @@
+import { spawn } from "node:child_process";
+import path from "node:path";
+
+const forge = path.join(
+  import.meta.dirname,
+  "..",
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? "electron-forge.cmd" : "electron-forge",
+);
+const electronArgs = process.platform === "linux" ? ["--no-sandbox"] : [];
+const extra = process.argv.slice(2);
+const args = [
+  "start",
+  ...(electronArgs.length || extra.length ? ["--", ...electronArgs, ...extra] : []),
+];
+const child = spawn(forge, args, { stdio: "inherit", shell: process.platform === "win32" });
+child.on("exit", (code) => process.exit(code ?? 0));

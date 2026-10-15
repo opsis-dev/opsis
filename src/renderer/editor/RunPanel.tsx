@@ -1,0 +1,223 @@
+import { FileSearch, Film, FolderOpen, Square, Trash2 } from "lucide-react";
+import { useMemo } from "react";
+import { getNodeDef } from "@/shared/nodes/registry";
+import type { Artifact } from "@/shared/schema/values";
+import { Badge } from "@/renderer/components/ui/badge";
+import { Button } from "@/renderer/components/ui/button";
+import { Progress } from "@/renderer/components/ui/progress";
+import { ScrollArea } from "@/renderer/components/ui/scroll-area";
+import { Spinner } from "@/renderer/components/ui/spinner";
+import { cn } from "@/renderer/lib/utils";
+import { useRunStore } from "../store/run";
+import { useUiStore } from "../store/ui";
+import { useWorkflowStore } from "../store/workflow";
+import { cancelRun } from "./run";
+
+const fileUrl = (rel: string) =>
+  `demoflow-file://project/${rel.split("/").map(encodeURIComponent).join("/")}`;
+
+function ArtifactPreview({ artifact }: { artifact: Artifact }) {
+  if (artifact.kind === "video")
+    return (
+      <video
+        src={fileUrl(artifact.path)}
+        controls
+        muted
+        className="aspect-video w-full rounded-md bg-black"
+      />
+    );
+  if (artifact.kind === "image")
+    return (
+      <img
+        src={fileUrl(artifact.path)}
+        alt={artifact.label ?? artifact.path}
+        className="w-full rounded-md"
+      />
+    );
+  if (artifact.kind === "audio")
+    return <audio src={fileUrl(artifact.path)} controls className="w-full" />;
+  return null;
+}
+
+const STATUS_WORDS: Record<string, string> = {
+  queued: "Waiting",
+  running: "Running",
+  done: "Done",
+  cached: "Up to date",
+  skipped: "Skipped",
+  error: "Failed",
+};
+
+export function RunPanel() {
+  const workflow = useWorkflowStore((s) => s.workflow);
+  const projectDir = useWorkflowStore((s) => s.projectDir);
+  const { running, statuses, progress, logs, results, traces, outputs, lastError, clearLogs } =
+    useRunStore();
+  const selected = useUiStore((s) => s.selectedIds);
+  const setSelected = useUiStore((s) => s.setSelected);
+  const setReplay = useUiStore((s) => s.setReplay);
+  const filter = selected.length === 1 ? selected[0] : null;
+
+  const rows = useMemo(
+    () =>
+      workflow
+        ? workflow.nodes.filter((n) => statuses[n.id] || results[n.id]?.artifacts.length)
+        : [],
+    [workflow, statuses, results],
+  );
+  const visibleLogs = filter ? logs.filter((l) => l.nodeId === filter) : logs;
+  const artifacts = filter
+    ? (results[filter]?.artifacts ?? [])
+    : outputs.map(
+        (p) => ({ kind: /\.(png|jpe?g|gif)$/i.test(p) ? "image" : "video", path: p }) as Artifact,
+      );
+
+  return (
+    <div className="grid h-full grid-cols-[minmax(220px,1fr)_2fr_minmax(240px,1.2fr)] divide-x">
+      <ScrollArea className="h-full">
+        <div className="flex flex-col p-2">
+          <div className="flex items-center justify-between px-2 pb-2">
+            <span className="text-sm font-medium">
+              {running ? "Running…" : lastError ? "Last run failed" : "Nodes"}
+            </span>
+            {running ? (
+              <Button size="xs" variant="outline" onClick={() => void cancelRun()}>
+                <Square data-icon="inline-start" />
+                Cancel
+              </Button>
+            ) : null}
+          </div>
+          {lastError && !running ? (
+            <p className="text-destructive px-2 pb-2 text-xs">{lastError}</p>
+          ) : null}
+          {rows.length === 0 ? (
+            <p className="text-muted-foreground px-2 text-xs">
+              Press Run to see how each node is doing.
+            </p>
+          ) : null}
+          {rows.map((n) => {
+            const status = statuses[n.id];
+            return (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => setSelected([n.id])}
+                className={cn(
+                  "hover:bg-muted flex flex-col gap-1 rounded-md px-2 py-1.5 text-left",
+                  filter === n.id && "bg-muted",
+                )}
+              >
+                <div className="flex items-center gap-2 text-xs">
+                  {status === "running" ? <Spinner /> : null}
+                  <span className="flex-1 truncate">
+                    {n.label || getNodeDef(n.type)?.title || n.type}
+                  </span>
+                  {status ? (
+                    <Badge
+                      variant={
+                        status === "error"
+                          ? "destructive"
+                          : status === "cached"
+                            ? "secondary"
+                            : "outline"
+                      }
+                    >
+                      {STATUS_WORDS[status] ?? status}
+                    </Badge>
+                  ) : null}
+                  {results[n.id] && !status ? (
+                    <Badge variant="secondary">From last run</Badge>
+                  ) : null}
+                </div>
+                {status === "running" && progress[n.id] ? (
+                  <Progress value={Math.round(progress[n.id].value * 100)} />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </ScrollArea>
+      <div className="flex min-h-0 flex-col">
+        <div className="flex items-center justify-between border-b px-3 py-1.5 text-xs">
+          <span className="text-muted-foreground">
+            {filter ? "Logs for the selected node" : "All logs"}
+          </span>
+          <Button size="xs" variant="ghost" onClick={clearLogs}>
+            <Trash2 data-icon="inline-start" />
+            Clear
+          </Button>
+        </div>
+        <ScrollArea className="min-h-0 flex-1">
+          <pre className="p-3 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
+            {visibleLogs.map((l, i) => (
+              <div
+                key={i}
+                className={cn(
+                  l.level === "error" && "text-destructive",
+                  l.level === "warn" && "text-muted-foreground",
+                )}
+              >
+                <span className="text-muted-foreground">
+                  {new Date(l.at).toLocaleTimeString()}{" "}
+                </span>
+                {l.message}
+              </div>
+            ))}
+          </pre>
+        </ScrollArea>
+      </div>
+      <ScrollArea className="h-full">
+        <div className="flex flex-col gap-3 p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">{filter ? "Artifacts" : "Outputs"}</span>
+            {projectDir ? (
+              <Button
+                size="xs"
+                variant="outline"
+                onClick={() => void window.demoflow.revealInFolder(projectDir, ".demoflow/out")}
+              >
+                <FolderOpen data-icon="inline-start" />
+                Output folder
+              </Button>
+            ) : null}
+          </div>
+          {filter && (results[filter] || traces[filter]) ? (
+            <div className="flex flex-wrap gap-2">
+              {getNodeDef(workflow?.nodes.find((n) => n.id === filter)?.type ?? "")?.category ===
+              "Capture" ? (
+                <Button size="xs" variant="outline" onClick={() => setReplay(filter)}>
+                  <Film data-icon="inline-start" />
+                  Replay
+                </Button>
+              ) : null}
+              {traces[filter] && projectDir ? (
+                <Button size="xs" variant="outline" onClick={() => setReplay(filter, "trace")}>
+                  <FileSearch data-icon="inline-start" />
+                  Trace
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+          {artifacts.length === 0 ? (
+            <p className="text-muted-foreground text-xs">Nothing yet.</p>
+          ) : null}
+          {artifacts.map((a) => (
+            <div key={a.path} className="flex flex-col gap-1.5">
+              <ArtifactPreview artifact={a} />
+              <Button
+                variant="link"
+                size="xs"
+                className="h-auto justify-start p-0"
+                onClick={() =>
+                  projectDir && void window.demoflow.revealInFolder(projectDir, a.path)
+                }
+              >
+                {a.label ?? a.path}
+              </Button>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}

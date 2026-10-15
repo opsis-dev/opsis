@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "id": "example_changelog",
+  "name": "Changelog clip",
+  "settings": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "theme": "dark"
+  },
+  "variables": {
+    "Product name": "Acme",
+    "Version": "v2.4"
+  },
+  "nodes": [
+    {
+      "id": "title",
+      "type": "fx.core.title",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "params": {
+        "eyebrow": "Changelog",
+        "title": "What's new in {{Version}}",
+        "subtitle": "",
+        "align": "center",
+        "entrance": "rise",
+        "color": "#fafafa",
+        "accent": "#a78bfa",
+        "background": "transparent",
+        "fontSize": 112,
+        "clipDuration": 75
+      }
+    },
+    {
+      "id": "terminal",
+      "type": "fx.remocn.terminal-simulator",
+      "position": {
+        "x": 0,
+        "y": 356
+      },
+      "params": {
+        "prompt": "$",
+        "title": "~/projects/remocn",
+        "background": "#0a0a0a",
+        "chromeColor": "#1a1a1a",
+        "fontSize": 18,
+        "charsPerFrame": 1,
+        "chunkSize": 1,
+        "speed": 1,
+        "clipDuration": 150
+      }
+    },
+    {
+      "id": "chart",
+      "type": "fx.remocn.animated-bar-chart",
+      "position": {
+        "x": 0,
+        "y": 712
+      },
+      "params": {
+        "barColor": "#0ea5e9",
+        "gap": 16,
+        "staggerFrames": 6,
+        "speed": 1,
+        "clipDuration": 120
+      }
+    },
+    {
+      "id": "credit",
+      "type": "fx.core.lower-third",
+      "position": {
+        "x": 300,
+        "y": 696
+      },
+      "params": {
+        "title": "{{Product name}} {{Version}}",
+        "subtitle": "Out now",
+        "position": "bottom-left",
+        "accent": "#a78bfa",
+        "color": "#fafafa",
+        "panel": "rgba(10,10,12,0.72)",
+        "clipDuration": 120
+      }
+    },
+    {
+      "id": "bg",
+      "type": "fx.core.gradient",
+      "position": {
+        "x": 300,
+        "y": 340
+      },
+      "params": {
+        "from": "#1e1b4b",
+        "to": "#0f172a",
+        "angle": 135,
+        "grain": 0.08,
+        "clipDuration": 90
+      }
+    },
+    {
+      "id": "chart-scene",
+      "type": "timeline.stack",
+      "position": {
+        "x": 600,
+        "y": 340
+      },
+      "params": {
+        "duration": "last",
+        "offsetsMs": ""
+      }
+    },
+    {
+      "id": "sequence",
+      "type": "timeline.sequence",
+      "position": {
+        "x": 900,
+        "y": 170
+      },
+      "params": {
+        "transition": "core/slide",
+        "transitionDuration": 15
+      }
+    },
+    {
+      "id": "render",
+      "type": "output.render",
+      "position": {
+        "x": 1200,
+        "y": 170
+      },
+      "params": {
+        "fileName": "{{Project name}}",
+        "codec": "h264",
+        "crf": 18,
+        "variants": ["16:9", "1:1"],
+        "reframe": "follow",
+        "scale": 1,
+        "faststart": true,
+        "gl": "angle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "bg.clip->chart-scene.in1",
+      "source": "bg",
+      "sourceHandle": "clip",
+      "target": "chart-scene",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "chart.clip->chart-scene.in2",
+      "source": "chart",
+      "sourceHandle": "clip",
+      "target": "chart-scene",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "credit.clip->chart-scene.in3",
+      "source": "credit",
+      "sourceHandle": "clip",
+      "target": "chart-scene",
+      "targetHandle": "in3"
+    },
+    {
+      "id": "title.clip->sequence.in1",
+      "source": "title",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "terminal.clip->sequence.in2",
+      "source": "terminal",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "chart-scene.clip->sequence.in3",
+      "source": "chart-scene",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in3"
+    },
+    {
+      "id": "sequence.clip->render.timeline",
+      "source": "sequence",
+      "sourceHandle": "clip",
+      "target": "render",
+      "targetHandle": "timeline"
+    }
+  ]
+}

@@ -1,0 +1,334 @@
+{
+  "version": 1,
+  "id": "example_before_after",
+  "name": "Before / after",
+  "settings": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "theme": "dark"
+  },
+  "variables": {
+    "Before address": "https://example.com",
+    "After address": "https://example.org"
+  },
+  "nodes": [
+    {
+      "id": "before-session",
+      "type": "browser.session",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "storageState": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+      }
+    },
+    {
+      "id": "before-open",
+      "type": "browser.navigate",
+      "position": {
+        "x": 300,
+        "y": 0
+      },
+      "params": {
+        "url": "{{Before address}}",
+        "waitUntil": "load",
+        "after": 2500
+      }
+    },
+    {
+      "id": "before-record",
+      "type": "capture.record",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {
+        "fps": 30,
+        "quality": 90,
+        "establishMs": 700,
+        "endTailMs": 2500,
+        "cursor": "synthetic",
+        "showActions": false,
+        "mutates": ""
+      }
+    },
+    {
+      "id": "before-camera",
+      "type": "camera.autoZoom",
+      "position": {
+        "x": 900,
+        "y": 0
+      },
+      "params": {
+        "zoom": false,
+        "maxScale": 1.74,
+        "hold": 1300,
+        "speed": 1.25,
+        "style": "classic",
+        "backdrop": "glaze",
+        "chrome": false,
+        "motionBlur": true
+      }
+    },
+    {
+      "id": "before-label",
+      "type": "fx.core.lower-third",
+      "position": {
+        "x": 900,
+        "y": 356
+      },
+      "params": {
+        "title": "Before",
+        "subtitle": "{{Before address}}",
+        "position": "bottom-left",
+        "accent": "#a78bfa",
+        "color": "#fafafa",
+        "panel": "rgba(10,10,12,0.72)",
+        "clipDuration": 120
+      }
+    },
+    {
+      "id": "before-stack",
+      "type": "timeline.stack",
+      "position": {
+        "x": 1200,
+        "y": 0
+      },
+      "params": {
+        "duration": "first",
+        "offsetsMs": ""
+      }
+    },
+    {
+      "id": "after-session",
+      "type": "browser.session",
+      "position": {
+        "x": 0,
+        "y": 340
+      },
+      "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "storageState": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+      }
+    },
+    {
+      "id": "after-open",
+      "type": "browser.navigate",
+      "position": {
+        "x": 300,
+        "y": 340
+      },
+      "params": {
+        "url": "{{After address}}",
+        "waitUntil": "load",
+        "after": 2500
+      }
+    },
+    {
+      "id": "after-record",
+      "type": "capture.record",
+      "position": {
+        "x": 600,
+        "y": 356
+      },
+      "params": {
+        "fps": 30,
+        "quality": 90,
+        "establishMs": 700,
+        "endTailMs": 2500,
+        "cursor": "synthetic",
+        "showActions": false,
+        "mutates": ""
+      }
+    },
+    {
+      "id": "after-camera",
+      "type": "camera.autoZoom",
+      "position": {
+        "x": 900,
+        "y": 712
+      },
+      "params": {
+        "zoom": false,
+        "maxScale": 1.74,
+        "hold": 1300,
+        "speed": 1.25,
+        "style": "classic",
+        "backdrop": "glaze",
+        "chrome": false,
+        "motionBlur": true
+      }
+    },
+    {
+      "id": "after-label",
+      "type": "fx.core.lower-third",
+      "position": {
+        "x": 900,
+        "y": 1068
+      },
+      "params": {
+        "title": "After",
+        "subtitle": "{{After address}}",
+        "position": "bottom-left",
+        "accent": "#a78bfa",
+        "color": "#fafafa",
+        "panel": "rgba(10,10,12,0.72)",
+        "clipDuration": 120
+      }
+    },
+    {
+      "id": "after-stack",
+      "type": "timeline.stack",
+      "position": {
+        "x": 1200,
+        "y": 466
+      },
+      "params": {
+        "duration": "first",
+        "offsetsMs": ""
+      }
+    },
+    {
+      "id": "wipe",
+      "type": "transition.core.wipe",
+      "position": {
+        "x": 1500,
+        "y": 170
+      },
+      "params": {
+        "direction": "from-left",
+        "durationInFrames": 24
+      }
+    },
+    {
+      "id": "render",
+      "type": "output.render",
+      "position": {
+        "x": 1800,
+        "y": 170
+      },
+      "params": {
+        "fileName": "{{Project name}}",
+        "codec": "h264",
+        "crf": 18,
+        "variants": ["16:9"],
+        "reframe": "follow",
+        "scale": 1,
+        "faststart": true,
+        "gl": "angle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "before-session.session->before-open.session",
+      "source": "before-session",
+      "sourceHandle": "session",
+      "target": "before-open",
+      "targetHandle": "session"
+    },
+    {
+      "id": "before-open.session->before-record.session",
+      "source": "before-open",
+      "sourceHandle": "session",
+      "target": "before-record",
+      "targetHandle": "session"
+    },
+    {
+      "id": "before-record.recording->before-camera.recording",
+      "source": "before-record",
+      "sourceHandle": "recording",
+      "target": "before-camera",
+      "targetHandle": "recording"
+    },
+    {
+      "id": "before-camera.clip->before-stack.in1",
+      "source": "before-camera",
+      "sourceHandle": "clip",
+      "target": "before-stack",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "before-label.clip->before-stack.in2",
+      "source": "before-label",
+      "sourceHandle": "clip",
+      "target": "before-stack",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "after-session.session->after-open.session",
+      "source": "after-session",
+      "sourceHandle": "session",
+      "target": "after-open",
+      "targetHandle": "session"
+    },
+    {
+      "id": "after-open.session->after-record.session",
+      "source": "after-open",
+      "sourceHandle": "session",
+      "target": "after-record",
+      "targetHandle": "session"
+    },
+    {
+      "id": "after-record.recording->after-camera.recording",
+      "source": "after-record",
+      "sourceHandle": "recording",
+      "target": "after-camera",
+      "targetHandle": "recording"
+    },
+    {
+      "id": "after-camera.clip->after-stack.in1",
+      "source": "after-camera",
+      "sourceHandle": "clip",
+      "target": "after-stack",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "after-label.clip->after-stack.in2",
+      "source": "after-label",
+      "sourceHandle": "clip",
+      "target": "after-stack",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "before-stack.clip->wipe.a",
+      "source": "before-stack",
+      "sourceHandle": "clip",
+      "target": "wipe",
+      "targetHandle": "a"
+    },
+    {
+      "id": "after-stack.clip->wipe.b",
+      "source": "after-stack",
+      "sourceHandle": "clip",
+      "target": "wipe",
+      "targetHandle": "b"
+    },
+    {
+      "id": "wipe.clip->render.timeline",
+      "source": "wipe",
+      "sourceHandle": "clip",
+      "target": "render",
+      "targetHandle": "timeline"
+    }
+  ]
+}

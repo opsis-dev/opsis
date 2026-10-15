@@ -1,0 +1,253 @@
+import { temporal } from "zundo";
+import { create } from "zustand";
+import { defaultParams, getNodeDef, normalizeWorkflow } from "@/shared/nodes/registry";
+import type {
+  Workflow,
+  WorkflowEdge,
+  WorkflowNode,
+  WorkflowSettings,
+} from "@/shared/schema/workflow";
+
+export type WorkflowState = {
+  projectDir: string | null;
+  workflow: Workflow | null;
+  revision: number;
+  savedRevision: number;
+};
+
+type Actions = {
+  load: (dir: string, workflow: Workflow) => void;
+  close: () => void;
+  markSaved: (revision: number) => void;
+  update: (fn: (wf: Workflow) => Workflow) => void;
+  addNode: (
+    type: string,
+    position: { x: number; y: number },
+    params?: Record<string, unknown>,
+  ) => string;
+  updateParams: (id: string, patch: Record<string, unknown>) => void;
+  setNodeMeta: (
+    id: string,
+    patch: Partial<Pick<WorkflowNode, "label" | "disabled" | "position" | "parentId" | "size">>,
+  ) => void;
+  moveNodes: (positions: Record<string, { x: number; y: number }>) => void;
+  removeNodes: (ids: string[]) => void;
+  addEdge: (edge: Omit<WorkflowEdge, "id">) => void;
+  removeEdges: (ids: string[]) => void;
+  setSettings: (patch: Partial<WorkflowSettings>) => void;
+  setVariables: (vars: Record<string, string>) => void;
+  rename: (name: string) => void;
+  paste: (
+    nodes: WorkflowNode[],
+    edges: WorkflowEdge[],
+    offset: { x: number; y: number },
+  ) => string[];
+  groupNodes: (ids: string[], title?: string) => void;
+  ungroup: (groupId: string) => void;
+};
+
+export const newId = (prefix = "n") => `${prefix}_${Math.random().toString(36).slice(2, 9)}`;
+
+const bump = (s: WorkflowState) => ({ revision: s.revision + 1 });
+
+export const useWorkflowStore = create<WorkflowState & Actions>()(
+  temporal(
+    (set, get) => ({
+      projectDir: null,
+      workflow: null,
+      revision: 0,
+      savedRevision: 0,
+
+      load: (dir, workflow) => {
+        set({
+          projectDir: dir,
+          workflow: normalizeWorkflow(workflow),
+          revision: 0,
+          savedRevision: 0,
+        });
+        useWorkflowStore.temporal.getState().clear();
+      },
+      close: () => set({ projectDir: null, workflow: null, revision: 0, savedRevision: 0 }),
+      markSaved: (revision) => set({ savedRevision: revision }),
+
+      update: (fn) => set((s) => (s.workflow ? { workflow: fn(s.workflow), ...bump(s) } : {})),
+
+      addNode: (type, position, params) => {
+        const def = getNodeDef(type);
+        const id = newId(type.split(".")[0]);
+        const node: WorkflowNode = {
+          id,
+          type,
+          position,
+          params: { ...defaultParams(type), ...params },
+          ...(def ? {} : {}),
+        };
+        get().update((wf) => ({ ...wf, nodes: [...wf.nodes, node] }));
+        return id;
+      },
+
+      updateParams: (id, patch) =>
+        get().update((wf) => ({
+          ...wf,
+          nodes: wf.nodes.map((n) =>
+            n.id === id ? { ...n, params: { ...n.params, ...patch } } : n,
+          ),
+        })),
+
+      setNodeMeta: (id, patch) =>
+        get().update((wf) => ({
+          ...wf,
+          nodes: wf.nodes.map((n) => (n.id === id ? { ...n, ...patch } : n)),
+        })),
+
+      moveNodes: (positions) =>
+        get().update((wf) => ({
+          ...wf,
+          nodes: wf.nodes.map((n) => (positions[n.id] ? { ...n, position: positions[n.id] } : n)),
+        })),
+
+      removeNodes: (ids) => {
+        const gone = new Set(ids);
+        get().update((wf) => ({
+          ...wf,
+          nodes: wf.nodes
+            .filter((n) => !gone.has(n.id))
+            .map((n) => {
+              if (!n.parentId || !gone.has(n.parentId)) return n;
+              const parent = wf.nodes.find((p) => p.id === n.parentId);
+              const { parentId: _p, ...rest } = n;
+              return {
+                ...rest,
+                position: {
+                  x: n.position.x + (parent?.position.x ?? 0),
+                  y: n.position.y + (parent?.position.y ?? 0),
+                },
+              };
+            }),
+          edges: wf.edges.filter((e) => !gone.has(e.source) && !gone.has(e.target)),
+        }));
+      },
+
+      addEdge: (edge) =>
+        get().update((wf) => {
+          const edges = wf.edges.filter(
+            (e) => !(e.target === edge.target && e.targetHandle === edge.targetHandle),
+          );
+          return {
+            ...wf,
+            edges: [
+              ...edges,
+              {
+                ...edge,
+                id: `${edge.source}.${edge.sourceHandle}->${edge.target}.${edge.targetHandle}`,
+              },
+            ],
+          };
+        }),
+
+      removeEdges: (ids) => {
+        const gone = new Set(ids);
+        get().update((wf) => ({ ...wf, edges: wf.edges.filter((e) => !gone.has(e.id)) }));
+      },
+
+      setSettings: (patch) =>
+        get().update((wf) => ({ ...wf, settings: { ...wf.settings, ...patch } })),
+      setVariables: (variables) => get().update((wf) => ({ ...wf, variables })),
+      rename: (name) => get().update((wf) => ({ ...wf, name })),
+
+      paste: (nodes, edges, offset) => {
+        const map = new Map(nodes.map((n) => [n.id, newId(n.type.split(".")[0])]));
+        const fresh = nodes.map((n) => ({
+          ...n,
+          id: map.get(n.id)!,
+          parentId: n.parentId && map.has(n.parentId) ? map.get(n.parentId) : undefined,
+          position:
+            n.parentId && map.has(n.parentId)
+              ? n.position
+              : { x: n.position.x + offset.x, y: n.position.y + offset.y },
+        }));
+        const freshEdges = edges
+          .filter((e) => map.has(e.source) && map.has(e.target))
+          .map((e) => ({
+            ...e,
+            source: map.get(e.source)!,
+            target: map.get(e.target)!,
+            id: `${map.get(e.source)}.${e.sourceHandle}->${map.get(e.target)}.${e.targetHandle}`,
+          }));
+        get().update((wf) => ({
+          ...wf,
+          nodes: [...wf.nodes, ...fresh],
+          edges: [...wf.edges, ...freshEdges],
+        }));
+        return fresh.map((n) => n.id);
+      },
+
+      groupNodes: (ids, title = "Group") => {
+        const wf = get().workflow;
+        if (!wf) return;
+        const members = wf.nodes.filter(
+          (n) => ids.includes(n.id) && !n.parentId && n.type !== "core.group",
+        );
+        if (members.length < 2) return;
+        const pad = 40;
+        const xs = members.map((n) => n.position.x);
+        const ys = members.map((n) => n.position.y);
+        const x = Math.min(...xs) - pad;
+        const y = Math.min(...ys) - pad - 24;
+        const width = Math.max(...xs) - x + 260 + pad;
+        const height = Math.max(...ys) - y + 140 + pad;
+        const groupId = newId("group");
+        get().update((w) => ({
+          ...w,
+          nodes: [
+            {
+              id: groupId,
+              type: "core.group",
+              position: { x, y },
+              params: { ...defaultParams("core.group"), title },
+              size: { width, height },
+            },
+            ...w.nodes.map((n) =>
+              members.some((m) => m.id === n.id)
+                ? {
+                    ...n,
+                    parentId: groupId,
+                    position: { x: n.position.x - x, y: n.position.y - y },
+                  }
+                : n,
+            ),
+          ],
+        }));
+      },
+
+      ungroup: (groupId) => {
+        const wf = get().workflow;
+        const group = wf?.nodes.find((n) => n.id === groupId);
+        if (!wf || !group) return;
+        get().update((w) => ({
+          ...w,
+          nodes: w.nodes
+            .filter((n) => n.id !== groupId)
+            .map((n) => {
+              if (n.parentId !== groupId) return n;
+              const { parentId: _p, ...rest } = n;
+              return {
+                ...rest,
+                position: {
+                  x: n.position.x + group.position.x,
+                  y: n.position.y + group.position.y,
+                },
+              };
+            }),
+        }));
+      },
+    }),
+    {
+      partialize: (s) => ({ workflow: s.workflow }),
+      limit: 200,
+      equality: (a, b) => a.workflow === b.workflow,
+    },
+  ),
+);
+
+export const useTemporal = () => useWorkflowStore.temporal.getState();

@@ -1,0 +1,122 @@
+import { once } from "node:events";
+import type { FfmpegTools } from "../media/ffmpeg";
+
+export class FrameEncoder {
+  private origin: number | null = null;
+  private tick = 0;
+  private last: Buffer | null = null;
+  private queue: Promise<void> = Promise.resolve();
+  private readonly stdin;
+  private readonly done;
+  private ended: Error | null = null;
+  readonly frameMs: number;
+
+  constructor(
+    ffmpeg: FfmpegTools,
+    readonly output: string,
+    fps: number,
+    signal?: AbortSignal,
+  ) {
+    this.frameMs = 1000 / fps;
+    const proc = ffmpeg.pipe(
+      [
+        "-f",
+        "image2pipe",
+        "-framerate",
+        String(fps),
+        "-c:v",
+        "mjpeg",
+        "-i",
+        "-",
+        "-an",
+        "-vf",
+        "pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "medium",
+        "-crf",
+        "16",
+        "-r",
+        String(fps),
+        "-movflags",
+        "+faststart",
+        output,
+      ],
+      { signal },
+    );
+    this.stdin = proc.stdin;
+    this.done = proc.done;
+    this.done.then(
+      () => {
+        this.ended = new Error("The video encoder already finished.");
+      },
+      (error: unknown) => {
+        this.ended = error instanceof Error ? error : new Error(String(error));
+      },
+    );
+    this.stdin.on("error", (error) => {
+      this.ended ??= error;
+    });
+  }
+
+  get frames() {
+    return this.tick;
+  }
+
+  get originMs() {
+    return this.origin;
+  }
+
+  setOrigin(t: number) {
+    this.origin = t;
+  }
+
+  push(jpeg: Buffer, t: number): Promise<void> {
+    this.queue = this.queue
+      .then(() => this.advance(t))
+      .then(() => {
+        this.last = jpeg;
+      });
+    return this.queue;
+  }
+
+  async finish(t: number): Promise<number> {
+    await this.queue;
+    await this.advance(t, true);
+    this.stdin.end();
+    await this.done;
+    return this.tick * this.frameMs;
+  }
+
+  async abort(): Promise<void> {
+    this.stdin.destroy();
+    await this.done.catch(() => undefined);
+  }
+
+  private async advance(t: number, inclusive = false) {
+    if (this.origin === null || !this.last) return;
+    while (
+      inclusive
+        ? this.origin + this.tick * this.frameMs <= t
+        : this.origin + this.tick * this.frameMs < t
+    ) {
+      if (this.ended || this.stdin.writableEnded)
+        throw this.ended ?? new Error("The video encoder stopped.");
+      if (!this.stdin.write(this.last)) {
+        const outcome = await Promise.race([
+          once(this.stdin, "drain").then(
+            () => "drained",
+            () => "stopped",
+          ),
+          this.done.then(
+            () => "stopped",
+            () => "stopped",
+          ),
+        ]);
+        if (outcome === "stopped") throw this.ended ?? new Error("The video encoder stopped.");
+      }
+      this.tick++;
+    }
+  }
+}

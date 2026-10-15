@@ -1,0 +1,515 @@
+import { z } from "zod";
+import { clip, elementRow, missing, quote, row, secs, shortUrl } from "./card";
+import { defineNode, port } from "./define";
+import {
+  asset,
+  beatFields,
+  bool,
+  choice,
+  more,
+  ms,
+  optionalTarget,
+  pointerFields,
+  target,
+  text,
+} from "./params";
+
+const chain = {
+  inputs: { session: port("session", "Previous") },
+  outputs: { session: port("session", "Next") },
+} as const;
+
+const pause = (after: number) => (after > 0 ? row("timer", `Pause ${secs(after)}`) : null);
+const zoomRow = (p: { zoom?: boolean; cluster?: string }) =>
+  p.zoom === false
+    ? row("zoom-out", "No zoom", { tone: "muted" })
+    : p.cluster?.trim()
+      ? row("zoom-in", `Zoom group “${clip(p.cluster, 20)}”`)
+      : null;
+const base = { category: "Browser", phase: "capture", virtual: true } as const;
+
+export const sessionNode = defineNode({
+  ...base,
+  type: "browser.session",
+  title: "Open browser",
+  icon: "globe",
+  description:
+    "Starts a browser window for the actions that follow: size, device, language, sign-in.",
+  inputs: {},
+  outputs: { session: port("session", "Next") },
+  params: z.object({
+    viewportWidth: z
+      .number()
+      .int()
+      .min(320)
+      .max(3840)
+      .default(1920)
+      .meta({
+        description: "Window width",
+        step: 10,
+        unit: "px",
+        presets: [
+          { label: "1280 × 720", values: { viewportWidth: 1280, viewportHeight: 720 } },
+          { label: "1440 × 900", values: { viewportWidth: 1440, viewportHeight: 900 } },
+          { label: "1920 × 1080", values: { viewportWidth: 1920, viewportHeight: 1080 } },
+        ],
+      }),
+    viewportHeight: z
+      .number()
+      .int()
+      .min(240)
+      .max(2160)
+      .default(1080)
+      .meta({ description: "Window height", step: 10, unit: "px" }),
+    dpr: z.number().min(1).max(4).default(2).meta({
+      description: "Screenshot sharpness",
+      help: "Only affects screenshots. 2× or more gives crisp 4K images.",
+      step: 1,
+      unit: "×",
+    }),
+    mobile: bool(false, "Mobile device"),
+    userAgent: more(text("", "Browser identity"), {
+      help: "Pretend to be a specific browser. Leave empty for the default.",
+      advanced: true,
+    }),
+    storageState: more(text("", "Signed in as"), {
+      widget: "secret",
+      help: "A sign-in saved by a Sign in once node.",
+    }),
+    locale: more(text("en-US", "Language"), { help: "For example en-US, de-DE, ja-JP." }),
+    timezone: more(text("", "Time zone"), { widget: "timezone" }),
+    colorScheme: choice(["light", "dark", "no-preference"], "light", "Theme", {
+      light: "Light",
+      dark: "Dark",
+      "no-preference": "System",
+    }),
+    captureScale: z.number().min(1).max(4).default(1).meta({
+      description: "Recording sharpness",
+      help: "Records at a higher resolution so zoomed-in shots stay sharp.",
+      step: 0.25,
+      unit: "×",
+      advanced: true,
+    }),
+  }),
+  card: ({ params: p, raw }) => [
+    row("monitor", `${p.viewportWidth} × ${p.viewportHeight}`),
+    p.mobile && row("smartphone", "Mobile"),
+    String(raw.storageState ?? "").trim() &&
+      row("user-round", `Signed in as ${quote(String(raw.storageState), 24)}`),
+    p.colorScheme === "dark" && row("moon", "Dark theme"),
+    p.locale && p.locale !== "en-US" && row("languages", p.locale),
+  ],
+});
+
+export const navigateNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.navigate",
+  title: "Go to page",
+  icon: "link",
+  description: "Opens a page address.",
+  params: z.object({
+    url: text("{{Site address}}", "Page address"),
+    waitUntil: choice(
+      ["load", "domcontentloaded", "networkidle", "commit"],
+      "load",
+      "Wait until the page has",
+      {
+        load: "Loaded",
+        domcontentloaded: "Started showing",
+        networkidle: "Settled",
+        commit: "Responded",
+      },
+    ),
+    after: more(ms(700, "Pause after"), { help: "How long the video lingers on the new page." }),
+  }),
+  card: ({ params: p }) => [
+    p.url.trim()
+      ? row("link", shortUrl(p.url), { title: p.url })
+      : missing("link", "Add an address"),
+    pause(p.after),
+  ],
+});
+
+export const clickNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.click",
+  title: "Click",
+  icon: "mouse-pointer-click",
+  description: "Moves the cursor to an element and clicks it.",
+  params: z.object({ target: target(), ...beatFields, ...pointerFields }),
+  card: ({ params: p, raw }) => [
+    elementRow("mouse-pointer-click", p.target, raw),
+    pause(p.after),
+    zoomRow(p),
+  ],
+});
+
+export const typeNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.type",
+  title: "Type text",
+  icon: "keyboard",
+  description: "Types into a field, key by key.",
+  params: z.object({
+    target: target(),
+    text: more(text("", "Text to type", "textarea"), {
+      pauses: true,
+      help: "Use Add pause to hold still for a moment in the middle of typing.",
+    }),
+    chunkPauseMs: ms(0, "Pause length", 10_000),
+    pressEnter: bool(false, "Press Enter after typing"),
+    ...beatFields,
+    frame: pointerFields.frame,
+  }),
+  card: ({ params: p, raw }) => [
+    elementRow("crosshair", p.target, raw),
+    p.text.trim()
+      ? row("keyboard", quote(p.text.replaceAll("¦", " … ")), {
+          title: p.text.replaceAll("¦", " … "),
+        })
+      : missing("keyboard", "Add text to type"),
+    p.pressEnter && row("corner-down-left", "Then Enter"),
+    pause(p.after),
+    zoomRow(p),
+  ],
+});
+
+export const hoverNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.hover",
+  title: "Hover",
+  icon: "pointer",
+  description:
+    "Moves the cursor over an element without clicking, so a menu or tooltip can appear.",
+  params: z.object({
+    target: target(),
+    ...beatFields,
+    ...pointerFields,
+    hoverMs: ms(600, "Hover for", 10_000),
+  }),
+  card: ({ params: p, raw }) => [
+    elementRow("mouse-pointer-2", p.target, raw),
+    row("hourglass", `Hover ${secs(p.hoverMs)}`),
+    pause(p.after),
+    zoomRow(p),
+  ],
+});
+
+export const scrollNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.scroll",
+  title: "Scroll",
+  icon: "arrow-down-up",
+  description: "Scrolls to an element or by a distance.",
+  params: z.object({
+    mode: choice(["element", "by"], "element", "Scroll to", {
+      element: "An element",
+      by: "A distance",
+    }),
+    target: more(optionalTarget("Element"), { showIf: { mode: ["element"] } }),
+    deltaY: z
+      .number()
+      .int()
+      .min(-20_000)
+      .max(20_000)
+      .default(600)
+      .meta({
+        description: "Distance",
+        help: "Negative scrolls up.",
+        step: 50,
+        unit: "px",
+        showIf: { mode: ["by"] },
+      }),
+    smooth: bool(true, "Smooth"),
+    durationMs: ms(900, "Scroll time", 10_000),
+    after: beatFields.after,
+  }),
+  card: ({ params: p, raw }) => [
+    p.mode === "element"
+      ? elementRow("scroll", p.target, raw)
+      : row("scroll", `${p.deltaY >= 0 ? "Down" : "Up"} ${Math.abs(p.deltaY)} px`),
+    p.smooth && row("timer", `Smooth, ${secs(p.durationMs)}`),
+    pause(p.after),
+  ],
+});
+
+export const selectNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.select",
+  title: "Choose option",
+  icon: "list-checks",
+  description: "Picks an option in a dropdown.",
+  params: z.object({ target: target(), value: text("", "Option"), ...beatFields }),
+  card: ({ params: p, raw }) => [
+    elementRow("list", p.target, raw),
+    p.value.trim() ? row("check", quote(p.value)) : missing("check", "Choose an option"),
+    pause(p.after),
+  ],
+});
+
+export const uploadNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.upload",
+  title: "Upload file",
+  icon: "upload",
+  description: "Attaches a file from your project to a file field.",
+  params: z.object({
+    target: target("File field", "Pick the upload field, or type its label."),
+    file: asset("File"),
+    ...beatFields,
+  }),
+  card: ({ params: p, raw }) => [
+    elementRow("upload", p.target, raw),
+    p.file
+      ? row("file", p.file.split("/").pop() ?? p.file, { title: p.file })
+      : missing("file", "Choose a file"),
+    pause(p.after),
+  ],
+});
+
+export const pressNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.press",
+  title: "Press keys",
+  icon: "command",
+  description: "Presses a key or shortcut, like Ctrl+K. Shows in keystroke chips.",
+  params: z.object({
+    keys: more(text("Enter", "Keys"), {
+      widget: "keys",
+      help: "Click the field and press the shortcut.",
+    }),
+    after: beatFields.after,
+  }),
+  card: ({ params: p }) => [
+    p.keys.trim()
+      ? row("command", p.keys.split("+").join(" + "))
+      : missing("command", "Press a shortcut"),
+    pause(p.after),
+  ],
+});
+
+export const waitNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.wait",
+  title: "Wait",
+  icon: "hourglass",
+  description:
+    "Waits for an element, a quiet page, an address, or a fixed time. Waiting for something is more reliable than a fixed time.",
+  params: z.object({
+    mode: choice(["element", "network-idle", "url", "ms"], "element", "Wait for", {
+      element: "An element",
+      "network-idle": "A quiet page",
+      url: "An address",
+      ms: "A fixed time",
+    }),
+    target: more(optionalTarget("Element"), { showIf: { mode: ["element"] } }),
+    url: more(text("", "Address pattern"), {
+      help: "Use * as a wildcard, e.g. */dashboard*.",
+      showIf: { mode: ["url"] },
+    }),
+    ms: more(ms(1000, "Time"), { showIf: { mode: ["ms"] } }),
+    timeoutMs: ms(20_000, "Give up after"),
+  }),
+  card: ({ params: p, raw }) => [
+    p.mode === "element"
+      ? elementRow("eye", p.target, raw, "target", "Pick what to wait for")
+      : p.mode === "network-idle"
+        ? row("wifi", "Until the page is quiet")
+        : p.mode === "url"
+          ? p.url.trim()
+            ? row("link", `Until ${shortUrl(p.url)}`)
+            : missing("link", "Add an address pattern")
+          : row("hourglass", secs(p.ms)),
+    p.mode !== "ms" && row("timer-off", `Give up after ${secs(p.timeoutMs)}`, { tone: "muted" }),
+  ],
+});
+
+export const assertNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.assert",
+  title: "Check text",
+  icon: "badge-check",
+  description:
+    "Stops the recording early if some text is not on the page, so you don't export a broken take.",
+  params: z.object({
+    text: text("", "Text"),
+    target: optionalTarget("Only inside (optional)"),
+    timeoutMs: ms(10_000, "Give up after"),
+  }),
+  card: ({ params: p }) => [
+    p.text.trim()
+      ? row("circle-check", quote(p.text))
+      : missing("circle-check", "Add the text to look for"),
+    row("timer-off", `Give up after ${secs(p.timeoutMs)}`, { tone: "muted" }),
+  ],
+});
+
+export const hoistNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.hoist",
+  title: "Find element early",
+  icon: "anchor",
+  description:
+    "Looks an element up ahead of time so a later action doesn't pause on screen while searching.",
+  params: z.object({ target: target() }),
+  card: ({ params: p, raw }) => [elementRow("crosshair", p.target, raw)],
+});
+
+export const setStateNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.setState",
+  title: "Run page script",
+  icon: "braces",
+  description:
+    "Runs a small script in the page before recording, e.g. to skip onboarding or turn on a feature.",
+  params: z.object({
+    script: text("localStorage.setItem('onboarded', '1');", "Script", "code"),
+    reload: bool(false, "Reload the page after"),
+  }),
+  card: ({ params: p }) => [
+    row("code", clip(p.script.split("\n")[0] ?? "", 36), { title: p.script }),
+    p.reload && row("refresh-cw", "Then reload"),
+  ],
+});
+
+export const mockRouteNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.mockRoute",
+  title: "Fake a response",
+  icon: "server",
+  description:
+    "Makes the site show fixed data for matching requests, so every take looks the same.",
+  params: z.object({
+    url: more(text("**/api/**", "Address pattern"), { help: "Use * as a wildcard." }),
+    status: z.number().int().min(100).max(599).default(200).meta({ description: "Status code" }),
+    contentType: text("application/json", "Type"),
+    body: text('{"ok":true}', "Response", "code"),
+  }),
+  card: ({ params: p }) => [
+    row("server", clip(p.url, 36), { title: p.url }),
+    row("reply", `${p.status} ${p.contentType.split("/").pop()?.toUpperCase() ?? ""}`.trim()),
+  ],
+});
+
+export const freezeClockNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.freezeClock",
+  title: "Freeze time",
+  icon: "clock",
+  description:
+    'Pins the date and time the page sees, so clocks and "x minutes ago" never change between takes.',
+  params: z.object({
+    time: more(text("2026-10-01T09:41:00", "Date and time"), { widget: "datetime" }),
+    mode: choice(["fixed", "paused"], "fixed", "Clock", { fixed: "Frozen", paused: "Paused" }),
+  }),
+  card: ({ params: p }) => {
+    const d = new Date(p.time);
+    const when = Number.isNaN(d.getTime())
+      ? p.time
+      : d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+    return [row("clock", `${when} · ${p.mode === "fixed" ? "Frozen" : "Paused"}`)];
+  },
+});
+
+export const hideElementsNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.hideElements",
+  title: "Hide clutter",
+  icon: "eye-off",
+  description: "Hides cookie banners, chat bubbles and anything else you list.",
+  params: z.object({
+    cookieBanners: bool(true, "Cookie banners"),
+    chatWidgets: bool(true, "Chat widgets"),
+    selectors: more(text("", "Also hide", "textarea"), {
+      help: "CSS selectors, one per line.",
+      advanced: true,
+    }),
+  }),
+  card: ({ params: p }) => {
+    const extra = p.selectors.split("\n").filter((l) => l.trim()).length;
+    const parts = [
+      p.cookieBanners && "Cookie banners",
+      p.chatWidgets && "Chat widgets",
+      extra && `+${extra} more`,
+    ].filter(Boolean);
+    return [
+      row(
+        "eye-off",
+        parts.length ? parts.join(" · ") : "Nothing yet",
+        parts.length ? {} : { tone: "muted" },
+      ),
+    ];
+  },
+});
+
+export const chapterNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.chapter",
+  title: "Chapter",
+  icon: "bookmark",
+  description: "Starts a new chapter. Can show a chapter card in the video.",
+  params: z.object({
+    title: text("Chapter", "Title"),
+    description: text("", "Description"),
+    showInVideo: bool(false, "Show a chapter card in the video"),
+    durationMs: more(ms(2000, "Card shown for"), { showIf: { showInVideo: ["true"] } }),
+  }),
+  card: ({ params: p }) => [
+    row("bookmark", quote(p.title)),
+    p.showInVideo && row("presentation", `Card for ${secs(p.durationMs)}`),
+  ],
+});
+
+export const overlayHtmlNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.overlayHtml",
+  title: "HTML overlay",
+  icon: "code",
+  description: "Shows your own HTML on top of the page while recording.",
+  params: z.object({
+    html: text('<div style="font:600 32px system-ui">Hello</div>', "HTML", "code"),
+    durationMs: ms(2000, "Shown for"),
+  }),
+  card: ({ params: p }) => [
+    row("code-xml", clip(p.html.replace(/<[^>]+>/g, " "), 36) || "HTML", { title: p.html }),
+    row("timer", secs(p.durationMs)),
+  ],
+});
+
+export const browserNodes = [
+  sessionNode,
+  navigateNode,
+  clickNode,
+  typeNode,
+  hoverNode,
+  scrollNode,
+  selectNode,
+  uploadNode,
+  pressNode,
+  waitNode,
+  assertNode,
+  hoistNode,
+  setStateNode,
+  mockRouteNode,
+  freezeClockNode,
+  hideElementsNode,
+  chapterNode,
+  overlayHtmlNode,
+];

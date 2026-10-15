@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "id": "example_social_teaser",
+  "name": "Social teaser (9:16)",
+  "settings": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "theme": "dark"
+  },
+  "variables": {
+    "Site address": "https://demo.playwright.dev/todomvc"
+  },
+  "nodes": [
+    {
+      "id": "session",
+      "type": "browser.session",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "params": {
+        "viewportWidth": 1440,
+        "viewportHeight": 900,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "storageState": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+      }
+    },
+    {
+      "id": "open",
+      "type": "browser.navigate",
+      "position": {
+        "x": 300,
+        "y": 0
+      },
+      "params": {
+        "url": "{{Site address}}",
+        "waitUntil": "load",
+        "after": 700
+      }
+    },
+    {
+      "id": "type",
+      "type": "browser.type",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {
+        "text": "Ship the teaser",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 1500,
+        "cluster": "",
+        "zoom": true,
+        "frame": "",
+        "target": "What needs to be done?"
+      }
+    },
+    {
+      "id": "record",
+      "type": "capture.record",
+      "position": {
+        "x": 900,
+        "y": 0
+      },
+      "params": {
+        "fps": 30,
+        "quality": 90,
+        "establishMs": 700,
+        "endTailMs": 2500,
+        "cursor": "synthetic",
+        "showActions": false,
+        "mutates": ""
+      }
+    },
+    {
+      "id": "camera",
+      "type": "camera.autoZoom",
+      "position": {
+        "x": 900,
+        "y": 356
+      },
+      "params": {
+        "zoom": true,
+        "maxScale": 1.74,
+        "hold": 1300,
+        "speed": 1.5,
+        "style": "classic",
+        "backdrop": "glaze",
+        "chrome": false,
+        "motionBlur": true
+      }
+    },
+    {
+      "id": "hook",
+      "type": "fx.remocn.kinetic-center-build",
+      "position": {
+        "x": 300,
+        "y": 340
+      },
+      "params": {
+        "text": "Words push left.",
+        "entryOffset": 88,
+        "fontSize": 72,
+        "color": "#171717",
+        "fontWeight": "600",
+        "speed": 1,
+        "clipDuration": 60
+      }
+    },
+    {
+      "id": "sequence",
+      "type": "timeline.sequence",
+      "position": {
+        "x": 1200,
+        "y": 340
+      },
+      "params": {
+        "transition": "remocn/push-through",
+        "transitionDuration": 15
+      }
+    },
+    {
+      "id": "music",
+      "type": "audio.music",
+      "position": {
+        "x": 1200,
+        "y": 806
+      },
+      "params": {
+        "src": "",
+        "volume": 0.4,
+        "loop": true,
+        "startMs": 0,
+        "trimMs": 0,
+        "fadeInMs": 800,
+        "fadeOutMs": 1500
+      }
+    },
+    {
+      "id": "mix",
+      "type": "audio.mix",
+      "position": {
+        "x": 1500,
+        "y": 340
+      },
+      "params": {}
+    },
+    {
+      "id": "render",
+      "type": "output.render",
+      "position": {
+        "x": 1800,
+        "y": 340
+      },
+      "params": {
+        "fileName": "{{Project name}}",
+        "codec": "h264",
+        "crf": 18,
+        "variants": ["9:16"],
+        "reframe": "follow",
+        "scale": 1,
+        "faststart": true,
+        "gl": "angle"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "session.session->open.session",
+      "source": "session",
+      "sourceHandle": "session",
+      "target": "open",
+      "targetHandle": "session"
+    },
+    {
+      "id": "open.session->type.session",
+      "source": "open",
+      "sourceHandle": "session",
+      "target": "type",
+      "targetHandle": "session"
+    },
+    {
+      "id": "type.session->record.session",
+      "source": "type",
+      "sourceHandle": "session",
+      "target": "record",
+      "targetHandle": "session"
+    },
+    {
+      "id": "record.recording->camera.recording",
+      "source": "record",
+      "sourceHandle": "recording",
+      "target": "camera",
+      "targetHandle": "recording"
+    },
+    {
+      "id": "hook.clip->sequence.in1",
+      "source": "hook",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in1"
+    },
+    {
+      "id": "camera.clip->sequence.in2",
+      "source": "camera",
+      "sourceHandle": "clip",
+      "target": "sequence",
+      "targetHandle": "in2"
+    },
+    {
+      "id": "sequence.clip->mix.clip",
+      "source": "sequence",
+      "sourceHandle": "clip",
+      "target": "mix",
+      "targetHandle": "clip"
+    },
+    {
+      "id": "music.audio->mix.a1",
+      "source": "music",
+      "sourceHandle": "audio",
+      "target": "mix",
+      "targetHandle": "a1"
+    },
+    {
+      "id": "mix.clip->render.timeline",
+      "source": "mix",
+      "sourceHandle": "clip",
+      "target": "render",
+      "targetHandle": "timeline"
+    }
+  ]
+}

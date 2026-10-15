@@ -1,0 +1,84 @@
+import { describe, expect, it } from "vitest";
+import type { ActionLog } from "../../shared/schema/actions";
+import { resolveAnnotations, toClickLog } from "./action-log";
+import { BASE_POSE } from "./lib/camera";
+import { buildCameraTrack, sampleTrack } from "./lib/zoom";
+
+const log: ActionLog = {
+  viewport: { width: 1920, height: 1080 },
+  dpr: 2,
+  t0: 0,
+  durationMs: 9000,
+  actions: [
+    { id: "nav", kind: "navigate", t: 0 },
+    {
+      id: "a",
+      kind: "click",
+      t: 2000,
+      tDepart: 1400,
+      tDown: 1950,
+      point: { x: 1500, y: 300 },
+      rect: { x: 1440, y: 280, w: 120, h: 40 },
+      label: "Save",
+    },
+    { id: "k", kind: "key", t: 4000, text: "Meta+K", label: "Palette" },
+    {
+      id: "b",
+      kind: "type",
+      t: 5000,
+      tEnd: 6500,
+      point: { x: 400, y: 800 },
+      rect: { x: 200, y: 780, w: 400, h: 40 },
+      label: "Search",
+    },
+  ],
+};
+
+describe("ActionLog → ClickLog", () => {
+  it("keeps pointer beats as clicks and chords as keys", () => {
+    const cl = toClickLog(log, "demo");
+    expect(cl.clicks.map((c) => c.label)).toEqual(["Save", "Search"]);
+    expect(cl.clicks[0]).toMatchObject({
+      tMs: 2000,
+      tDepartMs: 1400,
+      tDownMs: 1950,
+      x: 1500,
+      y: 300,
+    });
+    expect(cl.clicks[1].typeEndMs).toBe(6500);
+    expect(cl.keys).toEqual([{ tMs: 4000, chord: "Meta+K", label: "Palette" }]);
+  });
+
+  it("drives a camera track that leaves and returns to base", () => {
+    const cl = toClickLog(log, "demo");
+    const track = buildCameraTrack(cl, 1);
+    expect(sampleTrack(track, 0)).toEqual(BASE_POSE);
+    expect(sampleTrack(track, 2.6).scale).toBeGreaterThan(1.1);
+    expect(sampleTrack(track, 9).scale).toBeCloseTo(1, 5);
+  });
+
+  it("honours the Auto zoom tuning", () => {
+    const cl = toClickLog(log, "demo");
+    const loose = Math.max(...buildCameraTrack(cl, 1).map((k) => k.pose.scale));
+    const tight = Math.max(...buildCameraTrack(cl, 1, { sMax: 1.2 }).map((k) => k.pose.scale));
+    expect(tight).toBeLessThanOrEqual(1.2);
+    expect(loose).toBeGreaterThan(tight);
+  });
+
+  it("pins annotations to matching beats", () => {
+    const ann = resolveAnnotations(log, [
+      {
+        kind: "highlight",
+        match: "save",
+        text: "",
+        color: "#fff",
+        padding: 8,
+        leadMs: 200,
+        holdMs: 1000,
+      },
+    ]);
+    expect(ann).toHaveLength(1);
+    expect(ann[0].fromS).toBeCloseTo(1.2);
+    expect(ann[0].toS).toBeCloseTo(3);
+  });
+});
