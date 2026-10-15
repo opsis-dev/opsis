@@ -57,6 +57,7 @@ import { PreviewDock } from "./preview-dock";
 import { cancelRun, startRun } from "./run";
 import { RunPanel } from "./run-panel";
 import { CompiledContext, useCompiled } from "./use-compiled";
+import { useStillsStore } from "../store/stills";
 
 const mod = window.demoflow?.platform === "darwin" ? "⌘" : "Ctrl";
 
@@ -356,6 +357,11 @@ export function Editor() {
   useEffect(() => {
     if (name) window.demoflow.setTitle(`${name} — Demoflow`);
   }, [name]);
+  const projectDir = useWorkflowStore((s) => s.projectDir);
+  useEffect(() => {
+    void useStillsStore.getState().load(projectDir);
+    void useStillsStore.getState().checkEngine();
+  }, [projectDir]);
 
   return (
     <ReactFlowProvider>

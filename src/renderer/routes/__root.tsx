@@ -7,6 +7,8 @@ import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
 import { SETUP_SKIPPED_KEY } from "../app/setup";
 import { useMenuShortcuts, WindowBorder } from "../app/app-bar";
+import { useStillsStore } from "../store/stills";
+import { exportedClipNodes } from "../editor/stills";
 
 function Root() {
   const navigate = useNavigate();
@@ -33,7 +35,19 @@ function Root() {
         useRunStore.getState().apply(e);
         if (e.type === "run:done")
           void useSecretsStore.getState().refresh(useWorkflowStore.getState().projectDir);
+        if (e.type === "run:done" && e.ok) {
+          const wf = useWorkflowStore.getState().workflow;
+          if (wf) useStillsStore.getState().want(exportedClipNodes(wf));
+        }
       }),
+    [],
+  );
+
+  useEffect(
+    () =>
+      window.demoflow.onStillReady((still) =>
+        useStillsStore.getState().ready(still.projectDir, still.nodeId, still.hash),
+      ),
     [],
   );
 

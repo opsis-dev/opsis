@@ -7,6 +7,7 @@ import type { AppSettings } from "./settings";
 import type { TraceModel } from "./trace";
 import type { FontFamilyDef } from "./fonts/types";
 import type { PlannedFamily } from "./fonts/plan";
+import type { TimelineSpec } from "./schema/timeline";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 
@@ -96,6 +97,19 @@ export type FontInstalledFace = {
   data: ArrayBuffer;
 };
 
+export type StillRequest = {
+  projectDir: string;
+  nodeId: string;
+  key: string;
+  spec: TimelineSpec;
+  frame: number;
+  priority: boolean;
+};
+
+export type StillResult = { hash: string; ready: boolean; unavailable?: boolean };
+
+export type StillReady = { projectDir: string; nodeId: string; hash: string };
+
 export type WindowState = { maximized: boolean; fullscreen: boolean; focused: boolean };
 
 export interface DemoflowApi {
@@ -130,6 +144,9 @@ export interface DemoflowApi {
   setTitle(title: string): void;
   windowRole(role: WindowRole): Promise<void>;
   getWindowState(): Promise<WindowState>;
+  requestStill(request: StillRequest): Promise<StillResult>;
+  listStills(projectDir: string): Promise<Record<string, string>>;
+  onStillReady(listener: (still: StillReady) => void): () => void;
   onWindowState(listener: (state: WindowState) => void): () => void;
   dispatchMenuCommand(command: MenuCommand): void;
   listFonts(): Promise<FontFamilyDef[]>;
@@ -168,6 +185,9 @@ export const IPC = {
   setTitle: "demoflow:window:title",
   windowRole: "demoflow:window:role",
   getWindowState: "demoflow:window:get-state",
+  requestStill: "demoflow:stills:request",
+  listStills: "demoflow:stills:list",
+  stillReady: "demoflow:stills:ready",
   windowState: "demoflow:window:state",
   listFonts: "demoflow:fonts:list",
   inspectFontFiles: "demoflow:fonts:inspect-files",

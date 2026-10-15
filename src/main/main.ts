@@ -39,7 +39,8 @@ import {
   listLibrary,
   removeLibraryFont,
 } from "./fonts";
-import type { FontInstalledFace, WindowState } from "../shared/ipc";
+import type { FontInstalledFace, StillRequest, WindowState } from "../shared/ipc";
+import { initStills, listStills, requestStill } from "./stills";
 import { activeRunId, cancelRun, environment, installEngine, isRunning, startRun } from "./workers";
 
 if (started) app.quit();
@@ -244,6 +245,8 @@ function registerIpc(): void {
     if (mainWindow) runWindowRole(mainWindow, role);
   });
   handle(IPC.getWindowState, () => windowState());
+  handle(IPC.requestStill, (request: StillRequest) => requestStill(request));
+  handle(IPC.listStills, (dir: string) => listStills(dir));
 }
 
 app.whenReady().then(() => {
@@ -253,6 +256,7 @@ app.whenReady().then(() => {
     rendererDir: rendererDir(),
   });
   registerIpc();
+  initStills(() => mainWindow);
   buildMenu(() => mainWindow);
   createWindow();
   app.on("activate", () => {

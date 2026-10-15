@@ -16,6 +16,7 @@ import { cn } from "@/renderer/lib/utils";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useUiStore } from "../store/ui";
+import { useStillsStore } from "../store/stills";
 import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
 import { NodeIcon } from "./icons";
@@ -233,5 +234,61 @@ export function NodeThumbnail({ nodeId, def }: { nodeId: string; def: NodeDef })
   }
   if (def.category === "Browser" || def.category === "Utility") return null;
   if (!("clip" in def.outputs)) return null;
-  return <LiveFrame nodeId={nodeId} />;
+  return <CardStill nodeId={nodeId} />;
+}
+
+function useSettledClipKey(nodeId: string): string {
+  const { result: compiled } = useCompiledContext();
+  const settings = useWorkflowStore((s) => s.workflow?.settings);
+  const clip = compiled?.values[nodeId]?.clip;
+  const key = isClip(clip) && settings ? stableStringify([clip, settings]) : "";
+  const [settled, setSettled] = useState(key);
+  useEffect(() => {
+    const t = setTimeout(() => setSettled(key), 400);
+    return () => clearTimeout(t);
+  }, [key]);
+  return settled;
+}
+
+function CardStill({ nodeId }: { nodeId: string }) {
+  const engine = useStillsStore((s) => s.engine);
+  const projectDir = useWorkflowStore((s) => s.projectDir);
+  const hash = useStillsStore((s) => s.index[nodeId]);
+  const wanted = useStillsStore((s) => !!s.wanted[nodeId]);
+  const selected = useUiStore((s) => s.selectedIds.includes(nodeId));
+  const settled = useSettledClipKey(nodeId);
+
+  useEffect(() => {
+    if (!engine || !projectDir || !settled || (!hash && !wanted)) return;
+    const [c, s] = JSON.parse(settled) as [
+      Parameters<typeof clipToSpec>[0],
+      Parameters<typeof clipToSpec>[1],
+    ];
+    const spec = { ...clipToSpec(c, s), quality: "fast" as const };
+    void window.demoflow
+      .requestStill({
+        projectDir,
+        nodeId,
+        key: settled,
+        spec,
+        frame: Math.max(0, Math.round(spec.durationInFrames / 2)),
+        priority: selected || !hash,
+      })
+      .then((r) => {
+        if (r.ready) useStillsStore.getState().ready(projectDir, nodeId, r.hash);
+      });
+  }, [engine, projectDir, settled, hash, wanted, selected, nodeId]);
+
+  if (engine === false) return <LiveFrame nodeId={nodeId} />;
+  if (!hash) return null;
+  return (
+    <div className="mx-3 overflow-hidden rounded-md bg-black">
+      <img
+        src={fileUrl(`project:.demoflow/cache/stills/${hash}.jpg`)}
+        alt=""
+        draggable={false}
+        className="block aspect-video w-full object-contain"
+      />
+    </div>
+  );
 }

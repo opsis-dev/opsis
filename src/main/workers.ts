@@ -35,7 +35,7 @@ export async function workerEnv(): Promise<WorkerEnv> {
   };
 }
 
-function spawnWorker(withLive: boolean) {
+export function spawnWorker(withLive: boolean) {
   const control = new MessageChannelMain();
   const live = withLive ? new MessageChannelMain() : null;
   const child = utilityProcess.fork(path.join(__dirname, "worker.cjs"), [], {

@@ -17,6 +17,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/u
 import { useUiStore, type PreviewQuality } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { useCompiledContext } from "./use-compiled";
+import { useStillsStore } from "../store/stills";
 
 export function PreviewDock() {
   const { preview } = useCompiledContext();
@@ -34,6 +35,11 @@ export function PreviewDock() {
         : null,
     [preview, quality],
   );
+
+  const sourceNodeId = preview?.sourceNodeId ?? null;
+  useEffect(() => {
+    if (sourceNodeId) useStillsStore.getState().want([sourceNodeId]);
+  }, [sourceNodeId]);
 
   const selectedId = selected.length === 1 ? selected[0] : null;
   useEffect(() => {

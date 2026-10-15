@@ -1,5 +1,6 @@
 import type { EngineInstallEvent, RunRequest } from "./ipc";
 import type { RunEvent } from "./schema/events";
+import type { TimelineSpec } from "./schema/timeline";
 import type { AppSettings } from "./settings";
 
 export type WorkerEnv = {
@@ -21,6 +22,16 @@ export type LoginRequest = {
 export type MainToWorker =
   | { type: "run"; env: WorkerEnv; request: RunRequest; runId: string }
   | { type: "install-engine"; env: WorkerEnv }
+  | {
+      type: "still";
+      env: WorkerEnv;
+      id: string;
+      projectDir: string;
+      spec: TimelineSpec;
+      frame: number;
+      output: string;
+      width: number;
+    }
   | { type: "cancel" }
   | { type: "secret:response"; id: string; value?: string; error?: string }
   | { type: "login:response"; id: string; value?: string; error?: string };
@@ -37,4 +48,5 @@ export type WorkerToMain =
     }
   | { type: "login:request"; id: string; request: LoginRequest }
   | { type: "install:progress"; event: EngineInstallEvent }
-  | { type: "install:done"; error?: string };
+  | { type: "install:done"; error?: string }
+  | { type: "still:done"; id: string; error?: string };

@@ -2,10 +2,12 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import {
   makeCancelSignal,
+  openBrowser,
   renderMedia,
   renderStill,
   selectComposition,
   type Codec,
+  type HeadlessBrowser,
 } from "@remotion/renderer";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import type { WorkerEnv } from "../../shared/worker-protocol";
@@ -113,6 +115,9 @@ export async function renderFrame(opts: {
   format: "png" | "jpeg";
   gl: GlRenderer;
   signal: AbortSignal;
+  browser?: HeadlessBrowser;
+  scale?: number;
+  jpegQuality?: number;
 }): Promise<void> {
   const { cancel, cancelSignal } = makeCancelSignal();
   const onAbort = () => cancel();
@@ -125,17 +130,27 @@ export async function renderFrame(opts: {
       browserExecutable: browserExecutable(opts.env),
       chromiumOptions: { gl: opts.gl },
     };
-    const composition = await selectComposition({ ...common, id: COMPOSITION_ID });
+    const shared = opts.browser ? { ...common, puppeteerInstance: opts.browser } : common;
+    const composition = await selectComposition({ ...shared, id: COMPOSITION_ID });
     await renderStill({
-      ...common,
+      ...shared,
       composition,
       frame: Math.min(composition.durationInFrames - 1, Math.max(0, opts.frame)),
       output: opts.output,
       imageFormat: opts.format,
+      scale: opts.scale,
+      jpegQuality: opts.jpegQuality,
       cancelSignal,
       licenseKey: "free-license",
     });
   } finally {
     opts.signal.removeEventListener("abort", onAbort);
   }
+}
+
+export function openRenderBrowser(env: WorkerEnv, gl: GlRenderer): Promise<HeadlessBrowser> {
+  return openBrowser("chrome", {
+    browserExecutable: browserExecutable(env),
+    chromiumOptions: { gl },
+  });
 }

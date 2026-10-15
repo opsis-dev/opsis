@@ -4,6 +4,7 @@ import { installEngine } from "../engine/install";
 import type { LiveMessage } from "../shared/live";
 import type { LoginRequest, MainToWorker, WorkerToMain } from "../shared/worker-protocol";
 import { runWorkflow } from "./engine/runner";
+import { renderCardStill } from "./render/card-still";
 
 let control: MessagePortMain | null = null;
 let live: MessagePortMain | null = null;
@@ -83,6 +84,19 @@ async function handle(msg: MainToWorker): Promise<void> {
         });
       }
       finish();
+      return;
+    }
+    case "still": {
+      try {
+        await renderCardStill(msg, controller.signal);
+        send({ type: "still:done", id: msg.id });
+      } catch (error) {
+        send({
+          type: "still:done",
+          id: msg.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
       return;
     }
     case "install-engine": {

@@ -4,6 +4,7 @@ import {
   type DemoflowApi,
   type EngineInstallEvent,
   type MenuCommand,
+  type StillReady,
   type WindowState,
 } from "../shared/ipc";
 import type { LiveMessage } from "../shared/live";
@@ -75,6 +76,9 @@ const api: DemoflowApi = {
   },
   windowRole: (role) => ipcRenderer.invoke(IPC.windowRole, role),
   getWindowState: () => ipcRenderer.invoke(IPC.getWindowState),
+  requestStill: (request) => ipcRenderer.invoke(IPC.requestStill, request),
+  listStills: (dir) => ipcRenderer.invoke(IPC.listStills, dir),
+  onStillReady: (listener) => subscribe<StillReady>(IPC.stillReady, listener),
   onWindowState: (listener) => subscribe<WindowState>(IPC.windowState, listener),
   setTitle: (title) => ipcRenderer.send(IPC.setTitle, title),
 };
