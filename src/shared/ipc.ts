@@ -1,4 +1,5 @@
 import type { LiveMessage } from "./live";
+import type { WindowRole } from "./menu";
 import type { RunEvent } from "./schema/events";
 import type { LastRun } from "./schema/values";
 import type { Workflow } from "./schema/workflow";
@@ -64,7 +65,8 @@ export type MenuCommand =
   | "view:projects"
   | "view:toggle-left"
   | "view:toggle-bottom"
-  | "view:toggle-right";
+  | "view:toggle-right"
+  | "edit:add-node";
 
 export interface DemoflowApi {
   platform: NodeJS.Platform;
@@ -96,6 +98,9 @@ export interface DemoflowApi {
   clearCache(dir: string): Promise<void>;
   onMenuCommand(listener: (command: MenuCommand) => void): () => void;
   setTitle(title: string): void;
+  windowRole(role: WindowRole): Promise<void>;
+  setTitleBarColors(colors: { color: string; symbolColor: string }): Promise<void>;
+  dispatchMenuCommand(command: MenuCommand): void;
 }
 
 export const IPC = {
@@ -122,6 +127,8 @@ export const IPC = {
   clearCache: "demoflow:cache:clear",
   menu: "demoflow:menu",
   setTitle: "demoflow:window:title",
+  windowRole: "demoflow:window:role",
+  titleBarColors: "demoflow:window:title-bar-colors",
 } as const;
 
 declare global {

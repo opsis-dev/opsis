@@ -41,6 +41,7 @@ import { Canvas } from "./Canvas";
 import { Inspector } from "./Inspector";
 import { autoLayout } from "./layout";
 import { LivePip, LiveToggle } from "./LivePip";
+import { AppBar } from "../app/AppBar";
 import { Palette, QuickAdd } from "./Palette";
 import {
   layoutStorage,
@@ -84,7 +85,6 @@ function useAutosave() {
 }
 
 function useMenuCommands() {
-  const navigate = useNavigate();
   useEffect(
     () =>
       window.demoflow.onMenuCommand((command) => {
@@ -111,8 +111,8 @@ function useMenuCommands() {
           case "edit:layout":
             void layout();
             break;
-          case "view:settings":
-            void navigate({ to: "/settings" });
+          case "edit:add-node":
+            useUiStore.getState().setPaletteOpen(true);
             break;
           case "view:toggle-left":
             togglePanel("left");
@@ -123,32 +123,10 @@ function useMenuCommands() {
           case "view:toggle-right":
             togglePanel("right");
             break;
-          case "view:projects":
-          case "project:new":
-          case "project:open":
-            void navigate({ to: "/" });
-            break;
         }
       }),
-    [navigate],
+    [],
   );
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.shiftKey) return;
-      const key = e.key.toLowerCase();
-      const side: PanelSide | null =
-        key === "b" ? (e.altKey ? "right" : "left") : key === "j" && !e.altKey ? "bottom" : null;
-      if (side) {
-        e.preventDefault();
-        togglePanel(side);
-      } else if (key === "k" && !e.altKey) {
-        e.preventDefault();
-        useUiStore.getState().setPaletteOpen(true);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 }
 
 function TopBar() {
@@ -162,7 +140,7 @@ function TopBar() {
   const { undo, redo } = useWorkflowStore.temporal.getState();
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
+    <AppBar>
       <Button
         variant="ghost"
         size="icon-sm"
@@ -266,7 +244,7 @@ function TopBar() {
           Run
         </Button>
       )}
-    </header>
+    </AppBar>
   );
 }
 

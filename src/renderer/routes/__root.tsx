@@ -2,13 +2,31 @@ import { createRootRoute, Outlet, useNavigate, useRouterState } from "@tanstack/
 import { useEffect } from "react";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
+import { useUiStore } from "../store/ui";
 import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
 import { SETUP_SKIPPED_KEY } from "../app/Setup";
+import { useMenuShortcuts, useTitleBarColors } from "../app/AppBar";
 
 function Root() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  useMenuShortcuts();
+  useTitleBarColors();
+
+  useEffect(
+    () =>
+      window.demoflow.onMenuCommand((command) => {
+        const home = window.location.hash.replace(/^#/, "").split("?")[0] || "/";
+        if (command === "view:settings") void navigate({ to: "/settings" });
+        else if (command === "view:projects") void navigate({ to: "/" });
+        else if ((command === "project:new" || command === "project:open") && home !== "/") {
+          useUiStore.getState().setPendingProjectAction(command === "project:new" ? "new" : "open");
+          void navigate({ to: "/" });
+        }
+      }),
+    [navigate],
+  );
 
   useEffect(
     () =>

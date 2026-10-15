@@ -19,6 +19,8 @@ type UiState = {
   bottomTab: "preview" | "run";
   replayNodeId: string | null;
   replayTab: ReplayTab;
+  pendingProjectAction: "new" | "open" | null;
+  setPendingProjectAction: (action: "new" | "open" | null) => void;
   previewQuality: PreviewQuality;
   setPreviewQuality: (quality: PreviewQuality) => void;
   setSelected: (ids: string[]) => void;
@@ -40,6 +42,8 @@ export const useUiStore = create<UiState>()((set) => ({
   bottomTab: "preview",
   replayNodeId: null,
   replayTab: "replay",
+  pendingProjectAction: null,
+  setPendingProjectAction: (pendingProjectAction) => set({ pendingProjectAction }),
   previewQuality: storedQuality(),
   setPreviewQuality: (previewQuality) => {
     set({ previewQuality });

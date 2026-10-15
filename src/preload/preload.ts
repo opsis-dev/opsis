@@ -10,6 +10,11 @@ function subscribe<T>(channel: string, listener: (payload: T) => void): () => vo
 }
 
 const liveListeners = new Set<(message: LiveMessage) => void>();
+const menuListeners = new Set<(command: MenuCommand) => void>();
+
+ipcRenderer.on(IPC.menu, (_event, command: MenuCommand) => {
+  for (const listener of menuListeners) listener(command);
+});
 
 ipcRenderer.on(IPC.livePort, (event) => {
   const [port] = event.ports;
@@ -46,7 +51,15 @@ const api: DemoflowApi = {
   readTrace: (dir, traceId) => ipcRenderer.invoke(IPC.readTrace, dir, traceId),
   listSecrets: (dir) => ipcRenderer.invoke(IPC.listSecrets, dir),
   clearCache: (dir) => ipcRenderer.invoke(IPC.clearCache, dir),
-  onMenuCommand: (listener) => subscribe<MenuCommand>(IPC.menu, listener),
+  onMenuCommand: (listener) => {
+    menuListeners.add(listener);
+    return () => menuListeners.delete(listener);
+  },
+  dispatchMenuCommand: (command) => {
+    for (const listener of menuListeners) listener(command);
+  },
+  windowRole: (role) => ipcRenderer.invoke(IPC.windowRole, role),
+  setTitleBarColors: (colors) => ipcRenderer.invoke(IPC.titleBarColors, colors),
   setTitle: (title) => ipcRenderer.send(IPC.setTitle, title),
 };
 

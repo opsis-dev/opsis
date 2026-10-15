@@ -1,68 +1,70 @@
 import { app, Menu, type BrowserWindow, type MenuItemConstructorOptions } from "electron";
-import { IPC, type MenuCommand } from "../shared/ipc";
+import { IPC } from "../shared/ipc";
+import { appMenu, type WindowRole } from "../shared/menu";
 
 export function buildMenu(getWindow: () => BrowserWindow | null): void {
-  const send = (command: MenuCommand) => () => getWindow()?.webContents.send(IPC.menu, command);
-  const isMac = process.platform === "darwin";
-  const template: MenuItemConstructorOptions[] = [
-    ...(isMac ? [{ role: "appMenu" as const }] : []),
-    {
-      label: "File",
-      submenu: [
-        { label: "New project…", accelerator: "CmdOrCtrl+N", click: send("project:new") },
-        { label: "Open project…", accelerator: "CmdOrCtrl+O", click: send("project:open") },
-        { label: "Save", accelerator: "CmdOrCtrl+S", click: send("project:save") },
-        { type: "separator" },
-        { label: "All projects", accelerator: "CmdOrCtrl+Shift+P", click: send("view:projects") },
-        { label: "Settings", accelerator: "CmdOrCtrl+,", click: send("view:settings") },
-        { type: "separator" },
-        isMac ? { role: "close" } : { role: "quit" },
-      ],
-    },
-    {
-      label: "Edit",
-      submenu: [
-        { label: "Undo", accelerator: "CmdOrCtrl+Z", click: send("edit:undo") },
-        { label: "Redo", accelerator: isMac ? "Cmd+Shift+Z" : "Ctrl+Y", click: send("edit:redo") },
-        { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        { role: "selectAll" },
-        { type: "separator" },
-        { label: "Group selection", accelerator: "CmdOrCtrl+G", click: send("edit:group") },
-        { label: "Tidy up layout", accelerator: "CmdOrCtrl+Shift+L", click: send("edit:layout") },
-      ],
-    },
-    {
-      label: "Run",
-      submenu: [
-        { label: "Run", accelerator: "CmdOrCtrl+Enter", click: send("run:start") },
-        { label: "Cancel run", accelerator: "CmdOrCtrl+.", click: send("run:cancel") },
-      ],
-    },
-    {
-      label: "View",
-      submenu: [
-        { label: "Node list", accelerator: "CmdOrCtrl+B", click: send("view:toggle-left") },
-        { label: "Preview and run", accelerator: "CmdOrCtrl+J", click: send("view:toggle-bottom") },
-        { label: "Inspector", accelerator: "CmdOrCtrl+Alt+B", click: send("view:toggle-right") },
-        { type: "separator" },
-        { role: "reload" },
-        { role: "toggleDevTools" },
-        { type: "separator" },
-        { role: "resetZoom" },
-        { role: "zoomIn" },
-        { role: "zoomOut" },
-        { type: "separator" },
-        { role: "togglefullscreen" },
-      ],
-    },
-    { role: "windowMenu" },
-    {
-      role: "help",
-      submenu: [{ label: `Demoflow ${app.getVersion()}`, enabled: false }],
-    },
-  ];
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+  if (process.platform !== "darwin") {
+    Menu.setApplicationMenu(null);
+    return;
+  }
+  const sections: MenuItemConstructorOptions[] = appMenu(process.platform).map((section) => ({
+    label: section.label,
+    submenu: section.items.map((item): MenuItemConstructorOptions => {
+      if (item.kind === "separator") return { type: "separator" };
+      if (item.kind === "role")
+        return { label: item.label, role: item.role, accelerator: item.accelerator };
+      return {
+        label: item.label,
+        accelerator: item.accelerator,
+        click: () => getWindow()?.webContents.send(IPC.menu, item.command),
+      };
+    }),
+  }));
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate([
+      { role: "appMenu" },
+      ...sections,
+      { role: "windowMenu" },
+      { role: "help", submenu: [{ label: `Demoflow ${app.getVersion()}`, enabled: false }] },
+    ]),
+  );
+}
+
+export function runWindowRole(win: BrowserWindow, role: WindowRole): void {
+  const contents = win.webContents;
+  switch (role) {
+    case "cut":
+      contents.cut();
+      return;
+    case "copy":
+      contents.copy();
+      return;
+    case "paste":
+      contents.paste();
+      return;
+    case "selectAll":
+      contents.selectAll();
+      return;
+    case "reload":
+      contents.reload();
+      return;
+    case "toggleDevTools":
+      contents.toggleDevTools();
+      return;
+    case "resetZoom":
+      contents.setZoomLevel(0);
+      return;
+    case "zoomIn":
+      contents.setZoomLevel(Math.min(contents.getZoomLevel() + 0.5, 5));
+      return;
+    case "zoomOut":
+      contents.setZoomLevel(Math.max(contents.getZoomLevel() - 0.5, -5));
+      return;
+    case "togglefullscreen":
+      win.setFullScreen(!win.isFullScreen());
+      return;
+    case "quit":
+      app.quit();
+      return;
+  }
 }

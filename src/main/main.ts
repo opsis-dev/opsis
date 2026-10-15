@@ -13,7 +13,8 @@ import { IPC, type PickRequest, type RunRequest } from "../shared/ipc";
 import type { AppSettings } from "../shared/settings";
 import type { RunEvent } from "../shared/schema/events";
 import { pickInWindow } from "./browser-windows";
-import { buildMenu } from "./menu";
+import type { WindowRole } from "../shared/menu";
+import { buildMenu, runWindowRole } from "./menu";
 import {
   clearCache,
   createProjectDir,
@@ -47,6 +48,16 @@ function createWindow(): void {
     backgroundColor: "#09090b",
     title: "Demoflow",
     show: false,
+    ...(process.platform === "darwin"
+      ? { titleBarStyle: "hiddenInset" as const, trafficLightPosition: { x: 16, y: 16 } }
+      : {
+          titleBarStyle: "hidden" as const,
+          titleBarOverlay: {
+            color: TITLE_BAR.color,
+            symbolColor: TITLE_BAR.symbolColor,
+            height: TITLE_BAR.height,
+          },
+        }),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -70,6 +81,8 @@ function assertTrustedSender(event: IpcMainInvokeEvent): void {
   if (!mainWindow || event.sender.id !== mainWindow.webContents.id)
     throw new Error("Blocked IPC call from an unknown renderer.");
 }
+
+const TITLE_BAR = { color: "#0a0a0a", symbolColor: "#fafafa", height: 48 };
 
 function handle<A extends unknown[], R>(channel: string, fn: (...args: A) => Promise<R> | R): void {
   ipcMain.handle(channel, async (event, ...args) => {
@@ -153,6 +166,15 @@ function registerIpc(): void {
   handle(IPC.clearCache, (dir: string) => clearCache(dir));
   ipcMain.on(IPC.setTitle, (event, title: string) => {
     if (mainWindow && event.sender.id === mainWindow.webContents.id) mainWindow.setTitle(title);
+  });
+  handle(IPC.windowRole, (role: WindowRole) => {
+    if (mainWindow) runWindowRole(mainWindow, role);
+  });
+  handle(IPC.titleBarColors, (colors: { color: string; symbolColor: string }) => {
+    if (!mainWindow || process.platform === "darwin") return;
+    const valid = (c: string) => /^#[0-9a-f]{6}$/i.test(c);
+    if (!valid(colors.color) || !valid(colors.symbolColor)) return;
+    mainWindow.setTitleBarOverlay({ ...colors, height: TITLE_BAR.height });
   });
 }
 

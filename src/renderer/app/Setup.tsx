@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { PageBar } from "./AppBar";
 import { CheckCircle2, Download } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { EngineInstallEvent, EnvStatus } from "@/shared/ipc";
@@ -99,25 +100,28 @@ export function EnginePanel({ onDone }: { onDone?: () => void }) {
 export function Setup() {
   const navigate = useNavigate();
   return (
-    <div className="h-screen overflow-y-auto">
-      <div className="mx-auto flex min-h-full max-w-xl flex-col justify-center gap-6 px-6 py-10">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Welcome to Demoflow</h1>
-          <p className="text-muted-foreground text-sm">
-            This version doesn't include the recording and export engine. Set it up once to record
-            and export.
-          </p>
+    <div className="flex h-screen flex-col">
+      <PageBar title="Welcome" />
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex min-h-full max-w-xl flex-col justify-center gap-6 px-6 py-10">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-semibold tracking-tight">Welcome to Demoflow</h1>
+            <p className="text-muted-foreground text-sm">
+              This version doesn't include the recording and export engine. Set it up once to record
+              and export.
+            </p>
+          </div>
+          <EnginePanel
+            onDone={() => {
+              try {
+                localStorage.setItem(SETUP_SKIPPED_KEY, "1");
+              } catch {
+                void 0;
+              }
+              void navigate({ to: "/" });
+            }}
+          />
         </div>
-        <EnginePanel
-          onDone={() => {
-            try {
-              localStorage.setItem(SETUP_SKIPPED_KEY, "1");
-            } catch {
-              void 0;
-            }
-            void navigate({ to: "/" });
-          }}
-        />
       </div>
     </div>
   );
