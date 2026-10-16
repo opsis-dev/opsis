@@ -36,6 +36,7 @@
     "registry:ingest": "node scripts/registry-ingest.ts",
     "fonts:bundle": "node scripts/fonts-bundle.ts",
     "brand:icons": "node scripts/brand-icons.ts",
+    "engine:licences": "node scripts/engine-licences.ts",
     "examples": "tsx scripts/write-examples.ts"
   },
   "dependencies": {

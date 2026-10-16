@@ -12,6 +12,9 @@ const isShape = (v: unknown) => v === "project" || VARIANTS.includes(v as Varian
 
 export const storedShape = (): PreviewShape => readPref("previewShape", "project", isShape);
 
+export const storedMinimap = (): boolean =>
+  readPref("minimap", true, (v) => typeof v === "boolean");
+
 type UiState = {
   selectedIds: string[];
   activeIds: string[];
@@ -25,6 +28,8 @@ type UiState = {
   setPreviewQuality: (quality: PreviewQuality) => void;
   previewShape: PreviewShape;
   setPreviewShape: (shape: PreviewShape) => void;
+  minimap: boolean;
+  setMinimap: (minimap: boolean) => void;
   pinnedSource: string | null;
   reveal: { id: string; nonce: number } | null;
   revealNode: (id: string) => void;
@@ -58,6 +63,11 @@ export const useUiStore = create<UiState>()((set) => ({
   setPreviewShape: (previewShape) => {
     set({ previewShape });
     writePref("previewShape", previewShape);
+  },
+  minimap: storedMinimap(),
+  setMinimap: (minimap) => {
+    set({ minimap });
+    writePref("minimap", minimap);
   },
 
   pinnedSource: null,

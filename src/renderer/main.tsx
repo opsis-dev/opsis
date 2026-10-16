@@ -8,6 +8,9 @@ import { TooltipProvider } from "@/renderer/components/ui/tooltip";
 import { ErrorScreen } from "./app/error-screen";
 import { MotionProvider } from "./app/motion";
 import { routeTree } from "./routeTree.gen";
+import { watchAppSettings } from "./store/app-settings";
+
+watchAppSettings();
 
 const router = createRouter({
   routeTree,

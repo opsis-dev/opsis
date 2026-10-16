@@ -122,23 +122,32 @@ function NodePreview({ def }: { def: NodeDef }) {
   );
 }
 
+const STICKY_HEADINGS =
+  "overflow-visible **:[[cmdk-group-heading]]:sticky **:[[cmdk-group-heading]]:top-0 **:[[cmdk-group-heading]]:z-10 **:[[cmdk-group-heading]]:bg-sidebar";
+
 function PaletteList({
   onPick,
   draggable,
   only,
   onDragEnd,
+  stickyHeadings,
 }: {
   onPick: (type: string) => void;
   draggable?: boolean;
   only?: NodeCategory;
   onDragEnd?: () => void;
+  stickyHeadings?: boolean;
 }) {
   const groups = useGroups(only);
   return (
     <CommandList className="max-h-none">
       <CommandEmpty>No nodes found.</CommandEmpty>
       {groups.map(({ category, defs }) => (
-        <CommandGroup key={category} heading={only ? undefined : CATEGORY_LABELS[category]}>
+        <CommandGroup
+          key={category}
+          heading={only ? undefined : CATEGORY_LABELS[category]}
+          className={stickyHeadings ? STICKY_HEADINGS : undefined}
+        >
           {defs.map((def) => (
             <CommandItem
               key={def.type}
@@ -242,7 +251,7 @@ export function Palette() {
   return (
     <Command className="rounded-none! bg-transparent">
       <CommandInput placeholder={`Search ${NODE_DEFS.filter((d) => !d.hidden).length} nodes…`} />
-      <PaletteList onPick={add} draggable />
+      <PaletteList onPick={add} draggable stickyHeadings />
     </Command>
   );
 }

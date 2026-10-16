@@ -124,5 +124,8 @@ export const panelWindow = (panel: DockPanelName) => {
   return win && !win.isDestroyed() ? win : null;
 };
 
+export const panelWindows = (): BrowserWindow[] =>
+  [...windows.values()].filter((w) => !w.isDestroyed());
+
 export const isPanelSender = (id: number) =>
   [...windows.values()].some((w) => !w.isDestroyed() && w.webContents.id === id);

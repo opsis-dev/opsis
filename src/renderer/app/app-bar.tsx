@@ -32,7 +32,10 @@ import {
   MenubarShortcut,
   MenubarTrigger,
 } from "@/renderer/components/ui/menubar";
+import { Badge } from "@/renderer/components/ui/badge";
 import { Separator } from "@/renderer/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
+import { useAppSettings } from "../store/app-settings";
 import { cn } from "@/renderer/lib/utils";
 
 const platform = window.demoflow?.platform ?? "linux";
@@ -231,7 +234,15 @@ export function WindowBorder() {
   );
 }
 
-export function AppBar({ children, className }: { children?: ReactNode; className?: string }) {
+export function AppBar({
+  children,
+  className,
+  menu = true,
+}: {
+  children?: ReactNode;
+  className?: string;
+  menu?: boolean;
+}) {
   return (
     <header
       className={cn(
@@ -242,24 +253,51 @@ export function AppBar({ children, className }: { children?: ReactNode; classNam
     >
       <div className="flex h-full min-w-0 flex-1 items-center gap-2">
         <img src={logoUrl} alt="Demoflow" className="mx-1 size-5 shrink-0" draggable={false} />
-        {isMac ? null : (
+        {isMac || !menu ? null : (
           <>
             <WideMenu />
             <CompactMenu />
             {children ? (
-              <Separator orientation="vertical" className="mx-1 h-5 self-center" />
+              <Separator orientation="vertical" className="mx-1 h-5 data-vertical:self-center" />
             ) : null}
           </>
         )}
         {children}
       </div>
+      <ApiBadge />
       {isMac ? null : (
         <>
-          <Separator orientation="vertical" className="mx-3 h-5 self-center" />
+          <Separator orientation="vertical" className="mx-3 h-5 data-vertical:self-center" />
           <WindowControls />
         </>
       )}
     </header>
+  );
+}
+
+function ApiBadge() {
+  const on = useAppSettings((s) => s.settings?.api.enabled);
+  const status = useAppSettings((s) => s.api);
+  if (!on || !status) return null;
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <button
+            type="button"
+            className="ml-2 shrink-0"
+            onClick={() => void window.demoflow.openSettings("api")}
+          />
+        }
+      >
+        <Badge variant={status.listening ? "secondary" : "destructive"}>API</Badge>
+      </TooltipTrigger>
+      <TooltipContent>
+        {status.listening
+          ? "Scripts and agents on this computer can use the open project."
+          : "The API is switched on but isn't running. Open its settings to see why."}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

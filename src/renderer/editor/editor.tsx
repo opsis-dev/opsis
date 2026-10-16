@@ -56,25 +56,12 @@ import { BottomDock } from "./dock";
 import { FilmContext, useFilmState } from "./film";
 import { useEditorSync } from "../app/sync";
 import { useMedia } from "../store/media";
+import { save } from "./save";
+import { DiskChangeDialog, useProjectFileWatch } from "./disk-change";
+import { useApiBridge } from "./api-bridge";
 import { useStillsStore } from "../store/stills";
 
 const mod = window.demoflow?.platform === "darwin" ? "⌘" : "Ctrl";
-
-let saving: Promise<void> = Promise.resolve();
-
-export const whenSaved = (): Promise<void> => saving.catch(() => undefined);
-
-function save(): Promise<void> {
-  saving = saving
-    .catch(() => undefined)
-    .then(async () => {
-      const { projectDir, workflow, revision, markSaved } = useWorkflowStore.getState();
-      if (!projectDir || !workflow) return;
-      await window.demoflow.saveWorkflow(projectDir, workflow);
-      markSaved(revision);
-    });
-  return saving;
-}
 
 async function layout(): Promise<void> {
   const wf = useWorkflowStore.getState().workflow;
@@ -89,7 +76,7 @@ function useAutosave() {
     window.demoflow.reportUnsaved(revision !== saved);
   }, [revision, saved]);
   useEffect(() => {
-    const off = window.demoflow.onFlushSave(() => save());
+    const off = window.demoflow.onFlushSave(() => save().then(() => undefined));
     return () => {
       off();
       const state = useWorkflowStore.getState();
@@ -120,7 +107,7 @@ function useMenuCommands() {
             redo();
             break;
           case "project:save":
-            void save().then(() => toast.success("Saved"));
+            void save().then((ok) => ok && toast.success("Saved"));
             break;
           case "run:start":
             void startRun();
@@ -145,6 +132,9 @@ function useMenuCommands() {
             break;
           case "view:toggle-right":
             togglePanel("right");
+            break;
+          case "view:toggle-minimap":
+            useUiStore.getState().setMinimap(!useUiStore.getState().minimap);
             break;
           case "view:focus-preview":
             focusPanel("preview");
@@ -188,7 +178,7 @@ function TopBar() {
       <Badge variant="outline" className="font-normal">
         {dirty ? "Unsaved" : "Saved"}
       </Badge>
-      <Separator orientation="vertical" className="mx-1 h-5" />
+      <Separator orientation="vertical" className="mx-1 h-5 data-vertical:self-center" />
       <Tooltip>
         <TooltipTrigger
           render={
@@ -244,7 +234,7 @@ function TopBar() {
       </Button>
       <div className="flex-1" />
       <PanelToggles />
-      <Separator orientation="vertical" className="mx-1 h-5" />
+      <Separator orientation="vertical" className="mx-1 h-5 data-vertical:self-center" />
       <LiveToggle />
       <Button
         variant="ghost"
@@ -258,7 +248,7 @@ function TopBar() {
         variant="ghost"
         size="icon-sm"
         aria-label="Settings"
-        onClick={() => void navigate({ to: "/settings" })}
+        onClick={() => void window.demoflow.openSettings()}
       >
         <Settings />
       </Button>
@@ -352,6 +342,8 @@ export function Editor() {
   const name = useWorkflowStore((s) => s.workflow?.name);
   useAutosave();
   useMenuCommands();
+  useProjectFileWatch(projectDir!);
+  useApiBridge();
   useEffect(() => {
     if (name) window.demoflow.setTitle(`${name} — Demoflow`);
   }, [name]);
@@ -437,6 +429,7 @@ export function Editor() {
           </div>
           <QuickAdd />
           <ReplayDialog />
+          <DiskChangeDialog />
         </FilmProvider>
       </CompiledContext.Provider>
     </ReactFlowProvider>

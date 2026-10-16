@@ -8,6 +8,7 @@ import { useWorkflowStore } from "../store/workflow";
 import { SETUP_SKIPPED_KEY } from "../app/setup";
 import { useMenuShortcuts, WindowBorder } from "../app/app-bar";
 import { ExitDialog } from "../app/exit-dialog";
+import { useApiHost } from "../app/api-host";
 import { useStillsStore } from "../store/stills";
 import { exportedClipNodes } from "../editor/stills";
 
@@ -17,13 +18,14 @@ function Root() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   useMenuShortcuts();
+  useApiHost();
 
   useEffect(
     () =>
       window.demoflow.onMenuCommand((command) => {
         const home = window.location.hash.replace(/^#/, "").split("?")[0] || "/";
-        if (home.startsWith("/panel/")) return;
-        if (command === "view:settings") void navigate({ to: "/settings" });
+        if (home.startsWith("/panel/") || home.startsWith("/settings")) return;
+        if (command === "view:settings") void window.demoflow.openSettings();
         else if (command === "view:projects") void navigate({ to: "/" });
         else if ((command === "project:new" || command === "project:open") && home !== "/") {
           useUiStore.getState().setPendingProjectAction(command === "project:new" ? "new" : "open");
@@ -95,7 +97,7 @@ function Root() {
   return (
     <>
       <Outlet />
-      {path.startsWith("/panel/") ? null : <ExitDialog />}
+      {path.startsWith("/panel/") || path.startsWith("/settings") ? null : <ExitDialog />}
       <WindowBorder />
     </>
   );

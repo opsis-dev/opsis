@@ -4,6 +4,9 @@ import path from "node:path";
 export const FFMPEG_RELEASE = "b6.1.1";
 export const FFMPEG_RELEASE_URL = `https://github.com/eugeneware/ffmpeg-static/releases/download/${FFMPEG_RELEASE}`;
 
+export const CHROMIUM_CREDITS_FILE = "LICENSES.chromium.html";
+export const ENGINE_LICENCES_FOLDER = "engine-licences";
+
 export type RemotionPlatform = "linux64" | "linux-arm64" | "mac-x64" | "mac-arm64" | "win64";
 
 export function remotionPlatform(

@@ -17,6 +17,7 @@ export default defineConfig({
     "src/video/lib/**",
     "src/video/hooks/**",
     "src/renderer/components/ui/**",
+    "src/renderer/hooks/**",
     "src/shared/elements/elements.generated.ts",
     "src/shared/fonts/bundled.generated.ts",
     "src/video/fonts/google/**",

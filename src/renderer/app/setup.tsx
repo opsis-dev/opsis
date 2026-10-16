@@ -19,7 +19,7 @@ import { AnimatedPercent } from "./motion";
 
 export const SETUP_SKIPPED_KEY = "demoflow:setup-skipped";
 
-export function EnginePanel({ onDone }: { onDone?: () => void }) {
+export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void; title?: string }) {
   const [env, setEnv] = useState<EnvStatus | null>(null);
   const [event, setEvent] = useState<EngineInstallEvent | null>(null);
   const [busy, setBusy] = useState(false);
@@ -50,7 +50,7 @@ export function EnginePanel({ onDone }: { onDone?: () => void }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          Engine
+          {title}
           {ready ? (
             <Badge variant="secondary">
               <CheckCircle2 data-icon="inline-start" />

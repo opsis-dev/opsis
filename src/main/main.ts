@@ -9,23 +9,41 @@ import {
   type IpcMainInvokeEvent,
 } from "electron";
 import started from "electron-squirrel-startup";
-import { IPC, type PickRequest, type RunRequest } from "../shared/ipc";
-import type { AppSettings } from "../shared/settings";
+import {
+  IPC,
+  type MenuCommand,
+  type PickRequest,
+  type RunRequest,
+  type SettingsPage,
+} from "../shared/ipc";
+import type { AppSettings, SettingsPatch } from "../shared/settings";
 import type { RunEvent } from "../shared/schema/events";
 import { pickInWindow } from "./browser-windows";
 import type { WindowRole } from "../shared/menu";
 import { buildMenu, runWindowRole } from "./menu";
 import {
+  chooseFolder,
   clearCache,
   createProjectDir,
   importAssets,
   listRecent,
   openProjectDir,
+  projectLocations,
   readLastRun,
   saveWorkflowFile,
+  watchProject,
 } from "./projects";
 import { APP_SCHEME, registerProtocolHandlers, registerSchemes } from "./protocol";
-import { readSettings, writeSettings } from "./settings";
+import { onSettingsChange, patchSettings, readSettings, writeSettings } from "./settings";
+import {
+  closeSettingsWindow,
+  initSettingsWindow,
+  isSettingsSender,
+  openSettingsWindow,
+  settingsWindow,
+} from "./settings-window";
+import { listLicences, openLicenceFile } from "./licences";
+import { apiRunEvent, getApiStatus, initApi, setApiEnabled, stopApi } from "./api";
 import { readTrace } from "../traces/store";
 import { listSecrets } from "./secrets";
 import {
@@ -48,6 +66,7 @@ import {
   initPanelWindows,
   isPanelSender,
   openPanels,
+  panelWindows,
   openPanelWindow,
   panelWindow,
 } from "./panel-windows";
@@ -55,7 +74,15 @@ import type { DockPanelName } from "../shared/ipc";
 import { guardClose, interceptQuit, registerExitIpc, track } from "./exit";
 import { analyze, stopAnalysis } from "./analysis";
 import type { AnalysisRequest } from "../shared/mix/result";
-import { activeRunId, cancelRun, environment, installEngine, isRunning, startRun } from "./workers";
+import {
+  activeRunId,
+  cancelRun,
+  completeLicences,
+  environment,
+  installEngine,
+  isRunning,
+  startRun,
+} from "./workers";
 
 if (started) app.quit();
 
@@ -127,13 +154,26 @@ function createWindow(): void {
   mainWindow.on("closed", () => {
     mainWindow = null;
     closePanelWindows();
+    closeSettingsWindow();
   });
 }
 
+const isTrusted = (id: number) =>
+  (!!mainWindow && id === mainWindow.webContents.id) || isPanelSender(id) || isSettingsSender(id);
+
 function assertTrustedSender(event: IpcMainInvokeEvent): void {
-  const id = event.sender.id;
-  if ((mainWindow && id === mainWindow.webContents.id) || isPanelSender(id)) return;
+  if (isTrusted(event.sender.id)) return;
   throw new Error("Blocked IPC call from an unknown renderer.");
+}
+
+function appWindows(): BrowserWindow[] {
+  return [mainWindow, ...panelWindows(), settingsWindow()].filter(
+    (w): w is BrowserWindow => !!w && !w.isDestroyed(),
+  );
+}
+
+function broadcast(channel: string, payload: unknown): void {
+  for (const win of appWindows()) win.webContents.send(channel, payload);
 }
 
 const senderWindow = (event: IpcMainInvokeEvent) => BrowserWindow.fromWebContents(event.sender);
@@ -157,6 +197,7 @@ function handleFrom<A extends unknown[], R>(
 
 function emitRun(event: RunEvent, total: { count: number; done: number }) {
   mainWindow?.webContents.send(IPC.runEvent, event);
+  apiRunEvent(event);
   if (event.type === "run:start") {
     total.count = Math.max(1, event.nodeIds.length);
     total.done = 0;
@@ -234,7 +275,16 @@ function registerIpc(): void {
     if (p) projectDir = p.dir;
     return p;
   });
-  handle(IPC.saveWorkflow, (dir: string, workflow) => saveWorkflowFile(dir, workflow as never));
+  handle(IPC.saveWorkflow, (dir: string, workflow, base?: string | null) =>
+    saveWorkflowFile(dir, workflow as never, base),
+  );
+  handle(IPC.projectLocations, () => projectLocations());
+  handleFrom(IPC.chooseFolder, (event, opts: { title: string; defaultPath?: string }) =>
+    chooseFolder(senderWindow(event), opts),
+  );
+  handle(IPC.watchProject, (dir: string | null) =>
+    watchProject(dir, (change) => mainWindow?.webContents.send(IPC.projectFileChanged, change)),
+  );
   handle(IPC.readLastRun, (dir: string) => readLastRun(dir));
   handle(IPC.importAssets, (dir: string, paths?: string[]) => importAssets(mainWindow, dir, paths));
   handle(IPC.reveal, async (dir: string, rel?: string) => {
@@ -269,11 +319,21 @@ function registerIpc(): void {
   handle(IPC.installEngine, () =>
     track(
       "The engine is being set up.",
-      installEngine((e) => mainWindow?.webContents.send(IPC.engineEvent, e)),
+      installEngine((e) => broadcast(IPC.engineEvent, e)),
     ),
   );
   handle(IPC.getSettings, () => readSettings());
   handle(IPC.setSettings, (settings: AppSettings) => writeSettings(settings));
+  handle(IPC.patchSettings, (patch: SettingsPatch) => patchSettings(patch));
+  handle(IPC.openSettings, (page?: SettingsPage) => openSettingsWindow(page));
+  ipcMain.on(IPC.menuToEditor, (event, command: MenuCommand) => {
+    if (!isTrusted(event.sender.id) || !mainWindow) return;
+    focusMainWindow();
+    mainWindow.webContents.send(IPC.menu, command);
+  });
+  handle(IPC.listLicences, () => listLicences());
+  handle(IPC.openLicenceFile, (file: string) => openLicenceFile(file));
+  handle(IPC.apiStatus, () => getApiStatus());
   handle(IPC.readTrace, (dir: string, traceId: string) => readTrace(dir, traceId));
   handle(IPC.listSecrets, (dir: string) => listSecrets(dir));
   handle(IPC.listFonts, () => listLibrary());
@@ -294,9 +354,7 @@ function registerIpc(): void {
   });
   handle(IPC.clearCache, (dir: string) => clearCache(dir));
   ipcMain.on(IPC.setTitle, (event, title: string) => {
-    const id = event.sender.id;
-    if ((mainWindow && id === mainWindow.webContents.id) || isPanelSender(id))
-      BrowserWindow.fromWebContents(event.sender)?.setTitle(title);
+    if (isTrusted(event.sender.id)) BrowserWindow.fromWebContents(event.sender)?.setTitle(title);
   });
   handleFrom(IPC.windowRole, (event, role: WindowRole) => {
     const win = senderWindow(event);
@@ -327,6 +385,22 @@ app.whenReady().then(() => {
     create: (o) => makeWindow({ ...o, minWidth: 420, minHeight: 260 }),
     url: rendererUrl,
   });
+  initSettingsWindow({ create: makeWindow, url: rendererUrl });
+  initApi(
+    {
+      editor: () => mainWindow,
+      onStatus: (status) => broadcast(IPC.apiStatusChanged, status),
+    },
+    (id) => mainWindow?.webContents.id === id,
+  );
+  onSettingsChange((settings, previous) => {
+    broadcast(IPC.settingsChanged, settings);
+    if (settings.api.enabled !== previous.api.enabled) void setApiEnabled(settings.api.enabled);
+    if (settings.projects.defaultDir !== previous.projects.defaultDir && settings.projects.lastDir)
+      void patchSettings({ projects: { lastDir: "" } });
+  });
+  void readSettings().then((settings) => setApiEnabled(settings.api.enabled));
+  void completeLicences();
   buildMenu(() => mainWindow);
   createWindow();
   app.on("activate", () => {
@@ -343,4 +417,5 @@ app.on("before-quit", (event) => interceptQuit(event, mainWindow));
 app.on("will-quit", () => {
   if (isRunning()) cancelRun();
   stopAnalysis();
+  stopApi();
 });

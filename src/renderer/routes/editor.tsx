@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { Editor, whenSaved } from "../editor/editor";
+import { Editor } from "../editor/editor";
+import { whenSaved } from "../editor/save";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
@@ -28,7 +29,7 @@ function EditorRoute() {
         if (cancelled || !p) return;
         done = true;
         loadViewState(p.dir);
-        useWorkflowStore.getState().load(p.dir, p.workflow);
+        useWorkflowStore.getState().load(p.dir, p.workflow, p.version);
         useRunStore.getState().seed(p.lastRun);
         useUiStore.getState().setSelected([]);
         useUiStore.getState().setReplay(null);

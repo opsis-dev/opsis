@@ -52,7 +52,6 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y squashfs-tools fakeroot dpkg
       - run: bun install --frozen-lockfile
       - name: Cache the engine and browser licences
-        if: matrix.edition == 'full'
         uses: actions/cache@v6
         with:
           path: |
@@ -66,11 +65,14 @@ jobs:
         if: runner.os != 'Linux'
         run: bun run make
       - name: Check the engine and its licences
-        if: matrix.edition == 'full'
         shell: bash
         run: |
           test -f resources/engine/LICENSES.chromium.html
           test -f resources/engine/ffmpeg/LICENSE.txt
+      - name: Check the licences the lite edition ships
+        if: matrix.edition == 'lite'
+        shell: bash
+        run: test -f resources/engine-licences/LICENSES.chromium.html
       - uses: actions/upload-artifact@v7
         with:
           name: demoflow-${{ matrix.edition }}-${{ runner.os }}-${{ runner.arch }}

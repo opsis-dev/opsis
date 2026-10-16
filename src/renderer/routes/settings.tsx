@@ -1,4 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Settings } from "../app/settings";
+import { SettingsWindow } from "../app/settings/settings-window";
 
-export const Route = createFileRoute("/settings")({ component: Settings });
+function SettingsRoute() {
+  const { page } = Route.useSearch();
+  return <SettingsWindow page={page} />;
+}
+
+export const Route = createFileRoute("/settings")({
+  validateSearch: (search: Record<string, unknown>) => ({ page: String(search.page ?? "general") }),
+  component: SettingsRoute,
+});

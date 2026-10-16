@@ -236,7 +236,7 @@ export function TimelinePanel() {
             turn it off while dragging.
           </TooltipContent>
         </Tooltip>
-        <Separator orientation="vertical" className="mx-1 h-5" />
+        <Separator orientation="vertical" className="mx-1 h-5 data-vertical:self-center" />
         <Tooltip>
           <TooltipTrigger
             render={

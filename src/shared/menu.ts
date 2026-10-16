@@ -81,6 +81,7 @@ export function appMenu(platform: string): MenuSection[] {
         command("Node list", "view:toggle-left", "CmdOrCtrl+B"),
         command("Preview, timeline, mixer and run", "view:toggle-bottom", "CmdOrCtrl+J"),
         command("Inspector", "view:toggle-right", "CmdOrCtrl+Alt+B"),
+        command("Minimap", "view:toggle-minimap", "CmdOrCtrl+Shift+M"),
         separator,
         command("Preview", "view:focus-preview", "CmdOrCtrl+1"),
         command("Timeline", "view:focus-timeline", "CmdOrCtrl+2"),

@@ -1,8 +1,18 @@
-import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, watch, type FSWatcher } from "node:fs";
 import { copyFile, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { app, dialog, type BrowserWindow } from "electron";
-import type { OpenProject, RecentProject } from "../shared/ipc";
+import type {
+  OpenProject,
+  ProjectFileChange,
+  ProjectLocations,
+  RecentProject,
+  SaveResult,
+} from "../shared/ipc";
+import { projectFolderName } from "../shared/project-folder";
+import { PROJECTS_FOLDER_NAME } from "../shared/settings";
+import { patchSettings, readSettings } from "./settings";
 import type { LastRun } from "../shared/schema/values";
 import { WORKFLOW_FILE, workflowSchema, type Workflow } from "../shared/schema/workflow";
 import { getTemplate } from "../shared/templates";
@@ -37,6 +47,46 @@ async function readLastRunFile(dir: string): Promise<LastRun | null> {
 
 export { readLastRunFile as readLastRun };
 
+export async function projectsDir(): Promise<string> {
+  const { projects } = await readSettings();
+  return projects.defaultDir || path.join(app.getPath("home"), PROJECTS_FOLDER_NAME);
+}
+
+export async function projectLocations(): Promise<ProjectLocations> {
+  const defaultDir = await projectsDir();
+  const { projects } = await readSettings();
+  const last = projects.lastDir && existsSync(projects.lastDir) ? projects.lastDir : "";
+  return { defaultDir, suggestedDir: last || defaultDir };
+}
+
+export async function chooseFolder(
+  win: BrowserWindow | null,
+  opts: { title: string; defaultPath?: string },
+): Promise<string | null> {
+  const options = {
+    title: opts.title,
+    defaultPath: opts.defaultPath && existsSync(opts.defaultPath) ? opts.defaultPath : undefined,
+    properties: ["openDirectory", "createDirectory"] as Array<"openDirectory" | "createDirectory">,
+  };
+  const res = win
+    ? await dialog.showOpenDialog(win, options)
+    : await dialog.showOpenDialog(options);
+  return res.canceled || !res.filePaths[0] ? null : res.filePaths[0];
+}
+
+const versionOf = (text: string) => createHash("sha256").update(text).digest("hex").slice(0, 16);
+
+const written = new Map<string, string>();
+
+async function readProjectFile(dir: string): Promise<{ text: string; version: string } | null> {
+  try {
+    const text = await readFile(path.join(dir, WORKFLOW_FILE), "utf8");
+    return { text, version: versionOf(text) };
+  } catch {
+    return null;
+  }
+}
+
 export async function openProjectDir(
   win: BrowserWindow | null,
   dir?: string,
@@ -45,6 +95,7 @@ export async function openProjectDir(
   if (!target) {
     const options = {
       title: "Open Demoflow project",
+      defaultPath: existingDir(await projectsDir()),
       properties: ["openDirectory"] as Array<"openDirectory">,
     };
     const res = win
@@ -53,37 +104,36 @@ export async function openProjectDir(
     if (res.canceled || !res.filePaths[0]) return null;
     target = res.filePaths[0];
   }
-  const file = path.join(target, WORKFLOW_FILE);
-  if (!existsSync(file)) throw new Error(`There's no Demoflow project in ${target}.`);
-  const workflow = workflowSchema.parse(JSON.parse(await readFile(file, "utf8")));
+  const file = await readProjectFile(target);
+  if (!file) throw new Error(`There's no Demoflow project in ${target}.`);
+  const workflow = workflowSchema.parse(JSON.parse(file.text));
+  written.set(target, file.version);
   await touchRecent(target, workflow.name);
-  return { dir: target, workflow, lastRun: await readLastRunFile(target) };
+  return {
+    dir: target,
+    workflow,
+    lastRun: await readLastRunFile(target),
+    version: file.version,
+  };
 }
+
+const existingDir = (dir: string) => (existsSync(dir) ? dir : undefined);
 
 export async function createProjectDir(
   win: BrowserWindow | null,
   opts: { name: string; template: string; dir?: string },
 ): Promise<OpenProject | null> {
-  let parent = opts.dir;
-  if (!parent) {
-    const options = {
+  const parent =
+    opts.dir ??
+    (await chooseFolder(win, {
       title: "Choose where to create the project",
-      properties: ["openDirectory", "createDirectory"] as Array<
-        "openDirectory" | "createDirectory"
-      >,
-    };
-    const res = win
-      ? await dialog.showOpenDialog(win, options)
-      : await dialog.showOpenDialog(options);
-    if (res.canceled || !res.filePaths[0]) return null;
-    parent = res.filePaths[0];
-  }
-  const folder =
-    opts.name
-      .trim()
-      .replace(/[^\w.-]+/g, "-")
-      .toLowerCase() || "demo";
-  const dir = path.join(parent, folder);
+      defaultPath: (await projectLocations()).suggestedDir,
+    }));
+  if (!parent) return null;
+  const home = app.getPath("home");
+  const expanded = parent === "~" ? home : parent.replace(/^~(?=[\\/])/, home);
+  if (!path.isAbsolute(expanded)) throw new Error("Choose a full folder path for the project.");
+  const dir = path.join(expanded, projectFolderName(opts.name));
   if (existsSync(path.join(dir, WORKFLOW_FILE)))
     throw new Error(`${dir} already contains a project.`);
   await mkdir(path.join(dir, "assets"), { recursive: true });
@@ -91,18 +141,79 @@ export async function createProjectDir(
   await writeFile(path.join(dir, "secrets", ".gitignore"), "*\n!.gitignore\n");
   await writeFile(path.join(dir, ".gitignore"), ".demoflow/\nsecrets/*\n!secrets/.gitignore\n");
   const workflow = getTemplate(opts.template).build(opts.name.trim() || "Demo");
-  await saveWorkflowFile(dir, workflow);
-  await touchRecent(dir, workflow.name);
-  return { dir, workflow, lastRun: null };
+  const saved = await saveWorkflowFile(dir, workflow);
+  await patchSettings({ projects: { lastDir: expanded } });
+  return { dir, workflow, lastRun: null, version: saved.ok ? saved.version : null };
 }
 
-export async function saveWorkflowFile(dir: string, workflow: Workflow): Promise<void> {
+export async function saveWorkflowFile(
+  dir: string,
+  workflow: Workflow,
+  base?: string | null,
+): Promise<SaveResult> {
   const valid = workflowSchema.parse(workflow);
+  if (base !== undefined) {
+    const current = await readProjectFile(dir);
+    if (current && current.version !== base) return conflict(current);
+  }
   const file = path.join(dir, WORKFLOW_FILE);
   const tmp = `${file}.tmp`;
-  await writeFile(tmp, `${JSON.stringify(valid, null, 2)}\n`);
+  const text = `${JSON.stringify(valid, null, 2)}\n`;
+  const version = versionOf(text);
+  written.set(dir, version);
+  await writeFile(tmp, text);
   await rename(tmp, file);
   await touchRecent(dir, valid.name);
+  return { ok: true, version };
+}
+
+function conflict(current: { text: string; version: string }): SaveResult {
+  try {
+    return {
+      ok: false,
+      version: current.version,
+      workflow: workflowSchema.parse(JSON.parse(current.text)),
+    };
+  } catch {
+    return { ok: false, version: current.version, workflow: null };
+  }
+}
+
+let watcher: FSWatcher | null = null;
+let watchedDir: string | null = null;
+let settle: ReturnType<typeof setTimeout> | null = null;
+
+export function watchProject(
+  dir: string | null,
+  notify: (change: ProjectFileChange) => void,
+): void {
+  if (dir === watchedDir) return;
+  watcher?.close();
+  watcher = null;
+  watchedDir = dir;
+  if (!dir) return;
+  let announced = written.get(dir) ?? null;
+  const check = async () => {
+    const current = await readProjectFile(dir);
+    if (!current || watchedDir !== dir) return;
+    if (current.version === written.get(dir) || current.version === announced) return;
+    try {
+      const workflow = workflowSchema.parse(JSON.parse(current.text));
+      announced = current.version;
+      notify({ dir, workflow, version: current.version });
+    } catch {
+      return;
+    }
+  };
+  try {
+    watcher = watch(dir, (_event, name) => {
+      if (name !== WORKFLOW_FILE) return;
+      if (settle) clearTimeout(settle);
+      settle = setTimeout(() => void check(), 150);
+    });
+  } catch {
+    watcher = null;
+  }
 }
 
 export async function importAssets(

@@ -135,7 +135,7 @@ export function FontsPanel() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Fonts</CardTitle>
+        <CardTitle>Your library</CardTitle>
         <CardDescription>
           {BUNDLED_FONTS.length} fonts come with Demoflow. Fonts you add here work in every project;
           a project keeps its own copy of the fonts it uses.

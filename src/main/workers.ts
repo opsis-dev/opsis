@@ -9,6 +9,7 @@ import {
   type UtilityProcess,
 } from "electron";
 import { engineStatus, resolveEngineDir } from "../engine/paths";
+import { completeEngineLicences, shippedCreditsCandidates } from "../engine/licences";
 import type { EngineInstallEvent, EnvStatus, RunRequest } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
 import type { MainToWorker, WorkerEnv, WorkerToMain } from "../shared/worker-protocol";
@@ -170,6 +171,13 @@ export function environment(): EnvStatus {
   };
 }
 
+export function completeLicences(): Promise<string> {
+  const root = app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), "resources");
+  return completeEngineLicences(engineDir(), shippedCreditsCandidates([root])).catch(
+    () => "missing",
+  );
+}
+
 export async function installEngine(onEvent: (e: EngineInstallEvent) => void): Promise<void> {
   const env = await workerEnv();
   await new Promise<void>((resolve, reject) => {
@@ -186,7 +194,7 @@ export async function installEngine(onEvent: (e: EngineInstallEvent) => void): P
           error: msg.error,
         });
         if (msg.error) reject(new Error(msg.error));
-        else resolve();
+        else void completeLicences().then(() => resolve());
       }
     });
     child.on("exit", (code) => {

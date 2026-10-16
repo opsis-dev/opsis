@@ -3,7 +3,8 @@ import type { WindowRole } from "./menu";
 import type { RunEvent } from "./schema/events";
 import type { LastRun } from "./schema/values";
 import type { Workflow } from "./schema/workflow";
-import type { AppSettings } from "./settings";
+import type { AppSettings, SettingsPatch } from "./settings";
+import type { ApiEditorReply, ApiEditorRequest } from "./api/types";
 import type { TraceModel } from "./trace";
 import type { FontFamilyDef } from "./fonts/types";
 import type { PlannedFamily } from "./fonts/plan";
@@ -12,7 +13,46 @@ import type { AnalysisRequest, AnalysisResult } from "./mix/result";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 
-export type OpenProject = { dir: string; workflow: Workflow; lastRun: LastRun | null };
+export type OpenProject = {
+  dir: string;
+  workflow: Workflow;
+  lastRun: LastRun | null;
+  version: string | null;
+};
+
+export type SaveResult =
+  | { ok: true; version: string }
+  | { ok: false; version: string; workflow: Workflow | null };
+
+export type ProjectFileChange = { dir: string; workflow: Workflow; version: string };
+
+export type ProjectLocations = { defaultDir: string; suggestedDir: string };
+
+export type SettingsPage =
+  | "general"
+  | "projects"
+  | "engine"
+  | "recording"
+  | "fonts"
+  | "export"
+  | "api"
+  | "licences"
+  | "about";
+
+export type LicenceEntry = {
+  id: string;
+  title: string;
+  summary: string;
+  text?: string;
+  file?: string;
+};
+
+export type ApiStatus = {
+  enabled: boolean;
+  listening: boolean;
+  address: string;
+  error?: string;
+};
 
 export type ProjectTemplateId = string;
 
@@ -70,6 +110,7 @@ export type MenuCommand =
   | "view:toggle-left"
   | "view:toggle-bottom"
   | "view:toggle-right"
+  | "view:toggle-minimap"
   | "view:focus-preview"
   | "view:focus-timeline"
   | "view:focus-mixer"
@@ -131,7 +172,11 @@ export interface DemoflowApi {
     dir?: string;
   }): Promise<OpenProject | null>;
   openProject(dir?: string): Promise<OpenProject | null>;
-  saveWorkflow(dir: string, workflow: Workflow): Promise<void>;
+  saveWorkflow(dir: string, workflow: Workflow, base?: string | null): Promise<SaveResult>;
+  projectLocations(): Promise<ProjectLocations>;
+  chooseFolder(opts: { title: string; defaultPath?: string }): Promise<string | null>;
+  watchProject(dir: string | null): Promise<void>;
+  onProjectFileChanged(listener: (change: ProjectFileChange) => void): () => void;
   readLastRun(dir: string): Promise<LastRun | null>;
   importAssets(dir: string, paths?: string[]): Promise<string[]>;
   pathForFile(file: File): string;
@@ -146,6 +191,15 @@ export interface DemoflowApi {
   onEngineInstall(listener: (event: EngineInstallEvent) => void): () => void;
   getSettings(): Promise<AppSettings>;
   setSettings(settings: AppSettings): Promise<AppSettings>;
+  patchSettings(patch: SettingsPatch): Promise<AppSettings>;
+  onSettingsChanged(listener: (settings: AppSettings) => void): () => void;
+  openSettings(page?: SettingsPage): Promise<void>;
+  sendMenuToEditor(command: MenuCommand): void;
+  listLicences(): Promise<LicenceEntry[]>;
+  openLicenceFile(file: string): Promise<void>;
+  apiStatus(): Promise<ApiStatus>;
+  onApiStatus(listener: (status: ApiStatus) => void): () => void;
+  onApiRequest(listener: (request: ApiEditorRequest) => Promise<ApiEditorReply>): () => void;
   onLive(listener: (message: LiveMessage) => void): () => void;
   readTrace(dir: string, traceId: string): Promise<TraceModel>;
   listSecrets(dir: string): Promise<string[]>;
@@ -232,6 +286,20 @@ export const IPC = {
   confirmClose: "demoflow:exit:confirm",
   closeDecision: "demoflow:exit:decision",
   closeShown: "demoflow:exit:shown",
+  projectLocations: "demoflow:projects:locations",
+  chooseFolder: "demoflow:projects:choose-folder",
+  watchProject: "demoflow:projects:watch",
+  projectFileChanged: "demoflow:projects:file-changed",
+  patchSettings: "demoflow:settings:patch",
+  settingsChanged: "demoflow:settings:changed",
+  openSettings: "demoflow:settings:open-window",
+  menuToEditor: "demoflow:menu:to-editor",
+  listLicences: "demoflow:licences:list",
+  openLicenceFile: "demoflow:licences:open",
+  apiStatus: "demoflow:api:status",
+  apiStatusChanged: "demoflow:api:status-changed",
+  apiRequest: "demoflow:api:request",
+  apiReply: "demoflow:api:reply",
 } as const;
 
 declare global {

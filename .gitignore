@@ -147,6 +147,7 @@ out/
 
 # Demoflow
 resources/engine/
+resources/engine-licences/
 resources/export-src/
 remotion-bundle/
 .demoflow/

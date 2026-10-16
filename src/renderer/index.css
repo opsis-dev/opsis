@@ -119,6 +119,8 @@
   --transition-hatch: oklch(0.2 0.01 286 / 12%);
   --scrollbar-thumb: oklch(0.29 0.006 286 / 22%);
   --scrollbar-thumb-hover: oklch(0.29 0.006 286 / 40%);
+  --toggle-on: oklch(0.86 0.006 286);
+  --toggle-on-border: oklch(0.29 0.006 286 / 28%);
 }
 
 .dark {
@@ -170,6 +172,8 @@
   --transition-hatch: oklch(0.97 0.004 286 / 12%);
   --scrollbar-thumb: oklch(0.93 0.004 286 / 16%);
   --scrollbar-thumb-hover: oklch(0.93 0.004 286 / 30%);
+  --toggle-on: oklch(0.36 0.012 286);
+  --toggle-on-border: oklch(0.93 0.004 286 / 24%);
 }
 
 @utility app-drag {
@@ -250,4 +254,22 @@ body,
   background: transparent;
   border: 0;
   padding: 0;
+}
+
+:is([data-slot="toggle"], [data-slot="toggle-group-item"])[aria-pressed="true"]:not(
+    [data-custom-pressed]
+  ) {
+  background-color: var(--toggle-on);
+  color: var(--foreground);
+}
+
+:is([data-slot="toggle"], [data-slot="toggle-group-item"])[aria-pressed="false"]:not(
+    :hover,
+    [data-custom-pressed]
+  ) {
+  color: var(--muted-foreground);
+}
+
+[data-slot="toggle-group-item"][data-variant="outline"][aria-pressed="true"] {
+  border-color: var(--toggle-on-border);
 }

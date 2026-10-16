@@ -15,10 +15,12 @@ export type WorkflowState = {
   workflow: Workflow | null;
   revision: number;
   savedRevision: number;
+  fileVersion: string | null;
 };
 
 type Actions = {
-  load: (dir: string, workflow: Workflow) => void;
+  load: (dir: string, workflow: Workflow, fileVersion?: string | null) => void;
+  setFileVersion: (version: string | null) => void;
   close: () => void;
   markSaved: (revision: number) => void;
   update: (fn: (wf: Workflow) => Workflow) => void;
@@ -78,17 +80,21 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
       workflow: null,
       revision: 0,
       savedRevision: 0,
+      fileVersion: null,
 
-      load: (dir, workflow) => {
+      load: (dir, workflow, fileVersion = null) => {
         set({
           projectDir: dir,
           workflow: normalizeWorkflow(workflow),
           revision: 0,
           savedRevision: 0,
+          fileVersion,
         });
         useWorkflowStore.temporal.getState().clear();
       },
-      close: () => set({ projectDir: null, workflow: null, revision: 0, savedRevision: 0 }),
+      setFileVersion: (fileVersion) => set({ fileVersion }),
+      close: () =>
+        set({ projectDir: null, workflow: null, revision: 0, savedRevision: 0, fileVersion: null }),
       markSaved: (revision) => set({ savedRevision: revision }),
 
       update: (fn) => {

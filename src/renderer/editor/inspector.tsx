@@ -321,6 +321,7 @@ const SIZES: Array<[string, number, number]> = [
 
 function ProjectInspector({ multi }: { multi: number }) {
   const workflow = useWorkflowStore((s) => s.workflow)!;
+  const running = useRunStore((s) => s.running);
   const { setSettings, setVariables, rename, groupNodes } = useWorkflowStore.getState();
   const selected = useUiStore((s) => s.selectedIds);
   const { issues } = useCompiledContext();
@@ -496,6 +497,29 @@ function ProjectInspector({ multi }: { multi: number }) {
             Add variable
           </Button>
         </div>
+      </FieldSet>
+
+      <FieldSet>
+        <FieldLegend variant="label">Saved results</FieldLegend>
+        <p className="text-muted-foreground text-xs">
+          Demoflow keeps the result of every node so unchanged parts don't run again. Clear them to
+          record and export everything again on the next run.
+        </p>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={running}
+          onClick={async () => {
+            const dir = useWorkflowStore.getState().projectDir;
+            if (!dir) return;
+            await window.demoflow.clearCache(dir);
+            useRunStore.getState().seed(null);
+            toast.success("Cleared. The next run records and exports everything again.");
+          }}
+        >
+          <Trash2 data-icon="inline-start" />
+          Clear saved results
+        </Button>
       </FieldSet>
 
       {issues.length ? (

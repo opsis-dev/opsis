@@ -1,4 +1,3 @@
-import { useNavigate } from "@tanstack/react-router";
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -42,7 +41,6 @@ export function FontPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const navigate = useNavigate();
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const fonts = useWorkflowStore((s) => s.workflow?.settings.fonts);
   const { library, loaded, refresh } = useFontLibrary();
@@ -147,7 +145,7 @@ export function FontPicker({
                 value="manage fonts"
                 onSelect={() => {
                   setOpen(false);
-                  void navigate({ to: "/settings" });
+                  void window.demoflow.openSettings("fonts");
                 }}
               >
                 <Settings2 />

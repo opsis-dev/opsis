@@ -14,7 +14,12 @@ import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { installFfmpeg, installHeadlessShell } from "./src/engine/install";
 import { writeChromiumCredits } from "./src/engine/chromium-credits";
-import { enginePaths, engineStatus } from "./src/engine/paths";
+import {
+  CHROMIUM_CREDITS_FILE,
+  ENGINE_LICENCES_FOLDER,
+  enginePaths,
+  engineStatus,
+} from "./src/engine/paths";
 import { getCompositorPackage } from "./src/worker/render/compositor-package";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./src/worker/render/bundle";
 
@@ -22,6 +27,7 @@ const require = createRequire(import.meta.url);
 const ROOT = import.meta.dirname;
 const ENGINE_DIR = path.join(ROOT, "resources", "engine");
 const CHROMIUM_CREDITS = path.join(ENGINE_DIR, "LICENSES.chromium.html");
+const ENGINE_LICENCES_DIR = path.join(ROOT, "resources", ENGINE_LICENCES_FOLDER);
 const EXPORT_SRC_DIR = path.join(ROOT, "resources", "export-src");
 const LEGAL_FILES = [path.join(ROOT, "LICENSE"), path.join(ROOT, "THIRD_PARTY_NOTICES.md")];
 const EDITION = process.env.DEMOFLOW_EDITION === "lite" ? "lite" : "full";
@@ -92,6 +98,12 @@ async function stageEngine(platform: string, arch: string): Promise<void> {
   );
 }
 
+async function stageEngineLicences(): Promise<void> {
+  await rm(ENGINE_LICENCES_DIR, { recursive: true, force: true });
+  await mkdir(ENGINE_LICENCES_DIR, { recursive: true });
+  await copyFile(CHROMIUM_CREDITS, path.join(ENGINE_LICENCES_DIR, CHROMIUM_CREDITS_FILE));
+}
+
 async function stageExportSource(): Promise<void> {
   await rm(EXPORT_SRC_DIR, { recursive: true, force: true });
   await mkdir(EXPORT_SRC_DIR, { recursive: true });
@@ -125,7 +137,7 @@ const config: ForgeConfig = {
       x64ArchFiles: DARWIN_UNIVERSAL_ARCH_FILES,
     },
     extraResource: [
-      ...(EDITION === "full" ? [ENGINE_DIR] : []),
+      EDITION === "full" ? ENGINE_DIR : ENGINE_LICENCES_DIR,
       EXPORT_SRC_DIR,
       ICONS_DIR,
       ...LEGAL_FILES,
@@ -159,7 +171,8 @@ const config: ForgeConfig = {
   ],
   hooks: {
     prePackage: async (_forgeConfig, platform, arch) => {
-      if (EDITION === "full") await stageEngine(platform, arch);
+      await stageEngine(platform, arch);
+      if (EDITION === "lite") await stageEngineLicences();
       await stageExportSource();
     },
     postPackage: async (_forgeConfig, { platform, outputPaths }) => {

@@ -334,6 +334,7 @@ function MuteSolo({
             <Toggle
               size="sm"
               variant="outline"
+              data-custom-pressed
               className="data-[pressed]:bg-destructive/30 h-6 min-w-7 px-1 text-[11px]"
               pressed={mute}
               aria-label="Mute"
@@ -351,6 +352,7 @@ function MuteSolo({
             <Toggle
               size="sm"
               variant="outline"
+              data-custom-pressed
               className="data-[pressed]:bg-meter-mid/40 h-6 min-w-7 px-1 text-[11px]"
               pressed={solo}
               aria-label="Solo"

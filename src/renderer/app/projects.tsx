@@ -22,25 +22,16 @@ import { acceleratorLabel } from "@/shared/menu";
 import { TEMPLATES } from "@/shared/templates";
 import { Button } from "@/renderer/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/renderer/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
-import { Input } from "@/renderer/components/ui/input";
 import { Kbd } from "@/renderer/components/ui/kbd";
-import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
+import { NewProjectDialog } from "./new-project-dialog";
 
 export function Projects() {
   const navigate = useNavigate();
   const [recent, setRecent] = useState<RecentProject[]>([]);
   const [creating, setCreating] = useState(false);
-  const [name, setName] = useState("My launch video");
   const [template, setTemplate] = useState("todomvc");
+  const [fixedTemplate, setFixedTemplate] = useState(false);
+  const [session, setSession] = useState(0);
   const [engineMissing, setEngineMissing] = useState(false);
 
   useEffect(() => {
@@ -49,10 +40,10 @@ export function Projects() {
     window.demoflow.setTitle("Demoflow");
     const pending = useUiStore.getState().pendingProjectAction;
     useUiStore.getState().setPendingProjectAction(null);
-    if (pending === "new") setCreating(true);
+    if (pending === "new") newProject();
     if (pending === "open") void open();
     return window.demoflow.onMenuCommand((c) => {
-      if (c === "project:new") setCreating(true);
+      if (c === "project:new") newProject();
       if (c === "project:open") void open();
     });
     // oxlint-disable-next-line react/exhaustive-deps
@@ -71,19 +62,16 @@ export function Projects() {
     }
   }
 
-  async function create() {
-    try {
-      const p = await window.demoflow.createProject({ name, template });
-      if (p) go(p.dir);
-    } catch (e) {
-      toast.error("Could not create the project", {
-        description: e instanceof Error ? e.message : String(e),
-      });
-    }
+  function newProject() {
+    setFixedTemplate(false);
+    setSession((n) => n + 1);
+    setCreating(true);
   }
 
   const startTemplate = (id: string) => {
     setTemplate(id);
+    setFixedTemplate(true);
+    setSession((n) => n + 1);
     setCreating(true);
   };
   const platform = window.demoflow.platform;
@@ -93,13 +81,13 @@ export function Projects() {
     keys: string;
     run: () => void;
   }> = [
-    { icon: Plus, label: "New project…", keys: "CmdOrCtrl+N", run: () => setCreating(true) },
+    { icon: Plus, label: "New project…", keys: "CmdOrCtrl+N", run: newProject },
     { icon: FolderOpen, label: "Open project…", keys: "CmdOrCtrl+O", run: () => void open() },
     {
       icon: Settings,
       label: "Settings",
       keys: "CmdOrCtrl+,",
-      run: () => void navigate({ to: "/settings" }),
+      run: () => void window.demoflow.openSettings(),
     },
   ];
 
@@ -173,7 +161,7 @@ export function Projects() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => void navigate({ to: "/settings" })}
+                      onClick={() => void window.demoflow.openSettings("engine")}
                     >
                       Open Settings
                     </Button>
@@ -210,58 +198,14 @@ export function Projects() {
               </section>
             </div>
           </div>
-          <Dialog open={creating} onOpenChange={setCreating}>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>New project</DialogTitle>
-                <DialogDescription>
-                  Each project is a folder with your flow, files and finished videos.
-                </DialogDescription>
-              </DialogHeader>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="project-name">Name</FieldLabel>
-                  <Input
-                    id="project-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    autoFocus
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel>Template</FieldLabel>
-                  <ToggleGroup
-                    orientation="vertical"
-                    variant="outline"
-                    value={[template]}
-                    onValueChange={(v) => v[0] && setTemplate(v[0])}
-                    className="w-full"
-                  >
-                    {TEMPLATES.map((t) => (
-                      <ToggleGroupItem
-                        key={t.id}
-                        value={t.id}
-                        className="h-auto flex-col items-start gap-0.5 py-2 text-left"
-                      >
-                        <span className="font-medium">{t.title}</span>
-                        <span className="text-muted-foreground text-xs font-normal whitespace-normal">
-                          {t.description}
-                        </span>
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                </Field>
-              </FieldGroup>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreating(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => void create()} disabled={!name.trim()}>
-                  Choose folder & create
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <NewProjectDialog
+            key={session}
+            open={creating}
+            onOpenChange={setCreating}
+            template={template}
+            fixedTemplate={fixedTemplate}
+            onCreated={go}
+          />
         </div>
       </div>
     </div>
