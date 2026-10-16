@@ -2,7 +2,16 @@ import { z } from "zod";
 
 export const TRACE_RETENTION = ["always", "failures", "last-n", "off"] as const;
 
+export const START_OPTIONS = ["start-screen", "last-project", "new-project"] as const;
+export type StartOption = (typeof START_OPTIONS)[number];
+
 export const appSettingsSchema = z.object({
+  app: z
+    .object({
+      onStart: z.enum(START_OPTIONS).default("start-screen"),
+      confirmExit: z.boolean().default(true),
+    })
+    .default({ onStart: "start-screen", confirmExit: true }),
   traces: z
     .object({
       retention: z.enum(TRACE_RETENTION).default("always"),

@@ -8,6 +8,7 @@ import type { TraceModel } from "./trace";
 import type { FontFamilyDef } from "./fonts/types";
 import type { PlannedFamily } from "./fonts/plan";
 import type { TimelineSpec } from "./schema/timeline";
+import type { AnalysisRequest, AnalysisResult } from "./mix/result";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 
@@ -69,7 +70,16 @@ export type MenuCommand =
   | "view:toggle-left"
   | "view:toggle-bottom"
   | "view:toggle-right"
+  | "view:focus-preview"
+  | "view:focus-timeline"
+  | "view:focus-mixer"
+  | "view:focus-run"
   | "edit:add-node";
+
+export type DockPanelName = "preview" | "timeline" | "mixer" | "run";
+
+export type CloseRequest = { ask: boolean; busy: string[] };
+export type CloseDecision = { close: boolean; dontAsk: boolean };
 
 export type InspectedFamily = PlannedFamily;
 
@@ -146,6 +156,17 @@ export interface DemoflowApi {
   getWindowState(): Promise<WindowState>;
   requestStill(request: StillRequest): Promise<StillResult>;
   listStills(projectDir: string): Promise<Record<string, string>>;
+  analyze(request: AnalysisRequest): Promise<AnalysisResult>;
+  openPanelWindow(panel: DockPanelName, projectDir: string): Promise<void>;
+  focusPanelWindow(panel: DockPanelName): Promise<void>;
+  closePanelWindow(panel: DockPanelName): Promise<void>;
+  closePanelWindows(): Promise<void>;
+  listPanelWindows(): Promise<DockPanelName[]>;
+  onPanelWindows(listener: (open: DockPanelName[]) => void): () => void;
+  reportUnsaved(unsaved: boolean): void;
+  onFlushSave(listener: () => Promise<void>): () => void;
+  onConfirmClose(listener: (request: CloseRequest) => void): () => void;
+  decideClose(decision: CloseDecision): void;
   onStillReady(listener: (still: StillReady) => void): () => void;
   onWindowState(listener: (state: WindowState) => void): () => void;
   dispatchMenuCommand(command: MenuCommand): void;
@@ -197,6 +218,18 @@ export const IPC = {
   fontCatalog: "demoflow:fonts:catalog",
   downloadFont: "demoflow:fonts:download",
   useFontInProject: "demoflow:fonts:use-in-project",
+  analyze: "demoflow:analysis:run",
+  openPanelWindow: "demoflow:panels:open",
+  focusPanelWindow: "demoflow:panels:focus",
+  closePanelWindow: "demoflow:panels:close",
+  closePanelWindows: "demoflow:panels:close-all",
+  listPanelWindows: "demoflow:panels:list",
+  panelWindows: "demoflow:panels:changed",
+  reportUnsaved: "demoflow:exit:unsaved",
+  flushSave: "demoflow:exit:flush-save",
+  saveFlushed: "demoflow:exit:save-flushed",
+  confirmClose: "demoflow:exit:confirm",
+  closeDecision: "demoflow:exit:decision",
 } as const;
 
 declare global {

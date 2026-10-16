@@ -8,8 +8,11 @@ const effect = (id: string, from: number, extra: Partial<AudioItem> = {}): Audio
   from,
   role: "effect",
   lengthFrames: 10,
+  channel: id,
   ...extra,
 });
+
+const keys = (...ids: string[]) => new Set(ids);
 
 const spec = (audio: AudioItem[], tracks: TimelineSpec["tracks"] = []) => ({
   fps: 30,
@@ -33,14 +36,14 @@ describe("ducking", () => {
     ]);
   });
 
-  it("lowers under sound effects but not under music or keep-music sounds", () => {
+  it("lowers under the key channels but not under other or keep-music sounds", () => {
     const spans = duckingSpans(
       spec([
-        { id: "m", src: "song.mp3", from: 0, role: "music" },
+        { id: "m", src: "song.mp3", from: 0, role: "music", channel: "m" },
         effect("a", 30),
         effect("b", 100, { keepMusic: true }),
       ]),
-      "all",
+      keys("a", "b", "v"),
     );
     expect(spans).toEqual([[30, 40]]);
   });
@@ -51,7 +54,7 @@ describe("ducking", () => {
         effect("a", 0, { lengthFrames: undefined }),
         effect("b", 100, { lengthFrames: undefined, durationInFrames: 12 }),
       ]),
-      "effects",
+      keys("a", "b"),
     );
     expect(spans).toEqual([
       [0, 30],
@@ -80,6 +83,7 @@ describe("ducking", () => {
                       durationInFrames: 200,
                       component: "core/video",
                       props: { muted: false },
+                      nodeId: "v",
                     },
                     {
                       id: "quiet",
@@ -87,6 +91,7 @@ describe("ducking", () => {
                       durationInFrames: 20,
                       component: "core/video",
                       props: { muted: true },
+                      nodeId: "q",
                     },
                   ],
                 },
@@ -96,8 +101,8 @@ describe("ducking", () => {
         ],
       },
     ];
-    expect(duckingSpans(spec([effect("a", 0)], tracks), "clips")).toEqual([[60, 150]]);
-    expect(duckingSpans(spec([effect("a", 0)], tracks), "all")).toEqual([
+    expect(duckingSpans(spec([effect("a", 0)], tracks), keys("v", "q"))).toEqual([[60, 150]]);
+    expect(duckingSpans(spec([effect("a", 0)], tracks), keys("a", "v", "q"))).toEqual([
       [0, 10],
       [60, 150],
     ]);

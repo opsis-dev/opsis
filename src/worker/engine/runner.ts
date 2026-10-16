@@ -123,7 +123,9 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
       );
     const params = interpolate(node.params ?? {}, vars);
     const keyed =
-      getNodeDef(node.type)?.phase === "render" ? { params, settings: workflow.settings } : params;
+      getNodeDef(node.type)?.phase === "render"
+        ? { params, settings: workflow.settings, mix: workflow.mix ?? null }
+        : params;
     hashes.set(id, nodeHash(node.type, keyed, upstream));
   }
 

@@ -4,7 +4,7 @@ import { projectRef } from "../elements/introspect";
 import type { CompileValue, MediaValue } from "../schema/values";
 import { row, secs, type CardRow } from "./card";
 import { defineNode, opt, port, type NodeDef } from "./define";
-import { asset, bool, choice, more, ms, quality, text } from "./params";
+import { asset, bool, choice, more, ms, quality, text, visualEnvelope } from "./params";
 
 const base = { category: "Media", phase: "media", executes: true } as const;
 const one = {
@@ -70,6 +70,7 @@ export const importMediaNode = defineNode({
       cover: "Fill the frame",
       contain: "Show all",
     }),
+    envelope: visualEnvelope(),
   }),
   compile: ({ nodeId, result, params, settings }) => {
     const probed = result?.outputs.media as MediaValue | undefined;
@@ -94,12 +95,14 @@ export const importMediaNode = defineNode({
             "core/placeholder",
             { title: media.src ? "Sound file" : "No file chosen", subtitle: params.path },
             frames,
+            { envelope: params.envelope },
           )
         : itemClip(
             nodeId,
             kind === "image" ? "core/image" : "core/video",
             { src: media.src, fit: params.fit, muted: false },
             frames,
+            { envelope: params.envelope },
           );
     return { media, clip };
   },
@@ -124,6 +127,7 @@ export const mediaToClipNode = defineNode({
       contain: "Show all",
     }),
     muted: bool(false, "Muted"),
+    envelope: visualEnvelope(),
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
     const media = inputs.media as MediaValue | undefined;
@@ -135,6 +139,7 @@ export const mediaToClipNode = defineNode({
         media.kind === "image" ? "core/image" : "core/video",
         { src: media.src, fit: params.fit, muted: params.muted },
         frames,
+        { envelope: params.envelope },
       ),
     };
   },

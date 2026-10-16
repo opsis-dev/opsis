@@ -18,7 +18,9 @@ Built with [Electron](https://www.electronjs.org), [xyflow](https://reactflow.de
 - **Audio:** music with fades and ducking under sound effects, sound effects (7 built-in CC0 sounds or your own files), captions timed from a script.
 - **Media:** trim, join, speed, reverse, resize, convert, GIF, extract audio, even out volume, grab a frame, web-ready, file info.
 - **Export:** 16:9, 9:16, 1:1 and 4:5 in one go (tall shapes follow the action), still images in social sizes, or a standalone Remotion project.
-- **Editor:** 202 node types, 7 templates, undo/redo, groups, auto layout, card previews saved as stills, a preview that matches the export frame for frame.
+- **Timeline:** the film as bars with filmstrips, waveforms, action marks, chapters, markers and music beats; move, trim, split, ripple, roll, slip, speed and keyframes, each written back to the nodes (or added as a named node) as one undo step; snapping, J/K/L, in and out points.
+- **Mixer:** a strip per sound with trim, low cut, 4-band EQ, compressor, pan, fader, mute and solo; buses with sidechain ducking; a master with EQ, compressor, limiter and loudness targets (−14, −16, −23 LUFS); meters and loudness readouts. Exports play exactly the rendered mix.
+- **Editor:** 202 node types, 7 templates, undo/redo, groups, auto layout, card previews saved as stills, a preview that matches the export frame for frame. Preview, Timeline, Mixer and Run are tabs, and each can open in its own window.
 
 ## Getting started
 
@@ -92,7 +94,6 @@ Contributor rules (no code comments, kebab-case files, pinned Remotion and TypeS
 ## Not built yet
 
 - Voice-over, transcription and AI assist (milestones M4 and M7 in PLAN.md).
-- Timeline and Mixer panels ([`plans/timeline-and-mixer.md`](./plans/timeline-and-mixer.md)).
 - Windows and macOS builds haven't been run outside CI yet; their icons, code signing and auto-update don't exist.
 
 ## Licences

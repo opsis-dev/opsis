@@ -1,4 +1,5 @@
 import type { EngineInstallEvent, RunRequest } from "./ipc";
+import type { AnalysisRequest, AnalysisResult } from "./mix/result";
 import type { RunEvent } from "./schema/events";
 import type { TimelineSpec } from "./schema/timeline";
 import type { AppSettings } from "./settings";
@@ -32,6 +33,7 @@ export type MainToWorker =
       output: string;
       width: number;
     }
+  | { type: "analysis"; env: WorkerEnv; id: string; request: AnalysisRequest }
   | { type: "cancel" }
   | { type: "secret:response"; id: string; value?: string; error?: string }
   | { type: "login:response"; id: string; value?: string; error?: string };
@@ -49,4 +51,5 @@ export type WorkerToMain =
   | { type: "login:request"; id: string; request: LoginRequest }
   | { type: "install:progress"; event: EngineInstallEvent }
   | { type: "install:done"; error?: string }
-  | { type: "still:done"; id: string; error?: string };
+  | { type: "still:done"; id: string; error?: string }
+  | { type: "analysis:done"; id: string; result: AnalysisResult };

@@ -48,6 +48,18 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-track-video: var(--track-video);
+  --color-track-graphics: var(--track-graphics);
+  --color-track-text: var(--track-text);
+  --color-track-media: var(--track-media);
+  --color-track-music: var(--track-music);
+  --color-track-effect: var(--track-effect);
+  --color-track-clip: var(--track-clip);
+  --color-playhead: var(--playhead);
+  --color-meter-low: var(--meter-low);
+  --color-meter-mid: var(--meter-mid);
+  --color-meter-high: var(--meter-high);
+  --color-keyframe: var(--keyframe);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -91,6 +103,22 @@
   --sidebar-accent-foreground: oklch(0.29 0.006 286);
   --sidebar-border: oklch(0.885 0.003 286);
   --sidebar-ring: oklch(0.68 0.01 286);
+  --track-video: oklch(0.8 0.06 250);
+  --track-graphics: oklch(0.8 0.07 300);
+  --track-text: oklch(0.82 0.07 170);
+  --track-media: oklch(0.82 0.06 50);
+  --track-music: oklch(0.82 0.08 145);
+  --track-effect: oklch(0.84 0.09 80);
+  --track-clip: oklch(0.8 0.05 220);
+  --playhead: oklch(0.66 0.19 38);
+  --meter-low: oklch(0.7 0.15 150);
+  --meter-mid: oklch(0.8 0.15 90);
+  --meter-high: oklch(0.65 0.2 27);
+  --keyframe: oklch(0.72 0.14 85);
+  --waveform: oklch(0.2 0.01 286 / 55%);
+  --transition-hatch: oklch(0.2 0.01 286 / 12%);
+  --scrollbar-thumb: oklch(0.29 0.006 286 / 22%);
+  --scrollbar-thumb-hover: oklch(0.29 0.006 286 / 40%);
 }
 
 .dark {
@@ -126,6 +154,22 @@
   --sidebar-accent-foreground: oklch(0.95 0.004 286);
   --sidebar-border: oklch(1 0 0 / 7%);
   --sidebar-ring: oklch(0.55 0.015 286);
+  --track-video: oklch(0.38 0.05 250);
+  --track-graphics: oklch(0.38 0.06 300);
+  --track-text: oklch(0.38 0.05 175);
+  --track-media: oklch(0.39 0.05 50);
+  --track-music: oklch(0.38 0.06 150);
+  --track-effect: oklch(0.4 0.06 80);
+  --track-clip: oklch(0.36 0.04 220);
+  --playhead: oklch(0.7 0.18 38);
+  --meter-low: oklch(0.72 0.16 150);
+  --meter-mid: oklch(0.84 0.15 90);
+  --meter-high: oklch(0.66 0.2 27);
+  --keyframe: oklch(0.9 0.1 90);
+  --waveform: oklch(0.97 0.004 286 / 55%);
+  --transition-hatch: oklch(0.97 0.004 286 / 12%);
+  --scrollbar-thumb: oklch(0.93 0.004 286 / 16%);
+  --scrollbar-thumb-hover: oklch(0.93 0.004 286 / 30%);
 }
 
 @utility app-drag {
@@ -159,6 +203,29 @@
   }
   html {
     @apply font-sans;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    min-width: 32px;
+    min-height: 32px;
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-color: var(--scrollbar-thumb);
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover,
+  ::-webkit-scrollbar-thumb:active {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
   }
 }
 html,

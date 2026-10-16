@@ -1,10 +1,12 @@
 import { z } from "zod";
-import { isClip, itemClip, wrapClip } from "../compile/clip";
+import { isClip, itemClip, withHandles, wrapClip } from "../compile/clip";
+import type { EditHandles, VisualEnvelope } from "../schema/timeline";
 import { ELEMENTS, elementNodeType, type ElementCategory, type ElementMeta } from "../elements";
 import { assetKeys, projectRef, widgetKeys } from "../elements/introspect";
 import { fontStack } from "../fonts";
 import { frameSecs, quote, row, sentence, type CardRow } from "./card";
 import { defineNode, port, type NodeCategory, type NodeDef } from "./define";
+import { visualEnvelope } from "./params";
 
 const TEXT_KEYS = [
   "title",
@@ -70,7 +72,7 @@ export function elementProps(
   meta: ElementMeta,
   params: Record<string, unknown>,
 ): Record<string, unknown> {
-  const { clipDuration: _drop, ...rest } = params;
+  const { clipDuration: _drop, envelope: _envelope, ...rest } = params;
   const props: Record<string, unknown> = { ...meta.fixedProps, ...rest };
   for (const key of widgetKeys(meta.schema, "font")) {
     const name = typeof props[key] === "string" ? (props[key] as string).trim() : "";
@@ -109,22 +111,37 @@ function elementNode(meta: ElementMeta): NodeDef {
           unit: "frames",
           ...(wrapper ? { zeroLabel: "Match the clip" } : {}),
         }),
+      envelope: visualEnvelope(),
     }),
     compile: ({ nodeId, params, inputs }) => {
       const props = elementProps(meta, params as Record<string, unknown>);
-      const duration = (params as { clipDuration: number }).clipDuration;
-      if (!wrapper) return { clip: itemClip(nodeId, meta.key, props, duration) };
+      const { clipDuration: duration, envelope } = params as {
+        clipDuration: number;
+        envelope: VisualEnvelope;
+      };
+      const handles: EditHandles = {
+        trimEnd: { nodeId, param: "clipDuration", unit: "frames" },
+      };
+      if (!wrapper)
+        return { clip: itemClip(nodeId, meta.key, props, duration, { handles, envelope }) };
       const clip = isClip(inputs.clip) ? inputs.clip : undefined;
       if (!clip)
         return {
-          clip: itemClip(nodeId, meta.key, props, duration || meta.defaultDurationInFrames),
+          clip: itemClip(nodeId, meta.key, props, duration || meta.defaultDurationInFrames, {
+            handles,
+            envelope,
+          }),
         };
       return {
-        clip: wrapClip(
-          clip,
-          nodeId,
-          { wrapper: { component: meta.key, props } },
-          duration || clip.durationInFrames,
+        clip: withHandles(
+          wrapClip(
+            clip,
+            nodeId,
+            { wrapper: { component: meta.key, props } },
+            duration || clip.durationInFrames,
+          ),
+          handles,
+          envelope,
         ),
       };
     },

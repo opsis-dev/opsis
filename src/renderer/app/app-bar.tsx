@@ -253,7 +253,12 @@ export function AppBar({ children, className }: { children?: ReactNode; classNam
         )}
         {children}
       </div>
-      {isMac ? null : <WindowControls />}
+      {isMac ? null : (
+        <>
+          <Separator orientation="vertical" className="mx-3 h-5 self-center" />
+          <WindowControls />
+        </>
+      )}
     </header>
   );
 }

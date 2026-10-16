@@ -41,6 +41,20 @@ import {
 } from "./fonts";
 import type { FontInstalledFace, StillRequest, WindowState } from "../shared/ipc";
 import { initStills, listStills, requestStill } from "./stills";
+import {
+  closePanelWindow,
+  closePanelWindows,
+  focusPanelWindow,
+  initPanelWindows,
+  isPanelSender,
+  openPanels,
+  openPanelWindow,
+  panelWindow,
+} from "./panel-windows";
+import type { DockPanelName } from "../shared/ipc";
+import { guardClose, interceptQuit, registerExitIpc, track } from "./exit";
+import { analyze, stopAnalysis } from "./analysis";
+import type { AnalysisRequest } from "../shared/mix/result";
 import { activeRunId, cancelRun, environment, installEngine, isRunning, startRun } from "./workers";
 
 if (started) app.quit();
@@ -52,17 +66,26 @@ let projectDir: string | null = null;
 
 const rendererDir = () => path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}`);
 
-function createWindow(): void {
-  mainWindow = new BrowserWindow({
-    width: 1600,
-    height: 1000,
-    minWidth: 1100,
-    minHeight: 700,
+const rendererUrl = (hash = "") =>
+  MAIN_WINDOW_VITE_DEV_SERVER_URL
+    ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}${hash ? `#${hash}` : ""}`
+    : `${APP_SCHEME}://app/index.html${hash ? `#${hash}` : ""}`;
+
+function makeWindow(options: {
+  width: number;
+  height: number;
+  minWidth: number;
+  minHeight: number;
+  x?: number;
+  y?: number;
+  title: string;
+}): BrowserWindow {
+  const win = new BrowserWindow({
+    ...options,
     backgroundColor: "#101013",
     icon: app.isPackaged
       ? path.join(process.resourcesPath, "icons", "512.png")
       : path.join(app.getAppPath(), "brand", "icons", "512.png"),
-    title: "Demoflow",
     show: false,
     ...(process.platform === "darwin"
       ? { titleBarStyle: "hiddenInset" as const, trafficLightPosition: { x: 16, y: 16 } }
@@ -74,7 +97,7 @@ function createWindow(): void {
       preload: path.join(__dirname, "preload.cjs"),
     },
   });
-  mainWindow.once("ready-to-show", () => mainWindow?.show());
+  win.once("ready-to-show", () => win.show());
   for (const name of [
     "maximize",
     "unmaximize",
@@ -83,27 +106,52 @@ function createWindow(): void {
     "focus",
     "blur",
   ] as const)
-    mainWindow.on(name as "maximize", () => sendWindowState());
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    win.on(name as "maximize", () => sendWindowState(win));
+  win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/.test(url)) void shell.openExternal(url);
     return { action: "deny" };
   });
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) void mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  else void mainWindow.loadURL(`${APP_SCHEME}://app/index.html`);
+  return win;
+}
+
+function createWindow(): void {
+  mainWindow = makeWindow({
+    width: 1600,
+    height: 1000,
+    minWidth: 1100,
+    minHeight: 700,
+    title: "Demoflow",
+  });
+  void mainWindow.loadURL(rendererUrl());
+  guardClose(mainWindow);
   mainWindow.on("closed", () => {
     mainWindow = null;
+    closePanelWindows();
   });
 }
 
 function assertTrustedSender(event: IpcMainInvokeEvent): void {
-  if (!mainWindow || event.sender.id !== mainWindow.webContents.id)
-    throw new Error("Blocked IPC call from an unknown renderer.");
+  const id = event.sender.id;
+  if ((mainWindow && id === mainWindow.webContents.id) || isPanelSender(id)) return;
+  throw new Error("Blocked IPC call from an unknown renderer.");
 }
+
+const senderWindow = (event: IpcMainInvokeEvent) => BrowserWindow.fromWebContents(event.sender);
 
 function handle<A extends unknown[], R>(channel: string, fn: (...args: A) => Promise<R> | R): void {
   ipcMain.handle(channel, async (event, ...args) => {
     assertTrustedSender(event);
     return fn(...(args as A));
+  });
+}
+
+function handleFrom<A extends unknown[], R>(
+  channel: string,
+  fn: (event: IpcMainInvokeEvent, ...args: A) => Promise<R> | R,
+): void {
+  ipcMain.handle(channel, async (event, ...args) => {
+    assertTrustedSender(event);
+    return fn(event, ...(args as A));
   });
 }
 
@@ -138,17 +186,16 @@ function emitRun(event: RunEvent, total: { count: number; done: number }) {
   }
 }
 
-function windowState(): WindowState {
+function windowState(win: BrowserWindow | null): WindowState {
   return {
-    maximized: mainWindow?.isMaximized() ?? false,
-    fullscreen: mainWindow?.isFullScreen() ?? false,
-    focused: mainWindow?.isFocused() ?? false,
+    maximized: win?.isMaximized() ?? false,
+    fullscreen: win?.isFullScreen() ?? false,
+    focused: win?.isFocused() ?? false,
   };
 }
 
-function sendWindowState(): void {
-  if (mainWindow && !mainWindow.isDestroyed())
-    mainWindow.webContents.send(IPC.windowState, windowState());
+function sendWindowState(win: BrowserWindow): void {
+  if (!win.isDestroyed()) win.webContents.send(IPC.windowState, windowState(win));
 }
 
 let lastNotification: Notification | null = null;
@@ -205,7 +252,10 @@ function registerIpc(): void {
       request,
       () => mainWindow,
       (e) => emitRun(e, total),
-      (port) => mainWindow?.webContents.postMessage(IPC.livePort, { runId }, [port]),
+      (port) =>
+        (panelWindow("run") ?? mainWindow)?.webContents.postMessage(IPC.livePort, { runId }, [
+          port,
+        ]),
     );
     return { runId };
   });
@@ -217,7 +267,10 @@ function registerIpc(): void {
   handle(IPC.pick, (request: PickRequest) => pickInWindow(mainWindow, request));
   handle(IPC.env, () => environment());
   handle(IPC.installEngine, () =>
-    installEngine((e) => mainWindow?.webContents.send(IPC.engineEvent, e)),
+    track(
+      "The engine is being set up.",
+      installEngine((e) => mainWindow?.webContents.send(IPC.engineEvent, e)),
+    ),
   );
   handle(IPC.getSettings, () => readSettings());
   handle(IPC.setSettings, (settings: AppSettings) => writeSettings(settings));
@@ -231,7 +284,9 @@ function registerIpc(): void {
   );
   handle(IPC.removeFont, (id: string) => removeLibraryFont(id));
   handle(IPC.fontCatalog, () => fontCatalog());
-  handle(IPC.downloadFont, (id: string) => downloadOnlineFont(id));
+  handle(IPC.downloadFont, (id: string) =>
+    track("A font is being downloaded.", downloadOnlineFont(id)),
+  );
   handle(IPC.useFontInProject, async (dir: string, fontId: string) => {
     const def = (await listLibrary()).find((f) => f.id === fontId);
     if (!def) throw new Error("That font isn't in your library any more.");
@@ -239,14 +294,23 @@ function registerIpc(): void {
   });
   handle(IPC.clearCache, (dir: string) => clearCache(dir));
   ipcMain.on(IPC.setTitle, (event, title: string) => {
-    if (mainWindow && event.sender.id === mainWindow.webContents.id) mainWindow.setTitle(title);
+    const id = event.sender.id;
+    if ((mainWindow && id === mainWindow.webContents.id) || isPanelSender(id))
+      BrowserWindow.fromWebContents(event.sender)?.setTitle(title);
   });
-  handle(IPC.windowRole, (role: WindowRole) => {
-    if (mainWindow) runWindowRole(mainWindow, role);
+  handleFrom(IPC.windowRole, (event, role: WindowRole) => {
+    const win = senderWindow(event);
+    if (win) runWindowRole(win, role);
   });
-  handle(IPC.getWindowState, () => windowState());
+  handleFrom(IPC.getWindowState, (event) => windowState(senderWindow(event)));
+  handle(IPC.openPanelWindow, (panel: DockPanelName, dir: string) => openPanelWindow(panel, dir));
+  handle(IPC.focusPanelWindow, (panel: DockPanelName) => focusPanelWindow(panel));
+  handle(IPC.closePanelWindow, (panel: DockPanelName) => closePanelWindow(panel));
+  handle(IPC.closePanelWindows, () => closePanelWindows());
+  handle(IPC.listPanelWindows, () => openPanels());
   handle(IPC.requestStill, (request: StillRequest) => requestStill(request));
   handle(IPC.listStills, (dir: string) => listStills(dir));
+  handle(IPC.analyze, (request: AnalysisRequest) => analyze(request));
 }
 
 app.whenReady().then(() => {
@@ -256,7 +320,13 @@ app.whenReady().then(() => {
     rendererDir: rendererDir(),
   });
   registerIpc();
+  registerExitIpc((id) => mainWindow?.webContents.id === id);
   initStills(() => mainWindow);
+  initPanelWindows({
+    main: () => mainWindow,
+    create: (o) => makeWindow({ ...o, minWidth: 420, minHeight: 260 }),
+    url: rendererUrl,
+  });
   buildMenu(() => mainWindow);
   createWindow();
   app.on("activate", () => {
@@ -268,6 +338,9 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
-app.on("before-quit", () => {
+app.on("before-quit", (event) => interceptQuit(event, mainWindow));
+
+app.on("will-quit", () => {
   if (isRunning()) cancelRun();
+  stopAnalysis();
 });

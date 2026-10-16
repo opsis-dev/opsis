@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { Editor } from "../editor/editor";
+import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
@@ -22,6 +23,7 @@ function EditorRoute() {
       .openProject(dir)
       .then((p) => {
         if (cancelled || !p) return;
+        loadViewState(p.dir);
         useWorkflowStore.getState().load(p.dir, p.workflow);
         useRunStore.getState().seed(p.lastRun);
         useUiStore.getState().setSelected([]);
@@ -47,7 +49,7 @@ function EditorRoute() {
   if (loadedDir !== dir) {
     return <div className="grid h-screen place-items-center">{error ? null : <Spinner />}</div>;
   }
-  return <Editor />;
+  return <Editor key={dir} />;
 }
 
 export const Route = createFileRoute("/editor")({

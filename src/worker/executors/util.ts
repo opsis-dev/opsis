@@ -1,10 +1,19 @@
 import path from "node:path";
 import type { MediaValue } from "../../shared/schema/values";
 import type { ExecutorContext } from "../engine/context";
+import type { WorkerEnv } from "../../shared/worker-protocol";
+
+export function publicDir(
+  env: Pick<WorkerEnv, "isPackaged" | "appRoot" | "resourcesPath">,
+): string {
+  return env.isPackaged
+    ? path.join(env.resourcesPath, "export-src", "public")
+    : path.join(env.appRoot, "public");
+}
 
 export function refToPath(ctx: Pick<ExecutorContext, "projectDir" | "env">, ref: string): string {
   if (ref.startsWith("project:")) return path.join(ctx.projectDir, ref.slice("project:".length));
-  if (ref.startsWith("app:")) return path.join(ctx.env.appRoot, "public", ref.slice("app:".length));
+  if (ref.startsWith("app:")) return path.join(publicDir(ctx.env), ref.slice("app:".length));
   return path.isAbsolute(ref) ? ref : path.join(ctx.projectDir, ref);
 }
 

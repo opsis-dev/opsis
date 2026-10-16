@@ -1,10 +1,13 @@
 import type {
   AudioItem,
+  EditHandles,
   TimelineItem,
   TimelineSpec,
   TimelineTrack,
   TransitionRef,
+  VisualEnvelope,
 } from "../schema/timeline";
+import { hasKeys } from "../timeline/envelope";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 
@@ -34,7 +37,12 @@ export function itemClip(
   component: string,
   props: Record<string, unknown>,
   durationInFrames: number,
-  extra: { recording?: RecordingValue; audio?: AudioItem[] } = {},
+  extra: {
+    recording?: RecordingValue;
+    audio?: AudioItem[];
+    handles?: EditHandles;
+    envelope?: VisualEnvelope;
+  } = {},
 ): ClipValue {
   const duration = Math.max(1, Math.round(durationInFrames));
   return {
@@ -44,7 +52,16 @@ export function itemClip(
       {
         id: `${nodeId}:t`,
         items: [
-          { id: `${nodeId}:i`, from: 0, durationInFrames: duration, component, props, nodeId },
+          {
+            id: `${nodeId}:i`,
+            from: 0,
+            durationInFrames: duration,
+            component,
+            props,
+            nodeId,
+            ...(extra.handles ? { handles: extra.handles } : {}),
+            ...(hasKeys(extra.envelope) ? { envelope: extra.envelope } : {}),
+          },
         ],
       },
     ],
@@ -77,6 +94,31 @@ export function wrapClip(
   };
 }
 
+export function withHandles(
+  clip: ClipValue,
+  handles: EditHandles,
+  envelope?: VisualEnvelope,
+): ClipValue {
+  if (clip.tracks.length !== 1 || clip.tracks[0].items.length !== 1) return clip;
+  const [track] = clip.tracks;
+  const item = track.items[0];
+  return {
+    ...clip,
+    tracks: [
+      {
+        ...track,
+        items: [
+          {
+            ...item,
+            handles: { ...item.handles, ...handles },
+            ...(hasKeys(envelope) ? { envelope } : {}),
+          },
+        ],
+      },
+    ],
+  };
+}
+
 export const shiftAudio = (audio: AudioItem[], offset: number, prefix: string): AudioItem[] =>
   audio.map((a) => ({ ...a, id: `${prefix}/${a.id}`, from: a.from + offset }));
 
@@ -84,6 +126,7 @@ export function sequenceClips(
   nodeId: string,
   clips: ClipValue[],
   transitions: Array<TransitionRef | undefined> = [],
+  opts: { ports?: string[]; slotNode?: string } = {},
 ): ClipValue {
   if (clips.length === 0) return emptyClip();
   const items: TimelineItem[] = [];
@@ -105,6 +148,9 @@ export function sequenceClips(
       component: "core/group",
       props: { tracks: clip.tracks } satisfies GroupProps,
       enter,
+      ...(opts.ports?.[i]
+        ? { slot: { nodeId: opts.slotNode ?? nodeId, port: opts.ports[i] } }
+        : {}),
     });
     audio.push(...shiftAudio(clip.audio, from, `${nodeId}:s${i}`));
     cursor = from + clip.durationInFrames;
@@ -118,20 +164,31 @@ export function sequenceClips(
   };
 }
 
-export function stackClips(nodeId: string, clips: ClipValue[], offsets: number[] = []): ClipValue {
+export function stackClips(
+  nodeId: string,
+  clips: ClipValue[],
+  offsets: number[] = [],
+  opts: { ports?: string[]; move?: (i: number) => EditHandles["move"] } = {},
+): ClipValue {
   if (clips.length === 0) return emptyClip();
-  const tracks: TimelineTrack[] = clips.map((clip, i) => ({
-    id: `${nodeId}:l${i}`,
-    items: [
-      {
-        id: `${nodeId}:l${i}:g`,
-        from: offsets[i] ?? 0,
-        durationInFrames: clip.durationInFrames,
-        component: "core/group",
-        props: { tracks: clip.tracks } satisfies GroupProps,
-      },
-    ],
-  }));
+  const tracks: TimelineTrack[] = clips.map((clip, i) => {
+    const move = opts.move?.(i);
+    const port = opts.ports?.[i];
+    return {
+      id: `${nodeId}:l${i}`,
+      items: [
+        {
+          id: `${nodeId}:l${i}:g`,
+          from: offsets[i] ?? 0,
+          durationInFrames: clip.durationInFrames,
+          component: "core/group",
+          props: { tracks: clip.tracks } satisfies GroupProps,
+          ...(move ? { handles: { move } } : {}),
+          ...(port ? { slot: { nodeId, port } } : {}),
+        },
+      ],
+    };
+  });
   const duration = Math.max(...clips.map((c, i) => c.durationInFrames + (offsets[i] ?? 0)));
   return {
     type: "clip",

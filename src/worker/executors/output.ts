@@ -17,6 +17,9 @@ import { defineExecutor, type ExecutorContext } from "../engine/context";
 import { startAssetServer } from "../render/asset-server";
 import { CODEC_EXT, getServeUrl, renderFrame, renderTimeline } from "../render/render";
 import { refToPath, slug } from "./util";
+import { buildMixPlan, hasSound } from "../../shared/mix/plan";
+import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
+import { renderMix } from "../mix/render";
 
 function specFor(ctx: ExecutorContext): TimelineSpec {
   const result = ctx.compile();
@@ -25,6 +28,25 @@ function specFor(ctx: ExecutorContext): TimelineSpec {
   const spec = result.specs[ctx.node.id];
   if (!spec) throw new Error("Connect a clip to this node.");
   return spec;
+}
+
+async function mixed(ctx: ExecutorContext, spec: TimelineSpec, from: number, to: number) {
+  const plan = buildMixPlan(spec, ctx.workflow.mix);
+  if (!hasSound(plan)) return applyMixLevels(spec, ctx.workflow.mix);
+  const result = await renderMix(plan, {
+    projectDir: ctx.projectDir,
+    resolve: (ref) => refToPath(ctx, ref),
+    ffmpeg: ctx.ffmpeg,
+    signal: ctx.signal,
+    onProgress: (p, message) => ctx.progress(from + (to - from) * p, message),
+  });
+  if (!result.master) return applyMixLevels(spec, ctx.workflow.mix);
+  if (result.loudness?.integrated !== null && result.loudness?.integrated !== undefined)
+    ctx.log(
+      "info",
+      `Sound: ${result.loudness.integrated} LUFS${result.loudness.truePeak !== null ? `, peak ${result.loudness.truePeak} dBTP` : ""}`,
+    );
+  return withMasterStem(spec, result.master);
 }
 
 async function prepare(ctx: ExecutorContext) {
@@ -37,7 +59,7 @@ async function prepare(ctx: ExecutorContext) {
 }
 
 export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p) => {
-  const spec = specFor(ctx);
+  const spec = await mixed(ctx, specFor(ctx), 0, 0.05);
   const { serveUrl, server } = await prepare(ctx);
   const artifacts: Artifact[] = [];
   const ext = CODEC_EXT[p.codec];
@@ -153,7 +175,7 @@ function sourceDirs(ctx: ExecutorContext) {
 }
 
 export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ctx, _inputs, p) => {
-  const spec = specFor(ctx);
+  const spec = await mixed(ctx, specFor(ctx), 0, 0.3);
   const dir = path.join(ctx.outDir, slug(p.folderName));
   const src = sourceDirs(ctx);
   if (!existsSync(src.video)) throw new Error("This copy of Demoflow can't export code.");
@@ -174,6 +196,7 @@ export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ct
     return item;
   });
   spec.audio.forEach((a) => collect(a.src));
+  if (spec.mix) collect(spec.mix.src);
   for (const ref of refs) {
     const relPath = ref.slice("project:".length);
     const target = path.join(dir, "public", "project", relPath);

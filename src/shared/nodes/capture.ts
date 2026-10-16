@@ -3,7 +3,7 @@ import { itemClip, msToFrames } from "../compile/clip";
 import type { ImageValue, RecordingValue } from "../schema/values";
 import { quote, row, secs, shortUrl } from "./card";
 import { defineNode, port } from "./define";
-import { bool, choice, more, ms, optionalTarget, text } from "./params";
+import { bool, choice, more, ms, optionalTarget, text, visualEnvelope } from "./params";
 
 export const recordNode = defineNode({
   type: "capture.record",
@@ -110,6 +110,7 @@ export const stillNode = defineNode({
     }),
     backdrop: more(text("glaze", "Backdrop"), { widget: "backdrop" }),
     durationMs: ms(3000, "Length"),
+    envelope: visualEnvelope(),
   }),
   card: ({ params: p, result }) => {
     const image = result?.outputs.image as ImageValue | undefined;
@@ -133,6 +134,10 @@ export const stillNode = defineNode({
   },
   compile: ({ nodeId, result, params, settings }) => {
     const image = (result?.outputs.image as ImageValue | undefined) ?? { type: "image", src: null };
+    const extra = {
+      handles: { trimEnd: { nodeId, param: "durationMs", unit: "ms" as const } },
+      envelope: params.envelope,
+    };
     const clip = image.src
       ? itemClip(
           nodeId,
@@ -144,12 +149,14 @@ export const stillNode = defineNode({
             meta: result?.outputs.meta,
           },
           msToFrames(params.durationMs, settings.fps),
+          extra,
         )
       : itemClip(
           nodeId,
           "core/placeholder",
           { title: "Screenshot not taken yet", subtitle: "Run to take it" },
           msToFrames(params.durationMs, settings.fps),
+          extra,
         );
     return { image, clip };
   },

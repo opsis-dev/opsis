@@ -4,9 +4,10 @@ import { projectRef } from "../elements/introspect";
 import type { AudioItem } from "../schema/timeline";
 import { builtinSound } from "../sounds";
 import type { AudioValue, MediaValue } from "../schema/values";
+import { hasKeys } from "../timeline/envelope";
 import { row, secs } from "./card";
 import { defineNode, opt, port } from "./define";
-import { asset, bool, choice, more, ms } from "./params";
+import { asset, audioEnvelope, bool, more, ms } from "./params";
 
 const fileName = (path: string) => builtinSound(path)?.label ?? path.split("/").pop() ?? path;
 const pct = (v: number) => `${Math.round(v * 100)} %`;
@@ -26,7 +27,7 @@ export const musicBedNode = defineNode({
         : row("music", "Choose a song", { tone: "warn" }),
     row("volume-2", pct(p.volume)),
     p.loop && row("repeat", "Loops"),
-    p.duck && row("arrow-down-to-line", `Lowers to ${p.duckLevel} % under other sounds`),
+    p.lengthMs > 0 && row("clock", `Plays for ${secs(p.lengthMs)}`),
   ],
   category: "Audio",
   icon: "music",
@@ -39,27 +40,13 @@ export const musicBedNode = defineNode({
     loop: bool(true, "Loop"),
     startMs: ms(0, "Starts at"),
     trimMs: more(ms(0, "Start the song from"), { help: "Skips the start of the song." }),
+    lengthMs: more(ms(0, "Play for", 3_600_000), {
+      zeroLabel: "To the end",
+      advanced: true,
+    }),
     fadeInMs: ms(800, "Fade in", 20_000),
     fadeOutMs: ms(1500, "Fade out", 20_000),
-    duck: more(bool(false, "Lower under other sounds"), {
-      help: "Turns the music down while sound effects or clips with sound play.",
-    }),
-    duckLevel: z
-      .number()
-      .int()
-      .min(0)
-      .max(100)
-      .default(30)
-      .meta({ description: "Lower to", unit: "%", step: 5, showIf: { duck: ["true"] } }),
-    duckUnder: more(
-      choice(["all", "effects", "clips"], "all", "Lower for", {
-        all: "All other sounds",
-        effects: "Sound effects",
-        clips: "Clips with sound",
-      }),
-      { showIf: { duck: ["true"] } },
-    ),
-    duckFadeMs: more(ms(250, "Fade time", 5000), { showIf: { duck: ["true"] } }),
+    envelope: audioEnvelope(),
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
     const src = srcFrom(inputs.media, params.src);
@@ -68,20 +55,30 @@ export const musicBedNode = defineNode({
       id: nodeId,
       src,
       from: params.startMs ? msToFrames(params.startMs, settings.fps) : 0,
+      ...(params.lengthMs ? { durationInFrames: msToFrames(params.lengthMs, settings.fps) } : {}),
       volume: params.volume,
       loop: params.loop,
       trimBefore: params.trimMs ? msToFrames(params.trimMs, settings.fps) : undefined,
       fadeInFrames: params.fadeInMs ? msToFrames(params.fadeInMs, settings.fps) : undefined,
       fadeOutFrames: params.fadeOutMs ? msToFrames(params.fadeOutMs, settings.fps) : undefined,
       nodeId,
+      channel: nodeId,
       role: "music",
-      duck: params.duck
-        ? {
-            level: params.duckLevel / 100,
-            fadeFrames: params.duckFadeMs ? msToFrames(params.duckFadeMs, settings.fps) : 0,
-            under: params.duckUnder,
-          }
-        : undefined,
+      ...(hasKeys(params.envelope) ? { envelope: params.envelope } : {}),
+      handles: {
+        move: { nodeId, param: "startMs", unit: "ms" },
+        trimStart: {
+          nodeId,
+          param: "trimMs",
+          unit: "ms",
+          linked: [
+            { param: "startMs", sign: 1 },
+            { param: "lengthMs", sign: -1, ifNonZero: true },
+          ],
+        },
+        trimEnd: { nodeId, param: "lengthMs", unit: "ms" },
+        volume: { nodeId, param: "volume", unit: "number" },
+      },
     };
     const media = inputs.media as MediaValue | undefined;
     return {
@@ -122,6 +119,7 @@ export const sfxNode = defineNode({
       help: "Music set to lower under other sounds stays at full volume for this one.",
       advanced: true,
     }),
+    envelope: audioEnvelope(),
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
     const src = srcFrom(inputs.media, params.src);
@@ -138,9 +136,15 @@ export const sfxNode = defineNode({
             from: params.atMs ? msToFrames(params.atMs, settings.fps) : 0,
             volume: params.volume,
             nodeId,
+            channel: nodeId,
             role: "effect",
             lengthFrames: lengthMs ? msToFrames(lengthMs, settings.fps) : undefined,
             keepMusic: params.keepMusic || undefined,
+            ...(hasKeys(params.envelope) ? { envelope: params.envelope } : {}),
+            handles: {
+              move: { nodeId, param: "atMs", unit: "ms" },
+              volume: { nodeId, param: "volume", unit: "number" },
+            },
           },
         ],
       },

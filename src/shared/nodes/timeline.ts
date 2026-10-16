@@ -5,6 +5,7 @@ import {
   msToFrames,
   sequenceClips,
   stackClips,
+  withHandles,
   wrapClip,
 } from "../compile/clip";
 import type { AudioValue, ClipValue, CompileValue } from "../schema/values";
@@ -32,8 +33,13 @@ const layerIn = Object.fromEntries(
 const countIn = (connected: string[]) => IN_PORTS.filter((p) => connected.includes(p)).length;
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-const clipsFrom = (inputs: Partial<Record<string, CompileValue>>): ClipValue[] =>
-  IN_PORTS.map((p) => inputs[p]).filter(isClip);
+const connectedClips = (
+  inputs: Partial<Record<string, CompileValue>>,
+): Array<{ port: string; clip: ClipValue }> =>
+  IN_PORTS.flatMap((name) => {
+    const clip = inputs[name];
+    return isClip(clip) ? [{ port: name, clip }] : [];
+  });
 
 const single = {
   inputs: { clip: port("clip", "Clip") },
@@ -69,13 +75,18 @@ export const sequenceNode = defineNode({
     transitionDuration: frames(15, "Transition length"),
   }),
   compile: ({ nodeId, inputs, params }) => {
-    const clips = clipsFrom(inputs);
+    const connected = connectedClips(inputs);
+    const clips = connected.map((c) => c.clip);
     const transitions = clips.map((_, i) =>
       i > 0 && params.transition !== "none"
         ? { kind: params.transition, durationInFrames: params.transitionDuration }
         : undefined,
     );
-    return { clip: clips.length ? sequenceClips(nodeId, clips, transitions) : emptyClip(30) };
+    return {
+      clip: clips.length
+        ? sequenceClips(nodeId, clips, transitions, { ports: connected.map((c) => c.port) })
+        : emptyClip(30),
+    };
   },
 });
 
@@ -104,13 +115,17 @@ export const stackNode = defineNode({
     offsetsMs: more(text("", "Start each layer at"), { widget: "offsets" }),
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
-    const clips = clipsFrom(inputs);
+    const connected = connectedClips(inputs);
+    const clips = connected.map((c) => c.clip);
     if (!clips.length) return { clip: emptyClip(30) };
     const offsets = params.offsetsMs
       .split(",")
       .map((s) => Number(s.trim()))
       .map((n) => (Number.isFinite(n) && n > 0 ? msToFrames(n, settings.fps) : 0));
-    const stacked = stackClips(nodeId, clips, offsets);
+    const stacked = stackClips(nodeId, clips, offsets, {
+      ports: connected.map((c) => c.port),
+      move: (index) => ({ nodeId, param: "offsetsMs", unit: "ms", index }),
+    });
     const pick =
       params.duration === "first"
         ? clips[0]
@@ -148,7 +163,17 @@ export const trimNode = defineNode({
     const duration = params.durationMs
       ? Math.min(rest, msToFrames(params.durationMs, settings.fps))
       : rest;
-    return { clip: wrapClip(clip, nodeId, { startFrom: start }, duration) };
+    return {
+      clip: withHandles(wrapClip(clip, nodeId, { startFrom: start }, duration), {
+        trimStart: {
+          nodeId,
+          param: "startMs",
+          unit: "ms",
+          linked: [{ param: "durationMs", sign: -1, ifNonZero: true }],
+        },
+        trimEnd: { nodeId, param: "durationMs", unit: "ms" },
+      }),
+    };
   },
 });
 
@@ -190,7 +215,9 @@ export const delayNode = defineNode({
     const clip = isClip(inputs.clip) ? inputs.clip : undefined;
     if (!clip) return {};
     return {
-      clip: stackClips(nodeId, [clip], [params.ms ? msToFrames(params.ms, settings.fps) : 0]),
+      clip: stackClips(nodeId, [clip], [params.ms ? msToFrames(params.ms, settings.fps) : 0], {
+        move: () => ({ nodeId, param: "ms", unit: "ms" }),
+      }),
     };
   },
 });
@@ -216,16 +243,19 @@ export const speedNode = defineNode({
     if (!clip) return {};
     const out = Math.max(1, Math.round(clip.durationInFrames / params.rate));
     return {
-      clip: wrapClip(
-        clip,
-        nodeId,
-        {
-          remap: [
-            [0, 0],
-            [out, clip.durationInFrames],
-          ],
-        },
-        out,
+      clip: withHandles(
+        wrapClip(
+          clip,
+          nodeId,
+          {
+            remap: [
+              [0, 0],
+              [out, clip.durationInFrames],
+            ],
+          },
+          out,
+        ),
+        { speed: { nodeId, param: "rate", unit: "rate" } },
       ),
     };
   },
@@ -264,10 +294,14 @@ export const durationFitNode = defineNode({
       audio?.durationInFrames ?? msToFrames(params.targetMs, settings.fps),
     );
     const d = clip.durationInFrames;
-    if (params.mode === "cut") return { clip: wrapClip(clip, nodeId, {}, target) };
+    const fixed = (out: ClipValue) =>
+      audio?.durationInFrames
+        ? out
+        : withHandles(out, { trimEnd: { nodeId, param: "targetMs", unit: "ms" } });
+    if (params.mode === "cut") return { clip: fixed(wrapClip(clip, nodeId, {}, target)) };
     if (params.mode === "hold") {
       return {
-        clip:
+        clip: fixed(
           target <= d
             ? wrapClip(clip, nodeId, {}, target)
             : wrapClip(
@@ -282,19 +316,22 @@ export const durationFitNode = defineNode({
                 },
                 target,
               ),
+        ),
       };
     }
     return {
-      clip: wrapClip(
-        clip,
-        nodeId,
-        {
-          remap: [
-            [0, 0],
-            [target, d],
-          ],
-        },
-        target,
+      clip: fixed(
+        wrapClip(
+          clip,
+          nodeId,
+          {
+            remap: [
+              [0, 0],
+              [target, d],
+            ],
+          },
+          target,
+        ),
       ),
     };
   },

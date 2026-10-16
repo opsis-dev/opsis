@@ -4,6 +4,7 @@ import { cameraNodes } from "./camera";
 import { captureNodes } from "./capture";
 import { cursorNodes } from "./cursor";
 import type { Workflow, WorkflowNode } from "../schema/workflow";
+import { defaultMix, mixSchema, type Mix } from "../mix/types";
 import { renameVariable } from "../vars";
 import type { NodeDef } from "./define";
 import { elementNodes } from "./elements";
@@ -85,5 +86,73 @@ export function normalizeWorkflow(wf: Workflow): Workflow {
     ...n,
     params: renameVariable(n.params, "PROJECT_NAME", "Project name"),
   }));
-  return { ...wf, variables, nodes };
+  const migrated = migrateMusicDucking(nodes, wf.mix);
+  return {
+    ...wf,
+    variables,
+    nodes: migrated.nodes,
+    ...(migrated.mix ? { mix: migrated.mix } : {}),
+  };
+}
+
+const LEGACY_DUCK_PARAMS = ["duck", "duckLevel", "duckUnder", "duckFadeMs"];
+const LEGACY_DUCK_KEYS: Record<string, string[]> = {
+  all: ["effects", "clips"],
+  effects: ["effects"],
+  clips: ["clips"],
+};
+
+export function migrateMusicDucking(
+  nodes: WorkflowNode[],
+  current: Mix | undefined,
+): { nodes: WorkflowNode[]; mix: Mix | undefined } {
+  let mix = current ? mixSchema.parse(current) : undefined;
+  if (mix) {
+    const ids = new Set(nodes.map((n) => n.id));
+    const channels = Object.fromEntries(Object.entries(mix.channels).filter(([id]) => ids.has(id)));
+    mix = { ...mix, channels };
+  }
+  const legacy = nodes.filter(
+    (n) => n.type === "audio.music" && LEGACY_DUCK_PARAMS.some((k) => k in n.params),
+  );
+  if (legacy.length === 0) return { nodes, mix };
+  const source = legacy.find((n) => n.params.duck === true);
+  if (source) {
+    mix ??= defaultMix();
+    const level = Number(source.params.duckLevel ?? 30);
+    const amount = Math.min(
+      24,
+      Math.max(1, Math.round(-20 * Math.log10(Math.max(0.01, level / 100)))),
+    );
+    const fade = Number(source.params.duckFadeMs ?? 250);
+    const keys = LEGACY_DUCK_KEYS[String(source.params.duckUnder ?? "all")] ?? LEGACY_DUCK_KEYS.all;
+    mix = {
+      ...mix,
+      buses: mix.buses.map((b) =>
+        b.id === "music" && !b.duck.on
+          ? {
+              ...b,
+              duck: {
+                on: true,
+                keys,
+                amount,
+                attack: Math.max(5, fade),
+                release: Math.max(20, fade),
+              },
+            }
+          : b,
+      ),
+    };
+  }
+  const strip = new Set(legacy.map((n) => n.id));
+  return {
+    nodes: nodes.map((n) => {
+      if (!strip.has(n.id)) return n;
+      const params = Object.fromEntries(
+        Object.entries(n.params).filter(([k]) => !LEGACY_DUCK_PARAMS.includes(k)),
+      );
+      return { ...n, params };
+    }),
+    mix,
+  };
 }

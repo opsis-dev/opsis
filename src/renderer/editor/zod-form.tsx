@@ -205,6 +205,10 @@ function FieldControl({
     return <ColorField id={id} label={label} value={String(value ?? "")} onChange={onChange} />;
   if (meta.widget === "boxes")
     return <BoxesField label={label} value={value} onChange={onChange} ctx={ctx} meta={meta} />;
+  if (meta.widget === "envelope")
+    return (
+      <EnvelopeField label={label} value={value} onChange={onChange} meta={meta} fps={ctx.fps} />
+    );
 
   switch (def.type) {
     case "boolean":
@@ -1384,5 +1388,173 @@ function JsonField({
       />
       {error ? <FieldDescription>{error}</FieldDescription> : null}
     </Field>
+  );
+}
+
+type Key = { frame: number; value: number; ease: "linear" | "in" | "out" | "in-out" | "hold" };
+
+const ENVELOPE_FORMAT: Record<
+  string,
+  {
+    unit: string;
+    toShown: (v: number) => number;
+    fromShown: (v: number) => number;
+    initial: number;
+  }
+> = {
+  opacity: { unit: "%", toShown: (v) => v * 100, fromShown: (v) => v / 100, initial: 1 },
+  x: { unit: "%", toShown: (v) => v * 100, fromShown: (v) => v / 100, initial: 0 },
+  y: { unit: "%", toShown: (v) => v * 100, fromShown: (v) => v / 100, initial: 0 },
+  scale: { unit: "×", toShown: (v) => v, fromShown: (v) => v, initial: 1 },
+  volume: { unit: "%", toShown: (v) => v * 100, fromShown: (v) => v / 100, initial: 1 },
+  pan: { unit: "", toShown: (v) => v * 100, fromShown: (v) => v / 100, initial: 0 },
+};
+
+const EASE_LABELS: Record<Key["ease"], string> = {
+  linear: "Steady",
+  in: "Speed up",
+  out: "Slow down",
+  "in-out": "Smooth",
+  hold: "Jump",
+};
+
+function EnvelopeField({
+  label,
+  value,
+  onChange,
+  meta,
+  fps,
+}: {
+  label: string;
+  value: unknown;
+  onChange: (v: unknown) => void;
+  meta: FieldMeta;
+  fps: number;
+}) {
+  const env = (value && typeof value === "object" ? value : {}) as Record<
+    string,
+    Key[] | undefined
+  >;
+  const props = Object.keys(meta.labels ?? {});
+  const write = (prop: string, keys: Key[]) => {
+    const next = { ...env };
+    if (keys.length) next[prop] = keys.toSorted((a, b) => a.frame - b.frame);
+    else delete next[prop];
+    onChange(next);
+  };
+  return (
+    <FieldSet>
+      <FieldLegend variant="label">{label}</FieldLegend>
+      {meta.help ? <FieldDescription>{meta.help}</FieldDescription> : null}
+      {props.map((prop) => {
+        const keys = env[prop] ?? [];
+        const fmt = ENVELOPE_FORMAT[prop] ?? ENVELOPE_FORMAT.scale;
+        return (
+          <div key={prop} className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium">{meta.labels?.[prop] ?? prop}</span>
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => {
+                  const last = keys.at(-1);
+                  write(prop, [
+                    ...keys,
+                    {
+                      frame: last ? last.frame + fps : 0,
+                      value: last ? last.value : fmt.initial,
+                      ease: "linear",
+                    },
+                  ]);
+                }}
+              >
+                <Plus data-icon="inline-start" />
+                Add
+              </Button>
+            </div>
+            {keys.map((k, i) => (
+              <div
+                key={`${i}-${k.frame}`}
+                className="grid grid-cols-[1fr_1fr_1.3fr_auto] items-center gap-1"
+              >
+                <InputGroup className="h-7">
+                  <InputGroupInput
+                    className="text-right tabular-nums"
+                    inputMode="decimal"
+                    aria-label="At"
+                    defaultValue={trimNumber(k.frame / fps)}
+                    onBlur={(e) => {
+                      const n = Number(e.target.value.replace(",", "."));
+                      if (!Number.isFinite(n)) return;
+                      write(
+                        prop,
+                        keys.map((x, j) =>
+                          j === i ? { ...x, frame: Math.max(0, Math.round(n * fps)) } : x,
+                        ),
+                      );
+                    }}
+                  />
+                  <InputGroupAddon align="inline-end">s</InputGroupAddon>
+                </InputGroup>
+                <InputGroup className="h-7">
+                  <InputGroupInput
+                    className="text-right tabular-nums"
+                    inputMode="decimal"
+                    aria-label="Value"
+                    defaultValue={trimNumber(Math.round(fmt.toShown(k.value) * 100) / 100)}
+                    onBlur={(e) => {
+                      const n = Number(e.target.value.replace(",", "."));
+                      if (!Number.isFinite(n)) return;
+                      write(
+                        prop,
+                        keys.map((x, j) => (j === i ? { ...x, value: fmt.fromShown(n) } : x)),
+                      );
+                    }}
+                  />
+                  {fmt.unit ? (
+                    <InputGroupAddon align="inline-end">{fmt.unit}</InputGroupAddon>
+                  ) : null}
+                </InputGroup>
+                <Select
+                  value={k.ease}
+                  onValueChange={(v) =>
+                    write(
+                      prop,
+                      keys.map((x, j) => (j === i ? { ...x, ease: v as Key["ease"] } : x)),
+                    )
+                  }
+                >
+                  <SelectTrigger size="sm" className="h-7 text-xs" aria-label="Easing">
+                    <SelectValue>{(v: string) => EASE_LABELS[v as Key["ease"]]}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {(Object.keys(EASE_LABELS) as Key["ease"][]).map((e) => (
+                        <SelectItem key={e} value={e}>
+                          {EASE_LABELS[e]}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label="Remove keyframe"
+                  onClick={() =>
+                    write(
+                      prop,
+                      keys.filter((_, j) => j !== i),
+                    )
+                  }
+                >
+                  <X />
+                </Button>
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </FieldSet>
   );
 }

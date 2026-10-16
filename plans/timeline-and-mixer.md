@@ -2,7 +2,7 @@
 
 Two new editor panels next to Preview and Run: a **Timeline** that shows and edits the compiled film as bars, and a **Mixer** that works like an audio console. Both are as capable as a desktop video editor and audio app, while the node graph stays the single source of truth: every edit in either panel writes back to node settings or to the project's mix, and undo covers it.
 
-Status: plan only. Not scheduled yet.
+Status: built (all eight phases). Where the build differs from this plan, the notes under "As built" at the end say how.
 
 ## Decisions
 
@@ -11,12 +11,12 @@ Status: plan only. Not scheduled yet.
 | Timeline editing        | Full: move, trim, split, ripple, slip, snap, keyframes. Every edit writes back to the graph.                                                                                 |
 | Mixer depth             | Full console: volume, pan, EQ, compressor, buses, ducking by sidechain, master limiter, loudness target and meters. Exports apply exactly what the preview plays.            |
 | Mute and solo           | Saved in the project and applied to exports.                                                                                                                                 |
-| Placement               | A fixed bottom row now: Preview, Timeline, Mixer and Run side by side. Later every one of them (Preview and Run included) can move into its own window.                      |
+| Placement               | Tabs in the bottom panel: Preview, Timeline, Mixer and Run. Every tab can open in its own window.                                                                            |
 | Ducking in the meantime | The simple version on the Music node ships first (dip while other sounds play, by their length). The Mixer's sidechain ducking replaces it later and reads the old settings. |
 
 ## Layout
 
-- The bottom area becomes a horizontal row of four resizable panels: **Preview**, **Timeline**, **Mixer**, **Run**. Each collapses to a header strip; sizes and open state persist through `useDefaultLayout`, owned by `src/renderer/editor/panels.ts` like the existing panels.
+- The bottom panel holds four tabs: **Preview**, **Timeline**, **Mixer**, **Run**. Its size and open state persist through `useDefaultLayout`, and the active tab is remembered, owned by `src/renderer/editor/panels.ts` like the existing panels.
 - View menu and top bar get one entry per panel. Shortcuts follow common editors: Ctrl/Cmd+J still toggles the whole row; Ctrl/Cmd+1…4 focus Preview, Timeline, Mixer, Run.
 - The Timeline is the widest by default; the Mixer shows as many channel strips as fit and scrolls sideways.
 
@@ -134,3 +134,13 @@ The filter graph is built by a pure function (`src/shared/mix/graph.ts`) and uni
 - Stem rendering adds latency between a change and hearing it exactly; the temporary Web Audio path covers dragging, but heavy projects may take seconds to settle.
 - Pop-out windows double the renderer memory; the Preview window carries the heaviest load (the Player).
 - Very long projects need virtualised lanes and level-of-detail waveforms to stay smooth.
+
+## As built
+
+- **Tabs, not a split row.** The four panels are tabs; each has **Open in new window**. A tab that's in a window shows a window mark in the tab bar and focuses that window when clicked. The Preview tab stays mounted while another tab is showing, so J/K/L in the Timeline still plays sound.
+- **Split** joins the two Trim nodes in the Sequence the clip was in when that Sequence uses cuts and has a free input; otherwise it adds a small cut-only Sequence named "Split", so the existing transition setting doesn't put a fade inside the clip.
+- **Edits that need a node** add it in one undo step with a toast: Delay and Speed at the clip's place in its container, Trim right after the clip. Moving a clip in a Sequence earlier than the clip before it is refused with an explanation.
+- **Sidechain amount** maps to `sidechaincompress` with a −40 dBFS threshold, sized so a key at −12 dBFS lowers the bus by the amount; louder keys lower it more.
+- **Temporary Web Audio** while dragging applies at the master output: fader and trim changes are scaled by the channel's share of the master level at the playhead, EQ and low cut become filters, pan a stereo panner. The new stem replaces it when ready.
+- **Meters** show one combined peak/RMS bar per strip (not separate left and right), with peak hold over 1.5 s, and a gain-reduction bar when the compressor is on.
+- **Pan keyframes** apply in rendered stems only; without the engine the preview ignores pan.

@@ -1,4 +1,4 @@
-import { createWriteStream, existsSync } from "node:fs";
+import { createWriteStream } from "node:fs";
 import { chmod, mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
@@ -74,14 +74,14 @@ export async function installFfmpeg(
 
 export async function installHeadlessShell(dir: string, onProgress: InstallProgress) {
   const p = enginePaths(dir);
-  await mkdir(dir, { recursive: true });
-  if (!existsSync(p.packageJson))
-    await writeFile(
-      p.packageJson,
-      `${JSON.stringify({ name: "demoflow-engine", private: true }, null, 2)}\n`,
-    );
+  const staging = p.downloadDir;
+  await mkdir(staging, { recursive: true });
+  await writeFile(
+    path.join(staging, "package.json"),
+    `${JSON.stringify({ name: "demoflow-engine-download", private: true }, null, 2)}\n`,
+  );
   const previous = process.cwd();
-  process.chdir(dir);
+  process.chdir(staging);
   try {
     await ensureBrowser({
       onBrowserDownload: () => {
@@ -100,6 +100,10 @@ export async function installHeadlessShell(dir: string, onProgress: InstallProgr
   } finally {
     process.chdir(previous);
   }
+  const downloaded = path.join(staging, "node_modules", ".remotion", "chrome-headless-shell");
+  await rm(p.shellRoot, { recursive: true, force: true });
+  await rename(downloaded, p.shellRoot);
+  await rm(staging, { recursive: true, force: true });
   onProgress("headless-shell", 1, "Recording browser ready");
 }
 

@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from "ele
 import {
   IPC,
   type DemoflowApi,
+  type CloseRequest,
+  type DockPanelName,
   type EngineInstallEvent,
   type MenuCommand,
   type StillReady,
@@ -78,6 +80,22 @@ const api: DemoflowApi = {
   getWindowState: () => ipcRenderer.invoke(IPC.getWindowState),
   requestStill: (request) => ipcRenderer.invoke(IPC.requestStill, request),
   listStills: (dir) => ipcRenderer.invoke(IPC.listStills, dir),
+  analyze: (request) => ipcRenderer.invoke(IPC.analyze, request),
+  openPanelWindow: (panel, dir) => ipcRenderer.invoke(IPC.openPanelWindow, panel, dir),
+  focusPanelWindow: (panel) => ipcRenderer.invoke(IPC.focusPanelWindow, panel),
+  closePanelWindow: (panel) => ipcRenderer.invoke(IPC.closePanelWindow, panel),
+  closePanelWindows: () => ipcRenderer.invoke(IPC.closePanelWindows),
+  listPanelWindows: () => ipcRenderer.invoke(IPC.listPanelWindows),
+  onPanelWindows: (listener) => subscribe<DockPanelName[]>(IPC.panelWindows, listener),
+  reportUnsaved: (unsaved) => ipcRenderer.send(IPC.reportUnsaved, unsaved),
+  onConfirmClose: (listener) => subscribe<CloseRequest>(IPC.confirmClose, listener),
+  decideClose: (decision) => ipcRenderer.send(IPC.closeDecision, decision),
+  onFlushSave: (listener) =>
+    subscribe<void>(IPC.flushSave, () => {
+      void listener()
+        .catch(() => undefined)
+        .finally(() => ipcRenderer.send(IPC.saveFlushed));
+    }),
   onStillReady: (listener) => subscribe<StillReady>(IPC.stillReady, listener),
   onWindowState: (listener) => subscribe<WindowState>(IPC.windowState, listener),
   setTitle: (title) => ipcRenderer.send(IPC.setTitle, title),

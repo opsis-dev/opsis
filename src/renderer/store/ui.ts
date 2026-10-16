@@ -1,33 +1,31 @@
 import { create } from "zustand";
+import { readPref, writePref } from "./view-prefs";
 
 export type PreviewQuality = "fast" | "exact";
-const QUALITY_KEY = "demoflow.previewQuality";
+const isQuality = (v: unknown) => v === "fast" || v === "exact";
 
-function storedQuality(): PreviewQuality {
-  try {
-    return window.localStorage.getItem(QUALITY_KEY) === "exact" ? "exact" : "fast";
-  } catch {
-    return "fast";
-  }
-}
+export const storedQuality = (): PreviewQuality => readPref("previewQuality", "fast", isQuality);
 
 type UiState = {
   selectedIds: string[];
   activeIds: string[];
   seekTo: number | null;
   paletteOpen: boolean;
-  bottomTab: "preview" | "run";
   replayNodeId: string | null;
   replayTab: ReplayTab;
   pendingProjectAction: "new" | "open" | null;
   setPendingProjectAction: (action: "new" | "open" | null) => void;
   previewQuality: PreviewQuality;
   setPreviewQuality: (quality: PreviewQuality) => void;
+  pinnedSource: string | null;
+  reveal: { id: string; nonce: number } | null;
+  revealNode: (id: string) => void;
   setSelected: (ids: string[]) => void;
+  selectPinned: (ids: string[], source: string | null) => void;
+  pinSource: (source: string | null) => void;
   setActive: (ids: string[]) => void;
   seek: (frame: number | null) => void;
   setPaletteOpen: (open: boolean) => void;
-  setBottomTab: (tab: "preview" | "run") => void;
   setReplay: (nodeId: string | null, tab?: ReplayTab) => void;
   setReplayTab: (tab: ReplayTab) => void;
 };
@@ -39,7 +37,6 @@ export const useUiStore = create<UiState>()((set) => ({
   activeIds: [],
   seekTo: null,
   paletteOpen: false,
-  bottomTab: "preview",
   replayNodeId: null,
   replayTab: "replay",
   pendingProjectAction: null,
@@ -47,17 +44,18 @@ export const useUiStore = create<UiState>()((set) => ({
   previewQuality: storedQuality(),
   setPreviewQuality: (previewQuality) => {
     set({ previewQuality });
-    try {
-      window.localStorage.setItem(QUALITY_KEY, previewQuality);
-    } catch {
-      return;
-    }
+    writePref("previewQuality", previewQuality);
   },
-  setSelected: (selectedIds) => set({ selectedIds }),
+
+  pinnedSource: null,
+  reveal: null,
+  revealNode: (id) => set((s) => ({ reveal: { id, nonce: (s.reveal?.nonce ?? 0) + 1 } })),
+  setSelected: (selectedIds) => set({ selectedIds, pinnedSource: null }),
+  selectPinned: (selectedIds, pinnedSource) => set({ selectedIds, pinnedSource }),
+  pinSource: (pinnedSource) => set({ pinnedSource }),
   setActive: (activeIds) => set((s) => (sameIds(s.activeIds, activeIds) ? {} : { activeIds })),
   seek: (seekTo) => set({ seekTo }),
   setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
-  setBottomTab: (bottomTab) => set({ bottomTab }),
   setReplay: (replayNodeId, replayTab = "replay") => set({ replayNodeId, replayTab }),
   setReplayTab: (replayTab) => set({ replayTab }),
 }));

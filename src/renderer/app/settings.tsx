@@ -4,7 +4,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { EnvStatus } from "@/shared/ipc";
-import type { AppSettings } from "@/shared/settings";
+import type { AppSettings, StartOption } from "@/shared/settings";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Card,
@@ -81,6 +81,58 @@ export function Settings() {
             </Button>
             <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
           </header>
+
+          {settings ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Starting and closing</CardTitle>
+                <CardDescription>
+                  What Demoflow does when it opens and before it closes.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel>When Demoflow starts</FieldLabel>
+                    <ToggleGroup
+                      variant="outline"
+                      size="sm"
+                      value={[settings.app.onStart]}
+                      onValueChange={(v) =>
+                        v[0] &&
+                        update({
+                          ...settings,
+                          app: { ...settings.app, onStart: v[0] as StartOption },
+                        })
+                      }
+                    >
+                      <ToggleGroupItem value="start-screen">Show the start screen</ToggleGroupItem>
+                      <ToggleGroupItem value="last-project">Open the last project</ToggleGroupItem>
+                      <ToggleGroupItem value="new-project">Start a new project</ToggleGroupItem>
+                    </ToggleGroup>
+                  </Field>
+                  <Field orientation="horizontal" className="justify-between">
+                    <div className="flex flex-col gap-1">
+                      <FieldLabel htmlFor="confirm-exit" className="font-normal">
+                        Ask before closing
+                      </FieldLabel>
+                      <FieldDescription>
+                        When this is off, Demoflow still asks if a run, an engine setup or a save
+                        hasn't finished.
+                      </FieldDescription>
+                    </div>
+                    <Switch
+                      id="confirm-exit"
+                      checked={settings.app.confirmExit}
+                      onCheckedChange={(v) =>
+                        update({ ...settings, app: { ...settings.app, confirmExit: v } })
+                      }
+                    />
+                  </Field>
+                </FieldGroup>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <EnginePanel />
 

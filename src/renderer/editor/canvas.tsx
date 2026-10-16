@@ -41,6 +41,28 @@ export function Canvas() {
   const setSelected = useUiStore((s) => s.setSelected);
   const flow = useReactFlow();
   const wrapper = useRef<HTMLDivElement>(null);
+  const reveal = useUiStore((s) => s.reveal);
+  useEffect(() => {
+    if (!reveal) return;
+    const node = flow.getNode(reveal.id);
+    const internal = flow.getInternalNode(reveal.id);
+    const box = wrapper.current?.getBoundingClientRect();
+    if (!node || !internal || !box) return;
+    const { x, y, zoom } = flow.getViewport();
+    const abs = internal.internals.positionAbsolute;
+    const left = abs.x * zoom + x;
+    const top = abs.y * zoom + y;
+    const width = (internal.measured.width ?? 260) * zoom;
+    const height = (internal.measured.height ?? 120) * zoom;
+    if (left >= 0 && top >= 0 && left + width <= box.width && top + height <= box.height) return;
+    const target = node.parentId ? [{ id: node.parentId }, { id: node.id }] : [{ id: node.id }];
+    void flow.fitView({
+      nodes: target,
+      duration: 300,
+      maxZoom: Math.max(flow.getZoom(), 0.8),
+      padding: 0.4,
+    });
+  }, [reveal, flow]);
 
   const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
   const active = useMemo(() => new Set(activeIds), [activeIds]);

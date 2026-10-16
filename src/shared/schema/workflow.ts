@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DEFAULT_PROJECT_FONTS, projectFontsSchema } from "../fonts/types";
+import { mixSchema } from "../mix/types";
 
 export const PORT_TYPES = [
   "session",
@@ -46,6 +47,13 @@ export const workflowEdgeSchema = z.object({
 });
 export type WorkflowEdge = z.infer<typeof workflowEdgeSchema>;
 
+export const markerSchema = z.object({
+  id: z.string().min(1),
+  atMs: z.number().int().nonnegative(),
+  label: z.string().default(""),
+});
+export type Marker = z.infer<typeof markerSchema>;
+
 export const workflowSchema = z.object({
   version: z.literal(1),
   id: z.string(),
@@ -60,6 +68,8 @@ export const workflowSchema = z.object({
   variables: z.record(z.string(), z.string()).default({}),
   nodes: z.array(workflowNodeSchema),
   edges: z.array(workflowEdgeSchema),
+  mix: mixSchema.optional(),
+  markers: z.array(markerSchema).optional(),
 });
 export type Workflow = z.infer<typeof workflowSchema>;
 

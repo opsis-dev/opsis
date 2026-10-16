@@ -2,11 +2,13 @@ import { temporal } from "zundo";
 import { create } from "zustand";
 import { defaultParams, getNodeDef, normalizeWorkflow } from "@/shared/nodes/registry";
 import type {
+  Marker,
   Workflow,
   WorkflowEdge,
   WorkflowNode,
   WorkflowSettings,
 } from "@/shared/schema/workflow";
+import { defaultMix, type Mix } from "@/shared/mix/types";
 
 export type WorkflowState = {
   projectDir: string | null;
@@ -44,7 +46,26 @@ type Actions = {
   ) => string[];
   groupNodes: (ids: string[], title?: string) => void;
   ungroup: (groupId: string) => void;
+  setMix: (fn: (mix: Mix) => Mix) => void;
+  setMarkers: (fn: (markers: Marker[]) => Marker[]) => void;
+  replace: (workflow: Workflow) => void;
+  beginGesture: () => void;
+  endGesture: () => void;
 };
+
+let gestureStart: Workflow | null = null;
+let gestureDepth = 0;
+let remote: ((message: RemoteEdit) => void) | null = null;
+
+export type RemoteEdit =
+  | { type: "replace"; workflow: Workflow }
+  | { type: "gesture"; phase: "begin" | "end" };
+
+export function mirrorEditsTo(send: ((message: RemoteEdit) => void) | null): void {
+  remote = send;
+}
+
+export const isGestureActive = () => gestureDepth > 0;
 
 export const newId = (prefix = "n") => `${prefix}_${Math.random().toString(36).slice(2, 9)}`;
 
@@ -70,7 +91,51 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
       close: () => set({ projectDir: null, workflow: null, revision: 0, savedRevision: 0 }),
       markSaved: (revision) => set({ savedRevision: revision }),
 
-      update: (fn) => set((s) => (s.workflow ? { workflow: fn(s.workflow), ...bump(s) } : {})),
+      update: (fn) => {
+        const current = get().workflow;
+        if (!current) return;
+        const next = fn(current);
+        if (next === current) return;
+        set((s) => ({ workflow: next, ...bump(s) }));
+        remote?.({ type: "replace", workflow: next });
+      },
+
+      replace: (workflow) => {
+        if (workflow === get().workflow) return;
+        set((s) => ({ workflow, ...bump(s) }));
+      },
+
+      beginGesture: () => {
+        if (remote) {
+          remote({ type: "gesture", phase: "begin" });
+          return;
+        }
+        if (gestureDepth++ > 0) return;
+        gestureStart = get().workflow;
+        useWorkflowStore.temporal.getState().pause();
+      },
+
+      endGesture: () => {
+        if (remote) {
+          remote({ type: "gesture", phase: "end" });
+          return;
+        }
+        if (gestureDepth === 0 || --gestureDepth > 0) return;
+        const start = gestureStart;
+        gestureStart = null;
+        const final = get().workflow;
+        if (!start || !final || start === final) {
+          useWorkflowStore.temporal.getState().resume();
+          return;
+        }
+        set({ workflow: start });
+        useWorkflowStore.temporal.getState().resume();
+        set({ workflow: final });
+      },
+
+      setMix: (fn) => get().update((wf) => ({ ...wf, mix: fn(wf.mix ?? defaultMix()) })),
+
+      setMarkers: (fn) => get().update((wf) => ({ ...wf, markers: fn(wf.markers ?? []) })),
 
       addNode: (type, position, params) => {
         const def = getNodeDef(type);
@@ -110,6 +175,16 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
         const gone = new Set(ids);
         get().update((wf) => ({
           ...wf,
+          ...(wf.mix
+            ? {
+                mix: {
+                  ...wf.mix,
+                  channels: Object.fromEntries(
+                    Object.entries(wf.mix.channels).filter(([id]) => !gone.has(id)),
+                  ),
+                },
+              }
+            : {}),
           nodes: wf.nodes
             .filter((n) => !gone.has(n.id))
             .map((n) => {
@@ -251,3 +326,8 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
 );
 
 export const useTemporal = () => useWorkflowStore.temporal.getState();
+
+useWorkflowStore.subscribe((s, prev) => {
+  if (s.workflow && prev.workflow && s.workflow !== prev.workflow && s.revision === prev.revision)
+    useWorkflowStore.setState({ revision: s.revision + 1 });
+});

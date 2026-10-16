@@ -7,8 +7,11 @@ import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
 import { SETUP_SKIPPED_KEY } from "../app/setup";
 import { useMenuShortcuts, WindowBorder } from "../app/app-bar";
+import { ExitDialog } from "../app/exit-dialog";
 import { useStillsStore } from "../store/stills";
 import { exportedClipNodes } from "../editor/stills";
+
+const STARTED_KEY = "demoflow.started";
 
 function Root() {
   const navigate = useNavigate();
@@ -19,6 +22,7 @@ function Root() {
     () =>
       window.demoflow.onMenuCommand((command) => {
         const home = window.location.hash.replace(/^#/, "").split("?")[0] || "/";
+        if (home.startsWith("/panel/")) return;
         if (command === "view:settings") void navigate({ to: "/settings" });
         else if (command === "view:projects") void navigate({ to: "/" });
         else if ((command === "project:new" || command === "project:open") && home !== "/") {
@@ -60,22 +64,38 @@ function Root() {
   }, []);
 
   useEffect(() => {
+    if (path !== "/") return;
     let skipped = false;
+    let first = true;
     try {
       skipped = localStorage.getItem(SETUP_SKIPPED_KEY) === "1";
+      first = sessionStorage.getItem(STARTED_KEY) !== "1";
+      sessionStorage.setItem(STARTED_KEY, "1");
     } catch {
       skipped = false;
     }
-    if (skipped || path !== "/") return;
-    void window.demoflow.getEnvironment().then((env) => {
-      if (!env.engine.complete) void navigate({ to: "/setup" });
-    });
+    void Promise.all([window.demoflow.getEnvironment(), window.demoflow.getSettings()]).then(
+      async ([env, settings]) => {
+        if (!env.engine.complete && !skipped) {
+          void navigate({ to: "/setup" });
+          return;
+        }
+        if (!first) return;
+        if (settings.app.onStart === "last-project") {
+          const [last] = await window.demoflow.listRecentProjects();
+          if (last) void navigate({ to: "/editor", search: { dir: last.dir } });
+        } else if (settings.app.onStart === "new-project") {
+          window.demoflow.dispatchMenuCommand("project:new");
+        }
+      },
+    );
     // oxlint-disable-next-line react/exhaustive-deps
   }, []);
 
   return (
     <>
       <Outlet />
+      {path.startsWith("/panel/") ? null : <ExitDialog />}
       <WindowBorder />
     </>
   );

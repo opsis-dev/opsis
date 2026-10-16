@@ -18,7 +18,8 @@ export function useCompiled(): {
   const workflow = useWorkflowStore((s) => s.workflow);
   const results = useRunStore((s) => s.results);
   const selected = useUiStore((s) => s.selectedIds);
-  const selectedId = selected.length === 1 ? selected[0] : null;
+  const pinned = useUiStore((s) => s.pinnedSource);
+  const selectedId = pinned ?? (selected.length === 1 ? selected[0] : null);
   const result = useMemo(
     () => (workflow ? compileWorkflow(workflow, { results }) : null),
     [workflow, results],

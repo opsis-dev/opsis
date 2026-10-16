@@ -5,6 +5,7 @@ import type { LiveMessage } from "../shared/live";
 import type { LoginRequest, MainToWorker, WorkerToMain } from "../shared/worker-protocol";
 import { runWorkflow } from "./engine/runner";
 import { renderCardStill } from "./render/card-still";
+import { runAnalysis } from "./media/run-analysis";
 
 let control: MessagePortMain | null = null;
 let live: MessagePortMain | null = null;
@@ -97,6 +98,11 @@ async function handle(msg: MainToWorker): Promise<void> {
           error: error instanceof Error ? error.message : String(error),
         });
       }
+      return;
+    }
+    case "analysis": {
+      const result = await runAnalysis(msg.env, msg.request);
+      send({ type: "analysis:done", id: msg.id, result });
       return;
     }
     case "install-engine": {

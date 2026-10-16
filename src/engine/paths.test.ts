@@ -9,10 +9,10 @@ describe("engine paths", () => {
     expect(remotionPlatform("win32", "x64")).toBe("win64");
   });
 
-  it("lays the shell out where Remotion's ensureBrowser puts it", () => {
+  it("keeps the shell in its own folder in the engine folder", () => {
     const p = enginePaths("/engine", "win32", "x64");
     expect(p.headlessShell.replace(/\\/g, "/")).toBe(
-      "/engine/node_modules/.remotion/chrome-headless-shell/win64/chrome-headless-shell-win64/chrome-headless-shell.exe",
+      "/engine/chrome-headless-shell/win64/chrome-headless-shell-win64/chrome-headless-shell.exe",
     );
     expect(p.ffprobe.replace(/\\/g, "/")).toBe("/engine/ffmpeg/ffprobe.exe");
   });

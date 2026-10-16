@@ -2,8 +2,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { ReactFlowProvider } from "@xyflow/react";
 import {
   ArrowLeft,
-  ChevronDown,
-  ChevronUp,
   FolderOpen,
   LayoutGrid,
   PanelBottom,
@@ -31,7 +29,6 @@ import {
 } from "@/renderer/components/ui/resizable";
 import { Separator } from "@/renderer/components/ui/separator";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
 import { TextShimmer } from "@/renderer/components/ui/text-shimmer";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
@@ -45,18 +42,20 @@ import { LivePip, LiveToggle } from "./live-pip";
 import { AppBar } from "../app/app-bar";
 import { Palette, QuickAdd } from "./palette";
 import {
+  focusPanel,
   layoutStorage,
-  openPanel,
   panelRef,
   togglePanel,
   usePanels,
   type PanelSide,
 } from "./panels";
 import { ReplayDialog } from "./replay-dialog";
-import { PreviewDock } from "./preview-dock";
 import { cancelRun, startRun } from "./run";
-import { RunPanel } from "./run-panel";
 import { CompiledContext, useCompiled } from "./use-compiled";
+import { BottomDock } from "./dock";
+import { FilmContext, useFilmState } from "./film";
+import { useEditorSync } from "../app/sync";
+import { useMedia } from "../store/media";
 import { useStillsStore } from "../store/stills";
 
 const mod = window.demoflow?.platform === "darwin" ? "⌘" : "Ctrl";
@@ -77,6 +76,16 @@ async function layout(): Promise<void> {
 function useAutosave() {
   const revision = useWorkflowStore((s) => s.revision);
   const saved = useWorkflowStore((s) => s.savedRevision);
+  useEffect(() => {
+    window.demoflow.reportUnsaved(revision !== saved);
+  }, [revision, saved]);
+  useEffect(() => {
+    const off = window.demoflow.onFlushSave(() => save());
+    return () => {
+      off();
+      window.demoflow.reportUnsaved(false);
+    };
+  }, []);
   useEffect(() => {
     if (revision === saved) return;
     const t = setTimeout(() => {
@@ -124,6 +133,18 @@ function useMenuCommands() {
             break;
           case "view:toggle-right":
             togglePanel("right");
+            break;
+          case "view:focus-preview":
+            focusPanel("preview");
+            break;
+          case "view:focus-timeline":
+            focusPanel("timeline");
+            break;
+          case "view:focus-mixer":
+            focusPanel("mixer");
+            break;
+          case "view:focus-run":
+            focusPanel("run");
             break;
         }
       }),
@@ -254,7 +275,7 @@ function TopBar() {
 
 const TOGGLES: Array<{ side: PanelSide; icon: LucideIcon; label: string; keys: string }> = [
   { side: "left", icon: PanelLeft, label: "Node list", keys: `${mod}B` },
-  { side: "bottom", icon: PanelBottom, label: "Preview and run", keys: `${mod}J` },
+  { side: "bottom", icon: PanelBottom, label: "Preview, timeline, mixer and run", keys: `${mod}J` },
   {
     side: "right",
     icon: PanelRight,
@@ -290,47 +311,6 @@ function PanelToggles() {
   );
 }
 
-function BottomDock() {
-  const tab = useUiStore((s) => s.bottomTab);
-  const setTab = useUiStore((s) => s.setBottomTab);
-  const open = usePanels((s) => s.open.bottom);
-  return (
-    <Tabs
-      value={tab}
-      onValueChange={(v) => {
-        setTab(v as "preview" | "run");
-        openPanel("bottom");
-      }}
-      className="flex h-full flex-col gap-0"
-    >
-      <div className="flex h-9 shrink-0 items-center border-b pr-1">
-        <TabsList variant="line" className="h-9 flex-1 justify-start px-2">
-          <TabsTrigger value="preview" className="flex-none" onClick={() => openPanel("bottom")}>
-            Preview
-          </TabsTrigger>
-          <TabsTrigger value="run" className="flex-none" onClick={() => openPanel("bottom")}>
-            Run
-          </TabsTrigger>
-        </TabsList>
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          aria-label={open ? "Hide preview and run" : "Show preview and run"}
-          onClick={() => togglePanel("bottom")}
-        >
-          {open ? <ChevronDown /> : <ChevronUp />}
-        </Button>
-      </div>
-      <TabsContent value="preview" className="min-h-0 flex-1">
-        <PreviewDock />
-      </TabsContent>
-      <TabsContent value="run" className="min-h-0 flex-1">
-        <RunPanel />
-      </TabsContent>
-    </Tabs>
-  );
-}
-
 function InspectorPanel() {
   const open = usePanels((s) => s.open.right);
   return open ? <Inspector /> : null;
@@ -339,15 +319,21 @@ function InspectorPanel() {
 const sizeWatcher = (side: PanelSide, minOpenPx: number) => (size: { inPixels: number }) =>
   usePanels.getState().setOpen(side, size.inPixels > minOpenPx);
 
+function FilmProvider({ children }: { children: React.ReactNode }) {
+  const film = useFilmState();
+  return <FilmContext.Provider value={film}>{children}</FilmContext.Provider>;
+}
+
 export function Editor() {
   const compiled = useCompiled();
+  const projectDir = useWorkflowStore((s) => s.projectDir);
   const horizontal = useDefaultLayout({
-    id: "demoflow-editor-columns",
+    id: `demoflow-editor-columns:${projectDir}`,
     storage: layoutStorage,
     panelIds: ["left", "center", "right"],
   });
   const vertical = useDefaultLayout({
-    id: "demoflow-editor-rows",
+    id: `demoflow-editor-rows:${projectDir}`,
     storage: layoutStorage,
     panelIds: ["canvas", "bottom"],
   });
@@ -357,85 +343,89 @@ export function Editor() {
   useEffect(() => {
     if (name) window.demoflow.setTitle(`${name} — Demoflow`);
   }, [name]);
-  const projectDir = useWorkflowStore((s) => s.projectDir);
   useEffect(() => {
     void useStillsStore.getState().load(projectDir);
     void useStillsStore.getState().checkEngine();
+    useMedia.getState().reset(projectDir);
   }, [projectDir]);
+  useEditorSync();
+  useEffect(() => () => void window.demoflow.closePanelWindows(), []);
 
   return (
     <ReactFlowProvider>
       <CompiledContext.Provider value={compiled}>
-        <div className="flex h-screen flex-col">
-          <TopBar />
-          <ResizablePanelGroup
-            orientation="horizontal"
-            className="min-h-0 flex-1"
-            defaultLayout={horizontal.defaultLayout}
-            onLayoutChanged={horizontal.onLayoutChanged}
-          >
-            <ResizablePanel
-              id="left"
-              className="bg-sidebar"
-              style={{ overflow: "hidden" }}
-              panelRef={panelRef("left")}
-              defaultSize="17%"
-              minSize="12%"
-              maxSize="30%"
-              collapsible
-              collapsedSize="44px"
-              onResize={sizeWatcher("left", 60)}
+        <FilmProvider>
+          <div className="flex h-screen flex-col">
+            <TopBar />
+            <ResizablePanelGroup
+              orientation="horizontal"
+              className="min-h-0 flex-1"
+              defaultLayout={horizontal.defaultLayout}
+              onLayoutChanged={horizontal.onLayoutChanged}
             >
-              <Palette />
-            </ResizablePanel>
-            <ResizableHandle />
-            <ResizablePanel id="center" defaultSize="59%" minSize="30%">
-              <ResizablePanelGroup
-                orientation="vertical"
-                defaultLayout={vertical.defaultLayout}
-                onLayoutChanged={vertical.onLayoutChanged}
+              <ResizablePanel
+                id="left"
+                className="bg-sidebar"
+                style={{ overflow: "hidden" }}
+                panelRef={panelRef("left")}
+                defaultSize="17%"
+                minSize="12%"
+                maxSize="30%"
+                collapsible
+                collapsedSize="44px"
+                onResize={sizeWatcher("left", 60)}
               >
-                <ResizablePanel id="canvas" defaultSize="60%" minSize="20%">
-                  <div className="relative size-full">
-                    <Canvas />
-                    <LivePip />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle />
-                <ResizablePanel
-                  id="bottom"
-                  className="bg-sidebar"
-                  style={{ overflow: "hidden" }}
-                  panelRef={panelRef("bottom")}
-                  defaultSize="40%"
-                  minSize="15%"
-                  collapsible
-                  collapsedSize="37px"
-                  onResize={sizeWatcher("bottom", 48)}
+                <Palette />
+              </ResizablePanel>
+              <ResizableHandle />
+              <ResizablePanel id="center" defaultSize="59%" minSize="30%">
+                <ResizablePanelGroup
+                  orientation="vertical"
+                  defaultLayout={vertical.defaultLayout}
+                  onLayoutChanged={vertical.onLayoutChanged}
                 >
-                  <BottomDock />
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            </ResizablePanel>
-            <ResizableHandle />
-            <ResizablePanel
-              id="right"
-              className="bg-sidebar"
-              panelRef={panelRef("right")}
-              defaultSize="24%"
-              minSize="16%"
-              maxSize="40%"
-              collapsible
-              collapsedSize="0px"
-              onResize={sizeWatcher("right", 8)}
-              style={{ overflow: "hidden" }}
-            >
-              <InspectorPanel />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </div>
-        <QuickAdd />
-        <ReplayDialog />
+                  <ResizablePanel id="canvas" defaultSize="60%" minSize="20%">
+                    <div className="relative size-full">
+                      <Canvas />
+                      <LivePip />
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle />
+                  <ResizablePanel
+                    id="bottom"
+                    className="bg-sidebar"
+                    style={{ overflow: "hidden" }}
+                    panelRef={panelRef("bottom")}
+                    defaultSize="40%"
+                    minSize="15%"
+                    collapsible
+                    collapsedSize="37px"
+                    onResize={sizeWatcher("bottom", 48)}
+                  >
+                    <BottomDock />
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </ResizablePanel>
+              <ResizableHandle />
+              <ResizablePanel
+                id="right"
+                className="bg-sidebar"
+                panelRef={panelRef("right")}
+                defaultSize="24%"
+                minSize="16%"
+                maxSize="40%"
+                collapsible
+                collapsedSize="0px"
+                onResize={sizeWatcher("right", 8)}
+                style={{ overflow: "hidden" }}
+              >
+                <InspectorPanel />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </div>
+          <QuickAdd />
+          <ReplayDialog />
+        </FilmProvider>
       </CompiledContext.Provider>
     </ReactFlowProvider>
   );

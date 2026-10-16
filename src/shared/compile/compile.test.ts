@@ -7,6 +7,7 @@ import { GraphBuilder } from "../templates/build";
 import type { GroupProps } from "./clip";
 import { compileWorkflow, previewSpec } from "./compile";
 import type { RecordingProps } from "./recording";
+import { flattenSpec } from "../timeline/flatten";
 
 const log: ActionLog = {
   viewport: { width: 1920, height: 1080 },
@@ -105,6 +106,19 @@ describe("compileWorkflow — sample project", () => {
     expect(props.src).toBe("project:.demoflow/cache/h/recording.mp4");
     expect(props.tuning.sMax).toBe(1.74);
     expect(props.keystrokes).toEqual({ position: "bottom", typed: true, chords: true });
+  });
+
+  it("marks every action of the recording on the timeline at its frame", () => {
+    const wf = todoMvcSample();
+    const out = compileWorkflow(wf, { results: { record: recordResult() } });
+    const flat = flattenSpec(out.specs.render);
+    const bar = flat.bars.find((b) => b.component === "core/recording")!;
+    const marks = flat.marks.filter((m) => m.barKey === bar.key);
+    expect(marks.map((m) => m.kind)).toEqual(["type", "click", "click"]);
+    expect(marks[1].label).toBe("Click Complete");
+    const speed = (bar.props as unknown as RecordingProps).speed;
+    const local = (marks[1].frame - bar.from) / bar.rate;
+    expect(local + bar.contentStart).toBeCloseTo((6000 / 1000 / speed) * 30, 0);
   });
 
   it("passes the small preview copy along with the full recording", () => {

@@ -1,9 +1,10 @@
 import type { AudioItem, TimelineItem, TimelineSpec, TimelineTrack } from "../schema/timeline";
 import type { GroupProps } from "./clip";
 
-export type DuckUnder = "all" | "effects" | "clips";
-export type DuckSettings = { level: number; fadeFrames: number; under: DuckUnder };
 export type Span = readonly [number, number];
+
+export const channelOf = (a: Pick<AudioItem, "channel" | "nodeId" | "id">): string =>
+  a.channel ?? a.nodeId ?? a.id;
 
 export function mergeSpans(spans: Span[]): Span[] {
   const sorted = spans.filter(([a, b]) => b > a).toSorted((x, y) => x[0] - y[0]);
@@ -16,42 +17,65 @@ export function mergeSpans(spans: Span[]): Span[] {
   return out;
 }
 
-export function effectSpans(audio: AudioItem[], fps: number): Span[] {
-  return audio
-    .filter((a) => a.role === "effect" && !a.keepMusic)
-    .map((a) => {
-      const natural = a.lengthFrames ?? fps;
-      const length = Math.min(natural, a.durationInFrames ?? natural);
-      return [a.from, a.from + length] as const;
-    });
+export function soundLength(a: AudioItem, fps: number, total: number): number {
+  if (a.role === "effect") {
+    const natural = a.lengthFrames ?? fps;
+    return Math.min(natural, a.durationInFrames ?? natural);
+  }
+  return a.durationInFrames ?? Math.max(0, total - a.from);
 }
 
-function clipSpansIn(tracks: TimelineTrack[], offset: number, end: number): Span[] {
+export function soundSpans(
+  audio: AudioItem[],
+  keys: ReadonlySet<string>,
+  fps: number,
+  total: number,
+): Span[] {
+  return audio
+    .filter((a) => keys.has(channelOf(a)) && !a.keepMusic)
+    .map((a) => [a.from, a.from + soundLength(a, fps, total)] as const);
+}
+
+function clipSpansIn(
+  tracks: TimelineTrack[],
+  offset: number,
+  end: number,
+  keys: ReadonlySet<string> | null,
+): Span[] {
   return tracks.flatMap((track) =>
     track.items.flatMap((item: TimelineItem): Span[] => {
       const from = offset + item.from;
       const to = Math.min(end, from + item.durationInFrames);
-      if (item.component === "core/video" && item.props.muted === false) return [[from, to]];
+      if (
+        item.component === "core/video" &&
+        item.props.muted === false &&
+        (!keys || (item.nodeId !== undefined && keys.has(item.nodeId)))
+      )
+        return [[from, to]];
       if (item.component === "core/group") {
         const inner = (item.props as unknown as GroupProps).tracks ?? [];
-        return clipSpansIn(inner, from, to);
+        return clipSpansIn(inner, from, to, keys);
       }
       return [];
     }),
   );
 }
 
-export function clipSpans(spec: Pick<TimelineSpec, "tracks" | "durationInFrames">): Span[] {
-  return clipSpansIn(spec.tracks, 0, spec.durationInFrames);
+export function clipSpans(
+  spec: Pick<TimelineSpec, "tracks" | "durationInFrames">,
+  keys: ReadonlySet<string> | null = null,
+): Span[] {
+  return clipSpansIn(spec.tracks, 0, spec.durationInFrames, keys);
 }
 
 export function duckingSpans(
   spec: Pick<TimelineSpec, "tracks" | "audio" | "durationInFrames" | "fps">,
-  under: DuckUnder,
+  keys: ReadonlySet<string>,
 ): Span[] {
-  const effects = under === "clips" ? [] : effectSpans(spec.audio ?? [], spec.fps);
-  const clips = under === "effects" ? [] : clipSpans(spec);
-  return mergeSpans([...effects, ...clips]);
+  return mergeSpans([
+    ...soundSpans(spec.audio ?? [], keys, spec.fps, spec.durationInFrames),
+    ...clipSpans(spec, keys),
+  ]);
 }
 
 export function duckGain(frame: number, spans: Span[], level: number, fadeFrames: number): number {

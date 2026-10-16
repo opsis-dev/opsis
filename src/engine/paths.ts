@@ -18,7 +18,8 @@ export function remotionPlatform(
 
 export type EnginePaths = {
   dir: string;
-  packageJson: string;
+  downloadDir: string;
+  shellRoot: string;
   shellFolder: string;
   headlessShell: string;
   ffmpeg: string;
@@ -32,7 +33,9 @@ export function enginePaths(
   arch = process.arch,
 ): EnginePaths {
   const rp = remotionPlatform(platform, arch);
-  const shellFolder = path.join(
+  const shellRoot = path.join(dir, "chrome-headless-shell");
+  const current = path.join(shellRoot, rp, `chrome-headless-shell-${rp}`);
+  const legacy = path.join(
     dir,
     "node_modules",
     ".remotion",
@@ -40,11 +43,13 @@ export function enginePaths(
     rp,
     `chrome-headless-shell-${rp}`,
   );
+  const shellFolder = !existsSync(current) && existsSync(legacy) ? legacy : current;
   const remotionBuild = path.join(shellFolder, "headless_shell");
   const exe = platform === "win32" ? ".exe" : "";
   return {
     dir,
-    packageJson: path.join(dir, "package.json"),
+    downloadDir: path.join(dir, ".download"),
+    shellRoot,
     shellFolder,
     headlessShell: existsSync(remotionBuild)
       ? remotionBuild

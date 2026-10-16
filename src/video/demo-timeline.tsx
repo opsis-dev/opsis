@@ -10,13 +10,15 @@ import {
 } from "remotion";
 import { Audio } from "@remotion/media";
 import { remapFrame, type GroupProps } from "../shared/compile/clip";
-import { duckGain, duckingSpans, type DuckUnder, type Span } from "../shared/compile/duck";
+import { duckGain, duckingSpans, type Span } from "../shared/compile/duck";
+import { envelopeAt } from "../shared/timeline/envelope";
 import type {
   AudioItem,
   TimelineItem,
   TimelineSpec,
   TimelineTrack,
   TransitionRef,
+  VisualEnvelope,
 } from "../shared/schema/timeline";
 import {
   AssetProvider,
@@ -37,7 +39,7 @@ export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
           <FontProvider fonts={spec.fonts} tracks={spec.tracks}>
             <Tracks tracks={spec.tracks} />
           </FontProvider>
-          <AudioLayers spec={spec} />
+          {spec.mix ? <MasterStem src={spec.mix.src} /> : <AudioLayers spec={spec} />}
         </AbsoluteFill>
       </QualityProvider>
     </ReframeProvider>
@@ -61,7 +63,13 @@ export const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
             }
           >
             <TransitionWrap item={item}>
-              <ItemContent item={item} />
+              {item.envelope ? (
+                <EnvelopeWrap envelope={item.envelope}>
+                  <ItemContent item={item} />
+                </EnvelopeWrap>
+              ) : (
+                <ItemContent item={item} />
+              )}
             </TransitionWrap>
           </Sequence>
         ))}
@@ -69,6 +77,33 @@ export const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
     ))}
   </>
 );
+
+const EnvelopeWrap: React.FC<{ envelope: VisualEnvelope; children: React.ReactNode }> = ({
+  envelope,
+  children,
+}) => {
+  const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  const opacity = envelopeAt(envelope.opacity, frame, 1);
+  const x = envelopeAt(envelope.x, frame, 0) * width;
+  const y = envelopeAt(envelope.y, frame, 0) * height;
+  const scale = envelopeAt(envelope.scale, frame, 1);
+  return (
+    <AbsoluteFill
+      style={{
+        opacity: Math.max(0, Math.min(1, opacity)),
+        transform: `translate(${x}px, ${y}px) scale(${Math.max(0, scale)})`,
+      }}
+    >
+      {children}
+    </AbsoluteFill>
+  );
+};
+
+const MasterStem: React.FC<{ src: string }> = ({ src }) => {
+  const base = useAssetBase();
+  return <Audio src={resolveAssetRef(src, base)} />;
+};
 
 const ItemContent: React.FC<{ item: TimelineItem }> = ({ item }) => {
   if (item.component === "core/group") return <Group {...(item.props as GroupProps)} />;
@@ -191,21 +226,26 @@ function activeTransition(
 const NO_SPANS: Span[] = [];
 
 const AudioLayers: React.FC<{ spec: TimelineSpec }> = ({ spec }) => {
-  const spansByUnder = useMemo(() => {
-    const out = new Map<DuckUnder, Span[]>();
-    for (const a of spec.audio ?? [])
-      if (a.duck && !out.has(a.duck.under)) out.set(a.duck.under, duckingSpans(spec, a.duck.under));
+  const spansByKeys = useMemo(() => {
+    const out = new Map<string, Span[]>();
+    for (const a of spec.audio ?? []) {
+      if (!a.duck) continue;
+      const id = a.duck.keys.join("|");
+      if (!out.has(id)) out.set(id, duckingSpans(spec, new Set(a.duck.keys)));
+    }
     return out;
   }, [spec]);
   return (
     <>
-      {(spec.audio ?? []).map((a) => (
-        <AudioLayer
-          key={a.id}
-          item={a}
-          spans={(a.duck && spansByUnder.get(a.duck.under)) || NO_SPANS}
-        />
-      ))}
+      {(spec.audio ?? [])
+        .filter((a) => a.gain !== 0)
+        .map((a) => (
+          <AudioLayer
+            key={a.id}
+            item={a}
+            spans={(a.duck && spansByKeys.get(a.duck.keys.join("|"))) || NO_SPANS}
+          />
+        ))}
     </>
   );
 };
@@ -214,7 +254,7 @@ const AudioLayer: React.FC<{ item: AudioItem; spans: Span[] }> = ({ item, spans 
   const base = useAssetBase();
   const { durationInFrames: total } = useVideoConfig();
   const duration = item.durationInFrames ?? Math.max(1, total - item.from);
-  const baseVolume = typeof item.volume === "number" ? item.volume : 1;
+  const baseVolume = (typeof item.volume === "number" ? item.volume : 1) * (item.gain ?? 1);
   const fadeIn = item.fadeInFrames ?? 0;
   const fadeOut = item.fadeOutFrames ?? 0;
   return (
@@ -233,7 +273,8 @@ const AudioLayer: React.FC<{ item: AudioItem; spans: Span[] }> = ({ item, spans 
           const duck = item.duck
             ? duckGain(item.from + f, spans, item.duck.level, item.duck.fadeFrames)
             : 1;
-          return baseVolume * Math.min(inV, outV) * duck;
+          const env = envelopeAt(item.envelope?.volume, f, 1);
+          return Math.max(0, baseVolume * Math.min(inV, outV) * duck * env);
         }}
       />
     </Sequence>

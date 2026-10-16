@@ -50,6 +50,7 @@ function transitionNode(meta: ElementMeta): NodeDef {
             undefined,
             { kind: meta.key, durationInFrames, params: { ...meta.fixedProps, ...rest } },
           ],
+          { ports: ["a", "b"] },
         ),
       };
     },
@@ -79,7 +80,7 @@ export const lightLeakTransitionNode = defineNode({
     const a = isClip(inputs.a) ? inputs.a : undefined;
     const b = isClip(inputs.b) ? inputs.b : undefined;
     if (!a || !b) return { clip: a ?? b };
-    const cut = sequenceClips(`${nodeId}:cut`, [a, b]);
+    const cut = sequenceClips(`${nodeId}:cut`, [a, b], [], { ports: ["a", "b"], slotNode: nodeId });
     const leak = itemClip(
       `${nodeId}:leak`,
       "core/light-leak",

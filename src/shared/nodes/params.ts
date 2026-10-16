@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { fieldMeta, type FieldMeta } from "../elements/introspect";
+import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
 
 // oxlint-disable-next-line typescript/no-explicit-any
 export const more = <T extends z.ZodType<any>>(schema: T, extra: FieldMeta): T =>
@@ -83,3 +84,19 @@ export const pointerFields = {
   travelMs: more(ms(0, "Cursor travel time", 10_000), { zeroLabel: "Auto", advanced: true }),
   hoverMs: ms(220, "Hover before clicking", 10_000),
 };
+
+export const visualEnvelope = () =>
+  visualEnvelopeSchema.default({}).meta({
+    description: "Keyframes",
+    help: "Change opacity, position and size over time. Edit them here or on the timeline.",
+    widget: "envelope",
+    labels: { opacity: "Opacity", x: "Move across", y: "Move up and down", scale: "Size" },
+  });
+
+export const audioEnvelope = () =>
+  audioEnvelopeSchema.default({}).meta({
+    description: "Keyframes",
+    help: "Change volume and left–right balance over time. Edit them here or on the timeline.",
+    widget: "envelope",
+    labels: { volume: "Volume", pan: "Balance" },
+  });
