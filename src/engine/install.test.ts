@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { calmProgress, megabytes } from "./install";
+import { calmProgress, downloadedSize } from "./install";
 
 describe("engine download progress", () => {
   beforeEach(() => vi.useFakeTimers());
@@ -20,9 +20,9 @@ describe("engine download progress", () => {
     expect(seen.at(-1)?.[0]).toBe("headless-shell");
   });
 
-  it("shows sizes in megabytes", () => {
-    expect(megabytes(12_400_000, 29_354_986)).toBe("12 of 29 MB");
-    expect(megabytes(5_000_000, null)).toBe("5 MB");
-    expect(megabytes(20_000, 35_147)).toBe("36 KB");
+  it("shows downloaded sizes", () => {
+    expect(downloadedSize(12_400_000, 29_354_986)).toBe("11.8 MB of 28.0 MB");
+    expect(downloadedSize(5_242_880, null)).toBe("5.0 MB");
+    expect(downloadedSize(20_000, 35_147)).toBe("19.5 KB of 34.3 KB");
   });
 });

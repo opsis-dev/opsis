@@ -1,9 +1,6 @@
-import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
-import path from "node:path";
 import { Readable } from "node:stream";
 import { protocol } from "electron";
-import { MIME } from "../worker/render/asset-server";
+import { fileReply, resolveInside } from "../engine/http-file";
 
 export const FILE_SCHEME = "demoflow-file";
 
@@ -38,50 +35,14 @@ async function serveFile(
   request: Request,
   extraHeaders: Record<string, string> = {},
 ): Promise<Response> {
-  let info;
-  try {
-    info = await stat(file);
-    if (!info.isFile()) return new Response("Not found", { status: 404 });
-  } catch {
-    return new Response("Not found", { status: 404 });
-  }
-  const type =
-    MIME[path.extname(file).toLowerCase()] ??
-    (file.endsWith(".html")
-      ? "text/html"
-      : file.endsWith(".js")
-        ? "text/javascript"
-        : file.endsWith(".css")
-          ? "text/css"
-          : "application/octet-stream");
-  const headers: Record<string, string> = {
-    "Content-Type": type,
-    "Accept-Ranges": "bytes",
-    "Access-Control-Allow-Origin": "*",
-    ...extraHeaders,
-  };
-  const range = /bytes=(\d*)-(\d*)/.exec(request.headers.get("range") ?? "");
-  if (range) {
-    const start = range[1] ? Number(range[1]) : Math.max(0, info.size - Number(range[2]));
-    const end = range[1] && range[2] ? Math.min(Number(range[2]), info.size - 1) : info.size - 1;
-    const body = Readable.toWeb(createReadStream(file, { start, end })) as ReadableStream;
-    return new Response(body, {
-      status: 206,
-      headers: {
-        ...headers,
-        "Content-Range": `bytes ${start}-${end}/${info.size}`,
-        "Content-Length": String(end - start + 1),
-      },
-    });
-  }
-  const body = Readable.toWeb(createReadStream(file)) as ReadableStream;
+  const reply = await fileReply(file, request.headers.get("range"));
+  if (reply.status === 404) return new Response("Not found", { status: 404 });
+  const body = request.method === "HEAD" ? null : (Readable.toWeb(reply.open()) as ReadableStream);
   return new Response(body, {
-    status: 200,
-    headers: { ...headers, "Content-Length": String(info.size) },
+    status: reply.status,
+    headers: { ...reply.headers, ...extraHeaders },
   });
 }
-
-const inside = (root: string, file: string) => file === root || file.startsWith(root + path.sep);
 
 export function registerProtocolHandlers(opts: {
   getProjectDir: () => string | null;
@@ -97,17 +58,15 @@ export function registerProtocolHandlers(opts: {
           ? opts.getFontsDir()
           : null;
     if (!root) return new Response("No project open", { status: 404 });
-    const file = path.resolve(root, decodeURIComponent(url.pathname).replace(/^\/+/, ""));
-    if (!inside(path.resolve(root), file)) return new Response("Forbidden", { status: 403 });
+    const file = resolveInside(root, url.pathname);
+    if (!file) return new Response("Forbidden", { status: 403 });
     return serveFile(file, request);
   });
 
   protocol.handle(APP_SCHEME, (request) => {
-    const url = new URL(request.url);
-    const rel = decodeURIComponent(url.pathname).replace(/^\/+/, "") || "index.html";
-    const file = path.resolve(opts.rendererDir, rel);
-    if (!inside(path.resolve(opts.rendererDir), file))
-      return new Response("Forbidden", { status: 403 });
+    const { pathname } = new URL(request.url);
+    const file = resolveInside(opts.rendererDir, pathname === "/" ? "index.html" : pathname);
+    if (!file) return new Response("Forbidden", { status: 403 });
     return serveFile(
       file,
       request,

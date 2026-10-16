@@ -16,9 +16,10 @@ import {
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
 import { AppBar } from "./app-bar";
+import { errorMessage } from "@/shared/errors";
 
 export function ErrorScreen({ error, reset }: ErrorComponentProps) {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = errorMessage(error);
 
   useEffect(() => console.error(error), [error]);
 

@@ -5,6 +5,7 @@ import { useRunStore } from "../store/run";
 import { useWorkflowStore } from "../store/workflow";
 import { showPanel } from "./panels";
 import { save } from "./save";
+import { errorMessage } from "@/shared/errors";
 
 type RunTargets = Pick<RunRequest, "targetNodeIds" | "fromNodeId">;
 
@@ -25,7 +26,7 @@ export async function startRun(opts: RunTargets = {}): Promise<void> {
     await beginRun(opts);
   } catch (e) {
     toast.error("Could not start the run", {
-      description: e instanceof Error ? e.message : String(e),
+      description: errorMessage(e),
     });
   }
 }

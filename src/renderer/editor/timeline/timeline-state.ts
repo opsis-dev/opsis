@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { readPref, writePref } from "../../store/view-prefs";
 import type { AudioEnvelopeKey, VisualEnvelopeKey } from "@/shared/schema/timeline";
+import { clamp } from "@/shared/math";
 
 export type TimelineTool = "select" | "ripple" | "roll" | "slip" | "blade" | "rate";
 export type RulerMode = "seconds" | "timecode";
@@ -44,7 +45,7 @@ export const useTimeline = create<TimelineState>()((set) => ({
   audioEnvelope: "volume",
   selectedMarker: null,
   setZoom: (pxPerFrame, fit = false) =>
-    set({ pxPerFrame: Math.min(MAX_PX_PER_FRAME, Math.max(MIN_PX_PER_FRAME, pxPerFrame)), fit }),
+    set({ pxPerFrame: clamp(pxPerFrame, MIN_PX_PER_FRAME, MAX_PX_PER_FRAME), fit }),
   setTool: (tool) => set({ tool }),
   setSnapping: (snapping) => {
     set({ snapping });

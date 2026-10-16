@@ -2,6 +2,7 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 import type { Artifact } from "../../shared/schema/values";
 import type { FfmpegTools } from "../media/ffmpeg";
+import { toPosixRel } from "../../engine/project-paths";
 
 const POSTER_WIDTH = 480;
 
@@ -37,7 +38,7 @@ export async function decorateArtifacts(
           "4",
           poster,
         ]);
-        return { ...withSize, poster: path.relative(projectDir, poster).split(path.sep).join("/") };
+        return { ...withSize, poster: toPosixRel(projectDir, poster) };
       } catch {
         return withSize;
       }

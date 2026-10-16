@@ -3,6 +3,7 @@ import type { Waveform } from "@/shared/mix/result";
 import type { AudioBar, VideoBar } from "@/shared/timeline/flatten";
 import { useMedia } from "../../store/media";
 import { fileUrl } from "../file-url";
+import { clamp } from "@/shared/math";
 
 export type Viewport = { left: number; width: number; pxPerFrame: number };
 
@@ -109,9 +110,9 @@ export function FilmstripCanvas({
       const start = Math.floor((left + offset) / tileW) * tileW - left;
       for (let x = start; x < offset + w; x += tileW) {
         const abs = (left + x + tileW / 2) / view.pxPerFrame;
-        const clamped = Math.min(bar.to - 0.001, Math.max(bar.from, abs));
+        const clamped = clamp(abs, bar.from, bar.to - 0.001);
         const ms = sourceMs(bar, bar.localAt(clamped), fps);
-        const index = Math.max(0, Math.min(strip.count - 1, Math.floor(ms / strip.intervalMs)));
+        const index = clamp(Math.floor(ms / strip.intervalMs), 0, strip.count - 1);
         ctx.drawImage(
           spriteImg,
           index * strip.tileWidth,

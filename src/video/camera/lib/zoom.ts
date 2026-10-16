@@ -1,6 +1,7 @@
 import {
   BASE_BEAT_S,
   CAMERA_LEAD_S,
+  defaultTargetRect,
   DESIGN_WIDTH,
   END_TAIL_S,
   HOLD_MIN_S,
@@ -11,7 +12,6 @@ import {
 } from "./click-log";
 import {
   BASE_POSE,
-  clamp,
   interpolatePose,
   MAX_PAN_PX,
   mix,
@@ -21,6 +21,7 @@ import {
   poseTravelPx,
   type CameraPose,
 } from "./camera";
+import { clamp } from "../../../shared/math";
 
 export type { ClickEvent, ClickLog } from "./click-log";
 export { EMPTY_LOG } from "./click-log";
@@ -204,12 +205,7 @@ export function frameFor(
   const W = vp.width;
   const H = vp.height;
   const k = W > 0 ? W / DESIGN_WIDTH : 1;
-  const rect = c.rect ?? {
-    x: c.x - 60 * k,
-    y: c.y - 24 * k,
-    w: 120 * k,
-    h: 48 * k,
-  };
+  const rect = c.rect ?? defaultTargetRect(c, W);
 
   const menuRoom = (rect.h >= 90 * k ? 24 : MENU_ROOM) * k;
   const extW = rect.w;

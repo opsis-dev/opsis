@@ -30,7 +30,6 @@ import {
   listRecent,
   openProjectDir,
   projectLocations,
-  readLastRun,
   saveWorkflowFile,
   watchProject,
 } from "./projects";
@@ -59,7 +58,7 @@ import {
   removeLibraryFont,
 } from "./fonts";
 import type { FontInstalledFace, StillRequest, WindowState } from "../shared/ipc";
-import { initStills, listStills, requestStill } from "./stills";
+import { initStills, listStills, requestStill, stopStills } from "./stills";
 import {
   closePanelWindow,
   closePanelWindows,
@@ -86,6 +85,7 @@ import {
   workerTempRoot,
 } from "./workers";
 import { clearStaleWorkerTemps } from "./worker-temp";
+import { readLastRun } from "../engine/project-paths";
 
 if (started) app.quit();
 
@@ -434,5 +434,6 @@ app.on("before-quit", (event) => interceptQuit(event, mainWindow));
 app.on("will-quit", () => {
   if (isRunning()) cancelRun();
   stopAnalysis();
+  stopStills();
   stopApi();
 });

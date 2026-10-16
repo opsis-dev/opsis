@@ -1,26 +1,28 @@
-import { randomUUID } from "node:crypto";
-import type { MessagePortMain, UtilityProcess } from "electron";
 import { engineStatus } from "../engine/paths";
+import { ENGINE_MISSING_MESSAGE } from "../shared/engine-message";
+import { errorMessage } from "../shared/errors";
 import type { AnalysisRequest, AnalysisResult } from "../shared/mix/result";
-import type { MainToWorker, WorkerToMain } from "../shared/worker-protocol";
-import { engineDir, spawnWorker, workerEnv } from "./workers";
-
-const IDLE_MS = 90_000;
+import { createLazyWorker } from "./lazy-worker";
+import { engineDir } from "./workers";
 
 type Job = { request: AnalysisRequest; key: string; done: Array<(r: AnalysisResult) => void> };
 
 const queue: Job[] = [];
 let busy = false;
-let worker: { child: UtilityProcess; control: MessagePortMain } | null = null;
-let idleTimer: NodeJS.Timeout | null = null;
-const waiting = new Map<string, (r: AnalysisResult) => void>();
+
+const worker = createLazyWorker<AnalysisResult>({
+  kind: "analysis",
+  idleMs: 90_000,
+  reply: (msg) => (msg.type === "analysis:done" ? { id: msg.id, result: msg.result } : null),
+  stopped: { kind: "error", error: "The sound worker stopped." },
+});
 
 const keyOf = (r: AnalysisRequest) =>
   r.kind === "mix" ? `mix:${r.projectDir}` : `${r.kind}:${r.projectDir}:${r.src}`;
 
 export function analyze(request: AnalysisRequest): Promise<AnalysisResult> {
   if (!engineStatus(engineDir()).ffmpeg)
-    return Promise.resolve({ kind: "error", error: "The engine isn't set up yet." });
+    return Promise.resolve({ kind: "error", error: ENGINE_MISSING_MESSAGE });
   const key = keyOf(request);
   return new Promise((resolve) => {
     const existing = queue.find((j) => j.key === key);
@@ -41,66 +43,25 @@ export function analyze(request: AnalysisRequest): Promise<AnalysisResult> {
   });
 }
 
-function ensureWorker() {
-  if (idleTimer) clearTimeout(idleTimer);
-  idleTimer = null;
-  if (worker) return worker;
-  const spawned = spawnWorker(false, "analysis");
-  spawned.control.on("message", (e) => {
-    const msg = e.data as WorkerToMain;
-    if (msg.type !== "analysis:done") return;
-    const done = waiting.get(msg.id);
-    waiting.delete(msg.id);
-    done?.(msg.result);
-  });
-  spawned.child.on("exit", () => {
-    if (worker?.child === spawned.child) worker = null;
-    for (const [id, done] of waiting) {
-      waiting.delete(id);
-      done({ kind: "error", error: "The sound worker stopped." });
-    }
-  });
-  worker = { child: spawned.child, control: spawned.control };
-  return worker;
-}
-
-function scheduleIdle() {
-  if (idleTimer) clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    worker?.child.kill();
-    worker = null;
-  }, IDLE_MS);
-}
-
 async function pump(): Promise<void> {
   if (busy || queue.length === 0) return;
   busy = true;
   const job = queue.shift()!;
   try {
-    const { control } = ensureWorker();
-    const env = await workerEnv();
-    const id = randomUUID();
-    const result = await new Promise<AnalysisResult>((resolve) => {
-      waiting.set(id, resolve);
-      control.postMessage({
-        type: "analysis",
-        env,
-        id,
-        request: job.request,
-      } satisfies MainToWorker);
-    });
+    const result = await worker.request((env, id) => ({
+      type: "analysis",
+      env,
+      id,
+      request: job.request,
+    }));
     for (const done of job.done) done(result);
   } catch (error) {
-    for (const done of job.done)
-      done({ kind: "error", error: error instanceof Error ? error.message : String(error) });
+    for (const done of job.done) done({ kind: "error", error: errorMessage(error) });
   } finally {
     busy = false;
     if (queue.length) void pump();
-    else scheduleIdle();
+    else worker.scheduleIdle();
   }
 }
 
-export function stopAnalysis(): void {
-  worker?.child.kill();
-  worker = null;
-}
+export const stopAnalysis = (): void => worker.stop();

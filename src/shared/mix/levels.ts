@@ -1,4 +1,4 @@
-import { mapItems, msToFrames } from "../compile/clip";
+import { mapItems } from "../compile/clip";
 import { channelOf } from "../compile/duck";
 import type { AudioItem, TimelineItem, TimelineSpec } from "../schema/timeline";
 import {
@@ -11,6 +11,7 @@ import {
   type Mix,
   type Strip,
 } from "./types";
+import { msToFrames } from "../timeline/time";
 
 export const resolveMix = (mix: Mix | undefined): Mix => mix ?? defaultMix();
 

@@ -19,17 +19,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-gr
 import { cn } from "@/renderer/lib/utils";
 import { useUiStore } from "../store/ui";
 import { fileUrl } from "./file-url";
-
-const ms = (v: number) => (v < 1000 ? `${Math.round(v)}ms` : `${(v / 1000).toFixed(2)}s`);
-
-const bytes = (v: number) =>
-  v < 0
-    ? ""
-    : v < 1024
-      ? `${v} B`
-      : v < 1048576
-        ? `${(v / 1024).toFixed(1)} KB`
-        : `${(v / 1048576).toFixed(1)} MB`;
+import { errorMessage } from "@/shared/errors";
+import { formatBytes, formatDuration } from "@/shared/format";
 
 function useTrace(projectDir: string, traceId: string) {
   const [state, setState] = useState<{ trace?: TraceModel; error?: string; id?: string }>({});
@@ -37,8 +28,7 @@ function useTrace(projectDir: string, traceId: string) {
     let live = true;
     window.demoflow.readTrace(projectDir, traceId).then(
       (trace) => live && setState({ trace, id: traceId }),
-      (e: unknown) =>
-        live && setState({ error: e instanceof Error ? e.message : String(e), id: traceId }),
+      (e: unknown) => live && setState({ error: errorMessage(e), id: traceId }),
     );
     return () => {
       live = false;
@@ -172,7 +162,7 @@ function ActionList({
               ) : null}
             </span>
             <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
-              {ms(a.end - a.start)}
+              {formatDuration(a.end - a.start, "precise")}
             </span>
           </Button>
         </li>
@@ -216,7 +206,7 @@ export function TracePanel({ projectDir, traceId }: { projectDir: string; traceI
       </div>
     );
 
-  const at = (t: number) => `+${((t - trace.start) / 1000).toFixed(2)}s`;
+  const at = (t: number) => `+${formatDuration(t - trace.start, "precise")}`;
   const warnings = trace.console.filter((c) => c.level === "error" || c.level === "warning").length;
 
   return (
@@ -231,7 +221,7 @@ export function TracePanel({ projectDir, traceId }: { projectDir: string; traceI
           </span>
           {selected ? (
             <Badge variant="outline" className="tabular-nums">
-              {at(selected.start)} · {ms(selected.end - selected.start)}
+              {at(selected.start)} · {formatDuration(selected.end - selected.start, "precise")}
             </Badge>
           ) : null}
           <ToggleGroup
@@ -345,8 +335,12 @@ export function TracePanel({ projectDir, traceId }: { projectDir: string; traceI
                       <TableCell className="text-muted-foreground">
                         {r.resourceType || r.mimeType.split(";")[0]}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">{bytes(r.size)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{ms(r.duration)}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatBytes(r.size)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatDuration(r.duration, "precise")}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

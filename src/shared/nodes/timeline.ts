@@ -2,7 +2,6 @@ import { z } from "zod";
 import {
   emptyClip,
   isClip,
-  msToFrames,
   sequenceClips,
   stackClips,
   withHandles,
@@ -11,10 +10,12 @@ import {
 } from "../compile/clip";
 import type { AudioValue, ClipValue, CompileValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
-import { coverRow, frameSecs, quote, row, secs, type CardRow } from "./card";
+import { coverRow, frameSecs, quote, row, type CardRow } from "./card";
 import { defineNode, opt, port } from "./define";
 import { bool, choice, frames, MAX_SPEED, more, ms, text } from "./params";
 import { TRANSITION_KINDS, transitionTitle } from "./transitions";
+import { formatDuration } from "../format";
+import { msToFrames } from "../timeline/time";
 
 const base = { category: "Timeline", phase: "compile" } as const;
 const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
@@ -289,8 +290,8 @@ export const trimNode = defineNode({
     row(
       "scissors",
       p.durationMs
-        ? `${secs(p.startMs)} → ${secs(p.startMs + p.durationMs)}`
-        : `From ${secs(p.startMs)} to the end`,
+        ? `${formatDuration(p.startMs)} → ${formatDuration(p.startMs + p.durationMs)}`
+        : `From ${formatDuration(p.startMs)} to the end`,
     ),
   ],
   params: z.object({
@@ -351,7 +352,7 @@ export const delayNode = defineNode({
   title: "Delay",
   icon: "timer",
   description: "Starts a clip later.",
-  card: ({ params: p }) => [row("clock", `+${secs(p.ms)}`)],
+  card: ({ params: p }) => [row("clock", `+${formatDuration(p.ms)}`)],
   params: z.object({ ms: ms(500, "Delay") }),
   compile: ({ nodeId, inputs, params, settings }) => {
     const clip = isClip(inputs.clip) ? inputs.clip : undefined;
@@ -419,7 +420,7 @@ export const durationFitNode = defineNode({
   inputs: { clip: port("clip", "Clip"), audio: opt("audio", "Fit to this sound") },
   outputs: { clip: port("clip", "Clip") },
   card: ({ params: p, connected, clipFrames, inputFrames, settings }) => [
-    row("ruler", connected.includes("audio") ? "Fits the sound" : secs(p.targetMs)),
+    row("ruler", connected.includes("audio") ? "Fits the sound" : formatDuration(p.targetMs)),
     row(
       "settings-2",
       p.mode === "speed" ? "By speed" : p.mode === "hold" ? "By holding the end" : "By cutting",

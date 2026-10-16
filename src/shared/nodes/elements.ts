@@ -7,6 +7,7 @@ import { fontStack } from "../fonts";
 import { frameSecs, quote, row, sentence, type CardRow } from "./card";
 import { defineNode, port, type NodeCategory, type NodeDef } from "./define";
 import { visualEnvelope } from "./params";
+import { baseName } from "../asset-ref";
 
 const TEXT_KEYS = [
   "title",
@@ -29,7 +30,7 @@ function elementCard(meta: ElementMeta, params: Record<string, unknown>, fps: nu
   if (key) rows.push(row("type", quote(String(params[key]))));
   for (const asset of assetKeys(meta.schema)) {
     const v = params[asset];
-    if (typeof v === "string" && v) rows.push(row("file", v.split("/").pop() ?? v, { title: v }));
+    if (typeof v === "string" && v) rows.push(row("file", baseName(v), { title: v }));
   }
   const duration = Number(params.clipDuration ?? 0);
   const short =

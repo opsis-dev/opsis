@@ -36,6 +36,7 @@ import { Input } from "@/renderer/components/ui/input";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { registerPreview, useFontLibrary } from "./library";
+import { errorMessage } from "@/shared/errors";
 
 const SOURCE_LABEL: Record<FontFamilyDef["source"], string> = {
   bundled: "Built in",
@@ -120,7 +121,7 @@ export function FontsPanel() {
       if (!fonts.families.length) return void toast.error("No fonts found in those files.");
       setReview({ fonts, installed: false });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error));
+      toast.error(errorMessage(error));
     }
   };
 
@@ -128,7 +129,7 @@ export function FontsPanel() {
     try {
       setInstalled(await installedFonts());
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error));
+      toast.error(errorMessage(error));
     }
   };
 
@@ -275,7 +276,7 @@ function ReviewDialog({
       onAdded();
       onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error));
+      toast.error(errorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -365,7 +366,7 @@ function InstalledDialog({
       }
       onPicked(await window.demoflow.inspectInstalledFonts(data));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error));
+      toast.error(errorMessage(error));
     } finally {
       setBusy(null);
     }
@@ -430,9 +431,7 @@ function OnlineDialog({
 
   useEffect(() => {
     if (!open || catalog) return;
-    window.demoflow
-      .fontCatalog()
-      .then(setCatalog, (e: unknown) => setError(e instanceof Error ? e.message : String(e)));
+    window.demoflow.fontCatalog().then(setCatalog, (e: unknown) => setError(errorMessage(e)));
   }, [open, catalog]);
 
   const have = new Set(
@@ -456,7 +455,7 @@ function OnlineDialog({
       toast.success(`Added ${def.family}`);
       onAdded();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : String(e));
+      toast.error(errorMessage(e));
     } finally {
       setBusy(null);
     }

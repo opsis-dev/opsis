@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { clip, elementRow, missing, quote, row, secs, shortUrl, type CardRow } from "./card";
+import { clip, elementRow, missing, quote, row, type CardRow } from "./card";
 import { defineNode, port } from "./define";
 import {
   asset,
@@ -13,13 +13,16 @@ import {
   target,
   text,
 } from "./params";
+import { formatDuration, displayAddress } from "../format";
+import { baseName } from "../asset-ref";
 
 const chain = {
   inputs: { session: port("session", "Previous") },
   outputs: { session: port("session", "Next") },
 } as const;
 
-const pause = (after: number) => (after > 0 ? row("timer", `Pause ${secs(after)}`) : null);
+const pause = (after: number) =>
+  after > 0 ? row("timer", `Pause ${formatDuration(after)}`) : null;
 const zoomRow = (p: { zoom?: boolean; cluster?: string }) =>
   p.zoom === false
     ? row("zoom-out", "No zoom", { tone: "muted" })
@@ -125,7 +128,7 @@ export const navigateNode = defineNode({
   }),
   card: ({ params: p }) => [
     p.url.trim()
-      ? row("link", shortUrl(p.url), { title: p.url })
+      ? row("link", displayAddress(p.url, { keepQuery: true }), { title: p.url })
       : missing("link", "Add an address"),
     pause(p.after),
   ],
@@ -193,7 +196,7 @@ export const hoverNode = defineNode({
   }),
   card: ({ params: p, raw }) => [
     elementRow("mouse-pointer-2", p.target, raw),
-    row("hourglass", `Hover ${secs(p.hoverMs)}`),
+    row("hourglass", `Hover ${formatDuration(p.hoverMs)}`),
     pause(p.after),
     zoomRow(p),
   ],
@@ -310,7 +313,7 @@ export const scrollNode = defineNode({
     p.mode === "element"
       ? elementRow("scroll", p.target, raw)
       : row("scroll", `${p.deltaY >= 0 ? "Down" : "Up"} ${Math.abs(p.deltaY)} px`),
-    p.smooth && row("timer", `Smooth, ${secs(p.durationMs)}`),
+    p.smooth && row("timer", `Smooth, ${formatDuration(p.durationMs)}`),
     pause(p.after),
   ],
 });
@@ -344,9 +347,7 @@ export const uploadNode = defineNode({
   }),
   card: ({ params: p, raw }) => [
     elementRow("upload", p.target, raw),
-    p.file
-      ? row("file", p.file.split("/").pop() ?? p.file, { title: p.file })
-      : missing("file", "Choose a file"),
+    p.file ? row("file", baseName(p.file), { title: p.file }) : missing("file", "Choose a file"),
     pause(p.after),
   ],
 });
@@ -403,10 +404,11 @@ export const waitNode = defineNode({
         ? row("wifi", "Until the page is quiet")
         : p.mode === "url"
           ? p.url.trim()
-            ? row("link", `Until ${shortUrl(p.url)}`)
+            ? row("link", `Until ${displayAddress(p.url, { keepQuery: true })}`)
             : missing("link", "Add an address pattern")
-          : row("hourglass", secs(p.ms)),
-    p.mode !== "ms" && row("timer-off", `Give up after ${secs(p.timeoutMs)}`, { tone: "muted" }),
+          : row("hourglass", formatDuration(p.ms)),
+    p.mode !== "ms" &&
+      row("timer-off", `Give up after ${formatDuration(p.timeoutMs)}`, { tone: "muted" }),
   ],
 });
 
@@ -427,7 +429,7 @@ export const assertNode = defineNode({
     p.text.trim()
       ? row("circle-check", quote(p.text))
       : missing("circle-check", "Add the text to look for"),
-    row("timer-off", `Give up after ${secs(p.timeoutMs)}`, { tone: "muted" }),
+    row("timer-off", `Give up after ${formatDuration(p.timeoutMs)}`, { tone: "muted" }),
   ],
 });
 
@@ -549,7 +551,7 @@ export const chapterNode = defineNode({
   }),
   card: ({ params: p }) => [
     row("bookmark", quote(p.title)),
-    p.showInVideo && row("presentation", `Card for ${secs(p.durationMs)}`),
+    p.showInVideo && row("presentation", `Card for ${formatDuration(p.durationMs)}`),
   ],
 });
 
@@ -569,7 +571,7 @@ export const overlayHtmlNode = defineNode({
   }),
   card: ({ params: p }) => [
     row("code-xml", clip(p.html.replace(/<[^>]+>/g, " "), 36) || "HTML", { title: p.html }),
-    row("timer", p.durationMs ? secs(p.durationMs) : "Until the end"),
+    row("timer", p.durationMs ? formatDuration(p.durationMs) : "Until the end"),
   ],
 });
 

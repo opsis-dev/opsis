@@ -6,7 +6,8 @@ import {
   type ClickEvent,
   type CursorSample,
 } from "./click-log";
-import { clamp, mix } from "./camera";
+import { mix } from "./camera";
+import { clamp } from "../../../shared/math";
 
 export type CursorState = {
   x: number;

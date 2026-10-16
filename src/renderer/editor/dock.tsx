@@ -19,8 +19,7 @@ import {
 import { PreviewDock } from "./preview-dock";
 import { RunPanel } from "./run-panel";
 import { TimelinePanel } from "./timeline/timeline-panel";
-
-const mod = window.demoflow?.platform === "darwin" ? "⌘" : "Ctrl+";
+import { shortcutLabel } from "../app/app-bar";
 
 export function DockContent({ panel }: { panel: DockPanel }) {
   switch (panel) {
@@ -109,7 +108,7 @@ export function BottomDock() {
                   {DOCK_TITLES[panel]}
                 </TooltipTrigger>
                 <TooltipContent>
-                  {DOCK_TITLES[panel]} <Kbd>{`${mod}${i + 1}`}</Kbd>
+                  {DOCK_TITLES[panel]} <Kbd>{shortcutLabel(`CmdOrCtrl+${i + 1}`)}</Kbd>
                 </TooltipContent>
               </Tooltip>
             ),

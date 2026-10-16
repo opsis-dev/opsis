@@ -1,3 +1,4 @@
+import { clamp } from "../../shared/math";
 export type Point = { x: number; y: number };
 
 export const GLIDE_PX_PER_MS = 0.55;
@@ -6,8 +7,6 @@ export const OVERSHOOT_PX = 26;
 export const DRAG_MIN_MS = 600;
 export const DRAG_MAX_MS = 2500;
 export const MAX_PATH_POINTS = 64;
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 export type Glide = {
   durationMs: number;

@@ -1,4 +1,5 @@
 import { useVideoConfig } from "remotion";
+import { clamp } from "../../shared/math";
 
 export type Insets = { top: number; right: number; bottom: number; left: number };
 
@@ -19,16 +20,7 @@ export const overlayScale = (width: number, height: number): number =>
 
 export function zoomBoost(sourceAspect: number, outAspect: number): number {
   if (!(sourceAspect > 0) || !(outAspect > 0)) return 1;
-  return Math.min(2, Math.max(1, Math.sqrt(sourceAspect / outAspect)));
-}
-
-export function containBox(
-  outer: { width: number; height: number },
-  aspect: number,
-): { width: number; height: number } {
-  return outer.width / outer.height > aspect
-    ? { width: outer.height * aspect, height: outer.height }
-    : { width: outer.width, height: outer.width / aspect };
+  return clamp(Math.sqrt(sourceAspect / outAspect), 1, 2);
 }
 
 export function useOverlayFrame(): { k: number; insets: Insets } {

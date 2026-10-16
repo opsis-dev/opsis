@@ -1,5 +1,6 @@
 import { Easing } from "remotion";
 import { DESIGN_WIDTH } from "./click-log";
+import { clamp } from "../../../shared/math";
 
 export const CAMERA_BEZIER = Easing.bezier(0.2, 0.2, 0.15, 1);
 
@@ -13,7 +14,6 @@ export type CameraPose = {
 
 export const BASE_POSE: CameraPose = { scale: 1, cx: 0.5, cy: 0.48 };
 
-export const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 export const mix = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 export function cameraEase(t01: number): number {

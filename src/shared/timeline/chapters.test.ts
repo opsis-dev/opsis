@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { compileWorkflow } from "../compile/compile";
 import type { Action, ActionLog } from "../schema/actions";
-import type { NodeResult } from "../schema/values";
 import { GraphBuilder } from "../templates/build";
 import { chapterList, chapterMetadata, chapterTime, filmChapters } from "./chapters";
+import { recordResult } from "../test-fixtures";
 
 const chapter = (id: string, t: number, label: string): Action => ({
   id,
@@ -27,23 +27,6 @@ const log: ActionLog = {
   cursorTrack: [{ t: 0, x: 960, y: 540 }],
 };
 
-const recorded: NodeResult = {
-  hash: "h",
-  outputs: {
-    recording: {
-      type: "recording",
-      src: "project:.demoflow/cache/h/recording.mp4",
-      log,
-      durationMs: log.durationMs,
-      viewport: log.viewport,
-      nodeId: "record",
-    },
-  },
-  artifacts: [],
-  finishedAt: 0,
-  durationMs: 0,
-};
-
 function film(edit?: { type: string; params: Record<string, unknown> }) {
   const g = new GraphBuilder();
   const s = g.node("session", "browser.session", 0, 0);
@@ -60,8 +43,9 @@ function film(edit?: { type: string; params: Record<string, unknown> }) {
   }
   g.node("out", "output.render", 5, 0);
   g.link(last, "out", "clip", "timeline");
-  const spec = compileWorkflow(g.build({ id: "x", name: "x" }), { results: { record: recorded } })
-    .specs.out;
+  const spec = compileWorkflow(g.build({ id: "x", name: "x" }), {
+    results: { record: recordResult(log) },
+  }).specs.out;
   return { spec, chapters: filmChapters(spec) };
 }
 

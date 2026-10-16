@@ -24,6 +24,7 @@ import { Button } from "@/renderer/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Kbd } from "@/renderer/components/ui/kbd";
 import { NewProjectDialog } from "./new-project-dialog";
+import { errorMessage } from "@/shared/errors";
 
 export function Projects() {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ export function Projects() {
       if (p) go(p.dir);
     } catch (e) {
       toast.error("Could not open the project", {
-        description: e instanceof Error ? e.message : String(e),
+        description: errorMessage(e),
       });
     }
   }

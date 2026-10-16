@@ -6,6 +6,7 @@ import type {
   TraceModel,
   TraceRequest,
 } from "../shared/trace";
+import { formatDuration, humanize } from "../shared/format";
 
 type Json = Record<string, unknown>;
 
@@ -85,11 +86,6 @@ const str = (v: unknown) => (typeof v === "string" ? v : undefined);
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
 const obj = (v: unknown) => (v && typeof v === "object" ? (v as Json) : {});
 
-function humanize(method: string): string {
-  const words = method.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
 function describe(method: string, params: Json): { title: string; target?: string } {
   const verb = VERBS[method] ?? humanize(method);
   const selector = str(params.selector);
@@ -109,7 +105,9 @@ function describe(method: string, params: Json): { title: string; target?: strin
     case "keyboardUp":
       return { title: `${verb} ${str(params.key) ?? ""}`.trim(), target: selector };
     case "waitForTimeout":
-      return { title: `${verb} ${num(params.waitTimeout) ?? num(params.timeout) ?? 0}ms` };
+      return {
+        title: `${verb} ${formatDuration(num(params.waitTimeout) ?? num(params.timeout) ?? 0, "precise")}`,
+      };
     default:
       return { title: verb, target: selector };
   }

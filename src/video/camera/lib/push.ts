@@ -1,4 +1,5 @@
-import { PUSH_BEZIER, clamp } from "./camera";
+import { PUSH_BEZIER } from "./camera";
+import { clamp01 } from "../../../shared/math";
 
 export type PushAxis = "x" | "y" | "scale" | "none";
 
@@ -20,8 +21,6 @@ export const PUSH_IN_DIST = 114;
 export const PUSH_OUT_DIST = 72;
 
 export const HOLD_AFTER_TEXT_S = 2.07;
-
-const clamp01 = (x: number): number => clamp(x, 0, 1);
 
 export const settle = (u: number): number => 1 - PUSH_BEZIER(clamp01(u));
 

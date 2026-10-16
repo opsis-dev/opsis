@@ -14,6 +14,8 @@ import {
 import { useRunStore } from "../store/run";
 import { useUiStore, type PreviewQuality, type PreviewShape } from "../store/ui";
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
+import { liveAutoOpen } from "../store/app-settings";
+import { randomId } from "@/shared/ids";
 
 const CHANNEL = "demoflow-sync";
 const LIVE_CHANNEL = "demoflow-live";
@@ -69,7 +71,7 @@ export type SyncMessage =
   | { type: "inout"; inPoint: number | null; outPoint: number | null; from: string }
   | { type: "editor-closed" };
 
-const windowId = Math.random().toString(36).slice(2);
+const windowId = randomId();
 
 function channel(): BroadcastChannel | null {
   try {
@@ -180,13 +182,9 @@ function useLiveRelay(): void {
     } catch {
       return;
     }
-    let autoOpen = true;
-    void window.demoflow.getSettings().then((s) => {
-      autoOpen = s.live.autoOpen;
-    });
     const offLocal = window.demoflow.onLive((message) => bc.postMessage(message));
     bc.addEventListener("message", (e) =>
-      useLiveStore.getState().apply(e.data as LiveMessage, autoOpen),
+      useLiveStore.getState().apply(e.data as LiveMessage, liveAutoOpen()),
     );
     return () => {
       offLocal();

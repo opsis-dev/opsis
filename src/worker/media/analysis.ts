@@ -1,9 +1,12 @@
-import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Filmstrip, Waveform, WaveformLevel } from "../../shared/mix/result";
 import type { FfmpegTools } from "./ffmpeg";
+import { sha256Hex } from "../../engine/hash";
+import { readJson } from "../../engine/json";
+import { toProjectRef } from "../../engine/project-paths";
+import { round3 } from "../../shared/math";
 
 export const ANALYSIS_VERSION = "demoflow-analysis/1";
 const DECODE_RATE = 8000;
@@ -20,10 +23,7 @@ export type AnalysisDeps = {
 
 async function idFor(file: string): Promise<string> {
   const s = await stat(file);
-  return createHash("sha256")
-    .update(`${ANALYSIS_VERSION}\0${file}\0${s.size}\0${Math.round(s.mtimeMs)}`)
-    .digest("hex")
-    .slice(0, 24);
+  return sha256Hex(`${ANALYSIS_VERSION}\0${file}\0${s.size}\0${Math.round(s.mtimeMs)}`, 24);
 }
 
 function outDir(projectDir: string, file: string): string {
@@ -40,19 +40,6 @@ function outDir(projectDir: string, file: string): string {
     return path.dirname(file);
   return path.join(cache, "analysis");
 }
-
-const toRef = (projectDir: string, file: string) =>
-  `project:${path.relative(projectDir, file).split(path.sep).join("/")}`;
-
-async function readJson<T>(file: string): Promise<T | null> {
-  try {
-    return JSON.parse(await readFile(file, "utf8")) as T;
-  } catch {
-    return null;
-  }
-}
-
-const round3 = (v: number) => Math.round(v * 1000) / 1000;
 
 export function waveformLevels(
   samples: Float32Array,
@@ -131,7 +118,7 @@ export function detectBeats(
     let peak = f;
     for (let k = Math.max(0, f - 3); k <= Math.min(frames - 1, f + 3); k++)
       if (onset[k] > onset[peak]) peak = k;
-    beats.push(Math.round((peak / 100) * 1000) / 1000);
+    beats.push(round3(peak / 100));
   }
   return { beats, bpm: Math.round(6000 / bestLag) };
 }
@@ -227,7 +214,7 @@ export async function analyzeFilmstrip(src: string, deps: AnalysisDeps): Promise
   }
   const strip: Filmstrip = {
     src,
-    image: toRef(deps.projectDir, image),
+    image: toProjectRef(deps.projectDir, image),
     count,
     intervalMs,
     tileWidth,

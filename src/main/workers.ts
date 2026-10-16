@@ -24,6 +24,7 @@ import {
   workerTempName,
   type WorkerKind,
 } from "./worker-temp";
+import { errorMessage } from "../shared/errors";
 
 export function engineDir(): string {
   return resolveEngineDir({
@@ -84,7 +85,7 @@ function answerRequests(
         port.postMessage({
           type: "secret:response",
           id: msg.id,
-          error: String(e),
+          error: errorMessage(e),
         } satisfies MainToWorker),
     );
     return true;
@@ -101,7 +102,7 @@ function answerRequests(
         port.postMessage({
           type: "login:response",
           id: msg.id,
-          error: String(e),
+          error: errorMessage(e),
         } satisfies MainToWorker),
     );
     return true;

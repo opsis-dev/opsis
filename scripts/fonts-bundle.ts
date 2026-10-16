@@ -3,12 +3,13 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
-  readdirSync,
   rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { fontShimFile } from "../src/shared/fonts/google-shim.ts";
+import { walkFiles } from "./lib/walk.ts";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const OUT = path.join(ROOT, "public", "fonts", "bundled");
@@ -65,17 +66,6 @@ type Metadata = {
 
 type Face = { file: string; weight: string; style: string; format: string };
 
-const kebab = (name: string) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-
-function walk(dir: string, out: string[] = []): string[] {
-  for (const entry of readdirSync(dir)) {
-    const p = path.join(dir, entry);
-    if (statSync(p).isDirectory()) walk(p, out);
-    else out.push(p);
-  }
-  return out;
-}
-
 function bundle(pkg: string): string {
   const dir = path.join(ROOT, "node_modules", pkg);
   const meta = JSON.parse(readFileSync(path.join(dir, "metadata.json"), "utf8")) as Metadata;
@@ -112,7 +102,7 @@ function bundle(pkg: string): string {
 
 function checkImports(): void {
   const used = new Set<string>();
-  for (const file of walk(path.join(ROOT, "src", "video"))) {
+  for (const file of walkFiles(path.join(ROOT, "src", "video"))) {
     if (!/\.(tsx?)$/.test(file)) continue;
     for (const m of readFileSync(file, "utf8").matchAll(/@remotion\/google-fonts\/([A-Za-z]+)/g))
       used.add(m[1]);
@@ -144,11 +134,11 @@ rmSync(SHIM_DIR, { recursive: true, force: true });
 mkdirSync(SHIM_DIR, { recursive: true });
 for (const [name, family] of Object.entries(GOOGLE_IMPORTS))
   writeFileSync(
-    path.join(SHIM_DIR, `${kebab(name)}.ts`),
+    path.join(SHIM_DIR, fontShimFile(name)),
     `import { googleFont } from "../google-font";\n\nexport const { loadFont, getInfo } = googleFont(${JSON.stringify(family)});\n`,
   );
 
-const bytes = walk(OUT)
+const bytes = walkFiles(OUT)
   .filter((f) => f.endsWith(".woff2"))
   .reduce((n, f) => n + statSync(f).size, 0);
 console.log(`${PACKAGES.length} families, ${bytes} bytes of font files`);

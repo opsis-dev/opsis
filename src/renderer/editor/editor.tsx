@@ -39,7 +39,7 @@ import { Canvas } from "./canvas";
 import { Inspector } from "./inspector";
 import { autoLayout } from "./layout";
 import { LivePip, LiveToggle } from "./live-pip";
-import { AppBar } from "../app/app-bar";
+import { AppBar, shortcutLabel } from "../app/app-bar";
 import { Palette, QuickAdd } from "./palette";
 import {
   focusPanel,
@@ -60,8 +60,7 @@ import { save } from "./save";
 import { DiskChangeDialog, useProjectFileWatch } from "./disk-change";
 import { useApiBridge } from "./api-bridge";
 import { useStillsStore } from "../store/stills";
-
-const mod = window.demoflow?.platform === "darwin" ? "⌘" : "Ctrl";
+import { errorMessage } from "@/shared/errors";
 
 async function layout(): Promise<void> {
   const wf = useWorkflowStore.getState().workflow;
@@ -81,14 +80,14 @@ function useAutosave() {
       off();
       const state = useWorkflowStore.getState();
       if (state.revision !== state.savedRevision)
-        save().catch((e: unknown) => toast.error("Save failed", { description: String(e) }));
+        save().catch((e: unknown) => toast.error("Save failed", { description: errorMessage(e) }));
       window.demoflow.reportUnsaved(false);
     };
   }, []);
   useEffect(() => {
     if (revision === saved) return;
     const t = setTimeout(() => {
-      save().catch((e: unknown) => toast.error("Save failed", { description: String(e) }));
+      save().catch((e: unknown) => toast.error("Save failed", { description: errorMessage(e) }));
     }, 800);
     return () => clearTimeout(t);
   }, [revision, saved]);
@@ -194,7 +193,7 @@ function TopBar() {
           <Undo2 />
         </TooltipTrigger>
         <TooltipContent>
-          Undo <Kbd>{mod}Z</Kbd>
+          Undo <Kbd>{shortcutLabel("CmdOrCtrl+Z")}</Kbd>
         </TooltipContent>
       </Tooltip>
       <Tooltip>
@@ -230,7 +229,7 @@ function TopBar() {
       </Tooltip>
       <Button variant="ghost" size="sm" onClick={() => useUiStore.getState().setPaletteOpen(true)}>
         <Plus data-icon="inline-start" />
-        Add node <Kbd>{mod}K</Kbd>
+        Add node <Kbd>{shortcutLabel("CmdOrCtrl+K")}</Kbd>
       </Button>
       <div className="flex-1" />
       <PanelToggles />
@@ -276,13 +275,18 @@ function TopBar() {
 }
 
 const TOGGLES: Array<{ side: PanelSide; icon: LucideIcon; label: string; keys: string }> = [
-  { side: "left", icon: PanelLeft, label: "Node list", keys: `${mod}B` },
-  { side: "bottom", icon: PanelBottom, label: "Preview, timeline, mixer and run", keys: `${mod}J` },
+  { side: "left", icon: PanelLeft, label: "Node list", keys: shortcutLabel("CmdOrCtrl+B") },
+  {
+    side: "bottom",
+    icon: PanelBottom,
+    label: "Preview, timeline, mixer and run",
+    keys: shortcutLabel("CmdOrCtrl+J"),
+  },
   {
     side: "right",
     icon: PanelRight,
     label: "Inspector",
-    keys: `${mod}${mod === "⌘" ? "⌥" : "Alt+"}B`,
+    keys: shortcutLabel("CmdOrCtrl+Alt+B"),
   },
 ];
 

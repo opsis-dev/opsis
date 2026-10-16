@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useRef } from "react";
-import { getNodeDef } from "@/shared/nodes/registry";
+import { nodeName } from "@/shared/nodes/registry";
 import { isOutputType } from "@/shared/nodes/output";
 import { formatTime } from "@/shared/timeline/snap";
 import type { AudioEnvelopeKey, VisualEnvelopeKey } from "@/shared/schema/timeline";
@@ -46,6 +46,8 @@ import { useWorkflowStore } from "../../store/workflow";
 import { useFilm } from "../film";
 import { useTimeline, type TimelineTool } from "./timeline-state";
 import { TimelineView, type TimelineActions } from "./timeline-view";
+import { isEditingElement } from "@/renderer/lib/dom";
+import { shortcutLabel } from "../../app/app-bar";
 
 const TOOLS: Array<{
   id: TimelineTool;
@@ -114,13 +116,6 @@ const TOOL_KEYS: Record<string, TimelineTool> = {
   r: "rate",
 };
 
-const mod = window.demoflow?.platform === "darwin" ? "⌘" : "Ctrl+";
-
-function editingText(target: EventTarget | null): boolean {
-  const el = target as HTMLElement | null;
-  return !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
-}
-
 export function TimelinePanel() {
   const film = useFilm();
   const workflow = useWorkflowStore((s) => s.workflow);
@@ -157,7 +152,7 @@ export function TimelinePanel() {
   const showingExport = !!source && isOutputType(source.type);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (editingText(e.target)) return;
+    if (isEditingElement(e.target)) return;
     const pb = usePlayback.getState();
     const ctrl = e.ctrlKey || e.metaKey;
     const key = e.key.toLowerCase();
@@ -312,7 +307,7 @@ export function TimelinePanel() {
         <div className="flex-1" />
         {source ? (
           <Badge variant="secondary" className="max-w-40 truncate">
-            {source.label ?? getNodeDef(source.type)?.title}
+            {nodeName(source)}
           </Badge>
         ) : null}
         {!showingExport && output ? (
@@ -372,7 +367,7 @@ export function TimelinePanel() {
             <ZoomOut />
           </TooltipTrigger>
           <TooltipContent>
-            Zoom out <Kbd>{mod}−</Kbd>
+            Zoom out <Kbd>{shortcutLabel("CmdOrCtrl+−")}</Kbd>
           </TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -406,7 +401,7 @@ export function TimelinePanel() {
             <ZoomIn />
           </TooltipTrigger>
           <TooltipContent>
-            Zoom in <Kbd>{mod}=</Kbd>
+            Zoom in <Kbd>{shortcutLabel("CmdOrCtrl+=")}</Kbd>
           </TooltipContent>
         </Tooltip>
       </div>

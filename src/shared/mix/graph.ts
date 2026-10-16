@@ -2,6 +2,8 @@ import type { Keyframe } from "../schema/timeline";
 import { samplePoints } from "../timeline/envelope";
 import type { BusPlan, ChannelPlan, MixPlan, SoundPlacement } from "./plan";
 import { LOUDNESS_TARGETS, dbToGain, type Comp, type Eq, type Master } from "./types";
+import { clamp } from "../math";
+import { framesToMs } from "../timeline/time";
 
 export const SAMPLE_RATE = 48_000;
 
@@ -73,7 +75,7 @@ export function soundChain(
   const volumeKeys = sound.envelope?.volume;
   if (volumeKeys?.length) steps.push(`volume=eval=frame:volume='${envelopeExpr(volumeKeys, fps)}'`);
   const panKeys = sound.envelope?.pan;
-  const delay = Math.round((sound.at / fps) * 1000);
+  const delay = framesToMs(sound.at, fps);
   if (!panKeys?.length) {
     if (delay > 0) steps.push(`adelay=delays=${delay}:all=1`);
     return `[${input}:a]${steps.join(",")}[${label}]`;
@@ -98,8 +100,8 @@ export function eqSteps(eq: Eq): string[] {
 
 export function compSteps(comp: Comp): string[] {
   if (!comp.on) return [];
-  const threshold = Math.min(1, Math.max(0.000976563, dbToGain(comp.threshold)));
-  const makeup = Math.min(64, Math.max(1, dbToGain(comp.makeup)));
+  const threshold = clamp(dbToGain(comp.threshold), 0.000976563, 1);
+  const makeup = clamp(dbToGain(comp.makeup), 1, 64);
   return [
     `acompressor=threshold=${num(threshold)}:ratio=${num(comp.ratio, 3)}:attack=${num(comp.attack, 3)}:release=${num(comp.release, 3)}:makeup=${num(makeup)}`,
   ];
@@ -219,7 +221,7 @@ export const DUCK_REFERENCE_DB = -12;
 
 export function duckRatio(amount: number): number {
   const range = DUCK_REFERENCE_DB - DUCK_THRESHOLD_DB;
-  const a = Math.min(range - 1, Math.max(0.5, amount));
+  const a = clamp(amount, 0.5, range - 1);
   return Math.min(20, 1 / (1 - a / range));
 }
 

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { cn } from "@/renderer/lib/utils";
+import { clamp } from "@/shared/math";
 
 export type DragPhase = "start" | "move" | "end";
 
@@ -33,14 +34,14 @@ export function Knob({
   const toT = (v: number) =>
     log ? Math.log(v / min) / Math.log(max / min) : (v - min) / (max - min);
   const fromT = (t: number) => {
-    const c = Math.min(1, Math.max(0, t));
+    const c = clamp(t, 0, 1);
     const v = log ? min * (max / min) ** c : min + c * (max - min);
     const decimals = Math.max(0, -Math.floor(Math.log10(step)));
     return Number((Math.round(v / step) * step).toFixed(decimals));
   };
   const snap = (v: number) => {
     const decimals = Math.max(0, -Math.floor(Math.log10(step)));
-    const clamped = Math.min(max, Math.max(min, v));
+    const clamped = clamp(v, min, max);
     return Number((Math.round(clamped / step) * step).toFixed(decimals));
   };
   const commit = (text: string) => {
@@ -51,7 +52,7 @@ export function Knob({
     onChange(snap(v), "move");
     onChange(value, "end");
   };
-  const t = Math.min(1, Math.max(0, toT(value)));
+  const t = clamp(toT(value), 0, 1);
   const angle = -135 + t * 270;
   const r = size / 2 - 3;
   const arc = (from: number, to: number) => {

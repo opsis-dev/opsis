@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner";
 import { downstreamOf, sessionChain, upstreamOf } from "@/shared/graph";
 import { CATEGORY_LABELS } from "@/shared/nodes/define";
-import { defaultParams, getNodeDef } from "@/shared/nodes/registry";
+import { defaultParams, getNodeDef, nodeName } from "@/shared/nodes/registry";
 import { hasWidget } from "@/shared/elements/introspect";
 import type { RecordingValue } from "@/shared/schema/values";
 import type { Workflow } from "@/shared/schema/workflow";
@@ -46,6 +46,7 @@ import { useCompiledContext } from "./use-compiled";
 import { ZodForm, type FormContext, type SpotBackground } from "./zod-form";
 import { FontPicker } from "../fonts/font-picker";
 import { SwapFade } from "../app/motion";
+import { errorMessage } from "@/shared/errors";
 
 const SITE_VAR = "Site address";
 
@@ -150,7 +151,7 @@ function NodeInspector({ nodeId }: { nodeId: string }) {
     layers: Math.max(1, layers),
     actions: workflow.nodes
       .filter((n) => ACTION_TYPES.has(n.type))
-      .map((n) => ({ id: n.id, label: n.label || getNodeDef(n.type)?.title || n.type })),
+      .map((n) => ({ id: n.id, label: nodeName(n) })),
     spotBackground:
       def.category === "Camera" || hasWidget(def.params, "boxes")
         ? spotBackground(workflow, nodeId, results)
@@ -170,7 +171,7 @@ function NodeInspector({ nodeId }: { nodeId: string }) {
         }
       } catch (e) {
         toast.error("Couldn't pick the element", {
-          description: e instanceof Error ? e.message : String(e),
+          description: errorMessage(e),
         });
       }
     },

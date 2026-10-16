@@ -5,6 +5,9 @@ import type { CompileValue, MediaValue } from "../../shared/schema/values";
 import type { Executor, ExecutorContext, ExecutorOutput } from "../engine/context";
 import { canStreamCopy } from "../media/ffmpeg";
 import { refToPath, rel, requireMedia } from "./util";
+import { round3 } from "../../shared/math";
+import { projectRef } from "../../shared/elements/introspect";
+import { formatDuration } from "../../shared/format";
 
 function mediaExec<P>(
   type: string,
@@ -73,7 +76,7 @@ const importExecutor: Executor = {
     const isImage = /\.(png|jpe?g|webp|gif|svg)$/i.test(abs);
     const media: MediaValue = {
       type: "media",
-      src: p.path.startsWith("project:") ? p.path : `project:${p.path}`,
+      src: projectRef(p.path),
       kind: isImage ? "image" : probe.video ? "video" : "audio",
       durationMs: isImage ? undefined : probe.durationMs,
       width: probe.video?.width,
@@ -119,7 +122,7 @@ export function joinFilter(
   to: { width: number; height: number; fps: number; sound: boolean },
 ): string {
   const { width: w, height: h } = to;
-  const rate = Math.round(to.fps * 1000) / 1000;
+  const rate = round3(to.fps);
   const scaled = Array.from(
     { length: count },
     (_, i) =>
@@ -213,7 +216,7 @@ export function speedArgs(
     "-vf",
     `setpts=PTS/${opts.rate}`,
     "-r",
-    String(Math.round(opts.fps * 1000) / 1000),
+    String(round3(opts.fps)),
     ...(opts.sound ? ["-af", atempoChain(opts.rate)] : ["-an"]),
     "-c:v",
     "libx264",
@@ -474,7 +477,7 @@ const probeExecutor = mediaExec<Record<string, never>>("media.probe", async (ctx
   await writeFile(path.join(ctx.dir, "probe.json"), JSON.stringify(probe.raw, null, 2));
   ctx.log(
     "info",
-    `${probe.format} · ${(probe.durationMs / 1000).toFixed(2)}s · ${probe.video ? `${probe.video.codec} ${probe.video.width}×${probe.video.height} @ ${probe.video.fps.toFixed(2)}fps` : "no video"} · ${probe.audio ? `${probe.audio.codec} ${probe.audio.sampleRate}Hz` : "no audio"}`,
+    `${probe.format} · ${formatDuration(probe.durationMs, "precise")} · ${probe.video ? `${probe.video.codec} ${probe.video.width}×${probe.video.height} @ ${probe.video.fps.toFixed(2)}fps` : "no video"} · ${probe.audio ? `${probe.audio.codec} ${probe.audio.sampleRate}Hz` : "no audio"}`,
   );
   return {
     outputs: {

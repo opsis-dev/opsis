@@ -1,5 +1,6 @@
 import type { NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
+import { formatDuration } from "../format";
 
 export type CardRow = { icon: string; text: string; title?: string; tone?: "muted" | "warn" };
 
@@ -36,19 +37,8 @@ export const row = (icon: string, text: string, extra: Partial<CardRow> = {}): C
 
 export const missing = (icon: string, text: string): CardRow => ({ icon, text, tone: "warn" });
 
-export function secs(ms: number): string {
-  if (!Number.isFinite(ms)) return "";
-  const s = ms / 1000;
-  if (s >= 60) {
-    const m = Math.floor(s / 60);
-    const rest = Math.round(s - m * 60);
-    return rest ? `${m} min ${rest} s` : `${m} min`;
-  }
-  const rounded = s >= 10 ? Math.round(s * 10) / 10 : Math.round(s * 100) / 100;
-  return `${rounded} s`;
-}
-
-export const frameSecs = (frames: number, fps: number) => secs((frames / Math.max(1, fps)) * 1000);
+export const frameSecs = (frames: number, fps: number) =>
+  formatDuration((frames / Math.max(1, fps)) * 1000);
 
 export function clip(text: string, max = 42): string {
   const one = text.replace(/\s+/g, " ").trim();
@@ -94,20 +84,6 @@ export function elementRow(
 ): CardRow {
   const name = elementName(target, raw[`${key}Role`]);
   return name ? row(icon, name, { title: String(target) }) : missing(icon, empty);
-}
-
-export function shortUrl(url: string): string {
-  return url
-    .trim()
-    .replace(/^https?:\/\//, "")
-    .replace(/^www\./, "")
-    .replace(/\/$/, "");
-}
-
-export function bytes(n: number): string {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
 export function sentence(title: string): string {

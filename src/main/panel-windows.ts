@@ -1,8 +1,6 @@
-import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-import type { BrowserWindow } from "electron";
-import { app, screen, type Rectangle } from "electron";
+import type { BrowserWindow, Rectangle } from "electron";
 import { IPC, type DockPanelName } from "../shared/ipc";
+import { isVisible, loadBounds, rememberBounds, saveBounds } from "./window-bounds";
 
 export type PanelWindowHost = {
   main: () => BrowserWindow | null;
@@ -34,35 +32,16 @@ const windows = new Map<DockPanelName, BrowserWindow>();
 let host: PanelWindowHost | null = null;
 let bounds: Partial<Record<DockPanelName, Rectangle>> | null = null;
 
-const boundsFile = () => path.join(app.getPath("userData"), "panel-windows.json");
+const BOUNDS_FILE = "panel-windows.json";
 
-async function loadBounds(): Promise<Partial<Record<DockPanelName, Rectangle>>> {
-  if (bounds) return bounds;
-  try {
-    bounds = JSON.parse(await readFile(boundsFile(), "utf8")) as Partial<
-      Record<DockPanelName, Rectangle>
-    >;
-  } catch {
-    bounds = {};
-  }
+async function panelBounds(): Promise<Partial<Record<DockPanelName, Rectangle>>> {
+  bounds ??= (await loadBounds<Partial<Record<DockPanelName, Rectangle>>>(BOUNDS_FILE)) ?? {};
   return bounds;
 }
 
-function saveBounds(panel: DockPanelName, rect: Rectangle): void {
+function savePanelBounds(panel: DockPanelName, rect: Rectangle): void {
   bounds = { ...bounds, [panel]: rect };
-  void writeFile(boundsFile(), JSON.stringify(bounds, null, 2)).catch(() => undefined);
-}
-
-function visible(rect: Rectangle): boolean {
-  return screen.getAllDisplays().some((d) => {
-    const a = d.workArea;
-    return (
-      rect.x < a.x + a.width - 40 &&
-      rect.x + rect.width > a.x + 40 &&
-      rect.y >= a.y - 20 &&
-      rect.y < a.y + a.height - 40
-    );
-  });
+  saveBounds(BOUNDS_FILE, bounds);
 }
 
 export function initPanelWindows(next: PanelWindowHost): void {
@@ -83,18 +62,12 @@ export async function openPanelWindow(panel: DockPanelName, projectDir: string):
     existing.focus();
     return;
   }
-  const saved = (await loadBounds())[panel];
+  const saved = (await panelBounds())[panel];
   const size = DEFAULT_SIZE[panel];
-  const rect = saved && visible(saved) ? saved : undefined;
+  const rect = saved && isVisible(saved) ? saved : undefined;
   const win = host.create({ ...size, ...rect, title: `${TITLES[panel]} — Demoflow` });
   windows.set(panel, win);
-  const remember = () => {
-    if (!win.isDestroyed() && !win.isMinimized() && !win.isMaximized() && !win.isFullScreen())
-      saveBounds(panel, win.getBounds());
-  };
-  win.on("resized", remember);
-  win.on("moved", remember);
-  win.on("close", remember);
+  rememberBounds(win, (next) => savePanelBounds(panel, next));
   win.on("closed", () => {
     if (windows.get(panel) === win) windows.delete(panel);
     notify();

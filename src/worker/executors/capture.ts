@@ -3,10 +3,11 @@ import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { loginDependencies, sessionChain } from "../../shared/graph";
 import { sessionNode } from "../../shared/nodes/browser";
-import { getNodeDef } from "../../shared/nodes/registry";
+import { nodeName } from "../../shared/nodes/registry";
 import { loginOnceNode, recordNode, stillNode } from "../../shared/nodes/capture";
 import type { RecordingValue } from "../../shared/schema/values";
 import type { WorkflowNode } from "../../shared/schema/workflow";
+import { secretName } from "../../shared/secrets";
 import { interpolate } from "../../shared/vars";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
@@ -16,27 +17,29 @@ import { defineExecutor, TracedError, type ExecutorContext } from "../engine/con
 import { rel } from "./util";
 import { WINDOW_FIT } from "../../video/camera/lib/window";
 import { captureScale, type Box } from "../../video/core/still-layout";
+import { errorMessage } from "../../shared/errors";
+import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";
+import { formatDuration } from "../../shared/format";
 
 async function storageStateFor(ctx: ExecutorContext, head: WorkflowNode): Promise<string | null> {
   const p = sessionNode.params.parse(interpolate(head.params ?? {}, ctx.vars));
-  if (!p.storageState) return null;
-  const value = await ctx.secrets.read(p.storageState);
+  if (!p.storageState.trim()) return null;
+  const name = secretName(p.storageState);
+  const value = await ctx.secrets.read(name);
   if (!value)
-    throw new Error(
-      `The sign-in "${p.storageState}" isn't saved yet. Run its Sign in once node first.`,
-    );
+    throw new Error(`The sign-in "${name}" isn't saved yet. Run its Sign in once node first.`);
   return value;
 }
 
 function signInFor(ctx: ExecutorContext, head: WorkflowNode | undefined) {
   if (!head) return undefined;
   const session = sessionNode.params.parse(interpolate(head.params ?? {}, ctx.vars));
-  if (!session.storageState) return undefined;
+  if (!session.storageState.trim()) return undefined;
   const loginId = loginDependencies(ctx.workflow, ctx.node.id, ctx.vars)[0];
   const loginNode = ctx.workflow.nodes.find((n) => n.id === loginId);
   if (!loginNode) return undefined;
   const login = loginOnceNode.params.parse(interpolate(loginNode.params ?? {}, ctx.vars));
-  return { name: session.storageState, url: login.url, login };
+  return { name: secretName(session.storageState), url: login.url, login };
 }
 
 async function retryAfterSignIn<T>(ctx: ExecutorContext, attempt: () => Promise<T>): Promise<T> {
@@ -63,8 +66,7 @@ async function retryAfterSignIn<T>(ctx: ExecutorContext, attempt: () => Promise<
 }
 
 function requireShell(ctx: ExecutorContext): string {
-  if (!existsSync(ctx.engine.headlessShell))
-    throw new Error("The video engine isn't set up yet. Set it up in Settings → Engine.");
+  if (!existsSync(ctx.engine.headlessShell)) throw new Error(ENGINE_MISSING_MESSAGE);
   return ctx.engine.headlessShell;
 }
 
@@ -77,7 +79,7 @@ async function saveTrace(
   if (!file || !existsSync(file)) return undefined;
   const manifest = await ingestTrace(ctx.projectDir, file, {
     nodeId: ctx.node.id,
-    label: ctx.node.label || getNodeDef(ctx.node.type)?.title || ctx.node.type,
+    label: nodeName(ctx.node),
     ok,
     groups,
   });
@@ -121,7 +123,7 @@ async function take(
       workDir: ctx.dir,
       ffmpeg: ctx.ffmpeg,
     }).catch((e: unknown) =>
-      ctx.log("warn", `Couldn't add screenshots to the trace: ${String(e)}`),
+      ctx.log("warn", `Couldn't add screenshots to the trace: ${errorMessage(e)}`),
     );
   };
   try {
@@ -134,7 +136,7 @@ async function take(
       executablePath: requireShell(ctx),
       storageState: await storageStateFor(ctx, chain[0]),
       signIn: signInFor(ctx, chain[0]),
-      live: ctx.live(ctx.node.label || getNodeDef(ctx.node.type)?.title || ctx.node.type),
+      live: ctx.live(nodeName(ctx.node)),
       tracePath,
       traceGroups,
       signal: ctx.signal,
@@ -150,9 +152,7 @@ async function take(
     throw new TracedError(
       expired && !signInFor(ctx, chain[0])
         ? `${error.message} Run its Sign in once node again.`
-        : error instanceof Error
-          ? error.message
-          : String(error),
+        : errorMessage(error),
       traceId,
       expired,
     );
@@ -194,7 +194,7 @@ async function makePreviewCopy(
     return name;
   } catch (error) {
     if (ctx.signal.aborted) throw error;
-    ctx.log("warn", `Couldn't make the preview copy: ${String(error)}`);
+    ctx.log("warn", `Couldn't make the preview copy: ${errorMessage(error)}`);
     return null;
   }
 }
@@ -228,7 +228,7 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
   };
   ctx.log(
     "info",
-    `Recorded ${(log.durationMs / 1000).toFixed(1)}s, ${encoder?.frames ?? 0} frames, ${log.actions.length} actions`,
+    `Recorded ${formatDuration(log.durationMs)}, ${encoder?.frames ?? 0} frames, ${log.actions.length} actions`,
   );
   return {
     outputs: { recording },
@@ -334,7 +334,8 @@ export const loginOnceExecutor = defineExecutor(loginOnceNode, async (ctx, _inpu
     selector: p.selector,
     timeoutSec: p.timeoutSec,
   });
-  await ctx.secrets.write(p.secretName, state);
-  ctx.log("info", `Saved the sign-in as "${p.secretName}".`);
+  const name = secretName(p.secretName);
+  await ctx.secrets.write(name, state);
+  ctx.log("info", `Saved the sign-in as "${name}".`);
   return { outputs: {} };
 });

@@ -1,15 +1,16 @@
-import { createHash, randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { BrowserWindow, MessagePortMain, UtilityProcess } from "electron";
+import type { BrowserWindow } from "electron";
+import { sha256Hex } from "../engine/hash";
+import { readJson } from "../engine/json";
 import { engineStatus } from "../engine/paths";
+import { errorMessage } from "../shared/errors";
 import { IPC, type StillRequest, type StillResult } from "../shared/ipc";
-import type { MainToWorker, WorkerToMain } from "../shared/worker-protocol";
-import { engineDir, isRunning, spawnWorker, workerEnv } from "./workers";
+import { createLazyWorker } from "./lazy-worker";
+import { engineDir, isRunning } from "./workers";
 
 const STILL_WIDTH = 480;
-const IDLE_MS = 60_000;
 
 const stillsDir = (projectDir: string) => path.join(projectDir, ".demoflow", "cache", "stills");
 const indexPath = (projectDir: string) => path.join(stillsDir(projectDir), "index.json");
@@ -18,11 +19,15 @@ const stillPath = (projectDir: string, hash: string) =>
 
 type Job = StillRequest & { hash: string };
 
+const worker = createLazyWorker<string | undefined>({
+  kind: "stills",
+  idleMs: 60_000,
+  reply: (msg) => (msg.type === "still:done" ? { id: msg.id, result: msg.error } : null),
+  stopped: "The preview worker stopped.",
+});
+
 const queue: Job[] = [];
 let busy = false;
-let worker: { child: UtilityProcess; control: MessagePortMain } | null = null;
-let idleTimer: NodeJS.Timeout | null = null;
-const waiting = new Map<string, (error?: string) => void>();
 let getWindow: () => BrowserWindow | null = () => null;
 
 export function initStills(window: () => BrowserWindow | null): void {
@@ -30,17 +35,10 @@ export function initStills(window: () => BrowserWindow | null): void {
 }
 
 export async function listStills(projectDir: string): Promise<Record<string, string>> {
-  try {
-    const index = JSON.parse(await readFile(indexPath(projectDir), "utf8")) as Record<
-      string,
-      string
-    >;
-    return Object.fromEntries(
-      Object.entries(index).filter(([, hash]) => existsSync(stillPath(projectDir, hash))),
-    );
-  } catch {
-    return {};
-  }
+  const index = (await readJson<Record<string, string>>(indexPath(projectDir))) ?? {};
+  return Object.fromEntries(
+    Object.entries(index).filter(([, hash]) => existsSync(stillPath(projectDir, hash))),
+  );
 }
 
 async function remember(projectDir: string, nodeId: string, hash: string): Promise<void> {
@@ -55,7 +53,7 @@ async function remember(projectDir: string, nodeId: string, hash: string): Promi
 }
 
 export async function requestStill(request: StillRequest): Promise<StillResult> {
-  const hash = createHash("sha256").update(request.key).digest("hex").slice(0, 24);
+  const hash = sha256Hex(request.key, 24);
   if (existsSync(stillPath(request.projectDir, hash))) {
     await remember(request.projectDir, request.nodeId, hash);
     return { hash, ready: true };
@@ -72,37 +70,6 @@ export async function requestStill(request: StillRequest): Promise<StillResult> 
   return { hash, ready: false };
 }
 
-function ensureWorker() {
-  if (idleTimer) clearTimeout(idleTimer);
-  idleTimer = null;
-  if (worker) return worker;
-  const spawned = spawnWorker(false, "stills");
-  spawned.control.on("message", (e) => {
-    const msg = e.data as WorkerToMain;
-    if (msg.type !== "still:done") return;
-    const done = waiting.get(msg.id);
-    waiting.delete(msg.id);
-    done?.(msg.error);
-  });
-  spawned.child.on("exit", () => {
-    if (worker?.child === spawned.child) worker = null;
-    for (const [id, done] of waiting) {
-      waiting.delete(id);
-      done("The preview worker stopped.");
-    }
-  });
-  worker = { child: spawned.child, control: spawned.control };
-  return worker;
-}
-
-function scheduleIdle() {
-  if (idleTimer) clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    worker?.child.kill();
-    worker = null;
-  }, IDLE_MS);
-}
-
 async function pump(): Promise<void> {
   if (busy || queue.length === 0) return;
   if (isRunning()) {
@@ -114,29 +81,26 @@ async function pump(): Promise<void> {
   try {
     const output = stillPath(job.projectDir, job.hash);
     if (!existsSync(output)) {
-      const { control } = ensureWorker();
-      const id = randomUUID();
-      const error = await new Promise<string | undefined>((resolve) => {
-        waiting.set(id, resolve);
-        void workerEnv().then((env) =>
-          control.postMessage({
-            type: "still",
-            env,
-            id,
-            projectDir: job.projectDir,
-            spec: job.spec,
-            frame: job.frame,
-            output,
-            width: STILL_WIDTH,
-          } satisfies MainToWorker),
-        );
-      });
+      const error = await worker.request((env, id) => ({
+        type: "still",
+        env,
+        id,
+        projectDir: job.projectDir,
+        spec: job.spec,
+        frame: job.frame,
+        output,
+        width: STILL_WIDTH,
+      }));
       if (error) process.stderr.write(`[stills] ${job.nodeId}: ${error}\n`);
     }
     if (existsSync(output)) await remember(job.projectDir, job.nodeId, job.hash);
+  } catch (error) {
+    process.stderr.write(`[stills] ${job.nodeId}: ${errorMessage(error)}\n`);
   } finally {
     busy = false;
     if (queue.length) void pump();
-    else scheduleIdle();
+    else worker.scheduleIdle();
   }
 }
+
+export const stopStills = (): void => worker.stop();

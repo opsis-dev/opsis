@@ -13,6 +13,7 @@ import {
   type Shot,
   type StillLook,
 } from "./still-layout";
+import { msToFrames } from "../../shared/timeline/time";
 
 type Fit = "contain" | "cover" | "fill";
 
@@ -65,7 +66,7 @@ export const VideoElement: React.FC<{
         muted={muted}
         volume={volume}
         playbackRate={playbackRate}
-        trimBefore={trimBeforeMs ? Math.round((trimBeforeMs / 1000) * fps) : undefined}
+        trimBefore={trimBeforeMs ? msToFrames(trimBeforeMs, fps, 0) : undefined}
         objectFit={fit}
         style={{ width: "100%", height: "100%" }}
       />

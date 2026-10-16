@@ -18,6 +18,8 @@ import {
   type ControlSpec,
   type CuratedElement,
 } from "./registry-ingest.list.ts";
+import { humanize } from "../src/shared/format.ts";
+import { walkFiles } from "./lib/walk.ts";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const SRC = path.join(ROOT, "src");
@@ -56,18 +58,8 @@ const FLAT_MOVES: Array<[string, string]> = [
   ["remotion/hooks", "hooks/remotion-ui"],
 ];
 
-function walk(dir: string, out: string[] = []): string[] {
-  if (!existsSync(dir)) return out;
-  for (const entry of readdirSync(dir)) {
-    const p = path.join(dir, entry);
-    if (statSync(p).isDirectory()) walk(p, out);
-    else out.push(p);
-  }
-  return out;
-}
-
 function moveTree(from: string, dest: string): void {
-  for (const file of walk(from)) {
+  for (const file of walkFiles(from)) {
     const target = path.join(dest, path.relative(from, file));
     mkdirSync(path.dirname(target), { recursive: true });
     renameSync(file, target);
@@ -96,7 +88,7 @@ function relocate(): void {
     if (existsSync(fromDir)) moveTree(fromDir, path.join(VIDEO, to));
   }
   for (const dir of ["remotion", "compositions"]) {
-    const left = walk(path.join(SRC, dir));
+    const left = walkFiles(path.join(SRC, dir));
     if (left.length)
       throw new Error(`Unexpected files left after relocating:\n  ${left.join("\n  ")}`);
     rmSync(path.join(SRC, dir), { recursive: true, force: true });
@@ -131,7 +123,7 @@ function relocate(): void {
     return spec;
   };
 
-  for (const file of walk(VIDEO)) {
+  for (const file of walkFiles(VIDEO)) {
     if (!/\.(tsx?|css)$/.test(file) || file.includes(`${path.sep}registry${path.sep}`)) continue;
     const before = readFileSync(file, "utf8");
     const after = before
@@ -446,11 +438,7 @@ const isColorProp = (name: string) =>
 function propLabel(name: string): string {
   if (LABELS[name]) return LABELS[name];
   const seconds = name.endsWith("Seconds");
-  const words = name
-    .replace(/InFrames$|Seconds$/, "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .toLowerCase();
-  const label = words.charAt(0).toUpperCase() + words.slice(1);
+  const label = humanize(name.replace(/InFrames$|Seconds$/, ""));
   return seconds ? `${label} (seconds)` : label;
 }
 

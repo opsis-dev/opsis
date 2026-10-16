@@ -1,6 +1,6 @@
+import { encodePath, projectRelPath } from "@/shared/asset-ref";
+
 export const fileUrl = (ref: string) =>
-  `demoflow-file://project/${ref
-    .replace(/^project:/, "")
-    .split("/")
-    .map(encodeURIComponent)
-    .join("/")}`;
+  ref.startsWith("app:")
+    ? new URL(ref.slice("app:".length), document.baseURI).href
+    : `demoflow-file://project/${encodePath(projectRelPath(ref))}`;

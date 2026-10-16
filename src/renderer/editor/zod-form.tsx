@@ -64,6 +64,9 @@ import { FontPicker } from "../fonts/font-picker";
 import { fileUrl } from "./file-url";
 import { chordFromEvent } from "./keys";
 import { VarText, type VarInfo } from "./var-text";
+import { humanize } from "@/shared/format";
+import { clamp, clamp01, round3 } from "@/shared/math";
+import { baseName } from "@/shared/asset-ref";
 
 // oxlint-disable-next-line typescript/no-explicit-any
 type AnySchema = z.ZodType<any>;
@@ -96,12 +99,6 @@ function isColor(schema: AnySchema): boolean {
     fieldMeta(schema).widget === "color"
   );
 }
-
-export const humanize = (v: string) =>
-  v
-    .replace(/[_-]+/g, " ")
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/^./, (c) => c.toUpperCase());
 
 function labelFor(key: string, schema: AnySchema): string {
   const d = fieldMeta(schema).description;
@@ -572,7 +569,7 @@ function StringField({
 }
 
 function trimNumber(n: number): string {
-  return String(Math.round(n * 1000) / 1000);
+  return String(round3(n));
 }
 
 function NumberField({
@@ -800,11 +797,6 @@ function EnumField({
 
 const OWN_FILE = "own-file";
 
-function soundUrl(ref: string): string {
-  if (ref.startsWith("app:")) return ref.slice("app:".length);
-  return fileUrl(ref);
-}
-
 function SoundField({
   id,
   name,
@@ -823,7 +815,7 @@ function SoundField({
   ctx: FormContext;
 }) {
   const builtin = builtinSound(value);
-  const ownLabel = value && !builtin ? (value.split("/").pop() ?? value) : "Your own file…";
+  const ownLabel = value && !builtin ? baseName(value) : "Your own file…";
   const items = [
     ...BUILTIN_SOUNDS.map((s) => ({ value: s.ref as string, label: s.label })),
     { value: OWN_FILE, label: ownLabel },
@@ -863,7 +855,7 @@ function SoundField({
           size="icon"
           aria-label="Play sound"
           disabled={!value}
-          onClick={() => void new Audio(soundUrl(value)).play().catch(() => undefined)}
+          onClick={() => void new Audio(fileUrl(value)).play().catch(() => undefined)}
         >
           <Play />
         </Button>
@@ -1067,10 +1059,9 @@ function SpotField({
   const set = (e: React.PointerEvent) => {
     const r = box.current?.getBoundingClientRect();
     if (!r) return;
-    const clamp = (v: number) => Math.min(1, Math.max(0, Math.round(v * 1000) / 1000));
     onPatch({
-      [name]: clamp((e.clientX - r.left) / r.width),
-      [yKey]: clamp((e.clientY - r.top) / r.height),
+      [name]: clamp01(round3((e.clientX - r.left) / r.width)),
+      [yKey]: clamp01(round3((e.clientY - r.top) / r.height)),
     });
   };
   const src = useMemo(() => (bg ? `${bg.src}#t=${(time || bg.timeMs) / 1000}` : null), [bg, time]);
@@ -1112,8 +1103,6 @@ type Box = { x: number; y: number; width: number; height: number };
 type BoxDrag = { mode: "new" | "move"; index: number; x: number; y: number; origin: Box };
 
 const MAX_BOXES = 8;
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const round3 = (v: number) => Math.round(v * 1000) / 1000;
 const boxFrom = (x0: number, y0: number, x1: number, y1: number): Box => ({
   x: round3(Math.min(x0, x1)),
   y: round3(Math.min(y0, y1)),
@@ -1164,8 +1153,8 @@ function BoxesField({
         ? boxFrom(d.x, d.y, x, y)
         : {
             ...d.origin,
-            x: round3(Math.min(1 - d.origin.width, Math.max(0, d.origin.x + x - d.x))),
-            y: round3(Math.min(1 - d.origin.height, Math.max(0, d.origin.y + y - d.y))),
+            x: round3(clamp(d.origin.x + x - d.x, 0, 1 - d.origin.width)),
+            y: round3(clamp(d.origin.y + y - d.y, 0, 1 - d.origin.height)),
           };
     setDraft({ mode: d.mode, index: d.index, box });
   };

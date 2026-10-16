@@ -4,6 +4,7 @@ import { chordGlyphs, type KeyEvent } from "./lib/click-log";
 import { settle } from "./lib/push";
 import { useOverlayFrame } from "../core/frame";
 import { useDesignScale } from "./window-frame";
+import { clamp } from "../../shared/math";
 
 export const KEYCAP_H = 103;
 export const KEYCAP_MIN_W = 216;
@@ -38,8 +39,8 @@ export function keycapAt(
     const outP = KEYCAP_OUT_S > 0 ? (endS - timeS) / KEYCAP_OUT_S : 1;
     return {
       chord: key.chord,
-      inP: Math.min(1, Math.max(0, inP)),
-      outP: Math.min(1, Math.max(0, outP)),
+      inP: clamp(inP, 0, 1),
+      outP: clamp(outP, 0, 1),
     };
   }
   return null;

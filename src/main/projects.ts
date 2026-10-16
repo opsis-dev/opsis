@@ -1,6 +1,5 @@
-import { createHash } from "node:crypto";
 import { existsSync, watch, type FSWatcher } from "node:fs";
-import { copyFile, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { app, dialog, type BrowserWindow } from "electron";
 import type {
@@ -13,19 +12,18 @@ import type {
 import { projectFolderName } from "../shared/project-folder";
 import { PROJECTS_FOLDER_NAME } from "../shared/settings";
 import { patchSettings, readSettings } from "./settings";
-import type { LastRun } from "../shared/schema/values";
 import { WORKFLOW_FILE, workflowSchema, type Workflow } from "../shared/schema/workflow";
 import { getTemplate } from "../shared/templates";
+import { sha256Hex } from "../engine/hash";
+import { atomicWrite, readJson } from "../engine/json";
+import { toPosixRel, readLastRun } from "../engine/project-paths";
+import { debounce } from "../shared/timing";
 
 const recentFile = () => path.join(app.getPath("userData"), "recent-projects.json");
 
 export async function listRecent(): Promise<RecentProject[]> {
-  try {
-    const list = JSON.parse(await readFile(recentFile(), "utf8")) as RecentProject[];
-    return list.filter((p) => existsSync(path.join(p.dir, WORKFLOW_FILE)));
-  } catch {
-    return [];
-  }
+  const list = await readJson<RecentProject[]>(recentFile());
+  return Array.isArray(list) ? list.filter((p) => existsSync(path.join(p.dir, WORKFLOW_FILE))) : [];
 }
 
 async function touchRecent(dir: string, name: string): Promise<void> {
@@ -34,18 +32,6 @@ async function touchRecent(dir: string, name: string): Promise<void> {
   await mkdir(path.dirname(recentFile()), { recursive: true });
   await writeFile(recentFile(), JSON.stringify(list.slice(0, 20), null, 2));
 }
-
-async function readLastRunFile(dir: string): Promise<LastRun | null> {
-  try {
-    return JSON.parse(
-      await readFile(path.join(dir, ".demoflow", "last-run.json"), "utf8"),
-    ) as LastRun;
-  } catch {
-    return null;
-  }
-}
-
-export { readLastRunFile as readLastRun };
 
 export async function projectsDir(): Promise<string> {
   const { projects } = await readSettings();
@@ -74,7 +60,7 @@ export async function chooseFolder(
   return res.canceled || !res.filePaths[0] ? null : res.filePaths[0];
 }
 
-const versionOf = (text: string) => createHash("sha256").update(text).digest("hex").slice(0, 16);
+const versionOf = (text: string) => sha256Hex(text, 16);
 
 const written = new Map<string, string>();
 
@@ -112,7 +98,7 @@ export async function openProjectDir(
   return {
     dir: target,
     workflow,
-    lastRun: await readLastRunFile(target),
+    lastRun: await readLastRun(target),
     version: file.version,
   };
 }
@@ -157,12 +143,10 @@ export async function saveWorkflowFile(
     if (current && current.version !== base) return conflict(current);
   }
   const file = path.join(dir, WORKFLOW_FILE);
-  const tmp = `${file}.tmp`;
   const text = `${JSON.stringify(valid, null, 2)}\n`;
   const version = versionOf(text);
   written.set(dir, version);
-  await writeFile(tmp, text);
-  await rename(tmp, file);
+  await atomicWrite(file, text);
   await touchRecent(dir, valid.name);
   return { ok: true, version };
 }
@@ -181,7 +165,6 @@ function conflict(current: { text: string; version: string }): SaveResult {
 
 let watcher: FSWatcher | null = null;
 let watchedDir: string | null = null;
-let settle: ReturnType<typeof setTimeout> | null = null;
 
 export function watchProject(
   dir: string | null,
@@ -205,11 +188,10 @@ export function watchProject(
       return;
     }
   };
+  const checkSoon = debounce(() => void check(), 150);
   try {
     watcher = watch(dir, (_event, name) => {
-      if (name !== WORKFLOW_FILE) return;
-      if (settle) clearTimeout(settle);
-      settle = setTimeout(() => void check(), 150);
+      if (name === WORKFLOW_FILE) checkSoon();
     });
   } catch {
     watcher = null;
@@ -265,7 +247,7 @@ export async function importAssets(
   for (const file of files) {
     const relInProject = path.relative(dir, file);
     if (!relInProject.startsWith("..") && !path.isAbsolute(relInProject)) {
-      out.push(relInProject.split(path.sep).join("/"));
+      out.push(toPosixRel(dir, file));
       continue;
     }
     let name = path.basename(file);

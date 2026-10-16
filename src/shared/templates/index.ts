@@ -1,5 +1,6 @@
 import type { Workflow } from "../schema/workflow";
 import { GraphBuilder } from "./build";
+import { randomId } from "../ids";
 
 export type TemplateInfo = {
   id: string;
@@ -7,8 +8,6 @@ export type TemplateInfo = {
   description: string;
   build: (name: string) => Workflow;
 };
-
-const id = () => `wf_${Math.random().toString(36).slice(2, 10)}`;
 
 export function todoMvcSample(name = "TodoMVC demo"): Workflow {
   const g = new GraphBuilder();
@@ -138,7 +137,7 @@ export function todoMvcSample(name = "TodoMVC demo"): Workflow {
   });
 
   return g.build({
-    id: id(),
+    id: randomId("wf"),
     name,
     variables: { "Site address": "https://demo.playwright.dev/todomvc" },
   });
@@ -178,7 +177,7 @@ function featureLaunch(name: string): Workflow {
   const out = g.node("render", "output.render", 5, 2);
   g.link(seq, out, "clip", "timeline");
   return g.build({
-    id: id(),
+    id: randomId("wf"),
     name,
     variables: { "Site address": "https://example.com", "Product name": "Acme" },
   });
@@ -207,7 +206,11 @@ function changelogClip(name: string): Workflow {
     .link(chartScene, seq, "clip", "in3");
   const out = g.node("render", "output.render", 4, 1, { variants: ["16:9", "1:1"] });
   g.link(seq, out, "clip", "timeline");
-  return g.build({ id: id(), name, variables: { "Product name": "Acme", Version: "v2.4" } });
+  return g.build({
+    id: randomId("wf"),
+    name,
+    variables: { "Product name": "Acme", Version: "v2.4" },
+  });
 }
 
 function onboarding(name: string): Workflow {
@@ -256,7 +259,7 @@ function onboarding(name: string): Workflow {
   const out = g.node("render", "output.render", 8, 3);
   g.link(caps, out, "clip", "timeline");
   return g.build({
-    id: id(),
+    id: randomId("wf"),
     name,
     variables: { "Site address": "https://demo.playwright.dev/todomvc" },
   });
@@ -288,7 +291,7 @@ function socialTeaser(name: string): Workflow {
   const out = g.node("render", "output.render", 6, 2, { variants: ["9:16"], reframe: "follow" });
   g.link(mix, out, "clip", "timeline");
   return g.build({
-    id: id(),
+    id: randomId("wf"),
     name,
     settings: { width: 1080, height: 1920 },
     variables: { "Site address": "https://demo.playwright.dev/todomvc" },
@@ -319,7 +322,7 @@ function beforeAfter(name: string): Workflow {
   const out = g.node("render", "output.render", 6, 1);
   g.link(wipe, out, "clip", "timeline");
   return g.build({
-    id: id(),
+    id: randomId("wf"),
     name,
     variables: { "Before address": "https://example.com", "After address": "https://example.org" },
   });
@@ -330,7 +333,7 @@ function blank(name: string): Workflow {
   g.node("note", "core.note", 0, 0, {
     text: "Drag nodes in from the list on the left, or press Ctrl+K.",
   });
-  return g.build({ id: id(), name });
+  return g.build({ id: randomId("wf"), name });
 }
 
 export const TEMPLATES: TemplateInfo[] = [

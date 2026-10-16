@@ -5,12 +5,14 @@ import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, typedBeats } from "../camera/action-log";
 import { DemoClip } from "../camera/demo-clip";
 import { KeycapHUD } from "../camera/keycap-hud";
-import { clamp as clampN } from "../camera/lib/camera";
+import { clamp as clampN } from "../../shared/math";
 import { resolvePreset } from "../camera/lib/style";
 import { poseAt } from "../camera/lib/zoom";
 import { DesignWidthContext } from "../camera/window-frame";
 import { clamp } from "./anim";
-import { containBox, useOverlayFrame, zoomBoost } from "./frame";
+import { useOverlayFrame, zoomBoost } from "./frame";
+import { containBox } from "./still-layout";
+import { displayAddress } from "../../shared/format";
 
 export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const fast = useQuality() === "fast";
@@ -171,11 +173,5 @@ const TypedChip: React.FC<{
 
 function pageAddress(log: RecordingProps["log"]): string | undefined {
   const url = log.actions.find((a) => a.kind === "navigate")?.label;
-  if (!url) return undefined;
-  try {
-    const u = new URL(url);
-    return `${u.host}${u.pathname === "/" ? "" : u.pathname}`;
-  } catch {
-    return url;
-  }
+  return url ? displayAddress(url) : undefined;
 }

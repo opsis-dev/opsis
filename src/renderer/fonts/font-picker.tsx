@@ -15,6 +15,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import { useWorkflowStore } from "../store/workflow";
 import { registerPreview, useFontLibrary } from "./library";
+import { errorMessage } from "@/shared/errors";
 
 function FontName({ def, name }: { def?: FontFamilyDef; name: string }) {
   const family = def ? registerPreview(def) : undefined;
@@ -75,7 +76,7 @@ export function FontPicker({
       });
       onChange(def.family);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error));
+      toast.error(errorMessage(error));
     } finally {
       setBusy(false);
     }

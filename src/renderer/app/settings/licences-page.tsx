@@ -19,6 +19,7 @@ import {
 } from "@/renderer/components/ui/collapsible";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { fontFileUrl } from "../../fonts/library";
+import { errorMessage } from "@/shared/errors";
 
 function LicenceText({ load }: { load: () => Promise<string> }) {
   const [text, setText] = useState<string | null>(null);
@@ -67,7 +68,7 @@ function Row({
           onClick={() =>
             void window.demoflow.openLicenceFile(file).catch((e: unknown) =>
               toast.error("Couldn't open the licence file", {
-                description: e instanceof Error ? e.message : String(e),
+                description: errorMessage(e),
               }),
             )
           }

@@ -22,7 +22,7 @@ import type {
   uploadNode,
   waitNode,
 } from "../../shared/nodes/browser";
-import { getNodeDef } from "../../shared/nodes/registry";
+import { getNodeDef, nodeName } from "../../shared/nodes/registry";
 import type { LiveEvent } from "../../shared/live";
 import type { Action, ActionLog } from "../../shared/schema/actions";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
@@ -39,6 +39,7 @@ import {
   type SessionParams,
 } from "./session";
 import type { FrameEncoder } from "./encoder";
+import { errorMessage } from "../../shared/errors";
 
 export type TakeMode = "record" | "still" | "check";
 
@@ -120,7 +121,7 @@ export function plainError(
   node: WorkflowNode,
   vars: Record<string, string>,
 ): string {
-  const text = stripVTControlCharacters(error instanceof Error ? error.message : String(error));
+  const text = stripVTControlCharacters(errorMessage(error));
   const timeout = /Timeout (\d+)ms exceeded/.exec(text);
   const target = (interpolate(node.params ?? {}, vars) as { target?: unknown }).target;
   const what =
@@ -160,7 +161,7 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
   const steps = chain.slice(1).filter((n) => !n.disabled);
 
   const live = opts.live ?? null;
-  const label = (n: WorkflowNode) => n.label || getNodeDef(n.type)?.title || n.type;
+  const label = nodeName;
   opts.step(head.id, "start");
   const session = await openSession(sessionParams, {
     storageState: opts.storageState,
@@ -594,7 +595,7 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
     live?.event({
       kind: "end",
       ok: false,
-      message: error instanceof Error ? error.message : String(error),
+      message: errorMessage(error),
     });
     throw error;
   } finally {
@@ -603,7 +604,9 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
     if (screencasting)
       await page.screencast
         .stop()
-        .catch((e: unknown) => opts.log("warn", `The recording didn't stop cleanly: ${String(e)}`));
+        .catch((e: unknown) =>
+          opts.log("warn", `The recording didn't stop cleanly: ${errorMessage(e)}`),
+        );
     if (opts.encoder) {
       if (signal.aborted) await opts.encoder.abort();
       else {
@@ -615,7 +618,7 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
     if (opts.tracePath)
       await session.context.tracing
         .stop({ path: opts.tracePath })
-        .catch((e: unknown) => opts.log("warn", `Couldn't save the trace: ${String(e)}`));
+        .catch((e: unknown) => opts.log("warn", `Couldn't save the trace: ${errorMessage(e)}`));
     signal.removeEventListener("abort", onAbort);
     await session.close();
   }

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { clamp } from "@/shared/math";
 
 export type PlayerController = {
   seek: (frame: number) => void;
@@ -60,8 +61,8 @@ const dispatch = (command: PlaybackCommand) => {
   else remote?.(command);
 };
 
-const clamp = (frame: number, total: number) =>
-  Math.max(0, Math.min(Math.max(0, total - 1), Math.round(frame)));
+const frameIn = (frame: number, total: number) =>
+  clamp(Math.round(frame), 0, Math.max(0, total - 1));
 
 export const usePlayback = create<PlaybackState>()((set, get) => ({
   frame: 0,
@@ -74,7 +75,7 @@ export const usePlayback = create<PlaybackState>()((set, get) => ({
   hasPlayer: false,
   report: (patch) => set(patch),
   seek: (frame) => {
-    const f = clamp(frame, get().durationInFrames);
+    const f = frameIn(frame, get().durationInFrames);
     set({ frame: f });
     dispatch({ type: "seek", frame: f });
   },
@@ -100,7 +101,7 @@ export const usePlayback = create<PlaybackState>()((set, get) => ({
       return;
     }
     const same = playing && Math.sign(rate) === direction;
-    const next = same ? Math.max(-4, Math.min(4, rate * 2)) : direction;
+    const next = same ? clamp(rate * 2, -4, 4) : direction;
     set({ rate: next });
     dispatch({ type: "rate", rate: next });
     if (!playing) dispatch({ type: "play" });

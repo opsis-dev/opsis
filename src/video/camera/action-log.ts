@@ -1,7 +1,13 @@
 import type { Action, ActionLog } from "../../shared/schema/actions";
 import type { AnnotationSpec } from "../../shared/compile/recording";
 import { POINTER_KINDS } from "../../shared/compile/recording";
-import { chordGlyphs, type ClickEvent, type ClickLog, type KeyEvent } from "./lib/click-log";
+import {
+  chordGlyphs,
+  defaultTargetRect,
+  type ClickEvent,
+  type ClickLog,
+  type KeyEvent,
+} from "./lib/click-log";
 import type { Annotation } from "./annotations";
 
 export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = []): ClickLog {
@@ -64,8 +70,9 @@ function dragEvents(a: Action, vp: { width: number; height: number }): ClickEven
     ...(a.zoomScale ? { zoomScale: a.zoomScale } : {}),
     ...(a.path ? { path: a.path } : {}),
   };
-  const pick = a.rect ?? { x: point.x - 60, y: point.y - 24, w: 120, h: 48 };
-  const drop = a.drop ?? { x: point.x - 60, y: point.y - 24, w: 120, h: 48 };
+  const fallback = defaultTargetRect(point, vp.width);
+  const pick = a.rect ?? fallback;
+  const drop = a.drop ?? fallback;
   const both = union(pick, drop);
   if (both.w <= vp.width * DRAG_FIT_FRACTION && both.h <= vp.height * DRAG_FIT_FRACTION) {
     return [

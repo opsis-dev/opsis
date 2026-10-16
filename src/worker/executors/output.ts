@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, rename, utimes, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Codec } from "@remotion/renderer";
-import { mapItems, msToFrames } from "../../shared/compile/clip";
+import { mapItems } from "../../shared/compile/clip";
 import {
   exportProjectNode,
   renderNode,
@@ -29,13 +29,15 @@ import {
   filmChapters,
   MIN_LISTED_CHAPTERS,
 } from "../../shared/timeline/chapters";
-import { refToPath, slug } from "./util";
+import { refToPath } from "./util";
 import { buildMixPlan, hasSound } from "../../shared/mix/plan";
 import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
 import { renderMix } from "../mix/render";
+import { toPosixRel } from "../../engine/project-paths";
+import { msToFrames } from "../../shared/timeline/time";
+import { slugify } from "../../shared/project-folder";
 
-const relativePath = (ctx: ExecutorContext, file: string) =>
-  path.relative(ctx.projectDir, file).split(path.sep).join("/");
+const relativePath = (ctx: ExecutorContext, file: string) => toPosixRel(ctx.projectDir, file);
 
 function specFor(ctx: ExecutorContext): TimelineSpec {
   const result = ctx.compile();
@@ -119,7 +121,7 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
   const { serveUrl, server } = await prepare(ctx);
   const artifacts: Artifact[] = [];
   const ext = CODEC_EXT[p.codec];
-  const base = slug(p.fileName);
+  const base = slugify(p.fileName, "output");
   const chapters = p.codec === "gif" ? [] : filmChapters(spec);
   const chapterFile = p.chapters && chapters.length ? path.join(ctx.dir, "chapters.txt") : null;
   if (chapterFile) await writeFile(chapterFile, chapterMetadata(chapters));
@@ -213,14 +215,14 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
       const size = STILL_PRESETS[preset];
       const out = path.join(
         ctx.outDir,
-        `${slug(ctx.vars["Project name"])}-${preset}.${p.format === "jpeg" ? "jpg" : "png"}`,
+        `${slugify(ctx.vars["Project name"], "output")}-${preset}.${p.format === "jpeg" ? "jpg" : "png"}`,
       );
       ctx.progress(0.2 + 0.8 * (i / p.presets.length), `Still ${preset}`);
       await renderFrame({
         env: ctx.env,
         serveUrl,
         spec: { ...spec, ...size, reframe: "follow", assets: { projectBase: server.url } },
-        frame: msToFrames(p.atMs, spec.fps),
+        frame: msToFrames(p.atMs, spec.fps, 0),
         output: out,
         format: p.format,
         gl: p.gl,
@@ -228,7 +230,7 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
       });
       artifacts.push({
         kind: "image",
-        path: path.relative(ctx.projectDir, out).split(path.sep).join("/"),
+        path: relativePath(ctx, out),
         label: preset,
       });
     }
@@ -259,7 +261,7 @@ function sourceDirs(ctx: ExecutorContext) {
 
 export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ctx, _inputs, p) => {
   const spec = await mixed(ctx, specFor(ctx), 0, 0.3);
-  const dir = path.join(ctx.outDir, slug(p.folderName));
+  const dir = path.join(ctx.outDir, slugify(p.folderName, "output"));
   const src = sourceDirs(ctx);
   if (!existsSync(src.video)) throw new Error("This copy of Demoflow can't export code.");
   await mkdir(path.join(dir, "src", "renderer", "lib"), { recursive: true });
@@ -319,7 +321,7 @@ export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ct
     path.join(dir, "package.json"),
     JSON.stringify(
       {
-        name: slug(p.folderName),
+        name: slugify(p.folderName, "output"),
         private: true,
         type: "module",
         scripts: {
@@ -380,7 +382,7 @@ export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ct
     path.join(dir, "README.md"),
     `# ${p.folderName}\n\nExported from Demoflow. Edit \`src/timeline.json\` or the components in \`src/video\`, then:\n\n\`\`\`sh\nbun install\nbun run studio\n\`\`\`\n`,
   );
-  const relDir = path.relative(ctx.projectDir, dir).split(path.sep).join("/");
+  const relDir = relativePath(ctx, dir);
   return {
     outputs: { file: { type: "file", src: `project:${relDir}` } },
     artifacts: [{ kind: "file", path: relDir, label: "Remotion project" }],

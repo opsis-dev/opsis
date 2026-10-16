@@ -19,6 +19,8 @@ import {
   hasPrebuiltRemotionBundle,
 } from "./bundle";
 import { getCompositorPackage } from "./compositor-package";
+import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";
+import { clamp } from "../../shared/math";
 
 export type GlRenderer = "angle" | "swangle" | "egl" | "vulkan" | "swiftshader" | "angle-egl";
 
@@ -40,8 +42,7 @@ export function binariesDirectory(env: WorkerEnv): string | null {
 
 export function browserExecutable(env: WorkerEnv): string {
   const shell = enginePaths(env.engineDir).headlessShell;
-  if (!existsSync(shell))
-    throw new Error("The video engine isn't set up yet. Set it up in Settings → Engine.");
+  if (!existsSync(shell)) throw new Error(ENGINE_MISSING_MESSAGE);
   return shell;
 }
 
@@ -142,7 +143,7 @@ export async function renderFrame(opts: {
     await renderStill({
       ...shared,
       composition,
-      frame: Math.min(composition.durationInFrames - 1, Math.max(0, opts.frame)),
+      frame: clamp(opts.frame, 0, composition.durationInFrames - 1),
       output: opts.output,
       imageFormat: opts.format,
       scale: opts.scale,

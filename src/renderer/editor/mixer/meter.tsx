@@ -1,10 +1,10 @@
 import { cn } from "@/renderer/lib/utils";
+import { clamp } from "@/shared/math";
 
 export const METER_MIN = -60;
 export const METER_MAX = 6;
 
-const toPct = (db: number) =>
-  Math.max(0, Math.min(1, (db - METER_MIN) / (METER_MAX - METER_MIN))) * 100;
+const toPct = (db: number) => clamp((db - METER_MIN) / (METER_MAX - METER_MIN), 0, 1) * 100;
 
 export function Meter({
   peak,
@@ -74,7 +74,7 @@ export function levelAt(
   holdFrames: number,
 ): { peak: number | null; rms: number | null; hold: number | null } {
   if (!levels || levels.peak.length === 0) return { peak: null, rms: null, hold: null };
-  const f = Math.max(0, Math.min(levels.peak.length - 1, Math.round(frame)));
+  const f = clamp(Math.round(frame), 0, levels.peak.length - 1);
   let hold = -120;
   for (let i = Math.max(0, f - holdFrames); i <= f; i++) hold = Math.max(hold, levels.peak[i]);
   return { peak: levels.peak[f], rms: levels.rms[f], hold };

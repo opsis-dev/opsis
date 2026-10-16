@@ -54,6 +54,15 @@ describe("graph", () => {
     expect(loginDependencies(todoMvcSample(), "record", {})).toEqual([]);
   });
 
+  it("matches sign-in names the way they are saved", () => {
+    const g = new GraphBuilder();
+    const s = g.node("s", "browser.session", 0, 0, { storageState: " default " });
+    const rec = g.node("rec", "capture.record", 1, 0);
+    g.chain([s, rec]);
+    g.node("login", "capture.loginOnce", 0, 1, { secretName: "" });
+    expect(loginDependencies(g.build({ id: "x", name: "x" }), "rec", {})).toEqual(["login"]);
+  });
+
   it("runs every export and the steps that come after one", () => {
     const g = new GraphBuilder();
     const title = g.node("title", "fx.core.title", 0, 0);

@@ -1,11 +1,12 @@
 import { z } from "zod";
-import { emptyClip, isClip, itemClip, msToFrames, stackClips } from "../compile/clip";
+import { emptyClip, isClip, itemClip, stackClips } from "../compile/clip";
 import { getElementMeta } from "../elements";
 import type { CaptionsValue } from "../schema/values";
 import { clip as clipText, quote, row } from "./card";
 import { defineNode, opt, port } from "./define";
 import { ms, text } from "./params";
 import { fontStack } from "../fonts";
+import { msToFrames } from "../timeline/time";
 
 export const captionsFromTextNode = defineNode({
   type: "text.captionsFromText",

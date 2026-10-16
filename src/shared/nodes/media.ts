@@ -1,10 +1,13 @@
 import { z } from "zod";
-import { itemClip, msToFrames } from "../compile/clip";
+import { itemClip } from "../compile/clip";
 import { projectRef } from "../elements/introspect";
 import type { CompileValue, MediaValue } from "../schema/values";
-import { row, secs, type CardRow } from "./card";
+import { row, type CardRow } from "./card";
 import { defineNode, opt, port, type NodeDef } from "./define";
 import { asset, bool, choice, MAX_SPEED, more, ms, quality, text, visualEnvelope } from "./params";
+import { formatDuration } from "../format";
+import { msToFrames } from "../timeline/time";
+import { baseName } from "../asset-ref";
 
 const base = { category: "Media", phase: "media", executes: true } as const;
 const one = {
@@ -15,7 +18,7 @@ const NEW_FILE = " Makes a new file.";
 
 const lengthRow = (result?: { outputs: Record<string, CompileValue> }): CardRow | null => {
   const m = result?.outputs.media as MediaValue | undefined;
-  return m?.durationMs ? row("clock", secs(m.durationMs)) : null;
+  return m?.durationMs ? row("clock", formatDuration(m.durationMs)) : null;
 };
 const QUALITY_NAMES: Array<[number, string]> = [
   [12, "Max"],
@@ -60,7 +63,7 @@ export const importMediaNode = defineNode({
   outputs: { media: port("media", "File"), clip: port("clip", "Clip") },
   card: ({ params: p, result }) => [
     p.path
-      ? row("file-video", p.path.split("/").pop() ?? p.path, { title: p.path })
+      ? row("file-video", baseName(p.path), { title: p.path })
       : row("file-video", "Choose a file", { tone: "warn" }),
     lengthRow(result),
   ],
@@ -161,7 +164,9 @@ export const mediaNodes: NodeDef[] = [
     card: ({ params: p, result }) => [
       row(
         "scissors",
-        p.endMs ? `${secs(p.startMs)} → ${secs(p.endMs)}` : `From ${secs(p.startMs)} to the end`,
+        p.endMs
+          ? `${formatDuration(p.startMs)} → ${formatDuration(p.endMs)}`
+          : `From ${formatDuration(p.startMs)} to the end`,
       ),
       lengthRow(result),
     ],
@@ -397,7 +402,7 @@ export const mediaNodes: NodeDef[] = [
     description: "Saves one frame of a video as an image." + NEW_FILE,
     inputs: { media: port("media", "File") },
     outputs: { image: port("image", "Image") },
-    card: ({ params: p }) => [row("image", `At ${secs(p.atMs)} · ${p.width} px`)],
+    card: ({ params: p }) => [row("image", `At ${formatDuration(p.atMs)} · ${p.width} px`)],
     params: z.object({
       atMs: ms(1000, "At"),
       width: z
@@ -430,7 +435,7 @@ export const mediaNodes: NodeDef[] = [
       const m = result?.outputs.media as MediaValue | undefined;
       return [
         m?.durationMs
-          ? row("info", secs(m.durationMs))
+          ? row("info", formatDuration(m.durationMs))
           : row("info", "Run to read the file", { tone: "muted" }),
       ];
     },

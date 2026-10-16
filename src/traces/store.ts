@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -7,6 +6,7 @@ import { unzipSync } from "fflate";
 import type { AppSettings } from "../shared/settings";
 import type { TraceModel } from "../shared/trace";
 import { parseTrace } from "./model";
+import { sha256Hex } from "../engine/hash";
 
 export type TraceEntry = { name: string; sha: string; zstd: boolean; size: number };
 
@@ -41,7 +41,7 @@ export async function ingestTrace(
   const files = unzipSync(new Uint8Array(await readFile(zipFile)));
   const entries: TraceEntry[] = [];
   for (const [name, data] of Object.entries(files)) {
-    const sha = createHash("sha256").update(data).digest("hex");
+    const sha = sha256Hex(data);
     const entry: TraceEntry = { name, sha, zstd: !BINARY.test(name), size: data.length };
     const file = path.join(root, blobRel(entry));
     if (!existsSync(file)) {

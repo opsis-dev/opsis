@@ -2,9 +2,10 @@ import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { safeStorage } from "electron";
+import { secretFileName } from "../shared/secrets";
 
 const fileFor = (projectDir: string, name: string) =>
-  path.join(projectDir, "secrets", `${name.replace(/[^\w.-]+/g, "-")}.json.enc`);
+  path.join(projectDir, "secrets", `${secretFileName(name)}.json.enc`);
 
 export async function writeSecret(projectDir: string, name: string, value: string): Promise<void> {
   const dir = path.join(projectDir, "secrets");

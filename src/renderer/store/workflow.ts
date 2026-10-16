@@ -9,6 +9,7 @@ import type {
   WorkflowSettings,
 } from "@/shared/schema/workflow";
 import { defaultMix, type Mix } from "@/shared/mix/types";
+import { randomId } from "@/shared/ids";
 
 export type WorkflowState = {
   projectDir: string | null;
@@ -68,8 +69,6 @@ export function mirrorEditsTo(send: ((message: RemoteEdit) => void) | null): voi
 }
 
 export const isGestureActive = () => gestureDepth > 0;
-
-export const newId = (prefix = "n") => `${prefix}_${Math.random().toString(36).slice(2, 9)}`;
 
 const bump = (s: WorkflowState) => ({ revision: s.revision + 1 });
 
@@ -145,7 +144,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
 
       addNode: (type, position, params) => {
         const def = getNodeDef(type);
-        const id = newId(type.split(".")[0]);
+        const id = randomId(type.split(".")[0]);
         const node: WorkflowNode = {
           id,
           type,
@@ -246,7 +245,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
       rename: (name) => get().update((wf) => ({ ...wf, name })),
 
       paste: (nodes, edges, offset) => {
-        const map = new Map(nodes.map((n) => [n.id, newId(n.type.split(".")[0])]));
+        const map = new Map(nodes.map((n) => [n.id, randomId(n.type.split(".")[0])]));
         const fresh = nodes.map((n) => ({
           ...n,
           id: map.get(n.id)!,
@@ -286,7 +285,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
         const y = Math.min(...ys) - pad - 24;
         const width = Math.max(...xs) - x + 260 + pad;
         const height = Math.max(...ys) - y + 140 + pad;
-        const groupId = newId("group");
+        const groupId = randomId("group");
         get().update((w) => ({
           ...w,
           nodes: [

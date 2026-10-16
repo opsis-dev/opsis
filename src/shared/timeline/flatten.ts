@@ -11,6 +11,7 @@ import type {
   TimelineSpec,
   TimelineTrack,
 } from "../schema/timeline";
+import { clamp } from "../math";
 
 type Side = "start" | "end";
 
@@ -150,7 +151,7 @@ function groupInstances(item: TimelineItem, parent: Instance, absFrom: number, a
     ];
   }
   const maxR = remap ? remapFrame(remap, dur) : dur;
-  const count = Math.min(MAX_LOOPS, Math.max(1, Math.ceil(maxR / loop)));
+  const count = clamp(Math.ceil(maxR / loop), 1, MAX_LOOPS);
   return Array.from({ length: count }, (_, k) => {
     const start = toOuter(inv(k * loop, "start"), "start");
     const end = toOuter(inv((k + 1) * loop, "end"), "end");

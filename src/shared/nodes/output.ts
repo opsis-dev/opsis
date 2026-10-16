@@ -3,9 +3,10 @@ import { clipToSpec, isClip } from "../compile/clip";
 import type { CompileValue, MediaValue, TimelineValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import type { Artifact } from "../schema/values";
-import { bytes, row, secs } from "./card";
+import { row } from "./card";
 import { defineNode, port } from "./define";
 import { bool, choice, more, ms, quality, text } from "./params";
+import { formatDuration, formatBytes } from "../format";
 
 const GL_LABELS = {
   angle: "Graphics card",
@@ -100,8 +101,8 @@ export const renderNode = defineNode({
     return [
       row("ratio", p.variants.join(" + ")),
       row("film", `${FORMAT_NAMES[p.codec] ?? p.codec} · ${short}p · ${settings.fps} fps`),
-      media?.durationMs && row("clock", secs(media.durationMs)),
-      size > 0 && row("hard-drive", bytes(size)),
+      media?.durationMs && row("clock", formatDuration(media.durationMs)),
+      size > 0 && row("hard-drive", formatBytes(size)),
     ];
   },
   params: z.object({
@@ -161,7 +162,7 @@ export const stillOutputNode = defineNode({
   outputs: { image: port("image", "Image") },
   card: ({ params: p }) => [
     row("image", p.presets.map((k) => STILL_NAMES[k] ?? k).join(" · ")),
-    row("clock", `At ${secs(p.atMs)} · ${p.format.toUpperCase()}`),
+    row("clock", `At ${formatDuration(p.atMs)} · ${p.format.toUpperCase()}`),
   ],
   params: z.object({
     atMs: ms(1000, "Frame at"),

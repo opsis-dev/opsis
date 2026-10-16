@@ -4,6 +4,7 @@ import { refToPath } from "../executors/util";
 import { renderMix } from "../mix/render";
 import { analyzeFilmstrip, analyzeWaveform } from "./analysis";
 import { createFfmpegTools } from "./ffmpeg";
+import { errorMessage } from "../../shared/errors";
 
 export async function runAnalysis(
   env: WorkerEnv,
@@ -25,6 +26,6 @@ export async function runAnalysis(
         return { kind: "mix", mix: await renderMix(request.plan, deps) };
     }
   } catch (error) {
-    return { kind: "error", error: error instanceof Error ? error.message : String(error) };
+    return { kind: "error", error: errorMessage(error) };
   }
 }

@@ -9,6 +9,8 @@ type AppSettingsState = {
 
 export const useAppSettings = create<AppSettingsState>()(() => ({ settings: null, api: null }));
 
+export const liveAutoOpen = () => useAppSettings.getState().settings?.live.autoOpen ?? true;
+
 let started = false;
 
 export function watchAppSettings(): void {

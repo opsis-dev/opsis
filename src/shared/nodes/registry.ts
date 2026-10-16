@@ -41,6 +41,9 @@ if (byType.size !== NODE_DEFS.length) {
 
 export const getNodeDef = (type: string): NodeDef | undefined => byType.get(type);
 
+export const nodeName = (node: { label?: string; type: string }): string =>
+  node.label?.trim() || getNodeDef(node.type)?.title || node.type;
+
 export function defaultParams(type: string): Record<string, unknown> {
   const def = getNodeDef(type);
   if (!def) return {};

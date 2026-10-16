@@ -95,7 +95,7 @@ export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<DemoflowF
             <NodeIcon name={def.icon} className="size-3.5" />
           </span>
           <BaseNodeHeaderTitle className="truncate text-sm">
-            {node.label || def.title}
+            {node.label?.trim() || def.title}
           </BaseNodeHeaderTitle>
           {badge && status !== "running" ? (
             <Badge

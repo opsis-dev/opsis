@@ -1,7 +1,6 @@
-import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { app, screen, type BrowserWindow, type Rectangle } from "electron";
+import type { BrowserWindow, Rectangle } from "electron";
 import type { SettingsPage } from "../shared/ipc";
+import { isVisible, loadBounds, rememberBounds, saveBounds } from "./window-bounds";
 
 export type SettingsWindowHost = {
   create: (options: {
@@ -19,19 +18,11 @@ export type SettingsWindowHost = {
 let host: SettingsWindowHost | null = null;
 let win: BrowserWindow | null = null;
 
-const boundsFile = () => path.join(app.getPath("userData"), "settings-window.json");
+const BOUNDS_FILE = "settings-window.json";
 
 async function savedBounds(): Promise<Rectangle | undefined> {
-  try {
-    const rect = JSON.parse(await readFile(boundsFile(), "utf8")) as Rectangle;
-    const shown = screen.getAllDisplays().some((d) => {
-      const a = d.workArea;
-      return rect.x < a.x + a.width - 40 && rect.x + rect.width > a.x + 40 && rect.y >= a.y - 20;
-    });
-    return shown ? rect : undefined;
-  } catch {
-    return undefined;
-  }
+  const rect = await loadBounds<Rectangle>(BOUNDS_FILE);
+  return rect && isVisible(rect) ? rect : undefined;
 }
 
 export function initSettingsWindow(next: SettingsWindowHost): void {
@@ -62,13 +53,7 @@ export async function openSettingsWindow(page?: SettingsPage): Promise<void> {
     title: "Settings — Demoflow",
   });
   win = created;
-  const remember = () => {
-    if (!created.isDestroyed() && !created.isMinimized() && !created.isMaximized())
-      void writeFile(boundsFile(), JSON.stringify(created.getBounds())).catch(() => undefined);
-  };
-  created.on("resized", remember);
-  created.on("moved", remember);
-  created.on("close", remember);
+  rememberBounds(created, (rect) => saveBounds(BOUNDS_FILE, rect));
   created.on("closed", () => {
     if (win === created) win = null;
   });

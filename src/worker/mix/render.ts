@@ -1,6 +1,5 @@
-import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { stableJson } from "../../shared/hash";
 import {
@@ -17,6 +16,10 @@ import { channelKey, hasSound, type MixPlan } from "../../shared/mix/plan";
 import type { Loudness, MixResult, StemLevels } from "../../shared/mix/result";
 import type { FfmpegTools } from "../media/ffmpeg";
 import { frameLevels, readWav } from "./wav";
+import { errorMessage } from "../../shared/errors";
+import { sha256Hex } from "../../engine/hash";
+import { readJson } from "../../engine/json";
+import { toProjectRef } from "../../engine/project-paths";
 
 export const MIX_VERSION = "demoflow-mix/1";
 const KEEP_PLANS = 12;
@@ -31,13 +34,7 @@ export type MixDeps = {
 
 export const mixDir = (projectDir: string) => path.join(projectDir, ".demoflow", "cache", "mix");
 
-const sha = (value: unknown) =>
-  createHash("sha256")
-    .update(MIX_VERSION)
-    .update("\0")
-    .update(stableJson(value))
-    .digest("hex")
-    .slice(0, 24);
+const sha = (value: unknown) => sha256Hex(`${MIX_VERSION}\0${stableJson(value)}`, 24);
 
 async function identity(file: string): Promise<string> {
   try {
@@ -49,14 +46,6 @@ async function identity(file: string): Promise<string> {
 }
 
 type Stem = { hash: string; file: string; levels: StemLevels; reduction: number[] | null };
-
-async function readJson<T>(file: string): Promise<T | null> {
-  try {
-    return JSON.parse(await readFile(file, "utf8")) as T;
-  } catch {
-    return null;
-  }
-}
 
 async function runStem(
   deps: MixDeps,
@@ -176,7 +165,7 @@ export function parseEbur128(lines: string[], fps: number, frames: number): Loud
 }
 
 export function friendlyMixError(error: unknown): Error {
-  const text = error instanceof Error ? error.message : String(error);
+  const text = errorMessage(error);
   if (/cancel/i.test(text)) return new Error("Cancelled");
   const missing =
     /Error opening input file .*?([^/\\]+?)\.?$/m.exec(text) ??
@@ -280,7 +269,7 @@ async function renderMixStems(plan: MixPlan, deps: MixDeps): Promise<MixResult> 
   return {
     key: plan.key,
     master: {
-      src: `project:${path.relative(deps.projectDir, master.file).split(path.sep).join("/")}`,
+      src: toProjectRef(deps.projectDir, master.file),
       hash: master.hash,
     },
     levels: {

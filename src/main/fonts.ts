@@ -12,6 +12,7 @@ import type {
   InspectedFamily,
 } from "../shared/ipc";
 import { familyNameFrom, planFontFiles, type FontCandidate } from "../shared/fonts/plan";
+import { readJson } from "../engine/json";
 
 const FONT_EXT = /\.(woff2|woff|ttf|otf)$/i;
 const LICENSE_NAME = /(^|\/)(licen[cs]e|ofl|ffl|copying)[^/]*$/i;
@@ -33,15 +34,11 @@ type Pending = {
 const pending = new Map<string, Pending>();
 
 export async function listLibrary(): Promise<FontFamilyDef[]> {
-  try {
-    const raw = JSON.parse(await readFile(manifestPath(), "utf8")) as { families?: unknown[] };
-    return (raw.families ?? []).flatMap((f) => {
-      const parsed = fontFamilySchema.safeParse(f);
-      return parsed.success ? [parsed.data] : [];
-    });
-  } catch {
-    return [];
-  }
+  const families = (await readJson<{ families?: unknown }>(manifestPath()))?.families;
+  return (Array.isArray(families) ? families : []).flatMap((f) => {
+    const parsed = fontFamilySchema.safeParse(f);
+    return parsed.success ? [parsed.data] : [];
+  });
 }
 
 async function saveLibrary(families: FontFamilyDef[]): Promise<void> {

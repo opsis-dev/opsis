@@ -11,6 +11,7 @@ import { ExitDialog } from "../app/exit-dialog";
 import { useApiHost } from "../app/api-host";
 import { useStillsStore } from "../store/stills";
 import { exportedClipNodes } from "../editor/stills";
+import { liveAutoOpen } from "../store/app-settings";
 
 const STARTED_KEY = "demoflow.started";
 
@@ -57,13 +58,11 @@ function Root() {
     [],
   );
 
-  useEffect(() => {
-    let autoOpen = true;
-    void window.demoflow.getSettings().then((s) => {
-      autoOpen = s.live.autoOpen;
-    });
-    return window.demoflow.onLive((message) => useLiveStore.getState().apply(message, autoOpen));
-  }, []);
+  useEffect(
+    () =>
+      window.demoflow.onLive((message) => useLiveStore.getState().apply(message, liveAutoOpen())),
+    [],
+  );
 
   useEffect(() => {
     if (path !== "/") return;

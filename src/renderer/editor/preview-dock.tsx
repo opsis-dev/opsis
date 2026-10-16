@@ -2,7 +2,7 @@ import { Player, type PlayerRef } from "@remotion/player";
 import { Clapperboard } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { VARIANTS, variantSize } from "@/shared/nodes/output";
-import { getNodeDef } from "@/shared/nodes/registry";
+import { nodeName } from "@/shared/nodes/registry";
 import type { Workflow } from "@/shared/schema/workflow";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import { Badge } from "@/renderer/components/ui/badge";
@@ -32,6 +32,8 @@ import { useStillsStore } from "../store/stills";
 import { PreviewComposition } from "./audio-insert";
 import { useFilm } from "./film";
 import { useCompiledContext } from "./use-compiled";
+import { formatDuration } from "@/shared/format";
+import { clamp } from "@/shared/math";
 
 export function PreviewDock() {
   const { preview } = useCompiledContext();
@@ -140,14 +142,12 @@ export function PreviewDock() {
   const source = preview?.sourceNodeId
     ? workflow.nodes.find((n) => n.id === preview.sourceNodeId)
     : undefined;
-  const sourceTitle = source
-    ? (source.label ?? getNodeDef(source.type)?.title ?? source.type)
-    : null;
+  const sourceTitle = source ? nodeName(source) : null;
   const range =
     inPoint !== null || outPoint !== null
       ? {
-          inFrame: Math.min(duration - 2, Math.max(0, inPoint ?? 0)),
-          outFrame: Math.min(duration - 1, Math.max((inPoint ?? 0) + 1, outPoint ?? duration - 1)),
+          inFrame: clamp(inPoint ?? 0, 0, duration - 2),
+          outFrame: clamp(outPoint ?? duration - 1, (inPoint ?? 0) + 1, duration - 1),
         }
       : {};
 
@@ -157,7 +157,7 @@ export function PreviewDock() {
         {sourceTitle ? <Badge variant="secondary">{sourceTitle}</Badge> : null}
         <span className="truncate tabular-nums">
           {spec.width}×{spec.height} · {spec.fps} fps ·{" "}
-          {(spec.durationInFrames / spec.fps).toFixed(1)}s
+          {formatDuration((spec.durationInFrames / spec.fps) * 1000)}
         </span>
         {film.stale ? (
           <Tooltip>

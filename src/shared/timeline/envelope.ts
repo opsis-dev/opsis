@@ -1,7 +1,8 @@
 import type { Ease, Keyframe } from "../schema/timeline";
+import { clamp } from "../math";
 
 export function ease(kind: Ease, t: number): number {
-  const x = Math.max(0, Math.min(1, t));
+  const x = clamp(t, 0, 1);
   switch (kind) {
     case "in":
       return x * x;

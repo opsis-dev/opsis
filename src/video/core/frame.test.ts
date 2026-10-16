@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { containBox, overlayScale, shapeInsets, zoomBoost } from "./frame";
+import { overlayScale, shapeInsets, zoomBoost } from "./frame";
 
 describe("other shapes", () => {
   it("keeps the landscape frame free of extra margins", () => {
@@ -16,11 +16,6 @@ describe("other shapes", () => {
   it("sizes overlays by the long side, so a vertical frame isn't shrunk", () => {
     expect(overlayScale(1920, 1080)).toBe(1);
     expect(overlayScale(1080, 1920)).toBe(1);
-  });
-
-  it("fits the recording's shape inside the frame", () => {
-    expect(containBox({ width: 1080, height: 1920 }, 1.6)).toEqual({ width: 1080, height: 675 });
-    expect(containBox({ width: 1920, height: 1080 }, 1.6)).toEqual({ width: 1728, height: 1080 });
   });
 
   it("zooms in harder the narrower the frame, within limits", () => {

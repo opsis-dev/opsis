@@ -6,6 +6,8 @@ import type { CompileValue, NodeResult } from "../schema/values";
 import type { Workflow } from "../schema/workflow";
 import { interpolate } from "../vars";
 import { clipToSpec, isClip, nodeSpans, type Span } from "./clip";
+import { errorMessage } from "../errors";
+import { projectFolderName } from "../project-folder";
 
 export type CompileOptions = {
   results?: Record<string, NodeResult>;
@@ -21,8 +23,7 @@ export type CompileResult = {
 export const PROJECT_NAME_VAR = "Project name";
 
 export function workflowVars(wf: Workflow): Record<string, string> {
-  const project = wf.name.replace(/[^\w.-]+/g, "-").toLowerCase() || "demo";
-  return { [PROJECT_NAME_VAR]: project, ...wf.variables };
+  return { [PROJECT_NAME_VAR]: projectFolderName(wf.name), ...wf.variables };
 }
 
 export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): CompileResult {
@@ -94,7 +95,7 @@ export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): Compil
         if (tl?.type === "timeline") specs[id] = tl.spec;
       }
     } catch (error) {
-      errors[id] = error instanceof Error ? error.message : String(error);
+      errors[id] = errorMessage(error);
       values[id] = {};
     }
   }

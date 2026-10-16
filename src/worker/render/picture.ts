@@ -1,9 +1,9 @@
-import { createHash } from "node:crypto";
 import { readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { stableJson } from "../../shared/hash";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { ENGINE_VERSION } from "../engine/cache";
+import { sha256Hex } from "../../engine/hash";
 
 export const PICTURE_VERSION = "demoflow-picture/1";
 export const KEEP_PICTURES = 12;
@@ -12,10 +12,7 @@ export type PictureOptions = { codec: string; crf?: number; scale?: number; gl: 
 
 export function pictureKey(spec: TimelineSpec, opts: PictureOptions): string {
   const { audio: _audio, mix: _mix, assets: _assets, ...picture } = spec;
-  return createHash("sha256")
-    .update(stableJson({ v: PICTURE_VERSION, engine: ENGINE_VERSION, picture, opts }))
-    .digest("hex")
-    .slice(0, 32);
+  return sha256Hex(stableJson({ v: PICTURE_VERSION, engine: ENGINE_VERSION, picture, opts }), 32);
 }
 
 const AUDIO_CODEC: Record<string, string[]> = {

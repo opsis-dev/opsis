@@ -1,8 +1,10 @@
-import { getNodeDef } from "./nodes/registry";
+import { getNodeDef, nodeName } from "./nodes/registry";
 import { canConnect } from "./nodes/ports";
 import { fieldMeta } from "./elements/introspect";
 import type { PortType, Workflow, WorkflowEdge, WorkflowNode } from "./schema/workflow";
+import { secretFileName } from "./secrets";
 import { interpolate } from "./vars";
+import { humanize } from "./format";
 
 export type GraphIssue = {
   level: "error" | "warning";
@@ -118,7 +120,7 @@ export function sessionChain(wf: Workflow, captureNodeId: string): WorkflowNode[
   const head = chain[0];
   throw new Error(
     head
-      ? `The action chain starting at "${head.label ?? head.type}" is not connected to a Session node.`
+      ? `The action chain starting at "${nodeName(head)}" is not connected to a Session node.`
       : "Connect a Session → actions chain to this node's session input.",
   );
 }
@@ -138,14 +140,15 @@ export function loginDependencies(
   } catch {
     return [];
   }
-  const secret = head ? param(head, "storageState") : "";
-  if (!secret) return [];
+  const storageState = head ? param(head, "storageState") : "";
+  if (!storageState) return [];
+  const secret = secretFileName(storageState);
   return wf.nodes
     .filter(
       (n) =>
         n.type === "capture.loginOnce" &&
         !n.disabled &&
-        (param(n, "secretName") || "default") === secret,
+        secretFileName(param(n, "secretName")) === secret,
     )
     .map((n) => n.id);
 }
@@ -163,9 +166,6 @@ const TYPE_WORDS: Record<PortType, string> = {
   file: "file",
 };
 
-const humanKey = (key: string) =>
-  key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
-
 type ZodIssueLike = {
   code: string;
   message: string;
@@ -179,7 +179,7 @@ export function describeParamIssue(shape: Record<string, unknown>, issue: ZodIss
   const field = shape[key];
   const label =
     (field ? fieldMeta(field as Parameters<typeof fieldMeta>[0]).description : undefined) ||
-    (key ? humanKey(key) : "A setting");
+    (key ? humanize(key) : "A setting");
   if (issue.code === "too_small" && issue.minimum === 1 && /string|character/i.test(issue.message))
     return `${label} is empty`;
   if (issue.code === "too_small") return `${label} is too small`;
@@ -218,14 +218,14 @@ export function validateWorkflow(wf: Workflow): GraphIssue[] {
         issues.push({
           level: "warning",
           nodeId: node.id,
-          message: `Connect something to “${spec.label ?? humanKey(portId)}”`,
+          message: `Connect something to “${spec.label ?? humanize(portId)}”`,
         });
       }
       if (edges.length > 1 && !spec.many) {
         issues.push({
           level: "error",
           nodeId: node.id,
-          message: `“${spec.label ?? humanKey(portId)}” can only take one connection`,
+          message: `“${spec.label ?? humanize(portId)}” can only take one connection`,
         });
       }
     }

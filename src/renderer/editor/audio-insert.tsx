@@ -3,6 +3,7 @@ import { Internals } from "remotion";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import { DemoTimeline } from "@/video/demo-timeline";
 import { useAudioPreview } from "../store/audio-preview";
+import { clamp } from "@/shared/math";
 
 type Chain = {
   filters: BiquadFilterNode[];
@@ -38,7 +39,7 @@ function AudioInsert() {
       const { gainDb, pan, filters: wanted } = useAudioPreview.getState();
       const now = ac.currentTime;
       gain.gain.setTargetAtTime(10 ** (gainDb / 20), now, 0.02);
-      panner.pan.setTargetAtTime(Math.max(-1, Math.min(1, pan)), now, 0.02);
+      panner.pan.setTargetAtTime(clamp(pan, -1, 1), now, 0.02);
       filters.forEach((node, i) => {
         const spec = wanted[i];
         if (!spec) {

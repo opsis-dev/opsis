@@ -1,8 +1,10 @@
 import { MAX_SPEED } from "../nodes/params";
-import { getNodeDef, defaultParams } from "../nodes/registry";
+import { getNodeDef, defaultParams, nodeName } from "../nodes/registry";
 import type { ParamRef } from "../schema/timeline";
 import type { Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
 import { findHandle, slotIndex, type AudioBar, type ChainLink, type VideoBar } from "./flatten";
+import { clamp } from "../math";
+import { framesToMs, msToFrames } from "./time";
 
 export type EditContext = {
   workflow: Workflow;
@@ -17,14 +19,9 @@ export type EditResult =
 
 const fail = (error: string): EditResult => ({ ok: false, error });
 
-export const msFromFrames = (frames: number, fps: number) => Math.round((frames * 1000) / fps);
-export const framesFromMs = (ms: number, fps: number) =>
-  ms ? Math.max(1, Math.round((ms / 1000) * fps)) : 0;
-
-const nodeName = (wf: Workflow, id: string) => {
+const clipName = (wf: Workflow, id: string) => {
   const n = wf.nodes.find((x) => x.id === id);
-  if (!n) return "this clip";
-  return n.label?.trim() || getNodeDef(n.type)?.title || "this clip";
+  return n ? nodeName(n) : "this clip";
 };
 
 export function readParam(wf: Workflow, ref: Pick<ParamRef, "nodeId" | "param" | "index">): number {
@@ -70,11 +67,11 @@ export function shiftParam(
   const scale = ref.scale ?? 1;
   const shift = (r: Pick<ParamRef, "nodeId" | "param" | "index">, sign: number) => {
     const current = readParam(wf, r);
-    const frames = ref.unit === "ms" ? framesFromMs(current, fps) : current;
+    const frames = ref.unit === "ms" ? msToFrames(current, fps, 0) : current;
     const next = frames + sign * deltaContentFrames * scale;
     const clampedNext = Math.max(0, Math.round(next));
     return {
-      value: ref.unit === "ms" ? msFromFrames(clampedNext, fps) : clampedNext,
+      value: ref.unit === "ms" ? framesToMs(clampedNext, fps) : clampedNext,
       clamped: next < -0.5,
     };
   };
@@ -98,7 +95,7 @@ export function setLength(
   fps: number,
 ): Workflow {
   const frames = Math.max(1, Math.round(lengthContentFrames * (ref.scale ?? 1)));
-  return writeParam(wf, ref, ref.unit === "ms" ? msFromFrames(frames, fps) : frames);
+  return writeParam(wf, ref, ref.unit === "ms" ? framesToMs(frames, fps) : frames);
 }
 
 function absPosition(wf: Workflow, node: WorkflowNode): { x: number; y: number } {
@@ -250,6 +247,24 @@ const ok = (workflow: Workflow, message?: string, selectNodeId?: string): EditRe
   ...(selectNodeId ? { selectNodeId } : {}),
 });
 
+const ADDED_NODES = {
+  "timeline.delay": { label: "Delay from timeline", where: "before" },
+  "timeline.trim": { label: "Trim from timeline", where: "after" },
+  "timeline.speed": { label: "Speed from timeline", where: "after" },
+} as const;
+
+function addNode(
+  ctx: EditContext,
+  bar: VideoBar,
+  edge: WorkflowEdge,
+  type: keyof typeof ADDED_NODES,
+  params: Record<string, unknown>,
+): EditResult {
+  const { label, where } = ADDED_NODES[type];
+  const { workflow, node } = insertOnEdge(ctx, ctx.workflow, edge, type, params, label);
+  return ok(workflow, `Added “${label}” ${where} ${clipName(ctx.workflow, bar.nodeId)}.`, node.id);
+}
+
 export function moveBar(ctx: EditContext, bar: VideoBar, delta: number): EditResult {
   if (Math.abs(delta) < 0.5) return ok(ctx.workflow);
   const owner = findHandle(bar, "move", "outer");
@@ -274,20 +289,9 @@ export function moveBar(ctx: EditContext, bar: VideoBar, delta: number): EditRes
   const edge = slotEdge(ctx, bar);
   if (!edge) return fail("Connect this clip to an export or a sequence to move it here.");
   const level = bar.chain[Math.max(0, slotIndex(bar))]?.rate ?? 1;
-  const ms = msFromFrames(Math.round(delta * level), ctx.fps);
-  const { workflow, node } = insertOnEdge(
-    ctx,
-    ctx.workflow,
-    edge,
-    "timeline.delay",
-    { ms },
-    "Delay from timeline",
-  );
-  return ok(
-    workflow,
-    `Added “Delay from timeline” before ${nodeName(ctx.workflow, bar.nodeId)}.`,
-    node.id,
-  );
+  return addNode(ctx, bar, edge, "timeline.delay", {
+    ms: framesToMs(Math.round(delta * level), ctx.fps),
+  });
 }
 
 export function trimBar(
@@ -312,19 +316,10 @@ export function trimBar(
     const target = leafEdge(ctx, bar);
     if (!target) return fail("Connect this clip to an export or a sequence to trim it here.");
     const start = Math.round((bar.contentStart + delta) * bar.rate);
-    const { workflow, node } = insertOnEdge(
-      ctx,
-      ctx.workflow,
-      target,
-      "timeline.trim",
-      { startMs: msFromFrames(start, ctx.fps), durationMs: 0 },
-      "Trim from timeline",
-    );
-    return ok(
-      workflow,
-      `Added “Trim from timeline” after ${nodeName(ctx.workflow, bar.nodeId)}.`,
-      node.id,
-    );
+    return addNode(ctx, bar, target, "timeline.trim", {
+      startMs: framesToMs(start, ctx.fps),
+      durationMs: 0,
+    });
   }
   const owner = findHandle(bar, "trimEnd", "outer");
   if (owner && owns(owner.link, ctx.workflow)) {
@@ -337,22 +332,10 @@ export function trimBar(
   if (!target) return fail("Connect this clip to an export or a sequence to trim it here.");
   const keep = Math.round(bar.contentEnd - bar.contentStart + delta * bar.rate);
   if (keep < 1) return fail("A clip needs at least one frame.");
-  const { workflow, node } = insertOnEdge(
-    ctx,
-    ctx.workflow,
-    target,
-    "timeline.trim",
-    {
-      startMs: msFromFrames(Math.round(bar.contentStart), ctx.fps),
-      durationMs: msFromFrames(keep, ctx.fps),
-    },
-    "Trim from timeline",
-  );
-  return ok(
-    workflow,
-    `Added “Trim from timeline” after ${nodeName(ctx.workflow, bar.nodeId)}.`,
-    node.id,
-  );
+  return addNode(ctx, bar, target, "timeline.trim", {
+    startMs: framesToMs(Math.round(bar.contentStart), ctx.fps),
+    durationMs: framesToMs(keep, ctx.fps),
+  });
 }
 
 export function slipBar(ctx: EditContext, bar: VideoBar, delta: number): EditResult {
@@ -371,23 +354,11 @@ export function slipBar(ctx: EditContext, bar: VideoBar, delta: number): EditRes
   if (content < 0) return fail("That's the start of the clip.");
   const target = leafEdge(ctx, bar);
   if (!target) return fail("Connect this clip to an export or a sequence to edit it here.");
-  const length = Math.round((bar.contentEnd - bar.contentStart) * 1);
-  const { workflow, node } = insertOnEdge(
-    ctx,
-    ctx.workflow,
-    target,
-    "timeline.trim",
-    {
-      startMs: msFromFrames(Math.round(bar.contentStart) + content, ctx.fps),
-      durationMs: msFromFrames(length, ctx.fps),
-    },
-    "Trim from timeline",
-  );
-  return ok(
-    workflow,
-    `Added “Trim from timeline” after ${nodeName(ctx.workflow, bar.nodeId)}.`,
-    node.id,
-  );
+  const length = Math.round(bar.contentEnd - bar.contentStart);
+  return addNode(ctx, bar, target, "timeline.trim", {
+    startMs: framesToMs(Math.round(bar.contentStart) + content, ctx.fps),
+    durationMs: framesToMs(length, ctx.fps),
+  });
 }
 
 export function rollCut(
@@ -414,25 +385,14 @@ export function speedBar(ctx: EditContext, bar: VideoBar, newLength: number): Ed
   if (owner && owns(owner.link, ctx.workflow)) {
     const ref = owner.link.handles!.speed!;
     const rate = readParam(ctx.workflow, ref) || 1;
-    const next = Math.min(MAX_SPEED, Math.max(0.1, Math.round(rate * factor * 100) / 100));
+    const next = clamp(Math.round(rate * factor * 100) / 100, 0.1, MAX_SPEED);
     return ok(writeParam(ctx.workflow, ref, next));
   }
   const edge = slotEdge(ctx, bar);
   if (!edge) return fail("Connect this clip to an export or a sequence to change its speed here.");
-  const rate = Math.min(MAX_SPEED, Math.max(0.1, Math.round(factor * 100) / 100));
-  const { workflow, node } = insertOnEdge(
-    ctx,
-    ctx.workflow,
-    edge,
-    "timeline.speed",
-    { rate },
-    "Speed from timeline",
-  );
-  return ok(
-    workflow,
-    `Added “Speed from timeline” after ${nodeName(ctx.workflow, bar.nodeId)}.`,
-    node.id,
-  );
+  return addNode(ctx, bar, edge, "timeline.speed", {
+    rate: clamp(Math.round(factor * 100) / 100, 0.1, MAX_SPEED),
+  });
 }
 
 const SEQ_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"];
@@ -451,7 +411,7 @@ export function splitBar(ctx: EditContext, bar: VideoBar, at: number): EditResul
     ctx,
     wf,
     "timeline.trim",
-    { startMs: 0, durationMs: msFromFrames(offset, ctx.fps) },
+    { startMs: 0, durationMs: framesToMs(offset, ctx.fps) },
     "Split: first part",
     { source: edge.source, target: edge.target },
     0,
@@ -460,7 +420,7 @@ export function splitBar(ctx: EditContext, bar: VideoBar, at: number): EditResul
     ctx,
     wf,
     "timeline.trim",
-    { startMs: msFromFrames(offset, ctx.fps), durationMs: 0 },
+    { startMs: framesToMs(offset, ctx.fps), durationMs: 0 },
     "Split: second part",
     { source: edge.source, target: edge.target },
     1,
@@ -528,7 +488,7 @@ export function splitBar(ctx: EditContext, bar: VideoBar, at: number): EditResul
         }),
       ],
     };
-    return ok(wf, `Split ${nodeName(ctx.workflow, bar.nodeId)} in two.`, tail.id);
+    return ok(wf, `Split ${clipName(ctx.workflow, bar.nodeId)} in two.`, tail.id);
   }
   const join = newNode(
     ctx,
@@ -556,7 +516,7 @@ export function splitBar(ctx: EditContext, bar: VideoBar, at: number): EditResul
       }),
     ],
   };
-  return ok(wf, `Split ${nodeName(ctx.workflow, bar.nodeId)} in two.`, tail.id);
+  return ok(wf, `Split ${clipName(ctx.workflow, bar.nodeId)} in two.`, tail.id);
 }
 
 export function moveAudio(ctx: EditContext, bar: AudioBar, delta: number): EditResult {
@@ -590,7 +550,7 @@ export function trimAudio(
 }
 
 export function setAudioVolume(ctx: EditContext, bar: AudioBar, volume: number): EditResult {
-  const v = Math.round(Math.min(2, Math.max(0, volume)) * 100) / 100;
+  const v = Math.round(clamp(volume, 0, 2) * 100) / 100;
   if (bar.bar) {
     const id = bar.bar.nodeId;
     return ok({

@@ -24,9 +24,3 @@ export function requireMedia(value: unknown, label = "media"): MediaValue & { sr
 }
 
 export const rel = (ctx: Pick<ExecutorContext, "relDir">, file: string) => `${ctx.relDir}/${file}`;
-
-export const slug = (s: string) =>
-  s
-    .replace(/[^\w.-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .toLowerCase() || "output";

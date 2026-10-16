@@ -1,9 +1,12 @@
 import { z } from "zod";
-import { itemClip, msToFrames } from "../compile/clip";
+import { itemClip } from "../compile/clip";
 import type { ImageValue, RecordingValue } from "../schema/values";
-import { quote, row, secs, shortUrl } from "./card";
+import { quote, row } from "./card";
 import { defineNode, port } from "./define";
+import { secretFileName, secretName } from "../secrets";
 import { bool, choice, more, ms, optionalTarget, text, visualEnvelope } from "./params";
+import { formatDuration, displayAddress } from "../format";
+import { msToFrames } from "../timeline/time";
 
 export const recordNode = defineNode({
   type: "capture.record",
@@ -54,7 +57,7 @@ export const recordNode = defineNode({
             ? "Cursor as on screen"
             : "No cursor",
       ),
-      rec?.src && row("clock", secs(rec.durationMs)),
+      rec?.src && row("clock", formatDuration(rec.durationMs)),
       rec?.log && row("list-checks", `${rec.log.actions.length} actions`),
     ];
   },
@@ -129,7 +132,7 @@ export const stillNode = defineNode({
       image?.width
         ? row("image", `${Math.round(image.width)} × ${Math.round(image.height ?? 0)}`)
         : null,
-      row("clock", secs(p.durationMs)),
+      row("clock", formatDuration(p.durationMs)),
     ];
   },
   compile: ({ nodeId, result, params, settings }) => {
@@ -203,11 +206,11 @@ export const loginOnceNode = defineNode({
     }),
   }),
   card: ({ params: p, secrets }) => {
-    const name = p.secretName.trim() || "default";
-    const saved = secrets?.includes(name.replace(/[^\w.-]+/g, "-"));
+    const name = secretName(p.secretName);
+    const saved = secrets?.includes(secretFileName(name));
     return [
       row("key-round", `Saves as ${quote(name, 24)}`),
-      p.url.trim() && row("link", shortUrl(p.url), { title: p.url }),
+      p.url.trim() && row("link", displayAddress(p.url, { keepQuery: true }), { title: p.url }),
       secrets &&
         row(saved ? "shield-check" : "shield-alert", saved ? "Signed in" : "Not signed in yet", {
           tone: saved ? undefined : "warn",

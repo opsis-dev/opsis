@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
-import { elementName, secs, sentence, shortUrl } from "./card";
+import { elementName, sentence } from "./card";
 import { defaultParams, getNodeDef, NODE_DEFS } from "./registry";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 
@@ -27,14 +27,6 @@ function rows(type: string, params: Record<string, unknown>, extra: Record<strin
 }
 
 describe("card formatting", () => {
-  it("writes durations in seconds and minutes", () => {
-    expect(secs(500)).toBe("0.5 s");
-    expect(secs(1300)).toBe("1.3 s");
-    expect(secs(14_520)).toBe("14.5 s");
-    expect(secs(65_000)).toBe("1 min 5 s");
-    expect(secs(120_000)).toBe("2 min");
-  });
-
   it("describes elements in words", () => {
     expect(elementName("Login", "button")).toBe("“Login” button");
     expect(elementName("Username", "textbox")).toBe("“Username” field");
@@ -44,8 +36,7 @@ describe("card formatting", () => {
     expect(elementName("  ")).toBeNull();
   });
 
-  it("shortens addresses and titles", () => {
-    expect(shortUrl("https://www.saucedemo.com/")).toBe("saucedemo.com");
+  it("shortens titles", () => {
     expect(sentence("Whip Pan")).toBe("Whip pan");
     expect(sentence("RGB Glitch Text")).toBe("RGB glitch text");
   });

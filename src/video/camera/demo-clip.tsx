@@ -30,8 +30,7 @@ import type { ReelLook } from "./lib/look";
 import { resolvePreset, type ReelStyle } from "./lib/style";
 import type { CameraTuning } from "./lib/zoom";
 import { Annotations, type Annotation } from "./annotations";
-
-const round = (n: number) => Math.round(n);
+import { msToFrames } from "../../shared/timeline/time";
 
 export type DemoClipProps = {
   name: string;
@@ -154,7 +153,7 @@ const WindowGroup: React.FC<DemoClipProps> = (props) => {
     props.box,
     props.boost,
   );
-  const trimBefore = log.trimBeforeMs ? round((log.trimBeforeMs / 1000) * fps) : undefined;
+  const trimBefore = log.trimBeforeMs ? msToFrames(log.trimBeforeMs, fps, 0) : undefined;
   const hostLabel = props.address ?? name.replace(/-/g, ".");
 
   return (
@@ -226,7 +225,7 @@ const FullBleedClip: React.FC<DemoClipProps> = ({
   const shotFrames = range ? range.last - range.first + 1 : durationInFrames;
   const envelope = pushEnvelope(frame - first, shotFrames, push);
 
-  const trimBefore = log.trimBeforeMs ? round((log.trimBeforeMs / 1000) * fps) : undefined;
+  const trimBefore = log.trimBeforeMs ? msToFrames(log.trimBeforeMs, fps, 0) : undefined;
   const timeS = (frame / fps) * speed - (log.offsetMs ?? 0) / 1000;
   const resolved = resolveCrop(crop);
   const clipPath = cropClipPath(crop);
@@ -283,7 +282,7 @@ const NarrowBleedClip: React.FC<DemoClipProps & { box: { width: number; height: 
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const trimBefore = log.trimBeforeMs ? round((log.trimBeforeMs / 1000) * fps) : undefined;
+  const trimBefore = log.trimBeforeMs ? msToFrames(log.trimBeforeMs, fps, 0) : undefined;
   const timeS = (frame / fps) * speed - (log.offsetMs ?? 0) / 1000;
   const z =
     boost && boost > 1

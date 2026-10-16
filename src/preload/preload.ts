@@ -15,6 +15,7 @@ import type { LiveMessage } from "../shared/live";
 import type { RunEvent } from "../shared/schema/events";
 import type { AppSettings } from "../shared/settings";
 import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
+import { errorMessage } from "../shared/errors";
 
 function subscribe<T>(channel: string, listener: (payload: T) => void): () => void {
   const handler = (_event: IpcRendererEvent, payload: T) => listener(payload);
@@ -76,7 +77,7 @@ const api: DemoflowApi = {
         .catch((e: unknown): ApiEditorReply => ({
           ok: false,
           status: 500,
-          error: e instanceof Error ? e.message : String(e),
+          error: errorMessage(e),
         }))
         .then((reply) => ipcRenderer.send(IPC.apiReply, id, reply));
     };

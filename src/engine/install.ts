@@ -6,6 +6,7 @@ import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
 import { ensureBrowser } from "@remotion/renderer";
 import { enginePaths, FFMPEG_RELEASE_URL } from "./paths";
+import { formatBytes } from "../shared/format";
 
 export type InstallProgress = (
   part: "ffmpeg" | "headless-shell",
@@ -15,11 +16,8 @@ export type InstallProgress = (
 
 const ffmpegTarget = (platform: string, arch: string) => `${platform}-${arch}`;
 
-export function megabytes(got: number, total: number | null): string {
-  if (total && total < 1_000_000) return `${Math.ceil(total / 1000)} KB`;
-  const mb = (n: number) => Math.round(n / 1_000_000);
-  return total ? `${mb(got)} of ${mb(total)} MB` : `${mb(got)} MB`;
-}
+export const downloadedSize = (got: number, total: number | null): string =>
+  total ? `${formatBytes(got)} of ${formatBytes(total)}` : formatBytes(got);
 
 async function download(
   url: string,
@@ -63,7 +61,7 @@ export async function installFfmpeg(
         onProgress(
           "ffmpeg",
           total ? got / total : null,
-          `Downloading the video tools (${i + 1} of ${files.length}) · ${megabytes(got, total)}`,
+          `Downloading the video tools (${i + 1} of ${files.length}) · ${downloadedSize(got, total)}`,
         ),
       signal,
     );
@@ -92,7 +90,7 @@ export async function installHeadlessShell(dir: string, onProgress: InstallProgr
             onProgress(
               "headless-shell",
               x.percent,
-              `Downloading the recording browser · ${megabytes(x.downloadedBytes, x.totalSizeInBytes)}`,
+              `Downloading the recording browser · ${downloadedSize(x.downloadedBytes, x.totalSizeInBytes)}`,
             ),
         };
       },

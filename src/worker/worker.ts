@@ -6,6 +6,7 @@ import type { LoginRequest, MainToWorker, WorkerToMain } from "../shared/worker-
 import { runWorkflow } from "./engine/runner";
 import { renderCardStill } from "./render/card-still";
 import { runAnalysis } from "./media/run-analysis";
+import { errorMessage } from "../shared/errors";
 
 let control: MessagePortMain | null = null;
 let live: MessagePortMain | null = null;
@@ -78,7 +79,7 @@ async function handle(msg: MainToWorker): Promise<void> {
             runId: msg.runId,
             ok: false,
             cancelled: controller.signal.aborted,
-            error: error instanceof Error ? error.message : String(error),
+            error: errorMessage(error),
             outputs: [],
             at: Date.now(),
           },
@@ -95,7 +96,7 @@ async function handle(msg: MainToWorker): Promise<void> {
         send({
           type: "still:done",
           id: msg.id,
-          error: error instanceof Error ? error.message : String(error),
+          error: errorMessage(error),
         });
       }
       return;
@@ -117,7 +118,7 @@ async function handle(msg: MainToWorker): Promise<void> {
       } catch (error) {
         send({
           type: "install:done",
-          error: error instanceof Error ? error.message : String(error),
+          error: errorMessage(error),
         });
       }
       finish();

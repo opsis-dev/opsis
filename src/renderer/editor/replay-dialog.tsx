@@ -1,6 +1,6 @@
 import { CircleX, FolderOpen } from "lucide-react";
 import { useRef, useState } from "react";
-import { getNodeDef } from "@/shared/nodes/registry";
+import { nodeName } from "@/shared/nodes/registry";
 import type { RecordingValue } from "@/shared/schema/values";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Badge } from "@/renderer/components/ui/badge";
@@ -21,8 +21,7 @@ import { useUiStore, type ReplayTab } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
 import { TracePanel } from "./trace-panel";
-
-const seconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
+import { formatDuration } from "@/shared/format";
 
 export function ReplayDialog() {
   const nodeId = useUiStore((s) => s.replayNodeId);
@@ -111,7 +110,7 @@ export function ReplayDialog() {
                 }}
               >
                 <span className="text-muted-foreground w-12 shrink-0 text-right tabular-nums">
-                  {seconds(a.t)}
+                  {formatDuration(a.t)}
                 </span>
                 <Badge variant="outline">{a.kind}</Badge>
                 <span className="flex min-w-0 flex-col">
@@ -134,12 +133,10 @@ export function ReplayDialog() {
     <Dialog open={!!nodeId} onOpenChange={(open) => !open && setReplay(null)}>
       <DialogContent className="flex h-[94vh] w-[94vw] max-w-[94vw] flex-col gap-4 sm:max-w-[94vw]">
         <DialogHeader>
-          <DialogTitle>
-            {node?.label || (node ? getNodeDef(node.type)?.title : undefined) || nodeId}
-          </DialogTitle>
+          <DialogTitle>{node ? nodeName(node) : nodeId}</DialogTitle>
           <DialogDescription>
             {recording
-              ? `${seconds(recording.durationMs)} · ${actions.length} actions · ${recording.viewport.width}×${recording.viewport.height}`
+              ? `${formatDuration(recording.durationMs)} · ${actions.length} actions · ${recording.viewport.width}×${recording.viewport.height}`
               : "Last run of this node"}
           </DialogDescription>
         </DialogHeader>

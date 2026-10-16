@@ -82,6 +82,14 @@ export const EMPTY_LOG: ClickLog = {
 export const OUTPUT_WIDTH = 2560;
 export const DESIGN_WIDTH = 1920;
 
+export function defaultTargetRect(
+  point: { x: number; y: number },
+  viewportWidth: number,
+): { x: number; y: number; w: number; h: number } {
+  const k = viewportWidth > 0 ? viewportWidth / DESIGN_WIDTH : 1;
+  return { x: point.x - 60 * k, y: point.y - 24 * k, w: 120 * k, h: 48 * k };
+}
+
 export const LEAD_FALLBACK_S = 0.75;
 export const HOLD_MIN_S = 1.3;
 export const TYPE_TAIL_S = 0.4;

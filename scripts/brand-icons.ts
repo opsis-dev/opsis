@@ -1,26 +1,18 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright-core";
+import { walkFiles } from "./lib/walk.ts";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const SVG = path.join(ROOT, "brand", "logo.svg");
 const OUT = path.join(ROOT, "brand", "icons");
 export const ICON_SIZES = [16, 24, 32, 48, 64, 128, 256, 512, 1024];
 
-function findShell(dir: string): string | null {
-  if (!existsSync(dir)) return null;
-  for (const entry of readdirSync(dir)) {
-    const p = path.join(dir, entry);
-    if (statSync(p).isDirectory()) {
-      const hit = findShell(p);
-      if (hit) return hit;
-    } else if (/^chrome-headless-shell(\.exe)?$/.test(entry)) return p;
-  }
-  return null;
-}
-
 const shell =
-  process.env.DEMOFLOW_HEADLESS_SHELL ?? findShell(path.join(ROOT, "resources", "engine"));
+  process.env.DEMOFLOW_HEADLESS_SHELL ??
+  walkFiles(path.join(ROOT, "resources", "engine")).find((p) =>
+    /^chrome-headless-shell(\.exe)?$/.test(path.basename(p)),
+  );
 if (!shell)
   throw new Error(
     "No recording browser found. Run `bun run make` once (it stages resources/engine) or set DEMOFLOW_HEADLESS_SHELL.",

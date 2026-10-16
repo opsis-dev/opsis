@@ -21,6 +21,7 @@ import {
   InputGroupInput,
 } from "@/renderer/components/ui/input-group";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
+import { errorMessage } from "@/shared/errors";
 
 const platform = window.demoflow?.platform ?? "linux";
 
@@ -67,7 +68,7 @@ export function NewProjectDialog({
       if (p) onCreated(p.dir);
     } catch (e) {
       toast.error("Could not create the project", {
-        description: e instanceof Error ? e.message : String(e),
+        description: errorMessage(e),
       });
     } finally {
       setBusy(false);

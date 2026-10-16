@@ -1,7 +1,5 @@
 import { create } from "zustand";
 
-export const secretKey = (name: string) => name.trim().replace(/[^\w.-]+/g, "-");
-
 export const useSecretsStore = create<{
   names: string[] | null;
   refresh: (dir: string | null) => Promise<void>;

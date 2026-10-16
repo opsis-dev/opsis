@@ -1,15 +1,11 @@
 import { create } from "zustand";
 import { BUNDLED_FONTS, type FontFamilyDef } from "@/shared/fonts";
 import { fileUrl } from "../editor/file-url";
+import { encodePath } from "@/shared/asset-ref";
 
 export function fontFileUrl(ref: string): string {
-  if (ref.startsWith("app:")) return new URL(ref.slice("app:".length), document.baseURI).href;
   if (ref.startsWith("library:"))
-    return `demoflow-file://fonts/${ref
-      .slice("library:".length)
-      .split("/")
-      .map(encodeURIComponent)
-      .join("/")}`;
+    return `demoflow-file://fonts/${encodePath(ref.slice("library:".length))}`;
   return fileUrl(ref);
 }
 

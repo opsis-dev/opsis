@@ -30,6 +30,7 @@ import {
 } from "./assets";
 import { FontProvider } from "./fonts/font-provider";
 import { getComponent, getPresentation, isKnownElement, useElements } from "./registry";
+import { clamp } from "../shared/math";
 
 export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
   <AssetProvider value={spec.assets ?? {}}>
@@ -91,7 +92,7 @@ const EnvelopeWrap: React.FC<{ envelope: VisualEnvelope; children: React.ReactNo
   return (
     <AbsoluteFill
       style={{
-        opacity: Math.max(0, Math.min(1, opacity)),
+        opacity: clamp(opacity, 0, 1),
         transform: `translate(${x}px, ${y}px) scale(${Math.max(0, scale)})`,
       }}
     >

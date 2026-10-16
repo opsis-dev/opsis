@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { clipToSpec, isClip, msToFrames } from "../compile/clip";
+import { clipToSpec, isClip } from "../compile/clip";
 import { projectRef } from "../elements/introspect";
 import type { AudioItem } from "../schema/timeline";
 import { builtinSound } from "../sounds";
@@ -7,11 +7,14 @@ import type { AudioValue, ClipValue, MediaValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { flattenSpec } from "../timeline/flatten";
 import { hasKeys } from "../timeline/envelope";
-import { row, secs } from "./card";
+import { row } from "./card";
 import { defineNode, many, opt, port } from "./define";
 import { asset, audioEnvelope, bool, more, ms } from "./params";
+import { formatDuration } from "../format";
+import { msToFrames } from "../timeline/time";
+import { baseName } from "../asset-ref";
 
-const fileName = (path: string) => builtinSound(path)?.label ?? path.split("/").pop() ?? path;
+const fileName = (path: string) => builtinSound(path)?.label ?? baseName(path);
 const pct = (v: number) => `${Math.round(v * 100)} %`;
 
 const srcFrom = (input: unknown, path: string): string | null =>
@@ -29,7 +32,7 @@ export const musicBedNode = defineNode({
         : row("music", "Choose a song", { tone: "warn" }),
     row("volume-2", pct(p.volume)),
     p.loop && row("repeat", "Loops"),
-    p.lengthMs > 0 && row("clock", `Plays for ${secs(p.lengthMs)}`),
+    p.lengthMs > 0 && row("clock", `Plays for ${formatDuration(p.lengthMs)}`),
   ],
   category: "Audio",
   icon: "music",
@@ -108,9 +111,9 @@ export const sfxNode = defineNode({
     p.atAction
       ? row(
           "mouse-pointer-click",
-          `On an action${p.offsetMs ? ` ${p.offsetMs > 0 ? "+" : "−"}${secs(Math.abs(p.offsetMs))}` : ""}`,
+          `On an action${p.offsetMs ? ` ${p.offsetMs > 0 ? "+" : "−"}${formatDuration(Math.abs(p.offsetMs))}` : ""}`,
         )
-      : row("clock", `At ${secs(p.atMs)}`),
+      : row("clock", `At ${formatDuration(p.atMs)}`),
     p.keepMusic && row("music", "Music stays up"),
   ],
   category: "Audio",

@@ -11,6 +11,7 @@ import { loadFonts } from "../camera/lib/font";
 import { clamp, entranceStyle, exitOpacity, type Entrance } from "./anim";
 import { isLandscape, useOverlayFrame } from "./frame";
 import { roleStack } from "../../shared/fonts";
+import { msToFrames } from "../../shared/timeline/time";
 
 const HEADING_FONT = roleStack("heading");
 const MAIN_FONT = roleStack("main");
@@ -417,7 +418,7 @@ export const Captions: React.FC<{
           const spoken = tMs >= w.startMs;
           if (style === "word-by-word" && !spoken) return null;
           const pop = spring({
-            frame: frame - Math.round((w.startMs / 1000) * fps),
+            frame: frame - msToFrames(w.startMs, fps, 0),
             fps,
             config: { damping: 14, stiffness: 220 },
           });

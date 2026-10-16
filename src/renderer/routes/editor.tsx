@@ -10,6 +10,7 @@ import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
+import { errorMessage } from "@/shared/errors";
 
 function EditorRoute() {
   const { dir } = Route.useSearch();
@@ -42,7 +43,7 @@ function EditorRoute() {
       .catch((e: unknown) => {
         setError(true);
         toast.error("Could not open the project", {
-          description: e instanceof Error ? e.message : String(e),
+          description: errorMessage(e),
         });
         void navigate({ to: "/" });
       });

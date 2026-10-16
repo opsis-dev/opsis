@@ -13,6 +13,7 @@ import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
 import { IPC, type ApiStatus } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
 import { WORKFLOW_FILE } from "../shared/schema/workflow";
+import { errorMessage } from "../shared/errors";
 
 const MAX_BODY = 20 * 1024 * 1024;
 const EDITOR_TIMEOUT_MS = 20_000;
@@ -97,7 +98,7 @@ export async function setApiEnabled(enabled: boolean): Promise<void> {
       enabled: true,
       listening: false,
       address,
-      error: e instanceof Error ? e.message : String(e),
+      error: errorMessage(e),
     });
   }
 }
@@ -192,7 +193,7 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
     await handle(req, res);
   } catch (e) {
     if (e instanceof BadRequest) send(res, 400, { error: e.message });
-    else send(res, 500, { error: e instanceof Error ? e.message : String(e) });
+    else send(res, 500, { error: errorMessage(e) });
   }
 }
 

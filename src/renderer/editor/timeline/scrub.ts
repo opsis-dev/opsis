@@ -1,4 +1,5 @@
 import { fileUrl } from "../file-url";
+import { clamp } from "@/shared/math";
 
 const buffers = new Map<string, Promise<AudioBuffer | null>>();
 let context: AudioContext | null = null;
@@ -39,7 +40,7 @@ export function scrubAt(src: string | null, seconds: number): void {
     gain.gain.setValueAtTime(0.9, context.currentTime);
     gain.gain.linearRampToValueAtTime(0, context.currentTime + 0.09);
     node.connect(gain).connect(context.destination);
-    node.start(0, Math.max(0, Math.min(buffer.duration - 0.1, seconds)), 0.09);
+    node.start(0, clamp(seconds, 0, Math.max(0, buffer.duration - 0.1)), 0.09);
     current = node;
   });
 }

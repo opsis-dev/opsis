@@ -1,30 +1,20 @@
-import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { LastRun, NodeResult } from "../../shared/schema/values";
-import { stableStringify } from "../../shared/vars";
+import { stableJson } from "../../shared/hash";
+import { sha256Hex } from "../../engine/hash";
+import { atomicWrite, readJson } from "../../engine/json";
+import { projectPaths } from "../../engine/project-paths";
 
 export const ENGINE_VERSION = "demoflow-engine/1";
 
-export const projectPaths = (projectDir: string) => ({
-  meta: path.join(projectDir, ".demoflow"),
-  cache: path.join(projectDir, ".demoflow", "cache"),
-  out: path.join(projectDir, ".demoflow", "out"),
-  lastRun: path.join(projectDir, ".demoflow", "last-run.json"),
-});
-
 export function nodeHash(type: string, params: unknown, upstream: Array<[string, string]>): string {
-  const h = createHash("sha256");
-  h.update(ENGINE_VERSION);
-  h.update("\0");
-  h.update(type);
-  h.update("\0");
-  h.update(stableStringify(params));
-  h.update("\0");
-  for (const [portId, hash] of [...upstream].sort(([a], [b]) => (a < b ? -1 : 1)))
-    h.update(`${portId}=${hash};`);
-  return h.digest("hex").slice(0, 24);
+  const ports = [...upstream]
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([portId, hash]) => `${portId}=${hash};`)
+    .join("");
+  return sha256Hex(`${ENGINE_VERSION}\0${type}\0${stableJson(params)}\0${ports}`, 24);
 }
 
 export async function readCached(
@@ -34,13 +24,10 @@ export async function readCached(
 ): Promise<NodeResult | null> {
   const file = path.join(cacheDir, hash, "result.json");
   if (!existsSync(file)) return null;
-  try {
-    const result = JSON.parse(await readFile(file, "utf8")) as NodeResult;
-    const missing = result.artifacts.some((a) => !existsSync(path.join(projectDir, a.path)));
-    return missing ? null : result;
-  } catch {
-    return null;
-  }
+  const result = await readJson<NodeResult>(file);
+  if (!result) return null;
+  const missing = result.artifacts.some((a) => !existsSync(path.join(projectDir, a.path)));
+  return missing ? null : result;
 }
 
 export async function writeCached(cacheDir: string, result: NodeResult): Promise<void> {
@@ -49,21 +36,7 @@ export async function writeCached(cacheDir: string, result: NodeResult): Promise
   await atomicWrite(path.join(dir, "result.json"), JSON.stringify(result, null, 2));
 }
 
-export async function readLastRun(projectDir: string): Promise<LastRun | null> {
-  try {
-    return JSON.parse(await readFile(projectPaths(projectDir).lastRun, "utf8")) as LastRun;
-  } catch {
-    return null;
-  }
-}
-
 export async function writeLastRun(projectDir: string, lastRun: LastRun): Promise<void> {
   await mkdir(projectPaths(projectDir).meta, { recursive: true });
   await atomicWrite(projectPaths(projectDir).lastRun, JSON.stringify(lastRun, null, 2));
-}
-
-async function atomicWrite(file: string, text: string): Promise<void> {
-  const tmp = `${file}.${process.pid}.tmp`;
-  await writeFile(tmp, text);
-  await rename(tmp, file);
 }

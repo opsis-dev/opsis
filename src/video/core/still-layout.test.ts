@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   bleedLayout,
   captureScale,
+  containBox,
   CUTOUT_FIT,
   cutoutLayout,
   maxScaleFor,
@@ -10,6 +11,13 @@ import {
 } from "./still-layout";
 
 const HD = { width: 1920, height: 1080 };
+
+describe("containBox", () => {
+  it("fits the recording's shape inside the frame", () => {
+    expect(containBox({ width: 1080, height: 1920 }, 1.6)).toEqual({ width: 1080, height: 675 });
+    expect(containBox({ width: 1920, height: 1080 }, 1.6)).toEqual({ width: 1728, height: 1080 });
+  });
+});
 
 describe("windowBox", () => {
   it("is width-limited when the shot is wider than the canvas", () => {

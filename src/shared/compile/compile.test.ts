@@ -8,6 +8,7 @@ import type { GroupProps } from "./clip";
 import { compileWorkflow, previewSpec } from "./compile";
 import type { RecordingProps } from "./recording";
 import { flattenSpec } from "../timeline/flatten";
+import { recordResult } from "../test-fixtures";
 
 const log: ActionLog = {
   viewport: { width: 1920, height: 1080 },
@@ -52,23 +53,6 @@ const log: ActionLog = {
   ],
 };
 
-const recordResult = (hash = "h"): NodeResult => ({
-  hash,
-  outputs: {
-    recording: {
-      type: "recording",
-      src: "project:.demoflow/cache/h/recording.mp4",
-      log,
-      durationMs: log.durationMs,
-      viewport: log.viewport,
-      nodeId: "record",
-    },
-  },
-  artifacts: [],
-  finishedAt: 0,
-  durationMs: 0,
-});
-
 function walkItems(spec: TimelineSpec) {
   const items: Array<{ component: string; props: Record<string, unknown> }> = [];
   const visit = (tracks: TimelineSpec["tracks"]) => {
@@ -99,7 +83,7 @@ describe("compileWorkflow — sample project", () => {
 
   it("uses the recording once the capture node has a result", () => {
     const wf = todoMvcSample();
-    const out = compileWorkflow(wf, { results: { record: recordResult() } });
+    const out = compileWorkflow(wf, { results: { record: recordResult(log) } });
     const rec = walkItems(out.specs.render).find((i) => i.component === "core/recording");
     expect(rec).toBeDefined();
     const props = rec!.props as RecordingProps;
@@ -110,7 +94,7 @@ describe("compileWorkflow — sample project", () => {
 
   it("marks every action of the recording on the timeline at its frame", () => {
     const wf = todoMvcSample();
-    const out = compileWorkflow(wf, { results: { record: recordResult() } });
+    const out = compileWorkflow(wf, { results: { record: recordResult(log) } });
     const flat = flattenSpec(out.specs.render);
     const bar = flat.bars.find((b) => b.component === "core/recording")!;
     const marks = flat.marks.filter((m) => m.barKey === bar.key);
@@ -122,7 +106,7 @@ describe("compileWorkflow — sample project", () => {
   });
 
   it("passes the small preview copy along with the full recording", () => {
-    const result = recordResult();
+    const result = recordResult(log);
     const recording = result.outputs.recording as Record<string, unknown>;
     recording.proxySrc = "project:.demoflow/cache/h/recording.preview.mp4";
     const out = compileWorkflow(todoMvcSample(), { results: { record: result } });
@@ -134,7 +118,7 @@ describe("compileWorkflow — sample project", () => {
 
   it("sequences clips with overlapping transitions (TransitionSeries semantics)", () => {
     const wf = todoMvcSample();
-    const spec = compileWorkflow(wf, { results: { record: recordResult() } }).specs.render;
+    const spec = compileWorkflow(wf, { results: { record: recordResult(log) } }).specs.render;
     const seq = spec.tracks[0].items;
     expect(seq).toHaveLength(3);
     expect(seq[1].enter?.kind).toBe("remocn/whip-pan");
@@ -256,7 +240,7 @@ describe("sounds under a clip", () => {
     return cam;
   };
   const tagged: NodeResult = (() => {
-    const r = recordResult();
+    const r = recordResult(log);
     const rec = r.outputs.recording as { log: ActionLog };
     rec.log = {
       ...log,

@@ -4,7 +4,7 @@ import { joinFolder, projectFolderName } from "./project-folder";
 describe("projectFolderName", () => {
   it("turns a project name into a lowercase folder name", () => {
     expect(projectFolderName("My launch video")).toBe("my-launch-video");
-    expect(projectFolderName("  Q3 / Release!  ")).toBe("q3-release-");
+    expect(projectFolderName("  Q3 / Release!  ")).toBe("q3-release");
     expect(projectFolderName("v1.2_beta")).toBe("v1.2_beta");
   });
 

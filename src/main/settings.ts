@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { app } from "electron";
 import {
@@ -7,6 +7,7 @@ import {
   type AppSettings,
   type SettingsPatch,
 } from "../shared/settings";
+import { atomicWrite, readJson } from "../engine/json";
 
 const file = () => path.join(app.getPath("userData"), "settings.json");
 
@@ -22,11 +23,7 @@ export function onSettingsChange(
 
 export async function readSettings(): Promise<AppSettings> {
   if (cached) return cached;
-  try {
-    cached = appSettingsSchema.parse(JSON.parse(await readFile(file(), "utf8")));
-  } catch {
-    cached = DEFAULT_SETTINGS;
-  }
+  cached = appSettingsSchema.safeParse(await readJson(file())).data ?? DEFAULT_SETTINGS;
   return cached;
 }
 
@@ -34,7 +31,7 @@ export async function writeSettings(next: AppSettings): Promise<AppSettings> {
   const previous = await readSettings();
   cached = appSettingsSchema.parse(next);
   await mkdir(path.dirname(file()), { recursive: true });
-  await writeFile(file(), `${JSON.stringify(cached, null, 2)}\n`);
+  await atomicWrite(file(), `${JSON.stringify(cached, null, 2)}\n`);
   for (const listener of listeners) listener(cached, previous);
   return cached;
 }

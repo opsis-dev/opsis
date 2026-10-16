@@ -37,9 +37,11 @@ import { Separator } from "@/renderer/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { useAppSettings } from "../store/app-settings";
 import { cn } from "@/renderer/lib/utils";
+import { isEditingElement } from "@/renderer/lib/dom";
 
 const platform = window.demoflow?.platform ?? "linux";
 export const isMac = platform === "darwin";
+export const shortcutLabel = (accelerator: string) => acceleratorLabel(accelerator, platform);
 const SECTIONS = appMenu(platform);
 
 function run(entry: MenuEntry) {
@@ -128,15 +130,6 @@ function CompactMenu() {
   );
 }
 
-const editing = () => {
-  const el = document.activeElement as HTMLElement | null;
-  return (
-    !!el &&
-    (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) &&
-    !(el instanceof HTMLInputElement && /^(checkbox|radio|button|range)$/.test(el.type))
-  );
-};
-
 const NATIVE_WHILE_EDITING = new Set([
   "cut",
   "copy",
@@ -158,7 +151,7 @@ export function useMenuShortcuts(): void {
       const entry = entries.find((x) => matchesAccelerator(x.accelerator!, e, platform));
       if (!entry) return;
       const id = entry.kind === "command" ? entry.command : entry.role;
-      if (editing() && NATIVE_WHILE_EDITING.has(id)) return;
+      if (isEditingElement(document.activeElement) && NATIVE_WHILE_EDITING.has(id)) return;
       e.preventDefault();
       run(entry);
     };

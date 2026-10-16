@@ -3,7 +3,6 @@ import { BACKDROPS } from "../../video/camera/lib/backdrop";
 import {
   isClip,
   itemClip,
-  msToFrames,
   patchRecordings,
   remapDuration,
   remapFromSegments,
@@ -18,9 +17,12 @@ import {
 } from "../compile/recording";
 import type { Action } from "../schema/actions";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
-import { row, secs } from "./card";
+import { row } from "./card";
 import { defineNode, port, type CompileOutputs } from "./define";
 import { bool, choice, fraction, MAX_SPEED, more, ms, text } from "./params";
+import { formatDuration, humanize } from "../format";
+import { msToFrames } from "../timeline/time";
+import { baseName } from "../asset-ref";
 
 const base = { category: "Camera", phase: "compile" } as const;
 const modifier = {
@@ -28,7 +30,6 @@ const modifier = {
   outputs: { clip: port("clip", "Clip") },
 } as const;
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replaceAll("-", " ");
 const spot = { widget: "spot" } as const;
 
 export const WINDOW_STYLES = ["macos", "windows", "linux"] as const;
@@ -62,8 +63,8 @@ export const autoZoomNode = defineNode({
   outputs: { clip: port("clip", "Clip") },
   card: ({ params: p }) => [
     p.zoom ? row("zoom-in", `Up to ${p.maxScale}×`) : row("zoom-out", "No zoom", { tone: "muted" }),
-    p.zoom && row("hourglass", `Hold ${secs(p.hold)}`),
-    row("image", `${cap(p.backdrop)} backdrop`),
+    p.zoom && row("hourglass", `Hold ${formatDuration(p.hold)}`),
+    row("image", `${humanize(p.backdrop)} backdrop`),
     p.speed !== 1 && row("gauge", `${p.speed}× speed`),
   ],
   params: z.object({
@@ -143,8 +144,8 @@ export const manualZoomNode = defineNode({
   icon: "zoom-in",
   description: "Zooms to a spot of your choice at a set time.",
   card: ({ params: p }) => [
-    row("zoom-in", `${p.scale}× at ${secs(p.atMs)}`),
-    row("hourglass", `Hold ${secs(p.holdMs)}`),
+    row("zoom-in", `${p.scale}× at ${formatDuration(p.atMs)}`),
+    row("hourglass", `Hold ${formatDuration(p.holdMs)}`),
   ],
   params: z.object({
     atMs: ms(1000, "At"),
@@ -186,7 +187,7 @@ export const panNode = defineNode({
   icon: "move",
   description: "Moves the camera from one spot to another.",
   card: ({ params: p }) => [
-    row("move", `${secs(p.atMs)} → ${secs(p.atMs + p.durationMs)}`),
+    row("move", `${formatDuration(p.atMs)} → ${formatDuration(p.atMs + p.durationMs)}`),
     row("zoom-in", `${p.scale}×`),
   ],
   params: z.object({
@@ -236,7 +237,9 @@ export const followCursorNode = defineNode({
   title: "Follow cursor",
   icon: "crosshair",
   description: "Keeps the camera on the cursor, good for tall formats.",
-  card: ({ params: p }) => [row("locate-fixed", `${p.scale}× · re-aim every ${secs(p.everyMs)}`)],
+  card: ({ params: p }) => [
+    row("locate-fixed", `${p.scale}× · re-aim every ${formatDuration(p.everyMs)}`),
+  ],
   params: z.object({
     scale: z
       .number()
@@ -289,7 +292,7 @@ export const idleSpeedupNode = defineNode({
   icon: "fast-forward",
   description: "Speeds through moments where nothing happens.",
   card: ({ params: p }) => [
-    row("fast-forward", `${p.rate}× when quiet over ${secs(p.thresholdMs)}`),
+    row("fast-forward", `${p.rate}× when quiet over ${formatDuration(p.thresholdMs)}`),
   ],
   params: z.object({
     thresholdMs: ms(1500, "Quiet for longer than", 20_000),
@@ -404,7 +407,7 @@ export const deviceFrameNode = defineNode({
   card: ({ params: p }) => [
     row(
       p.device === "phone" ? "smartphone" : p.device === "laptop" ? "laptop" : "app-window",
-      cap(p.device),
+      humanize(p.device),
     ),
     p.device === "laptop" &&
       p.entrance !== "none" &&
@@ -468,14 +471,14 @@ export const backdropNode = defineNode({
   description: "The background behind the floating window: a studio image, colour or gradient.",
   card: ({ params: p }) => [
     p.kind === "image"
-      ? row("image", cap(p.name))
+      ? row("image", humanize(p.name))
       : p.kind === "solid"
         ? row("palette", p.color)
         : p.kind === "gradient"
           ? row("blend", "Gradient", { title: p.gradient })
           : row(
               "image",
-              p.asset ? (p.asset.split("/").pop() ?? p.asset) : "Choose an image",
+              p.asset ? baseName(p.asset) : "Choose an image",
               p.asset ? {} : { tone: "warn" },
             ),
   ],

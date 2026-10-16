@@ -14,6 +14,7 @@ import {
   type Point,
 } from "./drag-path";
 import { findByName, type TargetOverrides } from "./selectors";
+import { clamp } from "../../shared/math";
 
 const ARROW_HOTX = 2;
 const ARROW_HOTY = 2;
@@ -99,8 +100,6 @@ function isCss(t: Target): t is { css: string } {
     typeof (t as { css: unknown }).css === "string"
   );
 }
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 const captureScaleOf = (page: Page): number => {
   const vp = page.viewportSize();

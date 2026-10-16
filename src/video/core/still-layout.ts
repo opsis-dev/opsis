@@ -1,3 +1,4 @@
+import { clamp } from "../../shared/math";
 export type Size = { width: number; height: number };
 export type Box = { x: number; y: number; width: number; height: number };
 export type StillLook = "window" | "cutout" | "bleed";
@@ -11,17 +12,17 @@ export const MAX_UPSCALE = 1.5;
 export const MAX_CAPTURE_SCALE = 8;
 export const SURFACE_BUDGET_PX = 1920 * 1080 * 4 * 4;
 
+export function containBox(outer: Size, aspect: number): Size {
+  return outer.width / outer.height > aspect
+    ? { width: outer.height * aspect, height: outer.height }
+    : { width: outer.width, height: outer.width / aspect };
+}
+
 export function windowBox(aspect: number, canvas: Size, fit: number): Size {
   if (!(aspect > 0)) throw new Error("aspect must be > 0");
   if (!(fit > 0)) throw new Error("fit must be > 0");
-  let width = canvas.width * fit;
-  let height = width * aspect;
-  const maxHeight = canvas.height * fit;
-  if (height > maxHeight) {
-    height = maxHeight;
-    width = height / aspect;
-  }
-  return { width: Math.round(width), height: Math.round(height) };
+  const box = containBox({ width: canvas.width * fit, height: canvas.height * fit }, 1 / aspect);
+  return { width: Math.round(box.width), height: Math.round(box.height) };
 }
 
 export function anchorBox(size: Size, canvas: Size, anchor: Anchor): { left: number; top: number } {
@@ -68,7 +69,7 @@ export function bleedLayout(shot: Shot, canvas: Size): Box {
 
 export function maxScaleFor(region: Size): number {
   const byArea = Math.sqrt(SURFACE_BUDGET_PX / (region.width * region.height));
-  return Math.max(1, Math.min(MAX_CAPTURE_SCALE, Math.floor(byArea * 10) / 10));
+  return clamp(Math.floor(byArea * 10) / 10, 1, MAX_CAPTURE_SCALE);
 }
 
 export function captureScale(

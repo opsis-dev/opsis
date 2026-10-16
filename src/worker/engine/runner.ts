@@ -13,28 +13,24 @@ import {
 } from "../../shared/graph";
 import type { RunRequest } from "../../shared/ipc";
 import type { NodePhase } from "../../shared/nodes/define";
-import { getNodeDef } from "../../shared/nodes/registry";
+import { getNodeDef, nodeName } from "../../shared/nodes/registry";
 import type { LogLevel, RunEvent } from "../../shared/schema/events";
 import type { CompileValue, LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { enginePaths } from "../../engine/paths";
 import type { LiveMessage } from "../../shared/live";
+import { secretName } from "../../shared/secrets";
 import { interpolate } from "../../shared/vars";
 import { failureMessage } from "../../shared/run-progress";
 import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/driver";
 import { getExecutor } from "../executors";
 import { createFfmpegTools } from "../media/ffmpeg";
-import {
-  nodeHash,
-  projectPaths,
-  readCached,
-  readLastRun,
-  writeCached,
-  writeLastRun,
-} from "./cache";
+import { nodeHash, readCached, writeCached, writeLastRun } from "./cache";
+import { projectPaths, readLastRun, toPosixRel } from "../../engine/project-paths";
 import { TracedError, type ExecutorContext } from "./context";
 import { decorateArtifacts } from "./posters";
+import { errorMessage } from "../../shared/errors";
 
 const LANE_LIMITS: Record<NodePhase, number> = {
   capture: 3,
@@ -82,9 +78,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
     for (const login of loginDependencies(workflow, id, vars)) {
       if (needed.has(login)) continue;
       const params = interpolate(byId.get(login)!.params ?? {}, vars) as { secretName?: string };
-      const saved = await deps.secrets
-        .read(params.secretName?.trim() || "default")
-        .catch(() => null);
+      const saved = await deps.secrets.read(secretName(params.secretName)).catch(() => null);
       if (!saved) needed.add(login);
     }
   }
@@ -218,7 +212,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
     emit({ type: "node:start", runId, nodeId: id, at: started });
     const dir = path.join(paths.cache, hash);
     await mkdir(dir, { recursive: true });
-    const relDir = path.relative(projectDir, dir).split(path.sep).join("/");
+    const relDir = toPosixRel(projectDir, dir);
 
     const inputs: Partial<Record<string, CompileValue>> = {};
     const compiled = () => compileWorkflow(workflow, { results });
@@ -292,11 +286,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
     } catch (error) {
       failed.add(id);
       const traceId = error instanceof TracedError ? error.traceId : undefined;
-      const message = signal.aborted
-        ? "Cancelled"
-        : error instanceof Error
-          ? error.message
-          : String(error);
+      const message = signal.aborted ? "Cancelled" : errorMessage(error);
       emit({
         type: "node:error",
         runId,
@@ -366,7 +356,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
   try {
     await Promise.all(toRun.map(schedule));
   } catch (e) {
-    error = e instanceof Error ? e.message : String(e);
+    error = errorMessage(e);
   }
 
   const merged: LastRun = {
@@ -381,14 +371,14 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
   for (const id of Object.keys(merged.nodes)) if (!byId.has(id)) delete merged.nodes[id];
   for (const id of Object.keys(merged.failures!)) if (!byId.has(id)) delete merged.failures![id];
   await writeLastRun(projectDir, merged).catch((e: unknown) =>
-    log("warn", `Couldn't save the run results: ${String(e)}`),
+    log("warn", `Couldn't save the run results: ${errorMessage(e)}`),
   );
 
   const ok = !signal.aborted && failed.size === 0 && !error;
   const failedNodeIds = [...failed].filter((id) => !skipped.has(id));
   const nameOf = (id: string) => {
     const node = byId.get(id);
-    return node?.label || getNodeDef(node?.type ?? "")?.title || id;
+    return node ? nodeName(node) : id;
   };
   emit({
     type: "run:done",

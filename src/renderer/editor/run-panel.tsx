@@ -12,7 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useMemo } from "react";
-import { getNodeDef } from "@/shared/nodes/registry";
+import { getNodeDef, nodeName } from "@/shared/nodes/registry";
 import { exportedArtifacts } from "@/shared/run-progress";
 import type { NodeRunStatus } from "@/shared/schema/events";
 import type { Artifact } from "@/shared/schema/values";
@@ -28,9 +28,7 @@ import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { AnimatedPercent } from "../app/motion";
 import { cancelRun } from "./run";
-
-const fileUrl = (rel: string) =>
-  `demoflow-file://project/${rel.split("/").map(encodeURIComponent).join("/")}`;
+import { fileUrl } from "./file-url";
 
 function ArtifactPreview({ artifact }: { artifact: Artifact }) {
   if (artifact.kind === "video")
@@ -163,7 +161,7 @@ export function RunPanel() {
   );
   const nameOf = (id: string) => {
     const node = workflow?.nodes.find((n) => n.id === id);
-    return node ? node.label || getNodeDef(node.type)?.title || node.type : "A deleted node";
+    return node ? nodeName(node) : "A deleted node";
   };
   const visibleLogs = filter ? logs.filter((l) => l.nodeId === filter) : logs;
   const artifacts = filter ? (results[filter]?.artifacts ?? []) : exported;
@@ -216,9 +214,7 @@ export function RunPanel() {
               >
                 <div className="flex items-center gap-2 text-xs">
                   <StatusIcon state={state} />
-                  <span className="flex-1 truncate">
-                    {n.label || getNodeDef(n.type)?.title || n.type}
-                  </span>
+                  <span className="flex-1 truncate">{nodeName(n)}</span>
                 </div>
                 {status === "running" && progress[n.id] ? (
                   <div className="flex items-center gap-2 pl-6">

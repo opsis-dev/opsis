@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { duckGain, duckingSpans } from "@/shared/compile/duck";
 import { applyMixLevels } from "@/shared/mix/levels";
-import { getNodeDef } from "@/shared/nodes/registry";
+import { getNodeDef, nodeName } from "@/shared/nodes/registry";
 import type { AudioEnvelopeKey, Keyframe, VisualEnvelopeKey } from "@/shared/schema/timeline";
 import type { Workflow } from "@/shared/schema/workflow";
 import {
@@ -58,11 +58,14 @@ import { cn } from "@/renderer/lib/utils";
 import { useMedia } from "../../store/media";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
-import { newId, useWorkflowStore } from "../../store/workflow";
+import { useWorkflowStore } from "../../store/workflow";
 import { useFilm } from "../film";
 import { FilmstripCanvas, WaveformCanvas, type Viewport } from "./bar-canvas";
 import { preloadScrub, scrubAt } from "./scrub";
 import { MAX_PX_PER_FRAME, useTimeline, type TimelineTool } from "./timeline-state";
+import { randomId } from "@/shared/ids";
+import { clamp, round3 } from "@/shared/math";
+import { framesToMs } from "@/shared/timeline/time";
 
 const HEADER_W = 84;
 const RULER_H = 24;
@@ -164,8 +167,7 @@ function transitionTip(wf: Workflow, t: TransitionMark): string {
 
 function nodeTitle(wf: Workflow, id: string): string {
   const node = wf.nodes.find((n) => n.id === id);
-  if (!node) return "";
-  return node.label?.trim() || getNodeDef(node.type)?.title || node.type;
+  return node ? nodeName(node) : "";
 }
 
 function toneFor(wf: Workflow, bar: VideoBar): string {
@@ -653,7 +655,7 @@ export function TimelineView({ ref }: { ref: React.Ref<TimelineActions> }) {
     const d = drag.current;
     if (!d) return;
     if (d.kind === "scrub") {
-      const f = Math.max(0, Math.min(duration - 1, xToFrame(e.clientX)));
+      const f = clamp(xToFrame(e.clientX), 0, Math.max(0, duration - 1));
       usePlayback.getState().seek(f);
       scrubAt(masterSrc, f / fps);
       return;
@@ -690,7 +692,7 @@ export function TimelineView({ ref }: { ref: React.Ref<TimelineActions> }) {
         Math.max(lo, key.value - ((e.clientY - d.y0) / Math.max(1, d.height - 10)) * (hi - lo)),
       );
       const keys = d.keys.map((k, i) =>
-        i === d.index ? { ...k, frame: frameAt, value: Math.round(value * 1000) / 1000 } : k,
+        i === d.index ? { ...k, frame: frameAt, value: round3(value) } : k,
       );
       setEnvelopeKeys(d.nodeId, d.prop, keys);
       return;
@@ -708,7 +710,7 @@ export function TimelineView({ ref }: { ref: React.Ref<TimelineActions> }) {
           snapTargets(null).filter((t) => t.kind !== "marker"),
           SNAP_PX / ppf,
         ).frame;
-      const atMs = Math.max(0, Math.round((f / fps) * 1000));
+      const atMs = Math.max(0, framesToMs(f, fps));
       useWorkflowStore
         .getState()
         .setMarkers((list) => list.map((m) => (m.id === d.id ? { ...m, atMs } : m)));
@@ -778,7 +780,7 @@ export function TimelineView({ ref }: { ref: React.Ref<TimelineActions> }) {
       if (!el) return;
       const anchor = anchorFrame ?? usePlayback.getState().frame;
       const screenX = anchor * ppf - el.scrollLeft;
-      const next = Math.min(MAX_PX_PER_FRAME, Math.max(0.01, ppf * factor));
+      const next = clamp(ppf * factor, 0.01, MAX_PX_PER_FRAME);
       useTimeline.getState().setZoom(next);
       requestAnimationFrame(() => {
         el.scrollLeft = Math.max(0, anchor * next - screenX);
@@ -856,12 +858,12 @@ export function TimelineView({ ref }: { ref: React.Ref<TimelineActions> }) {
 
   const addMarker = () => {
     const at = usePlayback.getState().frame;
-    const id = newId("marker");
+    const id = randomId("marker");
     useWorkflowStore
       .getState()
       .setMarkers((list) => [
         ...list,
-        { id, atMs: Math.round((at / fps) * 1000), label: `Marker ${list.length + 1}` },
+        { id, atMs: framesToMs(at, fps), label: `Marker ${list.length + 1}` },
       ]);
     useTimeline.getState().selectMarker(id);
   };
@@ -1435,7 +1437,7 @@ function EnvelopeOverlay({
           cy={y(k.value)}
           r={4}
           className="fill-keyframe stroke-background cursor-move"
-          aria-label={`${KEY_NAMES[prop]} ${Math.round(k.value * 1000) / 1000}`}
+          aria-label={`${KEY_NAMES[prop]} ${round3(k.value)}`}
           onPointerDown={(e) => {
             if (e.button === 0 && secondClick(e)) {
               e.stopPropagation();
@@ -1446,7 +1448,7 @@ function EnvelopeOverlay({
           }}
         >
           <title>
-            {`${KEY_NAMES[prop]} ${Math.round(k.value * 1000) / 1000}. Drag to change, double-click to delete. Click to type exact values in the Inspector.`}
+            {`${KEY_NAMES[prop]} ${round3(k.value)}. Drag to change, double-click to delete. Click to type exact values in the Inspector.`}
           </title>
         </circle>
       ))}

@@ -6,9 +6,11 @@ import { canConnect } from "@/shared/nodes/ports";
 import { workflowSettingsSchema, type WorkflowNode } from "@/shared/schema/workflow";
 import { setEditorApi } from "../app/api-host";
 import { useRunStore } from "../store/run";
-import { newId, useWorkflowStore } from "../store/workflow";
+import { useWorkflowStore } from "../store/workflow";
 import { beginRun, cancelRun } from "./run";
 import { save } from "./save";
+import { errorMessage } from "@/shared/errors";
+import { randomId } from "@/shared/ids";
 
 const fail = (status: number, error: string): ApiEditorReply => ({ ok: false, status, error });
 const done = (result: unknown): ApiEditorReply => ({ ok: true, result });
@@ -58,7 +60,7 @@ async function handle(request: ApiEditorRequest): Promise<ApiEditorReply> {
     case "addNode": {
       const def = getNodeDef(request.type);
       if (!def) return fail(400, `There's no node type “${request.type}”. See GET /nodes.`);
-      const id = request.id ?? newId(request.type.split(".")[0]);
+      const id = request.id ?? randomId(request.type.split(".")[0]);
       if (node(id)) return fail(400, `A node with the id “${id}” already exists.`);
       store.update((w) => ({
         ...w,
@@ -173,7 +175,7 @@ async function handle(request: ApiEditorRequest): Promise<ApiEditorReply> {
         });
         return done({ running: true, runId });
       } catch (e) {
-        return fail(409, e instanceof Error ? e.message : String(e));
+        return fail(409, errorMessage(e));
       }
     }
     case "stop":

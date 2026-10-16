@@ -10,7 +10,7 @@ import type { NodeDef } from "@/shared/nodes/define";
 import { defaultParams } from "@/shared/nodes/registry";
 import type { NodeResult } from "@/shared/schema/values";
 import type { WorkflowNode } from "@/shared/schema/workflow";
-import { interpolate, stableStringify } from "@/shared/vars";
+import { interpolate } from "@/shared/vars";
 import { DemoTimeline } from "@/video/demo-timeline";
 import { cn } from "@/renderer/lib/utils";
 import { useRunStore } from "../store/run";
@@ -21,6 +21,8 @@ import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
 import { NodeIcon } from "./icons";
 import { useCompiledContext } from "./use-compiled";
+import { stableJson } from "@/shared/hash";
+import { errorMessage } from "@/shared/errors";
 
 const MAX_LIVE_THUMBS = 6;
 const MIN_ZOOM = 0.55;
@@ -98,8 +100,15 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
         })
         .filter((r): r is CardRow => !!r && typeof r === "object")
         .slice(0, 4);
-    } catch {
-      return [];
+    } catch (error) {
+      return [
+        {
+          icon: "triangle-alert",
+          text: "Couldn't show this node's summary",
+          title: errorMessage(error),
+          tone: "warn",
+        },
+      ];
     }
   }, [
     def,
@@ -177,7 +186,7 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
   const holding = useThumbSlots((s) => s.active.includes(nodeId));
   const [ref, visible] = useOnScreen<HTMLDivElement>();
   const clip = compiled?.values[nodeId]?.clip;
-  const key = isClip(clip) && settings ? stableStringify([clip, settings]) : "";
+  const key = isClip(clip) && settings ? stableJson([clip, settings]) : "";
   const [settled, setSettled] = useState(key);
   useEffect(() => {
     const t = setTimeout(() => setSettled(key), 400);
@@ -260,7 +269,7 @@ function useSettledClipKey(nodeId: string): string {
   const { result: compiled } = useCompiledContext();
   const settings = useWorkflowStore((s) => s.workflow?.settings);
   const clip = compiled?.values[nodeId]?.clip;
-  const key = isClip(clip) && settings ? stableStringify([clip, settings]) : "";
+  const key = isClip(clip) && settings ? stableJson([clip, settings]) : "";
   const [settled, setSettled] = useState(key);
   useEffect(() => {
     const t = setTimeout(() => setSettled(key), 400);

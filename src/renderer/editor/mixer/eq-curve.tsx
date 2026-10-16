@@ -1,4 +1,5 @@
 import type { EqBand } from "@/shared/mix/types";
+import { clamp } from "@/shared/math";
 
 const SR = 48_000;
 
@@ -62,7 +63,7 @@ export function EqCurve({
       ? bands.reduce((sum, b) => sum + (Math.abs(b.gain) < 0.05 ? 0 : bandResponse(b, f)), 0)
       : 0;
     if (highpass) db += -10 * Math.log10(1 + (highpass / f) ** 4);
-    const y = height / 2 - (Math.max(-range, Math.min(range, db)) / range) * (height / 2 - 2);
+    const y = height / 2 - (clamp(db, -range, range) / range) * (height / 2 - 2);
     points.push(`${((i / steps) * width).toFixed(1)},${y.toFixed(1)}`);
   }
   return (

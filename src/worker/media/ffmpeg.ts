@@ -2,6 +2,8 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import type { Writable } from "node:stream";
 import { engineStatus } from "../../engine/paths";
+import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";
+import { clamp } from "../../shared/math";
 
 export type FfmpegTools = {
   ffmpeg: string;
@@ -54,7 +56,7 @@ function spawnTool(
       if (opts.onProgress && opts.durationMs) {
         for (const m of text.matchAll(/out_time_(?:us|ms)=(\d+)/g)) {
           const ms = Number(m[1]) / 1000;
-          opts.onProgress(Math.max(0, Math.min(1, ms / opts.durationMs)));
+          opts.onProgress(clamp(ms / opts.durationMs, 0, 1));
         }
       }
     });
@@ -85,11 +87,8 @@ function spawnTool(
 
 export function createFfmpegTools(engineDir: string): FfmpegTools {
   const { ffmpeg, ffprobe } = engineStatus(engineDir);
-  const need = (bin: string | null, name: string) => {
-    if (!bin)
-      throw new Error(
-        `The video engine isn't set up yet (${name} is missing). Set it up in Settings → Engine.`,
-      );
+  const need = (bin: string | null) => {
+    if (!bin) throw new Error(ENGINE_MISSING_MESSAGE);
     return bin;
   };
   const ffmpegArgs = (args: string[], opts?: RunOptions) => [
@@ -101,14 +100,14 @@ export function createFfmpegTools(engineDir: string): FfmpegTools {
   return {
     ffmpeg: ffmpeg ?? "",
     ffprobe: ffprobe ?? "",
-    run: (args, opts) => spawnTool(need(ffmpeg, "FFmpeg"), ffmpegArgs(args, opts), opts).done,
+    run: (args, opts) => spawnTool(need(ffmpeg), ffmpegArgs(args, opts), opts).done,
     pipe: (args, opts) => {
-      const { stdin, done } = spawnTool(need(ffmpeg, "FFmpeg"), ffmpegArgs(args, opts), opts, true);
+      const { stdin, done } = spawnTool(need(ffmpeg), ffmpegArgs(args, opts), opts, true);
       if (!stdin) throw new Error("The video tools did not start.");
       return { stdin, done };
     },
     probe: async (file) => {
-      const out = await spawnTool(need(ffprobe, "ffprobe"), [
+      const out = await spawnTool(need(ffprobe), [
         "-v",
         "error",
         "-print_format",

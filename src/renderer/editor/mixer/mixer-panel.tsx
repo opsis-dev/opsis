@@ -31,7 +31,7 @@ import {
   type Mix,
   type Strip,
 } from "@/shared/mix/types";
-import { getNodeDef } from "@/shared/nodes/registry";
+import { nodeName } from "@/shared/nodes/registry";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import { Checkbox } from "@/renderer/components/ui/checkbox";
@@ -72,11 +72,13 @@ import { useMedia } from "../../store/media";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { readPref, writePref } from "../../store/view-prefs";
-import { newId, useWorkflowStore } from "../../store/workflow";
+import { useWorkflowStore } from "../../store/workflow";
 import { useFilm } from "../film";
 import { EqCurve } from "./eq-curve";
 import { Knob, type DragPhase } from "./knob";
 import { levelAt, Meter } from "./meter";
+import { randomId } from "@/shared/ids";
+import { clamp } from "@/shared/math";
 
 const db = (v: number) => (v <= MIN_DB ? "−∞" : `${v > 0 ? "+" : ""}${v.toFixed(1)}`);
 const hz = (v: number) =>
@@ -151,10 +153,31 @@ function share(
 ): number {
   const master = result?.levels.master;
   if (!master || !levels) return 1;
-  const f = Math.max(0, Math.min(master.rms.length - 1, Math.round(frame)));
+  const f = clamp(Math.round(frame), 0, master.rms.length - 1);
   const pc = 10 ** ((levels.rms[f] ?? -120) / 10);
   const pm = 10 ** ((master.rms[f] ?? -120) / 10);
   return pm <= 1e-12 ? 1 : Math.min(1, pc / pm);
+}
+
+function previewEq(
+  key: string,
+  before: Eq,
+  eq: Eq,
+  band: number | undefined,
+  fraction: number,
+): void {
+  if (band === undefined) return;
+  const b = eq.bands[band];
+  previewChange(`${key}:eq${band}`, before.bands[band].gain, b.gain, (d) => ({
+    filters: [
+      { type: b.type === "peak" ? "peaking" : b.type, freq: b.freq, gain: d * fraction, q: b.q },
+    ],
+  }));
+}
+
+function previewHighpass(key: string, freq: number): void {
+  contributions.set(`${key}:hp`, { filters: [{ type: "highpass", freq, gain: 0, q: 0.7 }] });
+  publishPreview();
 }
 
 function gainContribution(fraction: number, deltaDb: number): Contribution {
@@ -162,11 +185,9 @@ function gainContribution(fraction: number, deltaDb: number): Contribution {
   return { gainDb: 10 * Math.log10(p) };
 }
 
-function nodeName(nodeId: string): string {
-  const wf = useWorkflowStore.getState().workflow;
-  const node = wf?.nodes.find((n) => n.id === nodeId);
-  if (!node) return "Sound";
-  return node.label?.trim() || getNodeDef(node.type)?.title || "Sound";
+function channelName(nodeId: string): string {
+  const node = useWorkflowStore.getState().workflow?.nodes.find((n) => n.id === nodeId);
+  return node ? nodeName(node) : "Sound";
 }
 
 export function MixerPanel() {
@@ -242,7 +263,7 @@ export function MixerPanel() {
               ...m,
               buses: [
                 ...m.buses,
-                busSchema.parse({ id: newId("bus"), name: `Bus ${m.buses.length + 1}` }),
+                busSchema.parse({ id: randomId("bus"), name: `Bus ${m.buses.length + 1}` }),
               ],
             }))
           }
@@ -290,6 +311,125 @@ export function MixerPanel() {
         <MasterStrip master={mix.master} result={result} frame={frame} holdFrames={holdFrames} />
       </div>
     </div>
+  );
+}
+
+type StripControls = Pick<Strip, "highpass" | "eq" | "comp" | "fader" | "mute" | "solo">;
+
+type StripPartProps = {
+  controls: StripControls;
+  previewKey: string;
+  fraction: number;
+  update: (fn: (c: StripControls) => Partial<StripControls>) => void;
+};
+
+function HighpassKnob({ controls, previewKey, update }: Omit<StripPartProps, "fraction">) {
+  return (
+    <Knob
+      label="Hz"
+      size={24}
+      value={controls.highpass.freq}
+      min={20}
+      max={1000}
+      step={1}
+      reset={80}
+      log
+      format={hz}
+      disabled={!controls.highpass.on}
+      onChange={(v, phase) =>
+        gesture(phase, () => {
+          previewHighpass(previewKey, v);
+          update((c) => ({ highpass: { ...c.highpass, freq: v } }));
+        })
+      }
+    />
+  );
+}
+
+function StripTone({
+  controls,
+  previewKey,
+  fraction,
+  update,
+  reduction,
+}: StripPartProps & { reduction: number | null }) {
+  return (
+    <>
+      <EqPopover
+        eq={controls.eq}
+        highpass={controls.highpass.on ? controls.highpass.freq : null}
+        onChange={(eq, phase, band) =>
+          gesture(phase, () => {
+            previewEq(previewKey, controls.eq, eq, band, fraction);
+            update(() => ({ eq }));
+          })
+        }
+      />
+      <div className="flex w-full items-center gap-1">
+        <Toggle
+          size="sm"
+          variant="outline"
+          className="h-5 min-w-0 px-1 text-[10px]"
+          pressed={controls.highpass.on}
+          aria-label="Low cut"
+          title="Cut rumble below the low-cut frequency"
+          onPressedChange={(on) => update((c) => ({ highpass: { ...c.highpass, on } }))}
+        >
+          Low cut
+        </Toggle>
+        <CompPopover
+          comp={controls.comp}
+          reduction={reduction}
+          onChange={(comp, phase) => gesture(phase, () => update(() => ({ comp })))}
+        />
+      </div>
+    </>
+  );
+}
+
+function StripLevel({
+  controls,
+  previewKey,
+  fraction,
+  update,
+  label,
+  level,
+  reduction,
+}: StripPartProps & {
+  label: string;
+  level: ReturnType<typeof levelAt>;
+  reduction: number | null;
+}) {
+  return (
+    <>
+      <div className="flex min-h-16 flex-1 shrink items-stretch gap-2 py-0.5">
+        <Fader
+          label={label}
+          value={controls.fader}
+          onChange={(v, phase) =>
+            gesture(phase, () => {
+              previewChange(`${previewKey}:fader`, controls.fader, v, (d) =>
+                gainContribution(fraction, d),
+              );
+              update(() => ({ fader: v }));
+            })
+          }
+        />
+        <Meter
+          peak={level.peak}
+          rms={level.rms}
+          hold={level.hold}
+          reduction={controls.comp.on && reduction !== null ? reduction : undefined}
+        />
+      </div>
+      <span className="text-[11px] tabular-nums">{db(controls.fader)} dB</span>
+      <MuteSolo
+        mute={controls.mute}
+        solo={controls.solo}
+        onMute={(mute) => update(() => ({ mute }))}
+        onSolo={(solo) => update(() => ({ solo }))}
+      />
+    </>
   );
 }
 
@@ -380,15 +520,15 @@ function Fader({
   label: string;
 }) {
   const track = useRef<HTMLDivElement>(null);
-  const t = (Math.max(MIN_DB, Math.min(12, value)) - MIN_DB) / (12 - MIN_DB);
+  const t = (clamp(value, MIN_DB, 12) - MIN_DB) / (12 - MIN_DB);
   const fromY = (clientY: number) => {
     const rect = track.current!.getBoundingClientRect();
     const k = 1 - (clientY - rect.top) / Math.max(1, rect.height);
-    return Math.round((MIN_DB + Math.min(1, Math.max(0, k)) * (12 - MIN_DB)) * 2) / 2;
+    return Math.round((MIN_DB + clamp(k, 0, 1) * (12 - MIN_DB)) * 2) / 2;
   };
   const step = (dir: number, big: boolean) => {
     onChange(value, "start");
-    onChange(Math.min(12, Math.max(MIN_DB, value + dir * (big ? 6 : 0.5))), "move");
+    onChange(clamp(value + dir * (big ? 6 : 0.5), MIN_DB, 12), "move");
     onChange(value, "end");
   };
   return (
@@ -508,7 +648,15 @@ function ChannelStrip({
   const targets = group.length > 1 ? group : [channel.id];
   const set = (fn: (s: Strip) => Strip) => updateStrip(channel.id, fn);
   const fraction = share(result, levels, frame);
-  const key = (name: string) => `ch:${channel.id}:${name}`;
+  const previewKey = `ch:${channel.id}`;
+  const key = (name: string) => `${previewKey}:${name}`;
+  const parts: StripPartProps = {
+    controls: strip,
+    previewKey,
+    fraction,
+    update: (fn) => set((s) => ({ ...s, ...fn(s) })),
+  };
+  const compReduction = reduction ? (reduction[Math.round(frame)] ?? 0) : null;
   return (
     <StripShell
       dim={!audible}
@@ -520,11 +668,11 @@ function ChannelStrip({
           "flex w-full items-center gap-1 truncate rounded px-1 text-left text-xs font-medium",
           selected && "bg-accent",
         )}
-        title={`${nodeName(channel.id)}. Ctrl-click or Shift-click to select several strips.`}
+        title={`${channelName(channel.id)}. Ctrl-click or Shift-click to select several strips.`}
         onClick={(e) => pickStrip(channel.id, order, e, sourceNodeId)}
       >
         <Icon className="text-muted-foreground size-3 shrink-0" />
-        <span className="truncate">{nodeName(channel.id)}</span>
+        <span className="truncate">{channelName(channel.id)}</span>
       </button>
       <div className="flex w-full items-center gap-0.5">
         <Select value={bus.id} onValueChange={(v) => set((s) => ({ ...s, bus: v as string }))}>
@@ -581,27 +729,7 @@ function ChannelStrip({
             })
           }
         />
-        <Knob
-          label="Hz"
-          size={24}
-          value={strip.highpass.freq}
-          min={20}
-          max={1000}
-          step={1}
-          reset={80}
-          log
-          format={hz}
-          disabled={!strip.highpass.on}
-          onChange={(v, phase) =>
-            gesture(phase, () => {
-              contributions.set(key("hp"), {
-                filters: [{ type: "highpass", freq: v, gain: 0, q: 0.7 }],
-              });
-              publishPreview();
-              set((s) => ({ ...s, highpass: { ...s.highpass, freq: v } }));
-            })
-          }
-        />
+        <HighpassKnob {...parts} />
         <Knob
           label="Pan"
           size={24}
@@ -619,72 +747,8 @@ function ChannelStrip({
           }
         />
       </div>
-      <EqPopover
-        eq={strip.eq}
-        highpass={strip.highpass.on ? strip.highpass.freq : null}
-        onChange={(eq, phase, band) =>
-          gesture(phase, () => {
-            if (band !== undefined) {
-              const b = eq.bands[band];
-              const before = strip.eq.bands[band];
-              previewChange(key(`eq${band}`), before.gain, b.gain, (d) => ({
-                filters: [
-                  {
-                    type: b.type === "peak" ? "peaking" : b.type,
-                    freq: b.freq,
-                    gain: d * fraction,
-                    q: b.q,
-                  },
-                ],
-              }));
-            }
-            set((s) => ({ ...s, eq }));
-          })
-        }
-      />
-      <div className="flex w-full items-center gap-1">
-        <Toggle
-          size="sm"
-          variant="outline"
-          className="h-5 min-w-0 px-1 text-[10px]"
-          pressed={strip.highpass.on}
-          aria-label="Low cut"
-          title="Cut rumble below the low-cut frequency"
-          onPressedChange={(on) => set((s) => ({ ...s, highpass: { ...s.highpass, on } }))}
-        >
-          Low cut
-        </Toggle>
-        <CompPopover
-          comp={strip.comp}
-          reduction={reduction ? (reduction[Math.round(frame)] ?? 0) : null}
-          onChange={(comp, phase) => gesture(phase, () => set((s) => ({ ...s, comp })))}
-        />
-      </div>
-      <div className="flex min-h-16 flex-1 shrink items-stretch gap-2 py-0.5">
-        <Fader
-          label="Fader"
-          value={strip.fader}
-          onChange={(v, phase) =>
-            gesture(phase, () => {
-              previewChange(key("fader"), strip.fader, v, (d) => gainContribution(fraction, d));
-              set((s) => ({ ...s, fader: v }));
-            })
-          }
-        />
-        <Meter
-          peak={level.peak}
-          rms={level.rms}
-          hold={level.hold}
-          reduction={strip.comp.on && reduction ? (reduction[Math.round(frame)] ?? 0) : undefined}
-        />
-      </div>
-      <span className="text-[11px] tabular-nums">{db(strip.fader)} dB</span>
-      <MuteSolo
-        mute={strip.mute}
-        solo={strip.solo}
-        onMute={(mute) => set((s) => ({ ...s, mute }))}
-        onSolo={(solo) => set((s) => ({ ...s, solo }))}
-      />
+      <StripTone {...parts} reduction={compReduction} />
+      <StripLevel {...parts} label="Fader" level={level} reduction={compReduction} />
     </StripShell>
   );
 }
@@ -1156,6 +1220,12 @@ function BusStrip({
   const level = levelAt(levels, frame, holdFrames);
   const fraction = share(result, levels, frame);
   const set = (fn: (b: Bus) => Bus) => updateBus(bus.id, fn);
+  const parts: StripPartProps = {
+    controls: bus,
+    previewKey: `bus:${bus.id}`,
+    fraction,
+    update: (fn) => set((b) => ({ ...b, ...fn(b) })),
+  };
   return (
     <StripShell className="bg-muted/30">
       <div className="flex w-full items-center gap-0.5">
@@ -1258,65 +1328,10 @@ function BusStrip({
       </div>
       <DuckPopover bus={bus} buses={mix.buses} />
       <div className="flex w-full justify-center">
-        <Knob
-          label="Hz"
-          size={24}
-          value={bus.highpass.freq}
-          min={20}
-          max={1000}
-          step={1}
-          reset={80}
-          log
-          format={hz}
-          disabled={!bus.highpass.on}
-          onChange={(v, phase) =>
-            gesture(phase, () => set((b) => ({ ...b, highpass: { ...b.highpass, freq: v } })))
-          }
-        />
+        <HighpassKnob {...parts} />
       </div>
-      <EqPopover
-        eq={bus.eq}
-        highpass={bus.highpass.on ? bus.highpass.freq : null}
-        onChange={(eq, phase) => gesture(phase, () => set((b) => ({ ...b, eq })))}
-      />
-      <div className="flex w-full items-center gap-1">
-        <Toggle
-          size="sm"
-          variant="outline"
-          className="h-5 min-w-0 px-1 text-[10px]"
-          pressed={bus.highpass.on}
-          aria-label="Low cut"
-          title="Cut rumble below the low-cut frequency"
-          onPressedChange={(on) => set((b) => ({ ...b, highpass: { ...b.highpass, on } }))}
-        >
-          Low cut
-        </Toggle>
-        <CompPopover
-          comp={bus.comp}
-          reduction={null}
-          onChange={(comp, phase) => gesture(phase, () => set((b) => ({ ...b, comp })))}
-        />
-      </div>
-      <div className="flex min-h-16 flex-1 shrink items-stretch gap-2 py-0.5">
-        <Fader
-          label={`${bus.name} fader`}
-          value={bus.fader}
-          onChange={(v, phase) =>
-            gesture(phase, () => {
-              previewChange(`bus:${bus.id}`, bus.fader, v, (d) => gainContribution(fraction, d));
-              set((b) => ({ ...b, fader: v }));
-            })
-          }
-        />
-        <Meter peak={level.peak} rms={level.rms} hold={level.hold} />
-      </div>
-      <span className="text-[11px] tabular-nums">{db(bus.fader)} dB</span>
-      <MuteSolo
-        mute={bus.mute}
-        solo={bus.solo}
-        onMute={(mute) => set((b) => ({ ...b, mute }))}
-        onSolo={(solo) => set((b) => ({ ...b, solo }))}
-      />
+      <StripTone {...parts} reduction={null} />
+      <StripLevel {...parts} label={`${bus.name} fader`} level={level} reduction={null} />
     </StripShell>
   );
 }
@@ -1385,14 +1400,7 @@ function MasterStrip({
           highpass={null}
           onChange={(eq, phase, band) =>
             gesture(phase, () => {
-              if (band !== undefined) {
-                const b = eq.bands[band];
-                previewChange(`master:eq${band}`, master.eq.bands[band].gain, b.gain, (d) => ({
-                  filters: [
-                    { type: b.type === "peak" ? "peaking" : b.type, freq: b.freq, gain: d, q: b.q },
-                  ],
-                }));
-              }
+              previewEq("master", master.eq, eq, band, 1);
               set((m) => ({ ...m, eq }));
             })
           }

@@ -10,6 +10,7 @@ import type {
 import { hasKeys } from "../timeline/envelope";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
+import { clamp, round3 } from "../math";
 
 export type Crop = { x: number; y: number; w: number; h: number };
 
@@ -23,9 +24,6 @@ export type GroupProps = {
   background?: string;
   design?: { width: number; height: number };
 };
-
-export const msToFrames = (ms: number, fps: number) => Math.max(1, Math.round((ms / 1000) * fps));
-export const framesToMs = (frames: number, fps: number) => (frames / fps) * 1000;
 
 export const isClip = (v: CompileValue | undefined): v is ClipValue => v?.type === "clip";
 
@@ -140,7 +138,7 @@ export function sequenceClips(
       const max = enter.hold
         ? enter.durationInFrames
         : Math.min(clips[i - 1].durationInFrames, clip.durationInFrames) - 1;
-      const d = Math.max(0, Math.min(enter.durationInFrames, max));
+      const d = clamp(max, 0, enter.durationInFrames);
       enter = d > 0 ? { ...enter, durationInFrames: d } : undefined;
     }
     const d = enter?.durationInFrames ?? 0;
@@ -336,7 +334,7 @@ export function remapFromSegments(
     if (inTo <= inPos) return;
     outPos += (inTo - inPos) / rate;
     inPos = inTo;
-    out.push([Math.round(outPos * 1000) / 1000, inPos]);
+    out.push([round3(outPos), inPos]);
   };
   for (const [a, b, rate] of segments) {
     push(Math.min(a, innerDuration), 1);
