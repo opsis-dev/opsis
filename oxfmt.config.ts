@@ -8,7 +8,6 @@ export default defineConfig({
     "out/**",
     "remotion-bundle/**",
     "resources/**",
-    "PLAN.md",
     "bun.lock",
     "src/renderer/routeTree.gen.ts",
     "src/video/elements/remocn/**",

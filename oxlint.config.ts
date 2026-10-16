@@ -64,13 +64,14 @@ export default defineConfig({
                   "@remotion/renderer",
                   "@remotion/bundler",
                 ],
-                message: "src/shared and src/video must stay runtime-neutral (PLAN.md §13).",
+                message:
+                  "src/shared and src/video must stay runtime-neutral (AGENTS.md, Runtime boundaries).",
               },
             ],
             paths: WALL_CLOCK_LIBS.map((name) => ({
               name,
               message:
-                "Animations in src/video must be a pure function of useCurrentFrame() (PLAN.md §8.1).",
+                "Animations in src/video must be a pure function of useCurrentFrame() (AGENTS.md).",
             })),
           },
         ],

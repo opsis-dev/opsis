@@ -23,7 +23,7 @@ describe("node registry", () => {
     expect(missing).toEqual([]);
   });
 
-  it("covers the PLAN.md §14 node list", () => {
+  it("covers the core node list", () => {
     for (const type of [
       "browser.session",
       "browser.navigate",

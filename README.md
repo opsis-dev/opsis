@@ -6,7 +6,7 @@ Demoflow is a desktop app with a node editor. Browser nodes drive a real website
 
 > **Early preview.** Built and tested on Linux (dev, `.deb`, AppImage). Windows and macOS builds haven't been made or tested yet, and there are no signed installers or auto-updates. Expect rough edges.
 
-Built with [Electron](https://www.electronjs.org), [xyflow](https://reactflow.dev), [Playwright](https://playwright.dev), [Remotion](https://www.remotion.dev) and FFmpeg. See [PLAN.md](./PLAN.md) for the original spec and [`plans/`](./plans) for work that's planned but not built.
+Built with [Electron](https://www.electronjs.org), [xyflow](https://reactflow.dev), [Playwright](https://playwright.dev), [Remotion](https://www.remotion.dev) and FFmpeg. See [`plans/`](./plans) for work that's planned but not built.
 
 ## What it does
 
@@ -96,8 +96,14 @@ Contributor rules (no code comments, kebab-case files, pinned Remotion and TypeS
 
 ## Not built yet
 
-- Voice-over, transcription and AI assist (milestones M4 and M7 in PLAN.md).
-- Windows and macOS builds haven't been run outside CI yet; their icons, code signing and auto-update don't exist.
+Each has a plan in [`plans/`](./plans):
+
+- Voiceover and captions from speech ([voice-and-captions](./plans/voice-and-captions.md)).
+- AI assist: a flow from a sentence, chapter names, headline variants, picker suggestions ([ai-assist](./plans/ai-assist.md)).
+- A Drag action, a different transition at each cut, chapters in exported files, and two Run panel fixes ([app-gaps](./plans/app-gaps.md)).
+- An app state database in place of the JSON files in the app's data folder ([app-state](./plans/app-state.md)).
+- Ported web motion components, Rive animations and element thumbnails ([motion-library](./plans/motion-library.md)) and more Remotion libraries ([remotion-extras](./plans/remotion-extras.md)).
+- Windows and macOS builds (never built or run yet), their icons, code signing, updates and node packs ([shipping](./plans/shipping.md)).
 
 ## Licences
 

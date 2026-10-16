@@ -399,6 +399,6 @@ npm shows `Remotion License`; the existing Remotion licence notice covers it, so
 - [Remotion: @remotion/mac-cursors](https://www.remotion.dev/docs/mac-cursors)
 - Package source and npm metadata of `@remotion/mac-cursors@4.0.535` (cursor list, hotspots, inline SVGs, `resolveCursor`'s `url()` handling; checked 2026-10-16)
 
-## Open questions
+## Decided
 
-- **Cursor artwork.** `@remotion/mac-cursors` is under the Remotion licence, but the package doesn't say where its macOS cursor artwork comes from. Is the user comfortable shipping it in exports?
+- **Cursor artwork (decided): ship it,** relying on the package's Remotion licence. Checked 2026-10-17: the package (`@remotion/mac-cursors@4.0.535`, 39 cursors embedded as SVG data) credits no source, and the PR that added it ([remotion-dev/remotion#10264](https://github.com/remotion-dev/remotion/pull/10264)) doesn't say where the artwork came from. The file names match the folder names of macOS's own system cursors, so they are redrawings of Apple's cursor designs; they aren't copies of [cursor.in](https://github.com/sawyerh/cursor.in) (no licence; 7 files compared, all differ) or the GPL-3.0 `apple_cursor` set. Revisit if Remotion documents a source or licence for them.
