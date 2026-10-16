@@ -144,7 +144,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
           id,
           type,
           position,
-          params: { ...defaultParams(type), ...params },
+          params: { ...defaultParams(type), ...hostDefaults(type), ...params },
           ...(def ? {} : {}),
         };
         get().update((wf) => ({ ...wf, nodes: [...wf.nodes, node] }));
@@ -205,8 +205,17 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
 
       addEdge: (edge) =>
         get().update((wf) => {
-          const edges = wf.edges.filter(
-            (e) => !(e.target === edge.target && e.targetHandle === edge.targetHandle),
+          const target = wf.nodes.find((n) => n.id === edge.target);
+          const many = !!(target && getNodeDef(target.type)?.inputs[edge.targetHandle]?.many);
+          const edges = wf.edges.filter((e) =>
+            many
+              ? !(
+                  e.target === edge.target &&
+                  e.targetHandle === edge.targetHandle &&
+                  e.source === edge.source &&
+                  e.sourceHandle === edge.sourceHandle
+                )
+              : !(e.target === edge.target && e.targetHandle === edge.targetHandle),
           );
           return {
             ...wf,
@@ -331,3 +340,11 @@ useWorkflowStore.subscribe((s, prev) => {
   if (s.workflow && prev.workflow && s.workflow !== prev.workflow && s.revision === prev.revision)
     useWorkflowStore.setState({ revision: s.revision + 1 });
 });
+
+function hostDefaults(type: string): Record<string, unknown> {
+  if (type !== "camera.deviceFrame") return {};
+  const platform = window.demoflow?.platform;
+  return {
+    windowStyle: platform === "win32" ? "windows" : platform === "linux" ? "linux" : "macos",
+  };
+}

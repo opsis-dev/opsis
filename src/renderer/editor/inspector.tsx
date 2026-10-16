@@ -133,6 +133,9 @@ function NodeInspector({ nodeId }: { nodeId: string }) {
     vars: variableList(workflow),
     secrets,
     layers: Math.max(1, layers),
+    actions: workflow.nodes
+      .filter((n) => ACTION_TYPES.has(n.type))
+      .map((n) => ({ id: n.id, label: n.label || getNodeDef(n.type)?.title || n.type })),
     spotBackground:
       def.category === "Camera" || hasWidget(def.params, "boxes")
         ? spotBackground(workflow, nodeId, results)
@@ -504,3 +507,13 @@ function ProjectInspector({ multi }: { multi: number }) {
     </div>
   );
 }
+
+const ACTION_TYPES = new Set([
+  "browser.click",
+  "browser.type",
+  "browser.hover",
+  "browser.select",
+  "browser.press",
+  "browser.scroll",
+  "browser.upload",
+]);

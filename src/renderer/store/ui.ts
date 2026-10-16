@@ -1,10 +1,16 @@
 import { create } from "zustand";
+import { VARIANTS, type Variant } from "@/shared/nodes/output";
 import { readPref, writePref } from "./view-prefs";
 
 export type PreviewQuality = "fast" | "exact";
 const isQuality = (v: unknown) => v === "fast" || v === "exact";
 
 export const storedQuality = (): PreviewQuality => readPref("previewQuality", "fast", isQuality);
+
+export type PreviewShape = "project" | Variant;
+const isShape = (v: unknown) => v === "project" || VARIANTS.includes(v as Variant);
+
+export const storedShape = (): PreviewShape => readPref("previewShape", "project", isShape);
 
 type UiState = {
   selectedIds: string[];
@@ -17,6 +23,8 @@ type UiState = {
   setPendingProjectAction: (action: "new" | "open" | null) => void;
   previewQuality: PreviewQuality;
   setPreviewQuality: (quality: PreviewQuality) => void;
+  previewShape: PreviewShape;
+  setPreviewShape: (shape: PreviewShape) => void;
   pinnedSource: string | null;
   reveal: { id: string; nonce: number } | null;
   revealNode: (id: string) => void;
@@ -45,6 +53,11 @@ export const useUiStore = create<UiState>()((set) => ({
   setPreviewQuality: (previewQuality) => {
     set({ previewQuality });
     writePref("previewQuality", previewQuality);
+  },
+  previewShape: storedShape(),
+  setPreviewShape: (previewShape) => {
+    set({ previewShape });
+    writePref("previewShape", previewShape);
   },
 
   pinnedSource: null,

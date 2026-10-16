@@ -59,6 +59,23 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
   const { result: compiled } = useCompiledContext();
   const clip = compiled?.values[node.id]?.clip;
   const clipFrames = isClip(clip) ? clip.durationInFrames : undefined;
+  const incoming = useWorkflowStore(
+    useShallow((s) => (s.workflow?.edges ?? []).filter((e) => e.target === node.id)),
+  );
+  const inputKey = incoming
+    .map((e) => {
+      const v = compiled?.values[e.source]?.[e.sourceHandle];
+      return `${e.targetHandle}=${isClip(v) ? v.durationInFrames : ""}`;
+    })
+    .join("|");
+  const inputFrames = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const pair of inputKey.split("|")) {
+      const [port, frames] = pair.split("=");
+      if (port && frames) out[port] = Number(frames);
+    }
+    return out;
+  }, [inputKey]);
 
   return useMemo(() => {
     if (!def.card || !settings) return [];
@@ -77,6 +94,7 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
           secrets: secrets ?? undefined,
           connected,
           clipFrames,
+          inputFrames,
         })
         .filter((r): r is CardRow => !!r && typeof r === "object")
         .slice(0, 4);
@@ -94,6 +112,7 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
     secrets,
     connected,
     clipFrames,
+    inputFrames,
   ]);
 }
 

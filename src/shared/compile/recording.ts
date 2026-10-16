@@ -27,6 +27,9 @@ export type RecordingProps = {
   motionBlur: boolean;
   style: CameraStyle;
   chrome: boolean;
+  windowStyle?: "macos" | "windows" | "linux";
+  frameTheme?: "light" | "dark";
+  addressBar?: boolean;
   backdrop: string;
   cursor: boolean;
   cursorScale: number;

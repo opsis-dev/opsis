@@ -32,10 +32,21 @@ function elementCard(meta: ElementMeta, params: Record<string, unknown>, fps: nu
     if (typeof v === "string" && v) rows.push(row("file", v.split("/").pop() ?? v, { title: v }));
   }
   const duration = Number(params.clipDuration ?? 0);
+  const short =
+    meta.kind !== "wrapper" && duration > 0 && duration < 0.6 * meta.defaultDurationInFrames;
   rows.push(
     meta.kind === "wrapper" && !duration
       ? row("clock", "Matches the clip", { tone: "muted" })
-      : row("clock", frameSecs(duration || meta.defaultDurationInFrames, fps)),
+      : short
+        ? row(
+            "clock",
+            `${frameSecs(duration, fps)} · usually ${frameSecs(meta.defaultDurationInFrames, fps)}`,
+            {
+              tone: "warn",
+              title: "Shorter than this element usually runs, so its animation may be cut off.",
+            },
+          )
+        : row("clock", frameSecs(duration || meta.defaultDurationInFrames, fps)),
   );
   return rows;
 }

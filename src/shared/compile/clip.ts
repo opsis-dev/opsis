@@ -21,6 +21,7 @@ export type GroupProps = {
   crop?: Crop;
   wrapper?: { component: string; props: Record<string, unknown> };
   background?: string;
+  design?: { width: number; height: number };
 };
 
 export const msToFrames = (ms: number, fps: number) => Math.max(1, Math.round((ms / 1000) * fps));
@@ -131,29 +132,60 @@ export function sequenceClips(
   if (clips.length === 0) return emptyClip();
   const items: TimelineItem[] = [];
   const audio: AudioItem[] = [];
+  const remaps: Array<Array<[number, number]>> = [];
   let cursor = 0;
   clips.forEach((clip, i) => {
     let enter = i > 0 ? transitions[i] : undefined;
     if (enter) {
-      const max = Math.min(clips[i - 1].durationInFrames, clip.durationInFrames) - 1;
+      const max = enter.hold
+        ? enter.durationInFrames
+        : Math.min(clips[i - 1].durationInFrames, clip.durationInFrames) - 1;
       const d = Math.max(0, Math.min(enter.durationInFrames, max));
       enter = d > 0 ? { ...enter, durationInFrames: d } : undefined;
     }
-    const from = Math.max(0, cursor - (enter?.durationInFrames ?? 0));
+    const d = enter?.durationInFrames ?? 0;
+    const held = !!enter?.hold && d > 0;
+    if (held && items[i - 1]) {
+      const prev = items[i - 1];
+      const last = clips[i - 1].durationInFrames - 1;
+      const remap = remaps[i - 1].length ? remaps[i - 1] : [[0, 0] as [number, number]];
+      remaps[i - 1] = [
+        ...remap,
+        [prev.durationInFrames - 1, last],
+        [prev.durationInFrames - 1 + d, last],
+      ];
+      items[i - 1] = {
+        ...prev,
+        durationInFrames: prev.durationInFrames + d,
+        props: { ...(prev.props as GroupProps), remap: remaps[i - 1] } satisfies GroupProps,
+      };
+    }
+    const from = held ? cursor : Math.max(0, cursor - d);
     if (enter && items[i - 1]) items[i - 1] = { ...items[i - 1], exit: enter };
+    remaps.push(
+      held
+        ? [
+            [0, 0],
+            [d, 0],
+          ]
+        : [],
+    );
+    const lead = held ? d : 0;
     items.push({
       id: `${nodeId}:s${i}`,
       from,
-      durationInFrames: clip.durationInFrames,
+      durationInFrames: clip.durationInFrames + lead,
       component: "core/group",
-      props: { tracks: clip.tracks } satisfies GroupProps,
+      props: (held
+        ? { tracks: clip.tracks, remap: remaps[i] }
+        : { tracks: clip.tracks }) satisfies GroupProps,
       enter,
       ...(opts.ports?.[i]
         ? { slot: { nodeId: opts.slotNode ?? nodeId, port: opts.ports[i] } }
         : {}),
     });
-    audio.push(...shiftAudio(clip.audio, from, `${nodeId}:s${i}`));
-    cursor = from + clip.durationInFrames;
+    audio.push(...shiftAudio(clip.audio, from + lead, `${nodeId}:s${i}`));
+    cursor = from + lead + clip.durationInFrames;
   });
   return {
     type: "clip",

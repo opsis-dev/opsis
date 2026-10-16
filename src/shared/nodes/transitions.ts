@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { isClip, itemClip, sequenceClips, stackClips } from "../compile/clip";
 import { ELEMENTS, getElementMeta, type ElementMeta } from "../elements";
-import { frameSecs, row, sentence } from "./card";
+import { coverRow, frameSecs, row, sentence, type CardRow } from "./card";
 import { defineNode, port, type NodeDef } from "./define";
-import { frames } from "./params";
+import { bool, frames, more } from "./params";
 
 export const PRESENTATIONS = ELEMENTS.filter((e) => e.kind === "presentation");
 export const TRANSITION_KINDS = ["none", ...PRESENTATIONS.map((p) => p.key)] as [
@@ -16,6 +16,18 @@ const ab = {
   outputs: { clip: port("clip", "Clip") },
 } as const;
 
+const keepWholeField = more(bool(false, "Keep both clips whole"), {
+  help: "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition.",
+});
+
+function speedRow(length: number, designed: number, fps: number): CardRow | null {
+  if (length <= 0 || length >= 0.4 * designed) return null;
+  return row("fast-forward", `${(designed / length).toFixed(1)}× faster than designed`, {
+    tone: "warn",
+    title: `This transition is made for about ${frameSecs(designed, fps)}. Squeezed this much it can look like a cut.`,
+  });
+}
+
 function transitionNode(meta: ElementMeta): NodeDef {
   return defineNode({
     ...ab,
@@ -23,24 +35,32 @@ function transitionNode(meta: ElementMeta): NodeDef {
     title: sentence(meta.title),
     category: "Transitions",
     description: `Plays the first clip, then the second, joined with a ${sentence(meta.title).toLowerCase()} transition. Tip: cut where the picture is still.`,
-    card: ({ params, settings }) => [
-      row(
-        "arrow-right-left",
-        frameSecs(Number((params as Record<string, unknown>).durationInFrames ?? 0), settings.fps),
-      ),
-    ],
+    card: ({ params, settings, inputFrames }) => {
+      const p = params as Record<string, unknown>;
+      const length = Number(p.durationInFrames ?? 0);
+      return [
+        row(
+          "arrow-right-left",
+          `${frameSecs(length, settings.fps)}${p.keepWhole ? " · held" : ""}`,
+        ),
+        speedRow(length, meta.defaultDurationInFrames, settings.fps),
+        !p.keepWhole && coverRow(length, Object.values(inputFrames ?? {}), settings.fps),
+      ];
+    },
     icon: "blend",
     phase: "compile",
     element: meta.key,
     params: meta.schema.extend({
       durationInFrames: frames(meta.defaultDurationInFrames, "Length"),
+      keepWhole: keepWholeField,
     }),
     compile: ({ nodeId, inputs, params }) => {
       const a = isClip(inputs.a) ? inputs.a : undefined;
       const b = isClip(inputs.b) ? inputs.b : undefined;
       if (!a || !b) return { clip: a ?? b };
-      const { durationInFrames, ...rest } = params as Record<string, unknown> & {
+      const { durationInFrames, keepWhole, ...rest } = params as Record<string, unknown> & {
         durationInFrames: number;
+        keepWhole: boolean;
       };
       return {
         clip: sequenceClips(
@@ -48,7 +68,12 @@ function transitionNode(meta: ElementMeta): NodeDef {
           [a, b],
           [
             undefined,
-            { kind: meta.key, durationInFrames, params: { ...meta.fixedProps, ...rest } },
+            {
+              kind: meta.key,
+              durationInFrames,
+              params: { ...meta.fixedProps, ...rest },
+              ...(keepWhole ? { hold: true } : {}),
+            },
           ],
           { ports: ["a", "b"] },
         ),

@@ -11,7 +11,22 @@ export type CardContext<P> = {
   secrets?: string[];
   connected: string[];
   clipFrames?: number;
+  inputFrames?: Record<string, number>;
 };
+
+export function coverRow(
+  transitionFrames: number,
+  clipFrames: number[],
+  fps: number,
+): CardRow | null {
+  const shortest = Math.min(...clipFrames.filter((f) => f > 0));
+  if (!Number.isFinite(shortest) || transitionFrames <= 0.4 * shortest) return null;
+  const pct = Math.min(100, Math.round((transitionFrames / shortest) * 100));
+  return row("triangle-alert", `Covers ${pct}% of a ${frameSecs(shortest, fps)} clip`, {
+    tone: "warn",
+    title: "Turn on Keep every clip whole, or make the transition shorter.",
+  });
+}
 
 export const row = (icon: string, text: string, extra: Partial<CardRow> = {}): CardRow => ({
   icon,

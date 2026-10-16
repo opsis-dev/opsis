@@ -77,6 +77,7 @@ export type TransitionMark = {
   to: number;
   kind: string;
   lanes: number[];
+  covers: number;
 };
 
 export type ActionMark = {
@@ -193,9 +194,13 @@ export function flattenSpec(
     remapped: boolean,
   ) => {
     tracks.forEach((track, ti) => {
+      let prevLength = Infinity;
       for (const item of track.items) {
         const a = inst.toAbs(item.from, "start");
         const b = inst.toAbs(item.from + item.durationInFrames, "end");
+        const length = b - a;
+        const before = prevLength;
+        prevLength = length;
         const from = Math.max(a, inst.lo);
         const to = Math.min(b, inst.hi);
         if (to - from < 1e-6) continue;
@@ -214,15 +219,18 @@ export function flattenSpec(
           from,
           to,
         };
-        if (item.enter && item.enter.durationInFrames > 0)
+        if (item.enter && item.enter.durationInFrames > 0) {
+          const end = Math.min(to, inst.toAbs(item.from + item.enter.durationInFrames, "end"));
           transitions.push({
             key: `${key}:enter`,
             itemKey: key,
             lanes: [],
             from,
-            to: Math.min(to, inst.toAbs(item.from + item.enter.durationInFrames, "end")),
+            to: end,
             kind: item.enter.kind,
+            covers: item.enter.hold ? 0 : (end - from) / Math.max(1e-6, Math.min(length, before)),
           });
+        }
         if (item.component === "core/group") {
           const props = item.props as GroupProps;
           const inner = props.tracks ?? [];

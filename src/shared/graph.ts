@@ -221,7 +221,7 @@ export function validateWorkflow(wf: Workflow): GraphIssue[] {
           message: `Connect something to “${spec.label ?? humanKey(portId)}”`,
         });
       }
-      if (edges.length > 1) {
+      if (edges.length > 1 && !spec.many) {
         issues.push({
           level: "error",
           nodeId: node.id,

@@ -126,6 +126,7 @@ export const Group: React.FC<GroupProps> = ({
   crop,
   wrapper,
   background,
+  design,
 }) => {
   const frame = useCurrentFrame();
   const base = useAssetBase();
@@ -165,7 +166,34 @@ export const Group: React.FC<GroupProps> = ({
         <AbsoluteFill>{inner}</AbsoluteFill>,
       );
   }
+  if (design) inner = <DesignBox design={design}>{inner}</DesignBox>;
   return <AbsoluteFill style={background ? { background } : undefined}>{inner}</AbsoluteFill>;
+};
+
+const DesignBox: React.FC<{
+  design: { width: number; height: number };
+  children: React.ReactNode;
+}> = ({ design, children }) => {
+  const { width, height } = useVideoConfig();
+  if (Math.abs(width / height - design.width / design.height) < 0.01) return <>{children}</>;
+  const scale = Math.min(width / design.width, height / design.height);
+  return (
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+      <div
+        style={{
+          position: "relative",
+          flexShrink: 0,
+          width: design.width,
+          height: design.height,
+          transform: `scale(${scale})`,
+        }}
+      >
+        <Sequence layout="none" width={design.width} height={design.height}>
+          {children}
+        </Sequence>
+      </div>
+    </AbsoluteFill>
+  );
 };
 
 const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }> = ({

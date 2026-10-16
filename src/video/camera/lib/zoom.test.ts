@@ -3,7 +3,10 @@ import { describe, it } from "vitest";
 import { BASE_POSE, posesNearlyEqual } from "./camera";
 import type { ClickLog } from "./click-log";
 import {
+  boostPose,
   buildCameraTrack,
+  cursorAim,
+  narrowPose,
   clusterize,
   driftPose,
   frameFor,
@@ -431,5 +434,71 @@ describe("hold drift", () => {
         assert.ok(Math.abs(moved.scale - plain.scale) < 1e-5, `seam at key t=${key.t}`);
       }
     }
+  });
+});
+
+describe("zoom boost for narrower shapes", () => {
+  it("leaves the resting shot and plain shapes alone", () => {
+    assert.deepEqual(boostPose(BASE_POSE, 1.7), BASE_POSE);
+    const pose = { scale: 1.5, cx: 0.3, cy: 0.6 };
+    assert.deepEqual(boostPose(pose, 1), pose);
+  });
+
+  it("multiplies the strongest zoom by the boost and keeps the aim", () => {
+    const boosted = boostPose({ scale: 1.74, cx: 0.3, cy: 0.6 }, 1.5);
+    assert.ok(Math.abs(boosted.scale - 1.74 * 1.5) < 1e-9);
+    assert.equal(boosted.cx, 0.3);
+    assert.equal(boosted.cy, 0.6);
+    assert.ok(boostPose({ scale: 1.2, cx: 0.5, cy: 0.5 }, 1.5).scale > 1.2);
+  });
+});
+
+describe("camera in narrower shapes", () => {
+  const log: ClickLog = {
+    name: "aim",
+    viewport: VP,
+    durationMs: 6000,
+    clicks: [],
+    cursorTrack: [
+      { t: 0, x: 1600, y: 300 },
+      { t: 500, x: 1700, y: 400 },
+      { t: 4000, x: 200, y: 900 },
+    ],
+  };
+
+  it("aims at where the cursor has been around that moment", () => {
+    const aim = cursorAim(log, 0.3)!;
+    assert.ok(Math.abs(aim.cx - 1650 / 1920) < 1e-9);
+    assert.ok(Math.abs(aim.cy - 350 / 1080) < 1e-9);
+    assert.ok(Math.abs(cursorAim(log, 4)!.cx - 200 / 1920) < 1e-9);
+    assert.equal(cursorAim({ ...log, cursorTrack: [] }, 1), null);
+  });
+
+  it("never rests fully zoomed out, and rests on the cursor", () => {
+    const rest = narrowPose(BASE_POSE, 1.69, { cx: 0.8, cy: 0.3 });
+    assert.ok(rest.scale > 1.3);
+    assert.equal(rest.cx, 0.8);
+  });
+
+  it("aims at the action itself when fully zoomed in", () => {
+    const pose = narrowPose({ scale: 1.74 * 1.69, cx: 0.2, cy: 0.7 }, 1.69, { cx: 0.8, cy: 0.3 });
+    assert.ok(Math.abs(pose.cx - 0.2) < 1e-9);
+    assert.ok(Math.abs(pose.cy - 0.7) < 1e-9);
+    assert.ok(Math.abs(pose.scale - 1.74 * 1.69) < 1e-9);
+  });
+
+  it("frames the whole target, centred, in a narrow frame", () => {
+    const wide = { x: 400, y: 200, tMs: 1000, rect: { x: 300, y: 180, w: 800, h: 40 } };
+    const pose = frameFor(wide, VP, 1.74 * 1.69, true);
+    const visible = 1 / pose.scale;
+    assert.ok(visible * VP.width >= 800, "the target fits the visible width");
+    assert.ok(Math.abs(pose.cx - (0.8 * 700 + 0.2 * 400) / VP.width) < 1e-9);
+    const small = { x: 960, y: 500, tMs: 1000, rect: { x: 940, y: 490, w: 40, h: 20 } };
+    assert.ok(Math.abs(frameFor(small, VP, 1.74 * 1.69, true).scale - 1.74 * 1.69) < 1e-9);
+  });
+
+  it("changes nothing in the recording's own shape", () => {
+    const pose = { scale: 1.3, cx: 0.4, cy: 0.5 };
+    assert.deepEqual(narrowPose(pose, 1, { cx: 0.9, cy: 0.9 }), pose);
   });
 });

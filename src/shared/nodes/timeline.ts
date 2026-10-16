@@ -7,11 +7,13 @@ import {
   stackClips,
   withHandles,
   wrapClip,
+  type GroupProps,
 } from "../compile/clip";
 import type { AudioValue, ClipValue, CompileValue } from "../schema/values";
-import { frameSecs, quote, row, secs } from "./card";
+import type { WorkflowSettings } from "../schema/workflow";
+import { coverRow, frameSecs, quote, row, secs, type CardRow } from "./card";
 import { defineNode, opt, port } from "./define";
-import { choice, frames, more, ms, text } from "./params";
+import { bool, choice, frames, more, ms, text } from "./params";
 import { TRANSITION_KINDS, transitionTitle } from "./transitions";
 
 const base = { category: "Timeline", phase: "compile" } as const;
@@ -54,7 +56,7 @@ export const sequenceNode = defineNode({
   description: "Plays clips one after another, with a transition between each.",
   inputs: manyIn,
   outputs: { clip: port("clip", "Clip") },
-  card: ({ params: p, connected, clipFrames, settings }) => [
+  card: ({ params: p, connected, clipFrames, settings, inputFrames }) => [
     row(
       "list-video",
       plural(countIn(connected), "clip"),
@@ -63,8 +65,11 @@ export const sequenceNode = defineNode({
     p.transition !== "none" &&
       row(
         "arrow-right-left",
-        `${transitionTitle(p.transition)} · ${frameSecs(p.transitionDuration, settings.fps)}`,
+        `${transitionTitle(p.transition)} · ${frameSecs(p.transitionDuration, settings.fps)}${p.keepWhole ? " · held" : ""}`,
       ),
+    p.transition !== "none" &&
+      !p.keepWhole &&
+      coverRow(p.transitionDuration, Object.values(inputFrames ?? {}), settings.fps),
     clipFrames && row("clock", frameSecs(clipFrames, settings.fps)),
   ],
   params: z.object({
@@ -73,13 +78,21 @@ export const sequenceNode = defineNode({
       .default("core/fade")
       .meta({ description: "Transition", widget: "transition" }),
     transitionDuration: frames(15, "Transition length"),
+    keepWhole: more(bool(false, "Keep every clip whole"), {
+      help: "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition.",
+      showIf: { transition: TRANSITION_KINDS.filter((k) => k !== "none") },
+    }),
   }),
   compile: ({ nodeId, inputs, params }) => {
     const connected = connectedClips(inputs);
     const clips = connected.map((c) => c.clip);
     const transitions = clips.map((_, i) =>
       i > 0 && params.transition !== "none"
-        ? { kind: params.transition, durationInFrames: params.transitionDuration }
+        ? {
+            kind: params.transition,
+            durationInFrames: params.transitionDuration,
+            ...(params.keepWhole ? { hold: true } : {}),
+          }
         : undefined,
     );
     return {
@@ -113,6 +126,9 @@ export const stackNode = defineNode({
       last: "Front layer",
     }),
     offsetsMs: more(text("", "Start each layer at"), { widget: "offsets" }),
+    keepLayout: more(bool(false, "Keep this layout in other shapes"), {
+      help: "In 9:16, 1:1 and 4:5 the layers stay arranged as they are here, scaled to fit, so marks drawn over a picture stay on it.",
+    }),
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
     const connected = connectedClips(inputs);
@@ -132,9 +148,53 @@ export const stackNode = defineNode({
         : params.duration === "last"
           ? clips[clips.length - 1]
           : null;
-    return { clip: pick ? { ...stacked, durationInFrames: pick.durationInFrames } : stacked };
+    const clip = pick ? { ...stacked, durationInFrames: pick.durationInFrames } : stacked;
+    return { clip: params.keepLayout ? keepLayout(nodeId, clip, settings) : clip };
   },
 });
+
+function keepLayout(nodeId: string, clip: ClipValue, settings: WorkflowSettings): ClipValue {
+  return {
+    ...clip,
+    tracks: [
+      {
+        id: `${nodeId}:design`,
+        items: [
+          {
+            id: `${nodeId}:design:g`,
+            from: 0,
+            durationInFrames: clip.durationInFrames,
+            component: "core/group",
+            props: {
+              tracks: clip.tracks,
+              design: { width: settings.width, height: settings.height },
+            } satisfies GroupProps,
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function fitRow(
+  mode: string,
+  input: number | undefined,
+  output: number | undefined,
+  fps: number,
+): CardRow | null {
+  if (!input || !output) return null;
+  if (mode === "cut" && input > output)
+    return row("scissors", `Cuts ${frameSecs(input - output, fps)} off the end`, {
+      tone: input - output > fps / 2 ? "warn" : undefined,
+    });
+  if (mode === "speed" && Math.abs(input / output - 1) > 0.02) {
+    const rate = input / output;
+    return row("fast-forward", `Plays at ${rate.toFixed(2)}×`, {
+      tone: rate > 1.5 || rate < 0.67 ? "warn" : undefined,
+    });
+  }
+  return null;
+}
 
 export const trimNode = defineNode({
   ...base,
@@ -270,12 +330,13 @@ export const durationFitNode = defineNode({
     "Makes a clip a set length, or as long as a sound, by speeding up, holding or cutting.",
   inputs: { clip: port("clip", "Clip"), audio: opt("audio", "Fit to this sound") },
   outputs: { clip: port("clip", "Clip") },
-  card: ({ params: p, connected }) => [
+  card: ({ params: p, connected, clipFrames, inputFrames, settings }) => [
     row("ruler", connected.includes("audio") ? "Fits the sound" : secs(p.targetMs)),
     row(
       "settings-2",
       p.mode === "speed" ? "By speed" : p.mode === "hold" ? "By holding the end" : "By cutting",
     ),
+    fitRow(p.mode, inputFrames?.clip, clipFrames, settings.fps),
   ],
   params: z.object({
     targetMs: more(ms(10_000, "Length"), { help: "Ignored when a sound is connected." }),

@@ -236,7 +236,7 @@ function socialTeaser(name: string): Workflow {
   g.link(hook, seq, "clip", "in1").link(cam, seq, "clip", "in2");
   const music = g.node("music", "audio.music", 4, 3, { volume: 0.4 });
   const mix = g.node("mix", "audio.mix", 5, 2);
-  g.link(seq, mix).link(music, mix, "audio", "a1");
+  g.link(seq, mix).link(music, mix, "audio", "sounds");
   const out = g.node("render", "output.render", 6, 2, { variants: ["9:16"], reframe: "follow" });
   g.link(mix, out, "clip", "timeline");
   return g.build({

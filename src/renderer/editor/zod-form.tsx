@@ -81,7 +81,10 @@ export type FormContext = {
   spotBackground?: SpotBackground;
   pickTarget?: (key: string) => void;
   chooseAsset?: (key: string, accept?: string) => void;
+  actions?: Array<{ id: string; label: string }>;
 };
+
+const NO_ACTION = "__time";
 
 const defOf = (s: AnySchema) => (s as unknown as { _zod: { def: Def } })._zod.def;
 const REMOTION_COLOR = "__remotion-color";
@@ -109,7 +112,10 @@ function labelFor(key: string, schema: AnySchema): string {
 function visible(meta: FieldMeta, value: Record<string, unknown>): boolean {
   if (meta.hidden) return false;
   if (!meta.showIf) return true;
-  return Object.entries(meta.showIf).every(([k, allowed]) => allowed.includes(String(value[k])));
+  return Object.entries(meta.showIf).every(([k, allowed]) => {
+    const v = value[k] == null ? "" : String(value[k]);
+    return allowed.includes(v) || (allowed.includes("*") && v !== "");
+  });
 }
 
 export function ZodForm({
@@ -389,6 +395,24 @@ function StringField({
   ctx: FormContext;
 }) {
   switch (meta.widget) {
+    case "action": {
+      const actions = ctx.actions ?? [];
+      const names = new Map(actions.map((a) => [a.id, a.label]));
+      return (
+        <EnumField
+          id={id}
+          label={label}
+          options={[NO_ACTION, ...actions.map((a) => a.id)]}
+          value={value || NO_ACTION}
+          onChange={(v) => onChange(v === NO_ACTION ? "" : v)}
+          format={(v) =>
+            v === NO_ACTION ? "None, use a time" : (names.get(v) ?? "Missing action")
+          }
+          meta={meta}
+          forceSelect
+        />
+      );
+    }
     case "code":
       return (
         <Field>

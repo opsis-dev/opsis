@@ -9,6 +9,7 @@ import {
 } from "remotion";
 import { loadFonts } from "../camera/lib/font";
 import { clamp, entranceStyle, exitOpacity, type Entrance } from "./anim";
+import { isLandscape, useOverlayFrame } from "./frame";
 import { roleStack } from "../../shared/fonts";
 
 const HEADING_FONT = roleStack("heading");
@@ -222,19 +223,24 @@ export const LowerThird: React.FC<{
 }) => {
   loadFonts();
   const frame = useCurrentFrame();
-  const { fps, durationInFrames, width } = useVideoConfig();
-  const k = width / 1920;
+  const { fps, durationInFrames, width, height } = useVideoConfig();
+  const { k, insets } = useOverlayFrame();
   const enter = spring({ frame, fps, config: { damping: 200 } });
   const exit = spring({ frame: frame - (durationInFrames - 14), fps, config: { damping: 200 } });
+  const top = position.startsWith("top") || !isLandscape(width, height);
   const right = position.endsWith("right");
   const dir = right ? 1 : -1;
   const x = (1 - enter) * 120 * dir + exit * 120 * dir;
   return (
     <AbsoluteFill
       style={{
-        justifyContent: position.startsWith("top") ? "flex-start" : "flex-end",
+        justifyContent: top ? "flex-start" : "flex-end",
         alignItems: right ? "flex-end" : "flex-start",
         padding: 80 * k,
+        paddingTop: 80 * k + insets.top,
+        paddingBottom: 80 * k + insets.bottom,
+        paddingLeft: 80 * k + insets.left,
+        paddingRight: 80 * k + insets.right,
       }}
     >
       <div
@@ -362,8 +368,8 @@ export const Captions: React.FC<{
 }) => {
   loadFonts();
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
-  const k = width / 1920;
+  const { fps } = useVideoConfig();
+  const { k, insets } = useOverlayFrame();
   const tMs = (frame / fps) * 1000;
   const lines = useMemo(() => {
     const out: Caption[][] = [];
@@ -387,6 +393,8 @@ export const Captions: React.FC<{
           position === "bottom" ? "flex-end" : position === "top" ? "flex-start" : "center",
         alignItems: "center",
         padding: `${90 * k}px 10%`,
+        paddingTop: 90 * k + insets.top,
+        paddingBottom: 90 * k + insets.bottom,
       }}
     >
       <div

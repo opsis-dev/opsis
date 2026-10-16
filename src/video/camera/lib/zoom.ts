@@ -36,6 +36,7 @@ export type CameraKey = { t: number; pose: CameraPose };
 export type CameraTuning = {
   sMax?: number;
   holdMinS?: number;
+  narrow?: number;
 };
 
 export type ZoomOptions = {
@@ -44,7 +45,60 @@ export type ZoomOptions = {
   fit?: number;
   drift?: number;
   tuning?: CameraTuning;
+  boost?: number;
 };
+
+export function boostPose(pose: CameraPose, boost = 1): CameraPose {
+  if (boost <= 1 || pose.scale <= 1) return pose;
+  return { ...pose, scale: pose.scale ** (1 + Math.log(boost) / Math.log(S_MAX)) };
+}
+
+const AIM_WINDOW_S = 1.2;
+
+export function cursorAim(log: ClickLog, tS: number): { cx: number; cy: number } | null {
+  const track = log.cursorTrack;
+  if (!track?.length) return null;
+  const from = (tS - AIM_WINDOW_S) * 1000;
+  const to = (tS + AIM_WINDOW_S) * 1000;
+  let lo = 0;
+  let hi = track.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (track[mid].t < from) lo = mid + 1;
+    else hi = mid;
+  }
+  let x = 0;
+  let y = 0;
+  let n = 0;
+  for (let i = lo; i < track.length && track[i].t <= to; i++) {
+    x += track[i].x;
+    y += track[i].y;
+    n++;
+  }
+  if (!n) {
+    const near = track[Math.min(lo, track.length - 1)];
+    x = near.x;
+    y = near.y;
+    n = 1;
+  }
+  return { cx: x / n / log.viewport.width, cy: y / n / log.viewport.height };
+}
+
+export function narrowPose(
+  pose: CameraPose,
+  boost: number,
+  aim: { cx: number; cy: number } | null,
+): CameraPose {
+  if (boost <= 1) return pose;
+  const rest = boost ** 0.8;
+  const zoomed = clamp((pose.scale - rest) / (S_MAX * boost - rest), 0, 1);
+  const restAim = aim ?? { cx: BASE_POSE.cx, cy: BASE_POSE.cy };
+  return {
+    scale: Math.max(pose.scale, rest),
+    cx: mix(restAim.cx, pose.cx, zoomed),
+    cy: mix(mix(BASE_POSE.cy, restAim.cy, 0.5), pose.cy, zoomed),
+  };
+}
 
 const S_MIN = 1.18;
 const S_MAX = 1.74;
@@ -52,6 +106,7 @@ const S_MAX_SOFT = 1.54;
 const PAD = 80;
 const MENU_ROOM = 110;
 const FRAME_FRAC = 0.55;
+const NARROW_FRAC = 0.86;
 const FRAME_OFFSET = 0.26;
 const CLICK_MARGIN = 0.04;
 const CLICK_WEIGHT = 0.2;
@@ -144,6 +199,7 @@ export function frameFor(
   c: ClickEvent,
   vp: { width: number; height: number },
   sMax: number,
+  narrow = false,
 ): CameraPose {
   const W = vp.width;
   const H = vp.height;
@@ -163,15 +219,19 @@ export function frameFor(
   const focusX = mix(rectCx, c.x, CLICK_WEIGHT);
   const focusY = mix(rectCy, c.y, CLICK_WEIGHT);
 
-  const sByW = (FRAME_FRAC * W) / (extW + 2 * PAD * k);
+  const sByW = ((narrow ? NARROW_FRAC : FRAME_FRAC) * W) / (extW + 2 * PAD * k);
   const sByH = (FRAME_FRAC * H) / (extH + 2 * PAD * k);
   const S =
     c.zoomScale != null
       ? clamp(c.zoomScale, S_MIN, sMax)
-      : clamp(Math.min(sByW, sByH), S_MIN, sMax);
+      : clamp(narrow ? sByW : Math.min(sByW, sByH), S_MIN, sMax);
 
   const contentCx = clamp(focusX / W, 0, 1);
   const contentCy = clamp(focusY / H, 0, 1);
+  if (narrow) {
+    const h = 1 / (2 * S);
+    return { scale: S, cx: clamp(contentCx, h, 1 - h), cy: clamp(contentCy, h, 1 - h) };
+  }
   const sideX = contentCx >= 0.5 ? 1 : -1;
   const sideY = contentCy >= 0.5 ? 1 : -1;
   const half = 1 / (2 * S);
@@ -216,7 +276,8 @@ function normalizeKeys(keys: CameraKey[]): CameraKey[] {
 }
 
 export function buildCameraTrack(log: ClickLog, speed = 1, tuning: CameraTuning = {}): CameraKey[] {
-  const sMax = tuning.sMax ?? S_MAX;
+  const narrow = (tuning.narrow ?? 1) > 1;
+  const sMax = (tuning.sMax ?? S_MAX) * (narrow ? tuning.narrow! : 1);
   const sMaxSoft = Math.min(S_MAX_SOFT, sMax);
   const vp = log.viewport;
   const groups = stickify(clusterize(log.clicks, vp), vp);
@@ -241,7 +302,9 @@ export function buildCameraTrack(log: ClickLog, speed = 1, tuning: CameraTuning 
   let prevPose = BASE_POSE;
   const meta = groups.map((group, i) => ({
     group,
-    poses: group.map((c) => frameFor(c, vp, i === 0 && c.zoomScale == null ? sMaxSoft : sMax)),
+    poses: group.map((c) =>
+      frameFor(c, vp, i === 0 && c.zoomScale == null && !narrow ? sMaxSoft : sMax, narrow),
+    ),
     tIn: Math.max(0, departS(group[0]) - CAMERA_LEAD_S),
   }));
 
@@ -380,7 +443,7 @@ function cachedTrack(log: ClickLog, speed: number, tuning: CameraTuning = {}): C
     bySpeed = new Map();
     trackCache.set(log, bySpeed);
   }
-  const key = `${speed}|${tuning.sMax ?? ""}|${tuning.holdMinS ?? ""}`;
+  const key = `${speed}|${tuning.sMax ?? ""}|${tuning.holdMinS ?? ""}|${tuning.narrow ?? ""}`;
   let track = bySpeed.get(key);
   if (!track) {
     track = buildCameraTrack(log, speed, tuning);
@@ -411,7 +474,13 @@ export function zoomAt(
   const fit = opts.fit && opts.fit > 0 ? opts.fit : 1;
   const offset = (log.offsetMs ?? 0) / 1000;
   const t = (frame / fps) * speed - offset;
-  const track = cachedTrack(log, speed, opts.tuning);
+  const boostBy = opts.boost ?? 1;
+  const track = cachedTrack(
+    log,
+    speed,
+    boostBy > 1 ? { ...opts.tuning, narrow: boostBy } : opts.tuning,
+  );
   const pose = driftPose(sampleTrack(track, t), track, t, speed, opts.drift ?? 0);
-  return poseToCss(pose, chromeFrac, fit);
+  const boost = opts.boost ?? 1;
+  return poseToCss(boost > 1 ? narrowPose(pose, boost, cursorAim(log, t)) : pose, chromeFrac, fit);
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ELEMENTS, elementNodeType } from "../elements";
-import { defaultParams, getNodeDef, NODE_DEFS } from "./registry";
+import { defaultParams, getNodeDef, migrateSoundPorts, NODE_DEFS, normalizeNode } from "./registry";
 
 describe("node registry", () => {
   it("has unique types and parseable defaults", () => {
@@ -41,5 +41,48 @@ describe("node registry", () => {
     ]) {
       expect(getNodeDef(type)?.type).toBe(type);
     }
+  });
+});
+
+describe("old Add sound connections", () => {
+  it("move onto the one Sounds port", () => {
+    const nodes = [
+      { id: "mix", type: "audio.mix", position: { x: 0, y: 0 }, params: {} },
+      { id: "other", type: "timeline.sequence", position: { x: 0, y: 0 }, params: {} },
+    ];
+    const edges = [
+      {
+        id: "m.audio->mix.a2",
+        source: "m",
+        sourceHandle: "audio",
+        target: "mix",
+        targetHandle: "a2",
+      },
+      {
+        id: "c.clip->other.in1",
+        source: "c",
+        sourceHandle: "clip",
+        target: "other",
+        targetHandle: "in1",
+      },
+    ];
+    expect(migrateSoundPorts(edges, nodes).map((e) => [e.id, e.targetHandle])).toEqual([
+      ["m.audio->mix.sounds", "sounds"],
+      ["c.clip->other.in1", "in1"],
+    ]);
+  });
+});
+
+describe("old window title bar setting", () => {
+  it("becomes the macOS frame when it was on, and no frame when off", () => {
+    const node = (chrome: boolean) =>
+      normalizeNode({
+        id: "c",
+        type: "camera.autoZoom",
+        position: { x: 0, y: 0 },
+        params: { chrome },
+      });
+    expect(node(true).params).toEqual({ frame: "macos" });
+    expect(node(false).params).toEqual({ frame: "none" });
   });
 });

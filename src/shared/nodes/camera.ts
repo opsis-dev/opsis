@@ -31,6 +31,9 @@ const modifier = {
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replaceAll("-", " ");
 const spot = { widget: "spot" } as const;
 
+export const WINDOW_STYLES = ["macos", "windows", "linux"] as const;
+const FRAME_LABELS = { none: "None", macos: "macOS", windows: "Windows", linux: "Linux" };
+
 const clipIn = (inputs: Partial<Record<string, CompileValue>>): ClipValue | undefined =>
   isClip(inputs.clip) ? inputs.clip : undefined;
 
@@ -80,7 +83,14 @@ export const autoZoomNode = defineNode({
       .meta({ description: "Playback speed", step: 0.05, unit: "×" }),
     style: choice(CAMERA_STYLES, "classic", "Camera style"),
     backdrop: z.enum(BACKDROPS).default("glaze").meta({ description: "Backdrop" }),
-    chrome: bool(false, "Window title bar"),
+    frame: choice(["none", ...WINDOW_STYLES], "none", "Window frame", FRAME_LABELS),
+    frameTheme: more(choice(["light", "dark"], "light", "Frame colour"), {
+      showIf: { frame: [...WINDOW_STYLES] },
+    }),
+    addressBar: more(bool(true, "Address bar"), {
+      help: "Shows the page's address in the title bar.",
+      showIf: { frame: [...WINDOW_STYLES] },
+    }),
     motionBlur: bool(true, "Motion blur"),
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
@@ -111,7 +121,14 @@ export const autoZoomNode = defineNode({
       tuning: { sMax: params.maxScale, holdMinS: params.hold / 1000 },
       motionBlur: params.motionBlur,
       style: params.style,
-      chrome: params.chrome,
+      chrome: params.frame !== "none",
+      ...(params.frame !== "none"
+        ? {
+            windowStyle: params.frame,
+            frameTheme: params.frameTheme,
+            addressBar: params.addressBar,
+          }
+        : {}),
       backdrop: params.backdrop,
     };
     return { clip: itemClip(nodeId, "core/recording", props, frames, { recording: rec }) };
@@ -399,6 +416,12 @@ export const deviceFrameNode = defineNode({
       laptop: "Laptop",
       phone: "Phone",
     }),
+    windowStyle: more(choice(WINDOW_STYLES, "macos", "Window style", FRAME_LABELS), {
+      showIf: { device: ["browser"] },
+    }),
+    frameTheme: more(choice(["light", "dark"], "light", "Frame colour"), {
+      showIf: { device: ["browser"] },
+    }),
     entrance: choice(["rise", "open", "none"], "open", "Entrance", {
       rise: "Slide in",
       open: "Open up",
@@ -412,7 +435,13 @@ export const deviceFrameNode = defineNode({
   compile: ({ nodeId, inputs, params }) =>
     passthrough(inputs, (clip) => {
       if (params.device === "browser")
-        return patchRecordings(clip, (p) => ({ ...p, chrome: true }));
+        return patchRecordings(clip, (p) => ({
+          ...p,
+          chrome: true,
+          windowStyle: params.windowStyle,
+          frameTheme: params.frameTheme,
+          addressBar: p.addressBar ?? true,
+        }));
       const src = clip.recording?.src;
       if (!src) return clip;
       const component = params.device === "laptop" ? "snapcn/laptop-frame" : "snapcn/phone-frame";

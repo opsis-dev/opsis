@@ -755,6 +755,8 @@ export function TimelineView({ ref }: { ref: React.Ref<TimelineActions> }) {
       }
     } else if (d.kind === "marker") {
       useTimeline.getState().selectMarker(d.id);
+    } else if (d.kind === "key") {
+      select([d.nodeId], false);
     }
   };
 
@@ -1143,17 +1145,25 @@ export function TimelineView({ ref }: { ref: React.Ref<TimelineActions> }) {
           .map((t) => {
             const top = Math.max(...t.lanes);
             const bottom = Math.min(...t.lanes);
+            const heavy = t.covers > 0.4;
             return (
               <div
                 key={t.key}
-                className="border-foreground/30 pointer-events-none absolute z-10 flex items-end justify-center overflow-hidden rounded-sm border bg-[repeating-linear-gradient(135deg,var(--transition-hatch)_0,var(--transition-hatch)_4px,transparent_4px,transparent_8px)]"
+                className={cn(
+                  "pointer-events-none absolute z-10 flex items-end justify-center overflow-hidden rounded-sm border bg-[repeating-linear-gradient(135deg,var(--transition-hatch)_0,var(--transition-hatch)_4px,transparent_4px,transparent_8px)]",
+                  heavy ? "border-warning" : "border-foreground/30",
+                )}
                 style={{
                   left: HEADER_W + t.from * ppf,
                   width: Math.max(4, (t.to - t.from) * ppf),
                   top: videoTop + (videoLanes - 1 - top) * VIDEO_H + 4,
                   height: (top - bottom + 1) * VIDEO_H - 8,
                 }}
-                title={transitionTitle(t.kind)}
+                title={
+                  heavy
+                    ? `${transitionTitle(t.kind)} covers ${Math.min(100, Math.round(t.covers * 100))}% of a clip. Turn on Keep every clip whole, or shorten it.`
+                    : transitionTitle(t.kind)
+                }
               >
                 {(t.to - t.from) * ppf > 40 ? (
                   <span className="bg-background/70 mb-0.5 rounded px-1 text-[10px] whitespace-nowrap">
@@ -1350,6 +1360,15 @@ function Row({
   );
 }
 
+const KEY_NAMES: Record<VisualEnvelopeKey | AudioEnvelopeKey, string> = {
+  opacity: "Opacity",
+  x: "Move across",
+  y: "Move up and down",
+  scale: "Size",
+  volume: "Volume",
+  pan: "Balance",
+};
+
 function EnvelopeOverlay({
   keys,
   prop,
@@ -1403,6 +1422,7 @@ function EnvelopeOverlay({
           cy={y(k.value)}
           r={4}
           className="fill-keyframe stroke-background cursor-move"
+          aria-label={`${KEY_NAMES[prop]} ${Math.round(k.value * 1000) / 1000}`}
           onPointerDown={(e) => {
             if (e.button === 0 && secondClick(e)) {
               e.stopPropagation();
@@ -1411,7 +1431,11 @@ function EnvelopeOverlay({
             }
             onDown(e, i);
           }}
-        />
+        >
+          <title>
+            {`${KEY_NAMES[prop]} ${Math.round(k.value * 1000) / 1000}. Drag to change, double-click to delete. Click to type exact values in the Inspector.`}
+          </title>
+        </circle>
       ))}
     </svg>
   );

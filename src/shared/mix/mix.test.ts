@@ -32,8 +32,8 @@ function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
   g.link("t", "layers", "clip", "in1")
     .link("clipfile", "layers", "clip", "in2")
     .link("layers", "mix")
-    .link("music", "mix", "audio", "a1")
-    .link("fx", "mix", "audio", "a2")
+    .link("music", "mix", "audio", "sounds")
+    .link("fx", "mix", "audio", "sounds")
     .link("mix", "out", "clip", "timeline");
   const wf = { ...g.build({ id: "wf", name: "Mix" }), ...(mix ? { mix } : {}) };
   const spec = previewSpec(wf, compileWorkflow(wf), null)!.spec;
@@ -75,11 +75,48 @@ describe("mixer levels", () => {
     expect(video).toContain('"muted":true');
   });
 
+  it("lets ducking ignore sounds shorter than a set length", () => {
+    const mix = defaultMix();
+    const duck = (ignoreShorterMs: number) => ({
+      ...mix,
+      buses: mix.buses.map((b) =>
+        b.id === "music"
+          ? {
+              ...b,
+              duck: {
+                on: true,
+                keys: ["effects"],
+                amount: 12,
+                attack: 100,
+                release: 300,
+                ignoreShorterMs,
+              },
+            }
+          : b,
+      ),
+    });
+    const { spec } = project(duck(0));
+    const music = (m: ReturnType<typeof duck>) =>
+      applyMixLevels(spec, m).audio.find((a) => a.nodeId === "music")!;
+    expect(music(duck(0)).duck?.keys).toEqual(["fx"]);
+    expect(music(duck(5000)).duck).toBeUndefined();
+  });
+
   it("turns bus ducking into a live approximation keyed by channel", () => {
     const mix = defaultMix();
     mix.buses = mix.buses.map((b) =>
       b.id === "music"
-        ? { ...b, duck: { on: true, keys: ["effects"], amount: 12, attack: 100, release: 300 } }
+        ? {
+            ...b,
+            duck: {
+              on: true,
+              keys: ["effects"],
+              amount: 12,
+              attack: 100,
+              release: 300,
+              ignoreShorterMs: 0,
+            },
+          }
         : b,
     );
     const { spec } = project(mix);
@@ -346,6 +383,7 @@ describe("migrating the old music ducking", () => {
       amount: 12,
       attack: 300,
       release: 300,
+      ignoreShorterMs: 0,
     });
   });
 
@@ -359,5 +397,30 @@ describe("migrating the old music ducking", () => {
     expect(out.nodes[0].params).not.toHaveProperty("duck");
     expect(out.mix?.channels).toEqual({});
     expect(out.mix?.buses.find((b) => b.id === "music")?.duck.on).toBe(false);
+  });
+});
+
+describe("bus processing", () => {
+  it("runs the bus through low cut, EQ and compressor before its fader", () => {
+    const processing = {
+      highpass: { on: true, freq: 60 },
+      eq: {
+        on: true,
+        bands: [
+          { type: "lowshelf" as const, freq: 100, gain: 2, q: 0.7 },
+          { type: "peak" as const, freq: 600, gain: 0, q: 1 },
+          { type: "peak" as const, freq: 4000, gain: 0, q: 1 },
+          { type: "highshelf" as const, freq: 9000, gain: 0, q: 0.7 },
+        ],
+      },
+      comp: { on: true, threshold: -16, ratio: 4, attack: 3, release: 80, makeup: 0 },
+    };
+    const job = busJob(
+      { fps: 30, durationInFrames: 300 },
+      { id: "fx", name: "Effects", fader: -3, channels: ["a"], duck: null, processing },
+      (id) => `${id}.wav`,
+    );
+    expect(job.filter).toContain("highpass=f=60,lowshelf=f=100");
+    expect(job.filter.indexOf("acompressor")).toBeLessThan(job.filter.indexOf("volume=-3dB"));
   });
 });

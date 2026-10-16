@@ -41,18 +41,20 @@ export const highpassSchema = z.object({
 
 export const MIN_DB = -60;
 
+const OFF_COMP = {
+  on: false,
+  threshold: -18,
+  ratio: 3,
+  attack: 10,
+  release: 150,
+  makeup: 0,
+};
+
 export const stripSchema = z.object({
   trim: z.number().min(-24).max(24).default(0),
   highpass: highpassSchema.default({ on: false, freq: 80 }),
   eq: eqSchema.default({ on: false, bands: DEFAULT_EQ_BANDS }),
-  comp: compSchema.default({
-    on: false,
-    threshold: -18,
-    ratio: 3,
-    attack: 10,
-    release: 150,
-    makeup: 0,
-  }),
+  comp: compSchema.default(OFF_COMP),
   pan: z.number().min(-1).max(1).default(0),
   fader: z.number().min(MIN_DB).max(12).default(0),
   mute: z.boolean().default(false),
@@ -67,16 +69,27 @@ export const duckSettingsSchema = z.object({
   amount: z.number().min(1).max(24).default(10),
   attack: z.number().min(5).max(2000).default(80),
   release: z.number().min(20).max(5000).default(400),
+  ignoreShorterMs: z.number().min(0).max(5000).default(0),
 });
 export type DuckSettings = z.infer<typeof duckSettingsSchema>;
 
 export const busSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
+  highpass: highpassSchema.default({ on: false, freq: 80 }),
+  eq: eqSchema.default({ on: false, bands: DEFAULT_EQ_BANDS }),
+  comp: compSchema.default(OFF_COMP),
   fader: z.number().min(MIN_DB).max(12).default(0),
   mute: z.boolean().default(false),
   solo: z.boolean().default(false),
-  duck: duckSettingsSchema.default({ on: false, keys: [], amount: 10, attack: 80, release: 400 }),
+  duck: duckSettingsSchema.default({
+    on: false,
+    keys: [],
+    amount: 10,
+    attack: 80,
+    release: 400,
+    ignoreShorterMs: 0,
+  }),
 });
 export type Bus = z.infer<typeof busSchema>;
 

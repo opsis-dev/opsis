@@ -55,7 +55,7 @@ export const CATEGORY_LABELS: Record<NodeCategory, string> = {
 
 export type NodePhase = "capture" | "media" | "compile" | "render" | "post";
 
-export type PortSpec = { type: PortType; label?: string; optional?: boolean };
+export type PortSpec = { type: PortType; label?: string; optional?: boolean; many?: boolean };
 
 export type CompileContext<P> = {
   nodeId: string;
@@ -102,3 +102,10 @@ export const port = (type: PortType, label?: string, optional = false): PortSpec
 });
 
 export const opt = (type: PortType, label?: string): PortSpec => port(type, label, true);
+
+export const many = (type: PortType, label?: string): PortSpec => ({
+  type,
+  label,
+  optional: true,
+  many: true,
+});

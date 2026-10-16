@@ -1,7 +1,9 @@
 import { Player, type PlayerRef } from "@remotion/player";
 import { Clapperboard } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { VARIANTS, variantSize } from "@/shared/nodes/output";
 import { getNodeDef } from "@/shared/nodes/registry";
+import type { Workflow } from "@/shared/schema/workflow";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import { Badge } from "@/renderer/components/ui/badge";
 import {
@@ -11,12 +13,20 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/renderer/components/ui/select";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { useAudioPreview } from "../store/audio-preview";
 import { registerPlayer, usePlayback } from "../store/playback";
-import { useUiStore, type PreviewQuality } from "../store/ui";
+import { useUiStore, type PreviewQuality, type PreviewShape } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { useStillsStore } from "../store/stills";
 import { PreviewComposition } from "./audio-insert";
@@ -33,17 +43,20 @@ export function PreviewDock() {
   const [player, setPlayer] = useState<PlayerRef | null>(null);
   const quality = useUiStore((s) => s.previewQuality);
   const setQuality = useUiStore((s) => s.setPreviewQuality);
+  const shape = useUiStore((s) => s.previewShape);
+  const setShape = useUiStore((s) => s.setPreviewShape);
   const rate = usePlayback((s) => s.rate);
   const inPoint = usePlayback((s) => s.inPoint);
   const outPoint = usePlayback((s) => s.outPoint);
 
-  const spec: TimelineSpec | null = useMemo(
-    () =>
-      film.audible
-        ? { ...film.audible, assets: { projectBase: "demoflow-file://project/" }, quality }
-        : null,
-    [film.audible, quality],
-  );
+  const reframe = useMemo(() => exportReframe(workflow), [workflow]);
+  const spec: TimelineSpec | null = useMemo(() => {
+    if (!film.audible || !workflow) return null;
+    const base = { ...film.audible, assets: { projectBase: "demoflow-file://project/" }, quality };
+    return shape === "project"
+      ? base
+      : { ...base, ...variantSize(shape, workflow.settings), reframe };
+  }, [film.audible, quality, shape, workflow, reframe]);
 
   useEffect(() => {
     if (!film.stale) useAudioPreview.getState().clear();
@@ -158,6 +171,21 @@ export function PreviewDock() {
           </Tooltip>
         ) : null}
         <div className="flex-1" />
+        <Select value={shape} onValueChange={(v) => v && setShape(v as PreviewShape)}>
+          <SelectTrigger size="sm" className="w-32" aria-label="Preview shape">
+            <SelectValue>{(v: string) => (v === "project" ? "Project shape" : v)}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="project">Project shape</SelectItem>
+              {VARIANTS.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {v}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
         <ToggleGroup
           variant="outline"
           size="sm"
@@ -196,4 +224,10 @@ export function PreviewDock() {
       </div>
     </div>
   );
+}
+
+function exportReframe(workflow: Workflow | null): TimelineSpec["reframe"] {
+  const render = workflow?.nodes.find((n) => n.type === "output.render" && !n.disabled);
+  const value = render?.params?.reframe;
+  return value === "center" || value === "fit" ? value : "follow";
 }

@@ -221,3 +221,81 @@ describe("compileWorkflow — timeline nodes", () => {
     expect(previewSpec(wf, out, "title")?.spans.title).toEqual({ from: 0, to: 90 });
   });
 });
+
+describe("layers that keep their layout", () => {
+  it("wrap the layers in a box at the project's size", () => {
+    const g = new GraphBuilder();
+    g.node("bg", "fx.core.solid", 0, 0, { clipDuration: 60 });
+    g.node("t", "fx.core.title", 0, 1, { clipDuration: 60 });
+    g.node("stack", "timeline.stack", 1, 0, { keepLayout: true });
+    g.link("bg", "stack", "clip", "in1").link("t", "stack", "clip", "in2");
+    g.node("out", "output.render", 2, 0);
+    g.link("stack", "out", "clip", "timeline");
+    const spec = compileWorkflow(g.build({ id: "x", name: "x" })).specs.out;
+    const outer = spec.tracks[0].items[0];
+    const props = outer.props as GroupProps;
+    expect(props.design).toEqual({ width: 1920, height: 1080 });
+    expect(props.tracks).toHaveLength(2);
+    expect(
+      flattenSpec(spec)
+        .bars.map((b) => b.nodeId)
+        .toSorted(),
+    ).toEqual(["bg", "t"]);
+  });
+});
+
+describe("sounds under a clip", () => {
+  const take = (g: GraphBuilder) => {
+    const s = g.node("session", "browser.session", 0, 0);
+    const nav = g.node("open", "browser.navigate", 1, 0, { url: "https://example.com" });
+    const click = g.node("complete", "browser.click", 2, 0, { target: "Complete" });
+    const rec = g.node("record", "capture.record", 3, 0);
+    g.chain([s, nav, click, rec]);
+    const cam = g.node("camera", "camera.autoZoom", 3, 1, { speed: 1 });
+    g.link(rec, cam, "recording", "recording");
+    return cam;
+  };
+  const tagged: NodeResult = (() => {
+    const r = recordResult();
+    const rec = r.outputs.recording as { log: ActionLog };
+    rec.log = {
+      ...log,
+      actions: log.actions.map((a) => (a.id === "b" ? { ...a, nodeId: "complete" } : a)),
+    };
+    return r;
+  })();
+
+  it("takes any number of sounds on one port", () => {
+    const g = new GraphBuilder();
+    const cam = take(g);
+    g.node("mix", "audio.mix", 4, 1);
+    g.link(cam, "mix");
+    for (const id of ["s1", "s2", "s3", "s4"]) {
+      g.node(id, "audio.sfx", 4, 2, { src: "app:sfx/pop.wav", atMs: 500 });
+      g.link(id, "mix", "audio", "sounds");
+    }
+    g.node("out", "output.render", 5, 1);
+    g.link("mix", "out", "clip", "timeline");
+    const out = compileWorkflow(g.build({ id: "x", name: "x" }), { results: { record: tagged } });
+    expect(out.specs.out.audio.map((a) => a.nodeId)).toEqual(["s1", "s2", "s3", "s4"]);
+  });
+
+  it("plays a sound effect on the action it's pinned to", () => {
+    const g = new GraphBuilder();
+    const cam = take(g);
+    g.node("mix", "audio.mix", 4, 1);
+    g.link(cam, "mix");
+    g.node("pinned", "audio.sfx", 4, 2, {
+      src: "app:sfx/pop.wav",
+      atAction: "complete",
+      offsetMs: -200,
+    });
+    g.link("pinned", "mix", "audio", "sounds");
+    g.node("out", "output.render", 5, 1);
+    g.link("mix", "out", "clip", "timeline");
+    const out = compileWorkflow(g.build({ id: "x", name: "x" }), { results: { record: tagged } });
+    const mark = flattenSpec(out.specs.out).marks.find((m) => m.nodeId === "complete")!;
+    const sound = out.specs.out.audio.find((a) => a.nodeId === "pinned")!;
+    expect(sound.from).toBe(Math.round(mark.frame) - 6);
+  });
+});

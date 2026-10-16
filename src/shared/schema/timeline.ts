@@ -5,6 +5,7 @@ export const transitionRefSchema = z.object({
   kind: z.string(),
   durationInFrames: z.number().int().nonnegative(),
   params: z.record(z.string(), z.unknown()).optional(),
+  hold: z.boolean().optional(),
 });
 export type TransitionRef = z.infer<typeof transitionRefSchema>;
 
@@ -131,6 +132,7 @@ export const audioItemSchema = z.object({
   duck: duckSchema.optional(),
   envelope: audioEnvelopeSchema.optional(),
   handles: editHandlesSchema.optional(),
+  anchor: z.object({ nodeId: z.string() }).optional(),
 });
 export type AudioItem = z.infer<typeof audioItemSchema>;
 

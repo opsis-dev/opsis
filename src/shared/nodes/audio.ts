@@ -1,12 +1,14 @@
 import { z } from "zod";
-import { isClip, msToFrames } from "../compile/clip";
+import { clipToSpec, isClip, msToFrames } from "../compile/clip";
 import { projectRef } from "../elements/introspect";
 import type { AudioItem } from "../schema/timeline";
 import { builtinSound } from "../sounds";
-import type { AudioValue, MediaValue } from "../schema/values";
+import type { AudioValue, ClipValue, MediaValue } from "../schema/values";
+import type { WorkflowSettings } from "../schema/workflow";
+import { flattenSpec } from "../timeline/flatten";
 import { hasKeys } from "../timeline/envelope";
 import { row, secs } from "./card";
-import { defineNode, opt, port } from "./define";
+import { defineNode, many, opt, port } from "./define";
 import { asset, audioEnvelope, bool, more, ms } from "./params";
 
 const fileName = (path: string) => builtinSound(path)?.label ?? path.split("/").pop() ?? path;
@@ -103,7 +105,12 @@ export const sfxNode = defineNode({
       : connected.includes("media")
         ? row("audio-lines", "From the connected file")
         : row("audio-lines", "Choose a sound", { tone: "warn" }),
-    row("clock", `At ${secs(p.atMs)}`),
+    p.atAction
+      ? row(
+          "mouse-pointer-click",
+          `On an action${p.offsetMs ? ` ${p.offsetMs > 0 ? "+" : "−"}${secs(Math.abs(p.offsetMs))}` : ""}`,
+        )
+      : row("clock", `At ${secs(p.atMs)}`),
     p.keepMusic && row("music", "Music stays up"),
   ],
   category: "Audio",
@@ -113,7 +120,25 @@ export const sfxNode = defineNode({
   outputs: { audio: port("audio", "Sound") },
   params: z.object({
     src: more(asset("Sound", "audio/*"), { widget: "sound" }),
-    atMs: ms(0, "At"),
+    atAction: z.string().default("").meta({
+      description: "On an action",
+      widget: "action",
+      help: "Plays when this browser action happens in the clip the sound is added to, even after you record again or edit the clip.",
+    }),
+    atMs: more(ms(0, "At"), { showIf: { atAction: [""] } }),
+    offsetMs: z
+      .number()
+      .int()
+      .min(-10_000)
+      .max(10_000)
+      .default(0)
+      .meta({
+        description: "From the action",
+        unit: "ms",
+        step: 50,
+        help: "Negative plays it before the action, for sounds that build up to it.",
+        showIf: { atAction: ["*"] },
+      }),
     volume: z.number().min(0).max(2).default(1).meta({ description: "Volume", step: 0.05 }),
     keepMusic: more(bool(false, "Keep music up"), {
       help: "Music set to lower under other sounds stays at full volume for this one.",
@@ -133,7 +158,12 @@ export const sfxNode = defineNode({
           {
             id: nodeId,
             src,
-            from: params.atMs ? msToFrames(params.atMs, settings.fps) : 0,
+            from: params.atAction
+              ? Math.round((params.offsetMs / 1000) * settings.fps)
+              : params.atMs
+                ? msToFrames(params.atMs, settings.fps)
+                : 0,
+            ...(params.atAction ? { anchor: { nodeId: params.atAction } } : {}),
             volume: params.volume,
             nodeId,
             channel: nodeId,
@@ -142,7 +172,7 @@ export const sfxNode = defineNode({
             keepMusic: params.keepMusic || undefined,
             ...(hasKeys(params.envelope) ? { envelope: params.envelope } : {}),
             handles: {
-              move: { nodeId, param: "atMs", unit: "ms" },
+              move: { nodeId, param: params.atAction ? "offsetMs" : "atMs", unit: "ms" },
               volume: { nodeId, param: "volume", unit: "number" },
             },
           },
@@ -158,31 +188,29 @@ export const addAudioNode = defineNode({
   category: "Audio",
   icon: "audio-waveform",
   phase: "compile",
-  description: "Puts up to three sounds under a clip. Sound stops where the clip ends.",
+  description:
+    "Puts sounds under a clip. Connect as many as you like. Sound stops where the clip ends.",
   card: ({ connected }) => {
-    const n = ["a1", "a2", "a3"].filter((k) => connected.includes(k)).length;
+    const n = connected.filter((k) => k === "sounds").length;
     return [row("volume-2", n === 1 ? "1 sound" : `${n} sounds`, n ? {} : { tone: "warn" })];
   },
   inputs: {
     clip: port("clip", "Clip"),
-    a1: opt("audio", "Sound 1"),
-    a2: opt("audio", "Sound 2"),
-    a3: opt("audio", "Sound 3"),
+    sounds: many("audio", "Sounds"),
   },
   outputs: { clip: port("clip", "Clip") },
   params: z.object({}),
-  compile: ({ inputs }) => {
+  compile: ({ inputs, settings }) => {
     const clip = isClip(inputs.clip) ? inputs.clip : undefined;
     if (!clip) return {};
-    const items = (["a1", "a2", "a3"] as const).flatMap(
-      (k) => (inputs[k] as AudioValue | undefined)?.items ?? [],
-    );
+    const items = (inputs.sounds as AudioValue | undefined)?.items ?? [];
+    const placed = anchorSounds(items, clip, settings);
     return {
       clip: {
         ...clip,
         audio: [
           ...clip.audio,
-          ...items.map((a) => ({
+          ...placed.map((a) => ({
             ...a,
             durationInFrames: Math.max(
               1,
@@ -194,5 +222,21 @@ export const addAudioNode = defineNode({
     };
   },
 });
+
+export function anchorSounds(
+  items: AudioItem[],
+  clip: ClipValue,
+  settings: WorkflowSettings,
+): AudioItem[] {
+  if (!items.some((a) => a.anchor)) return items;
+  const marks = flattenSpec(clipToSpec(clip, settings)).marks;
+  return items.map((a) => {
+    if (!a.anchor) return a;
+    const mark = marks.find((m) => m.nodeId === a.anchor?.nodeId && m.kind !== "chapter");
+    return mark
+      ? { ...a, from: Math.max(0, Math.round(mark.frame) + a.from) }
+      : { ...a, from: Math.max(0, a.from) };
+  });
+}
 
 export const audioNodes = [musicBedNode, sfxNode, addAudioNode];

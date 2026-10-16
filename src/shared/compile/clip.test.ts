@@ -9,6 +9,8 @@ import {
   clipToSpec,
 } from "./clip";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
+import { flattenSpec } from "../timeline/flatten";
+import type { GroupProps } from "./clip";
 
 const settings = {
   width: 1920,
@@ -55,5 +57,49 @@ describe("sequenceClips", () => {
     const b = itemClip("b", "core/solid", {}, 30);
     const spec = clipToSpec(sequenceClips("s", [a, b]), settings);
     expect(nodeSpans(spec)).toEqual({ a: { from: 0, to: 30 }, b: { from: 30, to: 60 } });
+  });
+});
+
+describe("held transitions", () => {
+  const withSound = (id: string, frames: number) => ({
+    ...itemClip(id, "core/title", {}, frames),
+    audio: [{ id: `${id}:a`, src: "app:sfx/pop.wav", from: 0, volume: 1, role: "effect" as const }],
+  });
+
+  it("keep every clip whole and play the transition over held frames", () => {
+    const seq = sequenceClips(
+      "seq",
+      [withSound("a", 45), withSound("b", 60), withSound("c", 30)],
+      [
+        undefined,
+        { kind: "core/fade", durationInFrames: 30, hold: true },
+        { kind: "core/fade", durationInFrames: 10, hold: true },
+      ],
+    );
+    expect(seq.durationInFrames).toBe(45 + 30 + 60 + 10 + 30);
+    const [a, b, c] = seq.tracks[0].items;
+    expect([a.from, a.durationInFrames]).toEqual([0, 75]);
+    expect([b.from, b.durationInFrames]).toEqual([45, 100]);
+    expect([c.from, c.durationInFrames]).toEqual([135, 40]);
+    const remapA = (a.props as GroupProps).remap!;
+    expect(remapFrame(remapA, 44)).toBe(44);
+    expect(remapFrame(remapA, 74)).toBe(44);
+    const remapB = (b.props as GroupProps).remap!;
+    expect(remapFrame(remapB, 10)).toBe(0);
+    expect(remapFrame(remapB, 30)).toBe(0);
+    expect(remapFrame(remapB, 89)).toBe(59);
+    expect(remapFrame(remapB, 99)).toBe(59);
+    expect(seq.audio.map((x) => x.from)).toEqual([0, 75, 145]);
+  });
+
+  it("are not flagged on the timeline, while overlapping ones are", () => {
+    const parts = [itemClip("a", "core/title", {}, 45), itemClip("b", "core/title", {}, 45)];
+    const spec = (hold: boolean) =>
+      clipToSpec(
+        sequenceClips("seq", parts, [undefined, { kind: "core/fade", durationInFrames: 30, hold }]),
+        { width: 1920, height: 1080, fps: 30, theme: "dark", fonts: DEFAULT_PROJECT_FONTS },
+      );
+    expect(flattenSpec(spec(false)).transitions[0].covers).toBeCloseTo(30 / 45);
+    expect(flattenSpec(spec(true)).transitions[0].covers).toBe(0);
   });
 });

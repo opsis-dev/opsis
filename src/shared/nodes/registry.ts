@@ -56,6 +56,13 @@ export function defaultParams(type: string): Record<string, unknown> {
 }
 
 export function normalizeNode(node: WorkflowNode): WorkflowNode {
+  if (node.type === "camera.autoZoom" && node.params && "chrome" in node.params) {
+    const { chrome, ...rest } = node.params;
+    node = {
+      ...node,
+      params: { ...rest, ...("frame" in rest ? {} : { frame: chrome ? "macos" : "none" }) },
+    };
+  }
   const def = getNodeDef(node.type);
   const label = node.params?.label;
   if (!def || typeof label !== "string" || "label" in def.params.shape) return node;
@@ -90,9 +97,28 @@ export function normalizeWorkflow(wf: Workflow): Workflow {
   return {
     ...wf,
     variables,
+    edges: migrateSoundPorts(wf.edges, nodes),
     nodes: migrated.nodes,
     ...(migrated.mix ? { mix: migrated.mix } : {}),
   };
+}
+
+const LEGACY_SOUND_PORTS = new Set(["a1", "a2", "a3"]);
+
+export function migrateSoundPorts(
+  edges: Workflow["edges"],
+  nodes: WorkflowNode[],
+): Workflow["edges"] {
+  const mixers = new Set(nodes.filter((n) => n.type === "audio.mix").map((n) => n.id));
+  return edges.map((e) =>
+    mixers.has(e.target) && LEGACY_SOUND_PORTS.has(e.targetHandle)
+      ? {
+          ...e,
+          targetHandle: "sounds",
+          id: `${e.source}.${e.sourceHandle}->${e.target}.sounds`,
+        }
+      : e,
+  );
 }
 
 const LEGACY_DUCK_PARAMS = ["duck", "duckLevel", "duckUnder", "duckFadeMs"];
@@ -138,6 +164,7 @@ export function migrateMusicDucking(
                 amount,
                 attack: Math.max(5, fade),
                 release: Math.max(20, fade),
+                ignoreShorterMs: 0,
               },
             }
           : b,

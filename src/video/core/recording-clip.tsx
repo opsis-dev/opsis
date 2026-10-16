@@ -6,9 +6,11 @@ import { resolveAnnotations, toClickLog, typedBeats } from "../camera/action-log
 import { DemoClip } from "../camera/demo-clip";
 import { KeycapHUD } from "../camera/keycap-hud";
 import { clamp as clampN } from "../camera/lib/camera";
+import { resolvePreset } from "../camera/lib/style";
 import { poseAt } from "../camera/lib/zoom";
 import { DesignWidthContext } from "../camera/window-frame";
 import { clamp } from "./anim";
+import { containBox, useOverlayFrame, zoomBoost } from "./frame";
 
 export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const fast = useQuality() === "fast";
@@ -26,16 +28,31 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     [props.log, props.annotations],
   );
   const typed = useMemo(() => typedBeats(props.log), [props.log]);
+  const address = useMemo(() => pageAddress(props.log), [props.log]);
 
   if (!src) return null;
 
+  const sourceAspect = props.log.viewport.width / props.log.viewport.height;
+  const outAspect = width / height;
+  const reshaped = Math.abs(sourceAspect - outAspect) > 0.02;
+  const narrower = outAspect < sourceAspect;
+  const fullPage = resolvePreset(props).shot.framing !== "window";
+  const fitted = reshaped && reframe === "follow" && (narrower || fullPage);
+  const box = fitted ? containBox({ width, height }, sourceAspect) : undefined;
+
   const clip = (
     <DemoClip
+      box={box}
+      boost={fitted && narrower ? zoomBoost(sourceAspect, outAspect) : undefined}
       name={props.name}
       src={src}
       log={log}
       speed={props.speed}
       chrome={props.chrome}
+      windowStyle={props.windowStyle}
+      frameTheme={props.frameTheme}
+      addressBar={props.addressBar}
+      address={address}
       backdrop={props.backdrop}
       style={props.style}
       motionBlur={props.motionBlur && !fast}
@@ -47,10 +64,12 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     />
   );
 
-  const sourceAspect = props.log.viewport.width / props.log.viewport.height;
-  const outAspect = width / height;
-  let body: React.ReactNode = clip;
-  if (Math.abs(sourceAspect - outAspect) > 0.02) {
+  let body: React.ReactNode = box ? (
+    <DesignWidthContext.Provider value={box.width}>{clip}</DesignWidthContext.Provider>
+  ) : (
+    clip
+  );
+  if (reshaped && !box) {
     if (reframe === "fit") {
       const boxH = width / sourceAspect;
       body = (
@@ -92,8 +111,10 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   return (
     <AbsoluteFill>
       {body}
-      {ks?.chords && log.keys?.length ? <KeycapHUD keys={log.keys} timeS={timeS} /> : null}
-      {ks?.typed ? <TypedChip beats={typed} timeS={timeS} position={ks.position} /> : null}
+      <DesignWidthContext.Provider value={Math.max(width, height)}>
+        {ks?.chords && log.keys?.length ? <KeycapHUD keys={log.keys} timeS={timeS} /> : null}
+        {ks?.typed ? <TypedChip beats={typed} timeS={timeS} position={ks.position} /> : null}
+      </DesignWidthContext.Provider>
     </AbsoluteFill>
   );
 };
@@ -103,8 +124,7 @@ const TypedChip: React.FC<{
   timeS: number;
   position: "top" | "bottom";
 }> = ({ beats, timeS, position }) => {
-  const { width } = useVideoConfig();
-  const k = width / 1920;
+  const { k, insets } = useOverlayFrame();
   const beat = beats.find((b) => timeS >= b.fromS && timeS <= b.toS);
   if (!beat) return null;
   const typingEnd = beat.toS - 0.6;
@@ -121,6 +141,8 @@ const TypedChip: React.FC<{
         justifyContent: position === "top" ? "flex-start" : "flex-end",
         alignItems: "center",
         padding: 56 * k,
+        paddingTop: 56 * k + insets.top,
+        paddingBottom: 56 * k + insets.bottom,
         pointerEvents: "none",
       }}
     >
@@ -146,3 +168,14 @@ const TypedChip: React.FC<{
     </AbsoluteFill>
   );
 };
+
+function pageAddress(log: RecordingProps["log"]): string | undefined {
+  const url = log.actions.find((a) => a.kind === "navigate")?.label;
+  if (!url) return undefined;
+  try {
+    const u = new URL(url);
+    return `${u.host}${u.pathname === "/" ? "" : u.pathname}`;
+  } catch {
+    return url;
+  }
+}

@@ -48,7 +48,12 @@ export function channelGain(mix: Mix, channel: string, kind: ChannelKind): numbe
   );
 }
 
-export type ChannelInfo = { id: string; kind: ChannelKind; keepMusic: boolean };
+export type ChannelInfo = {
+  id: string;
+  kind: ChannelKind;
+  keepMusic: boolean;
+  lengthFrames: number;
+};
 
 export function channelsIn(spec: Pick<TimelineSpec, "tracks" | "audio">): ChannelInfo[] {
   const out = new Map<string, ChannelInfo>();
@@ -59,23 +64,34 @@ export function channelsIn(spec: Pick<TimelineSpec, "tracks" | "audio">): Channe
       id,
       kind: kindOfAudio(a),
       keepMusic: (prev?.keepMusic ?? true) && !!a.keepMusic,
+      lengthFrames: Math.max(
+        prev?.lengthFrames ?? 0,
+        a.loop ? Infinity : (a.lengthFrames ?? a.durationInFrames ?? Infinity),
+      ),
     });
   }
   mapItems(spec.tracks, (item) => {
     if (item.component === "core/video" && item.props.muted === false && item.nodeId)
-      out.set(item.nodeId, { id: item.nodeId, kind: "clip", keepMusic: false });
+      out.set(item.nodeId, {
+        id: item.nodeId,
+        kind: "clip",
+        keepMusic: false,
+        lengthFrames: Infinity,
+      });
     return item;
   });
   return [...out.values()];
 }
 
-export function duckKeysFor(mix: Mix, bus: Bus, channels: ChannelInfo[]): string[] {
+export function duckKeysFor(mix: Mix, bus: Bus, channels: ChannelInfo[], fps: number): string[] {
   if (!bus.duck.on) return [];
   const keys = new Set(bus.duck.keys);
+  const shortest = (bus.duck.ignoreShorterMs / 1000) * fps;
   return channels
     .filter(
       (c) =>
         !c.keepMusic &&
+        c.lengthFrames >= shortest &&
         keys.has(busOf(mix, c.id, c.kind).id) &&
         busOf(mix, c.id, c.kind).id !== bus.id,
     )
@@ -88,7 +104,7 @@ export function applyMixLevels(spec: TimelineSpec, mixIn: Mix | undefined): Time
   const channels = channelsIn(spec);
   const duckFor = new Map<string, AudioItem["duck"]>();
   for (const bus of mix.buses) {
-    const keys = duckKeysFor(mix, bus, channels);
+    const keys = duckKeysFor(mix, bus, channels, spec.fps);
     if (keys.length)
       duckFor.set(bus.id, {
         level: dbToGain(-bus.duck.amount),

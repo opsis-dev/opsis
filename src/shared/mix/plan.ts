@@ -2,7 +2,7 @@ import { hashOf } from "../hash";
 import type { AudioEnvelope, TimelineSpec } from "../schema/timeline";
 import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
 import { busOf, channelsIn, duckKeysFor, isAudible, resolveMix, stripOf } from "./levels";
-import type { ChannelKind, Master, Mix, Strip } from "./types";
+import type { Bus, ChannelKind, Master, Mix, Strip } from "./types";
 
 export type SoundPlacement = {
   src: string;
@@ -28,6 +28,7 @@ export type ChannelPlan = {
 export type BusPlan = {
   id: string;
   name: string;
+  processing?: Pick<Bus, "highpass" | "eq" | "comp">;
   fader: number;
   channels: string[];
   duck: { keys: string[]; amount: number; attack: number; release: number } | null;
@@ -80,10 +81,12 @@ export function buildMixPlan(
       mix,
       bus,
       infos.filter((c) => sounds.has(c.id)),
+      spec.fps,
     );
     return {
       id: bus.id,
       name: bus.name,
+      processing: { highpass: bus.highpass, eq: bus.eq, comp: bus.comp },
       fader: bus.fader,
       channels: channels.filter((c) => c.bus === bus.id && c.audible).map((c) => c.id),
       duck: keys.length

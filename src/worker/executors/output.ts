@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { cp, mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, rename, utimes, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Codec } from "@remotion/renderer";
 import { mapItems, msToFrames } from "../../shared/compile/clip";
@@ -15,7 +15,14 @@ import type { TimelineSpec } from "../../shared/schema/timeline";
 import type { Artifact, MediaValue } from "../../shared/schema/values";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
 import { startAssetServer } from "../render/asset-server";
-import { CODEC_EXT, getServeUrl, renderFrame, renderTimeline } from "../render/render";
+import {
+  CODEC_EXT,
+  getServeUrl,
+  renderFrame,
+  renderTimeline,
+  type GlRenderer,
+} from "../render/render";
+import { hasSoundTrack, muxArgs, pictureKey, prunePictures } from "../render/picture";
 import { refToPath, slug } from "./util";
 import { buildMixPlan, hasSound } from "../../shared/mix/plan";
 import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
@@ -58,6 +65,46 @@ async function prepare(ctx: ExecutorContext) {
   return { serveUrl, server };
 }
 
+async function pictureFor(
+  ctx: ExecutorContext,
+  serveUrl: string,
+  spec: TimelineSpec,
+  p: { codec: string; crf: number; scale: number; gl: GlRenderer },
+  ext: string,
+  progress: (x: number) => void,
+): Promise<string> {
+  const dir = path.join(ctx.projectDir, ".demoflow", "cache", "pictures");
+  await mkdir(dir, { recursive: true });
+  const file = path.join(
+    dir,
+    `${pictureKey(spec, { codec: p.codec, crf: p.crf, scale: p.scale, gl: p.gl })}.${ext}`,
+  );
+  if (existsSync(file)) {
+    const now = new Date();
+    await utimes(file, now, now).catch(() => undefined);
+    ctx.log("info", "The picture hasn't changed, so only the sound is added again.");
+    progress(1);
+    return file;
+  }
+  const temp = `${file}.part.${ext}`;
+  await renderTimeline({
+    env: ctx.env,
+    serveUrl,
+    spec,
+    output: temp,
+    codec: p.codec as Codec,
+    crf: p.crf,
+    scale: p.scale,
+    gl: p.gl,
+    muted: true,
+    signal: ctx.signal,
+    onProgress: progress,
+  });
+  await rename(temp, file);
+  await prunePictures(dir);
+  return file;
+}
+
 export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p) => {
   const spec = await mixed(ctx, specFor(ctx), 0, 0.05);
   const { serveUrl, server } = await prepare(ctx);
@@ -82,19 +129,26 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
         "info",
         `Exporting ${variant} (${size.width}×${size.height}) as ${path.basename(out)}`,
       );
-      await renderTimeline({
-        env: ctx.env,
-        serveUrl,
-        spec: variantSpec,
-        output: out,
-        codec: p.codec as Codec,
-        crf: p.crf,
-        scale: p.scale,
-        gl: p.gl,
-        signal: ctx.signal,
-        onProgress: (x) =>
-          ctx.progress(0.2 + 0.8 * ((i + x) / variants.length), `Rendering ${variant}`),
-      });
+      const progress = (x: number) =>
+        ctx.progress(0.2 + 0.8 * ((i + x) / variants.length), `Rendering ${variant}`);
+      const sound = spec.mix && hasSoundTrack(p.codec) ? refToPath(ctx, spec.mix.src) : null;
+      if (sound) {
+        const picture = await pictureFor(ctx, serveUrl, variantSpec, p, ext, progress);
+        await ctx.ffmpeg.run(muxArgs(p.codec, picture, sound, out), { signal: ctx.signal });
+      } else {
+        await renderTimeline({
+          env: ctx.env,
+          serveUrl,
+          spec: variantSpec,
+          output: out,
+          codec: p.codec as Codec,
+          crf: p.crf,
+          scale: p.scale,
+          gl: p.gl,
+          signal: ctx.signal,
+          onProgress: progress,
+        });
+      }
       if (p.faststart && (p.codec === "h264" || p.codec === "h265")) {
         const tmp = `${out}.faststart${path.extname(out)}`;
         await ctx.ffmpeg.run(["-i", out, "-c", "copy", "-movflags", "+faststart", tmp], {

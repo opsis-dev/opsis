@@ -1,5 +1,7 @@
 import {
   AudioLines,
+  ChevronLeft,
+  ChevronRight,
   Clapperboard,
   Ellipsis,
   Music,
@@ -8,6 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { busOf, isAudible, soloActive, stripOf } from "@/shared/mix/levels";
 import type { ChannelPlan } from "@/shared/mix/plan";
 import type { MixResult } from "@/shared/mix/result";
@@ -68,6 +71,7 @@ import { useAudioPreview, type PreviewFilter } from "../../store/audio-preview";
 import { useMedia } from "../../store/media";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
+import { readPref, writePref } from "../../store/view-prefs";
 import { newId, useWorkflowStore } from "../../store/workflow";
 import { useFilm } from "../film";
 import { EqCurve } from "./eq-curve";
@@ -183,6 +187,16 @@ export function MixerPanel() {
     }
   }, [film.stale]);
 
+  const [collapsed, setCollapsed] = useState<string[]>(() =>
+    readPref<string[]>("mixerCollapsed", [], Array.isArray),
+  );
+  const toggleCollapsed = (id: string) =>
+    setCollapsed((list) => {
+      const next = list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+      writePref("mixerCollapsed", next);
+      return next;
+    });
+
   const channels = plan?.channels ?? [];
   if (!film.flat || channels.length === 0) {
     return (
@@ -239,28 +253,38 @@ export function MixerPanel() {
       </div>
       <div className="flex min-h-0 flex-1 overflow-x-auto overflow-y-auto">
         <div className="flex min-h-full gap-px">
-          {channels.map((c) => (
-            <ChannelStrip
-              key={c.id}
-              channel={c}
-              mix={mix}
-              result={result}
-              frame={frame}
-              holdFrames={holdFrames}
-              sourceNodeId={film.sourceNodeId}
-            />
-          ))}
-          <div className="bg-border mx-1 w-px shrink-0" />
-          {mix.buses.map((b) => (
-            <BusStrip
-              key={b.id}
-              bus={b}
-              mix={mix}
-              result={result}
-              frame={frame}
-              holdFrames={holdFrames}
-            />
-          ))}
+          {mix.buses.map((b) => {
+            const members = channels.filter((c) => c.bus === b.id);
+            const folded = collapsed.includes(b.id);
+            return (
+              <div key={b.id} className="flex gap-px border-r pr-px">
+                {folded
+                  ? null
+                  : members.map((c) => (
+                      <ChannelStrip
+                        key={c.id}
+                        channel={c}
+                        order={channels.map((x) => x.id)}
+                        mix={mix}
+                        result={result}
+                        frame={frame}
+                        holdFrames={holdFrames}
+                        sourceNodeId={film.sourceNodeId}
+                      />
+                    ))}
+                <BusStrip
+                  bus={b}
+                  mix={mix}
+                  members={members.map((c) => c.id)}
+                  folded={folded}
+                  onFold={() => toggleCollapsed(b.id)}
+                  result={result}
+                  frame={frame}
+                  holdFrames={holdFrames}
+                />
+              </div>
+            );
+          })}
         </div>
         <div className="flex-1" />
         <MasterStrip master={mix.master} result={result} frame={frame} holdFrames={holdFrames} />
@@ -417,8 +441,41 @@ function Fader({
   );
 }
 
+let lastPicked: string | null = null;
+
+function pickStrip(
+  id: string,
+  order: string[],
+  e: React.MouseEvent,
+  sourceNodeId: string | null,
+): void {
+  const ui = useUiStore.getState();
+  let next = [id];
+  if (e.shiftKey && lastPicked && order.includes(lastPicked)) {
+    const [a, b] = [order.indexOf(lastPicked), order.indexOf(id)].toSorted((x, y) => x - y);
+    next = [...new Set([...ui.selectedIds, ...order.slice(a, b + 1)])];
+  } else if (e.ctrlKey || e.metaKey) {
+    next = ui.selectedIds.includes(id)
+      ? ui.selectedIds.filter((x) => x !== id)
+      : [...ui.selectedIds, id];
+  }
+  if (!e.shiftKey) lastPicked = id;
+  ui.selectPinned(next, sourceNodeId);
+}
+
+function updateStrips(ids: string[], fn: (s: Strip) => Strip): void {
+  setMix((mix) => ({
+    ...mix,
+    channels: {
+      ...mix.channels,
+      ...Object.fromEntries(ids.map((id) => [id, fn(mix.channels[id] ?? DEFAULT_STRIP)])),
+    },
+  }));
+}
+
 function ChannelStrip({
   channel,
+  order,
   mix,
   result,
   frame,
@@ -426,6 +483,7 @@ function ChannelStrip({
   sourceNodeId,
 }: {
   channel: ChannelPlan;
+  order: string[];
   mix: Mix;
   result: MixResult | null;
   frame: number;
@@ -440,19 +498,28 @@ function ChannelStrip({
   const reduction = result?.reduction.channels[channel.id];
   const Icon = KIND_ICON[channel.kind];
   const selected = useUiStore((s) => s.selectedIds.includes(channel.id));
+  const group = useUiStore(
+    useShallow((s) =>
+      s.selectedIds.includes(channel.id) ? s.selectedIds.filter((id) => order.includes(id)) : [],
+    ),
+  );
+  const targets = group.length > 1 ? group : [channel.id];
   const set = (fn: (s: Strip) => Strip) => updateStrip(channel.id, fn);
   const fraction = share(result, levels, frame);
   const key = (name: string) => `ch:${channel.id}:${name}`;
   return (
-    <StripShell dim={!audible}>
+    <StripShell
+      dim={!audible}
+      className={cn(group.length > 1 && "ring-primary/60 ring-1 ring-inset")}
+    >
       <button
         type="button"
         className={cn(
           "flex w-full items-center gap-1 truncate rounded px-1 text-left text-xs font-medium",
           selected && "bg-accent",
         )}
-        title={nodeName(channel.id)}
-        onClick={() => useUiStore.getState().selectPinned([channel.id], sourceNodeId)}
+        title={`${nodeName(channel.id)}. Ctrl-click or Shift-click to select several strips.`}
+        onClick={(e) => pickStrip(channel.id, order, e, sourceNodeId)}
       >
         <Icon className="text-muted-foreground size-3 shrink-0" />
         <span className="truncate">{nodeName(channel.id)}</span>
@@ -479,12 +546,20 @@ function ChannelStrip({
           </SelectContent>
         </Select>
         <StripMenu
-          onPreset={(p) => set((s) => ({ ...s, ...p }))}
+          count={targets.length}
+          onPreset={(p) => updateStrips(targets, (s) => ({ ...s, ...p }))}
           onCopy={() => {
             const { bus: _b, mute: _m, solo: _s, ...rest } = strip;
             clipboard = rest;
           }}
-          onReset={() => set((s) => ({ ...DEFAULT_STRIP, bus: s.bus, mute: s.mute, solo: s.solo }))}
+          onReset={() =>
+            updateStrips(targets, (s) => ({
+              ...DEFAULT_STRIP,
+              bus: s.bus,
+              mute: s.mute,
+              solo: s.solo,
+            }))
+          }
         />
       </div>
       <div className="flex w-full justify-between">
@@ -612,11 +687,82 @@ function ChannelStrip({
   );
 }
 
+function BusMenu({
+  onBusPreset,
+  onBusReset,
+  sounds,
+  onSounds,
+}: {
+  onBusPreset: (p: Partial<Strip>) => void;
+  onBusReset: () => void;
+  sounds: number;
+  onSounds: (fn: (s: Strip) => Strip) => void;
+}) {
+  const [, force] = useState(0);
+  return (
+    <DropdownMenu onOpenChange={() => force((n) => n + 1)}>
+      <DropdownMenuTrigger
+        render={<Button variant="ghost" size="icon-xs" aria-label="Bus settings" />}
+      >
+        <Ellipsis />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>This bus</DropdownMenuLabel>
+          {STRIP_PRESETS.map((p) => (
+            <DropdownMenuItem key={p.id} onClick={() => onBusPreset(p.strip)}>
+              {p.label}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuItem
+            disabled={!clipboard}
+            onClick={() => clipboard && onBusPreset(clipboard)}
+          >
+            Paste settings
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onBusReset}>Reset</DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            {sounds === 1 ? "The sound on this bus" : `All ${sounds} sounds on this bus`}
+          </DropdownMenuLabel>
+          {STRIP_PRESETS.map((p) => (
+            <DropdownMenuItem
+              key={p.id}
+              disabled={!sounds}
+              onClick={() => onSounds((s) => ({ ...s, ...p.strip }))}
+            >
+              {p.label}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuItem
+            disabled={!sounds || !clipboard}
+            onClick={() => clipboard && onSounds((s) => ({ ...s, ...clipboard }))}
+          >
+            Paste settings
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={!sounds}
+            onClick={() =>
+              onSounds((s) => ({ ...DEFAULT_STRIP, bus: s.bus, mute: s.mute, solo: s.solo }))
+            }
+          >
+            Reset
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function StripMenu({
+  count = 1,
   onPreset,
   onCopy,
   onReset,
 }: {
+  count?: number;
   onPreset: (p: Partial<Strip>) => void;
   onCopy: () => void;
   onReset: () => void;
@@ -629,9 +775,11 @@ function StripMenu({
       >
         <Ellipsis />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-48">
+      <DropdownMenuContent align="start" className="w-52">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Presets</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {count > 1 ? `Presets for ${count} selected strips` : "Presets"}
+          </DropdownMenuLabel>
           {STRIP_PRESETS.map((p) => (
             <DropdownMenuItem key={p.id} onClick={() => onPreset(p.strip)}>
               {p.label}
@@ -642,9 +790,11 @@ function StripMenu({
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={onCopy}>Copy settings</DropdownMenuItem>
           <DropdownMenuItem disabled={!clipboard} onClick={() => clipboard && onPreset(clipboard)}>
-            Paste settings
+            {count > 1 ? `Paste onto ${count} strips` : "Paste settings"}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onReset}>Reset</DropdownMenuItem>
+          <DropdownMenuItem onClick={onReset}>
+            {count > 1 ? `Reset ${count} strips` : "Reset"}
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -923,7 +1073,7 @@ function DuckPopover({ bus, buses }: { bus: Bus; buses: Bus[] }) {
               </Label>
             ))}
         </div>
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-4 gap-1">
           <Knob
             label="Amount"
             value={bus.duck.amount}
@@ -959,9 +1109,21 @@ function DuckPopover({ bus, buses }: { bus: Bus; buses: Bus[] }) {
             disabled={!bus.duck.on}
             onChange={knob((v) => ({ release: v }))}
           />
+          <Knob
+            label="Ignore under"
+            value={bus.duck.ignoreShorterMs}
+            min={0}
+            max={5000}
+            step={50}
+            reset={0}
+            format={(v) => (v ? ms(v) : "Off")}
+            disabled={!bus.duck.on}
+            onChange={knob((v) => ({ ignoreShorterMs: v }))}
+          />
         </div>
         <p className="text-muted-foreground text-xs">
-          Louder sounds lower it more. Attack and release are in milliseconds.
+          Louder sounds lower it more. Attack and release are in milliseconds. Sounds shorter than
+          Ignore under don't lower it, so quick clicks and pops don't make the music pump.
         </p>
       </PopoverContent>
     </Popover>
@@ -971,12 +1133,18 @@ function DuckPopover({ bus, buses }: { bus: Bus; buses: Bus[] }) {
 function BusStrip({
   bus,
   mix,
+  members,
+  folded,
+  onFold,
   result,
   frame,
   holdFrames,
 }: {
   bus: Bus;
   mix: Mix;
+  members: string[];
+  folded: boolean;
+  onFold: () => void;
   result: MixResult | null;
   frame: number;
   holdFrames: number;
@@ -1041,8 +1209,92 @@ function BusStrip({
           </Button>
         ) : null}
       </div>
-      <span className="text-muted-foreground text-[10px]">Bus</span>
+      <div className="flex w-full items-center gap-0.5">
+        <button
+          type="button"
+          className="text-muted-foreground hover:text-foreground flex min-w-0 flex-1 items-center gap-0.5 text-[10px]"
+          title={folded ? "Show the sounds on this bus" : "Hide the sounds on this bus"}
+          onClick={onFold}
+          disabled={members.length === 0}
+        >
+          {folded ? <ChevronRight className="size-3" /> : <ChevronLeft className="size-3" />}
+          <span className="truncate">
+            {members.length === 1 ? "1 sound" : `${members.length} sounds`}
+          </span>
+        </button>
+        <BusMenu
+          onBusPreset={(p) =>
+            set((b) => ({
+              ...b,
+              highpass: p.highpass ?? b.highpass,
+              eq: p.eq ?? b.eq,
+              comp: p.comp ?? b.comp,
+              fader: p.fader ?? b.fader,
+            }))
+          }
+          onBusReset={() =>
+            set((b) => ({
+              ...b,
+              highpass: DEFAULT_STRIP.highpass,
+              eq: DEFAULT_STRIP.eq,
+              comp: DEFAULT_STRIP.comp,
+            }))
+          }
+          sounds={members.length}
+          onSounds={(fn) =>
+            setMix((m) => ({
+              ...m,
+              channels: {
+                ...m.channels,
+                ...Object.fromEntries(
+                  members.map((id) => [id, fn(m.channels[id] ?? DEFAULT_STRIP)]),
+                ),
+              },
+            }))
+          }
+        />
+      </div>
       <DuckPopover bus={bus} buses={mix.buses} />
+      <div className="flex w-full justify-center">
+        <Knob
+          label="Hz"
+          size={24}
+          value={bus.highpass.freq}
+          min={20}
+          max={1000}
+          step={1}
+          reset={80}
+          log
+          format={hz}
+          disabled={!bus.highpass.on}
+          onChange={(v, phase) =>
+            gesture(phase, () => set((b) => ({ ...b, highpass: { ...b.highpass, freq: v } })))
+          }
+        />
+      </div>
+      <EqPopover
+        eq={bus.eq}
+        highpass={bus.highpass.on ? bus.highpass.freq : null}
+        onChange={(eq, phase) => gesture(phase, () => set((b) => ({ ...b, eq })))}
+      />
+      <div className="flex w-full items-center gap-1">
+        <Toggle
+          size="sm"
+          variant="outline"
+          className="h-5 min-w-0 px-1 text-[10px]"
+          pressed={bus.highpass.on}
+          aria-label="Low cut"
+          title="Cut rumble below the low-cut frequency"
+          onPressedChange={(on) => set((b) => ({ ...b, highpass: { ...b.highpass, on } }))}
+        >
+          Low cut
+        </Toggle>
+        <CompPopover
+          comp={bus.comp}
+          reduction={null}
+          onChange={(comp, phase) => gesture(phase, () => set((b) => ({ ...b, comp })))}
+        />
+      </div>
       <div className="flex min-h-16 flex-1 shrink items-stretch gap-2 py-0.5">
         <Fader
           label={`${bus.name} fader`}

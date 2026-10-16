@@ -180,12 +180,17 @@ export function busJob(
 ): Job {
   const { fps, durationInFrames: total } = plan;
   const fader = Math.abs(bus.fader) >= 0.01 ? [`volume=${num(bus.fader, 2)}dB`] : [];
+  const proc = bus.processing ? busSteps(bus.processing) : [];
   if (bus.channels.length === 0)
     return { inputs: [], filter: `${silence(total, fps)}[out]`, output: "out" };
   const inputs = bus.channels.map(stem);
   const labels = inputs.map((_, i) => `${i}:a`);
   if (!bus.duck)
-    return { inputs, filter: mixOf(labels, "out", [fit(total, fps), ...fader]), output: "out" };
+    return {
+      inputs,
+      filter: mixOf(labels, "out", [fit(total, fps), ...proc, ...fader]),
+      output: "out",
+    };
   const keyInputs = bus.duck.keys.map(stem);
   const keyLabels = keyInputs.map((_, i) => `${inputs.length + i}:a`);
   const ratio = duckRatio(bus.duck.amount);
@@ -193,12 +198,20 @@ export function busJob(
   return {
     inputs: [...inputs, ...keyInputs],
     filter: [
-      mixOf(labels, "main", [fit(total, fps), ...fader]),
+      mixOf(labels, "main", [fit(total, fps), ...proc, ...fader]),
       mixOf(keyLabels, "key", [fit(total, fps)]),
       `[main][key]${sidechain},${fit(total, fps)}[out]`,
     ].join(";"),
     output: "out",
   };
+}
+
+export function busSteps(p: NonNullable<BusPlan["processing"]>): string[] {
+  return [
+    ...(p.highpass.on ? [`highpass=f=${num(p.highpass.freq, 1)}`] : []),
+    ...eqSteps(p.eq),
+    ...compSteps(p.comp),
+  ];
 }
 
 export const DUCK_THRESHOLD_DB = -40;

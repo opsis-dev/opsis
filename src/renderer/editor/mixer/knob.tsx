@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/renderer/lib/utils";
 
 export type DragPhase = "start" | "move" | "end";
@@ -29,6 +29,7 @@ export function Knob({
   log?: boolean;
 }) {
   const drag = useRef<{ y: number; t0: number; started: boolean } | null>(null);
+  const [typing, setTyping] = useState(false);
   const toT = (v: number) =>
     log ? Math.log(v / min) / Math.log(max / min) : (v - min) / (max - min);
   const fromT = (t: number) => {
@@ -36,6 +37,19 @@ export function Knob({
     const v = log ? min * (max / min) ** c : min + c * (max - min);
     const decimals = Math.max(0, -Math.floor(Math.log10(step)));
     return Number((Math.round(v / step) * step).toFixed(decimals));
+  };
+  const snap = (v: number) => {
+    const decimals = Math.max(0, -Math.floor(Math.log10(step)));
+    const clamped = Math.min(max, Math.max(min, v));
+    return Number((Math.round(clamped / step) * step).toFixed(decimals));
+  };
+  const commit = (text: string) => {
+    setTyping(false);
+    const v = Number.parseFloat(text.replace(",", ".").replace(/[^\d.+-]/g, ""));
+    if (!Number.isFinite(v)) return;
+    onChange(value, "start");
+    onChange(snap(v), "move");
+    onChange(value, "end");
   };
   const t = Math.min(1, Math.max(0, toT(value)));
   const angle = -135 + t * 270;
@@ -55,7 +69,7 @@ export function Knob({
       <button
         type="button"
         aria-label={`${label}: ${format(value)}`}
-        title={`${label}: ${format(value)}. Drag up or down, double-click to reset.`}
+        title={`${label}: ${format(value)}. Drag up or down, double-click to reset, click the number to type.`}
         disabled={disabled}
         className="focus-visible:ring-ring rounded-full outline-none focus-visible:ring-2"
         style={{ width: size, height: size, touchAction: "none" }}
@@ -135,7 +149,31 @@ export function Knob({
         </svg>
       </button>
       <span className="text-muted-foreground text-[10px] leading-none">{label}</span>
-      <span className="text-[10px] leading-none tabular-nums">{format(value)}</span>
+      {typing ? (
+        <input
+          autoFocus
+          aria-label={`${label} value`}
+          defaultValue={String(value)}
+          className="bg-background w-12 rounded-sm border px-0.5 text-center text-[10px] leading-none tabular-nums"
+          onFocus={(e) => e.currentTarget.select()}
+          onKeyDown={(e) => {
+            e.stopPropagation();
+            if (e.key === "Enter") commit(e.currentTarget.value);
+            if (e.key === "Escape") setTyping(false);
+          }}
+          onBlur={(e) => commit(e.currentTarget.value)}
+        />
+      ) : (
+        <button
+          type="button"
+          disabled={disabled}
+          title="Click to type a value"
+          className="hover:bg-accent rounded-sm px-0.5 text-[10px] leading-none tabular-nums"
+          onClick={() => setTyping(true)}
+        >
+          {format(value)}
+        </button>
+      )}
     </div>
   );
 }

@@ -79,6 +79,7 @@ export async function renderTimeline(opts: {
   crf?: number;
   scale?: number;
   gl: GlRenderer;
+  muted?: boolean;
   signal: AbortSignal;
   onProgress: (p: number) => void;
 }): Promise<void> {
@@ -101,6 +102,7 @@ export async function renderTimeline(opts: {
       outputLocation: opts.output,
       crf: opts.codec === "prores" || opts.codec === "gif" ? undefined : opts.crf,
       scale: opts.scale,
+      muted: opts.muted,
       concurrency: 1,
       cancelSignal,
       licenseKey: remotionLicenseKey(opts.env),

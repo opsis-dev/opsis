@@ -263,7 +263,9 @@ describe("audio edits", () => {
       g.node("music", "audio.music", 0, 1, { src: "assets/song.mp3", startMs: 1000, fadeInMs: 0 });
       g.node("fx", "audio.sfx", 0, 2, { src: "app:sfx/whoosh.wav", atMs: 2000 });
       g.node("mix", "audio.mix", 2, 0);
-      g.link("t", "mix").link("music", "mix", "audio", "a1").link("fx", "mix", "audio", "a2");
+      g.link("t", "mix")
+        .link("music", "mix", "audio", "sounds")
+        .link("fx", "mix", "audio", "sounds");
       return "mix";
     });
 

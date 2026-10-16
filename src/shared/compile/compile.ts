@@ -46,7 +46,12 @@ export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): Compil
     for (const e of wf.edges) {
       if (e.target !== id) continue;
       const v = values[e.source]?.[e.sourceHandle];
-      if (v) inputs[e.targetHandle] = v;
+      if (!v) continue;
+      const prev = inputs[e.targetHandle];
+      inputs[e.targetHandle] =
+        prev?.type === "audio" && v.type === "audio" && def.inputs[e.targetHandle]?.many
+          ? { ...prev, items: [...prev.items, ...v.items] }
+          : v;
     }
 
     if (node.disabled) {

@@ -12,7 +12,7 @@ import {
   type PlaybackCommand,
 } from "../store/playback";
 import { useRunStore } from "../store/run";
-import { useUiStore, type PreviewQuality } from "../store/ui";
+import { useUiStore, type PreviewQuality, type PreviewShape } from "../store/ui";
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
 
 const CHANNEL = "demoflow-sync";
@@ -50,6 +50,7 @@ export type SyncMessage =
       run: RunSnapshot;
       selection: Selection;
       quality: PreviewQuality;
+      shape: PreviewShape;
       playback: PlaybackSnapshot;
       host: boolean;
     }
@@ -57,6 +58,7 @@ export type SyncMessage =
   | { type: "run-event"; event: RunEvent }
   | { type: "selection"; selection: Selection; from: string }
   | { type: "quality"; quality: PreviewQuality }
+  | { type: "shape"; shape: PreviewShape }
   | { type: "edit"; edit: RemoteEdit; seq: number }
   | { type: "menu"; command: MenuCommand }
   | { type: "replay"; nodeId: string | null }
@@ -209,6 +211,7 @@ export function useEditorSync(): void {
         run: runSnapshot(),
         selection: selection(),
         quality: useUiStore.getState().previewQuality,
+        shape: useUiStore.getState().previewShape,
         playback: playbackSnapshot(),
         host: usePlayback.getState().hasPlayer,
       });
@@ -221,10 +224,15 @@ export function useEditorSync(): void {
     });
     let lastSelection = selection();
     let lastQuality = useUiStore.getState().previewQuality;
+    let lastShape = useUiStore.getState().previewShape;
     const offUi = useUiStore.subscribe((s) => {
       if (s.previewQuality !== lastQuality) {
         lastQuality = s.previewQuality;
         post({ type: "quality", quality: s.previewQuality });
+      }
+      if (s.previewShape !== lastShape) {
+        lastShape = s.previewShape;
+        post({ type: "shape", shape: s.previewShape });
       }
       const next = selection();
       if (
@@ -261,6 +269,9 @@ export function useEditorSync(): void {
           break;
         case "quality":
           useUiStore.getState().setPreviewQuality(m.quality);
+          break;
+        case "shape":
+          useUiStore.getState().setPreviewShape(m.shape);
           break;
         case "menu":
           window.demoflow.dispatchMenuCommand(m.command);
@@ -304,7 +315,17 @@ export function usePanelSync(panel: DockPanelName, onClosed: () => void): void {
       });
     };
     let lastSelection = selection();
-    const offUi = useUiStore.subscribe(() => {
+    let lastQuality = useUiStore.getState().previewQuality;
+    let lastShape = useUiStore.getState().previewShape;
+    const offUi = useUiStore.subscribe((s) => {
+      if (s.previewQuality !== lastQuality) {
+        lastQuality = s.previewQuality;
+        if (!applying.current) post({ type: "quality", quality: s.previewQuality });
+      }
+      if (s.previewShape !== lastShape) {
+        lastShape = s.previewShape;
+        if (!applying.current) post({ type: "shape", shape: s.previewShape });
+      }
       const next = selection();
       if (
         next.selectedIds === lastSelection.selectedIds &&
@@ -331,7 +352,11 @@ export function usePanelSync(panel: DockPanelName, onClosed: () => void): void {
           });
           useRunStore.setState(m.run);
           applying.current = true;
-          useUiStore.setState({ ...m.selection, previewQuality: m.quality });
+          useUiStore.setState({
+            ...m.selection,
+            previewQuality: m.quality,
+            previewShape: m.shape,
+          });
           if (!usePlayback.getState().hasPlayer) usePlayback.setState(m.playback);
           applying.current = false;
           break;
@@ -350,6 +375,11 @@ export function usePanelSync(panel: DockPanelName, onClosed: () => void): void {
         case "quality":
           applying.current = true;
           useUiStore.setState({ previewQuality: m.quality });
+          applying.current = false;
+          break;
+        case "shape":
+          applying.current = true;
+          useUiStore.setState({ previewShape: m.shape });
           applying.current = false;
           break;
         case "editor-closed":

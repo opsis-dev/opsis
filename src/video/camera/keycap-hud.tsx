@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { chordGlyphs, type KeyEvent } from "./lib/click-log";
 import { settle } from "./lib/push";
+import { useOverlayFrame } from "../core/frame";
 import { useDesignScale } from "./window-frame";
 
 export const KEYCAP_H = 103;
@@ -46,6 +47,7 @@ export function keycapAt(
 
 export const KeycapHUD: React.FC<KeycapHUDProps> = ({ keys, timeS, holdS = KEYCAP_HOLD_S }) => {
   const k = useDesignScale();
+  const { insets } = useOverlayFrame();
   const active = keycapAt(keys, timeS, holdS);
   if (!active) return null;
 
@@ -59,7 +61,7 @@ export const KeycapHUD: React.FC<KeycapHUDProps> = ({ keys, timeS, holdS = KEYCA
       style={{
         alignItems: "center",
         justifyContent: "flex-end",
-        paddingBottom: KEYCAP_BOTTOM * k,
+        paddingBottom: KEYCAP_BOTTOM * k + insets.bottom,
         pointerEvents: "none",
       }}
     >
