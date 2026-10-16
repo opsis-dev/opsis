@@ -1,4 +1,4 @@
-import { useReactFlow } from "@xyflow/react";
+import { useStoreApi } from "@xyflow/react";
 import { ArrowRight, PanelLeftOpen } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -7,7 +7,7 @@ import {
   type NodeCategory,
   type NodeDef,
 } from "@/shared/nodes/define";
-import { NODE_DEFS } from "@/shared/nodes/registry";
+import { VISIBLE_NODE_DEFS } from "@/shared/nodes/registry";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Command,
@@ -24,27 +24,10 @@ import { Separator } from "@/renderer/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { NODE_DRAG_TYPE } from "./canvas";
-import { NodeIcon } from "./icons";
+import { NODE_DRAG_TYPE, snapToGrid } from "./canvas";
+import { CategoryBadge } from "./category-badge";
 import { openPanel, usePanels } from "./panels";
-import { CATEGORY_COLORS, portLabel } from "./ports";
-
-const CATEGORY_ICONS: Record<NodeCategory, string> = {
-  Browser: "globe",
-  Capture: "video",
-  Camera: "scan-search",
-  Cursor: "mouse-pointer-2",
-  "Text & overlays": "type",
-  Transitions: "blend",
-  Backgrounds: "wallpaper",
-  Effects: "sparkles",
-  Elements: "shapes",
-  Audio: "music",
-  Timeline: "layers",
-  Media: "file-play",
-  Output: "clapperboard",
-  Utility: "sticky-note",
-};
+import { CATEGORY_STYLES, portLabel } from "./ports";
 
 function useGroups(only?: NodeCategory) {
   return useMemo(
@@ -52,7 +35,7 @@ function useGroups(only?: NodeCategory) {
       NODE_CATEGORIES.filter((c) => !only || c === only)
         .map((category) => ({
           category,
-          defs: NODE_DEFS.filter((d) => d.category === category && !d.hidden),
+          defs: VISIBLE_NODE_DEFS.filter((d) => d.category === category),
         }))
         .filter((g) => g.defs.length),
     [only],
@@ -60,51 +43,27 @@ function useGroups(only?: NodeCategory) {
 }
 
 function useAddAtCenter() {
-  const flow = useReactFlow();
+  const flowStore = useStoreApi();
   const addNode = useWorkflowStore((s) => s.addNode);
   const setSelected = useUiStore((s) => s.setSelected);
   return (type: string) => {
-    const rect = document.querySelector(".react-flow")?.getBoundingClientRect();
-    const center = flow.screenToFlowPosition({
-      x: (rect?.left ?? 0) + (rect?.width ?? 800) / 2,
-      y: (rect?.top ?? 0) + (rect?.height ?? 600) / 2,
-    });
-    setSelected([
-      addNode(type, { x: Math.round(center.x / 15) * 15, y: Math.round(center.y / 15) * 15 }),
-    ]);
+    const {
+      width,
+      height,
+      transform: [x, y, zoom],
+    } = flowStore.getState();
+    const center = { x: (width / 2 - x) / zoom, y: (height / 2 - y) / zoom };
+    setSelected([addNode(type, snapToGrid(center))]);
   };
 }
 
-function CategoryBadge({
-  category,
-  icon,
-  size = "sm",
-}: {
-  category: string;
-  icon?: string;
-  size?: "sm" | "md";
-}) {
-  return (
-    <span
-      className={
-        size === "md"
-          ? "grid size-7 shrink-0 place-items-center rounded-md text-black"
-          : "grid size-5 shrink-0 place-items-center rounded text-black"
-      }
-      style={{ background: CATEGORY_COLORS[category] }}
-    >
-      <NodeIcon name={icon} className={size === "md" ? "size-4" : "size-3"} />
-    </span>
-  );
-}
-
 function NodePreview({ def }: { def: NodeDef }) {
-  const inputs = Object.entries(def.inputs).map(([id, p]) => portLabel(id, p, "in"));
-  const outputs = Object.entries(def.outputs).map(([id, p]) => portLabel(id, p, "out"));
+  const inputs = Object.values(def.inputs).map((p) => portLabel(p, "in"));
+  const outputs = Object.values(def.outputs).map((p) => portLabel(p, "out"));
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <CategoryBadge category={def.category} icon={def.icon} size="md" />
+        <CategoryBadge category={def.category} icon={def.icon} size="lg" />
         <div className="flex min-w-0 flex-col">
           <span className="truncate font-medium">{def.title}</span>
           <span className="text-muted-foreground text-xs">{CATEGORY_LABELS[def.category]}</span>
@@ -180,6 +139,53 @@ function PaletteList({
   );
 }
 
+function RailCategory({
+  category,
+  open,
+  onOpenChange,
+  onPick,
+}: {
+  category: NodeCategory;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onPick: (type: string) => void;
+}) {
+  const label = CATEGORY_LABELS[category];
+  const trigger = (
+    <PopoverTrigger
+      render={
+        <Button variant="ghost" size="icon-sm" aria-label={label}>
+          <CategoryBadge category={category} icon={CATEGORY_STYLES[category].icon} />
+        </Button>
+      }
+    />
+  );
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <Tooltip>
+        <TooltipTrigger render={trigger} />
+        <TooltipContent side="right">{label}</TooltipContent>
+      </Tooltip>
+      <PopoverContent side="right" align="start" className="w-64 p-0">
+        <Command>
+          <CommandInput placeholder={`Search ${label.toLowerCase()}…`} />
+          <div className="max-h-96 overflow-y-auto">
+            <PaletteList
+              only={category}
+              draggable
+              onPick={(type) => {
+                onPick(type);
+                onOpenChange(false);
+              }}
+              onDragEnd={() => onOpenChange(false)}
+            />
+          </div>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function PaletteRail() {
   const add = useAddAtCenter();
   const [openCategory, setOpenCategory] = useState<NodeCategory | null>(null);
@@ -203,42 +209,13 @@ function PaletteRail() {
       </Tooltip>
       <Separator className="my-1 w-6" />
       {groups.map(({ category }) => (
-        <Popover
+        <RailCategory
           key={category}
+          category={category}
           open={openCategory === category}
           onOpenChange={(open) => setOpenCategory(open ? category : null)}
-        >
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <PopoverTrigger
-                  render={
-                    <Button variant="ghost" size="icon-sm" aria-label={CATEGORY_LABELS[category]}>
-                      <CategoryBadge category={category} icon={CATEGORY_ICONS[category]} />
-                    </Button>
-                  }
-                />
-              }
-            />
-            <TooltipContent side="right">{CATEGORY_LABELS[category]}</TooltipContent>
-          </Tooltip>
-          <PopoverContent side="right" align="start" className="w-64 p-0">
-            <Command>
-              <CommandInput placeholder={`Search ${CATEGORY_LABELS[category].toLowerCase()}…`} />
-              <div className="max-h-96 overflow-y-auto">
-                <PaletteList
-                  only={category}
-                  draggable
-                  onPick={(type) => {
-                    add(type);
-                    setOpenCategory(null);
-                  }}
-                  onDragEnd={() => setOpenCategory(null)}
-                />
-              </div>
-            </Command>
-          </PopoverContent>
-        </Popover>
+          onPick={add}
+        />
       ))}
     </div>
   );
@@ -250,7 +227,7 @@ export function Palette() {
   if (!open) return <PaletteRail />;
   return (
     <Command className="rounded-none! bg-transparent">
-      <CommandInput placeholder={`Search ${NODE_DEFS.filter((d) => !d.hidden).length} nodes…`} />
+      <CommandInput placeholder={`Search ${VISIBLE_NODE_DEFS.length} nodes…`} />
       <PaletteList onPick={add} draggable stickyHeadings />
     </Command>
   );

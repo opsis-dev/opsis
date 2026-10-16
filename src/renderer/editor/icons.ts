@@ -216,7 +216,7 @@ const ICONS: Record<string, LucideIcon> = {
   "zoom-out": ZoomOut,
 };
 
-export const iconFor = (name?: string): LucideIcon => (name && ICONS[name]) || Box;
+const iconFor = (name?: string): LucideIcon => (name && ICONS[name]) || Box;
 
 export const NodeIcon = ({ name, className }: { name?: string; className?: string }) =>
   createElement(iconFor(name), { className });

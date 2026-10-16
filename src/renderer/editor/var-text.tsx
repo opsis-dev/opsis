@@ -39,37 +39,38 @@ function nodesFor(tokens: TextToken[], vars: VarInfo[]): Node[] {
   return tokens.map((t) => (t.kind === "text" ? document.createTextNode(t.text) : chip(t, vars)));
 }
 
-function serialize(root: Node): string {
-  let out = "";
-  root.childNodes.forEach((n, i) => {
-    if (n.nodeType === Node.TEXT_NODE) out += n.nodeValue ?? "";
-    else if (n instanceof HTMLElement) {
-      if (n.dataset.var !== undefined) out += `{{${n.dataset.var}}}`;
-      else if (n.dataset.pause !== undefined) out += PAUSE_MARK;
-      else if (n.tagName === "BR") out += "\n";
-      else if (n.tagName === "DIV" || n.tagName === "P") out += (i > 0 ? "\n" : "") + serialize(n);
-      else out += serialize(n);
-    }
-  });
-  return out;
+const blockBreak = (index: number) => (index > 0 ? "\n" : "");
+
+function serializeNode(n: Node, index: number): string {
+  if (n.nodeType === Node.TEXT_NODE) return n.nodeValue ?? "";
+  if (!(n instanceof HTMLElement)) return "";
+  if (n.dataset.var !== undefined) return `{{${n.dataset.var}}}`;
+  if (n.dataset.pause !== undefined) return PAUSE_MARK;
+  switch (n.tagName) {
+    case "BR":
+      return "\n";
+    case "DIV":
+    case "P":
+      return blockBreak(index) + serialize(n);
+    default:
+      return serialize(n);
+  }
 }
 
-export function VarText({
-  id,
+function serialize(root: Node): string {
+  return [...root.childNodes].map(serializeNode).join("");
+}
+
+function useEditable({
   value,
   onChange,
   vars,
-  multiline = false,
-  pauses = false,
-  placeholder,
+  pauses,
 }: {
-  id: string;
   value: string;
   onChange: (value: string) => void;
   vars: VarInfo[];
-  multiline?: boolean;
-  pauses?: boolean;
-  placeholder?: string;
+  pauses: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const rendered = useRef<string | null>(null);
@@ -89,7 +90,6 @@ export function VarText({
     if (!el) return;
     const next = serialize(el);
     rendered.current = `${varsKey}\u0000${next}`;
-    el.dataset.empty = next ? "false" : "true";
     if (next !== value) onChange(next);
   };
 
@@ -99,17 +99,20 @@ export function VarText({
       range.current = sel.getRangeAt(0).cloneRange();
   };
 
+  const insertionRange = (el: HTMLElement) => {
+    if (range.current && el.contains(range.current.startContainer)) return range.current;
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    r.collapse(false);
+    return r;
+  };
+
   const insert = (tokens: TextToken[]) => {
     const el = ref.current;
     if (!el) return;
     el.focus();
     const sel = window.getSelection();
-    let r = range.current && el.contains(range.current.startContainer) ? range.current : null;
-    if (!r) {
-      r = document.createRange();
-      r.selectNodeContents(el);
-      r.collapse(false);
-    }
+    const r = insertionRange(el);
     r.deleteContents();
     const nodes = nodesFor(tokens, vars);
     const frag = document.createDocumentFragment();
@@ -126,143 +129,131 @@ export function VarText({
     commit();
   };
 
+  return { ref, commit, saveRange, insert };
+}
+
+function VariablesMenu({
+  vars,
+  compact,
+  onOpen,
+  onPick,
+}: {
+  vars: VarInfo[];
+  compact: boolean;
+  onOpen: () => void;
+  onPick: (name: string) => void;
+}) {
+  const trigger = compact ? (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label="Insert variable"
+      title="Insert variable"
+      className="text-muted-foreground shrink-0"
+      onMouseDown={onOpen}
+    >
+      <Braces />
+    </Button>
+  ) : (
+    <Button variant="ghost" size="xs" className="text-muted-foreground" onMouseDown={onOpen}>
+      <Braces data-icon="inline-start" />
+      Insert variable
+    </Button>
+  );
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={trigger} />
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Variables</DropdownMenuLabel>
+          {vars.map((v) => (
+            <DropdownMenuItem key={v.name} onClick={() => onPick(v.name)}>
+              <span className="truncate">{v.name}</span>
+              <span className="text-muted-foreground ml-auto max-w-24 truncate text-xs">
+                {v.value}
+              </span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+const SURFACE = [
+  "border-input min-w-0 rounded-lg border bg-transparent px-2.5 py-1 text-sm break-words whitespace-pre-wrap transition-colors outline-none",
+  "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 dark:bg-input/30",
+  "data-[empty=true]:before:text-muted-foreground data-[empty=true]:before:content-[attr(data-placeholder)]",
+];
+
+export function VarText({
+  id,
+  value,
+  onChange,
+  vars,
+  multiline = false,
+  pauses = false,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  vars: VarInfo[];
+  multiline?: boolean;
+  pauses?: boolean;
+  placeholder?: string;
+}) {
+  const { ref, commit, saveRange, insert } = useEditable({ value, onChange, vars, pauses });
+  const surface = (
+    <div
+      id={id}
+      ref={ref}
+      role="textbox"
+      aria-multiline={multiline}
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck
+      data-placeholder={placeholder}
+      data-empty={value ? "false" : "true"}
+      className={cn(SURFACE, multiline ? "min-h-16 w-full py-2" : "min-h-8 flex-1 leading-6")}
+      onInput={commit}
+      onKeyUp={saveRange}
+      onMouseUp={saveRange}
+      onBlur={saveRange}
+      onKeyDown={(e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        if (multiline) document.execCommand("insertLineBreak");
+      }}
+      onPaste={(e) => {
+        e.preventDefault();
+        const text = e.clipboardData.getData("text/plain");
+        saveRange();
+        insert(tokenize(multiline ? text : text.replace(/\s*\n\s*/g, " "), pauses));
+      }}
+      onDrop={(e) => e.preventDefault()}
+    />
+  );
+  const menu = (
+    <VariablesMenu
+      vars={vars}
+      compact={!multiline}
+      onOpen={saveRange}
+      onPick={(name) => insert([{ kind: "var", name }])}
+    />
+  );
   if (!multiline)
     return (
       <div className="flex items-start gap-1">
-        <div
-          id={id}
-          ref={ref}
-          role="textbox"
-          aria-multiline={multiline}
-          contentEditable
-          suppressContentEditableWarning
-          spellCheck
-          data-placeholder={placeholder}
-          data-empty={value ? "false" : "true"}
-          className={cn(
-            "border-input min-w-0 flex-1 rounded-lg border bg-transparent px-2.5 py-1 text-sm break-words whitespace-pre-wrap transition-colors outline-none",
-            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 dark:bg-input/30",
-            "data-[empty=true]:before:text-muted-foreground data-[empty=true]:before:content-[attr(data-placeholder)]",
-            multiline ? "min-h-16 py-2" : "min-h-8 leading-6",
-          )}
-          onInput={commit}
-          onKeyUp={saveRange}
-          onMouseUp={saveRange}
-          onBlur={saveRange}
-          onKeyDown={(e) => {
-            if (e.key !== "Enter") return;
-            e.preventDefault();
-            if (multiline) document.execCommand("insertLineBreak");
-          }}
-          onPaste={(e) => {
-            e.preventDefault();
-            const text = e.clipboardData.getData("text/plain");
-            saveRange();
-            insert(tokenize(multiline ? text : text.replace(/\s*\n\s*/g, " "), pauses));
-          }}
-          onDrop={(e) => e.preventDefault()}
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Insert variable"
-                title="Insert variable"
-                className="text-muted-foreground shrink-0"
-                onMouseDown={saveRange}
-              >
-                <Braces />
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Variables</DropdownMenuLabel>
-              {vars.map((v) => (
-                <DropdownMenuItem
-                  key={v.name}
-                  onClick={() => insert([{ kind: "var", name: v.name }])}
-                >
-                  <span className="truncate">{v.name}</span>
-                  <span className="text-muted-foreground ml-auto max-w-24 truncate text-xs">
-                    {v.value}
-                  </span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {surface}
+        {menu}
       </div>
     );
   return (
     <div className="flex flex-col gap-1.5">
-      <div
-        id={id}
-        ref={ref}
-        role="textbox"
-        aria-multiline={multiline}
-        contentEditable
-        suppressContentEditableWarning
-        spellCheck
-        data-placeholder={placeholder}
-        data-empty={value ? "false" : "true"}
-        className={cn(
-          "border-input w-full min-w-0 rounded-lg border bg-transparent px-2.5 py-1 text-sm break-words whitespace-pre-wrap transition-colors outline-none",
-          "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 dark:bg-input/30",
-          "data-[empty=true]:before:text-muted-foreground data-[empty=true]:before:content-[attr(data-placeholder)]",
-          multiline ? "min-h-16 py-2" : "min-h-8 leading-6",
-        )}
-        onInput={commit}
-        onKeyUp={saveRange}
-        onMouseUp={saveRange}
-        onBlur={saveRange}
-        onKeyDown={(e) => {
-          if (e.key !== "Enter") return;
-          e.preventDefault();
-          if (multiline) document.execCommand("insertLineBreak");
-        }}
-        onPaste={(e) => {
-          e.preventDefault();
-          const text = e.clipboardData.getData("text/plain");
-          saveRange();
-          insert(tokenize(multiline ? text : text.replace(/\s*\n\s*/g, " "), pauses));
-        }}
-        onDrop={(e) => e.preventDefault()}
-      />
+      {surface}
       <div className="flex gap-1">
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="xs"
-                className="text-muted-foreground"
-                onMouseDown={saveRange}
-              >
-                <Braces data-icon="inline-start" />
-                Insert variable
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Variables</DropdownMenuLabel>
-              {vars.map((v) => (
-                <DropdownMenuItem
-                  key={v.name}
-                  onClick={() => insert([{ kind: "var", name: v.name }])}
-                >
-                  <span className="truncate">{v.name}</span>
-                  <span className="text-muted-foreground ml-auto max-w-24 truncate text-xs">
-                    {v.value}
-                  </span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {menu}
         {pauses ? (
           <Button
             variant="ghost"

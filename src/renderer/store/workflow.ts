@@ -10,6 +10,7 @@ import type {
 } from "@/shared/schema/workflow";
 import { defaultMix, type Mix } from "@/shared/mix/types";
 import { randomId } from "@/shared/ids";
+import { renameVariable } from "@/shared/vars";
 
 export type WorkflowState = {
   projectDir: string | null;
@@ -41,6 +42,7 @@ type Actions = {
   removeEdges: (ids: string[]) => void;
   setSettings: (patch: Partial<WorkflowSettings>) => void;
   setVariables: (vars: Record<string, string>) => void;
+  renameVariable: (from: string, to: string) => void;
   rename: (name: string) => void;
   paste: (
     nodes: WorkflowNode[],
@@ -242,6 +244,16 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
       setSettings: (patch) =>
         get().update((wf) => ({ ...wf, settings: { ...wf.settings, ...patch } })),
       setVariables: (variables) => get().update((wf) => ({ ...wf, variables })),
+      renameVariable: (from, to) =>
+        get().update((wf) => ({
+          ...wf,
+          variables: Object.fromEntries(
+            Object.entries(wf.variables).map(([k, v]) => [k === from ? to : k, v]),
+          ),
+          nodes: to.trim()
+            ? wf.nodes.map((n) => ({ ...n, params: renameVariable(n.params, from, to) }))
+            : wf.nodes,
+        })),
       rename: (name) => get().update((wf) => ({ ...wf, name })),
 
       paste: (nodes, edges, offset) => {

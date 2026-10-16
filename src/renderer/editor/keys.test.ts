@@ -20,5 +20,7 @@ describe("recording a shortcut", () => {
     expect(key("Enter")).toBe("Enter");
     expect(key(" ", { metaKey: true, shiftKey: true })).toBe("Meta+Shift+Space");
     expect(key("Shift", { shiftKey: true })).toBeNull();
+    expect(key("ArrowUp", { altKey: true })).toBe("Alt+ArrowUp");
+    expect(key("Escape")).toBe("Escape");
   });
 });

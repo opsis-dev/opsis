@@ -1,3 +1,4 @@
+import type { NodeCategory } from "@/shared/nodes/define";
 import type { PortType } from "@/shared/schema/workflow";
 
 export const PORT_COLORS: Record<PortType, string> = {
@@ -13,21 +14,21 @@ export const PORT_COLORS: Record<PortType, string> = {
   file: "#94a3b8",
 };
 
-export const CATEGORY_COLORS: Record<string, string> = {
-  Browser: "#38bdf8",
-  Capture: "#f97316",
-  Camera: "#fb923c",
-  Cursor: "#fbbf24",
-  "Text & overlays": "#a78bfa",
-  Transitions: "#c084fc",
-  Backgrounds: "#818cf8",
-  Effects: "#e879f9",
-  Elements: "#8b5cf6",
-  Audio: "#34d399",
-  Timeline: "#f472b6",
-  Media: "#60a5fa",
-  Output: "#f43f5e",
-  Utility: "#71717a",
+export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: string }> = {
+  Browser: { color: "#38bdf8", icon: "globe" },
+  Capture: { color: "#f97316", icon: "video" },
+  Camera: { color: "#fb923c", icon: "scan-search" },
+  Cursor: { color: "#fbbf24", icon: "mouse-pointer-2" },
+  "Text & overlays": { color: "#a78bfa", icon: "type" },
+  Transitions: { color: "#c084fc", icon: "blend" },
+  Backgrounds: { color: "#818cf8", icon: "wallpaper" },
+  Effects: { color: "#e879f9", icon: "sparkles" },
+  Elements: { color: "#8b5cf6", icon: "shapes" },
+  Audio: { color: "#34d399", icon: "music" },
+  Timeline: { color: "#f472b6", icon: "layers" },
+  Media: { color: "#60a5fa", icon: "file-play" },
+  Output: { color: "#f43f5e", icon: "clapperboard" },
+  Utility: { color: "#71717a", icon: "sticky-note" },
 };
 
 const TYPE_LABELS: Record<PortType, string> = {
@@ -43,8 +44,5 @@ const TYPE_LABELS: Record<PortType, string> = {
   file: "File",
 };
 
-export const portLabel = (
-  _id: string,
-  spec: { type: PortType; label?: string },
-  side: "in" | "out",
-) => spec.label ?? (spec.type === "session" && side === "in" ? "Previous" : TYPE_LABELS[spec.type]);
+export const portLabel = (spec: { type: PortType; label?: string }, side: "in" | "out") =>
+  spec.label ?? (spec.type === "session" && side === "in" ? "Previous" : TYPE_LABELS[spec.type]);

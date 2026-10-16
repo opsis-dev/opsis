@@ -1,6 +1,6 @@
 import { Thumbnail } from "@remotion/player";
 import { useStore as useFlowStore } from "@xyflow/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { clipToSpec, isClip } from "@/shared/compile/clip";
@@ -8,8 +8,9 @@ import { workflowVars } from "@/shared/compile/compile";
 import type { CardRow } from "@/shared/nodes/card";
 import type { NodeDef } from "@/shared/nodes/define";
 import { defaultParams } from "@/shared/nodes/registry";
-import type { NodeResult } from "@/shared/schema/values";
-import type { WorkflowNode } from "@/shared/schema/workflow";
+import type { TimelineSpec } from "@/shared/schema/timeline";
+import type { ClipValue, NodeResult } from "@/shared/schema/values";
+import type { WorkflowNode, WorkflowSettings } from "@/shared/schema/workflow";
 import { interpolate } from "@/shared/vars";
 import { DemoTimeline } from "@/video/demo-timeline";
 import { cn } from "@/renderer/lib/utils";
@@ -23,9 +24,14 @@ import { NodeIcon } from "./icons";
 import { useCompiledContext } from "./use-compiled";
 import { stableJson } from "@/shared/hash";
 import { errorMessage } from "@/shared/errors";
+import { clamp } from "@/shared/math";
 
 const MAX_LIVE_THUMBS = 6;
 const MIN_ZOOM = 0.55;
+const MAX_ROWS = 4;
+const SETTLE_MS = 400;
+const OBSERVE_MARGIN = "120px";
+const LIVE_ASSET_BASE = "demoflow-file://project/";
 
 const useThumbSlots = create<{
   active: string[];
@@ -47,45 +53,40 @@ const useThumbSlots = create<{
   release: (id) => set((s) => ({ active: s.active.filter((a) => a !== id) })),
 }));
 
-export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
+function useCardInputs(node: WorkflowNode) {
   const variables = useWorkflowStore((s) => s.workflow?.variables);
   const name = useWorkflowStore((s) => s.workflow?.name ?? "");
   const settings = useWorkflowStore((s) => s.workflow?.settings);
-  const connected = useWorkflowStore(
-    useShallow((s) =>
-      (s.workflow?.edges ?? []).filter((e) => e.target === node.id).map((e) => e.targetHandle),
-    ),
+  const incoming = useWorkflowStore(
+    useShallow((s) => (s.workflow?.edges ?? []).filter((e) => e.target === node.id)),
   );
   const result = useRunStore((s) => s.results[node.id]);
   const secrets = useSecretsStore((s) => s.names);
   const { result: compiled } = useCompiledContext();
   const clip = compiled?.values[node.id]?.clip;
   const clipFrames = isClip(clip) ? clip.durationInFrames : undefined;
-  const incoming = useWorkflowStore(
-    useShallow((s) => (s.workflow?.edges ?? []).filter((e) => e.target === node.id)),
-  );
-  const inputKey = incoming
-    .map((e) => {
-      const v = compiled?.values[e.source]?.[e.sourceHandle];
-      return `${e.targetHandle}=${isClip(v) ? v.durationInFrames : ""}`;
-    })
-    .join("|");
+  const connected = useMemo(() => incoming.map((e) => e.targetHandle), [incoming]);
   const inputFrames = useMemo(() => {
     const out: Record<string, number> = {};
-    for (const pair of inputKey.split("|")) {
-      const [port, frames] = pair.split("=");
-      if (port && frames) out[port] = Number(frames);
+    for (const e of incoming) {
+      const v = compiled?.values[e.source]?.[e.sourceHandle];
+      if (isClip(v)) out[e.targetHandle] = v.durationInFrames;
     }
     return out;
-  }, [inputKey]);
+  }, [incoming, compiled]);
+  return { variables, name, settings, result, secrets, connected, clipFrames, inputFrames };
+}
 
+export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
+  const { variables, name, settings, result, secrets, connected, clipFrames, inputFrames } =
+    useCardInputs(node);
   return useMemo(() => {
-    if (!def.card || !settings) return [];
-    const vars = workflowVars({ name, variables: variables ?? {} } as Parameters<
-      typeof workflowVars
-    >[0]);
-    const raw = node.params ?? {};
-    const params = { ...defaultParams(node.type), ...interpolate(raw, vars) };
+    if (!def.card || !settings || !variables) return [];
+    const raw = node.params;
+    const params = {
+      ...defaultParams(node.type),
+      ...interpolate(raw, workflowVars({ name, variables })),
+    };
     try {
       return def
         .card({
@@ -98,8 +99,8 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
           clipFrames,
           inputFrames,
         })
-        .filter((r): r is CardRow => !!r && typeof r === "object")
-        .slice(0, 4);
+        .filter((r): r is CardRow => Boolean(r))
+        .slice(0, MAX_ROWS);
     } catch (error) {
       return [
         {
@@ -161,6 +162,38 @@ function posterOf(result: NodeResult | undefined): string | null {
   return null;
 }
 
+const middleFrame = (durationInFrames: number) =>
+  clamp(Math.round(durationInFrames / 2), 0, Math.max(0, durationInFrames - 1));
+
+type SettledClip = { key: string; clip: ClipValue; settings: WorkflowSettings };
+
+const fastSpec = ({ clip, settings }: SettledClip): TimelineSpec => ({
+  ...clipToSpec(clip, settings),
+  quality: "fast",
+});
+
+function useSettledClip(nodeId: string): SettledClip | null {
+  const { result: compiled } = useCompiledContext();
+  const settings = useWorkflowStore((s) => s.workflow?.settings);
+  const clip = compiled?.values[nodeId]?.clip;
+  const current =
+    isClip(clip) && settings ? { key: stableJson([clip, settings]), clip, settings } : null;
+  const latest = useRef(current);
+  const [settled, setSettled] = useState(current);
+  useLayoutEffect(() => {
+    latest.current = current;
+  });
+  const key = current?.key ?? "";
+  useEffect(() => {
+    const t = setTimeout(
+      () => setSettled((prev) => (prev?.key === key ? prev : latest.current)),
+      SETTLE_MS,
+    );
+    return () => clearTimeout(t);
+  }, [key]);
+  return settled;
+}
+
 function useOnScreen<T extends Element>(): [React.RefObject<T | null>, boolean] {
   const ref = useRef<T>(null);
   const [visible, setVisible] = useState(false);
@@ -168,7 +201,7 @@ function useOnScreen<T extends Element>(): [React.RefObject<T | null>, boolean] 
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), {
-      rootMargin: "120px",
+      rootMargin: OBSERVE_MARGIN,
     });
     io.observe(el);
     return () => io.disconnect();
@@ -176,44 +209,33 @@ function useOnScreen<T extends Element>(): [React.RefObject<T | null>, boolean] 
   return [ref, visible];
 }
 
-function LiveFrame({ nodeId }: { nodeId: string }) {
-  const { result: compiled } = useCompiledContext();
-  const settings = useWorkflowStore((s) => s.workflow?.settings);
+function useThumbSlot(nodeId: string, wanted: boolean): boolean {
   const selected = useUiStore((s) => s.selectedIds.includes(nodeId));
-  const zoom = useFlowStore((s) => s.transform[2]);
   const claim = useThumbSlots((s) => s.claim);
   const release = useThumbSlots((s) => s.release);
   const holding = useThumbSlots((s) => s.active.includes(nodeId));
-  const [ref, visible] = useOnScreen<HTMLDivElement>();
-  const clip = compiled?.values[nodeId]?.clip;
-  const key = isClip(clip) && settings ? stableJson([clip, settings]) : "";
-  const [settled, setSettled] = useState(key);
-  useEffect(() => {
-    const t = setTimeout(() => setSettled(key), 400);
-    return () => clearTimeout(t);
-  }, [key]);
-
-  const wanted = visible && zoom >= MIN_ZOOM && !!settled;
   useEffect(() => {
     if (wanted) claim(nodeId, selected);
     else release(nodeId);
   }, [wanted, selected, nodeId, claim, release]);
   useEffect(() => () => release(nodeId), [nodeId, release]);
+  return holding;
+}
 
-  const spec = useMemo(() => {
-    if (!settled) return null;
-    const [c, s] = JSON.parse(settled) as [
-      Parameters<typeof clipToSpec>[0],
-      Parameters<typeof clipToSpec>[1],
-    ];
-    return {
-      ...clipToSpec(c, s),
-      assets: { projectBase: "demoflow-file://project/" },
-      quality: "fast" as const,
-    };
-  }, [settled]);
+function LiveFrame({ nodeId }: { nodeId: string }) {
+  const settings = useWorkflowStore((s) => s.workflow?.settings);
+  const zoom = useFlowStore((s) => s.transform[2]);
+  const [ref, visible] = useOnScreen<HTMLDivElement>();
+  const settled = useSettledClip(nodeId);
+  const holding = useThumbSlot(nodeId, visible && zoom >= MIN_ZOOM && !!settled);
+  const spec = useMemo(
+    () => (settled ? { ...fastSpec(settled), assets: { projectBase: LIVE_ASSET_BASE } } : null),
+    [settled],
+  );
 
-  if (!settings || !isClip(clip)) return null;
+  if (!settings || !settled) return null;
+  const aspectRatio = `${settings.width} / ${settings.height}`;
+  const wide = settings.width / settings.height >= 16 / 9;
   return (
     <div
       ref={ref}
@@ -227,18 +249,25 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
           compositionHeight={spec.height}
           durationInFrames={Math.max(1, spec.durationInFrames)}
           fps={spec.fps}
-          frameToDisplay={Math.min(
-            spec.durationInFrames - 1,
-            Math.round(spec.durationInFrames / 2),
-          )}
-          style={
-            settings.width / settings.height >= 16 / 9
-              ? { width: "100%", aspectRatio: `${settings.width} / ${settings.height}` }
-              : { height: "100%", aspectRatio: `${settings.width} / ${settings.height}` }
-          }
+          frameToDisplay={middleFrame(spec.durationInFrames)}
+          style={wide ? { width: "100%", aspectRatio } : { height: "100%", aspectRatio }}
           errorFallback={() => null}
         />
       ) : null}
+    </div>
+  );
+}
+
+function FramePicture({ src, lazy }: { src: string; lazy?: boolean }) {
+  return (
+    <div className="mx-3 overflow-hidden rounded-md bg-black">
+      <img
+        src={fileUrl(src)}
+        alt=""
+        loading={lazy ? "lazy" : undefined}
+        draggable={false}
+        className="block aspect-video w-full object-contain"
+      />
     </div>
   );
 }
@@ -247,35 +276,10 @@ export function NodeThumbnail({ nodeId, def }: { nodeId: string; def: NodeDef })
   const result = useRunStore((s) => s.results[nodeId]);
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const poster = posterOf(result);
-  if (poster && projectDir) {
-    return (
-      <div className="mx-3 overflow-hidden rounded-md bg-black">
-        <img
-          src={fileUrl(poster)}
-          alt=""
-          loading="lazy"
-          draggable={false}
-          className="block aspect-video w-full object-contain"
-        />
-      </div>
-    );
-  }
+  if (poster && projectDir) return <FramePicture src={poster} lazy />;
   if (def.category === "Browser" || def.category === "Utility") return null;
   if (!("clip" in def.outputs)) return null;
   return <CardStill nodeId={nodeId} />;
-}
-
-function useSettledClipKey(nodeId: string): string {
-  const { result: compiled } = useCompiledContext();
-  const settings = useWorkflowStore((s) => s.workflow?.settings);
-  const clip = compiled?.values[nodeId]?.clip;
-  const key = isClip(clip) && settings ? stableJson([clip, settings]) : "";
-  const [settled, setSettled] = useState(key);
-  useEffect(() => {
-    const t = setTimeout(() => setSettled(key), 400);
-    return () => clearTimeout(t);
-  }, [key]);
-  return settled;
 }
 
 function CardStill({ nodeId }: { nodeId: string }) {
@@ -284,22 +288,18 @@ function CardStill({ nodeId }: { nodeId: string }) {
   const hash = useStillsStore((s) => s.index[nodeId]);
   const wanted = useStillsStore((s) => !!s.wanted[nodeId]);
   const selected = useUiStore((s) => s.selectedIds.includes(nodeId));
-  const settled = useSettledClipKey(nodeId);
+  const settled = useSettledClip(nodeId);
 
   useEffect(() => {
     if (!engine || !projectDir || !settled || (!hash && !wanted)) return;
-    const [c, s] = JSON.parse(settled) as [
-      Parameters<typeof clipToSpec>[0],
-      Parameters<typeof clipToSpec>[1],
-    ];
-    const spec = { ...clipToSpec(c, s), quality: "fast" as const };
+    const spec = fastSpec(settled);
     void window.demoflow
       .requestStill({
         projectDir,
         nodeId,
-        key: settled,
+        key: settled.key,
         spec,
-        frame: Math.max(0, Math.round(spec.durationInFrames / 2)),
+        frame: middleFrame(spec.durationInFrames),
         priority: selected || !hash,
       })
       .then((r) => {
@@ -309,14 +309,5 @@ function CardStill({ nodeId }: { nodeId: string }) {
 
   if (engine === false) return <LiveFrame nodeId={nodeId} />;
   if (!hash) return null;
-  return (
-    <div className="mx-3 overflow-hidden rounded-md bg-black">
-      <img
-        src={fileUrl(`project:.demoflow/cache/stills/${hash}.jpg`)}
-        alt=""
-        draggable={false}
-        className="block aspect-video w-full object-contain"
-      />
-    </div>
-  );
+  return <FramePicture src={`project:.demoflow/cache/stills/${hash}.jpg`} />;
 }

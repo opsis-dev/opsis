@@ -22,7 +22,7 @@ export type CompileResult = {
 
 export const PROJECT_NAME_VAR = "Project name";
 
-export function workflowVars(wf: Workflow): Record<string, string> {
+export function workflowVars(wf: Pick<Workflow, "name" | "variables">): Record<string, string> {
   return { [PROJECT_NAME_VAR]: projectFolderName(wf.name), ...wf.variables };
 }
 

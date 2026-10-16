@@ -53,6 +53,8 @@ export const choice = <const T extends readonly [string, ...string[]]>(
 
 export const QUALITY_PRESETS = { Low: 28, Medium: 23, High: 18, Max: 12 } as const;
 
+export const LOUDNESS_PRESETS = { "Online video": -14, Podcast: -16, Broadcast: -23 } as const;
+
 export const quality = (def: number, description = "Quality") =>
   z.number().int().min(0).max(51).default(def).meta({ description, widget: "quality" });
 

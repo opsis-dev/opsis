@@ -31,9 +31,14 @@ import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { toFlowEdges, toFlowNodes, type FlowNodeData } from "./convert";
 import { FlowNode, GroupFlowNode, NoteFlowNode } from "./flow-node";
-import { CATEGORY_COLORS, PORT_COLORS } from "./ports";
+import { CATEGORY_STYLES, PORT_COLORS } from "./ports";
 
 export const NODE_DRAG_TYPE = "application/demoflow-node";
+export const SNAP_GRID = 15;
+export const snapToGrid = (p: { x: number; y: number }) => ({
+  x: Math.round(p.x / SNAP_GRID) * SNAP_GRID,
+  y: Math.round(p.y / SNAP_GRID) * SNAP_GRID,
+});
 
 const nodeTypes = { demoflow: FlowNode, group: GroupFlowNode, note: NoteFlowNode };
 
@@ -231,11 +236,7 @@ export function Canvas() {
   const addAt = useCallback(
     (type: string, clientX: number, clientY: number, params?: Record<string, unknown>) => {
       const pos = flow.screenToFlowPosition({ x: clientX, y: clientY });
-      const id = addNode(
-        type,
-        { x: Math.round(pos.x / 15) * 15, y: Math.round(pos.y / 15) * 15 },
-        params,
-      );
+      const id = addNode(type, snapToGrid(pos), params);
       setSelected([id]);
       return id;
     },
@@ -337,7 +338,7 @@ export function Canvas() {
         deleteKeyCode={["Backspace", "Delete"]}
         multiSelectionKeyCode={["Meta", "Control", "Shift"]}
         snapToGrid
-        snapGrid={[15, 15]}
+        snapGrid={[SNAP_GRID, SNAP_GRID]}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         minZoom={MIN_ZOOM}
@@ -349,15 +350,14 @@ export function Canvas() {
         colorMode="dark"
         defaultEdgeOptions={{ type: "smoothstep" }}
       >
-        <Background variant={BackgroundVariant.Dots} gap={15} size={1} />
+        <Background variant={BackgroundVariant.Dots} gap={SNAP_GRID} size={1} />
         {minimap ? (
           <MiniMap
             pannable
             zoomable
             nodeColor={(n) =>
-              CATEGORY_COLORS[
-                getNodeDef((n.data as FlowNodeData).node.type)?.category ?? "Utility"
-              ] ?? "#71717a"
+              CATEGORY_STYLES[getNodeDef((n.data as FlowNodeData).node.type)?.category ?? "Utility"]
+                .color
             }
           />
         ) : null}

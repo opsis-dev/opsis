@@ -3,18 +3,20 @@ import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 
 export type FlowNodeData = { node: WorkflowNode };
 
+const FLOW_TYPES: Partial<Record<string, string>> = { "core.group": "group", "core.note": "note" };
+
+const isGroup = (n: WorkflowNode) => n.type === "core.group";
+
 export function toFlowNodes(wf: Workflow, selected: Set<string>): Node<FlowNodeData>[] {
-  const ordered = [...wf.nodes].sort(
-    (a, b) => (a.type === "core.group" ? -1 : 0) - (b.type === "core.group" ? -1 : 0),
-  );
+  const ordered = [...wf.nodes.filter(isGroup), ...wf.nodes.filter((n) => !isGroup(n))];
   return ordered.map((n) => ({
     id: n.id,
-    type: n.type === "core.group" ? "group" : n.type === "core.note" ? "note" : "demoflow",
+    type: FLOW_TYPES[n.type] ?? "demoflow",
     position: n.position,
     data: { node: n },
     selected: selected.has(n.id),
-    ...(n.parentId ? { parentId: n.parentId, extent: undefined } : {}),
-    ...(n.type === "core.group" && n.size
+    ...(n.parentId ? { parentId: n.parentId } : {}),
+    ...(isGroup(n) && n.size
       ? { style: { width: n.size.width, height: n.size.height }, zIndex: -1 }
       : {}),
   }));

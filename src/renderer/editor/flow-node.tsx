@@ -9,7 +9,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { memo } from "react";
+import type { NodeDef, PortSpec } from "@/shared/nodes/define";
 import { getNodeDef } from "@/shared/nodes/registry";
+import type { NodeRunStatus } from "@/shared/schema/events";
+import type { WorkflowNode } from "@/shared/schema/workflow";
 import {
   BaseNode,
   BaseNodeContent,
@@ -26,21 +29,20 @@ import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import type { FlowNodeData } from "./convert";
-import { NodeIcon } from "./icons";
+import { CategoryBadge } from "./category-badge";
 import { CardRows, NodeThumbnail, useCardRows } from "./node-card";
-import { CATEGORY_COLORS, PORT_COLORS, portLabel } from "./ports";
+import { PORT_COLORS, portLabel } from "./ports";
 import { useCompiledContext } from "./use-compiled";
 
-export type DemoflowFlowNode = Node<FlowNodeData>;
+type DemoflowFlowNode = Node<FlowNodeData>;
 
-const FALLBACK_DEF = { card: undefined } as unknown as NonNullable<ReturnType<typeof getNodeDef>>;
+type StatusBadge = {
+  label: string;
+  icon: LucideIcon;
+  variant: "secondary" | "outline" | "destructive";
+};
 
-const STATUS: Partial<
-  Record<
-    string,
-    { label: string; icon: LucideIcon; variant: "secondary" | "outline" | "destructive" }
-  >
-> = {
+const STATUS: Partial<Record<NodeRunStatus, StatusBadge>> = {
   queued: { label: "Waiting", icon: Clock, variant: "outline" },
   running: { label: "Running", icon: LoaderCircle, variant: "outline" },
   done: { label: "Done", icon: CircleCheck, variant: "outline" },
@@ -50,34 +52,38 @@ const STATUS: Partial<
 };
 
 export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<DemoflowFlowNode>) {
-  const node = data.node;
-  const def = getNodeDef(node.type);
-  const status = useRunStore((s) => s.statuses[id]);
-  const progress = useRunStore((s) => s.progress[id]);
+  const def = getNodeDef(data.node.type);
+  if (!def) {
+    return (
+      <BaseNode className="border-destructive w-60 p-3 text-sm">
+        Unknown node <code>{data.node.type}</code>
+      </BaseNode>
+    );
+  }
+  return <KnownNode id={id} node={data.node} def={def} />;
+});
+
+function useNodeProblems(id: string, disabled: boolean | undefined) {
   const runError = useRunStore((s) => s.errors[id]);
-  const active = useUiStore((s) => s.activeIds.includes(id));
   const { result, issues } = useCompiledContext();
   const error =
     runError ??
     result?.errors[id] ??
     issues.find((i) => i.nodeId === id && i.level === "error")?.message;
-  const warning = issues.find((i) => i.nodeId === id && i.level === "warning")?.message;
-  const rows = useCardRows(node, def ?? FALLBACK_DEF);
+  const warning = disabled
+    ? undefined
+    : issues.find((i) => i.nodeId === id && i.level === "warning")?.message;
+  return { error, warning };
+}
 
-  if (!def) {
-    return (
-      <BaseNode className="border-destructive w-60 p-3 text-sm">
-        Unknown node <code>{node.type}</code>
-      </BaseNode>
-    );
-  }
-  const color = CATEGORY_COLORS[def.category] ?? "#71717a";
+function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: NodeDef }) {
+  const status = useRunStore((s) => s.statuses[id]);
+  const active = useUiStore((s) => s.activeIds.includes(id));
+  const rows = useCardRows(node, def);
+  const { error, warning } = useNodeProblems(id, node.disabled);
   const indicator: NodeStatus =
     status === "running" ? "loading" : status === "error" ? "error" : "initial";
   const succeeded = status === "done" || status === "cached";
-  const inputs = Object.entries(def.inputs);
-  const outputs = Object.entries(def.outputs);
-  const badge = status ? STATUS[status] : undefined;
 
   return (
     <NodeStatusIndicator status={indicator} variant="border">
@@ -87,89 +93,102 @@ export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<DemoflowF
       <BaseNode
         className={cn("w-64", node.disabled && "opacity-50", active && "ring-primary/70 ring-2")}
       >
-        <BaseNodeHeader className="border-b">
-          <span
-            className="grid size-6 shrink-0 place-items-center rounded-md text-black"
-            style={{ background: color }}
-          >
-            <NodeIcon name={def.icon} className="size-3.5" />
-          </span>
-          <BaseNodeHeaderTitle className="truncate text-sm">
-            {node.label?.trim() || def.title}
-          </BaseNodeHeaderTitle>
-          {badge && status !== "running" ? (
-            <Badge
-              variant={badge.variant}
-              title={status === "skipped" ? "Something before it failed" : undefined}
-            >
-              <badge.icon data-icon="inline-start" />
-              {badge.label}
-            </Badge>
-          ) : null}
-        </BaseNodeHeader>
+        <NodeHeader title={node.label?.trim() || def.title} def={def} status={status} />
         <BaseNodeContent className="gap-1.5 px-0 py-2">
-          {inputs.length || outputs.length ? (
-            <div className="grid grid-cols-2 gap-y-1 text-xs">
-              <div className="flex flex-col gap-1">
-                {inputs.map(([portId, port]) => (
-                  <LabeledHandle
-                    key={portId}
-                    id={portId}
-                    type="target"
-                    position={Position.Left}
-                    title={portLabel(portId, port, "in")}
-                    labelClassName={cn("text-xs", port.optional && "text-muted-foreground")}
-                    style={{
-                      background: PORT_COLORS[port.type],
-                      borderColor: PORT_COLORS[port.type],
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="flex flex-col items-end gap-1">
-                {outputs.map(([portId, port]) => (
-                  <LabeledHandle
-                    key={portId}
-                    id={portId}
-                    type="source"
-                    position={Position.Right}
-                    title={portLabel(portId, port, "out")}
-                    labelClassName="text-xs"
-                    style={{
-                      background: PORT_COLORS[port.type],
-                      borderColor: PORT_COLORS[port.type],
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : null}
+          <NodePorts def={def} />
           <CardRows rows={rows} />
           <NodeThumbnail nodeId={id} def={def} />
-          {status === "running" && progress ? (
-            <div className="flex flex-col gap-1 px-3">
-              <Progress value={Math.round(progress.value * 100)} />
-              {progress.message ? (
-                <span className="text-muted-foreground truncate text-[11px]">
-                  {progress.message}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
+          {status === "running" ? <RunProgress id={id} /> : null}
         </BaseNodeContent>
-        {error ? (
-          <BaseNodeFooter className="text-destructive items-start text-xs">
-            <span className="line-clamp-3">{error}</span>
-          </BaseNodeFooter>
-        ) : warning && !node.disabled ? (
-          <BaseNodeFooter className="text-muted-foreground items-start text-[11px]">
-            <span className="line-clamp-2">{warning}</span>
-          </BaseNodeFooter>
-        ) : null}
+        <NodeFooter error={error} warning={warning} />
       </BaseNode>
     </NodeStatusIndicator>
   );
-});
+}
+
+function NodeHeader({
+  title,
+  def,
+  status,
+}: {
+  title: string;
+  def: NodeDef;
+  status: NodeRunStatus | undefined;
+}) {
+  const badge = status && status !== "running" ? STATUS[status] : undefined;
+  return (
+    <BaseNodeHeader className="border-b">
+      <CategoryBadge category={def.category} icon={def.icon} size="md" />
+      <BaseNodeHeaderTitle className="truncate text-sm">{title}</BaseNodeHeaderTitle>
+      {badge ? (
+        <Badge
+          variant={badge.variant}
+          title={status === "skipped" ? "Something before it failed" : undefined}
+        >
+          <badge.icon data-icon="inline-start" />
+          {badge.label}
+        </Badge>
+      ) : null}
+    </BaseNodeHeader>
+  );
+}
+
+function PortHandles({ ports, side }: { ports: Record<string, PortSpec>; side: "in" | "out" }) {
+  return Object.entries(ports).map(([portId, port]) => (
+    <LabeledHandle
+      key={portId}
+      id={portId}
+      type={side === "in" ? "target" : "source"}
+      position={side === "in" ? Position.Left : Position.Right}
+      title={portLabel(port, side)}
+      labelClassName={cn("text-xs", side === "in" && port.optional && "text-muted-foreground")}
+      style={{ background: PORT_COLORS[port.type], borderColor: PORT_COLORS[port.type] }}
+    />
+  ));
+}
+
+function NodePorts({ def }: { def: NodeDef }) {
+  if (!Object.keys(def.inputs).length && !Object.keys(def.outputs).length) return null;
+  return (
+    <div className="grid grid-cols-2 gap-y-1 text-xs">
+      <div className="flex flex-col gap-1">
+        <PortHandles ports={def.inputs} side="in" />
+      </div>
+      <div className="flex flex-col items-end gap-1">
+        <PortHandles ports={def.outputs} side="out" />
+      </div>
+    </div>
+  );
+}
+
+function RunProgress({ id }: { id: string }) {
+  const progress = useRunStore((s) => s.progress[id]);
+  if (!progress) return null;
+  return (
+    <div className="flex flex-col gap-1 px-3">
+      <Progress value={Math.round(progress.value * 100)} />
+      {progress.message ? (
+        <span className="text-muted-foreground truncate text-[11px]">{progress.message}</span>
+      ) : null}
+    </div>
+  );
+}
+
+function NodeFooter({ error, warning }: { error?: string; warning?: string }) {
+  if (error)
+    return (
+      <BaseNodeFooter className="text-destructive items-start text-xs">
+        <span className="line-clamp-3">{error}</span>
+      </BaseNodeFooter>
+    );
+  if (warning)
+    return (
+      <BaseNodeFooter className="text-muted-foreground items-start text-[11px]">
+        <span className="line-clamp-2">{warning}</span>
+      </BaseNodeFooter>
+    );
+  return null;
+}
 
 export const GroupFlowNode = memo(function GroupFlowNode({
   id,

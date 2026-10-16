@@ -596,3 +596,9 @@ export const browserNodes = [
   chapterNode,
   overlayHtmlNode,
 ];
+
+export const ACTION_NODE_TYPES: ReadonlySet<string> = new Set(
+  [clickNode, typeNode, hoverNode, dragNode, selectNode, pressNode, scrollNode, uploadNode].map(
+    (n) => n.type,
+  ),
+);

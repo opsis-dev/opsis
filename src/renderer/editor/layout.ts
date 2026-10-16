@@ -4,6 +4,8 @@ import { CARD_WIDTH, estimateCardHeight } from "@/shared/nodes/size";
 import type { Workflow } from "@/shared/schema/workflow";
 
 const elk = new ELK();
+const LAYER_GAP = 80;
+const NODE_GAP = 32;
 
 function measured(id: string): { width: number; height: number } | null {
   const el = document.querySelector<HTMLElement>(`.react-flow__node[data-id="${CSS.escape(id)}"]`);
@@ -20,8 +22,8 @@ export async function autoLayout(wf: Workflow): Promise<Record<string, { x: numb
     layoutOptions: {
       "elk.algorithm": "layered",
       "elk.direction": "RIGHT",
-      "elk.layered.spacing.nodeNodeBetweenLayers": "80",
-      "elk.spacing.nodeNode": "32",
+      "elk.layered.spacing.nodeNodeBetweenLayers": String(LAYER_GAP),
+      "elk.spacing.nodeNode": String(NODE_GAP),
       "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
       "elk.portConstraints": "FIXED_ORDER",
     },

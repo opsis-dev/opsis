@@ -29,6 +29,8 @@ export const NODE_DEFS: NodeDef[] = [
   ...utilityNodes,
 ];
 
+export const VISIBLE_NODE_DEFS = NODE_DEFS.filter((d) => !d.hidden);
+
 const byType = new Map(NODE_DEFS.map((d) => [d.type, d]));
 
 if (byType.size !== NODE_DEFS.length) {
