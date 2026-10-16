@@ -90,6 +90,7 @@ export class GraphBuilder {
       variables: meta.variables ?? {},
       nodes: this.nodes,
       edges: this.edges,
+      markers: [],
     };
   }
 }

@@ -184,7 +184,7 @@ On a Record take that has run: **Suggest chapters**. Demoflow splits the take wh
 Already in place:
 
 - The action log: `actionSchema` / `ActionLog` (`src/shared/schema/actions.ts`) with `kind`, `t`, `label`, `text`, `nodeId`. The Record executor writes it to `actions.json` and returns it as `outputs.recording.log` (`src/worker/executors/capture.ts`); the renderer has it in `useRunStore` `results` (`NodeResult`, `src/shared/schema/values.ts`).
-- The Chapter action `browser.chapter` (`chapterNode`, `src/shared/nodes/browser.ts`: title, description, optional card). The driver logs it as a `chapter` action, and the Timeline draws chapter marks (`flattenSpec`, `timeline-view.tsx`).
+- The Chapter action `browser.chapter` (`chapterNode`, `src/shared/nodes/browser.ts`: title, description, optional card). The driver logs it as a `chapter` action, and the Timeline draws chapter marks (`flattenSpec`, `marker-row.tsx`).
 - `sessionChain(wf, captureNodeId)` (`src/shared/graph.ts`) lists the chain in order.
 
 Missing:

@@ -1,8 +1,127 @@
 import { useRef, useState } from "react";
+import { clamp01 } from "@/shared/math";
 import { cn } from "@/renderer/lib/utils";
-import { clamp } from "@/shared/math";
+import {
+  START_DEG,
+  SWEEP_DEG,
+  angleOf,
+  arcPath,
+  arrowDirection,
+  fromT,
+  parseTyped,
+  polar,
+  snapValue,
+  toT,
+  type KnobRange,
+} from "./knob-math";
 
 export type DragPhase = "start" | "move" | "end";
+
+export type KnobSpec<F extends string> = KnobRange & {
+  field: F;
+  label: string;
+  reset?: number;
+  format: (v: number) => string;
+};
+
+const DRAG_START_PX = 2;
+const DRAG_PX = 150;
+const FINE_DRAG_PX = 600;
+const NUDGE = 0.02;
+const BIG_NUDGE = 0.1;
+const RING_INSET = 3;
+const POINTER_INSET = 4;
+
+export function commitOnce<T>(onChange: (value: T, phase: DragPhase) => void, value: T): void {
+  onChange(value, "start");
+  onChange(value, "move");
+  onChange(value, "end");
+}
+
+function KnobValue({
+  label,
+  value,
+  disabled,
+  format,
+  onCommit,
+}: {
+  label: string;
+  value: number;
+  disabled?: boolean;
+  format: (v: number) => string;
+  onCommit: (v: number) => void;
+}) {
+  const [typing, setTyping] = useState(false);
+  const commit = (text: string) => {
+    setTyping(false);
+    const v = parseTyped(text);
+    if (v !== null) onCommit(v);
+  };
+  if (typing)
+    return (
+      <input
+        autoFocus
+        aria-label={`${label} value`}
+        defaultValue={String(value)}
+        className="bg-background w-12 rounded-sm border px-0.5 text-center text-[10px] leading-none tabular-nums"
+        onFocus={(e) => e.currentTarget.select()}
+        onKeyDown={(e) => {
+          e.stopPropagation();
+          if (e.key === "Enter") commit(e.currentTarget.value);
+          if (e.key === "Escape") setTyping(false);
+        }}
+        onBlur={(e) => commit(e.currentTarget.value)}
+      />
+    );
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      title="Click to type a value"
+      className="hover:bg-accent rounded-sm px-0.5 text-[10px] leading-none tabular-nums"
+      onClick={() => setTyping(true)}
+    >
+      {format(value)}
+    </button>
+  );
+}
+
+function KnobDial({ size, t, centreT }: { size: number; t: number; centreT: number }) {
+  const c = size / 2;
+  const r = c - RING_INSET;
+  const angle = angleOf(t);
+  const centre = angleOf(centreT);
+  const tip = polar(c, r - POINTER_INSET, angle);
+  return (
+    <svg width={size} height={size}>
+      <path
+        d={arcPath(c, r, START_DEG, START_DEG + SWEEP_DEG)}
+        className="stroke-muted"
+        strokeWidth={3}
+        fill="none"
+        strokeLinecap="round"
+      />
+      {Math.abs(angle - centre) > 0.5 ? (
+        <path
+          d={arcPath(c, r, Math.min(centre, angle), Math.max(centre, angle))}
+          className="stroke-primary"
+          strokeWidth={3}
+          fill="none"
+          strokeLinecap="round"
+        />
+      ) : null}
+      <line
+        x1={c}
+        y1={c}
+        x2={tip.x}
+        y2={tip.y}
+        className="stroke-foreground"
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export function Knob({
   label,
@@ -16,55 +135,20 @@ export function Knob({
   disabled,
   size = 30,
   log,
-}: {
+}: KnobRange & {
   label: string;
   value: number;
-  min: number;
-  max: number;
-  step: number;
   reset: number;
   format: (v: number) => string;
   onChange: (value: number, phase: DragPhase) => void;
   disabled?: boolean;
   size?: number;
-  log?: boolean;
 }) {
+  const range = { min, max, step, log };
   const drag = useRef<{ y: number; t0: number; started: boolean } | null>(null);
-  const [typing, setTyping] = useState(false);
-  const toT = (v: number) =>
-    log ? Math.log(v / min) / Math.log(max / min) : (v - min) / (max - min);
-  const fromT = (t: number) => {
-    const c = clamp(t, 0, 1);
-    const v = log ? min * (max / min) ** c : min + c * (max - min);
-    const decimals = Math.max(0, -Math.floor(Math.log10(step)));
-    return Number((Math.round(v / step) * step).toFixed(decimals));
-  };
-  const snap = (v: number) => {
-    const decimals = Math.max(0, -Math.floor(Math.log10(step)));
-    const clamped = clamp(v, min, max);
-    return Number((Math.round(clamped / step) * step).toFixed(decimals));
-  };
-  const commit = (text: string) => {
-    setTyping(false);
-    const v = Number.parseFloat(text.replace(",", ".").replace(/[^\d.+-]/g, ""));
-    if (!Number.isFinite(v)) return;
-    onChange(value, "start");
-    onChange(snap(v), "move");
-    onChange(value, "end");
-  };
-  const t = clamp(toT(value), 0, 1);
-  const angle = -135 + t * 270;
-  const r = size / 2 - 3;
-  const arc = (from: number, to: number) => {
-    const a0 = ((from - 90) * Math.PI) / 180;
-    const a1 = ((to - 90) * Math.PI) / 180;
-    const x0 = size / 2 + r * Math.cos(a0);
-    const y0 = size / 2 + r * Math.sin(a0);
-    const x1 = size / 2 + r * Math.cos(a1);
-    const y1 = size / 2 + r * Math.sin(a1);
-    return `M ${x0} ${y0} A ${r} ${r} 0 ${to - from > 180 ? 1 : 0} 1 ${x1} ${y1}`;
-  };
-  const centre = min < 0 && max > 0 && !log ? -135 + toT(0) * 270 : -135;
+  const t = clamp01(toT(range, value));
+  const nudge = (by: number) => commitOnce(onChange, fromT(range, t + by));
+  const centreT = min < 0 && max > 0 && !log ? toT(range, 0) : 0;
   return (
     <div className={cn("flex flex-col items-center gap-0.5", disabled && "opacity-40")}>
       <button
@@ -84,97 +168,39 @@ export function Knob({
           if (!d) return;
           const dy = d.y - e.clientY;
           if (!d.started) {
-            if (Math.abs(dy) < 2) return;
+            if (Math.abs(dy) < DRAG_START_PX) return;
             d.started = true;
             onChange(value, "start");
           }
-          onChange(fromT(d.t0 + dy / (e.shiftKey ? 600 : 150)), "move");
+          onChange(fromT(range, d.t0 + dy / (e.shiftKey ? FINE_DRAG_PX : DRAG_PX)), "move");
         }}
         onPointerUp={() => {
           const d = drag.current;
           drag.current = null;
           if (d?.started) onChange(value, "end");
         }}
-        onDoubleClick={() => {
-          onChange(value, "start");
-          onChange(reset, "move");
-          onChange(reset, "end");
-        }}
+        onDoubleClick={() => commitOnce(onChange, reset)}
         onWheel={(e) => {
-          if (disabled) return;
-          onChange(value, "start");
-          onChange(fromT(t + (e.deltaY < 0 ? 0.02 : -0.02)), "move");
-          onChange(value, "end");
+          if (!disabled) nudge(e.deltaY < 0 ? NUDGE : -NUDGE);
         }}
         onKeyDown={(e) => {
-          const dir =
-            e.key === "ArrowUp" || e.key === "ArrowRight"
-              ? 1
-              : e.key === "ArrowDown" || e.key === "ArrowLeft"
-                ? -1
-                : 0;
+          const dir = arrowDirection(e.key);
           if (!dir) return;
           e.preventDefault();
           e.stopPropagation();
-          onChange(value, "start");
-          onChange(fromT(t + dir * (e.shiftKey ? 0.1 : 0.02)), "move");
-          onChange(value, "end");
+          nudge(dir * (e.shiftKey ? BIG_NUDGE : NUDGE));
         }}
       >
-        <svg width={size} height={size}>
-          <path
-            d={arc(-135, 135)}
-            className="stroke-muted"
-            strokeWidth={3}
-            fill="none"
-            strokeLinecap="round"
-          />
-          {Math.abs(angle - centre) > 0.5 ? (
-            <path
-              d={arc(Math.min(centre, angle), Math.max(centre, angle))}
-              className="stroke-primary"
-              strokeWidth={3}
-              fill="none"
-              strokeLinecap="round"
-            />
-          ) : null}
-          <line
-            x1={size / 2}
-            y1={size / 2}
-            x2={size / 2 + (r - 4) * Math.cos(((angle - 90) * Math.PI) / 180)}
-            y2={size / 2 + (r - 4) * Math.sin(((angle - 90) * Math.PI) / 180)}
-            className="stroke-foreground"
-            strokeWidth={2}
-            strokeLinecap="round"
-          />
-        </svg>
+        <KnobDial size={size} t={t} centreT={centreT} />
       </button>
       <span className="text-muted-foreground text-[10px] leading-none">{label}</span>
-      {typing ? (
-        <input
-          autoFocus
-          aria-label={`${label} value`}
-          defaultValue={String(value)}
-          className="bg-background w-12 rounded-sm border px-0.5 text-center text-[10px] leading-none tabular-nums"
-          onFocus={(e) => e.currentTarget.select()}
-          onKeyDown={(e) => {
-            e.stopPropagation();
-            if (e.key === "Enter") commit(e.currentTarget.value);
-            if (e.key === "Escape") setTyping(false);
-          }}
-          onBlur={(e) => commit(e.currentTarget.value)}
-        />
-      ) : (
-        <button
-          type="button"
-          disabled={disabled}
-          title="Click to type a value"
-          className="hover:bg-accent rounded-sm px-0.5 text-[10px] leading-none tabular-nums"
-          onClick={() => setTyping(true)}
-        >
-          {format(value)}
-        </button>
-      )}
+      <KnobValue
+        label={label}
+        value={value}
+        disabled={disabled}
+        format={format}
+        onCommit={(v) => commitOnce(onChange, snapValue(range, v))}
+      />
     </div>
   );
 }

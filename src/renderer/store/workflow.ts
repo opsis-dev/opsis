@@ -140,7 +140,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
 
       setMix: (fn) => get().update((wf) => ({ ...wf, mix: fn(wf.mix ?? defaultMix()) })),
 
-      setMarkers: (fn) => get().update((wf) => ({ ...wf, markers: fn(wf.markers ?? []) })),
+      setMarkers: (fn) => get().update((wf) => ({ ...wf, markers: fn(wf.markers) })),
 
       addNode: (type, position, params) => {
         const def = getNodeDef(type);

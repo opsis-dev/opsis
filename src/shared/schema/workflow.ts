@@ -69,7 +69,7 @@ export const workflowSchema = z.object({
   nodes: z.array(workflowNodeSchema),
   edges: z.array(workflowEdgeSchema),
   mix: mixSchema.optional(),
-  markers: z.array(markerSchema).optional(),
+  markers: z.array(markerSchema).default([]),
 });
 export type Workflow = z.infer<typeof workflowSchema>;
 

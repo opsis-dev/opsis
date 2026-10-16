@@ -418,5 +418,6 @@
       "target": "render",
       "targetHandle": "timeline"
     }
-  ]
+  ],
+  "markers": []
 }

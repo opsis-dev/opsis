@@ -34,6 +34,7 @@ type PlaybackState = {
   shuttle: (direction: -1 | 0 | 1) => void;
   setIn: (frame: number | null) => void;
   setOut: (frame: number | null) => void;
+  clearRange: () => void;
 };
 
 let local: PlayerController | null = null;
@@ -117,4 +118,5 @@ export const usePlayback = create<PlaybackState>()((set, get) => ({
       outPoint,
       inPoint: outPoint !== null && s.inPoint !== null && s.inPoint >= outPoint ? null : s.inPoint,
     })),
+  clearRange: () => set({ inPoint: null, outPoint: null }),
 }));

@@ -1,28 +1,42 @@
+import { clamp, clamp01 } from "@/shared/math";
+import type { StemLevels } from "@/shared/mix/result";
 import { cn } from "@/renderer/lib/utils";
-import { clamp } from "@/shared/math";
 
-export const METER_MIN = -60;
-export const METER_MAX = 6;
+const METER_MIN = -60;
+const METER_MAX = 6;
+const MAX_REDUCTION_DB = 24;
+const CLIP_DB = -0.5;
 
-const toPct = (db: number) => clamp((db - METER_MIN) / (METER_MAX - METER_MIN), 0, 1) * 100;
+const toPct = (db: number) => clamp01((db - METER_MIN) / (METER_MAX - METER_MIN)) * 100;
 
-export function Meter({
-  peak,
-  rms,
-  hold,
-  reduction,
-  className,
-  dim,
-}: {
-  peak: number | null;
-  rms: number | null;
-  hold: number | null;
-  reduction?: number | null;
-  className?: string;
-  dim?: boolean;
-}) {
+export const frameIndex = (frame: number, length: number): number =>
+  clamp(Math.round(frame), 0, length - 1);
+
+export const sampleAt = (values: number[] | null | undefined, frame: number): number | null =>
+  values?.length ? values[frameIndex(frame, values.length)] : null;
+
+export const reductionAt = (
+  reduction: number[] | null | undefined,
+  frame: number,
+): number | null => (reduction ? (sampleAt(reduction, frame) ?? 0) : null);
+
+export type Level = { peak: number | null; rms: number | null; hold: number | null };
+
+export function levelAt(
+  levels: Pick<StemLevels, "peak" | "rms"> | null | undefined,
+  frame: number,
+  holdFrames: number,
+): Level {
+  if (!levels?.peak.length) return { peak: null, rms: null, hold: null };
+  const f = frameIndex(frame, levels.peak.length);
+  const hold = Math.max(...levels.peak.slice(Math.max(0, f - holdFrames), f + 1));
+  return { peak: levels.peak[f], rms: levels.rms[f], hold };
+}
+
+export function Meter({ level, reduction }: { level: Level; reduction?: number }) {
+  const { peak, rms, hold } = level;
   return (
-    <div className={cn("flex h-full gap-0.5", dim && "opacity-50", className)}>
+    <div className="flex h-full gap-0.5">
       <div
         className="bg-muted relative h-full w-2.5 overflow-hidden rounded-sm"
         title={
@@ -43,7 +57,7 @@ export function Meter({
           <div
             className={cn(
               "absolute inset-x-0 h-px",
-              hold > -0.5 ? "bg-meter-high" : "bg-foreground",
+              hold > CLIP_DB ? "bg-meter-high" : "bg-foreground",
             )}
             style={{ bottom: `${toPct(hold)}%` }}
           />
@@ -56,26 +70,14 @@ export function Meter({
       {reduction !== undefined ? (
         <div
           className="bg-muted relative h-full w-1 overflow-hidden rounded-sm"
-          title={`Compressor lowers by ${(reduction ?? 0).toFixed(1)} dB`}
+          title={`Compressor lowers by ${reduction.toFixed(1)} dB`}
         >
           <div
             className="bg-keyframe absolute inset-x-0 top-0"
-            style={{ height: `${Math.min(100, ((reduction ?? 0) / 24) * 100)}%` }}
+            style={{ height: `${Math.min(100, (reduction / MAX_REDUCTION_DB) * 100)}%` }}
           />
         </div>
       ) : null}
     </div>
   );
-}
-
-export function levelAt(
-  levels: { peak: number[]; rms: number[] } | undefined,
-  frame: number,
-  holdFrames: number,
-): { peak: number | null; rms: number | null; hold: number | null } {
-  if (!levels || levels.peak.length === 0) return { peak: null, rms: null, hold: null };
-  const f = clamp(Math.round(frame), 0, levels.peak.length - 1);
-  let hold = -120;
-  for (let i = Math.max(0, f - holdFrames); i <= f; i++) hold = Math.max(hold, levels.peak[i]);
-  return { peak: levels.peak[f], rms: levels.rms[f], hold };
 }

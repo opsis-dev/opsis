@@ -40,6 +40,7 @@ export const highpassSchema = z.object({
 });
 
 export const MIN_DB = -60;
+export const MAX_DB = 12;
 
 const OFF_COMP = {
   on: false,
@@ -50,13 +51,22 @@ const OFF_COMP = {
   makeup: 0,
 };
 
-export const stripSchema = z.object({
-  trim: z.number().min(-24).max(24).default(0),
+export const busSettingsSchema = z.object({
   highpass: highpassSchema.default({ on: false, freq: 80 }),
   eq: eqSchema.default({ on: false, bands: DEFAULT_EQ_BANDS }),
   comp: compSchema.default(OFF_COMP),
+  fader: z.number().min(MIN_DB).max(MAX_DB).default(0),
+});
+export type BusSettings = z.infer<typeof busSettingsSchema>;
+
+export const stripSettingsSchema = z.object({
+  trim: z.number().min(-24).max(24).default(0),
+  ...busSettingsSchema.shape,
   pan: z.number().min(-1).max(1).default(0),
-  fader: z.number().min(MIN_DB).max(12).default(0),
+});
+export type StripSettings = z.infer<typeof stripSettingsSchema>;
+
+export const stripSchema = stripSettingsSchema.extend({
   mute: z.boolean().default(false),
   solo: z.boolean().default(false),
   bus: z.string().optional(),
@@ -76,10 +86,7 @@ export type DuckSettings = z.infer<typeof duckSettingsSchema>;
 export const busSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
-  highpass: highpassSchema.default({ on: false, freq: 80 }),
-  eq: eqSchema.default({ on: false, bands: DEFAULT_EQ_BANDS }),
-  comp: compSchema.default(OFF_COMP),
-  fader: z.number().min(MIN_DB).max(12).default(0),
+  ...busSettingsSchema.shape,
   mute: z.boolean().default(false),
   solo: z.boolean().default(false),
   duck: duckSettingsSchema.default({
@@ -93,16 +100,18 @@ export const busSchema = z.object({
 });
 export type Bus = z.infer<typeof busSchema>;
 
+export const LOUDNESS_CHOICES = ["off", "web", "podcast", "broadcast"] as const;
+export type LoudnessTarget = (typeof LOUDNESS_CHOICES)[number];
+
 export const LOUDNESS_TARGETS = {
   off: null,
   web: { lufs: -14, truePeak: -1 },
   podcast: { lufs: -16, truePeak: -1 },
   broadcast: { lufs: -23, truePeak: -2 },
-} as const;
-export type LoudnessTarget = keyof typeof LOUDNESS_TARGETS;
+} as const satisfies Record<LoudnessTarget, { lufs: number; truePeak: number } | null>;
 
 export const masterSchema = z.object({
-  fader: z.number().min(MIN_DB).max(12).default(0),
+  fader: z.number().min(MIN_DB).max(MAX_DB).default(0),
   eq: eqSchema.default({ on: false, bands: DEFAULT_EQ_BANDS }),
   comp: compSchema.default({
     on: false,
@@ -118,7 +127,7 @@ export const masterSchema = z.object({
       ceiling: z.number().min(-12).max(0).default(-1),
     })
     .default({ on: false, ceiling: -1 }),
-  loudness: z.enum(["off", "web", "podcast", "broadcast"]).default("off"),
+  loudness: z.enum(LOUDNESS_CHOICES).default("off"),
 });
 export type Master = z.infer<typeof masterSchema>;
 
@@ -149,7 +158,7 @@ export const DEFAULT_BUS_FOR: Record<ChannelKind, string> = {
   clip: "clips",
 };
 
-export type StripPreset = { id: string; label: string; strip: Partial<Strip> };
+export type StripPreset = { id: string; label: string; strip: Partial<StripSettings> };
 
 export const STRIP_PRESETS: StripPreset[] = [
   {

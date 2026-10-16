@@ -1,0 +1,47 @@
+import { clamp, clamp01 } from "@/shared/math";
+
+export const SWEEP_DEG = 270;
+export const START_DEG = -SWEEP_DEG / 2;
+
+export type KnobRange = { min: number; max: number; step: number; log?: boolean };
+
+export function roundToStep(v: number, step: number): number {
+  const decimals = Math.max(0, -Math.floor(Math.log10(step)));
+  return Number((Math.round(v / step) * step).toFixed(decimals));
+}
+
+export const toT = ({ min, max, log }: KnobRange, v: number): number =>
+  log ? Math.log(v / min) / Math.log(max / min) : (v - min) / (max - min);
+
+export function fromT(range: KnobRange, t: number): number {
+  const { min, max, log, step } = range;
+  const c = clamp01(t);
+  return roundToStep(log ? min * (max / min) ** c : min + c * (max - min), step);
+}
+
+export const snapValue = (range: KnobRange, v: number): number =>
+  roundToStep(clamp(v, range.min, range.max), range.step);
+
+export const angleOf = (t: number): number => START_DEG + t * SWEEP_DEG;
+
+export function polar(centre: number, radius: number, deg: number): { x: number; y: number } {
+  const rad = ((deg - 90) * Math.PI) / 180;
+  return { x: centre + radius * Math.cos(rad), y: centre + radius * Math.sin(rad) };
+}
+
+export function arcPath(centre: number, radius: number, from: number, to: number): string {
+  const a = polar(centre, radius, from);
+  const b = polar(centre, radius, to);
+  return `M ${a.x} ${a.y} A ${radius} ${radius} 0 ${to - from > 180 ? 1 : 0} 1 ${b.x} ${b.y}`;
+}
+
+export function parseTyped(text: string): number | null {
+  const v = Number.parseFloat(text.replace(",", ".").replace(/[^\d.+-]/g, ""));
+  return Number.isFinite(v) ? v : null;
+}
+
+export function arrowDirection(key: string): -1 | 0 | 1 {
+  if (key === "ArrowUp" || key === "ArrowRight") return 1;
+  if (key === "ArrowDown" || key === "ArrowLeft") return -1;
+  return 0;
+}

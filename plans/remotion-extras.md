@@ -89,7 +89,7 @@ Already in place:
 - Elements already load lazily, take asset refs resolved by `resolveProps` (`src/video/assets.tsx`) and wait with `delayRender`; `LottieElement` (`src/video/core/lottie.tsx`) is the pattern to copy for loading a file.
 - Wrapper elements (`kind: "wrapper"`) receive the inner clip as `children`, which the 3D screen uses.
 - `fontkit` is already a dependency, used by `src/main/fonts.ts` to read font files, including woff2.
-- Envelope keyframes already have a schema, Inspector widget and Timeline display (`src/shared/timeline/envelope.ts`, `src/renderer/editor/timeline/timeline-view.tsx`), the model for camera keyframes.
+- Envelope keyframes already have a schema, Inspector widget and Timeline display (`src/shared/timeline/envelope.ts`, `src/renderer/editor/timeline/envelope-overlay.tsx`), the model for camera keyframes.
 - `noise3D` from `@remotion/noise` (already a dependency, used by the Noise background) gives seeded, frame-driven drift for the floating shapes.
 
 Missing:

@@ -4,7 +4,7 @@ import type { AudioEnvelopeKey, VisualEnvelopeKey } from "@/shared/schema/timeli
 import { clamp } from "@/shared/math";
 
 export type TimelineTool = "select" | "ripple" | "roll" | "slip" | "blade" | "rate";
-export type RulerMode = "seconds" | "timecode";
+type RulerMode = "seconds" | "timecode";
 
 type Prefs = { rulerMode: RulerMode; snapping: boolean };
 
@@ -24,7 +24,8 @@ type TimelineState = Prefs & {
   videoEnvelope: VisualEnvelopeKey | null;
   audioEnvelope: AudioEnvelopeKey;
   selectedMarker: string | null;
-  setZoom: (pxPerFrame: number, fit?: boolean) => void;
+  setZoom: (pxPerFrame: number) => void;
+  fitToView: () => void;
   setTool: (tool: TimelineTool) => void;
   setSnapping: (on: boolean) => void;
   setRulerMode: (mode: RulerMode) => void;
@@ -33,8 +34,11 @@ type TimelineState = Prefs & {
   selectMarker: (id: string | null) => void;
 };
 
-export const MIN_PX_PER_FRAME = 0.01;
-export const MAX_PX_PER_FRAME = 24;
+const MIN_PX_PER_FRAME = 0.01;
+const MAX_PX_PER_FRAME = 24;
+
+export const clampZoom = (pxPerFrame: number): number =>
+  clamp(pxPerFrame, MIN_PX_PER_FRAME, MAX_PX_PER_FRAME);
 
 export const useTimeline = create<TimelineState>()((set) => ({
   ...storedTimelinePrefs(),
@@ -44,8 +48,8 @@ export const useTimeline = create<TimelineState>()((set) => ({
   videoEnvelope: null,
   audioEnvelope: "volume",
   selectedMarker: null,
-  setZoom: (pxPerFrame, fit = false) =>
-    set({ pxPerFrame: clamp(pxPerFrame, MIN_PX_PER_FRAME, MAX_PX_PER_FRAME), fit }),
+  setZoom: (pxPerFrame) => set({ pxPerFrame: clampZoom(pxPerFrame), fit: false }),
+  fitToView: () => set({ fit: true }),
   setTool: (tool) => set({ tool }),
   setSnapping: (snapping) => {
     set({ snapping });
