@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import {
@@ -16,6 +17,13 @@ import type { MainToWorker, WorkerEnv, WorkerToMain } from "../shared/worker-pro
 import { loginInWindow } from "./browser-windows";
 import { readSecret, writeSecret } from "./secrets";
 import { readSettings } from "./settings";
+import {
+  makeWorkerTemp,
+  removeWorkerTemp,
+  tempEnv,
+  workerTempName,
+  type WorkerKind,
+} from "./worker-temp";
 
 export function engineDir(): string {
   return resolveEngineDir({
@@ -36,13 +44,18 @@ export async function workerEnv(): Promise<WorkerEnv> {
   };
 }
 
-export function spawnWorker(withLive: boolean) {
+export const workerTempRoot = () => path.join(app.getPath("userData"), "tmp");
+
+export function spawnWorker(withLive: boolean, kind: WorkerKind, id: string = randomUUID()) {
   const control = new MessageChannelMain();
   const live = withLive ? new MessageChannelMain() : null;
+  const temp = makeWorkerTemp(workerTempRoot(), workerTempName(kind, id));
   const child = utilityProcess.fork(path.join(__dirname, "worker.cjs"), [], {
     serviceName: "Demoflow worker",
     stdio: "pipe",
+    env: { ...process.env, ...tempEnv(temp) },
   });
+  child.on("exit", () => removeWorkerTemp(temp));
   child.stdout?.on("data", (d: Buffer) => process.stdout.write(`[worker] ${d}`));
   child.stderr?.on("data", (d: Buffer) => process.stderr.write(`[worker] ${d}`));
   child.postMessage(null, live ? [control.port2, live.port2] : [control.port2]);
@@ -110,7 +123,7 @@ export async function startRun(
 ): Promise<void> {
   if (active) throw new Error("A run is already in progress.");
   const env = await workerEnv();
-  const { child, control, live } = spawnWorker(true);
+  const { child, control, live } = spawnWorker(true, "run", runId);
   if (live) onLivePort(live);
   active = { runId, child, control };
   let finished = false;
@@ -181,7 +194,7 @@ export function completeLicences(): Promise<string> {
 export async function installEngine(onEvent: (e: EngineInstallEvent) => void): Promise<void> {
   const env = await workerEnv();
   await new Promise<void>((resolve, reject) => {
-    const { child, control } = spawnWorker(false);
+    const { child, control } = spawnWorker(false, "setup");
     control.on("message", (e) => {
       const msg = e.data as WorkerToMain;
       if (msg.type === "install:progress") onEvent(msg.event);

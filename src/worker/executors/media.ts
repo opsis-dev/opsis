@@ -114,6 +114,24 @@ const trimExecutor = mediaExec(
   },
 );
 
+export function joinFilter(
+  count: number,
+  to: { width: number; height: number; fps: number; sound: boolean },
+): string {
+  const { width: w, height: h } = to;
+  const rate = Math.round(to.fps * 1000) / 1000;
+  const scaled = Array.from(
+    { length: count },
+    (_, i) =>
+      `[${i}:v]scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=${rate}[v${i}]`,
+  ).join(";");
+  const chain = Array.from(
+    { length: count },
+    (_, i) => `[v${i}]${to.sound ? `[${i}:a]` : ""}`,
+  ).join("");
+  return `${scaled};${chain}concat=n=${count}:v=1:a=${to.sound ? 1 : 0}[v]${to.sound ? "[a]" : ""}`;
+}
+
 const concatExecutor = mediaExec(
   "media.concat",
   async (ctx, inputs, p: { forceReencode: boolean }) => {
@@ -137,17 +155,13 @@ const concatExecutor = mediaExec(
       );
     } else {
       ctx.log("info", "The files differ, converting them to match the first one.");
-      const w = probes[0].video?.width ?? 1920;
-      const h = probes[0].video?.height ?? 1080;
       const allAudio = probes.every((x) => x.audio);
-      const scaled = paths
-        .map(
-          (_, i) =>
-            `[${i}:v]scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v${i}]`,
-        )
-        .join(";");
-      const chain = paths.map((_, i) => `[v${i}]${allAudio ? `[${i}:a]` : ""}`).join("");
-      const filter = `${scaled};${chain}concat=n=${paths.length}:v=1:a=${allAudio ? 1 : 0}[v]${allAudio ? "[a]" : ""}`;
+      const filter = joinFilter(paths.length, {
+        width: probes[0].video?.width ?? ctx.workflow.settings.width,
+        height: probes[0].video?.height ?? ctx.workflow.settings.height,
+        fps: probes[0].video?.fps || ctx.workflow.settings.fps,
+        sound: allAudio,
+      });
       await ctx.ffmpeg.run(
         [
           ...paths.flatMap((f) => ["-i", f]),

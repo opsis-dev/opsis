@@ -177,7 +177,7 @@ Missing:
 
 ### What it adds
 
-On a Record take that has run: **Suggest chapters**. Demoflow splits the take where it moves to a new page or pauses, the model names each part ("Create a project", "Invite a teammate"), and the user edits the titles and inserts them. Decided outputs, all four: Chapter actions in the take's chain (the take records again on the next run), Timeline markers at the same moments, chapters written into exported MP4, MOV and MKV files, and a YouTube timestamp list next to the export. The last two come from Chapter actions in general, with or without the assistant; they're planned in `plans/app-gaps.md` (**Chapters in exported files**). Optionally it also names unnamed actions, since an action's name is also its camera, chapter and caption label.
+On a Record take that has run: **Suggest chapters**. Demoflow splits the take where it moves to a new page or pauses, the model names each part ("Create a project", "Invite a teammate"), and the user edits the titles and inserts them. Decided outputs, all four: Chapter actions in the take's chain (the take records again on the next run), Timeline markers at the same moments, chapters written into exported MP4, MOV and MKV files, and a YouTube timestamp list next to the export. The last two come from Chapter actions in general, with or without the assistant; Export video already writes them (**Chapters in exports** in `AGENTS.md`), so Suggest chapters only adds the Chapter actions and markers. Optionally it also names unnamed actions, since an action's name is also its camera, chapter and caption label.
 
 ### Fit with Demoflow
 

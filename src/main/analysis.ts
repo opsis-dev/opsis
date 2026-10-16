@@ -45,7 +45,7 @@ function ensureWorker() {
   if (idleTimer) clearTimeout(idleTimer);
   idleTimer = null;
   if (worker) return worker;
-  const spawned = spawnWorker(false);
+  const spawned = spawnWorker(false, "analysis");
   spawned.control.on("message", (e) => {
     const msg = e.data as WorkerToMain;
     if (msg.type !== "analysis:done") return;

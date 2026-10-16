@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NODE_DEFS } from "../../shared/nodes/registry";
 import { getExecutor } from "./index";
-import { atempoChain, speedArgs } from "./media";
+import { atempoChain, joinFilter, speedArgs } from "./media";
 
 describe("executors", () => {
   it("exist for every node that executes", () => {
@@ -29,5 +29,14 @@ describe("speedArgs", () => {
     const args = speedArgs("in.mp4", "out.mp4", { rate: 64, fps: 29.97003, sound: false });
     expect(args.slice(args.indexOf("-r"), args.indexOf("-r") + 2)).toEqual(["-r", "29.97"]);
     expect(args).toContain("-an");
+  });
+});
+
+describe("joinFilter", () => {
+  it("converts every file to the first file's size and frame rate", () => {
+    const filter = joinFilter(2, { width: 1920, height: 1080, fps: 60, sound: true });
+    expect(filter.match(/fps=60\[/g)).toHaveLength(2);
+    expect(filter).toContain("scale=1920:1080");
+    expect(filter.endsWith("concat=n=2:v=1:a=1[v][a]")).toBe(true);
   });
 });

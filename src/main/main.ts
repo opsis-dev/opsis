@@ -83,7 +83,9 @@ import {
   installEngine,
   isRunning,
   startRun,
+  workerTempRoot,
 } from "./workers";
+import { clearStaleWorkerTemps } from "./worker-temp";
 
 if (started) app.quit();
 
@@ -386,6 +388,7 @@ function registerIpc(): void {
 }
 
 app.whenReady().then(() => {
+  clearStaleWorkerTemps(workerTempRoot());
   registerProtocolHandlers({
     getProjectDir: () => projectDir,
     getFontsDir: fontsDir,
