@@ -50,4 +50,22 @@ describe("FrameEncoder", () => {
       "The video encoder already finished.",
     );
   });
+
+  it("takes frames without waiting for earlier ones to be written, and reports a failure at the end", async () => {
+    const { tools, written } = fakeFfmpeg();
+    const enc = new FrameEncoder(tools, "out.mp4", 10);
+    enc.setOrigin(1000);
+    enc.offer(Buffer.from("A"), 1000);
+    enc.offer(Buffer.from("B"), 1250);
+    enc.offer(Buffer.from("C"), 1400);
+    await enc.finish(1600);
+    expect(written.join("")).toBe("AAABCCC");
+
+    const used = new FrameEncoder(fakeFfmpeg().tools, "out.mp4", 10);
+    await used.finish(0);
+    used.setOrigin(1000);
+    used.offer(Buffer.from("A"), 1000);
+    used.offer(Buffer.from("B"), 1500);
+    await expect(used.finish(2000)).rejects.toThrow("The video encoder already finished.");
+  });
 });

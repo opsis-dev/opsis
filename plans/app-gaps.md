@@ -2,7 +2,7 @@
 
 The limits and bugs that the Shipyard launch-demo build ran into and that are still open, with the work to close each one. The demo's own plan was deleted once the film was built, so this file carries what it found: what users couldn't do, what the demo did instead, where the cause is in the code, and how to fix it.
 
-Status: the first five sections are built and were checked in the app on 2026-10-17 (results under **Checked** in each). **Lost frames and frame rates** is open and comes next; **Known, not planned** stays as it is.
+Status: the first five sections are built and were checked in the app on 2026-10-17 (results under **Checked** in each). In **Lost frames and frame rates**, the lost frames and Change speed's frame rate are fixed (not committed yet); checking the other frame-rate settings is still open. **Known, not planned** stays as it is.
 
 ## How to read this plan
 
@@ -121,7 +121,7 @@ Missing:
 
 ### Checked
 
-On local test pages instead of n8n, Excalidraw and Twenty (their images were no longer on this computer): a pointer-event kanban, a native drag-and-drop palette onto a canvas, and a drawing canvas with a rectangle tool, a pen and a range slider. With the synthetic and the baked cursor, Auto zoom on, 16:9 and 9:16: the webhook lands where it was dropped, the box is 360 × 220, the circle path is drawn, the stroke slider goes from 3 to 20, the baked cursor follows native drag-and-drop, and Preview matches the export. The kanban card drops on the page but the recording misses it: see **Lost frames and frame rates**.
+On local test pages instead of n8n, Excalidraw and Twenty (their images were no longer on this computer): a pointer-event kanban, a native drag-and-drop palette onto a canvas, and a drawing canvas with a rectangle tool, a pen and a range slider. With the synthetic and the baked cursor, Auto zoom on, 16:9 and 9:16: the webhook lands where it was dropped, the box is 360 × 220, the circle path is drawn, the stroke slider goes from 3 to 20, the baked cursor follows native drag-and-drop, and Preview matches the export. The kanban card dropped on the page but the first recordings missed it; after the fix in **Lost frames and frame rates** three takes in a row record the drop.
 
 ## A transition at each cut
 
@@ -284,12 +284,12 @@ A 44.3 s take with three Chapter actions exported as MP4 (16:9 and 9:16), WebM a
 
 ## Lost frames and frame rates
 
-Open. Found while checking the Drag action and the speed limits.
+Found while checking the Drag action and the speed limits. Steps 1 and 2 are done; step 3 is open.
 
 ### What happens
 
-- **A recording can miss a page change.** In the kanban check the card was dropped (the trace's page snapshot after the release reads "pointerdown mousedown pointerup acme->won mouseup"), but the recording shows it lifted until the next page opened 0.8 s later, and 3 s later when the pause after the drag was raised.
-- **Change speed writes 25 fps.** From a 30 fps source, at any rate including 1× (101 frames for 4 s on a test file).
+- **A recording could miss a page change** (fixed). In the kanban check the card was dropped (the trace's page snapshot after the release reads "pointerdown mousedown pointerup acme->won mouseup"), but the recording shows it lifted until the next page opened 0.8 s later, and 3 s later when the pause after the drag was raised.
+- **Change speed wrote 25 fps** (fixed). From a 30 fps source, at any rate including 1× (101 frames for 4 s on a test file).
 - **Frame-rate settings nobody has checked:** projects at 60 fps; Record take at 25, 30 and 60 fps; Join forces 30 fps when the files differ, even in a 60 fps project.
 
 ### Cause
@@ -302,6 +302,11 @@ Open. Found while checking the Drag action and the speed limits.
 1. Take each frame at once and let the encoder catch up from its queue (`push` already chains), surfacing encoder errors at `finish`; re-run the kanban drag in the app.
 2. Change speed keeps the source frame rate.
 3. Check every frame-rate setting (60 fps project, 25/30/60 fps takes, Join in a 60 fps project) and keep only those that pass.
+
+### Checked
+
+- **Step 1:** `FrameEncoder.offer` takes each frame without waiting; the take hands frames over with it. The kanban drag recorded in the app three times: each take shows the card in Won and the page's "dropped in won" 0.25 s after the release and still 2.3 s later. Unit test: frames offered without waiting give the same stream, and an encoder that already ended fails the take at `finish`.
+- **Step 2:** Change speed reads the source's frame rate and writes at it (`speedArgs`, `-r`). On an 8 s, 30 fps file with sound, in the app at 4×: 61 frames at 30 fps, 2.03 s, sound kept. With FFmpeg directly: 240 frames at 1×, 121 at 2×, 5 at 64×, all 30 fps.
 
 ## Known, not planned
 

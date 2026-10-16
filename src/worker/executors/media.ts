@@ -188,28 +188,41 @@ export function atempoChain(rate: number): string {
   return parts.map((x) => `atempo=${x.toFixed(4)}`).join(",");
 }
 
+export function speedArgs(
+  inPath: string,
+  outPath: string,
+  opts: { rate: number; fps: number; sound: boolean },
+): string[] {
+  return [
+    "-i",
+    inPath,
+    "-vf",
+    `setpts=PTS/${opts.rate}`,
+    "-r",
+    String(Math.round(opts.fps * 1000) / 1000),
+    ...(opts.sound ? ["-af", atempoChain(opts.rate)] : ["-an"]),
+    "-c:v",
+    "libx264",
+    "-crf",
+    "18",
+    "-pix_fmt",
+    "yuv420p",
+    outPath,
+  ];
+}
+
 const speedExecutor = mediaExec(
   "media.speed",
   async (ctx, inputs, p: { rate: number; keepAudio: boolean }) => {
     const input = requireMedia(inputs.media);
     const file = "speed.mp4";
+    const probe = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
+    const fps = probe.video?.fps || ctx.workflow.settings.fps;
     await transcode(
       ctx,
       { ...input, durationMs: input.durationMs ? input.durationMs / p.rate : undefined },
-      (i, o) => [
-        "-i",
-        i,
-        "-vf",
-        `setpts=PTS/${p.rate}`,
-        ...(p.keepAudio && input.hasAudio !== false ? ["-af", atempoChain(p.rate)] : ["-an"]),
-        "-c:v",
-        "libx264",
-        "-crf",
-        "18",
-        "-pix_fmt",
-        "yuv420p",
-        o,
-      ],
+      (i, o) =>
+        speedArgs(i, o, { rate: p.rate, fps, sound: p.keepAudio && input.hasAudio !== false }),
       file,
     );
     return mediaResult(ctx, file, `Speed ${p.rate}×`);

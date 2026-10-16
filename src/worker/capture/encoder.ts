@@ -81,6 +81,10 @@ export class FrameEncoder {
     return this.queue;
   }
 
+  offer(jpeg: Buffer, t: number): void {
+    this.push(jpeg, t).catch(() => undefined);
+  }
+
   async finish(t: number): Promise<number> {
     await this.queue;
     await this.advance(t, true);

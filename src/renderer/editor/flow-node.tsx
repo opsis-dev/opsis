@@ -73,19 +73,17 @@ export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<DemoflowF
   }
   const color = CATEGORY_COLORS[def.category] ?? "#71717a";
   const indicator: NodeStatus =
-    status === "running"
-      ? "loading"
-      : status === "done" || status === "cached"
-        ? "success"
-        : status === "error"
-          ? "error"
-          : "initial";
+    status === "running" ? "loading" : status === "error" ? "error" : "initial";
+  const succeeded = status === "done" || status === "cached";
   const inputs = Object.entries(def.inputs);
   const outputs = Object.entries(def.outputs);
   const badge = status ? STATUS[status] : undefined;
 
   return (
     <NodeStatusIndicator status={indicator} variant="border">
+      {succeeded ? (
+        <div className="border-success absolute -top-px -left-px h-[calc(100%+2px)] w-[calc(100%+2px)] rounded-[9px] border-2" />
+      ) : null}
       <BaseNode
         className={cn("w-64", node.disabled && "opacity-50", active && "ring-primary/70 ring-2")}
       >

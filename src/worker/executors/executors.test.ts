@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NODE_DEFS } from "../../shared/nodes/registry";
 import { getExecutor } from "./index";
-import { atempoChain } from "./media";
+import { atempoChain, speedArgs } from "./media";
 
 describe("executors", () => {
   it("exist for every node that executes", () => {
@@ -21,5 +21,13 @@ describe("atempoChain", () => {
 
   it("ends with the remainder", () => {
     expect(atempoChain(3)).toBe("atempo=2.0000,atempo=1.5000");
+  });
+});
+
+describe("speedArgs", () => {
+  it("keeps the source frame rate instead of the 25 fps default", () => {
+    const args = speedArgs("in.mp4", "out.mp4", { rate: 64, fps: 29.97003, sound: false });
+    expect(args.slice(args.indexOf("-r"), args.indexOf("-r") + 2)).toEqual(["-r", "29.97"]);
+    expect(args).toContain("-an");
   });
 });

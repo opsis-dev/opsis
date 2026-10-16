@@ -216,9 +216,9 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
       await page.screencast.start({
         size: session.physicalViewport,
         quality: opts.record?.quality ?? 80,
-        onFrame: async (f) => {
+        onFrame: (f) => {
           live?.frame(f.data, f.viewportWidth, f.viewportHeight, f.timestamp);
-          await opts.encoder?.push(f.data, f.timestamp);
+          opts.encoder?.offer(f.data, f.timestamp);
         },
       });
       if (recording && opts.record!.showActions)

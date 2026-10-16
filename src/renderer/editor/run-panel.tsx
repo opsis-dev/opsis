@@ -1,14 +1,27 @@
-import { FileSearch, Film, FolderOpen, Square, Trash2 } from "lucide-react";
+import {
+  Circle,
+  CircleCheck,
+  CircleSlash,
+  CircleX,
+  FileSearch,
+  Film,
+  FolderOpen,
+  History,
+  Square,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 import { useMemo } from "react";
 import { getNodeDef } from "@/shared/nodes/registry";
 import { exportedArtifacts } from "@/shared/run-progress";
+import type { NodeRunStatus } from "@/shared/schema/events";
 import type { Artifact } from "@/shared/schema/values";
-import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import { Progress } from "@/renderer/components/ui/progress";
 import { TextShimmer } from "@/renderer/components/ui/text-shimmer";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { cn } from "@/renderer/lib/utils";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
@@ -42,14 +55,37 @@ function ArtifactPreview({ artifact }: { artifact: Artifact }) {
   return null;
 }
 
-const STATUS_WORDS: Record<string, string> = {
-  queued: "Waiting",
-  running: "Running",
-  done: "Done",
-  cached: "Up to date",
-  skipped: "Skipped",
-  error: "Failed",
+type RowState = NodeRunStatus | "failedBefore" | "fromLastRun";
+
+const STATUS_ICONS: Record<RowState, { icon: LucideIcon; word: string; className: string }> = {
+  idle: { icon: Circle, word: "Not run", className: "text-muted-foreground" },
+  queued: { icon: Circle, word: "Waiting", className: "text-muted-foreground" },
+  running: { icon: Circle, word: "Running", className: "" },
+  done: { icon: CircleCheck, word: "Done", className: "text-success" },
+  cached: { icon: CircleCheck, word: "Up to date", className: "text-muted-foreground" },
+  skipped: { icon: CircleSlash, word: "Skipped", className: "text-muted-foreground" },
+  error: { icon: CircleX, word: "Failed", className: "text-destructive" },
+  failedBefore: { icon: CircleX, word: "Failed last time", className: "text-destructive/60" },
+  fromLastRun: { icon: History, word: "From last run", className: "text-muted-foreground" },
 };
+
+function StatusIcon({ state }: { state: RowState }) {
+  const { icon: Icon, word, className } = STATUS_ICONS[state];
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={<span className="flex size-4 shrink-0 items-center justify-center" />}
+      >
+        {state === "running" ? (
+          <Spinner aria-label={word} />
+        ) : (
+          <Icon aria-label={word} className={cn("size-4", className)} />
+        )}
+      </TooltipTrigger>
+      <TooltipContent>{word}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 function FailureLine({
   message,
@@ -133,7 +169,7 @@ export function RunPanel() {
   const artifacts = filter ? (results[filter]?.artifacts ?? []) : exported;
 
   return (
-    <div className="grid h-full grid-cols-[minmax(220px,1fr)_2fr_minmax(240px,1.2fr)] divide-x">
+    <div className="grid h-full grid-cols-[minmax(220px,1fr)_2fr_minmax(240px,1.2fr)] grid-rows-[minmax(0,1fr)] divide-x">
       <ScrollArea className="h-full">
         <div className="flex flex-col p-2">
           <div className="flex items-center justify-between px-2 pb-2">
@@ -167,6 +203,7 @@ export function RunPanel() {
           ) : null}
           {rows.map((n) => {
             const status = statuses[n.id];
+            const state: RowState = status ? status : errors[n.id] ? "failedBefore" : "fromLastRun";
             return (
               <button
                 key={n.id}
@@ -178,32 +215,13 @@ export function RunPanel() {
                 )}
               >
                 <div className="flex items-center gap-2 text-xs">
-                  {status === "running" ? <Spinner /> : null}
+                  <StatusIcon state={state} />
                   <span className="flex-1 truncate">
                     {n.label || getNodeDef(n.type)?.title || n.type}
                   </span>
-                  {!status && errors[n.id] ? (
-                    <Badge variant="destructive">Failed last time</Badge>
-                  ) : null}
-                  {status ? (
-                    <Badge
-                      variant={
-                        status === "error"
-                          ? "destructive"
-                          : status === "cached"
-                            ? "secondary"
-                            : "outline"
-                      }
-                    >
-                      {STATUS_WORDS[status] ?? status}
-                    </Badge>
-                  ) : null}
-                  {results[n.id] && !status && !errors[n.id] ? (
-                    <Badge variant="secondary">From last run</Badge>
-                  ) : null}
                 </div>
                 {status === "running" && progress[n.id] ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 pl-6">
                     <Progress className="flex-1" value={Math.round(progress[n.id].value * 100)} />
                     <AnimatedPercent
                       className="text-muted-foreground w-10 text-right text-[11px]"
