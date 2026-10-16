@@ -2,7 +2,7 @@
 
 A 2½-minute launch film for a fictional startup, **Shipyard**, that takes one feature from whiteboard sketch to "we're live and the money's in" — inside seven real open-source apps running locally in Docker. Every frame is real UI driven by Demoflow; nothing is mocked in a design tool. The goal is to exercise almost every node type and editor panel: about 220 nodes in 9 acts.
 
-Status: plan only. Nothing here is built yet. It assumes the Timeline and Mixer panels from `plans/timeline-and-mixer.md` are done; everything else it uses exists today.
+Status: plan only. Nothing here is built yet. Everything it uses exists in the app today, including the Timeline and Mixer.
 
 ## Apps (one `docker compose`, all on localhost)
 
