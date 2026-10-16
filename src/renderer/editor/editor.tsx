@@ -60,11 +60,20 @@ import { useStillsStore } from "../store/stills";
 
 const mod = window.demoflow?.platform === "darwin" ? "⌘" : "Ctrl";
 
-async function save(): Promise<void> {
-  const { projectDir, workflow, revision, markSaved } = useWorkflowStore.getState();
-  if (!projectDir || !workflow) return;
-  await window.demoflow.saveWorkflow(projectDir, workflow);
-  markSaved(revision);
+let saving: Promise<void> = Promise.resolve();
+
+export const whenSaved = (): Promise<void> => saving.catch(() => undefined);
+
+function save(): Promise<void> {
+  saving = saving
+    .catch(() => undefined)
+    .then(async () => {
+      const { projectDir, workflow, revision, markSaved } = useWorkflowStore.getState();
+      if (!projectDir || !workflow) return;
+      await window.demoflow.saveWorkflow(projectDir, workflow);
+      markSaved(revision);
+    });
+  return saving;
 }
 
 async function layout(): Promise<void> {
@@ -83,6 +92,9 @@ function useAutosave() {
     const off = window.demoflow.onFlushSave(() => save());
     return () => {
       off();
+      const state = useWorkflowStore.getState();
+      if (state.revision !== state.savedRevision)
+        save().catch((e: unknown) => toast.error("Save failed", { description: String(e) }));
       window.demoflow.reportUnsaved(false);
     };
   }, []);

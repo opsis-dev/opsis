@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { Editor } from "../editor/editor";
+import { Editor, whenSaved } from "../editor/editor";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
@@ -15,14 +15,18 @@ function EditorRoute() {
   const navigate = useNavigate();
   const loadedDir = useWorkflowStore((s) => (s.workflow ? s.projectDir : null));
   const [error, setError] = useState(false);
+  const opened = useRef(false);
 
   useEffect(() => {
-    if (loadedDir === dir) return;
+    if (loadedDir === dir && opened.current) return;
+    opened.current = true;
     let cancelled = false;
-    window.demoflow
-      .openProject(dir)
+    let done = false;
+    whenSaved()
+      .then(() => window.demoflow.openProject(dir))
       .then((p) => {
         if (cancelled || !p) return;
+        done = true;
         loadViewState(p.dir);
         useWorkflowStore.getState().load(p.dir, p.workflow);
         useRunStore.getState().seed(p.lastRun);
@@ -43,6 +47,7 @@ function EditorRoute() {
       });
     return () => {
       cancelled = true;
+      if (!done) opened.current = false;
     };
   }, [dir, loadedDir, navigate]);
 

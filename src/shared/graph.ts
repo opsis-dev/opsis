@@ -87,6 +87,18 @@ export function downstreamOf(wf: Workflow, nodeId: string): Set<string> {
   return out;
 }
 
+export function runTargets(wf: Workflow): string[] {
+  const executes = (n: WorkflowNode | undefined) =>
+    !!n && !n.disabled && !isStructural(n) && !!getNodeDef(n.type)?.executes;
+  const byId = new Map(wf.nodes.map((n) => [n.id, n]));
+  const outputs = wf.nodes.filter((n) => executes(n) && n.type.startsWith("output."));
+  if (!outputs.length) return wf.nodes.filter(executes).map((n) => n.id);
+  const targets = new Set(outputs.map((n) => n.id));
+  for (const out of outputs)
+    for (const id of downstreamOf(wf, out.id)) if (executes(byId.get(id))) targets.add(id);
+  return [...targets];
+}
+
 export function sessionChain(wf: Workflow, captureNodeId: string): WorkflowNode[] {
   const byId = new Map(wf.nodes.map((n) => [n.id, n]));
   const chain: WorkflowNode[] = [];

@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { WorkflowNode } from "../../shared/schema/workflow";
-import { landedOnSignIn, plainError, samePage, traceGroupTitle } from "./driver";
+import {
+  beforeFirstLoad,
+  hideScript,
+  landedOnSignIn,
+  setupLength,
+  plainError,
+  samePage,
+  traceGroupTitle,
+} from "./driver";
 
 const node = (type: string, params: Record<string, unknown>) =>
   ({ id: "n", type, position: { x: 0, y: 0 }, params }) as unknown as WorkflowNode;
@@ -84,5 +92,97 @@ describe("expired sign-in", () => {
     expect(landedOnSignIn("https://www.saucedemo.com/", "https://www.saucedemo.com/", signIn)).toBe(
       false,
     );
+  });
+});
+
+describe("page scripts before the first page", () => {
+  it("run once per site, before the page's own code", () => {
+    const store = new Map<string, string>();
+    const sessionStorage = {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+    };
+    const ran: string[] = [];
+    const run = new Function("sessionStorage", "ran", beforeFirstLoad("n1", "ran.push('seeded');"));
+    run(sessionStorage, ran);
+    run(sessionStorage, ran);
+    expect(ran).toEqual(["seeded"]);
+  });
+});
+
+describe("hiding clutter", () => {
+  const fakeDocument = (root: object | null) => {
+    let observer: (() => void) | undefined;
+    const doc = {
+      documentElement: root,
+      head: null,
+      createElement: () => ({ textContent: "" }),
+    };
+    class Watch {
+      constructor(cb: () => void) {
+        observer = cb;
+      }
+      observe() {}
+      disconnect() {
+        observer = undefined;
+      }
+    }
+    const run = () =>
+      new Function("document", "MutationObserver", hideScript(".banner { display: none }"))(
+        doc,
+        Watch,
+      );
+    return { doc, run, fire: () => observer?.() };
+  };
+
+  it("adds the style at once when the page has a document", () => {
+    const added: unknown[] = [];
+    const { run } = fakeDocument({ appendChild: (s: unknown) => added.push(s) });
+    run();
+    expect(added).toHaveLength(1);
+  });
+
+  it("waits for the document when it runs before the page exists", () => {
+    const added: unknown[] = [];
+    const page = fakeDocument(null);
+    page.run();
+    expect(added).toHaveLength(0);
+    page.doc.documentElement = { appendChild: (s: unknown) => added.push(s) };
+    page.fire();
+    page.fire();
+    expect(added).toHaveLength(1);
+  });
+});
+
+describe("what happens before the camera rolls", () => {
+  const step = (type: string, params: Record<string, unknown> = {}) => ({
+    id: type,
+    type,
+    position: { x: 0, y: 0 },
+    params,
+  });
+
+  it("keeps waits and invisible steps right after the first page off camera", () => {
+    const steps = [
+      step("browser.setState", { script: "1" }),
+      step("browser.navigate", { url: "https://example.com" }),
+      step("browser.wait", { mode: "element", target: "Board" }),
+      step("browser.hideElements"),
+      step("browser.click", { target: "Open" }),
+      step("browser.wait", { mode: "element", target: "Panel" }),
+    ];
+    expect(setupLength(steps, {})).toBe(4);
+  });
+
+  it("films a fixed pause after the first page", () => {
+    const steps = [
+      step("browser.navigate", { url: "https://example.com" }),
+      step("browser.wait", { mode: "ms", ms: 1500 }),
+    ];
+    expect(setupLength(steps, {})).toBe(1);
+  });
+
+  it("has no setup without a page to open", () => {
+    expect(setupLength([step("browser.press", { keys: "a" })], {})).toBe(0);
   });
 });

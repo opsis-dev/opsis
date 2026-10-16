@@ -583,6 +583,8 @@ function metaOf(key: string, c: Control, extra: Record<string, unknown> = {}): s
     ...(c.unit ? { unit: c.unit } : {}),
     ...(c.help ? { help: c.help } : {}),
     ...(c.advanced ? { advanced: true } : {}),
+    ...(c.widget ? { widget: c.widget } : {}),
+    ...(c.hidden ? { hidden: true } : {}),
   };
   const body = Object.entries(meta)
     .map(([k, v]) => `${k}: ${q(v)}`)
@@ -780,7 +782,17 @@ async function generate(): Promise<void> {
       ].join("\n"),
     );
     let impl = `m.${exportName} as unknown as ElementImpl`;
-    if (item.screen || item.center) {
+    if (item.atEnd) {
+      impl = `playsAtEnd(m.${exportName} as unknown as ElementComponent)`;
+      framing.add("playsAtEnd");
+    } else if (item.paint) {
+      impl = `painted(m.${exportName} as unknown as ElementComponent)`;
+      framing.add("painted");
+    } else if (item.place) {
+      const wrap = item.place === "points" ? "pointsFromSpots" : "placedAt";
+      impl = `${wrap}(m.${exportName} as unknown as ElementComponent)`;
+      framing.add(wrap);
+    } else if (item.screen || item.center) {
       impl = `m.${exportName} as unknown as ElementComponent`;
       if (item.screen) {
         impl = `fitScreen(${impl})`;

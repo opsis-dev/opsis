@@ -21,6 +21,8 @@ export type ControlSpec = {
   advanced?: boolean;
   accept?: string;
   options?: string[];
+  widget?: string;
+  hidden?: boolean;
 };
 
 export type CuratedElement = {
@@ -39,6 +41,9 @@ export type CuratedElement = {
   kind?: "component" | "wrapper" | "presentation";
   center?: boolean;
   screen?: boolean;
+  place?: "spot" | "points";
+  paint?: string;
+  atEnd?: boolean;
   installOnly?: boolean;
 };
 
@@ -441,6 +446,22 @@ const REMOTION_UI: CuratedElement[] = [
   remotionui("particle-field", "background", { title: "Particle field" }),
 ];
 
+function SPOT(label: string, x: number, y: number, prefix = ""): Record<string, ControlSpec> {
+  const xKey = prefix ? `${prefix}X` : "x";
+  const yKey = prefix ? `${prefix}Y` : "y";
+  const fraction = { type: "number", min: 0, max: 1, step: 0.01 } as const;
+  return {
+    [xKey]: {
+      ...fraction,
+      default: x,
+      description: label,
+      widget: "spot",
+      help: "Click the frame to choose the spot.",
+    },
+    [yKey]: { ...fraction, default: y, description: `${label} vertical`, hidden: true },
+  };
+}
+
 const NEUTRAL_DEFAULTS: Record<string, Record<string, unknown>> = {
   "staggered-fade-up": { text: "Ship your demo in minutes" },
   "inline-highlight": { before: "Ship faster with ", highlight: "Acme", after: "." },
@@ -453,6 +474,7 @@ const NEUTRAL_DEFAULTS: Record<string, Record<string, unknown>> = {
     title: "Acme 2.0",
     tagline: "Everything your team needs to ship, in one place.",
   },
+  "punch-lines": { script: "Record it. / Edit it. | One take. | Ship." },
   "status-cycle": {
     prefix: "Acme is",
     statuses: "recording, editing, exporting, live",
@@ -478,6 +500,19 @@ const NEUTRAL_FIXED_PROPS: Record<string, Record<string, unknown>> = {
   },
 };
 
+const PAINTED: Record<string, string> = {
+  typewriter: "white",
+  "shimmer-sweep": "white",
+  "matrix-decode": "white",
+  "slot-machine-roll": "white",
+  "staggered-fade-up": "white",
+  "tracking-in": "white",
+  "rgb-glitch-text": "#fafafa",
+  "strikethrough-replace": "white",
+  "marker-highlight": "white",
+  "inline-highlight": "white",
+};
+
 const LIST: CuratedElement[] = [
   ...remocn("text", [
     "soft-blur-in",
@@ -495,16 +530,43 @@ const LIST: CuratedElement[] = [
     "strikethrough-replace",
     "line-by-line-slide",
   ]),
-  ...remocn("overlay", [
-    "marker-highlight",
-    "inline-highlight",
-    "ink-underline",
-    "scribble-circle",
-    "ink-arrow",
-    "keystroke",
-    "confetti",
-    "radial-burst",
-  ]),
+  ...remocn("overlay", ["marker-highlight", "inline-highlight"]),
+  ...remocn("overlay", ["ink-underline"], {
+    place: "spot",
+    controls: { ...SPOT("Where", 0.5, 0.62) },
+  }),
+  ...remocn("overlay", ["scribble-circle"], {
+    place: "spot",
+    controls: {
+      ...SPOT("Around", 0.5, 0.5),
+      width: {
+        type: "number",
+        default: 420,
+        min: 20,
+        max: 3840,
+        step: 10,
+        unit: "px",
+        description: "Width",
+      },
+      height: {
+        type: "number",
+        default: 220,
+        min: 20,
+        max: 2160,
+        step: 10,
+        unit: "px",
+        description: "Height",
+      },
+    },
+  }),
+  ...remocn("overlay", ["ink-arrow"], {
+    place: "points",
+    controls: {
+      ...SPOT("From", 0.3, 0.72, "from"),
+      ...SPOT("To", 0.48, 0.5, "to"),
+    },
+  }),
+  ...remocn("overlay", ["keystroke", "confetti", "radial-burst"]),
   ...remocn("transition", [
     "whip-pan",
     "push-through",
@@ -530,18 +592,29 @@ const LIST: CuratedElement[] = [
     "shader-perlin-noise",
     "shader-dithering",
   ]),
-  ...remocn("effect", [
-    "crt-screen",
-    "vhs-filter",
-    "halftone-print",
-    "camera-lens",
-    "polaroid",
-    "tv-power-off",
-    "speed-lines",
-    "spring-settle",
-  ]),
+  ...remocn("effect", ["crt-screen", "vhs-filter", "halftone-print", "camera-lens"]),
+  ...remocn("effect", ["polaroid"], { center: true }),
+  ...remocn("effect", ["tv-power-off"], { atEnd: true }),
+  ...remocn("effect", ["speed-lines", "spring-settle"]),
+  ...remocn("ui", ["terminal-simulator"], {
+    controls: {
+      lines: {
+        type: "rows",
+        default: [
+          { text: "deploy --production", type: "command", delay: 0 },
+          { text: "Running tests...", type: "log", delay: 6 },
+          { text: "128 tests passed", type: "success", delay: 10 },
+          { text: "Building the image...", type: "log", delay: 8 },
+          { text: "Image ready in 41s", type: "success", delay: 10 },
+          { text: "Rolling out to everyone...", type: "log", delay: 8 },
+          { text: "Live in production", type: "success", delay: 12 },
+        ],
+        description: "Lines",
+        help: "Each line has text and a type: command, log, success or error. Lines ending in ... pause before the next one.",
+      },
+    },
+  }),
   ...remocn("ui", [
-    "terminal-simulator",
     "glass-code-block",
     "code-morph",
     "logo-enter",
@@ -570,5 +643,19 @@ export const CURATED: CuratedElement[] = LIST.map((item) => ({
     : {}),
   ...(NEUTRAL_FIXED_PROPS[item.name]
     ? { fixedProps: { ...item.fixedProps, ...NEUTRAL_FIXED_PROPS[item.name] } }
+    : {}),
+  ...(PAINTED[item.name]
+    ? {
+        paint: PAINTED[item.name],
+        controls: {
+          ...item.controls,
+          background: {
+            type: "color",
+            default: PAINTED[item.name],
+            description: "Background",
+            help: "Set it to transparent to lay the text over other layers.",
+          },
+        },
+      }
     : {}),
 }));

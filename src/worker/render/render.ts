@@ -101,6 +101,7 @@ export async function renderTimeline(opts: {
       outputLocation: opts.output,
       crf: opts.codec === "prores" || opts.codec === "gif" ? undefined : opts.crf,
       scale: opts.scale,
+      concurrency: 1,
       cancelSignal,
       licenseKey: remotionLicenseKey(opts.env),
       onProgress: ({ progress }) => opts.onProgress(progress),

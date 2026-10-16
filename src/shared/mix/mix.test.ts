@@ -301,7 +301,7 @@ describe("mix filter graphs", () => {
     });
     const job = masterJob(plan, ["/b1.wav", "/b2.wav"], measured);
     expect(job.filter).toBe(
-      "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=10,asetpts=PTS-STARTPTS,loudnorm=I=-14:TP=-1:LRA=11:measured_I=-20.1:measured_TP=-3.2:measured_LRA=4.0:measured_thresh=-30.5:offset=0.1:linear=true:print_format=summary,aresample=48000,alimiter=limit=0.891251:level=false[out]",
+      "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=10,asetpts=PTS-STARTPTS,loudnorm=I=-14:TP=-1:LRA=11:measured_I=-20.1:measured_TP=-3.2:measured_LRA=4.0:measured_thresh=-30.5:offset=0.1:linear=true:print_format=summary,aresample=48000,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
     );
   });
 

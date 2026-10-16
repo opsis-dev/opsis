@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loginDependencies, sessionChain, topoSort, validateWorkflow } from "./graph";
+import { loginDependencies, runTargets, sessionChain, topoSort, validateWorkflow } from "./graph";
 import { todoMvcSample } from "./templates";
 import { GraphBuilder } from "./templates/build";
 
@@ -52,5 +52,29 @@ describe("graph", () => {
     expect(loginDependencies(wf, "rec", { SHOP: "sauce" })).toEqual(["login"]);
     expect(loginDependencies(wf, "rec", {})).toEqual([]);
     expect(loginDependencies(todoMvcSample(), "record", {})).toEqual([]);
+  });
+
+  it("runs every export and the steps that come after one", () => {
+    const g = new GraphBuilder();
+    const title = g.node("title", "fx.core.title", 0, 0);
+    const film = g.node("film", "output.render", 1, 0);
+    g.link(title, film, "clip", "timeline");
+    const gif = g.node("gif", "media.gif", 2, 0);
+    g.link(film, gif, "media", "media");
+    const web = g.node("web", "media.faststart", 3, 0);
+    g.link(gif, web, "media", "media");
+    g.node("loose", "media.import", 0, 1, { path: "a.mp4" });
+    g.node("tidy", "media.faststart", 1, 1);
+    const wf = g.build({ id: "x", name: "x" });
+    expect(runTargets(wf).toSorted()).toEqual(["film", "gif", "web"]);
+    wf.nodes.find((n) => n.id === gif)!.disabled = true;
+    expect(runTargets(wf).toSorted()).toEqual(["film", "web"]);
+  });
+
+  it("runs everything when there is no export", () => {
+    const g = new GraphBuilder();
+    g.node("a", "media.import", 0, 0, { path: "a.mp4" });
+    g.node("b", "media.faststart", 1, 0);
+    expect(runTargets(g.build({ id: "x", name: "x" })).toSorted()).toEqual(["a", "b"]);
   });
 });

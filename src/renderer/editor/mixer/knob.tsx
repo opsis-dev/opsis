@@ -34,7 +34,8 @@ export function Knob({
   const fromT = (t: number) => {
     const c = Math.min(1, Math.max(0, t));
     const v = log ? min * (max / min) ** c : min + c * (max - min);
-    return Math.round(v / step) * step;
+    const decimals = Math.max(0, -Math.floor(Math.log10(step)));
+    return Number((Math.round(v / step) * step).toFixed(decimals));
   };
   const t = Math.min(1, Math.max(0, toT(value)));
   const angle = -135 + t * 270;

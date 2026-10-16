@@ -220,7 +220,9 @@ function masterTail(master: Master, measured?: LoudnessMeasure | null): string[]
     );
   if (master.limiter.on)
     steps.push(
+      `aresample=${SAMPLE_RATE * 4}`,
       `alimiter=limit=${num(Math.max(0.0625, dbToGain(master.limiter.ceiling)))}:level=false`,
+      `aresample=${SAMPLE_RATE}`,
     );
   return steps;
 }

@@ -6,6 +6,7 @@ import {
   downstreamOf,
   isStructural,
   loginDependencies,
+  runTargets,
   topoSort,
   upstreamOf,
   validateWorkflow,
@@ -67,10 +68,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
 
   const executes = (n: WorkflowNode | undefined) =>
     !!n && !n.disabled && !isStructural(n) && !!getNodeDef(n.type)?.executes;
-  const targets = req.targetNodeIds?.length
-    ? req.targetNodeIds
-    : workflow.nodes.filter((n) => executes(n) && n.type.startsWith("output.")).map((n) => n.id);
-  const finalTargets = targets.length ? targets : workflow.nodes.filter(executes).map((n) => n.id);
+  const finalTargets = req.targetNodeIds?.length ? req.targetNodeIds : runTargets(workflow);
   const needed = new Set<string>();
   for (const id of finalTargets) {
     needed.add(id);
@@ -129,7 +127,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
     hashes.set(id, nodeHash(node.type, keyed, upstream));
   }
 
-  const forced = new Set<string>();
+  const forced = new Set<string>(req.targetNodeIds ?? []);
   if (req.fromNodeId) {
     forced.add(req.fromNodeId);
     for (const d of downstreamOf(workflow, req.fromNodeId)) forced.add(d);

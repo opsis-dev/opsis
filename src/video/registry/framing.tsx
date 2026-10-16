@@ -1,6 +1,6 @@
 import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
-import { AbsoluteFill, Sequence } from "remotion";
+import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
 import type { ElementProps } from "../../shared/elements/types";
 
 export type ElementComponent = React.ComponentType<ElementProps & { children?: React.ReactNode }>;
@@ -49,4 +49,57 @@ export function fitScreen(Component: ElementComponent): ElementComponent {
     <Component {...props}>{children ? <ScreenFit>{children}</ScreenFit> : undefined}</Component>
   );
   return Fitted;
+}
+
+export function placedAt(Component: ElementComponent): ElementComponent {
+  const Placed: ElementComponent = ({ x, y, ...props }) => {
+    const { width, height } = useVideoConfig();
+    const left = Number(x ?? 0.5) * width - Number(props.width ?? 0) / 2;
+    const top = Number(y ?? 0.5) * height - Number(props.height ?? 0) / 2;
+    return (
+      <AbsoluteFill>
+        <div style={{ position: "absolute", left, top }}>
+          <Component {...props} />
+        </div>
+      </AbsoluteFill>
+    );
+  };
+  return Placed;
+}
+
+export function pointsFromSpots(Component: ElementComponent): ElementComponent {
+  const Pointed: ElementComponent = ({ fromX, fromY, toX, toY, ...props }) => {
+    const { width, height } = useVideoConfig();
+    const point = (x: unknown, y: unknown) => ({ x: Number(x) * width, y: Number(y) * height });
+    return (
+      <AbsoluteFill>
+        <Component {...props} from={point(fromX, fromY)} to={point(toX, toY)} />
+      </AbsoluteFill>
+    );
+  };
+  return Pointed;
+}
+
+const PAINT_RULE = ".df-painted > div { background: var(--df-paint) !important; }";
+
+export function painted(Component: ElementComponent): ElementComponent {
+  const Painted: ElementComponent = ({ background, ...props }) => (
+    <AbsoluteFill
+      className="df-painted"
+      style={{ "--df-paint": String(background ?? "transparent") } as React.CSSProperties}
+    >
+      <style>{PAINT_RULE}</style>
+      <Component {...props} />
+    </AbsoluteFill>
+  );
+  return Painted;
+}
+
+export function playsAtEnd(Component: ElementComponent): ElementComponent {
+  const AtEnd: ElementComponent = (props) => {
+    const { durationInFrames } = useVideoConfig();
+    const length = Number(props.durationInFrames) || 0;
+    return <Component {...props} delay={Math.max(0, durationInFrames - length)} />;
+  };
+  return AtEnd;
 }

@@ -373,7 +373,7 @@ export const setStateNode = defineNode({
   title: "Run page script",
   icon: "braces",
   description:
-    "Runs a small script in the page before recording, e.g. to skip onboarding or turn on a feature.",
+    "Runs a small script in the page, e.g. to skip onboarding or turn on a feature. Put it before Go to page to run it as the site first opens.",
   params: z.object({
     script: text("localStorage.setItem('onboarded', '1');", "Script", "code"),
     reload: bool(false, "Reload the page after"),
@@ -485,11 +485,14 @@ export const overlayHtmlNode = defineNode({
   description: "Shows your own HTML on top of the page while recording.",
   params: z.object({
     html: text('<div style="font:600 32px system-ui">Hello</div>', "HTML", "code"),
-    durationMs: ms(2000, "Shown for"),
+    durationMs: more(ms(2000, "Shown for"), {
+      help: "The next actions carry on while it's shown.",
+      zeroLabel: "Until the end",
+    }),
   }),
   card: ({ params: p }) => [
     row("code-xml", clip(p.html.replace(/<[^>]+>/g, " "), 36) || "HTML", { title: p.html }),
-    row("timer", secs(p.durationMs)),
+    row("timer", p.durationMs ? secs(p.durationMs) : "Until the end"),
   ],
 });
 

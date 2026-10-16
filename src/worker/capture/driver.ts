@@ -223,9 +223,9 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
         await page.screencast.showActions({ cursor: "pointer", duration: 600 });
     }
 
-    const firstNav = steps.findIndex((n) => n.type === "browser.navigate");
-    const setup = firstNav >= 0 ? steps.slice(0, firstNav + 1) : [];
-    const main = firstNav >= 0 ? steps.slice(firstNav + 1) : steps;
+    const setupEnd = setupLength(steps, vars);
+    const setup = steps.slice(0, setupEnd);
+    const main = steps.slice(setupEnd);
 
     const run = async (node: WorkflowNode) => {
       if (signal.aborted) throw new Error("Cancelled");
@@ -281,7 +281,7 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
             nodeId: node.id,
           });
           if (ctx) await ctx.pause(p.after);
-          else await page.waitForTimeout(500);
+          else await page.waitForTimeout(Math.max(500, p.after));
           if (opts.signIn && landedOnSignIn(p.url, page.url(), opts.signIn.url))
             throw new SignInExpiredError(opts.signIn.name);
           return;
@@ -438,6 +438,10 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
         }
         case "browser.setState": {
           const p = parsed<Params<typeof setStateNode>>(node, vars);
+          if (page.url() === "about:blank") {
+            await session.context.addInitScript({ content: beforeFirstLoad(node.id, p.script) });
+            return;
+          }
           await page.evaluate(`(async () => { ${p.script}\n })()`);
           if (p.reload) await page.reload();
           return;
@@ -471,7 +475,7 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
           ];
           if (selectors.length) {
             const css = `${selectors.join(",\n")} { display: none !important; visibility: hidden !important; }`;
-            const script = `(() => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(css)}; (document.head || document.documentElement).appendChild(s); })()`;
+            const script = hideScript(css);
             await session.context.addInitScript({ content: script });
             await page.evaluate(script).catch(() => undefined);
           }
@@ -498,7 +502,10 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
         }
         case "browser.overlayHtml": {
           const p = parsed<Params<typeof overlayHtmlNode>>(node, vars);
-          if (recording) await page.screencast.showOverlay(p.html, { duration: p.durationMs });
+          if (!recording) return;
+          const overlay = await page.screencast.showOverlay(p.html);
+          if (p.durationMs > 0)
+            setTimeout(() => void overlay.dispose().catch(() => undefined), p.durationMs);
           return;
         }
         case "browser.session":
@@ -660,4 +667,35 @@ async function resolveTarget(
     candidates.map((c) => c.by),
     await dumpVisible(page),
   );
+}
+
+const OFF_CAMERA = new Set([
+  "browser.hideElements",
+  "browser.setState",
+  "browser.mockRoute",
+  "browser.freezeClock",
+  "browser.hoist",
+]);
+
+export function setupLength(steps: WorkflowNode[], vars: Record<string, string>): number {
+  const firstNav = steps.findIndex((n) => n.type === "browser.navigate");
+  if (firstNav < 0) return 0;
+  let end = firstNav + 1;
+  for (; end < steps.length; end++) {
+    const node = steps[end];
+    if (OFF_CAMERA.has(node.type)) continue;
+    if (node.type === "browser.wait" && parsed<{ mode: string }>(node, vars).mode !== "ms")
+      continue;
+    break;
+  }
+  return end;
+}
+
+export function hideScript(css: string): string {
+  return `(() => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(css)}; const add = () => (document.head || document.documentElement).appendChild(s); if (document.documentElement) { add(); return; } const watch = new MutationObserver(() => { if (!document.documentElement) return; watch.disconnect(); add(); }); watch.observe(document, { childList: true }); })()`;
+}
+
+export function beforeFirstLoad(id: string, script: string): string {
+  const key = JSON.stringify(`demoflow-script:${id}`);
+  return `(() => { try { if (sessionStorage.getItem(${key})) return; sessionStorage.setItem(${key}, "1"); } catch { return; } ${script}\n })();`;
 }
