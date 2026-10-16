@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { clip, elementRow, missing, quote, row, secs, shortUrl } from "./card";
+import { clip, elementRow, missing, quote, row, secs, shortUrl, type CardRow } from "./card";
 import { defineNode, port } from "./define";
 import {
   asset,
@@ -194,6 +194,83 @@ export const hoverNode = defineNode({
   card: ({ params: p, raw }) => [
     elementRow("mouse-pointer-2", p.target, raw),
     row("hourglass", `Hover ${secs(p.hoverMs)}`),
+    pause(p.after),
+    zoomRow(p),
+  ],
+});
+
+const PATH_PRESETS = {
+  Circle:
+    "0, 0\n9, -46\n35, -85\n74, -111\n120, -120\n166, -111\n205, -85\n231, -46\n240, 0\n231, 46\n205, 85\n166, 111\n120, 120\n74, 111\n35, 85\n9, 46\n0, 0",
+  Tick: "0, 0\n40, 40\n120, -80",
+  Zigzag: "0, 0\n60, -60\n120, 0\n180, -60\n240, 0",
+  Square: "0, 0\n200, 0\n200, 200\n0, 200\n0, 0",
+};
+
+const onto = (r: CardRow): CardRow => (r.tone === "warn" ? r : { ...r, text: `Onto ${r.text}` });
+
+const pathPoints = (path: string) => path.split("\n").filter((line) => line.trim()).length;
+
+const distance = (description: string, def: number) =>
+  z
+    .number()
+    .int()
+    .min(-10_000)
+    .max(10_000)
+    .default(def)
+    .meta({ description, step: 10, unit: "px", showIf: { mode: ["by"] } });
+
+export const dragNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.drag",
+  title: "Drag",
+  icon: "grab",
+  description:
+    "Drags an element onto another one, by a distance, or along a path, like moving a card or drawing a shape.",
+  params: z.object({
+    target: target(
+      "Element to drag",
+      "Pick it on the page, type its visible text, or give a spot as across, down.",
+    ),
+    mode: choice(["element", "by", "path"], "element", "Drag", {
+      element: "Onto an element",
+      by: "By a distance",
+      path: "Along a path",
+    }),
+    to: more(optionalTarget("Drop on"), { showIf: { mode: ["element"] } }),
+    dx: distance("Across", 300),
+    dy: distance("Down", 0),
+    path: more(text("", "Path", "textarea"), {
+      help: "One point per line, as across, down in pixels from where the drag starts.",
+      presets: Object.entries(PATH_PRESETS).map(([label, path]) => ({
+        label,
+        values: { path },
+      })),
+      showIf: { mode: ["path"] },
+    }),
+    holdMs: ms(150, "Hold before moving", 5000),
+    dragMs: more(ms(0, "Drag time", 10_000), { zeroLabel: "Auto" }),
+    method: more(
+      choice(["smooth", "quick"], "smooth", "How", {
+        smooth: "Smooth, with the cursor",
+        quick: "Quick, for pages that ignore the smooth drag",
+      }),
+      { advanced: true },
+    ),
+    ...beatFields,
+    ...pointerFields,
+    hoverMs: ms(220, "Hover before picking it up", 10_000),
+  }),
+  card: ({ params: p, raw }) => [
+    elementRow("grab", p.target, raw),
+    p.mode === "element"
+      ? onto(elementRow("move", p.to, raw, "to", "Pick where to drop it"))
+      : p.mode === "by"
+        ? row("move", `By ${p.dx}, ${p.dy} px`)
+        : pathPoints(p.path)
+          ? row("spline", `Along ${pathPoints(p.path)} points`)
+          : missing("spline", "Add points to the path"),
     pause(p.after),
     zoomRow(p),
   ],
@@ -502,6 +579,7 @@ export const browserNodes = [
   clickNode,
   typeNode,
   hoverNode,
+  dragNode,
   scrollNode,
   selectNode,
   uploadNode,

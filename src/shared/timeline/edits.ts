@@ -1,3 +1,4 @@
+import { MAX_SPEED } from "../nodes/params";
 import { getNodeDef, defaultParams } from "../nodes/registry";
 import type { ParamRef } from "../schema/timeline";
 import type { Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
@@ -413,12 +414,12 @@ export function speedBar(ctx: EditContext, bar: VideoBar, newLength: number): Ed
   if (owner && owns(owner.link, ctx.workflow)) {
     const ref = owner.link.handles!.speed!;
     const rate = readParam(ctx.workflow, ref) || 1;
-    const next = Math.min(16, Math.max(0.1, Math.round(rate * factor * 100) / 100));
+    const next = Math.min(MAX_SPEED, Math.max(0.1, Math.round(rate * factor * 100) / 100));
     return ok(writeParam(ctx.workflow, ref, next));
   }
   const edge = slotEdge(ctx, bar);
   if (!edge) return fail("Connect this clip to an export or a sequence to change its speed here.");
-  const rate = Math.min(16, Math.max(0.1, Math.round(factor * 100) / 100));
+  const rate = Math.min(MAX_SPEED, Math.max(0.1, Math.round(factor * 100) / 100));
   const { workflow, node } = insertOnEdge(
     ctx,
     ctx.workflow,
@@ -474,21 +475,41 @@ export function splitBar(ctx: EditContext, bar: VideoBar, at: number): EditResul
   const container = wf.nodes.find((n) => n.id === edge.target);
   const used = new Set(wf.edges.filter((e) => e.target === edge.target).map((e) => e.targetHandle));
   const port = SEQ_PORTS.indexOf(edge.targetHandle);
+  const lastUsed = Math.max(-1, ...[...used].map((h) => SEQ_PORTS.indexOf(h)));
   const inPlace =
-    container?.type === "timeline.sequence" &&
-    container.params.transition === "none" &&
-    port !== -1 &&
-    used.size < SEQ_PORTS.length;
+    container?.type === "timeline.sequence" && port !== -1 && lastUsed < SEQ_PORTS.length - 1;
   if (inPlace) {
-    const shifted = wf.edges.map((e) => {
-      if (e.target !== edge.target) return e;
-      const k = SEQ_PORTS.indexOf(e.targetHandle);
-      if (k <= port) return e;
-      return makeEdge({ ...e, targetHandle: SEQ_PORTS[k + 1] });
+    const shiftPort = (handle: string) => {
+      const k = SEQ_PORTS.indexOf(handle);
+      return k <= port ? handle : SEQ_PORTS[k + 1];
+    };
+    const cuts: Array<Record<string, unknown>> = (
+      (container.params.cuts ?? []) as Array<Record<string, unknown>>
+    ).flatMap((c) => {
+      const before = shiftPort(String(c.before));
+      return before ? [{ ...c, before }] : [];
     });
+    if ((container.params.transition ?? "core/fade") !== "none")
+      cuts.push({
+        before: SEQ_PORTS[port + 1],
+        transition: "none",
+        transitionDuration: 15,
+        keepWhole: false,
+      });
+    const shifted = wf.edges.map((e) =>
+      e.target === edge.target && SEQ_PORTS.includes(e.targetHandle)
+        ? makeEdge({ ...e, targetHandle: shiftPort(e.targetHandle) })
+        : e,
+    );
     wf = {
       ...wf,
-      nodes: [...wf.nodes, head, tail],
+      nodes: [
+        ...wf.nodes.map((n) =>
+          n.id === container.id ? { ...n, params: { ...n.params, cuts } } : n,
+        ),
+        head,
+        tail,
+      ],
       edges: [
         ...shifted.filter((e) => e.id !== edge.id),
         feed(head.id),

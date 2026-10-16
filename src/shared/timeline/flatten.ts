@@ -78,6 +78,7 @@ export type TransitionMark = {
   kind: string;
   lanes: number[];
   covers: number;
+  slot?: Slot;
 };
 
 export type ActionMark = {
@@ -229,6 +230,7 @@ export function flattenSpec(
             to: end,
             kind: item.enter.kind,
             covers: item.enter.hold ? 0 : (end - from) / Math.max(1e-6, Math.min(length, before)),
+            ...(item.slot ? { slot: item.slot } : {}),
           });
         }
         if (item.component === "core/group") {
@@ -429,6 +431,8 @@ function actionLabel(a: Action): string {
       return what ? `Press ${what}` : "Press keys";
     case "chapter":
       return what || "Chapter";
+    case "drag":
+      return what ? `Drag ${what}` : "Drag";
     default:
       return what || a.kind;
   }

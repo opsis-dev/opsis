@@ -18,6 +18,7 @@ import {
 } from "../shared/ipc";
 import type { AppSettings, SettingsPatch } from "../shared/settings";
 import type { RunEvent } from "../shared/schema/events";
+import { applyRunEvent, emptyRunProgress, type RunProgress } from "../shared/run-progress";
 import { pickInWindow } from "./browser-windows";
 import type { WindowRole } from "../shared/menu";
 import { buildMenu, runWindowRole } from "./menu";
@@ -195,9 +196,18 @@ function handleFrom<A extends unknown[], R>(
   });
 }
 
+let runProgress: RunProgress | null = null;
+
 function emitRun(event: RunEvent, total: { count: number; done: number }) {
   mainWindow?.webContents.send(IPC.runEvent, event);
   apiRunEvent(event);
+  runProgress =
+    event.type === "run:done"
+      ? null
+      : applyRunEvent(
+          event.type === "run:start" || !runProgress ? emptyRunProgress(event.runId) : runProgress,
+          event,
+        );
   if (event.type === "run:start") {
     total.count = Math.max(1, event.nodeIds.length);
     total.done = 0;
@@ -310,10 +320,14 @@ function registerIpc(): void {
     return { runId };
   });
   handle(IPC.cancel, () => cancelRun());
-  handle(IPC.runStatus, () => ({
-    runId: activeRunId(),
-    projectDir: isRunning() ? projectDir : null,
-  }));
+  handle(IPC.runStatus, () => {
+    const runId = activeRunId();
+    return {
+      runId,
+      projectDir: isRunning() ? projectDir : null,
+      progress: runId && runProgress?.runId === runId ? runProgress : emptyRunProgress(runId),
+    };
+  });
   handle(IPC.pick, (request: PickRequest) => pickInWindow(mainWindow, request));
   handle(IPC.env, () => environment());
   handle(IPC.installEngine, () =>

@@ -6,7 +6,13 @@
     "width": 1920,
     "height": 1080,
     "fps": 30,
-    "theme": "dark"
+    "theme": "dark",
+    "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+    }
   },
   "variables": {
     "Product name": "Acme",
@@ -30,7 +36,9 @@
         "accent": "#a78bfa",
         "background": "transparent",
         "fontSize": 112,
-        "clipDuration": 75
+        "fontFamily": "",
+        "clipDuration": 75,
+        "envelope": {}
       }
     },
     {
@@ -42,14 +50,52 @@
       },
       "params": {
         "prompt": "$",
-        "title": "~/projects/remocn",
+        "title": "~/projects/acme",
         "background": "#0a0a0a",
         "chromeColor": "#1a1a1a",
         "fontSize": 18,
         "charsPerFrame": 1,
         "chunkSize": 1,
+        "lines": [
+          {
+            "text": "deploy --production",
+            "type": "command",
+            "delay": 0
+          },
+          {
+            "text": "Running tests...",
+            "type": "log",
+            "delay": 6
+          },
+          {
+            "text": "128 tests passed",
+            "type": "success",
+            "delay": 10
+          },
+          {
+            "text": "Building the image...",
+            "type": "log",
+            "delay": 8
+          },
+          {
+            "text": "Image ready in 41s",
+            "type": "success",
+            "delay": 10
+          },
+          {
+            "text": "Rolling out to everyone...",
+            "type": "log",
+            "delay": 8
+          },
+          {
+            "text": "Live in production",
+            "type": "success",
+            "delay": 12
+          }
+        ],
         "speed": 1,
-        "clipDuration": 150
+        "clipDuration": 150,
+        "envelope": {}
       }
     },
     {
@@ -64,7 +110,8 @@
         "gap": 16,
         "staggerFrames": 6,
         "speed": 1,
-        "clipDuration": 120
+        "clipDuration": 120,
+        "envelope": {}
       }
     },
     {
@@ -81,7 +128,9 @@
         "accent": "#a78bfa",
         "color": "#fafafa",
         "panel": "rgba(10,10,12,0.72)",
-        "clipDuration": 120
+        "fontFamily": "",
+        "clipDuration": 120,
+        "envelope": {}
       }
     },
     {
@@ -96,7 +145,8 @@
         "to": "#0f172a",
         "angle": 135,
         "grain": 0.08,
-        "clipDuration": 90
+        "clipDuration": 90,
+        "envelope": {}
       }
     },
     {
@@ -108,7 +158,8 @@
       },
       "params": {
         "duration": "last",
-        "offsetsMs": ""
+        "offsetsMs": "",
+        "keepLayout": false
       }
     },
     {
@@ -120,7 +171,9 @@
       },
       "params": {
         "transition": "core/slide",
-        "transitionDuration": 15
+        "transitionDuration": 15,
+        "keepWhole": false,
+        "cuts": []
       }
     },
     {
@@ -137,6 +190,8 @@
         "variants": ["16:9", "1:1"],
         "reframe": "follow",
         "scale": 1,
+        "chapters": true,
+        "chapterList": false,
         "faststart": true,
         "gl": "angle"
       }

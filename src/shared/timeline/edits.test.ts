@@ -152,6 +152,17 @@ describe("timeline edits that add nodes", () => {
     expect(len(flat(next).bars[0])).toBeCloseTo(45, 0);
   });
 
+  it("speeds a clip up to 64× and no further", () => {
+    const wf = single();
+    const [bar] = flat(wf).bars;
+    const fast = applied(speedBar(ctxFor(wf), bar, 2));
+    expect(fast.nodes.find((n) => n.type === "timeline.speed")?.params.rate).toBe(45);
+    const fastest = applied(speedBar(ctxFor(fast), flat(fast).bars[0], 1));
+    expect(fastest.nodes.find((n) => n.type === "timeline.speed")?.params.rate).toBe(64);
+    const capped = applied(speedBar(ctxFor(wf), bar, 1));
+    expect(capped.nodes.find((n) => n.type === "timeline.speed")?.params.rate).toBe(64);
+  });
+
   it("slips the content without changing the length", () => {
     const wf = build((g) => {
       g.node("t", TITLE, 0, 0, { clipDuration: 90 });
@@ -206,6 +217,66 @@ describe("timeline edits that add nodes", () => {
       [20, 60],
       [60, 120],
     ]);
+  });
+
+  it("splits in place inside a sequence with a transition, keeping each cut on its clip", () => {
+    const wf = build((g) => {
+      g.node("a", TITLE, 0, 0, { title: "A", clipDuration: 60 });
+      g.node("b", TITLE, 0, 1, { title: "B", clipDuration: 60 });
+      g.node("c", TITLE, 0, 2, { title: "C", clipDuration: 60 });
+      g.node("seq", "timeline.sequence", 2, 0, {
+        transition: "core/fade",
+        transitionDuration: 10,
+        cuts: [
+          { before: "in3", transition: "core/wipe", transitionDuration: 20, keepWhole: false },
+        ],
+      });
+      g.link("a", "seq", "clip", "in1")
+        .link("b", "seq", "clip", "in2")
+        .link("c", "seq", "clip", "in3");
+      return "seq";
+    });
+    const first = flat(wf).bars.find((b) => b.nodeId === "a")!;
+    const next = applied(splitBar(ctxFor(wf), first, 20));
+    const seqs = next.nodes.filter((n) => n.type === "timeline.sequence");
+    expect(seqs).toHaveLength(1);
+    expect(seqs[0].params.cuts).toEqual([
+      { before: "in4", transition: "core/wipe", transitionDuration: 20, keepWhole: false },
+      { before: "in2", transition: "none", transitionDuration: 15, keepWhole: false },
+    ]);
+    const marks = flat(next).transitions.map((t) => [t.kind, t.slot?.port]);
+    expect(marks).toEqual([
+      ["core/fade", "in3"],
+      ["core/wipe", "in4"],
+    ]);
+    const bars = flat(next).bars.toSorted((x, y) => x.from - y.from);
+    expect(bars.map((x) => [Math.round(x.from), Math.round(x.to)])).toEqual([
+      [0, 20],
+      [20, 60],
+      [50, 110],
+      [90, 150],
+    ]);
+  });
+
+  it("keeps a cut's own transition when rolling it", () => {
+    const wf = build((g) => {
+      g.node("a", TITLE, 0, 0, { title: "A", clipDuration: 60 });
+      g.node("b", TITLE, 0, 1, { title: "B", clipDuration: 60 });
+      g.node("seq", "timeline.sequence", 2, 0, {
+        transition: "none",
+        cuts: [{ before: "in2", transition: "core/wipe", transitionDuration: 10, keepWhole: true }],
+      });
+      g.link("a", "seq", "clip", "in1").link("b", "seq", "clip", "in2");
+      return "seq";
+    });
+    const bars = flat(wf).bars;
+    const a = bars.find((b) => b.nodeId === "a")!;
+    const b = bars.find((x) => x.nodeId === "b")!;
+    const next = applied(rollCut(ctxFor(wf), a, b, 12));
+    expect(next.nodes.find((n) => n.id === "seq")!.params.cuts).toEqual(
+      wf.nodes.find((n) => n.id === "seq")!.params.cuts,
+    );
+    expect(flat(next).transitions.map((t) => t.kind)).toEqual(["core/wipe"]);
   });
 
   it("rolls the cut between two clips without changing the total", () => {
@@ -367,6 +438,11 @@ describe("flattening", () => {
     });
     const f = flat(wf);
     expect(f.transitions).toHaveLength(1);
-    expect(f.transitions[0]).toMatchObject({ from: 45, to: 60, kind: "core/fade" });
+    expect(f.transitions[0]).toMatchObject({
+      from: 45,
+      to: 60,
+      kind: "core/fade",
+      slot: { nodeId: "seq", port: "in2" },
+    });
   });
 });

@@ -173,7 +173,7 @@ const concatExecutor = mediaExec(
   },
 );
 
-function atempoChain(rate: number): string {
+export function atempoChain(rate: number): string {
   const parts: number[] = [];
   let r = rate;
   while (r > 2) {

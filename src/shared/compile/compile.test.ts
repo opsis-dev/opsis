@@ -299,3 +299,48 @@ describe("sounds under a clip", () => {
     expect(sound.from).toBe(Math.round(mark.frame) - 6);
   });
 });
+
+describe("a transition at each cut", () => {
+  const sequence = (cuts: unknown[], clips = ["in1", "in2", "in3"]) => {
+    const g = new GraphBuilder();
+    for (const [i, port] of clips.entries()) {
+      g.node(`c${i}`, "fx.core.title", 0, i, { clipDuration: 60 });
+      g.link(`c${i}`, "seq", "clip", port);
+    }
+    g.node("seq", "timeline.sequence", 1, 0, {
+      transition: "core/fade",
+      transitionDuration: 10,
+      cuts,
+    });
+    g.node("out", "output.render", 2, 0);
+    g.link("seq", "out", "clip", "timeline");
+    return compileWorkflow(g.build({ id: "x", name: "x" })).specs.out.tracks[0].items;
+  };
+  const enters = (items: TimelineSpec["tracks"][number]["items"]) =>
+    items.map((i) => (i.enter ? [i.enter.kind, i.enter.durationInFrames, !!i.enter.hold] : null));
+
+  it("uses each cut's own transition and length, and the default elsewhere", () => {
+    const items = sequence([
+      { before: "in3", transition: "core/wipe", transitionDuration: 20, keepWhole: true },
+    ]);
+    expect(enters(items)).toEqual([null, ["core/fade", 10, false], ["core/wipe", 20, true]]);
+    expect(items[1].exit?.kind).toBe("core/wipe");
+  });
+
+  it("plays a plain cut where a cut says none", () => {
+    const items = sequence([{ before: "in2", transition: "none", transitionDuration: 15 }]);
+    expect(enters(items)).toEqual([null, null, ["core/fade", 10, false]]);
+  });
+
+  it("ignores a cut for a port with no clip, and the last entry for a port wins", () => {
+    const items = sequence(
+      [
+        { before: "in5", transition: "core/wipe", transitionDuration: 20 },
+        { before: "in2", transition: "core/slide", transitionDuration: 12 },
+        { before: "in2", transition: "core/iris", transitionDuration: 8 },
+      ],
+      ["in1", "in2"],
+    );
+    expect(enters(items)).toEqual([null, ["core/iris", 8, false]]);
+  });
+});

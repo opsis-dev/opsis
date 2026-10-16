@@ -10,6 +10,9 @@ export type ClickEvent = {
   cluster?: string;
   zoom?: boolean;
   zoomScale?: number;
+  tUpMs?: number;
+  path?: Array<{ x: number; y: number }>;
+  drop?: { x: number; y: number; w: number; h: number };
 };
 
 export type CursorSample = {

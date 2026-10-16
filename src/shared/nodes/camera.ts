@@ -20,7 +20,7 @@ import type { Action } from "../schema/actions";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import { row, secs } from "./card";
 import { defineNode, port, type CompileOutputs } from "./define";
-import { bool, choice, fraction, more, ms, text } from "./params";
+import { bool, choice, fraction, MAX_SPEED, more, ms, text } from "./params";
 
 const base = { category: "Camera", phase: "compile" } as const;
 const modifier = {
@@ -297,7 +297,7 @@ export const idleSpeedupNode = defineNode({
     rate: z
       .number()
       .min(1.5)
-      .max(16)
+      .max(MAX_SPEED)
       .default(4)
       .meta({ description: "Speed while quiet", step: 0.5, unit: "×" }),
   }),
@@ -350,7 +350,7 @@ export const speedRampNode = defineNode({
           rate: z
             .number()
             .min(0.1)
-            .max(16)
+            .max(MAX_SPEED)
             .default(2)
             .meta({ description: "Speed", step: 0.1, unit: "×" }),
         }),

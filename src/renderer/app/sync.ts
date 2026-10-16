@@ -31,6 +31,8 @@ type RunSnapshot = Pick<
   | "results"
   | "outputs"
   | "lastError"
+  | "failedNodeIds"
+  | "skippedNodeIds"
 >;
 
 type Selection = { selectedIds: string[]; activeIds: string[]; pinnedSource: string | null };
@@ -91,6 +93,8 @@ const runSnapshot = (): RunSnapshot => {
     results: s.results,
     outputs: s.outputs,
     lastError: s.lastError,
+    failedNodeIds: s.failedNodeIds,
+    skippedNodeIds: s.skippedNodeIds,
   };
 };
 

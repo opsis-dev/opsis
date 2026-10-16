@@ -65,8 +65,11 @@ export function cursorAt(
     if (c.tDownMs == null) continue;
     const since = tS - c.tDownMs / 1000;
     if (since < 0) continue;
-    if (since <= CLICK_SQUASH_S) {
-      squash = Math.min(squash, mix(CLICK_SQUASH, 1, clamp(since / CLICK_SQUASH_S, 0, 1)));
+    const held = c.tUpMs != null ? Math.max(0, (c.tUpMs - c.tDownMs) / 1000) : 0;
+    const released = since - held;
+    if (released <= 0) squash = Math.min(squash, CLICK_SQUASH);
+    else if (released <= CLICK_SQUASH_S) {
+      squash = Math.min(squash, mix(CLICK_SQUASH, 1, clamp(released / CLICK_SQUASH_S, 0, 1)));
     }
     if (since <= RIPPLE_S) ripple = clamp(since / RIPPLE_S, 0, 1);
   }

@@ -303,7 +303,7 @@ A list of what has never been tested, run by hand before each release, and a sma
 
 Already in place:
 
-- Unit tests with vitest (`src/**/*.test.ts`): node registry, cards, compile, timeline edits, mix graphs, migrations (`normalizeNode`, `normalizeWorkflow`, `migrateSoundPorts`, `migrateMusicDucking` in `src/shared/nodes/registry.ts`).
+- Unit tests with vitest (`src/**/*.test.ts`): node registry, cards, compile, timeline edits, mix graphs.
 - `playwright-core` (already a dependency) exports `_electron`, which launches and drives an Electron app.
 - Seven templates in `src/shared/templates/index.ts` (Blank plus six, with copies of the six in `examples/`); only `todomvc` has been run end to end.
 
@@ -319,7 +319,6 @@ Missing:
    - **Moving a project folder** while closed, and renaming it while open: recent projects, `watchProject`, cached results and stills still resolve (refs are relative), the Local API's `/open`.
    - **Custom canvas sizes** beyond 16:9, 1:1, 4:5, 9:16: e.g. 21:9, 3:2, 1080×1080 at 60 fps, a very small and a 4K canvas; `variantSize` (`src/shared/nodes/output.ts`), overlays and `shapeInsets` (`src/video/core/frame.ts`).
    - **Broken font files:** a truncated `.ttf`, a ZIP with no fonts, a font that claims weights it lacks; the library import in `src/main/fonts.ts` must refuse with a plain message, never crash.
-   - **Old project files:** keep a folder of project files saved by earlier builds (start with the current `examples/` from git history) and open each in the new build; migrations have only unit tests.
    - **Every template end to end:** Feature launch, Changelog clip, Onboarding walkthrough, Social teaser (9:16), Before / after: create, run, export, compare Preview and export.
    - **Stopping a run** at every stage (engine setup, browser start, recording, encoding, rendering, mixing) with `cancelRun` (`src/main/workers.ts`), then running again; and **killing the worker process** mid-run: the editor must report it and the next run must start a fresh worker.
    - **Two windows editing at once:** the editor plus the Timeline and Mixer popped out (`src/renderer/app/sync.ts`): edits in both, undo from each, closing one mid-drag.

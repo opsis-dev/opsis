@@ -32,6 +32,8 @@ export type RunEvent =
       ok: boolean;
       cancelled: boolean;
       error?: string;
+      failedNodeIds?: string[];
+      skippedNodeIds?: string[];
       outputs: string[];
       at: number;
     };

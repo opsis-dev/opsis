@@ -6,7 +6,13 @@
     "width": 1920,
     "height": 1080,
     "fps": 30,
-    "theme": "dark"
+    "theme": "dark",
+    "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+    }
   },
   "variables": {
     "Site address": "https://demo.playwright.dev/todomvc"
@@ -142,7 +148,9 @@
         "speed": 1.25,
         "style": "classic",
         "backdrop": "glaze",
-        "chrome": false,
+        "frame": "none",
+        "frameTheme": "light",
+        "addressBar": true,
         "motionBlur": true
       }
     },
@@ -204,7 +212,8 @@
         "position": "bottom",
         "fontSize": 56,
         "color": "#ffffff",
-        "highlightColor": "#facc15"
+        "highlightColor": "#facc15",
+        "fontFamily": ""
       }
     },
     {
@@ -221,6 +230,8 @@
         "variants": ["16:9"],
         "reframe": "follow",
         "scale": 1,
+        "chapters": true,
+        "chapterList": false,
         "faststart": true,
         "gl": "angle"
       }

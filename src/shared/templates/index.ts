@@ -18,44 +18,74 @@ export function todoMvcSample(name = "TodoMVC demo"): Workflow {
     dpr: 2,
   });
   const nav = g.node("open", "browser.navigate", 1, 0, { url: "{{Site address}}/#/", after: 900 });
-  const t1 = g.node("todo1", "browser.type", 2, 0, {
-    target: "What needs to be done?",
-    text: "Record a real product flow",
-    pressEnter: true,
-    cluster: "add",
-    after: 500,
-    label: "New todo",
-  });
-  const t2 = g.node("todo2", "browser.type", 3, 0, {
-    target: "What needs to be done?",
-    text: "Auto-zoom on every click",
-    pressEnter: true,
-    cluster: "add",
-    after: 500,
-    label: "New todo",
-  });
-  const t3 = g.node("todo3", "browser.type", 4, 0, {
-    target: "What needs to be done?",
-    text: "Render 16:9 and 9:16",
-    pressEnter: true,
-    cluster: "add",
-    after: 1200,
-    label: "New todo",
-  });
-  const done = g.node("complete", "browser.click", 5, 0, {
-    target: "Toggle Todo",
-    targetRole: "checkbox",
-    label: "Complete",
-    cluster: "done",
-    after: 1100,
-  });
-  const filter = g.node("filter", "browser.click", 6, 0, {
-    target: "Completed",
-    targetRole: "link",
-    label: "Completed filter",
-    cluster: "filter",
-    after: 1500,
-  });
+  const t1 = g.node(
+    "todo1",
+    "browser.type",
+    2,
+    0,
+    {
+      target: "What needs to be done?",
+      text: "Record a real product flow",
+      pressEnter: true,
+      cluster: "add",
+      after: 500,
+    },
+    "New todo",
+  );
+  const t2 = g.node(
+    "todo2",
+    "browser.type",
+    3,
+    0,
+    {
+      target: "What needs to be done?",
+      text: "Auto-zoom on every click",
+      pressEnter: true,
+      cluster: "add",
+      after: 500,
+    },
+    "New todo",
+  );
+  const t3 = g.node(
+    "todo3",
+    "browser.type",
+    4,
+    0,
+    {
+      target: "What needs to be done?",
+      text: "Render 16:9 and 9:16",
+      pressEnter: true,
+      cluster: "add",
+      after: 1200,
+    },
+    "New todo",
+  );
+  const done = g.node(
+    "complete",
+    "browser.click",
+    5,
+    0,
+    {
+      target: "Toggle Todo",
+      targetRole: "checkbox",
+      cluster: "done",
+      after: 1100,
+    },
+    "Complete",
+  );
+  const filter = g.node(
+    "filter",
+    "browser.click",
+    6,
+    0,
+    {
+      target: "Completed",
+      targetRole: "link",
+      cluster: "filter",
+      after: 1500,
+    },
+    "Completed filter",
+  );
   const rec = g.node("record", "capture.record", 7, 0, { fps: 30 });
   g.chain([s, nav, t1, t2, t3, done, filter, rec]);
 
@@ -118,11 +148,17 @@ function featureLaunch(name: string): Workflow {
   const g = new GraphBuilder();
   const s = g.node("session", "browser.session", 0, 0);
   const nav = g.node("open", "browser.navigate", 1, 0, { url: "{{Site address}}" });
-  const click = g.node("cta", "browser.click", 2, 0, {
-    target: "Get started",
-    label: "Get started",
-    after: 1500,
-  });
+  const click = g.node(
+    "cta",
+    "browser.click",
+    2,
+    0,
+    {
+      target: "Get started",
+      after: 1500,
+    },
+    "Get started",
+  );
   const rec = g.node("record", "capture.record", 3, 0);
   g.chain([s, nav, click, rec]);
   const cam = g.node("camera", "camera.autoZoom", 3, 1);
@@ -179,18 +215,30 @@ function onboarding(name: string): Workflow {
   const s = g.node("session", "browser.session", 0, 0);
   const nav = g.node("open", "browser.navigate", 1, 0, { url: "{{Site address}}" });
   const ch1 = g.node("chapter1", "browser.chapter", 2, 0, { title: "Create your first item" });
-  const type = g.node("type", "browser.type", 3, 0, {
-    target: "What needs to be done?",
-    text: "Invite the team",
-    pressEnter: true,
-    label: "New item",
-  });
+  const type = g.node(
+    "type",
+    "browser.type",
+    3,
+    0,
+    {
+      target: "What needs to be done?",
+      text: "Invite the team",
+      pressEnter: true,
+    },
+    "New item",
+  );
   const ch2 = g.node("chapter2", "browser.chapter", 4, 0, { title: "Mark it done" });
-  const done = g.node("done", "browser.click", 5, 0, {
-    target: "css=.todo-list li:nth-child(1) .toggle",
-    label: "Done",
-    after: 1400,
-  });
+  const done = g.node(
+    "done",
+    "browser.click",
+    5,
+    0,
+    {
+      target: "css=.todo-list li:nth-child(1) .toggle",
+      after: 1400,
+    },
+    "Done",
+  );
   const rec = g.node("record", "capture.record", 6, 0);
   g.chain([s, nav, ch1, type, ch2, done, rec]);
   const cam = g.node("camera", "camera.autoZoom", 6, 1);

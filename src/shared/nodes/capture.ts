@@ -146,7 +146,16 @@ export const stillNode = defineNode({
             src: image.src,
             look: params.look,
             backdrop: params.backdrop,
-            meta: result?.outputs.meta,
+            ...(image.width && image.height
+              ? {
+                  shot: {
+                    width: image.width,
+                    height: image.height,
+                    scale: image.scale ?? 1,
+                    ...(image.body ? { body: image.body } : {}),
+                  },
+                }
+              : {}),
           },
           msToFrames(params.durationMs, settings.fps),
           extra,

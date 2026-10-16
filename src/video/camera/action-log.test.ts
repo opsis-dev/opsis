@@ -81,4 +81,69 @@ describe("ActionLog → ClickLog", () => {
     expect(ann[0].fromS).toBeCloseTo(1.2);
     expect(ann[0].toS).toBeCloseTo(3);
   });
+
+  const dragLog = (drop: { x: number; y: number; w: number; h: number }): ActionLog => ({
+    ...log,
+    actions: [
+      {
+        id: "d",
+        kind: "drag",
+        t: 4000,
+        tDepart: 2400,
+        tDown: 3000,
+        point: { x: drop.x + drop.w / 2, y: drop.y + drop.h / 2 },
+        rect: { x: 300, y: 300, w: 200, h: 80 },
+        drop,
+        label: "Card",
+      },
+    ],
+  });
+
+  it("frames a short drag as one event covering both ends", () => {
+    const [event, ...rest] = toClickLog(dragLog({ x: 700, y: 320, w: 200, h: 200 }), "d").clicks;
+    expect(rest).toEqual([]);
+    expect(event).toMatchObject({
+      tMs: 4000,
+      tDepartMs: 2400,
+      tDownMs: 3000,
+      tUpMs: 4000,
+      rect: { x: 300, y: 300, w: 600, h: 220 },
+      x: 600,
+      y: 410,
+    });
+  });
+
+  it("splits a long drag into a pick-up and a drop", () => {
+    const clicks = toClickLog(dragLog({ x: 1500, y: 800, w: 200, h: 200 }), "d").clicks;
+    expect(clicks).toHaveLength(2);
+    expect(clicks[0]).toMatchObject({
+      tMs: 3000,
+      tDownMs: 3000,
+      tUpMs: 4000,
+      rect: { x: 300, y: 300, w: 200, h: 80 },
+    });
+    expect(clicks[1]).toMatchObject({
+      tMs: 4000,
+      tDepartMs: 3000,
+      rect: { x: 1500, y: 800, w: 200, h: 200 },
+    });
+    expect(clicks[1].tDownMs).toBeUndefined();
+  });
+
+  it("keeps both ends of a short drag in frame while dragging", () => {
+    const pick = { x: 300, y: 300, w: 200, h: 80 };
+    const drop = { x: 700, y: 320, w: 200, h: 200 };
+    const track = buildCameraTrack(toClickLog(dragLog(drop), "d"), 1);
+    for (const t of [3, 3.5, 4]) {
+      const pose = sampleTrack(track, t);
+      expect(pose.scale).toBeGreaterThan(1.05);
+      const half = 1 / (2 * pose.scale);
+      for (const r of [pick, drop]) {
+        expect(r.x / 1920).toBeGreaterThanOrEqual(pose.cx - half - 1e-6);
+        expect((r.x + r.w) / 1920).toBeLessThanOrEqual(pose.cx + half + 1e-6);
+        expect(r.y / 1080).toBeGreaterThanOrEqual(pose.cy - half - 1e-6);
+        expect((r.y + r.h) / 1080).toBeLessThanOrEqual(pose.cy + half + 1e-6);
+      }
+    }
+  });
 });

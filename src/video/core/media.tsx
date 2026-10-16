@@ -2,9 +2,17 @@ import React from "react";
 import { AbsoluteFill, Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
 import { Backdrop } from "../camera/demo-clip";
-import { RimLight, Stage, WindowFrame } from "../camera/window-frame";
+import { RimLight, WindowFrame } from "../camera/window-frame";
 import { WINDOW_FIT } from "../camera/lib/window";
 import { isLightBackdrop } from "../camera/lib/backdrop";
+import {
+  bleedLayout,
+  cutoutLayout,
+  windowLayout,
+  type Box,
+  type Shot,
+  type StillLook,
+} from "./still-layout";
 
 type Fit = "contain" | "cover" | "fill";
 
@@ -75,54 +83,59 @@ export const VideoLoop: React.FC<{ src: string; dim?: number }> = ({ src, dim = 
 
 export const StillElement: React.FC<{
   src: string;
-  look?: "window" | "cutout" | "bleed";
+  look?: StillLook;
   backdrop?: string;
-}> = ({ src, look = "window", backdrop = "glaze" }) => {
+  shot?: Shot;
+}> = ({ src, look = "window", backdrop = "glaze", shot }) => {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
   const push = interpolate(frame, [0, 120], [1, 1.02], { extrapolateRight: "clamp" });
   if (!src) return null;
+  const canvas = { width, height };
+  const size = shot ?? { width, height, scale: 1 };
+  const place = (box: Box): React.CSSProperties => ({
+    position: "absolute",
+    left: box.x,
+    top: box.y,
+    width: box.width,
+    height: box.height,
+  });
   if (look === "bleed") {
     return (
-      <AbsoluteFill>
-        <Img
-          src={src}
-          style={{ width: "100%", height: "100%", objectFit: "cover", transform: `scale(${push})` }}
-        />
+      <AbsoluteFill style={{ transform: `scale(${push})`, transformOrigin: "50% 0%" }}>
+        <Img src={src} style={place(bleedLayout(size, canvas))} />
       </AbsoluteFill>
     );
   }
+  if (look === "cutout") {
+    const { img } = cutoutLayout(size, canvas);
+    return (
+      <AbsoluteFill>
+        <Backdrop name={backdrop} />
+        <AbsoluteFill style={{ transform: `scale(${push})` }}>
+          <Img
+            src={src}
+            style={{ ...place(img), filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.45))" }}
+          />
+        </AbsoluteFill>
+      </AbsoluteFill>
+    );
+  }
+  const box = windowLayout(size, canvas, WINDOW_FIT);
   return (
     <AbsoluteFill>
       <Backdrop name={backdrop} />
-      <Stage>
-        <div
-          style={{
-            position: "relative",
-            width: `${WINDOW_FIT * 100}%`,
-            height: `${WINDOW_FIT * 100}%`,
-            transform: `scale(${push})`,
-          }}
-        >
-          {look === "window" ? (
-            <>
-              <RimLight light={isLightBackdrop(backdrop)} />
-              <WindowFrame>
-                <Img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              </WindowFrame>
-            </>
-          ) : (
+      <AbsoluteFill style={{ transform: `scale(${push})` }}>
+        <div style={place(box)}>
+          <RimLight light={isLightBackdrop(backdrop)} />
+          <WindowFrame>
             <Img
               src={src}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.45))",
-              }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
             />
-          )}
+          </WindowFrame>
         </div>
-      </Stage>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };

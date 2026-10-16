@@ -19,6 +19,17 @@ export type ActionOpts = {
   hoverMs?: number;
 };
 
+export type DragTo =
+  | { target: Target }
+  | { by: { x: number; y: number } }
+  | { path: Array<{ x: number; y: number }> };
+
+export type DragOpts = ActionOpts & {
+  holdMs?: number;
+  dragMs?: number;
+  method?: "smooth" | "quick";
+};
+
 export type FlowContext = {
   page: Page;
   baseURL: string;
@@ -30,6 +41,7 @@ export type FlowContext = {
     opts?: ActionOpts,
   ) => Promise<void>;
   moveTo: (target: Target) => Promise<void>;
+  drag: (from: Target, to: DragTo, label?: string, opts?: DragOpts) => Promise<void>;
   focus: (target: Target, label?: string, opts?: ActionOpts) => Promise<void>;
   find: (name: string) => Promise<Locator>;
   pause: (ms?: number) => Promise<void>;

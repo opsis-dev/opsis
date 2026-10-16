@@ -4,7 +4,7 @@ import { projectRef } from "../elements/introspect";
 import type { CompileValue, MediaValue } from "../schema/values";
 import { row, secs, type CardRow } from "./card";
 import { defineNode, opt, port, type NodeDef } from "./define";
-import { asset, bool, choice, more, ms, quality, text, visualEnvelope } from "./params";
+import { asset, bool, choice, MAX_SPEED, more, ms, quality, text, visualEnvelope } from "./params";
 
 const base = { category: "Media", phase: "media", executes: true } as const;
 const one = {
@@ -208,7 +208,7 @@ export const mediaNodes: NodeDef[] = [
       rate: z
         .number()
         .min(0.25)
-        .max(8)
+        .max(MAX_SPEED)
         .default(2)
         .meta({ description: "Speed", step: 0.05, unit: "×" }),
       keepAudio: bool(true, "Keep the sound"),

@@ -6,7 +6,13 @@
     "width": 1080,
     "height": 1920,
     "fps": 30,
-    "theme": "dark"
+    "theme": "dark",
+    "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+    }
   },
   "variables": {
     "Site address": "https://demo.playwright.dev/todomvc"
@@ -94,7 +100,9 @@
         "speed": 1.5,
         "style": "classic",
         "backdrop": "glaze",
-        "chrome": false,
+        "frame": "none",
+        "frameTheme": "light",
+        "addressBar": true,
         "motionBlur": true
       }
     },
@@ -112,7 +120,8 @@
         "color": "#171717",
         "fontWeight": "600",
         "speed": 1,
-        "clipDuration": 60
+        "clipDuration": 60,
+        "envelope": {}
       }
     },
     {
@@ -124,7 +133,9 @@
       },
       "params": {
         "transition": "remocn/push-through",
-        "transitionDuration": 15
+        "transitionDuration": 15,
+        "keepWhole": false,
+        "cuts": []
       }
     },
     {
@@ -140,8 +151,10 @@
         "loop": true,
         "startMs": 0,
         "trimMs": 0,
+        "lengthMs": 0,
         "fadeInMs": 800,
-        "fadeOutMs": 1500
+        "fadeOutMs": 1500,
+        "envelope": {}
       }
     },
     {
@@ -167,6 +180,8 @@
         "variants": ["9:16"],
         "reframe": "follow",
         "scale": 1,
+        "chapters": true,
+        "chapterList": false,
         "faststart": true,
         "gl": "angle"
       }
@@ -223,11 +238,11 @@
       "targetHandle": "clip"
     },
     {
-      "id": "music.audio->mix.a1",
+      "id": "music.audio->mix.sounds",
       "source": "music",
       "sourceHandle": "audio",
       "target": "mix",
-      "targetHandle": "a1"
+      "targetHandle": "sounds"
     },
     {
       "id": "mix.clip->render.timeline",

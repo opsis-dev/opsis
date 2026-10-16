@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compileWorkflow, previewSpec } from "../compile/compile";
-import { migrateMusicDucking, normalizeWorkflow } from "../nodes/registry";
+import { normalizeWorkflow } from "../nodes/registry";
 import type { TimelineSpec } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
 import { GraphBuilder } from "../templates/build";
@@ -356,47 +356,15 @@ describe("mix filter graphs", () => {
   });
 });
 
-describe("migrating the old music ducking", () => {
-  it("moves the Music node's ducking onto the music bus", () => {
-    const { nodes, mix } = migrateMusicDucking(
-      [
-        {
-          id: "m",
-          type: "audio.music",
-          position: { x: 0, y: 0 },
-          params: {
-            src: "a.mp3",
-            duck: true,
-            duckLevel: 25,
-            duckUnder: "effects",
-            duckFadeMs: 300,
-          },
-        },
-      ],
-      undefined,
-    );
-    expect(nodes[0].params).toEqual({ src: "a.mp3" });
-    const bus = mix!.buses.find((b) => b.id === "music")!;
-    expect(bus.duck).toEqual({
-      on: true,
-      keys: ["effects"],
-      amount: 12,
-      attack: 300,
-      release: 300,
-      ignoreShorterMs: 0,
-    });
-  });
-
-  it("drops ducking settings that were off and prunes channels of deleted nodes", () => {
+describe("normalizeWorkflow", () => {
+  it("prunes mixer channels of deleted nodes", () => {
     const g = new GraphBuilder();
-    g.node("m", "audio.music", 0, 0, { duck: false, duckLevel: 30 });
+    g.node("m", "audio.music", 0, 0);
     const wf = g.build({ id: "x", name: "x" });
     const mix = defaultMix();
     mix.channels.gone = strip({ fader: -3 });
-    const out = normalizeWorkflow({ ...wf, mix });
-    expect(out.nodes[0].params).not.toHaveProperty("duck");
-    expect(out.mix?.channels).toEqual({});
-    expect(out.mix?.buses.find((b) => b.id === "music")?.duck.on).toBe(false);
+    mix.channels.m = strip({ fader: -6 });
+    expect(Object.keys(normalizeWorkflow({ ...wf, mix }).mix?.channels ?? {})).toEqual(["m"]);
   });
 });
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { elementName, secs, sentence, shortUrl } from "./card";
-import { defaultParams, getNodeDef, NODE_DEFS, normalizeNode, normalizeWorkflow } from "./registry";
+import { defaultParams, getNodeDef, NODE_DEFS } from "./registry";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 
 const settings: WorkflowSettings = {
@@ -147,62 +147,58 @@ describe("node cards", () => {
     });
   });
 
+  it("warns on Speed that the Preview plays slowly from 4×", () => {
+    expect(rows("timeline.speed", { rate: 2 }).map((r) => r.text)).toEqual(["2×"]);
+    expect(rows("timeline.speed", { rate: 4 }).map((r) => [r.text, r.tone])).toEqual([
+      ["4×", undefined],
+      ["Very fast: the Preview plays slowly. The export is smooth.", "muted"],
+    ]);
+  });
+
+  it("shows what a Drag picks up and where it goes", () => {
+    const texts = (params: Record<string, unknown>) =>
+      rows("browser.drag", { target: "Deal card", after: 0, ...params }).map((r) => r.text);
+    expect(texts({ mode: "element", to: "Won" })).toEqual(["“Deal card”", "Onto “Won”"]);
+    expect(texts({ mode: "element" })).toEqual(["“Deal card”", "Pick where to drop it"]);
+    expect(texts({ mode: "by", dx: 300, dy: -40 })).toEqual(["“Deal card”", "By 300, -40 px"]);
+    expect(texts({ mode: "path", path: "0, 0\n40, 40\n120, -80", cluster: "Board" })).toEqual([
+      "“Deal card”",
+      "Along 3 points",
+      "Zoom group “Board”",
+    ]);
+    expect(texts({ mode: "path", path: "" })).toEqual(["“Deal card”", "Add points to the path"]);
+  });
+
   it("counts connected clips on Sequence", () => {
     expect(rows("timeline.sequence", {}, { connected: ["in1", "in2", "in3"] })[0].text).toBe(
       "3 clips",
     );
   });
-});
 
-describe("node names", () => {
-  it("moves the old camera label onto the node name", () => {
-    const node = normalizeNode({
-      id: "t",
-      type: "browser.type",
-      position: { x: 0, y: 0 },
-      params: { target: "x", label: "New todo" },
-    });
-    expect(node.label).toBe("New todo");
-    expect(node.params).not.toHaveProperty("label");
-  });
-
-  it("renames old code-style variables to readable names", () => {
-    const wf = normalizeWorkflow({
-      version: 1,
-      id: "w",
-      name: "w",
-      settings: { width: 1920, height: 1080, fps: 30, theme: "dark", fonts: DEFAULT_PROJECT_FONTS },
-      variables: { BASE_URL: "https://x.test", Custom: "1" },
-      nodes: [
-        {
-          id: "n",
-          type: "browser.navigate",
-          position: { x: 0, y: 0 },
-          params: { url: "{{BASE_URL}}/a" },
-        },
-        {
-          id: "r",
-          type: "output.render",
-          position: { x: 0, y: 0 },
-          params: { fileName: "{{PROJECT_NAME}}" },
-        },
-      ],
-      edges: [],
-    });
-    expect(wf.variables).toEqual({ "Site address": "https://x.test", Custom: "1" });
-    expect(wf.nodes[0].params.url).toBe("{{Site address}}/a");
-    expect(wf.nodes[1].params.fileName).toBe("{{Project name}}");
-  });
-
-  it("keeps a label setting that belongs to the node", () => {
-    const withLabel = NODE_DEFS.find((d) => "label" in d.params.shape);
-    if (!withLabel) return;
-    const node = normalizeNode({
-      id: "e",
-      type: withLabel.type,
-      position: { x: 0, y: 0 },
-      params: { label: "Keep me" },
-    });
-    expect(node.params.label).toBe("Keep me");
+  it("counts Sequence cuts with their own transition and warns about the worst one", () => {
+    const cuts = [
+      { before: "in3", transition: "core/wipe", transitionDuration: 50, keepWhole: false },
+      { before: "in5", transition: "core/iris", transitionDuration: 10, keepWhole: false },
+    ];
+    const texts = rows(
+      "timeline.sequence",
+      { transitionDuration: 10, cuts },
+      {
+        connected: ["in1", "in2", "in3"],
+        inputFrames: { in1: 300, in2: 100, in3: 300 },
+      },
+    ).map((r) => r.text);
+    expect(texts).toEqual([
+      "3 clips",
+      "Fade · 0.33 s",
+      "1 cut uses its own transition",
+      "Covers 50% of a 3.33 s clip",
+    ]);
+    const held = rows(
+      "timeline.sequence",
+      { transitionDuration: 10, cuts: [{ ...cuts[0], keepWhole: true }] },
+      { connected: ["in1", "in2", "in3"], inputFrames: { in1: 300, in2: 100, in3: 300 } },
+    );
+    expect(held.some((r) => r.text.startsWith("Covers"))).toBe(false);
   });
 });

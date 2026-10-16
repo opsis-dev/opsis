@@ -1,4 +1,4 @@
-import { defaultParams, getNodeDef, normalizeNode } from "../nodes/registry";
+import { defaultParams, getNodeDef } from "../nodes/registry";
 import { CARD_WIDTH, estimateCardHeight } from "../nodes/size";
 import type { Workflow, WorkflowEdge, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
@@ -17,15 +17,13 @@ export class GraphBuilder {
     params: Record<string, unknown> = {},
     label?: string,
   ): string {
-    this.nodes.push(
-      normalizeNode({
-        id,
-        type,
-        position: { x: x * 300, y: y * 170 },
-        params: { ...defaultParams(type), ...params },
-        ...(label ? { label } : {}),
-      }),
-    );
+    this.nodes.push({
+      id,
+      type,
+      position: { x: x * 300, y: y * 170 },
+      params: { ...defaultParams(type), ...params },
+      ...(label ? { label } : {}),
+    });
     return id;
   }
 

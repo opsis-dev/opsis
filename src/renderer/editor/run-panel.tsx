@@ -1,6 +1,7 @@
 import { FileSearch, Film, FolderOpen, Square, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { getNodeDef } from "@/shared/nodes/registry";
+import { exportedArtifacts } from "@/shared/run-progress";
 import type { Artifact } from "@/shared/schema/values";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
@@ -50,11 +51,62 @@ const STATUS_WORDS: Record<string, string> = {
   error: "Failed",
 };
 
+function FailureLine({
+  message,
+  failed,
+  skipped,
+  nameOf,
+  onSelect,
+}: {
+  message: string;
+  failed: string[];
+  skipped: number;
+  nameOf: (id: string) => string;
+  onSelect: (id: string) => void;
+}) {
+  if (failed.length === 0) return <p className="text-destructive px-2 pb-2 text-xs">{message}</p>;
+  const names = failed.map((id, i) => (
+    <span key={id}>
+      {i > 0 ? ", " : null}
+      <button
+        type="button"
+        className="font-medium underline underline-offset-2"
+        onClick={() => onSelect(id)}
+      >
+        {nameOf(id)}
+      </button>
+    </span>
+  ));
+  return (
+    <p className="text-destructive px-2 pb-2 text-xs">
+      {failed.length === 1 ? (
+        <>{names} failed</>
+      ) : (
+        <>
+          {failed.length} nodes failed: {names}
+        </>
+      )}
+      {skipped ? `, ${skipped} skipped` : null}
+    </p>
+  );
+}
+
 export function RunPanel() {
   const workflow = useWorkflowStore((s) => s.workflow);
   const projectDir = useWorkflowStore((s) => s.projectDir);
-  const { running, statuses, progress, logs, results, traces, outputs, lastError, clearLogs } =
-    useRunStore();
+  const {
+    running,
+    statuses,
+    progress,
+    logs,
+    results,
+    traces,
+    errors,
+    lastError,
+    failedNodeIds,
+    skippedNodeIds,
+    clearLogs,
+  } = useRunStore();
   const selected = useUiStore((s) => s.selectedIds);
   const setSelected = useUiStore((s) => s.setSelected);
   const setReplay = useUiStore((s) => s.setReplay);
@@ -63,16 +115,22 @@ export function RunPanel() {
   const rows = useMemo(
     () =>
       workflow
-        ? workflow.nodes.filter((n) => statuses[n.id] || results[n.id]?.artifacts.length)
+        ? workflow.nodes.filter(
+            (n) => statuses[n.id] || errors[n.id] || results[n.id]?.artifacts.length,
+          )
         : [],
-    [workflow, statuses, results],
+    [workflow, statuses, errors, results],
   );
+  const exported = useMemo(
+    () => (workflow ? exportedArtifacts(workflow.nodes, results) : []),
+    [workflow, results],
+  );
+  const nameOf = (id: string) => {
+    const node = workflow?.nodes.find((n) => n.id === id);
+    return node ? node.label || getNodeDef(node.type)?.title || node.type : "A deleted node";
+  };
   const visibleLogs = filter ? logs.filter((l) => l.nodeId === filter) : logs;
-  const artifacts = filter
-    ? (results[filter]?.artifacts ?? [])
-    : outputs.map(
-        (p) => ({ kind: /\.(png|jpe?g|gif)$/i.test(p) ? "image" : "video", path: p }) as Artifact,
-      );
+  const artifacts = filter ? (results[filter]?.artifacts ?? []) : exported;
 
   return (
     <div className="grid h-full grid-cols-[minmax(220px,1fr)_2fr_minmax(240px,1.2fr)] divide-x">
@@ -94,7 +152,13 @@ export function RunPanel() {
             ) : null}
           </div>
           {lastError && !running ? (
-            <p className="text-destructive px-2 pb-2 text-xs">{lastError}</p>
+            <FailureLine
+              message={lastError}
+              failed={failedNodeIds}
+              skipped={skippedNodeIds.length}
+              nameOf={nameOf}
+              onSelect={(id) => setSelected([id])}
+            />
           ) : null}
           {rows.length === 0 ? (
             <p className="text-muted-foreground px-2 text-xs">
@@ -118,6 +182,9 @@ export function RunPanel() {
                   <span className="flex-1 truncate">
                     {n.label || getNodeDef(n.type)?.title || n.type}
                   </span>
+                  {!status && errors[n.id] ? (
+                    <Badge variant="destructive">Failed last time</Badge>
+                  ) : null}
                   {status ? (
                     <Badge
                       variant={
@@ -131,7 +198,7 @@ export function RunPanel() {
                       {STATUS_WORDS[status] ?? status}
                     </Badge>
                   ) : null}
-                  {results[n.id] && !status ? (
+                  {results[n.id] && !status && !errors[n.id] ? (
                     <Badge variant="secondary">From last run</Badge>
                   ) : null}
                 </div>

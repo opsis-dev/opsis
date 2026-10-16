@@ -13,7 +13,10 @@ export const ACTION_KINDS = [
   "chapter",
   "key",
   "focus",
+  "drag",
 ] as const;
+
+export const pointSchema = z.object({ x: z.number(), y: z.number() });
 
 export const actionSchema = z.object({
   id: z.string(),
@@ -22,7 +25,7 @@ export const actionSchema = z.object({
   tEnd: z.number().optional(),
   tDepart: z.number().optional(),
   tDown: z.number().optional(),
-  point: z.object({ x: z.number(), y: z.number() }).optional(),
+  point: pointSchema.optional(),
   rect: rectSchema.optional(),
   cluster: z.string().optional(),
   label: z.string().optional(),
@@ -31,6 +34,8 @@ export const actionSchema = z.object({
   zoomScale: z.number().optional(),
   text: z.string().optional(),
   nodeId: z.string().optional(),
+  path: z.array(pointSchema).max(64).optional(),
+  drop: rectSchema.optional(),
 });
 export type Action = z.infer<typeof actionSchema>;
 

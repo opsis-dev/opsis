@@ -37,16 +37,7 @@ export function enginePaths(
 ): EnginePaths {
   const rp = remotionPlatform(platform, arch);
   const shellRoot = path.join(dir, "chrome-headless-shell");
-  const current = path.join(shellRoot, rp, `chrome-headless-shell-${rp}`);
-  const legacy = path.join(
-    dir,
-    "node_modules",
-    ".remotion",
-    "chrome-headless-shell",
-    rp,
-    `chrome-headless-shell-${rp}`,
-  );
-  const shellFolder = !existsSync(current) && existsSync(legacy) ? legacy : current;
+  const shellFolder = path.join(shellRoot, rp, `chrome-headless-shell-${rp}`);
   const remotionBuild = path.join(shellFolder, "headless_shell");
   const exe = platform === "win32" ? ".exe" : "";
   return {

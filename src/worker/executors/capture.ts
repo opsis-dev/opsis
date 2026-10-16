@@ -14,6 +14,8 @@ import { runTake, SignInExpiredError, type TakeOptions } from "../capture/driver
 import { FrameEncoder } from "../capture/encoder";
 import { defineExecutor, TracedError, type ExecutorContext } from "../engine/context";
 import { rel } from "./util";
+import { WINDOW_FIT } from "../../video/camera/lib/window";
+import { captureScale, type Box } from "../../video/core/still-layout";
 
 async function storageStateFor(ctx: ExecutorContext, head: WorkflowNode): Promise<string | null> {
   const p = sessionNode.params.parse(interpolate(head.params ?? {}, ctx.vars));
@@ -240,42 +242,88 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
 
 export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) => {
   const file = path.join(ctx.dir, "still.png");
-  let size = { width: 0, height: 0 };
+  const taken: { shot?: { width: number; height: number; scale: number; body?: Box } } = {};
   const { traceId } = await retryAfterSignIn(ctx, () =>
     take(ctx, {
       mode: "still",
       onPage: async (page) => {
+        const view = await page.evaluate(() => ({
+          x: window.scrollX,
+          y: window.scrollY,
+          width: window.innerWidth,
+          height: window.innerHeight,
+          pageWidth: document.documentElement.scrollWidth,
+          pageHeight: document.documentElement.scrollHeight,
+          dpr: window.devicePixelRatio,
+        }));
+        let region: Box = { x: view.x, y: view.y, width: view.width, height: view.height };
+        let body: Box | undefined;
         if (p.region === "element") {
           const loc = p.target.startsWith("css=")
             ? page.locator(p.target.slice(4)).first()
             : page.getByText(p.target).first();
+          await loc.scrollIntoViewIfNeeded().catch(() => undefined);
           const box = await loc.boundingBox();
           if (!box) throw new Error(`Couldn't find "${p.target}" on the page for the screenshot.`);
-          const pad = p.padding;
-          await page.screenshot({
-            path: file,
-            clip: {
-              x: Math.max(0, box.x - pad),
-              y: Math.max(0, box.y - pad),
-              width: box.width + pad * 2,
-              height: box.height + pad * 2,
-            },
-          });
-          size = { width: box.width + pad * 2, height: box.height + pad * 2 };
-        } else {
-          await page.screenshot({ path: file, fullPage: p.region === "full-page" });
-          size = page.viewportSize() ?? size;
+          const scroll = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
+          const x = Math.max(0, box.x + scroll.x - p.padding);
+          const y = Math.max(0, box.y + scroll.y - p.padding);
+          region = {
+            x,
+            y,
+            width: box.x + scroll.x + box.width + p.padding - x,
+            height: box.y + scroll.y + box.height + p.padding - y,
+          };
+          body = {
+            x: box.x + scroll.x - x,
+            y: box.y + scroll.y - y,
+            width: box.width,
+            height: box.height,
+          };
+        } else if (p.region === "full-page") {
+          region = { x: 0, y: 0, width: view.pageWidth, height: view.pageHeight };
         }
+        const scale = captureScale(p.look, region, captureCanvas(ctx.workflow.settings), {
+          body,
+          fit: WINDOW_FIT,
+          least: view.dpr,
+        });
+        const cdp = await page.context().newCDPSession(page);
+        const { data } = await cdp.send("Page.captureScreenshot", {
+          format: "png",
+          clip: { ...region, scale },
+          captureBeyondViewport:
+            p.region === "full-page" || region.width > view.width || region.height > view.height,
+        });
+        await cdp.detach().catch(() => undefined);
+        await writeFile(file, Buffer.from(data, "base64"));
+        taken.shot = {
+          width: region.width,
+          height: region.height,
+          scale,
+          ...(body ? { body } : {}),
+        };
       },
     }),
   );
+  const { shot } = taken;
+  if (!shot) throw new Error("The screenshot wasn't taken.");
+  ctx.log(
+    "info",
+    `Screenshot ${Math.round(shot.width * shot.scale)} × ${Math.round(shot.height * shot.scale)} px`,
+  );
   return {
-    outputs: {
-      image: { type: "image", src: ctx.ref("still.png"), width: size.width, height: size.height },
-    },
+    outputs: { image: { type: "image", src: ctx.ref("still.png"), ...shot } },
     artifacts: [{ kind: "image", path: rel(ctx, "still.png"), label: "Screenshot" }],
     traceId,
   };
+});
+
+const CAPTURE_MAX_EXPORT_SCALE = 2;
+
+const captureCanvas = (settings: { width: number; height: number }) => ({
+  width: settings.width * CAPTURE_MAX_EXPORT_SCALE,
+  height: settings.height * CAPTURE_MAX_EXPORT_SCALE,
 });
 
 export const loginOnceExecutor = defineExecutor(loginOnceNode, async (ctx, _inputs, p) => {

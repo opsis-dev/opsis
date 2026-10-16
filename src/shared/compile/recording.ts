@@ -54,7 +54,7 @@ export const DEFAULT_RECORDING_PROPS: Omit<RecordingProps, "src" | "proxySrc" | 
   annotations: [],
 };
 
-export const POINTER_KINDS = new Set<Action["kind"]>(["click", "type", "hover", "focus"]);
+export const POINTER_KINDS = new Set<Action["kind"]>(["click", "type", "hover", "focus", "drag"]);
 
 export function idleSpans(
   log: ActionLog,

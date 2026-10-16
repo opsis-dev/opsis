@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "vitest";
-import { CURSOR_FADE_S, type CursorSample } from "./click-log";
+import { CLICK_SQUASH, CLICK_SQUASH_S, CURSOR_FADE_S, type CursorSample } from "./click-log";
 import { cursorAt, cursorOpacity, samplePath } from "./cursor";
 
 const track: CursorSample[] = [
@@ -55,6 +55,17 @@ describe("cursorAt", () => {
     assert.equal(after.squash, 1);
 
     assert.equal(cursorAt(track, clicks, 0.95)!.ripple, null);
+  });
+
+  it("stays pressed for the whole drag and springs back after the drop", () => {
+    const drag = [{ tMs: 900, x: 500, y: 400, tDownMs: 200, tUpMs: 900 }];
+    assert.ok(cursorAt(track, drag, 0.25)!.ripple !== null);
+    const held = cursorAt(track, drag, 0.8)!;
+    assert.equal(held.squash, CLICK_SQUASH);
+    assert.equal(held.ripple, null);
+    const springing = cursorAt(track, drag, 0.9 + CLICK_SQUASH_S / 2)!.squash;
+    assert.ok(springing > CLICK_SQUASH && springing < 1);
+    assert.equal(cursorAt(track, drag, 0.9 + CLICK_SQUASH_S + 0.01)!.squash, 1);
   });
 
   it("returns null when there is no recorded track", () => {

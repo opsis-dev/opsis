@@ -1,6 +1,7 @@
 import type { LiveMessage } from "./live";
 import type { WindowRole } from "./menu";
 import type { RunEvent } from "./schema/events";
+import type { RunProgress } from "./run-progress";
 import type { LastRun } from "./schema/values";
 import type { Workflow } from "./schema/workflow";
 import type { AppSettings, SettingsPatch } from "./settings";
@@ -183,7 +184,11 @@ export interface DemoflowApi {
   revealInFolder(dir: string, relativePath?: string): Promise<void>;
   runWorkflow(req: RunRequest): Promise<{ runId: string }>;
   cancelRun(): Promise<void>;
-  runStatus(): Promise<{ runId: string | null; projectDir: string | null }>;
+  runStatus(): Promise<{
+    runId: string | null;
+    projectDir: string | null;
+    progress: RunProgress;
+  }>;
   onRunEvent(listener: (event: RunEvent) => void): () => void;
   pickElement(req: PickRequest): Promise<PickResult>;
   getEnvironment(): Promise<EnvStatus>;

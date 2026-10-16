@@ -22,11 +22,20 @@ import {
   renderTimeline,
   type GlRenderer,
 } from "../render/render";
-import { hasSoundTrack, muxArgs, pictureKey, prunePictures } from "../render/picture";
+import { finishArgs, hasSoundTrack, muxArgs, pictureKey, prunePictures } from "../render/picture";
+import {
+  chapterList,
+  chapterMetadata,
+  filmChapters,
+  MIN_LISTED_CHAPTERS,
+} from "../../shared/timeline/chapters";
 import { refToPath, slug } from "./util";
 import { buildMixPlan, hasSound } from "../../shared/mix/plan";
 import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
 import { renderMix } from "../mix/render";
+
+const relativePath = (ctx: ExecutorContext, file: string) =>
+  path.relative(ctx.projectDir, file).split(path.sep).join("/");
 
 function specFor(ctx: ExecutorContext): TimelineSpec {
   const result = ctx.compile();
@@ -111,6 +120,16 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
   const artifacts: Artifact[] = [];
   const ext = CODEC_EXT[p.codec];
   const base = slug(p.fileName);
+  const chapters = p.codec === "gif" ? [] : filmChapters(spec);
+  const chapterFile = p.chapters && chapters.length ? path.join(ctx.dir, "chapters.txt") : null;
+  if (chapterFile) await writeFile(chapterFile, chapterMetadata(chapters));
+  const listChapters = p.chapterList && chapters.length >= MIN_LISTED_CHAPTERS;
+  if (chapters.length) ctx.log("info", `Chapters: ${chapters.map((c) => c.title).join(", ")}`);
+  if (p.chapterList && chapters.length && !listChapters)
+    ctx.log(
+      "warn",
+      `The chapter list needs at least ${MIN_LISTED_CHAPTERS} chapters of ten seconds or more, so it wasn't saved.`,
+    );
   try {
     const variants = p.variants as Variant[];
     for (const [i, variant] of variants.entries()) {
@@ -149,18 +168,28 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
           onProgress: progress,
         });
       }
-      if (p.faststart && (p.codec === "h264" || p.codec === "h265")) {
-        const tmp = `${out}.faststart${path.extname(out)}`;
-        await ctx.ffmpeg.run(["-i", out, "-c", "copy", "-movflags", "+faststart", tmp], {
+      const faststart = p.faststart && (p.codec === "h264" || p.codec === "h265");
+      if (faststart || chapterFile) {
+        const tmp = `${out}.finish${path.extname(out)}`;
+        await ctx.ffmpeg.run(finishArgs(out, tmp, { faststart, chapters: chapterFile }), {
           signal: ctx.signal,
         });
         await rename(tmp, out);
       }
       artifacts.push({
         kind: p.codec === "gif" ? "image" : "video",
-        path: path.relative(ctx.projectDir, out).split(path.sep).join("/"),
+        path: relativePath(ctx, out),
         label: variant,
       });
+      if (listChapters) {
+        const list = out.replace(/\.[^.]+$/, ".youtube-chapters.txt");
+        await writeFile(list, chapterList(chapters));
+        artifacts.push({
+          kind: "file",
+          path: relativePath(ctx, list),
+          label: `${variant} chapter list`,
+        });
+      }
     }
   } finally {
     await server.close();

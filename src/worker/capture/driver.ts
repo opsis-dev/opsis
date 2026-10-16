@@ -9,6 +9,7 @@ import type {
   freezeClockNode,
   hideElementsNode,
   hoistNode,
+  dragNode,
   hoverNode,
   mockRouteNode,
   navigateNode,
@@ -27,7 +28,8 @@ import type { Action, ActionLog } from "../../shared/schema/actions";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
 import { interpolate } from "../../shared/vars";
 import type { CursorSample, KeyEvent } from "../../video/camera/lib/click-log";
-import type { ClickEvent, FlowContext, Target } from "./flow-types";
+import { parsePath } from "./drag-path";
+import type { ClickEvent, DragTo, FlowContext, Target } from "./flow-types";
 import { buildContext, CURSOR_INIT_SCRIPT } from "./recorder";
 import { autoCandidates, dumpVisible, SelectorError } from "./selectors";
 import {
@@ -338,6 +340,31 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
           await need(ctx).pause(p.after);
           return;
         }
+        case "browser.drag": {
+          const p = parsed<Params<typeof dragNode>>(node, vars);
+          const from = await resolveTarget(page, p.target, hoisted, opts);
+          if (p.mode === "element" && !p.to.trim()) throw new Error("Pick where to drop it.");
+          const to: DragTo =
+            p.mode === "element"
+              ? { target: (await resolveTarget(page, p.to, hoisted, opts)).target }
+              : p.mode === "by"
+                ? { by: { x: p.dx, y: p.dy } }
+                : { path: parsePath(p.path) };
+          await need(ctx).drag(from.target, to, nodeLabel(node) || p.target, {
+            cluster: p.cluster || undefined,
+            zoom: p.zoom,
+            frame: p.frame ? (await resolveTarget(page, p.frame, hoisted, opts)).target : undefined,
+            zoomScale: p.zoomScale || undefined,
+            travelMs: p.travelMs || undefined,
+            hoverMs: p.hoverMs,
+            holdMs: p.holdMs,
+            dragMs: p.dragMs,
+            method: p.method,
+          });
+          lastSelector = from.by;
+          await need(ctx).pause(p.after);
+          return;
+        }
         case "browser.scroll": {
           const p = parsed<Params<typeof scrollNode>>(node, vars);
           const t = elapsed();
@@ -525,7 +552,9 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
             ? "click"
             : node.type === "browser.hover"
               ? "hover"
-              : "focus";
+              : node.type === "browser.drag"
+                ? "drag"
+                : "focus";
       const a: Action = {
         id: `${node.id}:${actions.length}`,
         kind,
@@ -542,6 +571,8 @@ export async function runTake(opts: TakeOptions): Promise<TakeResult> {
         zoomScale: c.zoomScale,
         text: kind === "type" ? lastTyped : undefined,
         nodeId: node.id,
+        ...(c.path ? { path: c.path } : {}),
+        ...(c.drop ? { drop: c.drop } : {}),
       };
       return a;
     };

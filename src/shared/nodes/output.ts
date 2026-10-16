@@ -5,7 +5,7 @@ import type { WorkflowSettings } from "../schema/workflow";
 import type { Artifact } from "../schema/values";
 import { bytes, row, secs } from "./card";
 import { defineNode, port } from "./define";
-import { choice, more, ms, quality, text } from "./params";
+import { bool, choice, more, ms, quality, text } from "./params";
 
 const GL_LABELS = {
   angle: "Graphics card",
@@ -81,6 +81,8 @@ export const toTimeline = (
   return undefined;
 };
 
+const VIDEO_CODECS = ["h264", "h265", "vp8", "vp9", "prores"];
+
 export const renderNode = defineNode({
   type: "output.render",
   title: "Export video",
@@ -127,6 +129,14 @@ export const renderNode = defineNode({
         unit: "×",
         labels: { "0.5": "Half", "1": "Full", "2": "Double" },
       }),
+    chapters: more(bool(true, "Chapters in the file"), {
+      help: "Players list the film's chapters, taken from its Chapter actions.",
+      showIf: { codec: VIDEO_CODECS },
+    }),
+    chapterList: more(bool(false, "YouTube chapter list"), {
+      help: "Also saves the chapter times as text, to paste into a video's description. It needs at least three chapters of ten seconds or more.",
+      showIf: { codec: VIDEO_CODECS },
+    }),
     faststart: z.boolean().default(true).meta({ description: "Web-ready", hidden: true }),
     gl: gl(),
   }),

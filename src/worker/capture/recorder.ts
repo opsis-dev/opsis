@@ -2,6 +2,17 @@ import type { Page, Locator } from "playwright-core";
 import { cameraEase } from "../../video/camera/lib/camera";
 import { DESIGN_WIDTH, type CursorSample, type KeyEvent } from "../../video/camera/lib/click-log";
 import type { ActionOpts, ClickEvent, FlowContext, Target } from "./flow-types";
+import {
+  boundsOf,
+  bulgedCurve,
+  dragDuration,
+  glidePlan,
+  nudgeToward,
+  offsetPath,
+  polylineAt,
+  thinPath,
+  type Point,
+} from "./drag-path";
 import { findByName, type TargetOverrides } from "./selectors";
 
 const ARROW_HOTX = 2;
@@ -9,10 +20,10 @@ const ARROW_HOTY = 2;
 
 export const useBakedCursor = (): boolean => process.env.DEMO_BAKED_CURSOR === "1";
 
-const OVERSHOOT_THRESHOLD_PX = 500;
-const OVERSHOOT_PX = 26;
-const GLIDE_PX_PER_MS = 0.55;
 const GLIDE_MIN_PX = 6;
+const DRAG_NUDGE_PX = 6;
+const DROP_SETTLE_MS = 120;
+const QUICK_DRAG_STEPS = 20;
 
 export const CURSOR_INIT_SCRIPT = `
 (() => {
@@ -43,8 +54,13 @@ export const CURSOR_INIT_SCRIPT = `
     document.body.appendChild(c);
     let x = -300, y = -300;
     const place = (s) => { c.style.transform = 'translate(' + (x - HOTX) + 'px,' + (y - HOTY) + 'px) scale(' + s + ')'; };
-    document.addEventListener('mousemove', (e) => { x = e.clientX; y = e.clientY; place(1); }, true);
+    let down = false;
+    const follow = (e) => { x = e.clientX; y = e.clientY; place(down ? 0.9 : 1); };
+    const release = () => { down = false; place(1); };
+    document.addEventListener('mousemove', follow, true);
+    document.addEventListener('dragover', follow, true);
     document.addEventListener('mousedown', () => {
+      down = true;
       place(0.9);
       const r = document.createElement('div');
       r.className = 'pw-ripple';
@@ -53,7 +69,9 @@ export const CURSOR_INIT_SCRIPT = `
       document.body.appendChild(r);
       setTimeout(() => r.remove(), 380);
     }, true);
-    document.addEventListener('mouseup', () => place(1), true);
+    document.addEventListener('mouseup', release, true);
+    document.addEventListener('drop', release, true);
+    document.addEventListener('dragend', release, true);
   };
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', mount);
@@ -171,6 +189,17 @@ export function buildContext(
   };
   mark(last.x, last.y);
 
+  const walk = async (fromMs: number, spanMs: number, at: (p: number) => Point) => {
+    for (;;) {
+      const p01 = clamp((getElapsedMs() - fromMs) / spanMs, 0, 1);
+      const { x: px, y: py } = at(cameraEase(p01));
+      mark(px, py);
+      await page.mouse.move(px, py);
+      if (p01 >= 1) return;
+      await page.waitForTimeout(8);
+    }
+  };
+
   const glideTo = async (x: number, y: number, settleMs = 220, travelMs?: number) => {
     const gk = captureScaleOf(page);
     const dist = Math.hypot(x - last.x, y - last.y);
@@ -181,54 +210,14 @@ export function buildContext(
       if (settleMs > 0) await pause(settleMs);
       return;
     }
-    const durationMs =
-      travelMs != null && travelMs > 0 ? travelMs : clamp(dist / (GLIDE_PX_PER_MS * gk), 450, 1350);
-    const nx = -(y - last.y) / dist;
-    const ny = (x - last.x) / dist;
-    const side = (x - last.x) * (y - last.y) >= 0 ? 1 : -1;
-    const bulge = side * dist * 0.1;
-    const from = { ...last };
+    const glide = glidePlan(last, { x, y }, gk, page.viewportSize(), travelMs);
+    await walk(getElapsedMs(), glide.durationMs, glide.at);
 
-    const vp = page.viewportSize();
-    const overshooting = dist > OVERSHOOT_THRESHOLD_PX * gk;
-    const aimX = overshooting
-      ? clamp(x + ((x - from.x) / dist) * OVERSHOOT_PX * gk, 1, (vp?.width ?? x) - 1)
-      : x;
-    const aimY = overshooting
-      ? clamp(y + ((y - from.y) / dist) * OVERSHOOT_PX * gk, 1, (vp?.height ?? y) - 1)
-      : y;
-    const cpx = (from.x + aimX) / 2 + nx * bulge;
-    const cpy = (from.y + aimY) / 2 + ny * bulge;
-
-    const travel = async (
-      fromMs: number,
-      spanMs: number,
-      at: (p: number) => { px: number; py: number },
-    ) => {
-      for (;;) {
-        const p01 = clamp((getElapsedMs() - fromMs) / spanMs, 0, 1);
-        const { px, py } = at(cameraEase(p01));
-        mark(px, py);
-        await page.mouse.move(px, py);
-        if (p01 >= 1) return;
-        await page.waitForTimeout(8);
-      }
-    };
-
-    const glideStart = getElapsedMs();
-    await travel(glideStart, durationMs, (p) => {
-      const u = 1 - p;
-      return {
-        px: u * u * from.x + 2 * u * p * cpx + p * p * aimX,
-        py: u * u * from.y + 2 * u * p * cpy + p * p * aimY,
-      };
-    });
-
-    if (overshooting) {
-      const correctStart = getElapsedMs();
-      await travel(correctStart, 130, (p) => ({
-        px: aimX + (x - aimX) * p,
-        py: aimY + (y - aimY) * p,
+    if (glide.overshooting) {
+      const { aim } = glide;
+      await walk(getElapsedMs(), 130, (p) => ({
+        x: aim.x + (x - aim.x) * p,
+        y: aim.y + (y - aim.y) * p,
       }));
     }
 
@@ -300,6 +289,112 @@ export function buildContext(
     );
   };
 
+  const dropBox = async (target: Target): Promise<{ cx: number; cy: number; rect: Rect }> => {
+    const resolved = await resolve(target);
+    if (isPoint(resolved)) return boxOf(page, resolved);
+    const loc = (isCss(resolved) ? page.locator(resolved.css) : resolved).first() as Locator;
+    const box = await loc.boundingBox();
+    const vp = page.viewportSize();
+    const onScreen =
+      !!box &&
+      (!vp ||
+        (box.x + box.width / 2 >= 0 &&
+          box.y + box.height / 2 >= 0 &&
+          box.x + box.width / 2 <= vp.width &&
+          box.y + box.height / 2 <= vp.height));
+    if (!box || !onScreen)
+      throw new Error(
+        "The place to drop it isn't on screen. Scroll to it first, or use a bigger window.",
+      );
+    return {
+      cx: box.x + box.width / 2,
+      cy: box.y + box.height / 2,
+      rect: { x: box.x, y: box.y, w: box.width, h: box.height },
+    };
+  };
+
+  const locatorOf = async (target: Target): Promise<Locator | null> => {
+    const resolved = await resolve(target);
+    if (isPoint(resolved)) return null;
+    return (isCss(resolved) ? page.locator(resolved.css) : resolved).first() as Locator;
+  };
+
+  const drag: FlowContext["drag"] = async (from, to, label, opts) => {
+    const gk = captureScaleOf(page);
+    const start = await boxOf(page, await resolve(from));
+    const frameBox = opts?.frame ? await boxOf(page, await resolve(opts.frame)) : start;
+    await glideTo(start.cx, start.cy, opts?.hoverMs ?? 220, opts?.travelMs);
+    const origin = { x: start.cx, y: start.cy };
+    const quick = opts?.method === "quick";
+    const tDownMs = getElapsedMs();
+    let points: Point[];
+    let drop: Rect;
+
+    if ("target" in to && quick) {
+      const source = await locatorOf(from);
+      const target = await locatorOf(to.target);
+      const end = await dropBox(to.target);
+      points = [origin, { x: end.cx, y: end.cy }];
+      drop = end.rect;
+      if (source && target) await source.dragTo(target, { steps: QUICK_DRAG_STEPS });
+      else {
+        await page.mouse.down();
+        await page.mouse.move(end.cx, end.cy, { steps: QUICK_DRAG_STEPS });
+        await page.mouse.up();
+      }
+      mark(end.cx, end.cy);
+    } else {
+      await page.mouse.down();
+      await pause(opts?.holdMs ?? 150);
+      if ("target" in to) {
+        const before = await dropBox(to.target);
+        const nudge = nudgeToward(origin, { x: before.cx, y: before.cy }, DRAG_NUDGE_PX * gk);
+        mark(nudge.x, nudge.y);
+        await page.mouse.move(nudge.x, nudge.y);
+        const end = await dropBox(to.target);
+        const target = { x: end.cx, y: end.cy };
+        points = [origin, target];
+        drop = end.rect;
+        const curve = bulgedCurve(nudge, target);
+        await walk(getElapsedMs(), dragDuration([nudge, target], gk, opts?.dragMs), curve);
+      } else {
+        points = offsetPath(origin, "by" in to ? [to.by] : to.path);
+        drop = boundsOf(points);
+        if (quick) {
+          for (const point of points.slice(1))
+            await page.mouse.move(point.x, point.y, { steps: QUICK_DRAG_STEPS });
+          mark(points.at(-1)!.x, points.at(-1)!.y);
+        } else {
+          const nudge = nudgeToward(origin, points[1] ?? origin, DRAG_NUDGE_PX * gk);
+          mark(nudge.x, nudge.y);
+          await page.mouse.move(nudge.x, nudge.y);
+          await walk(
+            getElapsedMs(),
+            dragDuration(points, gk, opts?.dragMs),
+            polylineAt([nudge, ...points.slice(1)]),
+          );
+        }
+      }
+      await pause(DROP_SETTLE_MS);
+      await page.mouse.up();
+    }
+
+    const end = points.at(-1)!;
+    last = { x: end.x, y: end.y };
+    mark(end.x, end.y);
+    const event = logEvent(
+      end.x,
+      end.y,
+      frameBox.rect,
+      label ?? (typeof from === "string" ? from : "drag"),
+      opts,
+      tDownMs,
+    );
+    event.tUpMs = event.tMs;
+    event.path = thinPath(points);
+    event.drop = roundRect(drop);
+  };
+
   const typeInto: FlowContext["typeInto"] = async (selector, text, label, opts) => {
     const { cx, cy, rect } = await boxOf(page, await resolve(selector));
     const frameRect = opts?.frame ? (await boxOf(page, await resolve(opts.frame))).rect : rect;
@@ -329,6 +424,7 @@ export function buildContext(
     moveAndClick,
     typeInto,
     moveTo,
+    drag,
     focus,
     find,
     pause,

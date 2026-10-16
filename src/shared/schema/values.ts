@@ -13,7 +13,14 @@ export type RecordingValue = {
   nodeId: string;
 };
 
-export type ImageValue = { type: "image"; src: AssetRef | null; width?: number; height?: number };
+export type ImageValue = {
+  type: "image";
+  src: AssetRef | null;
+  width?: number;
+  height?: number;
+  scale?: number;
+  body?: { x: number; y: number; width: number; height: number };
+};
 
 export type MediaValue = {
   type: "media";

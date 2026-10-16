@@ -22,7 +22,7 @@ export const PROJECT_NAME_VAR = "Project name";
 
 export function workflowVars(wf: Workflow): Record<string, string> {
   const project = wf.name.replace(/[^\w.-]+/g, "-").toLowerCase() || "demo";
-  return { [PROJECT_NAME_VAR]: project, PROJECT_NAME: project, ...wf.variables };
+  return { [PROJECT_NAME_VAR]: project, ...wf.variables };
 }
 
 export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): CompileResult {

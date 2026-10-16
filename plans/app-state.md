@@ -21,13 +21,12 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
 ## Summary
 
-| Part                      | What users get                                                                                           | Size |
-| ------------------------- | -------------------------------------------------------------------------------------------------------- | ---- |
-| Database and migrations   | Nothing visible; state survives updates and a crash mid-write, and windows never disagree about settings | M    |
-| Import from today's files | Existing settings, recent projects, window positions and fonts carry over on the first start             | S    |
-| Per-project view state    | Panel sizes, tabs, preview shape, minimap and Timeline settings shared by every window, not per window   | M    |
-| Encrypted values          | Service keys stored once for the app, encrypted                                                          | S    |
-| Assistant request log     | What was sent to a model and what came back, viewable later                                              | S    |
+| Part                    | What users get                                                                                           | Size |
+| ----------------------- | -------------------------------------------------------------------------------------------------------- | ---- |
+| Database and migrations | Nothing visible; state survives updates and a crash mid-write, and windows never disagree about settings | M    |
+| Per-project view state  | Panel sizes, tabs, preview shape, minimap and Timeline settings shared by every window, not per window   | M    |
+| Encrypted values        | Service keys stored once for the app, encrypted                                                          | S    |
+| Assistant request log   | What was sent to a model and what came back, viewable later                                              | S    |
 
 ## Database and migrations
 
@@ -74,19 +73,6 @@ Missing:
 | `fonts`         | `fontId` (unique), `def` (JSON `FontFamilyDef`)                                                         | `library.json` (font files stay in `<userData>/fonts`)        |
 | `secrets`       | `scope` (`app`), `name` (unique per scope), `value` (`encryptedText`)                                   | new: service keys for voice and the assistant                 |
 | `assist_log`    | `id`, `at`, `projectId`, `task`, `service`, `model`, `request` (JSON), `response` (JSON), `error`, `ms` | new                                                           |
-
-## Import from today's files
-
-### What it adds
-
-The first start of the version with the database reads today's files once and keeps everything.
-
-### Work
-
-1. `importLegacyState()` in `src/main/db/import.ts`, run after migrations when the database is new: `settings.json` (through `appSettingsSchema`), `recent-projects.json`, `panel-windows.json`, `settings-window.json`, `fonts/library.json`.
-2. Rename each imported file to `<name>.imported` instead of deleting it, so a downgrade can still read it.
-3. The renderer's local storage (view preferences, layouts, `SETUP_SKIPPED_KEY`) is read in the editor window once, sent to main, and saved under each project; then those keys are removed.
-4. Test with copies of real files from a dev profile.
 
 ## Per-project view state
 
@@ -153,7 +139,7 @@ Each request the assistant sends (local or online) and its answer, stored in `as
 - **#6207:** the migrator sends blank statements when a migration ends with an empty breakpoint. Avoided by never hand-editing migrations and by the test in step 7.
 - **#5515:** drizzle-kit can't find `node:sqlite` under Bun's runtime. Not a risk here: nothing runs under `--bun`.
 - **#1723:** reports of transactions not rolling back (old, mostly other drivers). Covered by the rollback test.
-- **Downgrades.** An older app version doesn't know the database. Keeping the `.imported` files and the pre-migration backup lets a user go back by hand.
+- **Downgrades.** An older app version doesn't know the database. The pre-migration backup lets a user go back by hand.
 
 ## Sources
 

@@ -5,7 +5,7 @@ import path from "node:path";
 import type { LastRun, NodeResult } from "../../shared/schema/values";
 import { stableStringify } from "../../shared/vars";
 
-export const ENGINE_VERSION = "demoflow-engine/4";
+export const ENGINE_VERSION = "demoflow-engine/1";
 
 export const projectPaths = (projectDir: string) => ({
   meta: path.join(projectDir, ".demoflow"),

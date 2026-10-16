@@ -63,15 +63,32 @@ const PICKER_SCRIPT = `(() => {
     return '';
   };
   const pick = (target) => (target.closest && target.closest(INTERACTIVE)) || target;
-  document.addEventListener('mousemove', (e) => {
+  let last = null;
+  const show = (e, shift) => {
+    if (!e) return;
+    if (shift) {
+      const x = Math.round(e.clientX), y = Math.round(e.clientY);
+      Object.assign(box.style, { left: (x - 6) + 'px', top: (y - 6) + 'px', width: '12px', height: '12px' });
+      tag.textContent = x + ', ' + y;
+      Object.assign(tag.style, { left: (x + 10) + 'px', top: Math.max(0, y - 30) + 'px' });
+      return;
+    }
     const el = pick(e.target);
     const r = el.getBoundingClientRect();
     Object.assign(box.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
     tag.textContent = nameOf(el) || cssOf(el);
     Object.assign(tag.style, { left: r.left + 'px', top: Math.max(0, r.top - 26) + 'px' });
-  }, true);
+  };
+  document.addEventListener('mousemove', (e) => { last = e; show(e, e.shiftKey); }, true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Shift') show(last, true); }, true);
+  document.addEventListener('keyup', (e) => { if (e.key === 'Shift') show(last, false); }, true);
   document.addEventListener('click', (e) => {
     e.preventDefault(); e.stopPropagation();
+    if (e.shiftKey) {
+      const spot = Math.round(e.clientX) + ', ' + Math.round(e.clientY);
+      console.log('${PICK_PREFIX}' + JSON.stringify({ target: spot, css: '', role: '', selectorUsed: 'spot' }));
+      return;
+    }
     const el = pick(e.target);
     const name = nameOf(el);
     const css = cssOf(el);
@@ -90,6 +107,7 @@ function sandboxedWindow(
     modal: false,
     width: size?.width ?? 1280,
     height: size?.height ?? 860,
+    useContentSize: !!size,
     title,
     autoHideMenuBar: true,
     webPreferences: { partition, sandbox: true, contextIsolation: true, nodeIntegration: false },
@@ -100,7 +118,7 @@ export function pickInWindow(parent: BrowserWindow | null, req: PickRequest): Pr
   return new Promise((resolve) => {
     const win = sandboxedWindow(
       parent,
-      "Pick an element — click it",
+      "Pick an element — click it, or Shift-click a spot",
       `demoflow-picker-${Date.now()}`,
       req.viewport,
     );

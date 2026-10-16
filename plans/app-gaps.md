@@ -2,7 +2,7 @@
 
 The limits and bugs that the Shipyard launch-demo build ran into and that are still open, with the work to close each one. The demo's own plan was deleted once the film was built, so this file carries what it found: what users couldn't do, what the demo did instead, where the cause is in the code, and how to fix it.
 
-Status: plan only. Nothing here is built yet.
+Status: the first five sections are built and were checked in the app on 2026-10-17 (results under **Checked** in each). **Lost frames and frame rates** is open and comes next; **Known, not planned** stays as it is.
 
 ## How to read this plan
 
@@ -28,14 +28,15 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
 ## Summary
 
-| Section                    | What users get                                                                                                                              | Size |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| Drag action                | A Drag action: drop an element on another, move it by a distance, or draw a path, with the cursor, camera, cards and sounds following along | L    |
-| A transition at each cut   | One Sequence with a different transition (and length) before any clip, instead of chains of transition nodes                                | M    |
-| Higher speed limits        | Change speed and Speed up to 64×, matching what Fit length already allows                                                                   | S    |
-| Run panel bugs             | Progress that survives the editor reopening mid-run, and a later run that no longer hides the earlier run's errors and exports              | M    |
-| Chapters in exported files | Chapters from Chapter actions written into MP4, MOV and MKV exports, and a YouTube timestamp list next to the export                        | S    |
-| Known, not planned         | Leftover render files in the system temp folder after a cancelled or crashed render                                                         | —    |
+| Section                     | What users get                                                                                                                              | Size |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| Drag action                 | A Drag action: drop an element on another, move it by a distance, or draw a path, with the cursor, camera, cards and sounds following along | L    |
+| A transition at each cut    | One Sequence with a different transition (and length) before any clip, instead of chains of transition nodes                                | M    |
+| Higher speed limits         | Change speed and Speed up to 64×, matching what Fit length already allows                                                                   | S    |
+| Run panel bugs              | Progress that survives the editor reopening mid-run, and a later run that no longer hides the earlier run's errors and exports              | M    |
+| Chapters in exported files  | Chapters from Chapter actions written into MP4, MOV and MKV exports, and a YouTube timestamp list next to the export                        | S    |
+| Lost frames and frame rates | Recordings that keep every page change, and frame-rate settings that each do what they say (open)                                           | M    |
+| Known, not planned          | Leftover render files in the system temp folder after a cancelled or crashed render                                                         | —    |
 
 ## Drag action
 
@@ -118,6 +119,10 @@ Missing:
 - [Playwright: Drag and drop](https://playwright.dev/docs/input#drag-and-drop) (manual drags with `mouse`, drag-and-drop pages)
 - Types of the installed `playwright-core@1.64.1` (`dragTo` options including `steps`; checked 2026-10-16)
 
+### Checked
+
+On local test pages instead of n8n, Excalidraw and Twenty (their images were no longer on this computer): a pointer-event kanban, a native drag-and-drop palette onto a canvas, and a drawing canvas with a rectangle tool, a pen and a range slider. With the synthetic and the baked cursor, Auto zoom on, 16:9 and 9:16: the webhook lands where it was dropped, the box is 360 × 220, the circle path is drawn, the stroke slider goes from 3 to 20, the baked cursor follows native drag-and-drop, and Preview matches the export. The kanban card drops on the page but the recording misses it: see **Lost frames and frame rates**.
+
 ## A transition at each cut
 
 ### What it adds
@@ -161,6 +166,10 @@ Missing:
 - **Ports, not positions.** If a later change ever compacts ports, `before` must follow, the way `splitBar` shifts edges.
 - **Transition settings.** A cut uses the transition's default look, as the Sequence does today. Transitions with settings of their own (Light leak cut's colour shift) still need their node; say so in the help text if users ask.
 
+### Checked
+
+In the app: a Sequence of four title clips with a fade by default, a held wipe before clip 3 and a plain cut before clip 4 exports at 8.5 s with the marks where planned; Preview and export match at the fade, the wipe and the cut. Clicking a mark's label selects its Sequence (the tooltip names the clip it leads into). Splitting clip 1 from the Timeline stays inside the Sequence, shifts the later cuts with their clips, joins the halves with a plain cut, and undoes in one step.
+
 ## Higher speed limits
 
 ### What it adds
@@ -197,6 +206,10 @@ Cost at high rates:
 
 - [FFmpeg filters: `setpts`](https://ffmpeg.org/ffmpeg-filters.html#setpts_002c-asetpts) and [`atempo`](https://ffmpeg.org/ffmpeg-filters.html#atempo)
 - [Remotion: `<Freeze>`](https://www.remotion.dev/docs/freeze)
+
+### Checked
+
+A 117 s take through Speed at 16, 32 and 64× exports 220, 110 and 55 frames, the same lengths as Fit length; export time follows the output length (17.8, 8.7 and 5.6 s). Preview playback, measured in the app: real time at 1× and 2×; from 4× it advances about 1 s per 4 s and redraws 1 to 7 times a second, so it plays slowly rather than skipping frames. That was already true up to 16×. The Speed card says "Very fast: the Preview plays slowly. The export is smooth." from 4×. Change speed writes 25 fps files: see **Lost frames and frame rates**.
 
 ## Run panel bugs
 
@@ -236,6 +249,10 @@ To reproduce: make a node fail in a full run (for example a Check text action th
 4. **Rows.** The panel's rows include any node with an error, so an error from an earlier run stays visible until that node runs again.
 5. **Tests.** `run.test.ts`: after a full run where `b` fails, a run of `c` alone leaves `errors.b` and `statuses.b` as they were. A test of the exports list: a code-only run keeps the film's files listed.
 
+### Checked
+
+In the app: during a three-shape export, going to the start screen and opening the project again kept every finished node as Done and showed the export at 29%. A run where a Check text action failed ended with "**Record take** failed, 1 skipped" (the name selects the node); a **Run this** on the title card export afterwards kept that failure and the skip listed, and the outputs list showed the title card first, then the film's files.
+
 ## Chapters in exported files
 
 ### What it adds
@@ -260,6 +277,31 @@ Missing:
 3. **Timestamp file.** Next to each video export, `<name>.youtube-chapters.txt`, listed with the export's artifacts.
 4. **Output setting.** On Export video: "Chapters in the file" (on by default when the film has chapters) and "YouTube chapter list".
 5. **Check.** Export a film with three Chapter actions; `ffprobe -show_chapters` lists them at the right times in each shape; VLC shows them.
+
+### Checked
+
+A 44.3 s take with three Chapter actions exported as MP4 (16:9 and 9:16), WebM and GIF: the video files list "Plan the launch" at 0:00 (recorded at 0.706 s, moved to the start), "Build the page" at 14.437 s and "Ship it" at 28.611 s, exactly the recorded times; the GIF has none; each video has a `.youtube-chapters.txt` with `0:00`, `0:14`, `0:28`. Titles with `=`, `;` and `#` come back intact. Not checked: a player's chapter menu (VLC).
+
+## Lost frames and frame rates
+
+Open. Found while checking the Drag action and the speed limits.
+
+### What happens
+
+- **A recording can miss a page change.** In the kanban check the card was dropped (the trace's page snapshot after the release reads "pointerdown mousedown pointerup acme->won mouseup"), but the recording shows it lifted until the next page opened 0.8 s later, and 3 s later when the pause after the drag was raised.
+- **Change speed writes 25 fps.** From a 30 fps source, at any rate including 1× (101 frames for 4 s on a test file).
+- **Frame-rate settings nobody has checked:** projects at 60 fps; Record take at 25, 30 and 60 fps; Join forces 30 fps when the files differ, even in a 60 fps project.
+
+### Cause
+
+- **Lost frames:** the screencast's `onFrame` (`runTake`, `src/worker/capture/driver.ts`) awaits `encoder.push`, and Chrome sends the next frame only after the previous one is acknowledged. In the app the encoder stalled for about 1.1 s (frames painted at 4.38 to 4.45 s were handled at 5.47 s); the drop painted at 5.14 s, inside the stall, and nothing changed on the page afterwards, so no frame of it was ever sent. Outside the app (less load) the same take kept the frame.
+- **Change speed:** `setpts` leaves the stream without a known frame rate, so FFmpeg falls back to 25 fps; `-r 30` keeps 61 frames for a 2× speed-up of the same file.
+
+### Work
+
+1. Take each frame at once and let the encoder catch up from its queue (`push` already chains), surfacing encoder errors at `finish`; re-run the kanban drag in the app.
+2. Change speed keeps the source frame rate.
+3. Check every frame-rate setting (60 fps project, 25/30/60 fps takes, Join in a 60 fps project) and keep only those that pass.
 
 ## Known, not planned
 

@@ -20,6 +20,7 @@ import type { WorkflowNode } from "../../shared/schema/workflow";
 import { enginePaths } from "../../engine/paths";
 import type { LiveMessage } from "../../shared/live";
 import { interpolate } from "../../shared/vars";
+import { failureMessage } from "../../shared/run-progress";
 import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/driver";
 import { getExecutor } from "../executors";
@@ -103,6 +104,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
       ok: false,
       cancelled: false,
       error: issues[0].message,
+      failedNodeIds: [...new Set(issues.flatMap((i) => (i.nodeId ? [i.nodeId] : [])))],
       outputs: [],
       at: Date.now(),
     });
@@ -167,6 +169,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
   ) as Record<NodePhase, ReturnType<typeof pLimit>>;
   const serial = new Map<string, Promise<unknown>>();
   const failed = new Set<string>();
+  const skipped = new Set<string>();
   const failures: Record<string, NodeFailure> = {};
   const outputs: string[] = [];
   const promises = new Map<string, Promise<void>>();
@@ -188,6 +191,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
     if (signal.aborted) return;
     if (execDeps(id).some((d) => failed.has(d))) {
       failed.add(id);
+      skipped.add(id);
       emit({ type: "node:skipped", runId, nodeId: id, reason: "Something before it failed" });
       return;
     }
@@ -381,12 +385,20 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
   );
 
   const ok = !signal.aborted && failed.size === 0 && !error;
+  const failedNodeIds = [...failed].filter((id) => !skipped.has(id));
+  const nameOf = (id: string) => {
+    const node = byId.get(id);
+    return node?.label || getNodeDef(node?.type ?? "")?.title || id;
+  };
   emit({
     type: "run:done",
     runId,
     ok,
     cancelled: signal.aborted,
-    error: error ?? (failed.size ? `${failed.size} node(s) failed` : undefined),
+    error:
+      error ?? (failed.size ? failureMessage(failedNodeIds.map(nameOf), skipped.size) : undefined),
+    failedNodeIds,
+    skippedNodeIds: [...skipped],
     outputs,
     at: Date.now(),
   });

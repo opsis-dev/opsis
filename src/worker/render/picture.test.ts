@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TimelineSpec } from "../../shared/schema/timeline";
-import { hasSoundTrack, muxArgs, pictureKey } from "./picture";
+import { finishArgs, hasSoundTrack, muxArgs, pictureKey } from "./picture";
 
 const spec: TimelineSpec = {
   width: 1920,
@@ -47,5 +47,19 @@ describe("pictures rendered without sound", () => {
     expect(muxArgs("prores", "p.mov", "m.wav", "o.mov")).toContain("pcm_s16le");
     expect(muxArgs("vp9", "p.webm", "m.wav", "o.webm")).toContain("libopus");
     expect(hasSoundTrack("gif")).toBe(false);
+  });
+});
+
+describe("finishArgs", () => {
+  it("adds chapters and moves the index to the front in one copy", () => {
+    expect(finishArgs("a.mp4", "b.mp4", { faststart: true, chapters: "c.txt" }).join(" ")).toBe(
+      "-y -i a.mp4 -i c.txt -map_metadata 1 -map_chapters 1 -map 0 -c copy -movflags +faststart b.mp4",
+    );
+  });
+
+  it("copies without chapters", () => {
+    expect(finishArgs("a.webm", "b.webm", { faststart: false, chapters: null }).join(" ")).toBe(
+      "-y -i a.webm -map 0 -c copy b.webm",
+    );
   });
 });

@@ -346,6 +346,7 @@ function FieldControl({
         return (
           <ObjectListField
             label={label}
+            meta={meta}
             schema={element as unknown as z.ZodObject}
             value={list as Record<string, unknown>[]}
             onChange={onChange}
@@ -1330,12 +1331,14 @@ function ColorField({
 
 function ObjectListField({
   label,
+  meta,
   schema,
   value,
   onChange,
   ctx,
 }: {
   label: string;
+  meta: FieldMeta;
   schema: z.ZodObject;
   value: Record<string, unknown>[];
   onChange: (v: Record<string, unknown>[]) => void;
@@ -1344,6 +1347,7 @@ function ObjectListField({
   return (
     <FieldSet>
       <FieldLegend variant="label">{label}</FieldLegend>
+      <Help meta={meta} />
       <div className="flex flex-col gap-3">
         {value.map((item, i) => (
           <div key={i} className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3">

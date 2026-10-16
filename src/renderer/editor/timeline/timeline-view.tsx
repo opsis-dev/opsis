@@ -34,7 +34,7 @@ import {
   type Removal,
 } from "@/shared/timeline/edits";
 import { envelopeAt } from "@/shared/timeline/envelope";
-import type { AudioBar, FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
+import type { AudioBar, FlatTimeline, TransitionMark, VideoBar } from "@/shared/timeline/flatten";
 import {
   formatTime,
   rulerStep,
@@ -149,6 +149,18 @@ type Drag =
   | { kind: "marker"; id: string; x0: number; at0: number; started: boolean }
   | { kind: "scrub" }
   | { kind: "marquee"; x0: number; y0: number; x1: number; y1: number; additive: boolean };
+
+function transitionTip(wf: Workflow, t: TransitionMark): string {
+  const edge = t.slot
+    ? wf.edges.find((e) => e.target === t.slot!.nodeId && e.targetHandle === t.slot!.port)
+    : undefined;
+  const into = edge ? ` into ${nodeTitle(wf, edge.source)}` : "";
+  const cover =
+    t.covers > 0.4
+      ? `. It covers ${Math.min(100, Math.round(t.covers * 100))}% of a clip: turn on Keep every clip whole, or shorten it`
+      : "";
+  return `${transitionTitle(t.kind)}${into}${cover}.`;
+}
 
 function nodeTitle(wf: Workflow, id: string): string {
   const node = wf.nodes.find((n) => n.id === id);
@@ -1159,16 +1171,17 @@ export function TimelineView({ ref }: { ref: React.Ref<TimelineActions> }) {
                   top: videoTop + (videoLanes - 1 - top) * VIDEO_H + 4,
                   height: (top - bottom + 1) * VIDEO_H - 8,
                 }}
-                title={
-                  heavy
-                    ? `${transitionTitle(t.kind)} covers ${Math.min(100, Math.round(t.covers * 100))}% of a clip. Turn on Keep every clip whole, or shorten it.`
-                    : transitionTitle(t.kind)
-                }
               >
                 {(t.to - t.from) * ppf > 40 ? (
-                  <span className="bg-background/70 mb-0.5 rounded px-1 text-[10px] whitespace-nowrap">
+                  <button
+                    type="button"
+                    className="bg-background/70 hover:bg-background pointer-events-auto mb-0.5 rounded px-1 text-[10px] whitespace-nowrap"
+                    title={transitionTip(workflow, t)}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() => t.slot && select([t.slot.nodeId], false)}
+                  >
                     {transitionTitle(t.kind)}
-                  </span>
+                  </button>
                 ) : null}
               </div>
             );

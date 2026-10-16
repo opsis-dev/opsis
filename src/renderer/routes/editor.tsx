@@ -36,7 +36,7 @@ function EditorRoute() {
         useLiveStore.getState().reset();
         void useSecretsStore.getState().refresh(p.dir);
         void window.demoflow.runStatus().then((s) => {
-          if (s.runId && s.projectDir === p.dir) useRunStore.getState().start(s.runId);
+          if (s.runId && s.projectDir === p.dir) useRunStore.getState().resume(s.progress);
         });
       })
       .catch((e: unknown) => {

@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner";
 import { downstreamOf, sessionChain, upstreamOf } from "@/shared/graph";
 import { CATEGORY_LABELS } from "@/shared/nodes/define";
-import { getNodeDef } from "@/shared/nodes/registry";
+import { defaultParams, getNodeDef } from "@/shared/nodes/registry";
 import { hasWidget } from "@/shared/elements/introspect";
 import type { RecordingValue } from "@/shared/schema/values";
 import type { Workflow } from "@/shared/schema/workflow";
@@ -69,7 +69,10 @@ function spotBackground(
   return null;
 }
 
-function pickerUrl(wf: Workflow, nodeId: string): string | null {
+function pickerPage(
+  wf: Workflow,
+  nodeId: string,
+): { url: string; viewport?: { width: number; height: number } } | null {
   const capture = [nodeId, ...downstreamOf(wf, nodeId)].find((id) => {
     const t = wf.nodes.find((n) => n.id === id)?.type;
     return t === "capture.record" || t === "capture.still";
@@ -85,7 +88,17 @@ function pickerUrl(wf: Workflow, nodeId: string): string | null {
   const nav = before.toReversed().find((n) => n.type === "browser.navigate");
   const url =
     (nav?.params.url as string | undefined) ?? wf.variables[SITE_VAR] ?? wf.variables.BASE_URL;
-  return url ? interpolate(url, workflowVars(wf)) : null;
+  if (!url) return null;
+  const session = chain.find((n) => n.type === "browser.session");
+  const size = session
+    ? { ...defaultParams(session.type), ...session.params }
+    : ({} as Record<string, unknown>);
+  const width = Number(size.viewportWidth);
+  const height = Number(size.viewportHeight);
+  return {
+    url: interpolate(url, workflowVars(wf)),
+    ...(width > 0 && height > 0 ? { viewport: { width, height } } : {}),
+  };
 }
 
 export function Inspector() {
@@ -143,14 +156,14 @@ function NodeInspector({ nodeId }: { nodeId: string }) {
         ? spotBackground(workflow, nodeId, results)
         : null,
     pickTarget: async (key) => {
-      const url = pickerUrl(workflow, nodeId);
-      if (!url) {
+      const pickPage = pickerPage(workflow, nodeId);
+      if (!pickPage) {
         toast.error("Add a Go to page action before this one, so there's a page to pick from.");
         return;
       }
-      toast.info("A browser window opened. Hover over the element and click it.");
+      toast.info("A browser window opened. Click the element, or Shift-click a spot.");
       try {
-        const picked = await window.demoflow.pickElement({ url });
+        const picked = await window.demoflow.pickElement(pickPage);
         if (picked) {
           updateParams(nodeId, { [key]: picked.target, [`${key}Role`]: picked.role || undefined });
           toast.success(`Picked “${picked.target}”`);
@@ -545,6 +558,7 @@ const ACTION_TYPES = new Set([
   "browser.click",
   "browser.type",
   "browser.hover",
+  "browser.drag",
   "browser.select",
   "browser.press",
   "browser.scroll",

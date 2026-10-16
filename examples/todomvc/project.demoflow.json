@@ -1,12 +1,18 @@
 {
   "version": 1,
   "id": "example_todomvc",
-  "name": "Sample: TodoMVC",
+  "name": "Sample: to-do app",
   "settings": {
     "width": 1920,
     "height": 1080,
     "fps": 30,
-    "theme": "dark"
+    "theme": "dark",
+    "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+    }
   },
   "variables": {
     "Site address": "https://demo.playwright.dev/todomvc"
@@ -173,7 +179,9 @@
         "speed": 1.25,
         "style": "classic",
         "backdrop": "glaze",
-        "chrome": false,
+        "frame": "none",
+        "frameTheme": "light",
+        "addressBar": true,
         "motionBlur": true
       }
     },
@@ -201,7 +209,8 @@
         "speed": 1,
         "distortion": 0.6,
         "swirl": 0.1,
-        "clipDuration": 75
+        "clipDuration": 75,
+        "envelope": {}
       }
     },
     {
@@ -218,7 +227,8 @@
         "color": "#fafafa",
         "fontWeight": "600",
         "speed": 1,
-        "clipDuration": 75
+        "clipDuration": 75,
+        "envelope": {}
       }
     },
     {
@@ -230,7 +240,8 @@
       },
       "params": {
         "duration": "first",
-        "offsetsMs": ""
+        "offsetsMs": "",
+        "keepLayout": false
       }
     },
     {
@@ -250,7 +261,9 @@
         "accent": "#a78bfa",
         "background": "transparent",
         "fontSize": 112,
-        "clipDuration": 75
+        "fontFamily": "",
+        "clipDuration": 75,
+        "envelope": {}
       }
     },
     {
@@ -262,7 +275,9 @@
       },
       "params": {
         "transition": "remocn/whip-pan",
-        "transitionDuration": 18
+        "transitionDuration": 18,
+        "keepWhole": false,
+        "cuts": []
       }
     },
     {
@@ -279,6 +294,8 @@
         "variants": ["16:9", "9:16"],
         "reframe": "follow",
         "scale": 1,
+        "chapters": true,
+        "chapterList": false,
         "faststart": true,
         "gl": "angle"
       }

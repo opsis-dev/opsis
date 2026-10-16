@@ -47,6 +47,25 @@ export function muxArgs(codec: string, picture: string, sound: string, out: stri
   ];
 }
 
+export function finishArgs(
+  input: string,
+  out: string,
+  opts: { faststart: boolean; chapters: string | null },
+): string[] {
+  return [
+    "-y",
+    "-i",
+    input,
+    ...(opts.chapters ? ["-i", opts.chapters, "-map_metadata", "1", "-map_chapters", "1"] : []),
+    "-map",
+    "0",
+    "-c",
+    "copy",
+    ...(opts.faststart ? ["-movflags", "+faststart"] : []),
+    out,
+  ];
+}
+
 export async function prunePictures(dir: string, keep = KEEP_PICTURES): Promise<void> {
   const names = await readdir(dir).catch(() => [] as string[]);
   const files = await Promise.all(

@@ -18,7 +18,7 @@ import type { Loudness, MixResult, StemLevels } from "../../shared/mix/result";
 import type { FfmpegTools } from "../media/ffmpeg";
 import { frameLevels, readWav } from "./wav";
 
-export const MIX_VERSION = "demoflow-mix/2";
+export const MIX_VERSION = "demoflow-mix/1";
 const KEEP_PLANS = 12;
 
 export type MixDeps = {
