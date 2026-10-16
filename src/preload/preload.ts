@@ -90,6 +90,7 @@ const api: DemoflowApi = {
   reportUnsaved: (unsaved) => ipcRenderer.send(IPC.reportUnsaved, unsaved),
   onConfirmClose: (listener) => subscribe<CloseRequest>(IPC.confirmClose, listener),
   decideClose: (decision) => ipcRenderer.send(IPC.closeDecision, decision),
+  closeShown: () => ipcRenderer.send(IPC.closeShown),
   onFlushSave: (listener) =>
     subscribe<void>(IPC.flushSave, () => {
       void listener()

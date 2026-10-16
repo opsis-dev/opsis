@@ -92,11 +92,12 @@ export function Inspector() {
   const selected = useUiStore((s) => s.selectedIds);
   const workflow = useWorkflowStore((s) => s.workflow);
   if (!workflow) return null;
-  const node = selected.length === 1 ? workflow.nodes.find((n) => n.id === selected[0]) : undefined;
+  const present = selected.filter((id) => workflow.nodes.some((n) => n.id === id));
+  const node = present.length === 1 ? workflow.nodes.find((n) => n.id === present[0]) : undefined;
   return (
     <ScrollArea className="h-full">
       <SwapFade id={node?.id ?? "project"}>
-        {node ? <NodeInspector nodeId={node.id} /> : <ProjectInspector multi={selected.length} />}
+        {node ? <NodeInspector nodeId={node.id} /> : <ProjectInspector multi={present.length} />}
       </SwapFade>
     </ScrollArea>
   );
@@ -106,8 +107,8 @@ function NodeInspector({ nodeId }: { nodeId: string }) {
   const workflow = useWorkflowStore((s) => s.workflow)!;
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const { updateParams, setNodeMeta, removeNodes, ungroup } = useWorkflowStore.getState();
-  const node = workflow.nodes.find((n) => n.id === nodeId)!;
-  const def = getNodeDef(node.type);
+  const node = workflow.nodes.find((n) => n.id === nodeId);
+  const def = node ? getNodeDef(node.type) : undefined;
   const { result, issues } = useCompiledContext();
   const runError = useRunStore((s) => s.errors[nodeId]);
   const running = useRunStore((s) => s.running);
@@ -116,6 +117,7 @@ function NodeInspector({ nodeId }: { nodeId: string }) {
   const setReplay = useUiStore((s) => s.setReplay);
   const secrets = useSecretsStore((s) => s.names);
   const results = useRunStore((s) => s.results);
+  if (!node) return null;
   if (!def) return <p className="p-4 text-sm">This node type isn't available.</p>;
   const problems = [
     runError,
@@ -276,7 +278,14 @@ function NodeInspector({ nodeId }: { nodeId: string }) {
             Ungroup
           </Button>
         ) : null}
-        <Button size="sm" variant="ghost" onClick={() => removeNodes([nodeId])}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            useUiStore.getState().setSelected([]);
+            removeNodes([nodeId]);
+          }}
+        >
           <Trash2 data-icon="inline-start" />
           Delete
         </Button>

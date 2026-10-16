@@ -45,14 +45,24 @@ function flushSave(win: BrowserWindow): Promise<void> {
   });
 }
 
+const SHOWN_WITHIN_MS = 2000;
+
 let decide: ((decision: CloseDecision) => void) | null = null;
+let shown: (() => void) | null = null;
 
 function askRenderer(win: BrowserWindow, request: CloseRequest): Promise<CloseDecision> {
   if (win.isDestroyed() || win.webContents.isCrashed())
     return Promise.resolve({ close: true, dontAsk: false });
   return new Promise((resolve) => {
+    const unanswered = setTimeout(() => decide?.({ close: true, dontAsk: false }), SHOWN_WITHIN_MS);
+    shown = () => {
+      shown = null;
+      clearTimeout(unanswered);
+    };
     decide = (decision) => {
       decide = null;
+      shown = null;
+      clearTimeout(unanswered);
       resolve(decision);
     };
     win.webContents.send(IPC.confirmClose, request);
@@ -115,6 +125,9 @@ export function interceptQuit(
 export function registerExitIpc(isTrusted: (id: number) => boolean): void {
   ipcMain.on(IPC.reportUnsaved, (event, value: boolean) => {
     if (isTrusted(event.sender.id)) setUnsaved(!!value);
+  });
+  ipcMain.on(IPC.closeShown, (event) => {
+    if (isTrusted(event.sender.id)) shown?.();
   });
   ipcMain.on(IPC.closeDecision, (event, decision: CloseDecision) => {
     if (isTrusted(event.sender.id))

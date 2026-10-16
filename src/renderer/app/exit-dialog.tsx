@@ -20,6 +20,7 @@ export function ExitDialog() {
   useEffect(
     () =>
       window.demoflow.onConfirmClose((next) => {
+        window.demoflow.closeShown();
         setDontAsk(false);
         setRequest(next);
       }),

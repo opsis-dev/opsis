@@ -167,6 +167,7 @@ export interface DemoflowApi {
   onFlushSave(listener: () => Promise<void>): () => void;
   onConfirmClose(listener: (request: CloseRequest) => void): () => void;
   decideClose(decision: CloseDecision): void;
+  closeShown(): void;
   onStillReady(listener: (still: StillReady) => void): () => void;
   onWindowState(listener: (state: WindowState) => void): () => void;
   dispatchMenuCommand(command: MenuCommand): void;
@@ -230,6 +231,7 @@ export const IPC = {
   saveFlushed: "demoflow:exit:save-flushed",
   confirmClose: "demoflow:exit:confirm",
   closeDecision: "demoflow:exit:decision",
+  closeShown: "demoflow:exit:shown",
 } as const;
 
 declare global {

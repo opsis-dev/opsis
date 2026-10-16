@@ -5,10 +5,16 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Toaster } from "@/renderer/components/ui/sonner";
 import { TooltipProvider } from "@/renderer/components/ui/tooltip";
+import { ErrorScreen } from "./app/error-screen";
 import { MotionProvider } from "./app/motion";
 import { routeTree } from "./routeTree.gen";
 
-const router = createRouter({ routeTree, history: createHashHistory(), defaultPreload: "intent" });
+const router = createRouter({
+  routeTree,
+  history: createHashHistory(),
+  defaultPreload: "intent",
+  defaultErrorComponent: ErrorScreen,
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
