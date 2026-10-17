@@ -16,6 +16,7 @@ import {
   CURATED,
   DESCRIPTIONS,
   REGISTRIES,
+  TITLE_ACRONYMS,
   unknownOverrideNames,
   type ControlSpec,
   type CuratedElement,
@@ -25,6 +26,12 @@ import { errorMessage } from "../src/shared/errors";
 import { humanize } from "../src/shared/format";
 import { walkFiles } from "./lib/walk";
 import { isRecord, tryParseJson } from "../src/shared/guards";
+
+const titleOf = (name: string): string =>
+  humanize(name)
+    .split(" ")
+    .map((word) => (TITLE_ACRONYMS.has(word.toUpperCase()) ? word.toUpperCase() : word))
+    .join(" ");
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const SRC = path.join(ROOT, "src");
@@ -201,19 +208,16 @@ function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown
   return undefined;
 }
 
-function literalNumber(node: Node | undefined, scope?: SourceFile): number | undefined {
-  const value = literal(node, scope);
-  return typeof value === "number" ? value : undefined;
-}
+const isNumber = (value: unknown): value is number => typeof value === "number";
+const isString = (value: unknown): value is string => typeof value === "string";
 
-function literalString(node: Node | undefined, scope?: SourceFile): string | undefined {
+function literalOf<T>(
+  node: Node | undefined,
+  guard: (value: unknown) => value is T,
+  scope?: SourceFile,
+): T | undefined {
   const value = literal(node, scope);
-  return typeof value === "string" ? value : undefined;
-}
-
-function literalRecord(node: Node | undefined, scope?: SourceFile): Record<string, unknown> {
-  const value = literal(node, scope);
-  return isRecord(value) ? value : {};
+  return guard(value) ? value : undefined;
 }
 
 const isControl = (value: unknown): value is Control =>
@@ -232,7 +236,7 @@ function parseConfig(source: string, name: string): ParsedConfig | null {
     if (!init || !Node.isObjectLiteralExpression(init)) continue;
     const controlsProp = init.getProperty("controls");
     if (!controlsProp || !Node.isPropertyAssignment(controlsProp)) continue;
-    const controls = Object.entries(literalRecord(controlsProp.getInitializer()));
+    const controls = Object.entries(literalOf(controlsProp.getInitializer(), isRecord) ?? {});
     const dur = init.getProperty("durationInFrames");
     const comp = init.getProperty("componentName");
     return {
@@ -240,9 +244,13 @@ function parseConfig(source: string, name: string): ParsedConfig | null {
         controls.filter((entry): entry is [string, Control] => isControl(entry[1])),
       ),
       durationInFrames:
-        dur && Node.isPropertyAssignment(dur) ? literalNumber(dur.getInitializer()) : undefined,
+        dur && Node.isPropertyAssignment(dur)
+          ? literalOf(dur.getInitializer(), isNumber)
+          : undefined,
       componentName:
-        comp && Node.isPropertyAssignment(comp) ? literalString(comp.getInitializer()) : undefined,
+        comp && Node.isPropertyAssignment(comp)
+          ? literalOf(comp.getInitializer(), isString)
+          : undefined,
     };
   }
   return null;
@@ -334,14 +342,15 @@ function previewDurations(url: string): Promise<Record<string, number>> {
       })
       .then((text) => {
         const sf = scratchFile("preview", "ts", text);
-        const table = literalRecord(
-          sf.getVariableDeclaration("PREVIEW_META")?.getInitializer(),
-          sf,
-        );
-        const fallback = literalRecord(
-          sf.getVariableDeclaration("PREVIEW_DEFAULTS")?.getInitializer(),
-          sf,
-        );
+        const table =
+          literalOf(sf.getVariableDeclaration("PREVIEW_META")?.getInitializer(), isRecord, sf) ??
+          {};
+        const fallback =
+          literalOf(
+            sf.getVariableDeclaration("PREVIEW_DEFAULTS")?.getInitializer(),
+            isRecord,
+            sf,
+          ) ?? {};
         const out: Record<string, number> = {
           "*": typeof fallback.durationInFrames === "number" ? fallback.durationInFrames : 120,
         };
@@ -646,21 +655,26 @@ function metaOf(key: string, c: Control, extra: Record<string, unknown> = {}): s
   return `.meta({ ${body} })`;
 }
 
+const stringField = (text: string, meta: string) => `z.string().default(${q(text)})${meta}`;
+
 function zodFor(key: string, c: Control): string | null {
   const m = (extra: Record<string, unknown> = {}) => metaOf(key, c, extra);
   const text = String(c.default ?? "");
   switch (c.type) {
     case "text":
     case "text-content":
-      return `z.string().default(${q(text)})${m(text.includes("\n") || text.length > 60 ? { widget: "textarea" } : {})}`;
+      return stringField(
+        text,
+        m(text.includes("\n") || text.length > 60 ? { widget: "textarea" } : {}),
+      );
     case "code":
-      return `z.string().default(${q(text)})${m({ widget: "code" })}`;
+      return stringField(text, m({ widget: "code" }));
     case "font":
-      return `z.string().default("")${m({ widget: "font" })}`;
+      return stringField("", m({ widget: "font" }));
     case "image":
-      return `z.string().default(${q(text)})${m({ widget: "asset" })}`;
+      return stringField(text, m({ widget: "asset" }));
     case "asset":
-      return `z.string().default(${q(text)})${m({ widget: "asset", ...(c.accept ? { accept: c.accept } : {}) })}`;
+      return stringField(text, m({ widget: "asset", ...(c.accept ? { accept: c.accept } : {}) }));
     case "number":
     case "number-input": {
       let s = "z.number()";
@@ -739,12 +753,6 @@ function findElementFile(item: CuratedElement): string | null {
 const pascal = (s: string) =>
   s.replace(/(^|[-_])([a-z0-9])/g, (_m, _p, c: string) => c.toUpperCase());
 
-const titleCase = (s: string) =>
-  s
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-
 const declaresFontFamily = (source: string) =>
   /\bfontFamily\?\s*:/.test(source) && /^\s+fontFamily(\s*=[^=>]|\s*,|\s*$)/m.test(source);
 
@@ -813,7 +821,17 @@ const WRAPPERS: Array<[applies: (item: CuratedElement) => boolean, wrapper: stri
 
 type Ingested = { meta: string; loader: string; helpers: string[] };
 
-async function ingest(item: CuratedElement, problems: string[]): Promise<Ingested | null> {
+type Resolved = {
+  item: CuratedElement;
+  key: string;
+  file: string;
+  exportName: string;
+  description?: string;
+  controls: Array<[string, Control]>;
+  duration: number;
+};
+
+async function resolveItem(item: CuratedElement, problems: string[]): Promise<Resolved | null> {
   const file = findElementFile(item);
   if (!file) {
     problems.push(`${item.registry}/${item.name}: not installed`);
@@ -833,24 +851,30 @@ async function ingest(item: CuratedElement, problems: string[]): Promise<Ingeste
   const props = reg.propsUrl ? await propControls(item, file, exportName) : undefined;
   const controls = controlsFor(item, source, props ? props.controls : cfg?.controls, !!props);
   problems.push(...defaultProblems(key, controls, item.fixedProps));
-  const fields = controls
-    .map(([k, c]) => [k, zodFor(k, c)] as const)
-    .filter((f): f is readonly [string, string] => f[1] != null)
-    .map(([k, schema]) => `      ${/^[A-Za-z_$][\w$]*$/.test(k) ? k : q(k)}: ${schema},`);
-  const kind = kindOf(item);
   const duration =
     item.durationInFrames ??
     cfg?.durationInFrames ??
     props?.durationInFrames ??
     (await registryDuration(item)) ??
     90;
-  const meta = [
+  return { item, key, file, exportName, description, controls, duration };
+}
+
+const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
+
+function renderMetaEntry({ item, key, description, controls, duration }: Resolved): string {
+  const reg = REGISTRIES[item.registry];
+  const fields = controls
+    .map(([k, c]) => [k, zodFor(k, c)] as const)
+    .filter((f): f is readonly [string, string] => f[1] != null)
+    .map(([k, schema]) => `      ${IDENTIFIER.test(k) ? k : q(k)}: ${schema},`);
+  return [
     `  {`,
     `    key: ${q(key)},`,
-    `    title: ${q(item.title ?? titleCase(item.name))},`,
+    `    title: ${q(item.title ?? titleOf(item.name))},`,
     ...(description ? [`    description: ${q(description)},`] : []),
     `    category: ${q(item.category)},`,
-    `    kind: ${q(kind)},`,
+    `    kind: ${q(kindOf(item))},`,
     `    source: { registry: ${q(reg.label)}, url: ${q(`${reg.docs}/${item.name}`)}, license: ${q(reg.license)} },`,
     `    schema: z.object({`,
     ...fields,
@@ -859,7 +883,10 @@ async function ingest(item: CuratedElement, problems: string[]): Promise<Ingeste
     `    defaultDurationInFrames: ${duration},`,
     `  },`,
   ].join("\n");
-  const base = kind === "presentation" ? "presentation" : "component";
+}
+
+function renderLoaderEntry({ item, key, file, exportName }: Resolved): Omit<Ingested, "meta"> {
+  const base = kindOf(item) === "presentation" ? "presentation" : "component";
   const wrappers = WRAPPERS.filter(([applies]) => applies(item)).map(([, wrapper]) => wrapper);
   const impl = wrappers.reduce(
     (inner, wrapper) => `${wrapper}(${inner})`,
@@ -872,10 +899,14 @@ async function ingest(item: CuratedElement, problems: string[]): Promise<Ingeste
       .replace(/\\/g, "/")
       .replace(/(\/index)?\.tsx$/, "");
   return {
-    meta,
     loader: `  ${q(key)}: () => import(${q(rel)}).then((m) => ${impl}),`,
     helpers: [base, ...wrappers],
   };
+}
+
+async function ingest(item: CuratedElement, problems: string[]): Promise<Ingested | null> {
+  const resolved = await resolveItem(item, problems);
+  return resolved ? { meta: renderMetaEntry(resolved), ...renderLoaderEntry(resolved) } : null;
 }
 
 const renderMeta = (entries: string[]) =>

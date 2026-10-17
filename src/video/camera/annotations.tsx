@@ -1,6 +1,7 @@
 import React from "react";
 import { Easing, interpolate } from "remotion";
 import type { AnnotationKind } from "../../shared/compile/recording";
+import { TEXT_COLOR } from "../../shared/elements/colors";
 import { MAIN_FONT } from "../../shared/fonts";
 import { percent } from "../../shared/format";
 import { rectCentre } from "../../shared/schema/actions";
@@ -75,7 +76,7 @@ const Tooltip: React.FC<MarkProps> = ({ a, o, k, counter, viewport }) => (
     <div
       style={{
         background: a.color,
-        color: "#fafafa",
+        color: TEXT_COLOR,
         fontFamily: MAIN_FONT,
         fontWeight: 600,
         fontSize: 18 * k,

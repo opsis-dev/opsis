@@ -1,16 +1,18 @@
 import React from "react";
-import { AbsoluteFill, Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
 import { Backdrop } from "../camera/demo-clip";
 import { RimLight, WindowFrame } from "../camera/window-frame";
 import { WINDOW_FIT } from "../camera/lib/style";
 import { isLightBackdrop } from "../camera/lib/backdrop";
 import { stillLayout, type Box, type Shot, type StillLook } from "./still-layout";
-import { visibleBackground } from "./anim";
+import { visibleBackground, zoomOver } from "./anim";
 import { msToFrames } from "../../shared/timeline/time";
 import { DEFAULT_BACKDROP } from "../../shared/backdrops";
 
-type Fit = "contain" | "cover" | "fill";
+export type Fit = "contain" | "cover" | "fill";
+
+const KEN_BURNS_SCALE = 1.06;
 
 export const ImageElement: React.FC<{
   src: string;
@@ -21,7 +23,7 @@ export const ImageElement: React.FC<{
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   if (!src) return null;
-  const scale = kenBurns ? interpolate(frame, [0, durationInFrames], [1, 1.06]) : 1;
+  const scale = kenBurns ? zoomOver(frame, durationInFrames, KEN_BURNS_SCALE) : 1;
   return (
     <AbsoluteFill style={{ background: visibleBackground(background) }}>
       <Img
@@ -80,9 +82,7 @@ const PUSH_IN_SCALE = 1.02;
 
 const PushIn: React.FC<{ origin?: string; children: React.ReactNode }> = ({ origin, children }) => {
   const frame = useCurrentFrame();
-  const push = interpolate(frame, [0, PUSH_IN_FRAMES], [1, PUSH_IN_SCALE], {
-    extrapolateRight: "clamp",
-  });
+  const push = zoomOver(frame, PUSH_IN_FRAMES, PUSH_IN_SCALE);
   return (
     <AbsoluteFill style={{ transform: `scale(${push})`, transformOrigin: origin }}>
       {children}

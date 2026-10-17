@@ -27,11 +27,13 @@ export const Solid: React.FC<{ color: string }> = ({ color }) => (
   <AbsoluteFill style={{ background: color }} />
 );
 
+const DEFAULT_GRAIN = 0.08;
+
 export const Gradient: React.FC<{ from: string; to: string; angle?: number; grain?: number }> = ({
   from,
   to,
   angle = 135,
-  grain = 0.08,
+  grain = DEFAULT_GRAIN,
 }) => (
   <AbsoluteFill style={{ background: `linear-gradient(${angle}deg, ${from}, ${to})` }}>
     <Grain amount={grain} />
@@ -42,6 +44,7 @@ const BLOBS = 5;
 const BLOB_DRIFT_PCT = 40;
 const BLOB_RADIUS_PCT = 30;
 const BLOB_RADIUS_SPREAD_PCT = 25;
+const BLOB_NOISE_SPACING = 1000;
 
 export const NoiseField: React.FC<{
   color1: string;
@@ -51,7 +54,7 @@ export const NoiseField: React.FC<{
 }> = ({ color1, color2, scale = 0.004, speed = 0.004 }) => {
   const frame = useCurrentFrame();
   const blobs = Array.from({ length: BLOBS }, (_, i) => {
-    const offset = i * 10 * scale * 100;
+    const offset = i * BLOB_NOISE_SPACING * scale;
     const x = 50 + noise3D(`x${i}`, offset, 0, frame * speed) * BLOB_DRIFT_PCT;
     const y = 50 + noise3D(`y${i}`, 0, offset, frame * speed) * BLOB_DRIFT_PCT;
     const r = BLOB_RADIUS_PCT + random(`r${i}`) * BLOB_RADIUS_SPREAD_PCT;
@@ -60,7 +63,7 @@ export const NoiseField: React.FC<{
   return (
     <AbsoluteFill style={{ background: color1 }}>
       <AbsoluteFill style={{ background: blobs.join(","), opacity: 0.55, filter: "blur(40px)" }} />
-      <Grain amount={0.08} seed={7} />
+      <Grain amount={DEFAULT_GRAIN} seed={7} />
     </AbsoluteFill>
   );
 };

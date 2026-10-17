@@ -3,16 +3,21 @@ import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
 import { numberOr } from "../../shared/math";
-import type { ElementComponent, PresentationFactory } from "./types";
-
-export type { ElementComponent };
+import type { Size } from "../core/still-layout";
+import type { ElementProps } from "../../shared/elements/types";
+import type { ElementComponent, Presentation, PresentationFactory } from "./types";
 
 export const component = <P,>(element: React.ComponentType<P>): ElementComponent =>
-  element as unknown as ElementComponent;
+  element as ElementComponent;
 
-export const presentation = <I, P extends Record<string, unknown>>(
-  make: (props: I) => TransitionPresentation<P>,
-): PresentationFactory => make as unknown as PresentationFactory;
+export function presentation<I, P extends Record<string, unknown>>(
+  make: (props: I, size: Size) => TransitionPresentation<P>,
+): PresentationFactory {
+  const erased = make as (props: ElementProps, size: Size) => Presentation;
+  return Object.assign((props: ElementProps, size: Size) => erased(props, size), {
+    presentation: true as const,
+  });
+}
 
 export function centered(Component: ElementComponent): ElementComponent {
   const Centered: ElementComponent = (props) => (

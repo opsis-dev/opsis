@@ -4,6 +4,8 @@ import type { RecordingProps } from "../../shared/compile/recording";
 import { CODE_FONT } from "../../shared/fonts";
 import { displayAddress } from "../../shared/format";
 import { clamp } from "../../shared/math";
+import { pick } from "../../shared/pick";
+import { TEXT_COLOR } from "../../shared/elements/colors";
 import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
 import { DemoClip } from "../camera/demo-clip";
@@ -12,38 +14,33 @@ import { DesignWidthContext } from "../camera/lib/design-scale";
 import { SHOT_STYLES } from "../camera/lib/style";
 import { poseAt } from "../camera/lib/zoom";
 import { CLAMPED, fadeWindow } from "./anim";
-import { reframeLayout, useOverlayFrame } from "./frame";
+import {
+  JUSTIFY_AT,
+  overlayPadding,
+  reframeLayout,
+  useOverlayFrame,
+  verticalInsets,
+  type Reframe,
+} from "./frame";
 import type { Size } from "./still-layout";
 
 const TYPED_FADE_IN_S = 0.15;
 const TYPED_FADE_OUT_S = 0.2;
 const CARET_BLINKS_PER_S = 2.5;
 
-const passedToClip = ({
-  name,
-  speed,
-  style,
-  chrome,
-  windowStyle,
-  frameTheme,
-  addressBar,
-  backdrop,
-  cursor,
-  cursorScale,
-  ripple,
-}: RecordingProps) => ({
-  name,
-  speed,
-  style,
-  chrome,
-  windowStyle,
-  frameTheme,
-  addressBar,
-  backdrop,
-  cursor,
-  cursorScale,
-  ripple,
-});
+const CLIP_KEYS = [
+  "name",
+  "speed",
+  "style",
+  "chrome",
+  "windowStyle",
+  "frameTheme",
+  "addressBar",
+  "backdrop",
+  "cursor",
+  "cursorScale",
+  "ripple",
+] as const satisfies ReadonlyArray<keyof RecordingProps>;
 
 export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const fast = useQuality() === "fast";
@@ -60,8 +57,6 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     () => resolveAnnotations(props.log, props.annotations),
     [props.log, props.annotations],
   );
-  const typed = useMemo(() => typedBeats(props.log), [props.log]);
-  const address = useMemo(() => pageAddress(props.log), [props.log]);
 
   if (!src) return null;
 
@@ -74,11 +69,11 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const narrow = layout.mode === "contain" ? layout.narrow : undefined;
   const clip = (
     <DemoClip
-      {...passedToClip(props)}
+      {...pick(props, CLIP_KEYS)}
       box={layout.mode === "contain" ? layout.box : undefined}
       src={src}
       log={log}
-      address={address}
+      address={pageAddress(props.log)}
       motionBlur={props.motionBlur && !fast}
       tuning={narrow ? { ...props.tuning, narrow } : props.tuning}
       annotations={annotations}
@@ -87,33 +82,47 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
 
   const timeS = (frame / fps) * props.speed;
   const ks = props.keystrokes;
+  const followX = () => poseAt(frame, fps, log, { speed: props.speed, tuning: props.tuning }).cx;
   return (
     <AbsoluteFill>
-      {layout.mode === "same" ? clip : null}
-      {layout.mode === "contain" ? (
-        <DesignWidthContext.Provider value={layout.box.width}>{clip}</DesignWidthContext.Provider>
-      ) : null}
-      {layout.mode === "fit" ? <Letterboxed height={layout.height}>{clip}</Letterboxed> : null}
-      {layout.mode === "cover" ? (
-        <Cropped
-          box={layout.box}
-          cx={
-            layout.follow
-              ? poseAt(frame, fps, log, { speed: props.speed, tuning: props.tuning }).cx
-              : 0.5
-          }
-        >
-          {clip}
-        </Cropped>
-      ) : null}
+      <LayoutFrame layout={layout} followX={followX}>
+        {clip}
+      </LayoutFrame>
       <DesignWidthContext.Provider value={Math.max(width, height)}>
         {ks?.chords && log.keys?.length ? (
           <KeycapHUD keys={log.keys} timeS={timeS} position={ks.position} />
         ) : null}
-        {ks?.typed ? <TypedChip beats={typed} timeS={timeS} position={ks.position} /> : null}
+        {ks?.typed ? (
+          <TypedChip beats={typedBeats(props.log)} timeS={timeS} position={ks.position} />
+        ) : null}
       </DesignWidthContext.Provider>
     </AbsoluteFill>
   );
+};
+
+const LayoutFrame: React.FC<{
+  layout: Reframe;
+  followX: () => number;
+  children: React.ReactNode;
+}> = ({ layout, followX, children }) => {
+  switch (layout.mode) {
+    case "same":
+      return <>{children}</>;
+    case "contain":
+      return (
+        <DesignWidthContext.Provider value={layout.box.width}>
+          {children}
+        </DesignWidthContext.Provider>
+      );
+    case "fit":
+      return <Letterboxed height={layout.height}>{children}</Letterboxed>;
+    case "cover":
+      return (
+        <Cropped box={layout.box} cx={layout.follow ? followX() : 0.5}>
+          {children}
+        </Cropped>
+      );
+  }
 };
 
 const Letterboxed: React.FC<{ height: number; children: React.ReactNode }> = ({
@@ -174,11 +183,9 @@ const TypedChip: React.FC<{
   return (
     <AbsoluteFill
       style={{
-        justifyContent: position === "top" ? "flex-start" : "flex-end",
+        justifyContent: JUSTIFY_AT[position],
         alignItems: "center",
-        padding: 56 * k,
-        paddingTop: 56 * k + insets.top,
-        paddingBottom: 56 * k + insets.bottom,
+        ...overlayPadding(56 * k, verticalInsets(insets)),
         pointerEvents: "none",
       }}
     >
@@ -189,7 +196,7 @@ const TypedChip: React.FC<{
           padding: `${14 * k}px ${26 * k}px`,
           borderRadius: 999,
           background: "rgba(10,10,12,0.82)",
-          color: "#fafafa",
+          color: TEXT_COLOR,
           fontFamily: CODE_FONT,
           fontSize: 30 * k,
           whiteSpace: "nowrap",

@@ -8,8 +8,9 @@ import {
   useVideoConfig,
 } from "remotion";
 import { CLAMPED, entranceStyle, exitOpacity, visibleBackground, type Entrance } from "./anim";
-import { isLandscape, useOverlayFrame } from "./frame";
-import { HEADING_FONT, MAIN_FONT } from "../../shared/fonts";
+import { isLandscape, JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "./frame";
+import { fontOr } from "../../shared/fonts";
+import { ACCENT_COLOR, HIGHLIGHT_COLOR, TEXT_COLOR } from "../../shared/elements/colors";
 import { msToFrames } from "../../shared/timeline/time";
 
 const MAX_WORDS_PER_LINE = 6;
@@ -37,8 +38,8 @@ export const Title: React.FC<{
   subtitle,
   align = "center",
   entrance = "rise",
-  color = "#fafafa",
-  accent = "#a78bfa",
+  color = TEXT_COLOR,
+  accent = ACCENT_COLOR,
   background,
   fontSize = 112,
   fontFamily,
@@ -55,7 +56,7 @@ export const Title: React.FC<{
           justifyContent: "center",
           padding: "0 9%",
           textAlign: align,
-          fontFamily: fontFamily || HEADING_FONT,
+          fontFamily: fontOr(fontFamily, "heading"),
           opacity: out,
           gap: fontSize * 0.22,
         }}
@@ -116,8 +117,8 @@ export const KineticHeadline: React.FC<{
   fontFamily?: string;
 }> = ({
   text,
-  color = "#fafafa",
-  emphasisColor = "#facc15",
+  color = TEXT_COLOR,
+  emphasisColor = HIGHLIGHT_COLOR,
   background,
   fontSize = 104,
   wordStagger = 4,
@@ -154,7 +155,7 @@ export const KineticHeadline: React.FC<{
             justifyContent: "center",
             columnGap: fontSize * 0.28,
             rowGap: fontSize * 0.08,
-            fontFamily: fontFamily || HEADING_FONT,
+            fontFamily: fontOr(fontFamily, "heading"),
             fontSize,
             fontWeight: 780,
             letterSpacing: "-0.04em",
@@ -216,8 +217,8 @@ export const LowerThird: React.FC<{
   title,
   subtitle,
   position = "bottom-left",
-  accent = "#a78bfa",
-  color = "#fafafa",
+  accent = ACCENT_COLOR,
+  color = TEXT_COLOR,
   panel = "rgba(10,10,12,0.72)",
   fontFamily,
 }) => {
@@ -235,11 +236,7 @@ export const LowerThird: React.FC<{
       style={{
         justifyContent: top ? "flex-start" : "flex-end",
         alignItems: right ? "flex-end" : "flex-start",
-        padding: 80 * k,
-        paddingTop: 80 * k + insets.top,
-        paddingBottom: 80 * k + insets.bottom,
-        paddingLeft: 80 * k + insets.left,
-        paddingRight: 80 * k + insets.right,
+        ...overlayPadding(80 * k, insets),
       }}
     >
       <div
@@ -249,7 +246,7 @@ export const LowerThird: React.FC<{
           alignItems: "stretch",
           transform: `translateX(${x * k}px)`,
           opacity: Math.min(enter, 1 - exit),
-          fontFamily: fontFamily || MAIN_FONT,
+          fontFamily: fontOr(fontFamily, "main"),
         }}
       >
         <div
@@ -298,7 +295,7 @@ export const Callout: React.FC<{
   color?: string;
   accent?: string;
   fontFamily?: string;
-}> = ({ text, x, y, side = "top", color = "#fafafa", accent = "#f43f5e", fontFamily }) => {
+}> = ({ text, x, y, side = "top", color = TEXT_COLOR, accent = "#f43f5e", fontFamily }) => {
   const frame = useCurrentFrame();
   const { width, height, durationInFrames } = useVideoConfig();
   const { k } = useOverlayFrame();
@@ -335,7 +332,7 @@ export const Callout: React.FC<{
           borderRadius: 14 * k,
           background: accent,
           color,
-          fontFamily: fontFamily || MAIN_FONT,
+          fontFamily: fontOr(fontFamily, "main"),
           fontWeight: 700,
           fontSize: 34 * k,
           opacity: draw,
@@ -364,7 +361,7 @@ export const Captions: React.FC<{
   position = "bottom",
   fontSize = 56,
   color = "#ffffff",
-  highlightColor = "#facc15",
+  highlightColor = HIGHLIGHT_COLOR,
   fontFamily,
 }) => {
   const frame = useCurrentFrame();
@@ -391,12 +388,11 @@ export const Captions: React.FC<{
   return (
     <AbsoluteFill
       style={{
-        justifyContent:
-          position === "bottom" ? "flex-end" : position === "top" ? "flex-start" : "center",
+        justifyContent: JUSTIFY_AT[position],
         alignItems: "center",
-        padding: `${90 * k}px 10%`,
-        paddingTop: 90 * k + insets.top,
-        paddingBottom: 90 * k + insets.bottom,
+        ...overlayPadding(90 * k, verticalInsets(insets)),
+        paddingLeft: "10%",
+        paddingRight: "10%",
       }}
     >
       <div
@@ -405,7 +401,7 @@ export const Captions: React.FC<{
           flexWrap: "wrap",
           justifyContent: "center",
           gap: `0 ${fontSize * 0.28 * k}px`,
-          fontFamily: fontFamily || MAIN_FONT,
+          fontFamily: fontOr(fontFamily, "main"),
           fontSize: fontSize * k,
           fontWeight: 800,
           textShadow: "0 4px 24px rgba(0,0,0,0.55)",
@@ -423,7 +419,7 @@ export const Captions: React.FC<{
             fps,
             config: { damping: 14, stiffness: 220 },
           });
-          const lit = style === "karaoke" ? spoken : style === "word-by-word" && active;
+          const lit = { karaoke: spoken, "word-by-word": active, line: false }[style];
           return (
             <span
               key={i}

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { clamp } from "@/shared/math";
-import { pick } from "./snapshot";
+import { pick } from "@/shared/pick";
 import { frameIn } from "@/shared/timeline/time";
 
 type PlayerController = {

@@ -1,4 +1,5 @@
 import { clamp } from "../../shared/math";
+
 export type Size = { width: number; height: number };
 export type Box = { x: number; y: number; width: number; height: number };
 export type StillLook = "window" | "cutout" | "bleed";
@@ -6,14 +7,18 @@ export type StillLook = "window" | "cutout" | "bleed";
 export type Shot = Size & { scale: number; body?: Box };
 
 export const CUTOUT_FIT = 0.8;
+const CUTOUT_MAX_UPSCALE = 1.5;
 const TALL_SHOT = 1.5;
-const MAX_UPSCALE = 1.5;
-const MAX_CAPTURE_SCALE = 8;
-const HD_PIXELS = 1920 * 1080;
-const MAX_SURFACE_SCALE = 4;
-const SURFACE_BUDGET_PX = HD_PIXELS * MAX_SURFACE_SCALE * MAX_SURFACE_SCALE;
-const SURFACE_SCALE_STEPS = 10;
-const CAPTURE_SCALE_STEPS = 2;
+
+const CAPTURE = {
+  maxScale: 8,
+  scaleSteps: 2,
+  hdPixels: 1920 * 1080,
+  maxHdSurfaceScale: 4,
+  surfaceScaleSteps: 10,
+} as const;
+
+const SURFACE_BUDGET_PX = CAPTURE.hdPixels * CAPTURE.maxHdSurfaceScale ** 2;
 
 export function containBox(outer: Size, aspect: number): Size {
   return outer.width / outer.height > aspect
@@ -22,17 +27,17 @@ export function containBox(outer: Size, aspect: number): Size {
 }
 
 export function windowBox(aspect: number, canvas: Size, fit: number): Size {
-  const box = containBox({ width: canvas.width * fit, height: canvas.height * fit }, 1 / aspect);
+  const box = containBox({ width: canvas.width * fit, height: canvas.height * fit }, aspect);
   return { width: Math.round(box.width), height: Math.round(box.height) };
 }
 
 const centredLeft = (size: Size, canvas: Size) => (canvas.width - size.width) / 2;
 const centredTop = (size: Size, canvas: Size) => (canvas.height - size.height) / 2;
 
-const aspectOf = (s: Size) => s.height / s.width;
+const aspectOf = (s: Size) => s.width / s.height;
 
 export function windowLayout(shot: Shot, canvas: Size, fit: number): Box {
-  const tall = aspectOf(shot) > aspectOf(canvas) * TALL_SHOT;
+  const tall = aspectOf(shot) * TALL_SHOT < aspectOf(canvas);
   const size = windowBox(tall ? aspectOf(canvas) : aspectOf(shot), canvas, fit);
   return {
     x: Math.round(centredLeft(size, canvas)),
@@ -48,7 +53,7 @@ export function cutoutLayout(
 ): { img: Box; body: Box; stretched: boolean } {
   const body = shot.body ?? { x: 0, y: 0, width: shot.width, height: shot.height };
   const want = windowBox(aspectOf(body), canvas, fit);
-  const s = Math.min(want.width / body.width, shot.scale * MAX_UPSCALE);
+  const s = Math.min(want.width / body.width, shot.scale * CUTOUT_MAX_UPSCALE);
   const placed = { width: body.width * s, height: body.height * s };
   const left = centredLeft(placed, canvas);
   const top = centredTop(placed, canvas);
@@ -79,9 +84,9 @@ export function stillLayout(look: StillLook, shot: Shot, canvas: Size, windowFit
 export function maxScaleFor(region: Size): number {
   const byArea = Math.sqrt(SURFACE_BUDGET_PX / (region.width * region.height));
   return clamp(
-    Math.floor(byArea * SURFACE_SCALE_STEPS) / SURFACE_SCALE_STEPS,
+    Math.floor(byArea * CAPTURE.surfaceScaleSteps) / CAPTURE.surfaceScaleSteps,
     1,
-    MAX_CAPTURE_SCALE,
+    CAPTURE.maxScale,
   );
 }
 
@@ -93,6 +98,6 @@ export function captureScale(
 ): number {
   const unlimited = { ...region, body: opts.body, scale: Number.POSITIVE_INFINITY };
   const drawn = stillLayout(look, unlimited, canvas, opts.fit).width / region.width;
-  const wanted = Math.ceil(drawn * CAPTURE_SCALE_STEPS) / CAPTURE_SCALE_STEPS;
+  const wanted = Math.ceil(drawn * CAPTURE.scaleSteps) / CAPTURE.scaleSteps;
   return Math.min(maxScaleFor(region), Math.max(opts.least, wanted));
 }

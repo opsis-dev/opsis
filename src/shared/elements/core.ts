@@ -2,6 +2,7 @@ import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
 import { asset, bool, choice, MAX_VOLUME, text } from "../nodes/params";
+import { ACCENT_COLOR, HIGHLIGHT_COLOR, TEXT_COLOR } from "./colors";
 import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
 
 const source = {
@@ -33,7 +34,7 @@ export const captionsSchema = z.object({
   position: choice(["bottom", "center", "top"], "bottom", "Position"),
   fontSize: num(56, 16, 140, "Font size"),
   color: color("#ffffff", "Text color"),
-  highlightColor: color("#facc15", "Highlight color"),
+  highlightColor: color(HIGHLIGHT_COLOR, "Highlight color"),
   fontFamily: font(),
 });
 
@@ -50,8 +51,8 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
       subtitle: text("", "Subtitle"),
       align: choice(["center", "left"], "center", "Alignment"),
       entrance: choice(ENTRANCES, "rise", "Entrance"),
-      color: color("#fafafa", "Text color"),
-      accent: color("#a78bfa", "Accent"),
+      color: color(TEXT_COLOR, "Text color"),
+      accent: color(ACCENT_COLOR, "Accent"),
       background: background("Background (color, gradient or 'transparent')"),
       fontSize: num(112, 24, 260, "Font size"),
       fontFamily: font(),
@@ -69,8 +70,8 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
         "Ship *faster* with demos that *move*",
         "Text — wrap words in *asterisks* to emphasise",
       ),
-      color: color("#fafafa", "Text color"),
-      emphasisColor: color("#facc15", "Emphasis color"),
+      color: color(TEXT_COLOR, "Text color"),
+      emphasisColor: color(HIGHLIGHT_COLOR, "Emphasis color"),
       background: background(),
       fontSize: num(104, 24, 240, "Font size"),
       wordStagger: num(4, 1, 20, "Frames between words"),
@@ -92,8 +93,8 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
         "bottom-left",
         "Position",
       ),
-      accent: color("#a78bfa", "Accent"),
-      color: color("#fafafa", "Text color"),
+      accent: color(ACCENT_COLOR, "Accent"),
+      color: color(TEXT_COLOR, "Text color"),
       panel: color("rgba(10,10,12,0.72)", "Panel color"),
       fontFamily: font(),
     }),
@@ -110,7 +111,7 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
       x: num(0.5, 0, 1, "Target X (0–1)", 0.01),
       y: num(0.5, 0, 1, "Target Y (0–1)", 0.01),
       side: choice(["top", "bottom", "left", "right"], "top", "Label side"),
-      color: color("#fafafa", "Label color"),
+      color: color(TEXT_COLOR, "Label color"),
       accent: color("#f43f5e", "Arrow color"),
       fontFamily: font(),
     }),

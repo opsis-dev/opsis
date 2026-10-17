@@ -1,6 +1,5 @@
 import { evenPx } from "../../shared/math";
-
-type Size = { width: number; height: number };
+import type { Size } from "../../video/core/still-layout";
 
 type PageScale = Size & { scale: number };
 

@@ -1,25 +1,48 @@
+import type React from "react";
 import { useVideoConfig } from "remotion";
 import { clamp } from "../../shared/math";
 import type { ReframeMode } from "../../shared/schema/timeline";
 import { containBox, type Size } from "./still-layout";
 import { designScaleFor } from "../camera/lib/design-width";
 
-type Insets = { top: number; right: number; bottom: number; left: number };
+export type Insets = { top: number; right: number; bottom: number; left: number };
 
 const NONE: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
 
 const LANDSCAPE_ASPECT = 1.3;
+const SQUARISH_ASPECT = 0.7;
+const SQUARISH_INSETS: Insets = { top: 0.03, right: 0.03, bottom: 0.05, left: 0.03 };
+const TALL_INSETS: Insets = { top: 0.1, right: 0.05, bottom: 0.16, left: 0.05 };
 
 export const isLandscape = (width: number, height: number): boolean =>
   width / height >= LANDSCAPE_ASPECT;
 
+const SAME_SHAPE_TOLERANCE = 0.02;
+
+export const sameShape = (a: Size, b: Size): boolean =>
+  Math.abs(a.width / a.height - b.width / b.height) <= SAME_SHAPE_TOLERANCE;
+
 export function shapeInsets(width: number, height: number): Insets {
   if (isLandscape(width, height)) return NONE;
-  const aspect = width / height;
-  if (aspect >= 0.7)
-    return { top: 0.03 * height, right: 0.03 * width, bottom: 0.05 * height, left: 0.03 * width };
-  return { top: 0.1 * height, right: 0.05 * width, bottom: 0.16 * height, left: 0.05 * width };
+  const f = width / height >= SQUARISH_ASPECT ? SQUARISH_INSETS : TALL_INSETS;
+  return {
+    top: f.top * height,
+    right: f.right * width,
+    bottom: f.bottom * height,
+    left: f.left * width,
+  };
 }
+
+export const verticalInsets = ({ top, bottom }: Insets): Insets => ({ ...NONE, top, bottom });
+
+export const overlayPadding = (pad: number, insets: Insets): React.CSSProperties => ({
+  paddingTop: pad + insets.top,
+  paddingRight: pad + insets.right,
+  paddingBottom: pad + insets.bottom,
+  paddingLeft: pad + insets.left,
+});
+
+export const JUSTIFY_AT = { top: "flex-start", center: "center", bottom: "flex-end" } as const;
 
 export const overlayScale = (width: number, height: number): number =>
   designScaleFor(Math.max(width, height));
@@ -33,17 +56,15 @@ export type Reframe =
   | { mode: "fit"; height: number }
   | { mode: "cover"; box: Size; follow: boolean };
 
-const SAME_SHAPE_TOLERANCE = 0.02;
-
 export function reframeLayout(
   source: Size,
   canvas: Size,
   reframe: ReframeMode,
   fullPage: boolean,
 ): Reframe {
+  if (sameShape(source, canvas)) return { mode: "same" };
   const sourceAspect = source.width / source.height;
   const outAspect = canvas.width / canvas.height;
-  if (Math.abs(sourceAspect - outAspect) <= SAME_SHAPE_TOLERANCE) return { mode: "same" };
   const narrower = outAspect < sourceAspect;
   if (reframe === "follow" && (narrower || fullPage))
     return {

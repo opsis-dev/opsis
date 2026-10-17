@@ -21,11 +21,11 @@ describe("containBox", () => {
 
 describe("windowBox", () => {
   it("is width-limited when the shot is wider than the canvas", () => {
-    expect(windowBox(0.25, HD, 0.8)).toEqual({ width: 1536, height: 384 });
+    expect(windowBox(4, HD, 0.8)).toEqual({ width: 1536, height: 384 });
   });
 
   it("is height-limited when the shot is taller than the canvas", () => {
-    expect(windowBox(2, HD, 0.8)).toEqual({ width: 432, height: 864 });
+    expect(windowBox(0.5, HD, 0.8)).toEqual({ width: 432, height: 864 });
   });
 });
 

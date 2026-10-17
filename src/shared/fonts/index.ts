@@ -62,6 +62,9 @@ export function roleStack(role: FontRole): string {
   return `"${roleFamily(role)}", ${fallback}`;
 }
 
+export const fontOr = (family: string | undefined, role: FontRole): string =>
+  family || roleStack(role);
+
 export const MAIN_FONT = roleStack("main");
 
 export const HEADING_FONT = roleStack("heading");

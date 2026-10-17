@@ -34,6 +34,9 @@ import { getComponent, getPresentation, isKnownElement, useElements } from "./re
 import { clamp01 } from "../shared/math";
 import { MAIN_FONT } from "../shared/fonts";
 import { percent } from "../shared/format";
+import { CLAMP_LEFT, CLAMP_RIGHT } from "./core/anim";
+import { sameShape } from "./core/frame";
+import type { Size } from "./core/still-layout";
 
 const PREMOUNT_FRAMES = 30;
 const PREMOUNTED = new Set(["core/group", "core/recording"]);
@@ -67,13 +70,9 @@ const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
             premountFor={PREMOUNTED.has(item.component) ? PREMOUNT_FRAMES : undefined}
           >
             <TransitionWrap item={item}>
-              {item.envelope ? (
-                <EnvelopeWrap envelope={item.envelope}>
-                  <ItemContent item={item} />
-                </EnvelopeWrap>
-              ) : (
+              <Enveloped envelope={item.envelope}>
                 <ItemContent item={item} />
-              )}
+              </Enveloped>
             </TransitionWrap>
           </Sequence>
         ))}
@@ -81,6 +80,11 @@ const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
     ))}
   </>
 );
+
+const Enveloped: React.FC<{ envelope?: VisualEnvelope; children: React.ReactNode }> = ({
+  envelope,
+  children,
+}) => (envelope ? <EnvelopeWrap envelope={envelope}>{children}</EnvelopeWrap> : <>{children}</>);
 
 const EnvelopeWrap: React.FC<{ envelope: VisualEnvelope; children: React.ReactNode }> = ({
   envelope,
@@ -122,6 +126,8 @@ const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
   return component ? createElement(component, resolveProps(item.props, base)) : null;
 };
 
+type Wrap = (inner: React.ReactNode) => React.ReactNode;
+
 const Group: React.FC<GroupProps> = ({
   tracks,
   startFrom,
@@ -135,51 +141,63 @@ const Group: React.FC<GroupProps> = ({
   const frame = useCurrentFrame();
   const base = useAssetBase();
   useElements([wrapper?.component]);
-  let inner: React.ReactNode = <Tracks tracks={tracks} />;
-  if (startFrom) {
-    inner = (
-      <Sequence from={-startFrom} layout="none">
-        {inner}
-      </Sequence>
-    );
-  }
-  if (loopEvery && loopEvery > 0) inner = <Loop durationInFrames={loopEvery}>{inner}</Loop>;
-  if (remap?.length)
-    inner = <Freeze frame={Math.max(0, Math.round(remapFrame(remap, frame)))}>{inner}</Freeze>;
-  if (crop) {
-    const s = 1 / Math.max(MIN_CROP, crop.w, crop.h);
-    inner = (
-      <AbsoluteFill style={{ overflow: "hidden" }}>
-        <AbsoluteFill
-          style={{
-            transformOrigin: "0 0",
-            transform: `scale(${s}) translate(${percent(-crop.x)}, ${percent(-crop.y)})`,
-          }}
-        >
-          {inner}
-        </AbsoluteFill>
-      </AbsoluteFill>
-    );
-  }
-  if (wrapper) {
-    const component = getComponent(wrapper.component);
-    if (component)
-      inner = createElement(
-        component,
-        resolveProps(wrapper.props, base),
-        <AbsoluteFill>{inner}</AbsoluteFill>,
-      );
-  }
-  if (design) inner = <DesignBox design={design}>{inner}</DesignBox>;
-  return <AbsoluteFill style={background ? { background } : undefined}>{inner}</AbsoluteFill>;
+  const Wrapper = wrapper ? getComponent(wrapper.component) : undefined;
+  const wraps: Array<Wrap | null> = [
+    startFrom
+      ? (inner) => (
+          <Sequence from={-startFrom} layout="none">
+            {inner}
+          </Sequence>
+        )
+      : null,
+    loopEvery && loopEvery > 0
+      ? (inner) => <Loop durationInFrames={loopEvery}>{inner}</Loop>
+      : null,
+    remap?.length
+      ? (inner) => (
+          <Freeze frame={Math.max(0, Math.round(remapFrame(remap, frame)))}>{inner}</Freeze>
+        )
+      : null,
+    crop
+      ? (inner) => {
+          const s = 1 / Math.max(MIN_CROP, crop.w, crop.h);
+          return (
+            <AbsoluteFill style={{ overflow: "hidden" }}>
+              <AbsoluteFill
+                style={{
+                  transformOrigin: "0 0",
+                  transform: `scale(${s}) translate(${percent(-crop.x)}, ${percent(-crop.y)})`,
+                }}
+              >
+                {inner}
+              </AbsoluteFill>
+            </AbsoluteFill>
+          );
+        }
+      : null,
+    wrapper && Wrapper
+      ? (inner) =>
+          createElement(
+            Wrapper,
+            resolveProps(wrapper.props, base),
+            <AbsoluteFill>{inner}</AbsoluteFill>,
+          )
+      : null,
+    design ? (inner) => <DesignBox design={design}>{inner}</DesignBox> : null,
+  ];
+  const content = wraps.reduce<React.ReactNode>(
+    (inner, wrap) => (wrap ? wrap(inner) : inner),
+    <Tracks tracks={tracks} />,
+  );
+  return <AbsoluteFill style={background ? { background } : undefined}>{content}</AbsoluteFill>;
 };
 
 const DesignBox: React.FC<{
-  design: { width: number; height: number };
+  design: Size;
   children: React.ReactNode;
 }> = ({ design, children }) => {
   const { width, height } = useVideoConfig();
-  if (Math.abs(width / height - design.width / design.height) < 0.01) return <>{children}</>;
+  if (sameShape({ width, height }, design)) return <>{children}</>;
   const scale = Math.min(width / design.width, height / design.height);
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
@@ -250,65 +268,62 @@ function activeTransition(
   const at = transitionAt(item, frame);
   if (!at) return null;
   const { ref, direction, start } = at;
-  const progress = interpolate(frame, [start, start + ref.durationInFrames], [0, 1], {
-    extrapolateRight: "clamp",
-  });
+  const progress = interpolate(frame, [start, start + ref.durationInFrames], [0, 1], CLAMP_RIGHT);
   return { ref, direction, progress };
 }
 
 const NO_SPANS: Span[] = [];
 
+const duckKey = (keys: string[]) => keys.join("|");
+
 const AudioLayers: React.FC<{ spec: TimelineSpec }> = ({ spec }) => {
-  const spansByKeys = useMemo(() => {
-    const out = new Map<string, Span[]>();
-    for (const a of spec.audio) {
-      if (!a.duck) continue;
-      const id = a.duck.keys.join("|");
-      if (!out.has(id)) out.set(id, duckingSpans(spec, new Set(a.duck.keys)));
-    }
-    return out;
+  const layers = useMemo(() => {
+    const spansByKey = new Map<string, Span[]>();
+    const spansFor = (keys: string[]) => {
+      const key = duckKey(keys);
+      const known = spansByKey.get(key);
+      if (known) return known;
+      const spans = duckingSpans(spec, new Set(keys));
+      spansByKey.set(key, spans);
+      return spans;
+    };
+    return spec.audio
+      .filter((a) => a.gain !== 0)
+      .map((item) => ({ item, spans: item.duck ? spansFor(item.duck.keys) : NO_SPANS }));
   }, [spec]);
   return (
     <>
-      {spec.audio
-        .filter((a) => a.gain !== 0)
-        .map((a) => (
-          <AudioLayer
-            key={a.id}
-            item={a}
-            spans={(a.duck && spansByKeys.get(a.duck.keys.join("|"))) || NO_SPANS}
-          />
-        ))}
+      {layers.map(({ item, spans }) => (
+        <AudioLayer key={item.id} item={item} spans={spans} />
+      ))}
     </>
   );
 };
+
+function audioGainAt(item: AudioItem, f: number, duration: number, spans: Span[]): number {
+  const baseVolume = (typeof item.volume === "number" ? item.volume : 1) * (item.gain ?? 1);
+  const fadeIn = item.fadeInFrames ?? 0;
+  const fadeOut = item.fadeOutFrames ?? 0;
+  const inV = fadeIn ? interpolate(f, [0, fadeIn], [0, 1], CLAMP_RIGHT) : 1;
+  const outV = fadeOut ? interpolate(f, [duration - fadeOut, duration], [1, 0], CLAMP_LEFT) : 1;
+  const duck = item.duck
+    ? duckGain(item.from + f, spans, item.duck.level, item.duck.fadeFrames)
+    : 1;
+  const env = envelopeAt(item.envelope?.volume, f, 1);
+  return Math.max(0, baseVolume * Math.min(inV, outV) * duck * env);
+}
 
 const AudioLayer: React.FC<{ item: AudioItem; spans: Span[] }> = ({ item, spans }) => {
   const base = useAssetBase();
   const { durationInFrames: total } = useVideoConfig();
   const duration = item.durationInFrames ?? Math.max(1, total - item.from);
-  const baseVolume = (typeof item.volume === "number" ? item.volume : 1) * (item.gain ?? 1);
-  const fadeIn = item.fadeInFrames ?? 0;
-  const fadeOut = item.fadeOutFrames ?? 0;
   return (
     <Sequence from={item.from} durationInFrames={duration} name={`audio ${item.id}`} layout="none">
       <Audio
         src={resolveAssetRef(item.src, base)}
         loop={item.loop}
         trimBefore={item.trimBefore}
-        volume={(f) => {
-          const inV = fadeIn
-            ? interpolate(f, [0, fadeIn], [0, 1], { extrapolateRight: "clamp" })
-            : 1;
-          const outV = fadeOut
-            ? interpolate(f, [duration - fadeOut, duration], [1, 0], { extrapolateLeft: "clamp" })
-            : 1;
-          const duck = item.duck
-            ? duckGain(item.from + f, spans, item.duck.level, item.duck.fadeFrames)
-            : 1;
-          const env = envelopeAt(item.envelope?.volume, f, 1);
-          return Math.max(0, baseVolume * Math.min(inV, outV) * duck * env);
-        }}
+        volume={(f) => audioGainAt(item, f, duration, spans)}
       />
     </Sequence>
   );

@@ -5,7 +5,7 @@ import { defineElementMeta, type ElementMetaInput } from "./types";
 const defs: ElementMetaInput[] = [
   {
     key: "remocn/soft-blur-in",
-    title: "Soft Blur In",
+    title: "Soft blur in",
     description: "Per-character fade-in with a gentle blur and upward motion. Apple's signature hero-title reveal.",
     category: "text",
     kind: "component",
@@ -44,7 +44,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/shimmer-sweep",
-    title: "Shimmer Sweep",
+    title: "Shimmer sweep",
     description: "A band of light sweeps across the text.",
     category: "text",
     kind: "component",
@@ -63,7 +63,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/matrix-decode",
-    title: "Matrix Decode",
+    title: "Matrix decode",
     description: "Random scramble resolves left-to-right into the target text.",
     category: "text",
     kind: "component",
@@ -83,7 +83,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/slot-machine-roll",
-    title: "Slot Machine Roll",
+    title: "Slot machine roll",
     description: "Vertical reel scrolls characters from one value to another.",
     category: "text",
     kind: "component",
@@ -102,7 +102,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/staggered-fade-up",
-    title: "Staggered Fade Up",
+    title: "Staggered fade up",
     description: "Words fade in and slide up one after another with a configurable delay.",
     category: "text",
     kind: "component",
@@ -122,7 +122,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/kinetic-center-build",
-    title: "Kinetic Center Build",
+    title: "Kinetic center build",
     description: "A word appears in the center; each new word enters from the right and pushes the line until the full phrase locks centered.",
     category: "text",
     kind: "component",
@@ -140,7 +140,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/mask-reveal-up",
-    title: "Mask Reveal Up",
+    title: "Mask reveal up",
     description: "Lines reveal upward with a soft masked feel and compact stagger.",
     category: "text",
     kind: "component",
@@ -158,7 +158,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/tracking-in",
-    title: "Tracking In",
+    title: "Tracking in",
     description: "Letter-spacing collapses and blur clears with a springy motion.",
     category: "text",
     kind: "component",
@@ -178,7 +178,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/word-push",
-    title: "Word Push",
+    title: "Word push",
     description: "A phrase builds from its first word centered: each next word drives in from the right and pushes the line left, easing into the new center.",
     category: "text",
     kind: "component",
@@ -196,7 +196,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/rgb-glitch-text",
-    title: "Rgb Glitch Text",
+    title: "RGB glitch text",
     description: "Three RGB-offset text copies jitter for a brief glitch window.",
     category: "text",
     kind: "component",
@@ -218,7 +218,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/gradient-scale-cut-text",
-    title: "Gradient Scale Cut Text",
+    title: "Gradient scale cut text",
     description: "An oversized gradient reveal snaps to a separate compact blurred line that settles left while the reveal continues.",
     category: "text",
     kind: "component",
@@ -244,7 +244,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/strikethrough-replace",
-    title: "Strikethrough Replace",
+    title: "Strikethrough replace",
     description: "Draws a strike line across old text then reveals new text in its place.",
     category: "text",
     kind: "component",
@@ -264,7 +264,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/line-by-line-slide",
-    title: "Line By Line Slide",
+    title: "Line by line slide",
     description: "Each line enters from the left with a staggered slide and exits to the right for a flowing paragraph reveal.",
     category: "text",
     kind: "component",
@@ -282,7 +282,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/marker-highlight",
-    title: "Marker Highlight",
+    title: "Marker highlight",
     description: "Colored marker block draws behind a phrase as the text color shifts.",
     category: "overlay",
     kind: "component",
@@ -304,7 +304,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/inline-highlight",
-    title: "Inline Highlight",
+    title: "Inline highlight",
     description: "Animates one word inside a sentence from a base color to a brand color.",
     category: "overlay",
     kind: "component",
@@ -325,7 +325,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/ink-underline",
-    title: "Ink Underline",
+    title: "Ink underline",
     description: "A hand-dragged brush underline that sweeps itself across in a few stop-motion poses, thinning to a dry tail.",
     category: "overlay",
     kind: "component",
@@ -348,7 +348,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/scribble-circle",
-    title: "Scribble Circle",
+    title: "Scribble circle",
     description: "A brush circle swept around a region of the frame, opening thin and closing thick, with grain breaking up the dry opening.",
     category: "overlay",
     kind: "component",
@@ -372,7 +372,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/ink-arrow",
-    title: "Ink Arrow",
+    title: "Ink arrow",
     description: "A hand-drawn brush arrow that sweeps itself from one point to another, thickening into the head that pops on the final poses.",
     category: "overlay",
     kind: "component",
@@ -436,7 +436,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/radial-burst",
-    title: "Radial Burst",
+    title: "Radial burst",
     description: "Sculptural ribbons twist into a tilted ring and sweep outward through contour echoes for an expressive product introduction.",
     category: "overlay",
     kind: "component",
@@ -460,7 +460,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/whip-pan",
-    title: "Whip Pan",
+    title: "Whip pan",
     description: "A whip-pan transition that flies both scenes through the frame in one move with velocity-based motion blur.",
     category: "transition",
     kind: "presentation",
@@ -474,7 +474,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/push-through",
-    title: "Push Through",
+    title: "Push through",
     description: "A dolly transition that blows the outgoing scene past the camera while the next one approaches from the depth.",
     category: "transition",
     kind: "presentation",
@@ -488,7 +488,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/zoom-blur",
-    title: "Zoom Blur",
+    title: "Zoom blur",
     description: "A depth punch-in transition that pushes the outgoing scene through the viewer while the incoming one resolves out of blur.",
     category: "transition",
     kind: "presentation",
@@ -502,7 +502,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/focus-pull",
-    title: "Focus Pull",
+    title: "Focus pull",
     description: "A rack-focus transition that defocuses the outgoing scene into a bright blur and resolves the next one into focus.",
     category: "transition",
     kind: "presentation",
@@ -515,7 +515,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/lens-zoom",
-    title: "Lens Zoom",
+    title: "Lens zoom",
     description: "A hard cut disguised as a lens punch-in: barrel distortion, zoom blur, chromatic split and camera shake around the splice.",
     category: "transition",
     kind: "presentation",
@@ -531,7 +531,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/ripple-zoom",
-    title: "Ripple Zoom",
+    title: "Ripple zoom",
     description: "A grain-gradient ripple transition that flies the camera through the center of the rings while the next scene approaches from the depth.",
     category: "transition",
     kind: "presentation",
@@ -547,7 +547,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/wave-wipe",
-    title: "Wave Wipe",
+    title: "Wave wipe",
     description: "A grain-gradient wave that sweeps up across the frame, covering the outgoing scene and revealing the next one from below.",
     category: "transition",
     kind: "presentation",
@@ -563,7 +563,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/smoke-dissolve",
-    title: "Smoke Dissolve",
+    title: "Smoke dissolve",
     description: "A smoke-ring shader transition that expands the ring outward to reveal the next scene.",
     category: "transition",
     kind: "presentation",
@@ -577,7 +577,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/glitch-cut",
-    title: "Glitch Cut",
+    title: "Glitch cut",
     description: "A broadcast-glitch hard cut: the frame tears into displaced slices with channel split and corrupted blocks, and the incoming scene takes over slice by slice at the peak.",
     category: "transition",
     kind: "presentation",
@@ -593,7 +593,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/page-turn",
-    title: "Page Turn",
+    title: "Page turn",
     description: "The exiting scene swings up and away like a notebook page in stop-motion poses, staying above the scene it reveals.",
     category: "transition",
     kind: "presentation",
@@ -607,7 +607,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/grain-dissolve",
-    title: "Grain Dissolve",
+    title: "Grain dissolve",
     description: "A grain-gradient shader transition that disintegrates the outgoing scene into soft grainy shapes and condenses the next scene out of the noise.",
     category: "transition",
     kind: "presentation",
@@ -623,7 +623,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/dither-dissolve",
-    title: "Dither Dissolve",
+    title: "Dither dissolve",
     description: "A dithering shader transition that dissolves one scene into the next.",
     category: "transition",
     kind: "presentation",
@@ -638,7 +638,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/swirl-dissolve",
-    title: "Swirl Dissolve",
+    title: "Swirl dissolve",
     description: "A swirl shader transition that unwinds open and winds shut to reveal the next scene.",
     category: "transition",
     kind: "presentation",
@@ -653,7 +653,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/particle-dissolve",
-    title: "Particle Dissolve",
+    title: "Particle dissolve",
     description: "The frame is ground into drifting grey dust whose specks carry real fragments of the picture, and the next scene coalesces back out of the same dust.",
     category: "transition",
     kind: "presentation",
@@ -671,7 +671,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/shader-mesh-gradient",
-    title: "Shader Mesh Gradient",
+    title: "Shader mesh gradient",
     description: "Soft colour blobs that drift and blend into each other.",
     category: "background",
     kind: "component",
@@ -686,7 +686,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/shader-grain-gradient",
-    title: "Shader Grain Gradient",
+    title: "Shader grain gradient",
     description: "Grainy multi-stop gradient that drifts slowly with film-grain texture over the blend.",
     category: "background",
     kind: "component",
@@ -703,7 +703,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/shader-warp",
-    title: "Shader Warp",
+    title: "Shader warp",
     description: "Domain-warped color field that folds and stretches like liquid.",
     category: "background",
     kind: "component",
@@ -720,7 +720,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/shader-swirl",
-    title: "Shader Swirl",
+    title: "Shader swirl",
     description: "Concentric bands swirling around a center point.",
     category: "background",
     kind: "component",
@@ -737,7 +737,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/shader-god-rays",
-    title: "Shader God Rays",
+    title: "Shader god rays",
     description: "Volumetric light rays radiating from an off-screen source.",
     category: "background",
     kind: "component",
@@ -754,7 +754,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/shader-perlin-noise",
-    title: "Shader Perlin Noise",
+    title: "Shader perlin noise",
     description: "Classic Perlin noise clouds drifting across the frame.",
     category: "background",
     kind: "component",
@@ -771,7 +771,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/shader-dithering",
-    title: "Shader Dithering",
+    title: "Shader dithering",
     description: "Ordered-dither shading over an animated gradient field.",
     category: "background",
     kind: "component",
@@ -787,7 +787,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/crt-screen",
-    title: "Crt Screen",
+    title: "CRT screen",
     description: "Put a scene behind curved glass: the picture bulges out to the corners, an RGB phosphor mask and scanlines ride the curve, bright areas flood the mask, and the tube falls away into darkness at the rim.",
     category: "effect",
     kind: "wrapper",
@@ -803,7 +803,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/vhs-filter",
-    title: "Vhs Filter",
+    title: "VHS filter",
     description: "Hold a scene under analog tape: chroma bleeds sideways off every edge, rows wobble out of line, the bottom of the frame tears on the head switch, and luma noise settles over all of it.",
     category: "effect",
     kind: "wrapper",
@@ -819,7 +819,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/halftone-print",
-    title: "Halftone Print",
+    title: "Halftone print",
     description: "Print a scene onto paper: each colour separates onto its own rotated screen of dots sized by the ink under them, slightly out of register the way a real press runs.",
     category: "effect",
     kind: "wrapper",
@@ -835,7 +835,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/camera-lens",
-    title: "Camera Lens",
+    title: "Camera lens",
     description: "Put a scene behind real glass: resolution falls off toward the corners, highlights bloom through the optics, colour fringes at the edges — a screencast that reads as filmed rather than rendered.",
     category: "effect",
     kind: "wrapper",
@@ -869,7 +869,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/tv-power-off",
-    title: "Tv Power Off",
+    title: "TV power off",
     description: "End a scene the way a tube does: the picture collapses into a glowing horizontal line, the line pinches to a phosphor dot, the dot decays, and the frame is left dead black.",
     category: "effect",
     kind: "wrapper",
@@ -885,7 +885,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/speed-lines",
-    title: "Speed Lines",
+    title: "Speed lines",
     description: "Parallel streaks trail an element as it flies in at its real speed, the element stretching with that speed and landing with a squash and a small bounce as the streaks die, or radial lines rush in from the frame edges and snap onto one point for a manga-style impact frame.",
     category: "effect",
     kind: "wrapper",
@@ -910,7 +910,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/spring-settle",
-    title: "Spring Settle",
+    title: "Spring settle",
     description: "A scene sequencer where the outgoing scene shrinks away as one group, the stage holds empty for a beat, and the next scene's items land staggered from above-1 scale.",
     category: "effect",
     kind: "wrapper",
@@ -926,7 +926,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/terminal-simulator",
-    title: "Terminal Simulator",
+    title: "Terminal simulator",
     description: "Terminal window that types out commands and rolls old lines off the top.",
     category: "ui",
     kind: "component",
@@ -947,7 +947,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/glass-code-block",
-    title: "Glass Code Block",
+    title: "Glass code block",
     description: "A frosted-glass code editor that reveals the code line by line.",
     category: "ui",
     kind: "component",
@@ -967,7 +967,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/code-morph",
-    title: "Code Morph",
+    title: "Code morph",
     description: "A flat code editor that morphs between versions of a file, gliding each surviving token to its new line and column while removed code dissolves and new code fades in.",
     category: "ui",
     kind: "component",
@@ -988,7 +988,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/logo-enter",
-    title: "Logo Enter",
+    title: "Logo enter",
     description: "A stacked group of round brand chips that spring in one-by-one, then hold. Swap the logos to feature any set of marks.",
     category: "ui",
     kind: "component",
@@ -1006,7 +1006,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/check-list",
-    title: "Check List",
+    title: "Check list",
     description: "A handwritten checklist that writes itself out in full, then ticks and strikes through every done item, one at a time.",
     category: "ui",
     kind: "component",
@@ -1026,7 +1026,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/search-reveal",
-    title: "Search Reveal",
+    title: "Search reveal",
     description: "Expanding construction circles snap into a search pill, type editable text, and reveal an abstract graphic panel.",
     category: "ui",
     kind: "component",
@@ -1052,7 +1052,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/agent-run",
-    title: "Agent Run",
+    title: "Agent run",
     description: "An AI assistant working through a plan, ticking off each step.",
     category: "ui",
     kind: "component",
@@ -1069,7 +1069,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/animated-bar-chart",
-    title: "Animated Bar Chart",
+    title: "Animated bar chart",
     description: "Bars spring up from the baseline in a staggered cascade.",
     category: "data",
     kind: "component",
@@ -1085,7 +1085,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/animated-line-chart",
-    title: "Animated Line Chart",
+    title: "Animated line chart",
     description: "Line chart whose SVG path draws on from left to right with a leading dot.",
     category: "data",
     kind: "component",
@@ -1102,7 +1102,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/rolling-number",
-    title: "Rolling Number",
+    title: "Rolling number",
     description: "Odometer where every place rolls at its own speed, new places rising into view, settling exactly on the target value.",
     category: "data",
     kind: "component",
@@ -1119,7 +1119,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/signup-flow",
-    title: "Signup Flow",
+    title: "Signup flow",
     description: "A sign-up form that fills itself in, step by step.",
     category: "scene",
     kind: "component",
@@ -1131,7 +1131,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/ai-prompt-flow",
-    title: "Ai Prompt Flow",
+    title: "AI prompt flow",
     description: "An AI prompt composition: a prompt types into the field, the Generate button runs hover → press → loading, a skeleton shimmer reveals, then crossfades into the generated answer, and a ready toast slides in. A pure orchestrator — the shimmer is owned by the skeleton-block motion atom; every other channel comes from a composed primitive's hook.",
     category: "scene",
     kind: "component",
@@ -1143,7 +1143,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/command-menu",
-    title: "Command Menu",
+    title: "Command menu",
     description: "A command palette that opens, filters and picks an item.",
     category: "scene",
     kind: "component",
@@ -1160,7 +1160,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/release-teaser",
-    title: "Release Teaser",
+    title: "Release teaser",
     description: "A 16-second cinematic release teaser with center-out typography, a procedural dimensional mark, moving edge light, and an independent fictional identity.",
     category: "scene",
     kind: "component",
@@ -1177,7 +1177,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "remocn/launch-anything",
-    title: "Launch Anything",
+    title: "Launch anything",
     description: "An independent 26.7-second editorial product film with forest-green accents, original photography, seven editable demos, and geometric marks.",
     category: "scene",
     kind: "component",
@@ -1193,7 +1193,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/laptop-frame",
-    title: "Laptop Frame",
+    title: "Laptop frame",
     description: "MacBook laptop mockup animation that opens and zooms into your screenshot or video. MacBook-style laptop that opens, runs a dynamic-island notch notification, then dives the camera into the screen until an image or video fills the frame.",
     category: "device",
     kind: "component",
@@ -1221,7 +1221,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/phone-frame",
-    title: "Phone Frame",
+    title: "Phone frame",
     description: "iPhone mockup animation: phone device frame for app screenshots and screen recordings. iPhone-style device frame with a dynamic island and a screen slot — flat or lightly 3D-tilted, with rise, rotate-in, or float entrances and a subtle float loop.",
     category: "device",
     kind: "component",
@@ -1248,7 +1248,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/screen-recording",
-    title: "Screen Recording",
+    title: "Screen recording",
     description: "Screen recording zoom: crop and auto-zoom a product demo capture. The treatment that turns a raw screen capture into a shot: crop the browser and OS chrome off each edge as a fraction, fit what is left to the frame, and run a keyframed camera that pushes in on whatever matters at a given frame and holds until the next move.",
     category: "device",
     kind: "component",
@@ -1272,7 +1272,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/announce-title",
-    title: "Announce Title",
+    title: "Announce title",
     description: "Launch title animation, product announcement intro with kinetic typography. A four-shot launch title: the eyebrow rushes past the camera on a receding type plane and lands on a colour field, the name assembles word by word on paper, and a macro pan across the tagline cuts wide as the line builds itself last word first while a white sweep drains it out of colour.",
     category: "text",
     kind: "component",
@@ -1301,7 +1301,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/punch-lines",
-    title: "Punch Lines",
+    title: "Punch lines",
     description: "Kinetic typography title cards: bold statements that cut hard between beats. A run of full-frame title cards that cut hard between beats.",
     category: "text",
     kind: "component",
@@ -1344,7 +1344,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/text-highlight",
-    title: "Text Highlight",
+    title: "Text highlight",
     description: "Text highlight animation: marker highlighter, underline, strikethrough and shimmer on a word. Animated emphasis on one span inside a static sentence — marker sweep, color shift, underline, strikethrough-replace, or shimmer.",
     category: "text",
     kind: "component",
@@ -1380,7 +1380,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/status-cycle",
-    title: "Status Cycle",
+    title: "Status cycle",
     description: "Status badge animation: a pill whose label cycles through states. A centred line whose status pill cycles: the label rolls up behind a hard clip while the pill's width springs past its target and back, and the line re-centres around it.",
     category: "text",
     kind: "component",
@@ -1412,7 +1412,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/logo-assemble",
-    title: "Logo Assemble",
+    title: "Logo assemble",
     description: "Logo reveal animation: image cards orbit and collapse into your logo and brand name. A single ring of image cards revolves around a centred title, then spins inward and drains to the middle — giving birth to a simple logo that slides left as the brand name reveals to its right.",
     category: "scene",
     kind: "component",
@@ -1431,7 +1431,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/logo-drift",
-    title: "Logo Drift",
+    title: "Logo drift",
     description: "Logo wall animation: a logo cloud of integrations drifting behind a headline. A field of tiles drifting past a headline while the camera pulls steadily back, so the wall of things-it-works-with keeps arriving from every edge.",
     category: "scene",
     kind: "component",
@@ -1463,7 +1463,7 @@ const defs: ElementMetaInput[] = [
   },
   {
     key: "snapcn/hero-launch",
-    title: "Hero Launch",
+    title: "Hero launch",
     description: "Product launch hero scene for a SaaS launch video intro. Cinematic product-launch hero — two cards slide into formation as the headline reveals above.",
     category: "scene",
     kind: "component",

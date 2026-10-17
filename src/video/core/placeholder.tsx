@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+import { MAIN_FONT } from "../../shared/fonts";
 
 export const Placeholder: React.FC<{ title?: string; subtitle?: string }> = ({
   title = "Not captured yet",
@@ -13,7 +14,7 @@ export const Placeholder: React.FC<{ title?: string; subtitle?: string }> = ({
         background: "#0c0c10",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "Inter, system-ui, sans-serif",
+        fontFamily: MAIN_FONT,
       }}
     >
       <div

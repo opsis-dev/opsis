@@ -20,7 +20,7 @@ import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./src/work
 const require = createRequire(import.meta.url);
 const ROOT = import.meta.dirname;
 const ENGINE_DIR = path.join(ROOT, "resources", "engine");
-const CHROMIUM_CREDITS = path.join(ENGINE_DIR, "LICENSES.chromium.html");
+const CHROMIUM_CREDITS = path.join(ENGINE_DIR, CHROMIUM_CREDITS_FILE);
 const ENGINE_LICENCES_DIR = path.join(ROOT, "resources", ENGINE_LICENCES_FOLDER);
 const EXPORT_SRC_DIR = path.join(ROOT, "resources", "export-src");
 const LEGAL_FILES = [path.join(ROOT, "LICENSE"), path.join(ROOT, "THIRD_PARTY_NOTICES.md")];
@@ -32,8 +32,6 @@ const DARWIN_COMPOSITOR_PACKAGES = [
 ];
 const DARWIN_UNIVERSAL_ARCH_FILES =
   "Contents/Resources/app.asar.unpacked/node_modules/@remotion/compositor-darwin-*/**";
-
-const STAGED_RUNTIME_PACKAGES = ["playwright-core"];
 
 const packageDir = (name: string): string =>
   path.dirname(require.resolve(`${name}/package.json`, { paths: [ROOT] }));
@@ -116,7 +114,7 @@ async function stageExportSource(): Promise<void> {
     await cp(path.join(ROOT, ...from), path.join(EXPORT_SRC_DIR, to), { recursive: true });
 }
 
-const LINUX_CATEGORIES = ["AudioVideo", "Video"] as const;
+const LINUX_CATEGORIES: Array<"AudioVideo" | "Video"> = ["AudioVideo", "Video"];
 const APPIMAGE_LAUNCHER = "demoflow-launcher";
 const ICONS_DIR = path.join(ROOT, "brand", "icons");
 const APPIMAGE_ICON_SIZES = [512, 256, 128, 64, 48, 32, 16];
@@ -140,17 +138,16 @@ const config: ForgeConfig = {
       ...LEGAL_FILES,
     ],
   },
-  rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
+    new MakerSquirrel(),
     new MakerZIP({}, ["darwin"]),
-    new MakerRpm({ options: { categories: [...LINUX_CATEGORIES] } }),
+    new MakerRpm({ options: { categories: LINUX_CATEGORIES } }),
     new MakerDeb({
-      options: { categories: [...LINUX_CATEGORIES], section: "video", icon: icon(512) },
+      options: { categories: LINUX_CATEGORIES, section: "video", icon: icon(512) },
     }),
     new MakerAppImage({
       options: {
-        categories: [...LINUX_CATEGORIES],
+        categories: LINUX_CATEGORIES,
         bin: APPIMAGE_LAUNCHER,
         icon: {
           scalable: path.join(ROOT, "brand", "logo.svg"),
@@ -180,7 +177,7 @@ const config: ForgeConfig = {
         outDir: getPrebuiltRemotionBundlePath(buildPath),
       });
       await stageCompositorPackages(buildPath, platform, arch);
-      for (const pkg of STAGED_RUNTIME_PACKAGES) await stagePackage(pkg, buildPath);
+      await stagePackage("playwright-core", buildPath);
     },
   },
   plugins: [

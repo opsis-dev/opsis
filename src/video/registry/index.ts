@@ -1,5 +1,3 @@
-import type { TransitionPresentation } from "@remotion/transitions";
-import type React from "react";
 import { useEffect, useReducer } from "react";
 import { cancelRender, continueRender, delayRender } from "remotion";
 import {
@@ -19,38 +17,38 @@ import { RecordingClip } from "../core/recording-clip";
 import { Callout, Captions, KineticHeadline, LowerThird, Title } from "../core/text";
 import { coreTransitions } from "../core/transitions";
 import { generatedElementLoaders } from "./components.generated";
+import { useStableValue } from "../core/loading";
+import type { Size } from "../core/still-layout";
 import { component } from "./framing";
-import type { ElementComponent, ElementImpl, PresentationFactory } from "./types";
+import {
+  isPresentation,
+  type ElementComponent,
+  type ElementImpl,
+  type Presentation,
+} from "./types";
 
-type Presentation = TransitionPresentation<Record<string, unknown>>;
-type Size = { width: number; height: number };
-
-const CORE_COMPONENTS: Record<string, React.ComponentType<never>> = {
-  "core/recording": RecordingClip,
-  "core/placeholder": Placeholder,
-  "core/still": StillElement,
-  "core/title": Title,
-  "core/kinetic-headline": KineticHeadline,
-  "core/lower-third": LowerThird,
-  "core/callout": Callout,
-  "core/captions": Captions,
-  "core/image": ImageElement,
-  "core/lottie": LottieElement,
-  "core/mosaic": Mosaic,
-  "core/video": VideoElement,
-  "core/video-loop": VideoLoop,
-  "core/solid": Solid,
-  "core/gradient": Gradient,
-  "core/noise": NoiseField,
-  "core/starburst": Starburst,
-  "core/paper": Paper,
-  "core/backdrop": StudioBackdrop,
-  "core/light-leak": LightLeakElement,
+const core: Partial<Record<string, ElementComponent>> = {
+  "core/recording": component(RecordingClip),
+  "core/placeholder": component(Placeholder),
+  "core/still": component(StillElement),
+  "core/title": component(Title),
+  "core/kinetic-headline": component(KineticHeadline),
+  "core/lower-third": component(LowerThird),
+  "core/callout": component(Callout),
+  "core/captions": component(Captions),
+  "core/image": component(ImageElement),
+  "core/lottie": component(LottieElement),
+  "core/mosaic": component(Mosaic),
+  "core/video": component(VideoElement),
+  "core/video-loop": component(VideoLoop),
+  "core/solid": component(Solid),
+  "core/gradient": component(Gradient),
+  "core/noise": component(NoiseField),
+  "core/starburst": component(Starburst),
+  "core/paper": component(Paper),
+  "core/backdrop": component(StudioBackdrop),
+  "core/light-leak": component(LightLeakElement),
 };
-
-const core: Partial<Record<string, ElementComponent>> = Object.fromEntries(
-  Object.entries(CORE_COMPONENTS).map(([key, element]) => [key, component(element)]),
-);
 
 const loaded = new Map<string, ElementImpl>();
 const loading = new Map<string, Promise<ElementImpl | undefined>>();
@@ -78,9 +76,8 @@ export function useElements(keys: Array<string | undefined>): boolean {
     (k): k is string => !!k && !isCore(k) && !loaded.has(k) && k in generatedElementLoaders,
   );
   const [, refresh] = useReducer((n: number) => n + 1, 0);
-  const signature = JSON.stringify(missing);
+  const wanted = useStableValue(missing);
   useEffect(() => {
-    const wanted: string[] = JSON.parse(signature);
     if (wanted.length === 0) return;
     const handle = delayRender(`Loading ${wanted.join(", ")}`);
     let alive = true;
@@ -93,12 +90,13 @@ export function useElements(keys: Array<string | undefined>): boolean {
     return () => {
       alive = false;
     };
-  }, [signature]);
+  }, [wanted]);
   return missing.length === 0;
 }
 
 export function getComponent(key: string): ElementComponent | undefined {
-  return core[key] ?? (loaded.get(key) as ElementComponent | undefined);
+  const impl = core[key] ?? loaded.get(key);
+  return impl && !isPresentation(impl) ? impl : undefined;
 }
 
 export function getPresentation(
@@ -106,10 +104,8 @@ export function getPresentation(
   params: Record<string, unknown>,
   size: Size,
 ): Presentation | null {
-  const builtIn = coreTransitions[key];
-  if (builtIn) return builtIn(params, size);
-  const impl = loaded.get(key) as PresentationFactory | undefined;
-  return impl ? impl(params) : null;
+  const impl = coreTransitions[key] ?? loaded.get(key);
+  return impl && isPresentation(impl) ? impl(params, size) : null;
 }
 
 export const isKnownElement = (key: string) => isCore(key) || key in generatedElementLoaders;

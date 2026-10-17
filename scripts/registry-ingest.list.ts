@@ -60,6 +60,9 @@ type RegistryInfo = {
   installDir: (item: CuratedElement) => string;
 };
 
+const REMOTION_UI_RAW =
+  "https://raw.githubusercontent.com/riaz37/remotion-ui/b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f/apps";
+
 export const REGISTRIES: Record<CuratedElement["registry"], RegistryInfo> = {
   remocn: {
     label: "Remocn",
@@ -87,12 +90,10 @@ export const REGISTRIES: Record<CuratedElement["registry"], RegistryInfo> = {
     keyPrefix: "remotion-ui",
     license: "MIT",
     docs: "https://remotionui.com/docs/components",
-    rawBase:
-      "https://raw.githubusercontent.com/riaz37/remotion-ui/b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f/apps/web/registry/bases/default",
+    rawBase: `${REMOTION_UI_RAW}/web/registry/bases/default`,
     configDirs: [],
     propsUrl: (name) => `https://remotionui.com/ai/components/${name}.json`,
-    durationsUrl:
-      "https://raw.githubusercontent.com/riaz37/remotion-ui/b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f/apps/web/lib/preview-config.ts",
+    durationsUrl: `${REMOTION_UI_RAW}/web/lib/preview-config.ts`,
     itemUrl: (name) => `https://remotionui.com/r/${name}.json`,
     installDir: () => "remotion-ui",
   },
@@ -117,6 +118,8 @@ const remotionui = (
   category: ElementCategory,
   extra: Partial<CuratedElement> = {},
 ): CuratedElement => ({ registry: "remotionui", name, category, ...extra });
+
+export const TITLE_ACRONYMS: ReadonlySet<string> = new Set(["AI", "CRT", "RGB", "TV", "UI", "VHS"]);
 
 export const DESCRIPTIONS: Partial<Record<string, string>> = {
   typewriter: "Types the text out letter by letter with a blinking cursor.",
@@ -461,7 +464,7 @@ function spotControls(
   };
 }
 
-const NEUTRAL_DEFAULTS: Record<string, Record<string, unknown>> = {
+const NEUTRAL_DEFAULTS: Partial<Record<string, Record<string, unknown>>> = {
   "staggered-fade-up": { text: "Ship your demo in minutes" },
   "inline-highlight": { before: "Ship faster with ", highlight: "Acme", after: "." },
   "terminal-simulator": { title: "~/projects/acme" },
@@ -491,7 +494,7 @@ const NEUTRAL_DEFAULTS: Record<string, Record<string, unknown>> = {
   },
 };
 
-const NEUTRAL_FIXED_PROPS: Record<string, Record<string, unknown>> = {
+const NEUTRAL_FIXED_PROPS: Partial<Record<string, Record<string, unknown>>> = {
   "logo-assemble": {
     images: ["aurora", "bloom", "canyon", "chalk", "cobalt", "dusk", "ember", "flare"].map(
       (name) => `app:backdrops/${name}.jpg`,
@@ -499,7 +502,7 @@ const NEUTRAL_FIXED_PROPS: Record<string, Record<string, unknown>> = {
   },
 };
 
-const PAINTED: Record<string, string> = {
+const PAINTED: Partial<Record<string, string>> = {
   typewriter: "white",
   "shimmer-sweep": "white",
   "matrix-decode": "white",
@@ -646,26 +649,23 @@ export function unknownOverrideNames(): string[] {
   );
 }
 
-export const CURATED: CuratedElement[] = LIST.map((item) => ({
-  ...item,
-  ...(NEUTRAL_DEFAULTS[item.name]
-    ? { defaults: { ...item.defaults, ...NEUTRAL_DEFAULTS[item.name] } }
-    : {}),
-  ...(NEUTRAL_FIXED_PROPS[item.name]
-    ? { fixedProps: { ...item.fixedProps, ...NEUTRAL_FIXED_PROPS[item.name] } }
-    : {}),
-  ...(PAINTED[item.name]
-    ? {
-        paint: PAINTED[item.name],
-        controls: {
-          ...item.controls,
-          background: {
-            type: "color",
-            default: PAINTED[item.name],
-            description: "Background",
-            help: "Set it to transparent to lay the text over other layers.",
-          },
-        },
-      }
-    : {}),
-}));
+const paintControl = (paint: string): ControlSpec => ({
+  type: "color",
+  default: paint,
+  description: "Background",
+  help: "Set it to transparent to lay the text over other layers.",
+});
+
+function withOverrides(item: CuratedElement): CuratedElement {
+  const defaults = NEUTRAL_DEFAULTS[item.name];
+  const fixedProps = NEUTRAL_FIXED_PROPS[item.name];
+  const paint = PAINTED[item.name];
+  return {
+    ...item,
+    ...(defaults ? { defaults: { ...item.defaults, ...defaults } } : {}),
+    ...(fixedProps ? { fixedProps: { ...item.fixedProps, ...fixedProps } } : {}),
+    ...(paint ? { paint, controls: { ...item.controls, background: paintControl(paint) } } : {}),
+  };
+}
+
+export const CURATED: CuratedElement[] = LIST.map(withOverrides);

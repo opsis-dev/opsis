@@ -3,6 +3,10 @@ import { Easing, interpolate, spring } from "remotion";
 
 export const CLAMPED = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
+export const CLAMP_LEFT = { extrapolateLeft: "clamp" } as const;
+
+export const CLAMP_RIGHT = { extrapolateRight: "clamp" } as const;
+
 export const visibleBackground = (background?: string): string | undefined =>
   background && background !== "transparent" ? background : undefined;
 
@@ -43,6 +47,9 @@ export function fadeWindow(
     interpolate(t, [toT - fade.out, toT], [1, 0], { ...CLAMPED, easing: fade.easeOut }),
   );
 }
+
+export const zoomOver = (frame: number, frames: number, to: number): number =>
+  interpolate(frame, [0, frames], [1, to], CLAMP_RIGHT);
 
 export function exitOpacity(frame: number, duration: number, frames = 10): number {
   return interpolate(frame, [duration - frames, duration], [1, 0], {

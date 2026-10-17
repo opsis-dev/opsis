@@ -9,7 +9,7 @@ import type { LogLevel, RunEvent } from "@/shared/schema/events";
 import type { LastRun } from "@/shared/schema/values";
 import { appendCapped } from "@/shared/lists";
 import { CANCELLED } from "@/shared/errors";
-import { pick } from "./snapshot";
+import { pick } from "@/shared/pick";
 
 export type LogLine = {
   id: number;

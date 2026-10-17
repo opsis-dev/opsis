@@ -1,26 +1,26 @@
-type Node = { type: string; value?: unknown; quasis?: Array<{ value: { raw: string } }> };
-type Context = { report: (d: { node: Node; message: string }) => void };
+import type { RuleTester } from "oxlint/plugins-dev";
+
+type Rule = Parameters<RuleTester["run"]>[1];
 
 const ANIMATE_CLASS =
   /(^|\s)(motion-safe:|motion-reduce:|hover:|group-hover:)?animate-[a-z0-9[\]-]+/;
 const MESSAGE =
   "Tailwind `animate-*` classes animate on the wall clock and do not render in Remotion. Derive the style from useCurrentFrame() instead.";
 
-const noAnimateClass = {
+const noAnimateClass: Rule = {
   meta: {
     type: "problem",
     docs: { description: "Disallow Tailwind animate-* classes inside Remotion compositions" },
   },
-  create(context: Context) {
-    const check = (node: Node, text: string) => {
-      if (ANIMATE_CLASS.test(text)) context.report({ node, message: MESSAGE });
-    };
+  create(context) {
     return {
-      Literal(node: Node) {
-        if (typeof node.value === "string") check(node, node.value);
+      Literal(node) {
+        if (typeof node.value === "string" && ANIMATE_CLASS.test(node.value))
+          context.report({ node, message: MESSAGE });
       },
-      TemplateLiteral(node: Node) {
-        for (const q of node.quasis ?? []) check(node, q.value.raw);
+      TemplateLiteral(node) {
+        if (node.quasis.some((q) => ANIMATE_CLASS.test(q.value.raw)))
+          context.report({ node, message: MESSAGE });
       },
     };
   },

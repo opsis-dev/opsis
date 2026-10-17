@@ -32,6 +32,11 @@ describe("dotLottie", () => {
     expect(readDotLottie(zip)).toMatchObject({ op: 60 });
   });
 
+  it("refuses a file that isn't an animation", () => {
+    const zip = zipSync({ "animations/x.json": strToU8(JSON.stringify({ layers: [] })) });
+    expect(() => readDotLottie(zip)).toThrow(/isn't an animation/);
+  });
+
   it("explains an empty file", () => {
     const zip = zipSync({ "manifest.json": strToU8("{}") });
     expect(() => readDotLottie(zip)).toThrow(/no animation/);

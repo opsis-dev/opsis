@@ -31,12 +31,16 @@ export function resolveAssetRef(ref: string, base: AssetBase): string {
 
 const isAssetRef = (v: unknown): v is string => typeof v === "string" && /^(project|app):/.test(v);
 
+const MAX_PROP_DEPTH = 3;
+
+const isNestedTimeline = (v: object, depth: number) => depth > 0 && "tracks" in v;
+
 export function resolveProps<T extends Record<string, unknown>>(props: T, base: AssetBase): T {
   const visit = (v: unknown, depth: number): unknown => {
     if (isAssetRef(v)) return resolveAssetRef(v, base);
-    if (depth > 3 || v === null || typeof v !== "object") return v;
+    if (depth > MAX_PROP_DEPTH || v === null || typeof v !== "object") return v;
     if (Array.isArray(v)) return v.map((x) => visit(x, depth + 1));
-    if ("tracks" in (v as object) && depth > 0) return v;
+    if (isNestedTimeline(v, depth)) return v;
     return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, visit(x, depth + 1)]));
   };
   return visit(props, 0) as T;

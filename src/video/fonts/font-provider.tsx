@@ -1,10 +1,11 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { continueRender, delayRender } from "remotion";
+import React, { useLayoutEffect, useMemo, useState } from "react";
+import { cancelRender } from "remotion";
 import { firstFamily } from "../../shared/fonts";
 import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "../../shared/fonts/types";
 import { groupOf, walkItems } from "../../shared/compile/clip";
 import type { TimelineTrack } from "../../shared/schema/timeline";
 import { resolveAssetRef, useAssetBase } from "../assets";
+import { holdRender, useStableValue } from "../core/loading";
 import { applyProjectFonts } from "./registry";
 
 export function usedFontNames(tracks: TimelineTrack[]): string[] {
@@ -22,27 +23,20 @@ export function usedFontNames(tracks: TimelineTrack[]): string[] {
 type FontRequest = { fonts: ProjectFonts; used: string[]; projectBase?: string };
 
 function useFontsReady(request: FontRequest): boolean {
-  const key = JSON.stringify(request);
-  const [firstHandle] = useState(() => delayRender("Loading fonts"));
-  const first = useRef(true);
+  const { fonts, used, projectBase } = useStableValue(request);
   const [ready, setReady] = useState(false);
 
   useLayoutEffect(() => {
-    const { fonts, used, projectBase }: FontRequest = JSON.parse(key);
-    const handle = first.current ? firstHandle : delayRender("Loading fonts");
-    first.current = false;
-    let open = true;
-    const finish = () => {
-      if (!open) return;
-      open = false;
-      continueRender(handle);
-    };
-    void applyProjectFonts(fonts, (ref) => resolveAssetRef(ref, { projectBase }), used).then(() => {
-      setReady(true);
-      finish();
-    }, finish);
-    return finish;
-  }, [key, firstHandle]);
+    const release = holdRender("Loading fonts");
+    void applyProjectFonts(fonts, (ref) => resolveAssetRef(ref, { projectBase }), used).then(
+      () => {
+        setReady(true);
+        release();
+      },
+      (error: unknown) => cancelRender(error),
+    );
+    return release;
+  }, [fonts, used, projectBase]);
 
   return ready;
 }

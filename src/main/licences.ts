@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { app, shell } from "electron";
+import { CHROMIUM_CREDITS_FILE } from "../engine/paths";
 import type { LicenceEntry } from "../shared/ipc";
 import { environment } from "./workers";
 
@@ -39,14 +40,14 @@ function sources(): LicenceSource[] {
       title: "Chromium in the app window",
       summary: "Credits and licences of the browser the app window is built on",
       kind: "file",
-      path: path.join(runtimeDir(), "LICENSES.chromium.html"),
+      path: path.join(runtimeDir(), CHROMIUM_CREDITS_FILE),
     },
     {
       id: "engine-chromium",
       title: "Recording browser",
       summary: "Credits and licences of the Chromium build that records takes and exports videos",
       kind: "file",
-      path: path.join(engine, "LICENSES.chromium.html"),
+      path: path.join(engine, CHROMIUM_CREDITS_FILE),
     },
     {
       id: "ffmpeg",

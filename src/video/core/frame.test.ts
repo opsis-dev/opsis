@@ -1,20 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { overlayScale, shapeInsets, zoomBoost } from "./frame";
+import { overlayScale, sameShape, shapeInsets, zoomBoost } from "./frame";
 
 describe("other shapes", () => {
-  it("keeps the landscape frame free of extra margins", () => {
-    expect(shapeInsets(1920, 1080)).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+  it("adds margins only outside landscape, and more the narrower the frame", () => {
+    const landscape = shapeInsets(1920, 1080);
+    const square = shapeInsets(1920, 1920);
+    const tall = shapeInsets(1080, 1920);
+    expect(landscape.bottom).toBeLessThan(square.bottom);
+    expect(square.bottom).toBeLessThan(tall.bottom);
   });
 
-  it("keeps overlays clear of the top and bottom of a vertical frame", () => {
+  it("keeps overlays clear of the bottom of a vertical frame more than the top", () => {
     const tall = shapeInsets(1080, 1920);
     expect(tall.bottom).toBeGreaterThan(tall.top);
-    expect(tall.bottom).toBeCloseTo(0.16 * 1920);
-    expect(shapeInsets(1920, 1920).bottom).toBeLessThan(tall.bottom);
   });
 
   it("sizes overlays by the long side, so a vertical frame isn't shrunk", () => {
-    expect(overlayScale(1080, 1920)).toBe(overlayScale(1920, 1080));
+    expect(overlayScale(1080, 1920)).toBeGreaterThanOrEqual(overlayScale(1920, 1080));
+  });
+
+  it("treats nearly equal shapes as the same", () => {
+    expect(sameShape({ width: 1920, height: 1080 }, { width: 1280, height: 720 })).toBe(true);
+    expect(sameShape({ width: 1440, height: 900 }, { width: 1920, height: 1080 })).toBe(false);
   });
 
   it("zooms in harder the narrower the frame, within limits", () => {

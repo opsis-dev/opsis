@@ -1,3 +1,4 @@
+import { googleImportName } from "../../shared/fonts/google-font-imports";
 import { ensureFontNow } from "./registry";
 
 type LoadFontResult = {
@@ -19,6 +20,6 @@ export function googleFont(family: string) {
         waitUntilDone: () => Promise.resolve(undefined),
       };
     },
-    getInfo: () => ({ fontFamily, importName: family.replaceAll(" ", "") }),
+    getInfo: () => ({ fontFamily, importName: googleImportName(family) }),
   };
 }

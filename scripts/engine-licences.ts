@@ -1,22 +1,25 @@
+import { readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { z } from "zod";
 import { writeChromiumCredits } from "../src/engine/chromium-credits";
 import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "../src/engine/paths";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 
-function userDataDir(): string {
+const appName = z
+  .object({ productName: z.string() })
+  .parse(JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"))).productName;
+
+function electronAppData(): string {
   if (process.platform === "darwin")
-    return path.join(os.homedir(), "Library", "Application Support", "Demoflow");
+    return path.join(os.homedir(), "Library", "Application Support");
   if (process.platform === "win32")
-    return path.join(
-      process.env.APPDATA ?? path.join(os.homedir(), "AppData", "Roaming"),
-      "Demoflow",
-    );
-  return path.join(process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), ".config"), "Demoflow");
+    return process.env.APPDATA ?? path.join(os.homedir(), "AppData", "Roaming");
+  return process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), ".config");
 }
 
-const engine = process.argv[2] ?? path.join(userDataDir(), "engine");
+const engine = process.argv[2] ?? path.join(electronAppData(), appName, "engine");
 const { complete, headlessShell } = engineStatus(engine);
 if (!complete || !headlessShell) {
   console.error(`No engine in ${engine}. Set it up from Settings → Engine first.`);
