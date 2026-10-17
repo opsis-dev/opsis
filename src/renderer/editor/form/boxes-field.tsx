@@ -1,15 +1,22 @@
 import { X } from "lucide-react";
 import type { PointerEvent } from "react";
+import { z } from "zod";
 import { percent } from "@/shared/format";
+import type { Bounds } from "@/shared/schema/actions";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { cn } from "@/renderer/lib/utils";
 import { SpotFrame } from "./spot-frame";
 import type { FieldProps } from "./types";
-import { useBoxDrag, type Box } from "./use-box-drag";
+import { useBoxDrag } from "./use-box-drag";
+
+const boxSchema = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() });
+
+export const isBoxList = (value: unknown): value is Bounds[] =>
+  z.array(boxSchema).safeParse(value).success;
 
 const MAX_BOXES = 8;
 
-const boxStyle = (b: Box) => ({
+const boxStyle = (b: Bounds) => ({
   left: percent(b.x),
   top: percent(b.y),
   width: percent(b.width),
@@ -22,7 +29,7 @@ function BoxOverlay({
   onGrab,
   onRemove,
 }: {
-  box: Box;
+  box: Bounds;
   number: number;
   onGrab: (e: PointerEvent) => void;
   onRemove: () => void;
@@ -49,7 +56,7 @@ function BoxOverlay({
   );
 }
 
-export function BoxesField({ label, value: boxes, onChange, ctx, meta }: FieldProps<Box[]>) {
+export function BoxesField({ label, value: boxes, onChange, ctx, meta }: FieldProps<Bounds[]>) {
   const { area, draft, shown, start, move, end } = useBoxDrag(boxes, onChange);
   const full = boxes.length >= MAX_BOXES;
 

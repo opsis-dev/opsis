@@ -1,4 +1,6 @@
 import { CircleAlert, ExternalLink, Play, RotateCcw, Trash2, Ungroup } from "lucide-react";
+import { isGroupNode } from "@/shared/graph";
+import { findById } from "@/shared/lists";
 import { CATEGORY_LABELS, type NodeDef } from "@/shared/nodes/define";
 import { customLabel, getNodeDef, nodeName } from "@/shared/nodes/registry";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
@@ -27,10 +29,8 @@ import { ReplayButtons } from "./replay-buttons";
 import { startRun } from "./run";
 import { useFormContext } from "./use-form-context";
 import { useNodeProblems } from "./use-node-problems";
-import { ZodForm } from "./zod-form";
 import { useTypingAsOneUndoStep } from "./use-typing-undo";
-import { isGroupNode } from "@/shared/graph";
-import { findById } from "@/shared/lists";
+import { ZodForm } from "./zod-form";
 
 export function Inspector() {
   const selected = useUiStore((s) => s.selectedIds);

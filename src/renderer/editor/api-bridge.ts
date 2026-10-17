@@ -10,7 +10,7 @@ import {
   type ApiReply,
   type ApiRunState,
 } from "@/shared/api/types";
-import { errorMessage } from "@/shared/errors";
+import { errorMessage, NO_PROJECT } from "@/shared/errors";
 import { connectionProblem } from "@/shared/graph";
 import { edgeId, nodeIdFor } from "@/shared/ids";
 import { getNodeDef } from "@/shared/nodes/registry";
@@ -19,7 +19,7 @@ import { setEditorApi } from "../app/api-host";
 import { useRunStore } from "../store/run";
 import { newNodeParams, useWorkflowStore } from "../store/workflow";
 import { beginRun } from "./run";
-import { save } from "./save";
+import { save, VERSION_UNCHOSEN } from "./save";
 
 type Op = ApiEditorRequest["op"];
 type RequestOf<O extends Op> = Extract<ApiEditorRequest, { op: O }>;
@@ -148,41 +148,53 @@ const run: Handler<"run"> = async (request) => {
 
 const readProject = (_request: unknown, wf: Workflow) => read(wf);
 
+const replace: Handler<"replace"> = (request) => {
+  useWorkflowStore.getState().update(() => request.workflow);
+  return edited();
+};
+
+const setVariables: Handler<"setVariables"> = (request) => {
+  useWorkflowStore.getState().setVariables(request.variables);
+  return edited();
+};
+
+const problems: Handler<"problems"> = (_request, wf) => apiOk(problemCheck(workflowProblems(wf)));
+
+const undo: Handler<"undo"> = () => {
+  useWorkflowStore.temporal.getState().undo();
+  return edited();
+};
+
+const redo: Handler<"redo"> = () => {
+  useWorkflowStore.temporal.getState().redo();
+  return edited();
+};
+
+const saveProject: Handler<"save"> = async () =>
+  (await save()) ? edited() : apiFailure(409, VERSION_UNCHOSEN);
+
+const stop: Handler<"stop"> = async () => {
+  await window.demoflow.cancelRun();
+  return apiOk(runState());
+};
+
 const HANDLERS: { [O in Op]: Handler<O> } = {
   open: readProject,
   read: readProject,
-  replace: (request) => {
-    useWorkflowStore.getState().update(() => request.workflow);
-    return edited();
-  },
+  replace,
   addNode,
   updateNode,
   removeNodes,
   addEdge,
   removeEdges,
   setSettings,
-  setVariables: (request) => {
-    useWorkflowStore.getState().setVariables(request.variables);
-    return edited();
-  },
-  problems: (_request, wf) => apiOk(problemCheck(workflowProblems(wf))),
-  undo: () => {
-    useWorkflowStore.temporal.getState().undo();
-    return edited();
-  },
-  redo: () => {
-    useWorkflowStore.temporal.getState().redo();
-    return edited();
-  },
-  save: async () =>
-    (await save())
-      ? edited()
-      : apiFailure(409, "The project file changed on disk. Choose a version in the editor first."),
+  setVariables,
+  problems,
+  undo,
+  redo,
+  save: saveProject,
   run,
-  stop: async () => {
-    await window.demoflow.cancelRun();
-    return apiOk(runState());
-  },
+  stop,
 };
 
 function dispatch<O extends Op>(request: RequestOf<O>, wf: Workflow) {
@@ -192,7 +204,7 @@ function dispatch<O extends Op>(request: RequestOf<O>, wf: Workflow) {
 
 async function handle(request: ApiEditorRequest): Promise<ApiEditorReply> {
   const wf = useWorkflowStore.getState().workflow;
-  if (!wf) return apiFailure(409, "No project is open.");
+  if (!wf) return apiFailure(409, NO_PROJECT);
   return dispatch(request, wf);
 }
 

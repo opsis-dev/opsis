@@ -22,7 +22,8 @@ import { useThumbSlot } from "./thumb-slots";
 import { useCompiledContext } from "./use-compiled";
 import { openWorkflow } from "./use-open-workflow";
 
-const MIN_ZOOM = 0.55;
+const LIVE_THUMB_MIN_ZOOM = 0.55;
+const VIDEO_ASPECT = 16 / 9;
 const SETTLE_MS = 400;
 const OBSERVE_MARGIN = "120px";
 
@@ -72,7 +73,7 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
   const zoom = useFlowStore((s) => s.transform[2]);
   const [ref, visible] = useOnScreen<HTMLDivElement>();
   const settled = useSettledClip(nodeId);
-  const holding = useThumbSlot(nodeId, visible && zoom >= MIN_ZOOM && !!settled);
+  const holding = useThumbSlot(nodeId, visible && zoom >= LIVE_THUMB_MIN_ZOOM && !!settled);
   const spec = useMemo(
     () => (settled ? { ...fastSpec(settled), assets: { projectBase: PROJECT_FILE_BASE } } : null),
     [settled],
@@ -80,7 +81,7 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
 
   if (!spec) return null;
   const aspectRatio = `${settings.width} / ${settings.height}`;
-  const wide = settings.width / settings.height >= 16 / 9;
+  const wide = settings.width / settings.height >= VIDEO_ASPECT;
   return (
     <div
       ref={ref}
@@ -95,7 +96,7 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
           durationInFrames={Math.max(1, spec.durationInFrames)}
           fps={spec.fps}
           frameToDisplay={middleFrame(spec)}
-          style={wide ? { width: "100%", aspectRatio } : { height: "100%", aspectRatio }}
+          style={{ aspectRatio, [wide ? "width" : "height"]: "100%" }}
           errorFallback={() => null}
         />
       ) : null}
@@ -138,6 +139,7 @@ function CardStill({ nodeId }: { nodeId: string }) {
   useEffect(() => {
     if (!engine || !projectDir || !settled || (!hash && !wanted)) return;
     const spec = fastSpec(settled);
+    let current = true;
     void window.demoflow
       .requestStill({
         projectDir,
@@ -148,8 +150,12 @@ function CardStill({ nodeId }: { nodeId: string }) {
         priority: selected || !hash,
       })
       .then((r) => {
-        if (r.ready) useStillsStore.getState().ready(projectDir, nodeId, r.hash);
-      });
+        if (current && r.ready) useStillsStore.getState().ready(projectDir, nodeId, r.hash);
+      })
+      .catch(() => undefined);
+    return () => {
+      current = false;
+    };
   }, [engine, projectDir, settled, hash, wanted, selected, nodeId]);
 
   if (engine === false) return <LiveFrame nodeId={nodeId} />;

@@ -7,6 +7,7 @@ import type { WorkflowSettings } from "../schema/workflow";
 import { flattenSpec } from "../timeline/flatten";
 import { hasKeys } from "../timeline/envelope";
 import { fileRow, row, warnIf, type CardRow } from "./card";
+import type { NodeIconName } from "./icon-name";
 import { defineNode, many, opt, port, withClip, type CompileOutputs } from "./define";
 import { mediaInput } from "./media";
 import { asset, audioEnvelope, bool, int, more, ms, volume } from "./params";
@@ -55,7 +56,7 @@ function soundItem(
 const offsetLabel = (offsetMs: number): string =>
   offsetMs ? ` ${offsetMs > 0 ? "+" : "−"}${formatDuration(Math.abs(offsetMs))}` : "";
 
-function sourceRow(icon: string, src: string, connected: string[], empty: string): CardRow {
+function sourceRow(icon: NodeIconName, src: string, connected: string[], empty: string): CardRow {
   if (src) return fileRow(icon, src, builtinSound(src)?.label ?? baseName(src));
   return connected.includes("media")
     ? row(icon, "From the connected file")

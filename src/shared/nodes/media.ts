@@ -10,6 +10,7 @@ import {
 } from "../schema/values";
 import { countConnected, fileRow, row, warnIf, type CardRow } from "./card";
 import { defineNode, opt, port, type NodeDef } from "./define";
+import type { NodeIconName } from "./icon-name";
 import {
   asset,
   bool,
@@ -40,7 +41,10 @@ const one = {
 } as const;
 const NEW_FILE = " Makes a new file.";
 
-const lengthRow = (result: NodeResult | undefined, icon = "clock"): CardRow | null => {
+const lengthRow = (
+  result: NodeResult | undefined,
+  icon: NodeIconName = "clock",
+): CardRow | null => {
   const m = outputOf(result, "media", "media");
   return m?.durationMs ? row(icon, formatDuration(m.durationMs)) : null;
 };

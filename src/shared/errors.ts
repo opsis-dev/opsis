@@ -3,6 +3,8 @@ export const errorMessage = (error: unknown): string =>
 
 export const CANCELLED = "Cancelled";
 
+export const NO_PROJECT = "No project is open.";
+
 export class CancelledError extends Error {
   constructor() {
     super(CANCELLED);

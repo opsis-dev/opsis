@@ -20,6 +20,7 @@ import { pointRect, type Action } from "../schema/actions";
 import { asValue, type ClipValue } from "../schema/values";
 import { mutedIf, row, toggleRow, warnIf, type CardRow } from "./card";
 import { clipModifier, defineNode, port, withClip } from "./define";
+import type { NodeIconName } from "./icon-name";
 import {
   asset,
   bool,
@@ -41,7 +42,7 @@ import { baseName } from "../asset-ref";
 const base = { category: "Camera", phase: "compile" } as const;
 const modifier = { ...base, ...clipModifier };
 
-const spot = { widget: "spot" } as const;
+const spot = { widget: "spot", timeKey: "atMs" } as const;
 
 const WINDOW_STYLES = ["macos", "windows", "linux"] as const;
 type WindowStyle = (typeof WINDOW_STYLES)[number];
@@ -359,7 +360,7 @@ const cropNode = defineNode({
 
 const DEVICE_LABELS = { browser: "Browser window", laptop: "Laptop", phone: "Phone" };
 
-const DEVICE_ICONS: Record<keyof typeof DEVICE_LABELS, string> = {
+const DEVICE_ICONS: Record<keyof typeof DEVICE_LABELS, NodeIconName> = {
   browser: "app-window",
   laptop: "laptop",
   phone: "smartphone",

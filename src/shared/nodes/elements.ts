@@ -9,6 +9,7 @@ import { assetKeys, widgetKeys } from "../elements/introspect";
 import { fontStack } from "../fonts";
 import { fileRow, frameSecs, quote, row, sentence, type CardRow } from "./card";
 import { clipInput, defineNode, port, type NodeCategory, type NodeDef } from "./define";
+import type { NodeIconName } from "./icon-name";
 import { int, MAX_FRAMES, visualEnvelope } from "./params";
 import { projectRef } from "../asset-ref";
 
@@ -74,7 +75,7 @@ const NODE_CATEGORY_FOR: Record<ElementCategory, NodeCategory> = {
   transition: "Transitions",
 };
 
-const ICON_FOR: Record<ElementCategory, string> = {
+const ICON_FOR: Record<ElementCategory, NodeIconName> = {
   core: "box",
   text: "type",
   overlay: "sticker",

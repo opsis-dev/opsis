@@ -11,7 +11,7 @@ import { cn } from "@/renderer/lib/utils";
 import { OptionToggle } from "../app/option-toggle";
 import { useUiStore } from "../store/ui";
 import { fileUrl } from "./file-url";
-import { FrameOverlay } from "./frame-overlay";
+import { FrameOverlay, OVERLAY_WIDTHS } from "./frame-overlay";
 import { ListRow } from "./list-row";
 import { MONO_TEXT } from "./text-styles";
 import { traceClock, TraceTabs } from "./trace-tabs";
@@ -20,8 +20,6 @@ import { findById } from "@/shared/lists";
 const MOMENTS = ["before", "after"] as const;
 type Moment = (typeof MOMENTS)[number];
 const MOMENT_LABELS: Record<Moment, string> = { before: "Before", after: "After" };
-
-const CLICK_SIZE = 1 / 160;
 
 function useTrace(projectDir: string, traceId: string) {
   const [state, setState] = useState<{ trace?: TraceModel; error?: string; id?: string }>({});
@@ -97,7 +95,7 @@ function Screenshot({
           height={height}
           box={action?.box}
           point={action?.point}
-          pointSize={CLICK_SIZE}
+          pointSize={OVERLAY_WIDTHS.tracePoint}
         />
       </div>
     </div>

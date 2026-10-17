@@ -7,8 +7,10 @@ import { LiveView } from "./live-view";
 
 function PipWindow({ capture }: { capture: LiveCapture }) {
   const order = useLiveStore((s) => s.order);
-  const titles = useLiveStore(useShallow((s) => s.order.map((id) => s.captures[id].title)));
-  const { focus, setPipOpen, setDialogOpen } = useLiveStore.getState();
+  const titles = useLiveStore(useShallow((s) => s.order.map((id) => s.captures[id]?.title ?? "")));
+  const focus = useLiveStore((s) => s.focus);
+  const setPipOpen = useLiveStore((s) => s.setPipOpen);
+  const setDialogOpen = useLiveStore((s) => s.setDialogOpen);
   return (
     <div className="bg-card absolute right-4 bottom-4 z-10 flex w-96 flex-col gap-2 rounded-xl border p-2 shadow-xl">
       <div className="flex items-center gap-1">

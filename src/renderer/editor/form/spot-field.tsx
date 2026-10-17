@@ -35,7 +35,7 @@ export function SpotField({ label, name, all, onPatch, ctx, meta }: FieldProps<n
       <SpotFrame
         ref={box}
         ctx={ctx}
-        timeMs={numberOr(all.atMs, 0)}
+        timeMs={meta.timeKey ? numberOr(all[meta.timeKey], 0) : undefined}
         role="button"
         tabIndex={0}
         aria-label={`${label}: ${percentText(x)}, ${percentText(y)}`}

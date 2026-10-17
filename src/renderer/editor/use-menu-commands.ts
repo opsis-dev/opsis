@@ -6,7 +6,7 @@ import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { tidyLayout } from "./layout";
 import { DOCK_PANELS } from "@/shared/ipc";
-import { focusPanel, PANEL_SIDES, togglePanel } from "./panels";
+import { focusPanel, PANEL_SIDES, PANEL_TOGGLES, togglePanel } from "./panels";
 import { startRun } from "./run";
 import { saveWithToast } from "./save";
 import { onMenuCommand } from "../app/menu-commands";
@@ -32,7 +32,7 @@ const MENU_ACTIONS: MenuActions = {
     const view = useViewOptions.getState();
     view.setMinimap(!view.minimap);
   },
-  ...actionsFor(PANEL_SIDES, (side) => `view:toggle-${side}`, togglePanel),
+  ...actionsFor(PANEL_SIDES, (side) => PANEL_TOGGLES[side].command, togglePanel),
   ...actionsFor(DOCK_PANELS, (panel) => `view:focus-${panel}`, focusPanel),
 };
 

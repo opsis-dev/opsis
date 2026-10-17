@@ -1,4 +1,5 @@
 import type { Workflow } from "../schema/workflow";
+import type { NodeIconName } from "../nodes/icon-name";
 import { GraphBuilder } from "./build";
 import { findById } from "../lists";
 
@@ -6,7 +7,7 @@ type TemplateInfo = {
   id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: NodeIconName;
   build: (name: string) => Workflow;
 };
 

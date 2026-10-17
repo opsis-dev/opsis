@@ -1,4 +1,4 @@
-import { NodeResizer, Position, type Node, type NodeProps } from "@xyflow/react";
+import { NodeResizer, Position, type NodeProps } from "@xyflow/react";
 import {
   CheckCheck,
   CircleCheck,
@@ -30,14 +30,12 @@ import { cn } from "@/renderer/lib/utils";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import type { FlowNodeData } from "./convert";
+import type { CanvasNode } from "./convert";
 import { CategoryBadge } from "./category-badge";
 import { CardRows, useCardRows } from "./card-rows";
 import { NodeThumbnail } from "./node-still";
 import { portLabel, portTypeColor } from "./ports";
 import { useNodeProblems } from "./use-node-problems";
-
-type DemoflowFlowNode = Node<FlowNodeData>;
 
 type StatusBadge = {
   label: string;
@@ -75,7 +73,7 @@ function paramsOf<S extends z.ZodObject>(schema: S, params: unknown): z.infer<S>
   return parsed.success ? parsed.data : schema.parse({});
 }
 
-export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<DemoflowFlowNode>) {
+export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<CanvasNode>) {
   const def = getNodeDef(data.node.type);
   if (!def) {
     return (
@@ -197,7 +195,7 @@ export const GroupFlowNode = memo(function GroupFlowNode({
   id,
   data,
   selected,
-}: NodeProps<DemoflowFlowNode>) {
+}: NodeProps<CanvasNode>) {
   const { title, color } = paramsOf(groupParams, data.node.params);
   const setMeta = useWorkflowStore((s) => s.setNodeMeta);
   return (
@@ -228,7 +226,7 @@ export const GroupFlowNode = memo(function GroupFlowNode({
   );
 });
 
-export const NoteFlowNode = memo(function NoteFlowNode({ data }: NodeProps<DemoflowFlowNode>) {
+export const NoteFlowNode = memo(function NoteFlowNode({ data }: NodeProps<CanvasNode>) {
   return (
     <div className="w-64 rounded-lg border border-amber-300/40 bg-amber-200/10 p-3 text-xs leading-relaxed whitespace-pre-wrap text-amber-100">
       {paramsOf(noteParams, data.node.params).text}

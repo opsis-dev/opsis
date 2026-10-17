@@ -6,11 +6,11 @@ import {
   type Connection,
   type Edge,
   type IsValidConnection,
-  type Node,
   type ReactFlowProps,
 } from "@xyflow/react";
 import { useCallback, useMemo, useRef } from "react";
 import { connectionProblem } from "@/shared/graph";
+import { DEFAULT_SETTINGS } from "@/shared/settings";
 import { ZoomSlider } from "@/renderer/components/zoom-slider";
 import { isMac } from "@/renderer/lib/platform";
 import { useAppSettings } from "../store/app-settings";
@@ -19,7 +19,7 @@ import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { SNAP_GRID } from "./canvas-grid";
 import { CanvasToolbar } from "./canvas-toolbar";
-import type { FlowNodeData, FlowNodeType } from "./convert";
+import type { CanvasNode, FlowNodeType } from "./convert";
 import { FlowNode, GroupFlowNode, NoteFlowNode } from "./flow-node";
 import { MAX_ZOOM, MIN_ZOOM } from "./pinch";
 import { categoryColor } from "./ports";
@@ -36,8 +36,6 @@ const nodeTypes = {
   note: NoteFlowNode,
 } satisfies Record<FlowNodeType, unknown>;
 
-type FlowNode = Node<FlowNodeData>;
-
 const FLOW_OPTIONS = {
   deleteKeyCode: ["Backspace", "Delete"],
   multiSelectionKeyCode: ["Meta", "Control", "Shift"],
@@ -51,9 +49,9 @@ const FLOW_OPTIONS = {
   proOptions: { hideAttribution: true },
   colorMode: "dark",
   defaultEdgeOptions: { type: "smoothstep" },
-} satisfies ReactFlowProps<FlowNode, Edge>;
+} satisfies ReactFlowProps<CanvasNode, Edge>;
 
-const minimapColor = (n: FlowNode) => categoryColor(n.data.node.type);
+const minimapColor = (n: CanvasNode) => categoryColor(n.data.node.type);
 
 function connect(c: Connection): void {
   if (!c.sourceHandle || !c.targetHandle) return;
@@ -65,10 +63,10 @@ function connect(c: Connection): void {
   });
 }
 
-const dropDragged = (_e: unknown, _node: FlowNode, dragged: FlowNode[]) =>
+const dropDragged = (_e: unknown, _node: CanvasNode, dragged: CanvasNode[]) =>
   useWorkflowStore.getState().moveNodes(Object.fromEntries(dragged.map((n) => [n.id, n.position])));
 
-const deleteNodes = (deleted: FlowNode[]) =>
+const deleteNodes = (deleted: CanvasNode[]) =>
   useWorkflowStore.getState().removeNodes(deleted.map((n) => n.id));
 
 const deleteEdges = (deleted: Edge[]) =>
@@ -78,7 +76,9 @@ const clearSelection = () => useUiStore.getState().setSelected([]);
 
 export function Canvas({ projectDir }: { projectDir: string }) {
   const workflow = useOpenWorkflow();
-  const mode = useAppSettings((s) => s.settings?.editor.canvasMode ?? "mouse");
+  const mode = useAppSettings(
+    (s) => s.settings?.editor.canvasMode ?? DEFAULT_SETTINGS.editor.canvasMode,
+  );
   const minimap = useViewOptions((s) => s.minimap);
   const selectedIds = useUiStore((s) => s.selectedIds);
   const activeIds = useUiStore((s) => s.activeIds);
@@ -129,7 +129,7 @@ export function Canvas({ projectDir }: { projectDir: string }) {
         {...FLOW_OPTIONS}
       >
         <Background variant={BackgroundVariant.Dots} gap={SNAP_GRID} size={1} />
-        {minimap ? <MiniMap<FlowNode> pannable zoomable nodeColor={minimapColor} /> : null}
+        {minimap ? <MiniMap<CanvasNode> pannable zoomable nodeColor={minimapColor} /> : null}
         <CanvasToolbar mode={mode} />
         <ZoomSlider position="bottom-left" />
       </ReactFlow>

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ipcMain } from "electron";
 import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
+import { NO_PROJECT } from "../shared/errors";
 import { IPC } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
 import { getMainWindow, isEditorSender } from "./app-windows";
@@ -24,7 +25,7 @@ export function askEditor<R extends ApiEditorRequest>(
 ): Promise<ApiEditorReply<R["op"]>> {
   const win = getMainWindow();
   if (!win || win.isDestroyed())
-    return Promise.resolve({ ok: false, status: 409, error: "No project is open." });
+    return Promise.resolve({ ok: false, status: 409, error: NO_PROJECT });
   const id = randomUUID();
   return new Promise((resolve) => {
     const timer = setTimeout(() => {

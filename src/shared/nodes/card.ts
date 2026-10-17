@@ -3,8 +3,14 @@ import type { WorkflowSettings } from "../schema/workflow";
 import { formatDuration, percentText } from "../format";
 import { baseName } from "../asset-ref";
 import { framesToMs } from "../timeline/time";
+import type { NodeIconName } from "./icon-name";
 
-export type CardRow = { icon: string; text: string; title?: string; tone?: "muted" | "warn" };
+export type CardRow = {
+  icon: NodeIconName;
+  text: string;
+  title?: string;
+  tone?: "muted" | "warn";
+};
 
 export type CardContext<P> = {
   params: P;
@@ -33,22 +39,26 @@ export function coverRow(
   });
 }
 
-export const row = (icon: string, text: string, extra: Partial<CardRow> = {}): CardRow => ({
+export const row = (icon: NodeIconName, text: string, extra: Partial<CardRow> = {}): CardRow => ({
   icon,
   text,
   ...extra,
 });
 
-export const missing = (icon: string, text: string): CardRow => ({ icon, text, tone: "warn" });
+export const missing = (icon: NodeIconName, text: string): CardRow => ({
+  icon,
+  text,
+  tone: "warn",
+});
 
 export const mutedIf = (when: boolean): Partial<CardRow> => (when ? { tone: "muted" } : {});
 
 export const warnIf = (when: boolean): Partial<CardRow> => (when ? { tone: "warn" } : {});
 
-export const toggleRow = (icon: string, on: boolean): CardRow =>
+export const toggleRow = (icon: NodeIconName, on: boolean): CardRow =>
   row(icon, on ? "On" : "Off", mutedIf(!on));
 
-export const fileRow = (icon: string, path: string, name = baseName(path)): CardRow =>
+export const fileRow = (icon: NodeIconName, path: string, name = baseName(path)): CardRow =>
   row(icon, name, { title: path });
 
 export const frameSecs = (frames: number, fps: number) => formatDuration(framesToMs(frames, fps));
@@ -92,7 +102,7 @@ function elementName(target: string | undefined, role: string | undefined): stri
 }
 
 export function elementRow(
-  icon: string,
+  icon: NodeIconName,
   target: string | undefined,
   role: string | undefined,
   empty = "Pick an element",

@@ -1,11 +1,12 @@
 import { humanize } from "@/shared/format";
 import type { NodeCategory } from "@/shared/nodes/define";
+import type { NodeIconName } from "@/shared/nodes/icon-name";
 import { getNodeDef } from "@/shared/nodes/registry";
 import { PORT_WORDS, type PortType } from "@/shared/schema/workflow";
 
 const NEUTRAL_COLOR = "#71717a";
 
-export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: string }> = {
+export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: NodeIconName }> = {
   Browser: { color: "#38bdf8", icon: "globe" },
   Capture: { color: "#f97316", icon: "video" },
   Camera: { color: "#fb923c", icon: "scan-search" },

@@ -21,7 +21,6 @@ import { SecretField } from "./secret-field";
 import { SoundField } from "./sound-field";
 import { TimezoneField } from "./timezone-field";
 import type { FieldProps } from "./types";
-import { Presets } from "./presets";
 
 type StringProps = FieldProps<string>;
 
@@ -213,12 +212,5 @@ const STRING_WIDGETS: Partial<Record<FieldWidget, ComponentType<StringProps>>> =
 
 export function StringField(props: StringProps) {
   const Widget = (props.meta.widget && STRING_WIDGETS[props.meta.widget]) || TextField;
-  return (
-    <>
-      {props.meta.presets ? (
-        <Presets meta={props.meta} all={props.all} onPatch={props.onPatch} />
-      ) : null}
-      <Widget {...props} />
-    </>
-  );
+  return <Widget {...props} />;
 }

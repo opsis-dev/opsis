@@ -4,6 +4,8 @@ import { isGroupNode, isNoteNode } from "@/shared/graph";
 
 export type FlowNodeData = { node: WorkflowNode };
 
+export type CanvasNode = Node<FlowNodeData>;
+
 export type FlowNodeType = "demoflow" | "group" | "note";
 
 function flowNodeType(node: WorkflowNode): FlowNodeType {
@@ -11,7 +13,7 @@ function flowNodeType(node: WorkflowNode): FlowNodeType {
   return isNoteNode(node) ? "note" : "demoflow";
 }
 
-export function toFlowNodes(wf: Workflow, selected: ReadonlySet<string>): Node<FlowNodeData>[] {
+export function toFlowNodes(wf: Workflow, selected: ReadonlySet<string>): CanvasNode[] {
   const ordered = [...wf.nodes.filter(isGroupNode), ...wf.nodes.filter((n) => !isGroupNode(n))];
   return ordered.map((n) => ({
     id: n.id,

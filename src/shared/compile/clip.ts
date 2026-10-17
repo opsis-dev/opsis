@@ -337,7 +337,7 @@ export function recordingProps(clip: ClipValue): RecordingProps[] {
   return out;
 }
 
-const THEME_BACKGROUNDS: Record<WorkflowSettings["theme"], string> = {
+export const THEME_BACKGROUNDS: Record<WorkflowSettings["theme"], string> = {
   light: "#fafafa",
   dark: "#09090b",
 };

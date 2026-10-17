@@ -50,15 +50,24 @@ const STILL_NAMES: Record<StillPreset, string> = {
   story: "Story",
 };
 
+const variantRatio = (variant: Variant) => variant.split(":").map(Number);
+
 export function variantSize(
   variant: Variant,
   settings: Pick<WorkflowSettings, "width" | "height">,
 ) {
   const long = Math.max(settings.width, settings.height);
-  const [w, h] = variant.split(":").map(Number);
+  const [w, h] = variantRatio(variant);
   return w >= h
     ? { width: evenPx(long), height: evenPx((long * h) / w) }
     : { width: evenPx((long * w) / h), height: evenPx(long) };
+}
+
+export function variantCanvas(variant: Variant, short: number) {
+  const [w, h] = variantRatio(variant);
+  return w >= h
+    ? { width: evenPx((short * w) / h), height: evenPx(short) }
+    : { width: evenPx(short), height: evenPx((short * h) / w) };
 }
 
 const toTimeline = (

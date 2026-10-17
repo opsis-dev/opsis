@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { WorkflowNode } from "../schema/workflow";
-import { exportReframe, variantSize } from "./output";
+import { exportReframe, variantCanvas, variantSize } from "./output";
 
 describe("variantSize", () => {
   it("keeps the long edge and even dimensions", () => {
@@ -9,6 +9,15 @@ describe("variantSize", () => {
     expect(variantSize("9:16", s)).toEqual({ width: 1080, height: 1920 });
     expect(variantSize("1:1", s)).toEqual({ width: 1920, height: 1920 });
     expect(variantSize("4:5", s)).toEqual({ width: 1536, height: 1920 });
+  });
+});
+
+describe("variantCanvas", () => {
+  it("keeps the short edge", () => {
+    expect(variantCanvas("16:9", 1080)).toEqual({ width: 1920, height: 1080 });
+    expect(variantCanvas("1:1", 1080)).toEqual({ width: 1080, height: 1080 });
+    expect(variantCanvas("4:5", 1080)).toEqual({ width: 1080, height: 1350 });
+    expect(variantCanvas("9:16", 1080)).toEqual({ width: 1080, height: 1920 });
   });
 });
 

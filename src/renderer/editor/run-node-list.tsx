@@ -1,16 +1,14 @@
-import { Square } from "lucide-react";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { nodeName, nodeNameById } from "@/shared/nodes/registry";
 import type { WorkflowNode } from "@/shared/schema/workflow";
-import { Button } from "@/renderer/components/ui/button";
 import { Progress } from "@/renderer/components/ui/progress";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
-import { TextShimmer } from "@/renderer/components/ui/text-shimmer";
 import { cn } from "@/renderer/lib/utils";
 import { AnimatedPercent } from "../app/motion";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
+import { RunningLabel, StopRunButton } from "./run-controls";
 import { StatusIcon, type RowState } from "./status-icon";
 
 function FailureLine({
@@ -56,18 +54,11 @@ function RunHeader({ running, failed }: { running: boolean; failed: boolean }) {
   return (
     <div className="flex items-center justify-between px-2 pb-2">
       {running ? (
-        <TextShimmer as="span" className="text-sm font-medium" duration={1.6}>
-          Running…
-        </TextShimmer>
+        <RunningLabel className="text-sm font-medium" />
       ) : (
         <span className="text-sm font-medium">{failed ? "Last run failed" : "Nodes"}</span>
       )}
-      {running ? (
-        <Button size="xs" variant="outline" onClick={() => void window.demoflow.cancelRun()}>
-          <Square data-icon="inline-start" />
-          Cancel
-        </Button>
-      ) : null}
+      {running ? <StopRunButton size="xs" /> : null}
     </div>
   );
 }

@@ -3,7 +3,6 @@ import {
   applyNodeChanges,
   type Edge,
   type EdgeChange,
-  type Node,
   type NodeChange,
 } from "@xyflow/react";
 import { useCallback, useMemo, useState } from "react";
@@ -11,15 +10,14 @@ import { portOf } from "@/shared/graph";
 import type { Workflow } from "@/shared/schema/workflow";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { toFlowEdges, toFlowNodes, type FlowNodeData } from "./convert";
+import { toFlowEdges, toFlowNodes, type CanvasNode } from "./convert";
 import { portTypeColor } from "./ports";
 
-type FlowNode = Node<FlowNodeData>;
 type LiveFields = Partial<
-  Pick<FlowNode, "measured" | "position" | "dragging" | "resizing" | "width" | "height">
+  Pick<CanvasNode, "measured" | "position" | "dragging" | "resizing" | "width" | "height">
 >;
 
-const liveFields = (n: FlowNode): LiveFields =>
+const liveFields = (n: CanvasNode): LiveFields =>
   n.dragging || n.resizing
     ? {
         measured: n.measured,
@@ -31,13 +29,13 @@ const liveFields = (n: FlowNode): LiveFields =>
       }
     : { measured: n.measured };
 
-const withLive = (base: FlowNode[], live: ReadonlyMap<string, LiveFields>): FlowNode[] =>
+const withLive = (base: CanvasNode[], live: ReadonlyMap<string, LiveFields>): CanvasNode[] =>
   base.map((n) => {
     const fields = live.get(n.id);
     return fields ? { ...n, ...fields } : n;
   });
 
-function selectFromChanges(changes: NodeChange<FlowNode>[]): void {
+function selectFromChanges(changes: NodeChange<CanvasNode>[]): void {
   const picks = changes.flatMap((c) => (c.type === "select" ? [c] : []));
   if (!picks.length) return;
   const { selectedIds, setSelected } = useUiStore.getState();
@@ -50,7 +48,7 @@ function selectFromChanges(changes: NodeChange<FlowNode>[]): void {
 }
 
 function keyboardMoves(
-  changes: NodeChange<FlowNode>[],
+  changes: NodeChange<CanvasNode>[],
   live: ReadonlyMap<string, LiveFields>,
 ): Record<string, { x: number; y: number }> {
   return Object.fromEntries(
@@ -67,7 +65,7 @@ export function useFlowNodes(workflow: Workflow, selected: ReadonlySet<string>) 
   const [live, setLive] = useState<ReadonlyMap<string, LiveFields>>(() => new Map());
   const nodes = useMemo(() => withLive(base, live), [base, live]);
   const onNodesChange = useCallback(
-    (changes: NodeChange<FlowNode>[]) => {
+    (changes: NodeChange<CanvasNode>[]) => {
       const moved = keyboardMoves(changes, live);
       if (Object.keys(moved).length) useWorkflowStore.getState().moveNodes(moved);
       setLive((prev) => {

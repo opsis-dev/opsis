@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { FieldMeta } from "@/shared/elements/introspect";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
+import type { Choice } from "./choice-select";
 
 export function Help({ meta }: { meta?: FieldMeta }) {
   return meta?.help ? <FieldDescription>{meta.help}</FieldDescription> : null;
@@ -26,8 +27,6 @@ export function FieldShell({
     </Field>
   );
 }
-
-type Choice = { value: string; label: string; disabled?: boolean };
 
 export function ChoiceGroup({
   label,
@@ -64,30 +63,34 @@ export function ChoiceGroup({
   );
 }
 
-type LabelledOption<T> = { label: string; value: T; disabled?: boolean };
+const UNMATCHED = "unmatched";
 
 export function LabelledChoices<T>({
   label,
   meta,
   options,
   current,
+  unmatchedLabel,
   onPick,
 }: {
   label: string;
   meta?: FieldMeta;
-  options: ReadonlyArray<LabelledOption<T>>;
-  current: string;
+  options: ReadonlyArray<{ label: string; value: T }>;
+  current: number | undefined;
+  unmatchedLabel?: string;
   onPick: (value: T) => void;
 }) {
+  const choices: Choice[] = options.map((o, i) => ({ value: String(i), label: o.label }));
+  if (unmatchedLabel) choices.push({ value: UNMATCHED, label: unmatchedLabel, disabled: true });
   return (
     <ChoiceGroup
       label={label}
       meta={meta}
-      choices={options.map((o) => ({ value: o.label, label: o.label, disabled: o.disabled }))}
-      value={[current]}
+      choices={choices}
+      value={[current === undefined ? UNMATCHED : String(current)]}
       onChange={(v) => {
-        const hit = options.find((o) => o.label === v[0]);
-        if (hit && !hit.disabled) onPick(hit.value);
+        const hit = v[0] === undefined ? undefined : options[Number(v[0])];
+        if (hit) onPick(hit.value);
       }}
     />
   );

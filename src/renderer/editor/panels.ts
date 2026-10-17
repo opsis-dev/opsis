@@ -1,12 +1,20 @@
+import { PanelBottom, PanelLeft, PanelRight, type LucideIcon } from "lucide-react";
 import type { LayoutStorage, PanelImperativeHandle } from "react-resizable-panels";
 import { create } from "zustand";
 import { isOneOf } from "@/renderer/lib/one-of";
 import { DOCK_PANELS, type DockPanelName } from "@/shared/ipc";
+import type { MenuCommand } from "@/shared/menu";
 import { readStored, writeStored } from "@/renderer/lib/local-storage";
 import { readPref, writePref } from "../store/view-prefs";
 
 export const PANEL_SIDES = ["left", "bottom", "right"] as const;
 export type PanelSide = (typeof PANEL_SIDES)[number];
+
+export const PANEL_TOGGLES: Record<PanelSide, { icon: LucideIcon; command: MenuCommand }> = {
+  left: { icon: PanelLeft, command: "view:toggle-left" },
+  bottom: { icon: PanelBottom, command: "view:toggle-bottom" },
+  right: { icon: PanelRight, command: "view:toggle-right" },
+};
 
 export const isDockPanel = (v: unknown): v is DockPanelName => isOneOf(DOCK_PANELS, v);
 

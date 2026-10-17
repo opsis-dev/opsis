@@ -7,13 +7,11 @@ import { cn } from "@/renderer/lib/utils";
 import { designScaleFor } from "@/video/camera/lib/design-width";
 import { Ripple } from "../app/motion";
 import type { LiveCapture } from "../store/live";
-import { FrameOverlay } from "./frame-overlay";
+import { FrameOverlay, OVERLAY_WIDTHS } from "./frame-overlay";
 
 const RIPPLE_MS = 600;
 const RIPPLE_START_PX = 12;
 const RIPPLE_GROWTH_PX = 36;
-const RIPPLE_STROKE = 1 / 640;
-const CURSOR_SIZE = 1 / 220;
 
 export const CAPTURE_STATUS: Record<
   LiveCapture["status"],
@@ -51,7 +49,7 @@ function ClickRipple({ click, width }: { click: LiveCapture["clicks"][number]; w
       from={(RIPPLE_START_PX + start * RIPPLE_GROWTH_PX) * scale}
       to={(RIPPLE_START_PX + RIPPLE_GROWTH_PX) * scale}
       opacity={1 - start}
-      strokeWidth={width * RIPPLE_STROKE}
+      strokeWidth={width * OVERLAY_WIDTHS.rippleStroke}
       seconds={(RIPPLE_MS - age) / 1000}
       className="fill-none stroke-primary"
     />
@@ -83,7 +81,7 @@ export function LiveView({ capture, className }: { capture: LiveCapture; classNa
         height={height}
         box={target ? boundsFromRect(target.rect) : null}
         point={capture.cursor}
-        pointSize={CURSOR_SIZE}
+        pointSize={OVERLAY_WIDTHS.livePoint}
       >
         {capture.clicks.map((c) => (
           <ClickRipple key={c.at} click={c} width={width} />

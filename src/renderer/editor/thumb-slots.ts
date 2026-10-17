@@ -4,29 +4,38 @@ import { useUiStore } from "../store/ui";
 
 const MAX_LIVE_THUMBS = 6;
 
+type ThumbSlot = { id: string; priority: boolean };
+
+export function claimSlot(
+  active: readonly ThumbSlot[],
+  id: string,
+  priority: boolean,
+  max = MAX_LIVE_THUMBS,
+): readonly ThumbSlot[] {
+  if (active.some((s) => s.id === id)) return active;
+  const slot = { id, priority };
+  if (active.length < max) return [...active, slot];
+  if (!priority) return active;
+  const evict = Math.max(
+    0,
+    active.findIndex((s) => !s.priority),
+  );
+  return [...active.toSpliced(evict, 1), slot];
+}
+
 const useThumbSlots = create<{
-  active: string[];
-  claim: (id: string, priority: boolean) => boolean;
+  active: readonly ThumbSlot[];
+  claim: (id: string, priority: boolean) => void;
   release: (id: string) => void;
-}>()((set, get) => ({
+}>()((set) => ({
   active: [],
-  claim: (id, priority) => {
-    const { active } = get();
-    if (active.includes(id)) return true;
-    if (active.length < MAX_LIVE_THUMBS) {
-      set({ active: [...active, id] });
-      return true;
-    }
-    if (!priority) return false;
-    set({ active: [...active.slice(1), id] });
-    return true;
-  },
-  release: (id) => set((s) => ({ active: s.active.filter((a) => a !== id) })),
+  claim: (id, priority) => set((s) => ({ active: claimSlot(s.active, id, priority) })),
+  release: (id) => set((s) => ({ active: s.active.filter((a) => a.id !== id) })),
 }));
 
 export function useThumbSlot(nodeId: string, wanted: boolean): boolean {
   const selected = useUiStore((s) => s.selectedIds.includes(nodeId));
-  const holding = useThumbSlots((s) => s.active.includes(nodeId));
+  const holding = useThumbSlots((s) => s.active.some((a) => a.id === nodeId));
   useEffect(() => {
     if (!wanted) return;
     const slots = useThumbSlots.getState();

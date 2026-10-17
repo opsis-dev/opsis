@@ -6,8 +6,10 @@ import { errorMessage } from "@/shared/errors";
 import { downstreamOf, sessionChain, upstreamOf } from "@/shared/graph";
 import { ACTION_NODE_TYPES, navigateNode, sessionNode } from "@/shared/nodes/browser";
 import { recordNode, stillNode } from "@/shared/nodes/capture";
+import { countConnected } from "@/shared/nodes/card";
 import type { NodeDef } from "@/shared/nodes/define";
 import { nodeName } from "@/shared/nodes/registry";
+import { IN_PORTS } from "@/shared/nodes/timeline";
 import type { NodeResult } from "@/shared/schema/values";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { interpolate } from "@/shared/vars";
@@ -23,7 +25,6 @@ const SITE_VAR = "Site address";
 const NO_PAGE = "Add a Go to page action before this one, so there's a page to pick from.";
 const CAPTURE_TYPES = new Set([recordNode.type, stillNode.type]);
 const viewportParams = sessionNode.params.pick({ viewportWidth: true, viewportHeight: true });
-const LAYER_PORT = /^in\d$/;
 
 type PickerPage = { url: string; viewport?: { width: number; height: number } };
 
@@ -132,9 +133,10 @@ function formContext({
   secrets: string[] | null;
   results: Partial<Record<string, NodeResult>>;
 }): FormContext {
-  const layers = workflow.edges.filter(
-    (e) => e.target === nodeId && LAYER_PORT.test(e.targetHandle),
-  ).length;
+  const layers = countConnected(
+    IN_PORTS,
+    workflow.edges.filter((e) => e.target === nodeId).map((e) => e.targetHandle),
+  );
   const needsBackground = def.category === "Camera" || hasWidget(def.params, "boxes");
   return {
     projectDir,

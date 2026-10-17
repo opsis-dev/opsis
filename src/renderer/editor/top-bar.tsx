@@ -3,16 +3,11 @@ import {
   ArrowLeft,
   FolderOpen,
   LayoutGrid,
-  PanelBottom,
-  PanelLeft,
-  PanelRight,
   Play,
   Plus,
   Redo2,
   Settings,
-  Square,
   Undo2,
-  type LucideIcon,
 } from "lucide-react";
 import { useStore } from "zustand";
 import { Badge } from "@/renderer/components/ui/badge";
@@ -20,7 +15,6 @@ import { Button } from "@/renderer/components/ui/button";
 import { Kbd } from "@/renderer/components/ui/kbd";
 import { Separator } from "@/renderer/components/ui/separator";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { TextShimmer } from "@/renderer/components/ui/text-shimmer";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { AppBar, commandLabel, commandShortcut } from "../app/app-bar";
@@ -29,29 +23,24 @@ import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { tidyLayout } from "./layout";
 import { LiveToggle } from "./live-pip";
-import { PANEL_SIDES, togglePanel, usePanels, type PanelSide } from "./panels";
+import { PANEL_SIDES, PANEL_TOGGLES, togglePanel, usePanels } from "./panels";
 import { revealOutputs } from "./reveal";
 import { startRun } from "./run";
+import { RunningLabel, StopRunButton } from "./run-controls";
 import { TooltipButton } from "./tooltip-button";
 
-const PANEL_ICONS: Record<PanelSide, LucideIcon> = {
-  left: PanelLeft,
-  bottom: PanelBottom,
-  right: PanelRight,
-};
-
-const PANEL_TOGGLES = PANEL_SIDES.map((side) => ({
+const PANEL_BUTTONS = PANEL_SIDES.map((side) => ({
   side,
-  icon: PANEL_ICONS[side],
-  label: commandLabel(`view:toggle-${side}`).toLowerCase(),
-  keys: commandShortcut(`view:toggle-${side}`),
+  icon: PANEL_TOGGLES[side].icon,
+  label: commandLabel(PANEL_TOGGLES[side].command).toLowerCase(),
+  keys: commandShortcut(PANEL_TOGGLES[side].command),
 }));
 
 function PanelToggles() {
   const open = usePanels((s) => s.open);
   return (
     <div className="flex items-center gap-0.5">
-      {PANEL_TOGGLES.map(({ side, icon: Icon, label, keys }) => (
+      {PANEL_BUTTONS.map(({ side, icon: Icon, label, keys }) => (
         <Tooltip key={side}>
           <TooltipTrigger
             render={
@@ -111,14 +100,9 @@ function RunControls() {
     <>
       <span className="flex items-center gap-1.5 text-sm">
         <Spinner className="text-muted-foreground" />
-        <TextShimmer as="span" duration={1.6}>
-          Running
-        </TextShimmer>
+        <RunningLabel />
       </span>
-      <Button size="sm" variant="outline" onClick={() => void window.demoflow.cancelRun()}>
-        <Square data-icon="inline-start" />
-        Stop
-      </Button>
+      <StopRunButton size="sm" />
     </>
   );
 }

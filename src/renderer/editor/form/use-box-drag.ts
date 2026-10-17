@@ -1,33 +1,27 @@
 import { useRef, useState, type PointerEvent } from "react";
-import { z } from "zod";
 import { clamp, round3 } from "@/shared/math";
+import type { Bounds } from "@/shared/schema/actions";
 import { capturePrimaryPointer, fractionIn } from "@/renderer/lib/dom";
 
-const boxSchema = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() });
-export type Box = z.infer<typeof boxSchema>;
-
-export const isBoxList = (value: unknown): value is Box[] =>
-  z.array(boxSchema).safeParse(value).success;
-
 type DragTarget = { mode: "new" } | { mode: "move"; index: number };
-type Drag = DragTarget & { x: number; y: number; origin: Box; box: Box };
+type Drag = DragTarget & { x: number; y: number; origin: Bounds; box: Bounds };
 
 const MIN_SIDE = 0.01;
 
-const boxFrom = (x0: number, y0: number, x1: number, y1: number): Box => ({
+const boxFrom = (x0: number, y0: number, x1: number, y1: number): Bounds => ({
   x: round3(Math.min(x0, x1)),
   y: round3(Math.min(y0, y1)),
   width: round3(Math.abs(x1 - x0)),
   height: round3(Math.abs(y1 - y0)),
 });
 
-const moved = (d: Drag, x: number, y: number): Box => ({
+const moved = (d: Drag, x: number, y: number): Bounds => ({
   ...d.origin,
   x: round3(clamp(d.origin.x + x - d.x, 0, 1 - d.origin.width)),
   y: round3(clamp(d.origin.y + y - d.y, 0, 1 - d.origin.height)),
 });
 
-export function useBoxDrag(boxes: Box[], onChange: (boxes: Box[]) => void) {
+export function useBoxDrag(boxes: Bounds[], onChange: (boxes: Bounds[]) => void) {
   const area = useRef<HTMLDivElement>(null);
   const drag = useRef<Drag | null>(null);
   const [draft, setDraft] = useState<Drag | null>(null);

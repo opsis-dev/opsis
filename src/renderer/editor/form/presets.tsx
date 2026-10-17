@@ -2,8 +2,6 @@ import type { FieldMeta } from "@/shared/elements/introspect";
 import { LabelledChoices } from "./field-shell";
 import type { Patch } from "./types";
 
-const CUSTOM = "Custom";
-
 export function Presets({
   meta,
   all,
@@ -14,16 +12,15 @@ export function Presets({
   onPatch: (patch: Patch) => void;
 }) {
   const presets = meta.presets ?? [];
-  const current =
-    presets.find((p) => Object.entries(p.values).every(([k, v]) => all[k] === v))?.label ?? CUSTOM;
+  const current = presets.findIndex((p) =>
+    Object.entries(p.values).every(([k, v]) => all[k] === v),
+  );
   return (
     <LabelledChoices
       label={meta.presetsLabel ?? "Presets"}
-      options={[
-        ...presets.map((p) => ({ label: p.label, value: p.values })),
-        { label: CUSTOM, value: {}, disabled: true },
-      ]}
-      current={current}
+      options={presets.map((p) => ({ label: p.label, value: p.values }))}
+      current={current < 0 ? undefined : current}
+      unmatchedLabel="Custom"
       onPick={onPatch}
     />
   );

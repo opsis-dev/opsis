@@ -12,6 +12,7 @@ import { DOCK_PANELS, DOCK_TITLES, type DockPanelName } from "@/shared/ipc";
 import { focusPanel, openPanel, showPanel, togglePanel, usePanels } from "./panels";
 import { PreviewDock } from "./preview-dock";
 import { RunPanel } from "./run-panel";
+import { DOCK_TAB_BAR_PX } from "./side-panel";
 import { TimelinePanel } from "./timeline/timeline-panel";
 import { TooltipButton } from "./tooltip-button";
 
@@ -85,8 +86,15 @@ function DockTabStrip({
 }) {
   const open = usePanels((s) => s.open.bottom);
   return (
-    <div className="flex h-9 shrink-0 items-center gap-1 border-b pr-1">
-      <TabsList variant="line" className="h-9 flex-1 justify-start px-2">
+    <div
+      className="flex shrink-0 items-center gap-1 border-b pr-1"
+      style={{ height: DOCK_TAB_BAR_PX }}
+    >
+      <TabsList
+        variant="line"
+        className="flex-1 justify-start px-2"
+        style={{ height: DOCK_TAB_BAR_PX }}
+      >
         {DOCK_PANELS.map((panel) => (
           <DockTab key={panel} panel={panel} popped={popped.includes(panel)} />
         ))}

@@ -24,19 +24,19 @@ import {
   FieldSet,
 } from "@/renderer/components/ui/field";
 import { Switch } from "@/renderer/components/ui/switch";
-import { useItemKeys } from "@/renderer/lib/use-item-keys";
-import { BoxesField } from "./form/boxes-field";
+import { newKeyedItem, useItemKeys } from "@/renderer/lib/use-item-keys";
+import { BoxesField, isBoxList } from "./form/boxes-field";
 import { ColorField } from "./form/color-field";
 import { EnumField } from "./form/enum-field";
 import { EnvelopeField, isEnvelope } from "./form/envelope-field";
 import { ChoiceGroup, Help } from "./form/field-shell";
 import { JsonField } from "./form/json-field";
 import { NumberControl } from "./form/number-field";
+import { Presets } from "./form/presets";
 import { schemaKind } from "./form/schema-kind";
 import { isColor, labelFor } from "./form/schema-meta";
 import { StringField } from "./form/string-field";
 import type { FieldProps, FormContext, Patch } from "./form/types";
-import { isBoxList } from "./form/use-box-drag";
 
 type Entry = { key: string; field: z.ZodType; meta: FieldMeta };
 
@@ -149,6 +149,16 @@ function FieldControl({
     label: labelFor(rest.name, schema),
     meta,
   };
+  return (
+    <>
+      {meta.presets ? <Presets meta={meta} all={rest.all} onPatch={rest.onPatch} /> : null}
+      <FieldBody schema={schema} props={props} />
+    </>
+  );
+}
+
+function FieldBody({ schema, props }: { schema: z.ZodType; props: AnyFieldProps }) {
+  const { meta } = props;
   if (isColor(schema)) return <ColorKindField {...props} />;
   const Widget = meta.widget ? VALUE_WIDGETS[meta.widget] : undefined;
   if (Widget) return <Widget {...props} />;
@@ -268,14 +278,14 @@ function ObjectListField({
   onChange,
   ctx,
 }: FieldProps<Patch[]> & { item: z.ZodObject }) {
-  const keys = useItemKeys(value.length);
+  const { rows, commit } = useItemKeys(value);
   return (
     <FieldSet>
       <FieldLegend variant="label">{label}</FieldLegend>
       <Help meta={meta} />
       <div className="flex flex-col gap-3">
-        {value.map((entry, i) => (
-          <div key={keys.keys[i]} className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3">
+        {rows.map(({ item: entry, key }, i) => (
+          <div key={key} className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3">
             <ZodForm
               schema={item}
               value={entry}
@@ -287,10 +297,7 @@ function ObjectListField({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                keys.remove(i);
-                onChange(value.toSpliced(i, 1));
-              }}
+              onClick={() => onChange(commit(rows.toSpliced(i, 1)))}
             >
               <Trash2 data-icon="inline-start" />
               Remove
@@ -300,10 +307,7 @@ function ObjectListField({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            keys.add();
-            onChange([...value, schemaDefaults(item)]);
-          }}
+          onClick={() => onChange(commit([...rows, newKeyedItem(schemaDefaults(item))]))}
         >
           <Plus data-icon="inline-start" />
           Add

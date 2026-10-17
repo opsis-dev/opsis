@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/renderer/components/ui/select";
 
-type SelectChoice = { value: string; label: string; disabled?: boolean; hint?: string };
+export type Choice = { value: string; label: string; disabled?: boolean; hint?: string };
 
 const NONE = "__none";
 
@@ -23,7 +23,7 @@ export function ChoiceSelect({
   "aria-label": ariaLabel,
 }: {
   id?: string;
-  groups: SelectChoice[][];
+  groups: Choice[][];
   value: string | null;
   onChange: (value: string) => void;
   noneLabel?: string;

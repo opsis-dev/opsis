@@ -2,7 +2,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { FontRole } from "@/shared/fonts";
+import { THEME_BACKGROUNDS } from "@/shared/compile/clip";
 import { firstFree } from "@/shared/lists";
+import { VARIANTS, variantCanvas } from "@/shared/nodes/output";
 import type { Workflow, WorkflowSettings } from "@/shared/schema/workflow";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Button } from "@/renderer/components/ui/button";
@@ -16,7 +18,9 @@ import {
 } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { useItemKeys } from "@/renderer/lib/use-item-keys";
+import { whenFirstOneOf } from "@/renderer/lib/one-of";
+import { attempt } from "@/renderer/lib/toast";
+import { newKeyedItem, useItemKeys } from "@/renderer/lib/use-item-keys";
 import { FontPicker } from "../fonts/font-picker";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
@@ -24,12 +28,7 @@ import { useWorkflowStore } from "../store/workflow";
 import { InlineEdit } from "./inline-edit";
 import { useCompiledContext } from "./use-compiled";
 
-const CANVAS_SIZES = [
-  { name: "16:9", width: 1920, height: 1080 },
-  { name: "1:1", width: 1080, height: 1080 },
-  { name: "4:5", width: 1080, height: 1350 },
-  { name: "9:16", width: 1080, height: 1920 },
-];
+const CANVAS_SHORT_SIDE = 1080;
 
 const FRAME_RATES = [30, 60] as const;
 
@@ -106,9 +105,10 @@ function SizeInput({
 
 function CanvasSettings({ settings }: { settings: WorkflowSettings }) {
   const setSettings = useWorkflowStore((s) => s.setSettings);
-  const preset = CANVAS_SIZES.find(
-    (c) => c.width === settings.width && c.height === settings.height,
-  );
+  const preset = VARIANTS.find((v) => {
+    const size = variantCanvas(v, CANVAS_SHORT_SIDE);
+    return size.width === settings.width && size.height === settings.height;
+  });
   return (
     <>
       <Field>
@@ -116,15 +116,14 @@ function CanvasSettings({ settings }: { settings: WorkflowSettings }) {
         <ToggleGroup
           variant="outline"
           size="sm"
-          value={[preset?.name ?? "custom"]}
-          onValueChange={(v) => {
-            const hit = CANVAS_SIZES.find((c) => c.name === v[0]);
-            if (hit) setSettings({ width: hit.width, height: hit.height });
-          }}
+          value={[preset ?? "custom"]}
+          onValueChange={whenFirstOneOf(VARIANTS, (v) =>
+            setSettings(variantCanvas(v, CANVAS_SHORT_SIDE)),
+          )}
         >
-          {CANVAS_SIZES.map((c) => (
-            <ToggleGroupItem key={c.name} value={c.name}>
-              {c.name}
+          {VARIANTS.map((v) => (
+            <ToggleGroupItem key={v} value={v}>
+              {v}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
@@ -181,7 +180,7 @@ function BackgroundField({ background, theme }: Pick<WorkflowSettings, "backgrou
       <Input
         id="wf-bg"
         value={background ?? ""}
-        placeholder={theme === "light" ? "#fafafa" : "#09090b"}
+        placeholder={THEME_BACKGROUNDS[theme]}
         onChange={(e) => setSettings({ background: e.target.value || undefined })}
       />
     </Field>
@@ -220,8 +219,7 @@ function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
 
 function VariablesEditor({ variables }: { variables: Record<string, string> }) {
   const { setVariables, renameVariable } = useWorkflowStore.getState();
-  const vars = Object.entries(variables);
-  const rowKeys = useItemKeys(vars.length);
+  const { rows, commit } = useItemKeys(Object.entries(variables));
   const [refused, setRefused] = useState(0);
   const renameAt = (from: string, raw: string) => {
     const to = raw.replace(/[{}]/g, "").trim();
@@ -237,8 +235,7 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
       (n) => `Variable ${n}`,
       (taken) => taken in variables,
     );
-    rowKeys.add();
-    setVariables({ ...variables, [name]: "" });
+    setVariables(Object.fromEntries(commit([...rows, newKeyedItem([name, ""] as const)])));
   };
   return (
     <FieldSet>
@@ -247,8 +244,8 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
         Reuse values like your site's address. Insert them into any text with Insert variable.
       </p>
       <div className="flex flex-col gap-2">
-        {vars.map(([key, value], i) => (
-          <div key={rowKeys.keys[i] ?? i} className="flex gap-2">
+        {rows.map(({ item: [key, value], key: rowKey }, i) => (
+          <div key={rowKey} className="flex gap-2">
             <InlineEdit
               key={`${key}:${refused}`}
               label="Variable name"
@@ -267,10 +264,7 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
               size="icon"
               variant="ghost"
               aria-label="Remove variable"
-              onClick={() => {
-                rowKeys.remove(i);
-                setVariables(Object.fromEntries(vars.filter((_, j) => j !== i)));
-              }}
+              onClick={() => setVariables(Object.fromEntries(commit(rows.toSpliced(i, 1))))}
             >
               <Trash2 />
             </Button>
@@ -287,13 +281,14 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
 
 function SavedResults() {
   const running = useRunStore((s) => s.running);
-  const clear = async () => {
-    const dir = useWorkflowStore.getState().projectDir;
-    if (!dir) return;
-    await window.demoflow.clearCache(dir);
-    useRunStore.getState().seed(null);
-    toast.success("Cleared. The next run records and exports everything again.");
-  };
+  const clear = () =>
+    attempt(async () => {
+      const dir = useWorkflowStore.getState().projectDir;
+      if (!dir) return;
+      await window.demoflow.clearCache(dir);
+      useRunStore.getState().seed(null);
+      toast.success("Cleared. The next run records and exports everything again.");
+    }, "Couldn't clear the saved results");
   return (
     <FieldSet>
       <FieldLegend variant="label">Saved results</FieldLegend>

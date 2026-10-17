@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import type { ApiEditorReply, ApiEditorRequest } from "@/shared/api/types";
+import { NO_PROJECT } from "@/shared/errors";
 import { useWorkflowStore } from "../store/workflow";
 
 type Handler = (request: ApiEditorRequest) => Promise<ApiEditorReply>;
@@ -54,7 +55,7 @@ export function useApiHost(): void {
             return { ok: false, status: 504, error: "The project didn't open in time." };
           return handler({ op: "read" });
         }
-        if (!editorHandler) return { ok: false, status: 409, error: "No project is open." };
+        if (!editorHandler) return { ok: false, status: 409, error: NO_PROJECT };
         return editorHandler(request);
       }),
     [navigate],

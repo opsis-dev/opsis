@@ -2,6 +2,7 @@ import type { z } from "zod";
 import { isClip } from "../compile/clip";
 import type { ClipValue, CompileValue, NodeResult } from "../schema/values";
 import type { CardContext, CardRow } from "./card";
+import type { NodeIconName } from "./icon-name";
 import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { interpolate } from "../vars";
 
@@ -64,7 +65,7 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
   title: string;
   category: NodeCategory;
   description?: string;
-  icon?: string;
+  icon?: NodeIconName;
   phase: NodePhase;
   inputs: Record<string, PortSpec>;
   outputs: Record<string, PortSpec>;

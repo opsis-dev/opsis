@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { tryParseJson } from "@/shared/guards";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { Textarea } from "@/renderer/components/ui/textarea";
 import type { FieldProps } from "./types";
-import { tryParseJson } from "@/shared/guards";
 
 const INVALID = "This isn't valid. Check brackets and quotes.";
 

@@ -1,10 +1,8 @@
 import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
-import { formatNumberList, parseNumberList, parseNumberText } from "@/shared/format";
-import { trimNumber, useDecimalInput } from "./decimal";
+import { formatNumberList, parseNumberList } from "@/shared/format";
+import { MS_SCALE, parseShown, shownText, useDecimalInput } from "./decimal";
 import type { FieldProps } from "./types";
-
-const MS_PER_S = 1000;
 
 const withOffset = (list: number[], index: number, ms: number): string =>
   formatNumberList(list.map((v, i) => (i === index ? ms : v)));
@@ -39,10 +37,9 @@ function OffsetInput({
   ms: number;
   onCommit: (ms: number) => void;
 }) {
-  const input = useDecimalInput(trimNumber(ms / MS_PER_S), "blur", (text) => {
-    const n = parseNumberText(text);
-    onCommit(n === null ? 0 : Math.max(0, Math.round(n * MS_PER_S)));
-  });
+  const input = useDecimalInput(shownText(ms, MS_SCALE), "blur", (text) =>
+    onCommit(Math.max(0, parseShown(text, MS_SCALE) ?? 0)),
+  );
   return (
     <label className="flex items-center gap-2 text-xs">
       <span className="text-muted-foreground w-14 shrink-0">Layer {layer}</span>

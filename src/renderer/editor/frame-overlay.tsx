@@ -2,8 +2,14 @@ import type { ReactNode } from "react";
 import type { Bounds } from "@/shared/schema/actions";
 
 const BOX_RADIUS = 6;
-const BOX_STROKE = 1 / 480;
-const POINT_STROKE = 1 / 960;
+
+export const OVERLAY_WIDTHS = {
+  boxStroke: 1 / 480,
+  pointStroke: 1 / 960,
+  rippleStroke: 1 / 640,
+  livePoint: 1 / 220,
+  tracePoint: 1 / 160,
+} as const;
 
 export function FrameOverlay({
   width,
@@ -33,7 +39,7 @@ export function FrameOverlay({
           height={box.height}
           rx={BOX_RADIUS}
           className="fill-primary/10 stroke-primary"
-          strokeWidth={width * BOX_STROKE}
+          strokeWidth={width * OVERLAY_WIDTHS.boxStroke}
         />
       ) : null}
       {children}
@@ -43,7 +49,7 @@ export function FrameOverlay({
           cy={point.y}
           r={width * pointSize}
           className="fill-primary stroke-background"
-          strokeWidth={width * POINT_STROKE}
+          strokeWidth={width * OVERLAY_WIDTHS.pointStroke}
         />
       ) : null}
     </svg>

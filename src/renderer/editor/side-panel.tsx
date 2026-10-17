@@ -3,9 +3,9 @@ import { ResizablePanel } from "@/renderer/components/ui/resizable";
 import { panelRef, usePanels, type PanelSide } from "./panels";
 
 const CATEGORY_RAIL_PX = 44;
-const DOCK_TAB_BAR_PX = 36;
+export const DOCK_TAB_BAR_PX = 36;
 const BORDER_PX = 1;
-const OPEN_SLACK_PX = 12;
+const OPEN_ABOVE_COLLAPSED_PX = 12;
 
 const COLLAPSED_PX: Record<PanelSide, number> = {
   left: CATEGORY_RAIL_PX,
@@ -30,7 +30,7 @@ export function SidePanel({
       collapsible
       collapsedSize={`${collapsedPx}px`}
       onResize={(size) =>
-        usePanels.getState().setOpen(side, size.inPixels > collapsedPx + OPEN_SLACK_PX)
+        usePanels.getState().setOpen(side, size.inPixels > collapsedPx + OPEN_ABOVE_COLLAPSED_PX)
       }
       {...props}
     />

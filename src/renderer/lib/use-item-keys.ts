@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { randomId } from "@/shared/ids";
 
-export function useItemKeys(count: number) {
-  const [keys, setKeys] = useState(() => Array.from({ length: count }, () => randomId()));
-  if (keys.length !== count)
-    setKeys(Array.from({ length: count }, (_, i) => keys[i] ?? randomId()));
+export type KeyedItem<T> = { item: T; key: string };
+
+export const newKeyedItem = <T>(item: T): KeyedItem<T> => ({ item, key: randomId() });
+
+export function useItemKeys<T>(items: readonly T[]) {
+  const [keys, setKeys] = useState(() => items.map(() => randomId()));
+  const rows = items.map((item, i): KeyedItem<T> => ({ item, key: keys[i] ?? randomId() }));
+  if (keys.length !== items.length) setKeys(rows.map((r) => r.key));
   return {
-    keys,
-    add: () => setKeys([...keys, randomId()]),
-    remove: (index: number) => setKeys(keys.toSpliced(index, 1)),
-    reorder: (order: readonly number[]) => setKeys(order.map((i) => keys[i] ?? randomId())),
+    rows,
+    commit: (next: readonly KeyedItem<T>[]): T[] => {
+      setKeys(next.map((r) => r.key));
+      return next.map((r) => r.item);
+    },
   };
 }

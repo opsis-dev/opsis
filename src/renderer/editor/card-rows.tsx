@@ -18,6 +18,12 @@ import { openWorkflow } from "./use-open-workflow";
 
 const MAX_ROWS = 4;
 
+const TONE_CLASS: Record<NonNullable<CardRow["tone"]> | "plain", string> = {
+  warn: "text-warning",
+  muted: "text-muted-foreground",
+  plain: "text-foreground/85",
+};
+
 function useCardInputs(node: WorkflowNode) {
   const variables = useWorkflowStore((s) => openWorkflow(s).variables);
   const name = useWorkflowStore((s) => openWorkflow(s).name);
@@ -89,14 +95,7 @@ export function CardRows({ rows }: { rows: CardRow[] }) {
         <li
           key={i}
           title={r.title ?? r.text}
-          className={cn(
-            "flex min-w-0 items-center gap-1.5 text-xs",
-            r.tone === "warn"
-              ? "text-warning"
-              : r.tone === "muted"
-                ? "text-muted-foreground"
-                : "text-foreground/85",
-          )}
+          className={cn("flex min-w-0 items-center gap-1.5 text-xs", TONE_CLASS[r.tone ?? "plain"])}
         >
           <NodeIcon
             name={r.icon}

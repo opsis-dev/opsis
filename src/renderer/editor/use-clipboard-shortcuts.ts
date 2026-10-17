@@ -10,14 +10,15 @@ import {
 import { isEditingElement } from "@/renderer/lib/dom";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { parseJsonWith } from "@/shared/guards";
+import { tryParseJson } from "@/shared/guards";
 import { reportError } from "@/renderer/lib/toast";
 
 const CLIPBOARD_TAG = "demoflow/v1";
 const PASTE_OFFSET = { x: 60, y: 60 };
 
-const clipboardSchema = z.object({
-  tag: z.literal(CLIPBOARD_TAG),
+const clipboardTagSchema = z.object({ tag: z.literal(CLIPBOARD_TAG) });
+
+const clipboardSchema = clipboardTagSchema.extend({
   nodes: z.array(workflowNodeSchema),
   edges: z.array(workflowEdgeSchema),
 });
@@ -40,13 +41,10 @@ function pasteSubgraph({ nodes, edges }: Subgraph): void {
 }
 
 function readClipboard(text: string): Subgraph | "foreign" | "unreadable" {
-  const parsed = parseJsonWith(clipboardSchema, text);
-  if (!parsed) return "foreign";
-  if (parsed.success) return parsed.data;
-  const tagged = parsed.error.issues.every(
-    (issue) => issue.path.length > 0 && issue.path[0] !== "tag",
-  );
-  return tagged ? "unreadable" : "foreign";
+  const json = tryParseJson(text);
+  if (!json.ok || !clipboardTagSchema.safeParse(json.value).success) return "foreign";
+  const parsed = clipboardSchema.safeParse(json.value);
+  return parsed.success ? parsed.data : "unreadable";
 }
 
 async function copySelection(): Promise<void> {

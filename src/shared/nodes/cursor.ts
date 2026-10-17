@@ -3,6 +3,7 @@ import { patchRecordings } from "../compile/clip";
 import type { AnnotationKind, AnnotationSpec } from "../compile/recording";
 import { mutedIf, quote, row, toggleRow } from "./card";
 import { clipModifier, defineNode, withClip, type NodeCategory } from "./define";
+import type { NodeIconName } from "./icon-name";
 import { bool, choice, int, more, ms, text } from "./params";
 
 const base = { ...clipModifier, category: "Cursor", phase: "compile" } as const;
@@ -71,7 +72,7 @@ type Annotation = {
   title: string;
   kind: AnnotationKind;
   category: NodeCategory;
-  icon: string;
+  icon: NodeIconName;
   description: string;
   defaults: { text?: string; color: string };
 };

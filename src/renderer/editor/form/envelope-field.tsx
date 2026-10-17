@@ -13,11 +13,11 @@ import {
 import { Button } from "@/renderer/components/ui/button";
 import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/renderer/components/ui/input-group";
-import { useItemKeys } from "@/renderer/lib/use-item-keys";
+import { newKeyedItem, useItemKeys, type KeyedItem } from "@/renderer/lib/use-item-keys";
 import { parseNumberText } from "@/shared/format";
 import { round2 } from "@/shared/math";
 import { ChoiceSelect } from "./choice-select";
-import { trimNumber, useDecimalInput } from "./decimal";
+import { framesScale, parseShown, shownText, trimNumber, useDecimalInput } from "./decimal";
 import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 
@@ -38,16 +38,20 @@ export const isEnvelope = (value: unknown): value is Envelope =>
 const ENVELOPE_KEYS: readonly string[] = [...VISUAL_ENVELOPES, ...AUDIO_ENVELOPES];
 const isEnvelopeKey = (key: string): key is EnvelopeKey => ENVELOPE_KEYS.includes(key);
 
-const percent = { unit: "%", toShown: (v: number) => v * 100, fromShown: (v: number) => v / 100 };
+const fromFraction = (v: number) => v * 100;
+const toFraction = (v: number) => v / 100;
+const FRACTION_AS_PERCENT = { unit: "%", toShown: fromFraction, fromShown: toFraction };
 
 const ENVELOPE_FORMAT: Record<EnvelopeKey, Format> = {
-  opacity: { ...percent, initial: 1 },
-  x: { ...percent, initial: 0 },
-  y: { ...percent, initial: 0 },
+  opacity: { ...FRACTION_AS_PERCENT, initial: 1 },
+  x: { ...FRACTION_AS_PERCENT, initial: 0 },
+  y: { ...FRACTION_AS_PERCENT, initial: 0 },
   scale: { unit: "×", toShown: (v) => v, fromShown: (v) => v, initial: 1 },
-  volume: { ...percent, initial: 1 },
-  pan: { ...percent, unit: "", initial: 0 },
+  volume: { ...FRACTION_AS_PERCENT, initial: 1 },
+  pan: { unit: "", toShown: fromFraction, fromShown: toFraction, initial: 0 },
 };
+
+const NEW_KEYFRAME_GAP_SECONDS = 1;
 
 const EASE_LABELS: Record<Ease, string> = {
   linear: "Steady",
@@ -100,32 +104,21 @@ function EnvelopeTrack({
   fps: number;
   onChange: (keys: Keyframe[]) => void;
 }) {
-  const rowKeys = useItemKeys(keys.length);
-  const indices = keys.map((_, i) => i);
-  const commit = (next: Keyframe[], origin: number[]) => {
-    const order = next.map((_, j) => j).sort((a, b) => next[a].frame - next[b].frame);
-    rowKeys.reorder(order.map((j) => origin[j]));
-    onChange(order.map((j) => next[j]));
-  };
+  const { rows, commit } = useItemKeys(keys);
+  const sortAndCommit = (next: KeyedItem<Keyframe>[]) =>
+    onChange(commit(next.toSorted((a, b) => a.item.frame - b.item.frame)));
   const add = () => {
     const last = keys.at(-1);
     const added: Keyframe = {
-      frame: last ? last.frame + fps : 0,
+      frame: last ? last.frame + NEW_KEYFRAME_GAP_SECONDS * fps : 0,
       value: last ? last.value : format.initial,
       ease: "linear",
     };
-    commit([...keys, added], [...indices, -1]);
+    sortAndCommit([...rows, newKeyedItem(added)]);
   };
   const updateKey = (i: number, patch: Partial<Keyframe>) =>
-    commit(
-      keys.map((k, j) => (j === i ? { ...k, ...patch } : k)),
-      indices,
-    );
-  const removeKey = (i: number) =>
-    commit(
-      keys.filter((_, j) => j !== i),
-      indices.filter((j) => j !== i),
-    );
+    sortAndCommit(rows.map((r, j) => (j === i ? { ...r, item: { ...r.item, ...patch } } : r)));
+  const removeKey = (i: number) => sortAndCommit(rows.toSpliced(i, 1));
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
@@ -135,9 +128,9 @@ function EnvelopeTrack({
           Add
         </Button>
       </div>
-      {keys.map((k, i) => (
+      {rows.map(({ item: k, key }, i) => (
         <KeyframeRow
-          key={rowKeys.keys[i] ?? i}
+          key={key}
           keyframe={k}
           format={format}
           fps={fps}
@@ -162,9 +155,10 @@ function KeyframeRow({
   onChange: (patch: Partial<Keyframe>) => void;
   onRemove: () => void;
 }) {
-  const at = useDecimalInput(trimNumber(keyframe.frame / fps), "blur", (text) => {
-    const n = parseNumberText(text);
-    if (n !== null) onChange({ frame: Math.max(0, Math.round(n * fps)) });
+  const frames = framesScale(fps);
+  const at = useDecimalInput(shownText(keyframe.frame, frames), "blur", (text) => {
+    const frame = parseShown(text, frames);
+    if (frame !== null) onChange({ frame: Math.max(0, frame) });
   });
   const amount = useDecimalInput(
     trimNumber(round2(format.toShown(keyframe.value))),

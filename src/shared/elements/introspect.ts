@@ -47,6 +47,7 @@ export type FieldMeta = {
   presets?: FieldPreset[];
   presetsLabel?: string;
   pauses?: boolean;
+  timeKey?: string;
   showIf?: Record<string, string[]>;
 };
 
