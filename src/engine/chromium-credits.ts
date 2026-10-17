@@ -5,8 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { chromium } from "playwright-core";
 import { z } from "zod";
-import { downloadTo } from "./download.ts";
-import { remotionPlatform, type RemotionPlatform } from "./paths.ts";
+import { downloadTo } from "./download";
+import { remotionPlatform, type RemotionPlatform } from "./paths";
 
 const CREDITS_CACHE = path.join(os.homedir(), ".cache", "demoflow-chromium-credits");
 

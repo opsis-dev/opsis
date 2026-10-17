@@ -29,7 +29,7 @@ rg -n '^\s*//|/\*|\*/' --glob '*.{ts,tsx,mts,css}' src scripts *.config.ts -g '!
 - every `remotion` / `@remotion/*` package is pinned to the same exact version (`bun add --exact`); mismatches break silently;
 - `typescript` is pinned to `6.0.3` until TypeScript 7.1. Remotion's esbuild loader reads `tsconfig.json` through `typescript.sys`, which TS 7.0 does not expose, and the Remotion bundle then compiles with the classic JSX runtime. Do not patch around this; upgrade when 7.1 ships.
 
-**Tooling:** bun is the package manager, Node/Electron the runtime; nothing ever runs under Bun's runtime (`--bun`). Every tool config is a `*.config.ts`. Dev scripts run on Node (`node scripts/x.ts`; `tsx` only when a script imports extensionless TypeScript).
+**Tooling:** bun is the package manager, Node/Electron the runtime; nothing ever runs under Bun's runtime (`--bun`). Every tool config is a `*.config.ts`. Dev scripts run on Node through `tsx` (`tsx scripts/x.ts`), so they import TypeScript without file extensions like the rest of the code.
 
 **Verify with** `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`. The `:fix` variants fix and report the rest; do not run the non-fix variants first.
 

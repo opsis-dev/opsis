@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright-core";
-import { engineStatus } from "../src/engine/paths.ts";
+import { engineStatus } from "../src/engine/paths";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const SVG = path.join(ROOT, "brand", "logo.svg");

@@ -8,9 +8,9 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { fontShimFile } from "../src/shared/fonts/google-shim.ts";
-import { FONT_CATEGORIES } from "../src/shared/fonts/types.ts";
-import { walkFiles } from "./lib/walk.ts";
+import { fontShimFile } from "../src/shared/fonts/google-shim";
+import { FONT_CATEGORIES } from "../src/shared/fonts/types";
+import { walkFiles } from "./lib/walk";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const OUT = path.join(ROOT, "public", "fonts", "bundled");

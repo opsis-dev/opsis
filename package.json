@@ -21,7 +21,7 @@
   "type": "module",
   "main": ".vite/build/main.cjs",
   "scripts": {
-    "start": "node scripts/start.ts",
+    "start": "tsx scripts/start.ts",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "typecheck": "tsc --noEmit",
@@ -33,10 +33,10 @@
     "test:watch": "vitest",
     "routes": "tsr generate",
     "studio": "remotion studio src/video/index.ts",
-    "registry:ingest": "node scripts/registry-ingest.ts",
-    "fonts:bundle": "node scripts/fonts-bundle.ts",
-    "brand:icons": "node scripts/brand-icons.ts",
-    "engine:licences": "node scripts/engine-licences.ts",
+    "registry:ingest": "tsx scripts/registry-ingest.ts",
+    "fonts:bundle": "tsx scripts/fonts-bundle.ts",
+    "brand:icons": "tsx scripts/brand-icons.ts",
+    "engine:licences": "tsx scripts/engine-licences.ts",
     "examples": "tsx scripts/write-examples.ts"
   },
   "dependencies": {

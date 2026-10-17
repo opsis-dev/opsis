@@ -19,11 +19,11 @@ import {
   unknownOverrideNames,
   type ControlSpec,
   type CuratedElement,
-} from "./registry-ingest.list.ts";
-import type { ElementKind } from "../src/shared/elements/types.ts";
-import { errorMessage } from "../src/shared/errors.ts";
-import { humanize } from "../src/shared/format.ts";
-import { walkFiles } from "./lib/walk.ts";
+} from "./registry-ingest.list";
+import type { ElementKind } from "../src/shared/elements/types";
+import { errorMessage } from "../src/shared/errors";
+import { humanize } from "../src/shared/format";
+import { walkFiles } from "./lib/walk";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const SRC = path.join(ROOT, "src");
