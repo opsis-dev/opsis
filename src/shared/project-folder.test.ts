@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { joinFolder, projectFolderName } from "./project-folder";
+import { expandHome, joinFolder, projectFolderName } from "./project-folder";
 
 describe("projectFolderName", () => {
   it("turns a project name into a lowercase folder name", () => {
@@ -22,5 +22,18 @@ describe("joinFolder", () => {
       "C:\\Users\\me\\DemoflowProjects\\demo",
     );
     expect(joinFolder("/", "demo", "darwin")).toBe("/demo");
+  });
+});
+
+describe("expandHome", () => {
+  it("replaces a leading ~ with the home folder", () => {
+    expect(expandHome("~", "/home/me")).toBe("/home/me");
+    expect(expandHome("~/Videos", "/home/me")).toBe("/home/me/Videos");
+    expect(expandHome("~\\Videos", "C:\\Users\\me")).toBe("C:\\Users\\me\\Videos");
+  });
+
+  it("leaves other paths alone", () => {
+    expect(expandHome("/srv/~demo", "/home/me")).toBe("/srv/~demo");
+    expect(expandHome("~other/x", "/home/me")).toBe("~other/x");
   });
 });

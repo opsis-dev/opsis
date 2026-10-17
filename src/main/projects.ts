@@ -1,7 +1,8 @@
 import { existsSync, watch, type FSWatcher } from "node:fs";
-import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { app, dialog, type BrowserWindow } from "electron";
+import { app, type BrowserWindow } from "electron";
+import { z } from "zod";
 import type {
   OpenProject,
   ProjectFileChange,
@@ -9,55 +10,72 @@ import type {
   RecentProject,
   SaveResult,
 } from "../shared/ipc";
-import { projectFolderName } from "../shared/project-folder";
+import { expandHome, projectFolderName } from "../shared/project-folder";
 import { PROJECTS_FOLDER_NAME } from "../shared/settings";
-import { patchSettings, readSettings } from "./settings";
 import { WORKFLOW_FILE, workflowSchema, type Workflow } from "../shared/schema/workflow";
 import { getTemplate } from "../shared/templates";
-import { sha256Hex } from "../engine/hash";
-import { atomicWrite, readJson } from "../engine/json";
-import { toPosixRel, readLastRun } from "../engine/project-paths";
 import { debounce } from "../shared/timing";
+import { errorMessage } from "../shared/errors";
+import { sha256Hex } from "../engine/hash";
+import { atomicWrite, readJsonKeepingBroken } from "../engine/json";
+import { readLastRun } from "../engine/project-paths";
+import { openDialog } from "./dialogs";
+import { ensureSecretsDir } from "./secrets";
+import { patchSettings, readSettings } from "./settings";
+
+const MAX_RECENT = 20;
+
+const recentSchema = z.object({
+  dir: z.string(),
+  name: z.string(),
+  openedAt: z.number(),
+}) satisfies z.ZodType<RecentProject>;
 
 const recentFile = () => path.join(app.getPath("userData"), "recent-projects.json");
 
-export async function listRecent(): Promise<RecentProject[]> {
-  const list = await readJson<RecentProject[]>(recentFile());
-  return Array.isArray(list) ? list.filter((p) => existsSync(path.join(p.dir, WORKFLOW_FILE))) : [];
+const existingDir = (dir?: string) => (dir && existsSync(dir) ? dir : undefined);
+
+async function readRecent(): Promise<RecentProject[]> {
+  const stored = await readJsonKeepingBroken(recentFile(), z.array(z.unknown()));
+  return (stored ?? []).flatMap((entry) => {
+    const parsed = recentSchema.safeParse(entry);
+    return parsed.success && existsSync(path.join(parsed.data.dir, WORKFLOW_FILE))
+      ? [parsed.data]
+      : [];
+  });
 }
+
+export const listRecent = (): Promise<RecentProject[]> => readRecent().catch(() => []);
 
 async function touchRecent(dir: string, name: string): Promise<void> {
-  const list = (await listRecent()).filter((p) => p.dir !== dir);
-  list.unshift({ dir, name, openedAt: Date.now() });
+  let list: RecentProject[];
+  try {
+    list = await readRecent();
+  } catch (error) {
+    process.stderr.write(`[projects] recent projects: ${errorMessage(error)}\n`);
+    return;
+  }
+  const next = [{ dir, name, openedAt: Date.now() }, ...list.filter((p) => p.dir !== dir)];
   await mkdir(path.dirname(recentFile()), { recursive: true });
-  await writeFile(recentFile(), JSON.stringify(list.slice(0, 20), null, 2));
-}
-
-export async function projectsDir(): Promise<string> {
-  const { projects } = await readSettings();
-  return projects.defaultDir || path.join(app.getPath("home"), PROJECTS_FOLDER_NAME);
+  await writeFile(recentFile(), JSON.stringify(next.slice(0, MAX_RECENT), null, 2));
 }
 
 export async function projectLocations(): Promise<ProjectLocations> {
-  const defaultDir = await projectsDir();
   const { projects } = await readSettings();
-  const last = projects.lastDir && existsSync(projects.lastDir) ? projects.lastDir : "";
-  return { defaultDir, suggestedDir: last || defaultDir };
+  const defaultDir = projects.defaultDir || path.join(app.getPath("home"), PROJECTS_FOLDER_NAME);
+  return { defaultDir, suggestedDir: existingDir(projects.lastDir) ?? defaultDir };
 }
 
 export async function chooseFolder(
   win: BrowserWindow | null,
   opts: { title: string; defaultPath?: string },
 ): Promise<string | null> {
-  const options = {
+  const [folder] = await openDialog(win, {
     title: opts.title,
-    defaultPath: opts.defaultPath && existsSync(opts.defaultPath) ? opts.defaultPath : undefined,
-    properties: ["openDirectory", "createDirectory"] as Array<"openDirectory" | "createDirectory">,
-  };
-  const res = win
-    ? await dialog.showOpenDialog(win, options)
-    : await dialog.showOpenDialog(options);
-  return res.canceled || !res.filePaths[0] ? null : res.filePaths[0];
+    defaultPath: existingDir(opts.defaultPath),
+    properties: ["openDirectory", "createDirectory"],
+  });
+  return folder || null;
 }
 
 const versionOf = (text: string) => sha256Hex(text, 16);
@@ -73,23 +91,28 @@ async function readProjectFile(dir: string): Promise<{ text: string; version: st
   }
 }
 
+function parseWorkflowText(text: string): Workflow | null {
+  try {
+    return workflowSchema.parse(JSON.parse(text));
+  } catch {
+    return null;
+  }
+}
+
 export async function openProjectDir(
   win: BrowserWindow | null,
   dir?: string,
 ): Promise<OpenProject | null> {
-  let target = dir;
-  if (!target) {
-    const options = {
-      title: "Open Demoflow project",
-      defaultPath: existingDir(await projectsDir()),
-      properties: ["openDirectory"] as Array<"openDirectory">,
-    };
-    const res = win
-      ? await dialog.showOpenDialog(win, options)
-      : await dialog.showOpenDialog(options);
-    if (res.canceled || !res.filePaths[0]) return null;
-    target = res.filePaths[0];
-  }
+  const target =
+    dir ||
+    (
+      await openDialog(win, {
+        title: "Open Demoflow project",
+        defaultPath: existingDir((await projectLocations()).defaultDir),
+        properties: ["openDirectory"],
+      })
+    )[0];
+  if (!target) return null;
   const file = await readProjectFile(target);
   if (!file) throw new Error(`There's no Demoflow project in ${target}.`);
   const workflow = workflowSchema.parse(JSON.parse(file.text));
@@ -103,32 +126,28 @@ export async function openProjectDir(
   };
 }
 
-const existingDir = (dir: string) => (existsSync(dir) ? dir : undefined);
-
 export async function createProjectDir(
   win: BrowserWindow | null,
   opts: { name: string; template: string; dir?: string },
 ): Promise<OpenProject | null> {
-  const parent =
+  const chosen =
     opts.dir ??
     (await chooseFolder(win, {
       title: "Choose where to create the project",
       defaultPath: (await projectLocations()).suggestedDir,
     }));
-  if (!parent) return null;
-  const home = app.getPath("home");
-  const expanded = parent === "~" ? home : parent.replace(/^~(?=[\\/])/, home);
-  if (!path.isAbsolute(expanded)) throw new Error("Choose a full folder path for the project.");
-  const dir = path.join(expanded, projectFolderName(opts.name));
+  if (!chosen) return null;
+  const parent = expandHome(chosen, app.getPath("home"));
+  if (!path.isAbsolute(parent)) throw new Error("Choose a full folder path for the project.");
+  const dir = path.join(parent, projectFolderName(opts.name));
   if (existsSync(path.join(dir, WORKFLOW_FILE)))
     throw new Error(`${dir} already contains a project.`);
   await mkdir(path.join(dir, "assets"), { recursive: true });
-  await mkdir(path.join(dir, "secrets"), { recursive: true });
-  await writeFile(path.join(dir, "secrets", ".gitignore"), "*\n!.gitignore\n");
+  await ensureSecretsDir(dir);
   await writeFile(path.join(dir, ".gitignore"), ".demoflow/\nsecrets/*\n!secrets/.gitignore\n");
   const workflow = getTemplate(opts.template).build(opts.name.trim() || "Demo");
   const saved = await saveWorkflowFile(dir, workflow);
-  await patchSettings({ projects: { lastDir: expanded } });
+  await patchSettings({ projects: { lastDir: parent } });
   return { dir, workflow, lastRun: null, version: saved.ok ? saved.version : null };
 }
 
@@ -140,7 +159,8 @@ export async function saveWorkflowFile(
   const valid = workflowSchema.parse(workflow);
   if (base !== undefined) {
     const current = await readProjectFile(dir);
-    if (current && current.version !== base) return conflict(current);
+    if (current && current.version !== base)
+      return { ok: false, version: current.version, workflow: parseWorkflowText(current.text) };
   }
   const file = path.join(dir, WORKFLOW_FILE);
   const text = `${JSON.stringify(valid, null, 2)}\n`;
@@ -149,18 +169,6 @@ export async function saveWorkflowFile(
   await atomicWrite(file, text);
   await touchRecent(dir, valid.name);
   return { ok: true, version };
-}
-
-function conflict(current: { text: string; version: string }): SaveResult {
-  try {
-    return {
-      ok: false,
-      version: current.version,
-      workflow: workflowSchema.parse(JSON.parse(current.text)),
-    };
-  } catch {
-    return { ok: false, version: current.version, workflow: null };
-  }
 }
 
 let watcher: FSWatcher | null = null;
@@ -180,13 +188,8 @@ export function watchProject(
     const current = await readProjectFile(dir);
     if (!current || watchedDir !== dir) return;
     if (current.version === written.get(dir) || current.version === announced) return;
-    try {
-      const workflow = workflowSchema.parse(JSON.parse(current.text));
-      announced = current.version;
-      notify({ dir, workflow, version: current.version });
-    } catch {
-      return;
-    }
+    announced = current.version;
+    notify({ dir, workflow: parseWorkflowText(current.text), version: current.version });
   };
   const checkSoon = debounce(() => void check(), 150);
   try {
@@ -196,70 +199,6 @@ export function watchProject(
   } catch {
     watcher = null;
   }
-}
-
-export async function importAssets(
-  win: BrowserWindow | null,
-  dir: string,
-  paths?: string[],
-): Promise<string[]> {
-  let files = paths;
-  if (!files?.length) {
-    const options = {
-      title: "Import media",
-      properties: ["openFile", "multiSelections"] as Array<"openFile" | "multiSelections">,
-      filters: [
-        {
-          name: "Media",
-          extensions: [
-            "mp4",
-            "mov",
-            "webm",
-            "mkv",
-            "png",
-            "jpg",
-            "jpeg",
-            "webp",
-            "gif",
-            "svg",
-            "mp3",
-            "wav",
-            "m4a",
-            "aac",
-            "ogg",
-            "flac",
-            "lottie",
-            "json",
-          ],
-        },
-        { name: "All files", extensions: ["*"] },
-      ],
-    };
-    const res = win
-      ? await dialog.showOpenDialog(win, options)
-      : await dialog.showOpenDialog(options);
-    if (res.canceled) return [];
-    files = res.filePaths;
-  }
-  const assets = path.join(dir, "assets");
-  await mkdir(assets, { recursive: true });
-  const out: string[] = [];
-  for (const file of files) {
-    const relInProject = path.relative(dir, file);
-    if (!relInProject.startsWith("..") && !path.isAbsolute(relInProject)) {
-      out.push(toPosixRel(dir, file));
-      continue;
-    }
-    let name = path.basename(file);
-    let n = 1;
-    while (existsSync(path.join(assets, name))) {
-      const ext = path.extname(file);
-      name = `${path.basename(file, ext)}-${n++}${ext}`;
-    }
-    await copyFile(file, path.join(assets, name));
-    out.push(`assets/${name}`);
-  }
-  return out;
 }
 
 export async function clearCache(dir: string): Promise<void> {

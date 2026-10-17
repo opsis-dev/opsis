@@ -3,10 +3,16 @@ import { IPC, type CloseDecision, type CloseRequest } from "../shared/ipc";
 import { readSettings, writeSettings } from "./settings";
 import { cancelRun, isRunning } from "./workers";
 
+const SHOWN_WITHIN_MS = 2000;
+const FLUSH_WITHIN_MS = 3000;
+
+type CloseQuestion = { shown: () => void; decide: (decision: CloseDecision) => void };
+
 const tasks = new Map<string, number>();
 let unsaved = false;
 let allowClose = false;
 let quitting = false;
+let question: CloseQuestion | null = null;
 
 export async function track<T>(label: string, work: Promise<T>): Promise<T> {
   tasks.set(label, (tasks.get(label) ?? 0) + 1);
@@ -17,10 +23,6 @@ export async function track<T>(label: string, work: Promise<T>): Promise<T> {
     if (left > 0) tasks.set(label, left);
     else tasks.delete(label);
   }
-}
-
-export function setUnsaved(value: boolean): void {
-  unsaved = value;
 }
 
 function ongoing(): string[] {
@@ -39,32 +41,29 @@ function flushSave(win: BrowserWindow): Promise<void> {
       ipcMain.removeListener(IPC.saveFlushed, done);
       resolve();
     };
-    const timer = setTimeout(done, 3000);
+    const timer = setTimeout(done, FLUSH_WITHIN_MS);
     ipcMain.once(IPC.saveFlushed, done);
     win.webContents.send(IPC.flushSave);
   });
 }
 
-const SHOWN_WITHIN_MS = 2000;
-
-let decide: ((decision: CloseDecision) => void) | null = null;
-let shown: (() => void) | null = null;
-
 function askRenderer(win: BrowserWindow, request: CloseRequest): Promise<CloseDecision> {
   if (win.isDestroyed() || win.webContents.isCrashed())
     return Promise.resolve({ close: true, dontAsk: false });
   return new Promise((resolve) => {
-    const unanswered = setTimeout(() => decide?.({ close: true, dontAsk: false }), SHOWN_WITHIN_MS);
-    shown = () => {
-      shown = null;
-      clearTimeout(unanswered);
+    const asked: CloseQuestion = {
+      shown: () => clearTimeout(unanswered),
+      decide: (decision) => {
+        clearTimeout(unanswered);
+        if (question === asked) question = null;
+        resolve(decision);
+      },
     };
-    decide = (decision) => {
-      decide = null;
-      shown = null;
-      clearTimeout(unanswered);
-      resolve(decision);
-    };
+    const unanswered = setTimeout(
+      () => asked.decide({ close: true, dontAsk: false }),
+      SHOWN_WITHIN_MS,
+    );
+    question = asked;
     win.webContents.send(IPC.confirmClose, request);
   });
 }
@@ -122,15 +121,14 @@ export function interceptQuit(
   win.close();
 }
 
-export function registerExitIpc(isTrusted: (id: number) => boolean): void {
+export function registerExitIpc(isEditorSender: (id: number) => boolean): void {
   ipcMain.on(IPC.reportUnsaved, (event, value: boolean) => {
-    if (isTrusted(event.sender.id)) setUnsaved(!!value);
+    if (isEditorSender(event.sender.id)) unsaved = value;
   });
   ipcMain.on(IPC.closeShown, (event) => {
-    if (isTrusted(event.sender.id)) shown?.();
+    if (isEditorSender(event.sender.id)) question?.shown();
   });
   ipcMain.on(IPC.closeDecision, (event, decision: CloseDecision) => {
-    if (isTrusted(event.sender.id))
-      decide?.({ close: !!decision?.close, dontAsk: !!decision?.dontAsk });
+    if (isEditorSender(event.sender.id)) question?.decide(decision);
   });
 }

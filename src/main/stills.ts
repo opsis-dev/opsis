@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { BrowserWindow } from "electron";
+import { z } from "zod";
 import { sha256Hex } from "../engine/hash";
 import { readJson } from "../engine/json";
 import { engineStatus } from "../engine/paths";
@@ -11,6 +12,9 @@ import { createLazyWorker } from "./lazy-worker";
 import { engineDir, isRunning } from "./workers";
 
 const STILL_WIDTH = 480;
+const RUN_POLL_MS = 2000;
+
+const indexSchema = z.record(z.string(), z.string());
 
 const stillsDir = (projectDir: string) => path.join(projectDir, ".demoflow", "cache", "stills");
 const indexPath = (projectDir: string) => path.join(stillsDir(projectDir), "index.json");
@@ -28,6 +32,7 @@ const worker = createLazyWorker<string | undefined>({
 
 const queue: Job[] = [];
 let busy = false;
+let waitingForRun: NodeJS.Timeout | null = null;
 let getWindow: () => BrowserWindow | null = () => null;
 
 export function initStills(window: () => BrowserWindow | null): void {
@@ -35,7 +40,7 @@ export function initStills(window: () => BrowserWindow | null): void {
 }
 
 export async function listStills(projectDir: string): Promise<Record<string, string>> {
-  const index = (await readJson<Record<string, string>>(indexPath(projectDir))) ?? {};
+  const index = indexSchema.safeParse(await readJson(indexPath(projectDir))).data ?? {};
   return Object.fromEntries(
     Object.entries(index).filter(([, hash]) => existsSync(stillPath(projectDir, hash))),
   );
@@ -71,29 +76,33 @@ export async function requestStill(request: StillRequest): Promise<StillResult> 
 }
 
 async function pump(): Promise<void> {
-  if (busy || queue.length === 0) return;
+  if (busy || waitingForRun || queue.length === 0) return;
   if (isRunning()) {
-    setTimeout(() => void pump(), 2000);
+    waitingForRun = setTimeout(() => {
+      waitingForRun = null;
+      void pump();
+    }, RUN_POLL_MS);
     return;
   }
+  const job = queue.shift();
+  if (!job) return;
   busy = true;
-  const job = queue.shift()!;
   try {
     const output = stillPath(job.projectDir, job.hash);
-    if (!existsSync(output)) {
-      const error = await worker.request((env, id) => ({
-        type: "still",
-        env,
-        id,
-        projectDir: job.projectDir,
-        spec: job.spec,
-        frame: job.frame,
-        output,
-        width: STILL_WIDTH,
-      }));
-      if (error) process.stderr.write(`[stills] ${job.nodeId}: ${error}\n`);
-    }
-    if (existsSync(output)) await remember(job.projectDir, job.nodeId, job.hash);
+    const error = existsSync(output)
+      ? undefined
+      : await worker.request((env, id) => ({
+          type: "still",
+          env,
+          id,
+          projectDir: job.projectDir,
+          spec: job.spec,
+          frame: job.frame,
+          output,
+          width: STILL_WIDTH,
+        }));
+    if (error) process.stderr.write(`[stills] ${job.nodeId}: ${error}\n`);
+    else await remember(job.projectDir, job.nodeId, job.hash);
   } catch (error) {
     process.stderr.write(`[stills] ${job.nodeId}: ${errorMessage(error)}\n`);
   } finally {

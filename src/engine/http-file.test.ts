@@ -10,6 +10,14 @@ describe("parseRange", () => {
     expect(parseRange("bytes=-30", 100)).toEqual({ start: 70, end: 99 });
   });
 
+  it("refuses ranges outside the file", () => {
+    expect(parseRange("bytes=-", 100)).toBe("unsatisfiable");
+    expect(parseRange("bytes=100-", 100)).toBe("unsatisfiable");
+    expect(parseRange("bytes=50-10", 100)).toBe("unsatisfiable");
+    expect(parseRange("bytes=-0", 100)).toBe("unsatisfiable");
+    expect(parseRange("bytes=0-", 0)).toBe("unsatisfiable");
+  });
+
   it("ignores a missing header", () => {
     expect(parseRange(null, 100)).toBeNull();
     expect(parseRange(undefined, 100)).toBeNull();

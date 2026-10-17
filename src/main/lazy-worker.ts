@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { MessagePortMain, UtilityProcess } from "electron";
 import type { MainToWorker, WorkerEnv, WorkerToMain } from "../shared/worker-protocol";
 import type { WorkerKind } from "./worker-temp";
-import { spawnWorker, workerEnv } from "./workers";
+import { onWorkerMessage, spawnWorker, workerEnv } from "./workers";
 
 export type LazyWorkerOptions<R> = {
   kind: WorkerKind;
@@ -31,8 +31,8 @@ export function createLazyWorker<R>(options: LazyWorkerOptions<R>): LazyWorker<R
     cancelIdle();
     if (worker) return worker;
     const spawned = spawnWorker(false, options.kind);
-    spawned.control.on("message", (e) => {
-      const reply = options.reply(e.data as WorkerToMain);
+    onWorkerMessage(spawned.control, (msg) => {
+      const reply = options.reply(msg);
       if (!reply) return;
       const done = waiting.get(reply.id);
       waiting.delete(reply.id);

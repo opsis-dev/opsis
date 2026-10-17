@@ -33,6 +33,7 @@ import { EnginePanel } from "../setup";
 import { ApiPage } from "./api-page";
 import { LicencesPage } from "./licences-page";
 import { AboutPage, ExportPage, GeneralPage, ProjectsPage, RecordingPage } from "./pages";
+import { onMenuCommand } from "@/renderer/app/menu-commands";
 
 type PageInfo = {
   label: string;
@@ -108,7 +109,7 @@ export function SettingsWindow() {
 
   useEffect(
     () =>
-      window.demoflow.onMenuCommand((command) => {
+      onMenuCommand((command) => {
         if (command !== "view:settings") window.demoflow.sendMenuToEditor(command);
       }),
     [],

@@ -8,6 +8,7 @@ import { tidyLayout } from "./layout";
 import { DOCK_PANELS, focusPanel, PANEL_SIDES, togglePanel } from "./panels";
 import { cancelRun, startRun } from "./run";
 import { saveWithToast } from "./save";
+import { onMenuCommand } from "@/renderer/app/menu-commands";
 
 const MENU_ACTIONS: Partial<Record<MenuCommand, () => void>> = {
   "edit:undo": () => useWorkflowStore.temporal.getState().undo(),
@@ -31,5 +32,5 @@ const MENU_ACTIONS: Partial<Record<MenuCommand, () => void>> = {
 };
 
 export function useMenuCommands(): void {
-  useEffect(() => window.demoflow.onMenuCommand((command) => MENU_ACTIONS[command]?.()), []);
+  useEffect(() => onMenuCommand((command) => MENU_ACTIONS[command]?.()), []);
 }

@@ -7,6 +7,7 @@ import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useStillsStore } from "../store/stills";
 import { useWorkflowStore } from "../store/workflow";
+import { onMenuCommand } from "@/renderer/app/menu-commands";
 
 export const isSecondaryWindow = (path: string): boolean =>
   path.startsWith("/panel/") || path.startsWith("/settings");
@@ -15,7 +16,7 @@ function useMenuNavigation(): void {
   const router = useRouter();
   useEffect(
     () =>
-      window.demoflow.onMenuCommand((command) => {
+      onMenuCommand((command) => {
         const path = router.state.location.pathname;
         if (isSecondaryWindow(path)) return;
         if (command === "view:settings") void window.demoflow.openSettings();

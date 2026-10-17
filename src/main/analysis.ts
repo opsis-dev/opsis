@@ -44,9 +44,10 @@ export function analyze(request: AnalysisRequest): Promise<AnalysisResult> {
 }
 
 async function pump(): Promise<void> {
-  if (busy || queue.length === 0) return;
+  if (busy) return;
+  const job = queue.shift();
+  if (!job) return;
   busy = true;
-  const job = queue.shift()!;
   try {
     const result = await worker.request((env, id) => ({
       type: "analysis",

@@ -2,7 +2,8 @@ import { Readable } from "node:stream";
 import { protocol } from "electron";
 import { fileReply, resolveInside } from "../engine/http-file";
 
-export const FILE_SCHEME = "demoflow-file";
+const FILE_SCHEME = "demoflow-file";
+export const APP_SCHEME = "demoflow-app";
 
 const CSP = [
   "default-src 'self'",
@@ -14,7 +15,6 @@ const CSP = [
   "connect-src 'self' demoflow-file: blob: data:",
   "worker-src 'self' blob:",
 ].join("; ");
-export const APP_SCHEME = "demoflow-app";
 
 export function registerSchemes(): void {
   const privileges = {
@@ -37,7 +37,10 @@ async function serveFile(
 ): Promise<Response> {
   const reply = await fileReply(file, request.headers.get("range"));
   if (reply.status === 404) return new Response("Not found", { status: 404 });
-  const body = request.method === "HEAD" ? null : (Readable.toWeb(reply.open()) as ReadableStream);
+  const body =
+    request.method === "HEAD" || reply.status === 416
+      ? null
+      : (Readable.toWeb(reply.open()) as ReadableStream);
   return new Response(body, {
     status: reply.status,
     headers: { ...reply.headers, ...extraHeaders },

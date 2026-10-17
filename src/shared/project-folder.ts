@@ -11,3 +11,6 @@ export function joinFolder(parent: string, child: string, platform: string): str
   const trimmed = parent.replace(/[\\/]+$/, "");
   return `${trimmed || sep}${trimmed ? sep : ""}${child}`;
 }
+
+export const expandHome = (folder: string, home: string): string =>
+  folder === "~" ? home : folder.replace(/^~(?=[\\/])/, () => home);

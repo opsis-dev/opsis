@@ -64,47 +64,37 @@ export function spawnWorker(withLive: boolean, kind: WorkerKind, id: string = ra
   return { child, control: control.port1, live: live?.port1 ?? null };
 }
 
+export function onWorkerMessage(port: MessagePortMain, handler: (msg: WorkerToMain) => void): void {
+  port.on("message", (e) => handler(e.data as WorkerToMain));
+}
+
+function respond(
+  port: MessagePortMain,
+  type: "secret:response" | "login:response",
+  id: string,
+  work: Promise<string | null>,
+): void {
+  work.then(
+    (value) => port.postMessage({ type, id, value: value ?? undefined } satisfies MainToWorker),
+    (e: unknown) => port.postMessage({ type, id, error: errorMessage(e) } satisfies MainToWorker),
+  );
+}
+
 function answerRequests(
   port: MessagePortMain,
   msg: WorkerToMain,
   window: () => BrowserWindow | null,
 ): boolean {
   if (msg.type === "secret:request") {
-    const op =
+    const work =
       msg.op === "read"
         ? readSecret(msg.projectDir, msg.name)
         : writeSecret(msg.projectDir, msg.name, msg.value ?? "").then(() => "");
-    op.then(
-      (value) =>
-        port.postMessage({
-          type: "secret:response",
-          id: msg.id,
-          value: value ?? undefined,
-        } satisfies MainToWorker),
-      (e: unknown) =>
-        port.postMessage({
-          type: "secret:response",
-          id: msg.id,
-          error: errorMessage(e),
-        } satisfies MainToWorker),
-    );
+    respond(port, "secret:response", msg.id, work);
     return true;
   }
   if (msg.type === "login:request") {
-    loginInWindow(window(), msg.request).then(
-      (value) =>
-        port.postMessage({
-          type: "login:response",
-          id: msg.id,
-          value: value ?? undefined,
-        } satisfies MainToWorker),
-      (e: unknown) =>
-        port.postMessage({
-          type: "login:response",
-          id: msg.id,
-          error: errorMessage(e),
-        } satisfies MainToWorker),
-    );
+    respond(port, "login:response", msg.id, loginInWindow(window(), msg.request));
     return true;
   }
   return false;
@@ -128,8 +118,7 @@ export async function startRun(
   if (live) onLivePort(live);
   active = { runId, child, control };
   let finished = false;
-  control.on("message", (e) => {
-    const msg = e.data as WorkerToMain;
+  onWorkerMessage(control, (msg) => {
     if (answerRequests(control, msg, window)) return;
     if (msg.type === "event") {
       if (msg.event.type === "run:done") finished = true;
@@ -163,7 +152,7 @@ export function cancelRun(): void {
 
 export const isRunning = () => active !== null;
 
-export function edition(): EnvStatus["edition"] {
+function edition(): EnvStatus["edition"] {
   if (!app.isPackaged) return "dev";
   return existsSync(path.join(process.resourcesPath, "engine")) ? "full" : "lite";
 }
@@ -196,8 +185,7 @@ export async function installEngine(onEvent: (e: EngineInstallEvent) => void): P
   const env = await workerEnv();
   await new Promise<void>((resolve, reject) => {
     const { child, control } = spawnWorker(false, "setup");
-    control.on("message", (e) => {
-      const msg = e.data as WorkerToMain;
+    onWorkerMessage(control, (msg) => {
       if (msg.type === "install:progress") onEvent(msg.event);
       if (msg.type === "install:done") {
         onEvent({

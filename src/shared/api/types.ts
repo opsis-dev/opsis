@@ -46,7 +46,7 @@ export type ApiEditorRequest =
   | { op: "run"; targetNodeIds?: string[]; fromNodeId?: string }
   | { op: "stop" };
 
-type ApiEdited = { id?: string; revision: number; problems: ApiProblem[] };
+export type ApiEdited = { id?: string; revision: number; problems: ApiProblem[] };
 
 export type ApiRunState = { running: boolean; runId: string | null };
 
@@ -59,11 +59,32 @@ export type ApiProjectState = ApiRunState & {
 
 type ApiProblems = { ok: boolean; problems: ApiProblem[] };
 
-export type ApiEditorResult = ApiEdited | ApiRunState | ApiProjectState | ApiProblems;
+export type ApiEditorOp = ApiEditorRequest["op"];
 
-export type ApiEditorReply =
-  | { ok: true; result: ApiEditorResult }
-  | { ok: false; status: number; error: string; problems?: ApiProblem[] };
+export type ApiEditorResults = {
+  open: ApiProjectState;
+  read: ApiProjectState;
+  replace: ApiEdited;
+  addNode: ApiEdited;
+  updateNode: ApiEdited;
+  removeNodes: ApiEdited;
+  addEdge: ApiEdited;
+  removeEdges: ApiEdited;
+  setSettings: ApiEdited;
+  setVariables: ApiEdited;
+  problems: ApiProblems;
+  undo: ApiEdited;
+  redo: ApiEdited;
+  save: ApiEdited;
+  run: ApiRunState;
+  stop: ApiRunState;
+};
+
+export type ApiFailure = { ok: false; status: number; error: string; problems?: ApiProblem[] };
+
+export type ApiReply<R> = { ok: true; result: R } | ApiFailure;
+
+export type ApiEditorReply<O extends ApiEditorOp = ApiEditorOp> = ApiReply<ApiEditorResults[O]>;
 
 export class ApiError extends Error {
   constructor(

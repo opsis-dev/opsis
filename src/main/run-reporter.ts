@@ -1,0 +1,70 @@
+import { Notification } from "electron";
+import { applyRunEvent, emptyRunProgress, type RunProgress } from "../shared/run-progress";
+import type { RunEvent } from "../shared/schema/events";
+import { focusMainWindow, getMainWindow } from "./app-windows";
+
+type RunDone = Extract<RunEvent, { type: "run:done" }>;
+
+const NODE_FINISHED = new Set<RunEvent["type"]>(["node:done", "node:error", "node:skipped"]);
+
+let progress: RunProgress | null = null;
+let tally = { count: 1, done: 0 };
+let lastNotification: Notification | null = null;
+
+export const runProgressFor = (runId: string | null): RunProgress =>
+  runId && progress?.runId === runId ? progress : emptyRunProgress(runId);
+
+function showProgressBar(event: RunEvent): void {
+  const win = getMainWindow();
+  if (event.type === "run:start") {
+    tally = { count: Math.max(1, event.nodeIds.length), done: 0 };
+    win?.setProgressBar(0.01);
+  } else if (NODE_FINISHED.has(event.type)) {
+    tally.done += 1;
+    win?.setProgressBar(Math.min(0.99, tally.done / tally.count));
+  } else if (event.type === "run:done") {
+    win?.setProgressBar(-1);
+  }
+}
+
+function finishedMessage(event: RunDone): { title: string; body: string } {
+  if (event.ok)
+    return {
+      title: "Export finished",
+      body:
+        event.outputs.length === 1
+          ? "Your video is ready."
+          : `${event.outputs.length} files are ready.`,
+    };
+  if (event.cancelled)
+    return { title: "Run stopped", body: "The run was stopped before it finished." };
+  return { title: "Run failed", body: event.error ?? "Something went wrong." };
+}
+
+function notifyRunFinished(event: RunDone): void {
+  if (!Notification.isSupported() || getMainWindow()?.isFocused()) return;
+  lastNotification?.close();
+  const notification = new Notification(finishedMessage(event));
+  const forget = () => {
+    if (lastNotification === notification) lastNotification = null;
+  };
+  notification.on("click", () => {
+    focusMainWindow();
+    forget();
+  });
+  notification.on("close", forget);
+  lastNotification = notification;
+  notification.show();
+}
+
+export function reportRunEvent(event: RunEvent): void {
+  progress =
+    event.type === "run:done"
+      ? null
+      : applyRunEvent(
+          event.type === "run:start" || !progress ? emptyRunProgress(event.runId) : progress,
+          event,
+        );
+  showProgressBar(event);
+  if (event.type === "run:done") notifyRunFinished(event);
+}

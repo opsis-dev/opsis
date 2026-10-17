@@ -25,7 +25,7 @@ export type SaveResult =
   | { ok: true; version: string }
   | { ok: false; version: string; workflow: Workflow | null };
 
-export type ProjectFileChange = { dir: string; workflow: Workflow; version: string };
+export type ProjectFileChange = { dir: string; workflow: Workflow | null; version: string };
 
 export type ProjectLocations = { defaultDir: string; suggestedDir: string };
 
@@ -134,6 +134,7 @@ export type InspectedFonts = {
   families: InspectedFamily[];
   license?: string;
   skipped: number;
+  unreadable: number;
 };
 
 export type FontCatalogEntry = {
@@ -232,7 +233,6 @@ export interface DemoflowApi {
   closeShown(): void;
   onStillReady(listener: (still: StillReady) => void): () => void;
   onWindowState(listener: (state: WindowState) => void): () => void;
-  dispatchMenuCommand(command: MenuCommand): void;
   listFonts(): Promise<FontFamilyDef[]>;
   inspectFontFiles(paths?: string[]): Promise<InspectedFonts | null>;
   inspectInstalledFonts(faces: FontInstalledFace[]): Promise<InspectedFonts>;
@@ -243,36 +243,32 @@ export interface DemoflowApi {
   useFontInProject(dir: string, fontId: string): Promise<FontFamilyDef>;
 }
 
-export const IPC = {
-  listRecent: "demoflow:projects:recent",
+export const INVOKE = {
+  listRecentProjects: "demoflow:projects:recent",
   createProject: "demoflow:projects:create",
   openProject: "demoflow:projects:open",
   saveWorkflow: "demoflow:projects:save",
+  projectLocations: "demoflow:projects:locations",
+  chooseFolder: "demoflow:projects:choose-folder",
+  watchProject: "demoflow:projects:watch",
   readLastRun: "demoflow:projects:last-run",
   importAssets: "demoflow:projects:import-assets",
-  reveal: "demoflow:shell:reveal",
-  run: "demoflow:run:start",
-  cancel: "demoflow:run:cancel",
+  revealInFolder: "demoflow:shell:reveal",
+  runWorkflow: "demoflow:run:start",
+  cancelRun: "demoflow:run:cancel",
   runStatus: "demoflow:run:status",
-  runEvent: "demoflow:run:event",
-  pick: "demoflow:editor:pick",
-  env: "demoflow:env",
+  pickElement: "demoflow:editor:pick",
+  getEnvironment: "demoflow:env",
   installEngine: "demoflow:engine:install",
-  engineEvent: "demoflow:engine:event",
   getSettings: "demoflow:settings:get",
   setSettings: "demoflow:settings:set",
-  livePort: "demoflow:live:port",
+  patchSettings: "demoflow:settings:patch",
+  openSettings: "demoflow:settings:open-window",
+  listLicences: "demoflow:licences:list",
+  openLicenceFile: "demoflow:licences:open",
+  apiStatus: "demoflow:api:status",
   readTrace: "demoflow:trace:read",
   listSecrets: "demoflow:secrets:list",
-  clearCache: "demoflow:cache:clear",
-  menu: "demoflow:menu",
-  setTitle: "demoflow:window:title",
-  windowRole: "demoflow:window:role",
-  getWindowState: "demoflow:window:get-state",
-  requestStill: "demoflow:stills:request",
-  listStills: "demoflow:stills:list",
-  stillReady: "demoflow:stills:ready",
-  windowState: "demoflow:window:state",
   listFonts: "demoflow:fonts:list",
   inspectFontFiles: "demoflow:fonts:inspect-files",
   inspectInstalledFonts: "demoflow:fonts:inspect-installed",
@@ -281,12 +277,29 @@ export const IPC = {
   fontCatalog: "demoflow:fonts:catalog",
   downloadFont: "demoflow:fonts:download",
   useFontInProject: "demoflow:fonts:use-in-project",
+  clearCache: "demoflow:cache:clear",
+  windowRole: "demoflow:window:role",
+  getWindowState: "demoflow:window:get-state",
+  requestStill: "demoflow:stills:request",
+  listStills: "demoflow:stills:list",
   analyze: "demoflow:analysis:run",
   openPanelWindow: "demoflow:panels:open",
   focusPanelWindow: "demoflow:panels:focus",
   closePanelWindow: "demoflow:panels:close",
   closePanelWindows: "demoflow:panels:close-all",
   listPanelWindows: "demoflow:panels:list",
+} as const satisfies { [K in keyof DemoflowApi]?: string };
+
+export type InvokeName = keyof typeof INVOKE;
+
+export const IPC = {
+  runEvent: "demoflow:run:event",
+  engineEvent: "demoflow:engine:event",
+  livePort: "demoflow:live:port",
+  menu: "demoflow:menu",
+  setTitle: "demoflow:window:title",
+  stillReady: "demoflow:stills:ready",
+  windowState: "demoflow:window:state",
   panelWindows: "demoflow:panels:changed",
   reportUnsaved: "demoflow:exit:unsaved",
   flushSave: "demoflow:exit:flush-save",
@@ -294,17 +307,9 @@ export const IPC = {
   confirmClose: "demoflow:exit:confirm",
   closeDecision: "demoflow:exit:decision",
   closeShown: "demoflow:exit:shown",
-  projectLocations: "demoflow:projects:locations",
-  chooseFolder: "demoflow:projects:choose-folder",
-  watchProject: "demoflow:projects:watch",
   projectFileChanged: "demoflow:projects:file-changed",
-  patchSettings: "demoflow:settings:patch",
   settingsChanged: "demoflow:settings:changed",
-  openSettings: "demoflow:settings:open-window",
   menuToEditor: "demoflow:menu:to-editor",
-  listLicences: "demoflow:licences:list",
-  openLicenceFile: "demoflow:licences:open",
-  apiStatus: "demoflow:api:status",
   apiStatusChanged: "demoflow:api:status-changed",
   apiRequest: "demoflow:api:request",
   apiReply: "demoflow:api:reply",

@@ -18,7 +18,7 @@ export async function startAssetServer(root: string): Promise<AssetServer> {
         return;
       }
       res.writeHead(reply.status, reply.headers);
-      if (req.method === "HEAD") res.end();
+      if (req.method === "HEAD" || reply.status === 416) res.end();
       else reply.open().pipe(res);
     } catch {
       res.writeHead(404).end();

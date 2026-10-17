@@ -1,8 +1,15 @@
 import type { BrowserWindow, Rectangle } from "electron";
+import { z } from "zod";
 import { IPC, type DockPanelName } from "../shared/ipc";
-import { isVisible, loadBounds, rememberBounds, saveBounds } from "./window-bounds";
+import {
+  isVisible,
+  loadBounds,
+  rectangleSchema,
+  rememberBounds,
+  saveBounds,
+} from "./window-bounds";
 
-export type PanelWindowHost = {
+type PanelWindowHost = {
   main: () => BrowserWindow | null;
   create: (options: {
     width: number;
@@ -28,14 +35,15 @@ const DEFAULT_SIZE: Record<DockPanelName, { width: number; height: number }> = {
   run: { width: 760, height: 560 },
 };
 
+const BOUNDS_FILE = "panel-windows.json";
+const boundsSchema = z.partialRecord(z.string(), rectangleSchema);
+
 const windows = new Map<DockPanelName, BrowserWindow>();
 let host: PanelWindowHost | null = null;
-let bounds: Partial<Record<DockPanelName, Rectangle>> | null = null;
+let bounds: Partial<Record<string, Rectangle>> | null = null;
 
-const BOUNDS_FILE = "panel-windows.json";
-
-async function panelBounds(): Promise<Partial<Record<DockPanelName, Rectangle>>> {
-  bounds ??= (await loadBounds<Partial<Record<DockPanelName, Rectangle>>>(BOUNDS_FILE)) ?? {};
+async function panelBounds(): Promise<Partial<Record<string, Rectangle>>> {
+  bounds ??= (await loadBounds(BOUNDS_FILE, boundsSchema)) ?? {};
   return bounds;
 }
 
@@ -54,10 +62,20 @@ function notify(): void {
   host?.main()?.webContents.send(IPC.panelWindows, openPanels());
 }
 
+export const panelWindow = (panel: DockPanelName) => {
+  const win = windows.get(panel);
+  return win && !win.isDestroyed() ? win : null;
+};
+
+export const panelWindows = (): BrowserWindow[] =>
+  [...windows.values()].filter((w) => !w.isDestroyed());
+
+export const isPanelSender = (id: number) => panelWindows().some((w) => w.webContents.id === id);
+
 export async function openPanelWindow(panel: DockPanelName, projectDir: string): Promise<void> {
   if (!host) return;
-  const existing = windows.get(panel);
-  if (existing && !existing.isDestroyed()) {
+  const existing = panelWindow(panel);
+  if (existing) {
     existing.show();
     existing.focus();
     return;
@@ -77,28 +95,17 @@ export async function openPanelWindow(panel: DockPanelName, projectDir: string):
 }
 
 export function focusPanelWindow(panel: DockPanelName): void {
-  const win = windows.get(panel);
-  if (!win || win.isDestroyed()) return;
+  const win = panelWindow(panel);
+  if (!win) return;
   if (win.isMinimized()) win.restore();
   win.show();
   win.focus();
 }
 
 export function closePanelWindow(panel: DockPanelName): void {
-  windows.get(panel)?.close();
+  panelWindow(panel)?.close();
 }
 
 export function closePanelWindows(): void {
-  for (const win of windows.values()) if (!win.isDestroyed()) win.close();
+  for (const win of panelWindows()) win.close();
 }
-
-export const panelWindow = (panel: DockPanelName) => {
-  const win = windows.get(panel);
-  return win && !win.isDestroyed() ? win : null;
-};
-
-export const panelWindows = (): BrowserWindow[] =>
-  [...windows.values()].filter((w) => !w.isDestroyed());
-
-export const isPanelSender = (id: number) =>
-  [...windows.values()].some((w) => !w.isDestroyed() && w.webContents.id === id);

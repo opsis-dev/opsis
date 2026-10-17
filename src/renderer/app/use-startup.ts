@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useEnvironment } from "../store/environment";
 import { readStored } from "../store/view-prefs";
 import { SETUP_SKIPPED_KEY } from "./setup";
+import { dispatchMenuCommand } from "@/renderer/app/menu-commands";
 
 const STARTED_KEY = "demoflow.started";
 
@@ -29,7 +30,7 @@ export function useStartup(): void {
           const [last] = await window.demoflow.listRecentProjects();
           if (last) void router.navigate({ to: "/editor", search: { dir: last.dir } });
         } else if (settings.app.onStart === "new-project") {
-          window.demoflow.dispatchMenuCommand("project:new");
+          dispatchMenuCommand("project:new");
         }
       },
     );

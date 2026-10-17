@@ -43,16 +43,21 @@ export function resolveInside(root: string, urlPath: string): string | null {
 
 export type ByteRange = { start: number; end: number };
 
-export function parseRange(header: string | null | undefined, size: number): ByteRange | null {
+export function parseRange(
+  header: string | null | undefined,
+  size: number,
+): ByteRange | "unsatisfiable" | null {
   const m = /bytes=(\d*)-(\d*)/.exec(header ?? "");
   if (!m) return null;
+  if (!m[1] && !m[2]) return "unsatisfiable";
   const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]));
   const end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1;
-  return { start, end };
+  return start > end ? "unsatisfiable" : { start, end };
 }
 
 export type FileReply =
   | { status: 404 }
+  | { status: 416; headers: Record<string, string> }
   | { status: 200 | 206; headers: Record<string, string>; open: () => ReadStream };
 
 export async function fileReply(file: string, rangeHeader?: string | null): Promise<FileReply> {
@@ -64,6 +69,8 @@ export async function fileReply(file: string, rangeHeader?: string | null): Prom
     "Access-Control-Allow-Origin": "*",
   };
   const range = parseRange(rangeHeader, info.size);
+  if (range === "unsatisfiable")
+    return { status: 416, headers: { ...headers, "Content-Range": `bytes */${info.size}` } };
   if (!range)
     return {
       status: 200,

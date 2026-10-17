@@ -1,9 +1,20 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { app, screen, type BrowserWindow, type Rectangle } from "electron";
+import { z } from "zod";
 import { readJson } from "../engine/json";
+import { debounce } from "../shared/timing";
+
+const SAVE_AFTER_MS = 400;
 
 const boundsFile = (name: string) => path.join(app.getPath("userData"), name);
+
+export const rectangleSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  width: z.number(),
+  height: z.number(),
+});
 
 export function isVisible(rect: Rectangle): boolean {
   return screen.getAllDisplays().some((d) => {
@@ -17,7 +28,9 @@ export function isVisible(rect: Rectangle): boolean {
   });
 }
 
-export const loadBounds = <T>(name: string): Promise<T | null> => readJson<T>(boundsFile(name));
+export async function loadBounds<T>(name: string, schema: z.ZodType<T>): Promise<T | null> {
+  return schema.safeParse(await readJson(boundsFile(name))).data ?? null;
+}
 
 export function saveBounds(name: string, value: unknown): void {
   void writeFile(boundsFile(name), JSON.stringify(value, null, 2)).catch(() => undefined);
@@ -28,7 +41,11 @@ export function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => vo
     if (!win.isDestroyed() && !win.isMinimized() && !win.isMaximized() && !win.isFullScreen())
       save(win.getBounds());
   };
-  win.on("resized", remember);
-  win.on("moved", remember);
-  win.on("close", remember);
+  const rememberSoon = debounce(remember, SAVE_AFTER_MS);
+  win.on("resized", rememberSoon);
+  win.on("moved", rememberSoon);
+  win.on("close", () => {
+    rememberSoon.cancel();
+    remember();
+  });
 }

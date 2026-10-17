@@ -18,6 +18,7 @@ import { useViewOptions, type PreviewQuality, type PreviewShape } from "../store
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
 import { liveAutoOpen } from "../store/app-settings";
 import { randomId } from "@/shared/ids";
+import { dispatchMenuCommand } from "@/renderer/app/menu-commands";
 
 const CHANNEL = "demoflow-sync";
 const LIVE_CHANNEL = "demoflow-live";
@@ -258,7 +259,7 @@ export function useEditorSync(): void {
       else if (m.type === "edit") {
         ack = Math.max(ack, m.seq);
         applyRemoteEdit(m.edit);
-      } else if (m.type === "menu") window.demoflow.dispatchMenuCommand(m.command);
+      } else if (m.type === "menu") dispatchMenuCommand(m.command);
       else if (m.type === "replay") useUiStore.getState().setReplay(m.nodeId);
     });
     sendState(post, ack);

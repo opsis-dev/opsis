@@ -1,100 +1,20 @@
-import { BrowserWindow, session as electronSession, type Cookie } from "electron";
+import { BrowserWindow, session as electronSession } from "electron";
+import { z } from "zod";
 import type { PickRequest, PickResult } from "../shared/ipc";
 import type { LoginRequest } from "../shared/worker-protocol";
+import { storageState, type LocalStorageByOrigin } from "./login-state";
+import { installPicker } from "./picker-script";
 
 const PICK_PREFIX = "__demoflow_pick__:";
+const PICKER_SCRIPT = `(${installPicker.toString()})(${JSON.stringify(PICK_PREFIX)})`;
+const SELECTOR_POLL_MS = 500;
 
-const PICKER_SCRIPT = `(() => {
-  if (window.__demoflowPicker) return;
-  window.__demoflowPicker = true;
-  const box = document.createElement('div');
-  box.style.cssText = 'position:fixed;pointer-events:none;z-index:2147483647;border:2px solid #a78bfa;background:rgba(167,139,250,.15);border-radius:4px';
-  const tag = document.createElement('div');
-  tag.style.cssText = 'position:fixed;pointer-events:none;z-index:2147483647;background:#18181b;color:#fafafa;font:600 12px system-ui;padding:4px 8px;border-radius:6px';
-  document.documentElement.appendChild(box);
-  document.documentElement.appendChild(tag);
-  const INTERACTIVE = 'button,a,input,textarea,select,[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=switch],[role=combobox],label';
-  const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
-  const nameOf = (el) => {
-    const aria = el.getAttribute('aria-label'); if (aria) return clean(aria);
-    if (el.id) { const lab = document.querySelector('label[for="' + CSS.escape(el.id) + '"]'); if (lab) return clean(lab.textContent); }
-    const ph = el.getAttribute('placeholder'); if (ph) return clean(ph);
-    const text = clean(el.innerText || el.textContent);
-    if (text && text.length <= 60) return text;
-    const tid = el.getAttribute('data-testid'); if (tid) return tid;
-    const title = el.getAttribute('title'); if (title) return clean(title);
-    return '';
-  };
-  const cssOf = (el) => {
-    if (el.id && !/\\d{3,}/.test(el.id)) return '#' + CSS.escape(el.id);
-    const tid = el.getAttribute('data-testid'); if (tid) return '[data-testid="' + tid + '"]';
-    const parts = [];
-    let cur = el;
-    while (cur && cur.nodeType === 1 && parts.length < 6) {
-      let part = cur.tagName.toLowerCase();
-      const parent = cur.parentElement;
-      if (parent) {
-        const same = [...parent.children].filter((c) => c.tagName === cur.tagName);
-        if (same.length > 1) part += ':nth-of-type(' + (same.indexOf(cur) + 1) + ')';
-      }
-      parts.unshift(part);
-      if (cur.id) { parts[0] = '#' + CSS.escape(cur.id); break; }
-      cur = parent;
-    }
-    return parts.join(' > ');
-  };
-  const roleOf = (el) => {
-    const explicit = el.getAttribute('role'); if (explicit) return explicit;
-    const tag = el.tagName.toLowerCase();
-    if (tag === 'a' && el.hasAttribute('href')) return 'link';
-    if (tag === 'button') return 'button';
-    if (tag === 'select') return 'combobox';
-    if (tag === 'textarea') return 'textbox';
-    if (tag === 'img') return 'img';
-    if (/^h[1-6]$/.test(tag)) return 'heading';
-    if (tag === 'input') {
-      const type = (el.getAttribute('type') || 'text').toLowerCase();
-      if (type === 'checkbox' || type === 'radio') return type;
-      if (type === 'search') return 'searchbox';
-      if (['button', 'submit', 'reset'].includes(type)) return 'button';
-      if (type === 'range') return 'slider';
-      return 'textbox';
-    }
-    return '';
-  };
-  const pick = (target) => (target.closest && target.closest(INTERACTIVE)) || target;
-  let last = null;
-  const show = (e, shift) => {
-    if (!e) return;
-    if (shift) {
-      const x = Math.round(e.clientX), y = Math.round(e.clientY);
-      Object.assign(box.style, { left: (x - 6) + 'px', top: (y - 6) + 'px', width: '12px', height: '12px' });
-      tag.textContent = x + ', ' + y;
-      Object.assign(tag.style, { left: (x + 10) + 'px', top: Math.max(0, y - 30) + 'px' });
-      return;
-    }
-    const el = pick(e.target);
-    const r = el.getBoundingClientRect();
-    Object.assign(box.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
-    tag.textContent = nameOf(el) || cssOf(el);
-    Object.assign(tag.style, { left: r.left + 'px', top: Math.max(0, r.top - 26) + 'px' });
-  };
-  document.addEventListener('mousemove', (e) => { last = e; show(e, e.shiftKey); }, true);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Shift') show(last, true); }, true);
-  document.addEventListener('keyup', (e) => { if (e.key === 'Shift') show(last, false); }, true);
-  document.addEventListener('click', (e) => {
-    e.preventDefault(); e.stopPropagation();
-    if (e.shiftKey) {
-      const spot = Math.round(e.clientX) + ', ' + Math.round(e.clientY);
-      console.log('${PICK_PREFIX}' + JSON.stringify({ target: spot, css: '', role: '', selectorUsed: 'spot' }));
-      return;
-    }
-    const el = pick(e.target);
-    const name = nameOf(el);
-    const css = cssOf(el);
-    console.log('${PICK_PREFIX}' + JSON.stringify({ target: name || ('css=' + css), css, role: name ? roleOf(el) : '', selectorUsed: name ? 'accessible name' : 'css' }));
-  }, true);
-})()`;
+const pickResultSchema = z.object({
+  target: z.string(),
+  css: z.string(),
+  role: z.string().optional(),
+  selectorUsed: z.string(),
+});
 
 function sandboxedWindow(
   parent: BrowserWindow | null,
@@ -114,6 +34,14 @@ function sandboxedWindow(
   });
 }
 
+function parsePick(message: string): PickResult | undefined {
+  try {
+    return pickResultSchema.safeParse(JSON.parse(message.slice(PICK_PREFIX.length))).data;
+  } catch {
+    return undefined;
+  }
+}
+
 export function pickInWindow(parent: BrowserWindow | null, req: PickRequest): Promise<PickResult> {
   return new Promise((resolve) => {
     const win = sandboxedWindow(
@@ -124,12 +52,15 @@ export function pickInWindow(parent: BrowserWindow | null, req: PickRequest): Pr
     );
     let result: PickResult = null;
     const inject = () =>
-      void win.webContents.executeJavaScript(PICKER_SCRIPT).catch(() => undefined);
+      void win.webContents.executeJavaScript(PICKER_SCRIPT).catch(() => {
+        if (!win.isDestroyed() && !win.webContents.isLoading()) win.close();
+      });
     win.webContents.on("did-finish-load", inject);
     win.webContents.on("console-message", (event) => {
-      const message = event.message;
-      if (!message.startsWith(PICK_PREFIX)) return;
-      result = JSON.parse(message.slice(PICK_PREFIX.length)) as PickResult;
+      if (!event.message.startsWith(PICK_PREFIX)) return;
+      const picked = parsePick(event.message);
+      if (!picked) return;
+      result = picked;
       win.close();
     });
     win.on("closed", () => resolve(result));
@@ -137,8 +68,56 @@ export function pickInWindow(parent: BrowserWindow | null, req: PickRequest): Pr
   });
 }
 
-const playwrightSameSite = (s: Cookie["sameSite"]) =>
-  s === "strict" ? "Strict" : s === "no_restriction" ? "None" : "Lax";
+async function readLocalStorage(win: BrowserWindow, origins: LocalStorageByOrigin): Promise<void> {
+  try {
+    const url = new URL(win.webContents.getURL());
+    if (!/^https?:$/.test(url.protocol)) return;
+    const entries: Array<[string, string]> = await win.webContents.executeJavaScript(
+      "Object.entries(localStorage)",
+    );
+    origins.set(
+      url.origin,
+      entries.map(([name, value]) => ({ name, value })),
+    );
+  } catch {
+    return;
+  }
+}
+
+const selectorShown = (win: BrowserWindow, selector: string): Promise<boolean> =>
+  win.webContents
+    .executeJavaScript(`!!document.querySelector(${JSON.stringify(selector)})`)
+    .catch(() => false);
+
+function watchForLogin(
+  win: BrowserWindow,
+  req: LoginRequest,
+  on: { page: () => void; done: () => void },
+): () => void {
+  let stopped = false;
+  let landedUrl: string | null = null;
+  const timer = setTimeout(on.done, req.timeoutSec * 1000);
+  const check = () => {
+    if (stopped || win.isDestroyed()) return;
+    on.page();
+    const url = win.webContents.getURL();
+    if (!url || url === "about:blank") return;
+    if (landedUrl === null) landedUrl = url;
+    else if (req.doneWhen === "url-change" && url !== landedUrl) on.done();
+    if (req.doneWhen === "selector" && req.selector)
+      void selectorShown(win, req.selector).then((found) => {
+        if (found) on.done();
+      });
+  };
+  const poll = req.doneWhen === "selector" ? setInterval(check, SELECTOR_POLL_MS) : undefined;
+  win.webContents.on("did-finish-load", check);
+  win.webContents.on("did-navigate-in-page", check);
+  return () => {
+    stopped = true;
+    clearTimeout(timer);
+    clearInterval(poll);
+  };
+}
 
 export function loginInWindow(
   parent: BrowserWindow | null,
@@ -147,80 +126,25 @@ export function loginInWindow(
   return new Promise((resolve) => {
     const partition = `demoflow-login-${Date.now()}`;
     const win = sandboxedWindow(parent, "Log in — close this window when you're done", partition);
-    const origins = new Map<string, Array<{ name: string; value: string }>>();
+    const origins: LocalStorageByOrigin = new Map();
     let finished = false;
-
-    const snapshot = async () => {
-      try {
-        const url = new URL(win.webContents.getURL());
-        if (!/^https?:$/.test(url.protocol)) return;
-        const entries = (await win.webContents.executeJavaScript(
-          "Object.entries(localStorage)",
-        )) as Array<[string, string]>;
-        origins.set(
-          url.origin,
-          entries.map(([name, value]) => ({ name, value })),
-        );
-      } catch {
-        return;
-      }
-    };
-
-    const complete = async () => {
+    const finish = async () => {
       if (finished) return;
       finished = true;
-      clearTimeout(timer);
-      clearInterval(poll);
-      await snapshot();
+      stopWatching();
+      await readLocalStorage(win, origins);
       const cookies = await electronSession.fromPartition(partition).cookies.get({});
-      const state = {
-        cookies: cookies.map((c) => ({
-          name: c.name,
-          value: c.value,
-          domain:
-            c.hostOnly || !c.domain
-              ? (c.domain ?? "").replace(/^\./, "")
-              : c.domain.startsWith(".")
-                ? c.domain
-                : `.${c.domain}`,
-          path: c.path ?? "/",
-          expires: c.session || !c.expirationDate ? -1 : c.expirationDate,
-          httpOnly: !!c.httpOnly,
-          secure: !!c.secure,
-          sameSite: playwrightSameSite(c.sameSite),
-        })),
-        origins: [...origins].map(([origin, localStorage]) => ({ origin, localStorage })),
-      };
       if (!win.isDestroyed()) win.destroy();
-      resolve(JSON.stringify(state));
+      resolve(JSON.stringify(storageState(cookies, origins)));
     };
-
-    const timer = setTimeout(() => void complete(), req.timeoutSec * 1000);
-    let landedUrl: string | null = null;
-    const check = () => {
-      if (finished || win.isDestroyed()) return;
-      void snapshot();
-      const url = win.webContents.getURL();
-      if (!url || url === "about:blank") return;
-      if (landedUrl === null) landedUrl = url;
-      else if (req.doneWhen === "url-change" && url !== landedUrl) void complete();
-      if (req.doneWhen === "selector" && req.selector) {
-        void win.webContents
-          .executeJavaScript(`!!document.querySelector(${JSON.stringify(req.selector)})`)
-          .then((found: boolean) => {
-            if (found) void complete();
-          })
-          .catch(() => undefined);
-      }
-    };
-    const poll = req.doneWhen === "selector" ? setInterval(check, 500) : undefined;
-    win.webContents.on("did-finish-load", check);
-    win.webContents.on("did-navigate-in-page", check);
+    const stopWatching = watchForLogin(win, req, {
+      page: () => void readLocalStorage(win, origins),
+      done: () => void finish(),
+    });
     win.on("close", (event) => {
       if (finished) return;
       event.preventDefault();
-      clearTimeout(timer);
-      void complete();
+      void finish();
     });
     void win.loadURL(req.url);
   });

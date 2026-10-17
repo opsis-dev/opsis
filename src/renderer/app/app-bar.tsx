@@ -40,6 +40,7 @@ import { useAppSettings } from "../store/app-settings";
 import { cn } from "@/renderer/lib/utils";
 import { isEditingElement } from "@/renderer/lib/dom";
 import { isMac, platform } from "@/renderer/lib/platform";
+import { dispatchMenuCommand } from "@/renderer/app/menu-commands";
 
 export const shortcutLabel = (accelerator: string) => acceleratorLabel(accelerator, platform);
 export const commandLabel = (cmd: MenuCommand): string =>
@@ -54,7 +55,7 @@ const SECTIONS = appMenu(platform);
 type MenuItem = Exclude<MenuEntry, { kind: "separator" }>;
 
 function run(entry: MenuItem) {
-  if (entry.kind === "command") window.demoflow.dispatchMenuCommand(entry.command);
+  if (entry.kind === "command") dispatchMenuCommand(entry.command);
   else void window.demoflow.windowRole(entry.role);
 }
 

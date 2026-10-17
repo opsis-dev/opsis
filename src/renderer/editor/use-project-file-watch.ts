@@ -11,7 +11,7 @@ export function useProjectFileWatch(projectDir: string): void {
       const store = useWorkflowStore.getState();
       if (change.dir !== store.projectDir || change.version === store.fileVersion) return;
       const pending = useDiskChange.getState().change;
-      if (store.revision === store.savedRevision && !pending) {
+      if (change.workflow && store.revision === store.savedRevision && !pending) {
         loadFromDisk(change);
         toast.info("The project file changed on disk, so the editor loaded it.", {
           description: "Undo brings back the previous version.",

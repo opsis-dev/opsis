@@ -1,9 +1,12 @@
 import { useEffect } from "react";
 import { workflowProblems } from "@/shared/api/check";
 import type {
+  ApiEdited,
   ApiEditorReply,
   ApiEditorRequest,
-  ApiEditorResult,
+  ApiFailure,
+  ApiProjectState,
+  ApiReply,
   ApiRunState,
 } from "@/shared/api/types";
 import { errorMessage } from "@/shared/errors";
@@ -22,12 +25,12 @@ type RequestOf<O extends Op> = Extract<ApiEditorRequest, { op: O }>;
 type Handler<O extends Op> = (
   request: RequestOf<O>,
   wf: Workflow,
-) => ApiEditorReply | Promise<ApiEditorReply>;
+) => ApiEditorReply<O> | Promise<ApiEditorReply<O>>;
 
-const fail = (status: number, error: string): ApiEditorReply => ({ ok: false, status, error });
-const done = (result: ApiEditorResult): ApiEditorReply => ({ ok: true, result });
+const fail = (status: number, error: string): ApiFailure => ({ ok: false, status, error });
+const done = <R>(result: R): ApiReply<R> => ({ ok: true, result });
 
-function edited(id?: string): ApiEditorReply {
+function edited(id?: string): ApiReply<ApiEdited> {
   const { workflow, revision } = useWorkflowStore.getState();
   const problems = workflow ? workflowProblems(workflow) : [];
   return done({ ...(id ? { id } : {}), revision, problems });
@@ -38,7 +41,7 @@ function runState(): ApiRunState {
   return { running, runId };
 }
 
-function read(wf: Workflow): ApiEditorReply {
+function read(wf: Workflow): ApiReply<ApiProjectState> {
   const { projectDir, revision, savedRevision } = useWorkflowStore.getState();
   return done({
     dir: projectDir,

@@ -62,7 +62,12 @@ export function ReviewDialog({
           <DialogTitle>Add fonts</DialogTitle>
           <DialogDescription>
             Found {plural(fonts.families.length, "font family", "font families")}.{" "}
-            {fonts.skipped ? `${fonts.skipped} duplicate files in other formats were skipped.` : ""}
+            {fonts.skipped
+              ? `${fonts.skipped} duplicate files in other formats were skipped. `
+              : ""}
+            {fonts.unreadable
+              ? `${plural(fonts.unreadable, "file")} couldn't be read as a font.`
+              : ""}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-72">

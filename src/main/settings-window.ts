@@ -1,8 +1,14 @@
 import type { BrowserWindow, Rectangle } from "electron";
 import type { SettingsPage } from "../shared/ipc";
-import { isVisible, loadBounds, rememberBounds, saveBounds } from "./window-bounds";
+import {
+  isVisible,
+  loadBounds,
+  rectangleSchema,
+  rememberBounds,
+  saveBounds,
+} from "./window-bounds";
 
-export type SettingsWindowHost = {
+type SettingsWindowHost = {
   create: (options: {
     width: number;
     height: number;
@@ -15,13 +21,13 @@ export type SettingsWindowHost = {
   url: (hash: string) => string;
 };
 
+const BOUNDS_FILE = "settings-window.json";
+
 let host: SettingsWindowHost | null = null;
 let win: BrowserWindow | null = null;
 
-const BOUNDS_FILE = "settings-window.json";
-
 async function savedBounds(): Promise<Rectangle | undefined> {
-  const rect = await loadBounds<Rectangle>(BOUNDS_FILE);
+  const rect = await loadBounds(BOUNDS_FILE, rectangleSchema);
   return rect && isVisible(rect) ? rect : undefined;
 }
 

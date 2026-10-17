@@ -8,7 +8,8 @@ import {
   type AppSettings,
   type SettingsPatch,
 } from "../shared/settings";
-import { atomicWrite, readJson } from "../engine/json";
+import { atomicWrite, readJsonKeepingBroken } from "../engine/json";
+import { errorMessage } from "../shared/errors";
 
 const file = () => path.join(app.getPath("userData"), "settings.json");
 
@@ -22,9 +23,17 @@ export function onSettingsChange(
   return () => listeners.delete(listener);
 }
 
+async function storedSettings(): Promise<AppSettings | null> {
+  try {
+    return await readJsonKeepingBroken(file(), appSettingsSchema);
+  } catch (error) {
+    process.stderr.write(`[settings] ${errorMessage(error)}\n`);
+    return null;
+  }
+}
+
 export async function readSettings(): Promise<AppSettings> {
-  if (cached) return cached;
-  cached = appSettingsSchema.safeParse(await readJson(file())).data ?? DEFAULT_SETTINGS;
+  cached ??= (await storedSettings()) ?? DEFAULT_SETTINGS;
   return cached;
 }
 

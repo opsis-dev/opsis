@@ -17,6 +17,7 @@ import { PageBar } from "./app-bar";
 import { Stagger, StaggerItem } from "./motion";
 import { NewProjectDialog } from "./new-project-dialog";
 import { useLoaded } from "./use-loaded";
+import { onMenuCommand } from "@/renderer/app/menu-commands";
 
 const RECENT_LIMIT = 10;
 
@@ -184,7 +185,7 @@ function useProjectCommands(startNew: () => void, open: () => Promise<void>): vo
 
   useEffect(
     () =>
-      window.demoflow.onMenuCommand((c) => {
+      onMenuCommand((c) => {
         if (c === "project:new") onNew();
         if (c === "project:open") onOpen();
       }),

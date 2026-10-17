@@ -1,0 +1,21 @@
+import type { MenuCommand } from "@/shared/ipc";
+
+type Listener = (command: MenuCommand) => void;
+
+const listeners = new Set<Listener>();
+let followingMenu = false;
+
+export function dispatchMenuCommand(command: MenuCommand): void {
+  for (const listener of listeners) listener(command);
+}
+
+export function onMenuCommand(listener: Listener): () => void {
+  if (!followingMenu) {
+    followingMenu = true;
+    window.demoflow.onMenuCommand(dispatchMenuCommand);
+  }
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}

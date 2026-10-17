@@ -1,5 +1,14 @@
 import { z } from "zod";
 import { workflowSchema, workflowSettingsSchema } from "../schema/workflow";
+import {
+  addEdgeBody,
+  addNodeBody,
+  bodySchema,
+  openBody,
+  runBody,
+  updateNodeBody,
+  variablesBody,
+} from "./bodies";
 
 const ref = (name: string) => ({ $ref: `#/components/schemas/${name}` });
 
@@ -82,11 +91,7 @@ export function openApiDocument(version: string): Record<string, unknown> {
       "/open": {
         post: {
           summary: "Open a project folder in the editor",
-          requestBody: body({
-            type: "object",
-            required: ["dir"],
-            properties: { dir: { type: "string", description: "The project folder" } },
-          }),
+          requestBody: body(bodySchema(openBody)),
           responses: { "200": projectRead, "400": errors["400"], "404": errors["404"] },
         },
       },
@@ -105,17 +110,7 @@ export function openApiDocument(version: string): Record<string, unknown> {
         post: {
           summary: "Add a node",
           description: "Settings you leave out get their defaults.",
-          requestBody: body({
-            type: "object",
-            required: ["type"],
-            properties: {
-              type: { type: "string" },
-              id: { type: "string", description: "Leave out to get a new id" },
-              label: { type: "string" },
-              position: ref("Position"),
-              params: { type: "object" },
-            },
-          }),
+          requestBody: body(bodySchema(addNodeBody)),
           responses: { "200": edited, "400": errors["400"], "409": errors["409"] },
         },
       },
@@ -124,15 +119,7 @@ export function openApiDocument(version: string): Record<string, unknown> {
           summary: "Change a node's name, position, settings or whether it's skipped",
           description: "params is merged into the node's settings.",
           parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-          requestBody: body({
-            type: "object",
-            properties: {
-              label: { type: ["string", "null"] },
-              position: ref("Position"),
-              disabled: { type: "boolean" },
-              params: { type: "object" },
-            },
-          }),
+          requestBody: body(bodySchema(updateNodeBody)),
           responses: { "200": edited, "400": errors["400"], "404": errors["404"] },
         },
         delete: {
@@ -144,16 +131,7 @@ export function openApiDocument(version: string): Record<string, unknown> {
       "/project/edges": {
         post: {
           summary: "Connect an output port to an input port",
-          requestBody: body({
-            type: "object",
-            required: ["source", "sourceHandle", "target", "targetHandle"],
-            properties: {
-              source: { type: "string" },
-              sourceHandle: { type: "string" },
-              target: { type: "string" },
-              targetHandle: { type: "string" },
-            },
-          }),
+          requestBody: body(bodySchema(addEdgeBody)),
           responses: { "200": edited, "400": errors["400"], "404": errors["404"] },
         },
       },
@@ -174,8 +152,8 @@ export function openApiDocument(version: string): Record<string, unknown> {
       "/project/variables": {
         put: {
           summary: "Replace the project's variables",
-          requestBody: body({ type: "object", additionalProperties: { type: "string" } }),
-          responses: { "200": edited, "409": errors["409"] },
+          requestBody: body(bodySchema(variablesBody)),
+          responses: { "200": edited, "400": errors["400"], "409": errors["409"] },
         },
       },
       "/project/problems": {
@@ -204,19 +182,13 @@ export function openApiDocument(version: string): Record<string, unknown> {
             "With no body, runs everything that needs running. targetNodeIds runs those nodes and what they need; fromNodeId runs again from that node. Runs open the websites in the flow.",
           requestBody: {
             required: false,
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    targetNodeIds: { type: "array", items: { type: "string" } },
-                    fromNodeId: { type: "string" },
-                  },
-                },
-              },
-            },
+            content: { "application/json": { schema: bodySchema(runBody) } },
           },
-          responses: { "200": json(ref("RunStatus")), "409": errors["409"] },
+          responses: {
+            "200": json(ref("RunStatus")),
+            "400": errors["400"],
+            "409": errors["409"],
+          },
         },
       },
       "/project/run/stop": {
@@ -238,11 +210,6 @@ export function openApiDocument(version: string): Record<string, unknown> {
           io: "input",
           unrepresentable: "any",
         }),
-        Position: {
-          type: "object",
-          required: ["x", "y"],
-          properties: { x: { type: "number" }, y: { type: "number" } },
-        },
         Problem: {
           type: "object",
           required: ["level", "message"],

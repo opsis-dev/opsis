@@ -34,51 +34,28 @@ export function buildMenu(getWindow: () => BrowserWindow | null): void {
   );
 }
 
+const ZOOM_STEP = 0.5;
+const ZOOM_LIMIT = 5;
+
+const ROLE_ACTIONS: Record<WindowRole, (win: BrowserWindow) => void> = {
+  cut: (win) => win.webContents.cut(),
+  copy: (win) => win.webContents.copy(),
+  paste: (win) => win.webContents.paste(),
+  selectAll: (win) => win.webContents.selectAll(),
+  reload: (win) => win.webContents.reload(),
+  toggleDevTools: (win) => win.webContents.toggleDevTools(),
+  resetZoom: (win) => win.webContents.setZoomLevel(0),
+  zoomIn: (win) =>
+    win.webContents.setZoomLevel(Math.min(win.webContents.getZoomLevel() + ZOOM_STEP, ZOOM_LIMIT)),
+  zoomOut: (win) =>
+    win.webContents.setZoomLevel(Math.max(win.webContents.getZoomLevel() - ZOOM_STEP, -ZOOM_LIMIT)),
+  togglefullscreen: (win) => win.setFullScreen(!win.isFullScreen()),
+  minimize: (win) => win.minimize(),
+  toggleMaximize: (win) => (win.isMaximized() ? win.unmaximize() : win.maximize()),
+  close: (win) => win.close(),
+  quit: () => app.quit(),
+};
+
 export function runWindowRole(win: BrowserWindow, role: WindowRole): void {
-  const contents = win.webContents;
-  switch (role) {
-    case "cut":
-      contents.cut();
-      return;
-    case "copy":
-      contents.copy();
-      return;
-    case "paste":
-      contents.paste();
-      return;
-    case "selectAll":
-      contents.selectAll();
-      return;
-    case "reload":
-      contents.reload();
-      return;
-    case "toggleDevTools":
-      contents.toggleDevTools();
-      return;
-    case "resetZoom":
-      contents.setZoomLevel(0);
-      return;
-    case "zoomIn":
-      contents.setZoomLevel(Math.min(contents.getZoomLevel() + 0.5, 5));
-      return;
-    case "zoomOut":
-      contents.setZoomLevel(Math.max(contents.getZoomLevel() - 0.5, -5));
-      return;
-    case "togglefullscreen":
-      win.setFullScreen(!win.isFullScreen());
-      return;
-    case "minimize":
-      win.minimize();
-      return;
-    case "toggleMaximize":
-      if (win.isMaximized()) win.unmaximize();
-      else win.maximize();
-      return;
-    case "close":
-      win.close();
-      return;
-    case "quit":
-      app.quit();
-      return;
-  }
+  ROLE_ACTIONS[role](win);
 }

@@ -13,6 +13,7 @@ import { DOCK_TITLES, isDockPanel } from "../editor/panels";
 import { CompiledContext, useCompiled } from "../editor/use-compiled";
 import { useMedia } from "../store/media";
 import { useWorkflowStore } from "../store/workflow";
+import { onMenuCommand } from "@/renderer/app/menu-commands";
 
 const close = () => void window.demoflow.windowRole("close");
 
@@ -51,7 +52,7 @@ function PanelRoute() {
 
   useEffect(
     () =>
-      window.demoflow.onMenuCommand((command) => {
+      onMenuCommand((command) => {
         if (command === "view:projects" || command === "project:new" || command === "project:open")
           return;
         forwardMenuCommand(command);
