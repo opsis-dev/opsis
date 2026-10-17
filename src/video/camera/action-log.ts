@@ -1,4 +1,10 @@
-import type { Action, ActionLog, Rect } from "../../shared/schema/actions";
+import {
+  rectCentre,
+  rectUnion,
+  type Action,
+  type ActionLog,
+  type Rect,
+} from "../../shared/schema/actions";
 import type { AnnotationKind, AnnotationSpec } from "../../shared/compile/recording";
 import { POINTER_KINDS } from "../../shared/compile/recording";
 import { defaultTargetRect, type ClickEvent, type ClickLog, type KeyEvent } from "./lib/click-log";
@@ -21,9 +27,9 @@ const DRAG_FIT_FRACTION = 0.5;
 
 const carried = (a: Action) => ({
   label: a.label,
-  cluster: a.cluster || undefined,
-  zoom: a.zoom === false ? false : undefined,
-  zoomScale: a.zoomScale || undefined,
+  cluster: a.cluster,
+  zoom: a.zoom,
+  zoomScale: a.zoomScale,
 });
 
 export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = []): ClickLog {
@@ -61,31 +67,18 @@ export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = 
   };
 }
 
-const union = (a: Rect, b: Rect): Rect => {
-  const x = Math.min(a.x, b.x);
-  const y = Math.min(a.y, b.y);
-  return {
-    x,
-    y,
-    w: Math.max(a.x + a.w, b.x + b.w) - x,
-    h: Math.max(a.y + a.h, b.y + b.h) - y,
-  };
-};
-
-const centre = (r: Rect): Point => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
-
 function dragEvents(a: Action, point: Point, vp: { width: number; height: number }): ClickEvent[] {
   const tDown = a.tDown ?? a.t;
   const fallback = defaultTargetRect(point, vp.width);
   const pick = a.rect ?? fallback;
   const drop = a.drop ?? fallback;
-  const both = union(pick, drop);
+  const both = rectUnion(pick, drop);
   const shared = { ...carried(a), path: a.path };
   const press = { ...shared, tDepartMs: a.tDepart, tDownMs: tDown, tUpMs: a.t };
   if (both.w <= vp.width * DRAG_FIT_FRACTION && both.h <= vp.height * DRAG_FIT_FRACTION)
-    return [{ ...press, tMs: a.t, ...centre(both), rect: both, drop }];
+    return [{ ...press, tMs: a.t, ...rectCentre(both), rect: both, drop }];
   return [
-    { ...press, tMs: tDown, ...centre(pick), rect: pick },
+    { ...press, tMs: tDown, ...rectCentre(pick), rect: pick },
     { ...shared, tMs: a.t, tDepartMs: tDown, ...point, rect: drop, drop },
   ];
 }

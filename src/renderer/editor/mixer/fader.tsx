@@ -1,3 +1,4 @@
+import { percent } from "@/shared/format";
 import { clamp } from "@/shared/math";
 import { MAX_DB, MIN_DB } from "@/shared/mix/types";
 import { db } from "./audio-format";
@@ -58,11 +59,11 @@ export function Fader({
       <div className="bg-muted absolute inset-y-1 left-1/2 w-1 -translate-x-1/2 rounded-full" />
       <div
         className="bg-foreground/40 absolute left-0 h-px w-full"
-        style={{ bottom: `${faderPosition(0) * 100}%` }}
+        style={{ bottom: percent(faderPosition(0)) }}
       />
       <div
         className="bg-primary border-background absolute left-1/2 h-2.5 w-4 -translate-x-1/2 translate-y-1/2 rounded-sm border"
-        style={{ bottom: `${faderPosition(value) * 100}%` }}
+        style={{ bottom: percent(faderPosition(value)) }}
       />
     </div>
   );

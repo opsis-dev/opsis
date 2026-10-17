@@ -30,6 +30,20 @@ export function entranceStyle(
   }
 }
 
+type Ease = (t: number) => number;
+
+export function fadeWindow(
+  t: number,
+  fromT: number,
+  toT: number,
+  fade: { in: number; out: number; easeIn?: Ease; easeOut?: Ease },
+): number {
+  return Math.min(
+    interpolate(t, [fromT, fromT + fade.in], [0, 1], { ...CLAMPED, easing: fade.easeIn }),
+    interpolate(t, [toT - fade.out, toT], [1, 0], { ...CLAMPED, easing: fade.easeOut }),
+  );
+}
+
 export function exitOpacity(frame: number, duration: number, frames = 10): number {
   return interpolate(frame, [duration - frames, duration], [1, 0], {
     ...CLAMPED,

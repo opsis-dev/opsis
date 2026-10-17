@@ -1,5 +1,6 @@
 import { useRef, type PointerEvent } from "react";
 import { spotYKey } from "@/shared/elements/introspect";
+import { percent } from "@/shared/format";
 import { clamp01, numberOr, round3 } from "@/shared/math";
 import { fractionIn } from "@/renderer/lib/dom";
 import { FieldShell } from "./field-shell";
@@ -53,7 +54,7 @@ export function SpotField({ label, name, all, onPatch, ctx, meta }: FieldProps<n
       >
         <span
           className="border-background bg-primary pointer-events-none absolute size-3 -translate-1/2 rounded-full border-2 shadow"
-          style={{ left: `${x * 100}%`, top: `${y * 100}%` }}
+          style={{ left: percent(x), top: percent(y) }}
         />
       </SpotFrame>
     </FieldShell>

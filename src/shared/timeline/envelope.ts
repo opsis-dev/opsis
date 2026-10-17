@@ -1,8 +1,8 @@
 import type { Ease, Keyframe } from "../schema/timeline";
-import { clamp, lerp, sampleKeyed } from "../math";
+import { clamp01, lerp, sampleKeyed } from "../math";
 
 function ease(kind: Ease, t: number): number {
-  const x = clamp(t, 0, 1);
+  const x = clamp01(t);
   switch (kind) {
     case "in":
       return x * x;

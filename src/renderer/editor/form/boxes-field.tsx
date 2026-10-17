@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import type { PointerEvent } from "react";
+import { percent } from "@/shared/format";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { cn } from "@/renderer/lib/utils";
 import { SpotFrame } from "./spot-frame";
@@ -9,10 +10,10 @@ import { useBoxDrag, type Box } from "./use-box-drag";
 const MAX_BOXES = 8;
 
 const boxStyle = (b: Box) => ({
-  left: `${b.x * 100}%`,
-  top: `${b.y * 100}%`,
-  width: `${b.width * 100}%`,
-  height: `${b.height * 100}%`,
+  left: percent(b.x),
+  top: percent(b.y),
+  width: percent(b.width),
+  height: percent(b.height),
 });
 
 function BoxOverlay({

@@ -1,12 +1,16 @@
 import React from "react";
-import { CURSOR_SCALE_EXP, type ClickLog } from "./lib/click-log";
+import type { ClickLog } from "./lib/click-log";
 import { cursorAt } from "./lib/cursor";
 import { useDesignScale } from "./lib/design-scale";
+import { percent } from "../../shared/format";
 
+const CURSOR_SCALE_EXP = 0.58;
 const HOT_X = 1;
 const HOT_Y = 1;
 const ARROW_W = 34;
 const ARROW_H = 45;
+const ARROW_VIEW_W = 24;
+const ARROW_VIEW_H = 32;
 const RIPPLE_D = 22;
 const RIPPLE_STROKE = 2;
 const RIPPLE_FROM = 0.3;
@@ -36,8 +40,8 @@ export const Cursor: React.FC<{
     <div
       style={{
         position: "absolute",
-        left: `${(state.x / width) * 100}%`,
-        top: `${(state.y / height) * 100}%`,
+        left: percent(state.x / width),
+        top: percent(state.y / height),
         width: 0,
         height: 0,
         pointerEvents: "none",
@@ -68,14 +72,14 @@ export const Cursor: React.FC<{
       <svg
         width={arrowW}
         height={arrowH}
-        viewBox="0 0 24 32"
+        viewBox={`0 0 ${ARROW_VIEW_W} ${ARROW_VIEW_H}`}
         xmlns="http://www.w3.org/2000/svg"
         style={{
           position: "absolute",
-          left: (-HOT_X / 24) * arrowW,
-          top: (-HOT_Y / 32) * arrowH,
+          left: (-HOT_X / ARROW_VIEW_W) * arrowW,
+          top: (-HOT_Y / ARROW_VIEW_H) * arrowH,
           transform: `scale(${state.squash})`,
-          transformOrigin: `${(HOT_X / 24) * 100}% ${(HOT_Y / 32) * 100}%`,
+          transformOrigin: `${percent(HOT_X / ARROW_VIEW_W)} ${percent(HOT_Y / ARROW_VIEW_H)}`,
           filter: `drop-shadow(0 ${1.5 * k}px ${2.5 * k}px rgba(${INK}, 0.34))`,
         }}
       >

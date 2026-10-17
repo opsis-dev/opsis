@@ -2,6 +2,7 @@ import { useVideoConfig } from "remotion";
 import { clamp } from "../../shared/math";
 import type { ReframeMode } from "../../shared/schema/timeline";
 import { containBox, type Size } from "./still-layout";
+import { designScaleFor } from "../camera/lib/design-width";
 
 type Insets = { top: number; right: number; bottom: number; left: number };
 
@@ -21,7 +22,7 @@ export function shapeInsets(width: number, height: number): Insets {
 }
 
 export const overlayScale = (width: number, height: number): number =>
-  Math.max(width, height) / 1920;
+  designScaleFor(Math.max(width, height));
 
 export const zoomBoost = (sourceAspect: number, outAspect: number): number =>
   clamp(Math.sqrt(sourceAspect / outAspect), 1, 2);

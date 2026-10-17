@@ -1,6 +1,6 @@
 import { Easing } from "remotion";
-import { DESIGN_WIDTH } from "./click-log";
-import { clamp, lerp } from "../../../shared/math";
+import { designScaleFor } from "./design-width";
+import { clamp, clamp01, lerp } from "../../../shared/math";
 
 const CAMERA_BEZIER = Easing.bezier(0.2, 0.2, 0.15, 1);
 
@@ -10,10 +10,16 @@ export type CameraPose = {
   cy: number;
 };
 
+export type ZoomState = {
+  scale: number;
+  translateX: number;
+  translateY: number;
+};
+
 export const BASE_POSE: CameraPose = { scale: 1, cx: 0.5, cy: 0.48 };
 
 export function cameraEase(t01: number): number {
-  return CAMERA_BEZIER(clamp(t01, 0, 1));
+  return CAMERA_BEZIER(clamp01(t01));
 }
 
 export function interpolatePose(a: CameraPose, b: CameraPose, t01: number): CameraPose {
@@ -63,15 +69,13 @@ export function poseTravelPx(
   to: CameraPose,
   vp: { width: number; height: number },
 ): number {
-  const k = vp.width > 0 ? vp.width / DESIGN_WIDTH : 1;
-  return Math.hypot((to.cx - from.cx) * vp.width, (to.cy - from.cy) * vp.height) / k;
+  return (
+    Math.hypot((to.cx - from.cx) * vp.width, (to.cy - from.cy) * vp.height) /
+    designScaleFor(vp.width)
+  );
 }
 
-export function poseToCss(
-  pose: CameraPose,
-  chromeFrac: number,
-  fit = 1,
-): { scale: number; translateX: number; translateY: number } {
+export function poseToCss(pose: CameraPose, chromeFrac: number, fit = 1): ZoomState {
   const S = pose.scale;
   const effective = fit * S;
   const windowCy = chromeFrac > 0 ? chromeFrac + pose.cy * (1 - chromeFrac) : pose.cy;

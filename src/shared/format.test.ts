@@ -8,6 +8,7 @@ import {
   humanize,
   parseNumberList,
   parseNumberText,
+  percent,
 } from "./format";
 
 describe("formatBytes", () => {
@@ -86,5 +87,12 @@ describe("number lists", () => {
     expect(parseNumberList("")).toEqual([0]);
     expect(formatNumberList([100, 0, 0])).toBe("100");
     expect(formatNumberList([0, 0])).toBe("");
+  });
+});
+
+describe("percent", () => {
+  it("writes a fraction as a CSS percentage", () => {
+    expect(percent(0.25)).toBe("25%");
+    expect(percent(-0.5)).toBe("-50%");
   });
 });

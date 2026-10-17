@@ -19,6 +19,11 @@ export const Stage: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   </AbsoluteFill>
 );
 
+const GLOW_RADIUS = 60;
+const GLOW_BLUR = 90;
+const GLOW_SCALE = "0.97, 0.96";
+const RIM_RADIUS = WINDOW_RADIUS + 1;
+
 const RIM_LOOKS = {
   light: { glow: "rgba(30,20,10,0.30)", lift: "2.5%", rim: "rgba(15,23,42,0.16)" },
   dark: { glow: "rgba(255,255,255,0.10)", lift: "2%", rim: "rgba(255,255,255,0.14)" },
@@ -33,10 +38,10 @@ export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
         style={{
           position: "absolute",
           inset: 0,
-          borderRadius: 60 * k,
+          borderRadius: GLOW_RADIUS * k,
           background: look.glow,
-          transform: `translateY(${look.lift}) scale(0.97, 0.96)`,
-          filter: `blur(${90 * k}px)`,
+          transform: `translateY(${look.lift}) scale(${GLOW_SCALE})`,
+          filter: `blur(${GLOW_BLUR * k}px)`,
           pointerEvents: "none",
         }}
       />
@@ -44,7 +49,7 @@ export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
         style={{
           position: "absolute",
           inset: -k,
-          borderRadius: (WINDOW_RADIUS + 1) * k,
+          borderRadius: RIM_RADIUS * k,
           boxShadow: `0 0 0 ${k}px ${look.rim}`,
           pointerEvents: "none",
         }}
@@ -117,40 +122,42 @@ const Glyph: React.FC<{ d: string; size: number; color: string }> = ({ d, size, 
   </svg>
 );
 
-const WindowButtons: React.FC<{ windowStyle: WindowStyle; theme: FrameTheme }> = ({
+type ButtonLook = {
+  row: React.CSSProperties;
+  button: React.CSSProperties;
+  glyph: number;
+};
+
+type ButtonedStyle = Exclude<WindowStyle, "macos">;
+
+const BUTTON_LOOKS: Record<
+  ButtonedStyle,
+  (k: number, c: (typeof FRAME_COLORS)[FrameTheme]) => ButtonLook
+> = {
+  linux: (k, c) => ({
+    row: { gap: 9 * k },
+    button: { width: 20 * k, height: 20 * k, borderRadius: PILL_RADIUS, background: c.button },
+    glyph: 11 * k,
+  }),
+  windows: (k) => ({
+    row: { alignSelf: "stretch", marginRight: -14 * k },
+    button: { width: 44 * k, alignSelf: "stretch" },
+    glyph: 12 * k,
+  }),
+};
+
+const WindowButtons: React.FC<{ windowStyle: ButtonedStyle; theme: FrameTheme }> = ({
   windowStyle,
   theme,
 }) => {
   const k = useDesignScale();
   const c = FRAME_COLORS[theme];
-  if (windowStyle === "linux")
-    return (
-      <div style={{ display: "flex", gap: 9 * k, flexShrink: 0 }}>
-        {BUTTON_NAMES.map((n) => (
-          <div
-            key={n}
-            style={{
-              width: 20 * k,
-              height: 20 * k,
-              borderRadius: PILL_RADIUS,
-              background: c.button,
-              display: "grid",
-              placeItems: "center",
-            }}
-          >
-            <Glyph d={ICONS[n]} size={11 * k} color={c.icon} />
-          </div>
-        ))}
-      </div>
-    );
+  const look = BUTTON_LOOKS[windowStyle](k, c);
   return (
-    <div style={{ display: "flex", alignSelf: "stretch", flexShrink: 0, marginRight: -14 * k }}>
+    <div style={{ display: "flex", flexShrink: 0, ...look.row }}>
       {BUTTON_NAMES.map((n) => (
-        <div
-          key={n}
-          style={{ width: 44 * k, display: "grid", placeItems: "center", alignSelf: "stretch" }}
-        >
-          <Glyph d={ICONS[n]} size={12 * k} color={c.icon} />
+        <div key={n} style={{ display: "grid", placeItems: "center", ...look.button }}>
+          <Glyph d={ICONS[n]} size={look.glyph} color={c.icon} />
         </div>
       ))}
     </div>

@@ -1,12 +1,10 @@
-import {
-  CLICK_SQUASH,
-  CLICK_SQUASH_S,
-  CURSOR_FADE_S,
-  RIPPLE_S,
-  type ClickEvent,
-  type CursorSample,
-} from "./click-log";
-import { clamp, lerp, sampleKeyed } from "../../../shared/math";
+import type { ClickEvent, CursorSample } from "./click-log";
+import { clamp01, lerp, sampleKeyed } from "../../../shared/math";
+
+export const CLICK_SQUASH = 0.9;
+export const CLICK_SQUASH_S = 0.12;
+export const CURSOR_FADE_S = 0.18;
+const RIPPLE_S = 0.35;
 
 type CursorState = {
   x: number;
@@ -16,62 +14,55 @@ type CursorState = {
   opacity: number;
 };
 
-export function cursorOpacity(clicks: ClickEvent[], tS: number): number {
+function cursorOpacity(clicks: ClickEvent[], tS: number): number {
   let opacity = 1;
   for (const c of clicks) {
     if (c.typeEndMs == null) continue;
     const from = c.tMs / 1000;
     const to = c.typeEndMs / 1000;
     if (tS <= from - CURSOR_FADE_S || tS >= to + CURSOR_FADE_S) continue;
-    const fadingOut = clamp((from - tS) / CURSOR_FADE_S, 0, 1);
-    const fadingIn = clamp((tS - to) / CURSOR_FADE_S, 0, 1);
+    const fadingOut = clamp01((from - tS) / CURSOR_FADE_S);
+    const fadingIn = clamp01((tS - to) / CURSOR_FADE_S);
     opacity = Math.min(opacity, Math.max(fadingOut, fadingIn));
   }
   return opacity;
 }
 
-export function samplePath(track: CursorSample[], tS: number): { x: number; y: number } | null {
-  return (
-    sampleKeyed(
-      track,
-      tS * 1000,
-      (s) => s.t,
-      (s) => ({ x: s.x, y: s.y }),
-      (a, b, p) => ({ x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p) }),
-    ) ?? null
+const trackPointAt = (track: CursorSample[], tS: number): { x: number; y: number } | undefined =>
+  sampleKeyed(
+    track,
+    tS * 1000,
+    (s) => s.t,
+    (s) => ({ x: s.x, y: s.y }),
+    (a, b, p) => ({ x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p) }),
   );
+
+function squashAfter(releasedS: number): number {
+  if (releasedS <= 0) return CLICK_SQUASH;
+  if (releasedS > CLICK_SQUASH_S) return 1;
+  return lerp(CLICK_SQUASH, 1, clamp01(releasedS / CLICK_SQUASH_S));
 }
 
-function squashFor(c: ClickEvent, tS: number): number {
-  if (c.tDownMs == null) return 1;
-  const since = tS - c.tDownMs / 1000;
-  if (since < 0) return 1;
-  const held = c.tUpMs != null ? Math.max(0, (c.tUpMs - c.tDownMs) / 1000) : 0;
-  const released = since - held;
-  if (released <= 0) return CLICK_SQUASH;
-  if (released > CLICK_SQUASH_S) return 1;
-  return lerp(CLICK_SQUASH, 1, clamp(released / CLICK_SQUASH_S, 0, 1));
-}
-
-function rippleFor(c: ClickEvent, tS: number): number | null {
-  if (c.tDownMs == null) return null;
-  const since = tS - c.tDownMs / 1000;
-  return since >= 0 && since <= RIPPLE_S ? clamp(since / RIPPLE_S, 0, 1) : null;
-}
+const rippleFor = (sinceS: number): number | null =>
+  sinceS <= RIPPLE_S ? clamp01(sinceS / RIPPLE_S) : null;
 
 export function cursorAt(
   track: CursorSample[],
   clicks: ClickEvent[],
   tS: number,
 ): CursorState | null {
-  const here = samplePath(track, tS);
+  const here = trackPointAt(track, tS);
   if (!here) return null;
 
   let squash = 1;
   let ripple: number | null = null;
   for (const c of clicks) {
-    squash = Math.min(squash, squashFor(c, tS));
-    ripple = rippleFor(c, tS) ?? ripple;
+    if (c.tDownMs == null) continue;
+    const sinceS = tS - c.tDownMs / 1000;
+    if (sinceS < 0) continue;
+    const heldS = c.tUpMs != null ? Math.max(0, (c.tUpMs - c.tDownMs) / 1000) : 0;
+    squash = Math.min(squash, squashAfter(sinceS - heldS));
+    ripple = rippleFor(sinceS) ?? ripple;
   }
 
   return {

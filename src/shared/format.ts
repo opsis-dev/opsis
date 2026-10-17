@@ -105,3 +105,5 @@ export function formatNumberList(parts: number[]): string {
 }
 
 export const chordKeys = (chord: string): string[] => chord.split(/\+(?=.)/);
+
+export const percent = (fraction: number): string => `${fraction * 100}%`;

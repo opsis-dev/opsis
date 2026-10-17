@@ -5,7 +5,7 @@ import { z } from "zod";
 import { engineStatus } from "../../engine/paths";
 import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { CancelledError, throwIfCancelled } from "../../shared/errors";
-import { clamp } from "../../shared/math";
+import { clamp01 } from "../../shared/math";
 
 export type FfmpegTools = {
   run: (args: string[], opts?: RunOptions) => Promise<string>;
@@ -64,7 +64,7 @@ function settle(child: ToolProcess, bin: string, opts: RunOptions): Promise<stri
       if (!opts.durationMs) return;
       for (const m of text.matchAll(/out_time_(?:us|ms)=(\d+)/g)) {
         const ms = Number(m[1]) / 1000;
-        opts.onProgress(clamp(ms / opts.durationMs, 0, 1));
+        opts.onProgress(clamp01(ms / opts.durationMs));
       }
     });
     child.stderr.on("data", (chunk: Buffer) => {

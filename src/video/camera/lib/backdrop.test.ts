@@ -1,41 +1,45 @@
-import assert from "node:assert/strict";
-import { describe, it } from "vitest";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../../../shared/backdrops";
 import { backdropFile, backdropSource, isLightBackdrop } from "./backdrop";
+import { STAGE_GROUND } from "./style";
+
+const PUBLIC_DIR = path.resolve(import.meta.dirname, "../../../../public");
 
 describe("backdropFile", () => {
   it("resolves a bare name to the shipped set", () => {
-    assert.equal(backdropFile("cobalt"), "backdrops/cobalt.jpg");
+    expect(backdropFile("cobalt")).toBe("backdrops/cobalt.jpg");
   });
 
   it("falls back to the default when unset or blank", () => {
-    assert.equal(backdropFile(), `backdrops/${DEFAULT_BACKDROP}.jpg`);
-    assert.equal(backdropFile("  "), `backdrops/${DEFAULT_BACKDROP}.jpg`);
+    expect(backdropFile()).toBe(`backdrops/${DEFAULT_BACKDROP}.jpg`);
+    expect(backdropFile("  ")).toBe(`backdrops/${DEFAULT_BACKDROP}.jpg`);
   });
 
   it("takes anything with an extension as your own file, so custom images need no code", () => {
-    assert.equal(backdropFile("mine.jpg"), "backdrops/mine.jpg");
-    assert.equal(backdropFile("mine.png"), "backdrops/mine.png");
+    expect(backdropFile("mine.jpg")).toBe("backdrops/mine.jpg");
+    expect(backdropFile("mine.png")).toBe("backdrops/mine.png");
   });
 
-  it("resolves every shipped backdrop", () => {
-    for (const b of BACKDROPS) assert.equal(backdropFile(b), `backdrops/${b}.jpg`);
+  it.each(BACKDROPS)("finds the shipped %s image", (b) => {
+    expect(existsSync(path.join(PUBLIC_DIR, backdropFile(b)))).toBe(true);
   });
 });
 
 describe("backdropSource", () => {
   it("paints colours and gradients, loads addresses, and finds names in the shipped set", () => {
-    assert.deepEqual(backdropSource("#123456"), { kind: "paint", css: "#123456" });
-    assert.deepEqual(backdropSource("linear-gradient(red, blue)"), {
+    expect(backdropSource("#123456")).toEqual({ kind: "paint", css: "#123456" });
+    expect(backdropSource("linear-gradient(red, blue)")).toEqual({
       kind: "paint",
       css: "linear-gradient(red, blue)",
     });
-    assert.deepEqual(backdropSource("https://x.test/y.jpg"), {
+    expect(backdropSource("https://x.test/y.jpg")).toEqual({
       kind: "image",
       url: "https://x.test/y.jpg",
     });
-    assert.deepEqual(backdropSource("cobalt"), { kind: "file", path: "backdrops/cobalt.jpg" });
-    assert.deepEqual(backdropSource(undefined), {
+    expect(backdropSource("cobalt")).toEqual({ kind: "file", path: "backdrops/cobalt.jpg" });
+    expect(backdropSource(undefined)).toEqual({
       kind: "file",
       path: `backdrops/${DEFAULT_BACKDROP}.jpg`,
     });
@@ -44,15 +48,17 @@ describe("backdropSource", () => {
 
 describe("isLightBackdrop", () => {
   it("flags the light ones, because a white rim cannot separate on them", () => {
-    assert.equal(isLightBackdrop("canyon"), true);
-    assert.equal(isLightBackdrop("glaze"), false);
-    assert.equal(isLightBackdrop("unknown"), false);
+    expect(isLightBackdrop("canyon")).toBe(true);
+    expect(isLightBackdrop("glaze")).toBe(false);
+    expect(isLightBackdrop("unknown")).toBe(false);
   });
 
-  it("reads light and dark colours, in short and long hex", () => {
-    assert.equal(isLightBackdrop("#faf6f1"), true);
-    assert.equal(isLightBackdrop("#fff"), true);
-    assert.equal(isLightBackdrop("#0b0b10"), false);
-    assert.equal(isLightBackdrop("rgb(250, 250, 250)"), false);
+  it("reads light and dark colours, in short and long hex and rgb()", () => {
+    expect(isLightBackdrop(STAGE_GROUND)).toBe(true);
+    expect(isLightBackdrop("#fff")).toBe(true);
+    expect(isLightBackdrop("#0b0b10")).toBe(false);
+    expect(isLightBackdrop("rgb(250, 250, 250)")).toBe(true);
+    expect(isLightBackdrop("rgba(250 250 250 / 0.9)")).toBe(true);
+    expect(isLightBackdrop("rgb(20, 20, 30)")).toBe(false);
   });
 });

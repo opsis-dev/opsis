@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { ActionLog } from "../../shared/schema/actions";
+import { rectCentre, type ActionLog, type Rect } from "../../shared/schema/actions";
 import { resolveAnnotations, toClickLog } from "./action-log";
 import { BASE_POSE } from "./lib/camera";
-import { sees } from "./lib/test-fixtures";
+import { isInFrame } from "./lib/test-fixtures";
 import { buildCameraTrack, sampleTrack } from "./lib/zoom";
 
 const log: ActionLog = {
@@ -83,7 +83,7 @@ describe("ActionLog → ClickLog", () => {
     expect(ann[0].toS).toBeCloseTo(3);
   });
 
-  const dragLog = (drop: { x: number; y: number; w: number; h: number }): ActionLog => ({
+  const dragLog = (drop: Rect): ActionLog => ({
     ...log,
     actions: [
       {
@@ -92,7 +92,7 @@ describe("ActionLog → ClickLog", () => {
         t: 4000,
         tDepart: 2400,
         tDown: 3000,
-        point: { x: drop.x + drop.w / 2, y: drop.y + drop.h / 2 },
+        point: rectCentre(drop),
         rect: { x: 300, y: 300, w: 200, h: 80 },
         drop,
         label: "Card",
@@ -139,8 +139,8 @@ describe("ActionLog → ClickLog", () => {
       const pose = sampleTrack(track, t);
       expect(pose.scale).toBeGreaterThan(1.05);
       for (const r of [pick, drop]) {
-        expect(sees(pose, log.viewport, r.x, r.y)).toBe(true);
-        expect(sees(pose, log.viewport, r.x + r.w, r.y + r.h)).toBe(true);
+        expect(isInFrame(pose, log.viewport, r.x, r.y)).toBe(true);
+        expect(isInFrame(pose, log.viewport, r.x + r.w, r.y + r.h)).toBe(true);
       }
     }
   });

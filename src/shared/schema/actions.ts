@@ -9,6 +9,22 @@ export const rectFromBounds = (b: Bounds): Rect => ({ x: b.x, y: b.y, w: b.width
 
 export const boundsFromRect = (r: Rect): Bounds => ({ x: r.x, y: r.y, width: r.w, height: r.h });
 
+export const rectCentre = (r: Rect): { x: number; y: number } => ({
+  x: r.x + r.w / 2,
+  y: r.y + r.h / 2,
+});
+
+export function rectUnion(a: Rect, b: Rect): Rect {
+  const x = Math.min(a.x, b.x);
+  const y = Math.min(a.y, b.y);
+  return {
+    x,
+    y,
+    w: Math.max(a.x + a.w, b.x + b.w) - x,
+    h: Math.max(a.y + a.h, b.y + b.h) - y,
+  };
+}
+
 const ACTION_KINDS = [
   "click",
   "type",

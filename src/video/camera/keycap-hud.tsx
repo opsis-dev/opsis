@@ -1,18 +1,22 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
-import { chordGlyphs, type KeyEvent } from "./lib/click-log";
-import { keycapAt, settle } from "./lib/keycap";
+import type { KeyEvent } from "./lib/click-log";
+import { chordGlyphs, keycapAt, settle } from "./lib/keycap";
 import { useDesignScale } from "./lib/design-scale";
 import { useOverlayFrame } from "../core/frame";
 
-const KEYCAP_H = 103;
-const KEYCAP_MIN_W = 216;
-const KEYCAP_PAD_X = 46;
-const KEYCAP_EDGE = 53;
-const KEYCAP_RADIUS = 26;
-const KEYCAP_GLYPH = 44;
-const KEYCAP_GROUND = "#0a0a0a";
-const KEYCAP_INK = "#ffffff";
+const KEYCAP = {
+  height: 103,
+  minWidth: 216,
+  padX: 46,
+  edge: 53,
+  radius: 26,
+  glyph: 44,
+  glyphGap: 0.28,
+  rise: 10,
+  ground: "#0a0a0a",
+  ink: "#ffffff",
+} as const;
 
 export const KeycapHUD: React.FC<{
   keys: KeyEvent[];
@@ -28,15 +32,15 @@ export const KeycapHUD: React.FC<{
   const leave = 1 - settle(active.outP);
   const opacity = Math.min(appear, leave);
   const top = position === "top";
-  const rise = (1 - appear) * 10 * k * (top ? -1 : 1);
+  const rise = (1 - appear) * KEYCAP.rise * k * (top ? -1 : 1);
 
   return (
     <AbsoluteFill
       style={{
         alignItems: "center",
         justifyContent: top ? "flex-start" : "flex-end",
-        paddingTop: top ? KEYCAP_EDGE * k + insets.top : 0,
-        paddingBottom: top ? 0 : KEYCAP_EDGE * k + insets.bottom,
+        paddingTop: top ? KEYCAP.edge * k + insets.top : 0,
+        paddingBottom: top ? 0 : KEYCAP.edge * k + insets.bottom,
         pointerEvents: "none",
       }}
     >
@@ -45,14 +49,14 @@ export const KeycapHUD: React.FC<{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          minWidth: KEYCAP_MIN_W * k,
-          height: KEYCAP_H * k,
-          padding: `0 ${KEYCAP_PAD_X * k}px`,
-          borderRadius: KEYCAP_RADIUS * k,
-          backgroundColor: KEYCAP_GROUND,
-          color: KEYCAP_INK,
-          fontSize: KEYCAP_GLYPH * k,
-          gap: 0.28 * KEYCAP_GLYPH * k,
+          minWidth: KEYCAP.minWidth * k,
+          height: KEYCAP.height * k,
+          padding: `0 ${KEYCAP.padX * k}px`,
+          borderRadius: KEYCAP.radius * k,
+          backgroundColor: KEYCAP.ground,
+          color: KEYCAP.ink,
+          fontSize: KEYCAP.glyph * k,
+          gap: KEYCAP.glyphGap * KEYCAP.glyph * k,
           lineHeight: 1,
           opacity,
           transform: `translateY(${rise}px)`,

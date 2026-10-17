@@ -1,6 +1,6 @@
 import type { CameraPose } from "./camera";
 
-export const sees = (
+export const isInFrame = (
   pose: CameraPose,
   vp: { width: number; height: number },
   x: number,

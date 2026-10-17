@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import type { RecordingProps } from "../../shared/compile/recording";
-import { roleStack } from "../../shared/fonts";
+import { CODE_FONT } from "../../shared/fonts";
 import { displayAddress } from "../../shared/format";
 import { clamp } from "../../shared/math";
 import { useAsset, useQuality, useReframe } from "../assets";
@@ -11,11 +11,10 @@ import { KeycapHUD } from "../camera/keycap-hud";
 import { DesignWidthContext } from "../camera/lib/design-scale";
 import { SHOT_STYLES } from "../camera/lib/style";
 import { poseAt } from "../camera/lib/zoom";
-import { CLAMPED } from "./anim";
+import { CLAMPED, fadeWindow } from "./anim";
 import { reframeLayout, useOverlayFrame } from "./frame";
 import type { Size } from "./still-layout";
 
-const CODE_FONT = roleStack("code");
 const TYPED_FADE_IN_S = 0.15;
 const TYPED_FADE_OUT_S = 0.2;
 const CARET_BLINKS_PER_S = 2.5;
@@ -98,7 +97,11 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
       {layout.mode === "cover" ? (
         <Cropped
           box={layout.box}
-          cx={layout.follow ? poseAt(frame, fps, log, props.speed, props.tuning).cx : 0.5}
+          cx={
+            layout.follow
+              ? poseAt(frame, fps, log, { speed: props.speed, tuning: props.tuning }).cx
+              : 0.5
+          }
         >
           {clip}
         </Cropped>
@@ -164,10 +167,10 @@ const TypedChip: React.FC<{
   const shown = Math.round(
     interpolate(timeS, [beat.fromS, typingEnd], [0, beat.text.length], CLAMPED),
   );
-  const o = Math.min(
-    interpolate(timeS, [beat.fromS, beat.fromS + TYPED_FADE_IN_S], [0, 1], CLAMPED),
-    interpolate(timeS, [beat.toS - TYPED_FADE_OUT_S, beat.toS], [1, 0], CLAMPED),
-  );
+  const o = fadeWindow(timeS, beat.fromS, beat.toS, {
+    in: TYPED_FADE_IN_S,
+    out: TYPED_FADE_OUT_S,
+  });
   return (
     <AbsoluteFill
       style={{

@@ -1,13 +1,6 @@
-import assert from "node:assert/strict";
-import { describe, it } from "vitest";
-import {
-  CLICK_SQUASH,
-  CLICK_SQUASH_S,
-  CURSOR_FADE_S,
-  type ClickEvent,
-  type CursorSample,
-} from "./click-log";
-import { cursorAt, cursorOpacity, samplePath } from "./cursor";
+import { describe, expect, it } from "vitest";
+import type { ClickEvent, CursorSample } from "./click-log";
+import { CLICK_SQUASH, CLICK_SQUASH_S, CURSOR_FADE_S, cursorAt } from "./cursor";
 
 const track: CursorSample[] = [
   { t: 0, x: 100, y: 100 },
@@ -15,42 +8,43 @@ const track: CursorSample[] = [
   { t: 1000, x: 500, y: 400 },
 ];
 
-describe("samplePath", () => {
+const at = (clicks: ClickEvent[], tS: number) => {
+  const state = cursorAt(track, clicks, tS);
+  if (!state) throw new Error(`no cursor at ${tS}s`);
+  return state;
+};
+
+const pointAt = (tS: number) => {
+  const { x, y } = at([], tS);
+  return { x, y };
+};
+
+describe("cursor path", () => {
   it("holds the ends outside the recorded range", () => {
-    assert.deepEqual(samplePath(track, -5), { x: 100, y: 100 });
-    assert.deepEqual(samplePath(track, 99), { x: 500, y: 400 });
+    expect(pointAt(-5)).toEqual({ x: 100, y: 100 });
+    expect(pointAt(99)).toEqual({ x: 500, y: 400 });
   });
 
   it("interpolates between samples", () => {
-    assert.deepEqual(samplePath(track, 0.25), { x: 200, y: 150 });
-    assert.deepEqual(samplePath(track, 0.75), { x: 400, y: 300 });
-  });
-
-  it("returns null for an empty track", () => {
-    assert.equal(samplePath([], 1), null);
+    expect(pointAt(0.25)).toEqual({ x: 200, y: 150 });
+    expect(pointAt(0.75)).toEqual({ x: 400, y: 300 });
   });
 });
-
-const at = (clicks: ClickEvent[], tS: number) => {
-  const state = cursorAt(track, clicks, tS);
-  assert.ok(state);
-  return state;
-};
 
 describe("cursorAt", () => {
   it("holds perfectly still between glides", () => {
     const first = at([], 2);
     for (let f = 1; f < 60; f++) {
       const s = at([], 2 + f / 30);
-      assert.equal(s.x, first.x);
-      assert.equal(s.y, first.y);
+      expect(s.x).toBe(first.x);
+      expect(s.y).toBe(first.y);
     }
   });
 
   it("is deterministic", () => {
     const a = at([], 2.5);
     const b = at([], 2.5);
-    assert.deepEqual(a, b);
+    expect(a).toEqual(b);
   });
 
   it("ripples and squashes on mousedown, not on focus beats", () => {
@@ -59,55 +53,56 @@ describe("cursorAt", () => {
       { tMs: 900, x: 400, y: 300 },
     ];
     const during = at(clicks, 0.55);
-    assert.ok(during.ripple !== null && during.ripple > 0);
-    assert.ok(during.squash < 1, "no squash on mousedown");
+    expect(during.ripple !== null && during.ripple > 0).toBe(true);
+    expect(during.squash < 1, "no squash on mousedown").toBe(true);
 
     const after = at(clicks, 1.2);
-    assert.equal(after.ripple, null);
-    assert.equal(after.squash, 1);
+    expect(after.ripple).toBe(null);
+    expect(after.squash).toBe(1);
 
-    assert.equal(at(clicks, 0.95).ripple, null);
+    expect(at(clicks, 0.95).ripple).toBe(null);
   });
 
   it("stays pressed for the whole drag and springs back after the drop", () => {
     const drag = [{ tMs: 900, x: 500, y: 400, tDownMs: 200, tUpMs: 900 }];
-    assert.ok(at(drag, 0.25).ripple !== null);
+    expect(at(drag, 0.25).ripple !== null).toBe(true);
     const held = at(drag, 0.8);
-    assert.equal(held.squash, CLICK_SQUASH);
-    assert.equal(held.ripple, null);
+    expect(held.squash).toBe(CLICK_SQUASH);
+    expect(held.ripple).toBe(null);
     const springing = at(drag, 0.9 + CLICK_SQUASH_S / 2).squash;
-    assert.ok(springing > CLICK_SQUASH && springing < 1);
-    assert.equal(at(drag, 0.9 + CLICK_SQUASH_S + 0.01).squash, 1);
+    expect(springing > CLICK_SQUASH && springing < 1).toBe(true);
+    expect(at(drag, 0.9 + CLICK_SQUASH_S + 0.01).squash).toBe(1);
   });
 
   it("returns null when there is no recorded track", () => {
-    assert.equal(cursorAt([], [], 1), null);
+    expect(cursorAt([], [], 1)).toBe(null);
   });
 });
 
-describe("cursorOpacity", () => {
+describe("cursor opacity", () => {
   const typing = [{ tMs: 500, x: 300, y: 200, tDownMs: 450, typeEndMs: 3000 }];
+  const cursorOpacity = (clicks: ClickEvent[], tS: number) => at(clicks, tS).opacity;
 
   it("hides the arrow while the app's text caret is up", () => {
-    assert.equal(cursorOpacity(typing, 1.5), 0);
-    assert.equal(cursorOpacity(typing, 2.9), 0);
+    expect(cursorOpacity(typing, 1.5)).toBe(0);
+    expect(cursorOpacity(typing, 2.9)).toBe(0);
   });
 
   it("is fully visible well outside the typing window", () => {
-    assert.equal(cursorOpacity(typing, 0.1), 1);
-    assert.equal(cursorOpacity(typing, 4.0), 1);
+    expect(cursorOpacity(typing, 0.1)).toBe(1);
+    expect(cursorOpacity(typing, 4.0)).toBe(1);
   });
 
   it("fades rather than pops at both edges", () => {
     const out = cursorOpacity(typing, 0.5 - CURSOR_FADE_S / 2);
     const back = cursorOpacity(typing, 3.0 + CURSOR_FADE_S / 2);
     for (const v of [out, back]) {
-      assert.ok(v > 0 && v < 1, `expected a partial fade, got ${v}`);
+      expect(v > 0 && v < 1, `expected a partial fade, got ${v}`).toBe(true);
     }
   });
 
   it("leaves plain clicks alone", () => {
     const clicks = [{ tMs: 500, x: 1, y: 1, tDownMs: 450 }];
-    assert.equal(cursorOpacity(clicks, 0.5), 1);
+    expect(cursorOpacity(clicks, 0.5)).toBe(1);
   });
 });

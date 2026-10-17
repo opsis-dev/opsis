@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Locator, Page } from "playwright-core";
 import { autoCandidates } from "./selectors";
 
@@ -36,45 +35,42 @@ describe("autoCandidates", () => {
     autoCandidates(page, "Save");
     const fns = calls.map((c) => c.fn);
     const lastRole = fns.lastIndexOf("getByRole");
-    assert.ok(lastRole >= 0 && lastRole < fns.indexOf("locator.filter"));
+    expect(lastRole >= 0 && lastRole < fns.indexOf("locator.filter")).toBe(true);
     const last = calls.at(-1);
-    assert.equal(last?.fn, "getByText");
-    assert.ok(last?.arg instanceof RegExp && last.arg.test("Save changes"));
+    expect(last?.fn).toBe("getByText");
+    expect(last?.arg instanceof RegExp && last.arg.test("Save changes")).toBe(true);
   });
 
   it("probes button and link before the rarer roles", () => {
     const { page, calls } = stubPage();
     autoCandidates(page, "Go");
-    assert.deepEqual(
-      calls.slice(0, 2).map((c) => [c.fn, c.arg]),
-      [
-        ["getByRole", "button"],
-        ["getByRole", "link"],
-      ],
-    );
+    expect(calls.slice(0, 2).map((c) => [c.fn, c.arg])).toEqual([
+      ["getByRole", "button"],
+      ["getByRole", "link"],
+    ]);
   });
 
   it("matches an exact name but not a longer one that contains it", () => {
     const { page, firstCall } = stubPage();
     autoCandidates(page, "Save");
     const exact = firstCall("getByRole");
-    assert.ok(exact.name?.test("Save"));
-    assert.ok(exact.name?.test("save"), "names are case-insensitive");
-    assert.ok(exact.name && !exact.name.test("Save and close"));
+    expect(exact.name?.test("Save")).toBe(true);
+    expect(exact.name?.test("save"), "names are case-insensitive").toBe(true);
+    expect(exact.name && !exact.name.test("Save and close")).toBe(true);
   });
 
   it("matches a name embedded in a longer row on the contains rung", () => {
     const { page, firstCall } = stubPage();
     autoCandidates(page, "AGENTS.md");
     const filtered = firstCall("locator.filter");
-    assert.ok(filtered.hasText?.test("AGENTS.md Markdown · empty Empty file"));
+    expect(filtered.hasText?.test("AGENTS.md Markdown · empty Empty file")).toBe(true);
   });
 
   it("escapes regex metacharacters in names", () => {
     const { page, firstCall } = stubPage();
     autoCandidates(page, "AGENTS.md");
     const exact = firstCall("getByRole");
-    assert.ok(exact.name?.test("AGENTS.md"));
-    assert.ok(exact.name && !exact.name.test("AGENTSXmd"));
+    expect(exact.name?.test("AGENTS.md")).toBe(true);
+    expect(exact.name && !exact.name.test("AGENTSXmd")).toBe(true);
   });
 });

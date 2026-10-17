@@ -9,11 +9,8 @@ import {
 } from "remotion";
 import { CLAMPED, entranceStyle, exitOpacity, visibleBackground, type Entrance } from "./anim";
 import { isLandscape, useOverlayFrame } from "./frame";
-import { roleStack } from "../../shared/fonts";
+import { HEADING_FONT, MAIN_FONT } from "../../shared/fonts";
 import { msToFrames } from "../../shared/timeline/time";
-
-const HEADING_FONT = roleStack("heading");
-const MAIN_FONT = roleStack("main");
 
 const MAX_WORDS_PER_LINE = 6;
 const CAPTION_LINGER_MS = 250;

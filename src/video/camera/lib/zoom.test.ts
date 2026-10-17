@@ -1,8 +1,7 @@
-import assert from "node:assert/strict";
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { BASE_POSE, posesNearlyEqual } from "./camera";
 import type { ClickEvent, ClickLog } from "./click-log";
-import { sees } from "./test-fixtures";
+import { isInFrame } from "./test-fixtures";
 import {
   buildCameraTrack,
   cursorAim,
@@ -51,18 +50,6 @@ const clusteredLog: ClickLog = {
   ],
 };
 
-describe("stickify", () => {
-  it("never merges different explicit cluster ids", () => {
-    const groups = clusterize(clusteredLog.clicks, VP);
-    const stuck = stickify(groups, VP);
-    assert.equal(stuck.length, 4);
-    assert.deepEqual(
-      stuck.map((g) => g[0].cluster),
-      ["language", "domain", "category", "payoff"],
-    );
-  });
-});
-
 describe("clusterize", () => {
   it("splits one cluster id when its targets are far apart", () => {
     const groups = clusterize(
@@ -73,9 +60,9 @@ describe("clusterize", () => {
       ],
       VP,
     );
-    assert.equal(groups.length, 2, "far-apart targets stayed in one cluster");
-    assert.equal(groups[0].length, 1);
-    assert.equal(groups[1].length, 2);
+    expect(groups.length, "far-apart targets stayed in one cluster").toBe(2);
+    expect(groups[0].length).toBe(1);
+    expect(groups[1].length).toBe(2);
   });
 
   it("keeps a cluster together when its targets are close", () => {
@@ -83,18 +70,53 @@ describe("clusterize", () => {
       [click(1000, 476, 159, { cluster: "c0" }), click(3000, 557, 236, { cluster: "c0" })],
       VP,
     );
-    assert.equal(groups.length, 1);
+    expect(groups.length).toBe(1);
+  });
+
+  it("treats an empty cluster id as no cluster", () => {
+    const groups = clusterize(
+      [
+        click(1000, 500, 400, { cluster: "a" }),
+        click(2000, 520, 420, { cluster: "" }),
+        click(2500, 530, 430),
+      ],
+      VP,
+    );
+    expect(groups.map((g) => g.length)).toEqual([1, 2]);
+  });
+
+  it("groups clicks without a cluster by time and distance, even beside clusters", () => {
+    const groups = clusterize(
+      [
+        click(1000, 500, 400, { cluster: "a" }),
+        click(2000, 520, 420),
+        click(3000, 1500, 900),
+        click(4000, 1510, 910),
+        click(7000, 1520, 920),
+      ],
+      VP,
+    );
+    expect(groups.map((g) => g.length)).toEqual([1, 1, 2, 1]);
+  });
+});
+
+describe("stickify", () => {
+  it("never merges different explicit cluster ids", () => {
+    const groups = clusterize(clusteredLog.clicks, VP);
+    const stuck = stickify(groups, VP);
+    expect(stuck.length).toBe(4);
+    expect(stuck.map((g) => g[0].cluster)).toEqual(["language", "domain", "category", "payoff"]);
   });
 });
 
 describe("buildCameraTrack", () => {
   it("starts at base and returns to base before the cut", () => {
     const keys = buildCameraTrack(smokeLog);
-    assert.equal(keys[0].pose.scale, BASE_POSE.scale);
+    expect(keys[0].pose.scale).toBe(BASE_POSE.scale);
     const last = keys[keys.length - 1];
-    assert.ok(Math.abs(last.t - smokeLog.durationMs / 1000) < 0.05);
-    assert.equal(last.pose.scale, BASE_POSE.scale);
-    assert.equal(last.pose.cx, BASE_POSE.cx);
+    expect(Math.abs(last.t - smokeLog.durationMs / 1000) < 0.05).toBe(true);
+    expect(last.pose.scale).toBe(BASE_POSE.scale);
+    expect(last.pose.cx).toBe(BASE_POSE.cx);
   });
 
   it("holds still at base for a beat before the cut", () => {
@@ -102,8 +124,8 @@ describe("buildCameraTrack", () => {
     const end = smokeLog.durationMs / 1000;
     const a = sampleTrack(keys, end - 0.3);
     const b = sampleTrack(keys, end);
-    assert.equal(a.scale, BASE_POSE.scale);
-    assert.equal(b.scale, BASE_POSE.scale);
+    expect(a.scale).toBe(BASE_POSE.scale);
+    expect(b.scale).toBe(BASE_POSE.scale);
   });
 
   it("routes through base instead of panning across the screen", () => {
@@ -117,10 +139,10 @@ describe("buildCameraTrack", () => {
       ],
     });
     const between = keys.filter((k) => k.t > 3 && k.t < 9);
-    assert.ok(
+    expect(
       between.some((k) => Math.abs(k.pose.scale - BASE_POSE.scale) < 1e-6),
       "camera panned across the screen instead of pulling back to base",
-    );
+    ).toBe(true);
   });
 
   it("routes through base between distant clusters even with no room to trail", () => {
@@ -145,10 +167,10 @@ describe("buildCameraTrack", () => {
       1.25,
     );
     const between = keys.filter((k) => k.t > 13.5 && k.t < 18.2);
-    assert.ok(
+    expect(
       between.some((k) => Math.abs(k.pose.scale - BASE_POSE.scale) < 1e-6),
       "camera swept between clusters instead of pulling back to base",
-    );
+    ).toBe(true);
   });
 
   it("scales move durations so they land right on screen at speed", () => {
@@ -159,15 +181,15 @@ describe("buildCameraTrack", () => {
       return keys[i].t - keys[i - 1].t;
     };
     const ratio = firstMove(fast) / firstMove(real);
-    assert.ok(
+    expect(
       Math.abs(ratio - 1.25) < 0.02,
       `expected 1.25x log-time duration at 1.25x speed, got ${ratio}`,
-    );
+    ).toBe(true);
     const onScreenMs = (firstMove(fast) / 1.25) * 1000;
-    assert.ok(
+    expect(
       onScreenMs >= 550 && onScreenMs <= 1250,
       `on-screen zoom-in ${onScreenMs.toFixed(0)}ms outside the reference window`,
-    );
+    ).toBe(true);
   });
 
   it("holds still after the last click of a cluster", () => {
@@ -176,16 +198,15 @@ describe("buildCameraTrack", () => {
     const holdEnd = 4338 / 1000 + 1.25;
     const a = sampleTrack(keys, holdStart);
     const b = sampleTrack(keys, holdEnd);
-    assert.ok(Math.abs(a.scale - b.scale) < 0.01, `hold drifted ${a.scale} → ${b.scale}`);
-    assert.ok(Math.abs(a.cx - b.cx) < 0.01);
+    expect(Math.abs(a.scale - b.scale) < 0.01, `hold drifted ${a.scale} → ${b.scale}`).toBe(true);
+    expect(Math.abs(a.cx - b.cx) < 0.01).toBe(true);
   });
 
   it("starts the first punch near cursor departure, not after the click", () => {
     const keys = buildCameraTrack(smokeLog);
-    const onset = keys.find((k) => k.t > 0.05 && Math.abs(k.pose.scale - 1) < 0.02);
-    assert.ok(onset);
-    assert.ok(onset.t < 2.0, `camera onset at ${onset.t}s, click is 2.603s`);
-    assert.ok(onset.t > 1.4, `camera moved too early: ${onset.t}`);
+    const onset = keys.find((k) => k.t > 0.05 && Math.abs(k.pose.scale - 1) < 0.02)?.t;
+    expect(onset, "click is 2.603s").toBeLessThan(2.0);
+    expect(onset, "camera moved too early").toBeGreaterThan(1.4);
   });
 
   it("returns a constant pose when there are no zoomable clicks", () => {
@@ -197,8 +218,8 @@ describe("buildCameraTrack", () => {
     });
     const a = sampleTrack(keys, 0.2);
     const b = sampleTrack(keys, 3.5);
-    assert.equal(a.scale, 1);
-    assert.equal(b.scale, 1);
+    expect(a.scale).toBe(1);
+    expect(b.scale).toBe(1);
   });
 });
 
@@ -210,8 +231,12 @@ describe("zoomAt", () => {
     for (let f = start; f < end; f++) {
       const a = zoomAt(f, fps, smokeLog);
       const b = zoomAt(f + 1, fps, smokeLog);
-      assert.ok(Math.abs(a.translateX - b.translateX) < 0.03, `translateX jump at frame ${f}`);
-      assert.ok(Math.abs(a.translateY - b.translateY) < 0.03, `translateY jump at frame ${f}`);
+      expect(Math.abs(a.translateX - b.translateX) < 0.03, `translateX jump at frame ${f}`).toBe(
+        true,
+      );
+      expect(Math.abs(a.translateY - b.translateY) < 0.03, `translateY jump at frame ${f}`).toBe(
+        true,
+      );
     }
   });
 });
@@ -240,31 +265,31 @@ describe("typing beats", () => {
 
   it("stays zoomed until the last keystroke", () => {
     for (const t of [3.5, 4.5, 5.5, 5.9]) {
-      assert.ok(
+      expect(
         scaleAt(typingLog, t) > BASE_POSE.scale + 0.05,
         `expected to still be zoomed at ${t}s, got ${scaleAt(typingLog, t)}`,
-      );
+      ).toBe(true);
     }
   });
 
   it("does trail out once typing has finished", () => {
-    assert.ok(
+    expect(
       scaleAt(typingLog, 9) < BASE_POSE.scale + 0.05,
       "camera should be back at base well after the last keystroke",
-    );
+    ).toBe(true);
   });
 
   it("leaves a plain click's hold alone", () => {
-    assert.ok(
+    expect(
       scaleAt(clickOnlyLog, 5.5) < BASE_POSE.scale + 0.05,
       "a click with no typing must not inherit the extended hold",
-    );
+    ).toBe(true);
   });
 
   it("ends at base either way", () => {
     for (const log of [typingLog, clickOnlyLog]) {
       const keys = buildCameraTrack(log);
-      assert.ok(posesNearlyEqual(keys[keys.length - 1].pose, BASE_POSE));
+      expect(posesNearlyEqual(keys[keys.length - 1].pose, BASE_POSE)).toBe(true);
     }
   });
 });
@@ -272,49 +297,54 @@ describe("typing beats", () => {
 describe("frameFor", () => {
   it("does not dead-center the subject", () => {
     const pose = frameFor(click(0, 1600, 800, box(1500, 760, 200, 80)), VP, 1.6);
-    assert.ok(pose.scale >= 1.22 && pose.scale <= 1.6);
-    assert.notEqual(Math.round(pose.cx * 100), Math.round((1600 / 1920) * 100));
+    expect(pose.scale >= 1.22 && pose.scale <= 1.6).toBe(true);
+    expect(Math.round(pose.cx * 100)).not.toBe(Math.round((1600 / 1920) * 100));
   });
 
   it("keeps the click in shot when the framed region cannot fit", () => {
     const pose = frameFor(click(0, 1866, 1058, box(1160, 0, 760, 1080)), VP, S_MAX);
-    assert.ok(sees(pose, VP, 1866, 1058), "the clicked button must be on screen");
+    expect(isInFrame(pose, VP, 1866, 1058), "the clicked button must be on screen").toBe(true);
   });
 
   it("does NOT surrender the zoom just because the region is oversized", () => {
     const pose = frameFor(click(0, 1721, 655, box(1280, 0, 640, 1080)), VP, S_MAX);
-    assert.notDeepEqual(pose, BASE_POSE, "should still be zoomed in");
-    assert.ok(pose.scale > 1.1, `expected a real zoom, got ${pose.scale}`);
-    assert.ok(sees(pose, VP, 1721, 655));
+    expect(pose, "should still be zoomed in").not.toEqual(BASE_POSE);
+    expect(pose.scale > 1.1, `expected a real zoom, got ${pose.scale}`).toBe(true);
+    expect(isInFrame(pose, VP, 1721, 655)).toBe(true);
   });
 
   it("keeps a click visible when it sits at the edge of a big framed region", () => {
     const pose = frameFor(click(0, 1500, 880, box(300, 250, 1200, 640)), VP, S_MAX);
-    assert.ok(sees(pose, VP, 1500, 880), `click fell outside the frame: ${JSON.stringify(pose)}`);
+    expect(
+      isInFrame(pose, VP, 1500, 880),
+      `click fell outside the frame: ${JSON.stringify(pose)}`,
+    ).toBe(true);
   });
 
   it("still frames ordinary controls off-centre", () => {
     const pose = frameFor(click(0, 476, 223, box(273, 190, 406, 66)), VP, 1.54);
-    assert.ok(pose.scale > 1.2, `expected a real zoom, got ${pose.scale}`);
-    assert.ok(sees(pose, VP, 476, 223));
-    assert.notDeepEqual(pose, BASE_POSE);
+    expect(pose.scale > 1.2, `expected a real zoom, got ${pose.scale}`).toBe(true);
+    expect(isInFrame(pose, VP, 476, 223)).toBe(true);
+    expect(pose).not.toEqual(BASE_POSE);
   });
 
   it("frames the whole target, centred, in a narrow frame", () => {
     const wide = click(1000, 400, 200, box(300, 180, 800, 40));
     const pose = frameFor(wide, VP, S_MAX * 1.69, true);
     const visible = 1 / pose.scale;
-    assert.ok(visible * VP.width >= 800, "the target fits the visible width");
-    assert.ok(Math.abs(pose.cx - (0.8 * 700 + 0.2 * 400) / VP.width) < 1e-9);
+    expect(visible * VP.width >= 800, "the target fits the visible width").toBe(true);
+    expect(Math.abs(pose.cx - (0.8 * 700 + 0.2 * 400) / VP.width) < 1e-9).toBe(true);
     const small = click(1000, 960, 500, box(940, 490, 40, 20));
-    assert.ok(Math.abs(frameFor(small, VP, S_MAX * 1.69, true).scale - S_MAX * 1.69) < 1e-9);
+    expect(Math.abs(frameFor(small, VP, S_MAX * 1.69, true).scale - S_MAX * 1.69) < 1e-9).toBe(
+      true,
+    );
   });
 
   it("never inverts its clamps at maximum zoom", () => {
     const pose = frameFor(click(0, 1919, 1079), VP, S_MAX);
-    assert.ok(Number.isFinite(pose.cx) && Number.isFinite(pose.cy));
-    assert.ok(pose.cx >= 1 / (2 * pose.scale) - 1e-9);
-    assert.ok(pose.cy <= 1 - 1 / (2 * pose.scale) + 1e-9);
+    expect(Number.isFinite(pose.cx) && Number.isFinite(pose.cy)).toBe(true);
+    expect(pose.cx >= 1 / (2 * pose.scale) - 1e-9).toBe(true);
+    expect(pose.cy <= 1 - 1 / (2 * pose.scale) + 1e-9).toBe(true);
   });
 });
 
@@ -333,30 +363,27 @@ describe("camera in narrower shapes", () => {
 
   it("aims at where the cursor has been around that moment", () => {
     const aim = cursorAim(log, 0.3);
-    assert.ok(aim);
-    assert.ok(Math.abs(aim.cx - 1650 / 1920) < 1e-9);
-    assert.ok(Math.abs(aim.cy - 350 / 1080) < 1e-9);
-    const later = cursorAim(log, 4);
-    assert.ok(later);
-    assert.ok(Math.abs(later.cx - 200 / 1920) < 1e-9);
-    assert.equal(cursorAim({ ...log, cursorTrack: [] }, 1), null);
+    expect(aim?.cx).toBeCloseTo(1650 / 1920, 9);
+    expect(aim?.cy).toBeCloseTo(350 / 1080, 9);
+    expect(cursorAim(log, 4)?.cx).toBeCloseTo(200 / 1920, 9);
+    expect(cursorAim({ ...log, cursorTrack: [] }, 1)).toBe(null);
   });
 
   it("never rests fully zoomed out, and rests on the cursor", () => {
     const rest = narrowPose(BASE_POSE, 1.69, { cx: 0.8, cy: 0.3 });
-    assert.ok(rest.scale > 1.3);
-    assert.equal(rest.cx, 0.8);
+    expect(rest.scale > 1.3).toBe(true);
+    expect(rest.cx).toBe(0.8);
   });
 
   it("aims at the action itself when fully zoomed in", () => {
     const pose = narrowPose({ scale: S_MAX * 1.69, cx: 0.2, cy: 0.7 }, 1.69, { cx: 0.8, cy: 0.3 });
-    assert.ok(Math.abs(pose.cx - 0.2) < 1e-9);
-    assert.ok(Math.abs(pose.cy - 0.7) < 1e-9);
-    assert.ok(Math.abs(pose.scale - S_MAX * 1.69) < 1e-9);
+    expect(Math.abs(pose.cx - 0.2) < 1e-9).toBe(true);
+    expect(Math.abs(pose.cy - 0.7) < 1e-9).toBe(true);
+    expect(Math.abs(pose.scale - S_MAX * 1.69) < 1e-9).toBe(true);
   });
 
   it("changes nothing in the recording's own shape", () => {
     const pose = { scale: 1.3, cx: 0.4, cy: 0.5 };
-    assert.deepEqual(narrowPose(pose, 1, { cx: 0.9, cy: 0.9 }), pose);
+    expect(narrowPose(pose, 1, { cx: 0.9, cy: 0.9 })).toEqual(pose);
   });
 });

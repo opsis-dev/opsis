@@ -32,7 +32,8 @@ import {
 import { FontProvider } from "./fonts/font-provider";
 import { getComponent, getPresentation, isKnownElement, useElements } from "./registry";
 import { clamp01 } from "../shared/math";
-import { roleStack } from "../shared/fonts";
+import { MAIN_FONT } from "../shared/fonts";
+import { percent } from "../shared/format";
 
 const PREMOUNT_FRAMES = 30;
 const PREMOUNTED = new Set(["core/group", "core/recording"]);
@@ -152,7 +153,7 @@ const Group: React.FC<GroupProps> = ({
         <AbsoluteFill
           style={{
             transformOrigin: "0 0",
-            transform: `scale(${s}) translate(${-crop.x * 100}%, ${-crop.y * 100}%)`,
+            transform: `scale(${s}) translate(${percent(-crop.x)}, ${percent(-crop.y)})`,
           }}
         >
           {inner}
@@ -319,7 +320,7 @@ const MissingElement: React.FC<{ name: string }> = ({ name }) => (
       alignItems: "center",
       justifyContent: "center",
       color: "#f87171",
-      fontFamily: roleStack("main"),
+      fontFamily: MAIN_FONT,
       fontSize: 40,
     }}
   >

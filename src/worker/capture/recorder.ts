@@ -1,8 +1,9 @@
 import type { Page } from "playwright-core";
-import { clamp } from "../../shared/math";
-import { rectFromBounds, type Rect } from "../../shared/schema/actions";
+import { clamp01 } from "../../shared/math";
+import { rectCentre, rectFromBounds, type Rect } from "../../shared/schema/actions";
 import { cameraEase } from "../../video/camera/lib/camera";
-import { DESIGN_WIDTH } from "../../video/camera/lib/click-log";
+import { pointRect } from "../../video/camera/lib/click-log";
+import { designScaleFor } from "../../video/camera/lib/design-width";
 import {
   boundsOf,
   bulgedCurve,
@@ -40,7 +41,6 @@ const QUICK_DRAG_STEPS = 20;
 const VISIBLE_TIMEOUT_MS = 20_000;
 const SCROLL_MOVED_PX = 8;
 const SCROLL_SETTLE_MS = 450;
-const POINT_BOX = { w: 120, h: 48 };
 const MIN_TARGET_H = 48;
 const GROWN_TARGET_H = 72;
 const TARGET_PAD_X = 24;
@@ -52,7 +52,7 @@ type DragPlan = { points: Point[]; end: Point; drop: Rect };
 
 type Viewport = { width: number; height: number } | null;
 
-const viewportScale = (vp: Viewport): number => (vp && vp.width > 0 ? vp.width / DESIGN_WIDTH : 1);
+const viewportScale = (vp: Viewport): number => (vp ? designScaleFor(vp.width) : 1);
 
 const centreOf = (vp: Viewport): Point =>
   vp ? { x: vp.width / 2, y: vp.height / 2 } : { x: 0, y: 0 };
@@ -83,12 +83,7 @@ async function boxOf(page: Page, target: Target, k: number): Promise<Box> {
     return {
       cx: target.x,
       cy: target.y,
-      rect: {
-        x: target.x - (POINT_BOX.w / 2) * k,
-        y: target.y - (POINT_BOX.h / 2) * k,
-        w: POINT_BOX.w * k,
-        h: POINT_BOX.h * k,
-      },
+      rect: pointRect(target, k),
     };
   }
   const loc = target.first();
@@ -99,11 +94,9 @@ async function boxOf(page: Page, target: Target, k: number): Promise<Box> {
   if (!box) throw new Error("Couldn't see the element on the page.");
   if (before && Math.hypot(box.x - before.x, box.y - before.y) > SCROLL_MOVED_PX * k)
     await page.waitForTimeout(SCROLL_SETTLE_MS);
-  return {
-    cx: box.x + box.width / 2,
-    cy: box.y + box.height / 2,
-    rect: padSmallTarget(rectFromBounds(box), k),
-  };
+  const rect = rectFromBounds(box);
+  const centre = rectCentre(rect);
+  return { cx: centre.x, cy: centre.y, rect: padSmallTarget(rect, k) };
 }
 
 const NOT_ON_SCREEN =
@@ -113,10 +106,10 @@ async function dropBox(page: Page, target: Target, k: number, vp: Viewport): Pro
   if (isPoint(target)) return boxOf(page, target, k);
   const box = await target.first().boundingBox();
   if (!box) throw new Error(NOT_ON_SCREEN);
-  const cx = box.x + box.width / 2;
-  const cy = box.y + box.height / 2;
+  const rect = rectFromBounds(box);
+  const { x: cx, y: cy } = rectCentre(rect);
   if (vp && (cx < 0 || cy < 0 || cx > vp.width || cy > vp.height)) throw new Error(NOT_ON_SCREEN);
-  return { cx, cy, rect: rectFromBounds(box) };
+  return { cx, cy, rect };
 }
 
 export class CursorDriver {
@@ -208,7 +201,7 @@ export class CursorDriver {
 
   private async walk(fromMs: number, spanMs: number, at: (p: number) => Point) {
     for (;;) {
-      const p01 = clamp((this.elapsed() - fromMs) / spanMs, 0, 1);
+      const p01 = clamp01((this.elapsed() - fromMs) / spanMs);
       const { x: px, y: py } = at(cameraEase(p01));
       this.mark(px, py);
       await this.page.mouse.move(px, py);

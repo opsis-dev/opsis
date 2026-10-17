@@ -4,6 +4,7 @@ import { boundsFromRect } from "@/shared/schema/actions";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { cn } from "@/renderer/lib/utils";
+import { designScaleFor } from "@/video/camera/lib/design-width";
 import { Ripple } from "../app/motion";
 import type { LiveCapture } from "../store/live";
 import { FrameOverlay } from "./frame-overlay";
@@ -11,7 +12,6 @@ import { FrameOverlay } from "./frame-overlay";
 const RIPPLE_MS = 600;
 const RIPPLE_START_PX = 12;
 const RIPPLE_GROWTH_PX = 36;
-const RIPPLE_DESIGN_WIDTH = 1920;
 const RIPPLE_STROKE = 1 / 640;
 const CURSOR_SIZE = 1 / 220;
 
@@ -42,7 +42,7 @@ function StatusBadge({ status }: { status: LiveCapture["status"] }) {
 function ClickRipple({ click, width }: { click: LiveCapture["clicks"][number]; width: number }) {
   const [age] = useState(() => Date.now() - click.at);
   if (age >= RIPPLE_MS) return null;
-  const scale = width / RIPPLE_DESIGN_WIDTH;
+  const scale = designScaleFor(width);
   const start = age / RIPPLE_MS;
   return (
     <Ripple

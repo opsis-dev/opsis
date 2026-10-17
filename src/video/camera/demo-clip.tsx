@@ -11,7 +11,7 @@ import { Video } from "@remotion/media";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import type { ClickLog } from "./lib/click-log";
 import { zoomAt, type CameraTuning } from "./lib/zoom";
-import { BASE_POSE, poseToCss } from "./lib/camera";
+import { BASE_POSE, poseToCss, type ZoomState } from "./lib/camera";
 import { backdropSource, isLightBackdrop } from "./lib/backdrop";
 import { useDesignScale } from "./lib/design-scale";
 import { SHOT_STYLES, type WindowShot } from "./lib/style";
@@ -28,8 +28,9 @@ import { Annotations } from "./annotations";
 import type { Annotation } from "./action-log";
 import type { Size } from "../core/still-layout";
 import type { RecordingProps } from "../../shared/compile/recording";
+import { percent } from "../../shared/format";
 
-export type DemoClipProps = {
+type DemoClipProps = {
   name: string;
   src: string;
   log: ClickLog;
@@ -93,21 +94,20 @@ const Footage: React.FC<{ src: string; speed: number; fit: "cover" | "fill"; mut
   muted,
 }) => <Video src={src} playbackRate={speed} objectFit={fit} muted={muted} style={FILL} />;
 
-const cameraTransform = (z: { scale: number; translateX: number; translateY: number }) =>
-  `translate(${z.translateX * 100}%, ${z.translateY * 100}%) scale(${z.scale})`;
+const cameraTransform = (z: ZoomState) =>
+  `translate(${percent(z.translateX)}, ${percent(z.translateY)}) scale(${z.scale})`;
 
-type CameraGroup = Pick<DemoClipProps, "log" | "speed" | "chrome" | "tuning" | "box"> & {
-  shot: WindowShot;
-};
+type Framing = { chrome: boolean; fit: number; zoom: boolean };
 
-function useCameraGroup({ log, speed, chrome, tuning, box, shot }: CameraGroup) {
+function useCamera(clip: DemoClipProps, framing: Framing) {
   const frame = useCurrentFrame();
   const { fps, height } = useVideoConfig();
   const k = useDesignScale();
+  const { log, speed, tuning, box } = clip;
+  const { chrome, fit, zoom } = framing;
   const chromeH = chrome ? CHROME_H * k : 0;
   const chromeFrac = chromeH / ((box?.height ?? height) + chromeH);
-  const fit = shot.windowFit;
-  const z = shot.zoom
+  const z = zoom
     ? zoomAt(frame, fps, log, { chromeFrac, speed, fit, tuning })
     : poseToCss(BASE_POSE, chromeFrac, fit);
 
@@ -122,8 +122,18 @@ function useCameraGroup({ log, speed, chrome, tuning, box, shot }: CameraGroup) 
   return { z, style };
 }
 
-const ShadowGroup: React.FC<{ group: CameraGroup; light: boolean }> = ({ group, light }) => {
-  const { style } = useCameraGroup(group);
+const windowFraming = (clip: DemoClipProps, shot: WindowShot): Framing => ({
+  chrome: clip.chrome,
+  fit: shot.windowFit,
+  zoom: shot.zoom,
+});
+
+const ShadowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot; light: boolean }> = ({
+  clip,
+  shot,
+  light,
+}) => {
+  const { style } = useCamera(clip, windowFraming(clip, shot));
   return (
     <Stage>
       <div style={style}>
@@ -133,22 +143,23 @@ const ShadowGroup: React.FC<{ group: CameraGroup; light: boolean }> = ({ group, 
   );
 };
 
-const ClipCursor: React.FC<{ clip: DemoClipProps; timeS: number; cameraScale: number }> = ({
+const CursorLayer: React.FC<{ clip: DemoClipProps; timeS: number; cameraScale: number }> = ({
   clip,
   timeS,
   cameraScale,
-}) => (
-  <Cursor
-    log={clip.log}
-    timeS={timeS}
-    cameraScale={cameraScale}
-    ripple={clip.ripple}
-    scale={clip.cursorScale}
-  />
-);
+}) =>
+  clip.cursor ? (
+    <Cursor
+      log={clip.log}
+      timeS={timeS}
+      cameraScale={cameraScale}
+      ripple={clip.ripple}
+      scale={clip.cursorScale}
+    />
+  ) : null;
 
-const WindowGroup: React.FC<{ clip: DemoClipProps; group: CameraGroup }> = ({ clip, group }) => {
-  const { z, style } = useCameraGroup(group);
+const WindowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot }> = ({ clip, shot }) => {
+  const { z, style } = useCamera(clip, windowFraming(clip, shot));
   const timeS = useClipTime(clip.speed);
 
   return (
@@ -170,7 +181,7 @@ const WindowGroup: React.FC<{ clip: DemoClipProps; group: CameraGroup }> = ({ cl
               cameraScale={z.scale}
             />
           ) : null}
-          {clip.cursor ? <ClipCursor clip={clip} timeS={timeS} cameraScale={z.scale} /> : null}
+          <CursorLayer clip={clip} timeS={timeS} cameraScale={z.scale} />
         </WindowFrame>
       </div>
     </Stage>
@@ -182,46 +193,27 @@ const FullBleedClip: React.FC<DemoClipProps> = (clip) => {
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: PAGE_BG }}>
       <Footage src={clip.src} speed={clip.speed} fit="cover" />
-      {clip.cursor ? (
-        <AbsoluteFill>
-          <ClipCursor clip={clip} timeS={timeS} cameraScale={1} />
-        </AbsoluteFill>
-      ) : null}
+      <CursorLayer clip={clip} timeS={timeS} cameraScale={1} />
     </AbsoluteFill>
   );
 };
 
-const NarrowBleedClip: React.FC<DemoClipProps & { box: Size }> = (clip) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+const NarrowBleedClip: React.FC<DemoClipProps> = (clip) => {
+  const { z, style } = useCamera(clip, {
+    chrome: false,
+    fit: 1,
+    zoom: (clip.tuning?.narrow ?? 1) > 1,
+  });
   const timeS = useClipTime(clip.speed);
-  const z =
-    (clip.tuning?.narrow ?? 1) > 1
-      ? zoomAt(frame, fps, clip.log, { speed: clip.speed, fit: 1, tuning: clip.tuning })
-      : { scale: 1, translateX: 0, translateY: 0 };
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: BLEED_BG }}>
       <AbsoluteFill style={BLEED_BLUR}>
         <Footage src={clip.src} speed={clip.speed} fit="cover" muted />
       </AbsoluteFill>
       <Stage>
-        <div
-          style={{
-            position: "relative",
-            flexShrink: 0,
-            width: clip.box.width,
-            height: clip.box.height,
-            transform: cameraTransform(z),
-            willChange: "transform",
-            boxShadow: BLEED_SHADOW,
-          }}
-        >
+        <div style={{ ...style, boxShadow: BLEED_SHADOW }}>
           <Footage src={clip.src} speed={clip.speed} fit="fill" muted />
-          {clip.cursor ? (
-            <AbsoluteFill>
-              <ClipCursor clip={clip} timeS={timeS} cameraScale={z.scale} />
-            </AbsoluteFill>
-          ) : null}
+          <CursorLayer clip={clip} timeS={timeS} cameraScale={z.scale} />
         </div>
       </Stage>
     </AbsoluteFill>
@@ -231,19 +223,14 @@ const NarrowBleedClip: React.FC<DemoClipProps & { box: Size }> = (clip) => {
 export const DemoClip: React.FC<DemoClipProps> = (props) => {
   const shot = SHOT_STYLES[props.style];
   if (shot.framing !== "window")
-    return props.box ? (
-      <NarrowBleedClip {...props} box={props.box} />
-    ) : (
-      <FullBleedClip {...props} />
-    );
+    return props.box ? <NarrowBleedClip {...props} /> : <FullBleedClip {...props} />;
 
   const backdrop = shot.ground ?? props.backdrop;
-  const group: CameraGroup = { ...props, shot };
-  const windowGroup = <WindowGroup clip={props} group={group} />;
+  const windowGroup = <WindowGroup clip={props} shot={shot} />;
   return (
     <AbsoluteFill>
       <Backdrop name={backdrop} />
-      <ShadowGroup group={group} light={isLightBackdrop(backdrop ?? "")} />
+      <ShadowGroup clip={props} shot={shot} light={isLightBackdrop(backdrop ?? "")} />
       {shot.zoom && props.motionBlur ? (
         <CameraMotionBlur shutterAngle={BLUR_SHUTTER_ANGLE} samples={BLUR_SAMPLES}>
           {windowGroup}

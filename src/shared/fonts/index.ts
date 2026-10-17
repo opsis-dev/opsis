@@ -62,6 +62,12 @@ export function roleStack(role: FontRole): string {
   return `"${roleFamily(role)}", ${fallback}`;
 }
 
+export const MAIN_FONT = roleStack("main");
+
+export const HEADING_FONT = roleStack("heading");
+
+export const CODE_FONT = roleStack("code");
+
 export function firstFamily(stack: string): string {
   return stack
     .split(",")[0]
