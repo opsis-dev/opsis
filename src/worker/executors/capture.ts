@@ -2,10 +2,9 @@ import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Page } from "playwright-core";
-import type { z } from "zod";
 import { loginDependencies, sessionChain } from "../../shared/graph";
 import { sessionNode } from "../../shared/nodes/browser";
-import { parseParams } from "../../shared/nodes/define";
+import { parseParams, type NodeParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import { loginOnceNode, recordNode, stillNode } from "../../shared/nodes/capture";
 import type { RecordingValue } from "../../shared/schema/values";
@@ -13,18 +12,22 @@ import type { WorkflowNode } from "../../shared/schema/workflow";
 import { secretName } from "../../shared/secrets";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
-import { runTake, SignInExpiredError, type TakeOptions } from "../capture/driver";
+import { recordTake, stillTake } from "../capture/driver";
+import { SignInExpiredError } from "../capture/driver-helpers";
 import { FrameEncoder } from "../capture/encoder";
+import type { TakeOptions } from "../capture/take-run";
 import { elementOf } from "../capture/flow-types";
 import { resolveTarget } from "../capture/selectors";
 import { defineExecutor, TracedError, type ExecutorContext } from "../engine/context";
-import { rel } from "./util";
+import { projectFileRef, rel } from "./util";
 import { WINDOW_FIT } from "../../video/camera/lib/style";
 import { captureScale, type Box } from "../../video/core/still-layout";
 import { errorMessage } from "../../shared/errors";
 import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { formatDuration } from "../../shared/format";
 import { findHeadlessShell } from "../../engine/paths";
+import type { LoginRequest } from "../../shared/worker-protocol";
+import { h264Args } from "../media/codecs";
 
 const CAPTURE_MAX_EXPORT_SCALE = 2;
 
@@ -33,7 +36,16 @@ const captureCanvas = (settings: { width: number; height: number }) => ({
   height: settings.height * CAPTURE_MAX_EXPORT_SCALE,
 });
 
-type SignIn = { name: string; url: string; login: z.infer<typeof loginOnceNode.params> };
+type LoginParams = NodeParams<typeof loginOnceNode>;
+
+type SignIn = { name: string; url: string; request: LoginRequest };
+
+const loginRequest = (p: LoginParams): LoginRequest => ({
+  url: p.url,
+  doneWhen: p.doneWhen,
+  selector: p.selector,
+  timeoutSec: p.timeoutSec,
+});
 
 type SessionAccess = { secret: string | null; signIn: SignIn | undefined };
 
@@ -46,7 +58,7 @@ function sessionAccess(ctx: ExecutorContext, head: WorkflowNode | undefined): Se
   const loginNode = ctx.workflow.nodes.find((n) => n.id === loginId);
   if (!loginNode) return { secret, signIn: undefined };
   const login = parseParams(loginOnceNode, loginNode, ctx.vars);
-  return { secret, signIn: { name: secret, url: login.url, login } };
+  return { secret, signIn: { name: secret, url: login.url, request: loginRequest(login) } };
 }
 
 async function storageState(ctx: ExecutorContext, secret: string | null): Promise<string | null> {
@@ -68,12 +80,7 @@ async function retryAfterSignIn<T>(ctx: ExecutorContext, attempt: () => Promise<
       "info",
       `The saved sign-in “${signIn.name}” has expired. Sign in again in the window that opened.`,
     );
-    const state = await ctx.login({
-      url: signIn.login.url,
-      doneWhen: signIn.login.doneWhen,
-      selector: signIn.login.selector,
-      timeoutSec: signIn.login.timeoutSec,
-    });
+    const state = await ctx.login(signIn.request);
     await ctx.secrets.write(signIn.name, state);
     ctx.log("info", `Saved the new sign-in as “${signIn.name}”. Recording again.`);
     return attempt();
@@ -99,21 +106,21 @@ async function saveTrace(
     ok,
     groups,
   });
-  const kept = await applyRetention(ctx.projectDir, ctx.settings.traces);
+  const kept = await applyRetention(ctx.projectDir, ctx.env.settings.traces);
   return kept.has(manifest.id) ? manifest.id : undefined;
 }
 
-async function take<T>(
+async function take<R>(
   ctx: ExecutorContext,
-  options: Pick<TakeOptions<T>, "mode" | "encoder" | "record" | "onPage">,
-) {
+  encoder: FrameEncoder | undefined,
+  play: (opts: TakeOptions) => Promise<R>,
+): Promise<{ result: R; traceId: string | undefined }> {
   const chain = sessionChain(ctx.workflow, ctx.node.id);
   const { secret, signIn } = sessionAccess(ctx, chain[0]);
   const tracePath =
-    ctx.settings.traces.retention === "off" ? undefined : path.join(ctx.dir, "trace.zip");
+    ctx.env.settings.traces.retention === "off" ? undefined : path.join(ctx.dir, "trace.zip");
   const traceGroups: string[] = [];
   const withFrames = async () => {
-    const encoder = options.encoder;
     if (!tracePath || !encoder || encoder.originMs === null) return;
     await addRecordingFrames({
       zipFile: tracePath,
@@ -129,8 +136,7 @@ async function take<T>(
     );
   };
   try {
-    const result = await runTake({
-      ...options,
+    const result = await play({
       workflow: ctx.workflow,
       chain,
       vars: ctx.vars,
@@ -161,7 +167,9 @@ async function take<T>(
   }
 }
 
-export const PREVIEW_WIDTH = 960;
+const PREVIEW_WIDTH = 960;
+const PREVIEW_CRF = 26;
+const PREVIEW_KEYFRAMES_PER_SECOND = 2;
 
 async function makePreviewCopy(
   ctx: ExecutorContext,
@@ -177,18 +185,12 @@ async function makePreviewCopy(
         "-an",
         "-vf",
         `scale=${PREVIEW_WIDTH}:-2`,
-        "-c:v",
-        "libx264",
-        "-preset",
-        "veryfast",
-        "-crf",
-        "26",
-        "-g",
-        String(Math.max(1, Math.round(fps / 2))),
-        "-pix_fmt",
-        "yuv420p",
-        "-movflags",
-        "+faststart",
+        ...h264Args({
+          crf: PREVIEW_CRF,
+          preset: "veryfast",
+          keyframeEvery: Math.max(1, Math.round(fps / PREVIEW_KEYFRAMES_PER_SECOND)),
+          faststart: true,
+        }),
         path.join(ctx.dir, name),
       ],
       { signal: ctx.signal },
@@ -206,7 +208,7 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
   ctx.progress(0.02, "Starting the browser");
   const { result, traceId, frames } = await retryAfterSignIn(ctx, async () => {
     const encoder = new FrameEncoder(ctx.ffmpeg, mp4, p.fps, ctx.signal);
-    const taken = await take(ctx, { mode: "record", encoder, record: p });
+    const taken = await take(ctx, encoder, (opts) => recordTake({ ...opts, encoder, record: p }));
     return { ...taken, frames: encoder.frames };
   });
   const probe = await ctx.ffmpeg.probe(mp4);
@@ -221,8 +223,8 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
   const proxy = await makePreviewCopy(ctx, mp4, p.fps);
   const recording: RecordingValue = {
     type: "recording",
-    src: ctx.ref("recording.mp4"),
-    ...(proxy ? { proxySrc: ctx.ref(proxy) } : {}),
+    src: projectFileRef(ctx, "recording.mp4"),
+    ...(proxy ? { proxySrc: projectFileRef(ctx, proxy) } : {}),
     log,
     durationMs: log.durationMs,
     viewport: log.viewport,
@@ -244,13 +246,22 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
 
 type Shot = { width: number; height: number; scale: number; body?: Box };
 
-async function captureShot(
-  ctx: ExecutorContext,
-  page: Page,
-  p: z.infer<typeof stillNode.params>,
-  file: string,
-): Promise<Shot> {
-  const view = await page.evaluate(() => ({
+type View = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  pageWidth: number;
+  pageHeight: number;
+  dpr: number;
+};
+
+type ShotRegion = { region: Box; body?: Box };
+
+type StillParams = NodeParams<typeof stillNode>;
+
+const viewOf = (page: Page): Promise<View> =>
+  page.evaluate(() => ({
     x: window.scrollX,
     y: window.scrollY,
     width: window.innerWidth,
@@ -259,32 +270,53 @@ async function captureShot(
     pageHeight: document.documentElement.scrollHeight,
     dpr: window.devicePixelRatio,
   }));
-  let region: Box = { x: view.x, y: view.y, width: view.width, height: view.height };
-  let body: Box | undefined;
-  if (p.region === "element") {
-    const { target } = await resolveTarget(page, p.target, { log: ctx.log, signal: ctx.signal });
-    const loc = elementOf(target);
-    await loc.scrollIntoViewIfNeeded().catch(() => undefined);
-    const box = await loc.boundingBox();
-    if (!box) throw new Error(`Couldn't find "${p.target}" on the page for the screenshot.`);
-    const scroll = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
-    const x = Math.max(0, box.x + scroll.x - p.padding);
-    const y = Math.max(0, box.y + scroll.y - p.padding);
-    region = {
+
+async function elementRegion(
+  ctx: ExecutorContext,
+  page: Page,
+  p: StillParams,
+): Promise<ShotRegion> {
+  const { target } = await resolveTarget(page, p.target, { log: ctx.log, signal: ctx.signal });
+  const loc = elementOf(target);
+  await loc.scrollIntoViewIfNeeded().catch(() => undefined);
+  const box = await loc.boundingBox();
+  if (!box) throw new Error(`Couldn't find "${p.target}" on the page for the screenshot.`);
+  const scroll = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
+  const left = box.x + scroll.x;
+  const top = box.y + scroll.y;
+  const x = Math.max(0, left - p.padding);
+  const y = Math.max(0, top - p.padding);
+  return {
+    region: {
       x,
       y,
-      width: box.x + scroll.x + box.width + p.padding - x,
-      height: box.y + scroll.y + box.height + p.padding - y,
-    };
-    body = {
-      x: box.x + scroll.x - x,
-      y: box.y + scroll.y - y,
-      width: box.width,
-      height: box.height,
-    };
-  } else if (p.region === "full-page") {
-    region = { x: 0, y: 0, width: view.pageWidth, height: view.pageHeight };
-  }
+      width: left + box.width + p.padding - x,
+      height: top + box.height + p.padding - y,
+    },
+    body: { x: left - x, y: top - y, width: box.width, height: box.height },
+  };
+}
+
+async function regionFor(
+  ctx: ExecutorContext,
+  page: Page,
+  p: StillParams,
+  view: View,
+): Promise<ShotRegion> {
+  if (p.region === "element") return elementRegion(ctx, page, p);
+  if (p.region === "full-page")
+    return { region: { x: 0, y: 0, width: view.pageWidth, height: view.pageHeight } };
+  return { region: { x: view.x, y: view.y, width: view.width, height: view.height } };
+}
+
+async function captureShot(
+  ctx: ExecutorContext,
+  page: Page,
+  p: StillParams,
+  file: string,
+): Promise<Shot> {
+  const view = await viewOf(page);
+  const { region, body } = await regionFor(ctx, page, p, view);
   const scale = captureScale(p.look, region, captureCanvas(ctx.workflow.settings), {
     body,
     fit: WINDOW_FIT,
@@ -305,16 +337,17 @@ async function captureShot(
 export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) => {
   const file = path.join(ctx.dir, "still.png");
   const { result, traceId } = await retryAfterSignIn(ctx, () =>
-    take(ctx, { mode: "still", onPage: (page) => captureShot(ctx, page, p, file) }),
+    take(ctx, undefined, (opts) =>
+      stillTake({ ...opts, onPage: (page) => captureShot(ctx, page, p, file) }),
+    ),
   );
   const shot = result.fromPage;
-  if (!shot) throw new Error("The screenshot wasn't taken.");
   ctx.log(
     "info",
     `Screenshot ${Math.round(shot.width * shot.scale)} × ${Math.round(shot.height * shot.scale)} px`,
   );
   return {
-    outputs: { image: { type: "image", src: ctx.ref("still.png"), ...shot } },
+    outputs: { image: { type: "image", src: projectFileRef(ctx, "still.png"), ...shot } },
     artifacts: [{ kind: "image", path: rel(ctx, "still.png"), label: "Screenshot" }],
     traceId,
   };
@@ -322,12 +355,7 @@ export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) =
 
 export const loginOnceExecutor = defineExecutor(loginOnceNode, async (ctx, _inputs, p) => {
   ctx.log("info", "Sign in in the window that opened.");
-  const state = await ctx.login({
-    url: p.url,
-    doneWhen: p.doneWhen,
-    selector: p.selector,
-    timeoutSec: p.timeoutSec,
-  });
+  const state = await ctx.login(loginRequest(p));
   const name = secretName(p.secretName);
   await ctx.secrets.write(name, state);
   ctx.log("info", `Saved the sign-in as "${name}".`);

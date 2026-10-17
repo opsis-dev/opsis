@@ -12,7 +12,7 @@ import type {
   TimelineSpec,
   TimelineTrack,
 } from "../schema/timeline";
-import { clamp, numberOr } from "../math";
+import { clamp, EPSILON, numberOr } from "../math";
 import { isProjectRef } from "../asset-ref";
 import { msToExactFrames } from "./time";
 
@@ -111,11 +111,10 @@ export type FlatTimeline = {
 };
 
 const MAX_LOOPS = 64;
-const EPS = 1e-6;
 
 type Range = { from: number; to: number };
 
-const overlaps = (a: Range, b: Range) => a.from < b.to - EPS && b.from < a.to - EPS;
+const overlaps = (a: Range, b: Range) => a.from < b.to - EPSILON && b.from < a.to - EPSILON;
 
 function beforeFirst(remap: Remap, r: number): number {
   const [o0, i0] = remap[0];
@@ -207,7 +206,7 @@ function bisect(inst: Instance, a: number, b: number, abs: number): number {
 
 function rateAt(inst: Instance, content: number): number {
   const d = inst.toAbs(content + 1, "start") - inst.toAbs(content, "start");
-  return d > EPS ? 1 / d : 1;
+  return d > EPSILON ? 1 / d : 1;
 }
 
 type Walk = {
@@ -256,7 +255,7 @@ function makeLink(p: Placed): ChainLink {
     ...(item.slot ? { slot: item.slot } : {}),
     rate: rateAt(walk.inst, item.from),
     rateEnd: rateAt(walk.inst, Math.max(item.from, p.contentEnd - 1)),
-    end: to < p.absEnd - EPS ? contentAt(p, to) - item.from : item.durationInFrames,
+    end: to < p.absEnd - EPSILON ? contentAt(p, to) - item.from : item.durationInFrames,
     from,
     to,
   };
@@ -275,7 +274,7 @@ function transitionMark(p: Placed, previousLength: number): TransitionMark | nul
     from,
     to,
     kind: enter.kind,
-    covers: enter.hold ? 0 : (to - from) / Math.max(EPS, shorter),
+    covers: enter.hold ? 0 : (to - from) / Math.max(EPSILON, shorter),
     ...(item.slot ? { slot: item.slot } : {}),
   };
 }
@@ -303,8 +302,8 @@ function thumbnailOf(item: TimelineItem): BarThumbnail | null {
 
 function leafBar(p: Placed, link: ChainLink, order: number): VideoBar {
   const { item, walk, from, to } = p;
-  const startContent = from > p.absStart + EPS ? contentAt(p, from) : item.from;
-  const endContent = to < p.absEnd - EPS ? contentAt(p, to) : p.contentEnd;
+  const startContent = from > p.absStart + EPSILON ? contentAt(p, from) : item.from;
+  const endContent = to < p.absEnd - EPSILON ? contentAt(p, to) : p.contentEnd;
   return {
     key: p.key,
     itemId: item.id,
@@ -363,7 +362,7 @@ function visitTracks(acc: Collected, tracks: TimelineTrack[], walk: Walk): void 
       const p = place(item, walk, ti);
       const before = previousLength;
       previousLength = p.absEnd - p.absStart;
-      if (p.to - p.from < EPS) continue;
+      if (p.to - p.from < EPSILON) continue;
       visitItem(acc, p, before);
     }
   });
@@ -389,7 +388,7 @@ function visitGroup(acc: Collected, p: Placed, group: GroupProps, link: ChainLin
   const looped = instances.length > 1;
   const chain = item.nodeId || item.handles || item.slot ? [link, ...walk.chain] : walk.chain;
   instances.forEach((inst, k) => {
-    if (inst.hi - inst.lo < EPS) return;
+    if (inst.hi - inst.lo < EPSILON) return;
     visitTracks(acc, group.tracks, {
       inst,
       path: looped ? `${key}#${k}` : key,
@@ -511,7 +510,7 @@ function packAudio(audio: AudioBar[]): number {
       lastRole = a.role;
     }
     let lane = base;
-    while (lane < ends.length && ends[lane] > a.from + EPS) lane++;
+    while (lane < ends.length && ends[lane] > a.from + EPSILON) lane++;
     a.lane = lane;
     ends[lane] = a.to;
   }

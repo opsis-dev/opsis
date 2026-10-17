@@ -1,3 +1,5 @@
+export const EPSILON = 1e-6;
+
 export const clamp = (value: number, lo: number, hi: number): number =>
   Math.min(hi, Math.max(lo, value));
 

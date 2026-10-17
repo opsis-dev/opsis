@@ -3,26 +3,35 @@ import { mediaInput } from "../../shared/nodes/media";
 import type { CompileValue, MediaValue } from "../../shared/schema/values";
 import type { ExecutorContext } from "../engine/context";
 import type { WorkerEnv } from "../../shared/worker-protocol";
-import { isProjectRef, projectRelPath } from "../../shared/asset-ref";
+import { appRelPath, isProjectRef, projectRef, projectRelPath } from "../../shared/asset-ref";
 
-export function publicDir(
-  env: Pick<WorkerEnv, "isPackaged" | "appRoot" | "resourcesPath">,
-): string {
-  return env.isPackaged
-    ? path.join(env.resourcesPath, "export-src", "public")
-    : path.join(env.appRoot, "public");
-}
+type SourceEnv = Pick<WorkerEnv, "isPackaged" | "appRoot" | "resourcesPath">;
+
+export const exportSourceRoot = (env: SourceEnv): string =>
+  env.isPackaged ? path.join(env.resourcesPath, "export-src") : path.join(env.appRoot, "src");
+
+export const publicDir = (env: SourceEnv): string =>
+  env.isPackaged ? path.join(exportSourceRoot(env), "public") : path.join(env.appRoot, "public");
 
 export function refToPath(ctx: Pick<ExecutorContext, "projectDir" | "env">, ref: string): string {
   if (isProjectRef(ref)) return path.join(ctx.projectDir, projectRelPath(ref));
-  if (ref.startsWith("app:")) return path.join(publicDir(ctx.env), ref.slice("app:".length));
+  const app = appRelPath(ref);
+  if (app !== null) return path.join(publicDir(ctx.env), app);
   return path.isAbsolute(ref) ? ref : path.join(ctx.projectDir, ref);
 }
 
-export function requireMedia(value: CompileValue | undefined): MediaValue & { src: string } {
+type LinkedMedia = MediaValue & { src: string };
+
+const isLinked = (media: MediaValue | undefined): media is LinkedMedia => !!media?.src;
+
+export function requireMedia(value: CompileValue | undefined): LinkedMedia {
   const media = mediaInput(value);
-  if (!media?.src) throw new Error("Connect a media input (and run the node that produces it).");
-  return { ...media, src: media.src };
+  if (!isLinked(media))
+    throw new Error("Connect a media input (and run the node that produces it).");
+  return media;
 }
 
 export const rel = (ctx: Pick<ExecutorContext, "relDir">, file: string) => `${ctx.relDir}/${file}`;
+
+export const projectFileRef = (ctx: Pick<ExecutorContext, "relDir">, file: string) =>
+  projectRef(rel(ctx, file));

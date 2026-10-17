@@ -8,6 +8,7 @@ export const makeWebpackOverride =
   (config) => {
     const withTailwind = enableTailwind(config);
     const fontShims = path.join(projectRoot, "src", "video", "fonts", "google");
+    const alias = withTailwind.resolve?.alias;
     return {
       ...withTailwind,
       plugins: [
@@ -26,7 +27,7 @@ export const makeWebpackOverride =
       resolve: {
         ...withTailwind.resolve,
         alias: {
-          ...(withTailwind.resolve?.alias as Record<string, string> | undefined),
+          ...(Array.isArray(alias) ? {} : alias),
           "@": path.join(projectRoot, "src"),
         },
       },

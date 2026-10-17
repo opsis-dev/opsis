@@ -38,8 +38,11 @@ for (const def of NODE_DEFS) {
 
 export const getNodeDef = (type: string): NodeDef | undefined => byType.get(type);
 
+export const customLabel = (node: { label?: string }): string | undefined =>
+  node.label?.trim() || undefined;
+
 export const nodeLabelOr = (node: { label?: string }, fallback: string): string =>
-  node.label?.trim() || fallback;
+  customLabel(node) ?? fallback;
 
 export const nodeName = (node: { label?: string; type: string }): string =>
   nodeLabelOr(node, getNodeDef(node.type)?.title || node.type);

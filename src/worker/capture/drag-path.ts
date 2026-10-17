@@ -1,4 +1,4 @@
-import { clamp } from "../../shared/math";
+import { clamp, EPSILON } from "../../shared/math";
 
 export type Point = { x: number; y: number };
 
@@ -11,7 +11,6 @@ const BULGE = 0.1;
 const DRAG_MIN_MS = 600;
 const DRAG_MAX_MS = 2500;
 const MAX_PATH_POINTS = 64;
-const SAME_POINT_PX = 1e-6;
 
 type Glide = {
   durationMs: number;
@@ -52,7 +51,7 @@ export function glidePlan(
 
 export function bulgedCurve(from: Point, to: Point, aim: Point = to): (p: number) => Point {
   const dist = Math.hypot(to.x - from.x, to.y - from.y);
-  if (dist < SAME_POINT_PX) return () => ({ ...to });
+  if (dist < EPSILON) return () => ({ ...to });
   const nx = -(to.y - from.y) / dist;
   const ny = (to.x - from.x) / dist;
   const side = (to.x - from.x) * (to.y - from.y) >= 0 ? 1 : -1;
@@ -68,30 +67,31 @@ export function bulgedCurve(from: Point, to: Point, aim: Point = to): (p: number
   };
 }
 
-function pathLength(points: readonly Point[]): number {
-  let total = 0;
-  for (let i = 1; i < points.length; i++)
-    total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
-  return total;
-}
+const segmentLengths = (points: readonly Point[]): number[] =>
+  points.slice(1).map((b, i) => Math.hypot(b.x - points[i].x, b.y - points[i].y));
+
+const pathLength = (points: readonly Point[]): number =>
+  segmentLengths(points).reduce((sum, seg) => sum + seg, 0);
 
 export function polylineAt(points: readonly Point[]): (p: number) => Point {
-  if (points.length === 0) throw new Error("A path needs at least one point.");
-  const total = pathLength(points);
+  const first = points[0];
+  if (!first) throw new Error("A path needs at least one point.");
+  const last = points.at(-1) ?? first;
+  const lengths = segmentLengths(points);
+  const total = lengths.reduce((sum, seg) => sum + seg, 0);
   return (p) => {
-    if (total < SAME_POINT_PX || p <= 0) return { ...points[0] };
-    let left = clamp(p, 0, 1) * total;
-    for (let i = 1; i < points.length; i++) {
-      const a = points[i - 1];
-      const b = points[i];
-      const seg = Math.hypot(b.x - a.x, b.y - a.y);
+    if (total < EPSILON || p <= 0) return { ...first };
+    let left = Math.min(p, 1) * total;
+    for (const [i, seg] of lengths.entries()) {
       if (left <= seg && seg > 0) {
+        const a = points[i];
+        const b = points[i + 1];
         const u = left / seg;
         return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
       }
       left -= seg;
     }
-    return { ...points[points.length - 1] };
+    return { ...last };
   };
 }
 
@@ -102,7 +102,7 @@ export function dragDuration(points: readonly Point[], k: number, dragMs = 0): n
 
 export function nudgeToward(from: Point, to: Point, px: number): Point {
   const dist = Math.hypot(to.x - from.x, to.y - from.y);
-  if (dist < SAME_POINT_PX) return { x: from.x + px, y: from.y };
+  if (dist < EPSILON) return { x: from.x + px, y: from.y };
   const step = Math.min(px, dist);
   return {
     x: from.x + ((to.x - from.x) / dist) * step,
@@ -110,13 +110,20 @@ export function nudgeToward(from: Point, to: Point, px: number): Point {
   };
 }
 
+const POINT_TEXT = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/;
+
+export function parsePoint(text: string): Point | null {
+  const m = POINT_TEXT.exec(text);
+  return m ? { x: Number(m[1]), y: Number(m[2]) } : null;
+}
+
 export function parsePath(text: string): Point[] {
   const points: Point[] = [];
   text.split("\n").forEach((line, i) => {
     if (!line.trim()) return;
-    const m = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.exec(line);
-    if (!m) throw new Error(`Line ${i + 1} of the path isn't two numbers.`);
-    points.push({ x: Number(m[1]), y: Number(m[2]) });
+    const point = parsePoint(line);
+    if (!point) throw new Error(`Line ${i + 1} of the path isn't two numbers.`);
+    points.push(point);
   });
   if (points.length === 0) throw new Error("Add at least one point to the path.");
   return points;

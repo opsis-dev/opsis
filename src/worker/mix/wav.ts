@@ -1,9 +1,11 @@
-import { readFile } from "node:fs/promises";
-import { round1 } from "../../shared/math";
+import { EPSILON, round1 } from "../../shared/math";
 
 export const SILENCE_DB = -120;
 
-export type Pcm = { sampleRate: number; channels: number; frames: number; data: Float32Array[] };
+const WAVE_FORMAT_EXTENSIBLE = 0xfffe;
+const UNKNOWN_DATA_SIZE = 0xffffffff;
+
+type Pcm = { sampleRate: number; channels: number; frames: number; data: Float32Array[] };
 
 export function parseWav(buf: Buffer): Pcm {
   if (buf.toString("ascii", 0, 4) !== "RIFF" || buf.toString("ascii", 8, 12) !== "WAVE")
@@ -24,10 +26,10 @@ export function parseWav(buf: Buffer): Pcm {
       channels = buf.readUInt16LE(body + 2);
       sampleRate = buf.readUInt32LE(body + 4);
       bits = buf.readUInt16LE(body + 14);
-      if (format === 0xfffe && size >= 26) format = buf.readUInt16LE(body + 24);
+      if (format === WAVE_FORMAT_EXTENSIBLE && size >= 26) format = buf.readUInt16LE(body + 24);
     } else if (id === "data") {
       dataStart = body;
-      if (size === 0xffffffff || body + size > buf.length) size = buf.length - body;
+      if (size === UNKNOWN_DATA_SIZE || body + size > buf.length) size = buf.length - body;
       dataLength = size;
       break;
     }
@@ -54,11 +56,9 @@ function sampleReader(buf: Buffer, format: number, bits: number): (at: number) =
   return (at) => buf.readInt32LE(at) / 2147483648;
 }
 
-export const readWav = async (file: string) => parseWav(await readFile(file));
+type FrameLevels = { fps: number; peak: number[]; rms: number[] };
 
-export type FrameLevels = { fps: number; peak: number[]; rms: number[] };
-
-const toDb = (v: number) => (v <= 1e-6 ? SILENCE_DB : round1(20 * Math.log10(v)));
+const toDb = (v: number) => (v <= EPSILON ? SILENCE_DB : round1(20 * Math.log10(v)));
 
 export function frameLevels(pcm: Pcm, fps: number, frames: number): FrameLevels {
   const per = pcm.sampleRate / fps;
@@ -73,8 +73,7 @@ export function frameLevels(pcm: Pcm, fps: number, frames: number): FrameLevels 
     for (let i = a; i < b; i++) {
       for (let c = 0; c < pcm.channels; c++) {
         const v = pcm.data[c][i];
-        const abs = v < 0 ? -v : v;
-        if (abs > p) p = abs;
+        p = Math.max(p, Math.abs(v));
         sum += v * v;
         n++;
       }

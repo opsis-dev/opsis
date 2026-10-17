@@ -3,10 +3,11 @@ import { parseParams } from "../../shared/nodes/define";
 import { waitNode } from "../../shared/nodes/browser";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { interpolate } from "../../shared/vars";
-import { errorMessage } from "../../shared/errors";
+import { errorMessage, withoutCallName } from "../../shared/errors";
+import { round1 } from "../../shared/math";
 import { CSS_PREFIX } from "./flow-types";
 
-export function samePage(a: string, b: string): boolean {
+function samePage(a: string, b: string): boolean {
   try {
     const norm = (u: string) => {
       const url = new URL(u);
@@ -22,8 +23,12 @@ export function landedOnSignIn(requested: string, current: string, signInUrl: st
   return !samePage(requested, signInUrl) && samePage(current, signInUrl);
 }
 
-export const withoutCallName = (text: string): string =>
-  text.split("\n")[0].replace(/^(locator|page|frame|elementHandle|mouse|keyboard)\.\w+:\s*/, "");
+export class SignInExpiredError extends Error {
+  constructor(readonly secretName: string) {
+    super(`The saved sign-in “${secretName}” has expired.`);
+    this.name = "SignInExpiredError";
+  }
+}
 
 export function plainError(
   error: unknown,
@@ -38,7 +43,7 @@ export function plainError(
       ? `“${target.startsWith(CSS_PREFIX) ? target.slice(CSS_PREFIX.length) : target}”`
       : "the element";
   if (timeout) {
-    const seconds = Math.round(Number(timeout[1]) / 100) / 10;
+    const seconds = round1(Number(timeout[1]) / 1000);
     return /waiting for (locator|getBy)/.test(text)
       ? `Couldn't find ${what} on the page within ${seconds} s.`
       : `The page didn't respond within ${seconds} s.`;

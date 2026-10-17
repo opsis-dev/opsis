@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { atempoChain, joinFilter, speedArgs } from "./media";
+import { atempoChain, joinFilter, speedArgs } from "./filters";
 
 describe("atempoChain", () => {
   it.each([

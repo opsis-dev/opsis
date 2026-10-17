@@ -1,11 +1,13 @@
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import type { Artifact } from "../../shared/schema/values";
+import { frameGrabArgs } from "../media/codecs";
 import type { FfmpegTools } from "../media/ffmpeg";
 import { toPosixRel } from "../../engine/project-paths";
 import { errorMessage } from "../../shared/errors";
 
 const POSTER_WIDTH = 480;
+const POSTER_QUALITY = 4;
 
 export async function decorateArtifacts(
   projectDir: string,
@@ -26,20 +28,14 @@ export async function decorateArtifacts(
       const poster = path.join(nodeDir, `poster-${i}.jpg`);
       try {
         const probe = await ffmpeg.probe(file);
-        const at = Math.max(0, probe.durationMs / 2000);
-        await ffmpeg.run([
-          "-ss",
-          at.toFixed(2),
-          "-i",
-          file,
-          "-frames:v",
-          "1",
-          "-vf",
-          `scale=${POSTER_WIDTH}:-2`,
-          "-q:v",
-          "4",
-          poster,
-        ]);
+        await ffmpeg.run(
+          frameGrabArgs(file, poster, {
+            atMs: Math.max(0, probe.durationMs / 2),
+            width: POSTER_WIDTH,
+            evenHeight: true,
+            jpegQuality: POSTER_QUALITY,
+          }),
+        );
         return { ...withSize, poster: toPosixRel(projectDir, poster) };
       } catch (error) {
         warn(

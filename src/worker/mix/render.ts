@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readdir, rename, rm, stat } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import {
@@ -20,28 +20,25 @@ import {
   type MixResult,
   type StemLevels,
 } from "../../shared/mix/result";
-import { ToolError, type FfmpegTools } from "../media/ffmpeg";
-import { frameLevels, readWav, SILENCE_DB } from "./wav";
-import { errorMessage } from "../../shared/errors";
-import { round1 } from "../../shared/math";
+import { ToolError, type MediaDeps } from "../media/ffmpeg";
+import { frameLevels, parseWav, SILENCE_DB } from "./wav";
+import { CancelledError, errorMessage, isCancelled } from "../../shared/errors";
+import { EPSILON, round1 } from "../../shared/math";
+import { datedFiles } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
 import { atomicWrite, readJson } from "../../engine/json";
 import { projectPaths, toProjectRef } from "../../engine/project-paths";
 
-export const MIX_VERSION = "demoflow-mix/1";
+const MIX_VERSION = "demoflow-mix/1";
 const KEEP_PLANS = 12;
 const UNUSED_STEM_MS = 10 * 60_000;
 const LOUDNESS_FLOOR_DB = -70;
+const QUIET_PRE_DB = -100;
+const RECENT_FILE = "recent.json";
 
-export type MixDeps = {
-  projectDir: string;
-  resolve: (ref: string) => string;
-  ffmpeg: FfmpegTools;
-  signal?: AbortSignal;
-  onProgress?: (progress: number, message: string) => void;
-};
+type MixDeps = MediaDeps & { onProgress?: (progress: number, message: string) => void };
 
-const mixDir = (projectDir: string) => path.join(projectPaths(projectDir).cache, "mix");
+const mixDir = (projectDir: string) => projectPaths(projectDir).mix;
 
 const sha = (value: unknown) => versionedHash(MIX_VERSION, value);
 
@@ -83,7 +80,7 @@ async function runStem(
     ? { pre: `${file}.${process.pid}.pre.wav`, post: `${file}.${process.pid}.post.wav` }
     : undefined;
   const levelsOf = async (wav: string) =>
-    frameLevels(await readWav(wav), plan.fps, plan.durationInFrames);
+    frameLevels(parseWav(await readFile(wav)), plan.fps, plan.durationInFrames);
   try {
     await deps.ffmpeg.run(jobArgs(job, tmp, codec, taps, plan.durationInFrames / plan.fps + 1), {
       signal: deps.signal,
@@ -94,7 +91,7 @@ async function runStem(
       const pre = await levelsOf(taps.pre);
       const post = await levelsOf(taps.post);
       reduction = pre.rms.map((v, i) =>
-        v <= -100 ? 0 : Math.max(0, round1(v - (post.rms[i] - makeup))),
+        v <= QUIET_PRE_DB ? 0 : Math.max(0, round1(v - (post.rms[i] - makeup))),
       );
     }
     await rename(tmp, file);
@@ -169,7 +166,7 @@ export function parseEbur128(lines: string[], fps: number, frames: number): Loud
   let k = -1;
   for (let f = 0; f < frames; f++) {
     const at = (f + 1) / fps;
-    while (k + 1 < samples.length && samples[k + 1].t <= at + 1e-6) k++;
+    while (k + 1 < samples.length && samples[k + 1].t <= at + EPSILON) k++;
     if (k < 0) continue;
     momentary[f] = round1(samples[k].m);
     shortTerm[f] = round1(samples[k].s);
@@ -187,7 +184,7 @@ export function parseEbur128(lines: string[], fps: number, frames: number): Loud
 
 export function friendlyMixError(error: unknown): Error {
   const text = error instanceof ToolError ? error.output : errorMessage(error);
-  if (/cancel/i.test(text)) return new Error("Cancelled");
+  if (isCancelled(error)) return new CancelledError();
   const missing =
     /Error opening input file .*?([^/\\]+?)\.?$/m.exec(text) ??
     /([^/\\\s]+\.\w+): No such file or directory/.exec(text);
@@ -269,32 +266,35 @@ async function masterStem(plan: MixPlan, deps: MixDeps, buses: Stem[]): Promise<
   return runStem(deps, plan, hash, job, "pcm_s16le", makeup);
 }
 
-const levelsOf = (stems: Iterable<[string, Stem]>) =>
+const levelsById = (stems: Iterable<[string, Stem]>) =>
   Object.fromEntries([...stems].map(([id, s]) => [id, s.levels]));
 
+const emptyMixResult = (plan: MixPlan): MixResult => ({
+  key: plan.key,
+  master: null,
+  levels: { channels: {}, buses: {}, master: null },
+  reduction: { channels: {}, master: null },
+  loudness: null,
+});
+
+const MASTER_STEPS = ["Balancing loudness", "Measuring loudness"] as const;
+
 async function renderMixStems(plan: MixPlan, deps: MixDeps): Promise<MixResult> {
-  if (!hasSound(plan))
-    return {
-      key: plan.key,
-      master: null,
-      levels: { channels: {}, buses: {}, master: null },
-      reduction: { channels: {}, master: null },
-      loudness: null,
-    };
+  if (!hasSound(plan)) return emptyMixResult(plan);
   const progress = deps.onProgress ?? (() => undefined);
-  const steps = plan.channels.length + plan.buses.length + 2;
+  const steps = plan.channels.length + plan.buses.length + MASTER_STEPS.length;
   let done = 0;
   const tick: Tick = (message) => progress(done++ / steps, message);
 
   const channels = await channelStems(plan, deps, tick);
   const buses = await busStems(plan, deps, channels, tick);
-  tick("Balancing loudness");
+  tick(MASTER_STEPS[0]);
   const master = await masterStem(
     plan,
     deps,
     buses.map(([, s]) => s),
   );
-  tick("Measuring loudness");
+  tick(MASTER_STEPS[1]);
   const loudness = await loudnessOf(deps, plan, master);
   await remember(deps.projectDir, [
     ...[...channels.values()].map((s) => s.hash),
@@ -305,7 +305,7 @@ async function renderMixStems(plan: MixPlan, deps: MixDeps): Promise<MixResult> 
   return {
     key: plan.key,
     master: { src: toProjectRef(deps.projectDir, master.file), hash: master.hash },
-    levels: { channels: levelsOf(channels), buses: levelsOf(buses), master: master.levels },
+    levels: { channels: levelsById(channels), buses: levelsById(buses), master: master.levels },
     reduction: {
       channels: Object.fromEntries(
         [...channels].flatMap(([id, s]) => (s.reduction ? [[id, s.reduction]] : [])),
@@ -318,18 +318,18 @@ async function renderMixStems(plan: MixPlan, deps: MixDeps): Promise<MixResult> 
 
 async function remember(projectDir: string, hashes: string[]): Promise<void> {
   const dir = mixDir(projectDir);
-  const indexFile = path.join(dir, "recent.json");
+  const indexFile = path.join(dir, RECENT_FILE);
   const recent = (await readJson(indexFile, recentSchema)) ?? [];
   const next = [hashes, ...recent.filter((h) => h.join() !== hashes.join())].slice(0, KEEP_PLANS);
   await atomicWrite(indexFile, JSON.stringify(next));
   const keep = new Set(next.flat());
   const cutoff = Date.now() - UNUSED_STEM_MS;
-  for (const file of await readdir(dir).catch(() => [] as string[])) {
-    if (file === "recent.json") continue;
-    const hash = file.split(".")[0];
-    if (keep.has(hash)) continue;
-    const full = path.join(dir, file);
-    const info = await stat(full).catch(() => null);
-    if (info && info.mtimeMs < cutoff) await rm(full, { force: true });
-  }
+  const unused = (await datedFiles(dir)).filter(
+    (f) =>
+      f.name !== RECENT_FILE &&
+      !keep.has(f.name.split(".")[0]) &&
+      f.mtimeMs !== null &&
+      f.mtimeMs < cutoff,
+  );
+  await Promise.all(unused.map((f) => rm(f.file, { force: true })));
 }

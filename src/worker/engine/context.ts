@@ -5,9 +5,8 @@ import type { NodeDef } from "../../shared/nodes/define";
 import type { LogLevel } from "../../shared/schema/events";
 import type { Artifact, CompileValue, NodeResult } from "../../shared/schema/values";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
-import type { AppSettings } from "../../shared/settings";
 import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
-import type { LiveSink } from "../capture/driver";
+import type { LiveSink } from "../capture/take-run";
 import type { FfmpegTools } from "../media/ffmpeg";
 
 export type ExecutorContext = {
@@ -24,7 +23,6 @@ export type ExecutorContext = {
   signal: AbortSignal;
   ffmpeg: FfmpegTools;
   engine: EnginePaths;
-  settings: AppSettings;
   live: (title: string) => LiveSink | null;
   login: (request: LoginRequest) => Promise<string>;
   log: (level: LogLevel, message: string) => void;
@@ -36,7 +34,6 @@ export type ExecutorContext = {
     read: (name: string) => Promise<string | null>;
     write: (name: string, value: string) => Promise<void>;
   };
-  ref: (file: string) => string;
 };
 
 export type ExecutorOutput = {

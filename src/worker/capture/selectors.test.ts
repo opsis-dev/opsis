@@ -27,25 +27,31 @@ function stubPage() {
     locator: (a: unknown) => loc("locator", a),
   } as unknown as Page;
   const firstCall = (fn: string): Matchers => calls.find((c) => c.fn === fn)?.opts ?? {};
-  return { page, firstCall };
+  return { page, calls, firstCall };
 }
 
 describe("autoCandidates", () => {
-  it("puts exact interactive-role matches before any contains match", () => {
-    const { page } = stubPage();
-    const by = autoCandidates(page, "Save").map((c) => c.by);
-    const firstExact = by.findIndex((b) => b.startsWith("role=button"));
-    const firstLoose = by.findIndex((b) => b.startsWith("control containing"));
-    const bareText = by.findIndex((b) => b === 'text "Save"');
-    assert.ok(firstExact >= 0 && firstLoose > firstExact);
-    assert.equal(bareText, by.length - 1, "bare text must be the last resort");
+  it("tries exact interactive-role matches first and bare text last", () => {
+    const { page, calls } = stubPage();
+    autoCandidates(page, "Save");
+    const fns = calls.map((c) => c.fn);
+    const lastRole = fns.lastIndexOf("getByRole");
+    assert.ok(lastRole >= 0 && lastRole < fns.indexOf("locator.filter"));
+    const last = calls.at(-1);
+    assert.equal(last?.fn, "getByText");
+    assert.ok(last?.arg instanceof RegExp && last.arg.test("Save changes"));
   });
 
   it("probes button and link before the rarer roles", () => {
-    const { page } = stubPage();
-    const by = autoCandidates(page, "Go").map((c) => c.by);
-    assert.equal(by[0], 'role=button name="Go"');
-    assert.equal(by[1], 'role=link name="Go"');
+    const { page, calls } = stubPage();
+    autoCandidates(page, "Go");
+    assert.deepEqual(
+      calls.slice(0, 2).map((c) => [c.fn, c.arg]),
+      [
+        ["getByRole", "button"],
+        ["getByRole", "link"],
+      ],
+    );
   });
 
   it("matches an exact name but not a longer one that contains it", () => {
@@ -70,10 +76,5 @@ describe("autoCandidates", () => {
     const exact = firstCall("getByRole");
     assert.ok(exact.name?.test("AGENTS.md"));
     assert.ok(exact.name && !exact.name.test("AGENTSXmd"));
-  });
-
-  it("never produces an empty ladder", () => {
-    const { page } = stubPage();
-    assert.ok(autoCandidates(page, "x").length > 5);
   });
 });

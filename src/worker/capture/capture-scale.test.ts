@@ -24,9 +24,16 @@ class FakeStyle {
   }
 }
 
+type FakeWindow = {
+  innerWidth?: number;
+  innerHeight?: number;
+  visualViewport: { width?: number; height?: number };
+  addEventListener: () => void;
+};
+
 function fakePage(rule: FakeStyle) {
   const listen = vi.fn();
-  const win = { visualViewport: {}, addEventListener: listen } as Record<string, unknown>;
+  const win: FakeWindow = { visualViewport: {}, addEventListener: listen };
   const root = new FakeStyle();
   vi.stubGlobal("window", win);
   vi.stubGlobal("document", {
@@ -61,7 +68,7 @@ describe("fitPageToScale", () => {
     fitPageToScale({ scale: 2, width: 1280, height: 720 });
     expect(win.innerWidth).toBe(1280);
     expect(win.innerHeight).toBe(720);
-    expect((win.visualViewport as { width: number }).width).toBe(1280);
+    expect(win.visualViewport.width).toBe(1280);
     expect(root.getPropertyValue("zoom")).toBe("2");
     expect(rule.getPropertyValue("height")).toBe("720px");
     expect(rule.getPropertyValue("width")).toBe("640px");

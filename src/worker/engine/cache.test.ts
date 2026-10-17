@@ -13,4 +13,20 @@ describe("nodeHash", () => {
       nodeHash("fx.core.title", { title: "Hi", fontSize: 100 }, [["clip", "y:clip"]]),
     ).not.toBe(a);
   });
+
+  it("doesn't depend on the order the inputs are listed in", () => {
+    const ports: Array<[string, string]> = [
+      ["clip", "x:clip"],
+      ["audio", "y:audio"],
+    ];
+    expect(nodeHash("fx.core.title", {}, ports)).toBe(
+      nodeHash("fx.core.title", {}, ports.toReversed()),
+    );
+    expect(nodeHash("fx.core.title", {}, ports)).not.toBe(
+      nodeHash("fx.core.title", {}, [
+        ["clip", "y:audio"],
+        ["audio", "x:clip"],
+      ]),
+    );
+  });
 });

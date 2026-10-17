@@ -11,6 +11,11 @@ export const projectRelPath = (ref: string): string =>
 
 export const isProjectRef = (ref: string): boolean => ref.startsWith("project:");
 
+const APP_SCHEME = "app:";
+
+export const appRelPath = (ref: string): string | null =>
+  ref.startsWith(APP_SCHEME) ? ref.slice(APP_SCHEME.length) : null;
+
 export const projectFileUrl = (ref: string): string =>
   `${PROJECT_FILE_BASE}${encodePath(projectRelPath(ref))}`;
 

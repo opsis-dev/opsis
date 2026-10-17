@@ -2,7 +2,7 @@ import type { Page } from "playwright-core";
 import { clamp } from "../../shared/math";
 import { rectFromBounds, type Rect } from "../../shared/schema/actions";
 import { cameraEase } from "../../video/camera/lib/camera";
-import { DESIGN_WIDTH, type CursorSample, type KeyEvent } from "../../video/camera/lib/click-log";
+import { DESIGN_WIDTH } from "../../video/camera/lib/click-log";
 import {
   boundsOf,
   bulgedCurve,
@@ -17,13 +17,13 @@ import {
 import {
   isPoint,
   type ActionOpts,
-  type ClickEvent,
   type DragOpts,
   type DragTo,
   type Target,
+  type TakeClick,
+  type TakeSink,
 } from "./flow-types";
 
-const START = { x: 960, y: 540 };
 const DEFAULT_PAUSE_MS = 700;
 const SAMPLE_MS = 8;
 const GLIDE_MIN_PX = 6;
@@ -48,12 +48,16 @@ const TARGET_LIFT = 8;
 
 type Box = { cx: number; cy: number; rect: Rect };
 
-type DragPlan = { points: Point[]; drop: Rect };
+type DragPlan = { points: Point[]; end: Point; drop: Rect };
 
-const captureScaleOf = (page: Page): number => {
-  const vp = page.viewportSize();
-  return vp && vp.width > 0 ? vp.width / DESIGN_WIDTH : 1;
-};
+type Viewport = { width: number; height: number } | null;
+
+const viewportScale = (vp: Viewport): number => (vp && vp.width > 0 ? vp.width / DESIGN_WIDTH : 1);
+
+const centreOf = (vp: Viewport): Point =>
+  vp ? { x: vp.width / 2, y: vp.height / 2 } : { x: 0, y: 0 };
+
+const lastPoint = (points: readonly Point[]): Point => points[points.length - 1];
 
 const roundRect = (r: Rect): Rect => ({
   x: Math.round(r.x),
@@ -74,8 +78,7 @@ function padSmallTarget(rect: Rect, k: number): Rect {
   };
 }
 
-async function boxOf(page: Page, target: Target): Promise<Box> {
-  const k = captureScaleOf(page);
+async function boxOf(page: Page, target: Target, k: number): Promise<Box> {
   if (isPoint(target)) {
     return {
       cx: target.x,
@@ -103,32 +106,34 @@ async function boxOf(page: Page, target: Target): Promise<Box> {
   };
 }
 
-async function dropBox(page: Page, target: Target): Promise<Box> {
-  if (isPoint(target)) return boxOf(page, target);
+const NOT_ON_SCREEN =
+  "The place to drop it isn't on screen. Scroll to it first, or use a bigger window.";
+
+async function dropBox(page: Page, target: Target, k: number, vp: Viewport): Promise<Box> {
+  if (isPoint(target)) return boxOf(page, target, k);
   const box = await target.first().boundingBox();
-  const vp = page.viewportSize();
-  const cx = box ? box.x + box.width / 2 : 0;
-  const cy = box ? box.y + box.height / 2 : 0;
-  const onScreen = !!box && (!vp || (cx >= 0 && cy >= 0 && cx <= vp.width && cy <= vp.height));
-  if (!box || !onScreen)
-    throw new Error(
-      "The place to drop it isn't on screen. Scroll to it first, or use a bigger window.",
-    );
+  if (!box) throw new Error(NOT_ON_SCREEN);
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  if (vp && (cx < 0 || cy < 0 || cx > vp.width || cy > vp.height)) throw new Error(NOT_ON_SCREEN);
   return { cx, cy, rect: rectFromBounds(box) };
 }
 
 export class CursorDriver {
-  private last: Point = { ...START };
+  private readonly viewport: Viewport;
+  private readonly k: number;
+  private last: Point;
   private lastDepartMs = 0;
 
   constructor(
     private readonly page: Page,
-    private readonly clicks: ClickEvent[],
     private readonly elapsed: () => number,
-    private readonly cursor: CursorSample[],
-    private readonly keys: KeyEvent[],
+    private readonly sink: TakeSink,
   ) {
-    this.mark(START.x, START.y);
+    this.viewport = page.viewportSize();
+    this.k = viewportScale(this.viewport);
+    this.last = centreOf(this.viewport);
+    this.mark(this.last.x, this.last.y);
   }
 
   pause(ms = DEFAULT_PAUSE_MS): Promise<void> {
@@ -138,11 +143,11 @@ export class CursorDriver {
   async pressKey(chord: string, label?: string): Promise<void> {
     const tMs = this.elapsed();
     await this.page.keyboard.press(chord);
-    this.keys.push(label ? { tMs, chord, label } : { tMs, chord });
+    this.sink.key(label ? { tMs, chord, label } : { tMs, chord });
   }
 
   async moveTo(target: Target): Promise<void> {
-    const { cx, cy } = await boxOf(this.page, target);
+    const { cx, cy } = await this.boxOf(target);
     await this.glideTo(cx, cy, MOVE_SETTLE_MS);
   }
 
@@ -164,6 +169,7 @@ export class CursorDriver {
   ): Promise<void> {
     const { point, frame } = await this.approach(target, opts);
     const event = await this.clickAt(point.cx, point.cy, frame.rect, label ?? "field", opts);
+    event.text = chunks.join("");
     await this.pause(FIELD_FOCUS_MS);
     const selectAll = process.platform === "darwin" ? "Meta+A" : "Control+A";
     await this.page.keyboard.press(selectAll);
@@ -176,41 +182,28 @@ export class CursorDriver {
   }
 
   async drag(from: Target, to: DragTo, label?: string, opts?: DragOpts): Promise<void> {
-    const k = captureScaleOf(this.page);
     const { point: start, frame } = await this.approach(from, opts);
     const origin = { x: start.cx, y: start.cy };
-    const quick = opts?.method === "quick";
     const tDownMs = this.elapsed();
-    let plan: DragPlan;
-    if ("target" in to && quick) plan = await this.quickDragOnto(from, to.target, origin);
-    else {
-      await this.page.mouse.down();
-      await this.pause(opts?.holdMs ?? DRAG_HOLD_MS);
-      plan =
-        "target" in to
-          ? await this.dragOnto(to.target, origin, k, opts?.dragMs)
-          : await this.dragAlong(
-              offsetPath(origin, "by" in to ? [to.by] : to.path),
-              origin,
-              k,
-              quick,
-              opts?.dragMs,
-            );
-      await this.pause(DROP_SETTLE_MS);
-      await this.page.mouse.up();
-    }
-
-    const end = plan.points.at(-1)!;
-    this.last = { x: end.x, y: end.y };
-    this.mark(end.x, end.y);
-    const event = this.logEvent(end.x, end.y, frame.rect, label ?? "drag", opts, tDownMs);
+    const plan = await this.dragPlan(from, to, origin, opts);
+    this.last = { x: plan.end.x, y: plan.end.y };
+    this.mark(plan.end.x, plan.end.y);
+    const event = this.logEvent(plan.end.x, plan.end.y, frame.rect, label ?? "drag", opts, tDownMs);
     event.tUpMs = event.tMs;
     event.path = thinPath(plan.points);
     event.drop = roundRect(plan.drop);
   }
 
+  private boxOf(target: Target): Promise<Box> {
+    return boxOf(this.page, target, this.k);
+  }
+
+  private dropBox(target: Target): Promise<Box> {
+    return dropBox(this.page, target, this.k, this.viewport);
+  }
+
   private mark(x: number, y: number) {
-    this.cursor.push({ t: this.elapsed(), x: Math.round(x), y: Math.round(y) });
+    this.sink.cursor({ t: this.elapsed(), x: Math.round(x), y: Math.round(y) });
   }
 
   private async walk(fromMs: number, spanMs: number, at: (p: number) => Point) {
@@ -225,11 +218,11 @@ export class CursorDriver {
   }
 
   private async glideTo(x: number, y: number, settleMs = SETTLE_MS, travelMs?: number) {
-    const k = captureScaleOf(this.page);
+    const { k } = this;
     const dist = Math.hypot(x - this.last.x, y - this.last.y);
     this.lastDepartMs = this.elapsed();
     if (dist >= GLIDE_MIN_PX * k) {
-      const glide = glidePlan(this.last, { x, y }, k, this.page.viewportSize(), travelMs);
+      const glide = glidePlan(this.last, { x, y }, k, this.viewport, travelMs);
       await this.walk(this.elapsed(), glide.durationMs, glide.at);
       if (glide.overshooting) {
         const { aim } = glide;
@@ -245,8 +238,8 @@ export class CursorDriver {
   }
 
   private async approach(target: Target, opts: ActionOpts | undefined) {
-    const point = await boxOf(this.page, target);
-    const frame = opts?.frame ? await boxOf(this.page, opts.frame) : point;
+    const point = await this.boxOf(target);
+    const frame = opts?.frame ? await this.boxOf(opts.frame) : point;
     await this.glideTo(point.cx, point.cy, opts?.hoverMs ?? SETTLE_MS, opts?.travelMs);
     return { point, frame };
   }
@@ -258,8 +251,8 @@ export class CursorDriver {
     label?: string,
     opts?: ActionOpts,
     tDownMs?: number,
-  ): ClickEvent {
-    const event: ClickEvent = {
+  ): TakeClick {
+    const event: TakeClick = {
       label,
       tMs: this.elapsed(),
       tDepartMs: this.lastDepartMs,
@@ -268,10 +261,11 @@ export class CursorDriver {
       rect: roundRect(rect),
     };
     if (tDownMs != null) event.tDownMs = tDownMs;
+    if (opts?.selector != null) event.selector = opts.selector;
     if (opts?.cluster != null) event.cluster = opts.cluster;
     if (opts?.zoom === false) event.zoom = false;
     if (opts?.zoomScale != null) event.zoomScale = opts.zoomScale;
-    this.clicks.push(event);
+    this.sink.click(event);
     return event;
   }
 
@@ -283,62 +277,87 @@ export class CursorDriver {
     return this.logEvent(x, y, rect, label, opts, tDownMs);
   }
 
-  private async quickDragOnto(from: Target, onto: Target, origin: Point): Promise<DragPlan> {
-    const end = await dropBox(this.page, onto);
+  private dragPlan(from: Target, to: DragTo, origin: Point, opts?: DragOpts): Promise<DragPlan> {
+    const quick = opts?.method === "quick";
+    const dragMs = opts?.dragMs;
+    if ("target" in to) {
+      const onto = to.target;
+      return quick
+        ? this.quickOnto(from, onto, origin)
+        : this.pressed(opts, () => this.smoothOnto(onto, origin, dragMs));
+    }
+    const points = offsetPath(origin, "by" in to ? [to.by] : to.path);
+    return this.pressed(opts, () =>
+      quick ? this.quickAlong(points) : this.smoothAlong(points, origin, dragMs),
+    );
+  }
+
+  private async pressed(opts: DragOpts | undefined, move: () => Promise<DragPlan>) {
+    await this.page.mouse.down();
+    await this.pause(opts?.holdMs ?? DRAG_HOLD_MS);
+    const plan = await move();
+    await this.pause(DROP_SETTLE_MS);
+    await this.page.mouse.up();
+    return plan;
+  }
+
+  private async nudgeFrom(origin: Point, toward: Point): Promise<Point> {
+    const nudge = nudgeToward(origin, toward, DRAG_NUDGE_PX * this.k);
+    this.mark(nudge.x, nudge.y);
+    await this.page.mouse.move(nudge.x, nudge.y);
+    return nudge;
+  }
+
+  private async quickOnto(from: Target, onto: Target, origin: Point): Promise<DragPlan> {
+    const drop = await this.dropBox(onto);
+    const end = { x: drop.cx, y: drop.cy };
     if (!isPoint(from) && !isPoint(onto))
       await from.first().dragTo(onto.first(), { steps: QUICK_DRAG_STEPS });
     else {
       await this.page.mouse.down();
-      await this.page.mouse.move(end.cx, end.cy, { steps: QUICK_DRAG_STEPS });
+      await this.page.mouse.move(end.x, end.y, { steps: QUICK_DRAG_STEPS });
       await this.page.mouse.up();
     }
-    this.mark(end.cx, end.cy);
-    return { points: [origin, { x: end.cx, y: end.cy }], drop: end.rect };
+    this.mark(end.x, end.y);
+    return { points: [origin, end], end, drop: drop.rect };
   }
 
-  private async dragOnto(
+  private async smoothOnto(
     onto: Target,
     origin: Point,
-    k: number,
     dragMs: number | undefined,
   ): Promise<DragPlan> {
-    const before = await dropBox(this.page, onto);
-    const nudge = nudgeToward(origin, { x: before.cx, y: before.cy }, DRAG_NUDGE_PX * k);
-    this.mark(nudge.x, nudge.y);
-    await this.page.mouse.move(nudge.x, nudge.y);
-    const end = await dropBox(this.page, onto);
-    const target = { x: end.cx, y: end.cy };
+    const before = await this.dropBox(onto);
+    const nudge = await this.nudgeFrom(origin, { x: before.cx, y: before.cy });
+    const drop = await this.dropBox(onto);
+    const end = { x: drop.cx, y: drop.cy };
     await this.walk(
       this.elapsed(),
-      dragDuration([nudge, target], k, dragMs),
-      bulgedCurve(nudge, target),
+      dragDuration([nudge, end], this.k, dragMs),
+      bulgedCurve(nudge, end),
     );
-    return { points: [origin, target], drop: end.rect };
+    return { points: [origin, end], end, drop: drop.rect };
   }
 
-  private async dragAlong(
+  private async quickAlong(points: Point[]): Promise<DragPlan> {
+    for (const point of points.slice(1))
+      await this.page.mouse.move(point.x, point.y, { steps: QUICK_DRAG_STEPS });
+    const end = lastPoint(points);
+    this.mark(end.x, end.y);
+    return { points, end, drop: boundsOf(points) };
+  }
+
+  private async smoothAlong(
     points: Point[],
     origin: Point,
-    k: number,
-    quick: boolean,
     dragMs: number | undefined,
   ): Promise<DragPlan> {
-    const drop = boundsOf(points);
-    if (quick) {
-      for (const point of points.slice(1))
-        await this.page.mouse.move(point.x, point.y, { steps: QUICK_DRAG_STEPS });
-      const end = points.at(-1)!;
-      this.mark(end.x, end.y);
-    } else {
-      const nudge = nudgeToward(origin, points[1] ?? origin, DRAG_NUDGE_PX * k);
-      this.mark(nudge.x, nudge.y);
-      await this.page.mouse.move(nudge.x, nudge.y);
-      await this.walk(
-        this.elapsed(),
-        dragDuration(points, k, dragMs),
-        polylineAt([nudge, ...points.slice(1)]),
-      );
-    }
-    return { points, drop };
+    const nudge = await this.nudgeFrom(origin, points[1] ?? origin);
+    await this.walk(
+      this.elapsed(),
+      dragDuration(points, this.k, dragMs),
+      polylineAt([nudge, ...points.slice(1)]),
+    );
+    return { points, end: lastPoint(points), drop: boundsOf(points) };
   }
 }

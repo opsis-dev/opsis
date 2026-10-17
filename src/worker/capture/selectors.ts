@@ -1,13 +1,13 @@
 import type { Locator, Page } from "playwright-core";
-import { errorMessage } from "../../shared/errors";
-import { withoutCallName } from "./driver-helpers";
+import { errorMessage, throwIfCancelled, withoutCallName } from "../../shared/errors";
+import { parsePoint } from "./drag-path";
 import { CSS_PREFIX, type Target } from "./flow-types";
 
-export type Candidate = { by: string; locator: Locator };
+type Candidate = { by: string; locator: Locator };
 
 export type Resolved = { target: Target; by: string };
 
-export type ResolveOptions = {
+type ResolveOptions = {
   log: (level: "info", message: string) => void;
   signal: AbortSignal;
   hoisted?: ReadonlyMap<string, Locator>;
@@ -16,15 +16,10 @@ export type ResolveOptions = {
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const POLL_MS = 250;
-const POINT = /^\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*$/;
 const PAGE_CHANGING = /detached|not attached|Execution context was destroyed|navigat/i;
 const DUMP_LIMIT = 24;
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const exactMatcher = (name: string): RegExp => new RegExp(`^${escapeRegExp(name)}$`, "i");
-
-const containsMatcher = (text: string): RegExp => new RegExp(escapeRegExp(text), "i");
 
 const NAMED_ROLES = ["button", "link", "textbox", "combobox", "option", "tab"] as const;
 
@@ -39,8 +34,8 @@ const INTERACTIVE_ANCESTOR =
   " self::a][1]";
 
 export function autoCandidates(page: Page, name: string): Candidate[] {
-  const exact = exactMatcher(name);
-  const loose = containsMatcher(name);
+  const exact = new RegExp(`^${escapeRegExp(name)}$`, "i");
+  const loose = new RegExp(escapeRegExp(name), "i");
   return [
     ...NAMED_ROLES.map((role) => ({
       by: `role=${role} name="${name}"`,
@@ -102,13 +97,13 @@ export async function resolveTarget(
     await locator.waitFor({ state: "visible", timeout: timeoutMs });
     return { target: locator, by: raw };
   }
-  const point = POINT.exec(raw);
-  if (point) return { target: { x: Number(point[1]), y: Number(point[2]) }, by: "point" };
+  const point = parsePoint(raw);
+  if (point) return { target: point, by: "point" };
 
   const candidates = autoCandidates(page, raw);
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    if (opts.signal.aborted) throw new Error("Cancelled");
+    throwIfCancelled(opts.signal);
     const found = await firstVisible(candidates);
     if (found) {
       opts.log("info", `✓ Found ${raw}`);
@@ -162,7 +157,7 @@ function listOnScreen(max: number): OnScreen[] {
         tag: e.tagName.toLowerCase(),
         role: e.getAttribute("role") ?? "",
         type: e.getAttribute("type") ?? "",
-        text: (text ?? "").trim().replace(/\s+/g, " ").slice(0, 44),
+        text: text.trim().replace(/\s+/g, " ").slice(0, 44),
         x: Math.round(r.x),
         y: Math.round(r.y),
         w: Math.round(r.width),

@@ -1,5 +1,3 @@
-type LinuxLibc = "gnu" | "musl";
-
 const PACKAGES: Partial<Record<string, string>> = {
   "darwin-arm64": "@remotion/compositor-darwin-arm64",
   "darwin-x64": "@remotion/compositor-darwin-x64",
@@ -10,7 +8,7 @@ const PACKAGES: Partial<Record<string, string>> = {
   "win32-x64": "@remotion/compositor-win32-x64-msvc",
 };
 
-function linuxLibc(): LinuxLibc {
+function linuxLibc(): "gnu" | "musl" {
   const report = process.report.getReport();
   const header = "header" in report ? report.header : null;
   const glibc =
@@ -23,14 +21,11 @@ function linuxLibc(): LinuxLibc {
 export function getCompositorPackage({
   arch,
   platform,
-  libc,
 }: {
   arch: string;
   platform: string;
-  libc?: LinuxLibc;
 }): string {
-  const key =
-    platform === "linux" ? `${platform}-${arch}-${libc ?? linuxLibc()}` : `${platform}-${arch}`;
+  const key = platform === "linux" ? `${platform}-${arch}-${linuxLibc()}` : `${platform}-${arch}`;
   const pkg = PACKAGES[key];
   if (!pkg) throw new Error(`Unsupported platform/arch combination: ${platform}/${arch}`);
   return pkg;

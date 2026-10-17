@@ -49,6 +49,50 @@ const secretsFor = (projectDir: string): ExecutorContext["secrets"] => ({
   },
 });
 
+const EXIT_FLUSH_MS = 50;
+
+async function failureOf(work: () => Promise<unknown>): Promise<string | undefined> {
+  try {
+    await work();
+    return undefined;
+  } catch (error) {
+    return errorMessage(error);
+  }
+}
+
+const withError = (error: string | undefined) => (error === undefined ? {} : { error });
+
+async function run(msg: Extract<MainToWorker, { type: "run" }>) {
+  const error = await failureOf(() =>
+    runWorkflow(msg.runId, msg.request, {
+      env: msg.env,
+      signal: controller.signal,
+      emit: (event) => send({ type: "event", event }),
+      live: live ? sendLive : null,
+      login,
+      secrets: secretsFor(msg.request.projectDir),
+    }),
+  );
+  if (error !== undefined)
+    send({
+      type: "event",
+      event: runFailed(msg.runId, error, { cancelled: controller.signal.aborted }),
+    });
+  finish();
+}
+
+async function installEngineFor(msg: Extract<MainToWorker, { type: "install-engine" }>) {
+  const error = await failureOf(() =>
+    installEngine(
+      msg.env.engineDir,
+      (event) => send({ type: "install:progress", event }),
+      controller.signal,
+    ),
+  );
+  send({ type: "install:done", ...withError(error) });
+  finish();
+}
+
 async function handle(msg: MainToWorker): Promise<void> {
   switch (msg.type) {
     case "cancel":
@@ -64,67 +108,23 @@ async function handle(msg: MainToWorker): Promise<void> {
     case "request:failed":
       settle(msg.id, { error: msg.error });
       return;
-    case "run": {
-      try {
-        await runWorkflow(msg.runId, msg.request, {
-          env: msg.env,
-          signal: controller.signal,
-          emit: (event) => send({ type: "event", event }),
-          live: live ? sendLive : null,
-          login,
-          secrets: secretsFor(msg.request.projectDir),
-        });
-      } catch (error) {
-        send({
-          type: "event",
-          event: runFailed(msg.runId, errorMessage(error), {
-            cancelled: controller.signal.aborted,
-          }),
-        });
-      }
-      finish();
-      return;
-    }
+    case "run":
+      return run(msg);
     case "still": {
-      try {
-        await renderCardStill(msg, controller.signal);
-        send({ type: "still:done", id: msg.id });
-      } catch (error) {
-        send({
-          type: "still:done",
-          id: msg.id,
-          error: errorMessage(error),
-        });
-      }
+      const error = await failureOf(() => renderCardStill(msg, controller.signal));
+      send({ type: "still:done", id: msg.id, ...withError(error) });
       return;
     }
-    case "analysis": {
-      const result = await runAnalysis(msg.env, msg.request);
-      send({ type: "analysis:done", id: msg.id, result });
+    case "analysis":
+      send({ type: "analysis:done", id: msg.id, result: await runAnalysis(msg.env, msg.request) });
       return;
-    }
-    case "install-engine": {
-      try {
-        await installEngine(
-          msg.env.engineDir,
-          (event) => send({ type: "install:progress", event }),
-          controller.signal,
-        );
-        send({ type: "install:done" });
-      } catch (error) {
-        send({
-          type: "install:done",
-          error: errorMessage(error),
-        });
-      }
-      finish();
-      return;
-    }
+    case "install-engine":
+      return installEngineFor(msg);
   }
 }
 
 function finish() {
-  setTimeout(() => process.exit(0), 50);
+  setTimeout(() => process.exit(0), EXIT_FLUSH_MS);
 }
 
 process.parentPort.once("message", (event) => {

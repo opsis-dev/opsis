@@ -1,6 +1,12 @@
 import React, { createContext, useContext } from "react";
 import { staticFile } from "remotion";
-import { PROJECT_FILE_BASE, encodePath, isProjectRef, projectRelPath } from "../shared/asset-ref";
+import {
+  PROJECT_FILE_BASE,
+  appRelPath,
+  encodePath,
+  isProjectRef,
+  projectRelPath,
+} from "../shared/asset-ref";
 import type { ReframeMode } from "../shared/schema/timeline";
 
 type AssetBase = { projectBase?: string };
@@ -19,8 +25,8 @@ export function resolveAssetRef(ref: string, base: AssetBase): string {
     const root = base.projectBase ?? PROJECT_FILE_BASE;
     return root.endsWith("/") ? root + encodePath(rel) : `${root}/${encodePath(rel)}`;
   }
-  if (ref.startsWith("app:")) return staticFile(ref.slice("app:".length));
-  return ref;
+  const app = appRelPath(ref);
+  return app === null ? ref : staticFile(app);
 }
 
 const isAssetRef = (v: unknown): v is string => typeof v === "string" && /^(project|app):/.test(v);

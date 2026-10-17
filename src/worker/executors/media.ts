@@ -1,6 +1,5 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { z } from "zod";
 import {
   concatNode,
   convertNode,
@@ -24,25 +23,34 @@ import {
   type ExecutorOutput,
 } from "../engine/context";
 import { canStreamCopy, type ProbeResult } from "../media/ffmpeg";
-import { refToPath, rel, requireMedia } from "./util";
-import { round3 } from "../../shared/math";
+import {
+  AUDIO_FORMATS,
+  CONVERT,
+  EDIT_AUDIO,
+  EDIT_VIDEO,
+  FASTSTART,
+  frameGrabArgs,
+} from "../media/codecs";
+import { joinFilter, speedArgs } from "../media/filters";
+import { projectFileRef, refToPath, rel, requireMedia } from "./util";
 import { projectRef } from "../../shared/asset-ref";
 import { formatPreciseDuration } from "../../shared/format";
-
-const H264_ARGS = ["-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p"];
+import { IMAGE_EXTENSIONS } from "../../shared/mime";
 
 const probedKind = (probe: ProbeResult): MediaValue["kind"] =>
   probe.video ? (probe.durationMs > 0 ? "video" : "image") : "audio";
 
-const mediaValueFrom = (
-  probe: ProbeResult,
-  src: string,
-  kind: MediaValue["kind"] = probedKind(probe),
-): MediaValue => ({
-  type: "media",
-  src,
+type MediaShape = { kind: MediaValue["kind"]; durationMs: number | undefined };
+
+const probedShape = (probe: ProbeResult, kind = probedKind(probe)): MediaShape => ({
   kind,
   durationMs: probe.durationMs || undefined,
+});
+
+const mediaValueFrom = (probe: ProbeResult, src: string, shape: MediaShape): MediaValue => ({
+  type: "media",
+  src,
+  ...shape,
   width: probe.video?.width,
   height: probe.video?.height,
   hasAudio: !!probe.audio,
@@ -55,34 +63,32 @@ async function mediaResult(
   kind?: MediaValue["kind"],
 ): Promise<ExecutorOutput> {
   const probe = await ctx.ffmpeg.probe(path.join(ctx.dir, file));
-  const media = mediaValueFrom(probe, ctx.ref(file), kind);
+  const media = mediaValueFrom(probe, projectFileRef(ctx, file), probedShape(probe, kind));
   return {
     outputs: { media },
-    artifacts: [
-      {
-        kind: media.kind === "audio" ? "audio" : media.kind === "image" ? "image" : "video",
-        path: rel(ctx, file),
-        label,
-      },
-    ],
+    artifacts: [{ kind: media.kind, path: rel(ctx, file), label }],
   };
 }
 
 async function transcode(
   ctx: ExecutorContext,
-  input: MediaValue & { src: string },
+  src: string,
+  durationMs: number | undefined,
   args: (inPath: string, outPath: string) => string[],
   file: string,
 ) {
-  const inPath = refToPath(ctx, input.src);
+  const inPath = refToPath(ctx, src);
   const outPath = path.join(ctx.dir, file);
   await ctx.ffmpeg.run(args(inPath, outPath), {
     signal: ctx.signal,
-    durationMs: input.durationMs,
+    durationMs,
     onProgress: (p) => ctx.progress(p),
   });
   return outPath;
 }
+
+const isImageFile = (file: string) =>
+  IMAGE_EXTENSIONS.has(path.extname(file).slice(1).toLowerCase());
 
 const extOf = (src: string) => path.extname(src).toLowerCase() || ".mp4";
 
@@ -91,12 +97,11 @@ const importExecutor = defineExecutor(importMediaNode, async (ctx, _inputs, p) =
   const abs = refToPath(ctx, p.path);
   const probe = await ctx.ffmpeg.probe(abs);
   const src = projectRef(p.path);
-  const media: MediaValue = /\.(png|jpe?g|webp|gif|svg)$/i.test(abs)
-    ? { ...mediaValueFrom(probe, src, "image"), durationMs: undefined }
-    : {
-        ...mediaValueFrom(probe, src, probe.video ? "video" : "audio"),
-        durationMs: probe.durationMs,
-      };
+  const kind = isImageFile(abs) ? "image" : probe.video ? "video" : "audio";
+  const media = mediaValueFrom(probe, src, {
+    kind,
+    durationMs: kind === "image" ? undefined : probe.durationMs,
+  });
   return { outputs: { media } };
 });
 
@@ -105,40 +110,22 @@ const trimExecutor = defineExecutor(mediaTrimNode, async (ctx, inputs, p) => {
   const file = `trimmed${extOf(input.src)}`;
   await transcode(
     ctx,
-    { ...input, durationMs: p.endMs ? p.endMs - p.startMs : input.durationMs },
+    input.src,
+    p.endMs ? p.endMs - p.startMs : input.durationMs,
     (i, o) => [
       "-ss",
       (p.startMs / 1000).toFixed(3),
       ...(p.endMs ? ["-to", (p.endMs / 1000).toFixed(3)] : []),
       "-i",
       i,
-      ...H264_ARGS,
-      "-c:a",
-      "aac",
+      ...EDIT_VIDEO,
+      ...EDIT_AUDIO,
       o,
     ],
     file,
   );
   return mediaResult(ctx, file, "Trimmed");
 });
-
-export function joinFilter(
-  count: number,
-  to: { width: number; height: number; fps: number; sound: boolean },
-): string {
-  const { width: w, height: h } = to;
-  const rate = round3(to.fps);
-  const scaled = Array.from(
-    { length: count },
-    (_, i) =>
-      `[${i}:v]scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=${rate}[v${i}]`,
-  ).join(";");
-  const chain = Array.from(
-    { length: count },
-    (_, i) => `[v${i}]${to.sound ? `[${i}:a]` : ""}`,
-  ).join("");
-  return `${scaled};${chain}concat=n=${count}:v=1:a=${to.sound ? 1 : 0}[v]${to.sound ? "[a]" : ""}`;
-}
 
 const concatExecutor = defineExecutor(concatNode, async (ctx, inputs, p) => {
   const items = Object.keys(concatNode.inputs)
@@ -156,7 +143,7 @@ const concatExecutor = defineExecutor(concatNode, async (ctx, inputs, p) => {
     await writeFile(list, paths.map((f) => `file '${f.replace(/'/g, "'\\''")}'`).join("\n"));
     ctx.log("info", "The files match, joining them without converting.");
     await ctx.ffmpeg.run(
-      ["-f", "concat", "-safe", "0", "-i", list, "-c", "copy", "-movflags", "+faststart", out],
+      ["-f", "concat", "-safe", "0", "-i", list, "-c", "copy", ...FASTSTART, out],
       { signal: ctx.signal, durationMs: total, onProgress: ctx.progress },
     );
   } else {
@@ -175,10 +162,9 @@ const concatExecutor = defineExecutor(concatNode, async (ctx, inputs, p) => {
         filter,
         "-map",
         "[v]",
-        ...(allAudio ? ["-map", "[a]", "-c:a", "aac"] : []),
-        ...H264_ARGS,
-        "-movflags",
-        "+faststart",
+        ...(allAudio ? ["-map", "[a]", ...EDIT_AUDIO] : []),
+        ...EDIT_VIDEO,
+        ...FASTSTART,
         out,
       ],
       { signal: ctx.signal, durationMs: total, onProgress: ctx.progress },
@@ -187,39 +173,6 @@ const concatExecutor = defineExecutor(concatNode, async (ctx, inputs, p) => {
   return mediaResult(ctx, file, "Concatenated");
 });
 
-export function atempoChain(rate: number): string {
-  const parts: number[] = [];
-  let r = rate;
-  while (r > 2) {
-    parts.push(2);
-    r /= 2;
-  }
-  while (r < 0.5) {
-    parts.push(0.5);
-    r /= 0.5;
-  }
-  parts.push(r);
-  return parts.map((x) => `atempo=${x.toFixed(4)}`).join(",");
-}
-
-export function speedArgs(
-  inPath: string,
-  outPath: string,
-  opts: { rate: number; fps: number; sound: boolean },
-): string[] {
-  return [
-    "-i",
-    inPath,
-    "-vf",
-    `setpts=PTS/${opts.rate}`,
-    "-r",
-    String(round3(opts.fps)),
-    ...(opts.sound ? ["-af", atempoChain(opts.rate)] : ["-an"]),
-    ...H264_ARGS,
-    outPath,
-  ];
-}
-
 const speedExecutor = defineExecutor(mediaSpeedNode, async (ctx, inputs, p) => {
   const input = requireMedia(inputs.media);
   const file = "speed.mp4";
@@ -227,7 +180,8 @@ const speedExecutor = defineExecutor(mediaSpeedNode, async (ctx, inputs, p) => {
   const fps = probe.video?.fps || ctx.workflow.settings.fps;
   await transcode(
     ctx,
-    { ...input, durationMs: input.durationMs ? input.durationMs / p.rate : undefined },
+    input.src,
+    input.durationMs ? input.durationMs / p.rate : undefined,
     (i, o) =>
       speedArgs(i, o, { rate: p.rate, fps, sound: p.keepAudio && input.hasAudio !== false }),
     file,
@@ -240,14 +194,15 @@ const reverseExecutor = defineExecutor(reverseNode, async (ctx, inputs) => {
   const file = "reversed.mp4";
   await transcode(
     ctx,
-    input,
+    input.src,
+    input.durationMs,
     (i, o) => [
       "-i",
       i,
       "-vf",
       "reverse",
       ...(input.hasAudio ? ["-af", "areverse"] : ["-an"]),
-      ...H264_ARGS,
+      ...EDIT_VIDEO,
       o,
     ],
     file,
@@ -268,77 +223,25 @@ const scalePadExecutor = defineExecutor(scalePadNode, async (ctx, inputs, p) => 
   const file = image ? "scaled.png" : "scaled.mp4";
   await transcode(
     ctx,
-    input,
-    (i, o) => ["-i", i, "-vf", vf, ...(image ? [] : [...H264_ARGS, "-c:a", "copy"]), o],
+    input.src,
+    input.durationMs,
+    (i, o) => ["-i", i, "-vf", vf, ...(image ? [] : [...EDIT_VIDEO, "-c:a", "copy"]), o],
     file,
   );
   return mediaResult(ctx, file, `${w}×${h}`, image ? "image" : undefined);
 });
 
-type ConvertParams = z.infer<typeof convertNode.params>;
-
-const CONVERT: Record<
-  ConvertParams["codec"],
-  { ext: string; args: (crf: number, preset: ConvertParams["preset"]) => string[] }
-> = {
-  h264: {
-    ext: "mp4",
-    args: (crf, preset) => [
-      "-c:v",
-      "libx264",
-      "-crf",
-      String(crf),
-      "-preset",
-      preset,
-      "-pix_fmt",
-      "yuv420p",
-      "-c:a",
-      "aac",
-      "-movflags",
-      "+faststart",
-    ],
-  },
-  h265: {
-    ext: "mp4",
-    args: (crf, preset) => [
-      "-c:v",
-      "libx265",
-      "-crf",
-      String(crf),
-      "-preset",
-      preset,
-      "-tag:v",
-      "hvc1",
-      "-pix_fmt",
-      "yuv420p",
-      "-c:a",
-      "aac",
-    ],
-  },
-  vp9: {
-    ext: "webm",
-    args: (crf) => ["-c:v", "libvpx-vp9", "-crf", String(crf), "-b:v", "0", "-c:a", "libopus"],
-  },
-  prores: {
-    ext: "mov",
-    args: () => [
-      "-c:v",
-      "prores_ks",
-      "-profile:v",
-      "3",
-      "-pix_fmt",
-      "yuv422p10le",
-      "-c:a",
-      "pcm_s16le",
-    ],
-  },
-};
-
 const convertExecutor = defineExecutor(convertNode, async (ctx, inputs, p) => {
   const input = requireMedia(inputs.media);
   const target = CONVERT[p.codec];
   const file = `converted.${target.ext}`;
-  await transcode(ctx, input, (i, o) => ["-i", i, ...target.args(p.crf, p.preset), o], file);
+  await transcode(
+    ctx,
+    input.src,
+    input.durationMs,
+    (i, o) => ["-i", i, ...target.args(p.crf, p.preset), o],
+    file,
+  );
   return mediaResult(ctx, file, p.codec);
 });
 
@@ -348,23 +251,24 @@ const gifExecutor = defineExecutor(gifNode, async (ctx, inputs, p) => {
   const filter = `fps=${p.fps},scale=${p.width}:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[pal];[b][pal]paletteuse=dither=${p.dither}`;
   await transcode(
     ctx,
-    input,
+    input.src,
+    input.durationMs,
     (i, o) => ["-i", i, "-filter_complex", filter, "-loop", p.loop ? "0" : "-1", o],
     file,
   );
   return mediaResult(ctx, file, "GIF", "image");
 });
 
-const AUDIO_CODEC: Record<z.infer<typeof extractAudioNode.params>["format"], string[]> = {
-  m4a: ["-c:a", "aac", "-b:a", "192k"],
-  mp3: ["-c:a", "libmp3lame", "-q:a", "2"],
-  wav: ["-c:a", "pcm_s16le"],
-};
-
 const extractAudioExecutor = defineExecutor(extractAudioNode, async (ctx, inputs, p) => {
   const input = requireMedia(inputs.media);
   const file = `audio.${p.format}`;
-  await transcode(ctx, input, (i, o) => ["-i", i, "-vn", ...AUDIO_CODEC[p.format], o], file);
+  await transcode(
+    ctx,
+    input.src,
+    input.durationMs,
+    (i, o) => ["-i", i, "-vn", ...AUDIO_FORMATS[p.format], o],
+    file,
+  );
   return mediaResult(ctx, file, "Audio", "audio");
 });
 
@@ -373,15 +277,15 @@ const loudnormExecutor = defineExecutor(loudnormNode, async (ctx, inputs, p) => 
   const file = `loudnorm${input.kind === "audio" ? extOf(input.src) : ".mp4"}`;
   await transcode(
     ctx,
-    input,
+    input.src,
+    input.durationMs,
     (i, o) => [
       "-i",
       i,
       "-af",
       `loudnorm=I=${p.integrated}:TP=${p.truePeak}:LRA=${p.lra}`,
       ...(input.kind === "audio" ? [] : ["-c:v", "copy"]),
-      "-c:a",
-      "aac",
+      ...EDIT_AUDIO,
       o,
     ],
     file,
@@ -393,17 +297,10 @@ const thumbnailExecutor = defineExecutor(thumbnailNode, async (ctx, inputs, p) =
   const input = requireMedia(inputs.media);
   const file = "thumbnail.png";
   await ctx.ffmpeg.run(
-    [
-      "-ss",
-      (p.atMs / 1000).toFixed(3),
-      "-i",
-      refToPath(ctx, input.src),
-      "-frames:v",
-      "1",
-      "-vf",
-      `scale=${p.width}:-1`,
-      path.join(ctx.dir, file),
-    ],
+    frameGrabArgs(refToPath(ctx, input.src), path.join(ctx.dir, file), {
+      atMs: p.atMs,
+      width: p.width,
+    }),
     { signal: ctx.signal },
   );
   const probe = await ctx.ffmpeg.probe(path.join(ctx.dir, file));
@@ -411,7 +308,7 @@ const thumbnailExecutor = defineExecutor(thumbnailNode, async (ctx, inputs, p) =
     outputs: {
       image: {
         type: "image",
-        src: ctx.ref(file),
+        src: projectFileRef(ctx, file),
         width: probe.video?.width,
         height: probe.video?.height,
       },
@@ -425,8 +322,9 @@ const faststartExecutor = defineExecutor(faststartNode, async (ctx, inputs) => {
   const file = `faststart${extOf(input.src)}`;
   await transcode(
     ctx,
-    input,
-    (i, o) => ["-i", i, "-c", "copy", "-movflags", "+faststart", o],
+    input.src,
+    input.durationMs,
+    (i, o) => ["-i", i, "-c", "copy", ...FASTSTART, o],
     file,
   );
   return mediaResult(ctx, file, "Web-ready");
@@ -442,7 +340,7 @@ const probeExecutor = defineExecutor(probeNode, async (ctx, inputs) => {
   );
   return {
     outputs: {
-      file: { type: "file", src: ctx.ref("probe.json") },
+      file: { type: "file", src: projectFileRef(ctx, "probe.json") },
       media: {
         ...input,
         durationMs: probe.durationMs,

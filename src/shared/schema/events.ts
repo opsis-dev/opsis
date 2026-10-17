@@ -16,7 +16,7 @@ export type RunEvent =
       message: string;
       at: number;
     }
-  | { type: "node:done"; runId: string; nodeId: string; cached: boolean; result: NodeResult }
+  | { type: "node:done"; runId: string; nodeId: string; cached: boolean; result?: NodeResult }
   | {
       type: "node:error";
       runId: string;

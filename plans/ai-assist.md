@@ -134,7 +134,7 @@ Already in place:
 - The hidden browser: `openSession` (`src/worker/capture/session.ts`) launches the engine's headless shell with the Session node's settings and an optional saved sign-in. Installed `playwright-core` 1.64.1 has `page.ariaSnapshot({ mode: "ai", boxes })`, an accessibility outline with element refs (`[ref=e2]`), made for models.
 - An on-demand worker queue in main: `analyze` (`src/main/analysis.ts`) spawns a worker with `spawnWorker`, idles out after `IDLE_MS`, and checks `engineStatus(engineDir())` first. Messages are typed in `MainToWorker` (`src/shared/worker-protocol.ts`).
 - The selector ladder: `autoCandidates` / `candidatesFor` / `softFirst` (`src/worker/capture/selectors.ts`) find an element by its visible name and role, and `dumpVisible` lists what's on screen when one isn't found. Targets are stored as a name plus `targetRole` (the picker's `${key}Role` convention in `src/renderer/editor/inspector.tsx`).
-- `runTake` (`src/worker/capture/driver.ts`) takes a `TakeMode` that already includes `"check"`; nothing uses it yet.
+- Takes run through `playTake` (`src/worker/capture/driver.ts`), wrapped by `recordTake` and `stillTake`; a check take would be a third wrapper with no recording and no finale.
 - Building graphs in code: `GraphBuilder` (`node`, `link`, `chain`, `build`; `src/shared/templates/build.ts`); `todoMvcSample` (`src/shared/templates/index.ts`) is exactly the target shape. Title card is `fx.core.title` (`elementNodeType` in `src/shared/elements/index.ts`).
 - The catalogue (`catalogNode`, `nodeCatalog` in `src/shared/api/catalog.ts`) gives titles, descriptions and settings schemas; `checkWorkflow` validates; `useWorkflowStore` `update` and `setVariables` (`src/renderer/store/workflow.ts`) insert as one undo step.
 
@@ -152,7 +152,7 @@ Missing:
 5. **Check and repair.** Run `checkWorkflow` on the result. If the new nodes have errors, send the problems back once; anything left shows in the review list.
 6. **Review dialog.** `src/renderer/assist/describe-dialog.tsx`: sentence and address, progress ("Opening the page", "Writing the actions", "Checking"), then the draft as editable rows using the node icons from `icons.ts`. Rows whose target wasn't on the first page are marked "Not seen on the page". **Insert** applies one `update`, selects the new nodes and fits the view.
 7. **Entry points.** A `MenuCommand` `edit:describe` in `appMenu()` (`src/shared/menu.ts`), the empty-canvas button, and a "Describe your demo" choice in `new-project-dialog.tsx`. Hidden when the assistant is off; without the engine, offers to set it up.
-8. **Try before inserting.** "Try the actions" runs the new chain with `runTake` in `"check"` mode (no recording) and reports targets that didn't resolve, with the `dumpVisible` list.
+8. **Try before inserting.** "Try the actions" runs the new chain as a check take (no recording, a new wrapper over `playTake`) and reports targets that didn't resolve, with the `dumpVisible` list.
 9. **Walk the site.** For flows across pages: a loop in the worker where the model picks one action at a time from a fresh outline, the worker performs it, and only actions that worked become the draft.
 10. **Tests.** `draftToWorkflow` on fixed drafts and outlines: valid workflow, one chain, roles carried over, unknown refs rejected. A recorded outline of the TodoMVC sample as a fixture.
 

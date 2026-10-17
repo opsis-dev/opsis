@@ -1,4 +1,5 @@
 import { once } from "node:events";
+import { h264Args } from "../media/codecs";
 import type { FfmpegTools } from "../media/ffmpeg";
 
 const ENCODE_CRF = 16;
@@ -15,16 +16,9 @@ const encoderArgs = (fps: number, output: string): string[] => [
   "-an",
   "-vf",
   "pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p",
-  "-c:v",
-  "libx264",
-  "-preset",
-  "medium",
-  "-crf",
-  String(ENCODE_CRF),
+  ...h264Args({ crf: ENCODE_CRF, preset: "medium", faststart: true }),
   "-r",
   String(fps),
-  "-movflags",
-  "+faststart",
   output,
 ];
 
@@ -73,7 +67,7 @@ export class FrameEncoder {
     this.origin = t;
   }
 
-  push(jpeg: Buffer, t: number): Promise<void> {
+  private push(jpeg: Buffer, t: number): Promise<void> {
     this.queue = this.queue
       .then(() => this.advance(t))
       .then(() => {

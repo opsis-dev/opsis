@@ -57,14 +57,16 @@ export function applyRunEvent<S extends RunProgress>(state: S, e: RunEvent): S {
         },
       };
     case "node:done": {
-      const keep = Object.keys(e.result.outputs).length > 0 || e.result.artifacts.length > 0;
+      const { result } = e;
+      const keep =
+        !!result && (Object.keys(result.outputs).length > 0 || result.artifacts.length > 0);
       return {
         ...state,
         statuses: { ...state.statuses, [e.nodeId]: e.cached ? "cached" : "done" },
         cached: { ...state.cached, [e.nodeId]: e.cached },
         progress: { ...state.progress, [e.nodeId]: { value: 1 } },
-        results: keep ? { ...state.results, [e.nodeId]: e.result } : state.results,
-        traces: e.result.traceId ? { ...state.traces, [e.nodeId]: e.result.traceId } : state.traces,
+        results: keep ? { ...state.results, [e.nodeId]: result } : state.results,
+        traces: result?.traceId ? { ...state.traces, [e.nodeId]: result.traceId } : state.traces,
       };
     }
     case "node:error":

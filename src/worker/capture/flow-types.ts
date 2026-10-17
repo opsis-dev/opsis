@@ -1,8 +1,14 @@
 import type { Locator } from "playwright-core";
-import type { ClickEvent } from "../../video/camera/lib/click-log";
+import type { ClickEvent, CursorSample, KeyEvent } from "../../video/camera/lib/click-log";
 import type { Point } from "./drag-path";
 
-export type { ClickEvent };
+export type TakeClick = ClickEvent & { selector?: string; text?: string };
+
+export type TakeSink = {
+  click: (event: TakeClick) => void;
+  cursor: (sample: CursorSample) => void;
+  key: (event: KeyEvent) => void;
+};
 
 export const CSS_PREFIX = "css=";
 
@@ -17,6 +23,7 @@ export function elementOf(target: Target): Locator {
 }
 
 export type ActionOpts = {
+  selector?: string;
   cluster?: string;
   zoom?: boolean;
   frame?: Target;

@@ -8,6 +8,7 @@ import {
 import type { LogLevel, RunEvent } from "@/shared/schema/events";
 import type { LastRun } from "@/shared/schema/values";
 import { appendCapped } from "@/shared/lists";
+import { CANCELLED } from "@/shared/errors";
 import { pick } from "./snapshot";
 
 export type LogLine = {
@@ -109,7 +110,7 @@ export const useRunStore = create<RunState>()((set) => ({
             outputs: e.outputs,
             failedNodeIds: e.failedNodeIds ?? [],
             skippedNodeIds: e.skippedNodeIds ?? [],
-            lastError: e.ok ? null : (e.error ?? (e.cancelled ? "Cancelled" : "Failed")),
+            lastError: e.ok ? null : (e.error ?? (e.cancelled ? CANCELLED : "Failed")),
           };
         default:
           return applyRunEvent(s, e);

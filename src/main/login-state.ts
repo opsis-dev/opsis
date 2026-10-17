@@ -1,4 +1,5 @@
 import type { Cookie } from "electron";
+import type { StorageState } from "../shared/schema/storage-state";
 
 export type LocalStorageByOrigin = Map<string, Array<{ name: string; value: string }>>;
 
@@ -10,7 +11,7 @@ function cookieDomain(c: Cookie): string {
   return c.domain.startsWith(".") ? c.domain : `.${c.domain}`;
 }
 
-export function storageState(cookies: Cookie[], origins: LocalStorageByOrigin) {
+export function storageState(cookies: Cookie[], origins: LocalStorageByOrigin): StorageState {
   return {
     cookies: cookies.map((c) => ({
       name: c.name,

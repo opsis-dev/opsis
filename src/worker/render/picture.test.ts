@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TimelineSpec } from "../../shared/schema/timeline";
-import { hasSoundTrack } from "./codecs";
+import { hasSoundTrack } from "../media/codecs";
 import { finishArgs, muxArgs, pictureKey } from "./picture";
 
 const spec: TimelineSpec = {
@@ -24,7 +24,7 @@ const spec: TimelineSpec = {
   ],
   audio: [{ id: "a", src: "app:sfx/pop.wav", from: 10 }],
 };
-const opts = { codec: "h264", crf: 18, scale: 1, gl: "angle" };
+const opts = { codec: "h264", crf: 18, scale: 1, gl: "angle" } as const;
 
 describe("pictures rendered without sound", () => {
   it("are reused when only the sound or the asset server changes", () => {

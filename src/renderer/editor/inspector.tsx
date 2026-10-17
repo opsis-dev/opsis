@@ -1,6 +1,6 @@
 import { CircleAlert, ExternalLink, Play, RotateCcw, Trash2, Ungroup } from "lucide-react";
 import { CATEGORY_LABELS, type NodeDef } from "@/shared/nodes/define";
-import { getNodeDef, nodeName } from "@/shared/nodes/registry";
+import { customLabel, getNodeDef, nodeName } from "@/shared/nodes/registry";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Badge } from "@/renderer/components/ui/badge";
@@ -94,7 +94,7 @@ function NodeHeader({ node, def }: { node: WorkflowNode; def: NodeDef }) {
         <h2 className="truncate font-semibold">{nodeName(node)}</h2>
         <div className="flex flex-wrap gap-1">
           <Badge variant="secondary">{CATEGORY_LABELS[def.category]}</Badge>
-          {node.label?.trim() ? <Badge variant="outline">{def.title}</Badge> : null}
+          {customLabel(node) ? <Badge variant="outline">{def.title}</Badge> : null}
         </div>
       </div>
     </div>

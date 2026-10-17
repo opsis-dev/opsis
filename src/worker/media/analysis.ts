@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
+import type { z } from "zod";
 import {
   filmstripSchema,
   waveformSchema,
@@ -8,11 +9,11 @@ import {
   type Waveform,
   type WaveformLevel,
 } from "../../shared/analysis";
-import type { FfmpegTools } from "./ffmpeg";
+import type { MediaDeps } from "./ffmpeg";
 import { versionedHash } from "../../engine/hash";
 import { atomicWrite, readJson } from "../../engine/json";
 import { isInside, projectPaths, toProjectRef } from "../../engine/project-paths";
-import { evenPx, round3 } from "../../shared/math";
+import { EPSILON, evenPx, round3 } from "../../shared/math";
 
 const ANALYSIS_VERSION = "demoflow-analysis/1";
 const DECODE_RATE = 8000;
@@ -31,32 +32,55 @@ const PRIOR_FLOOR = 0.85;
 const PRIOR_WEIGHT = 0.15;
 const MIN_PERIODICITY = 1.8;
 const PEAK_SEARCH_FRAMES = 3;
-const QUIET = 1e-6;
-
-export type AnalysisDeps = {
-  projectDir: string;
-  resolve: (ref: string) => string;
-  ffmpeg: FfmpegTools;
-  signal?: AbortSignal;
-};
+const FLOAT_BYTES = Float32Array.BYTES_PER_ELEMENT;
 
 async function idFor(file: string): Promise<string> {
   const s = await stat(file);
   return versionedHash(ANALYSIS_VERSION, { file, size: s.size, mtime: Math.round(s.mtimeMs) });
 }
 
-const analysisDir = (projectDir: string) => path.join(projectPaths(projectDir).cache, "analysis");
-
 function filmstripDir(projectDir: string, file: string): string {
-  const rel = path.relative(projectPaths(projectDir).cache, file);
-  const [owner, ...rest] = rel.split(path.sep);
+  const paths = projectPaths(projectDir);
   const insideNodeFolder =
-    isInside(projectPaths(projectDir).cache, file) &&
-    rest.length > 0 &&
-    owner !== "analysis" &&
-    owner !== "mix";
-  return insideNodeFolder ? path.dirname(file) : analysisDir(projectDir);
+    isInside(paths.cache, file) &&
+    path.dirname(file) !== paths.cache &&
+    !isInside(paths.analysis, file) &&
+    !isInside(paths.mix, file);
+  return insideNodeFolder ? path.dirname(file) : paths.analysis;
 }
+
+type Analysis<T> = {
+  dir: string;
+  name: string;
+  tempExt: string;
+  schema: z.ZodType<T>;
+  ready?: (id: string) => boolean;
+  make: (id: string, temp: string) => Promise<T>;
+};
+
+async function cachedAnalysis<T>(file: string, analysis: Analysis<T>): Promise<T> {
+  const { dir, name } = analysis;
+  const id = await idFor(file);
+  const json = path.join(dir, `${id}.${name}.json`);
+  const cached = (analysis.ready?.(id) ?? true) ? await readJson(json, analysis.schema) : null;
+  if (cached) return cached;
+  await mkdir(dir, { recursive: true });
+  const temp = path.join(dir, `${id}.${name}.${process.pid}.partial.${analysis.tempExt}`);
+  try {
+    const value = await analysis.make(id, temp);
+    await atomicWrite(json, JSON.stringify(value));
+    return value;
+  } finally {
+    await rm(temp, { force: true });
+  }
+}
+
+const floatSamples = (buf: Buffer): Float32Array =>
+  new Float32Array(
+    buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+    0,
+    Math.floor(buf.byteLength / FLOAT_BYTES),
+  );
 
 export function waveformLevels(
   samples: Float32Array,
@@ -147,7 +171,7 @@ export function detectBeats(
   const onset = onsetEnvelope(samples, rate);
   if (onset.length < MIN_BEAT_FRAMES) return none;
   const mean = onset.reduce((a, b) => a + b, 0) / onset.length;
-  if (mean <= QUIET) return none;
+  if (mean <= EPSILON) return none;
   const period = beatPeriod(onset);
   if (period === null) return none;
   const beats: number[] = [];
@@ -161,97 +185,89 @@ export function detectBeats(
   return { beats, bpm: Math.round((60 * ONSETS_PER_SECOND) / period) };
 }
 
-export async function analyzeWaveform(src: string, deps: AnalysisDeps): Promise<Waveform> {
+export async function analyzeWaveform(src: string, deps: MediaDeps): Promise<Waveform> {
   const file = deps.resolve(src);
-  const id = await idFor(file);
-  const dir = analysisDir(deps.projectDir);
-  const json = path.join(dir, `${id}.waveform.json`);
-  const cached = await readJson(json, waveformSchema);
-  if (cached) return { ...cached, src };
-  await mkdir(dir, { recursive: true });
-  const raw = path.join(dir, `${id}.${process.pid}.raw`);
-  try {
-    await deps.ffmpeg.run(
-      [
-        "-i",
-        file,
-        "-vn",
-        "-ac",
-        "1",
-        "-ar",
-        String(DECODE_RATE),
-        "-f",
-        "f32le",
-        "-c:a",
-        "pcm_f32le",
-        raw,
-      ],
-      { signal: deps.signal },
-    );
-    const buf = await readFile(raw);
-    const samples = new Float32Array(
-      buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength - (buf.byteLength % 4)),
-    );
-    const { beats, bpm } = detectBeats(samples, DECODE_RATE);
-    const waveform: Waveform = {
-      src,
-      durationMs: Math.round((samples.length / DECODE_RATE) * 1000),
-      levels: waveformLevels(samples, DECODE_RATE),
-      beats,
-      bpm,
-    };
-    await atomicWrite(json, JSON.stringify(waveform));
-    return waveform;
-  } finally {
-    await rm(raw, { force: true });
-  }
+  const waveform = await cachedAnalysis(file, {
+    dir: projectPaths(deps.projectDir).analysis,
+    name: "waveform",
+    tempExt: "raw",
+    schema: waveformSchema,
+    make: async (_id, raw) => {
+      await deps.ffmpeg.run(
+        [
+          "-i",
+          file,
+          "-vn",
+          "-ac",
+          "1",
+          "-ar",
+          String(DECODE_RATE),
+          "-f",
+          "f32le",
+          "-c:a",
+          "pcm_f32le",
+          raw,
+        ],
+        { signal: deps.signal },
+      );
+      const samples = floatSamples(await readFile(raw));
+      const { beats, bpm } = detectBeats(samples, DECODE_RATE);
+      return {
+        src,
+        durationMs: Math.round((samples.length / DECODE_RATE) * 1000),
+        levels: waveformLevels(samples, DECODE_RATE),
+        beats,
+        bpm,
+      };
+    },
+  });
+  return { ...waveform, src };
 }
 
-export async function analyzeFilmstrip(src: string, deps: AnalysisDeps): Promise<Filmstrip> {
+export async function analyzeFilmstrip(src: string, deps: MediaDeps): Promise<Filmstrip> {
   const file = deps.resolve(src);
-  const id = await idFor(file);
   const dir = filmstripDir(deps.projectDir, file);
-  const json = path.join(dir, `${id}.filmstrip.json`);
-  const image = path.join(dir, `${id}.filmstrip.jpg`);
-  const cached = existsSync(image) ? await readJson(json, filmstripSchema) : null;
-  if (cached) return { ...cached, src };
-  await mkdir(dir, { recursive: true });
-  const probe = await deps.ffmpeg.probe(file);
-  if (!probe.video) throw new Error("This file has no picture.");
-  const durationMs = Math.max(1, probe.durationMs);
-  const intervalMs = Math.max(MIN_TILE_MS, Math.ceil(durationMs / MAX_TILES));
-  const count = Math.max(1, Math.ceil(durationMs / intervalMs));
-  const tileWidth = Math.max(2, evenPx((probe.video.width / probe.video.height) * TILE_HEIGHT));
-  const tmp = `${image}.${process.pid}.partial.jpg`;
-  try {
-    await deps.ffmpeg.run(
-      [
-        "-i",
-        file,
-        "-an",
-        "-vf",
-        `fps=fps=${1000 / intervalMs}:start_time=0,scale=${tileWidth}:${TILE_HEIGHT},tile=${count}x1`,
-        "-frames:v",
-        "1",
-        "-q:v",
-        "5",
-        tmp,
-      ],
-      { signal: deps.signal },
-    );
-    await rename(tmp, image);
-  } finally {
-    await rm(tmp, { force: true });
-  }
-  const strip: Filmstrip = {
-    src,
-    image: toProjectRef(deps.projectDir, image),
-    count,
-    intervalMs,
-    tileWidth,
-    tileHeight: TILE_HEIGHT,
-    durationMs,
-  };
-  await atomicWrite(json, JSON.stringify(strip));
-  return strip;
+  const imageOf = (id: string) => path.join(dir, `${id}.filmstrip.jpg`);
+  const strip = await cachedAnalysis(file, {
+    dir,
+    name: "filmstrip",
+    tempExt: "jpg",
+    schema: filmstripSchema,
+    ready: (id) => existsSync(imageOf(id)),
+    make: async (id, tmp) => {
+      const probe = await deps.ffmpeg.probe(file);
+      if (!probe.video) throw new Error("This file has no picture.");
+      const durationMs = Math.max(1, probe.durationMs);
+      const intervalMs = Math.max(MIN_TILE_MS, Math.ceil(durationMs / MAX_TILES));
+      const count = Math.max(1, Math.ceil(durationMs / intervalMs));
+      const tileWidth = Math.max(2, evenPx((probe.video.width / probe.video.height) * TILE_HEIGHT));
+      await deps.ffmpeg.run(
+        [
+          "-i",
+          file,
+          "-an",
+          "-vf",
+          `fps=fps=${1000 / intervalMs}:start_time=0,scale=${tileWidth}:${TILE_HEIGHT},tile=${count}x1`,
+          "-frames:v",
+          "1",
+          "-q:v",
+          "5",
+          tmp,
+        ],
+        { signal: deps.signal },
+      );
+      const image = imageOf(id);
+      await rename(tmp, image);
+      return {
+        src,
+        image: toProjectRef(deps.projectDir, image),
+        count,
+        intervalMs,
+        tileWidth,
+        tileHeight: TILE_HEIGHT,
+        durationMs,
+      };
+    },
+  });
+  return { ...strip, src };
 }

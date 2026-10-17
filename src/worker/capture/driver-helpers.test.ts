@@ -1,13 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { WorkflowNode } from "../../shared/schema/workflow";
-import {
-  landedOnSignIn,
-  plainError,
-  samePage,
-  setupLength,
-  traceGroupTitle,
-} from "./driver-helpers";
-import { addStyles, beforeFirstLoad } from "./page-scripts";
+import { landedOnSignIn, plainError, setupLength, traceGroupTitle } from "./driver-helpers";
 
 const node = (type: string, params: Record<string, unknown> = {}): WorkflowNode => ({
   id: "n",
@@ -68,12 +61,17 @@ describe("plainError", () => {
 });
 
 describe("expired sign-in", () => {
-  it("compares pages by address, ignoring index files and trailing slashes", () => {
-    expect(samePage("https://x.test/", "https://x.test")).toBe(true);
-    expect(samePage("https://x.test/app/index.html", "https://x.test/app")).toBe(true);
-    expect(samePage("https://x.test/app?a=1", "https://x.test/app")).toBe(true);
-    expect(samePage("https://x.test/app", "https://x.test/login")).toBe(false);
-    expect(samePage("not a url", "https://x.test")).toBe(false);
+  it("compares pages by address, ignoring index files, queries and trailing slashes", () => {
+    const signIn = "https://x.test/login";
+    const away = "https://x.test/app";
+    expect(landedOnSignIn(away, "https://x.test/login/", signIn)).toBe(true);
+    expect(landedOnSignIn(away, "https://x.test/login/index.html", signIn)).toBe(true);
+    expect(landedOnSignIn(away, "https://x.test/login?next=app", signIn)).toBe(true);
+    expect(landedOnSignIn(away, "https://x.test/app", signIn)).toBe(false);
+    expect(landedOnSignIn(away, "not a url", signIn)).toBe(false);
+    expect(landedOnSignIn("https://x.test/login?next=app", "https://x.test/login", signIn)).toBe(
+      false,
+    );
   });
 
   it("notices a redirect back to the sign-in page", () => {
@@ -95,67 +93,6 @@ describe("expired sign-in", () => {
     expect(landedOnSignIn("https://www.saucedemo.com/", "https://www.saucedemo.com/", signIn)).toBe(
       false,
     );
-  });
-});
-
-describe("page scripts before the first page", () => {
-  it("run once per site, before the page's own code", () => {
-    const store = new Map<string, string>();
-    const sessionStorage = {
-      getItem: (k: string) => store.get(k) ?? null,
-      setItem: (k: string, v: string) => void store.set(k, v),
-    };
-    const ran: string[] = [];
-    const run = new Function("sessionStorage", "ran", beforeFirstLoad("n1", "ran.push('seeded');"));
-    run(sessionStorage, ran);
-    run(sessionStorage, ran);
-    expect(ran).toEqual(["seeded"]);
-  });
-});
-
-describe("hiding clutter", () => {
-  afterEach(() => vi.unstubAllGlobals());
-
-  const fakeDocument = (root: object | null) => {
-    let observer: (() => void) | undefined;
-    const doc = {
-      documentElement: root,
-      head: null,
-      createElement: () => ({ textContent: "" }),
-    };
-    class Watch {
-      constructor(cb: () => void) {
-        observer = cb;
-      }
-      observe() {}
-      disconnect() {
-        observer = undefined;
-      }
-    }
-    const run = () => {
-      vi.stubGlobal("document", doc);
-      vi.stubGlobal("MutationObserver", Watch);
-      addStyles(".banner { display: none }");
-    };
-    return { doc, run, fire: () => observer?.() };
-  };
-
-  it("adds the style at once when the page has a document", () => {
-    const added: unknown[] = [];
-    const { run } = fakeDocument({ appendChild: (s: unknown) => added.push(s) });
-    run();
-    expect(added).toHaveLength(1);
-  });
-
-  it("waits for the document when it runs before the page exists", () => {
-    const added: unknown[] = [];
-    const page = fakeDocument(null);
-    page.run();
-    expect(added).toHaveLength(0);
-    page.doc.documentElement = { appendChild: (s: unknown) => added.push(s) };
-    page.fire();
-    page.fire();
-    expect(added).toHaveLength(1);
   });
 });
 

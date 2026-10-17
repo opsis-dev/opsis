@@ -1,17 +1,18 @@
-import { readdir, rm, stat } from "node:fs/promises";
-import path from "node:path";
+import { rm } from "node:fs/promises";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { ENGINE_VERSION } from "../engine/cache";
+import { datedFiles } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
-import { CODECS, type SoundCodec } from "./codecs";
+import { CODECS, FASTSTART, type RenderCodec, type SoundCodec } from "../media/codecs";
+import type { GlRenderer } from "./render";
 
 const PICTURE_VERSION = "demoflow-picture/2";
 const KEEP_PICTURES = 12;
 
-type PictureOptions = { codec: string; crf: number; scale: number; gl: string };
+type PictureOptions = { codec: RenderCodec; crf: number; scale: number; gl: GlRenderer };
 
 export function pictureKey(spec: TimelineSpec, opts: PictureOptions): string {
-  const { audio: _audio, mix: _mix, assets: _assets, ...picture } = spec;
+  const picture = { ...spec, audio: undefined, mix: undefined, assets: undefined };
   return versionedHash(PICTURE_VERSION, { engine: ENGINE_VERSION, picture, opts });
 }
 
@@ -48,19 +49,13 @@ export function finishArgs(
     "0",
     "-c",
     "copy",
-    ...(opts.faststart ? ["-movflags", "+faststart"] : []),
+    ...(opts.faststart ? FASTSTART : []),
     out,
   ];
 }
 
 export async function prunePictures(dir: string): Promise<void> {
-  const names = await readdir(dir).catch(() => [] as string[]);
-  const files = await Promise.all(
-    names.map(async (name) => {
-      const file = path.join(dir, name);
-      return { file, at: (await stat(file).catch(() => null))?.mtimeMs ?? 0 };
-    }),
-  );
-  const old = files.toSorted((a, b) => b.at - a.at).slice(KEEP_PICTURES);
+  const files = await datedFiles(dir);
+  const old = files.toSorted((a, b) => (b.mtimeMs ?? 0) - (a.mtimeMs ?? 0)).slice(KEEP_PICTURES);
   await Promise.all(old.map((f) => rm(f.file, { force: true })));
 }

@@ -13,22 +13,23 @@ import type { WorkerEnv } from "../../shared/worker-protocol";
 import { enginePaths, findHeadlessShell } from "../../engine/paths";
 import { COMPOSITION_ID } from "../../video/composition-id";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./bundle";
-import { CODECS, type RenderCodec } from "./codecs";
+import { CODECS, type RenderCodec } from "../media/codecs";
 import { getCompositorPackage } from "./compositor-package";
 import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { clamp } from "../../shared/math";
+import { keepLatest } from "../../shared/memo";
 
 export type GlRenderer = "angle" | "swangle" | "egl" | "vulkan" | "swiftshader" | "angle-egl";
 
 type CancelSignal = ReturnType<typeof makeCancelSignal>["cancelSignal"];
 
-let devBundle: Promise<string> | null = null;
+const devBundle = keepLatest<string>();
 
-export function remotionLicenseKey(env: WorkerEnv): string {
+function remotionLicenseKey(env: WorkerEnv): string {
   return env.settings.render.licenseKey.trim() || "free-license";
 }
 
-export function binariesDirectory(env: WorkerEnv): string | null {
+function binariesDirectory(env: WorkerEnv): string | null {
   if (!env.isPackaged) return null;
   return path.join(
     path.dirname(env.appRoot),
@@ -38,7 +39,7 @@ export function binariesDirectory(env: WorkerEnv): string | null {
   );
 }
 
-export function browserExecutable(env: WorkerEnv): string {
+function browserExecutable(env: WorkerEnv): string {
   const shell = findHeadlessShell(enginePaths(env.engineDir));
   if (!shell) throw new Error(ENGINE_MISSING_MESSAGE);
   return shell;
@@ -54,14 +55,12 @@ export async function getServeUrl(
       throw new Error("This copy of Demoflow is incomplete. Reinstall the app.");
     return prebuilt;
   }
-  devBundle ??= bundleRemotionProject({
-    projectRoot: env.appRoot,
-    onProgress: (p) => onProgress?.(p / 100),
-  }).catch((error: unknown) => {
-    devBundle = null;
-    throw error;
-  });
-  return devBundle;
+  return devBundle(env.appRoot, () =>
+    bundleRemotionProject({
+      projectRoot: env.appRoot,
+      onProgress: (p) => onProgress?.(p / 100),
+    }),
+  );
 }
 
 async function withCancel<T>(
@@ -78,75 +77,78 @@ async function withCancel<T>(
   }
 }
 
-const renderOptions = (env: WorkerEnv, serveUrl: string, spec: TimelineSpec, gl: GlRenderer) => ({
-  serveUrl,
-  inputProps: spec,
-  binariesDirectory: binariesDirectory(env),
-  browserExecutable: browserExecutable(env),
-  chromiumOptions: { gl },
-});
-
-export function renderTimeline(opts: {
+type RenderJob = {
   env: WorkerEnv;
   serveUrl: string;
   spec: TimelineSpec;
-  output: string;
-  codec: RenderCodec;
-  crf: number;
-  scale: number;
   gl: GlRenderer;
-  muted: boolean;
   signal: AbortSignal;
-  onProgress: (p: number) => void;
-}): Promise<void> {
-  return withCancel(opts.signal, async (cancelSignal) => {
-    const common = renderOptions(opts.env, opts.serveUrl, opts.spec, opts.gl);
-    const composition = await selectComposition({ ...common, id: COMPOSITION_ID });
-    await renderMedia({
-      ...common,
-      composition,
+  browser?: HeadlessBrowser;
+};
+
+async function compositionFor(job: RenderJob) {
+  const common = {
+    serveUrl: job.serveUrl,
+    inputProps: job.spec,
+    binariesDirectory: binariesDirectory(job.env),
+    browserExecutable: browserExecutable(job.env),
+    chromiumOptions: { gl: job.gl },
+    ...(job.browser ? { puppeteerInstance: job.browser } : {}),
+  };
+  const composition = await selectComposition({ ...common, id: COMPOSITION_ID });
+  return { ...common, composition, licenseKey: remotionLicenseKey(job.env) };
+}
+
+type Prepared = Awaited<ReturnType<typeof compositionFor>> & { cancelSignal: CancelSignal };
+
+const withComposition = (job: RenderJob, render: (prepared: Prepared) => Promise<unknown>) =>
+  withCancel(job.signal, async (cancelSignal) => {
+    await render({ ...(await compositionFor(job)), cancelSignal });
+  });
+
+export function renderTimeline(
+  opts: RenderJob & {
+    output: string;
+    codec: RenderCodec;
+    crf: number;
+    scale: number;
+    muted: boolean;
+    onProgress: (p: number) => void;
+  },
+): Promise<void> {
+  return withComposition(opts, (prepared) =>
+    renderMedia({
+      ...prepared,
       codec: opts.codec,
       outputLocation: opts.output,
       crf: CODECS[opts.codec].crf ? opts.crf : undefined,
       scale: opts.scale,
       muted: opts.muted,
       concurrency: 1,
-      cancelSignal,
-      licenseKey: remotionLicenseKey(opts.env),
       onProgress: ({ progress }) => opts.onProgress(progress),
-    });
-  });
+    }),
+  );
 }
 
-export function renderFrame(opts: {
-  env: WorkerEnv;
-  serveUrl: string;
-  spec: TimelineSpec;
-  frame: number;
-  output: string;
-  format: "png" | "jpeg";
-  gl: GlRenderer;
-  signal: AbortSignal;
-  browser?: HeadlessBrowser;
-  scale?: number;
-  jpegQuality?: number;
-}): Promise<void> {
-  return withCancel(opts.signal, async (cancelSignal) => {
-    const common = renderOptions(opts.env, opts.serveUrl, opts.spec, opts.gl);
-    const shared = opts.browser ? { ...common, puppeteerInstance: opts.browser } : common;
-    const composition = await selectComposition({ ...shared, id: COMPOSITION_ID });
-    await renderStill({
-      ...shared,
-      composition,
-      frame: clamp(opts.frame, 0, composition.durationInFrames - 1),
+export function renderFrame(
+  opts: RenderJob & {
+    frame: number;
+    output: string;
+    format: "png" | "jpeg";
+    scale?: number;
+    jpegQuality?: number;
+  },
+): Promise<void> {
+  return withComposition(opts, (prepared) =>
+    renderStill({
+      ...prepared,
+      frame: clamp(opts.frame, 0, prepared.composition.durationInFrames - 1),
       output: opts.output,
       imageFormat: opts.format,
       scale: opts.scale,
       jpegQuality: opts.jpegQuality,
-      cancelSignal,
-      licenseKey: remotionLicenseKey(opts.env),
-    });
-  });
+    }),
+  );
 }
 
 export function openRenderBrowser(env: WorkerEnv, gl: GlRenderer): Promise<HeadlessBrowser> {

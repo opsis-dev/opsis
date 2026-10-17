@@ -10,7 +10,7 @@ import { byCodeUnit } from "../../shared/lists";
 export const ENGINE_VERSION = "demoflow-engine/1";
 
 export function nodeHash(type: string, params: unknown, upstream: Array<[string, string]>): string {
-  const ports = [...upstream].sort(([a], [b]) => byCodeUnit(a, b));
+  const ports = upstream.toSorted(([a], [b]) => byCodeUnit(a, b));
   return versionedHash(ENGINE_VERSION, { type, params, ports });
 }
 

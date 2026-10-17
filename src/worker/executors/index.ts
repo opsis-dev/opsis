@@ -1,7 +1,8 @@
 import type { Executor } from "../engine/context";
 import { loginOnceExecutor, recordExecutor, stillExecutor } from "./capture";
 import { mediaExecutors } from "./media";
-import { exportProjectExecutor, renderExecutor, stillOutputExecutor } from "./output";
+import { exportProjectExecutor } from "./export-project";
+import { renderExecutor, stillOutputExecutor } from "./output";
 
 const EXECUTORS: Executor[] = [
   recordExecutor,
