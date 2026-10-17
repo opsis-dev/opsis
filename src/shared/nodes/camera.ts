@@ -4,11 +4,11 @@ import {
   itemClip,
   patchRecordings,
   placeholderClip,
+  recordingClip,
   recordingProps,
-  remapDuration,
-  remapFromSegments,
   wrapClip,
 } from "../compile/clip";
+import { remapDuration, remapFromSegments } from "../compile/remap";
 import {
   CAMERA_STYLES,
   DEFAULT_RECORDING_PROPS,
@@ -160,7 +160,7 @@ const autoZoomNode = defineNode({
         : windowFrameProps(params.frame, params.frameTheme, params.addressBar)),
       backdrop: params.backdrop,
     };
-    return { clip: itemClip(nodeId, "core/recording", props, frames, { recording: rec }) };
+    return { clip: recordingClip(nodeId, props, frames, { recording: rec }) };
   },
 });
 

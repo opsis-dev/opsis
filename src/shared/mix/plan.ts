@@ -1,7 +1,15 @@
 import { hashOf } from "../hash";
 import type { AudioEnvelope, TimelineSpec } from "../schema/timeline";
 import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
-import { busOf, channelsIn, duckKeysFor, isAudible, resolveMix, stripOf } from "./levels";
+import {
+  busOf,
+  channelsIn,
+  duckKeysFor,
+  isAudible,
+  resolveMix,
+  stripOf,
+  type ChannelInfo,
+} from "./levels";
 import type { Bus, ChannelKind, Master, Mix, Strip } from "./types";
 
 export type SoundPlacement = {
@@ -43,16 +51,10 @@ export type MixPlan = {
   key: string;
 };
 
-export function buildMixPlan(
-  spec: Pick<TimelineSpec, "tracks" | "audio" | "durationInFrames" | "fps">,
-  mixIn: Mix | undefined,
-  flat: FlatTimeline = flattenSpec(spec),
-): MixPlan {
-  const mix = resolveMix(mixIn);
-  const infos = channelsIn(spec);
-  const sounds = new Map<string, SoundPlacement[]>();
+function soundPlacements(flat: FlatTimeline): Map<string, SoundPlacement[]> {
+  const byChannel = new Map<string, SoundPlacement[]>();
   for (const a of flat.audio) {
-    const list = sounds.get(a.channel) ?? [];
+    const list = byChannel.get(a.channel) ?? [];
     list.push({
       src: a.src,
       at: Math.round(a.from),
@@ -64,22 +66,19 @@ export function buildMixPlan(
       fadeOut: a.item?.fadeOutFrames ?? 0,
       ...(a.item?.envelope ? { envelope: a.item.envelope } : {}),
     });
-    sounds.set(a.channel, list);
+    byChannel.set(a.channel, list);
   }
-  const live = infos.flatMap((info) => {
-    const placed = sounds.get(info.id);
-    return placed ? [{ ...info, sounds: placed }] : [];
-  });
-  const channels: ChannelPlan[] = live.map((c) => ({
-    id: c.id,
-    kind: c.kind,
-    bus: busOf(mix, c.id, c.kind).id,
-    strip: stripOf(mix, c.id),
-    sounds: c.sounds,
-    audible: isAudible(mix, c.id, c.kind),
-  }));
-  const buses: BusPlan[] = mix.buses.map((bus) => {
-    const keys = duckKeysFor(mix, bus, live, spec.fps);
+  return byChannel;
+}
+
+function busPlans(
+  mix: Mix,
+  channels: ChannelPlan[],
+  placed: ChannelInfo[],
+  fps: number,
+): BusPlan[] {
+  return mix.buses.map((bus) => {
+    const keys = duckKeysFor(mix, bus, placed, fps);
     return {
       id: bus.id,
       name: bus.name,
@@ -91,11 +90,32 @@ export function buildMixPlan(
         : null,
     };
   });
+}
+
+export function buildMixPlan(
+  spec: Pick<TimelineSpec, "tracks" | "audio" | "durationInFrames" | "fps">,
+  mixIn: Mix | undefined,
+  flat: FlatTimeline = flattenSpec(spec),
+): MixPlan {
+  const mix = resolveMix(mixIn);
+  const sounds = soundPlacements(flat);
+  const placed = channelsIn(spec).flatMap((info) => {
+    const list = sounds.get(info.id);
+    return list ? [{ ...info, sounds: list }] : [];
+  });
+  const channels: ChannelPlan[] = placed.map((c) => ({
+    id: c.id,
+    kind: c.kind,
+    bus: busOf(mix, c.id, c.kind).id,
+    strip: stripOf(mix, c.id),
+    sounds: c.sounds,
+    audible: isAudible(mix, c.id, c.kind),
+  }));
   const body = {
     fps: spec.fps,
     durationInFrames: spec.durationInFrames,
     channels,
-    buses,
+    buses: busPlans(mix, channels, placed, spec.fps),
     master: mix.master,
   };
   return { ...body, key: hashOf(body) };

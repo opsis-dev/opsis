@@ -3,7 +3,7 @@ import { NODE_DEFS } from "../nodes/registry";
 import type { EditHandleKind } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
 import type { GraphBuilder } from "../templates/build";
-import { buildFilm, flatFilm } from "../test-fixtures";
+import { buildFilm, flatFilm, must } from "../test-fixtures";
 import {
   moveAudio,
   moveBar,
@@ -43,17 +43,17 @@ const applied = (r: EditResult): Workflow => {
 
 const len = (b: { from: number; to: number }) => b.to - b.from;
 
-const barOf = (flat: FlatTimeline, nodeId: string): VideoBar => {
-  const bar = flat.bars.find((b) => b.nodeId === nodeId);
-  if (!bar) throw new Error(`no bar for ${nodeId}`);
-  return bar;
-};
+const barOf = (flat: FlatTimeline, nodeId: string): VideoBar =>
+  must(
+    flat.bars.find((b) => b.nodeId === nodeId),
+    `bar for ${nodeId}`,
+  );
 
-const audioOf = (flat: FlatTimeline, nodeId: string): AudioBar => {
-  const bar = flat.audio.find((a) => a.nodeId === nodeId);
-  if (!bar) throw new Error(`no sound for ${nodeId}`);
-  return bar;
-};
+const audioOf = (flat: FlatTimeline, nodeId: string): AudioBar =>
+  must(
+    flat.audio.find((a) => a.nodeId === nodeId),
+    `sound for ${nodeId}`,
+  );
 
 const byStart = (flat: FlatTimeline) =>
   flat.bars.toSorted((a, b) => a.from - b.from).map((b) => [Math.round(b.from), Math.round(b.to)]);
@@ -80,7 +80,14 @@ type HandleCase = {
 
 const halfOf = (link: ChainLink) => Math.round(len(link) / 2);
 
-type BarHandle = Exclude<EditHandleKind, "volume">;
+const BAR_HANDLES = [
+  "move",
+  "trimStart",
+  "trimEnd",
+  "speed",
+] as const satisfies readonly EditHandleKind[];
+
+type BarHandle = (typeof BAR_HANDLES)[number];
 
 const HANDLES: Record<BarHandle, HandleCase> = {
   move: {
@@ -109,8 +116,6 @@ const HANDLES: Record<BarHandle, HandleCase> = {
   },
 };
 
-const KINDS = Object.keys(HANDLES) as BarHandle[];
-
 function feedInputs(g: GraphBuilder, id: string, type: string): void {
   const def = NODE_DEFS.find((d) => d.type === type)!;
   Object.entries(def.inputs).forEach(([port, spec], i) => {
@@ -126,7 +131,13 @@ function feedInputs(g: GraphBuilder, id: string, type: string): void {
   });
 }
 
-type RoundTrip = { kind: BarHandle; owner: string; off: number; tolerance: number };
+type RoundTrip = {
+  kind: BarHandle;
+  owner: string;
+  off: number;
+  tolerance: number;
+  addedNodes: number;
+};
 
 function roundTrips(type: string): RoundTrip[] {
   const wf = buildFilm((g) => {
@@ -136,35 +147,45 @@ function roundTrips(type: string): RoundTrip[] {
   });
   const before = flatFilm(wf);
   return before.bars.flatMap((bar) =>
-    KINDS.flatMap((kind) => {
+    BAR_HANDLES.flatMap((kind) => {
       const owner = findHandle(bar, kind, "outer");
       const ref = owner?.link.handles?.[kind];
       const node = wf.nodes.find((n) => n.id === ref?.nodeId);
       if (!owner || !node) return [];
       const handle = HANDLES[kind];
       const next = applied(handle.act(ctxFor(wf), bar, owner.link));
-      expect(next.nodes).toHaveLength(wf.nodes.length);
-      const after = flatFilm(next).bars.find((b) => b.key === bar.key);
-      if (!after) throw new Error(`${type}: ${kind} lost its bar`);
+      const after = must(
+        flatFilm(next).bars.find((b) => b.key === bar.key),
+        `${type} bar after its ${kind} edit`,
+      );
       const off = handle.measured(bar, after) - handle.expected(owner.link);
-      return [{ kind, owner: node.type, off, tolerance: handle.tolerance }];
+      const addedNodes = next.nodes.length - wf.nodes.length;
+      return [{ kind, owner: node.type, off, tolerance: handle.tolerance, addedNodes }];
     }),
   );
 }
 
 describe("timeline edit handles round-trip", () => {
   const clipNodes = NODE_DEFS.filter((d) => d.compile && d.outputs.clip && !d.hidden);
+  const trips = new Map<string, RoundTrip[]>();
+  const tripsOf = (type: string): RoundTrip[] => {
+    const known = trips.get(type);
+    if (known) return known;
+    const fresh = roundTrips(type);
+    trips.set(type, fresh);
+    return fresh;
+  };
 
   it.each(clipNodes.map((d) => [d.type]))("%s: every handle moves its bar by the delta", (type) => {
-    for (const trip of roundTrips(type))
-      expect(Math.abs(trip.off), `${type}: ${trip.kind}`).toBeLessThanOrEqual(trip.tolerance);
+    const misses = tripsOf(type)
+      .filter((t) => t.addedNodes !== 0 || Math.abs(t.off) > t.tolerance)
+      .map((t) => `${t.kind}: off by ${t.off} frames, ${t.addedNodes} nodes added`);
+    expect(misses).toEqual([]);
   });
 
   it("covers every kind of handle", () => {
     const owners = (kind: BarHandle) =>
-      clipNodes
-        .flatMap((d) => roundTrips(d.type).filter((t) => t.kind === kind))
-        .map((t) => t.owner);
+      clipNodes.flatMap((d) => tripsOf(d.type).filter((t) => t.kind === kind)).map((t) => t.owner);
     expect(owners("move")).toContain("timeline.delay");
     expect(owners("trimStart")).toContain("timeline.trim");
     expect(owners("trimEnd")).toContain("timeline.trim");

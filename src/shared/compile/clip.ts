@@ -10,13 +10,11 @@ import type {
 import { hasKeys } from "../timeline/envelope";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
-import { clamp, lerp, round3, sampleKeyed } from "../math";
-import { MIN_SPEED } from "../nodes/params";
+import { clamp } from "../math";
 import type { RecordingProps } from "./recording";
+import type { Remap } from "./remap";
 
 type Crop = { x: number; y: number; w: number; h: number };
-
-export type Remap = Array<[number, number]>;
 
 export type GroupProps = {
   tracks: TimelineTrack[];
@@ -29,14 +27,35 @@ export type GroupProps = {
   design?: { width: number; height: number };
 };
 
-export const groupOf = (item: TimelineItem): GroupProps | null =>
-  item.component === "core/group" ? (item.props as GroupProps) : null;
+type BuiltInProps = { "core/group": GroupProps; "core/recording": RecordingProps };
+
+const propsOf = <C extends keyof BuiltInProps>(
+  item: TimelineItem,
+  component: C,
+): BuiltInProps[C] | null =>
+  item.component === component ? (item.props as BuiltInProps[C]) : null;
+
+export const groupOf = (item: TimelineItem): GroupProps | null => propsOf(item, "core/group");
 
 export const recordingOf = (item: TimelineItem): RecordingProps | null =>
-  item.component === "core/recording" ? (item.props as RecordingProps) : null;
+  propsOf(item, "core/recording");
+
+type ItemPlacement = Omit<TimelineItem, "component" | "props">;
+
+const builtInItem = <C extends keyof BuiltInProps>(
+  { id, from, durationInFrames, ...rest }: ItemPlacement,
+  component: C,
+  props: BuiltInProps[C],
+): TimelineItem => ({ id, from, durationInFrames, component, props, ...rest });
+
+export const groupItem = (placement: ItemPlacement, props: GroupProps): TimelineItem =>
+  builtInItem(placement, "core/group", props);
 
 export const itemHasSound = (item: TimelineItem): boolean =>
   item.component === "core/video" && item.props.muted === false;
+
+export const soundNodeId = (item: TimelineItem): string | undefined =>
+  itemHasSound(item) ? item.nodeId : undefined;
 
 export const isClip = (v: CompileValue | undefined): v is ClipValue => v?.type === "clip";
 
@@ -98,6 +117,13 @@ export const placeholderClip = (
   extra: ItemExtra = {},
 ): ClipValue => itemClip(nodeId, "core/placeholder", text, durationInFrames, extra);
 
+export const recordingClip = (
+  nodeId: string,
+  props: RecordingProps,
+  durationInFrames: number,
+  extra: ItemExtra = {},
+): ClipValue => itemClip(nodeId, "core/recording", props, durationInFrames, extra);
+
 export function wrapClip(
   clip: ClipValue,
   nodeId: string,
@@ -105,14 +131,10 @@ export function wrapClip(
   durationInFrames = clip.durationInFrames,
 ): ClipValue {
   const duration = wholeFrames(durationInFrames);
-  const group: TimelineItem = {
-    id: `${nodeId}:g`,
-    from: 0,
-    durationInFrames: duration,
-    component: "core/group",
-    props: { ...props, tracks: clip.tracks } satisfies GroupProps,
-    nodeId,
-  };
+  const group = groupItem(
+    { id: `${nodeId}:g`, from: 0, durationInFrames: duration, nodeId },
+    { ...props, tracks: clip.tracks },
+  );
   return makeClip(duration, [{ id: `${nodeId}:t`, items: [group] }], clip.audio, clip.recording);
 }
 
@@ -123,22 +145,13 @@ export function withHandles(
 ): ClipValue {
   if (clip.tracks.length !== 1 || clip.tracks[0].items.length !== 1) return clip;
   const [track] = clip.tracks;
-  const item = track.items[0];
-  return {
-    ...clip,
-    tracks: [
-      {
-        ...track,
-        items: [
-          {
-            ...item,
-            handles: { ...item.handles, ...handles },
-            ...(hasKeys(envelope) ? { envelope } : {}),
-          },
-        ],
-      },
-    ],
+  const [item] = track.items;
+  const patched: TimelineItem = {
+    ...item,
+    handles: { ...item.handles, ...handles },
+    ...(hasKeys(envelope) ? { envelope } : {}),
   };
+  return { ...clip, tracks: [{ ...track, items: [patched] }] };
 }
 
 const shiftAudio = (audio: AudioItem[], offset: number, prefix: string): AudioItem[] =>
@@ -186,15 +199,10 @@ function placeClip(
     [0, 0],
     [lead, 0],
   ];
-  return {
-    id,
-    from,
-    durationInFrames: clip.durationInFrames + lead,
-    component: "core/group",
-    props: (lead ? { tracks: clip.tracks, remap } : { tracks: clip.tracks }) satisfies GroupProps,
-    enter,
-    ...(slot ? { slot } : {}),
-  };
+  return groupItem(
+    { id, from, durationInFrames: clip.durationInFrames + lead, enter, ...(slot ? { slot } : {}) },
+    lead ? { tracks: clip.tracks, remap } : { tracks: clip.tracks },
+  );
 }
 
 export function sequenceClips(
@@ -248,15 +256,16 @@ export function stackClips(
     return {
       id: `${nodeId}:l${i}`,
       items: [
-        {
-          id: `${nodeId}:l${i}:g`,
-          from: offset(i),
-          durationInFrames: clip.durationInFrames,
-          component: "core/group",
-          props: { tracks: clip.tracks } satisfies GroupProps,
-          ...(move ? { handles: { move } } : {}),
-          ...(port ? { slot: { nodeId, port } } : {}),
-        },
+        groupItem(
+          {
+            id: `${nodeId}:l${i}:g`,
+            from: offset(i),
+            durationInFrames: clip.durationInFrames,
+            ...(move ? { handles: { move } } : {}),
+            ...(port ? { slot: { nodeId, port } } : {}),
+          },
+          { tracks: clip.tracks },
+        ),
       ],
     };
   });
@@ -284,12 +293,26 @@ export function mapItems(
   }));
 }
 
-export function forEachItem(tracks: TimelineTrack[], fn: (item: TimelineItem) => void): void {
+export type FrameRange = { from: number; to: number };
+
+const EVERYWHERE: FrameRange = { from: -Infinity, to: Infinity };
+
+export function walkItems(
+  tracks: TimelineTrack[],
+  visit: (item: TimelineItem, span: FrameRange) => void,
+  within: FrameRange = EVERYWHERE,
+  offset = 0,
+): void {
   for (const track of tracks)
     for (const item of track.items) {
-      fn(item);
+      const start = offset + item.from;
+      const span = {
+        from: Math.max(within.from, start),
+        to: Math.min(within.to, start + item.durationInFrames),
+      };
+      visit(item, span);
       const group = groupOf(item);
-      if (group) forEachItem(group.tracks, fn);
+      if (group) walkItems(group.tracks, visit, span, start - (group.startFrom ?? 0));
     }
 }
 
@@ -308,7 +331,7 @@ export function patchRecordings(
 
 export function recordingProps(clip: ClipValue): RecordingProps[] {
   const out: RecordingProps[] = [];
-  forEachItem(clip.tracks, (item) => {
+  walkItems(clip.tracks, (item) => {
     const props = recordingOf(item);
     if (props) out.push(props);
   });
@@ -333,74 +356,17 @@ export function clipToSpec(clip: ClipValue, settings: WorkflowSettings): Timelin
   };
 }
 
-export type FrameRange = { from: number; to: number };
-
 export function nodeSpans(spec: TimelineSpec): Record<string, FrameRange> {
   const spans: Record<string, FrameRange> = {};
-  const visit = (tracks: TimelineTrack[], offset: number, startFrom: number, limit: FrameRange) => {
-    for (const track of tracks) {
-      for (const item of track.items) {
-        const from = Math.max(limit.from, offset + item.from - startFrom);
-        const to = Math.min(limit.to, offset + item.from - startFrom + item.durationInFrames);
-        if (to <= from) continue;
-        if (item.nodeId) {
-          const s = spans[item.nodeId];
-          spans[item.nodeId] = s
-            ? { from: Math.min(s.from, from), to: Math.max(s.to, to) }
-            : { from, to };
-        }
-        const group = groupOf(item);
-        if (group)
-          visit(group.tracks, offset + item.from - startFrom, group.startFrom ?? 0, { from, to });
-      }
-    }
-  };
-  visit(spec.tracks, 0, 0, { from: 0, to: spec.durationInFrames });
-  return spans;
-}
-
-export const lerpSegment = (
-  [x0, y0]: readonly [number, number],
-  [x1, y1]: readonly [number, number],
-  x: number,
-): number => y0 + ((x - x0) / (x1 - x0)) * (y1 - y0);
-
-export function remapDuration(remap: Remap): number {
-  return remap.length ? remap[remap.length - 1][0] : 0;
-}
-
-export function remapFrame(remap: Remap, frame: number): number {
-  const last = remap.at(-1);
-  if (!last) return frame;
-  if (frame > last[0]) return last[1] + (frame - last[0]);
-  return (
-    sampleKeyed(
-      remap,
-      frame,
-      ([out]) => out,
-      ([, inner]) => inner,
-      (a, b, t) => lerp(a[1], b[1], t),
-    ) ?? frame
+  const film = { from: 0, to: spec.durationInFrames };
+  walkItems(
+    spec.tracks,
+    ({ nodeId }, { from, to }) => {
+      if (to <= from || !nodeId) return;
+      const s = spans[nodeId];
+      spans[nodeId] = s ? { from: Math.min(s.from, from), to: Math.max(s.to, to) } : { from, to };
+    },
+    film,
   );
-}
-
-export function remapFromSegments(
-  innerDuration: number,
-  segments: Array<[number, number, number]>,
-): Remap {
-  const out: Remap = [[0, 0]];
-  let outPos = 0;
-  let inPos = 0;
-  const push = (inTo: number, rate: number) => {
-    if (inTo <= inPos) return;
-    outPos += (inTo - inPos) / rate;
-    inPos = inTo;
-    out.push([round3(outPos), inPos]);
-  };
-  for (const [a, b, rate] of segments) {
-    push(Math.min(a, innerDuration), 1);
-    push(Math.min(b, innerDuration), Math.max(MIN_SPEED, rate));
-  }
-  push(innerDuration, 1);
-  return out;
+  return spans;
 }

@@ -1,10 +1,18 @@
 import { z } from "zod";
 import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "../nodes/params";
+import type { clipModifier } from "../nodes/define";
 import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
 import { cutSchema, IN_PORTS } from "../nodes/timeline";
 import type { ParamRef } from "../schema/timeline";
 import type { PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
-import { findHandle, slotIndex, type AudioBar, type ChainLink, type VideoBar } from "./flatten";
+import {
+  findHandle,
+  slotIndex,
+  slotLink,
+  type AudioBar,
+  type ChainLink,
+  type VideoBar,
+} from "./flatten";
 import { clamp, finiteOr, round2 } from "../math";
 import { edgeId, nodeIdPrefix } from "../ids";
 import { formatNumberList, parseNumberList } from "../format";
@@ -98,6 +106,17 @@ function shiftParam(
   return { workflow: out, clamped };
 }
 
+function shiftTo(
+  wf: Workflow,
+  ref: ParamRef,
+  deltaContentFrames: number,
+  fps: number,
+  atLimit: string,
+): EditResult {
+  const { workflow, clamped } = shiftParam(wf, ref, deltaContentFrames, fps);
+  return ok(workflow, clamped ? atLimit : undefined);
+}
+
 function setLength(
   wf: Workflow,
   ref: ParamRef,
@@ -130,10 +149,10 @@ function placeNear(
   const pos = { x: abs.x + 60 + index * 30, y: abs.y + 170 + index * 150 };
   const parentId =
     source?.parentId && target?.parentId === source.parentId ? source.parentId : undefined;
-  if (!parentId) return { position: pos };
-  const parent = wf.nodes.find((n) => n.id === parentId)!;
+  const parent = parentId ? wf.nodes.find((n) => n.id === parentId) : undefined;
+  if (!parent) return { position: pos };
   const p = absPosition(wf, parent);
-  return { position: { x: pos.x - p.x, y: pos.y - p.y }, parentId };
+  return { position: { x: pos.x - p.x, y: pos.y - p.y }, parentId: parent.id };
 }
 
 function newNode(
@@ -156,18 +175,26 @@ function newNode(
   };
 }
 
+const CLIP_PORT = "clip" satisfies keyof (typeof clipModifier)["inputs"] &
+  keyof (typeof clipModifier)["outputs"];
+
+const ADDED_NODES = {
+  "timeline.delay": { label: "Delay from timeline", where: "before" },
+  "timeline.trim": { label: "Trim from timeline", where: "after" },
+  "timeline.speed": { label: "Speed from timeline", where: "after" },
+} as const;
+
+type AddedNode = keyof typeof ADDED_NODES;
+
 function insertOnEdge(
   ctx: EditContext,
-  wf: Workflow,
   edge: WorkflowEdge,
-  type: string,
+  type: AddedNode,
   params: Record<string, unknown>,
-  label: string,
 ): { workflow: Workflow; node: WorkflowNode } {
+  const wf = ctx.workflow;
+  const { label } = ADDED_NODES[type];
   const node = newNode(ctx, wf, type, params, label, { source: edge.source, target: edge.target });
-  const def = getNodeDef(type)!;
-  const inPort = Object.keys(def.inputs)[0];
-  const outPort = Object.keys(def.outputs)[0];
   return {
     node,
     workflow: {
@@ -179,11 +206,11 @@ function insertOnEdge(
           source: edge.source,
           sourceHandle: edge.sourceHandle,
           target: node.id,
-          targetHandle: inPort,
+          targetHandle: CLIP_PORT,
         }),
         makeEdge({
           source: node.id,
-          sourceHandle: outPort,
+          sourceHandle: CLIP_PORT,
           target: edge.target,
           targetHandle: edge.targetHandle,
         }),
@@ -205,21 +232,18 @@ function rootEdge(ctx: EditContext): WorkflowEdge | undefined {
 }
 
 function slotEdge(ctx: EditContext, bar: Pick<VideoBar, "chain">): WorkflowEdge | undefined {
-  const i = slotIndex(bar);
-  if (i === -1) return rootEdge(ctx);
-  const slot = bar.chain[i].slot!;
+  const slot = slotLink(bar)?.slot;
+  if (!slot) return rootEdge(ctx);
   return ctx.workflow.edges.find((e) => e.target === slot.nodeId && e.targetHandle === slot.port);
 }
 
-const slotLink = (bar: Pick<VideoBar, "chain">): ChainLink => {
-  const i = slotIndex(bar);
-  return bar.chain[i === -1 ? bar.chain.length - 1 : i];
-};
+const outermostLink = (bar: Pick<VideoBar, "chain">): ChainLink =>
+  slotLink(bar) ?? bar.chain[bar.chain.length - 1];
 
 const ROOT_LEVEL = { rate: 1, from: 0 };
 
 const slotLevel = (bar: Pick<VideoBar, "chain">): { rate: number; from: number } =>
-  slotIndex(bar) === -1 ? ROOT_LEVEL : slotLink(bar);
+  slotLink(bar) ?? ROOT_LEVEL;
 
 function pathEdge(wf: Workflow, from: string, to: string): WorkflowEdge | undefined {
   const seen = new Set<string>([from]);
@@ -238,7 +262,7 @@ function pathEdge(wf: Workflow, from: string, to: string): WorkflowEdge | undefi
 }
 
 function leafEdge(ctx: EditContext, bar: VideoBar): WorkflowEdge | undefined {
-  const slot = bar.chain.find((l) => l.slot)?.slot;
+  const slot = slotLink(bar)?.slot;
   const next =
     bar.chain.slice(1).find((l) => l.nodeId && l.nodeId !== bar.nodeId)?.nodeId ??
     slot?.nodeId ??
@@ -254,9 +278,10 @@ function leafEdge(ctx: EditContext, bar: VideoBar): WorkflowEdge | undefined {
   return pathEdge(ctx.workflow, bar.nodeId, next);
 }
 
-const owns = (link: ChainLink, wf: Workflow) =>
-  !!link.handles &&
-  Object.values(link.handles).some((h) => wf.nodes.some((n) => n.id === h?.nodeId));
+function owns(link: ChainLink, wf: Workflow): boolean {
+  const ids = new Set(wf.nodes.map((n) => n.id));
+  return Object.values(link.handles ?? {}).some((h) => !!h && ids.has(h.nodeId));
+}
 
 function ownedHandle(
   ctx: EditContext,
@@ -268,21 +293,15 @@ function ownedHandle(
   return owner && ref && owns(owner.link, ctx.workflow) ? { link: owner.link, ref } : null;
 }
 
-const ADDED_NODES = {
-  "timeline.delay": { label: "Delay from timeline", where: "before" },
-  "timeline.trim": { label: "Trim from timeline", where: "after" },
-  "timeline.speed": { label: "Speed from timeline", where: "after" },
-} as const;
-
 function addNode(
   ctx: EditContext,
   bar: VideoBar,
   edge: WorkflowEdge,
-  type: keyof typeof ADDED_NODES,
+  type: AddedNode,
   params: Record<string, unknown>,
 ): EditResult {
   const { label, where } = ADDED_NODES[type];
-  const { workflow, node } = insertOnEdge(ctx, ctx.workflow, edge, type, params, label);
+  const { workflow, node } = insertOnEdge(ctx, edge, type, params);
   return ok(workflow, `Added “${label}” ${where} ${clipName(ctx.workflow, bar.nodeId)}.`, node.id);
 }
 
@@ -298,13 +317,15 @@ const addTrim = (
     durationMs: framesToMs(lengthFrames, ctx.fps),
   });
 
+const AT_START = "That's the start of the clip.";
+const TOO_EARLY = "It can't start any earlier.";
+
 export function moveBar(ctx: EditContext, bar: VideoBar, delta: number): EditResult {
   if (noMove(delta)) return ok(ctx.workflow);
   const owned = ownedHandle(ctx, bar, "move");
   if (owned) {
     const content = Math.round(delta * owned.link.rate);
-    const { workflow, clamped } = shiftParam(ctx.workflow, owned.ref, content, ctx.fps);
-    return ok(workflow, clamped ? "It can't start any earlier." : undefined);
+    return shiftTo(ctx.workflow, owned.ref, content, ctx.fps, TOO_EARLY);
   }
   if (delta < 0) {
     const container = ctx.workflow.nodes.find((n) => n.id === containerOf(bar));
@@ -325,10 +346,9 @@ function trimStart(ctx: EditContext, bar: VideoBar, delta: number): EditResult {
   const owned = ownedHandle(ctx, bar, "trimStart");
   if (owned) {
     const content = Math.round(delta * owned.link.rate);
-    const { workflow, clamped } = shiftParam(ctx.workflow, owned.ref, content, ctx.fps);
-    return ok(workflow, clamped ? "That's the start of the clip." : undefined);
+    return shiftTo(ctx.workflow, owned.ref, content, ctx.fps, AT_START);
   }
-  if (delta < 0) return fail("That's the start of the clip.");
+  if (delta < 0) return fail(AT_START);
   const edge = leafEdge(ctx, bar);
   if (!edge) return notConnected("trim it");
   return addTrim(ctx, bar, edge, Math.round((bar.contentStart + delta) * bar.rate), 0);
@@ -368,10 +388,9 @@ export function slipBar(ctx: EditContext, bar: VideoBar, delta: number): EditRes
     const length = Math.round((link.to - link.from) * link.rate);
     const lengthRef = link.handles?.trimEnd;
     const wf = lengthRef ? setLength(ctx.workflow, lengthRef, length, ctx.fps) : ctx.workflow;
-    const { workflow, clamped } = shiftParam(wf, { ...owned.ref, linked: [] }, content, ctx.fps);
-    return ok(workflow, clamped ? "That's the start of the clip." : undefined);
+    return shiftTo(wf, { ...owned.ref, linked: [] }, content, ctx.fps, AT_START);
   }
-  if (content < 0) return fail("That's the start of the clip.");
+  if (content < 0) return fail(AT_START);
   const edge = leafEdge(ctx, bar);
   if (!edge) return notConnected("edit it");
   const length = Math.round(bar.contentEnd - bar.contentStart);
@@ -385,9 +404,9 @@ export function rollCut(
   delta: number,
 ): EditResult {
   if (noMove(delta)) return ok(ctx.workflow);
-  const a = trimBar(ctx, left, "end", delta);
+  const a = trimEnd(ctx, left, delta);
   if (!a.ok) return a;
-  const b = trimBar({ ...ctx, workflow: a.workflow }, right, "start", delta);
+  const b = trimStart({ ...ctx, workflow: a.workflow }, right, delta);
   if (!b.ok) return b;
   return ok(b.workflow, [a.message, b.message].filter(Boolean).join(" ") || undefined);
 }
@@ -396,7 +415,7 @@ const clampRate = (rate: number) => clamp(round2(rate), MIN_SPEED, MAX_SPEED);
 
 export function speedBar(ctx: EditContext, bar: VideoBar, newLength: number): EditResult {
   const owned = ownedHandle(ctx, bar, "speed");
-  const span = findHandle(bar, "speed", "outer")?.link ?? slotLink(bar);
+  const span = findHandle(bar, "speed", "outer")?.link ?? outermostLink(bar);
   const current = span.to - span.from;
   if (newLength < 1 || current < 1) return fail("A clip needs at least one frame.");
   const factor = current / newLength;
@@ -413,30 +432,17 @@ const cutsSchema = z.array(cutSchema);
 
 function splitParts(ctx: EditContext, edge: WorkflowEdge, offset: number) {
   const near = { source: edge.source, target: edge.target };
-  const head = newNode(
-    ctx,
-    ctx.workflow,
-    "timeline.trim",
-    { startMs: 0, durationMs: framesToMs(offset, ctx.fps) },
-    "Split: first part",
-    near,
-    0,
-  );
-  const tail = newNode(
-    ctx,
-    ctx.workflow,
-    "timeline.trim",
-    { startMs: framesToMs(offset, ctx.fps), durationMs: 0 },
-    "Split: second part",
-    near,
-    1,
-  );
-  const feeds = [head, tail].map((part) =>
+  const cut = framesToMs(offset, ctx.fps);
+  const part = (label: string, params: Record<string, unknown>, index: number) =>
+    newNode(ctx, ctx.workflow, "timeline.trim", params, label, near, index);
+  const head = part("Split: first part", { startMs: 0, durationMs: cut }, 0);
+  const tail = part("Split: second part", { startMs: cut, durationMs: 0 }, 1);
+  const feeds = [head, tail].map((p) =>
     makeEdge({
       source: edge.source,
       sourceHandle: edge.sourceHandle,
-      target: part.id,
-      targetHandle: "clip",
+      target: p.id,
+      targetHandle: CLIP_PORT,
     }),
   );
   return { head, tail, feeds };
@@ -446,30 +452,32 @@ type SplitParts = ReturnType<typeof splitParts>;
 
 const SEQUENCE_PORTS: readonly string[] = IN_PORTS;
 
+const sequencePort = (index: number): string | undefined => SEQUENCE_PORTS[index];
+
 function splitInSequence(
   ctx: EditContext,
   edge: WorkflowEdge,
   container: WorkflowNode,
+  next: string,
   { head, tail, feeds }: SplitParts,
 ): Workflow {
   const port = SEQUENCE_PORTS.indexOf(edge.targetHandle);
-  const shiftPort = (handle: string) => {
+  const shiftPort = (handle: string): string | undefined => {
     const k = SEQUENCE_PORTS.indexOf(handle);
-    return k <= port ? handle : SEQUENCE_PORTS[k + 1];
+    return k <= port ? handle : sequencePort(k + 1);
   };
   const cuts = cutsSchema.parse(container.params.cuts ?? []).flatMap((c) => {
     const before = shiftPort(c.before);
     return before ? [{ ...c, before }] : [];
   });
-  const transition = container.params.transition ?? defaultParams(container.type).transition;
-  if (transition !== "none")
-    cuts.push(cutSchema.parse({ before: SEQUENCE_PORTS[port + 1], transition: "none" }));
+  if (paramValue(container, "transition") !== "none")
+    cuts.push(cutSchema.parse({ before: next, transition: "none" }));
   const wf = ctx.workflow;
-  const shifted = wf.edges.map((e) =>
-    e.target === edge.target && SEQUENCE_PORTS.includes(e.targetHandle)
-      ? makeEdge({ ...e, targetHandle: shiftPort(e.targetHandle) })
-      : e,
-  );
+  const shifted = wf.edges.flatMap((e) => {
+    if (e.target !== edge.target || !SEQUENCE_PORTS.includes(e.targetHandle)) return [e];
+    const targetHandle = shiftPort(e.targetHandle);
+    return targetHandle ? [makeEdge({ ...e, targetHandle })] : [];
+  });
   return {
     ...wf,
     nodes: [
@@ -482,15 +490,15 @@ function splitInSequence(
       ...feeds,
       makeEdge({
         source: head.id,
-        sourceHandle: "clip",
+        sourceHandle: CLIP_PORT,
         target: edge.target,
-        targetHandle: SEQUENCE_PORTS[port],
+        targetHandle: edge.targetHandle,
       }),
       makeEdge({
         source: tail.id,
-        sourceHandle: "clip",
+        sourceHandle: CLIP_PORT,
         target: edge.target,
-        targetHandle: SEQUENCE_PORTS[port + 1],
+        targetHandle: next,
       }),
     ],
   };
@@ -517,11 +525,11 @@ function splitWithNewSequence(
     edges: [
       ...wf.edges.filter((e) => e.id !== edge.id),
       ...feeds,
-      makeEdge({ source: head.id, sourceHandle: "clip", target: join.id, targetHandle: "in1" }),
-      makeEdge({ source: tail.id, sourceHandle: "clip", target: join.id, targetHandle: "in2" }),
+      makeEdge({ source: head.id, sourceHandle: CLIP_PORT, target: join.id, targetHandle: "in1" }),
+      makeEdge({ source: tail.id, sourceHandle: CLIP_PORT, target: join.id, targetHandle: "in2" }),
       makeEdge({
         source: join.id,
-        sourceHandle: "clip",
+        sourceHandle: CLIP_PORT,
         target: edge.target,
         targetHandle: edge.targetHandle,
       }),
@@ -529,12 +537,18 @@ function splitWithNewSequence(
   };
 }
 
-function hasFreePort(wf: Workflow, container: WorkflowNode, edge: WorkflowEdge): boolean {
-  if (container.type !== "timeline.sequence" || !SEQUENCE_PORTS.includes(edge.targetHandle))
-    return false;
+function freePortAfter(
+  wf: Workflow,
+  container: WorkflowNode | undefined,
+  edge: WorkflowEdge,
+): string | undefined {
+  if (container?.type !== "timeline.sequence" || !SEQUENCE_PORTS.includes(edge.targetHandle))
+    return undefined;
   const used = wf.edges.filter((e) => e.target === container.id).map((e) => e.targetHandle);
   const lastUsed = Math.max(-1, ...used.map((h) => SEQUENCE_PORTS.indexOf(h)));
-  return lastUsed < SEQUENCE_PORTS.length - 1;
+  return lastUsed < SEQUENCE_PORTS.length - 1
+    ? sequencePort(SEQUENCE_PORTS.indexOf(edge.targetHandle) + 1)
+    : undefined;
 }
 
 export function splitBar(ctx: EditContext, bar: VideoBar, at: number): EditResult {
@@ -547,20 +561,20 @@ export function splitBar(ctx: EditContext, bar: VideoBar, at: number): EditResul
   if (offset < 1) return fail("Put the playhead inside the clip.");
   const parts = splitParts(ctx, edge, offset);
   const container = ctx.workflow.nodes.find((n) => n.id === edge.target);
+  const next = freePortAfter(ctx.workflow, container, edge);
   const workflow =
-    container && hasFreePort(ctx.workflow, container, edge)
-      ? splitInSequence(ctx, edge, container, parts)
+    container && next
+      ? splitInSequence(ctx, edge, container, next, parts)
       : splitWithNewSequence(ctx, edge, parts);
   return ok(workflow, `Split ${clipName(ctx.workflow, bar.nodeId)} in two.`, parts.tail.id);
 }
 
 export function moveAudio(ctx: EditContext, bar: AudioBar, delta: number): EditResult {
-  if (noMove(delta)) return ok(ctx.workflow);
   if (bar.bar) return moveBar(ctx, bar.bar, delta);
+  if (noMove(delta)) return ok(ctx.workflow);
   const ref = bar.handles?.move;
   if (!ref) return fail("This sound can't be moved here.");
-  const { workflow, clamped } = shiftParam(ctx.workflow, ref, Math.round(delta), ctx.fps);
-  return ok(workflow, clamped ? "It can't start any earlier." : undefined);
+  return shiftTo(ctx.workflow, ref, Math.round(delta), ctx.fps, TOO_EARLY);
 }
 
 export function trimAudio(
@@ -569,13 +583,12 @@ export function trimAudio(
   edge: "start" | "end",
   delta: number,
 ): EditResult {
-  if (noMove(delta)) return ok(ctx.workflow);
   if (bar.bar) return trimBar(ctx, bar.bar, edge, delta);
+  if (noMove(delta)) return ok(ctx.workflow);
   if (edge === "start") {
     const ref = bar.handles?.trimStart;
     if (!ref) return fail("Sound effects play in full. Move it instead.");
-    const { workflow, clamped } = shiftParam(ctx.workflow, ref, Math.round(delta), ctx.fps);
-    return ok(workflow, clamped ? "That's the start of the sound." : undefined);
+    return shiftTo(ctx.workflow, ref, Math.round(delta), ctx.fps, "That's the start of the sound.");
   }
   const ref = bar.handles?.trimEnd;
   if (!ref) return fail("Sound effects play in full.");
@@ -641,7 +654,7 @@ export function moveHandleKey(bar: VideoBar | AudioBar): string | null {
 }
 
 export function containerOf(bar: Pick<VideoBar, "chain">): string | undefined {
-  return bar.chain.find((l) => l.slot)?.slot?.nodeId;
+  return slotLink(bar)?.slot.nodeId;
 }
 
 export type Removal = { nodeIds: string[]; edgeIds: string[] };

@@ -20,19 +20,20 @@ function ease(kind: Ease, t: number): number {
 export const sortKeys = (keys: Keyframe[]): Keyframe[] =>
   keys.toSorted((a, b) => a.frame - b.frame);
 
-export function envelopeAt(keys: Keyframe[] | undefined, frame: number, fallback: number): number {
-  return (
-    sampleKeyed(
-      sortKeys(keys ?? []),
-      frame,
-      (k) => k.frame,
-      (k) => k.value,
-      (a, b, t) => lerp(a.value, b.value, ease(a.ease, t)),
-    ) ?? fallback
-  );
-}
+const sortedEnvelopeAt = (sorted: Keyframe[], frame: number, fallback: number): number =>
+  sampleKeyed(
+    sorted,
+    frame,
+    (k) => k.frame,
+    (k) => k.value,
+    (a, b, t) => lerp(a.value, b.value, ease(a.ease, t)),
+  ) ?? fallback;
+
+export const envelopeAt = (keys: Keyframe[] | undefined, frame: number, fallback: number): number =>
+  sortedEnvelopeAt(sortKeys(keys ?? []), frame, fallback);
 
 const STEPS_PER_SEGMENT = 8;
+const HOLD_STEP_FRAMES = 1e-3;
 
 export function samplePoints(keys: Keyframe[]): Array<{ frame: number; value: number }> {
   const sorted = sortKeys(keys);
@@ -43,13 +44,13 @@ export function samplePoints(keys: Keyframe[]): Array<{ frame: number; value: nu
     const b = sorted[i + 1];
     if (!b || b.frame <= a.frame) continue;
     if (a.ease === "hold") {
-      out.push({ frame: b.frame - 1e-3, value: a.value });
+      out.push({ frame: b.frame - HOLD_STEP_FRAMES, value: a.value });
       continue;
     }
     if (a.ease === "linear") continue;
     for (let s = 1; s < STEPS_PER_SEGMENT; s++) {
       const frame = a.frame + ((b.frame - a.frame) * s) / STEPS_PER_SEGMENT;
-      out.push({ frame, value: envelopeAt(sorted, frame, a.value) });
+      out.push({ frame, value: sortedEnvelopeAt(sorted, frame, a.value) });
     }
   }
   return out;

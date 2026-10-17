@@ -1,7 +1,6 @@
-import type { EqBand } from "@/shared/mix/types";
+import { SAMPLE_RATE, type EqBand } from "@/shared/mix/types";
 import { clamp } from "@/shared/math";
 
-const SAMPLE_RATE = 48_000;
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;
 const RANGE_DB = 18;

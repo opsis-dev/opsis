@@ -8,16 +8,16 @@ import {
   stripSettings,
   updateChannels,
 } from "./edits";
-import { DEFAULT_STRIP, STRIP_PRESETS, busSchema, defaultMix, stripSchema } from "./types";
+import { DEFAULT_STRIP, STRIP_PRESETS, busSchema, defaultMix } from "./types";
 
 describe("mix edits", () => {
   it("copies a strip's settings without its routing", () => {
-    const strip = stripSchema.parse({ trim: 3, pan: -0.5, mute: true, solo: true, bus: "music" });
+    const strip = { ...DEFAULT_STRIP, trim: 3, pan: -0.5, mute: true, solo: true, bus: "music" };
     expect(stripSettings(strip)).toEqual({ ...stripSettings(DEFAULT_STRIP), trim: 3, pan: -0.5 });
   });
 
   it("resets a strip but keeps its routing", () => {
-    const strip = stripSchema.parse({ trim: 3, fader: -6, mute: true, bus: "music" });
+    const strip = { ...DEFAULT_STRIP, trim: 3, fader: -6, mute: true, bus: "music" };
     expect(resetStrip(strip)).toEqual({ ...DEFAULT_STRIP, mute: true, bus: "music" });
   });
 

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { compileWorkflow } from "../compile/compile";
 import type { Action, ActionLog } from "../schema/actions";
 import { GraphBuilder } from "../templates/build";
-import { chapterList, chapterMetadata, filmChapters } from "./chapters";
+import { chapterList, chapterMetadata, filmChapters, type FilmChapter } from "./chapters";
+import { framesToMs } from "./time";
 import { recordedTake, recordResult } from "../test-fixtures";
 
 const chapter = (id: string, t: number, label: string): Action => ({
@@ -43,7 +44,7 @@ function film(edit?: { type: string; params: Record<string, unknown> }) {
   return { spec, chapters: filmChapters(spec) };
 }
 
-const titleAndStartSeconds = (chapters: ReturnType<typeof filmChapters>) =>
+const titleAndStartSeconds = (chapters: FilmChapter[]) =>
   chapters.map((c) => [c.title, Math.round(c.startMs / 100) / 10]);
 
 describe("filmChapters", () => {
@@ -54,7 +55,7 @@ describe("filmChapters", () => {
       ["Build", 20],
       ["Ship", 45],
     ]);
-    expect(chapters.at(-1)!.endMs).toBe(Math.round((spec.durationInFrames / spec.fps) * 1000));
+    expect(chapters[chapters.length - 1].endMs).toBe(framesToMs(spec.durationInFrames, spec.fps));
     expect(chapters[0].endMs).toBe(chapters[1].startMs);
   });
 

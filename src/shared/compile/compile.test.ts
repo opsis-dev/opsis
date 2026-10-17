@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { ActionLog } from "../schema/actions";
-import type { TimelineItem, TimelineSpec } from "../schema/timeline";
+import type { TimelineSpec } from "../schema/timeline";
+import type { Workflow } from "../schema/workflow";
 import { getTemplate } from "../templates";
 import { GraphBuilder } from "../templates/build";
-import { forEachItem, groupOf, recordingOf } from "./clip";
+import { groupOf, isClip, recordingOf } from "./clip";
 import { compileWorkflow, previewSpec } from "./compile";
 import { flattenSpec } from "../timeline/flatten";
-import { recordedTake, recordResult } from "../test-fixtures";
+import { itemsOf, recordedTake, recordResult } from "../test-fixtures";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 
@@ -53,13 +54,7 @@ const log: ActionLog = {
   ],
 };
 
-function walkItems(spec: TimelineSpec) {
-  const items: TimelineItem[] = [];
-  forEachItem(spec.tracks, (item) => items.push(item));
-  return items;
-}
-
-const recordingIn = (spec: TimelineSpec) => walkItems(spec).map(recordingOf).find(Boolean);
+const recordingIn = (spec: TimelineSpec) => itemsOf(spec).map(recordingOf).find(Boolean);
 
 describe("compileWorkflow — sample project", () => {
   it("compiles to one spec per Output node, with a placeholder before the first run", () => {
@@ -69,7 +64,7 @@ describe("compileWorkflow — sample project", () => {
     const spec = out.specs.render;
     expect(spec).toBeDefined();
     expect(spec.width).toBe(1920);
-    const components = walkItems(spec).map((i) => i.component);
+    const components = itemsOf(spec).map((i) => i.component);
     expect(components).toContain("core/placeholder");
     expect(components).toContain("remocn/soft-blur-in");
     expect(components).toContain("remocn/shader-mesh-gradient");
@@ -125,7 +120,7 @@ describe("compileWorkflow — sample project", () => {
   it("interpolates {{VARIABLES}} into params", () => {
     const wf = todoMvc();
     const spec = compileWorkflow(wf).specs.render;
-    const outro = walkItems(spec).find((i) => i.component === "core/title");
+    const outro = itemsOf(spec).find((i) => i.component === "core/title");
     expect(outro?.props.subtitle).toBe("https://demo.playwright.dev/todomvc");
   });
 });
@@ -138,16 +133,19 @@ describe("compileWorkflow — timeline nodes", () => {
     return { wf: g.build({ id: "t", name: "T" }), last };
   };
 
+  const compiledClip = (wf: Workflow, id: string) => {
+    const clip = compileWorkflow(wf).values[id]?.clip;
+    if (!isClip(clip)) throw new Error(`${id} has no clip`);
+    return clip;
+  };
+
   it("trims via a group with startFrom", () => {
     const { wf, last } = titleWorkflow((g, title) => {
       const trim = g.node("trim", "timeline.trim", 1, 0, { startMs: 1000, durationMs: 1000 });
       g.link(title, trim);
       return trim;
     });
-    const out = compileWorkflow(wf);
-    const clip = out.values[last].clip;
-    expect(clip?.type).toBe("clip");
-    if (clip?.type !== "clip") return;
+    const clip = compiledClip(wf, last);
     expect(clip.durationInFrames).toBe(30);
     expect(groupOf(clip.tracks[0].items[0])?.startFrom).toBe(30);
   });
@@ -158,8 +156,7 @@ describe("compileWorkflow — timeline nodes", () => {
       g.link(title, speed);
       return speed;
     });
-    const clip = compileWorkflow(wf).values[last].clip;
-    if (clip?.type !== "clip") throw new Error("no clip");
+    const clip = compiledClip(wf, last);
     expect(clip.durationInFrames).toBe(45);
     expect(groupOf(clip.tracks[0].items[0])?.remap).toEqual([
       [0, 0],
@@ -174,8 +171,7 @@ describe("compileWorkflow — timeline nodes", () => {
       return loop;
     });
     wf.nodes.find((n) => n.id === "loop")!.disabled = true;
-    const clip = compileWorkflow(wf).values[last].clip;
-    if (clip?.type !== "clip") throw new Error("no clip");
+    const clip = compiledClip(wf, last);
     expect(clip.durationInFrames).toBe(90);
   });
 

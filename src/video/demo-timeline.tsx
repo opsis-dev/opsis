@@ -9,7 +9,8 @@ import {
   useVideoConfig,
 } from "remotion";
 import { Audio } from "@remotion/media";
-import { groupOf, remapFrame, type GroupProps } from "../shared/compile/clip";
+import { groupOf, type GroupProps } from "../shared/compile/clip";
+import { remapFrame } from "../shared/compile/remap";
 import { duckGain, duckingSpans, type Span } from "../shared/compile/duck";
 import { envelopeAt } from "../shared/timeline/envelope";
 import type {

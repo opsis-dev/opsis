@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const SAMPLE_RATE = 48_000;
+
 type Bounds = { min: number; max: number };
 
 export type NumberRange = Bounds & { default: number };
@@ -95,7 +97,7 @@ export const stripSettingsSchema = z.object({
 });
 export type StripSettings = z.infer<typeof stripSettingsSchema>;
 
-export const stripSchema = stripSettingsSchema.extend({
+const stripSchema = stripSettingsSchema.extend({
   mute: z.boolean().default(false),
   solo: z.boolean().default(false),
   bus: z.string().optional(),

@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { continueRender, delayRender } from "remotion";
 import { firstFamily } from "../../shared/fonts";
 import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "../../shared/fonts/types";
-import { groupOf } from "../../shared/compile/clip";
+import { groupOf, walkItems } from "../../shared/compile/clip";
 import type { TimelineTrack } from "../../shared/schema/timeline";
 import { resolveAssetRef, useAssetBase } from "../assets";
 import { applyProjectFonts } from "./registry";
@@ -12,17 +12,10 @@ export function usedFontNames(tracks: TimelineTrack[]): string[] {
   const add = (font: unknown) => {
     if (typeof font === "string" && font.trim()) out.add(firstFamily(font));
   };
-  const visit = (list: TimelineTrack[]) => {
-    for (const track of list)
-      for (const item of track.items) {
-        add(item.props.fontFamily);
-        const group = groupOf(item);
-        if (!group) continue;
-        visit(group.tracks);
-        add(group.wrapper?.props.fontFamily);
-      }
-  };
-  visit(tracks);
+  walkItems(tracks, (item) => {
+    add(item.props.fontFamily);
+    add(groupOf(item)?.wrapper?.props.fontFamily);
+  });
   return [...out].toSorted();
 }
 

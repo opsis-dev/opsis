@@ -1,25 +1,13 @@
 import { describe, expect, it } from "vitest";
-import type { z } from "zod";
-import { forEachItem, itemHasSound } from "../compile/clip";
-import { compileWorkflow, previewSpec } from "../compile/compile";
-import type { TimelineItem, TimelineSpec } from "../schema/timeline";
+import { itemHasSound } from "../compile/clip";
+import type { TimelineSpec } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
 import { GraphBuilder } from "../templates/build";
-import {
-  busJob,
-  channelJob,
-  duckRatio,
-  envelopeExpr,
-  jobArgs,
-  loudnessMeasureJob,
-  masterJob,
-  parseLoudnorm,
-  soundChain,
-  stripSteps,
-} from "./graph";
-import { applyMixLevels, channelGain, withMasterStem } from "./levels";
-import { buildMixPlan, channelKey, type MixPlan } from "./plan";
-import { DEFAULT_STRIP, defaultMix, stripSchema, type Bus, type Mix } from "./types";
+import { filmSpec, itemsOf, must } from "../test-fixtures";
+import { busJob, channelJob, jobArgs, loudnessMeasureJob, masterJob, parseLoudnorm } from "./graph";
+import { applyMixLevels, withMasterStem } from "./levels";
+import { buildMixPlan, channelKey, type MixPlan, type SoundPlacement } from "./plan";
+import { DEFAULT_STRIP, dbToGain, defaultMix, type Bus, type Mix, type Strip } from "./types";
 
 function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
   const g = new GraphBuilder();
@@ -37,30 +25,22 @@ function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
     .link("fx", "mix", "audio", "sounds")
     .link("mix", "out", "clip", "timeline");
   const wf = { ...g.build({ id: "wf", name: "Mix" }), ...(mix ? { mix } : {}) };
-  const target = previewSpec(wf.settings, compileWorkflow(wf), null);
-  if (!target) throw new Error("nothing to preview");
-  return { wf, spec: target.spec };
+  return { wf, spec: filmSpec(wf) };
 }
 
-const strip = (patch: z.input<typeof stripSchema>) => stripSchema.parse(patch);
+const strip = (patch: Partial<Strip>): Strip => ({ ...DEFAULT_STRIP, ...patch });
 
-const channel = (plan: MixPlan, id: string) => {
-  const found = plan.channels.find((c) => c.id === id);
-  if (!found) throw new Error(`no channel ${id}`);
-  return found;
-};
+const channel = (plan: MixPlan, id: string) =>
+  must(
+    plan.channels.find((c) => c.id === id),
+    `channel ${id}`,
+  );
 
-const sound = (spec: TimelineSpec, nodeId: string) => {
-  const found = spec.audio.find((a) => a.nodeId === nodeId);
-  if (!found) throw new Error(`no sound ${nodeId}`);
-  return found;
-};
-
-const items = (spec: TimelineSpec) => {
-  const out: TimelineItem[] = [];
-  forEachItem(spec.tracks, (item) => out.push(item));
-  return out;
-};
+const sound = (spec: TimelineSpec, nodeId: string) =>
+  must(
+    spec.audio.find((a) => a.nodeId === nodeId),
+    `sound ${nodeId}`,
+  );
 
 const withDuck = (mix: Mix, patch: Partial<Bus["duck"]>): Mix => ({
   ...mix,
@@ -68,15 +48,7 @@ const withDuck = (mix: Mix, patch: Partial<Bus["duck"]>): Mix => ({
     b.id === "music"
       ? {
           ...b,
-          duck: {
-            on: true,
-            keys: ["effects"],
-            amount: 12,
-            attack: 100,
-            release: 300,
-            ignoreShorterMs: 0,
-            ...patch,
-          },
+          duck: { ...b.duck, on: true, keys: ["effects"], amount: 12, attack: 100, ...patch },
         }
       : b,
   ),
@@ -89,24 +61,27 @@ const NO_PROCESSING = {
 };
 
 describe("mixer levels", () => {
+  const gain = (mix: Mix, nodeId: string) =>
+    sound(applyMixLevels(project().spec, mix), nodeId).gain;
+
   it("multiplies channel, bus and master faders", () => {
     const mix = defaultMix();
     mix.channels.fx = strip({ fader: -6 });
     mix.buses = mix.buses.map((b) => (b.id === "effects" ? { ...b, fader: -6 } : b));
     mix.master = { ...mix.master, fader: 6 };
-    expect(channelGain(mix, "fx", "effect")).toBeCloseTo(10 ** (-6 / 20), 5);
-    expect(channelGain(mix, "music", "music")).toBeCloseTo(10 ** (6 / 20), 5);
+    expect(gain(mix, "fx")).toBeCloseTo(dbToGain(-6), 5);
+    expect(gain(mix, "music")).toBeCloseTo(dbToGain(6), 5);
   });
 
   it("mutes and solos channels and buses", () => {
     const mix = defaultMix();
     mix.channels.fx = strip({ solo: true });
-    expect(channelGain(mix, "music", "music")).toBe(0);
-    expect(channelGain(mix, "fx", "effect")).toBe(1);
+    expect(gain(mix, "music")).toBe(0);
+    expect(gain(mix, "fx")).toBe(1);
     mix.buses = mix.buses.map((b) => (b.id === "music" ? { ...b, solo: true } : b));
-    expect(channelGain(mix, "music", "music")).toBe(1);
+    expect(gain(mix, "music")).toBe(1);
     mix.channels.music = strip({ mute: true });
-    expect(channelGain(mix, "music", "music")).toBe(0);
+    expect(gain(mix, "music")).toBe(0);
   });
 
   it("applies gains to sounds and clip sound in the live preview", () => {
@@ -117,7 +92,7 @@ describe("mixer levels", () => {
     const live = applyMixLevels(spec, mix);
     expect(sound(live, "music").gain).toBeCloseTo(0.1, 5);
     expect(sound(live, "fx").gain).toBe(1);
-    const video = items(live).find((i) => i.nodeId === "clipfile");
+    const video = itemsOf(live).find((i) => i.nodeId === "clipfile");
     expect(video?.props).toMatchObject({ muted: true, volume: 0 });
   });
 
@@ -135,7 +110,7 @@ describe("mixer levels", () => {
     const live = applyMixLevels(spec, mix);
     const music = sound(live, "music");
     expect(music.duck?.keys).toEqual(["fx"]);
-    expect(music.duck?.level).toBeCloseTo(10 ** (-12 / 20), 5);
+    expect(music.duck?.level).toBeCloseTo(dbToGain(-12), 5);
     expect(sound(live, "fx").duck).toBeUndefined();
   });
 
@@ -144,7 +119,7 @@ describe("mixer levels", () => {
     const stem = withMasterStem(spec, { src: "project:.demoflow/cache/mix/m.wav", hash: "m" });
     expect(stem.audio).toEqual([]);
     expect(stem.mix?.hash).toBe("m");
-    expect(items(stem).filter(itemHasSound)).toEqual([]);
+    expect(itemsOf(stem).filter(itemHasSound)).toEqual([]);
   });
 });
 
@@ -178,99 +153,96 @@ describe("mix plan", () => {
 describe("mix filter graphs", () => {
   const resolve = (ref: string) => `/files/${ref.split(":")[1]}`;
 
+  const PADDED = "[s0]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS[out]";
+  const FILM = { fps: 30, durationInFrames: 300 };
+  const soundJob = (placement: Partial<SoundPlacement>, s: Strip = DEFAULT_STRIP) =>
+    channelJob(
+      FILM,
+      {
+        sounds: [
+          {
+            src: "project:a.wav",
+            at: 0,
+            offset: 0,
+            length: 90,
+            loop: false,
+            volume: 1,
+            fadeIn: 0,
+            fadeOut: 0,
+            ...placement,
+          },
+        ],
+        strip: s,
+      },
+      resolve,
+    );
+
   it("places a sound in time with fades and volume", () => {
-    expect(
-      soundChain(
-        {
-          src: "a",
-          at: 30,
-          offset: 15,
-          length: 60,
-          loop: false,
-          volume: 0.5,
-          fadeIn: 6,
-          fadeOut: 12,
-        },
-        2,
-        "s2",
-        30,
-      ),
-    ).toBe(
-      "[2:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.5,asetpts=PTS-STARTPTS,atrim=end=2,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.2,afade=t=out:st=1.6:d=0.4,adelay=delays=1000:all=1[s2]",
+    const job = soundJob({ at: 30, offset: 15, length: 60, volume: 0.5, fadeIn: 6, fadeOut: 12 });
+    expect(job.inputs).toEqual(["/files/a.wav"]);
+    expect(job.filter).toBe(
+      `[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.5,asetpts=PTS-STARTPTS,atrim=end=2,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.2,afade=t=out:st=1.6:d=0.4,adelay=delays=1000:all=1[s0];${PADDED}`,
     );
   });
 
   it("loops and pans with keyframes", () => {
-    const chain = soundChain(
-      {
-        src: "a",
-        at: 0,
-        offset: 0,
-        length: 90,
-        loop: true,
-        volume: 1,
-        fadeIn: 0,
-        fadeOut: 0,
-        envelope: {
-          pan: [
-            { frame: 0, value: -1, ease: "linear" },
-            { frame: 30, value: 1, ease: "linear" },
-          ],
-        },
+    const { filter } = soundJob({
+      loop: true,
+      envelope: {
+        pan: [
+          { frame: 0, value: -1, ease: "linear" },
+          { frame: 30, value: 1, ease: "linear" },
+        ],
       },
-      0,
-      "s0",
-      30,
-    );
-    expect(chain).toContain("aloop=loop=-1:size=2147483647");
-    expect(chain).toContain("channelsplit=channel_layout=stereo[s0l][s0r]");
-    expect(chain).toContain("[s0L][s0R]join=inputs=2:channel_layout=stereo[s0]");
-    expect(chain).toContain("min(1,1-(if(lt(t,0),-1,if(lt(t,1),-1+(2)*(t-0)/1,1))))");
+    });
+    expect(filter).toContain("aloop=loop=-1:size=2147483647");
+    expect(filter).toContain("channelsplit=channel_layout=stereo[s0l][s0r]");
+    expect(filter).toContain("[s0L][s0R]join=inputs=2:channel_layout=stereo[s0]");
+    expect(filter).toContain("min(1,1-(if(lt(t,0),-1,if(lt(t,1),-1+(2)*(t-0)/1,1))))");
   });
 
   it("builds volume keyframes as a piecewise expression", () => {
-    expect(
-      envelopeExpr(
-        [
+    const { filter } = soundJob({
+      envelope: {
+        volume: [
           { frame: 0, value: 1, ease: "linear" },
           { frame: 30, value: 0, ease: "linear" },
           { frame: 60, value: 0, ease: "linear" },
         ],
-        30,
-      ),
-    ).toBe("if(lt(t,0),1,if(lt(t,1),1+(-1)*(t-0)/1,if(lt(t,2),0,0)))");
+      },
+    });
+    expect(filter).toContain(
+      "volume=eval=frame:volume='if(lt(t,0),1,if(lt(t,1),1+(-1)*(t-0)/1,if(lt(t,2),0,0)))'",
+    );
   });
 
   it("runs a channel strip in signal order", () => {
-    expect(
-      stripSteps({
-        strip: {
-          ...DEFAULT_STRIP,
-          trim: 3,
-          highpass: { on: true, freq: 80 },
-          eq: {
-            on: true,
-            bands: [
-              { type: "lowshelf", freq: 120, gain: -2, q: 0.7 },
-              { type: "peak", freq: 500, gain: 0, q: 1 },
-              { type: "peak", freq: 2500, gain: 3, q: 1.4 },
-              { type: "highshelf", freq: 8000, gain: 1.5, q: 0.7 },
-            ],
-          },
-          comp: { on: true, threshold: -20, ratio: 4, attack: 5, release: 100, makeup: 6 },
-          pan: -0.5,
-          fader: -3,
+    const { filter } = soundJob(
+      {},
+      {
+        ...DEFAULT_STRIP,
+        trim: 3,
+        highpass: { on: true, freq: 80 },
+        eq: {
+          on: true,
+          bands: [
+            { type: "lowshelf", freq: 120, gain: -2, q: 0.7 },
+            { type: "peak", freq: 500, gain: 0, q: 1 },
+            { type: "peak", freq: 2500, gain: 3, q: 1.4 },
+            { type: "highshelf", freq: 8000, gain: 1.5, q: 0.7 },
+          ],
         },
-      }),
-    ).toEqual([
-      "volume=3dB",
-      "highpass=f=80",
-      "lowshelf=f=120:t=q:w=0.7:g=-2",
-      "equalizer=f=2500:t=q:w=1.4:g=3",
-      "highshelf=f=8000:t=q:w=0.7:g=1.5",
-      "acompressor=threshold=0.1:ratio=4:attack=5:release=100:makeup=1.995262",
-      "pan=stereo|c0=1*c0|c1=0.5*c1",
-      "volume=-3dB",
+        comp: { on: true, threshold: -20, ratio: 4, attack: 5, release: 100, makeup: 6 },
+        pan: -0.5,
+        fader: -3,
+      },
+    );
+    const pinned = "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo";
+    expect(filter.split(";").slice(1)).toEqual([
+      "[s0]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS,volume=3dB,highpass=f=80,lowshelf=f=120:t=q:w=0.7:g=-2,equalizer=f=2500:t=q:w=1.4:g=3,highshelf=f=8000:t=q:w=0.7:g=1.5[sum]",
+      `[sum]${pinned},asplit=2[pre][c]`,
+      `[c]acompressor=threshold=0.1:ratio=4:attack=5:release=100:makeup=1.995262,${pinned},asplit=2[post][m]`,
+      "[m]pan=stereo|c0=1*c0|c1=0.5*c1,volume=-3dB[out]",
     ]);
   });
 
@@ -313,7 +285,6 @@ describe("mix filter graphs", () => {
       (id) => `/stems/${id}.wav`,
     );
     expect(job.inputs).toEqual(["/stems/music.wav", "/stems/fx.wav", "/stems/clip.wav"]);
-    expect(duckRatio(14)).toBe(2);
     expect(job.filter).toBe(
       "[0:a]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS,volume=-2dB[main];[1:a][2:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=10,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=2:attack=50:release=400:makeup=1,apad,atrim=end=10,asetpts=PTS-STARTPTS[out]",
     );

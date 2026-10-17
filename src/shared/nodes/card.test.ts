@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { recordResult } from "../test-fixtures";
+import { must, recordResult } from "../test-fixtures";
 import type { NodeResult } from "../schema/values";
 import { DEFAULT_WORKFLOW_SETTINGS as settings } from "../schema/workflow";
 import { elementRow, sentence, type CardContext, type CardRow } from "./card";
@@ -11,8 +11,7 @@ function rows(
   params: Record<string, unknown>,
   extra: Partial<CardContext<Record<string, unknown>>> = {},
 ) {
-  const card = getNodeDef(type)?.card;
-  if (!card) throw new Error(`${type} has no card`);
+  const card = must(getNodeDef(type)?.card, `card for ${type}`);
   return card({
     params: { ...defaultParams(type), ...params },
     settings,

@@ -1,5 +1,7 @@
+import { walkItems } from "./compile/clip";
 import { compileWorkflow, previewSpec } from "./compile/compile";
 import type { ActionLog } from "./schema/actions";
+import type { TimelineItem, TimelineSpec } from "./schema/timeline";
 import type { NodeResult } from "./schema/values";
 import type { Workflow } from "./schema/workflow";
 import { GraphBuilder } from "./templates/build";
@@ -43,8 +45,18 @@ export function buildFilm(fn: (g: GraphBuilder) => string): Workflow {
   return g.build({ id: "wf", name: "Test" });
 }
 
-export function flatFilm(wf: Workflow): FlatTimeline {
-  const target = previewSpec(wf.settings, compileWorkflow(wf), null);
-  if (!target) throw new Error("nothing to preview");
-  return flattenSpec(target.spec);
+export function must<T>(value: T | null | undefined, what: string): T {
+  if (value === null || value === undefined) throw new Error(`no ${what}`);
+  return value;
+}
+
+export const filmSpec = (wf: Workflow): TimelineSpec =>
+  must(previewSpec(wf.settings, compileWorkflow(wf), null), "film to preview").spec;
+
+export const flatFilm = (wf: Workflow): FlatTimeline => flattenSpec(filmSpec(wf));
+
+export function itemsOf(spec: Pick<TimelineSpec, "tracks">): TimelineItem[] {
+  const items: TimelineItem[] = [];
+  walkItems(spec.tracks, (item) => items.push(item));
+  return items;
 }

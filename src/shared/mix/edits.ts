@@ -1,27 +1,35 @@
 import { stripOf } from "./levels";
 import {
+  DEFAULT_STRIP,
   busSchema,
-  busSettingsSchema,
-  stripSettingsSchema,
   type Bus,
+  type BusSettings,
   type Mix,
   type Strip,
   type StripSettings,
 } from "./types";
 
-const DEFAULT_STRIP_SETTINGS = stripSettingsSchema.parse({});
-const DEFAULT_BUS_SETTINGS = busSettingsSchema.parse({});
+const busSettings = ({ highpass, eq, comp, fader }: BusSettings): BusSettings => ({
+  highpass,
+  eq,
+  comp,
+  fader,
+});
 
-export const stripSettings = (strip: Strip): StripSettings => stripSettingsSchema.parse(strip);
+export const stripSettings = (strip: StripSettings): StripSettings => ({
+  trim: strip.trim,
+  ...busSettings(strip),
+  pan: strip.pan,
+});
 
-export const resetStrip = (strip: Strip): Strip => ({ ...strip, ...DEFAULT_STRIP_SETTINGS });
+export const resetStrip = (strip: Strip): Strip => ({ ...strip, ...stripSettings(DEFAULT_STRIP) });
 
 export const applyBusSettings = (bus: Bus, settings: Partial<StripSettings>): Bus => ({
   ...bus,
-  ...busSettingsSchema.parse({ ...bus, ...settings }),
+  ...busSettings({ ...bus, ...settings }),
 });
 
-export const resetBus = (bus: Bus): Bus => ({ ...bus, ...DEFAULT_BUS_SETTINGS });
+export const resetBus = (bus: Bus): Bus => ({ ...bus, ...busSettings(DEFAULT_STRIP) });
 
 export const updateChannels = (mix: Mix, ids: string[], fn: (s: Strip) => Strip): Mix => ({
   ...mix,

@@ -27,14 +27,14 @@ export function snapSpan(
   targets: SnapTarget[],
   threshold: number,
 ): { delta: number; target: SnapTarget | null } {
-  const a = snapFrame(from + delta, targets, threshold);
-  const b = snapFrame(to + delta, targets, threshold);
-  const da = a.target ? Math.abs(a.frame - (from + delta)) : Infinity;
-  const db = b.target ? Math.abs(b.frame - (to + delta)) : Infinity;
-  if (da === Infinity && db === Infinity) return { delta, target: null };
-  return da <= db
-    ? { delta: a.frame - from, target: a.target }
-    : { delta: b.frame - to, target: b.target };
+  let best: { delta: number; target: SnapTarget; distance: number } | null = null;
+  for (const edge of [from, to]) {
+    const { frame, target } = snapFrame(edge + delta, targets, threshold);
+    if (!target) continue;
+    const distance = Math.abs(frame - (edge + delta));
+    if (!best || distance < best.distance) best = { delta: frame - edge, target, distance };
+  }
+  return best ? { delta: best.delta, target: best.target } : { delta, target: null };
 }
 
 const FRAME_STEPS = [1, 2, 5, 10];

@@ -1,10 +1,10 @@
 import { channelOf, soundLength } from "../audio";
-import type { AudioItem, TimelineSpec, TimelineTrack } from "../schema/timeline";
-import { groupOf, itemHasSound } from "./clip";
+import type { AudioItem, TimelineSpec } from "../schema/timeline";
+import { soundNodeId, walkItems } from "./clip";
 
 export type Span = readonly [number, number];
 
-export function mergeSpans(spans: Span[]): Span[] {
+function mergeSpans(spans: Span[]): Span[] {
   const sorted = spans.filter(([a, b]) => b > a).toSorted((x, y) => x[0] - y[0]);
   const out: Array<[number, number]> = [];
   for (const [a, b] of sorted) {
@@ -27,21 +27,20 @@ function soundSpans(
 }
 
 function clipSpans(
-  tracks: TimelineTrack[],
-  offset: number,
-  end: number,
+  spec: Pick<TimelineSpec, "tracks" | "durationInFrames">,
   keys: ReadonlySet<string>,
 ): Span[] {
-  return tracks.flatMap((track) =>
-    track.items.flatMap((item): Span[] => {
-      const from = offset + item.from;
-      const to = Math.min(end, from + item.durationInFrames);
-      if (itemHasSound(item) && item.nodeId !== undefined && keys.has(item.nodeId))
-        return [[from, to]];
-      const group = groupOf(item);
-      return group ? clipSpans(group.tracks, from, to, keys) : [];
-    }),
+  const spans: Span[] = [];
+  const film = { from: 0, to: spec.durationInFrames };
+  walkItems(
+    spec.tracks,
+    (item, { from, to }) => {
+      const id = soundNodeId(item);
+      if (id && keys.has(id)) spans.push([from, to]);
+    },
+    film,
   );
+  return spans;
 }
 
 export function duckingSpans(
@@ -50,7 +49,7 @@ export function duckingSpans(
 ): Span[] {
   return mergeSpans([
     ...soundSpans(spec.audio, keys, spec.fps, spec.durationInFrames),
-    ...clipSpans(spec.tracks, 0, spec.durationInFrames, keys),
+    ...clipSpans(spec, keys),
   ]);
 }
 

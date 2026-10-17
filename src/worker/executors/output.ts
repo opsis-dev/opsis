@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, rename, utimes, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { z } from "zod";
-import { mapItems } from "../../shared/compile/clip";
+import { walkItems } from "../../shared/compile/clip";
 import { PROJECT_NAME_VAR } from "../../shared/compile/compile";
 import {
   exportProjectNode,
@@ -24,6 +24,7 @@ import {
   chapterMetadata,
   filmChapters,
   MIN_LISTED_CHAPTERS,
+  type FilmChapter,
 } from "../../shared/timeline/chapters";
 import { publicDir, refToPath } from "./util";
 import { buildMixPlan, hasSound } from "../../shared/mix/plan";
@@ -129,7 +130,7 @@ async function pictureFor(job: RenderJob): Promise<string> {
 }
 
 type Chapters = {
-  chapters: ReturnType<typeof filmChapters>;
+  chapters: FilmChapter[];
   metadata: string | null;
   listed: boolean;
 };
@@ -370,10 +371,7 @@ function projectRefs(spec: TimelineSpec): Set<string> {
     else if (Array.isArray(v)) v.forEach(collect);
     else if (v && typeof v === "object") Object.values(v).forEach(collect);
   };
-  mapItems(spec.tracks, (item) => {
-    collect(item.props);
-    return item;
-  });
+  walkItems(spec.tracks, (item) => collect(item.props));
   spec.audio.forEach((a) => collect(a.src));
   if (spec.mix) collect(spec.mix.src);
   return refs;

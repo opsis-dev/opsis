@@ -1,12 +1,5 @@
-import {
-  groupOf,
-  itemHasSound,
-  lerpSegment,
-  recordingOf,
-  remapFrame,
-  type GroupProps,
-  type Remap,
-} from "../compile/clip";
+import { groupOf, itemHasSound, recordingOf, type GroupProps } from "../compile/clip";
+import { lerpSegment, remapFrame, type Remap } from "../compile/remap";
 import { channelOf, soundLength } from "../audio";
 import type { RecordingProps } from "../compile/recording";
 import type { Action } from "../schema/actions";
@@ -124,31 +117,42 @@ type Range = { from: number; to: number };
 
 const overlaps = (a: Range, b: Range) => a.from < b.to - EPS && b.from < a.to - EPS;
 
-function inverseRemap(remap: Remap, r: number, side: Side): number {
-  if (remap.length === 0) return r;
+function beforeFirst(remap: Remap, r: number): number {
   const [o0, i0] = remap[0];
+  const next = remap.find(([, i]) => i > i0);
+  const slope = next ? (next[0] - o0) / (next[1] - i0) : 1;
+  return o0 - (i0 - r) * slope;
+}
+
+function afterLast(remap: Remap, r: number): number {
   const [oN, iN] = remap[remap.length - 1];
-  if (r < i0) {
-    const next = remap.find(([, i]) => i > i0);
-    const slope = next ? (next[0] - o0) / (next[1] - i0) : 1;
-    return o0 - (i0 - r) * slope;
+  return oN + (r - iN);
+}
+
+function earliestOut(remap: Remap, r: number): number {
+  for (let k = 1; k < remap.length; k++) {
+    const [a, ia] = remap[k - 1];
+    const [b, ib] = remap[k];
+    if (ib >= r) return ib === ia ? a : lerpSegment([ia, a], [ib, b], r);
   }
-  if (side === "start") {
-    if (r <= i0) return o0;
-    for (let k = 1; k < remap.length; k++) {
-      const [a, ia] = remap[k - 1];
-      const [b, ib] = remap[k];
-      if (ib >= r) return ib === ia ? a : lerpSegment([ia, a], [ib, b], r);
-    }
-    return oN + (r - iN);
-  }
-  if (r >= iN) return oN + (r - iN);
+  return afterLast(remap, r);
+}
+
+function latestOut(remap: Remap, r: number): number {
   for (let k = remap.length - 1; k > 0; k--) {
     const [a, ia] = remap[k - 1];
     const [b, ib] = remap[k];
     if (ia <= r) return ib <= r || ib === ia ? b : lerpSegment([ia, a], [ib, b], r);
   }
-  return o0;
+  return remap[0][0];
+}
+
+function inverseRemap(remap: Remap, r: number, side: Side): number {
+  if (remap.length === 0) return r;
+  const [o0, i0] = remap[0];
+  if (r < i0) return beforeFirst(remap, r);
+  if (side === "start") return r === i0 ? o0 : earliestOut(remap, r);
+  return r >= remap[remap.length - 1][1] ? afterLast(remap, r) : latestOut(remap, r);
 }
 
 function groupInstances(
@@ -188,10 +192,12 @@ function groupInstances(
   });
 }
 
+const BISECT_STEPS = 24;
+
 function bisect(inst: Instance, a: number, b: number, abs: number): number {
   let lo = a;
   let hi = b;
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < BISECT_STEPS; i++) {
     const mid = (lo + hi) / 2;
     if (inst.toAbs(mid, "start") < abs) lo = mid;
     else hi = mid;
@@ -325,7 +331,8 @@ function recordingMarks(p: Placed, props: RecordingProps, fps: number): ActionMa
   const { item, from, to, key } = p;
   const speed = props.speed || 1;
   return props.log.actions.flatMap((action) => {
-    if (action.kind === "wait" || action.kind === "focus") return [];
+    const label = ACTION_LABELS[action.kind];
+    if (!label) return [];
     const local = (action.t / 1000 / speed) * fps;
     const frame = p.walk.inst.toAbs(item.from + local, "start");
     if (frame < from || frame >= to) return [];
@@ -334,7 +341,7 @@ function recordingMarks(p: Placed, props: RecordingProps, fps: number): ActionMa
         key: `${key}:${action.id}`,
         frame,
         kind: action.kind,
-        label: actionLabel(action),
+        label: label(action.label?.trim() || action.text?.trim() || ""),
         ...(action.nodeId ? { nodeId: action.nodeId } : {}),
         barKey: key,
       },
@@ -342,73 +349,82 @@ function recordingMarks(p: Placed, props: RecordingProps, fps: number): ActionMa
   });
 }
 
+type Collected = {
+  fps: number;
+  bars: VideoBar[];
+  transitions: TransitionMark[];
+  marks: ActionMark[];
+};
+
+function visitTracks(acc: Collected, tracks: TimelineTrack[], walk: Walk): void {
+  tracks.forEach((track, ti) => {
+    let previousLength = Infinity;
+    for (const item of track.items) {
+      const p = place(item, walk, ti);
+      const before = previousLength;
+      previousLength = p.absEnd - p.absStart;
+      if (p.to - p.from < EPS) continue;
+      visitItem(acc, p, before);
+    }
+  });
+}
+
+function visitItem(acc: Collected, p: Placed, previousLength: number): void {
+  const link = makeLink(p);
+  const mark = transitionMark(p, previousLength);
+  if (mark) acc.transitions.push(mark);
+  const group = groupOf(p.item);
+  if (group) {
+    visitGroup(acc, p, group, link);
+    return;
+  }
+  acc.bars.push(leafBar(p, link, acc.bars.length));
+  const recording = recordingOf(p.item);
+  if (recording) acc.marks.push(...recordingMarks(p, recording, acc.fps));
+}
+
+function visitGroup(acc: Collected, p: Placed, group: GroupProps, link: ChainLink): void {
+  const { item, walk, key } = p;
+  const instances = groupInstances(item, group, walk.inst, p.absStart, p.absEnd);
+  const looped = instances.length > 1;
+  const chain = item.nodeId || item.handles || item.slot ? [link, ...walk.chain] : walk.chain;
+  instances.forEach((inst, k) => {
+    if (inst.hi - inst.lo < EPS) return;
+    visitTracks(acc, group.tracks, {
+      inst,
+      path: looped ? `${key}#${k}` : key,
+      chain,
+      loop: looped ? k : walk.loop,
+      remapped: walk.remapped || !!group.remap?.length,
+    });
+  });
+}
+
+function placeTransitions(transitions: TransitionMark[], bars: VideoBar[]): TransitionMark[] {
+  return transitions.map((t) => {
+    const lanes = new Set(bars.filter((b) => overlaps(b, t)).map((b) => b.lane));
+    return { ...t, lanes: [...lanes].toSorted((a, b) => a - b) };
+  });
+}
+
 export function flattenSpec(
   spec: Pick<TimelineSpec, "tracks" | "audio" | "durationInFrames" | "fps">,
 ): FlatTimeline {
-  const bars: VideoBar[] = [];
-  const transitions: TransitionMark[] = [];
-  const marks: ActionMark[] = [];
-
-  const visitGroup = (p: Placed, group: GroupProps, link: ChainLink) => {
-    const { item, walk, key } = p;
-    const instances = groupInstances(item, group, walk.inst, p.absStart, p.absEnd);
-    const looped = instances.length > 1;
-    const chain = item.nodeId || item.handles || item.slot ? [link, ...walk.chain] : walk.chain;
-    instances.forEach((inst, k) => {
-      if (inst.hi - inst.lo < EPS) return;
-      visit(group.tracks, {
-        inst,
-        path: looped ? `${key}#${k}` : key,
-        chain,
-        loop: looped ? k : walk.loop,
-        remapped: walk.remapped || !!group.remap?.length,
-      });
-    });
-  };
-
-  const visit = (tracks: TimelineTrack[], walk: Walk) => {
-    tracks.forEach((track, ti) => {
-      let previousLength = Infinity;
-      for (const item of track.items) {
-        const p = place(item, walk, ti);
-        const before = previousLength;
-        previousLength = p.absEnd - p.absStart;
-        if (p.to - p.from < EPS) continue;
-        const link = makeLink(p);
-        const mark = transitionMark(p, before);
-        if (mark) transitions.push(mark);
-        const group = groupOf(item);
-        if (group) {
-          visitGroup(p, group, link);
-          continue;
-        }
-        bars.push(leafBar(p, link, bars.length));
-        const recording = recordingOf(item);
-        if (recording) marks.push(...recordingMarks(p, recording, spec.fps));
-      }
-    });
-  };
-
+  const acc: Collected = { fps: spec.fps, bars: [], transitions: [], marks: [] };
   const root: Instance = { toAbs: (c) => c, lo: 0, hi: spec.durationInFrames };
-  visit(spec.tracks, { inst: root, path: "", chain: [], loop: 0, remapped: false });
-
+  visitTracks(acc, spec.tracks, { inst: root, path: "", chain: [], loop: 0, remapped: false });
+  const { bars } = acc;
   const lanes = packLanes(bars);
-  for (const t of transitions) {
-    const set = new Set<number>();
-    for (const b of bars) if (overlaps(b, t)) set.add(b.lane);
-    t.lanes = [...set].toSorted((a, b) => a - b);
-  }
   const audio = audioBars(spec, bars);
-  const audioLanes = packAudio(audio);
   return {
     fps: spec.fps,
     durationInFrames: spec.durationInFrames,
     bars,
     lanes,
     audio,
-    audioLanes,
-    transitions,
-    marks: marks.toSorted((x, y) => x.frame - y.frame),
+    audioLanes: packAudio(audio),
+    transitions: placeTransitions(acc.transitions, bars),
+    marks: acc.marks.toSorted((x, y) => x.frame - y.frame),
   };
 }
 
@@ -507,28 +523,27 @@ const naming =
   (what: string) =>
     what ? `${verb} ${what}` : alone;
 
-const ACTION_LABELS: Record<Action["kind"], (what: string) => string> = {
+const ACTION_LABELS: Partial<Record<Action["kind"], (what: string) => string>> = {
   click: naming("Click"),
   type: naming("Type"),
   hover: naming("Hover"),
   scroll: () => "Scroll",
   navigate: naming("Go to", "Go to page"),
-  wait: (what) => what || "wait",
   chapter: (what) => what || "Chapter",
   key: naming("Press", "Press keys"),
-  focus: (what) => what || "focus",
   drag: naming("Drag"),
 };
-
-function actionLabel(a: Action): string {
-  return ACTION_LABELS[a.kind](a.label?.trim() || a.text?.trim() || "");
-}
 
 type HandleOwner = { link: ChainLink; index: number };
 
 export function slotIndex(bar: Pick<VideoBar, "chain">): number {
   return bar.chain.findIndex((l) => !!l.slot);
 }
+
+type SlotLink = ChainLink & { slot: Slot };
+
+export const slotLink = (bar: Pick<VideoBar, "chain">): SlotLink | undefined =>
+  bar.chain.find((l): l is SlotLink => !!l.slot);
 
 export function findHandle(
   bar: Pick<VideoBar, "chain">,
@@ -537,9 +552,8 @@ export function findHandle(
 ): HandleOwner | null {
   const limit = slotIndex(bar);
   const end = limit === -1 ? bar.chain.length : limit + 1;
-  const range = Array.from({ length: end }, (_, i) => i);
-  if (order === "outer") range.reverse();
-  for (const i of range) {
+  const step = order === "outer" ? -1 : 1;
+  for (let i = order === "outer" ? end - 1 : 0; i >= 0 && i < end; i += step) {
     const link = bar.chain[i];
     if (link.handles?.[kind]) return { link, index: i };
   }

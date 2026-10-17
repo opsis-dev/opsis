@@ -2,11 +2,9 @@ import { z } from "zod";
 import type { Keyframe } from "../schema/timeline";
 import { samplePoints } from "../timeline/envelope";
 import type { BusPlan, ChannelPlan, MixPlan, SoundPlacement } from "./plan";
-import { LOUDNESS_TARGETS, dbToGain, type Comp, type Eq, type Master } from "./types";
+import { LOUDNESS_TARGETS, SAMPLE_RATE, dbToGain, type Comp, type Eq, type Master } from "./types";
 import { clamp } from "../math";
 import { framesToMs } from "../timeline/time";
-
-export const SAMPLE_RATE = 48_000;
 
 const MIN_COMP_THRESHOLD = 0.000976563;
 const MAX_COMP_MAKEUP = 64;
@@ -19,6 +17,9 @@ const MIN_EQ_GAIN_DB = 0.05;
 const MIN_PAN = 0.005;
 const DUCK_THRESHOLD_DB = -40;
 const DUCK_REFERENCE_DB = -12;
+const DUCK_RANGE_DB = DUCK_REFERENCE_DB - DUCK_THRESHOLD_DB;
+const MIN_DUCK_AMOUNT_DB = 0.5;
+const MAX_DUCK_AMOUNT_DB = DUCK_RANGE_DB - 1;
 const MAX_DUCK_RATIO = 20;
 
 const loudnessMeasureSchema = z.object({
@@ -31,11 +32,13 @@ const loudnessMeasureSchema = z.object({
 
 type LoudnessMeasure = z.infer<typeof loudnessMeasureSchema>;
 
+type Taps = { pre: string; post: string };
+
 export type Job = {
   inputs: string[];
   filter: string;
   output: string;
-  taps?: { pre: string; post: string };
+  taps?: Taps;
 };
 
 type Plan = Pick<MixPlan, "fps" | "durationInFrames">;
@@ -50,7 +53,7 @@ const secs = (frames: number, fps: number) => num(frames / fps);
 const dbStep = (db: number): string[] =>
   Math.abs(db) >= MIN_LEVEL_DB ? [`volume=${num(db, 2)}dB`] : [];
 
-export function envelopeExpr(keys: Keyframe[], fps: number): string {
+function envelopeExpr(keys: Keyframe[], fps: number): string {
   const points = samplePoints(keys).map((p) => ({ t: p.frame / fps, v: p.value }));
   if (points.length === 0) return "1";
   if (points.length === 1) return num(points[0].v);
@@ -68,12 +71,27 @@ export function envelopeExpr(keys: Keyframe[], fps: number): string {
   return `if(lt(t,${num(points[0].t)}),${num(points[0].v)},${expr})`;
 }
 
-export function soundChain(
-  sound: SoundPlacement,
-  input: number,
+function panChain(
   label: string,
+  steps: string[],
+  panKeys: Keyframe[],
+  delayStep: string[],
   fps: number,
 ): string {
+  const pan = envelopeExpr(panKeys, fps);
+  const left = `${label}l`;
+  const right = `${label}r`;
+  const leftOut = `${label}L`;
+  const rightOut = `${label}R`;
+  return [
+    `${steps.join(",")},channelsplit=channel_layout=stereo[${left}][${right}]`,
+    `[${left}]volume=eval=frame:volume='min(1,1-(${pan}))'[${leftOut}]`,
+    `[${right}]volume=eval=frame:volume='min(1,1+(${pan}))'[${rightOut}]`,
+    `[${leftOut}][${rightOut}]${["join=inputs=2:channel_layout=stereo", ...delayStep].join(",")}[${label}]`,
+  ].join(";");
+}
+
+function placementSteps(sound: SoundPlacement, fps: number): string[] {
   const steps: string[] = [
     `aresample=${SAMPLE_RATE}`,
     "aformat=sample_fmts=fltp:channel_layouts=stereo",
@@ -91,17 +109,16 @@ export function soundChain(
   }
   const volumeKeys = sound.envelope?.volume;
   if (volumeKeys?.length) steps.push(`volume=eval=frame:volume='${envelopeExpr(volumeKeys, fps)}'`);
-  const panKeys = sound.envelope?.pan;
+  return steps;
+}
+
+function soundChain(sound: SoundPlacement, input: number, label: string, fps: number): string {
+  const steps = placementSteps(sound, fps);
   const delay = framesToMs(sound.at, fps);
   const delayStep = delay > 0 ? [`adelay=delays=${delay}:all=1`] : [];
-  if (!panKeys?.length) return `[${input}:a]${[...steps, ...delayStep].join(",")}[${label}]`;
-  const pan = envelopeExpr(panKeys, fps);
-  return [
-    `[${input}:a]${steps.join(",")},channelsplit=channel_layout=stereo[${label}l][${label}r]`,
-    `[${label}l]volume=eval=frame:volume='min(1,1-(${pan}))'[${label}L]`,
-    `[${label}r]volume=eval=frame:volume='min(1,1+(${pan}))'[${label}R]`,
-    `[${label}L][${label}R]${["join=inputs=2:channel_layout=stereo", ...delayStep].join(",")}[${label}]`,
-  ].join(";");
+  const panKeys = sound.envelope?.pan;
+  if (panKeys?.length) return `[${input}:a]${panChain(label, steps, panKeys, delayStep, fps)}`;
+  return `[${input}:a]${[...steps, ...delayStep].join(",")}[${label}]`;
 }
 
 function eqSteps(eq: Eq): string[] {
@@ -138,18 +155,13 @@ function panStep(pan: number): string[] {
 const highpassStep = (highpass: { on: boolean; freq: number }): string[] =>
   highpass.on ? [`highpass=f=${num(highpass.freq, 1)}`] : [];
 
-function preCompSteps(s: ChannelPlan["strip"]): string[] {
-  return [...dbStep(s.trim), ...highpassStep(s.highpass), ...eqSteps(s.eq)];
-}
+type Stages = { pre: string[]; comp: string[]; post: string[] };
 
-function postCompSteps(s: ChannelPlan["strip"]): string[] {
-  return [...panStep(s.pan), ...dbStep(s.fader)];
-}
-
-export function stripSteps(channel: Pick<ChannelPlan, "strip">): string[] {
-  const s = channel.strip;
-  return [...preCompSteps(s), ...compSteps(s.comp), ...postCompSteps(s)];
-}
+const stripStages = (s: ChannelPlan["strip"]): Stages => ({
+  pre: [...dbStep(s.trim), ...highpassStep(s.highpass), ...eqSteps(s.eq)],
+  comp: compSteps(s.comp),
+  post: [...panStep(s.pan), ...dbStep(s.fader)],
+});
 
 function busSteps(p: BusPlan["processing"]): string[] {
   return [...highpassStep(p.highpass), ...eqSteps(p.eq), ...compSteps(p.comp)];
@@ -212,8 +224,6 @@ function mixOf(labels: string[], out: string, then: string[]): string {
 
 const streamLabels = (inputs: string[], first = 0) => inputs.map((_, i) => `${first + i}:a`);
 
-type Stages = { pre: string[]; comp: string[]; post: string[] };
-
 function stripJob(
   plan: Plan,
   inputs: string[],
@@ -245,18 +255,13 @@ export function channelJob(
     plan,
     channel.sounds.map((s) => resolve(s.src)),
     { chains, labels },
-    {
-      pre: preCompSteps(channel.strip),
-      comp: compSteps(channel.strip.comp),
-      post: postCompSteps(channel.strip),
-    },
+    stripStages(channel.strip),
   );
 }
 
-export function duckRatio(amount: number): number {
-  const range = DUCK_REFERENCE_DB - DUCK_THRESHOLD_DB;
-  const a = clamp(amount, 0.5, range - 1);
-  return Math.min(MAX_DUCK_RATIO, 1 / (1 - a / range));
+function duckRatio(amount: number): number {
+  const a = clamp(amount, MIN_DUCK_AMOUNT_DB, MAX_DUCK_AMOUNT_DB);
+  return Math.min(MAX_DUCK_RATIO, 1 / (1 - a / DUCK_RANGE_DB));
 }
 
 function sidechain(duck: NonNullable<BusPlan["duck"]>): string {
@@ -343,7 +348,7 @@ export function jobArgs(
   job: Job,
   output: string,
   codec: "pcm_f32le" | "pcm_s16le",
-  taps?: { pre: string; post: string },
+  taps?: Taps,
   maxSeconds?: number,
 ): string[] {
   const limit = maxSeconds ? ["-t", num(maxSeconds, 3)] : [];

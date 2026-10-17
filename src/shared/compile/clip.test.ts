@@ -1,15 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  groupOf,
-  itemClip,
-  nodeSpans,
-  remapDuration,
-  remapFrame,
-  remapFromSegments,
-  sequenceClips,
-  clipToSpec,
-  type Remap,
-} from "./clip";
+import { groupOf, itemClip, nodeSpans, sequenceClips, clipToSpec } from "./clip";
+import { remapFrame } from "./remap";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 import { flattenSpec } from "../timeline/flatten";
 
@@ -20,25 +11,6 @@ const settings = {
   theme: "dark" as const,
   fonts: DEFAULT_PROJECT_FONTS,
 };
-
-describe("remaps", () => {
-  it("maps output frames to inner frames piecewise-linearly", () => {
-    const remap: Remap = [
-      [0, 0],
-      [10, 40],
-      [20, 50],
-    ];
-    expect(remapFrame(remap, 5)).toBe(20);
-    expect(remapFrame(remap, 15)).toBe(45);
-    expect(remapFrame(remap, 25)).toBe(55);
-  });
-
-  it("builds a remap from speed segments", () => {
-    const remap = remapFromSegments(100, [[20, 60, 4]]);
-    expect(remapDuration(remap)).toBe(70);
-    expect(remapFrame(remap, 30)).toBe(60);
-  });
-});
 
 describe("sequenceClips", () => {
   it("clamps a transition to the shorter clip", () => {

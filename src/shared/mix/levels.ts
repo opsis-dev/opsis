@@ -1,5 +1,5 @@
 import { channelOf } from "../audio";
-import { forEachItem, itemHasSound, mapItems } from "../compile/clip";
+import { itemHasSound, mapItems, soundNodeId, walkItems } from "../compile/clip";
 import type { AudioItem, TimelineSpec } from "../schema/timeline";
 import {
   DEFAULT_BUS_FOR,
@@ -41,43 +41,43 @@ export function isAudible(mix: Mix, channel: string, kind: ChannelKind): boolean
   return strip.solo || bus.solo;
 }
 
-export function channelGain(mix: Mix, channel: string, kind: ChannelKind): number {
+function channelGain(mix: Mix, channel: string, kind: ChannelKind): number {
   if (!isAudible(mix, channel, kind)) return 0;
   const strip = stripOf(mix, channel);
   const bus = busOf(mix, channel, kind);
   return dbToGain(strip.trim + strip.fader) * dbToGain(bus.fader) * dbToGain(mix.master.fader);
 }
 
-type ChannelInfo = {
+export type ChannelInfo = {
   id: string;
   kind: ChannelKind;
   keepMusic: boolean;
   lengthFrames: number;
 };
 
+const playedFrames = (a: AudioItem): number =>
+  a.loop ? Infinity : (a.lengthFrames ?? a.durationInFrames ?? Infinity);
+
+const soundChannel = (a: AudioItem, prev: ChannelInfo | undefined): ChannelInfo => ({
+  id: channelOf(a),
+  kind: kindOfAudio(a),
+  keepMusic: !!a.keepMusic && (prev?.keepMusic ?? true),
+  lengthFrames: Math.max(prev?.lengthFrames ?? 0, playedFrames(a)),
+});
+
+const clipChannel = (id: string): ChannelInfo => ({
+  id,
+  kind: "clip",
+  keepMusic: false,
+  lengthFrames: Infinity,
+});
+
 export function channelsIn(spec: Pick<TimelineSpec, "tracks" | "audio">): ChannelInfo[] {
   const out = new Map<string, ChannelInfo>();
-  for (const a of spec.audio) {
-    const id = channelOf(a);
-    const prev = out.get(id);
-    out.set(id, {
-      id,
-      kind: kindOfAudio(a),
-      keepMusic: (prev?.keepMusic ?? true) && !!a.keepMusic,
-      lengthFrames: Math.max(
-        prev?.lengthFrames ?? 0,
-        a.loop ? Infinity : (a.lengthFrames ?? a.durationInFrames ?? Infinity),
-      ),
-    });
-  }
-  forEachItem(spec.tracks, (item) => {
-    if (itemHasSound(item) && item.nodeId)
-      out.set(item.nodeId, {
-        id: item.nodeId,
-        kind: "clip",
-        keepMusic: false,
-        lengthFrames: Infinity,
-      });
+  for (const a of spec.audio) out.set(channelOf(a), soundChannel(a, out.get(channelOf(a))));
+  walkItems(spec.tracks, (item) => {
+    const id = soundNodeId(item);
+    if (id) out.set(id, clipChannel(id));
   });
   return [...out.values()];
 }
@@ -118,8 +118,9 @@ export function applyMixLevels(spec: TimelineSpec, mixIn: Mix | undefined): Time
     };
   });
   const tracks = mapItems(spec.tracks, (item) => {
-    if (!itemHasSound(item) || !item.nodeId) return item;
-    const gain = channelGain(mix, item.nodeId, "clip");
+    const id = soundNodeId(item);
+    if (!id) return item;
+    const gain = channelGain(mix, id, "clip");
     const volume = numberOr(item.props.volume, 1);
     return {
       ...item,

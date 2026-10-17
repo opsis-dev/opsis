@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultMix, stripSchema } from "./mix/types";
+import { DEFAULT_STRIP, defaultMix } from "./mix/types";
 import { GROUP_TYPE } from "./nodes/utility";
 import { GraphBuilder } from "./templates/build";
 import {
@@ -86,8 +86,8 @@ describe("workflow edits", () => {
       targetHandle: "sounds",
     });
     const mix = defaultMix();
-    mix.channels.m = stripSchema.parse({ fader: -6 });
-    mix.channels.a = stripSchema.parse({ fader: -3 });
+    mix.channels.m = { ...DEFAULT_STRIP, fader: -6 };
+    mix.channels.a = { ...DEFAULT_STRIP, fader: -3 };
     const wf = removeNodes({ ...linked, mix }, ["g", "m"]);
     expect(wf.nodes.map((n) => n.id)).toEqual(["a", "b", "mix"]);
     expect(wf.nodes.find((n) => n.id === "a")).toEqual(sounds().nodes[0]);

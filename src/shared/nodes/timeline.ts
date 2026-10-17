@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   EMPTY_CLIP_FRAMES,
   emptyClip,
+  groupItem,
   sequenceClips,
   stackClips,
   withHandles,
@@ -229,16 +230,10 @@ function keepLayout(nodeId: string, clip: ClipValue, settings: WorkflowSettings)
       {
         id: `${nodeId}:design`,
         items: [
-          {
-            id: `${nodeId}:design:g`,
-            from: 0,
-            durationInFrames: clip.durationInFrames,
-            component: "core/group",
-            props: {
-              tracks: clip.tracks,
-              design: { width: settings.width, height: settings.height },
-            } satisfies GroupProps,
-          },
+          groupItem(
+            { id: `${nodeId}:design:g`, from: 0, durationInFrames: clip.durationInFrames },
+            { tracks: clip.tracks, design: { width: settings.width, height: settings.height } },
+          ),
         ],
       },
     ],

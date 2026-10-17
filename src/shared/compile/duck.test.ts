@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AudioItem, TimelineSpec } from "../schema/timeline";
-import { duckGain, duckingSpans, mergeSpans, type Span } from "./duck";
+import { duckGain, duckingSpans, type Span } from "./duck";
 
 const effect = (id: string, from: number, extra: Partial<AudioItem> = {}): AudioItem => ({
   id,
@@ -23,14 +23,11 @@ const spec = (audio: AudioItem[], tracks: TimelineSpec["tracks"] = []) => ({
 
 describe("ducking", () => {
   it("merges overlapping spans", () => {
-    expect(
-      mergeSpans([
-        [20, 30],
-        [0, 10],
-        [5, 12],
-        [30, 40],
-      ]),
-    ).toEqual([
+    const spans = duckingSpans(
+      spec([effect("a", 20), effect("b", 0), effect("c", 5, { lengthFrames: 7 }), effect("d", 30)]),
+      keys("a", "b", "c", "d"),
+    );
+    expect(spans).toEqual([
       [0, 12],
       [20, 40],
     ]);
