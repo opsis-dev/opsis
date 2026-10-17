@@ -83,16 +83,18 @@ export const choice = <const T extends readonly [string, ...string[]]>(
     .default(def)
     .meta({ description, ...(labels ? { labels } : {}) });
 
-type Labelled = { label: string };
+type ChoiceEntry = string | { label: string };
 
-function labelsOf<K extends string>(table: Record<K, Labelled>): Partial<Record<K, string>> {
+const labelOf = (entry: ChoiceEntry): string => (typeof entry === "string" ? entry : entry.label);
+
+function labelsOf<K extends string>(table: Record<K, ChoiceEntry>): Partial<Record<K, string>> {
   const labels: Partial<Record<K, string>> = {};
-  for (const key of keysOf(table)) labels[key] = table[key].label;
+  for (const key of keysOf(table)) labels[key] = labelOf(table[key]);
   return labels;
 }
 
 export const choiceOf = <K extends string>(
-  table: Record<K, Labelled>,
+  table: Record<K, ChoiceEntry>,
   def: NoInfer<K>,
   description: string,
 ) => choice(keysOf(table), def, description, labelsOf(table));
@@ -146,8 +148,6 @@ export const pointerFields = {
   }),
   travelMs: more(ms(0, "Cursor travel time", 10_000), { zeroLabel: "Auto", advanced: true }),
 };
-
-export const hoverMs = (def: number, description: string) => ms(def, description, 10_000);
 
 export const visualEnvelope = () =>
   visualEnvelopeSchema.default({}).meta({

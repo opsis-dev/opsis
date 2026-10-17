@@ -4,7 +4,7 @@ import path from "node:path";
 import type { Page } from "playwright-core";
 import { loginDependencies, sessionChain } from "../../shared/graph";
 import { sessionNode } from "../../shared/nodes/browser";
-import { parseParams, type NodeParams } from "../../shared/nodes/define";
+import { parseNodeParams, type NodeParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import { loginOnceNode, recordNode, stillNode } from "../../shared/nodes/capture";
 import type { RecordingValue } from "../../shared/schema/values";
@@ -53,13 +53,13 @@ type SessionAccess = { secret: string | null; signIn: SignIn | undefined };
 
 function sessionAccess(ctx: ExecutorContext, head: WorkflowNode | undefined): SessionAccess {
   if (head?.type !== sessionNode.type) return { secret: null, signIn: undefined };
-  const session = parseParams(sessionNode, head, ctx.vars);
+  const session = parseNodeParams(sessionNode, head, ctx.vars);
   if (!session.storageState.trim()) return { secret: null, signIn: undefined };
   const secret = secretName(session.storageState);
   const loginId = loginDependencies(ctx.workflow, ctx.node.id, ctx.vars)[0];
   const loginNode = findById(ctx.workflow.nodes, loginId);
   if (!loginNode) return { secret, signIn: undefined };
-  const login = parseParams(loginOnceNode, loginNode, ctx.vars);
+  const login = parseNodeParams(loginOnceNode, loginNode, ctx.vars);
   return { secret, signIn: { name: secret, url: login.url, request: loginRequest(login) } };
 }
 

@@ -1,12 +1,15 @@
 import { z } from "zod";
 import { patchRecordings } from "../compile/clip";
 import type { AnnotationKind, AnnotationSpec } from "../compile/recording";
-import { mutedIf, quote, row, toggleRow } from "./card";
-import { clipModifier, defineNode, withClip, type NodeCategory } from "./define";
+import { LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
+import { clipModifier, defineNode, withClip, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
-import { bool, choice, int, more, ms, text } from "./params";
+import { bool, choiceOf, int, more, ms, text } from "./params";
 
-const base = { ...clipModifier, category: "Cursor", phase: "compile" } as const;
+const modifier = { ...clipModifier, phase: "compile" } as const;
+const base = { ...modifier, category: "Cursor" } as const;
+
+const CHIP_POSITIONS = { bottom: "Bottom", top: "Top" };
 
 const cursorStyleNode = defineNode({
   ...base,
@@ -53,13 +56,13 @@ const keystrokeChipsNode = defineNode({
   card: ({ params: p }) => [
     row(
       "keyboard",
-      [p.position === "top" ? "Top" : "Bottom", p.typed && "typed text", p.chords && "shortcuts"]
+      [CHIP_POSITIONS[p.position], p.typed && "typed text", p.chords && "shortcuts"]
         .filter(Boolean)
         .join(" · "),
     ),
   ],
   params: z.object({
-    position: choice(["bottom", "top"], "bottom", "Position", { bottom: "Bottom", top: "Top" }),
+    position: choiceOf(CHIP_POSITIONS, "bottom", "Position"),
     typed: bool(true, "Show typed text"),
     chords: bool(true, "Show shortcuts"),
   }),
@@ -67,23 +70,21 @@ const keystrokeChipsNode = defineNode({
     withClip(inputs, (clip) => patchRecordings(clip, (p) => ({ ...p, keystrokes: params }))),
 });
 
-type Annotation = {
-  type: string;
-  title: string;
-  kind: AnnotationKind;
-  category: NodeCategory;
+type Annotation = Pick<NodeDef, "type" | "title" | "category" | "description"> & {
   icon: NodeIconName;
-  description: string;
+  kind: AnnotationKind;
   defaults: { text?: string; color: string };
 };
 
-function annotationNode({ kind, defaults, icon, ...def }: Annotation) {
+export function annotationNode({ kind, defaults, ...def }: Annotation) {
   return defineNode({
-    ...base,
+    ...modifier,
     ...def,
-    icon,
     card: ({ params: p }) => [
-      row(icon, p.match.trim() ? `On actions named ${quote(p.match, 24)}` : "On every click"),
+      row(
+        def.icon,
+        p.match.trim() ? `On actions named ${quote(p.match, LABELLED_TEXT_MAX)}` : "On every click",
+      ),
       p.text.trim() && row("type", quote(p.text)),
     ],
     params: z.object({
@@ -124,24 +125,6 @@ const highlightBoxNode = annotationNode({
   description: "Draws a box around the element being used.",
   defaults: { color: "#a78bfa" },
 });
-const tooltipNode = annotationNode({
-  type: "text.tooltip",
-  title: "Tooltip",
-  kind: "tooltip",
-  category: "Text & overlays",
-  icon: "message-square",
-  description: "A tooltip that stays attached to an element as the camera moves.",
-  defaults: { text: "Click to continue", color: "#18181b" },
-});
-const calloutArrowNode = annotationNode({
-  type: "text.calloutArrow",
-  title: "Callout arrow",
-  kind: "callout",
-  category: "Text & overlays",
-  icon: "move-up-right",
-  description: "A hand-drawn arrow pointing at an element, with a label.",
-  defaults: { text: "New!", color: "#f43f5e" },
-});
 
 export const cursorNodes = [
   cursorStyleNode,
@@ -149,6 +132,4 @@ export const cursorNodes = [
   keystrokeChipsNode,
   spotlightNode,
   highlightBoxNode,
-  tooltipNode,
-  calloutArrowNode,
 ];

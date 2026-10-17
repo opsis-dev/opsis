@@ -25,7 +25,10 @@ const TEXT_KEYS = [
   "message",
 ];
 
-type ElementParams = Record<string, unknown> & { clipDuration: number };
+type ElementTiming = { clipDuration: number; envelope: VisualEnvelope };
+type ElementParams = Record<string, unknown> & ElementTiming;
+
+const SHORT_ELEMENT_RATIO = 0.6;
 
 const textParam = (params: Record<string, unknown>, key: string): string | undefined => {
   const value = params[key];
@@ -42,24 +45,22 @@ function elementCard(meta: ElementMeta, params: ElementParams, fps: number): Car
     const v = params[asset];
     if (typeof v === "string" && v) rows.push(fileRow("file", v));
   }
-  const duration = params.clipDuration;
-  const short =
-    meta.kind !== "wrapper" && duration > 0 && duration < 0.6 * meta.defaultDurationInFrames;
-  rows.push(
-    meta.kind === "wrapper" && !duration
-      ? row("clock", "Matches the clip", { tone: "muted" })
-      : short
-        ? row(
-            "clock",
-            `${frameSecs(duration, fps)} · usually ${frameSecs(meta.defaultDurationInFrames, fps)}`,
-            {
-              tone: "warn",
-              title: "Shorter than this element usually runs, so its animation may be cut off.",
-            },
-          )
-        : row("clock", frameSecs(duration || meta.defaultDurationInFrames, fps)),
-  );
+  rows.push(durationRow(meta, params.clipDuration, fps));
   return rows;
+}
+
+function durationRow(meta: ElementMeta, duration: number, fps: number): CardRow {
+  const usual = meta.defaultDurationInFrames;
+  if (meta.kind === "wrapper")
+    return duration
+      ? row("clock", frameSecs(duration, fps))
+      : row("clock", "Matches the clip", { tone: "muted" });
+  if (duration > 0 && duration < SHORT_ELEMENT_RATIO * usual)
+    return row("clock", `${frameSecs(duration, fps)} · usually ${frameSecs(usual, fps)}`, {
+      tone: "warn",
+      title: "Shorter than this element usually runs, so its animation may be cut off.",
+    });
+  return row("clock", frameSecs(duration || usual, fps));
 }
 
 const NODE_CATEGORY_FOR: Record<ElementCategory, NodeCategory> = {
@@ -103,12 +104,10 @@ function elementProps(meta: ElementMeta, params: Record<string, unknown>): Recor
   return props;
 }
 
-type ElementTiming = { clipDuration: number; envelope: VisualEnvelope };
-
 function compileElement(
   meta: ElementMeta,
   nodeId: string,
-  { clipDuration, envelope, ...params }: Record<string, unknown> & ElementTiming,
+  { clipDuration, envelope, ...params }: ElementParams,
   input: ClipValue | undefined,
 ): ClipValue {
   const props = elementProps(meta, params);

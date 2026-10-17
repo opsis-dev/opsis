@@ -46,7 +46,7 @@ export type NodePhase = "capture" | "media" | "compile" | "render" | "post";
 
 export type PortSpec = { type: PortType; label?: string; optional?: boolean; many?: boolean };
 
-type CompileInputs = Partial<Record<string, CompileValue>>;
+export type CompileInputs = Partial<Record<string, CompileValue>>;
 
 type CompileContext<P> = {
   nodeId: string;
@@ -71,6 +71,7 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
   outputs: Record<string, PortSpec>;
   params: S;
   virtual?: boolean;
+  action?: boolean;
   executes?: boolean;
   volatile?: boolean;
   mutates?(params: z.infer<S>): string | undefined;
@@ -91,7 +92,7 @@ export function defineNode<S extends z.ZodObject>(def: NodeDef<S>): NodeDef<S> {
   return def;
 }
 
-export const parseParams = <S extends z.ZodObject>(
+export const parseNodeParams = <S extends z.ZodObject>(
   def: NodeDef<S>,
   node: Pick<WorkflowNode, "params">,
   vars: Record<string, string>,

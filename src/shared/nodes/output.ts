@@ -4,8 +4,8 @@ import { REFRAMES, type ReframeMode } from "../schema/timeline";
 import { outputOf, type Artifact, type CompileValue, type TimelineValue } from "../schema/values";
 import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { row } from "./card";
-import { defineNode, port, type CompileOutputs } from "./define";
-import { bool, choice, FORMAT_NAMES, keysOf, more, ms, quality, text } from "./params";
+import { defineNode, port, type CompileInputs, type CompileOutputs } from "./define";
+import { bool, choice, choiceOf, FORMAT_NAMES, keysOf, more, ms, quality, text } from "./params";
 import { formatDuration, formatBytes } from "../format";
 import { evenPx } from "../math";
 
@@ -18,7 +18,7 @@ const GL_LABELS = {
 } as const;
 
 const gl = () =>
-  more(choice(keysOf(GL_LABELS), "angle", "Draw with", GL_LABELS), {
+  more(choiceOf(GL_LABELS, "angle", "Draw with"), {
     help: "The graphics card is about ten times faster. Use Software if exports fail.",
     advanced: true,
   });
@@ -79,10 +79,7 @@ const toTimeline = (
   return undefined;
 };
 
-const passTimeline = (
-  inputs: Partial<Record<string, CompileValue>>,
-  settings: WorkflowSettings,
-): CompileOutputs => {
+const passTimeline = (inputs: CompileInputs, settings: WorkflowSettings): CompileOutputs => {
   const timeline = toTimeline(inputs.timeline, settings);
   return timeline ? { timeline } : {};
 };
@@ -103,13 +100,13 @@ export const renderNode = defineNode({
   outputs: { media: port("media", "File") },
   card: ({ params: p, settings, result }) => {
     const media = outputOf(result, "media", "media");
-    const size = fileBytes(result?.artifacts);
-    const short = Math.round(Math.min(settings.width, settings.height) * p.scale);
+    const bytes = fileBytes(result?.artifacts);
+    const shortSide = Math.round(Math.min(settings.width, settings.height) * p.scale);
     return [
       row("ratio", p.variants.join(" + ")),
-      row("film", `${FORMAT_NAMES[p.codec]} · ${short}p · ${settings.fps} fps`),
+      row("film", `${FORMAT_NAMES[p.codec]} · ${shortSide}p · ${settings.fps} fps`),
       media?.durationMs && row("clock", formatDuration(media.durationMs)),
-      size > 0 && row("hard-drive", formatBytes(size)),
+      bytes > 0 && row("hard-drive", formatBytes(bytes)),
     ];
   },
   params: z.object({
@@ -183,7 +180,7 @@ export const stillOutputNode = defineNode({
     gl: gl(),
   }),
   compile: ({ result, inputs, settings }) => ({
-    image: result?.outputs.image,
+    image: outputOf(result, "image", "image"),
     ...passTimeline(inputs, settings),
   }),
 });
@@ -199,7 +196,7 @@ export const exportProjectNode = defineNode({
   card: ({ params: p }) => [row("folder-output", p.folderName)],
   params: z.object({ folderName: text("video-code", "Folder name") }),
   compile: ({ result, inputs, settings }) => ({
-    file: result?.outputs.file,
+    file: outputOf(result, "file", "file"),
     ...passTimeline(inputs, settings),
   }),
 });

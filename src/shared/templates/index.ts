@@ -41,6 +41,8 @@ function exportVideo(
   g.link(from, "render", "clip", "timeline");
 }
 
+const TODO_SITE = "https://demo.playwright.dev/todomvc";
+
 const session: Step = { id: "session", type: "browser.session" };
 
 const open = (url = "{{Site address}}", after?: number): Step => ({
@@ -92,7 +94,7 @@ function todoMvcSample(name: string): Workflow {
     clipDuration: 75,
   });
   const intro = g.node("intro", "timeline.stack", 5, 2, { duration: "first" });
-  g.link(bg, intro, "clip", "in1").link(title, intro, "clip", "in2");
+  g.clipsInto(intro, [bg, title]);
 
   const outro = g.node("outro", "fx.core.title", 5, 4, {
     eyebrow: "Made with",
@@ -105,7 +107,7 @@ function todoMvcSample(name: string): Workflow {
     transition: "remocn/whip-pan",
     transitionDuration: 18,
   });
-  g.link(intro, seq, "clip", "in1").link(chips, seq, "clip", "in2").link(outro, seq, "clip", "in3");
+  g.clipsInto(seq, [intro, chips, outro]);
 
   exportVideo(g, seq, 9, 2, {
     variants: ["16:9", "9:16"],
@@ -117,7 +119,7 @@ function todoMvcSample(name: string): Workflow {
     text: "Sample project.\n\n1. Press Run. Demoflow records the flow in a hidden browser.\n2. The preview updates with the real footage, camera moves and cursor.\n3. Finished videos appear in Outputs.",
   });
 
-  return g.build({ name, variables: { "Site address": "https://demo.playwright.dev/todomvc" } });
+  return g.build({ name, variables: { "Site address": TODO_SITE } });
 }
 
 function featureLaunch(name: string): Workflow {
@@ -143,7 +145,7 @@ function featureLaunch(name: string): Workflow {
     subtitle: "{{Site address}}",
   });
   const seq = g.node("sequence", "timeline.sequence", 4, 2, { transition: "remocn/zoom-blur" });
-  g.link(intro, seq, "clip", "in1").link(spot, seq, "clip", "in2").link(outro, seq, "clip", "in3");
+  g.clipsInto(seq, [intro, spot, outro]);
   exportVideo(g, seq, 5, 2);
   return g.build({
     name,
@@ -165,13 +167,9 @@ function changelogClip(name: string): Workflow {
   });
   const bg = g.node("bg", "fx.core.gradient", 1, 2);
   const chartScene = g.node("chart-scene", "timeline.stack", 2, 2, { duration: "last" });
-  g.link(bg, chartScene, "clip", "in1")
-    .link(chart, chartScene, "clip", "in2")
-    .link(lower, chartScene, "clip", "in3");
+  g.clipsInto(chartScene, [bg, chart, lower]);
   const seq = g.node("sequence", "timeline.sequence", 3, 1, { transition: "core/slide" });
-  g.link(title, seq, "clip", "in1")
-    .link(term, seq, "clip", "in2")
-    .link(chartScene, seq, "clip", "in3");
+  g.clipsInto(seq, [title, term, chartScene]);
   exportVideo(g, seq, 4, 1, { variants: ["16:9", "1:1"] });
   return g.build({ name, variables: { "Product name": "Acme", Version: "v2.4" } });
 }
@@ -207,7 +205,7 @@ function onboarding(name: string): Workflow {
   const caps = g.node("captions", "text.captions", 7, 3);
   g.link(script, caps, "captions", "captions").link(tip, caps, "clip", "clip");
   exportVideo(g, caps, 8, 3);
-  return g.build({ name, variables: { "Site address": "https://demo.playwright.dev/todomvc" } });
+  return g.build({ name, variables: { "Site address": TODO_SITE } });
 }
 
 function socialTeaser(name: string): Workflow {
@@ -232,7 +230,7 @@ function socialTeaser(name: string): Workflow {
   );
   const hook = g.node("hook", "fx.remocn.kinetic-center-build", 1, 2, { clipDuration: 60 });
   const seq = g.node("sequence", "timeline.sequence", 4, 2, { transition: "remocn/push-through" });
-  g.link(hook, seq, "clip", "in1").link(cam, seq, "clip", "in2");
+  g.clipsInto(seq, [hook, cam]);
   const music = g.node("music", "audio.music", 4, 3, { volume: 0.4 });
   const mix = g.node("mix", "audio.mix", 5, 2);
   g.link(seq, mix).link(music, mix, "audio", "sounds");
@@ -240,7 +238,7 @@ function socialTeaser(name: string): Workflow {
   return g.build({
     name,
     settings: { width: 1080, height: 1920 },
-    variables: { "Site address": "https://demo.playwright.dev/todomvc" },
+    variables: { "Site address": TODO_SITE },
   });
 }
 
@@ -257,7 +255,7 @@ function beforeAfter(name: string): Workflow {
       subtitle: url,
     });
     const stack = g.node(`${prefix}-stack`, "timeline.stack", 4, row, { duration: "first" });
-    g.link(cam, stack, "clip", "in1").link(label, stack, "clip", "in2");
+    g.clipsInto(stack, [cam, label]);
     return stack;
   };
   const before = take("before", 0, "{{Before address}}");

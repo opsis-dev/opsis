@@ -51,7 +51,7 @@ export type FieldMeta = {
   showIf?: Record<string, string[]>;
 };
 
-const WRAPPERS = [
+const WRAPPERS: ReadonlySet<z.core.$ZodTypeDef["type"]> = new Set([
   "default",
   "optional",
   "nullable",
@@ -59,16 +59,16 @@ const WRAPPERS = [
   "catch",
   "prefault",
   "nonoptional",
-];
+]);
 
-const defOf = (schema: z.ZodType) => schema.def as { type: string; innerType?: z.ZodType };
+const innerOf = (schema: z.ZodType): z.ZodType | undefined =>
+  WRAPPERS.has(schema.def.type)
+    ? (schema.def as z.core.$ZodDefaultDef<z.ZodType>).innerType
+    : undefined;
 
 function chainOf(schema: z.ZodType): z.ZodType[] {
   const chain = [schema];
-  for (let def = defOf(schema); def.innerType && WRAPPERS.includes(def.type);) {
-    chain.push(def.innerType);
-    def = defOf(def.innerType);
-  }
+  for (let inner = innerOf(schema); inner; inner = innerOf(inner)) chain.push(inner);
   return chain;
 }
 

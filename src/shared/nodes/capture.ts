@@ -2,7 +2,7 @@ import { z } from "zod";
 import { itemClip, placeholderClip, type ItemExtra } from "../compile/clip";
 import { DEFAULT_BACKDROP } from "../backdrops";
 import { outputOf } from "../schema/values";
-import { quote, row, warnIf } from "./card";
+import { elementRow, LABELLED_TEXT_MAX, quote, row } from "./card";
 import { defineNode, port } from "./define";
 import { secretFileName, secretName } from "../secrets";
 import {
@@ -10,7 +10,6 @@ import {
   choice,
   choiceOf,
   int,
-  keysOf,
   more,
   ms,
   optionalTarget,
@@ -102,7 +101,7 @@ export const stillNode = defineNode({
   inputs: { session: port("session", "Previous") },
   outputs: { image: port("image", "Image"), clip: port("clip", "Clip") },
   params: z.object({
-    region: choice(keysOf(REGION_LABELS), "viewport", "Capture", REGION_LABELS),
+    region: choiceOf(REGION_LABELS, "viewport", "Capture"),
     target: more(optionalTarget("Element"), { showIf: { region: ["element"] } }),
     targetRole: pickedRole(),
     padding: int(24, "Space around", {
@@ -122,15 +121,10 @@ export const stillNode = defineNode({
   }),
   card: ({ params: p, result }) => {
     const image = outputOf(result, "image", "image");
-    const unpicked = p.region === "element" && !p.target.trim();
-    const region =
-      p.region !== "element"
-        ? REGION_LABELS[p.region]
-        : unpicked
-          ? "Pick an element"
-          : quote(p.target, 30);
     return [
-      row("scan", region, warnIf(unpicked)),
+      p.region === "element"
+        ? elementRow("scan", p.target, p.targetRole)
+        : row("scan", REGION_LABELS[p.region]),
       image?.width
         ? row("image", `${Math.round(image.width)} × ${Math.round(image.height ?? 0)}`)
         : null,
@@ -206,7 +200,7 @@ export const loginOnceNode = defineNode({
     const name = secretName(p.secretName);
     const saved = secrets?.includes(secretFileName(name));
     return [
-      row("key-round", `Saves as ${quote(name, 24)}`),
+      row("key-round", `Saves as ${quote(name, LABELLED_TEXT_MAX)}`),
       p.url.trim() && row("link", displayAddress(p.url, { keepQuery: true }), { title: p.url }),
       secrets &&
         row(saved ? "shield-check" : "shield-alert", saved ? "Signed in" : "Not signed in yet", {

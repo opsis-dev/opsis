@@ -2,7 +2,8 @@ import { z } from "zod";
 import { EMPTY_CLIP_FRAMES, emptyClip, itemClip, stackClips } from "../compile/clip";
 import { CAPTIONS_ELEMENT, captionsSchema } from "../elements/core";
 import { asValue, type CaptionsValue } from "../schema/values";
-import { quote, row, truncate } from "./card";
+import { quotedRow, row, truncate } from "./card";
+import { annotationNode } from "./cursor";
 import { clipInput, defineNode, opt, port } from "./define";
 import { int, ms, text } from "./params";
 import { fontStack } from "../fonts";
@@ -10,6 +11,29 @@ import { humanize } from "../format";
 import { msToFrames } from "../timeline/time";
 
 const base = { category: "Text & overlays", phase: "compile" } as const;
+
+const EMPTY_CAPTIONS_MS = 1000;
+const CAPTION_TAIL_MS = 500;
+
+const tooltipNode = annotationNode({
+  type: "text.tooltip",
+  title: "Tooltip",
+  kind: "tooltip",
+  category: base.category,
+  icon: "message-square",
+  description: "A tooltip that stays attached to an element as the camera moves.",
+  defaults: { text: "Click to continue", color: "#18181b" },
+});
+
+const calloutArrowNode = annotationNode({
+  type: "text.calloutArrow",
+  title: "Callout arrow",
+  kind: "callout",
+  category: base.category,
+  icon: "move-up-right",
+  description: "A hand-drawn arrow pointing at an element, with a label.",
+  defaults: { text: "New!", color: "#f43f5e" },
+});
 
 const captionsFromTextNode = defineNode({
   ...base,
@@ -20,9 +44,7 @@ const captionsFromTextNode = defineNode({
   inputs: {},
   outputs: { captions: port("captions", "Captions") },
   card: ({ params: p }) => [
-    p.script.trim()
-      ? row("captions", quote(p.script))
-      : row("captions", "Write a script", { tone: "warn" }),
+    quotedRow("captions", p.script, "Write a script"),
     row("gauge", `${p.wordsPerMinute} words/min`),
   ],
   params: z.object({
@@ -59,7 +81,7 @@ const captionsNode = defineNode({
     const caps = asValue(inputs.captions, "captions");
     const under = clipInput(inputs);
     if (!caps) return { clip: under ?? emptyClip(EMPTY_CLIP_FRAMES) };
-    const end = caps.captions.at(-1)?.endMs ?? 1000;
+    const end = caps.captions.at(-1)?.endMs ?? EMPTY_CAPTIONS_MS;
     const layer = itemClip(
       nodeId,
       CAPTIONS_ELEMENT,
@@ -68,7 +90,7 @@ const captionsNode = defineNode({
         fontFamily: params.fontFamily ? fontStack(params.fontFamily) : undefined,
         captions: caps.captions,
       },
-      msToFrames(end + 500, settings.fps),
+      msToFrames(end + CAPTION_TAIL_MS, settings.fps),
     );
     return {
       clip: under
@@ -78,4 +100,4 @@ const captionsNode = defineNode({
   },
 });
 
-export const textNodes = [captionsFromTextNode, captionsNode];
+export const textNodes = [tooltipNode, calloutArrowNode, captionsFromTextNode, captionsNode];

@@ -24,14 +24,31 @@ export type CardContext<P> = {
 
 export const TRANSITION_WARN_RATIO = 0.4;
 
+const CARD_TEXT_MAX = 42;
+export const CODE_TEXT_MAX = 36;
+export const LABELLED_TEXT_MAX = 24;
+export const TAG_TEXT_MAX = 20;
+const NAME_WITH_ROLE_MAX = 34;
+
+type ClipLengths = ReadonlyArray<number | undefined>;
+
+function shortestClip(clipFrames: ClipLengths): number | null {
+  const known = clipFrames.filter((f): f is number => f !== undefined && f > 0);
+  return known.length ? Math.min(...known) : null;
+}
+
+export function coverRatio(transitionFrames: number, clipFrames: ClipLengths): number | null {
+  const shortest = shortestClip(clipFrames);
+  return shortest === null ? null : transitionFrames / shortest;
+}
+
 export function coverRow(
   transitionFrames: number,
-  clipFrames: number[],
+  clipFrames: ClipLengths,
   fps: number,
 ): CardRow | null {
-  const shortest = Math.min(...clipFrames.filter((f) => f > 0));
-  if (!Number.isFinite(shortest) || transitionFrames <= TRANSITION_WARN_RATIO * shortest)
-    return null;
+  const shortest = shortestClip(clipFrames);
+  if (shortest === null || transitionFrames <= TRANSITION_WARN_RATIO * shortest) return null;
   const covered = percentText(transitionFrames / shortest, { max: 100 });
   return row("triangle-alert", `Covers ${covered} of a ${frameSecs(shortest, fps)} clip`, {
     tone: "warn",
@@ -63,15 +80,30 @@ export const fileRow = (icon: NodeIconName, path: string, name = baseName(path))
 
 export const frameSecs = (frames: number, fps: number) => formatDuration(framesToMs(frames, fps));
 
-export function truncate(text: string, max = 42): string {
+export function truncate(text: string, max = CARD_TEXT_MAX): string {
   const one = text.replace(/\s+/g, " ").trim();
   return one.length > max ? `${one.slice(0, max - 1)}…` : one;
 }
 
-export const quote = (text: string, max = 40) => `“${truncate(text, max)}”`;
+export const quote = (text: string, max = CARD_TEXT_MAX - 2) => `“${truncate(text, max)}”`;
+
+export const quotedRow = (
+  icon: NodeIconName,
+  text: string,
+  empty: string,
+  extra: Partial<CardRow> = {},
+): CardRow => (text.trim() ? row(icon, quote(text), extra) : missing(icon, empty));
+
+export const connectedPorts = <P extends string>(
+  ports: readonly P[],
+  connected: readonly string[],
+): P[] => ports.filter((p) => connected.includes(p));
 
 export const countConnected = (ports: readonly string[], connected: readonly string[]): number =>
-  ports.filter((p) => connected.includes(p)).length;
+  connectedPorts(ports, connected).length;
+
+export const countEdgesInto = (port: string, connected: readonly string[]): number =>
+  connected.filter((p) => p === port).length;
 
 const ROLE_WORDS: Record<string, string> = {
   button: "button",
@@ -98,7 +130,7 @@ function elementName(target: string | undefined, role: string | undefined): stri
   const point = /^(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)$/.exec(t);
   if (point) return `Point ${Math.round(Number(point[1]))}, ${Math.round(Number(point[2]))}`;
   const word = role ? ROLE_WORDS[role] : undefined;
-  return word ? `${quote(t, 34)} ${word}` : quote(t, 40);
+  return word ? `${quote(t, NAME_WITH_ROLE_MAX)} ${word}` : quote(t);
 }
 
 export function elementRow(
@@ -111,9 +143,11 @@ export function elementRow(
   return name ? row(icon, name, { title: target }) : missing(icon, empty);
 }
 
+const keepsCase = (word: string): boolean => /[A-Z].*[A-Z]|\d/.test(word);
+
 export function sentence(title: string): string {
-  const words = title.split(" ");
-  return words
-    .map((w, i) => (i === 0 || /[A-Z].*[A-Z]|\d/.test(w) ? w : w.toLowerCase()))
+  return title
+    .split(" ")
+    .map((w, i) => (i === 0 || keepsCase(w) ? w : w.toLowerCase()))
     .join(" ");
 }

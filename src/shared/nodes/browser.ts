@@ -1,12 +1,25 @@
 import { z } from "zod";
-import { elementRow, fileRow, missing, mutedIf, quote, row, truncate, type CardRow } from "./card";
+import {
+  CODE_TEXT_MAX,
+  elementRow,
+  fileRow,
+  LABELLED_TEXT_MAX,
+  missing,
+  mutedIf,
+  quote,
+  quotedRow,
+  row,
+  TAG_TEXT_MAX,
+  truncate,
+  type CardRow,
+} from "./card";
 import { defineNode, port } from "./define";
 import {
   asset,
   beatFields,
   bool,
   choice,
-  hoverMs,
+  choiceOf,
   int,
   more,
   ms,
@@ -26,13 +39,16 @@ const chain = {
 
 const pause = (after: number) =>
   after > 0 ? row("timer", `Pause ${formatDuration(after)}`) : null;
+const giveUpRow = (timeoutMs: number) =>
+  row("timer-off", `Give up after ${formatDuration(timeoutMs)}`, { tone: "muted" });
 const zoomRow = (p: { zoom?: boolean; cluster?: string }) =>
   p.zoom === false
     ? row("zoom-out", "No zoom", { tone: "muted" })
     : p.cluster?.trim()
-      ? row("zoom-in", `Zoom group “${truncate(p.cluster, 20)}”`)
+      ? row("zoom-in", `Zoom group “${truncate(p.cluster, TAG_TEXT_MAX)}”`)
       : null;
 const base = { category: "Browser", phase: "capture", virtual: true } as const;
+const action = { ...base, ...chain, action: true } as const;
 
 export const sessionNode = defineNode({
   ...base,
@@ -90,7 +106,8 @@ export const sessionNode = defineNode({
   card: ({ params: p }) => [
     row("monitor", `${p.viewportWidth} × ${p.viewportHeight}`),
     p.mobile && row("smartphone", "Mobile"),
-    p.storageState.trim() && row("user-round", `Signed in as ${quote(p.storageState, 24)}`),
+    p.storageState.trim() &&
+      row("user-round", `Signed in as ${quote(p.storageState, LABELLED_TEXT_MAX)}`),
     p.colorScheme === "dark" && row("moon", "Dark theme"),
     p.locale && p.locale !== "en-US" && row("languages", p.locale),
   ],
@@ -127,8 +144,7 @@ export const navigateNode = defineNode({
 });
 
 export const clickNode = defineNode({
-  ...base,
-  ...chain,
+  ...action,
   type: "browser.click",
   title: "Click",
   icon: "mouse-pointer-click",
@@ -138,7 +154,7 @@ export const clickNode = defineNode({
     targetRole: pickedRole(),
     ...beatFields,
     ...pointerFields,
-    hoverMs: hoverMs(220, "Hover before clicking"),
+    hoverMs: ms(220, "Hover before clicking", 10_000),
   }),
   card: ({ params: p }) => [
     elementRow("mouse-pointer-click", p.target, p.targetRole),
@@ -148,8 +164,7 @@ export const clickNode = defineNode({
 });
 
 export const typeNode = defineNode({
-  ...base,
-  ...chain,
+  ...action,
   type: "browser.type",
   title: "Type text",
   icon: "keyboard",
@@ -171,9 +186,7 @@ export const typeNode = defineNode({
     const typed = p.text.replaceAll(PAUSE_MARK, " … ");
     return [
       elementRow("crosshair", p.target, p.targetRole),
-      p.text.trim()
-        ? row("keyboard", quote(typed), { title: typed })
-        : missing("keyboard", "Add text to type"),
+      quotedRow("keyboard", typed, "Add text to type", { title: typed }),
       p.pressEnter && row("corner-down-left", "Then Enter"),
       pause(p.after),
       zoomRow(p),
@@ -182,8 +195,7 @@ export const typeNode = defineNode({
 });
 
 export const hoverNode = defineNode({
-  ...base,
-  ...chain,
+  ...action,
   type: "browser.hover",
   title: "Hover",
   icon: "pointer",
@@ -194,7 +206,7 @@ export const hoverNode = defineNode({
     targetRole: pickedRole(),
     ...beatFields,
     ...pointerFields,
-    hoverMs: hoverMs(600, "Hover for"),
+    hoverMs: ms(600, "Hover for", 10_000),
   }),
   card: ({ params: p }) => [
     elementRow("mouse-pointer-2", p.target, p.targetRole),
@@ -262,7 +274,7 @@ const dragParams = z.object({
   ),
   ...beatFields,
   ...pointerFields,
-  hoverMs: hoverMs(220, "Hover before picking it up"),
+  hoverMs: ms(220, "Hover before picking it up", 10_000),
 });
 
 type DropParams = Pick<z.infer<typeof dragParams>, "mode" | "to" | "toRole" | "dx" | "dy" | "path">;
@@ -278,8 +290,7 @@ function dropRow(p: DropParams): CardRow {
 }
 
 export const dragNode = defineNode({
-  ...base,
-  ...chain,
+  ...action,
   type: "browser.drag",
   title: "Drag",
   icon: "grab",
@@ -295,8 +306,7 @@ export const dragNode = defineNode({
 });
 
 export const scrollNode = defineNode({
-  ...base,
-  ...chain,
+  ...action,
   type: "browser.scroll",
   title: "Scroll",
   icon: "arrow-down-up",
@@ -330,8 +340,7 @@ export const scrollNode = defineNode({
 });
 
 export const selectNode = defineNode({
-  ...base,
-  ...chain,
+  ...action,
   type: "browser.select",
   title: "Choose option",
   icon: "list-checks",
@@ -344,14 +353,13 @@ export const selectNode = defineNode({
   }),
   card: ({ params: p }) => [
     elementRow("list", p.target, p.targetRole),
-    p.value.trim() ? row("check", quote(p.value)) : missing("check", "Choose an option"),
+    quotedRow("check", p.value, "Choose an option"),
     pause(p.after),
   ],
 });
 
 export const uploadNode = defineNode({
-  ...base,
-  ...chain,
+  ...action,
   type: "browser.upload",
   title: "Upload file",
   icon: "upload",
@@ -370,8 +378,7 @@ export const uploadNode = defineNode({
 });
 
 export const pressNode = defineNode({
-  ...base,
-  ...chain,
+  ...action,
   type: "browser.press",
   title: "Press keys",
   icon: "command",
@@ -432,11 +439,7 @@ export const waitNode = defineNode({
   description:
     "Waits for an element, a quiet page, an address, or a fixed time. Waiting for something is more reliable than a fixed time.",
   params: waitParams,
-  card: ({ params: p }) => [
-    waitRow(p),
-    p.mode !== "ms" &&
-      row("timer-off", `Give up after ${formatDuration(p.timeoutMs)}`, { tone: "muted" }),
-  ],
+  card: ({ params: p }) => [waitRow(p), p.mode !== "ms" && giveUpRow(p.timeoutMs)],
 });
 
 export const assertNode = defineNode({
@@ -454,10 +457,8 @@ export const assertNode = defineNode({
     timeoutMs: ms(10_000, "Give up after"),
   }),
   card: ({ params: p }) => [
-    p.text.trim()
-      ? row("circle-check", quote(p.text))
-      : missing("circle-check", "Add the text to look for"),
-    row("timer-off", `Give up after ${formatDuration(p.timeoutMs)}`, { tone: "muted" }),
+    quotedRow("circle-check", p.text, "Add the text to look for"),
+    giveUpRow(p.timeoutMs),
   ],
 });
 
@@ -486,7 +487,7 @@ export const setStateNode = defineNode({
     reload: bool(false, "Reload the page after"),
   }),
   card: ({ params: p }) => [
-    row("code", truncate(p.script.split("\n")[0], 36), { title: p.script }),
+    row("code", truncate(p.script.split("\n")[0], CODE_TEXT_MAX), { title: p.script }),
     p.reload && row("refresh-cw", "Then reload"),
   ],
 });
@@ -508,11 +509,13 @@ export const mockRouteNode = defineNode({
   card: ({ params: p }) => {
     const subtype = p.contentType.slice(p.contentType.lastIndexOf("/") + 1).toUpperCase();
     return [
-      row("server", truncate(p.url, 36), { title: p.url }),
+      row("server", truncate(p.url, CODE_TEXT_MAX), { title: p.url }),
       row("reply", subtype ? `${p.status} ${subtype}` : String(p.status)),
     ];
   },
 });
+
+const CLOCK_MODES = { fixed: "Frozen", paused: "Paused" };
 
 export const freezeClockNode = defineNode({
   ...base,
@@ -524,14 +527,14 @@ export const freezeClockNode = defineNode({
     'Pins the date and time the page sees, so clocks and "x minutes ago" never change between takes.',
   params: z.object({
     time: more(text("2026-10-01T09:41:00", "Date and time"), { widget: "datetime" }),
-    mode: choice(["fixed", "paused"], "fixed", "Clock", { fixed: "Frozen", paused: "Paused" }),
+    mode: choiceOf(CLOCK_MODES, "fixed", "Clock"),
   }),
   card: ({ params: p }) => {
     const d = new Date(p.time);
     const when = Number.isNaN(d.getTime())
       ? p.time
       : d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-    return [row("clock", `${when} · ${p.mode === "fixed" ? "Frozen" : "Paused"}`)];
+    return [row("clock", `${when} · ${CLOCK_MODES[p.mode]}`)];
   },
 });
 
@@ -597,7 +600,9 @@ export const overlayHtmlNode = defineNode({
     }),
   }),
   card: ({ params: p }) => [
-    row("code-xml", truncate(p.html.replace(/<[^>]+>/g, " "), 36) || "HTML", { title: p.html }),
+    row("code-xml", truncate(p.html.replace(/<[^>]+>/g, " "), CODE_TEXT_MAX) || "HTML", {
+      title: p.html,
+    }),
     row("timer", p.durationMs ? formatDuration(p.durationMs) : "Until the end"),
   ],
 });
@@ -625,7 +630,5 @@ export const browserNodes = [
 ];
 
 export const ACTION_NODE_TYPES: ReadonlySet<string> = new Set(
-  [clickNode, typeNode, hoverNode, dragNode, selectNode, pressNode, scrollNode, uploadNode].map(
-    (n) => n.type,
-  ),
+  browserNodes.filter((n) => n.action).map((n) => n.type),
 );

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { must, nodeResult, recordResult } from "../test-fixtures";
 import { DEFAULT_WORKFLOW_SETTINGS as settings } from "../schema/workflow";
+import { fieldMeta } from "../elements/introspect";
 import { elementRow, sentence, type CardContext, type CardRow } from "./card";
 import type { NodeDef } from "./define";
 import { defaultParams, getNodeDef, NODE_DEFS } from "./registry";
@@ -68,9 +69,24 @@ describe("node cards", () => {
     const visible = NODE_DEFS.filter((d) => !d.hidden);
     const banned =
       /playwright|remotion|chromium|ffmpeg|ffprobe|page\.evaluate|safeStorage|\.mp4|crf|dpr\b/i;
+    const fieldCopy = (def: NodeDef) =>
+      Object.values(def.params.shape).flatMap((field) => {
+        const meta = fieldMeta(field);
+        if (meta.hidden) return [];
+        return [
+          meta.description,
+          meta.help,
+          meta.zeroLabel,
+          meta.presetsLabel,
+          ...Object.values(meta.labels ?? {}),
+          ...(meta.presets ?? []).map((p) => p.label),
+        ];
+      });
     expect(visible.filter((d) => !d.description).map((d) => d.type)).toEqual([]);
     expect(
-      visible.filter((d) => banned.test(`${d.title} ${d.description}`)).map((d) => d.type),
+      visible
+        .filter((d) => banned.test([d.title, d.description, ...fieldCopy(d)].join(" ")))
+        .map((d) => d.type),
     ).toEqual([]);
   });
 
@@ -160,6 +176,27 @@ describe("node cards", () => {
       "Zoom group “Board”",
     ]);
     expect(texts({ mode: "path", path: "" })).toEqual(["“Deal card”", "Add points to the path"]);
+  });
+
+  it("names the device and laptop entrance with their setting labels", () => {
+    const texts = (params: Record<string, unknown>) =>
+      rows("camera.deviceFrame", params).map((r) => r.text);
+    expect(texts({ device: "browser" })).toEqual(["Browser window"]);
+    expect(texts({ device: "laptop", entrance: "open" })).toEqual(["Laptop", "Open up"]);
+    expect(texts({ device: "laptop", entrance: "rise" })).toEqual(["Laptop", "Slide in"]);
+    expect(texts({ device: "laptop", entrance: "none" })).toEqual(["Laptop"]);
+  });
+
+  it("describes the element a Screenshot captures in words", () => {
+    const first = (params: Record<string, unknown>) => rows("capture.still", params)[0];
+    expect(first({ region: "full-page" })).toMatchObject({ text: "Whole page" });
+    expect(first({ region: "element", target: "Pricing", targetRole: "heading" })).toMatchObject({
+      text: "“Pricing” heading",
+    });
+    expect(first({ region: "element", target: "" })).toMatchObject({
+      text: "Pick an element",
+      tone: "warn",
+    });
   });
 
   it("counts connected clips on Sequence", () => {

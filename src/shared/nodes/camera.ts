@@ -18,6 +18,7 @@ import {
 } from "../compile/recording";
 import { pointRect, type Action } from "../schema/actions";
 import { asValue, type ClipValue } from "../schema/values";
+import type { FieldMeta } from "../elements/introspect";
 import { mutedIf, row, toggleRow, warnIf, type CardRow } from "./card";
 import { clipModifier, defineNode, port, withClip } from "./define";
 import type { NodeIconName } from "./icon-name";
@@ -25,8 +26,8 @@ import {
   asset,
   bool,
   choice,
+  choiceOf,
   fraction,
-  keysOf,
   MIN_SPEED,
   more,
   ms,
@@ -49,7 +50,7 @@ type WindowStyle = (typeof WINDOW_STYLES)[number];
 const FRAME_LABELS = { none: "None", macos: "macOS", windows: "Windows", linux: "Linux" };
 
 const FRAME_THEMES = ["light", "dark"] as const;
-const frameThemeField = (showIf: Record<string, string[]>) =>
+const frameThemeField = (showIf: NonNullable<FieldMeta["showIf"]>) =>
   more(choice(FRAME_THEMES, "light", "Frame colour"), { showIf });
 
 const windowFrameProps = (
@@ -247,17 +248,19 @@ const followCursorNode = defineNode({
 
 const lastRecordingSpeed = (clip: ClipValue): number => recordingProps(clip).at(-1)?.speed ?? 1;
 
+type SpeedSegment = { fromMs: number; toMs: number; rate: number };
+
 function remapClip(
   clip: ClipValue,
   nodeId: string,
   fps: number,
-  segmentsMs: Array<[number, number, number]>,
+  segments: SpeedSegment[],
 ): ClipValue {
   const playback = clip.recording ? lastRecordingSpeed(clip) : 1;
-  const toFrames = (msv: number) => (msv / 1000 / playback) * fps;
+  const toFrames = (recordingMs: number) => (recordingMs / 1000 / playback) * fps;
   const remap = remapFromSegments(
     clip.durationInFrames,
-    segmentsMs.map(([a, b, r]) => [toFrames(a), toFrames(b), r]),
+    segments.map((s) => [toFrames(s.fromMs), toFrames(s.toMs), s.rate]),
   );
   return wrapClip(clip, nodeId, { remap }, Math.max(1, Math.round(remapDuration(remap))));
 }
@@ -286,7 +289,7 @@ const idleSpeedupNode = defineNode({
             clip,
             nodeId,
             settings.fps,
-            spans.map(([a, b]) => [a, b, params.rate]),
+            spans.map(([fromMs, toMs]) => ({ fromMs, toMs, rate: params.rate })),
           )
         : clip;
     }),
@@ -305,18 +308,8 @@ const speedRampNode = defineNode({
     segments: z
       .array(
         z.object({
-          fromMs: z
-            .number()
-            .int()
-            .min(0)
-            .default(0)
-            .meta({ description: "From", unit: "ms", step: 50 }),
-          toMs: z
-            .number()
-            .int()
-            .min(0)
-            .default(1000)
-            .meta({ description: "To", unit: "ms", step: 50 }),
+          fromMs: ms(0, "From", Number.MAX_SAFE_INTEGER),
+          toMs: ms(1000, "To", Number.MAX_SAFE_INTEGER),
           rate: rate(2, "Speed", { min: MIN_SPEED, step: 0.1 }),
         }),
       )
@@ -329,9 +322,7 @@ const speedRampNode = defineNode({
         clip,
         nodeId,
         settings.fps,
-        [...params.segments]
-          .sort((a, b) => a.fromMs - b.fromMs)
-          .map((s) => [s.fromMs, s.toMs, s.rate]),
+        params.segments.toSorted((a, b) => a.fromMs - b.fromMs),
       ),
     ),
 });
@@ -358,13 +349,15 @@ const cropNode = defineNode({
     withClip(inputs, (clip) => wrapClip(clip, nodeId, { crop: params })),
 });
 
-const DEVICE_LABELS = { browser: "Browser window", laptop: "Laptop", phone: "Phone" };
+type Device = { label: string; icon: NodeIconName; component?: string };
 
-const DEVICE_ICONS: Record<keyof typeof DEVICE_LABELS, NodeIconName> = {
-  browser: "app-window",
-  laptop: "laptop",
-  phone: "smartphone",
-};
+const DEVICES = {
+  browser: { label: "Browser window", icon: "app-window" },
+  laptop: { label: "Laptop", icon: "laptop", component: "snapcn/laptop-frame" },
+  phone: { label: "Phone", icon: "smartphone", component: "snapcn/phone-frame" },
+} satisfies Record<string, Device>;
+
+const ENTRANCES = { rise: "Slide in", open: "Open up", none: "None" };
 
 const HOST_WINDOW_STYLES: Partial<Record<NodeJS.Platform, WindowStyle>> = {
   win32: "windows",
@@ -378,25 +371,16 @@ const deviceFrameNode = defineNode({
   icon: "laptop",
   description: "Puts the video inside a browser window, laptop or phone.",
   card: ({ params: p }) => [
-    row(DEVICE_ICONS[p.device], humanize(p.device)),
-    p.device === "laptop" &&
-      p.entrance !== "none" &&
-      row("sparkles", p.entrance === "open" ? "Opens up" : "Slides in"),
+    row(DEVICES[p.device].icon, DEVICES[p.device].label),
+    p.device === "laptop" && p.entrance !== "none" && row("sparkles", ENTRANCES[p.entrance]),
   ],
   params: z.object({
-    device: choice(keysOf(DEVICE_LABELS), "browser", "Device", DEVICE_LABELS),
+    device: choiceOf(DEVICES, "browser", "Device"),
     windowStyle: more(choice(WINDOW_STYLES, "macos", "Window style", FRAME_LABELS), {
       showIf: { device: ["browser"] },
     }),
     frameTheme: frameThemeField({ device: ["browser"] }),
-    entrance: more(
-      choice(["rise", "open", "none"], "open", "Entrance", {
-        rise: "Slide in",
-        open: "Open up",
-        none: "None",
-      }),
-      { showIf: { device: ["laptop"] } },
-    ),
+    entrance: more(choiceOf(ENTRANCES, "open", "Entrance"), { showIf: { device: ["laptop"] } }),
   }),
   hostDefaults: (platform) => ({ windowStyle: HOST_WINDOW_STYLES[platform] ?? "macos" }),
   compile: ({ nodeId, inputs, params }) =>
@@ -408,15 +392,11 @@ const deviceFrameNode = defineNode({
         }));
       const src = clip.recording?.src;
       if (!src) return clip;
-      const component = params.device === "laptop" ? "snapcn/laptop-frame" : "snapcn/phone-frame";
+      const laptop = params.device === "laptop";
       return itemClip(
         nodeId,
-        component,
-        {
-          mode: "dark",
-          screenSrc: src,
-          ...(params.device === "laptop" ? { entrance: params.entrance } : {}),
-        },
+        DEVICES[params.device].component,
+        { mode: "dark", screenSrc: src, ...(laptop ? { entrance: params.entrance } : {}) },
         clip.durationInFrames,
         { recording: clip.recording, audio: clip.audio },
       );
@@ -444,19 +424,29 @@ const backdropParams = z.object({
 
 type BackdropParams = z.infer<typeof backdropParams>;
 
-function backdropOf(p: BackdropParams): { row: CardRow; value: string | undefined } {
+function backdropRow(p: BackdropParams): CardRow {
   switch (p.kind) {
     case "image":
-      return { row: row("image", humanize(p.name)), value: p.name };
+      return row("image", humanize(p.name));
     case "solid":
-      return { row: row("palette", p.color), value: p.color };
+      return row("palette", p.color);
     case "gradient":
-      return { row: row("blend", "Gradient", { title: p.gradient }), value: p.gradient };
+      return row("blend", "Gradient", { title: p.gradient });
     case "asset":
-      return {
-        row: row("image", p.asset ? baseName(p.asset) : "Choose an image", warnIf(!p.asset)),
-        value: p.asset || undefined,
-      };
+      return row("image", p.asset ? baseName(p.asset) : "Choose an image", warnIf(!p.asset));
+  }
+}
+
+function backdropValue(p: BackdropParams): string | undefined {
+  switch (p.kind) {
+    case "image":
+      return p.name;
+    case "solid":
+      return p.color;
+    case "gradient":
+      return p.gradient;
+    case "asset":
+      return p.asset || undefined;
   }
 }
 
@@ -466,12 +456,14 @@ const backdropNode = defineNode({
   title: "Backdrop",
   icon: "image",
   description: "The background behind the floating window: a studio image, colour or gradient.",
-  card: ({ params: p }) => [backdropOf(p).row],
+  card: ({ params: p }) => [backdropRow(p)],
   params: backdropParams,
-  compile: ({ inputs, params }) =>
-    withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({ ...p, backdrop: backdropOf(params).value ?? p.backdrop })),
-    ),
+  compile: ({ inputs, params }) => {
+    const backdrop = backdropValue(params);
+    return withClip(inputs, (clip) =>
+      patchRecordings(clip, (p) => ({ ...p, backdrop: backdrop ?? p.backdrop })),
+    );
+  },
 });
 
 const motionBlurNode = defineNode({

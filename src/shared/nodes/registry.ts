@@ -42,11 +42,10 @@ export const getNodeDef = (type: string): NodeDef | undefined => byType.get(type
 export const customLabel = (node: { label?: string }): string | undefined =>
   node.label?.trim() || undefined;
 
-export const nodeLabelOr = (node: { label?: string }, fallback: string): string =>
-  customLabel(node) ?? fallback;
-
-export const nodeName = (node: { label?: string; type: string }): string =>
-  nodeLabelOr(node, getNodeDef(node.type)?.title || node.type);
+export const nodeName = (
+  node: { label?: string; type: string },
+  fallback = getNodeDef(node.type)?.title || node.type,
+): string => customLabel(node) ?? fallback;
 
 export function nodeNameById(
   wf: { nodes: ReadonlyArray<{ id: string; label?: string; type: string }> },

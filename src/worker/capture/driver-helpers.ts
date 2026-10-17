@@ -1,5 +1,5 @@
 import { stripVTControlCharacters } from "node:util";
-import { parseParams } from "../../shared/nodes/define";
+import { parseNodeParams } from "../../shared/nodes/define";
 import { waitNode } from "../../shared/nodes/browser";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { interpolate } from "../../shared/vars";
@@ -79,7 +79,8 @@ export function setupLength(steps: WorkflowNode[], vars: Record<string, string>)
   for (; end < steps.length; end++) {
     const node = steps[end];
     if (OFF_CAMERA.has(node.type)) continue;
-    if (node.type === "browser.wait" && parseParams(waitNode, node, vars).mode !== "ms") continue;
+    if (node.type === "browser.wait" && parseNodeParams(waitNode, node, vars).mode !== "ms")
+      continue;
     break;
   }
   return end;

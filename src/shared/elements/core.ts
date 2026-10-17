@@ -1,7 +1,7 @@
 import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
-import { asset, bool, choice, MAX_VOLUME, text } from "../nodes/params";
+import { asset, bool, choice, MAX_VOLUME, more, text } from "../nodes/params";
 import { ACCENT_COLOR, HIGHLIGHT_COLOR, TEXT_COLOR } from "./colors";
 import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
 
@@ -33,27 +33,30 @@ export const captionsSchema = z.object({
   style: choice(["word-by-word", "karaoke", "line"], "word-by-word", "Style"),
   position: choice(["bottom", "center", "top"], "bottom", "Position"),
   fontSize: num(56, 16, 140, "Font size"),
-  color: color("#ffffff", "Text color"),
-  highlightColor: color(HIGHLIGHT_COLOR, "Highlight color"),
+  color: color("#ffffff", "Text colour"),
+  highlightColor: color(HIGHLIGHT_COLOR, "Highlight colour"),
   fontFamily: font(),
 });
 
-const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
+type CoreComponent = Omit<ElementMetaInput, "source" | "fixedProps" | "kind"> & {
+  kind?: "wrapper";
+};
+
+const components: CoreComponent[] = [
   {
     key: "core/title",
     title: "Title card",
     description: "A full-screen title with an optional eyebrow and subtitle.",
     category: "text",
-    kind: "component",
     schema: z.object({
       eyebrow: text("", "Eyebrow"),
       title: text("Sign up in 10 seconds", "Title"),
       subtitle: text("", "Subtitle"),
       align: choice(["center", "left"], "center", "Alignment"),
       entrance: choice(ENTRANCES, "rise", "Entrance"),
-      color: color(TEXT_COLOR, "Text color"),
+      color: color(TEXT_COLOR, "Text colour"),
       accent: color(ACCENT_COLOR, "Accent"),
-      background: background("Background (color, gradient or 'transparent')"),
+      background: background("Background (colour, gradient or 'transparent')"),
       fontSize: num(112, 24, 260, "Font size"),
       fontFamily: font(),
     }),
@@ -64,17 +67,16 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Animated headline",
     description: "A headline that animates in word by word.",
     category: "text",
-    kind: "component",
     schema: z.object({
       text: text(
         "Ship *faster* with demos that *move*",
         "Text — wrap words in *asterisks* to emphasise",
       ),
-      color: color(TEXT_COLOR, "Text color"),
-      emphasisColor: color(HIGHLIGHT_COLOR, "Emphasis color"),
+      color: color(TEXT_COLOR, "Text colour"),
+      emphasisColor: color(HIGHLIGHT_COLOR, "Emphasis colour"),
       background: background(),
       fontSize: num(104, 24, 240, "Font size"),
-      wordStagger: num(4, 1, 20, "Frames between words"),
+      wordStagger: more(num(4, 1, 20, "Time between words"), { unit: "frames" }),
       fontFamily: font(),
     }),
     defaultDurationInFrames: 90,
@@ -84,7 +86,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Lower third",
     description: "A name or caption bar in the lower part of the screen.",
     category: "overlay",
-    kind: "component",
     schema: z.object({
       title: text("Ada Lovelace", "Title"),
       subtitle: text("Founder, Acme", "Subtitle"),
@@ -94,8 +95,8 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
         "Position",
       ),
       accent: color(ACCENT_COLOR, "Accent"),
-      color: color(TEXT_COLOR, "Text color"),
-      panel: color("rgba(10,10,12,0.72)", "Panel color"),
+      color: color(TEXT_COLOR, "Text colour"),
+      panel: color("rgba(10,10,12,0.72)", "Panel colour"),
       fontFamily: font(),
     }),
     defaultDurationInFrames: 120,
@@ -105,14 +106,13 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Callout",
     description: "A short note that points something out.",
     category: "overlay",
-    kind: "component",
     schema: z.object({
       text: text("Click here", "Text"),
       x: num(0.5, 0, 1, "Target X (0–1)", 0.01),
       y: num(0.5, 0, 1, "Target Y (0–1)", 0.01),
       side: choice(["top", "bottom", "left", "right"], "top", "Label side"),
-      color: color(TEXT_COLOR, "Label color"),
-      accent: color("#f43f5e", "Arrow color"),
+      color: color(TEXT_COLOR, "Label colour"),
+      accent: color("#f43f5e", "Arrow colour"),
       fontFamily: font(),
     }),
     defaultDurationInFrames: 75,
@@ -122,7 +122,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Captions",
     description: "Captions shown over the video.",
     category: "overlay",
-    kind: "component",
     schema: captionsSchema,
     defaultDurationInFrames: 150,
   },
@@ -131,7 +130,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Image",
     description: "Shows an image from your project.",
     category: "core",
-    kind: "component",
     schema: z.object({
       src: asset("Image", "image/*"),
       fit: choice(["contain", "cover", "fill"], "contain", "Fit"),
@@ -174,7 +172,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     description:
       "Plays an animation made in After Effects or downloaded from LottieFiles (.json or .lottie).",
     category: "overlay",
-    kind: "component",
     schema: z.object({
       src: asset("Animation file", ".json,.lottie"),
       loop: bool(true, "Loop"),
@@ -193,7 +190,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Video",
     description: "Plays a video from your project.",
     category: "core",
-    kind: "component",
     schema: z.object({
       src: asset("Video", "video/*"),
       fit: choice(["contain", "cover", "fill"], "cover", "Fit"),
@@ -201,7 +197,7 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
       muted: bool(true, "Muted"),
       volume: num(1, 0, MAX_VOLUME, "Volume", 0.05),
       playbackRate: num(1, 0.25, 4, "Speed", 0.05),
-      trimBeforeMs: num(0, 0, 3_600_000, "Start at (ms)", 100),
+      trimBeforeMs: more(num(0, 0, 3_600_000, "Start at", 100), { unit: "ms" }),
     }),
     defaultDurationInFrames: 150,
   },
@@ -210,8 +206,7 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Solid colour",
     description: "A plain colour background.",
     category: "background",
-    kind: "component",
-    schema: z.object({ color: color("#09090b", "Color") }),
+    schema: z.object({ color: color("#09090b", "Colour") }),
     defaultDurationInFrames: 90,
   },
   {
@@ -219,7 +214,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Gradient",
     description: "A gradient background.",
     category: "background",
-    kind: "component",
     schema: z.object({
       from: color("#1e1b4b", "From"),
       to: color("#0f172a", "To"),
@@ -233,7 +227,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Noise",
     description: "A soft moving noise background.",
     category: "background",
-    kind: "component",
     schema: z.object({
       color1: color("#0b1020", "Base"),
       color2: color("#4f46e5", "Highlight"),
@@ -247,12 +240,11 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Starburst",
     description: "Rays spreading from the centre.",
     category: "background",
-    kind: "component",
     schema: z.object({
       color1: color("#18181b", "Ray A"),
       color2: color("#27272a", "Ray B"),
       rays: num(24, 6, 64, "Rays"),
-      rotationSpeed: num(0.15, 0, 2, "Rotation (deg/frame)", 0.05),
+      rotationSpeed: more(num(0.15, 0, 2, "Rotation speed", 0.05), { unit: "°/frame" }),
     }),
     defaultDurationInFrames: 150,
   },
@@ -261,9 +253,8 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Paper",
     description: "A paper texture background.",
     category: "background",
-    kind: "component",
     schema: z.object({
-      color: color("#f5f1e8", "Paper color"),
+      color: color("#f5f1e8", "Paper colour"),
       grain: num(0.18, 0, 0.5, "Grain", 0.01),
     }),
     defaultDurationInFrames: 150,
@@ -273,7 +264,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Studio backdrop",
     description: "A ready-made studio background image.",
     category: "background",
-    kind: "component",
     schema: z.object({
       name: choice(BACKDROPS, DEFAULT_BACKDROP, "Backdrop"),
     }),
@@ -284,7 +274,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Looping video",
     description: "A video that loops for as long as needed.",
     category: "background",
-    kind: "component",
     schema: z.object({ src: asset("Video", "video/*"), dim: num(0.3, 0, 1, "Dim", 0.05) }),
     defaultDurationInFrames: 150,
   },
@@ -293,7 +282,6 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     title: "Light leak",
     description: "A warm light flare over the video.",
     category: "overlay",
-    kind: "component",
     schema: z.object({ seed: num(3, 0, 100, "Seed"), hueShift: num(0, 0, 360, "Hue shift") }),
     defaultDurationInFrames: 45,
   },
@@ -339,6 +327,6 @@ const presentations: ElementMetaInput[] = [
 ];
 
 export const coreElementMeta: ElementMeta[] = [
-  ...components.map((def) => ({ ...def, source, fixedProps: {} })),
+  ...components.map((def) => ({ kind: "component" as const, ...def, source, fixedProps: {} })),
   ...presentations,
 ].map(defineElementMeta);

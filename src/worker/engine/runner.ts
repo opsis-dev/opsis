@@ -14,7 +14,7 @@ import {
 } from "../../shared/graph";
 import { isOutputType } from "../../shared/nodes/output";
 import type { RunRequest } from "../../shared/ipc";
-import { parseParams, type NodeDef, type NodePhase } from "../../shared/nodes/define";
+import { parseNodeParams, type NodeDef, type NodePhase } from "../../shared/nodes/define";
 import { getNodeDef, nodeName } from "../../shared/nodes/registry";
 import type { LogLevel, RunEvent } from "../../shared/schema/events";
 import type { CompileValue, LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
@@ -289,7 +289,7 @@ class RunState {
     const ctx = this.contextFor(node, hash, dir);
     const inputs = this.inputsFor(id);
     try {
-      const out = await executor.run(ctx, inputs, parseParams(def, node, this.vars));
+      const out = await executor.run(ctx, inputs, parseNodeParams(def, node, this.vars));
       const result: NodeResult = {
         hash,
         outputs: out.outputs,
@@ -546,7 +546,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
   }
   const scheduler = new Scheduler(
     jobs,
-    ({ node, def }) => def.mutates?.(parseParams(def, node, vars)),
+    ({ node, def }) => def.mutates?.(parseNodeParams(def, node, vars)),
     (job) => state.runNode(job),
   );
 

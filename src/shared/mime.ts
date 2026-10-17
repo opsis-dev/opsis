@@ -8,3 +8,14 @@ export const IMAGE_MIME: Readonly<Record<string, string>> = {
 };
 
 export const IMAGE_EXTENSIONS: ReadonlySet<string> = new Set(Object.keys(IMAGE_MIME));
+
+export const AUDIO_MIME: Readonly<Record<string, string>> = {
+  mp3: "audio/mpeg",
+  m4a: "audio/mp4",
+  aac: "audio/aac",
+  wav: "audio/wav",
+  ogg: "audio/ogg",
+  flac: "audio/flac",
+};
+
+export const AUDIO_EXTENSIONS: ReadonlySet<string> = new Set(Object.keys(AUDIO_MIME));

@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { ELEMENTS, elementNodeType } from "../elements";
+import { ELEMENTS } from "../elements";
 import { CAPTIONS_ELEMENT } from "../elements/core";
 import { FIELD_WIDGETS, fieldMeta, targetRoleKey } from "../elements/introspect";
-import { defaultParams, getNodeDef, NODE_DEFS } from "./registry";
-import { transitionNodeType } from "./transitions";
+import { defaultParams, NODE_DEFS } from "./registry";
 
 const fieldsOf = (widget: string) =>
   NODE_DEFS.flatMap((def) =>
@@ -35,12 +34,9 @@ describe("node registry", () => {
   });
 
   it("generates one node per placeable registry element", () => {
-    const nodeTypeFor = (key: string, kind: string) =>
-      kind === "presentation" ? transitionNodeType(key) : elementNodeType(key);
-    const missing = ELEMENTS.filter(
-      (el) => el.key !== CAPTIONS_ELEMENT && !getNodeDef(nodeTypeFor(el.key, el.kind)),
-    ).map((el) => el.key);
-    expect(missing).toEqual([]);
+    const placed = NODE_DEFS.flatMap((def) => (def.element ? [def.element] : []));
+    const expected = ELEMENTS.filter((el) => el.key !== CAPTIONS_ELEMENT).map((el) => el.key);
+    expect(placed.toSorted()).toEqual(expected.toSorted());
   });
 
   it("only uses widgets the inspector knows", () => {

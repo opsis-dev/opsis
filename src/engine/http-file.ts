@@ -3,7 +3,7 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 import { isInside } from "./project-paths";
 import { nullIfMissing } from "./json";
-import { IMAGE_MIME } from "../shared/mime";
+import { AUDIO_MIME, IMAGE_MIME } from "../shared/mime";
 import { withoutLeadingSlashes } from "../shared/asset-ref";
 
 const MIME: Partial<Record<string, string>> = {
@@ -11,13 +11,9 @@ const MIME: Partial<Record<string, string>> = {
   ".m4v": "video/mp4",
   ".mov": "video/quicktime",
   ".webm": "video/webm",
-  ".mp3": "audio/mpeg",
-  ".m4a": "audio/mp4",
-  ".aac": "audio/aac",
-  ".wav": "audio/wav",
-  ".ogg": "audio/ogg",
-  ".flac": "audio/flac",
-  ...Object.fromEntries(Object.entries(IMAGE_MIME).map(([ext, type]) => [`.${ext}`, type])),
+  ...Object.fromEntries(
+    Object.entries({ ...AUDIO_MIME, ...IMAGE_MIME }).map(([ext, type]) => [`.${ext}`, type]),
+  ),
   ".json": "application/json",
   ".woff2": "font/woff2",
   ".woff": "font/woff",

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { projectFontsSchema } from "../fonts/types";
 
-const transitionRefSchema = z.object({
+export const transitionRefSchema = z.object({
   kind: z.string(),
   durationInFrames: z.number().int().nonnegative(),
   params: z.record(z.string(), z.unknown()).optional(),
@@ -85,7 +85,7 @@ const timelineItemSchema = z.object({
 
 export type TimelineItem = z.infer<typeof timelineItemSchema>;
 
-const timelineTrackSchema = z.object({
+export const timelineTrackSchema = z.object({
   id: z.string(),
   items: z.array(timelineItemSchema),
 });
@@ -97,7 +97,7 @@ const duckSchema = z.object({
   keys: z.array(z.string()),
 });
 
-const audioItemSchema = z.object({
+export const audioItemSchema = z.object({
   id: z.string(),
   src: z.string(),
   from: z.number().int(),

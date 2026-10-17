@@ -1,90 +1,92 @@
 import { z } from "zod";
-import { isRecord } from "../guards";
-import type { ActionLog } from "./actions";
-import type { AudioItem, TimelineSpec, TimelineTrack, TransitionRef } from "./timeline";
+import { actionLogSchema } from "./actions";
+import {
+  audioItemSchema,
+  timelineSpecSchema,
+  timelineTrackSchema,
+  transitionRefSchema,
+} from "./timeline";
 
 export type AssetRef = string;
 
-export type RecordingValue = {
-  type: "recording";
-  src: AssetRef | null;
-  proxySrc?: AssetRef;
-  log: ActionLog | null;
-  durationMs: number;
-  viewport: { width: number; height: number };
-  nodeId: string;
-};
+const assetRefSchema = z.string().nullable();
 
-type ImageValue = {
-  type: "image";
-  src: AssetRef | null;
-  width?: number;
-  height?: number;
-  scale?: number;
-  body?: { x: number; y: number; width: number; height: number };
-};
+const recordingValueSchema = z.object({
+  type: z.literal("recording"),
+  src: assetRefSchema,
+  proxySrc: z.string().optional(),
+  log: actionLogSchema.nullable(),
+  durationMs: z.number(),
+  viewport: z.object({ width: z.number(), height: z.number() }),
+  nodeId: z.string(),
+});
+export type RecordingValue = z.infer<typeof recordingValueSchema>;
 
-export type MediaValue = {
-  type: "media";
-  src: AssetRef | null;
-  kind: "video" | "audio" | "image";
-  durationMs?: number;
-  width?: number;
-  height?: number;
-  hasAudio?: boolean;
-};
+const imageValueSchema = z.object({
+  type: z.literal("image"),
+  src: assetRefSchema,
+  width: z.number().optional(),
+  height: z.number().optional(),
+  scale: z.number().optional(),
+  body: z
+    .object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() })
+    .optional(),
+});
 
-type FileValue = { type: "file"; src: AssetRef | null };
+const mediaValueSchema = z.object({
+  type: z.literal("media"),
+  src: assetRefSchema,
+  kind: z.enum(["video", "audio", "image"]),
+  durationMs: z.number().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  hasAudio: z.boolean().optional(),
+});
+export type MediaValue = z.infer<typeof mediaValueSchema>;
 
-export type ClipValue = {
-  type: "clip";
-  durationInFrames: number;
-  tracks: TimelineTrack[];
-  audio: AudioItem[];
-  recording?: RecordingValue;
-};
+const fileValueSchema = z.object({ type: z.literal("file"), src: assetRefSchema });
 
-type AudioValue = { type: "audio"; items: AudioItem[]; durationInFrames?: number };
+const clipValueSchema = z.object({
+  type: z.literal("clip"),
+  durationInFrames: z.number(),
+  tracks: z.array(timelineTrackSchema),
+  audio: z.array(audioItemSchema),
+  recording: recordingValueSchema.optional(),
+});
+export type ClipValue = z.infer<typeof clipValueSchema>;
 
-export type CaptionsValue = {
-  type: "captions";
-  captions: Array<{ text: string; startMs: number; endMs: number }>;
-};
+const audioValueSchema = z.object({
+  type: z.literal("audio"),
+  items: z.array(audioItemSchema),
+  durationInFrames: z.number().optional(),
+});
 
-export type TimelineValue = { type: "timeline"; spec: TimelineSpec };
+const captionsValueSchema = z.object({
+  type: z.literal("captions"),
+  captions: z.array(z.object({ text: z.string(), startMs: z.number(), endMs: z.number() })),
+});
+export type CaptionsValue = z.infer<typeof captionsValueSchema>;
 
-type TransitionValue = { type: "transition"; ref: TransitionRef };
+const timelineValueSchema = z.object({ type: z.literal("timeline"), spec: timelineSpecSchema });
+export type TimelineValue = z.infer<typeof timelineValueSchema>;
 
-type SessionValue = { type: "session" };
+const transitionValueSchema = z.object({ type: z.literal("transition"), ref: transitionRefSchema });
 
-export type CompileValue =
-  | RecordingValue
-  | ImageValue
-  | MediaValue
-  | FileValue
-  | ClipValue
-  | AudioValue
-  | CaptionsValue
-  | TimelineValue
-  | TransitionValue
-  | SessionValue;
+const sessionValueSchema = z.object({ type: z.literal("session") });
 
-const VALUE_TYPES: Record<CompileValue["type"], true> = {
-  recording: true,
-  image: true,
-  media: true,
-  file: true,
-  clip: true,
-  audio: true,
-  captions: true,
-  timeline: true,
-  transition: true,
-  session: true,
-};
-
-const compileValueSchema = z.custom<CompileValue>(
-  (v) => isRecord(v) && typeof v.type === "string" && Object.hasOwn(VALUE_TYPES, v.type),
-);
+const compileValueSchema = z.discriminatedUnion("type", [
+  recordingValueSchema,
+  imageValueSchema,
+  mediaValueSchema,
+  fileValueSchema,
+  clipValueSchema,
+  audioValueSchema,
+  captionsValueSchema,
+  timelineValueSchema,
+  transitionValueSchema,
+  sessionValueSchema,
+]);
+export type CompileValue = z.infer<typeof compileValueSchema>;
 
 const artifactSchema = z.object({
   kind: z.enum(["video", "image", "audio", "json", "file"]),
@@ -112,10 +114,20 @@ const nodeFailureSchema = z.object({
 });
 export type NodeFailure = z.infer<typeof nodeFailureSchema>;
 
+const validEntries = <T>(schema: z.ZodType<T>) =>
+  z.record(z.string(), z.unknown()).transform((entries) =>
+    Object.fromEntries(
+      Object.entries(entries).flatMap(([key, value]) => {
+        const parsed = schema.safeParse(value);
+        return parsed.success ? [[key, parsed.data] as const] : [];
+      }),
+    ),
+  );
+
 export const lastRunSchema = z.object({
   updatedAt: z.number(),
-  nodes: z.record(z.string(), nodeResultSchema),
-  failures: z.record(z.string(), nodeFailureSchema).optional(),
+  nodes: validEntries(nodeResultSchema),
+  failures: validEntries(nodeFailureSchema).optional(),
 });
 export type LastRun = z.infer<typeof lastRunSchema>;
 

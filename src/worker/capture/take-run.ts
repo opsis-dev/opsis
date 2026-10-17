@@ -1,5 +1,5 @@
 import type { Locator, Page } from "playwright-core";
-import { parseParams, type NodeDef } from "../../shared/nodes/define";
+import { parseNodeParams, type NodeDef } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import type { LiveEvent } from "../../shared/live";
 import type { Action } from "../../shared/schema/actions";
@@ -111,7 +111,7 @@ export class TakeRun implements TakeSink {
   }
 
   params<S extends NodeDef["params"]>(def: NodeDef<S>, node: WorkflowNode) {
-    return parseParams(def, node, this.vars);
+    return parseNodeParams(def, node, this.vars);
   }
 
   elapsed = () => Date.now() - this.t0;

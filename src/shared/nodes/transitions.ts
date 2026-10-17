@@ -2,26 +2,35 @@ import { z } from "zod";
 import { itemClip, sequenceClips, stackClips } from "../compile/clip";
 import { ELEMENTS, getElementMeta } from "../elements";
 import type { ElementMeta } from "../elements/types";
-import type { ClipValue, CompileValue } from "../schema/values";
+import type { ClipValue } from "../schema/values";
 import { coverRow, frameSecs, row, sentence, TRANSITION_WARN_RATIO, type CardRow } from "./card";
-import { clipInput, defineNode, port, type CompileOutputs, type NodeDef } from "./define";
+import {
+  clipInput,
+  defineNode,
+  port,
+  type CompileInputs,
+  type CompileOutputs,
+  type NodeDef,
+} from "./define";
 import { bool, frames, int, more } from "./params";
 
 const PRESENTATIONS = ELEMENTS.filter((e) => e.kind === "presentation");
-export const TRANSITION_KINDS: [string, ...string[]] = ["none", ...PRESENTATIONS.map((p) => p.key)];
+export const NO_TRANSITION = "none";
+export const DEFAULT_TRANSITION = "core/fade";
+export const TRANSITION_KINDS: [string, ...string[]] = [
+  NO_TRANSITION,
+  ...PRESENTATIONS.map((p) => p.key),
+];
 
 const ab = {
   inputs: { a: port("clip", "First"), b: port("clip", "Then") },
   outputs: { clip: port("clip", "Clip") },
 } as const;
 
-export const keepWholeField = (description: string, help: string) =>
-  more(bool(false, description), { help });
-
-export const transitionNodeType = (key: string): string => `transition.${key.replace("/", ".")}`;
+const transitionNodeType = (key: string): string => `transition.${key.replace("/", ".")}`;
 
 const joinClips = (
-  inputs: Partial<Record<string, CompileValue>>,
+  inputs: CompileInputs,
   join: (a: ClipValue, b: ClipValue) => ClipValue,
 ): CompileOutputs => {
   const a = clipInput(inputs, "a");
@@ -50,8 +59,7 @@ function transitionNode(meta: ElementMeta): NodeDef {
         `${frameSecs(p.durationInFrames, settings.fps)}${p.keepWhole ? " · held" : ""}`,
       ),
       speedRow(p.durationInFrames, meta.defaultDurationInFrames, settings.fps),
-      !p.keepWhole &&
-        coverRow(p.durationInFrames, [inputFrames?.a ?? 0, inputFrames?.b ?? 0], settings.fps),
+      !p.keepWhole && coverRow(p.durationInFrames, [inputFrames?.a, inputFrames?.b], settings.fps),
     ],
     icon: "blend",
     phase: "compile",
@@ -59,10 +67,9 @@ function transitionNode(meta: ElementMeta): NodeDef {
     params: z.object({
       ...meta.schema.shape,
       durationInFrames: frames(meta.defaultDurationInFrames, "Length"),
-      keepWhole: keepWholeField(
-        "Keep both clips whole",
-        "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition.",
-      ),
+      keepWhole: more(bool(false, "Keep both clips whole"), {
+        help: "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition.",
+      }),
     }),
     compile: ({ nodeId, inputs, params }) => {
       const { durationInFrames, keepWhole, ...rest } = params;
@@ -131,4 +138,4 @@ export const transitionNodes: NodeDef[] = [
 ];
 
 export const transitionTitle = (key: string) =>
-  key === "none" ? "Cut" : sentence(getElementMeta(key)?.title ?? key);
+  key === NO_TRANSITION ? "Cut" : sentence(getElementMeta(key)?.title ?? key);

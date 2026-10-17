@@ -3,6 +3,7 @@ import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "../nodes/params";
 import type { clipModifier } from "../nodes/define";
 import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
 import { cutSchema, IN_PORTS } from "../nodes/timeline";
+import { NO_TRANSITION } from "../nodes/transitions";
 import type { ParamRef } from "../schema/timeline";
 import type { PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
 import {
@@ -463,8 +464,8 @@ function splitInSequence(
     const before = shiftPort(c.before);
     return before ? [{ ...c, before }] : [];
   });
-  if (paramValue(container, "transition") !== "none")
-    cuts.push(cutSchema.parse({ before: next, transition: "none" }));
+  if (paramValue(container, "transition") !== NO_TRANSITION)
+    cuts.push(cutSchema.parse({ before: next, transition: NO_TRANSITION }));
   const wf = ctx.workflow;
   const shifted = wf.edges.flatMap((e) => {
     if (e.target !== edge.target || !SEQUENCE_PORTS.includes(e.targetHandle)) return [e];
@@ -507,7 +508,7 @@ function splitWithNewSequence(
     ctx,
     wf,
     "timeline.sequence",
-    { transition: "none" },
+    { transition: NO_TRANSITION },
     "Split",
     { source: edge.source, target: edge.target },
     2,

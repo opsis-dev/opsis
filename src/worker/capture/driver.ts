@@ -1,6 +1,6 @@
 import type { Page } from "playwright-core";
 import { sessionNode } from "../../shared/nodes/browser";
-import { parseParams } from "../../shared/nodes/define";
+import { parseNodeParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import type { ActionLog } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
@@ -90,7 +90,7 @@ async function openTake(opts: TakeOptions, recording: Recording | null): Promise
   const head = chain[0];
   if (head?.type !== sessionNode.type)
     throw new Error("A take must start with an Open browser node.");
-  const sessionParams = parseParams(sessionNode, head, vars);
+  const sessionParams = parseNodeParams(sessionNode, head, vars);
   const steps = chain.slice(1).filter((n) => !n.disabled);
 
   opts.step(head.id, "start");

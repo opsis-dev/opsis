@@ -19,7 +19,7 @@ import {
   uploadNode,
   waitNode,
 } from "../../shared/nodes/browser";
-import { customLabel, nodeLabelOr, nodeName } from "../../shared/nodes/registry";
+import { customLabel, nodeName } from "../../shared/nodes/registry";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { PAUSE_MARK } from "../../shared/vars";
 import { nonBlankLines } from "../../shared/format";
@@ -50,7 +50,7 @@ async function onTarget(
   act: (driver: CursorDriver, target: Resolved, label: string) => Promise<void>,
 ): Promise<void> {
   const resolved = await take.resolve(p.target);
-  await act(take.rolling(), resolved, nodeLabelOr(node, p.target));
+  await act(take.rolling(), resolved, nodeName(node, p.target));
   await take.rolling().pause(p.after);
 }
 
@@ -161,7 +161,7 @@ const STEPS: Record<string, StepHandler> = {
   },
   "browser.press": async (take, node) => {
     const p = take.params(pressNode, node);
-    if (take.cursorDriver) await take.cursorDriver.pressKey(p.keys, nodeLabelOr(node, p.keys));
+    if (take.cursorDriver) await take.cursorDriver.pressKey(p.keys, nodeName(node, p.keys));
     else await take.page.keyboard.press(p.keys);
     await take.pauseIfRolling(p.after);
   },

@@ -9,13 +9,38 @@ import {
   wrapClip,
   type GroupProps,
 } from "../compile/clip";
-import { asValue, type ClipValue, type CompileValue } from "../schema/values";
+import { speedRemap } from "../compile/remap";
+import { asValue, type ClipValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
-import { countConnected, coverRow, frameSecs, quote, row, warnIf, type CardRow } from "./card";
-import { clipInput, clipModifier, defineNode, opt, port, withClip } from "./define";
+import {
+  connectedPorts,
+  countConnected,
+  coverRatio,
+  coverRow,
+  frameSecs,
+  quote,
+  row,
+  TAG_TEXT_MAX,
+  warnIf,
+  type CardRow,
+} from "./card";
+import {
+  clipInput,
+  clipModifier,
+  defineNode,
+  opt,
+  port,
+  withClip,
+  type CompileInputs,
+} from "./define";
 import { bool, choice, choiceOf, frames, int, MIN_SPEED, more, ms, rate, text } from "./params";
-import { keepWholeField, TRANSITION_KINDS, transitionTitle } from "./transitions";
-import { formatDuration, plural } from "../format";
+import {
+  DEFAULT_TRANSITION,
+  NO_TRANSITION,
+  TRANSITION_KINDS,
+  transitionTitle,
+} from "./transitions";
+import { formatDuration, parseNumberList, plural } from "../format";
 import { msToFrames } from "../timeline/time";
 
 const base = { category: "Timeline", phase: "compile" } as const;
@@ -31,9 +56,7 @@ const layerLabel = (handle: InPort) =>
 const manyIn = Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", clipLabel(p))]));
 const layerIn = Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", layerLabel(p))]));
 
-const connectedClips = (
-  inputs: Partial<Record<string, CompileValue>>,
-): Array<{ port: string; clip: ClipValue }> =>
+const connectedClips = (inputs: CompileInputs): Array<{ port: string; clip: ClipValue }> =>
   IN_PORTS.flatMap((name) => {
     const clip = clipInput(inputs, name);
     return clip ? [{ port: name, clip }] : [];
@@ -41,15 +64,16 @@ const connectedClips = (
 
 const SLOW_PREVIEW_RATE = 4;
 
-const CUT_KINDS = TRANSITION_KINDS.filter((k) => k !== "none");
+const CUT_KINDS = TRANSITION_KINDS.filter((k) => k !== NO_TRANSITION);
 
-const transitionFields = (length: string, keepWhole: { description: string; help: string }) => ({
+const transitionFields = (length: string, keepWhole: string, keepWholeHelp: string) => ({
   transition: z
     .enum(TRANSITION_KINDS)
-    .default("core/fade")
+    .default(DEFAULT_TRANSITION)
     .meta({ description: "Transition", widget: "transition" }),
   transitionDuration: frames(15, length),
-  keepWhole: more(keepWholeField(keepWhole.description, keepWhole.help), {
+  keepWhole: more(bool(false, keepWhole), {
+    help: keepWholeHelp,
     showIf: { transition: CUT_KINDS },
   }),
 });
@@ -61,10 +85,11 @@ export const cutSchema = z.object({
     "Before",
     Object.fromEntries(CUT_PORTS.map((handle) => [handle, clipLabel(handle)])),
   ),
-  ...transitionFields("Length", {
-    description: "Keep both clips whole",
-    help: "The transition plays over a still of the two clips' last and first frames.",
-  }),
+  ...transitionFields(
+    "Length",
+    "Keep both clips whole",
+    "The transition plays over a still of the two clips' last and first frames.",
+  ),
 });
 
 type CutSettings = Omit<z.infer<typeof cutSchema>, "before">;
@@ -94,17 +119,14 @@ function worstCover(
   inputFrames: Partial<Record<string, number>>,
   fps: number,
 ): CardRow | null {
-  let worst: { cut: Cut; lengths: number[]; ratio: number } | null = null;
+  const around = (cut: Cut) => [inputFrames[cut.after], inputFrames[cut.before]];
+  let worst: { cut: Cut; ratio: number } | null = null;
   for (const cut of cuts) {
-    if (cut.transition === "none" || cut.keepWhole) continue;
-    const lengths = [inputFrames[cut.after], inputFrames[cut.before]].filter(
-      (f): f is number => f !== undefined && f > 0,
-    );
-    if (lengths.length === 0) continue;
-    const ratio = cut.transitionDuration / Math.min(...lengths);
-    if (!worst || ratio > worst.ratio) worst = { cut, lengths, ratio };
+    if (cut.transition === NO_TRANSITION || cut.keepWhole) continue;
+    const ratio = coverRatio(cut.transitionDuration, around(cut));
+    if (ratio !== null && (!worst || ratio > worst.ratio)) worst = { cut, ratio };
   }
-  return worst ? coverRow(worst.cut.transitionDuration, worst.lengths, fps) : null;
+  return worst ? coverRow(worst.cut.transitionDuration, around(worst.cut), fps) : null;
 }
 
 const sequenceNode = defineNode({
@@ -116,12 +138,12 @@ const sequenceNode = defineNode({
   inputs: manyIn,
   outputs: { clip: port("clip", "Clip") },
   card: ({ params: p, connected, clipFrames, settings, inputFrames }) => {
-    const ports = IN_PORTS.filter((handle) => connected.includes(handle));
+    const ports = connectedPorts(IN_PORTS, connected);
     const cuts = cutsFor(p, ports);
     const own = cuts.filter((c) => c.own).length;
     return [
       row("list-video", plural(ports.length, "clip"), warnIf(!ports.length)),
-      p.transition !== "none" &&
+      p.transition !== NO_TRANSITION &&
         row(
           "arrow-right-left",
           `${transitionTitle(p.transition)} · ${frameSecs(p.transitionDuration, settings.fps)}${p.keepWhole ? " · held" : ""}`,
@@ -136,10 +158,11 @@ const sequenceNode = defineNode({
     ];
   },
   params: z.object({
-    ...transitionFields("Transition length", {
-      description: "Keep every clip whole",
-      help: "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition.",
-    }),
+    ...transitionFields(
+      "Transition length",
+      "Keep every clip whole",
+      "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition.",
+    ),
     cuts: z.array(cutSchema).default([]).meta({
       description: "Different transitions",
       help: "Use another transition before some clips. The others use the transition above.",
@@ -154,7 +177,7 @@ const sequenceNode = defineNode({
     );
     const transitions = clips.map((_, i) => {
       const cut = i > 0 ? cuts[i - 1] : undefined;
-      return cut && cut.transition !== "none"
+      return cut && cut.transition !== NO_TRANSITION
         ? {
             kind: cut.transition,
             durationInFrames: cut.transitionDuration,
@@ -209,10 +232,7 @@ const stackNode = defineNode({
     const connected = connectedClips(inputs);
     const clips = connected.map((c) => c.clip);
     if (!clips.length) return { clip: emptyClip(EMPTY_CLIP_FRAMES) };
-    const offsets = params.offsetsMs
-      .split(",")
-      .map((s) => Number(s.trim()))
-      .map((n) => (Number.isFinite(n) && n > 0 ? msToFrames(n, settings.fps) : 0));
+    const offsets = parseNumberList(params.offsetsMs).map((n) => msToFrames(n, settings.fps, 0));
     const stacked = stackClips(nodeId, clips, offsets, {
       ports: connected.map((c) => c.port),
       move: (index) => ({ nodeId, param: "offsetsMs", unit: "ms", index }),
@@ -261,7 +281,7 @@ const trimNode = defineNode({
   }),
   compile: ({ nodeId, inputs, params, settings }) =>
     withClip(inputs, (clip) => {
-      const start = params.startMs ? msToFrames(params.startMs, settings.fps) : 0;
+      const start = msToFrames(params.startMs, settings.fps, 0);
       const rest = Math.max(1, clip.durationInFrames - start);
       const duration = params.durationMs
         ? Math.min(rest, msToFrames(params.durationMs, settings.fps))
@@ -311,7 +331,7 @@ const delayNode = defineNode({
   params: z.object({ ms: ms(500, "Delay") }),
   compile: ({ nodeId, inputs, params, settings }) =>
     withClip(inputs, (clip) =>
-      stackClips(nodeId, [clip], [params.ms ? msToFrames(params.ms, settings.fps) : 0], {
+      stackClips(nodeId, [clip], [msToFrames(params.ms, settings.fps, 0)], {
         move: () => ({ nodeId, param: "ms", unit: "ms" }),
       }),
     ),
@@ -338,17 +358,7 @@ const speedNode = defineNode({
     withClip(inputs, (clip) => {
       const out = Math.max(1, Math.round(clip.durationInFrames / params.rate));
       return withHandles(
-        wrapClip(
-          clip,
-          nodeId,
-          {
-            remap: [
-              [0, 0],
-              [out, clip.durationInFrames],
-            ],
-          },
-          out,
-        ),
+        wrapClip(clip, nodeId, { remap: speedRemap(clip.durationInFrames, out) }, out),
         { speed: { nodeId, param: "rate", unit: "rate" } },
       );
     }),
@@ -365,10 +375,7 @@ const FIT_MODES = {
   speed: {
     label: "Change speed",
     row: "By speed",
-    remap: (length, target) => [
-      [0, 0],
-      [target, length],
-    ],
+    remap: speedRemap,
     warning: (input, output) => {
       const speed = input / output;
       return Math.abs(speed - 1) > 0.02
@@ -452,7 +459,7 @@ const branchNode = defineNode({
   outputs: { clip: port("clip", "Clip") },
   card: ({ params: p }) => [
     p.variable.trim()
-      ? row("git-branch", `${p.variable} = ${quote(p.equals, 20)}`)
+      ? row("git-branch", `${p.variable} = ${quote(p.equals, TAG_TEXT_MAX)}`)
       : row("git-branch", "Choose a variable", { tone: "warn" }),
   ],
   params: z.object({

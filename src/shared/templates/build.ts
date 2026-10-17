@@ -68,6 +68,11 @@ export class GraphBuilder {
     return this;
   }
 
+  clipsInto(target: string, sources: string[]): this {
+    sources.forEach((source, i) => this.link(source, target, CLIP_PORT, `in${i + 1}`));
+    return this;
+  }
+
   chain(ids: string[]): this {
     for (let i = 1; i < ids.length; i++) this.link(ids[i - 1], ids[i], SESSION_PORT, SESSION_PORT);
     return this;

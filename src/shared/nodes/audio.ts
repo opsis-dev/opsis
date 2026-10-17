@@ -6,7 +6,7 @@ import { asValue, type ClipValue, type CompileValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { flattenSpec } from "../timeline/flatten";
 import { hasKeys } from "../timeline/envelope";
-import { fileRow, row, warnIf, type CardRow } from "./card";
+import { countEdgesInto, fileRow, row, warnIf, type CardRow } from "./card";
 import type { NodeIconName } from "./icon-name";
 import { defineNode, many, opt, port, withClip, type CompileOutputs } from "./define";
 import { mediaInput } from "./media";
@@ -14,9 +14,6 @@ import { asset, audioEnvelope, bool, int, more, ms, volume } from "./params";
 import { formatDuration, percentText, plural } from "../format";
 import { msToFrames, msToSignedFrames } from "../timeline/time";
 import { baseName, projectRef } from "../asset-ref";
-
-const srcFrom = (input: CompileValue | undefined, path: string): string | null =>
-  mediaInput(input)?.src ?? (path ? projectRef(path) : null);
 
 const base = { category: "Audio", phase: "compile" } as const;
 
@@ -28,7 +25,14 @@ const soundSource = {
 
 const soundFile = (description: string) => asset(description, "audio/*");
 
-const noSound = (): CompileOutputs => ({ audio: { type: "audio", items: [] } });
+const withSource = (
+  input: CompileValue | undefined,
+  path: string,
+  build: (src: string) => CompileOutputs,
+): CompileOutputs => {
+  const src = mediaInput(input)?.src ?? (path ? projectRef(path) : null);
+  return src ? build(src) : { audio: { type: "audio", items: [] } };
+};
 
 type SoundParams = { volume: number; envelope: AudioEnvelope };
 
@@ -89,47 +93,48 @@ const musicNode = defineNode({
     fadeOutMs: ms(1500, "Fade out", 20_000),
     envelope: audioEnvelope(),
   }),
-  compile: ({ nodeId, inputs, params, settings }) => {
-    const src = srcFrom(inputs.media, params.src);
-    if (!src) return noSound();
-    const item = soundItem(
-      nodeId,
-      src,
-      "music",
-      params,
-      {
-        from: params.startMs ? msToFrames(params.startMs, settings.fps) : 0,
-        ...(params.lengthMs ? { durationInFrames: msToFrames(params.lengthMs, settings.fps) } : {}),
-        loop: params.loop,
-        trimBefore: params.trimMs ? msToFrames(params.trimMs, settings.fps) : undefined,
-        fadeInFrames: params.fadeInMs ? msToFrames(params.fadeInMs, settings.fps) : undefined,
-        fadeOutFrames: params.fadeOutMs ? msToFrames(params.fadeOutMs, settings.fps) : undefined,
-      },
-      {
-        move: { nodeId, param: "startMs", unit: "ms" },
-        trimStart: {
-          nodeId,
-          param: "trimMs",
-          unit: "ms",
-          linked: [
-            { param: "startMs", sign: 1 },
-            { param: "lengthMs", sign: -1, ifNonZero: true },
-          ],
+  compile: ({ nodeId, inputs, params, settings }) =>
+    withSource(inputs.media, params.src, (src) => {
+      const item = soundItem(
+        nodeId,
+        src,
+        "music",
+        params,
+        {
+          from: msToFrames(params.startMs, settings.fps, 0),
+          ...(params.lengthMs
+            ? { durationInFrames: msToFrames(params.lengthMs, settings.fps) }
+            : {}),
+          loop: params.loop,
+          trimBefore: params.trimMs ? msToFrames(params.trimMs, settings.fps) : undefined,
+          fadeInFrames: params.fadeInMs ? msToFrames(params.fadeInMs, settings.fps) : undefined,
+          fadeOutFrames: params.fadeOutMs ? msToFrames(params.fadeOutMs, settings.fps) : undefined,
         },
-        trimEnd: { nodeId, param: "lengthMs", unit: "ms" },
-      },
-    );
-    const media = mediaInput(inputs.media);
-    return {
-      audio: {
-        type: "audio",
-        items: [item],
-        durationInFrames: media?.durationMs
-          ? msToFrames(media.durationMs, settings.fps)
-          : undefined,
-      },
-    };
-  },
+        {
+          move: { nodeId, param: "startMs", unit: "ms" },
+          trimStart: {
+            nodeId,
+            param: "trimMs",
+            unit: "ms",
+            linked: [
+              { param: "startMs", sign: 1 },
+              { param: "lengthMs", sign: -1, ifNonZero: true },
+            ],
+          },
+          trimEnd: { nodeId, param: "lengthMs", unit: "ms" },
+        },
+      );
+      const media = mediaInput(inputs.media);
+      return {
+        audio: {
+          type: "audio",
+          items: [item],
+          durationInFrames: media?.durationMs
+            ? msToFrames(media.durationMs, settings.fps)
+            : undefined,
+        },
+      };
+    }),
 });
 
 const sfxNode = defineNode({
@@ -168,30 +173,27 @@ const sfxNode = defineNode({
     }),
     envelope: audioEnvelope(),
   }),
-  compile: ({ nodeId, inputs, params, settings }) => {
-    const src = srcFrom(inputs.media, params.src);
-    if (!src) return noSound();
-    const lengthMs = mediaInput(inputs.media)?.durationMs ?? builtinSound(src)?.durationMs;
-    const startFrame = params.atAction
-      ? msToSignedFrames(params.offsetMs, settings.fps)
-      : params.atMs
-        ? msToFrames(params.atMs, settings.fps)
-        : 0;
-    const item = soundItem(
-      nodeId,
-      src,
-      "effect",
-      params,
-      {
-        from: startFrame,
-        ...(params.atAction ? { anchor: { nodeId: params.atAction } } : {}),
-        lengthFrames: lengthMs ? msToFrames(lengthMs, settings.fps) : undefined,
-        keepMusic: params.keepMusic || undefined,
-      },
-      { move: { nodeId, param: params.atAction ? "offsetMs" : "atMs", unit: "ms" } },
-    );
-    return { audio: { type: "audio", items: [item] } };
-  },
+  compile: ({ nodeId, inputs, params, settings }) =>
+    withSource(inputs.media, params.src, (src) => {
+      const lengthMs = mediaInput(inputs.media)?.durationMs ?? builtinSound(src)?.durationMs;
+      const startFrame = params.atAction
+        ? msToSignedFrames(params.offsetMs, settings.fps)
+        : msToFrames(params.atMs, settings.fps, 0);
+      const item = soundItem(
+        nodeId,
+        src,
+        "effect",
+        params,
+        {
+          from: startFrame,
+          ...(params.atAction ? { anchor: { nodeId: params.atAction } } : {}),
+          lengthFrames: lengthMs ? msToFrames(lengthMs, settings.fps) : undefined,
+          keepMusic: params.keepMusic || undefined,
+        },
+        { move: { nodeId, param: params.atAction ? "offsetMs" : "atMs", unit: "ms" } },
+      );
+      return { audio: { type: "audio", items: [item] } };
+    }),
 });
 
 const mixNode = defineNode({
@@ -202,7 +204,7 @@ const mixNode = defineNode({
   description:
     "Puts sounds under a clip. Connect as many as you like. Sound stops where the clip ends.",
   card: ({ connected }) => {
-    const n = connected.filter((k) => k === "sounds").length;
+    const n = countEdgesInto("sounds", connected);
     return [row("volume-2", plural(n, "sound"), warnIf(!n))];
   },
   inputs: {

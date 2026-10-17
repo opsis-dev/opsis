@@ -9,6 +9,11 @@ export const lerpSegment = (
   x: number,
 ): number => y0 + ((x - x0) / (x1 - x0)) * (y1 - y0);
 
+export const speedRemap = (innerDuration: number, outDuration: number): Remap => [
+  [0, 0],
+  [outDuration, innerDuration],
+];
+
 export function remapDuration(remap: Remap): number {
   return remap.length ? remap[remap.length - 1][0] : 0;
 }

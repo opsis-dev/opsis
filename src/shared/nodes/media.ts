@@ -9,7 +9,7 @@ import {
   type NodeResult,
 } from "../schema/values";
 import { countConnected, fileRow, row, warnIf, type CardRow } from "./card";
-import { defineNode, opt, port, type NodeDef } from "./define";
+import { defineNode, opt, port, type CompileInputs, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
 import {
   asset,
@@ -18,7 +18,6 @@ import {
   choiceOf,
   FORMAT_NAMES,
   int,
-  keysOf,
   loudnessName,
   more,
   ms,
@@ -31,7 +30,7 @@ import {
 import { formatDuration } from "../format";
 import { msToFrames } from "../timeline/time";
 import { extensionOf, projectRef } from "../asset-ref";
-import { IMAGE_EXTENSIONS } from "../mime";
+import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS } from "../mime";
 
 const base = { category: "Media" } as const;
 const fileOp = { ...base, phase: "media", executes: true } as const;
@@ -56,12 +55,14 @@ const PRESET_LABELS = {
   slow: "Small",
   veryslow: "Smallest, slowest",
 };
-const qualityName = (crf: number) =>
-  Object.entries(QUALITY_PRESETS).reduce((best, cur) =>
-    Math.abs(cur[1] - crf) <= Math.abs(best[1] - crf) ? cur : best,
-  )[0];
-
-const AUDIO_EXTENSIONS = new Set(["mp3", "wav", "m4a", "aac", "ogg", "flac"]);
+const qualityName = (crf: number): string =>
+  Object.entries(QUALITY_PRESETS).reduce(
+    (nearest, [name, value]) => {
+      const gap = Math.abs(value - crf);
+      return gap <= nearest.gap ? { name, gap } : nearest;
+    },
+    { name: "", gap: Infinity },
+  ).name;
 
 function kindFromPath(path: string): MediaValue["kind"] {
   const ext = extensionOf(path);
@@ -87,20 +88,19 @@ export function mediaInput(value: CompileValue | undefined): MediaValue | undefi
 }
 
 const passMedia = (
-  { result, inputs }: { result?: NodeResult; inputs: Partial<Record<string, CompileValue>> },
+  { result, inputs }: { result?: NodeResult; inputs: CompileInputs },
   input = "media",
 ) => ({ media: outputOf(result, "media", "media") ?? mediaInput(inputs[input]) });
 
-const fitField = () =>
-  choice(["cover", "contain"], "contain", "Fit", {
-    cover: "Fill the frame",
-    contain: "Show all",
-  });
+const FITS = { cover: "Fill the frame", contain: "Show all" };
+type Fit = keyof typeof FITS;
+
+const fitField = () => choiceOf(FITS, "contain", "Fit");
 
 type MediaClip = {
   src: string;
   kind: MediaValue["kind"];
-  fit: z.infer<ReturnType<typeof fitField>>;
+  fit: Fit;
   muted: boolean;
   frames: number;
   envelope: VisualEnvelope;
@@ -114,8 +114,10 @@ const mediaClip = (nodeId: string, { src, kind, fit, muted, frames, envelope }: 
 const IMAGE_MS = 3000;
 const MEDIA_MS = 5000;
 
-export const importMediaNode = defineNode({
-  ...fileOp,
+const op = <S extends z.ZodObject>(def: Omit<NodeDef<S>, "category" | "phase" | "executes">) =>
+  defineNode<S>({ ...fileOp, ...def });
+
+export const importMediaNode = op({
   type: "media.import",
   title: "Media file",
   icon: "file-play",
@@ -170,10 +172,7 @@ const mediaToClipNode = defineNode({
   description: "Turns a file into a clip you can place in the video.",
   inputs: { media: port("media", "File") },
   outputs: { clip: port("clip", "Clip") },
-  card: ({ params: p }) => [
-    row("maximize", p.fit === "cover" ? "Fill the frame" : "Show all"),
-    p.muted && row("volume-x", "Muted"),
-  ],
+  card: ({ params: p }) => [row("maximize", FITS[p.fit]), p.muted && row("volume-x", "Muted")],
   params: z.object({
     fit: fitField(),
     muted: bool(false, "Muted"),
@@ -200,9 +199,6 @@ const SCALE_MODES = {
   crop: { label: "Crop to fill", row: "Crop to fill" },
   stretch: { label: "Stretch", row: "Stretch" },
 };
-
-const op = <S extends z.ZodObject>(def: Omit<NodeDef<S>, "category" | "phase" | "executes">) =>
-  defineNode<S>({ ...fileOp, ...def });
 
 export const mediaTrimNode = op({
   ...one,
@@ -316,7 +312,7 @@ export const convertNode = op({
       Object.fromEntries(CONVERT_FORMATS.map((f) => [f, FORMAT_NAMES[f]])),
     ),
     crf: quality(18),
-    preset: more(choice(keysOf(PRESET_LABELS), "medium", "Speed vs file size", PRESET_LABELS), {
+    preset: more(choiceOf(PRESET_LABELS, "medium", "Speed vs file size"), {
       advanced: true,
     }),
   }),
@@ -410,7 +406,7 @@ export const thumbnailNode = op({
     atMs: ms(1000, "At"),
     width: int(1280, "Width", { min: 64, max: 3840, unit: "px" }),
   }),
-  compile: ({ result }) => ({ image: result?.outputs.image }),
+  compile: ({ result }) => ({ image: outputOf(result, "image", "image") }),
 });
 
 export const faststartNode = op({
@@ -434,7 +430,7 @@ export const probeNode = op({
     lengthRow(result, "info") ?? row("info", "Run to read the file", { tone: "muted" }),
   ],
   params: z.object({}),
-  compile: (ctx) => ({ file: ctx.result?.outputs.file, ...passMedia(ctx) }),
+  compile: (ctx) => ({ file: outputOf(ctx.result, "file", "file"), ...passMedia(ctx) }),
 });
 
 export const mediaNodes: NodeDef[] = [
