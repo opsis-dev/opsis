@@ -1,7 +1,10 @@
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { create } from "zustand";
-import { BUNDLED_FONTS, type FontFamilyDef } from "@/shared/fonts";
-import { fileUrl } from "../editor/file-url";
+import { errorMessage } from "@/shared/errors";
+import type { FontFamilyDef } from "@/shared/fonts";
 import { encodePath } from "@/shared/asset-ref";
+import { fileUrl } from "../editor/file-url";
 
 export function fontFileUrl(ref: string): string {
   if (ref.startsWith("library:"))
@@ -9,13 +12,13 @@ export function fontFileUrl(ref: string): string {
   return fileUrl(ref);
 }
 
-export const previewFamily = (def: FontFamilyDef) => `df-preview-${def.source}-${def.id}`;
+const previewFamily = (def: FontFamilyDef) => `df-preview-${def.source}-${def.id}`;
 
 const registered = new Set<string>();
 
-export function registerPreview(def: FontFamilyDef): string {
+function registerPreview(def: FontFamilyDef): void {
   const name = previewFamily(def);
-  if (registered.has(name) || typeof FontFace === "undefined") return name;
+  if (registered.has(name)) return;
   registered.add(name);
   for (const face of def.faces) {
     const f = new FontFace(name, `url("${fontFileUrl(face.file)}")`, {
@@ -25,22 +28,45 @@ export function registerPreview(def: FontFamilyDef): string {
     document.fonts.add(f);
     void f.load().catch(() => undefined);
   }
-  return name;
+}
+
+export function usePreviewFamily(def: FontFamilyDef | undefined): string | undefined {
+  useEffect(() => {
+    if (def) registerPreview(def);
+  }, [def]);
+  return def ? previewFamily(def) : undefined;
 }
 
 type LibraryState = {
   library: FontFamilyDef[];
   loaded: boolean;
+  onlineAllowed: boolean;
   refresh: () => Promise<void>;
+  ensureLoaded: () => void;
+  allowOnline: () => void;
 };
 
-export const useFontLibrary = create<LibraryState>((set) => ({
+let loading = false;
+
+export const useFontLibrary = create<LibraryState>((set, get) => ({
   library: [],
   loaded: false,
+  onlineAllowed: false,
   refresh: async () => {
     const library = await window.demoflow.listFonts();
     set({ library, loaded: true });
   },
+  ensureLoaded: () => {
+    if (get().loaded || loading) return;
+    loading = true;
+    get()
+      .refresh()
+      .catch((e: unknown) =>
+        toast.error("Could not read your font library", { description: errorMessage(e) }),
+      )
+      .finally(() => {
+        loading = false;
+      });
+  },
+  allowOnline: () => set({ onlineAllowed: true }),
 }));
-
-export { BUNDLED_FONTS };

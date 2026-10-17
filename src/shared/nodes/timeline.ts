@@ -14,7 +14,7 @@ import { coverRow, frameSecs, quote, row, type CardRow } from "./card";
 import { defineNode, opt, port } from "./define";
 import { bool, choice, frames, MAX_SPEED, more, ms, text } from "./params";
 import { TRANSITION_KINDS, transitionTitle } from "./transitions";
-import { formatDuration } from "../format";
+import { formatDuration, plural } from "../format";
 import { msToFrames } from "../timeline/time";
 
 const base = { category: "Timeline", phase: "compile" } as const;
@@ -34,7 +34,6 @@ const layerIn = Object.fromEntries(
   ]),
 );
 const countIn = (connected: string[]) => IN_PORTS.filter((p) => connected.includes(p)).length;
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 const connectedClips = (
   inputs: Partial<Record<string, CompileValue>>,

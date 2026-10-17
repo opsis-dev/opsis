@@ -52,3 +52,24 @@ export function displayAddress(url: string, opts: { keepQuery?: boolean } = {}):
     .replace(/^www\./, "")
     .replace(/\/$/, "");
 }
+
+const RELATIVE = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+
+const RELATIVE_STEPS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+  ["year", 31_536_000],
+  ["month", 2_592_000],
+  ["week", 604_800],
+  ["day", 86_400],
+  ["hour", 3_600],
+  ["minute", 60],
+];
+
+export function formatTimeAgo(at: number, now = Date.now()): string {
+  const seconds = (at - now) / 1000;
+  for (const [unit, size] of RELATIVE_STEPS)
+    if (Math.abs(seconds) >= size) return RELATIVE.format(Math.round(seconds / size), unit);
+  return "just now";
+}
+
+export const plural = (n: number, word: string, many = `${word}s`): string =>
+  `${n} ${n === 1 ? word : many}`;

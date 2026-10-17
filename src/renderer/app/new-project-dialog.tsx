@@ -1,5 +1,4 @@
-import { FolderOpen } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { joinFolder, projectFolderName } from "@/shared/project-folder";
 import { TEMPLATES } from "@/shared/templates";
@@ -14,16 +13,72 @@ import {
 } from "@/renderer/components/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/renderer/components/ui/input-group";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { errorMessage } from "@/shared/errors";
+import { platform } from "@/renderer/lib/platform";
+import { FolderField } from "./folder-field";
+import { useLoaded } from "./use-loaded";
 
-const platform = window.demoflow?.platform ?? "linux";
+type Template = (typeof TEMPLATES)[number];
+
+function TemplateSummary({ template }: { template: Template }) {
+  return (
+    <>
+      <span className="font-medium">{template.title}</span>
+      <span className="text-muted-foreground text-xs font-normal whitespace-normal">
+        {template.description}
+      </span>
+    </>
+  );
+}
+
+function TemplateField({
+  value,
+  onChange,
+  fixed,
+}: {
+  value: string;
+  onChange: (id: string) => void;
+  fixed: boolean;
+}) {
+  const [choosing, setChoosing] = useState(!fixed);
+  const chosen = TEMPLATES.find((t) => t.id === value) ?? TEMPLATES[0];
+  return (
+    <Field>
+      <div className="flex items-center justify-between">
+        <FieldLabel>Template</FieldLabel>
+        {choosing ? null : (
+          <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setChoosing(true)}>
+            Change
+          </Button>
+        )}
+      </div>
+      {choosing ? (
+        <ToggleGroup
+          orientation="vertical"
+          variant="outline"
+          value={[value]}
+          onValueChange={(v) => v[0] && onChange(v[0])}
+          className="w-full"
+        >
+          {TEMPLATES.map((t) => (
+            <ToggleGroupItem
+              key={t.id}
+              value={t.id}
+              className="h-auto flex-col items-start gap-0.5 py-2 text-left"
+            >
+              <TemplateSummary template={t} />
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      ) : (
+        <div className="bg-muted/40 flex flex-col gap-0.5 rounded-md border px-3 py-2 text-sm">
+          <TemplateSummary template={chosen} />
+        </div>
+      )}
+    </Field>
+  );
+}
 
 export function NewProjectDialog({
   open,
@@ -40,26 +95,17 @@ export function NewProjectDialog({
 }) {
   const [name, setName] = useState("My launch video");
   const [template, setTemplate] = useState(initialTemplate);
-  const [choosing, setChoosing] = useState(!fixedTemplate);
-  const [location, setLocation] = useState("");
+  const [typed, setLocation] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const locations = useLoaded(
+    () => window.demoflow.projectLocations(),
+    "Could not find the projects folder",
+  );
+  const location = typed ?? locations?.suggestedDir ?? "";
 
-  useEffect(() => {
-    void window.demoflow.projectLocations().then((l) => setLocation(l.suggestedDir));
-  }, []);
-
-  const chosen = TEMPLATES.find((t) => t.id === template) ?? TEMPLATES[0];
   const folder = location.trim()
     ? joinFolder(location.trim(), projectFolderName(name), platform)
     : "";
-
-  async function browse() {
-    const picked = await window.demoflow.chooseFolder({
-      title: "Choose where to create the project",
-      defaultPath: location.trim() || undefined,
-    });
-    if (picked) setLocation(picked);
-  }
 
   async function create() {
     setBusy(true);
@@ -96,66 +142,18 @@ export function NewProjectDialog({
           </Field>
           <Field>
             <FieldLabel htmlFor="project-location">Location</FieldLabel>
-            <InputGroup>
-              <InputGroupInput
-                id="project-location"
-                value={location}
-                spellCheck={false}
-                onChange={(e) => setLocation(e.target.value)}
-              />
-              <InputGroupAddon align="inline-end">
-                <InputGroupButton size="xs" onClick={() => void browse()}>
-                  <FolderOpen data-icon="inline-start" />
-                  Browse
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
+            <FolderField
+              id="project-location"
+              value={location}
+              title="Choose where to create the project"
+              onChange={setLocation}
+              onPicked={setLocation}
+            />
             <FieldDescription className="break-all">
               {folder ? `Creates ${folder}` : "Choose where the project folder goes."}
             </FieldDescription>
           </Field>
-          <Field>
-            <div className="flex items-center justify-between">
-              <FieldLabel>Template</FieldLabel>
-              {choosing ? null : (
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0"
-                  onClick={() => setChoosing(true)}
-                >
-                  Change
-                </Button>
-              )}
-            </div>
-            {choosing ? (
-              <ToggleGroup
-                orientation="vertical"
-                variant="outline"
-                value={[template]}
-                onValueChange={(v) => v[0] && setTemplate(v[0])}
-                className="w-full"
-              >
-                {TEMPLATES.map((t) => (
-                  <ToggleGroupItem
-                    key={t.id}
-                    value={t.id}
-                    className="h-auto flex-col items-start gap-0.5 py-2 text-left"
-                  >
-                    <span className="font-medium">{t.title}</span>
-                    <span className="text-muted-foreground text-xs font-normal whitespace-normal">
-                      {t.description}
-                    </span>
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            ) : (
-              <div className="bg-muted/40 flex flex-col gap-0.5 rounded-md border px-3 py-2 text-sm">
-                <span className="font-medium">{chosen.title}</span>
-                <span className="text-muted-foreground text-xs">{chosen.description}</span>
-              </div>
-            )}
-          </Field>
+          <TemplateField value={template} onChange={setTemplate} fixed={fixedTemplate} />
         </FieldGroup>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

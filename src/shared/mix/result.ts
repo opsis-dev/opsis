@@ -53,4 +53,4 @@ export type AnalysisResult =
   | { kind: "filmstrip"; filmstrip: Filmstrip }
   | { kind: "mix"; mix: MixResult }
   | { kind: "skipped" }
-  | { kind: "error"; error: string };
+  | { kind: "error"; error: string; engineMissing?: true };

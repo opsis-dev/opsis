@@ -10,9 +10,10 @@ import {
 import { useCallback, useMemo, useRef } from "react";
 import { connectionProblem } from "@/shared/graph";
 import { ZoomSlider } from "@/renderer/components/zoom-slider";
-import { isMac } from "../app/app-bar";
+import { isMac } from "@/renderer/lib/platform";
 import { useAppSettings } from "../store/app-settings";
 import { useUiStore } from "../store/ui";
+import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { SNAP_GRID } from "./canvas-grid";
 import { CanvasToolbar } from "./canvas-toolbar";
@@ -36,7 +37,7 @@ const minimapColor = (n: Node<FlowNodeData>) => categoryColor(n.data.node.type);
 export function Canvas({ projectDir }: { projectDir: string }) {
   const workflow = useOpenWorkflow();
   const mode = useAppSettings((s) => s.settings?.editor.canvasMode ?? "mouse");
-  const minimap = useUiStore((s) => s.minimap);
+  const minimap = useViewOptions((s) => s.minimap);
   const { addEdge, moveNodes, removeNodes, removeEdges } = useWorkflowStore.getState();
   const selectedIds = useUiStore((s) => s.selectedIds);
   const activeIds = useUiStore((s) => s.activeIds);

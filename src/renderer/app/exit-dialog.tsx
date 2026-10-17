@@ -34,7 +34,7 @@ export function ExitDialog() {
 
   const busy = request?.busy ?? [];
   return (
-    <AlertDialog open={!!request} onOpenChange={(open) => !open && request && answer(false)}>
+    <AlertDialog open={!!request} onOpenChange={(open) => !open && answer(false)}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
@@ -60,7 +60,7 @@ export function ExitDialog() {
           </Label>
         ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => answer(false)}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             variant={busy.length ? "destructive" : "default"}
             onClick={() => answer(true)}

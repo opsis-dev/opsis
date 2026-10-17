@@ -14,7 +14,7 @@ function activeAt(preview: PreviewTarget, frame: number): string[] {
 function usePlayerEvents(player: PlayerRef | null, preview: PreviewTarget | null): void {
   useEffect(() => {
     if (!player || !preview) return;
-    const { report } = usePlayback.getState();
+    const report = usePlayback.setState;
     const update = ({ detail }: { detail: { frame: number } }) => {
       report({ frame: detail.frame });
       useUiStore.getState().setActive(activeAt(preview, detail.frame));
@@ -41,13 +41,13 @@ function usePlayerRegistration(player: PlayerRef | null, durationInFrames: numbe
       seek: (frame) => player.seekTo(frame),
       play: () => player.play(),
       pause: () => player.pause(),
-      setRate: (rate) => usePlayback.getState().report({ rate }),
+      setRate: (rate) => usePlayback.setState({ rate }),
     });
     const frame = usePlayback.getState().frame;
     if (frame > 0) player.seekTo(Math.min(frame, durationInFrames - 1));
     return () => {
       registerPlayer(null);
-      usePlayback.getState().report({ playing: false });
+      usePlayback.setState({ playing: false });
     };
   }, [player, durationInFrames]);
 }
@@ -59,7 +59,7 @@ export function usePlayerBridge(
 ): void {
   const { fps, durationInFrames } = timing;
   useEffect(() => {
-    usePlayback.getState().report({ fps, durationInFrames });
+    usePlayback.setState({ fps, durationInFrames });
   }, [fps, durationInFrames]);
   usePlayerRegistration(player, durationInFrames);
   usePlayerEvents(player, preview);

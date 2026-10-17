@@ -29,16 +29,19 @@ export type ProjectFileChange = { dir: string; workflow: Workflow; version: stri
 
 export type ProjectLocations = { defaultDir: string; suggestedDir: string };
 
-export type SettingsPage =
-  | "general"
-  | "projects"
-  | "engine"
-  | "recording"
-  | "fonts"
-  | "export"
-  | "api"
-  | "licences"
-  | "about";
+export const SETTINGS_PAGES = [
+  "general",
+  "projects",
+  "engine",
+  "recording",
+  "fonts",
+  "export",
+  "api",
+  "licences",
+  "about",
+] as const;
+
+export type SettingsPage = (typeof SETTINGS_PAGES)[number];
 
 export type LicenceEntry = {
   id: string;
@@ -82,6 +85,7 @@ export type EnvStatus = {
 
 export type EngineInstallEvent = {
   part: "ffmpeg" | "headless-shell";
+  step: string;
   progress: number | null;
   message: string;
   done?: boolean;
@@ -145,7 +149,6 @@ export type FontCatalogEntry = {
 
 export type FontInstalledFace = {
   postscriptName: string;
-  format: "opentype" | "truetype";
   data: ArrayBuffer;
 };
 

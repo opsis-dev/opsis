@@ -18,6 +18,7 @@ import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useUiStore } from "../store/ui";
 import { useStillsStore } from "../store/stills";
+import { useEnvironment } from "../store/environment";
 import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
 import { NodeIcon } from "./icons";
@@ -283,7 +284,7 @@ export function NodeThumbnail({ nodeId, def }: { nodeId: string; def: NodeDef })
 }
 
 function CardStill({ nodeId }: { nodeId: string }) {
-  const engine = useStillsStore((s) => s.engine);
+  const engine = useEnvironment((s) => s.env?.engine.complete);
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const hash = useStillsStore((s) => s.index[nodeId]);
   const wanted = useStillsStore((s) => !!s.wanted[nodeId]);

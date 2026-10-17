@@ -8,11 +8,14 @@ import { ensureBrowser } from "@remotion/renderer";
 import { enginePaths, FFMPEG_RELEASE_URL } from "./paths";
 import { formatBytes } from "../shared/format";
 
-export type InstallProgress = (
-  part: "ffmpeg" | "headless-shell",
-  progress: number | null,
-  message: string,
-) => void;
+export type InstallUpdate = {
+  part: "ffmpeg" | "headless-shell";
+  step: string;
+  progress: number | null;
+  message: string;
+};
+
+export type InstallProgress = (update: InstallUpdate) => void;
 
 const ffmpegTarget = (platform: string, arch: string) => `${platform}-${arch}`;
 
@@ -58,16 +61,17 @@ export async function installFfmpeg(
       url,
       dest,
       (got, total) =>
-        onProgress(
-          "ffmpeg",
-          total ? got / total : null,
-          `Downloading the video tools (${i + 1} of ${files.length}) · ${downloadedSize(got, total)}`,
-        ),
+        onProgress({
+          part: "ffmpeg",
+          step: `download-${i + 1}`,
+          progress: total ? got / total : null,
+          message: `Downloading the video tools (${i + 1} of ${files.length}) · ${downloadedSize(got, total)}`,
+        }),
       signal,
     );
     if (dest !== p.ffmpegLicense) await chmod(dest, 0o755);
   }
-  onProgress("ffmpeg", 1, "Video tools ready");
+  onProgress({ part: "ffmpeg", step: "ready", progress: 1, message: "Video tools ready" });
 }
 
 export async function installHeadlessShell(dir: string, onProgress: InstallProgress) {
@@ -83,15 +87,21 @@ export async function installHeadlessShell(dir: string, onProgress: InstallProgr
   try {
     await ensureBrowser({
       onBrowserDownload: () => {
-        onProgress("headless-shell", 0, "Downloading the recording browser · starting");
+        onProgress({
+          part: "headless-shell",
+          step: "download",
+          progress: 0,
+          message: "Downloading the recording browser · starting",
+        });
         return {
           version: null,
           onProgress: (x) =>
-            onProgress(
-              "headless-shell",
-              x.percent,
-              `Downloading the recording browser · ${downloadedSize(x.downloadedBytes, x.totalSizeInBytes)}`,
-            ),
+            onProgress({
+              part: "headless-shell",
+              step: "download",
+              progress: x.percent,
+              message: `Downloading the recording browser · ${downloadedSize(x.downloadedBytes, x.totalSizeInBytes)}`,
+            }),
         };
       },
     });
@@ -102,22 +112,27 @@ export async function installHeadlessShell(dir: string, onProgress: InstallProgr
   await rm(p.shellRoot, { recursive: true, force: true });
   await rename(downloaded, p.shellRoot);
   await rm(staging, { recursive: true, force: true });
-  onProgress("headless-shell", 1, "Recording browser ready");
+  onProgress({
+    part: "headless-shell",
+    step: "ready",
+    progress: 1,
+    message: "Recording browser ready",
+  });
 }
 
 export function calmProgress(onProgress: InstallProgress): InstallProgress {
   let step = "";
   let shown = -1;
   let lastAt = 0;
-  return (part, progress, message) => {
-    const current = `${part}|${message.split(" · ")[0]}`;
-    const percent = progress == null ? -1 : Math.floor(progress * 100);
+  return (update) => {
+    const current = `${update.part}|${update.step}`;
+    const percent = update.progress == null ? -1 : Math.floor(update.progress * 100);
     const now = Date.now();
     if (current === step && percent === shown && now - lastAt < 500) return;
     step = current;
     shown = percent;
     lastAt = now;
-    onProgress(part, progress, message);
+    onProgress(update);
   };
 }
 

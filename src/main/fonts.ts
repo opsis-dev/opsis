@@ -140,12 +140,14 @@ export async function inspectFontFiles(
   return collect(entries, "file");
 }
 
+const isOpenType = (bytes: Uint8Array) => String.fromCharCode(...bytes.subarray(0, 4)) === "OTTO";
+
 export function inspectInstalledFonts(faces: FontInstalledFace[]): InspectedFonts {
   return collect(
-    faces.map((f) => ({
-      name: `${f.postscriptName}.${f.format === "opentype" ? "otf" : "ttf"}`,
-      bytes: new Uint8Array(f.data),
-    })),
+    faces.map((f) => {
+      const bytes = new Uint8Array(f.data);
+      return { name: `${f.postscriptName}.${isOpenType(bytes) ? "otf" : "ttf"}`, bytes };
+    }),
     "installed",
   );
 }

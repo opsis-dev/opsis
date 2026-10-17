@@ -1,5 +1,5 @@
 import { Copy, Menu, Minus, Square, X } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import type { MenuCommand, WindowState } from "@/shared/ipc";
 import logoUrl from "../../../brand/logo.svg";
 import {
@@ -39,9 +39,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/u
 import { useAppSettings } from "../store/app-settings";
 import { cn } from "@/renderer/lib/utils";
 import { isEditingElement } from "@/renderer/lib/dom";
+import { isMac, platform } from "@/renderer/lib/platform";
 
-const platform = window.demoflow?.platform ?? "linux";
-export const isMac = platform === "darwin";
 export const shortcutLabel = (accelerator: string) => acceleratorLabel(accelerator, platform);
 export const commandLabel = (cmd: MenuCommand): string =>
   menuCommandEntry(platform, cmd)?.label ?? cmd;
@@ -52,24 +51,61 @@ export function commandShortcut(cmd: MenuCommand): string | null {
 }
 const SECTIONS = appMenu(platform);
 
-function run(entry: MenuEntry) {
+type MenuItem = Exclude<MenuEntry, { kind: "separator" }>;
+
+function run(entry: MenuItem) {
   if (entry.kind === "command") window.demoflow.dispatchMenuCommand(entry.command);
-  else if (entry.kind === "role") void window.demoflow.windowRole(entry.role);
+  else void window.demoflow.windowRole(entry.role);
 }
 
-function groups(items: MenuEntry[]): MenuEntry[][] {
-  const out: MenuEntry[][] = [[]];
+function groups(items: MenuEntry[]): MenuItem[][] {
+  const out: MenuItem[][] = [];
+  let current: MenuItem[] = [];
   for (const item of items) {
-    if (item.kind === "separator") out.push([]);
-    else out.at(-1)!.push(item);
+    if (item.kind !== "separator") current.push(item);
+    else if (current.length) {
+      out.push(current);
+      current = [];
+    }
   }
-  return out.filter((g) => g.length);
+  return current.length ? [...out, current] : out;
 }
 
-const shortcut = (entry: MenuEntry) =>
-  entry.kind !== "separator" && entry.accelerator
-    ? acceleratorLabel(entry.accelerator, platform)
-    : null;
+type MenuParts = {
+  Group: ComponentType<{ children: ReactNode }>;
+  Separator: ComponentType;
+  Item: ComponentType<{ onClick: () => void; children: ReactNode }>;
+  Shortcut: ComponentType<{ children: ReactNode }>;
+};
+
+const MENUBAR_PARTS: MenuParts = {
+  Group: MenubarGroup,
+  Separator: MenubarSeparator,
+  Item: MenubarItem,
+  Shortcut: MenubarShortcut,
+};
+
+const DROPDOWN_PARTS: MenuParts = {
+  Group: DropdownMenuGroup,
+  Separator: DropdownMenuSeparator,
+  Item: DropdownMenuItem,
+  Shortcut: DropdownMenuShortcut,
+};
+
+function SectionItems({ items, parts }: { items: MenuEntry[]; parts: MenuParts }) {
+  const { Group, Separator: GroupSeparator, Item, Shortcut } = parts;
+  return groups(items).map((group, i) => (
+    <Group key={i}>
+      {i > 0 ? <GroupSeparator /> : null}
+      {group.map((entry) => (
+        <Item key={entry.label} onClick={() => run(entry)}>
+          {entry.label}
+          {entry.accelerator ? <Shortcut>{shortcutLabel(entry.accelerator)}</Shortcut> : null}
+        </Item>
+      ))}
+    </Group>
+  ));
+}
 
 function WideMenu() {
   return (
@@ -78,21 +114,7 @@ function WideMenu() {
         <MenubarMenu key={section.label}>
           <MenubarTrigger className="px-2 font-normal">{section.label}</MenubarTrigger>
           <MenubarContent className="min-w-56">
-            {groups(section.items).map((group, i) => (
-              <MenubarGroup key={i}>
-                {i > 0 ? <MenubarSeparator /> : null}
-                {group.map((entry) =>
-                  entry.kind === "separator" ? null : (
-                    <MenubarItem key={entry.label} onClick={() => run(entry)}>
-                      {entry.label}
-                      {shortcut(entry) ? (
-                        <MenubarShortcut>{shortcut(entry)}</MenubarShortcut>
-                      ) : null}
-                    </MenubarItem>
-                  ),
-                )}
-              </MenubarGroup>
-            ))}
+            <SectionItems items={section.items} parts={MENUBAR_PARTS} />
           </MenubarContent>
         </MenubarMenu>
       ))}
@@ -114,21 +136,7 @@ function CompactMenu() {
             <DropdownMenuSub key={section.label}>
               <DropdownMenuSubTrigger>{section.label}</DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="min-w-56">
-                {groups(section.items).map((group, i) => (
-                  <DropdownMenuGroup key={i}>
-                    {i > 0 ? <DropdownMenuSeparator /> : null}
-                    {group.map((entry) =>
-                      entry.kind === "separator" ? null : (
-                        <DropdownMenuItem key={entry.label} onClick={() => run(entry)}>
-                          {entry.label}
-                          {shortcut(entry) ? (
-                            <DropdownMenuShortcut>{shortcut(entry)}</DropdownMenuShortcut>
-                          ) : null}
-                        </DropdownMenuItem>
-                      ),
-                    )}
-                  </DropdownMenuGroup>
-                ))}
+                <SectionItems items={section.items} parts={DROPDOWN_PARTS} />
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           ))}
@@ -151,12 +159,11 @@ export function useMenuShortcuts(): void {
   useEffect(() => {
     if (isMac) return;
     const entries = SECTIONS.flatMap((s) => s.items).filter(
-      (e): e is Exclude<MenuEntry, { kind: "separator" }> =>
-        e.kind !== "separator" && !!e.accelerator,
+      (e): e is MenuItem & { accelerator: string } => e.kind !== "separator" && !!e.accelerator,
     );
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
-      const entry = entries.find((x) => matchesAccelerator(x.accelerator!, e, platform));
+      const entry = entries.find((x) => matchesAccelerator(x.accelerator, e, platform));
       if (!entry) return;
       const id = entry.kind === "command" ? entry.command : entry.role;
       if (isEditingElement(document.activeElement) && NATIVE_WHILE_EDITING.has(id)) return;
@@ -168,7 +175,7 @@ export function useMenuShortcuts(): void {
   }, []);
 }
 
-export function useWindowState(): WindowState {
+function useWindowState(): WindowState {
   const [state, setState] = useState<WindowState>({
     maximized: false,
     fullscreen: false,
@@ -182,41 +189,49 @@ export function useWindowState(): WindowState {
   return state;
 }
 
+function WindowButton({
+  role,
+  label,
+  className = "hover:bg-accent",
+  children,
+}: {
+  role: WindowRole;
+  label: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className={cn(
+        "text-muted-foreground hover:text-foreground grid h-full w-12 place-items-center transition-colors",
+        className,
+      )}
+      onClick={() => void window.demoflow.windowRole(role)}
+    >
+      {children}
+    </button>
+  );
+}
+
 function WindowControls() {
   const { maximized } = useWindowState();
-  const role = (r: WindowRole) => () => void window.demoflow.windowRole(r);
-  const base =
-    "text-muted-foreground hover:text-foreground grid h-full w-12 place-items-center transition-colors";
   return (
     <div className="flex h-full shrink-0 items-stretch">
-      <button
-        type="button"
-        aria-label="Minimize"
-        className={cn(base, "hover:bg-accent")}
-        onClick={role("minimize")}
-      >
+      <WindowButton role="minimize" label="Minimize">
         <Minus className="size-4" strokeWidth={1.5} />
-      </button>
-      <button
-        type="button"
-        aria-label={maximized ? "Restore" : "Maximize"}
-        className={cn(base, "hover:bg-accent")}
-        onClick={role("toggleMaximize")}
-      >
+      </WindowButton>
+      <WindowButton role="toggleMaximize" label={maximized ? "Restore" : "Maximize"}>
         {maximized ? (
           <Copy className="size-3.5 -scale-x-100" strokeWidth={1.5} />
         ) : (
           <Square className="size-3.5" strokeWidth={1.5} />
         )}
-      </button>
-      <button
-        type="button"
-        aria-label="Close"
-        className={cn(base, "hover:bg-destructive hover:text-white")}
-        onClick={role("close")}
-      >
+      </WindowButton>
+      <WindowButton role="close" label="Close" className="hover:bg-destructive hover:text-white">
         <X className="size-4" strokeWidth={1.5} />
-      </button>
+      </WindowButton>
     </div>
   );
 }

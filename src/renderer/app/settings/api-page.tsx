@@ -14,8 +14,10 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/comp
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { Switch } from "@/renderer/components/ui/switch";
 import { patchAppSettings, useAppSettings } from "../../store/app-settings";
+import { platform } from "@/renderer/lib/platform";
+import type { AppSettings } from "@/shared/settings";
 
-const windows = window.demoflow?.platform === "win32";
+const windows = platform === "win32";
 
 function CopyLine({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -39,10 +41,9 @@ function CopyLine({ text }: { text: string }) {
   );
 }
 
-export function ApiPage() {
-  const settings = useAppSettings((s) => s.settings);
+export function ApiPage({ settings }: { settings: AppSettings }) {
   const status = useAppSettings((s) => s.api);
-  if (!settings || !status) return <Spinner />;
+  if (!status) return <Spinner />;
   const on = settings.api.enabled;
   const address = status.address;
   const curl = (route: string) => `curl --unix-socket '${address}' http://localhost${route}`;

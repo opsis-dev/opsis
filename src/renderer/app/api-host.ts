@@ -18,23 +18,25 @@ export function setEditorApi(handler: Handler): () => void {
 
 const OPEN_TIMEOUT_MS = 15_000;
 
-function waitForProject(dir: string): Promise<boolean> {
+function waitForEditor(dir: string): Promise<Handler | null> {
   const ready = () => {
     const s = useWorkflowStore.getState();
-    return s.projectDir === dir && !!s.workflow && !!editorHandler;
+    return s.projectDir === dir && s.workflow ? editorHandler : null;
   };
-  if (ready()) return Promise.resolve(true);
+  const now = ready();
+  if (now) return Promise.resolve(now);
   return new Promise((resolve) => {
-    const finish = (ok: boolean) => {
+    const finish = (handler: Handler | null) => {
       clearTimeout(timer);
       off();
       waiters.delete(check);
-      setTimeout(() => resolve(ok), 0);
+      resolve(handler);
     };
     const check = () => {
-      if (ready()) finish(true);
+      const handler = ready();
+      if (handler) finish(handler);
     };
-    const timer = setTimeout(() => finish(false), OPEN_TIMEOUT_MS);
+    const timer = setTimeout(() => finish(null), OPEN_TIMEOUT_MS);
     const off = useWorkflowStore.subscribe(check);
     waiters.add(check);
   });
@@ -47,9 +49,10 @@ export function useApiHost(): void {
       window.demoflow.onApiRequest(async (request) => {
         if (request.op === "open") {
           void navigate({ to: "/editor", search: { dir: request.dir } });
-          if (!(await waitForProject(request.dir)))
+          const handler = await waitForEditor(request.dir);
+          if (!handler)
             return { ok: false, status: 504, error: "The project didn't open in time." };
-          return editorHandler!({ op: "read" });
+          return handler({ op: "read" });
         }
         if (!editorHandler) return { ok: false, status: 409, error: "No project is open." };
         return editorHandler(request);

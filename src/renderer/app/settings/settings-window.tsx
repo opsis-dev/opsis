@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
   Clapperboard,
   Cpu,
@@ -12,8 +12,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
-import type { SettingsPage } from "@/shared/ipc";
+import { SETTINGS_PAGES, type SettingsPage } from "@/shared/ipc";
+import type { AppSettings } from "@/shared/settings";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
+import { Spinner } from "@/renderer/components/ui/spinner";
 import {
   Sidebar,
   SidebarContent,
@@ -25,93 +27,82 @@ import {
   SidebarProvider,
 } from "@/renderer/components/ui/sidebar";
 import { AppBar } from "../app-bar";
+import { useAppSettings } from "../../store/app-settings";
 import { FontsPanel } from "../../fonts/fonts-panel";
 import { EnginePanel } from "../setup";
 import { ApiPage } from "./api-page";
 import { LicencesPage } from "./licences-page";
 import { AboutPage, ExportPage, GeneralPage, ProjectsPage, RecordingPage } from "./pages";
 
-const PAGES: Array<{ id: SettingsPage; label: string; icon: LucideIcon; description: string }> = [
-  {
-    id: "general",
+type PageInfo = {
+  label: string;
+  icon: LucideIcon;
+  description: string;
+  render: (settings: AppSettings) => ReactNode;
+};
+
+const PAGES: Record<SettingsPage, PageInfo> = {
+  general: {
     label: "General",
     icon: SlidersHorizontal,
     description: "What Demoflow does when it opens and before it closes.",
+    render: (settings) => <GeneralPage settings={settings} />,
   },
-  {
-    id: "projects",
+  projects: {
     label: "Projects",
     icon: FolderKanban,
     description: "Where new projects go.",
+    render: (settings) => <ProjectsPage settings={settings} />,
   },
-  {
-    id: "engine",
+  engine: {
     label: "Engine",
     icon: Cpu,
     description: "The recording browser and video tools.",
+    render: () => <EnginePanel title="Status" />,
   },
-  {
-    id: "recording",
+  recording: {
     label: "Recording",
     icon: Video,
     description: "Traces of each take and the live view while a run is going.",
+    render: (settings) => <RecordingPage settings={settings} />,
   },
-  {
-    id: "fonts",
+  fonts: {
     label: "Fonts",
     icon: Type,
     description: "Your font library. Projects copy the fonts they use.",
+    render: () => <FontsPanel />,
   },
-  {
-    id: "export",
+  export: {
     label: "Export licence",
     icon: Clapperboard,
     description: "The licence for exporting videos.",
+    render: (settings) => <ExportPage settings={settings} />,
   },
-  {
-    id: "api",
+  api: {
     label: "API",
     icon: Plug,
     description: "Let scripts and AI agents on this computer read, edit and run the open project.",
+    render: (settings) => <ApiPage settings={settings} />,
   },
-  {
-    id: "licences",
+  licences: {
     label: "Licences",
     icon: Scale,
     description: "Licences of Demoflow and everything it includes.",
+    render: () => <LicencesPage />,
   },
-  { id: "about", label: "About", icon: Info, description: "Versions and folders." },
-];
+  about: {
+    label: "About",
+    icon: Info,
+    description: "Versions and folders.",
+    render: () => <AboutPage />,
+  },
+};
 
-const isPage = (v: string): v is SettingsPage => PAGES.some((p) => p.id === v);
-
-function Page({ page }: { page: SettingsPage }): ReactNode {
-  switch (page) {
-    case "general":
-      return <GeneralPage />;
-    case "projects":
-      return <ProjectsPage />;
-    case "engine":
-      return <EnginePanel title="Status" />;
-    case "recording":
-      return <RecordingPage />;
-    case "fonts":
-      return <FontsPanel />;
-    case "export":
-      return <ExportPage />;
-    case "api":
-      return <ApiPage />;
-    case "licences":
-      return <LicencesPage />;
-    case "about":
-      return <AboutPage />;
-  }
-}
-
-export function SettingsWindow({ page: requested }: { page: string }) {
+export function SettingsWindow() {
   const navigate = useNavigate();
-  const page = isPage(requested) ? requested : "general";
-  const meta = PAGES.find((p) => p.id === page)!;
+  const { page } = useSearch({ from: "/settings" });
+  const settings = useAppSettings((s) => s.settings);
+  const meta = PAGES[page];
 
   useEffect(() => window.demoflow.setTitle("Settings — Demoflow"), []);
 
@@ -134,19 +125,22 @@ export function SettingsWindow({ page: requested }: { page: string }) {
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {PAGES.map((p) => (
-                    <SidebarMenuItem key={p.id}>
-                      <SidebarMenuButton
-                        isActive={p.id === page}
-                        onClick={() =>
-                          void navigate({ to: "/settings", search: { page: p.id }, replace: true })
-                        }
-                      >
-                        <p.icon />
-                        <span>{p.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {SETTINGS_PAGES.map((id) => {
+                    const { icon: Icon, label } = PAGES[id];
+                    return (
+                      <SidebarMenuItem key={id}>
+                        <SidebarMenuButton
+                          isActive={id === page}
+                          onClick={() =>
+                            void navigate({ to: "/settings", search: { page: id }, replace: true })
+                          }
+                        >
+                          <Icon />
+                          <span>{label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -158,7 +152,7 @@ export function SettingsWindow({ page: requested }: { page: string }) {
               <h1 className="text-xl font-semibold tracking-tight">{meta.label}</h1>
               <p className="text-muted-foreground text-sm">{meta.description}</p>
             </header>
-            <Page page={page} />
+            {settings ? meta.render(settings) : <Spinner />}
           </div>
         </ScrollArea>
       </SidebarProvider>

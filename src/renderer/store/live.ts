@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import type { LiveMessage, LiveStepStatus } from "@/shared/live";
+import type { LiveEvent, LiveMessage, LiveStepStatus } from "@/shared/live";
 import type { Rect } from "@/shared/schema/actions";
 
-export type LiveStep = { nodeId: string; label: string; status?: LiveStepStatus; message?: string };
+type LiveStep = { nodeId: string; label: string; status?: LiveStepStatus; message?: string };
 
 export type LiveCapture = {
   captureId: string;
@@ -32,11 +32,14 @@ type LiveState = {
   reset: () => void;
 };
 
+const DEFAULT_VIEWPORT = { width: 1920, height: 1080 };
+const MAX_CLICKS = 9;
+
 const blank = (captureId: string, nodeId: string): LiveCapture => ({
   captureId,
   nodeId,
   title: nodeId,
-  viewport: { width: 1920, height: 1080 },
+  viewport: DEFAULT_VIEWPORT,
   steps: [],
   frameUrl: null,
   cursor: null,
@@ -46,70 +49,75 @@ const blank = (captureId: string, nodeId: string): LiveCapture => ({
   startedAt: Date.now(),
 });
 
-export const useLiveStore = create<LiveState>()((set) => ({
+const frameUrl = (jpeg: Uint8Array) =>
+  URL.createObjectURL(new Blob([new Uint8Array(jpeg)], { type: "image/jpeg" }));
+
+function applyEvent(prev: LiveCapture, e: LiveEvent): LiveCapture {
+  switch (e.kind) {
+    case "start":
+      return {
+        ...prev,
+        title: e.title,
+        viewport: e.viewport,
+        steps: e.steps.map((st) => ({ ...st })),
+        status: "live",
+      };
+    case "step":
+      return {
+        ...prev,
+        steps: prev.steps.map((st) =>
+          st.nodeId === e.nodeId ? { ...st, status: e.status, message: e.message } : st,
+        ),
+      };
+    case "cursor":
+      return { ...prev, cursor: { x: e.x, y: e.y } };
+    case "target":
+      return { ...prev, target: { rect: e.rect, label: e.label, selector: e.selector } };
+    case "click":
+      return {
+        ...prev,
+        clicks: [...prev.clicks.slice(1 - MAX_CLICKS), { x: e.x, y: e.y, at: Date.now() }],
+      };
+    case "end":
+      return { ...prev, status: e.ok ? "done" : "error", message: e.message };
+  }
+}
+
+function applyMessage(prev: LiveCapture, message: LiveMessage): LiveCapture {
+  if (message.type === "event") return applyEvent(prev, message.event);
+  if (prev.frameUrl) URL.revokeObjectURL(prev.frameUrl);
+  return { ...prev, frameUrl: frameUrl(message.jpeg) };
+}
+
+export const useLiveStore = create<LiveState>()((set, get) => ({
   captures: {},
   order: [],
   pipOpen: false,
   focusId: null,
   dialogOpen: false,
 
-  apply: (message, autoOpen) =>
-    set((s) => {
-      const prev = s.captures[message.captureId] ?? blank(message.captureId, message.nodeId);
-      const isNew = !s.captures[message.captureId];
-      let next: LiveCapture = prev;
-      if (message.type === "frame") {
-        if (prev.frameUrl) URL.revokeObjectURL(prev.frameUrl);
-        next = {
-          ...prev,
-          frameUrl: URL.createObjectURL(
-            new Blob([new Uint8Array(message.jpeg)], { type: "image/jpeg" }),
-          ),
-        };
-      } else {
-        const e = message.event;
-        if (e.kind === "start")
-          next = {
-            ...prev,
-            title: e.title,
-            viewport: e.viewport,
-            steps: e.steps.map((st) => ({ ...st })),
-            status: "live",
-          };
-        else if (e.kind === "step")
-          next = {
-            ...prev,
-            steps: prev.steps.map((st) =>
-              st.nodeId === e.nodeId ? { ...st, status: e.status, message: e.message } : st,
-            ),
-          };
-        else if (e.kind === "cursor") next = { ...prev, cursor: { x: e.x, y: e.y } };
-        else if (e.kind === "target")
-          next = { ...prev, target: { rect: e.rect, label: e.label, selector: e.selector } };
-        else if (e.kind === "click")
-          next = {
-            ...prev,
-            clicks: [...prev.clicks.slice(-8), { x: e.x, y: e.y, at: Date.now() }],
-          };
-        else if (e.kind === "end")
-          next = { ...prev, status: e.ok ? "done" : "error", message: e.message };
-      }
-      return {
-        captures: { ...s.captures, [message.captureId]: next },
-        order: isNew ? [...s.order, message.captureId] : s.order,
-        focusId:
-          isNew && (!s.focusId || s.captures[s.focusId]?.status !== "live")
-            ? message.captureId
-            : s.focusId,
-        pipOpen: isNew && autoOpen ? true : s.pipOpen,
-      };
-    }),
+  apply: (message, autoOpen) => {
+    const { captureId } = message;
+    const s = get();
+    const prev = s.captures[captureId];
+    const next = applyMessage(prev ?? blank(captureId, message.nodeId), message);
+    if (prev) {
+      set({ captures: { ...s.captures, [captureId]: next } });
+      return;
+    }
+    const focusLive = s.focusId !== null && s.captures[s.focusId]?.status === "live";
+    set({
+      captures: { ...s.captures, [captureId]: next },
+      order: [...s.order, captureId],
+      focusId: focusLive ? s.focusId : captureId,
+      pipOpen: autoOpen || s.pipOpen,
+    });
+  },
   setPipOpen: (pipOpen) => set({ pipOpen }),
   focus: (focusId) => set({ focusId }),
   setDialogOpen: (dialogOpen) => set({ dialogOpen }),
-  reset: () =>
-    set((s) => {
-      for (const c of Object.values(s.captures)) if (c.frameUrl) URL.revokeObjectURL(c.frameUrl);
-      return { captures: {}, order: [], focusId: null };
-    }),
+  reset: () => {
+    for (const c of Object.values(get().captures)) if (c.frameUrl) URL.revokeObjectURL(c.frameUrl);
+    set({ captures: {}, order: [], focusId: null });
+  },
 }));

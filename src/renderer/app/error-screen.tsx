@@ -1,6 +1,5 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { ChevronRight, RotateCcw, TriangleAlert } from "lucide-react";
-import { useEffect } from "react";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Collapsible,
@@ -20,8 +19,6 @@ import { errorMessage } from "@/shared/errors";
 
 export function ErrorScreen({ error, reset }: ErrorComponentProps) {
   const message = errorMessage(error);
-
-  useEffect(() => console.error(error), [error]);
 
   return (
     <div className="bg-background flex h-screen flex-col">

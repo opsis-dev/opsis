@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import type { MenuCommand } from "@/shared/ipc";
 import { useUiStore } from "../store/ui";
+import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { tidyLayout } from "./layout";
 import { DOCK_PANELS, focusPanel, PANEL_SIDES, togglePanel } from "./panels";
@@ -18,8 +19,8 @@ const MENU_ACTIONS: Partial<Record<MenuCommand, () => void>> = {
   "edit:layout": () => void tidyLayout(),
   "edit:add-node": () => useUiStore.getState().setPaletteOpen(true),
   "view:toggle-minimap": () => {
-    const ui = useUiStore.getState();
-    ui.setMinimap(!ui.minimap);
+    const view = useViewOptions.getState();
+    view.setMinimap(!view.minimap);
   },
   ...Object.fromEntries(
     PANEL_SIDES.map((side) => [`view:toggle-${side}`, () => togglePanel(side)]),

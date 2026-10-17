@@ -1,12 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+import { SETTINGS_PAGES } from "@/shared/ipc";
 import { SettingsWindow } from "../app/settings/settings-window";
 
-function SettingsRoute() {
-  const { page } = Route.useSearch();
-  return <SettingsWindow page={page} />;
-}
-
 export const Route = createFileRoute("/settings")({
-  validateSearch: (search: Record<string, unknown>) => ({ page: String(search.page ?? "general") }),
-  component: SettingsRoute,
+  validateSearch: z.object({ page: z.enum(SETTINGS_PAGES).catch("general") }),
+  component: SettingsWindow,
 });

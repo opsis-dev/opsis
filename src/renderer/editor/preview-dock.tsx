@@ -13,7 +13,7 @@ import {
 } from "@/renderer/components/ui/empty";
 import { playRange, usePlayback } from "../store/playback";
 import { useStillsStore } from "../store/stills";
-import { useUiStore } from "../store/ui";
+import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { PreviewComposition } from "./audio-insert";
 import { useFilm } from "./film";
@@ -42,8 +42,8 @@ function NothingToPreview() {
 function usePreviewSpec(): TimelineSpec | null {
   const film = useFilm();
   const workflow = useWorkflowStore((s) => s.workflow);
-  const quality = useUiStore((s) => s.previewQuality);
-  const shape = useUiStore((s) => s.previewShape);
+  const quality = useViewOptions((s) => s.previewQuality);
+  const shape = useViewOptions((s) => s.previewShape);
   return useMemo(() => {
     if (!film.audible || !workflow) return null;
     const base = { ...film.audible, assets: { projectBase: PROJECT_BASE }, quality };

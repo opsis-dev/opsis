@@ -1,7 +1,14 @@
-import { FolderOpen, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { EnvStatus } from "@/shared/ipc";
-import type { AppSettings, StartOption } from "@/shared/settings";
+import { toast } from "sonner";
+import {
+  START_OPTIONS,
+  TRACE_RETENTION,
+  type AppSettings,
+  type StartOption,
+} from "@/shared/settings";
+import { errorMessage } from "@/shared/errors";
+import { clamp } from "@/shared/math";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Card,
@@ -12,32 +19,34 @@ import {
 } from "@/renderer/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/renderer/components/ui/input-group";
 import { Slider } from "@/renderer/components/ui/slider";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { Switch } from "@/renderer/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { patchAppSettings, useAppSettings } from "../../store/app-settings";
+import { isOneOf } from "@/renderer/lib/one-of";
+import { patchAppSettings } from "../../store/app-settings";
+import { useFreshEnvironment } from "../../store/environment";
+import { FolderField } from "../folder-field";
 
-const RETENTION: Array<[AppSettings["traces"]["retention"], string]> = [
+type TraceRetention = AppSettings["traces"]["retention"];
+
+const ON_START: Array<[StartOption, string]> = [
+  ["start-screen", "Show the start screen"],
+  ["last-project", "Open the last project"],
+  ["new-project", "Start a new project"],
+];
+
+const RETENTION: Array<[TraceRetention, string]> = [
   ["always", "Always"],
   ["failures", "Failures only"],
   ["last-n", "Last N"],
   ["off", "Off"],
 ];
 
-export function useSettings(): AppSettings | null {
-  return useAppSettings((s) => s.settings);
-}
+const KEEP_LAST_MIN = 1;
+const KEEP_LAST_MAX = 500;
 
-export function GeneralPage() {
-  const settings = useSettings();
-  if (!settings) return <Spinner />;
+export function GeneralPage({ settings }: { settings: AppSettings }) {
   return (
     <Card>
       <CardHeader>
@@ -52,12 +61,14 @@ export function GeneralPage() {
               size="sm"
               value={[settings.app.onStart]}
               onValueChange={(v) =>
-                v[0] && void patchAppSettings({ app: { onStart: v[0] as StartOption } })
+                isOneOf(START_OPTIONS, v[0]) && void patchAppSettings({ app: { onStart: v[0] } })
               }
             >
-              <ToggleGroupItem value="start-screen">Show the start screen</ToggleGroupItem>
-              <ToggleGroupItem value="last-project">Open the last project</ToggleGroupItem>
-              <ToggleGroupItem value="new-project">Start a new project</ToggleGroupItem>
+              {ON_START.map(([value, label]) => (
+                <ToggleGroupItem key={value} value={value}>
+                  {label}
+                </ToggleGroupItem>
+              ))}
             </ToggleGroup>
           </Field>
           <Field orientation="horizontal" className="justify-between">
@@ -82,32 +93,31 @@ export function GeneralPage() {
   );
 }
 
-export function ProjectsPage() {
-  const settings = useSettings();
+function useDefaultFolder(custom: string): string {
   const [fallback, setFallback] = useState("");
-  const [draft, setDraft] = useState<string | null>(null);
-
   useEffect(() => {
-    void window.demoflow.projectLocations().then((l) => {
-      if (!useAppSettings.getState().settings?.projects.defaultDir) setFallback(l.defaultDir);
-    });
-  }, []);
+    if (custom) return;
+    void window.demoflow.projectLocations().then(
+      (l) => setFallback(l.defaultDir),
+      (e: unknown) =>
+        toast.error("Could not find the default projects folder", {
+          description: errorMessage(e),
+        }),
+    );
+  }, [custom]);
+  return custom ? "" : fallback;
+}
 
-  if (!settings) return <Spinner />;
+export function ProjectsPage({ settings }: { settings: AppSettings }) {
   const custom = settings.projects.defaultDir;
+  const fallback = useDefaultFolder(custom);
+  const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (custom || fallback);
+
   const commit = (dir: string) => {
     setDraft(null);
     void patchAppSettings({ projects: { defaultDir: dir.trim() === fallback ? "" : dir.trim() } });
   };
-
-  async function browse() {
-    const picked = await window.demoflow.chooseFolder({
-      title: "Choose the default projects folder",
-      defaultPath: shown || undefined,
-    });
-    if (picked) commit(picked);
-  }
 
   return (
     <Card>
@@ -122,22 +132,14 @@ export function ProjectsPage() {
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor="projects-dir">Folder</FieldLabel>
-            <InputGroup>
-              <InputGroupInput
-                id="projects-dir"
-                value={shown}
-                spellCheck={false}
-                onChange={(e) => setDraft(e.target.value)}
-                onBlur={() => draft !== null && commit(draft)}
-                onKeyDown={(e) => e.key === "Enter" && draft !== null && commit(draft)}
-              />
-              <InputGroupAddon align="inline-end">
-                <InputGroupButton size="xs" onClick={() => void browse()}>
-                  <FolderOpen data-icon="inline-start" />
-                  Browse
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
+            <FolderField
+              id="projects-dir"
+              value={shown}
+              title="Choose the default projects folder"
+              onChange={setDraft}
+              onPicked={commit}
+              onCommit={() => draft !== null && commit(draft)}
+            />
             <FieldDescription>
               {custom
                 ? "Your own folder."
@@ -161,109 +163,116 @@ export function ProjectsPage() {
   );
 }
 
-export function RecordingPage() {
-  const settings = useSettings();
-  if (!settings) return <Spinner />;
+function setKeepLast(value: string): void {
+  const n = Math.round(Number(value));
+  if (n >= KEEP_LAST_MIN)
+    void patchAppSettings({ traces: { keepLast: clamp(n, KEEP_LAST_MIN, KEEP_LAST_MAX) } });
+}
+
+function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Traces</CardTitle>
+        <CardDescription>
+          A step-by-step record of every take, for finding out what went wrong. Open it from the
+          Trace tab in Replay. Stored compressed inside the project.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <FieldGroup>
+          <Field>
+            <FieldLabel>Keep traces</FieldLabel>
+            <ToggleGroup
+              variant="outline"
+              size="sm"
+              value={[traces.retention]}
+              onValueChange={(v) =>
+                isOneOf(TRACE_RETENTION, v[0]) &&
+                void patchAppSettings({ traces: { retention: v[0] } })
+              }
+            >
+              {RETENTION.map(([value, label]) => (
+                <ToggleGroupItem key={value} value={value}>
+                  {label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </Field>
+          {traces.retention === "last-n" ? (
+            <Field>
+              <FieldLabel htmlFor="keep-last">Runs to keep per node</FieldLabel>
+              <Input
+                id="keep-last"
+                type="number"
+                min={KEEP_LAST_MIN}
+                max={KEEP_LAST_MAX}
+                value={traces.keepLast}
+                onChange={(e) => setKeepLast(e.target.value)}
+              />
+            </Field>
+          ) : null}
+        </FieldGroup>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LiveViewCard({ live }: { live: AppSettings["live"] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Live view</CardTitle>
+        <CardDescription>
+          What the recording browser is doing, shown in the editor while a run is going.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <FieldGroup>
+          <Field>
+            <div className="flex items-center justify-between">
+              <FieldLabel>Preview frame rate</FieldLabel>
+              <span className="text-muted-foreground text-sm tabular-nums">{live.fps} fps</span>
+            </div>
+            <Slider
+              min={1}
+              max={30}
+              step={1}
+              value={[live.fps]}
+              onValueChange={(v) =>
+                void patchAppSettings({ live: { fps: Array.isArray(v) ? v[0] : v } })
+              }
+            />
+            <FieldDescription>
+              Only affects the live view; recordings always use the Record node's frame rate.
+            </FieldDescription>
+          </Field>
+          <Field orientation="horizontal" className="justify-between">
+            <FieldLabel htmlFor="live-auto" className="font-normal">
+              Open the live view when a take starts
+            </FieldLabel>
+            <Switch
+              id="live-auto"
+              checked={live.autoOpen}
+              onCheckedChange={(v) => void patchAppSettings({ live: { autoOpen: v } })}
+            />
+          </Field>
+        </FieldGroup>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function RecordingPage({ settings }: { settings: AppSettings }) {
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Traces</CardTitle>
-          <CardDescription>
-            A step-by-step record of every take, for finding out what went wrong. Open it from the
-            Trace tab in Replay. Stored compressed inside the project.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FieldGroup>
-            <Field>
-              <FieldLabel>Keep traces</FieldLabel>
-              <ToggleGroup
-                variant="outline"
-                size="sm"
-                value={[settings.traces.retention]}
-                onValueChange={(v) =>
-                  v[0] &&
-                  void patchAppSettings({
-                    traces: { retention: v[0] as AppSettings["traces"]["retention"] },
-                  })
-                }
-              >
-                {RETENTION.map(([value, label]) => (
-                  <ToggleGroupItem key={value} value={value}>
-                    {label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </Field>
-            {settings.traces.retention === "last-n" ? (
-              <Field>
-                <FieldLabel htmlFor="keep-last">Runs to keep per node</FieldLabel>
-                <Input
-                  id="keep-last"
-                  type="number"
-                  min={1}
-                  max={500}
-                  value={settings.traces.keepLast}
-                  onChange={(e) =>
-                    Number(e.target.value) > 0 &&
-                    void patchAppSettings({ traces: { keepLast: Number(e.target.value) } })
-                  }
-                />
-              </Field>
-            ) : null}
-          </FieldGroup>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Live view</CardTitle>
-          <CardDescription>
-            What the recording browser is doing, shown in the editor while a run is going.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FieldGroup>
-            <Field>
-              <div className="flex items-center justify-between">
-                <FieldLabel>Preview frame rate</FieldLabel>
-                <span className="text-muted-foreground text-sm tabular-nums">
-                  {settings.live.fps} fps
-                </span>
-              </div>
-              <Slider
-                min={1}
-                max={30}
-                step={1}
-                value={[settings.live.fps]}
-                onValueChange={(v) =>
-                  void patchAppSettings({ live: { fps: Array.isArray(v) ? v[0] : v } })
-                }
-              />
-              <FieldDescription>
-                Only affects the live view; recordings always use the Record node's frame rate.
-              </FieldDescription>
-            </Field>
-            <Field orientation="horizontal" className="justify-between">
-              <FieldLabel htmlFor="live-auto" className="font-normal">
-                Open the live view when a take starts
-              </FieldLabel>
-              <Switch
-                id="live-auto"
-                checked={settings.live.autoOpen}
-                onCheckedChange={(v) => void patchAppSettings({ live: { autoOpen: v } })}
-              />
-            </Field>
-          </FieldGroup>
-        </CardContent>
-      </Card>
+      <TracesCard traces={settings.traces} />
+      <LiveViewCard live={settings.live} />
     </>
   );
 }
 
-export function ExportPage() {
-  const settings = useSettings();
-  if (!settings) return <Spinner />;
+export function ExportPage({ settings }: { settings: AppSettings }) {
   return (
     <Card>
       <CardHeader>
@@ -315,8 +324,7 @@ export function ExportPage() {
 }
 
 export function AboutPage() {
-  const [env, setEnv] = useState<EnvStatus | null>(null);
-  useEffect(() => void window.demoflow.getEnvironment().then(setEnv), []);
+  const env = useFreshEnvironment();
   if (!env) return <Spinner />;
   const rows: Array<[string, string]> = [
     ["App", `${env.versions.app} (${env.edition})`],

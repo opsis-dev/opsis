@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type { MixPlan } from "@/shared/mix/plan";
-import type { Filmstrip, MixResult, Waveform } from "@/shared/mix/result";
-import { isEngineMissing } from "@/shared/engine-message";
+import type { AnalysisResult, Filmstrip, MixResult, Waveform } from "@/shared/mix/result";
 import { debounce } from "@/shared/timing";
 import { useAudioPreview } from "./audio-preview";
 
@@ -24,87 +23,111 @@ type MediaState = {
 };
 
 const MAX_MIXES = 8;
+const MIX_DEBOUNCE_MS = 250;
+
+const engineMissing = (r: AnalysisResult) => r.kind === "error" && !!r.engineMissing;
+
+const emptyMedia = (projectDir: string | null) => ({
+  projectDir,
+  waveforms: {},
+  filmstrips: {},
+  mixes: {},
+  latest: {},
+  mixing: null,
+  mixError: null,
+  failedKey: null,
+  unavailable: false,
+});
+
+function keepRecent(
+  mixes: MediaState["mixes"],
+  latest: MediaState["latest"],
+  key: string,
+  mix: MixResult,
+  source: string,
+) {
+  const kept = new Set(
+    Object.keys(mixes)
+      .filter((k) => k !== key)
+      .slice(1 - MAX_MIXES),
+  );
+  return {
+    mixes: { ...Object.fromEntries([...kept].map((k) => [k, mixes[k]])), [key]: mix },
+    latest: {
+      ...Object.fromEntries(Object.entries(latest).filter(([, k]) => k === key || kept.has(k))),
+      [source]: key,
+    },
+  };
+}
+
 export const useMedia = create<MediaState>()((set, get) => {
-  const startMix = debounce((projectDir: string, source: string, plan: MixPlan) => {
-    void window.demoflow.analyze({ kind: "mix", projectDir, plan }).then((r) => {
-      if (get().projectDir !== projectDir) return;
-      if (r.kind === "skipped") return;
-      if (r.kind === "error") {
-        set({
-          mixError: r.error,
-          failedKey: plan.key,
-          unavailable: isEngineMissing(r.error),
-          mixing: null,
-        });
-        useAudioPreview.getState().clear();
-        return;
-      }
-      if (r.kind !== "mix") return;
-      set((s) => {
-        const keys = Object.keys(s.mixes)
-          .filter((k) => k !== plan.key)
-          .slice(-(MAX_MIXES - 1));
-        return {
-          mixes: { ...Object.fromEntries(keys.map((k) => [k, s.mixes[k]])), [plan.key]: r.mix },
-          latest: { ...s.latest, [source]: plan.key },
-          mixing: s.mixing === plan.key ? null : s.mixing,
-          mixError: null,
-          failedKey: null,
-        };
-      });
+  const mixDone = (projectDir: string, source: string, plan: MixPlan, r: AnalysisResult) => {
+    if (get().projectDir !== projectDir || r.kind === "skipped") return;
+    if (r.kind === "error") {
+      set((s) => ({
+        mixError: r.error,
+        failedKey: plan.key,
+        unavailable: engineMissing(r),
+        mixing: s.mixing === plan.key ? null : s.mixing,
+      }));
       useAudioPreview.getState().clear();
+      return;
+    }
+    if (r.kind !== "mix") return;
+    set((s) => ({
+      ...keepRecent(s.mixes, s.latest, plan.key, r.mix, source),
+      mixing: s.mixing === plan.key ? null : s.mixing,
+      mixError: null,
+      failedKey: null,
+    }));
+    useAudioPreview.getState().clear();
+  };
+
+  const startMix = debounce((projectDir: string, source: string, plan: MixPlan) => {
+    void window.demoflow
+      .analyze({ kind: "mix", projectDir, plan })
+      .then((r) => mixDone(projectDir, source, plan, r));
+  }, MIX_DEBOUNCE_MS);
+
+  const loadAnalysis = <T>(
+    kind: "waveform" | "filmstrip",
+    src: string,
+    entries: (s: MediaState) => Record<string, Entry<T>>,
+    store: (next: Record<string, Entry<T>>) => Partial<MediaState>,
+    pick: (r: AnalysisResult) => T | undefined,
+  ) => {
+    const { projectDir, unavailable } = get();
+    if (!projectDir || entries(get())[src] || unavailable) return;
+    set((s) => store({ ...entries(s), [src]: "loading" }));
+    void window.demoflow.analyze({ kind, projectDir, src }).then((r) => {
+      if (get().projectDir !== projectDir) return;
+      if (engineMissing(r)) set({ unavailable: true });
+      set((s) => store({ ...entries(s), [src]: pick(r) ?? "error" }));
     });
-  }, 250);
+  };
 
   return {
-    projectDir: null,
-    waveforms: {},
-    filmstrips: {},
-    mixes: {},
-    latest: {},
-    mixing: null,
-    mixError: null,
-    failedKey: null,
-    unavailable: false,
+    ...emptyMedia(null),
 
-    reset: (projectDir) =>
-      set({
-        projectDir,
-        waveforms: {},
-        filmstrips: {},
-        mixes: {},
-        latest: {},
-        mixing: null,
-        mixError: null,
-        failedKey: null,
-        unavailable: false,
-      }),
+    reset: (projectDir) => set(emptyMedia(projectDir)),
 
-    waveform: (src) => {
-      const { projectDir, waveforms, unavailable } = get();
-      if (!projectDir || waveforms[src] || unavailable) return;
-      set((s) => ({ waveforms: { ...s.waveforms, [src]: "loading" } }));
-      void window.demoflow.analyze({ kind: "waveform", projectDir, src }).then((r) => {
-        if (get().projectDir !== projectDir) return;
-        if (r.kind === "error" && isEngineMissing(r.error)) set({ unavailable: true });
-        set((s) => ({
-          waveforms: { ...s.waveforms, [src]: r.kind === "waveform" ? r.waveform : "error" },
-        }));
-      });
-    },
+    waveform: (src) =>
+      loadAnalysis(
+        "waveform",
+        src,
+        (s) => s.waveforms,
+        (waveforms) => ({ waveforms }),
+        (r) => (r.kind === "waveform" ? r.waveform : undefined),
+      ),
 
-    filmstrip: (src) => {
-      const { projectDir, filmstrips, unavailable } = get();
-      if (!projectDir || filmstrips[src] || unavailable) return;
-      set((s) => ({ filmstrips: { ...s.filmstrips, [src]: "loading" } }));
-      void window.demoflow.analyze({ kind: "filmstrip", projectDir, src }).then((r) => {
-        if (get().projectDir !== projectDir) return;
-        if (r.kind === "error" && isEngineMissing(r.error)) set({ unavailable: true });
-        set((s) => ({
-          filmstrips: { ...s.filmstrips, [src]: r.kind === "filmstrip" ? r.filmstrip : "error" },
-        }));
-      });
-    },
+    filmstrip: (src) =>
+      loadAnalysis(
+        "filmstrip",
+        src,
+        (s) => s.filmstrips,
+        (filmstrips) => ({ filmstrips }),
+        (r) => (r.kind === "filmstrip" ? r.filmstrip : undefined),
+      ),
 
     requestMix: (source, plan) => {
       const { projectDir, mixes, unavailable } = get();

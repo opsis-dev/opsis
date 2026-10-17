@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { PanelBottomClose } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import type { DockPanelName } from "@/shared/ipc";
 import { Button } from "@/renderer/components/ui/button";
 import { Spinner } from "@/renderer/components/ui/spinner";
@@ -19,23 +20,17 @@ function PanelBody({ panel }: { panel: DockPanelName }) {
   const compiled = useCompiled();
   return (
     <CompiledContext.Provider value={compiled}>
-      <FilmBody panel={panel} />
+      <FilmProvider>
+        <section
+          id={`panel-${panel}`}
+          tabIndex={-1}
+          aria-label={DOCK_TITLES[panel]}
+          className="bg-sidebar min-h-0 flex-1 outline-none"
+        >
+          <DockContent panel={panel} />
+        </section>
+      </FilmProvider>
     </CompiledContext.Provider>
-  );
-}
-
-function FilmBody({ panel }: { panel: DockPanelName }) {
-  return (
-    <FilmProvider>
-      <section
-        id={`panel-${panel}`}
-        tabIndex={-1}
-        aria-label={DOCK_TITLES[panel]}
-        className="bg-sidebar min-h-0 flex-1 outline-none"
-      >
-        <DockContent panel={panel} />
-      </section>
-    </FilmProvider>
   );
 }
 
@@ -44,8 +39,7 @@ function PanelRoute() {
   const panel = isDockPanel(name) ? name : "preview";
   const { project } = Route.useSearch();
   const workflow = useWorkflowStore((s) => s.workflow);
-  const onClosed = useCallback(() => close(), []);
-  usePanelSync(panel, onClosed);
+  usePanelSync(panel, close);
 
   useEffect(() => {
     useMedia.getState().reset(project || null);
@@ -90,6 +84,6 @@ function PanelRoute() {
 }
 
 export const Route = createFileRoute("/panel/$name")({
-  validateSearch: (search: Record<string, unknown>) => ({ project: String(search.project ?? "") }),
+  validateSearch: z.object({ project: z.coerce.string().default("") }),
   component: PanelRoute,
 });

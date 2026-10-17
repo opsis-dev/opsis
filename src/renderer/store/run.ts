@@ -33,77 +33,55 @@ type RunState = RunProgress & {
   clearLogs: () => void;
 };
 
-export const useRunStore = create<RunState>()((set) => ({
-  ...emptyRunProgress(),
-  running: false,
-  logs: [],
+const freshRun = () => ({
+  running: true,
   outputs: [],
   lastError: null,
   failedNodeIds: [],
   skippedNodeIds: [],
+});
 
-  seed: (lastRun) => {
-    const newerFailures = Object.entries(lastRun?.failures ?? {}).filter(
-      ([id, f]) => f.at > (lastRun?.nodes[id]?.finishedAt ?? 0),
-    );
+const newerFailures = (lastRun: LastRun | null) =>
+  Object.entries(lastRun?.failures ?? {}).filter(
+    ([id, f]) => f.at > (lastRun?.nodes[id]?.finishedAt ?? 0),
+  );
+
+function traceIds(lastRun: LastRun | null): Record<string, string> {
+  const traces: Record<string, string> = {};
+  for (const [id, r] of Object.entries(lastRun?.nodes ?? {})) if (r.traceId) traces[id] = r.traceId;
+  for (const [id, f] of newerFailures(lastRun)) if (f.traceId) traces[id] = f.traceId;
+  return traces;
+}
+
+const errorsOf = (lastRun: LastRun | null): Record<string, string> =>
+  Object.fromEntries(newerFailures(lastRun).map(([id, f]) => [id, f.message]));
+
+export const useRunStore = create<RunState>()((set) => ({
+  ...emptyRunProgress(),
+  ...freshRun(),
+  running: false,
+  logs: [],
+
+  seed: (lastRun) =>
     set({
-      traces: Object.fromEntries([
-        ...Object.entries(lastRun?.nodes ?? {}).flatMap(([id, r]) =>
-          r.traceId ? [[id, r.traceId]] : [],
-        ),
-        ...newerFailures.flatMap(([id, f]) => (f.traceId ? [[id, f.traceId]] : [])),
-      ]),
+      ...emptyRunProgress(),
+      ...freshRun(),
+      traces: traceIds(lastRun),
       results: lastRun?.nodes ?? {},
-      statuses: {},
-      progress: {},
-      cached: {},
-      errors: Object.fromEntries(newerFailures.map(([id, f]) => [id, f.message])),
+      errors: errorsOf(lastRun),
       logs: [],
-      outputs: [],
-      lastError: null,
-      failedNodeIds: [],
-      skippedNodeIds: [],
       running: false,
-      runId: null,
-    });
-  },
+    }),
 
-  start: (runId) =>
-    set((s) =>
-      s.runId === runId
-        ? {}
-        : {
-            runId,
-            running: true,
-            outputs: [],
-            lastError: null,
-            failedNodeIds: [],
-            skippedNodeIds: [],
-          },
-    ),
+  start: (runId) => set((s) => (s.runId === runId ? {} : { ...freshRun(), runId })),
 
-  resume: (progress) =>
-    set((s) => ({
-      ...resumeRunProgress(s, progress),
-      running: true,
-      outputs: [],
-      lastError: null,
-      failedNodeIds: [],
-      skippedNodeIds: [],
-    })),
+  resume: (progress) => set((s) => ({ ...resumeRunProgress(s, progress), ...freshRun() })),
 
   apply: (e) =>
     set((s) => {
       switch (e.type) {
         case "run:start":
-          return {
-            ...applyRunEvent(s, e),
-            running: true,
-            outputs: [],
-            lastError: null,
-            failedNodeIds: [],
-            skippedNodeIds: [],
-          };
+          return { ...applyRunEvent(s, e), ...freshRun() };
         case "node:log":
           return {
             logs: [

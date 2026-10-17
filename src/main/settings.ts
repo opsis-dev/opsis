@@ -4,6 +4,7 @@ import { app } from "electron";
 import {
   appSettingsSchema,
   DEFAULT_SETTINGS,
+  mergeSettings,
   type AppSettings,
   type SettingsPatch,
 } from "../shared/settings";
@@ -37,9 +38,5 @@ export async function writeSettings(next: AppSettings): Promise<AppSettings> {
 }
 
 export async function patchSettings(patch: SettingsPatch): Promise<AppSettings> {
-  const current = await readSettings();
-  const next = { ...current } as Record<string, unknown>;
-  for (const [section, values] of Object.entries(patch))
-    next[section] = { ...(current as Record<string, object>)[section], ...values };
-  return writeSettings(next as AppSettings);
+  return writeSettings(mergeSettings(await readSettings(), patch));
 }

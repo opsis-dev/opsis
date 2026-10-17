@@ -6,6 +6,7 @@ export type TemplateInfo = {
   id: string;
   title: string;
   description: string;
+  icon: string;
   build: (name: string) => Workflow;
 };
 
@@ -341,6 +342,7 @@ export const TEMPLATES: TemplateInfo[] = [
     id: "blank",
     title: "Blank",
     description: "An empty canvas to build from scratch.",
+    icon: "file",
     build: blank,
   },
   {
@@ -348,36 +350,42 @@ export const TEMPLATES: TemplateInfo[] = [
     title: "Sample: to-do app",
     description:
       "Records a sample to-do app with auto zoom and an opening title, in wide and tall shapes.",
+    icon: "list-checks",
     build: todoMvcSample,
   },
   {
     id: "feature-launch",
     title: "Feature launch",
     description: "A bold headline, a recorded flow with a spotlight, then a call to action.",
+    icon: "rocket",
     build: featureLaunch,
   },
   {
     id: "changelog",
     title: "Changelog clip",
     description: "A title, a terminal session and a chart with a name label.",
+    icon: "scroll-text",
     build: changelogClip,
   },
   {
     id: "onboarding",
     title: "Onboarding walkthrough",
     description: "Chapters, highlight boxes, a pinned tooltip and captions.",
+    icon: "map",
     build: onboarding,
   },
   {
     id: "social-teaser",
     title: "Social teaser (9:16)",
     description: "A vertical opener, a recording that follows the action, and background music.",
+    icon: "smartphone",
     build: socialTeaser,
   },
   {
     id: "before-after",
     title: "Before / after",
     description: "Two takes joined with a wipe.",
+    icon: "columns-2",
     build: beforeAfter,
   },
 ];

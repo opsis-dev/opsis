@@ -1,4 +1,6 @@
+import { toast } from "sonner";
 import { create } from "zustand";
+import { errorMessage } from "@/shared/errors";
 
 export const useSecretsStore = create<{
   names: string[] | null;
@@ -12,8 +14,9 @@ export const useSecretsStore = create<{
     }
     try {
       set({ names: await window.demoflow.listSecrets(dir) });
-    } catch {
+    } catch (e) {
       set({ names: null });
+      toast.error("Could not read the saved sign-ins", { description: errorMessage(e) });
     }
   },
 }));

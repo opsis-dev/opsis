@@ -12,7 +12,7 @@ import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
-import { installFfmpeg, installHeadlessShell } from "./src/engine/install";
+import { installFfmpeg, installHeadlessShell, type InstallProgress } from "./src/engine/install";
 import { writeChromiumCredits } from "./src/engine/chromium-credits";
 import {
   CHROMIUM_CREDITS_FILE,
@@ -81,7 +81,7 @@ async function stageEngine(platform: string, arch: string): Promise<void> {
     );
   if (engineStatus(ENGINE_DIR).complete && existsSync(CHROMIUM_CREDITS)) return;
   await rm(ENGINE_DIR, { recursive: true, force: true });
-  const log = (part: string, progress: number | null, message: string) =>
+  const log: InstallProgress = ({ part, progress, message }) =>
     process.stdout.write(
       `\r[engine] ${part} ${progress == null ? "" : `${Math.round(progress * 100)}%`} ${message}   `,
     );

@@ -202,6 +202,7 @@ export async function installEngine(onEvent: (e: EngineInstallEvent) => void): P
       if (msg.type === "install:done") {
         onEvent({
           part: "headless-shell",
+          step: "done",
           progress: msg.error ? null : 1,
           message: msg.error ?? "Engine ready",
           done: true,

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { clamp } from "@/shared/math";
 
-export type PlayerController = {
+type PlayerController = {
   seek: (frame: number) => void;
   play: () => void;
   pause: () => void;
@@ -23,9 +23,6 @@ type PlaybackState = {
   inPoint: number | null;
   outPoint: number | null;
   hasPlayer: boolean;
-  report: (
-    patch: Partial<Pick<PlaybackState, "frame" | "playing" | "fps" | "durationInFrames" | "rate">>,
-  ) => void;
   seek: (frame: number) => void;
   play: () => void;
   pause: () => void;
@@ -51,16 +48,28 @@ export function forwardPlaybackTo(send: ((command: PlaybackCommand) => void) | n
 
 export function runPlaybackCommand(command: PlaybackCommand): void {
   if (!local) return;
-  if (command.type === "seek") local.seek(command.frame);
-  else if (command.type === "play") local.play();
-  else if (command.type === "pause") local.pause();
-  else local.setRate(command.rate);
+  switch (command.type) {
+    case "seek":
+      local.seek(command.frame);
+      break;
+    case "play":
+      local.play();
+      break;
+    case "pause":
+      local.pause();
+      break;
+    case "rate":
+      local.setRate(command.rate);
+      break;
+  }
 }
 
 const dispatch = (command: PlaybackCommand) => {
   if (local) runPlaybackCommand(command);
   else remote?.(command);
 };
+
+const MAX_SHUTTLE_RATE = 4;
 
 const frameIn = (frame: number, total: number) =>
   clamp(Math.round(frame), 0, Math.max(0, total - 1));
@@ -78,58 +87,59 @@ export function playRange(
   };
 }
 
-export const usePlayback = create<PlaybackState>()((set, get) => ({
-  frame: 0,
-  playing: false,
-  rate: 1,
-  fps: 30,
-  durationInFrames: 1,
-  inPoint: null,
-  outPoint: null,
-  hasPlayer: false,
-  report: (patch) => set(patch),
-  seek: (frame) => {
-    const f = frameIn(frame, get().durationInFrames);
-    set({ frame: f });
-    dispatch({ type: "seek", frame: f });
-  },
-  play: () => {
-    if (get().rate !== 1) {
-      set({ rate: 1 });
-      dispatch({ type: "rate", rate: 1 });
-    }
-    dispatch({ type: "play" });
-  },
-  pause: () => dispatch({ type: "pause" }),
-  toggle: () => (get().playing ? get().pause() : get().play()),
-  step: (frames) => {
-    get().pause();
-    get().seek(get().frame + frames);
-  },
-  shuttle: (direction) => {
-    const { playing, rate } = get();
-    if (direction === 0) {
-      dispatch({ type: "pause" });
-      set({ rate: 1 });
-      dispatch({ type: "rate", rate: 1 });
-      return;
-    }
-    const same = playing && Math.sign(rate) === direction;
-    const next = same ? clamp(rate * 2, -4, 4) : direction;
-    set({ rate: next });
-    dispatch({ type: "rate", rate: next });
-    if (!playing) dispatch({ type: "play" });
-  },
-  setIn: (inPoint) =>
-    set((s) => ({
-      inPoint,
-      outPoint:
-        inPoint !== null && s.outPoint !== null && s.outPoint <= inPoint ? null : s.outPoint,
-    })),
-  setOut: (outPoint) =>
-    set((s) => ({
-      outPoint,
-      inPoint: outPoint !== null && s.inPoint !== null && s.inPoint >= outPoint ? null : s.inPoint,
-    })),
-  clearRange: () => set({ inPoint: null, outPoint: null }),
-}));
+export const usePlayback = create<PlaybackState>()((set, get) => {
+  const setRate = (rate: number) => {
+    set({ rate });
+    dispatch({ type: "rate", rate });
+  };
+  return {
+    frame: 0,
+    playing: false,
+    rate: 1,
+    fps: 30,
+    durationInFrames: 1,
+    inPoint: null,
+    outPoint: null,
+    hasPlayer: false,
+    seek: (frame) => {
+      const f = frameIn(frame, get().durationInFrames);
+      set({ frame: f });
+      dispatch({ type: "seek", frame: f });
+    },
+    play: () => {
+      if (get().rate !== 1) setRate(1);
+      dispatch({ type: "play" });
+    },
+    pause: () => dispatch({ type: "pause" }),
+    toggle: () => (get().playing ? get().pause() : get().play()),
+    step: (frames) => {
+      get().pause();
+      get().seek(get().frame + frames);
+    },
+    shuttle: (direction) => {
+      const { playing, rate } = get();
+      if (direction === 0) {
+        dispatch({ type: "pause" });
+        setRate(1);
+        return;
+      }
+      const same = playing && Math.sign(rate) === direction;
+      const next = same ? clamp(rate * 2, -MAX_SHUTTLE_RATE, MAX_SHUTTLE_RATE) : direction;
+      setRate(next);
+      if (!playing) dispatch({ type: "play" });
+    },
+    setIn: (inPoint) =>
+      set((s) => ({
+        inPoint,
+        outPoint:
+          inPoint !== null && s.outPoint !== null && s.outPoint <= inPoint ? null : s.outPoint,
+      })),
+    setOut: (outPoint) =>
+      set((s) => ({
+        outPoint,
+        inPoint:
+          outPoint !== null && s.inPoint !== null && s.inPoint >= outPoint ? null : s.inPoint,
+      })),
+    clearRange: () => set({ inPoint: null, outPoint: null }),
+  };
+});

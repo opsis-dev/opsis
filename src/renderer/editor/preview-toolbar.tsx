@@ -13,7 +13,7 @@ import {
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
-import { isPreviewQuality, isPreviewShape, useUiStore } from "../store/ui";
+import { isPreviewQuality, isPreviewShape, useViewOptions } from "../store/view-options";
 
 const PROJECT_SHAPE = "Project shape";
 const shapeLabel = (shape: string) => (shape === "project" ? PROJECT_SHAPE : shape);
@@ -33,8 +33,8 @@ function UpdatingSound() {
 }
 
 function ShapeSelect() {
-  const shape = useUiStore((s) => s.previewShape);
-  const setShape = useUiStore((s) => s.setPreviewShape);
+  const shape = useViewOptions((s) => s.previewShape);
+  const setShape = useViewOptions((s) => s.setPreviewShape);
   return (
     <Select value={shape} onValueChange={(v) => isPreviewShape(v) && setShape(v)}>
       <SelectTrigger size="sm" className="w-32" aria-label="Preview shape">
@@ -55,8 +55,8 @@ function ShapeSelect() {
 }
 
 function QualityToggle() {
-  const quality = useUiStore((s) => s.previewQuality);
-  const setQuality = useUiStore((s) => s.setPreviewQuality);
+  const quality = useViewOptions((s) => s.previewQuality);
+  const setQuality = useViewOptions((s) => s.setPreviewQuality);
   return (
     <ToggleGroup
       variant="outline"

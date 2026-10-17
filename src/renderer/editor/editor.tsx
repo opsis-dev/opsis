@@ -9,6 +9,7 @@ import {
 import { useEditorSync } from "../app/sync";
 import { useMedia } from "../store/media";
 import { useStillsStore } from "../store/stills";
+import { useEnvironment } from "../store/environment";
 import { useWorkflowStore } from "../store/workflow";
 import { useApiBridge } from "./api-bridge";
 import { Canvas } from "./canvas";
@@ -43,7 +44,7 @@ function useEditorSetup(projectDir: string): void {
   }, [name]);
   useEffect(() => {
     void useStillsStore.getState().load(projectDir);
-    void useStillsStore.getState().checkEngine();
+    void useEnvironment.getState().refresh();
     useMedia.getState().reset(projectDir);
   }, [projectDir]);
   useEditorSync();

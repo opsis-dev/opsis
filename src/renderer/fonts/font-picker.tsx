@@ -1,7 +1,7 @@
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { BUNDLED_FONTS, type FontFamilyDef } from "@/shared/fonts";
+import { BUNDLED_FONTS, familyKey, sameFamily, type FontFamilyDef } from "@/shared/fonts";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Command,
@@ -14,11 +14,13 @@ import {
 } from "@/renderer/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import { useWorkflowStore } from "../store/workflow";
-import { registerPreview, useFontLibrary } from "./library";
+import { useFontLibrary, usePreviewFamily } from "./library";
 import { errorMessage } from "@/shared/errors";
 
+const NO_FAMILIES: FontFamilyDef[] = [];
+
 function FontName({ def, name }: { def?: FontFamilyDef; name: string }) {
-  const family = def ? registerPreview(def) : undefined;
+  const family = usePreviewFamily(def);
   return (
     <span
       className="truncate"
@@ -42,38 +44,30 @@ export function FontPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const projectDir = useWorkflowStore((s) => s.projectDir);
-  const fonts = useWorkflowStore((s) => s.workflow?.settings.fonts);
-  const { library, loaded, refresh } = useFontLibrary();
-  useEffect(() => {
-    if (open && !loaded) void refresh();
-  }, [open, loaded, refresh]);
+  const project = useWorkflowStore((s) => s.workflow?.settings.fonts.families) ?? NO_FAMILIES;
+  const library = useFontLibrary((s) => s.library);
 
-  const project = fonts?.families ?? [];
-  const taken = new Set([...project, ...BUNDLED_FONTS].map((f) => f.family.toLowerCase()));
-  const extra = library.filter((f) => !taken.has(f.family.toLowerCase()));
-  const current = [...project, ...BUNDLED_FONTS, ...library].find(
-    (f) => f.family.toLowerCase() === value.toLowerCase(),
+  const toggle = (next: boolean) => {
+    setOpen(next);
+    if (next) useFontLibrary.getState().ensureLoaded();
+  };
+
+  const taken = new Set([...project, ...BUNDLED_FONTS].map((f) => familyKey(f.family)));
+  const extra = library.filter((f) => !taken.has(familyKey(f.family)));
+  const builtIn = BUNDLED_FONTS.filter((d) => !project.some((p) => sameFamily(p.family, d.family)));
+  const current = [...project, ...BUNDLED_FONTS, ...library].find((f) =>
+    sameFamily(f.family, value),
   );
 
   const pick = async (family: string, fromLibrary?: FontFamilyDef) => {
     setOpen(false);
     if (!fromLibrary) return onChange(family);
-    if (!projectDir || !fonts) return;
     setBusy(true);
     try {
+      const projectDir = useWorkflowStore.getState().projectDir;
+      if (!projectDir) throw new Error("Open a project to use this font.");
       const def = await window.demoflow.useFontInProject(projectDir, fromLibrary.id);
-      const { setSettings, workflow } = useWorkflowStore.getState();
-      const latest = workflow?.settings.fonts ?? fonts;
-      setSettings({
-        fonts: {
-          ...latest,
-          families: [
-            ...latest.families.filter((f) => f.family.toLowerCase() !== def.family.toLowerCase()),
-            def,
-          ],
-        },
-      });
+      useWorkflowStore.getState().addProjectFont(def);
       onChange(def.family);
     } catch (error) {
       toast.error(errorMessage(error));
@@ -89,14 +83,12 @@ export function FontPicker({
       onSelect={() => void pick(def.family, fromLibrary ? def : undefined)}
     >
       <FontName def={def} name={def.family} />
-      {value.toLowerCase() === def.family.toLowerCase() ? (
-        <Check data-icon="inline-end" className="ml-auto" />
-      ) : null}
+      {sameFamily(value, def.family) ? <Check data-icon="inline-end" className="ml-auto" /> : null}
     </CommandItem>
   );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={toggle}>
       <PopoverTrigger
         render={
           <Button
@@ -132,11 +124,7 @@ export function FontPicker({
             {project.length ? (
               <CommandGroup heading="In this project">{project.map((d) => item(d))}</CommandGroup>
             ) : null}
-            <CommandGroup heading="Built in">
-              {BUNDLED_FONTS.filter(
-                (d) => !project.some((p) => p.family.toLowerCase() === d.family.toLowerCase()),
-              ).map((d) => item(d))}
-            </CommandGroup>
+            <CommandGroup heading="Built in">{builtIn.map((d) => item(d))}</CommandGroup>
             {extra.length ? (
               <CommandGroup heading="Your library">{extra.map((d) => item(d, true))}</CommandGroup>
             ) : null}

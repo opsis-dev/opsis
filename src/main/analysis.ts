@@ -22,7 +22,7 @@ const keyOf = (r: AnalysisRequest) =>
 
 export function analyze(request: AnalysisRequest): Promise<AnalysisResult> {
   if (!engineStatus(engineDir()).ffmpeg)
-    return Promise.resolve({ kind: "error", error: ENGINE_MISSING_MESSAGE });
+    return Promise.resolve({ kind: "error", error: ENGINE_MISSING_MESSAGE, engineMissing: true });
   const key = keyOf(request);
   return new Promise((resolve) => {
     const existing = queue.find((j) => j.key === key);

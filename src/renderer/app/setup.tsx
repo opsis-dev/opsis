@@ -1,8 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
 import { PageBar } from "./app-bar";
 import { CheckCircle2, Download } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import type { EngineInstallEvent, EnvStatus } from "@/shared/ipc";
+import { useEffect, useState } from "react";
+import type { EngineInstallEvent } from "@/shared/ipc";
+import { errorMessage } from "@/shared/errors";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -16,19 +17,17 @@ import {
 import { Progress } from "@/renderer/components/ui/progress";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { AnimatedPercent } from "./motion";
+import { useEnvironment, useFreshEnvironment } from "../store/environment";
+import { writeStored } from "../store/view-prefs";
 
 export const SETUP_SKIPPED_KEY = "demoflow:setup-skipped";
 
 export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void; title?: string }) {
-  const [env, setEnv] = useState<EnvStatus | null>(null);
+  const env = useFreshEnvironment();
   const [event, setEvent] = useState<EngineInstallEvent | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const refresh = useCallback(() => void window.demoflow.getEnvironment().then(setEnv), []);
-  useEffect(() => {
-    refresh();
-    return window.demoflow.onEngineInstall(setEvent);
-  }, [refresh]);
+  useEffect(() => window.demoflow.onEngineInstall(setEvent), []);
 
   const ready = !!env?.engine.complete;
   const bundled = env?.edition === "full";
@@ -37,13 +36,17 @@ export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void;
     setBusy(true);
     try {
       await window.demoflow.installEngine();
-    } catch {
+    } catch (e) {
+      const error = errorMessage(e);
+      setEvent((prev) =>
+        prev?.error
+          ? prev
+          : { part: "ffmpeg", step: "error", progress: null, message: error, error },
+      );
+    } finally {
       setBusy(false);
-      refresh();
-      return;
+      void useEnvironment.getState().refresh();
     }
-    setBusy(false);
-    refresh();
   }
 
   return (
@@ -69,10 +72,7 @@ export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void;
       {busy || event?.error ? (
         <CardContent className="flex flex-col gap-2">
           {event?.progress != null ? (
-            <div
-              key={`${event.part}|${event.message.split(" · ")[0]}`}
-              className="flex items-center gap-2"
-            >
+            <div key={`${event.part}|${event.step}`} className="flex items-center gap-2">
               <Progress className="flex-1" value={Math.round(event.progress * 100)} />
               <AnimatedPercent
                 className="text-muted-foreground w-10 text-right text-xs"
@@ -130,11 +130,7 @@ export function Setup() {
           </p>
           <EnginePanel
             onDone={() => {
-              try {
-                localStorage.setItem(SETUP_SKIPPED_KEY, "1");
-              } catch {
-                void 0;
-              }
+              writeStored(SETUP_SKIPPED_KEY, "1");
               void navigate({ to: "/" });
             }}
           />

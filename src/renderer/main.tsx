@@ -17,6 +17,7 @@ const router = createRouter({
   history: createHashHistory(),
   defaultPreload: "intent",
   defaultErrorComponent: ErrorScreen,
+  defaultOnCatch: (error) => console.error(error),
 });
 
 declare module "@tanstack/react-router" {

@@ -110,8 +110,7 @@ async function handle(msg: MainToWorker): Promise<void> {
       try {
         await installEngine(
           msg.env.engineDir,
-          (part, progress, message) =>
-            send({ type: "install:progress", event: { part, progress, message } }),
+          (event) => send({ type: "install:progress", event }),
           controller.signal,
         );
         send({ type: "install:done" });

@@ -77,3 +77,7 @@ export function fontSlug(family: string): string {
       .replace(/^-+|-+$/g, "") || "font"
   );
 }
+
+export const familyKey = (family: string): string => family.toLowerCase();
+
+export const sameFamily = (a: string, b: string): boolean => familyKey(a) === familyKey(b);

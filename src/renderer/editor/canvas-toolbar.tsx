@@ -6,10 +6,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-gr
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { isOneOf } from "@/renderer/lib/one-of";
 import { patchAppSettings } from "../store/app-settings";
-import { useUiStore } from "../store/ui";
+import { useViewOptions } from "../store/view-options";
 
 export function CanvasToolbar({ mode }: { mode: CanvasMode }) {
-  const minimap = useUiStore((s) => s.minimap);
+  const minimap = useViewOptions((s) => s.minimap);
   return (
     <Panel
       position="top-right"
@@ -44,7 +44,7 @@ export function CanvasToolbar({ mode }: { mode: CanvasMode }) {
               size="sm"
               aria-label="Minimap"
               pressed={minimap}
-              onPressedChange={(v) => useUiStore.getState().setMinimap(v)}
+              onPressedChange={(v) => useViewOptions.getState().setMinimap(v)}
             />
           }
         >
