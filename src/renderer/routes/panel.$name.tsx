@@ -7,8 +7,8 @@ import { Spinner } from "@/renderer/components/ui/spinner";
 import { AppBar } from "../app/app-bar";
 import { forwardMenuCommand, usePanelSync } from "../app/sync";
 import { DockContent } from "../editor/dock";
-import { FilmContext, useFilmState } from "../editor/film";
-import { DOCK_PANELS, DOCK_TITLES } from "../editor/panels";
+import { FilmProvider } from "../editor/film";
+import { DOCK_TITLES, isDockPanel } from "../editor/panels";
 import { CompiledContext, useCompiled } from "../editor/use-compiled";
 import { useMedia } from "../store/media";
 import { useWorkflowStore } from "../store/workflow";
@@ -25,9 +25,8 @@ function PanelBody({ panel }: { panel: DockPanelName }) {
 }
 
 function FilmBody({ panel }: { panel: DockPanelName }) {
-  const film = useFilmState();
   return (
-    <FilmContext.Provider value={film}>
+    <FilmProvider>
       <section
         id={`panel-${panel}`}
         tabIndex={-1}
@@ -36,13 +35,13 @@ function FilmBody({ panel }: { panel: DockPanelName }) {
       >
         <DockContent panel={panel} />
       </section>
-    </FilmContext.Provider>
+    </FilmProvider>
   );
 }
 
 function PanelRoute() {
   const { name } = Route.useParams();
-  const panel = (DOCK_PANELS as string[]).includes(name) ? (name as DockPanelName) : "preview";
+  const panel = isDockPanel(name) ? name : "preview";
   const { project } = Route.useSearch();
   const workflow = useWorkflowStore((s) => s.workflow);
   const onClosed = useCallback(() => close(), []);

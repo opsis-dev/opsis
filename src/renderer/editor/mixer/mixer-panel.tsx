@@ -1,5 +1,5 @@
 import { Plus, SlidersVertical } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { randomId } from "@/shared/ids";
 import { addBus } from "@/shared/mix/edits";
 import { soloActive } from "@/shared/mix/levels";
@@ -13,7 +13,6 @@ import {
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { useAudioPreview } from "../../store/audio-preview";
 import { useMedia } from "../../store/media";
 import { usePlayback } from "../../store/playback";
 import { readPref, writePref } from "../../store/view-prefs";
@@ -78,10 +77,6 @@ export function MixerPanel() {
   const frame = usePlayback((s) => s.frame);
   const holdFrames = Math.round((film.flat?.fps ?? 30) * HOLD_SECONDS);
   const { collapsed, toggle } = useCollapsedBuses();
-
-  useEffect(() => {
-    if (!film.stale) useAudioPreview.getState().clear();
-  }, [film.stale]);
 
   const channels = film.plan?.channels ?? [];
   if (!film.flat || channels.length === 0) {

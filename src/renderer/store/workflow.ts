@@ -24,7 +24,7 @@ type Actions = {
   load: (dir: string, workflow: Workflow, fileVersion?: string | null) => void;
   setFileVersion: (version: string | null) => void;
   close: () => void;
-  markSaved: (revision: number) => void;
+  markSaved: (revision: number, fileVersion: string) => void;
   update: (fn: (wf: Workflow) => Workflow) => void;
   addNode: (
     type: string,
@@ -96,7 +96,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
       setFileVersion: (fileVersion) => set({ fileVersion }),
       close: () =>
         set({ projectDir: null, workflow: null, revision: 0, savedRevision: 0, fileVersion: null }),
-      markSaved: (revision) => set({ savedRevision: revision }),
+      markSaved: (revision, fileVersion) => set({ savedRevision: revision, fileVersion }),
 
       update: (fn) => {
         const current = get().workflow;

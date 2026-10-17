@@ -9,7 +9,12 @@ import { app, ipcMain, type BrowserWindow } from "electron";
 import { catalogEntry, nodeCatalog } from "../shared/api/catalog";
 import { checkWorkflow } from "../shared/api/check";
 import { openApiDocument } from "../shared/api/openapi";
-import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
+import type {
+  ApiEditorReply,
+  ApiEditorRequest,
+  ApiProjectState,
+  ApiRunState,
+} from "../shared/api/types";
 import { IPC, type ApiStatus } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
 import { WORKFLOW_FILE } from "../shared/schema/workflow";
@@ -209,9 +214,7 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
   if (at("GET", "openapi.json")) return send(res, 200, openApiDocument(app.getVersion()));
   if (at("GET", "status")) {
     const project = await askEditor({ op: "read" });
-    const read = project.ok
-      ? (project.result as { dir: string; workflow: { name: string }; running: boolean })
-      : null;
+    const read = project.ok ? (project.result as ApiProjectState) : null;
     return send(res, 200, {
       app: "Demoflow",
       version: app.getVersion(),
@@ -340,7 +343,7 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
 
 function runOf(read: ApiEditorReply): ApiEditorReply {
   if (!read.ok) return read;
-  const { running, runId } = read.result as { running: boolean; runId: string | null };
+  const { running, runId } = read.result as ApiRunState;
   return { ok: true, result: { running, runId } };
 }
 

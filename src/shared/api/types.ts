@@ -46,8 +46,23 @@ export type ApiEditorRequest =
   | { op: "run"; targetNodeIds?: string[]; fromNodeId?: string }
   | { op: "stop" };
 
+type ApiEdited = { id?: string; revision: number; problems: ApiProblem[] };
+
+export type ApiRunState = { running: boolean; runId: string | null };
+
+export type ApiProjectState = ApiRunState & {
+  dir: string | null;
+  workflow: Workflow;
+  revision: number;
+  saved: boolean;
+};
+
+type ApiProblems = { ok: boolean; problems: ApiProblem[] };
+
+export type ApiEditorResult = ApiEdited | ApiRunState | ApiProjectState | ApiProblems;
+
 export type ApiEditorReply =
-  | { ok: true; result: unknown }
+  | { ok: true; result: ApiEditorResult }
   | { ok: false; status: number; error: string; problems?: ApiProblem[] };
 
 export class ApiError extends Error {

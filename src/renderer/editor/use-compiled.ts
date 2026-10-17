@@ -7,19 +7,19 @@ import {
 } from "@/shared/compile/compile";
 import { validateWorkflow, type GraphIssue } from "@/shared/graph";
 import { useRunStore } from "../store/run";
-import { useUiStore } from "../store/ui";
+import { singleSelected, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 
-export function useCompiled(): {
+type Compiled = {
   result: CompileResult | null;
   issues: GraphIssue[];
   preview: PreviewTarget | null;
-} {
+};
+
+export function useCompiled(): Compiled {
   const workflow = useWorkflowStore((s) => s.workflow);
   const results = useRunStore((s) => s.results);
-  const selected = useUiStore((s) => s.selectedIds);
-  const pinned = useUiStore((s) => s.pinnedSource);
-  const selectedId = pinned ?? (selected.length === 1 ? selected[0] : null);
+  const selectedId = useUiStore((s) => s.pinnedSource ?? singleSelected(s.selectedIds));
   const result = useMemo(
     () => (workflow ? compileWorkflow(workflow, { results }) : null),
     [workflow, results],
@@ -32,6 +32,5 @@ export function useCompiled(): {
   return { result, issues, preview };
 }
 
-type Compiled = ReturnType<typeof useCompiled>;
 export const CompiledContext = createContext<Compiled>({ result: null, issues: [], preview: null });
 export const useCompiledContext = () => useContext(CompiledContext);

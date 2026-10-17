@@ -1,11 +1,9 @@
 import { Player, type PlayerRef } from "@remotion/player";
 import { Clapperboard } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { VARIANTS, variantSize } from "@/shared/nodes/output";
+import { exportReframe, variantSize } from "@/shared/nodes/output";
 import { nodeName } from "@/shared/nodes/registry";
-import type { Workflow } from "@/shared/schema/workflow";
 import type { TimelineSpec } from "@/shared/schema/timeline";
-import { Badge } from "@/renderer/components/ui/badge";
 import {
   Empty,
   EmptyDescription,
@@ -13,197 +11,82 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/renderer/components/ui/select";
-import { Spinner } from "@/renderer/components/ui/spinner";
-import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
-import { useAudioPreview } from "../store/audio-preview";
-import { registerPlayer, usePlayback } from "../store/playback";
-import { useUiStore, type PreviewQuality, type PreviewShape } from "../store/ui";
-import { useWorkflowStore } from "../store/workflow";
+import { playRange, usePlayback } from "../store/playback";
 import { useStillsStore } from "../store/stills";
+import { useUiStore } from "../store/ui";
+import { useWorkflowStore } from "../store/workflow";
 import { PreviewComposition } from "./audio-insert";
 import { useFilm } from "./film";
+import { PreviewToolbar } from "./preview-toolbar";
 import { useCompiledContext } from "./use-compiled";
-import { formatDuration } from "@/shared/format";
-import { clamp } from "@/shared/math";
+import { usePlayerBridge, useSeekToSelection } from "./use-player-bridge";
+
+const PROJECT_BASE = "demoflow-file://project/";
+
+function NothingToPreview() {
+  return (
+    <Empty className="h-full">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Clapperboard />
+        </EmptyMedia>
+        <EmptyTitle>Nothing to preview yet</EmptyTitle>
+        <EmptyDescription>
+          Add a clip-producing node — a title, an element, or a recording through Auto zoom.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
+function usePreviewSpec(): TimelineSpec | null {
+  const film = useFilm();
+  const workflow = useWorkflowStore((s) => s.workflow);
+  const quality = useUiStore((s) => s.previewQuality);
+  const shape = useUiStore((s) => s.previewShape);
+  return useMemo(() => {
+    if (!film.audible || !workflow) return null;
+    const base = { ...film.audible, assets: { projectBase: PROJECT_BASE }, quality };
+    return shape === "project"
+      ? base
+      : {
+          ...base,
+          ...variantSize(shape, workflow.settings),
+          reframe: exportReframe(workflow.nodes),
+        };
+  }, [film.audible, quality, shape, workflow]);
+}
 
 export function PreviewDock() {
   const { preview } = useCompiledContext();
   const film = useFilm();
-  const workflow = useWorkflowStore((s) => s.workflow);
-  const selected = useUiStore((s) => s.selectedIds);
-  const pinned = useUiStore((s) => s.pinnedSource);
-  const setActive = useUiStore((s) => s.setActive);
+  const spec = usePreviewSpec();
   const [player, setPlayer] = useState<PlayerRef | null>(null);
-  const quality = useUiStore((s) => s.previewQuality);
-  const setQuality = useUiStore((s) => s.setPreviewQuality);
-  const shape = useUiStore((s) => s.previewShape);
-  const setShape = useUiStore((s) => s.setPreviewShape);
   const rate = usePlayback((s) => s.rate);
   const inPoint = usePlayback((s) => s.inPoint);
   const outPoint = usePlayback((s) => s.outPoint);
-
-  const reframe = useMemo(() => exportReframe(workflow), [workflow]);
-  const spec: TimelineSpec | null = useMemo(() => {
-    if (!film.audible || !workflow) return null;
-    const base = { ...film.audible, assets: { projectBase: "demoflow-file://project/" }, quality };
-    return shape === "project"
-      ? base
-      : { ...base, ...variantSize(shape, workflow.settings), reframe };
-  }, [film.audible, quality, shape, workflow, reframe]);
-
-  useEffect(() => {
-    if (!film.stale) useAudioPreview.getState().clear();
-  }, [film.stale]);
-
   const sourceNodeId = preview?.sourceNodeId ?? null;
+  const source = useWorkflowStore((s) =>
+    sourceNodeId ? s.workflow?.nodes.find((n) => n.id === sourceNodeId) : undefined,
+  );
+
   useEffect(() => {
     if (sourceNodeId) useStillsStore.getState().want([sourceNodeId]);
   }, [sourceNodeId]);
 
-  const selectedId = selected.length === 1 && !pinned ? selected[0] : null;
-  useEffect(() => {
-    if (!selectedId || !preview) return;
-    const span = preview.spans[selectedId];
-    if (span) player?.seekTo(span.from);
-  }, [selectedId, preview, player]);
-
   const duration = spec ? Math.max(1, spec.durationInFrames) : 1;
-  const fps = spec?.fps ?? 30;
-  useEffect(() => {
-    usePlayback.getState().report({ fps, durationInFrames: duration });
-  }, [fps, duration]);
+  useSeekToSelection(player, preview);
+  usePlayerBridge(player, preview, { fps: spec?.fps ?? 30, durationInFrames: duration });
 
-  useEffect(() => {
-    if (!player) return;
-    registerPlayer({
-      seek: (frame) => player.seekTo(frame),
-      play: () => player.play(),
-      pause: () => player.pause(),
-      setRate: (r) => usePlayback.getState().report({ rate: r }),
-    });
-    const frame = usePlayback.getState().frame;
-    if (frame > 0) player.seekTo(Math.min(frame, duration - 1));
-    return () => {
-      registerPlayer(null);
-      usePlayback.getState().report({ playing: false });
-    };
-  }, [player, duration]);
-
-  useEffect(() => {
-    const p = player;
-    if (!p || !preview) return;
-    const update = ({ detail }: { detail: { frame: number } }) => {
-      usePlayback.getState().report({ frame: detail.frame });
-      const ids = Object.entries(preview.spans)
-        .filter(([, s]) => detail.frame >= s.from && detail.frame < s.to)
-        .map(([id]) => id)
-        .sort();
-      setActive(ids);
-    };
-    const onPlay = () => usePlayback.getState().report({ playing: true });
-    const onPause = () => usePlayback.getState().report({ playing: false });
-    p.addEventListener("frameupdate", update);
-    p.addEventListener("seeked", update);
-    p.addEventListener("play", onPlay);
-    p.addEventListener("pause", onPause);
-    return () => {
-      p.removeEventListener("frameupdate", update);
-      p.removeEventListener("seeked", update);
-      p.removeEventListener("play", onPlay);
-      p.removeEventListener("pause", onPause);
-    };
-  }, [preview, setActive, player]);
-
-  if (!spec || !workflow) {
-    return (
-      <Empty className="h-full">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <Clapperboard />
-          </EmptyMedia>
-          <EmptyTitle>Nothing to preview yet</EmptyTitle>
-          <EmptyDescription>
-            Add a clip-producing node — a title, an element, or a recording through Auto zoom.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    );
-  }
-
-  const source = preview?.sourceNodeId
-    ? workflow.nodes.find((n) => n.id === preview.sourceNodeId)
-    : undefined;
-  const sourceTitle = source ? nodeName(source) : null;
-  const range =
-    inPoint !== null || outPoint !== null
-      ? {
-          inFrame: clamp(inPoint ?? 0, 0, duration - 2),
-          outFrame: clamp(outPoint ?? duration - 1, (inPoint ?? 0) + 1, duration - 1),
-        }
-      : {};
+  if (!spec) return <NothingToPreview />;
 
   return (
     <div className="flex h-full flex-col gap-2 p-3">
-      <div className="text-muted-foreground flex items-center gap-2 text-xs">
-        {sourceTitle ? <Badge variant="secondary">{sourceTitle}</Badge> : null}
-        <span className="truncate tabular-nums">
-          {spec.width}×{spec.height} · {spec.fps} fps ·{" "}
-          {formatDuration((spec.durationInFrames / spec.fps) * 1000)}
-        </span>
-        {film.stale ? (
-          <Tooltip>
-            <TooltipTrigger render={<span className="flex shrink-0 items-center gap-1" />}>
-              <Spinner className="size-3" />
-              Updating sound
-            </TooltipTrigger>
-            <TooltipContent>
-              The sound is being mixed again. You hear the previous mix until it's ready.
-            </TooltipContent>
-          </Tooltip>
-        ) : null}
-        <div className="flex-1" />
-        <Select value={shape} onValueChange={(v) => v && setShape(v as PreviewShape)}>
-          <SelectTrigger size="sm" className="w-32" aria-label="Preview shape">
-            <SelectValue>{(v: string) => (v === "project" ? "Project shape" : v)}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="project">Project shape</SelectItem>
-              {VARIANTS.map((v) => (
-                <SelectItem key={v} value={v}>
-                  {v}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <ToggleGroup
-          variant="outline"
-          size="sm"
-          value={[quality]}
-          onValueChange={(v) => v[0] && setQuality(v[0] as PreviewQuality)}
-        >
-          <Tooltip>
-            <TooltipTrigger render={<ToggleGroupItem value="fast" />}>Fast</TooltipTrigger>
-            <TooltipContent>
-              Smooth playback: smaller recordings and no motion blur. The export is unchanged.
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger render={<ToggleGroupItem value="exact" />}>Exact</TooltipTrigger>
-            <TooltipContent>Exactly what the export looks like. May stutter.</TooltipContent>
-          </Tooltip>
-        </ToggleGroup>
-      </div>
+      <PreviewToolbar
+        spec={spec}
+        sourceTitle={source ? nodeName(source) : null}
+        stale={film.stale}
+      />
       <div className="grid min-h-0 flex-1 place-items-center">
         <Player
           ref={setPlayer}
@@ -214,7 +97,7 @@ export function PreviewDock() {
           compositionWidth={spec.width}
           compositionHeight={spec.height}
           playbackRate={rate}
-          {...range}
+          {...playRange(inPoint, outPoint, duration)}
           controls
           loop
           clickToPlay
@@ -224,10 +107,4 @@ export function PreviewDock() {
       </div>
     </div>
   );
-}
-
-function exportReframe(workflow: Workflow | null): TimelineSpec["reframe"] {
-  const render = workflow?.nodes.find((n) => n.type === "output.render" && !n.disabled);
-  const value = render?.params?.reframe;
-  return value === "center" || value === "fit" ? value : "follow";
 }

@@ -65,6 +65,19 @@ const dispatch = (command: PlaybackCommand) => {
 const frameIn = (frame: number, total: number) =>
   clamp(Math.round(frame), 0, Math.max(0, total - 1));
 
+export function playRange(
+  inPoint: number | null,
+  outPoint: number | null,
+  durationInFrames: number,
+): { inFrame?: number; outFrame?: number } {
+  if (inPoint === null && outPoint === null) return {};
+  const start = inPoint ?? 0;
+  return {
+    inFrame: clamp(start, 0, durationInFrames - 2),
+    outFrame: clamp(outPoint ?? durationInFrames - 1, start + 1, durationInFrames - 1),
+  };
+}
+
 export const usePlayback = create<PlaybackState>()((set, get) => ({
   frame: 0,
   playing: false,

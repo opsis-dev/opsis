@@ -2,6 +2,7 @@ import ELK from "elkjs/lib/elk.bundled.js";
 import { getNodeDef } from "@/shared/nodes/registry";
 import { CARD_WIDTH, estimateCardHeight } from "@/shared/nodes/size";
 import type { Workflow } from "@/shared/schema/workflow";
+import { useWorkflowStore } from "../store/workflow";
 
 const elk = new ELK();
 const LAYER_GAP = 80;
@@ -14,7 +15,7 @@ function measured(id: string): { width: number; height: number } | null {
     : null;
 }
 
-export async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: number }>> {
+async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: number }>> {
   const nodes = wf.nodes.filter((n) => !n.parentId && n.type !== "core.group");
   const ids = new Set(nodes.map((n) => n.id));
   const graph = {
@@ -60,4 +61,10 @@ export async function autoLayout(wf: Workflow): Promise<Record<string, { x: numb
   return Object.fromEntries(
     (result.children ?? []).map((c) => [c.id, { x: c.x ?? 0, y: c.y ?? 0 }]),
   );
+}
+
+export async function tidyLayout(): Promise<void> {
+  const wf = useWorkflowStore.getState().workflow;
+  if (!wf) return;
+  useWorkflowStore.getState().moveNodes(await autoLayout(wf));
 }

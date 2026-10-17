@@ -1,5 +1,6 @@
 import { getNodeDef, nodeName } from "./nodes/registry";
 import { canConnect } from "./nodes/ports";
+import type { PortSpec } from "./nodes/define";
 import { fieldMeta } from "./elements/introspect";
 import type { PortType, Workflow, WorkflowEdge, WorkflowNode } from "./schema/workflow";
 import { secretFileName } from "./secrets";
@@ -72,6 +73,70 @@ export function upstreamOf(wf: Workflow, nodeId: string): Set<string> {
     }
   }
   return out;
+}
+
+export function exportedClipNodes(wf: Workflow): string[] {
+  const out = new Set<string>();
+  for (const node of wf.nodes) {
+    if (getNodeDef(node.type)?.phase !== "render") continue;
+    for (const id of upstreamOf(wf, node.id)) {
+      const upstream = wf.nodes.find((n) => n.id === id);
+      if (upstream && "clip" in (getNodeDef(upstream.type)?.outputs ?? {})) out.add(id);
+    }
+  }
+  return [...out];
+}
+
+type ConnectionEnds = {
+  source: string;
+  sourceHandle: string;
+  target: string;
+  targetHandle: string;
+};
+
+type ConnectionProblem = { notFound: boolean; message: string };
+
+export function portOf(
+  wf: Workflow,
+  nodeId: string,
+  side: "in" | "out",
+  handle: string,
+): PortSpec | undefined {
+  const node = wf.nodes.find((n) => n.id === nodeId);
+  const def = node ? getNodeDef(node.type) : undefined;
+  return def ? (side === "in" ? def.inputs : def.outputs)[handle] : undefined;
+}
+
+const portList = (ports: Record<string, PortSpec> | undefined) => {
+  const ids = Object.keys(ports ?? {});
+  return ids.length ? ids.join(", ") : "none";
+};
+
+export function connectionProblem(wf: Workflow, c: ConnectionEnds): ConnectionProblem | null {
+  const source = wf.nodes.find((n) => n.id === c.source);
+  const target = wf.nodes.find((n) => n.id === c.target);
+  if (!source) return { notFound: true, message: `There's no node “${c.source}”.` };
+  if (!target) return { notFound: true, message: `There's no node “${c.target}”.` };
+  if (source.id === target.id)
+    return { notFound: false, message: "A node can't connect to itself." };
+  const from = portOf(wf, c.source, "out", c.sourceHandle);
+  const to = portOf(wf, c.target, "in", c.targetHandle);
+  if (!from)
+    return {
+      notFound: false,
+      message: `“${c.source}” has no output “${c.sourceHandle}”. Its outputs: ${portList(getNodeDef(source.type)?.outputs)}.`,
+    };
+  if (!to)
+    return {
+      notFound: false,
+      message: `“${c.target}” has no input “${c.targetHandle}”. Its inputs: ${portList(getNodeDef(target.type)?.inputs)}.`,
+    };
+  if (!canConnect(from.type, to.type))
+    return {
+      notFound: false,
+      message: `A ${from.type} output can't connect to a ${to.type} input.`,
+    };
+  return null;
 }
 
 export function downstreamOf(wf: Workflow, nodeId: string): Set<string> {

@@ -1,11 +1,12 @@
 import { Copy, Menu, Minus, Square, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import type { WindowState } from "@/shared/ipc";
+import type { MenuCommand, WindowState } from "@/shared/ipc";
 import logoUrl from "../../../brand/logo.svg";
 import {
   acceleratorLabel,
   appMenu,
   matchesAccelerator,
+  menuCommandEntry,
   type MenuEntry,
   type WindowRole,
 } from "@/shared/menu";
@@ -42,6 +43,13 @@ import { isEditingElement } from "@/renderer/lib/dom";
 const platform = window.demoflow?.platform ?? "linux";
 export const isMac = platform === "darwin";
 export const shortcutLabel = (accelerator: string) => acceleratorLabel(accelerator, platform);
+export const commandLabel = (cmd: MenuCommand): string =>
+  menuCommandEntry(platform, cmd)?.label ?? cmd;
+
+export function commandShortcut(cmd: MenuCommand): string | null {
+  const accelerator = menuCommandEntry(platform, cmd)?.accelerator;
+  return accelerator ? shortcutLabel(accelerator) : null;
+}
 const SECTIONS = appMenu(platform);
 
 function run(entry: MenuEntry) {

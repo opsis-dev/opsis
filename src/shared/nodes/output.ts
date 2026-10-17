@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { clipToSpec, isClip } from "../compile/clip";
 import type { CompileValue, MediaValue, TimelineValue } from "../schema/values";
-import type { WorkflowSettings } from "../schema/workflow";
+import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import type { Artifact } from "../schema/values";
 import { row } from "./card";
 import { defineNode, port } from "./define";
@@ -148,6 +148,12 @@ export const renderNode = defineNode({
     media: result?.outputs.media as MediaValue | undefined,
   }),
 });
+
+export function exportReframe(nodes: WorkflowNode[]): z.infer<typeof renderNode.params>["reframe"] {
+  const render = nodes.find((n) => n.type === renderNode.type && !n.disabled);
+  const parsed = renderNode.params.shape.reframe.safeParse(render?.params.reframe);
+  return parsed.success ? parsed.data : "follow";
+}
 
 export const stillOutputNode = defineNode({
   type: "output.still",

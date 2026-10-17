@@ -9,11 +9,13 @@ import { errorMessage } from "@/shared/errors";
 
 type RunTargets = Pick<RunRequest, "targetNodeIds" | "fromNodeId">;
 
+const NO_PROJECT = "No project is open.";
+
 export async function beginRun(opts: RunTargets = {}): Promise<string> {
-  const { projectDir } = useWorkflowStore.getState();
-  if (!projectDir || !useWorkflowStore.getState().workflow) throw new Error("No project is open.");
+  if (!useWorkflowStore.getState().workflow) throw new Error(NO_PROJECT);
   if (!(await save())) throw new Error("Choose which version of the project to keep first.");
-  const workflow = useWorkflowStore.getState().workflow!;
+  const { projectDir, workflow } = useWorkflowStore.getState();
+  if (!projectDir || !workflow) throw new Error(NO_PROJECT);
   useLiveStore.getState().reset();
   const { runId } = await window.demoflow.runWorkflow({ projectDir, workflow, ...opts });
   useRunStore.getState().start(runId);

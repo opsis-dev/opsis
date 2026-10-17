@@ -56,7 +56,7 @@ function EditorRoute() {
   if (loadedDir !== dir) {
     return <div className="grid h-screen place-items-center">{error ? null : <Spinner />}</div>;
   }
-  return <Editor key={dir} />;
+  return <Editor key={dir} projectDir={dir} />;
 }
 
 export const Route = createFileRoute("/editor")({

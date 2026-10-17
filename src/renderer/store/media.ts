@@ -3,6 +3,7 @@ import type { MixPlan } from "@/shared/mix/plan";
 import type { Filmstrip, MixResult, Waveform } from "@/shared/mix/result";
 import { isEngineMissing } from "@/shared/engine-message";
 import { debounce } from "@/shared/timing";
+import { useAudioPreview } from "./audio-preview";
 
 type Entry<T> = T | "loading" | "error";
 
@@ -10,7 +11,7 @@ type MediaState = {
   projectDir: string | null;
   waveforms: Record<string, Entry<Waveform>>;
   filmstrips: Record<string, Entry<Filmstrip>>;
-  mixes: Record<string, MixResult>;
+  mixes: Partial<Record<string, MixResult>>;
   latest: Record<string, string>;
   mixing: string | null;
   mixError: string | null;
@@ -35,6 +36,7 @@ export const useMedia = create<MediaState>()((set, get) => {
           unavailable: isEngineMissing(r.error),
           mixing: null,
         });
+        useAudioPreview.getState().clear();
         return;
       }
       if (r.kind !== "mix") return;
@@ -50,6 +52,7 @@ export const useMedia = create<MediaState>()((set, get) => {
           failedKey: null,
         };
       });
+      useAudioPreview.getState().clear();
     });
   }, 250);
 
@@ -107,8 +110,10 @@ export const useMedia = create<MediaState>()((set, get) => {
       const { projectDir, mixes, unavailable } = get();
       if (!projectDir || unavailable) return;
       if (mixes[plan.key]) {
-        if (get().latest[source] !== plan.key)
+        if (get().latest[source] !== plan.key) {
           set((s) => ({ latest: { ...s.latest, [source]: plan.key } }));
+          useAudioPreview.getState().clear();
+        }
         return;
       }
       set({ mixing: plan.key });

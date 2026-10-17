@@ -1,12 +1,15 @@
 import type { LayoutStorage, PanelImperativeHandle } from "react-resizable-panels";
 import { create } from "zustand";
-import { readPref, writePref } from "../store/view-prefs";
+import { isOneOf } from "@/renderer/lib/one-of";
+import { readPref, readStored, writePref, writeStored } from "../store/view-prefs";
 
-export type PanelSide = "left" | "bottom" | "right";
-export type DockPanel = "preview" | "timeline" | "mixer" | "run";
-export type PanelId = PanelSide | DockPanel;
+export const PANEL_SIDES = ["left", "bottom", "right"] as const;
+export type PanelSide = (typeof PANEL_SIDES)[number];
 
-export const DOCK_PANELS: DockPanel[] = ["preview", "timeline", "mixer", "run"];
+export const DOCK_PANELS = ["preview", "timeline", "mixer", "run"] as const;
+export type DockPanel = (typeof DOCK_PANELS)[number];
+
+export const isDockPanel = (v: unknown): v is DockPanel => isOneOf(DOCK_PANELS, v);
 
 export const DOCK_TITLES: Record<DockPanel, string> = {
   preview: "Preview",
@@ -15,16 +18,15 @@ export const DOCK_TITLES: Record<DockPanel, string> = {
   run: "Run",
 };
 
-const handles: Partial<Record<PanelId, PanelImperativeHandle | null>> = {};
+const handles: Partial<Record<PanelSide, PanelImperativeHandle | null>> = {};
 
-export const storedTab = (): DockPanel =>
-  readPref<DockPanel>("dockTab", "preview", (v) => DOCK_PANELS.includes(v as DockPanel));
+export const storedTab = (): DockPanel => readPref("dockTab", "preview", isDockPanel);
 
 export const usePanels = create<{
-  open: Record<PanelId, boolean>;
+  open: Record<PanelSide, boolean>;
   popped: Record<DockPanel, boolean>;
   active: DockPanel;
-  setOpen: (side: PanelId, open: boolean) => void;
+  setOpen: (side: PanelSide, open: boolean) => void;
   setPopped: (popped: Partial<Record<DockPanel, boolean>>) => void;
   setActive: (panel: DockPanel) => void;
 }>()((set) => ({
@@ -34,33 +36,25 @@ export const usePanels = create<{
     writePref("dockTab", active);
   },
 
-  open: {
-    left: true,
-    bottom: true,
-    right: true,
-    preview: true,
-    timeline: true,
-    mixer: true,
-    run: true,
-  },
+  open: { left: true, bottom: true, right: true },
   popped: { preview: false, timeline: false, mixer: false, run: false },
   setOpen: (side, open) =>
     set((s) => (s.open[side] === open ? {} : { open: { ...s.open, [side]: open } })),
   setPopped: (popped) => set((s) => ({ popped: { ...s.popped, ...popped } })),
 }));
 
-export const panelRef = (side: PanelId) => (handle: PanelImperativeHandle | null) => {
+export const panelRef = (side: PanelSide) => (handle: PanelImperativeHandle | null) => {
   handles[side] = handle;
 };
 
-export function togglePanel(side: PanelId): void {
+export function togglePanel(side: PanelSide): void {
   const handle = handles[side];
   if (!handle) return;
   if (handle.isCollapsed()) handle.expand();
   else handle.collapse();
 }
 
-export function openPanel(side: PanelId): void {
+export function openPanel(side: PanelSide): void {
   const handle = handles[side];
   if (handle?.isCollapsed()) handle.expand();
 }
@@ -83,19 +77,4 @@ export function focusPanel(panel: DockPanel): void {
   });
 }
 
-export const layoutStorage: LayoutStorage = {
-  getItem: (key) => {
-    try {
-      return window.localStorage.getItem(key);
-    } catch {
-      return null;
-    }
-  },
-  setItem: (key, value) => {
-    try {
-      window.localStorage.setItem(key, value);
-    } catch {
-      return;
-    }
-  },
-};
+export const layoutStorage: LayoutStorage = { getItem: readStored, setItem: writeStored };

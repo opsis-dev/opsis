@@ -8,11 +8,27 @@ export function setViewProject(dir: string | null): void {
 
 export const viewProject = () => project;
 
-export function readPref<T>(name: string, fallback: T, valid: (v: unknown) => boolean): T {
+export function readStored(storageKey: string): string | null {
   try {
-    const raw = window.localStorage.getItem(key(name));
-    if (raw === null) return fallback;
-    const value = JSON.parse(raw) as unknown;
+    return window.localStorage.getItem(storageKey);
+  } catch {
+    return null;
+  }
+}
+
+export function writeStored(storageKey: string, value: string): void {
+  try {
+    window.localStorage.setItem(storageKey, value);
+  } catch {
+    return;
+  }
+}
+
+export function readPref<T>(name: string, fallback: T, valid: (v: unknown) => boolean): T {
+  const raw = readStored(key(name));
+  if (raw === null) return fallback;
+  try {
+    const value: unknown = JSON.parse(raw);
     return valid(value) ? (value as T) : fallback;
   } catch {
     return fallback;
@@ -20,11 +36,7 @@ export function readPref<T>(name: string, fallback: T, valid: (v: unknown) => bo
 }
 
 export function writePref(name: string, value: unknown): void {
-  try {
-    window.localStorage.setItem(key(name), JSON.stringify(value));
-  } catch {
-    return;
-  }
+  writeStored(key(name), JSON.stringify(value));
 }
 
 export const layoutKey = (name: string) => `demoflow-${name}:${project ?? "none"}`;

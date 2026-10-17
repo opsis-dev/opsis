@@ -53,8 +53,8 @@ describe("run store seed", () => {
     const s = useRunStore.getState();
     expect(s.running).toBe(true);
     expect(s.statuses).toEqual({ rec: "done", film: "running" });
-    expect(s.progress.film.value).toBe(0.3);
-    expect(s.results.rec.traceId).toBe("t");
+    expect(s.progress.film?.value).toBe(0.3);
+    expect(s.results.rec?.traceId).toBe("t");
   });
 
   it("keeps an earlier failure when a later run leaves that node out", () => {

@@ -72,3 +72,35 @@ export function StaggerItem({ children, className }: { children: ReactNode; clas
     </motion.div>
   );
 }
+
+export function Ripple({
+  cx,
+  cy,
+  from,
+  to,
+  opacity,
+  strokeWidth,
+  seconds,
+  className,
+}: {
+  cx: number;
+  cy: number;
+  from: number;
+  to: number;
+  opacity: number;
+  strokeWidth: number;
+  seconds: number;
+  className?: string;
+}) {
+  return (
+    <motion.circle
+      cx={cx}
+      cy={cy}
+      className={className}
+      strokeWidth={strokeWidth}
+      initial={{ r: from, opacity }}
+      animate={{ r: to, opacity: 0 }}
+      transition={{ duration: seconds, ease: "linear" }}
+    />
+  );
+}

@@ -101,6 +101,16 @@ export function appMenu(platform: string): MenuSection[] {
   ];
 }
 
+export function menuCommandEntry(
+  platform: string,
+  cmd: MenuCommand,
+): { label: string; accelerator?: string } | undefined {
+  for (const section of appMenu(platform))
+    for (const item of section.items)
+      if (item.kind === "command" && item.command === cmd) return item;
+  return undefined;
+}
+
 type KeyLike = Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey">;
 
 export function matchesAccelerator(accelerator: string, e: KeyLike, platform: string): boolean {

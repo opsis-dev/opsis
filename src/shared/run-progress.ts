@@ -5,12 +5,12 @@ export type NodeProgress = { value: number; message?: string };
 
 export type RunProgress = {
   runId: string | null;
-  statuses: Record<string, NodeRunStatus>;
-  progress: Record<string, NodeProgress>;
-  cached: Record<string, boolean>;
-  errors: Record<string, string>;
-  traces: Record<string, string>;
-  results: Record<string, NodeResult>;
+  statuses: Partial<Record<string, NodeRunStatus>>;
+  progress: Partial<Record<string, NodeProgress>>;
+  cached: Partial<Record<string, boolean>>;
+  errors: Partial<Record<string, string>>;
+  traces: Partial<Record<string, string>>;
+  results: Partial<Record<string, NodeResult>>;
 };
 
 export const emptyRunProgress = (runId: string | null = null): RunProgress => ({
@@ -98,11 +98,12 @@ export function failureMessage(failedNames: readonly string[], skipped: number):
 
 export function exportedArtifacts(
   nodes: ReadonlyArray<{ id: string; type: string }>,
-  results: Record<string, NodeResult>,
+  results: Partial<Record<string, NodeResult>>,
 ): Artifact[] {
   return nodes
-    .filter((n) => n.type.startsWith("output.") && results[n.id]?.artifacts.length)
-    .map((n) => results[n.id])
+    .filter((n) => n.type.startsWith("output."))
+    .flatMap((n) => results[n.id] ?? [])
+    .filter((r) => r.artifacts.length)
     .toSorted((a, b) => b.finishedAt - a.finishedAt)
     .flatMap((r) => r.artifacts);
 }

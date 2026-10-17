@@ -91,3 +91,19 @@ export type LastRun = {
   nodes: Record<string, NodeResult>;
   failures?: Record<string, NodeFailure>;
 };
+
+type ValueOf<K extends CompileValue["type"]> = Extract<CompileValue, { type: K }>;
+
+const isValue = <K extends CompileValue["type"]>(
+  value: CompileValue | undefined,
+  type: K,
+): value is ValueOf<K> => value?.type === type;
+
+export function outputOf<K extends CompileValue["type"]>(
+  result: NodeResult | undefined,
+  port: string,
+  type: K,
+): ValueOf<K> | undefined {
+  const value = result?.outputs[port];
+  return isValue(value, type) ? value : undefined;
+}

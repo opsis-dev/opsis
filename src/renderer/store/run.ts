@@ -8,7 +8,16 @@ import {
 import type { LogLevel, RunEvent } from "@/shared/schema/events";
 import type { LastRun } from "@/shared/schema/values";
 
-export type LogLine = { at: number; level: LogLevel; nodeId?: string; message: string };
+export type LogLine = {
+  id: number;
+  at: number;
+  level: LogLevel;
+  nodeId?: string;
+  message: string;
+};
+
+let logCount = 0;
+const logLine = (line: Omit<LogLine, "id">): LogLine => ({ id: ++logCount, ...line });
 
 type RunState = RunProgress & {
   running: boolean;
@@ -99,7 +108,7 @@ export const useRunStore = create<RunState>()((set) => ({
           return {
             logs: [
               ...s.logs.slice(-1999),
-              { at: e.at, level: e.level, nodeId: e.nodeId, message: e.message },
+              logLine({ at: e.at, level: e.level, nodeId: e.nodeId, message: e.message }),
             ],
           };
         case "node:error":
@@ -107,7 +116,7 @@ export const useRunStore = create<RunState>()((set) => ({
             ...applyRunEvent(s, e),
             logs: [
               ...s.logs,
-              { at: Date.now(), level: "error", nodeId: e.nodeId, message: e.message },
+              logLine({ at: Date.now(), level: "error", nodeId: e.nodeId, message: e.message }),
             ],
           };
         case "run:done":

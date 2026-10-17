@@ -7,7 +7,7 @@ const FLOW_TYPES: Partial<Record<string, string>> = { "core.group": "group", "co
 
 const isGroup = (n: WorkflowNode) => n.type === "core.group";
 
-export function toFlowNodes(wf: Workflow, selected: Set<string>): Node<FlowNodeData>[] {
+export function toFlowNodes(wf: Workflow, selected: ReadonlySet<string>): Node<FlowNodeData>[] {
   const ordered = [...wf.nodes.filter(isGroup), ...wf.nodes.filter((n) => !isGroup(n))];
   return ordered.map((n) => ({
     id: n.id,
@@ -25,7 +25,7 @@ export function toFlowNodes(wf: Workflow, selected: Set<string>): Node<FlowNodeD
 export function toFlowEdges(
   wf: Workflow,
   colors: (edge: { source: string; sourceHandle: string }) => string,
-  active: Set<string>,
+  active: ReadonlySet<string>,
 ): Edge[] {
   return wf.edges.map((e) => ({
     id: e.id,

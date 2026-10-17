@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { loginDependencies, runTargets, sessionChain, topoSort, validateWorkflow } from "./graph";
+import {
+  connectionProblem,
+  loginDependencies,
+  runTargets,
+  sessionChain,
+  topoSort,
+  validateWorkflow,
+} from "./graph";
 import { todoMvcSample } from "./templates";
 import { GraphBuilder } from "./templates/build";
 
@@ -22,6 +29,17 @@ describe("graph", () => {
   it("validates the sample without errors", () => {
     const errors = validateWorkflow(todoMvcSample()).filter((i) => i.level === "error");
     expect(errors).toEqual([]);
+  });
+
+  it("checks a new connection the same way for the canvas and the API", () => {
+    const wf = todoMvcSample();
+    const edge = { source: "camera", sourceHandle: "clip", target: "camera", targetHandle: "clip" };
+    expect(connectionProblem(wf, edge)?.message).toBe("A node can't connect to itself.");
+    expect(connectionProblem(wf, { ...edge, source: "gone" })?.notFound).toBe(true);
+    expect(connectionProblem(wf, { ...edge, target: "record", targetHandle: "nope" })).toEqual({
+      notFound: false,
+      message: expect.stringContaining("has no input “nope”"),
+    });
   });
 
   it("rejects port type mismatches and cycles", () => {

@@ -10,7 +10,7 @@ import { useMenuShortcuts, WindowBorder } from "../app/app-bar";
 import { ExitDialog } from "../app/exit-dialog";
 import { useApiHost } from "../app/api-host";
 import { useStillsStore } from "../store/stills";
-import { exportedClipNodes } from "../editor/stills";
+import { exportedClipNodes } from "@/shared/graph";
 import { liveAutoOpen } from "../store/app-settings";
 
 const STARTED_KEY = "demoflow.started";

@@ -24,7 +24,7 @@ import { Separator } from "@/renderer/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { NODE_DRAG_TYPE, snapToGrid } from "./canvas";
+import { NODE_DRAG_TYPE, snapToGrid } from "./canvas-grid";
 import { CategoryBadge } from "./category-badge";
 import { openPanel, usePanels } from "./panels";
 import { CATEGORY_STYLES, portLabel } from "./ports";

@@ -10,7 +10,7 @@ import { errorMessage } from "../errors";
 import { projectFolderName } from "../project-folder";
 
 export type CompileOptions = {
-  results?: Record<string, NodeResult>;
+  results?: Partial<Record<string, NodeResult>>;
 };
 
 export type CompileResult = {

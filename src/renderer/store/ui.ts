@@ -1,16 +1,22 @@
 import { create } from "zustand";
-import { VARIANTS, type Variant } from "@/shared/nodes/output";
+import { VARIANTS } from "@/shared/nodes/output";
+import { isOneOf } from "@/renderer/lib/one-of";
 import { readPref, writePref } from "./view-prefs";
 
-export type PreviewQuality = "fast" | "exact";
-const isQuality = (v: unknown) => v === "fast" || v === "exact";
+const PREVIEW_QUALITIES = ["fast", "exact"] as const;
+export type PreviewQuality = (typeof PREVIEW_QUALITIES)[number];
+export const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PREVIEW_QUALITIES, v);
 
-export const storedQuality = (): PreviewQuality => readPref("previewQuality", "fast", isQuality);
+export const storedQuality = (): PreviewQuality =>
+  readPref("previewQuality", "fast", isPreviewQuality);
 
-export type PreviewShape = "project" | Variant;
-const isShape = (v: unknown) => v === "project" || VARIANTS.includes(v as Variant);
+const PREVIEW_SHAPES = ["project", ...VARIANTS] as const;
+export type PreviewShape = (typeof PREVIEW_SHAPES)[number];
+export const isPreviewShape = (v: unknown): v is PreviewShape => isOneOf(PREVIEW_SHAPES, v);
 
-export const storedShape = (): PreviewShape => readPref("previewShape", "project", isShape);
+export const storedShape = (): PreviewShape => readPref("previewShape", "project", isPreviewShape);
+
+export const singleSelected = (ids: string[]): string | null => (ids.length === 1 ? ids[0] : null);
 
 export const storedMinimap = (): boolean =>
   readPref("minimap", true, (v) => typeof v === "boolean");
@@ -43,7 +49,8 @@ type UiState = {
   setReplayTab: (tab: ReplayTab) => void;
 };
 
-export type ReplayTab = "replay" | "trace";
+export const REPLAY_TABS = ["replay", "trace"] as const;
+export type ReplayTab = (typeof REPLAY_TABS)[number];
 
 export const useUiStore = create<UiState>()((set) => ({
   selectedIds: [],

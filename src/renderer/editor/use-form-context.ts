@@ -33,7 +33,7 @@ function variableList(wf: Workflow): VarInfo[] {
 function spotBackground(
   wf: Workflow,
   nodeId: string,
-  results: Record<string, NodeResult>,
+  results: Partial<Record<string, NodeResult>>,
 ): SpotBackground {
   for (const id of upstreamOf(wf, nodeId)) {
     const rec = results[id]?.outputs.recording;

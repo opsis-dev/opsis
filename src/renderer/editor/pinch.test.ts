@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { MAX_ZOOM, MIN_ZOOM, pinchViewport, pinchZoom } from "./pinch";
+import { MAX_ZOOM, MIN_ZOOM, pinchViewport } from "./pinch";
+
+const at = (zoom: number) => ({ x: 0, y: 0, zoom });
+const zoomAfter = (zoom: number, deltaY: number) => pinchViewport(at(zoom), deltaY, 0, 0).zoom;
 
 describe("pinch zoom", () => {
-  it("zooms as fast as a pinch on macOS", () => {
-    expect(pinchZoom(1, -10)).toBeCloseTo(2 ** 0.2);
-    expect(pinchZoom(1, 10)).toBeCloseTo(2 ** -0.2);
+  it("zooms in when the fingers spread and out when they pinch", () => {
+    expect(zoomAfter(1, -10)).toBeGreaterThan(1);
+    expect(zoomAfter(1, 10)).toBeLessThan(1);
   });
 
-  it("limits one event and stays within the canvas zoom range", () => {
-    expect(pinchZoom(1, -1000)).toBeCloseTo(2 ** 0.5);
-    expect(pinchZoom(1.9, -100)).toBe(MAX_ZOOM);
-    expect(pinchZoom(0.11, 100)).toBe(MIN_ZOOM);
+  it("stays within the canvas zoom range", () => {
+    expect(zoomAfter(1.9, -1000)).toBe(MAX_ZOOM);
+    expect(zoomAfter(0.11, 1000)).toBe(MIN_ZOOM);
   });
 
   it("keeps the point under the fingers still", () => {

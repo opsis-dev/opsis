@@ -1,5 +1,8 @@
 import type { NodeCategory } from "@/shared/nodes/define";
+import { getNodeDef } from "@/shared/nodes/registry";
 import type { PortType } from "@/shared/schema/workflow";
+
+const NEUTRAL_COLOR = "#71717a";
 
 export const PORT_COLORS: Record<PortType, string> = {
   session: "#38bdf8",
@@ -28,8 +31,16 @@ export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: string
   Timeline: { color: "#f472b6", icon: "layers" },
   Media: { color: "#60a5fa", icon: "file-play" },
   Output: { color: "#f43f5e", icon: "clapperboard" },
-  Utility: { color: "#71717a", icon: "sticky-note" },
+  Utility: { color: NEUTRAL_COLOR, icon: "sticky-note" },
 };
+
+export const portTypeColor = (type: PortType | undefined): string =>
+  type ? PORT_COLORS[type] : NEUTRAL_COLOR;
+
+export function categoryColor(nodeType: string): string {
+  const category = getNodeDef(nodeType)?.category;
+  return category ? CATEGORY_STYLES[category].color : NEUTRAL_COLOR;
+}
 
 const TYPE_LABELS: Record<PortType, string> = {
   session: "Next",

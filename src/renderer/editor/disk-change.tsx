@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,32 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/renderer/components/ui/alert-dialog";
-import { useWorkflowStore } from "../store/workflow";
-import { keepMine, loadFromDisk, useDiskChange } from "./save";
-
-export function useProjectFileWatch(projectDir: string): void {
-  useEffect(() => {
-    void window.demoflow.watchProject(projectDir);
-    const off = window.demoflow.onProjectFileChanged((change) => {
-      const store = useWorkflowStore.getState();
-      if (change.dir !== store.projectDir || change.version === store.fileVersion) return;
-      const pending = useDiskChange.getState().change;
-      if (store.revision === store.savedRevision && !pending) {
-        loadFromDisk(change);
-        toast.info("The project file changed on disk, so the editor loaded it.", {
-          description: "Undo brings back the previous version.",
-        });
-        return;
-      }
-      useDiskChange.getState().show({ workflow: change.workflow, version: change.version });
-    });
-    return () => {
-      off();
-      void window.demoflow.watchProject(null);
-      useDiskChange.getState().show(null);
-    };
-  }, [projectDir]);
-}
+import { useDiskChange } from "./disk-change-store";
+import { keepMine, loadFromDisk } from "./save";
 
 export function DiskChangeDialog() {
   const change = useDiskChange((s) => s.change);
@@ -53,9 +27,9 @@ export function DiskChangeDialog() {
         </AlertDialogHeader>
         <AlertDialogFooter>
           {readable ? (
-            <AlertDialogCancel onClick={() => change && loadFromDisk(change)}>
+            <AlertDialogAction variant="outline" onClick={() => change && loadFromDisk(change)}>
               Load the file
-            </AlertDialogCancel>
+            </AlertDialogAction>
           ) : (
             <AlertDialogCancel onClick={() => useDiskChange.getState().show(null)}>
               Wait

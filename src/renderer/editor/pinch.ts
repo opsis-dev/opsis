@@ -6,7 +6,7 @@ const PINCH_STEP_LIMIT = 0.5;
 
 type Viewport = { x: number; y: number; zoom: number };
 
-export function pinchZoom(zoom: number, deltaY: number): number {
+function pinchZoom(zoom: number, deltaY: number): number {
   const step = clamp(-deltaY * PINCH_SPEED, -PINCH_STEP_LIMIT, PINCH_STEP_LIMIT);
   return clamp(zoom * 2 ** step, MIN_ZOOM, MAX_ZOOM);
 }
