@@ -8,6 +8,7 @@ import type {
   VisualEnvelope,
 } from "../schema/timeline";
 import { hasKeys } from "../timeline/envelope";
+import { wholeFrames } from "../timeline/time";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { clamp } from "../math";
@@ -65,8 +66,6 @@ export function emptyClip(durationInFrames = 1): ClipValue {
   return { type: "clip", durationInFrames, tracks: [], audio: [] };
 }
 
-const wholeFrames = (frames: number): number => Math.max(1, Math.round(frames));
-
 const firstRecording = (clips: ClipValue[]): RecordingValue | undefined =>
   clips.find((c) => c.recording)?.recording;
 
@@ -91,7 +90,7 @@ export function itemClip(
   durationInFrames: number,
   extra: ItemExtra = {},
 ): ClipValue {
-  const duration = wholeFrames(durationInFrames);
+  const duration = wholeFrames(durationInFrames, 1);
   const item: TimelineItem = {
     id: `${nodeId}:i`,
     from: 0,
@@ -130,7 +129,7 @@ export function wrapClip(
   props: Omit<GroupProps, "tracks"> = {},
   durationInFrames = clip.durationInFrames,
 ): ClipValue {
-  const duration = wholeFrames(durationInFrames);
+  const duration = wholeFrames(durationInFrames, 1);
   const group = groupItem(
     { id: `${nodeId}:g`, from: 0, durationInFrames: duration, nodeId },
     { ...props, tracks: clip.tracks },

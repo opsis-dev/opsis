@@ -1,4 +1,3 @@
-import type { StemLevels } from "@/shared/mix/result";
 import { HIGHPASS_RANGE, type BusSettings, type Strip } from "@/shared/mix/types";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
@@ -11,7 +10,8 @@ import { Fader } from "./fader";
 import type { Change } from "./gesture";
 import { Knob } from "./knob";
 import { rangeKnob } from "./knob-math";
-import { LiveMeter, type Reduction } from "./meter";
+import { LiveMeter } from "./meter";
+import type { Levels, Reduction } from "./meter-levels";
 
 type StripControls = BusSettings & Pick<Strip, "mute" | "solo">;
 
@@ -28,8 +28,6 @@ export function stripBinding<T extends StripControls>(
 ): StripBinding {
   return { controls, target, update: (fn) => update((c) => ({ ...c, ...fn(c) })) };
 }
-
-type Levels = Pick<StemLevels, "peak" | "rms"> | null | undefined;
 
 export function StripShell({
   children,
@@ -53,6 +51,43 @@ export function StripShell({
   );
 }
 
+function StripToggle({
+  letter,
+  label,
+  tone,
+  tip,
+  pressed,
+  onChange,
+}: {
+  letter: string;
+  label: string;
+  tone: string;
+  tip: string;
+  pressed: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Toggle
+            size="sm"
+            variant="outline"
+            data-custom-pressed
+            className={cn("h-6 min-w-7 px-1 text-[11px]", tone)}
+            pressed={pressed}
+            aria-label={label}
+            onPressedChange={onChange}
+          />
+        }
+      >
+        {letter}
+      </TooltipTrigger>
+      <TooltipContent>{tip}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 function MuteSolo({
   mute,
   solo,
@@ -66,44 +101,22 @@ function MuteSolo({
 }) {
   return (
     <div className="flex gap-1">
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Toggle
-              size="sm"
-              variant="outline"
-              data-custom-pressed
-              className="data-[pressed]:bg-destructive/30 h-6 min-w-7 px-1 text-[11px]"
-              pressed={mute}
-              aria-label="Mute"
-              onPressedChange={onMute}
-            />
-          }
-        >
-          M
-        </TooltipTrigger>
-        <TooltipContent>Mute. Saved with the project and left out of exports.</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Toggle
-              size="sm"
-              variant="outline"
-              data-custom-pressed
-              className="data-[pressed]:bg-meter-mid/40 h-6 min-w-7 px-1 text-[11px]"
-              pressed={solo}
-              aria-label="Solo"
-              onPressedChange={onSolo}
-            />
-          }
-        >
-          S
-        </TooltipTrigger>
-        <TooltipContent>
-          Solo. While anything is soloed, only soloed sounds play, in exports too.
-        </TooltipContent>
-      </Tooltip>
+      <StripToggle
+        letter="M"
+        label="Mute"
+        tone="data-[pressed]:bg-destructive/30"
+        tip="Mute. Saved with the project and left out of exports."
+        pressed={mute}
+        onChange={onMute}
+      />
+      <StripToggle
+        letter="S"
+        label="Solo"
+        tone="data-[pressed]:bg-meter-mid/40"
+        tip="Solo. While anything is soloed, only soloed sounds play, in exports too."
+        pressed={solo}
+        onChange={onSolo}
+      />
     </div>
   );
 }

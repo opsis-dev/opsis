@@ -1,6 +1,8 @@
 import type { Keyframe } from "@/shared/schema/timeline";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
+import { DRAG_START_PX } from "@/renderer/lib/dom";
 import {
+  HALF_FRAME,
   applyRipple,
   containerOf,
   moveAudio,
@@ -48,16 +50,19 @@ export type VideoEditKind =
   | "roll-start"
   | "roll-end";
 
-const AUDIO_EDIT_KINDS = ["audio-move", "audio-trim-start", "audio-trim-end"] as const;
+export type AudioEditKind = "audio-move" | "audio-trim-start" | "audio-trim-end";
 
-export type AudioEditKind = (typeof AUDIO_EDIT_KINDS)[number];
+type VideoEdit = { kind: VideoEditKind; bar: VideoBar };
+type AudioEdit = { kind: AudioEditKind; bar: AudioBar };
 
-const AUDIO_KINDS: ReadonlySet<string> = new Set(AUDIO_EDIT_KINDS);
+export type EditTarget = VideoEdit | AudioEdit;
 
-type VideoEditDrag = EditDragBase & { kind: VideoEditKind; bar: VideoBar };
-type AudioEditDrag = EditDragBase & { kind: AudioEditKind; bar: AudioBar };
+type VideoEditDrag = EditDragBase & VideoEdit;
+type AudioEditDrag = EditDragBase & AudioEdit;
 
 export type EditDrag = VideoEditDrag | AudioEditDrag;
+
+const CUT_TOLERANCE_FRAMES = 1;
 
 export type VolumeDrag = {
   bar: AudioBar;
@@ -147,7 +152,7 @@ function rippleMove(ctx: EditContext, d: EditDrag, result: EditResult, delta: nu
     ctx,
     d,
     result,
-    d.bar.from + 0.5,
+    d.bar.from + HALF_FRAME,
     {
       container: d.kind === "move" ? containerOf(d.bar) : undefined,
       refs: new Set(key ? [key] : []),
@@ -166,7 +171,7 @@ function neighbour(
     (b) =>
       b.key !== bar.key &&
       containerOf(b) === container &&
-      (side === "right" ? Math.abs(b.from - bar.to) < 1 : Math.abs(b.to - bar.from) < 1),
+      Math.abs(side === "right" ? b.from - bar.to : b.to - bar.from) < CUT_TOLERANCE_FRAMES,
   );
 }
 
@@ -204,7 +209,7 @@ function videoOutcome(
         const trimmed = trimBar(ctx, d.bar, "end", delta);
         if (!d.ripple) return trimmed;
         const scope = { container: containerOf(d.bar), refs: new Set<string>() };
-        return rippleAfter(ctx, d, trimmed, d.bar.to - 0.5, scope, delta);
+        return rippleAfter(ctx, d, trimmed, d.bar.to - HALF_FRAME, scope, delta);
       });
     case "roll-start":
       return edge(d.bar.from, (delta) => {
@@ -236,7 +241,7 @@ function audioOutcome(
   return { result: trimAudio(ctx, d.bar, side, delta), snappedAt };
 }
 
-const isAudioDrag = (d: EditDrag): d is AudioEditDrag => AUDIO_KINDS.has(d.kind);
+const isAudioDrag = (d: EditDrag): d is AudioEditDrag => d.kind.startsWith("audio-");
 
 export function editOutcome(
   ctx: EditContext,
@@ -273,7 +278,8 @@ export function snapTargetsFor(src: SnapSources, exclude: string | null): SnapTa
 
 export type MarqueeBox = { x0: number; x1: number; y0: number; y1: number };
 
-export const isClick = (box: MarqueeBox) => box.x1 - box.x0 < 3 && box.y1 - box.y0 < 3;
+export const isClick = (box: MarqueeBox) =>
+  box.x1 - box.x0 < DRAG_START_PX && box.y1 - box.y0 < DRAG_START_PX;
 
 export function normalizeMarquee(d: MarqueeDrag): MarqueeBox {
   return {

@@ -18,7 +18,7 @@ import {
   FORMAT_NAMES,
   int,
   keysOf,
-  LOUDNESS_PRESETS,
+  loudnessName,
   more,
   ms,
   quality,
@@ -52,8 +52,6 @@ const PRESET_LABELS = {
   slow: "Small",
   veryslow: "Smallest, slowest",
 };
-const loudnessName = (lufs: number): string =>
-  Object.entries(LOUDNESS_PRESETS).find(([, v]) => v === lufs)?.[0] ?? `${lufs} LUFS`;
 const qualityName = (crf: number) =>
   Object.entries(QUALITY_PRESETS).reduce((best, cur) =>
     Math.abs(cur[1] - crf) <= Math.abs(best[1] - crf) ? cur : best,

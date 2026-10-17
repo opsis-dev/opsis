@@ -1,10 +1,8 @@
 import { clamp01 } from "@/shared/math";
-import type { MixResult, StemLevels } from "@/shared/mix/result";
 import { cn } from "@/renderer/lib/utils";
-import { frameIn } from "@/shared/timeline/time";
 import { usePlayback } from "../../store/playback";
-import { SILENCE_DB } from "@/shared/mix/types";
 import { levelDb, signedDb } from "./audio-format";
+import { levelAt, reductionAt, type Level, type Levels, type Reduction } from "./meter-levels";
 
 const METER_MIN = -60;
 const METER_MAX = 6;
@@ -13,65 +11,34 @@ const CLIP_DB = -0.5;
 
 const toPct = (level: number) => clamp01((level - METER_MIN) / (METER_MAX - METER_MIN)) * 100;
 
-export const sampleAt = (values: number[] | null | undefined, frame: number): number | null =>
-  values?.length ? values[frameIn(frame, values.length)] : null;
-
-const reductionAt = (reduction: number[] | null | undefined, frame: number): number | null =>
-  reduction ? (sampleAt(reduction, frame) ?? 0) : null;
-
-export function share(
-  result: MixResult | null,
-  levels: Pick<StemLevels, "rms"> | undefined,
-  frame: number,
-): number {
-  const master = result?.levels.master;
-  if (!master?.rms.length || !levels) return 1;
-  const f = frameIn(frame, master.rms.length);
-  const pc = 10 ** ((levels.rms[f] ?? SILENCE_DB) / 10);
-  const pm = 10 ** (master.rms[f] / 10);
-  return pm <= 1e-12 ? 1 : Math.min(1, pc / pm);
-}
-
-type Level = { peak: number | null; rms: number | null; hold: number | null };
-
-function levelAt(
-  levels: Pick<StemLevels, "peak" | "rms"> | null | undefined,
-  frame: number,
-  holdFrames: number,
-): Level {
-  if (!levels?.peak.length) return { peak: null, rms: null, hold: null };
-  const f = frameIn(frame, levels.peak.length);
-  const hold = Math.max(...levels.peak.slice(Math.max(0, f - holdFrames), f + 1));
-  return { peak: levels.peak[f], rms: levels.rms[f], hold };
-}
-
 function Meter({ level, reduction }: { level: Level; reduction?: number }) {
-  const { peak, rms, hold } = level;
+  const peak = level?.peak ?? METER_MIN;
+  const rms = level?.rms ?? METER_MIN;
   return (
     <div className="flex h-full gap-0.5">
       <div
         className="bg-muted relative h-full w-2.5 overflow-hidden rounded-sm"
         title={
-          peak === null
-            ? "No level yet"
-            : `Peak ${levelDb(peak)} dB, average ${levelDb(rms ?? Number.NaN)} dB`
+          level
+            ? `Peak ${levelDb(level.peak)} dB, average ${levelDb(level.rms)} dB`
+            : "No level yet"
         }
       >
         <div
           className="from-meter-low via-meter-mid to-meter-high absolute inset-x-0 bottom-0 bg-gradient-to-t opacity-40"
-          style={{ height: `${toPct(peak ?? METER_MIN)}%`, backgroundSize: "100% 100%" }}
+          style={{ height: `${toPct(peak)}%`, backgroundSize: "100% 100%" }}
         />
         <div
           className="bg-meter-low absolute inset-x-0 bottom-0"
-          style={{ height: `${toPct(rms ?? METER_MIN)}%` }}
+          style={{ height: `${toPct(rms)}%` }}
         />
-        {hold !== null && hold > METER_MIN ? (
+        {level && level.hold > METER_MIN ? (
           <div
             className={cn(
               "absolute inset-x-0 h-px",
-              hold > CLIP_DB ? "bg-meter-high" : "bg-foreground",
+              level.hold > CLIP_DB ? "bg-meter-high" : "bg-foreground",
             )}
-            style={{ bottom: `${toPct(hold)}%` }}
+            style={{ bottom: `${toPct(level.hold)}%` }}
           />
         ) : null}
         <div
@@ -93,10 +60,6 @@ function Meter({ level, reduction }: { level: Level; reduction?: number }) {
     </div>
   );
 }
-
-type Levels = Pick<StemLevels, "peak" | "rms"> | null | undefined;
-
-export type Reduction = number[] | null | undefined;
 
 export function LiveMeter({
   levels,

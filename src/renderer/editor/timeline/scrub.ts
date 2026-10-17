@@ -1,5 +1,6 @@
 import { errorMessage } from "@/shared/errors";
 import { clamp } from "@/shared/math";
+import { lruCache } from "@/shared/memo";
 import { fileUrl } from "../file-url";
 
 const CACHED_SOURCES = 3;
@@ -8,7 +9,7 @@ const BLIP_S = 0.09;
 const BLIP_GAIN = 0.9;
 const END_MARGIN_S = 0.1;
 
-const buffers = new Map<string, Promise<AudioBuffer | null>>();
+const buffers = lruCache<Promise<AudioBuffer | null>>(CACHED_SOURCES);
 let context: AudioContext | null = null;
 let last = 0;
 let current: AudioBufferSourceNode | null = null;
@@ -29,16 +30,8 @@ function audioContext(): AudioContext {
   return context;
 }
 
-function load(src: string): Promise<AudioBuffer | null> {
-  let buffer = buffers.get(src);
-  if (!buffer) {
-    buffer = decode(audioContext(), src);
-    buffers.set(src, buffer);
-    const [oldest] = buffers.keys();
-    if (buffers.size > CACHED_SOURCES && oldest !== undefined) buffers.delete(oldest);
-  }
-  return buffer;
-}
+const load = (src: string): Promise<AudioBuffer | null> =>
+  buffers.use(src, () => decode(audioContext(), src));
 
 export function preloadScrub(src: string | null): void {
   if (src) void load(src);

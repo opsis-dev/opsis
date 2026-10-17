@@ -9,6 +9,7 @@ import {
 } from "@/shared/schema/timeline";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { envelopeAt, sortKeys } from "@/shared/timeline/envelope";
+import { wholeFrames } from "@/shared/timeline/time";
 import { useWorkflowStore } from "../../store/workflow";
 import { findById } from "@/shared/lists";
 
@@ -81,7 +82,7 @@ export function setEnvelopeKeys(nodeId: string, prop: EnvelopeKey, keys: Keyfram
 }
 
 export function addKeyframe(nodeId: string, prop: EnvelopeKey, keys: Keyframe[], at: number) {
-  const frame = Math.max(0, Math.round(at));
+  const frame = wholeFrames(at);
   setEnvelopeKeys(nodeId, prop, [
     ...keys,
     { frame, value: envelopeAt(keys, frame, ENVELOPE_INFO[prop].rest), ease: "linear" },

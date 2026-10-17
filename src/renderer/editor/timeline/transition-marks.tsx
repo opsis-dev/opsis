@@ -1,10 +1,10 @@
 import { percentText } from "@/shared/format";
 import { TRANSITION_WARN_RATIO } from "@/shared/nodes/card";
+import { nodeNameById } from "@/shared/nodes/registry";
 import { transitionTitle } from "@/shared/nodes/transitions";
 import type { Workflow } from "@/shared/schema/workflow";
 import type { FlatTimeline, TransitionMark } from "@/shared/timeline/flatten";
 import { cn } from "@/renderer/lib/utils";
-import { nodeTitle } from "./bar-context";
 import {
   BAR_INSET,
   HEADER_W,
@@ -22,7 +22,7 @@ function transitionTip(wf: Workflow, t: TransitionMark): string {
   const edge = slot
     ? wf.edges.find((e) => e.target === slot.nodeId && e.targetHandle === slot.port)
     : undefined;
-  const into = edge ? ` into ${nodeTitle(wf, edge.source)}` : "";
+  const into = edge ? ` into ${nodeNameById(wf, edge.source, "")}` : "";
   const cover =
     t.covers > TRANSITION_WARN_RATIO
       ? `. It covers ${percentText(t.covers, { max: 100 })} of a clip: turn on Keep every clip whole, or shorten it`

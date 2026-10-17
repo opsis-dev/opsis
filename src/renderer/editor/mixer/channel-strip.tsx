@@ -18,7 +18,7 @@ import { cn } from "@/renderer/lib/utils";
 import { toggleIds, useUiStore } from "../../store/ui";
 import { useWorkflowStore } from "../../store/workflow";
 import { db, panLabel } from "./audio-format";
-import { bindGain, bindPan, previewTarget, type PreviewTarget } from "./bindings";
+import { bindGain, bindPan, previewTarget } from "./bindings";
 import { Knob } from "./knob";
 import { rangeKnob } from "./knob-math";
 import { useMixerState } from "./mixer-state";
@@ -99,15 +99,14 @@ function BusSelect({
 
 function ChannelKnobs({
   strip,
-  target,
   update,
   binding,
 }: {
   strip: Strip;
-  target: PreviewTarget;
   update: (fn: (s: Strip) => Strip) => void;
   binding: StripBinding;
 }) {
+  const { target } = binding;
   return (
     <div className="flex w-full justify-between">
       <Knob
@@ -193,7 +192,7 @@ export function ChannelStrip({
           onApply={(fn) => setMix((m) => updateChannels(m, targets, fn))}
         />
       </div>
-      <ChannelKnobs strip={strip} target={target} update={update} binding={binding} />
+      <ChannelKnobs strip={strip} update={update} binding={binding} />
       <StripTone {...binding} reduction={reduction} />
       <StripLevel
         {...binding}

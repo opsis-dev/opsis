@@ -1,5 +1,11 @@
 import { Ellipsis } from "lucide-react";
-import { applyBusSettings, resetBus, resetStrip, stripSettings } from "@/shared/mix/edits";
+import {
+  applyBusSettings,
+  applyStripSettings,
+  resetBus,
+  resetStrip,
+  stripSettings,
+} from "@/shared/mix/edits";
 import { STRIP_PRESETS, type Bus, type Strip, type StripSettings } from "@/shared/mix/types";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -80,7 +86,8 @@ export function StripMenu({
   onApply: Apply<Strip>;
 }) {
   const several = count > 1;
-  const paste = (settings: Partial<StripSettings>) => onApply((s) => ({ ...s, ...settings }));
+  const paste = (settings: Partial<StripSettings>) =>
+    onApply((s) => applyStripSettings(s, settings));
   return (
     <SettingsMenu label="Strip settings" className="w-52">
       <DropdownMenuGroup>
@@ -115,7 +122,8 @@ export function BusMenu({
   onSounds: Apply<Strip>;
 }) {
   const toBus = (settings: Partial<StripSettings>) => onBus((b) => applyBusSettings(b, settings));
-  const toSounds = (settings: Partial<StripSettings>) => onSounds((s) => ({ ...s, ...settings }));
+  const toSounds = (settings: Partial<StripSettings>) =>
+    onSounds((s) => applyStripSettings(s, settings));
   return (
     <SettingsMenu label="Bus settings" className="w-56">
       <DropdownMenuGroup>

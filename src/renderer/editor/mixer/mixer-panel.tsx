@@ -74,7 +74,6 @@ function MixerToolbar({ film }: { film: Film }) {
 export function MixerPanel() {
   const film = useFilm();
   const { mix, result } = film;
-  const holdFrames = Math.round((film.flat?.fps ?? 30) * HOLD_SECONDS);
   const { collapsed, toggle } = useCollapsedBuses();
 
   const channels = film.plan?.channels ?? [];
@@ -94,6 +93,7 @@ export function MixerPanel() {
     );
   }
 
+  const holdFrames = Math.round(film.flat.fps * HOLD_SECONDS);
   const order = channels.map((c) => c.id);
   return (
     <div className="flex h-full flex-col">

@@ -6,14 +6,13 @@ import type { TimelineSpec } from "@/shared/schema/timeline";
 import type { AudioBar } from "@/shared/timeline/flatten";
 import { MAX_VOLUME } from "@/shared/nodes/params";
 import { cn } from "@/renderer/lib/utils";
-import { WaveformCanvas } from "./bar-canvas";
-import { bladeSplit, nodeTitle, selectOnPress, type BarContext } from "./bar-context";
+import { nodeNameById } from "@/shared/nodes/registry";
+import { WaveformCanvas, type Gain } from "./bar-canvas";
+import { bladeSplit, selectOnPress, type BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
-import { EnvelopeOverlay, useBarEnvelope } from "./envelope-overlay";
+import { useBarEnvelope } from "./envelope-overlay";
 import { AUDIO_H, BAR_INSET, barBox, hitEdge } from "./timeline-layout";
 import { useTimeline } from "./timeline-state";
-
-type Gain = (abs: number) => number;
 
 const AUDIO_TONE: Record<AudioBar["role"], string> = {
   music: "bg-track-music",
@@ -53,29 +52,39 @@ export function useDuckGains(spec: TimelineSpec | null, mix: Mix): (id: string) 
   return (id) => gains.get(id) ?? NO_GAIN;
 }
 
+function audioHit(e: React.PointerEvent<HTMLElement>, width: number, lineY: number | null): Hit {
+  const edge = hitEdge(e, width);
+  if (edge) return edge;
+  if (lineY === null) return "body";
+  const y = e.clientY - e.currentTarget.getBoundingClientRect().top;
+  return Math.abs(y - lineY) <= LINE_GRAB_PX ? "line" : "body";
+}
+
+const volumeLineY = (volume: number) => HEIGHT * (1 - Math.min(MAX_VOLUME, volume) / MAX_VOLUME);
+
+function VolumeLine({ y }: { y: number }) {
+  return (
+    <div
+      className="pointer-events-none absolute inset-x-0 h-px bg-keyframe/80"
+      style={{ top: y }}
+    />
+  );
+}
+
 export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContext; gain: Gain }) {
-  const { workflow, tool, drag } = ctx;
+  const { tool, drag } = ctx;
   const ppf = ctx.viewport.pxPerFrame;
   const audioEnvelope = useTimeline((s) => s.audioEnvelope);
-  const { left, width } = barBox(bar.from, bar.to, ppf);
+  const box = barBox(bar.from, bar.to, ppf);
   const nodeId = bar.nodeId;
-  const isSelected = !!nodeId && ctx.selected.has(nodeId);
-  const title = nodeId ? nodeTitle(workflow, nodeId) : "";
-  const { target, addKey } = useBarEnvelope(
-    workflow,
-    nodeId,
-    audioEnvelope,
-    (clientX) => drag.xToFrame(clientX) - bar.from,
-  );
-  const lineY = HEIGHT * (1 - Math.min(MAX_VOLUME, bar.volume) / MAX_VOLUME);
-  const showLine = audioEnvelope === "volume" && !target?.keys.length;
-
-  const hitAt = (e: React.PointerEvent<HTMLElement>): Hit => {
-    const edge = hitEdge(e, width);
-    if (edge) return edge;
-    const y = e.clientY - e.currentTarget.getBoundingClientRect().top;
-    return showLine && Math.abs(y - lineY) <= LINE_GRAB_PX ? "line" : "body";
-  };
+  const title = nodeId ? nodeNameById(ctx.workflow, nodeId, "") : "";
+  const envelope = useBarEnvelope(ctx, nodeId, audioEnvelope, {
+    toX: (local) => local * ppf,
+    toLocal: (abs) => abs - bar.from,
+  });
+  const showLine = audioEnvelope === "volume" && !envelope.target?.keys.length;
+  const lineY = showLine ? volumeLineY(bar.volume) : null;
+  const hitAt = (e: React.PointerEvent<HTMLElement>) => audioHit(e, box.width, lineY);
 
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.beginPointer(e)) return;
@@ -84,10 +93,9 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
     const hit = hitAt(e);
     if (hit === "line") drag.startVolume(e, bar, HEIGHT);
     else
-      drag.startAudioEdit(
+      drag.startEdit(
         e,
-        hit === "body" ? "audio-move" : EDGE_KIND[hit],
-        bar,
+        { kind: hit === "body" ? "audio-move" : EDGE_KIND[hit], bar },
         tool === "ripple",
       );
   };
@@ -95,41 +103,26 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
   return (
     <BarFrame
       ctx={ctx}
-      left={left}
-      width={width}
-      selected={isSelected}
+      box={box}
+      height={HEIGHT}
+      selected={!!nodeId && ctx.selected.has(nodeId)}
       title={title || undefined}
       className={cn("cursor-grab", AUDIO_TONE[bar.role])}
       cursorAt={(e) => HIT_CURSOR[hitAt(e)]}
       onPointerDown={onDown}
-      onAddKey={addKey}
+      envelope={envelope}
     >
       <WaveformCanvas
         bar={bar}
-        left={left}
-        width={width}
+        left={box.left}
+        width={box.width}
         height={HEIGHT}
         view={ctx.viewport}
         fps={ctx.flat.fps}
         gain={gain}
       />
       <BarLabel>{title}</BarLabel>
-      {showLine ? (
-        <div
-          className="pointer-events-none absolute inset-x-0 h-px bg-keyframe/80"
-          style={{ top: lineY }}
-        />
-      ) : null}
-      {target ? (
-        <EnvelopeOverlay
-          target={target}
-          width={width}
-          height={HEIGHT}
-          toX={(local) => local * ppf}
-          toLocal={(abs) => abs - bar.from}
-          startKey={drag.startKey}
-        />
-      ) : null}
+      {lineY === null ? null : <VolumeLine y={lineY} />}
     </BarFrame>
   );
 }

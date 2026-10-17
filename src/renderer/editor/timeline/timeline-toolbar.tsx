@@ -4,6 +4,7 @@ import { isOutputType } from "@/shared/nodes/output";
 import {
   AUDIO_ENVELOPES,
   VISUAL_ENVELOPES,
+  type AudioEnvelopeKey,
   type VisualEnvelopeKey,
 } from "@/shared/schema/timeline";
 import type { Workflow } from "@/shared/schema/workflow";
@@ -27,7 +28,7 @@ import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { ENVELOPE_INFO } from "./envelope";
 import { useFormatTime, useLoopRange, useTimeline } from "./timeline-state";
-import { COMMAND_KEYS, TOOLS, ZOOM_STEP } from "./timeline-tools";
+import { COMMAND_KEYS, TOOLS, ZOOM_KEYS, ZOOM_STEP } from "./timeline-tools";
 import type { TimelineCommands } from "./use-timeline-commands";
 import { findById } from "@/shared/lists";
 
@@ -118,51 +119,67 @@ function ToolPicker() {
   );
 }
 
+function EnvelopeSelect<T extends string>({
+  label,
+  value,
+  options,
+  optionLabel,
+  className,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: readonly T[];
+  optionLabel: (v: T) => string;
+  className: string;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => {
+        if (v) onChange(v);
+      }}
+    >
+      <SelectTrigger size="sm" className={className} aria-label={label}>
+        <SelectValue>{(v: T) => optionLabel(v)}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          {options.map((k) => (
+            <SelectItem key={k} value={k}>
+              {optionLabel(k)}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+}
+
+const audioLabel = (v: AudioEnvelopeKey) => ENVELOPE_INFO[v].label;
+
 function EnvelopePickers() {
   const videoChoice: VideoChoice = useTimeline((s) => s.videoEnvelope) ?? "off";
   const audioEnvelope = useTimeline((s) => s.audioEnvelope);
   return (
     <>
-      <Select
+      <EnvelopeSelect
+        label="Clip keyframes"
         value={videoChoice}
-        onValueChange={(v) => {
-          if (v) useTimeline.getState().setVideoEnvelope(v === "off" ? null : v);
-        }}
-      >
-        <SelectTrigger size="sm" className="w-36" aria-label="Clip keyframes">
-          <SelectValue>{(v: VideoChoice) => videoLabel(v)}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {VIDEO_CHOICES.map((k) => (
-              <SelectItem key={k} value={k}>
-                {videoLabel(k)}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-      <Select
+        options={VIDEO_CHOICES}
+        optionLabel={videoLabel}
+        className="w-36"
+        onChange={(v) => useTimeline.getState().setVideoEnvelope(v === "off" ? null : v)}
+      />
+      <EnvelopeSelect
+        label="Sound keyframes"
         value={audioEnvelope}
-        onValueChange={(v) => {
-          if (v) useTimeline.getState().setAudioEnvelope(v);
-        }}
-      >
-        <SelectTrigger size="sm" className="w-28" aria-label="Sound keyframes">
-          <SelectValue>
-            {(v: (typeof AUDIO_ENVELOPES)[number]) => ENVELOPE_INFO[v].label}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {AUDIO_ENVELOPES.map((k) => (
-              <SelectItem key={k} value={k}>
-                {ENVELOPE_INFO[k].label}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+        options={AUDIO_ENVELOPES}
+        optionLabel={audioLabel}
+        className="w-28"
+        onChange={(v) => useTimeline.getState().setAudioEnvelope(v)}
+      />
     </>
   );
 }
@@ -288,7 +305,7 @@ export function TimelineToolbar({
         label="Zoom out"
         tip={
           <>
-            Zoom out <Kbd>{shortcutLabel("CmdOrCtrl+−")}</Kbd>
+            Zoom out <Kbd>{shortcutLabel(`CmdOrCtrl+${ZOOM_KEYS.out.label}`)}</Kbd>
           </>
         }
         onClick={() => commands.zoomBy(1 / ZOOM_STEP)}
@@ -311,7 +328,7 @@ export function TimelineToolbar({
         label="Zoom in"
         tip={
           <>
-            Zoom in <Kbd>{shortcutLabel("CmdOrCtrl+=")}</Kbd>
+            Zoom in <Kbd>{shortcutLabel(`CmdOrCtrl+${ZOOM_KEYS.in.label}`)}</Kbd>
           </>
         }
         onClick={() => commands.zoomBy(ZOOM_STEP)}

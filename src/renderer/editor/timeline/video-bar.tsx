@@ -1,11 +1,12 @@
-import { getNodeDef } from "@/shared/nodes/registry";
+import { getNodeDef, nodeNameById } from "@/shared/nodes/registry";
 import type { NodeCategory } from "@/shared/nodes/define";
-import type { VideoBar } from "@/shared/timeline/flatten";
+import type { Workflow } from "@/shared/schema/workflow";
+import type { FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
 import { cn } from "@/renderer/lib/utils";
 import { FilmstripCanvas } from "./bar-canvas";
-import { bladeSplit, nodeTitle, selectOnPress, type BarContext } from "./bar-context";
+import { bladeSplit, selectOnPress, type BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
-import { EnvelopeOverlay, useBarEnvelope } from "./envelope-overlay";
+import { useBarEnvelope } from "./envelope-overlay";
 import type { VideoEditKind } from "./timeline-drag";
 import { BAR_INSET, VIDEO_H, barBox, hitEdge } from "./timeline-layout";
 import { useTimeline, type TimelineTool } from "./timeline-state";
@@ -54,34 +55,68 @@ function editFor(
 const onSpeedCorner = (e: React.PointerEvent) =>
   e.target instanceof HTMLElement && e.target.dataset.corner === "speed";
 
-export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
-  const { workflow, tool, drag } = ctx;
-  const ppf = ctx.viewport.pxPerFrame;
-  const videoEnvelope = useTimeline((s) => s.videoEnvelope);
-  const { left, width } = barBox(bar.from, bar.to, ppf);
-  const isSelected = ctx.selected.has(bar.nodeId);
-  const related = !isSelected && bar.chain.some((l) => l.nodeId && ctx.selected.has(l.nodeId));
-  const title = nodeTitle(workflow, bar.nodeId);
+function barTitles(wf: Workflow, bar: VideoBar) {
   const wrappers = bar.chain
     .slice(1)
-    .flatMap((l) => (l.nodeId && l.nodeId !== bar.nodeId ? [nodeTitle(workflow, l.nodeId)] : []));
-  const { target, addKey } = useBarEnvelope(workflow, bar.nodeId, videoEnvelope, (clientX) =>
-    bar.localAt(drag.xToFrame(clientX)),
+    .flatMap((l) => (l.nodeId && l.nodeId !== bar.nodeId ? [nodeNameById(wf, l.nodeId, "")] : []));
+  return { title: nodeNameById(wf, bar.nodeId, ""), wrappers };
+}
+
+function ActionTicks({
+  marks,
+  left,
+  ppf,
+}: {
+  marks: FlatTimeline["marks"];
+  left: number;
+  ppf: number;
+}) {
+  return marks.map((m) => (
+    <div
+      key={m.key}
+      title={m.label}
+      className="absolute bottom-0 h-2 w-0.5 bg-foreground/80 hover:h-3"
+      style={{ left: m.frame * ppf - left }}
+    />
+  ));
+}
+
+function SpeedCorner() {
+  return (
+    <div
+      data-corner="speed"
+      title="Drag to change the speed"
+      className="absolute top-0 right-0 size-2.5 cursor-nesw-resize bg-foreground/30 [clip-path:polygon(0_0,100%_0,100%_100%)] hover:bg-foreground/70"
+    />
   );
+}
+
+export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
+  const { tool, drag } = ctx;
+  const ppf = ctx.viewport.pxPerFrame;
+  const videoEnvelope = useTimeline((s) => s.videoEnvelope);
+  const box = barBox(bar.from, bar.to, ppf);
+  const isSelected = ctx.selected.has(bar.nodeId);
+  const related = !isSelected && bar.chain.some((l) => l.nodeId && ctx.selected.has(l.nodeId));
+  const { title, wrappers } = barTitles(ctx.workflow, bar);
+  const envelope = useBarEnvelope(ctx, bar.nodeId, videoEnvelope, {
+    toX: (local) => ((local - bar.contentStart) / Math.max(1e-6, bar.rate)) * ppf,
+    toLocal: (abs) => bar.localAt(abs),
+  });
 
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.beginPointer(e)) return;
     if (tool === "blade") return bladeSplit(ctx, bar, e.clientX, e.altKey);
     selectOnPress(ctx, bar.nodeId, e.shiftKey);
-    const [kind, ripple] = editFor(tool, hitEdge(e, width), onSpeedCorner(e));
-    drag.startVideoEdit(e, kind, bar, ripple);
+    const [kind, ripple] = editFor(tool, hitEdge(e, box.width), onSpeedCorner(e));
+    drag.startEdit(e, { kind, bar }, ripple);
   };
 
   return (
     <BarFrame
       ctx={ctx}
-      left={left}
-      width={width}
+      box={box}
+      height={HEIGHT}
       selected={isSelected}
       title={[title, ...wrappers].join(" · ")}
       className={cn(
@@ -89,14 +124,15 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
         related && "ring-1 ring-foreground/40",
         TOOL_CURSOR[tool] ?? "cursor-grab",
       )}
-      cursorAt={TOOL_CURSOR[tool] ? null : (e) => (hitEdge(e, width) ? "ew-resize" : "")}
+      cursorAt={TOOL_CURSOR[tool] ? null : (e) => (hitEdge(e, box.width) ? "ew-resize" : "")}
       onPointerDown={onDown}
-      onAddKey={addKey}
+      envelope={envelope}
+      above={<SpeedCorner />}
     >
       <FilmstripCanvas
         bar={bar}
-        left={left}
-        width={width}
+        left={box.left}
+        width={box.width}
         height={HEIGHT}
         view={ctx.viewport}
         fps={ctx.flat.fps}
@@ -107,30 +143,10 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
           <span className="text-foreground/60"> · {wrappers.join(" · ")}</span>
         ) : null}
       </BarLabel>
-      {ctx.flat.marks
-        .filter((m) => m.barKey === bar.key && m.kind !== "chapter")
-        .map((m) => (
-          <div
-            key={m.key}
-            title={m.label}
-            className="absolute bottom-0 h-2 w-0.5 bg-foreground/80 hover:h-3"
-            style={{ left: m.frame * ppf - left }}
-          />
-        ))}
-      {target ? (
-        <EnvelopeOverlay
-          target={target}
-          width={width}
-          height={HEIGHT}
-          toX={(local) => ((local - bar.contentStart) / Math.max(1e-6, bar.rate)) * ppf}
-          toLocal={(abs) => bar.localAt(abs)}
-          startKey={drag.startKey}
-        />
-      ) : null}
-      <div
-        data-corner="speed"
-        title="Drag to change the speed"
-        className="absolute top-0 right-0 size-2.5 cursor-nesw-resize bg-foreground/30 [clip-path:polygon(0_0,100%_0,100%_100%)] hover:bg-foreground/70"
+      <ActionTicks
+        marks={ctx.flat.marks.filter((m) => m.barKey === bar.key && m.kind !== "chapter")}
+        left={box.left}
+        ppf={ppf}
       />
     </BarFrame>
   );

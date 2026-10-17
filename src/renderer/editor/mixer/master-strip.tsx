@@ -8,6 +8,7 @@ import {
   type LoudnessTarget,
   type Master,
 } from "@/shared/mix/types";
+import { loudnessName, lufsText } from "@/shared/nodes/params";
 import { Button } from "@/renderer/components/ui/button";
 import { Label } from "@/renderer/components/ui/label";
 import {
@@ -27,20 +28,12 @@ import { CompPopover } from "./dynamics-popovers";
 import { EqPopover } from "./eq-popover";
 import { Knob } from "./knob";
 import { rangeKnob } from "./knob-math";
-import { sampleAt } from "./meter";
+import { sampleAt } from "./meter-levels";
 import { FaderMeter } from "./strip-parts";
-
-const LOUDNESS_NAMES: Record<LoudnessTarget, string> = {
-  off: "Off",
-  web: "Online video",
-  podcast: "Podcast",
-  broadcast: "Broadcast",
-};
 
 function loudnessLabel(target: LoudnessTarget): string {
   const aim = LOUDNESS_TARGETS[target];
-  const name = LOUDNESS_NAMES[target];
-  return aim ? `${name} (${aim.lufs < 0 ? "−" : ""}${Math.abs(aim.lufs)})` : name;
+  return aim ? `${loudnessName(aim.lufs)} (${lufsText(aim.lufs)})` : "Off";
 }
 
 const QUIET_LUFS = -70;
@@ -78,7 +71,9 @@ function LoudnessReadouts({
       <Readout label="Integrated" value={loudness?.integrated ?? null} unit="LUFS" />
       <Readout label="True peak" value={loudness?.truePeak ?? null} unit="dBTP" />
       <Readout label="Range" value={loudness?.range ?? null} unit="LU" />
-      {aim ? <span className="text-muted-foreground text-[10px]">Aim: {aim.lufs} LUFS</span> : null}
+      {aim ? (
+        <span className="text-muted-foreground text-[10px]">Aim: {lufsText(aim.lufs)} LUFS</span>
+      ) : null}
     </div>
   );
 }

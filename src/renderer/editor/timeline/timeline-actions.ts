@@ -28,8 +28,12 @@ export function reportEdit(r: EditResult | null): void {
   else if (r.message) toast.success(r.message);
 }
 
-export function commitEdit(r: EditResult): void {
+export function applyEdit(r: EditResult): void {
   if (r.ok) useWorkflowStore.getState().update(() => r.workflow);
+}
+
+export function commitEdit(r: EditResult): void {
+  applyEdit(r);
   reportEdit(r);
 }
 

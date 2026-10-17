@@ -31,7 +31,7 @@ export type EditResult =
   | { ok: true; workflow: Workflow; message?: string; selectNodeId?: string }
   | { ok: false; error: string };
 
-const HALF_FRAME = 0.5;
+export const HALF_FRAME = 0.5;
 
 const noMove = (delta: number) => Math.abs(delta) < HALF_FRAME;
 

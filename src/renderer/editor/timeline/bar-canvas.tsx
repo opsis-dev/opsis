@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { clamp } from "@/shared/math";
+import { lruCache } from "@/shared/memo";
 import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
 import { MAX_VOLUME } from "@/shared/nodes/params";
 import type { AudioBar, BarThumbnail, VideoBar } from "@/shared/timeline/flatten";
@@ -23,33 +24,34 @@ function visiblePart(barLeft: number, barWidth: number, view: Viewport): Visible
   return { offset: a - barLeft, width: Math.ceil(b - a) };
 }
 
-const images = new Map<string, HTMLImageElement>();
+const images = lruCache<HTMLImageElement>(CACHED_IMAGES);
 
-function cachedImage(ref: string): HTMLImageElement {
-  let img = images.get(ref);
-  if (img) images.delete(ref);
-  else {
-    img = new Image();
-    img.src = fileUrl(ref);
-  }
-  images.set(ref, img);
-  const [oldest] = images.keys();
-  if (images.size > CACHED_IMAGES && oldest !== undefined) images.delete(oldest);
+function newImage(ref: string): HTMLImageElement {
+  const img = new Image();
+  img.src = fileUrl(ref);
   return img;
 }
 
+const isLoaded = (img: HTMLImageElement | undefined): img is HTMLImageElement =>
+  !!img?.complete && img.naturalWidth > 0;
+
 function useImage(ref: string | null): HTMLImageElement | null {
-  const img = ref ? cachedImage(ref) : null;
+  const held = useRef<{ ref: string; img: HTMLImageElement } | null>(null);
   const subscribe = useCallback(
     (onLoad: () => void) => {
-      img?.addEventListener("load", onLoad);
-      return () => img?.removeEventListener("load", onLoad);
+      if (!ref) return () => {};
+      const img = images.use(ref, () => newImage(ref));
+      held.current = { ref, img };
+      img.addEventListener("load", onLoad);
+      return () => img.removeEventListener("load", onLoad);
     },
-    [img],
+    [ref],
   );
-  return useSyncExternalStore(subscribe, () =>
-    img?.complete && img.naturalWidth > 0 ? img : null,
-  );
+  return useSyncExternalStore(subscribe, () => {
+    if (!ref) return null;
+    const img = held.current?.ref === ref ? held.current.img : images.peek(ref);
+    return isLoaded(img) ? img : null;
+  });
 }
 
 function prepare(canvas: HTMLCanvasElement, width: number, height: number) {
@@ -215,13 +217,15 @@ function pickLevel(waveform: Waveform, pxPerSecond: number): WaveformLevel | nul
   return levels.find((l) => l.rate >= pxPerSecond) ?? levels.at(-1) ?? null;
 }
 
+export type Gain = (abs: number) => number;
+
 type WaveGeometry = {
   bar: AudioBar;
   left: number;
   height: number;
   pxPerFrame: number;
   fps: number;
-  gain: (abs: number) => number;
+  gain: Gain;
 };
 
 function drawWaveform(
@@ -265,7 +269,7 @@ export function WaveformCanvas({
   height: number;
   view: Viewport;
   fps: number;
-  gain: (abs: number) => number;
+  gain: Gain;
 }) {
   const wave = useMedia(loadedWaveform(bar.src));
   useEffect(() => {

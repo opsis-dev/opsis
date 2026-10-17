@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { chapterTime, formatTime, framesToMs, msToFrames, playRange } from "./time";
+import { chapterTime, formatTime, framesToMs, msToFrames, playRange, wholeFrames } from "./time";
 
 describe("ms and frames", () => {
   it("rounds to whole frames with a minimum", () => {
     expect(msToFrames(1000, 30)).toBe(30);
     expect(msToFrames(0, 30)).toBe(1);
     expect(msToFrames(0, 30, 0)).toBe(0);
+  });
+
+  it("rounds to a whole frame no lower than the minimum", () => {
+    expect(wholeFrames(2.6)).toBe(3);
+    expect(wholeFrames(-4)).toBe(0);
+    expect(wholeFrames(0.2, 1)).toBe(1);
   });
 
   it("rounds frames to whole milliseconds", () => {

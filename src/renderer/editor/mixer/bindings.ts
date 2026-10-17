@@ -4,7 +4,7 @@ import { useAudioPreview, type Contribution } from "../../store/audio-preview";
 import { usePlayback } from "../../store/playback";
 import { useWorkflowStore } from "../../store/workflow";
 import type { Change, DragPhase } from "./gesture";
-import { share } from "./meter";
+import { share } from "./meter-levels";
 
 const HIGHPASS_Q = 0.7;
 

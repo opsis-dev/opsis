@@ -6,7 +6,6 @@ import {
   type EqBand,
   type EqType,
 } from "@/shared/mix/types";
-import { Label } from "@/renderer/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import {
   Select,
@@ -16,8 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/renderer/components/ui/select";
-import { Switch } from "@/renderer/components/ui/switch";
 import { db, hz } from "./audio-format";
+import { SwitchHeader } from "./dynamics-popovers";
 import { EqCurve } from "./eq-curve";
 import { commitOnce, type DragPhase } from "./gesture";
 import { Knobs, type KnobSpec } from "./knob";
@@ -130,14 +129,12 @@ export function EqPopover({
         <span className="text-muted-foreground text-[10px] leading-none">EQ</span>
       </PopoverTrigger>
       <PopoverContent className="w-[420px]">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm">Equaliser</Label>
-          <Switch
-            checked={eq.on}
-            aria-label="Equaliser on"
-            onCheckedChange={(on) => commitOnce(onChange, { ...eq, on })}
-          />
-        </div>
+        <SwitchHeader
+          title="Equaliser"
+          label="Equaliser on"
+          checked={eq.on}
+          onChange={(on) => commitOnce(onChange, { ...eq, on })}
+        />
         <EqCurve bands={eq.bands} on={eq.on} width={388} height={90} highpass={highpass} />
         <div className="grid grid-cols-4 gap-2">
           {eq.bands.map((band, i) => (

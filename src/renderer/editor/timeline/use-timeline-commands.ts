@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { Workflow } from "@/shared/schema/workflow";
-import type { Removal } from "@/shared/timeline/edits";
-import type { FlatTimeline } from "@/shared/timeline/flatten";
+import { splitBar, type Removal } from "@/shared/timeline/edits";
+import type { FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
 import { useUiStore } from "../../store/ui";
 import {
   addMarkerAtPlayhead,
+  commitEdit,
   removeNow,
   removeSelectedMarker,
   selectionRemoval,
@@ -16,6 +17,7 @@ import type { TimelineZoom } from "./use-timeline-zoom";
 
 export type TimelineCommands = {
   split: () => void;
+  splitAt: (bar: VideoBar, frame: number) => void;
   remove: () => void;
   addMarker: () => void;
   zoomBy: (factor: number) => void;
@@ -47,6 +49,7 @@ export function useTimelineCommands({
 
   const commands: TimelineCommands = {
     split: () => splitAtPlayhead(context(gestureSalt()), flat, selected()),
+    splitAt: (bar, frame) => commitEdit(splitBar(context(gestureSalt()), bar, frame)),
     remove,
     addMarker: () => addMarkerAtPlayhead(flat.fps),
     zoomBy: (factor) => zoom.zoomAround(factor),

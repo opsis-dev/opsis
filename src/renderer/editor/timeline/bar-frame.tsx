@@ -1,27 +1,30 @@
 import { cn } from "@/renderer/lib/utils";
 import type { BarContext } from "./bar-context";
+import { EnvelopeOverlay, type BarEnvelope } from "./envelope-overlay";
 
 export function BarFrame({
   ctx,
-  left,
-  width,
+  box,
+  height,
   selected,
   title,
   className,
   cursorAt,
   onPointerDown,
-  onAddKey,
+  envelope,
+  above,
   children,
 }: {
   ctx: BarContext;
-  left: number;
-  width: number;
+  box: { left: number; width: number };
+  height: number;
   selected: boolean;
   title: string | undefined;
   className: string;
   cursorAt: ((e: React.PointerEvent<HTMLDivElement>) => string) | null;
   onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
-  onAddKey: (e: React.PointerEvent) => void;
+  envelope: BarEnvelope;
+  above?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -31,15 +34,26 @@ export function BarFrame({
         className,
         selected && "ring-primary ring-2",
       )}
-      style={{ left, width }}
+      style={{ left: box.left, width: box.width }}
       title={title}
       onPointerDown={onPointerDown}
       onPointerMove={(e) => {
         if (cursorAt && !ctx.drag.isDragging()) e.currentTarget.style.cursor = cursorAt(e);
       }}
-      onPointerDownCapture={onAddKey}
+      onPointerDownCapture={envelope.addKey}
     >
       {children}
+      {envelope.target ? (
+        <EnvelopeOverlay
+          target={envelope.target}
+          width={box.width}
+          height={height}
+          toX={envelope.toX}
+          toLocal={envelope.toLocal}
+          startKey={ctx.drag.startKey}
+        />
+      ) : null}
+      {above}
     </div>
   );
 }

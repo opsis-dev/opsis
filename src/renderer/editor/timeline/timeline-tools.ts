@@ -13,6 +13,11 @@ export const ZOOM_STEP = 1.5;
 
 export const COMMAND_KEYS = { split: "S", addMarker: "M", fit: "Z" } as const;
 
+export const ZOOM_KEYS = {
+  in: { keys: ["=", "+"], label: "=" },
+  out: { keys: ["-"], label: "−" },
+} as const;
+
 export const TOOLS: Array<{
   id: TimelineTool;
   icon: LucideIcon;

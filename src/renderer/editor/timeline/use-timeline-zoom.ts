@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { usePlayback } from "../../store/playback";
-import { FIT_PADDING_PX, HEADER_W } from "./timeline-layout";
+import { FIT_PADDING_PX, HEADER_W, contentX, frameAtX } from "./timeline-layout";
 import { clampZoom, useTimeline } from "./timeline-state";
+
+const WHEEL_ZOOM_STEP = 1.15;
 
 export type TimelineZoom = {
   ppf: number;
   zoomAround: (factor: number, anchorFrame?: number) => void;
+  onWheel: (e: React.WheelEvent<HTMLElement>) => void;
   hold: () => void;
   release: () => void;
 };
+
+const zooms = (e: { ctrlKey: boolean; metaKey: boolean }) => e.ctrlKey || e.metaKey;
 
 export function useTimelineZoom(
   scroller: React.RefObject<HTMLDivElement | null>,
@@ -25,7 +30,7 @@ export function useTimelineZoom(
     const el = scroller.current;
     if (!el) return;
     const block = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) e.preventDefault();
+      if (zooms(e)) e.preventDefault();
     };
     el.addEventListener("wheel", block, { passive: false });
     return () => el.removeEventListener("wheel", block);
@@ -43,9 +48,24 @@ export function useTimelineZoom(
     });
   };
 
+  const onWheel = (e: React.WheelEvent<HTMLElement>) => {
+    const el = e.currentTarget;
+    if (zooms(e)) {
+      const factor = e.deltaY < 0 ? WHEEL_ZOOM_STEP : 1 / WHEEL_ZOOM_STEP;
+      zoomAround(factor, frameAtX(contentX(el, e.clientX), ppf));
+    } else if (
+      !e.shiftKey &&
+      Math.abs(e.deltaY) > Math.abs(e.deltaX) &&
+      el.scrollHeight <= el.clientHeight
+    ) {
+      el.scrollLeft += e.deltaY;
+    }
+  };
+
   return {
     ppf,
     zoomAround,
+    onWheel,
     hold: () => setHeld(ppf),
     release: () => setHeld(null),
   };

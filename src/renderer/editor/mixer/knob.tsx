@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { usePointerDrag } from "@/renderer/lib/dom";
+import { DRAG_START_PX, usePointerDrag } from "@/renderer/lib/dom";
 import { parseNumberText } from "@/shared/format";
 import { clamp01 } from "@/shared/math";
 import { cn } from "@/renderer/lib/utils";
@@ -23,7 +23,6 @@ export type KnobSpec<F extends string> = KnobRange & {
   format: (v: number) => string;
 };
 
-const DRAG_START_PX = 2;
 const DRAG_PX = 150;
 const FINE_DRAG_PX = 600;
 const NUDGE = 0.02;

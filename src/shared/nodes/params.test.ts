@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { describe, expect, it } from "vitest";
-import { parseParams, target } from "./params";
+import { loudnessName, lufsText, parseParams, target } from "./params";
 
 const schema = z.object({
   name: z.string().meta({ description: "Name" }),
@@ -26,5 +26,14 @@ describe("parseParams", () => {
     expect(problem({ ...valid, count: 0 })).toBe("Count is too small");
     expect(problem({ ...valid, count: 9 })).toBe("Count is too large");
     expect(problem({ ...valid, target: "" })).toBe("Element is empty");
+  });
+});
+
+describe("loudness names", () => {
+  it("names the presets and writes other levels with a real minus sign", () => {
+    expect(loudnessName(-14)).toBe("Online video");
+    expect(loudnessName(-18)).toBe("−18 LUFS");
+    expect(lufsText(-23)).toBe("−23");
+    expect(lufsText(0)).toBe("0");
   });
 });

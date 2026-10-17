@@ -8,6 +8,8 @@ export function isEditingElement(target: EventTarget | null): boolean {
   return target.isContentEditable || /^(TEXTAREA|SELECT)$/.test(target.tagName);
 }
 
+export const DRAG_START_PX = 3;
+
 type Rect = Pick<DOMRect, "left" | "top" | "width" | "height">;
 
 export const fractionIn = (rect: Rect, clientX: number, clientY: number) => ({

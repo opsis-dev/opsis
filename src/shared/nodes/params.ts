@@ -110,6 +110,11 @@ export const QUALITY_PRESETS = { Low: 28, Medium: 23, High: 18, Max: 12 } as con
 
 export const LOUDNESS_PRESETS = { "Online video": -14, Podcast: -16, Broadcast: -23 } as const;
 
+export const lufsText = (lufs: number): string => `${lufs < 0 ? "−" : ""}${Math.abs(lufs)}`;
+
+export const loudnessName = (lufs: number): string =>
+  Object.entries(LOUDNESS_PRESETS).find(([, v]) => v === lufs)?.[0] ?? `${lufsText(lufs)} LUFS`;
+
 export const quality = (def: number, description = "Quality") =>
   int(def, description, { min: 0, max: 51, widget: "quality" });
 

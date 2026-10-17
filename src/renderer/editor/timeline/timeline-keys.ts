@@ -1,6 +1,6 @@
 import { usePlayback } from "../../store/playback";
 import { useTimeline } from "./timeline-state";
-import { COMMAND_KEYS, TOOLS, ZOOM_STEP } from "./timeline-tools";
+import { COMMAND_KEYS, TOOLS, ZOOM_KEYS, ZOOM_STEP } from "./timeline-tools";
 import type { TimelineCommands } from "./use-timeline-commands";
 
 type KeyContext = {
@@ -20,9 +20,10 @@ const zoomIn: KeyAction = (c) => c.commands.zoomBy(ZOOM_STEP);
 const zoomOut: KeyAction = (c) => c.commands.zoomBy(1 / ZOOM_STEP);
 const remove: KeyAction = (c) => c.commands.remove();
 
-const ZOOM_KEYS: Keymap = { "=": zoomIn, "+": zoomIn, "-": zoomOut };
-
-const CTRL_KEYS: Keymap = ZOOM_KEYS;
+const ZOOM_MAP: Keymap = Object.fromEntries([
+  ...ZOOM_KEYS.in.keys.map((k) => [k, zoomIn]),
+  ...ZOOM_KEYS.out.keys.map((k) => [k, zoomOut]),
+]);
 
 const ALT_KEYS: Keymap = { x: () => playback().clearRange() };
 
@@ -39,7 +40,7 @@ const PLAIN_KEYS: Keymap = {
   end: (c) => playback().seek(c.duration - 1),
   i: () => playback().setIn(playback().frame),
   o: () => playback().setOut(playback().frame),
-  ...ZOOM_KEYS,
+  ...ZOOM_MAP,
   [commandKey(COMMAND_KEYS.fit)]: (c) => c.commands.fit(),
   [commandKey(COMMAND_KEYS.split)]: (c) => c.commands.split(),
   [commandKey(COMMAND_KEYS.addMarker)]: (c) => c.commands.addMarker(),
@@ -51,7 +52,7 @@ const PLAIN_KEYS: Keymap = {
 };
 
 export function timelineKeyAction(e: React.KeyboardEvent): KeyAction | undefined {
-  const key = e.key.toLowerCase();
-  if (e.ctrlKey || e.metaKey) return CTRL_KEYS[key];
+  const key = commandKey(e.key);
+  if (e.ctrlKey || e.metaKey) return ZOOM_MAP[key];
   return (e.altKey ? ALT_KEYS : PLAIN_KEYS)[key];
 }

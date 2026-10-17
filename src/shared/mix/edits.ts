@@ -24,6 +24,11 @@ export const stripSettings = (strip: StripSettings): StripSettings => ({
 
 export const resetStrip = (strip: Strip): Strip => ({ ...strip, ...stripSettings(DEFAULT_STRIP) });
 
+export const applyStripSettings = (strip: Strip, settings: Partial<StripSettings>): Strip => ({
+  ...strip,
+  ...settings,
+});
+
 export const applyBusSettings = (bus: Bus, settings: Partial<StripSettings>): Bus => ({
   ...bus,
   ...busSettings({ ...bus, ...settings }),

@@ -14,7 +14,8 @@ import { db, ms } from "./audio-format";
 import { commitOnce, type DragPhase } from "./gesture";
 import { Knobs, type KnobSpec } from "./knob";
 import { rangeKnob } from "./knob-math";
-import { ReductionReadout, type Reduction } from "./meter";
+import { ReductionReadout } from "./meter";
+import type { Reduction } from "./meter-levels";
 
 type CompField = keyof typeof COMP_RANGES;
 
@@ -88,7 +89,7 @@ const DUCK_KNOBS: Array<KnobSpec<DuckField>> = [
   },
 ];
 
-function SwitchHeader({
+export function SwitchHeader({
   title,
   checked,
   label,

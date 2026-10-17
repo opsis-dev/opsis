@@ -1,6 +1,5 @@
 import { round3 } from "@/shared/math";
 import type { Keyframe } from "@/shared/schema/timeline";
-import type { Workflow } from "@/shared/schema/workflow";
 import { samplePoints } from "@/shared/timeline/envelope";
 import {
   addKeyframe,
@@ -11,6 +10,7 @@ import {
   type EnvelopeKey,
   type EnvelopeTarget,
 } from "./envelope";
+import type { BarContext } from "./bar-context";
 import type { KeyStart } from "./use-timeline-drag";
 import { useDoublePress } from "./use-double-press";
 
@@ -57,15 +57,22 @@ function useKeyframeAdder(
   };
 }
 
+type EnvelopeMapping = { toX: (local: number) => number; toLocal: (abs: number) => number };
+
+export type BarEnvelope = EnvelopeMapping & {
+  target: EnvelopeTarget | null;
+  addKey: (e: React.PointerEvent) => void;
+};
+
 export function useBarEnvelope(
-  workflow: Workflow,
+  ctx: BarContext,
   nodeId: string | undefined,
   prop: EnvelopeKey | null,
-  localAt: (clientX: number) => number,
-) {
-  const target = envelopeTarget(workflow, nodeId, prop);
-  const addKey = useKeyframeAdder(target, localAt);
-  return { target, addKey };
+  mapping: EnvelopeMapping,
+): BarEnvelope {
+  const target = envelopeTarget(ctx.workflow, nodeId, prop);
+  const addKey = useKeyframeAdder(target, (clientX) => mapping.toLocal(ctx.drag.xToFrame(clientX)));
+  return { ...mapping, target, addKey };
 }
 
 export function EnvelopeOverlay({

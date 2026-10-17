@@ -64,6 +64,7 @@ function TimelineEditor({ film, workflow }: { film: TimelineFilm; workflow: Work
           zoom={zoom}
           film={film}
           workflow={workflow}
+          commands={commands}
         />
       </div>
       <RemoveDialog removal={removal} onConfirm={confirmRemoval} onClose={closeRemoval} />
