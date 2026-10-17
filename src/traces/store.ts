@@ -7,6 +7,7 @@ import type { AppSettings } from "../shared/settings";
 import type { TraceModel } from "../shared/trace";
 import { parseTrace } from "./model";
 import { sha256Hex } from "../engine/hash";
+import { atomicWrite } from "../engine/json";
 
 type TraceEntry = { name: string; sha: string; zstd: boolean; size: number };
 
@@ -39,7 +40,7 @@ const zstd = (data: Uint8Array) =>
 
 async function writeManifest(root: string, manifest: TraceManifest): Promise<void> {
   await mkdir(runsDir(root), { recursive: true });
-  await writeFile(manifestPath(root, manifest.id), zstd(Buffer.from(JSON.stringify(manifest))));
+  await atomicWrite(manifestPath(root, manifest.id), zstd(Buffer.from(JSON.stringify(manifest))));
 }
 
 async function readManifestFile(file: string): Promise<TraceManifest> {

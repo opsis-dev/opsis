@@ -152,7 +152,8 @@ export interface DemoflowApi {
     template: string;
     dir?: string;
   }): Promise<OpenProject | null>;
-  openProject(dir?: string): Promise<OpenProject | null>;
+  pickProjectDir(): Promise<string | null>;
+  openProject(dir: string): Promise<OpenProject | null>;
   saveWorkflow(dir: string, workflow: Workflow, base?: string | null): Promise<SaveResult>;
   projectLocations(): Promise<ProjectLocations>;
   chooseFolder(opts: { title: string; defaultPath?: string }): Promise<string | null>;
@@ -221,6 +222,7 @@ export interface DemoflowApi {
 export const INVOKE = {
   listRecentProjects: "demoflow:projects:recent",
   createProject: "demoflow:projects:create",
+  pickProjectDir: "demoflow:projects:pick",
   openProject: "demoflow:projects:open",
   saveWorkflow: "demoflow:projects:save",
   projectLocations: "demoflow:projects:locations",

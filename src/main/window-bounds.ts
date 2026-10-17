@@ -1,8 +1,7 @@
-import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { app, screen, type BrowserWindow, type Rectangle } from "electron";
 import { z } from "zod";
-import { readJson } from "../engine/json";
+import { readJson, writeJson } from "../engine/json";
 import { debounce } from "../shared/timing";
 
 const SAVE_AFTER_MS = 400;
@@ -33,7 +32,7 @@ export async function loadBounds<T>(name: string, schema: z.ZodType<T>): Promise
 }
 
 export function saveBounds(name: string, value: unknown): void {
-  void writeFile(boundsFile(name), JSON.stringify(value, null, 2)).catch(() => undefined);
+  void writeJson(boundsFile(name), value).catch(() => undefined);
 }
 
 export function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => void): void {

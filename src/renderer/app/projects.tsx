@@ -1,11 +1,9 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Download, FolderOpen, Plus, Settings, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
-import { toast } from "sonner";
 import type { RecentProject } from "@/shared/ipc";
 import { acceleratorLabel } from "@/shared/menu";
 import { TEMPLATES } from "@/shared/templates";
-import { errorMessage } from "@/shared/errors";
 import { formatTimeAgo } from "@/shared/format";
 import { Button } from "@/renderer/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
@@ -150,12 +148,8 @@ function useProjectActions() {
   const go = (dir: string) => void navigate({ to: "/editor", search: { dir } });
 
   async function open(dir?: string) {
-    try {
-      const p = await window.demoflow.openProject(dir);
-      if (p) go(p.dir);
-    } catch (e) {
-      toast.error("Could not open the project", { description: errorMessage(e) });
-    }
+    const target = dir ?? (await window.demoflow.pickProjectDir());
+    if (target) go(target);
   }
 
   const startNew = (template?: string) => {

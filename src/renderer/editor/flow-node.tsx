@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { memo } from "react";
 import type { NodeDef, PortSpec } from "@/shared/nodes/define";
-import { getNodeDef } from "@/shared/nodes/registry";
+import { getNodeDef, nodeName } from "@/shared/nodes/registry";
 import type { NodeRunStatus } from "@/shared/schema/events";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import {
@@ -93,7 +93,7 @@ function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: Nod
       <BaseNode
         className={cn("w-64", node.disabled && "opacity-50", active && "ring-primary/70 ring-2")}
       >
-        <NodeHeader title={node.label?.trim() || def.title} def={def} status={status} />
+        <NodeHeader title={nodeName(node)} def={def} status={status} />
         <BaseNodeContent className="gap-1.5 px-0 py-2">
           <NodePorts def={def} />
           <CardRows rows={rows} />

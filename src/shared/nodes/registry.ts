@@ -43,8 +43,20 @@ if (byType.size !== NODE_DEFS.length) {
 
 export const getNodeDef = (type: string): NodeDef | undefined => byType.get(type);
 
+export const nodeLabelOr = (node: { label?: string }, fallback: string): string =>
+  node.label?.trim() || fallback;
+
 export const nodeName = (node: { label?: string; type: string }): string =>
-  node.label?.trim() || getNodeDef(node.type)?.title || node.type;
+  nodeLabelOr(node, getNodeDef(node.type)?.title || node.type);
+
+export function nodeNameById(
+  wf: { nodes: ReadonlyArray<{ id: string; label?: string; type: string }> },
+  id: string,
+  fallback: string,
+): string {
+  const node = wf.nodes.find((n) => n.id === id);
+  return node ? nodeName(node) : fallback;
+}
 
 export function defaultParams(type: string): Record<string, unknown> {
   const def = getNodeDef(type);

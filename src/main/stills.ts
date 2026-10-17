@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs";
-import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import type { BrowserWindow } from "electron";
 import { z } from "zod";
 import { sha256Hex } from "../engine/hash";
-import { readJson } from "../engine/json";
+import { readJson, writeJson } from "../engine/json";
 import { engineStatus } from "../engine/paths";
 import { errorMessage } from "../shared/errors";
 import { IPC, type StillRequest, type StillResult } from "../shared/ipc";
@@ -49,7 +49,7 @@ export async function listStills(projectDir: string): Promise<Record<string, str
 async function remember(projectDir: string, nodeId: string, hash: string): Promise<void> {
   const index = { ...(await listStills(projectDir)), [nodeId]: hash };
   await mkdir(stillsDir(projectDir), { recursive: true });
-  await writeFile(indexPath(projectDir), JSON.stringify(index, null, 2));
+  await writeJson(indexPath(projectDir), index);
   const keep = new Set(Object.values(index).map((h) => `${h}.jpg`));
   for (const file of await readdir(stillsDir(projectDir)))
     if (file.endsWith(".jpg") && !keep.has(file))

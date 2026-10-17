@@ -15,7 +15,7 @@ import {
   type PlannedFamily,
 } from "../shared/fonts/plan";
 import type { FontInstalledFace, InspectedFonts } from "../shared/ipc";
-import { readJsonKeepingBroken } from "../engine/json";
+import { readJsonKeepingBroken, writeJson } from "../engine/json";
 import { openDialog } from "./dialogs";
 
 const FONT_EXT = /\.(woff2|woff|ttf|otf)$/i;
@@ -70,7 +70,7 @@ export async function listLibrary(): Promise<FontFamilyDef[]> {
 
 async function saveLibrary(families: FontFamilyDef[]): Promise<void> {
   await mkdir(fontsDir(), { recursive: true });
-  await writeFile(manifestPath(), JSON.stringify({ families }, null, 2));
+  await writeJson(manifestPath(), { families });
 }
 
 function changeLibrary<T>(work: () => Promise<T>): Promise<T> {

@@ -21,7 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/renderer/components/ui/select";
-import { parseDecimal, trimNumber, unitScale, useDecimalInput } from "./decimal";
+import { parseNumberText } from "@/shared/format";
+import { trimNumber, unitScale, useDecimalInput } from "./decimal";
 import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 
@@ -152,7 +153,7 @@ function KeyframeRow({
   const time = unitScale("frames", fps);
   const at = useDecimalInput(trimNumber(keyframe.frame / time.factor), {
     onCommit: (text) => {
-      const n = parseDecimal(text);
+      const n = parseNumberText(text);
       if (n !== null) onChange({ frame: Math.max(0, Math.round(n * time.factor)) });
     },
   });
@@ -160,7 +161,7 @@ function KeyframeRow({
     trimNumber(Math.round(format.toShown(keyframe.value) * 100) / 100),
     {
       onCommit: (text) => {
-        const n = parseDecimal(text);
+        const n = parseNumberText(text);
         if (n !== null) onChange({ value: format.fromShown(n) });
       },
     },

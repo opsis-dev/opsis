@@ -39,8 +39,11 @@ export async function readJsonKeepingBroken<T>(
   return null;
 }
 
-export async function atomicWrite(file: string, text: string): Promise<void> {
+export async function atomicWrite(file: string, data: string | Uint8Array): Promise<void> {
   const tmp = `${file}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
-  await writeFile(tmp, text);
+  await writeFile(tmp, data);
   await rename(tmp, file);
 }
+
+export const writeJson = (file: string, value: unknown): Promise<void> =>
+  atomicWrite(file, `${JSON.stringify(value, null, 2)}\n`);

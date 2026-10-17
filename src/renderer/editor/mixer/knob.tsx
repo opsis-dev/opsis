@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { parseNumberText } from "@/shared/format";
 import { clamp01 } from "@/shared/math";
 import { cn } from "@/renderer/lib/utils";
 import {
@@ -8,7 +9,6 @@ import {
   arcPath,
   arrowDirection,
   fromT,
-  parseTyped,
   polar,
   snapValue,
   toT,
@@ -54,7 +54,7 @@ function KnobValue({
   const [typing, setTyping] = useState(false);
   const commit = (text: string) => {
     setTyping(false);
-    const v = parseTyped(text);
+    const v = parseNumberText(text, { lenient: true });
     if (v !== null) onCommit(v);
   };
   if (typing)
@@ -174,7 +174,7 @@ export function Knob({
           }
           onChange(fromT(range, d.t0 + dy / (e.shiftKey ? FINE_DRAG_PX : DRAG_PX)), "move");
         }}
-        onPointerUp={() => {
+        onLostPointerCapture={() => {
           const d = drag.current;
           drag.current = null;
           if (d?.started) onChange(value, "end");

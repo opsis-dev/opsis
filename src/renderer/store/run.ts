@@ -19,6 +19,13 @@ export type LogLine = {
 let logCount = 0;
 const logLine = (line: Omit<LogLine, "id">): LogLine => ({ id: ++logCount, ...line });
 
+export const MAX_LOG_LINES = 2000;
+
+const withLine = (logs: LogLine[], line: LogLine): LogLine[] => [
+  ...logs.slice(-(MAX_LOG_LINES - 1)),
+  line,
+];
+
 type RunState = RunProgress & {
   running: boolean;
   logs: LogLine[];
@@ -84,18 +91,18 @@ export const useRunStore = create<RunState>()((set) => ({
           return { ...applyRunEvent(s, e), ...freshRun() };
         case "node:log":
           return {
-            logs: [
-              ...s.logs.slice(-1999),
+            logs: withLine(
+              s.logs,
               logLine({ at: e.at, level: e.level, nodeId: e.nodeId, message: e.message }),
-            ],
+            ),
           };
         case "node:error":
           return {
             ...applyRunEvent(s, e),
-            logs: [
-              ...s.logs,
+            logs: withLine(
+              s.logs,
               logLine({ at: Date.now(), level: "error", nodeId: e.nodeId, message: e.message }),
-            ],
+            ),
           };
         case "run:done":
           return {

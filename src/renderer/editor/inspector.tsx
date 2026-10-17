@@ -9,7 +9,7 @@ import {
   Ungroup,
 } from "lucide-react";
 import { CATEGORY_LABELS, type NodeDef } from "@/shared/nodes/define";
-import { getNodeDef } from "@/shared/nodes/registry";
+import { getNodeDef, nodeName } from "@/shared/nodes/registry";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Badge } from "@/renderer/components/ui/badge";
@@ -100,10 +100,10 @@ function NodeHeader({ node, def }: { node: WorkflowNode; def: NodeDef }) {
     <div className="flex items-start gap-3">
       <CategoryBadge category={def.category} icon={def.icon} size="xl" />
       <div className="flex min-w-0 flex-col gap-1">
-        <h2 className="truncate font-semibold">{node.label || def.title}</h2>
+        <h2 className="truncate font-semibold">{nodeName(node)}</h2>
         <div className="flex flex-wrap gap-1">
           <Badge variant="secondary">{CATEGORY_LABELS[def.category]}</Badge>
-          {node.label ? <Badge variant="outline">{def.title}</Badge> : null}
+          {node.label?.trim() ? <Badge variant="outline">{def.title}</Badge> : null}
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import path from "node:path";
 import type { LastRun, NodeResult } from "../../shared/schema/values";
 import { stableJson } from "../../shared/hash";
 import { sha256Hex } from "../../engine/hash";
-import { atomicWrite, readJson } from "../../engine/json";
+import { readJson, writeJson } from "../../engine/json";
 import { projectPaths } from "../../engine/project-paths";
 
 export const ENGINE_VERSION = "demoflow-engine/1";
@@ -31,10 +31,10 @@ export async function readCached(
 export async function writeCached(cacheDir: string, result: NodeResult): Promise<void> {
   const dir = path.join(cacheDir, result.hash);
   await mkdir(dir, { recursive: true });
-  await atomicWrite(path.join(dir, "result.json"), JSON.stringify(result, null, 2));
+  await writeJson(path.join(dir, "result.json"), result);
 }
 
 export async function writeLastRun(projectDir: string, lastRun: LastRun): Promise<void> {
   await mkdir(projectPaths(projectDir).meta, { recursive: true });
-  await atomicWrite(projectPaths(projectDir).lastRun, JSON.stringify(lastRun, null, 2));
+  await writeJson(projectPaths(projectDir).lastRun, lastRun);
 }

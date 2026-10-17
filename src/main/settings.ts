@@ -8,7 +8,7 @@ import {
   type AppSettings,
   type SettingsPatch,
 } from "../shared/settings";
-import { atomicWrite, readJsonKeepingBroken } from "../engine/json";
+import { readJsonKeepingBroken, writeJson } from "../engine/json";
 import { errorMessage } from "../shared/errors";
 
 const file = () => path.join(app.getPath("userData"), "settings.json");
@@ -41,7 +41,7 @@ export async function writeSettings(next: AppSettings): Promise<AppSettings> {
   const previous = await readSettings();
   cached = appSettingsSchema.parse(next);
   await mkdir(path.dirname(file()), { recursive: true });
-  await atomicWrite(file(), `${JSON.stringify(cached, null, 2)}\n`);
+  await writeJson(file(), cached);
   for (const listener of listeners) listener(cached, previous);
   return cached;
 }

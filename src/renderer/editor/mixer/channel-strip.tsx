@@ -5,7 +5,7 @@ import { busOf, isAudible, stripOf } from "@/shared/mix/levels";
 import type { ChannelPlan } from "@/shared/mix/plan";
 import type { MixResult } from "@/shared/mix/result";
 import type { Bus, Mix, Strip } from "@/shared/mix/types";
-import { nodeName } from "@/shared/nodes/registry";
+import { nodeNameById } from "@/shared/nodes/registry";
 import {
   Select,
   SelectContent,
@@ -28,8 +28,8 @@ import { HighpassKnob, StripLevel, StripShell, StripTone, type StripBinding } fr
 const KIND_ICON = { music: Music, effect: AudioLines, clip: Clapperboard } as const;
 
 function channelName(nodeId: string): string {
-  const node = useWorkflowStore.getState().workflow?.nodes.find((n) => n.id === nodeId);
-  return node ? nodeName(node) : "Sound";
+  const wf = useWorkflowStore.getState().workflow;
+  return wf ? nodeNameById(wf, nodeId, "Sound") : "Sound";
 }
 
 function pickStrip(

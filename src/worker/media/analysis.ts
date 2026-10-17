@@ -5,7 +5,7 @@ import type { Filmstrip, Waveform, WaveformLevel } from "../../shared/analysis";
 import type { FfmpegTools } from "./ffmpeg";
 import { sha256Hex } from "../../engine/hash";
 import { atomicWrite, readJson } from "../../engine/json";
-import { projectPaths, toProjectRef } from "../../engine/project-paths";
+import { isInside, projectPaths, toProjectRef } from "../../engine/project-paths";
 import { round3 } from "../../shared/math";
 
 const ANALYSIS_VERSION = "demoflow-analysis/1";
@@ -45,8 +45,7 @@ function filmstripDir(projectDir: string, file: string): string {
   const rel = path.relative(projectPaths(projectDir).cache, file);
   const [owner, ...rest] = rel.split(path.sep);
   const insideNodeFolder =
-    !rel.startsWith("..") &&
-    !path.isAbsolute(rel) &&
+    isInside(projectPaths(projectDir).cache, file) &&
     rest.length > 0 &&
     owner !== "analysis" &&
     owner !== "mix";

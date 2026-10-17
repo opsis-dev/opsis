@@ -1,7 +1,7 @@
 import { Square } from "lucide-react";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { nodeName } from "@/shared/nodes/registry";
+import { nodeName, nodeNameById } from "@/shared/nodes/registry";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { Button } from "@/renderer/components/ui/button";
 import { Progress } from "@/renderer/components/ui/progress";
@@ -120,10 +120,7 @@ export function RunNodeList({ nodes, filter }: { nodes: WorkflowNode[]; filter: 
     () => nodes.filter((n) => statuses[n.id] || errors[n.id] || results[n.id]?.artifacts.length),
     [nodes, statuses, errors, results],
   );
-  const nameOf = (id: string) => {
-    const node = nodes.find((n) => n.id === id);
-    return node ? nodeName(node) : "A deleted node";
-  };
+  const nameOf = (id: string) => nodeNameById({ nodes }, id, "A deleted node");
 
   return (
     <ScrollArea className="h-full">

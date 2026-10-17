@@ -18,11 +18,11 @@ export function formatTime(frame: number, fps: number, mode: "seconds" | "timeco
     const { h, m, s } = clock(Math.floor(f / fps));
     return [h, m, s, f % fps].map(pad2).join(":");
   }
-  const secs = f / fps;
-  const m = Math.floor(secs / 60);
-  const s = secs - m * 60;
-  const text = s.toFixed(s % 1 === 0 ? 0 : 1);
-  return `${m}:${text.padStart(text.includes(".") ? 4 : 2, "0")}`;
+  const tenths = Math.round((f / fps) * 10);
+  const m = Math.floor(tenths / 600);
+  const rest = tenths - m * 600;
+  const text = rest % 10 === 0 ? pad2(rest / 10) : (rest / 10).toFixed(1).padStart(4, "0");
+  return `${m}:${text}`;
 }
 
 export function chapterTime(ms: number): string {

@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { BrowserWindow } from "electron";
-import { toPosixRel } from "../engine/project-paths";
+import { isInside, toPosixRel } from "../engine/project-paths";
 import { openDialog } from "./dialogs";
 
 const MEDIA_EXTENSIONS = [
@@ -25,11 +25,6 @@ const MEDIA_EXTENSIONS = [
   "lottie",
   "json",
 ];
-
-const isInside = (dir: string, file: string) => {
-  const rel = path.relative(dir, file);
-  return !rel.startsWith("..") && !path.isAbsolute(rel);
-};
 
 function uniqueAssetName(assets: string, file: string): string {
   const ext = path.extname(file);

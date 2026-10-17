@@ -3,11 +3,6 @@ import { round3 } from "@/shared/math";
 
 export const trimNumber = (n: number): string => String(round3(n));
 
-export function parseDecimal(text: string): number | null {
-  const n = Number(text.replace(",", "."));
-  return Number.isFinite(n) ? n : null;
-}
-
 export type UnitScale = { factor: number; unit?: string; time: boolean };
 
 export function unitScale(unit: string | undefined, fps: number): UnitScale {

@@ -35,11 +35,6 @@ export function arcPath(centre: number, radius: number, from: number, to: number
   return `M ${a.x} ${a.y} A ${radius} ${radius} 0 ${to - from > 180 ? 1 : 0} 1 ${b.x} ${b.y}`;
 }
 
-export function parseTyped(text: string): number | null {
-  const v = Number.parseFloat(text.replace(",", ".").replace(/[^\d.+-]/g, ""));
-  return Number.isFinite(v) ? v : null;
-}
-
 export function arrowDirection(key: string): -1 | 0 | 1 {
   if (key === "ArrowUp" || key === "ArrowRight") return 1;
   if (key === "ArrowDown" || key === "ArrowLeft") return -1;

@@ -37,6 +37,7 @@ import {
   createProjectDir,
   listRecent,
   openProjectDir,
+  pickProjectDir,
   projectLocations,
   saveWorkflowFile,
   watchProject,
@@ -109,7 +110,8 @@ async function revealInFolder(dir: string, rel?: string): Promise<void> {
 const HANDLERS: InvokeHandlers = {
   listRecentProjects: plain(listRecent),
   createProject: async (_event, opts) => remember(await createProjectDir(getMainWindow(), opts)),
-  openProject: async (_event, dir) => remember(await openProjectDir(getMainWindow(), dir)),
+  pickProjectDir: (event) => pickProjectDir(senderWindow(event)),
+  openProject: async (_event, dir) => remember(await openProjectDir(dir)),
   saveWorkflow: plain(saveWorkflowFile),
   projectLocations: plain(projectLocations),
   chooseFolder: (event, opts) => chooseFolder(senderWindow(event), opts),

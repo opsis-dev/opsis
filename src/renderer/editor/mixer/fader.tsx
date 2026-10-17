@@ -46,11 +46,7 @@ export function Fader({
         if (e.currentTarget.hasPointerCapture(e.pointerId))
           onChange(valueAt(e.currentTarget, e.clientY), "move");
       }}
-      onPointerUp={(e) => {
-        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-        e.currentTarget.releasePointerCapture(e.pointerId);
-        onChange(value, "end");
-      }}
+      onLostPointerCapture={() => onChange(value, "end")}
       onDoubleClick={() => commitOnce(onChange, 0)}
       onKeyDown={(e) => {
         const dir = arrowDirection(e.key);

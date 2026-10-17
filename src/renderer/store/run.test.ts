@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NodeResult } from "@/shared/schema/values";
-import { useRunStore } from "./run";
+import { MAX_LOG_LINES, useRunStore } from "./run";
 
 const result = (finishedAt: number, traceId: string): NodeResult => ({
   hash: "h",
@@ -118,5 +118,25 @@ describe("run store seed", () => {
     });
     store.start("fast");
     expect(useRunStore.getState().running).toBe(false);
+  });
+
+  it("keeps the log at its limit however lines arrive", () => {
+    const store = useRunStore.getState();
+    store.seed(null);
+    store.apply({ type: "run:start", runId: "r", nodeIds: ["a"], at: 0 });
+    for (let i = 0; i < MAX_LOG_LINES; i++) {
+      store.apply({
+        type: "node:log",
+        runId: "r",
+        nodeId: "a",
+        level: "info",
+        message: `log ${i}`,
+        at: i,
+      });
+      store.apply({ type: "node:error", runId: "r", nodeId: "a", message: `error ${i}` });
+    }
+    const logs = useRunStore.getState().logs;
+    expect(logs).toHaveLength(MAX_LOG_LINES);
+    expect(logs.at(-1)?.message).toBe(`error ${MAX_LOG_LINES - 1}`);
   });
 });

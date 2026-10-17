@@ -22,6 +22,12 @@ describe("time formats", () => {
     expect(formatTime(30 * 3661 + 12, 30, "timecode")).toBe("01:01:01:12");
   });
 
+  it("rounds before splitting minutes and seconds", () => {
+    expect(formatTime(1799, 30, "seconds")).toBe("1:00");
+    expect(formatTime(1797, 30, "seconds")).toBe("0:59.9");
+    expect(formatTime(3, 30, "seconds")).toBe("0:00.1");
+  });
+
   it("writes chapter timestamps", () => {
     expect(chapterTime(3_725_000)).toBe("1:02:05");
     expect(chapterTime(20_000)).toBe("0:20");

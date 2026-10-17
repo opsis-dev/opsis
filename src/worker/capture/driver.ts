@@ -22,7 +22,7 @@ import {
   waitNode,
 } from "../../shared/nodes/browser";
 import { parseParams, type NodeDef } from "../../shared/nodes/define";
-import { nodeName } from "../../shared/nodes/registry";
+import { nodeLabelOr, nodeName } from "../../shared/nodes/registry";
 import type { LiveEvent } from "../../shared/live";
 import type { Action, ActionLog } from "../../shared/schema/actions";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
@@ -108,8 +108,6 @@ export class SignInExpiredError extends Error {
     this.name = "SignInExpiredError";
   }
 }
-
-const labelOr = (node: WorkflowNode, fallback: string) => node.label?.trim() || fallback;
 
 type MotionParams = {
   cluster: string;
@@ -313,7 +311,7 @@ const STEPS: Record<string, StepHandler> = {
   "browser.click": async (take, node) => {
     const p = take.params(clickNode, node);
     const t = await take.resolve(p.target);
-    await take.rolling().moveAndClick(t.target, labelOr(node, p.target), await take.motion(p));
+    await take.rolling().moveAndClick(t.target, nodeLabelOr(node, p.target), await take.motion(p));
     take.lastSelector = t.by;
     await take.rolling().pause(p.after);
   },
@@ -321,7 +319,7 @@ const STEPS: Record<string, StepHandler> = {
     const p = take.params(typeNode, node);
     const t = await take.resolve(p.target);
     const chunks = p.text.split(PAUSE_MARK);
-    await take.rolling().typeInto(t.target, chunks, labelOr(node, p.target), {
+    await take.rolling().typeInto(t.target, chunks, nodeLabelOr(node, p.target), {
       ...(await take.motion(p)),
       chunkPauseMs: p.chunkPauseMs,
     });
@@ -334,7 +332,7 @@ const STEPS: Record<string, StepHandler> = {
     const p = take.params(hoverNode, node);
     const t = await take.resolve(p.target);
     if (p.zoom) {
-      await take.rolling().focus(t.target, labelOr(node, p.target), await take.motion(p));
+      await take.rolling().focus(t.target, nodeLabelOr(node, p.target), await take.motion(p));
     } else {
       await take.rolling().moveTo(t.target);
       await take.rolling().pause(p.hoverMs);
@@ -352,7 +350,7 @@ const STEPS: Record<string, StepHandler> = {
         : p.mode === "by"
           ? { by: { x: p.dx, y: p.dy } }
           : { path: parsePath(p.path) };
-    await take.rolling().drag(from.target, to, labelOr(node, p.target), {
+    await take.rolling().drag(from.target, to, nodeLabelOr(node, p.target), {
       ...(await take.motion(p)),
       holdMs: p.holdMs,
       dragMs: p.dragMs,
@@ -395,7 +393,7 @@ const STEPS: Record<string, StepHandler> = {
   "browser.select": async (take, node) => {
     const p = take.params(selectNode, node);
     const t = await take.resolve(p.target);
-    await take.rolling().focus(t.target, labelOr(node, p.target), await take.motion(p));
+    await take.rolling().focus(t.target, nodeLabelOr(node, p.target), await take.motion(p));
     const loc = elementOf(t.target);
     await loc.selectOption(p.value).catch(async () => loc.selectOption({ label: p.value }));
     take.lastSelector = t.by;
@@ -409,7 +407,7 @@ const STEPS: Record<string, StepHandler> = {
   },
   "browser.press": async (take, node) => {
     const p = take.params(pressNode, node);
-    if (take.cursorDriver) await take.cursorDriver.pressKey(p.keys, labelOr(node, p.keys));
+    if (take.cursorDriver) await take.cursorDriver.pressKey(p.keys, nodeLabelOr(node, p.keys));
     else await take.page.keyboard.press(p.keys);
     await take.pauseIfRolling(p.after);
   },

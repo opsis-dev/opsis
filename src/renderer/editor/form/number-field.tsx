@@ -4,7 +4,8 @@ import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/shared/nodes/params";
 import { Field, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
 import { Slider } from "@/renderer/components/ui/slider";
-import { parseDecimal, trimNumber, unitScale, useDecimalInput } from "./decimal";
+import { parseNumberText } from "@/shared/format";
+import { trimNumber, unitScale, useDecimalInput } from "./decimal";
 import { ChoiceGroup, Help } from "./field-shell";
 import { SpotField } from "./spot-field";
 import type { FieldProps, Patch } from "./types";
@@ -46,7 +47,7 @@ function NumberField({ id, label, value, min, max, meta, ctx, onChange }: Number
         if (meta.zeroLabel) onChange(0);
         return;
       }
-      const n = parseDecimal(text);
+      const n = parseNumberText(text);
       if (n !== null) onChange(toStored(n));
     },
   });

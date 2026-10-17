@@ -73,3 +73,10 @@ export function formatTimeAgo(at: number, now = Date.now()): string {
 
 export const plural = (n: number, word: string, many = `${word}s`): string =>
   `${n} ${n === 1 ? word : many}`;
+
+export function parseNumberText(text: string, { lenient = false } = {}): number | null {
+  const normal = text.trim().replace(",", ".");
+  if (normal === "") return null;
+  const n = lenient ? Number.parseFloat(normal.replace(/[^\d.+-]/g, "")) : Number(normal);
+  return Number.isFinite(n) ? n : null;
+}

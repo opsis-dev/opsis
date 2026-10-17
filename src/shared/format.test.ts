@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { displayAddress, formatBytes, formatDuration, humanize } from "./format";
+import { displayAddress, formatBytes, formatDuration, humanize, parseNumberText } from "./format";
 
 describe("formatBytes", () => {
   it("uses binary units with one decimal", () => {
@@ -52,5 +52,21 @@ describe("displayAddress", () => {
 
   it("leaves addresses with variables readable", () => {
     expect(displayAddress("{{baseUrl}}/login/")).toBe("{{baseUrl}}/login");
+  });
+});
+
+describe("parseNumberText", () => {
+  it("reads comma decimals and gives nothing for blank text", () => {
+    expect(parseNumberText("1,5")).toBe(1.5);
+    expect(parseNumberText(" 2 ")).toBe(2);
+    expect(parseNumberText("")).toBeNull();
+    expect(parseNumberText("   ")).toBeNull();
+    expect(parseNumberText("12 dB")).toBeNull();
+  });
+
+  it("ignores units when lenient", () => {
+    expect(parseNumberText("-12 dB", { lenient: true })).toBe(-12);
+    expect(parseNumberText("5s", { lenient: true })).toBe(5);
+    expect(parseNumberText("dB", { lenient: true })).toBeNull();
   });
 });

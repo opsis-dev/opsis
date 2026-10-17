@@ -1,4 +1,4 @@
-import { nodeName } from "@/shared/nodes/registry";
+import { nodeNameById } from "@/shared/nodes/registry";
 import type { Workflow } from "@/shared/schema/workflow";
 import type { EditContext } from "@/shared/timeline/edits";
 import type { FlatTimeline } from "@/shared/timeline/flatten";
@@ -17,7 +17,4 @@ export type BarContext = {
   splitContext: () => EditContext;
 };
 
-export function nodeTitle(wf: Workflow, id: string): string {
-  const node = wf.nodes.find((n) => n.id === id);
-  return node ? nodeName(node) : "";
-}
+export const nodeTitle = (wf: Workflow, id: string): string => nodeNameById(wf, id, "");

@@ -1,6 +1,7 @@
 import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
-import { parseDecimal, trimNumber, unitScale, useDecimalInput } from "./decimal";
+import { parseNumberText } from "@/shared/format";
+import { trimNumber, unitScale, useDecimalInput } from "./decimal";
 import type { FieldProps } from "./types";
 
 const MS = unitScale("ms", 0);
@@ -43,7 +44,7 @@ function OffsetInput({
 }) {
   const input = useDecimalInput(trimNumber(ms / MS.factor), {
     onCommit: (text) => {
-      const n = parseDecimal(text);
+      const n = parseNumberText(text);
       onCommit(n === null ? 0 : Math.max(0, Math.round(n * MS.factor)));
     },
   });

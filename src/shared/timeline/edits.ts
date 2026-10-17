@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { MAX_SPEED, MIN_SPEED } from "../nodes/params";
-import { getNodeDef, defaultParams, nodeName } from "../nodes/registry";
+import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
 import { cutSchema, IN_PORTS } from "../nodes/timeline";
 import type { ParamRef } from "../schema/timeline";
 import {
@@ -41,10 +41,7 @@ const ok = (workflow: Workflow, message?: string, selectNodeId?: string): EditRe
   ...(selectNodeId ? { selectNodeId } : {}),
 });
 
-const clipName = (wf: Workflow, id: string) => {
-  const n = wf.nodes.find((x) => x.id === id);
-  return n ? nodeName(n) : "this clip";
-};
+const clipName = (wf: Workflow, id: string) => nodeNameById(wf, id, "this clip");
 
 type ParamAt = Pick<ParamRef, "nodeId" | "param" | "index">;
 

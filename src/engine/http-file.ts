@@ -1,6 +1,7 @@
 import { createReadStream, type ReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
+import { isInside } from "./project-paths";
 
 const MIME: Record<string, string> = {
   ".mp4": "video/mp4",
@@ -38,7 +39,7 @@ export const mimeType = (file: string): string =>
 export function resolveInside(root: string, urlPath: string): string | null {
   const base = path.resolve(root);
   const file = path.resolve(base, decodeURIComponent(urlPath).replace(/^\/+/, ""));
-  return file === base || file.startsWith(base + path.sep) ? file : null;
+  return isInside(base, file) ? file : null;
 }
 
 export type ByteRange = { start: number; end: number };

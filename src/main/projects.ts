@@ -17,7 +17,7 @@ import { getTemplate } from "../shared/templates";
 import { debounce } from "../shared/timing";
 import { errorMessage } from "../shared/errors";
 import { sha256Hex } from "../engine/hash";
-import { atomicWrite, readJsonKeepingBroken } from "../engine/json";
+import { atomicWrite, readJsonKeepingBroken, writeJson } from "../engine/json";
 import { readLastRun } from "../engine/project-paths";
 import { openDialog } from "./dialogs";
 import { ensureSecretsDir } from "./secrets";
@@ -57,7 +57,7 @@ async function touchRecent(dir: string, name: string): Promise<void> {
   }
   const next = [{ dir, name, openedAt: Date.now() }, ...list.filter((p) => p.dir !== dir)];
   await mkdir(path.dirname(recentFile()), { recursive: true });
-  await writeFile(recentFile(), JSON.stringify(next.slice(0, MAX_RECENT), null, 2));
+  await writeJson(recentFile(), next.slice(0, MAX_RECENT));
 }
 
 export async function projectLocations(): Promise<ProjectLocations> {
@@ -99,20 +99,16 @@ function parseWorkflowText(text: string): Workflow | null {
   }
 }
 
-export async function openProjectDir(
-  win: BrowserWindow | null,
-  dir?: string,
-): Promise<OpenProject | null> {
-  const target =
-    dir ||
-    (
-      await openDialog(win, {
-        title: "Open Demoflow project",
-        defaultPath: existingDir((await projectLocations()).defaultDir),
-        properties: ["openDirectory"],
-      })
-    )[0];
-  if (!target) return null;
+export async function pickProjectDir(win: BrowserWindow | null): Promise<string | null> {
+  const [folder] = await openDialog(win, {
+    title: "Open Demoflow project",
+    defaultPath: existingDir((await projectLocations()).defaultDir),
+    properties: ["openDirectory"],
+  });
+  return folder || null;
+}
+
+export async function openProjectDir(target: string): Promise<OpenProject> {
   const file = await readProjectFile(target);
   if (!file) throw new Error(`There's no Demoflow project in ${target}.`);
   const workflow = workflowSchema.parse(JSON.parse(file.text));
