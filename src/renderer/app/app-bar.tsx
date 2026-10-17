@@ -1,12 +1,13 @@
 import { Copy, Menu, Minus, Square, X } from "lucide-react";
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
-import type { MenuCommand, WindowState } from "@/shared/ipc";
+import type { WindowState } from "@/shared/ipc";
 import logoUrl from "../../../brand/logo.svg";
 import {
   acceleratorLabel,
   appMenu,
   matchesAccelerator,
   menuCommandEntry,
+  type MenuCommand,
   type MenuEntry,
   type WindowRole,
 } from "@/shared/menu";

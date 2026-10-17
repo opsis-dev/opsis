@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent } from "react";
 import { shallow } from "zustand/vanilla/shallow";
-import type { DockPanelName, MenuCommand } from "@/shared/ipc";
+import type { DockPanelName } from "@/shared/ipc";
+import type { MenuCommand } from "@/shared/menu";
 import type { LiveMessage } from "@/shared/live";
 import type { RunEvent } from "@/shared/schema/events";
 import type { Workflow } from "@/shared/schema/workflow";

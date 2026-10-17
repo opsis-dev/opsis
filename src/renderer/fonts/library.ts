@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { create } from "zustand";
 import { errorMessage } from "@/shared/errors";
-import type { FontFamilyDef } from "@/shared/fonts";
+import type { FontFamilyDef } from "@/shared/fonts/types";
 import { encodePath } from "@/shared/asset-ref";
 import { fileUrl } from "../editor/file-url";
 

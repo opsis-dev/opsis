@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import type { MenuCommand } from "@/shared/ipc";
+import type { MenuCommand } from "@/shared/menu";
 import { useUiStore } from "../store/ui";
 import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";

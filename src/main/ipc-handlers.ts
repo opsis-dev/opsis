@@ -1,14 +1,8 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
-import {
-  INVOKE,
-  IPC,
-  type DemoflowApi,
-  type InvokeName,
-  type MenuCommand,
-  type RunRequest,
-} from "../shared/ipc";
+import { INVOKE, IPC, type DemoflowApi, type InvokeName, type RunRequest } from "../shared/ipc";
+import type { MenuCommand } from "../shared/menu";
 import { readLastRun } from "../engine/project-paths";
 import { readTrace } from "../traces/store";
 import { analyze } from "./analysis";
@@ -49,7 +43,7 @@ import {
 } from "./projects";
 import { reportRunEvent, runProgressFor } from "./run-reporter";
 import { listSecrets } from "./secrets";
-import { patchSettings, readSettings, writeSettings } from "./settings";
+import { patchSettings, readSettings } from "./settings";
 import { openSettingsWindow } from "./settings-window";
 import { listStills, requestStill } from "./stills";
 import { activeRunId, cancelRun, environment, installEngine, isRunning, startRun } from "./workers";
@@ -144,7 +138,6 @@ const HANDLERS: InvokeHandlers = {
       installEngine((e) => broadcast(IPC.engineEvent, e)),
     ),
   getSettings: plain(readSettings),
-  setSettings: plain(writeSettings),
   patchSettings: plain(patchSettings),
   openSettings: plain(openSettingsWindow),
   listLicences: plain(listLicences),

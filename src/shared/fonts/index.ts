@@ -1,26 +1,19 @@
 import { BUNDLED_FONTS } from "./bundled.generated";
 import type { FontFamilyDef, ProjectFonts } from "./types";
 
-export * from "./types";
-export { BUNDLED_FONTS };
+const FONT_ROLES = ["main", "heading", "code"] as const;
 
-export type FontRole = "main" | "heading" | "code";
+type FontRole = (typeof FONT_ROLES)[number];
 
-export const ROLE_FAMILIES: Record<FontRole, string> = {
-  main: "df-main",
-  heading: "df-heading",
-  code: "df-code",
-};
+const roleFamily = (role: FontRole): string => `df-${role}`;
 
 export const ROLE_ALIASES: Record<string, FontRole> = {
-  "df-main": "main",
-  "df-heading": "heading",
-  "df-code": "code",
+  ...Object.fromEntries(FONT_ROLES.map((role) => [roleFamily(role), role])),
   Inter: "main",
   "JetBrains Mono": "code",
 };
 
-export const FAMILY_ALIASES: Record<string, string> = {
+const FAMILY_ALIASES: Partial<Record<string, string>> = {
   "Google Sans": "Google Sans Flex",
 };
 
@@ -32,7 +25,7 @@ const GENERIC: Record<FontFamilyDef["category"], string> = {
   handwriting: "cursive",
 };
 
-export function allFamilies(fonts: Pick<ProjectFonts, "families">): FontFamilyDef[] {
+function allFamilies(fonts: Pick<ProjectFonts, "families">): FontFamilyDef[] {
   const seen = new Set<string>();
   return [...fonts.families, ...BUNDLED_FONTS].filter((f) => {
     const key = f.family.toLowerCase();
@@ -65,11 +58,14 @@ export function fontStack(
 
 export function roleStack(role: FontRole): string {
   const fallback = role === "code" ? "ui-monospace, monospace" : "system-ui, sans-serif";
-  return `"${ROLE_FAMILIES[role]}", ${fallback}`;
+  return `"${roleFamily(role)}", ${fallback}`;
 }
 
 export function firstFamily(stack: string): string {
-  return (stack.split(",")[0] ?? "").trim().replace(/^["']|["']$/g, "");
+  return stack
+    .split(",")[0]
+    .trim()
+    .replace(/^["']|["']$/g, "");
 }
 
 export function fontSlug(family: string): string {

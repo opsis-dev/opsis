@@ -1,7 +1,8 @@
 import { ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import { BUNDLED_FONTS, type FontFamilyDef } from "@/shared/fonts";
+import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
+import type { FontFamilyDef } from "@/shared/fonts/types";
 import type { LicenceEntry } from "@/shared/ipc";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";

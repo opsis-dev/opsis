@@ -20,6 +20,13 @@ export type LoginRequest = {
   timeoutSec: number;
 };
 
+export type WorkerReply = {
+  type: "secret:response" | "login:response";
+  id: string;
+  value?: string;
+  error?: string;
+};
+
 export type MainToWorker =
   | { type: "run"; env: WorkerEnv; request: RunRequest; runId: string }
   | { type: "install-engine"; env: WorkerEnv }
@@ -35,8 +42,7 @@ export type MainToWorker =
     }
   | { type: "analysis"; env: WorkerEnv; id: string; request: AnalysisRequest }
   | { type: "cancel" }
-  | { type: "secret:response"; id: string; value?: string; error?: string }
-  | { type: "login:response"; id: string; value?: string; error?: string };
+  | WorkerReply;
 
 export type WorkerToMain =
   | { type: "event"; event: RunEvent }

@@ -9,7 +9,7 @@ export const projectFolderName = (name: string): string => slugify(name, "demo")
 export function joinFolder(parent: string, child: string, platform: string): string {
   const sep = platform === "win32" ? "\\" : "/";
   const trimmed = parent.replace(/[\\/]+$/, "");
-  return `${trimmed || sep}${trimmed ? sep : ""}${child}`;
+  return trimmed ? `${trimmed}${sep}${child}` : `${sep}${child}`;
 }
 
 export const expandHome = (folder: string, home: string): string =>

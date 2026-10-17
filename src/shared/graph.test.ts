@@ -83,7 +83,7 @@ describe("graph", () => {
     expect(loginDependencies(g.build({ id: "x", name: "x" }), "rec", {})).toEqual(["login"]);
   });
 
-  it("runs every export and the steps that come after one", () => {
+  it("runs every export and the nodes that come after one", () => {
     const g = new GraphBuilder();
     const title = g.node("title", "fx.core.title", 0, 0);
     const film = g.node("film", "output.render", 1, 0);

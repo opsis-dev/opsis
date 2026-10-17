@@ -3,7 +3,7 @@ import { validateWorkflow } from "../graph";
 import { normalizeWorkflow, workflowSchema, type Workflow } from "../schema/workflow";
 import type { ApiProblem } from "./types";
 
-export type CheckResult = { ok: boolean; workflow: Workflow | null; problems: ApiProblem[] };
+type CheckResult = { ok: boolean; workflow: Workflow | null; problems: ApiProblem[] };
 
 const pathText = (path: PropertyKey[]) =>
   path
@@ -18,12 +18,6 @@ export function workflowProblems(wf: Workflow): ApiProblem[] {
     ...(i.nodeId ? { nodeId: i.nodeId } : {}),
     ...(i.edgeId ? { edgeId: i.edgeId } : {}),
   }));
-  const ids = new Set<string>();
-  for (const n of wf.nodes) {
-    if (ids.has(n.id))
-      problems.push({ level: "error", nodeId: n.id, message: "Two nodes share this id" });
-    ids.add(n.id);
-  }
   const flagged = new Set(problems.filter((p) => p.level === "error").map((p) => p.nodeId));
   for (const [nodeId, message] of Object.entries(compileWorkflow(wf).errors))
     if (!flagged.has(nodeId)) problems.push({ level: "error", nodeId, message });

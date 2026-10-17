@@ -1,5 +1,5 @@
 import type { LiveMessage } from "./live";
-import type { WindowRole } from "./menu";
+import type { MenuCommand, WindowRole } from "./menu";
 import type { RunEvent } from "./schema/events";
 import type { RunProgress } from "./run-progress";
 import type { LastRun } from "./schema/values";
@@ -58,13 +58,19 @@ export type ApiStatus = {
   error?: string;
 };
 
-export type ProjectTemplateId = string;
-
 export type RunRequest = {
   projectDir: string;
   workflow: Workflow;
   targetNodeIds?: string[];
   fromNodeId?: string;
+};
+
+export type EngineStatus = {
+  dir: string;
+  headlessShell: string | null;
+  ffmpeg: string | null;
+  ffprobe: string | null;
+  complete: boolean;
 };
 
 export type EnvStatus = {
@@ -74,13 +80,7 @@ export type EnvStatus = {
   edition: "full" | "lite" | "dev";
   userData: string;
   versions: { electron: string; chrome: string; node: string; app: string };
-  engine: {
-    dir: string;
-    complete: boolean;
-    headlessShell: string | null;
-    ffmpeg: string | null;
-    ffprobe: string | null;
-  };
+  engine: EngineStatus;
 };
 
 export type EngineInstallEvent = {
@@ -100,38 +100,14 @@ export type PickResult = {
   selectorUsed: string;
 } | null;
 
-export type MenuCommand =
-  | "project:new"
-  | "project:open"
-  | "project:save"
-  | "edit:undo"
-  | "edit:redo"
-  | "edit:group"
-  | "edit:layout"
-  | "run:start"
-  | "run:cancel"
-  | "view:settings"
-  | "view:projects"
-  | "view:toggle-left"
-  | "view:toggle-bottom"
-  | "view:toggle-right"
-  | "view:toggle-minimap"
-  | "view:focus-preview"
-  | "view:focus-timeline"
-  | "view:focus-mixer"
-  | "view:focus-run"
-  | "edit:add-node";
-
 export type DockPanelName = "preview" | "timeline" | "mixer" | "run";
 
 export type CloseRequest = { ask: boolean; busy: string[] };
 export type CloseDecision = { close: boolean; dontAsk: boolean };
 
-export type InspectedFamily = PlannedFamily;
-
 export type InspectedFonts = {
   token: string;
-  families: InspectedFamily[];
+  families: PlannedFamily[];
   license?: string;
   skipped: number;
   unreadable: number;
@@ -173,7 +149,7 @@ export interface DemoflowApi {
   listRecentProjects(): Promise<RecentProject[]>;
   createProject(opts: {
     name: string;
-    template: ProjectTemplateId;
+    template: string;
     dir?: string;
   }): Promise<OpenProject | null>;
   openProject(dir?: string): Promise<OpenProject | null>;
@@ -199,7 +175,6 @@ export interface DemoflowApi {
   installEngine(): Promise<void>;
   onEngineInstall(listener: (event: EngineInstallEvent) => void): () => void;
   getSettings(): Promise<AppSettings>;
-  setSettings(settings: AppSettings): Promise<AppSettings>;
   patchSettings(patch: SettingsPatch): Promise<AppSettings>;
   onSettingsChanged(listener: (settings: AppSettings) => void): () => void;
   openSettings(page?: SettingsPage): Promise<void>;
@@ -261,7 +236,6 @@ export const INVOKE = {
   getEnvironment: "demoflow:env",
   installEngine: "demoflow:engine:install",
   getSettings: "demoflow:settings:get",
-  setSettings: "demoflow:settings:set",
   patchSettings: "demoflow:settings:patch",
   openSettings: "demoflow:settings:open-window",
   listLicences: "demoflow:licences:list",

@@ -1,4 +1,4 @@
-export type BuiltinSound = {
+type BuiltinSound = {
   id: string;
   label: string;
   ref: `app:sfx/${string}.wav`;

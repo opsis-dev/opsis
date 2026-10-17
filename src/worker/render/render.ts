@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs";
 import path from "node:path";
 import {
   makeCancelSignal,
@@ -11,7 +10,7 @@ import {
 } from "@remotion/renderer";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import type { WorkerEnv } from "../../shared/worker-protocol";
-import { enginePaths } from "../../engine/paths";
+import { enginePaths, findHeadlessShell } from "../../engine/paths";
 import { COMPOSITION_ID } from "../../video/composition-id";
 import {
   bundleRemotionProject,
@@ -41,8 +40,8 @@ export function binariesDirectory(env: WorkerEnv): string | null {
 }
 
 export function browserExecutable(env: WorkerEnv): string {
-  const shell = enginePaths(env.engineDir).headlessShell;
-  if (!existsSync(shell)) throw new Error(ENGINE_MISSING_MESSAGE);
+  const shell = findHeadlessShell(enginePaths(env.engineDir));
+  if (!shell) throw new Error(ENGINE_MISSING_MESSAGE);
   return shell;
 }
 

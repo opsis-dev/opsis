@@ -1,7 +1,8 @@
 import { Download } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BUNDLED_FONTS, familyKey } from "@/shared/fonts";
+import { familyKey } from "@/shared/fonts";
+import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
 import type { FontCatalogEntry } from "@/shared/ipc";
 import { errorMessage } from "@/shared/errors";
 import { plural } from "@/shared/format";

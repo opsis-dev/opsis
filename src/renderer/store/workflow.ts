@@ -12,7 +12,8 @@ import {
 import { defaultMix, type Mix } from "@/shared/mix/types";
 import { randomId } from "@/shared/ids";
 import { renameVariable } from "@/shared/vars";
-import { sameFamily, type FontFamilyDef } from "@/shared/fonts";
+import { sameFamily } from "@/shared/fonts";
+import type { FontFamilyDef } from "@/shared/fonts/types";
 import { platform } from "@/renderer/lib/platform";
 import { useUiStore } from "./ui";
 

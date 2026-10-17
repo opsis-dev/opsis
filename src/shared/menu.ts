@@ -1,4 +1,24 @@
-import type { MenuCommand } from "./ipc";
+export type MenuCommand =
+  | "project:new"
+  | "project:open"
+  | "project:save"
+  | "edit:undo"
+  | "edit:redo"
+  | "edit:group"
+  | "edit:layout"
+  | "run:start"
+  | "run:cancel"
+  | "view:settings"
+  | "view:projects"
+  | "view:toggle-left"
+  | "view:toggle-bottom"
+  | "view:toggle-right"
+  | "view:toggle-minimap"
+  | "view:focus-preview"
+  | "view:focus-timeline"
+  | "view:focus-mixer"
+  | "view:focus-run"
+  | "edit:add-node";
 
 export type WindowRole =
   | "cut"
@@ -111,31 +131,34 @@ export function menuCommandEntry(
   return undefined;
 }
 
+const SHIFT_TOLERANT_KEYS = new Set(["=", "-"]);
+
 type KeyLike = Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey">;
 
 export function matchesAccelerator(accelerator: string, e: KeyLike, platform: string): boolean {
-  const parts = accelerator.split("+");
-  const key = parts.pop()!.toLowerCase();
-  const mods = new Set(parts.map((p) => p.toLowerCase()));
+  const key = accelerator.slice(accelerator.lastIndexOf("+") + 1).toLowerCase();
+  const mods = new Set(
+    accelerator
+      .split("+")
+      .slice(0, -1)
+      .map((p) => p.toLowerCase()),
+  );
   const mac = platform === "darwin";
   const wantCtrl = mods.has("ctrl") || mods.has("control") || (!mac && mods.has("cmdorctrl"));
   const wantMeta = mods.has("cmd") || mods.has("command") || (mac && mods.has("cmdorctrl"));
   if (e.ctrlKey !== wantCtrl || e.metaKey !== wantMeta) return false;
   if (e.altKey !== mods.has("alt")) return false;
   const pressed = e.key.toLowerCase();
-  const shiftOk = e.shiftKey === mods.has("shift") || key === "=" || key === "-";
-  if (!shiftOk) return false;
+  if (e.shiftKey !== mods.has("shift") && !SHIFT_TOLERANT_KEYS.has(key)) return false;
   if (key === "=") return pressed === "=" || pressed === "+";
   return pressed === key;
 }
 
 export function acceleratorLabel(accelerator: string, platform: string): string {
   const mac = platform === "darwin";
-  const names: Record<string, string> = mac
+  const names: Partial<Record<string, string>> = mac
     ? { cmdorctrl: "⌘", cmd: "⌘", ctrl: "⌃", alt: "⌥", shift: "⇧", enter: "↩" }
     : { cmdorctrl: "Ctrl", cmd: "Ctrl", ctrl: "Ctrl", alt: "Alt", shift: "Shift", enter: "Enter" };
   const parts = accelerator.split("+").map((p) => names[p.toLowerCase()] ?? p.toUpperCase());
   return mac ? parts.join("") : parts.join("+");
 }
-
-export const TEXT_EDITING: MenuCommand[] = ["edit:undo", "edit:redo"];

@@ -1,7 +1,7 @@
 import type { NodeRunStatus, RunEvent } from "./schema/events";
 import type { Artifact, NodeResult } from "./schema/values";
 
-export type NodeProgress = { value: number; message?: string };
+type NodeProgress = { value: number; message?: string };
 
 export type RunProgress = {
   runId: string | null;
@@ -47,7 +47,13 @@ export function applyRunEvent<S extends RunProgress>(state: S, e: RunEvent): S {
     case "node:progress":
       return {
         ...state,
-        progress: { ...state.progress, [e.nodeId]: { value: e.progress, message: e.message } },
+        progress: {
+          ...state.progress,
+          [e.nodeId]: {
+            value: e.progress,
+            ...(e.message === undefined ? {} : { message: e.message }),
+          },
+        },
       };
     case "node:done": {
       const keep = Object.keys(e.result.outputs).length > 0 || e.result.artifacts.length > 0;
@@ -69,7 +75,8 @@ export function applyRunEvent<S extends RunProgress>(state: S, e: RunEvent): S {
       };
     case "node:skipped":
       return { ...state, statuses: { ...state.statuses, [e.nodeId]: "skipped" } };
-    default:
+    case "node:log":
+    case "run:done":
       return state;
   }
 }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FONT_CATEGORIES, type FontFamilyDef } from "../shared/fonts";
+import { FONT_CATEGORIES, type FontFamilyDef } from "../shared/fonts/types";
 import type { FontCatalogEntry } from "../shared/ipc";
 import { addFamilies, guessCategory, type FontBytes, type NewFamily } from "./fonts";
 

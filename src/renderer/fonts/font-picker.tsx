@@ -1,7 +1,9 @@
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { BUNDLED_FONTS, familyKey, sameFamily, type FontFamilyDef } from "@/shared/fonts";
+import { familyKey, sameFamily } from "@/shared/fonts";
+import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
+import type { FontFamilyDef } from "@/shared/fonts/types";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Command,

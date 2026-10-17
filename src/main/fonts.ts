@@ -6,7 +6,8 @@ import { unzipSync } from "fflate";
 import { create, type Font } from "fontkit";
 import { z } from "zod";
 import { baseName } from "../shared/asset-ref";
-import { fontFamilySchema, fontSlug, type FontFaceDef, type FontFamilyDef } from "../shared/fonts";
+import { fontSlug } from "../shared/fonts";
+import { fontFamilySchema, type FontFaceDef, type FontFamilyDef } from "../shared/fonts/types";
 import {
   familyNameFrom,
   planFontFiles,

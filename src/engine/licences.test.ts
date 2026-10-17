@@ -15,7 +15,7 @@ async function tempDir(): Promise<string> {
 
 async function fakeEngine(dir: string): Promise<void> {
   const p = enginePaths(dir);
-  for (const file of [p.headlessShell, p.ffmpeg, p.ffprobe]) {
+  for (const file of [p.headlessShells[0], p.ffmpeg, p.ffprobe]) {
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, "");
   }

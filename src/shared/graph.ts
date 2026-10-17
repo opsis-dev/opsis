@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import { getNodeDef, nodeName } from "./nodes/registry";
 import { canConnect } from "./nodes/ports";
 import type { PortSpec } from "./nodes/define";
@@ -17,63 +18,56 @@ export type GraphIssue = {
 export const isStructural = (node: WorkflowNode) =>
   node.type === "core.group" || node.type === "core.note";
 
-export function incomingEdges(wf: Workflow, nodeId: string): WorkflowEdge[] {
-  return wf.edges.filter((e) => e.target === nodeId);
-}
-
-export function outgoingEdges(wf: Workflow, nodeId: string): WorkflowEdge[] {
-  return wf.edges.filter((e) => e.source === nodeId);
-}
+const byPosition = (a: WorkflowNode, b: WorkflowNode) =>
+  a.position.x - b.position.x || a.position.y - b.position.y || (a.id < b.id ? -1 : 1);
 
 export function topoSort(wf: Workflow): { order: string[]; cyclic: string[] } {
   const nodes = wf.nodes.filter((n) => !isStructural(n));
-  const ids = new Set(nodes.map((n) => n.id));
-  const indegree = new Map<string, number>(nodes.map((n) => [n.id, 0]));
-  const adj = new Map<string, string[]>(nodes.map((n) => [n.id, []]));
+  const byId: Record<string, WorkflowNode> = Object.fromEntries(nodes.map((n) => [n.id, n]));
+  const indegree: Record<string, number> = Object.fromEntries(nodes.map((n) => [n.id, 0]));
+  const next: Record<string, WorkflowNode[]> = Object.fromEntries(nodes.map((n) => [n.id, []]));
   for (const e of wf.edges) {
-    if (!ids.has(e.source) || !ids.has(e.target)) continue;
-    adj.get(e.source)!.push(e.target);
-    indegree.set(e.target, (indegree.get(e.target) ?? 0) + 1);
+    if (!Object.hasOwn(byId, e.source) || !Object.hasOwn(byId, e.target)) continue;
+    next[e.source].push(byId[e.target]);
+    indegree[e.target] += 1;
   }
-  const pos = new Map(nodes.map((n) => [n.id, n.position]));
-  const byPosition = (a: string, b: string) => {
-    const pa = pos.get(a)!;
-    const pb = pos.get(b)!;
-    return pa.x - pb.x || pa.y - pb.y || (a < b ? -1 : 1);
-  };
-  const ready = nodes.filter((n) => indegree.get(n.id) === 0).map((n) => n.id);
-  ready.sort(byPosition);
+  const ready = nodes.filter((n) => indegree[n.id] === 0).sort(byPosition);
   const order: string[] = [];
-  while (ready.length) {
-    const id = ready.shift()!;
-    order.push(id);
-    for (const next of adj.get(id)!) {
-      const d = indegree.get(next)! - 1;
-      indegree.set(next, d);
-      if (d === 0) {
-        ready.push(next);
-        ready.sort(byPosition);
-      }
+  for (let node = ready.shift(); node; node = ready.shift()) {
+    order.push(node.id);
+    for (const after of next[node.id]) {
+      indegree[after.id] -= 1;
+      if (indegree[after.id] === 0) ready.push(after);
     }
+    ready.sort(byPosition);
   }
-  const cyclic = nodes.map((n) => n.id).filter((id) => !order.includes(id));
-  return { order, cyclic };
+  const ordered = new Set(order);
+  return { order, cyclic: nodes.filter((n) => !ordered.has(n.id)).map((n) => n.id) };
 }
 
-export function upstreamOf(wf: Workflow, nodeId: string): Set<string> {
+function reach(wf: Workflow, nodeId: string, direction: "up" | "down"): Set<string> {
+  const links = new Map<string, string[]>();
+  for (const e of wf.edges) {
+    const [from, to] = direction === "up" ? [e.target, e.source] : [e.source, e.target];
+    const list = links.get(from);
+    if (list) list.push(to);
+    else links.set(from, [to]);
+  }
   const out = new Set<string>();
   const stack = [nodeId];
-  while (stack.length) {
-    const id = stack.pop()!;
-    for (const e of wf.edges) {
-      if (e.target === id && !out.has(e.source)) {
-        out.add(e.source);
-        stack.push(e.source);
+  for (let id = stack.pop(); id !== undefined; id = stack.pop())
+    for (const linked of links.get(id) ?? [])
+      if (!out.has(linked)) {
+        out.add(linked);
+        stack.push(linked);
       }
-    }
-  }
   return out;
 }
+
+export const upstreamOf = (wf: Workflow, nodeId: string): Set<string> => reach(wf, nodeId, "up");
+
+export const downstreamOf = (wf: Workflow, nodeId: string): Set<string> =>
+  reach(wf, nodeId, "down");
 
 export function exportedClipNodes(wf: Workflow): string[] {
   const out = new Set<string>();
@@ -139,21 +133,6 @@ export function connectionProblem(wf: Workflow, c: ConnectionEnds): ConnectionPr
   return null;
 }
 
-export function downstreamOf(wf: Workflow, nodeId: string): Set<string> {
-  const out = new Set<string>();
-  const stack = [nodeId];
-  while (stack.length) {
-    const id = stack.pop()!;
-    for (const e of wf.edges) {
-      if (e.source === id && !out.has(e.target)) {
-        out.add(e.target);
-        stack.push(e.target);
-      }
-    }
-  }
-  return out;
-}
-
 export function runTargets(wf: Workflow): string[] {
   const executes = (n: WorkflowNode | undefined) =>
     !!n && !n.disabled && !isStructural(n) && !!getNodeDef(n.type)?.executes;
@@ -166,28 +145,36 @@ export function runTargets(wf: Workflow): string[] {
   return [...targets];
 }
 
-export function sessionChain(wf: Workflow, captureNodeId: string): WorkflowNode[] {
+type SessionWalk = { chain: WorkflowNode[]; problem: null } | { chain: null; problem: string };
+
+function walkSession(wf: Workflow, captureNodeId: string): SessionWalk {
   const byId = new Map(wf.nodes.map((n) => [n.id, n]));
   const chain: WorkflowNode[] = [];
-  let current = captureNodeId;
   const seen = new Set<string>();
-  for (;;) {
+  const fail = (problem: string): SessionWalk => ({ chain: null, problem });
+  for (let current = captureNodeId; ;) {
     const edge = wf.edges.find((e) => e.target === current && e.targetHandle === "session");
     if (!edge) break;
-    if (seen.has(edge.source)) throw new Error("The browser action chain loops back on itself.");
+    if (seen.has(edge.source)) return fail("The browser action chain loops back on itself.");
     seen.add(edge.source);
     const node = byId.get(edge.source);
-    if (!node) throw new Error(`Missing node ${edge.source}`);
+    if (!node) return fail(`Missing node ${edge.source}`);
     chain.unshift(node);
-    if (node.type === "browser.session") return chain;
+    if (node.type === "browser.session") return { chain, problem: null };
     current = node.id;
   }
   const head = chain[0];
-  throw new Error(
+  return fail(
     head
       ? `The action chain starting at "${nodeName(head)}" is not connected to a Session node.`
       : "Connect a Session → actions chain to this node's session input.",
   );
+}
+
+export function sessionChain(wf: Workflow, captureNodeId: string): WorkflowNode[] {
+  const walk = walkSession(wf, captureNodeId);
+  if (walk.problem !== null) throw new Error(walk.problem);
+  return walk.chain;
 }
 
 export function loginDependencies(
@@ -196,16 +183,11 @@ export function loginDependencies(
   vars: Record<string, string>,
 ): string[] {
   const param = (node: WorkflowNode, key: string) => {
-    const value = (interpolate(node.params ?? {}, vars) as Record<string, unknown>)[key];
+    const value = interpolate(node.params, vars)[key];
     return typeof value === "string" ? value.trim() : "";
   };
-  let head: WorkflowNode | undefined;
-  try {
-    head = sessionChain(wf, captureNodeId)[0];
-  } catch {
-    return [];
-  }
-  const storageState = head ? param(head, "storageState") : "";
+  const { chain } = walkSession(wf, captureNodeId);
+  const storageState = chain ? param(chain[0], "storageState") : "";
   if (!storageState) return [];
   const secret = secretFileName(storageState);
   return wf.nodes
@@ -231,20 +213,11 @@ const TYPE_WORDS: Record<PortType, string> = {
   file: "file",
 };
 
-type ZodIssueLike = {
-  code: string;
-  message: string;
-  path: PropertyKey[];
-  minimum?: unknown;
-  maximum?: unknown;
-};
-
-export function describeParamIssue(shape: Record<string, unknown>, issue: ZodIssueLike): string {
+export function describeParamIssue(shape: z.ZodObject["shape"], issue: z.core.$ZodIssue): string {
   const key = String(issue.path[0] ?? "");
-  const field = shape[key];
+  const field: z.ZodType | undefined = shape[key];
   const label =
-    (field ? fieldMeta(field as Parameters<typeof fieldMeta>[0]).description : undefined) ||
-    (key ? humanize(key) : "A setting");
+    (field ? fieldMeta(field).description : undefined) || (key ? humanize(key) : "A setting");
   if (issue.code === "too_small" && issue.minimum === 1 && /string|character/i.test(issue.message))
     return `${label} is empty`;
   if (issue.code === "too_small") return `${label} is too small`;
@@ -256,80 +229,92 @@ export function describeParamIssue(shape: Record<string, unknown>, issue: ZodIss
   return `${label} isn't valid`;
 }
 
-export function validateWorkflow(wf: Workflow): GraphIssue[] {
+function portIssues(
+  wf: Workflow,
+  node: WorkflowNode,
+  inputs: Record<string, PortSpec>,
+): GraphIssue[] {
   const issues: GraphIssue[] = [];
-  const byId = new Map(wf.nodes.map((n) => [n.id, n]));
-
-  for (const node of wf.nodes) {
-    if (isStructural(node)) continue;
-    const def = getNodeDef(node.type);
-    if (!def) {
-      issues.push({ level: "error", nodeId: node.id, message: "This node type isn't available" });
-      continue;
-    }
-    if (node.disabled) continue;
-    const parsed = def.params.safeParse(node.params ?? {});
-    if (!parsed.success) {
-      const first = parsed.error.issues[0];
+  for (const [portId, spec] of Object.entries(inputs)) {
+    const edges = wf.edges.filter((e) => e.target === node.id && e.targetHandle === portId);
+    const name = spec.label ?? humanize(portId);
+    if (edges.length === 0 && !spec.optional)
+      issues.push({ level: "warning", nodeId: node.id, message: `Connect something to “${name}”` });
+    if (edges.length > 1 && !spec.many)
       issues.push({
         level: "error",
         nodeId: node.id,
-        message: describeParamIssue(def.params.shape, first as ZodIssueLike),
+        message: `“${name}” can only take one connection`,
       });
-    }
-    for (const [portId, spec] of Object.entries(def.inputs)) {
-      const edges = wf.edges.filter((e) => e.target === node.id && e.targetHandle === portId);
-      if (edges.length === 0 && !spec.optional) {
-        issues.push({
-          level: "warning",
-          nodeId: node.id,
-          message: `Connect something to “${spec.label ?? humanize(portId)}”`,
-        });
-      }
-      if (edges.length > 1 && !spec.many) {
-        issues.push({
-          level: "error",
-          nodeId: node.id,
-          message: `“${spec.label ?? humanize(portId)}” can only take one connection`,
-        });
-      }
-    }
   }
-
-  for (const e of wf.edges) {
-    const s = byId.get(e.source);
-    const t = byId.get(e.target);
-    if (!s || !t) {
-      issues.push({
-        level: "error",
-        edgeId: e.id,
-        message: "A connection points at a deleted node",
-      });
-      continue;
-    }
-    const sp = getNodeDef(s.type)?.outputs[e.sourceHandle];
-    const tp = getNodeDef(t.type)?.inputs[e.targetHandle];
-    if (!sp || !tp) {
-      issues.push({
-        level: "error",
-        edgeId: e.id,
-        nodeId: t.id,
-        message: "A connection uses a point that no longer exists",
-      });
-      continue;
-    }
-    if (!canConnect(sp.type, tp.type)) {
-      issues.push({
-        level: "error",
-        edgeId: e.id,
-        nodeId: t.id,
-        message: `A ${TYPE_WORDS[sp.type]} can't connect to a ${TYPE_WORDS[tp.type]} input`,
-      });
-    }
-  }
-
-  const { cyclic } = topoSort(wf);
-  for (const id of cyclic)
-    issues.push({ level: "error", nodeId: id, message: "This node loops back into itself" });
   return issues;
 }
+
+function nodeIssues(wf: Workflow): GraphIssue[] {
+  const seen = new Set<string>();
+  return wf.nodes.flatMap((node): GraphIssue[] => {
+    const duplicate = seen.has(node.id);
+    seen.add(node.id);
+    const issues: GraphIssue[] = duplicate
+      ? [{ level: "error", nodeId: node.id, message: "Two nodes share this id" }]
+      : [];
+    if (isStructural(node)) return issues;
+    const def = getNodeDef(node.type);
+    if (!def)
+      return [
+        ...issues,
+        { level: "error", nodeId: node.id, message: "This node type isn't available" },
+      ];
+    if (node.disabled) return issues;
+    const parsed = def.params.safeParse(node.params);
+    if (!parsed.success)
+      issues.push({
+        level: "error",
+        nodeId: node.id,
+        message: describeParamIssue(def.params.shape, parsed.error.issues[0]),
+      });
+    return [...issues, ...portIssues(wf, node, def.inputs)];
+  });
+}
+
+function edgeIssue(e: WorkflowEdge, byId: Map<string, WorkflowNode>): GraphIssue | null {
+  const s = byId.get(e.source);
+  const t = byId.get(e.target);
+  if (!s || !t)
+    return { level: "error", edgeId: e.id, message: "A connection points at a deleted node" };
+  const sp = getNodeDef(s.type)?.outputs[e.sourceHandle];
+  const tp = getNodeDef(t.type)?.inputs[e.targetHandle];
+  if (!sp || !tp)
+    return {
+      level: "error",
+      edgeId: e.id,
+      nodeId: t.id,
+      message: "A connection uses a point that no longer exists",
+    };
+  if (!canConnect(sp.type, tp.type))
+    return {
+      level: "error",
+      edgeId: e.id,
+      nodeId: t.id,
+      message: `A ${TYPE_WORDS[sp.type]} can't connect to a ${TYPE_WORDS[tp.type]} input`,
+    };
+  return null;
+}
+
+function edgeIssues(wf: Workflow): GraphIssue[] {
+  const byId = new Map(wf.nodes.map((n) => [n.id, n]));
+  return wf.edges.flatMap((e) => edgeIssue(e, byId) ?? []);
+}
+
+const cycleIssues = (wf: Workflow): GraphIssue[] =>
+  topoSort(wf).cyclic.map((id) => ({
+    level: "error",
+    nodeId: id,
+    message: "This node loops back into itself",
+  }));
+
+export const validateWorkflow = (wf: Workflow): GraphIssue[] => [
+  ...nodeIssues(wf),
+  ...edgeIssues(wf),
+  ...cycleIssues(wf),
+];

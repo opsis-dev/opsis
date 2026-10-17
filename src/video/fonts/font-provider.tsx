@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { continueRender, delayRender } from "remotion";
-import { DEFAULT_PROJECT_FONTS, firstFamily, type ProjectFonts } from "../../shared/fonts";
+import { firstFamily } from "../../shared/fonts";
+import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "../../shared/fonts/types";
 import type { GroupProps } from "../../shared/compile/clip";
 import type { TimelineTrack } from "../../shared/schema/timeline";
 import { resolveAssetRef, useAssetBase } from "../assets";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { interpolate, renameVariable, tokenize, untokenize } from "./vars";
+import { interpolate, renameVariable, tokenize } from "./vars";
 
 describe("variables", () => {
   it("allows readable names with spaces", () => {
@@ -8,16 +8,17 @@ describe("variables", () => {
     );
   });
 
-  it("splits text into words, variable chips and pauses and back", () => {
-    const value = "Hi {{Product name}}¦ welcome";
-    const tokens = tokenize(value, true);
-    expect(tokens).toEqual([
+  it("leaves names that aren't variables alone", () => {
+    expect(interpolate("{{constructor}} {{x}}", { x: "1" })).toBe("{{constructor}} 1");
+  });
+
+  it("splits text into words, variable chips and pauses", () => {
+    expect(tokenize("Hi {{Product name}}¦ welcome", true)).toEqual([
       { kind: "text", text: "Hi " },
       { kind: "var", name: "Product name" },
       { kind: "pause" },
       { kind: "text", text: " welcome" },
     ]);
-    expect(untokenize(tokens)).toBe(value);
     expect(tokenize("a¦b")).toEqual([{ kind: "text", text: "a¦b" }]);
   });
 

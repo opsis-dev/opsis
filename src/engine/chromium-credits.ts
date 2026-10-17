@@ -1,24 +1,16 @@
 import { execFileSync } from "node:child_process";
-import { createWriteStream, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
 import { chromium } from "playwright-core";
+import { z } from "zod";
+import { downloadTo } from "./download";
+import { remotionPlatform, type RemotionPlatform } from "./paths";
 
 const KNOWN_GOOD =
   "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json";
 
-const CFT_PLATFORM: Record<string, string> = {
-  "linux-x64": "linux64",
-  "linux-arm64": "linux64",
-  "darwin-x64": "mac-x64",
-  "darwin-arm64": "mac-arm64",
-  "win32-x64": "win64",
-  "win32-arm64": "win64",
-};
-
-const CHROME_BIN: Record<string, string> = {
+const CHROME_BIN: Partial<Record<RemotionPlatform, string>> = {
   linux64: "chrome-linux64/chrome",
   "mac-x64":
     "chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
@@ -27,14 +19,18 @@ const CHROME_BIN: Record<string, string> = {
   win64: "chrome-win64/chrome.exe",
 };
 
-type KnownGood = {
-  versions: Array<{
-    version: string;
-    downloads: { chrome?: Array<{ platform: string; url: string }> };
-  }>;
-};
+const knownGoodSchema = z.object({
+  versions: z.array(
+    z.object({
+      version: z.string(),
+      downloads: z.object({
+        chrome: z.array(z.object({ platform: z.string(), url: z.string() })).optional(),
+      }),
+    }),
+  ),
+});
 
-export function chromiumVersion(browser: string): string {
+function chromiumVersion(browser: string): string {
   const out = execFileSync(browser, ["--version"], { encoding: "utf8" });
   const version = /(\d+\.\d+\.\d+\.\d+)/.exec(out)?.[1];
   if (!version) throw new Error(`Couldn't read the browser version from "${out.trim()}".`);
@@ -42,15 +38,16 @@ export function chromiumVersion(browser: string): string {
 }
 
 async function fullChrome(version: string, cacheDir: string): Promise<string> {
-  const platform = CFT_PLATFORM[`${process.platform}-${process.arch}`];
-  if (!platform)
+  const platform = remotionPlatform();
+  const binary = CHROME_BIN[platform];
+  if (!binary)
     throw new Error(`No Chrome for Testing build for ${process.platform}/${process.arch}.`);
   const dir = path.join(cacheDir, version, platform);
-  const bin = path.join(dir, CHROME_BIN[platform]);
+  const bin = path.join(dir, binary);
   if (existsSync(bin)) return bin;
   const res = await fetch(KNOWN_GOOD);
   if (!res.ok) throw new Error(`Couldn't read the Chrome for Testing index (${res.status}).`);
-  const index = (await res.json()) as KnownGood;
+  const index = knownGoodSchema.parse(await res.json());
   const url = index.versions
     .find((v) => v.version === version)
     ?.downloads.chrome?.find((d) => d.platform === platform)?.url;
@@ -58,10 +55,7 @@ async function fullChrome(version: string, cacheDir: string): Promise<string> {
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
   const zip = path.join(dir, "chrome.zip");
-  const download = await fetch(url);
-  if (!download.ok || !download.body)
-    throw new Error(`Download failed (${download.status}): ${url}`);
-  await pipeline(Readable.fromWeb(download.body as never), createWriteStream(zip));
+  await downloadTo(url, zip);
   if (process.platform === "win32") execFileSync("tar", ["-xf", zip, "-C", dir]);
   else execFileSync("unzip", ["-q", zip, "-d", dir]);
   await rm(zip, { force: true });

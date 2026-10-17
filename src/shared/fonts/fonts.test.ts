@@ -1,14 +1,7 @@
 import { describe, expect, it } from "vitest";
-import {
-  BUNDLED_FONTS,
-  DEFAULT_PROJECT_FONTS,
-  findFamily,
-  firstFamily,
-  fontSlug,
-  fontStack,
-  roleFamilyName,
-  type FontFamilyDef,
-} from ".";
+import { findFamily, firstFamily, fontSlug, fontStack, roleFamilyName } from ".";
+import { BUNDLED_FONTS } from "./bundled.generated";
+import { DEFAULT_PROJECT_FONTS, type FontFamilyDef } from "./types";
 import { familyNameFrom, planFontFiles, type FontCandidate } from "./plan";
 
 const custom: FontFamilyDef = {

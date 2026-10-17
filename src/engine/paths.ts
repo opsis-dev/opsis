@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
+import type { EngineStatus } from "../shared/ipc";
 
-export const FFMPEG_RELEASE = "b6.1.1";
+const FFMPEG_RELEASE = "b6.1.1";
 export const FFMPEG_RELEASE_URL = `https://github.com/eugeneware/ffmpeg-static/releases/download/${FFMPEG_RELEASE}`;
 
 export const CHROMIUM_CREDITS_FILE = "LICENSES.chromium.html";
@@ -24,7 +25,7 @@ export type EnginePaths = {
   downloadDir: string;
   shellRoot: string;
   shellFolder: string;
-  headlessShell: string;
+  headlessShells: [remotionBuild: string, chromeForTesting: string];
   ffmpeg: string;
   ffprobe: string;
   ffmpegLicense: string;
@@ -38,36 +39,31 @@ export function enginePaths(
   const rp = remotionPlatform(platform, arch);
   const shellRoot = path.join(dir, "chrome-headless-shell");
   const shellFolder = path.join(shellRoot, rp, `chrome-headless-shell-${rp}`);
-  const remotionBuild = path.join(shellFolder, "headless_shell");
   const exe = platform === "win32" ? ".exe" : "";
   return {
     dir,
     downloadDir: path.join(dir, ".download"),
     shellRoot,
     shellFolder,
-    headlessShell: existsSync(remotionBuild)
-      ? remotionBuild
-      : path.join(shellFolder, `chrome-headless-shell${exe}`),
+    headlessShells: [
+      path.join(shellFolder, "headless_shell"),
+      path.join(shellFolder, `chrome-headless-shell${exe}`),
+    ],
     ffmpeg: path.join(dir, "ffmpeg", `ffmpeg${exe}`),
     ffprobe: path.join(dir, "ffmpeg", `ffprobe${exe}`),
     ffmpegLicense: path.join(dir, "ffmpeg", "LICENSE.txt"),
   };
 }
 
-export type EngineStatus = {
-  dir: string;
-  headlessShell: string | null;
-  ffmpeg: string | null;
-  ffprobe: string | null;
-  complete: boolean;
-};
+export const findHeadlessShell = (paths: Pick<EnginePaths, "headlessShells">): string | null =>
+  paths.headlessShells.find((file) => existsSync(file)) ?? null;
 
 export function engineStatus(dir: string): EngineStatus {
   const p = enginePaths(dir);
   const has = (f: string) => (existsSync(f) ? f : null);
   const status = {
     dir,
-    headlessShell: has(p.headlessShell),
+    headlessShell: findHeadlessShell(p),
     ffmpeg: has(p.ffmpeg),
     ffprobe: has(p.ffprobe),
   };

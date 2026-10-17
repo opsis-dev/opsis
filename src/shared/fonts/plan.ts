@@ -15,14 +15,14 @@ export type PlannedFamily<C extends FontCandidate = FontCandidate> = { family: s
 const STYLE_WORDS =
   /\s+(variable|vf|thin|hairline|extra ?light|ultra ?light|light|regular|book|normal|medium|semi ?bold|demi ?bold|bold|extra ?bold|ultra ?bold|black|heavy|italic|oblique)$/i;
 
+function stripStyleWords(name: string): string {
+  const stripped = name.replace(STYLE_WORDS, "");
+  return stripped === name ? name : stripStyleWords(stripped);
+}
+
 export function familyNameFrom(preferred: string | null | undefined, legacy: string): string {
-  let name = (preferred || legacy).trim();
-  if (preferred) return name.replace(/\s+(variable|vf)$/i, "");
-  for (let prev = ""; prev !== name;) {
-    prev = name;
-    name = name.replace(STYLE_WORDS, "");
-  }
-  return name || legacy;
+  if (preferred) return preferred.trim().replace(/\s+(variable|vf)$/i, "");
+  return stripStyleWords(legacy.trim()) || legacy;
 }
 
 const FORMAT_RANK: Record<FontFaceDef["format"], number> = {
@@ -32,32 +32,35 @@ const FORMAT_RANK: Record<FontFaceDef["format"], number> = {
   opentype: 3,
 };
 
-export function planFontFiles<C extends FontCandidate>(candidates: C[]): Array<PlannedFamily<C>> {
+function groupByFamily<C extends FontCandidate>(candidates: C[]): Map<string, C[]> {
   const byFamily = new Map<string, C[]>();
   for (const c of candidates) {
-    const list = byFamily.get(c.family) ?? [];
-    list.push(c);
-    byFamily.set(c.family, list);
+    const list = byFamily.get(c.family);
+    if (list) list.push(c);
+    else byFamily.set(c.family, [c]);
   }
-  const out: Array<PlannedFamily<C>> = [];
-  for (const [family, list] of byFamily) {
-    const faces: C[] = [];
-    for (const style of ["normal", "italic"] as const) {
-      const ofStyle = list.filter((c) => c.style === style);
-      const variable = ofStyle.filter((c) => c.variable);
-      const pool = variable.length ? variable : ofStyle;
-      const byWeight = new Map<string, C>();
-      for (const c of pool) {
-        const best = byWeight.get(c.weight);
-        if (!best || FORMAT_RANK[c.format] < FORMAT_RANK[best.format]) byWeight.set(c.weight, c);
-      }
-      faces.push(
-        ...[...byWeight.values()].toSorted(
-          (a, b) => Number.parseInt(a.weight, 10) - Number.parseInt(b.weight, 10),
-        ),
-      );
-    }
-    if (faces.length) out.push({ family, faces });
+  return byFamily;
+}
+
+function pickFaces<C extends FontCandidate>(list: C[], style: FontFaceDef["style"]): C[] {
+  const ofStyle = list.filter((c) => c.style === style);
+  const variable = ofStyle.filter((c) => c.variable);
+  const byWeight = new Map<string, C>();
+  for (const c of variable.length ? variable : ofStyle) {
+    const best = byWeight.get(c.weight);
+    if (!best || FORMAT_RANK[c.format] < FORMAT_RANK[best.format]) byWeight.set(c.weight, c);
   }
-  return out.toSorted((a, b) => a.family.localeCompare(b.family));
+  return [...byWeight.values()].toSorted(
+    (a, b) => Number.parseInt(a.weight, 10) - Number.parseInt(b.weight, 10),
+  );
+}
+
+export function planFontFiles<C extends FontCandidate>(candidates: C[]): Array<PlannedFamily<C>> {
+  return [...groupByFamily(candidates)]
+    .map(([family, list]) => ({
+      family,
+      faces: [...pickFaces(list, "normal"), ...pickFaces(list, "italic")],
+    }))
+    .filter((f) => f.faces.length)
+    .toSorted((a, b) => a.family.localeCompare(b.family));
 }

@@ -4,7 +4,6 @@ import { writeChromiumCredits } from "../src/engine/chromium-credits.ts";
 import {
   CHROMIUM_CREDITS_FILE,
   ENGINE_LICENCES_FOLDER,
-  enginePaths,
   engineStatus,
 } from "../src/engine/paths.ts";
 
@@ -22,14 +21,15 @@ function userDataDir(): string {
 }
 
 const engine = process.argv[2] ?? path.join(userDataDir(), "engine");
-if (!engineStatus(engine).complete) {
+const { complete, headlessShell } = engineStatus(engine);
+if (!complete || !headlessShell) {
   console.error(`No engine in ${engine}. Set it up from Settings → Engine first.`);
   process.exit(1);
 }
 
 const output = path.join(ROOT, "resources", ENGINE_LICENCES_FOLDER, CHROMIUM_CREDITS_FILE);
 const credits = await writeChromiumCredits(
-  enginePaths(engine).headlessShell,
+  headlessShell,
   output,
   path.join(os.homedir(), ".cache", "demoflow-chromium-credits"),
 );

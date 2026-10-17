@@ -14,12 +14,7 @@ import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { installFfmpeg, installHeadlessShell, type InstallProgress } from "./src/engine/install";
 import { writeChromiumCredits } from "./src/engine/chromium-credits";
-import {
-  CHROMIUM_CREDITS_FILE,
-  ENGINE_LICENCES_FOLDER,
-  enginePaths,
-  engineStatus,
-} from "./src/engine/paths";
+import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "./src/engine/paths";
 import { getCompositorPackage } from "./src/worker/render/compositor-package";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./src/worker/render/bundle";
 
@@ -88,8 +83,10 @@ async function stageEngine(platform: string, arch: string): Promise<void> {
   await installFfmpeg(ENGINE_DIR, log);
   await installHeadlessShell(ENGINE_DIR, log);
   process.stdout.write("\n[engine] Saving the recording browser's licences\n");
+  const shell = engineStatus(ENGINE_DIR).headlessShell;
+  if (!shell) throw new Error("The recording browser didn't install.");
   const credits = await writeChromiumCredits(
-    enginePaths(ENGINE_DIR).headlessShell,
+    shell,
     CHROMIUM_CREDITS,
     path.join(os.homedir(), ".cache", "demoflow-chromium-credits"),
   );

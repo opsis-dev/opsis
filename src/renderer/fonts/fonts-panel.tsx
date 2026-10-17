@@ -1,7 +1,8 @@
 import { FileArchive, Globe, HardDrive, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { BUNDLED_FONTS, type FontFamilyDef } from "@/shared/fonts";
+import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
+import type { FontFamilyDef } from "@/shared/fonts/types";
 import { errorMessage } from "@/shared/errors";
 import {
   AlertDialog,

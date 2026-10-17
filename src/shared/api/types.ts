@@ -85,13 +85,3 @@ export type ApiFailure = { ok: false; status: number; error: string; problems?: 
 export type ApiReply<R> = { ok: true; result: R } | ApiFailure;
 
 export type ApiEditorReply<O extends ApiEditorOp = ApiEditorOp> = ApiReply<ApiEditorResults[O]>;
-
-export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-    readonly problems?: ApiProblem[],
-  ) {
-    super(message);
-  }
-}

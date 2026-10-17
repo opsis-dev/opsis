@@ -1,10 +1,8 @@
-import { createWriteStream } from "node:fs";
 import { chmod, mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
 import { ensureBrowser } from "@remotion/renderer";
+import { downloadTo } from "./download";
 import { enginePaths, FFMPEG_RELEASE_URL } from "./paths";
 import { formatBytes } from "../shared/format";
 
@@ -17,29 +15,8 @@ export type InstallUpdate = {
 
 export type InstallProgress = (update: InstallUpdate) => void;
 
-const ffmpegTarget = (platform: string, arch: string) => `${platform}-${arch}`;
-
 export const downloadedSize = (got: number, total: number | null): string =>
   total ? `${formatBytes(got)} of ${formatBytes(total)}` : formatBytes(got);
-
-async function download(
-  url: string,
-  dest: string,
-  onBytes: (received: number, total: number | null) => void,
-  signal?: AbortSignal,
-) {
-  const res = await fetch(url, { signal, redirect: "follow" });
-  if (!res.ok || !res.body) throw new Error(`Download failed (${res.status}): ${url}`);
-  const total = Number(res.headers.get("content-length")) || null;
-  let received = 0;
-  const counted = Readable.fromWeb(res.body as never).on("data", (chunk: Buffer) => {
-    received += chunk.length;
-    onBytes(received, total);
-  });
-  const tmp = `${dest}.part`;
-  await pipeline(counted, ...(url.endsWith(".gz") ? [createGunzip()] : []), createWriteStream(tmp));
-  await rename(tmp, dest);
-}
 
 export async function installFfmpeg(
   dir: string,
@@ -50,25 +27,24 @@ export async function installFfmpeg(
 ) {
   const p = enginePaths(dir, platform, arch);
   await mkdir(path.dirname(p.ffmpeg), { recursive: true });
-  const target = ffmpegTarget(platform, arch);
+  const target = `${platform}-${arch}`;
   const files: Array<[string, string]> = [
     [`${FFMPEG_RELEASE_URL}/ffmpeg-${target}.gz`, p.ffmpeg],
     [`${FFMPEG_RELEASE_URL}/ffprobe-${target}.gz`, p.ffprobe],
     [`${FFMPEG_RELEASE_URL}/${target}.LICENSE`, p.ffmpegLicense],
   ];
   for (const [i, [url, dest]] of files.entries()) {
-    await download(
-      url,
-      dest,
-      (got, total) =>
+    await downloadTo(url, dest, {
+      signal,
+      transform: url.endsWith(".gz") ? createGunzip() : undefined,
+      onBytes: (got, total) =>
         onProgress({
           part: "ffmpeg",
           step: `download-${i + 1}`,
           progress: total ? got / total : null,
           message: `Downloading the video tools (${i + 1} of ${files.length}) · ${downloadedSize(got, total)}`,
         }),
-      signal,
-    );
+    });
     if (dest !== p.ffmpegLicense) await chmod(dest, 0o755);
   }
   onProgress({ part: "ffmpeg", step: "ready", progress: 1, message: "Video tools ready" });
@@ -144,8 +120,4 @@ export async function installEngine(
   const report = calmProgress(onProgress);
   await installFfmpeg(dir, report, signal);
   await installHeadlessShell(dir, report);
-}
-
-export async function removeEngine(dir: string) {
-  await rm(dir, { recursive: true, force: true });
 }

@@ -20,6 +20,7 @@ import { captureScale, type Box } from "../../video/core/still-layout";
 import { errorMessage } from "../../shared/errors";
 import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";
 import { formatDuration } from "../../shared/format";
+import { findHeadlessShell } from "../../engine/paths";
 
 async function storageStateFor(ctx: ExecutorContext, head: WorkflowNode): Promise<string | null> {
   const p = sessionNode.params.parse(interpolate(head.params ?? {}, ctx.vars));
@@ -66,8 +67,9 @@ async function retryAfterSignIn<T>(ctx: ExecutorContext, attempt: () => Promise<
 }
 
 function requireShell(ctx: ExecutorContext): string {
-  if (!existsSync(ctx.engine.headlessShell)) throw new Error(ENGINE_MISSING_MESSAGE);
-  return ctx.engine.headlessShell;
+  const shell = findHeadlessShell(ctx.engine);
+  if (!shell) throw new Error(ENGINE_MISSING_MESSAGE);
+  return shell;
 }
 
 async function saveTrace(

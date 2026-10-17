@@ -13,7 +13,7 @@ import { engineStatus, resolveEngineDir } from "../engine/paths";
 import { completeEngineLicences, shippedCreditsCandidates } from "../engine/licences";
 import type { EngineInstallEvent, EnvStatus, RunRequest } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
-import type { MainToWorker, WorkerEnv, WorkerToMain } from "../shared/worker-protocol";
+import type { MainToWorker, WorkerEnv, WorkerReply, WorkerToMain } from "../shared/worker-protocol";
 import { loginInWindow } from "./browser-windows";
 import { readSecret, writeSecret } from "./secrets";
 import { readSettings } from "./settings";
@@ -70,7 +70,7 @@ export function onWorkerMessage(port: MessagePortMain, handler: (msg: WorkerToMa
 
 function respond(
   port: MessagePortMain,
-  type: "secret:response" | "login:response",
+  type: WorkerReply["type"],
   id: string,
   work: Promise<string | null>,
 ): void {

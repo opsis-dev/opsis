@@ -1,12 +1,10 @@
 import { continueRender, delayRender, staticFile } from "remotion";
+import { findFamily, ROLE_ALIASES, roleFamilyName } from "../../shared/fonts";
 import {
   DEFAULT_PROJECT_FONTS,
-  findFamily,
-  ROLE_ALIASES,
-  roleFamilyName,
   type FontFamilyDef,
   type ProjectFonts,
-} from "../../shared/fonts";
+} from "../../shared/fonts/types";
 
 type Resolve = (ref: string) => string;
 type Entry = { signature: string; faces: FontFace[]; ready: Promise<void>; done: boolean };

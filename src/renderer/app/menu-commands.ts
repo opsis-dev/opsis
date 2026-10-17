@@ -1,4 +1,4 @@
-import type { MenuCommand } from "@/shared/ipc";
+import type { MenuCommand } from "@/shared/menu";
 
 type Listener = (command: MenuCommand) => void;
 

@@ -126,7 +126,7 @@ const route = (method: string, pattern: string, run: Route["run"]): Route => ({
 const ROUTES: Route[] = [
   route("GET", "/openapi.json", () => ok(openApiDocument(app.getVersion()))),
   route("GET", "/status", appStatus),
-  route("GET", "/nodes", () => ok(nodeCatalog(false))),
+  route("GET", "/nodes", () => ok(nodeCatalog())),
   route("GET", "/nodes/:type", ({ params: [type] }) => {
     const entry = catalogEntry(type);
     return entry ? ok(entry) : failure(404, "No such node type.");
