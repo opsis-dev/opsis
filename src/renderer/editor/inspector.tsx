@@ -28,17 +28,19 @@ import { startRun } from "./run";
 import { useFormContext } from "./use-form-context";
 import { useNodeProblems } from "./use-node-problems";
 import { ZodForm } from "./zod-form";
+import { useTypingAsOneUndoStep } from "./use-typing-undo";
 import { isGroupNode } from "@/shared/graph";
 import { findById } from "@/shared/lists";
 
 export function Inspector() {
   const selected = useUiStore((s) => s.selectedIds);
   const workflow = useWorkflowStore((s) => s.workflow);
+  const typing = useTypingAsOneUndoStep();
   if (!workflow) return null;
   const present = selected.filter((id) => workflow.nodes.some((n) => n.id === id));
   const node = present.length === 1 ? findById(workflow.nodes, present[0]) : undefined;
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full" {...typing}>
       <SwapFade id={node?.id ?? "project"}>
         {node ? (
           <NodeInspector workflow={workflow} node={node} />
