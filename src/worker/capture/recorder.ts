@@ -1,7 +1,7 @@
-import type { Page, Locator } from "playwright-core";
+import type { Page } from "playwright-core";
+import { clamp } from "../../shared/math";
 import { cameraEase } from "../../video/camera/lib/camera";
 import { DESIGN_WIDTH, type CursorSample, type KeyEvent } from "../../video/camera/lib/click-log";
-import type { ActionOpts, ClickEvent, FlowContext, Target } from "./flow-types";
 import {
   boundsOf,
   bulgedCurve,
@@ -13,143 +13,48 @@ import {
   thinPath,
   type Point,
 } from "./drag-path";
-import { findByName, type TargetOverrides } from "./selectors";
-import { clamp } from "../../shared/math";
+import {
+  isPoint,
+  type ActionOpts,
+  type ClickEvent,
+  type DragOpts,
+  type DragTo,
+  type Target,
+} from "./flow-types";
 
-const ARROW_HOTX = 2;
-const ARROW_HOTY = 2;
-
-export const useBakedCursor = (): boolean => process.env.DEMO_BAKED_CURSOR === "1";
-
+const START = { x: 960, y: 540 };
+const DEFAULT_PAUSE_MS = 700;
+const SAMPLE_MS = 8;
 const GLIDE_MIN_PX = 6;
+const SETTLE_MS = 220;
+const MOVE_SETTLE_MS = 120;
+const OVERSHOOT_RETURN_MS = 130;
+const CLICK_HOLD_MS = 80;
+const FIELD_FOCUS_MS = 150;
+const KEY_DELAY_MS = 30;
+const DRAG_HOLD_MS = 150;
 const DRAG_NUDGE_PX = 6;
 const DROP_SETTLE_MS = 120;
 const QUICK_DRAG_STEPS = 20;
-
-export const CURSOR_INIT_SCRIPT = `
-(() => {
-  var ARROW =
-    '<svg width="48" height="64" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">' +
-    '<path d="M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z" ' +
-    'fill="#111418" stroke="#ffffff" stroke-width="1.85" stroke-linejoin="round" ' +
-    'paint-order="stroke"/></svg>';
-  var HOTX = ${ARROW_HOTX}, HOTY = ${ARROW_HOTY};
-  const mount = () => {
-    if (document.getElementById('pw-cursor')) return;
-    if (!document.body) return;
-    const style = document.createElement('style');
-    style.textContent =
-      '* { cursor: none !important; } ' +
-      '#pw-cursor{position:fixed;top:0;left:0;pointer-events:none;z-index:2147483647;' +
-      'transform:translate(-300px,-300px);transform-origin:' + HOTX + 'px ' + HOTY + 'px;' +
-      'filter:drop-shadow(0 0 0.5px #fff) drop-shadow(0 1px 0 #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 5px 12px rgba(0,0,0,.6));} ' +
-      '#pw-cursor svg{display:block;} ' +
-      '.pw-ripple{position:fixed;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;' +
-      'border:2px solid rgba(15,23,42,.55);background:rgba(15,23,42,.1);' +
-      'pointer-events:none;z-index:2147483646;animation:pw-ripple .35s ease-out forwards;} ' +
-      '@keyframes pw-ripple{from{transform:scale(.3);opacity:.85;}to{transform:scale(1.35);opacity:0;}}';
-    document.documentElement.appendChild(style);
-    const c = document.createElement('div');
-    c.id = 'pw-cursor';
-    c.innerHTML = ARROW;
-    document.body.appendChild(c);
-    let x = -300, y = -300;
-    const place = (s) => { c.style.transform = 'translate(' + (x - HOTX) + 'px,' + (y - HOTY) + 'px) scale(' + s + ')'; };
-    let down = false;
-    const follow = (e) => { x = e.clientX; y = e.clientY; place(down ? 0.9 : 1); };
-    const release = () => { down = false; place(1); };
-    document.addEventListener('mousemove', follow, true);
-    document.addEventListener('dragover', follow, true);
-    document.addEventListener('mousedown', () => {
-      down = true;
-      place(0.9);
-      const r = document.createElement('div');
-      r.className = 'pw-ripple';
-      r.style.left = x + 'px';
-      r.style.top = y + 'px';
-      document.body.appendChild(r);
-      setTimeout(() => r.remove(), 380);
-    }, true);
-    document.addEventListener('mouseup', release, true);
-    document.addEventListener('drop', release, true);
-    document.addEventListener('dragend', release, true);
-  };
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount);
-  } else {
-    mount();
-  }
-})();
-`;
+const VISIBLE_TIMEOUT_MS = 20_000;
+const SCROLL_MOVED_PX = 8;
+const SCROLL_SETTLE_MS = 450;
+const POINT_BOX = { w: 120, h: 48 };
+const MIN_TARGET_H = 48;
+const GROWN_TARGET_H = 72;
+const TARGET_PAD_X = 24;
+const TARGET_LIFT = 8;
 
 type Rect = { x: number; y: number; w: number; h: number };
 
-type ResolvedTarget = Exclude<Target, string>;
+type Box = { cx: number; cy: number; rect: Rect };
 
-function isPoint(t: Target): t is { x: number; y: number } {
-  return (
-    typeof t === "object" && t !== null && "x" in t && typeof (t as { x: unknown }).x === "number"
-  );
-}
-
-function isCss(t: Target): t is { css: string } {
-  return (
-    typeof t === "object" &&
-    t !== null &&
-    "css" in t &&
-    typeof (t as { css: unknown }).css === "string"
-  );
-}
+type DragPlan = { points: Point[]; drop: Rect };
 
 const captureScaleOf = (page: Page): number => {
   const vp = page.viewportSize();
   return vp && vp.width > 0 ? vp.width / DESIGN_WIDTH : 1;
 };
-
-async function boxOf(
-  page: Page,
-  target: ResolvedTarget,
-): Promise<{ cx: number; cy: number; rect: Rect }> {
-  const k = captureScaleOf(page);
-  if (isPoint(target)) {
-    return {
-      cx: target.x,
-      cy: target.y,
-      rect: {
-        x: target.x - 60 * k,
-        y: target.y - 24 * k,
-        w: 120 * k,
-        h: 48 * k,
-      },
-    };
-  }
-  const loc: Locator = (isCss(target) ? page.locator(target.css) : target).first() as Locator;
-  await loc.waitFor({ state: "visible", timeout: 20000 });
-  const before = await loc.boundingBox();
-  await loc.scrollIntoViewIfNeeded();
-  const box = await loc.boundingBox();
-  if (!box)
-    throw new Error(`Couldn't see ${isCss(target) ? target.css : "the element"} on the page.`);
-  if (before && Math.hypot(box.x - before.x, box.y - before.y) > 8 * k) {
-    await page.waitForTimeout(450);
-  }
-  let rect: Rect = { x: box.x, y: box.y, w: box.width, h: box.height };
-  if (rect.h < 48 * k) {
-    const targetH = 72 * k;
-    const grow = (targetH - rect.h) / 2;
-    rect = {
-      x: Math.max(0, rect.x - 24 * k),
-      y: Math.max(0, rect.y - grow - 8 * k),
-      w: rect.w + 48 * k,
-      h: targetH,
-    };
-  }
-  return {
-    cx: box.x + box.width / 2,
-    cy: box.y + box.height / 2,
-    rect,
-  };
-}
 
 const roundRect = (r: Rect): Rect => ({
   x: Math.round(r.x),
@@ -158,85 +63,207 @@ const roundRect = (r: Rect): Rect => ({
   h: Math.round(r.h),
 });
 
-export function buildContext(
-  page: Page,
-  baseURL: string,
-  clicks: ClickEvent[],
-  getElapsedMs: () => number,
-  cursor: CursorSample[] = [],
-  targets?: TargetOverrides,
-  keys: KeyEvent[] = [],
-): FlowContext {
-  const pause = (ms = 700) => page.waitForTimeout(ms);
-
-  const pressKey: FlowContext["pressKey"] = async (chord, label) => {
-    const tMs = getElapsedMs();
-    await page.keyboard.press(chord);
-    keys.push(label ? { tMs, chord, label } : { tMs, chord });
+function padSmallTarget(rect: Rect, k: number): Rect {
+  if (rect.h >= MIN_TARGET_H * k) return rect;
+  const height = GROWN_TARGET_H * k;
+  const grow = (height - rect.h) / 2;
+  return {
+    x: Math.max(0, rect.x - TARGET_PAD_X * k),
+    y: Math.max(0, rect.y - grow - TARGET_LIFT * k),
+    w: rect.w + 2 * TARGET_PAD_X * k,
+    h: height,
   };
+}
 
-  const find: FlowContext["find"] = (name) => findByName(page, name, targets);
-
-  const resolve = async (target: Target): Promise<ResolvedTarget> =>
-    typeof target === "string" ? await find(target) : target;
-
-  let last = { x: 960, y: 540 };
-  let lastDepartMs = 0;
-
-  const mark = (x: number, y: number) => {
-    cursor.push({ t: getElapsedMs(), x: Math.round(x), y: Math.round(y) });
+async function boxOf(page: Page, target: Target): Promise<Box> {
+  const k = captureScaleOf(page);
+  if (isPoint(target)) {
+    return {
+      cx: target.x,
+      cy: target.y,
+      rect: {
+        x: target.x - (POINT_BOX.w / 2) * k,
+        y: target.y - (POINT_BOX.h / 2) * k,
+        w: POINT_BOX.w * k,
+        h: POINT_BOX.h * k,
+      },
+    };
+  }
+  const loc = target.first();
+  await loc.waitFor({ state: "visible", timeout: VISIBLE_TIMEOUT_MS });
+  const before = await loc.boundingBox();
+  await loc.scrollIntoViewIfNeeded();
+  const box = await loc.boundingBox();
+  if (!box) throw new Error("Couldn't see the element on the page.");
+  if (before && Math.hypot(box.x - before.x, box.y - before.y) > SCROLL_MOVED_PX * k)
+    await page.waitForTimeout(SCROLL_SETTLE_MS);
+  return {
+    cx: box.x + box.width / 2,
+    cy: box.y + box.height / 2,
+    rect: padSmallTarget({ x: box.x, y: box.y, w: box.width, h: box.height }, k),
   };
-  mark(last.x, last.y);
+}
 
-  const walk = async (fromMs: number, spanMs: number, at: (p: number) => Point) => {
+async function dropBox(page: Page, target: Target): Promise<Box> {
+  if (isPoint(target)) return boxOf(page, target);
+  const box = await target.first().boundingBox();
+  const vp = page.viewportSize();
+  const cx = box ? box.x + box.width / 2 : 0;
+  const cy = box ? box.y + box.height / 2 : 0;
+  const onScreen = !!box && (!vp || (cx >= 0 && cy >= 0 && cx <= vp.width && cy <= vp.height));
+  if (!box || !onScreen)
+    throw new Error(
+      "The place to drop it isn't on screen. Scroll to it first, or use a bigger window.",
+    );
+  return { cx, cy, rect: { x: box.x, y: box.y, w: box.width, h: box.height } };
+}
+
+export class CursorDriver {
+  private last: Point = { ...START };
+  private lastDepartMs = 0;
+
+  constructor(
+    private readonly page: Page,
+    private readonly clicks: ClickEvent[],
+    private readonly elapsed: () => number,
+    private readonly cursor: CursorSample[],
+    private readonly keys: KeyEvent[],
+  ) {
+    this.mark(START.x, START.y);
+  }
+
+  pause(ms = DEFAULT_PAUSE_MS): Promise<void> {
+    return this.page.waitForTimeout(ms);
+  }
+
+  async pressKey(chord: string, label?: string): Promise<void> {
+    const tMs = this.elapsed();
+    await this.page.keyboard.press(chord);
+    this.keys.push(label ? { tMs, chord, label } : { tMs, chord });
+  }
+
+  async moveTo(target: Target): Promise<void> {
+    const { cx, cy } = await boxOf(this.page, target);
+    await this.glideTo(cx, cy, MOVE_SETTLE_MS);
+  }
+
+  async focus(target: Target, label?: string, opts?: ActionOpts): Promise<void> {
+    const { point, frame } = await this.approach(target, opts);
+    this.logEvent(point.cx, point.cy, frame.rect, label ?? "focus", opts);
+  }
+
+  async moveAndClick(target: Target, label?: string, opts?: ActionOpts): Promise<void> {
+    const { point, frame } = await this.approach(target, opts);
+    await this.clickAt(point.cx, point.cy, frame.rect, label, opts);
+  }
+
+  async typeInto(
+    target: Target,
+    chunks: readonly string[],
+    label?: string,
+    opts?: ActionOpts,
+  ): Promise<void> {
+    const { point, frame } = await this.approach(target, opts);
+    const event = await this.clickAt(point.cx, point.cy, frame.rect, label ?? "field", opts);
+    await this.pause(FIELD_FOCUS_MS);
+    const selectAll = process.platform === "darwin" ? "Meta+A" : "Control+A";
+    await this.page.keyboard.press(selectAll);
+    await this.page.keyboard.press("Backspace");
+    for (const [i, chunk] of chunks.entries()) {
+      if (i > 0) await this.pause(opts?.chunkPauseMs ?? 0);
+      await this.page.keyboard.type(chunk, { delay: KEY_DELAY_MS });
+    }
+    event.typeEndMs = this.elapsed();
+  }
+
+  async drag(from: Target, to: DragTo, label?: string, opts?: DragOpts): Promise<void> {
+    const k = captureScaleOf(this.page);
+    const { point: start, frame } = await this.approach(from, opts);
+    const origin = { x: start.cx, y: start.cy };
+    const quick = opts?.method === "quick";
+    const tDownMs = this.elapsed();
+    let plan: DragPlan;
+    if ("target" in to && quick) plan = await this.quickDragOnto(from, to.target, origin);
+    else {
+      await this.page.mouse.down();
+      await this.pause(opts?.holdMs ?? DRAG_HOLD_MS);
+      plan =
+        "target" in to
+          ? await this.dragOnto(to.target, origin, k, opts?.dragMs)
+          : await this.dragAlong(
+              offsetPath(origin, "by" in to ? [to.by] : to.path),
+              origin,
+              k,
+              quick,
+              opts?.dragMs,
+            );
+      await this.pause(DROP_SETTLE_MS);
+      await this.page.mouse.up();
+    }
+
+    const end = plan.points.at(-1)!;
+    this.last = { x: end.x, y: end.y };
+    this.mark(end.x, end.y);
+    const event = this.logEvent(end.x, end.y, frame.rect, label ?? "drag", opts, tDownMs);
+    event.tUpMs = event.tMs;
+    event.path = thinPath(plan.points);
+    event.drop = roundRect(plan.drop);
+  }
+
+  private mark(x: number, y: number) {
+    this.cursor.push({ t: this.elapsed(), x: Math.round(x), y: Math.round(y) });
+  }
+
+  private async walk(fromMs: number, spanMs: number, at: (p: number) => Point) {
     for (;;) {
-      const p01 = clamp((getElapsedMs() - fromMs) / spanMs, 0, 1);
+      const p01 = clamp((this.elapsed() - fromMs) / spanMs, 0, 1);
       const { x: px, y: py } = at(cameraEase(p01));
-      mark(px, py);
-      await page.mouse.move(px, py);
+      this.mark(px, py);
+      await this.page.mouse.move(px, py);
       if (p01 >= 1) return;
-      await page.waitForTimeout(8);
+      await this.page.waitForTimeout(SAMPLE_MS);
     }
-  };
+  }
 
-  const glideTo = async (x: number, y: number, settleMs = 220, travelMs?: number) => {
-    const gk = captureScaleOf(page);
-    const dist = Math.hypot(x - last.x, y - last.y);
-    lastDepartMs = getElapsedMs();
-    if (dist < GLIDE_MIN_PX * gk) {
-      last = { x, y };
-      mark(x, y);
-      if (settleMs > 0) await pause(settleMs);
-      return;
+  private async glideTo(x: number, y: number, settleMs = SETTLE_MS, travelMs?: number) {
+    const k = captureScaleOf(this.page);
+    const dist = Math.hypot(x - this.last.x, y - this.last.y);
+    this.lastDepartMs = this.elapsed();
+    if (dist >= GLIDE_MIN_PX * k) {
+      const glide = glidePlan(this.last, { x, y }, k, this.page.viewportSize(), travelMs);
+      await this.walk(this.elapsed(), glide.durationMs, glide.at);
+      if (glide.overshooting) {
+        const { aim } = glide;
+        await this.walk(this.elapsed(), OVERSHOOT_RETURN_MS, (p) => ({
+          x: aim.x + (x - aim.x) * p,
+          y: aim.y + (y - aim.y) * p,
+        }));
+      }
     }
-    const glide = glidePlan(last, { x, y }, gk, page.viewportSize(), travelMs);
-    await walk(getElapsedMs(), glide.durationMs, glide.at);
+    this.last = { x, y };
+    this.mark(x, y);
+    if (settleMs > 0) await this.pause(settleMs);
+  }
 
-    if (glide.overshooting) {
-      const { aim } = glide;
-      await walk(getElapsedMs(), 130, (p) => ({
-        x: aim.x + (x - aim.x) * p,
-        y: aim.y + (y - aim.y) * p,
-      }));
-    }
+  private async approach(target: Target, opts: ActionOpts | undefined) {
+    const point = await boxOf(this.page, target);
+    const frame = opts?.frame ? await boxOf(this.page, opts.frame) : point;
+    await this.glideTo(point.cx, point.cy, opts?.hoverMs ?? SETTLE_MS, opts?.travelMs);
+    return { point, frame };
+  }
 
-    last = { x, y };
-    mark(x, y);
-    if (settleMs > 0) await pause(settleMs);
-  };
-
-  const logEvent = (
+  private logEvent(
     x: number,
     y: number,
     rect: Rect,
     label?: string,
     opts?: ActionOpts,
     tDownMs?: number,
-  ) => {
+  ): ClickEvent {
     const event: ClickEvent = {
       label,
-      tMs: getElapsedMs(),
-      tDepartMs: lastDepartMs,
+      tMs: this.elapsed(),
+      tDepartMs: this.lastDepartMs,
       x: Math.round(x),
       y: Math.round(y),
       rect: roundRect(rect),
@@ -245,189 +272,74 @@ export function buildContext(
     if (opts?.cluster != null) event.cluster = opts.cluster;
     if (opts?.zoom === false) event.zoom = false;
     if (opts?.zoomScale != null) event.zoomScale = opts.zoomScale;
-    clicks.push(event);
+    this.clicks.push(event);
     return event;
-  };
+  }
 
-  const clickAt = async (x: number, y: number, rect: Rect, label?: string, opts?: ActionOpts) => {
-    const tDownMs = getElapsedMs();
-    await page.mouse.down();
-    await pause(80);
-    await page.mouse.up();
-    return logEvent(x, y, rect, label, opts, tDownMs);
-  };
+  private async clickAt(x: number, y: number, rect: Rect, label?: string, opts?: ActionOpts) {
+    const tDownMs = this.elapsed();
+    await this.page.mouse.down();
+    await this.pause(CLICK_HOLD_MS);
+    await this.page.mouse.up();
+    return this.logEvent(x, y, rect, label, opts, tDownMs);
+  }
 
-  const moveTo: FlowContext["moveTo"] = async (target) => {
-    const { cx, cy } = await boxOf(page, await resolve(target));
-    await glideTo(cx, cy, 120);
-  };
+  private async quickDragOnto(from: Target, onto: Target, origin: Point): Promise<DragPlan> {
+    const end = await dropBox(this.page, onto);
+    if (!isPoint(from) && !isPoint(onto))
+      await from.first().dragTo(onto.first(), { steps: QUICK_DRAG_STEPS });
+    else {
+      await this.page.mouse.down();
+      await this.page.mouse.move(end.cx, end.cy, { steps: QUICK_DRAG_STEPS });
+      await this.page.mouse.up();
+    }
+    this.mark(end.cx, end.cy);
+    return { points: [origin, { x: end.cx, y: end.cy }], drop: end.rect };
+  }
 
-  const focus: FlowContext["focus"] = async (target, label, opts) => {
-    const point = await boxOf(page, await resolve(target));
-    const frameBox = opts?.frame ? await boxOf(page, await resolve(opts.frame)) : point;
-    await glideTo(point.cx, point.cy, opts?.hoverMs ?? 220, opts?.travelMs);
-    logEvent(
-      point.cx,
-      point.cy,
-      frameBox.rect,
-      label ?? (typeof target === "string" ? target : "focus"),
-      opts,
+  private async dragOnto(
+    onto: Target,
+    origin: Point,
+    k: number,
+    dragMs: number | undefined,
+  ): Promise<DragPlan> {
+    const before = await dropBox(this.page, onto);
+    const nudge = nudgeToward(origin, { x: before.cx, y: before.cy }, DRAG_NUDGE_PX * k);
+    this.mark(nudge.x, nudge.y);
+    await this.page.mouse.move(nudge.x, nudge.y);
+    const end = await dropBox(this.page, onto);
+    const target = { x: end.cx, y: end.cy };
+    await this.walk(
+      this.elapsed(),
+      dragDuration([nudge, target], k, dragMs),
+      bulgedCurve(nudge, target),
     );
-  };
+    return { points: [origin, target], drop: end.rect };
+  }
 
-  const moveAndClick: FlowContext["moveAndClick"] = async (target, label, opts) => {
-    const point = await boxOf(page, await resolve(target));
-    const frameBox = opts?.frame ? await boxOf(page, await resolve(opts.frame)) : point;
-    await glideTo(point.cx, point.cy, opts?.hoverMs ?? 220, opts?.travelMs);
-    await clickAt(
-      point.cx,
-      point.cy,
-      frameBox.rect,
-      label ?? (typeof target === "string" ? target : undefined),
-      opts,
-    );
-  };
-
-  const dropBox = async (target: Target): Promise<{ cx: number; cy: number; rect: Rect }> => {
-    const resolved = await resolve(target);
-    if (isPoint(resolved)) return boxOf(page, resolved);
-    const loc = (isCss(resolved) ? page.locator(resolved.css) : resolved).first() as Locator;
-    const box = await loc.boundingBox();
-    const vp = page.viewportSize();
-    const onScreen =
-      !!box &&
-      (!vp ||
-        (box.x + box.width / 2 >= 0 &&
-          box.y + box.height / 2 >= 0 &&
-          box.x + box.width / 2 <= vp.width &&
-          box.y + box.height / 2 <= vp.height));
-    if (!box || !onScreen)
-      throw new Error(
-        "The place to drop it isn't on screen. Scroll to it first, or use a bigger window.",
-      );
-    return {
-      cx: box.x + box.width / 2,
-      cy: box.y + box.height / 2,
-      rect: { x: box.x, y: box.y, w: box.width, h: box.height },
-    };
-  };
-
-  const locatorOf = async (target: Target): Promise<Locator | null> => {
-    const resolved = await resolve(target);
-    if (isPoint(resolved)) return null;
-    return (isCss(resolved) ? page.locator(resolved.css) : resolved).first() as Locator;
-  };
-
-  const drag: FlowContext["drag"] = async (from, to, label, opts) => {
-    const gk = captureScaleOf(page);
-    const start = await boxOf(page, await resolve(from));
-    const frameBox = opts?.frame ? await boxOf(page, await resolve(opts.frame)) : start;
-    await glideTo(start.cx, start.cy, opts?.hoverMs ?? 220, opts?.travelMs);
-    const origin = { x: start.cx, y: start.cy };
-    const quick = opts?.method === "quick";
-    const tDownMs = getElapsedMs();
-    let points: Point[];
-    let drop: Rect;
-
-    if ("target" in to && quick) {
-      const source = await locatorOf(from);
-      const target = await locatorOf(to.target);
-      const end = await dropBox(to.target);
-      points = [origin, { x: end.cx, y: end.cy }];
-      drop = end.rect;
-      if (source && target) await source.dragTo(target, { steps: QUICK_DRAG_STEPS });
-      else {
-        await page.mouse.down();
-        await page.mouse.move(end.cx, end.cy, { steps: QUICK_DRAG_STEPS });
-        await page.mouse.up();
-      }
-      mark(end.cx, end.cy);
+  private async dragAlong(
+    points: Point[],
+    origin: Point,
+    k: number,
+    quick: boolean,
+    dragMs: number | undefined,
+  ): Promise<DragPlan> {
+    const drop = boundsOf(points);
+    if (quick) {
+      for (const point of points.slice(1))
+        await this.page.mouse.move(point.x, point.y, { steps: QUICK_DRAG_STEPS });
+      const end = points.at(-1)!;
+      this.mark(end.x, end.y);
     } else {
-      await page.mouse.down();
-      await pause(opts?.holdMs ?? 150);
-      if ("target" in to) {
-        const before = await dropBox(to.target);
-        const nudge = nudgeToward(origin, { x: before.cx, y: before.cy }, DRAG_NUDGE_PX * gk);
-        mark(nudge.x, nudge.y);
-        await page.mouse.move(nudge.x, nudge.y);
-        const end = await dropBox(to.target);
-        const target = { x: end.cx, y: end.cy };
-        points = [origin, target];
-        drop = end.rect;
-        const curve = bulgedCurve(nudge, target);
-        await walk(getElapsedMs(), dragDuration([nudge, target], gk, opts?.dragMs), curve);
-      } else {
-        points = offsetPath(origin, "by" in to ? [to.by] : to.path);
-        drop = boundsOf(points);
-        if (quick) {
-          for (const point of points.slice(1))
-            await page.mouse.move(point.x, point.y, { steps: QUICK_DRAG_STEPS });
-          mark(points.at(-1)!.x, points.at(-1)!.y);
-        } else {
-          const nudge = nudgeToward(origin, points[1] ?? origin, DRAG_NUDGE_PX * gk);
-          mark(nudge.x, nudge.y);
-          await page.mouse.move(nudge.x, nudge.y);
-          await walk(
-            getElapsedMs(),
-            dragDuration(points, gk, opts?.dragMs),
-            polylineAt([nudge, ...points.slice(1)]),
-          );
-        }
-      }
-      await pause(DROP_SETTLE_MS);
-      await page.mouse.up();
+      const nudge = nudgeToward(origin, points[1] ?? origin, DRAG_NUDGE_PX * k);
+      this.mark(nudge.x, nudge.y);
+      await this.page.mouse.move(nudge.x, nudge.y);
+      await this.walk(
+        this.elapsed(),
+        dragDuration(points, k, dragMs),
+        polylineAt([nudge, ...points.slice(1)]),
+      );
     }
-
-    const end = points.at(-1)!;
-    last = { x: end.x, y: end.y };
-    mark(end.x, end.y);
-    const event = logEvent(
-      end.x,
-      end.y,
-      frameBox.rect,
-      label ?? (typeof from === "string" ? from : "drag"),
-      opts,
-      tDownMs,
-    );
-    event.tUpMs = event.tMs;
-    event.path = thinPath(points);
-    event.drop = roundRect(drop);
-  };
-
-  const typeInto: FlowContext["typeInto"] = async (selector, text, label, opts) => {
-    const { cx, cy, rect } = await boxOf(page, await resolve(selector));
-    const frameRect = opts?.frame ? (await boxOf(page, await resolve(opts.frame))).rect : rect;
-    await glideTo(cx, cy);
-    const event = await clickAt(
-      cx,
-      cy,
-      frameRect,
-      label ?? (typeof selector === "string" ? selector : "field"),
-      opts,
-    );
-    await pause(150);
-    const selectAll = process.platform === "darwin" ? "Meta+A" : "Control+A";
-    await page.keyboard.press(selectAll);
-    await page.keyboard.press("Backspace");
-    const chunks = typeof text === "string" ? [text] : text;
-    for (let i = 0; i < chunks.length; i++) {
-      if (i > 0) await pause(opts?.chunkPauseMs ?? 0);
-      await page.keyboard.type(chunks[i], { delay: 30 });
-    }
-    event.typeEndMs = getElapsedMs();
-  };
-
-  return {
-    page,
-    baseURL,
-    moveAndClick,
-    typeInto,
-    moveTo,
-    drag,
-    focus,
-    find,
-    pause,
-    pressKey,
-    page_waitForURL: page.waitForURL.bind(page),
-  };
+    return { points, drop };
+  }
 }

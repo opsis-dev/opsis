@@ -13,17 +13,27 @@ const servers = new Map<string, Promise<AssetServer>>();
 function serverFor(projectDir: string): Promise<AssetServer> {
   let server = servers.get(projectDir);
   if (!server) {
-    server = startAssetServer(projectDir);
+    server = startAssetServer(projectDir).catch((error: unknown) => {
+      servers.delete(projectDir);
+      throw error;
+    });
     servers.set(projectDir, server);
   }
   return server;
 }
 
+function renderBrowser(env: StillRequest["env"]): Promise<HeadlessBrowser> {
+  browser ??= openRenderBrowser(env, "angle").catch((error: unknown) => {
+    browser = null;
+    throw error;
+  });
+  return browser;
+}
+
 export async function renderCardStill(msg: StillRequest, signal: AbortSignal): Promise<void> {
   const serveUrl = await getServeUrl(msg.env);
   const server = await serverFor(msg.projectDir);
-  browser ??= openRenderBrowser(msg.env, "angle");
-  const instance = await browser;
+  const instance = await renderBrowser(msg.env);
   await mkdir(path.dirname(msg.output), { recursive: true });
   const tmp = `${msg.output}.partial.jpg`;
   await renderFrame({

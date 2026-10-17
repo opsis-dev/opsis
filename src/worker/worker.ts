@@ -3,6 +3,8 @@ import type { MessagePortMain } from "electron";
 import { installEngine } from "../engine/install";
 import type { LiveMessage } from "../shared/live";
 import type { LoginRequest, MainToWorker, WorkerToMain } from "../shared/worker-protocol";
+import { runFailed } from "../shared/run-progress";
+import type { ExecutorContext } from "./engine/context";
 import { runWorkflow } from "./engine/runner";
 import { renderCardStill } from "./render/card-still";
 import { runAnalysis } from "./media/run-analysis";
@@ -34,6 +36,27 @@ function settle(id: string, value?: string, error?: string) {
 
 const sendLive = (message: LiveMessage) => live?.postMessage(message);
 
+async function login(req: LoginRequest): Promise<string> {
+  const state = await request({ type: "login:request", id: randomUUID(), request: req });
+  if (!state) throw new Error("The sign-in window closed before you signed in.");
+  return state;
+}
+
+const secretsFor = (projectDir: string): ExecutorContext["secrets"] => ({
+  read: (name) =>
+    request({ type: "secret:request", id: randomUUID(), op: "read", projectDir, name }),
+  write: async (name, value) => {
+    await request({
+      type: "secret:request",
+      id: randomUUID(),
+      op: "write",
+      projectDir,
+      name,
+      value,
+    });
+  },
+});
+
 async function handle(msg: MainToWorker): Promise<void> {
   switch (msg.type) {
     case "cancel":
@@ -44,45 +67,21 @@ async function handle(msg: MainToWorker): Promise<void> {
       settle(msg.id, msg.value, msg.error);
       return;
     case "run": {
-      const projectDir = msg.request.projectDir;
       try {
         await runWorkflow(msg.runId, msg.request, {
           env: msg.env,
           signal: controller.signal,
           emit: (event) => send({ type: "event", event }),
           live: live ? sendLive : null,
-          login: async (req: LoginRequest) => {
-            const state = await request({ type: "login:request", id: randomUUID(), request: req });
-            if (!state) throw new Error("The sign-in window closed before you signed in.");
-            return state;
-          },
-          secrets: {
-            read: (name) =>
-              request({ type: "secret:request", id: randomUUID(), op: "read", projectDir, name }),
-            write: async (name, value) => {
-              await request({
-                type: "secret:request",
-                id: randomUUID(),
-                op: "write",
-                projectDir,
-                name,
-                value,
-              });
-            },
-          },
+          login,
+          secrets: secretsFor(msg.request.projectDir),
         });
       } catch (error) {
         send({
           type: "event",
-          event: {
-            type: "run:done",
-            runId: msg.runId,
-            ok: false,
+          event: runFailed(msg.runId, errorMessage(error), {
             cancelled: controller.signal.aborted,
-            error: errorMessage(error),
-            outputs: [],
-            at: Date.now(),
-          },
+          }),
         });
       }
       finish();

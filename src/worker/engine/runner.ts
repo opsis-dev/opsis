@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import pLimit from "p-limit";
-import { compileWorkflow, workflowVars } from "../../shared/compile/compile";
+import pLimit, { type LimitFunction } from "p-limit";
+import { compileWorkflow, workflowVars, type CompileResult } from "../../shared/compile/compile";
 import {
   downstreamOf,
   isStructural,
@@ -12,33 +12,25 @@ import {
   validateWorkflow,
 } from "../../shared/graph";
 import type { RunRequest } from "../../shared/ipc";
-import type { NodePhase } from "../../shared/nodes/define";
+import { parseParams, type NodeDef, type NodePhase } from "../../shared/nodes/define";
 import { getNodeDef, nodeName } from "../../shared/nodes/registry";
 import type { LogLevel, RunEvent } from "../../shared/schema/events";
 import type { CompileValue, LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
-import type { WorkflowNode } from "../../shared/schema/workflow";
+import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
 import { enginePaths } from "../../engine/paths";
 import type { LiveMessage } from "../../shared/live";
 import { secretName } from "../../shared/secrets";
 import { interpolate } from "../../shared/vars";
-import { failureMessage } from "../../shared/run-progress";
+import { failureMessage, runFailed } from "../../shared/run-progress";
 import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/driver";
 import { getExecutor } from "../executors";
-import { createFfmpegTools } from "../media/ffmpeg";
+import { createFfmpegTools, ToolError } from "../media/ffmpeg";
 import { nodeHash, readCached, writeCached, writeLastRun } from "./cache";
 import { projectPaths, readLastRun, toPosixRel } from "../../engine/project-paths";
 import { TracedError, type ExecutorContext } from "./context";
 import { decorateArtifacts } from "./posters";
 import { errorMessage } from "../../shared/errors";
-
-const LANE_LIMITS: Record<NodePhase, number> = {
-  capture: 3,
-  media: 4,
-  compile: 8,
-  render: 1,
-  post: 2,
-};
 
 export type RunDeps = {
   env: WorkerEnv;
@@ -49,98 +41,365 @@ export type RunDeps = {
   live: ((message: LiveMessage) => void) | null;
 };
 
-export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps): Promise<void> {
-  const { workflow, projectDir } = req;
-  const { emit, signal } = deps;
-  const log = (level: LogLevel, message: string, nodeId?: string) =>
-    emit({ type: "node:log", runId, nodeId, level, message, at: Date.now() });
+type Log = (level: LogLevel, message: string, nodeId?: string) => void;
 
-  const paths = projectPaths(projectDir);
-  await mkdir(paths.cache, { recursive: true });
-  await mkdir(paths.out, { recursive: true });
+type Known = { node: WorkflowNode; def: NodeDef };
 
-  const byId = new Map(workflow.nodes.map((n) => [n.id, n]));
-  const vars = workflowVars(workflow);
-  const { order } = topoSort(workflow);
+type Job = Known & { hash: string };
 
-  const executes = (n: WorkflowNode | undefined) =>
-    !!n && !n.disabled && !isStructural(n) && !!getNodeDef(n.type)?.executes;
-  const finalTargets = req.targetNodeIds?.length ? req.targetNodeIds : runTargets(workflow);
+type Results = Partial<Record<string, NodeResult>>;
+
+const isCapture = (def: NodeDef | undefined) => def?.category === "Capture";
+
+function knownNodes(workflow: Workflow): Map<string, Known> {
+  const known = new Map<string, Known>();
+  for (const node of workflow.nodes) {
+    const def = getNodeDef(node.type);
+    if (def) known.set(node.id, { node, def });
+  }
+  return known;
+}
+
+async function signInSaved(
+  node: WorkflowNode,
+  vars: Record<string, string>,
+  deps: RunDeps,
+  log: Log,
+) {
+  const raw = interpolate(node.params, vars).secretName;
+  const name = secretName(typeof raw === "string" ? raw : undefined);
+  const saved = await deps.secrets.read(name).catch((error: unknown) => {
+    log(
+      "warn",
+      `Couldn't read the saved sign-in “${name}”, so it will be asked for again: ${errorMessage(error)}`,
+    );
+    return null;
+  });
+  return !!saved;
+}
+
+async function neededNodes(
+  workflow: Workflow,
+  req: RunRequest,
+  known: Map<string, Known>,
+  order: string[],
+  vars: Record<string, string>,
+  deps: RunDeps,
+  log: Log,
+): Promise<Set<string>> {
+  const targets = req.targetNodeIds?.length ? req.targetNodeIds : runTargets(workflow);
   const needed = new Set<string>();
-  for (const id of finalTargets) {
+  for (const id of targets) {
     needed.add(id);
     for (const up of upstreamOf(workflow, id)) needed.add(up);
   }
-  const captures = order.filter(
-    (id) => needed.has(id) && getNodeDef(byId.get(id)?.type ?? "")?.category === "Capture",
-  );
+  const captures = order.filter((id) => needed.has(id) && isCapture(known.get(id)?.def));
   for (const id of captures) {
     for (const login of loginDependencies(workflow, id, vars)) {
-      if (needed.has(login)) continue;
-      const params = interpolate(byId.get(login)!.params ?? {}, vars) as { secretName?: string };
-      const saved = await deps.secrets.read(secretName(params.secretName)).catch(() => null);
-      if (!saved) needed.add(login);
+      const node = known.get(login)?.node;
+      if (needed.has(login) || !node) continue;
+      if (!(await signInSaved(node, vars, deps, log))) needed.add(login);
     }
   }
-  const toRun = order.filter((id) => needed.has(id) && executes(byId.get(id)));
+  return needed;
+}
 
-  const issues = validateWorkflow(workflow).filter(
-    (i) => i.level === "error" && (!i.nodeId || needed.has(i.nodeId)),
-  );
-  if (issues.length) {
-    for (const i of issues) {
-      if (i.nodeId) emit({ type: "node:error", runId, nodeId: i.nodeId, message: i.message });
-      else log("error", i.message);
-    }
-    emit({
-      type: "run:done",
-      runId,
-      ok: false,
-      cancelled: false,
-      error: issues[0].message,
-      failedNodeIds: [...new Set(issues.flatMap((i) => (i.nodeId ? [i.nodeId] : [])))],
-      outputs: [],
-      at: Date.now(),
-    });
-    return;
-  }
-
-  emit({ type: "run:start", runId, nodeIds: toRun, at: Date.now() });
-
+function hashNodes(
+  workflow: Workflow,
+  order: string[],
+  vars: Record<string, string>,
+): Map<string, string> {
+  const nodes = new Map(workflow.nodes.map((n) => [n.id, n]));
   const hashes = new Map<string, string>();
   for (const id of order) {
-    const node = byId.get(id)!;
+    const node = nodes.get(id);
+    if (!node) continue;
     const upstream = workflow.edges
       .filter((e) => e.target === id && hashes.has(e.source))
-      .map(
-        (e) => [e.targetHandle, `${hashes.get(e.source)}:${e.sourceHandle}`] as [string, string],
-      );
-    const params = interpolate(node.params ?? {}, vars);
+      .map((e): [string, string] => [e.targetHandle, `${hashes.get(e.source)}:${e.sourceHandle}`]);
+    const params = interpolate(node.params, vars);
     const keyed =
       getNodeDef(node.type)?.phase === "render"
         ? { params, settings: workflow.settings, mix: workflow.mix ?? null }
         : params;
     hashes.set(id, nodeHash(node.type, keyed, upstream));
   }
+  return hashes;
+}
 
-  const forced = new Set<string>(req.targetNodeIds ?? []);
-  if (req.fromNodeId) {
-    forced.add(req.fromNodeId);
-    for (const d of downstreamOf(workflow, req.fromNodeId)) forced.add(d);
+function mergeLastRun(
+  previous: LastRun,
+  results: Results,
+  failures: Record<string, NodeFailure>,
+  existing: (id: string) => boolean,
+): LastRun {
+  const nodes: Record<string, NodeResult> = {};
+  for (const [id, r] of Object.entries({ ...previous.nodes, ...results }))
+    if (r && existing(id)) nodes[id] = r;
+  const failed: Record<string, NodeFailure> = {};
+  for (const [id, f] of Object.entries({ ...previous.failures, ...failures }))
+    if (!results[id] && existing(id)) failed[id] = f;
+  return { updatedAt: Date.now(), nodes, failures: failed };
+}
+
+class Scheduler {
+  private readonly lanes: Record<NodePhase, LimitFunction> = {
+    capture: pLimit(3),
+    media: pLimit(4),
+    compile: pLimit(8),
+    render: pLimit(1),
+    post: pLimit(2),
+  };
+  private readonly serial = new Map<string, Promise<unknown>>();
+  private readonly promises = new Map<string, Promise<void>>();
+
+  constructor(
+    private readonly jobs: Map<string, Job>,
+    private readonly dependencies: (job: Job) => string[],
+    private readonly mutationKey: (job: Job) => string | undefined,
+    private readonly run: (job: Job) => Promise<void>,
+  ) {}
+
+  all(): Promise<void[]> {
+    return Promise.all([...this.jobs.keys()].map((id) => this.schedule(id)));
   }
 
-  const previous: LastRun = (await readLastRun(projectDir)) ?? { updatedAt: 0, nodes: {} };
-  const results: Record<string, NodeResult> = {};
-  for (const [id, r] of Object.entries(previous.nodes))
-    if (hashes.get(id) === r.hash) results[id] = r;
+  private schedule(id: string): Promise<void> {
+    const existing = this.promises.get(id);
+    if (existing) return existing;
+    const job = this.jobs.get(id);
+    const p = job ? this.start(job) : Promise.resolve();
+    this.promises.set(id, p);
+    return p;
+  }
 
-  const ffmpeg = createFfmpegTools(deps.env.engineDir);
-  const engine = enginePaths(deps.env.engineDir);
-  const liveSink = (nodeId: string, title: string): LiveSink | null => {
-    const send = deps.live;
+  private async start(job: Job): Promise<void> {
+    await Promise.all(this.dependencies(job).map((d) => this.schedule(d)));
+    const lane = this.lanes[job.def.phase];
+    const key = this.mutationKey(job);
+    if (!key) return lane(() => this.run(job));
+    const next = (this.serial.get(key) ?? Promise.resolve()).then(() => lane(() => this.run(job)));
+    this.serial.set(
+      key,
+      next.catch(() => undefined),
+    );
+    return next;
+  }
+}
+
+class RunState {
+  readonly results: Results = {};
+  readonly failed = new Set<string>();
+  readonly skipped = new Set<string>();
+  readonly failures: Record<string, NodeFailure> = {};
+  readonly outputs: string[] = [];
+  private readonly ffmpeg;
+  private readonly engine;
+  private readonly paths;
+
+  constructor(
+    private readonly runId: string,
+    private readonly req: RunRequest,
+    private readonly deps: RunDeps,
+    private readonly vars: Record<string, string>,
+    private readonly known: Map<string, Known>,
+    private readonly hashes: Map<string, string>,
+    private readonly forced: Set<string>,
+    private readonly log: Log,
+  ) {
+    this.ffmpeg = createFfmpegTools(deps.env.engineDir);
+    this.engine = enginePaths(deps.env.engineDir);
+    this.paths = projectPaths(req.projectDir);
+  }
+
+  private emit(event: RunEvent) {
+    this.deps.emit(event);
+  }
+
+  dependencies(job: Job, toRun: ReadonlySet<string>): string[] {
+    const { workflow } = this.req;
+    const id = job.node.id;
+    const logins = isCapture(job.def) ? loginDependencies(workflow, id, this.vars) : [];
+    return [...new Set([...upstreamOf(workflow, id), ...logins])].filter(
+      (u) => u !== id && toRun.has(u),
+    );
+  }
+
+  private doneEvent(nodeId: string, cached: boolean): RunEvent {
+    return {
+      type: "node:done",
+      runId: this.runId,
+      nodeId,
+      cached,
+      result: {
+        hash: this.hashes.get(nodeId) ?? "",
+        outputs: {},
+        artifacts: [],
+        finishedAt: Date.now(),
+        durationMs: 0,
+      },
+    };
+  }
+
+  private markChain(node: WorkflowNode) {
+    if (!isCapture(getNodeDef(node.type))) return;
+    for (const up of upstreamOf(this.req.workflow, node.id))
+      if (this.known.get(up)?.def.virtual) this.emit(this.doneEvent(up, true));
+  }
+
+  private collectOutputs(node: WorkflowNode, result: NodeResult) {
+    if (!node.type.startsWith("output.")) return;
+    for (const a of result.artifacts) this.outputs.push(a.path);
+  }
+
+  async runNode(job: Job, upstream: string[]): Promise<void> {
+    const { node, def, hash } = job;
+    const id = node.id;
+    if (this.deps.signal.aborted) return;
+    if (upstream.some((d) => this.failed.has(d))) {
+      this.failed.add(id);
+      this.skipped.add(id);
+      this.emit({
+        type: "node:skipped",
+        runId: this.runId,
+        nodeId: id,
+        reason: "Something before it failed",
+      });
+      return;
+    }
+    if (!def.volatile && !this.forced.has(id) && (await this.fromCache(job))) return;
+
+    const executor = getExecutor(node.type);
+    if (!executor) {
+      this.failed.add(id);
+      this.emit({
+        type: "node:error",
+        runId: this.runId,
+        nodeId: id,
+        message: `No executor for ${node.type}`,
+      });
+      return;
+    }
+
+    const started = Date.now();
+    this.emit({ type: "node:start", runId: this.runId, nodeId: id, at: started });
+    const dir = path.join(this.paths.cache, hash);
+    await mkdir(dir, { recursive: true });
+    const ctx = this.contextFor(node, hash, dir);
+    const inputs = this.inputsFor(id);
+    try {
+      const out = await executor.run(ctx, inputs, parseParams(def, node, this.vars));
+      const result: NodeResult = {
+        hash,
+        outputs: out.outputs,
+        artifacts: await decorateArtifacts(
+          this.req.projectDir,
+          dir,
+          this.ffmpeg,
+          out.artifacts ?? [],
+          (m) => this.log("warn", m, id),
+        ),
+        finishedAt: Date.now(),
+        durationMs: Date.now() - started,
+        ...(out.traceId ? { traceId: out.traceId } : {}),
+      };
+      this.results[id] = result;
+      if (!def.volatile) await writeCached(this.paths.cache, result);
+      this.emit({ type: "node:done", runId: this.runId, nodeId: id, cached: false, result });
+      this.collectOutputs(node, result);
+    } catch (error) {
+      this.fail(id, error);
+    }
+  }
+
+  private async fromCache({ node, hash }: Job): Promise<boolean> {
+    const cached = await readCached(this.paths.cache, hash, this.req.projectDir);
+    if (!cached) return false;
+    this.results[node.id] = cached;
+    this.markChain(node);
+    this.emit({
+      type: "node:done",
+      runId: this.runId,
+      nodeId: node.id,
+      cached: true,
+      result: cached,
+    });
+    this.collectOutputs(node, cached);
+    return true;
+  }
+
+  private fail(id: string, error: unknown) {
+    this.failed.add(id);
+    if (error instanceof ToolError) this.log("error", error.output, id);
+    const traceId = error instanceof TracedError ? error.traceId : undefined;
+    const message = this.deps.signal.aborted ? "Cancelled" : errorMessage(error);
+    this.emit({
+      type: "node:error",
+      runId: this.runId,
+      nodeId: id,
+      message,
+      stack: error instanceof Error ? error.stack : undefined,
+      traceId,
+    });
+    this.failures[id] = { message, at: Date.now(), ...(traceId ? { traceId } : {}) };
+  }
+
+  private compile = () => compileWorkflow(this.req.workflow, { results: this.results });
+
+  private inputsFor(id: string): Partial<Record<string, CompileValue>> {
+    const inputs: Partial<Record<string, CompileValue>> = {};
+    const values: Partial<CompileResult["values"]> = this.compile().values;
+    for (const e of this.req.workflow.edges) {
+      if (e.target !== id) continue;
+      const v =
+        this.results[e.source]?.outputs[e.sourceHandle] ?? values[e.source]?.[e.sourceHandle];
+      if (v) inputs[e.targetHandle] = v;
+    }
+    return inputs;
+  }
+
+  private contextFor(node: WorkflowNode, hash: string, dir: string): ExecutorContext {
+    const { runId, req, deps } = this;
+    const id = node.id;
+    const relDir = toPosixRel(req.projectDir, dir);
+    return {
+      runId,
+      node,
+      workflow: req.workflow,
+      env: deps.env,
+      projectDir: req.projectDir,
+      dir,
+      relDir,
+      outDir: this.paths.out,
+      hash,
+      vars: this.vars,
+      signal: deps.signal,
+      ffmpeg: this.ffmpeg,
+      engine: this.engine,
+      settings: deps.env.settings,
+      live: (title) => this.liveSink(id, title),
+      login: deps.login,
+      log: (level, message) => this.log(level, message, id),
+      progress: (progress, message) =>
+        this.emit({ type: "node:progress", runId, nodeId: id, progress, message }),
+      step: (nodeId, status, message) => {
+        if (status === "start") this.emit({ type: "node:start", runId, nodeId, at: Date.now() });
+        else if (status === "error")
+          this.emit({ type: "node:error", runId, nodeId, message: message ?? "Failed" });
+        else this.emit(this.doneEvent(nodeId, false));
+      },
+      compile: this.compile,
+      results: this.results,
+      secrets: deps.secrets,
+      ref: (file) => `project:${relDir}/${file}`,
+    };
+  }
+
+  private liveSink(nodeId: string, title: string): LiveSink | null {
+    const send = this.deps.live;
     if (!send) return null;
-    const captureId = `${runId}:${nodeId}`;
-    const minGap = 1000 / Math.max(1, deps.env.settings.live.fps);
+    const captureId = `${this.runId}:${nodeId}`;
+    const minGap = 1000 / Math.max(1, this.deps.env.settings.live.fps);
     let lastFrame = 0;
     return {
       frame: (jpeg, width, height, t) => {
@@ -157,239 +416,102 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
           event: event.kind === "start" ? { ...event, title } : event,
         }),
     };
-  };
-  const lanes = Object.fromEntries(
-    Object.entries(LANE_LIMITS).map(([k, v]) => [k, pLimit(v)]),
-  ) as Record<NodePhase, ReturnType<typeof pLimit>>;
-  const serial = new Map<string, Promise<unknown>>();
-  const failed = new Set<string>();
-  const skipped = new Set<string>();
-  const failures: Record<string, NodeFailure> = {};
-  const outputs: string[] = [];
-  const promises = new Map<string, Promise<void>>();
+  }
+}
 
-  const execDeps = (id: string) =>
-    [
-      ...new Set([
-        ...upstreamOf(workflow, id),
-        ...(getNodeDef(byId.get(id)?.type ?? "")?.category === "Capture"
-          ? loginDependencies(workflow, id, vars)
-          : []),
-      ]),
-    ].filter((u) => u !== id && toRun.includes(u));
+export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps): Promise<void> {
+  const { workflow, projectDir } = req;
+  const { emit, signal } = deps;
+  const log: Log = (level, message, nodeId) =>
+    emit({ type: "node:log", runId, nodeId, level, message, at: Date.now() });
 
-  const runNode = async (id: string): Promise<void> => {
-    const node = byId.get(id)!;
-    const def = getNodeDef(node.type)!;
-    const hash = hashes.get(id)!;
-    if (signal.aborted) return;
-    if (execDeps(id).some((d) => failed.has(d))) {
-      failed.add(id);
-      skipped.add(id);
-      emit({ type: "node:skipped", runId, nodeId: id, reason: "Something before it failed" });
-      return;
+  const paths = projectPaths(projectDir);
+  await mkdir(paths.cache, { recursive: true });
+  await mkdir(paths.out, { recursive: true });
+
+  const known = knownNodes(workflow);
+  const vars = workflowVars(workflow);
+  const { order } = topoSort(workflow);
+  const needed = await neededNodes(workflow, req, known, order, vars, deps, log);
+  const executes = (n: WorkflowNode, def: NodeDef) =>
+    !n.disabled && !isStructural(n) && !!def.executes;
+  const toRun = order.filter((id) => {
+    const entry = known.get(id);
+    return needed.has(id) && !!entry && executes(entry.node, entry.def);
+  });
+
+  const issues = validateWorkflow(workflow).filter(
+    (i) => i.level === "error" && (!i.nodeId || needed.has(i.nodeId)),
+  );
+  if (issues.length) {
+    for (const i of issues) {
+      if (i.nodeId) emit({ type: "node:error", runId, nodeId: i.nodeId, message: i.message });
+      else log("error", i.message);
     }
+    emit(
+      runFailed(runId, issues[0].message, {
+        failedNodeIds: [...new Set(issues.flatMap((i) => (i.nodeId ? [i.nodeId] : [])))],
+      }),
+    );
+    return;
+  }
 
-    if (!def.volatile && !forced.has(id)) {
-      const cached = await readCached(paths.cache, hash, projectDir);
-      if (cached) {
-        results[id] = cached;
-        markChain(node, "done");
-        emit({ type: "node:done", runId, nodeId: id, cached: true, result: cached });
-        collectOutputs(node, cached);
-        return;
-      }
-    }
+  emit({ type: "run:start", runId, nodeIds: toRun, at: Date.now() });
 
-    const executor = getExecutor(node.type);
-    if (!executor) {
-      failed.add(id);
-      emit({ type: "node:error", runId, nodeId: id, message: `No executor for ${node.type}` });
-      return;
-    }
+  const hashes = hashNodes(workflow, order, vars);
+  const forced = new Set<string>(req.targetNodeIds ?? []);
+  if (req.fromNodeId) {
+    forced.add(req.fromNodeId);
+    for (const d of downstreamOf(workflow, req.fromNodeId)) forced.add(d);
+  }
 
-    const started = Date.now();
-    emit({ type: "node:start", runId, nodeId: id, at: started });
-    const dir = path.join(paths.cache, hash);
-    await mkdir(dir, { recursive: true });
-    const relDir = toPosixRel(projectDir, dir);
+  const previous: LastRun = (await readLastRun(projectDir)) ?? { updatedAt: 0, nodes: {} };
+  const state = new RunState(runId, req, deps, vars, known, hashes, forced, log);
+  for (const [id, r] of Object.entries(previous.nodes))
+    if (hashes.get(id) === r.hash) state.results[id] = r;
 
-    const inputs: Partial<Record<string, CompileValue>> = {};
-    const compiled = () => compileWorkflow(workflow, { results });
-    const values = compiled().values;
-    for (const e of workflow.edges) {
-      if (e.target !== id) continue;
-      const v = results[e.source]?.outputs[e.sourceHandle] ?? values[e.source]?.[e.sourceHandle];
-      if (v) inputs[e.targetHandle] = v;
-    }
-
-    const ctx: ExecutorContext = {
-      runId,
-      node,
-      workflow,
-      env: deps.env,
-      projectDir,
-      dir,
-      relDir,
-      outDir: paths.out,
-      hash,
-      vars,
-      signal,
-      ffmpeg,
-      engine,
-      settings: deps.env.settings,
-      live: (title) => liveSink(id, title),
-      login: deps.login,
-      log: (level, message) => log(level, message, id),
-      progress: (progress, message) =>
-        emit({ type: "node:progress", runId, nodeId: id, progress, message }),
-      step: (nodeId, status, message) => {
-        if (status === "start") emit({ type: "node:start", runId, nodeId, at: Date.now() });
-        else if (status === "error")
-          emit({ type: "node:error", runId, nodeId, message: message ?? "Failed" });
-        else
-          emit({
-            type: "node:done",
-            runId,
-            nodeId,
-            cached: false,
-            result: {
-              hash: hashes.get(nodeId) ?? "",
-              outputs: {},
-              artifacts: [],
-              finishedAt: Date.now(),
-              durationMs: 0,
-            },
-          });
-      },
-      compile: compiled,
-      results,
-      secrets: deps.secrets,
-      ref: (file) => `project:${relDir}/${file}`,
-    };
-
-    try {
-      const params = def.params.parse(interpolate(node.params ?? {}, vars));
-      const out = await executor.run(ctx, inputs, params);
-      const result: NodeResult = {
-        hash,
-        outputs: out.outputs,
-        artifacts: await decorateArtifacts(projectDir, dir, ffmpeg, out.artifacts ?? []),
-        finishedAt: Date.now(),
-        durationMs: Date.now() - started,
-        ...(out.traceId ? { traceId: out.traceId } : {}),
-      };
-      results[id] = result;
-      if (!def.volatile) await writeCached(paths.cache, result);
-      emit({ type: "node:done", runId, nodeId: id, cached: false, result });
-      collectOutputs(node, result);
-    } catch (error) {
-      failed.add(id);
-      const traceId = error instanceof TracedError ? error.traceId : undefined;
-      const message = signal.aborted ? "Cancelled" : errorMessage(error);
-      emit({
-        type: "node:error",
-        runId,
-        nodeId: id,
-        message,
-        stack: error instanceof Error ? error.stack : undefined,
-        traceId,
-      });
-      failures[id] = { message, at: Date.now(), ...(traceId ? { traceId } : {}) };
-    }
-  };
-
-  const markChain = (node: WorkflowNode, status: "done") => {
-    if (getNodeDef(node.type)?.category !== "Capture") return;
-    for (const up of upstreamOf(workflow, node.id)) {
-      const n = byId.get(up);
-      if (n && getNodeDef(n.type)?.virtual) {
-        emit({
-          type: "node:done",
-          runId,
-          nodeId: up,
-          cached: true,
-          result: {
-            hash: hashes.get(up) ?? "",
-            outputs: {},
-            artifacts: [],
-            finishedAt: Date.now(),
-            durationMs: 0,
-          },
-        });
-      }
-    }
-    void status;
-  };
-
-  const collectOutputs = (node: WorkflowNode, result: NodeResult) => {
-    if (!node.type.startsWith("output.")) return;
-    for (const a of result.artifacts) outputs.push(a.path);
-  };
-
-  const schedule = (id: string): Promise<void> => {
-    const existing = promises.get(id);
-    if (existing) return existing;
-    const node = byId.get(id)!;
-    const def = getNodeDef(node.type)!;
-    const p = (async () => {
-      await Promise.all(execDeps(id).map(schedule));
-      const lane = lanes[def.phase];
-      const key = def.mutates?.(def.params.parse(interpolate(node.params ?? {}, vars)) as never);
-      if (key) {
-        const prev = serial.get(key) ?? Promise.resolve();
-        const next = prev.then(() => lane(() => runNode(id)));
-        serial.set(
-          key,
-          next.catch(() => undefined),
-        );
-        await next;
-      } else {
-        await lane(() => runNode(id));
-      }
-    })();
-    promises.set(id, p);
-    return p;
-  };
+  const jobs = new Map<string, Job>();
+  for (const id of toRun) {
+    const entry = known.get(id);
+    if (entry) jobs.set(id, { ...entry, hash: hashes.get(id) ?? "" });
+  }
+  const runSet = new Set(toRun);
+  const scheduler = new Scheduler(
+    jobs,
+    (job) => state.dependencies(job, runSet),
+    ({ node, def }) => def.mutates?.(parseParams(def, node, vars)),
+    (job) => state.runNode(job, state.dependencies(job, runSet)),
+  );
 
   let error: string | undefined;
   try {
-    await Promise.all(toRun.map(schedule));
+    await scheduler.all();
   } catch (e) {
     error = errorMessage(e);
   }
 
-  const merged: LastRun = {
-    updatedAt: Date.now(),
-    nodes: { ...previous.nodes },
-    failures: { ...previous.failures, ...failures },
-  };
-  for (const [id, r] of Object.entries(results)) {
-    merged.nodes[id] = r;
-    delete merged.failures![id];
-  }
-  for (const id of Object.keys(merged.nodes)) if (!byId.has(id)) delete merged.nodes[id];
-  for (const id of Object.keys(merged.failures!)) if (!byId.has(id)) delete merged.failures![id];
-  await writeLastRun(projectDir, merged).catch((e: unknown) =>
-    log("warn", `Couldn't save the run results: ${errorMessage(e)}`),
-  );
+  const ids = new Set(workflow.nodes.map((n) => n.id));
+  await writeLastRun(
+    projectDir,
+    mergeLastRun(previous, state.results, state.failures, (id) => ids.has(id)),
+  ).catch((e: unknown) => log("warn", `Couldn't save the run results: ${errorMessage(e)}`));
 
-  const ok = !signal.aborted && failed.size === 0 && !error;
+  const { failed, skipped } = state;
   const failedNodeIds = [...failed].filter((id) => !skipped.has(id));
   const nameOf = (id: string) => {
-    const node = byId.get(id);
+    const node = known.get(id)?.node;
     return node ? nodeName(node) : id;
   };
   emit({
     type: "run:done",
     runId,
-    ok,
+    ok: !signal.aborted && failed.size === 0 && !error,
     cancelled: signal.aborted,
     error:
       error ?? (failed.size ? failureMessage(failedNodeIds.map(nameOf), skipped.size) : undefined),
     failedNodeIds,
     skippedNodeIds: [...skipped],
-    outputs,
+    outputs: state.outputs,
     at: Date.now(),
   });
 }

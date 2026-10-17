@@ -1,13 +1,11 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
-import type { Writable } from "node:stream";
+import type { Readable, Writable } from "node:stream";
 import { engineStatus } from "../../engine/paths";
 import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";
 import { clamp } from "../../shared/math";
 
 export type FfmpegTools = {
-  ffmpeg: string;
-  ffprobe: string;
   run: (args: string[], opts?: RunOptions) => Promise<string>;
   pipe: (args: string[], opts?: RunOptions) => { stdin: Writable; done: Promise<string> };
   probe: (file: string) => Promise<ProbeResult>;
@@ -28,29 +26,31 @@ export type ProbeResult = {
   raw: unknown;
 };
 
-function spawnTool(
-  bin: string,
-  args: string[],
-  opts: RunOptions = {},
-  withStdin = false,
-): { stdin: Writable | null; done: Promise<string> } {
-  let stdin: Writable | null = null;
-  const done = new Promise<string>((resolve, reject) => {
-    if (opts.signal?.aborted) {
-      reject(new Error("Cancelled"));
-      return;
-    }
-    const child = spawn(bin, args, {
-      stdio: [withStdin ? "pipe" : "ignore", "pipe", "pipe"],
-      windowsHide: true,
-    });
-    stdin = child.stdin;
+export class ToolError extends Error {
+  constructor(readonly output: string) {
+    super("The video engine couldn't process a file.");
+    this.name = "ToolError";
+  }
+}
+
+const STDERR_LIMIT = 200_000;
+const STDERR_KEEP = 100_000;
+const STDERR_TAIL_LINES = 6;
+
+type ToolProcess = ChildProcess & { stdout: Readable; stderr: Readable };
+
+function cancelled(signal?: AbortSignal) {
+  if (signal?.aborted) throw new Error("Cancelled");
+}
+
+function settle(child: ToolProcess, bin: string, opts: RunOptions): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
     let stdout = "";
     let stderr = "";
     const onAbort = () => child.kill("SIGKILL");
     opts.signal?.addEventListener("abort", onAbort, { once: true });
 
-    child.stdout?.on("data", (chunk: Buffer) => {
+    child.stdout.on("data", (chunk: Buffer) => {
       const text = chunk.toString();
       stdout += text;
       if (opts.onProgress && opts.durationMs) {
@@ -60,30 +60,29 @@ function spawnTool(
         }
       }
     });
-    child.stderr?.on("data", (chunk: Buffer) => {
+    child.stderr.on("data", (chunk: Buffer) => {
       const text = chunk.toString();
       stderr += text;
-      if (stderr.length > 200_000) stderr = stderr.slice(-100_000);
+      if (stderr.length > STDERR_LIMIT) stderr = stderr.slice(-STDERR_KEEP);
       if (opts.onLog) for (const line of text.split(/\r?\n/)) if (line.trim()) opts.onLog(line);
     });
     child.on("error", (err) => {
       opts.signal?.removeEventListener("abort", onAbort);
-      reject(err);
+      reject(new ToolError(`${path.basename(bin)}: ${err.message}`));
     });
     child.on("close", (code) => {
       opts.signal?.removeEventListener("abort", onAbort);
       if (opts.signal?.aborted) reject(new Error("Cancelled"));
       else if (code === 0) resolve(stdout);
-      else
-        reject(
-          new Error(
-            `${path.basename(bin)} exited with ${code}: ${stderr.split("\n").slice(-6).join("\n")}`,
-          ),
-        );
+      else {
+        const tail = stderr.split("\n").slice(-STDERR_TAIL_LINES).join("\n");
+        reject(new ToolError(`${path.basename(bin)} exited with ${code}: ${tail}`));
+      }
     });
   });
-  return { stdin, done };
 }
+
+const spawnOptions = { windowsHide: true } as const;
 
 export function createFfmpegTools(engineDir: string): FfmpegTools {
   const { ffmpeg, ffprobe } = engineStatus(engineDir);
@@ -97,17 +96,24 @@ export function createFfmpegTools(engineDir: string): FfmpegTools {
     ...(opts?.onProgress ? ["-progress", "pipe:1", "-nostats"] : []),
     ...args,
   ];
+  const run = (bin: string, args: string[], opts: RunOptions = {}): Promise<string> => {
+    cancelled(opts.signal);
+    const child = spawn(bin, args, { ...spawnOptions, stdio: ["ignore", "pipe", "pipe"] });
+    return settle(child, bin, opts);
+  };
   return {
-    ffmpeg: ffmpeg ?? "",
-    ffprobe: ffprobe ?? "",
-    run: (args, opts) => spawnTool(need(ffmpeg), ffmpegArgs(args, opts), opts).done,
-    pipe: (args, opts) => {
-      const { stdin, done } = spawnTool(need(ffmpeg), ffmpegArgs(args, opts), opts, true);
-      if (!stdin) throw new Error("The video tools did not start.");
-      return { stdin, done };
+    run: async (args, opts) => run(need(ffmpeg), ffmpegArgs(args, opts), opts),
+    pipe: (args, opts = {}) => {
+      const bin = need(ffmpeg);
+      cancelled(opts.signal);
+      const child = spawn(bin, ffmpegArgs(args, opts), {
+        ...spawnOptions,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      return { stdin: child.stdin, done: settle(child, bin, opts) };
     },
     probe: async (file) => {
-      const out = await spawnTool(need(ffprobe), [
+      const out = await run(need(ffprobe), [
         "-v",
         "error",
         "-print_format",
@@ -115,7 +121,7 @@ export function createFfmpegTools(engineDir: string): FfmpegTools {
         "-show_format",
         "-show_streams",
         file,
-      ]).done;
+      ]);
       return parseProbe(JSON.parse(out));
     },
   };

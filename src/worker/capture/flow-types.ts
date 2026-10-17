@@ -1,13 +1,20 @@
-import type { Locator, Page } from "playwright-core";
+import type { Locator } from "playwright-core";
 import type { ClickEvent } from "../../video/camera/lib/click-log";
+import type { Point } from "./drag-path";
 
 export type { ClickEvent };
 
-export type CssTarget = { css: string };
+export const CSS_PREFIX = "css=";
 
-export const css = (selector: string): CssTarget => ({ css: selector });
+export type Target = Point | Locator;
 
-export type Target = string | CssTarget | { x: number; y: number } | Locator;
+export const isPoint = (target: Target): target is Point => "x" in target;
+
+export function elementOf(target: Target): Locator {
+  if (isPoint(target))
+    throw new Error("A point on the page isn't an element. Pick an element instead.");
+  return target;
+}
 
 export type ActionOpts = {
   cluster?: string;
@@ -19,32 +26,10 @@ export type ActionOpts = {
   hoverMs?: number;
 };
 
-export type DragTo =
-  | { target: Target }
-  | { by: { x: number; y: number } }
-  | { path: Array<{ x: number; y: number }> };
+export type DragTo = { target: Target } | { by: Point } | { path: Point[] };
 
 export type DragOpts = ActionOpts & {
   holdMs?: number;
   dragMs?: number;
   method?: "smooth" | "quick";
-};
-
-export type FlowContext = {
-  page: Page;
-  baseURL: string;
-  moveAndClick: (target: Target, label?: string, opts?: ActionOpts) => Promise<void>;
-  typeInto: (
-    target: Target,
-    text: string | readonly string[],
-    label?: string,
-    opts?: ActionOpts,
-  ) => Promise<void>;
-  moveTo: (target: Target) => Promise<void>;
-  drag: (from: Target, to: DragTo, label?: string, opts?: DragOpts) => Promise<void>;
-  focus: (target: Target, label?: string, opts?: ActionOpts) => Promise<void>;
-  find: (name: string) => Promise<Locator>;
-  pause: (ms?: number) => Promise<void>;
-  pressKey: (chord: string, label?: string) => Promise<void>;
-  page_waitForURL: Page["waitForURL"];
 };

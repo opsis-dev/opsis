@@ -3,6 +3,7 @@ import path from "node:path";
 import type { Artifact } from "../../shared/schema/values";
 import type { FfmpegTools } from "../media/ffmpeg";
 import { toPosixRel } from "../../engine/project-paths";
+import { errorMessage } from "../../shared/errors";
 
 const POSTER_WIDTH = 480;
 
@@ -11,6 +12,7 @@ export async function decorateArtifacts(
   nodeDir: string,
   ffmpeg: FfmpegTools,
   artifacts: Artifact[],
+  warn: (message: string) => void,
 ): Promise<Artifact[]> {
   return Promise.all(
     artifacts.map(async (artifact, i) => {
@@ -39,7 +41,10 @@ export async function decorateArtifacts(
           poster,
         ]);
         return { ...withSize, poster: toPosixRel(projectDir, poster) };
-      } catch {
+      } catch (error) {
+        warn(
+          `Couldn't make a poster frame for ${artifact.label ?? artifact.path}: ${errorMessage(error)}`,
+        );
         return withSize;
       }
     }),

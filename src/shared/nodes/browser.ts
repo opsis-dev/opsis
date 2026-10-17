@@ -15,6 +15,7 @@ import {
   text,
 } from "./params";
 import { formatDuration, displayAddress } from "../format";
+import { PAUSE_MARK } from "../vars";
 
 const chain = {
   inputs: { session: port("session", "Previous") },
@@ -174,8 +175,8 @@ export const typeNode = defineNode({
   card: ({ params: p, raw }) => [
     elementRow("crosshair", p.target, raw),
     p.text.trim()
-      ? row("keyboard", quote(p.text.replaceAll("¦", " … ")), {
-          title: p.text.replaceAll("¦", " … "),
+      ? row("keyboard", quote(p.text.replaceAll(PAUSE_MARK, " … ")), {
+          title: p.text.replaceAll(PAUSE_MARK, " … "),
         })
       : missing("keyboard", "Add text to type"),
     p.pressEnter && row("corner-down-left", "Then Enter"),

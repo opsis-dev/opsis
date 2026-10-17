@@ -1,4 +1,7 @@
 import { readFile } from "node:fs/promises";
+import { round1 } from "../../shared/math";
+
+export const SILENCE_DB = -120;
 
 export type Pcm = { sampleRate: number; channels: number; frames: number; data: Float32Array[] };
 
@@ -34,29 +37,28 @@ export function parseWav(buf: Buffer): Pcm {
   const bytes = bits / 8;
   const frames = Math.floor(dataLength / (bytes * channels));
   const data = Array.from({ length: channels }, () => new Float32Array(frames));
+  const read = sampleReader(buf, format, bits);
   for (let i = 0; i < frames; i++) {
-    for (let c = 0; c < channels; c++) {
-      const at = dataStart + (i * channels + c) * bytes;
-      data[c][i] =
-        format === 3
-          ? bits === 64
-            ? buf.readDoubleLE(at)
-            : buf.readFloatLE(at)
-          : bits === 16
-            ? buf.readInt16LE(at) / 32768
-            : bits === 24
-              ? (buf.readIntLE(at, 3) as number) / 8388608
-              : buf.readInt32LE(at) / 2147483648;
-    }
+    for (let c = 0; c < channels; c++) data[c][i] = read(dataStart + (i * channels + c) * bytes);
   }
   return { sampleRate, channels, frames, data };
+}
+
+const FLOAT_FORMAT = 3;
+
+function sampleReader(buf: Buffer, format: number, bits: number): (at: number) => number {
+  if (format === FLOAT_FORMAT)
+    return bits === 64 ? (at) => buf.readDoubleLE(at) : (at) => buf.readFloatLE(at);
+  if (bits === 16) return (at) => buf.readInt16LE(at) / 32768;
+  if (bits === 24) return (at) => buf.readIntLE(at, 3) / 8388608;
+  return (at) => buf.readInt32LE(at) / 2147483648;
 }
 
 export const readWav = async (file: string) => parseWav(await readFile(file));
 
 export type FrameLevels = { fps: number; peak: number[]; rms: number[] };
 
-const toDb = (v: number) => (v <= 1e-6 ? -120 : Math.round(20 * Math.log10(v) * 10) / 10);
+const toDb = (v: number) => (v <= 1e-6 ? SILENCE_DB : round1(20 * Math.log10(v)));
 
 export function frameLevels(pcm: Pcm, fps: number, frames: number): FrameLevels {
   const per = pcm.sampleRate / fps;

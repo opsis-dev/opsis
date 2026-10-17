@@ -4,28 +4,19 @@ import { stableJson } from "../../shared/hash";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { ENGINE_VERSION } from "../engine/cache";
 import { sha256Hex } from "../../engine/hash";
+import { CODECS, type SoundCodec } from "./codecs";
 
-export const PICTURE_VERSION = "demoflow-picture/1";
-export const KEEP_PICTURES = 12;
+const PICTURE_VERSION = "demoflow-picture/1";
+const KEEP_PICTURES = 12;
 
-export type PictureOptions = { codec: string; crf?: number; scale?: number; gl: string };
+type PictureOptions = { codec: string; crf: number; scale: number; gl: string };
 
 export function pictureKey(spec: TimelineSpec, opts: PictureOptions): string {
   const { audio: _audio, mix: _mix, assets: _assets, ...picture } = spec;
   return sha256Hex(stableJson({ v: PICTURE_VERSION, engine: ENGINE_VERSION, picture, opts }), 32);
 }
 
-const AUDIO_CODEC: Record<string, string[]> = {
-  h264: ["-c:a", "aac", "-b:a", "320k"],
-  h265: ["-c:a", "aac", "-b:a", "320k"],
-  vp8: ["-c:a", "libopus", "-b:a", "192k"],
-  vp9: ["-c:a", "libopus", "-b:a", "192k"],
-  prores: ["-c:a", "pcm_s16le"],
-};
-
-export const hasSoundTrack = (codec: string): boolean => codec in AUDIO_CODEC;
-
-export function muxArgs(codec: string, picture: string, sound: string, out: string): string[] {
+export function muxArgs(codec: SoundCodec, picture: string, sound: string, out: string): string[] {
   return [
     "-y",
     "-i",
@@ -38,7 +29,7 @@ export function muxArgs(codec: string, picture: string, sound: string, out: stri
     "1:a:0",
     "-c:v",
     "copy",
-    ...(AUDIO_CODEC[codec] ?? AUDIO_CODEC.h264),
+    ...CODECS[codec].audio,
     "-shortest",
     out,
   ];
@@ -63,7 +54,7 @@ export function finishArgs(
   ];
 }
 
-export async function prunePictures(dir: string, keep = KEEP_PICTURES): Promise<void> {
+export async function prunePictures(dir: string): Promise<void> {
   const names = await readdir(dir).catch(() => [] as string[]);
   const files = await Promise.all(
     names.map(async (name) => {
@@ -71,6 +62,6 @@ export async function prunePictures(dir: string, keep = KEEP_PICTURES): Promise<
       return { file, at: (await stat(file).catch(() => null))?.mtimeMs ?? 0 };
     }),
   );
-  const old = files.toSorted((a, b) => b.at - a.at).slice(keep);
+  const old = files.toSorted((a, b) => b.at - a.at).slice(KEEP_PICTURES);
   await Promise.all(old.map((f) => rm(f.file, { force: true })));
 }

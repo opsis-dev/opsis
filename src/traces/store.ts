@@ -151,11 +151,12 @@ async function sweepBlobs(root: string, live: Set<string>): Promise<void> {
 export async function applyRetention(
   projectDir: string,
   policy: AppSettings["traces"],
-): Promise<void> {
+): Promise<ReadonlySet<string>> {
   const root = traceRoot(projectDir);
   const all = await listTraces(projectDir);
   const kept = keptTraces(all, policy);
   const keep = new Set(kept.map((m) => m.id));
   for (const m of all) if (!keep.has(m.id)) await rm(manifestPath(root, m.id), { force: true });
   await sweepBlobs(root, new Set(kept.flatMap((m) => m.entries.map(blobName))));
+  return keep;
 }

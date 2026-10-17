@@ -1,8 +1,9 @@
 import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, rename, utimes, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Codec } from "@remotion/renderer";
+import type { z } from "zod";
 import { mapItems } from "../../shared/compile/clip";
+import { PROJECT_NAME_VAR } from "../../shared/compile/compile";
 import {
   exportProjectNode,
   renderNode,
@@ -15,29 +16,32 @@ import type { TimelineSpec } from "../../shared/schema/timeline";
 import type { Artifact, MediaValue } from "../../shared/schema/values";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
 import { startAssetServer } from "../render/asset-server";
-import {
-  CODEC_EXT,
-  getServeUrl,
-  renderFrame,
-  renderTimeline,
-  type GlRenderer,
-} from "../render/render";
-import { finishArgs, hasSoundTrack, muxArgs, pictureKey, prunePictures } from "../render/picture";
+import { CODECS, hasSoundTrack } from "../render/codecs";
+import { getServeUrl, renderFrame, renderTimeline } from "../render/render";
+import { finishArgs, muxArgs, pictureKey, prunePictures } from "../render/picture";
 import {
   chapterList,
   chapterMetadata,
   filmChapters,
   MIN_LISTED_CHAPTERS,
 } from "../../shared/timeline/chapters";
-import { refToPath } from "./util";
+import { publicDir, refToPath } from "./util";
 import { buildMixPlan, hasSound } from "../../shared/mix/plan";
 import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
 import { renderMix } from "../mix/render";
-import { toPosixRel } from "../../engine/project-paths";
+import { projectPaths, toPosixRel, toProjectRef } from "../../engine/project-paths";
 import { msToFrames } from "../../shared/timeline/time";
 import { slugify } from "../../shared/project-folder";
 
+type RenderParams = z.infer<typeof renderNode.params>;
+
 const relativePath = (ctx: ExecutorContext, file: string) => toPosixRel(ctx.projectDir, file);
+
+function firstArtifact(artifacts: Artifact[]): Artifact {
+  const [first] = artifacts;
+  if (!first) throw new Error("Nothing was exported. Pick at least one size.");
+  return first;
+}
 
 function specFor(ctx: ExecutorContext): TimelineSpec {
   const result = ctx.compile();
@@ -59,11 +63,10 @@ async function mixed(ctx: ExecutorContext, spec: TimelineSpec, from: number, to:
     onProgress: (p, message) => ctx.progress(from + (to - from) * p, message),
   });
   if (!result.master) return applyMixLevels(spec, ctx.workflow.mix);
-  if (result.loudness?.integrated !== null && result.loudness?.integrated !== undefined)
-    ctx.log(
-      "info",
-      `Sound: ${result.loudness.integrated} LUFS${result.loudness.truePeak !== null ? `, peak ${result.loudness.truePeak} dBTP` : ""}`,
-    );
+  const lufs = result.loudness?.integrated;
+  const peak = result.loudness?.truePeak;
+  if (lufs != null)
+    ctx.log("info", `Sound: ${lufs} LUFS${peak != null ? `, peak ${peak} dBTP` : ""}`);
   return withMasterStem(spec, result.master);
 }
 
@@ -76,130 +79,141 @@ async function prepare(ctx: ExecutorContext) {
   return { serveUrl, server };
 }
 
-async function pictureFor(
-  ctx: ExecutorContext,
-  serveUrl: string,
-  spec: TimelineSpec,
-  p: { codec: string; crf: number; scale: number; gl: GlRenderer },
-  ext: string,
-  progress: (x: number) => void,
-): Promise<string> {
-  const dir = path.join(ctx.projectDir, ".demoflow", "cache", "pictures");
+type RenderJob = {
+  ctx: ExecutorContext;
+  serveUrl: string;
+  spec: TimelineSpec;
+  p: RenderParams;
+  progress: (x: number) => void;
+};
+
+const renderTo = (
+  { ctx, serveUrl, spec, p, progress }: RenderJob,
+  output: string,
+  muted: boolean,
+) =>
+  renderTimeline({
+    env: ctx.env,
+    serveUrl,
+    spec,
+    output,
+    codec: p.codec,
+    crf: p.crf,
+    scale: p.scale,
+    gl: p.gl,
+    muted,
+    signal: ctx.signal,
+    onProgress: progress,
+  });
+
+async function pictureFor(job: RenderJob): Promise<string> {
+  const { ctx, spec, p } = job;
+  const ext = CODECS[p.codec].ext;
+  const dir = path.join(projectPaths(ctx.projectDir).cache, "pictures");
   await mkdir(dir, { recursive: true });
-  const file = path.join(
-    dir,
-    `${pictureKey(spec, { codec: p.codec, crf: p.crf, scale: p.scale, gl: p.gl })}.${ext}`,
-  );
+  const key = pictureKey(spec, { codec: p.codec, crf: p.crf, scale: p.scale, gl: p.gl });
+  const file = path.join(dir, `${key}.${ext}`);
   if (existsSync(file)) {
     const now = new Date();
     await utimes(file, now, now).catch(() => undefined);
     ctx.log("info", "The picture hasn't changed, so only the sound is added again.");
-    progress(1);
+    job.progress(1);
     return file;
   }
   const temp = `${file}.part.${ext}`;
-  await renderTimeline({
-    env: ctx.env,
-    serveUrl,
-    spec,
-    output: temp,
-    codec: p.codec as Codec,
-    crf: p.crf,
-    scale: p.scale,
-    gl: p.gl,
-    muted: true,
-    signal: ctx.signal,
-    onProgress: progress,
-  });
+  await renderTo(job, temp, true);
   await rename(temp, file);
   await prunePictures(dir);
   return file;
+}
+
+type Chapters = {
+  chapters: ReturnType<typeof filmChapters>;
+  metadata: string | null;
+  listed: boolean;
+};
+
+async function chaptersFor(ctx: ExecutorContext, spec: TimelineSpec, p: RenderParams) {
+  const chapters = p.codec === "gif" ? [] : filmChapters(spec);
+  const metadata = p.chapters && chapters.length ? path.join(ctx.dir, "chapters.txt") : null;
+  if (metadata) await writeFile(metadata, chapterMetadata(chapters));
+  const listed = p.chapterList && chapters.length >= MIN_LISTED_CHAPTERS;
+  if (chapters.length) ctx.log("info", `Chapters: ${chapters.map((c) => c.title).join(", ")}`);
+  if (p.chapterList && chapters.length && !listed)
+    ctx.log(
+      "warn",
+      `The chapter list needs at least ${MIN_LISTED_CHAPTERS} chapters of ten seconds or more, so it wasn't saved.`,
+    );
+  return { chapters, metadata, listed } satisfies Chapters;
+}
+
+async function renderVariant(
+  job: RenderJob,
+  variant: Variant,
+  out: string,
+  chapters: Chapters,
+): Promise<Artifact[]> {
+  const { ctx, spec, p } = job;
+  if (spec.mix && hasSoundTrack(p.codec)) {
+    const sound = refToPath(ctx, spec.mix.src);
+    const picture = await pictureFor(job);
+    await ctx.ffmpeg.run(muxArgs(p.codec, picture, sound, out), { signal: ctx.signal });
+  } else await renderTo(job, out, false);
+  const faststart = p.faststart && CODECS[p.codec].faststart;
+  if (faststart || chapters.metadata) {
+    const tmp = `${out}.finish${path.extname(out)}`;
+    await ctx.ffmpeg.run(finishArgs(out, tmp, { faststart, chapters: chapters.metadata }), {
+      signal: ctx.signal,
+    });
+    await rename(tmp, out);
+  }
+  const artifacts: Artifact[] = [
+    { kind: p.codec === "gif" ? "image" : "video", path: relativePath(ctx, out), label: variant },
+  ];
+  if (chapters.listed) {
+    const list = out.replace(/\.[^.]+$/, ".youtube-chapters.txt");
+    await writeFile(list, chapterList(chapters.chapters));
+    artifacts.push({
+      kind: "file",
+      path: relativePath(ctx, list),
+      label: `${variant} chapter list`,
+    });
+  }
+  return artifacts;
 }
 
 export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p) => {
   const spec = await mixed(ctx, specFor(ctx), 0, 0.05);
   const { serveUrl, server } = await prepare(ctx);
   const artifacts: Artifact[] = [];
-  const ext = CODEC_EXT[p.codec];
   const base = slugify(p.fileName, "output");
-  const chapters = p.codec === "gif" ? [] : filmChapters(spec);
-  const chapterFile = p.chapters && chapters.length ? path.join(ctx.dir, "chapters.txt") : null;
-  if (chapterFile) await writeFile(chapterFile, chapterMetadata(chapters));
-  const listChapters = p.chapterList && chapters.length >= MIN_LISTED_CHAPTERS;
-  if (chapters.length) ctx.log("info", `Chapters: ${chapters.map((c) => c.title).join(", ")}`);
-  if (p.chapterList && chapters.length && !listChapters)
-    ctx.log(
-      "warn",
-      `The chapter list needs at least ${MIN_LISTED_CHAPTERS} chapters of ten seconds or more, so it wasn't saved.`,
-    );
+  const chapters = await chaptersFor(ctx, spec, p);
+  const { variants } = p;
   try {
-    const variants = p.variants as Variant[];
     for (const [i, variant] of variants.entries()) {
       const size = variantSize(variant, ctx.workflow.settings);
-      const out = path.join(
-        ctx.outDir,
-        `${base}${variants.length > 1 ? `-${variant.replace(":", "x")}` : ""}.${ext}`,
-      );
-      const variantSpec: TimelineSpec = {
-        ...spec,
-        ...size,
-        reframe: p.reframe,
-        assets: { projectBase: server.url },
-      };
+      const suffix = variants.length > 1 ? `-${variant.replace(":", "x")}` : "";
+      const out = path.join(ctx.outDir, `${base}${suffix}.${CODECS[p.codec].ext}`);
       ctx.log(
         "info",
         `Exporting ${variant} (${size.width}×${size.height}) as ${path.basename(out)}`,
       );
-      const progress = (x: number) =>
-        ctx.progress(0.2 + 0.8 * ((i + x) / variants.length), `Rendering ${variant}`);
-      const sound = spec.mix && hasSoundTrack(p.codec) ? refToPath(ctx, spec.mix.src) : null;
-      if (sound) {
-        const picture = await pictureFor(ctx, serveUrl, variantSpec, p, ext, progress);
-        await ctx.ffmpeg.run(muxArgs(p.codec, picture, sound, out), { signal: ctx.signal });
-      } else {
-        await renderTimeline({
-          env: ctx.env,
-          serveUrl,
-          spec: variantSpec,
-          output: out,
-          codec: p.codec as Codec,
-          crf: p.crf,
-          scale: p.scale,
-          gl: p.gl,
-          signal: ctx.signal,
-          onProgress: progress,
-        });
-      }
-      const faststart = p.faststart && (p.codec === "h264" || p.codec === "h265");
-      if (faststart || chapterFile) {
-        const tmp = `${out}.finish${path.extname(out)}`;
-        await ctx.ffmpeg.run(finishArgs(out, tmp, { faststart, chapters: chapterFile }), {
-          signal: ctx.signal,
-        });
-        await rename(tmp, out);
-      }
-      artifacts.push({
-        kind: p.codec === "gif" ? "image" : "video",
-        path: relativePath(ctx, out),
-        label: variant,
-      });
-      if (listChapters) {
-        const list = out.replace(/\.[^.]+$/, ".youtube-chapters.txt");
-        await writeFile(list, chapterList(chapters));
-        artifacts.push({
-          kind: "file",
-          path: relativePath(ctx, list),
-          label: `${variant} chapter list`,
-        });
-      }
+      const job: RenderJob = {
+        ctx,
+        serveUrl,
+        spec: { ...spec, ...size, reframe: p.reframe, assets: { projectBase: server.url } },
+        p,
+        progress: (x) =>
+          ctx.progress(0.2 + 0.8 * ((i + x) / variants.length), `Rendering ${variant}`),
+      };
+      artifacts.push(...(await renderVariant(job, variant, out, chapters)));
     }
   } finally {
     await server.close();
   }
-  const first = artifacts[0];
   const media: MediaValue = {
     type: "media",
-    src: `project:${first.path}`,
+    src: `project:${firstArtifact(artifacts).path}`,
     kind: p.codec === "gif" ? "image" : "video",
     durationMs: (spec.durationInFrames / spec.fps) * 1000,
   };
@@ -210,13 +224,11 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
   const spec = specFor(ctx);
   const { serveUrl, server } = await prepare(ctx);
   const artifacts: Artifact[] = [];
+  const base = slugify(ctx.vars[PROJECT_NAME_VAR], "output");
   try {
     for (const [i, preset] of p.presets.entries()) {
       const size = STILL_PRESETS[preset];
-      const out = path.join(
-        ctx.outDir,
-        `${slugify(ctx.vars["Project name"], "output")}-${preset}.${p.format === "jpeg" ? "jpg" : "png"}`,
-      );
+      const out = path.join(ctx.outDir, `${base}-${preset}.${p.format === "jpeg" ? "jpg" : "png"}`);
       ctx.progress(0.2 + 0.8 * (i / p.presets.length), `Still ${preset}`);
       await renderFrame({
         env: ctx.env,
@@ -228,40 +240,119 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
         gl: p.gl,
         signal: ctx.signal,
       });
-      artifacts.push({
-        kind: "image",
-        path: relativePath(ctx, out),
-        label: preset,
-      });
+      artifacts.push({ kind: "image", path: relativePath(ctx, out), label: preset });
     }
   } finally {
     await server.close();
   }
-  return { outputs: { image: { type: "image", src: `project:${artifacts[0].path}` } }, artifacts };
+  return {
+    outputs: { image: { type: "image", src: `project:${firstArtifact(artifacts).path}` } },
+    artifacts,
+  };
 });
 
+const EXPORT_DEPENDENCIES = [
+  "react",
+  "react-dom",
+  "zod",
+  "culori",
+  "cn",
+  "opentype.js",
+  "@paper-design/shaders-react",
+  "@fontsource-variable/geist",
+  "@fontsource/inter",
+  "@fontsource/manrope",
+  "date-fns",
+];
+
+const EXPORT_DEV_DEPENDENCIES = [
+  "@remotion/cli",
+  "@remotion/tailwind-v4",
+  "tailwindcss",
+  "typescript",
+  "@types/react",
+];
+
+const exportedDependency = (name: string) =>
+  name === "remotion" || name.startsWith("@remotion/") || EXPORT_DEPENDENCIES.includes(name);
+
+const INDEX_TS = `import { registerRoot } from "remotion";
+import "./video/video.css";
+import { ExportRoot } from "./export-root";
+
+registerRoot(ExportRoot);
+`;
+
+const EXPORT_ROOT_TSX = `import { Composition } from "remotion";
+import { DemoTimeline } from "./video/demo-timeline";
+import timeline from "./timeline.json";
+import type { TimelineSpec } from "./shared/schema/timeline";
+
+const spec = timeline as TimelineSpec;
+
+export const ExportRoot = () => (
+  <Composition
+    id="DemoTimeline"
+    component={DemoTimeline}
+    defaultProps={spec}
+    durationInFrames={spec.durationInFrames}
+    fps={spec.fps}
+    width={spec.width}
+    height={spec.height}
+  />
+);
+`;
+
+const REMOTION_CONFIG_TS = `import path from "node:path";
+import { Config } from "@remotion/cli/config";
+import { enableTailwind } from "@remotion/tailwind-v4";
+
+Config.overrideWebpackConfig((c) => {
+  const t = enableTailwind(c);
+  return { ...t, resolve: { ...t.resolve, alias: { ...(t.resolve?.alias as object), "@": path.join(process.cwd(), "src") } } };
+});
+`;
+
+const TSCONFIG = {
+  compilerOptions: {
+    target: "ESNext",
+    module: "preserve",
+    moduleResolution: "bundler",
+    jsx: "react-jsx",
+    strict: true,
+    skipLibCheck: true,
+    resolveJsonModule: true,
+    noEmit: true,
+    paths: { "@/*": ["./src/*"] },
+  },
+  include: ["src"],
+};
+
+const readme = (name: string) => `# ${name}
+
+Exported from Demoflow. Edit \`src/timeline.json\` or the components in \`src/video\`, then:
+
+\`\`\`sh
+bun install
+bun run studio
+\`\`\`
+`;
+
 function sourceDirs(ctx: ExecutorContext) {
-  if (!ctx.env.isPackaged) {
-    const src = path.join(ctx.env.appRoot, "src");
-    return {
-      video: path.join(src, "video"),
-      shared: path.join(src, "shared"),
-      utils: path.join(src, "renderer", "lib", "utils.ts"),
-      public: path.join(ctx.env.appRoot, "public"),
-    };
-  }
-  const res = path.join(ctx.env.resourcesPath, "export-src");
+  const root = ctx.env.isPackaged
+    ? path.join(ctx.env.resourcesPath, "export-src")
+    : path.join(ctx.env.appRoot, "src");
   return {
-    video: path.join(res, "video"),
-    shared: path.join(res, "shared"),
-    utils: path.join(res, "utils.ts"),
-    public: path.join(res, "public"),
+    video: path.join(root, "video"),
+    shared: path.join(root, "shared"),
+    utils: ctx.env.isPackaged
+      ? path.join(root, "utils.ts")
+      : path.join(root, "renderer", "lib", "utils.ts"),
+    public: publicDir(ctx.env),
   };
 }
 
-export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ctx, _inputs, p) => {
-  const spec = await mixed(ctx, specFor(ctx), 0, 0.3);
-  const dir = path.join(ctx.outDir, slugify(p.folderName, "output"));
+async function copySources(ctx: ExecutorContext, dir: string) {
   const src = sourceDirs(ctx);
   if (!existsSync(src.video)) throw new Error("This copy of Demoflow can't export code.");
   await mkdir(path.join(dir, "src", "renderer", "lib"), { recursive: true });
@@ -269,7 +360,9 @@ export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ct
   await cp(src.shared, path.join(dir, "src", "shared"), { recursive: true });
   await cp(src.utils, path.join(dir, "src", "renderer", "lib", "utils.ts"));
   await cp(src.public, path.join(dir, "public"), { recursive: true });
+}
 
+function projectRefs(spec: TimelineSpec): Set<string> {
   const refs = new Set<string>();
   const collect = (v: unknown) => {
     if (typeof v === "string" && v.startsWith("project:")) refs.add(v);
@@ -282,109 +375,61 @@ export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ct
   });
   spec.audio.forEach((a) => collect(a.src));
   if (spec.mix) collect(spec.mix.src);
-  for (const ref of refs) {
-    const relPath = ref.slice("project:".length);
-    const target = path.join(dir, "public", "project", relPath);
+  return refs;
+}
+
+async function copyProjectFiles(ctx: ExecutorContext, spec: TimelineSpec, dir: string) {
+  for (const ref of projectRefs(spec)) {
+    const target = path.join(dir, "public", "project", ref.slice("project:".length));
     await mkdir(path.dirname(target), { recursive: true });
     await cp(refToPath(ctx, ref), target);
   }
+}
 
+async function packageJsonFor(ctx: ExecutorContext, name: string) {
   const appPkg = JSON.parse(await readFile(path.join(ctx.env.appRoot, "package.json"), "utf8")) as {
     dependencies: Record<string, string>;
     devDependencies?: Record<string, string>;
   };
+  const versions: Partial<Record<string, string>> = {
+    ...appPkg.devDependencies,
+    ...appPkg.dependencies,
+  };
   const pick = (names: string[]) =>
-    Object.fromEntries(
-      names
-        .filter((n) => appPkg.dependencies[n] ?? appPkg.devDependencies?.[n])
-        .map((n) => [n, appPkg.dependencies[n] ?? appPkg.devDependencies![n]]),
-    );
-  const deps = Object.keys(appPkg.dependencies).filter(
-    (d) =>
-      d === "remotion" ||
-      d.startsWith("@remotion/") ||
-      [
-        "react",
-        "react-dom",
-        "zod",
-        "culori",
-        "cn",
-        "opentype.js",
-        "@paper-design/shaders-react",
-        "@fontsource-variable/geist",
-        "@fontsource/inter",
-        "@fontsource/manrope",
-        "date-fns",
-      ].includes(d),
-  );
-  await writeFile(
-    path.join(dir, "package.json"),
-    JSON.stringify(
-      {
-        name: slugify(p.folderName, "output"),
-        private: true,
-        type: "module",
-        scripts: {
-          studio: "remotion studio src/index.ts",
-          render: "remotion render src/index.ts DemoTimeline out/video.mp4",
-        },
-        dependencies: pick(deps),
-        devDependencies: pick([
-          "@remotion/cli",
-          "@remotion/tailwind-v4",
-          "tailwindcss",
-          "typescript",
-          "@types/react",
-        ]),
-      },
-      null,
-      2,
-    ),
-  );
+    Object.fromEntries(names.flatMap((n) => (versions[n] ? [[n, versions[n]]] : [])));
+  return {
+    name,
+    private: true,
+    type: "module",
+    scripts: {
+      studio: "remotion studio src/index.ts",
+      render: "remotion render src/index.ts DemoTimeline out/video.mp4",
+    },
+    dependencies: pick(Object.keys(appPkg.dependencies).filter(exportedDependency)),
+    devDependencies: pick(EXPORT_DEV_DEPENDENCIES),
+  };
+}
+
+const json = (value: unknown) => JSON.stringify(value, null, 2);
+
+export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ctx, _inputs, p) => {
+  const spec = await mixed(ctx, specFor(ctx), 0, 0.3);
+  const name = slugify(p.folderName, "output");
+  const dir = path.join(ctx.outDir, name);
+  await copySources(ctx, dir);
+  await copyProjectFiles(ctx, spec, dir);
+  await writeFile(path.join(dir, "package.json"), json(await packageJsonFor(ctx, name)));
   await writeFile(
     path.join(dir, "src", "timeline.json"),
-    JSON.stringify({ ...spec, assets: { projectBase: "static:" } }, null, 2),
+    json({ ...spec, assets: { projectBase: "static:" } }),
   );
-  await writeFile(
-    path.join(dir, "src", "index.ts"),
-    `import { registerRoot } from "remotion";\nimport "./video/video.css";\nimport { ExportRoot } from "./export-root";\n\nregisterRoot(ExportRoot);\n`,
-  );
-  await writeFile(
-    path.join(dir, "src", "export-root.tsx"),
-    `import { Composition } from "remotion";\nimport { DemoTimeline } from "./video/demo-timeline";\nimport timeline from "./timeline.json";\nimport type { TimelineSpec } from "./shared/schema/timeline";\n\nconst spec = timeline as TimelineSpec;\n\nexport const ExportRoot = () => (\n  <Composition id="DemoTimeline" component={DemoTimeline} defaultProps={spec} durationInFrames={spec.durationInFrames} fps={spec.fps} width={spec.width} height={spec.height} />\n);\n`,
-  );
-  await writeFile(
-    path.join(dir, "remotion.config.ts"),
-    `import path from "node:path";\nimport { Config } from "@remotion/cli/config";\nimport { enableTailwind } from "@remotion/tailwind-v4";\n\nConfig.overrideWebpackConfig((c) => {\n  const t = enableTailwind(c);\n  return { ...t, resolve: { ...t.resolve, alias: { ...(t.resolve?.alias as object), "@": path.join(process.cwd(), "src") } } };\n});\n`,
-  );
-  await writeFile(
-    path.join(dir, "tsconfig.json"),
-    JSON.stringify(
-      {
-        compilerOptions: {
-          target: "ESNext",
-          module: "preserve",
-          moduleResolution: "bundler",
-          jsx: "react-jsx",
-          strict: true,
-          skipLibCheck: true,
-          resolveJsonModule: true,
-          noEmit: true,
-          paths: { "@/*": ["./src/*"] },
-        },
-        include: ["src"],
-      },
-      null,
-      2,
-    ),
-  );
-  await writeFile(
-    path.join(dir, "README.md"),
-    `# ${p.folderName}\n\nExported from Demoflow. Edit \`src/timeline.json\` or the components in \`src/video\`, then:\n\n\`\`\`sh\nbun install\nbun run studio\n\`\`\`\n`,
-  );
-  const relDir = relativePath(ctx, dir);
+  await writeFile(path.join(dir, "src", "index.ts"), INDEX_TS);
+  await writeFile(path.join(dir, "src", "export-root.tsx"), EXPORT_ROOT_TSX);
+  await writeFile(path.join(dir, "remotion.config.ts"), REMOTION_CONFIG_TS);
+  await writeFile(path.join(dir, "tsconfig.json"), json(TSCONFIG));
+  await writeFile(path.join(dir, "README.md"), readme(p.folderName));
   return {
-    outputs: { file: { type: "file", src: `project:${relDir}` } },
-    artifacts: [{ kind: "file", path: relDir, label: "Remotion project" }],
+    outputs: { file: { type: "file", src: toProjectRef(ctx.projectDir, dir) } },
+    artifacts: [{ kind: "file", path: relativePath(ctx, dir), label: "Video project code" }],
   };
 });

@@ -1,23 +1,71 @@
 import { describe, expect, it } from "vitest";
-import { friendlyMixError } from "./render";
+import { ToolError } from "../media/ffmpeg";
+import { friendlyMixError, parseEbur128 } from "./render";
 
 describe("mix errors", () => {
-  it("reads the missing file from the tool's own wording", () => {
-    const error = new Error(
-      "ffmpeg exited with 254: [in#0 @ 0x1] Error opening input: No such file or directory\nError opening input file /home/me/project/assets/my song.mp3.\nError opening input files: No such file or directory",
-    );
-    expect(friendlyMixError(error).message).toBe(
+  it.each([
+    [
+      "Error opening input: No such file or directory\nError opening input file /home/me/project/assets/my song.mp3.\nError opening input files: No such file or directory",
       "The sound file “my song.mp3” is missing from the project.",
-    );
+    ],
+    [
+      "Error opening input: No such file or directory\n/home/me/project/assets/song.mp3: No such file or directory",
+      "The sound file “song.mp3” is missing from the project.",
+    ],
+    ["bad", "The sound couldn't be mixed. Check that every sound file still opens."],
+  ])("explains %j without naming the tools", (output, message) => {
+    const error = new ToolError(`ffmpeg exited with 254: [in#0 @ 0x1] ${output}`);
+    expect(friendlyMixError(error).message).toBe(message);
+    expect(friendlyMixError(error).message).not.toMatch(/ffmpeg/i);
   });
 
-  it("names a missing sound file without naming the tools", () => {
-    const error = new Error(
-      "ffmpeg exited with 254: [in#0 @ 0x1] Error opening input: No such file or directory\n/home/me/project/assets/song.mp3: No such file or directory",
+  it("passes a cancel on", () => {
+    expect(friendlyMixError(new Error("Cancelled")).message).toBe("Cancelled");
+  });
+});
+
+describe("parseEbur128", () => {
+  const frame = (t: number, m: string, s: string) =>
+    `[Parsed_ebur128_0 @ 0x1] t: ${t}  TARGET:-23 LUFS    M: ${m} S: ${s}     I: -20.0 LUFS       LRA:   0.0 LU`;
+  const summary = [
+    "[Parsed_ebur128_0 @ 0x1] Summary:",
+    "  Integrated loudness:",
+    "    I:         -16.04 LUFS",
+    "    Threshold: -26.3 LUFS",
+    "  Loudness range:",
+    "    LRA:         4.26 LU",
+    "    Threshold: -36.2 LUFS",
+    "  True peak:",
+    "    Peak:       -1.37 dBFS",
+  ];
+
+  it("reads the summary and one reading per frame", () => {
+    const lines = [frame(0.1, "-inf", "-inf"), frame(0.5, "-18.24", "-19.91"), ...summary];
+    const loudness = parseEbur128(lines, 2, 3);
+    expect(loudness).toEqual({
+      fps: 2,
+      momentary: [-18.2, -18.2, -18.2],
+      shortTerm: [-19.9, -19.9, -19.9],
+      integrated: -16,
+      range: 4.3,
+      truePeak: -1.4,
+    });
+  });
+
+  it("reports silence as no reading", () => {
+    const loudness = parseEbur128(
+      [
+        "  Integrated loudness:",
+        "    I:         -70.0 LUFS",
+        "  True peak:",
+        "    Peak:   -inf dBFS",
+      ],
+      30,
+      2,
     );
-    expect(friendlyMixError(error).message).toBe(
-      "The sound file “song.mp3” is missing from the project.",
-    );
-    expect(friendlyMixError(new Error("ffmpeg exited with 1: bad")).message).not.toMatch(/ffmpeg/i);
+    expect(loudness.integrated).toBeNull();
+    expect(loudness.truePeak).toBeNull();
+    expect(loudness.range).toBeNull();
+    expect(loudness.momentary).toEqual([-120, -120]);
   });
 });

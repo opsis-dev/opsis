@@ -1,18 +1,22 @@
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
+import type { Page } from "playwright-core";
+import type { z } from "zod";
 import { loginDependencies, sessionChain } from "../../shared/graph";
 import { sessionNode } from "../../shared/nodes/browser";
+import { parseParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import { loginOnceNode, recordNode, stillNode } from "../../shared/nodes/capture";
 import type { RecordingValue } from "../../shared/schema/values";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { secretName } from "../../shared/secrets";
-import { interpolate } from "../../shared/vars";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
 import { runTake, SignInExpiredError, type TakeOptions } from "../capture/driver";
 import { FrameEncoder } from "../capture/encoder";
+import { elementOf } from "../capture/flow-types";
+import { resolveTarget } from "../capture/selectors";
 import { defineExecutor, TracedError, type ExecutorContext } from "../engine/context";
 import { rel } from "./util";
 import { WINDOW_FIT } from "../../video/camera/lib/window";
@@ -22,25 +26,35 @@ import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";
 import { formatDuration } from "../../shared/format";
 import { findHeadlessShell } from "../../engine/paths";
 
-async function storageStateFor(ctx: ExecutorContext, head: WorkflowNode): Promise<string | null> {
-  const p = sessionNode.params.parse(interpolate(head.params ?? {}, ctx.vars));
-  if (!p.storageState.trim()) return null;
-  const name = secretName(p.storageState);
-  const value = await ctx.secrets.read(name);
-  if (!value)
-    throw new Error(`The sign-in "${name}" isn't saved yet. Run its Sign in once node first.`);
-  return value;
-}
+const CAPTURE_MAX_EXPORT_SCALE = 2;
 
-function signInFor(ctx: ExecutorContext, head: WorkflowNode | undefined) {
-  if (!head) return undefined;
-  const session = sessionNode.params.parse(interpolate(head.params ?? {}, ctx.vars));
-  if (!session.storageState.trim()) return undefined;
+const captureCanvas = (settings: { width: number; height: number }) => ({
+  width: settings.width * CAPTURE_MAX_EXPORT_SCALE,
+  height: settings.height * CAPTURE_MAX_EXPORT_SCALE,
+});
+
+type SignIn = { name: string; url: string; login: z.infer<typeof loginOnceNode.params> };
+
+type SessionAccess = { secret: string | null; signIn: SignIn | undefined };
+
+function sessionAccess(ctx: ExecutorContext, head: WorkflowNode | undefined): SessionAccess {
+  if (head?.type !== sessionNode.type) return { secret: null, signIn: undefined };
+  const session = parseParams(sessionNode, head, ctx.vars);
+  if (!session.storageState.trim()) return { secret: null, signIn: undefined };
+  const secret = secretName(session.storageState);
   const loginId = loginDependencies(ctx.workflow, ctx.node.id, ctx.vars)[0];
   const loginNode = ctx.workflow.nodes.find((n) => n.id === loginId);
-  if (!loginNode) return undefined;
-  const login = loginOnceNode.params.parse(interpolate(loginNode.params ?? {}, ctx.vars));
-  return { name: secretName(session.storageState), url: login.url, login };
+  if (!loginNode) return { secret, signIn: undefined };
+  const login = parseParams(loginOnceNode, loginNode, ctx.vars);
+  return { secret, signIn: { name: secret, url: login.url, login } };
+}
+
+async function storageState(ctx: ExecutorContext, secret: string | null): Promise<string | null> {
+  if (!secret) return null;
+  const value = await ctx.secrets.read(secret);
+  if (!value)
+    throw new Error(`The sign-in "${secret}" isn't saved yet. Run its Sign in once node first.`);
+  return value;
 }
 
 async function retryAfterSignIn<T>(ctx: ExecutorContext, attempt: () => Promise<T>): Promise<T> {
@@ -48,7 +62,7 @@ async function retryAfterSignIn<T>(ctx: ExecutorContext, attempt: () => Promise<
     return await attempt();
   } catch (error) {
     if (!(error instanceof TracedError && error.signInExpired) || ctx.signal.aborted) throw error;
-    const signIn = signInFor(ctx, sessionChain(ctx.workflow, ctx.node.id)[0]);
+    const { signIn } = sessionAccess(ctx, sessionChain(ctx.workflow, ctx.node.id)[0]);
     if (!signIn) throw error;
     ctx.log(
       "info",
@@ -85,33 +99,16 @@ async function saveTrace(
     ok,
     groups,
   });
-  await applyRetention(ctx.projectDir, ctx.settings.traces);
-  return existsSync(
-    path.join(ctx.projectDir, ".demoflow", "traces", "runs", `${manifest.id}.json.zst`),
-  )
-    ? manifest.id
-    : undefined;
+  const kept = await applyRetention(ctx.projectDir, ctx.settings.traces);
+  return kept.has(manifest.id) ? manifest.id : undefined;
 }
 
-async function take(
+async function take<T>(
   ctx: ExecutorContext,
-  options: Omit<
-    TakeOptions,
-    | "executablePath"
-    | "workflow"
-    | "chain"
-    | "vars"
-    | "projectDir"
-    | "signal"
-    | "log"
-    | "step"
-    | "live"
-    | "storageState"
-    | "tracePath"
-    | "traceGroups"
-  >,
+  options: Pick<TakeOptions<T>, "mode" | "encoder" | "record" | "onPage">,
 ) {
   const chain = sessionChain(ctx.workflow, ctx.node.id);
+  const { secret, signIn } = sessionAccess(ctx, chain[0]);
   const tracePath =
     ctx.settings.traces.retention === "off" ? undefined : path.join(ctx.dir, "trace.zip");
   const traceGroups: string[] = [];
@@ -136,8 +133,8 @@ async function take(
       vars: ctx.vars,
       projectDir: ctx.projectDir,
       executablePath: requireShell(ctx),
-      storageState: await storageStateFor(ctx, chain[0]),
-      signIn: signInFor(ctx, chain[0]),
+      storageState: await storageState(ctx, secret),
+      signIn,
       live: ctx.live(nodeName(ctx.node)),
       tracePath,
       traceGroups,
@@ -152,7 +149,7 @@ async function take(
     const traceId = await saveTrace(ctx, tracePath, false, traceGroups).catch(() => undefined);
     const expired = error instanceof SignInExpiredError;
     throw new TracedError(
-      expired && !signInFor(ctx, chain[0])
+      expired && !signIn
         ? `${error.message} Run its Sign in once node again.`
         : errorMessage(error),
       traceId,
@@ -204,10 +201,10 @@ async function makePreviewCopy(
 export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p) => {
   const mp4 = path.join(ctx.dir, "recording.mp4");
   ctx.progress(0.02, "Starting the browser");
-  let encoder: FrameEncoder | undefined;
-  const { result, traceId } = await retryAfterSignIn(ctx, () => {
-    encoder = new FrameEncoder(ctx.ffmpeg, mp4, p.fps, ctx.signal);
-    return take(ctx, { mode: "record", encoder, record: p });
+  const { result, traceId, frames } = await retryAfterSignIn(ctx, async () => {
+    const encoder = new FrameEncoder(ctx.ffmpeg, mp4, p.fps, ctx.signal);
+    const taken = await take(ctx, { mode: "record", encoder, record: p });
+    return { ...taken, frames: encoder.frames };
   });
   const probe = await ctx.ffmpeg.probe(mp4);
   const log = {
@@ -230,7 +227,7 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
   };
   ctx.log(
     "info",
-    `Recorded ${formatDuration(log.durationMs)}, ${encoder?.frames ?? 0} frames, ${log.actions.length} actions`,
+    `Recorded ${formatDuration(log.durationMs)}, ${frames} frames, ${log.actions.length} actions`,
   );
   return {
     outputs: { recording },
@@ -242,73 +239,72 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
   };
 });
 
+type Shot = { width: number; height: number; scale: number; body?: Box };
+
+async function captureShot(
+  ctx: ExecutorContext,
+  page: Page,
+  p: z.infer<typeof stillNode.params>,
+  file: string,
+): Promise<Shot> {
+  const view = await page.evaluate(() => ({
+    x: window.scrollX,
+    y: window.scrollY,
+    width: window.innerWidth,
+    height: window.innerHeight,
+    pageWidth: document.documentElement.scrollWidth,
+    pageHeight: document.documentElement.scrollHeight,
+    dpr: window.devicePixelRatio,
+  }));
+  let region: Box = { x: view.x, y: view.y, width: view.width, height: view.height };
+  let body: Box | undefined;
+  if (p.region === "element") {
+    const { target } = await resolveTarget(page, p.target, { log: ctx.log, signal: ctx.signal });
+    const loc = elementOf(target);
+    await loc.scrollIntoViewIfNeeded().catch(() => undefined);
+    const box = await loc.boundingBox();
+    if (!box) throw new Error(`Couldn't find "${p.target}" on the page for the screenshot.`);
+    const scroll = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
+    const x = Math.max(0, box.x + scroll.x - p.padding);
+    const y = Math.max(0, box.y + scroll.y - p.padding);
+    region = {
+      x,
+      y,
+      width: box.x + scroll.x + box.width + p.padding - x,
+      height: box.y + scroll.y + box.height + p.padding - y,
+    };
+    body = {
+      x: box.x + scroll.x - x,
+      y: box.y + scroll.y - y,
+      width: box.width,
+      height: box.height,
+    };
+  } else if (p.region === "full-page") {
+    region = { x: 0, y: 0, width: view.pageWidth, height: view.pageHeight };
+  }
+  const scale = captureScale(p.look, region, captureCanvas(ctx.workflow.settings), {
+    body,
+    fit: WINDOW_FIT,
+    least: view.dpr,
+  });
+  const cdp = await page.context().newCDPSession(page);
+  const { data } = await cdp.send("Page.captureScreenshot", {
+    format: "png",
+    clip: { ...region, scale },
+    captureBeyondViewport:
+      p.region === "full-page" || region.width > view.width || region.height > view.height,
+  });
+  await cdp.detach().catch(() => undefined);
+  await writeFile(file, Buffer.from(data, "base64"));
+  return { width: region.width, height: region.height, scale, ...(body ? { body } : {}) };
+}
+
 export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) => {
   const file = path.join(ctx.dir, "still.png");
-  const taken: { shot?: { width: number; height: number; scale: number; body?: Box } } = {};
-  const { traceId } = await retryAfterSignIn(ctx, () =>
-    take(ctx, {
-      mode: "still",
-      onPage: async (page) => {
-        const view = await page.evaluate(() => ({
-          x: window.scrollX,
-          y: window.scrollY,
-          width: window.innerWidth,
-          height: window.innerHeight,
-          pageWidth: document.documentElement.scrollWidth,
-          pageHeight: document.documentElement.scrollHeight,
-          dpr: window.devicePixelRatio,
-        }));
-        let region: Box = { x: view.x, y: view.y, width: view.width, height: view.height };
-        let body: Box | undefined;
-        if (p.region === "element") {
-          const loc = p.target.startsWith("css=")
-            ? page.locator(p.target.slice(4)).first()
-            : page.getByText(p.target).first();
-          await loc.scrollIntoViewIfNeeded().catch(() => undefined);
-          const box = await loc.boundingBox();
-          if (!box) throw new Error(`Couldn't find "${p.target}" on the page for the screenshot.`);
-          const scroll = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
-          const x = Math.max(0, box.x + scroll.x - p.padding);
-          const y = Math.max(0, box.y + scroll.y - p.padding);
-          region = {
-            x,
-            y,
-            width: box.x + scroll.x + box.width + p.padding - x,
-            height: box.y + scroll.y + box.height + p.padding - y,
-          };
-          body = {
-            x: box.x + scroll.x - x,
-            y: box.y + scroll.y - y,
-            width: box.width,
-            height: box.height,
-          };
-        } else if (p.region === "full-page") {
-          region = { x: 0, y: 0, width: view.pageWidth, height: view.pageHeight };
-        }
-        const scale = captureScale(p.look, region, captureCanvas(ctx.workflow.settings), {
-          body,
-          fit: WINDOW_FIT,
-          least: view.dpr,
-        });
-        const cdp = await page.context().newCDPSession(page);
-        const { data } = await cdp.send("Page.captureScreenshot", {
-          format: "png",
-          clip: { ...region, scale },
-          captureBeyondViewport:
-            p.region === "full-page" || region.width > view.width || region.height > view.height,
-        });
-        await cdp.detach().catch(() => undefined);
-        await writeFile(file, Buffer.from(data, "base64"));
-        taken.shot = {
-          width: region.width,
-          height: region.height,
-          scale,
-          ...(body ? { body } : {}),
-        };
-      },
-    }),
+  const { result, traceId } = await retryAfterSignIn(ctx, () =>
+    take(ctx, { mode: "still", onPage: (page) => captureShot(ctx, page, p, file) }),
   );
-  const { shot } = taken;
+  const shot = result.fromPage;
   if (!shot) throw new Error("The screenshot wasn't taken.");
   ctx.log(
     "info",
@@ -319,13 +315,6 @@ export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) =
     artifacts: [{ kind: "image", path: rel(ctx, "still.png"), label: "Screenshot" }],
     traceId,
   };
-});
-
-const CAPTURE_MAX_EXPORT_SCALE = 2;
-
-const captureCanvas = (settings: { width: number; height: number }) => ({
-  width: settings.width * CAPTURE_MAX_EXPORT_SCALE,
-  height: settings.height * CAPTURE_MAX_EXPORT_SCALE,
 });
 
 export const loginOnceExecutor = defineExecutor(loginOnceNode, async (ctx, _inputs, p) => {

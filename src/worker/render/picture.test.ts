@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TimelineSpec } from "../../shared/schema/timeline";
-import { finishArgs, hasSoundTrack, muxArgs, pictureKey } from "./picture";
+import { hasSoundTrack } from "./codecs";
+import { finishArgs, muxArgs, pictureKey } from "./picture";
 
 const spec: TimelineSpec = {
   width: 1920,

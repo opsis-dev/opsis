@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import type { EnginePaths } from "../../engine/paths";
 import type { CompileResult } from "../../shared/compile/compile";
 import type { NodeDef } from "../../shared/nodes/define";
@@ -30,7 +31,7 @@ export type ExecutorContext = {
   progress: (progress: number, message?: string) => void;
   step: (nodeId: string, status: "start" | "done" | "error", message?: string) => void;
   compile: () => CompileResult;
-  results: Record<string, NodeResult>;
+  results: Partial<Record<string, NodeResult>>;
   secrets: {
     read: (name: string) => Promise<string | null>;
     write: (name: string, value: string) => Promise<void>;
@@ -55,24 +56,20 @@ export class TracedError extends Error {
   }
 }
 
-// oxlint-disable-next-line typescript/no-explicit-any
-export type Executor<P = any> = {
+type ExecutorInputs = Partial<Record<string, CompileValue>>;
+
+export type Executor<P = unknown> = {
   type: string;
-  run: (
-    ctx: ExecutorContext,
-    inputs: Partial<Record<string, CompileValue>>,
-    params: P,
-  ) => Promise<ExecutorOutput>;
+  run(ctx: ExecutorContext, inputs: ExecutorInputs, params: P): Promise<ExecutorOutput>;
 };
 
-// oxlint-disable-next-line typescript/no-explicit-any
-export function defineExecutor<D extends NodeDef<any>>(
-  def: D,
+export function defineExecutor<S extends z.ZodObject>(
+  def: NodeDef<S>,
   run: (
     ctx: ExecutorContext,
-    inputs: Partial<Record<string, CompileValue>>,
-    params: ReturnType<D["params"]["parse"]>,
+    inputs: ExecutorInputs,
+    params: z.infer<S>,
   ) => Promise<ExecutorOutput>,
-): Executor<ReturnType<D["params"]["parse"]>> {
+): Executor<z.infer<S>> {
   return { type: def.type, run };
 }

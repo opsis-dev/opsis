@@ -1,18 +1,31 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import type { Filmstrip, Waveform, WaveformLevel } from "../../shared/analysis";
 import type { FfmpegTools } from "./ffmpeg";
 import { sha256Hex } from "../../engine/hash";
-import { readJson } from "../../engine/json";
-import { toProjectRef } from "../../engine/project-paths";
+import { atomicWrite, readJson } from "../../engine/json";
+import { projectPaths, toProjectRef } from "../../engine/project-paths";
 import { round3 } from "../../shared/math";
 
-export const ANALYSIS_VERSION = "demoflow-analysis/1";
+const ANALYSIS_VERSION = "demoflow-analysis/1";
 const DECODE_RATE = 8000;
 const LEVEL_RATES = [200, 50, 10];
 const MAX_TILES = 100;
+const MIN_TILE_MS = 500;
 const TILE_HEIGHT = 72;
+
+const ONSETS_PER_SECOND = 100;
+const MIN_BEAT_FRAMES = 400;
+const MIN_LAG = 33;
+const MAX_LAG = 100;
+const PRIOR_BPM = 120;
+const PRIOR_WIDTH_OCTAVES = 0.9;
+const PRIOR_FLOOR = 0.85;
+const PRIOR_WEIGHT = 0.15;
+const MIN_PERIODICITY = 1.8;
+const PEAK_SEARCH_FRAMES = 3;
+const QUIET = 1e-6;
 
 export type AnalysisDeps = {
   projectDir: string;
@@ -26,19 +39,18 @@ async function idFor(file: string): Promise<string> {
   return sha256Hex(`${ANALYSIS_VERSION}\0${file}\0${s.size}\0${Math.round(s.mtimeMs)}`, 24);
 }
 
-function outDir(projectDir: string, file: string): string {
-  const cache = path.join(projectDir, ".demoflow", "cache");
-  const rel = path.relative(cache, file);
-  const parts = rel.split(path.sep);
-  if (
+const analysisDir = (projectDir: string) => path.join(projectPaths(projectDir).cache, "analysis");
+
+function filmstripDir(projectDir: string, file: string): string {
+  const rel = path.relative(projectPaths(projectDir).cache, file);
+  const [owner, ...rest] = rel.split(path.sep);
+  const insideNodeFolder =
     !rel.startsWith("..") &&
     !path.isAbsolute(rel) &&
-    parts.length >= 2 &&
-    parts[0] !== "analysis" &&
-    parts[0] !== "mix"
-  )
-    return path.dirname(file);
-  return path.join(cache, "analysis");
+    rest.length > 0 &&
+    owner !== "analysis" &&
+    owner !== "mix";
+  return insideNodeFolder ? path.dirname(file) : analysisDir(projectDir);
 }
 
 export function waveformLevels(
@@ -68,13 +80,9 @@ export function waveformLevels(
   });
 }
 
-export function detectBeats(
-  samples: Float32Array,
-  rate: number,
-): { beats: number[]; bpm: number | null } {
-  const hop = Math.round(rate / 100);
+function onsetEnvelope(samples: Float32Array, rate: number): Float32Array {
+  const hop = Math.round(rate / ONSETS_PER_SECOND);
   const frames = Math.floor(samples.length / hop);
-  if (frames < 400) return { beats: [], bpm: null };
   const energy = new Float32Array(frames);
   for (let f = 0; f < frames; f++) {
     let sum = 0;
@@ -83,50 +91,75 @@ export function detectBeats(
   }
   const onset = new Float32Array(frames);
   for (let f = 1; f < frames; f++) onset[f] = Math.max(0, energy[f] - energy[f - 1]);
-  const mean = onset.reduce((a, b) => a + b, 0) / frames;
-  if (mean <= 1e-6) return { beats: [], bpm: null };
-  const acs: number[] = [];
+  return onset;
+}
+
+const tempoPrior = (lag: number) => {
+  const bpm = (60 * ONSETS_PER_SECOND) / lag;
+  const octaves = Math.log2(bpm / PRIOR_BPM) / PRIOR_WIDTH_OCTAVES;
+  return PRIOR_FLOOR + PRIOR_WEIGHT * Math.exp(-0.5 * octaves ** 2);
+};
+
+function beatPeriod(onset: Float32Array): number | null {
+  const correlations: number[] = [];
   let bestLag = 0;
   let best = 0;
-  for (let lag = 33; lag <= 100; lag++) {
+  for (let lag = MIN_LAG; lag <= MAX_LAG; lag++) {
     let ac = 0;
-    for (let f = lag; f < frames; f++) ac += onset[f] * onset[f - lag];
-    acs.push(ac);
-    const bpm = 6000 / lag;
-    const score = ac * (0.85 + 0.15 * Math.exp(-0.5 * (Math.log2(bpm / 120) / 0.9) ** 2));
+    for (let f = lag; f < onset.length; f++) ac += onset[f] * onset[f - lag];
+    correlations.push(ac);
+    const score = ac * tempoPrior(lag);
     if (score > best) {
       best = score;
       bestLag = lag;
     }
   }
-  const sorted = acs.toSorted((a, b) => a - b);
-  const median = sorted[Math.floor(sorted.length / 2)];
-  const strongest = acs[bestLag - 33];
-  if (!bestLag || median <= 0 || strongest < median * 1.8) return { beats: [], bpm: null };
+  const median = correlations.toSorted((a, b) => a - b)[Math.floor(correlations.length / 2)];
+  const strongest = correlations[bestLag - MIN_LAG];
+  if (!bestLag || median <= 0 || strongest < median * MIN_PERIODICITY) return null;
+  return bestLag;
+}
+
+function beatPhase(onset: Float32Array, period: number): number {
   let phase = 0;
   let phaseScore = -1;
-  for (let p = 0; p < bestLag; p++) {
-    let sc = 0;
-    for (let f = p; f < frames; f += bestLag) sc += onset[f];
-    if (sc > phaseScore) {
-      phaseScore = sc;
+  for (let p = 0; p < period; p++) {
+    let score = 0;
+    for (let f = p; f < onset.length; f += period) score += onset[f];
+    if (score > phaseScore) {
+      phaseScore = score;
       phase = p;
     }
   }
+  return phase;
+}
+
+export function detectBeats(
+  samples: Float32Array,
+  rate: number,
+): { beats: number[]; bpm: number | null } {
+  const none = { beats: [], bpm: null };
+  const onset = onsetEnvelope(samples, rate);
+  if (onset.length < MIN_BEAT_FRAMES) return none;
+  const mean = onset.reduce((a, b) => a + b, 0) / onset.length;
+  if (mean <= QUIET) return none;
+  const period = beatPeriod(onset);
+  if (period === null) return none;
   const beats: number[] = [];
-  for (let f = phase; f < frames; f += bestLag) {
+  for (let f = beatPhase(onset, period); f < onset.length; f += period) {
     let peak = f;
-    for (let k = Math.max(0, f - 3); k <= Math.min(frames - 1, f + 3); k++)
+    const last = Math.min(onset.length - 1, f + PEAK_SEARCH_FRAMES);
+    for (let k = Math.max(0, f - PEAK_SEARCH_FRAMES); k <= last; k++)
       if (onset[k] > onset[peak]) peak = k;
-    beats.push(round3(peak / 100));
+    beats.push(round3(peak / ONSETS_PER_SECOND));
   }
-  return { beats, bpm: Math.round(6000 / bestLag) };
+  return { beats, bpm: Math.round((60 * ONSETS_PER_SECOND) / period) };
 }
 
 export async function analyzeWaveform(src: string, deps: AnalysisDeps): Promise<Waveform> {
   const file = deps.resolve(src);
   const id = await idFor(file);
-  const dir = path.join(deps.projectDir, ".demoflow", "cache", "analysis");
+  const dir = analysisDir(deps.projectDir);
   const json = path.join(dir, `${id}.waveform.json`);
   const cached = await readJson<Waveform>(json);
   if (cached) return { ...cached, src };
@@ -151,7 +184,9 @@ export async function analyzeWaveform(src: string, deps: AnalysisDeps): Promise<
       { signal: deps.signal },
     );
     const buf = await readFile(raw);
-    const samples = new Float32Array(buf.buffer, buf.byteOffset, Math.floor(buf.byteLength / 4));
+    const samples = new Float32Array(
+      buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength - (buf.byteLength % 4)),
+    );
     const { beats, bpm } = detectBeats(samples, DECODE_RATE);
     const waveform: Waveform = {
       src,
@@ -160,7 +195,7 @@ export async function analyzeWaveform(src: string, deps: AnalysisDeps): Promise<
       beats,
       bpm,
     };
-    await writeFile(json, JSON.stringify(waveform));
+    await atomicWrite(json, JSON.stringify(waveform));
     return waveform;
   } finally {
     await rm(raw, { force: true });
@@ -170,26 +205,20 @@ export async function analyzeWaveform(src: string, deps: AnalysisDeps): Promise<
 export async function analyzeFilmstrip(src: string, deps: AnalysisDeps): Promise<Filmstrip> {
   const file = deps.resolve(src);
   const id = await idFor(file);
-  const dir = outDir(deps.projectDir, file);
-  const base =
-    dir === path.dirname(file) ? `${path.parse(file).name}.filmstrip` : `${id}.filmstrip`;
-  const json = path.join(dir, `${base}.json`);
-  const image = path.join(dir, `${base}.jpg`);
-  const cached = await readJson<Filmstrip & { id: string }>(json);
-  if (cached && cached.id === id && existsSync(image)) {
-    const { id: _id, ...rest } = cached;
-    return { ...rest, src };
-  }
+  const dir = filmstripDir(deps.projectDir, file);
+  const json = path.join(dir, `${id}.filmstrip.json`);
+  const image = path.join(dir, `${id}.filmstrip.jpg`);
+  const cached = existsSync(image) ? await readJson<Filmstrip>(json) : null;
+  if (cached) return { ...cached, src };
   await mkdir(dir, { recursive: true });
   const probe = await deps.ffmpeg.probe(file);
   if (!probe.video) throw new Error("This file has no picture.");
   const durationMs = Math.max(1, probe.durationMs);
-  const intervalMs = Math.max(500, Math.ceil(durationMs / MAX_TILES));
+  const intervalMs = Math.max(MIN_TILE_MS, Math.ceil(durationMs / MAX_TILES));
   const count = Math.max(1, Math.ceil(durationMs / intervalMs));
-  const tileHeight = TILE_HEIGHT;
   const tileWidth = Math.max(
     2,
-    Math.round(((probe.video.width / probe.video.height) * tileHeight) / 2) * 2,
+    Math.round(((probe.video.width / probe.video.height) * TILE_HEIGHT) / 2) * 2,
   );
   const tmp = `${image}.${process.pid}.partial.jpg`;
   try {
@@ -199,7 +228,7 @@ export async function analyzeFilmstrip(src: string, deps: AnalysisDeps): Promise
         file,
         "-an",
         "-vf",
-        `fps=fps=${1000 / intervalMs}:start_time=0,scale=${tileWidth}:${tileHeight},tile=${count}x1`,
+        `fps=fps=${1000 / intervalMs}:start_time=0,scale=${tileWidth}:${TILE_HEIGHT},tile=${count}x1`,
         "-frames:v",
         "1",
         "-q:v",
@@ -218,9 +247,9 @@ export async function analyzeFilmstrip(src: string, deps: AnalysisDeps): Promise
     count,
     intervalMs,
     tileWidth,
-    tileHeight,
+    tileHeight: TILE_HEIGHT,
     durationMs,
   };
-  await writeFile(json, JSON.stringify({ ...strip, id }));
+  await atomicWrite(json, JSON.stringify(strip));
   return strip;
 }

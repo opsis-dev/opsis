@@ -36,7 +36,7 @@ describe("glidePlan", () => {
   });
 });
 
-describe("drag paths", () => {
+describe("polylineAt", () => {
   it("walks a path at an even pace by distance", () => {
     const at = polylineAt([
       { x: 0, y: 0 },
@@ -48,7 +48,9 @@ describe("drag paths", () => {
     expect(at(0.5)).toEqual({ x: 100, y: 100 });
     expect(at(1)).toEqual({ x: 100, y: 300 });
   });
+});
 
+describe("offsetPath", () => {
   it("turns offsets into page points from the start", () => {
     expect(offsetPath({ x: 50, y: 60 }, [{ x: 300, y: 200 }])).toEqual([
       { x: 50, y: 60 },
@@ -64,7 +66,9 @@ describe("drag paths", () => {
       { x: 60, y: 50 },
     ]);
   });
+});
 
+describe("parsePath", () => {
   it("reads one point per line and names a bad line", () => {
     expect(parsePath("0, 0\n\n40, 40\n-120.5,-80")).toEqual([
       { x: 0, y: 0 },
@@ -74,7 +78,9 @@ describe("drag paths", () => {
     expect(() => parsePath("0, 0\n10, 10\nleft")).toThrow("Line 3 of the path isn't two numbers.");
     expect(() => parsePath("  \n")).toThrow("Add at least one point to the path.");
   });
+});
 
+describe("dragDuration", () => {
   it("keeps drag times between 0.6 and 2.5 seconds unless set", () => {
     const short = [
       { x: 0, y: 0 },
@@ -88,13 +94,17 @@ describe("drag paths", () => {
     expect(dragDuration(long, 1)).toBe(2500);
     expect(dragDuration(long, 1, 4000)).toBe(4000);
   });
+});
 
+describe("nudgeToward", () => {
   it("nudges a few pixels toward the drop", () => {
     const nudge = nudgeToward({ x: 0, y: 0 }, { x: 30, y: 40 }, 6);
     expect(nudge.x).toBeCloseTo(3.6, 9);
     expect(nudge.y).toBeCloseTo(4.8, 9);
   });
+});
 
+describe("thinPath", () => {
   it("thins long paths to 64 points, keeping both ends", () => {
     const points = Array.from({ length: 500 }, (_, i) => ({ x: i, y: i * 2 }));
     const thin = thinPath(points);

@@ -103,6 +103,22 @@ export function failureMessage(failedNames: readonly string[], skipped: number):
   return `${failedNames.length} nodes failed: ${failedNames.join(", ")}${skippedText}`;
 }
 
+export const runFailed = (
+  runId: string,
+  error: string,
+  opts: { cancelled?: boolean; failedNodeIds?: string[] } = {},
+): RunEvent => ({
+  type: "run:done",
+  runId,
+  ok: false,
+  cancelled: opts.cancelled ?? false,
+  error,
+  failedNodeIds: opts.failedNodeIds ?? [],
+  skippedNodeIds: [],
+  outputs: [],
+  at: Date.now(),
+});
+
 export function exportedArtifacts(
   nodes: ReadonlyArray<{ id: string; type: string }>,
   results: Partial<Record<string, NodeResult>>,

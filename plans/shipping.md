@@ -368,7 +368,7 @@ Already in place:
 
 Missing:
 
-- **The Remotion bundle is fixed at package time.** `bundleRemotionProject` (`src/worker/render/bundle.ts`) runs in `packageAfterCopy`; a packaged app never bundles (`hasPrebuiltRemotionBundle`). A pack's video component can't be added to that bundle later.
+- **The Remotion bundle is fixed at package time.** `bundleRemotionProject` (`src/worker/render/bundle.ts`) runs in `packageAfterCopy`; a packaged app never bundles (`getServeUrl` only reads the prebuilt bundle). A pack's video component can't be added to that bundle later.
 - No pack format, no place for packs on disk, no trust model, no version in projects beyond `version: z.literal(1)` (`src/shared/schema/workflow.ts`).
 - No reusable subgraph node.
 

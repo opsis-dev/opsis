@@ -2,7 +2,8 @@ import type { z } from "zod";
 import { isClip } from "../compile/clip";
 import type { ClipValue, CompileValue, NodeResult } from "../schema/values";
 import type { CardContext, CardRow } from "./card";
-import type { PortType, Workflow, WorkflowSettings } from "../schema/workflow";
+import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
+import { interpolate } from "../vars";
 
 export const NODE_CATEGORIES = [
   "Browser",
@@ -81,6 +82,12 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
 export function defineNode<S extends z.ZodObject>(def: NodeDef<S>): NodeDef<S> {
   return def;
 }
+
+export const parseParams = <S extends z.ZodObject>(
+  def: NodeDef<S>,
+  node: Pick<WorkflowNode, "params">,
+  vars: Record<string, string>,
+): z.infer<S> => def.params.parse(interpolate(node.params, vars));
 
 export const port = (type: PortType, label?: string, optional = false): PortSpec => ({
   type,

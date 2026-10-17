@@ -105,7 +105,7 @@ const mediaClip = (nodeId: string, { src, kind, fit, muted, frames, envelope }: 
     envelope,
   });
 
-const importMediaNode = defineNode({
+export const importMediaNode = defineNode({
   ...base,
   type: "media.import",
   title: "Media file",
@@ -192,256 +192,279 @@ const SCALE_ROWS = { pad: "Fit with bars", crop: "Crop to fill", stretch: "Stret
 const op = <S extends z.ZodObject>(def: Omit<NodeDef<S>, "category" | "phase" | "executes">) =>
   defineNode<S>({ ...base, ...def });
 
+export const trimNode = op({
+  ...one,
+  type: "media.trim",
+  title: "Trim file",
+  icon: "scissors",
+  description: "Cuts a file down to a start and end." + NEW_FILE,
+  card: ({ params: p, result }) => [
+    row(
+      "scissors",
+      p.endMs
+        ? `${formatDuration(p.startMs)} → ${formatDuration(p.endMs)}`
+        : `From ${formatDuration(p.startMs)} to the end`,
+    ),
+    lengthRow(result),
+  ],
+  params: z.object({
+    startMs: ms(0, "Start"),
+    endMs: more(ms(0, "End", 36_000_000), { zeroLabel: "To the end" }),
+  }),
+  compile: passMedia,
+});
+
+export const concatNode = op({
+  type: "media.concat",
+  title: "Join files",
+  icon: "combine",
+  description: "Joins files end to end. Fast when they match, otherwise converts them." + NEW_FILE,
+  inputs: {
+    in1: port("media", "File 1"),
+    in2: port("media", "File 2"),
+    in3: opt("media", "File 3"),
+    in4: opt("media", "File 4"),
+  },
+  outputs: { media: port("media", "File") },
+  card: ({ connected, result }) => {
+    const n = ["in1", "in2", "in3", "in4"].filter((k) => connected.includes(k)).length;
+    return [row("combine", `${n} files`, warnIf(n < 2)), lengthRow(result)];
+  },
+  params: z.object({ forceReencode: more(bool(false, "Always convert"), { advanced: true }) }),
+  compile: (ctx) => passMedia(ctx, "in1"),
+});
+
+export const speedNode = op({
+  ...one,
+  type: "media.speed",
+  title: "Change speed",
+  icon: "fast-forward",
+  description: "Speeds a file up or slows it down." + NEW_FILE,
+  card: ({ params: p }) => [
+    row("gauge", `${p.rate}×`),
+    row(p.keepAudio ? "volume-2" : "volume-x", p.keepAudio ? "Keeps sound" : "No sound"),
+  ],
+  params: z.object({
+    rate: rate(2, "Speed", { min: 0.25 }),
+    keepAudio: bool(true, "Keep the sound"),
+  }),
+  compile: passMedia,
+});
+
+export const reverseNode = op({
+  ...one,
+  type: "media.reverse",
+  title: "Reverse",
+  icon: "undo-2",
+  description: "Plays a file backwards." + NEW_FILE,
+  card: ({ result }) => [lengthRow(result)],
+  params: z.object({}),
+  compile: passMedia,
+});
+
+export const scalePadNode = op({
+  ...one,
+  type: "media.scalePad",
+  title: "Resize",
+  icon: "maximize",
+  description: "Resizes a file, adding bars or cropping to fit." + NEW_FILE,
+  card: ({ params: p }) => [
+    row("ratio", `${p.width} × ${p.height}`),
+    row("maximize", SCALE_ROWS[p.mode]),
+  ],
+  params: z.object({
+    width: z
+      .number()
+      .int()
+      .min(16)
+      .max(7680)
+      .default(1920)
+      .meta({ description: "Width", unit: "px" }),
+    height: z
+      .number()
+      .int()
+      .min(16)
+      .max(7680)
+      .default(1080)
+      .meta({ description: "Height", unit: "px" }),
+    mode: choice(["pad", "crop", "stretch"], "pad", "Fit", {
+      pad: "Add bars",
+      crop: "Crop to fill",
+      stretch: "Stretch",
+    }),
+    background: more(text("black", "Bar colour"), {
+      widget: "color",
+      showIf: { mode: ["pad"] },
+    }),
+  }),
+  compile: passMedia,
+});
+
+export const convertNode = op({
+  ...one,
+  type: "media.convert",
+  title: "Convert",
+  icon: "refresh-cw",
+  description: "Saves a file in another format or quality." + NEW_FILE,
+  card: ({ params: p }) => [
+    row("file-video", CODEC_NAMES[p.codec]),
+    row("sparkles", `${qualityName(p.crf)} quality`),
+  ],
+  params: z.object({
+    codec: choice(keysOf(CODEC_NAMES), "h264", "Format", CODEC_NAMES),
+    crf: quality(18),
+    preset: more(choice(keysOf(PRESET_LABELS), "medium", "Speed vs file size", PRESET_LABELS), {
+      advanced: true,
+    }),
+  }),
+  compile: passMedia,
+});
+
+export const gifNode = op({
+  ...one,
+  type: "media.gif",
+  title: "Make GIF",
+  icon: "image-play",
+  description: "Turns a video into a GIF with clean colours." + NEW_FILE,
+  card: ({ params: p }) => [
+    row("image-play", `${p.width} px · ${p.fps} fps`),
+    p.loop && row("repeat", "Loops"),
+  ],
+  params: z.object({
+    fps: z
+      .number()
+      .int()
+      .min(5)
+      .max(50)
+      .default(15)
+      .meta({ description: "Frame rate", unit: "fps" }),
+    width: z
+      .number()
+      .int()
+      .min(64)
+      .max(3840)
+      .default(960)
+      .meta({ description: "Width", unit: "px" }),
+    loop: bool(true, "Loop forever"),
+    dither: choice(
+      ["sierra2_4a", "bayer", "floyd_steinberg", "none"],
+      "sierra2_4a",
+      "Smooth colours",
+      {
+        sierra2_4a: "Smooth",
+        bayer: "Patterned",
+        floyd_steinberg: "Fine",
+        none: "Off",
+      },
+    ),
+  }),
+  compile: passMedia,
+});
+
+export const extractAudioNode = op({
+  ...one,
+  type: "media.extractAudio",
+  title: "Extract sound",
+  icon: "audio-lines",
+  description: "Saves the sound of a video as its own file." + NEW_FILE,
+  card: ({ params: p }) => [row("audio-lines", p.format.toUpperCase())],
+  params: z.object({
+    format: choice(["m4a", "mp3", "wav"], "m4a", "Format", {
+      m4a: "M4A",
+      mp3: "MP3",
+      wav: "WAV",
+    }),
+  }),
+  compile: passMedia,
+});
+
+export const loudnormNode = op({
+  ...one,
+  type: "media.loudnorm",
+  title: "Even out volume",
+  icon: "volume-2",
+  description: "Makes the sound as loud as most online videos." + NEW_FILE,
+  card: ({ params: p }) => [row("volume-2", loudnessName(p.integrated))],
+  params: z.object({
+    integrated: z.number().min(-40).max(-5).default(-16).meta({
+      description: "Loudness",
+      widget: "loudness",
+      unit: "LUFS",
+    }),
+    truePeak: z.number().min(-9).max(0).default(-1.5).meta({
+      description: "Peak limit",
+      step: 0.1,
+      unit: "dB",
+      advanced: true,
+    }),
+    lra: z
+      .number()
+      .min(1)
+      .max(20)
+      .default(11)
+      .meta({ description: "Dynamic range", advanced: true }),
+  }),
+  compile: passMedia,
+});
+
+export const thumbnailNode = op({
+  type: "media.thumbnail",
+  title: "Grab frame",
+  icon: "image",
+  description: "Saves one frame of a video as an image." + NEW_FILE,
+  inputs: { media: port("media", "File") },
+  outputs: { image: port("image", "Image") },
+  card: ({ params: p }) => [row("image", `At ${formatDuration(p.atMs)} · ${p.width} px`)],
+  params: z.object({
+    atMs: ms(1000, "At"),
+    width: z
+      .number()
+      .int()
+      .min(64)
+      .max(3840)
+      .default(1280)
+      .meta({ description: "Width", unit: "px" }),
+  }),
+  compile: ({ result }) => ({ image: result?.outputs.image }),
+});
+
+export const faststartNode = op({
+  ...one,
+  type: "media.faststart",
+  title: "Web-ready",
+  icon: "zap",
+  description: "Prepares a video to start playing instantly on the web." + NEW_FILE,
+  params: z.object({}),
+  compile: passMedia,
+});
+
+export const probeNode = op({
+  type: "media.probe",
+  title: "File info",
+  icon: "info",
+  description: "Shows a file's length, size, frame rate and format.",
+  inputs: { media: port("media", "File") },
+  outputs: { file: port("file", "Info"), media: port("media", "File") },
+  card: ({ result }) => [
+    lengthRow(result, "info") ?? row("info", "Run to read the file", { tone: "muted" }),
+  ],
+  params: z.object({}),
+  compile: (ctx) => ({ file: ctx.result?.outputs.file, ...passMedia(ctx) }),
+});
+
 export const mediaNodes: NodeDef[] = [
   importMediaNode,
   mediaToClipNode,
-  op({
-    ...one,
-    type: "media.trim",
-    title: "Trim file",
-    icon: "scissors",
-    description: "Cuts a file down to a start and end." + NEW_FILE,
-    card: ({ params: p, result }) => [
-      row(
-        "scissors",
-        p.endMs
-          ? `${formatDuration(p.startMs)} → ${formatDuration(p.endMs)}`
-          : `From ${formatDuration(p.startMs)} to the end`,
-      ),
-      lengthRow(result),
-    ],
-    params: z.object({
-      startMs: ms(0, "Start"),
-      endMs: more(ms(0, "End", 36_000_000), { zeroLabel: "To the end" }),
-    }),
-    compile: passMedia,
-  }),
-  op({
-    type: "media.concat",
-    title: "Join files",
-    icon: "combine",
-    description:
-      "Joins files end to end. Fast when they match, otherwise converts them." + NEW_FILE,
-    inputs: {
-      in1: port("media", "File 1"),
-      in2: port("media", "File 2"),
-      in3: opt("media", "File 3"),
-      in4: opt("media", "File 4"),
-    },
-    outputs: { media: port("media", "File") },
-    card: ({ connected, result }) => {
-      const n = ["in1", "in2", "in3", "in4"].filter((k) => connected.includes(k)).length;
-      return [row("combine", `${n} files`, warnIf(n < 2)), lengthRow(result)];
-    },
-    params: z.object({ forceReencode: more(bool(false, "Always convert"), { advanced: true }) }),
-    compile: (ctx) => passMedia(ctx, "in1"),
-  }),
-  op({
-    ...one,
-    type: "media.speed",
-    title: "Change speed",
-    icon: "fast-forward",
-    description: "Speeds a file up or slows it down." + NEW_FILE,
-    card: ({ params: p }) => [
-      row("gauge", `${p.rate}×`),
-      row(p.keepAudio ? "volume-2" : "volume-x", p.keepAudio ? "Keeps sound" : "No sound"),
-    ],
-    params: z.object({
-      rate: rate(2, "Speed", { min: 0.25 }),
-      keepAudio: bool(true, "Keep the sound"),
-    }),
-    compile: passMedia,
-  }),
-  op({
-    ...one,
-    type: "media.reverse",
-    title: "Reverse",
-    icon: "undo-2",
-    description: "Plays a file backwards." + NEW_FILE,
-    card: ({ result }) => [lengthRow(result)],
-    params: z.object({}),
-    compile: passMedia,
-  }),
-  op({
-    ...one,
-    type: "media.scalePad",
-    title: "Resize",
-    icon: "maximize",
-    description: "Resizes a file, adding bars or cropping to fit." + NEW_FILE,
-    card: ({ params: p }) => [
-      row("ratio", `${p.width} × ${p.height}`),
-      row("maximize", SCALE_ROWS[p.mode]),
-    ],
-    params: z.object({
-      width: z
-        .number()
-        .int()
-        .min(16)
-        .max(7680)
-        .default(1920)
-        .meta({ description: "Width", unit: "px" }),
-      height: z
-        .number()
-        .int()
-        .min(16)
-        .max(7680)
-        .default(1080)
-        .meta({ description: "Height", unit: "px" }),
-      mode: choice(["pad", "crop", "stretch"], "pad", "Fit", {
-        pad: "Add bars",
-        crop: "Crop to fill",
-        stretch: "Stretch",
-      }),
-      background: more(text("black", "Bar colour"), {
-        widget: "color",
-        showIf: { mode: ["pad"] },
-      }),
-    }),
-    compile: passMedia,
-  }),
-  op({
-    ...one,
-    type: "media.convert",
-    title: "Convert",
-    icon: "refresh-cw",
-    description: "Saves a file in another format or quality." + NEW_FILE,
-    card: ({ params: p }) => [
-      row("file-video", CODEC_NAMES[p.codec]),
-      row("sparkles", `${qualityName(p.crf)} quality`),
-    ],
-    params: z.object({
-      codec: choice(keysOf(CODEC_NAMES), "h264", "Format", CODEC_NAMES),
-      crf: quality(18),
-      preset: more(choice(keysOf(PRESET_LABELS), "medium", "Speed vs file size", PRESET_LABELS), {
-        advanced: true,
-      }),
-    }),
-    compile: passMedia,
-  }),
-  op({
-    ...one,
-    type: "media.gif",
-    title: "Make GIF",
-    icon: "image-play",
-    description: "Turns a video into a GIF with clean colours." + NEW_FILE,
-    card: ({ params: p }) => [
-      row("image-play", `${p.width} px · ${p.fps} fps`),
-      p.loop && row("repeat", "Loops"),
-    ],
-    params: z.object({
-      fps: z
-        .number()
-        .int()
-        .min(5)
-        .max(50)
-        .default(15)
-        .meta({ description: "Frame rate", unit: "fps" }),
-      width: z
-        .number()
-        .int()
-        .min(64)
-        .max(3840)
-        .default(960)
-        .meta({ description: "Width", unit: "px" }),
-      loop: bool(true, "Loop forever"),
-      dither: choice(
-        ["sierra2_4a", "bayer", "floyd_steinberg", "none"],
-        "sierra2_4a",
-        "Smooth colours",
-        {
-          sierra2_4a: "Smooth",
-          bayer: "Patterned",
-          floyd_steinberg: "Fine",
-          none: "Off",
-        },
-      ),
-    }),
-    compile: passMedia,
-  }),
-  op({
-    ...one,
-    type: "media.extractAudio",
-    title: "Extract sound",
-    icon: "audio-lines",
-    description: "Saves the sound of a video as its own file." + NEW_FILE,
-    card: ({ params: p }) => [row("audio-lines", p.format.toUpperCase())],
-    params: z.object({
-      format: choice(["m4a", "mp3", "wav"], "m4a", "Format", {
-        m4a: "M4A",
-        mp3: "MP3",
-        wav: "WAV",
-      }),
-    }),
-    compile: passMedia,
-  }),
-  op({
-    ...one,
-    type: "media.loudnorm",
-    title: "Even out volume",
-    icon: "volume-2",
-    description: "Makes the sound as loud as most online videos." + NEW_FILE,
-    card: ({ params: p }) => [row("volume-2", loudnessName(p.integrated))],
-    params: z.object({
-      integrated: z.number().min(-40).max(-5).default(-16).meta({
-        description: "Loudness",
-        widget: "loudness",
-        unit: "LUFS",
-      }),
-      truePeak: z.number().min(-9).max(0).default(-1.5).meta({
-        description: "Peak limit",
-        step: 0.1,
-        unit: "dB",
-        advanced: true,
-      }),
-      lra: z
-        .number()
-        .min(1)
-        .max(20)
-        .default(11)
-        .meta({ description: "Dynamic range", advanced: true }),
-    }),
-    compile: passMedia,
-  }),
-  op({
-    type: "media.thumbnail",
-    title: "Grab frame",
-    icon: "image",
-    description: "Saves one frame of a video as an image." + NEW_FILE,
-    inputs: { media: port("media", "File") },
-    outputs: { image: port("image", "Image") },
-    card: ({ params: p }) => [row("image", `At ${formatDuration(p.atMs)} · ${p.width} px`)],
-    params: z.object({
-      atMs: ms(1000, "At"),
-      width: z
-        .number()
-        .int()
-        .min(64)
-        .max(3840)
-        .default(1280)
-        .meta({ description: "Width", unit: "px" }),
-    }),
-    compile: ({ result }) => ({ image: result?.outputs.image }),
-  }),
-  op({
-    ...one,
-    type: "media.faststart",
-    title: "Web-ready",
-    icon: "zap",
-    description: "Prepares a video to start playing instantly on the web." + NEW_FILE,
-    params: z.object({}),
-    compile: passMedia,
-  }),
-  op({
-    type: "media.probe",
-    title: "File info",
-    icon: "info",
-    description: "Shows a file's length, size, frame rate and format.",
-    inputs: { media: port("media", "File") },
-    outputs: { file: port("file", "Info"), media: port("media", "File") },
-    card: ({ result }) => [
-      lengthRow(result, "info") ?? row("info", "Run to read the file", { tone: "muted" }),
-    ],
-    params: z.object({}),
-    compile: (ctx) => ({ file: ctx.result?.outputs.file, ...passMedia(ctx) }),
-  }),
+  trimNode,
+  concatNode,
+  speedNode,
+  reverseNode,
+  scalePadNode,
+  convertNode,
+  gifNode,
+  extractAudioNode,
+  loudnormNode,
+  thumbnailNode,
+  faststartNode,
+  probeNode,
 ];

@@ -1,15 +1,13 @@
 import path from "node:path";
-import { stripVTControlCharacters } from "node:util";
 import type { Locator, Page } from "playwright-core";
-import type { z } from "zod";
-import type {
+import {
   assertNode,
   chapterNode,
   clickNode,
+  dragNode,
   freezeClockNode,
   hideElementsNode,
   hoistNode,
-  dragNode,
   hoverNode,
   mockRouteNode,
   navigateNode,
@@ -17,38 +15,54 @@ import type {
   pressNode,
   scrollNode,
   selectNode,
+  sessionNode,
   setStateNode,
   typeNode,
   uploadNode,
   waitNode,
 } from "../../shared/nodes/browser";
-import { getNodeDef, nodeName } from "../../shared/nodes/registry";
+import { parseParams, type NodeDef } from "../../shared/nodes/define";
+import { nodeName } from "../../shared/nodes/registry";
 import type { LiveEvent } from "../../shared/live";
 import type { Action, ActionLog } from "../../shared/schema/actions";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
-import { interpolate } from "../../shared/vars";
+import { PAUSE_MARK } from "../../shared/vars";
+import { errorMessage } from "../../shared/errors";
 import type { CursorSample, KeyEvent } from "../../video/camera/lib/click-log";
 import { parsePath } from "./drag-path";
-import type { ClickEvent, DragTo, FlowContext, Target } from "./flow-types";
-import { buildContext, CURSOR_INIT_SCRIPT } from "./recorder";
-import { autoCandidates, dumpVisible, SelectorError } from "./selectors";
+import { landedOnSignIn, plainError, setupLength, traceGroupTitle } from "./driver-helpers";
+import type { FrameEncoder } from "./encoder";
+import { elementOf, type ActionOpts, type ClickEvent, type DragTo } from "./flow-types";
 import {
+  addStyles,
+  beforeFirstLoad,
   CHAT_WIDGET_SELECTORS,
   COOKIE_BANNER_SELECTORS,
-  openSession,
-  type SessionParams,
-} from "./session";
-import type { FrameEncoder } from "./encoder";
-import { errorMessage } from "../../shared/errors";
+  CURSOR_HOTSPOT,
+  hidingCss,
+  installCursor,
+} from "./page-scripts";
+import { CursorDriver } from "./recorder";
+import { dumpVisible, resolveTarget, SelectorError } from "./selectors";
+import { openSession, type OpenSession } from "./session";
 
-export type TakeMode = "record" | "still" | "check";
+type TakeMode = "record" | "still" | "check";
 
 export type LiveSink = {
   frame: (jpeg: Buffer, width: number, height: number, t: number) => void;
   event: (event: LiveEvent) => void;
 };
 
-export type TakeOptions = {
+type RecordOptions = {
+  fps: number;
+  quality: number;
+  establishMs: number;
+  endTailMs: number;
+  cursor: "synthetic" | "baked" | "none";
+  showActions: boolean;
+};
+
+export type TakeOptions<T = void> = {
   workflow: Workflow;
   chain: WorkflowNode[];
   vars: Record<string, string>;
@@ -60,38 +74,33 @@ export type TakeOptions = {
   tracePath?: string;
   traceGroups?: string[];
   signIn?: { url: string; name: string };
-  record?: {
-    fps: number;
-    quality: number;
-    establishMs: number;
-    endTailMs: number;
-    cursor: "synthetic" | "baked" | "none";
-    showActions: boolean;
-  };
-  onPage?: (page: Page) => Promise<void>;
+  record?: RecordOptions;
+  onPage?: (page: Page) => Promise<T>;
   storageState?: string | null;
   signal: AbortSignal;
   log: (level: "info" | "warn" | "error", message: string) => void;
   step: (nodeId: string, status: "start" | "done" | "error", message?: string) => void;
 };
 
-export type TakeResult = {
+type TakeResult<T> = {
   log: ActionLog;
   t0: number;
   physicalViewport: { width: number; height: number };
+  fromPage?: T;
 };
 
-type Params<T extends { params: z.ZodType }> = z.infer<T["params"]>;
+const DEFAULT_FRAME_QUALITY = 80;
+const SHOW_ACTIONS_MS = 600;
+const LIVE_CURSOR_GAP_MS = 30;
+const FIRST_PAGE_MIN_WAIT_MS = 500;
+const SCROLL_TICK_MS = 16;
 
-const CHUNK_SEPARATOR = "¦";
-
-function parsed<T>(node: WorkflowNode, vars: Record<string, string>): T {
-  const def = getNodeDef(node.type);
-  if (!def) throw new Error(`Unknown node type ${node.type}`);
-  return def.params.parse(interpolate(node.params ?? {}, vars)) as T;
-}
-
-const nodeLabel = (node: WorkflowNode) => node.label?.trim() ?? "";
+const ACTION_KINDS: Partial<Record<string, Action["kind"]>> = {
+  "browser.type": "type",
+  "browser.click": "click",
+  "browser.hover": "hover",
+  "browser.drag": "drag",
+};
 
 export class SignInExpiredError extends Error {
   constructor(readonly secretName: string) {
@@ -100,543 +109,16 @@ export class SignInExpiredError extends Error {
   }
 }
 
-export function samePage(a: string, b: string): boolean {
-  try {
-    const norm = (u: string) => {
-      const url = new URL(u);
-      return `${url.origin}${url.pathname.replace(/\/(index\.html?)?$/, "")}`;
-    };
-    return norm(a) === norm(b);
-  } catch {
-    return false;
-  }
-}
+const labelOr = (node: WorkflowNode, fallback: string) => node.label?.trim() || fallback;
 
-export function landedOnSignIn(requested: string, current: string, signInUrl: string): boolean {
-  return !samePage(requested, signInUrl) && samePage(current, signInUrl);
-}
-
-export function plainError(
-  error: unknown,
-  node: WorkflowNode,
-  vars: Record<string, string>,
-): string {
-  const text = stripVTControlCharacters(errorMessage(error));
-  const timeout = /Timeout (\d+)ms exceeded/.exec(text);
-  const target = (interpolate(node.params ?? {}, vars) as { target?: unknown }).target;
-  const what =
-    typeof target === "string" && target.trim()
-      ? `“${target.replace(/^css=/, "")}”`
-      : "the element";
-  if (timeout) {
-    const seconds = Math.round(Number(timeout[1]) / 100) / 10;
-    return /waiting for (locator|getBy)/.test(text)
-      ? `Couldn't find ${what} on the page within ${seconds} s.`
-      : `The page didn't respond within ${seconds} s.`;
-  }
-  if (/net::ERR_NAME_NOT_RESOLVED/.test(text)) return "Couldn't reach the site. Check the address.";
-  if (/net::ERR_/.test(text))
-    return `Couldn't load the page (${/net::(ERR_\w+)/.exec(text)?.[1]}).`;
-  if (/Target (page|context|browser).*closed/.test(text))
-    return "The browser closed before the action finished.";
-  return text
-    .split("\n")[0]
-    .replace(/^(locator|page|frame|elementHandle|mouse|keyboard)\.\w+:\s*/, "");
-}
-
-export function traceGroupTitle(label: string, node: WorkflowNode, vars: Record<string, string>) {
-  const p = interpolate(node.params ?? {}, vars) as Record<string, unknown>;
-  const subject = [p.target, p.url, p.text, p.keys].find(
-    (v): v is string => typeof v === "string" && v.trim() !== "",
-  );
-  return subject ? `${label} · ${subject}` : label;
-}
-
-export async function runTake(opts: TakeOptions): Promise<TakeResult> {
-  const { chain, vars, mode, signal } = opts;
-  const head = chain[0];
-  if (head?.type !== "browser.session")
-    throw new Error("A take must start with an Open browser node.");
-  const sessionParams = parsed<SessionParams>(head, vars);
-  const steps = chain.slice(1).filter((n) => !n.disabled);
-
-  const live = opts.live ?? null;
-  const label = nodeName;
-  opts.step(head.id, "start");
-  const session = await openSession(sessionParams, {
-    storageState: opts.storageState,
-    executablePath: opts.executablePath,
-  });
-  const onAbort = () => void session.close();
-  signal.addEventListener("abort", onAbort, { once: true });
-
-  const recording = mode === "record" && !!opts.encoder && !!opts.record;
-  if (opts.tracePath)
-    await session.context.tracing.start({
-      screenshots: !recording,
-      snapshots: true,
-      sources: false,
-    });
-  const page = await session.context.newPage();
-  if (recording && opts.record!.cursor === "baked")
-    await session.context.addInitScript({ content: CURSOR_INIT_SCRIPT });
-  opts.step(head.id, "done");
-
-  live?.event({
-    kind: "start",
-    title: label(head),
-    viewport: session.physicalViewport,
-    steps: steps.map((n) => ({ nodeId: n.id, label: label(n) })),
-  });
-  const actions: Action[] = [];
-  const clicks = observed<ClickEvent>((c) => {
-    live?.event({ kind: "click", x: c.x, y: c.y });
-    if (c.rect)
-      live?.event({ kind: "target", rect: c.rect, label: c.label ?? "", selector: lastSelector });
-  });
-  const keys: KeyEvent[] = [];
-  let lastCursorAt = 0;
-  const cursor = observed<CursorSample>((c) => {
-    const now = Date.now();
-    if (now - lastCursorAt < 30) return;
-    lastCursorAt = now;
-    live?.event({ kind: "cursor", x: c.x, y: c.y });
-  });
-  let lastSelector: string | undefined;
-  let lastTyped: string | undefined;
-  let failed = false;
-  const hoisted = new Map<string, Locator>();
-  let t0 = Date.now();
-  let takeDurationMs = 0;
-  let ctx: FlowContext | null = null;
-  const elapsed = () => Date.now() - t0;
-
-  const screencasting = recording || !!live;
-  try {
-    if (screencasting) {
-      await page.screencast.start({
-        size: session.physicalViewport,
-        quality: opts.record?.quality ?? 80,
-        onFrame: (f) => {
-          live?.frame(f.data, f.viewportWidth, f.viewportHeight, f.timestamp);
-          opts.encoder?.offer(f.data, f.timestamp);
-        },
-      });
-      if (recording && opts.record!.showActions)
-        await page.screencast.showActions({ cursor: "pointer", duration: 600 });
-    }
-
-    const setupEnd = setupLength(steps, vars);
-    const setup = steps.slice(0, setupEnd);
-    const main = steps.slice(setupEnd);
-
-    const run = async (node: WorkflowNode) => {
-      if (signal.aborted) throw new Error("Cancelled");
-      opts.step(node.id, "start");
-      live?.event({ kind: "step", nodeId: node.id, status: "running" });
-      const clicksBefore = clicks.length;
-      const keysBefore = keys.length;
-      if (opts.tracePath) {
-        await session.context.tracing.group(traceGroupTitle(label(node), node, vars));
-        opts.traceGroups?.push(node.id);
-      }
-      try {
-        await runStep(node);
-      } catch (raw) {
-        const error =
-          raw instanceof SelectorError || raw instanceof SignInExpiredError
-            ? raw
-            : new Error(plainError(raw, node, vars));
-        const message = error.message;
-        opts.step(node.id, "error", message);
-        live?.event({ kind: "step", nodeId: node.id, status: "error", message });
-        throw error;
-      } finally {
-        if (opts.tracePath) await session.context.tracing.groupEnd().catch(() => undefined);
-      }
-      for (const c of clicks.slice(clicksBefore)) actions.push(clickToAction(c, node));
-      for (const k of keys.slice(keysBefore)) {
-        actions.push({
-          id: `${node.id}:k${actions.length}`,
-          kind: "key",
-          t: k.tMs,
-          text: k.chord,
-          label: k.label,
-          nodeId: node.id,
-        });
-      }
-      opts.step(node.id, "done");
-      live?.event({ kind: "step", nodeId: node.id, status: "done" });
-    };
-
-    const runStep = async (node: WorkflowNode) => {
-      switch (node.type) {
-        case "browser.navigate": {
-          const p = parsed<Params<typeof navigateNode>>(node, vars);
-          const t = elapsed();
-          await page.goto(p.url, { waitUntil: p.waitUntil });
-          actions.push({
-            id: `${node.id}:nav`,
-            kind: "navigate",
-            t,
-            tEnd: elapsed(),
-            label: p.url,
-            nodeId: node.id,
-          });
-          if (ctx) await ctx.pause(p.after);
-          else await page.waitForTimeout(Math.max(500, p.after));
-          if (opts.signIn && landedOnSignIn(p.url, page.url(), opts.signIn.url))
-            throw new SignInExpiredError(opts.signIn.name);
-          return;
-        }
-        case "browser.click": {
-          const p = parsed<Params<typeof clickNode>>(node, vars);
-          const t = await resolveTarget(page, p.target, hoisted, opts);
-          await need(ctx).moveAndClick(t.target, nodeLabel(node) || p.target, {
-            cluster: p.cluster || undefined,
-            zoom: p.zoom,
-            frame: p.frame ? (await resolveTarget(page, p.frame, hoisted, opts)).target : undefined,
-            zoomScale: p.zoomScale || undefined,
-            travelMs: p.travelMs || undefined,
-            hoverMs: p.hoverMs,
-          });
-          lastSelector = t.by;
-          await need(ctx).pause(p.after);
-          return;
-        }
-        case "browser.type": {
-          const p = parsed<Params<typeof typeNode>>(node, vars);
-          const t = await resolveTarget(page, p.target, hoisted, opts);
-          const chunks = p.text.split(CHUNK_SEPARATOR);
-          await need(ctx).typeInto(t.target, chunks, nodeLabel(node) || p.target, {
-            cluster: p.cluster || undefined,
-            zoom: p.zoom,
-            frame: p.frame ? (await resolveTarget(page, p.frame, hoisted, opts)).target : undefined,
-            chunkPauseMs: p.chunkPauseMs,
-          });
-          lastSelector = t.by;
-          lastTyped = chunks.join("");
-          if (p.pressEnter) await need(ctx).pressKey("Enter", "Enter");
-          await need(ctx).pause(p.after);
-          return;
-        }
-        case "browser.hover": {
-          const p = parsed<Params<typeof hoverNode>>(node, vars);
-          const t = await resolveTarget(page, p.target, hoisted, opts);
-          if (p.zoom) {
-            await need(ctx).focus(t.target, nodeLabel(node) || p.target, {
-              cluster: p.cluster || undefined,
-              frame: p.frame
-                ? (await resolveTarget(page, p.frame, hoisted, opts)).target
-                : undefined,
-              zoomScale: p.zoomScale || undefined,
-              travelMs: p.travelMs || undefined,
-              hoverMs: p.hoverMs,
-            });
-          } else {
-            await need(ctx).moveTo(t.target);
-            await need(ctx).pause(p.hoverMs);
-          }
-          lastSelector = t.by;
-          await need(ctx).pause(p.after);
-          return;
-        }
-        case "browser.drag": {
-          const p = parsed<Params<typeof dragNode>>(node, vars);
-          const from = await resolveTarget(page, p.target, hoisted, opts);
-          if (p.mode === "element" && !p.to.trim()) throw new Error("Pick where to drop it.");
-          const to: DragTo =
-            p.mode === "element"
-              ? { target: (await resolveTarget(page, p.to, hoisted, opts)).target }
-              : p.mode === "by"
-                ? { by: { x: p.dx, y: p.dy } }
-                : { path: parsePath(p.path) };
-          await need(ctx).drag(from.target, to, nodeLabel(node) || p.target, {
-            cluster: p.cluster || undefined,
-            zoom: p.zoom,
-            frame: p.frame ? (await resolveTarget(page, p.frame, hoisted, opts)).target : undefined,
-            zoomScale: p.zoomScale || undefined,
-            travelMs: p.travelMs || undefined,
-            hoverMs: p.hoverMs,
-            holdMs: p.holdMs,
-            dragMs: p.dragMs,
-            method: p.method,
-          });
-          lastSelector = from.by;
-          await need(ctx).pause(p.after);
-          return;
-        }
-        case "browser.scroll": {
-          const p = parsed<Params<typeof scrollNode>>(node, vars);
-          const t = elapsed();
-          if (p.mode === "element") {
-            const target = await resolveTarget(page, p.target, hoisted, opts);
-            const loc = asLocator(page, target.target);
-            if (p.smooth) {
-              await loc.evaluate((el) =>
-                el.scrollIntoView({ behavior: "smooth", block: "center" }),
-              );
-              await page.waitForTimeout(p.durationMs);
-            } else await loc.scrollIntoViewIfNeeded();
-          } else if (p.smooth) {
-            const ticks = Math.max(1, Math.round(p.durationMs / 16));
-            for (let i = 0; i < ticks; i++) {
-              await page.mouse.wheel(0, p.deltaY / ticks);
-              await page.waitForTimeout(16);
-            }
-          } else {
-            await page.evaluate((dy) => window.scrollBy(0, dy), p.deltaY);
-          }
-          actions.push({
-            id: `${node.id}:scroll`,
-            kind: "scroll",
-            t,
-            tEnd: elapsed(),
-            label: nodeLabel(node) || undefined,
-            nodeId: node.id,
-          });
-          if (ctx) await ctx.pause(p.after);
-          return;
-        }
-        case "browser.select": {
-          const p = parsed<Params<typeof selectNode>>(node, vars);
-          const t = await resolveTarget(page, p.target, hoisted, opts);
-          await need(ctx).focus(t.target, nodeLabel(node) || p.target, {
-            cluster: p.cluster || undefined,
-            zoom: p.zoom,
-          });
-          await asLocator(page, t.target)
-            .selectOption(p.value)
-            .catch(async () => asLocator(page, t.target).selectOption({ label: p.value }));
-          lastSelector = t.by;
-          await need(ctx).pause(p.after);
-          return;
-        }
-        case "browser.upload": {
-          const p = parsed<Params<typeof uploadNode>>(node, vars);
-          const t = await resolveTarget(page, p.target, hoisted, opts);
-          await asLocator(page, t.target).setInputFiles(path.resolve(opts.projectDir, p.file));
-          if (ctx) await ctx.pause(p.after);
-          return;
-        }
-        case "browser.press": {
-          const p = parsed<Params<typeof pressNode>>(node, vars);
-          if (ctx) await ctx.pressKey(p.keys, nodeLabel(node) || p.keys);
-          else await page.keyboard.press(p.keys);
-          if (ctx) await ctx.pause(p.after);
-          return;
-        }
-        case "browser.wait": {
-          const p = parsed<Params<typeof waitNode>>(node, vars);
-          const t = elapsed();
-          if (p.mode === "element") await resolveTarget(page, p.target, hoisted, opts, p.timeoutMs);
-          else if (p.mode === "network-idle")
-            await page.waitForLoadState("networkidle", { timeout: p.timeoutMs });
-          else if (p.mode === "url") await page.waitForURL(p.url, { timeout: p.timeoutMs });
-          else await page.waitForTimeout(p.ms);
-          actions.push({
-            id: `${node.id}:wait`,
-            kind: "wait",
-            t,
-            tEnd: elapsed(),
-            nodeId: node.id,
-          });
-          return;
-        }
-        case "browser.assert": {
-          const p = parsed<Params<typeof assertNode>>(node, vars);
-          const scope = p.target
-            ? asLocator(page, (await resolveTarget(page, p.target, hoisted, opts)).target)
-            : page;
-          try {
-            await scope
-              .getByText(p.text)
-              .first()
-              .waitFor({ state: "visible", timeout: p.timeoutMs });
-          } catch {
-            throw new Error(`"${p.text}" isn't on the page.\n${await dumpVisible(page)}`);
-          }
-          return;
-        }
-        case "browser.hoist": {
-          const p = parsed<Params<typeof hoistNode>>(node, vars);
-          const t = await resolveTarget(page, p.target, hoisted, opts);
-          hoisted.set(p.target, asLocator(page, t.target));
-          return;
-        }
-        case "browser.setState": {
-          const p = parsed<Params<typeof setStateNode>>(node, vars);
-          if (page.url() === "about:blank") {
-            await session.context.addInitScript({ content: beforeFirstLoad(node.id, p.script) });
-            return;
-          }
-          await page.evaluate(`(async () => { ${p.script}\n })()`);
-          if (p.reload) await page.reload();
-          return;
-        }
-        case "browser.mockRoute": {
-          const p = parsed<Params<typeof mockRouteNode>>(node, vars);
-          await page.route(p.url, (route) =>
-            route.fulfill({ status: p.status, contentType: p.contentType, body: p.body }),
-          );
-          return;
-        }
-        case "browser.freezeClock": {
-          const p = parsed<Params<typeof freezeClockNode>>(node, vars);
-          const time = new Date(p.time);
-          if (p.mode === "fixed") await page.clock.setFixedTime(time);
-          else {
-            await page.clock.install({ time });
-            await page.clock.pauseAt(time);
-          }
-          return;
-        }
-        case "browser.hideElements": {
-          const p = parsed<Params<typeof hideElementsNode>>(node, vars);
-          const selectors = [
-            ...(p.cookieBanners ? COOKIE_BANNER_SELECTORS : []),
-            ...(p.chatWidgets ? CHAT_WIDGET_SELECTORS : []),
-            ...p.selectors
-              .split("\n")
-              .map((s) => s.trim())
-              .filter(Boolean),
-          ];
-          if (selectors.length) {
-            const css = `${selectors.join(",\n")} { display: none !important; visibility: hidden !important; }`;
-            const script = hideScript(css);
-            await session.context.addInitScript({ content: script });
-            await page.evaluate(script).catch(() => undefined);
-          }
-          return;
-        }
-        case "browser.chapter": {
-          const p = parsed<Params<typeof chapterNode>>(node, vars);
-          actions.push({
-            id: `${node.id}:chapter`,
-            kind: "chapter",
-            t: elapsed(),
-            label: p.title,
-            text: p.description || undefined,
-            nodeId: node.id,
-          });
-          if (p.showInVideo && recording) {
-            await page.screencast.showChapter(p.title, {
-              description: p.description || undefined,
-              duration: p.durationMs,
-            });
-            await page.waitForTimeout(p.durationMs);
-          }
-          return;
-        }
-        case "browser.overlayHtml": {
-          const p = parsed<Params<typeof overlayHtmlNode>>(node, vars);
-          if (!recording) return;
-          const overlay = await page.screencast.showOverlay(p.html);
-          if (p.durationMs > 0)
-            setTimeout(() => void overlay.dispose().catch(() => undefined), p.durationMs);
-          return;
-        }
-        case "browser.session":
-          throw new Error("Only one Open browser node is allowed per take.");
-        default:
-          throw new Error(
-            `"${getNodeDef(node.type)?.title ?? node.type}" can't be part of a browser take.`,
-          );
-      }
-    };
-
-    const clickToAction = (c: ClickEvent, node: WorkflowNode): Action => {
-      const kind: Action["kind"] =
-        node.type === "browser.type"
-          ? "type"
-          : node.type === "browser.click"
-            ? "click"
-            : node.type === "browser.hover"
-              ? "hover"
-              : node.type === "browser.drag"
-                ? "drag"
-                : "focus";
-      const a: Action = {
-        id: `${node.id}:${actions.length}`,
-        kind,
-        t: c.tMs,
-        tEnd: c.typeEndMs,
-        tDepart: c.tDepartMs,
-        tDown: c.tDownMs,
-        point: { x: c.x, y: c.y },
-        rect: c.rect,
-        cluster: c.cluster,
-        label: c.label,
-        selectorUsed: lastSelector,
-        zoom: c.zoom,
-        zoomScale: c.zoomScale,
-        text: kind === "type" ? lastTyped : undefined,
-        nodeId: node.id,
-        ...(c.path ? { path: c.path } : {}),
-        ...(c.drop ? { drop: c.drop } : {}),
-      };
-      return a;
-    };
-
-    for (const node of setup) await run(node);
-
-    t0 = Date.now();
-    opts.encoder?.setOrigin(t0);
-    ctx = buildContext(page, page.url(), clicks, elapsed, cursor, undefined, keys);
-    if (recording) await page.waitForTimeout(opts.record!.establishMs);
-
-    for (const node of main) await run(node);
-
-    if (recording) await page.waitForTimeout(opts.record!.endTailMs);
-    else if (mode === "still" && opts.onPage) await opts.onPage(page);
-  } catch (error) {
-    failed = true;
-    if (error instanceof SelectorError) opts.log("error", error.message);
-    live?.event({
-      kind: "end",
-      ok: false,
-      message: errorMessage(error),
-    });
-    throw error;
-  } finally {
-    const end = Date.now();
-    takeDurationMs = end - t0;
-    if (screencasting)
-      await page.screencast
-        .stop()
-        .catch((e: unknown) =>
-          opts.log("warn", `The recording didn't stop cleanly: ${errorMessage(e)}`),
-        );
-    if (opts.encoder) {
-      if (signal.aborted) await opts.encoder.abort();
-      else {
-        const finished = opts.encoder.finish(end);
-        if (failed) await finished.catch(() => undefined);
-        else takeDurationMs = await finished;
-      }
-    }
-    if (opts.tracePath)
-      await session.context.tracing
-        .stop({ path: opts.tracePath })
-        .catch((e: unknown) => opts.log("warn", `Couldn't save the trace: ${errorMessage(e)}`));
-    signal.removeEventListener("abort", onAbort);
-    await session.close();
-  }
-  live?.event({ kind: "end", ok: true });
-
-  return {
-    t0,
-    physicalViewport: session.physicalViewport,
-    log: {
-      viewport: session.physicalViewport,
-      dpr: sessionParams.dpr,
-      t0,
-      durationMs: takeDurationMs,
-      actions,
-      cursorTrack: opts.record?.cursor === "synthetic" ? [...cursor] : undefined,
-    },
-  };
-}
+type MotionParams = {
+  cluster: string;
+  zoom: boolean;
+  frame?: string;
+  zoomScale?: number;
+  travelMs?: number;
+  hoverMs?: number;
+};
 
 function observed<T>(onPush: (item: T) => void): T[] {
   const list: T[] = [];
@@ -651,85 +133,496 @@ function observed<T>(onPush: (item: T) => void): T[] {
   return list;
 }
 
-function need(ctx: FlowContext | null): FlowContext {
-  if (!ctx) throw new Error("Mouse actions must come after the first Go to page action.");
-  return ctx;
-}
+class TakeRun {
+  readonly actions: Action[] = [];
+  readonly keys: KeyEvent[] = [];
+  readonly clicks: ClickEvent[];
+  readonly cursor: CursorSample[];
+  readonly hoisted = new Map<string, Locator>();
+  readonly recording: boolean;
+  lastSelector: string | undefined;
+  lastTyped: string | undefined;
+  cursorDriver: CursorDriver | null = null;
+  t0 = Date.now();
+  private lastCursorAt = 0;
 
-function asLocator(page: Page, target: Target): Locator {
-  if (typeof target === "string") return page.getByText(target).first();
-  if ("css" in (target as object)) return page.locator((target as { css: string }).css).first();
-  if ("x" in (target as object))
-    throw new Error("A point on the page isn't an element. Pick an element instead.");
-  return target as Locator;
-}
-
-async function resolveTarget(
-  page: Page,
-  raw: string,
-  hoisted: Map<string, Locator>,
-  opts: Pick<TakeOptions, "log" | "signal">,
-  timeoutMs = 15_000,
-): Promise<{ target: Target; by: string }> {
-  const hit = hoisted.get(raw);
-  if (hit) return { target: hit, by: "hoisted" };
-  if (raw.startsWith("css=")) {
-    const loc = page.locator(raw.slice(4)).first();
-    await loc.waitFor({ state: "visible", timeout: timeoutMs });
-    return { target: loc, by: raw };
+  constructor(
+    readonly opts: TakeOptions<unknown>,
+    readonly session: OpenSession,
+    readonly page: Page,
+    readonly record: RecordOptions | undefined,
+  ) {
+    this.recording = !!record;
+    const live = opts.live;
+    this.clicks = observed<ClickEvent>((c) => {
+      live?.event({ kind: "click", x: c.x, y: c.y });
+      if (c.rect)
+        live?.event({
+          kind: "target",
+          rect: c.rect,
+          label: c.label ?? "",
+          selector: this.lastSelector,
+        });
+    });
+    this.cursor = observed<CursorSample>((c) => {
+      const now = Date.now();
+      if (now - this.lastCursorAt < LIVE_CURSOR_GAP_MS) return;
+      this.lastCursorAt = now;
+      live?.event({ kind: "cursor", x: c.x, y: c.y });
+    });
   }
-  const point = /^\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*$/.exec(raw);
-  if (point) return { target: { x: Number(point[1]), y: Number(point[2]) }, by: "point" };
 
-  const candidates = autoCandidates(page, raw);
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
+  get vars() {
+    return this.opts.vars;
+  }
+
+  params<S extends NodeDef["params"]>(def: NodeDef<S>, node: WorkflowNode) {
+    return parseParams(def, node, this.vars);
+  }
+
+  elapsed = () => Date.now() - this.t0;
+
+  rolling(): CursorDriver {
+    if (!this.cursorDriver)
+      throw new Error("Mouse actions must come after the first Go to page action.");
+    return this.cursorDriver;
+  }
+
+  async pauseIfRolling(ms: number) {
+    if (this.cursorDriver) await this.cursorDriver.pause(ms);
+  }
+
+  resolve(raw: string, timeoutMs?: number) {
+    return resolveTarget(this.page, raw, {
+      log: this.opts.log,
+      signal: this.opts.signal,
+      hoisted: this.hoisted,
+      timeoutMs,
+    });
+  }
+
+  async motion(p: MotionParams): Promise<ActionOpts> {
+    return {
+      cluster: p.cluster || undefined,
+      zoom: p.zoom,
+      frame: p.frame ? (await this.resolve(p.frame)).target : undefined,
+      zoomScale: p.zoomScale || undefined,
+      travelMs: p.travelMs || undefined,
+      hoverMs: p.hoverMs,
+    };
+  }
+
+  pushAction(action: Omit<Action, "nodeId">, node: WorkflowNode) {
+    this.actions.push({ ...action, nodeId: node.id });
+  }
+
+  start() {
+    this.t0 = Date.now();
+    this.opts.encoder?.setOrigin(this.t0);
+    this.cursorDriver = new CursorDriver(
+      this.page,
+      this.clicks,
+      this.elapsed,
+      this.cursor,
+      this.keys,
+    );
+  }
+
+  async run(node: WorkflowNode) {
+    const { opts } = this;
     if (opts.signal.aborted) throw new Error("Cancelled");
-    for (const c of candidates) {
-      try {
-        const loc = c.locator.first();
-        if (await loc.isVisible()) {
-          opts.log("info", `✓ Found ${raw}`);
-          return { target: loc, by: c.by };
-        }
-      } catch {}
+    opts.step(node.id, "start");
+    opts.live?.event({ kind: "step", nodeId: node.id, status: "running" });
+    const clicksBefore = this.clicks.length;
+    const keysBefore = this.keys.length;
+    if (opts.tracePath) {
+      await this.session.context.tracing.group(traceGroupTitle(nodeName(node), node, this.vars));
+      opts.traceGroups?.push(node.id);
     }
-    await page.waitForTimeout(250);
+    try {
+      await runStep(this, node);
+    } catch (raw) {
+      const error =
+        raw instanceof SelectorError || raw instanceof SignInExpiredError
+          ? raw
+          : new Error(plainError(raw, node, this.vars));
+      opts.step(node.id, "error", error.message);
+      opts.live?.event({ kind: "step", nodeId: node.id, status: "error", message: error.message });
+      throw error;
+    } finally {
+      if (opts.tracePath) await this.session.context.tracing.groupEnd().catch(() => undefined);
+    }
+    for (const c of this.clicks.slice(clicksBefore)) this.actions.push(this.clickAction(c, node));
+    for (const k of this.keys.slice(keysBefore)) {
+      this.pushAction(
+        {
+          id: `${node.id}:k${this.actions.length}`,
+          kind: "key",
+          t: k.tMs,
+          text: k.chord,
+          label: k.label,
+        },
+        node,
+      );
+    }
+    opts.step(node.id, "done");
+    opts.live?.event({ kind: "step", nodeId: node.id, status: "done" });
   }
-  throw new SelectorError(
-    raw,
-    candidates.map((c) => c.by),
-    await dumpVisible(page),
-  );
-}
 
-const OFF_CAMERA = new Set([
-  "browser.hideElements",
-  "browser.setState",
-  "browser.mockRoute",
-  "browser.freezeClock",
-  "browser.hoist",
-]);
-
-export function setupLength(steps: WorkflowNode[], vars: Record<string, string>): number {
-  const firstNav = steps.findIndex((n) => n.type === "browser.navigate");
-  if (firstNav < 0) return 0;
-  let end = firstNav + 1;
-  for (; end < steps.length; end++) {
-    const node = steps[end];
-    if (OFF_CAMERA.has(node.type)) continue;
-    if (node.type === "browser.wait" && parsed<{ mode: string }>(node, vars).mode !== "ms")
-      continue;
-    break;
+  private clickAction(c: ClickEvent, node: WorkflowNode): Action {
+    const kind = ACTION_KINDS[node.type] ?? "focus";
+    return {
+      id: `${node.id}:${this.actions.length}`,
+      kind,
+      t: c.tMs,
+      tEnd: c.typeEndMs,
+      tDepart: c.tDepartMs,
+      tDown: c.tDownMs,
+      point: { x: c.x, y: c.y },
+      rect: c.rect,
+      cluster: c.cluster,
+      label: c.label,
+      selectorUsed: this.lastSelector,
+      zoom: c.zoom,
+      zoomScale: c.zoomScale,
+      text: kind === "type" ? this.lastTyped : undefined,
+      nodeId: node.id,
+      ...(c.path ? { path: c.path } : {}),
+      ...(c.drop ? { drop: c.drop } : {}),
+    };
   }
-  return end;
 }
 
-export function hideScript(css: string): string {
-  return `(() => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(css)}; const add = () => (document.head || document.documentElement).appendChild(s); if (document.documentElement) { add(); return; } const watch = new MutationObserver(() => { if (!document.documentElement) return; watch.disconnect(); add(); }); watch.observe(document, { childList: true }); })()`;
+type StepHandler = (take: TakeRun, node: WorkflowNode) => Promise<void>;
+
+const STEPS: Record<string, StepHandler> = {
+  "browser.navigate": async (take, node) => {
+    const p = take.params(navigateNode, node);
+    const t = take.elapsed();
+    await take.page.goto(p.url, { waitUntil: p.waitUntil });
+    take.pushAction(
+      { id: `${node.id}:nav`, kind: "navigate", t, tEnd: take.elapsed(), label: p.url },
+      node,
+    );
+    if (take.cursorDriver) await take.cursorDriver.pause(p.after);
+    else await take.page.waitForTimeout(Math.max(FIRST_PAGE_MIN_WAIT_MS, p.after));
+    const { signIn } = take.opts;
+    if (signIn && landedOnSignIn(p.url, take.page.url(), signIn.url))
+      throw new SignInExpiredError(signIn.name);
+  },
+  "browser.click": async (take, node) => {
+    const p = take.params(clickNode, node);
+    const t = await take.resolve(p.target);
+    await take.rolling().moveAndClick(t.target, labelOr(node, p.target), await take.motion(p));
+    take.lastSelector = t.by;
+    await take.rolling().pause(p.after);
+  },
+  "browser.type": async (take, node) => {
+    const p = take.params(typeNode, node);
+    const t = await take.resolve(p.target);
+    const chunks = p.text.split(PAUSE_MARK);
+    await take.rolling().typeInto(t.target, chunks, labelOr(node, p.target), {
+      ...(await take.motion(p)),
+      chunkPauseMs: p.chunkPauseMs,
+    });
+    take.lastSelector = t.by;
+    take.lastTyped = chunks.join("");
+    if (p.pressEnter) await take.rolling().pressKey("Enter", "Enter");
+    await take.rolling().pause(p.after);
+  },
+  "browser.hover": async (take, node) => {
+    const p = take.params(hoverNode, node);
+    const t = await take.resolve(p.target);
+    if (p.zoom) {
+      await take.rolling().focus(t.target, labelOr(node, p.target), await take.motion(p));
+    } else {
+      await take.rolling().moveTo(t.target);
+      await take.rolling().pause(p.hoverMs);
+    }
+    take.lastSelector = t.by;
+    await take.rolling().pause(p.after);
+  },
+  "browser.drag": async (take, node) => {
+    const p = take.params(dragNode, node);
+    const from = await take.resolve(p.target);
+    if (p.mode === "element" && !p.to.trim()) throw new Error("Pick where to drop it.");
+    const to: DragTo =
+      p.mode === "element"
+        ? { target: (await take.resolve(p.to)).target }
+        : p.mode === "by"
+          ? { by: { x: p.dx, y: p.dy } }
+          : { path: parsePath(p.path) };
+    await take.rolling().drag(from.target, to, labelOr(node, p.target), {
+      ...(await take.motion(p)),
+      holdMs: p.holdMs,
+      dragMs: p.dragMs,
+      method: p.method,
+    });
+    take.lastSelector = from.by;
+    await take.rolling().pause(p.after);
+  },
+  "browser.scroll": async (take, node) => {
+    const p = take.params(scrollNode, node);
+    const { page } = take;
+    const t = take.elapsed();
+    if (p.mode === "element") {
+      const loc = elementOf((await take.resolve(p.target)).target);
+      if (p.smooth) {
+        await loc.evaluate((el) => el.scrollIntoView({ behavior: "smooth", block: "center" }));
+        await page.waitForTimeout(p.durationMs);
+      } else await loc.scrollIntoViewIfNeeded();
+    } else if (p.smooth) {
+      const ticks = Math.max(1, Math.round(p.durationMs / SCROLL_TICK_MS));
+      for (let i = 0; i < ticks; i++) {
+        await page.mouse.wheel(0, p.deltaY / ticks);
+        await page.waitForTimeout(SCROLL_TICK_MS);
+      }
+    } else {
+      await page.evaluate((dy) => window.scrollBy(0, dy), p.deltaY);
+    }
+    take.pushAction(
+      {
+        id: `${node.id}:scroll`,
+        kind: "scroll",
+        t,
+        tEnd: take.elapsed(),
+        label: node.label?.trim() || undefined,
+      },
+      node,
+    );
+    await take.pauseIfRolling(p.after);
+  },
+  "browser.select": async (take, node) => {
+    const p = take.params(selectNode, node);
+    const t = await take.resolve(p.target);
+    await take.rolling().focus(t.target, labelOr(node, p.target), await take.motion(p));
+    const loc = elementOf(t.target);
+    await loc.selectOption(p.value).catch(async () => loc.selectOption({ label: p.value }));
+    take.lastSelector = t.by;
+    await take.rolling().pause(p.after);
+  },
+  "browser.upload": async (take, node) => {
+    const p = take.params(uploadNode, node);
+    const t = await take.resolve(p.target);
+    await elementOf(t.target).setInputFiles(path.resolve(take.opts.projectDir, p.file));
+    await take.pauseIfRolling(p.after);
+  },
+  "browser.press": async (take, node) => {
+    const p = take.params(pressNode, node);
+    if (take.cursorDriver) await take.cursorDriver.pressKey(p.keys, labelOr(node, p.keys));
+    else await take.page.keyboard.press(p.keys);
+    await take.pauseIfRolling(p.after);
+  },
+  "browser.wait": async (take, node) => {
+    const p = take.params(waitNode, node);
+    const { page } = take;
+    const t = take.elapsed();
+    if (p.mode === "element") await take.resolve(p.target, p.timeoutMs);
+    else if (p.mode === "network-idle")
+      await page.waitForLoadState("networkidle", { timeout: p.timeoutMs });
+    else if (p.mode === "url") await page.waitForURL(p.url, { timeout: p.timeoutMs });
+    else await page.waitForTimeout(p.ms);
+    take.pushAction({ id: `${node.id}:wait`, kind: "wait", t, tEnd: take.elapsed() }, node);
+  },
+  "browser.assert": async (take, node) => {
+    const p = take.params(assertNode, node);
+    const scope = p.target ? elementOf((await take.resolve(p.target)).target) : take.page;
+    try {
+      await scope.getByText(p.text).first().waitFor({ state: "visible", timeout: p.timeoutMs });
+    } catch {
+      throw new Error(`"${p.text}" isn't on the page.\n${await dumpVisible(take.page)}`);
+    }
+  },
+  "browser.hoist": async (take, node) => {
+    const p = take.params(hoistNode, node);
+    const t = await take.resolve(p.target);
+    take.hoisted.set(p.target, elementOf(t.target));
+  },
+  "browser.setState": async (take, node) => {
+    const p = take.params(setStateNode, node);
+    if (take.page.url() === "about:blank") {
+      await take.session.context.addInitScript({ content: beforeFirstLoad(node.id, p.script) });
+      return;
+    }
+    await take.page.evaluate(`(async () => { ${p.script}\n })()`);
+    if (p.reload) await take.page.reload();
+  },
+  "browser.mockRoute": async (take, node) => {
+    const p = take.params(mockRouteNode, node);
+    await take.page.route(p.url, (route) =>
+      route.fulfill({ status: p.status, contentType: p.contentType, body: p.body }),
+    );
+  },
+  "browser.freezeClock": async (take, node) => {
+    const p = take.params(freezeClockNode, node);
+    const time = new Date(p.time);
+    if (p.mode === "fixed") await take.page.clock.setFixedTime(time);
+    else {
+      await take.page.clock.install({ time });
+      await take.page.clock.pauseAt(time);
+    }
+  },
+  "browser.hideElements": async (take, node) => {
+    const p = take.params(hideElementsNode, node);
+    const selectors = [
+      ...(p.cookieBanners ? COOKIE_BANNER_SELECTORS : []),
+      ...(p.chatWidgets ? CHAT_WIDGET_SELECTORS : []),
+      ...p.selectors
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ];
+    if (!selectors.length) return;
+    const css = hidingCss(selectors);
+    await take.session.context.addInitScript(addStyles, css);
+    await take.page.evaluate(addStyles, css).catch(() => undefined);
+  },
+  "browser.chapter": async (take, node) => {
+    const p = take.params(chapterNode, node);
+    take.pushAction(
+      {
+        id: `${node.id}:chapter`,
+        kind: "chapter",
+        t: take.elapsed(),
+        label: p.title,
+        text: p.description || undefined,
+      },
+      node,
+    );
+    if (p.showInVideo && take.recording) {
+      await take.page.screencast.showChapter(p.title, {
+        description: p.description || undefined,
+        duration: p.durationMs,
+      });
+      await take.page.waitForTimeout(p.durationMs);
+    }
+  },
+  "browser.overlayHtml": async (take, node) => {
+    const p = take.params(overlayHtmlNode, node);
+    if (!take.recording) return;
+    const overlay = await take.page.screencast.showOverlay(p.html);
+    if (p.durationMs > 0)
+      setTimeout(() => void overlay.dispose().catch(() => undefined), p.durationMs);
+  },
+  "browser.session": async () => {
+    throw new Error("Only one Open browser node is allowed per take.");
+  },
+};
+
+function runStep(take: TakeRun, node: WorkflowNode): Promise<void> {
+  const handler = STEPS[node.type];
+  if (!handler)
+    throw new Error(`"${nodeName({ type: node.type })}" can't be part of a browser take.`);
+  return handler(take, node);
 }
 
-export function beforeFirstLoad(id: string, script: string): string {
-  const key = JSON.stringify(`demoflow-script:${id}`);
-  return `(() => { try { if (sessionStorage.getItem(${key})) return; sessionStorage.setItem(${key}, "1"); } catch { return; } ${script}\n })();`;
+async function startScreencast(take: TakeRun, live: LiveSink | null) {
+  const { page, session, opts, record } = take;
+  await page.screencast.start({
+    size: session.physicalViewport,
+    quality: record?.quality ?? DEFAULT_FRAME_QUALITY,
+    onFrame: (f) => {
+      live?.frame(f.data, f.viewportWidth, f.viewportHeight, f.timestamp);
+      opts.encoder?.offer(f.data, f.timestamp);
+    },
+  });
+  if (record?.showActions)
+    await page.screencast.showActions({ cursor: "pointer", duration: SHOW_ACTIONS_MS });
+}
+
+async function stopTake(take: TakeRun, failed: boolean, screencasting: boolean): Promise<number> {
+  const { opts, page, session } = take;
+  const end = Date.now();
+  let durationMs = end - take.t0;
+  if (screencasting)
+    await page.screencast
+      .stop()
+      .catch((e: unknown) =>
+        opts.log("warn", `The recording didn't stop cleanly: ${errorMessage(e)}`),
+      );
+  if (opts.encoder) {
+    if (opts.signal.aborted) await opts.encoder.abort();
+    else {
+      const finished = opts.encoder.finish(end);
+      if (failed) await finished.catch(() => undefined);
+      else durationMs = await finished;
+    }
+  }
+  if (opts.tracePath)
+    await session.context.tracing
+      .stop({ path: opts.tracePath })
+      .catch((e: unknown) => opts.log("warn", `Couldn't save the trace: ${errorMessage(e)}`));
+  return durationMs;
+}
+
+export async function runTake<T>(opts: TakeOptions<T>): Promise<TakeResult<T>> {
+  const { chain, vars, mode, signal } = opts;
+  const head = chain[0];
+  if (head?.type !== sessionNode.type)
+    throw new Error("A take must start with an Open browser node.");
+  const sessionParams = parseParams(sessionNode, head, vars);
+  const steps = chain.slice(1).filter((n) => !n.disabled);
+  const live = opts.live ?? null;
+  const record = mode === "record" && opts.encoder ? opts.record : undefined;
+
+  opts.step(head.id, "start");
+  const session = await openSession(sessionParams, {
+    storageState: opts.storageState,
+    executablePath: opts.executablePath,
+  });
+  const onAbort = () => void session.close();
+  signal.addEventListener("abort", onAbort, { once: true });
+
+  if (opts.tracePath)
+    await session.context.tracing.start({ screenshots: !record, snapshots: true, sources: false });
+  const page = await session.context.newPage();
+  if (record?.cursor === "baked")
+    await session.context.addInitScript(installCursor, CURSOR_HOTSPOT);
+  opts.step(head.id, "done");
+
+  live?.event({
+    kind: "start",
+    title: nodeName(head),
+    viewport: session.physicalViewport,
+    steps: steps.map((n) => ({ nodeId: n.id, label: nodeName(n) })),
+  });
+  const take = new TakeRun(opts, session, page, record);
+  const screencasting = !!record || !!live;
+  let failed = false;
+  let fromPage: T | undefined;
+  let durationMs = 0;
+  try {
+    if (screencasting) await startScreencast(take, live);
+    const setupEnd = setupLength(steps, vars);
+    for (const node of steps.slice(0, setupEnd)) await take.run(node);
+    take.start();
+    if (record) await page.waitForTimeout(record.establishMs);
+    for (const node of steps.slice(setupEnd)) await take.run(node);
+    if (record) await page.waitForTimeout(record.endTailMs);
+    else if (mode === "still" && opts.onPage) fromPage = await opts.onPage(page);
+  } catch (error) {
+    failed = true;
+    if (error instanceof SelectorError) opts.log("error", error.message);
+    live?.event({ kind: "end", ok: false, message: errorMessage(error) });
+    throw error;
+  } finally {
+    durationMs = await stopTake(take, failed, screencasting);
+    signal.removeEventListener("abort", onAbort);
+    await session.close();
+  }
+  live?.event({ kind: "end", ok: true });
+
+  return {
+    t0: take.t0,
+    physicalViewport: session.physicalViewport,
+    fromPage,
+    log: {
+      viewport: session.physicalViewport,
+      dpr: sessionParams.dpr,
+      t0: take.t0,
+      durationMs,
+      actions: take.actions,
+      cursorTrack: opts.record?.cursor === "synthetic" ? [...take.cursor] : undefined,
+    },
+  };
 }

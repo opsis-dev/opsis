@@ -1,14 +1,19 @@
 import { clamp } from "../../shared/math";
+
 export type Point = { x: number; y: number };
 
-export const GLIDE_PX_PER_MS = 0.55;
-export const OVERSHOOT_THRESHOLD_PX = 500;
-export const OVERSHOOT_PX = 26;
-export const DRAG_MIN_MS = 600;
-export const DRAG_MAX_MS = 2500;
-export const MAX_PATH_POINTS = 64;
+const GLIDE_PX_PER_MS = 0.55;
+const GLIDE_MIN_MS = 450;
+const GLIDE_MAX_MS = 1350;
+const OVERSHOOT_THRESHOLD_PX = 500;
+const OVERSHOOT_PX = 26;
+const BULGE = 0.1;
+const DRAG_MIN_MS = 600;
+const DRAG_MAX_MS = 2500;
+const MAX_PATH_POINTS = 64;
+const SAME_POINT_PX = 1e-6;
 
-export type Glide = {
+type Glide = {
   durationMs: number;
   aim: Point;
   overshooting: boolean;
@@ -24,7 +29,9 @@ export function glidePlan(
 ): Glide {
   const dist = Math.hypot(to.x - from.x, to.y - from.y);
   const durationMs =
-    travelMs != null && travelMs > 0 ? travelMs : clamp(dist / (GLIDE_PX_PER_MS * k), 450, 1350);
+    travelMs != null && travelMs > 0
+      ? travelMs
+      : clamp(dist / (GLIDE_PX_PER_MS * k), GLIDE_MIN_MS, GLIDE_MAX_MS);
   const overshooting = dist > OVERSHOOT_THRESHOLD_PX * k;
   const aim = overshooting
     ? {
@@ -45,11 +52,11 @@ export function glidePlan(
 
 export function bulgedCurve(from: Point, to: Point, aim: Point = to): (p: number) => Point {
   const dist = Math.hypot(to.x - from.x, to.y - from.y);
-  if (dist < 1e-6) return () => ({ ...to });
+  if (dist < SAME_POINT_PX) return () => ({ ...to });
   const nx = -(to.y - from.y) / dist;
   const ny = (to.x - from.x) / dist;
   const side = (to.x - from.x) * (to.y - from.y) >= 0 ? 1 : -1;
-  const bulge = side * dist * 0.1;
+  const bulge = side * dist * BULGE;
   const cpx = (from.x + aim.x) / 2 + nx * bulge;
   const cpy = (from.y + aim.y) / 2 + ny * bulge;
   return (p) => {
@@ -61,7 +68,7 @@ export function bulgedCurve(from: Point, to: Point, aim: Point = to): (p: number
   };
 }
 
-export function pathLength(points: readonly Point[]): number {
+function pathLength(points: readonly Point[]): number {
   let total = 0;
   for (let i = 1; i < points.length; i++)
     total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
@@ -72,7 +79,7 @@ export function polylineAt(points: readonly Point[]): (p: number) => Point {
   if (points.length === 0) throw new Error("A path needs at least one point.");
   const total = pathLength(points);
   return (p) => {
-    if (total < 1e-6 || p <= 0) return { ...points[0] };
+    if (total < SAME_POINT_PX || p <= 0) return { ...points[0] };
     let left = clamp(p, 0, 1) * total;
     for (let i = 1; i < points.length; i++) {
       const a = points[i - 1];
@@ -95,7 +102,7 @@ export function dragDuration(points: readonly Point[], k: number, dragMs = 0): n
 
 export function nudgeToward(from: Point, to: Point, px: number): Point {
   const dist = Math.hypot(to.x - from.x, to.y - from.y);
-  if (dist < 1e-6) return { x: from.x + px, y: from.y };
+  if (dist < SAME_POINT_PX) return { x: from.x + px, y: from.y };
   const step = Math.min(px, dist);
   return {
     x: from.x + ((to.x - from.x) / dist) * step,

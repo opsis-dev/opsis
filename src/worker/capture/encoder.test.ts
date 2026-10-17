@@ -1,6 +1,5 @@
 import { PassThrough } from "node:stream";
 import { describe, expect, it } from "vitest";
-import type { FfmpegTools } from "../media/ffmpeg";
 import { FrameEncoder } from "./encoder";
 
 function fakeFfmpeg() {
@@ -12,7 +11,7 @@ function fakeFfmpeg() {
     finish = () => resolve("");
   });
   stdin.on("finish", () => finish());
-  const tools = { pipe: () => ({ stdin, done }) } as unknown as FfmpegTools;
+  const tools = { pipe: () => ({ stdin, done }) };
   return { tools, written };
 }
 

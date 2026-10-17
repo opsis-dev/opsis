@@ -22,9 +22,7 @@ export async function readCached(
   hash: string,
   projectDir: string,
 ): Promise<NodeResult | null> {
-  const file = path.join(cacheDir, hash, "result.json");
-  if (!existsSync(file)) return null;
-  const result = await readJson<NodeResult>(file);
+  const result = await readJson<NodeResult>(path.join(cacheDir, hash, "result.json"));
   if (!result) return null;
   const missing = result.artifacts.some((a) => !existsSync(path.join(projectDir, a.path)));
   return missing ? null : result;

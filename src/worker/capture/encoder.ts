@@ -1,6 +1,33 @@
 import { once } from "node:events";
 import type { FfmpegTools } from "../media/ffmpeg";
 
+const ENCODE_CRF = 16;
+
+const encoderArgs = (fps: number, output: string): string[] => [
+  "-f",
+  "image2pipe",
+  "-framerate",
+  String(fps),
+  "-c:v",
+  "mjpeg",
+  "-i",
+  "-",
+  "-an",
+  "-vf",
+  "pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p",
+  "-c:v",
+  "libx264",
+  "-preset",
+  "medium",
+  "-crf",
+  String(ENCODE_CRF),
+  "-r",
+  String(fps),
+  "-movflags",
+  "+faststart",
+  output,
+];
+
 export class FrameEncoder {
   private origin: number | null = null;
   private tick = 0;
@@ -12,39 +39,13 @@ export class FrameEncoder {
   readonly frameMs: number;
 
   constructor(
-    ffmpeg: FfmpegTools,
+    ffmpeg: Pick<FfmpegTools, "pipe">,
     readonly output: string,
     fps: number,
     signal?: AbortSignal,
   ) {
     this.frameMs = 1000 / fps;
-    const proc = ffmpeg.pipe(
-      [
-        "-f",
-        "image2pipe",
-        "-framerate",
-        String(fps),
-        "-c:v",
-        "mjpeg",
-        "-i",
-        "-",
-        "-an",
-        "-vf",
-        "pad=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p",
-        "-c:v",
-        "libx264",
-        "-preset",
-        "medium",
-        "-crf",
-        "16",
-        "-r",
-        String(fps),
-        "-movflags",
-        "+faststart",
-        output,
-      ],
-      { signal },
-    );
+    const proc = ffmpeg.pipe(encoderArgs(fps, output), { signal });
     this.stdin = proc.stdin;
     this.done = proc.done;
     this.done.then(
@@ -100,25 +101,13 @@ export class FrameEncoder {
 
   private async advance(t: number, inclusive = false) {
     if (this.origin === null || !this.last) return;
-    while (
-      inclusive
-        ? this.origin + this.tick * this.frameMs <= t
-        : this.origin + this.tick * this.frameMs < t
-    ) {
+    const due = inclusive ? (at: number) => at <= t : (at: number) => at < t;
+    while (due(this.origin + this.tick * this.frameMs)) {
       if (this.ended || this.stdin.writableEnded)
         throw this.ended ?? new Error("The video encoder stopped.");
       if (!this.stdin.write(this.last)) {
-        const outcome = await Promise.race([
-          once(this.stdin, "drain").then(
-            () => "drained",
-            () => "stopped",
-          ),
-          this.done.then(
-            () => "stopped",
-            () => "stopped",
-          ),
-        ]);
-        if (outcome === "stopped") throw this.ended ?? new Error("The video encoder stopped.");
+        await Promise.race([once(this.stdin, "drain"), this.done]).catch(() => undefined);
+        if (this.ended) throw this.ended;
       }
       this.tick++;
     }
