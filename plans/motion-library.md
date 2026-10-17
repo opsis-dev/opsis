@@ -288,7 +288,7 @@ Already in place:
 - `ElementMeta.thumbnail?: string` exists in `src/shared/elements/types.ts` and is never read.
 - `renderFrame`, `openRenderBrowser` and `getServeUrl` (`src/worker/render/render.ts`) and `bundleRemotionProject` (`src/worker/render/bundle.ts`) render one frame of a spec; `itemClip` and `clipToSpec` (`src/shared/compile/clip.ts`) build a spec for one element.
 - `scripts/brand-icons.ts` already finds the recording browser for a dev script (`resources/engine` or `DEMOFLOW_HEADLESS_SHELL`).
-- Node cards already play live with `<Thumbnail>` and `DemoTimeline` (`src/renderer/editor/node-card.tsx`).
+- Node cards already play live with `<Thumbnail>` and `DemoTimeline` (`src/renderer/editor/node-still.tsx`).
 
 Missing:
 

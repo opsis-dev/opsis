@@ -9,8 +9,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { memo } from "react";
+import type { z } from "zod";
 import type { NodeDef, PortSpec } from "@/shared/nodes/define";
 import { getNodeDef, nodeName } from "@/shared/nodes/registry";
+import { groupParams, noteParams } from "@/shared/nodes/utility";
 import type { NodeRunStatus } from "@/shared/schema/events";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import {
@@ -30,9 +32,10 @@ import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import type { FlowNodeData } from "./convert";
 import { CategoryBadge } from "./category-badge";
-import { CardRows, NodeThumbnail, useCardRows } from "./node-card";
-import { PORT_COLORS, portLabel } from "./ports";
-import { useCompiledContext } from "./use-compiled";
+import { CardRows, useCardRows } from "./card-rows";
+import { NodeThumbnail } from "./node-still";
+import { portLabel, portTypeColor } from "./ports";
+import { useNodeProblems } from "./use-node-problems";
 
 type DemoflowFlowNode = Node<FlowNodeData>;
 
@@ -51,6 +54,27 @@ const STATUS: Partial<Record<NodeRunStatus, StatusBadge>> = {
   error: { label: "Failed", icon: CircleX, variant: "destructive" },
 };
 
+const INDICATOR: Partial<Record<NodeRunStatus, NodeStatus>> = {
+  running: "loading",
+  error: "error",
+};
+
+const DONE_BORDER =
+  "border-success absolute -top-px -left-px h-[calc(100%+2px)] w-[calc(100%+2px)] rounded-[9px] border-2";
+
+const GROUP_MIN_WIDTH = 240;
+const GROUP_MIN_HEIGHT = 160;
+
+const FOOTERS = {
+  error: { className: "text-destructive text-xs", clamp: "line-clamp-3" },
+  warning: { className: "text-muted-foreground text-[11px]", clamp: "line-clamp-2" },
+};
+
+function paramsOf<S extends z.ZodObject>(schema: S, params: unknown): z.infer<S> {
+  const parsed = schema.safeParse(params);
+  return parsed.success ? parsed.data : schema.parse({});
+}
+
 export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<DemoflowFlowNode>) {
   const def = getNodeDef(data.node.type);
   if (!def) {
@@ -63,33 +87,17 @@ export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<DemoflowF
   return <KnownNode id={id} node={data.node} def={def} />;
 });
 
-function useNodeProblems(id: string, disabled: boolean | undefined) {
-  const runError = useRunStore((s) => s.errors[id]);
-  const { result, issues } = useCompiledContext();
-  const error =
-    runError ??
-    result?.errors[id] ??
-    issues.find((i) => i.nodeId === id && i.level === "error")?.message;
-  const warning = disabled
-    ? undefined
-    : issues.find((i) => i.nodeId === id && i.level === "warning")?.message;
-  return { error, warning };
-}
-
 function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: NodeDef }) {
   const status = useRunStore((s) => s.statuses[id]);
   const active = useUiStore((s) => s.activeIds.includes(id));
   const rows = useCardRows(node, def);
-  const { error, warning } = useNodeProblems(id, node.disabled);
-  const indicator: NodeStatus =
-    status === "running" ? "loading" : status === "error" ? "error" : "initial";
+  const { errors, warnings } = useNodeProblems(id);
+  const indicator = (status && INDICATOR[status]) ?? "initial";
   const succeeded = status === "done" || status === "cached";
 
   return (
     <NodeStatusIndicator status={indicator} variant="border">
-      {succeeded ? (
-        <div className="border-success absolute -top-px -left-px h-[calc(100%+2px)] w-[calc(100%+2px)] rounded-[9px] border-2" />
-      ) : null}
+      {succeeded ? <div className={DONE_BORDER} /> : null}
       <BaseNode
         className={cn("w-64", node.disabled && "opacity-50", active && "ring-primary/70 ring-2")}
       >
@@ -100,7 +108,7 @@ function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: Nod
           <NodeThumbnail nodeId={id} def={def} />
           {status === "running" ? <RunProgress id={id} /> : null}
         </BaseNodeContent>
-        <NodeFooter error={error} warning={warning} />
+        <NodeFooter error={errors[0]} warning={node.disabled ? undefined : warnings[0]} />
       </BaseNode>
     </NodeStatusIndicator>
   );
@@ -142,7 +150,7 @@ function PortHandles({ ports, side }: { ports: Record<string, PortSpec>; side: "
       position={side === "in" ? Position.Left : Position.Right}
       title={portLabel(port, side)}
       labelClassName={cn("text-xs", side === "in" && port.optional && "text-muted-foreground")}
-      style={{ background: PORT_COLORS[port.type], borderColor: PORT_COLORS[port.type] }}
+      style={{ background: portTypeColor(port.type), borderColor: portTypeColor(port.type) }}
     />
   ));
 }
@@ -175,19 +183,14 @@ function RunProgress({ id }: { id: string }) {
 }
 
 function NodeFooter({ error, warning }: { error?: string; warning?: string }) {
-  if (error)
-    return (
-      <BaseNodeFooter className="text-destructive items-start text-xs">
-        <span className="line-clamp-3">{error}</span>
-      </BaseNodeFooter>
-    );
-  if (warning)
-    return (
-      <BaseNodeFooter className="text-muted-foreground items-start text-[11px]">
-        <span className="line-clamp-2">{warning}</span>
-      </BaseNodeFooter>
-    );
-  return null;
+  const message = error ?? warning;
+  if (!message) return null;
+  const style = FOOTERS[error ? "error" : "warning"];
+  return (
+    <BaseNodeFooter className={cn("items-start", style.className)}>
+      <span className={style.clamp}>{message}</span>
+    </BaseNodeFooter>
+  );
 }
 
 export const GroupFlowNode = memo(function GroupFlowNode({
@@ -195,22 +198,24 @@ export const GroupFlowNode = memo(function GroupFlowNode({
   data,
   selected,
 }: NodeProps<DemoflowFlowNode>) {
-  const title = String(data.node.params.title ?? "Group");
-  const color = String(data.node.params.color ?? "#a78bfa");
+  const { title, color } = paramsOf(groupParams, data.node.params);
   const setMeta = useWorkflowStore((s) => s.setNodeMeta);
   return (
     <>
       <NodeResizer
         isVisible={selected}
-        minWidth={240}
-        minHeight={160}
+        minWidth={GROUP_MIN_WIDTH}
+        minHeight={GROUP_MIN_HEIGHT}
         onResizeEnd={(_e, p) =>
           setMeta(id, { size: { width: p.width, height: p.height }, position: { x: p.x, y: p.y } })
         }
       />
       <div
         className="size-full rounded-xl border-2 border-dashed"
-        style={{ borderColor: `${color}88`, background: `${color}0f` }}
+        style={{
+          borderColor: `color-mix(in srgb, ${color} 53%, transparent)`,
+          background: `color-mix(in srgb, ${color} 6%, transparent)`,
+        }}
       >
         <div
           className="rounded-tl-xl rounded-br-xl px-3 py-1 text-xs font-semibold text-black"
@@ -226,7 +231,7 @@ export const GroupFlowNode = memo(function GroupFlowNode({
 export const NoteFlowNode = memo(function NoteFlowNode({ data }: NodeProps<DemoflowFlowNode>) {
   return (
     <div className="w-64 rounded-lg border border-amber-300/40 bg-amber-200/10 p-3 text-xs leading-relaxed whitespace-pre-wrap text-amber-100">
-      {String(data.node.params.text ?? "")}
+      {paramsOf(noteParams, data.node.params).text}
     </div>
   );
 });

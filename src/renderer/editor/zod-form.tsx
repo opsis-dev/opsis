@@ -1,8 +1,10 @@
 import { ChevronRight, Plus, Trash2 } from "lucide-react";
-import type { ComponentType } from "react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import type { z } from "zod";
-import { fieldMeta, type FieldMeta } from "@/shared/elements/introspect";
+import { fieldMeta, schemaDefaults, type FieldMeta } from "@/shared/elements/introspect";
 import { humanize } from "@/shared/format";
+import { isRecord } from "@/shared/guards";
+import { randomId } from "@/shared/ids";
 import { transitionTitle } from "@/shared/nodes/transitions";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -28,16 +30,34 @@ import { NumberControl } from "./form/number-field";
 import { isColor, labelFor, schemaKind } from "./form/schema-kind";
 import { StringField } from "./form/string-field";
 import type { FieldProps, FormContext, Patch } from "./form/types";
-import { isRecord } from "@/shared/guards";
 
 type Entry = { key: string; field: z.ZodType; meta: FieldMeta };
 
-const VALUE_WIDGETS: Partial<Record<string, ComponentType<FieldProps<unknown>>>> = {
+type AnyFieldProps = FieldProps<unknown>;
+
+const VALUE_WIDGETS: Partial<Record<string, ComponentType<AnyFieldProps>>> = {
   boxes: BoxesField,
   envelope: EnvelopeField,
 };
 
+const COLLAPSING =
+  "h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-200 ease-out data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0";
+
 const isString = (v: unknown): v is string => typeof v === "string";
+const isNumber = (v: unknown): v is number => typeof v === "number";
+const isBoolean = (v: unknown): v is boolean => typeof v === "boolean";
+const isLiteral = (v: unknown): v is string | number => isString(v) || isNumber(v);
+const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every(isString);
+const isRecordList = (v: unknown): v is Patch[] => Array.isArray(v) && v.every(isRecord);
+
+function typed<V>(
+  props: AnyFieldProps,
+  is: (v: unknown) => v is V,
+  empty: V,
+): FieldProps<V> | null {
+  if (props.value == null) return { ...props, value: empty };
+  return is(props.value) ? { ...props, value: props.value } : null;
+}
 
 function visible(meta: FieldMeta, value: Patch): boolean {
   if (meta.hidden) return false;
@@ -84,118 +104,131 @@ export function ZodForm({
   return (
     <FieldGroup className="gap-4">
       {render(basic)}
-      {advanced.length ? (
-        <Collapsible>
-          <CollapsibleTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="sm"
-                className="group/adv text-muted-foreground -ml-2 w-fit"
-              >
-                <ChevronRight
-                  data-icon="inline-start"
-                  className="transition-transform group-data-[panel-open]/adv:rotate-90"
-                />
-                Advanced
-              </Button>
-            }
-          />
-          <CollapsibleContent className="h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-200 ease-out data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0">
-            <FieldGroup className="gap-4 pt-3">{render(advanced)}</FieldGroup>
-          </CollapsibleContent>
-        </Collapsible>
-      ) : null}
+      {advanced.length ? <AdvancedSection>{render(advanced)}</AdvancedSection> : null}
     </FieldGroup>
   );
 }
 
+function AdvancedSection({ children }: { children: ReactNode }) {
+  return (
+    <Collapsible>
+      <CollapsibleTrigger
+        render={
+          <Button variant="ghost" size="sm" className="group/adv text-muted-foreground -ml-2 w-fit">
+            <ChevronRight
+              data-icon="inline-start"
+              className="transition-transform group-data-[panel-open]/adv:rotate-90"
+            />
+            Advanced
+          </Button>
+        }
+      />
+      <CollapsibleContent className={COLLAPSING}>
+        <FieldGroup className="gap-4 pt-3">{children}</FieldGroup>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 function FieldControl({
-  name,
   schema,
-  value,
-  all,
-  onChange,
-  onPatch,
-  ctx,
-}: {
-  name: string;
-  schema: z.ZodType;
-  value: unknown;
-  all: Patch;
-  onChange: (v: unknown) => void;
-  onPatch: (patch: Patch) => void;
-  ctx: FormContext;
-}) {
+  ...rest
+}: Omit<AnyFieldProps, "id" | "label" | "meta"> & { schema: z.ZodType }) {
   const meta = fieldMeta(schema);
-  const props = { id: `f-${name}`, name, label: labelFor(name, schema), meta, all, ctx };
-  const handlers = { onChange, onPatch };
-  if (isColor(schema)) return <ColorField {...props} {...handlers} value={String(value ?? "")} />;
+  const props: AnyFieldProps = {
+    ...rest,
+    id: `f-${rest.name}`,
+    label: labelFor(rest.name, schema),
+    meta,
+  };
+  if (isColor(schema)) return <ColorKindField {...props} />;
   const Widget = meta.widget ? VALUE_WIDGETS[meta.widget] : undefined;
-  if (Widget) return <Widget {...props} {...handlers} value={value} />;
+  if (Widget) return <Widget {...props} />;
   const kind = schemaKind(schema);
   switch (kind.kind) {
     case "boolean":
-      return <BooleanField {...props} {...handlers} value={Boolean(value)} />;
+      return <BooleanKindField {...props} />;
     case "number":
-      return (
-        <NumberControl
-          {...props}
-          {...handlers}
-          value={typeof value === "number" ? value : 0}
-          min={kind.min}
-          max={kind.max}
-        />
-      );
+      return <NumberKindField {...props} min={kind.min} max={kind.max} />;
     case "string":
-      return <StringField {...props} {...handlers} value={String(value ?? "")} />;
+      return <StringKindField {...props} />;
     case "enum":
-      return (
-        <EnumField
-          {...props}
-          options={kind.options}
-          value={String(value ?? kind.options[0])}
-          onChange={onChange}
-          format={
-            meta.widget === "transition" ? transitionTitle : (v) => meta.labels?.[v] ?? humanize(v)
-          }
-        />
-      );
+      return <EnumKindField {...props} options={kind.options} />;
     case "literals":
-      return (
-        <EnumField
-          {...props}
-          options={kind.options.map(String)}
-          value={String(value)}
-          onChange={(v) => onChange(typeof kind.options[0] === "number" ? Number(v) : v)}
-          format={(v) => (meta.unit ? `${v} ${meta.unit}` : v)}
-        />
-      );
+      return <LiteralsField {...props} options={kind.options} />;
     case "enumList":
-      return (
-        <ChoiceGroup
-          multiple
-          label={props.label}
-          meta={meta}
-          choices={kind.options.map((o) => ({ value: o, label: meta.labels?.[o] ?? o }))}
-          value={Array.isArray(value) ? value.filter(isString) : []}
-          onChange={onChange}
-        />
-      );
+      return <EnumListField {...props} options={kind.options} />;
     case "objectList":
-      return (
-        <ObjectListField
-          label={props.label}
-          meta={meta}
-          schema={kind.item}
-          value={Array.isArray(value) ? value.filter(isRecord) : []}
-          onChange={onChange}
-          ctx={ctx}
-        />
-      );
+      return <ObjectListKindField {...props} item={kind.item} />;
     default:
-      return <JsonField {...props} {...handlers} value={value} />;
+      return <JsonField {...props} />;
   }
+}
+
+function ColorKindField(props: AnyFieldProps) {
+  const field = typed(props, isString, "");
+  return field ? <ColorField {...field} /> : <JsonField {...props} />;
+}
+
+function StringKindField(props: AnyFieldProps) {
+  const field = typed(props, isString, "");
+  return field ? <StringField {...field} /> : <JsonField {...props} />;
+}
+
+function BooleanKindField(props: AnyFieldProps) {
+  const field = typed(props, isBoolean, false);
+  return field ? <BooleanField {...field} /> : <JsonField {...props} />;
+}
+
+function NumberKindField({ min, max, ...props }: AnyFieldProps & { min?: number; max?: number }) {
+  const field = typed(props, isNumber, 0);
+  return field ? <NumberControl {...field} min={min} max={max} /> : <JsonField {...props} />;
+}
+
+function EnumKindField({ options, ...props }: AnyFieldProps & { options: string[] }) {
+  const field = typed(props, isString, options[0] ?? "");
+  if (!field) return <JsonField {...props} />;
+  const { meta } = field;
+  return (
+    <EnumField
+      {...field}
+      options={options}
+      format={
+        meta.widget === "transition" ? transitionTitle : (v) => meta.labels?.[v] ?? humanize(v)
+      }
+    />
+  );
+}
+
+function LiteralsField({ options, ...props }: AnyFieldProps & { options: Array<string | number> }) {
+  const field = typed(props, isLiteral, "");
+  if (!field) return <JsonField {...props} />;
+  const { meta, onChange } = field;
+  return (
+    <EnumField
+      {...field}
+      options={options.map(String)}
+      value={String(field.value)}
+      onChange={(v) => onChange(options.find((o) => String(o) === v) ?? v)}
+      format={(v) => (meta.unit ? `${v} ${meta.unit}` : v)}
+    />
+  );
+}
+
+function EnumListField({ options, ...props }: AnyFieldProps & { options: string[] }) {
+  const field = typed(props, isStringList, []);
+  if (!field) return <JsonField {...props} />;
+  const { meta } = field;
+  return (
+    <ChoiceGroup
+      multiple
+      label={field.label}
+      meta={meta}
+      choices={options.map((o) => ({ value: o, label: meta.labels?.[o] ?? o }))}
+      value={field.value}
+      onChange={field.onChange}
+    />
+  );
 }
 
 function BooleanField({ id, label, value, onChange }: FieldProps<boolean>) {
@@ -204,36 +237,49 @@ function BooleanField({ id, label, value, onChange }: FieldProps<boolean>) {
       <FieldLabel htmlFor={id} className="font-normal">
         {label}
       </FieldLabel>
-      <Switch id={id} checked={value} onCheckedChange={(v) => onChange(v)} />
+      <Switch id={id} checked={value} onCheckedChange={onChange} />
     </Field>
   );
+}
+
+function ObjectListKindField({ item, ...props }: AnyFieldProps & { item: z.ZodObject }) {
+  const field = typed(props, isRecordList, []);
+  return field ? <ObjectListField {...field} item={item} /> : <JsonField {...props} />;
+}
+
+function useItemKeys(count: number) {
+  const [keys, setKeys] = useState(() => Array.from({ length: count }, () => randomId()));
+  if (keys.length !== count)
+    setKeys(Array.from({ length: count }, (_, i) => keys[i] ?? randomId()));
+  return {
+    keys,
+    add: () => setKeys([...keys, randomId()]),
+    remove: (index: number) => setKeys(keys.toSpliced(index, 1)),
+  };
 }
 
 function ObjectListField({
   label,
   meta,
-  schema,
+  item,
   value,
   onChange,
   ctx,
-}: {
-  label: string;
-  meta: FieldMeta;
-  schema: z.ZodObject;
-  value: Patch[];
-  onChange: (v: Patch[]) => void;
-  ctx: FormContext;
-}) {
+}: FieldProps<Patch[]> & { item: z.ZodObject }) {
+  const keys = useItemKeys(value.length);
   return (
     <FieldSet>
       <FieldLegend variant="label">{label}</FieldLegend>
       <Help meta={meta} />
       <div className="flex flex-col gap-3">
-        {value.map((item, i) => (
-          <div key={i} className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3">
+        {value.map((entry, i) => (
+          <div
+            key={keys.keys[i] ?? i}
+            className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3"
+          >
             <ZodForm
-              schema={schema}
-              value={item}
+              schema={item}
+              value={entry}
               ctx={ctx}
               onChange={(patch) =>
                 onChange(value.map((v, j) => (j === i ? { ...v, ...patch } : v)))
@@ -242,14 +288,24 @@ function ObjectListField({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onChange(value.filter((_, j) => j !== i))}
+              onClick={() => {
+                keys.remove(i);
+                onChange(value.toSpliced(i, 1));
+              }}
             >
               <Trash2 data-icon="inline-start" />
               Remove
             </Button>
           </div>
         ))}
-        <Button variant="outline" size="sm" onClick={() => onChange([...value, schema.parse({})])}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            keys.add();
+            onChange([...value, schemaDefaults(item)]);
+          }}
+        >
           <Plus data-icon="inline-start" />
           Add
         </Button>

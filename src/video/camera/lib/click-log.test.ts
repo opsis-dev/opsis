@@ -20,4 +20,8 @@ describe("chordGlyphs", () => {
   it("tolerates spacing around the plus", () => {
     assert.equal(chordGlyphs("Alt + Enter"), "⌥⏎");
   });
+
+  it("keeps the plus key itself", () => {
+    assert.equal(chordGlyphs("Shift++"), "⇧+");
+  });
 });

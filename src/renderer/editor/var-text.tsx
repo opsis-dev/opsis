@@ -1,5 +1,5 @@
 import { Braces, Pause } from "lucide-react";
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, type RefObject } from "react";
 import { PAUSE_MARK, tokenize, type TextToken } from "@/shared/vars";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -61,6 +61,49 @@ function serialize(root: Node): string {
   return [...root.childNodes].map(serializeNode).join("");
 }
 
+type Rendered = { vars: string; text: string };
+
+type Editable = {
+  ref: RefObject<HTMLDivElement | null>;
+  commit: () => void;
+  saveRange: () => void;
+  insert: (tokens: TextToken[]) => void;
+};
+
+function useSelectionRange(ref: RefObject<HTMLElement | null>) {
+  const range = useRef<Range | null>(null);
+  const save = () => {
+    const sel = window.getSelection();
+    if (sel?.rangeCount && ref.current?.contains(sel.anchorNode))
+      range.current = sel.getRangeAt(0).cloneRange();
+  };
+  const target = (el: HTMLElement): Range => {
+    if (range.current && el.contains(range.current.startContainer)) return range.current;
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    r.collapse(false);
+    return r;
+  };
+  const place = (r: Range) => {
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(r);
+    range.current = r.cloneRange();
+  };
+  return { save, target, place };
+}
+
+function insertNodes(range: Range, nodes: Node[]) {
+  range.deleteContents();
+  const frag = document.createDocumentFragment();
+  frag.append(...nodes);
+  range.insertNode(frag);
+  const last = nodes.at(-1);
+  if (!last) return;
+  range.setStartAfter(last);
+  range.collapse(true);
+}
+
 function useEditable({
   value,
   onChange,
@@ -71,65 +114,39 @@ function useEditable({
   onChange: (value: string) => void;
   vars: VarInfo[];
   pauses: boolean;
-}) {
+}): Editable {
   const ref = useRef<HTMLDivElement>(null);
-  const rendered = useRef<string | null>(null);
-  const range = useRef<Range | null>(null);
+  const rendered = useRef<Rendered | null>(null);
+  const selection = useSelectionRange(ref);
   const varsKey = vars.map((v) => `${v.name}=${v.value}`).join("\n");
 
   useLayoutEffect(() => {
     const el = ref.current;
-    const key = `${varsKey}\u0000${value}`;
-    if (!el || rendered.current === key) return;
+    const shown = rendered.current;
+    if (!el || (shown?.vars === varsKey && shown.text === value)) return;
     el.replaceChildren(...nodesFor(tokenize(value, pauses), vars));
-    rendered.current = key;
+    rendered.current = { vars: varsKey, text: value };
   }, [value, pauses, vars, varsKey]);
 
   const commit = () => {
     const el = ref.current;
     if (!el) return;
     const next = serialize(el);
-    rendered.current = `${varsKey}\u0000${next}`;
+    rendered.current = { vars: varsKey, text: next };
     if (next !== value) onChange(next);
-  };
-
-  const saveRange = () => {
-    const sel = window.getSelection();
-    if (sel?.rangeCount && ref.current?.contains(sel.anchorNode))
-      range.current = sel.getRangeAt(0).cloneRange();
-  };
-
-  const insertionRange = (el: HTMLElement) => {
-    if (range.current && el.contains(range.current.startContainer)) return range.current;
-    const r = document.createRange();
-    r.selectNodeContents(el);
-    r.collapse(false);
-    return r;
   };
 
   const insert = (tokens: TextToken[]) => {
     const el = ref.current;
     if (!el) return;
     el.focus();
-    const sel = window.getSelection();
-    const r = insertionRange(el);
-    r.deleteContents();
-    const nodes = nodesFor(tokens, vars);
-    const frag = document.createDocumentFragment();
-    for (const n of nodes) frag.appendChild(n);
-    const last = nodes.at(-1);
-    r.insertNode(frag);
-    if (last) {
-      r.setStartAfter(last);
-      r.collapse(true);
-    }
-    sel?.removeAllRanges();
-    sel?.addRange(r);
-    range.current = r.cloneRange();
+    const r = selection.target(el);
+    insertNodes(r, nodesFor(tokens, vars));
+    selection.place(r);
     commit();
   };
 
-  return { ref, commit, saveRange, insert };
+  return { ref, commit, saveRange: selection.save, insert };
 }
 
 function VariablesMenu({
@@ -186,25 +203,23 @@ const SURFACE = [
   "data-[empty=true]:before:text-muted-foreground data-[empty=true]:before:content-[attr(data-placeholder)]",
 ];
 
-export function VarText({
+function Surface({
   id,
-  value,
-  onChange,
-  vars,
-  multiline = false,
-  pauses = false,
+  editable,
+  multiline,
+  pauses,
   placeholder,
+  empty,
 }: {
   id: string;
-  value: string;
-  onChange: (value: string) => void;
-  vars: VarInfo[];
-  multiline?: boolean;
-  pauses?: boolean;
+  editable: Editable;
+  multiline: boolean;
+  pauses: boolean;
   placeholder?: string;
+  empty: boolean;
 }) {
-  const { ref, commit, saveRange, insert } = useEditable({ value, onChange, vars, pauses });
-  const surface = (
+  const { ref, commit, saveRange, insert } = editable;
+  return (
     <div
       id={id}
       ref={ref}
@@ -214,7 +229,7 @@ export function VarText({
       suppressContentEditableWarning
       spellCheck
       data-placeholder={placeholder}
-      data-empty={value ? "false" : "true"}
+      data-empty={empty ? "true" : "false"}
       className={cn(SURFACE, multiline ? "min-h-16 w-full py-2" : "min-h-8 flex-1 leading-6")}
       onInput={commit}
       onKeyUp={saveRange}
@@ -234,39 +249,86 @@ export function VarText({
       onDrop={(e) => e.preventDefault()}
     />
   );
-  const menu = (
-    <VariablesMenu
-      vars={vars}
-      compact={!multiline}
-      onOpen={saveRange}
-      onPick={(name) => insert([{ kind: "var", name }])}
+}
+
+function MultilineFooter({
+  vars,
+  pauses,
+  editable,
+}: {
+  vars: VarInfo[];
+  pauses: boolean;
+  editable: Editable;
+}) {
+  const { saveRange, insert } = editable;
+  return (
+    <div className="flex gap-1">
+      <VariablesMenu
+        vars={vars}
+        compact={false}
+        onOpen={saveRange}
+        onPick={(name) => insert([{ kind: "var", name }])}
+      />
+      {pauses ? (
+        <Button
+          variant="ghost"
+          size="xs"
+          className="text-muted-foreground"
+          onMouseDown={saveRange}
+          onClick={() => insert([{ kind: "pause" }])}
+        >
+          <Pause data-icon="inline-start" />
+          Add pause
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+export function VarText({
+  id,
+  value,
+  onChange,
+  vars,
+  multiline = false,
+  pauses = false,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  vars: VarInfo[];
+  multiline?: boolean;
+  pauses?: boolean;
+  placeholder?: string;
+}) {
+  const editable = useEditable({ value, onChange, vars, pauses });
+  const surface = (
+    <Surface
+      id={id}
+      editable={editable}
+      multiline={multiline}
+      pauses={pauses}
+      placeholder={placeholder}
+      empty={!value}
     />
   );
-  if (!multiline)
+  if (multiline)
     return (
-      <div className="flex items-start gap-1">
+      <div className="flex flex-col gap-1.5">
         {surface}
-        {menu}
+        <MultilineFooter vars={vars} pauses={pauses} editable={editable} />
       </div>
     );
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex items-start gap-1">
       {surface}
-      <div className="flex gap-1">
-        {menu}
-        {pauses ? (
-          <Button
-            variant="ghost"
-            size="xs"
-            className="text-muted-foreground"
-            onMouseDown={saveRange}
-            onClick={() => insert([{ kind: "pause" }])}
-          >
-            <Pause data-icon="inline-start" />
-            Add pause
-          </Button>
-        ) : null}
-      </div>
+      <VariablesMenu
+        vars={vars}
+        compact
+        onOpen={editable.saveRange}
+        onPick={(name) => editable.insert([{ kind: "var", name }])}
+      />
     </div>
   );
 }

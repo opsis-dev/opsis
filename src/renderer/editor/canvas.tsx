@@ -17,7 +17,7 @@ import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { SNAP_GRID } from "./canvas-grid";
 import { CanvasToolbar } from "./canvas-toolbar";
-import type { FlowNodeData } from "./convert";
+import type { FlowNodeData, FlowNodeType } from "./convert";
 import { FlowNode, GroupFlowNode, NoteFlowNode } from "./flow-node";
 import { MAX_ZOOM, MIN_ZOOM } from "./pinch";
 import { categoryColor } from "./ports";
@@ -28,7 +28,11 @@ import { useOpenWorkflow } from "./use-open-workflow";
 import { usePinchZoom } from "./use-pinch-zoom";
 import { useRevealNode } from "./use-reveal-node";
 
-const nodeTypes = { demoflow: FlowNode, group: GroupFlowNode, note: NoteFlowNode };
+const nodeTypes = {
+  demoflow: FlowNode,
+  group: GroupFlowNode,
+  note: NoteFlowNode,
+} satisfies Record<FlowNodeType, unknown>;
 
 const PRO_OPTIONS = { hideAttribution: true };
 

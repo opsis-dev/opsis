@@ -4,6 +4,7 @@ import { cameraNodes } from "./camera";
 import { captureNodes } from "./capture";
 import { cursorNodes } from "./cursor";
 import type { NodeDef } from "./define";
+import { schemaDefaults } from "../elements/introspect";
 import { elementNodes } from "./elements";
 import { mediaNodes } from "./media";
 import { outputNodes } from "./output";
@@ -60,11 +61,5 @@ export function nodeNameById(
 
 export function defaultParams(type: string): Record<string, unknown> {
   const def = getNodeDef(type);
-  if (!def) return {};
-  const out: Record<string, unknown> = {};
-  for (const [key, field] of Object.entries(def.params.shape)) {
-    const parsed = field.safeParse(undefined);
-    if (parsed.success && parsed.data !== undefined) out[key] = parsed.data;
-  }
-  return out;
+  return def ? schemaDefaults(def.params) : {};
 }

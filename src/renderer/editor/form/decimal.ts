@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { round3 } from "@/shared/math";
 
 export const trimNumber = (n: number): string => String(round3(n));
@@ -19,7 +19,7 @@ export function useDecimalInput(
   return {
     inputMode: "decimal" as const,
     value: draft ?? shown,
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange: (e: ChangeEvent<HTMLInputElement>) => {
       setDraft(e.target.value);
       onEdit?.(e.target.value);
     },

@@ -54,3 +54,12 @@ export const assetKeys = (schema: z.ZodObject): string[] => widgetKeys(schema, "
 
 export const hasWidget = (schema: z.ZodObject, widget: string): boolean =>
   widgetKeys(schema, widget).length > 0;
+
+export function schemaDefaults(schema: z.ZodObject): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, field] of Object.entries(schema.shape)) {
+    const parsed = field.safeParse(undefined);
+    if (parsed.success && parsed.data !== undefined) out[key] = parsed.data;
+  }
+  return out;
+}

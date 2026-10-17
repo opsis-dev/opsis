@@ -79,6 +79,9 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
   card?(ctx: CardContext<z.infer<S>>): Array<CardRow | false | null | undefined | "" | 0>;
 }
 
+export const hasNoCardPicture = (def: Pick<NodeDef, "category">): boolean =>
+  def.category === "Browser" || def.category === "Utility";
+
 export function defineNode<S extends z.ZodObject>(def: NodeDef<S>): NodeDef<S> {
   return def;
 }

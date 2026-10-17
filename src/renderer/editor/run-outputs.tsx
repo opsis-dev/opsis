@@ -1,14 +1,13 @@
-import { FileSearch, Film, FolderOpen } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import { useMemo } from "react";
-import { getNodeDef } from "@/shared/nodes/registry";
 import { exportedArtifacts } from "@/shared/run-progress";
 import type { Artifact } from "@/shared/schema/values";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { Button } from "@/renderer/components/ui/button";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { useRunStore } from "../store/run";
-import { useUiStore } from "../store/ui";
 import { fileUrl } from "./file-url";
+import { ReplayButtons } from "./replay-buttons";
 import { revealOutputs } from "./reveal";
 
 function ArtifactPreview({ artifact }: { artifact: Artifact }) {
@@ -32,30 +31,6 @@ function ArtifactPreview({ artifact }: { artifact: Artifact }) {
   if (artifact.kind === "audio")
     return <audio src={fileUrl(artifact.path)} controls className="w-full" />;
   return null;
-}
-
-function ReplayButtons({ node, projectDir }: { node: WorkflowNode; projectDir: string | null }) {
-  const hasResult = useRunStore((s) => !!s.results[node.id]);
-  const hasTrace = useRunStore((s) => !!s.traces[node.id]);
-  const setReplay = useUiStore((s) => s.setReplay);
-  if (!hasResult && !hasTrace) return null;
-  const capture = getNodeDef(node.type)?.category === "Capture";
-  return (
-    <div className="flex flex-wrap gap-2">
-      {capture ? (
-        <Button size="xs" variant="outline" onClick={() => setReplay(node.id)}>
-          <Film data-icon="inline-start" />
-          Replay
-        </Button>
-      ) : null}
-      {hasTrace && projectDir ? (
-        <Button size="xs" variant="outline" onClick={() => setReplay(node.id, "trace")}>
-          <FileSearch data-icon="inline-start" />
-          Trace
-        </Button>
-      ) : null}
-    </div>
-  );
 }
 
 export function RunOutputs({
@@ -83,7 +58,11 @@ export function RunOutputs({
             </Button>
           ) : null}
         </div>
-        {filterNode ? <ReplayButtons node={filterNode} projectDir={projectDir} /> : null}
+        {filterNode ? (
+          <div className="flex flex-wrap gap-2 empty:hidden">
+            <ReplayButtons nodeId={filterNode.id} nodeType={filterNode.type} size="xs" />
+          </div>
+        ) : null}
         {artifacts.length === 0 ? (
           <p className="text-muted-foreground text-xs">Nothing yet.</p>
         ) : null}

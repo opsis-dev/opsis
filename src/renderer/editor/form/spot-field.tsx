@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, type PointerEvent } from "react";
 import { round3 } from "@/shared/math";
 import { FieldShell } from "./field-shell";
 import type { FieldProps } from "./types";
@@ -13,7 +13,7 @@ export function SpotField({ label, name, all, onPatch, ctx, meta }: FieldProps<n
   const box = useRef<HTMLDivElement>(null);
   const time = Number(all.atMs ?? 0);
   const bg = ctx.spotBackground;
-  const set = (e: React.PointerEvent) => {
+  const set = (e: PointerEvent) => {
     const r = box.current?.getBoundingClientRect();
     if (!r) return;
     const at = fractionIn(r, e.clientX, e.clientY);

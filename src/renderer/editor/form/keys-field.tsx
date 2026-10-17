@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Kbd } from "@/renderer/components/ui/kbd";
 import { cn } from "@/renderer/lib/utils";
+import { chordKeys } from "@/shared/format";
 import { chordFromEvent } from "../keys";
 import { FieldShell } from "./field-shell";
 import type { FieldProps } from "./types";
@@ -27,7 +28,7 @@ export function KeysField({ id, label, value, onChange, meta }: FieldProps<strin
         }}
       >
         {value ? (
-          value.split("+").map((k, i) => <Kbd key={i}>{k}</Kbd>)
+          chordKeys(value).map((k) => <Kbd key={k}>{k}</Kbd>)
         ) : (
           <span className="text-muted-foreground">Press a key</span>
         )}

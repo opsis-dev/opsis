@@ -1,6 +1,7 @@
 import { temporal } from "zundo";
 import { create } from "zustand";
 import { defaultParams, getNodeDef } from "@/shared/nodes/registry";
+import { GROUP_TYPE } from "@/shared/nodes/utility";
 import {
   normalizeWorkflow,
   type Marker,
@@ -330,9 +331,9 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
           nodes: [
             {
               id: groupId,
-              type: "core.group",
+              type: GROUP_TYPE,
               position: { x, y },
-              params: { ...defaultParams("core.group"), title },
+              params: { ...defaultParams(GROUP_TYPE), title },
               size: { width, height },
             },
             ...w.nodes.map((n) =>

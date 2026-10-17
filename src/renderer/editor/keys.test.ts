@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { chordKeys } from "@/shared/format";
 import { chordFromEvent } from "./keys";
 
 const key = (
@@ -15,12 +16,22 @@ const key = (
   });
 
 describe("recording a shortcut", () => {
-  it("writes chords the way the browser expects", () => {
-    expect(key("k", { ctrlKey: true })).toBe("Control+K");
-    expect(key("Enter")).toBe("Enter");
-    expect(key(" ", { metaKey: true, shiftKey: true })).toBe("Meta+Shift+Space");
-    expect(key("Shift", { shiftKey: true })).toBeNull();
-    expect(key("ArrowUp", { altKey: true })).toBe("Alt+ArrowUp");
-    expect(key("Escape")).toBe("Escape");
+  it.each([
+    ["k", { ctrlKey: true }, "Control+K"],
+    ["Enter", {}, "Enter"],
+    [" ", { metaKey: true, shiftKey: true }, "Meta+Shift+Space"],
+    ["Shift", { shiftKey: true }, null],
+    ["ArrowUp", { altKey: true }, "Alt+ArrowUp"],
+    ["Escape", {}, "Escape"],
+  ] as const)("writes %j with %j as %j", (k, mods, chord) => {
+    expect(key(k, mods)).toBe(chord);
+  });
+
+  it.each([
+    ["Control+K", ["Control", "K"]],
+    ["Shift++", ["Shift", "+"]],
+    ["+", ["+"]],
+  ])("splits %j into its keys", (chord, keys) => {
+    expect(chordKeys(chord)).toEqual(keys);
   });
 });

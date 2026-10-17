@@ -1,6 +1,6 @@
 import { useStoreApi } from "@xyflow/react";
 import { ArrowRight, PanelLeftOpen } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState, type DragEvent } from "react";
 import {
   CATEGORY_LABELS,
   NODE_CATEGORIES,
@@ -29,18 +29,15 @@ import { CategoryBadge } from "./category-badge";
 import { openPanel, usePanels } from "./panels";
 import { CATEGORY_STYLES, portLabel } from "./ports";
 
-function useGroups(only?: NodeCategory) {
-  return useMemo(
-    () =>
-      NODE_CATEGORIES.filter((c) => !only || c === only)
-        .map((category) => ({
-          category,
-          defs: VISIBLE_NODE_DEFS.filter((d) => d.category === category),
-        }))
-        .filter((g) => g.defs.length),
-    [only],
-  );
-}
+type PaletteGroup = { category: NodeCategory; defs: NodeDef[] };
+
+const GROUPS: PaletteGroup[] = NODE_CATEGORIES.map((category) => ({
+  category,
+  defs: VISIBLE_NODE_DEFS.filter((d) => d.category === category),
+})).filter((g) => g.defs.length);
+
+const groupsFor = (only?: NodeCategory): PaletteGroup[] =>
+  only ? GROUPS.filter((g) => g.category === only) : GROUPS;
 
 function useAddAtCenter() {
   const flowStore = useStoreApi();
@@ -97,7 +94,7 @@ function PaletteList({
   onDragEnd?: () => void;
   stickyHeadings?: boolean;
 }) {
-  const groups = useGroups(only);
+  const groups = groupsFor(only);
   return (
     <CommandList className="max-h-none">
       <CommandEmpty>No nodes found.</CommandEmpty>
@@ -113,7 +110,7 @@ function PaletteList({
               value={`${def.title} ${CATEGORY_LABELS[category]} ${def.description ?? ""}`}
               onSelect={() => onPick(def.type)}
               draggable={draggable}
-              onDragStart={(e: React.DragEvent) => {
+              onDragStart={(e: DragEvent) => {
                 e.dataTransfer.setData(NODE_DRAG_TYPE, def.type);
                 e.dataTransfer.effectAllowed = "copy";
               }}
@@ -189,7 +186,6 @@ function RailCategory({
 function PaletteRail() {
   const add = useAddAtCenter();
   const [openCategory, setOpenCategory] = useState<NodeCategory | null>(null);
-  const groups = useGroups();
   return (
     <div className="flex h-full flex-col items-center gap-1 overflow-y-auto py-2">
       <Tooltip>
@@ -208,7 +204,7 @@ function PaletteRail() {
         <TooltipContent side="right">Show node list</TooltipContent>
       </Tooltip>
       <Separator className="my-1 w-6" />
-      {groups.map(({ category }) => (
+      {GROUPS.map(({ category }) => (
         <RailCategory
           key={category}
           category={category}

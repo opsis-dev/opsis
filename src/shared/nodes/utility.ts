@@ -2,8 +2,18 @@ import { z } from "zod";
 import { defineNode } from "./define";
 import { more, text } from "./params";
 
+export const GROUP_TYPE = "core.group";
+export const NOTE_TYPE = "core.note";
+
+export const groupParams = z.object({
+  title: text("Group", "Title"),
+  color: more(text("#a78bfa", "Colour"), { widget: "color" }),
+});
+
+export const noteParams = z.object({ text: text("Notes…", "Text", "textarea") });
+
 const groupNode = defineNode({
-  type: "core.group",
+  type: GROUP_TYPE,
   title: "Group",
   category: "Utility",
   icon: "group",
@@ -12,14 +22,11 @@ const groupNode = defineNode({
   description: "Boxes nodes together. Select nodes, then Group.",
   inputs: {},
   outputs: {},
-  params: z.object({
-    title: text("Group", "Title"),
-    color: more(text("#a78bfa", "Colour"), { widget: "color" }),
-  }),
+  params: groupParams,
 });
 
 const noteNode = defineNode({
-  type: "core.note",
+  type: NOTE_TYPE,
   title: "Note",
   category: "Utility",
   icon: "sticky-note",
@@ -27,7 +34,7 @@ const noteNode = defineNode({
   phase: "compile",
   inputs: {},
   outputs: {},
-  params: z.object({ text: text("Notes…", "Text", "textarea") }),
+  params: noteParams,
 });
 
 export const utilityNodes = [groupNode, noteNode];

@@ -1,3 +1,4 @@
+import { chordKeys } from "../../../shared/format";
 import type { Rect } from "../../../shared/schema/actions";
 
 export type ClickEvent = {
@@ -53,8 +54,7 @@ const KEY_GLYPHS = new Map([
 ]);
 
 export const chordGlyphs = (chord: string): string =>
-  chord
-    .split("+")
+  chordKeys(chord)
     .map((part) => {
       const key = part.trim();
       return KEY_GLYPHS.get(key.toLowerCase()) ?? key.toUpperCase();

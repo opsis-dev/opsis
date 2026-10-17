@@ -11,7 +11,7 @@ export type CardContext<P> = {
   raw: Record<string, unknown>;
   settings: WorkflowSettings;
   result?: NodeResult;
-  secrets?: string[];
+  secrets?: string[] | null;
   connected: string[];
   clipFrames?: number;
   inputFrames?: Record<string, number>;

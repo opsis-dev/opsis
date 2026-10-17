@@ -9,7 +9,7 @@ import { Button } from "@/renderer/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Kbd } from "@/renderer/components/ui/kbd";
 import { platform } from "@/renderer/lib/platform";
-import { NodeIcon } from "../editor/icons";
+import { NodeIcon } from "../editor/node-icon";
 import { useFreshEnvironment } from "../store/environment";
 import { PageBar } from "./app-bar";
 import { Stagger, StaggerItem } from "./motion";

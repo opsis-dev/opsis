@@ -4,17 +4,19 @@ import type { PortType } from "@/shared/schema/workflow";
 
 const NEUTRAL_COLOR = "#71717a";
 
-export const PORT_COLORS: Record<PortType, string> = {
-  session: "#38bdf8",
-  recording: "#f97316",
-  clip: "#a78bfa",
-  scene: "#a78bfa",
-  timeline: "#f472b6",
-  audio: "#34d399",
-  captions: "#facc15",
-  image: "#2dd4bf",
-  media: "#60a5fa",
-  file: "#94a3b8",
+const CLIP_PORT = { color: "#a78bfa", label: "Clip" };
+
+const PORT_TYPES: Record<PortType, { color: string; label: string }> = {
+  session: { color: "#38bdf8", label: "Next" },
+  recording: { color: "#f97316", label: "Recording" },
+  clip: CLIP_PORT,
+  scene: CLIP_PORT,
+  timeline: { color: "#f472b6", label: "Clip" },
+  audio: { color: "#34d399", label: "Sound" },
+  captions: { color: "#facc15", label: "Captions" },
+  image: { color: "#2dd4bf", label: "Image" },
+  media: { color: "#60a5fa", label: "File" },
+  file: { color: "#94a3b8", label: "File" },
 };
 
 export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: string }> = {
@@ -35,25 +37,13 @@ export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: string
 };
 
 export const portTypeColor = (type: PortType | undefined): string =>
-  type ? PORT_COLORS[type] : NEUTRAL_COLOR;
+  type ? PORT_TYPES[type].color : NEUTRAL_COLOR;
 
 export function categoryColor(nodeType: string): string {
   const category = getNodeDef(nodeType)?.category;
   return category ? CATEGORY_STYLES[category].color : NEUTRAL_COLOR;
 }
 
-const TYPE_LABELS: Record<PortType, string> = {
-  session: "Next",
-  recording: "Recording",
-  clip: "Clip",
-  scene: "Clip",
-  timeline: "Clip",
-  audio: "Sound",
-  captions: "Captions",
-  image: "Image",
-  media: "File",
-  file: "File",
-};
-
 export const portLabel = (spec: { type: PortType; label?: string }, side: "in" | "out") =>
-  spec.label ?? (spec.type === "session" && side === "in" ? "Previous" : TYPE_LABELS[spec.type]);
+  spec.label ??
+  (spec.type === "session" && side === "in" ? "Previous" : PORT_TYPES[spec.type].label);

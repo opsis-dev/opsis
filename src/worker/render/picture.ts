@@ -5,7 +5,7 @@ import { ENGINE_VERSION } from "../engine/cache";
 import { versionedHash } from "../../engine/hash";
 import { CODECS, type SoundCodec } from "./codecs";
 
-const PICTURE_VERSION = "demoflow-picture/1";
+const PICTURE_VERSION = "demoflow-picture/2";
 const KEEP_PICTURES = 12;
 
 type PictureOptions = { codec: string; crf: number; scale: number; gl: string };

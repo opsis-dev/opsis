@@ -14,7 +14,7 @@ import {
   target,
   text,
 } from "./params";
-import { formatDuration, displayAddress } from "../format";
+import { chordKeys, formatDuration, displayAddress } from "../format";
 import { PAUSE_MARK } from "../vars";
 
 const chain = {
@@ -391,7 +391,7 @@ export const pressNode = defineNode({
   }),
   card: ({ params: p }) => [
     p.keys.trim()
-      ? row("command", p.keys.split("+").join(" + "))
+      ? row("command", chordKeys(p.keys).join(" + "))
       : missing("command", "Press a shortcut"),
     pause(p.after),
   ],

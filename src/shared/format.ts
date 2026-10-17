@@ -93,3 +93,5 @@ export function formatNumberList(parts: number[]): string {
   while (trimmed.length > 1 && trimmed.at(-1) === 0) trimmed.pop();
   return trimmed.every((p) => p === 0) ? "" : trimmed.join(",");
 }
+
+export const chordKeys = (chord: string): string[] => chord.split(/\+(?=.)/);

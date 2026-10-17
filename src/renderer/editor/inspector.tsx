@@ -1,13 +1,4 @@
-import {
-  CircleAlert,
-  ExternalLink,
-  FileSearch,
-  Film,
-  Play,
-  RotateCcw,
-  Trash2,
-  Ungroup,
-} from "lucide-react";
+import { CircleAlert, ExternalLink, Play, RotateCcw, Trash2, Ungroup } from "lucide-react";
 import { CATEGORY_LABELS, type NodeDef } from "@/shared/nodes/define";
 import { getNodeDef, nodeName } from "@/shared/nodes/registry";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
@@ -32,9 +23,10 @@ import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { CategoryBadge } from "./category-badge";
 import { ProjectInspector } from "./project-inspector";
+import { ReplayButtons } from "./replay-buttons";
 import { startRun } from "./run";
-import { useCompiledContext } from "./use-compiled";
 import { useFormContext } from "./use-form-context";
+import { useNodeProblems } from "./use-node-problems";
 import { ZodForm } from "./zod-form";
 import { isGroupNode } from "@/shared/graph";
 
@@ -48,7 +40,7 @@ export function Inspector() {
     <ScrollArea className="h-full">
       <SwapFade id={node?.id ?? "project"}>
         {node ? (
-          <NodeInspector workflow={workflow} nodeId={node.id} />
+          <NodeInspector workflow={workflow} node={node} />
         ) : (
           <ProjectInspector workflow={workflow} multi={present.length} />
         )}
@@ -57,9 +49,7 @@ export function Inspector() {
   );
 }
 
-function NodeInspector({ workflow, nodeId }: { workflow: Workflow; nodeId: string }) {
-  const node = workflow.nodes.find((n) => n.id === nodeId);
-  if (!node) return null;
+function NodeInspector({ workflow, node }: { workflow: Workflow; node: WorkflowNode }) {
   const def = getNodeDef(node.type);
   if (!def) return <p className="p-4 text-sm">This node type isn't available.</p>;
   return <NodeDetails workflow={workflow} node={node} def={def} />;
@@ -112,13 +102,8 @@ function NodeHeader({ node, def }: { node: WorkflowNode; def: NodeDef }) {
 }
 
 function NodeProblems({ nodeId }: { nodeId: string }) {
-  const { result, issues } = useCompiledContext();
-  const runError = useRunStore((s) => s.errors[nodeId]);
-  const problems = [
-    runError,
-    result?.errors[nodeId],
-    ...issues.filter((i) => i.nodeId === nodeId).map((i) => i.message),
-  ].filter((p): p is string => !!p);
+  const { errors, warnings } = useNodeProblems(nodeId);
+  const problems = [...errors, ...warnings];
   if (!problems.length) return null;
   return (
     <Alert variant="destructive">
@@ -171,11 +156,9 @@ function NodeMetaFields({ node, def }: { node: WorkflowNode; def: NodeDef }) {
 
 function NodeActions({ node, def }: { node: WorkflowNode; def: NodeDef }) {
   const running = useRunStore((s) => s.running);
-  const nodeResult = useRunStore((s) => s.results[node.id]);
-  const traceId = useRunStore((s) => s.traces[node.id]);
-  const projectDir = useWorkflowStore((s) => s.projectDir);
-  const setReplay = useUiStore((s) => s.setReplay);
-  const { removeNodes, ungroup } = useWorkflowStore.getState();
+  const removeNodes = useWorkflowStore((s) => s.removeNodes);
+  const ungroup = useWorkflowStore((s) => s.ungroup);
+  const setSelected = useUiStore((s) => s.setSelected);
   return (
     <div className="flex flex-wrap gap-2">
       {def.executes || def.virtual ? (
@@ -199,18 +182,7 @@ function NodeActions({ node, def }: { node: WorkflowNode; def: NodeDef }) {
           </Button>
         </>
       ) : null}
-      {def.category === "Capture" && (nodeResult || traceId) ? (
-        <Button size="sm" variant="outline" onClick={() => setReplay(node.id)}>
-          <Film data-icon="inline-start" />
-          Replay
-        </Button>
-      ) : null}
-      {traceId && projectDir ? (
-        <Button size="sm" variant="outline" onClick={() => setReplay(node.id, "trace")}>
-          <FileSearch data-icon="inline-start" />
-          Trace
-        </Button>
-      ) : null}
+      <ReplayButtons nodeId={node.id} nodeType={node.type} size="sm" />
       {isGroupNode(node) ? (
         <Button size="sm" variant="outline" onClick={() => ungroup(node.id)}>
           <Ungroup data-icon="inline-start" />
@@ -221,7 +193,7 @@ function NodeActions({ node, def }: { node: WorkflowNode; def: NodeDef }) {
         size="sm"
         variant="ghost"
         onClick={() => {
-          useUiStore.getState().setSelected([]);
+          setSelected([]);
           removeNodes([node.id]);
         }}
       >

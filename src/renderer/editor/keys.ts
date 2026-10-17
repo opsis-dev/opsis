@@ -1,7 +1,9 @@
 const MODIFIERS = ["Control", "Meta", "Alt", "Shift"];
 
-const keyName = (key: string) =>
-  key === " " ? "Space" : key.length === 1 ? key.toUpperCase() : key;
+function keyName(key: string): string {
+  if (key === " ") return "Space";
+  return key.length === 1 ? key.toUpperCase() : key;
+}
 
 export function chordFromEvent(
   e: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey">,

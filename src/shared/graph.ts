@@ -8,6 +8,7 @@ import type { PortType, Workflow, WorkflowEdge, WorkflowNode } from "./schema/wo
 import { secretFileName } from "./secrets";
 import { interpolate } from "./vars";
 import { humanize } from "./format";
+import { GROUP_TYPE, NOTE_TYPE } from "./nodes/utility";
 
 export type GraphIssue = {
   level: "error" | "warning";
@@ -16,9 +17,11 @@ export type GraphIssue = {
   edgeId?: string;
 };
 
-export const isGroupNode = (node: Pick<WorkflowNode, "type">) => node.type === "core.group";
+export const isGroupNode = (node: Pick<WorkflowNode, "type">) => node.type === GROUP_TYPE;
 
-export const isStructural = (node: WorkflowNode) => isGroupNode(node) || node.type === "core.note";
+export const isNoteNode = (node: Pick<WorkflowNode, "type">) => node.type === NOTE_TYPE;
+
+export const isStructural = (node: WorkflowNode) => isGroupNode(node) || isNoteNode(node);
 
 const byPosition = (a: WorkflowNode, b: WorkflowNode) =>
   a.position.x - b.position.x || a.position.y - b.position.y || (a.id < b.id ? -1 : 1);

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type PointerEvent } from "react";
 import { z } from "zod";
 import { clamp, round3 } from "@/shared/math";
 import { fractionIn } from "@/renderer/lib/dom";
@@ -31,20 +31,20 @@ export function useBoxDrag(boxes: Box[], onChange: (boxes: Box[]) => void) {
   const drag = useRef<Drag | null>(null);
   const [draft, setDraft] = useState<BoxDraft | null>(null);
 
-  const point = (e: React.PointerEvent): [number, number] => {
+  const point = (e: PointerEvent): [number, number] => {
     const r = area.current?.getBoundingClientRect();
     if (!r) return [0, 0];
     const at = fractionIn(r, e.clientX, e.clientY);
     return [at.x, at.y];
   };
-  const start = (e: React.PointerEvent, mode: DragMode, index: number) => {
+  const start = (e: PointerEvent, mode: DragMode, index: number) => {
     const [x, y] = point(e);
     e.currentTarget.setPointerCapture(e.pointerId);
     const origin = mode === "move" ? boxes[index] : boxFrom(x, y, x, y);
     drag.current = { mode, index, x, y, origin };
     setDraft({ mode, index, box: origin });
   };
-  const move = (e: React.PointerEvent) => {
+  const move = (e: PointerEvent) => {
     const d = drag.current;
     if (!d) return;
     const [x, y] = point(e);
