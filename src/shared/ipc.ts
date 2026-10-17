@@ -10,7 +10,7 @@ import type { TraceModel } from "./trace";
 import type { FontFamilyDef } from "./fonts/types";
 import type { PlannedFamily } from "./fonts/plan";
 import type { TimelineSpec } from "./schema/timeline";
-import type { AnalysisRequest, AnalysisResult } from "./mix/result";
+import type { AnalysisRequest, AnalysisResult } from "./analysis";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 

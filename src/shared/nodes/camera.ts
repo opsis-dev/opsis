@@ -19,7 +19,19 @@ import type { Action } from "../schema/actions";
 import { asValue, type ClipValue } from "../schema/values";
 import { mutedIf, row, toggleRow, warnIf, type CardRow } from "./card";
 import { clipModifier, defineNode, port, withClip } from "./define";
-import { asset, bool, choice, fraction, keysOf, more, ms, rate, text, zoomScale } from "./params";
+import {
+  asset,
+  bool,
+  choice,
+  fraction,
+  keysOf,
+  MIN_SPEED,
+  more,
+  ms,
+  rate,
+  text,
+  zoomScale,
+} from "./params";
 import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "./capture";
 import { formatDuration, humanize } from "../format";
 import { msToFrames } from "../timeline/time";
@@ -299,7 +311,7 @@ const speedRampNode = defineNode({
             .min(0)
             .default(1000)
             .meta({ description: "To", unit: "ms", step: 50 }),
-          rate: rate(2, "Speed", { min: 0.1, step: 0.1 }),
+          rate: rate(2, "Speed", { min: MIN_SPEED, step: 0.1 }),
         }),
       )
       .default([{ fromMs: 0, toMs: 1000, rate: 2 }])

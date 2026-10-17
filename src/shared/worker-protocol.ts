@@ -1,5 +1,5 @@
 import type { EngineInstallEvent, RunRequest } from "./ipc";
-import type { AnalysisRequest, AnalysisResult } from "./mix/result";
+import type { AnalysisRequest, AnalysisResult } from "./analysis";
 import type { RunEvent } from "./schema/events";
 import type { TimelineSpec } from "./schema/timeline";
 import type { AppSettings } from "./settings";

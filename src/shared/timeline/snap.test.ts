@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatTime, rulerStep, snapFrame, snapSpan } from "./snap";
+import { rulerStep, snapFrame, snapSpan } from "./snap";
 
 describe("snapping", () => {
   const targets = [
@@ -19,17 +19,11 @@ describe("snapping", () => {
   });
 });
 
-describe("time formats", () => {
-  it("writes seconds and timecode", () => {
-    expect(formatTime(0, 30, "seconds")).toBe("0:00");
-    expect(formatTime(45, 30, "seconds")).toBe("0:01.5");
-    expect(formatTime(30 * 75, 30, "seconds")).toBe("1:15");
-    expect(formatTime(30 * 3661 + 12, 30, "timecode")).toBe("01:01:01:12");
-  });
-
+describe("ruler", () => {
   it("spaces ruler ticks by zoom", () => {
-    expect(rulerStep(30, 30).step).toBe(5);
-    expect(rulerStep(1, 30).step).toBe(150);
-    expect(rulerStep(0.05, 30).step).toBe(1800);
+    expect(rulerStep(30, 30)).toEqual({ step: 5, minor: 1 });
+    expect(rulerStep(1, 30)).toEqual({ step: 150, minor: 30 });
+    expect(rulerStep(0.05, 30)).toEqual({ step: 1800, minor: 360 });
+    expect(rulerStep(0.001, 30)).toEqual({ step: 18_000, minor: 1800 });
   });
 });

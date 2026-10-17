@@ -26,7 +26,7 @@ export function useCompiled(): Compiled {
   );
   const issues = useMemo(() => (workflow ? validateWorkflow(workflow) : []), [workflow]);
   const preview = useMemo(
-    () => (workflow && result ? previewSpec(workflow, result, selectedId) : null),
+    () => (workflow && result ? previewSpec(workflow.settings, result, selectedId) : null),
     [workflow, result, selectedId],
   );
   return { result, issues, preview };

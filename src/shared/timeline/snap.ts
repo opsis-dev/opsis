@@ -37,37 +37,25 @@ export function snapSpan(
     : { delta: b.frame - to, target: b.target };
 }
 
-export function formatTime(frame: number, fps: number, mode: "seconds" | "timecode"): string {
-  const f = Math.max(0, Math.round(frame));
-  if (mode === "timecode") {
-    const total = Math.floor(f / fps);
-    const ff = f % fps;
-    const ss = total % 60;
-    const mm = Math.floor(total / 60) % 60;
-    const hh = Math.floor(total / 3600);
-    const p = (n: number) => String(n).padStart(2, "0");
-    return `${p(hh)}:${p(mm)}:${p(ss)}:${p(ff)}`;
-  }
-  const secs = f / fps;
-  const m = Math.floor(secs / 60);
-  const s = secs - m * 60;
-  const text = s.toFixed(s % 1 === 0 ? 0 : 1);
-  return `${m}:${text.padStart(text.includes(".") ? 4 : 2, "0")}`;
-}
+const FRAME_STEPS = [1, 2, 5, 10];
+const FRAME_TICKS = 5;
 
-const STEPS_FRAMES = [1, 2, 5, 10];
-const STEPS_SECONDS = [0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600];
+const SECOND_STEPS = [
+  { seconds: 0.5, ticks: 2 },
+  ...[1, 2, 5, 10, 15, 30, 60, 120, 300, 600].map((seconds) => ({ seconds, ticks: 5 })),
+];
+const WIDEST_STEP = { seconds: 600, ticks: 10 };
 
 export function rulerStep(
   pxPerFrame: number,
   fps: number,
   minPx = 72,
 ): { step: number; minor: number } {
-  for (const s of STEPS_FRAMES)
-    if (s * pxPerFrame >= minPx && s < fps / 2) return { step: s, minor: Math.max(1, s / 5) };
-  for (const sec of STEPS_SECONDS) {
-    const step = sec * fps;
-    if (step * pxPerFrame >= minPx) return { step, minor: step / (sec >= 1 ? 5 : 2) };
-  }
-  return { step: 600 * fps, minor: 60 * fps };
+  for (const step of FRAME_STEPS)
+    if (step * pxPerFrame >= minPx && step < fps / 2)
+      return { step, minor: Math.max(1, step / FRAME_TICKS) };
+  const fit =
+    SECOND_STEPS.find(({ seconds }) => seconds * fps * pxPerFrame >= minPx) ?? WIDEST_STEP;
+  const step = fit.seconds * fps;
+  return { step, minor: step / fit.ticks };
 }

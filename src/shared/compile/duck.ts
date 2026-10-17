@@ -1,10 +1,8 @@
-import type { AudioItem, TimelineItem, TimelineSpec, TimelineTrack } from "../schema/timeline";
-import type { GroupProps } from "./clip";
+import { channelOf, soundLength } from "../audio";
+import type { AudioItem, TimelineSpec, TimelineTrack } from "../schema/timeline";
+import { groupOf, itemHasSound } from "./clip";
 
 export type Span = readonly [number, number];
-
-export const channelOf = (a: Pick<AudioItem, "channel" | "nodeId" | "id">): string =>
-  a.channel ?? a.nodeId ?? a.id;
 
 export function mergeSpans(spans: Span[]): Span[] {
   const sorted = spans.filter(([a, b]) => b > a).toSorted((x, y) => x[0] - y[0]);
@@ -17,15 +15,7 @@ export function mergeSpans(spans: Span[]): Span[] {
   return out;
 }
 
-export function soundLength(a: AudioItem, fps: number, total: number): number {
-  if (a.role === "effect") {
-    const natural = a.lengthFrames ?? fps;
-    return Math.min(natural, a.durationInFrames ?? natural);
-  }
-  return a.durationInFrames ?? Math.max(0, total - a.from);
-}
-
-export function soundSpans(
+function soundSpans(
   audio: AudioItem[],
   keys: ReadonlySet<string>,
   fps: number,
@@ -36,36 +26,22 @@ export function soundSpans(
     .map((a) => [a.from, a.from + soundLength(a, fps, total)] as const);
 }
 
-function clipSpansIn(
+function clipSpans(
   tracks: TimelineTrack[],
   offset: number,
   end: number,
-  keys: ReadonlySet<string> | null,
+  keys: ReadonlySet<string>,
 ): Span[] {
   return tracks.flatMap((track) =>
-    track.items.flatMap((item: TimelineItem): Span[] => {
+    track.items.flatMap((item): Span[] => {
       const from = offset + item.from;
       const to = Math.min(end, from + item.durationInFrames);
-      if (
-        item.component === "core/video" &&
-        item.props.muted === false &&
-        (!keys || (item.nodeId !== undefined && keys.has(item.nodeId)))
-      )
+      if (itemHasSound(item) && item.nodeId !== undefined && keys.has(item.nodeId))
         return [[from, to]];
-      if (item.component === "core/group") {
-        const inner = (item.props as unknown as GroupProps).tracks ?? [];
-        return clipSpansIn(inner, from, to, keys);
-      }
-      return [];
+      const group = groupOf(item);
+      return group ? clipSpans(group.tracks, from, to, keys) : [];
     }),
   );
-}
-
-export function clipSpans(
-  spec: Pick<TimelineSpec, "tracks" | "durationInFrames">,
-  keys: ReadonlySet<string> | null = null,
-): Span[] {
-  return clipSpansIn(spec.tracks, 0, spec.durationInFrames, keys);
 }
 
 export function duckingSpans(
@@ -73,8 +49,8 @@ export function duckingSpans(
   keys: ReadonlySet<string>,
 ): Span[] {
   return mergeSpans([
-    ...soundSpans(spec.audio ?? [], keys, spec.fps, spec.durationInFrames),
-    ...clipSpans(spec, keys),
+    ...soundSpans(spec.audio, keys, spec.fps, spec.durationInFrames),
+    ...clipSpans(spec.tracks, 0, spec.durationInFrames, keys),
   ]);
 }
 

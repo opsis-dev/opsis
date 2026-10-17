@@ -16,6 +16,7 @@ export const optionalTarget = (description: string, help?: string) =>
     .default("")
     .meta({ description, widget: "target", ...(help ? { help } : {}) });
 
+export const MIN_SPEED = 0.1;
 export const MAX_SPEED = 64;
 
 export const ms = (def: number, description: string, max = 600_000) =>

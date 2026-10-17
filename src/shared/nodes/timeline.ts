@@ -11,13 +11,13 @@ import { asValue, type ClipValue, type CompileValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { coverRow, frameSecs, quote, row, warnIf, type CardRow } from "./card";
 import { clipInput, clipModifier, defineNode, opt, port, withClip } from "./define";
-import { bool, choice, frames, more, ms, rate, text } from "./params";
+import { bool, choice, frames, MIN_SPEED, more, ms, rate, text } from "./params";
 import { TRANSITION_KINDS, transitionTitle } from "./transitions";
 import { formatDuration, plural } from "../format";
 import { msToFrames } from "../timeline/time";
 
 const base = { category: "Timeline", phase: "compile" } as const;
-const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
+export const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
 const [, ...CUT_PORTS] = IN_PORTS;
 type InPort = (typeof IN_PORTS)[number];
 
@@ -84,6 +84,24 @@ function worstCover(
   return worst ? coverRow(worst.cut.transitionDuration, worst.lengths, fps) : null;
 }
 
+export const cutSchema = z.object({
+  before: choice(
+    CUT_PORTS,
+    "in2",
+    "Before",
+    Object.fromEntries(CUT_PORTS.map((handle) => [handle, clipLabel(handle)])),
+  ),
+  transition: z
+    .enum(TRANSITION_KINDS)
+    .default("core/fade")
+    .meta({ description: "Transition", widget: "transition" }),
+  transitionDuration: frames(15, "Length"),
+  keepWhole: more(bool(false, "Keep both clips whole"), {
+    help: "The transition plays over a still of the two clips' last and first frames.",
+    showIf: { transition: TRANSITION_KINDS.filter((k) => k !== "none") },
+  }),
+});
+
 const sequenceNode = defineNode({
   ...base,
   type: "timeline.sequence",
@@ -122,31 +140,10 @@ const sequenceNode = defineNode({
       help: "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition.",
       showIf: { transition: TRANSITION_KINDS.filter((k) => k !== "none") },
     }),
-    cuts: z
-      .array(
-        z.object({
-          before: choice(
-            CUT_PORTS,
-            "in2",
-            "Before",
-            Object.fromEntries(CUT_PORTS.map((handle) => [handle, clipLabel(handle)])),
-          ),
-          transition: z
-            .enum(TRANSITION_KINDS)
-            .default("core/fade")
-            .meta({ description: "Transition", widget: "transition" }),
-          transitionDuration: frames(15, "Length"),
-          keepWhole: more(bool(false, "Keep both clips whole"), {
-            help: "The transition plays over a still of the two clips' last and first frames.",
-            showIf: { transition: TRANSITION_KINDS.filter((k) => k !== "none") },
-          }),
-        }),
-      )
-      .default([])
-      .meta({
-        description: "Different transitions",
-        help: "Use another transition before some clips. The others use the transition above.",
-      }),
+    cuts: z.array(cutSchema).default([]).meta({
+      description: "Different transitions",
+      help: "Use another transition before some clips. The others use the transition above.",
+    }),
   }),
   compile: ({ nodeId, inputs, params }) => {
     const connected = connectedClips(inputs);
@@ -368,7 +365,7 @@ const speedNode = defineNode({
       }),
   ],
   params: z.object({
-    rate: rate(1.5, "Speed", { min: 0.1 }),
+    rate: rate(1.5, "Speed", { min: MIN_SPEED }),
   }),
   compile: ({ nodeId, inputs, params }) =>
     withClip(inputs, (clip) => {

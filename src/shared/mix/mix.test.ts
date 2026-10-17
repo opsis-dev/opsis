@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import type { z } from "zod";
+import { forEachItem, itemHasSound } from "../compile/clip";
 import { compileWorkflow, previewSpec } from "../compile/compile";
-import type { TimelineSpec } from "../schema/timeline";
-import { normalizeWorkflow, type Workflow } from "../schema/workflow";
+import type { TimelineItem, TimelineSpec } from "../schema/timeline";
+import type { Workflow } from "../schema/workflow";
 import { GraphBuilder } from "../templates/build";
 import {
   busJob,
@@ -16,8 +18,8 @@ import {
   stripSteps,
 } from "./graph";
 import { applyMixLevels, channelGain, withMasterStem } from "./levels";
-import { buildMixPlan, channelKey } from "./plan";
-import { DEFAULT_STRIP, defaultMix, stripSchema, type Mix } from "./types";
+import { buildMixPlan, channelKey, type MixPlan } from "./plan";
+import { DEFAULT_STRIP, defaultMix, stripSchema, type Bus, type Mix } from "./types";
 
 function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
   const g = new GraphBuilder();
@@ -35,11 +37,56 @@ function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
     .link("fx", "mix", "audio", "sounds")
     .link("mix", "out", "clip", "timeline");
   const wf = { ...g.build({ id: "wf", name: "Mix" }), ...(mix ? { mix } : {}) };
-  const spec = previewSpec(wf, compileWorkflow(wf), null)!.spec;
-  return { wf, spec };
+  const target = previewSpec(wf.settings, compileWorkflow(wf), null);
+  if (!target) throw new Error("nothing to preview");
+  return { wf, spec: target.spec };
 }
 
-const strip = (patch: Record<string, unknown>) => stripSchema.parse(patch);
+const strip = (patch: z.input<typeof stripSchema>) => stripSchema.parse(patch);
+
+const channel = (plan: MixPlan, id: string) => {
+  const found = plan.channels.find((c) => c.id === id);
+  if (!found) throw new Error(`no channel ${id}`);
+  return found;
+};
+
+const sound = (spec: TimelineSpec, nodeId: string) => {
+  const found = spec.audio.find((a) => a.nodeId === nodeId);
+  if (!found) throw new Error(`no sound ${nodeId}`);
+  return found;
+};
+
+const items = (spec: TimelineSpec) => {
+  const out: TimelineItem[] = [];
+  forEachItem(spec.tracks, (item) => out.push(item));
+  return out;
+};
+
+const withDuck = (mix: Mix, patch: Partial<Bus["duck"]>): Mix => ({
+  ...mix,
+  buses: mix.buses.map((b) =>
+    b.id === "music"
+      ? {
+          ...b,
+          duck: {
+            on: true,
+            keys: ["effects"],
+            amount: 12,
+            attack: 100,
+            release: 300,
+            ignoreShorterMs: 0,
+            ...patch,
+          },
+        }
+      : b,
+  ),
+});
+
+const NO_PROCESSING = {
+  highpass: DEFAULT_STRIP.highpass,
+  eq: DEFAULT_STRIP.eq,
+  comp: DEFAULT_STRIP.comp,
+};
 
 describe("mixer levels", () => {
   it("multiplies channel, bus and master faders", () => {
@@ -68,62 +115,28 @@ describe("mixer levels", () => {
     mix.channels.clipfile = strip({ mute: true });
     const { spec } = project(mix);
     const live = applyMixLevels(spec, mix);
-    expect(live.audio.find((a) => a.nodeId === "music")!.gain).toBeCloseTo(0.1, 5);
-    expect(live.audio.find((a) => a.nodeId === "fx")!.gain).toBe(1);
-    const video = JSON.stringify(live.tracks);
-    expect(video).toContain('"muted":true');
+    expect(sound(live, "music").gain).toBeCloseTo(0.1, 5);
+    expect(sound(live, "fx").gain).toBe(1);
+    const video = items(live).find((i) => i.nodeId === "clipfile");
+    expect(video?.props).toMatchObject({ muted: true, volume: 0 });
   });
 
   it("lets ducking ignore sounds shorter than a set length", () => {
     const mix = defaultMix();
-    const duck = (ignoreShorterMs: number) => ({
-      ...mix,
-      buses: mix.buses.map((b) =>
-        b.id === "music"
-          ? {
-              ...b,
-              duck: {
-                on: true,
-                keys: ["effects"],
-                amount: 12,
-                attack: 100,
-                release: 300,
-                ignoreShorterMs,
-              },
-            }
-          : b,
-      ),
-    });
-    const { spec } = project(duck(0));
-    const music = (m: ReturnType<typeof duck>) =>
-      applyMixLevels(spec, m).audio.find((a) => a.nodeId === "music")!;
-    expect(music(duck(0)).duck?.keys).toEqual(["fx"]);
-    expect(music(duck(5000)).duck).toBeUndefined();
+    const { spec } = project(withDuck(mix, {}));
+    const music = (m: Mix) => sound(applyMixLevels(spec, m), "music");
+    expect(music(withDuck(mix, {})).duck?.keys).toEqual(["fx"]);
+    expect(music(withDuck(mix, { ignoreShorterMs: 5000 })).duck).toBeUndefined();
   });
 
   it("turns bus ducking into a live approximation keyed by channel", () => {
-    const mix = defaultMix();
-    mix.buses = mix.buses.map((b) =>
-      b.id === "music"
-        ? {
-            ...b,
-            duck: {
-              on: true,
-              keys: ["effects"],
-              amount: 12,
-              attack: 100,
-              release: 300,
-              ignoreShorterMs: 0,
-            },
-          }
-        : b,
-    );
+    const mix = withDuck(defaultMix(), {});
     const { spec } = project(mix);
     const live = applyMixLevels(spec, mix);
-    const music = live.audio.find((a) => a.nodeId === "music")!;
+    const music = sound(live, "music");
     expect(music.duck?.keys).toEqual(["fx"]);
     expect(music.duck?.level).toBeCloseTo(10 ** (-12 / 20), 5);
-    expect(live.audio.find((a) => a.nodeId === "fx")!.duck).toBeUndefined();
+    expect(sound(live, "fx").duck).toBeUndefined();
   });
 
   it("plays only the master stem when one is ready", () => {
@@ -131,7 +144,7 @@ describe("mixer levels", () => {
     const stem = withMasterStem(spec, { src: "project:.demoflow/cache/mix/m.wav", hash: "m" });
     expect(stem.audio).toEqual([]);
     expect(stem.mix?.hash).toBe("m");
-    expect(JSON.stringify(stem.tracks)).not.toContain('"muted":false');
+    expect(items(stem).filter(itemHasSound)).toEqual([]);
   });
 });
 
@@ -144,9 +157,8 @@ describe("mix plan", () => {
       ["fx", "effect", "effects"],
       ["clipfile", "clip", "clips"],
     ]);
-    expect(plan.buses.find((b) => b.id === "effects")!.channels).toEqual(["fx"]);
-    const fx = plan.channels.find((c) => c.id === "fx")!;
-    expect(fx.sounds).toEqual([
+    expect(plan.buses.find((b) => b.id === "effects")?.channels).toEqual(["fx"]);
+    expect(channel(plan, "fx").sounds).toEqual([
       expect.objectContaining({ src: "app:sfx/whoosh.wav", at: 60, offset: 0, loop: false }),
     ]);
   });
@@ -158,10 +170,8 @@ describe("mix plan", () => {
     mix.channels.fx = strip({ mute: true });
     const b = buildMixPlan(spec, mix);
     expect(a.key).not.toBe(b.key);
-    const fxA = a.channels.find((c) => c.id === "fx")!;
-    const fxB = b.channels.find((c) => c.id === "fx")!;
-    expect(channelKey(a, fxA)).toBe(channelKey(b, fxB));
-    expect(b.buses.find((x) => x.id === "effects")!.channels).toEqual([]);
+    expect(channelKey(a, channel(a, "fx"))).toBe(channelKey(b, channel(b, "fx")));
+    expect(b.buses.find((x) => x.id === "effects")?.channels).toEqual([]);
   });
 });
 
@@ -267,8 +277,7 @@ describe("mix filter graphs", () => {
   it("mixes a channel's sounds and pads it to the film length", () => {
     const { spec } = project();
     const plan = buildMixPlan(spec, undefined);
-    const music = plan.channels.find((c) => c.id === "music")!;
-    const job = channelJob(plan, music, resolve);
+    const job = channelJob(plan, channel(plan, "music"), resolve);
     expect(job.inputs).toEqual(["/files/assets/song.mp3"]);
     expect(job.filter).toMatch(/\[s0\]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS\[out\]$/);
     expect(jobArgs(job, "/out.wav", "pcm_f32le", undefined, 11)).toEqual([
@@ -299,19 +308,14 @@ describe("mix filter graphs", () => {
         fader: -2,
         channels: ["music"],
         duck: { keys: ["fx", "clip"], amount: 14, attack: 50, release: 400 },
+        processing: NO_PROCESSING,
       },
       (id) => `/stems/${id}.wav`,
     );
     expect(job.inputs).toEqual(["/stems/music.wav", "/stems/fx.wav", "/stems/clip.wav"]);
+    expect(duckRatio(14)).toBe(2);
     expect(job.filter).toBe(
-      `[0:a]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS,volume=-2dB[main];[1:a][2:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=10,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=${duckRatio(
-        14,
-      )
-        .toFixed(3)
-        .replace(
-          /\.?0+$/,
-          "",
-        )}:attack=50:release=400:makeup=1,apad,atrim=end=10,asetpts=PTS-STARTPTS[out]`,
+      "[0:a]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS,volume=-2dB[main];[1:a][2:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=10,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=2:attack=50:release=400:makeup=1,apad,atrim=end=10,asetpts=PTS-STARTPTS[out]",
     );
   });
 
@@ -335,6 +339,8 @@ describe("mix filter graphs", () => {
       input_thresh: "-30.5",
       target_offset: "0.1",
     });
+    expect(parseLoudnorm('{ "input_i" : "-20.1", "input_tp" : "-3.2" }')).toBeNull();
+    expect(parseLoudnorm('{ "input_i" : "-inf" }')).toBeNull();
     const job = masterJob(plan, ["/b1.wav", "/b2.wav"], measured);
     expect(job.filter).toBe(
       "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=10,asetpts=PTS-STARTPTS,loudnorm=I=-14:TP=-1:LRA=11:measured_I=-20.1:measured_TP=-3.2:measured_LRA=4.0:measured_thresh=-30.5:offset=0.1:linear=true:print_format=summary,aresample=48000,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
@@ -344,7 +350,7 @@ describe("mix filter graphs", () => {
   it("uses silence for an empty bus", () => {
     const job = busJob(
       { fps: 30, durationInFrames: 60 },
-      { id: "x", name: "X", fader: 0, channels: [], duck: null },
+      { id: "x", name: "X", fader: 0, channels: [], duck: null, processing: NO_PROCESSING },
       () => "",
     );
     expect(job).toEqual({
@@ -352,18 +358,6 @@ describe("mix filter graphs", () => {
       filter: "anullsrc=r=48000:cl=stereo,atrim=end=2[out]",
       output: "out",
     });
-  });
-});
-
-describe("normalizeWorkflow", () => {
-  it("prunes mixer channels of deleted nodes", () => {
-    const g = new GraphBuilder();
-    g.node("m", "audio.music", 0, 0);
-    const wf = g.build({ id: "x", name: "x" });
-    const mix = defaultMix();
-    mix.channels.gone = strip({ fader: -3 });
-    mix.channels.m = strip({ fader: -6 });
-    expect(Object.keys(normalizeWorkflow({ ...wf, mix }).mix?.channels ?? {})).toEqual(["m"]);
   });
 });
 

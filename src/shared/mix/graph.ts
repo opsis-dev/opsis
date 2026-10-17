@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { Keyframe } from "../schema/timeline";
 import { samplePoints } from "../timeline/envelope";
 import type { BusPlan, ChannelPlan, MixPlan, SoundPlacement } from "./plan";
@@ -7,13 +8,28 @@ import { framesToMs } from "../timeline/time";
 
 export const SAMPLE_RATE = 48_000;
 
-export type LoudnessMeasure = {
-  input_i: string;
-  input_tp: string;
-  input_lra: string;
-  input_thresh: string;
-  target_offset: string;
-};
+const MIN_COMP_THRESHOLD = 0.000976563;
+const MAX_COMP_MAKEUP = 64;
+const MIN_LIMITER_CEILING = 0.0625;
+const LIMITER_OVERSAMPLING = 4;
+const LOUDNESS_RANGE = 11;
+const ENDLESS_LOOP = 2147483647;
+const MIN_LEVEL_DB = 0.01;
+const MIN_EQ_GAIN_DB = 0.05;
+const MIN_PAN = 0.005;
+const DUCK_THRESHOLD_DB = -40;
+const DUCK_REFERENCE_DB = -12;
+const MAX_DUCK_RATIO = 20;
+
+const loudnessMeasureSchema = z.object({
+  input_i: z.string().min(1),
+  input_tp: z.string(),
+  input_lra: z.string(),
+  input_thresh: z.string(),
+  target_offset: z.string(),
+});
+
+type LoudnessMeasure = z.infer<typeof loudnessMeasureSchema>;
 
 export type Job = {
   inputs: string[];
@@ -22,6 +38,8 @@ export type Job = {
   taps?: { pre: string; post: string };
 };
 
+type Plan = Pick<MixPlan, "fps" | "durationInFrames">;
+
 const num = (n: number, digits = 6) => {
   const s = n.toFixed(digits).replace(/\.?0+$/, "");
   return s === "-0" ? "0" : s;
@@ -29,12 +47,11 @@ const num = (n: number, digits = 6) => {
 
 const secs = (frames: number, fps: number) => num(frames / fps);
 
-export function envelopeExpr(
-  keys: Keyframe[],
-  fps: number,
-  map: (v: number) => number = (v) => v,
-): string {
-  const points = samplePoints(keys).map((p) => ({ t: p.frame / fps, v: map(p.value) }));
+const dbStep = (db: number): string[] =>
+  Math.abs(db) >= MIN_LEVEL_DB ? [`volume=${num(db, 2)}dB`] : [];
+
+export function envelopeExpr(keys: Keyframe[], fps: number): string {
+  const points = samplePoints(keys).map((p) => ({ t: p.frame / fps, v: p.value }));
   if (points.length === 0) return "1";
   if (points.length === 1) return num(points[0].v);
   let expr = num(points[points.length - 1].v);
@@ -63,7 +80,7 @@ export function soundChain(
   ];
   if (sound.offset > 0)
     steps.push(`atrim=start=${secs(sound.offset, fps)}`, "asetpts=PTS-STARTPTS");
-  if (sound.loop) steps.push("aloop=loop=-1:size=2147483647");
+  if (sound.loop) steps.push(`aloop=loop=-1:size=${ENDLESS_LOOP}`);
   steps.push(`atrim=end=${secs(sound.length, fps)}`, "asetpts=PTS-STARTPTS");
   if (sound.volume !== 1) steps.push(`volume=${num(sound.volume)}`);
   if (sound.fadeIn > 0)
@@ -76,59 +93,98 @@ export function soundChain(
   if (volumeKeys?.length) steps.push(`volume=eval=frame:volume='${envelopeExpr(volumeKeys, fps)}'`);
   const panKeys = sound.envelope?.pan;
   const delay = framesToMs(sound.at, fps);
-  if (!panKeys?.length) {
-    if (delay > 0) steps.push(`adelay=delays=${delay}:all=1`);
-    return `[${input}:a]${steps.join(",")}[${label}]`;
-  }
+  const delayStep = delay > 0 ? [`adelay=delays=${delay}:all=1`] : [];
+  if (!panKeys?.length) return `[${input}:a]${[...steps, ...delayStep].join(",")}[${label}]`;
   const pan = envelopeExpr(panKeys, fps);
-  const pre = `[${input}:a]${steps.join(",")},channelsplit=channel_layout=stereo[${label}l][${label}r]`;
-  const left = `[${label}l]volume=eval=frame:volume='min(1,1-(${pan}))'[${label}L]`;
-  const right = `[${label}r]volume=eval=frame:volume='min(1,1+(${pan}))'[${label}R]`;
-  const join = `[${label}L][${label}R]join=inputs=2:channel_layout=stereo${delay > 0 ? `,adelay=delays=${delay}:all=1` : ""}[${label}]`;
-  return [pre, left, right, join].join(";");
+  return [
+    `[${input}:a]${steps.join(",")},channelsplit=channel_layout=stereo[${label}l][${label}r]`,
+    `[${label}l]volume=eval=frame:volume='min(1,1-(${pan}))'[${label}L]`,
+    `[${label}r]volume=eval=frame:volume='min(1,1+(${pan}))'[${label}R]`,
+    `[${label}L][${label}R]${["join=inputs=2:channel_layout=stereo", ...delayStep].join(",")}[${label}]`,
+  ].join(";");
 }
 
-export function eqSteps(eq: Eq): string[] {
+function eqSteps(eq: Eq): string[] {
   if (!eq.on) return [];
   return eq.bands
-    .filter((b) => Math.abs(b.gain) >= 0.05)
+    .filter((b) => Math.abs(b.gain) >= MIN_EQ_GAIN_DB)
     .map((b) => {
       const name = b.type === "peak" ? "equalizer" : b.type;
       return `${name}=f=${num(b.freq, 1)}:t=q:w=${num(b.q, 3)}:g=${num(b.gain, 2)}`;
     });
 }
 
-export function compSteps(comp: Comp): string[] {
+function compSteps(comp: Comp): string[] {
   if (!comp.on) return [];
-  const threshold = clamp(dbToGain(comp.threshold), 0.000976563, 1);
-  const makeup = clamp(dbToGain(comp.makeup), 1, 64);
-  return [
-    `acompressor=threshold=${num(threshold)}:ratio=${num(comp.ratio, 3)}:attack=${num(comp.attack, 3)}:release=${num(comp.release, 3)}:makeup=${num(makeup)}`,
+  const threshold = clamp(dbToGain(comp.threshold), MIN_COMP_THRESHOLD, 1);
+  const makeup = clamp(dbToGain(comp.makeup), 1, MAX_COMP_MAKEUP);
+  const options = [
+    `threshold=${num(threshold)}`,
+    `ratio=${num(comp.ratio, 3)}`,
+    `attack=${num(comp.attack, 3)}`,
+    `release=${num(comp.release, 3)}`,
+    `makeup=${num(makeup)}`,
   ];
+  return [`acompressor=${options.join(":")}`];
 }
 
-export function panStep(pan: number): string[] {
-  if (Math.abs(pan) < 0.005) return [];
+function panStep(pan: number): string[] {
+  if (Math.abs(pan) < MIN_PAN) return [];
   const left = Math.min(1, 1 - pan);
   const right = Math.min(1, 1 + pan);
   return [`pan=stereo|c0=${num(left, 4)}*c0|c1=${num(right, 4)}*c1`];
 }
 
-export function preCompSteps(s: ChannelPlan["strip"]): string[] {
-  return [
-    ...(Math.abs(s.trim) >= 0.01 ? [`volume=${num(s.trim, 2)}dB`] : []),
-    ...(s.highpass.on ? [`highpass=f=${num(s.highpass.freq, 1)}`] : []),
-    ...eqSteps(s.eq),
-  ];
+const highpassStep = (highpass: { on: boolean; freq: number }): string[] =>
+  highpass.on ? [`highpass=f=${num(highpass.freq, 1)}`] : [];
+
+function preCompSteps(s: ChannelPlan["strip"]): string[] {
+  return [...dbStep(s.trim), ...highpassStep(s.highpass), ...eqSteps(s.eq)];
 }
 
-export function postCompSteps(s: ChannelPlan["strip"]): string[] {
-  return [...panStep(s.pan), ...(Math.abs(s.fader) >= 0.01 ? [`volume=${num(s.fader, 2)}dB`] : [])];
+function postCompSteps(s: ChannelPlan["strip"]): string[] {
+  return [...panStep(s.pan), ...dbStep(s.fader)];
 }
 
 export function stripSteps(channel: Pick<ChannelPlan, "strip">): string[] {
   const s = channel.strip;
   return [...preCompSteps(s), ...compSteps(s.comp), ...postCompSteps(s)];
+}
+
+function busSteps(p: BusPlan["processing"]): string[] {
+  return [...highpassStep(p.highpass), ...eqSteps(p.eq), ...compSteps(p.comp)];
+}
+
+const loudnormBase = (target: { lufs: number; truePeak: number }) =>
+  `loudnorm=I=${target.lufs}:TP=${target.truePeak}:LRA=${LOUDNESS_RANGE}`;
+
+function masterTail(master: Master, measured?: LoudnessMeasure | null): string[] {
+  const steps = dbStep(master.fader);
+  const target = LOUDNESS_TARGETS[master.loudness];
+  if (target && measured) {
+    const options = [
+      loudnormBase(target),
+      `measured_I=${measured.input_i}`,
+      `measured_TP=${measured.input_tp}`,
+      `measured_LRA=${measured.input_lra}`,
+      `measured_thresh=${measured.input_thresh}`,
+      `offset=${measured.target_offset}`,
+      "linear=true",
+      "print_format=summary",
+    ];
+    steps.push(options.join(":"), `aresample=${SAMPLE_RATE}`);
+  }
+  if (master.limiter.on)
+    steps.push(
+      `aresample=${SAMPLE_RATE * LIMITER_OVERSAMPLING}`,
+      `alimiter=limit=${num(Math.max(MIN_LIMITER_CEILING, dbToGain(master.limiter.ceiling)))}:level=false`,
+      `aresample=${SAMPLE_RATE}`,
+    );
+  return steps;
+}
+
+function masterSteps(master: Master, measured?: LoudnessMeasure | null): string[] {
+  return [...eqSteps(master.eq), ...compSteps(master.comp), ...masterTail(master, measured)];
 }
 
 const PINNED = `aformat=sample_fmts=fltp:sample_rates=${SAMPLE_RATE}:channel_layouts=stereo`;
@@ -138,112 +194,97 @@ function tapped(sum: string, comp: string[], post: string[]): string {
   return `[${sum}]${PINNED},asplit=2[pre][c];[c]${comp.join(",")},${PINNED},asplit=2[post][m];[m]${tail}[out]`;
 }
 
-const silence = (total: number, fps: number) =>
-  `anullsrc=r=${SAMPLE_RATE}:cl=stereo,atrim=end=${secs(total, fps)}`;
+const silenceJob = ({ fps, durationInFrames }: Plan): Job => ({
+  inputs: [],
+  filter: `anullsrc=r=${SAMPLE_RATE}:cl=stereo,atrim=end=${secs(durationInFrames, fps)}[out]`,
+  output: "out",
+});
 
-const fit = (total: number, fps: number) =>
-  `apad,atrim=end=${secs(total, fps)},asetpts=PTS-STARTPTS`;
+const fit = ({ fps, durationInFrames }: Plan) =>
+  `apad,atrim=end=${secs(durationInFrames, fps)},asetpts=PTS-STARTPTS`;
 
 function mixOf(labels: string[], out: string, then: string[]): string {
   const tail = then.length ? `,${then.join(",")}` : "";
   if (labels.length === 1) return `[${labels[0]}]anull${tail}[${out}]`;
-  return `${labels.map((l) => `[${l}]`).join("")}amix=inputs=${labels.length}:normalize=0:duration=longest:dropout_transition=0${tail}[${out}]`;
+  const amix = `amix=inputs=${labels.length}:normalize=0:duration=longest:dropout_transition=0`;
+  return `${labels.map((l) => `[${l}]`).join("")}${amix}${tail}[${out}]`;
 }
 
-export function channelJob(
-  plan: Pick<MixPlan, "fps" | "durationInFrames">,
-  channel: Pick<ChannelPlan, "sounds" | "strip">,
-  resolve: (ref: string) => string,
+const streamLabels = (inputs: string[], first = 0) => inputs.map((_, i) => `${first + i}:a`);
+
+type Stages = { pre: string[]; comp: string[]; post: string[] };
+
+function stripJob(
+  plan: Plan,
+  inputs: string[],
+  sources: { chains: string[]; labels: string[] },
+  { pre, comp, post }: Stages,
 ): Job {
-  const { fps, durationInFrames: total } = plan;
-  if (channel.sounds.length === 0)
-    return { inputs: [], filter: `${silence(total, fps)}[out]`, output: "out" };
-  const chains = channel.sounds.map((s, i) => soundChain(s, i, `s${i}`, fps));
-  const labels = channel.sounds.map((_, i) => `s${i}`);
-  const inputs = channel.sounds.map((s) => resolve(s.src));
-  const comp = compSteps(channel.strip.comp);
   if (comp.length === 0) {
-    const mixed = mixOf(labels, "out", [fit(total, fps), ...stripSteps(channel)]);
-    return { inputs, filter: [...chains, mixed].join(";"), output: "out" };
+    const mixed = mixOf(sources.labels, "out", [fit(plan), ...pre, ...post]);
+    return { inputs, filter: [...sources.chains, mixed].join(";"), output: "out" };
   }
-  const mixed = mixOf(labels, "sum", [fit(total, fps), ...preCompSteps(channel.strip)]);
+  const mixed = mixOf(sources.labels, "sum", [fit(plan), ...pre]);
   return {
     inputs,
-    filter: [...chains, mixed, tapped("sum", comp, postCompSteps(channel.strip))].join(";"),
+    filter: [...sources.chains, mixed, tapped("sum", comp, post)].join(";"),
     output: "out",
     taps: { pre: "pre", post: "post" },
   };
 }
 
-export function busJob(
-  plan: Pick<MixPlan, "fps" | "durationInFrames">,
-  bus: BusPlan,
-  stem: (channelId: string) => string,
+export function channelJob(
+  plan: Plan,
+  channel: Pick<ChannelPlan, "sounds" | "strip">,
+  resolve: (ref: string) => string,
 ): Job {
-  const { fps, durationInFrames: total } = plan;
-  const fader = Math.abs(bus.fader) >= 0.01 ? [`volume=${num(bus.fader, 2)}dB`] : [];
-  const proc = bus.processing ? busSteps(bus.processing) : [];
-  if (bus.channels.length === 0)
-    return { inputs: [], filter: `${silence(total, fps)}[out]`, output: "out" };
-  const inputs = bus.channels.map(stem);
-  const labels = inputs.map((_, i) => `${i}:a`);
-  if (!bus.duck)
-    return {
-      inputs,
-      filter: mixOf(labels, "out", [fit(total, fps), ...proc, ...fader]),
-      output: "out",
-    };
-  const keyInputs = bus.duck.keys.map(stem);
-  const keyLabels = keyInputs.map((_, i) => `${inputs.length + i}:a`);
-  const ratio = duckRatio(bus.duck.amount);
-  const sidechain = `sidechaincompress=threshold=${num(dbToGain(DUCK_THRESHOLD_DB))}:ratio=${num(ratio, 3)}:attack=${num(bus.duck.attack, 2)}:release=${num(bus.duck.release, 2)}:makeup=1`;
-  return {
-    inputs: [...inputs, ...keyInputs],
-    filter: [
-      mixOf(labels, "main", [fit(total, fps), ...proc, ...fader]),
-      mixOf(keyLabels, "key", [fit(total, fps)]),
-      `[main][key]${sidechain},${fit(total, fps)}[out]`,
-    ].join(";"),
-    output: "out",
-  };
+  if (channel.sounds.length === 0) return silenceJob(plan);
+  const labels = channel.sounds.map((_, i) => `s${i}`);
+  const chains = channel.sounds.map((s, i) => soundChain(s, i, labels[i], plan.fps));
+  return stripJob(
+    plan,
+    channel.sounds.map((s) => resolve(s.src)),
+    { chains, labels },
+    {
+      pre: preCompSteps(channel.strip),
+      comp: compSteps(channel.strip.comp),
+      post: postCompSteps(channel.strip),
+    },
+  );
 }
-
-export function busSteps(p: NonNullable<BusPlan["processing"]>): string[] {
-  return [
-    ...(p.highpass.on ? [`highpass=f=${num(p.highpass.freq, 1)}`] : []),
-    ...eqSteps(p.eq),
-    ...compSteps(p.comp),
-  ];
-}
-
-export const DUCK_THRESHOLD_DB = -40;
-export const DUCK_REFERENCE_DB = -12;
 
 export function duckRatio(amount: number): number {
   const range = DUCK_REFERENCE_DB - DUCK_THRESHOLD_DB;
   const a = clamp(amount, 0.5, range - 1);
-  return Math.min(20, 1 / (1 - a / range));
+  return Math.min(MAX_DUCK_RATIO, 1 / (1 - a / range));
 }
 
-function masterTail(master: Master, measured?: LoudnessMeasure | null): string[] {
-  const steps = Math.abs(master.fader) >= 0.01 ? [`volume=${num(master.fader, 2)}dB`] : [];
-  const target = LOUDNESS_TARGETS[master.loudness];
-  if (target && measured)
-    steps.push(
-      `loudnorm=I=${target.lufs}:TP=${target.truePeak}:LRA=11:measured_I=${measured.input_i}:measured_TP=${measured.input_tp}:measured_LRA=${measured.input_lra}:measured_thresh=${measured.input_thresh}:offset=${measured.target_offset}:linear=true:print_format=summary`,
-      `aresample=${SAMPLE_RATE}`,
-    );
-  if (master.limiter.on)
-    steps.push(
-      `aresample=${SAMPLE_RATE * 4}`,
-      `alimiter=limit=${num(Math.max(0.0625, dbToGain(master.limiter.ceiling)))}:level=false`,
-      `aresample=${SAMPLE_RATE}`,
-    );
-  return steps;
+function sidechain(duck: NonNullable<BusPlan["duck"]>): string {
+  const options = [
+    `threshold=${num(dbToGain(DUCK_THRESHOLD_DB))}`,
+    `ratio=${num(duckRatio(duck.amount), 3)}`,
+    `attack=${num(duck.attack, 2)}`,
+    `release=${num(duck.release, 2)}`,
+    "makeup=1",
+  ];
+  return `sidechaincompress=${options.join(":")}`;
 }
 
-export function masterSteps(master: Master, measured?: LoudnessMeasure | null): string[] {
-  return [...eqSteps(master.eq), ...compSteps(master.comp), ...masterTail(master, measured)];
+export function busJob(plan: Plan, bus: BusPlan, stem: (channelId: string) => string): Job {
+  if (bus.channels.length === 0) return silenceJob(plan);
+  const inputs = bus.channels.map(stem);
+  const main = [fit(plan), ...busSteps(bus.processing), ...dbStep(bus.fader)];
+  if (!bus.duck) return { inputs, filter: mixOf(streamLabels(inputs), "out", main), output: "out" };
+  const keyInputs = bus.duck.keys.map(stem);
+  return {
+    inputs: [...inputs, ...keyInputs],
+    filter: [
+      mixOf(streamLabels(inputs), "main", main),
+      mixOf(streamLabels(keyInputs, inputs.length), "key", [fit(plan)]),
+      `[main][key]${sidechain(bus.duck)},${fit(plan)}[out]`,
+    ].join(";"),
+    output: "out",
+  };
 }
 
 export function masterJob(
@@ -251,26 +292,17 @@ export function masterJob(
   buses: string[],
   measured: LoudnessMeasure | null,
 ): Job {
-  const { fps, durationInFrames: total } = plan;
-  if (buses.length === 0)
-    return { inputs: [], filter: `${silence(total, fps)}[out]`, output: "out" };
-  const labels = buses.map((_, i) => `${i}:a`);
-  const comp = compSteps(plan.master.comp);
-  if (comp.length === 0)
-    return {
-      inputs: buses,
-      filter: mixOf(labels, "out", [fit(total, fps), ...masterSteps(plan.master, measured)]),
-      output: "out",
-    };
-  return {
-    inputs: buses,
-    filter: [
-      mixOf(labels, "sum", [fit(total, fps), ...eqSteps(plan.master.eq)]),
-      tapped("sum", comp, masterTail(plan.master, measured)),
-    ].join(";"),
-    output: "out",
-    taps: { pre: "pre", post: "post" },
-  };
+  if (buses.length === 0) return silenceJob(plan);
+  return stripJob(
+    plan,
+    buses,
+    { chains: [], labels: streamLabels(buses) },
+    {
+      pre: eqSteps(plan.master.eq),
+      comp: compSteps(plan.master.comp),
+      post: masterTail(plan.master, measured),
+    },
+  );
 }
 
 export function loudnessMeasureJob(
@@ -279,19 +311,33 @@ export function loudnessMeasureJob(
 ): Job | null {
   const target = LOUDNESS_TARGETS[plan.master.loudness];
   if (!target || buses.length === 0) return null;
-  const { fps, durationInFrames: total } = plan;
-  const labels = buses.map((_, i) => `${i}:a`);
   const pre = masterSteps({ ...plan.master, loudness: "off", limiter: { on: false, ceiling: 0 } });
   return {
     inputs: buses,
-    filter: mixOf(labels, "out", [
-      fit(total, fps),
+    filter: mixOf(streamLabels(buses), "out", [
+      fit(plan),
       ...pre,
-      `loudnorm=I=${target.lufs}:TP=${target.truePeak}:LRA=11:print_format=json`,
+      `${loudnormBase(target)}:print_format=json`,
     ]),
     output: "out",
   };
 }
+
+const inputArgs = (job: Job) => [
+  ...job.inputs.flatMap((file) => ["-i", file]),
+  "-filter_complex",
+  job.filter,
+];
+
+const outputArgs = (label: string, limit: string[], format: string[], file: string) => [
+  "-map",
+  `[${label}]`,
+  ...limit,
+  ...format,
+  file,
+];
+
+const pcm = (codec: string) => ["-ar", String(SAMPLE_RATE), "-c:a", codec];
 
 export function jobArgs(
   job: Job,
@@ -301,64 +347,29 @@ export function jobArgs(
   maxSeconds?: number,
 ): string[] {
   const limit = maxSeconds ? ["-t", num(maxSeconds, 3)] : [];
-  const tap = (label: string, file: string) => [
-    "-map",
-    `[${label}]`,
-    ...limit,
-    "-ar",
-    String(SAMPLE_RATE),
-    "-c:a",
-    "pcm_f32le",
-    file,
-  ];
-  const tapArgs =
-    job.taps && taps ? [...tap(job.taps.pre, taps.pre), ...tap(job.taps.post, taps.post)] : [];
+  const tap = (label: string, file: string) => outputArgs(label, limit, pcm("pcm_f32le"), file);
   return [
-    ...job.inputs.flatMap((file) => ["-i", file]),
-    "-filter_complex",
-    job.filter,
-    "-map",
-    `[${job.output}]`,
-    ...limit,
-    "-ac",
-    "2",
-    "-ar",
-    String(SAMPLE_RATE),
-    "-c:a",
-    codec,
-    output,
-    ...tapArgs,
+    ...inputArgs(job),
+    ...outputArgs(job.output, limit, ["-ac", "2", ...pcm(codec)], output),
+    ...(job.taps && taps ? [...tap(job.taps.pre, taps.pre), ...tap(job.taps.post, taps.post)] : []),
   ];
 }
 
 export function measureArgs(job: Job): string[] {
-  return [
-    ...job.inputs.flatMap((file) => ["-i", file]),
-    "-filter_complex",
-    job.filter,
-    "-map",
-    `[${job.output}]`,
-    "-f",
-    "null",
-    "-",
-  ];
+  return [...inputArgs(job), ...outputArgs(job.output, [], ["-f", "null"], "-")];
 }
 
 export function parseLoudnorm(stderr: string): LoudnessMeasure | null {
   const start = stderr.lastIndexOf("{");
   const end = stderr.lastIndexOf("}");
   if (start === -1 || end < start) return null;
+  let json: unknown;
   try {
-    const json = JSON.parse(stderr.slice(start, end + 1)) as Record<string, string>;
-    if (!json.input_i || json.input_i === "-inf") return null;
-    return {
-      input_i: json.input_i,
-      input_tp: json.input_tp,
-      input_lra: json.input_lra,
-      input_thresh: json.input_thresh,
-      target_offset: json.target_offset,
-    };
+    json = JSON.parse(stderr.slice(start, end + 1));
   } catch {
     return null;
   }
+  const parsed = loudnessMeasureSchema.safeParse(json);
+  if (!parsed.success || parsed.data.input_i === "-inf") return null;
+  return parsed.data;
 }

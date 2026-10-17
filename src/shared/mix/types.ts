@@ -3,7 +3,7 @@ import { z } from "zod";
 export const EQ_TYPES = ["lowshelf", "peak", "highshelf"] as const;
 export type EqType = (typeof EQ_TYPES)[number];
 
-export const eqBandSchema = z.object({
+const eqBandSchema = z.object({
   type: z.enum(EQ_TYPES),
   freq: z.number().min(20).max(20_000),
   gain: z.number().min(-18).max(18),
@@ -11,20 +11,31 @@ export const eqBandSchema = z.object({
 });
 export type EqBand = z.infer<typeof eqBandSchema>;
 
-export const DEFAULT_EQ_BANDS: EqBand[] = [
-  { type: "lowshelf", freq: 120, gain: 0, q: 0.7 },
-  { type: "peak", freq: 500, gain: 0, q: 1 },
-  { type: "peak", freq: 2500, gain: 0, q: 1 },
-  { type: "highshelf", freq: 8000, gain: 0, q: 0.7 },
+type BandShape = [freq: number, gain: number, q: number];
+
+const band = (type: EqType, [freq, gain, q]: BandShape): EqBand => ({
+  type,
+  freq,
+  gain,
+  q,
+});
+
+const bands = (low: BandShape, lowMid: BandShape, highMid: BandShape, high: BandShape) => [
+  band("lowshelf", low),
+  band("peak", lowMid),
+  band("peak", highMid),
+  band("highshelf", high),
 ];
 
-export const eqSchema = z.object({
+const DEFAULT_EQ_BANDS = bands([120, 0, 0.7], [500, 0, 1], [2500, 0, 1], [8000, 0, 0.7]);
+
+const eqSchema = z.object({
   on: z.boolean().default(false),
   bands: z.array(eqBandSchema).length(4).default(DEFAULT_EQ_BANDS),
 });
 export type Eq = z.infer<typeof eqSchema>;
 
-export const compSchema = z.object({
+const compSchema = z.object({
   on: z.boolean().default(false),
   threshold: z.number().min(-60).max(0).default(-18),
   ratio: z.number().min(1).max(20).default(3),
@@ -34,7 +45,7 @@ export const compSchema = z.object({
 });
 export type Comp = z.infer<typeof compSchema>;
 
-export const highpassSchema = z.object({
+const highpassSchema = z.object({
   on: z.boolean().default(false),
   freq: z.number().min(20).max(1000).default(80),
 });
@@ -42,19 +53,10 @@ export const highpassSchema = z.object({
 export const MIN_DB = -60;
 export const MAX_DB = 12;
 
-const OFF_COMP = {
-  on: false,
-  threshold: -18,
-  ratio: 3,
-  attack: 10,
-  release: 150,
-  makeup: 0,
-};
-
 export const busSettingsSchema = z.object({
-  highpass: highpassSchema.default({ on: false, freq: 80 }),
-  eq: eqSchema.default({ on: false, bands: DEFAULT_EQ_BANDS }),
-  comp: compSchema.default(OFF_COMP),
+  highpass: highpassSchema.prefault({}),
+  eq: eqSchema.prefault({}),
+  comp: compSchema.prefault({}),
   fader: z.number().min(MIN_DB).max(MAX_DB).default(0),
 });
 export type BusSettings = z.infer<typeof busSettingsSchema>;
@@ -73,7 +75,7 @@ export const stripSchema = stripSettingsSchema.extend({
 });
 export type Strip = z.infer<typeof stripSchema>;
 
-export const duckSettingsSchema = z.object({
+const duckSettingsSchema = z.object({
   on: z.boolean().default(false),
   keys: z.array(z.string()).default([]),
   amount: z.number().min(1).max(24).default(10),
@@ -89,14 +91,7 @@ export const busSchema = z.object({
   ...busSettingsSchema.shape,
   mute: z.boolean().default(false),
   solo: z.boolean().default(false),
-  duck: duckSettingsSchema.default({
-    on: false,
-    keys: [],
-    amount: 10,
-    attack: 80,
-    release: 400,
-    ignoreShorterMs: 0,
-  }),
+  duck: duckSettingsSchema.prefault({}),
 });
 export type Bus = z.infer<typeof busSchema>;
 
@@ -110,28 +105,23 @@ export const LOUDNESS_TARGETS = {
   broadcast: { lufs: -23, truePeak: -2 },
 } as const satisfies Record<LoudnessTarget, { lufs: number; truePeak: number } | null>;
 
-export const masterSchema = z.object({
+const GENTLE_MASTER_COMP = { threshold: -12, ratio: 2, attack: 20, release: 250 };
+
+const masterSchema = z.object({
   fader: z.number().min(MIN_DB).max(MAX_DB).default(0),
-  eq: eqSchema.default({ on: false, bands: DEFAULT_EQ_BANDS }),
-  comp: compSchema.default({
-    on: false,
-    threshold: -12,
-    ratio: 2,
-    attack: 20,
-    release: 250,
-    makeup: 0,
-  }),
+  eq: eqSchema.prefault({}),
+  comp: compSchema.prefault(GENTLE_MASTER_COMP),
   limiter: z
     .object({
       on: z.boolean().default(false),
       ceiling: z.number().min(-12).max(0).default(-1),
     })
-    .default({ on: false, ceiling: -1 }),
+    .prefault({}),
   loudness: z.enum(LOUDNESS_CHOICES).default("off"),
 });
 export type Master = z.infer<typeof masterSchema>;
 
-export const DEFAULT_BUSES: Bus[] = [
+const DEFAULT_BUSES: Bus[] = [
   busSchema.parse({ id: "music", name: "Music" }),
   busSchema.parse({ id: "effects", name: "Effects" }),
   busSchema.parse({ id: "clips", name: "Clips" }),
@@ -141,8 +131,8 @@ export const BUILT_IN_BUSES = new Set(DEFAULT_BUSES.map((b) => b.id));
 
 export const mixSchema = z.object({
   channels: z.record(z.string(), stripSchema).default({}),
-  buses: z.array(busSchema).default(DEFAULT_BUSES),
-  master: masterSchema.default(masterSchema.parse({})),
+  buses: z.array(busSchema).min(1).default(DEFAULT_BUSES),
+  master: masterSchema.prefault({}),
 });
 export type Mix = z.infer<typeof mixSchema>;
 
@@ -158,7 +148,9 @@ export const DEFAULT_BUS_FOR: Record<ChannelKind, string> = {
   clip: "clips",
 };
 
-export type StripPreset = { id: string; label: string; strip: Partial<StripSettings> };
+type StripPreset = { id: string; label: string; strip: Partial<StripSettings> };
+
+const eqOn = (...shape: Parameters<typeof bands>): Eq => ({ on: true, bands: bands(...shape) });
 
 export const STRIP_PRESETS: StripPreset[] = [
   {
@@ -166,15 +158,7 @@ export const STRIP_PRESETS: StripPreset[] = [
     label: "Voice",
     strip: {
       highpass: { on: true, freq: 90 },
-      eq: {
-        on: true,
-        bands: [
-          { type: "lowshelf", freq: 150, gain: -2, q: 0.7 },
-          { type: "peak", freq: 350, gain: -2, q: 1.2 },
-          { type: "peak", freq: 3000, gain: 3, q: 1 },
-          { type: "highshelf", freq: 10_000, gain: 2, q: 0.7 },
-        ],
-      },
+      eq: eqOn([150, -2, 0.7], [350, -2, 1.2], [3000, 3, 1], [10_000, 2, 0.7]),
       comp: { on: true, threshold: -20, ratio: 3, attack: 8, release: 120, makeup: 3 },
     },
   },
@@ -183,15 +167,7 @@ export const STRIP_PRESETS: StripPreset[] = [
     label: "Music bed",
     strip: {
       highpass: { on: true, freq: 40 },
-      eq: {
-        on: true,
-        bands: [
-          { type: "lowshelf", freq: 120, gain: 0, q: 0.7 },
-          { type: "peak", freq: 400, gain: 0, q: 1 },
-          { type: "peak", freq: 2500, gain: -3, q: 1.4 },
-          { type: "highshelf", freq: 9000, gain: -1, q: 0.7 },
-        ],
-      },
+      eq: eqOn([120, 0, 0.7], [400, 0, 1], [2500, -3, 1.4], [9000, -1, 0.7]),
       comp: { on: true, threshold: -24, ratio: 2, attack: 30, release: 300, makeup: 0 },
       fader: -6,
     },
@@ -201,19 +177,10 @@ export const STRIP_PRESETS: StripPreset[] = [
     label: "Punchy effects",
     strip: {
       highpass: { on: true, freq: 60 },
-      eq: {
-        on: true,
-        bands: [
-          { type: "lowshelf", freq: 100, gain: 2, q: 0.7 },
-          { type: "peak", freq: 600, gain: -2, q: 1 },
-          { type: "peak", freq: 4000, gain: 2, q: 1 },
-          { type: "highshelf", freq: 9000, gain: 1, q: 0.7 },
-        ],
-      },
+      eq: eqOn([100, 2, 0.7], [600, -2, 1], [4000, 2, 1], [9000, 1, 0.7]),
       comp: { on: true, threshold: -16, ratio: 4, attack: 3, release: 80, makeup: 2 },
     },
   },
 ];
 
 export const dbToGain = (db: number) => (db <= MIN_DB ? 0 : 10 ** (db / 20));
-export const gainToDb = (gain: number) => (gain <= 0 ? -Infinity : 20 * Math.log10(gain));

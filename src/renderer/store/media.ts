@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { MixPlan } from "@/shared/mix/plan";
-import type { AnalysisResult, Filmstrip, MixResult, Waveform } from "@/shared/mix/result";
+import type { AnalysisResult, Filmstrip, Waveform } from "@/shared/analysis";
+import type { MixResult } from "@/shared/mix/result";
 import { debounce } from "@/shared/timing";
 import { useAudioPreview } from "./audio-preview";
 

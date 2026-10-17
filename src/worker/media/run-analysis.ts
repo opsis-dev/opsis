@@ -1,4 +1,4 @@
-import type { AnalysisRequest, AnalysisResult } from "../../shared/mix/result";
+import type { AnalysisRequest, AnalysisResult } from "../../shared/analysis";
 import type { WorkerEnv } from "../../shared/worker-protocol";
 import { refToPath } from "../executors/util";
 import { renderMix } from "../mix/render";

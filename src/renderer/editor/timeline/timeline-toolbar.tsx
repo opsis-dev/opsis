@@ -20,7 +20,7 @@ import {
   type VisualEnvelopeKey,
 } from "@/shared/schema/timeline";
 import type { Workflow } from "@/shared/schema/workflow";
-import { formatTime } from "@/shared/timeline/snap";
+import { formatTime } from "@/shared/timeline/time";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import { Kbd } from "@/renderer/components/ui/kbd";

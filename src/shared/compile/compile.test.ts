@@ -1,14 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { ActionLog } from "../schema/actions";
-import type { TimelineSpec } from "../schema/timeline";
-import type { NodeResult } from "../schema/values";
+import type { TimelineItem, TimelineSpec } from "../schema/timeline";
 import { getTemplate } from "../templates";
 import { GraphBuilder } from "../templates/build";
-import type { GroupProps } from "./clip";
+import { forEachItem, groupOf, recordingOf } from "./clip";
 import { compileWorkflow, previewSpec } from "./compile";
-import type { RecordingProps } from "./recording";
 import { flattenSpec } from "../timeline/flatten";
-import { recordResult } from "../test-fixtures";
+import { recordedTake, recordResult } from "../test-fixtures";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 
@@ -56,17 +54,12 @@ const log: ActionLog = {
 };
 
 function walkItems(spec: TimelineSpec) {
-  const items: Array<{ component: string; props: Record<string, unknown> }> = [];
-  const visit = (tracks: TimelineSpec["tracks"]) => {
-    for (const t of tracks)
-      for (const i of t.items) {
-        items.push(i);
-        if (i.component === "core/group") visit((i.props as GroupProps).tracks);
-      }
-  };
-  visit(spec.tracks);
+  const items: TimelineItem[] = [];
+  forEachItem(spec.tracks, (item) => items.push(item));
   return items;
 }
+
+const recordingIn = (spec: TimelineSpec) => walkItems(spec).map(recordingOf).find(Boolean);
 
 describe("compileWorkflow — sample project", () => {
   it("compiles to one spec per Output node, with a placeholder before the first run", () => {
@@ -86,12 +79,10 @@ describe("compileWorkflow — sample project", () => {
   it("uses the recording once the capture node has a result", () => {
     const wf = todoMvc();
     const out = compileWorkflow(wf, { results: { record: recordResult(log) } });
-    const rec = walkItems(out.specs.render).find((i) => i.component === "core/recording");
-    expect(rec).toBeDefined();
-    const props = rec!.props as RecordingProps;
-    expect(props.src).toBe("project:.demoflow/cache/h/recording.mp4");
-    expect(props.tuning.sMax).toBe(1.74);
-    expect(props.keystrokes).toEqual({ position: "bottom", typed: true, chords: true });
+    const props = recordingIn(out.specs.render);
+    expect(props?.src).toBe("project:.demoflow/cache/h/recording.mp4");
+    expect(props?.tuning.sMax).toBe(1.74);
+    expect(props?.keystrokes).toEqual({ position: "bottom", typed: true, chords: true });
   });
 
   it("marks every action of the recording on the timeline at its frame", () => {
@@ -102,20 +93,20 @@ describe("compileWorkflow — sample project", () => {
     const marks = flat.marks.filter((m) => m.barKey === bar.key);
     expect(marks.map((m) => m.kind)).toEqual(["type", "click", "click"]);
     expect(marks[1].label).toBe("Click Complete");
-    const speed = (bar.props as unknown as RecordingProps).speed;
+    const speed = Number(bar.props.speed);
     const local = (marks[1].frame - bar.from) / bar.rate;
     expect(local + bar.contentStart).toBeCloseTo((6000 / 1000 / speed) * 30, 0);
   });
 
   it("passes the small preview copy along with the full recording", () => {
     const result = recordResult(log);
-    const recording = result.outputs.recording as Record<string, unknown>;
-    recording.proxySrc = "project:.demoflow/cache/h/recording.preview.mp4";
+    const recording = result.outputs.recording;
+    if (recording?.type === "recording")
+      recording.proxySrc = "project:.demoflow/cache/h/recording.preview.mp4";
     const out = compileWorkflow(todoMvc(), { results: { record: result } });
-    const rec = walkItems(out.specs.render).find((i) => i.component === "core/recording");
-    const props = rec!.props as RecordingProps;
-    expect(props.src).toBe("project:.demoflow/cache/h/recording.mp4");
-    expect(props.proxySrc).toBe("project:.demoflow/cache/h/recording.preview.mp4");
+    const props = recordingIn(out.specs.render);
+    expect(props?.src).toBe("project:.demoflow/cache/h/recording.mp4");
+    expect(props?.proxySrc).toBe("project:.demoflow/cache/h/recording.preview.mp4");
   });
 
   it("sequences clips with overlapping transitions (TransitionSeries semantics)", () => {
@@ -158,7 +149,7 @@ describe("compileWorkflow — timeline nodes", () => {
     expect(clip?.type).toBe("clip");
     if (clip?.type !== "clip") return;
     expect(clip.durationInFrames).toBe(30);
-    expect((clip.tracks[0].items[0].props as GroupProps).startFrom).toBe(30);
+    expect(groupOf(clip.tracks[0].items[0])?.startFrom).toBe(30);
   });
 
   it("speeds up with a linear remap", () => {
@@ -170,7 +161,7 @@ describe("compileWorkflow — timeline nodes", () => {
     const clip = compileWorkflow(wf).values[last].clip;
     if (clip?.type !== "clip") throw new Error("no clip");
     expect(clip.durationInFrames).toBe(45);
-    expect((clip.tracks[0].items[0].props as GroupProps).remap).toEqual([
+    expect(groupOf(clip.tracks[0].items[0])?.remap).toEqual([
       [0, 0],
       [45, 90],
     ]);
@@ -202,9 +193,9 @@ describe("compileWorkflow — timeline nodes", () => {
       return loop;
     });
     const out = compileWorkflow(wf);
-    expect(previewSpec(wf, out, "title")?.spec.durationInFrames).toBe(90);
-    expect(previewSpec(wf, out, null)?.spec.durationInFrames).toBe(180);
-    expect(previewSpec(wf, out, "title")?.spans.title).toEqual({ from: 0, to: 90 });
+    expect(previewSpec(wf.settings, out, "title")?.spec.durationInFrames).toBe(90);
+    expect(previewSpec(wf.settings, out, null)?.spec.durationInFrames).toBe(180);
+    expect(previewSpec(wf.settings, out, "title")?.spans.title).toEqual({ from: 0, to: 90 });
   });
 });
 
@@ -218,10 +209,9 @@ describe("layers that keep their layout", () => {
     g.node("out", "output.render", 2, 0);
     g.link("stack", "out", "clip", "timeline");
     const spec = compileWorkflow(g.build({ id: "x", name: "x" })).specs.out;
-    const outer = spec.tracks[0].items[0];
-    const props = outer.props as GroupProps;
-    expect(props.design).toEqual({ width: 1920, height: 1080 });
-    expect(props.tracks).toHaveLength(2);
+    const props = groupOf(spec.tracks[0].items[0]);
+    expect(props?.design).toEqual({ width: 1920, height: 1080 });
+    expect(props?.tracks).toHaveLength(2);
     expect(
       flattenSpec(spec)
         .bars.map((b) => b.nodeId)
@@ -231,58 +221,39 @@ describe("layers that keep their layout", () => {
 });
 
 describe("sounds under a clip", () => {
-  const take = (g: GraphBuilder) => {
-    const s = g.node("session", "browser.session", 0, 0);
-    const nav = g.node("open", "browser.navigate", 1, 0, { url: "https://example.com" });
-    const click = g.node("complete", "browser.click", 2, 0, { target: "Complete" });
-    const rec = g.node("record", "capture.record", 3, 0);
-    g.chain([s, nav, click, rec]);
-    const cam = g.node("camera", "camera.autoZoom", 3, 1, { speed: 1 });
-    g.link(rec, cam, "recording", "recording");
-    return cam;
-  };
-  const tagged: NodeResult = (() => {
-    const r = recordResult(log);
-    const rec = r.outputs.recording as { log: ActionLog };
-    rec.log = {
-      ...log,
-      actions: log.actions.map((a) => (a.id === "b" ? { ...a, nodeId: "complete" } : a)),
-    };
-    return r;
-  })();
+  const tagged = recordResult({
+    ...log,
+    actions: log.actions.map((a) => (a.id === "b" ? { ...a, nodeId: "complete" } : a)),
+  });
 
-  it("takes any number of sounds on one port", () => {
+  const withSounds = (sounds: Array<[id: string, params: Record<string, unknown>]>) => {
     const g = new GraphBuilder();
-    const cam = take(g);
+    const cam = recordedTake(g, [
+      { id: "complete", type: "browser.click", params: { target: "Complete" } },
+    ]);
     g.node("mix", "audio.mix", 4, 1);
     g.link(cam, "mix");
-    for (const id of ["s1", "s2", "s3", "s4"]) {
-      g.node(id, "audio.sfx", 4, 2, { src: "app:sfx/pop.wav", atMs: 500 });
+    for (const [id, params] of sounds) {
+      g.node(id, "audio.sfx", 4, 2, { src: "app:sfx/pop.wav", ...params });
       g.link(id, "mix", "audio", "sounds");
     }
     g.node("out", "output.render", 5, 1);
     g.link("mix", "out", "clip", "timeline");
-    const out = compileWorkflow(g.build({ id: "x", name: "x" }), { results: { record: tagged } });
-    expect(out.specs.out.audio.map((a) => a.nodeId)).toEqual(["s1", "s2", "s3", "s4"]);
+    return compileWorkflow(g.build({ id: "x", name: "x" }), { results: { record: tagged } }).specs
+      .out;
+  };
+
+  it("takes any number of sounds on one port", () => {
+    const spec = withSounds(["s1", "s2", "s3", "s4"].map((id) => [id, { atMs: 500 }]));
+    expect(spec.audio.map((a) => a.nodeId)).toEqual(["s1", "s2", "s3", "s4"]);
   });
 
   it("plays a sound effect on the action it's pinned to", () => {
-    const g = new GraphBuilder();
-    const cam = take(g);
-    g.node("mix", "audio.mix", 4, 1);
-    g.link(cam, "mix");
-    g.node("pinned", "audio.sfx", 4, 2, {
-      src: "app:sfx/pop.wav",
-      atAction: "complete",
-      offsetMs: -200,
-    });
-    g.link("pinned", "mix", "audio", "sounds");
-    g.node("out", "output.render", 5, 1);
-    g.link("mix", "out", "clip", "timeline");
-    const out = compileWorkflow(g.build({ id: "x", name: "x" }), { results: { record: tagged } });
-    const mark = flattenSpec(out.specs.out).marks.find((m) => m.nodeId === "complete")!;
-    const sound = out.specs.out.audio.find((a) => a.nodeId === "pinned")!;
-    expect(sound.from).toBe(Math.round(mark.frame) - 6);
+    const spec = withSounds([["pinned", { atAction: "complete", offsetMs: -200 }]]);
+    const mark = flattenSpec(spec).marks.find((m) => m.nodeId === "complete");
+    const sound = spec.audio.find((a) => a.nodeId === "pinned");
+    expect(mark).toBeDefined();
+    expect(sound?.from).toBe(Math.round(mark?.frame ?? 0) - 6);
   });
 });
 

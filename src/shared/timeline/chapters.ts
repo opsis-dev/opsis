@@ -1,11 +1,12 @@
 import type { TimelineSpec } from "../schema/timeline";
 import { flattenSpec } from "./flatten";
+import { chapterTime } from "./time";
 
-export type FilmChapter = { title: string; startMs: number; endMs: number };
+type FilmChapter = { title: string; startMs: number; endMs: number };
 
-export const MIN_CHAPTER_MS = 10_000;
+const MIN_CHAPTER_MS = 10_000;
 export const MIN_LISTED_CHAPTERS = 3;
-export const OPENING_TITLE = "Intro";
+const OPENING_TITLE = "Intro";
 
 export function filmChapters(spec: TimelineSpec): FilmChapter[] {
   const durationMs = (spec.durationInFrames / spec.fps) * 1000;
@@ -28,14 +29,6 @@ export function filmChapters(spec: TimelineSpec): FilmChapter[] {
     ...c,
     endMs: Math.round(kept[i + 1]?.startMs ?? durationMs),
   }));
-}
-
-export function chapterTime(ms: number): string {
-  const total = Math.floor(ms / 1000);
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = String(total % 60).padStart(2, "0");
-  return h ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
 }
 
 export function chapterList(chapters: readonly FilmChapter[]): string {

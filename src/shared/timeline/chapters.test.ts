@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { compileWorkflow } from "../compile/compile";
 import type { Action, ActionLog } from "../schema/actions";
 import { GraphBuilder } from "../templates/build";
-import { chapterList, chapterMetadata, chapterTime, filmChapters } from "./chapters";
-import { recordResult } from "../test-fixtures";
+import { chapterList, chapterMetadata, filmChapters } from "./chapters";
+import { recordedTake, recordResult } from "../test-fixtures";
 
 const chapter = (id: string, t: number, label: string): Action => ({
   id,
@@ -29,13 +29,7 @@ const log: ActionLog = {
 
 function film(edit?: { type: string; params: Record<string, unknown> }) {
   const g = new GraphBuilder();
-  const s = g.node("session", "browser.session", 0, 0);
-  const nav = g.node("open", "browser.navigate", 1, 0, { url: "https://example.com" });
-  const rec = g.node("record", "capture.record", 2, 0);
-  g.chain([s, nav, rec]);
-  g.node("camera", "camera.autoZoom", 3, 0, { speed: 1 });
-  g.link(rec, "camera", "recording", "recording");
-  let last = "camera";
+  let last = recordedTake(g);
   if (edit) {
     g.node("edit", edit.type, 4, 0, edit.params);
     g.link(last, "edit");
@@ -49,13 +43,13 @@ function film(edit?: { type: string; params: Record<string, unknown> }) {
   return { spec, chapters: filmChapters(spec) };
 }
 
-const starts = (chapters: ReturnType<typeof filmChapters>) =>
+const titleAndStartSeconds = (chapters: ReturnType<typeof filmChapters>) =>
   chapters.map((c) => [c.title, Math.round(c.startMs / 100) / 10]);
 
 describe("filmChapters", () => {
   it("starts at zero and merges chapters shorter than ten seconds", () => {
     const { spec, chapters } = film();
-    expect(starts(chapters)).toEqual([
+    expect(titleAndStartSeconds(chapters)).toEqual([
       ["Sign in", 0],
       ["Build", 20],
       ["Ship", 45],
@@ -66,7 +60,7 @@ describe("filmChapters", () => {
 
   it("adds an opening chapter when the first one starts late", () => {
     const { chapters } = film({ type: "timeline.delay", params: { ms: 15_000 } });
-    expect(starts(chapters)).toEqual([
+    expect(titleAndStartSeconds(chapters)).toEqual([
       ["Intro", 0],
       ["Sign in", 17],
       ["Build", 35],
@@ -76,7 +70,7 @@ describe("filmChapters", () => {
 
   it("follows a clip sped up on the timeline, dropping a last chapter under ten seconds", () => {
     const { chapters } = film({ type: "timeline.speed", params: { rate: 2 } });
-    expect(starts(chapters)).toEqual([
+    expect(titleAndStartSeconds(chapters)).toEqual([
       ["Sign in", 0],
       ["Build", 10],
     ]);
@@ -87,7 +81,7 @@ describe("filmChapters", () => {
       type: "timeline.trim",
       params: { startMs: 10_000, durationMs: 0 },
     });
-    expect(starts(chapters)).toEqual([
+    expect(titleAndStartSeconds(chapters)).toEqual([
       ["Intro", 0],
       ["Build", 10],
       ["Ship", 35],
@@ -110,7 +104,6 @@ describe("chapter files", () => {
   ];
 
   it("writes timestamps for a video description", () => {
-    expect(chapterTime(3_725_000)).toBe("1:02:05");
     expect(chapterList(chapters)).toBe("0:00 Sign in\n0:20 Build = ship; #1\n");
   });
 

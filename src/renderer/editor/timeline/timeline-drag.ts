@@ -136,7 +136,7 @@ function rippleAfter(
 ): EditResult {
   if (!result.ok) return result;
   const targets = rippleTargets(ctx, d.flat.bars, d.flat.audio, after, exclude);
-  return { ...result, workflow: applyRipple(ctx, result.workflow, targets, delta) };
+  return { ...result, workflow: applyRipple(result.workflow, targets, delta, ctx.fps) };
 }
 
 function rippleMove(ctx: EditContext, d: EditDrag, result: EditResult, delta: number) {

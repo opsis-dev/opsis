@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Filmstrip, Waveform, WaveformLevel } from "../../shared/mix/result";
+import type { Filmstrip, Waveform, WaveformLevel } from "../../shared/analysis";
 import type { FfmpegTools } from "./ffmpeg";
 import { sha256Hex } from "../../engine/hash";
 import { readJson } from "../../engine/json";

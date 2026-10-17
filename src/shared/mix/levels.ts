@@ -1,6 +1,6 @@
-import { mapItems } from "../compile/clip";
-import { channelOf } from "../compile/duck";
-import type { AudioItem, TimelineItem, TimelineSpec } from "../schema/timeline";
+import { channelOf } from "../audio";
+import { forEachItem, itemHasSound, mapItems } from "../compile/clip";
+import type { AudioItem, TimelineSpec } from "../schema/timeline";
 import {
   DEFAULT_BUS_FOR,
   DEFAULT_STRIP,
@@ -12,6 +12,7 @@ import {
   type Strip,
 } from "./types";
 import { msToFrames } from "../timeline/time";
+import { numberOr } from "../math";
 
 export const resolveMix = (mix: Mix | undefined): Mix => mix ?? defaultMix();
 
@@ -26,7 +27,7 @@ export function busOf(mix: Mix, channel: string, kind: ChannelKind): Bus {
   );
 }
 
-export const kindOfAudio = (a: AudioItem): ChannelKind => (a.role === "music" ? "music" : "effect");
+const kindOfAudio = (a: AudioItem): ChannelKind => (a.role === "music" ? "music" : "effect");
 
 export function soloActive(mix: Mix): boolean {
   return Object.values(mix.channels).some((s) => s.solo) || mix.buses.some((b) => b.solo);
@@ -35,21 +36,19 @@ export function soloActive(mix: Mix): boolean {
 export function isAudible(mix: Mix, channel: string, kind: ChannelKind): boolean {
   const strip = stripOf(mix, channel);
   const bus = busOf(mix, channel, kind);
-  if (strip.mute || bus?.mute) return false;
+  if (strip.mute || bus.mute) return false;
   if (!soloActive(mix)) return true;
-  return strip.solo || !!bus?.solo;
+  return strip.solo || bus.solo;
 }
 
 export function channelGain(mix: Mix, channel: string, kind: ChannelKind): number {
   if (!isAudible(mix, channel, kind)) return 0;
   const strip = stripOf(mix, channel);
   const bus = busOf(mix, channel, kind);
-  return (
-    dbToGain(strip.trim + strip.fader) * dbToGain(bus?.fader ?? 0) * dbToGain(mix.master.fader)
-  );
+  return dbToGain(strip.trim + strip.fader) * dbToGain(bus.fader) * dbToGain(mix.master.fader);
 }
 
-export type ChannelInfo = {
+type ChannelInfo = {
   id: string;
   kind: ChannelKind;
   keepMusic: boolean;
@@ -58,7 +57,7 @@ export type ChannelInfo = {
 
 export function channelsIn(spec: Pick<TimelineSpec, "tracks" | "audio">): ChannelInfo[] {
   const out = new Map<string, ChannelInfo>();
-  for (const a of spec.audio ?? []) {
+  for (const a of spec.audio) {
     const id = channelOf(a);
     const prev = out.get(id);
     out.set(id, {
@@ -71,15 +70,14 @@ export function channelsIn(spec: Pick<TimelineSpec, "tracks" | "audio">): Channe
       ),
     });
   }
-  mapItems(spec.tracks, (item) => {
-    if (item.component === "core/video" && item.props.muted === false && item.nodeId)
+  forEachItem(spec.tracks, (item) => {
+    if (itemHasSound(item) && item.nodeId)
       out.set(item.nodeId, {
         id: item.nodeId,
         kind: "clip",
         keepMusic: false,
         lengthFrames: Infinity,
       });
-    return item;
   });
   return [...out.values()];
 }
@@ -89,13 +87,10 @@ export function duckKeysFor(mix: Mix, bus: Bus, channels: ChannelInfo[], fps: nu
   const keys = new Set(bus.duck.keys);
   const shortest = (bus.duck.ignoreShorterMs / 1000) * fps;
   return channels
-    .filter(
-      (c) =>
-        !c.keepMusic &&
-        c.lengthFrames >= shortest &&
-        keys.has(busOf(mix, c.id, c.kind).id) &&
-        busOf(mix, c.id, c.kind).id !== bus.id,
-    )
+    .filter((c) => {
+      const from = busOf(mix, c.id, c.kind).id;
+      return !c.keepMusic && c.lengthFrames >= shortest && keys.has(from) && from !== bus.id;
+    })
     .filter((c) => isAudible(mix, c.id, c.kind))
     .map((c) => c.id);
 }
@@ -113,17 +108,19 @@ export function applyMixLevels(spec: TimelineSpec, mixIn: Mix | undefined): Time
         keys,
       });
   }
-  const audio = (spec.audio ?? []).map((a) => {
+  const audio = spec.audio.map((a) => {
     const id = channelOf(a);
     const kind = kindOfAudio(a);
-    const duck = duckFor.get(busOf(mix, id, kind).id);
-    const { duck: _old, ...rest } = a;
-    return { ...rest, gain: channelGain(mix, id, kind), ...(duck ? { duck } : {}) };
+    return {
+      ...a,
+      gain: channelGain(mix, id, kind),
+      duck: duckFor.get(busOf(mix, id, kind).id),
+    };
   });
-  const tracks = mapItems(spec.tracks, (item: TimelineItem) => {
-    if (item.component !== "core/video" || item.props.muted !== false || !item.nodeId) return item;
+  const tracks = mapItems(spec.tracks, (item) => {
+    if (!itemHasSound(item) || !item.nodeId) return item;
     const gain = channelGain(mix, item.nodeId, "clip");
-    const volume = typeof item.props.volume === "number" ? item.props.volume : 1;
+    const volume = numberOr(item.props.volume, 1);
     return {
       ...item,
       props: { ...item.props, volume: volume * gain, ...(gain === 0 ? { muted: true } : {}) },
@@ -137,9 +134,7 @@ export function withMasterStem(
   master: { src: string; hash: string },
 ): TimelineSpec {
   const tracks = mapItems(spec.tracks, (item) =>
-    item.component === "core/video" && item.props.muted === false
-      ? { ...item, props: { ...item.props, muted: true } }
-      : item,
+    itemHasSound(item) ? { ...item, props: { ...item.props, muted: true } } : item,
   );
   return { ...spec, tracks, audio: [], mix: master };
 }

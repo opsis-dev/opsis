@@ -1,20 +1,23 @@
 import { describeParamIssue, isStructural, topoSort } from "../graph";
 import { getNodeDef } from "../nodes/registry";
+import type { NodeDef } from "../nodes/define";
 import { isOutputType } from "../nodes/output";
 import type { TimelineSpec } from "../schema/timeline";
 import type { CompileValue, NodeResult } from "../schema/values";
-import type { Workflow } from "../schema/workflow";
+import type { Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { interpolate } from "../vars";
-import { clipToSpec, isClip, nodeSpans, type Span } from "./clip";
+import { clipToSpec, isClip, nodeSpans, type FrameRange } from "./clip";
 import { errorMessage } from "../errors";
 import { projectFolderName } from "../project-folder";
 
-export type CompileOptions = {
+type CompileOptions = {
   results?: Partial<Record<string, NodeResult>>;
 };
 
+type PortValues = Partial<Record<string, CompileValue>>;
+
 export type CompileResult = {
-  values: Record<string, Partial<Record<string, CompileValue>>>;
+  values: Record<string, PortValues>;
   errors: Record<string, string>;
   specs: Record<string, TimelineSpec>;
   order: string[];
@@ -24,6 +27,69 @@ export const PROJECT_NAME_VAR = "Project name";
 
 export function workflowVars(wf: Pick<Workflow, "name" | "variables">): Record<string, string> {
   return { [PROJECT_NAME_VAR]: projectFolderName(wf.name), ...wf.variables };
+}
+
+function gatherInputs(
+  wf: Workflow,
+  def: NodeDef,
+  id: string,
+  values: CompileResult["values"],
+): PortValues {
+  const inputs: PortValues = {};
+  for (const e of wf.edges) {
+    if (e.target !== id) continue;
+    const v = values[e.source]?.[e.sourceHandle];
+    if (!v) continue;
+    const prev = inputs[e.targetHandle];
+    inputs[e.targetHandle] =
+      prev?.type === "audio" && v.type === "audio" && def.inputs[e.targetHandle]?.many
+        ? { ...prev, items: [...prev.items, ...v.items] }
+        : v;
+  }
+  return inputs;
+}
+
+function bypass(def: NodeDef, inputs: PortValues): PortValues {
+  const out: PortValues = {};
+  const firstClip = Object.values(inputs).find(isClip);
+  for (const [portId, spec] of Object.entries(def.outputs)) {
+    const match =
+      Object.values(inputs).find((v) => v?.type === spec.type) ??
+      (spec.type === "clip" ? firstClip : undefined);
+    if (match) out[portId] = match;
+  }
+  return out;
+}
+
+type NodeOutcome = { values: PortValues; error?: string };
+
+function runCompile(
+  wf: Workflow,
+  node: WorkflowNode,
+  def: NodeDef,
+  inputs: PortValues,
+  ctx: { vars: Record<string, string>; result: NodeResult | undefined },
+): NodeOutcome {
+  const parsed = def.params.safeParse(interpolate(node.params, ctx.vars));
+  if (!parsed.success)
+    return { values: {}, error: describeParamIssue(def.params.shape, parsed.error.issues[0]) };
+  try {
+    const values =
+      def.compile?.({
+        nodeId: node.id,
+        params: parsed.data,
+        inputs,
+        settings: wf.settings,
+        result: ctx.result,
+        vars: ctx.vars,
+        workflow: wf,
+      }) ??
+      ctx.result?.outputs ??
+      {};
+    return { values };
+  } catch (error) {
+    return { values: {}, error: errorMessage(error) };
+  }
 }
 
 export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): CompileResult {
@@ -42,62 +108,16 @@ export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): Compil
       errors[id] = "This node type isn't available";
       continue;
     }
-
-    const inputs: Partial<Record<string, CompileValue>> = {};
-    for (const e of wf.edges) {
-      if (e.target !== id) continue;
-      const v = values[e.source]?.[e.sourceHandle];
-      if (!v) continue;
-      const prev = inputs[e.targetHandle];
-      inputs[e.targetHandle] =
-        prev?.type === "audio" && v.type === "audio" && def.inputs[e.targetHandle]?.many
-          ? { ...prev, items: [...prev.items, ...v.items] }
-          : v;
-    }
-
+    const inputs = gatherInputs(wf, def, id, values);
     if (node.disabled) {
-      const out: Partial<Record<string, CompileValue>> = {};
-      const firstClip = Object.values(inputs).find(isClip);
-      for (const [portId, spec] of Object.entries(def.outputs)) {
-        const match =
-          Object.values(inputs).find((v) => v?.type === spec.type) ??
-          (spec.type === "clip" ? firstClip : undefined);
-        if (match) out[portId] = match;
-      }
-      values[id] = out;
+      values[id] = bypass(def, inputs);
       continue;
     }
-
-    const parsed = def.params.safeParse(interpolate(node.params ?? {}, vars));
-    if (!parsed.success) {
-      const issue = parsed.error.issues[0];
-      errors[id] = describeParamIssue(def.params.shape, issue);
-      values[id] = {};
-      continue;
-    }
-
-    try {
-      const out =
-        def.compile?.({
-          nodeId: id,
-          params: parsed.data,
-          inputs,
-          settings: wf.settings,
-          result: opts.results?.[id],
-          vars,
-          workflow: wf,
-        }) ??
-        (opts.results?.[id]?.outputs as Partial<Record<string, CompileValue>> | undefined) ??
-        {};
-      values[id] = out;
-      if (isOutputType(node.type)) {
-        const tl = out.timeline;
-        if (tl?.type === "timeline") specs[id] = tl.spec;
-      }
-    } catch (error) {
-      errors[id] = errorMessage(error);
-      values[id] = {};
-    }
+    const outcome = runCompile(wf, node, def, inputs, { vars, result: opts.results?.[id] });
+    values[id] = outcome.values;
+    if (outcome.error !== undefined) errors[id] = outcome.error;
+    const tl = outcome.values.timeline;
+    if (isOutputType(node.type) && tl?.type === "timeline") specs[id] = tl.spec;
   }
 
   return { values, errors, specs, order };
@@ -105,12 +125,12 @@ export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): Compil
 
 export type PreviewTarget = {
   spec: TimelineSpec;
-  spans: Record<string, Span>;
-  sourceNodeId: string | null;
+  spans: Record<string, FrameRange>;
+  sourceNodeId: string;
 };
 
 export function previewSpec(
-  wf: Workflow,
+  settings: WorkflowSettings,
   result: CompileResult,
   selectedNodeId?: string | null,
 ): PreviewTarget | null {
@@ -119,7 +139,7 @@ export function previewSpec(
     if (!out) return null;
     if (result.specs[id]) return result.specs[id];
     const clip = Object.values(out).find(isClip);
-    return clip ? clipToSpec(clip, wf.settings) : null;
+    return clip ? clipToSpec(clip, settings) : null;
   };
   const candidates = [
     ...(selectedNodeId ? [selectedNodeId] : []),

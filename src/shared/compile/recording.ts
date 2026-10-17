@@ -2,7 +2,7 @@ import type { Action, ActionLog } from "../schema/actions";
 import type { AssetRef } from "../schema/values";
 
 export const CAMERA_STYLES = ["classic", "proof", "ledger", "stage"] as const;
-export type CameraStyle = (typeof CAMERA_STYLES)[number];
+type CameraStyle = (typeof CAMERA_STYLES)[number];
 
 export type AnnotationKind = "highlight" | "spotlight" | "tooltip" | "callout";
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AudioItem, TimelineSpec } from "../schema/timeline";
-import { duckGain, duckingSpans, mergeSpans } from "./duck";
+import { duckGain, duckingSpans, mergeSpans, type Span } from "./duck";
 
 const effect = (id: string, from: number, extra: Partial<AudioItem> = {}): AudioItem => ({
   id,
@@ -108,16 +108,19 @@ describe("ducking", () => {
     ]);
   });
 
-  it("ramps down before a sound and back up after it", () => {
-    const spans = [[30, 40]] as const;
-    expect(duckGain(0, [...spans], 0.3, 10)).toBe(1);
-    expect(duckGain(20, [...spans], 0.3, 10)).toBe(1);
-    expect(duckGain(25, [...spans], 0.3, 10)).toBeCloseTo(0.65);
-    expect(duckGain(30, [...spans], 0.3, 10)).toBe(0.3);
-    expect(duckGain(39, [...spans], 0.3, 10)).toBe(0.3);
-    expect(duckGain(45, [...spans], 0.3, 10)).toBeCloseTo(0.65);
-    expect(duckGain(50, [...spans], 0.3, 10)).toBe(1);
-    expect(duckGain(35, [...spans], 0.3, 0)).toBe(0.3);
-    expect(duckGain(29, [...spans], 0.3, 0)).toBe(1);
+  const spans: Span[] = [[30, 40]];
+
+  it.each([
+    [0, 10, 1],
+    [20, 10, 1],
+    [25, 10, 0.65],
+    [30, 10, 0.3],
+    [39, 10, 0.3],
+    [45, 10, 0.65],
+    [50, 10, 1],
+    [35, 0, 0.3],
+    [29, 0, 1],
+  ])("ramps around a sound: frame %i with a %i-frame fade is at %f", (frame, fade, gain) => {
+    expect(duckGain(frame, spans, 0.3, fade)).toBeCloseTo(gain);
   });
 });

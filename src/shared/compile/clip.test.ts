@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  groupOf,
   itemClip,
   nodeSpans,
   remapDuration,
@@ -7,10 +8,10 @@ import {
   remapFromSegments,
   sequenceClips,
   clipToSpec,
+  type Remap,
 } from "./clip";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 import { flattenSpec } from "../timeline/flatten";
-import type { GroupProps } from "./clip";
 
 const settings = {
   width: 1920,
@@ -22,7 +23,7 @@ const settings = {
 
 describe("remaps", () => {
   it("maps output frames to inner frames piecewise-linearly", () => {
-    const remap: Array<[number, number]> = [
+    const remap: Remap = [
       [0, 0],
       [10, 40],
       [20, 50],
@@ -81,10 +82,10 @@ describe("held transitions", () => {
     expect([a.from, a.durationInFrames]).toEqual([0, 75]);
     expect([b.from, b.durationInFrames]).toEqual([45, 100]);
     expect([c.from, c.durationInFrames]).toEqual([135, 40]);
-    const remapA = (a.props as GroupProps).remap!;
+    const remapA = groupOf(a)?.remap ?? [];
     expect(remapFrame(remapA, 44)).toBe(44);
     expect(remapFrame(remapA, 74)).toBe(44);
-    const remapB = (b.props as GroupProps).remap!;
+    const remapB = groupOf(b)?.remap ?? [];
     expect(remapFrame(remapB, 10)).toBe(0);
     expect(remapFrame(remapB, 30)).toBe(0);
     expect(remapFrame(remapB, 89)).toBe(59);
@@ -97,7 +98,7 @@ describe("held transitions", () => {
     const spec = (hold: boolean) =>
       clipToSpec(
         sequenceClips("seq", parts, [undefined, { kind: "core/fade", durationInFrames: 30, hold }]),
-        { width: 1920, height: 1080, fps: 30, theme: "dark", fonts: DEFAULT_PROJECT_FONTS },
+        settings,
       );
     expect(flattenSpec(spec(false)).transitions[0].covers).toBeCloseTo(30 / 45);
     expect(flattenSpec(spec(true)).transitions[0].covers).toBe(0);

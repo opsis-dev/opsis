@@ -28,7 +28,7 @@ export type ChannelPlan = {
 export type BusPlan = {
   id: string;
   name: string;
-  processing?: Pick<Bus, "highpass" | "eq" | "comp">;
+  processing: Pick<Bus, "highpass" | "eq" | "comp">;
   fader: number;
   channels: string[];
   duck: { keys: string[]; amount: number; attack: number; release: number } | null;
@@ -66,23 +66,20 @@ export function buildMixPlan(
     });
     sounds.set(a.channel, list);
   }
-  const channels: ChannelPlan[] = infos
-    .filter((c) => sounds.has(c.id))
-    .map((c) => ({
-      id: c.id,
-      kind: c.kind,
-      bus: busOf(mix, c.id, c.kind).id,
-      strip: stripOf(mix, c.id),
-      sounds: sounds.get(c.id)!,
-      audible: isAudible(mix, c.id, c.kind),
-    }));
+  const live = infos.flatMap((info) => {
+    const placed = sounds.get(info.id);
+    return placed ? [{ ...info, sounds: placed }] : [];
+  });
+  const channels: ChannelPlan[] = live.map((c) => ({
+    id: c.id,
+    kind: c.kind,
+    bus: busOf(mix, c.id, c.kind).id,
+    strip: stripOf(mix, c.id),
+    sounds: c.sounds,
+    audible: isAudible(mix, c.id, c.kind),
+  }));
   const buses: BusPlan[] = mix.buses.map((bus) => {
-    const keys = duckKeysFor(
-      mix,
-      bus,
-      infos.filter((c) => sounds.has(c.id)),
-      spec.fps,
-    );
+    const keys = duckKeysFor(mix, bus, live, spec.fps);
     return {
       id: bus.id,
       name: bus.name,

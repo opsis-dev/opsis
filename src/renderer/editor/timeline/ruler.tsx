@@ -1,4 +1,5 @@
-import { formatTime, rulerStep } from "@/shared/timeline/snap";
+import { rulerStep } from "@/shared/timeline/snap";
+import { formatTime } from "@/shared/timeline/time";
 import { cn } from "@/renderer/lib/utils";
 import { usePlayback } from "../../store/playback";
 import { HEADER_W, RULER_H } from "./timeline-layout";

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { Waveform } from "@/shared/mix/result";
+import type { Waveform } from "@/shared/analysis";
 import type { AudioBar, FlatTimeline } from "@/shared/timeline/flatten";
 import { useMedia } from "../../store/media";
 

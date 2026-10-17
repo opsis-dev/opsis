@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { clamp } from "@/shared/math";
-import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/mix/result";
+import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
 import type { AudioBar, VideoBar } from "@/shared/timeline/flatten";
 import { cn } from "@/renderer/lib/utils";
 import { useMedia } from "../../store/media";
