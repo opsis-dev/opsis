@@ -8,7 +8,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { fontShimFile } from "../src/shared/fonts/google-shim";
+import { googleFontModuleFile } from "../src/shared/fonts/google-font-imports";
 import { FONT_CATEGORIES } from "../src/shared/fonts/types";
 import { walkFiles } from "./lib/walk";
 
@@ -131,7 +131,7 @@ function writeShims(): void {
   mkdirSync(SHIM_DIR, { recursive: true });
   for (const [name, family] of Object.entries(GOOGLE_IMPORTS))
     writeFileSync(
-      path.join(SHIM_DIR, fontShimFile(name)),
+      path.join(SHIM_DIR, googleFontModuleFile(name)),
       `import { googleFont } from "../google-font";\n\nexport const { loadFont, getInfo } = googleFont(${JSON.stringify(family)});\n`,
     );
 }

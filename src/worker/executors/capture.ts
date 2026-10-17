@@ -22,7 +22,7 @@ import { rel } from "./util";
 import { WINDOW_FIT } from "../../video/camera/lib/style";
 import { captureScale, type Box } from "../../video/core/still-layout";
 import { errorMessage } from "../../shared/errors";
-import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";
+import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { formatDuration } from "../../shared/format";
 import { findHeadlessShell } from "../../engine/paths";
 
@@ -121,8 +121,11 @@ async function take<T>(
       originWallMs: encoder.originMs,
       workDir: ctx.dir,
       ffmpeg: ctx.ffmpeg,
-    }).catch((e: unknown) =>
-      ctx.log("warn", `Couldn't add screenshots to the trace: ${errorMessage(e)}`),
+    }).then(
+      (skipped) => {
+        if (skipped) ctx.log("info", `Screenshots weren't added to the trace: ${skipped}.`);
+      },
+      (e: unknown) => ctx.log("warn", `Couldn't add screenshots to the trace: ${errorMessage(e)}`),
     );
   };
   try {

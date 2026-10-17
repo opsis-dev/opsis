@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { workflowProblems } from "@/shared/api/check";
+import { problemCheck, workflowProblems } from "@/shared/api/check";
 import type { ApiEdited } from "@/shared/api/types";
 import {
   apiFailure,
@@ -165,10 +165,7 @@ const HANDLERS: { [O in Op]: Handler<O> } = {
     useWorkflowStore.getState().setVariables(request.variables);
     return edited();
   },
-  problems: (_request, wf) => {
-    const problems = workflowProblems(wf);
-    return apiOk({ ok: !problems.some((p) => p.level === "error"), problems });
-  },
+  problems: (_request, wf) => apiOk(problemCheck(workflowProblems(wf))),
   undo: () => {
     useWorkflowStore.temporal.getState().undo();
     return edited();

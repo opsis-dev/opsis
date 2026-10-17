@@ -1,7 +1,7 @@
 import { CircleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import type { TraceAction, TraceConsole, TraceModel } from "@/shared/trace";
-import { formatBytes, formatDuration } from "@/shared/format";
+import { formatBytes, formatPreciseDuration } from "@/shared/format";
 import { Badge } from "@/renderer/components/ui/badge";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
@@ -30,7 +30,7 @@ const within = (time: number, action: TraceAction | undefined) =>
   !!action && time >= action.start && time <= action.end;
 
 export const traceClock = (trace: TraceModel) => (t: number) =>
-  `+${formatDuration(t - trace.start, "precise")}`;
+  `+${formatPreciseDuration(t - trace.start)}`;
 
 function TabScroll({ children, className }: { children: ReactNode; className?: string }) {
   return <ScrollArea className={cn("h-48 rounded-md", className)}>{children}</ScrollArea>;
@@ -113,7 +113,7 @@ function NetworkTab({ trace, action }: TraceTabProps) {
               </TableCell>
               <TableCell className="text-right tabular-nums">{formatBytes(r.size)}</TableCell>
               <TableCell className="text-right tabular-nums">
-                {formatDuration(r.duration, "precise")}
+                {formatPreciseDuration(r.duration)}
               </TableCell>
             </TableRow>
           ))}

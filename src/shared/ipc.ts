@@ -11,6 +11,7 @@ import type { FontFamilyDef } from "./fonts/types";
 import type { PlannedFamily } from "./fonts/plan";
 import type { TimelineSpec } from "./schema/timeline";
 import type { AnalysisKind, AnalysisRequest, AnalysisResultFor } from "./analysis";
+import type { EngineInstallEvent, EngineStatus } from "./engine";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 
@@ -65,14 +66,6 @@ export type RunRequest = {
   fromNodeId?: string;
 };
 
-export type EngineStatus = {
-  dir: string;
-  headlessShell: string | null;
-  ffmpeg: string | null;
-  ffprobe: string | null;
-  complete: boolean;
-};
-
 export type EnvStatus = {
   platform: string;
   arch: string;
@@ -83,21 +76,13 @@ export type EnvStatus = {
   engine: EngineStatus;
 };
 
-export type EngineInstallEvent = {
-  part: "ffmpeg" | "headless-shell";
-  step: string;
-  progress: number | null;
-  message: string;
-  done?: boolean;
-  error?: string;
-};
-
 export type PickRequest = { url: string; viewport?: { width: number; height: number } };
+export const PICKED_BY = ["accessible name", "css", "spot"] as const;
 export type PickResult = {
   target: string;
   css: string;
   role?: string;
-  selectorUsed: string;
+  selectorUsed: (typeof PICKED_BY)[number];
 } | null;
 
 export const DOCK_PANELS = ["preview", "timeline", "mixer", "run"] as const;
@@ -141,7 +126,7 @@ export type StillRequest = {
 
 export type StillResult = { hash: string; ready: boolean; unavailable?: boolean };
 
-export type StillReady = { projectDir: string; nodeId: string; hash: string };
+type StillReady = { projectDir: string; nodeId: string; hash: string };
 
 export type WindowState = { maximized: boolean; fullscreen: boolean; focused: boolean };
 

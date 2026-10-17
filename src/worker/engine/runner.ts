@@ -6,6 +6,7 @@ import {
   downstreamOf,
   isStructural,
   loginDependencies,
+  nodesById,
   runTargets,
   topoSort,
   upstreamOf,
@@ -111,7 +112,7 @@ function hashNodes(
   order: string[],
   vars: Record<string, string>,
 ): Map<string, string> {
-  const nodes = new Map(workflow.nodes.map((n) => [n.id, n]));
+  const nodes = nodesById(workflow.nodes);
   const hashes = new Map<string, string>();
   for (const id of order) {
     const node = nodes.get(id);

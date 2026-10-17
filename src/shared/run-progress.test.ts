@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { RunEvent } from "./schema/events";
-import type { NodeResult } from "./schema/values";
 import {
   applyRunEvent,
   emptyRunProgress,
@@ -8,14 +7,10 @@ import {
   failureMessage,
   resumeRunProgress,
 } from "./run-progress";
+import { nodeResult } from "./test-fixtures";
 
-const result = (finishedAt: number, paths: string[] = []): NodeResult => ({
-  hash: "h",
-  outputs: {},
-  artifacts: paths.map((path) => ({ kind: "video", path })),
-  finishedAt,
-  durationMs: 1,
-});
+const result = (finishedAt: number, paths: string[] = []) =>
+  nodeResult({ finishedAt, artifacts: paths.map((path) => ({ kind: "video", path })) });
 
 const run = (events: RunEvent[]) => events.reduce(applyRunEvent, emptyRunProgress());
 

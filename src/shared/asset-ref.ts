@@ -4,8 +4,10 @@ export const PROJECT_FILE_BASE = `${FILE_SCHEME}://project/`;
 
 export const encodePath = (p: string): string => p.split("/").map(encodeURIComponent).join("/");
 
+export const withoutLeadingSlashes = (path: string): string => path.replace(/^\/+/, "");
+
 export const projectRelPath = (ref: string): string =>
-  ref.replace(/^project:/, "").replace(/^\/+/, "");
+  withoutLeadingSlashes(ref.replace(/^project:/, ""));
 
 export const isProjectRef = (ref: string): boolean => ref.startsWith("project:");
 
@@ -26,4 +28,4 @@ export const baseName = (ref: string): string => ref.replace(/\/+$/, "").split("
 const REF_SCHEMES = /^(project:|app:|https?:|data:|blob:|demoflow-file:)/;
 
 export const projectRef = (path: string): string =>
-  !path || REF_SCHEMES.test(path) ? path : `project:${path.replace(/^\/+/, "")}`;
+  !path || REF_SCHEMES.test(path) ? path : `project:${withoutLeadingSlashes(path)}`;

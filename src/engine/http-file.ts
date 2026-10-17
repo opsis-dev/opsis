@@ -2,9 +2,11 @@ import { createReadStream, type ReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { isInside } from "./project-paths";
+import { isMissingFile } from "./json";
 import { IMAGE_MIME } from "../shared/mime";
+import { withoutLeadingSlashes } from "../shared/asset-ref";
 
-const MIME: Record<string, string> = {
+const MIME: Partial<Record<string, string>> = {
   ".mp4": "video/mp4",
   ".m4v": "video/mp4",
   ".mov": "video/quicktime",
@@ -29,7 +31,7 @@ const MIME: Record<string, string> = {
   ".css": "text/css",
 };
 
-export const mimeType = (file: string): string =>
+const mimeType = (file: string): string =>
   MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream";
 
 const decodePath = (urlPath: string): string | null => {
@@ -44,31 +46,35 @@ export function resolveInside(root: string, urlPath: string): string | null {
   const decoded = decodePath(urlPath);
   if (decoded === null) return null;
   const base = path.resolve(root);
-  const file = path.resolve(base, decoded.replace(/^\/+/, ""));
+  const file = path.resolve(base, withoutLeadingSlashes(decoded));
   return isInside(base, file) ? file : null;
 }
 
-export type ByteRange = { start: number; end: number };
+type ByteRange = { start: number; end: number };
 
 export function parseRange(
   header: string | null | undefined,
   size: number,
 ): ByteRange | "unsatisfiable" | null {
-  const m = /bytes=(\d*)-(\d*)/.exec(header ?? "");
-  if (!m) return null;
-  if (!m[1] && !m[2]) return "unsatisfiable";
-  const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]));
-  const end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1;
+  const groups = /bytes=(?<first>\d*)-(?<last>\d*)/.exec(header ?? "")?.groups;
+  if (!groups) return null;
+  const { first, last } = groups;
+  if (!first && !last) return "unsatisfiable";
+  const start = first ? Number(first) : Math.max(0, size - Number(last));
+  const end = first && last ? Math.min(Number(last), size - 1) : size - 1;
   return start > end ? "unsatisfiable" : { start, end };
 }
 
-export type FileReply =
+type FileReply =
   | { status: 404 }
   | { status: 416; headers: Record<string, string> }
   | { status: 200 | 206; headers: Record<string, string>; open: () => ReadStream };
 
 export async function fileReply(file: string, rangeHeader?: string | null): Promise<FileReply> {
-  const info = await stat(file).catch(() => null);
+  const info = await stat(file).catch((error: unknown) => {
+    if (isMissingFile(error)) return null;
+    throw error;
+  });
   if (!info?.isFile()) return { status: 404 };
   const headers = {
     "Content-Type": mimeType(file),

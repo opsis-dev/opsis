@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { calmProgress, downloadedSize } from "./install";
+import { calmProgress } from "./install";
 
 describe("engine download progress", () => {
   beforeEach(() => vi.useFakeTimers());
@@ -24,11 +24,5 @@ describe("engine download progress", () => {
     report("headless-shell", "download", 0.12, "Downloading the recording browser · 15 of 126 MB");
     expect(seen.map(([, p]) => p)).toEqual([0.101, 0.109, 0.12, 0.12, 0.12]);
     expect(seen.at(-1)?.[0]).toBe("headless-shell");
-  });
-
-  it("shows downloaded sizes", () => {
-    expect(downloadedSize(12_400_000, 29_354_986)).toBe("11.8 MB of 28.0 MB");
-    expect(downloadedSize(5_242_880, null)).toBe("5.0 MB");
-    expect(downloadedSize(20_000, 35_147)).toBe("19.5 KB of 34.3 KB");
   });
 });

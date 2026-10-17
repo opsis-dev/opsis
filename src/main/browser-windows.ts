@@ -1,6 +1,6 @@
 import { BrowserWindow, session as electronSession } from "electron";
 import { z } from "zod";
-import type { PickRequest, PickResult } from "../shared/ipc";
+import { PICKED_BY, type PickRequest, type PickResult } from "../shared/ipc";
 import type { LoginRequest } from "../shared/worker-protocol";
 import { storageState, type LocalStorageByOrigin } from "./login-state";
 import { pickerScript } from "./picker-script";
@@ -13,7 +13,7 @@ const pickResultSchema = z.object({
   target: z.string(),
   css: z.string(),
   role: z.string().optional(),
-  selectorUsed: z.string(),
+  selectorUsed: z.enum(PICKED_BY),
 });
 
 function sandboxedWindow(

@@ -11,7 +11,8 @@ import {
 } from "electron";
 import { engineStatus, resolveEngineDir } from "../engine/paths";
 import { completeEngineLicences, shippedCreditsCandidates } from "../engine/licences";
-import type { EngineInstallEvent, EnvStatus, RunRequest } from "../shared/ipc";
+import type { EngineInstallEvent } from "../shared/engine";
+import type { EnvStatus, RunRequest } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
 import type { MainToWorker, WorkerEnv, WorkerReply, WorkerToMain } from "../shared/worker-protocol";
 import { loginInWindow } from "./browser-windows";

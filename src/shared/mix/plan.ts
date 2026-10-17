@@ -1,4 +1,4 @@
-import { hashOf } from "../hash";
+import { lookupKey } from "../hash";
 import type { AudioEnvelope, TimelineSpec } from "../schema/timeline";
 import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
 import {
@@ -118,16 +118,16 @@ export function buildMixPlan(
     buses: busPlans(mix, channels, placed, spec.fps),
     master: mix.master,
   };
-  return { ...body, key: hashOf(body) };
+  return { ...body, key: lookupKey(body) };
 }
 
 export const hasSound = (plan: MixPlan) => plan.channels.some((c) => c.sounds.length > 0);
 
-export function channelKey(plan: MixPlan, channel: ChannelPlan): string {
-  return hashOf({
+export function channelIdentity(plan: MixPlan, channel: ChannelPlan) {
+  return {
     fps: plan.fps,
     durationInFrames: plan.durationInFrames,
     sounds: channel.sounds,
     strip: { ...channel.strip, mute: false, solo: false, bus: undefined },
-  });
+  };
 }

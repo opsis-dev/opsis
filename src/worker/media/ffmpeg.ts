@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
 import type { Readable, Writable } from "node:stream";
 import { engineStatus } from "../../engine/paths";
-import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";
+import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { clamp } from "../../shared/math";
 
 export type FfmpegTools = {

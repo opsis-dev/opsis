@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, readdir, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
+import { z } from "zod";
 import {
   busJob,
   channelJob,
@@ -11,8 +12,14 @@ import {
   parseLoudnorm,
   type Job,
 } from "../../shared/mix/graph";
-import { channelKey, hasSound, type MixPlan } from "../../shared/mix/plan";
-import type { Loudness, MixResult, StemLevels } from "../../shared/mix/result";
+import { channelIdentity, hasSound, type MixPlan } from "../../shared/mix/plan";
+import {
+  loudnessSchema,
+  stemLevelsSchema,
+  type Loudness,
+  type MixResult,
+  type StemLevels,
+} from "../../shared/mix/result";
 import { ToolError, type FfmpegTools } from "../media/ffmpeg";
 import { frameLevels, readWav, SILENCE_DB } from "./wav";
 import { errorMessage } from "../../shared/errors";
@@ -49,6 +56,13 @@ async function identity(file: string): Promise<string> {
 
 type Stem = { hash: string; file: string; levels: StemLevels; reduction: number[] | null };
 
+const stemMetaSchema = z.object({
+  levels: stemLevelsSchema,
+  reduction: z.array(z.number()).nullable(),
+});
+
+const recentSchema = z.array(z.array(z.string()));
+
 async function runStem(
   deps: MixDeps,
   plan: MixPlan,
@@ -60,7 +74,7 @@ async function runStem(
   const dir = mixDir(deps.projectDir);
   const file = path.join(dir, `${hash}.wav`);
   const meta = path.join(dir, `${hash}.json`);
-  const cached = existsSync(file) ? await readJson<Omit<Stem, "file" | "hash">>(meta) : null;
+  const cached = existsSync(file) ? await readJson(meta, stemMetaSchema) : null;
   if (cached) return { hash, file, ...cached };
   await mkdir(dir, { recursive: true });
   const job = await makeJob();
@@ -97,7 +111,7 @@ async function runStem(
 
 async function loudnessOf(deps: MixDeps, plan: MixPlan, master: Stem): Promise<Loudness> {
   const file = path.join(mixDir(deps.projectDir), `${master.hash}.loudness.json`);
-  const cached = await readJson<Loudness>(file);
+  const cached = await readJson(file, loudnessSchema);
   if (cached) return cached;
   const lines: string[] = [];
   await deps.ffmpeg.run(
@@ -196,7 +210,7 @@ async function channelStems(plan: MixPlan, deps: MixDeps, tick: Tick) {
   for (const channel of plan.channels) {
     tick("Mixing sound");
     const ids = await Promise.all(channel.sounds.map((s) => identity(deps.resolve(s.src))));
-    const hash = `ch-${sha({ key: channelKey(plan, channel), ids })}`;
+    const hash = `ch-${sha({ channel: channelIdentity(plan, channel), ids })}`;
     const makeup = channel.strip.comp.on ? channel.strip.comp.makeup : 0;
     const job = () => channelJob(plan, channel, deps.resolve);
     channels.set(channel.id, await runStem(deps, plan, hash, job, "pcm_f32le", makeup));
@@ -305,7 +319,7 @@ async function renderMixStems(plan: MixPlan, deps: MixDeps): Promise<MixResult> 
 async function remember(projectDir: string, hashes: string[]): Promise<void> {
   const dir = mixDir(projectDir);
   const indexFile = path.join(dir, "recent.json");
-  const recent = (await readJson<string[][]>(indexFile)) ?? [];
+  const recent = (await readJson(indexFile, recentSchema)) ?? [];
   const next = [hashes, ...recent.filter((h) => h.join() !== hashes.join())].slice(0, KEEP_PLANS);
   await atomicWrite(indexFile, JSON.stringify(next));
   const keep = new Set(next.flat());

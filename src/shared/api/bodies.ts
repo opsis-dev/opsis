@@ -71,5 +71,6 @@ export const runBody = z.object(
   OBJECT_BODY,
 );
 
-export const bodySchema = (schema: z.ZodType) =>
-  z.toJSONSchema(schema, { io: "input", unrepresentable: "any" });
+export const JSON_SCHEMA_OPTIONS = { io: "input", unrepresentable: "any" } as const;
+
+export const jsonSchemaOf = (schema: z.ZodType) => z.toJSONSchema(schema, JSON_SCHEMA_OPTIONS);

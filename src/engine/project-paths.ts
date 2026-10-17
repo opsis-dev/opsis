@@ -1,7 +1,8 @@
 import path from "node:path";
-import type { LastRun } from "../shared/schema/values";
+import { lastRunSchema, type LastRun } from "../shared/schema/values";
 import { readJson } from "./json";
 import { PROJECT_DIRS } from "../shared/project-dirs";
+import { projectRef } from "../shared/asset-ref";
 
 export const projectPaths = (projectDir: string) => ({
   meta: path.join(projectDir, PROJECT_DIRS.meta),
@@ -21,7 +22,7 @@ export const toPosixRel = (root: string, file: string): string =>
   path.relative(root, file).split(path.sep).join("/");
 
 export const toProjectRef = (root: string, file: string): string =>
-  `project:${toPosixRel(root, file)}`;
+  projectRef(toPosixRel(root, file));
 
 export const readLastRun = (projectDir: string): Promise<LastRun | null> =>
-  readJson<LastRun>(projectPaths(projectDir).lastRun);
+  readJson(projectPaths(projectDir).lastRun, lastRunSchema);

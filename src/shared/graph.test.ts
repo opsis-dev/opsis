@@ -9,8 +9,19 @@ import {
 } from "./graph";
 import { getTemplate } from "./templates";
 import { GraphBuilder } from "./templates/build";
+import { must } from "./test-fixtures";
+import type { Workflow } from "./schema/workflow";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
+
+const build = (g: GraphBuilder) => g.build({ id: "x", name: "x" });
+
+const disable = (wf: Workflow, id: string) => {
+  must(
+    wf.nodes.find((n) => n.id === id),
+    id,
+  ).disabled = true;
+};
 
 describe("graph", () => {
   it("topologically sorts the sample", () => {
@@ -42,6 +53,9 @@ describe("graph", () => {
       notFound: false,
       message: expect.stringContaining("has no input “nope”"),
     });
+    expect(
+      connectionProblem(wf, { ...edge, target: "open", targetHandle: "session" })?.message,
+    ).toBe("A clip can't connect to a browser action input.");
   });
 
   it("rejects port type mismatches and cycles", () => {
@@ -51,7 +65,7 @@ describe("graph", () => {
     g.link(a, b).link(b, a);
     const rec = g.node("rec", "capture.record", 2, 0);
     g.link(a, rec, "clip", "session");
-    const issues = validateWorkflow(g.build({ id: "x", name: "x" }));
+    const issues = validateWorkflow(build(g));
     expect(issues.some((i) => i.message.includes("loops back"))).toBe(true);
     expect(issues.some((i) => i.message === "A clip can't connect to a browser action input")).toBe(
       true,
@@ -67,8 +81,8 @@ describe("graph", () => {
     g.node("login", "capture.loginOnce", 0, 1, { secretName: "sauce-login" });
     g.node("other", "capture.loginOnce", 0, 2, { secretName: "admin" });
     const off = g.node("off", "capture.loginOnce", 0, 3, { secretName: "sauce-login" });
-    const wf = g.build({ id: "x", name: "x" });
-    wf.nodes.find((n) => n.id === off)!.disabled = true;
+    const wf = build(g);
+    disable(wf, off);
     expect(loginDependencies(wf, "rec", { SHOP: "sauce" })).toEqual(["login"]);
     expect(loginDependencies(wf, "rec", {})).toEqual([]);
     expect(loginDependencies(todoMvc(), "record", {})).toEqual([]);
@@ -80,7 +94,7 @@ describe("graph", () => {
     const rec = g.node("rec", "capture.record", 1, 0);
     g.chain([s, rec]);
     g.node("login", "capture.loginOnce", 0, 1, { secretName: "" });
-    expect(loginDependencies(g.build({ id: "x", name: "x" }), "rec", {})).toEqual(["login"]);
+    expect(loginDependencies(build(g), "rec", {})).toEqual(["login"]);
   });
 
   it("runs every export and the nodes that come after one", () => {
@@ -94,9 +108,9 @@ describe("graph", () => {
     g.link(gif, web, "media", "media");
     g.node("loose", "media.import", 0, 1, { path: "a.mp4" });
     g.node("tidy", "media.faststart", 1, 1);
-    const wf = g.build({ id: "x", name: "x" });
+    const wf = build(g);
     expect(runTargets(wf).toSorted()).toEqual(["film", "gif", "web"]);
-    wf.nodes.find((n) => n.id === gif)!.disabled = true;
+    disable(wf, gif);
     expect(runTargets(wf).toSorted()).toEqual(["film", "web"]);
   });
 
@@ -104,6 +118,6 @@ describe("graph", () => {
     const g = new GraphBuilder();
     g.node("a", "media.import", 0, 0, { path: "a.mp4" });
     g.node("b", "media.faststart", 1, 0);
-    expect(runTargets(g.build({ id: "x", name: "x" })).toSorted()).toEqual(["a", "b"]);
+    expect(runTargets(build(g)).toSorted()).toEqual(["a", "b"]);
   });
 });

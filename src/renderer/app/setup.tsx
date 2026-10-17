@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, Download } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { EngineInstallEvent } from "@/shared/ipc";
+import type { EngineInstallEvent } from "@/shared/engine";
 import { errorMessage } from "@/shared/errors";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";

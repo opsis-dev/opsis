@@ -1,40 +1,56 @@
+import { randomUUID } from "node:crypto";
 import { readFile, rename, writeFile } from "node:fs/promises";
 import type { z } from "zod";
 import { tryParseJson } from "../shared/guards";
 
-export async function readJson<T>(file: string): Promise<T | null> {
+const MISSING_CODES = new Set(["ENOENT", "ENOTDIR"]);
+
+export const isMissingFile = (error: unknown): boolean =>
+  error instanceof Error && "code" in error && MISSING_CODES.has(String(error.code));
+
+async function readTextIfPresent(file: string): Promise<string | null> {
   try {
-    return JSON.parse(await readFile(file, "utf8")) as T;
-  } catch {
-    return null;
+    return await readFile(file, "utf8");
+  } catch (error) {
+    if (isMissingFile(error)) return null;
+    throw error;
   }
 }
 
-export const isMissingFile = (error: unknown): boolean =>
-  error instanceof Error && "code" in error && error.code === "ENOENT";
+type Read<T> = { kind: "missing" } | { kind: "invalid" } | { kind: "valid"; value: T };
+
+async function readValidJson<T>(file: string, schema: z.ZodType<T>): Promise<Read<T>> {
+  const text = await readTextIfPresent(file);
+  if (text === null) return { kind: "missing" };
+  const json = tryParseJson(text);
+  const parsed = schema.safeParse(json.ok ? json.value : undefined);
+  return parsed.success ? { kind: "valid", value: parsed.data } : { kind: "invalid" };
+}
+
+export async function readJson<T>(file: string, schema: z.ZodType<T>): Promise<T | null> {
+  const read = await readValidJson(file, schema);
+  return read.kind === "valid" ? read.value : null;
+}
 
 export async function readJsonKeepingBroken<T>(
   file: string,
   schema: z.ZodType<T>,
 ): Promise<T | null> {
-  let text: string;
-  try {
-    text = await readFile(file, "utf8");
-  } catch (error) {
-    if (isMissingFile(error)) return null;
-    throw error;
-  }
-  const json = tryParseJson(text);
-  const parsed = schema.safeParse(json.ok ? json.value : undefined);
-  if (parsed.success) return parsed.data;
+  const read = await readValidJson(file, schema);
+  if (read.kind === "valid") return read.value;
+  if (read.kind === "missing") return null;
   const broken = `${file}.broken`;
-  await rename(file, broken).catch(() => undefined);
-  process.stderr.write(`[json] ${file} couldn't be read and was moved to ${broken}\n`);
+  try {
+    await rename(file, broken);
+    process.stderr.write(`[json] ${file} couldn't be read and was moved to ${broken}\n`);
+  } catch {
+    process.stderr.write(`[json] ${file} couldn't be read\n`);
+  }
   return null;
 }
 
 export async function atomicWrite(file: string, data: string | Uint8Array): Promise<void> {
-  const tmp = `${file}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
+  const tmp = `${file}.${randomUUID()}.tmp`;
   await writeFile(tmp, data);
   await rename(tmp, file);
 }

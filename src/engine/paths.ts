@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import type { EngineStatus } from "../shared/ipc";
+import type { EngineStatus } from "../shared/engine";
 
 const FFMPEG_RELEASE = "b6.1.1";
 export const FFMPEG_RELEASE_URL = `https://github.com/eugeneware/ffmpeg-static/releases/download/${FFMPEG_RELEASE}`;

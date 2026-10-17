@@ -1,4 +1,4 @@
-import { finiteOr } from "./math";
+import { finiteOr, round1, round2, round3 } from "./math";
 
 const UNITS = ["B", "KB", "MB", "GB"];
 
@@ -13,22 +13,26 @@ export function formatBytes(n: number): string {
   return unit === 0 ? `${Math.round(value)} B` : `${value.toFixed(1)} ${UNITS[unit]}`;
 }
 
-export type DurationStyle = "short" | "precise";
+const SECONDS_PER_MINUTE = 60;
+const TENTHS_FROM_SECONDS = 10;
 
-export function formatDuration(ms: number, style: DurationStyle = "short"): string {
+function minutesAndSeconds(seconds: number, round: (value: number) => number): string {
+  const m = Math.floor(seconds / SECONDS_PER_MINUTE);
+  const rest = round(seconds - m * SECONDS_PER_MINUTE);
+  return rest ? `${m} min ${rest} s` : `${m} min`;
+}
+
+export function formatDuration(ms: number): string {
   if (!Number.isFinite(ms)) return "";
-  const precise = style === "precise";
-  const toMs = (v: number) => Number(v.toFixed(3));
-  const s = precise ? toMs(ms / 1000) : ms / 1000;
-  if (s >= 60) {
-    const total = precise ? s : Math.round(s);
-    const m = Math.floor(total / 60);
-    const rest = precise ? toMs(total - m * 60) : total - m * 60;
-    return rest ? `${m} min ${rest} s` : `${m} min`;
-  }
-  if (precise) return `${s} s`;
-  const rounded = s >= 10 ? Math.round(s * 10) / 10 : Math.round(s * 100) / 100;
-  return `${rounded} s`;
+  const s = ms / 1000;
+  if (s >= SECONDS_PER_MINUTE) return minutesAndSeconds(Math.round(s), (rest) => rest);
+  return `${s >= TENTHS_FROM_SECONDS ? round1(s) : round2(s)} s`;
+}
+
+export function formatPreciseDuration(ms: number): string {
+  if (!Number.isFinite(ms)) return "";
+  const s = round3(ms / 1000);
+  return s >= SECONDS_PER_MINUTE ? minutesAndSeconds(s, round3) : `${s} s`;
 }
 
 export function humanize(key: string): string {

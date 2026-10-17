@@ -1,9 +1,14 @@
 import { compileWorkflow } from "../compile/compile";
 import { validateWorkflow } from "../graph";
 import { normalizeWorkflow, workflowSchema, type Workflow } from "../schema/workflow";
-import type { ApiProblem } from "./types";
+import type { ApiCheck, ApiProblem } from "./types";
 
-type CheckResult = { ok: boolean; workflow: Workflow | null; problems: ApiProblem[] };
+type CheckResult = ApiCheck & { workflow: Workflow | null };
+
+export const problemCheck = (problems: ApiProblem[]): ApiCheck => ({
+  ok: !problems.some((p) => p.level === "error"),
+  problems,
+});
 
 const pathText = (path: PropertyKey[]) =>
   path
@@ -12,12 +17,7 @@ const pathText = (path: PropertyKey[]) =>
     .replace(/^\./, "");
 
 export function workflowProblems(wf: Workflow): ApiProblem[] {
-  const problems: ApiProblem[] = validateWorkflow(wf).map((i) => ({
-    level: i.level,
-    message: i.message,
-    ...(i.nodeId ? { nodeId: i.nodeId } : {}),
-    ...(i.edgeId ? { edgeId: i.edgeId } : {}),
-  }));
+  const problems: ApiProblem[] = validateWorkflow(wf);
   const flagged = new Set(problems.filter((p) => p.level === "error").map((p) => p.nodeId));
   for (const [nodeId, message] of Object.entries(compileWorkflow(wf).errors))
     if (!flagged.has(nodeId)) problems.push({ level: "error", nodeId, message });
@@ -37,6 +37,5 @@ export function checkWorkflow(input: unknown): CheckResult {
       })),
     };
   const workflow = normalizeWorkflow(parsed.data);
-  const problems = workflowProblems(workflow);
-  return { ok: !problems.some((p) => p.level === "error"), workflow, problems };
+  return { ...problemCheck(workflowProblems(workflow)), workflow };
 }

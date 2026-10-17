@@ -1,7 +1,13 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
-import type { Filmstrip, Waveform, WaveformLevel } from "../../shared/analysis";
+import {
+  filmstripSchema,
+  waveformSchema,
+  type Filmstrip,
+  type Waveform,
+  type WaveformLevel,
+} from "../../shared/analysis";
 import type { FfmpegTools } from "./ffmpeg";
 import { versionedHash } from "../../engine/hash";
 import { atomicWrite, readJson } from "../../engine/json";
@@ -160,7 +166,7 @@ export async function analyzeWaveform(src: string, deps: AnalysisDeps): Promise<
   const id = await idFor(file);
   const dir = analysisDir(deps.projectDir);
   const json = path.join(dir, `${id}.waveform.json`);
-  const cached = await readJson<Waveform>(json);
+  const cached = await readJson(json, waveformSchema);
   if (cached) return { ...cached, src };
   await mkdir(dir, { recursive: true });
   const raw = path.join(dir, `${id}.${process.pid}.raw`);
@@ -207,7 +213,7 @@ export async function analyzeFilmstrip(src: string, deps: AnalysisDeps): Promise
   const dir = filmstripDir(deps.projectDir, file);
   const json = path.join(dir, `${id}.filmstrip.json`);
   const image = path.join(dir, `${id}.filmstrip.jpg`);
-  const cached = existsSync(image) ? await readJson<Filmstrip>(json) : null;
+  const cached = existsSync(image) ? await readJson(json, filmstripSchema) : null;
   if (cached) return { ...cached, src };
   await mkdir(dir, { recursive: true });
   const probe = await deps.ffmpeg.probe(file);

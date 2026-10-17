@@ -1,25 +1,31 @@
+import { z } from "zod";
 import type { MixPlan } from "./mix/plan";
 import type { MixResult } from "./mix/result";
 
-export type WaveformLevel = { rate: number; min: number[]; max: number[] };
+const numbers = z.array(z.number());
 
-export type Waveform = {
-  src: string;
-  durationMs: number;
-  levels: WaveformLevel[];
-  beats: number[];
-  bpm: number | null;
-};
+const waveformLevelSchema = z.object({ rate: z.number(), min: numbers, max: numbers });
+export type WaveformLevel = z.infer<typeof waveformLevelSchema>;
 
-export type Filmstrip = {
-  src: string;
-  image: string;
-  count: number;
-  intervalMs: number;
-  tileWidth: number;
-  tileHeight: number;
-  durationMs: number;
-};
+export const waveformSchema = z.object({
+  src: z.string(),
+  durationMs: z.number(),
+  levels: z.array(waveformLevelSchema),
+  beats: numbers,
+  bpm: z.number().nullable(),
+});
+export type Waveform = z.infer<typeof waveformSchema>;
+
+export const filmstripSchema = z.object({
+  src: z.string(),
+  image: z.string(),
+  count: z.number(),
+  intervalMs: z.number(),
+  tileWidth: z.number(),
+  tileHeight: z.number(),
+  durationMs: z.number(),
+});
+export type Filmstrip = z.infer<typeof filmstripSchema>;
 
 export type AnalysisRequest =
   | { kind: "waveform"; projectDir: string; src: string }

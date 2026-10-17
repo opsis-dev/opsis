@@ -15,7 +15,7 @@ import { COMPOSITION_ID } from "../../video/composition-id";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./bundle";
 import { CODECS, type RenderCodec } from "./codecs";
 import { getCompositorPackage } from "./compositor-package";
-import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";
+import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { clamp } from "../../shared/math";
 
 export type GlRenderer = "angle" | "swangle" | "egl" | "vulkan" | "swiftshader" | "angle-egl";

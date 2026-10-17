@@ -3,7 +3,10 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
-import { fontShimFile, GOOGLE_FONT_IMPORT } from "./src/shared/fonts/google-shim.ts";
+import {
+  googleFontModuleFile,
+  GOOGLE_FONT_IMPORT,
+} from "./src/shared/fonts/google-font-imports.ts";
 import { SRC_ALIAS } from "./scripts/lib/tool-config.ts";
 
 const localFonts = (): Plugin => ({
@@ -12,7 +15,7 @@ const localFonts = (): Plugin => ({
   resolveId(id) {
     const name = GOOGLE_FONT_IMPORT.exec(id)?.[1];
     return name
-      ? path.resolve(import.meta.dirname, "src/video/fonts/google", fontShimFile(name))
+      ? path.resolve(import.meta.dirname, "src/video/fonts/google", googleFontModuleFile(name))
       : null;
   },
 });

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { must, recordResult } from "../test-fixtures";
-import type { NodeResult } from "../schema/values";
+import { must, nodeResult, recordResult } from "../test-fixtures";
 import { DEFAULT_WORKFLOW_SETTINGS as settings } from "../schema/workflow";
 import { elementRow, sentence, type CardContext, type CardRow } from "./card";
 import type { NodeDef } from "./define";
@@ -45,13 +44,9 @@ describe("card formatting", () => {
 
 describe("node cards", () => {
   it("shows at least one well-formed row on every card from default settings", () => {
-    const result: NodeResult = {
-      hash: "h",
+    const result = nodeResult({
       outputs: { media: { type: "media", src: null, kind: "video", durationMs: 1000 } },
-      artifacts: [],
-      finishedAt: 0,
-      durationMs: 0,
-    };
+    });
     const withCard = NODE_DEFS.filter(
       (d): d is NodeDef & Required<Pick<NodeDef, "card">> => !!d.card,
     );
@@ -121,16 +116,13 @@ describe("node cards", () => {
       "14.5 s",
       "2 actions",
     ]);
-    const render: NodeResult = {
-      hash: "h",
+    const render = nodeResult({
       outputs: { media: { type: "media", src: null, kind: "video", durationMs: 15_400 } },
       artifacts: [
         { kind: "video", path: "a.mp4", bytes: 1_000_000 },
         { kind: "video", path: "b.mp4", bytes: 500_000 },
       ],
-      finishedAt: 1,
-      durationMs: 1,
-    };
+    });
     expect(
       rows("output.render", { variants: ["16:9", "9:16"] }, { result: render }).map((r) => r.text),
     ).toEqual(["16:9 + 9:16", "MP4 · 1080p · 30 fps", "15.4 s", "1.4 MB"]);

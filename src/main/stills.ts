@@ -56,7 +56,7 @@ const stills = createQueuedWorker<string | undefined, Job>({
 const oneIndexWriteAtATime = oneAtATime();
 
 export async function listStills(projectDir: string): Promise<Record<string, string>> {
-  const index = indexSchema.safeParse(await readJson(indexPath(projectDir))).data ?? {};
+  const index = (await readJson(indexPath(projectDir), indexSchema)) ?? {};
   return Object.fromEntries(
     Object.entries(index).filter(([, hash]) => existsSync(stillPath(projectDir, hash))),
   );

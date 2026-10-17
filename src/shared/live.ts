@@ -1,6 +1,7 @@
 import type { Rect } from "./schema/actions";
+import type { NodeRunStatus } from "./schema/events";
 
-export type LiveStepStatus = "running" | "done" | "error";
+export type LiveStepStatus = Extract<NodeRunStatus, "running" | "done" | "error">;
 
 export type LiveEvent =
   | {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { frameAt } from "../shared/trace";
-import { parseTrace } from "./model";
+import { parseTrace, traceTextPart } from "./model";
 import { FRAME, LATER, ndjson } from "./test-fixtures";
 
 const EVENTS = [
@@ -207,5 +207,13 @@ describe("trace parsing", () => {
     expect(frameAt(frames, 450)?.time).toBe(300);
     expect(frameAt(frames, 900)?.time).toBe(800);
     expect(frameAt(frames, 10)?.time).toBe(300);
+  });
+
+  it("knows the trace's text parts by name", () => {
+    expect(traceTextPart("trace.trace")).toBe("trace");
+    expect(traceTextPart("1-trace.network")).toBe("network");
+    expect(traceTextPart("run/2-trace.trace")).toBe("trace");
+    expect(traceTextPart("resources/page.html")).toBeUndefined();
+    expect(traceTextPart("trace.stacks")).toBeUndefined();
   });
 });

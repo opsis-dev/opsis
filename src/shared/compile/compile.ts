@@ -1,4 +1,5 @@
-import { describeParamIssue, isStructural, topoSort } from "../graph";
+import { isStructural, nodesById, topoSort } from "../graph";
+import { parseParams } from "../nodes/params";
 import { getNodeDef } from "../nodes/registry";
 import type { NodeDef } from "../nodes/define";
 import { isOutputType } from "../nodes/output";
@@ -70,9 +71,8 @@ function runCompile(
   inputs: PortValues,
   ctx: { vars: Record<string, string>; result: NodeResult | undefined },
 ): NodeOutcome {
-  const parsed = def.params.safeParse(interpolate(node.params, ctx.vars));
-  if (!parsed.success)
-    return { values: {}, error: describeParamIssue(def.params.shape, parsed.error.issues[0]) };
+  const parsed = parseParams(def.params, interpolate(node.params, ctx.vars));
+  if (!parsed.ok) return { values: {}, error: parsed.problem };
   try {
     const values =
       def.compile?.({
@@ -94,7 +94,7 @@ function runCompile(
 
 export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): CompileResult {
   const { order } = topoSort(wf);
-  const byId = new Map(wf.nodes.map((n) => [n.id, n]));
+  const byId = nodesById(wf.nodes);
   const vars = workflowVars(wf);
   const values: CompileResult["values"] = {};
   const errors: CompileResult["errors"] = {};

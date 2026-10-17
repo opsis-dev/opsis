@@ -2,10 +2,12 @@ import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { strFromU8, strToU8, unzipSync, zipSync, type Zippable } from "fflate";
-import { parseNdjson } from "./model";
+import { parseNdjson, traceTextPart } from "./model";
 
 const TRACE_FRAME_FPS = 4;
 const TRACE_FRAME_WIDTH = 960;
+const TRACE_FRAME_JPEG_QUALITY = "5";
+const STORED_UNCOMPRESSED = { level: 0 } as const;
 
 type FfmpegRunner = { run: (args: string[]) => Promise<string> };
 
@@ -45,22 +47,24 @@ export function frameEvents(
   );
 }
 
+type ExtractedFrame = RecordingFrame & { data: Uint8Array };
+
 async function extractFrames(
   ffmpeg: FfmpegRunner,
   video: string,
   dir: string,
-): Promise<Array<RecordingFrame & { data: Uint8Array }>> {
+): Promise<ExtractedFrame[]> {
   await ffmpeg.run([
     "-i",
     video,
     "-vf",
     `fps=${TRACE_FRAME_FPS},scale=${TRACE_FRAME_WIDTH}:-2`,
     "-q:v",
-    "5",
+    TRACE_FRAME_JPEG_QUALITY,
     path.join(dir, "f-%05d.jpg"),
   ]);
   const names = (await readdir(dir)).filter((n) => n.endsWith(".jpg")).sort();
-  const frames: Array<RecordingFrame & { data: Uint8Array }> = [];
+  const frames: ExtractedFrame[] = [];
   for (const [k, name] of names.entries()) {
     const data = new Uint8Array(await readFile(path.join(dir, name)));
     const size = jpegSize(data);
@@ -75,30 +79,42 @@ async function extractFrames(
   return frames;
 }
 
+type TraceZip = { files: Record<string, Uint8Array>; traceName: string; text: string };
+
+async function readTraceZip(zipFile: string): Promise<TraceZip | null> {
+  const files = unzipSync(new Uint8Array(await readFile(zipFile)));
+  const traceName = Object.keys(files).find((n) => traceTextPart(n) === "trace");
+  return traceName ? { files, traceName, text: strFromU8(files[traceName]) } : null;
+}
+
+function appendFrames(zip: TraceZip, frames: ExtractedFrame[], lines: string[]): Uint8Array {
+  const out: Zippable = { ...zip.files };
+  for (const f of frames) out[f.file] = [f.data, STORED_UNCOMPRESSED];
+  out[zip.traceName] = strToU8(`${zip.text.replace(/\n?$/, "\n")}${lines.join("\n")}\n`);
+  return zipSync(out);
+}
+
 export async function addRecordingFrames(opts: {
   zipFile: string;
   video: string;
   originWallMs: number;
   workDir: string;
   ffmpeg: FfmpegRunner;
-}): Promise<void> {
-  if (!existsSync(opts.zipFile) || !existsSync(opts.video)) return;
+}): Promise<string | null> {
+  if (!existsSync(opts.zipFile) || !existsSync(opts.video))
+    return "the recording or its trace is missing";
   const dir = path.join(opts.workDir, "trace-frames");
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
   try {
     const frames = await extractFrames(opts.ffmpeg, opts.video, dir);
-    if (!frames.length) return;
-    const files = unzipSync(new Uint8Array(await readFile(opts.zipFile)));
-    const traceName = Object.keys(files).find((n) => /(^|\/)(\d+-)?trace\.trace$/.test(n));
-    if (!traceName) return;
-    const text = strFromU8(files[traceName]);
-    const lines = frameEvents(text, frames, opts.originWallMs);
-    if (!lines.length) return;
-    const out: Zippable = { ...files };
-    for (const f of frames) out[f.file] = [f.data, { level: 0 }];
-    out[traceName] = strToU8(`${text.replace(/\n?$/, "\n")}${lines.join("\n")}\n`);
-    await writeFile(opts.zipFile, zipSync(out));
+    if (!frames.length) return "no frames came out of the recording";
+    const zip = await readTraceZip(opts.zipFile);
+    if (!zip) return "the trace has no list of actions";
+    const lines = frameEvents(zip.text, frames, opts.originWallMs);
+    if (!lines.length) return "the trace has no clock";
+    await writeFile(opts.zipFile, appendFrames(zip, frames, lines));
+    return null;
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

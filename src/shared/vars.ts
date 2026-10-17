@@ -1,4 +1,8 @@
-export const VAR = /\{\{\s*([^{}]+?)\s*\}\}/g;
+import { isRecord } from "./guards";
+
+const VAR_SOURCE = String.raw`\{\{\s*([^{}]+?)\s*\}\}`;
+
+const varPattern = () => new RegExp(VAR_SOURCE, "g");
 
 export const PAUSE_MARK = "¦";
 
@@ -9,19 +13,20 @@ export type TextToken =
 
 const plainText = (text: string): TextToken[] => (text ? [{ kind: "text", text }] : []);
 
-const textWithPauses = (text: string): TextToken[] =>
-  text
-    .split(PAUSE_MARK)
-    .flatMap((part, i): TextToken[] => [
-      ...(i ? [{ kind: "pause" } as const] : []),
-      ...plainText(part),
-    ]);
+function textWithPauses(text: string): TextToken[] {
+  const out: TextToken[] = [];
+  for (const [i, part] of text.split(PAUSE_MARK).entries()) {
+    if (i > 0) out.push({ kind: "pause" });
+    out.push(...plainText(part));
+  }
+  return out;
+}
 
 export function tokenize(value: string, pauses = false): TextToken[] {
   const text = pauses ? textWithPauses : plainText;
   const out: TextToken[] = [];
   let last = 0;
-  for (const m of value.matchAll(VAR)) {
+  for (const m of value.matchAll(varPattern())) {
     out.push(...text(value.slice(last, m.index)), { kind: "var", name: m[1] });
     last = m.index + m[0].length;
   }
@@ -29,22 +34,24 @@ export function tokenize(value: string, pauses = false): TextToken[] {
   return out;
 }
 
-function walkStrings(value: unknown, fn: (text: string) => string): unknown {
-  if (typeof value === "string") return fn(value);
-  if (Array.isArray(value)) return value.map((v) => walkStrings(v, fn));
-  if (value && typeof value === "object")
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, walkStrings(v, fn)]));
-  return value;
+function mapStrings<T>(value: T, fn: (text: string) => string): T {
+  const walk = (v: unknown): unknown => {
+    if (typeof v === "string") return fn(v);
+    if (Array.isArray(v)) return v.map(walk);
+    if (isRecord(v)) return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  return walk(value) as T;
 }
-
-const mapStrings = <T>(value: T, fn: (text: string) => string): T => walkStrings(value, fn) as T;
 
 export const interpolate = <T>(value: T, vars: Record<string, string>): T =>
   mapStrings(value, (text) =>
-    text.replace(VAR, (whole, name: string) => (Object.hasOwn(vars, name) ? vars[name] : whole)),
+    text.replace(varPattern(), (whole, name: string) =>
+      Object.hasOwn(vars, name) ? vars[name] : whole,
+    ),
   );
 
 export const renameVariable = <T>(value: T, from: string, to: string): T =>
   mapStrings(value, (text) =>
-    text.replace(VAR, (whole, name: string) => (name === from ? `{{${to}}}` : whole)),
+    text.replace(varPattern(), (whole, name: string) => (name === from ? `{{${to}}}` : whole)),
   );

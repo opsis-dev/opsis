@@ -4,19 +4,20 @@ import type {
   TraceError,
   TraceFrame,
   TraceModel,
+  TraceHeader,
   TraceRequest,
 } from "../shared/trace";
-import { formatDuration, humanize } from "../shared/format";
+import { formatPreciseDuration, humanize } from "../shared/format";
 import { finiteNumber } from "../shared/math";
-import { isRecord } from "../shared/guards";
+import { isRecord, tryParseJson } from "../shared/guards";
 
 type Json = Record<string, unknown>;
 
-type ParsedTrace = Omit<TraceModel, "id" | "nodeId" | "label" | "ok" | "createdAt">;
+type ParsedTrace = Omit<TraceModel, keyof TraceHeader>;
 
 type Call = { method: string; action: TraceAction };
 
-const VERBS: Record<string, string> = {
+const VERBS: Partial<Record<string, string>> = {
   goto: "Navigate",
   dblclick: "Double click",
   setInputFiles: "Upload files",
@@ -43,27 +44,38 @@ const VERBS: Record<string, string> = {
 const COLLAPSIBLE = new Set(["mouseMove", "mouseWheel"]);
 const PAUSE_MS = 100;
 
-const LEVELS: Record<string, TraceConsole["level"]> = {
-  log: "log",
-  info: "info",
-  warning: "warning",
-  warn: "warning",
-  error: "error",
-  debug: "debug",
+const LEVELS: ReadonlySet<string> = new Set<TraceConsole["level"]>([
+  "log",
+  "info",
+  "warning",
+  "error",
+  "debug",
+]);
+
+const isLevel = (type: string): type is TraceConsole["level"] => LEVELS.has(type);
+
+const consoleLevel = (type = "log"): TraceConsole["level"] =>
+  isLevel(type) ? type : type === "warn" ? "warning" : "log";
+
+const TEXT_PARTS = ["trace", "network"] as const;
+export type TraceTextPart = (typeof TEXT_PARTS)[number];
+const TEXT_PART_NAME = /(?:^|\/)(?:\d+-)?trace\.(\w+)$/;
+
+export const traceTextPart = (name: string): TraceTextPart | undefined => {
+  const ext = TEXT_PART_NAME.exec(name)?.[1];
+  return TEXT_PARTS.find((part) => part === ext);
 };
 
-export function parseNdjson(text: string): Json[] {
-  const out: Json[] = [];
-  for (const line of text.split("\n")) {
-    if (!line.trim()) continue;
-    try {
-      out.push(JSON.parse(line) as Json);
-    } catch {
-      continue;
-    }
-  }
-  return out;
-}
+const parseLine = (line: string): Json[] => {
+  const json = tryParseJson(line);
+  return json.ok && isRecord(json.value) ? [json.value] : [];
+};
+
+export const parseNdjson = (text: string): Json[] =>
+  text
+    .split("\n")
+    .filter((line) => line.trim())
+    .flatMap(parseLine);
 
 const str = (v: unknown) => (typeof v === "string" ? v : undefined);
 const obj = (v: unknown): Json => (isRecord(v) ? v : {});
@@ -87,7 +99,7 @@ function readBox(value: unknown): TraceAction["box"] {
   };
 }
 
-function describe(method: string, params: Json): { title: string; target?: string } {
+function describeCall(method: string, params: Json): { title: string; target?: string } {
   const verb = VERBS[method] ?? humanize(method);
   const selector = str(params.selector);
   switch (method) {
@@ -107,14 +119,14 @@ function describe(method: string, params: Json): { title: string; target?: strin
       return { title: `${verb} ${str(params.key) ?? ""}`.trim(), target: selector };
     case "waitForTimeout":
       return {
-        title: `${verb} ${formatDuration(finiteNumber(params.waitTimeout) ?? finiteNumber(params.timeout) ?? 0, "precise")}`,
+        title: `${verb} ${formatPreciseDuration(finiteNumber(params.waitTimeout) ?? finiteNumber(params.timeout) ?? 0)}`,
       };
     default:
       return { title: verb, target: selector };
   }
 }
 
-function errorMessage(value: unknown): string | undefined {
+function traceErrorMessage(value: unknown): string | undefined {
   const e = obj(value);
   return str(e.message) ?? str(obj(e.error).message) ?? str(obj(e.value).message);
 }
@@ -132,7 +144,7 @@ function beginCall(e: Json, nextGroup: () => string | undefined): Call | undefin
   const method = str(e.method) ?? "";
   const group = method === "tracingGroup";
   const params = obj(e.params);
-  const described = describe(method, params);
+  const described = describeCall(method, params);
   const start = finiteNumber(e.startTime) ?? 0;
   const point = method.startsWith("mouse") ? readPoint(params) : undefined;
   return {
@@ -169,7 +181,7 @@ function addInput(a: TraceAction, e: Json): void {
 
 function endAction(a: TraceAction, e: Json): void {
   a.end = finiteNumber(e.endTime) ?? a.start;
-  a.error = errorMessage(e.error);
+  a.error = traceErrorMessage(e.error);
   const point = a.point ?? readPoint(e.point, 0);
   if (point) a.point = point;
 }
@@ -178,7 +190,7 @@ function readConsole(e: Json): TraceConsole | undefined {
   const text = str(e.text)?.replaceAll("%c", "");
   if (text === undefined) return undefined;
   return {
-    level: LEVELS[str(e.messageType) ?? "log"] ?? "log",
+    level: consoleLevel(str(e.messageType)),
     text,
     time: finiteNumber(e.time) ?? 0,
     url: str(obj(e.location).url) || undefined,

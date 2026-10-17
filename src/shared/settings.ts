@@ -74,12 +74,18 @@ export const DEFAULT_SETTINGS: AppSettings = appSettingsSchema.parse({});
 
 export type SettingsPatch = { [K in keyof AppSettings]?: Partial<AppSettings[K]> };
 
-export const mergeSettings = (current: AppSettings, patch: SettingsPatch): AppSettings => ({
-  app: { ...current.app, ...patch.app },
-  traces: { ...current.traces, ...patch.traces },
-  live: { ...current.live, ...patch.live },
-  render: { ...current.render, ...patch.render },
-  projects: { ...current.projects, ...patch.projects },
-  editor: { ...current.editor, ...patch.editor },
-  api: { ...current.api, ...patch.api },
-});
+const SETTINGS_SECTIONS = appSettingsSchema.keyof().options;
+
+function mergeSection<K extends keyof AppSettings>(
+  next: AppSettings,
+  patch: SettingsPatch,
+  key: K,
+): void {
+  next[key] = { ...next[key], ...patch[key] };
+}
+
+export function mergeSettings(current: AppSettings, patch: SettingsPatch): AppSettings {
+  const next = { ...current };
+  for (const key of SETTINGS_SECTIONS) mergeSection(next, patch, key);
+  return next;
+}

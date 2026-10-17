@@ -1,4 +1,4 @@
-export type Debounced<A extends unknown[]> = ((...args: A) => void) & { cancel: () => void };
+type Debounced<A extends unknown[]> = ((...args: A) => void) & { cancel: () => void };
 
 export function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: number): Debounced<A> {
   let timer: ReturnType<typeof setTimeout> | null = null;

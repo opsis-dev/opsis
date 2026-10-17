@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getTemplate } from "../templates";
 import { checkWorkflow } from "./check";
+import { must } from "../test-fixtures";
 
 const todo = () => getTemplate("todomvc").build("Check");
 
@@ -46,9 +47,16 @@ describe("checkWorkflow", () => {
 
   it("reports a setting that isn't valid", () => {
     const wf = todo();
-    const node = wf.nodes.find((n) => n.type === "browser.navigate")!;
+    const node = must(
+      wf.nodes.find((n) => n.type === "browser.navigate"),
+      "navigate node",
+    );
     node.params = { ...node.params, url: 42 };
     const result = checkWorkflow(wf);
-    expect(result.problems.some((p) => p.nodeId === node.id && p.level === "error")).toBe(true);
+    expect(result.problems).toContainEqual({
+      level: "error",
+      nodeId: node.id,
+      message: "Page address isn't valid",
+    });
   });
 });

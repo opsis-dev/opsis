@@ -7,22 +7,29 @@ import type { Workflow } from "./schema/workflow";
 import { GraphBuilder } from "./templates/build";
 import { flattenSpec, type FlatTimeline } from "./timeline/flatten";
 
-export const recordResult = (log: ActionLog, hash = "h"): NodeResult => ({
-  hash,
-  outputs: {
-    recording: {
-      type: "recording",
-      src: `project:.demoflow/cache/${hash}/recording.mp4`,
-      log,
-      durationMs: log.durationMs,
-      viewport: log.viewport,
-      nodeId: "record",
-    },
-  },
+export const nodeResult = (fields: Partial<NodeResult> = {}): NodeResult => ({
+  hash: "h",
+  outputs: {},
   artifacts: [],
   finishedAt: 0,
   durationMs: 0,
+  ...fields,
 });
+
+export const recordResult = (log: ActionLog, hash = "h"): NodeResult =>
+  nodeResult({
+    hash,
+    outputs: {
+      recording: {
+        type: "recording",
+        src: `project:.demoflow/cache/${hash}/recording.mp4`,
+        log,
+        durationMs: log.durationMs,
+        viewport: log.viewport,
+        nodeId: "record",
+      },
+    },
+  });
 
 type TakeStep = { id: string; type: string; params: Record<string, unknown> };
 

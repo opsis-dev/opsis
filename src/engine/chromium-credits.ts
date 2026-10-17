@@ -1,12 +1,15 @@
-import { execFileSync } from "node:child_process";
+import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 import { chromium } from "playwright-core";
 import { z } from "zod";
 import { downloadTo } from "./download";
 import { remotionPlatform, type RemotionPlatform } from "./paths";
+
+const run = promisify(execFile);
 
 const CREDITS_CACHE = path.join(os.homedir(), ".cache", "demoflow-chromium-credits");
 
@@ -33,21 +36,14 @@ const knownGoodSchema = z.object({
   ),
 });
 
-function chromiumVersion(browser: string): string {
-  const out = execFileSync(browser, ["--version"], { encoding: "utf8" });
-  const version = /(\d+\.\d+\.\d+\.\d+)/.exec(out)?.[1];
-  if (!version) throw new Error(`Couldn't read the browser version from "${out.trim()}".`);
+async function chromiumVersion(browser: string): Promise<string> {
+  const { stdout } = await run(browser, ["--version"], { encoding: "utf8" });
+  const version = /(\d+\.\d+\.\d+\.\d+)/.exec(stdout)?.[1];
+  if (!version) throw new Error(`Couldn't read the browser version from "${stdout.trim()}".`);
   return version;
 }
 
-async function fullChrome(version: string, cacheDir: string): Promise<string> {
-  const platform = remotionPlatform();
-  const binary = CHROME_BIN[platform];
-  if (!binary)
-    throw new Error(`No Chrome for Testing build for ${process.platform}/${process.arch}.`);
-  const dir = path.join(cacheDir, version, platform);
-  const bin = path.join(dir, binary);
-  if (existsSync(bin)) return bin;
+async function findChromeUrl(version: string, platform: RemotionPlatform): Promise<string> {
   const res = await fetch(KNOWN_GOOD);
   if (!res.ok) throw new Error(`Couldn't read the Chrome for Testing index (${res.status}).`);
   const index = knownGoodSchema.parse(await res.json());
@@ -55,13 +51,27 @@ async function fullChrome(version: string, cacheDir: string): Promise<string> {
     .find((v) => v.version === version)
     ?.downloads.chrome?.find((d) => d.platform === platform)?.url;
   if (!url) throw new Error(`Chrome for Testing ${version} has no ${platform} build.`);
+  return url;
+}
+
+async function installChrome(url: string, dir: string): Promise<void> {
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
   const zip = path.join(dir, "chrome.zip");
   await downloadTo(url, zip);
-  if (process.platform === "win32") execFileSync("tar", ["-xf", zip, "-C", dir]);
-  else execFileSync("unzip", ["-q", zip, "-d", dir]);
+  if (process.platform === "win32") await run("tar", ["-xf", zip, "-C", dir]);
+  else await run("unzip", ["-q", zip, "-d", dir]);
   await rm(zip, { force: true });
+}
+
+async function fullChrome(version: string): Promise<string> {
+  const platform = remotionPlatform();
+  const binary = CHROME_BIN[platform];
+  if (!binary)
+    throw new Error(`No Chrome for Testing build for ${process.platform}/${process.arch}.`);
+  const dir = path.join(CREDITS_CACHE, version, platform);
+  const bin = path.join(dir, binary);
+  if (!existsSync(bin)) await installChrome(await findChromeUrl(version, platform), dir);
   return bin;
 }
 
@@ -69,8 +79,8 @@ export async function writeChromiumCredits(
   browser: string,
   output: string,
 ): Promise<{ version: string; bytes: number }> {
-  const version = chromiumVersion(browser);
-  const chrome = await fullChrome(version, CREDITS_CACHE);
+  const version = await chromiumVersion(browser);
+  const chrome = await fullChrome(version);
   const instance = await chromium.launch({ executablePath: chrome, args: ["--no-sandbox"] });
   try {
     const page = await instance.newPage();

@@ -1,67 +1,79 @@
-import type { Workflow, WorkflowSettings } from "../schema/workflow";
+import { z } from "zod";
+import { workflowSchema, type Workflow, type WorkflowSettings } from "../schema/workflow";
+import type {
+  addEdgeBody,
+  addNodeBody,
+  openBody,
+  runBody,
+  updateNodeBody,
+  variablesBody,
+} from "./bodies";
 
-export type ApiProblem = {
-  level: "error" | "warning";
-  message: string;
-  nodeId?: string;
-  edgeId?: string;
-  path?: string;
-};
+export const apiProblemSchema = z.object({
+  level: z.enum(["error", "warning"]),
+  message: z.string(),
+  nodeId: z.string().optional(),
+  edgeId: z.string().optional(),
+  path: z.string().optional().meta({ description: "Where in the file, for format problems" }),
+});
+export type ApiProblem = z.infer<typeof apiProblemSchema>;
+
+const problemList = z.array(apiProblemSchema);
+
+export const apiCheckSchema = z.object({
+  ok: z.boolean().meta({ description: "True when there are no errors" }),
+  problems: problemList,
+});
+export type ApiCheck = z.infer<typeof apiCheckSchema>;
+
+export const apiEditedSchema = z.object({
+  id: z.string().optional().meta({ description: "The new node's or connection's id" }),
+  revision: z.number().int(),
+  problems: problemList,
+});
+export type ApiEdited = z.infer<typeof apiEditedSchema>;
+
+export const apiRunStateSchema = z.object({ running: z.boolean(), runId: z.string().nullable() });
+export type ApiRunState = z.infer<typeof apiRunStateSchema>;
+
+export const apiStatusSchema = z.object({
+  app: z.string(),
+  version: z.string(),
+  project: z.object({ dir: z.string(), name: z.string() }).nullable(),
+  running: z.boolean(),
+});
+
+export const apiErrorSchema = z.object({ error: z.string(), problems: problemList.optional() });
+
+export const apiProjectStateSchema = apiRunStateSchema.extend({
+  dir: z.string().nullable(),
+  workflow: workflowSchema,
+  revision: z.number().int().meta({ description: "Goes up with every edit" }),
+  saved: z.boolean(),
+});
+export type ApiProjectState = z.infer<typeof apiProjectStateSchema>;
 
 export type ApiEditorRequest =
-  | { op: "open"; dir: string }
+  | ({ op: "open" } & z.infer<typeof openBody>)
   | { op: "read" }
   | { op: "replace"; workflow: Workflow }
-  | {
-      op: "addNode";
-      type: string;
-      id?: string;
-      label?: string;
-      position?: { x: number; y: number };
-      params?: Record<string, unknown>;
-    }
-  | {
-      op: "updateNode";
-      id: string;
-      label?: string | null;
-      position?: { x: number; y: number };
-      disabled?: boolean;
-      params?: Record<string, unknown>;
-    }
+  | ({ op: "addNode" } & z.infer<typeof addNodeBody>)
+  | ({ op: "updateNode"; id: string } & z.infer<typeof updateNodeBody>)
   | { op: "removeNodes"; ids: string[] }
-  | {
-      op: "addEdge";
-      source: string;
-      sourceHandle: string;
-      target: string;
-      targetHandle: string;
-    }
+  | ({ op: "addEdge" } & z.infer<typeof addEdgeBody>)
   | { op: "removeEdges"; ids: string[] }
   | { op: "setSettings"; settings: Partial<WorkflowSettings> }
-  | { op: "setVariables"; variables: Record<string, string> }
+  | { op: "setVariables"; variables: z.infer<typeof variablesBody> }
   | { op: "problems" }
   | { op: "undo" }
   | { op: "redo" }
   | { op: "save" }
-  | { op: "run"; targetNodeIds?: string[]; fromNodeId?: string }
+  | ({ op: "run" } & z.infer<typeof runBody>)
   | { op: "stop" };
 
-export type ApiEdited = { id?: string; revision: number; problems: ApiProblem[] };
+type ApiEditorOp = ApiEditorRequest["op"];
 
-export type ApiRunState = { running: boolean; runId: string | null };
-
-export type ApiProjectState = ApiRunState & {
-  dir: string | null;
-  workflow: Workflow;
-  revision: number;
-  saved: boolean;
-};
-
-type ApiProblems = { ok: boolean; problems: ApiProblem[] };
-
-export type ApiEditorOp = ApiEditorRequest["op"];
-
-export type ApiEditorResults = {
+type ApiEditorResults = {
   open: ApiProjectState;
   read: ApiProjectState;
   replace: ApiEdited;
@@ -72,7 +84,7 @@ export type ApiEditorResults = {
   removeEdges: ApiEdited;
   setSettings: ApiEdited;
   setVariables: ApiEdited;
-  problems: ApiProblems;
+  problems: ApiCheck;
   undo: ApiEdited;
   redo: ApiEdited;
   save: ApiEdited;

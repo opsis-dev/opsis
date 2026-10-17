@@ -1,7 +1,7 @@
 import { CircleX, Folder, MousePointerClick } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { errorMessage } from "@/shared/errors";
-import { formatDuration } from "@/shared/format";
+import { formatPreciseDuration } from "@/shared/format";
 import { frameAt, type TraceAction, type TraceModel } from "@/shared/trace";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/renderer/components/ui/empty";
@@ -147,7 +147,7 @@ function TraceActionList({
               ) : null}
             </span>
             <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
-              {formatDuration(a.end - a.start, "precise")}
+              {formatPreciseDuration(a.end - a.start)}
             </span>
           </ListRow>
         </li>
@@ -184,7 +184,7 @@ function ActionHeader({
       </span>
       {action ? (
         <Badge variant="outline" className="tabular-nums">
-          {at(action.start)} · {formatDuration(action.end - action.start, "precise")}
+          {at(action.start)} · {formatPreciseDuration(action.end - action.start)}
         </Badge>
       ) : null}
       <OptionToggle options={MOMENTS} labels={MOMENT_LABELS} value={moment} onChange={onMoment} />

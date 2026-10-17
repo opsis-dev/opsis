@@ -3,6 +3,7 @@ import {
   displayAddress,
   formatBytes,
   formatDuration,
+  formatPreciseDuration,
   formatNumberList,
   humanize,
   parseNumberList,
@@ -32,10 +33,10 @@ describe("formatDuration", () => {
     expect(formatDuration(119_600)).toBe("2 min");
   });
 
-  it("keeps milliseconds in the precise style", () => {
-    expect(formatDuration(12, "precise")).toBe("0.012 s");
-    expect(formatDuration(1500, "precise")).toBe("1.5 s");
-    expect(formatDuration(61_234, "precise")).toBe("1 min 1.234 s");
+  it("keeps milliseconds in precise durations", () => {
+    expect(formatPreciseDuration(12)).toBe("0.012 s");
+    expect(formatPreciseDuration(1500)).toBe("1.5 s");
+    expect(formatPreciseDuration(61_234)).toBe("1 min 1.234 s");
   });
 });
 

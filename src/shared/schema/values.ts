@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { isRecord } from "../guards";
 import type { ActionLog } from "./actions";
 import type { AudioItem, TimelineSpec, TimelineTrack, TransitionRef } from "./timeline";
 
@@ -67,30 +69,55 @@ export type CompileValue =
   | TransitionValue
   | SessionValue;
 
-export type Artifact = {
-  kind: "video" | "image" | "audio" | "json" | "file";
-  path: string;
-  label?: string;
-  poster?: string;
-  bytes?: number;
+const VALUE_TYPES: Record<CompileValue["type"], true> = {
+  recording: true,
+  image: true,
+  media: true,
+  file: true,
+  clip: true,
+  audio: true,
+  captions: true,
+  timeline: true,
+  transition: true,
+  session: true,
 };
 
-export type NodeResult = {
-  hash: string;
-  outputs: Record<string, CompileValue>;
-  artifacts: Artifact[];
-  finishedAt: number;
-  durationMs: number;
-  traceId?: string;
-};
+const compileValueSchema = z.custom<CompileValue>(
+  (v) => isRecord(v) && typeof v.type === "string" && Object.hasOwn(VALUE_TYPES, v.type),
+);
 
-export type NodeFailure = { message: string; at: number; traceId?: string };
+const artifactSchema = z.object({
+  kind: z.enum(["video", "image", "audio", "json", "file"]),
+  path: z.string(),
+  label: z.string().optional(),
+  poster: z.string().optional(),
+  bytes: z.number().optional(),
+});
+export type Artifact = z.infer<typeof artifactSchema>;
 
-export type LastRun = {
-  updatedAt: number;
-  nodes: Record<string, NodeResult>;
-  failures?: Record<string, NodeFailure>;
-};
+export const nodeResultSchema = z.object({
+  hash: z.string(),
+  outputs: z.record(z.string(), compileValueSchema),
+  artifacts: z.array(artifactSchema),
+  finishedAt: z.number(),
+  durationMs: z.number(),
+  traceId: z.string().optional(),
+});
+export type NodeResult = z.infer<typeof nodeResultSchema>;
+
+const nodeFailureSchema = z.object({
+  message: z.string(),
+  at: z.number(),
+  traceId: z.string().optional(),
+});
+export type NodeFailure = z.infer<typeof nodeFailureSchema>;
+
+export const lastRunSchema = z.object({
+  updatedAt: z.number(),
+  nodes: z.record(z.string(), nodeResultSchema),
+  failures: z.record(z.string(), nodeFailureSchema).optional(),
+});
+export type LastRun = z.infer<typeof lastRunSchema>;
 
 type ValueOf<K extends CompileValue["type"]> = Extract<CompileValue, { type: K }>;
 

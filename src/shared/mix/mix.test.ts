@@ -6,7 +6,7 @@ import { GraphBuilder } from "../templates/build";
 import { filmSpec, itemsOf, must } from "../test-fixtures";
 import { busJob, channelJob, jobArgs, loudnessMeasureJob, masterJob, parseLoudnorm } from "./graph";
 import { applyMixLevels, withMasterStem } from "./levels";
-import { buildMixPlan, channelKey, type MixPlan, type SoundPlacement } from "./plan";
+import { buildMixPlan, channelIdentity, type MixPlan, type SoundPlacement } from "./plan";
 import { DEFAULT_STRIP, dbToGain, defaultMix, type Bus, type Mix, type Strip } from "./types";
 
 function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
@@ -145,7 +145,7 @@ describe("mix plan", () => {
     mix.channels.fx = strip({ mute: true });
     const b = buildMixPlan(spec, mix);
     expect(a.key).not.toBe(b.key);
-    expect(channelKey(a, channel(a, "fx"))).toBe(channelKey(b, channel(b, "fx")));
+    expect(channelIdentity(a, channel(a, "fx"))).toEqual(channelIdentity(b, channel(b, "fx")));
     expect(b.buses.find((x) => x.id === "effects")?.channels).toEqual([]);
   });
 });

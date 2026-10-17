@@ -40,14 +40,14 @@ describe("app menu", () => {
   });
 
   it("puts Quit in the menu only where there is no app menu", () => {
-    const labels = (p: string) =>
+    const labels = (p: NodeJS.Platform) =>
       appMenu(p).flatMap((s) => s.items.map((i) => ("label" in i ? i.label : "")));
     expect(labels("linux")).toContain("Quit");
     expect(labels("darwin")).not.toContain("Quit");
   });
 
   it("gives every shortcut to only one item", () => {
-    for (const platform of ["linux", "win32", "darwin"]) {
+    for (const platform of ["linux", "win32", "darwin"] as const) {
       const accels = appMenu(platform)
         .flatMap((s) => s.items)
         .flatMap((i) => (i.kind !== "separator" && i.accelerator ? [i.accelerator] : []));

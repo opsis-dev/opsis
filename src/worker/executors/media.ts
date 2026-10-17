@@ -27,7 +27,7 @@ import { canStreamCopy, type ProbeResult } from "../media/ffmpeg";
 import { refToPath, rel, requireMedia } from "./util";
 import { round3 } from "../../shared/math";
 import { projectRef } from "../../shared/asset-ref";
-import { formatDuration } from "../../shared/format";
+import { formatPreciseDuration } from "../../shared/format";
 
 const H264_ARGS = ["-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p"];
 
@@ -438,7 +438,7 @@ const probeExecutor = defineExecutor(probeNode, async (ctx, inputs) => {
   await writeFile(path.join(ctx.dir, "probe.json"), JSON.stringify(probe.raw, null, 2));
   ctx.log(
     "info",
-    `${probe.format} · ${formatDuration(probe.durationMs, "precise")} · ${probe.video ? `${probe.video.codec} ${probe.video.width}×${probe.video.height} @ ${probe.video.fps.toFixed(2)}fps` : "no video"} · ${probe.audio ? `${probe.audio.codec} ${probe.audio.sampleRate}Hz` : "no audio"}`,
+    `${probe.format} · ${formatPreciseDuration(probe.durationMs)} · ${probe.video ? `${probe.video.codec} ${probe.video.width}×${probe.video.height} @ ${probe.video.fps.toFixed(2)}fps` : "no video"} · ${probe.audio ? `${probe.audio.codec} ${probe.audio.sampleRate}Hz` : "no audio"}`,
   );
   return {
     outputs: {

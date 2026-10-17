@@ -1,15 +1,16 @@
 import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import type { LastRun, NodeResult } from "../../shared/schema/values";
+import { nodeResultSchema, type LastRun, type NodeResult } from "../../shared/schema/values";
 import { versionedHash } from "../../engine/hash";
 import { readJson, writeJson } from "../../engine/json";
 import { projectPaths } from "../../engine/project-paths";
+import { byCodeUnit } from "../../shared/lists";
 
 export const ENGINE_VERSION = "demoflow-engine/1";
 
 export function nodeHash(type: string, params: unknown, upstream: Array<[string, string]>): string {
-  const ports = [...upstream].sort(([a], [b]) => (a < b ? -1 : 1));
+  const ports = [...upstream].sort(([a], [b]) => byCodeUnit(a, b));
   return versionedHash(ENGINE_VERSION, { type, params, ports });
 }
 
@@ -18,7 +19,7 @@ export async function readCached(
   hash: string,
   projectDir: string,
 ): Promise<NodeResult | null> {
-  const result = await readJson<NodeResult>(path.join(cacheDir, hash, "result.json"));
+  const result = await readJson(path.join(cacheDir, hash, "result.json"), nodeResultSchema);
   if (!result) return null;
   const missing = result.artifacts.some((a) => !existsSync(path.join(projectDir, a.path)));
   return missing ? null : result;

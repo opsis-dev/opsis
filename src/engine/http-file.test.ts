@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { mimeType, parseRange, resolveInside } from "./http-file";
+import { parseRange, resolveInside } from "./http-file";
 
 describe("parseRange", () => {
   it("reads open, closed and suffix ranges", () => {
@@ -39,13 +39,5 @@ describe("resolveInside", () => {
 
   it("refuses paths with broken escapes", () => {
     expect(resolveInside(root, "/assets/%E0%A4%A.mp4")).toBeNull();
-  });
-});
-
-describe("mimeType", () => {
-  it("knows page files and falls back to bytes", () => {
-    expect(mimeType("index.HTML")).toBe("text/html");
-    expect(mimeType("clip.mp4")).toBe("video/mp4");
-    expect(mimeType("data.bin")).toBe("application/octet-stream");
   });
 });

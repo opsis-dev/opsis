@@ -41,24 +41,27 @@ export type MenuEntry =
   | { kind: "role"; label: string; role: WindowRole; accelerator?: string }
   | { kind: "separator" };
 
-export type MenuSection = { label: string; items: MenuEntry[] };
+type MenuSection = { label: string; items: MenuEntry[] };
 
+const shortcut = (accelerator?: string) => (accelerator ? { accelerator } : {});
 const command = (label: string, cmd: MenuCommand, accelerator?: string): MenuEntry => ({
   kind: "command",
   label,
   command: cmd,
-  ...(accelerator ? { accelerator } : {}),
+  ...shortcut(accelerator),
 });
 const role = (label: string, r: WindowRole, accelerator?: string): MenuEntry => ({
   kind: "role",
   label,
   role: r,
-  ...(accelerator ? { accelerator } : {}),
+  ...shortcut(accelerator),
 });
 const separator: MenuEntry = { kind: "separator" };
 
-export function appMenu(platform: string): MenuSection[] {
-  const mac = platform === "darwin";
+const isMacPlatform = (platform: NodeJS.Platform) => platform === "darwin";
+
+export function appMenu(platform: NodeJS.Platform): MenuSection[] {
+  const mac = isMacPlatform(platform);
   return [
     {
       label: "File",
@@ -122,7 +125,7 @@ export function appMenu(platform: string): MenuSection[] {
 }
 
 export function menuCommandEntry(
-  platform: string,
+  platform: NodeJS.Platform,
   cmd: MenuCommand,
 ): { label: string; accelerator?: string } | undefined {
   for (const section of appMenu(platform))
@@ -131,11 +134,15 @@ export function menuCommandEntry(
   return undefined;
 }
 
-const SHIFT_TOLERANT_KEYS = new Set(["=", "-"]);
+const SHIFTED_TWINS: Partial<Record<string, string>> = { "=": "+", "-": "-" };
 
 type KeyLike = Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey">;
 
-export function matchesAccelerator(accelerator: string, e: KeyLike, platform: string): boolean {
+export function matchesAccelerator(
+  accelerator: string,
+  e: KeyLike,
+  platform: NodeJS.Platform,
+): boolean {
   const key = accelerator.slice(accelerator.lastIndexOf("+") + 1).toLowerCase();
   const mods = new Set(
     accelerator
@@ -143,19 +150,19 @@ export function matchesAccelerator(accelerator: string, e: KeyLike, platform: st
       .slice(0, -1)
       .map((p) => p.toLowerCase()),
   );
-  const mac = platform === "darwin";
+  const mac = isMacPlatform(platform);
   const wantCtrl = mods.has("ctrl") || mods.has("control") || (!mac && mods.has("cmdorctrl"));
   const wantMeta = mods.has("cmd") || mods.has("command") || (mac && mods.has("cmdorctrl"));
   if (e.ctrlKey !== wantCtrl || e.metaKey !== wantMeta) return false;
   if (e.altKey !== mods.has("alt")) return false;
   const pressed = e.key.toLowerCase();
-  if (e.shiftKey !== mods.has("shift") && !SHIFT_TOLERANT_KEYS.has(key)) return false;
-  if (key === "=") return pressed === "=" || pressed === "+";
-  return pressed === key;
+  const twin = SHIFTED_TWINS[key];
+  if (twin === undefined && e.shiftKey !== mods.has("shift")) return false;
+  return pressed === key || pressed === twin;
 }
 
-export function acceleratorLabel(accelerator: string, platform: string): string {
-  const mac = platform === "darwin";
+export function acceleratorLabel(accelerator: string, platform: NodeJS.Platform): string {
+  const mac = isMacPlatform(platform);
   const names: Partial<Record<string, string>> = mac
     ? { cmdorctrl: "⌘", cmd: "⌘", ctrl: "⌃", alt: "⌥", shift: "⇧", enter: "↩" }
     : { cmdorctrl: "Ctrl", cmd: "Ctrl", ctrl: "Ctrl", alt: "Alt", shift: "Shift", enter: "Enter" };

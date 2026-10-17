@@ -29,7 +29,7 @@ export function isVisible(rect: Rectangle): boolean {
 export function boundsStore<T>(name: string, schema: z.ZodType<T>) {
   const file = () => path.join(app.getPath("userData"), name);
   return {
-    load: async (): Promise<T | null> => schema.safeParse(await readJson(file())).data ?? null,
+    load: (): Promise<T | null> => readJson(file(), schema),
     save: (value: T): void => void writeJson(file(), value).catch(() => undefined),
   };
 }

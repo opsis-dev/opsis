@@ -1,3 +1,5 @@
+import { partitionPoint } from "./math";
+
 export type TraceFrame = { src: string; time: number; width: number; height: number };
 
 export type TraceAction = {
@@ -37,12 +39,15 @@ export type TraceRequest = {
   failure?: string;
 };
 
-export type TraceModel = {
+export type TraceHeader = {
   id: string;
   nodeId: string;
   label: string;
   ok: boolean;
   createdAt: number;
+};
+
+export type TraceModel = TraceHeader & {
   start: number;
   end: number;
   viewport: { width: number; height: number } | null;
@@ -54,10 +59,6 @@ export type TraceModel = {
 };
 
 export function frameAt(frames: TraceFrame[], time: number): TraceFrame | undefined {
-  let found: TraceFrame | undefined;
-  for (const f of frames) {
-    if (f.time > time) break;
-    found = f;
-  }
-  return found ?? frames[0];
+  const after = partitionPoint(frames, (f) => f.time <= time);
+  return frames[Math.max(0, after - 1)];
 }

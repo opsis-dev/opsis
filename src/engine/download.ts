@@ -1,5 +1,5 @@
 import { createWriteStream } from "node:fs";
-import { rename } from "node:fs/promises";
+import { rename, rm } from "node:fs/promises";
 import { Readable, type Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream } from "node:stream/web";
@@ -25,6 +25,10 @@ export async function downloadTo(
     },
   );
   const tmp = `${dest}.part`;
-  await pipeline(body, ...(opts.transform ? [opts.transform] : []), createWriteStream(tmp));
-  await rename(tmp, dest);
+  try {
+    await pipeline(body, ...(opts.transform ? [opts.transform] : []), createWriteStream(tmp));
+    await rename(tmp, dest);
+  } finally {
+    await rm(tmp, { force: true });
+  }
 }

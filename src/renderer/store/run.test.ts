@@ -1,16 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { RunEvent } from "@/shared/schema/events";
-import type { NodeResult } from "@/shared/schema/values";
 import { MAX_LOG_LINES, useRunStore } from "./run";
+import { nodeResult } from "@/shared/test-fixtures";
 
-const result = (finishedAt: number, traceId: string): NodeResult => ({
-  hash: "h",
-  outputs: {},
-  artifacts: [],
-  finishedAt,
-  durationMs: 1,
-  traceId,
-});
+const result = (finishedAt: number, traceId: string) => nodeResult({ finishedAt, traceId });
 
 type RunDone = Extract<RunEvent, { type: "run:done" }>;
 

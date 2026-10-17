@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fieldMeta, type FieldMeta } from "../elements/introspect";
 import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
+import { humanize } from "../format";
 
 export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
   schema.meta({ ...fieldMeta(schema), ...extra });
@@ -158,3 +159,38 @@ export const audioEnvelope = () =>
     widget: "envelope",
     labels: { volume: "Volume", pan: "Balance" },
   });
+
+type ParsedParams<T> = { ok: true; data: T } | { ok: false; problem: string };
+
+function issueWording(issue: z.core.$ZodIssue): string | null {
+  switch (issue.code) {
+    case "too_small":
+      return issue.origin === "string" && Number(issue.minimum) === 1 ? "is empty" : "is too small";
+    case "too_big":
+      return "is too large";
+    case "invalid_type":
+      return issue.input === undefined ? "is missing" : "isn't valid";
+    case "invalid_value":
+      return "has a value that isn't allowed";
+    case "custom":
+      return null;
+    default:
+      return "isn't valid";
+  }
+}
+
+export function parseParams<T extends z.ZodObject>(
+  schema: T,
+  values: unknown,
+): ParsedParams<z.output<T>> {
+  const parsed = schema.safeParse(values, { reportInput: true });
+  if (parsed.success) return { ok: true, data: parsed.data };
+  const issue = parsed.error.issues[0];
+  const wording = issueWording(issue);
+  if (wording === null) return { ok: false, problem: issue.message };
+  const key = String(issue.path[0] ?? "");
+  const field: z.ZodType | undefined = schema.shape[key];
+  const label =
+    (field ? fieldMeta(field).description : undefined) || (key ? humanize(key) : "A setting");
+  return { ok: false, problem: `${label} ${wording}` };
+}

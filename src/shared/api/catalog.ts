@@ -1,23 +1,32 @@
 import { z } from "zod";
 import { CATEGORY_LABELS, type NodeDef, type PortSpec } from "../nodes/define";
 import { getNodeDef, NODE_DEFS } from "../nodes/registry";
+import { jsonSchemaOf } from "./bodies";
 
-type CatalogPort = {
-  type: string;
-  label: string;
-  optional: boolean;
-  many: boolean;
-};
+export const catalogPortSchema = z.object({
+  type: z.string(),
+  label: z.string(),
+  optional: z.boolean(),
+  many: z.boolean().meta({ description: "Takes any number of connections" }),
+});
+type CatalogPort = z.infer<typeof catalogPortSchema>;
 
-type CatalogNode = {
-  type: string;
-  title: string;
-  category: string;
-  description: string;
-  runs: boolean;
-  inputs: Record<string, CatalogPort>;
-  outputs: Record<string, CatalogPort>;
-};
+const portMap = z.record(z.string(), catalogPortSchema);
+
+export const catalogNodeSchema = z.object({
+  type: z.string(),
+  title: z.string(),
+  category: z.string(),
+  description: z.string(),
+  runs: z.boolean().meta({ description: "Does work in a run (records, exports)" }),
+  inputs: portMap,
+  outputs: portMap,
+  params: z
+    .record(z.string(), z.unknown())
+    .optional()
+    .meta({ description: "JSON Schema of the node's settings" }),
+});
+type CatalogNode = Omit<z.infer<typeof catalogNodeSchema>, "params">;
 
 type CatalogEntry = CatalogNode & { params: z.core.JSONSchema.JSONSchema };
 
@@ -46,6 +55,6 @@ export function catalogEntry(type: string): CatalogEntry | null {
   if (!def) return null;
   return {
     ...catalogNode(def),
-    params: z.toJSONSchema(def.params, { io: "input", unrepresentable: "any" }),
+    params: jsonSchemaOf(def.params),
   };
 }

@@ -4,30 +4,24 @@ import { createGunzip } from "node:zlib";
 import { ensureBrowser } from "@remotion/renderer";
 import { downloadTo } from "./download";
 import { enginePaths, FFMPEG_RELEASE_URL } from "./paths";
+import type { EngineInstallUpdate } from "../shared/engine";
 import { formatBytes } from "../shared/format";
 
-export type InstallUpdate = {
-  part: "ffmpeg" | "headless-shell";
-  step: string;
-  progress: number | null;
-  message: string;
-};
+export type InstallProgress = (update: EngineInstallUpdate) => void;
 
-export type InstallProgress = (update: InstallUpdate) => void;
+const CALM_MS = 500;
 
-export const downloadedSize = (got: number, total: number | null): string =>
+const downloadedSize = (got: number, total: number | null): string =>
   total ? `${formatBytes(got)} of ${formatBytes(total)}` : formatBytes(got);
 
 export async function installFfmpeg(
   dir: string,
   onProgress: InstallProgress,
   signal?: AbortSignal,
-  platform = process.platform,
-  arch = process.arch,
 ) {
-  const p = enginePaths(dir, platform, arch);
+  const p = enginePaths(dir);
   await mkdir(path.dirname(p.ffmpeg), { recursive: true });
-  const target = `${platform}-${arch}`;
+  const target = `${process.platform}-${process.arch}`;
   const files: Array<[string, string]> = [
     [`${FFMPEG_RELEASE_URL}/ffmpeg-${target}.gz`, p.ffmpeg],
     [`${FFMPEG_RELEASE_URL}/ffprobe-${target}.gz`, p.ffprobe],
@@ -50,9 +44,15 @@ export async function installFfmpeg(
   onProgress({ part: "ffmpeg", step: "ready", progress: 1, message: "Video tools ready" });
 }
 
-export async function installHeadlessShell(dir: string, onProgress: InstallProgress) {
-  const p = enginePaths(dir);
-  const staging = p.downloadDir;
+const shellDownload = (onProgress: InstallProgress, progress: number, size: string) =>
+  onProgress({
+    part: "headless-shell",
+    step: "download",
+    progress,
+    message: `Downloading the recording browser · ${size}`,
+  });
+
+async function downloadShellInto(staging: string, onProgress: InstallProgress): Promise<string> {
   await mkdir(staging, { recursive: true });
   await writeFile(
     path.join(staging, "package.json"),
@@ -63,31 +63,30 @@ export async function installHeadlessShell(dir: string, onProgress: InstallProgr
   try {
     await ensureBrowser({
       onBrowserDownload: () => {
-        onProgress({
-          part: "headless-shell",
-          step: "download",
-          progress: 0,
-          message: "Downloading the recording browser · starting",
-        });
+        shellDownload(onProgress, 0, "starting");
         return {
           version: null,
           onProgress: (x) =>
-            onProgress({
-              part: "headless-shell",
-              step: "download",
-              progress: x.percent,
-              message: `Downloading the recording browser · ${downloadedSize(x.downloadedBytes, x.totalSizeInBytes)}`,
-            }),
+            shellDownload(
+              onProgress,
+              x.percent,
+              downloadedSize(x.downloadedBytes, x.totalSizeInBytes),
+            ),
         };
       },
     });
   } finally {
     process.chdir(previous);
   }
-  const downloaded = path.join(staging, "node_modules", ".remotion", "chrome-headless-shell");
+  return path.join(staging, "node_modules", ".remotion", "chrome-headless-shell");
+}
+
+export async function installHeadlessShell(dir: string, onProgress: InstallProgress) {
+  const p = enginePaths(dir);
+  const downloaded = await downloadShellInto(p.downloadDir, onProgress);
   await rm(p.shellRoot, { recursive: true, force: true });
   await rename(downloaded, p.shellRoot);
-  await rm(staging, { recursive: true, force: true });
+  await rm(p.downloadDir, { recursive: true, force: true });
   onProgress({
     part: "headless-shell",
     step: "ready",
@@ -104,7 +103,7 @@ export function calmProgress(onProgress: InstallProgress): InstallProgress {
     const current = `${update.part}|${update.step}`;
     const percent = update.progress == null ? -1 : Math.floor(update.progress * 100);
     const now = Date.now();
-    if (current === step && percent === shown && now - lastAt < 500) return;
+    if (current === step && percent === shown && now - lastAt < CALM_MS) return;
     step = current;
     shown = percent;
     lastAt = now;

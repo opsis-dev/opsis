@@ -3,32 +3,38 @@ import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { constants, zstdCompressSync, zstdDecompressSync } from "node:zlib";
 import { unzipSync } from "fflate";
+import { z } from "zod";
 import type { AppSettings } from "../shared/settings";
-import type { TraceModel } from "../shared/trace";
-import { parseTrace } from "./model";
+import type { TraceHeader, TraceModel } from "../shared/trace";
+import { parseTrace, traceTextPart, type TraceTextPart } from "./model";
 import { sha256Hex } from "../engine/hash";
 import { atomicWrite } from "../engine/json";
 import { projectPaths } from "../engine/project-paths";
 import { projectRef } from "../shared/asset-ref";
 import { PROJECT_DIRS } from "../shared/project-dirs";
+import { tryParseJson } from "../shared/guards";
 
-type TraceEntry = { name: string; sha: string; zstd: boolean; size: number };
+const traceEntrySchema = z.object({
+  name: z.string(),
+  sha: z.string(),
+  zstd: z.boolean(),
+  size: z.number(),
+});
+type TraceEntry = z.infer<typeof traceEntrySchema>;
 
-type TraceManifest = {
-  id: string;
-  nodeId: string;
-  label: string;
-  ok: boolean;
-  createdAt: number;
-  groups: string[];
-  entries: TraceEntry[];
-};
-
-type TextPart = "trace" | "network";
+const manifestSchema = z.object({
+  id: z.string(),
+  nodeId: z.string(),
+  label: z.string(),
+  ok: z.boolean(),
+  createdAt: z.number(),
+  groups: z.array(z.string()),
+  entries: z.array(traceEntrySchema),
+}) satisfies z.ZodType<TraceHeader>;
+type TraceManifest = z.infer<typeof manifestSchema>;
 
 const BINARY = /\.(jpe?g|png|webp|gif|avif|woff2?|mp4|webm)$/i;
 const MANIFEST_SUFFIX = ".json.zst";
-const TEXT_PART = /^(?:\d+-)?trace\.(trace|network)$/;
 
 export const traceRoot = (projectDir: string) => projectPaths(projectDir).traces;
 const blobName = (e: TraceEntry) =>
@@ -46,13 +52,9 @@ async function writeManifest(root: string, manifest: TraceManifest): Promise<voi
   await atomicWrite(manifestPath(root, manifest.id), zstd(Buffer.from(JSON.stringify(manifest))));
 }
 
-async function readManifestFile(file: string): Promise<TraceManifest> {
-  return JSON.parse(zstdDecompressSync(await readFile(file)).toString()) as TraceManifest;
-}
-
-function textPart(name: string): TextPart | undefined {
-  const kind = TEXT_PART.exec(name)?.[1];
-  return kind === "trace" || kind === "network" ? kind : undefined;
+async function readManifestFile(file: string): Promise<TraceManifest | null> {
+  const json = tryParseJson(zstdDecompressSync(await readFile(file)).toString());
+  return manifestSchema.safeParse(json.ok ? json.value : undefined).data ?? null;
 }
 
 export async function ingestTrace(
@@ -93,8 +95,11 @@ export async function listTraces(projectDir: string): Promise<TraceManifest[]> {
   const dir = runsDir(traceRoot(projectDir));
   if (!existsSync(dir)) return [];
   const out: TraceManifest[] = [];
-  for (const f of await readdir(dir))
-    if (f.endsWith(MANIFEST_SUFFIX)) out.push(await readManifestFile(path.join(dir, f)));
+  for (const f of await readdir(dir)) {
+    if (!f.endsWith(MANIFEST_SUFFIX)) continue;
+    const manifest = await readManifestFile(path.join(dir, f)).catch(() => null);
+    if (manifest) out.push(manifest);
+  }
   return out.sort((a, b) => b.createdAt - a.createdAt);
 }
 
@@ -102,10 +107,12 @@ export async function readTrace(projectDir: string, id: string): Promise<TraceMo
   if (!/^[\w-]+$/.test(id)) throw new Error("Invalid trace id");
   const root = traceRoot(projectDir);
   const manifest = await readManifestFile(manifestPath(root, id));
-  const parts: Record<TextPart, string[]> = { trace: [], network: [] };
+  if (!manifest) throw new Error("This trace can't be read.");
+  const { groups, entries, ...header } = manifest;
+  const parts: Record<TraceTextPart, string[]> = { trace: [], network: [] };
   const sources = new Map<string, string>();
-  for (const e of manifest.entries.toSorted((x, y) => x.name.localeCompare(y.name))) {
-    const kind = textPart(e.name);
+  for (const e of entries.toSorted((x, y) => x.name.localeCompare(y.name))) {
+    const kind = traceTextPart(e.name);
     if (kind) {
       const raw = await readFile(path.join(root, blobRel(e)));
       parts[kind].push((e.zstd ? zstdDecompressSync(raw) : raw).toString());
@@ -114,15 +121,11 @@ export async function readTrace(projectDir: string, id: string): Promise<TraceMo
     }
   }
   return {
-    id: manifest.id,
-    nodeId: manifest.nodeId,
-    label: manifest.label,
-    ok: manifest.ok,
-    createdAt: manifest.createdAt,
+    ...header,
     ...parseTrace({
       trace: parts.trace.join("\n"),
       network: parts.network.join("\n"),
-      groups: manifest.groups,
+      groups,
       frameSrc: (file) => sources.get(file),
     }),
   };
