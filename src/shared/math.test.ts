@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clamp, clamp01, numberOr, round2, round3 } from "./math";
+import { clamp, clamp01, lerp, numberOr, round2, round3 } from "./math";
 
 describe("math", () => {
   it("clamps into a range", () => {
@@ -7,6 +7,11 @@ describe("math", () => {
     expect(clamp(-1, 0, 10)).toBe(0);
     expect(clamp(11, 0, 10)).toBe(10);
     expect(clamp01(1.5)).toBe(1);
+  });
+
+  it("blends between two values", () => {
+    expect(lerp(2, 6, 0.25)).toBe(3);
+    expect(lerp(2, 6, 1)).toBe(6);
   });
 
   it("rounds to three decimals", () => {

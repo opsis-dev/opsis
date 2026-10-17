@@ -2,13 +2,13 @@ import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import type { RecordingProps } from "../../shared/compile/recording";
 import { useAsset, useQuality, useReframe } from "../assets";
-import { resolveAnnotations, toClickLog, typedBeats } from "../camera/action-log";
+import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
 import { DemoClip } from "../camera/demo-clip";
 import { KeycapHUD } from "../camera/keycap-hud";
 import { clamp as clampN } from "../../shared/math";
-import { resolvePreset } from "../camera/lib/style";
+import { SHOT_STYLES } from "../camera/lib/style";
 import { poseAt } from "../camera/lib/zoom";
-import { DesignWidthContext } from "../camera/window-frame";
+import { DesignWidthContext } from "../camera/lib/design-scale";
 import { clamp } from "./anim";
 import { useOverlayFrame, zoomBoost } from "./frame";
 import { containBox } from "./still-layout";
@@ -38,14 +38,13 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const outAspect = width / height;
   const reshaped = Math.abs(sourceAspect - outAspect) > 0.02;
   const narrower = outAspect < sourceAspect;
-  const fullPage = resolvePreset(props).shot.framing !== "window";
+  const fullPage = SHOT_STYLES[props.style].framing !== "window";
   const fitted = reshaped && reframe === "follow" && (narrower || fullPage);
   const box = fitted ? containBox({ width, height }, sourceAspect) : undefined;
 
   const clip = (
     <DemoClip
       box={box}
-      boost={fitted && narrower ? zoomBoost(sourceAspect, outAspect) : undefined}
       name={props.name}
       src={src}
       log={log}
@@ -58,7 +57,11 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
       backdrop={props.backdrop}
       style={props.style}
       motionBlur={props.motionBlur && !fast}
-      tuning={props.tuning}
+      tuning={
+        fitted && narrower
+          ? { ...props.tuning, narrow: zoomBoost(sourceAspect, outAspect) }
+          : props.tuning
+      }
       cursor={props.cursor}
       cursorScale={props.cursorScale}
       ripple={props.ripple}
@@ -114,7 +117,9 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     <AbsoluteFill>
       {body}
       <DesignWidthContext.Provider value={Math.max(width, height)}>
-        {ks?.chords && log.keys?.length ? <KeycapHUD keys={log.keys} timeS={timeS} /> : null}
+        {ks?.chords && log.keys?.length ? (
+          <KeycapHUD keys={log.keys} timeS={timeS} position={ks.position} />
+        ) : null}
         {ks?.typed ? <TypedChip beats={typed} timeS={timeS} position={ks.position} /> : null}
       </DesignWidthContext.Provider>
     </AbsoluteFill>
@@ -129,7 +134,7 @@ const TypedChip: React.FC<{
   const { k, insets } = useOverlayFrame();
   const beat = beats.find((b) => timeS >= b.fromS && timeS <= b.toS);
   if (!beat) return null;
-  const typingEnd = beat.toS - 0.6;
+  const typingEnd = beat.toS - TYPED_LINGER_S;
   const shown = Math.round(
     interpolate(timeS, [beat.fromS, typingEnd], [0, beat.text.length], clamp),
   );

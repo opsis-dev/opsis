@@ -1,7 +1,7 @@
 import React from "react";
 import { CURSOR_SCALE_EXP, type ClickLog } from "./lib/click-log";
 import { cursorAt } from "./lib/cursor";
-import { useDesignScale } from "./window-frame";
+import { useDesignScale } from "./lib/design-scale";
 
 const HOT_X = 1;
 const HOT_Y = 1;
@@ -9,6 +9,10 @@ const ARROW_W = 34;
 const ARROW_H = 45;
 const RIPPLE_D = 22;
 const RIPPLE_STROKE = 2;
+const RIPPLE_FROM = 0.3;
+const RIPPLE_GROWTH = 1.05;
+const RIPPLE_OPACITY = 0.85;
+const INK = "15, 23, 42";
 
 export const Cursor: React.FC<{
   log: ClickLog;
@@ -19,12 +23,8 @@ export const Cursor: React.FC<{
 }> = ({ log, timeS, cameraScale, ripple = true, scale = 1 }) => {
   const k = useDesignScale();
 
-  const track = log.cursorTrack;
-  if (!track || track.length === 0) return null;
-
-  const state = cursorAt(track, log.clicks, timeS);
-  if (!state) return null;
-  if (state.opacity <= 0.001) return null;
+  const state = cursorAt(log.cursorTrack ?? [], log.clicks, timeS);
+  if (!state || state.opacity <= 0.001) return null;
 
   const { width, height } = log.viewport;
   const counter = Math.pow(cameraScale, CURSOR_SCALE_EXP - 1) * scale;
@@ -57,10 +57,10 @@ export const Cursor: React.FC<{
             marginLeft: -rippleD / 2,
             marginTop: -rippleD / 2,
             borderRadius: "50%",
-            border: `${RIPPLE_STROKE * k}px solid rgba(15, 23, 42, 0.55)`,
-            background: "rgba(15, 23, 42, 0.10)",
-            transform: `scale(${0.3 + state.ripple * 1.05})`,
-            opacity: 0.85 * (1 - state.ripple),
+            border: `${RIPPLE_STROKE * k}px solid rgba(${INK}, 0.55)`,
+            background: `rgba(${INK}, 0.10)`,
+            transform: `scale(${RIPPLE_FROM + state.ripple * RIPPLE_GROWTH})`,
+            opacity: RIPPLE_OPACITY * (1 - state.ripple),
           }}
         />
       ) : null}
@@ -76,7 +76,7 @@ export const Cursor: React.FC<{
           top: (-HOT_Y / 32) * arrowH,
           transform: `scale(${state.squash})`,
           transformOrigin: `${(HOT_X / 24) * 100}% ${(HOT_Y / 32) * 100}%`,
-          filter: `drop-shadow(0 ${1.5 * k}px ${2.5 * k}px rgba(15, 23, 42, 0.34))`,
+          filter: `drop-shadow(0 ${1.5 * k}px ${2.5 * k}px rgba(${INK}, 0.34))`,
         }}
       >
         <path

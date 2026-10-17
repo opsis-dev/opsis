@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "vitest";
-import { CLICK_SQUASH, CLICK_SQUASH_S, CURSOR_FADE_S, type CursorSample } from "./click-log";
+import {
+  CLICK_SQUASH,
+  CLICK_SQUASH_S,
+  CURSOR_FADE_S,
+  type ClickEvent,
+  type CursorSample,
+} from "./click-log";
 import { cursorAt, cursorOpacity, samplePath } from "./cursor";
 
 const track: CursorSample[] = [
@@ -25,19 +31,25 @@ describe("samplePath", () => {
   });
 });
 
+const at = (clicks: ClickEvent[], tS: number) => {
+  const state = cursorAt(track, clicks, tS);
+  assert.ok(state);
+  return state;
+};
+
 describe("cursorAt", () => {
   it("holds perfectly still between glides", () => {
-    const first = cursorAt(track, [], 2)!;
+    const first = at([], 2);
     for (let f = 1; f < 60; f++) {
-      const s = cursorAt(track, [], 2 + f / 30)!;
+      const s = at([], 2 + f / 30);
       assert.equal(s.x, first.x);
       assert.equal(s.y, first.y);
     }
   });
 
   it("is deterministic", () => {
-    const a = cursorAt(track, [], 2.5)!;
-    const b = cursorAt(track, [], 2.5)!;
+    const a = at([], 2.5);
+    const b = at([], 2.5);
     assert.deepEqual(a, b);
   });
 
@@ -46,26 +58,26 @@ describe("cursorAt", () => {
       { tMs: 600, x: 300, y: 200, tDownMs: 500 },
       { tMs: 900, x: 400, y: 300 },
     ];
-    const during = cursorAt(track, clicks, 0.55)!;
+    const during = at(clicks, 0.55);
     assert.ok(during.ripple !== null && during.ripple > 0);
     assert.ok(during.squash < 1, "no squash on mousedown");
 
-    const after = cursorAt(track, clicks, 1.2)!;
+    const after = at(clicks, 1.2);
     assert.equal(after.ripple, null);
     assert.equal(after.squash, 1);
 
-    assert.equal(cursorAt(track, clicks, 0.95)!.ripple, null);
+    assert.equal(at(clicks, 0.95).ripple, null);
   });
 
   it("stays pressed for the whole drag and springs back after the drop", () => {
     const drag = [{ tMs: 900, x: 500, y: 400, tDownMs: 200, tUpMs: 900 }];
-    assert.ok(cursorAt(track, drag, 0.25)!.ripple !== null);
-    const held = cursorAt(track, drag, 0.8)!;
+    assert.ok(at(drag, 0.25).ripple !== null);
+    const held = at(drag, 0.8);
     assert.equal(held.squash, CLICK_SQUASH);
     assert.equal(held.ripple, null);
-    const springing = cursorAt(track, drag, 0.9 + CLICK_SQUASH_S / 2)!.squash;
+    const springing = at(drag, 0.9 + CLICK_SQUASH_S / 2).squash;
     assert.ok(springing > CLICK_SQUASH && springing < 1);
-    assert.equal(cursorAt(track, drag, 0.9 + CLICK_SQUASH_S + 0.01)!.squash, 1);
+    assert.equal(at(drag, 0.9 + CLICK_SQUASH_S + 0.01).squash, 1);
   });
 
   it("returns null when there is no recorded track", () => {

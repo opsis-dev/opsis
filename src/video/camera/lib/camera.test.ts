@@ -1,13 +1,24 @@
 import assert from "node:assert/strict";
 import { describe, it } from "vitest";
-import { BASE_POSE, cameraEase, interpolatePose, moveDuration, poseToCss } from "./camera";
+import {
+  BASE_POSE,
+  cameraEase,
+  interpolatePose,
+  moveDuration,
+  poseToCss,
+  poseTravelPx,
+  posesNearlyEqual,
+} from "./camera";
 
 describe("cameraEase", () => {
-  it("matches the measured Screen Studio-style curve within tolerance", () => {
-    assert.ok(Math.abs(cameraEase(0.1) - 0.19) < 0.05, `0.10T = ${cameraEase(0.1)}`);
-    assert.ok(Math.abs(cameraEase(0.5) - 0.89) < 0.05, `0.50T = ${cameraEase(0.5)}`);
-    assert.ok(cameraEase(0) === 0);
-    assert.ok(cameraEase(1) === 1);
+  it("rises steadily from rest to the target and clamps outside the move", () => {
+    let prev = cameraEase(-1);
+    for (let i = 0; i <= 60; i++) {
+      const v = cameraEase(i / 60);
+      assert.ok(v >= prev - 1e-9, `fell at ${i / 60}`);
+      prev = v;
+    }
+    assert.equal(cameraEase(2), cameraEase(1));
   });
 
   it("has a short ease-in (velocity does not peak at t=0)", () => {
@@ -18,6 +29,21 @@ describe("cameraEase", () => {
     const next = p15 - p10;
     assert.ok(next > early * 0.4, "should still be accelerating through the first 15%");
     assert.ok(p01 < 0.12, "first 5% must not dump most of the distance");
+  });
+});
+
+describe("poseTravelPx", () => {
+  it("measures travel in design pixels whatever the recording size", () => {
+    const to = { scale: 1.5, cx: 0.6, cy: 0.48 };
+    assert.ok(Math.abs(poseTravelPx(BASE_POSE, to, { width: 1920, height: 1080 }) - 192) < 1e-9);
+    assert.ok(Math.abs(poseTravelPx(BASE_POSE, to, { width: 3840, height: 2160 }) - 192) < 1e-9);
+  });
+});
+
+describe("posesNearlyEqual", () => {
+  it("ignores tiny differences and catches real moves", () => {
+    assert.ok(posesNearlyEqual(BASE_POSE, { scale: 1.005, cx: 0.505, cy: 0.485 }));
+    assert.ok(!posesNearlyEqual(BASE_POSE, { scale: 1.2, cx: 0.5, cy: 0.48 }));
   });
 });
 

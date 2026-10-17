@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ActionLog } from "../../shared/schema/actions";
 import { resolveAnnotations, toClickLog } from "./action-log";
 import { BASE_POSE } from "./lib/camera";
+import { sees } from "./lib/test-fixtures";
 import { buildCameraTrack, sampleTrack } from "./lib/zoom";
 
 const log: ActionLog = {
@@ -137,12 +138,9 @@ describe("ActionLog → ClickLog", () => {
     for (const t of [3, 3.5, 4]) {
       const pose = sampleTrack(track, t);
       expect(pose.scale).toBeGreaterThan(1.05);
-      const half = 1 / (2 * pose.scale);
       for (const r of [pick, drop]) {
-        expect(r.x / 1920).toBeGreaterThanOrEqual(pose.cx - half - 1e-6);
-        expect((r.x + r.w) / 1920).toBeLessThanOrEqual(pose.cx + half + 1e-6);
-        expect(r.y / 1080).toBeGreaterThanOrEqual(pose.cy - half - 1e-6);
-        expect((r.y + r.h) / 1080).toBeLessThanOrEqual(pose.cy + half + 1e-6);
+        expect(sees(pose, log.viewport, r.x, r.y)).toBe(true);
+        expect(sees(pose, log.viewport, r.x + r.w, r.y + r.h)).toBe(true);
       }
     }
   });

@@ -6,10 +6,10 @@ import {
   type ClickEvent,
   type CursorSample,
 } from "./click-log";
-import { mix } from "./camera";
-import { clamp } from "../../../shared/math";
+import { partitionPoint } from "./camera";
+import { clamp, lerp } from "../../../shared/math";
 
-export type CursorState = {
+type CursorState = {
   x: number;
   y: number;
   squash: number;
@@ -38,18 +38,29 @@ export function samplePath(track: CursorSample[], tS: number): { x: number; y: n
   const last = track[track.length - 1];
   if (tMs >= last.t) return { x: last.x, y: last.y };
 
-  let lo = 0;
-  let hi = track.length - 1;
-  while (hi - lo > 1) {
-    const mid = (lo + hi) >> 1;
-    if (track[mid].t <= tMs) lo = mid;
-    else hi = mid;
-  }
-  const a = track[lo];
+  const hi = partitionPoint(track, (s) => s.t <= tMs);
+  const a = track[hi - 1];
   const b = track[hi];
   const span = b.t - a.t;
   const p = span < 1e-6 ? 0 : (tMs - a.t) / span;
-  return { x: mix(a.x, b.x, p), y: mix(a.y, b.y, p) };
+  return { x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p) };
+}
+
+function squashFor(c: ClickEvent, tS: number): number {
+  if (c.tDownMs == null) return 1;
+  const since = tS - c.tDownMs / 1000;
+  if (since < 0) return 1;
+  const held = c.tUpMs != null ? Math.max(0, (c.tUpMs - c.tDownMs) / 1000) : 0;
+  const released = since - held;
+  if (released <= 0) return CLICK_SQUASH;
+  if (released > CLICK_SQUASH_S) return 1;
+  return lerp(CLICK_SQUASH, 1, clamp(released / CLICK_SQUASH_S, 0, 1));
+}
+
+function rippleFor(c: ClickEvent, tS: number): number | null {
+  if (c.tDownMs == null) return null;
+  const since = tS - c.tDownMs / 1000;
+  return since >= 0 && since <= RIPPLE_S ? clamp(since / RIPPLE_S, 0, 1) : null;
 }
 
 export function cursorAt(
@@ -63,16 +74,8 @@ export function cursorAt(
   let squash = 1;
   let ripple: number | null = null;
   for (const c of clicks) {
-    if (c.tDownMs == null) continue;
-    const since = tS - c.tDownMs / 1000;
-    if (since < 0) continue;
-    const held = c.tUpMs != null ? Math.max(0, (c.tUpMs - c.tDownMs) / 1000) : 0;
-    const released = since - held;
-    if (released <= 0) squash = Math.min(squash, CLICK_SQUASH);
-    else if (released <= CLICK_SQUASH_S) {
-      squash = Math.min(squash, mix(CLICK_SQUASH, 1, clamp(released / CLICK_SQUASH_S, 0, 1)));
-    }
-    if (since <= RIPPLE_S) ripple = clamp(since / RIPPLE_S, 0, 1);
+    squash = Math.min(squash, squashFor(c, tS));
+    ripple = rippleFor(c, tS) ?? ripple;
   }
 
   return {

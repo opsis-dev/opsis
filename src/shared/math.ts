@@ -3,6 +3,8 @@ export const clamp = (value: number, lo: number, hi: number): number =>
 
 export const clamp01 = (value: number): number => clamp(value, 0, 1);
 
+export const lerp = (from: number, to: number, t: number): number => from + (to - from) * t;
+
 export const round1 = (value: number): number => Math.round(value * 10) / 10;
 
 export const round2 = (value: number): number => Math.round(value * 100) / 100;

@@ -1,15 +1,11 @@
 import React from "react";
-import { AbsoluteFill, useVideoConfig } from "remotion";
-import { DESIGN_WIDTH } from "./lib/click-log";
-import { CHROME_H, WINDOW_RADIUS } from "./lib/window";
+import { AbsoluteFill } from "remotion";
+import { useDesignScale } from "./lib/design-scale";
 
-export const useDesignScale = (): number => {
-  const override = React.useContext(DesignWidthContext);
-  const width = useVideoConfig().width;
-  return (override ?? width) / DESIGN_WIDTH;
-};
-
-export const DesignWidthContext = React.createContext<number | null>(null);
+export const CHROME_H = 38;
+const WINDOW_RADIUS = 14;
+const PILL_RADIUS = 99;
+const SYSTEM_FONT = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
 
 export const Stage: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <AbsoluteFill
@@ -23,33 +19,14 @@ export const Stage: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   </AbsoluteFill>
 );
 
+const RIM_LOOKS = {
+  light: { glow: "rgba(30,20,10,0.30)", lift: "2.5%", rim: "rgba(15,23,42,0.16)" },
+  dark: { glow: "rgba(255,255,255,0.10)", lift: "2%", rim: "rgba(255,255,255,0.14)" },
+} as const;
+
 export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
   const k = useDesignScale();
-  if (light)
-    return (
-      <>
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: 60 * k,
-            background: "rgba(30,20,10,0.30)",
-            transform: "translateY(2.5%) scale(0.97, 0.96)",
-            filter: `blur(${90 * k}px)`,
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: -k,
-            borderRadius: (WINDOW_RADIUS + 1) * k,
-            boxShadow: `0 0 0 ${k}px rgba(15,23,42,0.16)`,
-            pointerEvents: "none",
-          }}
-        />
-      </>
-    );
+  const look = RIM_LOOKS[light ? "light" : "dark"];
   return (
     <>
       <div
@@ -57,8 +34,8 @@ export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
           position: "absolute",
           inset: 0,
           borderRadius: 60 * k,
-          background: "rgba(255,255,255,0.10)",
-          transform: "translateY(2%) scale(0.97, 0.96)",
+          background: look.glow,
+          transform: `translateY(${look.lift}) scale(0.97, 0.96)`,
           filter: `blur(${90 * k}px)`,
           pointerEvents: "none",
         }}
@@ -68,7 +45,7 @@ export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
           position: "absolute",
           inset: -k,
           borderRadius: (WINDOW_RADIUS + 1) * k,
-          boxShadow: `0 0 0 ${k}px rgba(255,255,255,0.14)`,
+          boxShadow: `0 0 0 ${k}px ${look.rim}`,
           pointerEvents: "none",
         }}
       />
@@ -100,28 +77,31 @@ const FRAME_COLORS = {
   },
 } as const;
 
-const TrafficLights: React.FC<{ k: number }> = ({ k }) => (
-  <div style={{ display: "flex", gap: 7 * k, flexShrink: 0 }}>
-    {(
-      [
-        ["#ff5f57", "#e0443e"],
-        ["#febc2e", "#dea123"],
-        ["#28c840", "#1aab29"],
-      ] as const
-    ).map(([fill, rim], i) => (
-      <div
-        key={i}
-        style={{
-          width: 11 * k,
-          height: 11 * k,
-          borderRadius: 99,
-          background: `radial-gradient(circle at 35% 30%, ${fill} 0%, ${rim} 100%)`,
-          boxShadow: `inset 0 0 0 ${0.5 * k}px rgba(0,0,0,0.12)`,
-        }}
-      />
-    ))}
-  </div>
-);
+const TRAFFIC_LIGHTS = [
+  ["#ff5f57", "#e0443e"],
+  ["#febc2e", "#dea123"],
+  ["#28c840", "#1aab29"],
+] as const;
+
+const TrafficLights: React.FC = () => {
+  const k = useDesignScale();
+  return (
+    <div style={{ display: "flex", gap: 7 * k, flexShrink: 0 }}>
+      {TRAFFIC_LIGHTS.map(([fill, rim]) => (
+        <div
+          key={fill}
+          style={{
+            width: 11 * k,
+            height: 11 * k,
+            borderRadius: PILL_RADIUS,
+            background: `radial-gradient(circle at 35% 30%, ${fill} 0%, ${rim} 100%)`,
+            boxShadow: `inset 0 0 0 ${0.5 * k}px rgba(0,0,0,0.12)`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const ICONS = {
   minimize: "M3 8h10",
@@ -129,29 +109,30 @@ const ICONS = {
   close: "M4 4l8 8M12 4l-8 8",
 } as const;
 
+const BUTTON_NAMES = ["minimize", "maximize", "close"] as const;
+
 const Glyph: React.FC<{ d: string; size: number; color: string }> = ({ d, size, color }) => (
   <svg width={size} height={size} viewBox="0 0 16 16">
     <path d={d} stroke={color} strokeWidth={1.2} fill="none" strokeLinecap="round" />
   </svg>
 );
 
-const WindowButtons: React.FC<{ style: WindowStyle; k: number; theme: FrameTheme }> = ({
-  style,
-  k,
+const WindowButtons: React.FC<{ windowStyle: WindowStyle; theme: FrameTheme }> = ({
+  windowStyle,
   theme,
 }) => {
+  const k = useDesignScale();
   const c = FRAME_COLORS[theme];
-  const names = ["minimize", "maximize", "close"] as const;
-  if (style === "linux")
+  if (windowStyle === "linux")
     return (
       <div style={{ display: "flex", gap: 9 * k, flexShrink: 0 }}>
-        {names.map((n) => (
+        {BUTTON_NAMES.map((n) => (
           <div
             key={n}
             style={{
               width: 20 * k,
               height: 20 * k,
-              borderRadius: 99,
+              borderRadius: PILL_RADIUS,
               background: c.button,
               display: "grid",
               placeItems: "center",
@@ -164,7 +145,7 @@ const WindowButtons: React.FC<{ style: WindowStyle; k: number; theme: FrameTheme
     );
   return (
     <div style={{ display: "flex", alignSelf: "stretch", flexShrink: 0, marginRight: -14 * k }}>
-      {names.map((n) => (
+      {BUTTON_NAMES.map((n) => (
         <div
           key={n}
           style={{ width: 44 * k, display: "grid", placeItems: "center", alignSelf: "stretch" }}
@@ -198,12 +179,12 @@ export const WindowFrame: React.FC<{
       style={{
         flex: 1,
         height: 22 * k,
-        borderRadius: windowStyle === "windows" ? 99 : 7 * k,
+        borderRadius: windowStyle === "windows" ? PILL_RADIUS : 7 * k,
         background: c.field,
         border: `${k}px solid ${c.fieldEdge}`,
         color: c.text,
         fontSize: 11.5 * k,
-        fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+        fontFamily: SYSTEM_FONT,
         fontWeight: 450,
         letterSpacing: "0.01em",
         display: "flex",
@@ -246,13 +227,13 @@ export const WindowFrame: React.FC<{
             borderBottom: `1px solid ${c.edge}`,
           }}
         >
-          {windowStyle === "macos" ? <TrafficLights k={k} /> : null}
+          {windowStyle === "macos" ? <TrafficLights /> : null}
           {windowStyle === "linux" ? <div style={{ width: 88 * k, flexShrink: 0 }} /> : null}
           {field}
           {windowStyle === "macos" ? (
             <div style={{ width: 52 * k, flexShrink: 0 }} />
           ) : (
-            <WindowButtons style={windowStyle} k={k} theme={theme} />
+            <WindowButtons windowStyle={windowStyle} theme={theme} />
           )}
         </div>
       ) : null}

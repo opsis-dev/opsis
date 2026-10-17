@@ -1,24 +1,23 @@
 import assert from "node:assert/strict";
 import { describe, it } from "vitest";
-import { chordGlyphs, type KeyEvent } from "./click-log";
-import { KEYCAP_HOLD_S, keycapAt } from "../keycap-hud";
+import type { KeyEvent } from "./click-log";
+import { KEYCAP_HOLD_S, keycapAt, settle } from "./keycap";
 
-describe("chordGlyphs", () => {
-  it("renders the reference's own chord", () => {
-    assert.equal(chordGlyphs("Alt+Enter"), "⌥⏎");
+describe("settle", () => {
+  it("runs 1 -> 0 and clamps outside the move", () => {
+    assert.equal(settle(0), 1);
+    assert.equal(settle(1), 0);
+    assert.equal(settle(-3), 1);
+    assert.equal(settle(9), 0);
   });
 
-  it("keeps modifier order as authored, so it reads like the app's hint", () => {
-    assert.equal(chordGlyphs("Meta+Shift+K"), "⌘⇧K");
-  });
-
-  it("upper-cases a bare letter and passes through unknown names", () => {
-    assert.equal(chordGlyphs("k"), "K");
-    assert.equal(chordGlyphs("F5"), "F5");
-  });
-
-  it("tolerates spacing around the plus", () => {
-    assert.equal(chordGlyphs("Alt + Enter"), "⌥⏎");
+  it("never rises on the way down", () => {
+    let prev = settle(0);
+    for (let i = 1; i <= 60; i++) {
+      const v = settle(i / 60);
+      assert.ok(v <= prev + 1e-9, `rose at u=${i / 60}: ${prev} -> ${v}`);
+      prev = v;
+    }
   });
 });
 

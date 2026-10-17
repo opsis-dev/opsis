@@ -1,14 +1,30 @@
-import type { Action, ActionLog } from "../../shared/schema/actions";
-import type { AnnotationSpec } from "../../shared/compile/recording";
+import type { Action, ActionLog, Rect } from "../../shared/schema/actions";
+import type { AnnotationKind, AnnotationSpec } from "../../shared/compile/recording";
 import { POINTER_KINDS } from "../../shared/compile/recording";
-import {
-  chordGlyphs,
-  defaultTargetRect,
-  type ClickEvent,
-  type ClickLog,
-  type KeyEvent,
-} from "./lib/click-log";
-import type { Annotation } from "./annotations";
+import { defaultTargetRect, type ClickEvent, type ClickLog, type KeyEvent } from "./lib/click-log";
+
+export type Annotation = {
+  kind: AnnotationKind;
+  rect: Rect;
+  fromS: number;
+  toS: number;
+  text: string;
+  color: string;
+  padding: number;
+};
+
+type Point = { x: number; y: number };
+
+export const TYPED_LINGER_S = 0.6;
+const TYPED_FALLBACK_MS = 1000;
+const DRAG_FIT_FRACTION = 0.5;
+
+const carried = (a: Action) => ({
+  label: a.label,
+  cluster: a.cluster || undefined,
+  zoom: a.zoom === false ? false : undefined,
+  zoomScale: a.zoomScale || undefined,
+});
 
 export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = []): ClickLog {
   const actions = [...log.actions, ...extraBeats].sort((a, b) => a.t - b.t);
@@ -21,18 +37,19 @@ export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = 
     }
     if (!POINTER_KINDS.has(a.kind) || !a.point) continue;
     if (a.kind === "drag") {
-      clicks.push(...dragEvents(a, log.viewport));
+      clicks.push(...dragEvents(a, a.point, log.viewport));
       continue;
     }
-    const c: ClickEvent = { tMs: a.t, x: a.point.x, y: a.point.y, label: a.label };
-    if (a.tDepart != null) c.tDepartMs = a.tDepart;
-    if (a.tDown != null) c.tDownMs = a.tDown;
-    if (a.kind === "type" && a.tEnd != null) c.typeEndMs = a.tEnd;
-    if (a.rect) c.rect = a.rect;
-    if (a.cluster) c.cluster = a.cluster;
-    if (a.zoom === false) c.zoom = false;
-    if (a.zoomScale) c.zoomScale = a.zoomScale;
-    clicks.push(c);
+    clicks.push({
+      ...carried(a),
+      tMs: a.t,
+      x: a.point.x,
+      y: a.point.y,
+      tDepartMs: a.tDepart,
+      tDownMs: a.tDown,
+      typeEndMs: a.kind === "type" ? a.tEnd : undefined,
+      rect: a.rect,
+    });
   }
   return {
     name,
@@ -41,13 +58,8 @@ export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = 
     cursorTrack: log.cursorTrack,
     clicks,
     keys,
-    offsetMs: 0,
   };
 }
-
-export const DRAG_FIT_FRACTION = 0.5;
-
-type Rect = { x: number; y: number; w: number; h: number };
 
 const union = (a: Rect, b: Rect): Rect => {
   const x = Math.min(a.x, b.x);
@@ -60,55 +72,21 @@ const union = (a: Rect, b: Rect): Rect => {
   };
 };
 
-function dragEvents(a: Action, vp: { width: number; height: number }): ClickEvent[] {
-  const point = a.point!;
+const centre = (r: Rect): Point => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+
+function dragEvents(a: Action, point: Point, vp: { width: number; height: number }): ClickEvent[] {
   const tDown = a.tDown ?? a.t;
-  const shared: Partial<ClickEvent> = {
-    label: a.label,
-    ...(a.cluster ? { cluster: a.cluster } : {}),
-    ...(a.zoom === false ? { zoom: false } : {}),
-    ...(a.zoomScale ? { zoomScale: a.zoomScale } : {}),
-    ...(a.path ? { path: a.path } : {}),
-  };
   const fallback = defaultTargetRect(point, vp.width);
   const pick = a.rect ?? fallback;
   const drop = a.drop ?? fallback;
   const both = union(pick, drop);
-  if (both.w <= vp.width * DRAG_FIT_FRACTION && both.h <= vp.height * DRAG_FIT_FRACTION) {
-    return [
-      {
-        ...shared,
-        tMs: a.t,
-        ...(a.tDepart != null ? { tDepartMs: a.tDepart } : {}),
-        tDownMs: tDown,
-        tUpMs: a.t,
-        x: both.x + both.w / 2,
-        y: both.y + both.h / 2,
-        rect: both,
-        drop,
-      },
-    ];
-  }
+  const shared = { ...carried(a), path: a.path };
+  const press = { ...shared, tDepartMs: a.tDepart, tDownMs: tDown, tUpMs: a.t };
+  if (both.w <= vp.width * DRAG_FIT_FRACTION && both.h <= vp.height * DRAG_FIT_FRACTION)
+    return [{ ...press, tMs: a.t, ...centre(both), rect: both, drop }];
   return [
-    {
-      ...shared,
-      tMs: tDown,
-      ...(a.tDepart != null ? { tDepartMs: a.tDepart } : {}),
-      tDownMs: tDown,
-      tUpMs: a.t,
-      x: pick.x + pick.w / 2,
-      y: pick.y + pick.h / 2,
-      rect: pick,
-    },
-    {
-      ...shared,
-      tMs: a.t,
-      tDepartMs: tDown,
-      x: point.x,
-      y: point.y,
-      rect: drop,
-      drop,
-    },
+    { ...press, tMs: tDown, ...centre(pick), rect: pick },
+    { ...shared, tMs: a.t, tDepartMs: tDown, ...point, rect: drop, drop },
   ];
 }
 
@@ -136,9 +114,15 @@ export function resolveAnnotations(log: ActionLog, specs: AnnotationSpec[]): Ann
 }
 
 export function typedBeats(log: ActionLog): Array<{ text: string; fromS: number; toS: number }> {
-  return log.actions
-    .filter((a) => a.kind === "type" && a.text)
-    .map((a) => ({ text: a.text!, fromS: a.t / 1000, toS: (a.tEnd ?? a.t + 1000) / 1000 + 0.6 }));
+  return log.actions.flatMap((a) =>
+    a.kind === "type" && a.text
+      ? [
+          {
+            text: a.text,
+            fromS: a.t / 1000,
+            toS: (a.tEnd ?? a.t + TYPED_FALLBACK_MS) / 1000 + TYPED_LINGER_S,
+          },
+        ]
+      : [],
+  );
 }
-
-export { chordGlyphs };

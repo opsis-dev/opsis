@@ -1,17 +1,10 @@
 import React from "react";
 import { Easing, interpolate } from "remotion";
-import type { AnnotationKind } from "../../shared/compile/recording";
-import { useDesignScale } from "./window-frame";
+import { roleStack } from "../../shared/fonts";
+import type { Annotation } from "./action-log";
+import { useDesignScale } from "./lib/design-scale";
 
-export type Annotation = {
-  kind: AnnotationKind;
-  rect: { x: number; y: number; w: number; h: number };
-  fromS: number;
-  toS: number;
-  text: string;
-  color: string;
-  padding: number;
-};
+const MAIN_FONT = roleStack("main");
 
 const FADE_S = 0.18;
 
@@ -101,7 +94,7 @@ export const Annotations: React.FC<{
                 style={{
                   background: a.color,
                   color: "#fafafa",
-                  fontFamily: "Inter, system-ui, sans-serif",
+                  fontFamily: MAIN_FONT,
                   fontWeight: 600,
                   fontSize: 18 * k,
                   padding: `${8 * k}px ${14 * k}px`,
@@ -126,7 +119,6 @@ export const Annotations: React.FC<{
           );
         }
 
-        const draw = interpolate(o, [0, 1], [0, 1]);
         const len = 160;
         return (
           <div
@@ -153,7 +145,7 @@ export const Annotations: React.FC<{
                 strokeWidth={5}
                 strokeLinecap="round"
                 strokeDasharray={len}
-                strokeDashoffset={len * (1 - draw)}
+                strokeDashoffset={len * (1 - o)}
               />
               <path
                 d="M4 82 L12 98 L28 88"
@@ -162,7 +154,7 @@ export const Annotations: React.FC<{
                 strokeWidth={5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity={draw > 0.9 ? 1 : 0}
+                opacity={o > 0.9 ? 1 : 0}
               />
             </svg>
             <div
@@ -171,11 +163,11 @@ export const Annotations: React.FC<{
                 left: 120 * k,
                 bottom: 96 * k,
                 color: a.color,
-                fontFamily: "Inter, system-ui, sans-serif",
+                fontFamily: MAIN_FONT,
                 fontWeight: 800,
                 fontSize: 30 * k,
                 whiteSpace: "nowrap",
-                transform: `rotate(-4deg)`,
+                transform: "rotate(-4deg)",
               }}
             >
               {a.text}

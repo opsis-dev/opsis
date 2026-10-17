@@ -1,10 +1,8 @@
 import { Easing } from "remotion";
 import { DESIGN_WIDTH } from "./click-log";
-import { clamp } from "../../../shared/math";
+import { clamp, lerp } from "../../../shared/math";
 
-export const CAMERA_BEZIER = Easing.bezier(0.2, 0.2, 0.15, 1);
-
-export const PUSH_BEZIER = Easing.bezier(0.15, 0.9, 0.75, 0.95);
+const CAMERA_BEZIER = Easing.bezier(0.2, 0.2, 0.15, 1);
 
 export type CameraPose = {
   scale: number;
@@ -14,7 +12,16 @@ export type CameraPose = {
 
 export const BASE_POSE: CameraPose = { scale: 1, cx: 0.5, cy: 0.48 };
 
-export const mix = (a: number, b: number, t: number): number => a + (b - a) * t;
+export function partitionPoint<T>(items: readonly T[], before: (item: T) => boolean): number {
+  let lo = 0;
+  let hi = items.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (before(items[mid])) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
 
 export function cameraEase(t01: number): number {
   return CAMERA_BEZIER(clamp(t01, 0, 1));
@@ -23,9 +30,9 @@ export function cameraEase(t01: number): number {
 export function interpolatePose(a: CameraPose, b: CameraPose, t01: number): CameraPose {
   const p = cameraEase(t01);
   return {
-    scale: mix(a.scale, b.scale, p),
-    cx: mix(a.cx, b.cx, p),
-    cy: mix(a.cy, b.cy, p),
+    scale: lerp(a.scale, b.scale, p),
+    cx: lerp(a.cx, b.cx, p),
+    cy: lerp(a.cy, b.cy, p),
   };
 }
 
@@ -37,22 +44,28 @@ export function posesNearlyEqual(a: CameraPose, b: CameraPose): boolean {
   );
 }
 
+const MOVE_BASE_MS = 480;
+const MOVE_MS_PER_SCALE = 420;
+const MOVE_MS_PER_PX = 0.35;
+
+const MOVE_LIMITS = {
+  in: { stretch: 1, minMs: 550, maxMs: 1250 },
+  out: { stretch: 1.25, minMs: 650, maxMs: 1450 },
+  pan: { stretch: 1, minMs: 700, maxMs: 1400 },
+} as const;
+
 export function moveDuration(
   from: CameraPose,
   to: CameraPose,
-  kind: "in" | "out" | "pan",
+  kind: keyof typeof MOVE_LIMITS,
   vp: { width: number; height: number },
   speed = 1,
 ): number {
   const dS = Math.abs(to.scale - from.scale);
   const dPx = poseTravelPx(from, to, vp);
-  const ms = 480 + 420 * dS + 0.35 * dPx;
-  const onScreen =
-    kind === "out"
-      ? clamp(ms * 1.25, 650, 1450)
-      : kind === "pan"
-        ? clamp(ms, 700, 1400)
-        : clamp(ms, 550, 1250);
+  const ms = MOVE_BASE_MS + MOVE_MS_PER_SCALE * dS + MOVE_MS_PER_PX * dPx;
+  const limit = MOVE_LIMITS[kind];
+  const onScreen = clamp(ms * limit.stretch, limit.minMs, limit.maxMs);
   return (onScreen * speed) / 1000;
 }
 
@@ -65,17 +78,6 @@ export function poseTravelPx(
   return Math.hypot((to.cx - from.cx) * vp.width, (to.cy - from.cy) * vp.height) / k;
 }
 
-export const MAX_PAN_PX = 500;
-
-export function contentToWindow(
-  cx: number,
-  cy: number,
-  chromeFrac: number,
-): { cx: number; cy: number } {
-  if (chromeFrac <= 0) return { cx, cy };
-  return { cx, cy: chromeFrac + cy * (1 - chromeFrac) };
-}
-
 export function poseToCss(
   pose: CameraPose,
   chromeFrac: number,
@@ -83,10 +85,10 @@ export function poseToCss(
 ): { scale: number; translateX: number; translateY: number } {
   const S = pose.scale;
   const effective = fit * S;
-  const mapped = contentToWindow(pose.cx, pose.cy, chromeFrac);
+  const windowCy = chromeFrac > 0 ? chromeFrac + pose.cy * (1 - chromeFrac) : pose.cy;
   const half = 1 / (2 * S);
-  const Cx = clamp(mapped.cx, half, 1 - half);
-  const Cy = clamp(mapped.cy, half, 1 - half);
+  const Cx = clamp(pose.cx, half, 1 - half);
+  const Cy = clamp(windowCy, half, 1 - half);
   return {
     scale: effective,
     translateX: effective * (0.5 - Cx),

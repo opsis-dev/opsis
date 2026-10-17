@@ -3,7 +3,7 @@ import { AbsoluteFill, Img, interpolate, useCurrentFrame, useVideoConfig } from 
 import { Video } from "@remotion/media";
 import { Backdrop } from "../camera/demo-clip";
 import { RimLight, WindowFrame } from "../camera/window-frame";
-import { WINDOW_FIT } from "../camera/lib/window";
+import { WINDOW_FIT } from "../camera/lib/style";
 import { isLightBackdrop } from "../camera/lib/backdrop";
 import {
   bleedLayout,

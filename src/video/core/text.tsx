@@ -7,7 +7,6 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { loadFonts } from "../camera/lib/font";
 import { clamp, entranceStyle, exitOpacity, type Entrance } from "./anim";
 import { isLandscape, useOverlayFrame } from "./frame";
 import { roleStack } from "../../shared/fonts";
@@ -42,7 +41,6 @@ export const Title: React.FC<{
   fontSize = 112,
   fontFamily,
 }) => {
-  loadFonts();
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
   const out = exitOpacity(frame, durationInFrames);
@@ -123,7 +121,6 @@ export const KineticHeadline: React.FC<{
   wordStagger = 4,
   fontFamily,
 }) => {
-  loadFonts();
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
   const words = useMemo(
@@ -222,7 +219,6 @@ export const LowerThird: React.FC<{
   panel = "rgba(10,10,12,0.72)",
   fontFamily,
 }) => {
-  loadFonts();
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
   const { k, insets } = useOverlayFrame();
@@ -294,7 +290,6 @@ export const Callout: React.FC<{
   accent?: string;
   fontFamily?: string;
 }> = ({ text, x, y, side = "top", color = "#fafafa", accent = "#f43f5e", fontFamily }) => {
-  loadFonts();
   const frame = useCurrentFrame();
   const { width, height, durationInFrames } = useVideoConfig();
   const k = width / 1920;
@@ -367,7 +362,6 @@ export const Captions: React.FC<{
   highlightColor = "#facc15",
   fontFamily,
 }) => {
-  loadFonts();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { k, insets } = useOverlayFrame();

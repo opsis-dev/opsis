@@ -1,68 +1,42 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill } from "remotion";
 import { chordGlyphs, type KeyEvent } from "./lib/click-log";
-import { settle } from "./lib/push";
+import { keycapAt, settle } from "./lib/keycap";
+import { useDesignScale } from "./lib/design-scale";
 import { useOverlayFrame } from "../core/frame";
-import { useDesignScale } from "./window-frame";
-import { clamp } from "../../shared/math";
 
-export const KEYCAP_H = 103;
-export const KEYCAP_MIN_W = 216;
-export const KEYCAP_PAD_X = 46;
-export const KEYCAP_BOTTOM = 53;
-export const KEYCAP_RADIUS = 26;
-export const KEYCAP_GLYPH = 44;
-export const KEYCAP_GROUND = "#0a0a0a";
-export const KEYCAP_INK = "#ffffff";
+const KEYCAP_H = 103;
+const KEYCAP_MIN_W = 216;
+const KEYCAP_PAD_X = 46;
+const KEYCAP_EDGE = 53;
+const KEYCAP_RADIUS = 26;
+const KEYCAP_GLYPH = 44;
+const KEYCAP_GROUND = "#0a0a0a";
+const KEYCAP_INK = "#ffffff";
 
-export const KEYCAP_HOLD_S = 1.1;
-export const KEYCAP_IN_S = 0.13;
-export const KEYCAP_OUT_S = 0.17;
-
-export type KeycapHUDProps = {
+export const KeycapHUD: React.FC<{
   keys: KeyEvent[];
   timeS: number;
-  holdS?: number;
-};
-
-export function keycapAt(
-  keys: KeyEvent[],
-  timeS: number,
-  holdS = KEYCAP_HOLD_S,
-): { chord: string; inP: number; outP: number } | null {
-  for (let i = keys.length - 1; i >= 0; i--) {
-    const key = keys[i];
-    const startS = key.tMs / 1000;
-    const endS = startS + holdS;
-    if (timeS < startS || timeS >= endS) continue;
-    const inP = KEYCAP_IN_S > 0 ? (timeS - startS) / KEYCAP_IN_S : 1;
-    const outP = KEYCAP_OUT_S > 0 ? (endS - timeS) / KEYCAP_OUT_S : 1;
-    return {
-      chord: key.chord,
-      inP: clamp(inP, 0, 1),
-      outP: clamp(outP, 0, 1),
-    };
-  }
-  return null;
-}
-
-export const KeycapHUD: React.FC<KeycapHUDProps> = ({ keys, timeS, holdS = KEYCAP_HOLD_S }) => {
+  position: "top" | "bottom";
+}> = ({ keys, timeS, position }) => {
   const k = useDesignScale();
   const { insets } = useOverlayFrame();
-  const active = keycapAt(keys, timeS, holdS);
+  const active = keycapAt(keys, timeS);
   if (!active) return null;
 
   const appear = 1 - settle(active.inP);
   const leave = 1 - settle(active.outP);
   const opacity = Math.min(appear, leave);
-  const rise = (1 - appear) * 10 * k;
+  const top = position === "top";
+  const rise = (1 - appear) * 10 * k * (top ? -1 : 1);
 
   return (
     <AbsoluteFill
       style={{
         alignItems: "center",
-        justifyContent: "flex-end",
-        paddingBottom: KEYCAP_BOTTOM * k + insets.bottom,
+        justifyContent: top ? "flex-start" : "flex-end",
+        paddingTop: top ? KEYCAP_EDGE * k + insets.top : 0,
+        paddingBottom: top ? 0 : KEYCAP_EDGE * k + insets.bottom,
         pointerEvents: "none",
       }}
     >
@@ -88,10 +62,4 @@ export const KeycapHUD: React.FC<KeycapHUDProps> = ({ keys, timeS, holdS = KEYCA
       </div>
     </AbsoluteFill>
   );
-};
-
-export const useKeycapTime = (speed: number, offsetMs = 0): number => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  return (frame / fps) * speed - offsetMs / 1000;
 };

@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "vitest";
 import { BASE_POSE, posesNearlyEqual } from "./camera";
-import type { ClickLog } from "./click-log";
+import type { ClickEvent, ClickLog } from "./click-log";
+import { sees } from "./test-fixtures";
 import {
-  boostPose,
   buildCameraTrack,
   cursorAim,
   narrowPose,
   clusterize,
-  driftPose,
   frameFor,
+  S_MAX,
   sampleTrack,
   stickify,
   zoomAt,
@@ -17,59 +17,43 @@ import {
 
 const VP = { width: 1920, height: 1080 };
 
+const click = (tMs: number, x: number, y: number, more: Partial<ClickEvent> = {}): ClickEvent => ({
+  tMs,
+  x,
+  y,
+  ...more,
+});
+
+const box = (x: number, y: number, w: number, h: number) => ({ rect: { x, y, w, h } });
+
 const smokeLog: ClickLog = {
   name: "smoke",
   viewport: VP,
   durationMs: 11561,
-  offsetMs: 0,
   clicks: [
-    {
-      label: "Open priority",
-      tMs: 2603,
-      tDepartMs: 1800,
-      x: 533,
-      y: 302,
-      rect: { x: 491, y: 289, w: 83, h: 25 },
-      cluster: "priority",
-    },
-    {
-      label: "Select High",
-      tMs: 4338,
-      tDepartMs: 3600,
-      x: 571,
-      y: 417,
-      rect: { x: 498, y: 399, w: 146, h: 36 },
-      cluster: "priority",
-    },
-    {
-      label: "Mark week complete",
-      tMs: 6854,
-      tDepartMs: 6000,
-      x: 558,
-      y: 612,
-      rect: { x: 458, y: 589, w: 200, h: 46 },
-      cluster: "done",
-    },
+    click(2603, 533, 302, { tDepartMs: 1800, cluster: "priority", ...box(491, 289, 83, 25) }),
+    click(4338, 571, 417, { tDepartMs: 3600, cluster: "priority", ...box(498, 399, 146, 36) }),
+    click(6854, 558, 612, { tDepartMs: 6000, cluster: "done", ...box(458, 589, 200, 46) }),
   ],
 };
 
-const skillsmpLike: ClickLog = {
-  name: "skillsmp",
+const clusteredLog: ClickLog = {
+  name: "clustered",
   viewport: VP,
   durationMs: 23325,
   clicks: [
-    { tMs: 8073, x: 502, y: 466, cluster: "language" },
-    { tMs: 9342, x: 559, y: 586, cluster: "language" },
-    { tMs: 11220, x: 502, y: 630, cluster: "domain" },
-    { tMs: 12401, x: 503, y: 713, cluster: "domain" },
-    { tMs: 14229, x: 502, y: 710, cluster: "category" },
-    { tMs: 18041, x: 1122, y: 505, cluster: "payoff" },
+    click(8073, 502, 466, { cluster: "language" }),
+    click(9342, 559, 586, { cluster: "language" }),
+    click(11220, 502, 630, { cluster: "domain" }),
+    click(12401, 503, 713, { cluster: "domain" }),
+    click(14229, 502, 710, { cluster: "category" }),
+    click(18041, 1122, 505, { cluster: "payoff" }),
   ],
 };
 
 describe("stickify", () => {
   it("never merges different explicit cluster ids", () => {
-    const groups = clusterize(skillsmpLike.clicks, VP);
+    const groups = clusterize(clusteredLog.clicks, VP);
     const stuck = stickify(groups, VP);
     assert.equal(stuck.length, 4);
     assert.deepEqual(
@@ -83,9 +67,9 @@ describe("clusterize", () => {
   it("splits one cluster id when its targets are far apart", () => {
     const groups = clusterize(
       [
-        { tMs: 1000, x: 702, y: 314, cluster: "c1" },
-        { tMs: 4000, x: 1308, y: 991, cluster: "c1" },
-        { tMs: 6000, x: 1400, y: 1010, cluster: "c1" },
+        click(1000, 702, 314, { cluster: "c1" }),
+        click(4000, 1308, 991, { cluster: "c1" }),
+        click(6000, 1400, 1010, { cluster: "c1" }),
       ],
       VP,
     );
@@ -96,25 +80,10 @@ describe("clusterize", () => {
 
   it("keeps a cluster together when its targets are close", () => {
     const groups = clusterize(
-      [
-        { tMs: 1000, x: 476, y: 159, cluster: "c0" },
-        { tMs: 3000, x: 557, y: 236, cluster: "c0" },
-      ],
+      [click(1000, 476, 159, { cluster: "c0" }), click(3000, 557, 236, { cluster: "c0" })],
       VP,
     );
     assert.equal(groups.length, 1);
-  });
-});
-
-describe("frameFor", () => {
-  it("does not dead-center the subject", () => {
-    const pose = frameFor(
-      { tMs: 0, x: 1600, y: 800, rect: { x: 1500, y: 760, w: 200, h: 80 } },
-      VP,
-      1.6,
-    );
-    assert.ok(pose.scale >= 1.22 && pose.scale <= 1.6);
-    assert.notEqual(Math.round(pose.cx * 100), Math.round((1600 / 1920) * 100));
   });
 });
 
@@ -143,22 +112,8 @@ describe("buildCameraTrack", () => {
       viewport: VP,
       durationMs: 16000,
       clicks: [
-        {
-          tMs: 3000,
-          tDepartMs: 2000,
-          x: 300,
-          y: 200,
-          rect: { x: 240, y: 170, w: 200, h: 60 },
-          cluster: "one",
-        },
-        {
-          tMs: 9000,
-          tDepartMs: 8000,
-          x: 1700,
-          y: 980,
-          rect: { x: 1600, y: 950, w: 200, h: 60 },
-          cluster: "one",
-        },
+        click(3000, 300, 200, { tDepartMs: 2000, cluster: "one", ...box(240, 170, 200, 60) }),
+        click(9000, 1700, 980, { tDepartMs: 8000, cluster: "one", ...box(1600, 950, 200, 60) }),
       ],
     });
     const between = keys.filter((k) => k.t > 3 && k.t < 9);
@@ -175,22 +130,16 @@ describe("buildCameraTrack", () => {
         viewport: VP,
         durationMs: 24000,
         clicks: [
-          {
-            tMs: 16700,
+          click(16700, 1870, 1050, {
             tDepartMs: 13350,
-            x: 1870,
-            y: 1050,
-            rect: { x: 1816, y: 1014, w: 112, h: 72 },
             cluster: "save",
-          },
-          {
-            tMs: 21470,
+            ...box(1816, 1014, 112, 72),
+          }),
+          click(21470, 320, 148, {
             tDepartMs: 18180,
-            x: 320,
-            y: 148,
-            rect: { x: 249, y: 112, w: 151, h: 72 },
             cluster: "payoff",
-          },
+            ...box(249, 112, 151, 72),
+          }),
         ],
       },
       1.25,
@@ -244,7 +193,7 @@ describe("buildCameraTrack", () => {
       name: "empty",
       viewport: VP,
       durationMs: 4000,
-      clicks: [{ tMs: 500, x: 10, y: 10, zoom: false }],
+      clicks: [click(500, 10, 10, { zoom: false })],
     });
     const a = sampleTrack(keys, 0.2);
     const b = sampleTrack(keys, 3.5);
@@ -272,18 +221,13 @@ describe("typing beats", () => {
     name: "typing",
     viewport: VP,
     durationMs: 12000,
-    offsetMs: 0,
     clicks: [
-      {
-        label: "write",
-        tMs: 2000,
+      click(2000, 1328, 149, {
         tDepartMs: 1200,
         typeEndMs: 6000,
-        x: 1328,
-        y: 149,
-        rect: { x: 1005, y: 105, w: 646, h: 72 },
         cluster: "write",
-      },
+        ...box(1005, 105, 646, 72),
+      }),
     ],
   };
 
@@ -325,131 +269,52 @@ describe("typing beats", () => {
   });
 });
 
-describe("frameFor keeps the click in shot", () => {
-  const VP2 = { width: 1920, height: 1080 };
-  const sees = (pose: { scale: number; cx: number; cy: number }, x: number, y: number) => {
-    const half = 1 / (2 * pose.scale);
-    const nx = x / VP2.width;
-    const ny = y / VP2.height;
-    return (
-      nx >= pose.cx - half && nx <= pose.cx + half && ny >= pose.cy - half && ny <= pose.cy + half
-    );
-  };
+describe("frameFor", () => {
+  it("does not dead-center the subject", () => {
+    const pose = frameFor(click(0, 1600, 800, box(1500, 760, 200, 80)), VP, 1.6);
+    assert.ok(pose.scale >= 1.22 && pose.scale <= 1.6);
+    assert.notEqual(Math.round(pose.cx * 100), Math.round((1600 / 1920) * 100));
+  });
 
   it("keeps the click in shot when the framed region cannot fit", () => {
-    const pose = frameFor(
-      { tMs: 0, x: 1866, y: 1058, rect: { x: 1160, y: 0, w: 760, h: 1080 } },
-      VP2,
-      1.74,
-    );
-    assert.ok(sees(pose, 1866, 1058), "the clicked button must be on screen");
+    const pose = frameFor(click(0, 1866, 1058, box(1160, 0, 760, 1080)), VP, S_MAX);
+    assert.ok(sees(pose, VP, 1866, 1058), "the clicked button must be on screen");
   });
 
   it("does NOT surrender the zoom just because the region is oversized", () => {
-    const pose = frameFor(
-      { tMs: 0, x: 1721, y: 655, rect: { x: 1280, y: 0, w: 640, h: 1080 } },
-      VP2,
-      1.74,
-    );
+    const pose = frameFor(click(0, 1721, 655, box(1280, 0, 640, 1080)), VP, S_MAX);
     assert.notDeepEqual(pose, BASE_POSE, "should still be zoomed in");
     assert.ok(pose.scale > 1.1, `expected a real zoom, got ${pose.scale}`);
-    assert.ok(sees(pose, 1721, 655));
+    assert.ok(sees(pose, VP, 1721, 655));
   });
 
   it("keeps a click visible when it sits at the edge of a big framed region", () => {
-    const pose = frameFor(
-      { tMs: 0, x: 1500, y: 880, rect: { x: 300, y: 250, w: 1200, h: 640 } },
-      VP2,
-      1.74,
-    );
-    assert.ok(sees(pose, 1500, 880), `click fell outside the frame: ${JSON.stringify(pose)}`);
+    const pose = frameFor(click(0, 1500, 880, box(300, 250, 1200, 640)), VP, S_MAX);
+    assert.ok(sees(pose, VP, 1500, 880), `click fell outside the frame: ${JSON.stringify(pose)}`);
   });
 
   it("still frames ordinary controls off-centre", () => {
-    const pose = frameFor(
-      { tMs: 0, x: 476, y: 223, rect: { x: 273, y: 190, w: 406, h: 66 } },
-      VP2,
-      1.54,
-    );
+    const pose = frameFor(click(0, 476, 223, box(273, 190, 406, 66)), VP, 1.54);
     assert.ok(pose.scale > 1.2, `expected a real zoom, got ${pose.scale}`);
-    assert.ok(sees(pose, 476, 223));
+    assert.ok(sees(pose, VP, 476, 223));
     assert.notDeepEqual(pose, BASE_POSE);
   });
 
+  it("frames the whole target, centred, in a narrow frame", () => {
+    const wide = click(1000, 400, 200, box(300, 180, 800, 40));
+    const pose = frameFor(wide, VP, S_MAX * 1.69, true);
+    const visible = 1 / pose.scale;
+    assert.ok(visible * VP.width >= 800, "the target fits the visible width");
+    assert.ok(Math.abs(pose.cx - (0.8 * 700 + 0.2 * 400) / VP.width) < 1e-9);
+    const small = click(1000, 960, 500, box(940, 490, 40, 20));
+    assert.ok(Math.abs(frameFor(small, VP, S_MAX * 1.69, true).scale - S_MAX * 1.69) < 1e-9);
+  });
+
   it("never inverts its clamps at maximum zoom", () => {
-    const pose = frameFor({ tMs: 0, x: 1919, y: 1079 }, VP2, 1.74);
+    const pose = frameFor(click(0, 1919, 1079), VP, S_MAX);
     assert.ok(Number.isFinite(pose.cx) && Number.isFinite(pose.cy));
     assert.ok(pose.cx >= 1 / (2 * pose.scale) - 1e-9);
     assert.ok(pose.cy <= 1 - 1 / (2 * pose.scale) + 1e-9);
-  });
-});
-
-describe("hold drift", () => {
-  const SPEED = 1.25;
-  const track = buildCameraTrack(smokeLog, SPEED);
-  const tAt = (frame: number) => (frame / 30) * SPEED;
-
-  it("is off by default, so pnpm render is untouched", () => {
-    for (const f of [0, 30, 90, 150, 240]) {
-      assert.deepEqual(
-        zoomAt(f, 30, smokeLog, { speed: SPEED, fit: 0.86 }),
-        zoomAt(f, 30, smokeLog, { speed: SPEED, fit: 0.86, drift: 0 }),
-      );
-    }
-  });
-
-  it("never drifts downward, and never moves the framed point", () => {
-    for (let f = 0; f < 280; f++) {
-      const t = tAt(f);
-      const plain = sampleTrack(track, t);
-      const moved = driftPose(plain, track, t, SPEED, 1);
-      assert.ok(moved.scale >= plain.scale, `drifted DOWN at frame ${f}`);
-      assert.equal(moved.cx, plain.cx);
-      assert.equal(moved.cy, plain.cy);
-    }
-  });
-
-  it("stays inside the stillness budget and caps itself at S_MAX", () => {
-    const driftAt = (f: number) => {
-      const t = tAt(f);
-      const plain = sampleTrack(track, t);
-      return driftPose(plain, track, t, SPEED, 1).scale - plain.scale;
-    };
-    for (let f = 0; f < 280; f++) {
-      const a = driftAt(f);
-      const b = driftAt(f + Math.round(0.35 * 30));
-      assert.ok(Math.abs(a - b) < 0.01, `drift moved ${Math.abs(a - b)} in 0.35s at frame ${f}`);
-      const t = tAt(f);
-      const scale = driftPose(sampleTrack(track, t), track, t, SPEED, 1).scale;
-      assert.ok(scale <= 1.74 + 1e-9, `drifted past S_MAX at frame ${f}`);
-    }
-  });
-
-  it("returns to the authored pose at both ends of every hold", () => {
-    for (const key of track) {
-      for (const t of [key.t + 1e-6, key.t - 1e-6]) {
-        if (t < 0) continue;
-        const plain = sampleTrack(track, t);
-        const moved = driftPose(plain, track, t, SPEED, 1);
-        assert.ok(Math.abs(moved.scale - plain.scale) < 1e-5, `seam at key t=${key.t}`);
-      }
-    }
-  });
-});
-
-describe("zoom boost for narrower shapes", () => {
-  it("leaves the resting shot and plain shapes alone", () => {
-    assert.deepEqual(boostPose(BASE_POSE, 1.7), BASE_POSE);
-    const pose = { scale: 1.5, cx: 0.3, cy: 0.6 };
-    assert.deepEqual(boostPose(pose, 1), pose);
-  });
-
-  it("multiplies the strongest zoom by the boost and keeps the aim", () => {
-    const boosted = boostPose({ scale: 1.74, cx: 0.3, cy: 0.6 }, 1.5);
-    assert.ok(Math.abs(boosted.scale - 1.74 * 1.5) < 1e-9);
-    assert.equal(boosted.cx, 0.3);
-    assert.equal(boosted.cy, 0.6);
-    assert.ok(boostPose({ scale: 1.2, cx: 0.5, cy: 0.5 }, 1.5).scale > 1.2);
   });
 });
 
@@ -467,10 +332,13 @@ describe("camera in narrower shapes", () => {
   };
 
   it("aims at where the cursor has been around that moment", () => {
-    const aim = cursorAim(log, 0.3)!;
+    const aim = cursorAim(log, 0.3);
+    assert.ok(aim);
     assert.ok(Math.abs(aim.cx - 1650 / 1920) < 1e-9);
     assert.ok(Math.abs(aim.cy - 350 / 1080) < 1e-9);
-    assert.ok(Math.abs(cursorAim(log, 4)!.cx - 200 / 1920) < 1e-9);
+    const later = cursorAim(log, 4);
+    assert.ok(later);
+    assert.ok(Math.abs(later.cx - 200 / 1920) < 1e-9);
     assert.equal(cursorAim({ ...log, cursorTrack: [] }, 1), null);
   });
 
@@ -481,20 +349,10 @@ describe("camera in narrower shapes", () => {
   });
 
   it("aims at the action itself when fully zoomed in", () => {
-    const pose = narrowPose({ scale: 1.74 * 1.69, cx: 0.2, cy: 0.7 }, 1.69, { cx: 0.8, cy: 0.3 });
+    const pose = narrowPose({ scale: S_MAX * 1.69, cx: 0.2, cy: 0.7 }, 1.69, { cx: 0.8, cy: 0.3 });
     assert.ok(Math.abs(pose.cx - 0.2) < 1e-9);
     assert.ok(Math.abs(pose.cy - 0.7) < 1e-9);
-    assert.ok(Math.abs(pose.scale - 1.74 * 1.69) < 1e-9);
-  });
-
-  it("frames the whole target, centred, in a narrow frame", () => {
-    const wide = { x: 400, y: 200, tMs: 1000, rect: { x: 300, y: 180, w: 800, h: 40 } };
-    const pose = frameFor(wide, VP, 1.74 * 1.69, true);
-    const visible = 1 / pose.scale;
-    assert.ok(visible * VP.width >= 800, "the target fits the visible width");
-    assert.ok(Math.abs(pose.cx - (0.8 * 700 + 0.2 * 400) / VP.width) < 1e-9);
-    const small = { x: 960, y: 500, tMs: 1000, rect: { x: 940, y: 490, w: 40, h: 20 } };
-    assert.ok(Math.abs(frameFor(small, VP, 1.74 * 1.69, true).scale - 1.74 * 1.69) < 1e-9);
+    assert.ok(Math.abs(pose.scale - S_MAX * 1.69) < 1e-9);
   });
 
   it("changes nothing in the recording's own shape", () => {

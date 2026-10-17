@@ -19,7 +19,7 @@ import { elementOf } from "../capture/flow-types";
 import { resolveTarget } from "../capture/selectors";
 import { defineExecutor, TracedError, type ExecutorContext } from "../engine/context";
 import { rel } from "./util";
-import { WINDOW_FIT } from "../../video/camera/lib/window";
+import { WINDOW_FIT } from "../../video/camera/lib/style";
 import { captureScale, type Box } from "../../video/core/still-layout";
 import { errorMessage } from "../../shared/errors";
 import { ENGINE_MISSING_MESSAGE } from "../../shared/engine-message";

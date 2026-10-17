@@ -2,29 +2,44 @@ import type { BackdropName } from "../../../shared/backdrops";
 
 export const DEFAULT_BACKDROP: BackdropName = "glaze";
 
-export const LIGHT_BACKDROPS: readonly string[] = ["canyon", "mist", "chalk", "aurora"];
+const LIGHT_BACKDROPS: ReadonlySet<string> = new Set<BackdropName>([
+  "canyon",
+  "mist",
+  "chalk",
+  "aurora",
+]);
 
-export const isLightBackdrop = (name: string): boolean => LIGHT_BACKDROPS.includes(name);
+const LIGHT_LUMINANCE = 0.6;
+const HEX_COLOUR = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+const CSS_PAINT = /^(#|rgb|hsl|oklch|linear-gradient|radial-gradient|conic-gradient)/;
+const IMAGE_URL = /^(https?:|demoflow-file:|data:|blob:)/;
 
-export function backdropFile(name: string = DEFAULT_BACKDROP): string {
-  const trimmed = name.trim();
-  if (trimmed === "") return `backdrops/${DEFAULT_BACKDROP}.jpg`;
-  return trimmed.includes(".") ? `backdrops/${trimmed}` : `backdrops/${trimmed}.jpg`;
+function hexLuminance(colour: string): number | null {
+  const hex = HEX_COLOUR.exec(colour.trim())?.[1];
+  if (!hex) return null;
+  const channels =
+    hex.length === 3
+      ? [...hex].map((d) => d + d)
+      : [hex.slice(0, 2), hex.slice(2, 4), hex.slice(4)];
+  const [r, g, b] = channels.map((c) => parseInt(c, 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-export function backdropProblem(value: unknown): string | null {
-  if (value === undefined) return null;
-  if (typeof value !== "string" || value.trim() === "")
-    return "`backdrop` must be a non-empty string";
-  if (/[/\\]/.test(value))
-    return "`backdrop` is a name or a filename in public/backdrops/, not a path";
-  return null;
+export const isLightBackdrop = (backdrop: string): boolean =>
+  LIGHT_BACKDROPS.has(backdrop) || (hexLuminance(backdrop) ?? 0) > LIGHT_LUMINANCE;
+
+export function backdropFile(name?: string): string {
+  const file = name?.trim() || DEFAULT_BACKDROP;
+  return file.includes(".") ? `backdrops/${file}` : `backdrops/${file}.jpg`;
 }
 
-export function isLightGround(hex: string): boolean {
-  if (hex === "transparent") return true;
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return false;
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.6;
+export type BackdropSource =
+  | { kind: "paint"; css: string }
+  | { kind: "image"; url: string }
+  | { kind: "file"; path: string };
+
+export function backdropSource(backdrop?: string): BackdropSource {
+  if (backdrop && CSS_PAINT.test(backdrop.trim())) return { kind: "paint", css: backdrop };
+  if (backdrop && IMAGE_URL.test(backdrop)) return { kind: "image", url: backdrop };
+  return { kind: "file", path: backdropFile(backdrop) };
 }

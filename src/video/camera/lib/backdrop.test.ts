@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "vitest";
 import { BACKDROPS } from "../../../shared/backdrops";
-import { DEFAULT_BACKDROP, backdropFile, backdropProblem, isLightBackdrop } from "./backdrop";
+import { DEFAULT_BACKDROP, backdropFile, backdropSource, isLightBackdrop } from "./backdrop";
 
 describe("backdropFile", () => {
   it("resolves a bare name to the shipped set", () => {
@@ -23,19 +23,22 @@ describe("backdropFile", () => {
   });
 });
 
-describe("backdropProblem", () => {
-  it("accepts absence — the default applies", () => {
-    assert.equal(backdropProblem(undefined), null);
-  });
-
-  it("rejects a path, which would escape public/backdrops/", () => {
-    assert.match(String(backdropProblem("../../etc/passwd")), /not a path/);
-    assert.match(String(backdropProblem("sub/dir.jpg")), /not a path/);
-  });
-
-  it("rejects an empty or non-string name", () => {
-    assert.match(String(backdropProblem("")), /non-empty string/);
-    assert.match(String(backdropProblem(3)), /non-empty string/);
+describe("backdropSource", () => {
+  it("paints colours and gradients, loads addresses, and finds names in the shipped set", () => {
+    assert.deepEqual(backdropSource("#123456"), { kind: "paint", css: "#123456" });
+    assert.deepEqual(backdropSource("linear-gradient(red, blue)"), {
+      kind: "paint",
+      css: "linear-gradient(red, blue)",
+    });
+    assert.deepEqual(backdropSource("https://x.test/y.jpg"), {
+      kind: "image",
+      url: "https://x.test/y.jpg",
+    });
+    assert.deepEqual(backdropSource("cobalt"), { kind: "file", path: "backdrops/cobalt.jpg" });
+    assert.deepEqual(backdropSource(undefined), {
+      kind: "file",
+      path: `backdrops/${DEFAULT_BACKDROP}.jpg`,
+    });
   });
 });
 
@@ -44,5 +47,12 @@ describe("isLightBackdrop", () => {
     assert.equal(isLightBackdrop("canyon"), true);
     assert.equal(isLightBackdrop("glaze"), false);
     assert.equal(isLightBackdrop("unknown"), false);
+  });
+
+  it("reads light and dark colours, in short and long hex", () => {
+    assert.equal(isLightBackdrop("#faf6f1"), true);
+    assert.equal(isLightBackdrop("#fff"), true);
+    assert.equal(isLightBackdrop("#0b0b10"), false);
+    assert.equal(isLightBackdrop("rgb(250, 250, 250)"), false);
   });
 });
