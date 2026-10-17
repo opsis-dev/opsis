@@ -31,6 +31,7 @@ type UiState = {
   setPaletteOpen: (open: boolean) => void;
   setReplay: (nodeId: string | null, tab?: ReplayTab) => void;
   setReplayTab: (tab: ReplayTab) => void;
+  keepNodes: (ids: ReadonlySet<string>) => void;
 };
 
 const sameIds = (a: string[], b: string[]) =>
@@ -52,6 +53,15 @@ export const useUiStore = create<UiState>()((set) => ({
   setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
   setReplay: (replayNodeId, replayTab = "replay") => set({ replayNodeId, replayTab }),
   setReplayTab: (replayTab) => set({ replayTab }),
+  keepNodes: (ids) =>
+    set((s) => {
+      const selectedIds = s.selectedIds.filter((id) => ids.has(id));
+      const pinnedSource =
+        s.pinnedSource !== null && ids.has(s.pinnedSource) ? s.pinnedSource : null;
+      return selectedIds.length === s.selectedIds.length && pinnedSource === s.pinnedSource
+        ? s
+        : { selectedIds, pinnedSource };
+    }),
 }));
 
 export const SELECTION_KEYS = ["selectedIds", "activeIds", "pinnedSource"] as const;

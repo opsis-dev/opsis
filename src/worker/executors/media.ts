@@ -16,6 +16,7 @@ import {
   thumbnailNode,
 } from "../../shared/nodes/media";
 import type { MediaValue } from "../../shared/schema/values";
+import { singleQuoted } from "../../shared/format";
 import {
   defineExecutor,
   type Executor,
@@ -141,7 +142,7 @@ const concatExecutor = defineExecutor(concatNode, async (ctx, inputs, p) => {
   const out = path.join(ctx.dir, file);
   if (!p.forceReencode && probes.every((x) => canStreamCopy(probes[0], x))) {
     const list = path.join(ctx.dir, "concat.txt");
-    await writeFile(list, paths.map((f) => `file '${f.replace(/'/g, "'\\''")}'`).join("\n"));
+    await writeFile(list, paths.map((f) => `file ${singleQuoted(f)}`).join("\n"));
     ctx.log("info", "The files match, joining them without converting.");
     await ctx.ffmpeg.run(
       ["-f", "concat", "-safe", "0", "-i", list, "-c", "copy", ...FASTSTART, out],

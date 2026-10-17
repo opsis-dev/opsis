@@ -161,12 +161,12 @@ const setVariables: Handler<"setVariables"> = (request) => {
 const problems: Handler<"problems"> = (_request, wf) => apiOk(problemCheck(workflowProblems(wf)));
 
 const undo: Handler<"undo"> = () => {
-  useWorkflowStore.temporal.getState().undo();
+  useWorkflowStore.getState().undo();
   return edited();
 };
 
 const redo: Handler<"redo"> = () => {
-  useWorkflowStore.temporal.getState().redo();
+  useWorkflowStore.getState().redo();
   return edited();
 };
 

@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
 import { useState } from "react";
-import { familyKey, sameFamily } from "@/shared/fonts";
+import { familyKey, familyKeysWithBundled, sameFamily } from "@/shared/fonts";
 import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
 import type { FontFamilyDef } from "@/shared/fonts/types";
 import { Button } from "@/renderer/components/ui/button";
@@ -21,6 +21,10 @@ import { useFontLibrary } from "./library";
 
 const NO_FAMILIES: FontFamilyDef[] = [];
 
+function SelectedMark({ selected }: { selected: boolean }) {
+  return selected ? <Check data-icon="inline-end" className="ml-auto" /> : null;
+}
+
 function FontCommandItem({
   def,
   selected,
@@ -33,7 +37,7 @@ function FontCommandItem({
   return (
     <CommandItem value={def.family} onSelect={() => onPick(def)}>
       <FontSample def={def}>{def.family}</FontSample>
-      {selected ? <Check data-icon="inline-end" className="ml-auto" /> : null}
+      <SelectedMark selected={selected} />
     </CommandItem>
   );
 }
@@ -58,7 +62,7 @@ export function FontPicker({
   emptyLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { busy, run } = useBusy();
+  const { isBusy, run } = useBusy();
   const project = useWorkflowStore((s) => s.workflow?.settings.fonts.families) ?? NO_FAMILIES;
   const library = useFontLibrary((s) => s.library);
 
@@ -67,7 +71,7 @@ export function FontPicker({
     if (next) useFontLibrary.getState().ensureLoaded();
   };
 
-  const taken = new Set([...project, ...BUNDLED_FONTS].map((f) => familyKey(f.family)));
+  const taken = familyKeysWithBundled(project);
   const extra = library.filter((f) => !taken.has(familyKey(f.family)));
   const builtIn = BUNDLED_FONTS.filter((d) => !project.some((p) => sameFamily(p.family, d.family)));
   const current = [...project, ...BUNDLED_FONTS, ...library].find((f) =>
@@ -78,6 +82,8 @@ export function FontPicker({
     setOpen(false);
     onChange(family);
   };
+
+  const pickDef = (def: FontFamilyDef) => pick(def.family);
 
   const pickFromLibrary = (def: FontFamilyDef) => {
     setOpen(false);
@@ -102,7 +108,7 @@ export function FontPicker({
             id={id}
             variant="outline"
             className="w-full justify-between font-normal"
-            disabled={busy !== null}
+            disabled={isBusy}
           >
             {value ? (
               <FontSample def={current}>{value}</FontSample>
@@ -124,16 +130,14 @@ export function FontPicker({
               <CommandGroup>
                 <CommandItem value={emptyLabel} onSelect={() => pick("")}>
                   {emptyLabel}
-                  {!value ? <Check data-icon="inline-end" className="ml-auto" /> : null}
+                  <SelectedMark selected={!value} />
                 </CommandItem>
               </CommandGroup>
             ) : null}
             {project.length ? (
-              <CommandGroup heading="In this project">
-                {items(project, (d) => pick(d.family))}
-              </CommandGroup>
+              <CommandGroup heading="In this project">{items(project, pickDef)}</CommandGroup>
             ) : null}
-            <CommandGroup heading="Built in">{items(builtIn, (d) => pick(d.family))}</CommandGroup>
+            <CommandGroup heading="Built in">{items(builtIn, pickDef)}</CommandGroup>
             {extra.length ? (
               <CommandGroup heading="Your library">{items(extra, pickFromLibrary)}</CommandGroup>
             ) : null}

@@ -55,8 +55,9 @@ function useFilmState(): Film {
   const failedKey = useMedia((s) => s.failedKey);
   const projectDir = useWorkflowStore((s) => s.projectDir);
   useEffect(() => {
-    if (sounding && projectDir) useMedia.getState().requestMix(source, sounding);
-  }, [sounding, source, projectDir]);
+    if (!sounding || !projectDir || result?.key === sounding.key) return;
+    useMedia.getState().requestMix(source, sounding);
+  }, [sounding, source, projectDir, result]);
   const audible = useMemo(() => {
     if (!spec) return null;
     if (result?.master && sounding) return withMasterStem(spec, result.master);

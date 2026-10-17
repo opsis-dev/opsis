@@ -4,7 +4,7 @@ import { clamp } from "@/shared/math";
 import { dbToGain } from "@/shared/mix/types";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import { DemoTimeline } from "@/video/demo-timeline";
-import { MAX_PREVIEW_FILTERS, useAudioPreview } from "../store/audio-preview";
+import { MAX_PREVIEW_FILTERS, previewTotals, useAudioPreview } from "../store/audio-preview";
 
 const SMOOTHING_S = 0.02;
 
@@ -28,7 +28,7 @@ function buildChain(ac: AudioContext, master: GainNode): Chain {
 }
 
 function applyPreview(chain: Chain, now: number): void {
-  const { gainDb, pan, filters: wanted } = useAudioPreview.getState();
+  const { gainDb, pan, filters: wanted } = previewTotals(useAudioPreview.getState());
   chain.gain.gain.setTargetAtTime(dbToGain(gainDb), now, SMOOTHING_S);
   chain.panner.pan.setTargetAtTime(clamp(pan, -1, 1), now, SMOOTHING_S);
   chain.filters.forEach((node, i) => {

@@ -40,7 +40,7 @@ function previewChange(
   make: (delta: number) => Contribution,
 ): void {
   const store = useAudioPreview.getState();
-  store.contribute(id, make(next - store.baseline(id, current)));
+  store.contribute(id, make(next - store.rememberBaseline(id, current)));
 }
 
 function gainContribution(fraction: number, deltaDb: number): Contribution {

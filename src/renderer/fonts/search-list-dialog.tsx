@@ -1,17 +1,10 @@
 import type { ReactNode } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/renderer/components/ui/dialog";
 import { Input } from "@/renderer/components/ui/input";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
+import { FontDialog } from "./font-dialog";
 
-export const MAX_LISTED = 100;
+const MAX_LISTED = 100;
 
 export function matchesQuery(query: string, ...texts: string[]): boolean {
   const q = query.trim().toLowerCase();
@@ -27,36 +20,7 @@ export function BusyCount({ busy, children }: { busy: boolean; children: ReactNo
   );
 }
 
-export function FontDialog({
-  open,
-  onClose,
-  title,
-  description,
-  footer,
-  children,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  description: ReactNode;
-  footer?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        {children}
-        {footer ? <DialogFooter>{footer}</DialogFooter> : null}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-export function SearchListDialog({
+export function SearchListDialog<T>({
   open,
   onClose,
   title,
@@ -64,7 +28,7 @@ export function SearchListDialog({
   placeholder,
   query,
   onQuery,
-  matches,
+  items,
   status,
   footer,
   children,
@@ -76,10 +40,10 @@ export function SearchListDialog({
   placeholder: string;
   query: string;
   onQuery: (query: string) => void;
-  matches: number;
+  items: readonly T[];
   status?: ReactNode;
   footer?: ReactNode;
-  children: ReactNode;
+  children: (item: T) => ReactNode;
 }) {
   return (
     <FontDialog
@@ -98,8 +62,8 @@ export function SearchListDialog({
       <ScrollArea className="h-80">
         <div className="flex flex-col pr-3">
           {status}
-          {children}
-          {matches > MAX_LISTED ? (
+          {items.slice(0, MAX_LISTED).map(children)}
+          {items.length > MAX_LISTED ? (
             <p className="text-muted-foreground px-2 py-1 text-xs">
               Showing the first {MAX_LISTED} matches. Type to narrow the list.
             </p>

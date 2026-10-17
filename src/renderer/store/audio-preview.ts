@@ -7,17 +7,14 @@ export type Contribution = { gainDb?: number; pan?: number; filters?: PreviewFil
 export const MAX_PREVIEW_FILTERS = 6;
 
 type AudioPreviewState = {
-  gainDb: number;
-  pan: number;
-  filters: PreviewFilter[];
   contributions: Record<string, Contribution>;
   baselines: Record<string, number>;
   contribute: (id: string, contribution: Contribution) => void;
-  baseline: (id: string, current: number) => number;
+  rememberBaseline: (id: string, current: number) => number;
   clear: () => void;
 };
 
-function combine(contributions: Record<string, Contribution>) {
+export function previewTotals({ contributions }: Pick<AudioPreviewState, "contributions">) {
   let gainDb = 0;
   let pan = 0;
   const filters: PreviewFilter[] = [];
@@ -30,21 +27,15 @@ function combine(contributions: Record<string, Contribution>) {
 }
 
 export const useAudioPreview = create<AudioPreviewState>()((set, get) => ({
-  gainDb: 0,
-  pan: 0,
-  filters: [],
   contributions: {},
   baselines: {},
   contribute: (id, contribution) =>
-    set((s) => {
-      const contributions = { ...s.contributions, [id]: contribution };
-      return { contributions, ...combine(contributions) };
-    }),
-  baseline: (id, current) => {
+    set((s) => ({ contributions: { ...s.contributions, [id]: contribution } })),
+  rememberBaseline: (id, current) => {
     const known = get().baselines[id];
     if (known !== undefined) return known;
     set((s) => ({ baselines: { ...s.baselines, [id]: current } }));
     return current;
   },
-  clear: () => set({ gainDb: 0, pan: 0, filters: [], contributions: {}, baselines: {} }),
+  clear: () => set({ contributions: {}, baselines: {} }),
 }));

@@ -19,7 +19,10 @@ export const liveAutoOpen = () =>
   (useAppSettings.getState().settings ?? DEFAULT_SETTINGS).live.autoOpen;
 
 const reloadSettings = () =>
-  window.demoflow.getSettings().then((settings) => useAppSettings.setState({ settings }));
+  window.demoflow
+    .getSettings()
+    .then((settings) => useAppSettings.setState({ settings }))
+    .catch((e: unknown) => reportError("Could not read the settings", e));
 
 export function loadedAppSettings(): Promise<AppSettings> {
   const current = useAppSettings.getState().settings;
@@ -38,8 +41,11 @@ let started = false;
 export function watchAppSettings(): void {
   if (started) return;
   started = true;
-  reloadSettings().catch((e: unknown) => reportError("Could not read the settings", e));
-  void window.demoflow.apiStatus().then((api) => useAppSettings.setState({ api }));
+  void reloadSettings();
+  void window.demoflow.apiStatus().then(
+    (api) => useAppSettings.setState({ api }),
+    (e: unknown) => reportError("Could not read the API status", e),
+  );
   window.demoflow.onSettingsChanged((settings) => useAppSettings.setState({ settings }));
   window.demoflow.onApiStatus((api) => useAppSettings.setState({ api }));
 }

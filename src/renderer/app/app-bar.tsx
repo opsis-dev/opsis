@@ -1,15 +1,7 @@
-import { Copy, Menu, Minus, Square, X } from "lucide-react";
-import { useEffect, type ComponentType, type ReactNode } from "react";
+import { Menu } from "lucide-react";
+import type { ComponentType, ReactNode } from "react";
 import logoUrl from "../../../brand/logo.svg";
-import {
-  acceleratorLabel,
-  appMenu,
-  matchesAccelerator,
-  menuCommandEntry,
-  type MenuCommand,
-  type MenuEntry,
-  type WindowRole,
-} from "@/shared/menu";
+import type { MenuEntry } from "@/shared/menu";
 import { Button } from "@/renderer/components/ui/button";
 import {
   DropdownMenu,
@@ -37,28 +29,16 @@ import { Badge } from "@/renderer/components/ui/badge";
 import { Separator } from "@/renderer/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { useAppSettings } from "../store/app-settings";
-import { useWindowState } from "../store/window-state";
 import { cn } from "@/renderer/lib/utils";
-import { isEditingElement } from "@/renderer/lib/dom";
-import { isMac, platform } from "@/renderer/lib/platform";
-import { dispatchMenuCommand } from "./menu-commands";
-
-export const shortcutLabel = (accelerator: string) => acceleratorLabel(accelerator, platform);
-export const commandLabel = (cmd: MenuCommand): string =>
-  menuCommandEntry(platform, cmd)?.label ?? cmd;
-
-export function commandShortcut(cmd: MenuCommand): string | null {
-  const accelerator = menuCommandEntry(platform, cmd)?.accelerator;
-  return accelerator ? shortcutLabel(accelerator) : null;
-}
-const SECTIONS = appMenu(platform);
-
-type MenuItem = Exclude<MenuEntry, { kind: "separator" }>;
-
-function run(entry: MenuItem) {
-  if (entry.kind === "command") dispatchMenuCommand(entry.command);
-  else void window.demoflow.windowRole(entry.role);
-}
+import { isMac } from "@/renderer/lib/platform";
+import {
+  MENU_SECTIONS,
+  menuItemId,
+  runMenuItem,
+  shortcutLabel,
+  type MenuItem,
+} from "./menu-shortcuts";
+import { WindowControls } from "./window-chrome";
 
 function groups(items: MenuEntry[]): MenuItem[][] {
   const out: MenuItem[][] = [];
@@ -100,7 +80,7 @@ function SectionItems({ items, parts }: { items: MenuEntry[]; parts: MenuParts }
     <Group key={i}>
       {i > 0 ? <GroupSeparator /> : null}
       {group.map((entry) => (
-        <Item key={entry.label} onClick={() => run(entry)}>
+        <Item key={menuItemId(entry)} onClick={() => runMenuItem(entry)}>
           {entry.label}
           {entry.accelerator ? <Shortcut>{shortcutLabel(entry.accelerator)}</Shortcut> : null}
         </Item>
@@ -112,7 +92,7 @@ function SectionItems({ items, parts }: { items: MenuEntry[]; parts: MenuParts }
 function WideMenu() {
   return (
     <Menubar className="hidden h-8 border-0 bg-transparent p-0 xl:flex">
-      {SECTIONS.map((section) => (
+      {MENU_SECTIONS.map((section) => (
         <MenubarMenu key={section.label}>
           <MenubarTrigger className="px-2 font-normal">{section.label}</MenubarTrigger>
           <MenubarContent className="min-w-56">
@@ -134,7 +114,7 @@ function CompactMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48">
         <DropdownMenuGroup>
-          {SECTIONS.map((section) => (
+          {MENU_SECTIONS.map((section) => (
             <DropdownMenuSub key={section.label}>
               <DropdownMenuSubTrigger>{section.label}</DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="min-w-56">
@@ -145,91 +125,6 @@ function CompactMenu() {
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-const NATIVE_WHILE_EDITING: ReadonlySet<MenuCommand | WindowRole> = new Set<
-  MenuCommand | WindowRole
->(["cut", "copy", "paste", "selectAll", "edit:undo", "edit:redo"]);
-
-export function useMenuShortcuts(): void {
-  useEffect(() => {
-    if (isMac) return;
-    const entries = SECTIONS.flatMap((s) => s.items).filter(
-      (e): e is MenuItem & { accelerator: string } => e.kind !== "separator" && !!e.accelerator,
-    );
-    const onKey = (e: KeyboardEvent) => {
-      if (e.defaultPrevented) return;
-      const entry = entries.find((x) => matchesAccelerator(x.accelerator, e, platform));
-      if (!entry) return;
-      const id = entry.kind === "command" ? entry.command : entry.role;
-      if (isEditingElement(document.activeElement) && NATIVE_WHILE_EDITING.has(id)) return;
-      e.preventDefault();
-      run(entry);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-}
-
-function WindowButton({
-  role,
-  label,
-  className = "hover:bg-accent",
-  children,
-}: {
-  role: WindowRole;
-  label: string;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      className={cn(
-        "text-muted-foreground hover:text-foreground grid h-full w-12 place-items-center transition-colors",
-        className,
-      )}
-      onClick={() => void window.demoflow.windowRole(role)}
-    >
-      {children}
-    </button>
-  );
-}
-
-function WindowControls() {
-  const maximized = useWindowState((s) => s.maximized);
-  return (
-    <div className="flex h-full shrink-0 items-stretch">
-      <WindowButton role="minimize" label="Minimize">
-        <Minus className="size-4" strokeWidth={1.5} />
-      </WindowButton>
-      <WindowButton role="toggleMaximize" label={maximized ? "Restore" : "Maximize"}>
-        {maximized ? (
-          <Copy className="size-3.5 -scale-x-100" strokeWidth={1.5} />
-        ) : (
-          <Square className="size-3.5" strokeWidth={1.5} />
-        )}
-      </WindowButton>
-      <WindowButton role="close" label="Close" className="hover:bg-destructive hover:text-white">
-        <X className="size-4" strokeWidth={1.5} />
-      </WindowButton>
-    </div>
-  );
-}
-
-export function WindowBorder() {
-  const { maximized, fullscreen, focused } = useWindowState();
-  if (isMac || maximized || fullscreen) return null;
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        "pointer-events-none fixed inset-0 z-50 border",
-        focused ? "border-white/12" : "border-white/7",
-      )}
-    />
   );
 }
 

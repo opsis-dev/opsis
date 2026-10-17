@@ -22,7 +22,9 @@ import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { attempt } from "@/renderer/lib/toast";
 import { newKeyedItem, useItemKeys } from "@/renderer/lib/use-item-keys";
 import { FontPicker } from "../fonts/font-picker";
+import { useMedia } from "../store/media";
 import { useRunStore } from "../store/run";
+import { useStillsStore } from "../store/stills";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { InlineEdit } from "./inline-edit";
@@ -287,6 +289,8 @@ function SavedResults() {
       if (!dir) return;
       await window.demoflow.clearCache(dir);
       useRunStore.getState().seed(null);
+      useMedia.getState().reset(dir);
+      await useStillsStore.getState().load(dir);
       toast.success("Cleared. The next run records and exports everything again.");
     }, "Couldn't clear the saved results");
   return (

@@ -23,7 +23,7 @@ function barBeats(a: AudioBar, wave: Waveform, fps: number): number[] {
 }
 
 export function useBeatFrames(flat: FlatTimeline): number[] {
-  const waveforms = useMedia((s) => s.waveforms);
+  const waveforms = useMedia((s) => s.analyses.waveform);
   return useMemo(
     () =>
       flat.audio.flatMap((a) => {

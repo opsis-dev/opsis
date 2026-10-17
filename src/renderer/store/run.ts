@@ -49,6 +49,17 @@ const freshRun = (running: boolean) => ({
   skippedNodeIds: [],
 });
 
+const idleRun = () => ({ ...emptyRunProgress(), ...freshRun(false), logs: [] });
+
+const RUN_FAILED = "Failed";
+
+type RunDone = Extract<RunEvent, { type: "run:done" }>;
+
+const runDoneError = (e: RunDone): string | null => {
+  if (e.ok) return null;
+  return e.error ?? (e.cancelled ? CANCELLED : RUN_FAILED);
+};
+
 const newerFailures = (lastRun: LastRun | null) =>
   Object.entries(lastRun?.failures ?? {}).filter(
     ([id, f]) => f.at > (lastRun?.nodes[id]?.finishedAt ?? 0),
@@ -65,18 +76,14 @@ const errorsOf = (lastRun: LastRun | null): Record<string, string> =>
   Object.fromEntries(newerFailures(lastRun).map(([id, f]) => [id, f.message]));
 
 export const useRunStore = create<RunState>()((set) => ({
-  ...emptyRunProgress(),
-  ...freshRun(false),
-  logs: [],
+  ...idleRun(),
 
   seed: (lastRun) =>
     set({
-      ...emptyRunProgress(),
-      ...freshRun(false),
+      ...idleRun(),
       traces: traceIds(lastRun),
       results: lastRun?.nodes ?? {},
       errors: errorsOf(lastRun),
-      logs: [],
     }),
 
   start: (runId) => set((s) => (s.runId === runId ? {} : { ...freshRun(true), runId })),
@@ -110,7 +117,7 @@ export const useRunStore = create<RunState>()((set) => ({
             outputs: e.outputs,
             failedNodeIds: e.failedNodeIds ?? [],
             skippedNodeIds: e.skippedNodeIds ?? [],
-            lastError: e.ok ? null : (e.error ?? (e.cancelled ? CANCELLED : "Failed")),
+            lastError: runDoneError(e),
           };
         default:
           return applyRunEvent(s, e);

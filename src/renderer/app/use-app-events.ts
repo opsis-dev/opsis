@@ -1,7 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { exportedClipNodes } from "@/shared/graph";
-import { applyLive } from "../store/live";
+import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useStillsStore } from "../store/stills";
@@ -55,7 +55,7 @@ function useStillEvents(): void {
 }
 
 function useLiveEvents(): void {
-  useEffect(() => window.demoflow.onLive(applyLive), []);
+  useEffect(() => window.demoflow.onLive((message) => useLiveStore.getState().apply(message)), []);
 }
 
 export function useAppEvents(): void {

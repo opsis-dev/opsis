@@ -128,8 +128,7 @@ export function FontsPanel() {
   const library = useFontLibrary((s) => s.library);
   const onlineAllowed = useFontLibrary((s) => s.onlineAllowed);
   const [dialog, setDialog] = useState<PanelDialog | null>(null);
-  const closeIf = (kind: PanelDialog["kind"]) => () =>
-    setDialog((d) => (d?.kind === kind ? null : d));
+  const close = (kind: PanelDialog["kind"]) => setDialog((d) => (d?.kind === kind ? null : d));
 
   useEffect(() => {
     void refreshLibrary();
@@ -190,20 +189,22 @@ export function FontsPanel() {
       {dialog?.kind === "review" ? (
         <ReviewDialog
           review={dialog.review}
-          onClose={closeIf("review")}
-          onAdded={() => void refreshLibrary()}
+          onClose={() => close("review")}
+          onAdded={refreshLibrary}
         />
       ) : null}
       {dialog?.kind === "installed" ? (
         <InstalledDialog
           fonts={dialog.fonts}
-          onClose={closeIf("installed")}
+          onClose={() => close("installed")}
           onPicked={(fonts) => setDialog({ kind: "review", review: { fonts, installed: true } })}
         />
       ) : null}
       <OnlineConsentDialog
         open={dialog?.kind === "ask-online"}
-        onOpenChange={(open) => !open && closeIf("ask-online")()}
+        onOpenChange={(open) => {
+          if (!open) close("ask-online");
+        }}
         onConnect={() => {
           useFontLibrary.getState().allowOnline();
           setDialog({ kind: "online" });
@@ -211,12 +212,12 @@ export function FontsPanel() {
       />
       <OnlineDialog
         open={dialog?.kind === "online"}
-        onClose={closeIf("online")}
+        onClose={() => close("online")}
         onAdded={refreshLibrary}
       />
       <RemoveFontDialog
         font={dialog?.kind === "remove" ? dialog.font : null}
-        onClose={closeIf("remove")}
+        onClose={() => close("remove")}
       />
     </Card>
   );

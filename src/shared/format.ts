@@ -87,6 +87,8 @@ export function parseNumberText(text: string, { lenient = false } = {}): number 
   return Number.isFinite(n) ? n : null;
 }
 
+export const singleQuoted = (text: string): string => `'${text.replaceAll("'", "'\\''")}'`;
+
 export const nonBlankLines = (text: string): string[] =>
   text
     .split("\n")

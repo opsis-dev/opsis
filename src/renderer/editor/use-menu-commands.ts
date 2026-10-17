@@ -20,8 +20,8 @@ const actionsFor = <T>(
 ): MenuActions => Object.fromEntries(items.map((item) => [command(item), () => run(item)]));
 
 const MENU_ACTIONS: MenuActions = {
-  "edit:undo": () => useWorkflowStore.temporal.getState().undo(),
-  "edit:redo": () => useWorkflowStore.temporal.getState().redo(),
+  "edit:undo": () => useWorkflowStore.getState().undo(),
+  "edit:redo": () => useWorkflowStore.getState().redo(),
   "project:save": () => void saveWithToast().then((ok) => ok && toast.success("Saved")),
   "run:start": () => void startRun(),
   "run:cancel": () => void window.demoflow.cancelRun(),
@@ -30,7 +30,7 @@ const MENU_ACTIONS: MenuActions = {
   "edit:add-node": () => useUiStore.getState().setPaletteOpen(true),
   "view:toggle-minimap": () => {
     const view = useViewOptions.getState();
-    view.setMinimap(!view.minimap);
+    view.setViewOption("minimap", !view.minimap);
   },
   ...actionsFor(PANEL_SIDES, (side) => PANEL_TOGGLES[side].command, togglePanel),
   ...actionsFor(DOCK_PANELS, (panel) => `view:focus-${panel}`, focusPanel),

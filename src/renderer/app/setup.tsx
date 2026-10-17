@@ -18,7 +18,7 @@ import { Spinner } from "@/renderer/components/ui/spinner";
 import { PageBar } from "./app-bar";
 import { AnimatedPercent } from "./motion";
 import { useEnvironment, useFreshEnvironment } from "../store/environment";
-import { SETUP_SKIPPED_KEY, writeStored } from "@/renderer/lib/local-storage";
+import { skipSetup } from "./startup-flags";
 
 function useEngineInstall() {
   const [event, setEvent] = useState<EngineInstallEvent | null>(null);
@@ -154,7 +154,7 @@ export function Setup() {
           </p>
           <EnginePanel
             onDone={() => {
-              writeStored(SETUP_SKIPPED_KEY, "1");
+              skipSetup();
               void navigate({ to: "/" });
             }}
           />

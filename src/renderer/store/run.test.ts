@@ -17,6 +17,27 @@ const runDone = (runId: string, overrides: Partial<RunDone> = {}): RunDone => ({
   ...overrides,
 });
 
+const nodeDone = (
+  runId: string,
+  nodeId: string,
+  finishedAt: number,
+  traceId: string,
+): RunEvent => ({
+  type: "node:done",
+  runId,
+  nodeId,
+  cached: false,
+  result: result(finishedAt, traceId),
+});
+
+const nodeError = (runId: string, nodeId: string, message: string, traceId?: string): RunEvent => ({
+  type: "node:error",
+  runId,
+  nodeId,
+  message,
+  ...(traceId ? { traceId } : {}),
+});
+
 describe("run store", () => {
   beforeEach(() => useRunStore.getState().seed(null));
 
@@ -36,13 +57,7 @@ describe("run store", () => {
 
   it("points the trace at the failed take when a node fails during a run", () => {
     useRunStore.getState().seed({ updatedAt: 1, nodes: { rec: result(1, "ok") } });
-    useRunStore.getState().apply({
-      type: "node:error",
-      runId: "r",
-      nodeId: "rec",
-      message: "boom",
-      traceId: "failed",
-    });
+    useRunStore.getState().apply(nodeError("r", "rec", "boom", "failed"));
     expect(useRunStore.getState().traces.rec).toBe("failed");
   });
 
@@ -68,14 +83,8 @@ describe("run store", () => {
   it("keeps an earlier failure when a later run leaves that node out", () => {
     const store = useRunStore.getState();
     store.apply({ type: "run:start", runId: "r1", nodeIds: ["a", "b", "c"], at: 0 });
-    store.apply({
-      type: "node:done",
-      runId: "r1",
-      nodeId: "a",
-      cached: false,
-      result: result(1, "x"),
-    });
-    store.apply({ type: "node:error", runId: "r1", nodeId: "b", message: "boom" });
+    store.apply(nodeDone("r1", "a", 1, "x"));
+    store.apply(nodeError("r1", "b", "boom"));
     store.apply({
       type: "node:skipped",
       runId: "r1",
@@ -94,13 +103,7 @@ describe("run store", () => {
     expect(useRunStore.getState().failedNodeIds).toEqual(["b"]);
     store.start("r2");
     store.apply({ type: "run:start", runId: "r2", nodeIds: ["c"], at: 3 });
-    store.apply({
-      type: "node:done",
-      runId: "r2",
-      nodeId: "c",
-      cached: false,
-      result: result(4, "y"),
-    });
+    store.apply(nodeDone("r2", "c", 4, "y"));
     store.apply(runDone("r2", { at: 5 }));
     const s = useRunStore.getState();
     expect(s.errors.b).toBe("boom");
@@ -129,7 +132,7 @@ describe("run store", () => {
         message: `log ${i}`,
         at: i,
       });
-      store.apply({ type: "node:error", runId: "r", nodeId: "a", message: `error ${i}` });
+      store.apply(nodeError("r", "a", `error ${i}`));
     }
     const logs = useRunStore.getState().logs;
     expect(logs).toHaveLength(MAX_LOG_LINES);

@@ -36,9 +36,12 @@ function UpdatingSound() {
 
 function ShapeSelect() {
   const shape = useViewOptions((s) => s.previewShape);
-  const setShape = useViewOptions((s) => s.setPreviewShape);
+  const setOption = useViewOptions((s) => s.setViewOption);
   return (
-    <Select value={shape} onValueChange={whenOneOf(PREVIEW_SHAPES, setShape)}>
+    <Select
+      value={shape}
+      onValueChange={whenOneOf(PREVIEW_SHAPES, (v) => setOption("previewShape", v))}
+    >
       <SelectTrigger size="sm" className="w-32" aria-label="Preview shape">
         <SelectValue>{shapeLabel}</SelectValue>
       </SelectTrigger>
@@ -58,13 +61,13 @@ function ShapeSelect() {
 
 function QualityToggle() {
   const quality = useViewOptions((s) => s.previewQuality);
-  const setQuality = useViewOptions((s) => s.setPreviewQuality);
+  const setOption = useViewOptions((s) => s.setViewOption);
   return (
     <ToggleGroup
       variant="outline"
       size="sm"
       value={[quality]}
-      onValueChange={whenFirstOneOf(PREVIEW_QUALITIES, setQuality)}
+      onValueChange={whenFirstOneOf(PREVIEW_QUALITIES, (v) => setOption("previewQuality", v))}
     >
       <Tooltip>
         <TooltipTrigger render={<ToggleGroupItem value="fast" />}>Fast</TooltipTrigger>

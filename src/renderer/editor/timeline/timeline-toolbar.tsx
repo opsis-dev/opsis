@@ -23,7 +23,7 @@ import { Separator } from "@/renderer/components/ui/separator";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
-import { shortcutLabel } from "../../app/app-bar";
+import { shortcutLabel } from "../../app/menu-shortcuts";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { ENVELOPE_INFO } from "./envelope";

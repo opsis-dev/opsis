@@ -11,6 +11,7 @@ import {
   parseNumberText,
   percent,
   percentText,
+  singleQuoted,
 } from "./format";
 
 describe("formatBytes", () => {
@@ -64,6 +65,13 @@ describe("displayAddress", () => {
 
   it("leaves addresses with variables readable", () => {
     expect(displayAddress("{{baseUrl}}/login/")).toBe("{{baseUrl}}/login");
+  });
+});
+
+describe("singleQuoted", () => {
+  it("quotes text for a shell, closing and reopening the quotes around each single quote", () => {
+    expect(singleQuoted("/home/me/api.sock")).toBe("'/home/me/api.sock'");
+    expect(singleQuoted("/home/o'brien/api.sock")).toBe("'/home/o'\\''brien/api.sock'");
   });
 });
 

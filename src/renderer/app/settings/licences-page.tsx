@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
 import type { FontFamilyDef } from "@/shared/fonts/types";
 import type { LicenceEntry } from "@/shared/ipc";
+import { errorMessage } from "@/shared/errors";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -33,16 +34,23 @@ function LicenceText({ text }: { text: string }) {
 async function readFontLicence(def: FontFamilyDef): Promise<string> {
   if (!def.licenseFile) return "No licence file came with this font.";
   const res = await fetch(fontFileUrl(def.licenseFile));
-  if (!res.ok) throw new Error(String(res.status));
+  if (!res.ok) throw new Error(`Error ${res.status}.`);
   return res.text();
 }
 
 function FontLicenceText({ def }: { def: FontFamilyDef }) {
-  const [text, setText] = useState<string | null>(null);
+  const [read, setRead] = useState<{ def: FontFamilyDef; text: string } | null>(null);
   useEffect(() => {
-    readFontLicence(def).then(setText, () => setText("This licence file couldn't be read."));
+    let current = true;
+    const show = (text: string) => current && setRead({ def, text });
+    readFontLicence(def).then(show, (e: unknown) =>
+      show(`This licence file couldn't be read. ${errorMessage(e)}`),
+    );
+    return () => {
+      current = false;
+    };
   }, [def]);
-  return text === null ? <Spinner /> : <LicenceText text={text} />;
+  return read?.def === def ? <LicenceText text={read.text} /> : <Spinner />;
 }
 
 type RowProps = { title: string; summary: string; badge?: string };

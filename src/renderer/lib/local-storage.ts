@@ -24,5 +24,3 @@ export const writeStored = (key: string, value: string): void => write(local, ke
 export const readSession = (key: string): string | null => read(session, key);
 
 export const writeSession = (key: string, value: string): void => write(session, key, value);
-
-export const SETUP_SKIPPED_KEY = "demoflow:setup-skipped";

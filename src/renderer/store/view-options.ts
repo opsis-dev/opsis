@@ -6,11 +6,11 @@ import { readPref, writePref } from "./view-prefs";
 
 export const PREVIEW_QUALITIES = ["fast", "exact"] as const;
 export type PreviewQuality = (typeof PREVIEW_QUALITIES)[number];
-export const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PREVIEW_QUALITIES, v);
+const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PREVIEW_QUALITIES, v);
 
 export const PREVIEW_SHAPES = ["project", ...VARIANTS] as const;
 export type PreviewShape = (typeof PREVIEW_SHAPES)[number];
-export const isPreviewShape = (v: unknown): v is PreviewShape => isOneOf(PREVIEW_SHAPES, v);
+const isPreviewShape = (v: unknown): v is PreviewShape => isOneOf(PREVIEW_SHAPES, v);
 
 type ViewOptions = {
   previewQuality: PreviewQuality;
@@ -26,34 +26,24 @@ const PERSISTED: { [K in keyof ViewOptions]: Persisted<ViewOptions[K]> } = {
   minimap: { fallback: true, valid: isBoolean },
 };
 
+const VIEW_OPTION_KEYS = Object.keys(PERSISTED) as Array<keyof ViewOptions>;
+
 const stored = <K extends keyof ViewOptions>(key: K): ViewOptions[K] =>
   readPref(key, PERSISTED[key].fallback, PERSISTED[key].valid);
 
-export const storedViewOptions = (): ViewOptions => ({
-  previewQuality: stored("previewQuality"),
-  previewShape: stored("previewShape"),
-  minimap: stored("minimap"),
-});
+export const storedViewOptions = (): ViewOptions =>
+  Object.fromEntries(VIEW_OPTION_KEYS.map((key) => [key, stored(key)])) as ViewOptions;
 
 type ViewOptionsState = ViewOptions & {
-  setPreviewQuality: (quality: PreviewQuality) => void;
-  setPreviewShape: (shape: PreviewShape) => void;
-  setMinimap: (minimap: boolean) => void;
+  setViewOption: <K extends keyof ViewOptions>(key: K, value: ViewOptions[K]) => void;
 };
 
-export const useViewOptions = create<ViewOptionsState>()((set) => {
-  const persisted =
-    <K extends keyof ViewOptions>(key: K) =>
-    (value: ViewOptions[K]) => {
-      const patch: Partial<ViewOptions> = {};
-      patch[key] = value;
-      set(patch);
-      writePref(key, value);
-    };
-  return {
-    ...storedViewOptions(),
-    setPreviewQuality: persisted("previewQuality"),
-    setPreviewShape: persisted("previewShape"),
-    setMinimap: persisted("minimap"),
-  };
-});
+export const useViewOptions = create<ViewOptionsState>()((set) => ({
+  ...storedViewOptions(),
+  setViewOption: (key, value) => {
+    const patch: Partial<ViewOptions> = {};
+    patch[key] = value;
+    set(patch);
+    writePref(key, value);
+  },
+}));

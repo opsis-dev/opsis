@@ -1,8 +1,7 @@
 import { Download } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { familyKey } from "@/shared/fonts";
-import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
+import { familyKey, familyKeysWithBundled } from "@/shared/fonts";
 import type { FontCatalogEntry } from "@/shared/ipc";
 import { errorMessage } from "@/shared/errors";
 import { plural } from "@/shared/format";
@@ -11,27 +10,39 @@ import { Spinner } from "@/renderer/components/ui/spinner";
 import { categoryLabel } from "./font-labels";
 import { useFontLibrary } from "./library";
 import { useBusy } from "@/renderer/lib/use-busy";
-import { MAX_LISTED, matchesQuery, SearchListDialog } from "./search-list-dialog";
+import { matchesQuery, SearchListDialog } from "./search-list-dialog";
 
 type Catalog =
   | { status: "loading" }
   | { status: "error"; error: string }
   | { status: "ready"; entries: FontCatalogEntry[] };
 
-function useCatalog(open: boolean): Catalog {
+function fetchCatalog(show: (catalog: Catalog) => void): void {
+  window.demoflow.fontCatalog().then(
+    (entries) => show({ status: "ready", entries }),
+    (e: unknown) => show({ status: "error", error: errorMessage(e) }),
+  );
+}
+
+function useCatalog(open: boolean): { catalog: Catalog; retry: () => void } {
   const [catalog, setCatalog] = useState<Catalog>({ status: "loading" });
   const ready = catalog.status === "ready";
   useEffect(() => {
     if (!open || ready) return;
-    window.demoflow.fontCatalog().then(
-      (entries) => setCatalog({ status: "ready", entries }),
-      (e: unknown) => setCatalog({ status: "error", error: errorMessage(e) }),
-    );
+    let current = true;
+    fetchCatalog((next) => current && setCatalog(next));
+    return () => {
+      current = false;
+    };
   }, [open, ready]);
-  return catalog;
+  const retry = () => {
+    setCatalog({ status: "loading" });
+    fetchCatalog(setCatalog);
+  };
+  return { catalog, retry };
 }
 
-function CatalogStatus({ catalog }: { catalog: Catalog }) {
+function CatalogStatus({ catalog, onRetry }: { catalog: Catalog; onRetry: () => void }) {
   if (catalog.status === "loading")
     return (
       <div className="text-muted-foreground flex items-center gap-2 p-2 text-sm">
@@ -39,7 +50,14 @@ function CatalogStatus({ catalog }: { catalog: Catalog }) {
       </div>
     );
   if (catalog.status === "error")
-    return <p className="text-destructive p-2 text-sm">{catalog.error}</p>;
+    return (
+      <div className="flex flex-col items-start gap-2 p-2">
+        <p className="text-destructive text-sm">{catalog.error}</p>
+        <Button size="xs" variant="outline" onClick={onRetry}>
+          Try again
+        </Button>
+      </div>
+    );
   return null;
 }
 
@@ -92,15 +110,12 @@ export function OnlineDialog({
   onClose: () => void;
   onAdded: () => Promise<void>;
 }) {
-  const catalog = useCatalog(open);
+  const { catalog, retry } = useCatalog(open);
   const [query, setQuery] = useState("");
-  const { busy, run } = useBusy();
+  const { busy, isBusy, run } = useBusy();
   const library = useFontLibrary((s) => s.library);
 
-  const have = useMemo(
-    () => new Set([...library, ...BUNDLED_FONTS].map((f) => familyKey(f.family))),
-    [library],
-  );
+  const have = useMemo(() => familyKeysWithBundled(library), [library]);
   const entries = catalog.status === "ready" ? catalog.entries : null;
   const shown = (entries ?? []).filter((f) =>
     matchesQuery(query, f.family, categoryLabel(f.category)),
@@ -126,24 +141,24 @@ export function OnlineDialog({
       placeholder="Search by name or style (serif, monospace…)"
       query={query}
       onQuery={setQuery}
-      matches={shown.length}
-      status={<CatalogStatus catalog={catalog} />}
+      items={shown}
+      status={<CatalogStatus catalog={catalog} onRetry={retry} />}
       footer={
         <Button variant="outline" onClick={onClose}>
           Done
         </Button>
       }
     >
-      {shown.slice(0, MAX_LISTED).map((f) => (
+      {(f) => (
         <CatalogRow
           key={f.id}
           entry={f}
           added={have.has(familyKey(f.family))}
           busy={busy === f.id}
-          disabled={!!busy}
+          disabled={isBusy}
           onDownload={() => void download(f)}
         />
-      ))}
+      )}
     </SearchListDialog>
   );
 }

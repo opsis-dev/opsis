@@ -1,29 +1,16 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
-import {
-  readSession,
-  readStored,
-  SETUP_SKIPPED_KEY,
-  writeSession,
-} from "@/renderer/lib/local-storage";
 import { reportError } from "@/renderer/lib/toast";
 import { loadedAppSettings } from "../store/app-settings";
 import { useEnvironment } from "../store/environment";
 import { dispatchMenuCommand } from "./menu-commands";
-
-const STARTED_KEY = "demoflow.started";
-
-function markStarted(): boolean {
-  const first = readSession(STARTED_KEY) !== "1";
-  writeSession(STARTED_KEY, "1");
-  return first;
-}
+import { isSetupSkipped, markStarted } from "./startup-flags";
 
 export function useStartup(): void {
   const router = useRouter();
   useEffect(() => {
     if (router.state.location.pathname !== "/") return;
-    const skipped = readStored(SETUP_SKIPPED_KEY) === "1";
+    const skipped = isSetupSkipped();
     const first = markStarted();
     void Promise.all([useEnvironment.getState().refresh(), loadedAppSettings()])
       .then(async ([env, settings]) => {
@@ -39,6 +26,6 @@ export function useStartup(): void {
           dispatchMenuCommand("project:new");
         }
       })
-      .catch((e: unknown) => reportError("Could not open the last project", e));
+      .catch((e: unknown) => reportError("Could not finish starting up", e));
   }, [router]);
 }

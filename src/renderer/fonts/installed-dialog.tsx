@@ -4,7 +4,7 @@ import { plural } from "@/shared/format";
 import type { LocalFontData } from "./local-fonts";
 import { useBusy } from "@/renderer/lib/use-busy";
 import { FontSample } from "./font-sample";
-import { BusyCount, MAX_LISTED, matchesQuery, SearchListDialog } from "./search-list-dialog";
+import { BusyCount, matchesQuery, SearchListDialog } from "./search-list-dialog";
 
 async function readFaces(faces: LocalFontData[]): Promise<FontInstalledFace[]> {
   const data: FontInstalledFace[] = [];
@@ -29,7 +29,7 @@ export function InstalledDialog({
   onPicked: (fonts: InspectedFonts) => void;
 }) {
   const [query, setQuery] = useState("");
-  const { busy, run } = useBusy();
+  const { busy, isBusy, run } = useBusy();
   const families = useMemo(() => groupByFamily(fonts), [fonts]);
   const shown = families.filter(([name]) => matchesQuery(query, name));
 
@@ -47,20 +47,20 @@ export function InstalledDialog({
       placeholder="Search installed fonts…"
       query={query}
       onQuery={setQuery}
-      matches={shown.length}
+      items={shown}
     >
-      {shown.slice(0, MAX_LISTED).map(([name, faces]) => (
+      {([name, faces]) => (
         <button
           key={name}
           type="button"
           className="hover:bg-muted flex items-center justify-between rounded-md px-2 py-1.5 text-left text-sm"
-          disabled={!!busy}
+          disabled={isBusy}
           onClick={() => void pick(name, faces)}
         >
           <FontSample family={name}>{name}</FontSample>
           <BusyCount busy={busy === name}>{plural(faces.length, "style")}</BusyCount>
         </button>
-      ))}
+      )}
     </SearchListDialog>
   );
 }

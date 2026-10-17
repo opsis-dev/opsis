@@ -2,12 +2,14 @@ import { RotateCcw } from "lucide-react";
 import { useState } from "react";
 import {
   KEEP_LAST_TRACES,
+  LIVE_FPS,
   START_OPTION_LABELS,
   START_OPTIONS,
   TRACE_RETENTION,
   TRACE_RETENTION_LABELS,
   type AppSettings,
 } from "@/shared/settings";
+import { parseNumberText } from "@/shared/format";
 import { clamp } from "@/shared/math";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -18,17 +20,14 @@ import {
   CardTitle,
 } from "@/renderer/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
-import { Input } from "@/renderer/components/ui/input";
 import { SingleSlider } from "../single-slider";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { Switch } from "@/renderer/components/ui/switch";
 import { patchAppSettings } from "../../store/app-settings";
 import { useFreshEnvironment } from "../../store/environment";
 import { FolderField } from "../folder-field";
 import { OptionToggle } from "../option-toggle";
 import { useProjectLocations } from "../use-loaded";
-
-const LIVE_FPS = { min: 1, max: 30 };
+import { CommitInput, SwitchField } from "./fields";
 
 export function GeneralPage({ settings }: { settings: AppSettings }) {
   return (
@@ -47,22 +46,13 @@ export function GeneralPage({ settings }: { settings: AppSettings }) {
               onChange={(onStart) => void patchAppSettings({ app: { onStart } })}
             />
           </Field>
-          <Field orientation="horizontal" className="justify-between">
-            <div className="flex flex-col gap-1">
-              <FieldLabel htmlFor="confirm-exit" className="font-normal">
-                Ask before closing
-              </FieldLabel>
-              <FieldDescription>
-                When this is off, Demoflow still asks if a run, an engine setup or a save hasn't
-                finished.
-              </FieldDescription>
-            </div>
-            <Switch
-              id="confirm-exit"
-              checked={settings.app.confirmExit}
-              onCheckedChange={(v) => void patchAppSettings({ app: { confirmExit: v } })}
-            />
-          </Field>
+          <SwitchField
+            id="confirm-exit"
+            label="Ask before closing"
+            description="When this is off, Demoflow still asks if a run, an engine setup or a save hasn't finished."
+            checked={settings.app.confirmExit}
+            onChange={(v) => void patchAppSettings({ app: { confirmExit: v } })}
+          />
         </FieldGroup>
       </CardContent>
     </Card>
@@ -129,12 +119,12 @@ export function ProjectsPage({ settings }: { settings: AppSettings }) {
   );
 }
 
-function setKeepLast(value: string): void {
-  const n = Math.round(Number(value));
-  if (n >= KEEP_LAST_TRACES.min)
-    void patchAppSettings({
-      traces: { keepLast: clamp(n, KEEP_LAST_TRACES.min, KEEP_LAST_TRACES.max) },
-    });
+function setKeepLast(text: string): void {
+  const n = parseNumberText(text);
+  if (n === null) return;
+  void patchAppSettings({
+    traces: { keepLast: clamp(Math.round(n), KEEP_LAST_TRACES.min, KEEP_LAST_TRACES.max) },
+  });
 }
 
 function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
@@ -161,13 +151,13 @@ function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
           {traces.retention === "last-n" ? (
             <Field>
               <FieldLabel htmlFor="keep-last">Runs to keep per node</FieldLabel>
-              <Input
+              <CommitInput
                 id="keep-last"
                 type="number"
                 min={KEEP_LAST_TRACES.min}
                 max={KEEP_LAST_TRACES.max}
-                value={traces.keepLast}
-                onChange={(e) => setKeepLast(e.target.value)}
+                value={String(traces.keepLast)}
+                onCommit={setKeepLast}
               />
             </Field>
           ) : null}
@@ -204,16 +194,12 @@ function LiveViewCard({ live }: { live: AppSettings["live"] }) {
               Only affects the live view; recordings always use the Record node's frame rate.
             </FieldDescription>
           </Field>
-          <Field orientation="horizontal" className="justify-between">
-            <FieldLabel htmlFor="live-auto" className="font-normal">
-              Open the live view when a take starts
-            </FieldLabel>
-            <Switch
-              id="live-auto"
-              checked={live.autoOpen}
-              onCheckedChange={(v) => void patchAppSettings({ live: { autoOpen: v } })}
-            />
-          </Field>
+          <SwitchField
+            id="live-auto"
+            label="Open the live view when a take starts"
+            checked={live.autoOpen}
+            onChange={(v) => void patchAppSettings({ live: { autoOpen: v } })}
+          />
         </FieldGroup>
       </CardContent>
     </Card>
@@ -244,13 +230,13 @@ export function ExportPage({ settings }: { settings: AppSettings }) {
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor="remotion-key">Company licence key</FieldLabel>
-            <Input
+            <CommitInput
               id="remotion-key"
               type="password"
               autoComplete="off"
               placeholder="Leave empty to use the free licence"
               value={settings.render.licenseKey}
-              onChange={(e) => void patchAppSettings({ render: { licenseKey: e.target.value } })}
+              onCommit={(licenseKey) => void patchAppSettings({ render: { licenseKey } })}
             />
             <FieldDescription>
               Read the terms at{" "}

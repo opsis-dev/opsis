@@ -1,5 +1,6 @@
 import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router";
-import { useMenuShortcuts, WindowBorder } from "../app/app-bar";
+import { useMenuShortcuts } from "../app/menu-shortcuts";
+import { WindowBorder } from "../app/window-chrome";
 import { ExitDialog } from "../app/exit-dialog";
 import { useApiHost } from "../app/api-host";
 import { isSecondaryWindow, useAppEvents } from "../app/use-app-events";

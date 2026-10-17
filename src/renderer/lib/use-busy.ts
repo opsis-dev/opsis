@@ -8,5 +8,5 @@ export function useBusy() {
     await attempt(action, failure);
     setBusy(null);
   };
-  return { busy, run };
+  return { busy, isBusy: busy !== null, run };
 }

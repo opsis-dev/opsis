@@ -5,7 +5,7 @@ export function reportError(title: string, error: unknown): void {
   toast.error(title, { description: errorMessage(error) });
 }
 
-export function showError(error: unknown): void {
+function showError(error: unknown): void {
   toast.error(errorMessage(error));
 }
 

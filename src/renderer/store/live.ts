@@ -28,7 +28,7 @@ type LiveState = {
   pipOpen: boolean;
   focusId: string | null;
   dialogOpen: boolean;
-  apply: (message: LiveMessage, autoOpen: boolean) => void;
+  apply: (message: LiveMessage) => void;
   setPipOpen: (open: boolean) => void;
   focus: (captureId: string | null) => void;
   setDialogOpen: (open: boolean) => void;
@@ -98,7 +98,7 @@ export const useLiveStore = create<LiveState>()((set, get) => ({
   focusId: null,
   dialogOpen: false,
 
-  apply: (message, autoOpen) => {
+  apply: (message) => {
     const { captureId } = message;
     const s = get();
     const prev = s.captures[captureId];
@@ -112,7 +112,7 @@ export const useLiveStore = create<LiveState>()((set, get) => ({
       captures: { ...s.captures, [captureId]: next },
       order: [...s.order, captureId],
       focusId: focusLive ? s.focusId : captureId,
-      pipOpen: autoOpen || s.pipOpen,
+      pipOpen: liveAutoOpen() || s.pipOpen,
     });
   },
   setPipOpen: (pipOpen) => set({ pipOpen }),
@@ -123,6 +123,3 @@ export const useLiveStore = create<LiveState>()((set, get) => ({
     set({ captures: {}, order: [], focusId: null });
   },
 }));
-
-export const applyLive = (message: LiveMessage): void =>
-  useLiveStore.getState().apply(message, liveAutoOpen());

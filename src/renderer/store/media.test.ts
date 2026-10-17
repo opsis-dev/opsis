@@ -12,8 +12,10 @@ describe("media requests", () => {
   it("marks a waveform as failed when the request itself fails", async () => {
     useMedia.getState().reset("/project");
     useMedia.getState().waveform("project:a.wav");
-    expect(useMedia.getState().waveforms["project:a.wav"]).toBe("loading");
-    await vi.waitFor(() => expect(useMedia.getState().waveforms["project:a.wav"]).toBe("error"));
+    expect(useMedia.getState().analyses.waveform["project:a.wav"]).toBe("loading");
+    await vi.waitFor(() =>
+      expect(useMedia.getState().analyses.waveform["project:a.wav"]).toBe("error"),
+    );
   });
 
   it("stops showing a mix as in progress when the request itself fails", async () => {

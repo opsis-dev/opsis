@@ -36,8 +36,7 @@ function PanelBody({ panel }: { panel: DockPanelName }) {
 }
 
 function PanelRoute() {
-  const { name } = Route.useParams();
-  const panel = isDockPanel(name) ? name : "preview";
+  const { name: panel } = Route.useParams();
   const { project } = Route.useSearch();
   const workflow = useWorkflowStore((s) => s.workflow);
   usePanelSync(panel, close);
@@ -83,6 +82,12 @@ function PanelRoute() {
 }
 
 export const Route = createFileRoute("/panel/$name")({
+  params: {
+    parse: ({ name }) => {
+      if (!isDockPanel(name)) throw new Error(`There's no panel called “${name}”.`);
+      return { name };
+    },
+  },
   validateSearch: z.object({ project: z.coerce.string().default("") }),
   component: PanelRoute,
 });

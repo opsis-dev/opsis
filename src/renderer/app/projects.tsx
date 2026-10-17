@@ -2,24 +2,32 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Download, FolderOpen, Plus, Settings, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import type { RecentProject } from "@/shared/ipc";
-import { acceleratorLabel } from "@/shared/menu";
+import type { MenuCommand } from "@/shared/menu";
 import { TEMPLATES } from "@/shared/templates";
 import { formatTimeAgo } from "@/shared/format";
 import { Button } from "@/renderer/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Kbd } from "@/renderer/components/ui/kbd";
-import { platform } from "@/renderer/lib/platform";
 import { NodeIcon } from "../editor/node-icon";
 import { useFreshEnvironment } from "../store/environment";
 import { AppBar } from "./app-bar";
 import { Stagger, StaggerItem } from "./motion";
 import { NewProjectDialog } from "./new-project-dialog";
 import { useLoaded } from "./use-loaded";
-import { onMenuCommand } from "./menu-commands";
+import { dispatchMenuCommand, onMenuCommand } from "./menu-commands";
+import { commandLabel, commandShortcut } from "./menu-shortcuts";
 
 const RECENT_LIMIT = 10;
 
-type Action = { icon: LucideIcon; label: string; keys: string; run: () => void };
+const DEFAULT_TEMPLATE = "todomvc";
+
+const START_ACTIONS: Array<{ icon: LucideIcon; command: MenuCommand }> = [
+  { icon: Plus, command: "project:new" },
+  { icon: FolderOpen, command: "project:open" },
+  { icon: Settings, command: "view:settings" },
+];
+
+const ACTION_COMMANDS = { new: "project:new", open: "project:open" } as const;
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
@@ -29,22 +37,25 @@ function SectionTitle({ children }: { children: ReactNode }) {
   );
 }
 
-function ActionList({ actions }: { actions: Action[] }) {
+function ActionList() {
   return (
     <section className="flex flex-col gap-1">
       <SectionTitle>Start</SectionTitle>
-      {actions.map((a) => (
-        <button
-          key={a.label}
-          type="button"
-          onClick={a.run}
-          className="group hover:bg-accent -mx-2 flex items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm"
-        >
-          <a.icon className="text-muted-foreground group-hover:text-foreground size-4" />
-          <span className="flex-1">{a.label}</span>
-          <Kbd>{acceleratorLabel(a.keys, platform)}</Kbd>
-        </button>
-      ))}
+      {START_ACTIONS.map(({ icon: Icon, command }) => {
+        const keys = commandShortcut(command);
+        return (
+          <button
+            key={command}
+            type="button"
+            onClick={() => dispatchMenuCommand(command)}
+            className="group hover:bg-accent -mx-2 flex items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm"
+          >
+            <Icon className="text-muted-foreground group-hover:text-foreground size-4" />
+            <span className="flex-1">{commandLabel(command)}</span>
+            {keys ? <Kbd>{keys}</Kbd> : null}
+          </button>
+        );
+      })}
     </section>
   );
 }
@@ -139,7 +150,7 @@ type NewDialog = { template: string; fixed: boolean; session: number };
 function useProjectActions() {
   const navigate = useNavigate();
   const [dialog, setDialog] = useState<NewDialog>({
-    template: "todomvc",
+    template: DEFAULT_TEMPLATE,
     fixed: false,
     session: 0,
   });
@@ -167,24 +178,18 @@ function useProjectActions() {
 function useProjectCommands(startNew: () => void, open: () => Promise<void>): void {
   const navigate = useNavigate();
   const { action } = useSearch({ from: "/" });
-  const onNew = useEffectEvent(startNew);
-  const onOpen = useEffectEvent(() => void open());
+  const run = useEffectEvent((command: MenuCommand) => {
+    if (command === "project:new") startNew();
+    if (command === "project:open") void open();
+  });
+
+  useEffect(() => onMenuCommand((command) => run(command)), []);
 
   useEffect(() => {
     if (!action) return;
     void navigate({ to: "/", search: {}, replace: true });
-    if (action === "new") onNew();
-    else onOpen();
+    run(ACTION_COMMANDS[action]);
   }, [action, navigate]);
-
-  useEffect(
-    () =>
-      onMenuCommand((c) => {
-        if (c === "project:new") onNew();
-        if (c === "project:open") onOpen();
-      }),
-    [],
-  );
 }
 
 export function Projects() {
@@ -198,17 +203,6 @@ export function Projects() {
 
   useEffect(() => window.demoflow.setTitle("Demoflow"), []);
 
-  const actions: Action[] = [
-    { icon: Plus, label: "New project…", keys: "CmdOrCtrl+N", run: () => startNew() },
-    { icon: FolderOpen, label: "Open project…", keys: "CmdOrCtrl+O", run: () => void open() },
-    {
-      icon: Settings,
-      label: "Settings",
-      keys: "CmdOrCtrl+,",
-      run: () => void window.demoflow.openSettings(),
-    },
-  ];
-
   return (
     <div className="flex h-screen flex-col">
       <AppBar />
@@ -216,7 +210,7 @@ export function Projects() {
         <div className="flex min-h-full items-center justify-center px-10 py-14">
           <div className="grid w-full max-w-5xl grid-cols-1 gap-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
             <div className="flex min-w-0 flex-col gap-10">
-              <ActionList actions={actions} />
+              <ActionList />
               <RecentList recent={recent ?? []} onOpen={(dir) => void open(dir)} />
             </div>
             <div className="flex min-w-0 flex-col gap-10">

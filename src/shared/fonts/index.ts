@@ -84,3 +84,7 @@ export const fontSlug = (family: string): string =>
 export const familyKey = (family: string): string => family.toLowerCase();
 
 export const sameFamily = (a: string, b: string): boolean => familyKey(a) === familyKey(b);
+
+export const familyKeysWithBundled = (
+  fonts: ReadonlyArray<Pick<FontFamilyDef, "family">>,
+): ReadonlySet<string> => new Set([...fonts, ...BUNDLED_FONTS].map((f) => familyKey(f.family)));

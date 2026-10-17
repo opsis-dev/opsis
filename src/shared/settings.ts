@@ -12,6 +12,8 @@ export const TRACE_RETENTION_LABELS: Record<TraceRetention, string> = {
 
 export const KEEP_LAST_TRACES = { min: 1, max: 500 };
 
+export const LIVE_FPS = { min: 1, max: 30 };
+
 export const START_OPTIONS = ["start-screen", "last-project", "new-project"] as const;
 export type StartOption = (typeof START_OPTIONS)[number];
 
@@ -41,7 +43,7 @@ export const appSettingsSchema = z.object({
     .prefault({}),
   live: z
     .object({
-      fps: z.number().int().min(1).max(60).default(12),
+      fps: z.number().int().min(LIVE_FPS.min).max(LIVE_FPS.max).default(12),
       autoOpen: z.boolean().default(true),
     })
     .prefault({}),

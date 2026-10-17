@@ -8,7 +8,7 @@ import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { useBusy } from "@/renderer/lib/use-busy";
 import { describeFaces } from "./font-labels";
-import { FontDialog } from "./search-list-dialog";
+import { FontDialog } from "./font-dialog";
 
 export type FontReview = { fonts: InspectedFonts; installed: boolean };
 
@@ -26,11 +26,11 @@ export function ReviewDialog({
 }: {
   review: FontReview;
   onClose: () => void;
-  onAdded: () => void;
+  onAdded: () => Promise<void>;
 }) {
   const { fonts } = review;
   const [chosen, setChosen] = useState(() => fonts.families.map((f) => f.family));
-  const { busy, run } = useBusy();
+  const { isBusy, run } = useBusy();
 
   const add = () =>
     run("add", async () => {
@@ -38,7 +38,7 @@ export function ReviewDialog({
       toast.success(
         added.length === 1 ? `Added ${added[0].family}` : `Added ${plural(added.length, "font")}`,
       );
-      onAdded();
+      await onAdded();
       onClose();
     });
 
@@ -61,8 +61,8 @@ export function ReviewDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button disabled={!chosen.length || busy !== null} onClick={() => void add()}>
-            {busy ? <Spinner data-icon="inline-start" /> : null}
+          <Button disabled={!chosen.length || isBusy} onClick={() => void add()}>
+            {isBusy ? <Spinner data-icon="inline-start" /> : null}
             Add {plural(chosen.length, "font")}
           </Button>
         </>

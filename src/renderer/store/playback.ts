@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { clamp } from "@/shared/math";
 import { pick } from "@/shared/pick";
 import { frameIn } from "@/shared/timeline/time";
+import { createForwarder } from "@/renderer/lib/forwarder";
 
 type PlayerController = {
   seek: (frame: number) => void;
@@ -37,16 +38,14 @@ type PlaybackState = {
 };
 
 let local: PlayerController | null = null;
-let remote: ((command: PlaybackCommand) => void) | null = null;
+const remote = createForwarder<PlaybackCommand>();
 
 export function registerPlayer(controller: PlayerController | null): void {
   local = controller;
   usePlayback.setState({ hasPlayer: !!controller });
 }
 
-export function forwardPlaybackTo(send: ((command: PlaybackCommand) => void) | null): void {
-  remote = send;
-}
+export const forwardPlaybackTo = remote.to;
 
 export function runPlaybackCommand(command: PlaybackCommand): void {
   if (!local) return;
@@ -68,7 +67,7 @@ export function runPlaybackCommand(command: PlaybackCommand): void {
 
 const dispatch = (command: PlaybackCommand) => {
   if (local) runPlaybackCommand(command);
-  else remote?.(command);
+  else remote.send(command);
 };
 
 const MAX_SHUTTLE_RATE = 4;

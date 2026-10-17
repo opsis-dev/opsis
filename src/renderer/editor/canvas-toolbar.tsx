@@ -45,7 +45,7 @@ export function CanvasToolbar({ mode }: { mode: CanvasMode }) {
               size="sm"
               aria-label="Minimap"
               pressed={minimap}
-              onPressedChange={(v) => useViewOptions.getState().setMinimap(v)}
+              onPressedChange={(v) => useViewOptions.getState().setViewOption("minimap", v)}
             />
           }
         >

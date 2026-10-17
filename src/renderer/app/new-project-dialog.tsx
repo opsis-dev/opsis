@@ -20,6 +20,8 @@ import { useProjectLocations } from "./use-loaded";
 
 type Template = (typeof TEMPLATES)[number];
 
+const DEFAULT_PROJECT_NAME = "My launch video";
+
 function TemplateSummary({ template }: { template: Template }) {
   return (
     <>
@@ -80,10 +82,10 @@ function TemplateField({
 }
 
 function useNewProject(initialTemplate: string, onCreated: (dir: string) => void) {
-  const [name, setName] = useState("My launch video");
+  const [name, setName] = useState(DEFAULT_PROJECT_NAME);
   const [template, setTemplate] = useState(initialTemplate);
   const [typedLocation, setTypedLocation] = useState<string | null>(null);
-  const { busy, run } = useBusy();
+  const { isBusy, run } = useBusy();
   const locations = useProjectLocations();
   const location = typedLocation ?? locations?.suggestedDir ?? "";
   const folder = location.trim()
@@ -108,7 +110,7 @@ function useNewProject(initialTemplate: string, onCreated: (dir: string) => void
     location,
     setTypedLocation,
     folder,
-    busy: busy !== null,
+    busy: isBusy,
     create,
   };
 }

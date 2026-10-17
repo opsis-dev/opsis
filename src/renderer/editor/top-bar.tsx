@@ -17,7 +17,8 @@ import { Separator } from "@/renderer/components/ui/separator";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
-import { AppBar, commandLabel, commandShortcut } from "../app/app-bar";
+import { AppBar } from "../app/app-bar";
+import { commandLabel, commandShortcut } from "../app/menu-shortcuts";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
@@ -66,7 +67,7 @@ function PanelToggles() {
 function HistoryButtons() {
   const canUndo = useStore(useWorkflowStore.temporal, (s) => s.pastStates.length > 0);
   const canRedo = useStore(useWorkflowStore.temporal, (s) => s.futureStates.length > 0);
-  const { undo, redo } = useWorkflowStore.temporal.getState();
+  const { undo, redo } = useWorkflowStore.getState();
   return (
     <>
       <TooltipButton

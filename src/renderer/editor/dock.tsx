@@ -5,7 +5,7 @@ import { Kbd } from "@/renderer/components/ui/kbd";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { whenOneOf } from "@/renderer/lib/one-of";
-import { commandShortcut } from "../app/app-bar";
+import { commandShortcut } from "../app/menu-shortcuts";
 import { useWorkflowStore } from "../store/workflow";
 import { MixerPanel } from "./mixer/mixer-panel";
 import { DOCK_PANELS, DOCK_TITLES, type DockPanelName } from "@/shared/ipc";

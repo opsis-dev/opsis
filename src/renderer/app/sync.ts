@@ -7,8 +7,9 @@ import type { RunEvent } from "@/shared/schema/events";
 import type { Workflow } from "@/shared/schema/workflow";
 import { isRecord } from "@/shared/guards";
 import { randomId } from "@/shared/ids";
+import { pick } from "@/shared/pick";
 import { loadViewState } from "../editor/view-state";
-import { applyLive } from "../store/live";
+import { useLiveStore } from "../store/live";
 import {
   forwardPlaybackTo,
   playbackSnapshot,
@@ -96,40 +97,50 @@ function whileApplying(applying: Flag, fn: () => void): void {
   }
 }
 
-function syncPlayback(post: Post, applying: Flag): () => void {
-  let last = playbackSnapshot();
-  return usePlayback.subscribe((s) => {
-    const next = playbackSnapshot();
-    if (applying.current || shallow(next, last)) {
-      last = next;
-      return;
-    }
-    const inOutChanged = next.inPoint !== last.inPoint || next.outPoint !== last.outPoint;
+type Subscribable = { subscribe: (listener: () => void) => () => void };
+
+function watchChanges<T extends object>(
+  store: Subscribable,
+  read: () => T,
+  applying: Flag,
+  changed: (next: T, last: T) => void,
+): () => void {
+  let last = read();
+  return store.subscribe(() => {
+    const next = read();
+    if (shallow(next, last)) return;
+    const previous = last;
     last = next;
-    if (inOutChanged)
+    if (!applying.current) changed(next, previous);
+  });
+}
+
+const syncPlayback = (post: Post, applying: Flag): (() => void) =>
+  watchChanges(usePlayback, playbackSnapshot, applying, (next, last) => {
+    if (next.inPoint !== last.inPoint || next.outPoint !== last.outPoint)
       post({ type: "inout", inPoint: next.inPoint, outPoint: next.outPoint, from: windowId });
-    if (s.hasPlayer) post({ type: "frame", playback: next, from: windowId });
+    if (usePlayback.getState().hasPlayer) post({ type: "frame", playback: next, from: windowId });
   });
-}
 
-function watchSelection(post: Post, applying: Flag): () => void {
-  let last = selection();
-  return useUiStore.subscribe(() => {
-    const next = selection();
-    const changed = !shallow(next, last);
-    last = next;
-    if (changed && !applying.current) post({ type: "selection", selection: next, from: windowId });
-  });
-}
+const watchSelection = (post: Post, applying: Flag): (() => void) =>
+  watchChanges(useUiStore, selection, applying, (next) =>
+    post({ type: "selection", selection: next, from: windowId }),
+  );
 
-function watchViewOptions(post: Post, applying: Flag): () => void {
-  return useViewOptions.subscribe((s, prev) => {
-    if (applying.current) return;
-    if (s.previewQuality !== prev.previewQuality)
-      post({ type: "quality", quality: s.previewQuality });
-    if (s.previewShape !== prev.previewShape) post({ type: "shape", shape: s.previewShape });
-  });
-}
+const SYNCED_VIEW_OPTIONS = ["previewQuality", "previewShape"] as const;
+
+const watchViewOptions = (post: Post, applying: Flag): (() => void) =>
+  watchChanges(
+    useViewOptions,
+    () => pick(useViewOptions.getState(), SYNCED_VIEW_OPTIONS),
+    applying,
+    (next, last) => {
+      if (next.previewQuality !== last.previewQuality)
+        post({ type: "quality", quality: next.previewQuality });
+      if (next.previewShape !== last.previewShape)
+        post({ type: "shape", shape: next.previewShape });
+    },
+  );
 
 const sharedHandlers = (applying: Flag): Handlers => ({
   frame: (m) => {
@@ -191,7 +202,7 @@ function useLiveRelay(): void {
     const bc = new BroadcastChannel(LIVE_CHANNEL);
     const offLocal = window.demoflow.onLive((message) => bc.postMessage(message));
     bc.addEventListener("message", (e) => {
-      if (isLiveMessage(e.data)) applyLive(e.data);
+      if (isLiveMessage(e.data)) useLiveStore.getState().apply(e.data);
     });
     return () => {
       offLocal();
@@ -229,7 +240,7 @@ function watchWorkflow(post: Post, ack: () => number): () => void {
 
 function applyRemoteEdit(edit: RemoteEdit): void {
   const store = useWorkflowStore.getState();
-  if (edit.type === "replace") store.replace(edit.workflow);
+  if (edit.type === "replace") store.applyPanelEdit(edit.workflow);
   else if (edit.phase === "begin") store.beginGesture();
   else store.endGesture();
 }

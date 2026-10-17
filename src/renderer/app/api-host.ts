@@ -1,45 +1,44 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { create } from "zustand";
 import type { ApiEditorReply, ApiEditorRequest } from "@/shared/api/types";
 import { NO_PROJECT } from "@/shared/errors";
 import { useWorkflowStore } from "../store/workflow";
 
 type Handler = (request: ApiEditorRequest) => Promise<ApiEditorReply>;
 
-let editorHandler: Handler | null = null;
-const waiters = new Set<() => void>();
+const useEditorApi = create<{ handler: Handler | null }>()(() => ({ handler: null }));
 
 export function setEditorApi(handler: Handler): () => void {
-  editorHandler = handler;
-  for (const wake of waiters) wake();
+  useEditorApi.setState({ handler });
   return () => {
-    if (editorHandler === handler) editorHandler = null;
+    if (useEditorApi.getState().handler === handler) useEditorApi.setState({ handler: null });
   };
 }
 
 const OPEN_TIMEOUT_MS = 15_000;
 
+function editorWithProject(dir: string): Handler | null {
+  const { projectDir, workflow } = useWorkflowStore.getState();
+  return projectDir === dir && workflow ? useEditorApi.getState().handler : null;
+}
+
 function waitForEditor(dir: string): Promise<Handler | null> {
-  const ready = () => {
-    const s = useWorkflowStore.getState();
-    return s.projectDir === dir && s.workflow ? editorHandler : null;
-  };
-  const now = ready();
-  if (now) return Promise.resolve(now);
   return new Promise((resolve) => {
     const finish = (handler: Handler | null) => {
       clearTimeout(timer);
-      off();
-      waiters.delete(check);
+      offWorkflow();
+      offEditor();
       resolve(handler);
     };
     const check = () => {
-      const handler = ready();
+      const handler = editorWithProject(dir);
       if (handler) finish(handler);
     };
     const timer = setTimeout(() => finish(null), OPEN_TIMEOUT_MS);
-    const off = useWorkflowStore.subscribe(check);
-    waiters.add(check);
+    const offWorkflow = useWorkflowStore.subscribe(check);
+    const offEditor = useEditorApi.subscribe(check);
+    check();
   });
 }
 
@@ -55,8 +54,9 @@ export function useApiHost(): void {
             return { ok: false, status: 504, error: "The project didn't open in time." };
           return handler({ op: "read" });
         }
-        if (!editorHandler) return { ok: false, status: 409, error: NO_PROJECT };
-        return editorHandler(request);
+        const handler = useEditorApi.getState().handler;
+        if (!handler) return { ok: false, status: 409, error: NO_PROJECT };
+        return handler(request);
       }),
     [navigate],
   );
