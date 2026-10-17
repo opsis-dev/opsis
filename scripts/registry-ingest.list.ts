@@ -1,4 +1,4 @@
-export type ElementCategory =
+type ElementCategory =
   | "text"
   | "overlay"
   | "transition"
@@ -100,23 +100,17 @@ export const REGISTRIES: Record<CuratedElement["registry"], RegistryInfo> = {
 
 const TEMPLATES = new Set(["release-teaser", "launch-anything"]);
 
-const remocn = (
-  category: ElementCategory,
-  names: string[],
-  extra: Partial<CuratedElement> = {},
-): CuratedElement[] => names.map((name) => ({ registry: "remocn", name, category, ...extra }));
-const snapcn = (
-  category: ElementCategory,
-  names: string[],
-  extra: Partial<CuratedElement> = {},
-): CuratedElement[] =>
-  names.map((name) => ({
-    registry: "snapcn",
-    name,
-    category,
-    fixedProps: { mode: "dark" },
-    ...extra,
-  }));
+const fromRegistry =
+  (registry: CuratedElement["registry"], base: Partial<CuratedElement> = {}) =>
+  (
+    category: ElementCategory,
+    names: string[],
+    extra: Partial<CuratedElement> = {},
+  ): CuratedElement[] =>
+    names.map((name) => ({ registry, name, category, ...base, ...extra }));
+
+const remocn = fromRegistry("remocn");
+const snapcn = fromRegistry("snapcn", { fixedProps: { mode: "dark" } });
 
 const remotionui = (
   name: string,
@@ -124,7 +118,7 @@ const remotionui = (
   extra: Partial<CuratedElement> = {},
 ): CuratedElement => ({ registry: "remotionui", name, category, ...extra });
 
-export const DESCRIPTIONS: Record<string, string> = {
+export const DESCRIPTIONS: Partial<Record<string, string>> = {
   typewriter: "Types the text out letter by letter with a blinking cursor.",
   "shimmer-sweep": "A band of light sweeps across the text.",
   keystroke: "Shows a keyboard shortcut as keycaps being pressed.",
@@ -446,7 +440,12 @@ const REMOTION_UI: CuratedElement[] = [
   remotionui("particle-field", "background", { title: "Particle field" }),
 ];
 
-function SPOT(label: string, x: number, y: number, prefix = ""): Record<string, ControlSpec> {
+function spotControls(
+  label: string,
+  x: number,
+  y: number,
+  prefix = "",
+): Record<string, ControlSpec> {
   const xKey = prefix ? `${prefix}X` : "x";
   const yKey = prefix ? `${prefix}Y` : "y";
   const fraction = { type: "number", min: 0, max: 1, step: 0.01 } as const;
@@ -533,12 +532,12 @@ const LIST: CuratedElement[] = [
   ...remocn("overlay", ["marker-highlight", "inline-highlight"]),
   ...remocn("overlay", ["ink-underline"], {
     place: "spot",
-    controls: { ...SPOT("Where", 0.5, 0.62) },
+    controls: { ...spotControls("Where", 0.5, 0.62) },
   }),
   ...remocn("overlay", ["scribble-circle"], {
     place: "spot",
     controls: {
-      ...SPOT("Around", 0.5, 0.5),
+      ...spotControls("Around", 0.5, 0.5),
       width: {
         type: "number",
         default: 420,
@@ -562,8 +561,8 @@ const LIST: CuratedElement[] = [
   ...remocn("overlay", ["ink-arrow"], {
     place: "points",
     controls: {
-      ...SPOT("From", 0.3, 0.72, "from"),
-      ...SPOT("To", 0.48, 0.5, "to"),
+      ...spotControls("From", 0.3, 0.72, "from"),
+      ...spotControls("To", 0.48, 0.5, "to"),
     },
   }),
   ...remocn("overlay", ["keystroke", "confetti", "radial-burst"]),
@@ -635,6 +634,17 @@ const LIST: CuratedElement[] = [
   { registry: "remocn", name: "pixelate-region", category: "effect", installOnly: true },
   ...REMOTION_UI,
 ];
+
+const OVERRIDES = { DESCRIPTIONS, NEUTRAL_DEFAULTS, NEUTRAL_FIXED_PROPS, PAINTED };
+
+export function unknownOverrideNames(): string[] {
+  const names = new Set(LIST.map((item) => item.name));
+  return Object.entries(OVERRIDES).flatMap(([table, entries]) =>
+    Object.keys(entries)
+      .filter((name) => !names.has(name))
+      .map((name) => `${table}: "${name}" names no element in the list`),
+  );
+}
 
 export const CURATED: CuratedElement[] = LIST.map((item) => ({
   ...item,

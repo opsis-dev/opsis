@@ -38,6 +38,11 @@ export const Gradient: React.FC<{ from: string; to: string; angle?: number; grai
   </AbsoluteFill>
 );
 
+const BLOBS = 5;
+const BLOB_DRIFT_PCT = 40;
+const BLOB_RADIUS_PCT = 30;
+const BLOB_RADIUS_SPREAD_PCT = 25;
+
 export const NoiseField: React.FC<{
   color1: string;
   color2: string;
@@ -45,10 +50,11 @@ export const NoiseField: React.FC<{
   speed?: number;
 }> = ({ color1, color2, scale = 0.004, speed = 0.004 }) => {
   const frame = useCurrentFrame();
-  const blobs = Array.from({ length: 5 }, (_, i) => {
-    const x = 50 + noise3D(`x${i}`, i * 10 * scale * 100, 0, frame * speed) * 40;
-    const y = 50 + noise3D(`y${i}`, 0, i * 10 * scale * 100, frame * speed) * 40;
-    const r = 30 + random(`r${i}`) * 25;
+  const blobs = Array.from({ length: BLOBS }, (_, i) => {
+    const offset = i * 10 * scale * 100;
+    const x = 50 + noise3D(`x${i}`, offset, 0, frame * speed) * BLOB_DRIFT_PCT;
+    const y = 50 + noise3D(`y${i}`, 0, offset, frame * speed) * BLOB_DRIFT_PCT;
+    const r = BLOB_RADIUS_PCT + random(`r${i}`) * BLOB_RADIUS_SPREAD_PCT;
     return `radial-gradient(circle at ${x}% ${y}%, ${color2} 0%, transparent ${r}%)`;
   });
   return (

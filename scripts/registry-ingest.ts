@@ -11,13 +11,17 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { Node, Project, SyntaxKind, type SourceFile } from "ts-morph";
+import { z } from "zod";
 import {
   CURATED,
   DESCRIPTIONS,
   REGISTRIES,
+  unknownOverrideNames,
   type ControlSpec,
   type CuratedElement,
 } from "./registry-ingest.list.ts";
+import type { ElementKind } from "../src/shared/elements/types.ts";
+import { errorMessage } from "../src/shared/errors.ts";
 import { humanize } from "../src/shared/format.ts";
 import { walkFiles } from "./lib/walk.ts";
 
@@ -29,6 +33,8 @@ const OUT_COMPONENTS = path.join(VIDEO, "registry", "components.generated.ts");
 const skipAdd = process.argv.includes("--no-add");
 const onlyIndex = process.argv.indexOf("--only");
 const only = onlyIndex === -1 ? undefined : process.argv[onlyIndex + 1];
+if (only && skipAdd)
+  throw new Error("--only picks the registry to install, so it does nothing with --no-add.");
 
 type Control = ControlSpec & {
   label?: string;
@@ -69,7 +75,7 @@ function moveTree(from: string, dest: string): void {
 const REMOTION_UI_SPEC =
   /^@\/(?:remotion\/(primitives|scenes|lib|hooks)|(compositions))\/([^/]+)(\/.*)?$/;
 
-function relocate(): void {
+function moveInstalled(): void {
   for (const [from, to] of MOVES) {
     const fromDir = path.join(SRC, from);
     if (!existsSync(fromDir)) continue;
@@ -93,36 +99,41 @@ function relocate(): void {
       throw new Error(`Unexpected files left after relocating:\n  ${left.join("\n  ")}`);
     rmSync(path.join(SRC, dir), { recursive: true, force: true });
   }
+}
 
+type Namespaces = { elements: Set<string>; lib: Set<string>; hooks: Set<string> };
+
+function installedNamespaces(): Namespaces {
   const nsDirs = (sub: string) =>
-    existsSync(path.join(VIDEO, sub)) ? readdirSync(path.join(VIDEO, sub)) : [];
-  const elementNs = new Set(nsDirs("elements"));
-  const libNs = new Set(nsDirs("lib"));
-  const hookNs = new Set(nsDirs("hooks"));
+    new Set(existsSync(path.join(VIDEO, sub)) ? readdirSync(path.join(VIDEO, sub)) : []);
+  return { elements: nsDirs("elements"), lib: nsDirs("lib"), hooks: nsDirs("hooks") };
+}
 
-  const rewrite = (spec: string): string => {
-    if (spec === "@/lib/utils") return "@/renderer/lib/utils";
-    if (spec.startsWith("@/components/ui/"))
-      return spec.replace("@/components/ui/", "@/renderer/components/ui/");
-    const ui = REMOTION_UI_SPEC.exec(spec);
-    if (ui) {
-      const kind = ui[1] ?? ui[2];
-      const base = kind === "lib" ? "lib" : kind === "hooks" ? "hooks" : "elements";
-      return `@/video/${base}/remotion-ui/${ui[3]}${ui[4] ?? ""}`;
-    }
-    const m = /^@\/(?:renderer\/|video\/)?(components|elements|lib|hooks)\/([^/]+)(\/.*)?$/.exec(
-      spec,
-    );
-    if (!m) return spec;
-    const [, kind, ns, rest = ""] = m;
-    if ((kind === "components" || kind === "elements") && elementNs.has(ns))
-      return `@/video/elements/${ns}${rest}`;
-    if (kind === "lib" && libNs.has(ns)) return `@/video/lib/${ns}${rest}`;
-    if (kind === "lib" && ns === "utils") return "@/renderer/lib/utils";
-    if (kind === "hooks" && hookNs.has(ns)) return `@/video/hooks/${ns}${rest}`;
-    return spec;
-  };
+function rewriteSpec(spec: string, ns: Namespaces): string {
+  if (spec === "@/lib/utils") return "@/renderer/lib/utils";
+  if (spec.startsWith("@/components/ui/"))
+    return spec.replace("@/components/ui/", "@/renderer/components/ui/");
+  const ui = REMOTION_UI_SPEC.exec(spec);
+  if (ui) {
+    const kind = ui[1] ?? ui[2];
+    const base = kind === "lib" ? "lib" : kind === "hooks" ? "hooks" : "elements";
+    return `@/video/${base}/remotion-ui/${ui[3]}${ui[4] ?? ""}`;
+  }
+  const m = /^@\/(?:renderer\/|video\/)?(components|elements|lib|hooks)\/([^/]+)(\/.*)?$/.exec(
+    spec,
+  );
+  if (!m) return spec;
+  const [, kind, name, rest = ""] = m;
+  if ((kind === "components" || kind === "elements") && ns.elements.has(name))
+    return `@/video/elements/${name}${rest}`;
+  if (kind === "lib" && ns.lib.has(name)) return `@/video/lib/${name}${rest}`;
+  if (kind === "lib" && name === "utils") return "@/renderer/lib/utils";
+  if (kind === "hooks" && ns.hooks.has(name)) return `@/video/hooks/${name}${rest}`;
+  return spec;
+}
 
+function rewriteImports(): void {
+  const ns = installedNamespaces();
   for (const file of walkFiles(VIDEO)) {
     if (!/\.(tsx?|css)$/.test(file) || file.includes(`${path.sep}registry${path.sep}`)) continue;
     const before = readFileSync(file, "utf8");
@@ -130,13 +141,20 @@ function relocate(): void {
       .replace(/^"use client";\s*\n/m, "")
       .replace(
         /(from\s+|import\s*\(\s*|import\s+)(["'])(@\/[^"']+)\2/g,
-        (_all, lead: string, q: string, spec: string) => `${lead}${q}${rewrite(spec)}${q}`,
+        (_all, lead: string, q: string, spec: string) => `${lead}${q}${rewriteSpec(spec, ns)}${q}`,
       );
     if (after !== before) writeFileSync(file, after);
   }
 }
 
 const project = new Project({ useInMemoryFileSystem: true });
+let scratchFiles = 0;
+
+const scratchFile = (name: string, ext: string, source: string) =>
+  project.createSourceFile(`${name}-${++scratchFiles}.${ext}`, source);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
 
 function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown {
   if (!node || depth > 8) return undefined;
@@ -180,11 +198,28 @@ function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown
   }
   if (scope && Node.isPropertyAccessExpression(node)) {
     const owner = next(node.getExpression());
-    if (owner && typeof owner === "object" && !Array.isArray(owner))
-      return (owner as Record<string, unknown>)[node.getName()];
+    if (isRecord(owner)) return owner[node.getName()];
   }
   return undefined;
 }
+
+function literalNumber(node: Node | undefined, scope?: SourceFile): number | undefined {
+  const value = literal(node, scope);
+  return typeof value === "number" ? value : undefined;
+}
+
+function literalString(node: Node | undefined, scope?: SourceFile): string | undefined {
+  const value = literal(node, scope);
+  return typeof value === "string" ? value : undefined;
+}
+
+function literalRecord(node: Node | undefined, scope?: SourceFile): Record<string, unknown> {
+  const value = literal(node, scope);
+  return isRecord(value) ? value : {};
+}
+
+const isControl = (value: unknown): value is Control =>
+  isRecord(value) && typeof value.type === "string";
 
 type ParsedConfig = {
   controls: Record<string, Control>;
@@ -193,29 +228,23 @@ type ParsedConfig = {
 };
 
 function parseConfig(source: string, name: string): ParsedConfig | null {
-  const sf = project.createSourceFile(`${name}-${Math.random()}.ts`, source, { overwrite: true });
+  const sf = scratchFile(name, "ts", source);
   for (const decl of sf.getVariableDeclarations()) {
     const init = decl.getInitializer();
     if (!init || !Node.isObjectLiteralExpression(init)) continue;
     const controlsProp = init.getProperty("controls");
     if (!controlsProp || !Node.isPropertyAssignment(controlsProp)) continue;
-    const controls = (literal(controlsProp.getInitializer()) ?? {}) as Record<string, Control>;
+    const controls = Object.entries(literalRecord(controlsProp.getInitializer()));
     const dur = init.getProperty("durationInFrames");
     const comp = init.getProperty("componentName");
     return {
       controls: Object.fromEntries(
-        Object.entries(controls).filter(
-          ([, c]) => c && typeof c === "object" && typeof c.type === "string",
-        ),
+        controls.filter((entry): entry is [string, Control] => isControl(entry[1])),
       ),
       durationInFrames:
-        dur && Node.isPropertyAssignment(dur)
-          ? (literal(dur.getInitializer()) as number | undefined)
-          : undefined,
+        dur && Node.isPropertyAssignment(dur) ? literalNumber(dur.getInitializer()) : undefined,
       componentName:
-        comp && Node.isPropertyAssignment(comp)
-          ? (literal(comp.getInitializer()) as string | undefined)
-          : undefined,
+        comp && Node.isPropertyAssignment(comp) ? literalString(comp.getInitializer()) : undefined,
     };
   }
   return null;
@@ -223,19 +252,39 @@ function parseConfig(source: string, name: string): ParsedConfig | null {
 
 const LIBRARY_WORDS = /\b(remotion|remotion-?ui|remocn|snapcn|snap-cn|shadcn)\b/i;
 
-async function fetchDescription(item: CuratedElement): Promise<string | undefined> {
+const namesLibrary = (text: string) => LIBRARY_WORDS.test(text);
+const loadsRemote = (text: string) => /^https?:\/\//.test(text);
+
+const registryItemSchema = z.object({ description: z.string().nullish() });
+
+async function fetchDescription(item: CuratedElement): Promise<string> {
+  const url = REGISTRIES[item.registry].itemUrl(item.name);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url}: ${res.status}`);
+  const { description } = registryItemSchema.parse(await res.json());
+  return (description ?? "")
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s && !namesLibrary(s))
+    .slice(0, 2)
+    .join(" ");
+}
+
+async function descriptionOf(
+  item: CuratedElement,
+  key: string,
+  problems: string[],
+): Promise<string | undefined> {
+  const known = item.description ?? DESCRIPTIONS[item.name];
+  if (known) return known;
   try {
-    const res = await fetch(REGISTRIES[item.registry].itemUrl(item.name));
-    if (!res.ok) return undefined;
-    const json = (await res.json()) as { description?: string };
-    const sentences = (json.description ?? "")
-      .split(/(?<=[.!?])\s+/)
-      .map((s) => s.trim())
-      .filter((s) => s && !LIBRARY_WORDS.test(s));
-    return sentences.slice(0, 2).join(" ") || undefined;
-  } catch {
-    return undefined;
+    const fetched = await fetchDescription(item);
+    if (fetched) return fetched;
+    problems.push(`${key}: the registry gives no usable description; add one to DESCRIPTIONS`);
+  } catch (error) {
+    problems.push(`${key}: no description (${errorMessage(error)}); add one to DESCRIPTIONS`);
   }
+  return undefined;
 }
 
 async function fetchConfig(item: CuratedElement, installed: string): Promise<ParsedConfig | null> {
@@ -248,18 +297,31 @@ async function fetchConfig(item: CuratedElement, installed: string): Promise<Par
   return parseConfig(readFileSync(installed, "utf8"), item.name);
 }
 
-type PropDoc = {
-  name: string;
-  type: string;
-  default?: string;
-  required?: boolean;
-  description?: string;
-};
+const optionalText = z
+  .string()
+  .nullish()
+  .transform((value) => value ?? undefined);
+
+const propDocsSchema = z.object({
+  props: z
+    .array(
+      z.object({
+        name: z.string(),
+        type: optionalText,
+        default: optionalText,
+        description: optionalText,
+      }),
+    )
+    .nullish()
+    .transform((props) => props ?? []),
+});
+
+type PropDoc = z.infer<typeof propDocsSchema>["props"][number];
 
 async function fetchPropDocs(url: string): Promise<PropDoc[]> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url}: ${res.status}`);
-  return ((await res.json()) as { props?: PropDoc[] }).props ?? [];
+  return propDocsSchema.parse(await res.json()).props;
 }
 
 const durationTables = new Map<string, Promise<Record<string, number>>>();
@@ -273,15 +335,20 @@ function previewDurations(url: string): Promise<Record<string, number>> {
         return res.text();
       })
       .then((text) => {
-        const sf = project.createSourceFile(`preview-${Math.random()}.ts`, text);
-        const table = literal(sf.getVariableDeclaration("PREVIEW_META")?.getInitializer(), sf);
-        const fallback = literal(
+        const sf = scratchFile("preview", "ts", text);
+        const table = literalRecord(
+          sf.getVariableDeclaration("PREVIEW_META")?.getInitializer(),
+          sf,
+        );
+        const fallback = literalRecord(
           sf.getVariableDeclaration("PREVIEW_DEFAULTS")?.getInitializer(),
           sf,
-        ) as { durationInFrames?: number } | undefined;
-        const out: Record<string, number> = { "*": fallback?.durationInFrames ?? 120 };
-        for (const [k, v] of Object.entries((table ?? {}) as Record<string, unknown>)) {
-          const d = (v as { durationInFrames?: unknown } | undefined)?.durationInFrames;
+        );
+        const out: Record<string, number> = {
+          "*": typeof fallback.durationInFrames === "number" ? fallback.durationInFrames : 120,
+        };
+        for (const [k, v] of Object.entries(table)) {
+          const d = isRecord(v) ? v.durationInFrames : undefined;
           if (typeof d === "number") out[k] = d;
         }
         return out;
@@ -292,7 +359,7 @@ function previewDurations(url: string): Promise<Record<string, number>> {
 }
 
 function sourceDefaults(source: string, exportName: string): Map<string, unknown> {
-  const sf = project.createSourceFile(`src-${Math.random()}.tsx`, source);
+  const sf = scratchFile("src", "tsx", source);
   const out = new Map<string, unknown>();
   const init = sf.getVariableDeclaration(exportName)?.getInitializer();
   const fn =
@@ -463,6 +530,10 @@ function parseDocDefault(text: string | undefined): unknown {
   }
 }
 
+const SPEED_RANGE = { min: 0.25, max: 4, step: 0.25 } as const;
+
+const SPEED_CONTROL: Control = { type: "number", default: 1, ...SPEED_RANGE, description: "Speed" };
+
 const FONT_CONTROL: Control = {
   type: "font",
   default: "",
@@ -514,8 +585,7 @@ function propControl(
       default: typeof value === "string" && options.includes(value) ? value : options[0],
     };
   if (typeof value === "number") {
-    if (name === "speed")
-      return { ...base, type: "number", default: value, min: 0.25, max: 4, step: 0.25 };
+    if (name === "speed") return { ...base, type: "number", default: value, ...SPEED_RANGE };
     const step = Number.isInteger(value) ? undefined : Math.abs(value) < 1 ? 0.01 : 0.1;
     return { ...base, type: "number", default: value, ...(step ? { step } : {}) };
   }
@@ -628,18 +698,33 @@ function zodFor(key: string, c: Control): string | null {
   }
 }
 
-function libraryWordsIn(value: unknown): string[] {
-  if (typeof value === "string") return LIBRARY_WORDS.test(value) ? [value] : [];
-  if (Array.isArray(value)) return value.flatMap(libraryWordsIn);
-  if (value && typeof value === "object") return Object.values(value).flatMap(libraryWordsIn);
+function stringsIn(value: unknown, test: (text: string) => boolean): string[] {
+  if (typeof value === "string") return test(value) ? [value] : [];
+  if (Array.isArray(value)) return value.flatMap((v) => stringsIn(v, test));
+  if (value && typeof value === "object")
+    return Object.values(value).flatMap((v) => stringsIn(v, test));
   return [];
 }
 
-function remoteRefsIn(value: unknown): string[] {
-  if (typeof value === "string") return /^https?:\/\//.test(value) ? [value] : [];
-  if (Array.isArray(value)) return value.flatMap(remoteRefsIn);
-  if (value && typeof value === "object") return Object.values(value).flatMap(remoteRefsIn);
-  return [];
+function defaultProblems(
+  key: string,
+  controls: Array<[string, Control]>,
+  fixedProps: Record<string, unknown> | undefined,
+): string[] {
+  const shown = (hit: string) => q(hit).slice(0, 80);
+  return [
+    ...controls.flatMap(([k, c]) => [
+      ...stringsIn(c.default, namesLibrary).map(
+        (hit) => `${key}: default for "${k}" names a library: ${shown(hit)}`,
+      ),
+      ...stringsIn(c.default, loadsRemote).map(
+        (hit) => `${key}: default for "${k}" loads from the internet: ${shown(hit)}`,
+      ),
+    ]),
+    ...[...stringsIn(fixedProps, namesLibrary), ...stringsIn(fixedProps, loadsRemote)].map(
+      (hit) => `${key}: fixed prop names a library or loads from the internet: ${shown(hit)}`,
+    ),
+  ];
 }
 
 function exportedNames(file: string): string[] {
@@ -658,143 +743,147 @@ function findElementFile(item: CuratedElement): string | null {
 const pascal = (s: string) =>
   s.replace(/(^|[-_])([a-z0-9])/g, (_m, _p, c: string) => c.toUpperCase());
 
-async function generate(): Promise<void> {
-  const entries: string[] = [];
-  const componentEntries: string[] = [];
-  const framing = new Set<string>();
-  const problems: string[] = [];
+const titleCase = (s: string) =>
+  s
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 
-  for (const item of CURATED) {
-    const file = findElementFile(item);
-    if (!file) {
-      problems.push(`${item.registry}/${item.name}: not installed`);
-      continue;
-    }
-    if (item.installOnly) continue;
-    const reg = REGISTRIES[item.registry];
-    const cfg = item.noConfig || reg.propsUrl ? null : await fetchConfig(item, file);
-    const description =
-      item.description ?? DESCRIPTIONS[item.name] ?? (await fetchDescription(item));
-    const exported = exportedNames(file);
-    const exportName =
-      item.exportName ??
-      (cfg?.componentName && exported.includes(cfg.componentName)
-        ? cfg.componentName
-        : undefined) ??
-      exported.find((e) => e === pascal(item.name)) ??
-      exported.find((e) => /^[A-Z]/.test(e));
-    if (!exportName) {
-      problems.push(`${item.registry}/${item.name}: no component export found`);
-      continue;
-    }
-    const key = `${reg.keyPrefix}/${item.name}`;
-    const rel =
-      "../" +
-      path
-        .relative(VIDEO, file)
-        .replace(/\\/g, "/")
-        .replace(/(\/index)?\.tsx$/, "");
+const declaresFontFamily = (source: string) =>
+  /\bfontFamily\?\s*:/.test(source) && /^\s+fontFamily(\s*=[^=>]|\s*,|\s*$)/m.test(source);
 
-    const source = readFileSync(file, "utf8");
-    const props = reg.propsUrl ? await propControls(item, file, exportName) : undefined;
-    const controls: Record<string, Control> = {
-      ...(props ? props.controls : cfg?.controls),
-      ...item.controls,
-    };
-    if (/\bfontFamily\?\s*:/.test(source) && /^\s+fontFamily(\s*=[^=>]|\s*,|\s*$)/m.test(source))
-      controls.fontFamily = FONT_CONTROL;
-    else if (!props) delete controls.fontFamily;
-    if (!props)
-      for (const [k, v] of Object.entries(item.defaults ?? {}))
-        if (controls[k]) controls[k] = { ...controls[k], default: v };
-    if (
-      /\bspeed\?\s*:/.test(source) &&
-      !controls.speed &&
-      item.category !== "transition" &&
-      !(item.omit ?? []).includes("speed")
-    ) {
-      controls.speed = {
-        type: "number",
-        default: 1,
-        min: 0.25,
-        max: 4,
-        step: 0.25,
-        description: "Speed",
-      };
-    }
-    const kept = Object.entries(controls).filter(([k]) => !(item.omit ?? []).includes(k));
-    for (const [k, c] of kept) {
-      for (const hit of libraryWordsIn(c.default))
-        problems.push(`${key}: default for "${k}" names a library: ${q(hit).slice(0, 80)}`);
-      for (const hit of remoteRefsIn(c.default))
-        problems.push(`${key}: default for "${k}" loads from the internet: ${q(hit).slice(0, 80)}`);
-    }
-    for (const hit of [...libraryWordsIn(item.fixedProps), ...remoteRefsIn(item.fixedProps)])
-      problems.push(
-        `${key}: fixed prop names a library or loads from the internet: ${q(hit).slice(0, 80)}`,
-      );
-    const fields = kept
-      .map(([k, c]) => [k, zodFor(k, c)] as const)
-      .filter((f): f is readonly [string, string] => f[1] != null)
-      .map(([k, z]) => `      ${/^[A-Za-z_$][\w$]*$/.test(k) ? k : q(k)}: ${z},`);
+const declaresSpeed = (source: string) => /\bspeed\?\s*:/.test(source);
 
-    const kind =
-      item.kind ??
-      (item.category === "transition"
-        ? "presentation"
-        : item.category === "effect"
-          ? "wrapper"
-          : "component");
-    const durations = reg.durationsUrl ? await previewDurations(reg.durationsUrl) : undefined;
-    const duration =
-      item.durationInFrames ??
-      cfg?.durationInFrames ??
-      props?.durationInFrames ??
-      (durations ? (durations[item.name] ?? durations["*"]) : undefined) ??
-      90;
-    entries.push(
-      [
-        `  {`,
-        `    key: ${q(key)},`,
-        `    title: ${q(item.title ?? titleCase(item.name))},`,
-        ...(description ? [`    description: ${q(description)},`] : []),
-        `    category: ${q(item.category)},`,
-        `    kind: ${q(kind)},`,
-        `    source: { registry: ${q(reg.label)}, url: ${q(`${reg.docs}/${item.name}`)}, license: ${q(reg.license)} },`,
-        `    schema: z.object({`,
-        ...fields,
-        `    }),`,
-        `    fixedProps: ${q(item.fixedProps ?? {})},`,
-        `    defaultDurationInFrames: ${duration},`,
-        `  },`,
-      ].join("\n"),
-    );
-    let impl = `m.${exportName} as unknown as ElementImpl`;
-    if (item.atEnd) {
-      impl = `playsAtEnd(m.${exportName} as unknown as ElementComponent)`;
-      framing.add("playsAtEnd");
-    } else if (item.paint) {
-      impl = `painted(m.${exportName} as unknown as ElementComponent)`;
-      framing.add("painted");
-    } else if (item.place) {
-      const wrap = item.place === "points" ? "pointsFromSpots" : "placedAt";
-      impl = `${wrap}(m.${exportName} as unknown as ElementComponent)`;
-      framing.add(wrap);
-    } else if (item.screen || item.center) {
-      impl = `m.${exportName} as unknown as ElementComponent`;
-      if (item.screen) {
-        impl = `fitScreen(${impl})`;
-        framing.add("fitScreen");
-      }
-      if (item.center) {
-        impl = `centered(${impl})`;
-        framing.add("centered");
-      }
-    }
-    componentEntries.push(`  ${q(key)}: () => import(${q(rel)}).then((m) => ${impl}),`);
+function exportNameOf(
+  item: CuratedElement,
+  file: string,
+  cfg: ParsedConfig | null,
+): string | undefined {
+  const exported = exportedNames(file);
+  return (
+    item.exportName ??
+    (cfg?.componentName && exported.includes(cfg.componentName) ? cfg.componentName : undefined) ??
+    exported.find((e) => e === pascal(item.name)) ??
+    exported.find((e) => /^[A-Z]/.test(e))
+  );
+}
+
+function controlsFor(
+  item: CuratedElement,
+  source: string,
+  found: Record<string, Control> | undefined,
+  fromPropDocs: boolean,
+): Array<[string, Control]> {
+  const controls: Record<string, Control> = { ...found, ...item.controls };
+  if (declaresFontFamily(source)) controls.fontFamily = FONT_CONTROL;
+  else if (!fromPropDocs) delete controls.fontFamily;
+  if (!fromPropDocs)
+    for (const [k, v] of Object.entries(item.defaults ?? {}))
+      if (controls[k]) controls[k] = { ...controls[k], default: v };
+  const omit = item.omit ?? [];
+  if (
+    declaresSpeed(source) &&
+    !controls.speed &&
+    item.category !== "transition" &&
+    !omit.includes("speed")
+  )
+    controls.speed = SPEED_CONTROL;
+  return Object.entries(controls).filter(([k]) => !omit.includes(k));
+}
+
+const kindOf = (item: CuratedElement): ElementKind =>
+  item.kind ??
+  (item.category === "transition"
+    ? "presentation"
+    : item.category === "effect"
+      ? "wrapper"
+      : "component");
+
+async function registryDuration(item: CuratedElement): Promise<number | undefined> {
+  const url = REGISTRIES[item.registry].durationsUrl;
+  if (!url) return undefined;
+  const durations = await previewDurations(url);
+  return durations[item.name] ?? durations["*"];
+}
+
+const WRAPPERS: Array<[applies: (item: CuratedElement) => boolean, wrapper: string]> = [
+  [(item) => !!item.screen, "fitScreen"],
+  [(item) => !!item.center, "centered"],
+  [(item) => !!item.atEnd, "playsAtEnd"],
+  [(item) => !!item.paint, "painted"],
+  [(item) => item.place === "spot", "placedAt"],
+  [(item) => item.place === "points", "pointsFromSpots"],
+];
+
+type Ingested = { meta: string; loader: string; helpers: string[] };
+
+async function ingest(item: CuratedElement, problems: string[]): Promise<Ingested | null> {
+  const file = findElementFile(item);
+  if (!file) {
+    problems.push(`${item.registry}/${item.name}: not installed`);
+    return null;
   }
-
+  if (item.installOnly) return null;
+  const reg = REGISTRIES[item.registry];
+  const key = `${reg.keyPrefix}/${item.name}`;
+  const cfg = item.noConfig || reg.propsUrl ? null : await fetchConfig(item, file);
+  const description = await descriptionOf(item, key, problems);
+  const exportName = exportNameOf(item, file, cfg);
+  if (!exportName) {
+    problems.push(`${item.registry}/${item.name}: no component export found`);
+    return null;
+  }
+  const source = readFileSync(file, "utf8");
+  const props = reg.propsUrl ? await propControls(item, file, exportName) : undefined;
+  const controls = controlsFor(item, source, props ? props.controls : cfg?.controls, !!props);
+  problems.push(...defaultProblems(key, controls, item.fixedProps));
+  const fields = controls
+    .map(([k, c]) => [k, zodFor(k, c)] as const)
+    .filter((f): f is readonly [string, string] => f[1] != null)
+    .map(([k, schema]) => `      ${/^[A-Za-z_$][\w$]*$/.test(k) ? k : q(k)}: ${schema},`);
+  const kind = kindOf(item);
+  const duration =
+    item.durationInFrames ??
+    cfg?.durationInFrames ??
+    props?.durationInFrames ??
+    (await registryDuration(item)) ??
+    90;
   const meta = [
+    `  {`,
+    `    key: ${q(key)},`,
+    `    title: ${q(item.title ?? titleCase(item.name))},`,
+    ...(description ? [`    description: ${q(description)},`] : []),
+    `    category: ${q(item.category)},`,
+    `    kind: ${q(kind)},`,
+    `    source: { registry: ${q(reg.label)}, url: ${q(`${reg.docs}/${item.name}`)}, license: ${q(reg.license)} },`,
+    `    schema: z.object({`,
+    ...fields,
+    `    }),`,
+    `    fixedProps: ${q(item.fixedProps ?? {})},`,
+    `    defaultDurationInFrames: ${duration},`,
+    `  },`,
+  ].join("\n");
+  const base = kind === "presentation" ? "presentation" : "component";
+  const wrappers = WRAPPERS.filter(([applies]) => applies(item)).map(([, wrapper]) => wrapper);
+  const impl = wrappers.reduce(
+    (inner, wrapper) => `${wrapper}(${inner})`,
+    `${base}(m.${exportName})`,
+  );
+  const rel =
+    "../" +
+    path
+      .relative(VIDEO, file)
+      .replace(/\\/g, "/")
+      .replace(/(\/index)?\.tsx$/, "");
+  return {
+    meta,
+    loader: `  ${q(key)}: () => import(${q(rel)}).then((m) => ${impl}),`,
+    helpers: [base, ...wrappers],
+  };
+}
+
+const renderMeta = (entries: string[]) =>
+  [
     'import { zColor } from "@remotion/zod-types";',
     'import { z } from "zod";',
     'import { defineElementMeta, type ElementMetaInput } from "./types";',
@@ -806,37 +895,46 @@ async function generate(): Promise<void> {
     "export const generatedElementMeta = defs.map(defineElementMeta);",
     "",
   ].join("\n");
-  const components = [
-    ...(framing.size
-      ? [`import { ${[...framing].sort().join(", ")}, type ElementComponent } from "./framing";`]
-      : []),
+
+const renderLoaders = (loaders: string[], helpers: Set<string>) =>
+  [
+    `import { ${[...helpers].sort().join(", ")} } from "./framing";`,
     'import type { ElementImpl } from "./types";',
     "",
     "export const generatedElementLoaders: Record<string, () => Promise<ElementImpl>> = {",
-    ...componentEntries,
+    ...loaders,
     "};",
     "",
   ].join("\n");
+
+async function generate(): Promise<void> {
+  const problems: string[] = [...unknownOverrideNames()];
+  const ingested: Ingested[] = [];
+  for (const item of CURATED) {
+    const result = await ingest(item, problems);
+    if (result) ingested.push(result);
+  }
+  const helpers = new Set(ingested.flatMap((i) => i.helpers));
   for (const [file, text] of [
-    [OUT_META, meta],
-    [OUT_COMPONENTS, components],
+    [OUT_META, renderMeta(ingested.map((i) => i.meta))],
+    [
+      OUT_COMPONENTS,
+      renderLoaders(
+        ingested.map((i) => i.loader),
+        helpers,
+      ),
+    ],
   ] as const) {
     mkdirSync(path.dirname(file), { recursive: true });
     writeFileSync(file, text);
     console.log(`wrote ${path.relative(ROOT, file)}`);
   }
-  console.log(`${entries.length} elements`);
+  console.log(`${ingested.length} elements`);
   if (problems.length) {
     console.warn(`\n${problems.length} problem(s):\n  ${problems.join("\n  ")}`);
     process.exitCode = 1;
   }
 }
-
-const titleCase = (s: string) =>
-  s
-    .split("-")
-    .map((w) => w[0].toUpperCase() + w.slice(1))
-    .join(" ");
 
 if (!skipAdd) {
   for (const registry of Object.keys(REGISTRIES)) {
@@ -844,6 +942,7 @@ if (!skipAdd) {
     const items = CURATED.filter((i) => i.registry === registry);
     if (items.length) install(items);
   }
-  relocate();
+  moveInstalled();
+  rewriteImports();
 }
 await generate();

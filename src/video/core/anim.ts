@@ -1,7 +1,10 @@
 import type React from "react";
 import { Easing, interpolate, spring } from "remotion";
 
-export const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+export const CLAMPED = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+
+export const visibleBackground = (background?: string): string | undefined =>
+  background && background !== "transparent" ? background : undefined;
 
 export type Entrance = "rise" | "fade" | "blur" | "scale" | "none";
 
@@ -14,7 +17,7 @@ export function entranceStyle(
   if (entrance === "none") return {};
   const f = frame - delay;
   const s = spring({ frame: f, fps, config: { damping: 200, mass: 0.8 } });
-  const opacity = interpolate(f, [0, 14], [0, 1], clamp);
+  const opacity = interpolate(f, [0, 14], [0, 1], CLAMPED);
   switch (entrance) {
     case "rise":
       return { opacity, transform: `translateY(${(1 - s) * 40}px)` };
@@ -29,7 +32,7 @@ export function entranceStyle(
 
 export function exitOpacity(frame: number, duration: number, frames = 10): number {
   return interpolate(frame, [duration - frames, duration], [1, 0], {
-    ...clamp,
+    ...CLAMPED,
     easing: Easing.in(Easing.quad),
   });
 }

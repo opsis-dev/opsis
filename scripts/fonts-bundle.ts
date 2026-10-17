@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fontShimFile } from "../src/shared/fonts/google-shim.ts";
+import { FONT_CATEGORIES } from "../src/shared/fonts/types.ts";
 import { walkFiles } from "./lib/walk.ts";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -47,14 +48,6 @@ const GOOGLE_IMPORTS: Record<string, string> = {
   Caveat: "Caveat",
 };
 
-const CATEGORY: Record<string, string> = {
-  "sans-serif": "sans-serif",
-  serif: "serif",
-  monospace: "monospace",
-  display: "display",
-  handwriting: "handwriting",
-};
-
 type Metadata = {
   id: string;
   family: string;
@@ -76,14 +69,16 @@ function bundle(pkg: string): string {
   const min = Math.min(...meta.weights);
   const max = Math.max(...meta.weights);
   for (const style of meta.styles.toSorted().toReversed()) {
-    const names = variable
-      ? [`${meta.id}-latin-wght-${style}.woff2`]
-      : meta.weights.map((w) => `${meta.id}-latin-${w}-${style}.woff2`);
-    for (const name of names) {
+    const files = variable
+      ? [{ name: `${meta.id}-latin-wght-${style}.woff2`, weight: `${min} ${max}` }]
+      : meta.weights.map((w) => ({
+          name: `${meta.id}-latin-${w}-${style}.woff2`,
+          weight: String(w),
+        }));
+    for (const { name, weight } of files) {
       const src = path.join(dir, "files", name);
       if (!existsSync(src)) throw new Error(`${pkg}: missing ${name}`);
       copyFileSync(src, path.join(dest, name));
-      const weight = variable ? `${min} ${max}` : (/-(\d{3})-/.exec(name)?.[1] ?? "400");
       faces.push({ file: `app:fonts/bundled/${meta.id}/${name}`, weight, style, format: "woff2" });
     }
   }
@@ -91,7 +86,7 @@ function bundle(pkg: string): string {
   const def = {
     id: meta.id,
     family: meta.family,
-    category: CATEGORY[meta.category] ?? "sans-serif",
+    category: FONT_CATEGORIES.find((c) => c === meta.category) ?? "sans-serif",
     source: "bundled",
     license: meta.license.type,
     licenseFile: `app:fonts/bundled/${meta.id}/LICENSE`,
@@ -114,31 +109,41 @@ function checkImports(): void {
     );
 }
 
-rmSync(OUT, { recursive: true, force: true });
-mkdirSync(OUT, { recursive: true });
-const defs = PACKAGES.map(bundle);
-writeFileSync(
-  META_OUT,
-  [
-    'import type { FontFamilyDef } from "./types";',
-    "",
-    "export const BUNDLED_FONTS: FontFamilyDef[] = [",
-    ...defs,
-    "];",
-    "",
-  ].join("\n"),
-);
-
-checkImports();
-rmSync(SHIM_DIR, { recursive: true, force: true });
-mkdirSync(SHIM_DIR, { recursive: true });
-for (const [name, family] of Object.entries(GOOGLE_IMPORTS))
+function writeBundle(): void {
+  rmSync(OUT, { recursive: true, force: true });
+  mkdirSync(OUT, { recursive: true });
+  const defs = PACKAGES.map(bundle);
   writeFileSync(
-    path.join(SHIM_DIR, fontShimFile(name)),
-    `import { googleFont } from "../google-font";\n\nexport const { loadFont, getInfo } = googleFont(${JSON.stringify(family)});\n`,
+    META_OUT,
+    [
+      'import type { FontFamilyDef } from "./types";',
+      "",
+      "export const BUNDLED_FONTS: FontFamilyDef[] = [",
+      ...defs,
+      "];",
+      "",
+    ].join("\n"),
   );
+}
 
-const bytes = walkFiles(OUT)
-  .filter((f) => f.endsWith(".woff2"))
-  .reduce((n, f) => n + statSync(f).size, 0);
-console.log(`${PACKAGES.length} families, ${bytes} bytes of font files`);
+function writeShims(): void {
+  rmSync(SHIM_DIR, { recursive: true, force: true });
+  mkdirSync(SHIM_DIR, { recursive: true });
+  for (const [name, family] of Object.entries(GOOGLE_IMPORTS))
+    writeFileSync(
+      path.join(SHIM_DIR, fontShimFile(name)),
+      `import { googleFont } from "../google-font";\n\nexport const { loadFont, getInfo } = googleFont(${JSON.stringify(family)});\n`,
+    );
+}
+
+function main(): void {
+  checkImports();
+  writeBundle();
+  writeShims();
+  const bytes = walkFiles(OUT)
+    .filter((f) => f.endsWith(".woff2"))
+    .reduce((n, f) => n + statSync(f).size, 0);
+  console.log(`${PACKAGES.length} families, ${bytes} bytes of font files`);
+}
+
+main();

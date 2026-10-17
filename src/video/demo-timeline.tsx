@@ -9,7 +9,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { Audio } from "@remotion/media";
-import { remapFrame, type GroupProps } from "../shared/compile/clip";
+import { groupOf, remapFrame, type GroupProps } from "../shared/compile/clip";
 import { duckGain, duckingSpans, type Span } from "../shared/compile/duck";
 import { envelopeAt } from "../shared/timeline/envelope";
 import type {
@@ -30,7 +30,12 @@ import {
 } from "./assets";
 import { FontProvider } from "./fonts/font-provider";
 import { getComponent, getPresentation, isKnownElement, useElements } from "./registry";
-import { clamp } from "../shared/math";
+import { clamp01 } from "../shared/math";
+import { roleStack } from "../shared/fonts";
+
+const PREMOUNT_FRAMES = 30;
+const PREMOUNTED = new Set(["core/group", "core/recording"]);
+const MIN_CROP = 0.05;
 
 export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
   <AssetProvider value={spec.assets ?? {}}>
@@ -47,7 +52,7 @@ export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
   </AssetProvider>
 );
 
-export const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
+const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
   <>
     {tracks.map((track) => (
       <AbsoluteFill key={track.id}>
@@ -57,11 +62,7 @@ export const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
             from={item.from}
             durationInFrames={item.durationInFrames}
             name={item.component}
-            premountFor={
-              item.component === "core/group" || item.component === "core/recording"
-                ? 30
-                : undefined
-            }
+            premountFor={PREMOUNTED.has(item.component) ? PREMOUNT_FRAMES : undefined}
           >
             <TransitionWrap item={item}>
               {item.envelope ? (
@@ -92,7 +93,7 @@ const EnvelopeWrap: React.FC<{ envelope: VisualEnvelope; children: React.ReactNo
   return (
     <AbsoluteFill
       style={{
-        opacity: clamp(opacity, 0, 1),
+        opacity: clamp01(opacity),
         transform: `translate(${x}px, ${y}px) scale(${Math.max(0, scale)})`,
       }}
     >
@@ -107,8 +108,8 @@ const MasterStem: React.FC<{ src: string }> = ({ src }) => {
 };
 
 const ItemContent: React.FC<{ item: TimelineItem }> = ({ item }) => {
-  if (item.component === "core/group") return <Group {...(item.props as GroupProps)} />;
-  return <ElementItem item={item} />;
+  const group = groupOf(item);
+  return group ? <Group {...group} /> : <ElementItem item={item} />;
 };
 
 const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
@@ -119,7 +120,7 @@ const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
   return component ? createElement(component, resolveProps(item.props, base)) : null;
 };
 
-export const Group: React.FC<GroupProps> = ({
+const Group: React.FC<GroupProps> = ({
   tracks,
   startFrom,
   remap,
@@ -132,7 +133,7 @@ export const Group: React.FC<GroupProps> = ({
   const frame = useCurrentFrame();
   const base = useAssetBase();
   useElements([wrapper?.component]);
-  let inner: React.ReactNode = <Tracks tracks={tracks ?? []} />;
+  let inner: React.ReactNode = <Tracks tracks={tracks} />;
   if (startFrom) {
     inner = (
       <Sequence from={-startFrom} layout="none">
@@ -144,7 +145,7 @@ export const Group: React.FC<GroupProps> = ({
   if (remap?.length)
     inner = <Freeze frame={Math.max(0, Math.round(remapFrame(remap, frame)))}>{inner}</Freeze>;
   if (crop) {
-    const s = 1 / Math.max(0.05, Math.max(crop.w, crop.h));
+    const s = 1 / Math.max(MIN_CROP, crop.w, crop.h);
     inner = (
       <AbsoluteFill style={{ overflow: "hidden" }}>
         <AbsoluteFill
@@ -208,48 +209,49 @@ const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }
   if (!active) return <>{children}</>;
   const presentation = getPresentation(active.ref.kind, active.ref.params ?? {}, { width, height });
   if (!presentation) return <>{children}</>;
-  return createElement(
-    presentation.component as React.ComponentType<Record<string, unknown>>,
-    {
-      presentationProgress: active.progress,
-      presentationDirection: active.direction,
-      passedProps: presentation.props,
-      presentationDurationInFrames: active.ref.durationInFrames,
-      onElementImage: noop,
-      onUnmount: noop,
-      bothEnteringAndExiting: false,
-    },
-    children,
+  const Presentation = presentation.component;
+  return (
+    <Presentation
+      presentationProgress={active.progress}
+      presentationDirection={active.direction}
+      passedProps={presentation.props}
+      presentationDurationInFrames={active.ref.durationInFrames}
+      onElementImage={noop}
+      onUnmount={noop}
+      bothEnteringAndExiting={false}
+    >
+      {children}
+    </Presentation>
   );
 };
 
 const noop = () => undefined;
 
+type Direction = "entering" | "exiting";
+
+function transitionAt(
+  item: TimelineItem,
+  frame: number,
+): { ref: TransitionRef; direction: Direction; start: number } | null {
+  const { enter, exit, durationInFrames } = item;
+  if (enter && frame < enter.durationInFrames)
+    return { ref: enter, direction: "entering", start: 0 };
+  const exitStart = exit ? durationInFrames - exit.durationInFrames : 0;
+  if (exit && frame >= exitStart) return { ref: exit, direction: "exiting", start: exitStart };
+  return null;
+}
+
 function activeTransition(
   item: TimelineItem,
   frame: number,
-): { ref: TransitionRef; direction: "entering" | "exiting"; progress: number } | null {
-  const { enter, exit, durationInFrames } = item;
-  if (enter && frame < enter.durationInFrames) {
-    return {
-      ref: enter,
-      direction: "entering",
-      progress: interpolate(frame, [0, enter.durationInFrames], [0, 1], {
-        extrapolateRight: "clamp",
-      }),
-    };
-  }
-  if (exit && frame >= durationInFrames - exit.durationInFrames) {
-    const start = durationInFrames - exit.durationInFrames;
-    return {
-      ref: exit,
-      direction: "exiting",
-      progress: interpolate(frame, [start, durationInFrames], [0, 1], {
-        extrapolateRight: "clamp",
-      }),
-    };
-  }
-  return null;
+): { ref: TransitionRef; direction: Direction; progress: number } | null {
+  const at = transitionAt(item, frame);
+  if (!at) return null;
+  const { ref, direction, start } = at;
+  const progress = interpolate(frame, [start, start + ref.durationInFrames], [0, 1], {
+    extrapolateRight: "clamp",
+  });
+  return { ref, direction, progress };
 }
 
 const NO_SPANS: Span[] = [];
@@ -257,7 +259,7 @@ const NO_SPANS: Span[] = [];
 const AudioLayers: React.FC<{ spec: TimelineSpec }> = ({ spec }) => {
   const spansByKeys = useMemo(() => {
     const out = new Map<string, Span[]>();
-    for (const a of spec.audio ?? []) {
+    for (const a of spec.audio) {
       if (!a.duck) continue;
       const id = a.duck.keys.join("|");
       if (!out.has(id)) out.set(id, duckingSpans(spec, new Set(a.duck.keys)));
@@ -266,7 +268,7 @@ const AudioLayers: React.FC<{ spec: TimelineSpec }> = ({ spec }) => {
   }, [spec]);
   return (
     <>
-      {(spec.audio ?? [])
+      {spec.audio
         .filter((a) => a.gain !== 0)
         .map((a) => (
           <AudioLayer
@@ -316,7 +318,7 @@ const MissingElement: React.FC<{ name: string }> = ({ name }) => (
       alignItems: "center",
       justifyContent: "center",
       color: "#f87171",
-      fontFamily: "system-ui",
+      fontFamily: roleStack("main"),
       fontSize: 40,
     }}
   >

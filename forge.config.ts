@@ -1,7 +1,6 @@
 import { chmod, copyFile, cp, mkdir, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
-import os from "node:os";
 import path from "node:path";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerRpm } from "@electron-forge/maker-rpm";
@@ -36,21 +35,29 @@ const DARWIN_UNIVERSAL_ARCH_FILES =
 
 const STAGED_RUNTIME_PACKAGES = ["playwright-core"];
 
-function packageDir(name: string, allowMissing = false): string | null {
+const packageDir = (name: string): string =>
+  path.dirname(require.resolve(`${name}/package.json`, { paths: [ROOT] }));
+
+function installedPackageDir(name: string): string | null {
   try {
-    return path.dirname(require.resolve(`${name}/package.json`, { paths: [ROOT] }));
-  } catch (error) {
-    if (allowMissing) return null;
-    throw error;
+    return packageDir(name);
+  } catch {
+    return null;
   }
 }
 
-async function stagePackage(name: string, buildPath: string, allowMissing = false): Promise<void> {
-  const source = packageDir(name, allowMissing);
-  if (!source) return;
+async function copyPackage(source: string, name: string, buildPath: string): Promise<void> {
   const destination = path.join(buildPath, "node_modules", name);
   await mkdir(path.dirname(destination), { recursive: true });
   await cp(source, destination, { recursive: true });
+}
+
+const stagePackage = (name: string, buildPath: string) =>
+  copyPackage(packageDir(name), name, buildPath);
+
+async function stagePackageIfPresent(name: string, buildPath: string): Promise<void> {
+  const source = installedPackageDir(name);
+  if (source) await copyPackage(source, name, buildPath);
 }
 
 async function stageCompositorPackages(
@@ -58,15 +65,13 @@ async function stageCompositorPackages(
   platform: string,
   arch: string,
 ): Promise<void> {
-  const packages =
-    platform === "darwin" ? DARWIN_COMPOSITOR_PACKAGES : [getCompositorPackage({ arch, platform })];
-  for (const pkg of packages) {
-    const allowMissing =
-      platform === "darwin" &&
-      arch !== "universal" &&
-      pkg !== getCompositorPackage({ arch, platform });
-    await stagePackage(pkg, buildPath, allowMissing);
-  }
+  const universal = platform === "darwin" && arch === "universal";
+  const host = universal ? null : getCompositorPackage({ arch, platform });
+  const required = host ? [host] : DARWIN_COMPOSITOR_PACKAGES;
+  for (const pkg of required) await stagePackage(pkg, buildPath);
+  if (platform !== "darwin") return;
+  for (const pkg of DARWIN_COMPOSITOR_PACKAGES)
+    if (!required.includes(pkg)) await stagePackageIfPresent(pkg, buildPath);
 }
 
 async function stageEngine(platform: string, arch: string): Promise<void> {
@@ -85,11 +90,7 @@ async function stageEngine(platform: string, arch: string): Promise<void> {
   process.stdout.write("\n[engine] Saving the recording browser's licences\n");
   const shell = engineStatus(ENGINE_DIR).headlessShell;
   if (!shell) throw new Error("The recording browser didn't install.");
-  const credits = await writeChromiumCredits(
-    shell,
-    CHROMIUM_CREDITS,
-    path.join(os.homedir(), ".cache", "demoflow-chromium-credits"),
-  );
+  const credits = await writeChromiumCredits(shell, CHROMIUM_CREDITS);
   process.stdout.write(
     `[engine] Chromium ${credits.version}: ${credits.bytes} bytes of licences\n`,
   );
@@ -101,25 +102,24 @@ async function stageEngineLicences(): Promise<void> {
   await copyFile(CHROMIUM_CREDITS, path.join(ENGINE_LICENCES_DIR, CHROMIUM_CREDITS_FILE));
 }
 
+const EXPORT_SOURCES: Array<[from: string[], to: string]> = [
+  [["src", "video"], "video"],
+  [["src", "shared"], "shared"],
+  [["src", "renderer", "lib", "utils.ts"], "utils.ts"],
+  [["public"], "public"],
+];
+
 async function stageExportSource(): Promise<void> {
   await rm(EXPORT_SRC_DIR, { recursive: true, force: true });
   await mkdir(EXPORT_SRC_DIR, { recursive: true });
-  await cp(path.join(ROOT, "src", "video"), path.join(EXPORT_SRC_DIR, "video"), {
-    recursive: true,
-  });
-  await cp(path.join(ROOT, "src", "shared"), path.join(EXPORT_SRC_DIR, "shared"), {
-    recursive: true,
-  });
-  await cp(
-    path.join(ROOT, "src", "renderer", "lib", "utils.ts"),
-    path.join(EXPORT_SRC_DIR, "utils.ts"),
-  );
-  await cp(path.join(ROOT, "public"), path.join(EXPORT_SRC_DIR, "public"), { recursive: true });
+  for (const [from, to] of EXPORT_SOURCES)
+    await cp(path.join(ROOT, ...from), path.join(EXPORT_SRC_DIR, to), { recursive: true });
 }
 
 const LINUX_CATEGORIES = ["AudioVideo", "Video"] as const;
 const APPIMAGE_LAUNCHER = "demoflow-launcher";
 const ICONS_DIR = path.join(ROOT, "brand", "icons");
+const APPIMAGE_ICON_SIZES = [512, 256, 128, 64, 48, 32, 16];
 const icon = (size: number) => path.join(ICONS_DIR, `${size}.png`);
 
 const config: ForgeConfig = {
@@ -154,13 +154,7 @@ const config: ForgeConfig = {
         bin: APPIMAGE_LAUNCHER,
         icon: {
           scalable: path.join(ROOT, "brand", "logo.svg"),
-          "512x512": icon(512),
-          "256x256": icon(256),
-          "128x128": icon(128),
-          "64x64": icon(64),
-          "48x48": icon(48),
-          "32x32": icon(32),
-          "16x16": icon(16),
+          ...Object.fromEntries(APPIMAGE_ICON_SIZES.map((size) => [`${size}x${size}`, icon(size)])),
           default: "256x256",
         },
       },

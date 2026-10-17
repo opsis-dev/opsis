@@ -1,9 +1,9 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
-import type { ElementMeta, ElementProps } from "../../shared/elements/types";
+import type { ElementProps } from "../../shared/elements/types";
 
-export type ElementImpl =
-  | React.ComponentType<ElementProps & { children?: React.ReactNode }>
-  | ((props: ElementProps) => TransitionPresentation<ElementProps>);
+export type ElementComponent = React.ComponentType<ElementProps & { children?: React.ReactNode }>;
 
-export type ElementManifest = ElementMeta & { impl: ElementImpl };
+export type PresentationFactory = (props: ElementProps) => TransitionPresentation<ElementProps>;
+
+export type ElementImpl = ElementComponent | PresentationFactory;

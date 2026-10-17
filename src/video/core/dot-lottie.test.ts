@@ -21,14 +21,15 @@ describe("dotLottie", () => {
       "animations/intro.json": strToU8(JSON.stringify(animation)),
       "images/img_0.png": png,
     });
-    const data = readDotLottie(zip) as unknown as typeof animation;
-    expect(data.fr).toBe(30);
-    expect(data.assets[0]).toMatchObject({ e: 1, u: "", p: "data:image/png;base64,iVBORw==" });
+    expect(readDotLottie(zip)).toMatchObject({
+      fr: 30,
+      assets: [{ e: 1, u: "", p: "data:image/png;base64,iVBORw==" }],
+    });
   });
 
   it("finds the animation without a manifest", () => {
     const zip = zipSync({ "animations/x.json": strToU8(JSON.stringify(animation)) });
-    expect((readDotLottie(zip) as unknown as typeof animation).op).toBe(60);
+    expect(readDotLottie(zip)).toMatchObject({ op: 60 });
   });
 
   it("explains an empty file", () => {

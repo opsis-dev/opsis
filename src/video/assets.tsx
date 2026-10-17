@@ -2,7 +2,7 @@ import React, { createContext, useContext } from "react";
 import { staticFile } from "remotion";
 import { encodePath, projectRelPath } from "../shared/asset-ref";
 
-export type AssetBase = { projectBase?: string };
+type AssetBase = { projectBase?: string };
 
 const AssetContext = createContext<AssetBase>({});
 
@@ -22,8 +22,7 @@ export function resolveAssetRef(ref: string, base: AssetBase): string {
   return ref;
 }
 
-export const isAssetRef = (v: unknown): v is string =>
-  typeof v === "string" && /^(project|app):/.test(v);
+const isAssetRef = (v: unknown): v is string => typeof v === "string" && /^(project|app):/.test(v);
 
 export function resolveProps<T extends Record<string, unknown>>(props: T, base: AssetBase): T {
   const visit = (v: unknown, depth: number): unknown => {
@@ -48,7 +47,7 @@ const ReframeContext = createContext<ReframeMode>("follow");
 export const ReframeProvider = ReframeContext.Provider;
 export const useReframe = () => useContext(ReframeContext);
 
-export type PreviewQuality = "fast" | "exact";
+type PreviewQuality = "fast" | "exact";
 const QualityContext = createContext<PreviewQuality>("exact");
 export const QualityProvider = QualityContext.Provider;
 export const useQuality = () => useContext(QualityContext);

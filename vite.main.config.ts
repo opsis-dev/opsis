@@ -1,8 +1,6 @@
-import path from "node:path";
 import { defineConfig } from "vite";
+import { SRC_ALIAS } from "./scripts/lib/tool-config.ts";
 
 export default defineConfig({
-  resolve: {
-    alias: { "@": path.resolve(import.meta.dirname, "src") },
-  },
+  resolve: { alias: SRC_ALIAS },
 });

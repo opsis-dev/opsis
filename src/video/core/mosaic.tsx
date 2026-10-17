@@ -1,18 +1,19 @@
 import React from "react";
 import { useVideoConfig } from "remotion";
 import { PixelateRegion } from "../elements/remocn/pixelate-region";
+import type { Box } from "./still-layout";
 
-export type MosaicBox = { x: number; y: number; width: number; height: number };
+const MAX_REGIONS = 8;
 
 export const Mosaic: React.FC<{
-  boxes?: MosaicBox[];
+  boxes?: Box[];
   blockSize?: number;
   children?: React.ReactNode;
 }> = ({ boxes = [], blockSize = 24, children }) => {
   const { width, height } = useVideoConfig();
   const regions = boxes
     .filter((b) => b.width > 0 && b.height > 0)
-    .slice(0, 8)
+    .slice(0, MAX_REGIONS)
     .map((b) => ({
       x: b.x * width,
       y: b.y * height,

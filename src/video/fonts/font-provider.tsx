@@ -2,42 +2,40 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { continueRender, delayRender } from "remotion";
 import { firstFamily } from "../../shared/fonts";
 import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "../../shared/fonts/types";
-import type { GroupProps } from "../../shared/compile/clip";
+import { groupOf } from "../../shared/compile/clip";
 import type { TimelineTrack } from "../../shared/schema/timeline";
 import { resolveAssetRef, useAssetBase } from "../assets";
 import { applyProjectFonts } from "./registry";
 
 export function usedFontNames(tracks: TimelineTrack[]): string[] {
   const out = new Set<string>();
+  const add = (font: unknown) => {
+    if (typeof font === "string" && font.trim()) out.add(firstFamily(font));
+  };
   const visit = (list: TimelineTrack[]) => {
     for (const track of list)
       for (const item of track.items) {
-        const font = item.props.fontFamily;
-        if (typeof font === "string" && font.trim()) out.add(firstFamily(font));
-        const inner = (item.props as unknown as GroupProps).tracks;
-        if (Array.isArray(inner)) visit(inner);
-        const wrapper = (item.props as unknown as GroupProps).wrapper?.props?.fontFamily;
-        if (typeof wrapper === "string" && wrapper.trim()) out.add(firstFamily(wrapper));
+        add(item.props.fontFamily);
+        const group = groupOf(item);
+        if (!group) continue;
+        visit(group.tracks);
+        add(group.wrapper?.props.fontFamily);
       }
   };
   visit(tracks);
   return [...out].toSorted();
 }
 
-export const FontProvider: React.FC<{
-  fonts?: ProjectFonts;
-  tracks: TimelineTrack[];
-  children: React.ReactNode;
-}> = ({ fonts, tracks, children }) => {
-  const base = useAssetBase();
-  const value = fonts ?? DEFAULT_PROJECT_FONTS;
-  const used = useMemo(() => usedFontNames(tracks), [tracks]);
-  const key = JSON.stringify([value, used, base]);
+type FontRequest = { fonts: ProjectFonts; used: string[]; projectBase?: string };
+
+function useFontsReady(request: FontRequest): boolean {
+  const key = JSON.stringify(request);
   const [firstHandle] = useState(() => delayRender("Loading fonts"));
   const first = useRef(true);
   const [ready, setReady] = useState(false);
 
   useLayoutEffect(() => {
+    const { fonts, used, projectBase }: FontRequest = JSON.parse(key);
     const handle = first.current ? firstHandle : delayRender("Loading fonts");
     first.current = false;
     let open = true;
@@ -46,13 +44,23 @@ export const FontProvider: React.FC<{
       open = false;
       continueRender(handle);
     };
-    void applyProjectFonts(value, (ref) => resolveAssetRef(ref, base), used).then(() => {
+    void applyProjectFonts(fonts, (ref) => resolveAssetRef(ref, { projectBase }), used).then(() => {
       setReady(true);
       finish();
     }, finish);
     return finish;
-    // oxlint-disable-next-line react/exhaustive-deps
-  }, [key]);
+  }, [key, firstHandle]);
 
+  return ready;
+}
+
+export const FontProvider: React.FC<{
+  fonts?: ProjectFonts;
+  tracks: TimelineTrack[];
+  children: React.ReactNode;
+}> = ({ fonts, tracks, children }) => {
+  const { projectBase } = useAssetBase();
+  const used = useMemo(() => usedFontNames(tracks), [tracks]);
+  const ready = useFontsReady({ fonts: fonts ?? DEFAULT_PROJECT_FONTS, used, projectBase });
   return ready ? <>{children}</> : null;
 };

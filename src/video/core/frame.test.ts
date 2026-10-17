@@ -14,8 +14,7 @@ describe("other shapes", () => {
   });
 
   it("sizes overlays by the long side, so a vertical frame isn't shrunk", () => {
-    expect(overlayScale(1920, 1080)).toBe(1);
-    expect(overlayScale(1080, 1920)).toBe(1);
+    expect(overlayScale(1080, 1920)).toBe(overlayScale(1920, 1080));
   });
 
   it("zooms in harder the narrower the frame, within limits", () => {

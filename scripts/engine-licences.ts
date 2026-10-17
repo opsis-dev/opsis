@@ -28,11 +28,7 @@ if (!complete || !headlessShell) {
 }
 
 const output = path.join(ROOT, "resources", ENGINE_LICENCES_FOLDER, CHROMIUM_CREDITS_FILE);
-const credits = await writeChromiumCredits(
-  headlessShell,
-  output,
-  path.join(os.homedir(), ".cache", "demoflow-chromium-credits"),
-);
+const credits = await writeChromiumCredits(headlessShell, output);
 console.log(
   `Saved the licences of Chromium ${credits.version} (${credits.bytes} bytes) to ${path.relative(ROOT, output)}. The app copies them into the engine folder when it starts.`,
 );

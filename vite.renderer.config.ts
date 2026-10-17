@@ -4,6 +4,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 import { fontShimFile, GOOGLE_FONT_IMPORT } from "./src/shared/fonts/google-shim.ts";
+import { SRC_ALIAS } from "./scripts/lib/tool-config.ts";
 
 const localFonts = (): Plugin => ({
   name: "demoflow-local-fonts",
@@ -28,9 +29,5 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "src"),
-    },
-  },
+  resolve: { alias: SRC_ALIAS },
 });

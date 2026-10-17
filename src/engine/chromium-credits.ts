@@ -1,11 +1,14 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { chromium } from "playwright-core";
 import { z } from "zod";
-import { downloadTo } from "./download";
-import { remotionPlatform, type RemotionPlatform } from "./paths";
+import { downloadTo } from "./download.ts";
+import { remotionPlatform, type RemotionPlatform } from "./paths.ts";
+
+const CREDITS_CACHE = path.join(os.homedir(), ".cache", "demoflow-chromium-credits");
 
 const KNOWN_GOOD =
   "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json";
@@ -65,10 +68,9 @@ async function fullChrome(version: string, cacheDir: string): Promise<string> {
 export async function writeChromiumCredits(
   browser: string,
   output: string,
-  cacheDir: string,
 ): Promise<{ version: string; bytes: number }> {
   const version = chromiumVersion(browser);
-  const chrome = await fullChrome(version, cacheDir);
+  const chrome = await fullChrome(version, CREDITS_CACHE);
   const instance = await chromium.launch({ executablePath: chrome, args: ["--no-sandbox"] });
   try {
     const page = await instance.newPage();

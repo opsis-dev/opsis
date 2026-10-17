@@ -5,14 +5,8 @@ import { Backdrop } from "../camera/demo-clip";
 import { RimLight, WindowFrame } from "../camera/window-frame";
 import { WINDOW_FIT } from "../camera/lib/style";
 import { isLightBackdrop } from "../camera/lib/backdrop";
-import {
-  bleedLayout,
-  cutoutLayout,
-  windowLayout,
-  type Box,
-  type Shot,
-  type StillLook,
-} from "./still-layout";
+import { stillLayout, type Box, type Shot, type StillLook } from "./still-layout";
+import { visibleBackground } from "./anim";
 import { msToFrames } from "../../shared/timeline/time";
 
 type Fit = "contain" | "cover" | "fill";
@@ -28,9 +22,7 @@ export const ImageElement: React.FC<{
   if (!src) return null;
   const scale = kenBurns ? interpolate(frame, [0, durationInFrames], [1, 1.06]) : 1;
   return (
-    <AbsoluteFill
-      style={{ background: background && background !== "transparent" ? background : undefined }}
-    >
+    <AbsoluteFill style={{ background: visibleBackground(background) }}>
       <Img
         src={src}
         style={{ width: "100%", height: "100%", objectFit: fit, transform: `scale(${scale})` }}
@@ -82,61 +74,66 @@ export const VideoLoop: React.FC<{ src: string; dim?: number }> = ({ src, dim = 
     </AbsoluteFill>
   ) : null;
 
+const PUSH_IN_FRAMES = 120;
+const PUSH_IN_SCALE = 1.02;
+
+const PushIn: React.FC<{ origin?: string; children: React.ReactNode }> = ({ origin, children }) => {
+  const frame = useCurrentFrame();
+  const push = interpolate(frame, [0, PUSH_IN_FRAMES], [1, PUSH_IN_SCALE], {
+    extrapolateRight: "clamp",
+  });
+  return (
+    <AbsoluteFill style={{ transform: `scale(${push})`, transformOrigin: origin }}>
+      {children}
+    </AbsoluteFill>
+  );
+};
+
+const placed = (box: Box): React.CSSProperties => ({
+  position: "absolute",
+  left: box.x,
+  top: box.y,
+  width: box.width,
+  height: box.height,
+});
+
 export const StillElement: React.FC<{
   src: string;
   look?: StillLook;
   backdrop?: string;
   shot?: Shot;
 }> = ({ src, look = "window", backdrop = "glaze", shot }) => {
-  const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
-  const push = interpolate(frame, [0, 120], [1, 1.02], { extrapolateRight: "clamp" });
   if (!src) return null;
-  const canvas = { width, height };
-  const size = shot ?? { width, height, scale: 1 };
-  const place = (box: Box): React.CSSProperties => ({
-    position: "absolute",
-    left: box.x,
-    top: box.y,
-    width: box.width,
-    height: box.height,
-  });
+  const box = stillLayout(look, shot ?? { width, height, scale: 1 }, { width, height }, WINDOW_FIT);
   if (look === "bleed") {
     return (
-      <AbsoluteFill style={{ transform: `scale(${push})`, transformOrigin: "50% 0%" }}>
-        <Img src={src} style={place(bleedLayout(size, canvas))} />
-      </AbsoluteFill>
+      <PushIn origin="50% 0%">
+        <Img src={src} style={placed(box)} />
+      </PushIn>
     );
   }
-  if (look === "cutout") {
-    const { img } = cutoutLayout(size, canvas);
-    return (
-      <AbsoluteFill>
-        <Backdrop name={backdrop} />
-        <AbsoluteFill style={{ transform: `scale(${push})` }}>
-          <Img
-            src={src}
-            style={{ ...place(img), filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.45))" }}
-          />
-        </AbsoluteFill>
-      </AbsoluteFill>
-    );
-  }
-  const box = windowLayout(size, canvas, WINDOW_FIT);
   return (
     <AbsoluteFill>
       <Backdrop name={backdrop} />
-      <AbsoluteFill style={{ transform: `scale(${push})` }}>
-        <div style={place(box)}>
-          <RimLight light={isLightBackdrop(backdrop)} />
-          <WindowFrame>
-            <Img
-              src={src}
-              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-            />
-          </WindowFrame>
-        </div>
-      </AbsoluteFill>
+      <PushIn>
+        {look === "cutout" ? (
+          <Img
+            src={src}
+            style={{ ...placed(box), filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.45))" }}
+          />
+        ) : (
+          <div style={placed(box)}>
+            <RimLight light={isLightBackdrop(backdrop)} />
+            <WindowFrame>
+              <Img
+                src={src}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+              />
+            </WindowFrame>
+          </div>
+        )}
+      </PushIn>
     </AbsoluteFill>
   );
 };

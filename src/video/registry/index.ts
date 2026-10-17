@@ -1,6 +1,6 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { cancelRender, continueRender, delayRender } from "remotion";
 import {
   Gradient,
@@ -19,14 +19,13 @@ import { RecordingClip } from "../core/recording-clip";
 import { Callout, Captions, KineticHeadline, LowerThird, Title } from "../core/text";
 import { coreTransitions } from "../core/transitions";
 import { generatedElementLoaders } from "./components.generated";
-import type { ElementImpl } from "./types";
+import { component } from "./framing";
+import type { ElementComponent, ElementImpl, PresentationFactory } from "./types";
 
-// oxlint-disable-next-line typescript/no-explicit-any
-type AnyComponent = React.ComponentType<any>;
 type Presentation = TransitionPresentation<Record<string, unknown>>;
 type Size = { width: number; height: number };
 
-const core: Record<string, AnyComponent> = {
+const CORE_COMPONENTS: Record<string, React.ComponentType<never>> = {
   "core/recording": RecordingClip,
   "core/placeholder": Placeholder,
   "core/still": StillElement,
@@ -49,12 +48,16 @@ const core: Record<string, AnyComponent> = {
   "core/light-leak": LightLeakElement,
 };
 
+const core: Partial<Record<string, ElementComponent>> = Object.fromEntries(
+  Object.entries(CORE_COMPONENTS).map(([key, element]) => [key, component(element)]),
+);
+
 const loaded = new Map<string, ElementImpl>();
 const loading = new Map<string, Promise<ElementImpl | undefined>>();
 
 const isCore = (key: string) => key in core || key in coreTransitions;
 
-export function loadElement(key: string): Promise<ElementImpl | undefined> {
+function loadElement(key: string): Promise<ElementImpl | undefined> {
   const hit = loaded.get(key);
   if (hit) return Promise.resolve(hit);
   const loader = generatedElementLoaders[key];
@@ -74,15 +77,16 @@ export function useElements(keys: Array<string | undefined>): boolean {
   const missing = keys.filter(
     (k): k is string => !!k && !isCore(k) && !loaded.has(k) && k in generatedElementLoaders,
   );
-  const [, rerender] = useState(0);
-  const signature = missing.join("|");
+  const [, refresh] = useReducer((n: number) => n + 1, 0);
+  const signature = JSON.stringify(missing);
   useEffect(() => {
-    if (!signature) return;
-    const handle = delayRender(`Loading ${signature}`);
+    const wanted: string[] = JSON.parse(signature);
+    if (wanted.length === 0) return;
+    const handle = delayRender(`Loading ${wanted.join(", ")}`);
     let alive = true;
-    Promise.all(signature.split("|").map(loadElement))
+    Promise.all(wanted.map(loadElement))
       .then(() => {
-        if (alive) rerender((n) => n + 1);
+        if (alive) refresh();
         continueRender(handle);
       })
       .catch((error: unknown) => cancelRender(error));
@@ -93,8 +97,8 @@ export function useElements(keys: Array<string | undefined>): boolean {
   return missing.length === 0;
 }
 
-export function getComponent(key: string): AnyComponent | undefined {
-  return core[key] ?? (loaded.get(key) as AnyComponent | undefined);
+export function getComponent(key: string): ElementComponent | undefined {
+  return core[key] ?? (loaded.get(key) as ElementComponent | undefined);
 }
 
 export function getPresentation(
@@ -104,7 +108,7 @@ export function getPresentation(
 ): Presentation | null {
   const builtIn = coreTransitions[key];
   if (builtIn) return builtIn(params, size);
-  const impl = loaded.get(key) as ((p: Record<string, unknown>) => Presentation) | undefined;
+  const impl = loaded.get(key) as PresentationFactory | undefined;
   return impl ? impl(params) : null;
 }
 

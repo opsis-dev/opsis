@@ -1,18 +1,50 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import type { RecordingProps } from "../../shared/compile/recording";
+import { roleStack } from "../../shared/fonts";
+import { displayAddress } from "../../shared/format";
+import { clamp } from "../../shared/math";
 import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
 import { DemoClip } from "../camera/demo-clip";
 import { KeycapHUD } from "../camera/keycap-hud";
-import { clamp as clampN } from "../../shared/math";
+import { DesignWidthContext } from "../camera/lib/design-scale";
 import { SHOT_STYLES } from "../camera/lib/style";
 import { poseAt } from "../camera/lib/zoom";
-import { DesignWidthContext } from "../camera/lib/design-scale";
-import { clamp } from "./anim";
-import { useOverlayFrame, zoomBoost } from "./frame";
-import { containBox } from "./still-layout";
-import { displayAddress } from "../../shared/format";
+import { CLAMPED } from "./anim";
+import { reframeLayout, useOverlayFrame } from "./frame";
+import type { Size } from "./still-layout";
+
+const CODE_FONT = roleStack("code");
+const TYPED_FADE_IN_S = 0.15;
+const TYPED_FADE_OUT_S = 0.2;
+const CARET_BLINKS_PER_S = 2.5;
+
+const passedToClip = ({
+  name,
+  speed,
+  style,
+  chrome,
+  windowStyle,
+  frameTheme,
+  addressBar,
+  backdrop,
+  cursor,
+  cursorScale,
+  ripple,
+}: RecordingProps) => ({
+  name,
+  speed,
+  style,
+  chrome,
+  windowStyle,
+  frameTheme,
+  addressBar,
+  backdrop,
+  cursor,
+  cursorScale,
+  ripple,
+});
 
 export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const fast = useQuality() === "fast";
@@ -26,7 +58,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     return props.zoom ? l : { ...l, clicks: l.clicks.map((c) => ({ ...c, zoom: false })) };
   }, [props.log, props.name, props.extraBeats, props.zoom]);
   const annotations = useMemo(
-    () => resolveAnnotations(props.log, props.annotations ?? []),
+    () => resolveAnnotations(props.log, props.annotations),
     [props.log, props.annotations],
   );
   const typed = useMemo(() => typedBeats(props.log), [props.log]);
@@ -34,93 +66,87 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
 
   if (!src) return null;
 
-  const sourceAspect = props.log.viewport.width / props.log.viewport.height;
-  const outAspect = width / height;
-  const reshaped = Math.abs(sourceAspect - outAspect) > 0.02;
-  const narrower = outAspect < sourceAspect;
-  const fullPage = SHOT_STYLES[props.style].framing !== "window";
-  const fitted = reshaped && reframe === "follow" && (narrower || fullPage);
-  const box = fitted ? containBox({ width, height }, sourceAspect) : undefined;
-
+  const layout = reframeLayout(
+    props.log.viewport,
+    { width, height },
+    reframe,
+    SHOT_STYLES[props.style].framing !== "window",
+  );
+  const narrow = layout.mode === "contain" ? layout.narrow : undefined;
   const clip = (
     <DemoClip
-      box={box}
-      name={props.name}
+      {...passedToClip(props)}
+      box={layout.mode === "contain" ? layout.box : undefined}
       src={src}
       log={log}
-      speed={props.speed}
-      chrome={props.chrome}
-      windowStyle={props.windowStyle}
-      frameTheme={props.frameTheme}
-      addressBar={props.addressBar}
       address={address}
-      backdrop={props.backdrop}
-      style={props.style}
       motionBlur={props.motionBlur && !fast}
-      tuning={
-        fitted && narrower
-          ? { ...props.tuning, narrow: zoomBoost(sourceAspect, outAspect) }
-          : props.tuning
-      }
-      cursor={props.cursor}
-      cursorScale={props.cursorScale}
-      ripple={props.ripple}
+      tuning={narrow ? { ...props.tuning, narrow } : props.tuning}
       annotations={annotations}
     />
   );
-
-  let body: React.ReactNode = box ? (
-    <DesignWidthContext.Provider value={box.width}>{clip}</DesignWidthContext.Provider>
-  ) : (
-    clip
-  );
-  if (reshaped && !box) {
-    if (reframe === "fit") {
-      const boxH = width / sourceAspect;
-      body = (
-        <AbsoluteFill
-          style={{ alignItems: "center", justifyContent: "center", background: "#000" }}
-        >
-          <DesignWidthContext.Provider value={width}>
-            <div style={{ position: "relative", width, height: boxH }}>{clip}</div>
-          </DesignWidthContext.Provider>
-        </AbsoluteFill>
-      );
-    } else {
-      const boxW = Math.max(width, height * sourceAspect);
-      const boxH = boxW / sourceAspect;
-      const cx = reframe === "follow" ? poseAt(frame, fps, log, props.speed, props.tuning).cx : 0.5;
-      const x = clampN(width / 2 - cx * boxW, width - boxW, 0);
-      body = (
-        <AbsoluteFill style={{ overflow: "hidden" }}>
-          <DesignWidthContext.Provider value={boxW}>
-            <div
-              style={{
-                position: "absolute",
-                left: x,
-                top: (height - boxH) / 2,
-                width: boxW,
-                height: boxH,
-              }}
-            >
-              {clip}
-            </div>
-          </DesignWidthContext.Provider>
-        </AbsoluteFill>
-      );
-    }
-  }
 
   const timeS = (frame / fps) * props.speed;
   const ks = props.keystrokes;
   return (
     <AbsoluteFill>
-      {body}
+      {layout.mode === "same" ? clip : null}
+      {layout.mode === "contain" ? (
+        <DesignWidthContext.Provider value={layout.box.width}>{clip}</DesignWidthContext.Provider>
+      ) : null}
+      {layout.mode === "fit" ? <Letterboxed height={layout.height}>{clip}</Letterboxed> : null}
+      {layout.mode === "cover" ? (
+        <Cropped
+          box={layout.box}
+          cx={layout.follow ? poseAt(frame, fps, log, props.speed, props.tuning).cx : 0.5}
+        >
+          {clip}
+        </Cropped>
+      ) : null}
       <DesignWidthContext.Provider value={Math.max(width, height)}>
         {ks?.chords && log.keys?.length ? (
           <KeycapHUD keys={log.keys} timeS={timeS} position={ks.position} />
         ) : null}
         {ks?.typed ? <TypedChip beats={typed} timeS={timeS} position={ks.position} /> : null}
+      </DesignWidthContext.Provider>
+    </AbsoluteFill>
+  );
+};
+
+const Letterboxed: React.FC<{ height: number; children: React.ReactNode }> = ({
+  height,
+  children,
+}) => {
+  const { width } = useVideoConfig();
+  return (
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", background: "#000" }}>
+      <DesignWidthContext.Provider value={width}>
+        <div style={{ position: "relative", width, height }}>{children}</div>
+      </DesignWidthContext.Provider>
+    </AbsoluteFill>
+  );
+};
+
+const Cropped: React.FC<{ box: Size; cx: number; children: React.ReactNode }> = ({
+  box,
+  cx,
+  children,
+}) => {
+  const { width, height } = useVideoConfig();
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <DesignWidthContext.Provider value={box.width}>
+        <div
+          style={{
+            position: "absolute",
+            left: clamp(width / 2 - cx * box.width, width - box.width, 0),
+            top: (height - box.height) / 2,
+            width: box.width,
+            height: box.height,
+          }}
+        >
+          {children}
+        </div>
       </DesignWidthContext.Provider>
     </AbsoluteFill>
   );
@@ -136,11 +162,11 @@ const TypedChip: React.FC<{
   if (!beat) return null;
   const typingEnd = beat.toS - TYPED_LINGER_S;
   const shown = Math.round(
-    interpolate(timeS, [beat.fromS, typingEnd], [0, beat.text.length], clamp),
+    interpolate(timeS, [beat.fromS, typingEnd], [0, beat.text.length], CLAMPED),
   );
   const o = Math.min(
-    interpolate(timeS, [beat.fromS, beat.fromS + 0.15], [0, 1], clamp),
-    interpolate(timeS, [beat.toS - 0.2, beat.toS], [1, 0], clamp),
+    interpolate(timeS, [beat.fromS, beat.fromS + TYPED_FADE_IN_S], [0, 1], CLAMPED),
+    interpolate(timeS, [beat.toS - TYPED_FADE_OUT_S, beat.toS], [1, 0], CLAMPED),
   );
   return (
     <AbsoluteFill
@@ -161,7 +187,7 @@ const TypedChip: React.FC<{
           borderRadius: 999,
           background: "rgba(10,10,12,0.82)",
           color: "#fafafa",
-          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          fontFamily: CODE_FONT,
           fontSize: 30 * k,
           whiteSpace: "nowrap",
           overflow: "hidden",
@@ -170,7 +196,7 @@ const TypedChip: React.FC<{
         }}
       >
         {beat.text.slice(0, shown)}
-        <span style={{ opacity: Math.floor(timeS * 2.5) % 2 ? 0 : 1 }}>▍</span>
+        <span style={{ opacity: Math.floor(timeS * CARET_BLINKS_PER_S) % 2 ? 0 : 1 }}>▍</span>
       </div>
     </AbsoluteFill>
   );

@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { AbsoluteFill, cancelRender, continueRender, delayRender } from "remotion";
 import { Lottie, type LottieAnimationData } from "@remotion/lottie";
-import { readDotLottie } from "./dot-lottie";
+import { visibleBackground } from "./anim";
+import { readLottie } from "./dot-lottie";
 
 type Fit = "contain" | "cover";
 
 async function loadAnimation(src: string): Promise<LottieAnimationData> {
   const res = await fetch(src);
   if (!res.ok) throw new Error(`Couldn't load the animation (${res.status}).`);
-  const bytes = new Uint8Array(await res.arrayBuffer());
-  const zipped = bytes[0] === 0x50 && bytes[1] === 0x4b;
-  return zipped
-    ? readDotLottie(bytes)
-    : (JSON.parse(new TextDecoder().decode(bytes)) as LottieAnimationData);
+  return readLottie(new Uint8Array(await res.arrayBuffer()));
 }
 
 export const LottieElement: React.FC<{
@@ -43,9 +40,7 @@ export const LottieElement: React.FC<{
 
   if (!src || !data) return null;
   return (
-    <AbsoluteFill
-      style={{ background: background && background !== "transparent" ? background : undefined }}
-    >
+    <AbsoluteFill style={{ background: visibleBackground(background) }}>
       <Lottie
         animationData={data}
         loop={loop}

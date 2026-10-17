@@ -1,9 +1,18 @@
+import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
-import type { ElementProps } from "../../shared/elements/types";
+import { numberOr } from "../../shared/math";
+import type { ElementComponent, PresentationFactory } from "./types";
 
-export type ElementComponent = React.ComponentType<ElementProps & { children?: React.ReactNode }>;
+export type { ElementComponent };
+
+export const component = <P,>(element: React.ComponentType<P>): ElementComponent =>
+  element as unknown as ElementComponent;
+
+export const presentation = <I, P extends Record<string, unknown>>(
+  make: (props: I) => TransitionPresentation<P>,
+): PresentationFactory => make as unknown as PresentationFactory;
 
 export function centered(Component: ElementComponent): ElementComponent {
   const Centered: ElementComponent = (props) => (
@@ -25,7 +34,7 @@ const ScreenFit: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       const height = Math.round(el.clientHeight);
       if (width > 0 && height > 0)
         setSize((prev) =>
-          prev?.width === width && prev?.height === height ? prev : { width, height },
+          prev && prev.width === width && prev.height === height ? prev : { width, height },
         );
     };
     measure();
@@ -54,8 +63,8 @@ export function fitScreen(Component: ElementComponent): ElementComponent {
 export function placedAt(Component: ElementComponent): ElementComponent {
   const Placed: ElementComponent = ({ x, y, ...props }) => {
     const { width, height } = useVideoConfig();
-    const left = Number(x ?? 0.5) * width - Number(props.width ?? 0) / 2;
-    const top = Number(y ?? 0.5) * height - Number(props.height ?? 0) / 2;
+    const left = numberOr(x, 0.5) * width - numberOr(props.width, 0) / 2;
+    const top = numberOr(y, 0.5) * height - numberOr(props.height, 0) / 2;
     return (
       <AbsoluteFill>
         <div style={{ position: "absolute", left, top }}>
@@ -70,7 +79,10 @@ export function placedAt(Component: ElementComponent): ElementComponent {
 export function pointsFromSpots(Component: ElementComponent): ElementComponent {
   const Pointed: ElementComponent = ({ fromX, fromY, toX, toY, ...props }) => {
     const { width, height } = useVideoConfig();
-    const point = (x: unknown, y: unknown) => ({ x: Number(x) * width, y: Number(y) * height });
+    const point = (x: unknown, y: unknown) => ({
+      x: numberOr(x, 0.5) * width,
+      y: numberOr(y, 0.5) * height,
+    });
     return (
       <AbsoluteFill>
         <Component {...props} from={point(fromX, fromY)} to={point(toX, toY)} />
@@ -98,7 +110,7 @@ export function painted(Component: ElementComponent): ElementComponent {
 export function playsAtEnd(Component: ElementComponent): ElementComponent {
   const AtEnd: ElementComponent = (props) => {
     const { durationInFrames } = useVideoConfig();
-    const length = Number(props.durationInFrames) || 0;
+    const length = numberOr(props.durationInFrames, 0);
     return <Component {...props} delay={Math.max(0, durationInFrames - length)} />;
   };
   return AtEnd;

@@ -4,7 +4,7 @@ import { strFromU8, unzipSync } from "fflate";
 type LottieAsset = { id?: string; p?: string; u?: string; e?: number };
 type DotLottieManifest = { animations?: Array<{ id: string }> };
 
-const MIME: Record<string, string> = {
+const MIME: Partial<Record<string, string>> = {
   png: "image/png",
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
@@ -20,23 +20,31 @@ const toBase64 = (bytes: Uint8Array) => {
   return btoa(out);
 };
 
+const parseJson = <T>(bytes: Uint8Array): T => JSON.parse(strFromU8(bytes));
+
+const isZip = (bytes: Uint8Array) => bytes[0] === 0x50 && bytes[1] === 0x4b;
+
+export const readLottie = (bytes: Uint8Array): LottieAnimationData =>
+  isZip(bytes) ? readDotLottie(bytes) : parseJson<LottieAnimationData>(bytes);
+
+const extensionOf = (file: string) => file.slice(file.lastIndexOf(".") + 1).toLowerCase();
+
 export function readDotLottie(bytes: Uint8Array): LottieAnimationData {
   const files = unzipSync(bytes);
   const manifest = files["manifest.json"]
-    ? (JSON.parse(strFromU8(files["manifest.json"])) as DotLottieManifest)
+    ? parseJson<DotLottieManifest>(files["manifest.json"])
     : {};
   const id = manifest.animations?.[0]?.id;
   const entry =
     (id && (files[`animations/${id}.json`] ?? files[`a/${id}.json`])) ??
     Object.entries(files).find(([name]) => /^(animations|a)\/[^/]+\.json$/.test(name))?.[1];
   if (!entry) throw new Error("This .lottie file has no animation inside.");
-  const data = JSON.parse(strFromU8(entry)) as LottieAnimationData & { assets?: LottieAsset[] };
+  const data = parseJson<LottieAnimationData & { assets?: LottieAsset[] }>(entry);
   for (const asset of data.assets ?? []) {
     if (!asset.p || asset.e === 1) continue;
     const file = files[`images/${asset.p}`] ?? files[`i/${asset.p}`];
     if (!file) continue;
-    const ext = asset.p.split(".").pop()?.toLowerCase() ?? "png";
-    asset.p = `data:${MIME[ext] ?? "image/png"};base64,${toBase64(file)}`;
+    asset.p = `data:${MIME[extensionOf(asset.p)] ?? "image/png"};base64,${toBase64(file)}`;
     asset.u = "";
     asset.e = 1;
   }

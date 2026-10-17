@@ -4,8 +4,6 @@ import { EMPTY_SPEC, timelineSpecSchema, type TimelineSpec } from "../shared/sch
 import { COMPOSITION_ID } from "./composition-id";
 import { DemoTimeline } from "./demo-timeline";
 
-export { COMPOSITION_ID } from "./composition-id";
-
 export const RemotionRoot: React.FC = () => (
   <Composition
     id={COMPOSITION_ID}

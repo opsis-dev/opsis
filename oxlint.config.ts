@@ -1,4 +1,5 @@
 import { defineConfig } from "oxlint";
+import { IGNORED_PATHS } from "./scripts/lib/tool-config.ts";
 
 const WALL_CLOCK_LIBS = ["framer-motion", "motion", "motion/react", "motion/react-client", "gsap"];
 
@@ -14,24 +15,7 @@ export default defineConfig({
     node: true,
     es2024: true,
   },
-  ignorePatterns: [
-    ".vite/**",
-    "out/**",
-    "remotion-bundle/**",
-    "resources/**",
-    "src/renderer/routeTree.gen.ts",
-    "src/video/elements/remocn/**",
-    "src/video/elements/snap-cn/**",
-    "src/video/elements/remotion-ui/**",
-    "src/video/lib/**",
-    "src/video/hooks/**",
-    "src/renderer/components/ui/**",
-    "src/renderer/hooks/**",
-    "src/shared/elements/elements.generated.ts",
-    "src/shared/fonts/bundled.generated.ts",
-    "src/video/fonts/google/**",
-    "src/video/registry/components.generated.ts",
-  ],
+  ignorePatterns: IGNORED_PATHS,
   rules: {
     "react/react-in-jsx-scope": "off",
     "react/exhaustive-deps": "warn",

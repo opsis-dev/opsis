@@ -1,40 +1,35 @@
-import { continueRender, delayRender, staticFile } from "remotion";
+import { continueRender, delayRender } from "remotion";
 import { findFamily, ROLE_ALIASES, roleFamilyName } from "../../shared/fonts";
 import {
   DEFAULT_PROJECT_FONTS,
   type FontFamilyDef,
   type ProjectFonts,
 } from "../../shared/fonts/types";
+import { resolveAssetRef } from "../assets";
 
 type Resolve = (ref: string) => string;
 type Entry = { signature: string; faces: FontFace[]; ready: Promise<void>; done: boolean };
 
-const FORMATS: Record<FontFamilyDef["faces"][number]["format"], string> = {
-  woff2: "woff2",
-  woff: "woff",
-  truetype: "truetype",
-  opentype: "opentype",
-};
-
-const staticResolve: Resolve = (ref) =>
-  ref.startsWith("app:") ? staticFile(ref.slice("app:".length)) : ref;
-
 const registered = new Map<string, Entry>();
 let project: ProjectFonts = DEFAULT_PROJECT_FONTS;
-let resolveRef: Resolve = staticResolve;
+let resolveRef: Resolve = (ref) => resolveAssetRef(ref, {});
 
 const canRegister = () => typeof document !== "undefined" && typeof FontFace !== "undefined";
 
+const urlsOf = (def: FontFamilyDef) => def.faces.map((f) => resolveRef(f.file));
+
+const signatureOf = (def: FontFamilyDef, urls: string[]) => `${def.id}|${urls.join("|")}`;
+
 function register(cssName: string, def: FontFamilyDef): Promise<void> {
   if (!canRegister()) return Promise.resolve();
-  const urls = def.faces.map((f) => resolveRef(f.file));
-  const signature = `${def.id}|${urls.join("|")}`;
+  const urls = urlsOf(def);
+  const signature = signatureOf(def, urls);
   const current = registered.get(cssName);
   if (current?.signature === signature) return current.ready;
   for (const face of current?.faces ?? []) document.fonts.delete(face);
   const faces = def.faces.map(
     (f, i) =>
-      new FontFace(cssName, `url("${urls[i]}") format("${FORMATS[f.format]}")`, {
+      new FontFace(cssName, `url("${urls[i]}") format("${f.format}")`, {
         weight: f.weight,
         style: f.style,
         display: "block",
@@ -49,13 +44,13 @@ function register(cssName: string, def: FontFamilyDef): Promise<void> {
   return entry.ready;
 }
 
-export function targetFor(name: string): FontFamilyDef | undefined {
+function targetFor(name: string): FontFamilyDef | undefined {
   const role = ROLE_ALIASES[name];
   if (role) return findFamily(roleFamilyName(role, project), project) ?? findFamily(name, project);
   return findFamily(name, project);
 }
 
-export function ensureFont(name: string): Promise<void> {
+function ensureFont(name: string): Promise<void> {
   const def = targetFor(name);
   return def ? register(name, def) : Promise.resolve();
 }
@@ -64,7 +59,7 @@ function isLoaded(name: string): boolean {
   const def = targetFor(name);
   const entry = registered.get(name);
   if (!def || !entry?.done) return false;
-  return entry.signature === `${def.id}|${def.faces.map((f) => resolveRef(f.file)).join("|")}`;
+  return entry.signature === signatureOf(def, urlsOf(def));
 }
 
 export function ensureFontNow(name: string): void {
@@ -79,7 +74,7 @@ export function applyProjectFonts(
   used: string[],
 ): Promise<void> {
   project = fonts;
-  resolveRef = (ref) => (ref.startsWith("app:") ? staticResolve(ref) : resolve(ref));
+  resolveRef = resolve;
   const names = new Set([...Object.keys(ROLE_ALIASES), ...registered.keys(), ...used]);
   return Promise.all([...names].map(ensureFont)).then(() => undefined);
 }

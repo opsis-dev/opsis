@@ -7,7 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { clamp, entranceStyle, exitOpacity, type Entrance } from "./anim";
+import { CLAMPED, entranceStyle, exitOpacity, visibleBackground, type Entrance } from "./anim";
 import { isLandscape, useOverlayFrame } from "./frame";
 import { roleStack } from "../../shared/fonts";
 import { msToFrames } from "../../shared/timeline/time";
@@ -15,8 +15,13 @@ import { msToFrames } from "../../shared/timeline/time";
 const HEADING_FONT = roleStack("heading");
 const MAIN_FONT = roleStack("main");
 
-const Bg: React.FC<{ background?: string }> = ({ background }) =>
-  background && background !== "transparent" ? <AbsoluteFill style={{ background }} /> : null;
+const MAX_WORDS_PER_LINE = 6;
+const CAPTION_LINGER_MS = 250;
+
+const Bg: React.FC<{ background?: string }> = ({ background }) => {
+  const fill = visibleBackground(background);
+  return fill ? <AbsoluteFill style={{ background: fill }} /> : null;
+};
 
 export const Title: React.FC<{
   eyebrow?: string;
@@ -130,7 +135,7 @@ export const KineticHeadline: React.FC<{
         .filter(Boolean)
         .map((w) => ({
           word: w.replace(/^\*|\*$/g, ""),
-          em: /^\*.*\*$/.test(w) || w.startsWith("*") || w.endsWith("*"),
+          em: w.startsWith("*") || w.endsWith("*"),
         })),
     [text],
   );
@@ -163,7 +168,7 @@ export const KineticHeadline: React.FC<{
             const f = frame - i * wordStagger;
             const s = spring({ frame: f, fps, config: { damping: 18, stiffness: 160 } });
             const sweep = interpolate(f, [8, 22], [0, 1], {
-              ...clamp,
+              ...CLAMPED,
               easing: Easing.out(Easing.cubic),
             });
             return (
@@ -173,7 +178,7 @@ export const KineticHeadline: React.FC<{
                   position: "relative",
                   display: "inline-block",
                   color: em ? emphasisColor : color,
-                  opacity: interpolate(f, [0, 6], [0, 1], clamp),
+                  opacity: interpolate(f, [0, 6], [0, 1], CLAMPED),
                   transform: `translateY(${(1 - s) * 0.5}em) rotate(${(1 - s) * 4}deg)`,
                 }}
               >
@@ -281,6 +286,13 @@ export const LowerThird: React.FC<{
   );
 };
 
+const CALLOUT_DIRECTION = {
+  top: [0.35, -1],
+  bottom: [0.35, 1],
+  left: [-1, -0.35],
+  right: [1, -0.35],
+} as const;
+
 export const Callout: React.FC<{
   text: string;
   x: number;
@@ -292,17 +304,13 @@ export const Callout: React.FC<{
 }> = ({ text, x, y, side = "top", color = "#fafafa", accent = "#f43f5e", fontFamily }) => {
   const frame = useCurrentFrame();
   const { width, height, durationInFrames } = useVideoConfig();
-  const k = width / 1920;
-  const draw = interpolate(frame, [0, 18], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
+  const { k } = useOverlayFrame();
+  const draw = interpolate(frame, [0, 18], [0, 1], {
+    ...CLAMPED,
+    easing: Easing.out(Easing.cubic),
+  });
   const off = 170 * k;
-  const [dx, dy] =
-    side === "top"
-      ? [0.35, -1]
-      : side === "bottom"
-        ? [0.35, 1]
-        : side === "left"
-          ? [-1, -0.35]
-          : [1, -0.35];
+  const [dx, dy] = CALLOUT_DIRECTION[side];
   const sx = x * width + dx * off;
   const sy = y * height + dy * off;
   const len = Math.hypot(dx * off, dy * off);
@@ -354,7 +362,7 @@ export const Captions: React.FC<{
   highlightColor?: string;
   fontFamily?: string;
 }> = ({
-  captions = [],
+  captions,
   style = "word-by-word",
   position = "bottom",
   fontSize = 56,
@@ -371,7 +379,7 @@ export const Captions: React.FC<{
     let cur: Caption[] = [];
     for (const c of captions) {
       cur.push(c);
-      if (cur.length >= 6 || /[.!?]$/.test(c.text)) {
+      if (cur.length >= MAX_WORDS_PER_LINE || /[.!?]$/.test(c.text)) {
         out.push(cur);
         cur = [];
       }
@@ -379,7 +387,9 @@ export const Captions: React.FC<{
     if (cur.length) out.push(cur);
     return out;
   }, [captions]);
-  const line = lines.find((l) => tMs >= l[0].startMs && tMs <= l[l.length - 1].endMs + 250);
+  const line = lines.find(
+    (l) => tMs >= l[0].startMs && tMs <= l[l.length - 1].endMs + CAPTION_LINGER_MS,
+  );
   if (!line) return null;
   return (
     <AbsoluteFill
@@ -416,21 +426,12 @@ export const Captions: React.FC<{
             fps,
             config: { damping: 14, stiffness: 220 },
           });
-          const c =
-            style === "line"
-              ? color
-              : style === "karaoke"
-                ? spoken
-                  ? highlightColor
-                  : color
-                : active
-                  ? highlightColor
-                  : color;
+          const lit = style === "karaoke" ? spoken : style === "word-by-word" && active;
           return (
             <span
               key={i}
               style={{
-                color: c,
+                color: lit ? highlightColor : color,
                 display: "inline-block",
                 transform: style === "word-by-word" ? `scale(${0.85 + pop * 0.15})` : undefined,
                 opacity: style === "karaoke" && !spoken ? 0.55 : 1,

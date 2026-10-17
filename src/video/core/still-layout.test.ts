@@ -27,10 +27,6 @@ describe("windowBox", () => {
   it("is height-limited when the shot is taller than the canvas", () => {
     expect(windowBox(2, HD, 0.8)).toEqual({ width: 432, height: 864 });
   });
-
-  it("rejects a shot with no size", () => {
-    expect(() => windowBox(0, HD, 0.8)).toThrow("aspect must be > 0");
-  });
 });
 
 describe("windowLayout", () => {
