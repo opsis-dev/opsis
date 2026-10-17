@@ -3,6 +3,7 @@ import { getNodeDef } from "@/shared/nodes/registry";
 import { CARD_WIDTH, estimateCardHeight } from "@/shared/nodes/size";
 import type { Workflow } from "@/shared/schema/workflow";
 import { useWorkflowStore } from "../store/workflow";
+import { isGroupNode } from "@/shared/graph";
 
 const elk = new ELK();
 const LAYER_GAP = 80;
@@ -16,7 +17,7 @@ function measured(id: string): { width: number; height: number } | null {
 }
 
 async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: number }>> {
-  const nodes = wf.nodes.filter((n) => !n.parentId && n.type !== "core.group");
+  const nodes = wf.nodes.filter((n) => !n.parentId && !isGroupNode(n));
   const ids = new Set(nodes.map((n) => n.id));
   const graph = {
     id: "root",

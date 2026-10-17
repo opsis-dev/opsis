@@ -13,13 +13,12 @@ import {
   BASE_POSE,
   interpolatePose,
   moveDuration,
-  partitionPoint,
   poseToCss,
   posesNearlyEqual,
   poseTravelPx,
   type CameraPose,
 } from "./camera";
-import { clamp, lerp } from "../../../shared/math";
+import { clamp, lerp, partitionPoint, sampleKeyed } from "../../../shared/math";
 
 export const S_MAX = 1.74;
 const S_MIN = 1.18;
@@ -394,16 +393,15 @@ export function buildCameraTrack(log: ClickLog, speed = 1, tuning: CameraTuning 
 }
 
 export function sampleTrack(keys: CameraKey[], t: number): CameraPose {
-  if (keys.length === 0) return BASE_POSE;
-  if (t <= keys[0].t) return keys[0].pose;
-  const last = keys[keys.length - 1];
-  if (t >= last.t) return last.pose;
-  const i = partitionPoint(keys, (k) => k.t < t);
-  const a = keys[i - 1];
-  const b = keys[i];
-  const dur = b.t - a.t;
-  if (dur < 1e-6) return b.pose;
-  return interpolatePose(a.pose, b.pose, (t - a.t) / dur);
+  return (
+    sampleKeyed(
+      keys,
+      t,
+      (k) => k.t,
+      (k) => k.pose,
+      (a, b, p) => interpolatePose(a.pose, b.pose, p),
+    ) ?? BASE_POSE
+  );
 }
 
 const trackCache = new WeakMap<ClickLog, Map<string, CameraKey[]>>();

@@ -1,5 +1,5 @@
 import type { Ease, Keyframe } from "../schema/timeline";
-import { clamp } from "../math";
+import { clamp, lerp, sampleKeyed } from "../math";
 
 function ease(kind: Ease, t: number): number {
   const x = clamp(t, 0, 1);
@@ -21,19 +21,15 @@ export const sortKeys = (keys: Keyframe[]): Keyframe[] =>
   keys.toSorted((a, b) => a.frame - b.frame);
 
 export function envelopeAt(keys: Keyframe[] | undefined, frame: number, fallback: number): number {
-  if (!keys?.length) return fallback;
-  const sorted = sortKeys(keys);
-  if (frame <= sorted[0].frame) return sorted[0].value;
-  for (let i = 0; i < sorted.length - 1; i++) {
-    const a = sorted[i];
-    const b = sorted[i + 1];
-    if (frame < b.frame) {
-      const span = b.frame - a.frame;
-      if (span <= 0) return b.value;
-      return a.value + (b.value - a.value) * ease(a.ease, (frame - a.frame) / span);
-    }
-  }
-  return sorted[sorted.length - 1].value;
+  return (
+    sampleKeyed(
+      sortKeys(keys ?? []),
+      frame,
+      (k) => k.frame,
+      (k) => k.value,
+      (a, b, t) => lerp(a.value, b.value, ease(a.ease, t)),
+    ) ?? fallback
+  );
 }
 
 const STEPS_PER_SEGMENT = 8;

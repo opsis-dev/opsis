@@ -5,8 +5,9 @@ import { app, type BrowserWindow } from "electron";
 import { unzipSync } from "fflate";
 import { create, type Font } from "fontkit";
 import { z } from "zod";
-import { baseName } from "../shared/asset-ref";
-import { fontSlug } from "../shared/fonts";
+import { baseName, extensionOf, projectRef } from "../shared/asset-ref";
+import { fontSlug, sameFamily } from "../shared/fonts";
+import { safeName } from "../shared/project-folder";
 import { fontFamilySchema, type FontFaceDef, type FontFamilyDef } from "../shared/fonts/types";
 import {
   familyNameFrom,
@@ -91,7 +92,7 @@ function openFont(bytes: Uint8Array): FontTables | null {
 function describe(name: string, bytes: Uint8Array): FontCandidate | null {
   const font = openFont(bytes);
   if (!font) return null;
-  const ext = /\.([a-z0-9]+)$/i.exec(name)?.[1]?.toLowerCase() ?? "";
+  const ext = extensionOf(name);
   const axes = font.variationAxes;
   const wght = axes?.wght;
   const os2 = font["OS/2"];
@@ -188,14 +189,14 @@ export function guessCategory(family: string): FontFamilyDef["category"] {
 }
 
 async function writeFamily(library: FontFamilyDef[], fam: NewFamily): Promise<FontFamilyDef> {
-  const existing = library.find((f) => f.family.toLowerCase() === fam.family.toLowerCase());
+  const existing = library.find((f) => sameFamily(f.family, fam.family));
   const id = existing?.id ?? uniqueId(fontSlug(fam.family), library);
   const dir = path.join(fontsDir(), id);
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
   const faces: FontFaceDef[] = [];
   for (const file of fam.files) {
-    const base = baseName(file.name).replace(/[^\w.-]+/g, "-");
+    const base = safeName(baseName(file.name), { fallback: "font", lower: false });
     await writeFile(path.join(dir, base), file.bytes);
     faces.push({ ...file.face, file: `library:${id}/${base}` });
   }
@@ -267,7 +268,7 @@ export async function copyFontToProject(
     const rel = ref.replace(/^library:/, "");
     const base = path.basename(rel);
     await copyFile(path.join(fontsDir(), rel), path.join(dest, base));
-    return `project:assets/fonts/${def.id}/${base}`;
+    return projectRef(`assets/fonts/${def.id}/${base}`);
   };
   const faces: FontFaceDef[] = [];
   for (const face of def.faces) faces.push({ ...face, file: await toProject(face.file) });

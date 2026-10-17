@@ -15,7 +15,13 @@ import {
 import { catalogEntry, nodeCatalog } from "../shared/api/catalog";
 import { checkWorkflow } from "../shared/api/check";
 import { openApiDocument } from "../shared/api/openapi";
-import type { ApiEditorReply, ApiFailure, ApiReply, ApiRunState } from "../shared/api/types";
+import {
+  apiFailure,
+  apiOk,
+  type ApiEditorReply,
+  type ApiReply,
+  type ApiRunState,
+} from "../shared/api/types";
 import { errorMessage } from "../shared/errors";
 import { WORKFLOW_FILE } from "../shared/schema/workflow";
 import { askEditor, followRunEvents } from "./api-editor";
@@ -31,9 +37,6 @@ type Route = {
 };
 
 class BadRequest extends Error {}
-
-const ok = <R>(result: R): ApiReply<R> => ({ ok: true, result });
-const failure = (status: number, error: string): ApiFailure => ({ ok: false, status, error });
 
 function send(res: ServerResponse, code: number, payload: unknown): void {
   const text = JSON.stringify(payload, null, 2);
@@ -86,7 +89,7 @@ async function parseBody<T>(
 async function appStatus(): Promise<Answer> {
   const project = await askEditor({ op: "read" });
   const read = project.ok ? project.result : null;
-  return ok({
+  return apiOk({
     app: "Demoflow",
     version: app.getVersion(),
     project: read ? { dir: read.dir, name: read.workflow.name } : null,
@@ -98,24 +101,24 @@ async function openProject({ req }: Context): Promise<Answer> {
   const { dir } = await parseBody(req, openBody);
   if (!path.isAbsolute(dir)) throw new BadRequest("dir must be an absolute folder path.");
   if (!existsSync(path.join(dir, WORKFLOW_FILE)))
-    return failure(404, `There's no Demoflow project in ${dir}.`);
+    return apiFailure(404, `There's no Demoflow project in ${dir}.`);
   return askEditor({ op: "open", dir });
 }
 
 async function validate({ req }: Context): Promise<Answer> {
   const { ok: valid, problems } = checkWorkflow(await readBody(req, true));
-  return ok({ ok: valid, problems });
+  return apiOk({ ok: valid, problems });
 }
 
 async function replaceProject({ req }: Context): Promise<Answer> {
   const result = checkWorkflow(await readBody(req, true));
   if (!result.workflow)
-    return { ...failure(400, "That isn't a valid project."), problems: result.problems };
+    return { ...apiFailure(400, "That isn't a valid project."), problems: result.problems };
   return askEditor({ op: "replace", workflow: result.workflow });
 }
 
 const runState = (read: ApiEditorReply<"read">): ApiReply<ApiRunState> =>
-  read.ok ? ok({ running: read.result.running, runId: read.result.runId }) : read;
+  read.ok ? apiOk({ running: read.result.running, runId: read.result.runId }) : read;
 
 const route = (method: string, pattern: string, run: Route["run"]): Route => ({
   method,
@@ -124,12 +127,12 @@ const route = (method: string, pattern: string, run: Route["run"]): Route => ({
 });
 
 const ROUTES: Route[] = [
-  route("GET", "/openapi.json", () => ok(openApiDocument(app.getVersion()))),
+  route("GET", "/openapi.json", () => apiOk(openApiDocument(app.getVersion()))),
   route("GET", "/status", appStatus),
-  route("GET", "/nodes", () => ok(nodeCatalog())),
+  route("GET", "/nodes", () => apiOk(nodeCatalog())),
   route("GET", "/nodes/:type", ({ params: [type] }) => {
     const entry = catalogEntry(type);
-    return entry ? ok(entry) : failure(404, "No such node type.");
+    return entry ? apiOk(entry) : apiFailure(404, "No such node type.");
   }),
   route("POST", "/validate", validate),
   route("POST", "/open", openProject),

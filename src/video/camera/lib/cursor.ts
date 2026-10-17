@@ -6,8 +6,7 @@ import {
   type ClickEvent,
   type CursorSample,
 } from "./click-log";
-import { partitionPoint } from "./camera";
-import { clamp, lerp } from "../../../shared/math";
+import { clamp, lerp, sampleKeyed } from "../../../shared/math";
 
 type CursorState = {
   x: number;
@@ -32,18 +31,15 @@ export function cursorOpacity(clicks: ClickEvent[], tS: number): number {
 }
 
 export function samplePath(track: CursorSample[], tS: number): { x: number; y: number } | null {
-  if (track.length === 0) return null;
-  const tMs = tS * 1000;
-  if (tMs <= track[0].t) return { x: track[0].x, y: track[0].y };
-  const last = track[track.length - 1];
-  if (tMs >= last.t) return { x: last.x, y: last.y };
-
-  const hi = partitionPoint(track, (s) => s.t <= tMs);
-  const a = track[hi - 1];
-  const b = track[hi];
-  const span = b.t - a.t;
-  const p = span < 1e-6 ? 0 : (tMs - a.t) / span;
-  return { x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p) };
+  return (
+    sampleKeyed(
+      track,
+      tS * 1000,
+      (s) => s.t,
+      (s) => ({ x: s.x, y: s.y }),
+      (a, b, p) => ({ x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p) }),
+    ) ?? null
+  );
 }
 
 function squashFor(c: ClickEvent, tS: number): number {

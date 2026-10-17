@@ -8,6 +8,9 @@ import type { TraceModel } from "../shared/trace";
 import { parseTrace } from "./model";
 import { sha256Hex } from "../engine/hash";
 import { atomicWrite } from "../engine/json";
+import { projectPaths } from "../engine/project-paths";
+import { projectRef } from "../shared/asset-ref";
+import { PROJECT_DIRS } from "../shared/project-dirs";
 
 type TraceEntry = { name: string; sha: string; zstd: boolean; size: number };
 
@@ -27,7 +30,7 @@ const BINARY = /\.(jpe?g|png|webp|gif|avif|woff2?|mp4|webm)$/i;
 const MANIFEST_SUFFIX = ".json.zst";
 const TEXT_PART = /^(?:\d+-)?trace\.(trace|network)$/;
 
-export const traceRoot = (projectDir: string) => path.join(projectDir, ".demoflow", "traces");
+export const traceRoot = (projectDir: string) => projectPaths(projectDir).traces;
 const blobName = (e: TraceEntry) =>
   e.zstd ? `${e.sha}.zst` : `${e.sha}${path.extname(e.name).toLowerCase()}`;
 const blobRel = (e: TraceEntry) => path.posix.join("blobs", e.sha.slice(0, 2), blobName(e));
@@ -107,7 +110,7 @@ export async function readTrace(projectDir: string, id: string): Promise<TraceMo
       const raw = await readFile(path.join(root, blobRel(e)));
       parts[kind].push((e.zstd ? zstdDecompressSync(raw) : raw).toString());
     } else if (!e.zstd) {
-      sources.set(e.name, `project:${path.posix.join(".demoflow", "traces", blobRel(e))}`);
+      sources.set(e.name, projectRef(path.posix.join(PROJECT_DIRS.traces, blobRel(e))));
     }
   }
   return {

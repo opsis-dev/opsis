@@ -1,5 +1,6 @@
 import type { NodeRunStatus, RunEvent } from "./schema/events";
 import type { Artifact, NodeResult } from "./schema/values";
+import { isOutputType } from "./nodes/output";
 
 type NodeProgress = { value: number; message?: string };
 
@@ -124,7 +125,7 @@ export function exportedArtifacts(
   results: Partial<Record<string, NodeResult>>,
 ): Artifact[] {
   return nodes
-    .filter((n) => n.type.startsWith("output."))
+    .filter((n) => isOutputType(n.type))
     .flatMap((n) => results[n.id] ?? [])
     .filter((r) => r.artifacts.length)
     .toSorted((a, b) => b.finishedAt - a.finishedAt)

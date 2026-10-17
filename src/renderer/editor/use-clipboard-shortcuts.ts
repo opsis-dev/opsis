@@ -11,6 +11,7 @@ import {
 import { isEditingElement } from "@/renderer/lib/dom";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
+import { isRecord, tryParseJson } from "@/shared/guards";
 
 const CLIPBOARD_TAG = "demoflow/v1";
 const PASTE_OFFSET = { x: 60, y: 60 };
@@ -39,17 +40,10 @@ function pasteSubgraph({ nodes, edges }: Subgraph): void {
 }
 
 function taggedPayload(text: string): unknown {
-  try {
-    const value: unknown = JSON.parse(text);
-    return typeof value === "object" &&
-      value !== null &&
-      "tag" in value &&
-      value.tag === CLIPBOARD_TAG
-      ? value
-      : null;
-  } catch {
-    return null;
-  }
+  const parsed = tryParseJson(text);
+  return parsed.ok && isRecord(parsed.value) && parsed.value.tag === CLIPBOARD_TAG
+    ? parsed.value
+    : null;
 }
 
 async function copySelection(): Promise<void> {

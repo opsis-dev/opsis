@@ -3,6 +3,7 @@ import { mediaInput } from "../../shared/nodes/media";
 import type { CompileValue, MediaValue } from "../../shared/schema/values";
 import type { ExecutorContext } from "../engine/context";
 import type { WorkerEnv } from "../../shared/worker-protocol";
+import { isProjectRef, projectRelPath } from "../../shared/asset-ref";
 
 export function publicDir(
   env: Pick<WorkerEnv, "isPackaged" | "appRoot" | "resourcesPath">,
@@ -13,7 +14,7 @@ export function publicDir(
 }
 
 export function refToPath(ctx: Pick<ExecutorContext, "projectDir" | "env">, ref: string): string {
-  if (ref.startsWith("project:")) return path.join(ctx.projectDir, ref.slice("project:".length));
+  if (isProjectRef(ref)) return path.join(ctx.projectDir, projectRelPath(ref));
   if (ref.startsWith("app:")) return path.join(publicDir(ctx.env), ref.slice("app:".length));
   return path.isAbsolute(ref) ? ref : path.join(ctx.projectDir, ref);
 }

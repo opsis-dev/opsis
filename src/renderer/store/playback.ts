@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { clamp } from "@/shared/math";
+import { frameIn } from "@/shared/timeline/time";
 
 type PlayerController = {
   seek: (frame: number) => void;
@@ -70,9 +71,6 @@ const dispatch = (command: PlaybackCommand) => {
 };
 
 const MAX_SHUTTLE_RATE = 4;
-
-const frameIn = (frame: number, total: number) =>
-  clamp(Math.round(frame), 0, Math.max(0, total - 1));
 
 export function playRange(
   inPoint: number | null,

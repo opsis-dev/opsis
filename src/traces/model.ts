@@ -7,6 +7,8 @@ import type {
   TraceRequest,
 } from "../shared/trace";
 import { formatDuration, humanize } from "../shared/format";
+import { finiteNumber } from "../shared/math";
+import { isRecord } from "../shared/guards";
 
 type Json = Record<string, unknown>;
 
@@ -64,21 +66,25 @@ export function parseNdjson(text: string): Json[] {
 }
 
 const str = (v: unknown) => (typeof v === "string" ? v : undefined);
-const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
-const obj = (v: unknown) => (v && typeof v === "object" ? (v as Json) : {});
+const obj = (v: unknown): Json => (isRecord(v) ? v : {});
 
 function readPoint(value: unknown, fallbackY?: number): TraceAction["point"] {
   const p = obj(value);
-  const x = num(p.x);
-  const y = num(p.y) ?? fallbackY;
+  const x = finiteNumber(p.x);
+  const y = finiteNumber(p.y) ?? fallbackY;
   return x === undefined || y === undefined ? undefined : { x, y };
 }
 
 function readBox(value: unknown): TraceAction["box"] {
   const b = obj(value);
-  const width = num(b.width);
+  const width = finiteNumber(b.width);
   if (width === undefined) return undefined;
-  return { x: num(b.x) ?? 0, y: num(b.y) ?? 0, width, height: num(b.height) ?? 0 };
+  return {
+    x: finiteNumber(b.x) ?? 0,
+    y: finiteNumber(b.y) ?? 0,
+    width,
+    height: finiteNumber(b.height) ?? 0,
+  };
 }
 
 function describe(method: string, params: Json): { title: string; target?: string } {
@@ -101,7 +107,7 @@ function describe(method: string, params: Json): { title: string; target?: strin
       return { title: `${verb} ${str(params.key) ?? ""}`.trim(), target: selector };
     case "waitForTimeout":
       return {
-        title: `${verb} ${formatDuration(num(params.waitTimeout) ?? num(params.timeout) ?? 0, "precise")}`,
+        title: `${verb} ${formatDuration(finiteNumber(params.waitTimeout) ?? finiteNumber(params.timeout) ?? 0, "precise")}`,
       };
     default:
       return { title: verb, target: selector };
@@ -115,8 +121,8 @@ function errorMessage(value: unknown): string | undefined {
 
 function readViewport(e: Json): TraceModel["viewport"] {
   const v = obj(obj(e.options).viewport);
-  const width = num(v.width);
-  const height = num(v.height);
+  const width = finiteNumber(v.width);
+  const height = finiteNumber(v.height);
   return width && height ? { width, height } : null;
 }
 
@@ -127,7 +133,7 @@ function beginCall(e: Json, nextGroup: () => string | undefined): Call | undefin
   const group = method === "tracingGroup";
   const params = obj(e.params);
   const described = describe(method, params);
-  const start = num(e.startTime) ?? 0;
+  const start = finiteNumber(e.startTime) ?? 0;
   const point = method.startsWith("mouse") ? readPoint(params) : undefined;
   return {
     method,
@@ -162,7 +168,7 @@ function addInput(a: TraceAction, e: Json): void {
 }
 
 function endAction(a: TraceAction, e: Json): void {
-  a.end = num(e.endTime) ?? a.start;
+  a.end = finiteNumber(e.endTime) ?? a.start;
   a.error = errorMessage(e.error);
   const point = a.point ?? readPoint(e.point, 0);
   if (point) a.point = point;
@@ -174,7 +180,7 @@ function readConsole(e: Json): TraceConsole | undefined {
   return {
     level: LEVELS[str(e.messageType) ?? "log"] ?? "log",
     text,
-    time: num(e.time) ?? 0,
+    time: finiteNumber(e.time) ?? 0,
     url: str(obj(e.location).url) || undefined,
   };
 }
@@ -186,7 +192,7 @@ function readPageError(e: Json): TraceError | undefined {
   return {
     message: str(inner.message) ?? str(obj(error.value).s) ?? "Page error",
     stack: str(inner.stack),
-    time: num(e.time) ?? 0,
+    time: finiteNumber(e.time) ?? 0,
   };
 }
 
@@ -200,9 +206,9 @@ function readFrame(
   if (!src) return undefined;
   return {
     src,
-    time: num(e.timestamp) ?? 0,
-    width: num(e.width) ?? 0,
-    height: num(e.height) ?? 0,
+    time: finiteNumber(e.timestamp) ?? 0,
+    width: finiteNumber(e.width) ?? 0,
+    height: finiteNumber(e.height) ?? 0,
   };
 }
 
@@ -278,16 +284,19 @@ function parseNetwork(text: string): TraceRequest[] {
       const request = obj(s.request);
       const response = obj(s.response);
       const content = obj(response.content);
-      const size = num(content.size) ?? -1;
+      const size = finiteNumber(content.size) ?? -1;
       return {
         method: str(request.method) ?? "GET",
         url: str(request.url) ?? "",
-        status: num(response.status) ?? -1,
+        status: finiteNumber(response.status) ?? -1,
         mimeType: str(content.mimeType) ?? "",
         resourceType: str(s["_resourceType"]) ?? "",
-        size: size >= 0 ? size : (num(response["_transferSize"]) ?? num(response.bodySize) ?? -1),
-        start: num(s["_monotonicTime"]) ?? 0,
-        duration: num(s.time) ?? 0,
+        size:
+          size >= 0
+            ? size
+            : (finiteNumber(response["_transferSize"]) ?? finiteNumber(response.bodySize) ?? -1),
+        start: finiteNumber(s["_monotonicTime"]) ?? 0,
+        duration: finiteNumber(s.time) ?? 0,
         failure: str(response["_failureText"]),
       };
     })

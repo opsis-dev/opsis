@@ -28,6 +28,7 @@ import { NumberControl } from "./form/number-field";
 import { isColor, labelFor, schemaKind } from "./form/schema-kind";
 import { StringField } from "./form/string-field";
 import type { FieldProps, FormContext, Patch } from "./form/types";
+import { isRecord } from "@/shared/guards";
 
 type Entry = { key: string; field: z.ZodType; meta: FieldMeta };
 
@@ -36,7 +37,6 @@ const VALUE_WIDGETS: Partial<Record<string, ComponentType<FieldProps<unknown>>>>
   envelope: EnvelopeField,
 };
 
-const isRecord = (v: unknown): v is Patch => typeof v === "object" && v !== null;
 const isString = (v: unknown): v is string => typeof v === "string";
 
 function visible(meta: FieldMeta, value: Patch): boolean {

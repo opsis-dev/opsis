@@ -10,12 +10,13 @@ import {
   type WorkflowSettings,
 } from "@/shared/schema/workflow";
 import { defaultMix, type Mix } from "@/shared/mix/types";
-import { randomId } from "@/shared/ids";
+import { nodeIdFor, randomId } from "@/shared/ids";
 import { renameVariable } from "@/shared/vars";
 import { sameFamily } from "@/shared/fonts";
 import type { FontFamilyDef } from "@/shared/fonts/types";
 import { platform } from "@/renderer/lib/platform";
 import { useUiStore } from "./ui";
+import { isGroupNode } from "@/shared/graph";
 
 type WorkflowState = {
   projectDir: string | null;
@@ -152,7 +153,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
       setMarkers: (fn) => get().update((wf) => ({ ...wf, markers: fn(wf.markers) })),
 
       addNode: (type, position, params) => {
-        const id = randomId(type.split(".")[0]);
+        const id = nodeIdFor(type);
         const node: WorkflowNode = {
           id,
           type,
@@ -276,7 +277,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
       rename: (name) => get().update((wf) => ({ ...wf, name })),
 
       paste: (nodes, edges, offset) => {
-        const renamed = nodes.map((node) => ({ node, id: randomId(node.type.split(".")[0]) }));
+        const renamed = nodes.map((node) => ({ node, id: nodeIdFor(node.type) }));
         const map = new Map(renamed.map(({ node, id }) => [node.id, id]));
         const fresh = renamed.map(({ node: n, id }) => {
           const parentId = n.parentId ? map.get(n.parentId) : undefined;
@@ -314,7 +315,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
         const wf = get().workflow;
         if (!wf) return;
         const members = wf.nodes.filter(
-          (n) => ids.includes(n.id) && !n.parentId && n.type !== "core.group",
+          (n) => ids.includes(n.id) && !n.parentId && !isGroupNode(n),
         );
         if (members.length < 2) return;
         const xs = members.map((n) => n.position.x);

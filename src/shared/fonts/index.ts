@@ -1,5 +1,6 @@
 import { BUNDLED_FONTS } from "./bundled.generated";
 import type { FontFamilyDef, ProjectFonts } from "./types";
+import { safeName } from "../project-folder";
 
 const FONT_ROLES = ["main", "heading", "code"] as const;
 
@@ -28,7 +29,7 @@ const GENERIC: Record<FontFamilyDef["category"], string> = {
 function allFamilies(fonts: Pick<ProjectFonts, "families">): FontFamilyDef[] {
   const seen = new Set<string>();
   return [...fonts.families, ...BUNDLED_FONTS].filter((f) => {
-    const key = f.family.toLowerCase();
+    const key = familyKey(f.family);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -39,8 +40,8 @@ export function findFamily(
   name: string,
   fonts: Pick<ProjectFonts, "families">,
 ): FontFamilyDef | undefined {
-  const wanted = (FAMILY_ALIASES[name] ?? name).toLowerCase();
-  return allFamilies(fonts).find((f) => f.family.toLowerCase() === wanted);
+  const wanted = FAMILY_ALIASES[name] ?? name;
+  return allFamilies(fonts).find((f) => sameFamily(f.family, wanted));
 }
 
 export function roleFamilyName(role: FontRole, fonts: ProjectFonts): string {
@@ -68,14 +69,8 @@ export function firstFamily(stack: string): string {
     .replace(/^["']|["']$/g, "");
 }
 
-export function fontSlug(family: string): string {
-  return (
-    family
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "font"
-  );
-}
+export const fontSlug = (family: string): string =>
+  safeName(family, { fallback: "font", alphabet: "alnum" });
 
 export const familyKey = (family: string): string => family.toLowerCase();
 

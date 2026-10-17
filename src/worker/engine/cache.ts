@@ -2,19 +2,15 @@ import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { LastRun, NodeResult } from "../../shared/schema/values";
-import { stableJson } from "../../shared/hash";
-import { sha256Hex } from "../../engine/hash";
+import { versionedHash } from "../../engine/hash";
 import { readJson, writeJson } from "../../engine/json";
 import { projectPaths } from "../../engine/project-paths";
 
 export const ENGINE_VERSION = "demoflow-engine/1";
 
 export function nodeHash(type: string, params: unknown, upstream: Array<[string, string]>): string {
-  const ports = [...upstream]
-    .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([portId, hash]) => `${portId}=${hash};`)
-    .join("");
-  return sha256Hex(`${ENGINE_VERSION}\0${type}\0${stableJson(params)}\0${ports}`, 24);
+  const ports = [...upstream].sort(([a], [b]) => (a < b ? -1 : 1));
+  return versionedHash(ENGINE_VERSION, { type, params, ports });
 }
 
 export async function readCached(

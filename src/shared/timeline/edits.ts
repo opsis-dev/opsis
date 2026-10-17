@@ -11,7 +11,9 @@ import {
   type WorkflowNode,
 } from "../schema/workflow";
 import { findHandle, slotIndex, type AudioBar, type ChainLink, type VideoBar } from "./flatten";
-import { clamp, round2 } from "../math";
+import { clamp, finiteOr, round2 } from "../math";
+import { nodeIdPrefix } from "../ids";
+import { formatNumberList, parseNumberList } from "../format";
 import { framesToMs, msToFrames } from "./time";
 
 export type EditContext = {
@@ -45,22 +47,6 @@ const clipName = (wf: Workflow, id: string) => nodeNameById(wf, id, "this clip")
 
 type ParamAt = Pick<ParamRef, "nodeId" | "param" | "index">;
 
-const finiteOr0 = (value: unknown) => {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : 0;
-};
-
-const parseList = (raw: unknown): number[] =>
-  String(raw ?? "")
-    .split(",")
-    .map((part) => finiteOr0(part.trim()));
-
-function formatList(parts: number[]): string {
-  const trimmed = [...parts];
-  while (trimmed.length > 1 && trimmed.at(-1) === 0) trimmed.pop();
-  return trimmed.every((p) => p === 0) ? "" : trimmed.join(",");
-}
-
 const paramValue = (node: WorkflowNode, param: string): unknown =>
   node.params[param] ?? defaultParams(node.type)[param];
 
@@ -68,16 +54,16 @@ function readParam(wf: Workflow, ref: ParamAt): number {
   const node = wf.nodes.find((n) => n.id === ref.nodeId);
   if (!node) return 0;
   const raw = paramValue(node, ref.param);
-  return ref.index === undefined ? finiteOr0(raw) : (parseList(raw)[ref.index] ?? 0);
+  return ref.index === undefined ? finiteOr(raw, 0) : (parseNumberList(raw)[ref.index] ?? 0);
 }
 
 function writeParam(wf: Workflow, ref: ParamAt, value: number): Workflow {
   const write = (node: WorkflowNode): unknown => {
     if (ref.index === undefined) return value;
-    const parts = parseList(paramValue(node, ref.param));
+    const parts = parseNumberList(paramValue(node, ref.param));
     while (parts.length <= ref.index) parts.push(0);
     parts[ref.index] = value;
-    return formatList(parts);
+    return formatNumberList(parts);
   };
   return {
     ...wf,
@@ -170,7 +156,7 @@ function newNode(
   const source = wf.nodes.find((n) => n.id === near.source);
   const target = wf.nodes.find((n) => n.id === near.target);
   return {
-    id: ctx.makeId(type.split(".")[0]),
+    id: ctx.makeId(nodeIdPrefix(type)),
     type,
     label,
     params: { ...defaultParams(type), ...params },

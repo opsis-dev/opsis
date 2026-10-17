@@ -14,6 +14,7 @@ import { Spinner } from "@/renderer/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { isPreviewQuality, isPreviewShape, useViewOptions } from "../store/view-options";
+import { framesToMs } from "@/shared/timeline/time";
 
 const PROJECT_SHAPE = "Project shape";
 const shapeLabel = (shape: string) => (shape === "project" ? PROJECT_SHAPE : shape);
@@ -92,7 +93,7 @@ export function PreviewToolbar({
       {sourceTitle ? <Badge variant="secondary">{sourceTitle}</Badge> : null}
       <span className="truncate tabular-nums">
         {spec.width}×{spec.height} · {spec.fps} fps ·{" "}
-        {formatDuration((spec.durationInFrames / spec.fps) * 1000)}
+        {formatDuration(framesToMs(spec.durationInFrames, spec.fps))}
       </span>
       {stale ? <UpdatingSound /> : null}
       <div className="flex-1" />

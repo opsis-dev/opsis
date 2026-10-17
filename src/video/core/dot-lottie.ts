@@ -1,17 +1,10 @@
 import type { LottieAnimationData } from "@remotion/lottie";
 import { strFromU8, unzipSync } from "fflate";
+import { extensionOf } from "../../shared/asset-ref";
+import { IMAGE_MIME } from "../../shared/mime";
 
 type LottieAsset = { id?: string; p?: string; u?: string; e?: number };
 type DotLottieManifest = { animations?: Array<{ id: string }> };
-
-const MIME: Partial<Record<string, string>> = {
-  png: "image/png",
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  webp: "image/webp",
-  gif: "image/gif",
-  svg: "image/svg+xml",
-};
 
 const toBase64 = (bytes: Uint8Array) => {
   let out = "";
@@ -26,8 +19,6 @@ const isZip = (bytes: Uint8Array) => bytes[0] === 0x50 && bytes[1] === 0x4b;
 
 export const readLottie = (bytes: Uint8Array): LottieAnimationData =>
   isZip(bytes) ? readDotLottie(bytes) : parseJson<LottieAnimationData>(bytes);
-
-const extensionOf = (file: string) => file.slice(file.lastIndexOf(".") + 1).toLowerCase();
 
 export function readDotLottie(bytes: Uint8Array): LottieAnimationData {
   const files = unzipSync(bytes);
@@ -44,7 +35,7 @@ export function readDotLottie(bytes: Uint8Array): LottieAnimationData {
     if (!asset.p || asset.e === 1) continue;
     const file = files[`images/${asset.p}`] ?? files[`i/${asset.p}`];
     if (!file) continue;
-    asset.p = `data:${MIME[extensionOf(asset.p)] ?? "image/png"};base64,${toBase64(file)}`;
+    asset.p = `data:${IMAGE_MIME[extensionOf(asset.p)] ?? "image/png"};base64,${toBase64(file)}`;
     asset.u = "";
     asset.e = 1;
   }

@@ -1,8 +1,8 @@
 import { Readable } from "node:stream";
 import { protocol } from "electron";
 import { fileReply, resolveInside } from "../engine/http-file";
+import { FILE_SCHEME } from "../shared/asset-ref";
 
-const FILE_SCHEME = "demoflow-file";
 export const APP_SCHEME = "demoflow-app";
 
 const CSP = [

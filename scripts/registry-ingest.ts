@@ -24,6 +24,7 @@ import type { ElementKind } from "../src/shared/elements/types";
 import { errorMessage } from "../src/shared/errors";
 import { humanize } from "../src/shared/format";
 import { walkFiles } from "./lib/walk";
+import { isRecord, tryParseJson } from "../src/shared/guards";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const SRC = path.join(ROOT, "src");
@@ -152,9 +153,6 @@ let scratchFiles = 0;
 
 const scratchFile = (name: string, ext: string, source: string) =>
   project.createSourceFile(`${name}-${++scratchFiles}.${ext}`, source);
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  !!value && typeof value === "object" && !Array.isArray(value);
 
 function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown {
   if (!node || depth > 8) return undefined;
@@ -523,11 +521,9 @@ function cleanHelp(text: string | undefined): string | undefined {
 
 function parseDocDefault(text: string | undefined): unknown {
   if (text === undefined) return undefined;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return /^(#|rgba?\(|hsla?\()/.test(text.trim()) ? text.trim() : undefined;
-  }
+  const parsed = tryParseJson(text);
+  if (parsed.ok) return parsed.value;
+  return /^(#|rgba?\(|hsla?\()/.test(text.trim()) ? text.trim() : undefined;
 }
 
 const SPEED_RANGE = { min: 0.25, max: 4, step: 0.25 } as const;

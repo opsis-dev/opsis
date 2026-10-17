@@ -3,7 +3,7 @@ import type { Eq, Mix } from "@/shared/mix/types";
 import { useAudioPreview, type Contribution } from "../../store/audio-preview";
 import { useWorkflowStore } from "../../store/workflow";
 import type { DragPhase } from "./knob";
-import { frameIndex } from "./meter";
+import { frameIn } from "@/shared/timeline/time";
 
 const SILENCE_DB = -120;
 const HIGHPASS_Q = 0.7;
@@ -46,7 +46,7 @@ export function share(
 ): number {
   const master = result?.levels.master;
   if (!master?.rms.length || !levels) return 1;
-  const f = frameIndex(frame, master.rms.length);
+  const f = frameIn(frame, master.rms.length);
   const pc = 10 ** ((levels.rms[f] ?? SILENCE_DB) / 10);
   const pm = 10 ** ((master.rms[f] ?? SILENCE_DB) / 10);
   return pm <= 1e-12 ? 1 : Math.min(1, pc / pm);

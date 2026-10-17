@@ -1,17 +1,18 @@
 import { useEffect } from "react";
 import { workflowProblems } from "@/shared/api/check";
-import type {
-  ApiEdited,
-  ApiEditorReply,
-  ApiEditorRequest,
-  ApiFailure,
-  ApiProjectState,
-  ApiReply,
-  ApiRunState,
+import type { ApiEdited } from "@/shared/api/types";
+import {
+  apiFailure,
+  apiOk,
+  type ApiEditorReply,
+  type ApiEditorRequest,
+  type ApiProjectState,
+  type ApiReply,
+  type ApiRunState,
 } from "@/shared/api/types";
 import { errorMessage } from "@/shared/errors";
 import { connectionProblem } from "@/shared/graph";
-import { randomId } from "@/shared/ids";
+import { nodeIdFor } from "@/shared/ids";
 import { defaultParams, getNodeDef } from "@/shared/nodes/registry";
 import { workflowSettingsSchema, type Workflow, type WorkflowNode } from "@/shared/schema/workflow";
 import { setEditorApi } from "../app/api-host";
@@ -27,13 +28,10 @@ type Handler<O extends Op> = (
   wf: Workflow,
 ) => ApiEditorReply<O> | Promise<ApiEditorReply<O>>;
 
-const fail = (status: number, error: string): ApiFailure => ({ ok: false, status, error });
-const done = <R>(result: R): ApiReply<R> => ({ ok: true, result });
-
 function edited(id?: string): ApiReply<ApiEdited> {
   const { workflow, revision } = useWorkflowStore.getState();
   const problems = workflow ? workflowProblems(workflow) : [];
-  return done({ ...(id ? { id } : {}), revision, problems });
+  return apiOk({ ...(id ? { id } : {}), revision, problems });
 }
 
 function runState(): ApiRunState {
@@ -43,7 +41,7 @@ function runState(): ApiRunState {
 
 function read(wf: Workflow): ApiReply<ApiProjectState> {
   const { projectDir, revision, savedRevision } = useWorkflowStore.getState();
-  return done({
+  return apiOk({
     dir: projectDir,
     workflow: wf,
     revision,
@@ -73,9 +71,9 @@ function applyNodePatch(node: WorkflowNode, patch: RequestOf<"updateNode">): Wor
 
 const addNode: Handler<"addNode"> = (request, wf) => {
   if (!getNodeDef(request.type))
-    return fail(400, `There's no node type “${request.type}”. See GET /nodes.`);
-  const id = request.id ?? randomId(request.type.split(".")[0]);
-  if (hasNode(wf, id)) return fail(400, `A node with the id “${id}” already exists.`);
+    return apiFailure(400, `There's no node type “${request.type}”. See GET /nodes.`);
+  const id = request.id ?? nodeIdFor(request.type);
+  if (hasNode(wf, id)) return apiFailure(400, `A node with the id “${id}” already exists.`);
   useWorkflowStore.getState().update((w) => ({
     ...w,
     nodes: [
@@ -93,7 +91,7 @@ const addNode: Handler<"addNode"> = (request, wf) => {
 };
 
 const updateNode: Handler<"updateNode"> = (request, wf) => {
-  if (!hasNode(wf, request.id)) return fail(404, `There's no node “${request.id}”.`);
+  if (!hasNode(wf, request.id)) return apiFailure(404, `There's no node “${request.id}”.`);
   useWorkflowStore.getState().update((w) => ({
     ...w,
     nodes: w.nodes.map((n) => (n.id === request.id ? applyNodePatch(n, request) : n)),
@@ -103,7 +101,7 @@ const updateNode: Handler<"updateNode"> = (request, wf) => {
 
 const removeNodes: Handler<"removeNodes"> = (request, wf) => {
   const missing = request.ids.find((id) => !hasNode(wf, id));
-  if (missing) return fail(404, `There's no node “${missing}”.`);
+  if (missing) return apiFailure(404, `There's no node “${missing}”.`);
   useWorkflowStore.getState().removeNodes(request.ids);
   return edited();
 };
@@ -112,14 +110,14 @@ const addEdge: Handler<"addEdge"> = (request, wf) => {
   const { source, sourceHandle, target, targetHandle } = request;
   const edge = { source, sourceHandle, target, targetHandle };
   const problem = connectionProblem(wf, edge);
-  if (problem) return fail(problem.notFound ? 404 : 400, problem.message);
+  if (problem) return apiFailure(problem.notFound ? 404 : 400, problem.message);
   useWorkflowStore.getState().addEdge(edge);
   return edited(`${source}.${sourceHandle}->${target}.${targetHandle}`);
 };
 
 const removeEdges: Handler<"removeEdges"> = (request, wf) => {
   const missing = request.ids.find((id) => !wf.edges.some((e) => e.id === id));
-  if (missing) return fail(404, `There's no connection “${missing}”.`);
+  if (missing) return apiFailure(404, `There's no connection “${missing}”.`);
   useWorkflowStore.getState().removeEdges(request.ids);
   return edited();
 };
@@ -129,22 +127,22 @@ const setSettings: Handler<"setSettings"> = (request) => {
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     const where = issue.path.length ? `${issue.path.join(".")}: ` : "";
-    return fail(400, `${where}${issue.message}`);
+    return apiFailure(400, `${where}${issue.message}`);
   }
   useWorkflowStore.getState().setSettings(parsed.data);
   return edited();
 };
 
 const run: Handler<"run"> = async (request) => {
-  if (useRunStore.getState().running) return fail(409, "A run is already going.");
+  if (useRunStore.getState().running) return apiFailure(409, "A run is already going.");
   try {
     const runId = await beginRun({
       targetNodeIds: request.targetNodeIds,
       fromNodeId: request.fromNodeId,
     });
-    return done({ running: true, runId });
+    return apiOk({ running: true, runId });
   } catch (e) {
-    return fail(409, errorMessage(e));
+    return apiFailure(409, errorMessage(e));
   }
 };
 
@@ -167,7 +165,7 @@ const HANDLERS: { [O in Op]: Handler<O> } = {
   },
   problems: (_request, wf) => {
     const problems = workflowProblems(wf);
-    return done({ ok: !problems.some((p) => p.level === "error"), problems });
+    return apiOk({ ok: !problems.some((p) => p.level === "error"), problems });
   },
   undo: () => {
     useWorkflowStore.temporal.getState().undo();
@@ -180,11 +178,11 @@ const HANDLERS: { [O in Op]: Handler<O> } = {
   save: async () =>
     (await save())
       ? edited()
-      : fail(409, "The project file changed on disk. Choose a version in the editor first."),
+      : apiFailure(409, "The project file changed on disk. Choose a version in the editor first."),
   run,
   stop: async () => {
     await cancelRun();
-    return done(runState());
+    return apiOk(runState());
   },
 };
 
@@ -195,7 +193,7 @@ function dispatch<O extends Op>(request: RequestOf<O>, wf: Workflow) {
 
 async function handle(request: ApiEditorRequest): Promise<ApiEditorReply> {
   const wf = useWorkflowStore.getState().workflow;
-  if (!wf) return fail(409, "No project is open.");
+  if (!wf) return apiFailure(409, "No project is open.");
   return dispatch(request, wf);
 }
 

@@ -12,5 +12,7 @@ describe("sign-in names", () => {
     expect(secretFileName(" work ")).toBe(secretFileName("work"));
     expect(secretFileName("")).toBe("default");
     expect(secretFileName("my account")).toBe("my-account");
+    expect(secretFileName(" Login! ")).toBe("Login");
+    expect(secretFileName("!!!")).toBe("default");
   });
 });

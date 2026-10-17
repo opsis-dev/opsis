@@ -84,4 +84,12 @@ export type ApiFailure = { ok: false; status: number; error: string; problems?: 
 
 export type ApiReply<R> = { ok: true; result: R } | ApiFailure;
 
+export const apiOk = <R>(result: R): ApiReply<R> => ({ ok: true, result });
+
+export const apiFailure = (status: number, error: string): ApiFailure => ({
+  ok: false,
+  status,
+  error,
+});
+
 export type ApiEditorReply<O extends ApiEditorOp = ApiEditorOp> = ApiReply<ApiEditorResults[O]>;

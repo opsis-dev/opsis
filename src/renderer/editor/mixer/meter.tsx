@@ -1,6 +1,7 @@
-import { clamp, clamp01 } from "@/shared/math";
+import { clamp01 } from "@/shared/math";
 import type { StemLevels } from "@/shared/mix/result";
 import { cn } from "@/renderer/lib/utils";
+import { frameIn } from "@/shared/timeline/time";
 
 const METER_MIN = -60;
 const METER_MAX = 6;
@@ -9,11 +10,8 @@ const CLIP_DB = -0.5;
 
 const toPct = (db: number) => clamp01((db - METER_MIN) / (METER_MAX - METER_MIN)) * 100;
 
-export const frameIndex = (frame: number, length: number): number =>
-  clamp(Math.round(frame), 0, length - 1);
-
 export const sampleAt = (values: number[] | null | undefined, frame: number): number | null =>
-  values?.length ? values[frameIndex(frame, values.length)] : null;
+  values?.length ? values[frameIn(frame, values.length)] : null;
 
 export const reductionAt = (
   reduction: number[] | null | undefined,
@@ -28,7 +26,7 @@ export function levelAt(
   holdFrames: number,
 ): Level {
   if (!levels?.peak.length) return { peak: null, rms: null, hold: null };
-  const f = frameIndex(frame, levels.peak.length);
+  const f = frameIn(frame, levels.peak.length);
   const hold = Math.max(...levels.peak.slice(Math.max(0, f - holdFrames), f + 1));
   return { peak: levels.peak[f], rms: levels.rms[f], hold };
 }

@@ -1,8 +1,9 @@
-import { clamp, clamp01 } from "@/shared/math";
+import { clamp } from "@/shared/math";
 import { MAX_DB, MIN_DB } from "@/shared/mix/types";
 import { db } from "./audio-format";
 import { commitOnce, type DragPhase } from "./knob";
 import { arrowDirection, roundToStep } from "./knob-math";
+import { fractionIn } from "@/renderer/lib/dom";
 
 const STEP_DB = 0.5;
 const BIG_STEP_DB = 6;
@@ -11,9 +12,8 @@ const faderPosition = (value: number) =>
   (clamp(value, MIN_DB, MAX_DB) - MIN_DB) / (MAX_DB - MIN_DB);
 
 function valueAt(el: HTMLElement, clientY: number): number {
-  const rect = el.getBoundingClientRect();
-  const k = 1 - (clientY - rect.top) / Math.max(1, rect.height);
-  return roundToStep(MIN_DB + clamp01(k) * (MAX_DB - MIN_DB), STEP_DB);
+  const k = 1 - fractionIn(el.getBoundingClientRect(), 0, clientY).y;
+  return roundToStep(MIN_DB + k * (MAX_DB - MIN_DB), STEP_DB);
 }
 
 export function Fader({

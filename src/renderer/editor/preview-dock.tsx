@@ -20,8 +20,7 @@ import { useFilm } from "./film";
 import { PreviewToolbar } from "./preview-toolbar";
 import { useCompiledContext } from "./use-compiled";
 import { usePlayerBridge, useSeekToSelection } from "./use-player-bridge";
-
-const PROJECT_BASE = "demoflow-file://project/";
+import { PROJECT_FILE_BASE } from "@/shared/asset-ref";
 
 function NothingToPreview() {
   return (
@@ -46,7 +45,7 @@ function usePreviewSpec(): TimelineSpec | null {
   const shape = useViewOptions((s) => s.previewShape);
   return useMemo(() => {
     if (!film.audible || !workflow) return null;
-    const base = { ...film.audible, assets: { projectBase: PROJECT_BASE }, quality };
+    const base = { ...film.audible, assets: { projectBase: PROJECT_FILE_BASE }, quality };
     return shape === "project"
       ? base
       : {

@@ -1,9 +1,8 @@
 import { readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
-import { stableJson } from "../../shared/hash";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { ENGINE_VERSION } from "../engine/cache";
-import { sha256Hex } from "../../engine/hash";
+import { versionedHash } from "../../engine/hash";
 import { CODECS, type SoundCodec } from "./codecs";
 
 const PICTURE_VERSION = "demoflow-picture/1";
@@ -13,7 +12,7 @@ type PictureOptions = { codec: string; crf: number; scale: number; gl: string };
 
 export function pictureKey(spec: TimelineSpec, opts: PictureOptions): string {
   const { audio: _audio, mix: _mix, assets: _assets, ...picture } = spec;
-  return sha256Hex(stableJson({ v: PICTURE_VERSION, engine: ENGINE_VERSION, picture, opts }), 32);
+  return versionedHash(PICTURE_VERSION, { engine: ENGINE_VERSION, picture, opts });
 }
 
 export function muxArgs(codec: SoundCodec, picture: string, sound: string, out: string): string[] {

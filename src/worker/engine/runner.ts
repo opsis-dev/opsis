@@ -11,6 +11,7 @@ import {
   upstreamOf,
   validateWorkflow,
 } from "../../shared/graph";
+import { isOutputType } from "../../shared/nodes/output";
 import type { RunRequest } from "../../shared/ipc";
 import { parseParams, type NodeDef, type NodePhase } from "../../shared/nodes/define";
 import { getNodeDef, nodeName } from "../../shared/nodes/registry";
@@ -31,6 +32,7 @@ import { projectPaths, readLastRun, toPosixRel } from "../../engine/project-path
 import { TracedError, type ExecutorContext } from "./context";
 import { decorateArtifacts } from "./posters";
 import { errorMessage } from "../../shared/errors";
+import { projectRef } from "../../shared/asset-ref";
 
 export type RunDeps = {
   env: WorkerEnv;
@@ -248,7 +250,7 @@ class RunState {
   }
 
   private collectOutputs(node: WorkflowNode, result: NodeResult) {
-    if (!node.type.startsWith("output.")) return;
+    if (!isOutputType(node.type)) return;
     for (const a of result.artifacts) this.outputs.push(a.path);
   }
 
@@ -391,7 +393,7 @@ class RunState {
       compile: this.compile,
       results: this.results,
       secrets: deps.secrets,
-      ref: (file) => `project:${relDir}/${file}`,
+      ref: (file) => projectRef(`${relDir}/${file}`),
     };
   }
 

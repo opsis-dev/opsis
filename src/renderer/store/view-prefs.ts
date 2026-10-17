@@ -1,3 +1,5 @@
+import { tryParseJson } from "@/shared/guards";
+
 let project: string | null = null;
 
 const key = (name: string) => `demoflow.view:${project ?? "none"}:${name}`;
@@ -25,12 +27,8 @@ export function writeStored(storageKey: string, value: string): void {
 export function readPref<T>(name: string, fallback: T, valid: (v: unknown) => v is T): T {
   const raw = readStored(key(name));
   if (raw === null) return fallback;
-  try {
-    const value: unknown = JSON.parse(raw);
-    return valid(value) ? value : fallback;
-  } catch {
-    return fallback;
-  }
+  const parsed = tryParseJson(raw);
+  return parsed.ok && valid(parsed.value) ? parsed.value : fallback;
 }
 
 export function writePref(name: string, value: unknown): void {

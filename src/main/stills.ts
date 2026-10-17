@@ -10,13 +10,14 @@ import { errorMessage } from "../shared/errors";
 import { IPC, type StillRequest, type StillResult } from "../shared/ipc";
 import { createLazyWorker } from "./lazy-worker";
 import { engineDir, isRunning } from "./workers";
+import { projectPaths } from "../engine/project-paths";
 
 const STILL_WIDTH = 480;
 const RUN_POLL_MS = 2000;
 
 const indexSchema = z.record(z.string(), z.string());
 
-const stillsDir = (projectDir: string) => path.join(projectDir, ".demoflow", "cache", "stills");
+const stillsDir = (projectDir: string) => projectPaths(projectDir).stills;
 const indexPath = (projectDir: string) => path.join(stillsDir(projectDir), "index.json");
 const stillPath = (projectDir: string, hash: string) =>
   path.join(stillsDir(projectDir), `${hash}.jpg`);

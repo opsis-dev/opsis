@@ -1,6 +1,6 @@
-import { encodePath, projectRelPath } from "@/shared/asset-ref";
+import { isExternalRef, projectFileUrl } from "@/shared/asset-ref";
 
-export const fileUrl = (ref: string) =>
-  ref.startsWith("app:")
-    ? new URL(ref.slice("app:".length), document.baseURI).href
-    : `demoflow-file://project/${encodePath(projectRelPath(ref))}`;
+export function fileUrl(ref: string): string {
+  if (ref.startsWith("app:")) return new URL(ref.slice("app:".length), document.baseURI).href;
+  return isExternalRef(ref) ? ref : projectFileUrl(ref);
+}

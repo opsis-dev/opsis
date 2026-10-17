@@ -36,6 +36,7 @@ import { startRun } from "./run";
 import { useCompiledContext } from "./use-compiled";
 import { useFormContext } from "./use-form-context";
 import { ZodForm } from "./zod-form";
+import { isGroupNode } from "@/shared/graph";
 
 export function Inspector() {
   const selected = useUiStore((s) => s.selectedIds);
@@ -210,7 +211,7 @@ function NodeActions({ node, def }: { node: WorkflowNode; def: NodeDef }) {
           Trace
         </Button>
       ) : null}
-      {node.type === "core.group" ? (
+      {isGroupNode(node) ? (
         <Button size="sm" variant="outline" onClick={() => ungroup(node.id)}>
           <Ungroup data-icon="inline-start" />
           Ungroup

@@ -12,17 +12,6 @@ export type CameraPose = {
 
 export const BASE_POSE: CameraPose = { scale: 1, cx: 0.5, cy: 0.48 };
 
-export function partitionPoint<T>(items: readonly T[], before: (item: T) => boolean): number {
-  let lo = 0;
-  let hi = items.length;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    if (before(items[mid])) lo = mid + 1;
-    else hi = mid;
-  }
-  return lo;
-}
-
 export function cameraEase(t01: number): number {
   return CAMERA_BEZIER(clamp(t01, 0, 1));
 }

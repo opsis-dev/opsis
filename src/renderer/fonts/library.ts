@@ -3,12 +3,12 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { errorMessage } from "@/shared/errors";
 import type { FontFamilyDef } from "@/shared/fonts/types";
-import { encodePath } from "@/shared/asset-ref";
+import { FILE_SCHEME, encodePath } from "@/shared/asset-ref";
 import { fileUrl } from "../editor/file-url";
 
 export function fontFileUrl(ref: string): string {
   if (ref.startsWith("library:"))
-    return `demoflow-file://fonts/${encodePath(ref.slice("library:".length))}`;
+    return `${FILE_SCHEME}://fonts/${encodePath(ref.slice("library:".length))}`;
   return fileUrl(ref);
 }
 

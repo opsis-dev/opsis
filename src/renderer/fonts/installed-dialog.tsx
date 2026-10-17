@@ -16,11 +16,8 @@ async function readFaces(faces: LocalFontData[]): Promise<FontInstalledFace[]> {
   return data;
 }
 
-function groupByFamily(fonts: LocalFontData[]): Array<[string, LocalFontData[]]> {
-  const map = new Map<string, LocalFontData[]>();
-  for (const f of fonts) map.set(f.family, [...(map.get(f.family) ?? []), f]);
-  return [...map.entries()].toSorted(([a], [b]) => a.localeCompare(b));
-}
+const groupByFamily = (fonts: LocalFontData[]): Array<[string, LocalFontData[]]> =>
+  [...Map.groupBy(fonts, (f) => f.family)].toSorted(([a], [b]) => a.localeCompare(b));
 
 export function InstalledDialog({
   fonts,

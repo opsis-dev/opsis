@@ -1,10 +1,11 @@
+import { evenPx } from "../../shared/math";
+
 type Size = { width: number; height: number };
 
 export type PageScale = Size & { scale: number };
 
 export function scaledViewport(logical: Size, scale: number): Size {
-  const even = (n: number) => Math.round((n * scale) / 2) * 2;
-  return { width: even(logical.width), height: even(logical.height) };
+  return { width: evenPx(logical.width * scale), height: evenPx(logical.height * scale) };
 }
 
 export function fitPageToScale({ scale, width, height }: PageScale): void {

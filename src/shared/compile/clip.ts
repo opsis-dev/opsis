@@ -10,7 +10,7 @@ import type {
 import { hasKeys } from "../timeline/envelope";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
-import { clamp, round3 } from "../math";
+import { clamp, lerp, round3, sampleKeyed } from "../math";
 import { MIN_SPEED } from "../nodes/params";
 import type { RecordingProps } from "./recording";
 
@@ -359,15 +359,18 @@ export function remapDuration(remap: Remap): number {
 }
 
 export function remapFrame(remap: Remap, frame: number): number {
-  if (remap.length === 0) return frame;
-  if (frame <= remap[0][0]) return remap[0][1];
-  for (let i = 1; i < remap.length; i++) {
-    const [o0] = remap[i - 1];
-    const [o1, i1] = remap[i];
-    if (frame <= o1) return o1 === o0 ? i1 : lerpSegment(remap[i - 1], remap[i], frame);
-  }
-  const [oN, iN] = remap[remap.length - 1];
-  return iN + (frame - oN);
+  const last = remap.at(-1);
+  if (!last) return frame;
+  if (frame > last[0]) return last[1] + (frame - last[0]);
+  return (
+    sampleKeyed(
+      remap,
+      frame,
+      ([out]) => out,
+      ([, inner]) => inner,
+      (a, b, t) => lerp(a[1], b[1], t),
+    ) ?? frame
+  );
 }
 
 export function remapFromSegments(

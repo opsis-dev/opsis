@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expandHome, joinFolder, projectFolderName } from "./project-folder";
+import { expandHome, joinFolder, projectFolderName, safeName } from "./project-folder";
 
 describe("projectFolderName", () => {
   it("turns a project name into a lowercase folder name", () => {
@@ -35,5 +35,14 @@ describe("expandHome", () => {
   it("leaves other paths alone", () => {
     expect(expandHome("/srv/~demo", "/home/me")).toBe("/srv/~demo");
     expect(expandHome("~other/x", "/home/me")).toBe("~other/x");
+  });
+});
+
+describe("safeName", () => {
+  it("replaces unsafe runs, trims edge dashes and falls back", () => {
+    expect(safeName("  My Font_v2.1 ", { fallback: "x" })).toBe("my-font_v2.1");
+    expect(safeName("My Font_v2.1", { fallback: "x", alphabet: "alnum" })).toBe("my-font-v2-1");
+    expect(safeName(" Login! ", { fallback: "x", lower: false })).toBe("Login");
+    expect(safeName("***", { fallback: "x" })).toBe("x");
   });
 });

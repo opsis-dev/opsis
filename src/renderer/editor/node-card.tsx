@@ -25,14 +25,15 @@ import { NodeIcon } from "./icons";
 import { useCompiledContext } from "./use-compiled";
 import { stableJson } from "@/shared/hash";
 import { errorMessage } from "@/shared/errors";
-import { clamp } from "@/shared/math";
+import { PROJECT_FILE_BASE, projectRef } from "@/shared/asset-ref";
+import { PROJECT_DIRS } from "@/shared/project-dirs";
+import { frameIn } from "@/shared/timeline/time";
 
 const MAX_LIVE_THUMBS = 6;
 const MIN_ZOOM = 0.55;
 const MAX_ROWS = 4;
 const SETTLE_MS = 400;
 const OBSERVE_MARGIN = "120px";
-const LIVE_ASSET_BASE = "demoflow-file://project/";
 
 const useThumbSlots = create<{
   active: string[];
@@ -163,9 +164,6 @@ function posterOf(result: NodeResult | undefined): string | null {
   return null;
 }
 
-const middleFrame = (durationInFrames: number) =>
-  clamp(Math.round(durationInFrames / 2), 0, Math.max(0, durationInFrames - 1));
-
 type SettledClip = { key: string; clip: ClipValue; settings: WorkflowSettings };
 
 const fastSpec = ({ clip, settings }: SettledClip): TimelineSpec => ({
@@ -230,7 +228,7 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
   const settled = useSettledClip(nodeId);
   const holding = useThumbSlot(nodeId, visible && zoom >= MIN_ZOOM && !!settled);
   const spec = useMemo(
-    () => (settled ? { ...fastSpec(settled), assets: { projectBase: LIVE_ASSET_BASE } } : null),
+    () => (settled ? { ...fastSpec(settled), assets: { projectBase: PROJECT_FILE_BASE } } : null),
     [settled],
   );
 
@@ -250,7 +248,7 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
           compositionHeight={spec.height}
           durationInFrames={Math.max(1, spec.durationInFrames)}
           fps={spec.fps}
-          frameToDisplay={middleFrame(spec.durationInFrames)}
+          frameToDisplay={frameIn(spec.durationInFrames / 2, spec.durationInFrames)}
           style={wide ? { width: "100%", aspectRatio } : { height: "100%", aspectRatio }}
           errorFallback={() => null}
         />
@@ -300,7 +298,7 @@ function CardStill({ nodeId }: { nodeId: string }) {
         nodeId,
         key: settled.key,
         spec,
-        frame: middleFrame(spec.durationInFrames),
+        frame: frameIn(spec.durationInFrames / 2, spec.durationInFrames),
         priority: selected || !hash,
       })
       .then((r) => {
@@ -310,5 +308,5 @@ function CardStill({ nodeId }: { nodeId: string }) {
 
   if (engine === false) return <LiveFrame nodeId={nodeId} />;
   if (!hash) return null;
-  return <FramePicture src={`project:.demoflow/cache/stills/${hash}.jpg`} />;
+  return <FramePicture src={projectRef(`${PROJECT_DIRS.stills}/${hash}.jpg`)} />;
 }

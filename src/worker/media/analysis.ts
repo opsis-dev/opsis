@@ -3,10 +3,10 @@ import { mkdir, readFile, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import type { Filmstrip, Waveform, WaveformLevel } from "../../shared/analysis";
 import type { FfmpegTools } from "./ffmpeg";
-import { sha256Hex } from "../../engine/hash";
+import { versionedHash } from "../../engine/hash";
 import { atomicWrite, readJson } from "../../engine/json";
 import { isInside, projectPaths, toProjectRef } from "../../engine/project-paths";
-import { round3 } from "../../shared/math";
+import { evenPx, round3 } from "../../shared/math";
 
 const ANALYSIS_VERSION = "demoflow-analysis/1";
 const DECODE_RATE = 8000;
@@ -36,7 +36,7 @@ export type AnalysisDeps = {
 
 async function idFor(file: string): Promise<string> {
   const s = await stat(file);
-  return sha256Hex(`${ANALYSIS_VERSION}\0${file}\0${s.size}\0${Math.round(s.mtimeMs)}`, 24);
+  return versionedHash(ANALYSIS_VERSION, { file, size: s.size, mtime: Math.round(s.mtimeMs) });
 }
 
 const analysisDir = (projectDir: string) => path.join(projectPaths(projectDir).cache, "analysis");
@@ -215,10 +215,7 @@ export async function analyzeFilmstrip(src: string, deps: AnalysisDeps): Promise
   const durationMs = Math.max(1, probe.durationMs);
   const intervalMs = Math.max(MIN_TILE_MS, Math.ceil(durationMs / MAX_TILES));
   const count = Math.max(1, Math.ceil(durationMs / intervalMs));
-  const tileWidth = Math.max(
-    2,
-    Math.round(((probe.video.width / probe.video.height) * TILE_HEIGHT) / 2) * 2,
-  );
+  const tileWidth = Math.max(2, evenPx((probe.video.width / probe.video.height) * TILE_HEIGHT));
   const tmp = `${image}.${process.pid}.partial.jpg`;
   try {
     await deps.ffmpeg.run(

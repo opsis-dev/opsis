@@ -30,8 +30,9 @@ import { buildMixPlan, hasSound } from "../../shared/mix/plan";
 import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
 import { renderMix } from "../mix/render";
 import { projectPaths, toPosixRel, toProjectRef } from "../../engine/project-paths";
-import { msToFrames } from "../../shared/timeline/time";
+import { framesToMs, msToFrames } from "../../shared/timeline/time";
 import { slugify } from "../../shared/project-folder";
+import { isProjectRef, projectRef, projectRelPath } from "../../shared/asset-ref";
 
 type RenderParams = z.infer<typeof renderNode.params>;
 
@@ -213,9 +214,9 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
   }
   const media: MediaValue = {
     type: "media",
-    src: `project:${firstArtifact(artifacts).path}`,
+    src: projectRef(firstArtifact(artifacts).path),
     kind: p.codec === "gif" ? "image" : "video",
-    durationMs: (spec.durationInFrames / spec.fps) * 1000,
+    durationMs: framesToMs(spec.durationInFrames, spec.fps),
   };
   return { outputs: { media }, artifacts };
 });
@@ -246,7 +247,7 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
     await server.close();
   }
   return {
-    outputs: { image: { type: "image", src: `project:${firstArtifact(artifacts).path}` } },
+    outputs: { image: { type: "image", src: projectRef(firstArtifact(artifacts).path) } },
     artifacts,
   };
 });
@@ -365,7 +366,7 @@ async function copySources(ctx: ExecutorContext, dir: string) {
 function projectRefs(spec: TimelineSpec): Set<string> {
   const refs = new Set<string>();
   const collect = (v: unknown) => {
-    if (typeof v === "string" && v.startsWith("project:")) refs.add(v);
+    if (typeof v === "string" && isProjectRef(v)) refs.add(v);
     else if (Array.isArray(v)) v.forEach(collect);
     else if (v && typeof v === "object") Object.values(v).forEach(collect);
   };
@@ -380,7 +381,7 @@ function projectRefs(spec: TimelineSpec): Set<string> {
 
 async function copyProjectFiles(ctx: ExecutorContext, spec: TimelineSpec, dir: string) {
   for (const ref of projectRefs(spec)) {
-    const target = path.join(dir, "public", "project", ref.slice("project:".length));
+    const target = path.join(dir, "public", "project", projectRelPath(ref));
     await mkdir(path.dirname(target), { recursive: true });
     await cp(refToPath(ctx, ref), target);
   }

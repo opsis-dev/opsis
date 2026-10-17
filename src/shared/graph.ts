@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import { getNodeDef, nodeName } from "./nodes/registry";
 import { canConnect } from "./nodes/ports";
+import { isOutputType } from "./nodes/output";
 import type { PortSpec } from "./nodes/define";
 import { fieldMeta } from "./elements/introspect";
 import type { PortType, Workflow, WorkflowEdge, WorkflowNode } from "./schema/workflow";
@@ -15,8 +16,9 @@ export type GraphIssue = {
   edgeId?: string;
 };
 
-export const isStructural = (node: WorkflowNode) =>
-  node.type === "core.group" || node.type === "core.note";
+export const isGroupNode = (node: Pick<WorkflowNode, "type">) => node.type === "core.group";
+
+export const isStructural = (node: WorkflowNode) => isGroupNode(node) || node.type === "core.note";
 
 const byPosition = (a: WorkflowNode, b: WorkflowNode) =>
   a.position.x - b.position.x || a.position.y - b.position.y || (a.id < b.id ? -1 : 1);
@@ -137,7 +139,7 @@ export function runTargets(wf: Workflow): string[] {
   const executes = (n: WorkflowNode | undefined) =>
     !!n && !n.disabled && !isStructural(n) && !!getNodeDef(n.type)?.executes;
   const byId = new Map(wf.nodes.map((n) => [n.id, n]));
-  const outputs = wf.nodes.filter((n) => executes(n) && n.type.startsWith("output."));
+  const outputs = wf.nodes.filter((n) => executes(n) && isOutputType(n.type));
   if (!outputs.length) return wf.nodes.filter(executes).map((n) => n.id);
   const targets = new Set(outputs.map((n) => n.id));
   for (const out of outputs)

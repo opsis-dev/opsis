@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from "react";
 import { staticFile } from "remotion";
-import { encodePath, projectRelPath } from "../shared/asset-ref";
+import { PROJECT_FILE_BASE, encodePath, isProjectRef, projectRelPath } from "../shared/asset-ref";
 
 type AssetBase = { projectBase?: string };
 
@@ -12,10 +12,10 @@ export const AssetProvider: React.FC<{ value: AssetBase; children: React.ReactNo
 }) => <AssetContext.Provider value={value}>{children}</AssetContext.Provider>;
 
 export function resolveAssetRef(ref: string, base: AssetBase): string {
-  if (ref.startsWith("project:")) {
+  if (isProjectRef(ref)) {
     const rel = projectRelPath(ref);
     if (base.projectBase === "static:") return staticFile(`project/${rel}`);
-    const root = base.projectBase ?? "demoflow-file://project/";
+    const root = base.projectBase ?? PROJECT_FILE_BASE;
     return root.endsWith("/") ? root + encodePath(rel) : `${root}/${encodePath(rel)}`;
   }
   if (ref.startsWith("app:")) return staticFile(ref.slice("app:".length));

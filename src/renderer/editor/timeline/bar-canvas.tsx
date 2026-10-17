@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { clamp } from "@/shared/math";
+import { clamp, numberOr } from "@/shared/math";
 import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
 import type { AudioBar, VideoBar } from "@/shared/timeline/flatten";
 import { cn } from "@/renderer/lib/utils";
 import { useMedia } from "../../store/media";
 import { fileUrl } from "../file-url";
 import { OFFSCREEN_PX, type Viewport } from "./timeline-layout";
+import { isProjectRef } from "@/shared/asset-ref";
 
 const END_EPSILON = 0.001;
 const DISPLAY_RANGE_DB = 48;
@@ -108,11 +109,6 @@ function stringProp(props: Record<string, unknown>, key: string): string | null 
   return typeof v === "string" && v ? v : null;
 }
 
-function numberProp(props: Record<string, unknown>, key: string, fallback: number): number {
-  const v = props[key];
-  return typeof v === "number" && Number.isFinite(v) ? v : fallback;
-}
-
 type BarSource =
   | { kind: "filmstrip"; src: string; sourceMs: (local: number, fps: number) => number }
   | { kind: "still"; src: string };
@@ -122,14 +118,14 @@ function barSource(bar: VideoBar): BarSource | null {
   switch (bar.component) {
     case "core/recording": {
       const src = stringProp(p, "proxySrc") ?? stringProp(p, "src");
-      const speed = numberProp(p, "speed", 1) || 1;
+      const speed = numberOr(p.speed, 1) || 1;
       return src
         ? { kind: "filmstrip", src, sourceMs: (local, fps) => (local / fps) * speed * 1000 }
         : null;
     }
     case "core/video": {
       const src = stringProp(p, "src");
-      const trimMs = numberProp(p, "trimBeforeMs", 0);
+      const trimMs = numberOr(p.trimBeforeMs, 0);
       return src
         ? { kind: "filmstrip", src, sourceMs: (local, fps) => (local / fps) * 1000 + trimMs }
         : null;
@@ -137,7 +133,7 @@ function barSource(bar: VideoBar): BarSource | null {
     case "core/image":
     case "core/still": {
       const src = stringProp(p, "src");
-      return src?.startsWith("project:") ? { kind: "still", src } : null;
+      return src && isProjectRef(src) ? { kind: "still", src } : null;
     }
     default:
       return null;

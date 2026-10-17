@@ -2,6 +2,7 @@ import type { NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { formatDuration } from "../format";
 import { baseName } from "../asset-ref";
+import { framesToMs } from "../timeline/time";
 
 export type CardRow = { icon: string; text: string; title?: string; tone?: "muted" | "warn" };
 
@@ -51,8 +52,7 @@ export const toggleRow = (icon: string, on: boolean): CardRow =>
 export const fileRow = (icon: string, path: string, name = baseName(path)): CardRow =>
   row(icon, name, { title: path });
 
-export const frameSecs = (frames: number, fps: number) =>
-  formatDuration((frames / Math.max(1, fps)) * 1000);
+export const frameSecs = (frames: number, fps: number) => formatDuration(framesToMs(frames, fps));
 
 export function clip(text: string, max = 42): string {
   const one = text.replace(/\s+/g, " ").trim();

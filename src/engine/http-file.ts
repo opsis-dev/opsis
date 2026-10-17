@@ -2,6 +2,7 @@ import { createReadStream, type ReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { isInside } from "./project-paths";
+import { IMAGE_MIME } from "../shared/mime";
 
 const MIME: Record<string, string> = {
   ".mp4": "video/mp4",
@@ -14,12 +15,7 @@ const MIME: Record<string, string> = {
   ".wav": "audio/wav",
   ".ogg": "audio/ogg",
   ".flac": "audio/flac",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".webp": "image/webp",
-  ".gif": "image/gif",
-  ".svg": "image/svg+xml",
+  ...Object.fromEntries(Object.entries(IMAGE_MIME).map(([ext, type]) => [`.${ext}`, type])),
   ".json": "application/json",
   ".woff2": "font/woff2",
   ".woff": "font/woff",

@@ -1,12 +1,15 @@
 import path from "node:path";
 import type { LastRun } from "../shared/schema/values";
 import { readJson } from "./json";
+import { PROJECT_DIRS } from "../shared/project-dirs";
 
 export const projectPaths = (projectDir: string) => ({
-  meta: path.join(projectDir, ".demoflow"),
-  cache: path.join(projectDir, ".demoflow", "cache"),
-  out: path.join(projectDir, ".demoflow", "out"),
-  lastRun: path.join(projectDir, ".demoflow", "last-run.json"),
+  meta: path.join(projectDir, PROJECT_DIRS.meta),
+  cache: path.join(projectDir, PROJECT_DIRS.cache),
+  stills: path.join(projectDir, PROJECT_DIRS.stills),
+  traces: path.join(projectDir, PROJECT_DIRS.traces),
+  out: path.join(projectDir, PROJECT_DIRS.out),
+  lastRun: path.join(projectDir, PROJECT_DIRS.lastRun),
 });
 
 export function isInside(root: string, file: string): boolean {

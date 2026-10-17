@@ -32,16 +32,6 @@ const FORMAT_RANK: Record<FontFaceDef["format"], number> = {
   opentype: 3,
 };
 
-function groupByFamily<C extends FontCandidate>(candidates: C[]): Map<string, C[]> {
-  const byFamily = new Map<string, C[]>();
-  for (const c of candidates) {
-    const list = byFamily.get(c.family);
-    if (list) list.push(c);
-    else byFamily.set(c.family, [c]);
-  }
-  return byFamily;
-}
-
 function pickFaces<C extends FontCandidate>(list: C[], style: FontFaceDef["style"]): C[] {
   const ofStyle = list.filter((c) => c.style === style);
   const variable = ofStyle.filter((c) => c.variable);
@@ -56,7 +46,7 @@ function pickFaces<C extends FontCandidate>(list: C[], style: FontFaceDef["style
 }
 
 export function planFontFiles<C extends FontCandidate>(candidates: C[]): Array<PlannedFamily<C>> {
-  return [...groupByFamily(candidates)]
+  return [...Map.groupBy(candidates, (c) => c.family)]
     .map(([family, list]) => ({
       family,
       faces: [...pickFaces(list, "normal"), ...pickFaces(list, "italic")],

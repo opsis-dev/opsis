@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { displayAddress, formatBytes, formatDuration, humanize, parseNumberText } from "./format";
+import {
+  displayAddress,
+  formatBytes,
+  formatDuration,
+  formatNumberList,
+  humanize,
+  parseNumberList,
+  parseNumberText,
+} from "./format";
 
 describe("formatBytes", () => {
   it("uses binary units with one decimal", () => {
@@ -68,5 +76,14 @@ describe("parseNumberText", () => {
     expect(parseNumberText("-12 dB", { lenient: true })).toBe(-12);
     expect(parseNumberText("5s", { lenient: true })).toBe(5);
     expect(parseNumberText("dB", { lenient: true })).toBeNull();
+  });
+});
+
+describe("number lists", () => {
+  it("parses comma lists and drops trailing zeros when writing", () => {
+    expect(parseNumberList("100, x,250")).toEqual([100, 0, 250]);
+    expect(parseNumberList("")).toEqual([0]);
+    expect(formatNumberList([100, 0, 0])).toBe("100");
+    expect(formatNumberList([0, 0])).toBe("");
   });
 });

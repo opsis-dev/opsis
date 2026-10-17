@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { frameAt } from "../shared/trace";
 import { parseTrace } from "./model";
-
-const ndjson = (events: object[]) => events.map((e) => JSON.stringify(e)).join("\n");
-
-const FRAME = "screencast/page@1-1000.jpeg";
-const LATER = "screencast/page@1-2000.jpeg";
+import { FRAME, LATER, ndjson } from "./test-fixtures";
 
 const EVENTS = [
   {

@@ -5,6 +5,7 @@ import path from "node:path";
 import { strToU8, zipSync } from "fflate";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { applyRetention, ingestTrace, listTraces, readTrace, traceRoot } from "./store";
+import { FRAME, LATER, ndjson } from "./test-fixtures";
 
 const dirs: string[] = [];
 const START = Date.UTC(2026, 0, 1);
@@ -24,11 +25,6 @@ async function project() {
   dirs.push(dir);
   return dir;
 }
-
-const ndjson = (events: object[]) => events.map((e) => JSON.stringify(e)).join("\n");
-
-const FRAME = "screencast/page@1-1000.jpeg";
-const LATER = "screencast/page@1-2000.jpeg";
 
 const EVENTS = [
   { type: "before", callId: "c@1", startTime: 100, method: "tracingGroup", title: "Open site" },

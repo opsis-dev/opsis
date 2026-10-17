@@ -26,7 +26,8 @@ import {
 } from "./params";
 import { formatDuration } from "../format";
 import { msToFrames } from "../timeline/time";
-import { projectRef } from "../asset-ref";
+import { extensionOf, projectRef } from "../asset-ref";
+import { IMAGE_EXTENSIONS } from "../mime";
 
 const base = { category: "Media", phase: "media", executes: true } as const;
 const one = {
@@ -59,11 +60,10 @@ export const qualityName = (crf: number) =>
     Math.abs(cur[1] - crf) <= Math.abs(best[1] - crf) ? cur : best,
   )[0];
 
-const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "gif", "svg"]);
 const AUDIO_EXTENSIONS = new Set(["mp3", "wav", "m4a", "aac", "ogg", "flac"]);
 
 function kindFromPath(path: string): MediaValue["kind"] {
-  const ext = path.slice(path.lastIndexOf(".") + 1).toLowerCase();
+  const ext = extensionOf(path);
   if (IMAGE_EXTENSIONS.has(ext)) return "image";
   return AUDIO_EXTENSIONS.has(ext) ? "audio" : "video";
 }

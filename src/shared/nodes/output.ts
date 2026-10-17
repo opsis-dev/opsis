@@ -6,6 +6,7 @@ import { row } from "./card";
 import { defineNode, port, type CompileOutputs } from "./define";
 import { bool, choice, keysOf, more, ms, quality, text } from "./params";
 import { formatDuration, formatBytes } from "../format";
+import { evenPx } from "../math";
 
 const GL_LABELS = {
   angle: "Graphics card",
@@ -63,10 +64,9 @@ export function variantSize(
 ) {
   const long = Math.max(settings.width, settings.height);
   const [w, h] = variant.split(":").map(Number);
-  const even = (n: number) => Math.round(n / 2) * 2;
   return w >= h
-    ? { width: even(long), height: even((long * h) / w) }
-    : { width: even((long * w) / h), height: even(long) };
+    ? { width: evenPx(long), height: evenPx((long * h) / w) }
+    : { width: evenPx((long * w) / h), height: evenPx(long) };
 }
 
 const toTimeline = (

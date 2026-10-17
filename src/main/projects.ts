@@ -18,10 +18,11 @@ import { debounce } from "../shared/timing";
 import { errorMessage } from "../shared/errors";
 import { sha256Hex } from "../engine/hash";
 import { atomicWrite, readJsonKeepingBroken, writeJson } from "../engine/json";
-import { readLastRun } from "../engine/project-paths";
+import { projectPaths, readLastRun } from "../engine/project-paths";
 import { openDialog } from "./dialogs";
 import { ensureSecretsDir } from "./secrets";
 import { patchSettings, readSettings } from "./settings";
+import { tryParseJson } from "../shared/guards";
 
 const MAX_RECENT = 20;
 
@@ -92,11 +93,9 @@ async function readProjectFile(dir: string): Promise<{ text: string; version: st
 }
 
 function parseWorkflowText(text: string): Workflow | null {
-  try {
-    return workflowSchema.parse(JSON.parse(text));
-  } catch {
-    return null;
-  }
+  const json = tryParseJson(text);
+  const parsed = json.ok ? workflowSchema.safeParse(json.value) : null;
+  return parsed?.success ? parsed.data : null;
 }
 
 export async function pickProjectDir(win: BrowserWindow | null): Promise<string | null> {
@@ -198,6 +197,6 @@ export function watchProject(
 }
 
 export async function clearCache(dir: string): Promise<void> {
-  await rm(path.join(dir, ".demoflow", "cache"), { recursive: true, force: true });
-  await rm(path.join(dir, ".demoflow", "last-run.json"), { force: true });
+  await rm(projectPaths(dir).cache, { recursive: true, force: true });
+  await rm(projectPaths(dir).lastRun, { force: true });
 }

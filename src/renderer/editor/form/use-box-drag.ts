@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { z } from "zod";
-import { clamp, clamp01, round3 } from "@/shared/math";
+import { clamp, round3 } from "@/shared/math";
+import { fractionIn } from "@/renderer/lib/dom";
 
 const boxSchema = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() });
 export const boxListSchema = z.array(boxSchema).catch([]);
@@ -33,7 +34,8 @@ export function useBoxDrag(boxes: Box[], onChange: (boxes: Box[]) => void) {
   const point = (e: React.PointerEvent): [number, number] => {
     const r = area.current?.getBoundingClientRect();
     if (!r) return [0, 0];
-    return [clamp01((e.clientX - r.left) / r.width), clamp01((e.clientY - r.top) / r.height)];
+    const at = fractionIn(r, e.clientX, e.clientY);
+    return [at.x, at.y];
   };
   const start = (e: React.PointerEvent, mode: DragMode, index: number) => {
     const [x, y] = point(e);

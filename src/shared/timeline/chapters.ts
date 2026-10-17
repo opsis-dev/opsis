@@ -1,6 +1,6 @@
 import type { TimelineSpec } from "../schema/timeline";
 import { flattenSpec } from "./flatten";
-import { chapterTime } from "./time";
+import { chapterTime, framesToMs } from "./time";
 
 type FilmChapter = { title: string; startMs: number; endMs: number };
 
@@ -9,10 +9,10 @@ export const MIN_LISTED_CHAPTERS = 3;
 const OPENING_TITLE = "Intro";
 
 export function filmChapters(spec: TimelineSpec): FilmChapter[] {
-  const durationMs = (spec.durationInFrames / spec.fps) * 1000;
+  const durationMs = framesToMs(spec.durationInFrames, spec.fps);
   const starts = flattenSpec(spec)
     .marks.filter((m) => m.kind === "chapter")
-    .map((m) => ({ title: m.label, startMs: Math.round((m.frame / spec.fps) * 1000) }))
+    .map((m) => ({ title: m.label, startMs: framesToMs(m.frame, spec.fps) }))
     .filter((c) => c.startMs < durationMs)
     .toSorted((a, b) => a.startMs - b.startMs);
   if (starts.length === 0) return [];

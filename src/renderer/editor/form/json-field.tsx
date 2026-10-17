@@ -2,16 +2,9 @@ import { useState } from "react";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { Textarea } from "@/renderer/components/ui/textarea";
 import type { FieldProps } from "./types";
+import { tryParseJson } from "@/shared/guards";
 
 const INVALID = "This isn't valid. Check brackets and quotes.";
-
-function parseJson(text: string): { ok: true; value: unknown } | { ok: false } {
-  try {
-    return { ok: true, value: JSON.parse(text) };
-  } catch {
-    return { ok: false };
-  }
-}
 
 export function JsonField({ id, label, value, onChange }: FieldProps<unknown>) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -27,7 +20,7 @@ export function JsonField({ id, label, value, onChange }: FieldProps<unknown>) {
         value={draft ?? JSON.stringify(value ?? null, null, 2)}
         onChange={(e) => {
           setDraft(e.target.value);
-          const parsed = parseJson(e.target.value);
+          const parsed = tryParseJson(e.target.value);
           setError(parsed.ok ? null : INVALID);
           if (parsed.ok) onChange(parsed.value);
         }}

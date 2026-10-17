@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { mkdir, readdir, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
-import { stableJson } from "../../shared/hash";
 import {
   busJob,
   channelJob,
@@ -18,7 +17,7 @@ import { ToolError, type FfmpegTools } from "../media/ffmpeg";
 import { frameLevels, readWav, SILENCE_DB } from "./wav";
 import { errorMessage } from "../../shared/errors";
 import { round1 } from "../../shared/math";
-import { sha256Hex } from "../../engine/hash";
+import { versionedHash } from "../../engine/hash";
 import { atomicWrite, readJson } from "../../engine/json";
 import { projectPaths, toProjectRef } from "../../engine/project-paths";
 
@@ -37,7 +36,7 @@ export type MixDeps = {
 
 const mixDir = (projectDir: string) => path.join(projectPaths(projectDir).cache, "mix");
 
-const sha = (value: unknown) => sha256Hex(`${MIX_VERSION}\0${stableJson(value)}`, 24);
+const sha = (value: unknown) => versionedHash(MIX_VERSION, value);
 
 async function identity(file: string): Promise<string> {
   try {

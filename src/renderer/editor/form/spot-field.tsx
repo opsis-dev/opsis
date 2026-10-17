@@ -1,7 +1,8 @@
 import { useMemo, useRef } from "react";
-import { clamp01, round3 } from "@/shared/math";
+import { round3 } from "@/shared/math";
 import { FieldShell } from "./field-shell";
 import type { FieldProps } from "./types";
+import { fractionIn } from "@/renderer/lib/dom";
 
 const yKeyOf = (xKey: string) => (xKey === "x" ? "y" : xKey.replace(/X$/, "Y"));
 
@@ -15,10 +16,8 @@ export function SpotField({ label, name, all, onPatch, ctx, meta }: FieldProps<n
   const set = (e: React.PointerEvent) => {
     const r = box.current?.getBoundingClientRect();
     if (!r) return;
-    onPatch({
-      [name]: clamp01(round3((e.clientX - r.left) / r.width)),
-      [yKey]: clamp01(round3((e.clientY - r.top) / r.height)),
-    });
+    const at = fractionIn(r, e.clientX, e.clientY);
+    onPatch({ [name]: round3(at.x), [yKey]: round3(at.y) });
   };
   const src = useMemo(() => (bg ? `${bg.src}#t=${(time || bg.timeMs) / 1000}` : null), [bg, time]);
   return (
