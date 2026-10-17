@@ -1,6 +1,8 @@
 import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import type { FontRole } from "@/shared/fonts";
+import { firstFree } from "@/shared/lists";
 import type { Workflow, WorkflowSettings } from "@/shared/schema/workflow";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Button } from "@/renderer/components/ui/button";
@@ -19,6 +21,7 @@ import { FontPicker } from "../fonts/font-picker";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
+import { InlineEdit } from "./inline-edit";
 import { useCompiledContext } from "./use-compiled";
 
 const CANVAS_SIZES = [
@@ -219,13 +222,23 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
   const { setVariables, renameVariable } = useWorkflowStore.getState();
   const vars = Object.entries(variables);
   const rowKeys = useItemKeys(vars.length);
+  const [refused, setRefused] = useState(0);
   const renameAt = (from: string, raw: string) => {
-    const to = raw.replace(/[{}]/g, "");
-    if (to !== from && to in variables) {
+    const to = raw.replace(/[{}]/g, "").trim();
+    if (!to) return setRefused((n) => n + 1);
+    if (to in variables) {
       toast.error(`There's already a variable called “${to}”.`);
-      return;
+      return setRefused((n) => n + 1);
     }
     renameVariable(from, to);
+  };
+  const addVariable = () => {
+    const name = firstFree(
+      (n) => `Variable ${n}`,
+      (taken) => taken in variables,
+    );
+    rowKeys.add();
+    setVariables({ ...variables, [name]: "" });
   };
   return (
     <FieldSet>
@@ -236,11 +249,13 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
       <div className="flex flex-col gap-2">
         {vars.map(([key, value], i) => (
           <div key={rowKeys.keys[i] ?? i} className="flex gap-2">
-            <Input
-              aria-label="Variable name"
+            <InlineEdit
+              key={`${key}:${refused}`}
+              label="Variable name"
+              autoFocus={false}
               className="w-2/5 text-xs"
               value={key}
-              onChange={(e) => renameAt(key, e.target.value)}
+              onCommit={(text) => renameAt(key, text)}
             />
             <Input
               aria-label="Variable value"
@@ -261,14 +276,7 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
             </Button>
           </div>
         ))}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            rowKeys.add();
-            setVariables({ ...variables, [`Variable ${vars.length + 1}`]: "" });
-          }}
-        >
+        <Button size="sm" variant="outline" onClick={addVariable}>
           <Plus data-icon="inline-start" />
           Add variable
         </Button>

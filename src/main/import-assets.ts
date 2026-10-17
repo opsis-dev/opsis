@@ -3,6 +3,7 @@ import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { BrowserWindow } from "electron";
 import { isInside, toPosixRel } from "../engine/project-paths";
+import { firstFree } from "../shared/lists";
 import { openDialog } from "./dialogs";
 
 const MEDIA_EXTENSIONS = [
@@ -29,9 +30,11 @@ const MEDIA_EXTENSIONS = [
 function uniqueAssetName(assets: string, file: string): string {
   const ext = path.extname(file);
   const stem = path.basename(file, ext);
-  let name = path.basename(file);
-  for (let n = 1; existsSync(path.join(assets, name)); n++) name = `${stem}-${n}${ext}`;
-  return name;
+  return firstFree(
+    (n) => (n === 0 ? path.basename(file) : `${stem}-${n}${ext}`),
+    (name) => existsSync(path.join(assets, name)),
+    0,
+  );
 }
 
 export async function importAssets(

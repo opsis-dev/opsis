@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
@@ -21,6 +22,7 @@ import {
   type StemLevels,
 } from "../../shared/mix/result";
 import { ToolError, type MediaDeps } from "../media/ffmpeg";
+import { shareInFlight } from "../../shared/memo";
 import { frameLevels, parseWav, SILENCE_DB } from "./wav";
 import { CancelledError, errorMessage, isCancelled } from "../../shared/errors";
 import { EPSILON, round1 } from "../../shared/math";
@@ -60,7 +62,12 @@ const stemMetaSchema = z.object({
 
 const recentSchema = z.array(z.array(z.string()));
 
-async function runStem(
+const stemRenders = shareInFlight<Stem>();
+
+const runStem = (...args: Parameters<typeof renderStem>): Promise<Stem> =>
+  stemRenders(path.join(mixDir(args[0].projectDir), `${args[2]}.wav`), () => renderStem(...args));
+
+async function renderStem(
   deps: MixDeps,
   plan: MixPlan,
   hash: string,
@@ -75,9 +82,10 @@ async function runStem(
   if (cached) return { hash, file, ...cached };
   await mkdir(dir, { recursive: true });
   const job = await makeJob();
-  const tmp = `${file}.${process.pid}.partial.wav`;
+  const unique = randomUUID();
+  const tmp = `${file}.${unique}.partial.wav`;
   const taps = job.taps
-    ? { pre: `${file}.${process.pid}.pre.wav`, post: `${file}.${process.pid}.post.wav` }
+    ? { pre: `${file}.${unique}.pre.wav`, post: `${file}.${unique}.post.wav` }
     : undefined;
   const levelsOf = async (wav: string) =>
     frameLevels(parseWav(await readFile(wav)), plan.fps, plan.durationInFrames);

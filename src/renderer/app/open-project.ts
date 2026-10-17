@@ -24,9 +24,9 @@ function openProjectIntoStores(p: OpenProject): void {
 
 export function useOpenProject(dir: string, onFailed: () => void): "opening" | "open" | "failed" {
   const loadedDir = useWorkflowStore((s) => (s.workflow ? s.projectDir : null));
-  const [failed, setFailed] = useState(false);
-  const fail = useEffectEvent((e: unknown) => {
-    setFailed(true);
+  const [failedDir, setFailedDir] = useState<string | null>(null);
+  const fail = useEffectEvent((failed: string, e: unknown) => {
+    setFailedDir(failed);
     reportError("Could not open the project", e);
     onFailed();
   });
@@ -39,7 +39,7 @@ export function useOpenProject(dir: string, onFailed: () => void): "opening" | "
         if (!cancelled && p) openProjectIntoStores(p);
       })
       .catch((e: unknown) => {
-        if (!cancelled) fail(e);
+        if (!cancelled) fail(dir, e);
       });
     return () => {
       cancelled = true;
@@ -47,5 +47,5 @@ export function useOpenProject(dir: string, onFailed: () => void): "opening" | "
   }, [dir]);
 
   if (loadedDir === dir) return "open";
-  return failed ? "failed" : "opening";
+  return failedDir === dir ? "failed" : "opening";
 }

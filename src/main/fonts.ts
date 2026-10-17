@@ -8,6 +8,7 @@ import { z } from "zod";
 import { baseName, extensionOf, projectRef } from "../shared/asset-ref";
 import { fontSlug, sameFamily } from "../shared/fonts";
 import { safeName } from "../shared/project-folder";
+import { firstFree } from "../shared/lists";
 import {
   fontFamilySchema,
   libraryRef,
@@ -178,11 +179,11 @@ export function inspectInstalledFonts(faces: FontInstalledFace[]): InspectedFont
   );
 }
 
-function uniqueId(base: string, library: FontFamilyDef[]): string {
-  let id = base;
-  for (let i = 2; library.some((f) => f.id === id); i++) id = `${base}-${i}`;
-  return id;
-}
+const uniqueId = (base: string, library: FontFamilyDef[]): string =>
+  firstFree(
+    (n) => (n === 1 ? base : `${base}-${n}`),
+    (id) => library.some((f) => f.id === id),
+  );
 
 export function guessCategory(family: string): FontFamilyDef["category"] {
   if (/mono|code/i.test(family)) return "monospace";

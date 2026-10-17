@@ -7,3 +7,14 @@ export const appendCapped = <T>(items: readonly T[], item: T, max: number): T[] 
 ];
 
 export const byCodeUnit = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+
+export function firstFree(
+  candidate: (n: number) => string,
+  taken: (name: string) => boolean,
+  start = 1,
+): string {
+  for (let n = start; ; n++) {
+    const name = candidate(n);
+    if (!taken(name)) return name;
+  }
+}

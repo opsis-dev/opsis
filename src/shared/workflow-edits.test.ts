@@ -117,6 +117,20 @@ describe("workflow edits", () => {
     });
   });
 
+  it("pastes a grouped node without its group at its place on the canvas", () => {
+    const source = grouped();
+    const group = source.nodes.find((n) => n.id === "g");
+    const inGroup = source.nodes.find((n) => n.id === "a");
+    if (!group || !inGroup) throw new Error("fixture changed");
+    const { workflow } = pasteNodes(source, [inGroup], [], { x: 10, y: 20 });
+    const pasted = workflow.nodes.at(-1);
+    expect(pasted?.parentId).toBeUndefined();
+    expect(pasted?.position).toEqual({
+      x: group.position.x + inGroup.position.x + 10,
+      y: group.position.y + inGroup.position.y + 20,
+    });
+  });
+
   it("renames a variable everywhere unless the new name is blank", () => {
     const wf = {
       ...sounds(),
@@ -133,7 +147,13 @@ describe("workflow edits", () => {
     const renamed = renameWorkflowVariable(wf, "site", "home");
     expect(renamed.variables).toEqual({ home: "https://example.com" });
     expect(renamed.nodes[0].params.url).toBe("{{home}}");
-    expect(renameWorkflowVariable(wf, "site", " ").nodes).toBe(wf.nodes);
+    expect(renameWorkflowVariable(wf, "site", " ")).toBe(wf);
+    expect(renameWorkflowVariable(wf, "site", "")).toBe(wf);
+    expect(
+      renameWorkflowVariable({ ...wf, variables: { site: "a", home: "b" } }, "site", "home")
+        .variables,
+    ).toEqual({ site: "a", home: "b" });
+    expect(renameWorkflowVariable(wf, "missing", "other")).toBe(wf);
   });
 
   it("replaces a project font of the same family", () => {

@@ -13,6 +13,7 @@ import { projectPaths } from "../engine/project-paths";
 import { projectRef } from "../shared/asset-ref";
 import { PROJECT_DIRS } from "../shared/project-dirs";
 import { tryParseJson } from "../shared/guards";
+import { safeName } from "../shared/project-folder";
 
 const traceEntrySchema = z.object({
   name: z.string(),
@@ -81,7 +82,7 @@ export async function ingestTrace(
   }
   const createdAt = Date.now();
   const manifest: TraceManifest = {
-    id: `${meta.nodeId}-${createdAt}`,
+    id: `${safeName(meta.nodeId, { fallback: "node", lower: false, alphabet: "alnum" })}-${createdAt}`,
     ...meta,
     createdAt,
     entries,

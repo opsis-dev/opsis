@@ -1,13 +1,11 @@
 import { getNodeDef } from "@/shared/nodes/registry";
 import type { NodeCategory } from "@/shared/nodes/define";
-import { splitBar } from "@/shared/timeline/edits";
 import type { VideoBar } from "@/shared/timeline/flatten";
 import { cn } from "@/renderer/lib/utils";
 import { FilmstripCanvas } from "./bar-canvas";
-import { nodeTitle, type BarContext } from "./bar-context";
+import { bladeSplit, nodeTitle, selectOnPress, type BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
 import { EnvelopeOverlay, useBarEnvelope } from "./envelope-overlay";
-import { commitEdit } from "./timeline-actions";
 import type { VideoEditKind } from "./timeline-drag";
 import { BAR_INSET, VIDEO_H, barBox, hitEdge } from "./timeline-layout";
 import { useTimeline, type TimelineTool } from "./timeline-state";
@@ -72,12 +70,8 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
 
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.beginPointer(e)) return;
-    if (tool === "blade") {
-      const at = drag.snapAt(drag.xToFrame(e.clientX), e.altKey);
-      commitEdit(splitBar(ctx.splitContext(), bar, Math.round(at)));
-      return;
-    }
-    if (!isSelected || e.shiftKey) ctx.select([bar.nodeId], e.shiftKey && tool === "select");
+    if (tool === "blade") return bladeSplit(ctx, bar, e.clientX, e.altKey);
+    selectOnPress(ctx, bar.nodeId, e.shiftKey);
     const [kind, ripple] = editFor(tool, hitEdge(e, width), onSpeedCorner(e));
     drag.startVideoEdit(e, kind, bar, ripple);
   };

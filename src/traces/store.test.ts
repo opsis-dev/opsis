@@ -92,6 +92,16 @@ describe("trace store", () => {
     expect(await blobs(dir)).toHaveLength(5);
   });
 
+  it("reads traces of nodes whose ids aren't plain names", async () => {
+    const dir = await project();
+    const m = await ingestTrace(dir, await traceZip(dir, "a.zip"), {
+      ...meta(),
+      nodeId: "my node/1.x",
+    });
+    const trace = await readTrace(dir, m.id);
+    expect(trace).toMatchObject({ id: m.id, nodeId: "my node/1.x" });
+  });
+
   it("rejects trace ids that are not plain names", async () => {
     const dir = await project();
     await expect(readTrace(dir, "../../etc/passwd")).rejects.toThrow("Invalid trace id");

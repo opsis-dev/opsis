@@ -95,14 +95,18 @@ export function cursorAim(log: ClickLog, tS: number): { cx: number; cy: number }
   return { cx: x / n / log.viewport.width, cy: y / n / log.viewport.height };
 }
 
+export const zoomCeiling = (tuning: CameraTuning): number =>
+  (tuning.sMax ?? S_MAX) * (tuning.narrow ?? 1);
+
 export function narrowPose(
   pose: CameraPose,
-  narrow: number,
+  tuning: CameraTuning,
   aim: { cx: number; cy: number } | null,
 ): CameraPose {
+  const narrow = tuning.narrow ?? 1;
   if (narrow <= 1) return pose;
   const rest = narrow ** NARROW_REST_EXP;
-  const zoomed = clamp01((pose.scale - rest) / (S_MAX * narrow - rest));
+  const zoomed = clamp01((pose.scale - rest) / (zoomCeiling(tuning) - rest));
   const restAim = aim ?? { cx: BASE_POSE.cx, cy: BASE_POSE.cy };
   return {
     scale: Math.max(pose.scale, rest),
@@ -332,9 +336,8 @@ function trailOut(
 }
 
 export function buildCameraTrack(log: ClickLog, speed = 1, tuning: CameraTuning = {}): CameraKey[] {
-  const narrowBy = tuning.narrow ?? 1;
-  const narrow = narrowBy > 1;
-  const sMax = (tuning.sMax ?? S_MAX) * narrowBy;
+  const narrow = (tuning.narrow ?? 1) > 1;
+  const sMax = zoomCeiling(tuning);
   const sMaxSoft = Math.min(S_MAX_SOFT, sMax);
   const vp = log.viewport;
   const endS = log.durationMs / 1000;
@@ -414,11 +417,11 @@ export function zoomAt(
   log: ClickLog,
   opts: ZoomOptions = {},
 ): ZoomState {
-  const narrow = opts.tuning?.narrow ?? 1;
+  const tuning = opts.tuning ?? {};
   const pose = poseAt(frame, fps, log, opts);
   const aimed =
-    narrow > 1
-      ? narrowPose(pose, narrow, cursorAim(log, logTimeS(frame, fps, opts.speed ?? 1)))
+    (tuning.narrow ?? 1) > 1
+      ? narrowPose(pose, tuning, cursorAim(log, logTimeS(frame, fps, opts.speed ?? 1)))
       : pose;
   return poseToCss(aimed, opts.chromeFrac ?? 0, opts.fit ?? 1);
 }

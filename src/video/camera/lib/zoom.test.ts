@@ -370,13 +370,17 @@ describe("camera in narrower shapes", () => {
   });
 
   it("never rests fully zoomed out, and rests on the cursor", () => {
-    const rest = narrowPose(BASE_POSE, 1.69, { cx: 0.8, cy: 0.3 });
+    const rest = narrowPose(BASE_POSE, { narrow: 1.69 }, { cx: 0.8, cy: 0.3 });
     expect(rest.scale > 1.3).toBe(true);
     expect(rest.cx).toBe(0.8);
   });
 
   it("aims at the action itself when fully zoomed in", () => {
-    const pose = narrowPose({ scale: S_MAX * 1.69, cx: 0.2, cy: 0.7 }, 1.69, { cx: 0.8, cy: 0.3 });
+    const pose = narrowPose(
+      { scale: S_MAX * 1.69, cx: 0.2, cy: 0.7 },
+      { narrow: 1.69 },
+      { cx: 0.8, cy: 0.3 },
+    );
     expect(Math.abs(pose.cx - 0.2) < 1e-9).toBe(true);
     expect(Math.abs(pose.cy - 0.7) < 1e-9).toBe(true);
     expect(Math.abs(pose.scale - S_MAX * 1.69) < 1e-9).toBe(true);
@@ -384,6 +388,14 @@ describe("camera in narrower shapes", () => {
 
   it("changes nothing in the recording's own shape", () => {
     const pose = { scale: 1.3, cx: 0.4, cy: 0.5 };
-    expect(narrowPose(pose, 1, { cx: 0.9, cy: 0.9 })).toEqual(pose);
+    expect(narrowPose(pose, { narrow: 1 }, { cx: 0.9, cy: 0.9 })).toEqual(pose);
+  });
+
+  it("aims at the action once zoomed to the node's own maximum", () => {
+    const tuning = { narrow: 1.69, sMax: 1.3 };
+    const full = { scale: 1.3 * 1.69, cx: 0.2, cy: 0.7 };
+    const pose = narrowPose(full, tuning, { cx: 0.8, cy: 0.3 });
+    expect(Math.abs(pose.cx - 0.2) < 1e-9).toBe(true);
+    expect(Math.abs(pose.cy - 0.7) < 1e-9).toBe(true);
   });
 });

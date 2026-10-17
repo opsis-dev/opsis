@@ -17,7 +17,7 @@ import { clamp, finiteOr, round2 } from "../math";
 import { edgeId, nodeIdPrefix } from "../ids";
 import { formatNumberList, parseNumberList } from "../format";
 import { framesToMs, msToFrames } from "./time";
-import { removeNodes } from "../workflow-edits";
+import { absPosition, removeNodes } from "../workflow-edits";
 
 export type EditContext = {
   workflow: Workflow;
@@ -125,14 +125,6 @@ function setLength(
 ): Workflow {
   const frames = Math.max(1, Math.round(lengthContentFrames * (ref.scale ?? 1)));
   return writeParam(wf, ref, ref.unit === "ms" ? framesToMs(frames, fps) : frames);
-}
-
-function absPosition(wf: Workflow, node: WorkflowNode): { x: number; y: number } {
-  if (!node.parentId) return node.position;
-  const parent = wf.nodes.find((n) => n.id === node.parentId);
-  if (!parent) return node.position;
-  const p = absPosition(wf, parent);
-  return { x: p.x + node.position.x, y: p.y + node.position.y };
 }
 
 const makeEdge = (e: Omit<WorkflowEdge, "id">): WorkflowEdge => ({ ...e, id: edgeId(e) });

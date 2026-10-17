@@ -18,6 +18,14 @@ type Size = { width: number; height: number };
 const GROUP_PAD = 40;
 const GROUP_TITLE_HEIGHT = 24;
 
+export function absPosition(wf: Workflow, node: WorkflowNode): Point {
+  if (!node.parentId) return node.position;
+  const parent = wf.nodes.find((n) => n.id === node.parentId);
+  if (!parent) return node.position;
+  const p = absPosition(wf, parent);
+  return { x: p.x + node.position.x, y: p.y + node.position.y };
+}
+
 export function detachFromParent(node: WorkflowNode, parent: Point | undefined): WorkflowNode {
   const { parentId: _parentId, ...rest } = node;
   return {
@@ -66,11 +74,12 @@ export function pasteNodes(
   const ids = new Map(nodes.map((node) => [node.id, nodeIdFor(node.type)]));
   const fresh = nodes.map((n): WorkflowNode => {
     const parentId = n.parentId ? ids.get(n.parentId) : undefined;
+    const at = absPosition(wf, n);
     return {
       ...n,
       id: ids.get(n.id) ?? n.id,
       parentId,
-      position: parentId ? n.position : { x: n.position.x + offset.x, y: n.position.y + offset.y },
+      position: parentId ? n.position : { x: at.x + offset.x, y: at.y + offset.y },
     };
   });
   const freshEdges = edges.flatMap((e) => {
@@ -142,12 +151,14 @@ export const addProjectFont = (wf: Workflow, def: FontFamilyDef): Workflow => ({
   },
 });
 
-export const renameWorkflowVariable = (wf: Workflow, from: string, to: string): Workflow => ({
-  ...wf,
-  variables: Object.fromEntries(
-    Object.entries(wf.variables).map(([k, v]) => [k === from ? to : k, v]),
-  ),
-  nodes: to.trim()
-    ? wf.nodes.map((n) => ({ ...n, params: renameVariable(n.params, from, to) }))
-    : wf.nodes,
-});
+export function renameWorkflowVariable(wf: Workflow, from: string, to: string): Workflow {
+  const name = to.trim();
+  if (!name || name === from || name in wf.variables || !(from in wf.variables)) return wf;
+  return {
+    ...wf,
+    variables: Object.fromEntries(
+      Object.entries(wf.variables).map(([k, v]) => [k === from ? name : k, v]),
+    ),
+    nodes: wf.nodes.map((n) => ({ ...n, params: renameVariable(n.params, from, name) })),
+  };
+}

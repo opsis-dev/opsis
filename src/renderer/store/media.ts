@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import type { MixPlan } from "@/shared/mix/plan";
-import type { AnalysisResult, AnalysisResultFor, Filmstrip, Waveform } from "@/shared/analysis";
+import type {
+  AnalysisKind,
+  AnalysisRequest,
+  AnalysisResult,
+  AnalysisResultFor,
+  Filmstrip,
+  Waveform,
+} from "@/shared/analysis";
+import { errorMessage } from "@/shared/errors";
 import { keepLast } from "@/shared/lists";
 import type { MixResult } from "@/shared/mix/result";
 import { debounce } from "@/shared/timing";
@@ -114,10 +122,18 @@ function mixDone(
     }));
 }
 
+function analyze<K extends AnalysisKind>(
+  request: Extract<AnalysisRequest, { kind: K }>,
+): Promise<AnalysisResultFor<K>> {
+  return window.demoflow
+    .analyze<K>(request)
+    .catch((e: unknown): AnalysisResultFor<K> => ({ kind: "error", error: errorMessage(e) }));
+}
+
 const startMix = debounce((projectDir: string, source: string, plan: MixPlan) => {
-  void window.demoflow
-    .analyze({ kind: "mix", projectDir, plan })
-    .then((r) => mixDone(projectDir, source, plan, r));
+  void analyze<"mix">({ kind: "mix", projectDir, plan }).then((r) =>
+    mixDone(projectDir, source, plan, r),
+  );
 }, MIX_DEBOUNCE_MS);
 
 type Analysis<T> = {
@@ -147,7 +163,7 @@ function loadAnalysis<T>(analysis: Analysis<T>, src: string): void {
   const put = (entry: Entry<T>) =>
     useMedia.setState((s) => analysis.store({ ...analysis.entries(s), [src]: entry }));
   put("loading");
-  void window.demoflow.analyze({ kind: analysis.kind, projectDir, src }).then((r) => {
+  void analyze({ kind: analysis.kind, projectDir, src }).then((r) => {
     if (useMedia.getState().projectDir !== projectDir) return;
     if (engineMissing(r)) useMedia.setState({ unavailable: true });
     put(analysis.value(r) ?? "error");

@@ -3,15 +3,13 @@ import { duckGain, duckingSpans } from "@/shared/compile/duck";
 import { applyMixLevels } from "@/shared/mix/levels";
 import type { Mix } from "@/shared/mix/types";
 import type { TimelineSpec } from "@/shared/schema/timeline";
-import { splitBar } from "@/shared/timeline/edits";
 import type { AudioBar } from "@/shared/timeline/flatten";
 import { MAX_VOLUME } from "@/shared/nodes/params";
 import { cn } from "@/renderer/lib/utils";
 import { WaveformCanvas } from "./bar-canvas";
-import { nodeTitle, type BarContext } from "./bar-context";
+import { bladeSplit, nodeTitle, selectOnPress, type BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
 import { EnvelopeOverlay, useBarEnvelope } from "./envelope-overlay";
-import { commitEdit } from "./timeline-actions";
 import { AUDIO_H, BAR_INSET, barBox, hitEdge } from "./timeline-layout";
 import { useTimeline } from "./timeline-state";
 
@@ -81,11 +79,8 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
 
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.beginPointer(e)) return;
-    if (nodeId && (!isSelected || e.shiftKey)) ctx.select([nodeId], e.shiftKey);
-    if (tool === "blade" && bar.bar) {
-      commitEdit(splitBar(ctx.splitContext(), bar.bar, Math.round(drag.xToFrame(e.clientX))));
-      return;
-    }
+    if (tool === "blade" && bar.bar) return bladeSplit(ctx, bar.bar, e.clientX, e.altKey);
+    if (nodeId) selectOnPress(ctx, nodeId, e.shiftKey);
     const hit = hitAt(e);
     if (hit === "line") drag.startVolume(e, bar, HEIGHT);
     else

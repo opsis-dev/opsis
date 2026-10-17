@@ -14,3 +14,14 @@ export function keepLatest<T>(
     return value;
   };
 }
+
+export function shareInFlight<T>(): (key: string, make: () => Promise<T>) => Promise<T> {
+  const running = new Map<string, Promise<T>>();
+  return (key, make) => {
+    const current = running.get(key);
+    if (current) return current;
+    const value = make().finally(() => running.delete(key));
+    running.set(key, value);
+    return value;
+  };
+}
