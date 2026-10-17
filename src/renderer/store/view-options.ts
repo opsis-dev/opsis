@@ -19,10 +19,21 @@ type ViewOptions = {
   minimap: boolean;
 };
 
+type Persisted<T> = { fallback: T; valid: (v: unknown) => v is T };
+
+const PERSISTED: { [K in keyof ViewOptions]: Persisted<ViewOptions[K]> } = {
+  previewQuality: { fallback: "fast", valid: isPreviewQuality },
+  previewShape: { fallback: "project", valid: isPreviewShape },
+  minimap: { fallback: true, valid: isBoolean },
+};
+
+const stored = <K extends keyof ViewOptions>(key: K): ViewOptions[K] =>
+  readPref(key, PERSISTED[key].fallback, PERSISTED[key].valid);
+
 export const storedViewOptions = (): ViewOptions => ({
-  previewQuality: readPref("previewQuality", "fast", isPreviewQuality),
-  previewShape: readPref("previewShape", "project", isPreviewShape),
-  minimap: readPref("minimap", true, isBoolean),
+  previewQuality: stored("previewQuality"),
+  previewShape: stored("previewShape"),
+  minimap: stored("minimap"),
 });
 
 type ViewOptionsState = ViewOptions & {
@@ -31,18 +42,19 @@ type ViewOptionsState = ViewOptions & {
   setMinimap: (minimap: boolean) => void;
 };
 
-export const useViewOptions = create<ViewOptionsState>()((set) => ({
-  ...storedViewOptions(),
-  setPreviewQuality: (previewQuality) => {
-    set({ previewQuality });
-    writePref("previewQuality", previewQuality);
-  },
-  setPreviewShape: (previewShape) => {
-    set({ previewShape });
-    writePref("previewShape", previewShape);
-  },
-  setMinimap: (minimap) => {
-    set({ minimap });
-    writePref("minimap", minimap);
-  },
-}));
+export const useViewOptions = create<ViewOptionsState>()((set) => {
+  const persisted =
+    <K extends keyof ViewOptions>(key: K) =>
+    (value: ViewOptions[K]) => {
+      const patch: Partial<ViewOptions> = {};
+      patch[key] = value;
+      set(patch);
+      writePref(key, value);
+    };
+  return {
+    ...storedViewOptions(),
+    setPreviewQuality: persisted("previewQuality"),
+    setPreviewShape: persisted("previewShape"),
+    setMinimap: persisted("minimap"),
+  };
+});

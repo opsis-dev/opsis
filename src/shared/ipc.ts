@@ -10,7 +10,7 @@ import type { TraceModel } from "./trace";
 import type { FontFamilyDef } from "./fonts/types";
 import type { PlannedFamily } from "./fonts/plan";
 import type { TimelineSpec } from "./schema/timeline";
-import type { AnalysisRequest, AnalysisResult } from "./analysis";
+import type { AnalysisKind, AnalysisRequest, AnalysisResultFor } from "./analysis";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 
@@ -195,7 +195,9 @@ export interface DemoflowApi {
   getWindowState(): Promise<WindowState>;
   requestStill(request: StillRequest): Promise<StillResult>;
   listStills(projectDir: string): Promise<Record<string, string>>;
-  analyze(request: AnalysisRequest): Promise<AnalysisResult>;
+  analyze<K extends AnalysisKind>(
+    request: Extract<AnalysisRequest, { kind: K }>,
+  ): Promise<AnalysisResultFor<K>>;
   openPanelWindow(panel: DockPanelName, projectDir: string): Promise<void>;
   focusPanelWindow(panel: DockPanelName): Promise<void>;
   closePanelWindow(panel: DockPanelName): Promise<void>;

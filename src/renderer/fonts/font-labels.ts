@@ -1,4 +1,9 @@
-const CATEGORY_LABELS: Partial<Record<string, string>> = {
+import { FONT_CATEGORIES } from "@/shared/fonts/types";
+import { isOneOf } from "@/renderer/lib/one-of";
+
+const CATALOG_CATEGORIES = [...FONT_CATEGORIES, "icons"] as const;
+
+const FONT_CATEGORY_LABELS: Record<(typeof CATALOG_CATEGORIES)[number], string> = {
   "sans-serif": "Sans serif",
   serif: "Serif",
   monospace: "Monospace",
@@ -7,7 +12,8 @@ const CATEGORY_LABELS: Partial<Record<string, string>> = {
   icons: "Icons",
 };
 
-export const categoryLabel = (category: string): string => CATEGORY_LABELS[category] ?? "Other";
+export const categoryLabel = (category: string): string =>
+  isOneOf(CATALOG_CATEGORIES, category) ? FONT_CATEGORY_LABELS[category] : "Other";
 
 const WEIGHT_NAMES: Partial<Record<string, string>> = {
   "100": "Thin",

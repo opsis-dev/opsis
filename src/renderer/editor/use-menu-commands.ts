@@ -8,7 +8,7 @@ import { tidyLayout } from "./layout";
 import { DOCK_PANELS, focusPanel, PANEL_SIDES, togglePanel } from "./panels";
 import { startRun } from "./run";
 import { saveWithToast } from "./save";
-import { onMenuCommand } from "@/renderer/app/menu-commands";
+import { onMenuCommand } from "../app/menu-commands";
 
 type MenuActions = Partial<Record<MenuCommand, () => void>>;
 

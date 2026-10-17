@@ -1,13 +1,13 @@
 import { RotateCcw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
 import {
+  KEEP_LAST_TRACES,
+  START_OPTION_LABELS,
   START_OPTIONS,
   TRACE_RETENTION,
+  TRACE_RETENTION_LABELS,
   type AppSettings,
-  type StartOption,
 } from "@/shared/settings";
-import { errorMessage } from "@/shared/errors";
 import { clamp } from "@/shared/math";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -22,29 +22,13 @@ import { Input } from "@/renderer/components/ui/input";
 import { SingleSlider } from "../single-slider";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { Switch } from "@/renderer/components/ui/switch";
-import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { patchAppSettings } from "../../store/app-settings";
 import { useFreshEnvironment } from "../../store/environment";
 import { FolderField } from "../folder-field";
+import { OptionToggle } from "../option-toggle";
+import { useProjectLocations } from "../use-loaded";
 
-type TraceRetention = AppSettings["traces"]["retention"];
-
-const ON_START: Array<[StartOption, string]> = [
-  ["start-screen", "Show the start screen"],
-  ["last-project", "Open the last project"],
-  ["new-project", "Start a new project"],
-];
-
-const RETENTION: Array<[TraceRetention, string]> = [
-  ["always", "Always"],
-  ["failures", "Failures only"],
-  ["last-n", "Last N"],
-  ["off", "Off"],
-];
-
-const KEEP_LAST_MIN = 1;
-const KEEP_LAST_MAX = 500;
+const LIVE_FPS = { min: 1, max: 30 };
 
 export function GeneralPage({ settings }: { settings: AppSettings }) {
   return (
@@ -56,21 +40,12 @@ export function GeneralPage({ settings }: { settings: AppSettings }) {
         <FieldGroup>
           <Field>
             <FieldLabel>When Demoflow starts</FieldLabel>
-            <ToggleGroup
-              variant="outline"
-              size="sm"
-              value={[settings.app.onStart]}
-              onValueChange={whenFirstOneOf(
-                START_OPTIONS,
-                (onStart) => void patchAppSettings({ app: { onStart } }),
-              )}
-            >
-              {ON_START.map(([value, label]) => (
-                <ToggleGroupItem key={value} value={value}>
-                  {label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+            <OptionToggle
+              options={START_OPTIONS}
+              labels={START_OPTION_LABELS}
+              value={settings.app.onStart}
+              onChange={(onStart) => void patchAppSettings({ app: { onStart } })}
+            />
           </Field>
           <Field orientation="horizontal" className="justify-between">
             <div className="flex flex-col gap-1">
@@ -95,18 +70,8 @@ export function GeneralPage({ settings }: { settings: AppSettings }) {
 }
 
 function useDefaultFolder(custom: string): string {
-  const [fallback, setFallback] = useState("");
-  useEffect(() => {
-    if (custom) return;
-    void window.demoflow.projectLocations().then(
-      (l) => setFallback(l.defaultDir),
-      (e: unknown) =>
-        toast.error("Could not find the default projects folder", {
-          description: errorMessage(e),
-        }),
-    );
-  }, [custom]);
-  return custom ? "" : fallback;
+  const locations = useProjectLocations(custom);
+  return custom ? "" : (locations?.defaultDir ?? "");
 }
 
 export function ProjectsPage({ settings }: { settings: AppSettings }) {
@@ -166,8 +131,10 @@ export function ProjectsPage({ settings }: { settings: AppSettings }) {
 
 function setKeepLast(value: string): void {
   const n = Math.round(Number(value));
-  if (n >= KEEP_LAST_MIN)
-    void patchAppSettings({ traces: { keepLast: clamp(n, KEEP_LAST_MIN, KEEP_LAST_MAX) } });
+  if (n >= KEEP_LAST_TRACES.min)
+    void patchAppSettings({
+      traces: { keepLast: clamp(n, KEEP_LAST_TRACES.min, KEEP_LAST_TRACES.max) },
+    });
 }
 
 function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
@@ -184,21 +151,12 @@ function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
         <FieldGroup>
           <Field>
             <FieldLabel>Keep traces</FieldLabel>
-            <ToggleGroup
-              variant="outline"
-              size="sm"
-              value={[traces.retention]}
-              onValueChange={whenFirstOneOf(
-                TRACE_RETENTION,
-                (retention) => void patchAppSettings({ traces: { retention } }),
-              )}
-            >
-              {RETENTION.map(([value, label]) => (
-                <ToggleGroupItem key={value} value={value}>
-                  {label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+            <OptionToggle
+              options={TRACE_RETENTION}
+              labels={TRACE_RETENTION_LABELS}
+              value={traces.retention}
+              onChange={(retention) => void patchAppSettings({ traces: { retention } })}
+            />
           </Field>
           {traces.retention === "last-n" ? (
             <Field>
@@ -206,8 +164,8 @@ function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
               <Input
                 id="keep-last"
                 type="number"
-                min={KEEP_LAST_MIN}
-                max={KEEP_LAST_MAX}
+                min={KEEP_LAST_TRACES.min}
+                max={KEEP_LAST_TRACES.max}
                 value={traces.keepLast}
                 onChange={(e) => setKeepLast(e.target.value)}
               />
@@ -236,8 +194,8 @@ function LiveViewCard({ live }: { live: AppSettings["live"] }) {
               <span className="text-muted-foreground text-sm tabular-nums">{live.fps} fps</span>
             </div>
             <SingleSlider
-              min={1}
-              max={30}
+              min={LIVE_FPS.min}
+              max={LIVE_FPS.max}
               step={1}
               value={live.fps}
               onChange={(fps) => void patchAppSettings({ live: { fps } })}

@@ -5,59 +5,26 @@ import type { MenuCommand } from "@/shared/menu";
 import type { LiveMessage } from "@/shared/live";
 import type { RunEvent } from "@/shared/schema/events";
 import type { Workflow } from "@/shared/schema/workflow";
-import { useLiveStore } from "../store/live";
+import { isRecord } from "@/shared/guards";
+import { randomId } from "@/shared/ids";
 import { loadViewState } from "../editor/view-state";
+import { applyLive } from "../store/live";
 import {
   forwardPlaybackTo,
+  playbackSnapshot,
   runPlaybackCommand,
   usePlayback,
   type PlaybackCommand,
+  type PlaybackSnapshot,
 } from "../store/playback";
-import { useRunStore } from "../store/run";
-import { useUiStore } from "../store/ui";
+import { runSnapshot, useRunStore, type RunSnapshot } from "../store/run";
+import { selection, useUiStore, type Selection } from "../store/ui";
 import { useViewOptions, type PreviewQuality, type PreviewShape } from "../store/view-options";
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
-import { liveAutoOpen } from "../store/app-settings";
-import { randomId } from "@/shared/ids";
-import { dispatchMenuCommand } from "@/renderer/app/menu-commands";
+import { dispatchMenuCommand } from "./menu-commands";
 
 const CHANNEL = "demoflow-sync";
 const LIVE_CHANNEL = "demoflow-live";
-
-const RUN_KEYS = [
-  "runId",
-  "running",
-  "statuses",
-  "progress",
-  "cached",
-  "errors",
-  "traces",
-  "logs",
-  "results",
-  "outputs",
-  "lastError",
-  "failedNodeIds",
-  "skippedNodeIds",
-] as const;
-
-const SELECTION_KEYS = ["selectedIds", "activeIds", "pinnedSource"] as const;
-
-const PLAYBACK_KEYS = [
-  "frame",
-  "playing",
-  "rate",
-  "fps",
-  "durationInFrames",
-  "inPoint",
-  "outPoint",
-] as const;
-
-type RunSnapshot = Pick<ReturnType<typeof useRunStore.getState>, (typeof RUN_KEYS)[number]>;
-type Selection = Pick<ReturnType<typeof useUiStore.getState>, (typeof SELECTION_KEYS)[number]>;
-type PlaybackSnapshot = Pick<
-  ReturnType<typeof usePlayback.getState>,
-  (typeof PLAYBACK_KEYS)[number]
->;
 
 type SyncMessage =
   | { type: "hello"; panel: DockPanelName }
@@ -89,19 +56,33 @@ type SyncMessage =
 type Post = (message: SyncMessage) => void;
 type Flag = { current: boolean };
 
+type MessageOf = { [M in SyncMessage as M["type"]]: M };
+type Handlers = { [T in keyof MessageOf]?: (message: MessageOf[T]) => void };
+
+const SYNC_TYPES: Record<SyncMessage["type"], true> = {
+  hello: true,
+  state: true,
+  workflow: true,
+  "run-event": true,
+  selection: true,
+  quality: true,
+  shape: true,
+  edit: true,
+  menu: true,
+  replay: true,
+  playback: true,
+  frame: true,
+  inout: true,
+  "editor-closed": true,
+};
+
 const windowId = randomId();
 
-const pick = <T, K extends keyof T>(source: T, keys: readonly K[]): Pick<T, K> =>
-  Object.fromEntries(keys.map((k) => [k, source[k]])) as Pick<T, K>;
-
-const runSnapshot = (): RunSnapshot => pick(useRunStore.getState(), RUN_KEYS);
-const selection = (): Selection => pick(useUiStore.getState(), SELECTION_KEYS);
-const playbackSnapshot = (): PlaybackSnapshot => pick(usePlayback.getState(), PLAYBACK_KEYS);
-
 const isMessage = (data: unknown): data is { type: string } =>
-  typeof data === "object" && data !== null && "type" in data && typeof data.type === "string";
+  isRecord(data) && typeof data.type === "string";
 
-const isSyncMessage = (data: unknown): data is SyncMessage => isMessage(data);
+const isSyncMessage = (data: unknown): data is SyncMessage =>
+  isMessage(data) && Object.hasOwn(SYNC_TYPES, data.type);
 
 const isLiveMessage = (data: unknown): data is LiveMessage =>
   isMessage(data) && "captureId" in data && typeof data.captureId === "string";
@@ -150,40 +131,59 @@ function watchViewOptions(post: Post, applying: Flag): () => void {
   });
 }
 
-function watchUi(post: Post, applying: Flag): () => void {
-  const offs = [watchSelection(post, applying), watchViewOptions(post, applying)];
-  return () => {
-    for (const off of offs) off();
-  };
+const sharedHandlers = (applying: Flag): Handlers => ({
+  frame: (m) => {
+    if (m.from !== windowId && !usePlayback.getState().hasPlayer)
+      whileApplying(applying, () => usePlayback.setState(m.playback));
+  },
+  inout: (m) => {
+    if (m.from !== windowId)
+      whileApplying(applying, () =>
+        usePlayback.setState({ inPoint: m.inPoint, outPoint: m.outPoint }),
+      );
+  },
+  playback: (m) => runPlaybackCommand(m.command),
+  selection: (m) => {
+    if (m.from !== windowId) whileApplying(applying, () => useUiStore.setState(m.selection));
+  },
+  quality: (m) =>
+    whileApplying(applying, () => useViewOptions.setState({ previewQuality: m.quality })),
+  shape: (m) => whileApplying(applying, () => useViewOptions.setState({ previewShape: m.shape })),
+});
+
+function handle<T extends keyof MessageOf>(
+  handlers: Handlers,
+  type: T,
+  message: MessageOf[T],
+): void {
+  handlers[type]?.(message);
 }
 
-function applyShared(m: SyncMessage, applying: Flag): boolean {
-  switch (m.type) {
-    case "frame":
-      if (m.from !== windowId && !usePlayback.getState().hasPlayer)
-        whileApplying(applying, () => usePlayback.setState(m.playback));
-      return true;
-    case "inout":
-      if (m.from !== windowId)
-        whileApplying(applying, () =>
-          usePlayback.setState({ inPoint: m.inPoint, outPoint: m.outPoint }),
-        );
-      return true;
-    case "playback":
-      runPlaybackCommand(m.command);
-      return true;
-    case "selection":
-      if (m.from !== windowId) whileApplying(applying, () => useUiStore.setState(m.selection));
-      return true;
-    case "quality":
-      whileApplying(applying, () => useViewOptions.setState({ previewQuality: m.quality }));
-      return true;
-    case "shape":
-      whileApplying(applying, () => useViewOptions.setState({ previewShape: m.shape }));
-      return true;
-    default:
-      return false;
-  }
+type SyncChannel = { post: Post; applying: Flag; close: () => void };
+
+function openSyncChannel(handlers: (channel: Omit<SyncChannel, "close">) => Handlers): SyncChannel {
+  const bc = new BroadcastChannel(CHANNEL);
+  const post: Post = (m) => bc.postMessage(m);
+  const applying = { current: false };
+  const table = { ...sharedHandlers(applying), ...handlers({ post, applying }) };
+  forwardPlaybackTo((command) => post({ type: "playback", command }));
+  const offs = [
+    watchSelection(post, applying),
+    watchViewOptions(post, applying),
+    syncPlayback(post, applying),
+  ];
+  bc.addEventListener("message", (e) => {
+    if (isSyncMessage(e.data)) handle(table, e.data.type, e.data);
+  });
+  return {
+    post,
+    applying,
+    close: () => {
+      for (const off of offs) off();
+      forwardPlaybackTo(null);
+      bc.close();
+    },
+  };
 }
 
 function useLiveRelay(): void {
@@ -191,19 +191,13 @@ function useLiveRelay(): void {
     const bc = new BroadcastChannel(LIVE_CHANNEL);
     const offLocal = window.demoflow.onLive((message) => bc.postMessage(message));
     bc.addEventListener("message", (e) => {
-      if (isLiveMessage(e.data)) useLiveStore.getState().apply(e.data, liveAutoOpen());
+      if (isLiveMessage(e.data)) applyLive(e.data);
     });
     return () => {
       offLocal();
       bc.close();
     };
   }, []);
-}
-
-function listen(bc: BroadcastChannel, handle: (message: SyncMessage) => void): void {
-  bc.addEventListener("message", (e) => {
-    if (isSyncMessage(e.data)) handle(e.data);
-  });
 }
 
 function sendState(post: Post, ack: number): void {
@@ -243,44 +237,32 @@ function applyRemoteEdit(edit: RemoteEdit): void {
 export function useEditorSync(): void {
   useLiveRelay();
   useEffect(() => {
-    const bc = new BroadcastChannel(CHANNEL);
-    const post: Post = (m) => bc.postMessage(m);
-    const applying = { current: false };
     let ack = 0;
-    forwardPlaybackTo((command) => post({ type: "playback", command }));
-    const offs = [
-      watchWorkflow(post, () => ack),
-      watchUi(post, applying),
-      syncPlayback(post, applying),
-      window.demoflow.onRunEvent((event) => post({ type: "run-event", event })),
-    ];
-    listen(bc, (m) => {
-      if (applyShared(m, applying)) return;
-      if (m.type === "hello") sendState(post, ack);
-      else if (m.type === "edit") {
+    const channel = openSyncChannel(({ post }) => ({
+      hello: () => sendState(post, ack),
+      edit: (m) => {
         ack = Math.max(ack, m.seq);
         applyRemoteEdit(m.edit);
-      } else if (m.type === "menu") dispatchMenuCommand(m.command);
-      else if (m.type === "replay") useUiStore.getState().setReplay(m.nodeId);
-    });
-    sendState(post, ack);
+      },
+      menu: (m) => dispatchMenuCommand(m.command),
+      replay: (m) => useUiStore.getState().setReplay(m.nodeId),
+    }));
+    const offs = [
+      watchWorkflow(channel.post, () => ack),
+      window.demoflow.onRunEvent((event) => channel.post({ type: "run-event", event })),
+    ];
+    sendState(channel.post, ack);
     return () => {
       for (const off of offs) off();
-      forwardPlaybackTo(null);
-      post({ type: "editor-closed" });
-      bc.close();
+      channel.post({ type: "editor-closed" });
+      channel.close();
     };
   }, []);
 }
 
-function applyState(m: Extract<SyncMessage, { type: "state" }>, applying: Flag): void {
+function applyState(m: MessageOf["state"], applying: Flag): void {
   if (useWorkflowStore.getState().projectDir !== m.projectDir) loadViewState(m.projectDir);
-  useWorkflowStore.setState({
-    projectDir: m.projectDir,
-    workflow: m.workflow,
-    revision: 0,
-    savedRevision: 0,
-  });
+  useWorkflowStore.getState().mirrorProject(m.projectDir, m.workflow);
   useRunStore.setState(m.run);
   whileApplying(applying, () => {
     useUiStore.setState(m.selection);
@@ -289,41 +271,24 @@ function applyState(m: Extract<SyncMessage, { type: "state" }>, applying: Flag):
   });
 }
 
-function applyEditorWorkflow(workflow: Workflow): void {
-  const store = useWorkflowStore.getState();
-  if (store.workflow === workflow) return;
-  useWorkflowStore.setState({
-    workflow,
-    revision: store.revision + 1,
-    savedRevision: store.revision + 1,
-  });
-}
-
 export function usePanelSync(panel: DockPanelName, onClosed: () => void): void {
   useLiveRelay();
   const closed = useEffectEvent(onClosed);
   useEffect(() => {
-    const bc = new BroadcastChannel(CHANNEL);
-    const post: Post = (m) => bc.postMessage(m);
-    const applying = { current: false };
     let seq = 0;
-    mirrorEditsTo((edit) => post({ type: "edit", edit, seq: ++seq }));
-    forwardPlaybackTo((command) => post({ type: "playback", command }));
-    const offs = [watchUi(post, applying), syncPlayback(post, applying)];
-    listen(bc, (m) => {
-      if (applyShared(m, applying)) return;
-      if (m.type === "state") applyState(m, applying);
-      else if (m.type === "workflow") {
-        if (m.ack >= seq) applyEditorWorkflow(m.workflow);
-      } else if (m.type === "run-event") useRunStore.getState().apply(m.event);
-      else if (m.type === "editor-closed") closed();
-    });
-    post({ type: "hello", panel });
+    const channel = openSyncChannel(({ applying }) => ({
+      state: (m) => applyState(m, applying),
+      workflow: (m) => {
+        if (m.ack >= seq) useWorkflowStore.getState().mirrorSaved(m.workflow);
+      },
+      "run-event": (m) => useRunStore.getState().apply(m.event),
+      "editor-closed": () => closed(),
+    }));
+    mirrorEditsTo((edit) => channel.post({ type: "edit", edit, seq: ++seq }));
+    channel.post({ type: "hello", panel });
     return () => {
-      for (const off of offs) off();
       mirrorEditsTo(null);
-      forwardPlaybackTo(null);
-      bc.close();
+      channel.close();
     };
   }, [panel]);
 }

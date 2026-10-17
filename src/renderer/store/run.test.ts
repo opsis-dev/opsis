@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import type { RunEvent } from "@/shared/schema/events";
 import type { NodeResult } from "@/shared/schema/values";
 import { MAX_LOG_LINES, useRunStore } from "./run";
 
@@ -11,7 +12,21 @@ const result = (finishedAt: number, traceId: string): NodeResult => ({
   traceId,
 });
 
-describe("run store seed", () => {
+type RunDone = Extract<RunEvent, { type: "run:done" }>;
+
+const runDone = (runId: string, overrides: Partial<RunDone> = {}): RunDone => ({
+  type: "run:done",
+  runId,
+  ok: true,
+  cancelled: false,
+  outputs: [],
+  at: 0,
+  ...overrides,
+});
+
+describe("run store", () => {
+  beforeEach(() => useRunStore.getState().seed(null));
+
   it("opens the newest trace of each node, failed or not", () => {
     useRunStore.getState().seed({
       updatedAt: 300,
@@ -59,7 +74,6 @@ describe("run store seed", () => {
 
   it("keeps an earlier failure when a later run leaves that node out", () => {
     const store = useRunStore.getState();
-    store.seed(null);
     store.apply({ type: "run:start", runId: "r1", nodeIds: ["a", "b", "c"], at: 0 });
     store.apply({
       type: "node:done",
@@ -75,17 +89,15 @@ describe("run store seed", () => {
       nodeId: "c",
       reason: "Something before it failed",
     });
-    store.apply({
-      type: "run:done",
-      runId: "r1",
-      ok: false,
-      cancelled: false,
-      error: "B failed, 1 skipped",
-      failedNodeIds: ["b"],
-      skippedNodeIds: ["c"],
-      outputs: [],
-      at: 2,
-    });
+    store.apply(
+      runDone("r1", {
+        ok: false,
+        error: "B failed, 1 skipped",
+        failedNodeIds: ["b"],
+        skippedNodeIds: ["c"],
+        at: 2,
+      }),
+    );
     expect(useRunStore.getState().failedNodeIds).toEqual(["b"]);
     store.start("r2");
     store.apply({ type: "run:start", runId: "r2", nodeIds: ["c"], at: 3 });
@@ -96,7 +108,7 @@ describe("run store seed", () => {
       cached: false,
       result: result(4, "y"),
     });
-    store.apply({ type: "run:done", runId: "r2", ok: true, cancelled: false, outputs: [], at: 5 });
+    store.apply(runDone("r2", { at: 5 }));
     const s = useRunStore.getState();
     expect(s.errors.b).toBe("boom");
     expect(s.statuses.b).toBe("error");
@@ -106,23 +118,14 @@ describe("run store seed", () => {
 
   it("doesn't restart a run whose events came before its id", () => {
     const store = useRunStore.getState();
-    store.seed(null);
     store.apply({ type: "run:start", runId: "fast", nodeIds: ["a"], at: 0 });
-    store.apply({
-      type: "run:done",
-      runId: "fast",
-      ok: true,
-      cancelled: false,
-      outputs: [],
-      at: 1,
-    });
+    store.apply(runDone("fast", { at: 1 }));
     store.start("fast");
     expect(useRunStore.getState().running).toBe(false);
   });
 
   it("keeps the log at its limit however lines arrive", () => {
     const store = useRunStore.getState();
-    store.seed(null);
     store.apply({ type: "run:start", runId: "r", nodeIds: ["a"], at: 0 });
     for (let i = 0; i < MAX_LOG_LINES; i++) {
       store.apply({

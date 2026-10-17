@@ -33,7 +33,7 @@ import { EnginePanel } from "../setup";
 import { ApiPage } from "./api-page";
 import { LicencesPage } from "./licences-page";
 import { AboutPage, ExportPage, GeneralPage, ProjectsPage, RecordingPage } from "./pages";
-import { onMenuCommand } from "@/renderer/app/menu-commands";
+import { onMenuCommand } from "../menu-commands";
 
 type PageInfo = {
   label: string;

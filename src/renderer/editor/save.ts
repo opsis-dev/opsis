@@ -1,8 +1,7 @@
-import { toast } from "sonner";
-import { errorMessage } from "@/shared/errors";
 import { normalizeWorkflow } from "@/shared/schema/workflow";
 import { useWorkflowStore } from "../store/workflow";
 import { useDiskChange, type DiskChange } from "./disk-change-store";
+import { reportError } from "@/renderer/lib/toast";
 
 let saving: Promise<boolean> = Promise.resolve(true);
 
@@ -26,7 +25,7 @@ export function save(): Promise<boolean> {
 
 export const saveWithToast = (): Promise<boolean> =>
   save().catch((e: unknown) => {
-    toast.error("Save failed", { description: errorMessage(e) });
+    reportError("Save failed", e);
     return false;
   });
 

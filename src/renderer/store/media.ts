@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { MixPlan } from "@/shared/mix/plan";
-import type { AnalysisResult, Filmstrip, Waveform } from "@/shared/analysis";
+import type { AnalysisResult, AnalysisResultFor, Filmstrip, Waveform } from "@/shared/analysis";
+import { keepLast } from "@/shared/lists";
 import type { MixResult } from "@/shared/mix/result";
 import { debounce } from "@/shared/timing";
 import { useAudioPreview } from "./audio-preview";
@@ -48,9 +49,10 @@ function keepRecent(
   source: string,
 ) {
   const kept = new Set(
-    Object.keys(mixes)
-      .filter((k) => k !== key)
-      .slice(1 - MAX_MIXES),
+    keepLast(
+      Object.keys(mixes).filter((k) => k !== key),
+      MAX_MIXES - 1,
+    ),
   );
   return {
     mixes: { ...Object.fromEntries([...kept].map((k) => [k, mixes[k]])), [key]: mix },
@@ -61,90 +63,96 @@ function keepRecent(
   };
 }
 
-export const useMedia = create<MediaState>()((set, get) => {
-  const mixDone = (projectDir: string, source: string, plan: MixPlan, r: AnalysisResult) => {
-    if (get().projectDir !== projectDir || r.kind === "skipped") return;
-    if (r.kind === "error") {
-      set((s) => ({
-        mixError: r.error,
-        failedKey: plan.key,
-        unavailable: engineMissing(r),
-        mixing: s.mixing === plan.key ? null : s.mixing,
-      }));
-      useAudioPreview.getState().clear();
+export const useMedia = create<MediaState>()((set, get) => ({
+  ...emptyMedia(null),
+
+  reset: (projectDir) => set(emptyMedia(projectDir)),
+
+  waveform: (src) => loadAnalysis(WAVEFORMS, src),
+
+  filmstrip: (src) => loadAnalysis(FILMSTRIPS, src),
+
+  requestMix: (source, plan) => {
+    const { projectDir, mixes, unavailable } = get();
+    if (!projectDir || unavailable) return;
+    if (mixes[plan.key]) {
+      if (get().latest[source] !== plan.key)
+        setMix((s) => ({ latest: { ...s.latest, [source]: plan.key } }));
       return;
     }
-    if (r.kind !== "mix") return;
-    set((s) => ({
+    set({ mixing: plan.key });
+    startMix(projectDir, source, plan);
+  },
+}));
+
+function setMix(update: (s: MediaState) => Partial<MediaState>): void {
+  useMedia.setState(update);
+  useAudioPreview.getState().clear();
+}
+
+function mixDone(
+  projectDir: string,
+  source: string,
+  plan: MixPlan,
+  r: AnalysisResultFor<"mix">,
+): void {
+  if (useMedia.getState().projectDir !== projectDir || r.kind === "skipped") return;
+  const mixing = (s: MediaState) => (s.mixing === plan.key ? null : s.mixing);
+  if (r.kind === "error")
+    setMix((s) => ({
+      mixError: r.error,
+      failedKey: plan.key,
+      unavailable: engineMissing(r),
+      mixing: mixing(s),
+    }));
+  else
+    setMix((s) => ({
       ...keepRecent(s.mixes, s.latest, plan.key, r.mix, source),
-      mixing: s.mixing === plan.key ? null : s.mixing,
+      mixing: mixing(s),
       mixError: null,
       failedKey: null,
     }));
-    useAudioPreview.getState().clear();
-  };
+}
 
-  const startMix = debounce((projectDir: string, source: string, plan: MixPlan) => {
-    void window.demoflow
-      .analyze({ kind: "mix", projectDir, plan })
-      .then((r) => mixDone(projectDir, source, plan, r));
-  }, MIX_DEBOUNCE_MS);
+const startMix = debounce((projectDir: string, source: string, plan: MixPlan) => {
+  void window.demoflow
+    .analyze({ kind: "mix", projectDir, plan })
+    .then((r) => mixDone(projectDir, source, plan, r));
+}, MIX_DEBOUNCE_MS);
 
-  const loadAnalysis = <T>(
-    kind: "waveform" | "filmstrip",
-    src: string,
-    entries: (s: MediaState) => Record<string, Entry<T>>,
-    store: (next: Record<string, Entry<T>>) => Partial<MediaState>,
-    pick: (r: AnalysisResult) => T | undefined,
-  ) => {
-    const { projectDir, unavailable } = get();
-    if (!projectDir || entries(get())[src] || unavailable) return;
-    set((s) => store({ ...entries(s), [src]: "loading" }));
-    void window.demoflow.analyze({ kind, projectDir, src }).then((r) => {
-      if (get().projectDir !== projectDir) return;
-      if (engineMissing(r)) set({ unavailable: true });
-      set((s) => store({ ...entries(s), [src]: pick(r) ?? "error" }));
-    });
-  };
+type Analysis<T> = {
+  kind: "waveform" | "filmstrip";
+  entries: (s: MediaState) => Record<string, Entry<T>>;
+  store: (entries: Record<string, Entry<T>>) => Partial<MediaState>;
+  value: (r: AnalysisResult) => T | undefined;
+};
 
-  return {
-    ...emptyMedia(null),
+const WAVEFORMS: Analysis<Waveform> = {
+  kind: "waveform",
+  entries: (s) => s.waveforms,
+  store: (waveforms) => ({ waveforms }),
+  value: (r) => (r.kind === "waveform" ? r.waveform : undefined),
+};
 
-    reset: (projectDir) => set(emptyMedia(projectDir)),
+const FILMSTRIPS: Analysis<Filmstrip> = {
+  kind: "filmstrip",
+  entries: (s) => s.filmstrips,
+  store: (filmstrips) => ({ filmstrips }),
+  value: (r) => (r.kind === "filmstrip" ? r.filmstrip : undefined),
+};
 
-    waveform: (src) =>
-      loadAnalysis(
-        "waveform",
-        src,
-        (s) => s.waveforms,
-        (waveforms) => ({ waveforms }),
-        (r) => (r.kind === "waveform" ? r.waveform : undefined),
-      ),
-
-    filmstrip: (src) =>
-      loadAnalysis(
-        "filmstrip",
-        src,
-        (s) => s.filmstrips,
-        (filmstrips) => ({ filmstrips }),
-        (r) => (r.kind === "filmstrip" ? r.filmstrip : undefined),
-      ),
-
-    requestMix: (source, plan) => {
-      const { projectDir, mixes, unavailable } = get();
-      if (!projectDir || unavailable) return;
-      if (mixes[plan.key]) {
-        if (get().latest[source] !== plan.key) {
-          set((s) => ({ latest: { ...s.latest, [source]: plan.key } }));
-          useAudioPreview.getState().clear();
-        }
-        return;
-      }
-      set({ mixing: plan.key });
-      startMix(projectDir, source, plan);
-    },
-  };
-});
+function loadAnalysis<T>(analysis: Analysis<T>, src: string): void {
+  const { projectDir, unavailable } = useMedia.getState();
+  if (!projectDir || analysis.entries(useMedia.getState())[src] || unavailable) return;
+  const put = (entry: Entry<T>) =>
+    useMedia.setState((s) => analysis.store({ ...analysis.entries(s), [src]: entry }));
+  put("loading");
+  void window.demoflow.analyze({ kind: analysis.kind, projectDir, src }).then((r) => {
+    if (useMedia.getState().projectDir !== projectDir) return;
+    if (engineMissing(r)) useMedia.setState({ unavailable: true });
+    put(analysis.value(r) ?? "error");
+  });
+}
 
 export const loaded = <T extends object>(entry: Entry<T> | undefined): T | null =>
   typeof entry === "object" ? entry : null;

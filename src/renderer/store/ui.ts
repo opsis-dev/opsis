@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { pick } from "./snapshot";
 
 export const singleSelected = (ids: string[]): string | null => (ids.length === 1 ? ids[0] : null);
 
@@ -12,7 +13,7 @@ export function toggleIds(current: string[], ids: string[]): string[] {
 }
 
 export const REPLAY_TABS = ["replay", "trace"] as const;
-export type ReplayTab = (typeof REPLAY_TABS)[number];
+type ReplayTab = (typeof REPLAY_TABS)[number];
 
 type UiState = {
   selectedIds: string[];
@@ -52,3 +53,11 @@ export const useUiStore = create<UiState>()((set) => ({
   setReplay: (replayNodeId, replayTab = "replay") => set({ replayNodeId, replayTab }),
   setReplayTab: (replayTab) => set({ replayTab }),
 }));
+
+export const SELECTION_KEYS = ["selectedIds", "activeIds", "pinnedSource"] as const;
+
+export const UI_LOCAL_KEYS = ["paletteOpen", "replayNodeId", "replayTab", "reveal"] as const;
+
+export type Selection = Pick<UiState, (typeof SELECTION_KEYS)[number]>;
+
+export const selection = (): Selection => pick(useUiStore.getState(), SELECTION_KEYS);

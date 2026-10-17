@@ -1,9 +1,25 @@
 import { z } from "zod";
 
 export const TRACE_RETENTION = ["always", "failures", "last-n", "off"] as const;
+export type TraceRetention = (typeof TRACE_RETENTION)[number];
+
+export const TRACE_RETENTION_LABELS: Record<TraceRetention, string> = {
+  always: "Always",
+  failures: "Failures only",
+  "last-n": "Last N",
+  off: "Off",
+};
+
+export const KEEP_LAST_TRACES = { min: 1, max: 500 };
 
 export const START_OPTIONS = ["start-screen", "last-project", "new-project"] as const;
 export type StartOption = (typeof START_OPTIONS)[number];
+
+export const START_OPTION_LABELS: Record<StartOption, string> = {
+  "start-screen": "Show the start screen",
+  "last-project": "Open the last project",
+  "new-project": "Start a new project",
+};
 
 export const CANVAS_MODES = ["mouse", "touchpad"] as const;
 export type CanvasMode = (typeof CANVAS_MODES)[number];
@@ -20,7 +36,7 @@ export const appSettingsSchema = z.object({
   traces: z
     .object({
       retention: z.enum(TRACE_RETENTION).default("always"),
-      keepLast: z.number().int().min(1).max(500).default(10),
+      keepLast: z.number().int().min(KEEP_LAST_TRACES.min).max(KEEP_LAST_TRACES.max).default(10),
     })
     .prefault({}),
   live: z

@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { errorMessage } from "@/shared/errors";
 import {
   workflowEdgeSchema,
   workflowNodeSchema,
@@ -12,6 +11,7 @@ import { isEditingElement } from "@/renderer/lib/dom";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { tryParseJson } from "@/shared/guards";
+import { reportError } from "@/renderer/lib/toast";
 
 const CLIPBOARD_TAG = "demoflow/v1";
 const PASTE_OFFSET = { x: 60, y: 60 };
@@ -56,7 +56,7 @@ async function copySelection(): Promise<void> {
   try {
     await navigator.clipboard.writeText(JSON.stringify({ tag: CLIPBOARD_TAG, ...subgraph }));
   } catch (e) {
-    toast.error("Couldn't copy the nodes", { description: errorMessage(e) });
+    reportError("Couldn't copy the nodes", e);
   }
 }
 
@@ -65,7 +65,7 @@ async function pasteClipboard(): Promise<void> {
   try {
     text = await navigator.clipboard.readText();
   } catch (e) {
-    toast.error("Couldn't read the clipboard", { description: errorMessage(e) });
+    reportError("Couldn't read the clipboard", e);
     return;
   }
   const pasted = readClipboard(text);

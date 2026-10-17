@@ -10,21 +10,42 @@ import { Button } from "@/renderer/components/ui/button";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { categoryLabel } from "./font-labels";
 import { useFontLibrary } from "./library";
-import { MAX_LISTED, SearchListDialog } from "./search-list-dialog";
+import { useBusy } from "@/renderer/lib/use-busy";
+import { MAX_LISTED, matchesQuery, SearchListDialog } from "./search-list-dialog";
 
-type Catalog = { entries: FontCatalogEntry[] } | { error: string } | null;
+type Catalog =
+  | { status: "loading" }
+  | { status: "error"; error: string }
+  | { status: "ready"; entries: FontCatalogEntry[] };
 
 function useCatalog(open: boolean): Catalog {
-  const [catalog, setCatalog] = useState<Catalog>(null);
-  const loaded = catalog !== null && "entries" in catalog;
+  const [catalog, setCatalog] = useState<Catalog>({ status: "loading" });
+  const ready = catalog.status === "ready";
   useEffect(() => {
-    if (!open || loaded) return;
+    if (!open || ready) return;
     window.demoflow.fontCatalog().then(
-      (entries) => setCatalog({ entries }),
-      (e: unknown) => setCatalog({ error: errorMessage(e) }),
+      (entries) => setCatalog({ status: "ready", entries }),
+      (e: unknown) => setCatalog({ status: "error", error: errorMessage(e) }),
     );
-  }, [open, loaded]);
+  }, [open, ready]);
   return catalog;
+}
+
+function CatalogStatus({ catalog }: { catalog: Catalog }) {
+  if (catalog.status === "loading")
+    return (
+      <div className="text-muted-foreground flex items-center gap-2 p-2 text-sm">
+        <Spinner /> Loading…
+      </div>
+    );
+  if (catalog.status === "error")
+    return <p className="text-destructive p-2 text-sm">{catalog.error}</p>;
+  return null;
+}
+
+function DownloadIcon({ busy, added }: { busy: boolean; added: boolean }) {
+  if (busy) return <Spinner data-icon="inline-start" />;
+  return added ? null : <Download data-icon="inline-start" />;
 }
 
 function CatalogRow({
@@ -55,11 +76,7 @@ function CatalogRow({
         disabled={added || disabled}
         onClick={onDownload}
       >
-        {busy ? (
-          <Spinner data-icon="inline-start" />
-        ) : added ? null : (
-          <Download data-icon="inline-start" />
-        )}
+        <DownloadIcon busy={busy} added={added} />
         {added ? "Added" : "Download"}
       </Button>
     </div>
@@ -73,47 +90,28 @@ export function OnlineDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onAdded: () => void;
+  onAdded: () => Promise<void>;
 }) {
   const catalog = useCatalog(open);
   const [query, setQuery] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
-  const [done, setDone] = useState<string[]>([]);
+  const { busy, run } = useBusy();
   const library = useFontLibrary((s) => s.library);
 
   const have = useMemo(
-    () => new Set([...[...library, ...BUNDLED_FONTS].map((f) => familyKey(f.family)), ...done]),
-    [library, done],
+    () => new Set([...library, ...BUNDLED_FONTS].map((f) => familyKey(f.family))),
+    [library],
   );
-  const entries = catalog && "entries" in catalog ? catalog.entries : null;
-  const q = query.trim().toLowerCase();
-  const shown = (entries ?? []).filter(
-    (f) =>
-      !q || familyKey(f.family).includes(q) || categoryLabel(f.category).toLowerCase().includes(q),
+  const entries = catalog.status === "ready" ? catalog.entries : null;
+  const shown = (entries ?? []).filter((f) =>
+    matchesQuery(query, f.family, categoryLabel(f.category)),
   );
 
-  const download = async (entry: FontCatalogEntry) => {
-    setBusy(entry.id);
-    try {
+  const download = (entry: FontCatalogEntry) =>
+    run(entry.id, async () => {
       const def = await window.demoflow.downloadFont(entry.id);
-      setDone((d) => [...d, familyKey(def.family)]);
       toast.success(`Added ${def.family}`);
-      onAdded();
-    } catch (e) {
-      toast.error(errorMessage(e));
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const status =
-    catalog === null ? (
-      <div className="text-muted-foreground flex items-center gap-2 p-2 text-sm">
-        <Spinner /> Loading…
-      </div>
-    ) : "error" in catalog ? (
-      <p className="text-destructive p-2 text-sm">{catalog.error}</p>
-    ) : null;
+      await onAdded();
+    });
 
   return (
     <SearchListDialog
@@ -129,7 +127,7 @@ export function OnlineDialog({
       query={query}
       onQuery={setQuery}
       matches={shown.length}
-      status={status}
+      status={<CatalogStatus catalog={catalog} />}
       footer={
         <Button variant="outline" onClick={onClose}>
           Done

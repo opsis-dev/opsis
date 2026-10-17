@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import type { LiveEvent, LiveMessage, LiveStepStatus } from "@/shared/live";
 import type { Rect } from "@/shared/schema/actions";
+import { appendCapped } from "@/shared/lists";
+import { liveAutoOpen } from "./app-settings";
 
 type LiveStep = { nodeId: string; label: string; status?: LiveStepStatus; message?: string };
 
@@ -49,8 +51,8 @@ const blank = (captureId: string, nodeId: string): LiveCapture => ({
   startedAt: Date.now(),
 });
 
-const frameUrl = (jpeg: Uint8Array) =>
-  URL.createObjectURL(new Blob([new Uint8Array(jpeg)], { type: "image/jpeg" }));
+const frameUrl = (jpeg: Uint8Array<ArrayBuffer>) =>
+  URL.createObjectURL(new Blob([jpeg], { type: "image/jpeg" }));
 
 function applyEvent(prev: LiveCapture, e: LiveEvent): LiveCapture {
   switch (e.kind) {
@@ -59,7 +61,7 @@ function applyEvent(prev: LiveCapture, e: LiveEvent): LiveCapture {
         ...prev,
         title: e.title,
         viewport: e.viewport,
-        steps: e.steps.map((st) => ({ ...st })),
+        steps: e.steps,
         status: "live",
       };
     case "step":
@@ -76,7 +78,7 @@ function applyEvent(prev: LiveCapture, e: LiveEvent): LiveCapture {
     case "click":
       return {
         ...prev,
-        clicks: [...prev.clicks.slice(1 - MAX_CLICKS), { x: e.x, y: e.y, at: Date.now() }],
+        clicks: appendCapped(prev.clicks, { x: e.x, y: e.y, at: Date.now() }, MAX_CLICKS),
       };
     case "end":
       return { ...prev, status: e.ok ? "done" : "error", message: e.message };
@@ -121,3 +123,6 @@ export const useLiveStore = create<LiveState>()((set, get) => ({
     set({ captures: {}, order: [], focusId: null });
   },
 }));
+
+export const applyLive = (message: LiveMessage): void =>
+  useLiveStore.getState().apply(message, liveAutoOpen());

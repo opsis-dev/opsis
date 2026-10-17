@@ -1,6 +1,5 @@
 import { ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { toast } from "sonner";
 import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
 import type { FontFamilyDef } from "@/shared/fonts/types";
 import type { LicenceEntry } from "@/shared/ipc";
@@ -19,9 +18,9 @@ import {
   CollapsibleTrigger,
 } from "@/renderer/components/ui/collapsible";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { fontFileUrl } from "../../fonts/library";
-import { errorMessage } from "@/shared/errors";
+import { fontFileUrl, useFontLibrary } from "../../fonts/library";
 import { useLoaded } from "../use-loaded";
+import { attempt } from "@/renderer/lib/toast";
 
 function LicenceText({ text }: { text: string }) {
   return (
@@ -46,7 +45,9 @@ function FontLicenceText({ def }: { def: FontFamilyDef }) {
   return text === null ? <Spinner /> : <LicenceText text={text} />;
 }
 
-function RowHead({ title, summary, badge }: { title: string; summary: string; badge?: string }) {
+type RowProps = { title: string; summary: string; badge?: string };
+
+function RowHead({ title, summary, badge }: RowProps) {
   return (
     <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left">
       <span className="flex items-center gap-2 text-sm font-medium">
@@ -58,8 +59,6 @@ function RowHead({ title, summary, badge }: { title: string; summary: string; ba
   );
 }
 
-type RowProps = { title: string; summary: string; badge?: string };
-
 function FileRow({ file, ...head }: RowProps & { file: string }) {
   return (
     <div className="flex items-center gap-3 py-2">
@@ -68,10 +67,9 @@ function FileRow({ file, ...head }: RowProps & { file: string }) {
         size="sm"
         variant="outline"
         onClick={() =>
-          void window.demoflow.openLicenceFile(file).catch((e: unknown) =>
-            toast.error("Couldn't open the licence file", {
-              description: errorMessage(e),
-            }),
+          void attempt(
+            () => window.demoflow.openLicenceFile(file),
+            "Couldn't open the licence file",
           )
         }
       >
@@ -118,7 +116,10 @@ function FontLicenceRows({ fonts }: { fonts: FontFamilyDef[] }) {
 
 export function LicencesPage() {
   const entries = useLoaded(() => window.demoflow.listLicences(), "Could not list the licences");
-  const library = useLoaded(() => window.demoflow.listFonts(), "Could not read your font library");
+  const library = useFontLibrary((s) => s.library);
+  useEffect(() => {
+    void useFontLibrary.getState().refresh();
+  }, []);
 
   return (
     <>
@@ -147,7 +148,7 @@ export function LicencesPage() {
           <FontLicenceRows fonts={BUNDLED_FONTS} />
         </CardContent>
       </Card>
-      {library?.length ? (
+      {library.length ? (
         <Card>
           <CardHeader>
             <CardTitle>Your fonts</CardTitle>

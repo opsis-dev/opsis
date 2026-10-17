@@ -1,7 +1,8 @@
 import type { LayoutStorage, PanelImperativeHandle } from "react-resizable-panels";
 import { create } from "zustand";
 import { isOneOf } from "@/renderer/lib/one-of";
-import { readPref, readStored, writePref, writeStored } from "../store/view-prefs";
+import { readStored, writeStored } from "@/renderer/lib/local-storage";
+import { readPref, writePref } from "../store/view-prefs";
 
 export const PANEL_SIDES = ["left", "bottom", "right"] as const;
 export type PanelSide = (typeof PANEL_SIDES)[number];

@@ -1,11 +1,10 @@
-import { toast } from "sonner";
 import type { RunRequest } from "@/shared/ipc";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
 import { useWorkflowStore } from "../store/workflow";
 import { showPanel } from "./panels";
 import { save } from "./save";
-import { errorMessage } from "@/shared/errors";
+import { reportError } from "@/renderer/lib/toast";
 
 type RunTargets = Pick<RunRequest, "targetNodeIds" | "fromNodeId">;
 
@@ -26,8 +25,6 @@ export async function startRun(opts: RunTargets = {}): Promise<void> {
   try {
     await beginRun(opts);
   } catch (e) {
-    toast.error("Could not start the run", {
-      description: errorMessage(e),
-    });
+    reportError("Could not start the run", e);
   }
 }

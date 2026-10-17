@@ -1,15 +1,21 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
+import {
+  readSession,
+  readStored,
+  SETUP_SKIPPED_KEY,
+  writeSession,
+} from "@/renderer/lib/local-storage";
+import { reportError } from "@/renderer/lib/toast";
+import { loadedAppSettings } from "../store/app-settings";
 import { useEnvironment } from "../store/environment";
-import { readStored } from "../store/view-prefs";
-import { SETUP_SKIPPED_KEY } from "./setup";
-import { dispatchMenuCommand } from "@/renderer/app/menu-commands";
+import { dispatchMenuCommand } from "./menu-commands";
 
 const STARTED_KEY = "demoflow.started";
 
-function firstStart(): boolean {
-  const first = sessionStorage.getItem(STARTED_KEY) !== "1";
-  sessionStorage.setItem(STARTED_KEY, "1");
+function markStarted(): boolean {
+  const first = readSession(STARTED_KEY) !== "1";
+  writeSession(STARTED_KEY, "1");
   return first;
 }
 
@@ -18,9 +24,9 @@ export function useStartup(): void {
   useEffect(() => {
     if (router.state.location.pathname !== "/") return;
     const skipped = readStored(SETUP_SKIPPED_KEY) === "1";
-    const first = firstStart();
-    void Promise.all([useEnvironment.getState().refresh(), window.demoflow.getSettings()]).then(
-      async ([env, settings]) => {
+    const first = markStarted();
+    void Promise.all([useEnvironment.getState().refresh(), loadedAppSettings()])
+      .then(async ([env, settings]) => {
         if (env && !env.engine.complete && !skipped) {
           void router.navigate({ to: "/setup" });
           return;
@@ -32,7 +38,7 @@ export function useStartup(): void {
         } else if (settings.app.onStart === "new-project") {
           dispatchMenuCommand("project:new");
         }
-      },
-    );
+      })
+      .catch((e: unknown) => reportError("Could not open the last project", e));
   }, [router]);
 }

@@ -32,3 +32,10 @@ export type AnalysisResult =
   | { kind: "mix"; mix: MixResult }
   | { kind: "skipped" }
   | { kind: "error"; error: string; engineMissing?: true };
+
+export type AnalysisKind = AnalysisRequest["kind"];
+
+export type AnalysisResultFor<K extends AnalysisKind> = Extract<
+  AnalysisResult,
+  { kind: K | "skipped" | "error" }
+>;

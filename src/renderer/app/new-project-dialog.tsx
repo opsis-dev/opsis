@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { toast } from "sonner";
 import { joinFolder, projectFolderName } from "@/shared/project-folder";
-import { TEMPLATES } from "@/shared/templates";
+import { getTemplate, TEMPLATES } from "@/shared/templates";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Dialog,
@@ -14,10 +13,10 @@ import {
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { errorMessage } from "@/shared/errors";
 import { platform } from "@/renderer/lib/platform";
+import { useBusy } from "@/renderer/lib/use-busy";
 import { FolderField } from "./folder-field";
-import { useLoaded } from "./use-loaded";
+import { useProjectLocations } from "./use-loaded";
 
 type Template = (typeof TEMPLATES)[number];
 
@@ -42,7 +41,7 @@ function TemplateField({
   fixed: boolean;
 }) {
   const [choosing, setChoosing] = useState(!fixed);
-  const chosen = TEMPLATES.find((t) => t.id === value) ?? TEMPLATES[0];
+  const chosen = getTemplate(value);
   return (
     <Field>
       <div className="flex items-center justify-between">
@@ -80,6 +79,40 @@ function TemplateField({
   );
 }
 
+function useNewProject(initialTemplate: string, onCreated: (dir: string) => void) {
+  const [name, setName] = useState("My launch video");
+  const [template, setTemplate] = useState(initialTemplate);
+  const [typedLocation, setTypedLocation] = useState<string | null>(null);
+  const { busy, run } = useBusy();
+  const locations = useProjectLocations();
+  const location = typedLocation ?? locations?.suggestedDir ?? "";
+  const folder = location.trim()
+    ? joinFolder(location.trim(), projectFolderName(name), platform)
+    : "";
+
+  const create = () =>
+    run(
+      "create",
+      async () => {
+        const p = await window.demoflow.createProject({ name, template, dir: location.trim() });
+        if (p) onCreated(p.dir);
+      },
+      "Could not create the project",
+    );
+
+  return {
+    name,
+    setName,
+    template,
+    setTemplate,
+    location,
+    setTypedLocation,
+    folder,
+    busy: busy !== null,
+    create,
+  };
+}
+
 export function NewProjectDialog({
   open,
   onOpenChange,
@@ -93,33 +126,8 @@ export function NewProjectDialog({
   fixedTemplate: boolean;
   onCreated: (dir: string) => void;
 }) {
-  const [name, setName] = useState("My launch video");
-  const [template, setTemplate] = useState(initialTemplate);
-  const [typed, setLocation] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const locations = useLoaded(
-    () => window.demoflow.projectLocations(),
-    "Could not find the projects folder",
-  );
-  const location = typed ?? locations?.suggestedDir ?? "";
-
-  const folder = location.trim()
-    ? joinFolder(location.trim(), projectFolderName(name), platform)
-    : "";
-
-  async function create() {
-    setBusy(true);
-    try {
-      const p = await window.demoflow.createProject({ name, template, dir: location.trim() });
-      if (p) onCreated(p.dir);
-    } catch (e) {
-      toast.error("Could not create the project", {
-        description: errorMessage(e),
-      });
-    } finally {
-      setBusy(false);
-    }
-  }
+  const { name, setName, template, setTemplate, location, setTypedLocation, folder, busy, create } =
+    useNewProject(initialTemplate, onCreated);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -146,8 +154,8 @@ export function NewProjectDialog({
               id="project-location"
               value={location}
               title="Choose where to create the project"
-              onChange={setLocation}
-              onPicked={setLocation}
+              onChange={setTypedLocation}
+              onPicked={setTypedLocation}
             />
             <FieldDescription className="break-all">
               {folder ? `Creates ${folder}` : "Choose where the project folder goes."}

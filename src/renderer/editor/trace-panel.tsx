@@ -7,9 +7,8 @@ import { Badge } from "@/renderer/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/renderer/components/ui/empty";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { cn } from "@/renderer/lib/utils";
+import { OptionToggle } from "../app/option-toggle";
 import { useUiStore } from "../store/ui";
 import { fileUrl } from "./file-url";
 import { FrameOverlay } from "./frame-overlay";
@@ -19,6 +18,7 @@ import { traceClock, TraceTabs } from "./trace-tabs";
 
 const MOMENTS = ["before", "after"] as const;
 type Moment = (typeof MOMENTS)[number];
+const MOMENT_LABELS: Record<Moment, string> = { before: "Before", after: "After" };
 
 const CLICK_SIZE = 1 / 160;
 
@@ -187,15 +187,7 @@ function ActionHeader({
           {at(action.start)} · {formatDuration(action.end - action.start, "precise")}
         </Badge>
       ) : null}
-      <ToggleGroup
-        variant="outline"
-        size="sm"
-        value={[moment]}
-        onValueChange={whenFirstOneOf(MOMENTS, onMoment)}
-      >
-        <ToggleGroupItem value="before">Before</ToggleGroupItem>
-        <ToggleGroupItem value="after">After</ToggleGroupItem>
-      </ToggleGroup>
+      <OptionToggle options={MOMENTS} labels={MOMENT_LABELS} value={moment} onChange={onMoment} />
     </div>
   );
 }

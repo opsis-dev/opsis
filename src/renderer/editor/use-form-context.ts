@@ -17,6 +17,7 @@ import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
 import type { FormContext, SpotBackground } from "./form/types";
 import type { VarInfo } from "./var-text";
+import { reportError } from "@/renderer/lib/toast";
 
 const SITE_VAR = "Site address";
 const NO_PAGE = "Add a Go to page action before this one, so there's a page to pick from.";
@@ -96,7 +97,7 @@ async function pickTarget(wf: Workflow, nodeId: string, key: string) {
     });
     toast.success(`Picked “${picked.target}”`);
   } catch (e) {
-    toast.error("Couldn't pick the element", { description: errorMessage(e) });
+    reportError("Couldn't pick the element", e);
   }
 }
 

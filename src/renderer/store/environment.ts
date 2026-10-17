@@ -1,8 +1,7 @@
 import { useEffect } from "react";
-import { toast } from "sonner";
 import { create } from "zustand";
 import type { EnvStatus } from "@/shared/ipc";
-import { errorMessage } from "@/shared/errors";
+import { reportError } from "@/renderer/lib/toast";
 
 type EnvironmentState = {
   env: EnvStatus | null;
@@ -17,7 +16,7 @@ export const useEnvironment = create<EnvironmentState>()((set) => ({
       set({ env });
       return env;
     } catch (e) {
-      toast.error("Could not read the engine status", { description: errorMessage(e) });
+      reportError("Could not read the engine status", e);
       return null;
     }
   },

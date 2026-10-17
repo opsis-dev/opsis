@@ -75,6 +75,7 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
   mutates?(params: z.infer<S>): string | undefined;
   element?: string;
   hidden?: boolean;
+  hostDefaults?(platform: NodeJS.Platform): Partial<z.infer<S>>;
   compile?(ctx: CompileContext<z.infer<S>>): CompileOutputs | undefined;
   card?(ctx: CardContext<z.infer<S>>): Array<CardRow | false | null | undefined | "" | 0>;
 }

@@ -11,11 +11,11 @@ import { Kbd } from "@/renderer/components/ui/kbd";
 import { platform } from "@/renderer/lib/platform";
 import { NodeIcon } from "../editor/node-icon";
 import { useFreshEnvironment } from "../store/environment";
-import { PageBar } from "./app-bar";
+import { AppBar } from "./app-bar";
 import { Stagger, StaggerItem } from "./motion";
 import { NewProjectDialog } from "./new-project-dialog";
 import { useLoaded } from "./use-loaded";
-import { onMenuCommand } from "@/renderer/app/menu-commands";
+import { onMenuCommand } from "./menu-commands";
 
 const RECENT_LIMIT = 10;
 
@@ -211,7 +211,7 @@ export function Projects() {
 
   return (
     <div className="flex h-screen flex-col">
-      <PageBar title="" />
+      <AppBar />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center px-10 py-14">
           <div className="grid w-full max-w-5xl grid-cols-1 gap-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">

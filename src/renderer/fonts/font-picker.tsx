@@ -1,6 +1,5 @@
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { familyKey, sameFamily } from "@/shared/fonts";
 import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
 import type { FontFamilyDef } from "@/shared/fonts/types";
@@ -16,21 +15,35 @@ import {
 } from "@/renderer/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import { useWorkflowStore } from "../store/workflow";
-import { useFontLibrary, usePreviewFamily } from "./library";
-import { errorMessage } from "@/shared/errors";
+import { useBusy } from "@/renderer/lib/use-busy";
+import { FontSample } from "./font-sample";
+import { useFontLibrary } from "./library";
 
 const NO_FAMILIES: FontFamilyDef[] = [];
 
-function FontName({ def, name }: { def?: FontFamilyDef; name: string }) {
-  const family = usePreviewFamily(def);
+function FontCommandItem({
+  def,
+  selected,
+  onPick,
+}: {
+  def: FontFamilyDef;
+  selected: boolean;
+  onPick: (def: FontFamilyDef) => void;
+}) {
   return (
-    <span
-      className="truncate"
-      style={family ? { fontFamily: `"${family}", sans-serif` } : undefined}
-    >
-      {name}
-    </span>
+    <CommandItem value={def.family} onSelect={() => onPick(def)}>
+      <FontSample def={def}>{def.family}</FontSample>
+      {selected ? <Check data-icon="inline-end" className="ml-auto" /> : null}
+    </CommandItem>
   );
+}
+
+async function copyIntoProject(def: FontFamilyDef): Promise<FontFamilyDef> {
+  const projectDir = useWorkflowStore.getState().projectDir;
+  if (!projectDir) throw new Error("Open a project to use this font.");
+  const copied = await window.demoflow.useFontInProject(projectDir, def.id);
+  useWorkflowStore.getState().addProjectFont(copied);
+  return copied;
 }
 
 export function FontPicker({
@@ -45,7 +58,7 @@ export function FontPicker({
   emptyLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useBusy();
   const project = useWorkflowStore((s) => s.workflow?.settings.fonts.families) ?? NO_FAMILIES;
   const library = useFontLibrary((s) => s.library);
 
@@ -61,33 +74,25 @@ export function FontPicker({
     sameFamily(f.family, value),
   );
 
-  const pick = async (family: string, fromLibrary?: FontFamilyDef) => {
+  const pick = (family: string) => {
     setOpen(false);
-    if (!fromLibrary) return onChange(family);
-    setBusy(true);
-    try {
-      const projectDir = useWorkflowStore.getState().projectDir;
-      if (!projectDir) throw new Error("Open a project to use this font.");
-      const def = await window.demoflow.useFontInProject(projectDir, fromLibrary.id);
-      useWorkflowStore.getState().addProjectFont(def);
-      onChange(def.family);
-    } catch (error) {
-      toast.error(errorMessage(error));
-    } finally {
-      setBusy(false);
-    }
+    onChange(family);
   };
 
-  const item = (def: FontFamilyDef, fromLibrary?: boolean) => (
-    <CommandItem
-      key={`${def.source}-${def.id}`}
-      value={def.family}
-      onSelect={() => void pick(def.family, fromLibrary ? def : undefined)}
-    >
-      <FontName def={def} name={def.family} />
-      {sameFamily(value, def.family) ? <Check data-icon="inline-end" className="ml-auto" /> : null}
-    </CommandItem>
-  );
+  const pickFromLibrary = (def: FontFamilyDef) => {
+    setOpen(false);
+    void run(def.id, async () => onChange((await copyIntoProject(def)).family));
+  };
+
+  const items = (defs: FontFamilyDef[], onPick: (def: FontFamilyDef) => void) =>
+    defs.map((def) => (
+      <FontCommandItem
+        key={`${def.source}-${def.id}`}
+        def={def}
+        selected={sameFamily(value, def.family)}
+        onPick={onPick}
+      />
+    ));
 
   return (
     <Popover open={open} onOpenChange={toggle}>
@@ -97,10 +102,10 @@ export function FontPicker({
             id={id}
             variant="outline"
             className="w-full justify-between font-normal"
-            disabled={busy}
+            disabled={busy !== null}
           >
             {value ? (
-              <FontName def={current} name={value} />
+              <FontSample def={current}>{value}</FontSample>
             ) : (
               <span className="text-muted-foreground truncate">
                 {emptyLabel ?? "Choose a font"}
@@ -117,18 +122,20 @@ export function FontPicker({
             <CommandEmpty>No font found.</CommandEmpty>
             {emptyLabel ? (
               <CommandGroup>
-                <CommandItem value={emptyLabel} onSelect={() => void pick("")}>
+                <CommandItem value={emptyLabel} onSelect={() => pick("")}>
                   {emptyLabel}
                   {!value ? <Check data-icon="inline-end" className="ml-auto" /> : null}
                 </CommandItem>
               </CommandGroup>
             ) : null}
             {project.length ? (
-              <CommandGroup heading="In this project">{project.map((d) => item(d))}</CommandGroup>
+              <CommandGroup heading="In this project">
+                {items(project, (d) => pick(d.family))}
+              </CommandGroup>
             ) : null}
-            <CommandGroup heading="Built in">{builtIn.map((d) => item(d))}</CommandGroup>
+            <CommandGroup heading="Built in">{items(builtIn, (d) => pick(d.family))}</CommandGroup>
             {extra.length ? (
-              <CommandGroup heading="Your library">{extra.map((d) => item(d, true))}</CommandGroup>
+              <CommandGroup heading="Your library">{items(extra, pickFromLibrary)}</CommandGroup>
             ) : null}
             <CommandSeparator />
             <CommandGroup>

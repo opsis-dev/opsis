@@ -1,4 +1,5 @@
 import { defaultParams, getNodeDef } from "../nodes/registry";
+import { edgeId } from "../ids";
 import { CARD_WIDTH, estimateCardHeight } from "../nodes/size";
 import {
   DEFAULT_WORKFLOW_SETTINGS,
@@ -49,13 +50,8 @@ export class GraphBuilder {
   }
 
   link(source: string, target: string, sourceHandle = CLIP_PORT, targetHandle = CLIP_PORT): this {
-    this.edges.push({
-      id: `${source}.${sourceHandle}->${target}.${targetHandle}`,
-      source,
-      sourceHandle,
-      target,
-      targetHandle,
-    });
+    const ends = { source, sourceHandle, target, targetHandle };
+    this.edges.push({ id: edgeId(ends), ...ends });
     return this;
   }
 

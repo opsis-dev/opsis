@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
 import type { FontFamilyDef } from "@/shared/fonts/types";
-import { errorMessage } from "@/shared/errors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,9 +23,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/renderer/components/ui/card";
+import { attempt } from "@/renderer/lib/toast";
 import { describeFaces } from "./font-labels";
 import { InstalledDialog } from "./installed-dialog";
-import { useFontLibrary, usePreviewFamily } from "./library";
+import { FontSample } from "./font-sample";
+import { useFontLibrary } from "./library";
 import { installedFonts, type LocalFontData } from "./local-fonts";
 import { OnlineDialog } from "./online-dialog";
 import { ReviewDialog, type FontReview } from "./review-dialog";
@@ -38,28 +39,15 @@ const SOURCE_LABEL: Record<FontFamilyDef["source"], string> = {
   installed: "From this computer",
 };
 
-const refreshLibrary = () =>
-  useFontLibrary
-    .getState()
-    .refresh()
-    .catch((e: unknown) =>
-      toast.error("Could not read your font library", { description: errorMessage(e) }),
-    );
-
-function Sample({ def }: { def: FontFamilyDef }) {
-  const family = usePreviewFamily(def);
-  return (
-    <span className="truncate text-base" style={{ fontFamily: `"${family}", sans-serif` }}>
-      {def.family}
-    </span>
-  );
-}
+const refreshLibrary = () => useFontLibrary.getState().refresh();
 
 function LibraryRow({ def, onRemove }: { def: FontFamilyDef; onRemove: () => void }) {
   return (
     <div className="flex items-center gap-3 rounded-md px-2 py-1.5">
       <div className="flex min-w-0 flex-1 flex-col">
-        <Sample def={def} />
+        <FontSample def={def} className="text-base">
+          {def.family}
+        </FontSample>
         <span className="text-muted-foreground truncate text-xs">{describeFaces(def.faces)}</span>
       </div>
       <Badge variant="secondary">{SOURCE_LABEL[def.source]}</Badge>
@@ -102,14 +90,11 @@ function OnlineConsentDialog({
 
 function RemoveFontDialog({ font, onClose }: { font: FontFamilyDef | null; onClose: () => void }) {
   const remove = async (def: FontFamilyDef) => {
-    try {
+    await attempt(async () => {
       await window.demoflow.removeFont(def.id);
       await refreshLibrary();
-    } catch (e) {
-      toast.error(`Could not remove ${def.family}`, { description: errorMessage(e) });
-    } finally {
-      onClose();
-    }
+    }, `Could not remove ${def.family}`);
+    onClose();
   };
 
   return (
@@ -132,37 +117,34 @@ function RemoveFontDialog({ font, onClose }: { font: FontFamilyDef | null; onClo
   );
 }
 
+type PanelDialog =
+  | { kind: "review"; review: FontReview }
+  | { kind: "installed"; fonts: LocalFontData[] }
+  | { kind: "ask-online" }
+  | { kind: "online" }
+  | { kind: "remove"; font: FontFamilyDef };
+
 export function FontsPanel() {
   const library = useFontLibrary((s) => s.library);
   const onlineAllowed = useFontLibrary((s) => s.onlineAllowed);
-  const [review, setReview] = useState<FontReview | null>(null);
-  const [installed, setInstalled] = useState<LocalFontData[] | null>(null);
-  const [askOnline, setAskOnline] = useState(false);
-  const [online, setOnline] = useState(false);
-  const [removing, setRemoving] = useState<FontFamilyDef | null>(null);
+  const [dialog, setDialog] = useState<PanelDialog | null>(null);
+  const closeIf = (kind: PanelDialog["kind"]) => () =>
+    setDialog((d) => (d?.kind === kind ? null : d));
 
   useEffect(() => {
     void refreshLibrary();
   }, []);
 
-  const addFiles = async () => {
-    try {
+  const addFiles = () =>
+    attempt(async () => {
       const fonts = await window.demoflow.inspectFontFiles();
       if (!fonts) return;
       if (!fonts.families.length) return void toast.error("No fonts found in those files.");
-      setReview({ fonts, installed: false });
-    } catch (error) {
-      toast.error(errorMessage(error));
-    }
-  };
+      setDialog({ kind: "review", review: { fonts, installed: false } });
+    });
 
-  const openInstalled = async () => {
-    try {
-      setInstalled(await installedFonts());
-    } catch (error) {
-      toast.error(errorMessage(error));
-    }
-  };
+  const openInstalled = () =>
+    attempt(async () => setDialog({ kind: "installed", fonts: await installedFonts() }));
 
   return (
     <Card>
@@ -178,7 +160,11 @@ export function FontsPanel() {
           <p className="text-muted-foreground text-sm">No fonts added yet.</p>
         ) : (
           library.map((def) => (
-            <LibraryRow key={def.id} def={def} onRemove={() => setRemoving(def)} />
+            <LibraryRow
+              key={def.id}
+              def={def}
+              onRemove={() => setDialog({ kind: "remove", font: def })}
+            />
           ))
         )}
       </CardContent>
@@ -194,45 +180,44 @@ export function FontsPanel() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => (onlineAllowed ? setOnline(true) : setAskOnline(true))}
+          onClick={() => setDialog({ kind: onlineAllowed ? "online" : "ask-online" })}
         >
           <Globe data-icon="inline-start" />
           Get fonts online…
         </Button>
       </CardFooter>
 
-      {review ? (
+      {dialog?.kind === "review" ? (
         <ReviewDialog
-          review={review}
-          onClose={() => setReview(null)}
+          review={dialog.review}
+          onClose={closeIf("review")}
           onAdded={() => void refreshLibrary()}
         />
       ) : null}
-      {installed ? (
+      {dialog?.kind === "installed" ? (
         <InstalledDialog
-          fonts={installed}
-          onClose={() => setInstalled(null)}
-          onPicked={(fonts) => {
-            setInstalled(null);
-            setReview({ fonts, installed: true });
-          }}
+          fonts={dialog.fonts}
+          onClose={closeIf("installed")}
+          onPicked={(fonts) => setDialog({ kind: "review", review: { fonts, installed: true } })}
         />
       ) : null}
       <OnlineConsentDialog
-        open={askOnline}
-        onOpenChange={setAskOnline}
+        open={dialog?.kind === "ask-online"}
+        onOpenChange={(open) => !open && closeIf("ask-online")()}
         onConnect={() => {
           useFontLibrary.getState().allowOnline();
-          setAskOnline(false);
-          setOnline(true);
+          setDialog({ kind: "online" });
         }}
       />
       <OnlineDialog
-        open={online}
-        onClose={() => setOnline(false)}
-        onAdded={() => void refreshLibrary()}
+        open={dialog?.kind === "online"}
+        onClose={closeIf("online")}
+        onAdded={refreshLibrary}
       />
-      <RemoveFontDialog font={removing} onClose={() => setRemoving(null)} />
+      <RemoveFontDialog
+        font={dialog?.kind === "remove" ? dialog.font : null}
+        onClose={closeIf("remove")}
+      />
     </Card>
   );
 }

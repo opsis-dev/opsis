@@ -1,13 +1,12 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { exportedClipNodes } from "@/shared/graph";
-import { liveAutoOpen } from "../store/app-settings";
-import { useLiveStore } from "../store/live";
+import { applyLive } from "../store/live";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useStillsStore } from "../store/stills";
 import { useWorkflowStore } from "../store/workflow";
-import { onMenuCommand } from "@/renderer/app/menu-commands";
+import { onMenuCommand } from "./menu-commands";
 
 export const isSecondaryWindow = (path: string): boolean =>
   path.startsWith("/panel/") || path.startsWith("/settings");
@@ -56,11 +55,7 @@ function useStillEvents(): void {
 }
 
 function useLiveEvents(): void {
-  useEffect(
-    () =>
-      window.demoflow.onLive((message) => useLiveStore.getState().apply(message, liveAutoOpen())),
-    [],
-  );
+  useEffect(() => window.demoflow.onLive(applyLive), []);
 }
 
 export function useAppEvents(): void {

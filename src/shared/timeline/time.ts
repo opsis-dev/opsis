@@ -11,6 +11,17 @@ export const framesToMs = (frames: number, fps: number): number =>
 export const frameIn = (frame: number, total: number): number =>
   clamp(Math.round(frame), 0, Math.max(0, total - 1));
 
+export function playRange(
+  inPoint: number | null,
+  outPoint: number | null,
+  durationInFrames: number,
+): { inFrame?: number; outFrame?: number } {
+  if ((inPoint === null && outPoint === null) || durationInFrames < 2) return {};
+  const last = durationInFrames - 1;
+  const inFrame = clamp(inPoint ?? 0, 0, last - 1);
+  return { inFrame, outFrame: clamp(outPoint ?? last, inFrame + 1, last) };
+}
+
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
 const clock = (totalSeconds: number) => ({

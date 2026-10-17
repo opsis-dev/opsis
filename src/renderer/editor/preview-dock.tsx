@@ -11,7 +11,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
-import { playRange, usePlayback } from "../store/playback";
+import { playRange } from "@/shared/timeline/time";
+import { usePlayback } from "../store/playback";
 import { useStillsStore } from "../store/stills";
 import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";

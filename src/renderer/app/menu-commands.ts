@@ -2,6 +2,12 @@ import type { MenuCommand } from "@/shared/menu";
 
 type Listener = (command: MenuCommand) => void;
 
+export const PROJECT_SWITCH_COMMANDS: ReadonlySet<MenuCommand> = new Set<MenuCommand>([
+  "view:projects",
+  "project:new",
+  "project:open",
+]);
+
 const listeners = new Set<Listener>();
 let followingMenu = false;
 

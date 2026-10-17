@@ -1,20 +1,13 @@
 import ELK from "elkjs/lib/elk.bundled.js";
 import { getNodeDef } from "@/shared/nodes/registry";
-import { CARD_WIDTH, estimateCardHeight } from "@/shared/nodes/size";
 import type { Workflow } from "@/shared/schema/workflow";
 import { useWorkflowStore } from "../store/workflow";
+import { cardSize } from "./card-size";
 import { isGroupNode } from "@/shared/graph";
 
 const elk = new ELK();
 const LAYER_GAP = 80;
 const NODE_GAP = 32;
-
-function measured(id: string): { width: number; height: number } | null {
-  const el = document.querySelector<HTMLElement>(`.react-flow__node[data-id="${CSS.escape(id)}"]`);
-  return el && el.offsetWidth && el.offsetHeight
-    ? { width: el.offsetWidth, height: el.offsetHeight }
-    : null;
-}
 
 async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: number }>> {
   const nodes = wf.nodes.filter((n) => !n.parentId && !isGroupNode(n));
@@ -33,7 +26,7 @@ async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: 
       const def = getNodeDef(n.type);
       const inputs = Object.keys(def?.inputs ?? {});
       const outputs = Object.keys(def?.outputs ?? {});
-      const size = measured(n.id) ?? { width: CARD_WIDTH, height: estimateCardHeight(def) };
+      const size = cardSize(n);
       return {
         id: n.id,
         width: size.width,

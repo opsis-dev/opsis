@@ -1,6 +1,5 @@
 import { Copy, Menu, Minus, Square, X } from "lucide-react";
-import { useEffect, useState, type ComponentType, type ReactNode } from "react";
-import type { WindowState } from "@/shared/ipc";
+import { useEffect, type ComponentType, type ReactNode } from "react";
 import logoUrl from "../../../brand/logo.svg";
 import {
   acceleratorLabel,
@@ -38,10 +37,11 @@ import { Badge } from "@/renderer/components/ui/badge";
 import { Separator } from "@/renderer/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { useAppSettings } from "../store/app-settings";
+import { useWindowState } from "../store/window-state";
 import { cn } from "@/renderer/lib/utils";
 import { isEditingElement } from "@/renderer/lib/dom";
 import { isMac, platform } from "@/renderer/lib/platform";
-import { dispatchMenuCommand } from "@/renderer/app/menu-commands";
+import { dispatchMenuCommand } from "./menu-commands";
 
 export const shortcutLabel = (accelerator: string) => acceleratorLabel(accelerator, platform);
 export const commandLabel = (cmd: MenuCommand): string =>
@@ -148,14 +148,9 @@ function CompactMenu() {
   );
 }
 
-const NATIVE_WHILE_EDITING = new Set([
-  "cut",
-  "copy",
-  "paste",
-  "selectAll",
-  "edit:undo",
-  "edit:redo",
-]);
+const NATIVE_WHILE_EDITING: ReadonlySet<MenuCommand | WindowRole> = new Set<
+  MenuCommand | WindowRole
+>(["cut", "copy", "paste", "selectAll", "edit:undo", "edit:redo"]);
 
 export function useMenuShortcuts(): void {
   useEffect(() => {
@@ -175,20 +170,6 @@ export function useMenuShortcuts(): void {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-}
-
-function useWindowState(): WindowState {
-  const [state, setState] = useState<WindowState>({
-    maximized: false,
-    fullscreen: false,
-    focused: true,
-  });
-  useEffect(() => {
-    if (isMac) return;
-    void window.demoflow.getWindowState().then(setState);
-    return window.demoflow.onWindowState(setState);
-  }, []);
-  return state;
 }
 
 function WindowButton({
@@ -218,7 +199,7 @@ function WindowButton({
 }
 
 function WindowControls() {
-  const { maximized } = useWindowState();
+  const maximized = useWindowState((s) => s.maximized);
   return (
     <div className="flex h-full shrink-0 items-stretch">
       <WindowButton role="minimize" label="Minimize">
@@ -321,6 +302,8 @@ function ApiBadge() {
 
 export function PageBar({ title }: { title: string }) {
   return (
-    <AppBar>{title ? <span className="text-muted-foreground text-sm">{title}</span> : null}</AppBar>
+    <AppBar>
+      <span className="text-muted-foreground text-sm">{title}</span>
+    </AppBar>
   );
 }

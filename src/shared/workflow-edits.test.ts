@@ -1,0 +1,153 @@
+import { describe, expect, it } from "vitest";
+import { defaultMix, stripSchema } from "./mix/types";
+import { GROUP_TYPE } from "./nodes/utility";
+import { GraphBuilder } from "./templates/build";
+import {
+  addProjectFont,
+  connect,
+  groupNodes,
+  pasteNodes,
+  removeNodes,
+  renameWorkflowVariable,
+  ungroup,
+} from "./workflow-edits";
+import type { FontFamilyDef } from "./fonts/types";
+
+const SIZE = { width: 200, height: 100 };
+
+function sounds() {
+  const g = new GraphBuilder();
+  g.node("a", "audio.sfx", 0, 0);
+  g.node("b", "audio.sfx", 0, 1);
+  g.node("mix", "audio.mix", 1, 0);
+  g.node("m", "audio.music", 0, 2);
+  return g.build({ id: "wf", name: "Sounds" });
+}
+
+const grouped = () =>
+  groupNodes(sounds(), ["a", "b"], { id: "g", title: "Effects", sizeOf: () => SIZE });
+
+describe("workflow edits", () => {
+  it("lets a many port take several sources but replaces a single port's source", () => {
+    const one = connect(sounds(), {
+      source: "a",
+      sourceHandle: "audio",
+      target: "mix",
+      targetHandle: "sounds",
+    });
+    const two = connect(one, {
+      source: "b",
+      sourceHandle: "audio",
+      target: "mix",
+      targetHandle: "sounds",
+    });
+    expect(two.edges.map((e) => e.id)).toEqual(["a.audio->mix.sounds", "b.audio->mix.sounds"]);
+    const clipA = connect(two, {
+      source: "a",
+      sourceHandle: "x",
+      target: "mix",
+      targetHandle: "clip",
+    });
+    const clipB = connect(clipA, {
+      source: "b",
+      sourceHandle: "x",
+      target: "mix",
+      targetHandle: "clip",
+    });
+    expect(clipB.edges.filter((e) => e.targetHandle === "clip").map((e) => e.source)).toEqual([
+      "b",
+    ]);
+  });
+
+  it("groups around the members and ungroups back to the same places", () => {
+    const wf = grouped();
+    const group = wf.nodes.find((n) => n.id === "g");
+    expect(group?.type).toBe(GROUP_TYPE);
+    const [a, b] = sounds().nodes;
+    expect(group?.position).toEqual({ x: a.position.x - 40, y: a.position.y - 64 });
+    expect(group?.size).toEqual({
+      width: SIZE.width + 80,
+      height: b.position.y - a.position.y + SIZE.height + 104,
+    });
+    expect(wf.nodes.filter((n) => n.parentId === "g").map((n) => n.id)).toEqual(["a", "b"]);
+    expect(ungroup(wf, "g").nodes).toEqual(sounds().nodes);
+  });
+
+  it("keeps a group of fewer than two free nodes from forming", () => {
+    const wf = sounds();
+    expect(groupNodes(wf, ["a"], { id: "g", title: "x", sizeOf: () => SIZE })).toBe(wf);
+  });
+
+  it("removes nodes with their edges and mixer strips and frees the children of a removed group", () => {
+    const linked = connect(grouped(), {
+      source: "m",
+      sourceHandle: "audio",
+      target: "mix",
+      targetHandle: "sounds",
+    });
+    const mix = defaultMix();
+    mix.channels.m = stripSchema.parse({ fader: -6 });
+    mix.channels.a = stripSchema.parse({ fader: -3 });
+    const wf = removeNodes({ ...linked, mix }, ["g", "m"]);
+    expect(wf.nodes.map((n) => n.id)).toEqual(["a", "b", "mix"]);
+    expect(wf.nodes.find((n) => n.id === "a")).toEqual(sounds().nodes[0]);
+    expect(wf.edges).toEqual([]);
+    expect(Object.keys(wf.mix?.channels ?? {})).toEqual(["a"]);
+  });
+
+  it("pastes copies with new ids, offset outside groups, and keeps their edges", () => {
+    const source = connect(grouped(), {
+      source: "a",
+      sourceHandle: "audio",
+      target: "mix",
+      targetHandle: "sounds",
+    });
+    const copied = source.nodes.filter((n) => ["g", "a", "mix"].includes(n.id));
+    const { workflow, ids } = pasteNodes(source, copied, source.edges, { x: 10, y: 20 });
+    expect(ids).toHaveLength(3);
+    const pasted = workflow.nodes.slice(source.nodes.length);
+    const [group, a, mixer] = pasted;
+    expect(group.position).toEqual({ x: copied[0].position.x + 10, y: copied[0].position.y + 20 });
+    expect(a.parentId).toBe(group.id);
+    expect(a.position).toEqual(copied[1].position);
+    expect(workflow.edges.at(-1)).toMatchObject({
+      id: `${a.id}.audio->${mixer.id}.sounds`,
+      source: a.id,
+      target: mixer.id,
+    });
+  });
+
+  it("renames a variable everywhere unless the new name is blank", () => {
+    const wf = {
+      ...sounds(),
+      variables: { site: "https://example.com" },
+      nodes: [
+        {
+          id: "n",
+          type: "browser.navigate",
+          position: { x: 0, y: 0 },
+          params: { url: "{{site}}" },
+        },
+      ],
+    };
+    const renamed = renameWorkflowVariable(wf, "site", "home");
+    expect(renamed.variables).toEqual({ home: "https://example.com" });
+    expect(renamed.nodes[0].params.url).toBe("{{home}}");
+    expect(renameWorkflowVariable(wf, "site", " ").nodes).toBe(wf.nodes);
+  });
+
+  it("replaces a project font of the same family", () => {
+    const font = (id: string): FontFamilyDef => ({
+      id,
+      family: "Inter",
+      category: "sans-serif",
+      source: "file",
+      faces: [],
+    });
+    const once = addProjectFont(sounds(), font("one"));
+    const twice = addProjectFont(once, font("two"));
+    expect(twice.settings.fonts.families.filter((f) => f.family === "Inter")).toEqual([
+      font("two"),
+    ]);
+  });
+});

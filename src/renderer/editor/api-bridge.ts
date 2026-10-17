@@ -12,12 +12,12 @@ import {
 } from "@/shared/api/types";
 import { errorMessage } from "@/shared/errors";
 import { connectionProblem } from "@/shared/graph";
-import { nodeIdFor } from "@/shared/ids";
-import { defaultParams, getNodeDef } from "@/shared/nodes/registry";
+import { edgeId, nodeIdFor } from "@/shared/ids";
+import { getNodeDef } from "@/shared/nodes/registry";
 import { workflowSettingsSchema, type Workflow, type WorkflowNode } from "@/shared/schema/workflow";
 import { setEditorApi } from "../app/api-host";
 import { useRunStore } from "../store/run";
-import { useWorkflowStore } from "../store/workflow";
+import { newNodeParams, useWorkflowStore } from "../store/workflow";
 import { beginRun } from "./run";
 import { save } from "./save";
 
@@ -82,7 +82,7 @@ const addNode: Handler<"addNode"> = (request, wf) => {
         id,
         type: request.type,
         position: request.position ?? nextPosition(w.nodes),
-        params: { ...defaultParams(request.type), ...request.params },
+        params: newNodeParams(request.type, request.params),
         ...(request.label ? { label: request.label } : {}),
       },
     ],
@@ -112,7 +112,7 @@ const addEdge: Handler<"addEdge"> = (request, wf) => {
   const problem = connectionProblem(wf, edge);
   if (problem) return apiFailure(problem.notFound ? 404 : 400, problem.message);
   useWorkflowStore.getState().addEdge(edge);
-  return edited(`${source}.${sourceHandle}->${target}.${targetHandle}`);
+  return edited(edgeId(edge));
 };
 
 const removeEdges: Handler<"removeEdges"> = (request, wf) => {

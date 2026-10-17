@@ -360,6 +360,11 @@ const DEVICE_ICONS: Record<keyof typeof DEVICE_LABELS, string> = {
   phone: "smartphone",
 };
 
+const HOST_WINDOW_STYLES: Partial<Record<NodeJS.Platform, (typeof WINDOW_STYLES)[number]>> = {
+  win32: "windows",
+  linux: "linux",
+};
+
 const deviceFrameNode = defineNode({
   ...modifier,
   type: "camera.deviceFrame",
@@ -389,6 +394,7 @@ const deviceFrameNode = defineNode({
       { showIf: { device: ["laptop"] } },
     ),
   }),
+  hostDefaults: (platform) => ({ windowStyle: HOST_WINDOW_STYLES[platform] ?? "macos" }),
   compile: ({ nodeId, inputs, params }) =>
     withClip(inputs, (clip) => {
       if (params.device === "browser")

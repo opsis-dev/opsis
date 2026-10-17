@@ -3,18 +3,13 @@ import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "../nodes/params";
 import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
 import { cutSchema, IN_PORTS } from "../nodes/timeline";
 import type { ParamRef } from "../schema/timeline";
-import {
-  normalizeWorkflow,
-  type PortType,
-  type Workflow,
-  type WorkflowEdge,
-  type WorkflowNode,
-} from "../schema/workflow";
+import type { PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
 import { findHandle, slotIndex, type AudioBar, type ChainLink, type VideoBar } from "./flatten";
 import { clamp, finiteOr, round2 } from "../math";
-import { nodeIdPrefix } from "../ids";
+import { edgeId, nodeIdPrefix } from "../ids";
 import { formatNumberList, parseNumberList } from "../format";
 import { framesToMs, msToFrames } from "./time";
+import { removeNodes } from "../workflow-edits";
 
 export type EditContext = {
   workflow: Workflow;
@@ -120,9 +115,6 @@ function absPosition(wf: Workflow, node: WorkflowNode): { x: number; y: number }
   const p = absPosition(wf, parent);
   return { x: p.x + node.position.x, y: p.y + node.position.y };
 }
-
-const edgeId = (e: Omit<WorkflowEdge, "id">) =>
-  `${e.source}.${e.sourceHandle}->${e.target}.${e.targetHandle}`;
 
 const makeEdge = (e: Omit<WorkflowEdge, "id">): WorkflowEdge => ({ ...e, id: edgeId(e) });
 
@@ -677,11 +669,7 @@ export function removalFor(ctx: EditContext, bar: VideoBar | AudioBar): Removal 
 }
 
 export function applyRemoval(wf: Workflow, removal: Removal): Workflow {
-  const gone = new Set(removal.nodeIds);
+  const without = removeNodes(wf, removal.nodeIds);
   const edges = new Set(removal.edgeIds);
-  return normalizeWorkflow({
-    ...wf,
-    nodes: wf.nodes.filter((n) => !gone.has(n.id)),
-    edges: wf.edges.filter((e) => !edges.has(e.id) && !gone.has(e.source) && !gone.has(e.target)),
-  });
+  return { ...without, edges: without.edges.filter((e) => !edges.has(e.id)) };
 }

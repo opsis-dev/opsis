@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import type { FontInstalledFace, InspectedFonts } from "@/shared/ipc";
-import { errorMessage } from "@/shared/errors";
 import { plural } from "@/shared/format";
 import type { LocalFontData } from "./local-fonts";
-import { BusyCount, MAX_LISTED, SearchListDialog } from "./search-list-dialog";
+import { useBusy } from "@/renderer/lib/use-busy";
+import { FontSample } from "./font-sample";
+import { BusyCount, MAX_LISTED, matchesQuery, SearchListDialog } from "./search-list-dialog";
 
 async function readFaces(faces: LocalFontData[]): Promise<FontInstalledFace[]> {
   const data: FontInstalledFace[] = [];
@@ -29,21 +29,14 @@ export function InstalledDialog({
   onPicked: (fonts: InspectedFonts) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
+  const { busy, run } = useBusy();
   const families = useMemo(() => groupByFamily(fonts), [fonts]);
-  const q = query.toLowerCase();
-  const shown = families.filter(([name]) => name.toLowerCase().includes(q));
+  const shown = families.filter(([name]) => matchesQuery(query, name));
 
-  const pick = async (family: string, faces: LocalFontData[]) => {
-    setBusy(family);
-    try {
-      onPicked(await window.demoflow.inspectInstalledFonts(await readFaces(faces)));
-    } catch (error) {
-      toast.error(errorMessage(error));
-    } finally {
-      setBusy(null);
-    }
-  };
+  const pick = (family: string, faces: LocalFontData[]) =>
+    run(family, async () =>
+      onPicked(await window.demoflow.inspectInstalledFonts(await readFaces(faces))),
+    );
 
   return (
     <SearchListDialog
@@ -64,9 +57,7 @@ export function InstalledDialog({
           disabled={!!busy}
           onClick={() => void pick(name, faces)}
         >
-          <span className="truncate" style={{ fontFamily: `"${name}"` }}>
-            {name}
-          </span>
+          <FontSample family={name}>{name}</FontSample>
           <BusyCount busy={busy === name}>{plural(faces.length, "style")}</BusyCount>
         </button>
       ))}

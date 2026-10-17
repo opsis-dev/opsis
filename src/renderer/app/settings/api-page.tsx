@@ -1,5 +1,5 @@
 import { Check, Copy } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
@@ -19,25 +19,39 @@ import type { AppSettings } from "@/shared/settings";
 
 const windows = platform === "win32";
 
-function CopyLine({ text }: { text: string }) {
+const COPIED_MS = 1500;
+
+function useCopied() {
   const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const copy = (text: string) =>
+    navigator.clipboard.writeText(text).then(() => {
+      clearTimeout(timer.current);
+      setCopied(true);
+      timer.current = setTimeout(() => setCopied(false), COPIED_MS);
+    });
+  return { copied, copy };
+}
+
+function CopyLine({ text }: { text: string }) {
+  const { copied, copy } = useCopied();
   return (
     <div className="bg-muted flex items-start gap-2 rounded-md px-3 py-2">
       <code className="min-w-0 flex-1 font-mono text-xs leading-5 break-all">{text}</code>
-      <Button
-        variant="ghost"
-        size="icon-xs"
-        aria-label="Copy"
-        onClick={() => {
-          void navigator.clipboard.writeText(text).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-          });
-        }}
-      >
+      <Button variant="ghost" size="icon-xs" aria-label="Copy" onClick={() => void copy(text)}>
         {copied ? <Check /> : <Copy />}
       </Button>
     </div>
+  );
+}
+
+function ApiStateBadge({ on, listening }: { on: boolean; listening: boolean }) {
+  if (!on) return <Badge variant="outline">Off</Badge>;
+  return listening ? (
+    <Badge variant="secondary">On</Badge>
+  ) : (
+    <Badge variant="destructive">Not running</Badge>
   );
 }
 
@@ -54,15 +68,7 @@ export function ApiPage({ settings }: { settings: AppSettings }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             Local API
-            {on ? (
-              status.listening ? (
-                <Badge variant="secondary">On</Badge>
-              ) : (
-                <Badge variant="destructive">Not running</Badge>
-              )
-            ) : (
-              <Badge variant="outline">Off</Badge>
-            )}
+            <ApiStateBadge on={on} listening={status.listening} />
           </CardTitle>
           <CardDescription>
             Scripts and AI agents on this computer can read the open project, change it and run it.

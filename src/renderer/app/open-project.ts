@@ -1,7 +1,5 @@
 import { useEffect, useEffectEvent, useState } from "react";
-import { toast } from "sonner";
 import type { OpenProject } from "@/shared/ipc";
-import { errorMessage } from "@/shared/errors";
 import { whenSaved } from "../editor/save";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
@@ -9,6 +7,7 @@ import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
+import { reportError } from "@/renderer/lib/toast";
 
 function openProjectIntoStores(p: OpenProject): void {
   loadViewState(p.dir);
@@ -28,7 +27,7 @@ export function useOpenProject(dir: string, onFailed: () => void): "opening" | "
   const [failed, setFailed] = useState(false);
   const fail = useEffectEvent((e: unknown) => {
     setFailed(true);
-    toast.error("Could not open the project", { description: errorMessage(e) });
+    reportError("Could not open the project", e);
     onFailed();
   });
 

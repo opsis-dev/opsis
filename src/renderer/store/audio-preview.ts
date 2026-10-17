@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type PreviewFilter = { type: BiquadFilterType; freq: number; gain: number; q: number };
+type PreviewFilter = { type: BiquadFilterType; freq: number; gain: number; q: number };
 
 export type Contribution = { gainDb?: number; pan?: number; filters?: PreviewFilter[] };
 

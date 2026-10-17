@@ -7,6 +7,8 @@ import {
 } from "@/shared/run-progress";
 import type { LogLevel, RunEvent } from "@/shared/schema/events";
 import type { LastRun } from "@/shared/schema/values";
+import { appendCapped } from "@/shared/lists";
+import { pick } from "./snapshot";
 
 export type LogLine = {
   id: number;
@@ -21,10 +23,8 @@ const logLine = (line: Omit<LogLine, "id">): LogLine => ({ id: ++logCount, ...li
 
 export const MAX_LOG_LINES = 2000;
 
-const withLine = (logs: LogLine[], line: LogLine): LogLine[] => [
-  ...logs.slice(-(MAX_LOG_LINES - 1)),
-  line,
-];
+const withLine = (logs: LogLine[], line: LogLine): LogLine[] =>
+  appendCapped(logs, line, MAX_LOG_LINES);
 
 type RunState = RunProgress & {
   running: boolean;
@@ -40,8 +40,8 @@ type RunState = RunProgress & {
   clearLogs: () => void;
 };
 
-const freshRun = () => ({
-  running: true,
+const freshRun = (running: boolean) => ({
+  running,
   outputs: [],
   lastError: null,
   failedNodeIds: [],
@@ -65,30 +65,28 @@ const errorsOf = (lastRun: LastRun | null): Record<string, string> =>
 
 export const useRunStore = create<RunState>()((set) => ({
   ...emptyRunProgress(),
-  ...freshRun(),
-  running: false,
+  ...freshRun(false),
   logs: [],
 
   seed: (lastRun) =>
     set({
       ...emptyRunProgress(),
-      ...freshRun(),
+      ...freshRun(false),
       traces: traceIds(lastRun),
       results: lastRun?.nodes ?? {},
       errors: errorsOf(lastRun),
       logs: [],
-      running: false,
     }),
 
-  start: (runId) => set((s) => (s.runId === runId ? {} : { ...freshRun(), runId })),
+  start: (runId) => set((s) => (s.runId === runId ? {} : { ...freshRun(true), runId })),
 
-  resume: (progress) => set((s) => ({ ...resumeRunProgress(s, progress), ...freshRun() })),
+  resume: (progress) => set((s) => ({ ...resumeRunProgress(s, progress), ...freshRun(true) })),
 
   apply: (e) =>
     set((s) => {
       switch (e.type) {
         case "run:start":
-          return { ...applyRunEvent(s, e), ...freshRun() };
+          return { ...applyRunEvent(s, e), ...freshRun(true) };
         case "node:log":
           return {
             logs: withLine(
@@ -120,3 +118,23 @@ export const useRunStore = create<RunState>()((set) => ({
 
   clearLogs: () => set({ logs: [] }),
 }));
+
+export const RUN_SYNC_KEYS = [
+  "runId",
+  "running",
+  "statuses",
+  "progress",
+  "cached",
+  "errors",
+  "traces",
+  "logs",
+  "results",
+  "outputs",
+  "lastError",
+  "failedNodeIds",
+  "skippedNodeIds",
+] as const;
+
+export type RunSnapshot = Pick<RunState, (typeof RUN_SYNC_KEYS)[number]>;
+
+export const runSnapshot = (): RunSnapshot => pick(useRunStore.getState(), RUN_SYNC_KEYS);

@@ -1,21 +1,14 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import type { InspectedFonts } from "@/shared/ipc";
-import { errorMessage } from "@/shared/errors";
 import { plural } from "@/shared/format";
 import { Button } from "@/renderer/components/ui/button";
 import { Checkbox } from "@/renderer/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/renderer/components/ui/dialog";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
+import { useBusy } from "@/renderer/lib/use-busy";
 import { describeFaces } from "./font-labels";
+import { FontDialog } from "./search-list-dialog";
 
 export type FontReview = { fonts: InspectedFonts; installed: boolean };
 
@@ -37,68 +30,63 @@ export function ReviewDialog({
 }) {
   const { fonts } = review;
   const [chosen, setChosen] = useState(() => fonts.families.map((f) => f.family));
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useBusy();
 
-  const add = async () => {
-    setBusy(true);
-    try {
+  const add = () =>
+    run("add", async () => {
       const added = await window.demoflow.addInspectedFonts(fonts.token, chosen);
       toast.success(
         added.length === 1 ? `Added ${added[0].family}` : `Added ${plural(added.length, "font")}`,
       );
       onAdded();
       onClose();
-    } catch (error) {
-      toast.error(errorMessage(error));
-    } finally {
-      setBusy(false);
-    }
-  };
+    });
 
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Add fonts</DialogTitle>
-          <DialogDescription>
-            Found {plural(fonts.families.length, "font family", "font families")}.{" "}
-            {fonts.skipped
-              ? `${fonts.skipped} duplicate files in other formats were skipped. `
-              : ""}
-            {fonts.unreadable
-              ? `${plural(fonts.unreadable, "file")} couldn't be read as a font.`
-              : ""}
-          </DialogDescription>
-        </DialogHeader>
-        <ScrollArea className="max-h-72">
-          <div className="flex flex-col gap-2 pr-3">
-            {fonts.families.map((f) => (
-              <label key={f.family} className="flex items-start gap-3 text-sm">
-                <Checkbox
-                  checked={chosen.includes(f.family)}
-                  onCheckedChange={(on) =>
-                    setChosen((c) => (on ? [...c, f.family] : c.filter((x) => x !== f.family)))
-                  }
-                />
-                <span className="flex min-w-0 flex-col">
-                  <span className="font-medium">{f.family}</span>
-                  <span className="text-muted-foreground text-xs">{describeFaces(f.faces)}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </ScrollArea>
-        <p className="text-muted-foreground text-xs">{licenceNote(review)}</p>
-        <DialogFooter>
+    <FontDialog
+      open
+      onClose={onClose}
+      title="Add fonts"
+      description={
+        <>
+          Found {plural(fonts.families.length, "font family", "font families")}.{" "}
+          {fonts.skipped ? `${fonts.skipped} duplicate files in other formats were skipped. ` : ""}
+          {fonts.unreadable
+            ? `${plural(fonts.unreadable, "file")} couldn't be read as a font.`
+            : ""}
+        </>
+      }
+      footer={
+        <>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button disabled={!chosen.length || busy} onClick={() => void add()}>
+          <Button disabled={!chosen.length || busy !== null} onClick={() => void add()}>
             {busy ? <Spinner data-icon="inline-start" /> : null}
             Add {plural(chosen.length, "font")}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <ScrollArea className="max-h-72">
+        <div className="flex flex-col gap-2 pr-3">
+          {fonts.families.map((f) => (
+            <label key={f.family} className="flex items-start gap-3 text-sm">
+              <Checkbox
+                checked={chosen.includes(f.family)}
+                onCheckedChange={(on) =>
+                  setChosen((c) => (on ? [...c, f.family] : c.filter((x) => x !== f.family)))
+                }
+              />
+              <span className="flex min-w-0 flex-col">
+                <span className="font-medium">{f.family}</span>
+                <span className="text-muted-foreground text-xs">{describeFaces(f.faces)}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </ScrollArea>
+      <p className="text-muted-foreground text-xs">{licenceNote(review)}</p>
+    </FontDialog>
   );
 }

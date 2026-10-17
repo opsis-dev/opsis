@@ -20,7 +20,7 @@ export type LiveMessage =
       type: "frame";
       captureId: string;
       nodeId: string;
-      jpeg: Uint8Array;
+      jpeg: Uint8Array<ArrayBuffer>;
       width: number;
       height: number;
       t: number;
