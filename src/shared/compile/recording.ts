@@ -1,5 +1,6 @@
 import type { Action, ActionLog } from "../schema/actions";
 import type { AssetRef } from "../schema/values";
+import { DEFAULT_BACKDROP } from "../backdrops";
 
 export const CAMERA_STYLES = ["classic", "proof", "ledger", "stage"] as const;
 type CameraStyle = (typeof CAMERA_STYLES)[number];
@@ -46,7 +47,7 @@ export const DEFAULT_RECORDING_PROPS: Omit<RecordingProps, "src" | "proxySrc" | 
   motionBlur: true,
   style: "classic",
   chrome: false,
-  backdrop: "glaze",
+  backdrop: DEFAULT_BACKDROP,
   cursor: true,
   cursorScale: 1,
   ripple: true,

@@ -1,18 +1,19 @@
 import { z } from "zod";
 import { clipToSpec, isClip } from "../compile/clip";
+import { REFRAMES, type ReframeMode } from "../schema/timeline";
 import { outputOf, type Artifact, type CompileValue, type TimelineValue } from "../schema/values";
 import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { row } from "./card";
 import { defineNode, port, type CompileOutputs } from "./define";
-import { bool, choice, keysOf, more, ms, quality, text } from "./params";
+import { bool, choice, FORMAT_NAMES, keysOf, more, ms, quality, text } from "./params";
 import { formatDuration, formatBytes } from "../format";
 import { evenPx } from "../math";
 
 const GL_LABELS = {
   angle: "Graphics card",
   swangle: "Software",
-  egl: "EGL",
-  vulkan: "Vulkan",
+  egl: "Graphics card, direct",
+  vulkan: "Graphics card, newer drivers",
   swiftshader: "Software (legacy)",
 } as const;
 
@@ -22,26 +23,9 @@ const gl = () =>
     advanced: true,
   });
 
-const FORMAT_NAMES = {
-  h264: "MP4",
-  h265: "MP4 (HEVC)",
-  vp8: "WebM (VP8)",
-  vp9: "WebM",
-  prores: "ProRes",
-  gif: "GIF",
-};
-
 const FORMATS = keysOf(FORMAT_NAMES);
 
 const VIDEO_CODECS = FORMATS.filter((f) => f !== "gif");
-
-const STILL_NAMES: Record<StillPreset, string> = {
-  wide: "Wide 4K",
-  og: "Link preview",
-  square: "Square",
-  portrait: "Portrait",
-  story: "Story",
-};
 
 const fileBytes = (artifacts?: Artifact[]) =>
   artifacts?.reduce((sum, a) => sum + (a.bytes ?? 0), 0) ?? 0;
@@ -57,6 +41,14 @@ export const STILL_PRESETS = {
   story: { width: 1080, height: 1920 },
 } as const;
 type StillPreset = keyof typeof STILL_PRESETS;
+
+const STILL_NAMES: Record<StillPreset, string> = {
+  wide: "Wide 4K",
+  og: "Link preview",
+  square: "Square",
+  portrait: "Portrait",
+  story: "Story",
+};
 
 export function variantSize(
   variant: Variant,
@@ -86,15 +78,19 @@ const passTimeline = (
   return timeline ? { timeline } : {};
 };
 
+const base = {
+  category: "Output",
+  executes: true,
+  inputs: { timeline: port("timeline", "Clip") },
+} as const;
+
 export const renderNode = defineNode({
+  ...base,
   type: "output.render",
   title: "Export video",
-  category: "Output",
   icon: "clapperboard",
   phase: "render",
-  executes: true,
   description: "Renders the final video, one file per shape (16:9, 9:16…).",
-  inputs: { timeline: port("timeline", "Clip") },
   outputs: { media: port("media", "File") },
   card: ({ params: p, settings, result }) => {
     const media = outputOf(result, "media", "media");
@@ -116,7 +112,7 @@ export const renderNode = defineNode({
       .min(1)
       .default(["16:9"])
       .meta({ description: "Shapes", widget: "multiselect" }),
-    reframe: choice(["follow", "center", "fit"], "follow", "Other shapes", {
+    reframe: choice(REFRAMES, "follow", "Other shapes", {
       follow: "Follow the action",
       center: "Crop the centre",
       fit: "Add bars",
@@ -140,7 +136,6 @@ export const renderNode = defineNode({
       help: "Also saves the chapter times as text, to paste into a video's description. It needs at least three chapters of ten seconds or more.",
       showIf: { codec: VIDEO_CODECS },
     }),
-    faststart: z.boolean().default(true).meta({ description: "Web-ready", hidden: true }),
     gl: gl(),
   }),
   compile: ({ inputs, settings, result }) => ({
@@ -149,22 +144,20 @@ export const renderNode = defineNode({
   }),
 });
 
-export function exportReframe(nodes: WorkflowNode[]): z.infer<typeof renderNode.params>["reframe"] {
+export function exportReframe(nodes: WorkflowNode[]): ReframeMode {
   const render = nodes.find((n) => n.type === renderNode.type && !n.disabled);
   const parsed = renderNode.params.shape.reframe.safeParse(render?.params.reframe);
   return parsed.success ? parsed.data : "follow";
 }
 
 export const stillOutputNode = defineNode({
+  ...base,
   type: "output.still",
   title: "Export images",
-  category: "Output",
   icon: "image-down",
   phase: "render",
-  executes: true,
   description:
     "Saves a frame as images at social sizes: wide, link preview, square, portrait, story.",
-  inputs: { timeline: port("timeline", "Clip") },
   outputs: { image: port("image", "Image") },
   card: ({ params: p }) => [
     row("image", p.presets.map((k) => STILL_NAMES[k]).join(" · ")),
@@ -187,14 +180,12 @@ export const stillOutputNode = defineNode({
 });
 
 export const exportProjectNode = defineNode({
+  ...base,
   type: "output.exportProject",
   title: "Export as code",
-  category: "Output",
   icon: "folder-code",
   phase: "post",
-  executes: true,
   description: "Saves this video as an editable code project for developers.",
-  inputs: { timeline: port("timeline", "Clip") },
   outputs: { file: port("file", "Folder") },
   card: ({ params: p }) => [row("folder-output", p.folderName)],
   params: z.object({ folderName: text("video-code", "Folder name") }),

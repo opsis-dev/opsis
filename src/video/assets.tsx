@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from "react";
 import { staticFile } from "remotion";
 import { PROJECT_FILE_BASE, encodePath, isProjectRef, projectRelPath } from "../shared/asset-ref";
+import type { ReframeMode } from "../shared/schema/timeline";
 
 type AssetBase = { projectBase?: string };
 
@@ -42,7 +43,6 @@ export const useAsset = (ref: string | null | undefined): string | null => {
   return ref ? resolveAssetRef(ref, base) : null;
 };
 
-export type ReframeMode = "follow" | "center" | "fit";
 const ReframeContext = createContext<ReframeMode>("follow");
 export const ReframeProvider = ReframeContext.Provider;
 export const useReframe = () => useContext(ReframeContext);

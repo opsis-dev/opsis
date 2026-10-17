@@ -32,7 +32,7 @@ function useCardInputs(node: WorkflowNode) {
   const clipFrames = isClip(clip) ? clip.durationInFrames : undefined;
   const connected = useMemo(() => incoming.map((e) => e.targetHandle), [incoming]);
   const inputFrames = useMemo(() => {
-    const out: Record<string, number> = {};
+    const out: Partial<Record<string, number>> = {};
     for (const e of incoming) {
       const v = compiled?.values[e.source]?.[e.sourceHandle];
       if (isClip(v)) out[e.targetHandle] = v.durationInFrames;
@@ -47,14 +47,13 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
     useCardInputs(node);
   return useMemo(() => {
     if (!def.card) return [];
-    const raw = node.params;
     const params = {
       ...defaultParams(node.type),
-      ...interpolate(raw, workflowVars({ name, variables })),
+      ...interpolate(node.params, workflowVars({ name, variables })),
     };
     try {
       return def
-        .card({ params, raw, settings, result, secrets, connected, clipFrames, inputFrames })
+        .card({ params, settings, result, secrets, connected, clipFrames, inputFrames })
         .filter((r): r is CardRow => Boolean(r))
         .slice(0, MAX_ROWS);
     } catch (error) {

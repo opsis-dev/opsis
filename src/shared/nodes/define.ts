@@ -75,6 +75,7 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
   mutates?(params: z.infer<S>): string | undefined;
   element?: string;
   hidden?: boolean;
+  cardHeight?: number;
   hostDefaults?(platform: NodeJS.Platform): Partial<z.infer<S>>;
   compile?(ctx: CompileContext<z.infer<S>>): CompileOutputs | undefined;
   card?(ctx: CardContext<z.infer<S>>): Array<CardRow | false | null | undefined | "" | 0>;
@@ -93,18 +94,19 @@ export const parseParams = <S extends z.ZodObject>(
   vars: Record<string, string>,
 ): z.infer<S> => def.params.parse(interpolate(node.params, vars));
 
-export const port = (type: PortType, label?: string, optional = false): PortSpec => ({
+export const port = (type: PortType, label?: string): PortSpec => ({
   type,
   label,
-  optional,
+  optional: false,
 });
 
-export const opt = (type: PortType, label?: string): PortSpec => port(type, label, true);
+export const opt = (type: PortType, label?: string): PortSpec => ({
+  ...port(type, label),
+  optional: true,
+});
 
 export const many = (type: PortType, label?: string): PortSpec => ({
-  type,
-  label,
-  optional: true,
+  ...opt(type, label),
   many: true,
 });
 

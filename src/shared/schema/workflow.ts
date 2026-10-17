@@ -2,19 +2,19 @@ import { z } from "zod";
 import { DEFAULT_PROJECT_FONTS, projectFontsSchema } from "../fonts/types";
 import { mixSchema } from "../mix/types";
 
-const PORT_TYPES = [
-  "session",
-  "recording",
-  "clip",
-  "scene",
-  "audio",
-  "captions",
-  "image",
-  "media",
-  "timeline",
-  "file",
-] as const;
-export type PortType = (typeof PORT_TYPES)[number];
+export const PORT_WORDS = {
+  session: "browser action",
+  recording: "recording",
+  clip: "clip",
+  scene: "clip",
+  audio: "sound",
+  captions: "captions",
+  image: "image",
+  media: "file",
+  timeline: "clip",
+  file: "file",
+};
+export type PortType = keyof typeof PORT_WORDS;
 
 export const workflowSettingsSchema = z.object({
   width: z.number().int().min(16).max(7680).default(1920),

@@ -13,7 +13,7 @@ export type RecordingValue = {
   nodeId: string;
 };
 
-export type ImageValue = {
+type ImageValue = {
   type: "image";
   src: AssetRef | null;
   width?: number;
@@ -42,7 +42,7 @@ export type ClipValue = {
   recording?: RecordingValue;
 };
 
-export type AudioValue = { type: "audio"; items: AudioItem[]; durationInFrames?: number };
+type AudioValue = { type: "audio"; items: AudioItem[]; durationInFrames?: number };
 
 export type CaptionsValue = {
   type: "captions";

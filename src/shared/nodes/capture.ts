@@ -1,10 +1,23 @@
 import { z } from "zod";
-import { itemClip } from "../compile/clip";
+import { itemClip, placeholderClip, type ItemExtra } from "../compile/clip";
+import { DEFAULT_BACKDROP } from "../backdrops";
 import { outputOf } from "../schema/values";
 import { quote, row, warnIf } from "./card";
 import { defineNode, port } from "./define";
 import { secretFileName, secretName } from "../secrets";
-import { bool, choice, keysOf, more, ms, optionalTarget, text, visualEnvelope } from "./params";
+import {
+  bool,
+  choice,
+  choiceOf,
+  int,
+  keysOf,
+  more,
+  ms,
+  optionalTarget,
+  pickedRole,
+  text,
+  visualEnvelope,
+} from "./params";
 import { formatDuration, displayAddress } from "../format";
 import { msToFrames } from "../timeline/time";
 
@@ -12,13 +25,13 @@ export const DEFAULT_VIEWPORT = { width: 1920, height: 1080 };
 
 export const DEFAULT_TAKE_MS = 6000;
 
-const CURSOR_LABELS = { synthetic: "Smooth", baked: "As on screen", none: "None" };
-
-const CURSOR_ROWS: Record<keyof typeof CURSOR_LABELS, string> = {
-  synthetic: "Smooth cursor",
-  baked: "Cursor as on screen",
-  none: "No cursor",
+const CURSORS = {
+  synthetic: { label: "Smooth", row: "Smooth cursor" },
+  baked: { label: "As on screen", row: "Cursor as on screen" },
+  none: { label: "None", row: "No cursor" },
 };
+
+const base = { category: "Capture", phase: "capture", executes: true } as const;
 
 const REGION_LABELS = {
   viewport: "Visible part",
@@ -27,12 +40,10 @@ const REGION_LABELS = {
 };
 
 export const recordNode = defineNode({
+  ...base,
   type: "capture.record",
   title: "Record take",
-  category: "Capture",
   icon: "video",
-  phase: "capture",
-  executes: true,
   description: "Plays all connected browser actions in one go and records the screen.",
   inputs: { session: port("session", "Previous") },
   outputs: { recording: port("recording", "Recording") },
@@ -41,18 +52,18 @@ export const recordNode = defineNode({
       .union([z.literal(25), z.literal(30), z.literal(60)])
       .default(30)
       .meta({ description: "Frame rate", unit: "fps" }),
-    quality: z
-      .number()
-      .int()
-      .min(10)
-      .max(100)
-      .default(90)
-      .meta({ description: "Recording quality", step: 5, unit: "%", advanced: true }),
+    quality: int(90, "Recording quality", {
+      min: 10,
+      max: 100,
+      step: 5,
+      unit: "%",
+      advanced: true,
+    }),
     establishMs: ms(700, "Pause before the first action"),
     endTailMs: more(ms(2500, "Keep recording after the last action"), {
       help: "Gives the camera time to settle at the end.",
     }),
-    cursor: choice(keysOf(CURSOR_LABELS), "synthetic", "Cursor", CURSOR_LABELS),
+    cursor: choiceOf(CURSORS, "synthetic", "Cursor"),
     showActions: bool(false, "Quick mode: show action labels on the video"),
     mutates: more(text("", "Don't record at the same time as"), {
       help: "Takes that share this name run one after another, e.g. when they change the same account.",
@@ -63,7 +74,7 @@ export const recordNode = defineNode({
     const rec = outputOf(result, "recording", "recording");
     return [
       row("video", `${p.fps} fps`),
-      row("mouse-pointer", CURSOR_ROWS[p.cursor]),
+      row("mouse-pointer", CURSORS[p.cursor].row),
       rec?.src && row("clock", formatDuration(rec.durationMs)),
       rec?.log && row("list-checks", `${rec.log.actions.length} actions`),
     ];
@@ -82,12 +93,10 @@ export const recordNode = defineNode({
 });
 
 export const stillNode = defineNode({
+  ...base,
   type: "capture.still",
   title: "Screenshot",
-  category: "Capture",
   icon: "camera",
-  phase: "capture",
-  executes: true,
   description:
     "Plays the connected actions, then takes a sharp screenshot of the page or one element.",
   inputs: { session: port("session", "Previous") },
@@ -95,23 +104,19 @@ export const stillNode = defineNode({
   params: z.object({
     region: choice(keysOf(REGION_LABELS), "viewport", "Capture", REGION_LABELS),
     target: more(optionalTarget("Element"), { showIf: { region: ["element"] } }),
-    padding: z
-      .number()
-      .int()
-      .min(0)
-      .max(400)
-      .default(24)
-      .meta({
-        description: "Space around",
-        unit: "px",
-        showIf: { region: ["element"] },
-      }),
+    targetRole: pickedRole(),
+    padding: int(24, "Space around", {
+      min: 0,
+      max: 400,
+      unit: "px",
+      showIf: { region: ["element"] },
+    }),
     look: choice(["window", "cutout", "bleed"], "window", "Style", {
       window: "Window",
       cutout: "Cut-out",
       bleed: "Full bleed",
     }),
-    backdrop: more(text("glaze", "Backdrop"), { widget: "backdrop" }),
+    backdrop: more(text(DEFAULT_BACKDROP, "Backdrop"), { widget: "backdrop" }),
     durationMs: ms(3000, "Length"),
     envelope: visualEnvelope(),
   }),
@@ -134,8 +139,14 @@ export const stillNode = defineNode({
   },
   compile: ({ nodeId, result, params, settings }) => {
     const image = outputOf(result, "image", "image") ?? { type: "image", src: null };
-    const [component, props]: [string, Record<string, unknown>] = image.src
-      ? [
+    const frames = msToFrames(params.durationMs, settings.fps);
+    const extra: ItemExtra = {
+      handles: { trimEnd: { nodeId, param: "durationMs", unit: "ms" } },
+      envelope: params.envelope,
+    };
+    const clip = image.src
+      ? itemClip(
+          nodeId,
           "core/still",
           {
             src: image.src,
@@ -152,23 +163,24 @@ export const stillNode = defineNode({
                 }
               : {}),
           },
-        ]
-      : ["core/placeholder", { title: "Screenshot not taken yet", subtitle: "Run to take it" }];
-    const clip = itemClip(nodeId, component, props, msToFrames(params.durationMs, settings.fps), {
-      handles: { trimEnd: { nodeId, param: "durationMs", unit: "ms" } },
-      envelope: params.envelope,
-    });
+          frames,
+          extra,
+        )
+      : placeholderClip(
+          nodeId,
+          { title: "Screenshot not taken yet", subtitle: "Run to take it" },
+          frames,
+          extra,
+        );
     return { image, clip };
   },
 });
 
 export const loginOnceNode = defineNode({
+  ...base,
   type: "capture.loginOnce",
   title: "Sign in once",
-  category: "Capture",
   icon: "key-round",
-  phase: "capture",
-  executes: true,
   volatile: true,
   description:
     "Opens a window where you sign in yourself. Demoflow keeps the sign-in, encrypted, for later takes.",
@@ -188,10 +200,7 @@ export const loginOnceNode = defineNode({
       help: "A CSS selector, e.g. .account-menu.",
       showIf: { doneWhen: ["selector"] },
     }),
-    timeoutSec: z.number().int().min(10).max(3600).default(300).meta({
-      description: "Give up after",
-      unit: "s",
-    }),
+    timeoutSec: int(300, "Give up after", { min: 10, max: 3600, unit: "s" }),
   }),
   card: ({ params: p, secrets }) => {
     const name = secretName(p.secretName);

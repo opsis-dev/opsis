@@ -29,6 +29,10 @@ export const FIELD_WIDGETS = [
 
 export type FieldWidget = (typeof FIELD_WIDGETS)[number];
 
+declare module "zod" {
+  interface GlobalMeta extends FieldMeta {}
+}
+
 export type FieldMeta = {
   description?: string;
   help?: string;
@@ -58,20 +62,22 @@ const WRAPPERS = [
 
 const defOf = (schema: z.ZodType) => schema.def as { type: string; innerType?: z.ZodType };
 
+function chainOf(schema: z.ZodType): z.ZodType[] {
+  const chain = [schema];
+  for (let def = defOf(schema); def.innerType && WRAPPERS.includes(def.type);) {
+    chain.push(def.innerType);
+    def = defOf(def.innerType);
+  }
+  return chain;
+}
+
 export function fieldMeta(schema: z.ZodType): FieldMeta {
-  const chain: z.ZodType[] = [];
-  for (let cur: z.ZodType | undefined = schema; cur; cur = defOf(cur).innerType) chain.push(cur);
   const out: FieldMeta = {};
-  for (const s of chain.toReversed()) Object.assign(out, s.meta() as FieldMeta | undefined);
+  for (const s of chainOf(schema).toReversed()) Object.assign(out, s.meta());
   return out;
 }
 
-export function unwrap(schema: z.ZodType): z.ZodType {
-  let cur = schema;
-  for (let def = defOf(cur); def.innerType && WRAPPERS.includes(def.type); def = defOf(cur))
-    cur = def.innerType;
-  return cur;
-}
+export const unwrap = (schema: z.ZodType): z.ZodType => chainOf(schema).at(-1) ?? schema;
 
 export const targetRoleKey = (targetKey: string): string => `${targetKey}Role`;
 

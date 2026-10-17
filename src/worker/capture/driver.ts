@@ -28,6 +28,7 @@ import type { Action, ActionLog } from "../../shared/schema/actions";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
 import { PAUSE_MARK } from "../../shared/vars";
 import { errorMessage } from "../../shared/errors";
+import { nonBlankLines } from "../../shared/format";
 import type { CursorSample, KeyEvent } from "../../video/camera/lib/click-log";
 import { parsePath } from "./drag-path";
 import { landedOnSignIn, plainError, setupLength, traceGroupTitle } from "./driver-helpers";
@@ -465,10 +466,7 @@ const STEPS: Record<string, StepHandler> = {
     const selectors = [
       ...(p.cookieBanners ? COOKIE_BANNER_SELECTORS : []),
       ...(p.chatWidgets ? CHAT_WIDGET_SELECTORS : []),
-      ...p.selectors
-        .split("\n")
-        .map((s) => s.trim())
-        .filter(Boolean),
+      ...nonBlankLines(p.selectors),
     ];
     if (!selectors.length) return;
     const css = hidingCss(selectors);

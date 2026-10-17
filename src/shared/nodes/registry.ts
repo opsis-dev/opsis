@@ -30,16 +30,10 @@ export const NODE_DEFS: NodeDef[] = [
 
 export const VISIBLE_NODE_DEFS = NODE_DEFS.filter((d) => !d.hidden);
 
-const byType = new Map(NODE_DEFS.map((d) => [d.type, d]));
-
-if (byType.size !== NODE_DEFS.length) {
-  const seen = new Set<string>();
-  const dupes: string[] = [];
-  for (const { type } of NODE_DEFS) {
-    if (seen.has(type)) dupes.push(type);
-    seen.add(type);
-  }
-  throw new Error(`Duplicate node types: ${dupes.join(", ")}`);
+const byType = new Map<string, NodeDef>();
+for (const def of NODE_DEFS) {
+  if (byType.has(def.type)) throw new Error(`Duplicate node type: ${def.type}`);
+  byType.set(def.type, def);
 }
 
 export const getNodeDef = (type: string): NodeDef | undefined => byType.get(type);

@@ -19,24 +19,22 @@ export const keyframeSchema = z.object({
 });
 export type Keyframe = z.infer<typeof keyframeSchema>;
 
-export const VISUAL_ENVELOPES = ["opacity", "x", "y", "scale"] as const;
-export const AUDIO_ENVELOPES = ["volume", "pan"] as const;
-export type VisualEnvelopeKey = (typeof VISUAL_ENVELOPES)[number];
-export type AudioEnvelopeKey = (typeof AUDIO_ENVELOPES)[number];
+const keyframes = () => z.array(keyframeSchema).optional();
 
-const envelopeSchema = <K extends string>(keys: readonly K[]) =>
-  z.object(
-    Object.fromEntries(keys.map((k) => [k, z.array(keyframeSchema).optional()])) as Record<
-      K,
-      z.ZodOptional<z.ZodArray<typeof keyframeSchema>>
-    >,
-  );
-
-export const visualEnvelopeSchema = envelopeSchema(VISUAL_ENVELOPES);
+export const visualEnvelopeSchema = z.object({
+  opacity: keyframes(),
+  x: keyframes(),
+  y: keyframes(),
+  scale: keyframes(),
+});
 export type VisualEnvelope = z.infer<typeof visualEnvelopeSchema>;
+export const VISUAL_ENVELOPES = visualEnvelopeSchema.keyof().options;
+export type VisualEnvelopeKey = keyof VisualEnvelope;
 
-export const audioEnvelopeSchema = envelopeSchema(AUDIO_ENVELOPES);
+export const audioEnvelopeSchema = z.object({ volume: keyframes(), pan: keyframes() });
 export type AudioEnvelope = z.infer<typeof audioEnvelopeSchema>;
+export const AUDIO_ENVELOPES = audioEnvelopeSchema.keyof().options;
+export type AudioEnvelopeKey = keyof AudioEnvelope;
 
 const PARAM_UNITS = ["ms", "frames", "rate", "number"] as const;
 
@@ -123,7 +121,9 @@ const audioItemSchema = z.object({
 export type AudioItem = z.infer<typeof audioItemSchema>;
 
 const masterStemSchema = z.object({ src: z.string(), hash: z.string() });
-export type MasterStem = z.infer<typeof masterStemSchema>;
+
+export const REFRAMES = ["follow", "center", "fit"] as const;
+export type ReframeMode = (typeof REFRAMES)[number];
 
 export const timelineSpecSchema = z.object({
   width: z.number().int().positive(),
@@ -134,7 +134,7 @@ export const timelineSpecSchema = z.object({
   tracks: z.array(timelineTrackSchema),
   audio: z.array(audioItemSchema).default([]),
   assets: z.object({ projectBase: z.string().optional() }).optional(),
-  reframe: z.enum(["follow", "center", "fit"]).optional(),
+  reframe: z.enum(REFRAMES).optional(),
   quality: z.enum(["fast", "exact"]).optional(),
   fonts: projectFontsSchema.optional(),
   mix: masterStemSchema.optional(),

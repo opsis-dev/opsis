@@ -4,7 +4,7 @@ import { canConnect } from "./nodes/ports";
 import { isOutputType } from "./nodes/output";
 import type { PortSpec } from "./nodes/define";
 import { fieldMeta } from "./elements/introspect";
-import type { PortType, Workflow, WorkflowEdge, WorkflowNode } from "./schema/workflow";
+import { PORT_WORDS, type Workflow, type WorkflowEdge, type WorkflowNode } from "./schema/workflow";
 import { secretFileName } from "./secrets";
 import { interpolate } from "./vars";
 import { humanize } from "./format";
@@ -205,19 +205,6 @@ export function loginDependencies(
     .map((n) => n.id);
 }
 
-const TYPE_WORDS: Record<PortType, string> = {
-  session: "browser action",
-  recording: "recording",
-  clip: "clip",
-  scene: "clip",
-  timeline: "clip",
-  audio: "sound",
-  captions: "captions",
-  image: "image",
-  media: "file",
-  file: "file",
-};
-
 export function describeParamIssue(shape: z.ZodObject["shape"], issue: z.core.$ZodIssue): string {
   const key = String(issue.path[0] ?? "");
   const field: z.ZodType | undefined = shape[key];
@@ -301,7 +288,7 @@ function edgeIssue(e: WorkflowEdge, byId: Map<string, WorkflowNode>): GraphIssue
       level: "error",
       edgeId: e.id,
       nodeId: t.id,
-      message: `A ${TYPE_WORDS[sp.type]} can't connect to a ${TYPE_WORDS[tp.type]} input`,
+      message: `A ${PORT_WORDS[sp.type]} can't connect to a ${PORT_WORDS[tp.type]} input`,
     };
   return null;
 }

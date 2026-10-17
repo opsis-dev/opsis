@@ -3,6 +3,7 @@ import { recordResult } from "../test-fixtures";
 import type { NodeResult } from "../schema/values";
 import { DEFAULT_WORKFLOW_SETTINGS as settings } from "../schema/workflow";
 import { elementRow, sentence, type CardContext, type CardRow } from "./card";
+import type { NodeDef } from "./define";
 import { defaultParams, getNodeDef, NODE_DEFS } from "./registry";
 
 function rows(
@@ -14,7 +15,6 @@ function rows(
   if (!card) throw new Error(`${type} has no card`);
   return card({
     params: { ...defaultParams(type), ...params },
-    raw: params,
     settings,
     connected: [],
     ...extra,
@@ -23,34 +23,51 @@ function rows(
 
 describe("card formatting", () => {
   it("describes elements in words", () => {
-    const named = (target: string, role?: string) =>
-      elementRow("crosshair", target, role ? { targetRole: role } : {}).text;
+    const named = (target: string, role?: string) => elementRow("crosshair", target, role).text;
     expect(named("Login", "button")).toBe("“Login” button");
     expect(named("Username", "textbox")).toBe("“Username” field");
     expect(named("What needs to be done?")).toBe("“What needs to be done?”");
     expect(named("css=#add-to-cart")).toBe("Custom element");
     expect(named("320, 180")).toBe("Point 320, 180");
-    expect(elementRow("crosshair", "  ", {})).toMatchObject({
+    expect(elementRow("crosshair", "  ", undefined)).toMatchObject({
       text: "Pick an element",
       tone: "warn",
     });
   });
 
-  it("shortens titles", () => {
-    expect(sentence("Whip Pan")).toBe("Whip pan");
-    expect(sentence("RGB Glitch Text")).toBe("RGB glitch text");
+  it.each([
+    ["Whip Pan", "Whip pan"],
+    ["RGB Glitch Text", "RGB glitch text"],
+    ["Slide In 3D", "Slide in 3D"],
+  ])("writes the title %s in sentence case", (title, expected) => {
+    expect(sentence(title)).toBe(expected);
   });
 });
 
 describe("node cards", () => {
-  it("renders every card from default settings without throwing", () => {
-    const broken = NODE_DEFS.filter((d) => d.card).filter(
-      (def) =>
-        !Array.isArray(
-          def.card!({ params: defaultParams(def.type), raw: {}, settings, connected: [] }),
-        ),
+  it("shows at least one well-formed row on every card from default settings", () => {
+    const result: NodeResult = {
+      hash: "h",
+      outputs: { media: { type: "media", src: null, kind: "video", durationMs: 1000 } },
+      artifacts: [],
+      finishedAt: 0,
+      durationMs: 0,
+    };
+    const withCard = NODE_DEFS.filter(
+      (d): d is NodeDef & Required<Pick<NodeDef, "card">> => !!d.card,
     );
-    expect(broken.map((d) => d.type)).toEqual([]);
+    const empty = withCard.filter((def) => {
+      const out = def
+        .card({
+          params: defaultParams(def.type),
+          settings,
+          result,
+          connected: Object.keys(def.inputs),
+        })
+        .filter((r): r is CardRow => !!r);
+      return !out.length || out.some((r) => !r.icon || !r.text);
+    });
+    expect(empty.map((d) => d.type)).toEqual([]);
   });
 
   it("gives every visible node a description and no internal names", () => {

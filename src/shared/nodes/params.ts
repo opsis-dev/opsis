@@ -16,15 +16,30 @@ export const optionalTarget = (description: string, help?: string) =>
     .default("")
     .meta({ description, widget: "target", ...(help ? { help } : {}) });
 
+export const pickedRole = () =>
+  z.string().optional().meta({ description: "Role of the picked element", hidden: true });
+
 export const MIN_SPEED = 0.1;
 export const MAX_SPEED = 64;
 export const MAX_VOLUME = 2;
+export const MAX_FRAMES = 108_000;
+
+type IntOptions = FieldMeta & { min: number; max: number };
+
+export const int = (def: number, description: string, { min, max, ...meta }: IntOptions) =>
+  z
+    .number()
+    .int()
+    .min(min)
+    .max(max)
+    .default(def)
+    .meta({ description, ...meta });
 
 export const ms = (def: number, description: string, max = 600_000) =>
-  z.number().int().min(0).max(max).default(def).meta({ description, step: 50, unit: "ms" });
+  int(def, description, { min: 0, max, step: 50, unit: "ms" });
 
 export const frames = (def: number, description: string) =>
-  z.number().int().min(1).max(108_000).default(def).meta({ description, step: 1, unit: "frames" });
+  int(def, description, { min: 1, max: MAX_FRAMES, step: 1, unit: "frames" });
 
 export const fraction = (def: number, description: string) =>
   z.number().min(0).max(1).default(def).meta({ description, step: 0.01 });
@@ -67,12 +82,35 @@ export const choice = <const T extends readonly [string, ...string[]]>(
     .default(def)
     .meta({ description, ...(labels ? { labels } : {}) });
 
+type Labelled = { label: string };
+
+function labelsOf<K extends string>(table: Record<K, Labelled>): Partial<Record<K, string>> {
+  const labels: Partial<Record<K, string>> = {};
+  for (const key of keysOf(table)) labels[key] = table[key].label;
+  return labels;
+}
+
+export const choiceOf = <K extends string>(
+  table: Record<K, Labelled>,
+  def: NoInfer<K>,
+  description: string,
+) => choice(keysOf(table), def, description, labelsOf(table));
+
+export const FORMAT_NAMES = {
+  h264: "MP4",
+  h265: "MP4 (HEVC)",
+  vp8: "WebM (VP8)",
+  vp9: "WebM",
+  prores: "ProRes",
+  gif: "GIF",
+};
+
 export const QUALITY_PRESETS = { Low: 28, Medium: 23, High: 18, Max: 12 } as const;
 
 export const LOUDNESS_PRESETS = { "Online video": -14, Podcast: -16, Broadcast: -23 } as const;
 
 export const quality = (def: number, description = "Quality") =>
-  z.number().int().min(0).max(51).default(def).meta({ description, widget: "quality" });
+  int(def, description, { min: 0, max: 51, widget: "quality" });
 
 export const beatFields = {
   after: more(ms(600, "Pause after"), {
@@ -92,6 +130,7 @@ export const pointerFields = {
     ),
     { advanced: true },
   ),
+  frameRole: pickedRole(),
   zoomScale: z.number().min(0).max(3).default(0).meta({
     description: "Zoom amount",
     step: 0.05,

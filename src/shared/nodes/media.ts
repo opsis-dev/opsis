@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { itemClip } from "../compile/clip";
+import { itemClip, placeholderClip } from "../compile/clip";
 import type { VisualEnvelope } from "../schema/timeline";
 import {
   asValue,
@@ -8,12 +8,15 @@ import {
   type MediaValue,
   type NodeResult,
 } from "../schema/values";
-import { fileRow, row, warnIf, type CardRow } from "./card";
+import { countConnected, fileRow, row, warnIf, type CardRow } from "./card";
 import { defineNode, opt, port, type NodeDef } from "./define";
 import {
   asset,
   bool,
   choice,
+  choiceOf,
+  FORMAT_NAMES,
+  int,
   keysOf,
   LOUDNESS_PRESETS,
   more,
@@ -29,7 +32,8 @@ import { msToFrames } from "../timeline/time";
 import { extensionOf, projectRef } from "../asset-ref";
 import { IMAGE_EXTENSIONS } from "../mime";
 
-const base = { category: "Media", phase: "media", executes: true } as const;
+const base = { category: "Media" } as const;
+const fileOp = { ...base, phase: "media", executes: true } as const;
 const one = {
   inputs: { media: port("media", "File") },
   outputs: { media: port("media", "File") },
@@ -40,12 +44,7 @@ const lengthRow = (result: NodeResult | undefined, icon = "clock"): CardRow | nu
   const m = outputOf(result, "media", "media");
   return m?.durationMs ? row(icon, formatDuration(m.durationMs)) : null;
 };
-const CODEC_NAMES = {
-  h264: "MP4 (H.264)",
-  hevc: "MP4 (HEVC)",
-  vp9: "WebM",
-  prores: "ProRes",
-};
+const CONVERT_FORMATS = ["h264", "h265", "vp9", "prores"] as const;
 const PRESET_LABELS = {
   ultrafast: "Fastest, biggest",
   fast: "Fast",
@@ -55,7 +54,7 @@ const PRESET_LABELS = {
 };
 const loudnessName = (lufs: number): string =>
   Object.entries(LOUDNESS_PRESETS).find(([, v]) => v === lufs)?.[0] ?? `${lufs} LUFS`;
-export const qualityName = (crf: number) =>
+const qualityName = (crf: number) =>
   Object.entries(QUALITY_PRESETS).reduce((best, cur) =>
     Math.abs(cur[1] - crf) <= Math.abs(best[1] - crf) ? cur : best,
   )[0];
@@ -73,8 +72,13 @@ export function mediaInput(value: CompileValue | undefined): MediaValue | undefi
   if (media) return media;
   const image = asValue(value, "image");
   if (image) {
-    const { type: _image, ...rest } = image;
-    return { ...rest, type: "media", kind: "image" };
+    return {
+      type: "media",
+      kind: "image",
+      src: image.src,
+      width: image.width,
+      height: image.height,
+    };
   }
   const file = asValue(value, "file");
   return file && { type: "media", src: file.src, kind: kindFromPath(file.src ?? "") };
@@ -94,7 +98,7 @@ const fitField = () =>
 type MediaClip = {
   src: string;
   kind: MediaValue["kind"];
-  fit: string;
+  fit: z.infer<ReturnType<typeof fitField>>;
   muted: boolean;
   frames: number;
   envelope: VisualEnvelope;
@@ -105,8 +109,11 @@ const mediaClip = (nodeId: string, { src, kind, fit, muted, frames, envelope }: 
     envelope,
   });
 
+const IMAGE_MS = 3000;
+const MEDIA_MS = 5000;
+
 export const importMediaNode = defineNode({
-  ...base,
+  ...fileOp,
   type: "media.import",
   title: "Media file",
   icon: "file-play",
@@ -129,14 +136,13 @@ export const importMediaNode = defineNode({
       kind: kindFromPath(params.path),
     };
     const frames = msToFrames(
-      media.durationMs ?? (media.kind === "image" ? 3000 : 5000),
+      media.durationMs ?? (media.kind === "image" ? IMAGE_MS : MEDIA_MS),
       settings.fps,
     );
     const clip =
       !media.src || media.kind === "audio"
-        ? itemClip(
+        ? placeholderClip(
             nodeId,
-            "core/placeholder",
             { title: media.src ? "Sound file" : "No file chosen", subtitle: params.path },
             frames,
             { envelope: params.envelope },
@@ -154,9 +160,9 @@ export const importMediaNode = defineNode({
 });
 
 const mediaToClipNode = defineNode({
+  ...base,
   type: "media.toClip",
   title: "Use as clip",
-  category: "Media",
   icon: "film",
   phase: "compile",
   description: "Turns a file into a clip you can place in the video.",
@@ -180,19 +186,23 @@ const mediaToClipNode = defineNode({
         kind: media.kind,
         fit: params.fit,
         muted: params.muted,
-        frames: msToFrames(media.durationMs ?? 5000, settings.fps),
+        frames: msToFrames(media.durationMs ?? MEDIA_MS, settings.fps),
         envelope: params.envelope,
       }),
     };
   },
 });
 
-const SCALE_ROWS = { pad: "Fit with bars", crop: "Crop to fill", stretch: "Stretch" };
+const SCALE_MODES = {
+  pad: { label: "Add bars", row: "Fit with bars" },
+  crop: { label: "Crop to fill", row: "Crop to fill" },
+  stretch: { label: "Stretch", row: "Stretch" },
+};
 
 const op = <S extends z.ZodObject>(def: Omit<NodeDef<S>, "category" | "phase" | "executes">) =>
-  defineNode<S>({ ...base, ...def });
+  defineNode<S>({ ...fileOp, ...def });
 
-export const trimNode = op({
+export const mediaTrimNode = op({
   ...one,
   type: "media.trim",
   title: "Trim file",
@@ -214,27 +224,29 @@ export const trimNode = op({
   compile: passMedia,
 });
 
+const CONCAT_INPUTS = {
+  in1: port("media", "File 1"),
+  in2: port("media", "File 2"),
+  in3: opt("media", "File 3"),
+  in4: opt("media", "File 4"),
+};
+
 export const concatNode = op({
   type: "media.concat",
   title: "Join files",
   icon: "combine",
   description: "Joins files end to end. Fast when they match, otherwise converts them." + NEW_FILE,
-  inputs: {
-    in1: port("media", "File 1"),
-    in2: port("media", "File 2"),
-    in3: opt("media", "File 3"),
-    in4: opt("media", "File 4"),
-  },
+  inputs: CONCAT_INPUTS,
   outputs: { media: port("media", "File") },
   card: ({ connected, result }) => {
-    const n = ["in1", "in2", "in3", "in4"].filter((k) => connected.includes(k)).length;
+    const n = countConnected(Object.keys(CONCAT_INPUTS), connected);
     return [row("combine", `${n} files`, warnIf(n < 2)), lengthRow(result)];
   },
   params: z.object({ forceReencode: more(bool(false, "Always convert"), { advanced: true }) }),
   compile: (ctx) => passMedia(ctx, "in1"),
 });
 
-export const speedNode = op({
+export const mediaSpeedNode = op({
   ...one,
   type: "media.speed",
   title: "Change speed",
@@ -270,28 +282,12 @@ export const scalePadNode = op({
   description: "Resizes a file, adding bars or cropping to fit." + NEW_FILE,
   card: ({ params: p }) => [
     row("ratio", `${p.width} × ${p.height}`),
-    row("maximize", SCALE_ROWS[p.mode]),
+    row("maximize", SCALE_MODES[p.mode].row),
   ],
   params: z.object({
-    width: z
-      .number()
-      .int()
-      .min(16)
-      .max(7680)
-      .default(1920)
-      .meta({ description: "Width", unit: "px" }),
-    height: z
-      .number()
-      .int()
-      .min(16)
-      .max(7680)
-      .default(1080)
-      .meta({ description: "Height", unit: "px" }),
-    mode: choice(["pad", "crop", "stretch"], "pad", "Fit", {
-      pad: "Add bars",
-      crop: "Crop to fill",
-      stretch: "Stretch",
-    }),
+    width: int(1920, "Width", { min: 16, max: 7680, unit: "px" }),
+    height: int(1080, "Height", { min: 16, max: 7680, unit: "px" }),
+    mode: choiceOf(SCALE_MODES, "pad", "Fit"),
     background: more(text("black", "Bar colour"), {
       widget: "color",
       showIf: { mode: ["pad"] },
@@ -307,11 +303,16 @@ export const convertNode = op({
   icon: "refresh-cw",
   description: "Saves a file in another format or quality." + NEW_FILE,
   card: ({ params: p }) => [
-    row("file-video", CODEC_NAMES[p.codec]),
+    row("file-video", FORMAT_NAMES[p.codec]),
     row("sparkles", `${qualityName(p.crf)} quality`),
   ],
   params: z.object({
-    codec: choice(keysOf(CODEC_NAMES), "h264", "Format", CODEC_NAMES),
+    codec: choice(
+      CONVERT_FORMATS,
+      "h264",
+      "Format",
+      Object.fromEntries(CONVERT_FORMATS.map((f) => [f, FORMAT_NAMES[f]])),
+    ),
     crf: quality(18),
     preset: more(choice(keysOf(PRESET_LABELS), "medium", "Speed vs file size", PRESET_LABELS), {
       advanced: true,
@@ -331,20 +332,8 @@ export const gifNode = op({
     p.loop && row("repeat", "Loops"),
   ],
   params: z.object({
-    fps: z
-      .number()
-      .int()
-      .min(5)
-      .max(50)
-      .default(15)
-      .meta({ description: "Frame rate", unit: "fps" }),
-    width: z
-      .number()
-      .int()
-      .min(64)
-      .max(3840)
-      .default(960)
-      .meta({ description: "Width", unit: "px" }),
+    fps: int(15, "Frame rate", { min: 5, max: 50, unit: "fps" }),
+    width: int(960, "Width", { min: 64, max: 3840, unit: "px" }),
     loop: bool(true, "Loop forever"),
     dither: choice(
       ["sierra2_4a", "bayer", "floyd_steinberg", "none"],
@@ -417,13 +406,7 @@ export const thumbnailNode = op({
   card: ({ params: p }) => [row("image", `At ${formatDuration(p.atMs)} · ${p.width} px`)],
   params: z.object({
     atMs: ms(1000, "At"),
-    width: z
-      .number()
-      .int()
-      .min(64)
-      .max(3840)
-      .default(1280)
-      .meta({ description: "Width", unit: "px" }),
+    width: int(1280, "Width", { min: 64, max: 3840, unit: "px" }),
   }),
   compile: ({ result }) => ({ image: result?.outputs.image }),
 });
@@ -455,9 +438,9 @@ export const probeNode = op({
 export const mediaNodes: NodeDef[] = [
   importMediaNode,
   mediaToClipNode,
-  trimNode,
+  mediaTrimNode,
   concatNode,
-  speedNode,
+  mediaSpeedNode,
   reverseNode,
   scalePadNode,
   convertNode,

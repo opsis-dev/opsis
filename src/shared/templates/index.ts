@@ -1,8 +1,7 @@
 import type { Workflow } from "../schema/workflow";
 import { GraphBuilder } from "./build";
-import { randomId } from "../ids";
 
-export type TemplateInfo = {
+type TemplateInfo = {
   id: string;
   title: string;
   description: string;
@@ -12,13 +11,32 @@ export type TemplateInfo = {
 
 type Step = { id: string; type: string; params?: Record<string, unknown>; label?: string };
 
-function recordTake(g: GraphBuilder, steps: Step[], camera: Record<string, unknown> = {}): string {
-  const ids = steps.map((step, x) => g.node(step.id, step.type, x, 0, step.params, step.label));
-  const rec = g.node("record", "capture.record", steps.length, 0);
+type TakeOptions = { camera?: Record<string, unknown>; row?: number; prefix?: string };
+
+function recordTake(
+  g: GraphBuilder,
+  steps: Step[],
+  { camera = {}, row = 0, prefix = "" }: TakeOptions = {},
+): string {
+  const ids = steps.map((step, x) =>
+    g.node(`${prefix}${step.id}`, step.type, x, row, step.params, step.label),
+  );
+  const rec = g.node(`${prefix}record`, "capture.record", steps.length, row);
   g.chain([...ids, rec]);
-  const cam = g.node("camera", "camera.autoZoom", steps.length, 1, camera);
+  const cam = g.node(`${prefix}camera`, "camera.autoZoom", steps.length, row + 1, camera);
   g.link(rec, cam, "recording", "recording");
   return cam;
+}
+
+function exportVideo(
+  g: GraphBuilder,
+  from: string,
+  x: number,
+  y: number,
+  params: Record<string, unknown> = {},
+): void {
+  g.node("render", "output.render", x, y, params);
+  g.link(from, "render", "clip", "timeline");
 }
 
 const session: Step = { id: "session", type: "browser.session" };
@@ -87,22 +105,17 @@ function todoMvcSample(name: string): Workflow {
   });
   g.link(intro, seq, "clip", "in1").link(chips, seq, "clip", "in2").link(outro, seq, "clip", "in3");
 
-  const out = g.node("render", "output.render", 9, 2, {
+  exportVideo(g, seq, 9, 2, {
     variants: ["16:9", "9:16"],
     codec: "h264",
     reframe: "follow",
     fileName: "{{Project name}}",
   });
-  g.link(seq, out, "clip", "timeline");
   g.node("note", "core.note", 0, 2, {
     text: "Sample project.\n\n1. Press Run. Demoflow records the flow in a hidden browser.\n2. The preview updates with the real footage, camera moves and cursor.\n3. Finished videos appear in Outputs.",
   });
 
-  return g.build({
-    id: randomId("wf"),
-    name,
-    variables: { "Site address": "https://demo.playwright.dev/todomvc" },
-  });
+  return g.build({ name, variables: { "Site address": "https://demo.playwright.dev/todomvc" } });
 }
 
 function featureLaunch(name: string): Workflow {
@@ -129,10 +142,8 @@ function featureLaunch(name: string): Workflow {
   });
   const seq = g.node("sequence", "timeline.sequence", 4, 2, { transition: "remocn/zoom-blur" });
   g.link(intro, seq, "clip", "in1").link(spot, seq, "clip", "in2").link(outro, seq, "clip", "in3");
-  const out = g.node("render", "output.render", 5, 2);
-  g.link(seq, out, "clip", "timeline");
+  exportVideo(g, seq, 5, 2);
   return g.build({
-    id: randomId("wf"),
     name,
     variables: { "Site address": "https://example.com", "Product name": "Acme" },
   });
@@ -159,13 +170,8 @@ function changelogClip(name: string): Workflow {
   g.link(title, seq, "clip", "in1")
     .link(term, seq, "clip", "in2")
     .link(chartScene, seq, "clip", "in3");
-  const out = g.node("render", "output.render", 4, 1, { variants: ["16:9", "1:1"] });
-  g.link(seq, out, "clip", "timeline");
-  return g.build({
-    id: randomId("wf"),
-    name,
-    variables: { "Product name": "Acme", Version: "v2.4" },
-  });
+  exportVideo(g, seq, 4, 1, { variants: ["16:9", "1:1"] });
+  return g.build({ name, variables: { "Product name": "Acme", Version: "v2.4" } });
 }
 
 function onboarding(name: string): Workflow {
@@ -198,13 +204,8 @@ function onboarding(name: string): Workflow {
   });
   const caps = g.node("captions", "text.captions", 7, 3);
   g.link(script, caps, "captions", "captions").link(tip, caps, "clip", "clip");
-  const out = g.node("render", "output.render", 8, 3);
-  g.link(caps, out, "clip", "timeline");
-  return g.build({
-    id: randomId("wf"),
-    name,
-    variables: { "Site address": "https://demo.playwright.dev/todomvc" },
-  });
+  exportVideo(g, caps, 8, 3);
+  return g.build({ name, variables: { "Site address": "https://demo.playwright.dev/todomvc" } });
 }
 
 function socialTeaser(name: string): Workflow {
@@ -225,7 +226,7 @@ function socialTeaser(name: string): Workflow {
         },
       },
     ],
-    { speed: 1.5 },
+    { camera: { speed: 1.5 } },
   );
   const hook = g.node("hook", "fx.remocn.kinetic-center-build", 1, 2, { clipDuration: 60 });
   const seq = g.node("sequence", "timeline.sequence", 4, 2, { transition: "remocn/push-through" });
@@ -233,10 +234,8 @@ function socialTeaser(name: string): Workflow {
   const music = g.node("music", "audio.music", 4, 3, { volume: 0.4 });
   const mix = g.node("mix", "audio.mix", 5, 2);
   g.link(seq, mix).link(music, mix, "audio", "sounds");
-  const out = g.node("render", "output.render", 6, 2, { variants: ["9:16"], reframe: "follow" });
-  g.link(mix, out, "clip", "timeline");
+  exportVideo(g, mix, 6, 2, { variants: ["9:16"], reframe: "follow" });
   return g.build({
-    id: randomId("wf"),
     name,
     settings: { width: 1080, height: 1920 },
     variables: { "Site address": "https://demo.playwright.dev/todomvc" },
@@ -246,12 +245,11 @@ function socialTeaser(name: string): Workflow {
 function beforeAfter(name: string): Workflow {
   const g = new GraphBuilder();
   const take = (prefix: string, row: number, url: string) => {
-    const s = g.node(`${prefix}-session`, "browser.session", 0, row);
-    const nav = g.node(`${prefix}-open`, "browser.navigate", 1, row, { url, after: 2500 });
-    const rec = g.node(`${prefix}-record`, "capture.record", 2, row);
-    g.chain([s, nav, rec]);
-    const cam = g.node(`${prefix}-camera`, "camera.autoZoom", 3, row, { zoom: false });
-    g.link(rec, cam, "recording", "recording");
+    const cam = recordTake(g, [session, open(url, 2500)], {
+      camera: { zoom: false },
+      row,
+      prefix: `${prefix}-`,
+    });
     const label = g.node(`${prefix}-label`, "fx.core.lower-third", 3, row + 1, {
       title: prefix === "before" ? "Before" : "After",
       subtitle: url,
@@ -261,13 +259,11 @@ function beforeAfter(name: string): Workflow {
     return stack;
   };
   const before = take("before", 0, "{{Before address}}");
-  const after = take("after", 2, "{{After address}}");
-  const wipe = g.node("wipe", "transition.core.wipe", 5, 1, { durationInFrames: 24 });
+  const after = take("after", 5, "{{After address}}");
+  const wipe = g.node("wipe", "transition.core.wipe", 5, 3, { durationInFrames: 24 });
   g.link(before, wipe, "clip", "a").link(after, wipe, "clip", "b");
-  const out = g.node("render", "output.render", 6, 1);
-  g.link(wipe, out, "clip", "timeline");
+  exportVideo(g, wipe, 6, 3);
   return g.build({
-    id: randomId("wf"),
     name,
     variables: { "Before address": "https://example.com", "After address": "https://example.org" },
   });
@@ -278,7 +274,7 @@ function blank(name: string): Workflow {
   g.node("note", "core.note", 0, 0, {
     text: "Drag nodes in from the list on the left, or press Ctrl+K.",
   });
-  return g.build({ id: randomId("wf"), name });
+  return g.build({ name });
 }
 
 export const TEMPLATES: TemplateInfo[] = [

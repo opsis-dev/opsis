@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { itemClip, sequenceClips, stackClips } from "../compile/clip";
-import { ELEMENTS, getElementMeta, type ElementMeta } from "../elements";
+import { ELEMENTS, getElementMeta } from "../elements";
+import type { ElementMeta } from "../elements/types";
 import type { ClipValue, CompileValue } from "../schema/values";
 import { coverRow, frameSecs, row, sentence, TRANSITION_WARN_RATIO, type CardRow } from "./card";
 import { clipInput, defineNode, port, type CompileOutputs, type NodeDef } from "./define";
-import { bool, frames, more } from "./params";
+import { bool, frames, int, more } from "./params";
 
 const PRESENTATIONS = ELEMENTS.filter((e) => e.kind === "presentation");
 export const TRANSITION_KINDS: [string, ...string[]] = ["none", ...PRESENTATIONS.map((p) => p.key)];
@@ -14,9 +15,10 @@ const ab = {
   outputs: { clip: port("clip", "Clip") },
 } as const;
 
-const keepWholeField = more(bool(false, "Keep both clips whole"), {
-  help: "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition.",
-});
+export const keepWholeField = (description: string, help: string) =>
+  more(bool(false, description), { help });
+
+export const transitionNodeType = (key: string): string => `transition.${key.replace("/", ".")}`;
 
 const joinClips = (
   inputs: Partial<Record<string, CompileValue>>,
@@ -38,7 +40,7 @@ function speedRow(length: number, designed: number, fps: number): CardRow | null
 function transitionNode(meta: ElementMeta): NodeDef {
   return defineNode({
     ...ab,
-    type: `transition.${meta.key.replace("/", ".")}`,
+    type: transitionNodeType(meta.key),
     title: sentence(meta.title),
     category: "Transitions",
     description: `Plays the first clip, then the second, joined with a ${sentence(meta.title).toLowerCase()} transition. Tip: cut where the picture is still.`,
@@ -48,7 +50,8 @@ function transitionNode(meta: ElementMeta): NodeDef {
         `${frameSecs(p.durationInFrames, settings.fps)}${p.keepWhole ? " · held" : ""}`,
       ),
       speedRow(p.durationInFrames, meta.defaultDurationInFrames, settings.fps),
-      !p.keepWhole && coverRow(p.durationInFrames, Object.values(inputFrames ?? {}), settings.fps),
+      !p.keepWhole &&
+        coverRow(p.durationInFrames, [inputFrames?.a ?? 0, inputFrames?.b ?? 0], settings.fps),
     ],
     icon: "blend",
     phase: "compile",
@@ -56,7 +59,10 @@ function transitionNode(meta: ElementMeta): NodeDef {
     params: z.object({
       ...meta.schema.shape,
       durationInFrames: frames(meta.defaultDurationInFrames, "Length"),
-      keepWhole: keepWholeField,
+      keepWhole: keepWholeField(
+        "Keep both clips whole",
+        "The transition plays over a still of the last and first frames, so neither clip loses screen time. The result gets longer by the transition.",
+      ),
     }),
     compile: ({ nodeId, inputs, params }) => {
       const { durationInFrames, keepWhole, ...rest } = params;
@@ -91,7 +97,7 @@ const lightLeakTransitionNode = defineNode({
   card: ({ params, settings }) => [row("sun", frameSecs(params.durationInFrames, settings.fps))],
   params: z.object({
     durationInFrames: frames(30, "Length"),
-    seed: z.number().int().min(0).max(100).default(3).meta({ description: "Variation" }),
+    seed: int(3, "Variation", { min: 0, max: 100 }),
     hueShift: z
       .number()
       .min(0)

@@ -160,7 +160,7 @@ async function renderVariant(
     const picture = await pictureFor(job);
     await ctx.ffmpeg.run(muxArgs(p.codec, picture, sound, out), { signal: ctx.signal });
   } else await renderTo(job, out, false);
-  const faststart = p.faststart && CODECS[p.codec].faststart;
+  const { faststart } = CODECS[p.codec];
   if (faststart || chapters.metadata) {
     const tmp = `${out}.finish${path.extname(out)}`;
     await ctx.ffmpeg.run(finishArgs(out, tmp, { faststart, chapters: chapters.metadata }), {

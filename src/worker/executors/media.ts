@@ -9,12 +9,12 @@ import {
   gifNode,
   importMediaNode,
   loudnormNode,
+  mediaSpeedNode,
+  mediaTrimNode,
   probeNode,
   reverseNode,
   scalePadNode,
-  speedNode,
   thumbnailNode,
-  trimNode,
 } from "../../shared/nodes/media";
 import type { MediaValue } from "../../shared/schema/values";
 import {
@@ -100,7 +100,7 @@ const importExecutor = defineExecutor(importMediaNode, async (ctx, _inputs, p) =
   return { outputs: { media } };
 });
 
-const trimExecutor = defineExecutor(trimNode, async (ctx, inputs, p) => {
+const trimExecutor = defineExecutor(mediaTrimNode, async (ctx, inputs, p) => {
   const input = requireMedia(inputs.media);
   const file = `trimmed${extOf(input.src)}`;
   await transcode(
@@ -220,7 +220,7 @@ export function speedArgs(
   ];
 }
 
-const speedExecutor = defineExecutor(speedNode, async (ctx, inputs, p) => {
+const speedExecutor = defineExecutor(mediaSpeedNode, async (ctx, inputs, p) => {
   const input = requireMedia(inputs.media);
   const file = "speed.mp4";
   const probe = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
@@ -298,7 +298,7 @@ const CONVERT: Record<
       "+faststart",
     ],
   },
-  hevc: {
+  h265: {
     ext: "mp4",
     args: (crf, preset) => [
       "-c:v",

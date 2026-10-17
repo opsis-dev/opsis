@@ -18,3 +18,5 @@ export const BACKDROPS = [
 ] as const;
 
 export type BackdropName = (typeof BACKDROPS)[number];
+
+export const DEFAULT_BACKDROP: BackdropName = "glaze";

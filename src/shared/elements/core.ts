@@ -1,7 +1,7 @@
 import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
-import { BACKDROPS } from "../backdrops";
-import { MAX_VOLUME } from "../nodes/params";
+import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
+import { asset, bool, choice, MAX_VOLUME, text } from "../nodes/params";
 import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
 
 const source = {
@@ -9,7 +9,6 @@ const source = {
   url: "https://github.com/bismitpanda/demoflow",
   license: "Apache-2.0",
 };
-const text = (def: string, description: string) => z.string().default(def).meta({ description });
 const num = (def: number, min: number, max: number, description: string, step = 1) =>
   z.number().min(min).max(max).default(def).meta({ description, step });
 const color = (def: string, description: string) => zColor().default(def).meta({ description });
@@ -19,12 +18,10 @@ const font = () =>
     widget: "font",
     help: "Project font follows the fonts set for the whole project.",
   });
-const asset = (description: string, accept: string) =>
-  z.string().default("").meta({ description, widget: "asset", accept });
 const background = (description = "Background") =>
   z.string().default("transparent").meta({ description });
 const direction = <const T extends readonly [string, ...string[]]>(values: T, def: T[number]) =>
-  z.enum(values).default(def).meta({ description: "Direction" });
+  choice(values, def, "Direction");
 
 const ENTRANCES = ["rise", "fade", "blur", "scale", "none"] as const;
 const DIRECTIONS = ["from-left", "from-right", "from-top", "from-bottom"] as const;
@@ -32,11 +29,8 @@ const DIRECTIONS = ["from-left", "from-right", "from-top", "from-bottom"] as con
 export const CAPTIONS_ELEMENT = "core/captions";
 
 export const captionsSchema = z.object({
-  style: z
-    .enum(["word-by-word", "karaoke", "line"])
-    .default("word-by-word")
-    .meta({ description: "Style" }),
-  position: z.enum(["bottom", "center", "top"]).default("bottom").meta({ description: "Position" }),
+  style: choice(["word-by-word", "karaoke", "line"], "word-by-word", "Style"),
+  position: choice(["bottom", "center", "top"], "bottom", "Position"),
   fontSize: num(56, 16, 140, "Font size"),
   color: color("#ffffff", "Text color"),
   highlightColor: color("#facc15", "Highlight color"),
@@ -54,8 +48,8 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
       eyebrow: text("", "Eyebrow"),
       title: text("Sign up in 10 seconds", "Title"),
       subtitle: text("", "Subtitle"),
-      align: z.enum(["center", "left"]).default("center").meta({ description: "Alignment" }),
-      entrance: z.enum(ENTRANCES).default("rise").meta({ description: "Entrance" }),
+      align: choice(["center", "left"], "center", "Alignment"),
+      entrance: choice(ENTRANCES, "rise", "Entrance"),
       color: color("#fafafa", "Text color"),
       accent: color("#a78bfa", "Accent"),
       background: background("Background (color, gradient or 'transparent')"),
@@ -93,10 +87,11 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     schema: z.object({
       title: text("Ada Lovelace", "Title"),
       subtitle: text("Founder, Acme", "Subtitle"),
-      position: z
-        .enum(["bottom-left", "bottom-right", "top-left", "top-right"])
-        .default("bottom-left")
-        .meta({ description: "Position" }),
+      position: choice(
+        ["bottom-left", "bottom-right", "top-left", "top-right"],
+        "bottom-left",
+        "Position",
+      ),
       accent: color("#a78bfa", "Accent"),
       color: color("#fafafa", "Text color"),
       panel: color("rgba(10,10,12,0.72)", "Panel color"),
@@ -114,10 +109,7 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
       text: text("Click here", "Text"),
       x: num(0.5, 0, 1, "Target X (0–1)", 0.01),
       y: num(0.5, 0, 1, "Target Y (0–1)", 0.01),
-      side: z
-        .enum(["top", "bottom", "left", "right"])
-        .default("top")
-        .meta({ description: "Label side" }),
+      side: choice(["top", "bottom", "left", "right"], "top", "Label side"),
       color: color("#fafafa", "Label color"),
       accent: color("#f43f5e", "Arrow color"),
       fontFamily: font(),
@@ -141,9 +133,9 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     kind: "component",
     schema: z.object({
       src: asset("Image", "image/*"),
-      fit: z.enum(["contain", "cover", "fill"]).default("contain").meta({ description: "Fit" }),
+      fit: choice(["contain", "cover", "fill"], "contain", "Fit"),
       background: background(),
-      kenBurns: z.boolean().default(false).meta({ description: "Slow push-in" }),
+      kenBurns: bool(false, "Slow push-in"),
     }),
     defaultDurationInFrames: 90,
   },
@@ -184,13 +176,13 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     kind: "component",
     schema: z.object({
       src: asset("Animation file", ".json,.lottie"),
-      loop: z.boolean().default(true).meta({ description: "Loop" }),
+      loop: bool(true, "Loop"),
       speed: num(1, 0.25, 4, "Speed", 0.25),
-      backwards: z.boolean().default(false).meta({ description: "Play backwards" }),
-      fit: z
-        .enum(["contain", "cover"])
-        .default("contain")
-        .meta({ description: "Fit", labels: { contain: "Show all", cover: "Fill the frame" } }),
+      backwards: bool(false, "Play backwards"),
+      fit: choice(["contain", "cover"], "contain", "Fit", {
+        contain: "Show all",
+        cover: "Fill the frame",
+      }),
       background: background(),
     }),
     defaultDurationInFrames: 90,
@@ -203,9 +195,9 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     kind: "component",
     schema: z.object({
       src: asset("Video", "video/*"),
-      fit: z.enum(["contain", "cover", "fill"]).default("cover").meta({ description: "Fit" }),
-      loop: z.boolean().default(false).meta({ description: "Loop" }),
-      muted: z.boolean().default(true).meta({ description: "Muted" }),
+      fit: choice(["contain", "cover", "fill"], "cover", "Fit"),
+      loop: bool(false, "Loop"),
+      muted: bool(true, "Muted"),
       volume: num(1, 0, MAX_VOLUME, "Volume", 0.05),
       playbackRate: num(1, 0.25, 4, "Speed", 0.05),
       trimBeforeMs: num(0, 0, 3_600_000, "Start at (ms)", 100),
@@ -282,7 +274,7 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
     category: "background",
     kind: "component",
     schema: z.object({
-      name: z.enum(BACKDROPS).default("glaze").meta({ description: "Backdrop" }),
+      name: choice(BACKDROPS, DEFAULT_BACKDROP, "Backdrop"),
     }),
     defaultDurationInFrames: 150,
   },

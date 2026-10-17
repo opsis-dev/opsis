@@ -40,6 +40,8 @@ export const itemHasSound = (item: TimelineItem): boolean =>
 
 export const isClip = (v: CompileValue | undefined): v is ClipValue => v?.type === "clip";
 
+export const EMPTY_CLIP_FRAMES = 30;
+
 export function emptyClip(durationInFrames = 1): ClipValue {
   return { type: "clip", durationInFrames, tracks: [], audio: [] };
 }
@@ -56,17 +58,19 @@ const makeClip = (
   recording: RecordingValue | undefined,
 ): ClipValue => ({ type: "clip", durationInFrames, tracks, audio, recording });
 
+export type ItemExtra = {
+  recording?: RecordingValue;
+  audio?: AudioItem[];
+  handles?: EditHandles;
+  envelope?: VisualEnvelope;
+};
+
 export function itemClip(
   nodeId: string,
   component: string,
   props: Record<string, unknown>,
   durationInFrames: number,
-  extra: {
-    recording?: RecordingValue;
-    audio?: AudioItem[];
-    handles?: EditHandles;
-    envelope?: VisualEnvelope;
-  } = {},
+  extra: ItemExtra = {},
 ): ClipValue {
   const duration = wholeFrames(durationInFrames);
   const item: TimelineItem = {
@@ -86,6 +90,13 @@ export function itemClip(
     extra.recording,
   );
 }
+
+export const placeholderClip = (
+  nodeId: string,
+  text: { title: string; subtitle: string },
+  durationInFrames: number,
+  extra: ItemExtra = {},
+): ClipValue => itemClip(nodeId, "core/placeholder", text, durationInFrames, extra);
 
 export function wrapClip(
   clip: ClipValue,

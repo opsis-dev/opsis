@@ -1,6 +1,4 @@
-import type { BackdropName } from "../../../shared/backdrops";
-
-export const DEFAULT_BACKDROP: BackdropName = "glaze";
+import { DEFAULT_BACKDROP, type BackdropName } from "../../../shared/backdrops";
 
 const LIGHT_BACKDROPS: ReadonlySet<string> = new Set<BackdropName>([
   "canyon",

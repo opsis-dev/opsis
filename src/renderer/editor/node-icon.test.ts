@@ -27,7 +27,7 @@ function iconsInSource(): string[] {
 
 function iconsInDefaultCards(): string[] {
   return NODE_DEFS.flatMap((def) =>
-    (def.card?.({ params: defaultParams(def.type), raw: {}, settings, connected: [] }) ?? [])
+    (def.card?.({ params: defaultParams(def.type), settings, connected: [] }) ?? [])
       .filter((r): r is CardRow => !!r)
       .map((r) => r.icon),
   );

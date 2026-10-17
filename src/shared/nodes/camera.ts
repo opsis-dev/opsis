@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { BACKDROPS } from "../backdrops";
+import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
 import {
   itemClip,
   patchRecordings,
+  placeholderClip,
   recordingProps,
   remapDuration,
   remapFromSegments,
@@ -42,13 +43,30 @@ const modifier = { ...base, ...clipModifier };
 
 const spot = { widget: "spot" } as const;
 
-export const WINDOW_STYLES = ["macos", "windows", "linux"] as const;
+const WINDOW_STYLES = ["macos", "windows", "linux"] as const;
+type WindowStyle = (typeof WINDOW_STYLES)[number];
 const FRAME_LABELS = { none: "None", macos: "macOS", windows: "Windows", linux: "Linux" };
 
+const FRAME_THEMES = ["light", "dark"] as const;
+const frameThemeField = (showIf: Record<string, string[]>) =>
+  more(choice(FRAME_THEMES, "light", "Frame colour"), { showIf });
+
+const windowFrameProps = (
+  windowStyle: WindowStyle,
+  frameTheme: (typeof FRAME_THEMES)[number],
+  addressBar: boolean,
+): Pick<RecordingProps, "chrome" | "windowStyle" | "frameTheme" | "addressBar"> => ({
+  chrome: true,
+  windowStyle,
+  frameTheme,
+  addressBar,
+});
+
 const appendBeats = (clip: ClipValue, beats: Action[]) =>
-  patchRecordings(clip, (p) => ({ ...p, extraBeats: [...(p.extraBeats ?? []), ...beats] }));
+  patchRecordings(clip, (p) => ({ ...p, extraBeats: [...p.extraBeats, ...beats] }));
 
 const FOCUS_BOX = { w: 120, h: 48 };
+const FOCUS_LEAD_MS = 400;
 
 type FocusSpot = { id: string; t: number; x: number; y: number; tDepart?: number };
 
@@ -101,11 +119,9 @@ const autoZoomNode = defineNode({
     hold: ms(1300, "Hold each zoom at least", 10_000),
     speed: rate(1.25, "Playback speed", { min: 0.25, max: 4 }),
     style: choice(CAMERA_STYLES, "classic", "Camera style"),
-    backdrop: z.enum(BACKDROPS).default("glaze").meta({ description: "Backdrop" }),
+    backdrop: choice(BACKDROPS, DEFAULT_BACKDROP, "Backdrop"),
     frame: choice(["none", ...WINDOW_STYLES], "none", "Window frame", FRAME_LABELS),
-    frameTheme: more(choice(["light", "dark"], "light", "Frame colour"), {
-      showIf: { frame: [...WINDOW_STYLES] },
-    }),
+    frameTheme: frameThemeField({ frame: [...WINDOW_STYLES] }),
     addressBar: more(bool(true, "Address bar"), {
       help: "Shows the page's address in the title bar.",
       showIf: { frame: [...WINDOW_STYLES] },
@@ -118,9 +134,8 @@ const autoZoomNode = defineNode({
     const frames = msToFrames(durationMs / params.speed, settings.fps);
     if (!rec?.src || !rec.log) {
       return {
-        clip: itemClip(
+        clip: placeholderClip(
           nodeId,
-          "core/placeholder",
           {
             title: "Not recorded yet",
             subtitle: "Run to record the take. The camera moves appear here afterwards.",
@@ -140,14 +155,9 @@ const autoZoomNode = defineNode({
       tuning: { sMax: params.maxScale, holdMinS: params.hold / 1000 },
       motionBlur: params.motionBlur,
       style: params.style,
-      chrome: params.frame !== "none",
-      ...(params.frame !== "none"
-        ? {
-            windowStyle: params.frame,
-            frameTheme: params.frameTheme,
-            addressBar: params.addressBar,
-          }
-        : {}),
+      ...(params.frame === "none"
+        ? { chrome: false }
+        : windowFrameProps(params.frame, params.frameTheme, params.addressBar)),
       backdrop: params.backdrop,
     };
     return { clip: itemClip(nodeId, "core/recording", props, frames, { recording: rec }) };
@@ -174,7 +184,7 @@ const manualZoomNode = defineNode({
   compile: ({ nodeId, inputs, params: p }) =>
     withClip(inputs, (clip) =>
       focusBeats(clip, nodeId, "zoom", p.scale, [
-        { id: "a", t: p.atMs, tDepart: Math.max(0, p.atMs - 400), x: p.x, y: p.y },
+        { id: "a", t: p.atMs, tDepart: Math.max(0, p.atMs - FOCUS_LEAD_MS), x: p.x, y: p.y },
         { id: "b", t: p.atMs + p.holdMs, x: p.x, y: p.y },
       ]),
     ),
@@ -235,13 +245,15 @@ const followCursorNode = defineNode({
     ),
 });
 
+const lastRecordingSpeed = (clip: ClipValue): number => recordingProps(clip).at(-1)?.speed ?? 1;
+
 function remapClip(
   clip: ClipValue,
   nodeId: string,
   fps: number,
   segmentsMs: Array<[number, number, number]>,
 ): ClipValue {
-  const playback = clip.recording ? recordingSpeed(clip) : 1;
+  const playback = clip.recording ? lastRecordingSpeed(clip) : 1;
   const toFrames = (msv: number) => (msv / 1000 / playback) * fps;
   const remap = remapFromSegments(
     clip.durationInFrames,
@@ -249,8 +261,6 @@ function remapClip(
   );
   return wrapClip(clip, nodeId, { remap }, Math.max(1, Math.round(remapDuration(remap))));
 }
-
-const recordingSpeed = (clip: ClipValue): number => recordingProps(clip).at(-1)?.speed ?? 1;
 
 const idleSpeedupNode = defineNode({
   ...modifier,
@@ -360,7 +370,7 @@ const DEVICE_ICONS: Record<keyof typeof DEVICE_LABELS, string> = {
   phone: "smartphone",
 };
 
-const HOST_WINDOW_STYLES: Partial<Record<NodeJS.Platform, (typeof WINDOW_STYLES)[number]>> = {
+const HOST_WINDOW_STYLES: Partial<Record<NodeJS.Platform, WindowStyle>> = {
   win32: "windows",
   linux: "linux",
 };
@@ -382,9 +392,7 @@ const deviceFrameNode = defineNode({
     windowStyle: more(choice(WINDOW_STYLES, "macos", "Window style", FRAME_LABELS), {
       showIf: { device: ["browser"] },
     }),
-    frameTheme: more(choice(["light", "dark"], "light", "Frame colour"), {
-      showIf: { device: ["browser"] },
-    }),
+    frameTheme: frameThemeField({ device: ["browser"] }),
     entrance: more(
       choice(["rise", "open", "none"], "open", "Entrance", {
         rise: "Slide in",
@@ -400,10 +408,7 @@ const deviceFrameNode = defineNode({
       if (params.device === "browser")
         return patchRecordings(clip, (p) => ({
           ...p,
-          chrome: true,
-          windowStyle: params.windowStyle,
-          frameTheme: params.frameTheme,
-          addressBar: p.addressBar ?? true,
+          ...windowFrameProps(params.windowStyle, params.frameTheme, p.addressBar ?? true),
         }));
       const src = clip.recording?.src;
       if (!src) return clip;
@@ -431,7 +436,7 @@ const backdropParams = z.object({
   }),
   name: z
     .enum(BACKDROPS)
-    .default("glaze")
+    .default(DEFAULT_BACKDROP)
     .meta({ description: "Studio image", showIf: { kind: ["image"] } }),
   color: more(text("#0b0b10", "Colour"), { widget: "color", showIf: { kind: ["solid"] } }),
   gradient: more(text("linear-gradient(135deg, #1e1b4b, #0f172a)", "Gradient"), {
@@ -443,29 +448,19 @@ const backdropParams = z.object({
 
 type BackdropParams = z.infer<typeof backdropParams>;
 
-function backdropRow(p: BackdropParams): CardRow {
+function backdropOf(p: BackdropParams): { row: CardRow; value: string | undefined } {
   switch (p.kind) {
     case "image":
-      return row("image", humanize(p.name));
+      return { row: row("image", humanize(p.name)), value: p.name };
     case "solid":
-      return row("palette", p.color);
+      return { row: row("palette", p.color), value: p.color };
     case "gradient":
-      return row("blend", "Gradient", { title: p.gradient });
+      return { row: row("blend", "Gradient", { title: p.gradient }), value: p.gradient };
     case "asset":
-      return row("image", p.asset ? baseName(p.asset) : "Choose an image", warnIf(!p.asset));
-  }
-}
-
-function backdropFor(p: BackdropParams, current: string | undefined): string | undefined {
-  switch (p.kind) {
-    case "image":
-      return p.name;
-    case "solid":
-      return p.color;
-    case "gradient":
-      return p.gradient;
-    case "asset":
-      return p.asset || current;
+      return {
+        row: row("image", p.asset ? baseName(p.asset) : "Choose an image", warnIf(!p.asset)),
+        value: p.asset || undefined,
+      };
   }
 }
 
@@ -475,11 +470,11 @@ const backdropNode = defineNode({
   title: "Backdrop",
   icon: "image",
   description: "The background behind the floating window: a studio image, colour or gradient.",
-  card: ({ params: p }) => [backdropRow(p)],
+  card: ({ params: p }) => [backdropOf(p).row],
   params: backdropParams,
   compile: ({ inputs, params }) =>
     withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({ ...p, backdrop: backdropFor(params, p.backdrop) })),
+      patchRecordings(clip, (p) => ({ ...p, backdrop: backdropOf(params).value ?? p.backdrop })),
     ),
 });
 

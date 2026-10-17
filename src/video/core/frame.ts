@@ -1,6 +1,6 @@
 import { useVideoConfig } from "remotion";
 import { clamp } from "../../shared/math";
-import type { ReframeMode } from "../assets";
+import type { ReframeMode } from "../../shared/schema/timeline";
 import { containBox, type Size } from "./still-layout";
 
 type Insets = { top: number; right: number; bottom: number; left: number };

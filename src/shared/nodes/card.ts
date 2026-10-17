@@ -3,19 +3,17 @@ import type { WorkflowSettings } from "../schema/workflow";
 import { formatDuration } from "../format";
 import { baseName } from "../asset-ref";
 import { framesToMs } from "../timeline/time";
-import { targetRoleKey } from "../elements/introspect";
 
 export type CardRow = { icon: string; text: string; title?: string; tone?: "muted" | "warn" };
 
 export type CardContext<P> = {
   params: P;
-  raw: Record<string, unknown>;
   settings: WorkflowSettings;
   result?: NodeResult;
   secrets?: string[] | null;
   connected: string[];
   clipFrames?: number;
-  inputFrames?: Record<string, number>;
+  inputFrames?: Partial<Record<string, number>>;
 };
 
 export const TRANSITION_WARN_RATIO = 0.4;
@@ -55,12 +53,15 @@ export const fileRow = (icon: string, path: string, name = baseName(path)): Card
 
 export const frameSecs = (frames: number, fps: number) => formatDuration(framesToMs(frames, fps));
 
-export function clip(text: string, max = 42): string {
+export function truncate(text: string, max = 42): string {
   const one = text.replace(/\s+/g, " ").trim();
   return one.length > max ? `${one.slice(0, max - 1)}…` : one;
 }
 
-export const quote = (text: string, max = 40) => `“${clip(text, max)}”`;
+export const quote = (text: string, max = 40) => `“${truncate(text, max)}”`;
+
+export const countConnected = (ports: readonly string[], connected: readonly string[]): number =>
+  ports.filter((p) => connected.includes(p)).length;
 
 const ROLE_WORDS: Record<string, string> = {
   button: "button",
@@ -80,24 +81,23 @@ const ROLE_WORDS: Record<string, string> = {
   slider: "slider",
 };
 
-function elementName(target: string | undefined, role: unknown): string | null {
+function elementName(target: string | undefined, role: string | undefined): string | null {
   const t = target?.trim();
   if (!t) return null;
   if (t.startsWith("css=")) return "Custom element";
   const point = /^(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)$/.exec(t);
   if (point) return `Point ${Math.round(Number(point[1]))}, ${Math.round(Number(point[2]))}`;
-  const word = typeof role === "string" ? ROLE_WORDS[role] : undefined;
+  const word = role ? ROLE_WORDS[role] : undefined;
   return word ? `${quote(t, 34)} ${word}` : quote(t, 40);
 }
 
 export function elementRow(
   icon: string,
   target: string | undefined,
-  raw: Record<string, unknown>,
-  key = "target",
+  role: string | undefined,
   empty = "Pick an element",
 ): CardRow {
-  const name = elementName(target, raw[targetRoleKey(key)]);
+  const name = elementName(target, role);
   return name ? row(icon, name, { title: target }) : missing(icon, empty);
 }
 

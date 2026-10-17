@@ -32,6 +32,7 @@ const noteNode = defineNode({
   icon: "sticky-note",
   description: "A sticky note on the canvas. Not part of the video.",
   phase: "compile",
+  cardHeight: 140,
   inputs: {},
   outputs: {},
   params: noteParams,

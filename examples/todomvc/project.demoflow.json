@@ -296,7 +296,6 @@
         "scale": 1,
         "chapters": true,
         "chapterList": false,
-        "faststart": true,
         "gl": "angle"
       }
     },

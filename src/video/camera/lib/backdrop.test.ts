@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "vitest";
-import { BACKDROPS } from "../../../shared/backdrops";
-import { DEFAULT_BACKDROP, backdropFile, backdropSource, isLightBackdrop } from "./backdrop";
+import { BACKDROPS, DEFAULT_BACKDROP } from "../../../shared/backdrops";
+import { backdropFile, backdropSource, isLightBackdrop } from "./backdrop";
 
 describe("backdropFile", () => {
   it("resolves a bare name to the shipped set", () => {

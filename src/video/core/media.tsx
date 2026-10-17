@@ -8,6 +8,7 @@ import { isLightBackdrop } from "../camera/lib/backdrop";
 import { stillLayout, type Box, type Shot, type StillLook } from "./still-layout";
 import { visibleBackground } from "./anim";
 import { msToFrames } from "../../shared/timeline/time";
+import { DEFAULT_BACKDROP } from "../../shared/backdrops";
 
 type Fit = "contain" | "cover" | "fill";
 
@@ -102,7 +103,7 @@ export const StillElement: React.FC<{
   look?: StillLook;
   backdrop?: string;
   shot?: Shot;
-}> = ({ src, look = "window", backdrop = "glaze", shot }) => {
+}> = ({ src, look = "window", backdrop = DEFAULT_BACKDROP, shot }) => {
   const { width, height } = useVideoConfig();
   if (!src) return null;
   const box = stillLayout(look, shot ?? { width, height, scale: 1 }, { width, height }, WINDOW_FIT);

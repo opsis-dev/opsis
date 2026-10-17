@@ -2,18 +2,14 @@ import { z } from "zod";
 import { itemClip, withHandles, wrapClip } from "../compile/clip";
 import type { EditHandles, VisualEnvelope } from "../schema/timeline";
 import type { ClipValue } from "../schema/values";
-import {
-  CAPTIONS_ELEMENT,
-  ELEMENTS,
-  elementNodeType,
-  type ElementCategory,
-  type ElementMeta,
-} from "../elements";
+import { ELEMENTS, elementNodeType } from "../elements";
+import { CAPTIONS_ELEMENT } from "../elements/core";
+import type { ElementCategory, ElementMeta } from "../elements/types";
 import { assetKeys, widgetKeys } from "../elements/introspect";
 import { fontStack } from "../fonts";
 import { fileRow, frameSecs, quote, row, sentence, type CardRow } from "./card";
 import { clipInput, defineNode, port, type NodeCategory, type NodeDef } from "./define";
-import { visualEnvelope } from "./params";
+import { int, MAX_FRAMES, visualEnvelope } from "./params";
 import { projectRef } from "../asset-ref";
 
 const TEXT_KEYS = [
@@ -28,18 +24,24 @@ const TEXT_KEYS = [
   "message",
 ];
 
-function elementCard(meta: ElementMeta, params: Record<string, unknown>, fps: number): CardRow[] {
+type ElementParams = Record<string, unknown> & { clipDuration: number };
+
+const textParam = (params: Record<string, unknown>, key: string): string | undefined => {
+  const value = params[key];
+  return typeof value === "string" && value.trim() ? value : undefined;
+};
+
+function elementCard(meta: ElementMeta, params: ElementParams, fps: number): CardRow[] {
   const rows: CardRow[] = [];
-  const shape = meta.schema.shape as Record<string, unknown>;
-  const key = TEXT_KEYS.find(
-    (k) => k in shape && typeof params[k] === "string" && String(params[k]).trim(),
-  );
-  if (key) rows.push(row("type", quote(String(params[key]))));
+  const title = TEXT_KEYS.filter((k) => k in meta.schema.shape)
+    .map((k) => textParam(params, k))
+    .find((v) => v !== undefined);
+  if (title) rows.push(row("type", quote(title)));
   for (const asset of assetKeys(meta.schema)) {
     const v = params[asset];
     if (typeof v === "string" && v) rows.push(fileRow("file", v));
   }
-  const duration = Number(params.clipDuration ?? 0);
+  const duration = params.clipDuration;
   const short =
     meta.kind !== "wrapper" && duration > 0 && duration < 0.6 * meta.defaultDurationInFrames;
   rows.push(
@@ -139,17 +141,12 @@ function elementNode(meta: ElementMeta): NodeDef {
     outputs: { clip: port("clip", "Clip") },
     params: z.object({
       ...meta.schema.shape,
-      clipDuration: z
-        .number()
-        .int()
-        .min(wrapper ? 0 : 1)
-        .max(108_000)
-        .default(wrapper ? 0 : meta.defaultDurationInFrames)
-        .meta({
-          description: "Length",
-          unit: "frames",
-          ...(wrapper ? { zeroLabel: "Match the clip" } : {}),
-        }),
+      clipDuration: int(wrapper ? 0 : meta.defaultDurationInFrames, "Length", {
+        min: wrapper ? 0 : 1,
+        max: MAX_FRAMES,
+        unit: "frames",
+        ...(wrapper ? { zeroLabel: "Match the clip" } : {}),
+      }),
       envelope: visualEnvelope(),
     }),
     compile: ({ nodeId, params, inputs }) => ({

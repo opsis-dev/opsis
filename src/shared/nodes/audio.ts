@@ -1,23 +1,61 @@
 import { z } from "zod";
 import { clipToSpec } from "../compile/clip";
-import type { AudioItem } from "../schema/timeline";
+import type { AudioEnvelope, AudioItem, EditHandles } from "../schema/timeline";
 import { builtinSound } from "../sounds";
 import { asValue, type ClipValue, type CompileValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { flattenSpec } from "../timeline/flatten";
 import { hasKeys } from "../timeline/envelope";
 import { fileRow, row, warnIf, type CardRow } from "./card";
-import { defineNode, many, opt, port, withClip } from "./define";
+import { defineNode, many, opt, port, withClip, type CompileOutputs } from "./define";
 import { mediaInput } from "./media";
-import { asset, audioEnvelope, bool, more, ms, volume } from "./params";
+import { asset, audioEnvelope, bool, int, more, ms, volume } from "./params";
 import { formatDuration, plural } from "../format";
-import { msToExactFrames, msToFrames } from "../timeline/time";
+import { msToFrames, msToSignedFrames } from "../timeline/time";
 import { baseName, projectRef } from "../asset-ref";
 
 const pct = (v: number) => `${Math.round(v * 100)} %`;
 
 const srcFrom = (input: CompileValue | undefined, path: string): string | null =>
   mediaInput(input)?.src ?? (path ? projectRef(path) : null);
+
+const base = { category: "Audio", phase: "compile" } as const;
+
+const soundSource = {
+  ...base,
+  inputs: { media: opt("media", "File") },
+  outputs: { audio: port("audio", "Sound") },
+} as const;
+
+const soundFile = (description: string) => asset(description, "audio/*");
+
+const noSound = (): CompileOutputs => ({ audio: { type: "audio", items: [] } });
+
+type SoundParams = { volume: number; envelope: AudioEnvelope };
+
+function soundItem(
+  nodeId: string,
+  src: string,
+  role: NonNullable<AudioItem["role"]>,
+  params: SoundParams,
+  item: Omit<AudioItem, "id" | "src" | "role" | "handles">,
+  handles: EditHandles,
+): AudioItem {
+  return {
+    id: nodeId,
+    src,
+    ...item,
+    volume: params.volume,
+    nodeId,
+    channel: nodeId,
+    role,
+    ...(hasKeys(params.envelope) ? { envelope: params.envelope } : {}),
+    handles: { ...handles, volume: { nodeId, param: "volume", unit: "number" } },
+  };
+}
+
+const offsetLabel = (offsetMs: number): string =>
+  offsetMs ? ` ${offsetMs > 0 ? "+" : "−"}${formatDuration(Math.abs(offsetMs))}` : "";
 
 function sourceRow(icon: string, src: string, connected: string[], empty: string): CardRow {
   if (src) return fileRow(icon, src, builtinSound(src)?.label ?? baseName(src));
@@ -26,7 +64,8 @@ function sourceRow(icon: string, src: string, connected: string[], empty: string
     : row(icon, empty, { tone: "warn" });
 }
 
-const musicBedNode = defineNode({
+const musicNode = defineNode({
+  ...soundSource,
   type: "audio.music",
   title: "Music",
   description: "Background music under the video, with fades.",
@@ -36,13 +75,9 @@ const musicBedNode = defineNode({
     p.loop && row("repeat", "Loops"),
     p.lengthMs > 0 && row("clock", `Plays for ${formatDuration(p.lengthMs)}`),
   ],
-  category: "Audio",
   icon: "music",
-  phase: "compile",
-  inputs: { media: opt("media", "File") },
-  outputs: { audio: port("audio", "Sound") },
   params: z.object({
-    src: asset("Song", "audio/*"),
+    src: soundFile("Song"),
     volume: volume(0.5),
     loop: bool(true, "Loop"),
     startMs: ms(0, "Starts at"),
@@ -57,22 +92,21 @@ const musicBedNode = defineNode({
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
     const src = srcFrom(inputs.media, params.src);
-    if (!src) return { audio: { type: "audio", items: [] } };
-    const item: AudioItem = {
-      id: nodeId,
-      src,
-      from: params.startMs ? msToFrames(params.startMs, settings.fps) : 0,
-      ...(params.lengthMs ? { durationInFrames: msToFrames(params.lengthMs, settings.fps) } : {}),
-      volume: params.volume,
-      loop: params.loop,
-      trimBefore: params.trimMs ? msToFrames(params.trimMs, settings.fps) : undefined,
-      fadeInFrames: params.fadeInMs ? msToFrames(params.fadeInMs, settings.fps) : undefined,
-      fadeOutFrames: params.fadeOutMs ? msToFrames(params.fadeOutMs, settings.fps) : undefined,
+    if (!src) return noSound();
+    const item = soundItem(
       nodeId,
-      channel: nodeId,
-      role: "music",
-      ...(hasKeys(params.envelope) ? { envelope: params.envelope } : {}),
-      handles: {
+      src,
+      "music",
+      params,
+      {
+        from: params.startMs ? msToFrames(params.startMs, settings.fps) : 0,
+        ...(params.lengthMs ? { durationInFrames: msToFrames(params.lengthMs, settings.fps) } : {}),
+        loop: params.loop,
+        trimBefore: params.trimMs ? msToFrames(params.trimMs, settings.fps) : undefined,
+        fadeInFrames: params.fadeInMs ? msToFrames(params.fadeInMs, settings.fps) : undefined,
+        fadeOutFrames: params.fadeOutMs ? msToFrames(params.fadeOutMs, settings.fps) : undefined,
+      },
+      {
         move: { nodeId, param: "startMs", unit: "ms" },
         trimStart: {
           nodeId,
@@ -84,9 +118,8 @@ const musicBedNode = defineNode({
           ],
         },
         trimEnd: { nodeId, param: "lengthMs", unit: "ms" },
-        volume: { nodeId, param: "volume", unit: "number" },
       },
-    };
+    );
     const media = mediaInput(inputs.media);
     return {
       audio: {
@@ -101,45 +134,34 @@ const musicBedNode = defineNode({
 });
 
 const sfxNode = defineNode({
+  ...soundSource,
   type: "audio.sfx",
   title: "Sound effect",
   description: "A sound at a set time.",
   card: ({ params: p, connected }) => [
     sourceRow("audio-lines", p.src, connected, "Choose a sound"),
     p.atAction
-      ? row(
-          "mouse-pointer-click",
-          `On an action${p.offsetMs ? ` ${p.offsetMs > 0 ? "+" : "−"}${formatDuration(Math.abs(p.offsetMs))}` : ""}`,
-        )
+      ? row("mouse-pointer-click", `On an action${offsetLabel(p.offsetMs)}`)
       : row("clock", `At ${formatDuration(p.atMs)}`),
     p.keepMusic && row("music", "Music stays up"),
   ],
-  category: "Audio",
   icon: "audio-lines",
-  phase: "compile",
-  inputs: { media: opt("media", "File") },
-  outputs: { audio: port("audio", "Sound") },
   params: z.object({
-    src: more(asset("Sound", "audio/*"), { widget: "sound" }),
+    src: more(soundFile("Sound"), { widget: "sound" }),
     atAction: z.string().default("").meta({
       description: "On an action",
       widget: "action",
       help: "Plays when this browser action happens in the clip the sound is added to, even after you record again or edit the clip.",
     }),
     atMs: more(ms(0, "At"), { showIf: { atAction: [""] } }),
-    offsetMs: z
-      .number()
-      .int()
-      .min(-10_000)
-      .max(10_000)
-      .default(0)
-      .meta({
-        description: "From the action",
-        unit: "ms",
-        step: 50,
-        help: "Negative plays it before the action, for sounds that build up to it.",
-        showIf: { atAction: ["*"] },
-      }),
+    offsetMs: int(0, "From the action", {
+      min: -10_000,
+      max: 10_000,
+      unit: "ms",
+      step: 50,
+      help: "Negative plays it before the action, for sounds that build up to it.",
+      showIf: { atAction: ["*"] },
+    }),
     volume: volume(1),
     keepMusic: more(bool(false, "Keep music up"), {
       help: "Music set to lower under other sounds stays at full volume for this one.",
@@ -149,46 +171,35 @@ const sfxNode = defineNode({
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
     const src = srcFrom(inputs.media, params.src);
-    if (!src) return { audio: { type: "audio", items: [] } };
+    if (!src) return noSound();
     const lengthMs = mediaInput(inputs.media)?.durationMs ?? builtinSound(src)?.durationMs;
     const startFrame = params.atAction
-      ? Math.round(msToExactFrames(params.offsetMs, settings.fps))
+      ? msToSignedFrames(params.offsetMs, settings.fps)
       : params.atMs
         ? msToFrames(params.atMs, settings.fps)
         : 0;
-    return {
-      audio: {
-        type: "audio",
-        items: [
-          {
-            id: nodeId,
-            src,
-            from: startFrame,
-            ...(params.atAction ? { anchor: { nodeId: params.atAction } } : {}),
-            volume: params.volume,
-            nodeId,
-            channel: nodeId,
-            role: "effect",
-            lengthFrames: lengthMs ? msToFrames(lengthMs, settings.fps) : undefined,
-            keepMusic: params.keepMusic || undefined,
-            ...(hasKeys(params.envelope) ? { envelope: params.envelope } : {}),
-            handles: {
-              move: { nodeId, param: params.atAction ? "offsetMs" : "atMs", unit: "ms" },
-              volume: { nodeId, param: "volume", unit: "number" },
-            },
-          },
-        ],
+    const item = soundItem(
+      nodeId,
+      src,
+      "effect",
+      params,
+      {
+        from: startFrame,
+        ...(params.atAction ? { anchor: { nodeId: params.atAction } } : {}),
+        lengthFrames: lengthMs ? msToFrames(lengthMs, settings.fps) : undefined,
+        keepMusic: params.keepMusic || undefined,
       },
-    };
+      { move: { nodeId, param: params.atAction ? "offsetMs" : "atMs", unit: "ms" } },
+    );
+    return { audio: { type: "audio", items: [item] } };
   },
 });
 
-const addAudioNode = defineNode({
+const mixNode = defineNode({
+  ...base,
   type: "audio.mix",
   title: "Add sound",
-  category: "Audio",
   icon: "audio-waveform",
-  phase: "compile",
   description:
     "Puts sounds under a clip. Connect as many as you like. Sound stops where the clip ends.",
   card: ({ connected }) => {
@@ -230,4 +241,4 @@ function anchorSounds(
   });
 }
 
-export const audioNodes = [musicBedNode, sfxNode, addAudioNode];
+export const audioNodes = [musicNode, sfxNode, mixNode];

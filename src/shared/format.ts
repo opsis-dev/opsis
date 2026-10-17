@@ -83,6 +83,12 @@ export function parseNumberText(text: string, { lenient = false } = {}): number 
   return Number.isFinite(n) ? n : null;
 }
 
+export const nonBlankLines = (text: string): string[] =>
+  text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
 export const parseNumberList = (raw: unknown): number[] =>
   String(raw ?? "")
     .split(",")
