@@ -13,6 +13,7 @@ import { randomId } from "@/shared/ids";
 import { renameVariable } from "@/shared/vars";
 import { sameFamily, type FontFamilyDef } from "@/shared/fonts";
 import { platform } from "@/renderer/lib/platform";
+import { useUiStore } from "./ui";
 
 type WorkflowState = {
   projectDir: string | null;
@@ -377,6 +378,16 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
 useWorkflowStore.subscribe((s, prev) => {
   if (s.workflow && prev.workflow && s.workflow !== prev.workflow && s.revision === prev.revision)
     useWorkflowStore.setState({ revision: s.revision + 1 });
+});
+
+useWorkflowStore.subscribe((s, prev) => {
+  if (!s.workflow || s.workflow.nodes === prev.workflow?.nodes) return;
+  const ids = new Set(s.workflow.nodes.map((n) => n.id));
+  const { selectedIds, pinnedSource } = useUiStore.getState();
+  const kept = selectedIds.filter((id) => ids.has(id));
+  const pin = pinnedSource !== null && ids.has(pinnedSource) ? pinnedSource : null;
+  if (kept.length !== selectedIds.length || pin !== pinnedSource)
+    useUiStore.setState({ selectedIds: kept, pinnedSource: pin });
 });
 
 function commitAsOneStep(start: Workflow, final: Workflow): void {
