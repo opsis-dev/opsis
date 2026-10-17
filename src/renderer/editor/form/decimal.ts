@@ -3,7 +3,7 @@ import { round3 } from "@/shared/math";
 
 export const trimNumber = (n: number): string => String(round3(n));
 
-export type UnitScale = { factor: number; unit?: string; time: boolean };
+type UnitScale = { factor: number; unit?: string; time: boolean };
 
 export function unitScale(unit: string | undefined, fps: number): UnitScale {
   if (unit === "ms") return { factor: 1000, unit: "s", time: true };
@@ -13,7 +13,8 @@ export function unitScale(unit: string | undefined, fps: number): UnitScale {
 
 export function useDecimalInput(
   shown: string,
-  { onEdit, onCommit }: { onEdit?: (text: string) => void; onCommit?: (text: string) => void },
+  applyOn: "edit" | "blur",
+  apply: (text: string) => void,
 ) {
   const [draft, setDraft] = useState<string | null>(null);
   return {
@@ -21,10 +22,10 @@ export function useDecimalInput(
     value: draft ?? shown,
     onChange: (e: ChangeEvent<HTMLInputElement>) => {
       setDraft(e.target.value);
-      onEdit?.(e.target.value);
+      if (applyOn === "edit") apply(e.target.value);
     },
     onBlur: () => {
-      if (draft !== null) onCommit?.(draft);
+      if (applyOn === "blur" && draft !== null) apply(draft);
       setDraft(null);
     },
   };

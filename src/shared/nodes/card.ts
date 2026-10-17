@@ -3,6 +3,7 @@ import type { WorkflowSettings } from "../schema/workflow";
 import { formatDuration } from "../format";
 import { baseName } from "../asset-ref";
 import { framesToMs } from "../timeline/time";
+import { targetRoleKey } from "../elements/introspect";
 
 export type CardRow = { icon: string; text: string; title?: string; tone?: "muted" | "warn" };
 
@@ -96,7 +97,7 @@ export function elementRow(
   key = "target",
   empty = "Pick an element",
 ): CardRow {
-  const name = elementName(target, raw[`${key}Role`]);
+  const name = elementName(target, raw[targetRoleKey(key)]);
   return name ? row(icon, name, { title: target }) : missing(icon, empty);
 }
 

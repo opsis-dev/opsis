@@ -11,7 +11,6 @@ import { cn } from "@/renderer/lib/utils";
 import { AnimatedPercent } from "../app/motion";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
-import { cancelRun } from "./run";
 import { StatusIcon, type RowState } from "./status-icon";
 
 function FailureLine({
@@ -64,7 +63,7 @@ function RunHeader({ running, failed }: { running: boolean; failed: boolean }) {
         <span className="text-sm font-medium">{failed ? "Last run failed" : "Nodes"}</span>
       )}
       {running ? (
-        <Button size="xs" variant="outline" onClick={() => void cancelRun()}>
+        <Button size="xs" variant="outline" onClick={() => void window.demoflow.cancelRun()}>
           <Square data-icon="inline-start" />
           Cancel
         </Button>
@@ -105,17 +104,18 @@ function NodeRow({ node, active }: { node: WorkflowNode; active: boolean }) {
 }
 
 export function RunNodeList({ nodes, filter }: { nodes: WorkflowNode[]; filter: string | null }) {
-  const { running, lastError, failedNodeIds, skippedNodeIds } = useRunStore(
-    useShallow((s) => ({
-      running: s.running,
-      lastError: s.lastError,
-      failedNodeIds: s.failedNodeIds,
-      skippedNodeIds: s.skippedNodeIds,
-    })),
-  );
-  const { statuses, errors, results } = useRunStore(
-    useShallow((s) => ({ statuses: s.statuses, errors: s.errors, results: s.results })),
-  );
+  const { running, lastError, failedNodeIds, skippedNodeIds, statuses, errors, results } =
+    useRunStore(
+      useShallow((s) => ({
+        running: s.running,
+        lastError: s.lastError,
+        failedNodeIds: s.failedNodeIds,
+        skippedNodeIds: s.skippedNodeIds,
+        statuses: s.statuses,
+        errors: s.errors,
+        results: s.results,
+      })),
+    );
   const rows = useMemo(
     () => nodes.filter((n) => statuses[n.id] || errors[n.id] || results[n.id]?.artifacts.length),
     [nodes, statuses, errors, results],

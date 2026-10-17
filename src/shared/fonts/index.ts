@@ -4,7 +4,7 @@ import { safeName } from "../project-folder";
 
 const FONT_ROLES = ["main", "heading", "code"] as const;
 
-type FontRole = (typeof FONT_ROLES)[number];
+export type FontRole = (typeof FONT_ROLES)[number];
 
 const roleFamily = (role: FontRole): string => `df-${role}`;
 

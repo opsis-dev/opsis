@@ -4,12 +4,13 @@ import { clamp, round3 } from "@/shared/math";
 import { fractionIn } from "@/renderer/lib/dom";
 
 const boxSchema = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() });
-export const boxListSchema = z.array(boxSchema).catch([]);
 export type Box = z.infer<typeof boxSchema>;
 
-type DragMode = "new" | "move";
-type Drag = { mode: DragMode; index: number; x: number; y: number; origin: Box };
-export type BoxDraft = { mode: DragMode; index: number; box: Box };
+export const isBoxList = (value: unknown): value is Box[] =>
+  z.array(boxSchema).safeParse(value).success;
+
+type DragTarget = { mode: "new" } | { mode: "move"; index: number };
+type Drag = DragTarget & { x: number; y: number; origin: Box; box: Box };
 
 const MIN_SIDE = 0.01;
 
@@ -29,36 +30,35 @@ const moved = (d: Drag, x: number, y: number): Box => ({
 export function useBoxDrag(boxes: Box[], onChange: (boxes: Box[]) => void) {
   const area = useRef<HTMLDivElement>(null);
   const drag = useRef<Drag | null>(null);
-  const [draft, setDraft] = useState<BoxDraft | null>(null);
+  const [draft, setDraft] = useState<Drag | null>(null);
 
-  const point = (e: PointerEvent): [number, number] => {
+  const pointIn = (e: PointerEvent) => {
     const r = area.current?.getBoundingClientRect();
-    if (!r) return [0, 0];
-    const at = fractionIn(r, e.clientX, e.clientY);
-    return [at.x, at.y];
+    return r ? fractionIn(r, e.clientX, e.clientY) : null;
   };
-  const start = (e: PointerEvent, mode: DragMode, index: number) => {
-    const [x, y] = point(e);
+  const show = (d: Drag | null) => {
+    drag.current = d;
+    setDraft(d);
+  };
+  const start = (e: PointerEvent, target: DragTarget) => {
+    const at = pointIn(e);
+    if (!at) return;
     e.currentTarget.setPointerCapture(e.pointerId);
-    const origin = mode === "move" ? boxes[index] : boxFrom(x, y, x, y);
-    drag.current = { mode, index, x, y, origin };
-    setDraft({ mode, index, box: origin });
+    const origin = target.mode === "move" ? boxes[target.index] : boxFrom(at.x, at.y, at.x, at.y);
+    show({ ...target, x: at.x, y: at.y, origin, box: origin });
   };
   const move = (e: PointerEvent) => {
     const d = drag.current;
-    if (!d) return;
-    const [x, y] = point(e);
-    const box = d.mode === "new" ? boxFrom(d.x, d.y, x, y) : moved(d, x, y);
-    setDraft({ mode: d.mode, index: d.index, box });
+    const at = pointIn(e);
+    if (!d || !at) return;
+    show({ ...d, box: d.mode === "new" ? boxFrom(d.x, d.y, at.x, at.y) : moved(d, at.x, at.y) });
   };
   const end = () => {
     const d = drag.current;
-    drag.current = null;
-    setDraft(null);
-    if (!d || !draft) return;
-    const box = draft.box;
-    if (d.mode === "move") onChange(boxes.map((b, i) => (i === d.index ? box : b)));
-    else if (box.width > MIN_SIDE && box.height > MIN_SIDE) onChange([...boxes, box]);
+    show(null);
+    if (!d) return;
+    if (d.mode === "move") onChange(boxes.map((b, i) => (i === d.index ? d.box : b)));
+    else if (d.box.width > MIN_SIDE && d.box.height > MIN_SIDE) onChange([...boxes, d.box]);
   };
   const shown = boxes.map((b, i) => (draft?.mode === "move" && draft.index === i ? draft.box : b));
   return { area, draft, shown, start, move, end };

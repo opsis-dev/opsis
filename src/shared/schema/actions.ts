@@ -3,6 +3,12 @@ import { z } from "zod";
 const rectSchema = z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() });
 export type Rect = z.infer<typeof rectSchema>;
 
+export type Bounds = { x: number; y: number; width: number; height: number };
+
+export const rectFromBounds = (b: Bounds): Rect => ({ x: b.x, y: b.y, w: b.width, h: b.height });
+
+export const boundsFromRect = (r: Rect): Bounds => ({ x: r.x, y: r.y, width: r.w, height: r.h });
+
 const ACTION_KINDS = [
   "click",
   "type",

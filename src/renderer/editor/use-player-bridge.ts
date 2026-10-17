@@ -1,4 +1,4 @@
-import type { PlayerRef } from "@remotion/player";
+import type { CallbackListener, EventTypes, PlayerRef } from "@remotion/player";
 import { useEffect } from "react";
 import type { PreviewTarget } from "@/shared/compile/compile";
 import { registerPlayer, usePlayback } from "../store/playback";
@@ -14,22 +14,22 @@ function activeAt(preview: PreviewTarget, frame: number): string[] {
 function usePlayerEvents(player: PlayerRef | null, preview: PreviewTarget | null): void {
   useEffect(() => {
     if (!player || !preview) return;
-    const report = usePlayback.setState;
+    const listen = <E extends EventTypes>(event: E, callback: CallbackListener<E>) => {
+      player.addEventListener(event, callback);
+      return () => player.removeEventListener(event, callback);
+    };
     const update = ({ detail }: { detail: { frame: number } }) => {
-      report({ frame: detail.frame });
+      usePlayback.setState({ frame: detail.frame });
       useUiStore.getState().setActive(activeAt(preview, detail.frame));
     };
-    const onPlay = () => report({ playing: true });
-    const onPause = () => report({ playing: false });
-    player.addEventListener("frameupdate", update);
-    player.addEventListener("seeked", update);
-    player.addEventListener("play", onPlay);
-    player.addEventListener("pause", onPause);
+    const stops = [
+      listen("frameupdate", update),
+      listen("seeked", update),
+      listen("play", () => usePlayback.setState({ playing: true })),
+      listen("pause", () => usePlayback.setState({ playing: false })),
+    ];
     return () => {
-      player.removeEventListener("frameupdate", update);
-      player.removeEventListener("seeked", update);
-      player.removeEventListener("play", onPlay);
-      player.removeEventListener("pause", onPause);
+      for (const stop of stops) stop();
     };
   }, [preview, player]);
 }

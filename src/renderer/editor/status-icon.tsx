@@ -6,10 +6,14 @@ import { cn } from "@/renderer/lib/utils";
 
 export type RowState = NodeRunStatus | "failedBefore" | "fromLastRun";
 
-const STATUS_ICONS: Record<RowState, { icon: LucideIcon; word: string; className: string }> = {
+const RUNNING_WORD = "Running";
+
+const STATUS_ICONS: Record<
+  Exclude<RowState, "running">,
+  { icon: LucideIcon; word: string; className: string }
+> = {
   idle: { icon: Circle, word: "Not run", className: "text-muted-foreground" },
   queued: { icon: Circle, word: "Waiting", className: "text-muted-foreground" },
-  running: { icon: Circle, word: "Running", className: "" },
   done: { icon: CircleCheck, word: "Done", className: "text-success" },
   cached: { icon: CircleCheck, word: "Up to date", className: "text-muted-foreground" },
   skipped: { icon: CircleSlash, word: "Skipped", className: "text-muted-foreground" },
@@ -19,16 +23,17 @@ const STATUS_ICONS: Record<RowState, { icon: LucideIcon; word: string; className
 };
 
 export function StatusIcon({ state }: { state: RowState }) {
-  const { icon: Icon, word, className } = STATUS_ICONS[state];
+  const look = state === "running" ? null : STATUS_ICONS[state];
+  const word = look?.word ?? RUNNING_WORD;
   return (
     <Tooltip>
       <TooltipTrigger
         render={<span className="flex size-4 shrink-0 items-center justify-center" />}
       >
-        {state === "running" ? (
-          <Spinner aria-label={word} />
+        {look ? (
+          <look.icon aria-label={word} className={cn("size-4", look.className)} />
         ) : (
-          <Icon aria-label={word} className={cn("size-4", className)} />
+          <Spinner aria-label={word} />
         )}
       </TooltipTrigger>
       <TooltipContent>{word}</TooltipContent>

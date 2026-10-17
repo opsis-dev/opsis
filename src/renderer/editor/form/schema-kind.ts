@@ -1,8 +1,7 @@
 import { z } from "zod";
-import { fieldMeta, unwrap } from "@/shared/elements/introspect";
-import { humanize } from "@/shared/format";
+import { unwrap } from "@/shared/elements/introspect";
 
-export type SchemaKind =
+type SchemaKind =
   | { kind: "boolean" }
   | { kind: "number"; min?: number; max?: number }
   | { kind: "string" }
@@ -12,7 +11,7 @@ export type SchemaKind =
   | { kind: "objectList"; item: z.ZodObject }
   | { kind: "other" };
 
-const REMOTION_COLOR = "__remotion-color";
+const isStringOrStringFormat = (schema: z.ZodType): boolean => schema.def.type === "string";
 
 const isLiteralValue = (v: unknown): v is string | number =>
   typeof v === "string" || typeof v === "number";
@@ -34,7 +33,7 @@ function unionKind(options: readonly z.core.$ZodType[]): SchemaKind {
 
 export function schemaKind(schema: z.ZodType): SchemaKind {
   const inner = unwrap(schema);
-  if (inner.def.type === "string") return { kind: "string" };
+  if (isStringOrStringFormat(inner)) return { kind: "string" };
   if (inner instanceof z.ZodBoolean) return { kind: "boolean" };
   if (inner instanceof z.ZodNumber)
     return { kind: "number", min: inner.minValue ?? undefined, max: inner.maxValue ?? undefined };
@@ -42,12 +41,4 @@ export function schemaKind(schema: z.ZodType): SchemaKind {
   if (inner instanceof z.ZodUnion) return unionKind(inner.options);
   if (inner instanceof z.ZodArray) return arrayKind(inner.element);
   return { kind: "other" };
-}
-
-export const isColor = (schema: z.ZodType): boolean =>
-  unwrap(schema).description === REMOTION_COLOR || fieldMeta(schema).widget === "color";
-
-export function labelFor(key: string, schema: z.ZodType): string {
-  const d = fieldMeta(schema).description;
-  return d && d !== REMOTION_COLOR ? d : humanize(key);
 }

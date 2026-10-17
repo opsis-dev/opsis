@@ -8,27 +8,27 @@ const INVALID = "This isn't valid. Check brackets and quotes.";
 
 export function JsonField({ id, label, value, onChange }: FieldProps<unknown>) {
   const [draft, setDraft] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState(false);
   return (
-    <Field data-invalid={error ? true : undefined}>
+    <Field data-invalid={invalid || undefined}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Textarea
         id={id}
-        aria-invalid={error ? true : undefined}
+        aria-invalid={invalid || undefined}
         className="font-mono text-xs"
         rows={4}
         value={draft ?? JSON.stringify(value ?? null, null, 2)}
         onChange={(e) => {
           setDraft(e.target.value);
           const parsed = tryParseJson(e.target.value);
-          setError(parsed.ok ? null : INVALID);
+          setInvalid(!parsed.ok);
           if (parsed.ok) onChange(parsed.value);
         }}
         onBlur={() => {
-          if (!error) setDraft(null);
+          if (!invalid) setDraft(null);
         }}
       />
-      {error ? <FieldDescription>{error}</FieldDescription> : null}
+      {invalid ? <FieldDescription>{INVALID}</FieldDescription> : null}
     </Field>
   );
 }

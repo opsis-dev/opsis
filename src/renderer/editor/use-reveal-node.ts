@@ -3,6 +3,9 @@ import { useEffect } from "react";
 import { useUiStore } from "../store/ui";
 
 const FALLBACK_SIZE = { width: 260, height: 120 };
+const REVEAL_MS = 300;
+const MIN_REVEAL_ZOOM = 0.8;
+const REVEAL_PADDING = 0.4;
 
 export function useRevealNode(wrapper: React.RefObject<HTMLDivElement | null>): void {
   const flow = useReactFlow();
@@ -23,9 +26,9 @@ export function useRevealNode(wrapper: React.RefObject<HTMLDivElement | null>): 
     const target = node.parentId ? [{ id: node.parentId }, { id: node.id }] : [{ id: node.id }];
     void flow.fitView({
       nodes: target,
-      duration: 300,
-      maxZoom: Math.max(flow.getZoom(), 0.8),
-      padding: 0.4,
+      duration: REVEAL_MS,
+      maxZoom: Math.max(flow.getZoom(), MIN_REVEAL_ZOOM),
+      padding: REVEAL_PADDING,
     });
   }, [reveal, flow, wrapper]);
 }

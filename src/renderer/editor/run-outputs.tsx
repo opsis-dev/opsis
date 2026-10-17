@@ -8,7 +8,7 @@ import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { useRunStore } from "../store/run";
 import { fileUrl } from "./file-url";
 import { ReplayButtons } from "./replay-buttons";
-import { revealOutputs } from "./reveal";
+import { revealOutputs, revealProjectFile } from "./reveal";
 
 function ArtifactPreview({ artifact }: { artifact: Artifact }) {
   if (artifact.kind === "video")
@@ -40,7 +40,7 @@ export function RunOutputs({
 }: {
   nodes: WorkflowNode[];
   filterNode: WorkflowNode | null;
-  projectDir: string | null;
+  projectDir: string;
 }) {
   const results = useRunStore((s) => s.results);
   const exported = useMemo(() => exportedArtifacts(nodes, results), [nodes, results]);
@@ -51,12 +51,10 @@ export function RunOutputs({
       <div className="flex flex-col gap-3 p-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">{filterNode ? "Artifacts" : "Outputs"}</span>
-          {projectDir ? (
-            <Button size="xs" variant="outline" onClick={() => void revealOutputs(projectDir)}>
-              <FolderOpen data-icon="inline-start" />
-              Output folder
-            </Button>
-          ) : null}
+          <Button size="xs" variant="outline" onClick={() => void revealOutputs(projectDir)}>
+            <FolderOpen data-icon="inline-start" />
+            Output folder
+          </Button>
         </div>
         {filterNode ? (
           <div className="flex flex-wrap gap-2 empty:hidden">
@@ -73,7 +71,7 @@ export function RunOutputs({
               variant="link"
               size="xs"
               className="h-auto justify-start p-0"
-              onClick={() => projectDir && void window.demoflow.revealInFolder(projectDir, a.path)}
+              onClick={() => void revealProjectFile(projectDir, a.path)}
             >
               {a.label ?? a.path}
             </Button>

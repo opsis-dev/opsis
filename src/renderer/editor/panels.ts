@@ -24,10 +24,10 @@ export const storedTab = (): DockPanel => readPref("dockTab", "preview", isDockP
 
 export const usePanels = create<{
   open: Record<PanelSide, boolean>;
-  popped: Record<DockPanel, boolean>;
+  popped: readonly DockPanel[];
   active: DockPanel;
   setOpen: (side: PanelSide, open: boolean) => void;
-  setPopped: (popped: Partial<Record<DockPanel, boolean>>) => void;
+  setPopped: (popped: readonly DockPanel[]) => void;
   setActive: (panel: DockPanel) => void;
 }>()((set) => ({
   active: storedTab(),
@@ -37,10 +37,10 @@ export const usePanels = create<{
   },
 
   open: { left: true, bottom: true, right: true },
-  popped: { preview: false, timeline: false, mixer: false, run: false },
+  popped: [],
   setOpen: (side, open) =>
     set((s) => (s.open[side] === open ? {} : { open: { ...s.open, [side]: open } })),
-  setPopped: (popped) => set((s) => ({ popped: { ...s.popped, ...popped } })),
+  setPopped: (popped) => set({ popped }),
 }));
 
 export const panelRef = (side: PanelSide) => (handle: PanelImperativeHandle | null) => {
@@ -60,7 +60,7 @@ export function openPanel(side: PanelSide): void {
 }
 
 export function showPanel(panel: DockPanel): void {
-  if (usePanels.getState().popped[panel]) {
+  if (usePanels.getState().popped.includes(panel)) {
     void window.demoflow.focusPanelWindow(panel);
     return;
   }
@@ -70,7 +70,7 @@ export function showPanel(panel: DockPanel): void {
 
 export function focusPanel(panel: DockPanel): void {
   showPanel(panel);
-  if (usePanels.getState().popped[panel]) return;
+  if (usePanels.getState().popped.includes(panel)) return;
   requestAnimationFrame(() => {
     const el = document.getElementById(`panel-${panel}`);
     (el?.querySelector<HTMLElement>("[data-timeline-root]") ?? el)?.focus();

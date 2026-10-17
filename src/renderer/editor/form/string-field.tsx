@@ -1,5 +1,6 @@
-import { Crosshair, FolderOpen } from "lucide-react";
+import { Crosshair, FolderOpen, type LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
+import { targetRoleKey, type FieldWidget } from "@/shared/elements/introspect";
 import { humanize } from "@/shared/format";
 import { BACKDROPS } from "@/shared/backdrops";
 import { Input } from "@/renderer/components/ui/input";
@@ -15,12 +16,12 @@ import { VarText } from "../var-text";
 import { EnumField } from "./enum-field";
 import { FieldShell } from "./field-shell";
 import { KeysField } from "./keys-field";
-import { NONE, fromNone, orNone } from "./none";
 import { OffsetsField } from "./offsets-field";
 import { SecretField } from "./secret-field";
 import { SoundField } from "./sound-field";
 import { TimezoneField } from "./timezone-field";
 import type { FieldProps } from "./types";
+import { Presets } from "./presets";
 
 type StringProps = FieldProps<string>;
 
@@ -31,10 +32,11 @@ function ActionField({ id, label, value, onChange, meta, ctx }: StringProps) {
     <EnumField
       id={id}
       label={label}
-      options={[NONE, ...actions.map((a) => a.id)]}
-      value={orNone(value)}
-      onChange={(v) => onChange(fromNone(v))}
-      format={(v) => (v === NONE ? "None, use a time" : (names.get(v) ?? "Missing action"))}
+      options={actions.map((a) => a.id)}
+      value={value}
+      onChange={onChange}
+      noneLabel="None, use a time"
+      format={(v) => names.get(v) ?? "Missing action"}
       meta={meta}
       forceSelect
     />
@@ -56,27 +58,56 @@ function CodeField({ id, label, value, onChange, meta }: StringProps) {
   );
 }
 
+function InputWithButton({
+  id,
+  value,
+  placeholder,
+  onChange,
+  icon: Icon,
+  action,
+  onAction,
+  disabled,
+}: {
+  id: string;
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+  icon: LucideIcon;
+  action: string;
+  onAction: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <InputGroup>
+      <InputGroupInput
+        id={id}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton size="xs" onClick={onAction} disabled={disabled}>
+          <Icon data-icon="inline-start" />
+          {action}
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
+  );
+}
+
 function AssetField({ id, name, label, value, onChange, meta, ctx }: StringProps) {
   return (
     <FieldShell id={id} label={label} meta={meta}>
-      <InputGroup>
-        <InputGroupInput
-          id={id}
-          value={value}
-          placeholder="Choose a file"
-          onChange={(e) => onChange(e.target.value)}
-        />
-        <InputGroupAddon align="inline-end">
-          <InputGroupButton
-            size="xs"
-            onClick={() => ctx.chooseAsset?.(name)}
-            disabled={!ctx.projectDir}
-          >
-            <FolderOpen data-icon="inline-start" />
-            Choose
-          </InputGroupButton>
-        </InputGroupAddon>
-      </InputGroup>
+      <InputWithButton
+        id={id}
+        value={value}
+        placeholder="Choose a file"
+        onChange={onChange}
+        icon={FolderOpen}
+        action="Choose"
+        onAction={() => ctx.chooseAsset?.(name)}
+        disabled={!ctx.projectDir}
+      />
     </FieldShell>
   );
 }
@@ -92,20 +123,15 @@ function FontField({ id, label, value, onChange, meta }: StringProps) {
 function TargetField({ id, name, label, value, onPatch, meta, ctx }: StringProps) {
   return (
     <FieldShell id={id} label={label} meta={meta}>
-      <InputGroup>
-        <InputGroupInput
-          id={id}
-          value={value}
-          placeholder="Its visible text"
-          onChange={(e) => onPatch({ [name]: e.target.value, [`${name}Role`]: undefined })}
-        />
-        <InputGroupAddon align="inline-end">
-          <InputGroupButton size="xs" onClick={() => ctx.pickTarget?.(name)}>
-            <Crosshair data-icon="inline-start" />
-            Pick
-          </InputGroupButton>
-        </InputGroupAddon>
-      </InputGroup>
+      <InputWithButton
+        id={id}
+        value={value}
+        placeholder="Its visible text"
+        onChange={(text) => onPatch({ [name]: text, [targetRoleKey(name)]: undefined })}
+        icon={Crosshair}
+        action="Pick"
+        onAction={() => ctx.pickTarget?.(name)}
+      />
     </FieldShell>
   );
 }
@@ -169,7 +195,7 @@ function TextField({ id, label, value, onChange, meta, ctx }: StringProps) {
   );
 }
 
-const STRING_WIDGETS: Partial<Record<string, ComponentType<StringProps>>> = {
+const STRING_WIDGETS: Partial<Record<FieldWidget, ComponentType<StringProps>>> = {
   action: ActionField,
   code: CodeField,
   asset: AssetField,
@@ -187,5 +213,12 @@ const STRING_WIDGETS: Partial<Record<string, ComponentType<StringProps>>> = {
 
 export function StringField(props: StringProps) {
   const Widget = (props.meta.widget && STRING_WIDGETS[props.meta.widget]) || TextField;
-  return <Widget {...props} />;
+  return (
+    <>
+      {props.meta.presets ? (
+        <Presets meta={props.meta} all={props.all} onPatch={props.onPatch} />
+      ) : null}
+      <Widget {...props} />
+    </>
+  );
 }

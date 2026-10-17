@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-
-type Box = { x: number; y: number; width: number; height: number };
+import type { Bounds } from "@/shared/schema/actions";
 
 const BOX_RADIUS = 6;
 const BOX_STROKE = 1 / 480;
@@ -16,7 +15,7 @@ export function FrameOverlay({
 }: {
   width: number;
   height: number;
-  box?: Box | null;
+  box?: Bounds | null;
   point?: { x: number; y: number } | null;
   pointSize: number;
   children?: ReactNode;

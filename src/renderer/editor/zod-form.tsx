@@ -1,10 +1,14 @@
 import { ChevronRight, Plus, Trash2 } from "lucide-react";
-import { useState, type ComponentType, type ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import type { z } from "zod";
-import { fieldMeta, schemaDefaults, type FieldMeta } from "@/shared/elements/introspect";
+import {
+  fieldMeta,
+  schemaDefaults,
+  type FieldMeta,
+  type FieldWidget,
+} from "@/shared/elements/introspect";
 import { humanize } from "@/shared/format";
 import { isRecord } from "@/shared/guards";
-import { randomId } from "@/shared/ids";
 import { transitionTitle } from "@/shared/nodes/transitions";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -20,24 +24,37 @@ import {
   FieldSet,
 } from "@/renderer/components/ui/field";
 import { Switch } from "@/renderer/components/ui/switch";
+import { useItemKeys } from "@/renderer/lib/use-item-keys";
 import { BoxesField } from "./form/boxes-field";
 import { ColorField } from "./form/color-field";
 import { EnumField } from "./form/enum-field";
-import { EnvelopeField } from "./form/envelope-field";
+import { EnvelopeField, isEnvelope } from "./form/envelope-field";
 import { ChoiceGroup, Help } from "./form/field-shell";
 import { JsonField } from "./form/json-field";
 import { NumberControl } from "./form/number-field";
-import { isColor, labelFor, schemaKind } from "./form/schema-kind";
+import { schemaKind } from "./form/schema-kind";
+import { isColor, labelFor } from "./form/schema-meta";
 import { StringField } from "./form/string-field";
 import type { FieldProps, FormContext, Patch } from "./form/types";
+import { isBoxList } from "./form/use-box-drag";
 
 type Entry = { key: string; field: z.ZodType; meta: FieldMeta };
 
 type AnyFieldProps = FieldProps<unknown>;
 
-const VALUE_WIDGETS: Partial<Record<string, ComponentType<AnyFieldProps>>> = {
-  boxes: BoxesField,
-  envelope: EnvelopeField,
+function BoxesKindField(props: AnyFieldProps) {
+  const field = typed(props, isBoxList, []);
+  return field ? <BoxesField {...field} /> : <JsonField {...props} />;
+}
+
+function EnvelopeKindField(props: AnyFieldProps) {
+  const field = typed(props, isEnvelope, {});
+  return field ? <EnvelopeField {...field} /> : <JsonField {...props} />;
+}
+
+const VALUE_WIDGETS: Partial<Record<FieldWidget, ComponentType<AnyFieldProps>>> = {
+  boxes: BoxesKindField,
+  envelope: EnvelopeKindField,
 };
 
 const COLLAPSING =
@@ -245,17 +262,6 @@ function BooleanField({ id, label, value, onChange }: FieldProps<boolean>) {
 function ObjectListKindField({ item, ...props }: AnyFieldProps & { item: z.ZodObject }) {
   const field = typed(props, isRecordList, []);
   return field ? <ObjectListField {...field} item={item} /> : <JsonField {...props} />;
-}
-
-function useItemKeys(count: number) {
-  const [keys, setKeys] = useState(() => Array.from({ length: count }, () => randomId()));
-  if (keys.length !== count)
-    setKeys(Array.from({ length: count }, (_, i) => keys[i] ?? randomId()));
-  return {
-    keys,
-    add: () => setKeys([...keys, randomId()]),
-    remove: (index: number) => setKeys(keys.toSpliced(index, 1)),
-  };
 }
 
 function ObjectListField({

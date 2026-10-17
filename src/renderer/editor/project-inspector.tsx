@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import type { FontRole } from "@/shared/fonts";
 import type { Workflow, WorkflowSettings } from "@/shared/schema/workflow";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Button } from "@/renderer/components/ui/button";
@@ -13,6 +14,7 @@ import {
 } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
+import { useItemKeys } from "@/renderer/lib/use-item-keys";
 import { FontPicker } from "../fonts/font-picker";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
@@ -27,8 +29,6 @@ const CANVAS_SIZES = [
 ];
 
 const FRAME_RATES = [30, 60] as const;
-
-type FontRole = "main" | "heading" | "code";
 
 const FONT_ROLES: Array<{ role: FontRole; label: string; empty?: string }> = [
   { role: "main", label: "Text" },
@@ -92,15 +92,20 @@ function SizeInput({
         id={id}
         type="number"
         value={value}
-        onChange={(e) => Number(e.target.value) > 0 && onChange(Number(e.target.value))}
+        onChange={(e) => {
+          const size = Number(e.target.value);
+          if (size > 0) onChange(size);
+        }}
       />
     </Field>
   );
 }
 
-function CanvasSettings({ settings: s }: { settings: WorkflowSettings }) {
-  const setSettings = useWorkflowStore((st) => st.setSettings);
-  const preset = CANVAS_SIZES.find((c) => c.width === s.width && c.height === s.height);
+function CanvasSettings({ settings }: { settings: WorkflowSettings }) {
+  const setSettings = useWorkflowStore((s) => s.setSettings);
+  const preset = CANVAS_SIZES.find(
+    (c) => c.width === settings.width && c.height === settings.height,
+  );
   return (
     <>
       <Field>
@@ -125,55 +130,68 @@ function CanvasSettings({ settings: s }: { settings: WorkflowSettings }) {
         <SizeInput
           id="wf-w"
           label="Width"
-          value={s.width}
+          value={settings.width}
           onChange={(width) => setSettings({ width })}
         />
         <SizeInput
           id="wf-h"
           label="Height"
-          value={s.height}
+          value={settings.height}
           onChange={(height) => setSettings({ height })}
         />
       </div>
-      <Field>
-        <FieldLabel>Frame rate</FieldLabel>
-        <ToggleGroup
-          variant="outline"
-          size="sm"
-          value={[String(s.fps)]}
-          onValueChange={(v) => {
-            const fps = FRAME_RATES.find((r) => String(r) === v[0]);
-            if (fps) setSettings({ fps });
-          }}
-        >
-          {FRAME_RATES.map((r) => (
-            <ToggleGroupItem key={r} value={String(r)}>
-              {r} fps
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      </Field>
-      <Field>
-        <FieldLabel htmlFor="wf-bg">Background</FieldLabel>
-        <Input
-          id="wf-bg"
-          value={s.background ?? ""}
-          placeholder={s.theme === "light" ? "#fafafa" : "#09090b"}
-          onChange={(e) => setSettings({ background: e.target.value || undefined })}
-        />
-      </Field>
+      <FrameRateField fps={settings.fps} />
+      <BackgroundField background={settings.background} theme={settings.theme} />
     </>
   );
 }
 
-function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
+function FrameRateField({ fps }: { fps: number }) {
   const setSettings = useWorkflowStore((s) => s.setSettings);
-  const pick = (role: FontRole, family: string) => {
-    const latest = useWorkflowStore.getState().workflow?.settings.fonts ?? fonts;
-    setSettings({
-      fonts: { ...latest, [role]: family || (role === "heading" ? "" : latest[role]) },
-    });
-  };
+  return (
+    <Field>
+      <FieldLabel>Frame rate</FieldLabel>
+      <ToggleGroup
+        variant="outline"
+        size="sm"
+        value={[String(fps)]}
+        onValueChange={(v) => {
+          const picked = FRAME_RATES.find((r) => String(r) === v[0]);
+          if (picked) setSettings({ fps: picked });
+        }}
+      >
+        {FRAME_RATES.map((r) => (
+          <ToggleGroupItem key={r} value={String(r)}>
+            {r} fps
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    </Field>
+  );
+}
+
+function BackgroundField({ background, theme }: Pick<WorkflowSettings, "background" | "theme">) {
+  const setSettings = useWorkflowStore((s) => s.setSettings);
+  return (
+    <Field>
+      <FieldLabel htmlFor="wf-bg">Background</FieldLabel>
+      <Input
+        id="wf-bg"
+        value={background ?? ""}
+        placeholder={theme === "light" ? "#fafafa" : "#09090b"}
+        onChange={(e) => setSettings({ background: e.target.value || undefined })}
+      />
+    </Field>
+  );
+}
+
+function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
+  const update = useWorkflowStore((s) => s.update);
+  const pick = (role: FontRole, family: string) =>
+    update((wf) => ({
+      ...wf,
+      settings: { ...wf.settings, fonts: { ...wf.settings.fonts, [role]: family } },
+    }));
   return (
     <FieldSet>
       <FieldLegend variant="label">Fonts</FieldLegend>
@@ -200,6 +218,7 @@ function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
 function VariablesEditor({ variables }: { variables: Record<string, string> }) {
   const { setVariables, renameVariable } = useWorkflowStore.getState();
   const vars = Object.entries(variables);
+  const rowKeys = useItemKeys(vars.length);
   const renameAt = (from: string, raw: string) => {
     const to = raw.replace(/[{}]/g, "");
     if (to !== from && to in variables) {
@@ -216,7 +235,7 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
       </p>
       <div className="flex flex-col gap-2">
         {vars.map(([key, value], i) => (
-          <div key={i} className="flex gap-2">
+          <div key={rowKeys.keys[i] ?? i} className="flex gap-2">
             <Input
               aria-label="Variable name"
               className="w-2/5 text-xs"
@@ -233,7 +252,10 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
               size="icon"
               variant="ghost"
               aria-label="Remove variable"
-              onClick={() => setVariables(Object.fromEntries(vars.filter((_, j) => j !== i)))}
+              onClick={() => {
+                rowKeys.remove(i);
+                setVariables(Object.fromEntries(vars.filter((_, j) => j !== i)));
+              }}
             >
               <Trash2 />
             </Button>
@@ -242,7 +264,10 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => setVariables({ ...variables, [`Variable ${vars.length + 1}`]: "" })}
+          onClick={() => {
+            rowKeys.add();
+            setVariables({ ...variables, [`Variable ${vars.length + 1}`]: "" });
+          }}
         >
           <Plus data-icon="inline-start" />
           Add variable

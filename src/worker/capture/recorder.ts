@@ -1,5 +1,6 @@
 import type { Page } from "playwright-core";
 import { clamp } from "../../shared/math";
+import { rectFromBounds, type Rect } from "../../shared/schema/actions";
 import { cameraEase } from "../../video/camera/lib/camera";
 import { DESIGN_WIDTH, type CursorSample, type KeyEvent } from "../../video/camera/lib/click-log";
 import {
@@ -44,8 +45,6 @@ const MIN_TARGET_H = 48;
 const GROWN_TARGET_H = 72;
 const TARGET_PAD_X = 24;
 const TARGET_LIFT = 8;
-
-type Rect = { x: number; y: number; w: number; h: number };
 
 type Box = { cx: number; cy: number; rect: Rect };
 
@@ -100,7 +99,7 @@ async function boxOf(page: Page, target: Target): Promise<Box> {
   return {
     cx: box.x + box.width / 2,
     cy: box.y + box.height / 2,
-    rect: padSmallTarget({ x: box.x, y: box.y, w: box.width, h: box.height }, k),
+    rect: padSmallTarget(rectFromBounds(box), k),
   };
 }
 
@@ -115,7 +114,7 @@ async function dropBox(page: Page, target: Target): Promise<Box> {
     throw new Error(
       "The place to drop it isn't on screen. Scroll to it first, or use a bigger window.",
     );
-  return { cx, cy, rect: { x: box.x, y: box.y, w: box.width, h: box.height } };
+  return { cx, cy, rect: rectFromBounds(box) };
 }
 
 export class CursorDriver {

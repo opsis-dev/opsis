@@ -19,18 +19,18 @@ const SAME_AS_COMPUTER = "Same as this computer";
 
 const zoneName = (zone: string) => zone.replaceAll("_", " ");
 
-export function TimezoneField({ label, value, onChange }: FieldProps<string>) {
+export function TimezoneField({ id, label, value, onChange, meta }: FieldProps<string>) {
   const [open, setOpen] = useState(false);
   const pick = (zone: string) => {
     onChange(zone);
     setOpen(false);
   };
   return (
-    <FieldShell label={label}>
+    <FieldShell id={id} label={label} meta={meta}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           render={
-            <Button variant="outline" className="w-full justify-between font-normal">
+            <Button id={id} variant="outline" className="w-full justify-between font-normal">
               <span className={cn("truncate", !value && "text-muted-foreground")}>
                 {value ? zoneName(value) : SAME_AS_COMPUTER}
               </span>
@@ -44,7 +44,7 @@ export function TimezoneField({ label, value, onChange }: FieldProps<string>) {
             <CommandList>
               <CommandEmpty>No time zone found.</CommandEmpty>
               <CommandGroup>
-                <CommandItem value="same as this computer" onSelect={() => pick("")}>
+                <CommandItem value={SAME_AS_COMPUTER} onSelect={() => pick("")}>
                   {SAME_AS_COMPUTER}
                   {!value ? <Check data-icon="inline-end" className="ml-auto" /> : null}
                 </CommandItem>

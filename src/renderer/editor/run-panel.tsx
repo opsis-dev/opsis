@@ -47,7 +47,9 @@ export function RunPanel() {
     <div className="grid h-full grid-cols-[minmax(220px,1fr)_2fr_minmax(240px,1.2fr)] grid-rows-[minmax(0,1fr)] divide-x">
       <RunNodeList nodes={nodes} filter={filter} />
       <RunLogs filter={filter} />
-      <RunOutputs nodes={nodes} filterNode={filterNode} projectDir={projectDir} />
+      {projectDir ? (
+        <RunOutputs nodes={nodes} filterNode={filterNode} projectDir={projectDir} />
+      ) : null}
     </div>
   );
 }

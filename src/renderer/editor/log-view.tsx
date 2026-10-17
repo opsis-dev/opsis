@@ -1,8 +1,7 @@
 import { memo } from "react";
 import { cn } from "@/renderer/lib/utils";
 import type { LogLine } from "../store/run";
-
-export const MONO_TEXT = "font-mono text-[11px]";
+import { MONO_TEXT } from "./text-styles";
 
 const LogRow = memo(function LogRow({ line, showTime }: { line: LogLine; showTime: boolean }) {
   return (

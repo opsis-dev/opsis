@@ -13,16 +13,11 @@ import {
 import { Button } from "@/renderer/components/ui/button";
 import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/renderer/components/ui/input-group";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/renderer/components/ui/select";
+import { useItemKeys } from "@/renderer/lib/use-item-keys";
 import { parseNumberText } from "@/shared/format";
-import { trimNumber, unitScale, useDecimalInput } from "./decimal";
+import { round2 } from "@/shared/math";
+import { ChoiceSelect } from "./choice-select";
+import { trimNumber, useDecimalInput } from "./decimal";
 import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 
@@ -34,8 +29,11 @@ type Format = {
   initial: number;
 };
 
-const envelopeSchema = z.record(z.string(), z.array(keyframeSchema).optional()).catch({});
+const envelopeSchema = z.record(z.string(), z.array(keyframeSchema).optional());
 type Envelope = z.infer<typeof envelopeSchema>;
+
+export const isEnvelope = (value: unknown): value is Envelope =>
+  envelopeSchema.safeParse(value).success;
 
 const ENVELOPE_KEYS: readonly string[] = [...VISUAL_ENVELOPES, ...AUDIO_ENVELOPES];
 const isEnvelopeKey = (key: string): key is EnvelopeKey => ENVELOPE_KEYS.includes(key);
@@ -61,12 +59,13 @@ const EASE_LABELS: Record<Ease, string> = {
 const EASE_ITEMS = EASES.map((e) => ({ value: e, label: EASE_LABELS[e] }));
 const easeOf = (v: unknown): Ease | undefined => EASES.find((e) => e === v);
 
-export function EnvelopeField({ label, value, onChange, meta, ctx }: FieldProps<unknown>) {
-  const env = envelopeSchema.parse(value);
-  const props = Object.keys(meta.labels ?? {}).filter(isEnvelopeKey);
+export function EnvelopeField({ label, value: env, onChange, meta, ctx }: FieldProps<Envelope>) {
+  const tracks = Object.entries(meta.labels ?? {}).flatMap(([prop, text]) =>
+    isEnvelopeKey(prop) && text ? [{ prop, text }] : [],
+  );
   const write = (prop: EnvelopeKey, keys: Keyframe[]) => {
     const next: Envelope = { ...env };
-    if (keys.length) next[prop] = keys.toSorted((a, b) => a.frame - b.frame);
+    if (keys.length) next[prop] = keys;
     else delete next[prop];
     onChange(next);
   };
@@ -74,10 +73,10 @@ export function EnvelopeField({ label, value, onChange, meta, ctx }: FieldProps<
     <FieldSet>
       <FieldLegend variant="label">{label}</FieldLegend>
       <Help meta={meta} />
-      {props.map((prop) => (
+      {tracks.map(({ prop, text }) => (
         <EnvelopeTrack
           key={prop}
-          label={meta.labels?.[prop] ?? prop}
+          label={text}
           keys={env[prop] ?? []}
           format={ENVELOPE_FORMAT[prop]}
           fps={ctx.fps}
@@ -101,19 +100,32 @@ function EnvelopeTrack({
   fps: number;
   onChange: (keys: Keyframe[]) => void;
 }) {
+  const rowKeys = useItemKeys(keys.length);
+  const indices = keys.map((_, i) => i);
+  const commit = (next: Keyframe[], origin: number[]) => {
+    const order = next.map((_, j) => j).sort((a, b) => next[a].frame - next[b].frame);
+    rowKeys.reorder(order.map((j) => origin[j]));
+    onChange(order.map((j) => next[j]));
+  };
   const add = () => {
     const last = keys.at(-1);
-    onChange([
-      ...keys,
-      {
-        frame: last ? last.frame + fps : 0,
-        value: last ? last.value : format.initial,
-        ease: "linear",
-      },
-    ]);
+    const added: Keyframe = {
+      frame: last ? last.frame + fps : 0,
+      value: last ? last.value : format.initial,
+      ease: "linear",
+    };
+    commit([...keys, added], [...indices, -1]);
   };
   const updateKey = (i: number, patch: Partial<Keyframe>) =>
-    onChange(keys.map((k, j) => (j === i ? { ...k, ...patch } : k)));
+    commit(
+      keys.map((k, j) => (j === i ? { ...k, ...patch } : k)),
+      indices,
+    );
+  const removeKey = (i: number) =>
+    commit(
+      keys.filter((_, j) => j !== i),
+      indices.filter((j) => j !== i),
+    );
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
@@ -125,12 +137,12 @@ function EnvelopeTrack({
       </div>
       {keys.map((k, i) => (
         <KeyframeRow
-          key={i}
+          key={rowKeys.keys[i] ?? i}
           keyframe={k}
           format={format}
           fps={fps}
           onChange={(patch) => updateKey(i, patch)}
-          onRemove={() => onChange(keys.filter((_, j) => j !== i))}
+          onRemove={() => removeKey(i)}
         />
       ))}
     </div>
@@ -150,56 +162,48 @@ function KeyframeRow({
   onChange: (patch: Partial<Keyframe>) => void;
   onRemove: () => void;
 }) {
-  const time = unitScale("frames", fps);
-  const at = useDecimalInput(trimNumber(keyframe.frame / time.factor), {
-    onCommit: (text) => {
-      const n = parseNumberText(text);
-      if (n !== null) onChange({ frame: Math.max(0, Math.round(n * time.factor)) });
-    },
+  const at = useDecimalInput(trimNumber(keyframe.frame / fps), "blur", (text) => {
+    const n = parseNumberText(text);
+    if (n !== null) onChange({ frame: Math.max(0, Math.round(n * fps)) });
   });
   const amount = useDecimalInput(
-    trimNumber(Math.round(format.toShown(keyframe.value) * 100) / 100),
-    {
-      onCommit: (text) => {
-        const n = parseNumberText(text);
-        if (n !== null) onChange({ value: format.fromShown(n) });
-      },
+    trimNumber(round2(format.toShown(keyframe.value))),
+    "blur",
+    (text) => {
+      const n = parseNumberText(text);
+      if (n !== null) onChange({ value: format.fromShown(n) });
     },
   );
   return (
     <div className="grid grid-cols-[1fr_1fr_1.3fr_auto] items-center gap-1">
       <InputGroup className="h-7">
         <InputGroupInput className="text-right tabular-nums" aria-label="At" {...at} />
-        <InputGroupAddon align="inline-end">{time.unit}</InputGroupAddon>
+        <InputGroupAddon align="inline-end">s</InputGroupAddon>
       </InputGroup>
       <InputGroup className="h-7">
         <InputGroupInput className="text-right tabular-nums" aria-label="Value" {...amount} />
         {format.unit ? <InputGroupAddon align="inline-end">{format.unit}</InputGroupAddon> : null}
       </InputGroup>
-      <Select
-        items={EASE_ITEMS}
-        value={keyframe.ease}
-        onValueChange={(v) => {
-          const ease = easeOf(v);
-          if (ease) onChange({ ease });
-        }}
-      >
-        <SelectTrigger size="sm" className="h-7 text-xs" aria-label="Easing">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {EASE_ITEMS.map((e) => (
-              <SelectItem key={e.value} value={e.value}>
-                {e.label}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      <EaseSelect ease={keyframe.ease} onChange={(ease) => onChange({ ease })} />
       <Button variant="ghost" size="icon-xs" aria-label="Remove keyframe" onClick={onRemove}>
         <X />
       </Button>
     </div>
+  );
+}
+
+function EaseSelect({ ease, onChange }: { ease: Ease; onChange: (ease: Ease) => void }) {
+  return (
+    <ChoiceSelect
+      groups={[EASE_ITEMS]}
+      value={ease}
+      onChange={(v) => {
+        const picked = easeOf(v);
+        if (picked) onChange(picked);
+      }}
+      size="sm"
+      className="h-7 text-xs"
+      aria-label="Easing"
+    />
   );
 }

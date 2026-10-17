@@ -11,7 +11,7 @@ import {
 import { isEditingElement } from "@/renderer/lib/dom";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { isRecord, tryParseJson } from "@/shared/guards";
+import { tryParseJson } from "@/shared/guards";
 
 const CLIPBOARD_TAG = "demoflow/v1";
 const PASTE_OFFSET = { x: 60, y: 60 };
@@ -39,11 +39,15 @@ function pasteSubgraph({ nodes, edges }: Subgraph): void {
   useUiStore.getState().setSelected(ids);
 }
 
-function taggedPayload(text: string): unknown {
-  const parsed = tryParseJson(text);
-  return parsed.ok && isRecord(parsed.value) && parsed.value.tag === CLIPBOARD_TAG
-    ? parsed.value
-    : null;
+function readClipboard(text: string): Subgraph | "foreign" | "unreadable" {
+  const json = tryParseJson(text);
+  if (!json.ok) return "foreign";
+  const parsed = clipboardSchema.safeParse(json.value);
+  if (parsed.success) return parsed.data;
+  const tagged = parsed.error.issues.every(
+    (issue) => issue.path.length > 0 && issue.path[0] !== "tag",
+  );
+  return tagged ? "unreadable" : "foreign";
 }
 
 async function copySelection(): Promise<void> {
@@ -64,16 +68,15 @@ async function pasteClipboard(): Promise<void> {
     toast.error("Couldn't read the clipboard", { description: errorMessage(e) });
     return;
   }
-  const payload = taggedPayload(text);
-  if (!payload) return;
-  const parsed = clipboardSchema.safeParse(payload);
-  if (!parsed.success) {
+  const pasted = readClipboard(text);
+  if (pasted === "foreign") return;
+  if (pasted === "unreadable") {
     toast.error("Couldn't paste the copied nodes", {
       description: "The clipboard holds nodes this project can't read.",
     });
     return;
   }
-  pasteSubgraph(parsed.data);
+  pasteSubgraph(pasted);
 }
 
 function duplicateSelection(): void {

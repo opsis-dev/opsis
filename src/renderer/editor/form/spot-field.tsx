@@ -1,53 +1,61 @@
-import { useMemo, useRef, type PointerEvent } from "react";
-import { round3 } from "@/shared/math";
-import { FieldShell } from "./field-shell";
-import type { FieldProps } from "./types";
+import { useRef, type PointerEvent } from "react";
+import { spotYKey } from "@/shared/elements/introspect";
+import { clamp01, numberOr, round3 } from "@/shared/math";
 import { fractionIn } from "@/renderer/lib/dom";
+import { FieldShell } from "./field-shell";
+import { SpotFrame } from "./spot-frame";
+import type { FieldProps } from "./types";
 
-const yKeyOf = (xKey: string) => (xKey === "x" ? "y" : xKey.replace(/X$/, "Y"));
+const NUDGES: Partial<Record<string, [number, number]>> = {
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+};
+const NUDGE_STEP = 0.01;
+const SHIFT_NUDGE_STEP = 0.1;
 
 export function SpotField({ label, name, all, onPatch, ctx, meta }: FieldProps<number>) {
-  const yKey = yKeyOf(name);
-  const x = Number(all[name] ?? 0.5);
-  const y = Number(all[yKey] ?? 0.5);
+  const yKey = spotYKey(name);
+  const x = numberOr(all[name], 0.5);
+  const y = numberOr(all[yKey], 0.5);
   const box = useRef<HTMLDivElement>(null);
-  const time = Number(all.atMs ?? 0);
-  const bg = ctx.spotBackground;
-  const set = (e: PointerEvent) => {
+  const place = (nextX: number, nextY: number) =>
+    onPatch({ [name]: round3(clamp01(nextX)), [yKey]: round3(clamp01(nextY)) });
+  const placeAt = (e: PointerEvent) => {
     const r = box.current?.getBoundingClientRect();
     if (!r) return;
     const at = fractionIn(r, e.clientX, e.clientY);
-    onPatch({ [name]: round3(at.x), [yKey]: round3(at.y) });
+    place(at.x, at.y);
   };
-  const src = useMemo(() => (bg ? `${bg.src}#t=${(time || bg.timeMs) / 1000}` : null), [bg, time]);
   return (
     <FieldShell label={label} meta={meta}>
-      <div
+      <SpotFrame
         ref={box}
+        ctx={ctx}
+        timeMs={numberOr(all.atMs, 0)}
         role="button"
         tabIndex={0}
         aria-label={`${label}: ${Math.round(x * 100)} %, ${Math.round(y * 100)} %`}
-        className="bg-muted relative w-full cursor-crosshair overflow-hidden rounded-md border"
-        style={{ aspectRatio: String(ctx.aspect) }}
+        className="cursor-crosshair"
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
-          set(e);
+          placeAt(e);
         }}
-        onPointerMove={(e) => e.buttons === 1 && set(e)}
+        onPointerMove={(e) => e.buttons === 1 && placeAt(e)}
+        onKeyDown={(e) => {
+          const nudge = NUDGES[e.key];
+          if (!nudge) return;
+          e.preventDefault();
+          const step = e.shiftKey ? SHIFT_NUDGE_STEP : NUDGE_STEP;
+          place(x + nudge[0] * step, y + nudge[1] * step);
+        }}
       >
-        {src ? (
-          <video
-            src={src}
-            muted
-            preload="auto"
-            className="pointer-events-none absolute inset-0 size-full object-cover"
-          />
-        ) : null}
         <span
           className="border-background bg-primary pointer-events-none absolute size-3 -translate-1/2 rounded-full border-2 shadow"
           style={{ left: `${x * 100}%`, top: `${y * 100}%` }}
         />
-      </div>
+      </SpotFrame>
     </FieldShell>
   );
 }

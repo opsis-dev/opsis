@@ -31,7 +31,7 @@ import { tidyLayout } from "./layout";
 import { LiveToggle } from "./live-pip";
 import { PANEL_SIDES, togglePanel, usePanels, type PanelSide } from "./panels";
 import { revealOutputs } from "./reveal";
-import { cancelRun, startRun } from "./run";
+import { startRun } from "./run";
 import { TooltipButton } from "./tooltip-button";
 
 const PANEL_ICONS: Record<PanelSide, LucideIcon> = {
@@ -115,7 +115,7 @@ function RunControls() {
           Running
         </TextShimmer>
       </span>
-      <Button size="sm" variant="outline" onClick={() => void cancelRun()}>
+      <Button size="sm" variant="outline" onClick={() => void window.demoflow.cancelRun()}>
         <Square data-icon="inline-start" />
         Stop
       </Button>

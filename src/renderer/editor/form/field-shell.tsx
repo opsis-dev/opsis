@@ -27,7 +27,7 @@ export function FieldShell({
   );
 }
 
-export type Choice = { value: string; label: string; disabled?: boolean };
+type Choice = { value: string; label: string; disabled?: boolean };
 
 export function ChoiceGroup({
   label,
@@ -61,5 +61,34 @@ export function ChoiceGroup({
         ))}
       </ToggleGroup>
     </FieldShell>
+  );
+}
+
+type LabelledOption<T> = { label: string; value: T; disabled?: boolean };
+
+export function LabelledChoices<T>({
+  label,
+  meta,
+  options,
+  current,
+  onPick,
+}: {
+  label: string;
+  meta?: FieldMeta;
+  options: ReadonlyArray<LabelledOption<T>>;
+  current: string;
+  onPick: (value: T) => void;
+}) {
+  return (
+    <ChoiceGroup
+      label={label}
+      meta={meta}
+      choices={options.map((o) => ({ value: o.label, label: o.label, disabled: o.disabled }))}
+      value={[current]}
+      onChange={(v) => {
+        const hit = options.find((o) => o.label === v[0]);
+        if (hit && !hit.disabled) onPick(hit.value);
+      }}
+    />
   );
 }

@@ -4,7 +4,7 @@ import { CANVAS_MODES, type CanvasMode } from "@/shared/settings";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
-import { isOneOf } from "@/renderer/lib/one-of";
+import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { patchAppSettings } from "../store/app-settings";
 import { useViewOptions } from "../store/view-options";
 
@@ -18,9 +18,10 @@ export function CanvasToolbar({ mode }: { mode: CanvasMode }) {
       <ToggleGroup
         size="sm"
         value={[mode]}
-        onValueChange={(v) =>
-          isOneOf(CANVAS_MODES, v[0]) && void patchAppSettings({ editor: { canvasMode: v[0] } })
-        }
+        onValueChange={whenFirstOneOf(
+          CANVAS_MODES,
+          (canvasMode) => void patchAppSettings({ editor: { canvasMode } }),
+        )}
       >
         <Tooltip>
           <TooltipTrigger render={<ToggleGroupItem value="mouse" aria-label="Mouse" />}>

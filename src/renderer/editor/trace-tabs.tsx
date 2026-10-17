@@ -4,6 +4,7 @@ import type { TraceAction, TraceConsole, TraceModel } from "@/shared/trace";
 import { formatBytes, formatDuration } from "@/shared/format";
 import { Badge } from "@/renderer/components/ui/badge";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -13,7 +14,7 @@ import {
   TableRow,
 } from "@/renderer/components/ui/table";
 import { cn } from "@/renderer/lib/utils";
-import { MONO_TEXT } from "./log-view";
+import { MONO_TEXT } from "./text-styles";
 
 const LEVEL_VARIANTS: Record<TraceConsole["level"], "destructive" | "secondary" | "outline"> = {
   error: "destructive",
@@ -22,6 +23,8 @@ const LEVEL_VARIANTS: Record<TraceConsole["level"], "destructive" | "secondary" 
   info: "outline",
   debug: "outline",
 };
+
+type TraceTabProps = { trace: TraceModel; action: TraceAction | undefined };
 
 const within = (time: number, action: TraceAction | undefined) =>
   !!action && time >= action.start && time <= action.end;
@@ -33,7 +36,7 @@ function TabScroll({ children, className }: { children: ReactNode; className?: s
   return <ScrollArea className={cn("h-48 rounded-md", className)}>{children}</ScrollArea>;
 }
 
-export function CallTab({ action }: { action: TraceAction | undefined }) {
+function CallTab({ action }: { action: TraceAction | undefined }) {
   return (
     <TabScroll className="bg-muted/40">
       <div className={cn(MONO_TEXT, "flex flex-col gap-1 p-2 leading-relaxed")}>
@@ -51,13 +54,7 @@ export function CallTab({ action }: { action: TraceAction | undefined }) {
   );
 }
 
-export function ConsoleTab({
-  trace,
-  action,
-}: {
-  trace: TraceModel;
-  action: TraceAction | undefined;
-}) {
+function ConsoleTab({ trace, action }: TraceTabProps) {
   const at = traceClock(trace);
   return (
     <TabScroll className="border">
@@ -80,13 +77,7 @@ export function ConsoleTab({
   );
 }
 
-export function NetworkTab({
-  trace,
-  action,
-}: {
-  trace: TraceModel;
-  action: TraceAction | undefined;
-}) {
+function NetworkTab({ trace, action }: TraceTabProps) {
   const at = traceClock(trace);
   return (
     <TabScroll className="border">
@@ -114,7 +105,7 @@ export function NetworkTab({
                   <Badge variant={r.status >= 400 ? "destructive" : "outline"}>{r.status}</Badge>
                 )}
               </TableCell>
-              <TableCell className="max-w-96 truncate font-mono" title={r.url}>
+              <TableCell className={cn(MONO_TEXT, "max-w-96 truncate")} title={r.url}>
                 {r.url}
               </TableCell>
               <TableCell className="text-muted-foreground">
@@ -132,7 +123,7 @@ export function NetworkTab({
   );
 }
 
-export function ErrorsTab({
+function ErrorsTab({
   trace,
   onSelect,
 }: {
@@ -162,5 +153,43 @@ export function ErrorsTab({
         </ol>
       )}
     </TabScroll>
+  );
+}
+
+export function TraceTabs({
+  trace,
+  action,
+  onSelect,
+}: TraceTabProps & { onSelect: (actionId: string) => void }) {
+  const warnings = trace.console.filter((c) => c.level === "error" || c.level === "warning").length;
+  return (
+    <Tabs defaultValue="call" className="shrink-0">
+      <TabsList>
+        <TabsTrigger value="call">Call</TabsTrigger>
+        <TabsTrigger value="console">
+          Console
+          {warnings ? <Badge variant="secondary">{warnings}</Badge> : null}
+        </TabsTrigger>
+        <TabsTrigger value="network">
+          Network <Badge variant="secondary">{trace.network.length}</Badge>
+        </TabsTrigger>
+        <TabsTrigger value="errors">
+          Errors
+          {trace.errors.length ? <Badge variant="destructive">{trace.errors.length}</Badge> : null}
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="call">
+        <CallTab action={action} />
+      </TabsContent>
+      <TabsContent value="console">
+        <ConsoleTab trace={trace} action={action} />
+      </TabsContent>
+      <TabsContent value="network">
+        <NetworkTab trace={trace} action={action} />
+      </TabsContent>
+      <TabsContent value="errors">
+        <ErrorsTab trace={trace} onSelect={onSelect} />
+      </TabsContent>
+    </Tabs>
   );
 }

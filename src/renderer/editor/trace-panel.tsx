@@ -1,4 +1,4 @@
-import { CircleX, Folder, MousePointerClick, type LucideIcon } from "lucide-react";
+import { CircleX, Folder, MousePointerClick } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { errorMessage } from "@/shared/errors";
 import { formatDuration } from "@/shared/format";
@@ -7,16 +7,15 @@ import { Badge } from "@/renderer/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/renderer/components/ui/empty";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { isOneOf } from "@/renderer/lib/one-of";
+import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { cn } from "@/renderer/lib/utils";
 import { useUiStore } from "../store/ui";
 import { fileUrl } from "./file-url";
 import { FrameOverlay } from "./frame-overlay";
 import { ListRow } from "./list-row";
-import { MONO_TEXT } from "./log-view";
-import { CallTab, ConsoleTab, ErrorsTab, NetworkTab, traceClock } from "./trace-tabs";
+import { MONO_TEXT } from "./text-styles";
+import { traceClock, TraceTabs } from "./trace-tabs";
 
 const MOMENTS = ["before", "after"] as const;
 type Moment = (typeof MOMENTS)[number];
@@ -104,23 +103,14 @@ function Screenshot({
   );
 }
 
-const actionIcon = (a: TraceAction): { icon: LucideIcon; className: string } | null =>
-  a.error
-    ? { icon: CircleX, className: "text-destructive" }
-    : a.group
-      ? { icon: Folder, className: "text-muted-foreground" }
-      : a.point
-        ? { icon: MousePointerClick, className: "text-muted-foreground" }
-        : null;
-
 function ActionIcon({ action }: { action: TraceAction }) {
-  const found = actionIcon(action);
-  if (!found) return <span className="size-4 shrink-0" />;
-  const { icon: Icon, className } = found;
-  return <Icon className={className} />;
+  if (action.error) return <CircleX className="text-destructive" />;
+  if (action.group) return <Folder className="text-muted-foreground" />;
+  if (action.point) return <MousePointerClick className="text-muted-foreground" />;
+  return <span className="size-4 shrink-0" />;
 }
 
-function ActionList({
+function TraceActionList({
   trace,
   selected,
   onSelect,
@@ -175,69 +165,55 @@ function pickAction(trace: TraceModel, id: string | undefined): TraceAction | un
   );
 }
 
+function ActionHeader({
+  trace,
+  action,
+  moment,
+  onMoment,
+}: {
+  trace: TraceModel;
+  action: TraceAction | undefined;
+  moment: Moment;
+  onMoment: (moment: Moment) => void;
+}) {
+  const at = traceClock(trace);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">
+        {action?.title ?? trace.label}
+      </span>
+      {action ? (
+        <Badge variant="outline" className="tabular-nums">
+          {at(action.start)} · {formatDuration(action.end - action.start, "precise")}
+        </Badge>
+      ) : null}
+      <ToggleGroup
+        variant="outline"
+        size="sm"
+        value={[moment]}
+        onValueChange={whenFirstOneOf(MOMENTS, onMoment)}
+      >
+        <ToggleGroupItem value="before">Before</ToggleGroupItem>
+        <ToggleGroupItem value="after">After</ToggleGroupItem>
+      </ToggleGroup>
+    </div>
+  );
+}
+
 function TraceDetails({ trace }: { trace: TraceModel }) {
   const [selectedId, setSelectedId] = useState<string>();
   const [moment, setMoment] = useState<Moment>("after");
   const selected = useMemo(() => pickAction(trace, selectedId), [trace, selectedId]);
-  const at = traceClock(trace);
-  const warnings = trace.console.filter((c) => c.level === "error" || c.level === "warning").length;
 
   return (
     <div className="grid h-full min-h-0 grid-cols-[minmax(260px,340px)_1fr] gap-4">
       <ScrollArea className="h-full min-h-0 rounded-md border p-1">
-        <ActionList trace={trace} selected={selected?.id} onSelect={setSelectedId} />
+        <TraceActionList trace={trace} selected={selected?.id} onSelect={setSelectedId} />
       </ScrollArea>
       <div className="flex min-h-0 min-w-0 flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">
-            {selected?.title ?? trace.label}
-          </span>
-          {selected ? (
-            <Badge variant="outline" className="tabular-nums">
-              {at(selected.start)} · {formatDuration(selected.end - selected.start, "precise")}
-            </Badge>
-          ) : null}
-          <ToggleGroup
-            variant="outline"
-            size="sm"
-            value={[moment]}
-            onValueChange={(v) => isOneOf(MOMENTS, v[0]) && setMoment(v[0])}
-          >
-            <ToggleGroupItem value="before">Before</ToggleGroupItem>
-            <ToggleGroupItem value="after">After</ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+        <ActionHeader trace={trace} action={selected} moment={moment} onMoment={setMoment} />
         <Screenshot trace={trace} action={selected} moment={moment} />
-        <Tabs defaultValue="call" className="shrink-0">
-          <TabsList>
-            <TabsTrigger value="call">Call</TabsTrigger>
-            <TabsTrigger value="console">
-              Console
-              {warnings ? <Badge variant="secondary">{warnings}</Badge> : null}
-            </TabsTrigger>
-            <TabsTrigger value="network">
-              Network <Badge variant="secondary">{trace.network.length}</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="errors">
-              Errors
-              {trace.errors.length ? (
-                <Badge variant="destructive">{trace.errors.length}</Badge>
-              ) : null}
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="call">
-            <CallTab action={selected} />
-          </TabsContent>
-          <TabsContent value="console">
-            <ConsoleTab trace={trace} action={selected} />
-          </TabsContent>
-          <TabsContent value="network">
-            <NetworkTab trace={trace} action={selected} />
-          </TabsContent>
-          <TabsContent value="errors">
-            <ErrorsTab trace={trace} onSelect={setSelectedId} />
-          </TabsContent>
-        </Tabs>
+        <TraceTabs trace={trace} action={selected} onSelect={setSelectedId} />
       </div>
     </div>
   );

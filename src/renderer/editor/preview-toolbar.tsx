@@ -13,7 +13,8 @@ import {
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
-import { isPreviewQuality, isPreviewShape, useViewOptions } from "../store/view-options";
+import { whenFirstOneOf, whenOneOf } from "@/renderer/lib/one-of";
+import { PREVIEW_QUALITIES, PREVIEW_SHAPES, useViewOptions } from "../store/view-options";
 import { framesToMs } from "@/shared/timeline/time";
 
 const PROJECT_SHAPE = "Project shape";
@@ -37,7 +38,7 @@ function ShapeSelect() {
   const shape = useViewOptions((s) => s.previewShape);
   const setShape = useViewOptions((s) => s.setPreviewShape);
   return (
-    <Select value={shape} onValueChange={(v) => isPreviewShape(v) && setShape(v)}>
+    <Select value={shape} onValueChange={whenOneOf(PREVIEW_SHAPES, setShape)}>
       <SelectTrigger size="sm" className="w-32" aria-label="Preview shape">
         <SelectValue>{shapeLabel}</SelectValue>
       </SelectTrigger>
@@ -63,7 +64,7 @@ function QualityToggle() {
       variant="outline"
       size="sm"
       value={[quality]}
-      onValueChange={(v) => isPreviewQuality(v[0]) && setQuality(v[0])}
+      onValueChange={whenFirstOneOf(PREVIEW_QUALITIES, setQuality)}
     >
       <Tooltip>
         <TooltipTrigger render={<ToggleGroupItem value="fast" />}>Fast</TooltipTrigger>

@@ -52,6 +52,7 @@ export const sessionNode = defineNode({
         description: "Window width",
         step: 10,
         unit: "px",
+        presetsLabel: "Size",
         presets: [
           { label: "1280 × 720", values: { viewportWidth: 1280, viewportHeight: 720 } },
           { label: "1440 × 900", values: { viewportWidth: 1440, viewportHeight: 900 } },

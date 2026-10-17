@@ -3,11 +3,11 @@ import { VARIANTS } from "@/shared/nodes/output";
 import { isOneOf } from "@/renderer/lib/one-of";
 import { readPref, writePref } from "./view-prefs";
 
-const PREVIEW_QUALITIES = ["fast", "exact"] as const;
+export const PREVIEW_QUALITIES = ["fast", "exact"] as const;
 export type PreviewQuality = (typeof PREVIEW_QUALITIES)[number];
 export const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PREVIEW_QUALITIES, v);
 
-const PREVIEW_SHAPES = ["project", ...VARIANTS] as const;
+export const PREVIEW_SHAPES = ["project", ...VARIANTS] as const;
 export type PreviewShape = (typeof PREVIEW_SHAPES)[number];
 export const isPreviewShape = (v: unknown): v is PreviewShape => isOneOf(PREVIEW_SHAPES, v);
 

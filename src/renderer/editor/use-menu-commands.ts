@@ -6,16 +6,24 @@ import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { tidyLayout } from "./layout";
 import { DOCK_PANELS, focusPanel, PANEL_SIDES, togglePanel } from "./panels";
-import { cancelRun, startRun } from "./run";
+import { startRun } from "./run";
 import { saveWithToast } from "./save";
 import { onMenuCommand } from "@/renderer/app/menu-commands";
 
-const MENU_ACTIONS: Partial<Record<MenuCommand, () => void>> = {
+type MenuActions = Partial<Record<MenuCommand, () => void>>;
+
+const actionsFor = <T>(
+  items: readonly T[],
+  command: (item: T) => MenuCommand,
+  run: (item: T) => void,
+): MenuActions => Object.fromEntries(items.map((item) => [command(item), () => run(item)]));
+
+const MENU_ACTIONS: MenuActions = {
   "edit:undo": () => useWorkflowStore.temporal.getState().undo(),
   "edit:redo": () => useWorkflowStore.temporal.getState().redo(),
   "project:save": () => void saveWithToast().then((ok) => ok && toast.success("Saved")),
   "run:start": () => void startRun(),
-  "run:cancel": () => void cancelRun(),
+  "run:cancel": () => void window.demoflow.cancelRun(),
   "edit:group": () => useWorkflowStore.getState().groupNodes(useUiStore.getState().selectedIds),
   "edit:layout": () => void tidyLayout(),
   "edit:add-node": () => useUiStore.getState().setPaletteOpen(true),
@@ -23,12 +31,8 @@ const MENU_ACTIONS: Partial<Record<MenuCommand, () => void>> = {
     const view = useViewOptions.getState();
     view.setMinimap(!view.minimap);
   },
-  ...Object.fromEntries(
-    PANEL_SIDES.map((side) => [`view:toggle-${side}`, () => togglePanel(side)]),
-  ),
-  ...Object.fromEntries(
-    DOCK_PANELS.map((panel) => [`view:focus-${panel}`, () => focusPanel(panel)]),
-  ),
+  ...actionsFor(PANEL_SIDES, (side) => `view:toggle-${side}`, togglePanel),
+  ...actionsFor(DOCK_PANELS, (panel) => `view:focus-${panel}`, focusPanel),
 };
 
 export function useMenuCommands(): void {

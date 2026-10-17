@@ -2,10 +2,15 @@ import type { ComponentProps } from "react";
 import { ResizablePanel } from "@/renderer/components/ui/resizable";
 import { panelRef, usePanels, type PanelSide } from "./panels";
 
-const PANEL_LAYOUT: Record<PanelSide, { collapsedPx: number; openAbovePx: number }> = {
-  left: { collapsedPx: 44, openAbovePx: 60 },
-  bottom: { collapsedPx: 37, openAbovePx: 48 },
-  right: { collapsedPx: 0, openAbovePx: 8 },
+const CATEGORY_RAIL_PX = 44;
+const DOCK_TAB_BAR_PX = 36;
+const BORDER_PX = 1;
+const OPEN_SLACK_PX = 12;
+
+const COLLAPSED_PX: Record<PanelSide, number> = {
+  left: CATEGORY_RAIL_PX,
+  bottom: DOCK_TAB_BAR_PX + BORDER_PX,
+  right: 0,
 };
 
 export function SidePanel({
@@ -15,7 +20,7 @@ export function SidePanel({
   ComponentProps<typeof ResizablePanel>,
   "id" | "className" | "style" | "panelRef" | "collapsible" | "collapsedSize" | "onResize"
 >) {
-  const { collapsedPx, openAbovePx } = PANEL_LAYOUT[side];
+  const collapsedPx = COLLAPSED_PX[side];
   return (
     <ResizablePanel
       id={side}
@@ -24,7 +29,9 @@ export function SidePanel({
       panelRef={panelRef(side)}
       collapsible
       collapsedSize={`${collapsedPx}px`}
-      onResize={(size) => usePanels.getState().setOpen(side, size.inPixels > openAbovePx)}
+      onResize={(size) =>
+        usePanels.getState().setOpen(side, size.inPixels > collapsedPx + OPEN_SLACK_PX)
+      }
       {...props}
     />
   );

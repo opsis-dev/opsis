@@ -1,9 +1,10 @@
 import { X } from "lucide-react";
-import { useMemo } from "react";
+import type { PointerEvent } from "react";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { cn } from "@/renderer/lib/utils";
+import { SpotFrame } from "./spot-frame";
 import type { FieldProps } from "./types";
-import { boxListSchema, useBoxDrag, type Box } from "./use-box-drag";
+import { useBoxDrag, type Box } from "./use-box-drag";
 
 const MAX_BOXES = 8;
 
@@ -14,56 +15,63 @@ const boxStyle = (b: Box) => ({
   height: `${b.height * 100}%`,
 });
 
-export function BoxesField({ label, value, onChange, ctx, meta }: FieldProps<unknown>) {
-  const boxes = boxListSchema.parse(value);
+function BoxOverlay({
+  box,
+  number,
+  onGrab,
+  onRemove,
+}: {
+  box: Box;
+  number: number;
+  onGrab: (e: PointerEvent) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div
+      className="border-primary bg-primary/25 absolute cursor-move border-2"
+      style={boxStyle(box)}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        onGrab(e);
+      }}
+    >
+      <button
+        type="button"
+        aria-label={`Remove area ${number}`}
+        className="bg-background text-foreground absolute -top-2 -right-2 grid size-4 place-items-center rounded-full border"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={onRemove}
+      >
+        <X className="size-3" />
+      </button>
+    </div>
+  );
+}
+
+export function BoxesField({ label, value: boxes, onChange, ctx, meta }: FieldProps<Box[]>) {
   const { area, draft, shown, start, move, end } = useBoxDrag(boxes, onChange);
-  const bg = ctx.spotBackground;
-  const src = useMemo(() => (bg ? `${bg.src}#t=${bg.timeMs / 1000}` : null), [bg]);
   const full = boxes.length >= MAX_BOXES;
 
   return (
     <Field>
       <FieldLabel>{label}</FieldLabel>
-      <div
+      <SpotFrame
         ref={area}
-        className={cn(
-          "bg-muted relative w-full touch-none overflow-hidden rounded-md border select-none",
-          full ? "cursor-default" : "cursor-crosshair",
-        )}
-        style={{ aspectRatio: String(ctx.aspect) }}
-        onPointerDown={(e) => !full && start(e, "new", boxes.length)}
+        ctx={ctx}
+        className={cn("touch-none select-none", full ? "cursor-default" : "cursor-crosshair")}
+        onPointerDown={(e) => !full && start(e, { mode: "new" })}
         onPointerMove={move}
         onPointerUp={end}
         onPointerCancel={end}
       >
-        {src ? (
-          <video
-            src={src}
-            muted
-            preload="auto"
-            className="pointer-events-none absolute inset-0 size-full object-cover"
-          />
-        ) : null}
         {shown.map((b, i) => (
-          <div
+          <BoxOverlay
             key={i}
-            className="border-primary bg-primary/25 absolute cursor-move border-2"
-            style={boxStyle(b)}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              start(e, "move", i);
-            }}
-          >
-            <button
-              type="button"
-              aria-label={`Remove area ${i + 1}`}
-              className="bg-background text-foreground absolute -top-2 -right-2 grid size-4 place-items-center rounded-full border"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => onChange(boxes.filter((_, j) => j !== i))}
-            >
-              <X className="size-3" />
-            </button>
-          </div>
+            box={b}
+            number={i + 1}
+            onGrab={(e) => start(e, { mode: "move", index: i })}
+            onRemove={() => onChange(boxes.filter((_, j) => j !== i))}
+          />
         ))}
         {draft?.mode === "new" ? (
           <div
@@ -71,7 +79,7 @@ export function BoxesField({ label, value, onChange, ctx, meta }: FieldProps<unk
             style={boxStyle(draft.box)}
           />
         ) : null}
-      </div>
+      </SpotFrame>
       <FieldDescription>
         {full
           ? `Up to ${MAX_BOXES} areas. Remove one to add another.`

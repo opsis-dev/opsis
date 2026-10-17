@@ -19,11 +19,11 @@ import {
 } from "@/renderer/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
-import { Slider } from "@/renderer/components/ui/slider";
+import { SingleSlider } from "../single-slider";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { Switch } from "@/renderer/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { isOneOf } from "@/renderer/lib/one-of";
+import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { patchAppSettings } from "../../store/app-settings";
 import { useFreshEnvironment } from "../../store/environment";
 import { FolderField } from "../folder-field";
@@ -60,9 +60,10 @@ export function GeneralPage({ settings }: { settings: AppSettings }) {
               variant="outline"
               size="sm"
               value={[settings.app.onStart]}
-              onValueChange={(v) =>
-                isOneOf(START_OPTIONS, v[0]) && void patchAppSettings({ app: { onStart: v[0] } })
-              }
+              onValueChange={whenFirstOneOf(
+                START_OPTIONS,
+                (onStart) => void patchAppSettings({ app: { onStart } }),
+              )}
             >
               {ON_START.map(([value, label]) => (
                 <ToggleGroupItem key={value} value={value}>
@@ -187,10 +188,10 @@ function TracesCard({ traces }: { traces: AppSettings["traces"] }) {
               variant="outline"
               size="sm"
               value={[traces.retention]}
-              onValueChange={(v) =>
-                isOneOf(TRACE_RETENTION, v[0]) &&
-                void patchAppSettings({ traces: { retention: v[0] } })
-              }
+              onValueChange={whenFirstOneOf(
+                TRACE_RETENTION,
+                (retention) => void patchAppSettings({ traces: { retention } }),
+              )}
             >
               {RETENTION.map(([value, label]) => (
                 <ToggleGroupItem key={value} value={value}>
@@ -234,14 +235,12 @@ function LiveViewCard({ live }: { live: AppSettings["live"] }) {
               <FieldLabel>Preview frame rate</FieldLabel>
               <span className="text-muted-foreground text-sm tabular-nums">{live.fps} fps</span>
             </div>
-            <Slider
+            <SingleSlider
               min={1}
               max={30}
               step={1}
-              value={[live.fps]}
-              onValueChange={(v) =>
-                void patchAppSettings({ live: { fps: Array.isArray(v) ? v[0] : v } })
-              }
+              value={live.fps}
+              onChange={(fps) => void patchAppSettings({ live: { fps } })}
             />
             <FieldDescription>
               Only affects the live view; recordings always use the Record node's frame rate.

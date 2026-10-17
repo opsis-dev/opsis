@@ -17,20 +17,20 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/renderer/components/ui/empty";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
-import { isOneOf } from "@/renderer/lib/one-of";
+import { whenOneOf } from "@/renderer/lib/one-of";
 import { cn } from "@/renderer/lib/utils";
 import { useRunStore } from "../store/run";
 import { REPLAY_TABS, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
 import { ListRow } from "./list-row";
-import { MONO_TEXT } from "./log-view";
+import { MONO_TEXT } from "./text-styles";
 import { revealProjectFile } from "./reveal";
 import { TracePanel } from "./trace-panel";
 
 type ReplayAction = ActionLog["actions"][number];
 
-function ActionList({
+function ReplayActionList({
   actions,
   activeIndex,
   onPick,
@@ -146,7 +146,7 @@ function ReplayFootage({
           </div>
         ) : null}
       </div>
-      <ActionList
+      <ReplayActionList
         actions={actions}
         activeIndex={activeIndex}
         onPick={(a) => {
@@ -192,11 +192,7 @@ function ReplayContent({ nodeId }: { nodeId: string }) {
         </DialogDescription>
       </DialogHeader>
       {traceId && projectDir ? (
-        <Tabs
-          value={tab}
-          onValueChange={(v) => isOneOf(REPLAY_TABS, v) && setTab(v)}
-          className="min-h-0 flex-1"
-        >
+        <Tabs value={tab} onValueChange={whenOneOf(REPLAY_TABS, setTab)} className="min-h-0 flex-1">
           <TabsList>
             <TabsTrigger value="replay">Replay</TabsTrigger>
             <TabsTrigger value="trace">Trace</TabsTrigger>
@@ -219,7 +215,7 @@ export function ReplayDialog() {
   return (
     <Dialog open={!!nodeId} onOpenChange={(open) => !open && setReplay(null)}>
       <DialogContent className="flex h-[94vh] w-[94vw] max-w-[94vw] flex-col gap-4 sm:max-w-[94vw]">
-        <ReplayContent key={nodeId} nodeId={nodeId ?? ""} />
+        {nodeId ? <ReplayContent key={nodeId} nodeId={nodeId} /> : null}
       </DialogContent>
     </Dialog>
   );

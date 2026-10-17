@@ -4,6 +4,7 @@ import { Button } from "@/renderer/components/ui/button";
 import { Kbd } from "@/renderer/components/ui/kbd";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
+import { whenOneOf } from "@/renderer/lib/one-of";
 import { commandShortcut } from "../app/app-bar";
 import { useWorkflowStore } from "../store/workflow";
 import { MixerPanel } from "./mixer/mixer-panel";
@@ -11,7 +12,6 @@ import {
   DOCK_PANELS,
   DOCK_TITLES,
   focusPanel,
-  isDockPanel,
   openPanel,
   showPanel,
   togglePanel,
@@ -36,107 +36,107 @@ export function DockContent({ panel }: { panel: DockPanel }) {
   }
 }
 
-function markPopped(popped: Record<DockPanel, boolean>): void {
+function markPopped(popped: readonly DockPanel[]): void {
   const { setPopped, active, setActive } = usePanels.getState();
   setPopped(popped);
-  if (!popped[active]) return;
-  const next = DOCK_PANELS.find((p) => !popped[p]);
+  if (!popped.includes(active)) return;
+  const next = DOCK_PANELS.find((p) => !popped.includes(p));
   if (next) setActive(next);
 }
 
 function popOut(panel: DockPanel): void {
   const dir = useWorkflowStore.getState().projectDir;
   if (!dir) return;
-  markPopped({ ...usePanels.getState().popped, [panel]: true });
+  markPopped([...usePanels.getState().popped, panel]);
   void window.demoflow.openPanelWindow(panel, dir);
 }
 
-const syncPopped = (list: DockPanel[]) =>
-  markPopped({
-    preview: list.includes("preview"),
-    timeline: list.includes("timeline"),
-    mixer: list.includes("mixer"),
-    run: list.includes("run"),
-  });
-
 function DockTab({ panel, popped }: { panel: DockPanel; popped: boolean }) {
-  if (popped)
-    return (
-      <Tooltip>
-        <TooltipTrigger
-          render={
+  const title = DOCK_TITLES[panel];
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          popped ? (
             <button
               type="button"
               className="text-muted-foreground hover:text-foreground flex h-full items-center gap-1 px-2 text-sm"
               onClick={() => focusPanel(panel)}
             />
-          }
-        >
-          {DOCK_TITLES[panel]}
-          <SquareArrowOutUpRight className="size-3" />
-        </TooltipTrigger>
-        <TooltipContent>
-          Open in its own window. Close that window to bring it back here.
-        </TooltipContent>
-      </Tooltip>
-    );
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <TabsTrigger value={panel} className="flex-none" onClick={() => openPanel("bottom")} />
+          ) : (
+            <TabsTrigger value={panel} className="flex-none" onClick={() => openPanel("bottom")} />
+          )
         }
       >
-        {DOCK_TITLES[panel]}
+        {title}
+        {popped ? <SquareArrowOutUpRight className="size-3" /> : null}
       </TooltipTrigger>
       <TooltipContent>
-        {DOCK_TITLES[panel]} <Kbd>{commandShortcut(`view:focus-${panel}`)}</Kbd>
+        {popped ? (
+          "Open in its own window. Close that window to bring it back here."
+        ) : (
+          <>
+            {title} <Kbd>{commandShortcut(`view:focus-${panel}`)}</Kbd>
+          </>
+        )}
       </TooltipContent>
     </Tooltip>
   );
 }
 
-export function BottomDock() {
+function DockTabStrip({
+  popped,
+  current,
+}: {
+  popped: readonly DockPanel[];
+  current: DockPanel | null;
+}) {
   const open = usePanels((s) => s.open.bottom);
+  return (
+    <div className="flex h-9 shrink-0 items-center gap-1 border-b pr-1">
+      <TabsList variant="line" className="h-9 flex-1 justify-start px-2">
+        {DOCK_PANELS.map((panel) => (
+          <DockTab key={panel} panel={panel} popped={popped.includes(panel)} />
+        ))}
+      </TabsList>
+      {current ? (
+        <TooltipButton
+          label={`Open ${DOCK_TITLES[current].toLowerCase()} in a new window`}
+          icon={SquareArrowOutUpRight}
+          size="icon-xs"
+          onClick={() => popOut(current)}
+        />
+      ) : null}
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        aria-label={open ? "Hide the bottom panel" : "Show the bottom panel"}
+        onClick={() => togglePanel("bottom")}
+      >
+        {open ? <ChevronDown /> : <ChevronUp />}
+      </Button>
+    </div>
+  );
+}
+
+export function BottomDock() {
   const active = usePanels((s) => s.active);
   const popped = usePanels((s) => s.popped);
-  const docked = DOCK_PANELS.filter((p) => !popped[p]);
+  const docked = DOCK_PANELS.filter((p) => !popped.includes(p));
   const current: DockPanel | null = docked.includes(active) ? active : (docked[0] ?? null);
 
   useEffect(() => {
-    void window.demoflow.listPanelWindows().then(syncPopped);
-    return window.demoflow.onPanelWindows(syncPopped);
+    void window.demoflow.listPanelWindows().then(markPopped);
+    return window.demoflow.onPanelWindows(markPopped);
   }, []);
 
   return (
     <Tabs
       value={current ?? active}
-      onValueChange={(v) => isDockPanel(v) && showPanel(v)}
+      onValueChange={whenOneOf(DOCK_PANELS, showPanel)}
       className="flex h-full flex-col gap-0"
     >
-      <div className="flex h-9 shrink-0 items-center gap-1 border-b pr-1">
-        <TabsList variant="line" className="h-9 flex-1 justify-start px-2">
-          {DOCK_PANELS.map((panel) => (
-            <DockTab key={panel} panel={panel} popped={popped[panel]} />
-          ))}
-        </TabsList>
-        {current ? (
-          <TooltipButton
-            label={`Open ${DOCK_TITLES[current].toLowerCase()} in a new window`}
-            icon={SquareArrowOutUpRight}
-            size="icon-xs"
-            onClick={() => popOut(current)}
-          />
-        ) : null}
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          aria-label={open ? "Hide the bottom panel" : "Show the bottom panel"}
-          onClick={() => togglePanel("bottom")}
-        >
-          {open ? <ChevronDown /> : <ChevronUp />}
-        </Button>
-      </div>
+      <DockTabStrip popped={popped} current={current} />
       {current ? null : (
         <div className="text-muted-foreground grid flex-1 place-items-center text-sm">
           Every tab is open in its own window.

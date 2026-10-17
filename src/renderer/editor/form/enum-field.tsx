@@ -1,12 +1,5 @@
 import type { FieldMeta } from "@/shared/elements/introspect";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/renderer/components/ui/select";
+import { ChoiceSelect } from "./choice-select";
 import { ChoiceGroup, FieldShell } from "./field-shell";
 
 const SHORT_OPTIONS = 4;
@@ -21,6 +14,7 @@ export function EnumField({
   format = (v: string) => v,
   meta,
   forceSelect,
+  noneLabel,
 }: {
   id: string;
   label: string;
@@ -30,10 +24,12 @@ export function EnumField({
   format?: (v: string) => string;
   meta: FieldMeta;
   forceSelect?: boolean;
+  noneLabel?: string;
 }) {
   const choices = options.map((o) => ({ value: o, label: format(o) }));
   const short =
     !forceSelect &&
+    !noneLabel &&
     options.length <= SHORT_OPTIONS &&
     choices.reduce((n, c) => n + c.label.length, 0) <= SHORT_TEXT;
   if (short)
@@ -48,20 +44,14 @@ export function EnumField({
     );
   return (
     <FieldShell id={id} label={label} meta={meta}>
-      <Select items={choices} value={value} onValueChange={(v) => v != null && onChange(String(v))}>
-        <SelectTrigger id={id} className="w-full">
-          <SelectValue placeholder="Choose…" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {choices.map((c) => (
-              <SelectItem key={c.value} value={c.value}>
-                {c.label}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      <ChoiceSelect
+        id={id}
+        groups={[choices]}
+        value={value}
+        onChange={onChange}
+        noneLabel={noneLabel}
+        placeholder="Choose…"
+      />
     </FieldShell>
   );
 }

@@ -1,11 +1,13 @@
+import { useMemo } from "react";
 import { toast } from "sonner";
 import { PROJECT_NAME_VAR, workflowVars } from "@/shared/compile/compile";
-import { hasWidget } from "@/shared/elements/introspect";
+import { hasWidget, targetRoleKey } from "@/shared/elements/introspect";
 import { errorMessage } from "@/shared/errors";
 import { downstreamOf, sessionChain, upstreamOf } from "@/shared/graph";
-import { ACTION_NODE_TYPES } from "@/shared/nodes/browser";
+import { ACTION_NODE_TYPES, navigateNode, sessionNode } from "@/shared/nodes/browser";
+import { recordNode, stillNode } from "@/shared/nodes/capture";
 import type { NodeDef } from "@/shared/nodes/define";
-import { defaultParams, nodeName } from "@/shared/nodes/registry";
+import { nodeName } from "@/shared/nodes/registry";
 import type { NodeResult } from "@/shared/schema/values";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { interpolate } from "@/shared/vars";
@@ -18,7 +20,8 @@ import type { VarInfo } from "./var-text";
 
 const SITE_VAR = "Site address";
 const NO_PAGE = "Add a Go to page action before this one, so there's a page to pick from.";
-const CAPTURE_TYPES = new Set(["capture.record", "capture.still"]);
+const CAPTURE_TYPES = new Set([recordNode.type, stillNode.type]);
+const viewportParams = sessionNode.params.pick({ viewportWidth: true, viewportHeight: true });
 const LAYER_PORT = /^in\d$/;
 
 type PickerPage = { url: string; viewport?: { width: number; height: number } };
@@ -56,19 +59,18 @@ function captureChain(wf: Workflow, nodeId: string): { chain: WorkflowNode[]; pr
 }
 
 function viewportOf(chain: WorkflowNode[]): PickerPage["viewport"] {
-  const session = chain.find((n) => n.type === "browser.session");
-  if (!session) return undefined;
-  const size = { ...defaultParams(session.type), ...session.params };
-  const width = Number(size.viewportWidth);
-  const height = Number(size.viewportHeight);
-  return width > 0 && height > 0 ? { width, height } : undefined;
+  const session = chain.find((n) => n.type === sessionNode.type);
+  const size = session ? viewportParams.safeParse(session.params) : null;
+  return size?.success
+    ? { width: size.data.viewportWidth, height: size.data.viewportHeight }
+    : undefined;
 }
 
 function pickerPage(wf: Workflow, nodeId: string): PickerPage | { problem: string } {
   const { chain, problem } = captureChain(wf, nodeId);
   const idx = chain.findIndex((n) => n.id === nodeId);
   const before = idx >= 0 ? chain.slice(0, idx + 1) : chain;
-  const navUrl = before.toReversed().find((n) => n.type === "browser.navigate")?.params.url;
+  const navUrl = before.toReversed().find((n) => n.type === navigateNode.type)?.params.url;
   const url =
     (typeof navUrl === "string" ? navUrl : undefined) ??
     wf.variables[SITE_VAR] ??
@@ -88,9 +90,10 @@ async function pickTarget(wf: Workflow, nodeId: string, key: string) {
   try {
     const picked = await window.demoflow.pickElement(page);
     if (!picked) return;
-    useWorkflowStore
-      .getState()
-      .updateParams(nodeId, { [key]: picked.target, [`${key}Role`]: picked.role || undefined });
+    useWorkflowStore.getState().updateParams(nodeId, {
+      [key]: picked.target,
+      [targetRoleKey(key)]: picked.role || undefined,
+    });
     toast.success(`Picked “${picked.target}”`);
   } catch (e) {
     toast.error("Couldn't pick the element", { description: errorMessage(e) });
@@ -107,6 +110,27 @@ export function useFormContext(workflow: Workflow, nodeId: string, def: NodeDef)
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const secrets = useSecretsStore((s) => s.names);
   const results = useRunStore((s) => s.results);
+  return useMemo(
+    () => formContext({ workflow, nodeId, def, projectDir, secrets, results }),
+    [workflow, nodeId, def, projectDir, secrets, results],
+  );
+}
+
+function formContext({
+  workflow,
+  nodeId,
+  def,
+  projectDir,
+  secrets,
+  results,
+}: {
+  workflow: Workflow;
+  nodeId: string;
+  def: NodeDef;
+  projectDir: string | null;
+  secrets: string[] | null;
+  results: Partial<Record<string, NodeResult>>;
+}): FormContext {
   const layers = workflow.edges.filter(
     (e) => e.target === nodeId && LAYER_PORT.test(e.targetHandle),
   ).length;

@@ -12,7 +12,6 @@ type RunTargets = Pick<RunRequest, "targetNodeIds" | "fromNodeId">;
 const NO_PROJECT = "No project is open.";
 
 export async function beginRun(opts: RunTargets = {}): Promise<string> {
-  if (!useWorkflowStore.getState().workflow) throw new Error(NO_PROJECT);
   if (!(await save())) throw new Error("Choose which version of the project to keep first.");
   const { projectDir, workflow } = useWorkflowStore.getState();
   if (!projectDir || !workflow) throw new Error(NO_PROJECT);
@@ -32,5 +31,3 @@ export async function startRun(opts: RunTargets = {}): Promise<void> {
     });
   }
 }
-
-export const cancelRun = () => window.demoflow.cancelRun();

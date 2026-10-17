@@ -18,7 +18,7 @@ import { workflowSettingsSchema, type Workflow, type WorkflowNode } from "@/shar
 import { setEditorApi } from "../app/api-host";
 import { useRunStore } from "../store/run";
 import { useWorkflowStore } from "../store/workflow";
-import { beginRun, cancelRun } from "./run";
+import { beginRun } from "./run";
 import { save } from "./save";
 
 type Op = ApiEditorRequest["op"];
@@ -58,13 +58,13 @@ function nextPosition(nodes: WorkflowNode[]): { x: number; y: number } {
 }
 
 function applyNodePatch(node: WorkflowNode, patch: RequestOf<"updateNode">): WorkflowNode {
-  const { label, ...rest } = node;
-  const next: WorkflowNode = { ...rest };
-  if (patch.label === undefined) {
-    if (label !== undefined) next.label = label;
-  } else if (patch.label) next.label = patch.label;
+  const next: WorkflowNode = { ...node };
+  const clearsLabel = patch.label === null || patch.label === "";
+  if (clearsLabel) delete next.label;
+  else if (patch.label) next.label = patch.label;
   if (patch.position) next.position = patch.position;
-  if (patch.disabled !== undefined) next.disabled = patch.disabled || undefined;
+  if (patch.disabled === false) delete next.disabled;
+  else if (patch.disabled) next.disabled = true;
   if (patch.params) next.params = { ...node.params, ...patch.params };
   return next;
 }
@@ -146,9 +146,11 @@ const run: Handler<"run"> = async (request) => {
   }
 };
 
+const readProject = (_request: unknown, wf: Workflow) => read(wf);
+
 const HANDLERS: { [O in Op]: Handler<O> } = {
-  open: (_request, wf) => read(wf),
-  read: (_request, wf) => read(wf),
+  open: readProject,
+  read: readProject,
   replace: (request) => {
     useWorkflowStore.getState().update(() => request.workflow);
     return edited();
@@ -181,7 +183,7 @@ const HANDLERS: { [O in Op]: Handler<O> } = {
       : apiFailure(409, "The project file changed on disk. Choose a version in the editor first."),
   run,
   stop: async () => {
-    await cancelRun();
+    await window.demoflow.cancelRun();
     return apiOk(runState());
   },
 };

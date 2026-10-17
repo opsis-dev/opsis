@@ -2,10 +2,37 @@ import type { z } from "zod";
 
 type FieldPreset = { label: string; values: Record<string, unknown> };
 
+export const FIELD_WIDGETS = [
+  "action",
+  "asset",
+  "backdrop",
+  "boxes",
+  "code",
+  "color",
+  "datetime",
+  "envelope",
+  "font",
+  "keys",
+  "loudness",
+  "multiselect",
+  "offsets",
+  "quality",
+  "secret",
+  "sound",
+  "spot",
+  "target",
+  "textarea",
+  "timezone",
+  "transition",
+  "variable",
+] as const;
+
+export type FieldWidget = (typeof FIELD_WIDGETS)[number];
+
 export type FieldMeta = {
   description?: string;
   help?: string;
-  widget?: string;
+  widget?: FieldWidget;
   step?: number;
   unit?: string;
   accept?: string;
@@ -14,6 +41,7 @@ export type FieldMeta = {
   labels?: Partial<Record<string, string>>;
   zeroLabel?: string;
   presets?: FieldPreset[];
+  presetsLabel?: string;
   pauses?: boolean;
   showIf?: Record<string, string[]>;
 };
@@ -45,14 +73,19 @@ export function unwrap(schema: z.ZodType): z.ZodType {
   return cur;
 }
 
-export const widgetKeys = (schema: z.ZodObject, widget: string): string[] =>
+export const targetRoleKey = (targetKey: string): string => `${targetKey}Role`;
+
+export const spotYKey = (spotXKey: string): string =>
+  spotXKey === "x" ? "y" : spotXKey.replace(/X$/, "Y");
+
+export const widgetKeys = (schema: z.ZodObject, widget: FieldWidget): string[] =>
   Object.entries(schema.shape)
     .filter(([, s]) => fieldMeta(s).widget === widget)
     .map(([k]) => k);
 
 export const assetKeys = (schema: z.ZodObject): string[] => widgetKeys(schema, "asset");
 
-export const hasWidget = (schema: z.ZodObject, widget: string): boolean =>
+export const hasWidget = (schema: z.ZodObject, widget: FieldWidget): boolean =>
   widgetKeys(schema, widget).length > 0;
 
 export function schemaDefaults(schema: z.ZodObject): Record<string, unknown> {
