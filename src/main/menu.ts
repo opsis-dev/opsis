@@ -1,8 +1,9 @@
-import { app, Menu, type BrowserWindow, type MenuItemConstructorOptions } from "electron";
+import { app, Menu, type MenuItemConstructorOptions } from "electron";
 import { IPC } from "../shared/ipc";
 import { appMenu } from "../shared/menu";
+import { getMainWindow } from "./app-windows";
 
-export function buildMenu(getWindow: () => BrowserWindow | null): void {
+export function buildMenu(): void {
   if (process.platform !== "darwin") {
     Menu.setApplicationMenu(null);
     return;
@@ -20,7 +21,7 @@ export function buildMenu(getWindow: () => BrowserWindow | null): void {
       return {
         label: item.label,
         accelerator: item.accelerator,
-        click: () => getWindow()?.webContents.send(IPC.menu, item.command),
+        click: () => getMainWindow()?.webContents.send(IPC.menu, item.command),
       };
     }),
   }));

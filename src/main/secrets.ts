@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { safeStorage } from "electron";
+import { nullIfMissing } from "../engine/json";
 import { secretFileName } from "../shared/secrets";
 
 const SECRETS_DIR = "secrets";
@@ -33,17 +34,16 @@ export async function writeSecret(projectDir: string, name: string, value: strin
 }
 
 export async function listSecrets(projectDir: string): Promise<string[]> {
-  const dir = secretsDir(projectDir);
-  if (!existsSync(dir)) return [];
-  return (await readdir(dir))
+  const names = (await nullIfMissing(readdir(secretsDir(projectDir)))) ?? [];
+  return names
     .filter((f) => f.endsWith(SECRET_EXT))
     .map((f) => f.slice(0, -SECRET_EXT.length))
     .sort();
 }
 
 export async function readSecret(projectDir: string, name: string): Promise<string | null> {
-  const file = fileFor(projectDir, name);
-  if (!existsSync(file)) return null;
+  const encrypted = await nullIfMissing(readFile(fileFor(projectDir, name)));
+  if (encrypted === null) return null;
   requireEncryption();
-  return safeStorage.decryptString(await readFile(file));
+  return safeStorage.decryptString(encrypted);
 }

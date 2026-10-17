@@ -11,6 +11,7 @@ import { apiRunEvent } from "./api-editor";
 import { getApiStatus } from "./api";
 import { broadcast, focusMainWindow, getMainWindow, isTrusted, windowState } from "./app-windows";
 import { pickInWindow } from "./browser-windows";
+import { environment, installEngine } from "./engine-setup";
 import { track } from "./exit";
 import {
   addInspectedFonts,
@@ -48,7 +49,7 @@ import { patchSettings, readSettings } from "./settings";
 import { openSettingsWindow } from "./settings-window";
 import { listStills, requestStill } from "./stills";
 import { runWindowRole } from "./window-roles";
-import { activeRun, cancelRun, environment, installEngine, startRun } from "./workers";
+import { activeRun, cancelRun, startRun } from "./workers";
 import { findById } from "../shared/lists";
 
 type InvokeHandlers = {
@@ -95,6 +96,12 @@ async function startWorkflowRun(request: RunRequest) {
   return { runId };
 }
 
+function runStatus() {
+  const run = activeRun();
+  const runId = run?.runId ?? null;
+  return { runId, projectDir: run?.projectDir ?? null, progress: runProgressFor(runId) };
+}
+
 async function useFontInProject(dir: string, fontId: string) {
   const def = findById(await listLibrary(), fontId);
   if (!def) throw new Error("That font isn't in your library any more.");
@@ -126,14 +133,7 @@ const HANDLERS: InvokeHandlers = {
   revealInFolder: plain(revealInFolder),
   runWorkflow: plain(startWorkflowRun),
   cancelRun: plain(cancelRun),
-  runStatus: () => {
-    const run = activeRun();
-    return {
-      runId: run?.runId ?? null,
-      projectDir: run?.projectDir ?? null,
-      progress: runProgressFor(run?.runId ?? null),
-    };
-  },
+  runStatus: plain(runStatus),
   pickElement: (_event, request) => pickInWindow(getMainWindow(), request),
   getEnvironment: plain(environment),
   installEngine: () =>

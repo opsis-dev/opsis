@@ -12,11 +12,13 @@ import { broadcast } from "./app-windows";
 import { onSettingsChange, readSettings } from "./settings";
 
 const OWNER_ONLY_UMASK = 0o077;
+const OWNER_ONLY_MODE = 0o600;
+const USES_SOCKET_FILE = process.platform !== "win32";
 
 const apiAddress = () =>
-  process.platform === "win32"
-    ? `\\\\.\\pipe\\demoflow-api-${userInfo().username}`
-    : path.join(app.getPath("userData"), "api.sock");
+  USES_SOCKET_FILE
+    ? path.join(app.getPath("userData"), "api.sock")
+    : `\\\\.\\pipe\\demoflow-api-${userInfo().username}`;
 
 let server: Server | null = null;
 let status: ApiStatus | null = null;
@@ -41,13 +43,13 @@ function inUse(address: string): Promise<boolean> {
 }
 
 async function removeSocket(address: string): Promise<void> {
-  if (process.platform !== "win32") await rm(address, { force: true });
+  if (USES_SOCKET_FILE) await rm(address, { force: true });
 }
 
 function listenOwnerOnly(next: Server, address: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     next.once("error", reject);
-    const umask = process.platform === "win32" ? null : process.umask(OWNER_ONLY_UMASK);
+    const umask = USES_SOCKET_FILE ? process.umask(OWNER_ONLY_UMASK) : null;
     try {
       next.listen(address, () => {
         next.off("error", reject);
@@ -59,7 +61,7 @@ function listenOwnerOnly(next: Server, address: string): Promise<void> {
   });
 }
 
-export async function setApiEnabled(enabled: boolean): Promise<void> {
+async function setApiEnabled(enabled: boolean): Promise<void> {
   const address = apiAddress();
   if (!enabled) {
     await stopServer();
@@ -80,7 +82,7 @@ export async function setApiEnabled(enabled: boolean): Promise<void> {
   const next = createServer((req, res) => void handleApiRequest(req, res));
   try {
     await listenOwnerOnly(next, address);
-    if (process.platform !== "win32") await chmod(address, 0o600);
+    if (USES_SOCKET_FILE) await chmod(address, OWNER_ONLY_MODE);
     server = next;
     setStatus({ enabled: true, listening: true, address });
   } catch (e) {

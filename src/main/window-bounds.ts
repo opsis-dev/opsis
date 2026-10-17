@@ -15,7 +15,7 @@ export const rectangleSchema = z.object({
   height: z.number(),
 });
 
-export function isVisible(rect: Rectangle): boolean {
+function isVisible(rect: Rectangle): boolean {
   return screen.getAllDisplays().some(({ workArea: area }) => {
     const overlapsAcross =
       rect.x < area.x + area.width - MIN_VISIBLE_PX &&
@@ -25,6 +25,9 @@ export function isVisible(rect: Rectangle): boolean {
     return overlapsAcross && titleBarReachable;
   });
 }
+
+export const visibleBounds = (rect: Rectangle | null | undefined): Rectangle | undefined =>
+  rect && isVisible(rect) ? rect : undefined;
 
 export function boundsStore<T>(name: string, schema: z.ZodType<T>) {
   const file = () => path.join(app.getPath("userData"), name);

@@ -5,8 +5,8 @@ import { z } from "zod";
 import { pruneDir } from "../engine/dir";
 import { sha256Hex } from "../engine/hash";
 import { readJson, writeJson } from "../engine/json";
+import { logError } from "../engine/log";
 import { engineStatus } from "../engine/paths";
-import { errorMessage } from "../shared/errors";
 import { IPC, type StillRequest, type StillResult } from "../shared/ipc";
 import { oneAtATime } from "../shared/timing";
 import { getMainWindow } from "./app-windows";
@@ -25,12 +25,12 @@ const stillPath = (projectDir: string, hash: string) =>
 
 type Job = StillRequest & { hash: string };
 
-const reportFailure = (job: Job, error: string) =>
-  process.stderr.write(`[stills] ${job.nodeId}: ${error}\n`);
+const reportFailure = (job: Job, error: unknown) => logError("stills", error, job.nodeId);
 
 const stills = createQueuedWorker<string | undefined, Job>({
   kind: "stills",
   idleMs: 60_000,
+  keyOf: (job) => JSON.stringify([job.projectDir, job.nodeId]),
   reply: (msg) => (msg.type === "still:done" ? { id: msg.id, result: msg.error } : null),
   stopped: "The preview worker stopped.",
   holdWhile: isRunning,
@@ -51,7 +51,7 @@ const stills = createQueuedWorker<string | undefined, Job>({
     if (error) reportFailure(job, error);
     else await remember(job.projectDir, job.nodeId, job.hash);
   },
-  failed: (job, error) => reportFailure(job, errorMessage(error)),
+  failed: reportFailure,
 });
 
 const oneIndexWriteAtATime = oneAtATime();
@@ -83,15 +83,7 @@ export async function requestStill(request: StillRequest): Promise<StillResult> 
     return { hash, ready: true };
   }
   if (!engineStatus(engineDir()).complete) return { hash, ready: false, unavailable: true };
-  const { jobs } = stills;
-  const existing = jobs.findIndex(
-    (j) => j.projectDir === request.projectDir && j.nodeId === request.nodeId,
-  );
-  if (existing !== -1) jobs.splice(existing, 1);
-  const job = { ...request, hash };
-  if (request.priority) jobs.unshift(job);
-  else jobs.push(job);
-  stills.pump();
+  stills.enqueue({ ...request, hash }, { first: request.priority });
   return { hash, ready: false };
 }
 

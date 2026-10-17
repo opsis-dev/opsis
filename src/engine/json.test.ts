@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { readJson, readJsonKeepingBroken, writeJson } from "./json";
+import { nullIfMissing, readJson, readJsonKeepingBroken, writeJson } from "./json";
 
 const made: string[] = [];
 const schema = z.object({ n: z.number() });
@@ -39,5 +39,16 @@ describe("reading JSON files", () => {
     expect(await readJsonKeepingBroken(file, schema)).toBeNull();
     expect(existsSync(file)).toBe(false);
     expect(existsSync(`${file}.broken`)).toBe(true);
+  });
+});
+
+describe("nullIfMissing", () => {
+  it("turns a missing file or folder into null and passes other results and errors through", async () => {
+    const file = await tempFile();
+    expect(await nullIfMissing(readdir(file))).toBeNull();
+    expect(await nullIfMissing(readdir(path.dirname(file)))).toEqual([]);
+    await writeFile(file, "x");
+    expect(await nullIfMissing(readdir(path.join(file, "inside")))).toBeNull();
+    await expect(nullIfMissing(Promise.reject(new Error("denied")))).rejects.toThrow("denied");
   });
 });

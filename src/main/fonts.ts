@@ -56,11 +56,8 @@ type Pending = {
   source: FontFamilyDef["source"];
 };
 
-type FontTables = Pick<Font, "familyName" | "getName"> & {
-  subfamilyName?: string;
-  variationAxes?: Font["variationAxes"];
-  "OS/2"?: { usWeightClass?: number; fsSelection?: { italic?: boolean } };
-};
+type FontTables = Pick<Font, "familyName" | "getName"> &
+  Partial<Pick<Font, "subfamilyName" | "variationAxes" | "OS/2">>;
 
 const librarySchema = z.object({ families: z.array(z.unknown()) });
 
@@ -86,7 +83,7 @@ async function saveLibrary(families: FontFamilyDef[]): Promise<void> {
 function openFont(bytes: Uint8Array): FontTables | null {
   try {
     const opened = create(Buffer.from(bytes));
-    return "familyName" in opened ? opened : null;
+    return "fonts" in opened ? null : opened;
   } catch {
     return null;
   }

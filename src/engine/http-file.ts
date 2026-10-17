@@ -2,7 +2,7 @@ import { createReadStream, type ReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { isInside } from "./project-paths";
-import { isMissingFile } from "./json";
+import { nullIfMissing } from "./json";
 import { IMAGE_MIME } from "../shared/mime";
 import { withoutLeadingSlashes } from "../shared/asset-ref";
 
@@ -71,10 +71,7 @@ type FileReply =
   | { status: 200 | 206; headers: Record<string, string>; open: () => ReadStream };
 
 export async function fileReply(file: string, rangeHeader?: string | null): Promise<FileReply> {
-  const info = await stat(file).catch((error: unknown) => {
-    if (isMissingFile(error)) return null;
-    throw error;
-  });
+  const info = await nullIfMissing(stat(file));
   if (!info?.isFile()) return { status: 404 };
   const headers = {
     "Content-Type": mimeType(file),

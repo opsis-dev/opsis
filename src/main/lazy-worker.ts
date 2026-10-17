@@ -76,6 +76,7 @@ function createLazyWorker<R>(options: LazyWorkerOptions<R>): LazyWorker<R> {
 const HOLD_POLL_MS = 2000;
 
 type QueuedWorkerOptions<R, J> = LazyWorkerOptions<R> & {
+  keyOf: (job: J) => string;
   run: (job: J, request: LazyWorker<R>["request"]) => Promise<void>;
   failed: (job: J, error: unknown) => void;
   holdWhile?: () => boolean;
@@ -110,5 +111,16 @@ export function createQueuedWorker<R, J>(options: QueuedWorkerOptions<R, J>) {
     }
   };
 
-  return { jobs, pump: () => void pump(), stop: worker.stop };
+  const queued = (key: string): J | undefined => jobs.find((j) => options.keyOf(j) === key);
+
+  const enqueue = (job: J, { first }: { first: boolean }): void => {
+    const key = options.keyOf(job);
+    const existing = jobs.findIndex((j) => options.keyOf(j) === key);
+    if (existing !== -1) jobs.splice(existing, 1);
+    if (first) jobs.unshift(job);
+    else jobs.push(job);
+    void pump();
+  };
+
+  return { queued, enqueue, stop: worker.stop };
 }

@@ -10,6 +10,7 @@ type Job = { request: AnalysisRequest; key: string; done: Array<(r: AnalysisResu
 const analysis = createQueuedWorker<AnalysisResult, Job>({
   kind: "analysis",
   idleMs: 90_000,
+  keyOf: (job) => job.key,
   reply: (msg) => (msg.type === "analysis:done" ? { id: msg.id, result: msg.result } : null),
   stopped: { kind: "error", error: "The sound worker stopped." },
   run: async (job, request) => {
@@ -33,9 +34,8 @@ export function analyze(request: AnalysisRequest): Promise<AnalysisResult> {
   if (!engineStatus(engineDir()).ffmpeg)
     return Promise.resolve({ kind: "error", error: ENGINE_MISSING_MESSAGE, engineMissing: true });
   const key = keyOf(request);
-  const { jobs } = analysis;
   return new Promise((resolve) => {
-    const existing = jobs.find((j) => j.key === key);
+    const existing = analysis.queued(key);
     if (existing && request.kind === "mix") {
       for (const done of existing.done) done({ kind: "skipped" });
       existing.request = request;
@@ -46,10 +46,7 @@ export function analyze(request: AnalysisRequest): Promise<AnalysisResult> {
       existing.done.push(resolve);
       return;
     }
-    const job: Job = { request, key, done: [resolve] };
-    if (request.kind === "mix") jobs.unshift(job);
-    else jobs.push(job);
-    analysis.pump();
+    analysis.enqueue({ request, key, done: [resolve] }, { first: request.kind === "mix" });
   });
 }
 

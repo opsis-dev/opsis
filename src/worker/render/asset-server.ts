@@ -1,11 +1,10 @@
 import { createServer, type Server } from "node:http";
 import { fileReply, resolveInside } from "../../engine/http-file";
-import { errorMessage } from "../../shared/errors";
+import { logError } from "../../engine/log";
 
 export type AssetServer = { url: string; close: () => Promise<void> };
 
-const logFailure = (asked: string, error: unknown) =>
-  process.stderr.write(`[assets] ${asked}: ${errorMessage(error)}\n`);
+const logFailure = (asked: string, error: unknown) => logError("assets", error, asked);
 
 export async function startAssetServer(root: string): Promise<AssetServer> {
   const server: Server = createServer(async (req, res) => {

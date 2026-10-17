@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
 import path from "node:path";
 import {
   app,
@@ -9,10 +8,8 @@ import {
   type MessagePortMain,
   type UtilityProcess,
 } from "electron";
-import { engineStatus, resolveEngineDir } from "../engine/paths";
-import { completeEngineLicences, shippedCreditsCandidates } from "../engine/licences";
-import type { EngineInstallEvent } from "../shared/engine";
-import type { EnvStatus, RunRequest } from "../shared/ipc";
+import { resolveEngineDir } from "../engine/paths";
+import type { RunRequest } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
 import type { MainToWorker, WorkerEnv, WorkerReply, WorkerToMain } from "../shared/worker-protocol";
 import { loginInWindow } from "./browser-windows";
@@ -175,74 +172,15 @@ export async function startRun(
   }
 }
 
+const KILL_CANCELLED_RUN_AFTER_MS = 4000;
+
 export function cancelRun(): void {
   const run = active;
   if (!run) return;
   run.control.postMessage({ type: "cancel" } satisfies MainToWorker);
   setTimeout(() => {
     if (active?.runId === run.runId) run.child.kill();
-  }, 4000);
+  }, KILL_CANCELLED_RUN_AFTER_MS);
 }
 
 export const isRunning = () => active !== null;
-
-function edition(): EnvStatus["edition"] {
-  if (!app.isPackaged) return "dev";
-  return existsSync(path.join(process.resourcesPath, "engine")) ? "full" : "lite";
-}
-
-export function environment(): EnvStatus {
-  return {
-    platform: process.platform,
-    arch: process.arch,
-    isPackaged: app.isPackaged,
-    edition: edition(),
-    userData: app.getPath("userData"),
-    versions: {
-      electron: process.versions.electron,
-      chrome: process.versions.chrome,
-      node: process.versions.node,
-      app: app.getVersion(),
-    },
-    engine: engineStatus(engineDir()),
-  };
-}
-
-export async function completeLicences(): Promise<void> {
-  const root = app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), "resources");
-  try {
-    const result = await completeEngineLicences(engineDir(), shippedCreditsCandidates([root]));
-    if (result === "missing")
-      process.stderr.write("[licences] the recording browser's licence file is missing\n");
-  } catch (error) {
-    process.stderr.write(`[licences] ${errorMessage(error)}\n`);
-  }
-}
-
-export async function installEngine(onEvent: (e: EngineInstallEvent) => void): Promise<void> {
-  const env = await workerEnv();
-  await new Promise<void>((resolve, reject) => {
-    const { child, control } = spawnWorker("setup");
-    let installed = false;
-    onWorkerMessage(control, (msg) => {
-      if (msg.type === "install:progress") onEvent(msg.event);
-      if (msg.type === "install:done") {
-        installed = true;
-        onEvent({
-          part: "headless-shell",
-          step: "done",
-          progress: msg.error ? null : 1,
-          message: msg.error ?? "Engine ready",
-          done: true,
-          error: msg.error,
-        });
-        if (msg.error) reject(new Error(msg.error));
-        else void completeLicences().then(resolve);
-      }
-    });
-    child.on("exit", (code) => {
-      if (!installed) reject(new Error(`Setting up the engine stopped unexpectedly (${code}).`));
-    });
-    control.postMessage({ type: "install-engine", env } satisfies MainToWorker);
-  });
-}

@@ -9,7 +9,7 @@ import {
   type SettingsPatch,
 } from "../shared/settings";
 import { readJsonKeepingBroken, writeJson } from "../engine/json";
-import { errorMessage } from "../shared/errors";
+import { logError } from "../engine/log";
 import { oneAtATime } from "../shared/timing";
 
 const file = () => path.join(app.getPath("userData"), "settings.json");
@@ -28,7 +28,7 @@ async function storedSettings(): Promise<AppSettings | null> {
   try {
     return await readJsonKeepingBroken(file(), appSettingsSchema);
   } catch (error) {
-    process.stderr.write(`[settings] ${errorMessage(error)}\n`);
+    logError("settings", error);
     return null;
   }
 }

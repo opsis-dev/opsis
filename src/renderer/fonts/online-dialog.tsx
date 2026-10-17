@@ -124,7 +124,11 @@ export function OnlineDialog({
   const download = (entry: FontCatalogEntry) =>
     run(entry.id, async () => {
       const def = await window.demoflow.downloadFont(entry.id);
-      toast.success(`Added ${def.family}`);
+      if (def.licenseFile) toast.success(`Added ${def.family}`);
+      else
+        toast.warning(`Added ${def.family}, but its licence file didn't download`, {
+          description: "Check that you're allowed to use this font in videos.",
+        });
       await onAdded();
     });
 

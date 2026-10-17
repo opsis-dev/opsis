@@ -5,17 +5,20 @@ import { parseJsonWith } from "../shared/guards";
 
 const MISSING_CODES = new Set(["ENOENT", "ENOTDIR"]);
 
-export const isMissingFile = (error: unknown): boolean =>
+const isMissingFile = (error: unknown): boolean =>
   error instanceof Error && "code" in error && MISSING_CODES.has(String(error.code));
 
-export async function readTextIfPresent(file: string): Promise<string | null> {
+export async function nullIfMissing<T>(work: Promise<T>): Promise<T | null> {
   try {
-    return await readFile(file, "utf8");
+    return await work;
   } catch (error) {
     if (isMissingFile(error)) return null;
     throw error;
   }
 }
+
+export const readTextIfPresent = (file: string): Promise<string | null> =>
+  nullIfMissing(readFile(file, "utf8"));
 
 type Read<T> = { kind: "missing" } | { kind: "invalid" } | { kind: "valid"; value: T };
 

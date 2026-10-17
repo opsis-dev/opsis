@@ -5,11 +5,11 @@ import type { WindowOptions } from "./app-windows";
 import { raiseWindow } from "./raise-window";
 import {
   boundsStore,
-  isVisible,
   liveWindow,
   rectangleSchema,
   rememberBounds,
   requireHost,
+  visibleBounds,
 } from "./window-bounds";
 
 type PanelWindowHost = {
@@ -70,9 +70,8 @@ export async function openPanelWindow(panel: DockPanelName, projectDir: string):
     raiseWindow(existing);
     return;
   }
-  const saved = (await panelBounds())[panel];
   const size = DEFAULT_SIZE[panel];
-  const rect = saved && isVisible(saved) ? saved : undefined;
+  const rect = visibleBounds((await panelBounds())[panel]);
   const win = create({ ...size, ...rect, title: `${DOCK_TITLES[panel]} — Demoflow` });
   windows.set(panel, win);
   rememberBounds(win, (next) => savePanelBounds(panel, next));

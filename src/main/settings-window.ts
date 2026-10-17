@@ -4,11 +4,11 @@ import type { WindowOptions } from "./app-windows";
 import { raiseWindow } from "./raise-window";
 import {
   boundsStore,
-  isVisible,
   liveWindow,
   rectangleSchema,
   rememberBounds,
   requireHost,
+  visibleBounds,
 } from "./window-bounds";
 
 type SettingsWindowHost = {
@@ -20,11 +20,6 @@ const store = boundsStore<Rectangle>("settings-window.json", rectangleSchema);
 
 let host: SettingsWindowHost | null = null;
 let win: BrowserWindow | null = null;
-
-async function savedBounds(): Promise<Rectangle | undefined> {
-  const rect = await store.load();
-  return rect && isVisible(rect) ? rect : undefined;
-}
 
 export function initSettingsWindow(next: SettingsWindowHost): void {
   host = next;
@@ -48,7 +43,7 @@ export async function openSettingsWindow(page?: SettingsPage): Promise<void> {
     height: 720,
     minWidth: 720,
     minHeight: 480,
-    ...(await savedBounds()),
+    ...visibleBounds(await store.load()),
     title: "Settings — Demoflow",
   });
   win = created;

@@ -1,5 +1,6 @@
 import { BrowserWindow, session as electronSession } from "electron";
 import { z } from "zod";
+import { logError } from "../engine/log";
 import { parseJsonWith } from "../shared/guards";
 import { PICKED_BY, type PickRequest, type PickResult } from "../shared/ipc";
 import type { LoginRequest } from "../shared/worker-protocol";
@@ -9,6 +10,8 @@ import { pickerScript } from "./picker-script";
 const PICK_PREFIX = "__demoflow_pick__:";
 const PICKER_SCRIPT = pickerScript(PICK_PREFIX);
 const SELECTOR_POLL_MS = 500;
+
+const localStorageSchema = z.array(z.tuple([z.string(), z.string()]));
 
 const pickResultSchema = z.object({
   target: z.string(),
@@ -65,18 +68,19 @@ export function pickInWindow(parent: BrowserWindow | null, req: PickRequest): Pr
 }
 
 async function readLocalStorage(win: BrowserWindow, origins: LocalStorageByOrigin): Promise<void> {
+  if (win.isDestroyed()) return;
+  const url = URL.parse(win.webContents.getURL());
+  if (!url || !/^https?:$/.test(url.protocol)) return;
   try {
-    const url = new URL(win.webContents.getURL());
-    if (!/^https?:$/.test(url.protocol)) return;
-    const entries: Array<[string, string]> = await win.webContents.executeJavaScript(
-      "Object.entries(localStorage)",
+    const entries = localStorageSchema.parse(
+      await win.webContents.executeJavaScript("Object.entries(localStorage)"),
     );
     origins.set(
       url.origin,
       entries.map(([name, value]) => ({ name, value })),
     );
-  } catch {
-    return;
+  } catch (error) {
+    if (!win.isDestroyed()) logError("login", error, `reading local storage of ${url.origin}`);
   }
 }
 

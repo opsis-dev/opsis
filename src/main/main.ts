@@ -13,6 +13,7 @@ import {
   rendererDir,
   rendererUrl,
 } from "./app-windows";
+import { completeLicences } from "./engine-setup";
 import { interceptQuit, registerExitIpc } from "./exit";
 import { fontsDir } from "./fonts";
 import { currentProjectDir, registerIpc } from "./ipc-handlers";
@@ -23,7 +24,7 @@ import { onSettingsChange } from "./settings";
 import { initSettingsWindow } from "./settings-window";
 import { stopStills } from "./stills";
 import { clearStaleWorkerTemps } from "./worker-temp";
-import { cancelRun, completeLicences, workerTempRoot } from "./workers";
+import { cancelRun, workerTempRoot } from "./workers";
 
 if (started) app.quit();
 
@@ -48,7 +49,7 @@ app.whenReady().then(() => {
   onSettingsChange((settings) => broadcast(IPC.settingsChanged, settings));
   followApiSetting();
   void completeLicences();
-  buildMenu(getMainWindow);
+  buildMenu();
   createMainWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();

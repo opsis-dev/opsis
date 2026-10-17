@@ -1,8 +1,9 @@
 import { existsSync, watch, type FSWatcher } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { app, type BrowserWindow } from "electron";
+import { app, type BrowserWindow, type OpenDialogOptions } from "electron";
 import { z } from "zod";
+import { parseJsonWith } from "../shared/guards";
 import type {
   OpenProject,
   ProjectFileChange,
@@ -10,20 +11,19 @@ import type {
   RecentProject,
   SaveResult,
 } from "../shared/ipc";
+import { PROJECT_DIRS } from "../shared/project-dirs";
 import { expandHome, projectFolderName } from "../shared/project-folder";
 import { PROJECTS_FOLDER_NAME } from "../shared/settings";
 import { WORKFLOW_FILE, workflowSchema, type Workflow } from "../shared/schema/workflow";
 import { getTemplate } from "../shared/templates";
 import { debounce } from "../shared/timing";
-import { errorMessage } from "../shared/errors";
 import { sha256Hex } from "../engine/hash";
 import { atomicWrite, readJsonKeepingBroken, readTextIfPresent, writeJson } from "../engine/json";
+import { logError } from "../engine/log";
 import { projectPaths, readLastRun } from "../engine/project-paths";
-import { PROJECT_DIRS } from "../shared/project-dirs";
 import { openDialog } from "./dialogs";
 import { ensureSecretsDir } from "./secrets";
 import { patchSettings, readSettings } from "./settings";
-import { parseJsonWith } from "../shared/guards";
 
 const MAX_RECENT = 20;
 
@@ -47,7 +47,7 @@ async function readRecent(): Promise<RecentProject[] | null> {
         : [];
     });
   } catch (error) {
-    process.stderr.write(`[projects] recent projects: ${errorMessage(error)}\n`);
+    logError("projects", error, "recent projects");
     return null;
   }
 }
@@ -71,11 +71,12 @@ export async function projectLocations(): Promise<ProjectLocations> {
 export async function chooseFolder(
   win: BrowserWindow | null,
   opts: { title: string; defaultPath?: string },
+  properties: OpenDialogOptions["properties"] = ["openDirectory", "createDirectory"],
 ): Promise<string | null> {
   const [folder] = await openDialog(win, {
     title: opts.title,
     defaultPath: existingDir(opts.defaultPath),
-    properties: ["openDirectory", "createDirectory"],
+    properties,
   });
   return folder || null;
 }
@@ -106,12 +107,10 @@ const workflowOrNull = (text: string): Workflow | null => {
 };
 
 export async function pickProjectDir(win: BrowserWindow | null): Promise<string | null> {
-  const [folder] = await openDialog(win, {
-    title: "Open Demoflow project",
-    defaultPath: existingDir((await projectLocations()).defaultDir),
-    properties: ["openDirectory"],
-  });
-  return folder || null;
+  const { defaultDir } = await projectLocations();
+  return chooseFolder(win, { title: "Open Demoflow project", defaultPath: defaultDir }, [
+    "openDirectory",
+  ]);
 }
 
 export async function openProjectDir(target: string): Promise<OpenProject> {
@@ -179,7 +178,7 @@ export async function saveWorkflowFile(
 }
 
 const logWatchError = (dir: string, error: unknown) =>
-  process.stderr.write(`[projects] watching ${dir}: ${errorMessage(error)}\n`);
+  logError("projects", error, `watching ${dir}`);
 
 let watcher: FSWatcher | null = null;
 let watchedDir: string | null = null;

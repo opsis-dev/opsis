@@ -1,4 +1,5 @@
 import { INTERACTIVE_SELECTOR } from "../shared/interactive";
+import type { PickResult } from "../shared/ipc";
 
 function installPicker(prefix: string, interactive: string): void {
   if (Reflect.get(window, "__demoflowPicker")) return;
@@ -104,8 +105,7 @@ function installPicker(prefix: string, interactive: string): void {
   const pick = (target: EventTarget | null) =>
     target instanceof Element ? target.closest(interactive) || target : null;
 
-  const report = (result: { target: string; css: string; role: string; selectorUsed: string }) =>
-    console.log(prefix + JSON.stringify(result));
+  const report = (result: NonNullable<PickResult>) => console.log(prefix + JSON.stringify(result));
 
   const place = (
     rect: { left: number; top: number; width: number; height: number },
@@ -122,11 +122,16 @@ function installPicker(prefix: string, interactive: string): void {
     Object.assign(tag.style, { left: `${labelAt.left}px`, top: `${labelAt.top}px` });
   };
 
-  const showSpot = (e: MouseEvent) => {
+  const spotOf = (e: MouseEvent) => {
     const x = Math.round(e.clientX);
     const y = Math.round(e.clientY);
+    return { x, y, text: `${x}, ${y}` };
+  };
+
+  const showSpot = (e: MouseEvent) => {
+    const { x, y, text } = spotOf(e);
     const half = SPOT_SIZE / 2;
-    place({ left: x - half, top: y - half, width: SPOT_SIZE, height: SPOT_SIZE }, `${x}, ${y}`, {
+    place({ left: x - half, top: y - half, width: SPOT_SIZE, height: SPOT_SIZE }, text, {
       left: x + SPOT_TAG_OFFSET,
       top: Math.max(0, y - SPOT_TAG_RISE),
     });
@@ -148,8 +153,7 @@ function installPicker(prefix: string, interactive: string): void {
 
   const reportClick = (e: MouseEvent) => {
     if (e.shiftKey) {
-      const spot = `${Math.round(e.clientX)}, ${Math.round(e.clientY)}`;
-      report({ target: spot, css: "", role: "", selectorUsed: "spot" });
+      report({ target: spotOf(e).text, css: "", role: "", selectorUsed: "spot" });
       return;
     }
     const el = pick(e.target);

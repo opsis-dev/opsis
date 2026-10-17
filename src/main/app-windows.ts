@@ -17,6 +17,8 @@ export type WindowOptions = {
   title: string;
 };
 
+const CANVAS_BACKGROUND = "#101013";
+
 let mainWindow: BrowserWindow | null = null;
 
 export const getMainWindow = (): BrowserWindow | null => mainWindow;
@@ -45,7 +47,7 @@ function sendWindowState(win: BrowserWindow): void {
 export function makeWindow(options: WindowOptions): BrowserWindow {
   const win = new BrowserWindow({
     ...options,
-    backgroundColor: "#101013",
+    backgroundColor: CANVAS_BACKGROUND,
     icon: app.isPackaged
       ? path.join(process.resourcesPath, "icons", "512.png")
       : path.join(app.getAppPath(), "brand", "icons", "512.png"),

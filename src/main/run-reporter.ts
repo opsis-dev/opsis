@@ -6,6 +6,9 @@ import { focusMainWindow, getMainWindow } from "./app-windows";
 type RunDone = Extract<RunEvent, { type: "run:done" }>;
 
 const NODE_FINISHED = new Set<RunEvent["type"]>(["node:done", "node:error", "node:skipped"]);
+const STARTED_PROGRESS = 0.01;
+const BEFORE_DONE_PROGRESS = 0.99;
+const NO_PROGRESS_BAR = -1;
 
 let progress: RunProgress | null = null;
 let tally = { count: 1, done: 0 };
@@ -18,12 +21,12 @@ function showProgressBar(event: RunEvent): void {
   const win = getMainWindow();
   if (event.type === "run:start") {
     tally = { count: Math.max(1, event.nodeIds.length), done: 0 };
-    win?.setProgressBar(0.01);
+    win?.setProgressBar(STARTED_PROGRESS);
   } else if (NODE_FINISHED.has(event.type)) {
     tally.done += 1;
-    win?.setProgressBar(Math.min(0.99, tally.done / tally.count));
+    win?.setProgressBar(Math.min(BEFORE_DONE_PROGRESS, tally.done / tally.count));
   } else if (event.type === "run:done") {
-    win?.setProgressBar(-1);
+    win?.setProgressBar(NO_PROGRESS_BAR);
   }
 }
 

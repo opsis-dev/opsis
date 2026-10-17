@@ -5,14 +5,16 @@ import { FILE_SCHEME } from "../shared/asset-ref";
 
 export const APP_SCHEME = "demoflow-app";
 
+const FILE_SOURCE = `${FILE_SCHEME}:`;
+
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "font-src 'self' data: demoflow-file:",
-  "img-src 'self' data: blob: demoflow-file:",
-  "media-src 'self' blob: demoflow-file:",
-  "connect-src 'self' demoflow-file: blob: data:",
+  `font-src 'self' data: ${FILE_SOURCE}`,
+  `img-src 'self' data: blob: ${FILE_SOURCE}`,
+  `media-src 'self' blob: ${FILE_SOURCE}`,
+  `connect-src 'self' ${FILE_SOURCE} blob: data:`,
   "worker-src 'self' blob:",
 ].join("; ");
 

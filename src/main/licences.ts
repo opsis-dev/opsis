@@ -4,7 +4,7 @@ import path from "node:path";
 import { app, shell } from "electron";
 import { CHROMIUM_CREDITS_FILE } from "../engine/paths";
 import type { LicenceEntry } from "../shared/ipc";
-import { environment } from "./workers";
+import { environment } from "./engine-setup";
 
 const resourceDir = () => (app.isPackaged ? process.resourcesPath : app.getAppPath());
 const runtimeDir = () => path.dirname(process.execPath);
