@@ -28,13 +28,12 @@ import { askEditor, followRunEvents } from "./api-editor";
 
 const MAX_BODY = 20 * 1024 * 1024;
 
-type Context = { req: IncomingMessage; res: ServerResponse; params: string[] };
-type Answer = ApiReply<unknown> | undefined;
-type Route = {
-  method: string;
-  segments: string[];
-  run: (context: Context) => Answer | Promise<Answer>;
-};
+type Context = { req: IncomingMessage; params: string[] };
+type Answer = ApiReply<unknown>;
+type Handler =
+  | { kind: "answer"; run: (context: Context) => Answer | Promise<Answer> }
+  | { kind: "stream"; stream: (req: IncomingMessage, res: ServerResponse) => void };
+type Route = Handler & { method: string; segments: string[] };
 
 class BadRequest extends Error {}
 
@@ -59,10 +58,11 @@ function reply(res: ServerResponse, answer: ApiReply<unknown>): void {
 async function readBody(req: IncomingMessage, required: boolean): Promise<unknown> {
   const chunks: Buffer[] = [];
   let size = 0;
-  for await (const chunk of req as AsyncIterable<Buffer>) {
-    size += chunk.length;
+  for await (const chunk of req) {
+    const bytes = Buffer.from(chunk);
+    size += bytes.length;
     if (size > MAX_BODY) throw new BadRequest("The request body is too large.");
-    chunks.push(chunk);
+    chunks.push(bytes);
   }
   const text = Buffer.concat(chunks).toString("utf8").trim();
   if (!text) {
@@ -105,13 +105,15 @@ async function openProject({ req }: Context): Promise<Answer> {
   return askEditor({ op: "open", dir });
 }
 
+const checkedBody = async (req: IncomingMessage) => checkWorkflow(await readBody(req, true));
+
 async function validate({ req }: Context): Promise<Answer> {
-  const { ok: valid, problems } = checkWorkflow(await readBody(req, true));
-  return apiOk({ ok: valid, problems });
+  const { ok, problems } = await checkedBody(req);
+  return apiOk({ ok, problems });
 }
 
 async function replaceProject({ req }: Context): Promise<Answer> {
-  const result = checkWorkflow(await readBody(req, true));
+  const result = await checkedBody(req);
   if (!result.workflow)
     return { ...apiFailure(400, "That isn't a valid project."), problems: result.problems };
   return askEditor({ op: "replace", workflow: result.workflow });
@@ -120,11 +122,19 @@ async function replaceProject({ req }: Context): Promise<Answer> {
 const runState = (read: ApiEditorReply<"read">): ApiReply<ApiRunState> =>
   read.ok ? apiOk({ running: read.result.running, runId: read.result.runId }) : read;
 
-const route = (method: string, pattern: string, run: Route["run"]): Route => ({
-  method,
-  segments: pattern.split("/").filter(Boolean),
-  run,
-});
+const segmentsOf = (pattern: string) => pattern.split("/").filter(Boolean);
+
+const route = (
+  method: string,
+  pattern: string,
+  run: (context: Context) => Answer | Promise<Answer>,
+): Route => ({ kind: "answer", method, segments: segmentsOf(pattern), run });
+
+const streamRoute = (
+  method: string,
+  pattern: string,
+  stream: (req: IncomingMessage, res: ServerResponse) => void,
+): Route => ({ kind: "stream", method, segments: segmentsOf(pattern), stream });
 
 const ROUTES: Route[] = [
   route("GET", "/openapi.json", () => apiOk(openApiDocument(app.getVersion()))),
@@ -168,11 +178,16 @@ const ROUTES: Route[] = [
     askEditor({ op: "run", ...(await parseBody(req, runBody, false)) }),
   ),
   route("POST", "/project/run/stop", () => askEditor({ op: "stop" })),
-  route("GET", "/project/run/events", ({ req, res }) => {
-    followRunEvents(req, res);
-    return undefined;
-  }),
+  streamRoute("GET", "/project/run/events", followRunEvents),
 ];
+
+function pathParts(pathname: string): string[] {
+  try {
+    return pathname.split("/").filter(Boolean).map(decodeURIComponent);
+  } catch {
+    throw new BadRequest("The request address isn't encoded correctly.");
+  }
+}
 
 function findRoute(method: string, parts: string[]) {
   const found = ROUTES.find(
@@ -188,16 +203,16 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   try {
     const method = req.method ?? "GET";
     const url = new URL(req.url ?? "/", "http://localhost");
-    const parts = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
-    const match = findRoute(method, parts);
+    const match = findRoute(method, pathParts(url.pathname));
     if (!match) {
       send(res, 404, {
         error: `No endpoint for ${method} ${url.pathname}. See GET /openapi.json.`,
       });
       return;
     }
-    const answer = await match.found.run({ req, res, params: match.params });
-    if (answer) reply(res, answer);
+    const { found, params } = match;
+    if (found.kind === "stream") found.stream(req, res);
+    else reply(res, await found.run({ req, params }));
   } catch (e) {
     if (e instanceof BadRequest) send(res, 400, { error: e.message });
     else send(res, 500, { error: errorMessage(e) });

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { debounce } from "./timing";
+import { debounce, oneAtATime } from "./timing";
 
 describe("debounce", () => {
   beforeEach(() => {
@@ -28,5 +28,24 @@ describe("debounce", () => {
     run.cancel();
     vi.advanceTimersByTime(200);
     expect(fn).not.toHaveBeenCalled();
+  });
+});
+
+describe("oneAtATime", () => {
+  it("starts each job after the one before it settles, even when it fails", async () => {
+    const serial = oneAtATime();
+    const order: string[] = [];
+    const slow = serial(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      order.push("first");
+      throw new Error("failed");
+    });
+    const second = serial(async () => {
+      order.push("second");
+      return 2;
+    });
+    await expect(slow).rejects.toThrow("failed");
+    await expect(second).resolves.toBe(2);
+    expect(order).toEqual(["first", "second"]);
   });
 });

@@ -10,6 +10,7 @@ import {
 } from "../shared/settings";
 import { readJsonKeepingBroken, writeJson } from "../engine/json";
 import { errorMessage } from "../shared/errors";
+import { oneAtATime } from "../shared/timing";
 
 const file = () => path.join(app.getPath("userData"), "settings.json");
 
@@ -37,15 +38,24 @@ export async function readSettings(): Promise<AppSettings> {
   return cached;
 }
 
-export async function writeSettings(next: AppSettings): Promise<AppSettings> {
+const forgetLastDirOnNewDefault = (next: AppSettings, previous: AppSettings): AppSettings =>
+  next.projects.defaultDir !== previous.projects.defaultDir && next.projects.lastDir
+    ? { ...next, projects: { ...next.projects, lastDir: "" } }
+    : next;
+
+async function writeSettings(patch: SettingsPatch): Promise<AppSettings> {
   const previous = await readSettings();
-  cached = appSettingsSchema.parse(next);
+  const next = appSettingsSchema.parse(
+    forgetLastDirOnNewDefault(mergeSettings(previous, patch), previous),
+  );
   await mkdir(path.dirname(file()), { recursive: true });
-  await writeJson(file(), cached);
-  for (const listener of listeners) listener(cached, previous);
-  return cached;
+  await writeJson(file(), next);
+  cached = next;
+  for (const listener of listeners) listener(next, previous);
+  return next;
 }
 
-export async function patchSettings(patch: SettingsPatch): Promise<AppSettings> {
-  return writeSettings(mergeSettings(await readSettings(), patch));
-}
+const oneWriteAtATime = oneAtATime();
+
+export const patchSettings = (patch: SettingsPatch): Promise<AppSettings> =>
+  oneWriteAtATime(() => writeSettings(patch));

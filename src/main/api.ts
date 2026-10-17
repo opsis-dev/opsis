@@ -1,40 +1,32 @@
-import { existsSync } from "node:fs";
 import { chmod, rm } from "node:fs/promises";
 import { createServer, type Server } from "node:http";
 import { connect } from "node:net";
 import { userInfo } from "node:os";
 import path from "node:path";
-import { app, type BrowserWindow } from "electron";
-import type { ApiStatus } from "../shared/ipc";
+import { app } from "electron";
+import { IPC, type ApiStatus } from "../shared/ipc";
 import { errorMessage } from "../shared/errors";
-import { endRunEventStreams, initApiEditor } from "./api-editor";
+import { endRunEventStreams } from "./api-editor";
 import { handleApiRequest } from "./api-routes";
+import { broadcast } from "./app-windows";
+import { onSettingsChange, readSettings } from "./settings";
 
-type Host = {
-  editor: () => BrowserWindow | null;
-  onStatus: (status: ApiStatus) => void;
-};
+const OWNER_ONLY_UMASK = 0o077;
 
 const apiAddress = () =>
   process.platform === "win32"
     ? `\\\\.\\pipe\\demoflow-api-${userInfo().username}`
     : path.join(app.getPath("userData"), "api.sock");
 
-let host: Host | null = null;
 let server: Server | null = null;
-let status: ApiStatus = { enabled: false, listening: false, address: "" };
+let status: ApiStatus | null = null;
 
-export function initApi(next: Host, isEditorSender: (id: number) => boolean): void {
-  host = next;
-  status = { ...status, address: apiAddress() };
-  initApiEditor(next.editor, isEditorSender);
-}
-
-export const getApiStatus = (): ApiStatus => status;
+export const getApiStatus = (): ApiStatus =>
+  (status ??= { enabled: false, listening: false, address: apiAddress() });
 
 function setStatus(next: ApiStatus): void {
   status = next;
-  host?.onStatus(status);
+  broadcast(IPC.apiStatusChanged, next);
 }
 
 function inUse(address: string): Promise<boolean> {
@@ -45,6 +37,25 @@ function inUse(address: string): Promise<boolean> {
       resolve(true);
     });
     socket.once("error", () => resolve(false));
+  });
+}
+
+async function removeSocket(address: string): Promise<void> {
+  if (process.platform !== "win32") await rm(address, { force: true });
+}
+
+function listenOwnerOnly(next: Server, address: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    next.once("error", reject);
+    const umask = process.platform === "win32" ? null : process.umask(OWNER_ONLY_UMASK);
+    try {
+      next.listen(address, () => {
+        next.off("error", reject);
+        resolve();
+      });
+    } finally {
+      if (umask !== null) process.umask(umask);
+    }
   });
 }
 
@@ -65,16 +76,10 @@ export async function setApiEnabled(enabled: boolean): Promise<void> {
     });
     return;
   }
-  if (process.platform !== "win32" && existsSync(address)) await rm(address, { force: true });
+  await removeSocket(address);
   const next = createServer((req, res) => void handleApiRequest(req, res));
   try {
-    await new Promise<void>((resolve, reject) => {
-      next.once("error", reject);
-      next.listen(address, () => {
-        next.off("error", reject);
-        resolve();
-      });
-    });
+    await listenOwnerOnly(next, address);
     if (process.platform !== "win32") await chmod(address, 0o600);
     server = next;
     setStatus({ enabled: true, listening: true, address });
@@ -89,14 +94,22 @@ export async function setApiEnabled(enabled: boolean): Promise<void> {
   }
 }
 
+export function followApiSetting(): void {
+  onSettingsChange((settings, previous) => {
+    if (settings.api.enabled !== previous.api.enabled) void setApiEnabled(settings.api.enabled);
+  });
+  void readSettings().then((settings) => setApiEnabled(settings.api.enabled));
+}
+
 async function stopServer(): Promise<void> {
   const current = server;
   server = null;
   endRunEventStreams();
   if (!current) return;
-  await new Promise<void>((resolve) => current.close(() => resolve()));
+  const closed = new Promise<void>((resolve) => current.close(() => resolve()));
   current.closeAllConnections();
-  if (process.platform !== "win32") await rm(apiAddress(), { force: true });
+  await closed;
+  await removeSocket(apiAddress());
 }
 
 export function stopApi(): void {

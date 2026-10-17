@@ -32,9 +32,19 @@ const MIME: Record<string, string> = {
 export const mimeType = (file: string): string =>
   MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream";
 
+const decodePath = (urlPath: string): string | null => {
+  try {
+    return decodeURIComponent(urlPath);
+  } catch {
+    return null;
+  }
+};
+
 export function resolveInside(root: string, urlPath: string): string | null {
+  const decoded = decodePath(urlPath);
+  if (decoded === null) return null;
   const base = path.resolve(root);
-  const file = path.resolve(base, decodeURIComponent(urlPath).replace(/^\/+/, ""));
+  const file = path.resolve(base, decoded.replace(/^\/+/, ""));
   return isInside(base, file) ? file : null;
 }
 

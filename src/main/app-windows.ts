@@ -1,12 +1,13 @@
 import path from "node:path";
 import { app, BrowserWindow, shell } from "electron";
-import { IPC, type WindowState } from "../shared/ipc";
+import { IPC, type BroadcastPayloads, type WindowState } from "../shared/ipc";
 import { guardClose } from "./exit";
 import { closePanelWindows, isPanelSender, panelWindows } from "./panel-windows";
 import { APP_SCHEME } from "./protocol";
+import { raiseWindow } from "./raise-window";
 import { closeSettingsWindow, isSettingsSender, settingsWindow } from "./settings-window";
 
-type WindowOptions = {
+export type WindowOptions = {
   width: number;
   height: number;
   minWidth: number;
@@ -60,15 +61,13 @@ export function makeWindow(options: WindowOptions): BrowserWindow {
     },
   });
   win.once("ready-to-show", () => win.show());
-  for (const name of [
-    "maximize",
-    "unmaximize",
-    "enter-full-screen",
-    "leave-full-screen",
-    "focus",
-    "blur",
-  ] as const)
-    win.on(name as "maximize", () => sendWindowState(win));
+  const sendState = () => sendWindowState(win);
+  win.on("maximize", sendState);
+  win.on("unmaximize", sendState);
+  win.on("enter-full-screen", sendState);
+  win.on("leave-full-screen", sendState);
+  win.on("focus", sendState);
+  win.on("blur", sendState);
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/.test(url)) void shell.openExternal(url);
     return { action: "deny" };
@@ -96,9 +95,7 @@ export function createMainWindow(): void {
 
 export function focusMainWindow(): void {
   if (!mainWindow) return;
-  if (mainWindow.isMinimized()) mainWindow.restore();
-  mainWindow.show();
-  mainWindow.focus();
+  raiseWindow(mainWindow);
   if (process.platform === "darwin") app.focus({ steal: true });
 }
 
@@ -113,6 +110,9 @@ function appWindows(): BrowserWindow[] {
   );
 }
 
-export function broadcast(channel: string, payload: unknown): void {
+export function broadcast<C extends keyof BroadcastPayloads>(
+  channel: C,
+  payload: BroadcastPayloads[C],
+): void {
   for (const win of appWindows()) win.webContents.send(channel, payload);
 }

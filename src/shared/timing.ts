@@ -15,3 +15,12 @@ export function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: numb
   };
   return Object.assign(run, { cancel });
 }
+
+export function oneAtATime(): <T>(work: () => Promise<T>) => Promise<T> {
+  let tail: Promise<unknown> = Promise.resolve();
+  return (work) => {
+    const next = tail.then(work, work);
+    tail = next.catch(() => undefined);
+    return next;
+  };
+}

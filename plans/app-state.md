@@ -38,7 +38,7 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
 Already in place:
 
-- App state in JSON files under `<userData>`: `settings.json` (`src/main/settings.ts`: `readSettings`, `writeSettings`, `patchSettings`, `onSettingsChange`), `recent-projects.json` (`src/main/projects.ts`: `listRecent`, `touchRecent`), `panel-windows.json` (`src/main/panel-windows.ts`: `loadBounds`, `saveBounds`), `settings-window.json` (`src/main/settings-window.ts`: `savedBounds`), and the font library index `library.json` (`manifestPath` in `src/main/fonts.ts`).
+- App state in JSON files under `<userData>`: `settings.json` (`src/main/settings.ts`: `readSettings`, `patchSettings`, `onSettingsChange`), `recent-projects.json` (`src/main/projects.ts`: `listRecent`, `touchRecent`), `panel-windows.json` (`src/main/panel-windows.ts`, through `boundsStore` in `src/main/window-bounds.ts`), `settings-window.json` (`src/main/settings-window.ts`: `savedBounds`), and the font library index `library.json` (`manifestPath` in `src/main/fonts.ts`).
 - Settings already go through one IPC path (`patchSettings`, broadcast as `settingsChanged`), so moving their storage changes no renderer code.
 - Electron 44.7.2 (`node_modules/electron/package.json`), whose Node line includes the built-in `node:sqlite` (`DatabaseSync`).
 

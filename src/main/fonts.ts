@@ -8,7 +8,13 @@ import { z } from "zod";
 import { baseName, extensionOf, projectRef } from "../shared/asset-ref";
 import { fontSlug, sameFamily } from "../shared/fonts";
 import { safeName } from "../shared/project-folder";
-import { fontFamilySchema, type FontFaceDef, type FontFamilyDef } from "../shared/fonts/types";
+import {
+  fontFamilySchema,
+  libraryRef,
+  libraryRelPath,
+  type FontFaceDef,
+  type FontFamilyDef,
+} from "../shared/fonts/types";
 import {
   familyNameFrom,
   planFontFiles,
@@ -17,16 +23,18 @@ import {
 } from "../shared/fonts/plan";
 import type { FontInstalledFace, InspectedFonts } from "../shared/ipc";
 import { readJsonKeepingBroken, writeJson } from "../engine/json";
+import { oneAtATime } from "../shared/timing";
 import { openDialog } from "./dialogs";
 
-const FONT_EXT = /\.(woff2|woff|ttf|otf)$/i;
 const LICENSE_NAME = /(^|\/)(licen[cs]e|ofl|ffl|copying)[^/]*$/i;
-const FORMAT: Record<string, FontFaceDef["format"]> = {
+const FORMAT: Partial<Record<string, FontFaceDef["format"]>> = {
   woff2: "woff2",
   woff: "woff",
   ttf: "truetype",
   otf: "opentype",
 };
+const FONT_EXTENSIONS = Object.keys(FORMAT);
+const isFontFile = (name: string) => FONT_EXTENSIONS.includes(extensionOf(name));
 
 export type FontBytes = { name: string; bytes: Uint8Array };
 
@@ -59,7 +67,7 @@ export const fontsDir = () => path.join(app.getPath("userData"), "fonts");
 const manifestPath = () => path.join(fontsDir(), "library.json");
 
 const pending = new Map<string, Pending>();
-let libraryWrites: Promise<unknown> = Promise.resolve();
+const changeLibrary = oneAtATime();
 
 export async function listLibrary(): Promise<FontFamilyDef[]> {
   const stored = await readJsonKeepingBroken(manifestPath(), librarySchema);
@@ -72,12 +80,6 @@ export async function listLibrary(): Promise<FontFamilyDef[]> {
 async function saveLibrary(families: FontFamilyDef[]): Promise<void> {
   await mkdir(fontsDir(), { recursive: true });
   await writeJson(manifestPath(), { families });
-}
-
-function changeLibrary<T>(work: () => Promise<T>): Promise<T> {
-  const next = libraryWrites.then(work, work);
-  libraryWrites = next.catch(() => undefined);
-  return next;
 }
 
 function openFont(bytes: Uint8Array): FontTables | null {
@@ -119,7 +121,7 @@ function collect(entries: FontBytes[], source: FontFamilyDef["source"]): Inspect
   let license: FontBytes | undefined;
   let unreadable = 0;
   for (const entry of entries) {
-    if (FONT_EXT.test(entry.name)) {
+    if (isFontFile(entry.name)) {
       const info = describe(entry.name, entry.bytes);
       if (info) candidates.push({ ...info, bytes: entry.bytes });
       else unreadable += 1;
@@ -148,7 +150,7 @@ export async function inspectFontFiles(
     : await openDialog(win, {
         title: "Add fonts",
         properties: ["openFile", "multiSelections"],
-        filters: [{ name: "Fonts", extensions: ["woff2", "woff", "ttf", "otf", "zip"] }],
+        filters: [{ name: "Fonts", extensions: [...FONT_EXTENSIONS, "zip"] }],
       });
   if (!files.length) return null;
   const entries: FontBytes[] = [];
@@ -198,7 +200,7 @@ async function writeFamily(library: FontFamilyDef[], fam: NewFamily): Promise<Fo
   for (const file of fam.files) {
     const base = safeName(baseName(file.name), { fallback: "font", lower: false });
     await writeFile(path.join(dir, base), file.bytes);
-    faces.push({ ...file.face, file: `library:${id}/${base}` });
+    faces.push({ ...file.face, file: libraryRef(`${id}/${base}`) });
   }
   if (fam.license) await writeFile(path.join(dir, "LICENSE.txt"), fam.license.bytes);
   return {
@@ -207,7 +209,7 @@ async function writeFamily(library: FontFamilyDef[], fam: NewFamily): Promise<Fo
     category: fam.category,
     source: fam.source,
     ...(fam.licenseType ? { license: fam.licenseType } : {}),
-    ...(fam.license ? { licenseFile: `library:${id}/LICENSE.txt` } : {}),
+    ...(fam.license ? { licenseFile: libraryRef(`${id}/LICENSE.txt`) } : {}),
     faces,
   };
 }
@@ -265,7 +267,7 @@ export async function copyFontToProject(
   const dest = path.join(projectDir, "assets", "fonts", def.id);
   await mkdir(dest, { recursive: true });
   const toProject = async (ref: string) => {
-    const rel = ref.replace(/^library:/, "");
+    const rel = libraryRelPath(ref) ?? ref;
     const base = path.basename(rel);
     await copyFile(path.join(fontsDir(), rel), path.join(dest, base));
     return projectRef(`assets/fonts/${def.id}/${base}`);

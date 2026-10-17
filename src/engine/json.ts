@@ -10,7 +10,7 @@ export async function readJson<T>(file: string): Promise<T | null> {
   }
 }
 
-const isMissing = (error: unknown) =>
+export const isMissingFile = (error: unknown): boolean =>
   error instanceof Error && "code" in error && error.code === "ENOENT";
 
 export async function readJsonKeepingBroken<T>(
@@ -21,7 +21,7 @@ export async function readJsonKeepingBroken<T>(
   try {
     text = await readFile(file, "utf8");
   } catch (error) {
-    if (isMissing(error)) return null;
+    if (isMissingFile(error)) return null;
     throw error;
   }
   const json = tryParseJson(text);

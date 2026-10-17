@@ -1,33 +1,21 @@
 import type { BrowserWindow, Rectangle } from "electron";
 import type { SettingsPage } from "../shared/ipc";
-import {
-  isVisible,
-  loadBounds,
-  rectangleSchema,
-  rememberBounds,
-  saveBounds,
-} from "./window-bounds";
+import type { WindowOptions } from "./app-windows";
+import { raiseWindow } from "./raise-window";
+import { boundsStore, isVisible, rectangleSchema, rememberBounds } from "./window-bounds";
 
 type SettingsWindowHost = {
-  create: (options: {
-    width: number;
-    height: number;
-    minWidth: number;
-    minHeight: number;
-    x?: number;
-    y?: number;
-    title: string;
-  }) => BrowserWindow;
+  create: (options: WindowOptions) => BrowserWindow;
   url: (hash: string) => string;
 };
 
-const BOUNDS_FILE = "settings-window.json";
+const store = boundsStore<Rectangle>("settings-window.json", rectangleSchema);
 
 let host: SettingsWindowHost | null = null;
 let win: BrowserWindow | null = null;
 
 async function savedBounds(): Promise<Rectangle | undefined> {
-  const rect = await loadBounds(BOUNDS_FILE, rectangleSchema);
+  const rect = await store.load();
   return rect && isVisible(rect) ? rect : undefined;
 }
 
@@ -35,22 +23,25 @@ export function initSettingsWindow(next: SettingsWindowHost): void {
   host = next;
 }
 
+function settingsHost(): SettingsWindowHost {
+  if (!host) throw new Error("The Settings window was used before the app finished starting.");
+  return host;
+}
+
 export const settingsWindow = () => (win && !win.isDestroyed() ? win : null);
 
 export const isSettingsSender = (id: number) => settingsWindow()?.webContents.id === id;
 
 export async function openSettingsWindow(page?: SettingsPage): Promise<void> {
-  if (!host) return;
+  const { create, url } = settingsHost();
   const hash = `/settings${page ? `?page=${page}` : ""}`;
   const open = settingsWindow();
   if (open) {
-    if (page) void open.loadURL(host.url(hash));
-    if (open.isMinimized()) open.restore();
-    open.show();
-    open.focus();
+    if (page) void open.loadURL(url(hash));
+    raiseWindow(open);
     return;
   }
-  const created = host.create({
+  const created = create({
     width: 980,
     height: 720,
     minWidth: 720,
@@ -59,11 +50,11 @@ export async function openSettingsWindow(page?: SettingsPage): Promise<void> {
     title: "Settings — Demoflow",
   });
   win = created;
-  rememberBounds(created, (rect) => saveBounds(BOUNDS_FILE, rect));
+  rememberBounds(created, store.save);
   created.on("closed", () => {
     if (win === created) win = null;
   });
-  void created.loadURL(host.url(hash));
+  void created.loadURL(url(hash));
 }
 
 export function closeSettingsWindow(): void {

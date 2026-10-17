@@ -1,21 +1,17 @@
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { ipcMain, type BrowserWindow } from "electron";
+import { ipcMain } from "electron";
 import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
 import { IPC } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
+import { getMainWindow, isEditorSender } from "./app-windows";
 
 const EDITOR_TIMEOUT_MS = 20_000;
 
-let editor: () => BrowserWindow | null = () => null;
 const pending = new Map<string, (reply: ApiEditorReply) => void>();
 const streams = new Set<ServerResponse>();
 
-export function initApiEditor(
-  window: () => BrowserWindow | null,
-  isEditorSender: (id: number) => boolean,
-): void {
-  editor = window;
+export function registerApiEditorIpc(): void {
   ipcMain.on(IPC.apiReply, (event, id: string, answer: ApiEditorReply) => {
     if (!isEditorSender(event.sender.id)) return;
     pending.get(id)?.(answer);
@@ -26,7 +22,7 @@ export function initApiEditor(
 export function askEditor<R extends ApiEditorRequest>(
   request: R,
 ): Promise<ApiEditorReply<R["op"]>> {
-  const win = editor();
+  const win = getMainWindow();
   if (!win || win.isDestroyed())
     return Promise.resolve({ ok: false, status: 409, error: "No project is open." });
   const id = randomUUID();

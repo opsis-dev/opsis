@@ -5,8 +5,8 @@ import { readJson, writeJson } from "../engine/json";
 import { debounce } from "../shared/timing";
 
 const SAVE_AFTER_MS = 400;
-
-const boundsFile = (name: string) => path.join(app.getPath("userData"), name);
+const MIN_VISIBLE_PX = 40;
+const ABOVE_WORK_AREA_PX = 20;
 
 export const rectangleSchema = z.object({
   x: z.number(),
@@ -16,23 +16,22 @@ export const rectangleSchema = z.object({
 });
 
 export function isVisible(rect: Rectangle): boolean {
-  return screen.getAllDisplays().some((d) => {
-    const a = d.workArea;
-    return (
-      rect.x < a.x + a.width - 40 &&
-      rect.x + rect.width > a.x + 40 &&
-      rect.y >= a.y - 20 &&
-      rect.y < a.y + a.height - 40
-    );
+  return screen.getAllDisplays().some(({ workArea: area }) => {
+    const overlapsAcross =
+      rect.x < area.x + area.width - MIN_VISIBLE_PX &&
+      rect.x + rect.width > area.x + MIN_VISIBLE_PX;
+    const titleBarReachable =
+      rect.y >= area.y - ABOVE_WORK_AREA_PX && rect.y < area.y + area.height - MIN_VISIBLE_PX;
+    return overlapsAcross && titleBarReachable;
   });
 }
 
-export async function loadBounds<T>(name: string, schema: z.ZodType<T>): Promise<T | null> {
-  return schema.safeParse(await readJson(boundsFile(name))).data ?? null;
-}
-
-export function saveBounds(name: string, value: unknown): void {
-  void writeJson(boundsFile(name), value).catch(() => undefined);
+export function boundsStore<T>(name: string, schema: z.ZodType<T>) {
+  const file = () => path.join(app.getPath("userData"), name);
+  return {
+    load: async (): Promise<T | null> => schema.safeParse(await readJson(file())).data ?? null,
+    save: (value: T): void => void writeJson(file(), value).catch(() => undefined),
+  };
 }
 
 export function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => void): void {

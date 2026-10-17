@@ -1,18 +1,16 @@
 import type { LayoutStorage, PanelImperativeHandle } from "react-resizable-panels";
 import { create } from "zustand";
 import { isOneOf } from "@/renderer/lib/one-of";
+import { DOCK_PANELS, type DockPanelName } from "@/shared/ipc";
 import { readStored, writeStored } from "@/renderer/lib/local-storage";
 import { readPref, writePref } from "../store/view-prefs";
 
 export const PANEL_SIDES = ["left", "bottom", "right"] as const;
 export type PanelSide = (typeof PANEL_SIDES)[number];
 
-export const DOCK_PANELS = ["preview", "timeline", "mixer", "run"] as const;
-export type DockPanel = (typeof DOCK_PANELS)[number];
+export const isDockPanel = (v: unknown): v is DockPanelName => isOneOf(DOCK_PANELS, v);
 
-export const isDockPanel = (v: unknown): v is DockPanel => isOneOf(DOCK_PANELS, v);
-
-export const DOCK_TITLES: Record<DockPanel, string> = {
+export const DOCK_TITLES: Record<DockPanelName, string> = {
   preview: "Preview",
   timeline: "Timeline",
   mixer: "Mixer",
@@ -21,15 +19,15 @@ export const DOCK_TITLES: Record<DockPanel, string> = {
 
 const handles: Partial<Record<PanelSide, PanelImperativeHandle | null>> = {};
 
-export const storedTab = (): DockPanel => readPref("dockTab", "preview", isDockPanel);
+export const storedTab = (): DockPanelName => readPref("dockTab", "preview", isDockPanel);
 
 export const usePanels = create<{
   open: Record<PanelSide, boolean>;
-  popped: readonly DockPanel[];
-  active: DockPanel;
+  popped: readonly DockPanelName[];
+  active: DockPanelName;
   setOpen: (side: PanelSide, open: boolean) => void;
-  setPopped: (popped: readonly DockPanel[]) => void;
-  setActive: (panel: DockPanel) => void;
+  setPopped: (popped: readonly DockPanelName[]) => void;
+  setActive: (panel: DockPanelName) => void;
 }>()((set) => ({
   active: storedTab(),
   setActive: (active) => {
@@ -60,7 +58,7 @@ export function openPanel(side: PanelSide): void {
   if (handle?.isCollapsed()) handle.expand();
 }
 
-export function showPanel(panel: DockPanel): void {
+export function showPanel(panel: DockPanelName): void {
   if (usePanels.getState().popped.includes(panel)) {
     void window.demoflow.focusPanelWindow(panel);
     return;
@@ -69,7 +67,7 @@ export function showPanel(panel: DockPanel): void {
   usePanels.getState().setActive(panel);
 }
 
-export function focusPanel(panel: DockPanel): void {
+export function focusPanel(panel: DockPanelName): void {
   showPanel(panel);
   if (usePanels.getState().popped.includes(panel)) return;
   requestAnimationFrame(() => {

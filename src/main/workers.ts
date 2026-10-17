@@ -47,9 +47,15 @@ export async function workerEnv(): Promise<WorkerEnv> {
 
 export const workerTempRoot = () => path.join(app.getPath("userData"), "tmp");
 
-export function spawnWorker(withLive: boolean, kind: WorkerKind, id: string = randomUUID()) {
+type SpawnedWorker = {
+  child: UtilityProcess;
+  control: MessagePortMain;
+  live: MessagePortMain | null;
+};
+
+export function spawnWorker(kind: WorkerKind, id: string = randomUUID()): SpawnedWorker {
   const control = new MessageChannelMain();
-  const live = withLive ? new MessageChannelMain() : null;
+  const live = kind === "run" ? new MessageChannelMain() : null;
   const temp = makeWorkerTemp(workerTempRoot(), workerTempName(kind, id));
   const child = utilityProcess.fork(path.join(__dirname, "worker.cjs"), [], {
     serviceName: "Demoflow worker",
@@ -68,15 +74,20 @@ export function onWorkerMessage(port: MessagePortMain, handler: (msg: WorkerToMa
   port.on("message", (e) => handler(e.data as WorkerToMain));
 }
 
-function respond(
+function respond<T>(
   port: MessagePortMain,
-  type: WorkerReply["type"],
   id: string,
-  work: Promise<string | null>,
+  work: Promise<T>,
+  reply: (value: T) => WorkerReply,
 ): void {
   work.then(
-    (value) => port.postMessage({ type, id, value: value ?? undefined } satisfies MainToWorker),
-    (e: unknown) => port.postMessage({ type, id, error: errorMessage(e) } satisfies MainToWorker),
+    (value) => port.postMessage(reply(value) satisfies MainToWorker),
+    (e: unknown) =>
+      port.postMessage({
+        type: "request:failed",
+        id,
+        error: errorMessage(e),
+      } satisfies MainToWorker),
   );
 }
 
@@ -85,25 +96,42 @@ function answerRequests(
   msg: WorkerToMain,
   window: () => BrowserWindow | null,
 ): boolean {
-  if (msg.type === "secret:request") {
-    const work =
-      msg.op === "read"
-        ? readSecret(msg.projectDir, msg.name)
-        : writeSecret(msg.projectDir, msg.name, msg.value ?? "").then(() => "");
-    respond(port, "secret:response", msg.id, work);
-    return true;
+  switch (msg.type) {
+    case "secret:read":
+      respond(port, msg.id, readSecret(msg.projectDir, msg.name), (value) => ({
+        type: "secret:value",
+        id: msg.id,
+        value,
+      }));
+      return true;
+    case "secret:write":
+      respond(port, msg.id, writeSecret(msg.projectDir, msg.name, msg.value), () => ({
+        type: "secret:written",
+        id: msg.id,
+      }));
+      return true;
+    case "login:request":
+      respond(port, msg.id, loginInWindow(window(), msg.request), (value) => ({
+        type: "login:state",
+        id: msg.id,
+        value,
+      }));
+      return true;
+    default:
+      return false;
   }
-  if (msg.type === "login:request") {
-    respond(port, "login:response", msg.id, loginInWindow(window(), msg.request));
-    return true;
-  }
-  return false;
 }
 
-type ActiveRun = { runId: string; child: UtilityProcess; control: MessagePortMain };
+type ActiveRun = {
+  runId: string;
+  projectDir: string;
+  child: UtilityProcess;
+  control: MessagePortMain;
+};
 let active: ActiveRun | null = null;
 
-export const activeRunId = () => active?.runId ?? null;
+export const activeRun = (): { runId: string; projectDir: string } | null =>
+  active && { runId: active.runId, projectDir: active.projectDir };
 
 export async function startRun(
   runId: string,
@@ -113,10 +141,9 @@ export async function startRun(
   onLivePort: (port: MessagePortMain) => void,
 ): Promise<void> {
   if (active) throw new Error("A run is already in progress.");
-  const env = await workerEnv();
-  const { child, control, live } = spawnWorker(true, "run", runId);
+  const { child, control, live } = spawnWorker("run", runId);
+  active = { runId, projectDir: request.projectDir, child, control };
   if (live) onLivePort(live);
-  active = { runId, child, control };
   let finished = false;
   onWorkerMessage(control, (msg) => {
     if (answerRequests(control, msg, window)) return;
@@ -138,7 +165,13 @@ export async function startRun(
         at: Date.now(),
       });
   });
-  control.postMessage({ type: "run", env, request, runId } satisfies MainToWorker);
+  try {
+    const env = await workerEnv();
+    control.postMessage({ type: "run", env, request, runId } satisfies MainToWorker);
+  } catch (error) {
+    child.kill();
+    throw error;
+  }
 }
 
 export function cancelRun(): void {
@@ -174,20 +207,26 @@ export function environment(): EnvStatus {
   };
 }
 
-export function completeLicences(): Promise<string> {
+export async function completeLicences(): Promise<void> {
   const root = app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), "resources");
-  return completeEngineLicences(engineDir(), shippedCreditsCandidates([root])).catch(
-    () => "missing",
-  );
+  try {
+    const result = await completeEngineLicences(engineDir(), shippedCreditsCandidates([root]));
+    if (result === "missing")
+      process.stderr.write("[licences] the recording browser's licence file is missing\n");
+  } catch (error) {
+    process.stderr.write(`[licences] ${errorMessage(error)}\n`);
+  }
 }
 
 export async function installEngine(onEvent: (e: EngineInstallEvent) => void): Promise<void> {
   const env = await workerEnv();
   await new Promise<void>((resolve, reject) => {
-    const { child, control } = spawnWorker(false, "setup");
+    const { child, control } = spawnWorker("setup");
+    let installed = false;
     onWorkerMessage(control, (msg) => {
       if (msg.type === "install:progress") onEvent(msg.event);
       if (msg.type === "install:done") {
+        installed = true;
         onEvent({
           part: "headless-shell",
           step: "done",
@@ -197,11 +236,11 @@ export async function installEngine(onEvent: (e: EngineInstallEvent) => void): P
           error: msg.error,
         });
         if (msg.error) reject(new Error(msg.error));
-        else void completeLicences().then(() => resolve());
+        else void completeLicences().then(resolve);
       }
     });
     child.on("exit", (code) => {
-      if (code !== 0) reject(new Error(`Setting up the engine stopped unexpectedly (${code}).`));
+      if (!installed) reject(new Error(`Setting up the engine stopped unexpectedly (${code}).`));
     });
     control.postMessage({ type: "install-engine", env } satisfies MainToWorker);
   });

@@ -20,12 +20,11 @@ export type LoginRequest = {
   timeoutSec: number;
 };
 
-export type WorkerReply = {
-  type: "secret:response" | "login:response";
-  id: string;
-  value?: string;
-  error?: string;
-};
+export type WorkerReply =
+  | { type: "secret:value"; id: string; value: string | null }
+  | { type: "secret:written"; id: string }
+  | { type: "login:state"; id: string; value: string | null }
+  | { type: "request:failed"; id: string; error: string };
 
 export type MainToWorker =
   | { type: "run"; env: WorkerEnv; request: RunRequest; runId: string }
@@ -46,14 +45,8 @@ export type MainToWorker =
 
 export type WorkerToMain =
   | { type: "event"; event: RunEvent }
-  | {
-      type: "secret:request";
-      id: string;
-      op: "read" | "write";
-      projectDir: string;
-      name: string;
-      value?: string;
-    }
+  | { type: "secret:read"; id: string; projectDir: string; name: string }
+  | { type: "secret:write"; id: string; projectDir: string; name: string; value: string }
   | { type: "login:request"; id: string; request: LoginRequest }
   | { type: "install:progress"; event: EngineInstallEvent }
   | { type: "install:done"; error?: string }

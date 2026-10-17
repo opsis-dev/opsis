@@ -8,22 +8,14 @@ import { whenOneOf } from "@/renderer/lib/one-of";
 import { commandShortcut } from "../app/app-bar";
 import { useWorkflowStore } from "../store/workflow";
 import { MixerPanel } from "./mixer/mixer-panel";
-import {
-  DOCK_PANELS,
-  DOCK_TITLES,
-  focusPanel,
-  openPanel,
-  showPanel,
-  togglePanel,
-  usePanels,
-  type DockPanel,
-} from "./panels";
+import { DOCK_PANELS, type DockPanelName } from "@/shared/ipc";
+import { DOCK_TITLES, focusPanel, openPanel, showPanel, togglePanel, usePanels } from "./panels";
 import { PreviewDock } from "./preview-dock";
 import { RunPanel } from "./run-panel";
 import { TimelinePanel } from "./timeline/timeline-panel";
 import { TooltipButton } from "./tooltip-button";
 
-export function DockContent({ panel }: { panel: DockPanel }) {
+export function DockContent({ panel }: { panel: DockPanelName }) {
   switch (panel) {
     case "preview":
       return <PreviewDock />;
@@ -36,7 +28,7 @@ export function DockContent({ panel }: { panel: DockPanel }) {
   }
 }
 
-function markPopped(popped: readonly DockPanel[]): void {
+function markPopped(popped: readonly DockPanelName[]): void {
   const { setPopped, active, setActive } = usePanels.getState();
   setPopped(popped);
   if (!popped.includes(active)) return;
@@ -44,14 +36,14 @@ function markPopped(popped: readonly DockPanel[]): void {
   if (next) setActive(next);
 }
 
-function popOut(panel: DockPanel): void {
+function popOut(panel: DockPanelName): void {
   const dir = useWorkflowStore.getState().projectDir;
   if (!dir) return;
   markPopped([...usePanels.getState().popped, panel]);
   void window.demoflow.openPanelWindow(panel, dir);
 }
 
-function DockTab({ panel, popped }: { panel: DockPanel; popped: boolean }) {
+function DockTab({ panel, popped }: { panel: DockPanelName; popped: boolean }) {
   const title = DOCK_TITLES[panel];
   return (
     <Tooltip>
@@ -88,8 +80,8 @@ function DockTabStrip({
   popped,
   current,
 }: {
-  popped: readonly DockPanel[];
-  current: DockPanel | null;
+  popped: readonly DockPanelName[];
+  current: DockPanelName | null;
 }) {
   const open = usePanels((s) => s.open.bottom);
   return (
@@ -123,7 +115,7 @@ export function BottomDock() {
   const active = usePanels((s) => s.active);
   const popped = usePanels((s) => s.popped);
   const docked = DOCK_PANELS.filter((p) => !popped.includes(p));
-  const current: DockPanel | null = docked.includes(active) ? active : (docked[0] ?? null);
+  const current: DockPanelName | null = docked.includes(active) ? active : (docked[0] ?? null);
 
   useEffect(() => {
     void window.demoflow.listPanelWindows().then(markPopped);

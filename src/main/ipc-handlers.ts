@@ -3,6 +3,7 @@ import path from "node:path";
 import { BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
 import { INVOKE, IPC, type DemoflowApi, type InvokeName, type RunRequest } from "../shared/ipc";
 import type { MenuCommand } from "../shared/menu";
+import { keysOf } from "../shared/nodes/params";
 import { readLastRun } from "../engine/project-paths";
 import { readTrace } from "../traces/store";
 import { analyze } from "./analysis";
@@ -22,7 +23,6 @@ import {
 import { downloadOnlineFont, fontCatalog } from "./fonts-online";
 import { importAssets } from "./import-assets";
 import { listLicences, openLicenceFile } from "./licences";
-import { runWindowRole } from "./menu";
 import {
   closePanelWindow,
   closePanelWindows,
@@ -47,7 +47,8 @@ import { listSecrets } from "./secrets";
 import { patchSettings, readSettings } from "./settings";
 import { openSettingsWindow } from "./settings-window";
 import { listStills, requestStill } from "./stills";
-import { activeRunId, cancelRun, environment, installEngine, isRunning, startRun } from "./workers";
+import { runWindowRole } from "./window-roles";
+import { activeRun, cancelRun, environment, installEngine, startRun } from "./workers";
 
 type InvokeHandlers = {
   [K in InvokeName]: (
@@ -56,7 +57,7 @@ type InvokeHandlers = {
   ) => ReturnType<DemoflowApi[K]> | Awaited<ReturnType<DemoflowApi[K]>>;
 };
 
-type IpcHandler = (event: IpcMainInvokeEvent, ...args: never[]) => unknown;
+type ErasedHandler = (event: IpcMainInvokeEvent, ...args: never[]) => unknown;
 
 let projectDir: string | null = null;
 
@@ -75,8 +76,6 @@ function remember<T extends { dir: string } | null>(project: T): T {
 }
 
 async function startWorkflowRun(request: RunRequest) {
-  if (isRunning()) throw new Error("A run is already in progress.");
-  projectDir = request.projectDir;
   const runId = randomUUID();
   await startRun(
     runId,
@@ -102,9 +101,11 @@ async function useFontInProject(dir: string, fontId: string) {
 }
 
 async function revealInFolder(dir: string, rel?: string): Promise<void> {
-  const target = rel ? path.join(dir, rel) : dir;
-  if (rel) shell.showItemInFolder(target);
-  else await shell.openPath(target);
+  if (rel) {
+    shell.showItemInFolder(path.join(dir, rel));
+    return;
+  }
+  await shell.openPath(dir);
 }
 
 const HANDLERS: InvokeHandlers = {
@@ -125,11 +126,11 @@ const HANDLERS: InvokeHandlers = {
   runWorkflow: plain(startWorkflowRun),
   cancelRun: plain(cancelRun),
   runStatus: () => {
-    const runId = activeRunId();
+    const run = activeRun();
     return {
-      runId,
-      projectDir: isRunning() ? projectDir : null,
-      progress: runProgressFor(runId),
+      runId: run?.runId ?? null,
+      projectDir: run?.projectDir ?? null,
+      progress: runProgressFor(run?.runId ?? null),
     };
   },
   pickElement: (_event, request) => pickInWindow(getMainWindow(), request),
@@ -176,14 +177,16 @@ function assertTrustedSender(event: IpcMainInvokeEvent): void {
   throw new Error("Blocked IPC call from an unknown renderer.");
 }
 
+function handleInvoke(name: InvokeName): void {
+  const handler: ErasedHandler = HANDLERS[name];
+  ipcMain.handle(INVOKE[name], async (event, ...args) => {
+    assertTrustedSender(event);
+    return handler(event, ...(args as never[]));
+  });
+}
+
 export function registerIpc(): void {
-  const channels: Record<string, string> = INVOKE;
-  const handlers: Record<string, IpcHandler> = HANDLERS;
-  for (const [name, handler] of Object.entries(handlers))
-    ipcMain.handle(channels[name], async (event, ...args) => {
-      assertTrustedSender(event);
-      return handler(event, ...(args as never[]));
-    });
+  for (const name of keysOf(INVOKE)) handleInvoke(name);
   ipcMain.on(IPC.menuToEditor, (event, command: MenuCommand) => {
     const main = getMainWindow();
     if (!isTrusted(event.sender.id) || !main) return;

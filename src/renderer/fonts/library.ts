@@ -1,14 +1,13 @@
 import { useEffect } from "react";
 import { create } from "zustand";
-import type { FontFamilyDef } from "@/shared/fonts/types";
+import { libraryRelPath, type FontFamilyDef } from "@/shared/fonts/types";
 import { FILE_SCHEME, encodePath } from "@/shared/asset-ref";
 import { reportError } from "@/renderer/lib/toast";
 import { fileUrl } from "../editor/file-url";
 
 export function fontFileUrl(ref: string): string {
-  if (ref.startsWith("library:"))
-    return `${FILE_SCHEME}://fonts/${encodePath(ref.slice("library:".length))}`;
-  return fileUrl(ref);
+  const rel = libraryRelPath(ref);
+  return rel === null ? fileUrl(ref) : `${FILE_SCHEME}://fonts/${encodePath(rel)}`;
 }
 
 const previewFamily = (def: FontFamilyDef) => `df-preview-${def.source}-${def.id}`;

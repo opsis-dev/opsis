@@ -81,14 +81,14 @@ Already in place:
 - The engine download pattern: `installFfmpeg` and `download()` in `src/engine/install.ts` stream with progress, write `.part` then rename; `megabytes()` formats sizes; `calmProgress()` throttles progress; the install runs in a worker (`case "install-engine"` in `src/worker/worker.ts`) started by `installEngine` in `src/main/workers.ts`, which relays `EngineInstallEvent`s to the renderer.
 - Ask-first downloads in the renderer: the font library's online fonts confirm with an `AlertDialog` before the first request (`onlineAllowed` in `src/renderer/fonts/fonts-panel.tsx`).
 - Settings pages: `PAGES` and `Page()` in `src/renderer/app/settings/settings-window.tsx`, `SettingsPage` in `src/shared/ipc.ts`, app settings in `appSettingsSchema` (`src/shared/settings.ts`) saved by `patchSettings` (`src/main/settings.ts`).
-- Encrypted secrets: `writeSecret` / `readSecret` (`src/main/secrets.ts`) take a folder, so `app.getPath("userData")` works as one; the worker asks main for secrets with `secret:request` (`src/main/workers.ts`, `src/shared/worker-protocol.ts`).
+- Encrypted secrets: `writeSecret` / `readSecret` (`src/main/secrets.ts`) take a folder, so `app.getPath("userData")` works as one; the worker asks main for secrets with `secret:read` and `secret:write` (`src/main/workers.ts`, `src/shared/worker-protocol.ts`).
 - Long main-process work is listed on exit through `track(label, promise)` (`src/main/exit.ts`).
 - Licence entries that appear once a file exists: `sources()` / `listLicences()` in `src/main/licences.ts`.
 
 Missing:
 
 - A speech folder, catalogue and installer. `download()` isn't exported, checks no hash, and only un-gzips; the speech program comes as `.tar.bz2`. `fflate` (already a dependency) does zip and gzip; tar and bzip2 need `tar-stream` and `seek-bzip` (both MIT).
-- App-wide secrets: `secret:request` reads from the project's folder only.
+- App-wide secrets: `secret:read` reads from the project's folder only.
 - A `"speech"` `SettingsPage` and its page component.
 
 ### Work
@@ -203,7 +203,7 @@ Missing:
 ### Work
 
 1. **Dependencies.** `bun add --exact @remotion/captions@4.0.535 @remotion/elevenlabs@4.0.535 @remotion/openai-whisper@4.0.535`.
-2. **Requests** in `src/worker/speech/online.ts`, with `fetch` and the key read through `secret:request` (app scope):
+2. **Requests** in `src/worker/speech/online.ts`, with `fetch` and the key read through `secret:read` (app scope):
    - ElevenLabs voice: `POST /v1/text-to-speech/{voice_id}/with-timestamps` (`xi-api-key` header, `voice_settings.speed`); decode `audio_base64`, turn `alignment` (per-character start and end times) into word times with a pure, tested function.
    - OpenAI voice: `POST /v1/audio/speech` with `gpt-4o-mini-tts`, a built-in voice and `response_format: "wav"`. It returns no timestamps and documents no speed setting, so word timing uses the Voiceover's estimate or the transcriber, and Speed is applied with FFmpeg's `atempo`.
    - ElevenLabs transcription: `POST /v1/speech-to-text` with `model_id: "scribe_v2"` and `timestamps_granularity: "word"`, then `elevenLabsTranscriptToCaptions`.

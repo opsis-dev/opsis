@@ -18,7 +18,7 @@ export type OpenProject = {
   dir: string;
   workflow: Workflow;
   lastRun: LastRun | null;
-  version: string | null;
+  version: string;
 };
 
 export type SaveResult =
@@ -100,7 +100,8 @@ export type PickResult = {
   selectorUsed: string;
 } | null;
 
-export type DockPanelName = "preview" | "timeline" | "mixer" | "run";
+export const DOCK_PANELS = ["preview", "timeline", "mixer", "run"] as const;
+export type DockPanelName = (typeof DOCK_PANELS)[number];
 
 export type CloseRequest = { ask: boolean; busy: string[] };
 export type CloseDecision = { close: boolean; dontAsk: boolean };
@@ -292,6 +293,12 @@ export const IPC = {
   apiRequest: "demoflow:api:request",
   apiReply: "demoflow:api:reply",
 } as const;
+
+export type BroadcastPayloads = {
+  [IPC.engineEvent]: EngineInstallEvent;
+  [IPC.settingsChanged]: AppSettings;
+  [IPC.apiStatusChanged]: ApiStatus;
+};
 
 declare global {
   interface Window {

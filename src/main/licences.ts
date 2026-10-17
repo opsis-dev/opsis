@@ -8,8 +8,7 @@ import { environment } from "./workers";
 const resourceDir = () => (app.isPackaged ? process.resourcesPath : app.getAppPath());
 const runtimeDir = () => path.dirname(process.execPath);
 
-type LicenceSource = Omit<LicenceEntry, "text" | "file"> &
-  ({ kind: "text"; path: string } | { kind: "file"; path: string });
+type LicenceSource = Omit<LicenceEntry, "text" | "file"> & { kind: "text" | "file"; path: string };
 
 function sources(): LicenceSource[] {
   const engine = environment().engine.dir;
@@ -77,8 +76,7 @@ export async function listLicences(): Promise<LicenceEntry[]> {
 }
 
 export async function openLicenceFile(file: string): Promise<void> {
-  if (!openableFiles().has(file) || !existsSync(file))
-    throw new Error("That file isn't one of the licence files.");
+  if (!openableFiles().has(file)) throw new Error("That file isn't one of the licence files.");
   const error = await shell.openPath(file);
   if (error) throw new Error(error);
 }

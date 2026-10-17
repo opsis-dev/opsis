@@ -36,6 +36,10 @@ describe("resolveInside", () => {
     expect(resolveInside(root, "/../secret.txt")).toBeNull();
     expect(resolveInside(root, "/%2e%2e/secret.txt")).toBeNull();
   });
+
+  it("refuses paths with broken escapes", () => {
+    expect(resolveInside(root, "/assets/%E0%A4%A.mp4")).toBeNull();
+  });
 });
 
 describe("mimeType", () => {

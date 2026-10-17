@@ -27,11 +27,11 @@ function request(msg: Extract<WorkerToMain, { id: string }>): Promise<string | n
   });
 }
 
-function settle(id: string, value?: string, error?: string) {
+function settle(id: string, outcome: { value: string | null } | { error: string }) {
   const entry = pending.get(id);
   pending.delete(id);
-  if (error) entry?.reject(new Error(error));
-  else entry?.resolve(value ?? null);
+  if ("error" in outcome) entry?.reject(new Error(outcome.error));
+  else entry?.resolve(outcome.value);
 }
 
 const sendLive = (message: LiveMessage) => live?.postMessage(message);
@@ -43,17 +43,9 @@ async function login(req: LoginRequest): Promise<string> {
 }
 
 const secretsFor = (projectDir: string): ExecutorContext["secrets"] => ({
-  read: (name) =>
-    request({ type: "secret:request", id: randomUUID(), op: "read", projectDir, name }),
+  read: (name) => request({ type: "secret:read", id: randomUUID(), projectDir, name }),
   write: async (name, value) => {
-    await request({
-      type: "secret:request",
-      id: randomUUID(),
-      op: "write",
-      projectDir,
-      name,
-      value,
-    });
+    await request({ type: "secret:write", id: randomUUID(), projectDir, name, value });
   },
 });
 
@@ -62,9 +54,15 @@ async function handle(msg: MainToWorker): Promise<void> {
     case "cancel":
       controller.abort();
       return;
-    case "secret:response":
-    case "login:response":
-      settle(msg.id, msg.value, msg.error);
+    case "secret:value":
+    case "login:state":
+      settle(msg.id, { value: msg.value });
+      return;
+    case "secret:written":
+      settle(msg.id, { value: null });
+      return;
+    case "request:failed":
+      settle(msg.id, { error: msg.error });
       return;
     case "run": {
       try {

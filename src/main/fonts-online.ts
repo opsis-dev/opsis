@@ -17,23 +17,34 @@ const catalogEntrySchema = z.object({
   type: z.string(),
 }) satisfies z.ZodType<FontCatalogEntry>;
 
-const subsetsSchema = z.object({ subsets: z.array(z.string()).optional() });
+const catalogRowSchema = catalogEntrySchema.extend({ subsets: z.array(z.string()).optional() });
 
-type FontsourceDetail = {
-  id: string;
-  family: string;
-  category: string;
-  variable: boolean;
-  styles: string[];
-  weights: number[];
-  license: string;
-  variants: Record<string, Record<string, Record<string, { woff2?: string }>>>;
-};
+const fileUrlsSchema = z.object({ woff2: z.string().optional() });
+
+const detailSchema = catalogEntrySchema
+  .pick({ id: true, family: true, category: true, variable: true, styles: true, weights: true })
+  .extend({
+    license: z.string().optional().catch(undefined),
+    variants: z
+      .partialRecord(
+        z.string(),
+        z.partialRecord(
+          z.string(),
+          z.partialRecord(z.string(), fileUrlsSchema.extend({ url: fileUrlsSchema.optional() })),
+        ),
+      )
+      .default({}),
+  });
+
+type FontsourceDetail = z.infer<typeof detailSchema>;
+
+const axesSchema = z.object({
+  axes: z
+    .partialRecord(z.string(), z.object({ min: z.coerce.string(), max: z.coerce.string() }))
+    .optional(),
+});
 
 let catalog: FontCatalogEntry[] | null = null;
-
-const isLatin = (row: unknown) =>
-  subsetsSchema.safeParse(row).data?.subsets?.includes("latin") ?? true;
 
 export async function fontCatalog(): Promise<FontCatalogEntry[]> {
   if (catalog) return catalog;
@@ -41,8 +52,10 @@ export async function fontCatalog(): Promise<FontCatalogEntry[]> {
   if (!res.ok) throw new Error("Couldn't load the font list. Check your internet connection.");
   const rows = z.array(z.unknown()).parse(await res.json());
   catalog = rows.flatMap((row) => {
-    const entry = catalogEntrySchema.safeParse(row);
-    return entry.success && isLatin(row) ? [entry.data] : [];
+    const parsed = catalogRowSchema.safeParse(row);
+    if (!parsed.success) return [];
+    const { subsets, ...entry } = parsed.data;
+    return !subsets || subsets.includes("latin") ? [entry] : [];
   });
   return catalog;
 }
@@ -56,7 +69,7 @@ async function fetchBytes(url: string): Promise<Uint8Array> {
 async function weightAxis(id: string): Promise<{ min: string; max: string } | undefined> {
   const res = await fetch(`${API}/variable/${encodeURIComponent(id)}`);
   if (!res.ok) return undefined;
-  return ((await res.json()) as { axes?: Record<string, { min: string; max: string }> }).axes?.wght;
+  return axesSchema.safeParse(await res.json()).data?.axes?.wght;
 }
 
 async function downloadFaces(detail: FontsourceDetail): Promise<NewFamily["files"]> {
@@ -79,7 +92,8 @@ async function downloadFaces(detail: FontsourceDetail): Promise<NewFamily["files
   }
   for (const weight of detail.weights)
     for (const style of styles) {
-      const url = detail.variants[String(weight)]?.[style]?.latin?.woff2;
+      const latin = detail.variants[String(weight)]?.[style]?.latin;
+      const url = latin?.url?.woff2 ?? latin?.woff2;
       if (!url) continue;
       files.push({
         face: { weight: String(weight), style, format: "woff2" },
@@ -102,7 +116,9 @@ const categoryOf = (detail: FontsourceDetail): FontFamilyDef["category"] =>
 export async function downloadOnlineFont(id: string): Promise<FontFamilyDef> {
   const res = await fetch(`${API}/fonts/${encodeURIComponent(id)}`);
   if (!res.ok) throw new Error("Couldn't find that font online.");
-  const detail = (await res.json()) as FontsourceDetail;
+  const parsed = detailSchema.safeParse(await res.json());
+  if (!parsed.success) throw new Error("Couldn't read that font's details.");
+  const detail = parsed.data;
   const files = await downloadFaces(detail);
   if (!files.length) throw new Error("That font has no Latin files to download.");
   const [def] = await addFamilies([

@@ -1,6 +1,7 @@
 import { app, ipcMain, type BrowserWindow } from "electron";
 import { IPC, type CloseDecision, type CloseRequest } from "../shared/ipc";
-import { readSettings, writeSettings } from "./settings";
+import { raiseWindow } from "./raise-window";
+import { patchSettings, readSettings } from "./settings";
 import { cancelRun, isRunning } from "./workers";
 
 const SHOWN_WITHIN_MS = 2000;
@@ -69,19 +70,15 @@ function askRenderer(win: BrowserWindow, request: CloseRequest): Promise<CloseDe
 }
 
 async function confirmClose(win: BrowserWindow): Promise<boolean> {
-  const settings = await readSettings();
+  const ask = (await readSettings()).app.confirmExit;
   const busy = ongoing();
-  const ask = settings.app.confirmExit;
   if (!ask && busy.length === 0) return true;
-  if (win.isMinimized()) win.restore();
-  win.show();
-  win.focus();
+  raiseWindow(win);
   const decision = await askRenderer(win, { ask, busy });
   if (!decision.close) return false;
-  if (ask && decision.dontAsk)
-    await writeSettings({ ...settings, app: { ...settings.app, confirmExit: false } });
+  if (ask && decision.dontAsk) await patchSettings({ app: { confirmExit: false } });
   await flushSave(win);
-  if (isRunning()) cancelRun();
+  cancelRun();
   return true;
 }
 

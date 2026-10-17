@@ -3,10 +3,10 @@ import { z } from "zod";
 import type { PickRequest, PickResult } from "../shared/ipc";
 import type { LoginRequest } from "../shared/worker-protocol";
 import { storageState, type LocalStorageByOrigin } from "./login-state";
-import { installPicker } from "./picker-script";
+import { pickerScript } from "./picker-script";
 
 const PICK_PREFIX = "__demoflow_pick__:";
-const PICKER_SCRIPT = `(${installPicker.toString()})(${JSON.stringify(PICK_PREFIX)})`;
+const PICKER_SCRIPT = pickerScript(PICK_PREFIX);
 const SELECTOR_POLL_MS = 500;
 
 const pickResultSchema = z.object({
@@ -24,7 +24,6 @@ function sandboxedWindow(
 ) {
   return new BrowserWindow({
     parent: parent ?? undefined,
-    modal: false,
     width: size?.width ?? 1280,
     height: size?.height ?? 860,
     useContentSize: !!size,
@@ -128,6 +127,10 @@ export function loginInWindow(
     const win = sandboxedWindow(parent, "Log in — close this window when you're done", partition);
     const origins: LocalStorageByOrigin = new Map();
     let finished = false;
+    const stopWatching = watchForLogin(win, req, {
+      page: () => void readLocalStorage(win, origins),
+      done: () => void finish(),
+    });
     const finish = async () => {
       if (finished) return;
       finished = true;
@@ -137,10 +140,6 @@ export function loginInWindow(
       if (!win.isDestroyed()) win.destroy();
       resolve(JSON.stringify(storageState(cookies, origins)));
     };
-    const stopWatching = watchForLogin(win, req, {
-      page: () => void readLocalStorage(win, origins),
-      done: () => void finish(),
-    });
     win.on("close", (event) => {
       if (finished) return;
       event.preventDefault();
