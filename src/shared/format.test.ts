@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  chordKeys,
   displayAddress,
   formatBytes,
   formatDuration,
@@ -103,5 +104,15 @@ describe("percentText", () => {
     expect(percentText(0.504)).toBe("50%");
     expect(percentText(1.7)).toBe("170%");
     expect(percentText(1.7, { max: 100 })).toBe("100%");
+  });
+});
+
+describe("chordKeys", () => {
+  it.each([
+    ["Control+K", ["Control", "K"]],
+    ["Shift++", ["Shift", "+"]],
+    ["+", ["+"]],
+  ])("splits %j into its keys", (chord, keys) => {
+    expect(chordKeys(chord)).toEqual(keys);
   });
 });

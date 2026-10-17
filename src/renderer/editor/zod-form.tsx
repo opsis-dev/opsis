@@ -42,15 +42,19 @@ type Entry = { key: string; field: z.ZodType; meta: FieldMeta };
 
 type AnyFieldProps = FieldProps<unknown>;
 
-function BoxesKindField(props: AnyFieldProps) {
-  const field = typed(props, isBoxList, []);
-  return field ? <BoxesField {...field} /> : <JsonField {...props} />;
+function checked<V, X extends object = object>(
+  is: (v: unknown) => v is V,
+  empty: (props: X) => V,
+  Component: ComponentType<FieldProps<V> & NoInfer<X>>,
+): ComponentType<AnyFieldProps & X> {
+  return function CheckedField(props) {
+    const value = props.value ?? empty(props);
+    return is(value) ? <Component {...props} value={value} /> : <JsonField {...props} />;
+  };
 }
 
-function EnvelopeKindField(props: AnyFieldProps) {
-  const field = typed(props, isEnvelope, {});
-  return field ? <EnvelopeField {...field} /> : <JsonField {...props} />;
-}
+const BoxesKindField = checked(isBoxList, () => [], BoxesField);
+const EnvelopeKindField = checked(isEnvelope, () => ({}), EnvelopeField);
 
 const VALUE_WIDGETS: Partial<Record<FieldWidget, ComponentType<AnyFieldProps>>> = {
   boxes: BoxesKindField,
@@ -62,15 +66,6 @@ const COLLAPSING =
 
 const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every(isString);
 const isRecordList = (v: unknown): v is Patch[] => Array.isArray(v) && v.every(isRecord);
-
-function typed<V>(
-  props: AnyFieldProps,
-  is: (v: unknown) => v is V,
-  empty: V,
-): FieldProps<V> | null {
-  if (props.value == null) return { ...props, value: empty };
-  return is(props.value) ? { ...props, value: props.value } : null;
-}
 
 function visible(meta: FieldMeta, value: Patch): boolean {
   if (meta.hidden) return false;
@@ -178,72 +173,6 @@ function FieldControl({
   }
 }
 
-function ColorKindField(props: AnyFieldProps) {
-  const field = typed(props, isString, "");
-  return field ? <ColorField {...field} /> : <JsonField {...props} />;
-}
-
-function StringKindField(props: AnyFieldProps) {
-  const field = typed(props, isString, "");
-  return field ? <StringField {...field} /> : <JsonField {...props} />;
-}
-
-function BooleanKindField(props: AnyFieldProps) {
-  const field = typed(props, isBoolean, false);
-  return field ? <BooleanField {...field} /> : <JsonField {...props} />;
-}
-
-function NumberKindField({ min, max, ...props }: AnyFieldProps & { min?: number; max?: number }) {
-  const field = typed(props, isNumber, 0);
-  return field ? <NumberControl {...field} min={min} max={max} /> : <JsonField {...props} />;
-}
-
-function EnumKindField({ options, ...props }: AnyFieldProps & { options: string[] }) {
-  const field = typed(props, isString, options[0] ?? "");
-  if (!field) return <JsonField {...props} />;
-  const { meta } = field;
-  return (
-    <EnumField
-      {...field}
-      options={options}
-      format={
-        meta.widget === "transition" ? transitionTitle : (v) => meta.labels?.[v] ?? humanize(v)
-      }
-    />
-  );
-}
-
-function LiteralsField({ options, ...props }: AnyFieldProps & { options: Array<string | number> }) {
-  const field = typed(props, isStringOrNumber, "");
-  if (!field) return <JsonField {...props} />;
-  const { meta, onChange } = field;
-  return (
-    <EnumField
-      {...field}
-      options={options.map(String)}
-      value={String(field.value)}
-      onChange={(v) => onChange(options.find((o) => String(o) === v) ?? v)}
-      format={(v) => (meta.unit ? `${v} ${meta.unit}` : v)}
-    />
-  );
-}
-
-function EnumListField({ options, ...props }: AnyFieldProps & { options: string[] }) {
-  const field = typed(props, isStringList, []);
-  if (!field) return <JsonField {...props} />;
-  const { meta } = field;
-  return (
-    <ChoiceGroup
-      multiple
-      label={field.label}
-      meta={meta}
-      choices={options.map((o) => ({ value: o, label: meta.labels?.[o] ?? o }))}
-      value={field.value}
-      onChange={field.onChange}
-    />
-  );
-}
-
 function BooleanField({ id, label, value, onChange }: FieldProps<boolean>) {
   return (
     <Field orientation="horizontal" className="justify-between">
@@ -255,10 +184,81 @@ function BooleanField({ id, label, value, onChange }: FieldProps<boolean>) {
   );
 }
 
-function ObjectListKindField({ item, ...props }: AnyFieldProps & { item: z.ZodObject }) {
-  const field = typed(props, isRecordList, []);
-  return field ? <ObjectListField {...field} item={item} /> : <JsonField {...props} />;
+function enumFormat(meta: FieldMeta): (v: string) => string {
+  if (meta.widget === "transition") return transitionTitle;
+  return (v) => meta.labels?.[v] ?? humanize(v);
 }
+
+type Options<O> = { options: O[] };
+
+function EnumChoice(props: FieldProps<string> & Options<string>) {
+  return <EnumField {...props} format={enumFormat(props.meta)} />;
+}
+
+function LiteralChoice({
+  options,
+  value,
+  onChange,
+  ...props
+}: FieldProps<string | number> & Options<string | number>) {
+  const { unit } = props.meta;
+  return (
+    <EnumField
+      {...props}
+      options={options.map(String)}
+      value={String(value)}
+      onChange={(v) => {
+        const picked = options.find((o) => String(o) === v);
+        if (picked !== undefined) onChange(picked);
+      }}
+      format={(v) => (unit ? `${v} ${unit}` : v)}
+    />
+  );
+}
+
+function EnumListChoice({
+  label,
+  meta,
+  value,
+  onChange,
+  options,
+}: FieldProps<string[]> & Options<string>) {
+  return (
+    <ChoiceGroup
+      multiple
+      label={label}
+      meta={meta}
+      choices={options.map((o) => ({ value: o, label: meta.labels?.[o] ?? o }))}
+      value={value}
+      onChange={onChange}
+    />
+  );
+}
+
+const ColorKindField = checked(isString, () => "", ColorField);
+const StringKindField = checked(isString, () => "", StringField);
+const BooleanKindField = checked(isBoolean, () => false, BooleanField);
+const NumberKindField = checked<number, { min?: number; max?: number }>(
+  isNumber,
+  () => 0,
+  NumberControl,
+);
+const EnumKindField = checked<string, Options<string>>(
+  isString,
+  ({ options }) => options[0] ?? "",
+  EnumChoice,
+);
+const LiteralsField = checked<string | number, Options<string | number>>(
+  isStringOrNumber,
+  () => "",
+  LiteralChoice,
+);
+const EnumListField = checked<string[], Options<string>>(isStringList, () => [], EnumListChoice);
+const ObjectListKindField = checked<Patch[], { item: z.ZodObject }>(
+  isRecordList,
+  () => [],
+  ObjectListField,
+);
 
 function ObjectListField({
   label,
@@ -275,10 +275,7 @@ function ObjectListField({
       <Help meta={meta} />
       <div className="flex flex-col gap-3">
         {value.map((entry, i) => (
-          <div
-            key={keys.keys[i] ?? i}
-            className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3"
-          >
+          <div key={keys.keys[i]} className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3">
             <ZodForm
               schema={item}
               value={entry}

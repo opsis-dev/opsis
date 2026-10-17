@@ -68,6 +68,7 @@ type Editable = {
   commit: () => void;
   saveRange: () => void;
   insert: (tokens: TextToken[]) => void;
+  insertVar: (name: string) => void;
 };
 
 function useSelectionRange(ref: RefObject<HTMLElement | null>) {
@@ -146,35 +147,38 @@ function useEditable({
     commit();
   };
 
-  return { ref, commit, saveRange: selection.save, insert };
+  return {
+    ref,
+    commit,
+    saveRange: selection.save,
+    insert,
+    insertVar: (name) => insert([{ kind: "var", name }]),
+  };
 }
+
+const INSERT_VARIABLE = "Insert variable";
 
 function VariablesMenu({
   vars,
   compact,
-  onOpen,
-  onPick,
+  editable,
 }: {
   vars: VarInfo[];
   compact: boolean;
-  onOpen: () => void;
-  onPick: (name: string) => void;
+  editable: Editable;
 }) {
-  const trigger = compact ? (
+  const iconLabel = compact ? INSERT_VARIABLE : undefined;
+  const trigger = (
     <Button
       variant="ghost"
-      size="icon-sm"
-      aria-label="Insert variable"
-      title="Insert variable"
-      className="text-muted-foreground shrink-0"
-      onMouseDown={onOpen}
+      size={compact ? "icon-sm" : "xs"}
+      aria-label={iconLabel}
+      title={iconLabel}
+      className={cn("text-muted-foreground", compact && "shrink-0")}
+      onMouseDown={editable.saveRange}
     >
-      <Braces />
-    </Button>
-  ) : (
-    <Button variant="ghost" size="xs" className="text-muted-foreground" onMouseDown={onOpen}>
-      <Braces data-icon="inline-start" />
-      Insert variable
+      <Braces data-icon={compact ? undefined : "inline-start"} />
+      {compact ? null : INSERT_VARIABLE}
     </Button>
   );
   return (
@@ -184,7 +188,7 @@ function VariablesMenu({
         <DropdownMenuGroup>
           <DropdownMenuLabel>Variables</DropdownMenuLabel>
           {vars.map((v) => (
-            <DropdownMenuItem key={v.name} onClick={() => onPick(v.name)}>
+            <DropdownMenuItem key={v.name} onClick={() => editable.insertVar(v.name)}>
               <span className="truncate">{v.name}</span>
               <span className="text-muted-foreground ml-auto max-w-24 truncate text-xs">
                 {v.value}
@@ -263,12 +267,7 @@ function MultilineFooter({
   const { saveRange, insert } = editable;
   return (
     <div className="flex gap-1">
-      <VariablesMenu
-        vars={vars}
-        compact={false}
-        onOpen={saveRange}
-        onPick={(name) => insert([{ kind: "var", name }])}
-      />
+      <VariablesMenu vars={vars} compact={false} editable={editable} />
       {pauses ? (
         <Button
           variant="ghost"
@@ -323,12 +322,7 @@ export function VarText({
   return (
     <div className="flex items-start gap-1">
       {surface}
-      <VariablesMenu
-        vars={vars}
-        compact
-        onOpen={editable.saveRange}
-        onPick={(name) => editable.insert([{ kind: "var", name }])}
-      />
+      <VariablesMenu vars={vars} compact editable={editable} />
     </div>
   );
 }

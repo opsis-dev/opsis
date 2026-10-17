@@ -1,23 +1,9 @@
+import { humanize } from "@/shared/format";
 import type { NodeCategory } from "@/shared/nodes/define";
 import { getNodeDef } from "@/shared/nodes/registry";
-import type { PortType } from "@/shared/schema/workflow";
+import { PORT_WORDS, type PortType } from "@/shared/schema/workflow";
 
 const NEUTRAL_COLOR = "#71717a";
-
-const CLIP_PORT = { color: "#a78bfa", label: "Clip" };
-
-const PORT_TYPES: Record<PortType, { color: string; label: string }> = {
-  session: { color: "#38bdf8", label: "Next" },
-  recording: { color: "#f97316", label: "Recording" },
-  clip: CLIP_PORT,
-  scene: CLIP_PORT,
-  timeline: { color: "#f472b6", label: "Clip" },
-  audio: { color: "#34d399", label: "Sound" },
-  captions: { color: "#facc15", label: "Captions" },
-  image: { color: "#2dd4bf", label: "Image" },
-  media: { color: "#60a5fa", label: "File" },
-  file: { color: "#94a3b8", label: "File" },
-};
 
 export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: string }> = {
   Browser: { color: "#38bdf8", icon: "globe" },
@@ -36,14 +22,33 @@ export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: string
   Utility: { color: NEUTRAL_COLOR, icon: "sticky-note" },
 };
 
+const CLIP_COLOR = "#a78bfa";
+
+const PORT_COLORS: Record<PortType, string> = {
+  session: CATEGORY_STYLES.Browser.color,
+  recording: CATEGORY_STYLES.Capture.color,
+  clip: CLIP_COLOR,
+  scene: CLIP_COLOR,
+  timeline: CATEGORY_STYLES.Timeline.color,
+  audio: CATEGORY_STYLES.Audio.color,
+  captions: "#facc15",
+  image: "#2dd4bf",
+  media: CATEGORY_STYLES.Media.color,
+  file: "#94a3b8",
+};
+
 export const portTypeColor = (type: PortType | undefined): string =>
-  type ? PORT_TYPES[type].color : NEUTRAL_COLOR;
+  type ? PORT_COLORS[type] : NEUTRAL_COLOR;
 
 export function categoryColor(nodeType: string): string {
   const category = getNodeDef(nodeType)?.category;
   return category ? CATEGORY_STYLES[category].color : NEUTRAL_COLOR;
 }
 
+function portTypeLabel(type: PortType, side: "in" | "out"): string {
+  if (type === "session") return side === "in" ? "Previous" : "Next";
+  return humanize(PORT_WORDS[type]);
+}
+
 export const portLabel = (spec: { type: PortType; label?: string }, side: "in" | "out") =>
-  spec.label ??
-  (spec.type === "session" && side === "in" ? "Previous" : PORT_TYPES[spec.type].label);
+  spec.label ?? portTypeLabel(spec.type, side);

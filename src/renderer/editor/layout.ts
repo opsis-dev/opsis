@@ -9,6 +9,8 @@ const elk = new ELK();
 const LAYER_GAP = 80;
 const NODE_GAP = 32;
 
+const portId = (nodeId: string, side: "in" | "out", port: string) => `${nodeId}::${side}::${port}`;
+
 async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: number }>> {
   const nodes = wf.nodes.filter((n) => !n.parentId && !isGroupNode(n));
   const ids = new Set(nodes.map((n) => n.id));
@@ -33,11 +35,11 @@ async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: 
         height: size.height,
         ports: [
           ...inputs.map((p, i) => ({
-            id: `${n.id}::in::${p}`,
+            id: portId(n.id, "in", p),
             layoutOptions: { "elk.port.side": "WEST", "elk.port.index": String(i) },
           })),
           ...outputs.map((p, i) => ({
-            id: `${n.id}::out::${p}`,
+            id: portId(n.id, "out", p),
             layoutOptions: { "elk.port.side": "EAST", "elk.port.index": String(i) },
           })),
         ],
@@ -47,8 +49,8 @@ async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: 
       .filter((e) => ids.has(e.source) && ids.has(e.target))
       .map((e) => ({
         id: e.id,
-        sources: [`${e.source}::out::${e.sourceHandle}`],
-        targets: [`${e.target}::in::${e.targetHandle}`],
+        sources: [portId(e.source, "out", e.sourceHandle)],
+        targets: [portId(e.target, "in", e.targetHandle)],
       })),
   };
   const result = await elk.layout(graph);
