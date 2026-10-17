@@ -1,9 +1,30 @@
 import { defaultParams, getNodeDef } from "../nodes/registry";
 import { CARD_WIDTH, estimateCardHeight } from "../nodes/size";
-import type { Workflow, WorkflowEdge, WorkflowNode, WorkflowSettings } from "../schema/workflow";
-import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
+import {
+  DEFAULT_WORKFLOW_SETTINGS,
+  type Workflow,
+  type WorkflowEdge,
+  type WorkflowNode,
+  type WorkflowSettings,
+} from "../schema/workflow";
 
 const GAP = 32;
+const COLUMN_WIDTH = 300;
+const ROW_HEIGHT = 170;
+const CLIP_PORT = "clip";
+const SESSION_PORT = "session";
+
+type Placed = { node: WorkflowNode; height: number };
+
+const overlaps = (p: Placed, x: number, y: number, height: number) =>
+  Math.abs(p.node.position.x - x) < CARD_WIDTH + GAP &&
+  y < p.node.position.y + p.height + GAP &&
+  y + height + GAP > p.node.position.y;
+
+function nextFreeY(placed: Placed[], x: number, y: number, height: number): number {
+  const below = placed.find((p) => overlaps(p, x, y, height));
+  return below ? nextFreeY(placed, x, below.node.position.y + below.height + GAP, height) : y;
+}
 
 export class GraphBuilder {
   nodes: WorkflowNode[] = [];
@@ -20,14 +41,14 @@ export class GraphBuilder {
     this.nodes.push({
       id,
       type,
-      position: { x: x * 300, y: y * 170 },
+      position: { x: x * COLUMN_WIDTH, y: y * ROW_HEIGHT },
       params: { ...defaultParams(type), ...params },
       ...(label ? { label } : {}),
     });
     return id;
   }
 
-  link(source: string, target: string, sourceHandle = "clip", targetHandle = "clip"): this {
+  link(source: string, target: string, sourceHandle = CLIP_PORT, targetHandle = CLIP_PORT): this {
     this.edges.push({
       id: `${source}.${sourceHandle}->${target}.${targetHandle}`,
       source,
@@ -39,32 +60,20 @@ export class GraphBuilder {
   }
 
   private unstack(): void {
-    const placed: Array<{ node: WorkflowNode; height: number }> = [];
+    const placed: Placed[] = [];
     const order = [...this.nodes].sort(
       (a, b) => a.position.y - b.position.y || a.position.x - b.position.x,
     );
     for (const node of order) {
       const height = estimateCardHeight(getNodeDef(node.type));
-      let y = node.position.y;
-      for (let moved = true; moved;) {
-        moved = false;
-        for (const p of placed) {
-          const sideBySide = Math.abs(p.node.position.x - node.position.x) >= CARD_WIDTH + GAP;
-          const clear =
-            y >= p.node.position.y + p.height + GAP || y + height + GAP <= p.node.position.y;
-          if (!sideBySide && !clear) {
-            y = p.node.position.y + p.height + GAP;
-            moved = true;
-          }
-        }
-      }
+      const y = nextFreeY(placed, node.position.x, node.position.y, height);
       node.position = { ...node.position, y };
       placed.push({ node, height });
     }
   }
 
   chain(ids: string[]): this {
-    for (let i = 1; i < ids.length; i++) this.link(ids[i - 1], ids[i], "session", "session");
+    for (let i = 1; i < ids.length; i++) this.link(ids[i - 1], ids[i], SESSION_PORT, SESSION_PORT);
     return this;
   }
 
@@ -79,14 +88,7 @@ export class GraphBuilder {
       version: 1,
       id: meta.id,
       name: meta.name,
-      settings: {
-        width: 1920,
-        height: 1080,
-        fps: 30,
-        theme: "dark",
-        fonts: DEFAULT_PROJECT_FONTS,
-        ...meta.settings,
-      },
+      settings: { ...DEFAULT_WORKFLOW_SETTINGS, ...meta.settings },
       variables: meta.variables ?? {},
       nodes: this.nodes,
       edges: this.edges,

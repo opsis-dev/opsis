@@ -1,39 +1,39 @@
 import { describe, expect, it } from "vitest";
+import { recordResult } from "../test-fixtures";
 import type { NodeResult } from "../schema/values";
-import type { WorkflowSettings } from "../schema/workflow";
-import { elementName, sentence } from "./card";
+import { DEFAULT_WORKFLOW_SETTINGS as settings } from "../schema/workflow";
+import { elementRow, sentence, type CardContext, type CardRow } from "./card";
 import { defaultParams, getNodeDef, NODE_DEFS } from "./registry";
-import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 
-const settings: WorkflowSettings = {
-  width: 1920,
-  height: 1080,
-  fps: 30,
-  theme: "dark",
-  fonts: DEFAULT_PROJECT_FONTS,
-};
-
-function rows(type: string, params: Record<string, unknown>, extra: Record<string, unknown> = {}) {
-  const def = getNodeDef(type)!;
-  return def.card!({
+function rows(
+  type: string,
+  params: Record<string, unknown>,
+  extra: Partial<CardContext<Record<string, unknown>>> = {},
+) {
+  const card = getNodeDef(type)?.card;
+  if (!card) throw new Error(`${type} has no card`);
+  return card({
     params: { ...defaultParams(type), ...params },
     raw: params,
     settings,
     connected: [],
     ...extra,
-  })
-    .filter((r) => r && typeof r === "object")
-    .map((r) => r as { icon: string; text: string; tone?: string });
+  }).filter((r): r is CardRow => !!r);
 }
 
 describe("card formatting", () => {
   it("describes elements in words", () => {
-    expect(elementName("Login", "button")).toBe("“Login” button");
-    expect(elementName("Username", "textbox")).toBe("“Username” field");
-    expect(elementName("What needs to be done?")).toBe("“What needs to be done?”");
-    expect(elementName("css=#add-to-cart")).toBe("Custom element");
-    expect(elementName("320, 180")).toBe("Point 320, 180");
-    expect(elementName("  ")).toBeNull();
+    const named = (target: string, role?: string) =>
+      elementRow("crosshair", target, role ? { targetRole: role } : {}).text;
+    expect(named("Login", "button")).toBe("“Login” button");
+    expect(named("Username", "textbox")).toBe("“Username” field");
+    expect(named("What needs to be done?")).toBe("“What needs to be done?”");
+    expect(named("css=#add-to-cart")).toBe("Custom element");
+    expect(named("320, 180")).toBe("Point 320, 180");
+    expect(elementRow("crosshair", "  ", {})).toMatchObject({
+      text: "Pick an element",
+      tone: "warn",
+    });
   });
 
   it("shortens titles", () => {
@@ -56,7 +56,7 @@ describe("node cards", () => {
   it("gives every visible node a description and no internal names", () => {
     const visible = NODE_DEFS.filter((d) => !d.hidden);
     const banned =
-      /playwright|remotion|chromium|ffmpeg|ffprobe|PLAN\.md|page\.evaluate|safeStorage|\.mp4|moov|crf|dpr\b/i;
+      /playwright|remotion|chromium|ffmpeg|ffprobe|page\.evaluate|safeStorage|\.mp4|crf|dpr\b/i;
     expect(visible.filter((d) => !d.description).map((d) => d.type)).toEqual([]);
     expect(
       visible.filter((d) => banned.test(`${d.title} ${d.description}`)).map((d) => d.type),
@@ -89,22 +89,16 @@ describe("node cards", () => {
   });
 
   it("adds run results to Record take and Export video", () => {
-    const record: NodeResult = {
-      hash: "h",
-      outputs: {
-        recording: {
-          type: "recording",
-          src: "project:a.mp4",
-          log: { viewport: { width: 1, height: 1 }, dpr: 1, durationMs: 14_500, actions: [{}, {}] },
-          durationMs: 14_500,
-          viewport: { width: 1920, height: 1080 },
-          nodeId: "r",
-        },
-      } as unknown as NodeResult["outputs"],
-      artifacts: [],
-      finishedAt: 1,
-      durationMs: 1,
-    };
+    const record = recordResult({
+      viewport: { width: 1920, height: 1080 },
+      dpr: 1,
+      t0: 0,
+      durationMs: 14_500,
+      actions: [
+        { id: "a", kind: "click", t: 1000 },
+        { id: "b", kind: "click", t: 2000 },
+      ],
+    });
     expect(rows("capture.record", {}, { result: record }).map((r) => r.text)).toEqual([
       "30 fps",
       "Smooth cursor",

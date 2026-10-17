@@ -14,5 +14,5 @@ const ACCEPTS: Record<PortType, PortType[]> = {
 };
 
 export function canConnect(source: PortType, target: PortType): boolean {
-  return ACCEPTS[target]?.includes(source) ?? false;
+  return ACCEPTS[target].includes(source);
 }

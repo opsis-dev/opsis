@@ -2,13 +2,15 @@ import { describe, expect, it } from "vitest";
 import type { ActionLog } from "../schema/actions";
 import type { TimelineSpec } from "../schema/timeline";
 import type { NodeResult } from "../schema/values";
-import { todoMvcSample } from "../templates";
+import { getTemplate } from "../templates";
 import { GraphBuilder } from "../templates/build";
 import type { GroupProps } from "./clip";
 import { compileWorkflow, previewSpec } from "./compile";
 import type { RecordingProps } from "./recording";
 import { flattenSpec } from "../timeline/flatten";
 import { recordResult } from "../test-fixtures";
+
+const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 
 const log: ActionLog = {
   viewport: { width: 1920, height: 1080 },
@@ -68,7 +70,7 @@ function walkItems(spec: TimelineSpec) {
 
 describe("compileWorkflow — sample project", () => {
   it("compiles to one spec per Output node, with a placeholder before the first run", () => {
-    const wf = todoMvcSample();
+    const wf = todoMvc();
     const out = compileWorkflow(wf);
     expect(out.errors).toEqual({});
     const spec = out.specs.render;
@@ -82,7 +84,7 @@ describe("compileWorkflow — sample project", () => {
   });
 
   it("uses the recording once the capture node has a result", () => {
-    const wf = todoMvcSample();
+    const wf = todoMvc();
     const out = compileWorkflow(wf, { results: { record: recordResult(log) } });
     const rec = walkItems(out.specs.render).find((i) => i.component === "core/recording");
     expect(rec).toBeDefined();
@@ -93,7 +95,7 @@ describe("compileWorkflow — sample project", () => {
   });
 
   it("marks every action of the recording on the timeline at its frame", () => {
-    const wf = todoMvcSample();
+    const wf = todoMvc();
     const out = compileWorkflow(wf, { results: { record: recordResult(log) } });
     const flat = flattenSpec(out.specs.render);
     const bar = flat.bars.find((b) => b.component === "core/recording")!;
@@ -109,7 +111,7 @@ describe("compileWorkflow — sample project", () => {
     const result = recordResult(log);
     const recording = result.outputs.recording as Record<string, unknown>;
     recording.proxySrc = "project:.demoflow/cache/h/recording.preview.mp4";
-    const out = compileWorkflow(todoMvcSample(), { results: { record: result } });
+    const out = compileWorkflow(todoMvc(), { results: { record: result } });
     const rec = walkItems(out.specs.render).find((i) => i.component === "core/recording");
     const props = rec!.props as RecordingProps;
     expect(props.src).toBe("project:.demoflow/cache/h/recording.mp4");
@@ -117,7 +119,7 @@ describe("compileWorkflow — sample project", () => {
   });
 
   it("sequences clips with overlapping transitions (TransitionSeries semantics)", () => {
-    const wf = todoMvcSample();
+    const wf = todoMvc();
     const spec = compileWorkflow(wf, { results: { record: recordResult(log) } }).specs.render;
     const seq = spec.tracks[0].items;
     expect(seq).toHaveLength(3);
@@ -130,7 +132,7 @@ describe("compileWorkflow — sample project", () => {
   });
 
   it("interpolates {{VARIABLES}} into params", () => {
-    const wf = todoMvcSample();
+    const wf = todoMvc();
     const spec = compileWorkflow(wf).specs.render;
     const outro = walkItems(spec).find((i) => i.component === "core/title");
     expect(outro?.props.subtitle).toBe("https://demo.playwright.dev/todomvc");

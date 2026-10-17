@@ -1,7 +1,6 @@
 import { compileWorkflow } from "../compile/compile";
 import { validateWorkflow } from "../graph";
-import { normalizeWorkflow } from "../nodes/registry";
-import { workflowSchema, type Workflow } from "../schema/workflow";
+import { normalizeWorkflow, workflowSchema, type Workflow } from "../schema/workflow";
 import type { ApiProblem } from "./types";
 
 export type CheckResult = { ok: boolean; workflow: Workflow | null; problems: ApiProblem[] };

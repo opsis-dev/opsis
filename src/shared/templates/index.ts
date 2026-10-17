@@ -10,92 +10,53 @@ export type TemplateInfo = {
   build: (name: string) => Workflow;
 };
 
-export function todoMvcSample(name = "TodoMVC demo"): Workflow {
-  const g = new GraphBuilder();
-  const s = g.node("session", "browser.session", 0, 0, {
-    viewportWidth: 1920,
-    viewportHeight: 1080,
-    dpr: 2,
-  });
-  const nav = g.node("open", "browser.navigate", 1, 0, { url: "{{Site address}}/#/", after: 900 });
-  const t1 = g.node(
-    "todo1",
-    "browser.type",
-    2,
-    0,
-    {
-      target: "What needs to be done?",
-      text: "Record a real product flow",
-      pressEnter: true,
-      cluster: "add",
-      after: 500,
-    },
-    "New todo",
-  );
-  const t2 = g.node(
-    "todo2",
-    "browser.type",
-    3,
-    0,
-    {
-      target: "What needs to be done?",
-      text: "Auto-zoom on every click",
-      pressEnter: true,
-      cluster: "add",
-      after: 500,
-    },
-    "New todo",
-  );
-  const t3 = g.node(
-    "todo3",
-    "browser.type",
-    4,
-    0,
-    {
-      target: "What needs to be done?",
-      text: "Render 16:9 and 9:16",
-      pressEnter: true,
-      cluster: "add",
-      after: 1200,
-    },
-    "New todo",
-  );
-  const done = g.node(
-    "complete",
-    "browser.click",
-    5,
-    0,
-    {
-      target: "Toggle Todo",
-      targetRole: "checkbox",
-      cluster: "done",
-      after: 1100,
-    },
-    "Complete",
-  );
-  const filter = g.node(
-    "filter",
-    "browser.click",
-    6,
-    0,
-    {
-      target: "Completed",
-      targetRole: "link",
-      cluster: "filter",
-      after: 1500,
-    },
-    "Completed filter",
-  );
-  const rec = g.node("record", "capture.record", 7, 0, { fps: 30 });
-  g.chain([s, nav, t1, t2, t3, done, filter, rec]);
+type Step = { id: string; type: string; params?: Record<string, unknown>; label?: string };
 
-  const cam = g.node("camera", "camera.autoZoom", 7, 1, {
-    maxScale: 1.74,
-    hold: 1300,
-    backdrop: "glaze",
-    motionBlur: true,
-  });
+function recordTake(g: GraphBuilder, steps: Step[], camera: Record<string, unknown> = {}): string {
+  const ids = steps.map((step, x) => g.node(step.id, step.type, x, 0, step.params, step.label));
+  const rec = g.node("record", "capture.record", steps.length, 0);
+  g.chain([...ids, rec]);
+  const cam = g.node("camera", "camera.autoZoom", steps.length, 1, camera);
   g.link(rec, cam, "recording", "recording");
+  return cam;
+}
+
+const session: Step = { id: "session", type: "browser.session" };
+
+const open = (url = "{{Site address}}", after?: number): Step => ({
+  id: "open",
+  type: "browser.navigate",
+  params: after === undefined ? { url } : { url, after },
+});
+
+const addTodo = (id: string, text: string, after: number): Step => ({
+  id,
+  type: "browser.type",
+  params: { target: "What needs to be done?", text, pressEnter: true, cluster: "add", after },
+  label: "New todo",
+});
+
+function todoMvcSample(name: string): Workflow {
+  const g = new GraphBuilder();
+  const cam = recordTake(g, [
+    session,
+    open("{{Site address}}/#/", 900),
+    addTodo("todo1", "Record a real product flow", 500),
+    addTodo("todo2", "Auto-zoom on every click", 500),
+    addTodo("todo3", "Render 16:9 and 9:16", 1200),
+    {
+      id: "complete",
+      type: "browser.click",
+      params: { target: "Toggle Todo", targetRole: "checkbox", cluster: "done", after: 1100 },
+      label: "Complete",
+    },
+    {
+      id: "filter",
+      type: "browser.click",
+      params: { target: "Completed", targetRole: "link", cluster: "filter", after: 1500 },
+      label: "Completed filter",
+    },
+  ]);
   const chips = g.node("chips", "cursor.keystrokeChips", 7, 2, {
     position: "bottom",
     typed: true,
@@ -146,23 +107,16 @@ export function todoMvcSample(name = "TodoMVC demo"): Workflow {
 
 function featureLaunch(name: string): Workflow {
   const g = new GraphBuilder();
-  const s = g.node("session", "browser.session", 0, 0);
-  const nav = g.node("open", "browser.navigate", 1, 0, { url: "{{Site address}}" });
-  const click = g.node(
-    "cta",
-    "browser.click",
-    2,
-    0,
+  const cam = recordTake(g, [
+    session,
+    open(),
     {
-      target: "Get started",
-      after: 1500,
+      id: "cta",
+      type: "browser.click",
+      params: { target: "Get started", after: 1500 },
+      label: "Get started",
     },
-    "Get started",
-  );
-  const rec = g.node("record", "capture.record", 3, 0);
-  g.chain([s, nav, click, rec]);
-  const cam = g.node("camera", "camera.autoZoom", 3, 1);
-  g.link(rec, cam, "recording", "recording");
+  ]);
   const spot = g.node("spotlight", "cursor.spotlight", 3, 2, { match: "Get started" });
   g.link(cam, spot);
   const intro = g.node("headline", "fx.core.kinetic-headline", 1, 2, {
@@ -216,37 +170,24 @@ function changelogClip(name: string): Workflow {
 
 function onboarding(name: string): Workflow {
   const g = new GraphBuilder();
-  const s = g.node("session", "browser.session", 0, 0);
-  const nav = g.node("open", "browser.navigate", 1, 0, { url: "{{Site address}}" });
-  const ch1 = g.node("chapter1", "browser.chapter", 2, 0, { title: "Create your first item" });
-  const type = g.node(
-    "type",
-    "browser.type",
-    3,
-    0,
+  const cam = recordTake(g, [
+    session,
+    open(),
+    { id: "chapter1", type: "browser.chapter", params: { title: "Create your first item" } },
     {
-      target: "What needs to be done?",
-      text: "Invite the team",
-      pressEnter: true,
+      id: "type",
+      type: "browser.type",
+      params: { target: "What needs to be done?", text: "Invite the team", pressEnter: true },
+      label: "New item",
     },
-    "New item",
-  );
-  const ch2 = g.node("chapter2", "browser.chapter", 4, 0, { title: "Mark it done" });
-  const done = g.node(
-    "done",
-    "browser.click",
-    5,
-    0,
+    { id: "chapter2", type: "browser.chapter", params: { title: "Mark it done" } },
     {
-      target: "css=.todo-list li:nth-child(1) .toggle",
-      after: 1400,
+      id: "done",
+      type: "browser.click",
+      params: { target: "css=.todo-list li:nth-child(1) .toggle", after: 1400 },
+      label: "Done",
     },
-    "Done",
-  );
-  const rec = g.node("record", "capture.record", 6, 0);
-  g.chain([s, nav, ch1, type, ch2, done, rec]);
-  const cam = g.node("camera", "camera.autoZoom", 6, 1);
-  g.link(rec, cam, "recording", "recording");
+  ]);
   const hl = g.node("highlight", "cursor.highlightBox", 6, 2);
   g.link(cam, hl);
   const tip = g.node("tooltip", "text.tooltip", 6, 3, { match: "Done", text: "Tick it off" });
@@ -268,21 +209,24 @@ function onboarding(name: string): Workflow {
 
 function socialTeaser(name: string): Workflow {
   const g = new GraphBuilder();
-  const s = g.node("session", "browser.session", 0, 0, {
-    viewportWidth: 1440,
-    viewportHeight: 900,
-  });
-  const nav = g.node("open", "browser.navigate", 1, 0, { url: "{{Site address}}" });
-  const t = g.node("type", "browser.type", 2, 0, {
-    target: "What needs to be done?",
-    text: "Ship the teaser",
-    pressEnter: true,
-    after: 1500,
-  });
-  const rec = g.node("record", "capture.record", 3, 0);
-  g.chain([s, nav, t, rec]);
-  const cam = g.node("camera", "camera.autoZoom", 3, 1, { speed: 1.5 });
-  g.link(rec, cam, "recording", "recording");
+  const cam = recordTake(
+    g,
+    [
+      { ...session, params: { viewportWidth: 1440, viewportHeight: 900 } },
+      open(),
+      {
+        id: "type",
+        type: "browser.type",
+        params: {
+          target: "What needs to be done?",
+          text: "Ship the teaser",
+          pressEnter: true,
+          after: 1500,
+        },
+      },
+    ],
+    { speed: 1.5 },
+  );
   const hook = g.node("hook", "fx.remocn.kinetic-center-build", 1, 2, { clipDuration: 60 });
   const seq = g.node("sequence", "timeline.sequence", 4, 2, { transition: "remocn/push-through" });
   g.link(hook, seq, "clip", "in1").link(cam, seq, "clip", "in2");
@@ -390,5 +334,8 @@ export const TEMPLATES: TemplateInfo[] = [
   },
 ];
 
-export const getTemplate = (templateId: string) =>
-  TEMPLATES.find((t) => t.id === templateId) ?? TEMPLATES[0];
+export function getTemplate(templateId: string): TemplateInfo {
+  const template = TEMPLATES.find((t) => t.id === templateId);
+  if (!template) throw new Error(`There's no template called “${templateId}”.`);
+  return template;
+}

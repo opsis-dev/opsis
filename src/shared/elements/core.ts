@@ -1,6 +1,6 @@
 import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
-import { BACKDROPS } from "../../video/camera/lib/backdrop";
+import { BACKDROPS } from "../backdrops";
 import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
 
 const source = {
@@ -8,11 +8,7 @@ const source = {
   url: "https://github.com/bismitpanda/demoflow",
   license: "Apache-2.0",
 };
-const text = (def: string, description: string, widget?: "textarea") =>
-  z
-    .string()
-    .default(def)
-    .meta({ description, ...(widget ? { widget } : {}) });
+const text = (def: string, description: string) => z.string().default(def).meta({ description });
 const num = (def: number, min: number, max: number, description: string, step = 1) =>
   z.number().min(min).max(max).default(def).meta({ description, step });
 const color = (def: string, description: string) => zColor().default(def).meta({ description });
@@ -24,18 +20,35 @@ const font = () =>
   });
 const asset = (description: string, accept: string) =>
   z.string().default("").meta({ description, widget: "asset", accept });
+const background = (description = "Background") =>
+  z.string().default("transparent").meta({ description });
+const direction = <const T extends readonly [string, ...string[]]>(values: T, def: T[number]) =>
+  z.enum(values).default(def).meta({ description: "Direction" });
 
-export const ENTRANCES = ["rise", "fade", "blur", "scale", "none"] as const;
-export const DIRECTIONS = ["from-left", "from-right", "from-top", "from-bottom"] as const;
+const ENTRANCES = ["rise", "fade", "blur", "scale", "none"] as const;
+const DIRECTIONS = ["from-left", "from-right", "from-top", "from-bottom"] as const;
 
-const defs: ElementMetaInput[] = [
+export const CAPTIONS_ELEMENT = "core/captions";
+
+export const captionsSchema = z.object({
+  style: z
+    .enum(["word-by-word", "karaoke", "line"])
+    .default("word-by-word")
+    .meta({ description: "Style" }),
+  position: z.enum(["bottom", "center", "top"]).default("bottom").meta({ description: "Position" }),
+  fontSize: num(56, 16, 140, "Font size"),
+  color: color("#ffffff", "Text color"),
+  highlightColor: color("#facc15", "Highlight color"),
+  fontFamily: font(),
+});
+
+const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
   {
     key: "core/title",
     title: "Title card",
     description: "A full-screen title with an optional eyebrow and subtitle.",
     category: "text",
     kind: "component",
-    source,
     schema: z.object({
       eyebrow: text("", "Eyebrow"),
       title: text("Sign up in 10 seconds", "Title"),
@@ -44,14 +57,10 @@ const defs: ElementMetaInput[] = [
       entrance: z.enum(ENTRANCES).default("rise").meta({ description: "Entrance" }),
       color: color("#fafafa", "Text color"),
       accent: color("#a78bfa", "Accent"),
-      background: z
-        .string()
-        .default("transparent")
-        .meta({ description: "Background (color, gradient or 'transparent')" }),
+      background: background("Background (color, gradient or 'transparent')"),
       fontSize: num(112, 24, 260, "Font size"),
       fontFamily: font(),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 75,
   },
   {
@@ -60,7 +69,6 @@ const defs: ElementMetaInput[] = [
     description: "A headline that animates in word by word.",
     category: "text",
     kind: "component",
-    source,
     schema: z.object({
       text: text(
         "Ship *faster* with demos that *move*",
@@ -68,12 +76,11 @@ const defs: ElementMetaInput[] = [
       ),
       color: color("#fafafa", "Text color"),
       emphasisColor: color("#facc15", "Emphasis color"),
-      background: z.string().default("transparent").meta({ description: "Background" }),
+      background: background(),
       fontSize: num(104, 24, 240, "Font size"),
       wordStagger: num(4, 1, 20, "Frames between words"),
       fontFamily: font(),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 90,
   },
   {
@@ -82,7 +89,6 @@ const defs: ElementMetaInput[] = [
     description: "A name or caption bar in the lower part of the screen.",
     category: "overlay",
     kind: "component",
-    source,
     schema: z.object({
       title: text("Ada Lovelace", "Title"),
       subtitle: text("Founder, Acme", "Subtitle"),
@@ -95,7 +101,6 @@ const defs: ElementMetaInput[] = [
       panel: color("rgba(10,10,12,0.72)", "Panel color"),
       fontFamily: font(),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 120,
   },
   {
@@ -104,7 +109,6 @@ const defs: ElementMetaInput[] = [
     description: "A short note that points something out.",
     category: "overlay",
     kind: "component",
-    source,
     schema: z.object({
       text: text("Click here", "Text"),
       x: num(0.5, 0, 1, "Target X (0–1)", 0.01),
@@ -117,31 +121,15 @@ const defs: ElementMetaInput[] = [
       accent: color("#f43f5e", "Arrow color"),
       fontFamily: font(),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 75,
   },
   {
-    key: "core/captions",
+    key: CAPTIONS_ELEMENT,
     title: "Captions",
     description: "Captions shown over the video.",
     category: "overlay",
     kind: "component",
-    source,
-    schema: z.object({
-      style: z
-        .enum(["word-by-word", "karaoke", "line"])
-        .default("word-by-word")
-        .meta({ description: "Style" }),
-      position: z
-        .enum(["bottom", "center", "top"])
-        .default("bottom")
-        .meta({ description: "Position" }),
-      fontSize: num(56, 16, 140, "Font size"),
-      color: color("#ffffff", "Text color"),
-      highlightColor: color("#facc15", "Highlight color"),
-      fontFamily: font(),
-    }),
-    fixedProps: {},
+    schema: captionsSchema,
     defaultDurationInFrames: 150,
   },
   {
@@ -150,14 +138,12 @@ const defs: ElementMetaInput[] = [
     description: "Shows an image from your project.",
     category: "core",
     kind: "component",
-    source,
     schema: z.object({
       src: asset("Image", "image/*"),
       fit: z.enum(["contain", "cover", "fill"]).default("contain").meta({ description: "Fit" }),
-      background: z.string().default("transparent").meta({ description: "Background" }),
+      background: background(),
       kenBurns: z.boolean().default(false).meta({ description: "Slow push-in" }),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 90,
   },
   {
@@ -167,7 +153,6 @@ const defs: ElementMetaInput[] = [
       "Covers parts of the screen with coarse blocks, to hide keys, emails and personal details.",
     category: "effect",
     kind: "wrapper",
-    source,
     schema: z.object({
       boxes: z
         .array(
@@ -187,7 +172,6 @@ const defs: ElementMetaInput[] = [
         }),
       blockSize: num(24, 6, 72, "Block size", 2),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 90,
   },
   {
@@ -197,7 +181,6 @@ const defs: ElementMetaInput[] = [
       "Plays an animation made in After Effects or downloaded from LottieFiles (.json or .lottie).",
     category: "overlay",
     kind: "component",
-    source,
     schema: z.object({
       src: asset("Animation file", ".json,.lottie"),
       loop: z.boolean().default(true).meta({ description: "Loop" }),
@@ -207,9 +190,8 @@ const defs: ElementMetaInput[] = [
         .enum(["contain", "cover"])
         .default("contain")
         .meta({ description: "Fit", labels: { contain: "Show all", cover: "Fill the frame" } }),
-      background: z.string().default("transparent").meta({ description: "Background" }),
+      background: background(),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 90,
   },
   {
@@ -218,7 +200,6 @@ const defs: ElementMetaInput[] = [
     description: "Plays a video from your project.",
     category: "core",
     kind: "component",
-    source,
     schema: z.object({
       src: asset("Video", "video/*"),
       fit: z.enum(["contain", "cover", "fill"]).default("cover").meta({ description: "Fit" }),
@@ -228,7 +209,6 @@ const defs: ElementMetaInput[] = [
       playbackRate: num(1, 0.25, 4, "Speed", 0.05),
       trimBeforeMs: num(0, 0, 3_600_000, "Start at (ms)", 100),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 150,
   },
   {
@@ -237,9 +217,7 @@ const defs: ElementMetaInput[] = [
     description: "A plain colour background.",
     category: "background",
     kind: "component",
-    source,
     schema: z.object({ color: color("#09090b", "Color") }),
-    fixedProps: {},
     defaultDurationInFrames: 90,
   },
   {
@@ -248,14 +226,12 @@ const defs: ElementMetaInput[] = [
     description: "A gradient background.",
     category: "background",
     kind: "component",
-    source,
     schema: z.object({
       from: color("#1e1b4b", "From"),
       to: color("#0f172a", "To"),
       angle: num(135, 0, 360, "Angle"),
       grain: num(0.08, 0, 0.4, "Grain", 0.01),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 90,
   },
   {
@@ -264,14 +240,12 @@ const defs: ElementMetaInput[] = [
     description: "A soft moving noise background.",
     category: "background",
     kind: "component",
-    source,
     schema: z.object({
       color1: color("#0b1020", "Base"),
       color2: color("#4f46e5", "Highlight"),
       scale: num(0.004, 0.0005, 0.02, "Scale", 0.0005),
       speed: num(0.004, 0, 0.05, "Speed", 0.001),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 150,
   },
   {
@@ -280,14 +254,12 @@ const defs: ElementMetaInput[] = [
     description: "Rays spreading from the centre.",
     category: "background",
     kind: "component",
-    source,
     schema: z.object({
       color1: color("#18181b", "Ray A"),
       color2: color("#27272a", "Ray B"),
       rays: num(24, 6, 64, "Rays"),
       rotationSpeed: num(0.15, 0, 2, "Rotation (deg/frame)", 0.05),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 150,
   },
   {
@@ -296,12 +268,10 @@ const defs: ElementMetaInput[] = [
     description: "A paper texture background.",
     category: "background",
     kind: "component",
-    source,
     schema: z.object({
       color: color("#f5f1e8", "Paper color"),
       grain: num(0.18, 0, 0.5, "Grain", 0.01),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 150,
   },
   {
@@ -310,11 +280,9 @@ const defs: ElementMetaInput[] = [
     description: "A ready-made studio background image.",
     category: "background",
     kind: "component",
-    source,
     schema: z.object({
       name: z.enum(BACKDROPS).default("glaze").meta({ description: "Backdrop" }),
     }),
-    fixedProps: {},
     defaultDurationInFrames: 150,
   },
   {
@@ -323,9 +291,7 @@ const defs: ElementMetaInput[] = [
     description: "A video that loops for as long as needed.",
     category: "background",
     kind: "component",
-    source,
     schema: z.object({ src: asset("Video", "video/*"), dim: num(0.3, 0, 1, "Dim", 0.05) }),
-    fixedProps: {},
     defaultDurationInFrames: 150,
   },
   {
@@ -334,119 +300,51 @@ const defs: ElementMetaInput[] = [
     description: "A warm light flare over the video.",
     category: "overlay",
     kind: "component",
-    source,
     schema: z.object({ seed: num(3, 0, 100, "Seed"), hueShift: num(0, 0, 360, "Hue shift") }),
-    fixedProps: {},
     defaultDurationInFrames: 45,
-  },
-  {
-    key: "core/fade",
-    title: "Fade",
-    category: "transition",
-    kind: "presentation",
-    source: {
-      registry: "@remotion/transitions",
-      url: "https://www.remotion.dev/docs/transitions/presentations/fade",
-      license: "Remotion",
-    },
-    schema: z.object({}),
-    fixedProps: {},
-    defaultDurationInFrames: 15,
-  },
-  {
-    key: "core/slide",
-    title: "Slide",
-    category: "transition",
-    kind: "presentation",
-    source: {
-      registry: "@remotion/transitions",
-      url: "https://www.remotion.dev/docs/transitions/presentations/slide",
-      license: "Remotion",
-    },
-    schema: z.object({
-      direction: z.enum(DIRECTIONS).default("from-right").meta({ description: "Direction" }),
-    }),
-    fixedProps: {},
-    defaultDurationInFrames: 20,
-  },
-  {
-    key: "core/wipe",
-    title: "Wipe",
-    category: "transition",
-    kind: "presentation",
-    source: {
-      registry: "@remotion/transitions",
-      url: "https://www.remotion.dev/docs/transitions/presentations/wipe",
-      license: "Remotion",
-    },
-    schema: z.object({
-      direction: z
-        .enum([
-          ...DIRECTIONS,
-          "from-top-left",
-          "from-top-right",
-          "from-bottom-left",
-          "from-bottom-right",
-        ])
-        .default("from-left")
-        .meta({ description: "Direction" }),
-    }),
-    fixedProps: {},
-    defaultDurationInFrames: 20,
-  },
-  {
-    key: "core/flip",
-    title: "Flip",
-    category: "transition",
-    kind: "presentation",
-    source: {
-      registry: "@remotion/transitions",
-      url: "https://www.remotion.dev/docs/transitions/presentations/flip",
-      license: "Remotion",
-    },
-    schema: z.object({
-      direction: z.enum(DIRECTIONS).default("from-right").meta({ description: "Direction" }),
-    }),
-    fixedProps: {},
-    defaultDurationInFrames: 24,
-  },
-  {
-    key: "core/clock-wipe",
-    title: "Clock wipe",
-    category: "transition",
-    kind: "presentation",
-    source: {
-      registry: "@remotion/transitions",
-      url: "https://www.remotion.dev/docs/transitions/presentations/clock-wipe",
-      license: "Remotion",
-    },
-    schema: z.object({}),
-    fixedProps: {},
-    defaultDurationInFrames: 24,
-  },
-  {
-    key: "core/iris",
-    title: "Iris",
-    category: "transition",
-    kind: "presentation",
-    source: {
-      registry: "@remotion/transitions",
-      url: "https://www.remotion.dev/docs/transitions/presentations/iris",
-      license: "Remotion",
-    },
-    schema: z.object({}),
-    fixedProps: {},
-    defaultDurationInFrames: 24,
   },
 ];
 
-export const coreElementMeta: ElementMeta[] = defs.map(defineElementMeta);
+const presentation = (
+  slug: string,
+  title: string,
+  defaultDurationInFrames: number,
+  schema = z.object({}),
+): ElementMetaInput => ({
+  key: `core/${slug}`,
+  title,
+  category: "transition",
+  kind: "presentation",
+  source: {
+    registry: "@remotion/transitions",
+    url: `https://www.remotion.dev/docs/transitions/presentations/${slug}`,
+    license: "Remotion",
+  },
+  schema,
+  fixedProps: {},
+  defaultDurationInFrames,
+});
 
-export const INTERNAL_COMPONENTS = [
-  "core/group",
-  "core/recording",
-  "core/still",
-  "core/placeholder",
-  "core/keystroke-chips",
-  "core/device",
-] as const;
+const presentations: ElementMetaInput[] = [
+  presentation("fade", "Fade", 15),
+  presentation("slide", "Slide", 20, z.object({ direction: direction(DIRECTIONS, "from-right") })),
+  presentation(
+    "wipe",
+    "Wipe",
+    20,
+    z.object({
+      direction: direction(
+        [...DIRECTIONS, "from-top-left", "from-top-right", "from-bottom-left", "from-bottom-right"],
+        "from-left",
+      ),
+    }),
+  ),
+  presentation("flip", "Flip", 24, z.object({ direction: direction(DIRECTIONS, "from-right") })),
+  presentation("clock-wipe", "Clock wipe", 24),
+  presentation("iris", "Iris", 24),
+];
+
+export const coreElementMeta: ElementMeta[] = [
+  ...components.map((def) => ({ ...def, source, fixedProps: {} })),
+  ...presentations,
+].map(defineElementMeta);

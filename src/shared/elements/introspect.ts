@@ -1,9 +1,6 @@
 import type { z } from "zod";
 
-// oxlint-disable-next-line typescript/no-explicit-any
-type AnySchema = z.ZodType<any>;
-
-export type FieldPreset = { label: string; values: Record<string, unknown> };
+type FieldPreset = { label: string; values: Record<string, unknown> };
 
 export type FieldMeta = {
   description?: string;
@@ -14,64 +11,46 @@ export type FieldMeta = {
   accept?: string;
   advanced?: boolean;
   hidden?: boolean;
-  labels?: Record<string, string>;
+  labels?: Partial<Record<string, string>>;
   zeroLabel?: string;
   presets?: FieldPreset[];
   pauses?: boolean;
   showIf?: Record<string, string[]>;
 };
 
-export function fieldMeta(schema: AnySchema): FieldMeta {
+const WRAPPERS = [
+  "default",
+  "optional",
+  "nullable",
+  "readonly",
+  "catch",
+  "prefault",
+  "nonoptional",
+];
+
+const defOf = (schema: z.ZodType) => schema.def as { type: string; innerType?: z.ZodType };
+
+export function fieldMeta(schema: z.ZodType): FieldMeta {
+  const chain: z.ZodType[] = [];
+  for (let cur: z.ZodType | undefined = schema; cur; cur = defOf(cur).innerType) chain.push(cur);
   const out: FieldMeta = {};
-  let cur: AnySchema | undefined = schema;
-  const chain: AnySchema[] = [];
-  while (cur) {
-    chain.push(cur);
-    const def: { innerType?: AnySchema; type: string } = (
-      cur as unknown as { _zod: { def: { innerType?: AnySchema; type: string } } }
-    )._zod.def;
-    cur = def.innerType;
-  }
-  for (const s of chain.toReversed())
-    Object.assign(out, (s.meta?.() as FieldMeta | undefined) ?? {});
+  for (const s of chain.toReversed()) Object.assign(out, s.meta() as FieldMeta | undefined);
   return out;
 }
 
-export function unwrap(schema: AnySchema): AnySchema {
+export function unwrap(schema: z.ZodType): z.ZodType {
   let cur = schema;
-  for (;;) {
-    const def: { type: string; innerType?: AnySchema } = (
-      cur as unknown as { _zod: { def: { type: string; innerType?: AnySchema } } }
-    )._zod.def;
-    if (
-      def.innerType &&
-      ["default", "optional", "nullable", "readonly", "catch", "prefault", "nonoptional"].includes(
-        def.type,
-      )
-    ) {
-      cur = def.innerType;
-    } else return cur;
-  }
+  for (let def = defOf(cur); def.innerType && WRAPPERS.includes(def.type); def = defOf(cur))
+    cur = def.innerType;
+  return cur;
 }
 
-export function assetKeys(schema: z.ZodObject): string[] {
-  return Object.entries(schema.shape)
-    .filter(([, s]) => fieldMeta(s as AnySchema).widget === "asset")
+export const widgetKeys = (schema: z.ZodObject, widget: string): string[] =>
+  Object.entries(schema.shape)
+    .filter(([, s]) => fieldMeta(s).widget === widget)
     .map(([k]) => k);
-}
 
-export function widgetKeys(schema: z.ZodObject, widget: string): string[] {
-  return Object.entries(schema.shape)
-    .filter(([, s]) => fieldMeta(s as AnySchema).widget === widget)
-    .map(([k]) => k);
-}
+export const assetKeys = (schema: z.ZodObject): string[] => widgetKeys(schema, "asset");
 
-export function hasWidget(schema: z.ZodObject, widget: string): boolean {
-  return Object.values(schema.shape).some((s) => fieldMeta(s as AnySchema).widget === widget);
-}
-
-export function projectRef(path: string): string {
-  if (!path) return path;
-  if (/^(project:|app:|https?:|data:|blob:|demoflow-file:)/.test(path)) return path;
-  return `project:${path.replace(/^\/+/, "")}`;
-}
+export const hasWidget = (schema: z.ZodObject, widget: string): boolean =>
+  widgetKeys(schema, widget).length > 0;

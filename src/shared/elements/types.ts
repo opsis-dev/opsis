@@ -33,5 +33,5 @@ export interface ElementMeta {
 export type ElementMetaInput = Omit<ElementMeta, "defaultProps">;
 
 export function defineElementMeta(def: ElementMetaInput): ElementMeta {
-  return { ...def, defaultProps: def.schema.parse({}) as ElementProps };
+  return { ...def, defaultProps: def.schema.parse({}) };
 }

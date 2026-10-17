@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import { errorMessage } from "@/shared/errors";
-import { normalizeWorkflow } from "@/shared/nodes/registry";
+import { normalizeWorkflow } from "@/shared/schema/workflow";
 import { useWorkflowStore } from "../store/workflow";
 import { useDiskChange, type DiskChange } from "./disk-change-store";
 

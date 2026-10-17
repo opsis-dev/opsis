@@ -32,7 +32,7 @@ export type MediaValue = {
   hasAudio?: boolean;
 };
 
-export type FileValue = { type: "file"; src: AssetRef | null };
+type FileValue = { type: "file"; src: AssetRef | null };
 
 export type ClipValue = {
   type: "clip";
@@ -51,9 +51,9 @@ export type CaptionsValue = {
 
 export type TimelineValue = { type: "timeline"; spec: TimelineSpec };
 
-export type TransitionValue = { type: "transition"; ref: TransitionRef };
+type TransitionValue = { type: "transition"; ref: TransitionRef };
 
-export type SessionValue = { type: "session" };
+type SessionValue = { type: "session" };
 
 export type CompileValue =
   | RecordingValue
@@ -99,11 +99,13 @@ const isValue = <K extends CompileValue["type"]>(
   type: K,
 ): value is ValueOf<K> => value?.type === type;
 
-export function outputOf<K extends CompileValue["type"]>(
+export const asValue = <K extends CompileValue["type"]>(
+  value: CompileValue | undefined,
+  type: K,
+): ValueOf<K> | undefined => (isValue(value, type) ? value : undefined);
+
+export const outputOf = <K extends CompileValue["type"]>(
   result: NodeResult | undefined,
   port: string,
   type: K,
-): ValueOf<K> | undefined {
-  const value = result?.outputs[port];
-  return isValue(value, type) ? value : undefined;
-}
+): ValueOf<K> | undefined => asValue(result?.outputs[port], type);

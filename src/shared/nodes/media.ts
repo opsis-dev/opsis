@@ -1,13 +1,32 @@
 import { z } from "zod";
 import { itemClip } from "../compile/clip";
-import { projectRef } from "../elements/introspect";
-import type { CompileValue, MediaValue } from "../schema/values";
-import { row, type CardRow } from "./card";
+import type { VisualEnvelope } from "../schema/timeline";
+import {
+  asValue,
+  outputOf,
+  type CompileValue,
+  type MediaValue,
+  type NodeResult,
+} from "../schema/values";
+import { fileRow, row, warnIf, type CardRow } from "./card";
 import { defineNode, opt, port, type NodeDef } from "./define";
-import { asset, bool, choice, MAX_SPEED, more, ms, quality, text, visualEnvelope } from "./params";
+import {
+  asset,
+  bool,
+  choice,
+  keysOf,
+  LOUDNESS_PRESETS,
+  more,
+  ms,
+  quality,
+  QUALITY_PRESETS,
+  rate,
+  text,
+  visualEnvelope,
+} from "./params";
 import { formatDuration } from "../format";
 import { msToFrames } from "../timeline/time";
-import { baseName } from "../asset-ref";
+import { projectRef } from "../asset-ref";
 
 const base = { category: "Media", phase: "media", executes: true } as const;
 const one = {
@@ -16,44 +35,77 @@ const one = {
 } as const;
 const NEW_FILE = " Makes a new file.";
 
-const lengthRow = (result?: { outputs: Record<string, CompileValue> }): CardRow | null => {
-  const m = result?.outputs.media as MediaValue | undefined;
-  return m?.durationMs ? row("clock", formatDuration(m.durationMs)) : null;
+const lengthRow = (result: NodeResult | undefined, icon = "clock"): CardRow | null => {
+  const m = outputOf(result, "media", "media");
+  return m?.durationMs ? row(icon, formatDuration(m.durationMs)) : null;
 };
-const QUALITY_NAMES: Array<[number, string]> = [
-  [12, "Max"],
-  [18, "High"],
-  [23, "Medium"],
-  [28, "Low"],
-];
-const CODEC_NAMES: Record<string, string> = {
+const CODEC_NAMES = {
   h264: "MP4 (H.264)",
   hevc: "MP4 (HEVC)",
   vp9: "WebM",
   prores: "ProRes",
 };
-const LOUDNESS_NAMES: Record<number, string> = {
-  [-14]: "Online video",
-  [-16]: "Podcast",
-  [-23]: "Broadcast",
+const PRESET_LABELS = {
+  ultrafast: "Fastest, biggest",
+  fast: "Fast",
+  medium: "Balanced",
+  slow: "Small",
+  veryslow: "Smallest, slowest",
 };
+const loudnessName = (lufs: number): string =>
+  Object.entries(LOUDNESS_PRESETS).find(([, v]) => v === lufs)?.[0] ?? `${lufs} LUFS`;
 export const qualityName = (crf: number) =>
-  QUALITY_NAMES.reduce((best, cur) =>
-    Math.abs(cur[0] - crf) < Math.abs(best[0] - crf) ? cur : best,
-  )[1];
+  Object.entries(QUALITY_PRESETS).reduce((best, cur) =>
+    Math.abs(cur[1] - crf) <= Math.abs(best[1] - crf) ? cur : best,
+  )[0];
 
-const passMedia = ({
-  result,
-  inputs,
-}: {
-  result?: { outputs: Record<string, CompileValue> };
-  inputs: Partial<Record<string, CompileValue>>;
-}) => ({
-  media:
-    (result?.outputs.media as MediaValue | undefined) ?? (inputs.media as MediaValue | undefined),
-});
+const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "gif", "svg"]);
+const AUDIO_EXTENSIONS = new Set(["mp3", "wav", "m4a", "aac", "ogg", "flac"]);
 
-export const importMediaNode = defineNode({
+function kindFromPath(path: string): MediaValue["kind"] {
+  const ext = path.slice(path.lastIndexOf(".") + 1).toLowerCase();
+  if (IMAGE_EXTENSIONS.has(ext)) return "image";
+  return AUDIO_EXTENSIONS.has(ext) ? "audio" : "video";
+}
+
+export function mediaInput(value: CompileValue | undefined): MediaValue | undefined {
+  const media = asValue(value, "media");
+  if (media) return media;
+  const image = asValue(value, "image");
+  if (image) {
+    const { type: _image, ...rest } = image;
+    return { ...rest, type: "media", kind: "image" };
+  }
+  const file = asValue(value, "file");
+  return file && { type: "media", src: file.src, kind: kindFromPath(file.src ?? "") };
+}
+
+const passMedia = (
+  { result, inputs }: { result?: NodeResult; inputs: Partial<Record<string, CompileValue>> },
+  input = "media",
+) => ({ media: outputOf(result, "media", "media") ?? mediaInput(inputs[input]) });
+
+const fitField = () =>
+  choice(["cover", "contain"], "contain", "Fit", {
+    cover: "Fill the frame",
+    contain: "Show all",
+  });
+
+type MediaClip = {
+  src: string;
+  kind: MediaValue["kind"];
+  fit: string;
+  muted: boolean;
+  frames: number;
+  envelope: VisualEnvelope;
+};
+
+const mediaClip = (nodeId: string, { src, kind, fit, muted, frames, envelope }: MediaClip) =>
+  itemClip(nodeId, kind === "image" ? "core/image" : "core/video", { src, fit, muted }, frames, {
+    envelope,
+  });
+
+const importMediaNode = defineNode({
   ...base,
   type: "media.import",
   title: "Media file",
@@ -62,37 +114,26 @@ export const importMediaNode = defineNode({
   inputs: {},
   outputs: { media: port("media", "File"), clip: port("clip", "Clip") },
   card: ({ params: p, result }) => [
-    p.path
-      ? row("file-video", baseName(p.path), { title: p.path })
-      : row("file-video", "Choose a file", { tone: "warn" }),
+    p.path ? fileRow("file-video", p.path) : row("file-video", "Choose a file", { tone: "warn" }),
     lengthRow(result),
   ],
   params: z.object({
     path: asset("File"),
-    fit: choice(["cover", "contain"], "contain", "Fit", {
-      cover: "Fill the frame",
-      contain: "Show all",
-    }),
+    fit: fitField(),
     envelope: visualEnvelope(),
   }),
   compile: ({ nodeId, result, params, settings }) => {
-    const probed = result?.outputs.media as MediaValue | undefined;
-    const ext = params.path.split(".").pop()?.toLowerCase() ?? "";
-    const kind: MediaValue["kind"] =
-      probed?.kind ??
-      (["png", "jpg", "jpeg", "webp", "gif", "svg"].includes(ext)
-        ? "image"
-        : ["mp3", "wav", "m4a", "aac", "ogg", "flac"].includes(ext)
-          ? "audio"
-          : "video");
-    const media: MediaValue = probed ?? {
+    const media: MediaValue = outputOf(result, "media", "media") ?? {
       type: "media",
       src: params.path ? projectRef(params.path) : null,
-      kind,
+      kind: kindFromPath(params.path),
     };
-    const frames = msToFrames(media.durationMs ?? (kind === "image" ? 3000 : 5000), settings.fps);
+    const frames = msToFrames(
+      media.durationMs ?? (media.kind === "image" ? 3000 : 5000),
+      settings.fps,
+    );
     const clip =
-      !media.src || kind === "audio"
+      !media.src || media.kind === "audio"
         ? itemClip(
             nodeId,
             "core/placeholder",
@@ -100,18 +141,19 @@ export const importMediaNode = defineNode({
             frames,
             { envelope: params.envelope },
           )
-        : itemClip(
-            nodeId,
-            kind === "image" ? "core/image" : "core/video",
-            { src: media.src, fit: params.fit, muted: false },
+        : mediaClip(nodeId, {
+            src: media.src,
+            kind: media.kind,
+            fit: params.fit,
+            muted: false,
             frames,
-            { envelope: params.envelope },
-          );
+            envelope: params.envelope,
+          });
     return { media, clip };
   },
 });
 
-export const mediaToClipNode = defineNode({
+const mediaToClipNode = defineNode({
   type: "media.toClip",
   title: "Use as clip",
   category: "Media",
@@ -125,32 +167,30 @@ export const mediaToClipNode = defineNode({
     p.muted && row("volume-x", "Muted"),
   ],
   params: z.object({
-    fit: choice(["cover", "contain"], "contain", "Fit", {
-      cover: "Fill the frame",
-      contain: "Show all",
-    }),
+    fit: fitField(),
     muted: bool(false, "Muted"),
     envelope: visualEnvelope(),
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
-    const media = inputs.media as MediaValue | undefined;
+    const media = mediaInput(inputs.media);
     if (!media?.src) return {};
-    const frames = msToFrames(media.durationMs ?? 5000, settings.fps);
     return {
-      clip: itemClip(
-        nodeId,
-        media.kind === "image" ? "core/image" : "core/video",
-        { src: media.src, fit: params.fit, muted: params.muted },
-        frames,
-        { envelope: params.envelope },
-      ),
+      clip: mediaClip(nodeId, {
+        src: media.src,
+        kind: media.kind,
+        fit: params.fit,
+        muted: params.muted,
+        frames: msToFrames(media.durationMs ?? 5000, settings.fps),
+        envelope: params.envelope,
+      }),
     };
   },
 });
 
-// oxlint-disable-next-line typescript/no-explicit-any
-const op = <S extends z.ZodObject<any>>(def: Omit<NodeDef<S>, "category" | "phase" | "executes">) =>
-  defineNode<S>({ ...base, ...def }) as unknown as NodeDef;
+const SCALE_ROWS = { pad: "Fit with bars", crop: "Crop to fill", stretch: "Stretch" };
+
+const op = <S extends z.ZodObject>(def: Omit<NodeDef<S>, "category" | "phase" | "executes">) =>
+  defineNode<S>({ ...base, ...def });
 
 export const mediaNodes: NodeDef[] = [
   importMediaNode,
@@ -191,13 +231,10 @@ export const mediaNodes: NodeDef[] = [
     outputs: { media: port("media", "File") },
     card: ({ connected, result }) => {
       const n = ["in1", "in2", "in3", "in4"].filter((k) => connected.includes(k)).length;
-      return [row("combine", `${n} files`, n >= 2 ? {} : { tone: "warn" }), lengthRow(result)];
+      return [row("combine", `${n} files`, warnIf(n < 2)), lengthRow(result)];
     },
     params: z.object({ forceReencode: more(bool(false, "Always convert"), { advanced: true }) }),
-    compile: ({ result, inputs }) => ({
-      media:
-        (result?.outputs.media as MediaValue | undefined) ?? (inputs.in1 as MediaValue | undefined),
-    }),
+    compile: (ctx) => passMedia(ctx, "in1"),
   }),
   op({
     ...one,
@@ -210,12 +247,7 @@ export const mediaNodes: NodeDef[] = [
       row(p.keepAudio ? "volume-2" : "volume-x", p.keepAudio ? "Keeps sound" : "No sound"),
     ],
     params: z.object({
-      rate: z
-        .number()
-        .min(0.25)
-        .max(MAX_SPEED)
-        .default(2)
-        .meta({ description: "Speed", step: 0.05, unit: "×" }),
+      rate: rate(2, "Speed", { min: 0.25 }),
       keepAudio: bool(true, "Keep the sound"),
     }),
     compile: passMedia,
@@ -238,10 +270,7 @@ export const mediaNodes: NodeDef[] = [
     description: "Resizes a file, adding bars or cropping to fit." + NEW_FILE,
     card: ({ params: p }) => [
       row("ratio", `${p.width} × ${p.height}`),
-      row(
-        "maximize",
-        p.mode === "pad" ? "Fit with bars" : p.mode === "crop" ? "Crop to fill" : "Stretch",
-      ),
+      row("maximize", SCALE_ROWS[p.mode]),
     ],
     params: z.object({
       width: z
@@ -263,8 +292,7 @@ export const mediaNodes: NodeDef[] = [
         crop: "Crop to fill",
         stretch: "Stretch",
       }),
-      background: text("black", "Bar colour").meta({
-        description: "Bar colour",
+      background: more(text("black", "Bar colour"), {
         widget: "color",
         showIf: { mode: ["pad"] },
       }),
@@ -278,32 +306,13 @@ export const mediaNodes: NodeDef[] = [
     icon: "refresh-cw",
     description: "Saves a file in another format or quality." + NEW_FILE,
     card: ({ params: p }) => [
-      row("file-video", CODEC_NAMES[p.codec] ?? p.codec),
+      row("file-video", CODEC_NAMES[p.codec]),
       row("sparkles", `${qualityName(p.crf)} quality`),
     ],
     params: z.object({
-      codec: choice(["h264", "hevc", "vp9", "prores"], "h264", "Format", CODEC_NAMES),
+      codec: choice(keysOf(CODEC_NAMES), "h264", "Format", CODEC_NAMES),
       crf: quality(18),
-      preset: choice(
-        ["ultrafast", "fast", "medium", "slow", "veryslow"],
-        "medium",
-        "Speed vs file size",
-        {
-          ultrafast: "Fastest, biggest",
-          fast: "Fast",
-          medium: "Balanced",
-          slow: "Small",
-          veryslow: "Smallest, slowest",
-        },
-      ).meta({
-        description: "Speed vs file size",
-        labels: {
-          ultrafast: "Fastest, biggest",
-          fast: "Fast",
-          medium: "Balanced",
-          slow: "Small",
-          veryslow: "Smallest, slowest",
-        },
+      preset: more(choice(keysOf(PRESET_LABELS), "medium", "Speed vs file size", PRESET_LABELS), {
         advanced: true,
       }),
     }),
@@ -371,9 +380,7 @@ export const mediaNodes: NodeDef[] = [
     title: "Even out volume",
     icon: "volume-2",
     description: "Makes the sound as loud as most online videos." + NEW_FILE,
-    card: ({ params: p }) => [
-      row("volume-2", LOUDNESS_NAMES[p.integrated] ?? `${p.integrated} LUFS`),
-    ],
+    card: ({ params: p }) => [row("volume-2", loudnessName(p.integrated))],
     params: z.object({
       integrated: z.number().min(-40).max(-5).default(-16).meta({
         description: "Loudness",
@@ -431,20 +438,10 @@ export const mediaNodes: NodeDef[] = [
     description: "Shows a file's length, size, frame rate and format.",
     inputs: { media: port("media", "File") },
     outputs: { file: port("file", "Info"), media: port("media", "File") },
-    card: ({ result }) => {
-      const m = result?.outputs.media as MediaValue | undefined;
-      return [
-        m?.durationMs
-          ? row("info", formatDuration(m.durationMs))
-          : row("info", "Run to read the file", { tone: "muted" }),
-      ];
-    },
+    card: ({ result }) => [
+      lengthRow(result, "info") ?? row("info", "Run to read the file", { tone: "muted" }),
+    ],
     params: z.object({}),
-    compile: ({ result, inputs }) => ({
-      file: result?.outputs.file,
-      media:
-        (result?.outputs.media as MediaValue | undefined) ??
-        (inputs.media as MediaValue | undefined),
-    }),
+    compile: (ctx) => ({ file: ctx.result?.outputs.file, ...passMedia(ctx) }),
   }),
 ];

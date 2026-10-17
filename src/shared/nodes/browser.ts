@@ -1,11 +1,12 @@
 import { z } from "zod";
-import { clip, elementRow, missing, quote, row, type CardRow } from "./card";
+import { clip, elementRow, fileRow, missing, mutedIf, quote, row, type CardRow } from "./card";
 import { defineNode, port } from "./define";
 import {
   asset,
   beatFields,
   bool,
   choice,
+  hoverMs,
   more,
   ms,
   optionalTarget,
@@ -14,7 +15,6 @@ import {
   text,
 } from "./params";
 import { formatDuration, displayAddress } from "../format";
-import { baseName } from "../asset-ref";
 
 const chain = {
   inputs: { session: port("session", "Previous") },
@@ -94,11 +94,10 @@ export const sessionNode = defineNode({
       advanced: true,
     }),
   }),
-  card: ({ params: p, raw }) => [
+  card: ({ params: p }) => [
     row("monitor", `${p.viewportWidth} × ${p.viewportHeight}`),
     p.mobile && row("smartphone", "Mobile"),
-    String(raw.storageState ?? "").trim() &&
-      row("user-round", `Signed in as ${quote(String(raw.storageState), 24)}`),
+    p.storageState.trim() && row("user-round", `Signed in as ${quote(p.storageState, 24)}`),
     p.colorScheme === "dark" && row("moon", "Dark theme"),
     p.locale && p.locale !== "en-US" && row("languages", p.locale),
   ],
@@ -141,7 +140,12 @@ export const clickNode = defineNode({
   title: "Click",
   icon: "mouse-pointer-click",
   description: "Moves the cursor to an element and clicks it.",
-  params: z.object({ target: target(), ...beatFields, ...pointerFields }),
+  params: z.object({
+    target: target(),
+    ...beatFields,
+    ...pointerFields,
+    hoverMs: hoverMs(220, "Hover before clicking"),
+  }),
   card: ({ params: p, raw }) => [
     elementRow("mouse-pointer-click", p.target, raw),
     pause(p.after),
@@ -192,7 +196,7 @@ export const hoverNode = defineNode({
     target: target(),
     ...beatFields,
     ...pointerFields,
-    hoverMs: ms(600, "Hover for", 10_000),
+    hoverMs: hoverMs(600, "Hover for"),
   }),
   card: ({ params: p, raw }) => [
     elementRow("mouse-pointer-2", p.target, raw),
@@ -202,9 +206,14 @@ export const hoverNode = defineNode({
   ],
 });
 
+const circlePath = (radius: number, steps: number) =>
+  Array.from({ length: steps + 1 }, (_, k) => {
+    const angle = (k / steps) * 2 * Math.PI;
+    return `${Math.round(radius - radius * Math.cos(angle))}, ${Math.round(-radius * Math.sin(angle))}`;
+  }).join("\n");
+
 const PATH_PRESETS = {
-  Circle:
-    "0, 0\n9, -46\n35, -85\n74, -111\n120, -120\n166, -111\n205, -85\n231, -46\n240, 0\n231, 46\n205, 85\n166, 111\n120, 120\n74, 111\n35, 85\n9, 46\n0, 0",
+  Circle: circlePath(120, 16),
   Tick: "0, 0\n40, 40\n120, -80",
   Zigzag: "0, 0\n60, -60\n120, 0\n180, -60\n240, 0",
   Square: "0, 0\n200, 0\n200, 200\n0, 200\n0, 0",
@@ -213,6 +222,25 @@ const PATH_PRESETS = {
 const onto = (r: CardRow): CardRow => (r.tone === "warn" ? r : { ...r, text: `Onto ${r.text}` });
 
 const pathPoints = (path: string) => path.split("\n").filter((line) => line.trim()).length;
+
+function dropRow(
+  p: {
+    mode: "element" | "by" | "path";
+    to: string;
+    dx: number;
+    dy: number;
+    path: string;
+  },
+  raw: Record<string, unknown>,
+): CardRow {
+  if (p.mode === "element")
+    return onto(elementRow("move", p.to, raw, "to", "Pick where to drop it"));
+  if (p.mode === "by") return row("move", `By ${p.dx}, ${p.dy} px`);
+  const points = pathPoints(p.path);
+  return points
+    ? row("spline", `Along ${points} points`)
+    : missing("spline", "Add points to the path");
+}
 
 const distance = (description: string, def: number) =>
   z
@@ -263,17 +291,11 @@ export const dragNode = defineNode({
     ),
     ...beatFields,
     ...pointerFields,
-    hoverMs: ms(220, "Hover before picking it up", 10_000),
+    hoverMs: hoverMs(220, "Hover before picking it up"),
   }),
   card: ({ params: p, raw }) => [
     elementRow("grab", p.target, raw),
-    p.mode === "element"
-      ? onto(elementRow("move", p.to, raw, "to", "Pick where to drop it"))
-      : p.mode === "by"
-        ? row("move", `By ${p.dx}, ${p.dy} px`)
-        : pathPoints(p.path)
-          ? row("spline", `Along ${pathPoints(p.path)} points`)
-          : missing("spline", "Add points to the path"),
+    dropRow(p, raw),
     pause(p.after),
     zoomRow(p),
   ],
@@ -347,7 +369,7 @@ export const uploadNode = defineNode({
   }),
   card: ({ params: p, raw }) => [
     elementRow("upload", p.target, raw),
-    p.file ? row("file", baseName(p.file), { title: p.file }) : missing("file", "Choose a file"),
+    p.file ? fileRow("file", p.file) : missing("file", "Choose a file"),
     pause(p.after),
   ],
 });
@@ -374,6 +396,24 @@ export const pressNode = defineNode({
   ],
 });
 
+function waitRow(
+  p: { mode: "element" | "network-idle" | "url" | "ms"; target: string; url: string; ms: number },
+  raw: Record<string, unknown>,
+): CardRow {
+  switch (p.mode) {
+    case "element":
+      return elementRow("eye", p.target, raw, "target", "Pick what to wait for");
+    case "network-idle":
+      return row("wifi", "Until the page is quiet");
+    case "url":
+      return p.url.trim()
+        ? row("link", `Until ${displayAddress(p.url, { keepQuery: true })}`)
+        : missing("link", "Add an address pattern");
+    case "ms":
+      return row("hourglass", formatDuration(p.ms));
+  }
+}
+
 export const waitNode = defineNode({
   ...base,
   ...chain,
@@ -398,15 +438,7 @@ export const waitNode = defineNode({
     timeoutMs: ms(20_000, "Give up after"),
   }),
   card: ({ params: p, raw }) => [
-    p.mode === "element"
-      ? elementRow("eye", p.target, raw, "target", "Pick what to wait for")
-      : p.mode === "network-idle"
-        ? row("wifi", "Until the page is quiet")
-        : p.mode === "url"
-          ? p.url.trim()
-            ? row("link", `Until ${displayAddress(p.url, { keepQuery: true })}`)
-            : missing("link", "Add an address pattern")
-          : row("hourglass", formatDuration(p.ms)),
+    waitRow(p, raw),
     p.mode !== "ms" &&
       row("timer-off", `Give up after ${formatDuration(p.timeoutMs)}`, { tone: "muted" }),
   ],
@@ -458,7 +490,7 @@ export const setStateNode = defineNode({
     reload: bool(false, "Reload the page after"),
   }),
   card: ({ params: p }) => [
-    row("code", clip(p.script.split("\n")[0] ?? "", 36), { title: p.script }),
+    row("code", clip(p.script.split("\n")[0], 36), { title: p.script }),
     p.reload && row("refresh-cw", "Then reload"),
   ],
 });
@@ -479,7 +511,10 @@ export const mockRouteNode = defineNode({
   }),
   card: ({ params: p }) => [
     row("server", clip(p.url, 36), { title: p.url }),
-    row("reply", `${p.status} ${p.contentType.split("/").pop()?.toUpperCase() ?? ""}`.trim()),
+    row(
+      "reply",
+      `${p.status} ${p.contentType.slice(p.contentType.lastIndexOf("/") + 1).toUpperCase()}`.trim(),
+    ),
   ],
 });
 
@@ -527,11 +562,7 @@ export const hideElementsNode = defineNode({
       extra && `+${extra} more`,
     ].filter(Boolean);
     return [
-      row(
-        "eye-off",
-        parts.length ? parts.join(" · ") : "Nothing yet",
-        parts.length ? {} : { tone: "muted" },
-      ),
+      row("eye-off", parts.length ? parts.join(" · ") : "Nothing yet", mutedIf(!parts.length)),
     ];
   },
 });

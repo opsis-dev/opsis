@@ -1,12 +1,30 @@
 import { z } from "zod";
 import { itemClip } from "../compile/clip";
-import type { ImageValue, RecordingValue } from "../schema/values";
-import { quote, row } from "./card";
+import { outputOf } from "../schema/values";
+import { quote, row, warnIf } from "./card";
 import { defineNode, port } from "./define";
 import { secretFileName, secretName } from "../secrets";
-import { bool, choice, more, ms, optionalTarget, text, visualEnvelope } from "./params";
+import { bool, choice, keysOf, more, ms, optionalTarget, text, visualEnvelope } from "./params";
 import { formatDuration, displayAddress } from "../format";
 import { msToFrames } from "../timeline/time";
+
+export const DEFAULT_VIEWPORT = { width: 1920, height: 1080 };
+
+export const DEFAULT_TAKE_MS = 6000;
+
+const CURSOR_LABELS = { synthetic: "Smooth", baked: "As on screen", none: "None" };
+
+const CURSOR_ROWS: Record<keyof typeof CURSOR_LABELS, string> = {
+  synthetic: "Smooth cursor",
+  baked: "Cursor as on screen",
+  none: "No cursor",
+};
+
+const REGION_LABELS = {
+  viewport: "Visible part",
+  "full-page": "Whole page",
+  element: "One element",
+};
 
 export const recordNode = defineNode({
   type: "capture.record",
@@ -34,11 +52,7 @@ export const recordNode = defineNode({
     endTailMs: more(ms(2500, "Keep recording after the last action"), {
       help: "Gives the camera time to settle at the end.",
     }),
-    cursor: choice(["synthetic", "baked", "none"], "synthetic", "Cursor", {
-      synthetic: "Smooth",
-      baked: "As on screen",
-      none: "None",
-    }),
+    cursor: choice(keysOf(CURSOR_LABELS), "synthetic", "Cursor", CURSOR_LABELS),
     showActions: bool(false, "Quick mode: show action labels on the video"),
     mutates: more(text("", "Don't record at the same time as"), {
       help: "Takes that share this name run one after another, e.g. when they change the same account.",
@@ -46,35 +60,25 @@ export const recordNode = defineNode({
     }),
   }),
   card: ({ params: p, result }) => {
-    const rec = result?.outputs.recording as RecordingValue | undefined;
+    const rec = outputOf(result, "recording", "recording");
     return [
       row("video", `${p.fps} fps`),
-      row(
-        "mouse-pointer",
-        p.cursor === "synthetic"
-          ? "Smooth cursor"
-          : p.cursor === "baked"
-            ? "Cursor as on screen"
-            : "No cursor",
-      ),
+      row("mouse-pointer", CURSOR_ROWS[p.cursor]),
       rec?.src && row("clock", formatDuration(rec.durationMs)),
       rec?.log && row("list-checks", `${rec.log.actions.length} actions`),
     ];
   },
   mutates: (p) => p.mutates || undefined,
-  compile: ({ nodeId, result }) => {
-    const out = result?.outputs.recording as RecordingValue | undefined;
-    return {
-      recording: out ?? {
-        type: "recording",
-        src: null,
-        log: null,
-        durationMs: 6000,
-        viewport: { width: 1920, height: 1080 },
-        nodeId,
-      },
-    };
-  },
+  compile: ({ nodeId, result }) => ({
+    recording: outputOf(result, "recording", "recording") ?? {
+      type: "recording",
+      src: null,
+      log: null,
+      durationMs: DEFAULT_TAKE_MS,
+      viewport: DEFAULT_VIEWPORT,
+      nodeId,
+    },
+  }),
 });
 
 export const stillNode = defineNode({
@@ -89,11 +93,7 @@ export const stillNode = defineNode({
   inputs: { session: port("session", "Previous") },
   outputs: { image: port("image", "Image"), clip: port("clip", "Clip") },
   params: z.object({
-    region: choice(["viewport", "full-page", "element"], "viewport", "Capture", {
-      viewport: "Visible part",
-      "full-page": "Whole page",
-      element: "One element",
-    }),
+    region: choice(keysOf(REGION_LABELS), "viewport", "Capture", REGION_LABELS),
     target: more(optionalTarget("Element"), { showIf: { region: ["element"] } }),
     padding: z
       .number()
@@ -116,19 +116,16 @@ export const stillNode = defineNode({
     envelope: visualEnvelope(),
   }),
   card: ({ params: p, result }) => {
-    const image = result?.outputs.image as ImageValue | undefined;
+    const image = outputOf(result, "image", "image");
+    const unpicked = p.region === "element" && !p.target.trim();
+    const region =
+      p.region !== "element"
+        ? REGION_LABELS[p.region]
+        : unpicked
+          ? "Pick an element"
+          : quote(p.target, 30);
     return [
-      row(
-        "scan",
-        p.region === "element"
-          ? p.target.trim()
-            ? quote(p.target, 30)
-            : "Pick an element"
-          : p.region === "full-page"
-            ? "Whole page"
-            : "Visible part",
-        p.region === "element" && !p.target.trim() ? { tone: "warn" } : {},
-      ),
+      row("scan", region, warnIf(unpicked)),
       image?.width
         ? row("image", `${Math.round(image.width)} × ${Math.round(image.height ?? 0)}`)
         : null,
@@ -136,14 +133,9 @@ export const stillNode = defineNode({
     ];
   },
   compile: ({ nodeId, result, params, settings }) => {
-    const image = (result?.outputs.image as ImageValue | undefined) ?? { type: "image", src: null };
-    const extra = {
-      handles: { trimEnd: { nodeId, param: "durationMs", unit: "ms" as const } },
-      envelope: params.envelope,
-    };
-    const clip = image.src
-      ? itemClip(
-          nodeId,
+    const image = outputOf(result, "image", "image") ?? { type: "image", src: null };
+    const [component, props]: [string, Record<string, unknown>] = image.src
+      ? [
           "core/still",
           {
             src: image.src,
@@ -160,16 +152,12 @@ export const stillNode = defineNode({
                 }
               : {}),
           },
-          msToFrames(params.durationMs, settings.fps),
-          extra,
-        )
-      : itemClip(
-          nodeId,
-          "core/placeholder",
-          { title: "Screenshot not taken yet", subtitle: "Run to take it" },
-          msToFrames(params.durationMs, settings.fps),
-          extra,
-        );
+        ]
+      : ["core/placeholder", { title: "Screenshot not taken yet", subtitle: "Run to take it" }];
+    const clip = itemClip(nodeId, component, props, msToFrames(params.durationMs, settings.fps), {
+      handles: { trimEnd: { nodeId, param: "durationMs", unit: "ms" } },
+      envelope: params.envelope,
+    });
     return { image, clip };
   },
 });

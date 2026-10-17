@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { projectFontsSchema } from "../fonts/types";
 
-export const transitionRefSchema = z.object({
+const transitionRefSchema = z.object({
   kind: z.string(),
   durationInFrames: z.number().int().nonnegative(),
   params: z.record(z.string(), z.unknown()).optional(),
@@ -24,23 +24,23 @@ export const AUDIO_ENVELOPES = ["volume", "pan"] as const;
 export type VisualEnvelopeKey = (typeof VISUAL_ENVELOPES)[number];
 export type AudioEnvelopeKey = (typeof AUDIO_ENVELOPES)[number];
 
-export const visualEnvelopeSchema = z.object({
-  opacity: z.array(keyframeSchema).optional(),
-  x: z.array(keyframeSchema).optional(),
-  y: z.array(keyframeSchema).optional(),
-  scale: z.array(keyframeSchema).optional(),
-});
+const envelopeSchema = <K extends string>(keys: readonly K[]) =>
+  z.object(
+    Object.fromEntries(keys.map((k) => [k, z.array(keyframeSchema).optional()])) as Record<
+      K,
+      z.ZodOptional<z.ZodArray<typeof keyframeSchema>>
+    >,
+  );
+
+export const visualEnvelopeSchema = envelopeSchema(VISUAL_ENVELOPES);
 export type VisualEnvelope = z.infer<typeof visualEnvelopeSchema>;
 
-export const audioEnvelopeSchema = z.object({
-  volume: z.array(keyframeSchema).optional(),
-  pan: z.array(keyframeSchema).optional(),
-});
+export const audioEnvelopeSchema = envelopeSchema(AUDIO_ENVELOPES);
 export type AudioEnvelope = z.infer<typeof audioEnvelopeSchema>;
 
-export const PARAM_UNITS = ["ms", "frames", "rate", "number"] as const;
+const PARAM_UNITS = ["ms", "frames", "rate", "number"] as const;
 
-export const paramRefSchema = z.object({
+const paramRefSchema = z.object({
   nodeId: z.string(),
   param: z.string(),
   unit: z.enum(PARAM_UNITS),
@@ -58,7 +58,7 @@ export const paramRefSchema = z.object({
 });
 export type ParamRef = z.infer<typeof paramRefSchema>;
 
-export const editHandlesSchema = z.object({
+const editHandlesSchema = z.object({
   move: paramRefSchema.optional(),
   trimStart: paramRefSchema.optional(),
   trimEnd: paramRefSchema.optional(),
@@ -68,26 +68,10 @@ export const editHandlesSchema = z.object({
 export type EditHandles = z.infer<typeof editHandlesSchema>;
 export type EditHandleKind = keyof EditHandles;
 
-export const slotSchema = z.object({ nodeId: z.string(), port: z.string() });
+const slotSchema = z.object({ nodeId: z.string(), port: z.string() });
 export type Slot = z.infer<typeof slotSchema>;
 
-export type TimelineItem = {
-  id: string;
-  from: number;
-  durationInFrames: number;
-  component: string;
-  props: Record<string, unknown>;
-  enter?: TransitionRef;
-  exit?: TransitionRef;
-  nodeId?: string;
-  handles?: EditHandles;
-  slot?: Slot;
-  envelope?: VisualEnvelope;
-};
-
-export type TimelineTrack = { id: string; items: TimelineItem[] };
-
-export const timelineItemSchema: z.ZodType<TimelineItem> = z.object({
+const timelineItemSchema = z.object({
   id: z.string(),
   from: z.number().int(),
   durationInFrames: z.number().int().positive(),
@@ -101,24 +85,26 @@ export const timelineItemSchema: z.ZodType<TimelineItem> = z.object({
   envelope: visualEnvelopeSchema.optional(),
 });
 
-export const timelineTrackSchema: z.ZodType<TimelineTrack> = z.object({
+export type TimelineItem = z.infer<typeof timelineItemSchema>;
+
+const timelineTrackSchema = z.object({
   id: z.string(),
   items: z.array(timelineItemSchema),
 });
+export type TimelineTrack = z.infer<typeof timelineTrackSchema>;
 
-export const duckSchema = z.object({
+const duckSchema = z.object({
   level: z.number().min(0).max(1),
   fadeFrames: z.number().int().nonnegative(),
   keys: z.array(z.string()),
 });
-export type Duck = z.infer<typeof duckSchema>;
 
-export const audioItemSchema = z.object({
+const audioItemSchema = z.object({
   id: z.string(),
   src: z.string(),
   from: z.number().int(),
   durationInFrames: z.number().int().positive().optional(),
-  volume: z.union([z.number(), z.string()]).optional(),
+  volume: z.number().optional(),
   trimBefore: z.number().int().nonnegative().optional(),
   loop: z.boolean().optional(),
   fadeInFrames: z.number().int().nonnegative().optional(),
@@ -136,7 +122,7 @@ export const audioItemSchema = z.object({
 });
 export type AudioItem = z.infer<typeof audioItemSchema>;
 
-export const masterStemSchema = z.object({ src: z.string(), hash: z.string() });
+const masterStemSchema = z.object({ src: z.string(), hash: z.string() });
 export type MasterStem = z.infer<typeof masterStemSchema>;
 
 export const timelineSpecSchema = z.object({

@@ -1,7 +1,7 @@
 import { Crosshair, FolderOpen } from "lucide-react";
 import type { ComponentType } from "react";
 import { humanize } from "@/shared/format";
-import { BACKDROPS } from "@/video/camera/lib/backdrop";
+import { BACKDROPS } from "@/shared/backdrops";
 import { Input } from "@/renderer/components/ui/input";
 import {
   InputGroup,

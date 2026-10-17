@@ -1,14 +1,15 @@
 import { z } from "zod";
-import { emptyClip, isClip, itemClip, stackClips } from "../compile/clip";
-import { getElementMeta } from "../elements";
-import type { CaptionsValue } from "../schema/values";
+import { emptyClip, itemClip, stackClips } from "../compile/clip";
+import { CAPTIONS_ELEMENT, captionsSchema } from "../elements/core";
+import { asValue, type CaptionsValue } from "../schema/values";
 import { clip as clipText, quote, row } from "./card";
-import { defineNode, opt, port } from "./define";
+import { clipInput, defineNode, opt, port } from "./define";
 import { ms, text } from "./params";
 import { fontStack } from "../fonts";
+import { humanize } from "../format";
 import { msToFrames } from "../timeline/time";
 
-export const captionsFromTextNode = defineNode({
+const captionsFromTextNode = defineNode({
   type: "text.captionsFromText",
   title: "Captions from script",
   category: "Text & overlays",
@@ -47,9 +48,7 @@ export const captionsFromTextNode = defineNode({
   },
 });
 
-const captionsMeta = getElementMeta("core/captions")!;
-
-export const captionsNode = defineNode({
+const captionsNode = defineNode({
   type: "text.captions",
   title: "Show captions",
   category: "Text & overlays",
@@ -58,35 +57,21 @@ export const captionsNode = defineNode({
   description: "Displays captions over the video, word by word, karaoke or line by line.",
   inputs: { captions: port("captions", "Captions"), clip: opt("clip", "Over clip") },
   outputs: { clip: port("clip", "Clip") },
-  card: ({ params: p }) => {
-    const style = String((p as Record<string, unknown>).style ?? "");
-    const position = String((p as Record<string, unknown>).position ?? "");
-    return [
-      row(
-        "captions",
-        clipText(
-          [style, position]
-            .filter(Boolean)
-            .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-            .join(" · ") || "Captions",
-        ),
-      ),
-    ];
-  },
-  params: captionsMeta.schema,
+  card: ({ params: p }) => [
+    row("captions", clipText([p.style, p.position].filter(Boolean).map(humanize).join(" · "))),
+  ],
+  params: captionsSchema,
   compile: ({ nodeId, inputs, params, settings }) => {
-    const caps = inputs.captions as CaptionsValue | undefined;
-    const base = isClip(inputs.clip) ? inputs.clip : undefined;
+    const caps = asValue(inputs.captions, "captions");
+    const base = clipInput(inputs);
     if (!caps) return { clip: base ?? emptyClip(30) };
     const end = caps.captions.at(-1)?.endMs ?? 1000;
     const layer = itemClip(
       nodeId,
-      "core/captions",
+      CAPTIONS_ELEMENT,
       {
         ...params,
-        fontFamily: params.fontFamily
-          ? fontStack(String(params.fontFamily), { families: [] })
-          : undefined,
+        fontFamily: params.fontFamily ? fontStack(params.fontFamily) : undefined,
         captions: caps.captions,
       },
       msToFrames(end + 500, settings.fps),

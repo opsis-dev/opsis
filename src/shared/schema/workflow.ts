@@ -2,7 +2,7 @@ import { z } from "zod";
 import { DEFAULT_PROJECT_FONTS, projectFontsSchema } from "../fonts/types";
 import { mixSchema } from "../mix/types";
 
-export const PORT_TYPES = [
+const PORT_TYPES = [
   "session",
   "recording",
   "clip",
@@ -26,6 +26,8 @@ export const workflowSettingsSchema = z.object({
 });
 export type WorkflowSettings = z.infer<typeof workflowSettingsSchema>;
 
+export const DEFAULT_WORKFLOW_SETTINGS: WorkflowSettings = workflowSettingsSchema.parse({});
+
 export const workflowNodeSchema = z.object({
   id: z.string().min(1),
   type: z.string().min(1),
@@ -47,7 +49,7 @@ export const workflowEdgeSchema = z.object({
 });
 export type WorkflowEdge = z.infer<typeof workflowEdgeSchema>;
 
-export const markerSchema = z.object({
+const markerSchema = z.object({
   id: z.string().min(1),
   atMs: z.number().int().nonnegative(),
   label: z.string().default(""),
@@ -58,13 +60,7 @@ export const workflowSchema = z.object({
   version: z.literal(1),
   id: z.string(),
   name: z.string(),
-  settings: workflowSettingsSchema.default({
-    width: 1920,
-    height: 1080,
-    fps: 30,
-    theme: "dark",
-    fonts: DEFAULT_PROJECT_FONTS,
-  }),
+  settings: workflowSettingsSchema.default(DEFAULT_WORKFLOW_SETTINGS),
   variables: z.record(z.string(), z.string()).default({}),
   nodes: z.array(workflowNodeSchema),
   edges: z.array(workflowEdgeSchema),
@@ -74,3 +70,10 @@ export const workflowSchema = z.object({
 export type Workflow = z.infer<typeof workflowSchema>;
 
 export const WORKFLOW_FILE = "project.demoflow.json";
+
+export function normalizeWorkflow(wf: Workflow): Workflow {
+  if (!wf.mix) return wf;
+  const ids = new Set(wf.nodes.map((n) => n.id));
+  const channels = Object.entries(wf.mix.channels).filter(([id]) => ids.has(id));
+  return { ...wf, mix: { ...wf.mix, channels: Object.fromEntries(channels) } };
+}

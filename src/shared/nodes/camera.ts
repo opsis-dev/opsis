@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { BACKDROPS } from "../../video/camera/lib/backdrop";
+import { BACKDROPS } from "../backdrops";
 import {
-  isClip,
   itemClip,
   patchRecordings,
+  recordingProps,
   remapDuration,
   remapFromSegments,
   wrapClip,
@@ -16,43 +16,57 @@ import {
   type RecordingProps,
 } from "../compile/recording";
 import type { Action } from "../schema/actions";
-import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
-import { row } from "./card";
-import { defineNode, port, type CompileOutputs } from "./define";
-import { bool, choice, fraction, MAX_SPEED, more, ms, text } from "./params";
+import { asValue, type ClipValue } from "../schema/values";
+import { mutedIf, row, toggleRow, warnIf, type CardRow } from "./card";
+import { clipModifier, defineNode, port, withClip } from "./define";
+import { asset, bool, choice, fraction, keysOf, more, ms, rate, text, zoomScale } from "./params";
+import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "./capture";
 import { formatDuration, humanize } from "../format";
 import { msToFrames } from "../timeline/time";
 import { baseName } from "../asset-ref";
 
 const base = { category: "Camera", phase: "compile" } as const;
-const modifier = {
-  inputs: { clip: port("clip", "Clip") },
-  outputs: { clip: port("clip", "Clip") },
-} as const;
+const modifier = { ...base, ...clipModifier };
 
 const spot = { widget: "spot" } as const;
 
 export const WINDOW_STYLES = ["macos", "windows", "linux"] as const;
 const FRAME_LABELS = { none: "None", macos: "macOS", windows: "Windows", linux: "Linux" };
 
-const clipIn = (inputs: Partial<Record<string, CompileValue>>): ClipValue | undefined =>
-  isClip(inputs.clip) ? inputs.clip : undefined;
+const appendBeats = (clip: ClipValue, beats: Action[]) =>
+  patchRecordings(clip, (p) => ({ ...p, extraBeats: [...(p.extraBeats ?? []), ...beats] }));
 
-const passthrough = (
-  inputs: Partial<Record<string, CompileValue>>,
-  fn: (clip: ClipValue) => ClipValue,
-): CompileOutputs => {
-  const clip = clipIn(inputs);
-  return clip ? { clip: fn(clip) } : {};
+const FOCUS_BOX = { w: 120, h: 48 };
+
+type FocusSpot = { id: string; t: number; x: number; y: number; tDepart?: number };
+
+const focusBeats = (
+  clip: ClipValue,
+  nodeId: string,
+  cluster: string,
+  scale: number,
+  spots: FocusSpot[],
+): ClipValue => {
+  const vp = clip.recording?.viewport ?? DEFAULT_VIEWPORT;
+  return appendBeats(
+    clip,
+    spots.map(({ id, x, y, ...timing }): Action => {
+      const point = { x: x * vp.width, y: y * vp.height };
+      return {
+        ...timing,
+        id: `${nodeId}:${id}`,
+        kind: "focus",
+        point,
+        rect: { x: point.x - FOCUS_BOX.w / 2, y: point.y - FOCUS_BOX.h / 2, ...FOCUS_BOX },
+        cluster: `${nodeId}:${cluster}`,
+        zoomScale: scale,
+        nodeId,
+      };
+    }),
+  );
 };
 
-const appendBeats = (clip: ClipValue, beats: Action[]) =>
-  patchRecordings(clip, (p) => ({
-    ...p,
-    extraBeats: [...((p.extraBeats as Action[]) ?? []), ...beats],
-  }));
-
-export const autoZoomNode = defineNode({
+const autoZoomNode = defineNode({
   ...base,
   type: "camera.autoZoom",
   title: "Auto zoom",
@@ -69,19 +83,11 @@ export const autoZoomNode = defineNode({
   ],
   params: z.object({
     zoom: bool(true, "Zoom to the clicks"),
-    maxScale: z.number().min(1.1).max(2.5).default(1.74).meta({
-      description: "Maximum zoom",
+    maxScale: more(zoomScale(1.74, "Maximum zoom", 0.02), {
       help: "Higher zooms closer but can look soft.",
-      step: 0.02,
-      unit: "×",
     }),
     hold: ms(1300, "Hold each zoom at least", 10_000),
-    speed: z
-      .number()
-      .min(0.25)
-      .max(4)
-      .default(1.25)
-      .meta({ description: "Playback speed", step: 0.05, unit: "×" }),
+    speed: rate(1.25, "Playback speed", { min: 0.25, max: 4 }),
     style: choice(CAMERA_STYLES, "classic", "Camera style"),
     backdrop: z.enum(BACKDROPS).default("glaze").meta({ description: "Backdrop" }),
     frame: choice(["none", ...WINDOW_STYLES], "none", "Window frame", FRAME_LABELS),
@@ -95,8 +101,8 @@ export const autoZoomNode = defineNode({
     motionBlur: bool(true, "Motion blur"),
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
-    const rec = inputs.recording as RecordingValue | undefined;
-    const durationMs = rec?.durationMs ?? 6000;
+    const rec = asValue(inputs.recording, "recording");
+    const durationMs = rec?.durationMs ?? DEFAULT_TAKE_MS;
     const frames = msToFrames(durationMs / params.speed, settings.fps);
     if (!rec?.src || !rec.log) {
       return {
@@ -136,8 +142,7 @@ export const autoZoomNode = defineNode({
   },
 });
 
-export const manualZoomNode = defineNode({
-  ...base,
+const manualZoomNode = defineNode({
   ...modifier,
   type: "camera.manualZoom",
   title: "Zoom here",
@@ -152,35 +157,18 @@ export const manualZoomNode = defineNode({
     holdMs: ms(1500, "Hold"),
     x: more(fraction(0.5, "Spot"), { ...spot, help: "Click the frame to choose where to zoom." }),
     y: more(fraction(0.5, "Spot vertical"), { hidden: true }),
-    scale: z
-      .number()
-      .min(1.1)
-      .max(2.5)
-      .default(1.5)
-      .meta({ description: "Zoom", step: 0.05, unit: "×" }),
+    scale: zoomScale(1.5),
   }),
-  compile: ({ nodeId, inputs, params }) =>
-    passthrough(inputs, (clip) => {
-      const vp = clip.recording?.viewport ?? { width: 1920, height: 1080 };
-      const point = { x: params.x * vp.width, y: params.y * vp.height };
-      const rect = { x: point.x - 60, y: point.y - 24, w: 120, h: 48 };
-      const common = {
-        kind: "focus" as const,
-        point,
-        rect,
-        cluster: `${nodeId}:zoom`,
-        zoomScale: params.scale,
-        nodeId,
-      };
-      return appendBeats(clip, [
-        { ...common, id: `${nodeId}:a`, t: params.atMs, tDepart: Math.max(0, params.atMs - 400) },
-        { ...common, id: `${nodeId}:b`, t: params.atMs + params.holdMs },
-      ]);
-    }),
+  compile: ({ nodeId, inputs, params: p }) =>
+    withClip(inputs, (clip) =>
+      focusBeats(clip, nodeId, "zoom", p.scale, [
+        { id: "a", t: p.atMs, tDepart: Math.max(0, p.atMs - 400), x: p.x, y: p.y },
+        { id: "b", t: p.atMs + p.holdMs, x: p.x, y: p.y },
+      ]),
+    ),
 });
 
-export const panNode = defineNode({
-  ...base,
+const panNode = defineNode({
   ...modifier,
   type: "camera.pan",
   title: "Pan",
@@ -200,38 +188,18 @@ export const panNode = defineNode({
     fromY: more(fraction(0.4, "From vertical"), { hidden: true }),
     toX: more(fraction(0.7, "To"), { ...spot, help: "Click the frame to choose where to end." }),
     toY: more(fraction(0.6, "To vertical"), { hidden: true }),
-    scale: z
-      .number()
-      .min(1.1)
-      .max(2.5)
-      .default(1.4)
-      .meta({ description: "Zoom", step: 0.05, unit: "×" }),
+    scale: zoomScale(1.4),
   }),
-  compile: ({ nodeId, inputs, params }) =>
-    passthrough(inputs, (clip) => {
-      const vp = clip.recording?.viewport ?? { width: 1920, height: 1080 };
-      const beat = (id: string, t: number, fx: number, fy: number): Action => {
-        const point = { x: fx * vp.width, y: fy * vp.height };
-        return {
-          id: `${nodeId}:${id}`,
-          kind: "focus",
-          t,
-          point,
-          rect: { x: point.x - 60, y: point.y - 24, w: 120, h: 48 },
-          cluster: `${nodeId}:pan`,
-          zoomScale: params.scale,
-          nodeId,
-        };
-      };
-      return appendBeats(clip, [
-        beat("a", params.atMs, params.fromX, params.fromY),
-        beat("b", params.atMs + params.durationMs, params.toX, params.toY),
-      ]);
-    }),
+  compile: ({ nodeId, inputs, params: p }) =>
+    withClip(inputs, (clip) =>
+      focusBeats(clip, nodeId, "pan", p.scale, [
+        { id: "a", t: p.atMs, x: p.fromX, y: p.fromY },
+        { id: "b", t: p.atMs + p.durationMs, x: p.toX, y: p.toY },
+      ]),
+    ),
 });
 
-export const followCursorNode = defineNode({
-  ...base,
+const followCursorNode = defineNode({
   ...modifier,
   type: "camera.followCursor",
   title: "Follow cursor",
@@ -241,16 +209,11 @@ export const followCursorNode = defineNode({
     row("locate-fixed", `${p.scale}× · re-aim every ${formatDuration(p.everyMs)}`),
   ],
   params: z.object({
-    scale: z
-      .number()
-      .min(1.1)
-      .max(2.5)
-      .default(1.35)
-      .meta({ description: "Zoom", step: 0.05, unit: "×" }),
+    scale: zoomScale(1.35),
     everyMs: ms(700, "Re-aim every", 5000),
   }),
   compile: ({ nodeId, inputs, params }) =>
-    passthrough(inputs, (clip) =>
+    withClip(inputs, (clip) =>
       clip.recording?.log
         ? appendBeats(
             clip,
@@ -275,17 +238,9 @@ function remapClip(
   return wrapClip(clip, nodeId, { remap }, Math.max(1, Math.round(remapDuration(remap))));
 }
 
-function recordingSpeed(clip: ClipValue): number {
-  let speed = 1;
-  patchRecordings(clip, (p) => {
-    speed = (p.speed as number) ?? 1;
-    return p;
-  });
-  return speed;
-}
+const recordingSpeed = (clip: ClipValue): number => recordingProps(clip).at(-1)?.speed ?? 1;
 
-export const idleSpeedupNode = defineNode({
-  ...base,
+const idleSpeedupNode = defineNode({
   ...modifier,
   type: "camera.idleSpeedup",
   title: "Skip quiet parts",
@@ -297,15 +252,10 @@ export const idleSpeedupNode = defineNode({
   params: z.object({
     thresholdMs: ms(1500, "Quiet for longer than", 20_000),
     padMs: ms(400, "Keep around each action", 5000),
-    rate: z
-      .number()
-      .min(1.5)
-      .max(MAX_SPEED)
-      .default(4)
-      .meta({ description: "Speed while quiet", step: 0.5, unit: "×" }),
+    rate: rate(4, "Speed while quiet", { min: 1.5, step: 0.5 }),
   }),
   compile: ({ nodeId, inputs, params, settings }) =>
-    passthrough(inputs, (clip) => {
+    withClip(inputs, (clip) => {
       const log = clip.recording?.log;
       if (!log) return clip;
       const spans = idleSpans(log, params.thresholdMs, params.padMs);
@@ -320,8 +270,7 @@ export const idleSpeedupNode = defineNode({
     }),
 });
 
-export const speedRampNode = defineNode({
-  ...base,
+const speedRampNode = defineNode({
   ...modifier,
   type: "camera.speedRamp",
   title: "Speed ramp",
@@ -331,7 +280,7 @@ export const speedRampNode = defineNode({
     row(
       "gauge",
       p.segments.length === 1 ? "1 part" : `${p.segments.length} parts`,
-      p.segments.length ? {} : { tone: "muted" },
+      mutedIf(!p.segments.length),
     ),
   ],
   params: z.object({
@@ -350,19 +299,14 @@ export const speedRampNode = defineNode({
             .min(0)
             .default(1000)
             .meta({ description: "To", unit: "ms", step: 50 }),
-          rate: z
-            .number()
-            .min(0.1)
-            .max(MAX_SPEED)
-            .default(2)
-            .meta({ description: "Speed", step: 0.1, unit: "×" }),
+          rate: rate(2, "Speed", { min: 0.1, step: 0.1 }),
         }),
       )
       .default([{ fromMs: 0, toMs: 1000, rate: 2 }])
       .meta({ description: "Parts" }),
   }),
   compile: ({ nodeId, inputs, params, settings }) =>
-    passthrough(inputs, (clip) =>
+    withClip(inputs, (clip) =>
       remapClip(
         clip,
         nodeId,
@@ -374,8 +318,7 @@ export const speedRampNode = defineNode({
     ),
 });
 
-export const cropNode = defineNode({
-  ...base,
+const cropNode = defineNode({
   ...modifier,
   type: "camera.crop",
   title: "Crop",
@@ -394,49 +337,48 @@ export const cropNode = defineNode({
     h: fraction(0.8, "Height"),
   }),
   compile: ({ nodeId, inputs, params }) =>
-    passthrough(inputs, (clip) => wrapClip(clip, nodeId, { crop: params })),
+    withClip(inputs, (clip) => wrapClip(clip, nodeId, { crop: params })),
 });
 
-export const deviceFrameNode = defineNode({
-  ...base,
+const DEVICE_LABELS = { browser: "Browser window", laptop: "Laptop", phone: "Phone" };
+
+const DEVICE_ICONS: Record<keyof typeof DEVICE_LABELS, string> = {
+  browser: "app-window",
+  laptop: "laptop",
+  phone: "smartphone",
+};
+
+const deviceFrameNode = defineNode({
   ...modifier,
   type: "camera.deviceFrame",
   title: "Device frame",
   icon: "laptop",
   description: "Puts the video inside a browser window, laptop or phone.",
   card: ({ params: p }) => [
-    row(
-      p.device === "phone" ? "smartphone" : p.device === "laptop" ? "laptop" : "app-window",
-      humanize(p.device),
-    ),
+    row(DEVICE_ICONS[p.device], humanize(p.device)),
     p.device === "laptop" &&
       p.entrance !== "none" &&
       row("sparkles", p.entrance === "open" ? "Opens up" : "Slides in"),
   ],
   params: z.object({
-    device: choice(["browser", "laptop", "phone"], "browser", "Device", {
-      browser: "Browser window",
-      laptop: "Laptop",
-      phone: "Phone",
-    }),
+    device: choice(keysOf(DEVICE_LABELS), "browser", "Device", DEVICE_LABELS),
     windowStyle: more(choice(WINDOW_STYLES, "macos", "Window style", FRAME_LABELS), {
       showIf: { device: ["browser"] },
     }),
     frameTheme: more(choice(["light", "dark"], "light", "Frame colour"), {
       showIf: { device: ["browser"] },
     }),
-    entrance: choice(["rise", "open", "none"], "open", "Entrance", {
-      rise: "Slide in",
-      open: "Open up",
-      none: "None",
-    }).meta({
-      description: "Entrance",
-      labels: { rise: "Slide in", open: "Open up", none: "None" },
-      showIf: { device: ["laptop"] },
-    }),
+    entrance: more(
+      choice(["rise", "open", "none"], "open", "Entrance", {
+        rise: "Slide in",
+        open: "Open up",
+        none: "None",
+      }),
+      { showIf: { device: ["laptop"] } },
+    ),
   }),
   compile: ({ nodeId, inputs, params }) =>
-    passthrough(inputs, (clip) => {
+    withClip(inputs, (clip) => {
       if (params.device === "browser")
         return patchRecordings(clip, (p) => ({
           ...p,
@@ -462,83 +404,77 @@ export const deviceFrameNode = defineNode({
     }),
 });
 
-export const backdropNode = defineNode({
-  ...base,
+const backdropParams = z.object({
+  kind: choice(["image", "solid", "gradient", "asset"], "image", "Kind", {
+    image: "Studio image",
+    solid: "Colour",
+    gradient: "Gradient",
+    asset: "Your image",
+  }),
+  name: z
+    .enum(BACKDROPS)
+    .default("glaze")
+    .meta({ description: "Studio image", showIf: { kind: ["image"] } }),
+  color: more(text("#0b0b10", "Colour"), { widget: "color", showIf: { kind: ["solid"] } }),
+  gradient: more(text("linear-gradient(135deg, #1e1b4b, #0f172a)", "Gradient"), {
+    help: "A CSS gradient.",
+    showIf: { kind: ["gradient"] },
+  }),
+  asset: more(asset("Image", "image/*"), { showIf: { kind: ["asset"] } }),
+});
+
+type BackdropParams = z.infer<typeof backdropParams>;
+
+function backdropRow(p: BackdropParams): CardRow {
+  switch (p.kind) {
+    case "image":
+      return row("image", humanize(p.name));
+    case "solid":
+      return row("palette", p.color);
+    case "gradient":
+      return row("blend", "Gradient", { title: p.gradient });
+    case "asset":
+      return row("image", p.asset ? baseName(p.asset) : "Choose an image", warnIf(!p.asset));
+  }
+}
+
+function backdropFor(p: BackdropParams, current: string | undefined): string | undefined {
+  switch (p.kind) {
+    case "image":
+      return p.name;
+    case "solid":
+      return p.color;
+    case "gradient":
+      return p.gradient;
+    case "asset":
+      return p.asset || current;
+  }
+}
+
+const backdropNode = defineNode({
   ...modifier,
   type: "camera.backdrop",
   title: "Backdrop",
   icon: "image",
   description: "The background behind the floating window: a studio image, colour or gradient.",
-  card: ({ params: p }) => [
-    p.kind === "image"
-      ? row("image", humanize(p.name))
-      : p.kind === "solid"
-        ? row("palette", p.color)
-        : p.kind === "gradient"
-          ? row("blend", "Gradient", { title: p.gradient })
-          : row(
-              "image",
-              p.asset ? baseName(p.asset) : "Choose an image",
-              p.asset ? {} : { tone: "warn" },
-            ),
-  ],
-  params: z.object({
-    kind: choice(["image", "solid", "gradient", "asset"], "image", "Kind", {
-      image: "Studio image",
-      solid: "Colour",
-      gradient: "Gradient",
-      asset: "Your image",
-    }),
-    name: z
-      .enum(BACKDROPS)
-      .default("glaze")
-      .meta({ description: "Studio image", showIf: { kind: ["image"] } }),
-    color: text("#0b0b10", "Colour").meta({
-      description: "Colour",
-      widget: "color",
-      showIf: { kind: ["solid"] },
-    }),
-    gradient: text("linear-gradient(135deg, #1e1b4b, #0f172a)", "Gradient").meta({
-      description: "Gradient",
-      help: "A CSS gradient.",
-      showIf: { kind: ["gradient"] },
-    }),
-    asset: text("", "Image").meta({
-      description: "Image",
-      widget: "asset",
-      accept: "image/*",
-      showIf: { kind: ["asset"] },
-    }),
-  }),
+  card: ({ params: p }) => [backdropRow(p)],
+  params: backdropParams,
   compile: ({ inputs, params }) =>
-    passthrough(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({
-        ...p,
-        backdrop:
-          params.kind === "image"
-            ? params.name
-            : params.kind === "solid"
-              ? params.color
-              : params.kind === "gradient"
-                ? params.gradient
-                : params.asset || p.backdrop,
-      })),
+    withClip(inputs, (clip) =>
+      patchRecordings(clip, (p) => ({ ...p, backdrop: backdropFor(params, p.backdrop) })),
     ),
 });
 
-export const motionBlurNode = defineNode({
-  ...base,
+const motionBlurNode = defineNode({
   ...modifier,
   type: "camera.motionBlur",
   title: "Motion blur",
   icon: "wind",
   description: "Adds blur to fast camera moves.",
-  card: ({ params: p }) => [
-    row("wind", p.enabled ? "On" : "Off", p.enabled ? {} : { tone: "muted" }),
-  ],
+  card: ({ params: p }) => [toggleRow("wind", p.enabled)],
   params: z.object({ enabled: bool(true, "Motion blur") }),
   compile: ({ inputs, params }) =>
-    passthrough(inputs, (clip) =>
+    withClip(inputs, (clip) =>
       patchRecordings(clip, (p) => ({ ...p, motionBlur: params.enabled })),
     ),
 });
@@ -555,5 +491,3 @@ export const cameraNodes = [
   backdropNode,
   motionBlurNode,
 ];
-
-export { passthrough };

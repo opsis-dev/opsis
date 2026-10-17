@@ -36,9 +36,4 @@ export const projectFontsSchema = z.object({
 });
 export type ProjectFonts = z.infer<typeof projectFontsSchema>;
 
-export const DEFAULT_PROJECT_FONTS: ProjectFonts = {
-  main: "Inter",
-  heading: "",
-  code: "JetBrains Mono",
-  families: [],
-};
+export const DEFAULT_PROJECT_FONTS: ProjectFonts = projectFontsSchema.parse({});

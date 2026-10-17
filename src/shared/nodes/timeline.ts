@@ -1,51 +1,44 @@
 import { z } from "zod";
 import {
   emptyClip,
-  isClip,
   sequenceClips,
   stackClips,
   withHandles,
   wrapClip,
   type GroupProps,
 } from "../compile/clip";
-import type { AudioValue, ClipValue, CompileValue } from "../schema/values";
+import { asValue, type ClipValue, type CompileValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
-import { coverRow, frameSecs, quote, row, type CardRow } from "./card";
-import { defineNode, opt, port } from "./define";
-import { bool, choice, frames, MAX_SPEED, more, ms, text } from "./params";
+import { coverRow, frameSecs, quote, row, warnIf, type CardRow } from "./card";
+import { clipInput, clipModifier, defineNode, opt, port, withClip } from "./define";
+import { bool, choice, frames, more, ms, rate, text } from "./params";
 import { TRANSITION_KINDS, transitionTitle } from "./transitions";
 import { formatDuration, plural } from "../format";
 import { msToFrames } from "../timeline/time";
 
 const base = { category: "Timeline", phase: "compile" } as const;
 const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
-const manyIn = Object.fromEntries(IN_PORTS.map((p, i) => [p, opt("clip", `Clip ${i + 1}`)]));
-const layerIn = Object.fromEntries(
-  IN_PORTS.map((p, i) => [
-    p,
-    opt(
-      "clip",
-      i === 0
-        ? "Layer 1 (back)"
-        : i === IN_PORTS.length - 1
-          ? `Layer ${i + 1} (front)`
-          : `Layer ${i + 1}`,
-    ),
-  ]),
-);
+const [, ...CUT_PORTS] = IN_PORTS;
+type InPort = (typeof IN_PORTS)[number];
+
+const clipLabel = (handle: InPort) => `Clip ${IN_PORTS.indexOf(handle) + 1}`;
+const LAYER_ENDS: Partial<Record<InPort, string>> = { in1: " (back)", in6: " (front)" };
+const layerLabel = (handle: InPort) =>
+  `Layer ${IN_PORTS.indexOf(handle) + 1}${LAYER_ENDS[handle] ?? ""}`;
+
+const manyIn = Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", clipLabel(p))]));
+const layerIn = Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", layerLabel(p))]));
 const countIn = (connected: string[]) => IN_PORTS.filter((p) => connected.includes(p)).length;
 
 const connectedClips = (
   inputs: Partial<Record<string, CompileValue>>,
 ): Array<{ port: string; clip: ClipValue }> =>
   IN_PORTS.flatMap((name) => {
-    const clip = inputs[name];
-    return isClip(clip) ? [{ port: name, clip }] : [];
+    const clip = clipInput(inputs, name);
+    return clip ? [{ port: name, clip }] : [];
   });
 
 const SLOW_PREVIEW_RATE = 4;
-
-const CUT_PORTS = ["in2", "in3", "in4", "in5", "in6"] as const;
 
 type CutSettings = {
   transition: string;
@@ -55,7 +48,7 @@ type CutSettings = {
 
 type Cut = CutSettings & { before: string; after: string; own: boolean };
 
-export function cutsFor(
+function cutsFor(
   params: CutSettings & { cuts?: Array<CutSettings & { before: string }> },
   ports: readonly string[],
 ): Cut[] {
@@ -91,12 +84,7 @@ function worstCover(
   return worst ? coverRow(worst.cut.transitionDuration, worst.lengths, fps) : null;
 }
 
-const single = {
-  inputs: { clip: port("clip", "Clip") },
-  outputs: { clip: port("clip", "Clip") },
-} as const;
-
-export const sequenceNode = defineNode({
+const sequenceNode = defineNode({
   ...base,
   type: "timeline.sequence",
   title: "Sequence",
@@ -109,7 +97,7 @@ export const sequenceNode = defineNode({
     const cuts = cutsFor(p, ports);
     const own = cuts.filter((c) => c.own).length;
     return [
-      row("list-video", plural(ports.length, "clip"), ports.length ? {} : { tone: "warn" }),
+      row("list-video", plural(ports.length, "clip"), warnIf(!ports.length)),
       p.transition !== "none" &&
         row(
           "arrow-right-left",
@@ -141,7 +129,7 @@ export const sequenceNode = defineNode({
             CUT_PORTS,
             "in2",
             "Before",
-            Object.fromEntries(CUT_PORTS.map((handle, i) => [handle, `Clip ${i + 2}`])),
+            Object.fromEntries(CUT_PORTS.map((handle) => [handle, clipLabel(handle)])),
           ),
           transition: z
             .enum(TRANSITION_KINDS)
@@ -185,7 +173,21 @@ export const sequenceNode = defineNode({
   },
 });
 
-export const stackNode = defineNode({
+type LengthSource = "longest" | "first" | "last";
+
+const LENGTH_FOLLOWS: Record<LengthSource, string> = {
+  longest: "the longest",
+  first: "Layer 1",
+  last: "the front layer",
+};
+
+const LENGTH_CLIP: Record<LengthSource, (clips: ClipValue[]) => ClipValue | undefined> = {
+  longest: () => undefined,
+  first: (clips) => clips[0],
+  last: (clips) => clips.at(-1),
+};
+
+const stackNode = defineNode({
   ...base,
   type: "timeline.stack",
   title: "Layers",
@@ -194,11 +196,8 @@ export const stackNode = defineNode({
   inputs: layerIn,
   outputs: { clip: port("clip", "Clip") },
   card: ({ params: p, connected, clipFrames, settings }) => [
-    row("layers", plural(countIn(connected), "layer"), countIn(connected) ? {} : { tone: "warn" }),
-    row(
-      "clock",
-      `Length follows ${p.duration === "first" ? "Layer 1" : p.duration === "last" ? "the front layer" : "the longest"}`,
-    ),
+    row("layers", plural(countIn(connected), "layer"), warnIf(!countIn(connected))),
+    row("clock", `Length follows ${LENGTH_FOLLOWS[p.duration]}`),
     clipFrames && row("timer", frameSecs(clipFrames, settings.fps)),
   ],
   params: z.object({
@@ -224,12 +223,7 @@ export const stackNode = defineNode({
       ports: connected.map((c) => c.port),
       move: (index) => ({ nodeId, param: "offsetsMs", unit: "ms", index }),
     });
-    const pick =
-      params.duration === "first"
-        ? clips[0]
-        : params.duration === "last"
-          ? clips[clips.length - 1]
-          : null;
+    const pick = LENGTH_CLIP[params.duration](clips);
     const clip = pick ? { ...stacked, durationInFrames: pick.durationInFrames } : stacked;
     return { clip: params.keepLayout ? keepLayout(nodeId, clip, settings) : clip };
   },
@@ -266,21 +260,25 @@ function fitRow(
 ): CardRow | null {
   if (!input || !output) return null;
   if (mode === "cut" && input > output)
-    return row("scissors", `Cuts ${frameSecs(input - output, fps)} off the end`, {
-      tone: input - output > fps / 2 ? "warn" : undefined,
-    });
+    return row(
+      "scissors",
+      `Cuts ${frameSecs(input - output, fps)} off the end`,
+      warnIf(input - output > fps / 2),
+    );
   if (mode === "speed" && Math.abs(input / output - 1) > 0.02) {
-    const rate = input / output;
-    return row("fast-forward", `Plays at ${rate.toFixed(2)}×`, {
-      tone: rate > 1.5 || rate < 0.67 ? "warn" : undefined,
-    });
+    const speed = input / output;
+    return row(
+      "fast-forward",
+      `Plays at ${speed.toFixed(2)}×`,
+      warnIf(speed > 1.5 || speed < 0.67),
+    );
   }
   return null;
 }
 
-export const trimNode = defineNode({
+const trimNode = defineNode({
   ...base,
-  ...single,
+  ...clipModifier,
   type: "timeline.trim",
   title: "Trim",
   icon: "scissors",
@@ -297,16 +295,14 @@ export const trimNode = defineNode({
     startMs: ms(0, "Start"),
     durationMs: more(ms(0, "Keep"), { zeroLabel: "To the end" }),
   }),
-  compile: ({ nodeId, inputs, params, settings }) => {
-    const clip = isClip(inputs.clip) ? inputs.clip : undefined;
-    if (!clip) return {};
-    const start = params.startMs ? msToFrames(params.startMs, settings.fps) : 0;
-    const rest = Math.max(1, clip.durationInFrames - start);
-    const duration = params.durationMs
-      ? Math.min(rest, msToFrames(params.durationMs, settings.fps))
-      : rest;
-    return {
-      clip: withHandles(wrapClip(clip, nodeId, { startFrom: start }, duration), {
+  compile: ({ nodeId, inputs, params, settings }) =>
+    withClip(inputs, (clip) => {
+      const start = params.startMs ? msToFrames(params.startMs, settings.fps) : 0;
+      const rest = Math.max(1, clip.durationInFrames - start);
+      const duration = params.durationMs
+        ? Math.min(rest, msToFrames(params.durationMs, settings.fps))
+        : rest;
+      return withHandles(wrapClip(clip, nodeId, { startFrom: start }, duration), {
         trimStart: {
           nodeId,
           param: "startMs",
@@ -314,14 +310,13 @@ export const trimNode = defineNode({
           linked: [{ param: "durationMs", sign: -1, ifNonZero: true }],
         },
         trimEnd: { nodeId, param: "durationMs", unit: "ms" },
-      }),
-    };
-  },
+      });
+    }),
 });
 
-export const loopNode = defineNode({
+const loopNode = defineNode({
   ...base,
-  ...single,
+  ...clipModifier,
   type: "timeline.loop",
   title: "Repeat",
   icon: "repeat",
@@ -330,43 +325,37 @@ export const loopNode = defineNode({
   params: z.object({
     times: z.number().int().min(1).max(100).default(2).meta({ description: "Times", unit: "×" }),
   }),
-  compile: ({ nodeId, inputs, params }) => {
-    const clip = isClip(inputs.clip) ? inputs.clip : undefined;
-    if (!clip) return {};
-    return {
-      clip: wrapClip(
+  compile: ({ nodeId, inputs, params }) =>
+    withClip(inputs, (clip) =>
+      wrapClip(
         clip,
         nodeId,
         { loopEvery: clip.durationInFrames },
         clip.durationInFrames * params.times,
       ),
-    };
-  },
+    ),
 });
 
-export const delayNode = defineNode({
+const delayNode = defineNode({
   ...base,
-  ...single,
+  ...clipModifier,
   type: "timeline.delay",
   title: "Delay",
   icon: "timer",
   description: "Starts a clip later.",
   card: ({ params: p }) => [row("clock", `+${formatDuration(p.ms)}`)],
   params: z.object({ ms: ms(500, "Delay") }),
-  compile: ({ nodeId, inputs, params, settings }) => {
-    const clip = isClip(inputs.clip) ? inputs.clip : undefined;
-    if (!clip) return {};
-    return {
-      clip: stackClips(nodeId, [clip], [params.ms ? msToFrames(params.ms, settings.fps) : 0], {
+  compile: ({ nodeId, inputs, params, settings }) =>
+    withClip(inputs, (clip) =>
+      stackClips(nodeId, [clip], [params.ms ? msToFrames(params.ms, settings.fps) : 0], {
         move: () => ({ nodeId, param: "ms", unit: "ms" }),
       }),
-    };
-  },
+    ),
 });
 
-export const speedNode = defineNode({
+const speedNode = defineNode({
   ...base,
-  ...single,
+  ...clipModifier,
   type: "timeline.speed",
   title: "Speed",
   icon: "fast-forward",
@@ -379,19 +368,12 @@ export const speedNode = defineNode({
       }),
   ],
   params: z.object({
-    rate: z
-      .number()
-      .min(0.1)
-      .max(MAX_SPEED)
-      .default(1.5)
-      .meta({ description: "Speed", step: 0.05, unit: "×" }),
+    rate: rate(1.5, "Speed", { min: 0.1 }),
   }),
-  compile: ({ nodeId, inputs, params }) => {
-    const clip = isClip(inputs.clip) ? inputs.clip : undefined;
-    if (!clip) return {};
-    const out = Math.max(1, Math.round(clip.durationInFrames / params.rate));
-    return {
-      clip: withHandles(
+  compile: ({ nodeId, inputs, params }) =>
+    withClip(inputs, (clip) => {
+      const out = Math.max(1, Math.round(clip.durationInFrames / params.rate));
+      return withHandles(
         wrapClip(
           clip,
           nodeId,
@@ -404,12 +386,35 @@ export const speedNode = defineNode({
           out,
         ),
         { speed: { nodeId, param: "rate", unit: "rate" } },
-      ),
-    };
-  },
+      );
+    }),
 });
 
-export const durationFitNode = defineNode({
+type FitMode = "speed" | "hold" | "cut";
+
+const FIT_ROWS: Record<FitMode, string> = {
+  speed: "By speed",
+  hold: "By holding the end",
+  cut: "By cutting",
+};
+
+const fitRemap: Record<FitMode, (length: number, target: number) => GroupProps["remap"]> = {
+  cut: () => undefined,
+  hold: (length, target) =>
+    target <= length
+      ? undefined
+      : [
+          [0, 0],
+          [length - 1, length - 1],
+          [target, length - 1],
+        ],
+  speed: (length, target) => [
+    [0, 0],
+    [target, length],
+  ],
+};
+
+const durationFitNode = defineNode({
   ...base,
   type: "timeline.durationFit",
   title: "Fit length",
@@ -420,10 +425,7 @@ export const durationFitNode = defineNode({
   outputs: { clip: port("clip", "Clip") },
   card: ({ params: p, connected, clipFrames, inputFrames, settings }) => [
     row("ruler", connected.includes("audio") ? "Fits the sound" : formatDuration(p.targetMs)),
-    row(
-      "settings-2",
-      p.mode === "speed" ? "By speed" : p.mode === "hold" ? "By holding the end" : "By cutting",
-    ),
+    row("settings-2", FIT_ROWS[p.mode]),
     fitRow(p.mode, inputFrames?.clip, clipFrames, settings.fps),
   ],
   params: z.object({
@@ -434,59 +436,19 @@ export const durationFitNode = defineNode({
       cut: "Cut",
     }),
   }),
-  compile: ({ nodeId, inputs, params, settings }) => {
-    const clip = isClip(inputs.clip) ? inputs.clip : undefined;
-    if (!clip) return {};
-    const audio = inputs.audio as AudioValue | undefined;
-    const target = Math.max(
-      1,
-      audio?.durationInFrames ?? msToFrames(params.targetMs, settings.fps),
-    );
-    const d = clip.durationInFrames;
-    const fixed = (out: ClipValue) =>
-      audio?.durationInFrames
-        ? out
-        : withHandles(out, { trimEnd: { nodeId, param: "targetMs", unit: "ms" } });
-    if (params.mode === "cut") return { clip: fixed(wrapClip(clip, nodeId, {}, target)) };
-    if (params.mode === "hold") {
-      return {
-        clip: fixed(
-          target <= d
-            ? wrapClip(clip, nodeId, {}, target)
-            : wrapClip(
-                clip,
-                nodeId,
-                {
-                  remap: [
-                    [0, 0],
-                    [d - 1, d - 1],
-                    [target, d - 1],
-                  ],
-                },
-                target,
-              ),
-        ),
-      };
-    }
-    return {
-      clip: fixed(
-        wrapClip(
-          clip,
-          nodeId,
-          {
-            remap: [
-              [0, 0],
-              [target, d],
-            ],
-          },
-          target,
-        ),
-      ),
-    };
-  },
+  compile: ({ nodeId, inputs, params, settings }) =>
+    withClip(inputs, (clip) => {
+      const soundFrames = asValue(inputs.audio, "audio")?.durationInFrames;
+      const target = Math.max(1, soundFrames ?? msToFrames(params.targetMs, settings.fps));
+      const remap = fitRemap[params.mode](clip.durationInFrames, target);
+      const fitted = wrapClip(clip, nodeId, remap ? { remap } : {}, target);
+      return soundFrames
+        ? fitted
+        : withHandles(fitted, { trimEnd: { nodeId, param: "targetMs", unit: "ms" } });
+    }),
 });
 
-export const branchNode = defineNode({
+const branchNode = defineNode({
   ...base,
   type: "timeline.branch",
   title: "Choose by variable",

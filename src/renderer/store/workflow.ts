@@ -1,12 +1,13 @@
 import { temporal } from "zundo";
 import { create } from "zustand";
-import { defaultParams, getNodeDef, normalizeWorkflow } from "@/shared/nodes/registry";
-import type {
-  Marker,
-  Workflow,
-  WorkflowEdge,
-  WorkflowNode,
-  WorkflowSettings,
+import { defaultParams, getNodeDef } from "@/shared/nodes/registry";
+import {
+  normalizeWorkflow,
+  type Marker,
+  type Workflow,
+  type WorkflowEdge,
+  type WorkflowNode,
+  type WorkflowSettings,
 } from "@/shared/schema/workflow";
 import { defaultMix, type Mix } from "@/shared/mix/types";
 import { randomId } from "@/shared/ids";

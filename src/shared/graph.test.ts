@@ -7,12 +7,14 @@ import {
   topoSort,
   validateWorkflow,
 } from "./graph";
-import { todoMvcSample } from "./templates";
+import { getTemplate } from "./templates";
 import { GraphBuilder } from "./templates/build";
+
+const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 
 describe("graph", () => {
   it("topologically sorts the sample", () => {
-    const wf = todoMvcSample();
+    const wf = todoMvc();
     const { order, cyclic } = topoSort(wf);
     expect(cyclic).toEqual([]);
     expect(order.indexOf("session")).toBeLessThan(order.indexOf("record"));
@@ -22,17 +24,17 @@ describe("graph", () => {
   });
 
   it("finds the action chain a capture node closes", () => {
-    const chain = sessionChain(todoMvcSample(), "record").map((n) => n.id);
+    const chain = sessionChain(todoMvc(), "record").map((n) => n.id);
     expect(chain).toEqual(["session", "open", "todo1", "todo2", "todo3", "complete", "filter"]);
   });
 
   it("validates the sample without errors", () => {
-    const errors = validateWorkflow(todoMvcSample()).filter((i) => i.level === "error");
+    const errors = validateWorkflow(todoMvc()).filter((i) => i.level === "error");
     expect(errors).toEqual([]);
   });
 
   it("checks a new connection the same way for the canvas and the API", () => {
-    const wf = todoMvcSample();
+    const wf = todoMvc();
     const edge = { source: "camera", sourceHandle: "clip", target: "camera", targetHandle: "clip" };
     expect(connectionProblem(wf, edge)?.message).toBe("A node can't connect to itself.");
     expect(connectionProblem(wf, { ...edge, source: "gone" })?.notFound).toBe(true);
@@ -69,7 +71,7 @@ describe("graph", () => {
     wf.nodes.find((n) => n.id === off)!.disabled = true;
     expect(loginDependencies(wf, "rec", { SHOP: "sauce" })).toEqual(["login"]);
     expect(loginDependencies(wf, "rec", {})).toEqual([]);
-    expect(loginDependencies(todoMvcSample(), "record", {})).toEqual([]);
+    expect(loginDependencies(todoMvc(), "record", {})).toEqual([]);
   });
 
   it("matches sign-in names the way they are saved", () => {

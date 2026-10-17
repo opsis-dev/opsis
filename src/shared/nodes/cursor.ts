@@ -1,18 +1,13 @@
 import { z } from "zod";
 import { patchRecordings } from "../compile/clip";
 import type { AnnotationKind, AnnotationSpec } from "../compile/recording";
-import { passthrough } from "./camera";
-import { quote, row } from "./card";
-import { defineNode, port, type NodeCategory } from "./define";
+import { mutedIf, quote, row, toggleRow } from "./card";
+import { clipModifier, defineNode, withClip, type NodeCategory } from "./define";
 import { bool, choice, more, ms, text } from "./params";
 
-const modifier = {
-  inputs: { clip: port("clip", "Clip") },
-  outputs: { clip: port("clip", "Clip") },
-  phase: "compile",
-} as const;
+const modifier = { ...clipModifier, phase: "compile" } as const;
 
-export const cursorStyleNode = defineNode({
+const cursorStyleNode = defineNode({
   ...modifier,
   type: "cursor.style",
   title: "Cursor",
@@ -20,11 +15,7 @@ export const cursorStyleNode = defineNode({
   icon: "mouse-pointer-2",
   description: "Shows or hides the drawn cursor and sets its size.",
   card: ({ params: p }) => [
-    row(
-      "mouse-pointer",
-      p.visible ? `Shown · ${p.size}×` : "Hidden",
-      p.visible ? {} : { tone: "muted" },
-    ),
+    row("mouse-pointer", p.visible ? `Shown · ${p.size}×` : "Hidden", mutedIf(!p.visible)),
   ],
   params: z.object({
     visible: bool(true, "Show the cursor"),
@@ -36,27 +27,25 @@ export const cursorStyleNode = defineNode({
       .meta({ description: "Size", step: 0.05, unit: "×" }),
   }),
   compile: ({ inputs, params }) =>
-    passthrough(inputs, (clip) =>
+    withClip(inputs, (clip) =>
       patchRecordings(clip, (p) => ({ ...p, cursor: params.visible, cursorScale: params.size })),
     ),
 });
 
-export const clickRippleNode = defineNode({
+const clickRippleNode = defineNode({
   ...modifier,
   type: "cursor.clickRipple",
   title: "Click ripple",
   category: "Cursor",
   icon: "circle-dot",
   description: "A ring that pulses on every click.",
-  card: ({ params: p }) => [
-    row("circle-dot", p.enabled ? "On" : "Off", p.enabled ? {} : { tone: "muted" }),
-  ],
+  card: ({ params: p }) => [toggleRow("circle-dot", p.enabled)],
   params: z.object({ enabled: bool(true, "Ripple on every click") }),
   compile: ({ inputs, params }) =>
-    passthrough(inputs, (clip) => patchRecordings(clip, (p) => ({ ...p, ripple: params.enabled }))),
+    withClip(inputs, (clip) => patchRecordings(clip, (p) => ({ ...p, ripple: params.enabled }))),
 });
 
-export const keystrokeChipsNode = defineNode({
+const keystrokeChipsNode = defineNode({
   ...modifier,
   type: "cursor.keystrokeChips",
   title: "Keystroke chips",
@@ -77,7 +66,7 @@ export const keystrokeChipsNode = defineNode({
     chords: bool(true, "Show shortcuts"),
   }),
   compile: ({ inputs, params }) =>
-    passthrough(inputs, (clip) => patchRecordings(clip, (p) => ({ ...p, keystrokes: params }))),
+    withClip(inputs, (clip) => patchRecordings(clip, (p) => ({ ...p, keystrokes: params }))),
 });
 
 function annotationNode(
@@ -105,7 +94,7 @@ function annotationNode(
         help: "Leave empty to show on every click. Matches part of an action's name.",
       }),
       text: text(defaults.text ?? "", "Text"),
-      color: text(defaults.color, "Colour").meta({ description: "Colour", widget: "color" }),
+      color: more(text(defaults.color, "Colour"), { widget: "color" }),
       padding: z
         .number()
         .int()
@@ -117,19 +106,16 @@ function annotationNode(
       holdMs: ms(1400, "Stay for", 10_000),
     }),
     compile: ({ inputs, params }) =>
-      passthrough(inputs, (clip) =>
+      withClip(inputs, (clip) =>
         patchRecordings(clip, (p) => ({
           ...p,
-          annotations: [
-            ...((p.annotations as AnnotationSpec[]) ?? []),
-            { kind, ...params } satisfies AnnotationSpec,
-          ],
+          annotations: [...(p.annotations ?? []), { kind, ...params } satisfies AnnotationSpec],
         })),
       ),
   });
 }
 
-export const spotlightNode = annotationNode(
+const spotlightNode = annotationNode(
   "cursor.spotlight",
   "Spotlight",
   "spotlight",
@@ -138,7 +124,7 @@ export const spotlightNode = annotationNode(
   "Darkens everything except the element being used.",
   { color: "rgba(0,0,0,0.55)" },
 );
-export const highlightBoxNode = annotationNode(
+const highlightBoxNode = annotationNode(
   "cursor.highlightBox",
   "Highlight box",
   "highlight",
@@ -147,7 +133,7 @@ export const highlightBoxNode = annotationNode(
   "Draws a box around the element being used.",
   { color: "#a78bfa" },
 );
-export const tooltipNode = annotationNode(
+const tooltipNode = annotationNode(
   "text.tooltip",
   "Tooltip",
   "tooltip",
@@ -156,7 +142,7 @@ export const tooltipNode = annotationNode(
   "A tooltip that stays attached to an element as the camera moves.",
   { text: "Click to continue", color: "#18181b" },
 );
-export const calloutArrowNode = annotationNode(
+const calloutArrowNode = annotationNode(
   "text.calloutArrow",
   "Callout arrow",
   "callout",

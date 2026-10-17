@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-export const rectSchema = z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() });
+const rectSchema = z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() });
 export type Rect = z.infer<typeof rectSchema>;
 
-export const ACTION_KINDS = [
+const ACTION_KINDS = [
   "click",
   "type",
   "hover",
@@ -16,9 +16,9 @@ export const ACTION_KINDS = [
   "drag",
 ] as const;
 
-export const pointSchema = z.object({ x: z.number(), y: z.number() });
+const pointSchema = z.object({ x: z.number(), y: z.number() });
 
-export const actionSchema = z.object({
+const actionSchema = z.object({
   id: z.string(),
   kind: z.enum(ACTION_KINDS),
   t: z.number(),
@@ -39,9 +39,9 @@ export const actionSchema = z.object({
 });
 export type Action = z.infer<typeof actionSchema>;
 
-export const cursorSampleSchema = z.object({ t: z.number(), x: z.number(), y: z.number() });
+const cursorSampleSchema = z.object({ t: z.number(), x: z.number(), y: z.number() });
 
-export const actionLogSchema = z.object({
+const actionLogSchema = z.object({
   viewport: z.object({ width: z.number(), height: z.number() }),
   dpr: z.number(),
   t0: z.number(),

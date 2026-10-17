@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compileWorkflow, previewSpec } from "../compile/compile";
-import { normalizeWorkflow } from "../nodes/registry";
 import type { TimelineSpec } from "../schema/timeline";
-import type { Workflow } from "../schema/workflow";
+import { normalizeWorkflow, type Workflow } from "../schema/workflow";
 import { GraphBuilder } from "../templates/build";
 import {
   busJob,

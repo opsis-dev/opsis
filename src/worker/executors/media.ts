@@ -6,7 +6,7 @@ import type { Executor, ExecutorContext, ExecutorOutput } from "../engine/contex
 import { canStreamCopy } from "../media/ffmpeg";
 import { refToPath, rel, requireMedia } from "./util";
 import { round3 } from "../../shared/math";
-import { projectRef } from "../../shared/elements/introspect";
+import { projectRef } from "../../shared/asset-ref";
 import { formatDuration } from "../../shared/format";
 
 function mediaExec<P>(

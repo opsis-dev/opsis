@@ -1,13 +1,20 @@
 import { z } from "zod";
-import { isClip, itemClip, withHandles, wrapClip } from "../compile/clip";
+import { itemClip, withHandles, wrapClip } from "../compile/clip";
 import type { EditHandles, VisualEnvelope } from "../schema/timeline";
-import { ELEMENTS, elementNodeType, type ElementCategory, type ElementMeta } from "../elements";
-import { assetKeys, projectRef, widgetKeys } from "../elements/introspect";
+import type { ClipValue } from "../schema/values";
+import {
+  CAPTIONS_ELEMENT,
+  ELEMENTS,
+  elementNodeType,
+  type ElementCategory,
+  type ElementMeta,
+} from "../elements";
+import { assetKeys, widgetKeys } from "../elements/introspect";
 import { fontStack } from "../fonts";
-import { frameSecs, quote, row, sentence, type CardRow } from "./card";
-import { defineNode, port, type NodeCategory, type NodeDef } from "./define";
+import { fileRow, frameSecs, quote, row, sentence, type CardRow } from "./card";
+import { clipInput, defineNode, port, type NodeCategory, type NodeDef } from "./define";
 import { visualEnvelope } from "./params";
-import { baseName } from "../asset-ref";
+import { projectRef } from "../asset-ref";
 
 const TEXT_KEYS = [
   "title",
@@ -30,7 +37,7 @@ function elementCard(meta: ElementMeta, params: Record<string, unknown>, fps: nu
   if (key) rows.push(row("type", quote(String(params[key]))));
   for (const asset of assetKeys(meta.schema)) {
     const v = params[asset];
-    if (typeof v === "string" && v) rows.push(row("file", baseName(v), { title: v }));
+    if (typeof v === "string" && v) rows.push(fileRow("file", v));
   }
   const duration = Number(params.clipDuration ?? 0);
   const short =
@@ -52,7 +59,7 @@ function elementCard(meta: ElementMeta, params: Record<string, unknown>, fps: nu
   return rows;
 }
 
-export const NODE_CATEGORY_FOR: Record<ElementCategory, NodeCategory> = {
+const NODE_CATEGORY_FOR: Record<ElementCategory, NodeCategory> = {
   core: "Elements",
   text: "Text & overlays",
   overlay: "Text & overlays",
@@ -78,23 +85,43 @@ const ICON_FOR: Record<ElementCategory, string> = {
   transition: "blend",
 };
 
-const CUSTOM_NODE_ELEMENTS = new Set(["core/captions"]);
-
-export function elementProps(
-  meta: ElementMeta,
-  params: Record<string, unknown>,
-): Record<string, unknown> {
-  const { clipDuration: _drop, envelope: _envelope, ...rest } = params;
-  const props: Record<string, unknown> = { ...meta.fixedProps, ...rest };
+function elementProps(meta: ElementMeta, params: Record<string, unknown>): Record<string, unknown> {
+  const props: Record<string, unknown> = { ...meta.fixedProps, ...params };
   for (const key of widgetKeys(meta.schema, "font")) {
-    const name = typeof props[key] === "string" ? (props[key] as string).trim() : "";
-    if (name) props[key] = fontStack(name, { families: [] });
+    const value = props[key];
+    const name = typeof value === "string" ? value.trim() : "";
+    if (name) props[key] = fontStack(name);
     else delete props[key];
   }
   for (const key of assetKeys(meta.schema)) {
-    if (typeof props[key] === "string") props[key] = projectRef(props[key] as string);
+    const value = props[key];
+    if (typeof value === "string") props[key] = projectRef(value);
   }
   return props;
+}
+
+type ElementTiming = { clipDuration: number; envelope: VisualEnvelope };
+
+function compileElement(
+  meta: ElementMeta,
+  nodeId: string,
+  { clipDuration, envelope, ...params }: Record<string, unknown> & ElementTiming,
+  input: ClipValue | undefined,
+): ClipValue {
+  const props = elementProps(meta, params);
+  const handles: EditHandles = { trimEnd: { nodeId, param: "clipDuration", unit: "frames" } };
+  if (meta.kind !== "wrapper" || !input)
+    return itemClip(nodeId, meta.key, props, clipDuration || meta.defaultDurationInFrames, {
+      handles,
+      envelope,
+    });
+  const wrapped = wrapClip(
+    input,
+    nodeId,
+    { wrapper: { component: meta.key, props } },
+    clipDuration || input.durationInFrames,
+  );
+  return withHandles(wrapped, handles, envelope);
 }
 
 function elementNode(meta: ElementMeta): NodeDef {
@@ -104,14 +131,14 @@ function elementNode(meta: ElementMeta): NodeDef {
     title: sentence(meta.title),
     category: NODE_CATEGORY_FOR[meta.category],
     description: meta.description,
-    card: ({ params, settings }) =>
-      elementCard(meta, params as Record<string, unknown>, settings.fps),
+    card: ({ params, settings }) => elementCard(meta, params, settings.fps),
     icon: ICON_FOR[meta.category],
     phase: "compile",
     element: meta.key,
     inputs: wrapper ? { clip: port("clip", "Clip") } : {},
     outputs: { clip: port("clip", "Clip") },
-    params: meta.schema.extend({
+    params: z.object({
+      ...meta.schema.shape,
       clipDuration: z
         .number()
         .int()
@@ -125,41 +152,12 @@ function elementNode(meta: ElementMeta): NodeDef {
         }),
       envelope: visualEnvelope(),
     }),
-    compile: ({ nodeId, params, inputs }) => {
-      const props = elementProps(meta, params as Record<string, unknown>);
-      const { clipDuration: duration, envelope } = params as {
-        clipDuration: number;
-        envelope: VisualEnvelope;
-      };
-      const handles: EditHandles = {
-        trimEnd: { nodeId, param: "clipDuration", unit: "frames" },
-      };
-      if (!wrapper)
-        return { clip: itemClip(nodeId, meta.key, props, duration, { handles, envelope }) };
-      const clip = isClip(inputs.clip) ? inputs.clip : undefined;
-      if (!clip)
-        return {
-          clip: itemClip(nodeId, meta.key, props, duration || meta.defaultDurationInFrames, {
-            handles,
-            envelope,
-          }),
-        };
-      return {
-        clip: withHandles(
-          wrapClip(
-            clip,
-            nodeId,
-            { wrapper: { component: meta.key, props } },
-            duration || clip.durationInFrames,
-          ),
-          handles,
-          envelope,
-        ),
-      };
-    },
+    compile: ({ nodeId, params, inputs }) => ({
+      clip: compileElement(meta, nodeId, params, wrapper ? clipInput(inputs) : undefined),
+    }),
   });
 }
 
 export const elementNodes: NodeDef[] = ELEMENTS.filter(
-  (e) => e.kind !== "presentation" && !CUSTOM_NODE_ELEMENTS.has(e.key),
+  (e) => e.kind !== "presentation" && e.key !== CAPTIONS_ELEMENT,
 ).map(elementNode);

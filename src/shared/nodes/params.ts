@@ -2,9 +2,8 @@ import { z } from "zod";
 import { fieldMeta, type FieldMeta } from "../elements/introspect";
 import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
 
-// oxlint-disable-next-line typescript/no-explicit-any
-export const more = <T extends z.ZodType<any>>(schema: T, extra: FieldMeta): T =>
-  schema.meta({ ...fieldMeta(schema), ...extra }) as T;
+export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
+  schema.meta({ ...fieldMeta(schema), ...extra });
 
 export const target = (
   description = "Element",
@@ -28,6 +27,18 @@ export const frames = (def: number, description: string) =>
 export const fraction = (def: number, description: string) =>
   z.number().min(0).max(1).default(def).meta({ description, step: 0.01 });
 
+export const rate = (
+  def: number,
+  description: string,
+  { min, max = MAX_SPEED, step = 0.05 }: { min: number; max?: number; step?: number },
+) => z.number().min(min).max(max).default(def).meta({ description, step, unit: "×" });
+
+export const volume = (def: number) =>
+  z.number().min(0).max(2).default(def).meta({ description: "Volume", step: 0.05 });
+
+export const zoomScale = (def: number, description = "Zoom", step = 0.05) =>
+  z.number().min(1.1).max(2.5).default(def).meta({ description, step, unit: "×" });
+
 export const text = (def: string, description: string, widget?: "textarea" | "code") =>
   z
     .string()
@@ -40,6 +51,9 @@ export const asset = (description: string, accept = "*/*") =>
 export const bool = (def: boolean, description: string) =>
   z.boolean().default(def).meta({ description });
 
+export const keysOf = <K extends string>(map: Record<K, unknown>): [K, ...K[]] =>
+  Object.keys(map) as [K, ...K[]];
+
 export const choice = <const T extends readonly [string, ...string[]]>(
   values: T,
   def: T[number],
@@ -49,7 +63,7 @@ export const choice = <const T extends readonly [string, ...string[]]>(
   z
     .enum(values)
     .default(def)
-    .meta({ description, ...(labels ? { labels: labels as Record<string, string> } : {}) });
+    .meta({ description, ...(labels ? { labels } : {}) });
 
 export const QUALITY_PRESETS = { Low: 28, Medium: 23, High: 18, Max: 12 } as const;
 
@@ -69,15 +83,13 @@ export const beatFields = {
 };
 
 export const pointerFields = {
-  frame: optionalTarget(
-    "Zoom to fit",
-    "Zoom to a bigger area, like the whole card, instead of the element.",
-  ).meta({
-    description: "Zoom to fit",
-    widget: "target",
-    help: "Zoom to a bigger area, like the whole card, instead of the element.",
-    advanced: true,
-  }),
+  frame: more(
+    optionalTarget(
+      "Zoom to fit",
+      "Zoom to a bigger area, like the whole card, instead of the element.",
+    ),
+    { advanced: true },
+  ),
   zoomScale: z.number().min(0).max(3).default(0).meta({
     description: "Zoom amount",
     step: 0.05,
@@ -86,8 +98,9 @@ export const pointerFields = {
     advanced: true,
   }),
   travelMs: more(ms(0, "Cursor travel time", 10_000), { zeroLabel: "Auto", advanced: true }),
-  hoverMs: ms(220, "Hover before clicking", 10_000),
 };
+
+export const hoverMs = (def: number, description: string) => ms(def, description, 10_000);
 
 export const visualEnvelope = () =>
   visualEnvelopeSchema.default({}).meta({

@@ -55,7 +55,10 @@ export function roleFamilyName(role: FontRole, fonts: ProjectFonts): string {
   return fonts[role];
 }
 
-export function fontStack(name: string, fonts: Pick<ProjectFonts, "families">): string {
+export function fontStack(
+  name: string,
+  fonts: Pick<ProjectFonts, "families"> = { families: [] },
+): string {
   const def = findFamily(name, fonts);
   return `"${name.replaceAll('"', "")}", ${GENERIC[def?.category ?? "sans-serif"]}`;
 }

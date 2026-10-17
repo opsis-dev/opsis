@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { defineNode } from "./define";
-import { text } from "./params";
+import { more, text } from "./params";
 
-export const groupNode = defineNode({
+const groupNode = defineNode({
   type: "core.group",
   title: "Group",
   category: "Utility",
@@ -14,11 +14,11 @@ export const groupNode = defineNode({
   outputs: {},
   params: z.object({
     title: text("Group", "Title"),
-    color: text("#a78bfa", "Colour").meta({ description: "Colour", widget: "color" }),
+    color: more(text("#a78bfa", "Colour"), { widget: "color" }),
   }),
 });
 
-export const noteNode = defineNode({
+const noteNode = defineNode({
   type: "core.note",
   title: "Note",
   category: "Utility",

@@ -11,6 +11,7 @@ import { hasKeys } from "../timeline/envelope";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { clamp, round3 } from "../math";
+import type { RecordingProps } from "./recording";
 
 export type Crop = { x: number; y: number; w: number; h: number };
 
@@ -246,16 +247,33 @@ export function mapItems(
   }));
 }
 
+const isRecordingItem = (item: TimelineItem) => item.component === "core/recording";
+
+const recordingPropsOf = (item: TimelineItem) => item.props as Partial<RecordingProps>;
+
 export function patchRecordings(
   clip: ClipValue,
-  patch: (props: Record<string, unknown>) => Record<string, unknown>,
+  patch: (props: Partial<RecordingProps>) => Partial<RecordingProps>,
 ): ClipValue {
   return {
     ...clip,
     tracks: mapItems(clip.tracks, (item) =>
-      item.component === "core/recording" ? { ...item, props: patch(item.props) } : item,
+      isRecordingItem(item) ? { ...item, props: patch(recordingPropsOf(item)) } : item,
     ),
   };
+}
+
+export function recordingProps(clip: ClipValue): Array<Partial<RecordingProps>> {
+  const collect = (tracks: TimelineTrack[]): Array<Partial<RecordingProps>> =>
+    tracks.flatMap((track) =>
+      track.items.flatMap((item) => [
+        ...(isRecordingItem(item) ? [recordingPropsOf(item)] : []),
+        ...(item.component === "core/group"
+          ? collect((item.props as GroupProps).tracks ?? [])
+          : []),
+      ]),
+    );
+  return collect(clip.tracks);
 }
 
 export function hasRecording(clip: ClipValue): boolean {

@@ -1,11 +1,10 @@
 import { z } from "zod";
 import { clipToSpec, isClip } from "../compile/clip";
-import type { CompileValue, MediaValue, TimelineValue } from "../schema/values";
+import { outputOf, type Artifact, type CompileValue, type TimelineValue } from "../schema/values";
 import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
-import type { Artifact } from "../schema/values";
 import { row } from "./card";
-import { defineNode, port } from "./define";
-import { bool, choice, more, ms, quality, text } from "./params";
+import { defineNode, port, type CompileOutputs } from "./define";
+import { bool, choice, keysOf, more, ms, quality, text } from "./params";
 import { formatDuration, formatBytes } from "../format";
 
 const GL_LABELS = {
@@ -17,19 +16,12 @@ const GL_LABELS = {
 } as const;
 
 const gl = () =>
-  choice(
-    ["angle", "swangle", "egl", "vulkan", "swiftshader"],
-    "angle",
-    "Draw with",
-    GL_LABELS,
-  ).meta({
-    description: "Draw with",
+  more(choice(keysOf(GL_LABELS), "angle", "Draw with", GL_LABELS), {
     help: "The graphics card is about ten times faster. Use Software if exports fail.",
-    labels: GL_LABELS,
     advanced: true,
   });
 
-const FORMAT_NAMES: Record<string, string> = {
+const FORMAT_NAMES = {
   h264: "MP4",
   h265: "MP4 (HEVC)",
   vp8: "WebM (VP8)",
@@ -38,7 +30,11 @@ const FORMAT_NAMES: Record<string, string> = {
   gif: "GIF",
 };
 
-const STILL_NAMES: Record<string, string> = {
+const FORMATS = keysOf(FORMAT_NAMES);
+
+const VIDEO_CODECS = FORMATS.filter((f) => f !== "gif");
+
+const STILL_NAMES: Record<StillPreset, string> = {
   wide: "Wide 4K",
   og: "Link preview",
   square: "Square",
@@ -59,7 +55,7 @@ export const STILL_PRESETS = {
   portrait: { width: 1728, height: 2160 },
   story: { width: 1080, height: 1920 },
 } as const;
-export type StillPreset = keyof typeof STILL_PRESETS;
+type StillPreset = keyof typeof STILL_PRESETS;
 
 export function variantSize(
   variant: Variant,
@@ -73,7 +69,7 @@ export function variantSize(
     : { width: even((long * w) / h), height: even(long) };
 }
 
-export const toTimeline = (
+const toTimeline = (
   input: CompileValue | undefined,
   settings: WorkflowSettings,
 ): TimelineValue | undefined => {
@@ -82,7 +78,13 @@ export const toTimeline = (
   return undefined;
 };
 
-const VIDEO_CODECS = ["h264", "h265", "vp8", "vp9", "prores"];
+const passTimeline = (
+  inputs: Partial<Record<string, CompileValue>>,
+  settings: WorkflowSettings,
+): CompileOutputs => {
+  const timeline = toTimeline(inputs.timeline, settings);
+  return timeline ? { timeline } : {};
+};
 
 export const renderNode = defineNode({
   type: "output.render",
@@ -95,19 +97,19 @@ export const renderNode = defineNode({
   inputs: { timeline: port("timeline", "Clip") },
   outputs: { media: port("media", "File") },
   card: ({ params: p, settings, result }) => {
-    const media = result?.outputs.media as MediaValue | undefined;
+    const media = outputOf(result, "media", "media");
     const size = fileBytes(result?.artifacts);
     const short = Math.round(Math.min(settings.width, settings.height) * p.scale);
     return [
       row("ratio", p.variants.join(" + ")),
-      row("film", `${FORMAT_NAMES[p.codec] ?? p.codec} · ${short}p · ${settings.fps} fps`),
+      row("film", `${FORMAT_NAMES[p.codec]} · ${short}p · ${settings.fps} fps`),
       media?.durationMs && row("clock", formatDuration(media.durationMs)),
       size > 0 && row("hard-drive", formatBytes(size)),
     ];
   },
   params: z.object({
     fileName: text("{{Project name}}", "File name"),
-    codec: choice(["h264", "h265", "vp8", "vp9", "prores", "gif"], "h264", "Format", FORMAT_NAMES),
+    codec: choice(FORMATS, "h264", "Format", FORMAT_NAMES),
     crf: quality(18),
     variants: z
       .array(z.enum(VARIANTS))
@@ -142,10 +144,8 @@ export const renderNode = defineNode({
     gl: gl(),
   }),
   compile: ({ inputs, settings, result }) => ({
-    ...(toTimeline(inputs.timeline, settings)
-      ? { timeline: toTimeline(inputs.timeline, settings) }
-      : {}),
-    media: result?.outputs.media as MediaValue | undefined,
+    ...passTimeline(inputs, settings),
+    media: outputOf(result, "media", "media"),
   }),
 });
 
@@ -167,13 +167,13 @@ export const stillOutputNode = defineNode({
   inputs: { timeline: port("timeline", "Clip") },
   outputs: { image: port("image", "Image") },
   card: ({ params: p }) => [
-    row("image", p.presets.map((k) => STILL_NAMES[k] ?? k).join(" · ")),
+    row("image", p.presets.map((k) => STILL_NAMES[k]).join(" · ")),
     row("clock", `At ${formatDuration(p.atMs)} · ${p.format.toUpperCase()}`),
   ],
   params: z.object({
     atMs: ms(1000, "Frame at"),
     presets: z
-      .array(z.enum(Object.keys(STILL_PRESETS) as [StillPreset, ...StillPreset[]]))
+      .array(z.enum(keysOf(STILL_PRESETS)))
       .min(1)
       .default(["og"])
       .meta({ description: "Sizes", widget: "multiselect", labels: STILL_NAMES }),
@@ -182,9 +182,7 @@ export const stillOutputNode = defineNode({
   }),
   compile: ({ result, inputs, settings }) => ({
     image: result?.outputs.image,
-    ...(toTimeline(inputs.timeline, settings)
-      ? { timeline: toTimeline(inputs.timeline, settings) }
-      : {}),
+    ...passTimeline(inputs, settings),
   }),
 });
 
@@ -199,12 +197,10 @@ export const exportProjectNode = defineNode({
   inputs: { timeline: port("timeline", "Clip") },
   outputs: { file: port("file", "Folder") },
   card: ({ params: p }) => [row("folder-output", p.folderName)],
-  params: z.object({ folderName: more(text("video-code", "Folder name"), {}) }),
+  params: z.object({ folderName: text("video-code", "Folder name") }),
   compile: ({ result, inputs, settings }) => ({
     file: result?.outputs.file,
-    ...(toTimeline(inputs.timeline, settings)
-      ? { timeline: toTimeline(inputs.timeline, settings) }
-      : {}),
+    ...passTimeline(inputs, settings),
   }),
 });
 
