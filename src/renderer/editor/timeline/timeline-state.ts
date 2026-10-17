@@ -1,6 +1,8 @@
 import { create } from "zustand";
+import { usePlayback } from "../../store/playback";
 import { readPref, writePref } from "../../store/view-prefs";
 import type { AudioEnvelopeKey, VisualEnvelopeKey } from "@/shared/schema/timeline";
+import { formatTime } from "@/shared/timeline/time";
 import { clamp } from "@/shared/math";
 
 export type TimelineTool = "select" | "ripple" | "roll" | "slip" | "blade" | "rate";
@@ -63,3 +65,14 @@ export const useTimeline = create<TimelineState>()((set) => ({
   setAudioEnvelope: (audioEnvelope) => set({ audioEnvelope }),
   selectMarker: (selectedMarker) => set({ selectedMarker }),
 }));
+
+export function useFormatTime(fps: number): (frame: number) => string {
+  const rulerMode = useTimeline((s) => s.rulerMode);
+  return (frame) => formatTime(frame, fps, rulerMode);
+}
+
+export function useLoopRange(): { inPoint: number | null; outPoint: number | null } {
+  const inPoint = usePlayback((s) => s.inPoint);
+  const outPoint = usePlayback((s) => s.outPoint);
+  return { inPoint, outPoint };
+}

@@ -4,7 +4,7 @@ import { updateChannels } from "@/shared/mix/edits";
 import { busOf, isAudible, stripOf } from "@/shared/mix/levels";
 import type { ChannelPlan } from "@/shared/mix/plan";
 import type { MixResult } from "@/shared/mix/result";
-import type { Bus, Mix, Strip } from "@/shared/mix/types";
+import { PAN_RANGE, TRIM_RANGE, type Bus, type Mix, type Strip } from "@/shared/mix/types";
 import { nodeNameById } from "@/shared/nodes/registry";
 import {
   Select,
@@ -15,22 +15,31 @@ import {
   SelectValue,
 } from "@/renderer/components/ui/select";
 import { cn } from "@/renderer/lib/utils";
-import { useUiStore } from "../../store/ui";
+import { toggleIds, useUiStore } from "../../store/ui";
 import { useWorkflowStore } from "../../store/workflow";
 import { db, panLabel } from "./audio-format";
-import { bindGain, bindPan, setMix, share, type PreviewTarget } from "./bindings";
+import { bindGain, bindPan, previewTarget, type PreviewTarget } from "./bindings";
 import { Knob } from "./knob";
-import { levelAt, reductionAt } from "./meter";
+import { rangeKnob } from "./knob-math";
 import { useMixerState } from "./mixer-state";
 import { StripMenu } from "./strip-menus";
-import { HighpassKnob, StripLevel, StripShell, StripTone, type StripBinding } from "./strip-parts";
+import {
+  HighpassKnob,
+  StripLevel,
+  StripShell,
+  StripTone,
+  stripBinding,
+  type StripBinding,
+} from "./strip-parts";
 
 const KIND_ICON = { music: Music, effect: AudioLines, clip: Clapperboard } as const;
 
-function channelName(nodeId: string): string {
-  const wf = useWorkflowStore.getState().workflow;
-  return wf ? nodeNameById(wf, nodeId, "Sound") : "Sound";
-}
+const CHANNEL_FALLBACK = "Sound";
+
+const useChannelName = (nodeId: string): string =>
+  useWorkflowStore((s) =>
+    s.workflow ? nodeNameById(s.workflow, nodeId, CHANNEL_FALLBACK) : CHANNEL_FALLBACK,
+  );
 
 function pickStrip(
   id: string,
@@ -45,9 +54,7 @@ function pickStrip(
     const [a, b] = [order.indexOf(anchor), order.indexOf(id)].toSorted((x, y) => x - y);
     next = [...new Set([...ui.selectedIds, ...order.slice(a, b + 1)])];
   } else if (e.ctrlKey || e.metaKey) {
-    next = ui.selectedIds.includes(id)
-      ? ui.selectedIds.filter((x) => x !== id)
-      : [...ui.selectedIds, id];
+    next = toggleIds(ui.selectedIds, [id]);
   }
   if (!e.shiftKey) setAnchor(id);
   ui.selectPinned(next, sourceNodeId);
@@ -106,10 +113,8 @@ function ChannelKnobs({
         label="Trim"
         size={24}
         value={strip.trim}
-        min={-24}
-        max={24}
+        {...rangeKnob(TRIM_RANGE)}
         step={0.5}
-        reset={0}
         format={db}
         onChange={bindGain(target, "trim", strip.trim, (trim) => update((s) => ({ ...s, trim })))}
       />
@@ -118,10 +123,8 @@ function ChannelKnobs({
         label="Pan"
         size={24}
         value={strip.pan}
-        min={-1}
-        max={1}
+        {...rangeKnob(PAN_RANGE)}
         step={0.01}
-        reset={0}
         format={panLabel}
         onChange={bindPan(target, strip.pan, (pan) => update((s) => ({ ...s, pan })))}
       />
@@ -134,7 +137,6 @@ export function ChannelStrip({
   order,
   mix,
   result,
-  frame,
   holdFrames,
   sourceNodeId,
 }: {
@@ -142,13 +144,13 @@ export function ChannelStrip({
   order: string[];
   mix: Mix;
   result: MixResult | null;
-  frame: number;
   holdFrames: number;
   sourceNodeId: string | null;
 }) {
+  const setMix = useWorkflowStore((s) => s.setMix);
   const strip = stripOf(mix, channel.id);
   const levels = result?.levels.channels[channel.id];
-  const reduction = reductionAt(result?.reduction.channels[channel.id], frame);
+  const reduction = result?.reduction.channels[channel.id];
   const Icon = KIND_ICON[channel.kind];
   const selected = useUiStore((s) => s.selectedIds.includes(channel.id));
   const group = useUiStore(
@@ -158,13 +160,9 @@ export function ChannelStrip({
   );
   const targets = group.length > 1 ? group : [channel.id];
   const update = (fn: (s: Strip) => Strip) => setMix((m) => updateChannels(m, [channel.id], fn));
-  const target = { key: `ch:${channel.id}`, fraction: share(result, levels, frame) };
-  const binding: StripBinding = {
-    controls: strip,
-    target,
-    update: (fn) => update((s) => ({ ...s, ...fn(s) })),
-  };
-  const name = channelName(channel.id);
+  const target = previewTarget(`ch:${channel.id}`, result, levels);
+  const binding = stripBinding(strip, target, update);
+  const name = useChannelName(channel.id);
   return (
     <StripShell
       dim={!isAudible(mix, channel.id, channel.kind)}
@@ -199,8 +197,9 @@ export function ChannelStrip({
       <StripLevel
         {...binding}
         label="Fader"
-        level={levelAt(levels, frame, holdFrames)}
+        levels={levels}
         reduction={reduction}
+        holdFrames={holdFrames}
       />
     </StripShell>
   );

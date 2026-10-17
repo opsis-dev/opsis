@@ -1,13 +1,27 @@
 import { z } from "zod";
 
+type Bounds = { min: number; max: number };
+
+export type NumberRange = Bounds & { default: number };
+
+const bounded = ({ min, max }: Bounds) => z.number().min(min).max(max);
+
+const ranged = (range: NumberRange) => bounded(range).default(range.default);
+
 export const EQ_TYPES = ["lowshelf", "peak", "highshelf"] as const;
 export type EqType = (typeof EQ_TYPES)[number];
 
+export const EQ_BAND_BOUNDS = {
+  freq: { min: 20, max: 20_000 },
+  gain: { min: -18, max: 18 },
+  q: { min: 0.1, max: 10 },
+} as const satisfies Record<string, Bounds>;
+
 const eqBandSchema = z.object({
   type: z.enum(EQ_TYPES),
-  freq: z.number().min(20).max(20_000),
-  gain: z.number().min(-18).max(18),
-  q: z.number().min(0.1).max(10),
+  freq: bounded(EQ_BAND_BOUNDS.freq),
+  gain: bounded(EQ_BAND_BOUNDS.gain),
+  q: bounded(EQ_BAND_BOUNDS.q),
 });
 export type EqBand = z.infer<typeof eqBandSchema>;
 
@@ -27,7 +41,7 @@ const bands = (low: BandShape, lowMid: BandShape, highMid: BandShape, high: Band
   band("highshelf", high),
 ];
 
-const DEFAULT_EQ_BANDS = bands([120, 0, 0.7], [500, 0, 1], [2500, 0, 1], [8000, 0, 0.7]);
+export const DEFAULT_EQ_BANDS = bands([120, 0, 0.7], [500, 0, 1], [2500, 0, 1], [8000, 0, 0.7]);
 
 const eqSchema = z.object({
   on: z.boolean().default(false),
@@ -35,19 +49,29 @@ const eqSchema = z.object({
 });
 export type Eq = z.infer<typeof eqSchema>;
 
+export const COMP_RANGES = {
+  threshold: { min: -60, max: 0, default: -18 },
+  ratio: { min: 1, max: 20, default: 3 },
+  attack: { min: 0.1, max: 500, default: 10 },
+  release: { min: 5, max: 3000, default: 150 },
+  makeup: { min: 0, max: 24, default: 0 },
+} as const satisfies Record<string, NumberRange>;
+
 const compSchema = z.object({
   on: z.boolean().default(false),
-  threshold: z.number().min(-60).max(0).default(-18),
-  ratio: z.number().min(1).max(20).default(3),
-  attack: z.number().min(0.1).max(500).default(10),
-  release: z.number().min(5).max(3000).default(150),
-  makeup: z.number().min(0).max(24).default(0),
+  threshold: ranged(COMP_RANGES.threshold),
+  ratio: ranged(COMP_RANGES.ratio),
+  attack: ranged(COMP_RANGES.attack),
+  release: ranged(COMP_RANGES.release),
+  makeup: ranged(COMP_RANGES.makeup),
 });
 export type Comp = z.infer<typeof compSchema>;
 
+export const HIGHPASS_RANGE: NumberRange = { min: 20, max: 1000, default: 80 };
+
 const highpassSchema = z.object({
   on: z.boolean().default(false),
-  freq: z.number().min(20).max(1000).default(80),
+  freq: ranged(HIGHPASS_RANGE),
 });
 
 export const MIN_DB = -60;
@@ -61,10 +85,13 @@ export const busSettingsSchema = z.object({
 });
 export type BusSettings = z.infer<typeof busSettingsSchema>;
 
+export const TRIM_RANGE: NumberRange = { min: -24, max: 24, default: 0 };
+export const PAN_RANGE: NumberRange = { min: -1, max: 1, default: 0 };
+
 export const stripSettingsSchema = z.object({
-  trim: z.number().min(-24).max(24).default(0),
+  trim: ranged(TRIM_RANGE),
   ...busSettingsSchema.shape,
-  pan: z.number().min(-1).max(1).default(0),
+  pan: ranged(PAN_RANGE),
 });
 export type StripSettings = z.infer<typeof stripSettingsSchema>;
 
@@ -75,13 +102,20 @@ export const stripSchema = stripSettingsSchema.extend({
 });
 export type Strip = z.infer<typeof stripSchema>;
 
+export const DUCK_RANGES = {
+  amount: { min: 1, max: 24, default: 10 },
+  attack: { min: 5, max: 2000, default: 80 },
+  release: { min: 20, max: 5000, default: 400 },
+  ignoreShorterMs: { min: 0, max: 5000, default: 0 },
+} as const satisfies Record<string, NumberRange>;
+
 const duckSettingsSchema = z.object({
   on: z.boolean().default(false),
   keys: z.array(z.string()).default([]),
-  amount: z.number().min(1).max(24).default(10),
-  attack: z.number().min(5).max(2000).default(80),
-  release: z.number().min(20).max(5000).default(400),
-  ignoreShorterMs: z.number().min(0).max(5000).default(0),
+  amount: ranged(DUCK_RANGES.amount),
+  attack: ranged(DUCK_RANGES.attack),
+  release: ranged(DUCK_RANGES.release),
+  ignoreShorterMs: ranged(DUCK_RANGES.ignoreShorterMs),
 });
 export type DuckSettings = z.infer<typeof duckSettingsSchema>;
 
@@ -105,6 +139,8 @@ export const LOUDNESS_TARGETS = {
   broadcast: { lufs: -23, truePeak: -2 },
 } as const satisfies Record<LoudnessTarget, { lufs: number; truePeak: number } | null>;
 
+export const LIMITER_CEILING_RANGE: NumberRange = { min: -12, max: 0, default: -1 };
+
 const GENTLE_MASTER_COMP = { threshold: -12, ratio: 2, attack: 20, release: 250 };
 
 const masterSchema = z.object({
@@ -114,7 +150,7 @@ const masterSchema = z.object({
   limiter: z
     .object({
       on: z.boolean().default(false),
-      ceiling: z.number().min(-12).max(0).default(-1),
+      ceiling: ranged(LIMITER_CEILING_RANGE),
     })
     .prefault({}),
   loudness: z.enum(LOUDNESS_CHOICES).default("off"),

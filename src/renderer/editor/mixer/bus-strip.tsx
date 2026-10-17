@@ -4,30 +4,22 @@ import { removeBus, updateBus, updateChannels } from "@/shared/mix/edits";
 import type { MixResult } from "@/shared/mix/result";
 import { BUILT_IN_BUSES, type Bus, type Mix } from "@/shared/mix/types";
 import { Button } from "@/renderer/components/ui/button";
-import { Input } from "@/renderer/components/ui/input";
-import { bindChange, setMix, share } from "./bindings";
+import { useWorkflowStore } from "../../store/workflow";
+import { InlineEdit } from "../inline-edit";
+import { bindChange, previewTarget } from "./bindings";
 import { DuckPopover } from "./dynamics-popovers";
-import { levelAt } from "./meter";
 import { BusMenu } from "./strip-menus";
-import { HighpassKnob, StripLevel, StripShell, StripTone, type StripBinding } from "./strip-parts";
+import { HighpassKnob, StripLevel, StripShell, StripTone, stripBinding } from "./strip-parts";
 
 function BusName({ bus, onRename }: { bus: Bus; onRename: (name: string) => void }) {
   const [editing, setEditing] = useState(false);
   if (editing)
     return (
-      <Input
-        autoFocus
-        defaultValue={bus.name}
+      <InlineEdit
+        value={bus.name}
         className="h-6 px-1 text-xs"
-        onKeyDown={(e) => {
-          e.stopPropagation();
-          if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur();
-        }}
-        onBlur={(e) => {
-          setEditing(false);
-          const name = e.currentTarget.value.trim();
-          if (name && name !== bus.name) onRename(name);
-        }}
+        onDone={() => setEditing(false)}
+        onCommit={onRename}
       />
     );
   return (
@@ -72,7 +64,6 @@ export function BusStrip({
   folded,
   onFold,
   result,
-  frame,
   holdFrames,
 }: {
   bus: Bus;
@@ -81,16 +72,12 @@ export function BusStrip({
   folded: boolean;
   onFold: () => void;
   result: MixResult | null;
-  frame: number;
   holdFrames: number;
 }) {
+  const setMix = useWorkflowStore((s) => s.setMix);
   const levels = result?.levels.buses[bus.id];
   const update = (fn: (b: Bus) => Bus) => setMix((m) => updateBus(m, bus.id, fn));
-  const binding: StripBinding = {
-    controls: bus,
-    target: { key: `bus:${bus.id}`, fraction: share(result, levels, frame) },
-    update: (fn) => update((b) => ({ ...b, ...fn(b) })),
-  };
+  const binding = stripBinding(bus, previewTarget(`bus:${bus.id}`, result, levels), update);
   return (
     <StripShell className="bg-muted/30">
       <div className="flex w-full items-center gap-0.5">
@@ -126,8 +113,9 @@ export function BusStrip({
       <StripLevel
         {...binding}
         label={`${bus.name} fader`}
-        level={levelAt(levels, frame, holdFrames)}
+        levels={levels}
         reduction={null}
+        holdFrames={holdFrames}
       />
     </StripShell>
   );

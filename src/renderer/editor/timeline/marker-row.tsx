@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { Marker } from "@/shared/schema/workflow";
 import type { FlatTimeline } from "@/shared/timeline/flatten";
-import { Input } from "@/renderer/components/ui/input";
+import { msToExactFrames } from "@/shared/timeline/time";
 import { cn } from "@/renderer/lib/utils";
-import { renameMarker } from "./timeline-actions";
+import { InlineEdit } from "../inline-edit";
+import { patchMarker } from "./timeline-actions";
 import { MARKERS_H, RULER_H, inView, type Viewport } from "./timeline-layout";
 import { TimelineRow } from "./timeline-row";
 import { useTimeline } from "./timeline-state";
@@ -36,26 +37,46 @@ function MarkerTag({
       }}
     >
       {renaming ? (
-        <Input
-          autoFocus
-          defaultValue={marker.label}
+        <InlineEdit
+          value={marker.label}
           className="h-4 w-28 px-1 text-[10px]"
           onPointerDown={(e) => e.stopPropagation()}
-          onKeyDown={(e) => {
-            e.stopPropagation();
-            if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur();
-          }}
-          onBlur={(e) => {
-            const label = e.currentTarget.value.trim() || marker.label;
-            setRenaming(false);
-            if (label !== marker.label) renameMarker(marker.id, label);
-          }}
+          onDone={() => setRenaming(false)}
+          onCommit={(label) => patchMarker(marker.id, { label })}
         />
       ) : (
         marker.label
       )}
     </div>
   );
+}
+
+function BeatTicks({ beats, viewport }: { beats: number[]; viewport: Viewport }) {
+  return beats
+    .filter((f) => inView(viewport, f, f))
+    .map((f, i) => (
+      <div
+        key={`b${i}`}
+        className="bg-track-music absolute bottom-0 h-1.5 w-px opacity-80"
+        style={{ left: f * viewport.pxPerFrame }}
+      />
+    ));
+}
+
+function ChapterLabels({ marks, viewport }: { marks: FlatTimeline["marks"]; viewport: Viewport }) {
+  return marks
+    .filter((m) => m.kind === "chapter" && inView(viewport, m.frame, m.frame))
+    .map((m) => (
+      <div
+        key={m.key}
+        title={m.label}
+        className="text-muted-foreground absolute top-0.5 flex h-4 items-center gap-1 text-[10px] whitespace-nowrap"
+        style={{ left: m.frame * viewport.pxPerFrame }}
+      >
+        <span className="bg-muted-foreground/70 h-3 w-0.5" />
+        {m.label}
+      </div>
+    ));
 }
 
 export function MarkerRow({
@@ -76,30 +97,15 @@ export function MarkerRow({
   const ppf = viewport.pxPerFrame;
   return (
     <TimelineRow top={RULER_H} height={MARKERS_H} label="Markers" width={contentW}>
-      {beats
-        .filter((f) => inView(viewport, f, f))
-        .map((f, i) => (
-          <div
-            key={`b${i}`}
-            className="bg-track-music absolute bottom-0 h-1.5 w-px opacity-80"
-            style={{ left: f * ppf }}
-          />
-        ))}
-      {flat.marks
-        .filter((m) => m.kind === "chapter" && inView(viewport, m.frame, m.frame))
-        .map((m) => (
-          <div
-            key={m.key}
-            title={m.label}
-            className="text-muted-foreground absolute top-0.5 flex h-4 items-center gap-1 text-[10px] whitespace-nowrap"
-            style={{ left: m.frame * ppf }}
-          >
-            <span className="bg-muted-foreground/70 h-3 w-0.5" />
-            {m.label}
-          </div>
-        ))}
+      <BeatTicks beats={beats} viewport={viewport} />
+      <ChapterLabels marks={flat.marks} viewport={viewport} />
       {markers.map((m) => (
-        <MarkerTag key={m.id} marker={m} x={(m.atMs / 1000) * flat.fps * ppf} onDrag={onDrag} />
+        <MarkerTag
+          key={m.id}
+          marker={m}
+          x={msToExactFrames(m.atMs, flat.fps) * ppf}
+          onDrag={onDrag}
+        />
       ))}
     </TimelineRow>
   );

@@ -14,10 +14,10 @@ import {
 } from "@/renderer/components/ui/empty";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { useMedia } from "../../store/media";
-import { usePlayback } from "../../store/playback";
+import { toggleIds } from "../../store/ui";
 import { readPref, writePref } from "../../store/view-prefs";
+import { useWorkflowStore } from "../../store/workflow";
 import { useFilm, type Film } from "../film";
-import { setMix } from "./bindings";
 import { BusStrip } from "./bus-strip";
 import { ChannelStrip } from "./channel-strip";
 import { MasterStrip } from "./master-strip";
@@ -28,12 +28,11 @@ function useCollapsedBuses() {
   const [collapsed, setCollapsed] = useState<string[]>(() =>
     readPref<string[]>("mixerCollapsed", [], Array.isArray),
   );
-  const toggle = (id: string) =>
-    setCollapsed((list) => {
-      const next = list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
-      writePref("mixerCollapsed", next);
-      return next;
-    });
+  const toggle = (id: string) => {
+    const next = toggleIds(collapsed, [id]);
+    setCollapsed(next);
+    writePref("mixerCollapsed", next);
+  };
   return { collapsed, toggle };
 }
 
@@ -58,6 +57,7 @@ function MixStatus({ film }: { film: Film }) {
 }
 
 function MixerToolbar({ film }: { film: Film }) {
+  const setMix = useWorkflowStore((s) => s.setMix);
   return (
     <div className="flex h-8 shrink-0 items-center gap-2 border-b px-2 text-xs">
       <MixStatus film={film} />
@@ -74,7 +74,6 @@ function MixerToolbar({ film }: { film: Film }) {
 export function MixerPanel() {
   const film = useFilm();
   const { mix, result } = film;
-  const frame = usePlayback((s) => s.frame);
   const holdFrames = Math.round((film.flat?.fps ?? 30) * HOLD_SECONDS);
   const { collapsed, toggle } = useCollapsedBuses();
 
@@ -115,7 +114,6 @@ export function MixerPanel() {
                         order={order}
                         mix={mix}
                         result={result}
-                        frame={frame}
                         holdFrames={holdFrames}
                         sourceNodeId={film.sourceNodeId}
                       />
@@ -127,7 +125,6 @@ export function MixerPanel() {
                   folded={folded}
                   onFold={() => toggle(b.id)}
                   result={result}
-                  frame={frame}
                   holdFrames={holdFrames}
                 />
               </div>
@@ -135,7 +132,7 @@ export function MixerPanel() {
           })}
         </div>
         <div className="flex-1" />
-        <MasterStrip master={mix.master} result={result} frame={frame} holdFrames={holdFrames} />
+        <MasterStrip master={mix.master} result={result} holdFrames={holdFrames} />
       </div>
     </div>
   );

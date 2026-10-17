@@ -17,6 +17,7 @@ import {
 } from "@/shared/timeline/edits";
 import type { AudioBar, FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
 import { snapFrame, snapSpan, type SnapTarget } from "@/shared/timeline/snap";
+import { msToExactFrames } from "@/shared/timeline/time";
 import type { EnvelopeKey } from "./envelope";
 import {
   AUDIO_H,
@@ -47,7 +48,11 @@ export type VideoEditKind =
   | "roll-start"
   | "roll-end";
 
-export type AudioEditKind = "audio-move" | "audio-trim-start" | "audio-trim-end";
+const AUDIO_EDIT_KINDS = ["audio-move", "audio-trim-start", "audio-trim-end"] as const;
+
+export type AudioEditKind = (typeof AUDIO_EDIT_KINDS)[number];
+
+const AUDIO_KINDS: ReadonlySet<string> = new Set(AUDIO_EDIT_KINDS);
 
 type VideoEditDrag = EditDragBase & { kind: VideoEditKind; bar: VideoBar };
 type AudioEditDrag = EditDragBase & { kind: AudioEditKind; bar: AudioBar };
@@ -55,7 +60,6 @@ type AudioEditDrag = EditDragBase & { kind: AudioEditKind; bar: AudioBar };
 export type EditDrag = VideoEditDrag | AudioEditDrag;
 
 export type VolumeDrag = {
-  kind: "volume";
   bar: AudioBar;
   y0: number;
   v0: number;
@@ -65,7 +69,6 @@ export type VolumeDrag = {
 };
 
 export type KeyDrag = {
-  kind: "key";
   nodeId: string;
   prop: EnvelopeKey;
   index: number;
@@ -77,18 +80,15 @@ export type KeyDrag = {
   started: boolean;
 };
 
-export type MarkerDrag = { kind: "marker"; id: string; x0: number; at0: number; started: boolean };
+export type MarkerDrag = { id: string; x0: number; at0: number; started: boolean };
 
 export type MarqueeDrag = {
-  kind: "marquee";
   x0: number;
   y0: number;
   x1: number;
   y1: number;
   additive: boolean;
 };
-
-export type Drag = EditDrag | VolumeDrag | KeyDrag | MarkerDrag | MarqueeDrag | { kind: "scrub" };
 
 let gestureCounter = 0;
 export const gestureSalt = () => (++gestureCounter).toString(36);
@@ -110,21 +110,23 @@ export function editContext(
 
 type SnapInput = { raw: number; threshold: number };
 
-export type EditOutcome = { result: EditResult; snappedAt: number | null };
+type EditOutcome = { result: EditResult; snappedAt: number | null };
 
-function snapMove(d: EditDrag, { raw, threshold }: SnapInput) {
-  const s = threshold
-    ? snapSpan(d.bar.from, d.bar.to, raw, d.targets, threshold)
-    : { delta: raw, target: null };
+type Snapper = (raw: number, threshold: number) => { delta: number; target: SnapTarget | null };
+
+function snapDelta({ raw, threshold }: SnapInput, snapper: Snapper) {
+  const s = threshold ? snapper(raw, threshold) : { delta: raw, target: null };
   return { delta: Math.round(s.delta), snappedAt: s.target?.frame ?? null };
 }
 
-function snapEdge(d: EditDrag, edge: number, { raw, threshold }: SnapInput) {
-  const s = threshold
-    ? snapFrame(edge + raw, d.targets, threshold)
-    : { frame: edge + raw, target: null };
-  return { delta: Math.round(s.frame - edge), snappedAt: s.target?.frame ?? null };
-}
+const snapMove = (d: EditDrag, snap: SnapInput) =>
+  snapDelta(snap, (raw, threshold) => snapSpan(d.bar.from, d.bar.to, raw, d.targets, threshold));
+
+const snapEdge = (d: EditDrag, edge: number, snap: SnapInput) =>
+  snapDelta(snap, (raw, threshold) => {
+    const s = snapFrame(edge + raw, d.targets, threshold);
+    return { delta: s.frame - edge, target: s.target };
+  });
 
 function rippleAfter(
   ctx: EditContext,
@@ -154,7 +156,7 @@ function rippleMove(ctx: EditContext, d: EditDrag, result: EditResult, delta: nu
   );
 }
 
-export function neighbour(
+function neighbour(
   flat: FlatTimeline,
   bar: VideoBar,
   side: "left" | "right",
@@ -186,32 +188,38 @@ function videoOutcome(
   snap: SnapInput,
   shift: boolean,
 ): EditOutcome {
-  if (d.kind === "move")
-    return moved(ctx, d, snap, d.ripple || shift, (delta) => moveBar(ctx, d.bar, delta));
-  if (d.kind === "slip")
-    return { result: slipBar(ctx, d.bar, Math.round(-snap.raw)), snappedAt: null };
-  const atStart = d.kind === "trim-start" || d.kind === "roll-start";
-  const { delta, snappedAt } = snapEdge(d, atStart ? d.bar.from : d.bar.to, snap);
-  const done = (result: EditResult) => ({ result, snappedAt });
+  const edge = (at: number, edit: (delta: number) => EditResult): EditOutcome => {
+    const { delta, snappedAt } = snapEdge(d, at, snap);
+    return { result: edit(delta), snappedAt };
+  };
   switch (d.kind) {
+    case "move":
+      return moved(ctx, d, snap, d.ripple || shift, (delta) => moveBar(ctx, d.bar, delta));
+    case "slip":
+      return { result: slipBar(ctx, d.bar, Math.round(-snap.raw)), snappedAt: null };
     case "trim-start":
-      return done(trimBar(ctx, d.bar, "start", delta));
-    case "trim-end": {
-      const trimmed = trimBar(ctx, d.bar, "end", delta);
-      if (!d.ripple) return done(trimmed);
-      const scope = { container: containerOf(d.bar), refs: new Set<string>() };
-      return done(rippleAfter(ctx, d, trimmed, d.bar.to - 0.5, scope, delta));
-    }
-    case "roll-start": {
-      const left = neighbour(d.flat, d.bar, "left");
-      return done(left ? rollCut(ctx, left, d.bar, delta) : trimBar(ctx, d.bar, "start", delta));
-    }
-    case "roll-end": {
-      const right = neighbour(d.flat, d.bar, "right");
-      return done(right ? rollCut(ctx, d.bar, right, delta) : trimBar(ctx, d.bar, "end", delta));
-    }
-    default:
-      return done(speedBar(ctx, d.bar, Math.max(1, Math.round(d.bar.to - d.bar.from + delta))));
+      return edge(d.bar.from, (delta) => trimBar(ctx, d.bar, "start", delta));
+    case "trim-end":
+      return edge(d.bar.to, (delta) => {
+        const trimmed = trimBar(ctx, d.bar, "end", delta);
+        if (!d.ripple) return trimmed;
+        const scope = { container: containerOf(d.bar), refs: new Set<string>() };
+        return rippleAfter(ctx, d, trimmed, d.bar.to - 0.5, scope, delta);
+      });
+    case "roll-start":
+      return edge(d.bar.from, (delta) => {
+        const left = neighbour(d.flat, d.bar, "left");
+        return left ? rollCut(ctx, left, d.bar, delta) : trimBar(ctx, d.bar, "start", delta);
+      });
+    case "roll-end":
+      return edge(d.bar.to, (delta) => {
+        const right = neighbour(d.flat, d.bar, "right");
+        return right ? rollCut(ctx, d.bar, right, delta) : trimBar(ctx, d.bar, "end", delta);
+      });
+    case "speed":
+      return edge(d.bar.to, (delta) =>
+        speedBar(ctx, d.bar, Math.max(1, Math.round(d.bar.to - d.bar.from + delta))),
+      );
   }
 }
 
@@ -228,7 +236,7 @@ function audioOutcome(
   return { result: trimAudio(ctx, d.bar, side, delta), snappedAt };
 }
 
-const isAudioDrag = (d: EditDrag): d is AudioEditDrag => d.kind.startsWith("audio-");
+const isAudioDrag = (d: EditDrag): d is AudioEditDrag => AUDIO_KINDS.has(d.kind);
 
 export function editOutcome(
   ctx: EditContext,
@@ -254,7 +262,7 @@ export function snapTargetsFor(src: SnapSources, exclude: string | null): SnapTa
   const t: SnapTarget[] = [{ frame: src.playhead, kind: "playhead" }];
   for (const b of [...flat.bars, ...flat.audio])
     if (b.key !== exclude) t.push({ frame: b.from, kind: "edge" }, { frame: b.to, kind: "edge" });
-  for (const m of src.markers) t.push({ frame: (m.atMs / 1000) * fps, kind: "marker" });
+  for (const m of src.markers) t.push({ frame: msToExactFrames(m.atMs, fps), kind: "marker" });
   for (const m of flat.marks) t.push({ frame: m.frame, kind: "action" });
   for (const b of src.beats) t.push({ frame: b, kind: "beat" });
   if (src.inPoint !== null) t.push({ frame: src.inPoint, kind: "range" });

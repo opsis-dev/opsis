@@ -2,12 +2,12 @@ import { useRef, useState } from "react";
 import { parseNumberText } from "@/shared/format";
 import { clamp01 } from "@/shared/math";
 import { cn } from "@/renderer/lib/utils";
+import { commitOnce, onArrowKey, type Change, type DragPhase } from "./gesture";
 import {
   START_DEG,
   SWEEP_DEG,
   angleOf,
   arcPath,
-  arrowDirection,
   fromT,
   polar,
   snapValue,
@@ -15,12 +15,10 @@ import {
   type KnobRange,
 } from "./knob-math";
 
-export type DragPhase = "start" | "move" | "end";
-
 export type KnobSpec<F extends string> = KnobRange & {
   field: F;
   label: string;
-  reset?: number;
+  reset: number;
   format: (v: number) => string;
 };
 
@@ -31,12 +29,6 @@ const NUDGE = 0.02;
 const BIG_NUDGE = 0.1;
 const RING_INSET = 3;
 const POINTER_INSET = 4;
-
-export function commitOnce<T>(onChange: (value: T, phase: DragPhase) => void, value: T): void {
-  onChange(value, "start");
-  onChange(value, "move");
-  onChange(value, "end");
-}
 
 function KnobValue({
   label,
@@ -140,7 +132,7 @@ export function Knob({
   value: number;
   reset: number;
   format: (v: number) => string;
-  onChange: (value: number, phase: DragPhase) => void;
+  onChange: Change<number>;
   disabled?: boolean;
   size?: number;
 }) {
@@ -183,13 +175,7 @@ export function Knob({
         onWheel={(e) => {
           if (!disabled) nudge(e.deltaY < 0 ? NUDGE : -NUDGE);
         }}
-        onKeyDown={(e) => {
-          const dir = arrowDirection(e.key);
-          if (!dir) return;
-          e.preventDefault();
-          e.stopPropagation();
-          nudge(dir * (e.shiftKey ? BIG_NUDGE : NUDGE));
-        }}
+        onKeyDown={(e) => onArrowKey(e, (dir, big) => nudge(dir * (big ? BIG_NUDGE : NUDGE)))}
       >
         <KnobDial size={size} t={t} centreT={centreT} />
       </button>
@@ -203,4 +189,26 @@ export function Knob({
       />
     </div>
   );
+}
+
+export function Knobs<F extends string>({
+  specs,
+  values,
+  disabled,
+  onChange,
+}: {
+  specs: Array<KnobSpec<F>>;
+  values: Record<F, number>;
+  disabled: boolean;
+  onChange: (field: F, value: number, phase: DragPhase) => void;
+}) {
+  return specs.map(({ field, ...spec }) => (
+    <Knob
+      key={field}
+      {...spec}
+      value={values[field]}
+      disabled={disabled}
+      onChange={(v, phase) => onChange(field, v, phase)}
+    />
+  ));
 }

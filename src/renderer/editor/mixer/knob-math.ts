@@ -1,9 +1,16 @@
 import { clamp, clamp01 } from "@/shared/math";
+import type { NumberRange } from "@/shared/mix/types";
 
 export const SWEEP_DEG = 270;
 export const START_DEG = -SWEEP_DEG / 2;
 
 export type KnobRange = { min: number; max: number; step: number; log?: boolean };
+
+export const rangeKnob = (range: NumberRange) => ({
+  min: range.min,
+  max: range.max,
+  reset: range.default,
+});
 
 export function roundToStep(v: number, step: number): number {
   const decimals = Math.max(0, -Math.floor(Math.log10(step)));
@@ -33,10 +40,4 @@ export function arcPath(centre: number, radius: number, from: number, to: number
   const a = polar(centre, radius, from);
   const b = polar(centre, radius, to);
   return `M ${a.x} ${a.y} A ${radius} ${radius} 0 ${to - from > 180 ? 1 : 0} 1 ${b.x} ${b.y}`;
-}
-
-export function arrowDirection(key: string): -1 | 0 | 1 {
-  if (key === "ArrowUp" || key === "ArrowRight") return 1;
-  if (key === "ArrowDown" || key === "ArrowLeft") return -1;
-  return 0;
 }

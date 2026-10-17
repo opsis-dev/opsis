@@ -145,3 +145,16 @@ export const useMedia = create<MediaState>()((set, get) => {
     },
   };
 });
+
+export const loaded = <T extends object>(entry: Entry<T> | undefined): T | null =>
+  typeof entry === "object" ? entry : null;
+
+export const loadedWaveform =
+  (src: string) =>
+  (s: MediaState): Waveform | null =>
+    loaded(s.waveforms[src]);
+
+export const loadedFilmstrip =
+  (src: string | null) =>
+  (s: MediaState): Filmstrip | null =>
+    src ? loaded(s.filmstrips[src]) : null;

@@ -2,6 +2,7 @@ import { Ellipsis } from "lucide-react";
 import type { Loudness, MixResult } from "@/shared/mix/result";
 import {
   DEFAULT_MASTER,
+  LIMITER_CEILING_RANGE,
   LOUDNESS_CHOICES,
   LOUDNESS_TARGETS,
   type LoudnessTarget,
@@ -18,28 +19,36 @@ import {
   SelectValue,
 } from "@/renderer/components/ui/select";
 import { Switch } from "@/renderer/components/ui/switch";
+import { usePlayback } from "../../store/playback";
+import { useWorkflowStore } from "../../store/workflow";
 import { db } from "./audio-format";
-import { bindChange, bindEq, bindGain, setMix } from "./bindings";
+import { bindChange, bindEq, bindGain, MASTER_TARGET } from "./bindings";
 import { CompPopover } from "./dynamics-popovers";
 import { EqPopover } from "./eq-popover";
-import { Fader } from "./fader";
 import { Knob } from "./knob";
-import { levelAt, Meter, reductionAt, sampleAt } from "./meter";
+import { rangeKnob } from "./knob-math";
+import { sampleAt } from "./meter";
+import { FaderMeter } from "./strip-parts";
 
-const LOUDNESS_LABELS: Record<LoudnessTarget, string> = {
+const LOUDNESS_NAMES: Record<LoudnessTarget, string> = {
   off: "Off",
-  web: "Online video (−14)",
-  podcast: "Podcast (−16)",
-  broadcast: "Broadcast (−23)",
+  web: "Online video",
+  podcast: "Podcast",
+  broadcast: "Broadcast",
 };
+
+function loudnessLabel(target: LoudnessTarget): string {
+  const aim = LOUDNESS_TARGETS[target];
+  const name = LOUDNESS_NAMES[target];
+  return aim ? `${name} (${aim.lufs < 0 ? "−" : ""}${Math.abs(aim.lufs)})` : name;
+}
 
 const QUIET_LUFS = -70;
 
-const MASTER = { key: "master", fraction: 1 };
-
 type Update = (fn: (m: Master) => Master) => void;
 
-const updateMaster: Update = (fn) => setMix((mix) => ({ ...mix, master: fn(mix.master) }));
+const updateMaster: Update = (fn) =>
+  useWorkflowStore.getState().setMix((mix) => ({ ...mix, master: fn(mix.master) }));
 
 function Readout({ label, value, unit }: { label: string; value: number | null; unit: string }) {
   return (
@@ -55,13 +64,12 @@ function Readout({ label, value, unit }: { label: string; value: number | null; 
 
 function LoudnessReadouts({
   loudness,
-  frame,
   target,
 }: {
   loudness: Loudness | null;
-  frame: number;
   target: LoudnessTarget;
 }) {
+  const frame = usePlayback((s) => s.frame);
   const aim = LOUDNESS_TARGETS[target];
   return (
     <div className="flex w-full flex-col gap-0.5 border-t pt-1">
@@ -89,10 +97,8 @@ function LimiterRow({ limiter, update }: { limiter: Master["limiter"]; update: U
         label="Ceiling"
         size={24}
         value={limiter.ceiling}
-        min={-12}
-        max={0}
+        {...rangeKnob(LIMITER_CEILING_RANGE)}
         step={0.1}
-        reset={-1}
         format={db}
         disabled={!limiter.on}
         onChange={bindChange((ceiling) =>
@@ -118,13 +124,13 @@ function LoudnessSelect({ value, update }: { value: LoudnessTarget; update: Upda
           className="h-6 w-full px-1.5 text-[11px]"
           aria-label="Loudness target"
         >
-          <SelectValue>{(v: LoudnessTarget) => LOUDNESS_LABELS[v]}</SelectValue>
+          <SelectValue>{(v: LoudnessTarget) => loudnessLabel(v)}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             {LOUDNESS_CHOICES.map((t) => (
               <SelectItem key={t} value={t}>
-                {LOUDNESS_LABELS[t]}
+                {loudnessLabel(t)}
               </SelectItem>
             ))}
           </SelectGroup>
@@ -137,15 +143,13 @@ function LoudnessSelect({ value, update }: { value: LoudnessTarget; update: Upda
 export function MasterStrip({
   master,
   result,
-  frame,
   holdFrames,
 }: {
   master: Master;
   result: MixResult | null;
-  frame: number;
   holdFrames: number;
 }) {
-  const reduction = reductionAt(result?.reduction.master, frame);
+  const reduction = result?.reduction.master;
   return (
     <div className="bg-sidebar sticky right-0 flex w-[250px] shrink-0 gap-2 border-l px-2 py-1.5">
       <div className="flex min-w-0 flex-1 flex-col gap-1 [&>*]:shrink-0">
@@ -164,7 +168,7 @@ export function MasterStrip({
         <EqPopover
           eq={master.eq}
           highpass={null}
-          onChange={bindEq(MASTER, master.eq, (eq) => updateMaster((m) => ({ ...m, eq })))}
+          onChange={bindEq(MASTER_TARGET, master.eq, (eq) => updateMaster((m) => ({ ...m, eq })))}
         />
         <div className="flex w-full">
           <CompPopover
@@ -175,27 +179,21 @@ export function MasterStrip({
         </div>
         <LimiterRow limiter={master.limiter} update={updateMaster} />
         <LoudnessSelect value={master.loudness} update={updateMaster} />
-        <LoudnessReadouts
-          loudness={result?.loudness ?? null}
-          frame={frame}
-          target={master.loudness}
-        />
+        <LoudnessReadouts loudness={result?.loudness ?? null} target={master.loudness} />
       </div>
       <div className="flex w-12 shrink-0 flex-col items-center gap-1">
-        <div className="flex min-h-16 w-full flex-1 items-stretch justify-center gap-2 py-0.5">
-          <Fader
-            label="Master fader"
-            value={master.fader}
-            onChange={bindGain(MASTER, "fader", master.fader, (fader) =>
-              updateMaster((m) => ({ ...m, fader })),
-            )}
-          />
-          <Meter
-            level={levelAt(result?.levels.master, frame, holdFrames)}
-            reduction={master.comp.on && reduction !== null ? reduction : undefined}
-          />
-        </div>
-        <span className="text-[11px] whitespace-nowrap tabular-nums">{db(master.fader)} dB</span>
+        <FaderMeter
+          label="Master fader"
+          value={master.fader}
+          onChange={bindGain(MASTER_TARGET, "fader", master.fader, (fader) =>
+            updateMaster((m) => ({ ...m, fader })),
+          )}
+          levels={result?.levels.master}
+          reduction={reduction}
+          compOn={master.comp.on}
+          holdFrames={holdFrames}
+          className="w-full justify-center"
+        />
       </div>
     </div>
   );

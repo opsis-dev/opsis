@@ -1,4 +1,11 @@
-import { EQ_TYPES, type Eq, type EqBand, type EqType } from "@/shared/mix/types";
+import {
+  DEFAULT_EQ_BANDS,
+  EQ_BAND_BOUNDS,
+  EQ_TYPES,
+  type Eq,
+  type EqBand,
+  type EqType,
+} from "@/shared/mix/types";
 import { Label } from "@/renderer/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import {
@@ -12,7 +19,8 @@ import {
 import { Switch } from "@/renderer/components/ui/switch";
 import { db, hz } from "./audio-format";
 import { EqCurve } from "./eq-curve";
-import { commitOnce, Knob, type DragPhase, type KnobSpec } from "./knob";
+import { commitOnce, type DragPhase } from "./gesture";
+import { Knobs, type KnobSpec } from "./knob";
 
 const BAND_LABELS: Record<EqType, string> = {
   lowshelf: "Low shelf",
@@ -20,16 +28,30 @@ const BAND_LABELS: Record<EqType, string> = {
   highshelf: "High shelf",
 };
 
-const BAND_KNOBS: Array<KnobSpec<"freq" | "gain" | "q">> = [
-  { field: "freq", label: "Freq", min: 20, max: 20_000, step: 1, log: true, format: hz },
-  { field: "gain", label: "Gain", min: -18, max: 18, step: 0.5, reset: 0, format: db },
+const bandKnobs = (defaults: EqBand): Array<KnobSpec<"freq" | "gain" | "q">> => [
+  {
+    field: "freq",
+    label: "Freq",
+    ...EQ_BAND_BOUNDS.freq,
+    step: 1,
+    reset: defaults.freq,
+    log: true,
+    format: hz,
+  },
+  {
+    field: "gain",
+    label: "Gain",
+    ...EQ_BAND_BOUNDS.gain,
+    step: 0.5,
+    reset: defaults.gain,
+    format: db,
+  },
   {
     field: "q",
     label: "Width",
-    min: 0.1,
-    max: 10,
+    ...EQ_BAND_BOUNDS.q,
     step: 0.05,
-    reset: 1,
+    reset: defaults.q,
     log: true,
     format: (v) => v.toFixed(2),
   },
@@ -37,10 +59,12 @@ const BAND_KNOBS: Array<KnobSpec<"freq" | "gain" | "q">> = [
 
 function BandControls({
   band,
+  defaults,
   disabled,
   onChange,
 }: {
   band: EqBand;
+  defaults: EqBand;
   disabled: boolean;
   onChange: (patch: Partial<EqBand>, phase: DragPhase) => void;
 }) {
@@ -65,16 +89,12 @@ function BandControls({
           </SelectGroup>
         </SelectContent>
       </Select>
-      {BAND_KNOBS.map(({ field, reset, ...spec }) => (
-        <Knob
-          key={field}
-          {...spec}
-          value={band[field]}
-          reset={reset ?? band[field]}
-          disabled={disabled}
-          onChange={(v, phase) => onChange({ [field]: v }, phase)}
-        />
-      ))}
+      <Knobs
+        specs={bandKnobs(defaults)}
+        values={band}
+        disabled={disabled}
+        onChange={(field, v, phase) => onChange({ [field]: v }, phase)}
+      />
     </div>
   );
 }
@@ -124,6 +144,7 @@ export function EqPopover({
             <BandControls
               key={i}
               band={band}
+              defaults={DEFAULT_EQ_BANDS[i]}
               disabled={!eq.on}
               onChange={(patch, phase) => setBand(i, patch, phase)}
             />

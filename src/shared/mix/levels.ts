@@ -11,7 +11,7 @@ import {
   type Mix,
   type Strip,
 } from "./types";
-import { msToFrames } from "../timeline/time";
+import { msToExactFrames, msToFrames } from "../timeline/time";
 import { numberOr } from "../math";
 
 export const resolveMix = (mix: Mix | undefined): Mix => mix ?? defaultMix();
@@ -85,7 +85,7 @@ export function channelsIn(spec: Pick<TimelineSpec, "tracks" | "audio">): Channe
 export function duckKeysFor(mix: Mix, bus: Bus, channels: ChannelInfo[], fps: number): string[] {
   if (!bus.duck.on) return [];
   const keys = new Set(bus.duck.keys);
-  const shortest = (bus.duck.ignoreShorterMs / 1000) * fps;
+  const shortest = msToExactFrames(bus.duck.ignoreShorterMs, fps);
   return channels
     .filter((c) => {
       const from = busOf(mix, c.id, c.kind).id;

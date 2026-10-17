@@ -24,11 +24,15 @@ function decode(ctx: AudioContext, src: string): Promise<AudioBuffer | null> {
     });
 }
 
+function audioContext(): AudioContext {
+  context ??= new AudioContext();
+  return context;
+}
+
 function load(src: string): Promise<AudioBuffer | null> {
   let buffer = buffers.get(src);
   if (!buffer) {
-    context ??= new AudioContext();
-    buffer = decode(context, src);
+    buffer = decode(audioContext(), src);
     buffers.set(src, buffer);
     const [oldest] = buffers.keys();
     if (buffers.size > CACHED_SOURCES && oldest !== undefined) buffers.delete(oldest);
@@ -45,16 +49,17 @@ export function scrubAt(src: string | null, seconds: number): void {
   const now = performance.now();
   if (now - last < MIN_INTERVAL_MS) return;
   last = now;
+  const ctx = audioContext();
   void load(src).then((buffer) => {
-    if (!buffer || !context) return;
-    if (context.state === "suspended") void context.resume();
+    if (!buffer) return;
+    if (ctx.state === "suspended") void ctx.resume();
     current?.stop();
-    const node = context.createBufferSource();
-    const gain = context.createGain();
+    const node = ctx.createBufferSource();
+    const gain = ctx.createGain();
     node.buffer = buffer;
-    gain.gain.setValueAtTime(BLIP_GAIN, context.currentTime);
-    gain.gain.linearRampToValueAtTime(0, context.currentTime + BLIP_S);
-    node.connect(gain).connect(context.destination);
+    gain.gain.setValueAtTime(BLIP_GAIN, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + BLIP_S);
+    node.connect(gain).connect(ctx.destination);
     node.start(0, clamp(seconds, 0, Math.max(0, buffer.duration - END_MARGIN_S)), BLIP_S);
     current = node;
   });

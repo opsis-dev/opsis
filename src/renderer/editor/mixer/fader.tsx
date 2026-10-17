@@ -1,8 +1,8 @@
 import { clamp } from "@/shared/math";
 import { MAX_DB, MIN_DB } from "@/shared/mix/types";
 import { db } from "./audio-format";
-import { commitOnce, type DragPhase } from "./knob";
-import { arrowDirection, roundToStep } from "./knob-math";
+import { commitOnce, onArrowKey, type Change } from "./gesture";
+import { roundToStep } from "./knob-math";
 import { fractionIn } from "@/renderer/lib/dom";
 
 const STEP_DB = 0.5;
@@ -22,7 +22,7 @@ export function Fader({
   label,
 }: {
   value: number;
-  onChange: (v: number, phase: DragPhase) => void;
+  onChange: Change<number>;
   label: string;
 }) {
   return (
@@ -48,14 +48,12 @@ export function Fader({
       }}
       onLostPointerCapture={() => onChange(value, "end")}
       onDoubleClick={() => commitOnce(onChange, 0)}
-      onKeyDown={(e) => {
-        const dir = arrowDirection(e.key);
-        if (!dir) return;
-        e.preventDefault();
-        e.stopPropagation();
-        const step = e.shiftKey ? BIG_STEP_DB : STEP_DB;
-        commitOnce(onChange, clamp(value + dir * step, MIN_DB, MAX_DB));
-      }}
+      onKeyDown={(e) =>
+        onArrowKey(e, (dir, big) => {
+          const step = big ? BIG_STEP_DB : STEP_DB;
+          commitOnce(onChange, clamp(value + dir * step, MIN_DB, MAX_DB));
+        })
+      }
     >
       <div className="bg-muted absolute inset-y-1 left-1/2 w-1 -translate-x-1/2 rounded-full" />
       <div

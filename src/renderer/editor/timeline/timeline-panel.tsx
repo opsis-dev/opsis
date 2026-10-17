@@ -1,5 +1,6 @@
 import { SquareChartGantt } from "lucide-react";
 import { useRef } from "react";
+import type { Workflow } from "@/shared/schema/workflow";
 import {
   Empty,
   EmptyDescription,
@@ -9,17 +10,72 @@ import {
 } from "@/renderer/components/ui/empty";
 import { isEditingElement } from "@/renderer/lib/dom";
 import { useWorkflowStore } from "../../store/workflow";
-import { useFilm } from "../film";
+import { useFilm, type Film } from "../film";
+import { RemoveDialog } from "./remove-dialog";
 import { timelineKeyAction } from "./timeline-keys";
 import { TimelineToolbar } from "./timeline-toolbar";
-import { TimelineView, type TimelineActions } from "./timeline-view";
+import { TimelineView, useScrollerView, type TimelineFilm } from "./timeline-view";
+import { useTimelineCommands } from "./use-timeline-commands";
+import { useTimelineZoom } from "./use-timeline-zoom";
+
+const hasFlat = (film: Film): film is TimelineFilm => film.flat !== null;
+
+function TimelineEditor({ film, workflow }: { film: TimelineFilm; workflow: Workflow }) {
+  const { flat, sourceNodeId } = film;
+  const fps = flat.fps;
+  const duration = flat.durationInFrames;
+  const scroller = useRef<HTMLDivElement>(null);
+  const scroll = useScrollerView(scroller);
+  const zoom = useTimelineZoom(scroller, scroll.view.width, duration);
+  const { commands, removal, confirmRemoval, closeRemoval } = useTimelineCommands({
+    workflow,
+    flat,
+    sourceNodeId,
+    zoom,
+  });
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (isEditingElement(e.target)) return;
+    const action = timelineKeyAction(e);
+    if (!action) return;
+    action({ commands, fps, duration, shift: e.shiftKey });
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  return (
+    <div
+      data-timeline-root
+      tabIndex={0}
+      className="flex h-full flex-col outline-none"
+      onKeyDown={onKeyDown}
+    >
+      <TimelineToolbar
+        commands={commands}
+        workflow={workflow}
+        sourceNodeId={sourceNodeId}
+        fps={fps}
+        duration={duration}
+      />
+      <div className="min-h-0 flex-1">
+        <TimelineView
+          scroller={scroller}
+          scroll={scroll}
+          zoom={zoom}
+          film={film}
+          workflow={workflow}
+        />
+      </div>
+      <RemoveDialog removal={removal} onConfirm={confirmRemoval} onClose={closeRemoval} />
+    </div>
+  );
+}
 
 export function TimelinePanel() {
   const film = useFilm();
   const workflow = useWorkflowStore((s) => s.workflow);
-  const actions = useRef<TimelineActions | null>(null);
 
-  if (!film.flat || !workflow) {
+  if (!hasFlat(film) || !workflow) {
     return (
       <Empty className="h-full">
         <EmptyHeader>
@@ -35,35 +91,5 @@ export function TimelinePanel() {
     );
   }
 
-  const fps = film.flat.fps;
-  const duration = film.flat.durationInFrames;
-
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (isEditingElement(e.target)) return;
-    const action = timelineKeyAction(e);
-    if (!action) return;
-    action({ actions: actions.current, fps, duration, shift: e.shiftKey });
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  return (
-    <div
-      data-timeline-root
-      tabIndex={0}
-      className="flex h-full flex-col outline-none"
-      onKeyDown={onKeyDown}
-    >
-      <TimelineToolbar
-        actions={actions}
-        workflow={workflow}
-        sourceNodeId={film.sourceNodeId}
-        fps={fps}
-        duration={duration}
-      />
-      <div className="min-h-0 flex-1">
-        <TimelineView ref={actions} workflow={workflow} flat={film.flat} />
-      </div>
-    </div>
-  );
+  return <TimelineEditor film={film} workflow={workflow} />;
 }

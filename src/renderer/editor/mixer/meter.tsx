@@ -1,8 +1,10 @@
 import { clamp01 } from "@/shared/math";
-import type { StemLevels } from "@/shared/mix/result";
+import type { MixResult, StemLevels } from "@/shared/mix/result";
 import { cn } from "@/renderer/lib/utils";
 import { frameIn } from "@/shared/timeline/time";
+import { usePlayback } from "../../store/playback";
 
+const SILENCE_DB = -120;
 const METER_MIN = -60;
 const METER_MAX = 6;
 const MAX_REDUCTION_DB = 24;
@@ -13,14 +15,25 @@ const toPct = (db: number) => clamp01((db - METER_MIN) / (METER_MAX - METER_MIN)
 export const sampleAt = (values: number[] | null | undefined, frame: number): number | null =>
   values?.length ? values[frameIn(frame, values.length)] : null;
 
-export const reductionAt = (
-  reduction: number[] | null | undefined,
+const reductionAt = (reduction: number[] | null | undefined, frame: number): number | null =>
+  reduction ? (sampleAt(reduction, frame) ?? 0) : null;
+
+export function share(
+  result: MixResult | null,
+  levels: Pick<StemLevels, "rms"> | undefined,
   frame: number,
-): number | null => (reduction ? (sampleAt(reduction, frame) ?? 0) : null);
+): number {
+  const master = result?.levels.master;
+  if (!master?.rms.length || !levels) return 1;
+  const f = frameIn(frame, master.rms.length);
+  const pc = 10 ** ((levels.rms[f] ?? SILENCE_DB) / 10);
+  const pm = 10 ** (master.rms[f] / 10);
+  return pm <= 1e-12 ? 1 : Math.min(1, pc / pm);
+}
 
-export type Level = { peak: number | null; rms: number | null; hold: number | null };
+type Level = { peak: number | null; rms: number | null; hold: number | null };
 
-export function levelAt(
+function levelAt(
   levels: Pick<StemLevels, "peak" | "rms"> | null | undefined,
   frame: number,
   holdFrames: number,
@@ -31,7 +44,7 @@ export function levelAt(
   return { peak: levels.peak[f], rms: levels.rms[f], hold };
 }
 
-export function Meter({ level, reduction }: { level: Level; reduction?: number }) {
+function Meter({ level, reduction }: { level: Level; reduction?: number }) {
   const { peak, rms, hold } = level;
   return (
     <div className="flex h-full gap-0.5">
@@ -78,4 +91,30 @@ export function Meter({ level, reduction }: { level: Level; reduction?: number }
       ) : null}
     </div>
   );
+}
+
+type Levels = Pick<StemLevels, "peak" | "rms"> | null | undefined;
+
+export type Reduction = number[] | null | undefined;
+
+export function LiveMeter({
+  levels,
+  reduction,
+  compOn,
+  holdFrames,
+}: {
+  levels: Levels;
+  reduction: Reduction;
+  compOn: boolean;
+  holdFrames: number;
+}) {
+  const frame = usePlayback((s) => s.frame);
+  const lowered = compOn ? reductionAt(reduction, frame) : null;
+  return <Meter level={levelAt(levels, frame, holdFrames)} reduction={lowered ?? undefined} />;
+}
+
+export function ReductionReadout({ reduction }: { reduction: Reduction }) {
+  const frame = usePlayback((s) => s.frame);
+  const lowered = reductionAt(reduction, frame);
+  return lowered === null ? null : <span className="tabular-nums">−{lowered.toFixed(1)}</span>;
 }

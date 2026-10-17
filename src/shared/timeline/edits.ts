@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_SPEED, MIN_SPEED } from "../nodes/params";
+import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "../nodes/params";
 import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
 import { cutSchema, IN_PORTS } from "../nodes/timeline";
 import type { ParamRef } from "../schema/timeline";
@@ -593,7 +593,7 @@ export function trimAudio(
 }
 
 export function setAudioVolume(ctx: EditContext, bar: AudioBar, volume: number): EditResult {
-  const v = round2(clamp(volume, 0, 2));
+  const v = round2(clamp(volume, 0, MAX_VOLUME));
   if (bar.bar) return ok(writeParam(ctx.workflow, { nodeId: bar.bar.nodeId, param: "volume" }, v));
   const ref = bar.handles?.volume;
   if (!ref) return fail("This sound's volume is set in the mixer.");

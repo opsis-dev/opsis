@@ -2,6 +2,15 @@ import { create } from "zustand";
 
 export const singleSelected = (ids: string[]): string | null => (ids.length === 1 ? ids[0] : null);
 
+export function toggleIds(current: string[], ids: string[]): string[] {
+  const out = new Set(current);
+  for (const id of ids) {
+    if (out.has(id)) out.delete(id);
+    else out.add(id);
+  }
+  return [...out];
+}
+
 export const REPLAY_TABS = ["replay", "trace"] as const;
 export type ReplayTab = (typeof REPLAY_TABS)[number];
 

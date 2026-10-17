@@ -1,7 +1,9 @@
 import { clamp } from "../math";
 
+export const msToExactFrames = (ms: number, fps: number): number => (ms / 1000) * fps;
+
 export const msToFrames = (ms: number, fps: number, min = 1): number =>
-  Math.max(min, Math.round((ms / 1000) * fps));
+  Math.max(min, Math.round(msToExactFrames(ms, fps)));
 
 export const framesToMs = (frames: number, fps: number): number =>
   Math.round((frames * 1000) / Math.max(1, fps));

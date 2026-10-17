@@ -18,6 +18,7 @@ export const optionalTarget = (description: string, help?: string) =>
 
 export const MIN_SPEED = 0.1;
 export const MAX_SPEED = 64;
+export const MAX_VOLUME = 2;
 
 export const ms = (def: number, description: string, max = 600_000) =>
   z.number().int().min(0).max(max).default(def).meta({ description, step: 50, unit: "ms" });
@@ -35,7 +36,7 @@ export const rate = (
 ) => z.number().min(min).max(max).default(def).meta({ description, step, unit: "×" });
 
 export const volume = (def: number) =>
-  z.number().min(0).max(2).default(def).meta({ description: "Volume", step: 0.05 });
+  z.number().min(0).max(MAX_VOLUME).default(def).meta({ description: "Volume", step: 0.05 });
 
 export const zoomScale = (def: number, description = "Zoom", step = 0.05) =>
   z.number().min(1.1).max(2.5).default(def).meta({ description, step, unit: "×" });

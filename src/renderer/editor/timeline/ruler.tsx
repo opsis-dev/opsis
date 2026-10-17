@@ -1,9 +1,7 @@
 import { rulerStep } from "@/shared/timeline/snap";
-import { formatTime } from "@/shared/timeline/time";
 import { cn } from "@/renderer/lib/utils";
-import { usePlayback } from "../../store/playback";
 import { HEADER_W, RULER_H } from "./timeline-layout";
-import { useTimeline } from "./timeline-state";
+import { useFormatTime, useLoopRange } from "./timeline-state";
 
 const MAX_TICKS = 600;
 
@@ -34,9 +32,8 @@ export function Ruler({
   duration: number;
   onPointerDown: (e: React.PointerEvent) => void;
 }) {
-  const inPoint = usePlayback((s) => s.inPoint);
-  const outPoint = usePlayback((s) => s.outPoint);
-  const rulerMode = useTimeline((s) => s.rulerMode);
+  const { inPoint, outPoint } = useLoopRange();
+  const timeAt = useFormatTime(fps);
   return (
     <div
       className="bg-sidebar sticky top-0 z-30 flex border-b"
@@ -67,7 +64,7 @@ export function Ruler({
           >
             {major ? (
               <span className="text-muted-foreground absolute bottom-2.5 left-1 text-[10px] whitespace-nowrap tabular-nums">
-                {formatTime(f, fps, rulerMode)}
+                {timeAt(f)}
               </span>
             ) : null}
           </div>

@@ -1,17 +1,4 @@
-import {
-  ArrowLeftRight,
-  ArrowRightFromLine,
-  Bookmark,
-  Gauge,
-  GalleryHorizontal,
-  Magnet,
-  MousePointer2,
-  Scissors,
-  X,
-  ZoomIn,
-  ZoomOut,
-  type LucideIcon,
-} from "lucide-react";
+import { Bookmark, Magnet, Scissors, X, ZoomIn, ZoomOut } from "lucide-react";
 import { nodeName } from "@/shared/nodes/registry";
 import { isOutputType } from "@/shared/nodes/output";
 import {
@@ -20,7 +7,6 @@ import {
   type VisualEnvelopeKey,
 } from "@/shared/schema/timeline";
 import type { Workflow } from "@/shared/schema/workflow";
-import { formatTime } from "@/shared/timeline/time";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import { Kbd } from "@/renderer/components/ui/kbd";
@@ -40,55 +26,9 @@ import { shortcutLabel } from "../../app/app-bar";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { ENVELOPE_INFO } from "./envelope";
-import { useTimeline, type TimelineTool } from "./timeline-state";
-import type { TimelineActions } from "./timeline-view";
-
-export const ZOOM_STEP = 1.5;
-
-export const TOOLS: Array<{
-  id: TimelineTool;
-  icon: LucideIcon;
-  label: string;
-  key: string;
-  help: string;
-}> = [
-  {
-    id: "select",
-    icon: MousePointer2,
-    label: "Select",
-    key: "V",
-    help: "Move clips and drag their edges to trim. Hold Shift to move later clips too.",
-  },
-  {
-    id: "ripple",
-    icon: ArrowRightFromLine,
-    label: "Ripple",
-    key: "B",
-    help: "Moves and trims push the clips after them.",
-  },
-  {
-    id: "roll",
-    icon: ArrowLeftRight,
-    label: "Roll",
-    key: "N",
-    help: "Drag the cut between two clips. The total length stays the same.",
-  },
-  {
-    id: "slip",
-    icon: GalleryHorizontal,
-    label: "Slip",
-    key: "Y",
-    help: "Shows a different part of a clip without changing where it sits.",
-  },
-  { id: "blade", icon: Scissors, label: "Split", key: "C", help: "Click a clip to cut it in two." },
-  {
-    id: "rate",
-    icon: Gauge,
-    label: "Speed",
-    key: "R",
-    help: "Drag a clip's edge to speed it up or slow it down.",
-  },
-];
+import { useFormatTime, useLoopRange, useTimeline } from "./timeline-state";
+import { COMMAND_KEYS, TOOLS, ZOOM_STEP } from "./timeline-tools";
+import type { TimelineCommands } from "./use-timeline-commands";
 
 type VideoChoice = VisualEnvelopeKey | "off";
 
@@ -98,11 +38,13 @@ const videoLabel = (v: VideoChoice) => (v === "off" ? "No keyframes" : ENVELOPE_
 
 function IconTip({
   label,
+  iconOnly = true,
   tip,
   onClick,
   children,
 }: {
-  label?: string;
+  label: string;
+  iconOnly?: boolean;
   tip: React.ReactNode;
   onClick: () => void;
   children: React.ReactNode;
@@ -113,8 +55,8 @@ function IconTip({
         render={
           <Button
             variant="ghost"
-            size={label ? "icon-sm" : "sm"}
-            className={label ? undefined : "px-2"}
+            size={iconOnly ? "icon-sm" : "sm"}
+            className={iconOnly ? undefined : "px-2"}
             aria-label={label}
             onClick={onClick}
           />
@@ -225,13 +167,12 @@ function EnvelopePickers() {
 }
 
 function RangeBadge({ fps, duration }: { fps: number; duration: number }) {
-  const inPoint = usePlayback((s) => s.inPoint);
-  const outPoint = usePlayback((s) => s.outPoint);
-  const rulerMode = useTimeline((s) => s.rulerMode);
+  const { inPoint, outPoint } = useLoopRange();
+  const timeAt = useFormatTime(fps);
   if (inPoint === null && outPoint === null) return null;
   return (
     <Badge variant="outline" className="gap-1 tabular-nums">
-      {formatTime(inPoint ?? 0, fps, rulerMode)}–{formatTime(outPoint ?? duration, fps, rulerMode)}
+      {timeAt(inPoint ?? 0)}–{timeAt(outPoint ?? duration)}
       <button
         type="button"
         aria-label="Clear the loop"
@@ -245,7 +186,11 @@ function RangeBadge({ fps, duration }: { fps: number; duration: number }) {
 
 function Clock({ fps, duration }: { fps: number; duration: number }) {
   const frame = usePlayback((s) => s.frame);
-  const rulerMode = useTimeline((s) => s.rulerMode);
+  const timeAt = useFormatTime(fps);
+  const switchMode = () => {
+    const { rulerMode, setRulerMode } = useTimeline.getState();
+    setRulerMode(rulerMode === "seconds" ? "timecode" : "seconds");
+  };
   return (
     <Tooltip>
       <TooltipTrigger
@@ -253,13 +198,11 @@ function Clock({ fps, duration }: { fps: number; duration: number }) {
           <button
             type="button"
             className="text-muted-foreground hover:text-foreground px-1 text-xs whitespace-nowrap tabular-nums"
-            onClick={() =>
-              useTimeline.getState().setRulerMode(rulerMode === "seconds" ? "timecode" : "seconds")
-            }
+            onClick={switchMode}
           />
         }
       >
-        {formatTime(frame, fps, rulerMode)} / {formatTime(duration, fps, rulerMode)}
+        {timeAt(frame)} / {timeAt(duration)}
       </TooltipTrigger>
       <TooltipContent>Switch between seconds and timecode</TooltipContent>
     </Tooltip>
@@ -297,13 +240,13 @@ function SourceBadges({
 }
 
 export function TimelineToolbar({
-  actions,
+  commands,
   workflow,
   sourceNodeId,
   fps,
   duration,
 }: {
-  actions: React.RefObject<TimelineActions | null>;
+  commands: TimelineCommands;
   workflow: Workflow;
   sourceNodeId: string | null;
   fps: number;
@@ -317,10 +260,10 @@ export function TimelineToolbar({
         label="Split at the playhead"
         tip={
           <>
-            Split at the playhead <Kbd>S</Kbd>
+            Split at the playhead <Kbd>{COMMAND_KEYS.split}</Kbd>
           </>
         }
-        onClick={() => actions.current?.split()}
+        onClick={commands.split}
       >
         <Scissors />
       </IconTip>
@@ -328,10 +271,10 @@ export function TimelineToolbar({
         label="Add a marker"
         tip={
           <>
-            Add a marker <Kbd>M</Kbd>
+            Add a marker <Kbd>{COMMAND_KEYS.addMarker}</Kbd>
           </>
         }
-        onClick={() => actions.current?.addMarker()}
+        onClick={commands.addMarker}
       >
         <Bookmark />
       </IconTip>
@@ -347,17 +290,19 @@ export function TimelineToolbar({
             Zoom out <Kbd>{shortcutLabel("CmdOrCtrl+−")}</Kbd>
           </>
         }
-        onClick={() => actions.current?.zoomBy(1 / ZOOM_STEP)}
+        onClick={() => commands.zoomBy(1 / ZOOM_STEP)}
       >
         <ZoomOut />
       </IconTip>
       <IconTip
+        label="Fit the whole film"
+        iconOnly={false}
         tip={
           <>
-            Show the whole film <Kbd>Z</Kbd>
+            Show the whole film <Kbd>{COMMAND_KEYS.fit}</Kbd>
           </>
         }
-        onClick={() => actions.current?.fit()}
+        onClick={commands.fit}
       >
         Fit
       </IconTip>
@@ -368,7 +313,7 @@ export function TimelineToolbar({
             Zoom in <Kbd>{shortcutLabel("CmdOrCtrl+=")}</Kbd>
           </>
         }
-        onClick={() => actions.current?.zoomBy(ZOOM_STEP)}
+        onClick={() => commands.zoomBy(ZOOM_STEP)}
       >
         <ZoomIn />
       </IconTip>

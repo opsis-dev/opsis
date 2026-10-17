@@ -1,16 +1,17 @@
 import { useRef, useState } from "react";
 import { round3, clamp } from "@/shared/math";
+import { MAX_VOLUME } from "@/shared/nodes/params";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
 import { setAudioVolume } from "@/shared/timeline/edits";
 import type { AudioBar, FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
 import { snapFrame } from "@/shared/timeline/snap";
-import { framesToMs } from "@/shared/timeline/time";
+import { framesToMs, msToExactFrames } from "@/shared/timeline/time";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { useWorkflowStore } from "../../store/workflow";
-import { ENVELOPE_INFO, setEnvelopeKeys } from "./envelope";
+import { ENVELOPE_INFO, envelopeShift, setEnvelopeKeys } from "./envelope";
 import { scrubAt } from "./scrub";
-import { moveMarker, reportEdit, selectNodes } from "./timeline-actions";
+import { patchMarker, reportEdit, selectNodes } from "./timeline-actions";
 import {
   editContext,
   editOutcome,
@@ -20,7 +21,6 @@ import {
   normalizeMarquee,
   snapTargetsFor,
   type AudioEditKind,
-  type Drag,
   type EditDrag,
   type KeyDrag,
   type MarkerDrag,
@@ -45,13 +45,16 @@ type DragOptions = {
   zoom: TimelineZoom;
 };
 
-export type KeyStart = Omit<KeyDrag, "kind" | "x0" | "y0" | "started">;
+export type KeyStart = Omit<KeyDrag, "x0" | "y0" | "started">;
+
+type ActiveDrag = { move: (e: React.PointerEvent) => void; finish: () => void };
 
 export type TimelineDrag = ReturnType<typeof useTimelineDrag>;
 
-const VOLUME_RANGE = 2;
+const VOLUME_DRAG_PX = 2;
+const DRAG_START_PX = 3;
 
-function passedThreshold(d: { started: boolean }, distance: number, min: number): boolean {
+function beginGestureOnceMoved(d: { started: boolean }, distance: number, min: number): boolean {
   if (d.started) return true;
   if (distance < min) return false;
   d.started = true;
@@ -59,45 +62,55 @@ function passedThreshold(d: { started: boolean }, distance: number, min: number)
   return true;
 }
 
+function pointIn(el: HTMLDivElement | null, clientX: number, clientY: number) {
+  if (!el) return { x: 0, y: 0, scrollTop: 0 };
+  const rect = el.getBoundingClientRect();
+  return {
+    x: clientX - rect.left + el.scrollLeft,
+    y: clientY - rect.top + el.scrollTop,
+    scrollTop: el.scrollTop,
+  };
+}
+
+function useTimelineSnap({ flat, markers, beats }: DragOptions, ppf: number) {
+  const snapping = useTimeline((s) => s.snapping);
+  const snapOn = (alt: boolean) => snapping && !alt;
+  const snapTargets = (exclude: string | null) => {
+    const { frame, inPoint, outPoint } = usePlayback.getState();
+    return snapTargetsFor(
+      { flat, markers, beats, fps: flat.fps, playhead: frame, inPoint, outPoint },
+      exclude,
+    );
+  };
+  const snapAt = (at: number, alt: boolean) =>
+    snapOn(alt) ? snapFrame(at, snapTargets(null), SNAP_PX / ppf).frame : at;
+  return { snapOn, snapTargets, snapAt };
+}
+
 export function useTimelineDrag(opts: DragOptions) {
   const { scroller, workflow, flat, sourceNodeId, masterSrc, zoom } = opts;
   const { fps, durationInFrames: duration } = flat;
   const ppf = zoom.ppf;
-  const snapping = useTimeline((s) => s.snapping);
-  const drag = useRef<Drag | null>(null);
+  const { snapOn, snapTargets, snapAt } = useTimelineSnap(opts, ppf);
+  const drag = useRef<ActiveDrag | null>(null);
   const [guide, setGuide] = useState<number | null>(null);
   const [marquee, setMarquee] = useState<MarqueeBox | null>(null);
 
-  const scrollerPoint = (clientX: number, clientY: number) => {
-    const el = scroller.current;
-    if (!el) return { x: 0, y: 0, scrollTop: 0 };
-    const rect = el.getBoundingClientRect();
-    return {
-      x: clientX - rect.left + el.scrollLeft,
-      y: clientY - rect.top + el.scrollTop,
-      scrollTop: el.scrollTop,
-    };
-  };
+  const scrollerPoint = (clientX: number, clientY: number) =>
+    pointIn(scroller.current, clientX, clientY);
   const xToFrame = (clientX: number) => (scrollerPoint(clientX, 0).x - HEADER_W) / ppf;
-  const snapOn = (alt: boolean) => snapping && !alt;
-
-  const snapTargets = (exclude: string | null) => {
-    const { frame, inPoint, outPoint } = usePlayback.getState();
-    return snapTargetsFor(
-      { flat, markers: opts.markers, beats: opts.beats, fps, playhead: frame, inPoint, outPoint },
-      exclude,
-    );
-  };
-
-  const snapAt = (at: number, alt: boolean) =>
-    snapOn(alt) ? snapFrame(at, snapTargets(null), SNAP_PX / ppf).frame : at;
 
   const capture = (e: React.PointerEvent) => scroller.current?.setPointerCapture(e.pointerId);
 
-  const begin = (e: React.PointerEvent, d: Drag) => {
+  const begin = (e: React.PointerEvent, active: ActiveDrag) => {
     capture(e);
-    drag.current = d;
+    drag.current = active;
     zoom.hold();
+  };
+
+  const endGesture = (d: { started: boolean }) => {
+    if (d.started) useWorkflowStore.getState().endGesture();
+    return d.started;
   };
 
   const beginPointer = (e: React.PointerEvent<HTMLElement>): boolean => {
@@ -119,39 +132,61 @@ export function useTimelineDrag(opts: DragOptions) {
     ripple,
   });
 
+  const beginEdit = (e: React.PointerEvent, d: EditDrag) =>
+    begin(e, {
+      move: (ev) => moveEdit(d, ev),
+      finish: () => {
+        if (endGesture(d)) reportEdit(d.last);
+      },
+    });
+
   const startVideoEdit = (
     e: React.PointerEvent,
     kind: VideoEditKind,
     bar: VideoBar,
     ripple: boolean,
-  ) => begin(e, { kind, bar, ...editBase(bar, e.clientX, ripple) });
+  ) => beginEdit(e, { kind, bar, ...editBase(bar, e.clientX, ripple) });
 
   const startAudioEdit = (
     e: React.PointerEvent,
     kind: AudioEditKind,
     bar: AudioBar,
     ripple: boolean,
-  ) => begin(e, { kind, bar, ...editBase(bar, e.clientX, ripple) });
+  ) => beginEdit(e, { kind, bar, ...editBase(bar, e.clientX, ripple) });
 
-  const startVolume = (e: React.PointerEvent, bar: AudioBar, height: number) =>
-    begin(e, {
-      kind: "volume",
+  const startVolume = (e: React.PointerEvent, bar: AudioBar, height: number) => {
+    const d: VolumeDrag = {
       bar,
       y0: e.clientY,
       v0: bar.volume,
       base: workflow,
       started: false,
       height,
-    });
+    };
+    begin(e, { move: (ev) => moveVolume(d, ev), finish: () => endGesture(d) });
+  };
 
   const startKey = (e: React.PointerEvent, key: KeyStart) => {
     e.stopPropagation();
     if (e.button !== 0) return;
-    begin(e, { kind: "key", ...key, x0: e.clientX, y0: e.clientY, started: false });
+    const d: KeyDrag = { ...key, x0: e.clientX, y0: e.clientY, started: false };
+    begin(e, {
+      move: (ev) => moveKey(d, ev),
+      finish: () => {
+        if (!endGesture(d)) selectNodes([d.nodeId], false, sourceNodeId);
+      },
+    });
   };
 
-  const startMarker = (e: React.PointerEvent, marker: Marker) =>
-    begin(e, { kind: "marker", id: marker.id, x0: e.clientX, at0: marker.atMs, started: false });
+  const startMarker = (e: React.PointerEvent, marker: Marker) => {
+    const d: MarkerDrag = { id: marker.id, x0: e.clientX, at0: marker.atMs, started: false };
+    begin(e, {
+      move: (ev) => moveMarkerDrag(d, ev),
+      finish: () => {
+        if (!endGesture(d)) useTimeline.getState().selectMarker(d.id);
+      },
+    });
+  };
 
   const scrubTo = (f: number) => {
     usePlayback.getState().seek(f);
@@ -161,7 +196,10 @@ export function useTimelineDrag(opts: DragOptions) {
   const onRulerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     e.stopPropagation();
-    begin(e, { kind: "scrub" });
+    begin(e, {
+      move: (ev) => scrubTo(clamp(xToFrame(ev.clientX), 0, Math.max(0, duration - 1))),
+      finish: () => {},
+    });
     scrubTo(Math.max(0, xToFrame(e.clientX)));
   };
 
@@ -169,7 +207,8 @@ export function useTimelineDrag(opts: DragOptions) {
     if (e.button !== 0) return;
     const { x, y, scrollTop } = scrollerPoint(e.clientX, e.clientY);
     if (y < RULER_H + scrollTop && y >= scrollTop) return;
-    begin(e, { kind: "marquee", x0: x, y0: y, x1: x, y1: y, additive: e.shiftKey });
+    const d: MarqueeDrag = { x0: x, y0: y, x1: x, y1: y, additive: e.shiftKey };
+    begin(e, { move: (ev) => moveMarquee(d, ev), finish: () => finishMarquee(d) });
   };
 
   const moveMarquee = (d: MarqueeDrag, e: React.PointerEvent) => {
@@ -180,19 +219,19 @@ export function useTimelineDrag(opts: DragOptions) {
   };
 
   const moveVolume = (d: VolumeDrag, e: React.PointerEvent) => {
-    if (!passedThreshold(d, Math.abs(e.clientY - d.y0), 2)) return;
-    const v = d.v0 - ((e.clientY - d.y0) / d.height) * VOLUME_RANGE;
+    if (!beginGestureOnceMoved(d, Math.abs(e.clientY - d.y0), VOLUME_DRAG_PX)) return;
+    const v = d.v0 - ((e.clientY - d.y0) / d.height) * MAX_VOLUME;
     const r = setAudioVolume(editContext(d.base, fps, sourceNodeId, "v"), d.bar, v);
     if (r.ok) useWorkflowStore.getState().update(() => r.workflow);
   };
 
   const moveKey = (d: KeyDrag, e: React.PointerEvent) => {
     const distance = Math.abs(e.clientX - d.x0) + Math.abs(e.clientY - d.y0);
-    if (!passedThreshold(d, distance, 3)) return;
+    if (!beginGestureOnceMoved(d, distance, DRAG_START_PX)) return;
     const { min, max } = ENVELOPE_INFO[d.prop];
     const key = d.keys[d.index];
     const frame = Math.max(0, Math.round(d.toLocal(xToFrame(e.clientX))));
-    const dragged = ((e.clientY - d.y0) / Math.max(1, d.height - 10)) * (max - min);
+    const dragged = envelopeShift(d.prop, e.clientY - d.y0, d.height);
     const value = round3(clamp(key.value - dragged, min, max));
     setEnvelopeKeys(
       d.nodeId,
@@ -202,17 +241,17 @@ export function useTimelineDrag(opts: DragOptions) {
   };
 
   const moveMarkerDrag = (d: MarkerDrag, e: React.PointerEvent) => {
-    if (!passedThreshold(d, Math.abs(e.clientX - d.x0), 3)) return;
-    let f = (d.at0 / 1000) * fps + (e.clientX - d.x0) / ppf;
+    if (!beginGestureOnceMoved(d, Math.abs(e.clientX - d.x0), DRAG_START_PX)) return;
+    let f = msToExactFrames(d.at0, fps) + (e.clientX - d.x0) / ppf;
     if (snapOn(e.altKey)) {
       const targets = snapTargets(null).filter((t) => t.kind !== "marker");
       f = snapFrame(f, targets, SNAP_PX / ppf).frame;
     }
-    moveMarker(d.id, Math.max(0, framesToMs(f, fps)));
+    patchMarker(d.id, { atMs: Math.max(0, framesToMs(f, fps)) });
   };
 
   const moveEdit = (d: EditDrag, e: React.PointerEvent) => {
-    if (!passedThreshold(d, Math.abs(e.clientX - d.x0), 3)) return;
+    if (!beginGestureOnceMoved(d, Math.abs(e.clientX - d.x0), DRAG_START_PX)) return;
     const ctx = editContext(d.base, fps, sourceNodeId, d.salt);
     const snap = {
       raw: (e.clientX - d.x0) / ppf,
@@ -224,24 +263,7 @@ export function useTimelineDrag(opts: DragOptions) {
     if (result.ok) useWorkflowStore.getState().update(() => result.workflow);
   };
 
-  const onPointerMove = (e: React.PointerEvent) => {
-    const d = drag.current;
-    if (!d) return;
-    switch (d.kind) {
-      case "scrub":
-        return scrubTo(clamp(xToFrame(e.clientX), 0, Math.max(0, duration - 1)));
-      case "marquee":
-        return moveMarquee(d, e);
-      case "volume":
-        return moveVolume(d, e);
-      case "key":
-        return moveKey(d, e);
-      case "marker":
-        return moveMarkerDrag(d, e);
-      default:
-        return moveEdit(d, e);
-    }
-  };
+  const onPointerMove = (e: React.PointerEvent) => drag.current?.move(e);
 
   const finishMarquee = (d: MarqueeDrag) => {
     setMarquee(null);
@@ -255,11 +277,6 @@ export function useTimelineDrag(opts: DragOptions) {
     useTimeline.getState().selectMarker(null);
   };
 
-  const endGesture = (d: { started: boolean }) => {
-    if (d.started) useWorkflowStore.getState().endGesture();
-    return d.started;
-  };
-
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current;
     drag.current = null;
@@ -267,24 +284,7 @@ export function useTimelineDrag(opts: DragOptions) {
     zoom.release();
     if (scroller.current?.hasPointerCapture(e.pointerId))
       scroller.current.releasePointerCapture(e.pointerId);
-    if (!d) return;
-    switch (d.kind) {
-      case "scrub":
-        return;
-      case "marquee":
-        return finishMarquee(d);
-      case "volume":
-        endGesture(d);
-        return;
-      case "marker":
-        if (!endGesture(d)) useTimeline.getState().selectMarker(d.id);
-        return;
-      case "key":
-        if (!endGesture(d)) selectNodes([d.nodeId], false, sourceNodeId);
-        return;
-      default:
-        if (endGesture(d)) reportEdit(d.last);
-    }
+    d?.finish();
   };
 
   return {

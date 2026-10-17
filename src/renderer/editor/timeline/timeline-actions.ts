@@ -9,40 +9,28 @@ import {
   type Removal,
 } from "@/shared/timeline/edits";
 import type { FlatTimeline } from "@/shared/timeline/flatten";
+import type { Marker } from "@/shared/schema/workflow";
 import { framesToMs } from "@/shared/timeline/time";
 import { usePlayback } from "../../store/playback";
-import { useUiStore } from "../../store/ui";
+import { toggleIds, useUiStore } from "../../store/ui";
 import { useWorkflowStore } from "../../store/workflow";
 import { useTimeline } from "./timeline-state";
 
 export function selectNodes(ids: string[], additive: boolean, sourceNodeId: string | null): void {
   const ui = useUiStore.getState();
-  let next = ids;
-  if (additive) {
-    const set = new Set(ui.selectedIds);
-    for (const id of ids) {
-      if (set.has(id)) set.delete(id);
-      else set.add(id);
-    }
-    next = [...set];
-  }
-  ui.selectPinned(next, sourceNodeId);
+  ui.selectPinned(additive ? toggleIds(ui.selectedIds, ids) : ids, sourceNodeId);
   if (ids.length === 1) ui.revealNode(ids[0]);
-}
-
-export function commitEdit(r: EditResult): void {
-  if (!r.ok) {
-    toast.error(r.error);
-    return;
-  }
-  useWorkflowStore.getState().update(() => r.workflow);
-  if (r.message) toast.success(r.message);
 }
 
 export function reportEdit(r: EditResult | null): void {
   if (!r) return;
   if (!r.ok) toast.error(r.error);
   else if (r.message) toast.success(r.message);
+}
+
+export function commitEdit(r: EditResult): void {
+  if (r.ok) useWorkflowStore.getState().update(() => r.workflow);
+  reportEdit(r);
 }
 
 export function splitAtPlayhead(ctx: EditContext, flat: FlatTimeline, selected: Set<string>) {
@@ -102,14 +90,8 @@ export function addMarkerAtPlayhead(fps: number): void {
   useTimeline.getState().selectMarker(id);
 }
 
-export function renameMarker(id: string, label: string): void {
+export function patchMarker(id: string, patch: Partial<Omit<Marker, "id">>): void {
   useWorkflowStore
     .getState()
-    .setMarkers((list) => list.map((m) => (m.id === id ? { ...m, label } : m)));
-}
-
-export function moveMarker(id: string, atMs: number): void {
-  useWorkflowStore
-    .getState()
-    .setMarkers((list) => list.map((m) => (m.id === id ? { ...m, atMs } : m)));
+    .setMarkers((list) => list.map((m) => (m.id === id ? { ...m, ...patch } : m)));
 }

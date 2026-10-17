@@ -1,6 +1,7 @@
 import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
 import { BACKDROPS } from "../backdrops";
+import { MAX_VOLUME } from "../nodes/params";
 import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
 
 const source = {
@@ -205,7 +206,7 @@ const components: Array<Omit<ElementMetaInput, "source" | "fixedProps">> = [
       fit: z.enum(["contain", "cover", "fill"]).default("cover").meta({ description: "Fit" }),
       loop: z.boolean().default(false).meta({ description: "Loop" }),
       muted: z.boolean().default(true).meta({ description: "Muted" }),
-      volume: num(1, 0, 2, "Volume", 0.05),
+      volume: num(1, 0, MAX_VOLUME, "Volume", 0.05),
       playbackRate: num(1, 0.25, 4, "Speed", 0.05),
       trimBeforeMs: num(0, 0, 3_600_000, "Start at (ms)", 100),
     }),

@@ -1,10 +1,10 @@
 import { usePlayback } from "../../store/playback";
-import { TOOLS, ZOOM_STEP } from "./timeline-toolbar";
 import { useTimeline } from "./timeline-state";
-import type { TimelineActions } from "./timeline-view";
+import { COMMAND_KEYS, TOOLS, ZOOM_STEP } from "./timeline-tools";
+import type { TimelineCommands } from "./use-timeline-commands";
 
 type KeyContext = {
-  actions: TimelineActions | null;
+  commands: TimelineCommands;
   fps: number;
   duration: number;
   shift: boolean;
@@ -16,13 +16,17 @@ type Keymap = Partial<Record<string, KeyAction>>;
 
 const playback = () => usePlayback.getState();
 
-const zoomIn: KeyAction = (c) => c.actions?.zoomBy(ZOOM_STEP);
-const zoomOut: KeyAction = (c) => c.actions?.zoomBy(1 / ZOOM_STEP);
-const remove: KeyAction = (c) => c.actions?.remove();
+const zoomIn: KeyAction = (c) => c.commands.zoomBy(ZOOM_STEP);
+const zoomOut: KeyAction = (c) => c.commands.zoomBy(1 / ZOOM_STEP);
+const remove: KeyAction = (c) => c.commands.remove();
 
-const CTRL_KEYS: Keymap = { "=": zoomIn, "+": zoomIn, "-": zoomOut };
+const ZOOM_KEYS: Keymap = { "=": zoomIn, "+": zoomIn, "-": zoomOut };
+
+const CTRL_KEYS: Keymap = ZOOM_KEYS;
 
 const ALT_KEYS: Keymap = { x: () => playback().clearRange() };
+
+const commandKey = (key: string) => key.toLowerCase();
 
 const PLAIN_KEYS: Keymap = {
   " ": () => playback().toggle(),
@@ -35,16 +39,14 @@ const PLAIN_KEYS: Keymap = {
   end: (c) => playback().seek(c.duration - 1),
   i: () => playback().setIn(playback().frame),
   o: () => playback().setOut(playback().frame),
-  "=": zoomIn,
-  "+": zoomIn,
-  "-": zoomOut,
-  z: (c) => c.actions?.fit(),
-  s: (c) => c.actions?.split(),
-  m: (c) => c.actions?.addMarker(),
+  ...ZOOM_KEYS,
+  [commandKey(COMMAND_KEYS.fit)]: (c) => c.commands.fit(),
+  [commandKey(COMMAND_KEYS.split)]: (c) => c.commands.split(),
+  [commandKey(COMMAND_KEYS.addMarker)]: (c) => c.commands.addMarker(),
   delete: remove,
   backspace: remove,
   ...Object.fromEntries(
-    TOOLS.map((t) => [t.key.toLowerCase(), () => useTimeline.getState().setTool(t.id)]),
+    TOOLS.map((t) => [commandKey(t.key), () => useTimeline.getState().setTool(t.id)]),
   ),
 };
 

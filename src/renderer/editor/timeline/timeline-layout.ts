@@ -22,6 +22,11 @@ export const videoRowTop = (layout: LaneLayout, lane: number): number =>
 export const audioRowTop = (layout: LaneLayout, lane: number): number =>
   layout.audioTop + lane * AUDIO_H;
 
+export const barBox = (from: number, to: number, ppf: number) => ({
+  left: from * ppf,
+  width: Math.max(2, (to - from) * ppf),
+});
+
 export const inView = (view: Viewport, from: number, to: number): boolean =>
   to * view.pxPerFrame >= view.left - OFFSCREEN_PX &&
   from * view.pxPerFrame <= view.left + view.width + OFFSCREEN_PX;

@@ -1,88 +1,89 @@
-import type { Bus, Comp, DuckSettings } from "@/shared/mix/types";
+import {
+  COMP_RANGES,
+  DUCK_RANGES,
+  type Bus,
+  type Comp,
+  type DuckSettings,
+} from "@/shared/mix/types";
 import { Checkbox } from "@/renderer/components/ui/checkbox";
 import { Label } from "@/renderer/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import { Switch } from "@/renderer/components/ui/switch";
 import { cn } from "@/renderer/lib/utils";
 import { db, ms } from "./audio-format";
-import { commitOnce, Knob, type DragPhase, type KnobSpec } from "./knob";
+import { commitOnce, type DragPhase } from "./gesture";
+import { Knobs, type KnobSpec } from "./knob";
+import { rangeKnob } from "./knob-math";
+import { ReductionReadout, type Reduction } from "./meter";
 
-type CompField = "threshold" | "ratio" | "attack" | "release" | "makeup";
+type CompField = keyof typeof COMP_RANGES;
 
 const COMP_KNOBS: Array<KnobSpec<CompField>> = [
-  { field: "threshold", label: "Threshold", min: -60, max: 0, step: 0.5, reset: -18, format: db },
+  {
+    field: "threshold",
+    label: "Threshold",
+    ...rangeKnob(COMP_RANGES.threshold),
+    step: 0.5,
+    format: db,
+  },
   {
     field: "ratio",
     label: "Ratio",
-    min: 1,
-    max: 20,
+    ...rangeKnob(COMP_RANGES.ratio),
     step: 0.1,
-    reset: 3,
     log: true,
     format: (v) => `${v.toFixed(1)}:1`,
   },
   {
     field: "attack",
     label: "Attack",
-    min: 0.1,
-    max: 500,
+    ...rangeKnob(COMP_RANGES.attack),
     step: 0.1,
-    reset: 10,
     log: true,
     format: ms,
   },
   {
     field: "release",
     label: "Release",
-    min: 5,
-    max: 3000,
+    ...rangeKnob(COMP_RANGES.release),
     step: 1,
-    reset: 150,
     log: true,
     format: ms,
   },
-  { field: "makeup", label: "Makeup", min: 0, max: 24, step: 0.5, reset: 0, format: db },
+  { field: "makeup", label: "Makeup", ...rangeKnob(COMP_RANGES.makeup), step: 0.5, format: db },
 ];
 
-type DuckField = "amount" | "attack" | "release" | "ignoreShorterMs";
+type DuckField = keyof typeof DUCK_RANGES;
 
 const DUCK_KNOBS: Array<KnobSpec<DuckField>> = [
   {
     field: "amount",
     label: "Amount",
-    min: 1,
-    max: 24,
+    ...rangeKnob(DUCK_RANGES.amount),
     step: 0.5,
-    reset: 10,
     format: (v) => `${v.toFixed(1)} dB`,
   },
   {
     field: "attack",
     label: "Attack",
-    min: 5,
-    max: 2000,
+    ...rangeKnob(DUCK_RANGES.attack),
     step: 1,
-    reset: 80,
     log: true,
     format: ms,
   },
   {
     field: "release",
     label: "Release",
-    min: 20,
-    max: 5000,
+    ...rangeKnob(DUCK_RANGES.release),
     step: 1,
-    reset: 400,
     log: true,
     format: ms,
   },
   {
     field: "ignoreShorterMs",
     label: "Ignore under",
-    min: 0,
-    max: 5000,
+    ...rangeKnob(DUCK_RANGES.ignoreShorterMs),
     step: 50,
-    reset: 0,
     format: (v) => (v ? ms(v) : "Off"),
   },
 ];
@@ -112,7 +113,7 @@ export function CompPopover({
   onChange,
 }: {
   comp: Comp;
-  reduction: number | null;
+  reduction: Reduction;
   onChange: (comp: Comp, phase: DragPhase) => void;
 }) {
   return (
@@ -130,9 +131,7 @@ export function CompPopover({
         }
       >
         <span>Comp</span>
-        {comp.on && reduction !== null ? (
-          <span className="tabular-nums">−{reduction.toFixed(1)}</span>
-        ) : null}
+        {comp.on ? <ReductionReadout reduction={reduction} /> : null}
       </PopoverTrigger>
       <PopoverContent className="w-80">
         <SwitchHeader
@@ -142,16 +141,12 @@ export function CompPopover({
           onChange={(on) => commitOnce(onChange, { ...comp, on })}
         />
         <div className="grid grid-cols-5 gap-1">
-          {COMP_KNOBS.map(({ field, reset, ...spec }) => (
-            <Knob
-              key={field}
-              {...spec}
-              value={comp[field]}
-              reset={reset ?? comp[field]}
-              disabled={!comp.on}
-              onChange={(v, phase) => onChange({ ...comp, [field]: v }, phase)}
-            />
-          ))}
+          <Knobs
+            specs={COMP_KNOBS}
+            values={comp}
+            disabled={!comp.on}
+            onChange={(field, v, phase) => onChange({ ...comp, [field]: v }, phase)}
+          />
         </div>
         <p className="text-muted-foreground text-xs">Attack and release are in milliseconds.</p>
       </PopoverContent>
@@ -211,16 +206,12 @@ export function DuckPopover({
             ))}
         </div>
         <div className="grid grid-cols-4 gap-1">
-          {DUCK_KNOBS.map(({ field, reset, ...spec }) => (
-            <Knob
-              key={field}
-              {...spec}
-              value={duck[field]}
-              reset={reset ?? duck[field]}
-              disabled={!duck.on}
-              onChange={(v, phase) => onChange({ ...duck, [field]: v }, phase)}
-            />
-          ))}
+          <Knobs
+            specs={DUCK_KNOBS}
+            values={duck}
+            disabled={!duck.on}
+            onChange={(field, v, phase) => onChange({ ...duck, [field]: v }, phase)}
+          />
         </div>
         <p className="text-muted-foreground text-xs">
           Louder sounds lower it more. Attack and release are in milliseconds. Sounds shorter than

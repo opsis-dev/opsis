@@ -11,7 +11,7 @@ import { defineNode, many, opt, port, withClip } from "./define";
 import { mediaInput } from "./media";
 import { asset, audioEnvelope, bool, more, ms, volume } from "./params";
 import { formatDuration, plural } from "../format";
-import { msToFrames } from "../timeline/time";
+import { msToExactFrames, msToFrames } from "../timeline/time";
 import { baseName, projectRef } from "../asset-ref";
 
 const pct = (v: number) => `${Math.round(v * 100)} %`;
@@ -152,7 +152,7 @@ const sfxNode = defineNode({
     if (!src) return { audio: { type: "audio", items: [] } };
     const lengthMs = mediaInput(inputs.media)?.durationMs ?? builtinSound(src)?.durationMs;
     const startFrame = params.atAction
-      ? Math.round((params.offsetMs / 1000) * settings.fps)
+      ? Math.round(msToExactFrames(params.offsetMs, settings.fps))
       : params.atMs
         ? msToFrames(params.atMs, settings.fps)
         : 0;

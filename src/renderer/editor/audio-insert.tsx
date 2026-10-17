@@ -46,10 +46,8 @@ function applyPreview(chain: Chain, now: number): void {
 }
 
 function restore(master: GainNode, ac: AudioContext): void {
-  try {
-    master.disconnect();
-    master.connect(ac.destination);
-  } catch {}
+  master.disconnect();
+  master.connect(ac.destination);
 }
 
 function AudioInsert() {

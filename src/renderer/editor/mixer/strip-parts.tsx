@@ -1,4 +1,5 @@
-import type { BusSettings, Strip } from "@/shared/mix/types";
+import type { StemLevels } from "@/shared/mix/result";
+import { HIGHPASS_RANGE, type BusSettings, type Strip } from "@/shared/mix/types";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { cn } from "@/renderer/lib/utils";
@@ -7,16 +8,28 @@ import { bindChange, bindEq, bindGain, bindHighpass, type PreviewTarget } from "
 import { CompPopover } from "./dynamics-popovers";
 import { EqPopover } from "./eq-popover";
 import { Fader } from "./fader";
+import type { Change } from "./gesture";
 import { Knob } from "./knob";
-import { Meter, type Level } from "./meter";
+import { rangeKnob } from "./knob-math";
+import { LiveMeter, type Reduction } from "./meter";
 
-export type StripControls = BusSettings & Pick<Strip, "mute" | "solo">;
+type StripControls = BusSettings & Pick<Strip, "mute" | "solo">;
 
 export type StripBinding = {
   controls: StripControls;
   target: PreviewTarget;
   update: (fn: (c: StripControls) => Partial<StripControls>) => void;
 };
+
+export function stripBinding<T extends StripControls>(
+  controls: T,
+  target: PreviewTarget,
+  update: (fn: (c: T) => T) => void,
+): StripBinding {
+  return { controls, target, update: (fn) => update((c) => ({ ...c, ...fn(c) })) };
+}
+
+type Levels = Pick<StemLevels, "peak" | "rms"> | null | undefined;
 
 export function StripShell({
   children,
@@ -101,10 +114,8 @@ export function HighpassKnob({ controls, target, update }: StripBinding) {
       label="Hz"
       size={24}
       value={controls.highpass.freq}
-      min={20}
-      max={1000}
+      {...rangeKnob(HIGHPASS_RANGE)}
       step={1}
-      reset={80}
       log
       format={hz}
       disabled={!controls.highpass.on}
@@ -120,7 +131,7 @@ export function StripTone({
   target,
   update,
   reduction,
-}: StripBinding & { reduction: number | null }) {
+}: StripBinding & { reduction: Reduction }) {
   return (
     <>
       <EqPopover
@@ -150,28 +161,57 @@ export function StripTone({
   );
 }
 
+export function FaderMeter({
+  label,
+  value,
+  onChange,
+  levels,
+  reduction,
+  compOn,
+  holdFrames,
+  className,
+}: {
+  label: string;
+  value: number;
+  onChange: Change<number>;
+  levels: Levels;
+  reduction: Reduction;
+  compOn: boolean;
+  holdFrames: number;
+  className?: string;
+}) {
+  return (
+    <>
+      <div className={cn("flex min-h-16 flex-1 items-stretch gap-2 py-0.5", className)}>
+        <Fader label={label} value={value} onChange={onChange} />
+        <LiveMeter levels={levels} reduction={reduction} compOn={compOn} holdFrames={holdFrames} />
+      </div>
+      <span className="text-[11px] whitespace-nowrap tabular-nums">{db(value)} dB</span>
+    </>
+  );
+}
+
 export function StripLevel({
   controls,
   target,
   update,
   label,
-  level,
+  levels,
   reduction,
-}: StripBinding & { label: string; level: Level; reduction: number | null }) {
+  holdFrames,
+}: StripBinding & { label: string; levels: Levels; reduction: Reduction; holdFrames: number }) {
   return (
     <>
-      <div className="flex min-h-16 flex-1 shrink items-stretch gap-2 py-0.5">
-        <Fader
-          label={label}
-          value={controls.fader}
-          onChange={bindGain(target, "fader", controls.fader, (fader) => update(() => ({ fader })))}
-        />
-        <Meter
-          level={level}
-          reduction={controls.comp.on && reduction !== null ? reduction : undefined}
-        />
-      </div>
-      <span className="text-[11px] tabular-nums">{db(controls.fader)} dB</span>
+      <FaderMeter
+        label={label}
+        value={controls.fader}
+        onChange={bindGain(target, "fader", controls.fader, (fader) => update(() => ({ fader })))}
+        levels={levels}
+        reduction={reduction}
+        compOn={controls.comp.on}
+        holdFrames={holdFrames}
+        className="shrink"
+      />
       <MuteSolo
         mute={controls.mute}
         solo={controls.solo}

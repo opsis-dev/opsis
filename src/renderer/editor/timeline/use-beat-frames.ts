@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { Waveform } from "@/shared/analysis";
 import type { AudioBar, FlatTimeline } from "@/shared/timeline/flatten";
-import { useMedia } from "../../store/media";
+import { loaded, useMedia } from "../../store/media";
 
 const MAX_LOOPS = 200;
 
@@ -27,9 +27,8 @@ export function useBeatFrames(flat: FlatTimeline): number[] {
   return useMemo(
     () =>
       flat.audio.flatMap((a) => {
-        const wave = waveforms[a.src];
-        if (a.role !== "music" || !wave || typeof wave !== "object" || !wave.beats.length)
-          return [];
+        const wave = loaded(waveforms[a.src]);
+        if (a.role !== "music" || !wave?.beats.length) return [];
         return barBeats(a, wave, flat.fps);
       }),
     [flat, waveforms],

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Removal } from "@/shared/timeline/edits";
 import {
   AlertDialog,
@@ -10,6 +11,25 @@ import {
   AlertDialogTitle,
 } from "@/renderer/components/ui/alert-dialog";
 
+function RemoveContent({ count, onRemove }: { count: number; onRemove: () => void }) {
+  return (
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Remove {count} nodes?</AlertDialogTitle>
+        <AlertDialogDescription>
+          These nodes only feed the selected clips. Undo brings them back.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction variant="destructive" onClick={onRemove}>
+          Remove
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  );
+}
+
 export function RemoveDialog({
   removal,
   onConfirm,
@@ -19,28 +39,19 @@ export function RemoveDialog({
   onConfirm: (removal: Removal) => void;
   onClose: () => void;
 }) {
+  const [shown, setShown] = useState(removal);
+  if (removal && removal !== shown) setShown(removal);
   return (
     <AlertDialog open={!!removal} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Remove {removal?.nodeIds.length} nodes?</AlertDialogTitle>
-          <AlertDialogDescription>
-            These nodes only feed the selected clips. Undo brings them back.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            onClick={() => {
-              if (removal) onConfirm(removal);
-              onClose();
-            }}
-          >
-            Remove
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
+      {shown ? (
+        <RemoveContent
+          count={shown.nodeIds.length}
+          onRemove={() => {
+            onConfirm(shown);
+            onClose();
+          }}
+        />
+      ) : null}
     </AlertDialog>
   );
 }

@@ -5,11 +5,11 @@ import type { VideoBar } from "@/shared/timeline/flatten";
 import { cn } from "@/renderer/lib/utils";
 import { FilmstripCanvas } from "./bar-canvas";
 import { nodeTitle, type BarContext } from "./bar-context";
-import { envelopeKeysFor } from "./envelope";
-import { EnvelopeOverlay, useKeyframeAdder } from "./envelope-overlay";
+import { BarFrame, BarLabel } from "./bar-frame";
+import { EnvelopeOverlay, useBarEnvelope } from "./envelope-overlay";
 import { commitEdit } from "./timeline-actions";
 import type { VideoEditKind } from "./timeline-drag";
-import { BAR_INSET, VIDEO_H, hitEdge } from "./timeline-layout";
+import { BAR_INSET, VIDEO_H, barBox, hitEdge } from "./timeline-layout";
 import { useTimeline, type TimelineTool } from "./timeline-state";
 
 const DEFAULT_TONE = "bg-track-video";
@@ -59,17 +59,16 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
   const { workflow, tool, drag } = ctx;
   const ppf = ctx.viewport.pxPerFrame;
   const videoEnvelope = useTimeline((s) => s.videoEnvelope);
-  const left = bar.from * ppf;
-  const width = Math.max(2, (bar.to - bar.from) * ppf);
+  const { left, width } = barBox(bar.from, bar.to, ppf);
   const isSelected = ctx.selected.has(bar.nodeId);
   const related = !isSelected && bar.chain.some((l) => l.nodeId && ctx.selected.has(l.nodeId));
   const title = nodeTitle(workflow, bar.nodeId);
   const wrappers = bar.chain
     .slice(1)
     .flatMap((l) => (l.nodeId && l.nodeId !== bar.nodeId ? [nodeTitle(workflow, l.nodeId)] : []));
-  const keys = videoEnvelope ? envelopeKeysFor(workflow, bar.nodeId, videoEnvelope) : null;
-  const target = keys && videoEnvelope ? { nodeId: bar.nodeId, prop: videoEnvelope, keys } : null;
-  const addKey = useKeyframeAdder(target, (clientX) => bar.localAt(drag.xToFrame(clientX)));
+  const { target, addKey } = useBarEnvelope(workflow, bar.nodeId, videoEnvelope, (clientX) =>
+    bar.localAt(drag.xToFrame(clientX)),
+  );
 
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.beginPointer(e)) return;
@@ -84,22 +83,20 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
   };
 
   return (
-    <div
+    <BarFrame
+      ctx={ctx}
+      left={left}
+      width={width}
+      selected={isSelected}
+      title={[title, ...wrappers].join(" · ")}
       className={cn(
-        "absolute top-1 bottom-1 overflow-hidden rounded-md border border-foreground/10",
         toneFor(ctx, bar),
-        isSelected && "ring-primary ring-2",
         related && "ring-1 ring-foreground/40",
         TOOL_CURSOR[tool] ?? "cursor-grab",
       )}
-      style={{ left, width }}
-      title={[title, ...wrappers].join(" · ")}
+      cursorAt={TOOL_CURSOR[tool] ? null : (e) => (hitEdge(e, width) ? "ew-resize" : "")}
       onPointerDown={onDown}
-      onPointerMove={(e) => {
-        if (drag.isDragging() || TOOL_CURSOR[tool]) return;
-        e.currentTarget.style.cursor = hitEdge(e, width) ? "ew-resize" : "";
-      }}
-      onPointerDownCapture={addKey}
+      onAddKey={addKey}
     >
       <FilmstripCanvas
         bar={bar}
@@ -109,12 +106,12 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
         view={ctx.viewport}
         fps={ctx.flat.fps}
       />
-      <span className="pointer-events-none relative block truncate px-1.5 py-0.5 text-[11px] leading-tight font-medium text-foreground drop-shadow">
+      <BarLabel className="block py-0.5 leading-tight">
         {title}
         {wrappers.length ? (
           <span className="text-foreground/60"> · {wrappers.join(" · ")}</span>
         ) : null}
-      </span>
+      </BarLabel>
       {ctx.flat.marks
         .filter((m) => m.barKey === bar.key && m.kind !== "chapter")
         .map((m) => (
@@ -140,6 +137,6 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
         title="Drag to change the speed"
         className="absolute top-0 right-0 size-2.5 cursor-nesw-resize bg-foreground/30 [clip-path:polygon(0_0,100%_0,100%_100%)] hover:bg-foreground/70"
       />
-    </div>
+    </BarFrame>
   );
 }

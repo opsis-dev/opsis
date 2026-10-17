@@ -20,6 +20,8 @@ import type {
   TimelineTrack,
 } from "../schema/timeline";
 import { clamp, numberOr } from "../math";
+import { isProjectRef } from "../asset-ref";
+import { msToExactFrames } from "./time";
 
 type Side = "start" | "end";
 
@@ -41,12 +43,17 @@ export type ChainLink = {
   to: number;
 };
 
+export type BarThumbnail =
+  | { kind: "filmstrip"; src: string; speed: number; trimMs: number }
+  | { kind: "still"; src: string };
+
 export type VideoBar = {
   key: string;
   itemId: string;
   nodeId: string;
   component: string;
   props: Record<string, unknown>;
+  thumbnail: BarThumbnail | null;
   from: number;
   to: number;
   lane: number;
@@ -267,6 +274,27 @@ function transitionMark(p: Placed, previousLength: number): TransitionMark | nul
   };
 }
 
+function thumbnailOf(item: TimelineItem): BarThumbnail | null {
+  const recording = recordingOf(item);
+  if (recording) {
+    const src = recording.proxySrc || recording.src;
+    return src
+      ? { kind: "filmstrip", src, speed: numberOr(recording.speed, 1) || 1, trimMs: 0 }
+      : null;
+  }
+  const { src, trimBeforeMs } = item.props;
+  if (typeof src !== "string" || !src) return null;
+  switch (item.component) {
+    case "core/video":
+      return { kind: "filmstrip", src, speed: 1, trimMs: numberOr(trimBeforeMs, 0) };
+    case "core/image":
+    case "core/still":
+      return isProjectRef(src) ? { kind: "still", src } : null;
+    default:
+      return null;
+  }
+}
+
 function leafBar(p: Placed, link: ChainLink, order: number): VideoBar {
   const { item, walk, from, to } = p;
   const startContent = from > p.absStart + EPS ? contentAt(p, from) : item.from;
@@ -277,6 +305,7 @@ function leafBar(p: Placed, link: ChainLink, order: number): VideoBar {
     nodeId: item.nodeId ?? walk.chain.find((l) => l.nodeId)?.nodeId ?? item.id,
     component: item.component,
     props: item.props,
+    thumbnail: thumbnailOf(item),
     from,
     to,
     lane: 0,
@@ -438,7 +467,7 @@ function clipSoundBar(bar: VideoBar, fps: number): AudioBar[] {
       from: bar.from,
       to: bar.to,
       lane: 0,
-      trimBefore: Math.round(bar.contentStart + (numberOr(trimBeforeMs, 0) / 1000) * fps),
+      trimBefore: Math.round(bar.contentStart + msToExactFrames(numberOr(trimBeforeMs, 0), fps)),
       loop: !!loop,
       volume: numberOr(volume, 1),
       bar,

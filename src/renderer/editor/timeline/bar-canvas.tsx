@@ -1,18 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { clamp, numberOr } from "@/shared/math";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { clamp } from "@/shared/math";
 import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
-import type { AudioBar, VideoBar } from "@/shared/timeline/flatten";
+import { MAX_VOLUME } from "@/shared/nodes/params";
+import type { AudioBar, BarThumbnail, VideoBar } from "@/shared/timeline/flatten";
 import { cn } from "@/renderer/lib/utils";
-import { useMedia } from "../../store/media";
+import { loadedFilmstrip, loadedWaveform, useMedia } from "../../store/media";
 import { fileUrl } from "../file-url";
 import { OFFSCREEN_PX, type Viewport } from "./timeline-layout";
-import { isProjectRef } from "@/shared/asset-ref";
 
 const END_EPSILON = 0.001;
 const DISPLAY_RANGE_DB = 48;
 const SILENT_AMPLITUDE = 1e-4;
 const WAVE_FILL = 0.95;
-const MAX_WAVE_GAIN = 2;
+const CACHED_IMAGES = 64;
 
 type Visible = { offset: number; width: number };
 
@@ -27,11 +27,14 @@ const images = new Map<string, HTMLImageElement>();
 
 function cachedImage(ref: string): HTMLImageElement {
   let img = images.get(ref);
-  if (!img) {
+  if (img) images.delete(ref);
+  else {
     img = new Image();
     img.src = fileUrl(ref);
-    images.set(ref, img);
   }
+  images.set(ref, img);
+  const [oldest] = images.keys();
+  if (images.size > CACHED_IMAGES && oldest !== undefined) images.delete(oldest);
   return img;
 }
 
@@ -104,49 +107,18 @@ function BarCanvas({
 const tileStart = (left: number, offset: number, tileW: number) =>
   Math.floor((left + offset) / tileW) * tileW - left;
 
-function stringProp(props: Record<string, unknown>, key: string): string | null {
-  const v = props[key];
-  return typeof v === "string" && v ? v : null;
-}
+type Filmed = Extract<BarThumbnail, { kind: "filmstrip" }>;
 
-type BarSource =
-  | { kind: "filmstrip"; src: string; sourceMs: (local: number, fps: number) => number }
-  | { kind: "still"; src: string };
-
-function barSource(bar: VideoBar): BarSource | null {
-  const p = bar.props;
-  switch (bar.component) {
-    case "core/recording": {
-      const src = stringProp(p, "proxySrc") ?? stringProp(p, "src");
-      const speed = numberOr(p.speed, 1) || 1;
-      return src
-        ? { kind: "filmstrip", src, sourceMs: (local, fps) => (local / fps) * speed * 1000 }
-        : null;
-    }
-    case "core/video": {
-      const src = stringProp(p, "src");
-      const trimMs = numberOr(p.trimBeforeMs, 0);
-      return src
-        ? { kind: "filmstrip", src, sourceMs: (local, fps) => (local / fps) * 1000 + trimMs }
-        : null;
-    }
-    case "core/image":
-    case "core/still": {
-      const src = stringProp(p, "src");
-      return src && isProjectRef(src) ? { kind: "still", src } : null;
-    }
-    default:
-      return null;
-  }
-}
+const sourceMs = (thumb: Filmed, local: number, fps: number): number =>
+  (local / fps) * thumb.speed * 1000 + thumb.trimMs;
 
 type SpriteGeometry = {
   bar: VideoBar;
+  thumb: Filmed;
   left: number;
   height: number;
   pxPerFrame: number;
   fps: number;
-  sourceMs: (local: number, fps: number) => number;
 };
 
 function drawSprite(
@@ -160,7 +132,7 @@ function drawSprite(
   for (let x = tileStart(g.left, part.offset, tileW); x < part.offset + part.width; x += tileW) {
     const abs = (g.left + x + tileW / 2) / g.pxPerFrame;
     const at = clamp(abs, g.bar.from, g.bar.to - END_EPSILON);
-    const ms = g.sourceMs(g.bar.localAt(at), g.fps);
+    const ms = sourceMs(g.thumb, g.bar.localAt(at), g.fps);
     const index = clamp(Math.floor(ms / strip.intervalMs), 0, strip.count - 1);
     ctx.drawImage(
       img,
@@ -203,10 +175,9 @@ export function FilmstripCanvas({
   view: Viewport;
   fps: number;
 }) {
-  const source = useMemo(() => barSource(bar), [bar]);
+  const source = bar.thumbnail;
   const filmSrc = source?.kind === "filmstrip" ? source.src : null;
-  const entry = useMedia((s) => (filmSrc ? s.filmstrips[filmSrc] : undefined));
-  const strip = entry && typeof entry === "object" ? entry : null;
+  const strip = useMedia(loadedFilmstrip(filmSrc));
   useEffect(() => {
     if (filmSrc) useMedia.getState().filmstrip(filmSrc);
   }, [filmSrc]);
@@ -218,11 +189,11 @@ export function FilmstripCanvas({
       if (source?.kind === "filmstrip" && strip && spriteImg)
         drawSprite(ctx, part, strip, spriteImg, {
           bar,
+          thumb: source,
           left,
           height,
           pxPerFrame,
           fps,
-          sourceMs: source.sourceMs,
         });
       else if (stillImg) drawStill(ctx, part, stillImg, left, height);
     },
@@ -272,7 +243,7 @@ function drawWaveform(
     if (bar.loop && durationS > 0) t %= durationS;
     const k = Math.floor(t * level.rate);
     if (k < 0 || k >= level.max.length) continue;
-    const gain = Math.min(MAX_WAVE_GAIN, bar.volume * g.gain(abs));
+    const gain = Math.min(MAX_VOLUME, bar.volume * g.gain(abs));
     const top = mid - shape(level.max[k] * gain) * mid * WAVE_FILL;
     const bottom = mid - shape(level.min[k] * gain) * mid * WAVE_FILL;
     ctx.fillRect(i, top, 1, Math.max(1, bottom - top));
@@ -296,8 +267,7 @@ export function WaveformCanvas({
   fps: number;
   gain: (abs: number) => number;
 }) {
-  const entry = useMedia((s) => s.waveforms[bar.src]);
-  const wave = entry && typeof entry === "object" ? entry : null;
+  const wave = useMedia(loadedWaveform(bar.src));
   useEffect(() => {
     useMedia.getState().waveform(bar.src);
   }, [bar.src]);

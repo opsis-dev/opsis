@@ -1,25 +1,31 @@
 import { round3 } from "@/shared/math";
 import type { Keyframe } from "@/shared/schema/timeline";
+import type { Workflow } from "@/shared/schema/workflow";
 import { samplePoints } from "@/shared/timeline/envelope";
-import { addKeyframe, ENVELOPE_INFO, setEnvelopeKeys, type EnvelopeKey } from "./envelope";
+import {
+  addKeyframe,
+  ENVELOPE_INFO,
+  envelopeTarget,
+  envelopeY,
+  setEnvelopeKeys,
+  type EnvelopeKey,
+  type EnvelopeTarget,
+} from "./envelope";
 import type { KeyStart } from "./use-timeline-drag";
 import { useDoublePress } from "./use-double-press";
 
-const PAD = 5;
+type LineShape = {
+  keys: Keyframe[];
+  width: number;
+  rest: number;
+  toX: (local: number) => number;
+  y: (value: number) => number;
+};
 
-export type EnvelopeTarget = { nodeId: string; prop: EnvelopeKey; keys: Keyframe[] };
-
-function envelopeLine(
-  keys: Keyframe[],
-  width: number,
-  rest: number,
-  toX: (local: number) => number,
-  y: (value: number) => number,
-): string {
+function envelopeLine({ keys, width, rest, toX, y }: LineShape): string {
   const samples = samplePoints(keys);
-  if (!samples.length) return `0,${y(rest)} ${width},${y(rest)}`;
-  const first = samples[0].value;
-  const last = samples[samples.length - 1].value;
+  const first = samples.at(0)?.value ?? rest;
+  const last = samples.at(-1)?.value ?? rest;
   return [
     `0,${y(first)}`,
     ...samples.map((p) => `${toX(p.frame)},${y(p.value)}`),
@@ -27,10 +33,19 @@ function envelopeLine(
   ].join(" ");
 }
 
+function keyIds(keys: Keyframe[]): string[] {
+  const seen = new Map<number, number>();
+  return keys.map((k) => {
+    const n = seen.get(k.frame) ?? 0;
+    seen.set(k.frame, n + 1);
+    return n ? `${k.frame}#${n}` : String(k.frame);
+  });
+}
+
 const onKeyframe = (e: React.PointerEvent) =>
   e.target instanceof Element && e.target.closest("[data-keyframe]") !== null;
 
-export function useKeyframeAdder(
+function useKeyframeAdder(
   target: EnvelopeTarget | null,
   localAt: (clientX: number) => number,
 ): (e: React.PointerEvent) => void {
@@ -40,6 +55,17 @@ export function useKeyframeAdder(
     e.stopPropagation();
     addKeyframe(target.nodeId, target.prop, target.keys, localAt(e.clientX));
   };
+}
+
+export function useBarEnvelope(
+  workflow: Workflow,
+  nodeId: string | undefined,
+  prop: EnvelopeKey | null,
+  localAt: (clientX: number) => number,
+) {
+  const target = envelopeTarget(workflow, nodeId, prop);
+  const addKey = useKeyframeAdder(target, localAt);
+  return { target, addKey };
 }
 
 export function EnvelopeOverlay({
@@ -58,9 +84,10 @@ export function EnvelopeOverlay({
   startKey: (e: React.PointerEvent, key: KeyStart) => void;
 }) {
   const { nodeId, prop, keys } = target;
-  const { label, min, max, rest } = ENVELOPE_INFO[prop];
+  const { label, rest } = ENVELOPE_INFO[prop];
   const isDouble = useDoublePress();
-  const y = (v: number) => PAD + (1 - (v - min) / (max - min)) * (height - PAD * 2);
+  const y = (v: number) => envelopeY(prop, v, height);
+  const ids = keyIds(keys);
   const remove = (index: number) =>
     setEnvelopeKeys(
       nodeId,
@@ -70,14 +97,14 @@ export function EnvelopeOverlay({
   return (
     <svg className="absolute inset-0 overflow-visible" width={width} height={height}>
       <polyline
-        points={envelopeLine(keys, width, rest, toX, y)}
+        points={envelopeLine({ keys, width, rest, toX, y })}
         fill="none"
         className="stroke-keyframe pointer-events-none"
         strokeWidth={1.25}
       />
       {keys.map((k, index) => (
         <circle
-          key={index}
+          key={ids[index]}
           data-keyframe
           cx={toX(k.frame)}
           cy={y(k.value)}
