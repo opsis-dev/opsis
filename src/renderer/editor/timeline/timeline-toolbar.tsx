@@ -29,6 +29,7 @@ import { ENVELOPE_INFO } from "./envelope";
 import { useFormatTime, useLoopRange, useTimeline } from "./timeline-state";
 import { COMMAND_KEYS, TOOLS, ZOOM_STEP } from "./timeline-tools";
 import type { TimelineCommands } from "./use-timeline-commands";
+import { findById } from "@/shared/lists";
 
 type VideoChoice = VisualEnvelopeKey | "off";
 
@@ -79,7 +80,7 @@ function ToolPicker() {
         size="sm"
         value={[tool]}
         onValueChange={(v) => {
-          const next = TOOLS.find((t) => t.id === v[0]);
+          const next = findById(TOOLS, v[0]);
           if (next) useTimeline.getState().setTool(next.id);
         }}
       >
@@ -216,7 +217,7 @@ function SourceBadges({
   workflow: Workflow;
   sourceNodeId: string | null;
 }) {
-  const source = workflow.nodes.find((n) => n.id === sourceNodeId);
+  const source = findById(workflow.nodes, sourceNodeId);
   const output = workflow.nodes.find((n) => isOutputType(n.type) && !n.disabled);
   const showingExport = !!source && isOutputType(source.type);
   return (

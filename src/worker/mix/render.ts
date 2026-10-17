@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, rm, stat } from "node:fs/promises";
+import { mkdir, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import {
@@ -23,10 +23,11 @@ import {
 } from "../../shared/mix/result";
 import { ToolError, type MediaDeps } from "../media/ffmpeg";
 import { shareInFlight } from "../../shared/memo";
-import { frameLevels, parseWav, SILENCE_DB } from "./wav";
+import { frameLevels, parseWav } from "./wav";
+import { SILENCE_DB } from "../../shared/mix/types";
 import { CancelledError, errorMessage, isCancelled } from "../../shared/errors";
 import { EPSILON, round1 } from "../../shared/math";
-import { datedFiles } from "../../engine/dir";
+import { fileIdentity, pruneDir } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
 import { atomicWrite, readJson } from "../../engine/json";
 import { projectPaths, toProjectRef } from "../../engine/project-paths";
@@ -44,14 +45,7 @@ const mixDir = (projectDir: string) => projectPaths(projectDir).mix;
 
 const sha = (value: unknown) => versionedHash(MIX_VERSION, value);
 
-async function identity(file: string): Promise<string> {
-  try {
-    const s = await stat(file);
-    return `${s.size}:${Math.round(s.mtimeMs)}`;
-  } catch {
-    return "missing";
-  }
-}
+const identity = (file: string): Promise<string> => fileIdentity(file).catch(() => "missing");
 
 type Stem = { hash: string; file: string; levels: StemLevels; reduction: number[] | null };
 
@@ -331,13 +325,8 @@ async function remember(projectDir: string, hashes: string[]): Promise<void> {
   const next = [hashes, ...recent.filter((h) => h.join() !== hashes.join())].slice(0, KEEP_PLANS);
   await atomicWrite(indexFile, JSON.stringify(next));
   const keep = new Set(next.flat());
-  const cutoff = Date.now() - UNUSED_STEM_MS;
-  const unused = (await datedFiles(dir)).filter(
-    (f) =>
-      f.name !== RECENT_FILE &&
-      !keep.has(f.name.split(".")[0]) &&
-      f.mtimeMs !== null &&
-      f.mtimeMs < cutoff,
-  );
-  await Promise.all(unused.map((f) => rm(f.file, { force: true })));
+  await pruneDir(dir, {
+    keep: (name) => name === RECENT_FILE || keep.has(name.split(".")[0]),
+    unusedForMs: UNUSED_STEM_MS,
+  });
 }

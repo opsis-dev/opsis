@@ -1,6 +1,6 @@
 import type { NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
-import { formatDuration } from "../format";
+import { formatDuration, percentText } from "../format";
 import { baseName } from "../asset-ref";
 import { framesToMs } from "../timeline/time";
 
@@ -26,8 +26,8 @@ export function coverRow(
   const shortest = Math.min(...clipFrames.filter((f) => f > 0));
   if (!Number.isFinite(shortest) || transitionFrames <= TRANSITION_WARN_RATIO * shortest)
     return null;
-  const pct = Math.min(100, Math.round((transitionFrames / shortest) * 100));
-  return row("triangle-alert", `Covers ${pct}% of a ${frameSecs(shortest, fps)} clip`, {
+  const covered = percentText(transitionFrames / shortest, { max: 100 });
+  return row("triangle-alert", `Covers ${covered} of a ${frameSecs(shortest, fps)} clip`, {
     tone: "warn",
     title: "Turn on Keep every clip whole, or make the transition shorter.",
   });

@@ -18,6 +18,7 @@ import { edgeId, nodeIdPrefix } from "../ids";
 import { formatNumberList, parseNumberList } from "../format";
 import { framesToMs, msToFrames } from "./time";
 import { absPosition, removeNodes } from "../workflow-edits";
+import { findById } from "../lists";
 
 export type EditContext = {
   workflow: Workflow;
@@ -54,7 +55,7 @@ const paramValue = (node: WorkflowNode, param: string): unknown =>
   node.params[param] ?? defaultParams(node.type)[param];
 
 function readParam(wf: Workflow, ref: ParamAt): number {
-  const node = wf.nodes.find((n) => n.id === ref.nodeId);
+  const node = findById(wf.nodes, ref.nodeId);
   if (!node) return 0;
   const raw = paramValue(node, ref.param);
   return ref.index === undefined ? finiteOr(raw, 0) : (parseNumberList(raw)[ref.index] ?? 0);
@@ -141,7 +142,7 @@ function placeNear(
   const pos = { x: abs.x + 60 + index * 30, y: abs.y + 170 + index * 150 };
   const parentId =
     source?.parentId && target?.parentId === source.parentId ? source.parentId : undefined;
-  const parent = parentId ? wf.nodes.find((n) => n.id === parentId) : undefined;
+  const parent = findById(wf.nodes, parentId);
   if (!parent) return { position: pos };
   const p = absPosition(wf, parent);
   return { position: { x: pos.x - p.x, y: pos.y - p.y }, parentId: parent.id };
@@ -156,8 +157,8 @@ function newNode(
   near: { source?: string; target?: string },
   index = 0,
 ): WorkflowNode {
-  const source = wf.nodes.find((n) => n.id === near.source);
-  const target = wf.nodes.find((n) => n.id === near.target);
+  const source = findById(wf.nodes, near.source);
+  const target = findById(wf.nodes, near.target);
   return {
     id: ctx.makeId(nodeIdPrefix(type)),
     type,
@@ -214,7 +215,7 @@ function insertOnEdge(
 const ROOT_PORT_TYPES = new Set<PortType>(["clip", "timeline"]);
 
 function rootEdge(ctx: EditContext): WorkflowEdge | undefined {
-  const source = ctx.workflow.nodes.find((n) => n.id === ctx.sourceNodeId);
+  const source = findById(ctx.workflow.nodes, ctx.sourceNodeId);
   const def = source && getNodeDef(source.type);
   if (!def) return undefined;
   return ctx.workflow.edges.find((e) => {
@@ -320,7 +321,7 @@ export function moveBar(ctx: EditContext, bar: VideoBar, delta: number): EditRes
     return shiftTo(ctx.workflow, owned.ref, content, ctx.fps, TOO_EARLY);
   }
   if (delta < 0) {
-    const container = ctx.workflow.nodes.find((n) => n.id === containerOf(bar));
+    const container = findById(ctx.workflow.nodes, containerOf(bar));
     return fail(
       container?.type === "timeline.sequence"
         ? "In a sequence a clip starts when the one before it ends. Shorten that one instead."
@@ -552,7 +553,7 @@ export function splitBar(ctx: EditContext, bar: VideoBar, at: number): EditResul
   const offset = Math.round((at - level.from) * level.rate);
   if (offset < 1) return fail("Put the playhead inside the clip.");
   const parts = splitParts(ctx, edge, offset);
-  const container = ctx.workflow.nodes.find((n) => n.id === edge.target);
+  const container = findById(ctx.workflow.nodes, edge.target);
   const next = freePortAfter(ctx.workflow, container, edge);
   const workflow =
     container && next

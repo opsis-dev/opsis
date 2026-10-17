@@ -36,6 +36,7 @@ import { projectFileRef, refToPath, rel, requireMedia } from "./util";
 import { projectRef } from "../../shared/asset-ref";
 import { formatPreciseDuration } from "../../shared/format";
 import { IMAGE_EXTENSIONS } from "../../shared/mime";
+import { writeJson } from "../../engine/json";
 
 const probedKind = (probe: ProbeResult): MediaValue["kind"] =>
   probe.video ? (probe.durationMs > 0 ? "video" : "image") : "audio";
@@ -333,7 +334,7 @@ const faststartExecutor = defineExecutor(faststartNode, async (ctx, inputs) => {
 const probeExecutor = defineExecutor(probeNode, async (ctx, inputs) => {
   const input = requireMedia(inputs.media);
   const probe = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
-  await writeFile(path.join(ctx.dir, "probe.json"), JSON.stringify(probe.raw, null, 2));
+  await writeJson(path.join(ctx.dir, "probe.json"), probe.raw);
   ctx.log(
     "info",
     `${probe.format} · ${formatPreciseDuration(probe.durationMs)} · ${probe.video ? `${probe.video.codec} ${probe.video.width}×${probe.video.height} @ ${probe.video.fps.toFixed(2)}fps` : "no video"} · ${probe.audio ? `${probe.audio.codec} ${probe.audio.sampleRate}Hz` : "no audio"}`,

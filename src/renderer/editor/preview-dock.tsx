@@ -22,6 +22,7 @@ import { PreviewToolbar } from "./preview-toolbar";
 import { useCompiledContext } from "./use-compiled";
 import { usePlayerBridge, useSeekToSelection } from "./use-player-bridge";
 import { PROJECT_FILE_BASE } from "@/shared/asset-ref";
+import { findById } from "@/shared/lists";
 
 function NothingToPreview() {
   return (
@@ -66,9 +67,7 @@ export function PreviewDock() {
   const inPoint = usePlayback((s) => s.inPoint);
   const outPoint = usePlayback((s) => s.outPoint);
   const sourceNodeId = preview?.sourceNodeId ?? null;
-  const source = useWorkflowStore((s) =>
-    sourceNodeId ? s.workflow?.nodes.find((n) => n.id === sourceNodeId) : undefined,
-  );
+  const source = useWorkflowStore((s) => findById(s.workflow?.nodes, sourceNodeId));
 
   useEffect(() => {
     if (sourceNodeId) useStillsStore.getState().want([sourceNodeId]);

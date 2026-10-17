@@ -1,7 +1,6 @@
-import { rm } from "node:fs/promises";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { ENGINE_VERSION } from "../engine/cache";
-import { datedFiles } from "../../engine/dir";
+import { pruneDir } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
 import { CODECS, FASTSTART, type RenderCodec, type SoundCodec } from "../media/codecs";
 import type { GlRenderer } from "./render";
@@ -55,7 +54,5 @@ export function finishArgs(
 }
 
 export async function prunePictures(dir: string): Promise<void> {
-  const files = await datedFiles(dir);
-  const old = files.toSorted((a, b) => (b.mtimeMs ?? 0) - (a.mtimeMs ?? 0)).slice(KEEP_PICTURES);
-  await Promise.all(old.map((f) => rm(f.file, { force: true })));
+  await pruneDir(dir, { newest: KEEP_PICTURES });
 }

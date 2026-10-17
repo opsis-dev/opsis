@@ -8,6 +8,7 @@ import {
 } from "motion/react";
 import { useEffect, type ReactNode } from "react";
 import { cn } from "@/renderer/lib/utils";
+import { percentText } from "@/shared/format";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -21,7 +22,7 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 
 export function AnimatedPercent({ value, className }: { value: number; className?: string }) {
   const spring = useSpring(value, { stiffness: 180, damping: 28 });
-  const text = useTransform(spring, (v) => `${Math.round(v)} %`);
+  const text = useTransform(spring, (v) => percentText(Math.round(v) / 100));
   useEffect(() => spring.set(value), [spring, value]);
   return <motion.span className={cn("tabular-nums", className)}>{text}</motion.span>;
 }

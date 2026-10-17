@@ -8,6 +8,7 @@ import { busJob, channelJob, jobArgs, loudnessMeasureJob, masterJob, parseLoudno
 import { applyMixLevels, withMasterStem } from "./levels";
 import { buildMixPlan, channelIdentity, type MixPlan, type SoundPlacement } from "./plan";
 import { DEFAULT_STRIP, dbToGain, defaultMix, type Bus, type Mix, type Strip } from "./types";
+import { findById } from "../lists";
 
 function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
   const g = new GraphBuilder();
@@ -30,11 +31,7 @@ function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
 
 const strip = (patch: Partial<Strip>): Strip => ({ ...DEFAULT_STRIP, ...patch });
 
-const channel = (plan: MixPlan, id: string) =>
-  must(
-    plan.channels.find((c) => c.id === id),
-    `channel ${id}`,
-  );
+const channel = (plan: MixPlan, id: string) => must(findById(plan.channels, id), `channel ${id}`);
 
 const sound = (spec: TimelineSpec, nodeId: string) =>
   must(
@@ -132,7 +129,7 @@ describe("mix plan", () => {
       ["fx", "effect", "effects"],
       ["clipfile", "clip", "clips"],
     ]);
-    expect(plan.buses.find((b) => b.id === "effects")?.channels).toEqual(["fx"]);
+    expect(findById(plan.buses, "effects")?.channels).toEqual(["fx"]);
     expect(channel(plan, "fx").sounds).toEqual([
       expect.objectContaining({ src: "app:sfx/whoosh.wav", at: 60, offset: 0, loop: false }),
     ]);
@@ -146,7 +143,7 @@ describe("mix plan", () => {
     const b = buildMixPlan(spec, mix);
     expect(a.key).not.toBe(b.key);
     expect(channelIdentity(a, channel(a, "fx"))).toEqual(channelIdentity(b, channel(b, "fx")));
-    expect(b.buses.find((x) => x.id === "effects")?.channels).toEqual([]);
+    expect(findById(b.buses, "effects")?.channels).toEqual([]);
   });
 });
 

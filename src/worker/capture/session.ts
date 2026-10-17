@@ -1,16 +1,15 @@
 import type { BrowserContext } from "playwright-core";
 import type { NodeParams } from "../../shared/nodes/define";
 import type { sessionNode } from "../../shared/nodes/browser";
-import { tryParseJson } from "../../shared/guards";
+import { parseJsonWith } from "../../shared/guards";
 import { storageStateSchema, type StorageState } from "../../shared/schema/storage-state";
 import { fitPageToScale, scaledViewport } from "./capture-scale";
 
 type SessionParams = NodeParams<typeof sessionNode>;
 
 function parseStorageState(text: string): StorageState {
-  const json = tryParseJson(text);
-  const parsed = storageStateSchema.safeParse(json.ok ? json.value : undefined);
-  if (!parsed.success)
+  const parsed = parseJsonWith(storageStateSchema, text);
+  if (!parsed?.success)
     throw new Error("The saved sign-in can't be read. Run its Sign in once node again.");
   return parsed.data;
 }

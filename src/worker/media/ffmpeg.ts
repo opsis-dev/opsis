@@ -4,7 +4,7 @@ import type { Readable, Writable } from "node:stream";
 import { z } from "zod";
 import { engineStatus } from "../../engine/paths";
 import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
-import { CancelledError, throwIfCancelled } from "../../shared/errors";
+import { CancelledError, onAbort, throwIfCancelled } from "../../shared/errors";
 import { clamp01 } from "../../shared/math";
 
 export type FfmpegTools = {
@@ -52,8 +52,7 @@ function settle(child: ToolProcess, bin: string, opts: RunOptions): Promise<stri
   return new Promise<string>((resolve, reject) => {
     let stdout = "";
     let stderr = "";
-    const onAbort = () => child.kill("SIGKILL");
-    opts.signal?.addEventListener("abort", onAbort, { once: true });
+    const stopListening = onAbort(opts.signal, () => child.kill("SIGKILL"));
 
     child.stdout.on("data", (chunk: Buffer) => {
       const text = chunk.toString();
@@ -74,11 +73,11 @@ function settle(child: ToolProcess, bin: string, opts: RunOptions): Promise<stri
       if (opts.onLog) for (const line of text.split(/\r?\n/)) if (line.trim()) opts.onLog(line);
     });
     child.on("error", (err) => {
-      opts.signal?.removeEventListener("abort", onAbort);
+      stopListening();
       reject(new ToolError(`${path.basename(bin)}: ${err.message}`));
     });
     child.on("close", (code) => {
-      opts.signal?.removeEventListener("abort", onAbort);
+      stopListening();
       if (opts.signal?.aborted) reject(new CancelledError());
       else if (code === 0) resolve(stdout);
       else {

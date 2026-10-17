@@ -27,6 +27,7 @@ import { ListRow } from "./list-row";
 import { MONO_TEXT } from "./text-styles";
 import { revealProjectFile } from "./reveal";
 import { TracePanel } from "./trace-panel";
+import { findById } from "@/shared/lists";
 
 type ReplayAction = ActionLog["actions"][number];
 
@@ -165,7 +166,7 @@ function ReplayContent({ nodeId }: { nodeId: string }) {
   const latestTrace = useRunStore((s) => s.traces[nodeId]);
   const lastError = useRunStore((s) => s.errors[nodeId]);
   const projectDir = useWorkflowStore((s) => s.projectDir);
-  const node = useWorkflowStore((s) => s.workflow?.nodes.find((n) => n.id === nodeId));
+  const node = useWorkflowStore((s) => findById(s.workflow?.nodes, nodeId));
   const recording = outputOf(result, "recording", "recording");
   const imageSrc = outputOf(result, "image", "image")?.src ?? null;
   const traceId = latestTrace ?? result?.traceId;

@@ -34,6 +34,13 @@ export function tokenize(value: string, pauses = false): TextToken[] {
   return out;
 }
 
+export function stringsIn(value: unknown, test: (text: string) => boolean): string[] {
+  if (typeof value === "string") return test(value) ? [value] : [];
+  if (Array.isArray(value)) return value.flatMap((v) => stringsIn(v, test));
+  if (isRecord(value)) return Object.values(value).flatMap((v) => stringsIn(v, test));
+  return [];
+}
+
 function mapStrings<T>(value: T, fn: (text: string) => string): T {
   const walk = (v: unknown): unknown => {
     if (typeof v === "string") return fn(v);

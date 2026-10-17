@@ -7,12 +7,13 @@ import { z } from "zod";
 import type { AppSettings } from "../shared/settings";
 import type { TraceHeader, TraceModel } from "../shared/trace";
 import { parseTrace, traceTextPart, type TraceTextPart } from "./model";
+import { datedFiles, pruneDir } from "../engine/dir";
 import { sha256Hex } from "../engine/hash";
 import { atomicWrite } from "../engine/json";
 import { projectPaths } from "../engine/project-paths";
 import { projectRef } from "../shared/asset-ref";
 import { PROJECT_DIRS } from "../shared/project-dirs";
-import { tryParseJson } from "../shared/guards";
+import { parseJsonWith } from "../shared/guards";
 import { safeName } from "../shared/project-folder";
 
 const traceEntrySchema = z.object({
@@ -54,8 +55,8 @@ async function writeManifest(root: string, manifest: TraceManifest): Promise<voi
 }
 
 async function readManifestFile(file: string): Promise<TraceManifest | null> {
-  const json = tryParseJson(zstdDecompressSync(await readFile(file)).toString());
-  return manifestSchema.safeParse(json.ok ? json.value : undefined).data ?? null;
+  const text = zstdDecompressSync(await readFile(file)).toString();
+  return parseJsonWith(manifestSchema, text)?.data ?? null;
 }
 
 export async function ingestTrace(
@@ -149,11 +150,8 @@ function keptTraces(all: TraceManifest[], policy: AppSettings["traces"]): TraceM
 }
 
 async function sweepBlobs(root: string, live: Set<string>): Promise<void> {
-  const blobs = path.join(root, "blobs");
-  if (!existsSync(blobs)) return;
-  for (const shard of await readdir(blobs))
-    for (const name of await readdir(path.join(blobs, shard)))
-      if (!live.has(name)) await rm(path.join(blobs, shard, name), { force: true });
+  for (const shard of await datedFiles(path.join(root, "blobs")))
+    await pruneDir(shard.file, { keep: (name) => live.has(name) });
 }
 
 export async function applyRetention(

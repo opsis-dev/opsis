@@ -88,6 +88,13 @@ export type PickResult = {
 export const DOCK_PANELS = ["preview", "timeline", "mixer", "run"] as const;
 export type DockPanelName = (typeof DOCK_PANELS)[number];
 
+export const DOCK_TITLES: Record<DockPanelName, string> = {
+  preview: "Preview",
+  timeline: "Timeline",
+  mixer: "Mixer",
+  run: "Run",
+};
+
 export type CloseRequest = { ask: boolean; busy: string[] };
 export type CloseDecision = { close: boolean; dontAsk: boolean };
 

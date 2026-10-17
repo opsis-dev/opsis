@@ -4,7 +4,7 @@ import { MAX_DB, MIN_DB } from "@/shared/mix/types";
 import { db } from "./audio-format";
 import { commitOnce, onArrowKey, type Change } from "./gesture";
 import { roundToStep } from "./knob-math";
-import { fractionIn } from "@/renderer/lib/dom";
+import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
 
 const STEP_DB = 0.5;
 const BIG_STEP_DB = 6;
@@ -26,6 +26,14 @@ export function Fader({
   onChange: Change<number>;
   label: string;
 }) {
+  const drag = usePointerDrag<HTMLDivElement>({
+    onStart: (e) => {
+      onChange(value, "start");
+      onChange(valueAt(e.currentTarget, e.clientY), "move");
+    },
+    onMove: (e) => onChange(valueAt(e.currentTarget, e.clientY), "move"),
+    onEnd: () => onChange(value, "end"),
+  });
   return (
     <div
       role="slider"
@@ -37,17 +45,7 @@ export function Fader({
       aria-valuetext={`${db(value)} dB`}
       title={`${label}: ${db(value)} dB. Double-click for 0 dB.`}
       className="focus-visible:ring-ring relative h-full w-4 cursor-ns-resize touch-none rounded outline-none focus-visible:ring-2"
-      onPointerDown={(e) => {
-        if (e.button !== 0) return;
-        e.currentTarget.setPointerCapture(e.pointerId);
-        onChange(value, "start");
-        onChange(valueAt(e.currentTarget, e.clientY), "move");
-      }}
-      onPointerMove={(e) => {
-        if (e.currentTarget.hasPointerCapture(e.pointerId))
-          onChange(valueAt(e.currentTarget, e.clientY), "move");
-      }}
-      onLostPointerCapture={() => onChange(value, "end")}
+      {...drag}
       onDoubleClick={() => commitOnce(onChange, 0)}
       onKeyDown={(e) =>
         onArrowKey(e, (dir, big) => {

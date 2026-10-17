@@ -1,9 +1,9 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
+import { ROOT } from "./lib/tool-config";
 
 const forge = path.join(
-  import.meta.dirname,
-  "..",
+  ROOT,
   "node_modules",
   ".bin",
   process.platform === "win32" ? "electron-forge.cmd" : "electron-forge",

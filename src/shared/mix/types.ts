@@ -77,6 +77,7 @@ const highpassSchema = z.object({
 });
 
 export const MIN_DB = -60;
+export const SILENCE_DB = -120;
 export const MAX_DB = 12;
 
 export const busSettingsSchema = z.object({

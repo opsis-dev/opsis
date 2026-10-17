@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { unwrap } from "@/shared/elements/introspect";
+import { isStringOrNumber } from "@/shared/guards";
 
 type SchemaKind =
   | { kind: "boolean" }
@@ -13,9 +14,6 @@ type SchemaKind =
 
 const isStringOrStringFormat = (schema: z.ZodType): boolean => schema.def.type === "string";
 
-const isLiteralValue = (v: unknown): v is string | number =>
-  typeof v === "string" || typeof v === "number";
-
 function arrayKind(element: z.core.$ZodType): SchemaKind {
   if (!(element instanceof z.ZodType)) return { kind: "other" };
   const inner = unwrap(element);
@@ -27,7 +25,7 @@ function arrayKind(element: z.core.$ZodType): SchemaKind {
 function unionKind(options: readonly z.core.$ZodType[]): SchemaKind {
   const values = options
     .flatMap((o) => (o instanceof z.ZodLiteral ? [...o.values] : []))
-    .filter(isLiteralValue);
+    .filter(isStringOrNumber);
   return values.length ? { kind: "literals", options: values } : { kind: "other" };
 }
 

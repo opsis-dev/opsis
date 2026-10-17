@@ -25,6 +25,7 @@ import {
   type FlatTimeline,
   type VideoBar,
 } from "./flatten";
+import { findById } from "../lists";
 
 const TITLE = "fx.core.title";
 
@@ -150,7 +151,7 @@ function roundTrips(type: string): RoundTrip[] {
     BAR_HANDLES.flatMap((kind) => {
       const owner = findHandle(bar, kind, "outer");
       const ref = owner?.link.handles?.[kind];
-      const node = wf.nodes.find((n) => n.id === ref?.nodeId);
+      const node = findById(wf.nodes, ref?.nodeId);
       if (!owner || !node) return [];
       const handle = HANDLES[kind];
       const next = applied(handle.act(ctxFor(wf), bar, owner.link));
@@ -344,7 +345,7 @@ describe("timeline edits that add nodes", () => {
     );
     const before = flatFilm(wf);
     const next = applied(rollCut(ctxFor(wf), barOf(before, "a"), barOf(before, "b"), 12));
-    const cuts = (w: Workflow) => w.nodes.find((n) => n.id === "seq")?.params.cuts;
+    const cuts = (w: Workflow) => findById(w.nodes, "seq")?.params.cuts;
     expect(cuts(next)).toEqual(cuts(wf));
     expect(flatFilm(next).transitions.map((t) => t.kind)).toEqual(["core/wipe"]);
   });
@@ -420,7 +421,7 @@ describe("audio edits", () => {
     expect(len(music) - len(ended)).toBe(DELTA);
 
     const louder = applied(setAudioVolume(ctxFor(wf), fx, 1.5));
-    expect(louder.nodes.find((n) => n.id === "fx")?.params.volume).toBe(1.5);
+    expect(findById(louder.nodes, "fx")?.params.volume).toBe(1.5);
   });
 
   it("doesn't trim sound effects", () => {

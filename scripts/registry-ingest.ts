@@ -25,7 +25,9 @@ import type { ElementKind } from "../src/shared/elements/types";
 import { errorMessage } from "../src/shared/errors";
 import { humanize } from "../src/shared/format";
 import { walkFiles } from "./lib/walk";
-import { isRecord, tryParseJson } from "../src/shared/guards";
+import { isNumber, isRecord, isString, tryParseJson } from "../src/shared/guards";
+import { ROOT } from "./lib/tool-config";
+import { stringsIn } from "../src/shared/vars";
 
 const titleOf = (name: string): string =>
   humanize(name)
@@ -33,7 +35,6 @@ const titleOf = (name: string): string =>
     .map((word) => (TITLE_ACRONYMS.has(word.toUpperCase()) ? word.toUpperCase() : word))
     .join(" ");
 
-const ROOT = path.resolve(import.meta.dirname, "..");
 const SRC = path.join(ROOT, "src");
 const VIDEO = path.join(SRC, "video");
 const OUT_META = path.join(SRC, "shared", "elements", "elements.generated.ts");
@@ -207,9 +208,6 @@ function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown
   }
   return undefined;
 }
-
-const isNumber = (value: unknown): value is number => typeof value === "number";
-const isString = (value: unknown): value is string => typeof value === "string";
 
 function literalOf<T>(
   node: Node | undefined,
@@ -569,12 +567,9 @@ function propControl(
       accept: ASSET_ACCEPT[name],
     };
   if (Array.isArray(value)) {
-    if (value.every((v) => typeof v === "string"))
-      return { ...base, type: "strings", default: value };
-    if (value.every((v) => typeof v === "number"))
-      return { ...base, type: "numbers", default: value };
-    if (value.every((v) => v && typeof v === "object" && !Array.isArray(v)))
-      return { ...base, type: "rows", default: value };
+    if (value.every(isString)) return { ...base, type: "strings", default: value };
+    if (value.every(isNumber)) return { ...base, type: "numbers", default: value };
+    if (value.every(isRecord)) return { ...base, type: "rows", default: value };
     return null;
   }
   if (value && typeof value === "object") return { ...base, type: "object", default: value };
@@ -706,14 +701,6 @@ function zodFor(key: string, c: Control): string | null {
     default:
       return null;
   }
-}
-
-function stringsIn(value: unknown, test: (text: string) => boolean): string[] {
-  if (typeof value === "string") return test(value) ? [value] : [];
-  if (Array.isArray(value)) return value.flatMap((v) => stringsIn(v, test));
-  if (value && typeof value === "object")
-    return Object.values(value).flatMap((v) => stringsIn(v, test));
-  return [];
 }
 
 function defaultProblems(

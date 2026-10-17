@@ -11,6 +11,7 @@ import {
   type WorkflowNode,
 } from "./schema/workflow";
 import { renameVariable } from "./vars";
+import { findById } from "./lists";
 
 type Point = { x: number; y: number };
 type Size = { width: number; height: number };
@@ -20,7 +21,7 @@ const GROUP_TITLE_HEIGHT = 24;
 
 export function absPosition(wf: Workflow, node: WorkflowNode): Point {
   if (!node.parentId) return node.position;
-  const parent = wf.nodes.find((n) => n.id === node.parentId);
+  const parent = findById(wf.nodes, node.parentId);
   if (!parent) return node.position;
   const p = absPosition(wf, parent);
   return { x: p.x + node.position.x, y: p.y + node.position.y };
@@ -55,7 +56,7 @@ const sameEnds = (a: Omit<WorkflowEdge, "id">, b: Omit<WorkflowEdge, "id">) =>
   a.targetHandle === b.targetHandle;
 
 export function connect(wf: Workflow, edge: Omit<WorkflowEdge, "id">): Workflow {
-  const target = wf.nodes.find((n) => n.id === edge.target);
+  const target = findById(wf.nodes, edge.target);
   const many = !!(target && getNodeDef(target.type)?.inputs[edge.targetHandle]?.many);
   const replaced = (e: WorkflowEdge) =>
     many ? sameEnds(e, edge) : e.target === edge.target && e.targetHandle === edge.targetHandle;
@@ -127,7 +128,7 @@ export function groupNodes(
 }
 
 export function ungroup(wf: Workflow, groupId: string): Workflow {
-  const group = wf.nodes.find((n) => n.id === groupId);
+  const group = findById(wf.nodes, groupId);
   if (!group) return wf;
   return {
     ...wf,

@@ -9,6 +9,15 @@ export const rectFromBounds = (b: Bounds): Rect => ({ x: b.x, y: b.y, w: b.width
 
 export const boundsFromRect = (r: Rect): Bounds => ({ x: r.x, y: r.y, width: r.w, height: r.h });
 
+const POINT_BOX = { w: 120, h: 48 };
+
+export const pointRect = (point: { x: number; y: number }, scale = 1): Rect => ({
+  x: point.x - (POINT_BOX.w / 2) * scale,
+  y: point.y - (POINT_BOX.h / 2) * scale,
+  w: POINT_BOX.w * scale,
+  h: POINT_BOX.h * scale,
+});
+
 export const rectCentre = (r: Rect): { x: number; y: number } => ({
   x: r.x + r.w / 2,
   y: r.y + r.h / 2,

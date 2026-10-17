@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { usePointerDrag } from "@/renderer/lib/dom";
 import { parseNumberText } from "@/shared/format";
 import { clamp01 } from "@/shared/math";
 import { cn } from "@/renderer/lib/utils";
@@ -141,6 +142,28 @@ export function Knob({
   const t = clamp01(toT(range, value));
   const nudge = (by: number) => commitOnce(onChange, fromT(range, t + by));
   const centreT = min < 0 && max > 0 && !log ? toT(range, 0) : 0;
+  const dragProps = usePointerDrag<HTMLButtonElement>({
+    onStart: (e) => {
+      if (disabled) return false;
+      drag.current = { y: e.clientY, t0: t, started: false };
+    },
+    onMove: (e) => {
+      const d = drag.current;
+      if (!d) return;
+      const dy = d.y - e.clientY;
+      if (!d.started) {
+        if (Math.abs(dy) < DRAG_START_PX) return;
+        d.started = true;
+        onChange(value, "start");
+      }
+      onChange(fromT(range, d.t0 + dy / (e.shiftKey ? FINE_DRAG_PX : DRAG_PX)), "move");
+    },
+    onEnd: () => {
+      const d = drag.current;
+      drag.current = null;
+      if (d?.started) onChange(value, "end");
+    },
+  });
   return (
     <div className={cn("flex flex-col items-center gap-0.5", disabled && "opacity-40")}>
       <button
@@ -150,27 +173,7 @@ export function Knob({
         disabled={disabled}
         className="focus-visible:ring-ring rounded-full outline-none focus-visible:ring-2"
         style={{ width: size, height: size, touchAction: "none" }}
-        onPointerDown={(e) => {
-          if (disabled || e.button !== 0) return;
-          e.currentTarget.setPointerCapture(e.pointerId);
-          drag.current = { y: e.clientY, t0: t, started: false };
-        }}
-        onPointerMove={(e) => {
-          const d = drag.current;
-          if (!d) return;
-          const dy = d.y - e.clientY;
-          if (!d.started) {
-            if (Math.abs(dy) < DRAG_START_PX) return;
-            d.started = true;
-            onChange(value, "start");
-          }
-          onChange(fromT(range, d.t0 + dy / (e.shiftKey ? FINE_DRAG_PX : DRAG_PX)), "move");
-        }}
-        onLostPointerCapture={() => {
-          const d = drag.current;
-          drag.current = null;
-          if (d?.started) onChange(value, "end");
-        }}
+        {...dragProps}
         onDoubleClick={() => commitOnce(onChange, reset)}
         onWheel={(e) => {
           if (!disabled) nudge(e.deltaY < 0 ? NUDGE : -NUDGE);

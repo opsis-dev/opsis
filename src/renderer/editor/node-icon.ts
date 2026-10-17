@@ -2,11 +2,11 @@ import { Box, type LucideIcon } from "lucide-react";
 import { createElement } from "react";
 import * as NODE_ICONS from "./icons";
 
-const kebabName = (exportName: string): string =>
+const lucideIconName = (exportName: string): string =>
   exportName.replace(/([a-z])([A-Z0-9])/g, "$1-$2").toLowerCase();
 
 const ICONS = new Map<string, LucideIcon>(
-  Object.entries(NODE_ICONS).map(([exportName, icon]) => [kebabName(exportName), icon]),
+  Object.entries(NODE_ICONS).map(([exportName, icon]) => [lucideIconName(exportName), icon]),
 );
 
 export const nodeIconNames = (): string[] => [...ICONS.keys()];

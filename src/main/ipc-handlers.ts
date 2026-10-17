@@ -49,6 +49,7 @@ import { openSettingsWindow } from "./settings-window";
 import { listStills, requestStill } from "./stills";
 import { runWindowRole } from "./window-roles";
 import { activeRun, cancelRun, environment, installEngine, startRun } from "./workers";
+import { findById } from "../shared/lists";
 
 type InvokeHandlers = {
   [K in InvokeName]: (
@@ -95,7 +96,7 @@ async function startWorkflowRun(request: RunRequest) {
 }
 
 async function useFontInProject(dir: string, fontId: string) {
-  const def = (await listLibrary()).find((f) => f.id === fontId);
+  const def = findById(await listLibrary(), fontId);
   if (!def) throw new Error("That font isn't in your library any more.");
   return copyFontToProject(dir, def);
 }

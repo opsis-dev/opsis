@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
-import { mkdir, readdir, rm } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import { pruneDir } from "../engine/dir";
 import { sha256Hex } from "../engine/hash";
 import { readJson, writeJson } from "../engine/json";
 import { engineStatus } from "../engine/paths";
@@ -68,9 +69,9 @@ async function remember(projectDir: string, nodeId: string, hash: string): Promi
     await mkdir(stillsDir(projectDir), { recursive: true });
     await writeJson(indexPath(projectDir), index);
     const keep = new Set(Object.values(index).map((h) => `${h}.jpg`));
-    for (const file of await readdir(stillsDir(projectDir)))
-      if (file.endsWith(".jpg") && !keep.has(file))
-        await rm(path.join(stillsDir(projectDir), file), { force: true });
+    await pruneDir(stillsDir(projectDir), {
+      keep: (name) => !name.endsWith(".jpg") || keep.has(name),
+    });
   });
   getMainWindow()?.webContents.send(IPC.stillReady, { projectDir, nodeId, hash });
 }

@@ -1,5 +1,6 @@
 import type { Workflow } from "../schema/workflow";
 import { GraphBuilder } from "./build";
+import { findById } from "../lists";
 
 type TemplateInfo = {
   id: string;
@@ -331,7 +332,7 @@ export const TEMPLATES: TemplateInfo[] = [
 ];
 
 export function getTemplate(templateId: string): TemplateInfo {
-  const template = TEMPLATES.find((t) => t.id === templateId);
+  const template = findById(TEMPLATES, templateId);
   if (!template) throw new Error(`There's no template called “${templateId}”.`);
   return template;
 }

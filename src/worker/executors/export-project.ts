@@ -7,7 +7,8 @@ import { exportProjectNode } from "../../shared/nodes/output";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { slugify } from "../../shared/project-folder";
 import { isProjectRef, projectRelPath } from "../../shared/asset-ref";
-import { readJson } from "../../engine/json";
+import { stringsIn } from "../../shared/vars";
+import { readJson, writeJson } from "../../engine/json";
 import { toPosixRel, toProjectRef } from "../../engine/project-paths";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
 import { mixed, specFor, type Stage } from "./output";
@@ -147,16 +148,9 @@ async function importedPackages(srcDir: string): Promise<Set<string>> {
 }
 
 function projectRefs(spec: TimelineSpec): Set<string> {
-  const refs = new Set<string>();
-  const collect = (v: unknown) => {
-    if (typeof v === "string" && isProjectRef(v)) refs.add(v);
-    else if (Array.isArray(v)) v.forEach(collect);
-    else if (v && typeof v === "object") Object.values(v).forEach(collect);
-  };
-  walkItems(spec.tracks, (item) => collect(item.props));
-  spec.audio.forEach((a) => collect(a.src));
-  if (spec.mix) collect(spec.mix.src);
-  return refs;
+  const values: unknown[] = [spec.audio.map((a) => a.src), spec.mix?.src];
+  walkItems(spec.tracks, (item) => values.push(item.props));
+  return new Set(stringsIn(values, isProjectRef));
 }
 
 async function copyProjectFiles(ctx: ExecutorContext, spec: TimelineSpec, dir: string) {
@@ -196,23 +190,21 @@ async function packageJsonFor(ctx: ExecutorContext, name: string, dir: string) {
   };
 }
 
-const json = (value: unknown) => JSON.stringify(value, null, 2);
-
 export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ctx, _inputs, p) => {
   const spec = await mixed(ctx, specFor(ctx), MIX_STAGE);
   const name = slugify(p.folderName, "output");
   const dir = path.join(ctx.outDir, name);
   await copySources(ctx, dir);
   await copyProjectFiles(ctx, spec, dir);
-  await writeFile(path.join(dir, "package.json"), json(await packageJsonFor(ctx, name, dir)));
-  await writeFile(
-    path.join(dir, "src", "timeline.json"),
-    json({ ...spec, assets: { projectBase: "static:" } }),
-  );
+  await writeJson(path.join(dir, "package.json"), await packageJsonFor(ctx, name, dir));
+  await writeJson(path.join(dir, "src", "timeline.json"), {
+    ...spec,
+    assets: { projectBase: "static:" },
+  });
   await writeFile(path.join(dir, "src", "index.ts"), INDEX_TS);
   await writeFile(path.join(dir, "src", "export-root.tsx"), EXPORT_ROOT_TSX);
   await writeFile(path.join(dir, "remotion.config.ts"), REMOTION_CONFIG_TS);
-  await writeFile(path.join(dir, "tsconfig.json"), json(TSCONFIG));
+  await writeJson(path.join(dir, "tsconfig.json"), TSCONFIG);
   await writeFile(path.join(dir, "README.md"), readme(p.folderName));
   return {
     outputs: { file: { type: "file", src: toProjectRef(ctx.projectDir, dir) } },

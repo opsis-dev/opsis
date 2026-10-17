@@ -42,10 +42,15 @@ export function fadeWindow(
   toT: number,
   fade: { in: number; out: number; easeIn?: Ease; easeOut?: Ease },
 ): number {
-  return Math.min(
-    interpolate(t, [fromT, fromT + fade.in], [0, 1], { ...CLAMPED, easing: fade.easeIn }),
-    interpolate(t, [toT - fade.out, toT], [1, 0], { ...CLAMPED, easing: fade.easeOut }),
-  );
+  const fadeIn =
+    fade.in > 0
+      ? interpolate(t, [fromT, fromT + fade.in], [0, 1], { ...CLAMPED, easing: fade.easeIn })
+      : 1;
+  const fadeOut =
+    fade.out > 0
+      ? interpolate(t, [toT - fade.out, toT], [1, 0], { ...CLAMPED, easing: fade.easeOut })
+      : 1;
+  return Math.min(fadeIn, fadeOut);
 }
 
 export const zoomOver = (frame: number, frames: number, to: number): number =>

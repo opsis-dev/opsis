@@ -1,8 +1,8 @@
 import { useRef, type PointerEvent } from "react";
 import { spotYKey } from "@/shared/elements/introspect";
-import { percent } from "@/shared/format";
+import { percent, percentText } from "@/shared/format";
 import { clamp01, numberOr, round3 } from "@/shared/math";
-import { fractionIn } from "@/renderer/lib/dom";
+import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
 import { FieldShell } from "./field-shell";
 import { SpotFrame } from "./spot-frame";
 import type { FieldProps } from "./types";
@@ -29,6 +29,7 @@ export function SpotField({ label, name, all, onPatch, ctx, meta }: FieldProps<n
     const at = fractionIn(r, e.clientX, e.clientY);
     place(at.x, at.y);
   };
+  const drag = usePointerDrag({ onStart: placeAt, onMove: placeAt });
   return (
     <FieldShell label={label} meta={meta}>
       <SpotFrame
@@ -37,13 +38,9 @@ export function SpotField({ label, name, all, onPatch, ctx, meta }: FieldProps<n
         timeMs={numberOr(all.atMs, 0)}
         role="button"
         tabIndex={0}
-        aria-label={`${label}: ${Math.round(x * 100)} %, ${Math.round(y * 100)} %`}
+        aria-label={`${label}: ${percentText(x)}, ${percentText(y)}`}
         className="cursor-crosshair"
-        onPointerDown={(e) => {
-          e.currentTarget.setPointerCapture(e.pointerId);
-          placeAt(e);
-        }}
-        onPointerMove={(e) => e.buttons === 1 && placeAt(e)}
+        {...drag}
         onKeyDown={(e) => {
           const nudge = NUDGES[e.key];
           if (!nudge) return;

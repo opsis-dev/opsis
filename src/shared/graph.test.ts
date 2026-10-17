@@ -11,16 +11,14 @@ import { getTemplate } from "./templates";
 import { GraphBuilder } from "./templates/build";
 import { must } from "./test-fixtures";
 import type { Workflow } from "./schema/workflow";
+import { findById } from "./lists";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 
 const build = (g: GraphBuilder) => g.build({ id: "x", name: "x" });
 
 const disable = (wf: Workflow, id: string) => {
-  must(
-    wf.nodes.find((n) => n.id === id),
-    id,
-  ).disabled = true;
+  must(findById(wf.nodes, id), id).disabled = true;
 };
 
 describe("graph", () => {

@@ -26,8 +26,10 @@ import { errorMessage } from "../../shared/errors";
 import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { formatDuration } from "../../shared/format";
 import { findHeadlessShell } from "../../engine/paths";
+import { writeJson } from "../../engine/json";
 import type { LoginRequest } from "../../shared/worker-protocol";
 import { h264Args } from "../media/codecs";
+import { findById } from "../../shared/lists";
 
 const CAPTURE_MAX_EXPORT_SCALE = 2;
 
@@ -55,7 +57,7 @@ function sessionAccess(ctx: ExecutorContext, head: WorkflowNode | undefined): Se
   if (!session.storageState.trim()) return { secret: null, signIn: undefined };
   const secret = secretName(session.storageState);
   const loginId = loginDependencies(ctx.workflow, ctx.node.id, ctx.vars)[0];
-  const loginNode = ctx.workflow.nodes.find((n) => n.id === loginId);
+  const loginNode = findById(ctx.workflow.nodes, loginId);
   if (!loginNode) return { secret, signIn: undefined };
   const login = parseParams(loginOnceNode, loginNode, ctx.vars);
   return { secret, signIn: { name: secret, url: login.url, request: loginRequest(login) } };
@@ -218,7 +220,7 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
       ? Math.min(result.log.durationMs, probe.durationMs)
       : result.log.durationMs,
   };
-  await writeFile(path.join(ctx.dir, "actions.json"), JSON.stringify(log, null, 2));
+  await writeJson(path.join(ctx.dir, "actions.json"), log);
   ctx.progress(0.95, "Making a preview copy");
   const proxy = await makePreviewCopy(ctx, mp4, p.fps);
   const recording: RecordingValue = {

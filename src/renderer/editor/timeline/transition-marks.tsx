@@ -1,3 +1,5 @@
+import { percentText } from "@/shared/format";
+import { TRANSITION_WARN_RATIO } from "@/shared/nodes/card";
 import { transitionTitle } from "@/shared/nodes/transitions";
 import type { Workflow } from "@/shared/schema/workflow";
 import type { FlatTimeline, TransitionMark } from "@/shared/timeline/flatten";
@@ -13,7 +15,6 @@ import {
   type Viewport,
 } from "./timeline-layout";
 
-const HEAVY_COVER = 0.4;
 const MIN_LABEL_PX = 40;
 
 function transitionTip(wf: Workflow, t: TransitionMark): string {
@@ -23,8 +24,8 @@ function transitionTip(wf: Workflow, t: TransitionMark): string {
     : undefined;
   const into = edge ? ` into ${nodeTitle(wf, edge.source)}` : "";
   const cover =
-    t.covers > HEAVY_COVER
-      ? `. It covers ${Math.min(100, Math.round(t.covers * 100))}% of a clip: turn on Keep every clip whole, or shorten it`
+    t.covers > TRANSITION_WARN_RATIO
+      ? `. It covers ${percentText(t.covers, { max: 100 })} of a clip: turn on Keep every clip whole, or shorten it`
       : "";
   return `${transitionTitle(t.kind)}${into}${cover}.`;
 }
@@ -54,7 +55,7 @@ export function TransitionMarks({
           key={t.key}
           className={cn(
             "pointer-events-none absolute z-10 flex items-end justify-center overflow-hidden rounded-sm border bg-[repeating-linear-gradient(135deg,var(--transition-hatch)_0,var(--transition-hatch)_4px,transparent_4px,transparent_8px)]",
-            t.covers > HEAVY_COVER ? "border-warning" : "border-foreground/30",
+            t.covers > TRANSITION_WARN_RATIO ? "border-warning" : "border-foreground/30",
           )}
           style={{
             left: HEADER_W + t.from * ppf,

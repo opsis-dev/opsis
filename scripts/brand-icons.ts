@@ -2,8 +2,8 @@ import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright-core";
 import { engineStatus } from "../src/engine/paths";
+import { ROOT } from "./lib/tool-config";
 
-const ROOT = path.resolve(import.meta.dirname, "..");
 const SVG = path.join(ROOT, "brand", "logo.svg");
 const OUT = path.join(ROOT, "brand", "icons");
 const ICON_SIZES = [16, 24, 32, 48, 64, 128, 256, 512, 1024];

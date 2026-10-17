@@ -1,3 +1,4 @@
+import { isExternalRef } from "../../../shared/asset-ref";
 import { DEFAULT_BACKDROP, type BackdropName } from "../../../shared/backdrops";
 
 const LIGHT_BACKDROPS: ReadonlySet<string> = new Set<BackdropName>([
@@ -11,7 +12,6 @@ const LIGHT_LUMINANCE = 0.6;
 const HEX_COLOUR = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 const RGB_COLOUR = /^rgba?\(\s*(\d+(?:\.\d+)?)[\s,]+(\d+(?:\.\d+)?)[\s,]+(\d+(?:\.\d+)?)[\s,/)]/i;
 const CSS_PAINT = /^(#|rgb|hsl|oklch|linear-gradient|radial-gradient|conic-gradient)/;
-const IMAGE_URL = /^(https?:|demoflow-file:|data:|blob:)/;
 
 function colourChannels(colour: string): number[] | null {
   const text = colour.trim();
@@ -49,6 +49,6 @@ type BackdropSource =
 
 export function backdropSource(backdrop?: string): BackdropSource {
   if (backdrop && CSS_PAINT.test(backdrop.trim())) return { kind: "paint", css: backdrop };
-  if (backdrop && IMAGE_URL.test(backdrop)) return { kind: "image", url: backdrop };
+  if (backdrop && isExternalRef(backdrop)) return { kind: "image", url: backdrop };
   return { kind: "file", path: backdropFile(backdrop) };
 }

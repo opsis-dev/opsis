@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { interpolate, renameVariable, tokenize } from "./vars";
+import { interpolate, renameVariable, stringsIn, tokenize } from "./vars";
 
 describe("variables", () => {
   it("allows readable names with spaces", () => {
@@ -30,5 +30,15 @@ describe("variables", () => {
         "Site address",
       ),
     ).toEqual({ url: "{{Site address}}/x", list: ["{{Site address}}", "{{Other}}"] });
+  });
+});
+
+describe("stringsIn", () => {
+  it("collects nested strings that pass the test", () => {
+    const value = { a: "project:a.mp4", b: ["x", { c: "project:b.png" }], d: 3, e: null };
+    expect(stringsIn(value, (text) => text.startsWith("project:"))).toEqual([
+      "project:a.mp4",
+      "project:b.png",
+    ]);
   });
 });

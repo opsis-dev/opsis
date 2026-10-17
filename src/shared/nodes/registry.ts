@@ -12,6 +12,7 @@ import { textNodes } from "./text";
 import { timelineNodes } from "./timeline";
 import { transitionNodes } from "./transitions";
 import { utilityNodes } from "./utility";
+import { findById } from "../lists";
 
 export const NODE_DEFS: NodeDef[] = [
   ...browserNodes,
@@ -52,7 +53,7 @@ export function nodeNameById(
   id: string,
   fallback: string,
 ): string {
-  const node = wf.nodes.find((n) => n.id === id);
+  const node = findById(wf.nodes, id);
   return node ? nodeName(node) : fallback;
 }
 

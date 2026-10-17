@@ -4,6 +4,7 @@ import { readPref, writePref } from "../../store/view-prefs";
 import type { AudioEnvelopeKey, VisualEnvelopeKey } from "@/shared/schema/timeline";
 import { formatTime } from "@/shared/timeline/time";
 import { clamp } from "@/shared/math";
+import { isBoolean } from "@/shared/guards";
 
 export type TimelineTool = "select" | "ripple" | "roll" | "slip" | "blade" | "rate";
 type RulerMode = "seconds" | "timecode";
@@ -16,7 +17,7 @@ export const storedTimelinePrefs = (): Prefs => ({
     "seconds",
     (v) => v === "seconds" || v === "timecode",
   ),
-  snapping: readPref("snapping", true, (v) => typeof v === "boolean"),
+  snapping: readPref("snapping", true, isBoolean),
 });
 
 type TimelineState = Prefs & {

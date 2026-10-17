@@ -1,4 +1,5 @@
-import { chmod, mkdir, rename, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, rename, rm } from "node:fs/promises";
+import { writeJson } from "./json";
 import path from "node:path";
 import { createGunzip } from "node:zlib";
 import { ensureBrowser } from "@remotion/renderer";
@@ -54,10 +55,10 @@ const shellDownload = (onProgress: InstallProgress, progress: number, size: stri
 
 async function downloadShellInto(staging: string, onProgress: InstallProgress): Promise<string> {
   await mkdir(staging, { recursive: true });
-  await writeFile(
-    path.join(staging, "package.json"),
-    `${JSON.stringify({ name: "demoflow-engine-download", private: true }, null, 2)}\n`,
-  );
+  await writeJson(path.join(staging, "package.json"), {
+    name: "demoflow-engine-download",
+    private: true,
+  });
   const previous = process.cwd();
   process.chdir(staging);
   try {

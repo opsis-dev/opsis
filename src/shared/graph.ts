@@ -14,7 +14,7 @@ import { secretFileName } from "./secrets";
 import { interpolate } from "./vars";
 import { humanize } from "./format";
 import { GROUP_TYPE, NOTE_TYPE } from "./nodes/utility";
-import { byCodeUnit } from "./lists";
+import { byCodeUnit, findById } from "./lists";
 
 export type GraphIssue = {
   level: "error" | "warning";
@@ -119,7 +119,7 @@ export function portOf(
   side: "in" | "out",
   handle: string,
 ): PortSpec | undefined {
-  const node = wf.nodes.find((n) => n.id === nodeId);
+  const node = findById(wf.nodes, nodeId);
   const def = node ? getNodeDef(node.type) : undefined;
   return def ? (side === "in" ? def.inputs : def.outputs)[handle] : undefined;
 }
@@ -133,8 +133,8 @@ const portList = (ports: Record<string, PortSpec> | undefined) => {
 };
 
 export function connectionProblem(wf: Workflow, c: ConnectionEnds): ConnectionProblem | null {
-  const source = wf.nodes.find((n) => n.id === c.source);
-  const target = wf.nodes.find((n) => n.id === c.target);
+  const source = findById(wf.nodes, c.source);
+  const target = findById(wf.nodes, c.target);
   if (!source) return { notFound: true, message: `There's no node “${c.source}”.` };
   if (!target) return { notFound: true, message: `There's no node “${c.target}”.` };
   if (source.id === target.id)

@@ -18,3 +18,8 @@ export function firstFree(
     if (!taken(name)) return name;
   }
 }
+
+export const findById = <T extends { id: string }>(
+  items: readonly T[] | undefined,
+  id: string | null | undefined,
+): T | undefined => items?.find((item) => item.id === id);

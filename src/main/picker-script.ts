@@ -1,4 +1,6 @@
-function installPicker(prefix: string): void {
+import { INTERACTIVE_SELECTOR } from "../shared/interactive";
+
+function installPicker(prefix: string, interactive: string): void {
   if (Reflect.get(window, "__demoflowPicker")) return;
   Reflect.set(window, "__demoflowPicker", true);
 
@@ -13,8 +15,6 @@ function installPicker(prefix: string): void {
   const SPOT_TAG_RISE = 30;
   const MAX_NAME_LENGTH = 60;
   const MAX_PATH_DEPTH = 6;
-  const INTERACTIVE =
-    "button,a,input,textarea,select,[role=button],[role=link],[role=menuitem],[role=tab],[role=option],[role=checkbox],[role=switch],[role=combobox],label";
 
   const overlay = (css: string) => {
     const el = document.createElement("div");
@@ -102,7 +102,7 @@ function installPicker(prefix: string): void {
   };
 
   const pick = (target: EventTarget | null) =>
-    target instanceof Element ? target.closest(INTERACTIVE) || target : null;
+    target instanceof Element ? target.closest(interactive) || target : null;
 
   const report = (result: { target: string; css: string; role: string; selectorUsed: string }) =>
     console.log(prefix + JSON.stringify(result));
@@ -198,4 +198,4 @@ function installPicker(prefix: string): void {
 }
 
 export const pickerScript = (prefix: string): string =>
-  `(${installPicker.toString()})(${JSON.stringify(prefix)})`;
+  `(${installPicker.toString()})(${JSON.stringify(prefix)}, ${JSON.stringify(`${INTERACTIVE_SELECTOR},label`)})`;

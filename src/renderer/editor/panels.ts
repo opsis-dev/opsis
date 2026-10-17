@@ -10,13 +10,6 @@ export type PanelSide = (typeof PANEL_SIDES)[number];
 
 export const isDockPanel = (v: unknown): v is DockPanelName => isOneOf(DOCK_PANELS, v);
 
-export const DOCK_TITLES: Record<DockPanelName, string> = {
-  preview: "Preview",
-  timeline: "Timeline",
-  mixer: "Mixer",
-  run: "Run",
-};
-
 const handles: Partial<Record<PanelSide, PanelImperativeHandle | null>> = {};
 
 export const storedTab = (): DockPanelName => readPref("dockTab", "preview", isDockPanel);

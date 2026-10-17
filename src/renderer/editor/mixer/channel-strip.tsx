@@ -31,6 +31,7 @@ import {
   stripBinding,
   type StripBinding,
 } from "./strip-parts";
+import { findById } from "@/shared/lists";
 
 const KIND_ICON = { music: Music, effect: AudioLines, clip: Clapperboard } as const;
 
@@ -81,7 +82,7 @@ function BusSelect({
         className="h-6 min-w-0 flex-1 px-1.5 text-[11px]"
         aria-label="Send to bus"
       >
-        <SelectValue>{(v: string) => buses.find((b) => b.id === v)?.name ?? "Bus"}</SelectValue>
+        <SelectValue>{(v: string) => findById(buses, v)?.name ?? "Bus"}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>

@@ -16,7 +16,7 @@ import {
   idleSpans,
   type RecordingProps,
 } from "../compile/recording";
-import type { Action } from "../schema/actions";
+import { pointRect, type Action } from "../schema/actions";
 import { asValue, type ClipValue } from "../schema/values";
 import { mutedIf, row, toggleRow, warnIf, type CardRow } from "./card";
 import { clipModifier, defineNode, port, withClip } from "./define";
@@ -34,7 +34,7 @@ import {
   zoomScale,
 } from "./params";
 import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "./capture";
-import { formatDuration, humanize } from "../format";
+import { formatDuration, humanize, percentText, plural } from "../format";
 import { msToFrames } from "../timeline/time";
 import { baseName } from "../asset-ref";
 
@@ -65,7 +65,6 @@ const windowFrameProps = (
 const appendBeats = (clip: ClipValue, beats: Action[]) =>
   patchRecordings(clip, (p) => ({ ...p, extraBeats: [...p.extraBeats, ...beats] }));
 
-const FOCUS_BOX = { w: 120, h: 48 };
 const FOCUS_LEAD_MS = 400;
 
 type FocusSpot = { id: string; t: number; x: number; y: number; tDepart?: number };
@@ -87,7 +86,7 @@ const focusBeats = (
         id: `${nodeId}:${id}`,
         kind: "focus",
         point,
-        rect: { x: point.x - FOCUS_BOX.w / 2, y: point.y - FOCUS_BOX.h / 2, ...FOCUS_BOX },
+        rect: pointRect(point),
         cluster: `${nodeId}:${cluster}`,
         zoomScale: scale,
         nodeId,
@@ -299,11 +298,7 @@ const speedRampNode = defineNode({
   icon: "gauge",
   description: "Speeds up or slows down chosen parts.",
   card: ({ params: p }) => [
-    row(
-      "gauge",
-      p.segments.length === 1 ? "1 part" : `${p.segments.length} parts`,
-      mutedIf(!p.segments.length),
-    ),
+    row("gauge", plural(p.segments.length, "part"), mutedIf(!p.segments.length)),
   ],
   params: z.object({
     segments: z
@@ -349,7 +344,7 @@ const cropNode = defineNode({
   card: ({ params: p }) => [
     row(
       "crop",
-      `${Math.round(p.w * 100)} % × ${Math.round(p.h * 100)} % from ${Math.round(p.x * 100)} %, ${Math.round(p.y * 100)} %`,
+      `${percentText(p.w)} × ${percentText(p.h)} from ${percentText(p.x)}, ${percentText(p.y)}`,
     ),
   ],
   params: z.object({

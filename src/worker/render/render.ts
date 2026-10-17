@@ -18,6 +18,7 @@ import { getCompositorPackage } from "./compositor-package";
 import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { clamp } from "../../shared/math";
 import { keepLatest } from "../../shared/memo";
+import { onAbort } from "../../shared/errors";
 
 export type GlRenderer = "angle" | "swangle" | "egl" | "vulkan" | "swiftshader" | "angle-egl";
 
@@ -68,12 +69,11 @@ async function withCancel<T>(
   run: (cancelSignal: CancelSignal) => Promise<T>,
 ): Promise<T> {
   const { cancel, cancelSignal } = makeCancelSignal();
-  const onAbort = () => cancel();
-  signal.addEventListener("abort", onAbort, { once: true });
+  const stopListening = onAbort(signal, cancel);
   try {
     return await run(cancelSignal);
   } finally {
-    signal.removeEventListener("abort", onAbort);
+    stopListening();
   }
 }
 

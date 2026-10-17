@@ -10,11 +10,9 @@ import { fileRow, row, warnIf, type CardRow } from "./card";
 import { defineNode, many, opt, port, withClip, type CompileOutputs } from "./define";
 import { mediaInput } from "./media";
 import { asset, audioEnvelope, bool, int, more, ms, volume } from "./params";
-import { formatDuration, plural } from "../format";
+import { formatDuration, percentText, plural } from "../format";
 import { msToFrames, msToSignedFrames } from "../timeline/time";
 import { baseName, projectRef } from "../asset-ref";
-
-const pct = (v: number) => `${Math.round(v * 100)} %`;
 
 const srcFrom = (input: CompileValue | undefined, path: string): string | null =>
   mediaInput(input)?.src ?? (path ? projectRef(path) : null);
@@ -71,7 +69,7 @@ const musicNode = defineNode({
   description: "Background music under the video, with fades.",
   card: ({ params: p, connected }) => [
     sourceRow("music", p.src, connected, "Choose a song"),
-    row("volume-2", pct(p.volume)),
+    row("volume-2", percentText(p.volume)),
     p.loop && row("repeat", "Loops"),
     p.lengthMs > 0 && row("clock", `Plays for ${formatDuration(p.lengthMs)}`),
   ],

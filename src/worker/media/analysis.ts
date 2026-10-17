@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, rm, stat } from "node:fs/promises";
+import { mkdir, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import type { z } from "zod";
 import {
@@ -10,6 +10,7 @@ import {
   type WaveformLevel,
 } from "../../shared/analysis";
 import type { MediaDeps } from "./ffmpeg";
+import { fileIdentity } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
 import { atomicWrite, readJson } from "../../engine/json";
 import { isInside, projectPaths, toProjectRef } from "../../engine/project-paths";
@@ -35,8 +36,7 @@ const PEAK_SEARCH_FRAMES = 3;
 const FLOAT_BYTES = Float32Array.BYTES_PER_ELEMENT;
 
 async function idFor(file: string): Promise<string> {
-  const s = await stat(file);
-  return versionedHash(ANALYSIS_VERSION, { file, size: s.size, mtime: Math.round(s.mtimeMs) });
+  return versionedHash(ANALYSIS_VERSION, { file, identity: await fileIdentity(file) });
 }
 
 function filmstripDir(projectDir: string, file: string): string {

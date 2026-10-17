@@ -1,7 +1,7 @@
 import { useRef, useState, type PointerEvent } from "react";
 import { z } from "zod";
 import { clamp, round3 } from "@/shared/math";
-import { fractionIn } from "@/renderer/lib/dom";
+import { capturePrimaryPointer, fractionIn } from "@/renderer/lib/dom";
 
 const boxSchema = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() });
 export type Box = z.infer<typeof boxSchema>;
@@ -42,8 +42,7 @@ export function useBoxDrag(boxes: Box[], onChange: (boxes: Box[]) => void) {
   };
   const start = (e: PointerEvent, target: DragTarget) => {
     const at = pointIn(e);
-    if (!at) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    if (!at || !capturePrimaryPointer(e)) return;
     const origin = target.mode === "move" ? boxes[target.index] : boxFrom(at.x, at.y, at.x, at.y);
     show({ ...target, x: at.x, y: at.y, origin, box: origin });
   };

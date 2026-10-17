@@ -9,6 +9,7 @@ import {
   parseNumberList,
   parseNumberText,
   percent,
+  percentText,
 } from "./format";
 
 describe("formatBytes", () => {
@@ -94,5 +95,13 @@ describe("percent", () => {
   it("writes a fraction as a CSS percentage", () => {
     expect(percent(0.25)).toBe("25%");
     expect(percent(-0.5)).toBe("-50%");
+  });
+});
+
+describe("percentText", () => {
+  it("rounds a fraction to a whole percentage, capped when asked", () => {
+    expect(percentText(0.504)).toBe("50%");
+    expect(percentText(1.7)).toBe("170%");
+    expect(percentText(1.7, { max: 100 })).toBe("100%");
   });
 });

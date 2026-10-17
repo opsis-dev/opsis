@@ -2,7 +2,14 @@ import type { BrowserWindow, Rectangle } from "electron";
 import type { SettingsPage } from "../shared/ipc";
 import type { WindowOptions } from "./app-windows";
 import { raiseWindow } from "./raise-window";
-import { boundsStore, isVisible, rectangleSchema, rememberBounds } from "./window-bounds";
+import {
+  boundsStore,
+  isVisible,
+  liveWindow,
+  rectangleSchema,
+  rememberBounds,
+  requireHost,
+} from "./window-bounds";
 
 type SettingsWindowHost = {
   create: (options: WindowOptions) => BrowserWindow;
@@ -23,17 +30,12 @@ export function initSettingsWindow(next: SettingsWindowHost): void {
   host = next;
 }
 
-function settingsHost(): SettingsWindowHost {
-  if (!host) throw new Error("The Settings window was used before the app finished starting.");
-  return host;
-}
-
-export const settingsWindow = () => (win && !win.isDestroyed() ? win : null);
+export const settingsWindow = () => liveWindow(win);
 
 export const isSettingsSender = (id: number) => settingsWindow()?.webContents.id === id;
 
 export async function openSettingsWindow(page?: SettingsPage): Promise<void> {
-  const { create, url } = settingsHost();
+  const { create, url } = requireHost(host, "The Settings window was");
   const hash = `/settings${page ? `?page=${page}` : ""}`;
   const open = settingsWindow();
   if (open) {

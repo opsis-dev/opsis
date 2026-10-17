@@ -2,6 +2,7 @@ import type { Locator, Page } from "playwright-core";
 import { errorMessage, throwIfCancelled, withoutCallName } from "../../shared/errors";
 import { parsePoint } from "./drag-path";
 import { CSS_PREFIX, type Target } from "./flow-types";
+import { INTERACTIVE_SELECTOR } from "../../shared/interactive";
 
 type Candidate = { by: string; locator: Locator };
 
@@ -23,11 +24,6 @@ const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&
 
 const NAMED_ROLES = ["button", "link", "textbox", "combobox", "option", "tab"] as const;
 
-const INTERACTIVE_CSS =
-  'button, a, input, textarea, select, [role="button"], [role="link"], ' +
-  '[role="menuitem"], [role="tab"], [role="option"], [role="combobox"], ' +
-  '[role="checkbox"], [role="switch"]';
-
 const INTERACTIVE_ANCESTOR =
   'xpath=ancestor-or-self::*[@role="button" or @role="link" or @role="menuitem"' +
   ' or @role="tab" or @role="option" or @role="combobox" or self::button or' +
@@ -46,7 +42,7 @@ export function autoCandidates(page: Page, name: string): Candidate[] {
     { by: `testid="${name}"`, locator: page.getByTestId(name) },
     {
       by: `control containing "${name}"`,
-      locator: page.locator(INTERACTIVE_CSS).filter({ hasText: loose }),
+      locator: page.locator(INTERACTIVE_SELECTOR).filter({ hasText: loose }),
     },
     {
       by: `text "${name}" -> control`,
@@ -129,9 +125,7 @@ type OnScreen = {
   h: number;
 };
 
-function listOnScreen(max: number): OnScreen[] {
-  const selector =
-    "button,[role=button],[role=combobox],[role=option],a,input,textarea,select,.ant-select";
+function listOnScreen({ max, selector }: { max: number; selector: string }): OnScreen[] {
   const shown = (e: Element) => {
     const r = e.getBoundingClientRect();
     const s = getComputedStyle(e);
@@ -168,7 +162,10 @@ function listOnScreen(max: number): OnScreen[] {
 
 export async function dumpVisible(page: Page, max = DUMP_LIMIT): Promise<string> {
   try {
-    const items = await page.evaluate(listOnScreen, max);
+    const items = await page.evaluate(listOnScreen, {
+      max,
+      selector: `${INTERACTIVE_SELECTOR},.ant-select`,
+    });
     const lines = items.map(
       (e) =>
         `    · <${e.tag}${e.role ? ` role=${e.role}` : ""}${e.type ? ` type=${e.type}` : ""}> "${e.text}" @${e.x},${e.y} ${e.w}×${e.h}`,

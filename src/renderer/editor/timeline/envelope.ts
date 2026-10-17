@@ -10,6 +10,7 @@ import {
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { envelopeAt, sortKeys } from "@/shared/timeline/envelope";
 import { useWorkflowStore } from "../../store/workflow";
+import { findById } from "@/shared/lists";
 
 export type EnvelopeKey = VisualEnvelopeKey | AudioEnvelopeKey;
 
@@ -59,7 +60,7 @@ export function envelopeTarget(
   prop: EnvelopeKey | null,
 ): EnvelopeTarget | null {
   if (!nodeId || !prop) return null;
-  const node = wf.nodes.find((n) => n.id === nodeId);
+  const node = findById(wf.nodes, nodeId);
   if (!node || !getNodeDef(node.type)?.params.shape.envelope) return null;
   const envelope = readEnvelope(node);
   return envelope ? { nodeId, prop, keys: envelope[prop] ?? [] } : null;

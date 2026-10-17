@@ -1,5 +1,6 @@
 import { BrowserWindow, session as electronSession } from "electron";
 import { z } from "zod";
+import { parseJsonWith } from "../shared/guards";
 import { PICKED_BY, type PickRequest, type PickResult } from "../shared/ipc";
 import type { LoginRequest } from "../shared/worker-protocol";
 import { storageState, type LocalStorageByOrigin } from "./login-state";
@@ -34,11 +35,7 @@ function sandboxedWindow(
 }
 
 function parsePick(message: string): PickResult | undefined {
-  try {
-    return pickResultSchema.safeParse(JSON.parse(message.slice(PICK_PREFIX.length))).data;
-  } catch {
-    return undefined;
-  }
+  return parseJsonWith(pickResultSchema, message.slice(PICK_PREFIX.length))?.data;
 }
 
 export function pickInWindow(parent: BrowserWindow | null, req: PickRequest): Promise<PickResult> {

@@ -1,4 +1,4 @@
-import type { Rect } from "../../../shared/schema/actions";
+import { pointRect, type Rect } from "../../../shared/schema/actions";
 import { designScaleFor } from "./design-width";
 
 export type ClickEvent = {
@@ -38,15 +38,6 @@ export type ClickLog = {
   clicks: ClickEvent[];
   keys?: KeyEvent[];
 };
-
-const POINT_BOX = { w: 120, h: 48 };
-
-export const pointRect = (point: { x: number; y: number }, scale: number): Rect => ({
-  x: point.x - (POINT_BOX.w / 2) * scale,
-  y: point.y - (POINT_BOX.h / 2) * scale,
-  w: POINT_BOX.w * scale,
-  h: POINT_BOX.h * scale,
-});
 
 export const defaultTargetRect = (point: { x: number; y: number }, viewportWidth: number): Rect =>
   pointRect(point, designScaleFor(viewportWidth));

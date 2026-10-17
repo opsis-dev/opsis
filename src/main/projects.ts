@@ -1,5 +1,5 @@
 import { existsSync, watch, type FSWatcher } from "node:fs";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { app, type BrowserWindow } from "electron";
 import { z } from "zod";
@@ -17,13 +17,13 @@ import { getTemplate } from "../shared/templates";
 import { debounce } from "../shared/timing";
 import { errorMessage } from "../shared/errors";
 import { sha256Hex } from "../engine/hash";
-import { atomicWrite, isMissingFile, readJsonKeepingBroken, writeJson } from "../engine/json";
+import { atomicWrite, readJsonKeepingBroken, readTextIfPresent, writeJson } from "../engine/json";
 import { projectPaths, readLastRun } from "../engine/project-paths";
 import { PROJECT_DIRS } from "../shared/project-dirs";
 import { openDialog } from "./dialogs";
 import { ensureSecretsDir } from "./secrets";
 import { patchSettings, readSettings } from "./settings";
-import { tryParseJson } from "../shared/guards";
+import { parseJsonWith } from "../shared/guards";
 
 const MAX_RECENT = 20;
 
@@ -85,21 +85,15 @@ const versionOf = (text: string) => sha256Hex(text, 16);
 const written = new Map<string, string>();
 
 async function readProjectFile(dir: string): Promise<{ text: string; version: string } | null> {
-  try {
-    const text = await readFile(path.join(dir, WORKFLOW_FILE), "utf8");
-    return { text, version: versionOf(text) };
-  } catch (error) {
-    if (isMissingFile(error)) return null;
-    throw error;
-  }
+  const text = await readTextIfPresent(path.join(dir, WORKFLOW_FILE));
+  return text === null ? null : { text, version: versionOf(text) };
 }
 
 type ParsedWorkflow = { ok: true; workflow: Workflow } | { ok: false; problem: string };
 
 function parseWorkflowText(text: string): ParsedWorkflow {
-  const json = tryParseJson(text);
-  if (!json.ok) return { ok: false, problem: "the file is damaged" };
-  const parsed = workflowSchema.safeParse(json.value);
+  const parsed = parseJsonWith(workflowSchema, text);
+  if (!parsed) return { ok: false, problem: "the file is damaged" };
   if (parsed.success) return { ok: true, workflow: parsed.data };
   const issue = parsed.error.issues[0];
   const where = issue.path.length ? `${issue.path.join(".")}: ` : "";

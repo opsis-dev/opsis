@@ -15,6 +15,7 @@ import { FrameOverlay } from "./frame-overlay";
 import { ListRow } from "./list-row";
 import { MONO_TEXT } from "./text-styles";
 import { traceClock, TraceTabs } from "./trace-tabs";
+import { findById } from "@/shared/lists";
 
 const MOMENTS = ["before", "after"] as const;
 type Moment = (typeof MOMENTS)[number];
@@ -158,7 +159,7 @@ function TraceActionList({
 
 function pickAction(trace: TraceModel, id: string | undefined): TraceAction | undefined {
   return (
-    trace.actions.find((a) => a.id === id) ??
+    findById(trace.actions, id) ??
     trace.actions.find((a) => a.error) ??
     trace.actions.findLast((a) => a.group) ??
     trace.actions.at(-1)

@@ -1,21 +1,21 @@
 import type { BrowserWindow, Rectangle } from "electron";
 import { z } from "zod";
-import { DOCK_PANELS, IPC, type DockPanelName } from "../shared/ipc";
+import { DOCK_PANELS, DOCK_TITLES, IPC, type DockPanelName } from "../shared/ipc";
 import type { WindowOptions } from "./app-windows";
 import { raiseWindow } from "./raise-window";
-import { boundsStore, isVisible, rectangleSchema, rememberBounds } from "./window-bounds";
+import {
+  boundsStore,
+  isVisible,
+  liveWindow,
+  rectangleSchema,
+  rememberBounds,
+  requireHost,
+} from "./window-bounds";
 
 type PanelWindowHost = {
   main: () => BrowserWindow | null;
   create: (options: Omit<WindowOptions, "minWidth" | "minHeight">) => BrowserWindow;
   url: (hash: string) => string;
-};
-
-const TITLES: Record<DockPanelName, string> = {
-  preview: "Preview",
-  timeline: "Timeline",
-  mixer: "Mixer",
-  run: "Run",
 };
 
 const DEFAULT_SIZE: Record<DockPanelName, { width: number; height: number }> = {
@@ -50,21 +50,13 @@ export function initPanelWindows(next: PanelWindowHost): void {
   host = next;
 }
 
-function panelHost(): PanelWindowHost {
-  if (!host) throw new Error("Panel windows were used before the app finished starting.");
-  return host;
-}
-
 export const openPanels = (): DockPanelName[] => [...windows.keys()];
 
 function notify(): void {
   host?.main()?.webContents.send(IPC.panelWindows, openPanels());
 }
 
-export const panelWindow = (panel: DockPanelName) => {
-  const win = windows.get(panel);
-  return win && !win.isDestroyed() ? win : null;
-};
+export const panelWindow = (panel: DockPanelName) => liveWindow(windows.get(panel));
 
 export const panelWindows = (): BrowserWindow[] =>
   [...windows.values()].filter((w) => !w.isDestroyed());
@@ -72,7 +64,7 @@ export const panelWindows = (): BrowserWindow[] =>
 export const isPanelSender = (id: number) => panelWindows().some((w) => w.webContents.id === id);
 
 export async function openPanelWindow(panel: DockPanelName, projectDir: string): Promise<void> {
-  const { create, url } = panelHost();
+  const { create, url } = requireHost(host, "Panel windows were");
   const existing = panelWindow(panel);
   if (existing) {
     raiseWindow(existing);
@@ -81,7 +73,7 @@ export async function openPanelWindow(panel: DockPanelName, projectDir: string):
   const saved = (await panelBounds())[panel];
   const size = DEFAULT_SIZE[panel];
   const rect = saved && isVisible(saved) ? saved : undefined;
-  const win = create({ ...size, ...rect, title: `${TITLES[panel]} — Demoflow` });
+  const win = create({ ...size, ...rect, title: `${DOCK_TITLES[panel]} — Demoflow` });
   windows.set(panel, win);
   rememberBounds(win, (next) => savePanelBounds(panel, next));
   win.on("closed", () => {

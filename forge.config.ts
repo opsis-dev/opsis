@@ -13,6 +13,7 @@ import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { installFfmpeg, installHeadlessShell, type InstallProgress } from "./src/engine/install";
 import { writeChromiumCredits } from "./src/engine/chromium-credits";
+import { percentText } from "./src/shared/format";
 import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "./src/engine/paths";
 import { getCompositorPackage } from "./src/worker/render/compositor-package";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./src/worker/render/bundle";
@@ -81,7 +82,7 @@ async function stageEngine(platform: string, arch: string): Promise<void> {
   await rm(ENGINE_DIR, { recursive: true, force: true });
   const log: InstallProgress = ({ part, progress, message }) =>
     process.stdout.write(
-      `\r[engine] ${part} ${progress == null ? "" : `${Math.round(progress * 100)}%`} ${message}   `,
+      `\r[engine] ${part} ${progress == null ? "" : percentText(progress)} ${message}   `,
     );
   await installFfmpeg(ENGINE_DIR, log);
   await installHeadlessShell(ENGINE_DIR, log);

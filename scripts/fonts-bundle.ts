@@ -12,8 +12,8 @@ import { z } from "zod";
 import { googleFontModuleFile, googleImportName } from "../src/shared/fonts/google-font-imports";
 import { FONT_CATEGORIES } from "../src/shared/fonts/types";
 import { walkFiles } from "./lib/walk";
+import { ROOT } from "./lib/tool-config";
 
-const ROOT = path.resolve(import.meta.dirname, "..");
 const OUT = path.join(ROOT, "public", "fonts", "bundled");
 const META_OUT = path.join(ROOT, "src", "shared", "fonts", "bundled.generated.ts");
 const SHIM_DIR = path.join(ROOT, "src", "video", "fonts", "google");

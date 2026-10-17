@@ -47,3 +47,11 @@ export function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => vo
     remember();
   });
 }
+
+export function requireHost<T>(host: T | null, what: string): T {
+  if (!host) throw new Error(`${what} opened before the app finished starting.`);
+  return host;
+}
+
+export const liveWindow = (win: BrowserWindow | null | undefined): BrowserWindow | null =>
+  win && !win.isDestroyed() ? win : null;

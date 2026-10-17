@@ -8,6 +8,7 @@ import { groupOf, isClip, recordingOf } from "./clip";
 import { compileWorkflow, previewSpec } from "./compile";
 import { flattenSpec } from "../timeline/flatten";
 import { itemsOf, recordedTake, recordResult } from "../test-fixtures";
+import { findById } from "../lists";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 
@@ -170,7 +171,7 @@ describe("compileWorkflow — timeline nodes", () => {
       g.link(title, loop);
       return loop;
     });
-    wf.nodes.find((n) => n.id === "loop")!.disabled = true;
+    findById(wf.nodes, "loop")!.disabled = true;
     const clip = compiledClip(wf, last);
     expect(clip.durationInFrames).toBe(90);
   });

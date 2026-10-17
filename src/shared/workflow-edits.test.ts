@@ -12,6 +12,7 @@ import {
   ungroup,
 } from "./workflow-edits";
 import type { FontFamilyDef } from "./fonts/types";
+import { findById } from "./lists";
 
 const SIZE = { width: 200, height: 100 };
 
@@ -61,7 +62,7 @@ describe("workflow edits", () => {
 
   it("groups around the members and ungroups back to the same places", () => {
     const wf = grouped();
-    const group = wf.nodes.find((n) => n.id === "g");
+    const group = findById(wf.nodes, "g");
     expect(group?.type).toBe(GROUP_TYPE);
     const [a, b] = sounds().nodes;
     expect(group?.position).toEqual({ x: a.position.x - 40, y: a.position.y - 64 });
@@ -90,7 +91,7 @@ describe("workflow edits", () => {
     mix.channels.a = { ...DEFAULT_STRIP, fader: -3 };
     const wf = removeNodes({ ...linked, mix }, ["g", "m"]);
     expect(wf.nodes.map((n) => n.id)).toEqual(["a", "b", "mix"]);
-    expect(wf.nodes.find((n) => n.id === "a")).toEqual(sounds().nodes[0]);
+    expect(findById(wf.nodes, "a")).toEqual(sounds().nodes[0]);
     expect(wf.edges).toEqual([]);
     expect(Object.keys(wf.mix?.channels ?? {})).toEqual(["a"]);
   });
@@ -119,8 +120,8 @@ describe("workflow edits", () => {
 
   it("pastes a grouped node without its group at its place on the canvas", () => {
     const source = grouped();
-    const group = source.nodes.find((n) => n.id === "g");
-    const inGroup = source.nodes.find((n) => n.id === "a");
+    const group = findById(source.nodes, "g");
+    const inGroup = findById(source.nodes, "a");
     if (!group || !inGroup) throw new Error("fixture changed");
     const { workflow } = pasteNodes(source, [inGroup], [], { x: 10, y: 20 });
     const pasted = workflow.nodes.at(-1);

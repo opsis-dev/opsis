@@ -1,6 +1,8 @@
 import path from "node:path";
 
-export const SRC_ALIAS = { "@": path.resolve(import.meta.dirname, "..", "..", "src") };
+export const ROOT = path.resolve(import.meta.dirname, "..", "..");
+
+export const SRC_ALIAS = { "@": path.join(ROOT, "src") };
 
 export const IGNORED_PATHS = [
   ".vite/**",

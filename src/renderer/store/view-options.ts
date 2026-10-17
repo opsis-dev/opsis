@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { VARIANTS } from "@/shared/nodes/output";
 import { isOneOf } from "@/renderer/lib/one-of";
+import { isBoolean } from "@/shared/guards";
 import { readPref, writePref } from "./view-prefs";
 
 export const PREVIEW_QUALITIES = ["fast", "exact"] as const;
@@ -10,8 +11,6 @@ export const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PRE
 export const PREVIEW_SHAPES = ["project", ...VARIANTS] as const;
 export type PreviewShape = (typeof PREVIEW_SHAPES)[number];
 export const isPreviewShape = (v: unknown): v is PreviewShape => isOneOf(PREVIEW_SHAPES, v);
-
-const isBoolean = (v: unknown): v is boolean => typeof v === "boolean";
 
 type ViewOptions = {
   previewQuality: PreviewQuality;

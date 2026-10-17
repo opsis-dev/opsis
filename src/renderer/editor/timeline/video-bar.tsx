@@ -9,6 +9,7 @@ import { EnvelopeOverlay, useBarEnvelope } from "./envelope-overlay";
 import type { VideoEditKind } from "./timeline-drag";
 import { BAR_INSET, VIDEO_H, barBox, hitEdge } from "./timeline-layout";
 import { useTimeline, type TimelineTool } from "./timeline-state";
+import { findById } from "@/shared/lists";
 
 const DEFAULT_TONE = "bg-track-video";
 
@@ -32,7 +33,7 @@ const TOOL_CURSOR: Partial<Record<TimelineTool, string>> = {
 const HEIGHT = VIDEO_H - BAR_INSET;
 
 function toneFor(ctx: BarContext, bar: VideoBar): string {
-  const node = ctx.workflow.nodes.find((n) => n.id === bar.nodeId);
+  const node = findById(ctx.workflow.nodes, bar.nodeId);
   const def = node && getNodeDef(node.type);
   return (def && CATEGORY_TONE[def.category]) ?? DEFAULT_TONE;
 }

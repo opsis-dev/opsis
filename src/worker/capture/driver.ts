@@ -4,7 +4,7 @@ import { parseParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import type { ActionLog } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
-import { errorMessage } from "../../shared/errors";
+import { errorMessage, onAbort } from "../../shared/errors";
 import { setupLength } from "./driver-helpers";
 import { CURSOR_LOOK, installCursor } from "./page-scripts";
 import { SelectorError } from "./selectors";
@@ -98,9 +98,7 @@ async function openTake(opts: TakeOptions, recording: Recording | null): Promise
     storageState: opts.storageState,
     executablePath: opts.executablePath,
   });
-  const onAbort = () => void session.close();
-  signal.addEventListener("abort", onAbort, { once: true });
-  const stopOnAbort = () => signal.removeEventListener("abort", onAbort);
+  const stopOnAbort = onAbort(signal, () => void session.close());
   let page: Page;
   try {
     page = await preparePage(session, opts, recording);

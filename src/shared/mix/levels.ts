@@ -13,6 +13,7 @@ import {
 } from "./types";
 import { msToExactFrames, msToFrames } from "../timeline/time";
 import { numberOr } from "../math";
+import { findById } from "../lists";
 
 export const resolveMix = (mix: Mix | undefined): Mix => mix ?? defaultMix();
 
@@ -21,9 +22,7 @@ export const stripOf = (mix: Mix, channel: string): Strip => mix.channels[channe
 export function busOf(mix: Mix, channel: string, kind: ChannelKind): Bus {
   const strip = stripOf(mix, channel);
   return (
-    mix.buses.find((b) => b.id === strip.bus) ??
-    mix.buses.find((b) => b.id === DEFAULT_BUS_FOR[kind]) ??
-    mix.buses[0]
+    findById(mix.buses, strip.bus) ?? findById(mix.buses, DEFAULT_BUS_FOR[kind]) ?? mix.buses[0]
   );
 }
 

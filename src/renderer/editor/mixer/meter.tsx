@@ -3,14 +3,15 @@ import type { MixResult, StemLevels } from "@/shared/mix/result";
 import { cn } from "@/renderer/lib/utils";
 import { frameIn } from "@/shared/timeline/time";
 import { usePlayback } from "../../store/playback";
+import { SILENCE_DB } from "@/shared/mix/types";
+import { levelDb, signedDb } from "./audio-format";
 
-const SILENCE_DB = -120;
 const METER_MIN = -60;
 const METER_MAX = 6;
 const MAX_REDUCTION_DB = 24;
 const CLIP_DB = -0.5;
 
-const toPct = (db: number) => clamp01((db - METER_MIN) / (METER_MAX - METER_MIN)) * 100;
+const toPct = (level: number) => clamp01((level - METER_MIN) / (METER_MAX - METER_MIN)) * 100;
 
 export const sampleAt = (values: number[] | null | undefined, frame: number): number | null =>
   values?.length ? values[frameIn(frame, values.length)] : null;
@@ -53,7 +54,7 @@ function Meter({ level, reduction }: { level: Level; reduction?: number }) {
         title={
           peak === null
             ? "No level yet"
-            : `Peak ${peak.toFixed(1)} dB, average ${rms?.toFixed(1)} dB`
+            : `Peak ${levelDb(peak)} dB, average ${levelDb(rms ?? Number.NaN)} dB`
         }
       >
         <div
@@ -116,5 +117,5 @@ export function LiveMeter({
 export function ReductionReadout({ reduction }: { reduction: Reduction }) {
   const frame = usePlayback((s) => s.frame);
   const lowered = reductionAt(reduction, frame);
-  return lowered === null ? null : <span className="tabular-nums">−{lowered.toFixed(1)}</span>;
+  return lowered === null ? null : <span className="tabular-nums">{signedDb(-lowered)}</span>;
 }

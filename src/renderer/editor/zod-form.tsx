@@ -8,7 +8,7 @@ import {
   type FieldWidget,
 } from "@/shared/elements/introspect";
 import { humanize } from "@/shared/format";
-import { isRecord } from "@/shared/guards";
+import { isBoolean, isNumber, isRecord, isString, isStringOrNumber } from "@/shared/guards";
 import { transitionTitle } from "@/shared/nodes/transitions";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -60,10 +60,6 @@ const VALUE_WIDGETS: Partial<Record<FieldWidget, ComponentType<AnyFieldProps>>> 
 const COLLAPSING =
   "h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-200 ease-out data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0";
 
-const isString = (v: unknown): v is string => typeof v === "string";
-const isNumber = (v: unknown): v is number => typeof v === "number";
-const isBoolean = (v: unknown): v is boolean => typeof v === "boolean";
-const isLiteral = (v: unknown): v is string | number => isString(v) || isNumber(v);
 const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every(isString);
 const isRecordList = (v: unknown): v is Patch[] => Array.isArray(v) && v.every(isRecord);
 
@@ -218,7 +214,7 @@ function EnumKindField({ options, ...props }: AnyFieldProps & { options: string[
 }
 
 function LiteralsField({ options, ...props }: AnyFieldProps & { options: Array<string | number> }) {
-  const field = typed(props, isLiteral, "");
+  const field = typed(props, isStringOrNumber, "");
   if (!field) return <JsonField {...props} />;
   const { meta, onChange } = field;
   return (

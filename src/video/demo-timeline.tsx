@@ -34,7 +34,7 @@ import { getComponent, getPresentation, isKnownElement, useElements } from "./re
 import { clamp01 } from "../shared/math";
 import { MAIN_FONT } from "../shared/fonts";
 import { percent } from "../shared/format";
-import { CLAMP_LEFT, CLAMP_RIGHT } from "./core/anim";
+import { CLAMP_RIGHT, fadeWindow } from "./core/anim";
 import { sameShape } from "./core/frame";
 import type { Size } from "./core/still-layout";
 
@@ -302,15 +302,15 @@ const AudioLayers: React.FC<{ spec: TimelineSpec }> = ({ spec }) => {
 
 function audioGainAt(item: AudioItem, f: number, duration: number, spans: Span[]): number {
   const baseVolume = (typeof item.volume === "number" ? item.volume : 1) * (item.gain ?? 1);
-  const fadeIn = item.fadeInFrames ?? 0;
-  const fadeOut = item.fadeOutFrames ?? 0;
-  const inV = fadeIn ? interpolate(f, [0, fadeIn], [0, 1], CLAMP_RIGHT) : 1;
-  const outV = fadeOut ? interpolate(f, [duration - fadeOut, duration], [1, 0], CLAMP_LEFT) : 1;
+  const fade = fadeWindow(f, 0, duration, {
+    in: item.fadeInFrames ?? 0,
+    out: item.fadeOutFrames ?? 0,
+  });
   const duck = item.duck
     ? duckGain(item.from + f, spans, item.duck.level, item.duck.fadeFrames)
     : 1;
   const env = envelopeAt(item.envelope?.volume, f, 1);
-  return Math.max(0, baseVolume * Math.min(inV, outV) * duck * env);
+  return Math.max(0, baseVolume * fade * duck * env);
 }
 
 const AudioLayer: React.FC<{ item: AudioItem; spans: Span[] }> = ({ item, spans }) => {

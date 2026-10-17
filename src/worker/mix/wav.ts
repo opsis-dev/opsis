@@ -1,6 +1,5 @@
 import { EPSILON, round1 } from "../../shared/math";
-
-export const SILENCE_DB = -120;
+import { SILENCE_DB } from "../../shared/mix/types";
 
 const WAVE_FORMAT_EXTENSIBLE = 0xfffe;
 const UNKNOWN_DATA_SIZE = 0xffffffff;

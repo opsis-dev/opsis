@@ -29,13 +29,14 @@ import { useFormContext } from "./use-form-context";
 import { useNodeProblems } from "./use-node-problems";
 import { ZodForm } from "./zod-form";
 import { isGroupNode } from "@/shared/graph";
+import { findById } from "@/shared/lists";
 
 export function Inspector() {
   const selected = useUiStore((s) => s.selectedIds);
   const workflow = useWorkflowStore((s) => s.workflow);
   if (!workflow) return null;
   const present = selected.filter((id) => workflow.nodes.some((n) => n.id === id));
-  const node = present.length === 1 ? workflow.nodes.find((n) => n.id === present[0]) : undefined;
+  const node = present.length === 1 ? findById(workflow.nodes, present[0]) : undefined;
   return (
     <ScrollArea className="h-full">
       <SwapFade id={node?.id ?? "project"}>

@@ -4,8 +4,7 @@ import path from "node:path";
 import { z } from "zod";
 import { writeChromiumCredits } from "../src/engine/chromium-credits";
 import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "../src/engine/paths";
-
-const ROOT = path.resolve(import.meta.dirname, "..");
+import { ROOT } from "./lib/tool-config";
 
 const appName = z
   .object({ productName: z.string() })

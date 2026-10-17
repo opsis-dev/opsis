@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { LiveEvent, LiveMessage, LiveStepStatus } from "@/shared/live";
 import type { Rect } from "@/shared/schema/actions";
 import { appendCapped } from "@/shared/lists";
+import { DEFAULT_VIEWPORT } from "@/shared/nodes/capture";
 import { liveAutoOpen } from "./app-settings";
 
 type LiveStep = { nodeId: string; label: string; status?: LiveStepStatus; message?: string };
@@ -34,7 +35,6 @@ type LiveState = {
   reset: () => void;
 };
 
-const DEFAULT_VIEWPORT = { width: 1920, height: 1080 };
 const MAX_CLICKS = 9;
 
 const blank = (captureId: string, nodeId: string): LiveCapture => ({

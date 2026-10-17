@@ -30,6 +30,11 @@ export default defineConfig({
     "react/hooks": "off",
     "import/no-cycle": "off",
     "unicorn/filename-case": ["error", { case: "kebabCase", ignore: ["^__root\\.tsx$"] }],
+    "demoflow/use-find-by-id": "error",
+    "demoflow/use-on-abort": "error",
+    "demoflow/use-parse-json-with": "error",
+    "demoflow/use-percent-text": "error",
+    "demoflow/use-type-guards": "error",
   },
   overrides: [
     {
@@ -67,6 +72,14 @@ export default defineConfig({
         "demoflow/no-animate-class": "error",
       },
     },
+    {
+      files: ["scripts/**/*.ts"],
+      excludeFiles: ["scripts/lib/tool-config.ts"],
+      rules: { "demoflow/use-root": "error" },
+    },
+    { files: ["src/shared/lists.ts"], rules: { "demoflow/use-find-by-id": "off" } },
+    { files: ["src/shared/errors.ts"], rules: { "demoflow/use-on-abort": "off" } },
+    { files: ["src/shared/guards.ts"], rules: { "demoflow/use-type-guards": "off" } },
     {
       files: ["**/*.test.ts", "**/*.test.tsx"],
       rules: {
