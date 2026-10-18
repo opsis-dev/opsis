@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { appendCapped } from "@/shared/lists";
 import type { LiveEvent, LiveMessage, LiveStepStatus } from "@/shared/live";
-import { DEFAULT_VIEWPORT } from "@/shared/nodes/capture";
 import type { Rect } from "@/shared/schema/actions";
+import { DEFAULT_VIEWPORT } from "@/shared/schema/workflow";
 import { liveAutoOpen } from "./app-settings";
 
 type LiveStep = { nodeId: string; label: string; status?: LiveStepStatus; message?: string };

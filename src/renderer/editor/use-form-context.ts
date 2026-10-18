@@ -7,10 +7,10 @@ import { errorMessage } from "@/shared/errors";
 import { downstreamOf, sessionChain, upstreamOf } from "@/shared/graph";
 import { ACTION_NODE_TYPES, navigateNode, sessionNode } from "@/shared/nodes/browser";
 import { recordNode, stillNode } from "@/shared/nodes/capture";
-import { countConnected } from "@/shared/nodes/card";
+import { connectedPorts } from "@/shared/nodes/card";
 import type { NodeDef } from "@/shared/nodes/define";
+import { IN_PORTS } from "@/shared/nodes/ports";
 import { nodeName } from "@/shared/nodes/registry";
-import { IN_PORTS } from "@/shared/nodes/timeline";
 import type { NodeResult } from "@/shared/schema/values";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { interpolate } from "@/shared/vars";
@@ -131,10 +131,10 @@ function formContext({
   secrets: string[] | null;
   results: Partial<Record<string, NodeResult>>;
 }): FormContext {
-  const layers = countConnected(
+  const layers = connectedPorts(
     IN_PORTS,
     workflow.edges.filter((e) => e.target === nodeId).map((e) => e.targetHandle),
-  );
+  ).length;
   const needsBackground = def.category === "Camera" || hasWidget(def.params, "boxes");
   return {
     projectDir,

@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { loudnessName, lufsText, parseParams, target } from "./params";
+import { fieldMeta } from "../elements/introspect";
+import {
+  choiceFrom,
+  choiceOf,
+  loudnessName,
+  lufsText,
+  more,
+  parseParams,
+  qualityName,
+  target,
+  text,
+} from "./params";
 
 const schema = z.object({
   name: z.string().meta({ description: "Name" }),
@@ -35,5 +46,37 @@ describe("loudness names", () => {
     expect(loudnessName(-18)).toBe("−18 LUFS");
     expect(lufsText(-23)).toBe("−23");
     expect(lufsText(0)).toBe("0");
+  });
+});
+
+describe("field builders", () => {
+  it("adds to a field's settings without losing the ones it had", () => {
+    const field = more(text("", "Name", "textarea"), { help: "Who it's for", advanced: true });
+    expect(fieldMeta(field)).toMatchObject({
+      description: "Name",
+      widget: "textarea",
+      help: "Who it's for",
+      advanced: true,
+    });
+  });
+
+  it("labels choices from a table of words or entries with a label", () => {
+    const field = choiceOf({ a: "First", b: { label: "Second" } }, "a", "Pick");
+    expect(fieldMeta(field).labels).toEqual({ a: "First", b: "Second" });
+    expect(field.parse(undefined)).toBe("a");
+  });
+
+  it("offers only the chosen part of a table, with its labels", () => {
+    const field = choiceFrom({ x: "Ex", y: "Why", z: "Zed" }, ["x", "z"], "z", "Pick");
+    expect(fieldMeta(field).labels).toEqual({ x: "Ex", z: "Zed" });
+    expect(field.safeParse("y").success).toBe(false);
+  });
+});
+
+describe("qualityName", () => {
+  it("names the nearest preset and prefers the finer one on a tie", () => {
+    expect(qualityName(18)).toBe("High");
+    expect(qualityName(25)).toBe("Medium");
+    expect(qualityName(15)).toBe("Max");
   });
 });

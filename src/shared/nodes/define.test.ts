@@ -1,11 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { parseNodeParams } from "./define";
-import { stillOutputNode } from "./output";
+import { z } from "zod";
+import { defineNode, parseNodeParams } from "./define";
+
+const exportNode = defineNode({
+  type: "test.export",
+  title: "Test export",
+  category: "Output",
+  phase: "render",
+  inputs: {},
+  outputs: {},
+  params: z.object({
+    fileName: z.string().default("{{Project name}}"),
+    atMs: z.number().default(1000),
+  }),
+});
 
 describe("parseNodeParams", () => {
   it("fills a missing setting from its default before replacing variables", () => {
     const params = parseNodeParams(
-      stillOutputNode,
+      exportNode,
       { params: { atMs: 500 } },
       { "Project name": "Demo" },
     );
@@ -15,7 +28,7 @@ describe("parseNodeParams", () => {
 
   it("keeps a stored setting over the default", () => {
     const params = parseNodeParams(
-      stillOutputNode,
+      exportNode,
       { params: { fileName: "{{Project name}} still" } },
       { "Project name": "Demo" },
     );

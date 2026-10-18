@@ -1,4 +1,4 @@
-import { INTERACTIVE_SELECTOR } from "../shared/interactive";
+import { INTERACTIVE_SELECTOR, type PickedRole } from "../shared/interactive";
 import type { PickResult } from "../shared/ipc";
 
 type Box = { left: number; top: number; width: number; height: number };
@@ -57,7 +57,7 @@ function cssOf(el: Element, maxDepth: number): string {
   return cssPath(el, maxDepth);
 }
 
-function inputRole(el: Element): string {
+function inputRole(el: Element): PickedRole {
   const type = (el.getAttribute("type") || "text").toLowerCase();
   if (type === "checkbox" || type === "radio") return type;
   if (type === "search") return "searchbox";
@@ -66,9 +66,7 @@ function inputRole(el: Element): string {
   return "textbox";
 }
 
-function roleOf(el: Element): string {
-  const explicit = el.getAttribute("role");
-  if (explicit) return explicit;
+function implicitRole(el: Element): PickedRole | "" {
   const tagName = el.tagName.toLowerCase();
   if (tagName === "a" && el.hasAttribute("href")) return "link";
   if (tagName === "button") return "button";
@@ -78,6 +76,10 @@ function roleOf(el: Element): string {
   if (/^h[1-6]$/.test(tagName)) return "heading";
   if (tagName === "input") return inputRole(el);
   return "";
+}
+
+function roleOf(el: Element): string {
+  return el.getAttribute("role") || implicitRole(el);
 }
 
 function createHighlight(): (rect: Box, label: string, labelAt: Point) => void {
@@ -201,6 +203,7 @@ const PAGE_FUNCTIONS = [
   cssPath,
   cssOf,
   inputRole,
+  implicitRole,
   roleOf,
   createHighlight,
   spotOf,

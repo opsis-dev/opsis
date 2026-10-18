@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
+import type { FrameTheme, WindowStyle } from "../../shared/window-styles";
 import { useDesignScale } from "./lib/design-scale";
 
 export const CHROME_H = 38;
@@ -58,9 +59,6 @@ export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
     </>
   );
 };
-
-export type WindowStyle = "macos" | "windows" | "linux";
-export type FrameTheme = "light" | "dark";
 
 const FRAME_COLORS = {
   light: {

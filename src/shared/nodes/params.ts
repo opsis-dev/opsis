@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fieldMeta, type FieldMeta } from "../elements/introspect";
 import { humanize } from "../format";
+import { MAX_FRAMES, MAX_SPEED, MAX_VOLUME } from "../limits";
 import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
 
 export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
@@ -20,14 +21,17 @@ export const optionalTarget = (description: string, help?: string) =>
 export const pickedRole = () =>
   z.string().optional().meta({ description: "Role of the picked element", hidden: true });
 
-export const MIN_SPEED = 0.1;
-export const MAX_SPEED = 64;
-export const MAX_VOLUME = 2;
-export const MAX_FRAMES = 108_000;
+type NumberOptions = FieldMeta & { min: number; max: number };
 
-type IntOptions = FieldMeta & { min: number; max: number };
+export const num = (def: number, description: string, { min, max, ...meta }: NumberOptions) =>
+  z
+    .number()
+    .min(min)
+    .max(max)
+    .default(def)
+    .meta({ description, ...meta });
 
-export const int = (def: number, description: string, { min, max, ...meta }: IntOptions) =>
+export const int = (def: number, description: string, { min, max, ...meta }: NumberOptions) =>
   z
     .number()
     .int()
@@ -43,19 +47,18 @@ export const frames = (def: number, description: string) =>
   int(def, description, { min: 1, max: MAX_FRAMES, step: 1, unit: "frames" });
 
 export const fraction = (def: number, description: string) =>
-  z.number().min(0).max(1).default(def).meta({ description, step: 0.01 });
+  num(def, description, { min: 0, max: 1, step: 0.01 });
 
 export const rate = (
   def: number,
   description: string,
   { min, max = MAX_SPEED, step = 0.05 }: { min: number; max?: number; step?: number },
-) => z.number().min(min).max(max).default(def).meta({ description, step, unit: "×" });
+) => num(def, description, { min, max, step, unit: "×" });
 
-export const volume = (def: number) =>
-  z.number().min(0).max(MAX_VOLUME).default(def).meta({ description: "Volume", step: 0.05 });
+export const volume = (def: number) => num(def, "Volume", { min: 0, max: MAX_VOLUME, step: 0.05 });
 
-export const zoomScale = (def: number, description = "Zoom", step = 0.05) =>
-  z.number().min(1.1).max(2.5).default(def).meta({ description, step, unit: "×" });
+export const zoomFactor = (def: number, description = "Zoom", step = 0.05) =>
+  num(def, description, { min: 1.1, max: 2.5, step, unit: "×" });
 
 export const text = (def: string, description: string, widget?: "textarea" | "code") =>
   z
@@ -110,6 +113,25 @@ export const FORMAT_NAMES = {
 
 export const QUALITY_PRESETS = { Low: 28, Medium: 23, High: 18, Max: 12 } as const;
 
+const nearerThenFiner =
+  (crf: number) =>
+  ([, a]: [string, number], [, b]: [string, number]): number =>
+    Math.abs(a - crf) - Math.abs(b - crf) || a - b;
+
+export const qualityName = (crf: number): string =>
+  Object.entries(QUALITY_PRESETS).toSorted(nearerThenFiner(crf))[0][0];
+
+export function choiceFrom<K extends string, const T extends readonly [K, ...K[]]>(
+  labels: Record<K, string>,
+  values: T,
+  def: T[number],
+  description: string,
+) {
+  const shown: Partial<Record<T[number], string>> = {};
+  for (const value of values) shown[value] = labels[value];
+  return choice(values, def, description, shown);
+}
+
 export const LOUDNESS_PRESETS = { "Online video": -14, Podcast: -16, Broadcast: -23 } as const;
 
 export const lufsText = (lufs: number): string => `${lufs < 0 ? "−" : ""}${Math.abs(lufs)}`;
@@ -120,17 +142,27 @@ export const loudnessName = (lufs: number): string =>
 export const quality = (def: number, description = "Quality") =>
   int(def, description, { min: 0, max: 51, widget: "quality" });
 
-export const beatFields = {
+export const targetFields = (description?: string, help?: string) => ({
+  target: target(description, help),
+  targetRole: pickedRole(),
+});
+
+export const pauseAfter = {
   after: more(ms(600, "Pause after"), {
     help: "How long the video lingers after this action.",
   }),
+};
+
+export const zoomFields = {
   cluster: more(text("", "Zoom group"), {
     help: "Actions in the same group share one zoom instead of zooming in and out each time.",
   }),
   zoom: bool(true, "Zoom in on this action"),
 };
 
-export const pointerFields = {
+export const beatFields = { ...pauseAfter, ...zoomFields };
+
+export const frameFields = {
   frame: more(
     optionalTarget(
       "Zoom to fit",
@@ -139,8 +171,13 @@ export const pointerFields = {
     { advanced: true },
   ),
   frameRole: pickedRole(),
-  zoomScale: z.number().min(0).max(3).default(0).meta({
-    description: "Zoom amount",
+};
+
+export const pointerFields = {
+  ...frameFields,
+  zoomScale: num(0, "Zoom amount", {
+    min: 0,
+    max: 3,
     step: 0.05,
     unit: "×",
     zeroLabel: "Auto",
@@ -148,6 +185,12 @@ export const pointerFields = {
   }),
   travelMs: more(ms(0, "Cursor travel time", 10_000), { zeroLabel: "Auto", advanced: true }),
 };
+
+export const pointerAction = (hoverMs: number, hoverLabel: string) => ({
+  ...beatFields,
+  ...pointerFields,
+  hoverMs: ms(hoverMs, hoverLabel, 10_000),
+});
 
 export const visualEnvelope = () =>
   visualEnvelopeSchema.default({}).meta({
@@ -193,7 +236,8 @@ export function parseParams<T extends z.ZodObject>(
   const issue = parsed.error.issues[0];
   const wording = issueWording(issue);
   if (wording === null) return { ok: false, problem: issue.message };
-  const key = String(issue.path[0] ?? "");
+  const first = issue.path.at(0);
+  const key = typeof first === "string" ? first : "";
   const field: z.ZodType | undefined = schema.shape[key];
   const label =
     (field ? fieldMeta(field).description : undefined) || (key ? humanize(key) : "A setting");

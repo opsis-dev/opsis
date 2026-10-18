@@ -3,10 +3,9 @@ import { byCodeUnit, findById } from "./lists";
 import { sessionNode } from "./nodes/browser";
 import { loginOnceNode } from "./nodes/capture";
 import type { PortSpec } from "./nodes/define";
-import { isOutputType } from "./nodes/output";
 import { parseParams } from "./nodes/params";
 import { canConnect, SESSION_PORT } from "./nodes/ports";
-import { getNodeDef, nodeName } from "./nodes/registry";
+import { getNodeDef, isOutputType, nodeName } from "./nodes/registry";
 import { GROUP_TYPE, NOTE_TYPE } from "./nodes/utility";
 import {
   PORT_WORDS,

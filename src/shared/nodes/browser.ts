@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { chordKeys } from "../chord";
-import { formatDuration, displayAddress } from "../format";
+import { formatDuration, displayAddress, formatWhen } from "../format";
+import { mimeSubtype } from "../mime";
+import { DEFAULT_VIEWPORT } from "../schema/workflow";
 import { nonBlankLines } from "../text-input";
 import { PAUSE_MARK } from "../vars";
 import {
@@ -17,20 +19,23 @@ import {
   truncate,
   type CardRow,
 } from "./card";
-import { defineNode, port } from "./define";
+import { defineNode, nodeBase, port } from "./define";
 import {
   asset,
   beatFields,
   bool,
   choice,
   choiceOf,
+  frameFields,
   int,
   more,
   ms,
+  num,
   optionalTarget,
+  pauseAfter,
   pickedRole,
-  pointerFields,
-  target,
+  pointerAction,
+  targetFields,
   text,
 } from "./params";
 
@@ -39,18 +44,33 @@ const chain = {
   outputs: { session: port("session", "Next") },
 } as const;
 
-const pause = (after: number) =>
-  after > 0 ? row("timer", `Pause ${formatDuration(after)}`) : null;
-const giveUpRow = (timeoutMs: number) =>
-  row("timer-off", `Give up after ${formatDuration(timeoutMs)}`, { tone: "muted" });
-const zoomRow = (p: { zoom?: boolean; cluster?: string }) =>
-  p.zoom === false
-    ? row("zoom-out", "No zoom", { tone: "muted" })
-    : p.cluster?.trim()
-      ? row("zoom-in", `Zoom group “${truncate(p.cluster, TAG_TEXT_MAX)}”`)
-      : null;
-const base = { category: "Browser", phase: "capture", virtual: true } as const;
+const base = { ...nodeBase("Browser", "capture"), virtual: true };
 const action = { ...base, ...chain, action: true } as const;
+
+const pause = (after: number): CardRow | null =>
+  after > 0 ? row("timer", `Pause ${formatDuration(after)}`) : null;
+
+const giveUpRow = (timeoutMs: number): CardRow =>
+  row("timer-off", `Give up after ${formatDuration(timeoutMs)}`, { tone: "muted" });
+
+function zoomRow(p: { zoom?: boolean; cluster?: string }): CardRow | null {
+  if (p.zoom === false) return row("zoom-out", "No zoom", { tone: "muted" });
+  return p.cluster?.trim()
+    ? row("zoom-in", `Zoom group “${truncate(p.cluster, TAG_TEXT_MAX)}”`)
+    : null;
+}
+
+const beatRows = (p: { after: number; zoom?: boolean; cluster?: string }) => [
+  pause(p.after),
+  zoomRow(p),
+];
+
+const onto = (r: CardRow): CardRow => (r.tone === "warn" ? r : { ...r, text: `Onto ${r.text}` });
+
+const viewportPreset = (width: number, height: number) => ({
+  label: `${width} × ${height}`,
+  values: { viewportWidth: width, viewportHeight: height },
+});
 
 export const sessionNode = defineNode({
   ...base,
@@ -62,21 +82,27 @@ export const sessionNode = defineNode({
   inputs: {},
   outputs: { session: port("session", "Next") },
   params: z.object({
-    viewportWidth: int(1920, "Window width", {
+    viewportWidth: int(DEFAULT_VIEWPORT.width, "Window width", {
       min: 320,
       max: 3840,
       step: 10,
       unit: "px",
       presetsLabel: "Size",
       presets: [
-        { label: "1280 × 720", values: { viewportWidth: 1280, viewportHeight: 720 } },
-        { label: "1440 × 900", values: { viewportWidth: 1440, viewportHeight: 900 } },
-        { label: "1920 × 1080", values: { viewportWidth: 1920, viewportHeight: 1080 } },
+        viewportPreset(1280, 720),
+        viewportPreset(1440, 900),
+        viewportPreset(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height),
       ],
     }),
-    viewportHeight: int(1080, "Window height", { min: 240, max: 2160, step: 10, unit: "px" }),
-    dpr: z.number().min(1).max(4).default(2).meta({
-      description: "Screenshot sharpness",
+    viewportHeight: int(DEFAULT_VIEWPORT.height, "Window height", {
+      min: 240,
+      max: 2160,
+      step: 10,
+      unit: "px",
+    }),
+    dpr: num(2, "Screenshot sharpness", {
+      min: 1,
+      max: 4,
       help: "Only affects screenshots. 2× or more gives crisp 4K images.",
       step: 1,
       unit: "×",
@@ -97,8 +123,9 @@ export const sessionNode = defineNode({
       dark: "Dark",
       "no-preference": "System",
     }),
-    captureScale: z.number().min(1).max(4).default(1).meta({
-      description: "Recording sharpness",
+    captureScale: num(1, "Recording sharpness", {
+      min: 1,
+      max: 4,
       help: "Records at a higher resolution so zoomed-in shots stay sharp.",
       step: 0.25,
       unit: "×",
@@ -151,17 +178,10 @@ export const clickNode = defineNode({
   title: "Click",
   icon: "mouse-pointer-click",
   description: "Moves the cursor to an element and clicks it.",
-  params: z.object({
-    target: target(),
-    targetRole: pickedRole(),
-    ...beatFields,
-    ...pointerFields,
-    hoverMs: ms(220, "Hover before clicking", 10_000),
-  }),
+  params: z.object({ ...targetFields(), ...pointerAction(220, "Hover before clicking") }),
   card: ({ params: p }) => [
     elementRow("mouse-pointer-click", p.target, p.targetRole),
-    pause(p.after),
-    zoomRow(p),
+    ...beatRows(p),
   ],
 });
 
@@ -172,8 +192,7 @@ export const typeNode = defineNode({
   icon: "keyboard",
   description: "Types into a field, key by key.",
   params: z.object({
-    target: target(),
-    targetRole: pickedRole(),
+    ...targetFields(),
     text: more(text("", "Text to type", "textarea"), {
       pauses: true,
       help: "Use Add pause to hold still for a moment in the middle of typing.",
@@ -181,8 +200,7 @@ export const typeNode = defineNode({
     chunkPauseMs: ms(0, "Pause length", 10_000),
     pressEnter: bool(false, "Press Enter after typing"),
     ...beatFields,
-    frame: pointerFields.frame,
-    frameRole: pointerFields.frameRole,
+    ...frameFields,
   }),
   card: ({ params: p }) => {
     const typed = p.text.replaceAll(PAUSE_MARK, " … ");
@@ -190,8 +208,7 @@ export const typeNode = defineNode({
       elementRow("crosshair", p.target, p.targetRole),
       quotedRow("keyboard", typed, "Add text to type", { title: typed }),
       p.pressEnter && row("corner-down-left", "Then Enter"),
-      pause(p.after),
-      zoomRow(p),
+      ...beatRows(p),
     ];
   },
 });
@@ -203,35 +220,31 @@ export const hoverNode = defineNode({
   icon: "pointer",
   description:
     "Moves the cursor over an element without clicking, so a menu or tooltip can appear.",
-  params: z.object({
-    target: target(),
-    targetRole: pickedRole(),
-    ...beatFields,
-    ...pointerFields,
-    hoverMs: ms(600, "Hover for", 10_000),
-  }),
+  params: z.object({ ...targetFields(), ...pointerAction(600, "Hover for") }),
   card: ({ params: p }) => [
     elementRow("mouse-pointer-2", p.target, p.targetRole),
     row("hourglass", `Hover ${formatDuration(p.hoverMs)}`),
-    pause(p.after),
-    zoomRow(p),
+    ...beatRows(p),
   ],
 });
 
-const circlePath = (radius: number, steps: number) =>
-  Array.from({ length: steps + 1 }, (_, k) => {
+const CIRCLE_RADIUS_PX = 120;
+const CIRCLE_STEPS = 16;
+
+function circlePath(radius: number, steps: number): string {
+  const points = Array.from({ length: steps + 1 }, (_, k) => {
     const angle = (k / steps) * 2 * Math.PI;
-    return `${Math.round(radius - radius * Math.cos(angle))}, ${Math.round(-radius * Math.sin(angle))}`;
-  }).join("\n");
+    return [radius - radius * Math.cos(angle), -radius * Math.sin(angle)];
+  });
+  return points.map((point) => point.map(Math.round).join(", ")).join("\n");
+}
 
 const PATH_PRESETS = {
-  Circle: circlePath(120, 16),
+  Circle: circlePath(CIRCLE_RADIUS_PX, CIRCLE_STEPS),
   Tick: "0, 0\n40, 40\n120, -80",
   Zigzag: "0, 0\n60, -60\n120, 0\n180, -60\n240, 0",
   Square: "0, 0\n200, 0\n200, 200\n0, 200\n0, 0",
 };
-
-const onto = (r: CardRow): CardRow => (r.tone === "warn" ? r : { ...r, text: `Onto ${r.text}` });
 
 const distance = (description: string, def: number) =>
   int(def, description, {
@@ -243,11 +256,10 @@ const distance = (description: string, def: number) =>
   });
 
 const dragParams = z.object({
-  target: target(
+  ...targetFields(
     "Element to drag",
     "Pick it on the page, type its visible text, or give a spot as across, down.",
   ),
-  targetRole: pickedRole(),
   mode: choice(["element", "by", "path"], "element", "Drag", {
     element: "Onto an element",
     by: "By a distance",
@@ -274,9 +286,7 @@ const dragParams = z.object({
     }),
     { advanced: true },
   ),
-  ...beatFields,
-  ...pointerFields,
-  hoverMs: ms(220, "Hover before picking it up", 10_000),
+  ...pointerAction(220, "Hover before picking it up"),
 });
 
 type DropParams = Pick<z.infer<typeof dragParams>, "mode" | "to" | "toRole" | "dx" | "dy" | "path">;
@@ -299,12 +309,7 @@ export const dragNode = defineNode({
   description:
     "Drags an element onto another one, by a distance, or along a path, like moving a card or drawing a shape.",
   params: dragParams,
-  card: ({ params: p }) => [
-    elementRow("grab", p.target, p.targetRole),
-    dropRow(p),
-    pause(p.after),
-    zoomRow(p),
-  ],
+  card: ({ params: p }) => [elementRow("grab", p.target, p.targetRole), dropRow(p), ...beatRows(p)],
 });
 
 export const scrollNode = defineNode({
@@ -330,7 +335,7 @@ export const scrollNode = defineNode({
     }),
     smooth: bool(true, "Smooth"),
     durationMs: ms(900, "Scroll time", 10_000),
-    after: beatFields.after,
+    ...pauseAfter,
   }),
   card: ({ params: p }) => [
     p.mode === "element"
@@ -348,8 +353,7 @@ export const selectNode = defineNode({
   icon: "list-checks",
   description: "Picks an option in a dropdown.",
   params: z.object({
-    target: target(),
-    targetRole: pickedRole(),
+    ...targetFields(),
     value: text("", "Option"),
     ...beatFields,
   }),
@@ -367,8 +371,7 @@ export const uploadNode = defineNode({
   icon: "upload",
   description: "Attaches a file from your project to a file field.",
   params: z.object({
-    target: target("File field", "Pick the upload field, or type its label."),
-    targetRole: pickedRole(),
+    ...targetFields("File field", "Pick the upload field, or type its label."),
     file: asset("File"),
     ...beatFields,
   }),
@@ -390,7 +393,7 @@ export const pressNode = defineNode({
       widget: "keys",
       help: "Click the field and press the shortcut.",
     }),
-    after: beatFields.after,
+    ...pauseAfter,
   }),
   card: ({ params: p }) => [
     p.keys.trim()
@@ -472,7 +475,7 @@ export const hoistNode = defineNode({
   icon: "anchor",
   description:
     "Looks an element up ahead of time so a later action doesn't pause on screen while searching.",
-  params: z.object({ target: target(), targetRole: pickedRole() }),
+  params: z.object(targetFields()),
   card: ({ params: p }) => [elementRow("crosshair", p.target, p.targetRole)],
 });
 
@@ -489,7 +492,9 @@ export const setStateNode = defineNode({
     reload: bool(false, "Reload the page after"),
   }),
   card: ({ params: p }) => [
-    row("code", truncate(p.script.split("\n")[0], CODE_TEXT_MAX), { title: p.script }),
+    p.script.trim()
+      ? row("code", truncate(p.script.split("\n")[0], CODE_TEXT_MAX), { title: p.script })
+      : missing("code", "Add a script"),
     p.reload && row("refresh-cw", "Then reload"),
   ],
 });
@@ -509,7 +514,7 @@ export const mockRouteNode = defineNode({
     body: text('{"ok":true}', "Response", "code"),
   }),
   card: ({ params: p }) => {
-    const subtype = p.contentType.slice(p.contentType.lastIndexOf("/") + 1).toUpperCase();
+    const subtype = mimeSubtype(p.contentType).toUpperCase();
     return [
       row("server", truncate(p.url, CODE_TEXT_MAX), { title: p.url }),
       row("reply", subtype ? `${p.status} ${subtype}` : String(p.status)),
@@ -531,13 +536,7 @@ export const freezeClockNode = defineNode({
     time: more(text("2026-10-01T09:41:00", "Date and time"), { widget: "datetime" }),
     mode: choiceOf(CLOCK_MODES, "fixed", "Clock"),
   }),
-  card: ({ params: p }) => {
-    const d = new Date(p.time);
-    const when = Number.isNaN(d.getTime())
-      ? p.time
-      : d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-    return [row("clock", `${when} · ${CLOCK_MODES[p.mode]}`)];
-  },
+  card: ({ params: p }) => [row("clock", `${formatWhen(p.time)} · ${CLOCK_MODES[p.mode]}`)],
 });
 
 export const hideElementsNode = defineNode({
@@ -558,10 +557,10 @@ export const hideElementsNode = defineNode({
   card: ({ params: p }) => {
     const extra = nonBlankLines(p.selectors).length;
     const parts = [
-      p.cookieBanners && "Cookie banners",
-      p.chatWidgets && "Chat widgets",
-      extra && `+${extra} more`,
-    ].filter(Boolean);
+      p.cookieBanners ? "Cookie banners" : null,
+      p.chatWidgets ? "Chat widgets" : null,
+      extra ? `+${extra} more` : null,
+    ].filter((part) => part !== null);
     return [
       row("eye-off", parts.length ? parts.join(" · ") : "Nothing yet", mutedIf(!parts.length)),
     ];
@@ -587,6 +586,8 @@ export const chapterNode = defineNode({
   ],
 });
 
+const visibleText = (html: string): string => html.replace(/<[^>]+>/g, " ");
+
 export const overlayHtmlNode = defineNode({
   ...base,
   ...chain,
@@ -602,7 +603,7 @@ export const overlayHtmlNode = defineNode({
     }),
   }),
   card: ({ params: p }) => [
-    row("code-xml", truncate(p.html.replace(/<[^>]+>/g, " "), CODE_TEXT_MAX) || "HTML", {
+    row("code-xml", truncate(visibleText(p.html), CODE_TEXT_MAX) || "HTML", {
       title: p.html,
     }),
     row("timer", p.durationMs ? formatDuration(p.durationMs) : "Until the end"),

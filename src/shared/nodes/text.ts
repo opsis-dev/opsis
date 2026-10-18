@@ -7,10 +7,26 @@ import { asValue, type CaptionsValue } from "../schema/values";
 import { msToFrames } from "../timeline/time";
 import { quotedRow, row, truncate } from "./card";
 import { annotationNode } from "./cursor";
-import { clipInput, defineNode, opt, port } from "./define";
+import { clipInput, defineNode, nodeBase, opt, port } from "./define";
 import { int, ms, text } from "./params";
 
-const base = { category: "Text & overlays", phase: "compile" } as const;
+const base = nodeBase("Text & overlays", "compile");
+
+const MS_PER_MINUTE = 60_000;
+const ENDS_SENTENCE = /[.!?]$/;
+
+type ScriptPace = { wordsPerMinute: number; startMs: number; linePauseMs: number };
+
+export function scriptToCaptions(script: string, pace: ScriptPace): CaptionsValue["captions"] {
+  const perWord = MS_PER_MINUTE / pace.wordsPerMinute;
+  const captions: CaptionsValue["captions"] = [];
+  let t = pace.startMs;
+  for (const word of script.split(/\s+/).filter(Boolean)) {
+    captions.push({ text: word, startMs: t, endMs: t + perWord });
+    t += perWord + (ENDS_SENTENCE.test(word) ? pace.linePauseMs : 0);
+  }
+  return captions;
+}
 
 const EMPTY_CAPTIONS_MS = 1000;
 const CAPTION_TAIL_MS = 500;
@@ -53,16 +69,9 @@ const captionsFromTextNode = defineNode({
     startMs: ms(0, "Start at"),
     linePauseMs: ms(350, "Pause between sentences", 5000),
   }),
-  compile: ({ params }) => {
-    const perWord = 60_000 / params.wordsPerMinute;
-    const captions: CaptionsValue["captions"] = [];
-    let t = params.startMs;
-    for (const word of params.script.split(/\s+/).filter(Boolean)) {
-      captions.push({ text: word, startMs: t, endMs: t + perWord });
-      t += perWord + (/[.!?]$/.test(word) ? params.linePauseMs : 0);
-    }
-    return { captions: { type: "captions", captions } };
-  },
+  compile: ({ params }) => ({
+    captions: { type: "captions", captions: scriptToCaptions(params.script, params) },
+  }),
 });
 
 const captionsNode = defineNode({

@@ -1,9 +1,12 @@
 import { walkItems } from "./compile/clip";
 import { compileWorkflow, previewSpec } from "./compile/compile";
+import type { CardContext, CardRow } from "./nodes/card";
+import { cardRows, type CompileInputs, type CompileOutputs } from "./nodes/define";
+import { defaultParams, getNodeDef } from "./nodes/registry";
 import type { Action, ActionLog } from "./schema/actions";
 import type { TimelineItem, TimelineSpec } from "./schema/timeline";
 import type { NodeResult } from "./schema/values";
-import type { Workflow, WorkflowNode } from "./schema/workflow";
+import { DEFAULT_WORKFLOW_SETTINGS, type Workflow, type WorkflowNode } from "./schema/workflow";
 import { GraphBuilder, type TakeStep } from "./templates/build";
 import { flattenSpec, type FlatTimeline } from "./timeline/flatten";
 
@@ -80,4 +83,49 @@ export function itemsOf(spec: Pick<TimelineSpec, "tracks">): TimelineItem[] {
   const items: TimelineItem[] = [];
   walkItems(spec.tracks, (item) => items.push(item));
   return items;
+}
+
+export const emptyWorkflow = (): Workflow => ({
+  version: 1,
+  id: "wf",
+  name: "Test",
+  settings: DEFAULT_WORKFLOW_SETTINGS,
+  variables: {},
+  nodes: [],
+  edges: [],
+  markers: [],
+});
+
+export function nodeCard(
+  type: string,
+  params: Record<string, unknown> = {},
+  extra: Partial<CardContext<Record<string, unknown>>> = {},
+): CardRow[] {
+  const def = must(getNodeDef(type), type);
+  return cardRows(def, {
+    params: { ...defaultParams(type), ...params },
+    settings: DEFAULT_WORKFLOW_SETTINGS,
+    connected: [],
+    ...extra,
+  });
+}
+
+export function compileNode(
+  type: string,
+  params: Record<string, unknown>,
+  inputs: CompileInputs = {},
+): CompileOutputs {
+  const def = must(getNodeDef(type), type);
+  const compile = must(def.compile, `compile for ${type}`);
+  const workflow = emptyWorkflow();
+  return (
+    compile({
+      nodeId: "n",
+      params: def.params.parse({ ...defaultParams(type), ...params }),
+      inputs,
+      settings: workflow.settings,
+      vars: {},
+      workflow,
+    }) ?? {}
+  );
 }

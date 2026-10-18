@@ -6,7 +6,7 @@ import { Separator } from "@/renderer/components/ui/separator";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { findById } from "@/shared/lists";
-import { isOutputType } from "@/shared/nodes/output";
+import { isOutputType } from "@/shared/nodes/registry";
 import { nodeName } from "@/shared/nodes/registry";
 import {
   AUDIO_ENVELOPES,

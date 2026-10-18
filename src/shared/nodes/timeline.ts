@@ -11,64 +11,66 @@ import {
 } from "../compile/clip";
 import { speedRemap } from "../compile/remap";
 import { formatDuration, plural } from "../format";
+import { MIN_SPEED } from "../limits";
 import { asValue, type ClipValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { parseNumberList } from "../text-input";
 import { msToFrames } from "../timeline/time";
 import {
   connectedPorts,
-  countConnected,
-  coverRatio,
+  cover,
   coverRow,
   frameSecs,
+  missing,
   quote,
   row,
   TAG_TEXT_MAX,
   warnIf,
   type CardRow,
+  type Cover,
 } from "./card";
 import {
   clipInput,
   clipModifier,
   defineNode,
+  nodeBase,
   opt,
   port,
   withClip,
   type CompileInputs,
+  type CompileOutputs,
 } from "./define";
-import { bool, choice, choiceOf, frames, int, MIN_SPEED, more, ms, rate, text } from "./params";
+import { bool, choice, choiceOf, frames, int, more, ms, rate, text } from "./params";
+import { clipLabel, clipPorts, CUT_PORTS, IN_PORTS, layerLabel } from "./ports";
 import {
   DEFAULT_TRANSITION,
   NO_TRANSITION,
   TRANSITION_KINDS,
+  transitionRef,
   transitionTitle,
 } from "./transitions";
 
-const base = { category: "Timeline", phase: "compile" } as const;
-export const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
-const [, ...CUT_PORTS] = IN_PORTS;
-type InPort = (typeof IN_PORTS)[number];
-
-export const inPortIndex = (handle: string): number => IN_PORTS.findIndex((p) => p === handle);
-
-export function nextInPort(handle: string): InPort | undefined {
-  const index = inPortIndex(handle);
-  return index === -1 ? undefined : IN_PORTS[index + 1];
-}
-
-const clipLabel = (handle: InPort) => `Clip ${inPortIndex(handle) + 1}`;
-const LAYER_ENDS: Partial<Record<InPort, string>> = { in1: " (back)", in6: " (front)" };
-const layerLabel = (handle: InPort) =>
-  `Layer ${inPortIndex(handle) + 1}${LAYER_ENDS[handle] ?? ""}`;
-
-const manyIn = Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", clipLabel(p))]));
-const layerIn = Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", layerLabel(p))]));
+const base = nodeBase("Timeline", "compile");
 
 const connectedClips = (inputs: CompileInputs): Array<{ port: string; clip: ClipValue }> =>
   IN_PORTS.flatMap((name) => {
     const clip = clipInput(inputs, name);
     return clip ? [{ port: name, clip }] : [];
   });
+
+const withConnectedClips = (
+  inputs: CompileInputs,
+  build: (clips: ClipValue[], ports: string[]) => ClipValue,
+): CompileOutputs => {
+  const connected = connectedClips(inputs);
+  if (!connected.length) return { clip: emptyClip(EMPTY_CLIP_FRAMES) };
+  return {
+    clip: build(
+      connected.map((c) => c.clip),
+      connected.map((c) => c.port),
+    ),
+  };
+};
 
 const SLOW_PREVIEW_RATE = 4;
 
@@ -127,14 +129,12 @@ function worstCover(
   inputFrames: Partial<Record<string, number>>,
   fps: number,
 ): CardRow | null {
-  const around = (cut: Cut) => [inputFrames[cut.after], inputFrames[cut.before]];
-  let worst: { cut: Cut; ratio: number } | null = null;
-  for (const cut of cuts) {
-    if (cut.transition === NO_TRANSITION || cut.keepWhole) continue;
-    const ratio = coverRatio(cut.transitionDuration, around(cut));
-    if (ratio !== null && (!worst || ratio > worst.ratio)) worst = { cut, ratio };
-  }
-  return worst ? coverRow(worst.cut.transitionDuration, around(worst.cut), fps) : null;
+  const covers = cuts
+    .filter((cut) => cut.transition !== NO_TRANSITION && !cut.keepWhole)
+    .map((cut) => cover(cut.transitionDuration, [inputFrames[cut.after], inputFrames[cut.before]]))
+    .filter((c) => c !== null);
+  const worst = covers.reduce<Cover | null>((w, c) => (!w || c.ratio > w.ratio ? c : w), null);
+  return coverRow(worst, fps);
 }
 
 const sequenceNode = defineNode({
@@ -143,7 +143,7 @@ const sequenceNode = defineNode({
   title: "Sequence",
   icon: "list-video",
   description: "Plays clips one after another, with a transition between each.",
-  inputs: manyIn,
+  inputs: clipPorts(clipLabel),
   outputs: { clip: port("clip", "Clip") },
   card: ({ params: p, connected, clipFrames, settings, inputFrames }) => {
     const ports = connectedPorts(IN_PORTS, connected);
@@ -176,80 +176,34 @@ const sequenceNode = defineNode({
       help: "Use another transition before some clips. The others use the transition above.",
     }),
   }),
-  compile: ({ nodeId, inputs, params }) => {
-    const connected = connectedClips(inputs);
-    const clips = connected.map((c) => c.clip);
-    const cuts = cutsFor(
-      params,
-      connected.map((c) => c.port),
-    );
-    const transitions = clips.map((_, i) => {
-      const cut = i > 0 ? cuts[i - 1] : undefined;
-      return cut && cut.transition !== NO_TRANSITION
-        ? {
-            kind: cut.transition,
-            durationInFrames: cut.transitionDuration,
-            ...(cut.keepWhole ? { hold: true } : {}),
-          }
-        : undefined;
-    });
-    return {
-      clip: clips.length
-        ? sequenceClips(nodeId, clips, transitions, { ports: connected.map((c) => c.port) })
-        : emptyClip(EMPTY_CLIP_FRAMES),
-    };
-  },
+  compile: ({ nodeId, inputs, params }) =>
+    withConnectedClips(inputs, (clips, ports) => {
+      const cuts = cutsFor(params, ports);
+      const transitions = clips.map((_, i) => {
+        const cut = i > 0 ? cuts[i - 1] : undefined;
+        return cut && cut.transition !== NO_TRANSITION
+          ? transitionRef(cut.transition, cut.transitionDuration, cut.keepWhole)
+          : undefined;
+      });
+      return sequenceClips(nodeId, clips, transitions, { ports });
+    }),
 });
 
 type LengthSource = {
   label: string;
-  follows: string;
-  pick: (clips: ClipValue[]) => ClipValue | undefined;
+  row: string;
+  pick?: (clips: ClipValue[]) => ClipValue | undefined;
 };
 
 const LENGTH_SOURCES = {
-  longest: { label: "Longest", follows: "the longest", pick: () => undefined },
-  first: { label: "Layer 1", follows: "Layer 1", pick: (clips) => clips[0] },
-  last: { label: "Front layer", follows: "the front layer", pick: (clips) => clips.at(-1) },
+  longest: { label: "Longest", row: "Length follows the longest" },
+  first: { label: "Layer 1", row: "Length follows Layer 1", pick: (clips) => clips[0] },
+  last: {
+    label: "Front layer",
+    row: "Length follows the front layer",
+    pick: (clips) => clips.at(-1),
+  },
 } satisfies Record<string, LengthSource>;
-
-const stackNode = defineNode({
-  ...base,
-  type: "timeline.stack",
-  title: "Layers",
-  icon: "layers",
-  description: "Stacks clips on top of each other: Layer 1 at the back, the last at the front.",
-  inputs: layerIn,
-  outputs: { clip: port("clip", "Clip") },
-  card: ({ params: p, connected, clipFrames, settings }) => {
-    const layers = countConnected(IN_PORTS, connected);
-    return [
-      row("layers", plural(layers, "layer"), warnIf(!layers)),
-      row("clock", `Length follows ${LENGTH_SOURCES[p.duration].follows}`),
-      clipFrames && row("timer", frameSecs(clipFrames, settings.fps)),
-    ];
-  },
-  params: z.object({
-    duration: choiceOf(LENGTH_SOURCES, "longest", "Length follows"),
-    offsetsMs: more(text("", "Start each layer at"), { widget: "offsets" }),
-    keepLayout: more(bool(false, "Keep this layout in other shapes"), {
-      help: "In 9:16, 1:1 and 4:5 the layers stay arranged as they are here, scaled to fit, so marks drawn over a picture stay on it.",
-    }),
-  }),
-  compile: ({ nodeId, inputs, params, settings }) => {
-    const connected = connectedClips(inputs);
-    const clips = connected.map((c) => c.clip);
-    if (!clips.length) return { clip: emptyClip(EMPTY_CLIP_FRAMES) };
-    const offsets = parseNumberList(params.offsetsMs).map((n) => msToFrames(n, settings.fps, 0));
-    const stacked = stackClips(nodeId, clips, offsets, {
-      ports: connected.map((c) => c.port),
-      move: (index) => ({ nodeId, param: "offsetsMs", unit: "ms", index }),
-    });
-    const pick = LENGTH_SOURCES[params.duration].pick(clips);
-    const clip = pick ? { ...stacked, durationInFrames: pick.durationInFrames } : stacked;
-    return { clip: params.keepLayout ? keepLayout(nodeId, clip, settings) : clip };
-  },
-});
 
 function keepLayout(nodeId: string, clip: ClipValue, settings: WorkflowSettings): ClipValue {
   return {
@@ -267,6 +221,43 @@ function keepLayout(nodeId: string, clip: ClipValue, settings: WorkflowSettings)
     ],
   };
 }
+
+const stackNode = defineNode({
+  ...base,
+  type: "timeline.stack",
+  title: "Layers",
+  icon: "layers",
+  description: "Stacks clips on top of each other: Layer 1 at the back, the last at the front.",
+  inputs: clipPorts(layerLabel),
+  outputs: { clip: port("clip", "Clip") },
+  card: ({ params: p, connected, clipFrames, settings }) => {
+    const layers = connectedPorts(IN_PORTS, connected).length;
+    return [
+      row("layers", plural(layers, "layer"), warnIf(!layers)),
+      row("clock", LENGTH_SOURCES[p.duration].row),
+      clipFrames && row("timer", frameSecs(clipFrames, settings.fps)),
+    ];
+  },
+  params: z.object({
+    duration: choiceOf(LENGTH_SOURCES, "longest", "Length follows"),
+    offsetsMs: more(text("", "Start each layer at"), { widget: "offsets" }),
+    keepLayout: more(bool(false, "Keep this layout in other shapes"), {
+      help: "In 9:16, 1:1 and 4:5 the layers stay arranged as they are here, scaled to fit, so marks drawn over a picture stay on it.",
+    }),
+  }),
+  compile: ({ nodeId, inputs, params, settings }) =>
+    withConnectedClips(inputs, (clips, ports) => {
+      const offsets = parseNumberList(params.offsetsMs).map((n) => msToFrames(n, settings.fps, 0));
+      const stacked = stackClips(nodeId, clips, offsets, {
+        ports,
+        move: (index) => ({ nodeId, param: "offsetsMs", unit: "ms", index }),
+      });
+      const source: LengthSource = LENGTH_SOURCES[params.duration];
+      const pick = source.pick?.(clips);
+      const clip = pick ? { ...stacked, durationInFrames: pick.durationInFrames } : stacked;
+      return params.keepLayout ? keepLayout(nodeId, clip, settings) : clip;
+    }),
+});
 
 const trimNode = defineNode({
   ...base,
@@ -376,7 +367,7 @@ type FitMode = {
   label: string;
   row: string;
   remap: (length: number, target: number) => GroupProps["remap"];
-  warning: (input: number, output: number, fps: number) => CardRow | null;
+  warning?: (input: number, output: number, fps: number) => CardRow | null;
 };
 
 const FIT_MODES = {
@@ -402,7 +393,6 @@ const FIT_MODES = {
             [length - 1, length - 1],
             [target, length - 1],
           ],
-    warning: () => null,
   },
   cut: {
     label: "Cut",
@@ -424,7 +414,10 @@ const fitRow = (
   input: number | undefined,
   output: number | undefined,
   fps: number,
-): CardRow | null => (input && output ? FIT_MODES[mode].warning(input, output, fps) : null);
+): CardRow | null => {
+  const fit: FitMode = FIT_MODES[mode];
+  return input && output ? (fit.warning?.(input, output, fps) ?? null) : null;
+};
 
 const durationFitNode = defineNode({
   ...base,
@@ -468,7 +461,7 @@ const branchNode = defineNode({
   card: ({ params: p }) => [
     p.variable.trim()
       ? row("git-branch", `${p.variable} = ${quote(p.equals, TAG_TEXT_MAX)}`)
-      : row("git-branch", "Choose a variable", { tone: "warn" }),
+      : missing("git-branch", "Choose a variable"),
   ],
   params: z.object({
     variable: more(text("Version", "Variable"), { widget: "variable" }),

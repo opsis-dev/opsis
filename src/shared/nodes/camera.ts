@@ -19,12 +19,21 @@ import {
 import { remapDuration, remapFromSegments } from "../compile/remap";
 import type { FieldMeta } from "../elements/introspect";
 import { formatDuration, humanize, percentText, plural } from "../format";
+import { MIN_SPEED } from "../limits";
 import { pointRect, type Action } from "../schema/actions";
 import { asValue, type ClipValue } from "../schema/values";
+import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
 import { msToFrames, recordingMsToFrames } from "../timeline/time";
-import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "./capture";
-import { mutedIf, row, toggleRow, warnIf, type CardRow } from "./card";
-import { clipModifier, defineNode, port, withClip } from "./define";
+import {
+  FRAME_THEMES,
+  hostWindowStyle,
+  WINDOW_STYLE_LABELS,
+  WINDOW_STYLES,
+  type FrameTheme,
+  type WindowStyle,
+} from "../window-styles";
+import { missing, mutedIf, row, toggleRow, type CardRow } from "./card";
+import { defineNode, modifierBase, nodeBase, port, withClip } from "./define";
 import type { NodeIconName } from "./icon-name";
 import {
   asset,
@@ -32,30 +41,33 @@ import {
   choice,
   choiceOf,
   fraction,
-  MIN_SPEED,
   more,
   ms,
   rate,
   text,
-  zoomScale,
+  zoomFactor,
 } from "./params";
 
-const base = { category: "Camera", phase: "compile" } as const;
-const modifier = { ...base, ...clipModifier };
+const base = nodeBase("Camera", "compile");
+const modifier = modifierBase("Camera");
 
-const spot = { widget: "spot", timeKey: "atMs" } as const;
+const spotFields = (x: number, y: number, label: string, help: string) => ({
+  x: more(fraction(x, label), { widget: "spot", timeKey: "atMs", help }),
+  y: more(fraction(y, `${label} vertical`), { hidden: true }),
+});
 
-const WINDOW_STYLES = ["macos", "windows", "linux"] as const;
-type WindowStyle = (typeof WINDOW_STYLES)[number];
-const FRAME_LABELS = { none: "None", macos: "macOS", windows: "Windows", linux: "Linux" };
+const zoomSpot = spotFields(0.5, 0.5, "Spot", "Click the frame to choose where to zoom.");
+const panFrom = spotFields(0.3, 0.4, "From", "Click the frame to choose where to start.");
+const panTo = spotFields(0.7, 0.6, "To", "Click the frame to choose where to end.");
 
-const FRAME_THEMES = ["light", "dark"] as const;
+const FRAME_LABELS = { none: "None", ...WINDOW_STYLE_LABELS };
+
 const frameThemeField = (showIf: NonNullable<FieldMeta["showIf"]>) =>
   more(choice(FRAME_THEMES, "light", "Frame colour"), { showIf });
 
 const windowFrameProps = (
   windowStyle: WindowStyle,
-  frameTheme: (typeof FRAME_THEMES)[number],
+  frameTheme: FrameTheme,
   addressBar: boolean,
 ): Pick<RecordingProps, "chrome" | "windowStyle" | "frameTheme" | "addressBar"> => ({
   chrome: true,
@@ -114,7 +126,7 @@ const autoZoomNode = defineNode({
   ],
   params: z.object({
     zoom: bool(true, "Zoom to the clicks"),
-    maxScale: more(zoomScale(1.74, "Maximum zoom", 0.02), {
+    maxScale: more(zoomFactor(1.74, "Maximum zoom", 0.02), {
       help: "Higher zooms closer but can look soft.",
     }),
     hold: ms(1300, "Hold each zoom at least", 10_000),
@@ -178,9 +190,8 @@ const manualZoomNode = defineNode({
   params: z.object({
     atMs: ms(1000, "At"),
     holdMs: ms(1500, "Hold"),
-    x: more(fraction(0.5, "Spot"), { ...spot, help: "Click the frame to choose where to zoom." }),
-    y: more(fraction(0.5, "Spot vertical"), { hidden: true }),
-    scale: zoomScale(1.5),
+    ...zoomSpot,
+    scale: zoomFactor(1.5),
   }),
   compile: ({ nodeId, inputs, params: p }) =>
     withClip(inputs, (clip) =>
@@ -204,14 +215,11 @@ const panNode = defineNode({
   params: z.object({
     atMs: ms(1000, "Start at"),
     durationMs: ms(1500, "Pan for"),
-    fromX: more(fraction(0.3, "From"), {
-      ...spot,
-      help: "Click the frame to choose where to start.",
-    }),
-    fromY: more(fraction(0.4, "From vertical"), { hidden: true }),
-    toX: more(fraction(0.7, "To"), { ...spot, help: "Click the frame to choose where to end." }),
-    toY: more(fraction(0.6, "To vertical"), { hidden: true }),
-    scale: zoomScale(1.4),
+    fromX: panFrom.x,
+    fromY: panFrom.y,
+    toX: panTo.x,
+    toY: panTo.y,
+    scale: zoomFactor(1.4),
   }),
   compile: ({ nodeId, inputs, params: p }) =>
     withClip(inputs, (clip) =>
@@ -232,7 +240,7 @@ const followCursorNode = defineNode({
     row("locate-fixed", `${p.scale}× · re-aim every ${formatDuration(p.everyMs)}`),
   ],
   params: z.object({
-    scale: zoomScale(1.35),
+    scale: zoomFactor(1.35),
     everyMs: ms(700, "Re-aim every", 5000),
   }),
   compile: ({ nodeId, inputs, params }) =>
@@ -248,7 +256,13 @@ const followCursorNode = defineNode({
 
 const lastRecordingSpeed = (clip: ClipValue): number => recordingProps(clip).at(-1)?.speed ?? 1;
 
-type SpeedSegment = { fromMs: number; toMs: number; rate: number };
+const speedSegmentSchema = z.object({
+  fromMs: ms(0, "From", Number.MAX_SAFE_INTEGER),
+  toMs: ms(1000, "To", Number.MAX_SAFE_INTEGER),
+  rate: rate(2, "Speed", { min: MIN_SPEED, step: 0.1 }),
+});
+
+type SpeedSegment = z.infer<typeof speedSegmentSchema>;
 
 function remapClip(
   clip: ClipValue,
@@ -306,13 +320,7 @@ const speedRampNode = defineNode({
   ],
   params: z.object({
     segments: z
-      .array(
-        z.object({
-          fromMs: ms(0, "From", Number.MAX_SAFE_INTEGER),
-          toMs: ms(1000, "To", Number.MAX_SAFE_INTEGER),
-          rate: rate(2, "Speed", { min: MIN_SPEED, step: 0.1 }),
-        }),
-      )
+      .array(speedSegmentSchema)
       .default([{ fromMs: 0, toMs: 1000, rate: 2 }])
       .meta({ description: "Parts" }),
   }),
@@ -359,11 +367,6 @@ const DEVICES = {
 
 const ENTRANCES = { rise: "Slide in", open: "Open up", none: "None" };
 
-const HOST_WINDOW_STYLES: Partial<Record<NodeJS.Platform, WindowStyle>> = {
-  win32: "windows",
-  linux: "linux",
-};
-
 const deviceFrameNode = defineNode({
   ...modifier,
   type: "camera.deviceFrame",
@@ -376,13 +379,13 @@ const deviceFrameNode = defineNode({
   ],
   params: z.object({
     device: choiceOf(DEVICES, "browser", "Device"),
-    windowStyle: more(choice(WINDOW_STYLES, "macos", "Window style", FRAME_LABELS), {
+    windowStyle: more(choice(WINDOW_STYLES, "macos", "Window style", WINDOW_STYLE_LABELS), {
       showIf: { device: ["browser"] },
     }),
     frameTheme: frameThemeField({ device: ["browser"] }),
     entrance: more(choiceOf(ENTRANCES, "open", "Entrance"), { showIf: { device: ["laptop"] } }),
   }),
-  hostDefaults: (platform) => ({ windowStyle: HOST_WINDOW_STYLES[platform] ?? "macos" }),
+  hostDefaults: (platform) => ({ windowStyle: hostWindowStyle(platform) }),
   compile: ({ nodeId, inputs, params }) =>
     withClip(inputs, (clip) => {
       if (params.device === "browser")
@@ -424,31 +427,23 @@ const backdropParams = z.object({
 
 type BackdropParams = z.infer<typeof backdropParams>;
 
-function backdropRow(p: BackdropParams): CardRow {
-  switch (p.kind) {
-    case "image":
-      return row("image", humanize(p.name));
-    case "solid":
-      return row("palette", p.color);
-    case "gradient":
-      return row("blend", "Gradient", { title: p.gradient });
-    case "asset":
-      return row("image", p.asset ? baseName(p.asset) : "Choose an image", warnIf(!p.asset));
-  }
-}
+type BackdropKind = {
+  row: (p: BackdropParams) => CardRow;
+  override: (p: BackdropParams) => string | undefined;
+};
 
-function backdropValue(p: BackdropParams): string | undefined {
-  switch (p.kind) {
-    case "image":
-      return p.name;
-    case "solid":
-      return p.color;
-    case "gradient":
-      return p.gradient;
-    case "asset":
-      return p.asset || undefined;
-  }
-}
+const BACKDROP_KINDS: Record<BackdropParams["kind"], BackdropKind> = {
+  image: { row: (p) => row("image", humanize(p.name)), override: (p) => p.name },
+  solid: { row: (p) => row("palette", p.color), override: (p) => p.color },
+  gradient: {
+    row: (p) => row("blend", "Gradient", { title: p.gradient }),
+    override: (p) => p.gradient,
+  },
+  asset: {
+    row: (p) => (p.asset ? row("image", baseName(p.asset)) : missing("image", "Choose an image")),
+    override: (p) => p.asset || undefined,
+  },
+};
 
 const backdropNode = defineNode({
   ...modifier,
@@ -456,12 +451,12 @@ const backdropNode = defineNode({
   title: "Backdrop",
   icon: "image",
   description: "The background behind the floating window: a studio image, colour or gradient.",
-  card: ({ params: p }) => [backdropRow(p)],
+  card: ({ params: p }) => [BACKDROP_KINDS[p.kind].row(p)],
   params: backdropParams,
   compile: ({ inputs, params }) => {
-    const backdrop = backdropValue(params);
+    const override = BACKDROP_KINDS[params.kind].override(params);
     return withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({ ...p, backdrop: backdrop ?? p.backdrop })),
+      patchRecordings(clip, (p) => ({ ...p, backdrop: override ?? p.backdrop })),
     );
   },
 });

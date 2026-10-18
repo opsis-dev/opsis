@@ -1,4 +1,4 @@
-import { isOutputType } from "./nodes/output";
+import { isOutputType } from "./nodes/registry";
 import type { NodeRunStatus, RunEvent } from "./schema/events";
 import type { Artifact, NodeResult } from "./schema/values";
 

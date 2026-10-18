@@ -4,6 +4,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import type { RecordingProps } from "../../shared/compile/recording";
 import { percent } from "../../shared/format";
+import type { FrameTheme, WindowStyle } from "../../shared/window-styles";
 import { Backdrop } from "../core/backgrounds";
 import type { Size } from "../core/still-layout";
 import type { Annotation } from "./action-log";
@@ -15,14 +16,7 @@ import type { ClickLog } from "./lib/click-log";
 import { useDesignScale } from "./lib/design-scale";
 import { SHOT_STYLES, type WindowShot } from "./lib/style";
 import { isNarrow, logTimeS, zoomAt, type CameraTuning } from "./lib/zoom";
-import {
-  CHROME_H,
-  RimLight,
-  Stage,
-  WindowFrame,
-  type FrameTheme,
-  type WindowStyle,
-} from "./window-frame";
+import { CHROME_H, RimLight, Stage, WindowFrame } from "./window-frame";
 
 type DemoClipProps = {
   src: string;

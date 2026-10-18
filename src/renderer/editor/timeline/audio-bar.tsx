@@ -1,5 +1,5 @@
 import { cn } from "@/renderer/lib/utils";
-import { MAX_VOLUME } from "@/shared/nodes/params";
+import { MAX_VOLUME } from "@/shared/limits";
 import { nodeNameById } from "@/shared/nodes/registry";
 import type { AudioBar } from "@/shared/timeline/flatten";
 import { WaveformCanvas, type Gain } from "./bar-canvas";

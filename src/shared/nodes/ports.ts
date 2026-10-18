@@ -1,5 +1,5 @@
 import type { PortType } from "../schema/workflow";
-import type { clipModifier } from "./define";
+import { opt, type PortSpec } from "./define";
 
 const ACCEPTS: Record<PortType, PortType[]> = {
   session: ["session"],
@@ -20,5 +20,25 @@ export function canConnect(source: PortType, target: PortType): boolean {
 
 export const SESSION_PORT = "session";
 
-export const CLIP_PORT = "clip" satisfies keyof (typeof clipModifier)["inputs"] &
-  keyof (typeof clipModifier)["outputs"];
+export const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
+
+export type InPort = (typeof IN_PORTS)[number];
+
+export const [, ...CUT_PORTS] = IN_PORTS;
+
+export const inPortIndex = (handle: string): number => IN_PORTS.findIndex((p) => p === handle);
+
+export function nextInPort(handle: string): InPort | undefined {
+  const index = inPortIndex(handle);
+  return index === -1 ? undefined : IN_PORTS[index + 1];
+}
+
+export const clipLabel = (handle: InPort) => `Clip ${inPortIndex(handle) + 1}`;
+
+const LAYER_ENDS: Partial<Record<InPort, string>> = { in1: " (back)", in6: " (front)" };
+
+export const layerLabel = (handle: InPort) =>
+  `Layer ${inPortIndex(handle) + 1}${LAYER_ENDS[handle] ?? ""}`;
+
+export const clipPorts = (label: (handle: InPort) => string): Record<string, PortSpec> =>
+  Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", label(p))]));

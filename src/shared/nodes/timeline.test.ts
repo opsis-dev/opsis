@@ -1,33 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { emptyClip } from "../compile/clip";
 import type { ClipValue } from "../schema/values";
-import { DEFAULT_WORKFLOW_SETTINGS as settings, type Workflow } from "../schema/workflow";
-import { must } from "../test-fixtures";
-import { defaultParams, getNodeDef } from "./registry";
-
-const workflow: Workflow = {
-  version: 1,
-  id: "wf",
-  name: "Test",
-  settings,
-  variables: {},
-  nodes: [],
-  edges: [],
-  markers: [],
-};
+import { compileNode, nodeCard } from "../test-fixtures";
 
 function compileOver(type: string, params: Record<string, unknown>): ClipValue {
-  const def = must(getNodeDef(type), type);
-  const compile = must(def.compile, `compile for ${type}`);
-  const out = compile({
-    nodeId: "n",
-    params: def.params.parse({ ...defaultParams(type), ...params }),
-    inputs: { clip: emptyClip(90) },
-    settings,
-    vars: {},
-    workflow,
-  });
-  const clip = out?.clip;
+  const clip = compileNode(type, params, { clip: emptyClip(90) }).clip;
   if (clip?.type !== "clip") throw new Error(`no clip from ${type}`);
   return clip;
 }
@@ -46,5 +23,39 @@ describe("timeline node lengths", () => {
       compileOver("timeline.trim", { startMs }).tracks[0].items[0].props.startFrom;
     expect(startFrom(10)).toBe(0);
     expect(startFrom(1000)).toBe(30);
+  });
+});
+
+describe("timeline node cards", () => {
+  it("adds a quiet note on Speed from 4× up", () => {
+    const notes = (rate: number) =>
+      nodeCard("timeline.speed", { rate }).filter((r) => r.tone === "muted");
+    expect(notes(2)).toEqual([]);
+    expect(notes(4)).toHaveLength(1);
+  });
+
+  it("counts Sequence clips and cuts with their own transition and warns about the worst one", () => {
+    const cuts = [
+      { before: "in3", transition: "core/wipe", transitionDuration: 50, keepWhole: false },
+      { before: "in5", transition: "core/iris", transitionDuration: 10, keepWhole: false },
+    ];
+    const context = {
+      connected: ["in1", "in2", "in3"],
+      inputFrames: { in1: 300, in2: 100, in3: 300 },
+    };
+    expect(
+      nodeCard("timeline.sequence", { transitionDuration: 10, cuts }, context).map((r) => r.text),
+    ).toEqual([
+      "3 clips",
+      "Fade · 0.33 s",
+      "1 cut uses its own transition",
+      "Covers 50% of a 3.33 s clip",
+    ]);
+    const held = nodeCard(
+      "timeline.sequence",
+      { transitionDuration: 10, cuts: [{ ...cuts[0], keepWhole: true }] },
+      context,
+    );
+    expect(held.some((r) => r.text.startsWith("Covers"))).toBe(false);
   });
 });

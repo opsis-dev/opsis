@@ -1,7 +1,8 @@
 import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
-import { asset, bool, choice, MAX_VOLUME, more, text } from "../nodes/params";
+import { MAX_VOLUME } from "../limits";
+import { asset, bool, choice, more, text } from "../nodes/params";
 import {
   ACCENT_COLOR,
   CALLOUT_COLOR,

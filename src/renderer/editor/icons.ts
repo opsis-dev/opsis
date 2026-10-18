@@ -1,7 +1,6 @@
 import {
   AnchorIcon,
   AppWindowIcon,
-  ArrowDownToLineIcon,
   ArrowDownUpIcon,
   ArrowRightLeftIcon,
   AudioLinesIcon,
@@ -120,7 +119,6 @@ import type { NodeIconName } from "@/shared/nodes/icon-name";
 export const NODE_ICONS: Record<NodeIconName, LucideIcon> = {
   anchor: AnchorIcon,
   "app-window": AppWindowIcon,
-  "arrow-down-to-line": ArrowDownToLineIcon,
   "arrow-down-up": ArrowDownUpIcon,
   "arrow-right-left": ArrowRightLeftIcon,
   "audio-lines": AudioLinesIcon,

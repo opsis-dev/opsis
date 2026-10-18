@@ -46,6 +46,13 @@ export function humanize(key: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+const WHEN_FORMAT = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" });
+
+export function formatWhen(time: string): string {
+  const date = new Date(time);
+  return Number.isNaN(date.getTime()) ? time : WHEN_FORMAT.format(date);
+}
+
 export function displayAddress(url: string, opts: { keepQuery?: boolean } = {}): string {
   const text = url.trim();
   const scheme = /^https?:\/\//i;

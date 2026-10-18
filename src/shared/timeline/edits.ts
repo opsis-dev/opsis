@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { isString } from "../guards";
 import { edgeId, nodeIdPrefix } from "../ids";
+import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "../limits";
 import { findById } from "../lists";
 import { clamp, numberOr, round2 } from "../math";
-import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "../nodes/params";
-import { CLIP_PORT } from "../nodes/ports";
+import { CLIP_PORT } from "../nodes/define";
+import { IN_PORTS, inPortIndex, nextInPort } from "../nodes/ports";
 import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
-import { cutSchema, IN_PORTS, inPortIndex, nextInPort } from "../nodes/timeline";
+import { cutSchema } from "../nodes/timeline";
 import { NO_TRANSITION } from "../nodes/transitions";
 import type { ParamRef } from "../schema/timeline";
 import type { EdgeEnds, PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";

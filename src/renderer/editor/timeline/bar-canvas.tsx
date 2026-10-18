@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { cn } from "@/renderer/lib/utils";
 import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
+import { MAX_VOLUME } from "@/shared/limits";
 import { clamp } from "@/shared/math";
 import { lruCache } from "@/shared/memo";
-import { MAX_VOLUME } from "@/shared/nodes/params";
 import type { AudioBar, BarThumbnail, VideoBar } from "@/shared/timeline/flatten";
 import { framesToRecordingMs } from "@/shared/timeline/time";
 import { loadedFilmstrip, loadedWaveform, useMedia } from "../../store/media";

@@ -79,7 +79,7 @@ describe("exportedArtifacts", () => {
   it("lists every export's files, newest first", () => {
     const nodes = [
       { id: "film", type: "output.render" },
-      { id: "code", type: "output.code" },
+      { id: "code", type: "output.exportProject" },
       { id: "rec", type: "capture.record" },
     ];
     const files = exportedArtifacts(nodes, {

@@ -1,6 +1,7 @@
 import { DEFAULT_BACKDROP } from "../backdrops";
 import type { Action, ActionLog } from "../schema/actions";
 import type { AssetRef } from "../schema/values";
+import type { FrameTheme, WindowStyle } from "../window-styles";
 
 export const CAMERA_STYLES = ["classic", "proof", "ledger", "stage"] as const;
 type CameraStyle = (typeof CAMERA_STYLES)[number];
@@ -28,8 +29,8 @@ export type RecordingProps = {
   motionBlur: boolean;
   style: CameraStyle;
   chrome: boolean;
-  windowStyle?: "macos" | "windows" | "linux";
-  frameTheme?: "light" | "dark";
+  windowStyle?: WindowStyle;
+  frameTheme?: FrameTheme;
   addressBar?: boolean;
   backdrop: string;
   cursor: boolean;

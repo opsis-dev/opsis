@@ -1,3 +1,5 @@
+import { extensionOf } from "./asset-ref";
+
 export const VIDEO_MIME: Readonly<Record<string, string>> = {
   mp4: "video/mp4",
   m4v: "video/mp4",
@@ -27,3 +29,11 @@ export const AUDIO_MIME: Readonly<Record<string, string>> = {
 };
 
 export const AUDIO_EXTENSIONS: ReadonlySet<string> = new Set(Object.keys(AUDIO_MIME));
+
+export const mimeSubtype = (type: string): string => type.slice(type.lastIndexOf("/") + 1);
+
+export function kindFromPath(path: string): "video" | "audio" | "image" {
+  const ext = extensionOf(path);
+  if (IMAGE_EXTENSIONS.has(ext)) return "image";
+  return AUDIO_EXTENSIONS.has(ext) ? "audio" : "video";
+}

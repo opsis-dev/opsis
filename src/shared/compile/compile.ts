@@ -1,8 +1,8 @@
 import { errorMessage } from "../errors";
 import { topoSort } from "../graph";
 import { interpolatedParams, type NodeDef } from "../nodes/define";
-import { isOutputType } from "../nodes/output";
 import { parseParams } from "../nodes/params";
+import { isOutputType } from "../nodes/registry";
 import { getNodeDef } from "../nodes/registry";
 import { projectFolderName } from "../project-folder";
 import type { TimelineSpec } from "../schema/timeline";

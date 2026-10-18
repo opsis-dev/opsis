@@ -2,12 +2,11 @@ import { z } from "zod";
 import { patchRecordings } from "../compile/clip";
 import type { AnnotationKind, AnnotationSpec } from "../compile/recording";
 import { LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
-import { clipModifier, defineNode, withClip, type NodeDef } from "./define";
+import { defineNode, modifierBase, withClip, type NodeCategory, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
-import { bool, choiceOf, int, more, ms, text } from "./params";
+import { bool, choiceOf, int, more, ms, num, text } from "./params";
 
-const modifier = { ...clipModifier, phase: "compile" } as const;
-const base = { ...modifier, category: "Cursor" } as const;
+const base = modifierBase("Cursor");
 
 const CHIP_POSITIONS = { bottom: "Bottom", top: "Top" };
 
@@ -22,12 +21,7 @@ const cursorStyleNode = defineNode({
   ],
   params: z.object({
     visible: bool(true, "Show the cursor"),
-    size: z
-      .number()
-      .min(0.4)
-      .max(3)
-      .default(1)
-      .meta({ description: "Size", step: 0.05, unit: "×" }),
+    size: num(1, "Size", { min: 0.4, max: 3, step: 0.05, unit: "×" }),
   }),
   compile: ({ inputs, params }) =>
     withClip(inputs, (clip) =>
@@ -56,8 +50,8 @@ const keystrokeChipsNode = defineNode({
   card: ({ params: p }) => [
     row(
       "keyboard",
-      [CHIP_POSITIONS[p.position], p.typed && "typed text", p.chords && "shortcuts"]
-        .filter(Boolean)
+      [CHIP_POSITIONS[p.position], p.typed ? "typed text" : null, p.chords ? "shortcuts" : null]
+        .filter((part) => part !== null)
         .join(" · "),
     ),
   ],
@@ -70,15 +64,16 @@ const keystrokeChipsNode = defineNode({
     withClip(inputs, (clip) => patchRecordings(clip, (p) => ({ ...p, keystrokes: params }))),
 });
 
-type Annotation = Pick<NodeDef, "type" | "title" | "category" | "description"> & {
+type Annotation = Pick<NodeDef, "type" | "title" | "description"> & {
+  category?: NodeCategory;
   icon: NodeIconName;
   kind: AnnotationKind;
   defaults: { text?: string; color: string };
 };
 
-export function annotationNode({ kind, defaults, ...def }: Annotation) {
+export function annotationNode({ kind, defaults, category = "Cursor", ...def }: Annotation) {
   return defineNode({
-    ...modifier,
+    ...modifierBase(category),
     ...def,
     card: ({ params: p }) => [
       row(
@@ -111,7 +106,6 @@ const spotlightNode = annotationNode({
   type: "cursor.spotlight",
   title: "Spotlight",
   kind: "spotlight",
-  category: "Cursor",
   icon: "flashlight",
   description: "Darkens everything except the element being used.",
   defaults: { color: "rgba(0,0,0,0.55)" },
@@ -120,7 +114,6 @@ const highlightBoxNode = annotationNode({
   type: "cursor.highlightBox",
   title: "Highlight box",
   kind: "highlight",
-  category: "Cursor",
   icon: "square-dashed",
   description: "Draws a box around the element being used.",
   defaults: { color: "#a78bfa" },

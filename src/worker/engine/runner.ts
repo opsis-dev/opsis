@@ -22,7 +22,7 @@ import {
   type NodeDef,
   type NodePhase,
 } from "../../shared/nodes/define";
-import { isOutputType } from "../../shared/nodes/output";
+import { isOutputType } from "../../shared/nodes/registry";
 import { getNodeDef, nodeName } from "../../shared/nodes/registry";
 import { mapValues } from "../../shared/pick";
 import { failureMessage } from "../../shared/run-progress";

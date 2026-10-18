@@ -1,6 +1,6 @@
 import { toast } from "sonner";
+import { MAX_VOLUME } from "@/shared/limits";
 import { findById } from "@/shared/lists";
-import { MAX_VOLUME } from "@/shared/nodes/params";
 import { getNodeDef } from "@/shared/nodes/registry";
 import {
   audioEnvelopeSchema,

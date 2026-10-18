@@ -42,19 +42,19 @@ export const getNodeDef = (type: string): NodeDef | undefined => byType.get(type
 export const customLabel = (node: { label?: string }): string | undefined =>
   node.label?.trim() || undefined;
 
-export const nodeName = (
-  node: { label?: string; type: string },
-  fallback = getNodeDef(node.type)?.title || node.type,
-): string => customLabel(node) ?? fallback;
+export const nodeName = (node: { label?: string; type: string }, fallback?: string): string =>
+  customLabel(node) ?? fallback ?? (getNodeDef(node.type)?.title || node.type);
 
 export function nodeNameById(
   wf: { nodes: ReadonlyArray<{ id: string; label?: string; type: string }> },
   id: string,
-  fallback: string,
+  whenMissing = id,
 ): string {
   const node = findById(wf.nodes, id);
-  return node ? nodeName(node) : fallback;
+  return node ? nodeName(node) : whenMissing;
 }
+
+export const isOutputType = (type: string): boolean => getNodeDef(type)?.category === "Output";
 
 export function defaultParams(type: string): Record<string, unknown> {
   const def = getNodeDef(type);

@@ -1,6 +1,6 @@
 import { DRAG_START_PX } from "@/renderer/lib/dom";
+import { MAX_VOLUME } from "@/shared/limits";
 import { clamp, round3 } from "@/shared/math";
-import { MAX_VOLUME } from "@/shared/nodes/params";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
 import { setAudioVolume } from "@/shared/timeline/edits";
 import type { AudioBar, FlatTimeline } from "@/shared/timeline/flatten";

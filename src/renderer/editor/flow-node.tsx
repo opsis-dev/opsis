@@ -25,6 +25,7 @@ import { cn } from "@/renderer/lib/utils";
 import { wholePercent } from "@/shared/format";
 import type { NodeDef, PortSpec } from "@/shared/nodes/define";
 import { getNodeDef, nodeName } from "@/shared/nodes/registry";
+import { CARD_WIDTH } from "@/shared/nodes/size";
 import { groupParams, noteParams } from "@/shared/nodes/utility";
 import type { NodeRunStatus } from "@/shared/schema/events";
 import type { WorkflowNode } from "@/shared/schema/workflow";
@@ -100,7 +101,8 @@ function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: Nod
     <NodeStatusIndicator status={indicator} variant="border">
       {succeeded ? <div className={DONE_BORDER} /> : null}
       <BaseNode
-        className={cn("w-64", node.disabled && "opacity-50", active && "ring-primary/70 ring-2")}
+        className={cn(node.disabled && "opacity-50", active && "ring-primary/70 ring-2")}
+        style={{ width: CARD_WIDTH }}
       >
         <NodeHeader title={nodeName(node)} def={def} status={status} />
         <BaseNodeContent className="gap-1.5 px-0 py-2">
@@ -231,7 +233,10 @@ export const GroupFlowNode = memo(function GroupFlowNode({
 
 export const NoteFlowNode = memo(function NoteFlowNode({ data }: NodeProps<CanvasNode>) {
   return (
-    <div className="w-64 rounded-lg border border-amber-300/40 bg-amber-200/10 p-3 text-xs leading-relaxed whitespace-pre-wrap text-amber-100">
+    <div
+      className="rounded-lg border border-amber-300/40 bg-amber-200/10 p-3 text-xs leading-relaxed whitespace-pre-wrap text-amber-100"
+      style={{ width: CARD_WIDTH }}
+    >
       {paramsOf(noteParams, data.node.params).text}
     </div>
   );

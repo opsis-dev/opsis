@@ -1,5 +1,6 @@
 import { baseName } from "../asset-ref";
 import { formatDuration, percentText } from "../format";
+import type { PickedRole } from "../interactive";
 import type { NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { framesToMs } from "../timeline/time";
@@ -22,9 +23,10 @@ export type CardContext<P> = {
   inputFrames?: Partial<Record<string, number>>;
 };
 
-export const TRANSITION_WARN_RATIO = 0.4;
+const TRANSITION_WARN_RATIO = 0.4;
 
 const CARD_TEXT_MAX = 42;
+const QUOTED_TEXT_MAX = CARD_TEXT_MAX - 2;
 export const CODE_TEXT_MAX = 36;
 export const LABELLED_TEXT_MAX = 24;
 export const TAG_TEXT_MAX = 20;
@@ -37,20 +39,22 @@ function shortestClip(clipFrames: ClipLengths): number | null {
   return known.length ? Math.min(...known) : null;
 }
 
-export function coverRatio(transitionFrames: number, clipFrames: ClipLengths): number | null {
+export type Cover = { ratio: number; shortest: number };
+
+export function cover(transitionFrames: number, clipFrames: ClipLengths): Cover | null {
   const shortest = shortestClip(clipFrames);
-  return shortest === null ? null : transitionFrames / shortest;
+  return shortest === null ? null : { ratio: transitionFrames / shortest, shortest };
 }
 
-export function coverRow(
-  transitionFrames: number,
-  clipFrames: ClipLengths,
-  fps: number,
-): CardRow | null {
-  const shortest = shortestClip(clipFrames);
-  if (shortest === null || transitionFrames <= TRANSITION_WARN_RATIO * shortest) return null;
-  const covered = percentText(transitionFrames / shortest, { max: 100 });
-  return row("triangle-alert", `Covers ${covered} of a ${frameSecs(shortest, fps)} clip`, {
+export const coversTooMuch = (ratio: number): boolean => ratio > TRANSITION_WARN_RATIO;
+
+export const squeezedTooMuch = (length: number, designed: number): boolean =>
+  length < TRANSITION_WARN_RATIO * designed;
+
+export function coverRow(covered: Cover | null, fps: number): CardRow | null {
+  if (!covered || !coversTooMuch(covered.ratio)) return null;
+  const share = percentText(covered.ratio, { max: 100 });
+  return row("triangle-alert", `Covers ${share} of a ${frameSecs(covered.shortest, fps)} clip`, {
     tone: "warn",
     title: "Turn on Keep every clip whole, or make the transition shorter.",
   });
@@ -85,7 +89,7 @@ export function truncate(text: string, max = CARD_TEXT_MAX): string {
   return one.length > max ? `${one.slice(0, max - 1)}…` : one;
 }
 
-export const quote = (text: string, max = CARD_TEXT_MAX - 2) => `“${truncate(text, max)}”`;
+export const quote = (text: string, max = QUOTED_TEXT_MAX) => `“${truncate(text, max)}”`;
 
 export const quotedRow = (
   icon: NodeIconName,
@@ -99,13 +103,7 @@ export const connectedPorts = <P extends string>(
   connected: readonly string[],
 ): P[] => ports.filter((p) => connected.includes(p));
 
-export const countConnected = (ports: readonly string[], connected: readonly string[]): number =>
-  connectedPorts(ports, connected).length;
-
-export const countEdgesInto = (port: string, connected: readonly string[]): number =>
-  connected.filter((p) => p === port).length;
-
-const ROLE_WORDS: Record<string, string> = {
+const ROLE_WORDS: Partial<Record<string, string>> = {
   button: "button",
   link: "link",
   textbox: "field",
@@ -121,7 +119,7 @@ const ROLE_WORDS: Record<string, string> = {
   img: "image",
   switch: "switch",
   slider: "slider",
-};
+} satisfies Record<PickedRole, string>;
 
 function elementName(target: string | undefined, role: string | undefined): string | null {
   const t = target?.trim();

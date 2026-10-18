@@ -1,4 +1,4 @@
-import { hasNoCardPicture, type NodeDef } from "./define";
+import { hasCardPicture, type NodeDef } from "./define";
 
 export const CARD_WIDTH = 256;
 export const CARD_GAP = 32;
@@ -12,16 +12,10 @@ const PADDING = 16;
 const MAX_CARD_ROWS = 4;
 const UNKNOWN_HEIGHT = 120;
 
-function hasThumbnail(def: NodeDef): boolean {
-  if (hasNoCardPicture(def)) return false;
-  if ("clip" in def.outputs) return true;
-  return !!def.executes && def.phase !== "post";
-}
-
 export function estimateCardHeight(def: NodeDef | undefined): number {
   if (!def) return UNKNOWN_HEIGHT;
   if (def.cardHeight) return def.cardHeight;
   const ports = Math.max(Object.keys(def.inputs).length, Object.keys(def.outputs).length);
   const rows = def.card ? MAX_CARD_ROWS : 0;
-  return HEADER + ports * PORT_ROW + rows * CARD_ROW + (hasThumbnail(def) ? THUMB : 0) + PADDING;
+  return HEADER + ports * PORT_ROW + rows * CARD_ROW + (hasCardPicture(def) ? THUMB : 0) + PADDING;
 }

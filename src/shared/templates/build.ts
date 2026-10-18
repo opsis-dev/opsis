@@ -1,5 +1,6 @@
 import { edgeId, randomId } from "../ids";
-import { CLIP_PORT, SESSION_PORT } from "../nodes/ports";
+import { CLIP_PORT } from "../nodes/define";
+import { SESSION_PORT } from "../nodes/ports";
 import { defaultParams, getNodeDef } from "../nodes/registry";
 import { CARD_GAP, CARD_WIDTH, COLUMN_WIDTH, estimateCardHeight, ROW_HEIGHT } from "../nodes/size";
 import {

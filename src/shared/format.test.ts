@@ -4,6 +4,7 @@ import {
   formatBytes,
   formatDuration,
   formatPreciseDuration,
+  formatWhen,
   humanize,
   percent,
   percentText,
@@ -89,5 +90,15 @@ describe("percentText", () => {
     expect(percentText(0.504)).toBe("50%");
     expect(percentText(1.7)).toBe("170%");
     expect(percentText(1.7, { max: 100 })).toBe("100%");
+  });
+});
+
+describe("formatWhen", () => {
+  it("writes a date and time the same way on every computer", () => {
+    expect(formatWhen("2026-10-01T09:41:00")).toBe("1 Oct 2026, 09:41");
+  });
+
+  it("shows text that isn't a date as it is", () => {
+    expect(formatWhen("next week")).toBe("next week");
   });
 });

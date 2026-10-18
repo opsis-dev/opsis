@@ -1,6 +1,6 @@
 import { cn } from "@/renderer/lib/utils";
 import { percentText } from "@/shared/format";
-import { TRANSITION_WARN_RATIO } from "@/shared/nodes/card";
+import { coversTooMuch } from "@/shared/nodes/card";
 import { nodeNameById } from "@/shared/nodes/registry";
 import { transitionTitle } from "@/shared/nodes/transitions";
 import type { Workflow } from "@/shared/schema/workflow";
@@ -23,10 +23,9 @@ function transitionTip(wf: Workflow, t: TransitionMark): string {
     ? wf.edges.find((e) => e.target === slot.nodeId && e.targetHandle === slot.port)
     : undefined;
   const into = edge ? ` into ${nodeNameById(wf, edge.source, "")}` : "";
-  const cover =
-    t.covers > TRANSITION_WARN_RATIO
-      ? `. It covers ${percentText(t.covers, { max: 100 })} of a clip: turn on Keep every clip whole, or shorten it`
-      : "";
+  const cover = coversTooMuch(t.covers)
+    ? `. It covers ${percentText(t.covers, { max: 100 })} of a clip: turn on Keep every clip whole, or shorten it`
+    : "";
   return `${transitionTitle(t.kind)}${into}${cover}.`;
 }
 
@@ -55,7 +54,7 @@ export function TransitionMarks({
           key={t.key}
           className={cn(
             "pointer-events-none absolute z-10 flex items-end justify-center overflow-hidden rounded-sm border bg-[repeating-linear-gradient(135deg,var(--transition-hatch)_0,var(--transition-hatch)_4px,transparent_4px,transparent_8px)]",
-            t.covers > TRANSITION_WARN_RATIO ? "border-warning" : "border-foreground/30",
+            coversTooMuch(t.covers) ? "border-warning" : "border-foreground/30",
           )}
           style={{
             left: HEADER_W + t.from * ppf,

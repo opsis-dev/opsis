@@ -7,7 +7,18 @@ import { outputOf, type Artifact, type CompileValue, type TimelineValue } from "
 import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { row } from "./card";
 import { defineNode, port, type CompileInputs, type CompileOutputs } from "./define";
-import { bool, choice, choiceOf, FORMAT_NAMES, keysOf, more, ms, quality, text } from "./params";
+import {
+  bool,
+  choice,
+  choiceOf,
+  FORMAT_NAMES,
+  keysOf,
+  more,
+  ms,
+  num,
+  quality,
+  text,
+} from "./params";
 
 const GL_LABELS = {
   angle: "Graphics card",
@@ -28,7 +39,7 @@ const FORMATS = keysOf(FORMAT_NAMES);
 const VIDEO_CODECS = FORMATS.filter((f) => f !== "gif");
 
 const fileBytes = (artifacts?: Artifact[]) =>
-  artifacts?.reduce((sum, a) => sum + (a.bytes ?? 0), 0) ?? 0;
+  (artifacts ?? []).reduce((sum, a) => sum + (a.bytes ?? 0), 0);
 
 export const VARIANTS = ["16:9", "1:1", "4:5", "9:16"] as const;
 export type Variant = (typeof VARIANTS)[number];
@@ -50,25 +61,34 @@ const STILL_NAMES: Record<StillPreset, string> = {
   story: "Story",
 };
 
-const variantRatio = (variant: Variant) => variant.split(":").map(Number);
+const VARIANT_RATIOS: Record<Variant, [width: number, height: number]> = {
+  "16:9": [16, 9],
+  "1:1": [1, 1],
+  "4:5": [4, 5],
+  "9:16": [9, 16],
+};
 
-export function variantSize(
+function sizeFor(variant: Variant, edge: number, anchor: "long" | "short") {
+  const [w, h] = VARIANT_RATIOS[variant];
+  const edgeIsWidth = w >= h === (anchor === "long");
+  return edgeIsWidth
+    ? { width: evenPx(edge), height: evenPx((edge * h) / w) }
+    : { width: evenPx((edge * w) / h), height: evenPx(edge) };
+}
+
+export const variantSize = (
   variant: Variant,
   settings: Pick<WorkflowSettings, "width" | "height">,
-) {
-  const long = Math.max(settings.width, settings.height);
-  const [w, h] = variantRatio(variant);
-  return w >= h
-    ? { width: evenPx(long), height: evenPx((long * h) / w) }
-    : { width: evenPx((long * w) / h), height: evenPx(long) };
-}
+) => sizeFor(variant, Math.max(settings.width, settings.height), "long");
 
-export function variantCanvas(variant: Variant, short: number) {
-  const [w, h] = variantRatio(variant);
-  return w >= h
-    ? { width: evenPx((short * w) / h), height: evenPx(short) }
-    : { width: evenPx(short), height: evenPx((short * h) / w) };
-}
+export const variantCanvas = (variant: Variant, short: number) => sizeFor(variant, short, "short");
+
+const exportedShortSide = (variant: Variant, settings: WorkflowSettings, scale: number) => {
+  const size = variantSize(variant, settings);
+  return Math.round(Math.min(size.width, size.height) * scale);
+};
+
+const fileNameField = () => text("{{Project name}}", "File name");
 
 const toTimeline = (
   input: CompileValue | undefined,
@@ -101,16 +121,16 @@ export const renderNode = defineNode({
   card: ({ params: p, settings, result }) => {
     const media = outputOf(result, "media", "media");
     const bytes = fileBytes(result?.artifacts);
-    const shortSide = Math.round(Math.min(settings.width, settings.height) * p.scale);
+    const sides = new Set(p.variants.map((v) => `${exportedShortSide(v, settings, p.scale)}p`));
     return [
       row("ratio", p.variants.join(" + ")),
-      row("film", `${FORMAT_NAMES[p.codec]} · ${shortSide}p · ${settings.fps} fps`),
+      row("film", `${FORMAT_NAMES[p.codec]} · ${[...sides].join(" / ")} · ${settings.fps} fps`),
       media?.durationMs && row("clock", formatDuration(media.durationMs)),
       bytes > 0 && row("hard-drive", formatBytes(bytes)),
     ];
   },
   params: z.object({
-    fileName: text("{{Project name}}", "File name"),
+    fileName: fileNameField(),
     codec: choice(FORMATS, "h264", "Format", FORMAT_NAMES),
     crf: quality(18),
     variants: z
@@ -123,17 +143,13 @@ export const renderNode = defineNode({
       center: "Crop the centre",
       fit: "Add bars",
     }),
-    scale: z
-      .number()
-      .min(0.25)
-      .max(2)
-      .default(1)
-      .meta({
-        description: "Size",
-        step: 0.25,
-        unit: "×",
-        labels: { "0.5": "Half", "1": "Full", "2": "Double" },
-      }),
+    scale: num(1, "Size", {
+      min: 0.25,
+      max: 2,
+      step: 0.25,
+      unit: "×",
+      labels: { "0.5": "Half", "1": "Full", "2": "Double" },
+    }),
     chapters: more(bool(true, "Chapters in the file"), {
       help: "Players list the film's chapters, taken from its Chapter actions.",
       showIf: { codec: VIDEO_CODECS },
@@ -152,8 +168,9 @@ export const renderNode = defineNode({
 
 export function exportReframe(nodes: WorkflowNode[]): ReframeMode {
   const render = nodes.find((n) => n.type === renderNode.type && !n.disabled);
-  const parsed = renderNode.params.shape.reframe.safeParse(render?.params.reframe);
-  return parsed.success ? parsed.data : "follow";
+  const field = renderNode.params.shape.reframe;
+  const parsed = field.safeParse(render?.params.reframe);
+  return parsed.success ? parsed.data : field.parse(undefined);
 }
 
 export const stillOutputNode = defineNode({
@@ -170,7 +187,7 @@ export const stillOutputNode = defineNode({
     row("clock", `At ${formatDuration(p.atMs)} · ${p.format.toUpperCase()}`),
   ],
   params: z.object({
-    fileName: text("{{Project name}}", "File name"),
+    fileName: fileNameField(),
     atMs: ms(1000, "Frame at"),
     presets: z
       .array(z.enum(keysOf(STILL_PRESETS)))
@@ -203,5 +220,3 @@ export const exportProjectNode = defineNode({
 });
 
 export const outputNodes = [renderNode, stillOutputNode, exportProjectNode];
-
-export const isOutputType = (type: string) => type.startsWith("output.");

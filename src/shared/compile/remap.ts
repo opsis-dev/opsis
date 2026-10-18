@@ -1,5 +1,5 @@
+import { MIN_SPEED } from "../limits";
 import { lerp, round3, sampleKeyed } from "../math";
-import { MIN_SPEED } from "../nodes/params";
 
 export type Remap = Array<[number, number]>;
 

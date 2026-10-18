@@ -1,10 +1,11 @@
 import type { z } from "zod";
 import { isClip } from "../compile/clip";
 import { withDefaults } from "../elements/introspect";
+import type { ElementMeta } from "../elements/types";
 import type { ClipValue, CompileValue, NodeResult } from "../schema/values";
 import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { interpolate } from "../vars";
-import type { CardContext, CardRow } from "./card";
+import { sentence, type CardContext, type CardRow } from "./card";
 import type { NodeIconName } from "./icon-name";
 
 export const NODE_CATEGORIES = [
@@ -89,6 +90,17 @@ export type NodeParams<D extends NodeDef> = z.infer<D["params"]>;
 export const hasNoCardPicture = (def: Pick<NodeDef, "category">): boolean =>
   def.category === "Browser" || def.category === "Utility";
 
+export const showsClipStill = (def: Pick<NodeDef, "category" | "outputs">): boolean =>
+  !hasNoCardPicture(def) && CLIP_PORT in def.outputs;
+
+export const hasCardPicture = (def: NodeDef): boolean =>
+  showsClipStill(def) || (!hasNoCardPicture(def) && !!def.executes && def.phase !== "post");
+
+export const cardRows = <S extends z.ZodObject>(
+  def: NodeDef<S>,
+  ctx: CardContext<z.infer<S>>,
+): CardRow[] => (def.card?.(ctx) ?? []).filter((r): r is CardRow => !!r);
+
 export function defineNode<S extends z.ZodObject>(def: NodeDef<S>): NodeDef<S> {
   return def;
 }
@@ -121,12 +133,30 @@ export const many = (type: PortType, label?: string): PortSpec => ({
   many: true,
 });
 
+export const CLIP_PORT = "clip";
+
 export const clipModifier = {
-  inputs: { clip: port("clip", "Clip") },
-  outputs: { clip: port("clip", "Clip") },
+  inputs: { [CLIP_PORT]: port("clip", "Clip") },
+  outputs: { [CLIP_PORT]: port("clip", "Clip") },
 } as const;
 
-export const clipInput = (inputs: CompileInputs, name = "clip"): ClipValue | undefined => {
+export const nodeBase = <C extends NodeCategory, P extends NodePhase>(category: C, phase: P) => ({
+  category,
+  phase,
+});
+
+export const modifierBase = <C extends NodeCategory>(category: C) => ({
+  ...nodeBase(category, "compile"),
+  ...clipModifier,
+});
+
+export const fromElement = (meta: ElementMeta) => ({
+  title: sentence(meta.title),
+  phase: "compile" as const,
+  element: meta.key,
+});
+
+export const clipInput = (inputs: CompileInputs, name = CLIP_PORT): ClipValue | undefined => {
   const value = inputs[name];
   return isClip(value) ? value : undefined;
 };

@@ -2,11 +2,13 @@ import { z } from "zod";
 import { DEFAULT_BACKDROP } from "../backdrops";
 import { itemClip, placeholderClip, type ItemExtra } from "../compile/clip";
 import { formatDuration, displayAddress } from "../format";
+import type { Bounds } from "../schema/actions";
 import { outputOf } from "../schema/values";
+import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
 import { secretFileName, secretName } from "../secrets";
 import { msToFrames } from "../timeline/time";
-import { elementRow, LABELLED_TEXT_MAX, quote, row } from "./card";
-import { defineNode, port } from "./define";
+import { elementRow, LABELLED_TEXT_MAX, quote, row, warnIf } from "./card";
+import { defineNode, nodeBase, port } from "./define";
 import {
   bool,
   choice,
@@ -20,17 +22,13 @@ import {
   visualEnvelope,
 } from "./params";
 
-export const DEFAULT_VIEWPORT = { width: 1920, height: 1080 };
-
-export const DEFAULT_TAKE_MS = 6000;
-
 const CURSORS = {
   synthetic: { label: "Smooth", row: "Smooth cursor" },
   baked: { label: "As on screen", row: "Cursor as on screen" },
   none: { label: "None", row: "No cursor" },
 };
 
-const base = { category: "Capture", phase: "capture", executes: true } as const;
+const base = { ...nodeBase("Capture", "capture"), executes: true };
 
 const REGION_LABELS = {
   viewport: "Visible part",
@@ -91,6 +89,13 @@ export const recordNode = defineNode({
   }),
 });
 
+type ShotSize = { width?: number; height?: number; scale?: number; body?: Bounds };
+
+function shotOf(image: ShotSize) {
+  if (!image.width || !image.height) return undefined;
+  return { width: image.width, height: image.height, scale: image.scale ?? 1, body: image.body };
+}
+
 export const stillNode = defineNode({
   ...base,
   type: "capture.still",
@@ -121,13 +126,12 @@ export const stillNode = defineNode({
   }),
   card: ({ params: p, result }) => {
     const image = outputOf(result, "image", "image");
+    const shot = image && shotOf(image);
     return [
       p.region === "element"
         ? elementRow("scan", p.target, p.targetRole)
         : row("scan", REGION_LABELS[p.region]),
-      image?.width
-        ? row("image", `${Math.round(image.width)} × ${Math.round(image.height ?? 0)}`)
-        : null,
+      shot && row("image", `${Math.round(shot.width)} × ${Math.round(shot.height)}`),
       row("clock", formatDuration(p.durationMs)),
     ];
   },
@@ -146,16 +150,7 @@ export const stillNode = defineNode({
             src: image.src,
             look: params.look,
             backdrop: params.backdrop,
-            ...(image.width && image.height
-              ? {
-                  shot: {
-                    width: image.width,
-                    height: image.height,
-                    scale: image.scale ?? 1,
-                    ...(image.body ? { body: image.body } : {}),
-                  },
-                }
-              : {}),
+            shot: shotOf(image),
           },
           frames,
           extra,
@@ -203,9 +198,11 @@ export const loginOnceNode = defineNode({
       row("key-round", `Saves as ${quote(name, LABELLED_TEXT_MAX)}`),
       p.url.trim() && row("link", displayAddress(p.url, { keepQuery: true }), { title: p.url }),
       secrets &&
-        row(saved ? "shield-check" : "shield-alert", saved ? "Signed in" : "Not signed in yet", {
-          tone: saved ? undefined : "warn",
-        }),
+        row(
+          saved ? "shield-check" : "shield-alert",
+          saved ? "Signed in" : "Not signed in yet",
+          warnIf(!saved),
+        ),
     ];
   },
 });

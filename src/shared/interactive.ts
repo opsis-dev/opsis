@@ -15,3 +15,23 @@ export const INTERACTIVE_SELECTOR = [
   ...INTERACTIVE_TAGS,
   ...INTERACTIVE_ROLES.map((role) => `[role=${role}]`),
 ].join(",");
+
+export const PICKED_ROLES = [
+  "button",
+  "link",
+  "textbox",
+  "searchbox",
+  "checkbox",
+  "radio",
+  "combobox",
+  "listbox",
+  "option",
+  "tab",
+  "menuitem",
+  "heading",
+  "img",
+  "switch",
+  "slider",
+] as const;
+
+export type PickedRole = (typeof PICKED_ROLES)[number];

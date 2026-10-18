@@ -5,7 +5,7 @@ import { useSettledAfterKeyChange } from "@/renderer/lib/use-settled-after-key-c
 import { PROJECT_FILE_BASE, projectRef } from "@/shared/asset-ref";
 import { clipToSpec, isClip } from "@/shared/compile/clip";
 import { stableJson } from "@/shared/hash";
-import { hasNoCardPicture, type NodeDef } from "@/shared/nodes/define";
+import { showsClipStill, type NodeDef } from "@/shared/nodes/define";
 import { PROJECT_DIRS } from "@/shared/project-dirs";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import type { ClipValue, NodeResult } from "@/shared/schema/values";
@@ -123,9 +123,7 @@ export function NodeThumbnail({ nodeId, def }: { nodeId: string; def: NodeDef })
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const poster = posterOf(result);
   if (poster && projectDir) return <FramePicture src={poster} lazy />;
-  if (hasNoCardPicture(def)) return null;
-  if (!("clip" in def.outputs)) return null;
-  return <CardStill nodeId={nodeId} />;
+  return showsClipStill(def) ? <CardStill nodeId={nodeId} /> : null;
 }
 
 function CardStill({ nodeId }: { nodeId: string }) {

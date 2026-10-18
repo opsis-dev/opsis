@@ -3,15 +3,23 @@ import { projectRef } from "../asset-ref";
 import { itemClip, withHandles, wrapClip } from "../compile/clip";
 import { ELEMENTS, elementNodeType } from "../elements";
 import { CAPTIONS_ELEMENT } from "../elements/core";
-import { assetKeys, widgetKeys } from "../elements/introspect";
+import { assetKeys, fieldMeta, shapeEntries, unwrap, widgetKeys } from "../elements/introspect";
 import type { ElementCategory, ElementMeta } from "../elements/types";
 import { fontStack } from "../fonts";
+import { MAX_FRAMES } from "../limits";
 import type { EditHandles, VisualEnvelope } from "../schema/timeline";
 import type { ClipValue } from "../schema/values";
-import { fileRow, frameSecs, quote, row, sentence, type CardRow } from "./card";
-import { clipInput, defineNode, port, type NodeCategory, type NodeDef } from "./define";
+import { fileRow, frameSecs, quote, row, type CardRow } from "./card";
+import {
+  clipInput,
+  defineNode,
+  fromElement,
+  port,
+  type NodeCategory,
+  type NodeDef,
+} from "./define";
 import type { NodeIconName } from "./icon-name";
-import { int, MAX_FRAMES, visualEnvelope } from "./params";
+import { int, visualEnvelope } from "./params";
 
 const TEXT_KEYS = [
   "title",
@@ -30,20 +38,37 @@ type ElementParams = Record<string, unknown> & ElementTiming;
 
 const SHORT_ELEMENT_RATIO = 0.6;
 
-const textParam = (params: Record<string, unknown>, key: string): string | undefined => {
+const stringParam = (params: Record<string, unknown>, key: string): string | undefined => {
   const value = params[key];
-  return typeof value === "string" && value.trim() ? value : undefined;
+  return typeof value === "string" ? value : undefined;
 };
 
-function elementCard(meta: ElementMeta, params: ElementParams, fps: number): CardRow[] {
+const PLAIN_TEXT_WIDGETS = new Set([undefined, "textarea"]);
+
+function titleKeys(schema: ElementMeta["schema"]): string[] {
+  const plain = shapeEntries(schema)
+    .filter(
+      ([, f]) => unwrap(f) instanceof z.ZodString && PLAIN_TEXT_WIDGETS.has(fieldMeta(f).widget),
+    )
+    .map(([key]) => key);
+  return [
+    ...TEXT_KEYS.filter((k) => plain.includes(k)),
+    ...plain.filter((k) => !TEXT_KEYS.includes(k)),
+  ];
+}
+
+function elementCard(
+  meta: ElementMeta,
+  titles: string[],
+  params: ElementParams,
+  fps: number,
+): CardRow[] {
   const rows: CardRow[] = [];
-  const title = TEXT_KEYS.filter((k) => k in meta.schema.shape)
-    .map((k) => textParam(params, k))
-    .find((v) => v !== undefined);
+  const title = titles.map((k) => stringParam(params, k)?.trim()).find(Boolean);
   if (title) rows.push(row("type", quote(title)));
   for (const asset of assetKeys(meta.schema)) {
-    const v = params[asset];
-    if (typeof v === "string" && v) rows.push(fileRow("file", v));
+    const file = stringParam(params, asset);
+    if (file) rows.push(fileRow("file", file));
   }
   rows.push(durationRow(meta, params.clipDuration, fps));
   return rows;
@@ -63,43 +88,29 @@ function durationRow(meta: ElementMeta, duration: number, fps: number): CardRow 
   return row("clock", frameSecs(duration || usual, fps));
 }
 
-const NODE_CATEGORY_FOR: Record<ElementCategory, NodeCategory> = {
-  core: "Elements",
-  text: "Text & overlays",
-  overlay: "Text & overlays",
-  background: "Backgrounds",
-  effect: "Effects",
-  ui: "Elements",
-  data: "Elements",
-  scene: "Elements",
-  device: "Elements",
-  transition: "Transitions",
-};
-
-const ICON_FOR: Record<ElementCategory, NodeIconName> = {
-  core: "box",
-  text: "type",
-  overlay: "sticker",
-  background: "wallpaper",
-  effect: "sparkles",
-  ui: "app-window",
-  data: "chart-column",
-  scene: "clapperboard",
-  device: "smartphone",
-  transition: "blend",
+const NODE_KIND_FOR: Record<ElementCategory, { category: NodeCategory; icon: NodeIconName }> = {
+  core: { category: "Elements", icon: "box" },
+  text: { category: "Text & overlays", icon: "type" },
+  overlay: { category: "Text & overlays", icon: "sticker" },
+  background: { category: "Backgrounds", icon: "wallpaper" },
+  effect: { category: "Effects", icon: "sparkles" },
+  ui: { category: "Elements", icon: "app-window" },
+  data: { category: "Elements", icon: "chart-column" },
+  scene: { category: "Elements", icon: "clapperboard" },
+  device: { category: "Elements", icon: "smartphone" },
+  transition: { category: "Transitions", icon: "blend" },
 };
 
 function elementProps(meta: ElementMeta, params: Record<string, unknown>): Record<string, unknown> {
   const props: Record<string, unknown> = { ...meta.fixedProps, ...params };
   for (const key of widgetKeys(meta.schema, "font")) {
-    const value = props[key];
-    const name = typeof value === "string" ? value.trim() : "";
+    const name = stringParam(props, key)?.trim();
     if (name) props[key] = fontStack(name);
     else delete props[key];
   }
   for (const key of assetKeys(meta.schema)) {
-    const value = props[key];
-    if (typeof value === "string") props[key] = projectRef(value);
+    const path = stringParam(props, key);
+    if (path !== undefined) props[key] = projectRef(path);
   }
   return props;
 }
@@ -128,15 +139,13 @@ function compileElement(
 
 function elementNode(meta: ElementMeta): NodeDef {
   const wrapper = meta.kind === "wrapper";
+  const titles = titleKeys(meta.schema);
   return defineNode({
+    ...fromElement(meta),
+    ...NODE_KIND_FOR[meta.category],
     type: elementNodeType(meta.key),
-    title: sentence(meta.title),
-    category: NODE_CATEGORY_FOR[meta.category],
     description: meta.description,
-    card: ({ params, settings }) => elementCard(meta, params, settings.fps),
-    icon: ICON_FOR[meta.category],
-    phase: "compile",
-    element: meta.key,
+    card: ({ params, settings }) => elementCard(meta, titles, params, settings.fps),
     inputs: wrapper ? { clip: port("clip", "Clip") } : {},
     outputs: { clip: port("clip", "Clip") },
     params: z.object({
