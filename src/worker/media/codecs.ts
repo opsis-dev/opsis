@@ -107,6 +107,10 @@ export const AUDIO_FORMATS: Record<AudioFormat, string[]> = {
   wav: PCM_16,
 };
 
+const isAudioFormat = (ext: string): ext is AudioFormat => Object.hasOwn(AUDIO_FORMATS, ext);
+
+export const audioFormatFor = (ext: string): AudioFormat => (isAudioFormat(ext) ? ext : "m4a");
+
 export const ffmpegSeconds = (ms: number): string => (ms / 1000).toFixed(3);
 
 type FrameGrab = { atMs: number; width: number; evenHeight?: boolean; jpegQuality?: number };

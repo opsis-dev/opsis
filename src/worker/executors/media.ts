@@ -30,6 +30,7 @@ import {
 } from "../engine/context";
 import {
   AUDIO_FORMATS,
+  audioFormatFor,
   CODECS,
   convertArgs,
   EDIT_AUDIO,
@@ -260,17 +261,18 @@ export const mediaExecutors: Executor[] = [
 
   defineExecutor(loudnormNode, async (ctx, inputs, p) => {
     const input = requireMedia(inputs.media);
-    const audioOnly = input.kind === "audio";
+    const format = input.kind === "audio" ? audioFormatFor(extOf(input.src).slice(1)) : null;
+    const { audio } = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
     return transcodeMedia(ctx, input, {
-      file: `loudnorm${audioOnly ? extOf(input.src) : ".mp4"}`,
+      file: `loudnorm.${format ?? "mp4"}`,
       label: "Loudness normalised",
       args: (i, o) => [
         "-i",
         i,
         "-af",
         loudnormFilter(p.integrated, p.truePeak, p.lra),
-        ...(audioOnly ? [] : ["-c:v", "copy"]),
-        ...EDIT_AUDIO,
+        ...(audio ? ["-ar", String(audio.sampleRate)] : []),
+        ...(format ? AUDIO_FORMATS[format] : ["-c:v", "copy", ...EDIT_AUDIO]),
         o,
       ],
     });
