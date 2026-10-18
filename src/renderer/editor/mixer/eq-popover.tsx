@@ -1,13 +1,5 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/renderer/components/ui/select";
-import {
   DEFAULT_EQ_BANDS,
   EQ_BAND_BOUNDS,
   EQ_TYPES,
@@ -15,11 +7,13 @@ import {
   type EqBand,
   type EqType,
 } from "@/shared/mix/types";
-import { db, hz } from "./audio-format";
-import { SwitchHeader } from "./dynamics-popovers";
+import { OptionSelect } from "../option-select";
+import { formatDb, formatHz } from "./audio-format";
+import type { EqGestures } from "./bindings";
 import { EqCurve } from "./eq-curve";
-import { commitOnce, type DragPhase } from "./gesture";
+import { commitOnce, mapGesture, type Gesture } from "./gesture";
 import { Knobs, type KnobSpec } from "./knob";
+import { SwitchHeader } from "./switch-header";
 
 const BAND_LABELS: Record<EqType, string> = {
   lowshelf: "Low shelf",
@@ -35,7 +29,8 @@ const bandKnobs = (defaults: EqBand): Array<KnobSpec<"freq" | "gain" | "q">> => 
     step: 1,
     reset: defaults.freq,
     log: true,
-    format: hz,
+    format: formatHz,
+    unit: "Hz",
   },
   {
     field: "gain",
@@ -43,7 +38,8 @@ const bandKnobs = (defaults: EqBand): Array<KnobSpec<"freq" | "gain" | "q">> => 
     ...EQ_BAND_BOUNDS.gain,
     step: 0.5,
     reset: defaults.gain,
-    format: db,
+    format: formatDb,
+    unit: "dB",
   },
   {
     field: "q",
@@ -60,39 +56,28 @@ function BandControls({
   band,
   defaults,
   disabled,
-  onChange,
+  gesture,
 }: {
   band: EqBand;
   defaults: EqBand;
   disabled: boolean;
-  onChange: (patch: Partial<EqBand>, phase: DragPhase) => void;
+  gesture: Gesture<Partial<EqBand>>;
 }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <Select
+      <OptionSelect
+        label="Band shape"
         value={band.type}
-        onValueChange={(type) => {
-          if (type) commitOnce(onChange, { type });
-        }}
-      >
-        <SelectTrigger size="sm" className="h-6 w-full px-1.5 text-[11px]" aria-label="Band shape">
-          <SelectValue>{(v: EqType) => BAND_LABELS[v]}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {EQ_TYPES.map((t) => (
-              <SelectItem key={t} value={t}>
-                {BAND_LABELS[t]}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+        options={EQ_TYPES}
+        optionLabel={(t) => BAND_LABELS[t]}
+        className="h-6 w-full px-1.5 text-[11px]"
+        onChange={(type) => commitOnce(gesture, { type })}
+      />
       <Knobs
         specs={bandKnobs(defaults)}
         values={band}
         disabled={disabled}
-        onChange={(field, v, phase) => onChange({ [field]: v }, phase)}
+        gestureFor={(field) => mapGesture(gesture, (v: number) => ({ [field]: v }))}
       />
     </div>
   );
@@ -101,18 +86,17 @@ function BandControls({
 export function EqPopover({
   eq,
   highpass,
-  onChange,
+  gestures,
 }: {
   eq: Eq;
   highpass: number | null;
-  onChange: (eq: Eq, phase: DragPhase, band?: number) => void;
+  gestures: EqGestures;
 }) {
-  const setBand = (i: number, patch: Partial<EqBand>, phase: DragPhase) =>
-    onChange(
-      { ...eq, bands: eq.bands.map((b, k) => (k === i ? { ...b, ...patch } : b)) },
-      phase,
-      i,
-    );
+  const bandGesture = (i: number): Gesture<Partial<EqBand>> =>
+    mapGesture(gestures(i), (patch: Partial<EqBand>) => ({
+      ...eq,
+      bands: eq.bands.map((b, k) => (k === i ? { ...b, ...patch } : b)),
+    }));
   return (
     <Popover>
       <PopoverTrigger
@@ -133,7 +117,7 @@ export function EqPopover({
           title="Equaliser"
           label="Equaliser on"
           checked={eq.on}
-          onChange={(on) => commitOnce(onChange, { ...eq, on })}
+          onChange={(on) => commitOnce(gestures(), { ...eq, on })}
         />
         <EqCurve bands={eq.bands} on={eq.on} width={388} height={90} highpass={highpass} />
         <div className="grid grid-cols-4 gap-2">
@@ -143,7 +127,7 @@ export function EqPopover({
               band={band}
               defaults={DEFAULT_EQ_BANDS[i]}
               disabled={!eq.on}
-              onChange={(patch, phase) => setBand(i, patch, phase)}
+              gesture={bandGesture(i)}
             />
           ))}
         </div>

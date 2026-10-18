@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { cn } from "@/renderer/lib/utils";
 import type { Workflow } from "@/shared/schema/workflow";
 import type { FlatTimeline } from "@/shared/timeline/flatten";
 import { usePlayback } from "../../store/playback";
-import { useUiStore } from "../../store/ui";
+import { selectedSet, useUiStore } from "../../store/ui";
 import type { Film } from "../film";
-import { AudioBarView, useDuckGains } from "./audio-bar";
+import { AudioBarView } from "./audio-bar";
 import type { BarContext } from "./bar-context";
 import { MarkerRow } from "./marker-row";
 import { Ruler } from "./ruler";
@@ -25,6 +26,7 @@ import { TimelineRow } from "./timeline-row";
 import { useTimeline } from "./timeline-state";
 import { TransitionMarks } from "./transition-marks";
 import { useBeatFrames } from "./use-beat-frames";
+import { useDuckGains } from "./use-duck-gains";
 import type { TimelineCommands } from "./use-timeline-commands";
 import { useTimelineDrag } from "./use-timeline-drag";
 import type { TimelineZoom } from "./use-timeline-zoom";
@@ -71,24 +73,35 @@ function useFollowPlayhead(scroller: React.RefObject<HTMLDivElement | null>, ppf
   );
 }
 
-function Playhead({ ppf, height }: { ppf: number; height: number }) {
-  const frame = usePlayback((s) => s.frame);
+function FrameLine({
+  frame,
+  ppf,
+  height,
+  className,
+  children,
+}: {
+  frame: number;
+  ppf: number;
+  height: number;
+  className: string;
+  children?: React.ReactNode;
+}) {
   return (
     <div
-      className="bg-playhead pointer-events-none absolute top-0 z-30 w-px"
+      className={cn("pointer-events-none absolute top-0 z-30 w-px", className)}
       style={{ left: HEADER_W + frame * ppf, height }}
     >
-      <div className="bg-playhead absolute -left-1.5 top-0 h-2.5 w-3 [clip-path:polygon(0_0,100%_0,50%_100%)]" />
+      {children}
     </div>
   );
 }
 
-function Guide({ frame, ppf, height }: { frame: number; ppf: number; height: number }) {
+function Playhead({ ppf, height }: { ppf: number; height: number }) {
+  const frame = usePlayback((s) => s.frame);
   return (
-    <div
-      className="pointer-events-none absolute top-0 z-30 w-px bg-keyframe"
-      style={{ left: HEADER_W + frame * ppf, height }}
-    />
+    <FrameLine frame={frame} ppf={ppf} height={height} className="bg-playhead">
+      <div className="bg-playhead absolute -left-1.5 top-0 h-2.5 w-3 [clip-path:polygon(0_0,100%_0,50%_100%)]" />
+    </FrameLine>
   );
 }
 
@@ -140,31 +153,21 @@ function BarLanes<T extends Laned>({
   ));
 }
 
-export function TimelineView({
-  scroller,
-  scroll,
-  zoom,
-  film,
-  workflow,
-  commands,
-}: {
+type TimelineViewProps = {
   scroller: React.RefObject<HTMLDivElement | null>;
   scroll: ScrollerView;
   zoom: TimelineZoom;
   film: TimelineFilm;
   workflow: Workflow;
   commands: TimelineCommands;
-}) {
+};
+
+function useTimelineScene({ scroller, scroll, zoom, film, workflow, commands }: TimelineViewProps) {
   const { flat, sourceNodeId } = film;
-  const selectedIds = useUiStore((s) => s.selectedIds);
-  const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const selected = useUiStore((s) => selectedSet(s.selectedIds));
   const tool = useTimeline((s) => s.tool);
-  const { view, onScroll } = scroll;
-  const { fps, durationInFrames: duration } = flat;
-  const ppf = zoom.ppf;
-  const { layout, audioLanes, totalH, contentW, viewport } = timelineGeometry(flat, view, ppf);
+  const geometry = timelineGeometry(flat, scroll.view, zoom.ppf);
   const masterSrc = film.result?.master?.src ?? null;
-  const markers = workflow.markers;
   const beats = useBeatFrames(flat);
   const gainFor = useDuckGains(film.spec, film.mix);
   const drag = useTimelineDrag({
@@ -173,30 +176,41 @@ export function TimelineView({
     flat,
     sourceNodeId,
     masterSrc,
-    markers,
+    markers: workflow.markers,
     beats,
-    layout,
+    layout: geometry.layout,
     zoom,
   });
 
-  useFollowPlayhead(scroller, ppf);
+  useFollowPlayhead(scroller, zoom.ppf);
 
   useEffect(() => {
     preloadScrub(masterSrc);
   }, [masterSrc]);
 
   const select = (ids: string[], additive: boolean) => selectNodes(ids, additive, sourceNodeId);
-
   const ctx: BarContext = {
     workflow,
     flat,
-    viewport,
+    viewport: geometry.viewport,
     tool,
     selected,
     drag,
     select,
     splitAt: commands.splitAt,
   };
+  return { ...geometry, beats, gainFor, drag, select, ctx };
+}
+
+export function TimelineView(props: TimelineViewProps) {
+  const { scroller, scroll, zoom, film, workflow } = props;
+  const { flat } = film;
+  const { view, onScroll } = scroll;
+  const { fps, durationInFrames: duration } = flat;
+  const ppf = zoom.ppf;
+  const { layout, audioLanes, totalH, contentW, viewport, beats, gainFor, drag, select, ctx } =
+    useTimelineScene(props);
+  const markers = workflow.markers;
 
   return (
     <div
@@ -254,7 +268,9 @@ export function TimelineView({
           viewport={viewport}
           render={(a) => <AudioBarView key={a.key} bar={a} ctx={ctx} gain={gainFor(a.id)} />}
         />
-        {drag.guide !== null ? <Guide frame={drag.guide} ppf={ppf} height={totalH} /> : null}
+        {drag.guide !== null ? (
+          <FrameLine frame={drag.guide} ppf={ppf} height={totalH} className="bg-keyframe" />
+        ) : null}
         {drag.marquee ? <Marquee box={drag.marquee} /> : null}
         <Playhead ppf={ppf} height={Math.max(totalH, view.height)} />
       </div>

@@ -1,19 +1,13 @@
 import { Player, type PlayerRef } from "@remotion/player";
 import { Clapperboard } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/renderer/components/ui/empty";
 import { PROJECT_FILE_BASE } from "@/shared/asset-ref";
 import { findById } from "@/shared/lists";
 import { exportReframe, variantSize } from "@/shared/nodes/output";
 import { nodeName } from "@/shared/nodes/registry";
 import { EMPTY_SPEC, type TimelineSpec } from "@/shared/schema/timeline";
 import { playRange, wholeFrames } from "@/shared/timeline/time";
+import { EmptyPanel } from "../app/empty-panel";
 import { usePlayback } from "../store/playback";
 import { useStillsStore } from "../store/stills";
 import { useViewOptions } from "../store/view-options";
@@ -26,17 +20,11 @@ import { usePlayerBridge, useSeekToSelection } from "./use-player-bridge";
 
 function NothingToPreview() {
   return (
-    <Empty className="h-full">
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <Clapperboard />
-        </EmptyMedia>
-        <EmptyTitle>Nothing to preview yet</EmptyTitle>
-        <EmptyDescription>
-          Add a clip-producing node — a title, an element, or a recording through Auto zoom.
-        </EmptyDescription>
-      </EmptyHeader>
-    </Empty>
+    <EmptyPanel
+      icon={Clapperboard}
+      title="Nothing to preview yet"
+      description="Add a clip-producing node — a title, an element, or a recording through Auto zoom."
+    />
   );
 }
 

@@ -1,14 +1,8 @@
 import { SquareChartGantt } from "lucide-react";
 import { useRef } from "react";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/renderer/components/ui/empty";
 import { isEditingElement } from "@/renderer/lib/dom";
 import type { Workflow } from "@/shared/schema/workflow";
+import { EmptyPanel } from "../../app/empty-panel";
 import { useWorkflowStore } from "../../store/workflow";
 import { useFilm, type Film } from "../film";
 import { focusTargetRef } from "../panels";
@@ -82,17 +76,11 @@ export function TimelinePanel() {
 
   if (!hasFlat(film) || !workflow) {
     return (
-      <Empty className="h-full">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <SquareChartGantt />
-          </EmptyMedia>
-          <EmptyTitle>No film to show yet</EmptyTitle>
-          <EmptyDescription>
-            Connect clips to an export, or select a node that makes a clip.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <EmptyPanel
+        icon={SquareChartGantt}
+        title="No film to show yet"
+        description="Connect clips to an export, or select a node that makes a clip."
+      />
     );
   }
 

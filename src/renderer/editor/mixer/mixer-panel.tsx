@@ -2,17 +2,11 @@ import { Plus, SlidersVertical } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/renderer/components/ui/empty";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { randomId } from "@/shared/ids";
 import { addBus } from "@/shared/mix/edits";
 import { soloActive } from "@/shared/mix/levels";
+import { EmptyPanel } from "../../app/empty-panel";
 import { useMedia } from "../../store/media";
 import { toggleIds } from "../../store/ui";
 import { readPref, writePref } from "../../store/view-prefs";
@@ -21,8 +15,6 @@ import { useFilm, type Film } from "../film";
 import { BusStrip } from "./bus-strip";
 import { ChannelStrip } from "./channel-strip";
 import { MasterStrip } from "./master-strip";
-
-const HOLD_SECONDS = 1.5;
 
 function useCollapsedBuses() {
   const [collapsed, setCollapsed] = useState<string[]>(() =>
@@ -79,21 +71,14 @@ export function MixerPanel() {
   const channels = film.plan?.channels ?? [];
   if (!film.flat || channels.length === 0) {
     return (
-      <Empty className="h-full">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <SlidersVertical />
-          </EmptyMedia>
-          <EmptyTitle>No sound in this film</EmptyTitle>
-          <EmptyDescription>
-            Add music, a sound effect or a clip with sound, and its channel appears here.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <EmptyPanel
+        icon={SlidersVertical}
+        title="No sound in this film"
+        description="Add music, a sound effect or a clip with sound, and its channel appears here."
+      />
     );
   }
 
-  const holdFrames = Math.round(film.flat.fps * HOLD_SECONDS);
   const order = channels.map((c) => c.id);
   return (
     <div className="flex h-full flex-col">
@@ -114,7 +99,6 @@ export function MixerPanel() {
                         order={order}
                         mix={mix}
                         result={result}
-                        holdFrames={holdFrames}
                         sourceNodeId={film.sourceNodeId}
                       />
                     ))}
@@ -125,14 +109,13 @@ export function MixerPanel() {
                   folded={folded}
                   onFold={() => toggle(b.id)}
                   result={result}
-                  holdFrames={holdFrames}
                 />
               </div>
             );
           })}
         </div>
         <div className="flex-1" />
-        <MasterStrip master={mix.master} result={result} holdFrames={holdFrames} />
+        <MasterStrip master={mix.master} result={result} />
       </div>
     </div>
   );

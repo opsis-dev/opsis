@@ -2,8 +2,8 @@ import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
 import { percent } from "@/shared/format";
 import { clamp } from "@/shared/math";
 import { MAX_DB, MIN_DB } from "@/shared/mix/types";
-import { db } from "./audio-format";
-import { commitOnce, onArrowKey, type Change } from "./gesture";
+import { formatDb } from "./audio-format";
+import { commitOnce, onArrowKey, type Gesture } from "./gesture";
 import { roundToStep } from "./knob-math";
 
 const STEP_DB = 0.5;
@@ -19,20 +19,20 @@ function valueAt(el: HTMLElement, clientY: number): number {
 
 export function Fader({
   value,
-  onChange,
+  gesture,
   label,
 }: {
   value: number;
-  onChange: Change<number>;
+  gesture: Gesture<number>;
   label: string;
 }) {
   const drag = usePointerDrag<HTMLDivElement>({
     onStart: (e) => {
-      onChange(value, "start");
-      onChange(valueAt(e.currentTarget, e.clientY), "move");
+      gesture.begin();
+      gesture.set(valueAt(e.currentTarget, e.clientY));
     },
-    onMove: (e) => onChange(valueAt(e.currentTarget, e.clientY), "move"),
-    onEnd: () => onChange(value, "end"),
+    onMove: (e) => gesture.set(valueAt(e.currentTarget, e.clientY)),
+    onEnd: gesture.end,
   });
   return (
     <div
@@ -42,15 +42,15 @@ export function Fader({
       aria-valuemin={MIN_DB}
       aria-valuemax={MAX_DB}
       aria-valuenow={value}
-      aria-valuetext={`${db(value)} dB`}
-      title={`${label}: ${db(value)} dB. Double-click for 0 dB.`}
+      aria-valuetext={`${formatDb(value)} dB`}
+      title={`${label}: ${formatDb(value)} dB. Double-click for 0 dB.`}
       className="focus-visible:ring-ring relative h-full w-4 cursor-ns-resize touch-none rounded outline-none focus-visible:ring-2"
       {...drag}
-      onDoubleClick={() => commitOnce(onChange, 0)}
+      onDoubleClick={() => commitOnce(gesture, 0)}
       onKeyDown={(e) =>
         onArrowKey(e, (dir, big) => {
           const step = big ? BIG_STEP_DB : STEP_DB;
-          commitOnce(onChange, clamp(value + dir * step, MIN_DB, MAX_DB));
+          commitOnce(gesture, clamp(value + dir * step, MIN_DB, MAX_DB));
         })
       }
     >

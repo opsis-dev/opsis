@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isPrimaryModifier } from "@/renderer/lib/dom";
 import { usePlayback } from "../../store/playback";
 import { FIT_PADDING_PX, HEADER_W, contentX, frameAtX } from "./timeline-layout";
 import { clampZoom, useTimeline } from "./timeline-state";
@@ -12,8 +13,6 @@ export type TimelineZoom = {
   hold: () => void;
   release: () => void;
 };
-
-const zooms = (e: { ctrlKey: boolean; metaKey: boolean }) => e.ctrlKey || e.metaKey;
 
 export function useTimelineZoom(
   scroller: React.RefObject<HTMLDivElement | null>,
@@ -30,7 +29,7 @@ export function useTimelineZoom(
     const el = scroller.current;
     if (!el) return;
     const block = (e: WheelEvent) => {
-      if (zooms(e)) e.preventDefault();
+      if (isPrimaryModifier(e)) e.preventDefault();
     };
     el.addEventListener("wheel", block, { passive: false });
     return () => el.removeEventListener("wheel", block);
@@ -50,7 +49,7 @@ export function useTimelineZoom(
 
   const onWheel = (e: React.WheelEvent<HTMLElement>) => {
     const el = e.currentTarget;
-    if (zooms(e)) {
+    if (isPrimaryModifier(e)) {
       const factor = e.deltaY < 0 ? WHEEL_ZOOM_STEP : 1 / WHEEL_ZOOM_STEP;
       zoomAround(factor, frameAtX(contentX(el, e.clientX), ppf));
     } else if (

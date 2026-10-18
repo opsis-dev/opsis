@@ -1,14 +1,23 @@
 import type { MixResult, StemLevels } from "@/shared/mix/result";
-import type { Eq } from "@/shared/mix/types";
+import type { Eq, EqType } from "@/shared/mix/types";
 import { useAudioPreview, type Contribution } from "../../store/audio-preview";
 import { usePlayback } from "../../store/playback";
 import { useWorkflowStore } from "../../store/workflow";
-import type { Change, DragPhase } from "./gesture";
+import type { Gesture } from "./gesture";
 import { share } from "./meter-levels";
 
 const HIGHPASS_Q = 0.7;
+const MIN_POWER = 1e-9;
+
+const FILTER_TYPES: Record<EqType, BiquadFilterType> = {
+  lowshelf: "lowshelf",
+  peak: "peaking",
+  highshelf: "highshelf",
+};
 
 export type PreviewTarget = { key: string; fraction: () => number };
+
+export type EqGestures = (band?: number) => Gesture<Eq>;
 
 export const MASTER_TARGET: PreviewTarget = { key: "master", fraction: () => 1 };
 
@@ -21,17 +30,11 @@ export const previewTarget = (
   fraction: () => share(result, levels, usePlayback.getState().frame),
 });
 
-function gesture(phase: DragPhase, apply: () => void): void {
-  const store = useWorkflowStore.getState();
-  if (phase === "start") store.beginGesture();
-  else if (phase === "move") apply();
-  else store.endGesture();
-}
-
-export const bindChange =
-  <T>(apply: (value: T) => void): Change<T> =>
-  (value, phase) =>
-    gesture(phase, () => apply(value));
+export const bindChange = <T>(apply: (value: T) => void): Gesture<T> => ({
+  begin: () => useWorkflowStore.getState().beginGesture(),
+  set: apply,
+  end: () => useWorkflowStore.getState().endGesture(),
+});
 
 function previewChange(
   id: string,
@@ -44,8 +47,8 @@ function previewChange(
 }
 
 function gainContribution(fraction: number, deltaDb: number): Contribution {
-  const p = Math.max(1e-9, 1 - fraction + fraction * 10 ** (deltaDb / 10));
-  return { gainDb: 10 * Math.log10(p) };
+  const powerRatio = Math.max(MIN_POWER, 1 - fraction + fraction * 10 ** (deltaDb / 10));
+  return { gainDb: 10 * Math.log10(powerRatio) };
 }
 
 export const bindGain = (
@@ -53,7 +56,7 @@ export const bindGain = (
   name: string,
   current: number,
   apply: (v: number) => void,
-): Change<number> =>
+): Gesture<number> =>
   bindChange((v) => {
     previewChange(`${target.key}:${name}`, current, v, (d) =>
       gainContribution(target.fraction(), d),
@@ -65,7 +68,7 @@ export const bindPan = (
   target: PreviewTarget,
   current: number,
   apply: (v: number) => void,
-): Change<number> =>
+): Gesture<number> =>
   bindChange((v) => {
     previewChange(`${target.key}:pan`, current, v, (d) => ({ pan: d * target.fraction() }));
     apply(v);
@@ -74,7 +77,7 @@ export const bindPan = (
 export const bindHighpass = (
   target: PreviewTarget,
   apply: (freq: number) => void,
-): Change<number> =>
+): Gesture<number> =>
   bindChange((freq) => {
     useAudioPreview.getState().contribute(`${target.key}:hp`, {
       filters: [{ type: "highpass", freq, gain: 0, q: HIGHPASS_Q }],
@@ -83,19 +86,14 @@ export const bindHighpass = (
   });
 
 export const bindEq =
-  (target: PreviewTarget, before: Eq, apply: (eq: Eq) => void) =>
-  (eq: Eq, phase: DragPhase, band?: number) =>
-    gesture(phase, () => {
+  (target: PreviewTarget, before: Eq, apply: (eq: Eq) => void): EqGestures =>
+  (band) =>
+    bindChange((eq) => {
       if (band !== undefined) {
         const b = eq.bands[band];
         previewChange(`${target.key}:eq${band}`, before.bands[band].gain, b.gain, (d) => ({
           filters: [
-            {
-              type: b.type === "peak" ? "peaking" : b.type,
-              freq: b.freq,
-              gain: d * target.fraction(),
-              q: b.q,
-            },
+            { type: FILTER_TYPES[b.type], freq: b.freq, gain: d * target.fraction(), q: b.q },
           ],
         }));
       }

@@ -1,14 +1,6 @@
 import { Ellipsis } from "lucide-react";
 import { Button } from "@/renderer/components/ui/button";
 import { Label } from "@/renderer/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/renderer/components/ui/select";
 import { Switch } from "@/renderer/components/ui/switch";
 import type { Loudness, MixResult } from "@/shared/mix/result";
 import {
@@ -22,12 +14,13 @@ import {
 import { loudnessName, lufsText } from "@/shared/nodes/params";
 import { usePlayback } from "../../store/playback";
 import { useWorkflowStore } from "../../store/workflow";
-import { db } from "./audio-format";
+import { OptionSelect } from "../option-select";
+import { formatDb } from "./audio-format";
 import { bindChange, bindEq, bindGain, MASTER_TARGET } from "./bindings";
 import { CompPopover } from "./dynamics-popovers";
 import { EqPopover } from "./eq-popover";
 import { Knob } from "./knob";
-import { rangeKnob } from "./knob-math";
+import { rangeProps } from "./knob-math";
 import { sampleAt } from "./meter-levels";
 import { FaderMeter } from "./strip-parts";
 
@@ -38,17 +31,25 @@ function loudnessLabel(target: LoudnessTarget): string {
 
 const QUIET_LUFS = -70;
 
-type Update = (fn: (m: Master) => Master) => void;
-
-const updateMaster: Update = (fn) =>
+const updateMaster = (fn: (m: Master) => Master) =>
   useWorkflowStore.getState().setMix((mix) => ({ ...mix, master: fn(mix.master) }));
 
-function Readout({ label, value, unit }: { label: string; value: number | null; unit: string }) {
+function Readout({
+  label,
+  value,
+  unit,
+  floor = -Infinity,
+}: {
+  label: string;
+  value: number | null;
+  unit: string;
+  floor?: number;
+}) {
   return (
     <div className="flex w-full items-baseline justify-between text-[10px]">
       <span className="text-muted-foreground">{label}</span>
       <span className="tabular-nums">
-        {value === null || value <= QUIET_LUFS ? "—" : value.toFixed(1)}{" "}
+        {value === null || value <= floor ? "—" : value.toFixed(1)}{" "}
         <span className="text-muted-foreground">{unit}</span>
       </span>
     </div>
@@ -66,9 +67,24 @@ function LoudnessReadouts({
   const aim = LOUDNESS_TARGETS[target];
   return (
     <div className="flex w-full flex-col gap-0.5 border-t pt-1">
-      <Readout label="Momentary" value={sampleAt(loudness?.momentary, frame)} unit="LUFS" />
-      <Readout label="Short-term" value={sampleAt(loudness?.shortTerm, frame)} unit="LUFS" />
-      <Readout label="Integrated" value={loudness?.integrated ?? null} unit="LUFS" />
+      <Readout
+        label="Momentary"
+        value={sampleAt(loudness?.momentary, frame)}
+        unit="LUFS"
+        floor={QUIET_LUFS}
+      />
+      <Readout
+        label="Short-term"
+        value={sampleAt(loudness?.shortTerm, frame)}
+        unit="LUFS"
+        floor={QUIET_LUFS}
+      />
+      <Readout
+        label="Integrated"
+        value={loudness?.integrated ?? null}
+        unit="LUFS"
+        floor={QUIET_LUFS}
+      />
       <Readout label="True peak" value={loudness?.truePeak ?? null} unit="dBTP" />
       <Readout label="Range" value={loudness?.range ?? null} unit="LU" />
       {aim ? (
@@ -78,7 +94,7 @@ function LoudnessReadouts({
   );
 }
 
-function LimiterRow({ limiter, update }: { limiter: Master["limiter"]; update: Update }) {
+function LimiterRow({ limiter }: { limiter: Master["limiter"] }) {
   return (
     <div className="flex w-full items-center justify-between gap-1">
       <Label className="text-[10px] font-normal">Limiter</Label>
@@ -86,64 +102,42 @@ function LimiterRow({ limiter, update }: { limiter: Master["limiter"]; update: U
         size="sm"
         checked={limiter.on}
         aria-label="Limiter"
-        onCheckedChange={(on) => update((m) => ({ ...m, limiter: { ...m.limiter, on } }))}
+        onCheckedChange={(on) => updateMaster((m) => ({ ...m, limiter: { ...m.limiter, on } }))}
       />
       <Knob
         label="Ceiling"
         size={24}
         value={limiter.ceiling}
-        {...rangeKnob(LIMITER_CEILING_RANGE)}
+        {...rangeProps(LIMITER_CEILING_RANGE)}
         step={0.1}
-        format={db}
+        format={formatDb}
+        unit="dB"
         disabled={!limiter.on}
-        onChange={bindChange((ceiling) =>
-          update((m) => ({ ...m, limiter: { ...m.limiter, ceiling } })),
+        gesture={bindChange((ceiling) =>
+          updateMaster((m) => ({ ...m, limiter: { ...m.limiter, ceiling } })),
         )}
       />
     </div>
   );
 }
 
-function LoudnessSelect({ value, update }: { value: LoudnessTarget; update: Update }) {
+function LoudnessSelect({ value }: { value: LoudnessTarget }) {
   return (
     <div className="flex w-full flex-col gap-0.5">
       <span className="text-muted-foreground text-[10px]">Loudness target</span>
-      <Select
+      <OptionSelect
+        label="Loudness target"
         value={value}
-        onValueChange={(loudness) => {
-          if (loudness) update((m) => ({ ...m, loudness }));
-        }}
-      >
-        <SelectTrigger
-          size="sm"
-          className="h-6 w-full px-1.5 text-[11px]"
-          aria-label="Loudness target"
-        >
-          <SelectValue>{(v: LoudnessTarget) => loudnessLabel(v)}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {LOUDNESS_CHOICES.map((t) => (
-              <SelectItem key={t} value={t}>
-                {loudnessLabel(t)}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+        options={LOUDNESS_CHOICES}
+        optionLabel={loudnessLabel}
+        className="h-6 w-full px-1.5 text-[11px]"
+        onChange={(loudness) => updateMaster((m) => ({ ...m, loudness }))}
+      />
     </div>
   );
 }
 
-export function MasterStrip({
-  master,
-  result,
-  holdFrames,
-}: {
-  master: Master;
-  result: MixResult | null;
-  holdFrames: number;
-}) {
+export function MasterStrip({ master, result }: { master: Master; result: MixResult | null }) {
   const reduction = result?.reduction.master;
   return (
     <div className="bg-sidebar sticky right-0 flex w-[250px] shrink-0 gap-2 border-l px-2 py-1.5">
@@ -163,30 +157,29 @@ export function MasterStrip({
         <EqPopover
           eq={master.eq}
           highpass={null}
-          onChange={bindEq(MASTER_TARGET, master.eq, (eq) => updateMaster((m) => ({ ...m, eq })))}
+          gestures={bindEq(MASTER_TARGET, master.eq, (eq) => updateMaster((m) => ({ ...m, eq })))}
         />
         <div className="flex w-full">
           <CompPopover
             comp={master.comp}
             reduction={reduction}
-            onChange={bindChange((comp) => updateMaster((m) => ({ ...m, comp })))}
+            gesture={bindChange((comp) => updateMaster((m) => ({ ...m, comp })))}
           />
         </div>
-        <LimiterRow limiter={master.limiter} update={updateMaster} />
-        <LoudnessSelect value={master.loudness} update={updateMaster} />
+        <LimiterRow limiter={master.limiter} />
+        <LoudnessSelect value={master.loudness} />
         <LoudnessReadouts loudness={result?.loudness ?? null} target={master.loudness} />
       </div>
       <div className="flex w-12 shrink-0 flex-col items-center gap-1">
         <FaderMeter
           label="Master fader"
           value={master.fader}
-          onChange={bindGain(MASTER_TARGET, "fader", master.fader, (fader) =>
+          gesture={bindGain(MASTER_TARGET, "fader", master.fader, (fader) =>
             updateMaster((m) => ({ ...m, fader })),
           )}
           levels={result?.levels.master}
           reduction={reduction}
           compOn={master.comp.on}
-          holdFrames={holdFrames}
           className="w-full justify-center"
         />
       </div>

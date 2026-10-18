@@ -22,8 +22,7 @@ export function selectNodes(ids: string[], additive: boolean, sourceNodeId: stri
   if (ids.length === 1) ui.revealNode(ids[0]);
 }
 
-export function reportEdit(r: EditResult | null): void {
-  if (!r) return;
+export function reportEdit(r: EditResult): void {
   if (!r.ok) toast.error(r.error);
   else if (r.message) toast.success(r.message);
 }
@@ -37,7 +36,11 @@ export function commitEdit(r: EditResult): void {
   reportEdit(r);
 }
 
-export function splitAtPlayhead(ctx: EditContext, flat: FlatTimeline, selected: Set<string>) {
+export function splitAtPlayhead(
+  ctx: EditContext,
+  flat: FlatTimeline,
+  selected: ReadonlySet<string>,
+) {
   const at = usePlayback.getState().frame;
   const under = flat.bars.filter((b) => b.from < at && b.to > at);
   const bar =
@@ -52,7 +55,7 @@ export function splitAtPlayhead(ctx: EditContext, flat: FlatTimeline, selected: 
 export function selectionRemoval(
   ctx: EditContext,
   flat: FlatTimeline,
-  selected: Set<string>,
+  selected: ReadonlySet<string>,
 ): Removal | null {
   const nodes = new Set<string>();
   const edges = new Set<string>();
@@ -74,12 +77,12 @@ export function removeNow(removal: Removal, sourceNodeId: string | null): void {
   useUiStore.getState().selectPinned([], sourceNodeId);
 }
 
-export function removeSelectedMarker(): boolean {
+export const hasSelectedMarker = (): boolean => useTimeline.getState().selectedMarker !== null;
+
+export function removeSelectedMarker(): void {
   const marker = useTimeline.getState().selectedMarker;
-  if (!marker) return false;
   useWorkflowStore.getState().setMarkers((list) => list.filter((m) => m.id !== marker));
   useTimeline.getState().selectMarker(null);
-  return true;
 }
 
 export function addMarkerAtPlayhead(fps: number): void {

@@ -1,4 +1,6 @@
+import type { Marker } from "@/shared/schema/workflow";
 import type { FlatTimeline } from "@/shared/timeline/flatten";
+import { msToExactFrames } from "@/shared/timeline/time";
 
 export const HEADER_W = 84;
 export const RULER_H = 24;
@@ -7,10 +9,10 @@ export const VIDEO_H = 46;
 export const AUDIO_H = 46;
 export const BAR_INSET = 8;
 export const SNAP_PX = 8;
-export const TAIL_PX = 240;
+const TAIL_PX = 240;
 export const FIT_PADDING_PX = 32;
 export const OFFSCREEN_PX = 64;
-export const VIDEO_TOP = RULER_H + MARKERS_H;
+const VIDEO_TOP = RULER_H + MARKERS_H;
 
 const EDGE_PX = 6;
 
@@ -24,7 +26,14 @@ export const videoRowTop = (layout: LaneLayout, lane: number): number =>
 export const audioRowTop = (layout: LaneLayout, lane: number): number =>
   layout.audioTop + lane * AUDIO_H;
 
-export const barBox = (from: number, to: number, ppf: number) => ({
+export const barHeight = (rowHeight: number): number => rowHeight - BAR_INSET;
+
+export const markerFrame = (marker: Pick<Marker, "atMs">, fps: number): number =>
+  msToExactFrames(marker.atMs, fps);
+
+export type BarBox = { left: number; width: number };
+
+export const barBox = (from: number, to: number, ppf: number): BarBox => ({
   left: from * ppf,
   width: Math.max(2, (to - from) * ppf),
 });

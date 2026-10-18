@@ -5,8 +5,8 @@ import type { AudioEnvelopeKey, VisualEnvelopeKey } from "@/shared/schema/timeli
 import { formatTime } from "@/shared/timeline/time";
 import { usePlayback } from "../../store/playback";
 import { readPref, writePref } from "../../store/view-prefs";
+import type { TimelineTool } from "./timeline-tools";
 
-export type TimelineTool = "select" | "ripple" | "roll" | "slip" | "blade" | "rate";
 type RulerMode = "seconds" | "timecode";
 
 type Prefs = { rulerMode: RulerMode; snapping: boolean };
@@ -74,8 +74,9 @@ export function useFormatTime(fps: number): (frame: number) => string {
   return (frame) => formatTime(frame, fps, rulerMode);
 }
 
-export function useLoopRange(): { inPoint: number | null; outPoint: number | null } {
+export function useLoopRange(duration: number): { from: number; to: number } | null {
   const inPoint = usePlayback((s) => s.inPoint);
   const outPoint = usePlayback((s) => s.outPoint);
-  return { inPoint, outPoint };
+  if (inPoint === null && outPoint === null) return null;
+  return { from: inPoint ?? 0, to: outPoint ?? duration };
 }

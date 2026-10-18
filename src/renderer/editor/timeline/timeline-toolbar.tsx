@@ -2,18 +2,9 @@ import { Bookmark, Magnet, Scissors, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import { Kbd } from "@/renderer/components/ui/kbd";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/renderer/components/ui/select";
 import { Separator } from "@/renderer/components/ui/separator";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { findById } from "@/shared/lists";
 import { isOutputType } from "@/shared/nodes/output";
 import { nodeName } from "@/shared/nodes/registry";
@@ -27,6 +18,8 @@ import type { Workflow } from "@/shared/schema/workflow";
 import { shortcutLabel } from "../../app/menu-shortcuts";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
+import { OptionSelect } from "../option-select";
+import { WithTooltip } from "../tooltip-button";
 import { ENVELOPE_INFO } from "./envelope";
 import { useFormatTime, useLoopRange, useTimeline } from "./timeline-state";
 import { COMMAND_KEYS, TOOLS, ZOOM_KEYS, ZOOM_STEP } from "./timeline-tools";
@@ -40,34 +33,36 @@ const videoLabel = (v: VideoChoice) => (v === "off" ? "No keyframes" : ENVELOPE_
 
 function IconTip({
   label,
+  shortcut,
   iconOnly = true,
-  tip,
   onClick,
   children,
 }: {
   label: string;
+  shortcut: string;
   iconOnly?: boolean;
-  tip: React.ReactNode;
   onClick: () => void;
   children: React.ReactNode;
 }) {
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            variant="ghost"
-            size={iconOnly ? "icon-sm" : "sm"}
-            className={iconOnly ? undefined : "px-2"}
-            aria-label={label}
-            onClick={onClick}
-          />
-        }
-      >
-        {children}
-      </TooltipTrigger>
-      <TooltipContent>{tip}</TooltipContent>
-    </Tooltip>
+    <WithTooltip
+      trigger={
+        <Button
+          variant="ghost"
+          size={iconOnly ? "icon-sm" : "sm"}
+          className={iconOnly ? undefined : "px-2"}
+          aria-label={label}
+          onClick={onClick}
+        />
+      }
+      tip={
+        <>
+          {label} <Kbd>{shortcut}</Kbd>
+        </>
+      }
+    >
+      {children}
+    </WithTooltip>
   );
 }
 
@@ -86,74 +81,40 @@ function ToolPicker() {
         }}
       >
         {TOOLS.map((t) => (
-          <Tooltip key={t.id}>
-            <TooltipTrigger render={<ToggleGroupItem value={t.id} aria-label={t.label} />}>
-              <t.icon />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-64">
-              {t.label} <Kbd>{t.key}</Kbd>
-              <div className="text-muted-foreground mt-1">{t.help}</div>
-            </TooltipContent>
-          </Tooltip>
+          <WithTooltip
+            key={t.id}
+            trigger={<ToggleGroupItem value={t.id} aria-label={t.label} />}
+            tipClassName="max-w-64"
+            tip={
+              <>
+                {t.label} <Kbd>{t.key}</Kbd>
+                <div className="text-muted-foreground mt-1">{t.help}</div>
+              </>
+            }
+          >
+            <t.icon />
+          </WithTooltip>
         ))}
       </ToggleGroup>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Toggle
-              size="sm"
-              aria-label="Snap"
-              pressed={snapping}
-              onPressedChange={(v) => useTimeline.getState().setSnapping(v)}
-            />
-          }
-        >
-          <Magnet />
-        </TooltipTrigger>
-        <TooltipContent>
-          Snap to the playhead, clip edges, markers, actions and beats. Hold <Kbd>Alt</Kbd> to turn
-          it off while dragging.
-        </TooltipContent>
-      </Tooltip>
+      <WithTooltip
+        trigger={
+          <Toggle
+            size="sm"
+            aria-label="Snap"
+            pressed={snapping}
+            onPressedChange={(v) => useTimeline.getState().setSnapping(v)}
+          />
+        }
+        tip={
+          <>
+            Snap to the playhead, clip edges, markers, actions and beats. Hold <Kbd>Alt</Kbd> to
+            turn it off while dragging.
+          </>
+        }
+      >
+        <Magnet />
+      </WithTooltip>
     </>
-  );
-}
-
-function EnvelopeSelect<T extends string>({
-  label,
-  value,
-  options,
-  optionLabel,
-  className,
-  onChange,
-}: {
-  label: string;
-  value: T;
-  options: readonly T[];
-  optionLabel: (v: T) => string;
-  className: string;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <Select
-      value={value}
-      onValueChange={(v) => {
-        if (v) onChange(v);
-      }}
-    >
-      <SelectTrigger size="sm" className={className} aria-label={label}>
-        <SelectValue>{(v: T) => optionLabel(v)}</SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          {options.map((k) => (
-            <SelectItem key={k} value={k}>
-              {optionLabel(k)}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
   );
 }
 
@@ -164,7 +125,7 @@ function EnvelopePickers() {
   const audioEnvelope = useTimeline((s) => s.audioEnvelope);
   return (
     <>
-      <EnvelopeSelect
+      <OptionSelect
         label="Clip keyframes"
         value={videoChoice}
         options={VIDEO_CHOICES}
@@ -172,7 +133,7 @@ function EnvelopePickers() {
         className="w-36"
         onChange={(v) => useTimeline.getState().setVideoEnvelope(v === "off" ? null : v)}
       />
-      <EnvelopeSelect
+      <OptionSelect
         label="Sound keyframes"
         value={audioEnvelope}
         options={AUDIO_ENVELOPES}
@@ -185,12 +146,12 @@ function EnvelopePickers() {
 }
 
 function RangeBadge({ fps, duration }: { fps: number; duration: number }) {
-  const { inPoint, outPoint } = useLoopRange();
+  const loop = useLoopRange(duration);
   const timeAt = useFormatTime(fps);
-  if (inPoint === null && outPoint === null) return null;
+  if (!loop) return null;
   return (
     <Badge variant="outline" className="gap-1 tabular-nums">
-      {timeAt(inPoint ?? 0)}–{timeAt(outPoint ?? duration)}
+      {timeAt(loop.from)}–{timeAt(loop.to)}
       <button
         type="button"
         aria-label="Clear the loop"
@@ -210,20 +171,18 @@ function Clock({ fps, duration }: { fps: number; duration: number }) {
     setRulerMode(rulerMode === "seconds" ? "timecode" : "seconds");
   };
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground px-1 text-xs whitespace-nowrap tabular-nums"
-            onClick={switchMode}
-          />
-        }
-      >
-        {timeAt(frame)} / {timeAt(duration)}
-      </TooltipTrigger>
-      <TooltipContent>Switch between seconds and timecode</TooltipContent>
-    </Tooltip>
+    <WithTooltip
+      trigger={
+        <button
+          type="button"
+          className="text-muted-foreground hover:text-foreground px-1 text-xs whitespace-nowrap tabular-nums"
+          onClick={switchMode}
+        />
+      }
+      tip="Switch between seconds and timecode"
+    >
+      {timeAt(frame)} / {timeAt(duration)}
+    </WithTooltip>
   );
 }
 
@@ -274,26 +233,10 @@ export function TimelineToolbar({
     <div className="flex h-9 shrink-0 items-center gap-1 overflow-x-auto border-b px-2">
       <ToolPicker />
       <Separator orientation="vertical" className="mx-1 h-5 data-vertical:self-center" />
-      <IconTip
-        label="Split at the playhead"
-        tip={
-          <>
-            Split at the playhead <Kbd>{COMMAND_KEYS.split}</Kbd>
-          </>
-        }
-        onClick={commands.split}
-      >
+      <IconTip label="Split at the playhead" shortcut={COMMAND_KEYS.split} onClick={commands.split}>
         <Scissors />
       </IconTip>
-      <IconTip
-        label="Add a marker"
-        tip={
-          <>
-            Add a marker <Kbd>{COMMAND_KEYS.addMarker}</Kbd>
-          </>
-        }
-        onClick={commands.addMarker}
-      >
+      <IconTip label="Add a marker" shortcut={COMMAND_KEYS.addMarker} onClick={commands.addMarker}>
         <Bookmark />
       </IconTip>
       <EnvelopePickers />
@@ -303,34 +246,22 @@ export function TimelineToolbar({
       <Clock fps={fps} duration={duration} />
       <IconTip
         label="Zoom out"
-        tip={
-          <>
-            Zoom out <Kbd>{shortcutLabel(`CmdOrCtrl+${ZOOM_KEYS.out.label}`)}</Kbd>
-          </>
-        }
+        shortcut={shortcutLabel(`CmdOrCtrl+${ZOOM_KEYS.out.label}`)}
         onClick={() => commands.zoomBy(1 / ZOOM_STEP)}
       >
         <ZoomOut />
       </IconTip>
       <IconTip
-        label="Fit the whole film"
+        label="Show the whole film"
+        shortcut={COMMAND_KEYS.fit}
         iconOnly={false}
-        tip={
-          <>
-            Show the whole film <Kbd>{COMMAND_KEYS.fit}</Kbd>
-          </>
-        }
         onClick={commands.fit}
       >
         Fit
       </IconTip>
       <IconTip
         label="Zoom in"
-        tip={
-          <>
-            Zoom in <Kbd>{shortcutLabel(`CmdOrCtrl+${ZOOM_KEYS.in.label}`)}</Kbd>
-          </>
-        }
+        shortcut={shortcutLabel(`CmdOrCtrl+${ZOOM_KEYS.in.label}`)}
         onClick={() => commands.zoomBy(ZOOM_STEP)}
       >
         <ZoomIn />

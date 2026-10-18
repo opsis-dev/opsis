@@ -3,13 +3,7 @@ import type { Marker, Workflow } from "@/shared/schema/workflow";
 import type { AudioBar, FlatTimeline } from "@/shared/timeline/flatten";
 import { snapFrame } from "@/shared/timeline/snap";
 import { usePlayback } from "../../store/playback";
-import {
-  gestureSalt,
-  snapTargetsFor,
-  type EditTarget,
-  type KeyDrag,
-  type MarqueeBox,
-} from "./timeline-drag";
+import { snapTargetsFor, type EditTarget, type KeyStart, type MarqueeBox } from "./timeline-drag";
 import {
   editGesture,
   keyGesture,
@@ -44,8 +38,6 @@ type DragOptions = {
   zoom: TimelineZoom;
 };
 
-export type KeyStart = Omit<KeyDrag, "x0" | "y0" | "started">;
-
 export type TimelineDrag = ReturnType<typeof useTimelineDrag>;
 
 function useTimelineSnap({ flat, markers, beats }: DragOptions, ppf: number) {
@@ -53,10 +45,7 @@ function useTimelineSnap({ flat, markers, beats }: DragOptions, ppf: number) {
   const snapOn = (alt: boolean) => snapping && !alt;
   const snapTargets = (exclude: string | null) => {
     const { frame, inPoint, outPoint } = usePlayback.getState();
-    return snapTargetsFor(
-      { flat, markers, beats, fps: flat.fps, playhead: frame, inPoint, outPoint },
-      exclude,
-    );
+    return snapTargetsFor({ flat, markers, beats, playhead: frame, inPoint, outPoint }, exclude);
   };
   const snapAt = (at: number, alt: boolean) =>
     snapOn(alt) ? snapFrame(at, snapTargets(null), SNAP_PX / ppf).frame : at;
@@ -104,6 +93,7 @@ export function useTimelineDrag(opts: DragOptions) {
   const point = (clientX: number, clientY: number) => contentPoint(scrollerEl(), clientX, clientY);
   const xToFrame = (clientX: number) => frameAtX(contentX(scrollerEl(), clientX), ppf);
   const env: GestureEnv = {
+    workflow,
     flat,
     layout,
     ppf,
@@ -119,68 +109,36 @@ export function useTimelineDrag(opts: DragOptions) {
     if (e.button !== 0) return false;
     e.stopPropagation();
     e.currentTarget.closest<HTMLElement>("[data-timeline-root]")?.focus();
-    scrollerEl().setPointerCapture(e.pointerId);
     return true;
   };
 
   const startEdit = (e: React.PointerEvent, target: EditTarget, ripple: boolean) =>
-    begin(
-      e,
-      editGesture(
-        env,
-        {
-          ...target,
-          x0: e.clientX,
-          base: workflow,
-          flat,
-          targets: snapTargets(target.bar.key),
-          salt: gestureSalt(),
-          started: false,
-          last: null,
-          ripple,
-        },
-        setGuide,
-      ),
-    );
+    begin(e, editGesture(env, e, target, ripple, setGuide));
 
   const startVolume = (e: React.PointerEvent, bar: AudioBar, height: number) =>
-    begin(
-      e,
-      volumeGesture(env, {
-        bar,
-        y0: e.clientY,
-        v0: bar.volume,
-        base: workflow,
-        started: false,
-        height,
-      }),
-    );
+    begin(e, volumeGesture(env, e, bar, height));
 
   const startKey = (e: React.PointerEvent, key: KeyStart) => {
     e.stopPropagation();
     if (e.button !== 0) return;
-    begin(e, keyGesture(env, { ...key, x0: e.clientX, y0: e.clientY, started: false }));
+    begin(e, keyGesture(env, e, key));
   };
 
   const startMarker = (e: React.PointerEvent, marker: Marker) =>
-    begin(
-      e,
-      markerGesture(env, { id: marker.id, x0: e.clientX, at0: marker.atMs, started: false }),
-    );
+    begin(e, markerGesture(env, e, marker));
 
   const onRulerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     e.stopPropagation();
     begin(e, scrubGesture(env));
-    scrubTo(env, Math.max(0, xToFrame(e.clientX)));
+    scrubTo(env, xToFrame(e.clientX));
   };
 
   const onEmptyDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     const { x, y, scrollTop } = point(e.clientX, e.clientY);
     if (y < RULER_H + scrollTop && y >= scrollTop) return;
-    const d = { x0: x, y0: y, x1: x, y1: y, additive: e.shiftKey };
-    begin(e, marqueeGesture(env, d, setMarquee));
+    begin(e, marqueeGesture(env, { x, y }, e.shiftKey, setMarquee));
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLElement>) => {

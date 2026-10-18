@@ -32,7 +32,7 @@ export function Ruler({
   duration: number;
   onPointerDown: (e: React.PointerEvent) => void;
 }) {
-  const { inPoint, outPoint } = useLoopRange();
+  const loop = useLoopRange(duration);
   const timeAt = useFormatTime(fps);
   return (
     <div
@@ -44,13 +44,10 @@ export function Ruler({
         style={{ width: HEADER_W }}
       />
       <div className="relative flex-1 cursor-text" onPointerDown={onPointerDown}>
-        {inPoint !== null || outPoint !== null ? (
+        {loop ? (
           <div
             className="bg-primary/15 absolute inset-y-0"
-            style={{
-              left: (inPoint ?? 0) * ppf,
-              width: ((outPoint ?? duration) - (inPoint ?? 0)) * ppf,
-            }}
+            style={{ left: loop.from * ppf, width: (loop.to - loop.from) * ppf }}
           />
         ) : null}
         {ticksIn(left, width, ppf, fps).map(({ f, major }) => (

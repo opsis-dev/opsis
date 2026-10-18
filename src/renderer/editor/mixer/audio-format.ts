@@ -1,23 +1,31 @@
 import { MIN_DB, SILENCE_DB } from "@/shared/mix/types";
 
-export const signedDb = (v: number): string => {
+const WHOLE_MS_FROM = 100;
+const KILOHERTZ_FROM = 1000;
+const WHOLE_KILOHERTZ_FROM = 10_000;
+const CENTRE_PAN = 0.01;
+
+export const formatSignedDb = (v: number): string => {
   const text = Math.abs(v).toFixed(1);
   return Number(text) === 0 ? text : `${v > 0 ? "+" : "−"}${text}`;
 };
 
 const dbAbove = (floor: number, v: number): string =>
-  Number.isNaN(v) || v <= floor ? "−∞" : signedDb(v);
+  Number.isNaN(v) || v <= floor ? "−∞" : formatSignedDb(v);
 
-export const db = (v: number): string => dbAbove(MIN_DB, v);
+export const formatDb = (v: number): string => dbAbove(MIN_DB, v);
 
-export const levelDb = (v: number): string => dbAbove(SILENCE_DB, v);
+export const formatLevelDb = (v: number): string => dbAbove(SILENCE_DB, v);
 
-export const hz = (v: number): string =>
-  v >= 1000 ? `${(v / 1000).toFixed(v >= 10_000 ? 0 : 1)}k` : `${Math.round(v)}`;
+export const formatHz = (v: number): string =>
+  v >= KILOHERTZ_FROM
+    ? `${(v / KILOHERTZ_FROM).toFixed(v >= WHOLE_KILOHERTZ_FROM ? 0 : 1)}k`
+    : `${Math.round(v)}`;
 
-export const ms = (v: number): string => (v >= 100 ? `${Math.round(v)}` : v.toFixed(1));
+export const formatMs = (v: number): string =>
+  v >= WHOLE_MS_FROM ? `${Math.round(v)}` : v.toFixed(1);
 
-export function panLabel(v: number): string {
-  if (Math.abs(v) < 0.01) return "C";
+export function formatPan(v: number): string {
+  if (Math.abs(v) < CENTRE_PAN) return "C";
   return v < 0 ? `L${Math.round(-v * 100)}` : `R${Math.round(v * 100)}`;
 }

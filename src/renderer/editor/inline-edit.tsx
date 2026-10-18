@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Input } from "@/renderer/components/ui/input";
 
 export function InlineEdit({
@@ -44,4 +44,18 @@ export function InlineEdit({
       }}
     />
   );
+}
+
+export function useRenaming(value: string, onRename: (text: string) => void, className: string) {
+  const [renaming, setRenaming] = useState(false);
+  const input = renaming ? (
+    <InlineEdit
+      value={value}
+      className={className}
+      onPointerDown={(e) => e.stopPropagation()}
+      onDone={() => setRenaming(false)}
+      onCommit={onRename}
+    />
+  ) : null;
+  return { input, startRenaming: () => setRenaming(true) };
 }

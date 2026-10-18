@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { findById } from "@/shared/lists";
 import { MAX_VOLUME } from "@/shared/nodes/params";
 import { getNodeDef } from "@/shared/nodes/registry";
@@ -67,17 +68,21 @@ export function envelopeTarget(
   return envelope ? { nodeId, prop, keys: envelope[prop] ?? [] } : null;
 }
 
+const UNREADABLE_KEYS = "This node's keyframes can't be read. Check them in the Inspector.";
+
 export function setEnvelopeKeys(nodeId: string, prop: EnvelopeKey, keys: Keyframe[]): void {
+  const node = findById(useWorkflowStore.getState().workflow?.nodes, nodeId);
+  const current = node ? readEnvelope(node) : null;
+  if (!current) {
+    toast.error(UNREADABLE_KEYS);
+    return;
+  }
+  const envelope = { ...current };
+  if (keys.length) envelope[prop] = sortKeys(keys);
+  else delete envelope[prop];
   useWorkflowStore.getState().update((wf) => ({
     ...wf,
-    nodes: wf.nodes.map((n) => {
-      const current = n.id === nodeId ? readEnvelope(n) : null;
-      if (!current) return n;
-      const envelope = { ...current };
-      if (keys.length) envelope[prop] = sortKeys(keys);
-      else delete envelope[prop];
-      return { ...n, params: { ...n.params, envelope } };
-    }),
+    nodes: wf.nodes.map((n) => (n.id === nodeId ? { ...n, params: { ...n.params, envelope } } : n)),
   }));
 }
 

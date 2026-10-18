@@ -7,7 +7,6 @@ import {
   Scissors,
   type LucideIcon,
 } from "lucide-react";
-import type { TimelineTool } from "./timeline-state";
 
 export const ZOOM_STEP = 1.5;
 
@@ -18,13 +17,9 @@ export const ZOOM_KEYS = {
   out: { keys: ["-"], label: "−" },
 } as const;
 
-export const TOOLS: Array<{
-  id: TimelineTool;
-  icon: LucideIcon;
-  label: string;
-  key: string;
-  help: string;
-}> = [
+type ToolSpec = { id: string; icon: LucideIcon; label: string; key: string; help: string };
+
+export const TOOLS = [
   {
     id: "select",
     icon: MousePointer2,
@@ -61,4 +56,6 @@ export const TOOLS: Array<{
     key: "R",
     help: "Drag a clip's edge to speed it up or slow it down.",
   },
-];
+] as const satisfies readonly ToolSpec[];
+
+export type TimelineTool = (typeof TOOLS)[number]["id"];

@@ -3,6 +3,19 @@ import { pick } from "@/shared/pick";
 
 export const singleSelected = (ids: string[]): string | null => (ids.length === 1 ? ids[0] : null);
 
+let selectionIds: string[] = [];
+let selectionSet: ReadonlySet<string> = new Set();
+
+export function selectedSet(
+  ids: string[] = useUiStore.getState().selectedIds,
+): ReadonlySet<string> {
+  if (ids !== selectionIds) {
+    selectionIds = ids;
+    selectionSet = new Set(ids);
+  }
+  return selectionSet;
+}
+
 export function toggleIds(current: string[], ids: string[]): string[] {
   const out = new Set(current);
   for (const id of ids) {

@@ -1,7 +1,7 @@
+import type { ComponentProps } from "react";
 import { Checkbox } from "@/renderer/components/ui/checkbox";
 import { Label } from "@/renderer/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
-import { Switch } from "@/renderer/components/ui/switch";
 import { cn } from "@/renderer/lib/utils";
 import {
   COMP_RANGES,
@@ -10,12 +10,14 @@ import {
   type Comp,
   type DuckSettings,
 } from "@/shared/mix/types";
-import { db, ms } from "./audio-format";
-import { commitOnce, type DragPhase } from "./gesture";
+import { toggleIds } from "../../store/ui";
+import { formatDb, formatMs } from "./audio-format";
+import { commitOnce, mapGesture, type Gesture } from "./gesture";
 import { Knobs, type KnobSpec } from "./knob";
-import { rangeKnob } from "./knob-math";
+import { rangeProps } from "./knob-math";
 import { ReductionReadout } from "./meter";
 import type { Reduction } from "./meter-levels";
+import { SwitchHeader } from "./switch-header";
 
 type CompField = keyof typeof COMP_RANGES;
 
@@ -23,14 +25,15 @@ const COMP_KNOBS: Array<KnobSpec<CompField>> = [
   {
     field: "threshold",
     label: "Threshold",
-    ...rangeKnob(COMP_RANGES.threshold),
+    ...rangeProps(COMP_RANGES.threshold),
     step: 0.5,
-    format: db,
+    format: formatDb,
+    unit: "dB",
   },
   {
     field: "ratio",
     label: "Ratio",
-    ...rangeKnob(COMP_RANGES.ratio),
+    ...rangeProps(COMP_RANGES.ratio),
     step: 0.1,
     log: true,
     format: (v) => `${v.toFixed(1)}:1`,
@@ -38,20 +41,29 @@ const COMP_KNOBS: Array<KnobSpec<CompField>> = [
   {
     field: "attack",
     label: "Attack",
-    ...rangeKnob(COMP_RANGES.attack),
+    ...rangeProps(COMP_RANGES.attack),
     step: 0.1,
     log: true,
-    format: ms,
+    format: formatMs,
+    unit: "ms",
   },
   {
     field: "release",
     label: "Release",
-    ...rangeKnob(COMP_RANGES.release),
+    ...rangeProps(COMP_RANGES.release),
     step: 1,
     log: true,
-    format: ms,
+    format: formatMs,
+    unit: "ms",
   },
-  { field: "makeup", label: "Makeup", ...rangeKnob(COMP_RANGES.makeup), step: 0.5, format: db },
+  {
+    field: "makeup",
+    label: "Makeup",
+    ...rangeProps(COMP_RANGES.makeup),
+    step: 0.5,
+    format: formatDb,
+    unit: "dB",
+  },
 ];
 
 type DuckField = keyof typeof DUCK_RANGES;
@@ -60,73 +72,69 @@ const DUCK_KNOBS: Array<KnobSpec<DuckField>> = [
   {
     field: "amount",
     label: "Amount",
-    ...rangeKnob(DUCK_RANGES.amount),
+    ...rangeProps(DUCK_RANGES.amount),
     step: 0.5,
-    format: (v) => `${v.toFixed(1)} dB`,
+    format: (v) => v.toFixed(1),
+    unit: "dB",
   },
   {
     field: "attack",
     label: "Attack",
-    ...rangeKnob(DUCK_RANGES.attack),
+    ...rangeProps(DUCK_RANGES.attack),
     step: 1,
     log: true,
-    format: ms,
+    format: formatMs,
+    unit: "ms",
   },
   {
     field: "release",
     label: "Release",
-    ...rangeKnob(DUCK_RANGES.release),
+    ...rangeProps(DUCK_RANGES.release),
     step: 1,
     log: true,
-    format: ms,
+    format: formatMs,
+    unit: "ms",
   },
   {
     field: "ignoreShorterMs",
     label: "Ignore under",
-    ...rangeKnob(DUCK_RANGES.ignoreShorterMs),
+    ...rangeProps(DUCK_RANGES.ignoreShorterMs),
     step: 50,
-    format: (v) => (v ? ms(v) : "Off"),
+    format: (v) => (v ? formatMs(v) : "Off"),
+    unit: "ms",
   },
 ];
 
-export function SwitchHeader({
-  title,
-  checked,
-  label,
-  onChange,
-}: {
-  title: string;
-  checked: boolean;
-  label: string;
-  onChange: (on: boolean) => void;
-}) {
+function PopoverButton({ on, className, ...props }: ComponentProps<"button"> & { on: boolean }) {
   return (
-    <div className="flex items-center justify-between">
-      <Label className="text-sm">{title}</Label>
-      <Switch checked={checked} aria-label={label} onCheckedChange={onChange} />
-    </div>
+    <button
+      type="button"
+      {...props}
+      className={cn(
+        "rounded border px-1.5 text-[10px]",
+        on ? "border-keyframe/60" : "text-muted-foreground",
+        className,
+      )}
+    />
   );
 }
 
 export function CompPopover({
   comp,
   reduction,
-  onChange,
+  gesture,
 }: {
   comp: Comp;
   reduction: Reduction;
-  onChange: (comp: Comp, phase: DragPhase) => void;
+  gesture: Gesture<Comp>;
 }) {
   return (
     <Popover>
       <PopoverTrigger
         render={
-          <button
-            type="button"
-            className={cn(
-              "flex h-5 min-w-0 flex-1 items-center justify-between rounded border px-1.5 text-[10px]",
-              comp.on ? "border-keyframe/60" : "text-muted-foreground",
-            )}
+          <PopoverButton
+            on={comp.on}
+            className="flex h-5 min-w-0 flex-1 items-center justify-between"
             aria-label="Compressor"
           />
         }
@@ -139,14 +147,14 @@ export function CompPopover({
           title="Compressor"
           label="Compressor on"
           checked={comp.on}
-          onChange={(on) => commitOnce(onChange, { ...comp, on })}
+          onChange={(on) => commitOnce(gesture, { ...comp, on })}
         />
         <div className="grid grid-cols-5 gap-1">
           <Knobs
             specs={COMP_KNOBS}
             values={comp}
             disabled={!comp.on}
-            onChange={(field, v, phase) => onChange({ ...comp, [field]: v }, phase)}
+            gestureFor={(field) => mapGesture(gesture, (v: number) => ({ ...comp, [field]: v }))}
           />
         </div>
         <p className="text-muted-foreground text-xs">Attack and release are in milliseconds.</p>
@@ -158,31 +166,16 @@ export function CompPopover({
 export function DuckPopover({
   bus,
   buses,
-  onChange,
+  gesture,
 }: {
   bus: Bus;
   buses: Bus[];
-  onChange: (duck: DuckSettings, phase: DragPhase) => void;
+  gesture: Gesture<DuckSettings>;
 }) {
   const duck = bus.duck;
-  const setKey = (id: string, on: boolean) =>
-    commitOnce(onChange, {
-      ...duck,
-      keys: on ? [...duck.keys, id] : duck.keys.filter((k) => k !== id),
-    });
   return (
     <Popover>
-      <PopoverTrigger
-        render={
-          <button
-            type="button"
-            className={cn(
-              "w-full rounded border px-1.5 py-0.5 text-[10px]",
-              duck.on ? "border-keyframe/60" : "text-muted-foreground",
-            )}
-          />
-        }
-      >
+      <PopoverTrigger render={<PopoverButton on={duck.on} className="w-full py-0.5" />}>
         {duck.on ? "Ducks" : "No ducking"}
       </PopoverTrigger>
       <PopoverContent className="w-80">
@@ -190,7 +183,7 @@ export function DuckPopover({
           title="Lower this bus while others play"
           label="Ducking on"
           checked={duck.on}
-          onChange={(on) => commitOnce(onChange, { ...duck, on })}
+          onChange={(on) => commitOnce(gesture, { ...duck, on })}
         />
         <div className="flex flex-col gap-1.5">
           <span className="text-muted-foreground text-xs">Listen to</span>
@@ -200,7 +193,9 @@ export function DuckPopover({
               <Label key={b.id} className="flex items-center gap-2 text-sm font-normal">
                 <Checkbox
                   checked={duck.keys.includes(b.id)}
-                  onCheckedChange={(on) => setKey(b.id, on)}
+                  onCheckedChange={() =>
+                    commitOnce(gesture, { ...duck, keys: toggleIds(duck.keys, [b.id]) })
+                  }
                 />
                 {b.name}
               </Label>
@@ -211,7 +206,7 @@ export function DuckPopover({
             specs={DUCK_KNOBS}
             values={duck}
             disabled={!duck.on}
-            onChange={(field, v, phase) => onChange({ ...duck, [field]: v }, phase)}
+            gestureFor={(field) => mapGesture(gesture, (v: number) => ({ ...duck, [field]: v }))}
           />
         </div>
         <p className="text-muted-foreground text-xs">

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { cn } from "@/renderer/lib/utils";
 import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
 import { clamp } from "@/shared/math";
@@ -8,7 +8,7 @@ import type { AudioBar, BarThumbnail, VideoBar } from "@/shared/timeline/flatten
 import { framesToRecordingMs } from "@/shared/timeline/time";
 import { loadedFilmstrip, loadedWaveform, useMedia } from "../../store/media";
 import { fileUrl } from "../file-url";
-import { OFFSCREEN_PX, type Viewport } from "./timeline-layout";
+import { OFFSCREEN_PX, type BarBox, type Viewport } from "./timeline-layout";
 
 const END_EPSILON = 0.001;
 const DISPLAY_RANGE_DB = 48;
@@ -68,15 +68,17 @@ function prepare(canvas: HTMLCanvasElement, width: number, height: number) {
 
 type Draw = (ctx: CanvasRenderingContext2D, part: Visible) => void;
 
-function useBarCanvas(
-  left: number,
-  width: number,
-  height: number,
-  view: Viewport,
-  draw: Draw | null,
-) {
+type MediaCanvasProps = { box: BarBox; height: number; view: Viewport };
+
+function MediaCanvas({
+  box,
+  height,
+  view,
+  draw,
+  className,
+}: MediaCanvasProps & { draw: Draw | null; className?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const part = visiblePart(left, width, view);
+  const part = visiblePart(box.left, box.width, view);
   const offset = part?.offset ?? 0;
   const w = part?.width ?? 0;
   useEffect(() => {
@@ -84,20 +86,7 @@ function useBarCanvas(
     const ctx = prepare(canvas.current, w, height);
     if (ctx) draw(ctx, { offset, width: w });
   }, [draw, offset, w, height]);
-  return { canvas, part };
-}
-
-function BarCanvas({
-  canvas,
-  part,
-  height,
-  className,
-}: {
-  canvas: React.RefObject<HTMLCanvasElement | null>;
-  part: Visible;
-  height: number;
-  className?: string;
-}) {
+  if (!part || !draw) return null;
   return (
     <canvas
       ref={canvas}
@@ -165,19 +154,9 @@ function drawStill(
 
 export function FilmstripCanvas({
   bar,
-  left,
-  width,
-  height,
-  view,
   fps,
-}: {
-  bar: VideoBar;
-  left: number;
-  width: number;
-  height: number;
-  view: Viewport;
-  fps: number;
-}) {
+  ...canvas
+}: MediaCanvasProps & { bar: VideoBar; fps: number }) {
   const source = bar.thumbnail;
   const filmSrc = source?.kind === "filmstrip" ? source.src : null;
   const strip = useMedia(loadedFilmstrip(filmSrc));
@@ -186,25 +165,23 @@ export function FilmstripCanvas({
   }, [filmSrc]);
   const spriteImg = useImage(strip?.image ?? null);
   const stillImg = useImage(source?.kind === "still" ? source.src : null);
-  const pxPerFrame = view.pxPerFrame;
-  const draw = useCallback<Draw>(
-    (ctx, part) => {
-      if (source?.kind === "filmstrip" && strip && spriteImg)
-        drawSprite(ctx, part, strip, spriteImg, {
-          bar,
-          thumb: source,
-          left,
-          height,
-          pxPerFrame,
-          fps,
-        });
-      else if (stillImg) drawStill(ctx, part, stillImg, left, height);
-    },
-    [source, strip, spriteImg, stillImg, bar, left, height, pxPerFrame, fps],
-  );
-  const { canvas, part } = useBarCanvas(left, width, height, view, draw);
-  if (!part || (!strip && source?.kind !== "still")) return null;
-  return <BarCanvas canvas={canvas} part={part} height={height} className="opacity-60" />;
+  const { box, height, view } = canvas;
+  const draw = useMemo((): Draw | null => {
+    if (source?.kind === "filmstrip" && strip && spriteImg) {
+      const geometry = {
+        bar,
+        thumb: source,
+        left: box.left,
+        height,
+        pxPerFrame: view.pxPerFrame,
+        fps,
+      };
+      return (ctx, part) => drawSprite(ctx, part, strip, spriteImg, geometry);
+    }
+    if (stillImg) return (ctx, part) => drawStill(ctx, part, stillImg, box.left, height);
+    return null;
+  }, [source, strip, spriteImg, stillImg, bar, box.left, height, view.pxPerFrame, fps]);
+  return <MediaCanvas {...canvas} draw={draw} className="opacity-60" />;
 }
 
 function shape(v: number): number {
@@ -240,7 +217,7 @@ function drawWaveform(
   const { bar } = g;
   const durationS = wave.durationMs / 1000;
   const mid = g.height / 2;
-  ctx.fillStyle = getComputedStyle(ctx.canvas).getPropertyValue("--waveform").trim() || "gray";
+  ctx.fillStyle = getComputedStyle(ctx.canvas).getPropertyValue("--waveform").trim();
   for (let i = 0; i < part.width; i++) {
     const abs = (g.left + part.offset + i) / g.pxPerFrame;
     if (abs < bar.from || abs >= bar.to) continue;
@@ -257,33 +234,19 @@ function drawWaveform(
 
 export function WaveformCanvas({
   bar,
-  left,
-  width,
-  height,
-  view,
   fps,
   gain,
-}: {
-  bar: AudioBar;
-  left: number;
-  width: number;
-  height: number;
-  view: Viewport;
-  fps: number;
-  gain: Gain;
-}) {
+  ...canvas
+}: MediaCanvasProps & { bar: AudioBar; fps: number; gain: Gain }) {
   const wave = useMedia(loadedWaveform(bar.src));
   useEffect(() => {
     useMedia.getState().waveform(bar.src);
   }, [bar.src]);
-  const pxPerFrame = view.pxPerFrame;
-  const draw = useCallback<Draw>(
-    (ctx, part) => {
-      if (wave) drawWaveform(ctx, part, wave, { bar, left, height, pxPerFrame, fps, gain });
-    },
-    [wave, bar, left, height, pxPerFrame, fps, gain],
-  );
-  const { canvas, part } = useBarCanvas(left, width, height, view, draw);
-  if (!part || !wave) return null;
-  return <BarCanvas canvas={canvas} part={part} height={height} />;
+  const { box, height, view } = canvas;
+  const draw = useMemo((): Draw | null => {
+    if (!wave) return null;
+    const geometry = { bar, left: box.left, height, pxPerFrame: view.pxPerFrame, fps, gain };
+    return (ctx, part) => drawWaveform(ctx, part, wave, geometry);
+  }, [wave, bar, box.left, height, view.pxPerFrame, fps, gain]);
+  return <MediaCanvas {...canvas} draw={draw} />;
 }

@@ -1,17 +1,12 @@
-import { useMemo } from "react";
 import { cn } from "@/renderer/lib/utils";
-import { duckGain, duckingSpans } from "@/shared/mix/duck";
-import { applyMixLevels } from "@/shared/mix/levels";
-import type { Mix } from "@/shared/mix/types";
 import { MAX_VOLUME } from "@/shared/nodes/params";
 import { nodeNameById } from "@/shared/nodes/registry";
-import type { TimelineSpec } from "@/shared/schema/timeline";
-import { flattenSpec, type AudioBar } from "@/shared/timeline/flatten";
+import type { AudioBar } from "@/shared/timeline/flatten";
 import { WaveformCanvas, type Gain } from "./bar-canvas";
 import { bladeSplit, selectOnPress, type BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
 import { useBarEnvelope } from "./envelope-overlay";
-import { AUDIO_H, BAR_INSET, barBox, hitEdge } from "./timeline-layout";
+import { AUDIO_H, barBox, barHeight, hitEdge } from "./timeline-layout";
 import { useTimeline } from "./timeline-state";
 
 const AUDIO_TONE: Record<AudioBar["role"], string> = {
@@ -22,10 +17,8 @@ const AUDIO_TONE: Record<AudioBar["role"], string> = {
 
 const EDGE_KIND = { start: "audio-trim-start", end: "audio-trim-end" } as const;
 
-const HEIGHT = AUDIO_H - BAR_INSET;
+const HEIGHT = barHeight(AUDIO_H);
 const LINE_GRAB_PX = 4;
-
-const NO_GAIN: Gain = () => 1;
 
 type Hit = "start" | "end" | "line" | "body";
 
@@ -35,24 +28,6 @@ const HIT_CURSOR: Record<Hit, string> = {
   line: "ns-resize",
   body: "",
 };
-
-export function useDuckGains(spec: TimelineSpec | null, mix: Mix): (id: string) => Gain {
-  const gains = useMemo(() => {
-    const out = new Map<string, Gain>();
-    if (!spec) return out;
-    const live = applyMixLevels(spec, mix);
-    if (!live.audio.some((a) => a.duck)) return out;
-    const flat = flattenSpec(live);
-    for (const a of live.audio) {
-      if (!a.duck) continue;
-      const spans = duckingSpans(live, new Set(a.duck.keys), flat);
-      const { level, fadeFrames } = a.duck;
-      out.set(a.id, (abs) => duckGain(abs, spans, level, fadeFrames));
-    }
-    return out;
-  }, [spec, mix]);
-  return (id) => gains.get(id) ?? NO_GAIN;
-}
 
 function audioHit(e: React.PointerEvent<HTMLElement>, width: number, lineY: number | null): Hit {
   const edge = hitEdge(e, width);
@@ -97,7 +72,7 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
     else
       drag.startEdit(
         e,
-        { kind: hit === "body" ? "audio-move" : EDGE_KIND[hit], bar },
+        { domain: "audio", kind: hit === "body" ? "audio-move" : EDGE_KIND[hit], bar },
         tool === "ripple",
       );
   };
@@ -116,8 +91,7 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
     >
       <WaveformCanvas
         bar={bar}
-        left={box.left}
-        width={box.width}
+        box={box}
         height={HEIGHT}
         view={ctx.viewport}
         fps={ctx.flat.fps}

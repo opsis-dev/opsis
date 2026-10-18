@@ -1,11 +1,9 @@
-import { useState } from "react";
 import { cn } from "@/renderer/lib/utils";
 import type { Marker } from "@/shared/schema/workflow";
 import type { FlatTimeline } from "@/shared/timeline/flatten";
-import { msToExactFrames } from "@/shared/timeline/time";
-import { InlineEdit } from "../inline-edit";
+import { useRenaming } from "../inline-edit";
 import { patchMarker } from "./timeline-actions";
-import { MARKERS_H, RULER_H, inView, type Viewport } from "./timeline-layout";
+import { MARKERS_H, RULER_H, inView, markerFrame, type Viewport } from "./timeline-layout";
 import { TimelineRow } from "./timeline-row";
 import { useTimeline } from "./timeline-state";
 import { useDoublePress } from "./use-double-press";
@@ -20,7 +18,11 @@ function MarkerTag({
   onDrag: (e: React.PointerEvent, marker: Marker) => void;
 }) {
   const selected = useTimeline((s) => s.selectedMarker === marker.id);
-  const [renaming, setRenaming] = useState(false);
+  const { input, startRenaming } = useRenaming(
+    marker.label,
+    (label) => patchMarker(marker.id, { label }),
+    "h-4 w-28 px-1 text-[10px]",
+  );
   const isDouble = useDoublePress();
   return (
     <div
@@ -32,21 +34,11 @@ function MarkerTag({
       onPointerDown={(e) => {
         e.stopPropagation();
         if (e.button !== 0) return;
-        if (isDouble(e)) setRenaming(true);
+        if (isDouble(e)) startRenaming();
         else onDrag(e, marker);
       }}
     >
-      {renaming ? (
-        <InlineEdit
-          value={marker.label}
-          className="h-4 w-28 px-1 text-[10px]"
-          onPointerDown={(e) => e.stopPropagation()}
-          onDone={() => setRenaming(false)}
-          onCommit={(label) => patchMarker(marker.id, { label })}
-        />
-      ) : (
-        marker.label
-      )}
+      {input ?? marker.label}
     </div>
   );
 }
@@ -100,12 +92,7 @@ export function MarkerRow({
       <BeatTicks beats={beats} viewport={viewport} />
       <ChapterLabels marks={flat.marks} viewport={viewport} />
       {markers.map((m) => (
-        <MarkerTag
-          key={m.id}
-          marker={m}
-          x={msToExactFrames(m.atMs, flat.fps) * ppf}
-          onDrag={onDrag}
-        />
+        <MarkerTag key={m.id} marker={m} x={markerFrame(m, flat.fps) * ppf} onDrag={onDrag} />
       ))}
     </TimelineRow>
   );

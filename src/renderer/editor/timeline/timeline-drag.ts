@@ -1,4 +1,5 @@
 import { DRAG_START_PX } from "@/renderer/lib/dom";
+import { randomId } from "@/shared/ids";
 import type { Keyframe } from "@/shared/schema/timeline";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
 import {
@@ -19,13 +20,13 @@ import {
 } from "@/shared/timeline/edits";
 import type { AudioBar, FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
 import { snapFrame, snapSpan, type SnapTarget } from "@/shared/timeline/snap";
-import { msToExactFrames } from "@/shared/timeline/time";
 import type { EnvelopeKey } from "./envelope";
 import {
   AUDIO_H,
   HEADER_W,
   VIDEO_H,
   audioRowTop,
+  markerFrame,
   videoRowTop,
   type LaneLayout,
 } from "./timeline-layout";
@@ -50,17 +51,13 @@ export type VideoEditKind =
   | "roll-start"
   | "roll-end";
 
-export type AudioEditKind = "audio-move" | "audio-trim-start" | "audio-trim-end";
+type AudioEditKind = "audio-move" | "audio-trim-start" | "audio-trim-end";
 
-type VideoEdit = { kind: VideoEditKind; bar: VideoBar };
-type AudioEdit = { kind: AudioEditKind; bar: AudioBar };
+export type EditTarget =
+  | { domain: "video"; kind: VideoEditKind; bar: VideoBar }
+  | { domain: "audio"; kind: AudioEditKind; bar: AudioBar };
 
-export type EditTarget = VideoEdit | AudioEdit;
-
-type VideoEditDrag = EditDragBase & VideoEdit;
-type AudioEditDrag = EditDragBase & AudioEdit;
-
-export type EditDrag = VideoEditDrag | AudioEditDrag;
+export type EditDrag = EditDragBase & EditTarget;
 
 const CUT_TOLERANCE_FRAMES = 1;
 
@@ -69,6 +66,7 @@ export type VolumeDrag = {
   y0: number;
   v0: number;
   base: Workflow;
+  salt: string;
   started: boolean;
   height: number;
 };
@@ -85,7 +83,9 @@ export type KeyDrag = {
   started: boolean;
 };
 
-export type MarkerDrag = { id: string; x0: number; at0: number; started: boolean };
+export type KeyStart = Omit<KeyDrag, "x0" | "y0" | "started">;
+
+export type MarkerDrag = { id: string; x0: number; from: number; started: boolean };
 
 export type MarqueeDrag = {
   x0: number;
@@ -95,8 +95,7 @@ export type MarqueeDrag = {
   additive: boolean;
 };
 
-let gestureCounter = 0;
-export const gestureSalt = () => (++gestureCounter).toString(36);
+export const gestureSalt = (): string => randomId();
 
 export function editContext(
   base: Workflow,
@@ -117,21 +116,24 @@ type SnapInput = { raw: number; threshold: number };
 
 type EditOutcome = { result: EditResult; snappedAt: number | null };
 
-type Snapper = (raw: number, threshold: number) => { delta: number; target: SnapTarget | null };
+type Snapped = { delta: number; snappedAt: number | null };
 
-function snapDelta({ raw, threshold }: SnapInput, snapper: Snapper) {
-  const s = threshold ? snapper(raw, threshold) : { delta: raw, target: null };
-  return { delta: Math.round(s.delta), snappedAt: s.target?.frame ?? null };
+const settled = (delta: number, target: SnapTarget | null): Snapped => ({
+  delta: Math.round(delta),
+  snappedAt: target?.frame ?? null,
+});
+
+function snapMove(d: EditDrag, { raw, threshold }: SnapInput): Snapped {
+  if (!threshold) return settled(raw, null);
+  const s = snapSpan(d.bar.from, d.bar.to, raw, d.targets, threshold);
+  return settled(s.delta, s.target);
 }
 
-const snapMove = (d: EditDrag, snap: SnapInput) =>
-  snapDelta(snap, (raw, threshold) => snapSpan(d.bar.from, d.bar.to, raw, d.targets, threshold));
-
-const snapEdge = (d: EditDrag, edge: number, snap: SnapInput) =>
-  snapDelta(snap, (raw, threshold) => {
-    const s = snapFrame(edge + raw, d.targets, threshold);
-    return { delta: s.frame - edge, target: s.target };
-  });
+function snapEdge(d: EditDrag, edge: number, { raw, threshold }: SnapInput): Snapped {
+  if (!threshold) return settled(raw, null);
+  const s = snapFrame(edge + raw, d.targets, threshold);
+  return settled(s.frame - edge, s.target);
+}
 
 function rippleAfter(
   ctx: EditContext,
@@ -189,7 +191,7 @@ function moved(
 
 function videoOutcome(
   ctx: EditContext,
-  d: VideoEditDrag,
+  d: Extract<EditDrag, { domain: "video" }>,
   snap: SnapInput,
   shift: boolean,
 ): EditOutcome {
@@ -230,7 +232,7 @@ function videoOutcome(
 
 function audioOutcome(
   ctx: EditContext,
-  d: AudioEditDrag,
+  d: Extract<EditDrag, { domain: "audio" }>,
   snap: SnapInput,
   shift: boolean,
 ): EditOutcome {
@@ -241,33 +243,32 @@ function audioOutcome(
   return { result: trimAudio(ctx, d.bar, side, delta), snappedAt };
 }
 
-const isAudioDrag = (d: EditDrag): d is AudioEditDrag => d.kind.startsWith("audio-");
-
 export function editOutcome(
   ctx: EditContext,
   d: EditDrag,
   snap: SnapInput,
   shift: boolean,
 ): EditOutcome {
-  return isAudioDrag(d) ? audioOutcome(ctx, d, snap, shift) : videoOutcome(ctx, d, snap, shift);
+  return d.domain === "audio"
+    ? audioOutcome(ctx, d, snap, shift)
+    : videoOutcome(ctx, d, snap, shift);
 }
 
 type SnapSources = {
   flat: FlatTimeline;
   markers: Marker[];
   beats: number[];
-  fps: number;
   playhead: number;
   inPoint: number | null;
   outPoint: number | null;
 };
 
 export function snapTargetsFor(src: SnapSources, exclude: string | null): SnapTarget[] {
-  const { flat, fps } = src;
+  const { flat } = src;
   const t: SnapTarget[] = [{ frame: src.playhead, kind: "playhead" }];
   for (const b of [...flat.bars, ...flat.audio])
     if (b.key !== exclude) t.push({ frame: b.from, kind: "edge" }, { frame: b.to, kind: "edge" });
-  for (const m of src.markers) t.push({ frame: msToExactFrames(m.atMs, fps), kind: "marker" });
+  for (const m of src.markers) t.push({ frame: markerFrame(m, flat.fps), kind: "marker" });
   for (const m of flat.marks) t.push({ frame: m.frame, kind: "action" });
   for (const b of src.beats) t.push({ frame: b, kind: "beat" });
   if (src.inPoint !== null) t.push({ frame: src.inPoint, kind: "range" });

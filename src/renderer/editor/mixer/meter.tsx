@@ -1,17 +1,21 @@
 import { cn } from "@/renderer/lib/utils";
+import { percent } from "@/shared/format";
 import { clamp01 } from "@/shared/math";
 import { usePlayback } from "../../store/playback";
-import { levelDb, signedDb } from "./audio-format";
+import { useFilm } from "../film";
+import { formatLevelDb, formatSignedDb } from "./audio-format";
 import { levelAt, reductionAt, type Level, type Levels, type Reduction } from "./meter-levels";
 
 const METER_MIN = -60;
 const METER_MAX = 6;
 const MAX_REDUCTION_DB = 24;
 const CLIP_DB = -0.5;
+const HOLD_SECONDS = 1.5;
 
-const toPct = (level: number) => clamp01((level - METER_MIN) / (METER_MAX - METER_MIN)) * 100;
+const levelHeight = (level: number) =>
+  percent(clamp01((level - METER_MIN) / (METER_MAX - METER_MIN)));
 
-function Meter({ level, reduction }: { level: Level; reduction?: number }) {
+function Meter({ level, reduction }: { level: Level; reduction: number | null }) {
   const peak = level?.peak ?? METER_MIN;
   const rms = level?.rms ?? METER_MIN;
   return (
@@ -20,17 +24,17 @@ function Meter({ level, reduction }: { level: Level; reduction?: number }) {
         className="bg-muted relative h-full w-2.5 overflow-hidden rounded-sm"
         title={
           level
-            ? `Peak ${levelDb(level.peak)} dB, average ${levelDb(level.rms)} dB`
+            ? `Peak ${formatLevelDb(level.peak)} dB, average ${formatLevelDb(level.rms)} dB`
             : "No level yet"
         }
       >
         <div
           className="from-meter-low via-meter-mid to-meter-high absolute inset-x-0 bottom-0 bg-gradient-to-t opacity-40"
-          style={{ height: `${toPct(peak)}%`, backgroundSize: "100% 100%" }}
+          style={{ height: levelHeight(peak), backgroundSize: "100% 100%" }}
         />
         <div
           className="bg-meter-low absolute inset-x-0 bottom-0"
-          style={{ height: `${toPct(rms)}%` }}
+          style={{ height: levelHeight(rms) }}
         />
         {level && level.hold > METER_MIN ? (
           <div
@@ -38,22 +42,22 @@ function Meter({ level, reduction }: { level: Level; reduction?: number }) {
               "absolute inset-x-0 h-px",
               level.hold > CLIP_DB ? "bg-meter-high" : "bg-foreground",
             )}
-            style={{ bottom: `${toPct(level.hold)}%` }}
+            style={{ bottom: levelHeight(level.hold) }}
           />
         ) : null}
         <div
           className="bg-foreground/40 absolute inset-x-0 h-px"
-          style={{ bottom: `${toPct(0)}%` }}
+          style={{ bottom: levelHeight(0) }}
         />
       </div>
-      {reduction !== undefined ? (
+      {reduction !== null ? (
         <div
           className="bg-muted relative h-full w-1 overflow-hidden rounded-sm"
           title={`Compressor lowers by ${reduction.toFixed(1)} dB`}
         >
           <div
             className="bg-keyframe absolute inset-x-0 top-0"
-            style={{ height: `${Math.min(100, (reduction / MAX_REDUCTION_DB) * 100)}%` }}
+            style={{ height: percent(clamp01(reduction / MAX_REDUCTION_DB)) }}
           />
         </div>
       ) : null}
@@ -65,20 +69,21 @@ export function LiveMeter({
   levels,
   reduction,
   compOn,
-  holdFrames,
 }: {
   levels: Levels;
   reduction: Reduction;
   compOn: boolean;
-  holdFrames: number;
 }) {
   const frame = usePlayback((s) => s.frame);
+  const fps = useFilm().flat?.fps ?? 0;
   const lowered = compOn ? reductionAt(reduction, frame) : null;
-  return <Meter level={levelAt(levels, frame, holdFrames)} reduction={lowered ?? undefined} />;
+  return (
+    <Meter level={levelAt(levels, frame, Math.round(fps * HOLD_SECONDS))} reduction={lowered} />
+  );
 }
 
 export function ReductionReadout({ reduction }: { reduction: Reduction }) {
   const frame = usePlayback((s) => s.frame);
   const lowered = reductionAt(reduction, frame);
-  return lowered === null ? null : <span className="tabular-nums">{signedDb(-lowered)}</span>;
+  return lowered === null ? null : <span className="tabular-nums">{formatSignedDb(-lowered)}</span>;
 }

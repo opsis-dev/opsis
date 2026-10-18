@@ -1,15 +1,15 @@
 import { Toggle } from "@/renderer/components/ui/toggle";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { cn } from "@/renderer/lib/utils";
 import { HIGHPASS_RANGE, type BusSettings, type Strip } from "@/shared/mix/types";
-import { db, hz } from "./audio-format";
+import { WithTooltip } from "../tooltip-button";
+import { formatDb, formatHz } from "./audio-format";
 import { bindChange, bindEq, bindGain, bindHighpass, type PreviewTarget } from "./bindings";
 import { CompPopover } from "./dynamics-popovers";
 import { EqPopover } from "./eq-popover";
 import { Fader } from "./fader";
-import type { Change } from "./gesture";
+import type { Gesture } from "./gesture";
 import { Knob } from "./knob";
-import { rangeKnob } from "./knob-math";
+import { rangeProps } from "./knob-math";
 import { LiveMeter } from "./meter";
 import type { Levels, Reduction } from "./meter-levels";
 
@@ -18,7 +18,8 @@ type StripControls = BusSettings & Pick<Strip, "mute" | "solo">;
 export type StripBinding = {
   controls: StripControls;
   target: PreviewTarget;
-  update: (fn: (c: StripControls) => Partial<StripControls>) => void;
+  update: (patch: Partial<StripControls>) => void;
+  updateHighpass: (patch: Partial<StripControls["highpass"]>) => void;
 };
 
 export function stripBinding<T extends StripControls>(
@@ -26,7 +27,12 @@ export function stripBinding<T extends StripControls>(
   target: PreviewTarget,
   update: (fn: (c: T) => T) => void,
 ): StripBinding {
-  return { controls, target, update: (fn) => update((c) => ({ ...c, ...fn(c) })) };
+  return {
+    controls,
+    target,
+    update: (patch) => update((c) => ({ ...c, ...patch })),
+    updateHighpass: (patch) => update((c) => ({ ...c, highpass: { ...c.highpass, ...patch } })),
+  };
 }
 
 export function StripShell({
@@ -67,24 +73,22 @@ function StripToggle({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Toggle
-            size="sm"
-            variant="outline"
-            data-custom-pressed
-            className={cn("h-6 min-w-7 px-1 text-[11px]", tone)}
-            pressed={pressed}
-            aria-label={label}
-            onPressedChange={onChange}
-          />
-        }
-      >
-        {letter}
-      </TooltipTrigger>
-      <TooltipContent>{tip}</TooltipContent>
-    </Tooltip>
+    <WithTooltip
+      trigger={
+        <Toggle
+          size="sm"
+          variant="outline"
+          data-custom-pressed
+          className={cn("h-6 min-w-7 px-1 text-[11px]", tone)}
+          pressed={pressed}
+          aria-label={label}
+          onPressedChange={onChange}
+        />
+      }
+      tip={tip}
+    >
+      {letter}
+    </WithTooltip>
   );
 }
 
@@ -121,20 +125,19 @@ function MuteSolo({
   );
 }
 
-export function HighpassKnob({ controls, target, update }: StripBinding) {
+export function HighpassKnob({ controls, target, updateHighpass }: StripBinding) {
   return (
     <Knob
       label="Hz"
       size={24}
       value={controls.highpass.freq}
-      {...rangeKnob(HIGHPASS_RANGE)}
+      {...rangeProps(HIGHPASS_RANGE)}
       step={1}
       log
-      format={hz}
+      format={formatHz}
+      unit="Hz"
       disabled={!controls.highpass.on}
-      onChange={bindHighpass(target, (freq) =>
-        update((c) => ({ highpass: { ...c.highpass, freq } })),
-      )}
+      gesture={bindHighpass(target, (freq) => updateHighpass({ freq }))}
     />
   );
 }
@@ -143,6 +146,7 @@ export function StripTone({
   controls,
   target,
   update,
+  updateHighpass,
   reduction,
 }: StripBinding & { reduction: Reduction }) {
   return (
@@ -150,7 +154,7 @@ export function StripTone({
       <EqPopover
         eq={controls.eq}
         highpass={controls.highpass.on ? controls.highpass.freq : null}
-        onChange={bindEq(target, controls.eq, (eq) => update(() => ({ eq })))}
+        gestures={bindEq(target, controls.eq, (eq) => update({ eq }))}
       />
       <div className="flex w-full items-center gap-1">
         <Toggle
@@ -160,14 +164,14 @@ export function StripTone({
           pressed={controls.highpass.on}
           aria-label="Low cut"
           title="Cut rumble below the low-cut frequency"
-          onPressedChange={(on) => update((c) => ({ highpass: { ...c.highpass, on } }))}
+          onPressedChange={(on) => updateHighpass({ on })}
         >
           Low cut
         </Toggle>
         <CompPopover
           comp={controls.comp}
           reduction={reduction}
-          onChange={bindChange((comp) => update(() => ({ comp })))}
+          gesture={bindChange((comp) => update({ comp }))}
         />
       </div>
     </>
@@ -177,29 +181,27 @@ export function StripTone({
 export function FaderMeter({
   label,
   value,
-  onChange,
+  gesture,
   levels,
   reduction,
   compOn,
-  holdFrames,
   className,
 }: {
   label: string;
   value: number;
-  onChange: Change<number>;
+  gesture: Gesture<number>;
   levels: Levels;
   reduction: Reduction;
   compOn: boolean;
-  holdFrames: number;
   className?: string;
 }) {
   return (
     <>
       <div className={cn("flex min-h-16 flex-1 items-stretch gap-2 py-0.5", className)}>
-        <Fader label={label} value={value} onChange={onChange} />
-        <LiveMeter levels={levels} reduction={reduction} compOn={compOn} holdFrames={holdFrames} />
+        <Fader label={label} value={value} gesture={gesture} />
+        <LiveMeter levels={levels} reduction={reduction} compOn={compOn} />
       </div>
-      <span className="text-[11px] whitespace-nowrap tabular-nums">{db(value)} dB</span>
+      <span className="text-[11px] whitespace-nowrap tabular-nums">{formatDb(value)} dB</span>
     </>
   );
 }
@@ -211,25 +213,23 @@ export function StripLevel({
   label,
   levels,
   reduction,
-  holdFrames,
-}: StripBinding & { label: string; levels: Levels; reduction: Reduction; holdFrames: number }) {
+}: StripBinding & { label: string; levels: Levels; reduction: Reduction }) {
   return (
     <>
       <FaderMeter
         label={label}
         value={controls.fader}
-        onChange={bindGain(target, "fader", controls.fader, (fader) => update(() => ({ fader })))}
+        gesture={bindGain(target, "fader", controls.fader, (fader) => update({ fader }))}
         levels={levels}
         reduction={reduction}
         compOn={controls.comp.on}
-        holdFrames={holdFrames}
         className="shrink"
       />
       <MuteSolo
         mute={controls.mute}
         solo={controls.solo}
-        onMute={(mute) => update(() => ({ mute }))}
-        onSolo={(solo) => update(() => ({ solo }))}
+        onMute={(mute) => update({ mute })}
+        onSolo={(solo) => update({ solo })}
       />
     </>
   );

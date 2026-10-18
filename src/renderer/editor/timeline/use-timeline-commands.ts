@@ -2,10 +2,11 @@ import { useState } from "react";
 import type { Workflow } from "@/shared/schema/workflow";
 import { splitBar, type Removal } from "@/shared/timeline/edits";
 import type { FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
-import { useUiStore } from "../../store/ui";
+import { selectedSet } from "../../store/ui";
 import {
   addMarkerAtPlayhead,
   commitEdit,
+  hasSelectedMarker,
   removeNow,
   removeSelectedMarker,
   selectionRemoval,
@@ -36,24 +37,23 @@ export function useTimelineCommands({
   zoom: TimelineZoom;
 }) {
   const [removal, setRemoval] = useState<Removal | null>(null);
-  const selected = () => new Set(useUiStore.getState().selectedIds);
-  const context = (salt: string) => editContext(workflow, flat.fps, sourceNodeId, salt);
+  const context = () => editContext(workflow, flat.fps, sourceNodeId, gestureSalt());
 
   const remove = () => {
-    if (removeSelectedMarker()) return;
-    const next = selectionRemoval(context("d"), flat, selected());
+    if (hasSelectedMarker()) return removeSelectedMarker();
+    const next = selectionRemoval(context(), flat, selectedSet());
     if (!next) return;
     if (next.nodeIds.length > 1) setRemoval(next);
     else removeNow(next, sourceNodeId);
   };
 
   const commands: TimelineCommands = {
-    split: () => splitAtPlayhead(context(gestureSalt()), flat, selected()),
-    splitAt: (bar, frame) => commitEdit(splitBar(context(gestureSalt()), bar, frame)),
+    split: () => splitAtPlayhead(context(), flat, selectedSet()),
+    splitAt: (bar, frame) => commitEdit(splitBar(context(), bar, frame)),
     remove,
     addMarker: () => addMarkerAtPlayhead(flat.fps),
-    zoomBy: (factor) => zoom.zoomAround(factor),
-    fit: () => useTimeline.getState().fitToView(),
+    zoomBy: zoom.zoomAround,
+    fit: useTimeline.getState().fitToView,
   };
 
   return {

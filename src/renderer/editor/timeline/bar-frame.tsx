@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { cn } from "@/renderer/lib/utils";
 import type { BarContext } from "./bar-context";
 import { EnvelopeOverlay, type BarEnvelope } from "./envelope-overlay";
+import { BAR_INSET, type BarBox } from "./timeline-layout";
 
 export function BarFrame({
   ctx,
@@ -16,7 +18,7 @@ export function BarFrame({
   children,
 }: {
   ctx: BarContext;
-  box: { left: number; width: number };
+  box: BarBox;
   height: number;
   selected: boolean;
   title: string | undefined;
@@ -27,32 +29,35 @@ export function BarFrame({
   above?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const [hoverCursor, setHoverCursor] = useState("");
   return (
     <div
       className={cn(
-        "absolute top-1 bottom-1 overflow-hidden rounded-md border border-foreground/10",
+        "absolute overflow-hidden rounded-md border border-foreground/10",
         className,
         selected && "ring-primary ring-2",
       )}
-      style={{ left: box.left, width: box.width }}
+      style={{
+        left: box.left,
+        width: box.width,
+        top: BAR_INSET / 2,
+        bottom: BAR_INSET / 2,
+        cursor: (cursorAt && hoverCursor) || undefined,
+      }}
       title={title}
       onPointerDown={onPointerDown}
       onPointerMove={(e) => {
-        if (cursorAt && !ctx.drag.isDragging()) e.currentTarget.style.cursor = cursorAt(e);
+        if (cursorAt && !ctx.drag.isDragging()) setHoverCursor(cursorAt(e));
       }}
       onPointerDownCapture={envelope.addKey}
     >
       {children}
-      {envelope.target ? (
-        <EnvelopeOverlay
-          target={envelope.target}
-          width={box.width}
-          height={height}
-          toX={envelope.toX}
-          toLocal={envelope.toLocal}
-          startKey={ctx.drag.startKey}
-        />
-      ) : null}
+      <EnvelopeOverlay
+        envelope={envelope}
+        width={box.width}
+        height={height}
+        startKey={ctx.drag.startKey}
+      />
       {above}
     </div>
   );

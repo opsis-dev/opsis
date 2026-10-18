@@ -3,25 +3,27 @@ import { DRAG_START_PX, usePointerDrag } from "@/renderer/lib/dom";
 import { cn } from "@/renderer/lib/utils";
 import { clamp01 } from "@/shared/math";
 import { parseNumberText } from "@/shared/text-input";
-import { commitOnce, onArrowKey, type Change, type DragPhase } from "./gesture";
+import { commitOnce, onArrowKey, type Gesture } from "./gesture";
 import {
   START_DEG,
   SWEEP_DEG,
   angleOf,
   arcPath,
-  fromT,
+  fractionToValue,
   polar,
   snapValue,
-  toT,
+  valueToFraction,
   type KnobRange,
 } from "./knob-math";
 
-export type KnobSpec<F extends string> = KnobRange & {
-  field: F;
+type KnobLook = {
   label: string;
   reset: number;
   format: (v: number) => string;
+  unit?: string;
 };
+
+export type KnobSpec<F extends string> = KnobRange & KnobLook & { field: F };
 
 const DRAG_PX = 150;
 const FINE_DRAG_PX = 600;
@@ -29,6 +31,8 @@ const NUDGE = 0.02;
 const BIG_NUDGE = 0.1;
 const RING_INSET = 3;
 const POINTER_INSET = 4;
+
+const withUnit = (text: string, unit: string | undefined) => (unit ? `${text} ${unit}` : text);
 
 function KnobValue({
   label,
@@ -44,11 +48,7 @@ function KnobValue({
   onCommit: (v: number) => void;
 }) {
   const [typing, setTyping] = useState(false);
-  const commit = (text: string) => {
-    setTyping(false);
-    const v = parseNumberText(text, { lenient: true });
-    if (v !== null) onCommit(v);
-  };
+  const cancelled = useRef(false);
   if (typing)
     return (
       <input
@@ -59,10 +59,16 @@ function KnobValue({
         onFocus={(e) => e.currentTarget.select()}
         onKeyDown={(e) => {
           e.stopPropagation();
-          if (e.key === "Enter") commit(e.currentTarget.value);
-          if (e.key === "Escape") setTyping(false);
+          if (e.key === "Escape") cancelled.current = true;
+          if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur();
         }}
-        onBlur={(e) => commit(e.currentTarget.value)}
+        onBlur={(e) => {
+          const keep = cancelled.current;
+          cancelled.current = false;
+          setTyping(false);
+          const v = keep ? null : parseNumberText(e.currentTarget.value, { lenient: true });
+          if (v !== null) onCommit(v);
+        }}
       />
     );
   return (
@@ -115,36 +121,17 @@ function KnobDial({ size, t, centreT }: { size: number; t: number; centreT: numb
   );
 }
 
-export function Knob({
-  label,
-  value,
-  min,
-  max,
-  step,
-  reset,
-  format,
-  onChange,
-  disabled,
-  size = 30,
-  log,
-}: KnobRange & {
-  label: string;
-  value: number;
-  reset: number;
-  format: (v: number) => string;
-  onChange: Change<number>;
-  disabled?: boolean;
-  size?: number;
-}) {
-  const range = { min, max, step, log };
-  const drag = useRef<{ y: number; t0: number; started: boolean } | null>(null);
-  const t = clamp01(toT(range, value));
-  const nudge = (by: number) => commitOnce(onChange, fromT(range, t + by));
-  const centreT = min < 0 && max > 0 && !log ? toT(range, 0) : 0;
-  const dragProps = usePointerDrag<HTMLButtonElement>({
+function useKnobDrag(
+  range: KnobRange,
+  fraction: number,
+  gesture: Gesture<number>,
+  disabled: boolean | undefined,
+) {
+  const drag = useRef<{ y: number; from: number; started: boolean } | null>(null);
+  return usePointerDrag<HTMLButtonElement>({
     onStart: (e) => {
       if (disabled) return false;
-      drag.current = { y: e.clientY, t0: t, started: false };
+      drag.current = { y: e.clientY, from: fraction, started: false };
     },
     onMove: (e) => {
       const d = drag.current;
@@ -153,33 +140,61 @@ export function Knob({
       if (!d.started) {
         if (Math.abs(dy) < DRAG_START_PX) return;
         d.started = true;
-        onChange(value, "start");
+        gesture.begin();
       }
-      onChange(fromT(range, d.t0 + dy / (e.shiftKey ? FINE_DRAG_PX : DRAG_PX)), "move");
+      gesture.set(fractionToValue(range, d.from + dy / (e.shiftKey ? FINE_DRAG_PX : DRAG_PX)));
     },
     onEnd: () => {
       const d = drag.current;
       drag.current = null;
-      if (d?.started) onChange(value, "end");
+      if (d?.started) gesture.end();
     },
   });
+}
+
+export function Knob({
+  label,
+  value,
+  min,
+  max,
+  step,
+  reset,
+  format,
+  unit,
+  gesture,
+  disabled,
+  size = 30,
+  log,
+}: KnobRange &
+  KnobLook & {
+    value: number;
+    gesture: Gesture<number>;
+    disabled?: boolean;
+    size?: number;
+  }) {
+  const range = { min, max, step, log };
+  const fraction = clamp01(valueToFraction(range, value));
+  const nudge = (by: number) => commitOnce(gesture, fractionToValue(range, fraction + by));
+  const centreT = min < 0 && max > 0 && !log ? valueToFraction(range, 0) : 0;
+  const dragProps = useKnobDrag(range, fraction, gesture, disabled);
+  const spoken = `${label}: ${withUnit(format(value), unit)}`;
   return (
     <div className={cn("flex flex-col items-center gap-0.5", disabled && "opacity-40")}>
       <button
         type="button"
-        aria-label={`${label}: ${format(value)}`}
-        title={`${label}: ${format(value)}. Drag up or down, double-click to reset, click the number to type.`}
+        aria-label={spoken}
+        title={`${spoken}. Drag up or down, double-click to reset, click the number to type.`}
         disabled={disabled}
         className="focus-visible:ring-ring rounded-full outline-none focus-visible:ring-2"
         style={{ width: size, height: size, touchAction: "none" }}
         {...dragProps}
-        onDoubleClick={() => commitOnce(onChange, reset)}
+        onDoubleClick={() => commitOnce(gesture, reset)}
         onWheel={(e) => {
           if (!disabled) nudge(e.deltaY < 0 ? NUDGE : -NUDGE);
         }}
         onKeyDown={(e) => onArrowKey(e, (dir, big) => nudge(dir * (big ? BIG_NUDGE : NUDGE)))}
       >
-        <KnobDial size={size} t={t} centreT={centreT} />
+        <KnobDial size={size} t={fraction} centreT={centreT} />
       </button>
       <span className="text-muted-foreground text-[10px] leading-none">{label}</span>
       <KnobValue
@@ -187,7 +202,7 @@ export function Knob({
         value={value}
         disabled={disabled}
         format={format}
-        onCommit={(v) => commitOnce(onChange, snapValue(range, v))}
+        onCommit={(v) => commitOnce(gesture, snapValue(range, v))}
       />
     </div>
   );
@@ -197,12 +212,12 @@ export function Knobs<F extends string>({
   specs,
   values,
   disabled,
-  onChange,
+  gestureFor,
 }: {
   specs: Array<KnobSpec<F>>;
   values: Record<F, number>;
   disabled: boolean;
-  onChange: (field: F, value: number, phase: DragPhase) => void;
+  gestureFor: (field: F) => Gesture<number>;
 }) {
   return specs.map(({ field, ...spec }) => (
     <Knob
@@ -210,7 +225,7 @@ export function Knobs<F extends string>({
       {...spec}
       value={values[field]}
       disabled={disabled}
-      onChange={(v, phase) => onChange(field, v, phase)}
+      gesture={gestureFor(field)}
     />
   ));
 }

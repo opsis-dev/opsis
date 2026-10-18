@@ -11,8 +11,8 @@ import {
   type EnvelopeKey,
   type EnvelopeTarget,
 } from "./envelope";
+import type { KeyStart } from "./timeline-drag";
 import { useDoublePress } from "./use-double-press";
-import type { KeyStart } from "./use-timeline-drag";
 
 type LineShape = {
   keys: Keyframe[];
@@ -76,23 +76,21 @@ export function useBarEnvelope(
 }
 
 export function EnvelopeOverlay({
-  target,
+  envelope,
   width,
   height,
-  toX,
-  toLocal,
   startKey,
 }: {
-  target: EnvelopeTarget;
+  envelope: BarEnvelope;
   width: number;
   height: number;
-  toX: (local: number) => number;
-  toLocal: (abs: number) => number;
   startKey: (e: React.PointerEvent, key: KeyStart) => void;
 }) {
+  const isDouble = useDoublePress();
+  const { target, toX, toLocal } = envelope;
+  if (!target) return null;
   const { nodeId, prop, keys } = target;
   const { label, rest } = ENVELOPE_INFO[prop];
-  const isDouble = useDoublePress();
   const y = (v: number) => envelopeY(prop, v, height);
   const ids = keyIds(keys);
   const remove = (index: number) =>

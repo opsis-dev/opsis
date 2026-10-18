@@ -1,3 +1,4 @@
+import { isPrimaryModifier } from "@/renderer/lib/dom";
 import { usePlayback } from "../../store/playback";
 import { useTimeline } from "./timeline-state";
 import { COMMAND_KEYS, TOOLS, ZOOM_KEYS, ZOOM_STEP } from "./timeline-tools";
@@ -53,6 +54,6 @@ const PLAIN_KEYS: Keymap = {
 
 export function timelineKeyAction(e: React.KeyboardEvent): KeyAction | undefined {
   const key = commandKey(e.key);
-  if (e.ctrlKey || e.metaKey) return ZOOM_MAP[key];
+  if (isPrimaryModifier(e)) return ZOOM_MAP[key];
   return (e.altKey ? ALT_KEYS : PLAIN_KEYS)[key];
 }

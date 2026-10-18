@@ -7,16 +7,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/u
 export function WithTooltip({
   trigger,
   tip,
+  tipClassName,
   children,
 }: {
   trigger: ReactElement;
   tip: ReactNode;
+  tipClassName?: string;
   children: ReactNode;
 }) {
   return (
     <Tooltip>
       <TooltipTrigger render={trigger}>{children}</TooltipTrigger>
-      <TooltipContent>{tip}</TooltipContent>
+      <TooltipContent className={tipClassName}>{tip}</TooltipContent>
     </Tooltip>
   );
 }

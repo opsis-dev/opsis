@@ -10,6 +10,9 @@ export function isEditingElement(target: EventTarget | null): boolean {
 
 export const DRAG_START_PX = 3;
 
+export const isPrimaryModifier = (e: { ctrlKey: boolean; metaKey: boolean }): boolean =>
+  e.ctrlKey || e.metaKey;
+
 type Rect = Pick<DOMRect, "left" | "top" | "width" | "height">;
 
 export const fractionIn = (rect: Rect, clientX: number, clientY: number) => ({

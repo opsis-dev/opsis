@@ -21,6 +21,11 @@ import { useMixerState } from "./mixer-state";
 
 type Apply<T> = (fn: (value: T) => T) => void;
 
+const applyToStrips =
+  (onApply: Apply<Strip>) =>
+  (settings: Partial<StripSettings>): void =>
+    onApply((s) => applyStripSettings(s, settings));
+
 function SettingsMenu({
   label,
   className,
@@ -86,8 +91,7 @@ export function StripMenu({
   onApply: Apply<Strip>;
 }) {
   const several = count > 1;
-  const paste = (settings: Partial<StripSettings>) =>
-    onApply((s) => applyStripSettings(s, settings));
+  const paste = applyToStrips(onApply);
   return (
     <SettingsMenu label="Strip settings" className="w-52">
       <DropdownMenuGroup>
@@ -122,8 +126,7 @@ export function BusMenu({
   onSounds: Apply<Strip>;
 }) {
   const toBus = (settings: Partial<StripSettings>) => onBus((b) => applyBusSettings(b, settings));
-  const toSounds = (settings: Partial<StripSettings>) =>
-    onSounds((s) => applyStripSettings(s, settings));
+  const toSounds = applyToStrips(onSounds);
   return (
     <SettingsMenu label="Bus settings" className="w-56">
       <DropdownMenuGroup>

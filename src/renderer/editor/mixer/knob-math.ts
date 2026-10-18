@@ -6,7 +6,7 @@ export const START_DEG = -SWEEP_DEG / 2;
 
 export type KnobRange = { min: number; max: number; step: number; log?: boolean };
 
-export const rangeKnob = (range: NumberRange) => ({
+export const rangeProps = (range: NumberRange) => ({
   min: range.min,
   max: range.max,
   reset: range.default,
@@ -17,19 +17,19 @@ export function roundToStep(v: number, step: number): number {
   return Number((Math.round(v / step) * step).toFixed(decimals));
 }
 
-export const toT = ({ min, max, log }: KnobRange, v: number): number =>
+export const valueToFraction = ({ min, max, log }: KnobRange, v: number): number =>
   log ? Math.log(v / min) / Math.log(max / min) : (v - min) / (max - min);
 
-export function fromT(range: KnobRange, t: number): number {
+export function fractionToValue(range: KnobRange, fraction: number): number {
   const { min, max, log, step } = range;
-  const c = clamp01(t);
+  const c = clamp01(fraction);
   return roundToStep(log ? min * (max / min) ** c : min + c * (max - min), step);
 }
 
 export const snapValue = (range: KnobRange, v: number): number =>
   roundToStep(clamp(v, range.min, range.max), range.step);
 
-export const angleOf = (t: number): number => START_DEG + t * SWEEP_DEG;
+export const angleOf = (fraction: number): number => START_DEG + fraction * SWEEP_DEG;
 
 export function polar(centre: number, radius: number, deg: number): { x: number; y: number } {
   const rad = ((deg - 90) * Math.PI) / 180;

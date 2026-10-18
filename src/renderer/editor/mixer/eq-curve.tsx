@@ -9,30 +9,37 @@ const HIGHPASS_POWER = 4;
 type Triple = [number, number, number];
 type Biquad = { b: Triple; a: Triple };
 
-function shelf(A: number, cos: number, sq: number, high: boolean): Biquad {
-  const c = high ? -cos : cos;
-  const s = high ? -1 : 1;
+type ShelfTerms = { amp: number; cosW0: number; twoSqrtAmpAlpha: number };
+
+function shelf({ amp, cosW0, twoSqrtAmpAlpha }: ShelfTerms, side: "low" | "high"): Biquad {
+  const cos = side === "high" ? -cosW0 : cosW0;
+  const sign = side === "high" ? -1 : 1;
   return {
     b: [
-      A * (A + 1 - (A - 1) * c + sq),
-      s * 2 * A * (A - 1 - (A + 1) * c),
-      A * (A + 1 - (A - 1) * c - sq),
+      amp * (amp + 1 - (amp - 1) * cos + twoSqrtAmpAlpha),
+      sign * 2 * amp * (amp - 1 - (amp + 1) * cos),
+      amp * (amp + 1 - (amp - 1) * cos - twoSqrtAmpAlpha),
     ],
-    a: [A + 1 + (A - 1) * c + sq, -s * 2 * (A - 1 + (A + 1) * c), A + 1 + (A - 1) * c - sq],
+    a: [
+      amp + 1 + (amp - 1) * cos + twoSqrtAmpAlpha,
+      -sign * 2 * (amp - 1 + (amp + 1) * cos),
+      amp + 1 + (amp - 1) * cos - twoSqrtAmpAlpha,
+    ],
   };
 }
 
 function coefficients(band: EqBand): Biquad {
-  const A = 10 ** (band.gain / 40);
+  const amp = 10 ** (band.gain / 40);
   const w0 = (2 * Math.PI * band.freq) / SAMPLE_RATE;
-  const cos = Math.cos(w0);
+  const cosW0 = Math.cos(w0);
   const alpha = Math.sin(w0) / (2 * band.q);
   if (band.type === "peak")
     return {
-      b: [1 + alpha * A, -2 * cos, 1 - alpha * A],
-      a: [1 + alpha / A, -2 * cos, 1 - alpha / A],
+      b: [1 + alpha * amp, -2 * cosW0, 1 - alpha * amp],
+      a: [1 + alpha / amp, -2 * cosW0, 1 - alpha / amp],
     };
-  return shelf(A, cos, 2 * Math.sqrt(A) * alpha, band.type === "highshelf");
+  const terms = { amp, cosW0, twoSqrtAmpAlpha: 2 * Math.sqrt(amp) * alpha };
+  return shelf(terms, band.type === "highshelf" ? "high" : "low");
 }
 
 function magnitude([x0, x1, x2]: Triple, w: number): number {
@@ -41,8 +48,7 @@ function magnitude([x0, x1, x2]: Triple, w: number): number {
   return Math.hypot(re, im);
 }
 
-function bandResponse(band: EqBand, freq: number): number {
-  const { b, a } = coefficients(band);
+function biquadResponse({ b, a }: Biquad, freq: number): number {
   const w = (2 * Math.PI * freq) / SAMPLE_RATE;
   return 20 * Math.log10(magnitude(b, w) / magnitude(a, w));
 }
@@ -61,13 +67,14 @@ export function EqCurve({
   on: boolean;
   width: number;
   height: number;
-  highpass?: number | null;
+  highpass: number | null;
 }) {
   const steps = Math.max(24, Math.round(width / 2));
+  const biquads = on ? bands.map(coefficients) : [];
   const points: string[] = [];
   for (let i = 0; i <= steps; i++) {
     const f = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
-    let db = on ? bands.reduce((sum, b) => sum + bandResponse(b, f), 0) : 0;
+    let db = biquads.reduce((sum, q) => sum + biquadResponse(q, f), 0);
     if (highpass) db += highpassResponse(highpass, f);
     const y = height / 2 - (clamp(db, -RANGE_DB, RANGE_DB) / RANGE_DB) * (height / 2 - 2);
     points.push(`${((i / steps) * width).toFixed(1)},${y.toFixed(1)}`);

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/renderer/components/ui/alert-dialog";
+import { useLastDefined } from "@/renderer/lib/use-last-defined";
 import type { Removal } from "@/shared/timeline/edits";
 
 function RemoveContent({ count, onRemove }: { count: number; onRemove: () => void }) {
@@ -39,8 +39,7 @@ export function RemoveDialog({
   onConfirm: (removal: Removal) => void;
   onClose: () => void;
 }) {
-  const [shown, setShown] = useState(removal);
-  if (removal && removal !== shown) setShown(removal);
+  const shown = useLastDefined(removal);
   return (
     <AlertDialog open={!!removal} onOpenChange={(open) => !open && onClose()}>
       {shown ? (

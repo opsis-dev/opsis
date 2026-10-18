@@ -9,8 +9,9 @@ import { bladeSplit, selectOnPress, type BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
 import { useBarEnvelope } from "./envelope-overlay";
 import type { VideoEditKind } from "./timeline-drag";
-import { BAR_INSET, VIDEO_H, barBox, hitEdge } from "./timeline-layout";
-import { useTimeline, type TimelineTool } from "./timeline-state";
+import { VIDEO_H, barBox, barHeight, hitEdge } from "./timeline-layout";
+import { useTimeline } from "./timeline-state";
+import type { TimelineTool } from "./timeline-tools";
 
 const DEFAULT_TONE = "bg-track-video";
 
@@ -31,7 +32,7 @@ const TOOL_CURSOR: Partial<Record<TimelineTool, string>> = {
   slip: "cursor-ew-resize",
 };
 
-const HEIGHT = VIDEO_H - BAR_INSET;
+const HEIGHT = barHeight(VIDEO_H);
 
 function toneFor(ctx: BarContext, bar: VideoBar): string {
   const node = findById(ctx.workflow.nodes, bar.nodeId);
@@ -43,13 +44,14 @@ function editFor(
   tool: TimelineTool,
   edge: "start" | "end" | null,
   corner: boolean,
-): [VideoEditKind, boolean] {
-  if (corner || (edge && tool === "rate")) return ["speed", false];
-  if (tool === "slip") return ["slip", false];
-  if (edge && tool === "roll") return [edge === "start" ? "roll-start" : "roll-end", false];
+): { kind: VideoEditKind; ripple: boolean } {
+  if (corner || (edge && tool === "rate")) return { kind: "speed", ripple: false };
+  if (tool === "slip") return { kind: "slip", ripple: false };
+  if (edge && tool === "roll")
+    return { kind: edge === "start" ? "roll-start" : "roll-end", ripple: false };
   const ripple = tool === "ripple";
-  if (edge) return [edge === "start" ? "trim-start" : "trim-end", ripple];
-  return ["move", ripple];
+  if (edge) return { kind: edge === "start" ? "trim-start" : "trim-end", ripple };
+  return { kind: "move", ripple };
 }
 
 const onSpeedCorner = (e: React.PointerEvent) =>
@@ -100,7 +102,7 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
   const related = !isSelected && bar.chain.some((l) => l.nodeId && ctx.selected.has(l.nodeId));
   const { title, wrappers } = barTitles(ctx.workflow, bar);
   const envelope = useBarEnvelope(ctx, bar.nodeId, videoEnvelope, {
-    toX: (local) => ((local - bar.contentStart) / Math.max(1e-6, bar.rate)) * ppf,
+    toX: (local) => ((local - bar.contentStart) / bar.rate) * ppf,
     toLocal: (abs) => bar.localAt(abs),
   });
 
@@ -108,8 +110,8 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
     if (!drag.beginPointer(e)) return;
     if (tool === "blade") return bladeSplit(ctx, bar, e.clientX, e.altKey);
     selectOnPress(ctx, bar.nodeId, e.shiftKey);
-    const [kind, ripple] = editFor(tool, hitEdge(e, box.width), onSpeedCorner(e));
-    drag.startEdit(e, { kind, bar }, ripple);
+    const { kind, ripple } = editFor(tool, hitEdge(e, box.width), onSpeedCorner(e));
+    drag.startEdit(e, { domain: "video", kind, bar }, ripple);
   };
 
   return (
@@ -129,14 +131,7 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
       envelope={envelope}
       above={<SpeedCorner />}
     >
-      <FilmstripCanvas
-        bar={bar}
-        left={box.left}
-        width={box.width}
-        height={HEIGHT}
-        view={ctx.viewport}
-        fps={ctx.flat.fps}
-      />
+      <FilmstripCanvas bar={bar} box={box} height={HEIGHT} view={ctx.viewport} fps={ctx.flat.fps} />
       <BarLabel className="block py-0.5 leading-tight">
         {title}
         {wrappers.length ? (

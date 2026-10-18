@@ -1,36 +1,28 @@
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/renderer/components/ui/button";
 import { removeBus, updateBus, updateChannels } from "@/shared/mix/edits";
 import type { MixResult } from "@/shared/mix/result";
 import { BUILT_IN_BUSES, type Bus, type Mix } from "@/shared/mix/types";
 import { useWorkflowStore } from "../../store/workflow";
-import { InlineEdit } from "../inline-edit";
+import { useRenaming } from "../inline-edit";
 import { bindChange, previewTarget } from "./bindings";
 import { DuckPopover } from "./dynamics-popovers";
 import { BusMenu } from "./strip-menus";
 import { HighpassKnob, StripLevel, StripShell, StripTone, stripBinding } from "./strip-parts";
 
 function BusName({ bus, onRename }: { bus: Bus; onRename: (name: string) => void }) {
-  const [editing, setEditing] = useState(false);
-  if (editing)
-    return (
-      <InlineEdit
-        value={bus.name}
-        className="h-6 px-1 text-xs"
-        onDone={() => setEditing(false)}
-        onCommit={onRename}
-      />
-    );
+  const { input, startRenaming } = useRenaming(bus.name, onRename, "h-6 px-1 text-xs");
   return (
-    <button
-      type="button"
-      className="flex-1 truncate px-1 text-left text-xs font-medium"
-      title="Double-click to rename"
-      onDoubleClick={() => setEditing(true)}
-    >
-      {bus.name}
-    </button>
+    input ?? (
+      <button
+        type="button"
+        className="flex-1 truncate px-1 text-left text-xs font-medium"
+        title="Double-click to rename"
+        onDoubleClick={startRenaming}
+      >
+        {bus.name}
+      </button>
+    )
   );
 }
 
@@ -64,7 +56,6 @@ export function BusStrip({
   folded,
   onFold,
   result,
-  holdFrames,
 }: {
   bus: Bus;
   mix: Mix;
@@ -72,7 +63,6 @@ export function BusStrip({
   folded: boolean;
   onFold: () => void;
   result: MixResult | null;
-  holdFrames: number;
 }) {
   const setMix = useWorkflowStore((s) => s.setMix);
   const levels = result?.levels.buses[bus.id];
@@ -104,19 +94,13 @@ export function BusStrip({
       <DuckPopover
         bus={bus}
         buses={mix.buses}
-        onChange={bindChange((duck) => update((b) => ({ ...b, duck })))}
+        gesture={bindChange((duck) => update((b) => ({ ...b, duck })))}
       />
       <div className="flex w-full justify-center">
         <HighpassKnob {...binding} />
       </div>
       <StripTone {...binding} reduction={null} />
-      <StripLevel
-        {...binding}
-        label={`${bus.name} fader`}
-        levels={levels}
-        reduction={null}
-        holdFrames={holdFrames}
-      />
+      <StripLevel {...binding} label={`${bus.name} fader`} levels={levels} reduction={null} />
     </StripShell>
   );
 }
