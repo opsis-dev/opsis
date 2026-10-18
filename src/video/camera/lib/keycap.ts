@@ -5,7 +5,7 @@ import type { KeyEvent } from "./click-log";
 
 const KEYCAP_BEZIER = Easing.bezier(0.15, 0.9, 0.75, 0.95);
 
-export const KEYCAP_HOLD_S = 1.1;
+const KEYCAP_HOLD_S = 1.1;
 const KEYCAP_IN_S = 0.13;
 const KEYCAP_OUT_S = 0.17;
 

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { rectCenter, type ActionLog, type Rect } from "../../shared/schema/actions";
 import { resolveAnnotations, toClickLog } from "./action-log";
 import { BASE_POSE } from "./lib/camera";
+import { buildCameraTrack, clusterize, sampleTrack } from "./lib/camera-track";
 import { isInFrame } from "./lib/test-fixtures";
-import { buildCameraTrack, clusterize, sampleTrack } from "./lib/zoom";
 
 const log: ActionLog = {
   viewport: { width: 1920, height: 1080 },
@@ -68,7 +68,7 @@ describe("ActionLog → ClickLog", () => {
 
   it("drives a camera track that leaves and returns to base", () => {
     const cl = toClickLog(log, "demo");
-    const track = buildCameraTrack(cl, 1);
+    const track = buildCameraTrack(cl, 1, {});
     expect(sampleTrack(track, 0)).toEqual(BASE_POSE);
     expect(sampleTrack(track, 2.6).scale).toBeGreaterThan(1.1);
     expect(sampleTrack(track, 9).scale).toBeCloseTo(1, 5);
@@ -76,7 +76,7 @@ describe("ActionLog → ClickLog", () => {
 
   it("honours the Auto zoom tuning", () => {
     const cl = toClickLog(log, "demo");
-    const loose = Math.max(...buildCameraTrack(cl, 1).map((k) => k.pose.scale));
+    const loose = Math.max(...buildCameraTrack(cl, 1, {}).map((k) => k.pose.scale));
     const tight = Math.max(...buildCameraTrack(cl, 1, { sMax: 1.2 }).map((k) => k.pose.scale));
     expect(tight).toBeLessThanOrEqual(1.2);
     expect(loose).toBeGreaterThan(tight);
@@ -150,7 +150,7 @@ describe("ActionLog → ClickLog", () => {
   it("keeps both ends of a short drag in frame while dragging", () => {
     const pick = { x: 300, y: 300, w: 200, h: 80 };
     const drop = { x: 700, y: 320, w: 200, h: 200 };
-    const track = buildCameraTrack(toClickLog(dragLog(drop), "d"), 1);
+    const track = buildCameraTrack(toClickLog(dragLog(drop), "d"), 1, {});
     for (const t of [3, 3.5, 4]) {
       const pose = sampleTrack(track, t);
       expect(pose.scale).toBeGreaterThan(1.05);

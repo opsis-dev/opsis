@@ -1,6 +1,7 @@
 import type { AnnotationKind, AnnotationSpec } from "../../shared/compile/recording";
 import { POINTER_KINDS } from "../../shared/compile/recording";
 import {
+  pointRect,
   rectCenter,
   rectUnion,
   type Action,
@@ -9,7 +10,8 @@ import {
   type Rect,
   type Viewport,
 } from "../../shared/schema/actions";
-import { defaultTargetRect, type ClickEvent, type ClickLog, type KeyEvent } from "./lib/click-log";
+import type { ClickEvent, ClickLog, KeyEvent } from "./lib/click-log";
+import { designScaleFor } from "./lib/design-width";
 
 export type Annotation = {
   id: string;
@@ -70,7 +72,7 @@ export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = 
 
 function dragEvents(a: Action, point: Point, vp: Viewport): ClickEvent[] {
   const tDown = a.tDown ?? a.t;
-  const fallback = defaultTargetRect(point, vp.width);
+  const fallback = pointRect(point, designScaleFor(vp.width));
   const pick = a.rect ?? fallback;
   const drop = a.drop ?? fallback;
   const both = rectUnion(pick, drop);
@@ -108,16 +110,11 @@ export function resolveAnnotations(log: ActionLog, specs: AnnotationSpec[]): Ann
   return out;
 }
 
-export function typedBeats(log: ActionLog): Array<{ text: string; fromS: number; toS: number }> {
-  return log.actions.flatMap((a) =>
-    a.kind === "type" && a.text
-      ? [
-          {
-            text: a.text,
-            fromS: a.t / 1000,
-            toS: (a.tEnd ?? a.t + TYPED_FALLBACK_MS) / 1000 + TYPED_LINGER_S,
-          },
-        ]
-      : [],
-  );
-}
+const isTyped = (a: Action): a is Action & { text: string } => a.kind === "type" && !!a.text;
+
+export const typedBeats = (log: ActionLog): Array<{ text: string; fromS: number; toS: number }> =>
+  log.actions.filter(isTyped).map((a) => ({
+    text: a.text,
+    fromS: a.t / 1000,
+    toS: (a.tEnd ?? a.t + TYPED_FALLBACK_MS) / 1000 + TYPED_LINGER_S,
+  }));

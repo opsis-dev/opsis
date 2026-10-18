@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { KeyEvent } from "./click-log";
-import { chordGlyphs, KEYCAP_HOLD_S, keycapAt, keycapEase } from "./keycap";
+import { chordGlyphs, keycapAt, keycapEase } from "./keycap";
 
 describe("chordGlyphs", () => {
   it.each([
@@ -44,10 +44,18 @@ describe("keycapAt", () => {
     expect(keycapAt(keys, 0.5)).toBe(null);
   });
 
-  it("shows a chord for its hold window and then stops", () => {
+  const lastShown = (events: KeyEvent[], fromS: number) => {
+    let t = fromS;
+    while (keycapAt(events, t + 0.005)) t += 0.005;
+    return t;
+  };
+
+  it("shows a chord for about a second and then stops", () => {
     expect(keycapAt(keys, 1.2)?.chord).toBe("Alt+Enter");
-    expect(keycapAt(keys, 1 + KEYCAP_HOLD_S - 0.01)?.chord).toBe("Alt+Enter");
-    expect(keycapAt(keys, 1 + KEYCAP_HOLD_S + 0.01)).toBe(null);
+    const end = lastShown(keys, 1);
+    expect(end).toBeGreaterThan(1.8);
+    expect(end).toBeLessThan(2.5);
+    expect(keycapAt(keys, end + 0.01)).toBe(null);
   });
 
   it("replaces rather than stacks when chords overlap", () => {
@@ -61,7 +69,7 @@ describe("keycapAt", () => {
   it("ramps in at the start and out at the end of the window", () => {
     const first = keycapAt(keys, 1.001);
     expect(first && first.inP < 0.2, "just-pressed should be arriving").toBe(true);
-    const last = keycapAt(keys, 1 + KEYCAP_HOLD_S - 0.01);
+    const last = keycapAt(keys, lastShown(keys, 1));
     expect(last && last.outP < 0.2, "about to expire should be leaving").toBe(true);
     const mid = keycapAt(keys, 1.5);
     expect(mid && mid.inP === 1 && mid.outP === 1, "mid-hold is fully up").toBe(true);

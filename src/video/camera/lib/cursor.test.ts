@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ClickEvent, CursorSample } from "./click-log";
-import { CLICK_SQUASH, CLICK_SQUASH_S, CURSOR_FADE_S, cursorAt } from "./cursor";
+import { cursorAt } from "./cursor";
 
 const track: CursorSample[] = [
   { t: 0, x: 100, y: 100 },
@@ -61,11 +61,12 @@ describe("cursorAt", () => {
     const drag = [{ tMs: 900, x: 500, y: 400, tDownMs: 200, tUpMs: 900 }];
     expect(at(drag, 0.25).ripple !== null).toBe(true);
     const held = at(drag, 0.8);
-    expect(held.squash).toBe(CLICK_SQUASH);
+    expect(held.squash).toBeLessThan(1);
+    expect(at(drag, 0.5).squash).toBe(held.squash);
     expect(held.ripple).toBe(null);
-    const springing = at(drag, 0.9 + CLICK_SQUASH_S / 2).squash;
-    expect(springing > CLICK_SQUASH && springing < 1).toBe(true);
-    expect(at(drag, 0.9 + CLICK_SQUASH_S + 0.01).squash).toBe(1);
+    const springing = at(drag, 0.95).squash;
+    expect(springing > held.squash && springing < 1).toBe(true);
+    expect(at(drag, 1.5).squash).toBe(1);
   });
 
   it("returns null when there is no recorded track", () => {
@@ -88,8 +89,8 @@ describe("cursor opacity", () => {
   });
 
   it("fades rather than pops at both edges", () => {
-    const out = cursorOpacity(typing, 0.5 - CURSOR_FADE_S / 2);
-    const back = cursorOpacity(typing, 3.0 + CURSOR_FADE_S / 2);
+    const out = cursorOpacity(typing, 0.45);
+    const back = cursorOpacity(typing, 3.05);
     for (const v of [out, back]) {
       expect(v > 0 && v < 1, `expected a partial fade, got ${v}`).toBe(true);
     }

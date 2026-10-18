@@ -25,6 +25,9 @@ import { asValue, type ClipValue } from "../schema/values";
 import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
 import { msToFrames, recordingMsToFrames } from "../timeline/time";
 import {
+  DEFAULT_ADDRESS_BAR,
+  DEFAULT_FRAME_THEME,
+  DEFAULT_WINDOW_STYLE,
   FRAME_THEMES,
   hostWindowStyle,
   WINDOW_STYLE_LABELS,
@@ -63,7 +66,7 @@ const panTo = spotFields(0.7, 0.6, "To", "Click the frame to choose where to end
 const FRAME_LABELS = { none: "None", ...WINDOW_STYLE_LABELS };
 
 const frameThemeField = (showIf: NonNullable<FieldMeta["showIf"]>) =>
-  more(choice(FRAME_THEMES, "light", "Frame colour"), { showIf });
+  more(choice(FRAME_THEMES, DEFAULT_FRAME_THEME, "Frame colour"), { showIf });
 
 const windowFrameProps = (
   windowStyle: WindowStyle,
@@ -135,7 +138,7 @@ const autoZoomNode = defineNode({
     backdrop: choice(BACKDROPS, DEFAULT_BACKDROP, "Backdrop"),
     frame: choice(["none", ...WINDOW_STYLES], "none", "Window frame", FRAME_LABELS),
     frameTheme: frameThemeField({ frame: [...WINDOW_STYLES] }),
-    addressBar: more(bool(true, "Address bar"), {
+    addressBar: more(bool(DEFAULT_ADDRESS_BAR, "Address bar"), {
       help: "Shows the page's address in the title bar.",
       showIf: { frame: [...WINDOW_STYLES] },
     }),
@@ -379,9 +382,12 @@ const deviceFrameNode = defineNode({
   ],
   params: z.object({
     device: choiceOf(DEVICES, "browser", "Device"),
-    windowStyle: more(choice(WINDOW_STYLES, "macos", "Window style", WINDOW_STYLE_LABELS), {
-      showIf: { device: ["browser"] },
-    }),
+    windowStyle: more(
+      choice(WINDOW_STYLES, DEFAULT_WINDOW_STYLE, "Window style", WINDOW_STYLE_LABELS),
+      {
+        showIf: { device: ["browser"] },
+      },
+    ),
     frameTheme: frameThemeField({ device: ["browser"] }),
     entrance: more(choiceOf(ENTRANCES, "open", "Entrance"), { showIf: { device: ["laptop"] } }),
   }),
@@ -391,7 +397,11 @@ const deviceFrameNode = defineNode({
       if (params.device === "browser")
         return patchRecordings(clip, (p) => ({
           ...p,
-          ...windowFrameProps(params.windowStyle, params.frameTheme, p.addressBar ?? true),
+          ...windowFrameProps(
+            params.windowStyle,
+            params.frameTheme,
+            p.addressBar ?? DEFAULT_ADDRESS_BAR,
+          ),
         }));
       const src = clip.recording?.src;
       if (!src) return clip;

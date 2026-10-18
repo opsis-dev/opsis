@@ -1,8 +1,13 @@
 import type { RecordingProps } from "../../../shared/compile/recording";
 
 export const WINDOW_FIT = 0.86;
+export const WINDOW_RADIUS = 14;
+
+const INK = "15, 23, 42";
+
+export const ink = (alpha: number): string => `rgba(${INK}, ${alpha})`;
 const STAGE_FIT = 0.84;
-export const STAGE_GROUND = "#faf6f1";
+const STAGE_GROUND = "#faf6f1";
 
 export type WindowShot = {
   framing: "window";

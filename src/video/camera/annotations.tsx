@@ -17,17 +17,32 @@ const FADE = {
 };
 
 const POP_SCALE = 1.2;
-const SPOTLIGHT_RADIUS = 12;
+const SPOTLIGHT = { radius: 12, dimSpread: 9999 } as const;
 const HIGHLIGHT = { radius: 10, border: 3, fill: "12%", growFrom: 0.96 } as const;
-const TOOLTIP = { rise: 8, fontSize: 18, padY: 8, padX: 14, radius: 10, arrow: 8 } as const;
+const TOOLTIP = {
+  rise: 8,
+  fontSize: 18,
+  fontWeight: 600,
+  padY: 8,
+  padX: 14,
+  radius: 10,
+  arrow: 8,
+  shadowY: 6,
+  shadowBlur: 18,
+  shadow: "rgba(0,0,0,0.25)",
+} as const;
 const CALLOUT = {
   width: 140,
   height: 110,
   stroke: 5,
+  line: "M130 10 C 90 20, 40 40, 12 96",
+  head: "M4 82 L12 98 L28 88",
   headShownFrom: 0.9,
   textLeft: 120,
   textBottom: 96,
   fontSize: 30,
+  fontWeight: 800,
+  tilt: "rotate(-4deg)",
 } as const;
 
 type MarkProps = {
@@ -38,13 +53,11 @@ type MarkProps = {
   viewport: Viewport;
 };
 
-const pct = (v: number, of: number): string => percent(v / of);
-
 const boxOf = ({ annotation, viewport }: MarkProps) => ({
-  left: pct(annotation.rect.x - annotation.padding, viewport.width),
-  top: pct(annotation.rect.y - annotation.padding, viewport.height),
-  width: pct(annotation.rect.w + annotation.padding * 2, viewport.width),
-  height: pct(annotation.rect.h + annotation.padding * 2, viewport.height),
+  left: percent((annotation.rect.x - annotation.padding) / viewport.width),
+  top: percent((annotation.rect.y - annotation.padding) / viewport.height),
+  width: percent((annotation.rect.w + annotation.padding * 2) / viewport.width),
+  height: percent((annotation.rect.h + annotation.padding * 2) / viewport.height),
 });
 
 const Spotlight: React.FC<MarkProps> = (props) => (
@@ -52,8 +65,8 @@ const Spotlight: React.FC<MarkProps> = (props) => (
     style={{
       position: "absolute",
       ...boxOf(props),
-      borderRadius: SPOTLIGHT_RADIUS * props.designScale,
-      boxShadow: `0 0 0 9999px ${props.annotation.color}`,
+      borderRadius: SPOTLIGHT.radius * props.designScale,
+      boxShadow: `0 0 0 ${SPOTLIGHT.dimSpread}px ${props.annotation.color}`,
       opacity: props.opacity,
     }}
   />
@@ -76,111 +89,105 @@ const Highlight: React.FC<MarkProps> = (props) => {
   );
 };
 
-const Tooltip: React.FC<MarkProps> = ({
-  annotation,
-  opacity,
-  designScale: k,
-  counter,
-  viewport,
-}) => (
-  <div
-    style={{
-      position: "absolute",
-      left: pct(rectCenter(annotation.rect).x, viewport.width),
-      top: pct(annotation.rect.y - annotation.padding, viewport.height),
-      transform: `translate(-50%, -100%) translateY(${(1 - opacity) * TOOLTIP.rise * k}px) scale(${counter * POP_SCALE})`,
-      transformOrigin: "50% 100%",
-      opacity,
-    }}
-  >
-    <div
-      style={{
-        background: annotation.color,
-        color: TEXT_COLOR,
-        fontFamily: MAIN_FONT,
-        fontWeight: 600,
-        fontSize: TOOLTIP.fontSize * k,
-        padding: `${TOOLTIP.padY * k}px ${TOOLTIP.padX * k}px`,
-        borderRadius: TOOLTIP.radius * k,
-        whiteSpace: "nowrap",
-        boxShadow: `0 ${6 * k}px ${18 * k}px rgba(0,0,0,0.25)`,
-      }}
-    >
-      {annotation.text}
-    </div>
-    <div
-      style={{
-        width: 0,
-        height: 0,
-        margin: "0 auto",
-        borderLeft: `${TOOLTIP.arrow * k}px solid transparent`,
-        borderRight: `${TOOLTIP.arrow * k}px solid transparent`,
-        borderTop: `${TOOLTIP.arrow * k}px solid ${annotation.color}`,
-      }}
-    />
-  </div>
-);
-
-const Callout: React.FC<MarkProps> = ({
-  annotation,
-  opacity,
-  designScale: k,
-  counter,
-  viewport,
-}) => (
-  <div
-    style={{
-      position: "absolute",
-      left: pct(annotation.rect.x + annotation.rect.w, viewport.width),
-      top: pct(annotation.rect.y, viewport.height),
-      transform: `scale(${counter * POP_SCALE})`,
-      transformOrigin: "0 100%",
-      opacity,
-    }}
-  >
-    <svg
-      width={CALLOUT.width * k}
-      height={CALLOUT.height * k}
-      viewBox={`0 0 ${CALLOUT.width} ${CALLOUT.height}`}
-      style={{ position: "absolute", left: 0, bottom: 0, overflow: "visible" }}
-    >
-      <path
-        d="M130 10 C 90 20, 40 40, 12 96"
-        fill="none"
-        stroke={annotation.color}
-        strokeWidth={CALLOUT.stroke}
-        strokeLinecap="round"
-        pathLength={1}
-        strokeDasharray={1}
-        strokeDashoffset={1 - opacity}
-      />
-      <path
-        d="M4 82 L12 98 L28 88"
-        fill="none"
-        stroke={annotation.color}
-        strokeWidth={CALLOUT.stroke}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={opacity > CALLOUT.headShownFrom ? 1 : 0}
-      />
-    </svg>
+const Tooltip: React.FC<MarkProps> = (props) => {
+  const { annotation, opacity, designScale: k, counter, viewport } = props;
+  return (
     <div
       style={{
         position: "absolute",
-        left: CALLOUT.textLeft * k,
-        bottom: CALLOUT.textBottom * k,
-        color: annotation.color,
-        fontFamily: MAIN_FONT,
-        fontWeight: 800,
-        fontSize: CALLOUT.fontSize * k,
-        whiteSpace: "nowrap",
-        transform: "rotate(-4deg)",
+        left: percent(rectCenter(annotation.rect).x / viewport.width),
+        top: percent((annotation.rect.y - annotation.padding) / viewport.height),
+        transform: `translate(-50%, -100%) translateY(${(1 - opacity) * TOOLTIP.rise * k}px) scale(${counter * POP_SCALE})`,
+        transformOrigin: "50% 100%",
+        opacity,
       }}
     >
-      {annotation.text}
+      <div
+        style={{
+          background: annotation.color,
+          color: TEXT_COLOR,
+          fontFamily: MAIN_FONT,
+          fontWeight: TOOLTIP.fontWeight,
+          fontSize: TOOLTIP.fontSize * k,
+          padding: `${TOOLTIP.padY * k}px ${TOOLTIP.padX * k}px`,
+          borderRadius: TOOLTIP.radius * k,
+          whiteSpace: "nowrap",
+          boxShadow: `0 ${TOOLTIP.shadowY * k}px ${TOOLTIP.shadowBlur * k}px ${TOOLTIP.shadow}`,
+        }}
+      >
+        {annotation.text}
+      </div>
+      <div
+        style={{
+          width: 0,
+          height: 0,
+          margin: "0 auto",
+          borderLeft: `${TOOLTIP.arrow * k}px solid transparent`,
+          borderRight: `${TOOLTIP.arrow * k}px solid transparent`,
+          borderTop: `${TOOLTIP.arrow * k}px solid ${annotation.color}`,
+        }}
+      />
     </div>
-  </div>
-);
+  );
+};
+
+const Callout: React.FC<MarkProps> = (props) => {
+  const { annotation, opacity, designScale: k, counter, viewport } = props;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: percent((annotation.rect.x + annotation.rect.w) / viewport.width),
+        top: percent(annotation.rect.y / viewport.height),
+        transform: `scale(${counter * POP_SCALE})`,
+        transformOrigin: "0 100%",
+        opacity,
+      }}
+    >
+      <svg
+        width={CALLOUT.width * k}
+        height={CALLOUT.height * k}
+        viewBox={`0 0 ${CALLOUT.width} ${CALLOUT.height}`}
+        style={{ position: "absolute", left: 0, bottom: 0, overflow: "visible" }}
+      >
+        <path
+          d={CALLOUT.line}
+          fill="none"
+          stroke={annotation.color}
+          strokeWidth={CALLOUT.stroke}
+          strokeLinecap="round"
+          pathLength={1}
+          strokeDasharray={1}
+          strokeDashoffset={1 - opacity}
+        />
+        <path
+          d={CALLOUT.head}
+          fill="none"
+          stroke={annotation.color}
+          strokeWidth={CALLOUT.stroke}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={opacity > CALLOUT.headShownFrom ? 1 : 0}
+        />
+      </svg>
+      <div
+        style={{
+          position: "absolute",
+          left: CALLOUT.textLeft * k,
+          bottom: CALLOUT.textBottom * k,
+          color: annotation.color,
+          fontFamily: MAIN_FONT,
+          fontWeight: CALLOUT.fontWeight,
+          fontSize: CALLOUT.fontSize * k,
+          whiteSpace: "nowrap",
+          transform: CALLOUT.tilt,
+        }}
+      >
+        {annotation.text}
+      </div>
+    </div>
+  );
+};
 
 const MARKS: Record<AnnotationKind, React.FC<MarkProps>> = {
   spotlight: Spotlight,

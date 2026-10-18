@@ -1,74 +1,28 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
-import type { FrameTheme, WindowStyle } from "../../shared/window-styles";
+import {
+  DEFAULT_ADDRESS_BAR,
+  DEFAULT_FRAME_THEME,
+  DEFAULT_WINDOW_STYLE,
+  type FrameTheme,
+  type WindowStyle,
+} from "../../shared/window-styles";
 import { useDesignScale } from "./lib/design-scale";
+import { ink, WINDOW_RADIUS } from "./lib/style";
 
 export const CHROME_H = 38;
-const WINDOW_RADIUS = 14;
 const PILL_RADIUS = 9999;
 const WINDOW_FILTER = "saturate(1.05) contrast(1.025) brightness(1.01)";
 const SYSTEM_FONT = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
 
-export const Stage: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <AbsoluteFill
-    style={{
-      justifyContent: "center",
-      alignItems: "center",
-      overflow: "hidden",
-    }}
-  >
-    {children}
-  </AbsoluteFill>
-);
-
-const GLOW_RADIUS = 60;
-const GLOW_BLUR = 90;
-const GLOW_SCALE = "0.97, 0.96";
-const RIM_RADIUS = WINDOW_RADIUS + 1;
-
-const RIM_LOOKS = {
-  light: { glow: "rgba(30,20,10,0.30)", lift: "2.5%", rim: "rgba(15,23,42,0.16)" },
-  dark: { glow: "rgba(255,255,255,0.10)", lift: "2%", rim: "rgba(255,255,255,0.14)" },
-} as const;
-
-export const RimLight: React.FC<{ light?: boolean }> = ({ light = false }) => {
-  const k = useDesignScale();
-  const look = RIM_LOOKS[light ? "light" : "dark"];
-  return (
-    <>
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: GLOW_RADIUS * k,
-          background: look.glow,
-          transform: `translateY(${look.lift}) scale(${GLOW_SCALE})`,
-          filter: `blur(${GLOW_BLUR * k}px)`,
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          inset: -k,
-          borderRadius: RIM_RADIUS * k,
-          boxShadow: `0 0 0 ${k}px ${look.rim}`,
-          pointerEvents: "none",
-        }}
-      />
-    </>
-  );
-};
-
 const FRAME_COLORS = {
   light: {
     bar: "linear-gradient(180deg, #fafbfc 0%, #f0f2f5 100%)",
-    edge: "rgba(15, 23, 42, 0.07)",
-    field: "rgba(15, 23, 42, 0.045)",
-    fieldEdge: "rgba(15, 23, 42, 0.05)",
-    text: "rgba(15, 23, 42, 0.5)",
-    icon: "rgba(15, 23, 42, 0.62)",
-    button: "rgba(15, 23, 42, 0.07)",
+    edge: ink(0.07),
+    field: ink(0.045),
+    fieldEdge: ink(0.05),
+    text: ink(0.5),
+    icon: ink(0.62),
+    button: ink(0.07),
   },
   dark: {
     bar: "linear-gradient(180deg, #2c2c31 0%, #232328 100%)",
@@ -115,26 +69,35 @@ const ICONS = {
   close: "M4 4l8 8M12 4l-8 8",
 } as const;
 
-const BUTTON_NAMES = ["minimize", "maximize", "close"] as const;
-
 const Glyph: React.FC<{ d: string; size: number; color: string }> = ({ d, size, color }) => (
   <svg width={size} height={size} viewBox="0 0 16 16">
     <path d={d} stroke={color} strokeWidth={1.2} fill="none" strokeLinecap="round" />
   </svg>
 );
 
-type FrameColors = (typeof FRAME_COLORS)[FrameTheme];
+type ButtonsLook = { size: number; gap: number; glyph: number; fullHeight: boolean };
 
-type ButtonLook = (
-  k: number,
-  c: FrameColors,
-) => {
-  row: React.CSSProperties;
-  button: React.CSSProperties;
-  glyph: number;
-};
+type Slot =
+  | { kind: "lights" }
+  | { kind: "buttons"; look: ButtonsLook }
+  | { kind: "spacer" }
+  | { kind: "empty" };
 
-type Slot = "lights" | { spacer: number } | { buttons: ButtonLook } | null;
+const BUTTON_COUNT = Object.keys(ICONS).length;
+
+function slotWidth(slot: Slot): number {
+  switch (slot.kind) {
+    case "lights":
+      return (
+        TRAFFIC_LIGHTS.length * TRAFFIC_LIGHT.size + (TRAFFIC_LIGHTS.length - 1) * TRAFFIC_LIGHT.gap
+      );
+    case "buttons":
+      return BUTTON_COUNT * slot.look.size + (BUTTON_COUNT - 1) * slot.look.gap;
+    case "spacer":
+    case "empty":
+      return 0;
+  }
+}
 
 type StyleLook = {
   windowRadius: number;
@@ -153,67 +116,72 @@ const STYLE_LOOKS: Record<WindowStyle, StyleLook> = {
     windowRadius: WINDOW_RADIUS,
     fieldRadius: 7,
     fieldAlign: "center",
-    lead: "lights",
-    trail: { spacer: 52 },
+    lead: { kind: "lights" },
+    trail: { kind: "spacer" },
   },
   linux: {
     windowRadius: WINDOW_RADIUS,
     fieldRadius: 7,
     fieldAlign: "center",
-    lead: { spacer: 88 },
-    trail: {
-      buttons: (k, c) => ({
-        row: { gap: 9 * k },
-        button: { width: 20 * k, height: 20 * k, borderRadius: PILL_RADIUS, background: c.button },
-        glyph: 11 * k,
-      }),
-    },
+    lead: { kind: "spacer" },
+    trail: { kind: "buttons", look: { size: 20, gap: 9, glyph: 11, fullHeight: false } },
   },
   windows: {
     windowRadius: 8,
     fieldRadius: PILL_RADIUS,
     fieldAlign: "flex-start",
-    lead: null,
-    trail: {
-      buttons: (k) => ({
-        row: { alignSelf: "stretch", marginRight: -TITLE_BAR.padX * k },
-        button: { width: 44 * k, alignSelf: "stretch" },
-        glyph: 12 * k,
-      }),
-    },
+    lead: { kind: "empty" },
+    trail: { kind: "buttons", look: { size: 44, gap: 0, glyph: 12, fullHeight: true } },
   },
 };
 
-const WindowButtons: React.FC<{ buttonLook: ButtonLook; theme: FrameTheme }> = ({
-  buttonLook,
-  theme,
-}) => {
+const WindowButtons: React.FC<{ look: ButtonsLook; theme: FrameTheme }> = ({ look, theme }) => {
   const k = useDesignScale();
   const c = FRAME_COLORS[theme];
-  const look = buttonLook(k, c);
+  const row: React.CSSProperties = look.fullHeight
+    ? { alignSelf: "stretch", marginRight: -TITLE_BAR.padX * k }
+    : { gap: look.gap * k };
+  const button: React.CSSProperties = look.fullHeight
+    ? { width: look.size * k, alignSelf: "stretch" }
+    : {
+        width: look.size * k,
+        height: look.size * k,
+        borderRadius: PILL_RADIUS,
+        background: c.button,
+      };
   return (
-    <div style={{ display: "flex", flexShrink: 0, ...look.row }}>
-      {BUTTON_NAMES.map((n) => (
-        <div key={n} style={{ display: "grid", placeItems: "center", ...look.button }}>
-          <Glyph d={ICONS[n]} size={look.glyph} color={c.icon} />
+    <div style={{ display: "flex", flexShrink: 0, ...row }}>
+      {Object.entries(ICONS).map(([name, d]) => (
+        <div key={name} style={{ display: "grid", placeItems: "center", ...button }}>
+          <Glyph d={d} size={look.glyph * k} color={c.icon} />
         </div>
       ))}
     </div>
   );
 };
 
-const SlotView: React.FC<{ slot: Slot; theme: FrameTheme }> = ({ slot, theme }) => {
+const SlotView: React.FC<{ slot: Slot; facing: Slot; theme: FrameTheme }> = ({
+  slot,
+  facing,
+  theme,
+}) => {
   const k = useDesignScale();
-  if (slot === null) return null;
-  if (slot === "lights") return <TrafficLights />;
-  if ("buttons" in slot) return <WindowButtons buttonLook={slot.buttons} theme={theme} />;
-  return <div style={{ width: slot.spacer * k, flexShrink: 0 }} />;
+  switch (slot.kind) {
+    case "lights":
+      return <TrafficLights />;
+    case "buttons":
+      return <WindowButtons look={slot.look} theme={theme} />;
+    case "spacer":
+      return <div style={{ width: slotWidth(facing) * k, flexShrink: 0 }} />;
+    case "empty":
+      return null;
+  }
 };
 
-const AddressField: React.FC<{ look: StyleLook; theme: FrameTheme; hostLabel: string }> = ({
+const AddressField: React.FC<{ look: StyleLook; theme: FrameTheme; address: string }> = ({
   look,
   theme,
-  hostLabel,
+  address,
 }) => {
   const k = useDesignScale();
   const c = FRAME_COLORS[theme];
@@ -239,7 +207,7 @@ const AddressField: React.FC<{ look: StyleLook; theme: FrameTheme; hostLabel: st
         textOverflow: "ellipsis",
       }}
     >
-      {hostLabel}
+      {address}
     </div>
   );
 };
@@ -248,8 +216,8 @@ const TitleBar: React.FC<{
   windowStyle: WindowStyle;
   theme: FrameTheme;
   addressBar: boolean;
-  hostLabel: string;
-}> = ({ windowStyle, theme, addressBar, hostLabel }) => {
+  address: string;
+}> = ({ windowStyle, theme, addressBar, address }) => {
   const k = useDesignScale();
   const c = FRAME_COLORS[theme];
   const look = STYLE_LOOKS[windowStyle];
@@ -265,30 +233,30 @@ const TitleBar: React.FC<{
         borderBottom: `1px solid ${c.edge}`,
       }}
     >
-      <SlotView slot={look.lead} theme={theme} />
+      <SlotView slot={look.lead} facing={look.trail} theme={theme} />
       {addressBar ? (
-        <AddressField look={look} theme={theme} hostLabel={hostLabel} />
+        <AddressField look={look} theme={theme} address={address} />
       ) : (
         <div style={{ flex: 1 }} />
       )}
-      <SlotView slot={look.trail} theme={theme} />
+      <SlotView slot={look.trail} facing={look.lead} theme={theme} />
     </div>
   );
 };
 
 export const WindowFrame: React.FC<{
   chrome?: boolean;
-  hostLabel?: string;
+  address?: string;
   windowStyle?: WindowStyle;
   theme?: FrameTheme;
   addressBar?: boolean;
   children: React.ReactNode;
 }> = ({
   chrome = false,
-  hostLabel = "",
-  windowStyle = "macos",
-  theme = "light",
-  addressBar = true,
+  address = "",
+  windowStyle = DEFAULT_WINDOW_STYLE,
+  theme = DEFAULT_FRAME_THEME,
+  addressBar = DEFAULT_ADDRESS_BAR,
   children,
 }) => {
   const k = useDesignScale();
@@ -311,7 +279,7 @@ export const WindowFrame: React.FC<{
           windowStyle={windowStyle}
           theme={theme}
           addressBar={addressBar}
-          hostLabel={hostLabel}
+          address={address}
         />
       ) : null}
 

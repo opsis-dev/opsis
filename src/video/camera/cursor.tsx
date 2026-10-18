@@ -4,6 +4,7 @@ import { isFadedOut } from "../core/anim";
 import type { ClickLog } from "./lib/click-log";
 import { cursorAt } from "./lib/cursor";
 import { useDesignScale } from "./lib/design-scale";
+import { ink } from "./lib/style";
 
 const CURSOR_SCALE_EXP = 0.58;
 const HOT_X = 1;
@@ -17,7 +18,10 @@ const RIPPLE_STROKE = 2;
 const RIPPLE_FROM = 0.3;
 const RIPPLE_GROWTH = 1.05;
 const RIPPLE_OPACITY = 0.85;
-const INK = "15, 23, 42";
+const ARROW_PATH = "M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z";
+const ARROW_FILL = "#111418";
+const ARROW_EDGE = "#ffffff";
+const ARROW_STROKE = 1.85;
 
 const Ripple: React.FC<{ progress: number; k: number }> = ({ progress, k }) => {
   const size = RIPPLE_D * k;
@@ -32,8 +36,8 @@ const Ripple: React.FC<{ progress: number; k: number }> = ({ progress, k }) => {
         marginLeft: -size / 2,
         marginTop: -size / 2,
         borderRadius: "50%",
-        border: `${RIPPLE_STROKE * k}px solid rgba(${INK}, 0.55)`,
-        background: `rgba(${INK}, 0.10)`,
+        border: `${RIPPLE_STROKE * k}px solid ${ink(0.55)}`,
+        background: ink(0.1),
         transform: `scale(${RIPPLE_FROM + progress * RIPPLE_GROWTH})`,
         opacity: RIPPLE_OPACITY * (1 - progress),
       }}
@@ -56,14 +60,14 @@ const Arrow: React.FC<{ squash: number; k: number }> = ({ squash, k }) => {
         top: (-HOT_Y / ARROW_VIEW_H) * height,
         transform: `scale(${squash})`,
         transformOrigin: `${percent(HOT_X / ARROW_VIEW_W)} ${percent(HOT_Y / ARROW_VIEW_H)}`,
-        filter: `drop-shadow(0 ${1.5 * k}px ${2.5 * k}px rgba(${INK}, 0.34))`,
+        filter: `drop-shadow(0 ${1.5 * k}px ${2.5 * k}px ${ink(0.34)})`,
       }}
     >
       <path
-        d="M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z"
-        fill="#111418"
-        stroke="#ffffff"
-        strokeWidth={1.85}
+        d={ARROW_PATH}
+        fill={ARROW_FILL}
+        stroke={ARROW_EDGE}
+        strokeWidth={ARROW_STROKE}
         strokeLinejoin="round"
         paintOrder="stroke"
       />
@@ -71,16 +75,21 @@ const Arrow: React.FC<{ squash: number; k: number }> = ({ squash, k }) => {
   );
 };
 
-export const Cursor: React.FC<{
+export type CursorOptions = {
   log: ClickLog;
-  timeS: number;
-  cameraScale: number;
-  ripple?: boolean;
-  scale?: number;
-}> = ({ log, timeS, cameraScale, ripple = true, scale = 1 }) => {
-  const k = useDesignScale();
+  cursor: boolean;
+  ripple: boolean;
+  cursorScale?: number;
+};
 
-  const state = cursorAt(log.cursorTrack ?? [], log.clicks, timeS);
+export const Cursor: React.FC<{ clip: CursorOptions; timeS: number; cameraScale: number }> = ({
+  clip,
+  timeS,
+  cameraScale,
+}) => {
+  const k = useDesignScale();
+  const { log, ripple, cursorScale: scale = 1 } = clip;
+  const state = clip.cursor ? cursorAt(log.cursorTrack ?? [], log.clicks, timeS) : null;
   if (!state || isFadedOut(state.opacity)) return null;
 
   const { width, height } = log.viewport;

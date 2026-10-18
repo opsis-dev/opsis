@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { BASE_POSE, posesNearlyEqual } from "./camera";
-import type { ClickEvent, ClickLog } from "./click-log";
-import { isInFrame } from "./test-fixtures";
 import {
   buildCameraTrack,
   cursorAim,
@@ -11,8 +9,10 @@ import {
   S_MAX,
   sampleTrack,
   stickify,
-  zoomAt,
-} from "./zoom";
+} from "./camera-track";
+import type { ClickEvent, ClickLog } from "./click-log";
+import { isInFrame } from "./test-fixtures";
+import { zoomAt } from "./zoom";
 
 const VP = { width: 1920, height: 1080 };
 
@@ -99,7 +99,7 @@ describe("stickify", () => {
 
 describe("buildCameraTrack", () => {
   it("starts at base and returns to base before the cut", () => {
-    const keys = buildCameraTrack(smokeLog);
+    const keys = buildCameraTrack(smokeLog, 1, {});
     expect(keys[0].pose.scale).toBe(BASE_POSE.scale);
     const last = keys[keys.length - 1];
     expect(last.t).toBeCloseTo(smokeLog.durationMs / 1000, 1);
@@ -108,7 +108,7 @@ describe("buildCameraTrack", () => {
   });
 
   it("holds still at base for a beat before the cut", () => {
-    const keys = buildCameraTrack(smokeLog);
+    const keys = buildCameraTrack(smokeLog, 1, {});
     const end = smokeLog.durationMs / 1000;
     const a = sampleTrack(keys, end - 0.3);
     const b = sampleTrack(keys, end);
@@ -117,15 +117,19 @@ describe("buildCameraTrack", () => {
   });
 
   it("routes through base instead of panning across the screen", () => {
-    const keys = buildCameraTrack({
-      name: "wide",
-      viewport: VP,
-      durationMs: 16000,
-      clicks: [
-        click(3000, 300, 200, { tDepartMs: 2000, cluster: "one", ...box(240, 170, 200, 60) }),
-        click(9000, 1700, 980, { tDepartMs: 8000, cluster: "one", ...box(1600, 950, 200, 60) }),
-      ],
-    });
+    const keys = buildCameraTrack(
+      {
+        name: "wide",
+        viewport: VP,
+        durationMs: 16000,
+        clicks: [
+          click(3000, 300, 200, { tDepartMs: 2000, cluster: "one", ...box(240, 170, 200, 60) }),
+          click(9000, 1700, 980, { tDepartMs: 8000, cluster: "one", ...box(1600, 950, 200, 60) }),
+        ],
+      },
+      1,
+      {},
+    );
     const between = keys.filter((k) => k.t > 3 && k.t < 9);
     expect(
       between.some((k) => Math.abs(k.pose.scale - BASE_POSE.scale) < 1e-6),
@@ -153,6 +157,7 @@ describe("buildCameraTrack", () => {
         ],
       },
       1.25,
+      {},
     );
     const between = keys.filter((k) => k.t > 13.5 && k.t < 18.2);
     expect(
@@ -162,8 +167,8 @@ describe("buildCameraTrack", () => {
   });
 
   it("scales move durations so they land right on screen at speed", () => {
-    const fast = buildCameraTrack(smokeLog, 1.25);
-    const real = buildCameraTrack(smokeLog, 1);
+    const fast = buildCameraTrack(smokeLog, 1.25, {});
+    const real = buildCameraTrack(smokeLog, 1, {});
     const firstMove = (keys: typeof fast) => {
       const i = keys.findIndex((k, n) => n > 0 && k.pose.scale > 1.05);
       return keys[i].t - keys[i - 1].t;
@@ -176,7 +181,7 @@ describe("buildCameraTrack", () => {
   });
 
   it("holds still after the last click of a cluster", () => {
-    const keys = buildCameraTrack(smokeLog);
+    const keys = buildCameraTrack(smokeLog, 1, {});
     const holdStart = 4338 / 1000 + 0.9;
     const holdEnd = 4338 / 1000 + 1.25;
     const a = sampleTrack(keys, holdStart);
@@ -186,19 +191,23 @@ describe("buildCameraTrack", () => {
   });
 
   it("starts the first punch near cursor departure, not after the click", () => {
-    const keys = buildCameraTrack(smokeLog);
+    const keys = buildCameraTrack(smokeLog, 1, {});
     const onset = keys.find((k) => k.t > 0.05 && Math.abs(k.pose.scale - 1) < 0.02)?.t;
     expect(onset, "click is 2.603s").toBeLessThan(2.0);
     expect(onset, "camera moved too early").toBeGreaterThan(1.4);
   });
 
   it("returns a constant pose when there are no zoomable clicks", () => {
-    const keys = buildCameraTrack({
-      name: "empty",
-      viewport: VP,
-      durationMs: 4000,
-      clicks: [click(500, 10, 10, { zoom: false })],
-    });
+    const keys = buildCameraTrack(
+      {
+        name: "empty",
+        viewport: VP,
+        durationMs: 4000,
+        clicks: [click(500, 10, 10, { zoom: false })],
+      },
+      1,
+      {},
+    );
     const a = sampleTrack(keys, 0.2);
     const b = sampleTrack(keys, 3.5);
     expect(a.scale).toBe(1);
@@ -244,7 +253,8 @@ describe("typing beats", () => {
     clicks: [{ ...typingLog.clicks[0], typeEndMs: undefined }],
   };
 
-  const scaleAt = (log: ClickLog, tS: number) => sampleTrack(buildCameraTrack(log), tS).scale;
+  const scaleAt = (log: ClickLog, tS: number) =>
+    sampleTrack(buildCameraTrack(log, 1, {}), tS).scale;
 
   it("stays zoomed until the last keystroke", () => {
     for (const t of [3.5, 4.5, 5.5, 5.9]) {
@@ -271,7 +281,7 @@ describe("typing beats", () => {
 
   it("ends at base either way", () => {
     for (const log of [typingLog, clickOnlyLog]) {
-      const keys = buildCameraTrack(log);
+      const keys = buildCameraTrack(log, 1, {});
       expect(posesNearlyEqual(keys[keys.length - 1].pose, BASE_POSE)).toBe(true);
     }
   });
@@ -351,16 +361,17 @@ describe("camera in narrower shapes", () => {
   });
 
   it("never rests fully zoomed out, and rests on the cursor", () => {
-    const rest = narrowPose(BASE_POSE, { narrow: 1.69 }, () => ({ cx: 0.8, cy: 0.3 }));
+    const rest = narrowPose(BASE_POSE, { narrow: 1.69 }, { cx: 0.8, cy: 0.3 });
     expect(rest.scale > 1.3).toBe(true);
     expect(rest.cx).toBe(0.8);
   });
 
   it("aims at the action itself when fully zoomed in", () => {
-    const pose = narrowPose({ scale: S_MAX * 1.69, cx: 0.2, cy: 0.7 }, { narrow: 1.69 }, () => ({
-      cx: 0.8,
-      cy: 0.3,
-    }));
+    const pose = narrowPose(
+      { scale: S_MAX * 1.69, cx: 0.2, cy: 0.7 },
+      { narrow: 1.69 },
+      { cx: 0.8, cy: 0.3 },
+    );
     expect(pose.cx).toBeCloseTo(0.2, 9);
     expect(pose.cy).toBeCloseTo(0.7, 9);
     expect(pose.scale).toBeCloseTo(S_MAX * 1.69, 9);
@@ -368,13 +379,13 @@ describe("camera in narrower shapes", () => {
 
   it("changes nothing in the recording's own shape", () => {
     const pose = { scale: 1.3, cx: 0.4, cy: 0.5 };
-    expect(narrowPose(pose, { narrow: 1 }, () => ({ cx: 0.9, cy: 0.9 }))).toEqual(pose);
+    expect(narrowPose(pose, { narrow: 1 }, { cx: 0.9, cy: 0.9 })).toEqual(pose);
   });
 
   it("aims at the action once zoomed to the node's own maximum", () => {
     const tuning = { narrow: 1.69, sMax: 1.3 };
     const full = { scale: 1.3 * 1.69, cx: 0.2, cy: 0.7 };
-    const pose = narrowPose(full, tuning, () => ({ cx: 0.8, cy: 0.3 }));
+    const pose = narrowPose(full, tuning, { cx: 0.8, cy: 0.3 });
     expect(pose.cx).toBeCloseTo(0.2, 9);
     expect(pose.cy).toBeCloseTo(0.7, 9);
   });

@@ -2,32 +2,30 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../../../shared/backdrops";
-import { backdropFile, backdropSource, isLightBackdrop } from "./backdrop";
-import { STAGE_GROUND } from "./style";
+import { backdropSource, isLightBackdrop } from "./backdrop";
 
 const PUBLIC_DIR = path.resolve(import.meta.dirname, "../../../../public");
 
-describe("backdropFile", () => {
-  it("resolves a bare name to the shipped set", () => {
-    expect(backdropFile("cobalt")).toBe("backdrops/cobalt.jpg");
-  });
+const fileOf = (backdrop?: string) => {
+  const source = backdropSource(backdrop);
+  return source.kind === "file" ? source.path : null;
+};
 
+describe("backdropSource", () => {
   it("falls back to the default when unset or blank", () => {
-    expect(backdropFile()).toBe(`backdrops/${DEFAULT_BACKDROP}.jpg`);
-    expect(backdropFile("  ")).toBe(`backdrops/${DEFAULT_BACKDROP}.jpg`);
+    expect(fileOf()).toBe(`backdrops/${DEFAULT_BACKDROP}.jpg`);
+    expect(fileOf("  ")).toBe(`backdrops/${DEFAULT_BACKDROP}.jpg`);
   });
 
   it("takes anything with an extension as your own file, so custom images need no code", () => {
-    expect(backdropFile("mine.jpg")).toBe("backdrops/mine.jpg");
-    expect(backdropFile("mine.png")).toBe("backdrops/mine.png");
+    expect(fileOf("mine.jpg")).toBe("backdrops/mine.jpg");
+    expect(fileOf("mine.png")).toBe("backdrops/mine.png");
   });
 
   it.each(BACKDROPS)("finds the shipped %s image", (b) => {
-    expect(existsSync(path.join(PUBLIC_DIR, backdropFile(b)))).toBe(true);
+    expect(existsSync(path.join(PUBLIC_DIR, fileOf(b) ?? ""))).toBe(true);
   });
-});
 
-describe("backdropSource", () => {
   it("paints colours and gradients, loads addresses, and finds names in the shipped set", () => {
     expect(backdropSource("#123456")).toEqual({ kind: "paint", css: "#123456" });
     expect(backdropSource("linear-gradient(red, blue)")).toEqual({
@@ -63,18 +61,13 @@ describe("isLightBackdrop", () => {
   });
 
   it("reads light and dark colours, in short and long hex and rgb()", () => {
-    expect(isLightBackdrop(STAGE_GROUND)).toBe(true);
+    expect(isLightBackdrop("#faf6f1")).toBe(true);
     expect(isLightBackdrop("#fff")).toBe(true);
     expect(isLightBackdrop("#0b0b10")).toBe(false);
     expect(isLightBackdrop("rgb(250, 250, 250)")).toBe(true);
     expect(isLightBackdrop("rgba(250 250 250 / 0.9)")).toBe(true);
     expect(isLightBackdrop("rgb(20, 20, 30)")).toBe(false);
-  });
-});
-
-describe("isLightBackdrop with padding", () => {
-  it("reads a colour with spaces around it", () => {
     expect(isLightBackdrop(" #ffffff ")).toBe(true);
-    expect(isLightBackdrop(" #101013 ")).toBe(false);
+    expect(isLightBackdrop(undefined)).toBe(false);
   });
 });

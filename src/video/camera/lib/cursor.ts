@@ -2,9 +2,9 @@ import { clamp01, lerp, sampleKeyed } from "../../../shared/math";
 import type { Point } from "../../../shared/schema/actions";
 import type { ClickEvent, CursorSample } from "./click-log";
 
-export const CLICK_SQUASH = 0.9;
-export const CLICK_SQUASH_S = 0.12;
-export const CURSOR_FADE_S = 0.18;
+const CLICK_SQUASH = 0.9;
+const CLICK_SQUASH_S = 0.12;
+const CURSOR_FADE_S = 0.18;
 const RIPPLE_S = 0.35;
 
 type CursorState = {
@@ -41,7 +41,7 @@ const trackPointAt = (track: CursorSample[], tS: number): Point | undefined =>
 function squashAfter(releasedS: number): number {
   if (releasedS <= 0) return CLICK_SQUASH;
   if (releasedS > CLICK_SQUASH_S) return 1;
-  return lerp(CLICK_SQUASH, 1, clamp01(releasedS / CLICK_SQUASH_S));
+  return lerp(CLICK_SQUASH, 1, releasedS / CLICK_SQUASH_S);
 }
 
 const rippleFor = (sinceS: number): number | null =>

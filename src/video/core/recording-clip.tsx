@@ -8,11 +8,11 @@ import { clamp } from "../../shared/math";
 import { pick } from "../../shared/pick";
 import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
-import { DemoClip } from "../camera/demo-clip";
+import { DemoClip, useClipTime } from "../camera/demo-clip";
 import { KeycapHUD } from "../camera/keycap-hud";
 import { DesignWidthContext } from "../camera/lib/design-scale";
 import { SHOT_STYLES } from "../camera/lib/style";
-import { logTimeS, poseAt } from "../camera/lib/zoom";
+import { poseAt } from "../camera/lib/zoom";
 import { CLAMPED, fadeWindow } from "./anim";
 import {
   JUSTIFY_AT,
@@ -59,6 +59,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const { width, height, fps } = useVideoConfig();
   const frame = useCurrentFrame();
   const reframe = useReframe();
+  const timeS = useClipTime(props.speed);
 
   const log = useMemo(() => {
     const clickLog = toClickLog(props.log, props.name, props.extraBeats);
@@ -94,7 +95,6 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     />
   );
 
-  const timeS = logTimeS(frame, fps, props.speed);
   const { keystrokes } = props;
   const followX = () => poseAt(frame, fps, log, { speed: props.speed, tuning: props.tuning }).cx;
   return (

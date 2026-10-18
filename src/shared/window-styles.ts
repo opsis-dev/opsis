@@ -6,6 +6,12 @@ export const FRAME_THEMES = ["light", "dark"] as const;
 
 export type FrameTheme = (typeof FRAME_THEMES)[number];
 
+export const DEFAULT_WINDOW_STYLE: WindowStyle = "macos";
+
+export const DEFAULT_FRAME_THEME: FrameTheme = "light";
+
+export const DEFAULT_ADDRESS_BAR = true;
+
 export const WINDOW_STYLE_LABELS: Record<WindowStyle, string> = {
   macos: "macOS",
   windows: "Windows",
@@ -19,4 +25,4 @@ const HOST_PLATFORMS: Record<WindowStyle, NodeJS.Platform> = {
 };
 
 export const hostWindowStyle = (platform: NodeJS.Platform): WindowStyle =>
-  WINDOW_STYLES.find((style) => HOST_PLATFORMS[style] === platform) ?? "macos";
+  WINDOW_STYLES.find((style) => HOST_PLATFORMS[style] === platform) ?? DEFAULT_WINDOW_STYLE;
