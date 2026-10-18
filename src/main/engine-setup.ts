@@ -1,12 +1,11 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { app } from "electron";
-import { completeEngineLicences, shippedCreditsCandidates } from "../engine/licences";
-import { logError } from "../engine/log";
 import { engineStatus } from "../engine/paths";
 import type { EngineInstallEvent } from "../shared/engine";
 import type { EnvStatus } from "../shared/ipc";
 import type { MainToWorker } from "../shared/worker-protocol";
+import { completeLicences } from "./licences";
 import { engineDir, onWorkerMessage, spawnWorker, workerEnv } from "./workers";
 
 function edition(): EnvStatus["edition"] {
@@ -29,17 +28,6 @@ export function environment(): EnvStatus {
     },
     engine: engineStatus(engineDir()),
   };
-}
-
-export async function completeLicences(): Promise<void> {
-  const root = app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), "resources");
-  try {
-    const result = await completeEngineLicences(engineDir(), shippedCreditsCandidates([root]));
-    if (result === "missing")
-      process.stderr.write("[licences] the recording browser's licence file is missing\n");
-  } catch (error) {
-    logError("licences", error);
-  }
 }
 
 export async function installEngine(onEvent: (e: EngineInstallEvent) => void): Promise<void> {

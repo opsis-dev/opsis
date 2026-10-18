@@ -71,6 +71,7 @@ const HOLD_POLL_MS = 2000;
 
 type QueuedWorkerOptions<R, J> = LazyWorkerOptions<R> & {
   keyOf: (job: J) => string;
+  merge?: (queued: J, incoming: J) => J;
   run: (job: J, request: LazyWorker<R>["request"]) => Promise<void>;
   failed: (job: J, error: unknown) => void;
   holdWhile?: () => boolean;
@@ -83,8 +84,8 @@ export function createQueuedWorker<R, J>(options: QueuedWorkerOptions<R, J>) {
   let held: NodeJS.Timeout | null = null;
 
   const pump = async (): Promise<void> => {
-    if (busy || held || jobs.length === 0) return;
-    if (options.holdWhile?.()) {
+    if (busy || held) return;
+    if (jobs.length && options.holdWhile?.()) {
       held = setTimeout(() => {
         held = null;
         void pump();
@@ -105,16 +106,15 @@ export function createQueuedWorker<R, J>(options: QueuedWorkerOptions<R, J>) {
     }
   };
 
-  const queued = (key: string): J | undefined => jobs.find((j) => options.keyOf(j) === key);
-
   const enqueue = (job: J, { first }: { first: boolean }): void => {
     const key = options.keyOf(job);
-    const existing = jobs.findIndex((j) => options.keyOf(j) === key);
-    if (existing !== -1) jobs.splice(existing, 1);
-    if (first) jobs.unshift(job);
-    else jobs.push(job);
+    const index = jobs.findIndex((j) => options.keyOf(j) === key);
+    const next = index !== -1 && options.merge ? options.merge(jobs[index], job) : job;
+    if (index !== -1) jobs.splice(index, 1);
+    if (first) jobs.unshift(next);
+    else jobs.push(next);
     void pump();
   };
 
-  return { queued, enqueue, stop: worker.stop };
+  return { enqueue, stop: worker.stop };
 }

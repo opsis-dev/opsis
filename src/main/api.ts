@@ -64,7 +64,7 @@ function listenOwnerOnly(next: Server, address: string): Promise<void> {
 async function setApiEnabled(enabled: boolean): Promise<void> {
   const address = apiAddress();
   if (!enabled) {
-    await stopServer();
+    await stopApi();
     setStatus({ enabled: false, listening: false, address });
     return;
   }
@@ -103,7 +103,7 @@ export function followApiSetting(): void {
   void readSettings().then((settings) => setApiEnabled(settings.api.enabled));
 }
 
-async function stopServer(): Promise<void> {
+export async function stopApi(): Promise<void> {
   const current = server;
   server = null;
   endRunEventStreams();
@@ -112,8 +112,4 @@ async function stopServer(): Promise<void> {
   current.closeAllConnections();
   await closed;
   await removeSocket(apiAddress());
-}
-
-export function stopApi(): void {
-  void stopServer();
 }

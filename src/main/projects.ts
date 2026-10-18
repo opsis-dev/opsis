@@ -113,6 +113,10 @@ export async function pickProjectDir(win: BrowserWindow | null): Promise<string 
   ]);
 }
 
+let openDir: string | null = null;
+
+export const currentProjectDir = (): string | null => openDir;
+
 export async function openProjectDir(target: string): Promise<OpenProject> {
   const file = await readProjectFile(target);
   if (!file) throw new Error(`There's no Demoflow project in ${target}.`);
@@ -121,6 +125,7 @@ export async function openProjectDir(target: string): Promise<OpenProject> {
   const { workflow } = parsed;
   written.set(target, file.version);
   await touchRecent(target, workflow.name);
+  openDir = target;
   return {
     dir: target,
     workflow,
@@ -155,30 +160,30 @@ export async function createProjectDir(
 }
 
 async function writeWorkflowFile(dir: string, workflow: Workflow): Promise<string> {
-  const valid = workflowSchema.parse(workflow);
-  const text = `${JSON.stringify(valid, null, 2)}\n`;
+  const normalizedForSave = workflowSchema.parse(workflow);
+  const text = `${JSON.stringify(normalizedForSave, null, 2)}\n`;
   const version = versionOf(text);
   written.set(dir, version);
   await atomicWrite(path.join(dir, WORKFLOW_FILE), text);
-  await touchRecent(dir, valid.name);
+  await touchRecent(dir, normalizedForSave.name);
   return version;
 }
 
 export async function saveWorkflowFile(
   dir: string,
   workflow: Workflow,
-  base?: string | null,
+  base: string | null,
 ): Promise<SaveResult> {
-  if (base !== undefined) {
-    const current = await readProjectFile(dir);
-    if (current && current.version !== base)
-      return { ok: false, version: current.version, workflow: workflowOrNull(current.text) };
-  }
+  const current = await readProjectFile(dir);
+  if (current && current.version !== base)
+    return { ok: false, version: current.version, workflow: workflowOrNull(current.text) };
   return { ok: true, version: await writeWorkflowFile(dir, workflow) };
 }
 
 const logWatchError = (dir: string, error: unknown) =>
   logError("projects", error, `watching ${dir}`);
+
+const WATCH_DEBOUNCE_MS = 150;
 
 let watcher: FSWatcher | null = null;
 let watchedDir: string | null = null;
@@ -202,7 +207,7 @@ export function watchProject(
   };
   const checkSoon = debounce(
     () => void check().catch((error: unknown) => logWatchError(dir, error)),
-    150,
+    WATCH_DEBOUNCE_MS,
   );
   try {
     watcher = watch(dir, (_event, name) => {

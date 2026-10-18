@@ -2,17 +2,16 @@ import { createReadStream, type ReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { withoutLeadingSlashes } from "../shared/asset-ref";
-import { AUDIO_MIME, IMAGE_MIME } from "../shared/mime";
+import { AUDIO_MIME, IMAGE_MIME, VIDEO_MIME } from "../shared/mime";
 import { nullIfMissing } from "./json";
 import { isInside } from "./project-paths";
 
 const MIME: Partial<Record<string, string>> = {
-  ".mp4": "video/mp4",
-  ".m4v": "video/mp4",
-  ".mov": "video/quicktime",
-  ".webm": "video/webm",
   ...Object.fromEntries(
-    Object.entries({ ...AUDIO_MIME, ...IMAGE_MIME }).map(([ext, type]) => [`.${ext}`, type]),
+    Object.entries({ ...VIDEO_MIME, ...AUDIO_MIME, ...IMAGE_MIME }).map(([ext, type]) => [
+      `.${ext}`,
+      type,
+    ]),
   ),
   ".json": "application/json",
   ".woff2": "font/woff2",

@@ -147,7 +147,7 @@ export interface DemoflowApi {
   }): Promise<OpenProject | null>;
   pickProjectDir(): Promise<string | null>;
   openProject(dir: string): Promise<OpenProject | null>;
-  saveWorkflow(dir: string, workflow: Workflow, base?: string | null): Promise<SaveResult>;
+  saveWorkflow(dir: string, workflow: Workflow, base: string | null): Promise<SaveResult>;
   projectLocations(): Promise<ProjectLocations>;
   chooseFolder(opts: { title: string; defaultPath?: string }): Promise<string | null>;
   watchProject(dir: string | null): Promise<void>;
@@ -204,6 +204,7 @@ export interface DemoflowApi {
   closeShown(): void;
   onStillReady(listener: (still: StillReady) => void): () => void;
   onWindowState(listener: (state: WindowState) => void): () => void;
+  onSettingsPage(listener: (page: SettingsPage) => void): () => void;
   listFonts(): Promise<FontFamilyDef[]>;
   inspectFontFiles(paths?: string[]): Promise<InspectedFonts | null>;
   inspectInstalledFonts(faces: FontInstalledFace[]): Promise<InspectedFonts>;
@@ -282,6 +283,7 @@ export const IPC = {
   closeShown: "demoflow:exit:shown",
   projectFileChanged: "demoflow:projects:file-changed",
   settingsChanged: "demoflow:settings:changed",
+  settingsPage: "demoflow:settings:page",
   menuToEditor: "demoflow:menu:to-editor",
   apiStatusChanged: "demoflow:api:status-changed",
   apiRequest: "demoflow:api:request",

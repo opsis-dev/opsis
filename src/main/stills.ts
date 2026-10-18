@@ -10,9 +10,10 @@ import { engineStatus } from "../engine/paths";
 import { projectPaths } from "../engine/project-paths";
 import { IPC, type StillRequest, type StillResult } from "../shared/ipc";
 import { oneAtATime } from "../shared/timing";
-import { getMainWindow } from "./app-windows";
 import { createQueuedWorker } from "./lazy-worker";
-import { engineDir, isRunning } from "./workers";
+import { isRunning } from "./run-host";
+import { getMainWindow } from "./window-registry";
+import { engineDir } from "./workers";
 
 const STILL_WIDTH = 480;
 
@@ -49,7 +50,7 @@ const stills = createQueuedWorker<string | undefined, Job>({
           width: STILL_WIDTH,
         }));
     if (error) reportFailure(job, error);
-    else await remember(job.projectDir, job.nodeId, job.hash);
+    else await recordStill(job.projectDir, job.nodeId, job.hash);
   },
   failed: reportFailure,
 });
@@ -63,23 +64,26 @@ export async function listStills(projectDir: string): Promise<Record<string, str
   );
 }
 
-async function remember(projectDir: string, nodeId: string, hash: string): Promise<void> {
-  await oneIndexWriteAtATime(async () => {
-    const index = { ...(await listStills(projectDir)), [nodeId]: hash };
+async function recordStill(projectDir: string, nodeId: string, hash: string): Promise<void> {
+  const changed = await oneIndexWriteAtATime(async () => {
+    const stored = await listStills(projectDir);
+    if (stored[nodeId] === hash) return false;
+    const index = { ...stored, [nodeId]: hash };
     await mkdir(stillsDir(projectDir), { recursive: true });
     await writeJson(indexPath(projectDir), index);
     const keep = new Set(Object.values(index).map((h) => `${h}.jpg`));
     await pruneDir(stillsDir(projectDir), {
       keep: (name) => !name.endsWith(".jpg") || keep.has(name),
     });
+    return true;
   });
-  getMainWindow()?.webContents.send(IPC.stillReady, { projectDir, nodeId, hash });
+  if (changed) getMainWindow()?.webContents.send(IPC.stillReady, { projectDir, nodeId, hash });
 }
 
 export async function requestStill(request: StillRequest): Promise<StillResult> {
   const hash = sha256Hex(request.key, 24);
   if (existsSync(stillPath(request.projectDir, hash))) {
-    await remember(request.projectDir, request.nodeId, hash);
+    await recordStill(request.projectDir, request.nodeId, hash);
     return { hash, ready: true };
   }
   if (!engineStatus(engineDir()).complete) return { hash, ready: false, unavailable: true };

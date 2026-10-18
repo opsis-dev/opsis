@@ -10,7 +10,7 @@ import { readTrace } from "../traces/store";
 import { analyze } from "./analysis";
 import { getApiStatus } from "./api";
 import { apiRunEvent } from "./api-editor";
-import { broadcast, focusMainWindow, getMainWindow, isTrusted, windowState } from "./app-windows";
+import { broadcast, isTrusted } from "./app-windows";
 import { pickInWindow } from "./browser-windows";
 import { environment, installEngine } from "./engine-setup";
 import { track } from "./exit";
@@ -45,55 +45,38 @@ import {
   saveWorkflowFile,
   watchProject,
 } from "./projects";
+import { activeRun, cancelRun, startRun } from "./run-host";
 import { reportRunEvent, runProgressFor } from "./run-reporter";
 import { listSecrets } from "./secrets";
 import { patchSettings, readSettings } from "./settings";
 import { openSettingsWindow } from "./settings-window";
 import { listStills, requestStill } from "./stills";
+import { focusMainWindow, getMainWindow, sendMenuCommand, windowState } from "./window-registry";
 import { runWindowRole } from "./window-roles";
-import { activeRun, cancelRun, startRun } from "./workers";
 
-type InvokeHandlers = {
-  [K in InvokeName]: (
-    event: IpcMainInvokeEvent,
-    ...args: Parameters<DemoflowApi[K]>
-  ) => ReturnType<DemoflowApi[K]> | Awaited<ReturnType<DemoflowApi[K]>>;
+type Result<K extends InvokeName> =
+  | ReturnType<DemoflowApi[K]>
+  | Awaited<ReturnType<DemoflowApi[K]>>;
+
+type SenderHandlers = {
+  [K in InvokeName]: (event: IpcMainInvokeEvent, ...args: Parameters<DemoflowApi[K]>) => Result<K>;
 };
 
-type ErasedHandler = (event: IpcMainInvokeEvent, ...args: never[]) => unknown;
-
-let projectDir: string | null = null;
-
-export const currentProjectDir = (): string | null => projectDir;
-
-const plain =
-  <A extends unknown[], R>(fn: (...args: A) => R) =>
-  (_event: IpcMainInvokeEvent, ...args: A): R =>
-    fn(...args);
+type PlainHandlers<N extends InvokeName> = {
+  [K in N]: (...args: Parameters<DemoflowApi[K]>) => Result<K>;
+};
 
 const senderWindow = (event: IpcMainInvokeEvent) => BrowserWindow.fromWebContents(event.sender);
 
-function remember<T extends { dir: string } | null>(project: T): T {
-  if (project) projectDir = project.dir;
-  return project;
-}
-
 async function startWorkflowRun(request: RunRequest) {
   const runId = randomUUID();
-  await startRun(
-    runId,
-    request,
-    getMainWindow,
-    (event) => {
-      getMainWindow()?.webContents.send(IPC.runEvent, event);
-      apiRunEvent(event);
-      reportRunEvent(event);
-    },
-    (port) =>
-      (panelWindow("run") ?? getMainWindow())?.webContents.postMessage(IPC.livePort, { runId }, [
-        port,
-      ]),
-  );
+  const live = await startRun(runId, request, (event) => {
+    getMainWindow()?.webContents.send(IPC.runEvent, event);
+    apiRunEvent(event);
+    reportRunEvent(event);
+  });
+  const viewer = panelWindow("run") ?? getMainWindow();
+  if (live) viewer?.webContents.postMessage(IPC.livePort, { runId }, [live]);
   return { runId };
 }
 
@@ -117,62 +100,65 @@ async function revealInFolder(dir: string, rel?: string): Promise<void> {
   await shell.openPath(dir);
 }
 
-const HANDLERS: InvokeHandlers = {
-  listRecentProjects: plain(listRecent),
-  createProject: async (event, opts) => remember(await createProjectDir(senderWindow(event), opts)),
+const SENDER_HANDLERS = {
+  createProject: (event, opts) => createProjectDir(senderWindow(event), opts),
   pickProjectDir: (event) => pickProjectDir(senderWindow(event)),
-  openProject: async (_event, dir) => remember(await openProjectDir(dir)),
-  saveWorkflow: plain(saveWorkflowFile),
-  projectLocations: plain(projectLocations),
   chooseFolder: (event, opts) => chooseFolder(senderWindow(event), opts),
-  watchProject: (_event, dir) =>
-    watchProject(dir, (change) =>
-      getMainWindow()?.webContents.send(IPC.projectFileChanged, change),
-    ),
-  readLastRun: plain(readLastRun),
   importAssets: (event, dir, paths) => importAssets(senderWindow(event), dir, paths),
-  revealInFolder: plain(revealInFolder),
-  runWorkflow: plain(startWorkflowRun),
-  cancelRun: plain(cancelRun),
-  runStatus: plain(runStatus),
   pickElement: (event, request) => pickInWindow(senderWindow(event), request),
-  getEnvironment: plain(environment),
-  installEngine: () =>
-    track(
-      "The engine is being set up.",
-      installEngine((e) => broadcast(IPC.engineEvent, e)),
-    ),
-  getSettings: plain(readSettings),
-  patchSettings: plain(patchSettings),
-  openSettings: plain(openSettingsWindow),
-  listLicences: plain(listLicences),
-  openLicenceFile: plain(openLicenceFile),
-  apiStatus: plain(getApiStatus),
-  readTrace: plain(readTrace),
-  listSecrets: plain(listSecrets),
-  listFonts: plain(listLibrary),
   inspectFontFiles: (event, paths) => inspectFontFiles(senderWindow(event), paths),
-  inspectInstalledFonts: plain(inspectInstalledFonts),
-  addInspectedFonts: plain(addInspectedFonts),
-  releaseInspectedFonts: plain(releaseInspectedFonts),
-  removeFont: plain(removeLibraryFont),
-  fontCatalog: plain(fontCatalog),
-  downloadFont: (_event, id) => track("A font is being downloaded.", downloadOnlineFont(id)),
-  useFontInProject: plain(useFontInProject),
-  clearCache: plain(clearCache),
   windowRole: (event, role) => {
     const win = senderWindow(event);
     if (win) runWindowRole(win, role);
   },
   getWindowState: (event) => windowState(senderWindow(event)),
-  requestStill: plain(requestStill),
-  listStills: plain(listStills),
-  analyze: plain(analyze),
-  openPanelWindow: plain(openPanelWindow),
-  focusPanelWindow: plain(focusPanelWindow),
-  closePanelWindow: plain(closePanelWindow),
-  closePanelWindows: plain(closePanelWindows),
-  listPanelWindows: plain(openPanels),
+} satisfies Partial<SenderHandlers>;
+
+const PLAIN_HANDLERS: PlainHandlers<Exclude<InvokeName, keyof typeof SENDER_HANDLERS>> = {
+  listRecentProjects: listRecent,
+  openProject: openProjectDir,
+  saveWorkflow: saveWorkflowFile,
+  projectLocations,
+  watchProject: (dir) =>
+    watchProject(dir, (change) =>
+      getMainWindow()?.webContents.send(IPC.projectFileChanged, change),
+    ),
+  readLastRun,
+  revealInFolder,
+  runWorkflow: startWorkflowRun,
+  cancelRun,
+  runStatus,
+  getEnvironment: environment,
+  installEngine: () =>
+    track(
+      "The engine is being set up.",
+      installEngine((e) => broadcast(IPC.engineEvent, e)),
+    ),
+  getSettings: readSettings,
+  patchSettings,
+  openSettings: openSettingsWindow,
+  listLicences,
+  openLicenceFile,
+  apiStatus: getApiStatus,
+  readTrace,
+  listSecrets,
+  listFonts: listLibrary,
+  inspectInstalledFonts,
+  addInspectedFonts,
+  releaseInspectedFonts,
+  removeFont: removeLibraryFont,
+  fontCatalog,
+  downloadFont: (id) => track("A font is being downloaded.", downloadOnlineFont(id)),
+  useFontInProject,
+  clearCache,
+  requestStill,
+  listStills,
+  analyze,
+  openPanelWindow,
+  focusPanelWindow,
+  closePanelWindow,
+  closePanelWindows,
+  listPanelWindows: openPanels,
 };
 
 function assertTrustedSender(event: IpcMainInvokeEvent): void {
@@ -180,21 +166,28 @@ function assertTrustedSender(event: IpcMainInvokeEvent): void {
   throw new Error("Blocked IPC call from an unknown renderer.");
 }
 
-function handleInvoke(name: InvokeName): void {
-  const handler: ErasedHandler = HANDLERS[name];
+type Call = (event: IpcMainInvokeEvent, args: never[]) => unknown;
+
+function handleInvoke(name: InvokeName, call: Call): void {
   ipcMain.handle(INVOKE[name], async (event, ...args) => {
     assertTrustedSender(event);
-    return handler(event, ...(args as never[]));
+    return call(event, args as never[]);
   });
 }
 
 export function registerIpc(): void {
-  for (const name of keysOf(INVOKE)) handleInvoke(name);
+  for (const name of keysOf(SENDER_HANDLERS)) {
+    const handler: (event: IpcMainInvokeEvent, ...args: never[]) => unknown = SENDER_HANDLERS[name];
+    handleInvoke(name, (event, args) => handler(event, ...args));
+  }
+  for (const name of keysOf(PLAIN_HANDLERS)) {
+    const handler: (...args: never[]) => unknown = PLAIN_HANDLERS[name];
+    handleInvoke(name, (_event, args) => handler(...args));
+  }
   ipcMain.on(IPC.menuToEditor, (event, command: MenuCommand) => {
-    const main = getMainWindow();
-    if (!isTrusted(event.sender.id) || !main) return;
+    if (!isTrusted(event.sender.id)) return;
     focusMainWindow();
-    main.webContents.send(IPC.menu, command);
+    sendMenuCommand(command);
   });
   ipcMain.on(IPC.setTitle, (event, title: string) => {
     if (isTrusted(event.sender.id)) BrowserWindow.fromWebContents(event.sender)?.setTitle(title);

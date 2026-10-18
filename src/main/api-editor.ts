@@ -6,7 +6,7 @@ import { NO_PROJECT } from "../shared/errors";
 import { IPC } from "../shared/ipc";
 import { pendingReplies } from "../shared/pending-replies";
 import type { RunEvent } from "../shared/schema/events";
-import { getMainWindow, isEditorSender } from "./app-windows";
+import { getMainWindow, isEditorSender } from "./window-registry";
 
 const EDITOR_TIMEOUT = {
   ms: 20_000,

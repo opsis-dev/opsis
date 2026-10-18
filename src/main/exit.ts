@@ -1,8 +1,9 @@
 import { app, ipcMain, type BrowserWindow } from "electron";
 import { IPC, type CloseDecision, type CloseRequest } from "../shared/ipc";
 import { raiseWindow } from "./raise-window";
+import { cancelRun, isRunning } from "./run-host";
 import { patchSettings, readSettings } from "./settings";
-import { cancelRun, isRunning } from "./workers";
+import { isEditorSender } from "./window-registry";
 
 const SHOWN_WITHIN_MS = 2000;
 const FLUSH_WITHIN_MS = 3000;
@@ -118,7 +119,7 @@ export function interceptQuit(
   win.close();
 }
 
-export function registerExitIpc(isEditorSender: (id: number) => boolean): void {
+export function registerExitIpc(): void {
   ipcMain.on(IPC.reportUnsaved, (event, value: boolean) => {
     if (isEditorSender(event.sender.id)) unsaved = value;
   });

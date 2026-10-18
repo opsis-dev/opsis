@@ -3,6 +3,8 @@ import { app, screen, type BrowserWindow, type Rectangle } from "electron";
 import { z } from "zod";
 import { readJson, writeJson } from "../engine/json";
 import { debounce } from "../shared/timing";
+import { raiseWindow } from "./raise-window";
+import { makeWindow, rendererUrl, type WindowOptions } from "./window-registry";
 
 const SAVE_AFTER_MS = 400;
 const MIN_VISIBLE_PX = 40;
@@ -51,10 +53,21 @@ export function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => vo
   });
 }
 
-export function requireHost<T>(host: T | null, what: string): T {
-  if (!host) throw new Error(`${what} opened before the app finished starting.`);
-  return host;
+export async function openRememberedWindow(opts: {
+  existing: BrowserWindow | null;
+  saved: () => Promise<Rectangle | null | undefined>;
+  save: (rect: Rectangle) => void;
+  options: WindowOptions;
+  hash: string;
+  onClosed: (win: BrowserWindow) => void;
+}): Promise<BrowserWindow | null> {
+  if (opts.existing) {
+    raiseWindow(opts.existing);
+    return null;
+  }
+  const win = makeWindow({ ...opts.options, ...visibleBounds(await opts.saved()) });
+  rememberBounds(win, opts.save);
+  win.on("closed", () => opts.onClosed(win));
+  void win.loadURL(rendererUrl(opts.hash));
+  return win;
 }
-
-export const liveWindow = (win: BrowserWindow | null | undefined): BrowserWindow | null =>
-  win && !win.isDestroyed() ? win : null;

@@ -11,7 +11,7 @@ import {
   Video,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, type ReactNode } from "react";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import {
   Sidebar,
@@ -108,10 +108,15 @@ export function SettingsWindow() {
   const { page } = useSearch({ from: "/settings" });
   const settings = useAppSettings((s) => s.settings);
   const meta = PAGES[page];
-  const showPage = (next: SettingsPage) =>
-    void navigate({ to: "/settings", search: { page: next }, replace: true });
+  const showPage = useCallback(
+    (next: SettingsPage) =>
+      void navigate({ to: "/settings", search: { page: next }, replace: true }),
+    [navigate],
+  );
 
   useEffect(() => window.demoflow.setTitle("Settings — Demoflow"), []);
+
+  useEffect(() => window.demoflow.onSettingsPage(showPage), [showPage]);
 
   useEffect(
     () =>

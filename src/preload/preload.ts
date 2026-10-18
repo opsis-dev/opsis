@@ -77,6 +77,7 @@ const api: DemoflowApi = {
     }),
   onStillReady: (listener) => subscribe(IPC.stillReady, listener),
   onWindowState: (listener) => subscribe(IPC.windowState, listener),
+  onSettingsPage: (listener) => subscribe(IPC.settingsPage, listener),
   setTitle: (title) => ipcRenderer.send(IPC.setTitle, title),
 };
 

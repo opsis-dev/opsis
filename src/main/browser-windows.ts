@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { BrowserWindow, session as electronSession } from "electron";
 import { z } from "zod";
 import { logError } from "../engine/log";
@@ -46,13 +47,15 @@ export function pickInWindow(parent: BrowserWindow | null, req: PickRequest): Pr
     const win = sandboxedWindow(
       parent,
       "Pick an element — click it, or Shift-click a spot",
-      `demoflow-picker-${Date.now()}`,
+      `demoflow-picker-${randomUUID()}`,
       req.viewport,
     );
     let result: PickResult = null;
     const inject = () =>
-      void win.webContents.executeJavaScript(PICKER_SCRIPT).catch(() => {
-        if (!win.isDestroyed() && !win.webContents.isLoading()) win.close();
+      void win.webContents.executeJavaScript(PICKER_SCRIPT).catch((error: unknown) => {
+        if (win.isDestroyed() || win.webContents.isLoading()) return;
+        logError("picker", error, req.url);
+        win.close();
       });
     win.webContents.on("did-finish-load", inject);
     win.webContents.on("console-message", (event) => {
@@ -124,7 +127,7 @@ export function loginInWindow(
   req: LoginRequest,
 ): Promise<string | null> {
   return new Promise((resolve) => {
-    const partition = `demoflow-login-${Date.now()}`;
+    const partition = `demoflow-login-${randomUUID()}`;
     const win = sandboxedWindow(parent, "Log in — close this window when you're done", partition);
     const origins: LocalStorageByOrigin = new Map();
     let finished = false;

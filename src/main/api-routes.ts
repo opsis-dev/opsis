@@ -97,7 +97,7 @@ async function appStatus(): Promise<Answer> {
   });
 }
 
-async function openProject({ req }: Context): Promise<Answer> {
+async function openInEditor({ req }: Context): Promise<Answer> {
   const { dir } = await parseBody(req, openBody);
   if (!path.isAbsolute(dir)) throw new BadRequest("dir must be an absolute folder path.");
   if (!existsSync(path.join(dir, WORKFLOW_FILE)))
@@ -145,7 +145,7 @@ const ROUTES: Route[] = [
     return entry ? apiOk(entry) : apiFailure(404, "No such node type.");
   }),
   route("POST", "/validate", validate),
-  route("POST", "/open", openProject),
+  route("POST", "/open", openInEditor),
   route("GET", "/project", () => askEditor({ op: "read" })),
   route("PUT", "/project", replaceProject),
   route("POST", "/project/nodes", async ({ req }) =>
@@ -183,7 +183,7 @@ const ROUTES: Route[] = [
 
 function pathParts(pathname: string): string[] {
   try {
-    return pathname.split("/").filter(Boolean).map(decodeURIComponent);
+    return segmentsOf(pathname).map(decodeURIComponent);
   } catch {
     throw new BadRequest("The request address isn't encoded correctly.");
   }

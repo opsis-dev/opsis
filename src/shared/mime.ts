@@ -1,3 +1,11 @@
+export const VIDEO_MIME: Readonly<Record<string, string>> = {
+  mp4: "video/mp4",
+  m4v: "video/mp4",
+  mov: "video/quicktime",
+  webm: "video/webm",
+  mkv: "video/x-matroska",
+};
+
 export const IMAGE_MIME: Readonly<Record<string, string>> = {
   png: "image/png",
   jpg: "image/jpeg",

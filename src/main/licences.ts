@@ -1,10 +1,12 @@
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import path from "node:path";
 import { app, shell } from "electron";
+import { nullIfMissing, readTextIfPresent } from "../engine/json";
+import { completeEngineLicences, shippedCreditsCandidates } from "../engine/licences";
+import { logError, logWarning } from "../engine/log";
 import { CHROMIUM_CREDITS_FILE } from "../engine/paths";
 import type { LicenceEntry } from "../shared/ipc";
-import { environment } from "./engine-setup";
+import { engineDir } from "./workers";
 
 const resourceDir = () => (app.isPackaged ? process.resourcesPath : app.getAppPath());
 const runtimeDir = () => path.dirname(process.execPath);
@@ -12,7 +14,7 @@ const runtimeDir = () => path.dirname(process.execPath);
 type LicenceSource = Omit<LicenceEntry, "text" | "file"> & { kind: "text" | "file"; path: string };
 
 function sources(): LicenceSource[] {
-  const engine = environment().engine.dir;
+  const engine = engineDir();
   return [
     {
       id: "demoflow",
@@ -64,8 +66,8 @@ async function entryFor({
   path: file,
   ...entry
 }: LicenceSource): Promise<LicenceEntry | null> {
-  if (kind === "file") return existsSync(file) ? { ...entry, file } : null;
-  const text = await readFile(file, "utf8").catch(() => "");
+  if (kind === "file") return (await nullIfMissing(stat(file))) ? { ...entry, file } : null;
+  const text = await readTextIfPresent(file);
   return text ? { ...entry, text } : null;
 }
 
@@ -80,4 +82,15 @@ export async function openLicenceFile(file: string): Promise<void> {
   if (!openableFiles().has(file)) throw new Error("That file isn't one of the licence files.");
   const error = await shell.openPath(file);
   if (error) throw new Error(error);
+}
+
+export async function completeLicences(): Promise<void> {
+  const root = app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), "resources");
+  try {
+    const result = await completeEngineLicences(engineDir(), shippedCreditsCandidates([root]));
+    if (result === "missing")
+      logWarning("licences", "the recording browser's licence file is missing");
+  } catch (error) {
+    logError("licences", error);
+  }
 }

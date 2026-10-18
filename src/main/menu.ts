@@ -1,7 +1,6 @@
 import { app, Menu, type MenuItemConstructorOptions } from "electron";
-import { IPC } from "../shared/ipc";
 import { appMenu } from "../shared/menu";
-import { getMainWindow } from "./app-windows";
+import { sendMenuCommand } from "./window-registry";
 
 export function buildMenu(): void {
   if (process.platform !== "darwin") {
@@ -21,7 +20,7 @@ export function buildMenu(): void {
       return {
         label: item.label,
         accelerator: item.accelerator,
-        click: () => getMainWindow()?.webContents.send(IPC.menu, item.command),
+        click: () => sendMenuCommand(item.command),
       };
     }),
   }));

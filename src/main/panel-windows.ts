@@ -1,22 +1,11 @@
 import type { BrowserWindow, Rectangle } from "electron";
 import { z } from "zod";
 import { DOCK_PANELS, DOCK_TITLES, IPC, type DockPanelName } from "../shared/ipc";
-import type { WindowOptions } from "./app-windows";
 import { raiseWindow } from "./raise-window";
-import {
-  boundsStore,
-  liveWindow,
-  rectangleSchema,
-  rememberBounds,
-  requireHost,
-  visibleBounds,
-} from "./window-bounds";
+import { boundsStore, openRememberedWindow, rectangleSchema } from "./window-bounds";
+import { getMainWindow, liveWindow } from "./window-registry";
 
-type PanelWindowHost = {
-  main: () => BrowserWindow | null;
-  create: (options: Omit<WindowOptions, "minWidth" | "minHeight">) => BrowserWindow;
-  url: (hash: string) => string;
-};
+const MIN_SIZE = { minWidth: 420, minHeight: 260 };
 
 const DEFAULT_SIZE: Record<DockPanelName, { width: number; height: number }> = {
   preview: { width: 960, height: 640 },
@@ -33,7 +22,6 @@ const store = boundsStore<PanelBounds>(
 );
 
 const windows = new Map<DockPanelName, BrowserWindow>();
-let host: PanelWindowHost | null = null;
 let bounds: PanelBounds | null = null;
 
 async function panelBounds(): Promise<PanelBounds> {
@@ -46,14 +34,10 @@ function savePanelBounds(panel: DockPanelName, rect: Rectangle): void {
   store.save(bounds);
 }
 
-export function initPanelWindows(next: PanelWindowHost): void {
-  host = next;
-}
-
 export const openPanels = (): DockPanelName[] => [...windows.keys()];
 
 function notify(): void {
-  host?.main()?.webContents.send(IPC.panelWindows, openPanels());
+  getMainWindow()?.webContents.send(IPC.panelWindows, openPanels());
 }
 
 export const panelWindow = (panel: DockPanelName) => liveWindow(windows.get(panel));
@@ -64,22 +48,19 @@ export const panelWindows = (): BrowserWindow[] =>
 export const isPanelSender = (id: number) => panelWindows().some((w) => w.webContents.id === id);
 
 export async function openPanelWindow(panel: DockPanelName, projectDir: string): Promise<void> {
-  const { create, url } = requireHost(host, "Panel windows were");
-  const existing = panelWindow(panel);
-  if (existing) {
-    raiseWindow(existing);
-    return;
-  }
-  const size = DEFAULT_SIZE[panel];
-  const rect = visibleBounds((await panelBounds())[panel]);
-  const win = create({ ...size, ...rect, title: `${DOCK_TITLES[panel]} — Demoflow` });
-  windows.set(panel, win);
-  rememberBounds(win, (next) => savePanelBounds(panel, next));
-  win.on("closed", () => {
-    if (windows.get(panel) === win) windows.delete(panel);
-    notify();
+  const win = await openRememberedWindow({
+    existing: panelWindow(panel),
+    saved: async () => (await panelBounds())[panel],
+    save: (rect) => savePanelBounds(panel, rect),
+    options: { ...DEFAULT_SIZE[panel], ...MIN_SIZE, title: `${DOCK_TITLES[panel]} — Demoflow` },
+    hash: `/panel/${panel}?project=${encodeURIComponent(projectDir)}`,
+    onClosed: (closed) => {
+      if (windows.get(panel) === closed) windows.delete(panel);
+      notify();
+    },
   });
-  void win.loadURL(url(`/panel/${panel}?project=${encodeURIComponent(projectDir)}`));
+  if (!win) return;
+  windows.set(panel, win);
   notify();
 }
 

@@ -4,25 +4,13 @@ import path from "node:path";
 import type { BrowserWindow } from "electron";
 import { isInside, toPosixRel } from "../engine/project-paths";
 import { firstFree } from "../shared/lists";
+import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, VIDEO_MIME } from "../shared/mime";
 import { openDialog } from "./dialogs";
 
 const MEDIA_EXTENSIONS = [
-  "mp4",
-  "mov",
-  "webm",
-  "mkv",
-  "png",
-  "jpg",
-  "jpeg",
-  "webp",
-  "gif",
-  "svg",
-  "mp3",
-  "wav",
-  "m4a",
-  "aac",
-  "ogg",
-  "flac",
+  ...Object.keys(VIDEO_MIME),
+  ...IMAGE_EXTENSIONS,
+  ...AUDIO_EXTENSIONS,
   "lottie",
   "json",
 ];

@@ -11,6 +11,12 @@ const analysis = createQueuedWorker<AnalysisResult, Job>({
   kind: "analysis",
   idleMs: 90_000,
   keyOf: (job) => job.key,
+  merge: (queued, incoming) => {
+    if (incoming.request.kind !== "mix")
+      return { ...queued, done: [...queued.done, ...incoming.done] };
+    for (const done of queued.done) done({ kind: "skipped" });
+    return incoming;
+  },
   reply: (msg) => (msg.type === "analysis:done" ? { id: msg.id, result: msg.result } : null),
   stopped: { kind: "error", error: "The sound worker stopped." },
   run: async (job, request) => {
@@ -33,21 +39,12 @@ const keyOf = (r: AnalysisRequest) =>
 export function analyze(request: AnalysisRequest): Promise<AnalysisResult> {
   if (!engineStatus(engineDir()).ffmpeg)
     return Promise.resolve({ kind: "error", error: ENGINE_MISSING_MESSAGE, engineMissing: true });
-  const key = keyOf(request);
-  return new Promise((resolve) => {
-    const existing = analysis.queued(key);
-    if (existing && request.kind === "mix") {
-      for (const done of existing.done) done({ kind: "skipped" });
-      existing.request = request;
-      existing.done = [resolve];
-      return;
-    }
-    if (existing) {
-      existing.done.push(resolve);
-      return;
-    }
-    analysis.enqueue({ request, key, done: [resolve] }, { first: request.kind === "mix" });
-  });
+  return new Promise((resolve) =>
+    analysis.enqueue(
+      { request, key: keyOf(request), done: [resolve] },
+      { first: request.kind === "mix" },
+    ),
+  );
 }
 
 export const stopAnalysis = (): void => analysis.stop();

@@ -1,7 +1,7 @@
 import { Notification } from "electron";
 import { applyRunEvent, emptyRunProgress, type RunProgress } from "../shared/run-progress";
 import type { RunEvent } from "../shared/schema/events";
-import { focusMainWindow, getMainWindow } from "./app-windows";
+import { focusMainWindow, getMainWindow } from "./window-registry";
 
 type RunDone = Extract<RunEvent, { type: "run:done" }>;
 

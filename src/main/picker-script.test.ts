@@ -48,7 +48,7 @@ function installInFakePage() {
     document,
     Element: FakeElement,
     HTMLElement: FakeElement,
-    CSS: { escape: (s: string) => s },
+    CSS: { escape: (s: string) => s.replaceAll('"', '\\"') },
     console: { log: (line: string) => logged.push(line) },
   };
   const run = new Function(...Object.keys(page), pickerScript(PREFIX));
@@ -89,5 +89,18 @@ describe("pickerScript", () => {
     const page = installInFakePage();
     page.click({ target: null, shiftKey: true, clientX: 12.4, clientY: 33.6 });
     expect(page.picks()).toEqual([{ target: "12, 34", css: "", role: "", selectorUsed: "spot" }]);
+  });
+
+  it("quotes a test id it falls back to", () => {
+    const page = installInFakePage();
+    page.click({ target: new FakeElement("DIV", { "data-testid": 'say "hi"' }), shiftKey: false });
+    expect(page.picks()).toEqual([
+      {
+        target: 'say "hi"',
+        css: '[data-testid="say \\"hi\\""]',
+        role: "",
+        selectorUsed: "accessible name",
+      },
+    ]);
   });
 });

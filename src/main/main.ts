@@ -4,27 +4,20 @@ import { IPC } from "../shared/ipc";
 import { stopAnalysis } from "./analysis";
 import { followApiSetting, stopApi } from "./api";
 import { registerApiEditorIpc } from "./api-editor";
-import {
-  broadcast,
-  createMainWindow,
-  getMainWindow,
-  isEditorSender,
-  makeWindow,
-  rendererDir,
-  rendererUrl,
-} from "./app-windows";
-import { completeLicences } from "./engine-setup";
+import { broadcast, createMainWindow } from "./app-windows";
 import { interceptQuit, registerExitIpc } from "./exit";
 import { fontsDir } from "./fonts";
-import { currentProjectDir, registerIpc } from "./ipc-handlers";
+import { registerIpc } from "./ipc-handlers";
+import { completeLicences } from "./licences";
 import { buildMenu } from "./menu";
-import { initPanelWindows } from "./panel-windows";
+import { currentProjectDir } from "./projects";
 import { registerProtocolHandlers, registerSchemes } from "./protocol";
+import { cancelRun } from "./run-host";
 import { onSettingsChange } from "./settings";
-import { initSettingsWindow } from "./settings-window";
 import { stopStills } from "./stills";
+import { getMainWindow, rendererDir } from "./window-registry";
 import { clearStaleWorkerTemps } from "./worker-temp";
-import { cancelRun, workerTempRoot } from "./workers";
+import { workerTempRoot } from "./workers";
 
 if (started) app.quit();
 
@@ -38,13 +31,7 @@ app.whenReady().then(() => {
     rendererDir,
   });
   registerIpc();
-  registerExitIpc(isEditorSender);
-  initPanelWindows({
-    main: getMainWindow,
-    create: (o) => makeWindow({ ...o, minWidth: 420, minHeight: 260 }),
-    url: rendererUrl,
-  });
-  initSettingsWindow({ create: makeWindow, url: rendererUrl });
+  registerExitIpc();
   registerApiEditorIpc();
   onSettingsChange((settings) => broadcast(IPC.settingsChanged, settings));
   followApiSetting();
@@ -66,5 +53,5 @@ app.on("will-quit", () => {
   cancelRun();
   stopAnalysis();
   stopStills();
-  stopApi();
+  void stopApi();
 });
