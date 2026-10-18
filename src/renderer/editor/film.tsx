@@ -54,10 +54,11 @@ function useFilmState(): Film {
   const mixing = useMedia((s) => s.mixing !== null);
   const failedKey = useMedia((s) => s.failedKey);
   const projectDir = useWorkflowStore((s) => s.projectDir);
+  const current = !!sounding && result?.key === sounding.key;
   useEffect(() => {
-    if (!sounding || !projectDir || result?.key === sounding.key) return;
+    if (!sounding || !projectDir || current) return;
     useMedia.getState().requestMix(source, sounding);
-  }, [sounding, source, projectDir, result]);
+  }, [sounding, source, projectDir, current]);
   const audible = useMemo(() => {
     if (!spec) return null;
     if (result?.master && sounding) return withMasterStem(spec, result.master);
@@ -71,7 +72,7 @@ function useFilmState(): Film {
     mix,
     plan,
     result,
-    stale: !!sounding && result?.key !== sounding.key && failedKey !== sounding.key,
+    stale: !!sounding && !current && failedKey !== sounding.key,
     failed: !!plan && failedKey === plan.key,
     mixing,
     audible,

@@ -11,9 +11,9 @@ import { useLiveStore, type LiveCapture } from "../store/live";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { ListRow } from "./list-row";
-import { CAPTURE_STATUS, LiveView } from "./live-view";
+import { LiveView } from "./live-view";
 import { LogView } from "./log-view";
-import { StatusIcon } from "./status-icon";
+import { STATUS_LOOKS, StatusIcon } from "./status-icon";
 
 function StepList({ capture }: { capture: LiveCapture }) {
   const setSelected = useUiStore((s) => s.setSelected);
@@ -55,7 +55,7 @@ export function LiveDialog({ capture }: { capture: LiveCapture }) {
             <DialogTitle>{capture.title}</DialogTitle>
             <DialogDescription>
               {capture.viewport.width}×{capture.viewport.height} ·{" "}
-              {CAPTURE_STATUS[capture.status].word}
+              {STATUS_LOOKS[capture.status].word}
               {capture.message ? ` · ${capture.message}` : ""}
             </DialogDescription>
           </DialogHeader>

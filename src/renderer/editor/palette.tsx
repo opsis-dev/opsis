@@ -27,7 +27,7 @@ import { useWorkflowStore } from "../store/workflow";
 import { NODE_DRAG_TYPE, snapToGrid } from "./canvas-grid";
 import { CategoryBadge } from "./category-badge";
 import { openPanel, usePanels } from "./panels";
-import { CATEGORY_STYLES, portLabel } from "./ports";
+import { CATEGORY_STYLES, portLabels } from "./ports";
 
 type PaletteGroup = { category: NodeCategory; defs: NodeDef[] };
 
@@ -55,8 +55,8 @@ function useAddAtCenter() {
 }
 
 function NodePreview({ def }: { def: NodeDef }) {
-  const inputs = Object.values(def.inputs).map((p) => portLabel(p, "in"));
-  const outputs = Object.values(def.outputs).map((p) => portLabel(p, "out"));
+  const inputs = portLabels(def.inputs, "in");
+  const outputs = portLabels(def.outputs, "out");
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">

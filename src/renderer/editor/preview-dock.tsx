@@ -3,7 +3,7 @@ import { Clapperboard } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { exportReframe, variantSize } from "@/shared/nodes/output";
 import { nodeName } from "@/shared/nodes/registry";
-import type { TimelineSpec } from "@/shared/schema/timeline";
+import { EMPTY_SPEC, type TimelineSpec } from "@/shared/schema/timeline";
 import {
   Empty,
   EmptyDescription,
@@ -11,12 +11,12 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
-import { playRange } from "@/shared/timeline/time";
+import { playRange, wholeFrames } from "@/shared/timeline/time";
 import { usePlayback } from "../store/playback";
 import { useStillsStore } from "../store/stills";
 import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
-import { PreviewComposition } from "./audio-insert";
+import { PreviewComposition } from "./preview-composition";
 import { useFilm } from "./film";
 import { PreviewToolbar } from "./preview-toolbar";
 import { useCompiledContext } from "./use-compiled";
@@ -73,9 +73,12 @@ export function PreviewDock() {
     if (sourceNodeId) useStillsStore.getState().want([sourceNodeId]);
   }, [sourceNodeId]);
 
-  const duration = spec ? Math.max(1, spec.durationInFrames) : 1;
+  const duration = wholeFrames(spec?.durationInFrames ?? 1, 1);
   useSeekToSelection(player, preview);
-  usePlayerBridge(player, preview, { fps: spec?.fps ?? 30, durationInFrames: duration });
+  usePlayerBridge(player, preview, {
+    fps: spec?.fps ?? EMPTY_SPEC.fps,
+    durationInFrames: duration,
+  });
 
   if (!spec) return <NothingToPreview />;
 
@@ -101,7 +104,7 @@ export function PreviewDock() {
           loop
           clickToPlay
           acknowledgeRemotionLicense
-          style={{ width: "100%", height: "100%", maxHeight: "100%" }}
+          style={{ width: "100%", height: "100%" }}
         />
       </div>
     </div>

@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { Button } from "@/renderer/components/ui/button";
 import { Kbd } from "@/renderer/components/ui/kbd";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { whenOneOf } from "@/renderer/lib/one-of";
 import { commandShortcut } from "../app/menu-shortcuts";
 import { useWorkflowStore } from "../store/workflow";
@@ -12,9 +11,10 @@ import { DOCK_PANELS, DOCK_TITLES, type DockPanelName } from "@/shared/ipc";
 import { focusPanel, openPanel, showPanel, togglePanel, usePanels } from "./panels";
 import { PreviewDock } from "./preview-dock";
 import { RunPanel } from "./run-panel";
-import { DOCK_TAB_BAR_PX } from "./side-panel";
 import { TimelinePanel } from "./timeline/timeline-panel";
-import { TooltipButton } from "./tooltip-button";
+import { TooltipButton, WithTooltip } from "./tooltip-button";
+
+export const DOCK_TAB_BAR_PX = 36;
 
 export function DockContent({ panel }: { panel: DockPanelName }) {
   switch (panel) {
@@ -47,33 +47,31 @@ function popOut(panel: DockPanelName): void {
 function DockTab({ panel, popped }: { panel: DockPanelName; popped: boolean }) {
   const title = DOCK_TITLES[panel];
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          popped ? (
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-foreground flex h-full items-center gap-1 px-2 text-sm"
-              onClick={() => focusPanel(panel)}
-            />
-          ) : (
-            <TabsTrigger value={panel} className="flex-none" onClick={() => openPanel("bottom")} />
-          )
-        }
-      >
-        {title}
-        {popped ? <SquareArrowOutUpRight className="size-3" /> : null}
-      </TooltipTrigger>
-      <TooltipContent>
-        {popped ? (
+    <WithTooltip
+      trigger={
+        popped ? (
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-foreground flex h-full items-center gap-1 px-2 text-sm"
+            onClick={() => focusPanel(panel)}
+          />
+        ) : (
+          <TabsTrigger value={panel} className="flex-none" onClick={() => openPanel("bottom")} />
+        )
+      }
+      tip={
+        popped ? (
           "Open in its own window. Close that window to bring it back here."
         ) : (
           <>
             {title} <Kbd>{commandShortcut(`view:focus-${panel}`)}</Kbd>
           </>
-        )}
-      </TooltipContent>
-    </Tooltip>
+        )
+      }
+    >
+      {title}
+      {popped ? <SquareArrowOutUpRight className="size-3" /> : null}
+    </WithTooltip>
   );
 }
 

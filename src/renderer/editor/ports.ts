@@ -1,5 +1,5 @@
 import { humanize } from "@/shared/format";
-import type { NodeCategory } from "@/shared/nodes/define";
+import type { NodeCategory, PortSpec } from "@/shared/nodes/define";
 import type { NodeIconName } from "@/shared/nodes/icon-name";
 import { getNodeDef } from "@/shared/nodes/registry";
 import { PORT_WORDS, type PortType } from "@/shared/schema/workflow";
@@ -23,7 +23,7 @@ export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: NodeIc
   Utility: { color: NEUTRAL_COLOR, icon: "sticky-note" },
 };
 
-const CLIP_COLOR = "#a78bfa";
+const CLIP_COLOR = CATEGORY_STYLES["Text & overlays"].color;
 
 const PORT_COLORS: Record<PortType, string> = {
   session: CATEGORY_STYLES.Browser.color,
@@ -38,8 +38,9 @@ const PORT_COLORS: Record<PortType, string> = {
   file: "#94a3b8",
 };
 
-export const portTypeColor = (type: PortType | undefined): string =>
-  type ? PORT_COLORS[type] : NEUTRAL_COLOR;
+export function portTypeColor(type: PortType | undefined): string {
+  return type ? PORT_COLORS[type] : NEUTRAL_COLOR;
+}
 
 export function categoryColor(nodeType: string): string {
   const category = getNodeDef(nodeType)?.category;
@@ -51,5 +52,10 @@ function portTypeLabel(type: PortType, side: "in" | "out"): string {
   return humanize(PORT_WORDS[type]);
 }
 
-export const portLabel = (spec: { type: PortType; label?: string }, side: "in" | "out") =>
-  spec.label ?? portTypeLabel(spec.type, side);
+export function portLabel(spec: { type: PortType; label?: string }, side: "in" | "out"): string {
+  return spec.label ?? portTypeLabel(spec.type, side);
+}
+
+export function portLabels(ports: Record<string, PortSpec>, side: "in" | "out"): string[] {
+  return Object.values(ports).map((p) => portLabel(p, side));
+}

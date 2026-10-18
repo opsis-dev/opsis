@@ -21,10 +21,7 @@ export function useRevealNode(wrapper: React.RefObject<HTMLDivElement | null>): 
     const abs = internal.internals.positionAbsolute;
     const left = abs.x * zoom + x;
     const top = abs.y * zoom + y;
-    const size =
-      internal.measured.width && internal.measured.height
-        ? { width: internal.measured.width, height: internal.measured.height }
-        : cardSize(node.data.node);
+    const size = cardSize(node.data.node);
     const width = size.width * zoom;
     const height = size.height * zoom;
     if (left >= 0 && top >= 0 && left + width <= box.width && top + height <= box.height) return;

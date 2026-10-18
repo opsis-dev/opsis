@@ -1,4 +1,3 @@
-import { CircleCheck, CircleX, Radio, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { uniqueKeys } from "@/shared/lists";
 import { boundsFromRect } from "@/shared/schema/actions";
@@ -7,42 +6,34 @@ import { Spinner } from "@/renderer/components/ui/spinner";
 import { cn } from "@/renderer/lib/utils";
 import { designScaleFor } from "@/video/camera/lib/design-width";
 import { Ripple } from "../app/motion";
-import type { LiveCapture } from "../store/live";
+import { CLICK_RIPPLE_MS, type LiveCapture } from "../store/live";
 import { FrameOverlay, OVERLAY_WIDTHS } from "./frame-overlay";
+import { STATUS_LOOKS } from "./status-icon";
 
-const RIPPLE_MS = 600;
 const RIPPLE_START_PX = 12;
 const RIPPLE_GROWTH_PX = 36;
 
-export const CAPTURE_STATUS: Record<
-  LiveCapture["status"],
-  {
-    icon: LucideIcon;
-    badge: string;
-    word: string;
-    variant: "default" | "secondary" | "destructive";
-  }
-> = {
-  live: { icon: Radio, badge: "Live", word: "Recording", variant: "default" },
-  done: { icon: CircleCheck, badge: "Done", word: "Done", variant: "secondary" },
-  error: { icon: CircleX, badge: "Failed", word: "Failed", variant: "destructive" },
+const BADGE_VARIANTS: Record<LiveCapture["status"], "default" | "secondary" | "destructive"> = {
+  live: "default",
+  done: "secondary",
+  error: "destructive",
 };
 
 function StatusBadge({ status }: { status: LiveCapture["status"] }) {
-  const { icon: Icon, badge, variant } = CAPTURE_STATUS[status];
+  const { icon: Icon, word, short } = STATUS_LOOKS[status];
   return (
-    <Badge variant={variant}>
+    <Badge variant={BADGE_VARIANTS[status]}>
       <Icon data-icon="inline-start" />
-      {badge}
+      {short ?? word}
     </Badge>
   );
 }
 
 function ClickRipple({ click, width }: { click: LiveCapture["clicks"][number]; width: number }) {
   const [age] = useState(() => Date.now() - click.at);
-  if (age >= RIPPLE_MS) return null;
+  if (age >= CLICK_RIPPLE_MS) return null;
   const scale = designScaleFor(width);
-  const start = age / RIPPLE_MS;
+  const start = age / CLICK_RIPPLE_MS;
   return (
     <Ripple
       cx={click.x}
@@ -51,7 +42,7 @@ function ClickRipple({ click, width }: { click: LiveCapture["clicks"][number]; w
       to={(RIPPLE_START_PX + RIPPLE_GROWTH_PX) * scale}
       opacity={1 - start}
       strokeWidth={width * OVERLAY_WIDTHS.rippleStroke}
-      seconds={(RIPPLE_MS - age) / 1000}
+      seconds={(CLICK_RIPPLE_MS - age) / 1000}
       className="fill-none stroke-primary"
     />
   );

@@ -1,3 +1,5 @@
+import type { KeyLike } from "./chord";
+
 export type MenuCommand =
   | "project:new"
   | "project:open"
@@ -137,8 +139,6 @@ export function menuCommandEntry(
 const SHIFT_AGNOSTIC_KEYS: ReadonlySet<string> = new Set(["=", "-"]);
 
 const SHIFTED_KEYS: Partial<Record<string, string>> = { "=": "+" };
-
-type KeyLike = Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey">;
 
 export function matchesAccelerator(
   accelerator: string,

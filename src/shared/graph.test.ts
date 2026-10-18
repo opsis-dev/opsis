@@ -56,6 +56,14 @@ describe("graph", () => {
     ).toBe("A clip can't connect to a browser action input.");
   });
 
+  it("reports group and note settings that can't be read", () => {
+    const g = new GraphBuilder();
+    g.node("note", "core.note", 0, 0, { text: 5 });
+    g.node("group", "core.group", 1, 0);
+    const issues = validateWorkflow(build(g));
+    expect(issues.map((i) => i.nodeId)).toEqual(["note"]);
+  });
+
   it("rejects port type mismatches and cycles", () => {
     const g = new GraphBuilder();
     const a = g.node("a", "timeline.loop", 0, 0);

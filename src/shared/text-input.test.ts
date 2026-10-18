@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  chordKeys,
-  formatNumberList,
-  nonBlankLines,
-  parseNumberList,
-  parseNumberText,
-} from "./text-input";
+import { formatNumberList, nonBlankLines, parseNumberList, parseNumberText } from "./text-input";
 
 describe("parseNumberText", () => {
   it("reads comma decimals and gives nothing for blank text", () => {
@@ -36,16 +30,5 @@ describe("number lists", () => {
 describe("nonBlankLines", () => {
   it("trims lines and drops empty ones", () => {
     expect(nonBlankLines(" a \n\n  \nb")).toEqual(["a", "b"]);
-  });
-});
-
-describe("chordKeys", () => {
-  it.each([
-    ["Control+K", ["Control", "K"]],
-    ["Shift++", ["Shift", "+"]],
-    ["+", ["+"]],
-    ["Alt + Enter", ["Alt", "Enter"]],
-  ])("splits %j into its keys", (chord, keys) => {
-    expect(chordKeys(chord)).toEqual(keys);
   });
 });

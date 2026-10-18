@@ -37,6 +37,11 @@ type LiveState = {
 
 const MAX_CLICKS = 9;
 
+export const CLICK_RIPPLE_MS = 600;
+
+const recentClicks = (clicks: LiveCapture["clicks"], now: number): LiveCapture["clicks"] =>
+  clicks.filter((c) => now - c.at < CLICK_RIPPLE_MS);
+
 const blank = (captureId: string, nodeId: string): LiveCapture => ({
   captureId,
   nodeId,
@@ -75,11 +80,11 @@ function applyEvent(prev: LiveCapture, e: LiveEvent): LiveCapture {
       return { ...prev, cursor: { x: e.x, y: e.y } };
     case "target":
       return { ...prev, target: { rect: e.rect, label: e.label, selector: e.selector } };
-    case "click":
-      return {
-        ...prev,
-        clicks: appendCapped(prev.clicks, { x: e.x, y: e.y, at: Date.now() }, MAX_CLICKS),
-      };
+    case "click": {
+      const now = Date.now();
+      const click = { x: e.x, y: e.y, at: now };
+      return { ...prev, clicks: appendCapped(recentClicks(prev.clicks, now), click, MAX_CLICKS) };
+    }
     case "end":
       return { ...prev, status: e.ok ? "done" : "error", message: e.message };
   }
@@ -88,7 +93,11 @@ function applyEvent(prev: LiveCapture, e: LiveEvent): LiveCapture {
 function applyMessage(prev: LiveCapture, message: LiveMessage): LiveCapture {
   if (message.type === "event") return applyEvent(prev, message.event);
   if (prev.frameUrl) URL.revokeObjectURL(prev.frameUrl);
-  return { ...prev, frameUrl: frameUrl(message.jpeg) };
+  return {
+    ...prev,
+    frameUrl: frameUrl(message.jpeg),
+    clicks: recentClicks(prev.clicks, Date.now()),
+  };
 }
 
 export const useLiveStore = create<LiveState>()((set, get) => ({

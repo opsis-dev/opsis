@@ -263,7 +263,6 @@ function repeatedNodes(nodes: readonly WorkflowNode[]): Set<WorkflowNode> {
 }
 
 function definitionIssues(wf: Workflow, node: WorkflowNode): GraphIssue[] {
-  if (isStructural(node)) return [];
   const def = getNodeDef(node.type);
   if (!def) return [{ level: "error", nodeId: node.id, message: "This node type isn't available" }];
   if (node.disabled) return [];
@@ -271,7 +270,7 @@ function definitionIssues(wf: Workflow, node: WorkflowNode): GraphIssue[] {
   const paramIssues: GraphIssue[] = parsed.ok
     ? []
     : [{ level: "error", nodeId: node.id, message: parsed.problem }];
-  return [...paramIssues, ...portIssues(wf, node, def.inputs)];
+  return isStructural(node) ? paramIssues : [...paramIssues, ...portIssues(wf, node, def.inputs)];
 }
 
 function nodeIssues(wf: Workflow): GraphIssue[] {

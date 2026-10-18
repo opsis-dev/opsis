@@ -1,3 +1,5 @@
+export type KeyLike = Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey">;
+
 const MODIFIERS = ["Control", "Meta", "Alt", "Shift"];
 
 function keyName(key: string): string {
@@ -5,9 +7,7 @@ function keyName(key: string): string {
   return key.length === 1 ? key.toUpperCase() : key;
 }
 
-export function chordFromEvent(
-  e: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey">,
-): string | null {
+export function chordFromEvent(e: KeyLike): string | null {
   if (MODIFIERS.includes(e.key)) return null;
   return [
     e.ctrlKey && "Control",
@@ -19,3 +19,8 @@ export function chordFromEvent(
     .filter(Boolean)
     .join("+");
 }
+
+export const chordKeys = (chord: string): string[] =>
+  chord.split(/\+(?=.)/).map((key) => key.trim());
+
+export const pressedChord = (chord: string): string => chordKeys(chord).join("+");

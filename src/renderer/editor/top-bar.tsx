@@ -1,4 +1,3 @@
-import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   FolderOpen,
@@ -16,19 +15,16 @@ import { Kbd } from "@/renderer/components/ui/kbd";
 import { Separator } from "@/renderer/components/ui/separator";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { Toggle } from "@/renderer/components/ui/toggle";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { AppBar } from "../app/app-bar";
+import { dispatchMenuCommand } from "../app/menu-commands";
 import { commandLabel, commandShortcut } from "../app/menu-shortcuts";
 import { useRunStore } from "../store/run";
-import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { tidyLayout } from "./layout";
 import { LiveToggle } from "./live-pip";
-import { PANEL_SIDES, PANEL_TOGGLES, togglePanel, usePanels } from "./panels";
+import { PANEL_SIDES, PANEL_TOGGLES, usePanels } from "./panels";
 import { revealOutputs } from "./reveal";
-import { startRun } from "./run";
 import { RunningLabel, StopRunButton } from "./run-controls";
-import { TooltipButton } from "./tooltip-button";
+import { TooltipButton, WithTooltip } from "./tooltip-button";
 
 const PANEL_BUTTONS = PANEL_SIDES.map((side) => ({
   side,
@@ -42,23 +38,24 @@ function PanelToggles() {
   return (
     <div className="flex items-center gap-0.5">
       {PANEL_BUTTONS.map(({ side, icon: Icon, label, keys }) => (
-        <Tooltip key={side}>
-          <TooltipTrigger
-            render={
-              <Toggle
-                size="sm"
-                aria-label={`${open[side] ? "Hide" : "Show"} ${label}`}
-                pressed={open[side]}
-                onPressedChange={() => togglePanel(side)}
-              />
-            }
-          >
-            <Icon />
-          </TooltipTrigger>
-          <TooltipContent>
-            {open[side] ? "Hide" : "Show"} {label} <Kbd>{keys}</Kbd>
-          </TooltipContent>
-        </Tooltip>
+        <WithTooltip
+          key={side}
+          trigger={
+            <Toggle
+              size="sm"
+              aria-label={`${open[side] ? "Hide" : "Show"} ${label}`}
+              pressed={open[side]}
+              onPressedChange={() => dispatchMenuCommand(PANEL_TOGGLES[side].command)}
+            />
+          }
+          tip={
+            <>
+              {open[side] ? "Hide" : "Show"} {label} <Kbd>{keys}</Kbd>
+            </>
+          }
+        >
+          <Icon />
+        </WithTooltip>
       ))}
     </div>
   );
@@ -67,7 +64,6 @@ function PanelToggles() {
 function HistoryButtons() {
   const canUndo = useStore(useWorkflowStore.temporal, (s) => s.pastStates.length > 0);
   const canRedo = useStore(useWorkflowStore.temporal, (s) => s.futureStates.length > 0);
-  const { undo, redo } = useWorkflowStore.getState();
   return (
     <>
       <TooltipButton
@@ -75,14 +71,14 @@ function HistoryButtons() {
         icon={Undo2}
         shortcut={commandShortcut("edit:undo")}
         disabled={!canUndo}
-        onClick={() => undo()}
+        onClick={() => dispatchMenuCommand("edit:undo")}
       />
       <TooltipButton
         label="Redo"
         icon={Redo2}
         shortcut={commandShortcut("edit:redo")}
         disabled={!canRedo}
-        onClick={() => redo()}
+        onClick={() => dispatchMenuCommand("edit:redo")}
       />
     </>
   );
@@ -92,7 +88,7 @@ function RunControls() {
   const running = useRunStore((s) => s.running);
   if (!running)
     return (
-      <Button size="sm" onClick={() => void startRun()}>
+      <Button size="sm" onClick={() => dispatchMenuCommand("run:start")}>
         <Play data-icon="inline-start" />
         Run
       </Button>
@@ -109,7 +105,6 @@ function RunControls() {
 }
 
 export function TopBar({ projectDir }: { projectDir: string }) {
-  const navigate = useNavigate();
   const name = useWorkflowStore((s) => s.workflow?.name);
   const dirty = useWorkflowStore((s) => s.revision !== s.savedRevision);
 
@@ -119,7 +114,7 @@ export function TopBar({ projectDir }: { projectDir: string }) {
         variant="ghost"
         size="icon-sm"
         aria-label="All projects"
-        onClick={() => void navigate({ to: "/" })}
+        onClick={() => dispatchMenuCommand("view:projects")}
       >
         <ArrowLeft />
       </Button>
@@ -133,9 +128,9 @@ export function TopBar({ projectDir }: { projectDir: string }) {
         label="Tidy up layout"
         icon={LayoutGrid}
         shortcut={commandShortcut("edit:layout")}
-        onClick={() => void tidyLayout()}
+        onClick={() => dispatchMenuCommand("edit:layout")}
       />
-      <Button variant="ghost" size="sm" onClick={() => useUiStore.getState().setPaletteOpen(true)}>
+      <Button variant="ghost" size="sm" onClick={() => dispatchMenuCommand("edit:add-node")}>
         <Plus data-icon="inline-start" />
         Add node <Kbd>{commandShortcut("edit:add-node")}</Kbd>
       </Button>
@@ -151,7 +146,7 @@ export function TopBar({ projectDir }: { projectDir: string }) {
         variant="ghost"
         size="icon-sm"
         aria-label="Settings"
-        onClick={() => void window.demoflow.openSettings()}
+        onClick={() => dispatchMenuCommand("view:settings")}
       >
         <Settings />
       </Button>

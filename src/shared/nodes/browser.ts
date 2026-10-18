@@ -30,7 +30,8 @@ import {
   text,
 } from "./params";
 import { formatDuration, displayAddress } from "../format";
-import { chordKeys, nonBlankLines } from "../text-input";
+import { chordKeys } from "../chord";
+import { nonBlankLines } from "../text-input";
 import { PAUSE_MARK } from "../vars";
 
 const chain = {

@@ -2,7 +2,7 @@ import { CircleX, FolderOpen } from "lucide-react";
 import { useRef, useState } from "react";
 import { formatDuration } from "@/shared/format";
 import { nodeName } from "@/shared/nodes/registry";
-import { outputOf, type RecordingValue } from "@/shared/schema/values";
+import { outputOf } from "@/shared/schema/values";
 import type { ActionLog } from "@/shared/schema/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Badge } from "@/renderer/components/ui/badge";
@@ -99,19 +99,20 @@ function Footage({
   );
 }
 
-function ReplayFootage({
-  recording,
-  imageSrc,
-  lastError,
-  hasTrace,
-  projectDir,
-}: {
-  recording: RecordingValue | undefined;
-  imageSrc: string | null;
-  lastError: string | undefined;
-  hasTrace: boolean;
-  projectDir: string | null;
-}) {
+function useReplaySource(nodeId: string) {
+  const result = useRunStore((s) => s.results[nodeId]);
+  const latestTrace = useRunStore((s) => s.traces[nodeId]);
+  return {
+    recording: outputOf(result, "recording", "recording"),
+    imageSrc: outputOf(result, "image", "image")?.src ?? null,
+    traceId: latestTrace ?? result?.traceId,
+  };
+}
+
+function ReplayFootage({ nodeId }: { nodeId: string }) {
+  const { recording, imageSrc, traceId } = useReplaySource(nodeId);
+  const lastError = useRunStore((s) => s.errors[nodeId]);
+  const projectDir = useWorkflowStore((s) => s.projectDir);
   const setSelected = useUiStore((s) => s.setSelected);
   const video = useRef<HTMLVideoElement>(null);
   const [time, setTime] = useState(0);
@@ -129,7 +130,7 @@ function ReplayFootage({
             <AlertDescription>
               {lastError.split("\n")[0]}
               {src ? " The footage below is from the last successful take." : ""}
-              {hasTrace ? " Open the Trace tab to see where it stopped." : ""}
+              {traceId ? " Open the Trace tab to see where it stopped." : ""}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -162,25 +163,11 @@ function ReplayFootage({
 function ReplayContent({ nodeId }: { nodeId: string }) {
   const tab = useUiStore((s) => s.replayTab);
   const setTab = useUiStore((s) => s.setReplayTab);
-  const result = useRunStore((s) => s.results[nodeId]);
-  const latestTrace = useRunStore((s) => s.traces[nodeId]);
-  const lastError = useRunStore((s) => s.errors[nodeId]);
+  const { recording, traceId } = useReplaySource(nodeId);
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const node = useWorkflowStore((s) => findById(s.workflow?.nodes, nodeId));
-  const recording = outputOf(result, "recording", "recording");
-  const imageSrc = outputOf(result, "image", "image")?.src ?? null;
-  const traceId = latestTrace ?? result?.traceId;
   const actionCount = recording?.log?.actions.length ?? 0;
-
-  const footage = (
-    <ReplayFootage
-      recording={recording}
-      imageSrc={imageSrc}
-      lastError={lastError}
-      hasTrace={!!traceId}
-      projectDir={projectDir}
-    />
-  );
+  const footage = <ReplayFootage nodeId={nodeId} />;
 
   return (
     <>

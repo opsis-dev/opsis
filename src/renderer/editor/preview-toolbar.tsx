@@ -12,9 +12,9 @@ import {
 } from "@/renderer/components/ui/select";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { whenFirstOneOf, whenOneOf } from "@/renderer/lib/one-of";
 import { PREVIEW_SHAPES, useViewOptions } from "../store/view-options";
+import { WithTooltip } from "./tooltip-button";
 import { framesToMs } from "@/shared/timeline/time";
 
 const PROJECT_SHAPE = "Project shape";
@@ -22,15 +22,13 @@ const shapeLabel = (shape: string) => (shape === "project" ? PROJECT_SHAPE : sha
 
 function UpdatingSound() {
   return (
-    <Tooltip>
-      <TooltipTrigger render={<span className="flex shrink-0 items-center gap-1" />}>
-        <Spinner className="size-3" />
-        Updating sound
-      </TooltipTrigger>
-      <TooltipContent>
-        The sound is being mixed again. You hear the previous mix until it's ready.
-      </TooltipContent>
-    </Tooltip>
+    <WithTooltip
+      trigger={<span className="flex shrink-0 items-center gap-1" />}
+      tip="The sound is being mixed again. You hear the previous mix until it's ready."
+    >
+      <Spinner className="size-3" />
+      Updating sound
+    </WithTooltip>
   );
 }
 
@@ -69,16 +67,18 @@ function QualityToggle() {
       value={[quality]}
       onValueChange={whenFirstOneOf(PREVIEW_QUALITIES, (v) => setOption("previewQuality", v))}
     >
-      <Tooltip>
-        <TooltipTrigger render={<ToggleGroupItem value="fast" />}>Fast</TooltipTrigger>
-        <TooltipContent>
-          Smooth playback: smaller recordings and no motion blur. The export is unchanged.
-        </TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger render={<ToggleGroupItem value="exact" />}>Exact</TooltipTrigger>
-        <TooltipContent>Exactly what the export looks like. May stutter.</TooltipContent>
-      </Tooltip>
+      <WithTooltip
+        trigger={<ToggleGroupItem value="fast" />}
+        tip="Smooth playback: smaller recordings and no motion blur. The export is unchanged."
+      >
+        Fast
+      </WithTooltip>
+      <WithTooltip
+        trigger={<ToggleGroupItem value="exact" />}
+        tip="Exactly what the export looks like. May stutter."
+      >
+        Exact
+      </WithTooltip>
     </ToggleGroup>
   );
 }

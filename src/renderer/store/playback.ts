@@ -8,7 +8,6 @@ type PlayerController = {
   seek: (frame: number) => void;
   play: () => void;
   pause: () => void;
-  setRate: (rate: number) => void;
 };
 
 export type PlaybackCommand =
@@ -60,7 +59,7 @@ export function runPlaybackCommand(command: PlaybackCommand): void {
       local.pause();
       break;
     case "rate":
-      local.setRate(command.rate);
+      usePlayback.setState({ rate: command.rate });
       break;
   }
 }

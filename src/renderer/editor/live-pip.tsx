@@ -6,8 +6,7 @@ import { LiveDialog } from "./live-dialog";
 import { LiveView } from "./live-view";
 
 function PipWindow({ capture }: { capture: LiveCapture }) {
-  const order = useLiveStore((s) => s.order);
-  const titles = useLiveStore(useShallow((s) => s.order.map((id) => s.captures[id]?.title ?? "")));
+  const captures = useLiveStore(useShallow((s) => s.order.map((id) => s.captures[id])));
   const focus = useLiveStore((s) => s.focus);
   const setPipOpen = useLiveStore((s) => s.setPipOpen);
   const setDialogOpen = useLiveStore((s) => s.setDialogOpen);
@@ -15,9 +14,9 @@ function PipWindow({ capture }: { capture: LiveCapture }) {
     <div className="bg-card absolute right-4 bottom-4 z-10 flex w-96 flex-col gap-2 rounded-xl border p-2 shadow-xl">
       <div className="flex items-center gap-1">
         <span className="flex-1 truncate px-1 text-sm font-medium">{capture.title}</span>
-        {order.length > 1 ? (
+        {captures.length > 1 ? (
           <span className="text-muted-foreground text-xs tabular-nums">
-            {order.indexOf(capture.captureId) + 1}/{order.length}
+            {captures.findIndex((c) => c.captureId === capture.captureId) + 1}/{captures.length}
           </span>
         ) : null}
         <Button
@@ -40,16 +39,16 @@ function PipWindow({ capture }: { capture: LiveCapture }) {
       <button type="button" className="cursor-zoom-in" onClick={() => setDialogOpen(true)}>
         <LiveView capture={capture} />
       </button>
-      {order.length > 1 ? (
+      {captures.length > 1 ? (
         <div className="flex gap-1 overflow-x-auto">
-          {order.map((id, i) => (
+          {captures.map((c) => (
             <Button
-              key={id}
+              key={c.captureId}
               size="xs"
-              variant={id === capture.captureId ? "secondary" : "ghost"}
-              onClick={() => focus(id)}
+              variant={c.captureId === capture.captureId ? "secondary" : "ghost"}
+              onClick={() => focus(c.captureId)}
             >
-              {titles[i]}
+              {c.title}
             </Button>
           ))}
         </div>

@@ -1,8 +1,25 @@
 import type { LucideIcon } from "lucide-react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactElement, ReactNode } from "react";
 import { Button } from "@/renderer/components/ui/button";
 import { Kbd } from "@/renderer/components/ui/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
+
+export function WithTooltip({
+  trigger,
+  tip,
+  children,
+}: {
+  trigger: ReactElement;
+  tip: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger render={trigger}>{children}</TooltipTrigger>
+      <TooltipContent>{tip}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 export function TooltipButton({
   label,
@@ -20,29 +37,29 @@ export function TooltipButton({
   size?: ComponentProps<typeof Button>["size"];
 }) {
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            variant="ghost"
-            size={size}
-            aria-label={label}
-            disabled={disabled}
-            onClick={onClick}
-          />
-        }
-      >
-        <Icon />
-      </TooltipTrigger>
-      <TooltipContent>
-        {label}
-        {shortcut ? (
-          <>
-            {" "}
-            <Kbd>{shortcut}</Kbd>
-          </>
-        ) : null}
-      </TooltipContent>
-    </Tooltip>
+    <WithTooltip
+      trigger={
+        <Button
+          variant="ghost"
+          size={size}
+          aria-label={label}
+          disabled={disabled}
+          onClick={onClick}
+        />
+      }
+      tip={
+        <>
+          {label}
+          {shortcut ? (
+            <>
+              {" "}
+              <Kbd>{shortcut}</Kbd>
+            </>
+          ) : null}
+        </>
+      }
+    >
+      <Icon />
+    </WithTooltip>
   );
 }

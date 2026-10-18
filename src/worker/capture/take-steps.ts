@@ -26,7 +26,8 @@ import { customLabel, nodeName } from "../../shared/nodes/registry";
 import type { Action } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { PAUSE_MARK } from "../../shared/vars";
-import { chordKeys, nonBlankLines } from "../../shared/text-input";
+import { pressedChord } from "../../shared/chord";
+import { nonBlankLines } from "../../shared/text-input";
 import { errorMessage } from "../../shared/errors";
 import { parsePath } from "./drag-path";
 import { landedOnSignIn } from "./driver-helpers";
@@ -196,7 +197,7 @@ const STEPS = new Map<string, StepSpec>([
     await take.pauseIfRolling(p.after);
   }),
   step(pressNode, async (take, p, node) => {
-    const chord = chordKeys(p.keys).join("+");
+    const chord = pressedChord(p.keys);
     if (take.cursorDriver) await take.cursorDriver.pressKey(chord, nodeName(node, p.keys));
     else await take.page.keyboard.press(chord);
     await take.pauseIfRolling(p.after);

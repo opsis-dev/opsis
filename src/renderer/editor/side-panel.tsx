@@ -1,9 +1,9 @@
 import type { ComponentProps } from "react";
 import { ResizablePanel } from "@/renderer/components/ui/resizable";
-import { panelRef, usePanels, type PanelSide } from "./panels";
+import { DOCK_TAB_BAR_PX } from "./dock";
+import { PANEL_REFS, usePanels, type PanelSide } from "./panels";
 
 const CATEGORY_RAIL_PX = 44;
-export const DOCK_TAB_BAR_PX = 36;
 const BORDER_PX = 1;
 const OPEN_ABOVE_COLLAPSED_PX = 12;
 
@@ -26,7 +26,7 @@ export function SidePanel({
       id={side}
       className="bg-sidebar"
       style={{ overflow: "hidden" }}
-      panelRef={panelRef(side)}
+      panelRef={PANEL_REFS[side]}
       collapsible
       collapsedSize={`${collapsedPx}px`}
       onResize={(size) =>

@@ -42,7 +42,7 @@ export function RunPanel() {
   const nodes = useWorkflowStore((s) => s.workflow?.nodes ?? NO_NODES);
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const filter = useUiStore((s) => singleSelected(s.selectedIds));
-  const filterNode = filter ? (findById(nodes, filter) ?? null) : null;
+  const filterNode = findById(nodes, filter) ?? null;
 
   return (
     <div className="grid h-full grid-cols-[minmax(220px,1fr)_2fr_minmax(240px,1.2fr)] grid-rows-[minmax(0,1fr)] divide-x">

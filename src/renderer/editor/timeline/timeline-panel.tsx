@@ -11,6 +11,7 @@ import {
 import { isEditingElement } from "@/renderer/lib/dom";
 import { useWorkflowStore } from "../../store/workflow";
 import { useFilm, type Film } from "../film";
+import { focusTargetRef } from "../panels";
 import { RemoveDialog } from "./remove-dialog";
 import { timelineKeyAction } from "./timeline-keys";
 import { TimelineToolbar } from "./timeline-toolbar";
@@ -19,6 +20,8 @@ import { useTimelineCommands } from "./use-timeline-commands";
 import { useTimelineZoom } from "./use-timeline-zoom";
 
 const hasFlat = (film: Film): film is TimelineFilm => film.flat !== null;
+
+const timelineFocus = focusTargetRef("timeline");
 
 function TimelineEditor({ film, workflow }: { film: TimelineFilm; workflow: Workflow }) {
   const { flat, sourceNodeId } = film;
@@ -45,6 +48,7 @@ function TimelineEditor({ film, workflow }: { film: TimelineFilm; workflow: Work
 
   return (
     <div
+      ref={timelineFocus}
       data-timeline-root
       tabIndex={0}
       className="flex h-full flex-col outline-none"

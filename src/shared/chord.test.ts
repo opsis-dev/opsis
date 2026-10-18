@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chordFromEvent } from "./keys";
+import { chordFromEvent, chordKeys, pressedChord } from "./chord";
 
 const key = (
   k: string,
@@ -24,5 +24,20 @@ describe("recording a shortcut", () => {
     ["Escape", {}, "Escape"],
   ] as const)("writes %j with %j as %j", (k, mods, chord) => {
     expect(key(k, mods)).toBe(chord);
+  });
+});
+
+describe("chordKeys", () => {
+  it.each([
+    ["Control+K", ["Control", "K"]],
+    ["Shift++", ["Shift", "+"]],
+    ["+", ["+"]],
+    ["Alt + Enter", ["Alt", "Enter"]],
+  ])("splits %j into its keys", (chord, keys) => {
+    expect(chordKeys(chord)).toEqual(keys);
+  });
+
+  it("presses a chord typed with spaces", () => {
+    expect(pressedChord("Alt + Enter")).toBe("Alt+Enter");
   });
 });

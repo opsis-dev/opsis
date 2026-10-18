@@ -9,7 +9,18 @@ const elk = new ELK();
 const LAYER_GAP = 80;
 const NODE_GAP = 32;
 
-const portId = (nodeId: string, side: "in" | "out", port: string) => `${nodeId}::${side}::${port}`;
+type Side = "in" | "out";
+
+const portId = (nodeId: string, side: Side, port: string) => `${nodeId}::${side}::${port}`;
+
+const portsFor = (nodeId: string, names: string[], side: Side) =>
+  names.map((p, i) => ({
+    id: portId(nodeId, side, p),
+    layoutOptions: {
+      "elk.port.side": side === "in" ? "WEST" : "EAST",
+      "elk.port.index": String(i),
+    },
+  }));
 
 async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: number }>> {
   const nodes = wf.nodes.filter((n) => !n.parentId && !isGroupNode(n));
@@ -26,22 +37,14 @@ async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: 
     },
     children: nodes.map((n) => {
       const def = getNodeDef(n.type);
-      const inputs = Object.keys(def?.inputs ?? {});
-      const outputs = Object.keys(def?.outputs ?? {});
       const size = cardSize(n);
       return {
         id: n.id,
         width: size.width,
         height: size.height,
         ports: [
-          ...inputs.map((p, i) => ({
-            id: portId(n.id, "in", p),
-            layoutOptions: { "elk.port.side": "WEST", "elk.port.index": String(i) },
-          })),
-          ...outputs.map((p, i) => ({
-            id: portId(n.id, "out", p),
-            layoutOptions: { "elk.port.side": "EAST", "elk.port.index": String(i) },
-          })),
+          ...portsFor(n.id, Object.keys(def?.inputs ?? {}), "in"),
+          ...portsFor(n.id, Object.keys(def?.outputs ?? {}), "out"),
         ],
       };
     }),

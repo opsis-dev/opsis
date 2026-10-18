@@ -20,6 +20,8 @@ export const isDockPanel = (v: unknown): v is DockPanelName => isOneOf(DOCK_PANE
 
 const handles: Partial<Record<PanelSide, PanelImperativeHandle | null>> = {};
 
+const focusTargets: Partial<Record<DockPanelName, HTMLElement | null>> = {};
+
 export const storedTab = (): DockPanelName => readPref("dockTab", "preview", isDockPanel);
 
 export const usePanels = create<{
@@ -43,8 +45,18 @@ export const usePanels = create<{
   setPopped: (popped) => set({ popped }),
 }));
 
-export const panelRef = (side: PanelSide) => (handle: PanelImperativeHandle | null) => {
+const handleRef = (side: PanelSide) => (handle: PanelImperativeHandle | null) => {
   handles[side] = handle;
+};
+
+export const PANEL_REFS: Record<PanelSide, (handle: PanelImperativeHandle | null) => void> = {
+  left: handleRef("left"),
+  bottom: handleRef("bottom"),
+  right: handleRef("right"),
+};
+
+export const focusTargetRef = (panel: DockPanelName) => (el: HTMLElement | null) => {
+  focusTargets[panel] = el;
 };
 
 export function togglePanel(side: PanelSide): void {
@@ -59,22 +71,21 @@ export function openPanel(side: PanelSide): void {
   if (handle?.isCollapsed()) handle.expand();
 }
 
-export function showPanel(panel: DockPanelName): void {
+export function showPanel(panel: DockPanelName): boolean {
   if (usePanels.getState().popped.includes(panel)) {
     void window.demoflow.focusPanelWindow(panel);
-    return;
+    return false;
   }
   openPanel("bottom");
   usePanels.getState().setActive(panel);
+  return true;
 }
 
 export function focusPanel(panel: DockPanelName): void {
-  showPanel(panel);
-  if (usePanels.getState().popped.includes(panel)) return;
-  requestAnimationFrame(() => {
-    const el = document.getElementById(`panel-${panel}`);
-    (el?.querySelector<HTMLElement>("[data-timeline-root]") ?? el)?.focus();
-  });
+  if (!showPanel(panel)) return;
+  requestAnimationFrame(() =>
+    (focusTargets[panel] ?? document.getElementById(`panel-${panel}`))?.focus(),
+  );
 }
 
 export const layoutStorage: LayoutStorage = { getItem: readStored, setItem: writeStored };

@@ -10,11 +10,10 @@ export function claimSlot(
   active: readonly ThumbSlot[],
   id: string,
   priority: boolean,
-  max = MAX_LIVE_THUMBS,
 ): readonly ThumbSlot[] {
   if (active.some((s) => s.id === id)) return active;
   const slot = { id, priority };
-  if (active.length < max) return [...active, slot];
+  if (active.length < MAX_LIVE_THUMBS) return [...active, slot];
   if (!priority) return active;
   const evict = Math.max(
     0,

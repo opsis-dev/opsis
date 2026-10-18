@@ -13,9 +13,10 @@ import { keepMine, loadFromDisk } from "./save";
 
 export function DiskChangeDialog() {
   const change = useDiskChange((s) => s.change);
-  const readable = !!change?.workflow;
+  if (!change) return null;
+  const readable = !!change.workflow;
   return (
-    <AlertDialog open={!!change}>
+    <AlertDialog open>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>The project file changed on disk</AlertDialogTitle>
@@ -27,7 +28,7 @@ export function DiskChangeDialog() {
         </AlertDialogHeader>
         <AlertDialogFooter>
           {readable ? (
-            <AlertDialogAction variant="outline" onClick={() => change && loadFromDisk(change)}>
+            <AlertDialogAction variant="outline" onClick={() => loadFromDisk(change)}>
               Load the file
             </AlertDialogAction>
           ) : (
@@ -35,9 +36,7 @@ export function DiskChangeDialog() {
               Wait
             </AlertDialogCancel>
           )}
-          <AlertDialogAction onClick={() => change && void keepMine(change)}>
-            Keep mine
-          </AlertDialogAction>
+          <AlertDialogAction onClick={() => void keepMine(change)}>Keep mine</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

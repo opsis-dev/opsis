@@ -30,7 +30,7 @@ import { ReplayButtons } from "./replay-buttons";
 import { startRun } from "./run";
 import { useFormContext } from "./use-form-context";
 import { useNodeProblems } from "./use-node-problems";
-import { useTypingAsOneUndoStep } from "./use-typing-undo";
+import { useTypingAsOneUndoStep } from "./use-typing-as-one-undo-step";
 import { ZodForm } from "./zod-form";
 
 export function Inspector() {

@@ -2,7 +2,7 @@ import type { Edge, Node } from "@xyflow/react";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { isGroupNode, isNoteNode } from "@/shared/graph";
 
-export type FlowNodeData = { node: WorkflowNode };
+type FlowNodeData = { node: WorkflowNode };
 
 export type CanvasNode = Node<FlowNodeData>;
 

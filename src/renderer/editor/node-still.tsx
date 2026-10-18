@@ -9,7 +9,7 @@ import { PROJECT_DIRS } from "@/shared/project-dirs";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import type { ClipValue, NodeResult } from "@/shared/schema/values";
 import type { WorkflowSettings } from "@/shared/schema/workflow";
-import { frameIn } from "@/shared/timeline/time";
+import { frameIn, wholeFrames } from "@/shared/timeline/time";
 import { DemoTimeline } from "@/video/demo-timeline";
 import { useDebouncedValue } from "@/renderer/lib/use-debounced-value";
 import { useEnvironment } from "../store/environment";
@@ -81,7 +81,7 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
 
   if (!spec) return null;
   const aspectRatio = `${settings.width} / ${settings.height}`;
-  const wide = settings.width / settings.height >= VIDEO_ASPECT;
+  const fittedSide = settings.width / settings.height >= VIDEO_ASPECT ? "width" : "height";
   return (
     <div
       ref={ref}
@@ -93,10 +93,10 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
           inputProps={spec}
           compositionWidth={spec.width}
           compositionHeight={spec.height}
-          durationInFrames={Math.max(1, spec.durationInFrames)}
+          durationInFrames={wholeFrames(spec.durationInFrames, 1)}
           fps={spec.fps}
           frameToDisplay={middleFrame(spec)}
-          style={{ aspectRatio, [wide ? "width" : "height"]: "100%" }}
+          style={{ aspectRatio, [fittedSide]: "100%" }}
           errorFallback={() => null}
         />
       ) : null}

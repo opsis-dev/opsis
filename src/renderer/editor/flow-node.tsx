@@ -63,6 +63,8 @@ const DONE_BORDER =
 
 const GROUP_MIN_WIDTH = 240;
 const GROUP_MIN_HEIGHT = 160;
+const GROUP_BORDER_MIX = "53%";
+const GROUP_FILL_MIX = "6%";
 
 const FOOTERS = {
   error: { className: "text-destructive text-xs", clamp: "line-clamp-3" },
@@ -212,8 +214,8 @@ export const GroupFlowNode = memo(function GroupFlowNode({
       <div
         className="size-full rounded-xl border-2 border-dashed"
         style={{
-          borderColor: `color-mix(in srgb, ${color} 53%, transparent)`,
-          background: `color-mix(in srgb, ${color} 6%, transparent)`,
+          borderColor: `color-mix(in srgb, ${color} ${GROUP_BORDER_MIX}, transparent)`,
+          background: `color-mix(in srgb, ${color} ${GROUP_FILL_MIX}, transparent)`,
         }}
       >
         <div

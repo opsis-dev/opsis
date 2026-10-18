@@ -41,7 +41,6 @@ function usePlayerRegistration(player: PlayerRef | null, durationInFrames: numbe
       seek: (frame) => player.seekTo(frame),
       play: () => player.play(),
       pause: () => player.pause(),
-      setRate: (rate) => usePlayback.setState({ rate }),
     });
     const frame = usePlayback.getState().frame;
     if (frame > 0) player.seekTo(Math.min(frame, durationInFrames - 1));
