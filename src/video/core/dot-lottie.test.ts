@@ -1,6 +1,6 @@
 import { strToU8, zipSync } from "fflate";
 import { describe, expect, it } from "vitest";
-import { readDotLottie } from "./dot-lottie";
+import { readLottie } from "./dot-lottie";
 
 const animation = {
   v: "5.7.0",
@@ -21,7 +21,7 @@ describe("dotLottie", () => {
       "animations/intro.json": strToU8(JSON.stringify(animation)),
       "images/img_0.png": png,
     });
-    expect(readDotLottie(zip)).toMatchObject({
+    expect(readLottie(zip)).toMatchObject({
       fr: 30,
       assets: [{ e: 1, u: "", p: "data:image/png;base64,iVBORw==" }],
     });
@@ -29,16 +29,16 @@ describe("dotLottie", () => {
 
   it("finds the animation without a manifest", () => {
     const zip = zipSync({ "animations/x.json": strToU8(JSON.stringify(animation)) });
-    expect(readDotLottie(zip)).toMatchObject({ op: 60 });
+    expect(readLottie(zip)).toMatchObject({ op: 60 });
   });
 
   it("refuses a file that isn't an animation", () => {
     const zip = zipSync({ "animations/x.json": strToU8(JSON.stringify({ layers: [] })) });
-    expect(() => readDotLottie(zip)).toThrow(/isn't an animation/);
+    expect(() => readLottie(zip)).toThrow(/isn't an animation/);
   });
 
   it("explains an empty file", () => {
     const zip = zipSync({ "manifest.json": strToU8("{}") });
-    expect(() => readDotLottie(zip)).toThrow(/no animation/);
+    expect(() => readLottie(zip)).toThrow(/no animation/);
   });
 });

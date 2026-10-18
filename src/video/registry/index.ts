@@ -1,13 +1,13 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { cancelRender, continueRender, delayRender } from "remotion";
 import {
+  Backdrop,
   Gradient,
   LightLeakElement,
   NoiseField,
   Paper,
   Solid,
   Starburst,
-  StudioBackdrop,
 } from "../core/backgrounds";
 import { LottieElement } from "../core/lottie";
 import { ImageElement, StillElement, VideoElement, VideoLoop } from "../core/media";
@@ -17,7 +17,6 @@ import { RecordingClip } from "../core/recording-clip";
 import { Callout, Captions, KineticHeadline, LowerThird, Title } from "../core/text";
 import { coreTransitions } from "../core/transitions";
 import { generatedElementLoaders } from "./components.generated";
-import { useStableValue } from "../core/loading";
 import type { Size } from "../core/still-layout";
 import { component } from "./framing";
 import {
@@ -46,12 +45,18 @@ const core: Partial<Record<string, ElementComponent>> = {
   "core/noise": component(NoiseField),
   "core/starburst": component(Starburst),
   "core/paper": component(Paper),
-  "core/backdrop": component(StudioBackdrop),
+  "core/backdrop": component(Backdrop),
   "core/light-leak": component(LightLeakElement),
 };
 
 const loaded = new Map<string, ElementImpl>();
 const loading = new Map<string, Promise<ElementImpl | undefined>>();
+const loadListeners = new Set<() => void>();
+
+function subscribeToLoads(listener: () => void): () => void {
+  loadListeners.add(listener);
+  return () => loadListeners.delete(listener);
+}
 
 const isCore = (key: string) => key in core || key in coreTransitions;
 
@@ -64,6 +69,7 @@ function loadElement(key: string): Promise<ElementImpl | undefined> {
   if (!pending) {
     pending = loader().then((impl) => {
       loaded.set(key, impl);
+      for (const listener of loadListeners) listener();
       return impl;
     });
     loading.set(key, pending);
@@ -71,27 +77,25 @@ function loadElement(key: string): Promise<ElementImpl | undefined> {
   return pending;
 }
 
+const KEY_SEPARATOR = "\n";
+
+const missingKeys = (keys: Array<string | undefined>): string =>
+  keys
+    .filter((k): k is string => !!k && !isCore(k) && !loaded.has(k) && k in generatedElementLoaders)
+    .join(KEY_SEPARATOR);
+
 export function useElements(keys: Array<string | undefined>): boolean {
-  const missing = keys.filter(
-    (k): k is string => !!k && !isCore(k) && !loaded.has(k) && k in generatedElementLoaders,
-  );
-  const [, refresh] = useReducer((n: number) => n + 1, 0);
-  const wanted = useStableValue(missing);
+  const snapshot = () => missingKeys(keys);
+  const missing = useSyncExternalStore(subscribeToLoads, snapshot, snapshot);
   useEffect(() => {
-    if (wanted.length === 0) return;
+    if (!missing) return;
+    const wanted = missing.split(KEY_SEPARATOR);
     const handle = delayRender(`Loading ${wanted.join(", ")}`);
-    let alive = true;
     Promise.all(wanted.map(loadElement))
-      .then(() => {
-        if (alive) refresh();
-        continueRender(handle);
-      })
+      .then(() => continueRender(handle))
       .catch((error: unknown) => cancelRender(error));
-    return () => {
-      alive = false;
-    };
-  }, [wanted]);
-  return missing.length === 0;
+  }, [missing]);
+  return missing === "";
 }
 
 export function getComponent(key: string): ElementComponent | undefined {

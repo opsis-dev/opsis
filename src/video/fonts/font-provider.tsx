@@ -48,6 +48,10 @@ export const FontProvider: React.FC<{
 }> = ({ fonts, tracks, children }) => {
   const { projectBase } = useAssetBase();
   const used = useMemo(() => usedFontNames(tracks), [tracks]);
-  const ready = useFontsReady({ fonts: fonts ?? DEFAULT_PROJECT_FONTS, used, projectBase });
+  const request = useMemo(
+    () => ({ fonts: fonts ?? DEFAULT_PROJECT_FONTS, used, projectBase }),
+    [fonts, used, projectBase],
+  );
+  const ready = useFontsReady(request);
   return ready ? <>{children}</> : null;
 };

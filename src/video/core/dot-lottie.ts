@@ -34,19 +34,20 @@ function firstAnimationId(manifest: unknown): string | undefined {
   return isRecord(first) && typeof first.id === "string" ? first.id : undefined;
 }
 
-function embedImages(data: Record<string, unknown>, files: Unzipped): void {
-  if (!Array.isArray(data.assets)) return;
-  for (const asset of data.assets) {
-    if (!isRecord(asset) || typeof asset.p !== "string" || !asset.p || asset.e === 1) continue;
-    const file = files[`images/${asset.p}`] ?? files[`i/${asset.p}`];
-    if (!file) continue;
-    asset.p = `data:${IMAGE_MIME[extensionOf(asset.p)] ?? "image/png"};base64,${toBase64(file)}`;
-    asset.u = "";
-    asset.e = 1;
-  }
+function embedImage(asset: unknown, files: Unzipped): unknown {
+  if (!isRecord(asset) || typeof asset.p !== "string" || !asset.p || asset.e === 1) return asset;
+  const file = files[`images/${asset.p}`] ?? files[`i/${asset.p}`];
+  if (!file) return asset;
+  const mime = IMAGE_MIME[extensionOf(asset.p)] ?? "image/png";
+  return { ...asset, p: `data:${mime};base64,${toBase64(file)}`, u: "", e: 1 };
 }
 
-export function readDotLottie(bytes: Uint8Array): LottieAnimationData {
+const withEmbeddedImages = (data: LottieAnimationData, files: Unzipped): LottieAnimationData =>
+  Array.isArray(data.assets)
+    ? { ...data, assets: data.assets.map((asset: unknown) => embedImage(asset, files)) }
+    : data;
+
+function readDotLottie(bytes: Uint8Array): LottieAnimationData {
   const files = unzipSync(bytes);
   const id = files["manifest.json"]
     ? firstAnimationId(parseJson(files["manifest.json"]))
@@ -55,7 +56,5 @@ export function readDotLottie(bytes: Uint8Array): LottieAnimationData {
     (id && (files[`animations/${id}.json`] ?? files[`a/${id}.json`])) ??
     Object.entries(files).find(([name]) => /^(animations|a)\/[^/]+\.json$/.test(name))?.[1];
   if (!entry) throw new Error("This .lottie file has no animation inside.");
-  const data = asAnimation(parseJson(entry));
-  embedImages(data, files);
-  return data;
+  return withEmbeddedImages(asAnimation(parseJson(entry)), files);
 }

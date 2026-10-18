@@ -9,7 +9,8 @@ import {
 } from "remotion";
 import { noise3D } from "@remotion/noise";
 import { LightLeak } from "@remotion/light-leaks";
-import { backdropFile, backdropSource } from "../camera/lib/backdrop";
+import { backdropSource } from "../camera/lib/backdrop";
+import { visibleBackground } from "./anim";
 
 const Grain: React.FC<{ amount: number; seed?: number }> = ({ amount, seed = 3 }) =>
   amount > 0 ? (
@@ -29,6 +30,11 @@ const Grain: React.FC<{ amount: number; seed?: number }> = ({ amount, seed = 3 }
       </svg>
     </AbsoluteFill>
   ) : null;
+
+export const Backgrounded: React.FC<{ background?: string; children?: React.ReactNode }> = ({
+  background,
+  children,
+}) => <AbsoluteFill style={{ background: visibleBackground(background) }}>{children}</AbsoluteFill>;
 
 export const Solid: React.FC<{ color: string }> = ({ color }) => (
   <AbsoluteFill style={{ background: color }} />
@@ -102,15 +108,6 @@ export const Starburst: React.FC<{
 export const Paper: React.FC<{ color: string; grain?: number }> = ({ color, grain = 0.18 }) => (
   <AbsoluteFill style={{ background: color }}>
     <Grain amount={grain} seed={11} />
-  </AbsoluteFill>
-);
-
-export const StudioBackdrop: React.FC<{ name: string }> = ({ name }) => (
-  <AbsoluteFill>
-    <Img
-      src={staticFile(backdropFile(name))}
-      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-    />
   </AbsoluteFill>
 );
 

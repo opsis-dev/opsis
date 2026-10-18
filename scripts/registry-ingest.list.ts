@@ -60,6 +60,8 @@ type RegistryInfo = {
   installDir: (item: CuratedElement) => string;
 };
 
+const REMOCN_TEMPLATE_NAMES = new Set(["release-teaser", "launch-anything"]);
+
 const REMOTION_UI_RAW =
   "https://raw.githubusercontent.com/riaz37/remotion-ui/b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f/apps";
 
@@ -73,7 +75,9 @@ export const REGISTRIES: Record<CuratedElement["registry"], RegistryInfo> = {
     configDirs: ["remocn", "remocn-ui"],
     itemUrl: (name) => `https://remocn.dev/r/${name}.json`,
     installDir: (item) =>
-      item.category === "scene" && TEMPLATES.has(item.name) ? "remocn/templates" : "remocn",
+      item.category === "scene" && REMOCN_TEMPLATE_NAMES.has(item.name)
+        ? "remocn/templates"
+        : "remocn",
   },
   snapcn: {
     label: "snapcn",
@@ -98,8 +102,6 @@ export const REGISTRIES: Record<CuratedElement["registry"], RegistryInfo> = {
     installDir: () => "remotion-ui",
   },
 };
-
-const TEMPLATES = new Set(["release-teaser", "launch-anything"]);
 
 const fromRegistry =
   (registry: CuratedElement["registry"], base: Partial<CuratedElement> = {}) =>
@@ -626,15 +628,15 @@ const LIST: CuratedElement[] = [
   ]),
   ...remocn("data", ["animated-bar-chart", "animated-line-chart", "rolling-number"]),
   ...remocn("scene", ["signup-flow", "ai-prompt-flow", "command-menu"], { durationInFrames: 240 }),
-  { registry: "remocn", name: "release-teaser", category: "scene", durationInFrames: 300 },
-  { registry: "remocn", name: "launch-anything", category: "scene", durationInFrames: 600 },
+  ...remocn("scene", ["release-teaser"], { durationInFrames: 300 }),
+  ...remocn("scene", ["launch-anything"], { durationInFrames: 600 }),
   ...snapcn("device", ["laptop-frame", "phone-frame", "screen-recording"], {
     durationInFrames: 240,
   }),
-  { registry: "snapcn", name: "announce-title", category: "text" },
+  ...snapcn("text", ["announce-title"], { fixedProps: {} }),
   ...snapcn("text", ["punch-lines", "text-highlight", "status-cycle"]),
   ...snapcn("scene", ["logo-assemble", "logo-drift", "hero-launch"], { durationInFrames: 180 }),
-  { registry: "remocn", name: "pixelate-region", category: "effect", installOnly: true },
+  ...remocn("effect", ["pixelate-region"], { installOnly: true }),
   ...REMOTION_UI,
 ];
 

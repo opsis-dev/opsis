@@ -1,35 +1,32 @@
-import React, { createContext, useContext } from "react";
+import { createContext, useContext } from "react";
 import { staticFile } from "remotion";
 import {
   PROJECT_FILE_BASE,
+  STATIC_PROJECT_BASE,
   appRelPath,
   encodePath,
+  isAssetRef,
   isProjectRef,
   projectRelPath,
 } from "../shared/asset-ref";
-import type { ReframeMode } from "../shared/schema/timeline";
+import type { PreviewQuality, ReframeMode } from "../shared/schema/timeline";
 
 type AssetBase = { projectBase?: string };
 
 const AssetContext = createContext<AssetBase>({});
 
-export const AssetProvider: React.FC<{ value: AssetBase; children: React.ReactNode }> = ({
-  value,
-  children,
-}) => <AssetContext.Provider value={value}>{children}</AssetContext.Provider>;
+export const AssetProvider = AssetContext.Provider;
 
 export function resolveAssetRef(ref: string, base: AssetBase): string {
   if (isProjectRef(ref)) {
     const rel = projectRelPath(ref);
-    if (base.projectBase === "static:") return staticFile(`project/${rel}`);
+    if (base.projectBase === STATIC_PROJECT_BASE) return staticFile(`project/${rel}`);
     const root = base.projectBase ?? PROJECT_FILE_BASE;
     return root.endsWith("/") ? root + encodePath(rel) : `${root}/${encodePath(rel)}`;
   }
   const app = appRelPath(ref);
   return app === null ? ref : staticFile(app);
 }
-
-const isAssetRef = (v: unknown): v is string => typeof v === "string" && /^(project|app):/.test(v);
 
 const MAX_PROP_DEPTH = 3;
 
@@ -53,11 +50,12 @@ export const useAsset = (ref: string | null | undefined): string | null => {
   return ref ? resolveAssetRef(ref, base) : null;
 };
 
-const ReframeContext = createContext<ReframeMode>("follow");
+export const DEFAULT_REFRAME: ReframeMode = "follow";
+const ReframeContext = createContext<ReframeMode>(DEFAULT_REFRAME);
 export const ReframeProvider = ReframeContext.Provider;
 export const useReframe = () => useContext(ReframeContext);
 
-type PreviewQuality = "fast" | "exact";
-const QualityContext = createContext<PreviewQuality>("exact");
+export const DEFAULT_QUALITY: PreviewQuality = "exact";
+const QualityContext = createContext<PreviewQuality>(DEFAULT_QUALITY);
 export const QualityProvider = QualityContext.Provider;
 export const useQuality = () => useContext(QualityContext);

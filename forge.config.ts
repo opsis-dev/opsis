@@ -34,29 +34,21 @@ const DARWIN_COMPOSITOR_PACKAGES = [
 const DARWIN_UNIVERSAL_ARCH_FILES =
   "Contents/Resources/app.asar.unpacked/node_modules/@remotion/compositor-darwin-*/**";
 
-const packageDir = (name: string): string =>
-  path.dirname(require.resolve(`${name}/package.json`, { paths: [ROOT] }));
-
-function installedPackageDir(name: string): string | null {
+async function stagePackage(
+  name: string,
+  buildPath: string,
+  { optional = false } = {},
+): Promise<void> {
+  let source: string;
   try {
-    return packageDir(name);
-  } catch {
-    return null;
+    source = path.dirname(require.resolve(`${name}/package.json`, { paths: [ROOT] }));
+  } catch (error) {
+    if (optional) return;
+    throw error;
   }
-}
-
-async function copyPackage(source: string, name: string, buildPath: string): Promise<void> {
   const destination = path.join(buildPath, "node_modules", name);
   await mkdir(path.dirname(destination), { recursive: true });
   await cp(source, destination, { recursive: true });
-}
-
-const stagePackage = (name: string, buildPath: string) =>
-  copyPackage(packageDir(name), name, buildPath);
-
-async function stagePackageIfPresent(name: string, buildPath: string): Promise<void> {
-  const source = installedPackageDir(name);
-  if (source) await copyPackage(source, name, buildPath);
 }
 
 async function stageCompositorPackages(
@@ -70,7 +62,7 @@ async function stageCompositorPackages(
   for (const pkg of required) await stagePackage(pkg, buildPath);
   if (platform !== "darwin") return;
   for (const pkg of DARWIN_COMPOSITOR_PACKAGES)
-    if (!required.includes(pkg)) await stagePackageIfPresent(pkg, buildPath);
+    if (!required.includes(pkg)) await stagePackage(pkg, buildPath, { optional: true });
 }
 
 async function stageEngine(platform: string, arch: string): Promise<void> {

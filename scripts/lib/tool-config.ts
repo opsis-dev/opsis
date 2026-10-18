@@ -2,7 +2,11 @@ import path from "node:path";
 
 export const ROOT = path.resolve(import.meta.dirname, "..", "..");
 
-export const SRC_ALIAS = { "@": path.join(ROOT, "src") };
+export const SRC_DIR = path.join(ROOT, "src");
+
+export const VIDEO_DIR = path.join(SRC_DIR, "video");
+
+export const SRC_ALIAS = { "@": SRC_DIR };
 
 export const IGNORED_PATHS = [
   ".vite/**",

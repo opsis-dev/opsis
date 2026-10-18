@@ -1,12 +1,11 @@
 import React, { useLayoutEffect, useState } from "react";
-import { AbsoluteFill, cancelRender } from "remotion";
+import { cancelRender } from "remotion";
 import { Lottie, type LottieAnimationData } from "@remotion/lottie";
-import { visibleBackground } from "./anim";
+import { Backgrounded } from "./backgrounds";
 import { readLottie } from "./dot-lottie";
 import { holdRender } from "./loading";
-import type { Fit } from "./media";
 
-type LottieFit = Exclude<Fit, "fill">;
+type LottieFit = "contain" | "cover";
 
 async function loadAnimation(src: string): Promise<LottieAnimationData> {
   const res = await fetch(src);
@@ -22,16 +21,16 @@ export const LottieElement: React.FC<{
   fit?: LottieFit;
   background?: string;
 }> = ({ src, loop = true, speed = 1, backwards = false, fit = "contain", background }) => {
-  const [data, setData] = useState<LottieAnimationData | null>(null);
+  const [loaded, setLoaded] = useState<{ src: string; data: LottieAnimationData } | null>(null);
 
   useLayoutEffect(() => {
     if (!src) return;
     const release = holdRender(`Loading animation ${src}`);
     let alive = true;
     loadAnimation(src)
-      .then((d) => {
+      .then((data) => {
         if (!alive) return;
-        setData(d);
+        setLoaded({ src, data });
         release();
       })
       .catch((err: unknown) => cancelRender(err));
@@ -41,9 +40,10 @@ export const LottieElement: React.FC<{
     };
   }, [src]);
 
+  const data = loaded?.src === src ? loaded.data : null;
   if (!src || !data) return null;
   return (
-    <AbsoluteFill style={{ background: visibleBackground(background) }}>
+    <Backgrounded background={background}>
       <Lottie
         animationData={data}
         loop={loop}
@@ -52,6 +52,6 @@ export const LottieElement: React.FC<{
         preserveAspectRatio={fit === "cover" ? "xMidYMid slice" : "xMidYMid meet"}
         style={{ width: "100%", height: "100%" }}
       />
-    </AbsoluteFill>
+    </Backgrounded>
   );
 };

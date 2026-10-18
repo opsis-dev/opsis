@@ -6,7 +6,7 @@ import { walkItems } from "../../shared/compile/clip";
 import { exportProjectNode } from "../../shared/nodes/output";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { safeName } from "../../shared/safe-name";
-import { isProjectRef, projectRelPath } from "../../shared/asset-ref";
+import { isProjectRef, projectRelPath, STATIC_PROJECT_BASE } from "../../shared/asset-ref";
 import { stringsIn } from "../../shared/vars";
 import { readJson, writeJson } from "../../engine/json";
 import { toPosixRel, toProjectRef } from "../../engine/project-paths";
@@ -197,7 +197,7 @@ export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ct
   await writeJson(path.join(dir, "package.json"), await packageJsonFor(ctx, name, dir));
   await writeJson(path.join(dir, "src", "timeline.json"), {
     ...spec,
-    assets: { projectBase: "static:" },
+    assets: { projectBase: STATIC_PROJECT_BASE },
   });
   await writeFile(path.join(dir, "src", "index.ts"), INDEX_TS);
   await writeFile(path.join(dir, "src", "export-root.tsx"), EXPORT_ROOT_TSX);

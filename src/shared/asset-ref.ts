@@ -1,3 +1,5 @@
+import { isString } from "./guards";
+
 export const FILE_SCHEME = "demoflow-file";
 
 const PROJECT_SCHEME = "project:";
@@ -11,11 +13,16 @@ const startsWithAny = (ref: string, schemes: readonly string[]): boolean =>
 
 export const PROJECT_FILE_BASE = `${FILE_SCHEME}://project/`;
 
+export const STATIC_PROJECT_BASE = "static:";
+
 export const encodePath = (p: string): string => p.split("/").map(encodeURIComponent).join("/");
 
 export const withoutLeadingSlashes = (path: string): string => path.replace(/^\/+/, "");
 
 export const isProjectRef = (ref: string): boolean => ref.startsWith(PROJECT_SCHEME);
+
+export const isAssetRef = (value: unknown): value is string =>
+  isString(value) && startsWithAny(value, [PROJECT_SCHEME, APP_SCHEME]);
 
 export const projectRelPath = (ref: string): string =>
   withoutLeadingSlashes(isProjectRef(ref) ? ref.slice(PROJECT_SCHEME.length) : ref);

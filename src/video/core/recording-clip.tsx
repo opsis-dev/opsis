@@ -28,6 +28,18 @@ const TYPED_FADE_IN_S = 0.15;
 const TYPED_FADE_OUT_S = 0.2;
 const CARET_BLINKS_PER_S = 2.5;
 
+const TYPED_CHIP = {
+  margin: 56,
+  padY: 14,
+  padX: 26,
+  fontSize: 30,
+  shadowY: 8,
+  shadowBlur: 24,
+  maxWidth: "70%",
+  background: "rgba(10,10,12,0.82)",
+  shadow: "rgba(0,0,0,0.35)",
+} as const;
+
 const CLIP_KEYS = [
   "speed",
   "style",
@@ -49,8 +61,10 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const reframe = useReframe();
 
   const log = useMemo(() => {
-    const l = toClickLog(props.log, props.name, props.extraBeats);
-    return props.zoom ? l : { ...l, clicks: l.clicks.map((c) => ({ ...c, zoom: false })) };
+    const clickLog = toClickLog(props.log, props.name, props.extraBeats);
+    return props.zoom
+      ? clickLog
+      : { ...clickLog, clicks: clickLog.clicks.map((click) => ({ ...click, zoom: false })) };
   }, [props.log, props.name, props.extraBeats, props.zoom]);
   const annotations = useMemo(
     () => resolveAnnotations(props.log, props.annotations),
@@ -65,11 +79,12 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     reframe,
     SHOT_STYLES[props.style].framing !== "window",
   );
-  const narrow = layout.mode === "contain" ? layout.narrow : undefined;
+  const contain = layout.mode === "contain" ? layout : undefined;
+  const narrow = contain?.narrow;
   const clip = (
     <DemoClip
       {...pick(props, CLIP_KEYS)}
-      box={layout.mode === "contain" ? layout.box : undefined}
+      box={contain?.box}
       src={src}
       log={log}
       address={pageAddress(props.log)}
@@ -80,7 +95,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   );
 
   const timeS = logTimeS(frame, fps, props.speed);
-  const ks = props.keystrokes;
+  const { keystrokes } = props;
   const followX = () => poseAt(frame, fps, log, { speed: props.speed, tuning: props.tuning }).cx;
   return (
     <AbsoluteFill>
@@ -88,11 +103,11 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
         {clip}
       </LayoutFrame>
       <DesignWidthContext.Provider value={Math.max(width, height)}>
-        {ks?.chords && log.keys?.length ? (
-          <KeycapHUD keys={log.keys} timeS={timeS} position={ks.position} />
+        {keystrokes?.chords && log.keys?.length ? (
+          <KeycapHUD keys={log.keys} timeS={timeS} position={keystrokes.position} />
         ) : null}
-        {ks?.typed ? (
-          <TypedChip beats={typedBeats(props.log)} timeS={timeS} position={ks.position} />
+        {keystrokes?.typed ? (
+          <TypedChip beats={typedBeats(props.log)} timeS={timeS} position={keystrokes.position} />
         ) : null}
       </DesignWidthContext.Provider>
     </AbsoluteFill>
@@ -175,7 +190,7 @@ const TypedChip: React.FC<{
   const shown = Math.round(
     interpolate(timeS, [beat.fromS, typingEnd], [0, beat.text.length], CLAMPED),
   );
-  const o = fadeWindow(timeS, beat.fromS, beat.toS, {
+  const opacity = fadeWindow(timeS, beat.fromS, beat.toS, {
     in: TYPED_FADE_IN_S,
     out: TYPED_FADE_OUT_S,
   });
@@ -184,24 +199,24 @@ const TypedChip: React.FC<{
       style={{
         justifyContent: JUSTIFY_AT[position],
         alignItems: "center",
-        ...overlayPadding(56 * k, verticalInsets(insets)),
+        ...overlayPadding(TYPED_CHIP.margin * k, verticalInsets(insets)),
         pointerEvents: "none",
       }}
     >
       <div
         style={{
-          opacity: o,
-          maxWidth: "70%",
-          padding: `${14 * k}px ${26 * k}px`,
+          opacity,
+          maxWidth: TYPED_CHIP.maxWidth,
+          padding: `${TYPED_CHIP.padY * k}px ${TYPED_CHIP.padX * k}px`,
           borderRadius: 999,
-          background: "rgba(10,10,12,0.82)",
+          background: TYPED_CHIP.background,
           color: TEXT_COLOR,
           fontFamily: CODE_FONT,
-          fontSize: 30 * k,
+          fontSize: TYPED_CHIP.fontSize * k,
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
-          boxShadow: `0 ${8 * k}px ${24 * k}px rgba(0,0,0,0.35)`,
+          boxShadow: `0 ${TYPED_CHIP.shadowY * k}px ${TYPED_CHIP.shadowBlur * k}px ${TYPED_CHIP.shadow}`,
         }}
       >
         {beat.text.slice(0, shown)}

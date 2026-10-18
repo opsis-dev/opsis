@@ -24,10 +24,7 @@ const page = await browser.newPage();
 for (const size of ICON_SIZES) {
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(
-    `<html><body style="margin:0;background:transparent">${svg.replace(
-      "<svg ",
-      `<svg width="${size}" height="${size}" `,
-    )}</body></html>`,
+    `<html><body style="margin:0;background:transparent"><style>svg{display:block;width:${size}px;height:${size}px}</style>${svg}</body></html>`,
   );
   await page.screenshot({
     path: path.join(OUT, `${size}.png`),

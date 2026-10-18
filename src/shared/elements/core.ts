@@ -2,7 +2,14 @@ import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
 import { asset, bool, choice, MAX_VOLUME, more, text } from "../nodes/params";
-import { ACCENT_COLOR, HIGHLIGHT_COLOR, TEXT_COLOR } from "./colors";
+import {
+  ACCENT_COLOR,
+  CALLOUT_COLOR,
+  CAPTION_COLOR,
+  HIGHLIGHT_COLOR,
+  PANEL_COLOR,
+  TEXT_COLOR,
+} from "./colors";
 import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
 
 const source = {
@@ -33,7 +40,7 @@ export const captionsSchema = z.object({
   style: choice(["word-by-word", "karaoke", "line"], "word-by-word", "Style"),
   position: choice(["bottom", "center", "top"], "bottom", "Position"),
   fontSize: num(56, 16, 140, "Font size"),
-  color: color("#ffffff", "Text colour"),
+  color: color(CAPTION_COLOR, "Text colour"),
   highlightColor: color(HIGHLIGHT_COLOR, "Highlight colour"),
   fontFamily: font(),
 });
@@ -96,7 +103,7 @@ const components: CoreComponent[] = [
       ),
       accent: color(ACCENT_COLOR, "Accent"),
       color: color(TEXT_COLOR, "Text colour"),
-      panel: color("rgba(10,10,12,0.72)", "Panel colour"),
+      panel: color(PANEL_COLOR, "Panel colour"),
       fontFamily: font(),
     }),
     defaultDurationInFrames: 120,
@@ -112,7 +119,7 @@ const components: CoreComponent[] = [
       y: num(0.5, 0, 1, "Target Y (0–1)", 0.01),
       side: choice(["top", "bottom", "left", "right"], "top", "Label side"),
       color: color(TEXT_COLOR, "Label colour"),
-      accent: color("#f43f5e", "Arrow colour"),
+      accent: color(CALLOUT_COLOR, "Arrow colour"),
       fontFamily: font(),
     }),
     defaultDurationInFrames: 75,

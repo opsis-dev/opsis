@@ -1,10 +1,9 @@
 import { create } from "zustand";
 import { VARIANTS } from "@/shared/nodes/output";
 import { isBoolean, isOneOf } from "@/shared/guards";
+import { PREVIEW_QUALITIES, type PreviewQuality } from "@/shared/schema/timeline";
 import { readPref, writePref } from "./view-prefs";
 
-export const PREVIEW_QUALITIES = ["fast", "exact"] as const;
-export type PreviewQuality = (typeof PREVIEW_QUALITIES)[number];
 const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PREVIEW_QUALITIES, v);
 
 export const PREVIEW_SHAPES = ["project", ...VARIANTS] as const;

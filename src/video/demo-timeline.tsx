@@ -9,7 +9,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { Audio } from "@remotion/media";
-import { groupOf, type GroupProps } from "../shared/compile/clip";
+import { groupOf, type Crop, type GroupProps } from "../shared/compile/clip";
 import { remapFrame } from "../shared/compile/remap";
 import { duckGain, duckingSpans, type Span } from "../shared/mix/duck";
 import { flattenSpec, type FlatTimeline } from "../shared/timeline/flatten";
@@ -24,6 +24,8 @@ import type {
 } from "../shared/schema/timeline";
 import {
   AssetProvider,
+  DEFAULT_QUALITY,
+  DEFAULT_REFRAME,
   QualityProvider,
   ReframeProvider,
   resolveAssetRef,
@@ -45,8 +47,8 @@ const MIN_CROP = 0.05;
 
 export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
   <AssetProvider value={spec.assets ?? {}}>
-    <ReframeProvider value={spec.reframe ?? "follow"}>
-      <QualityProvider value={spec.quality ?? "exact"}>
+    <ReframeProvider value={spec.reframe ?? DEFAULT_REFRAME}>
+      <QualityProvider value={spec.quality ?? DEFAULT_QUALITY}>
         <AbsoluteFill style={{ background: spec.background ?? "#000", overflow: "hidden" }}>
           <FontProvider fonts={spec.fonts} tracks={spec.tracks}>
             <Tracks tracks={spec.tracks} />
@@ -127,7 +129,7 @@ const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
   return component ? createElement(component, resolveProps(item.props, base)) : null;
 };
 
-type Wrap = (inner: React.ReactNode) => React.ReactNode;
+const cropScale = (crop: Crop): number => 1 / Math.max(MIN_CROP, crop.w, crop.h);
 
 const Group: React.FC<GroupProps> = ({
   tracks,
@@ -140,65 +142,84 @@ const Group: React.FC<GroupProps> = ({
   design,
 }) => {
   const frame = useCurrentFrame();
+  return (
+    <AbsoluteFill style={background ? { background } : undefined}>
+      <DesignBox design={design}>
+        <Wrapped wrapper={wrapper}>
+          <Cropped crop={crop}>
+            <Remapped frame={remap?.length ? remapFrame(remap, frame) : undefined}>
+              <Looped every={loopEvery}>
+                <StartOffset startFrom={startFrom}>
+                  <Tracks tracks={tracks} />
+                </StartOffset>
+              </Looped>
+            </Remapped>
+          </Cropped>
+        </Wrapped>
+      </DesignBox>
+    </AbsoluteFill>
+  );
+};
+
+type Wrap<P> = React.FC<P & { children: React.ReactNode }>;
+
+const StartOffset: Wrap<{ startFrom?: number }> = ({ startFrom, children }) =>
+  startFrom ? (
+    <Sequence from={-startFrom} layout="none">
+      {children}
+    </Sequence>
+  ) : (
+    <>{children}</>
+  );
+
+const Looped: Wrap<{ every?: number }> = ({ every, children }) =>
+  every !== undefined && every > 0 ? (
+    <Loop durationInFrames={every}>{children}</Loop>
+  ) : (
+    <>{children}</>
+  );
+
+const Remapped: Wrap<{ frame?: number }> = ({ frame, children }) =>
+  frame === undefined ? (
+    <>{children}</>
+  ) : (
+    <Freeze frame={Math.max(0, Math.round(frame))}>{children}</Freeze>
+  );
+
+const Cropped: Wrap<{ crop?: Crop }> = ({ crop, children }) =>
+  crop ? (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <AbsoluteFill
+        style={{
+          transformOrigin: "0 0",
+          transform: `scale(${cropScale(crop)}) translate(${percent(-crop.x)}, ${percent(-crop.y)})`,
+        }}
+      >
+        {children}
+      </AbsoluteFill>
+    </AbsoluteFill>
+  ) : (
+    <>{children}</>
+  );
+
+const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children }) => {
   const base = useAssetBase();
   useElements([wrapper?.component]);
   const Wrapper = wrapper ? getComponent(wrapper.component) : undefined;
-  const wraps: Array<Wrap | null> = [
-    startFrom
-      ? (inner) => (
-          <Sequence from={-startFrom} layout="none">
-            {inner}
-          </Sequence>
-        )
-      : null,
-    loopEvery && loopEvery > 0
-      ? (inner) => <Loop durationInFrames={loopEvery}>{inner}</Loop>
-      : null,
-    remap?.length
-      ? (inner) => (
-          <Freeze frame={Math.max(0, Math.round(remapFrame(remap, frame)))}>{inner}</Freeze>
-        )
-      : null,
-    crop
-      ? (inner) => {
-          const s = 1 / Math.max(MIN_CROP, crop.w, crop.h);
-          return (
-            <AbsoluteFill style={{ overflow: "hidden" }}>
-              <AbsoluteFill
-                style={{
-                  transformOrigin: "0 0",
-                  transform: `scale(${s}) translate(${percent(-crop.x)}, ${percent(-crop.y)})`,
-                }}
-              >
-                {inner}
-              </AbsoluteFill>
-            </AbsoluteFill>
-          );
-        }
-      : null,
-    wrapper && Wrapper
-      ? (inner) =>
-          createElement(
-            Wrapper,
-            resolveProps(wrapper.props, base),
-            <AbsoluteFill>{inner}</AbsoluteFill>,
-          )
-      : null,
-    design ? (inner) => <DesignBox design={design}>{inner}</DesignBox> : null,
-  ];
-  const content = wraps.reduce<React.ReactNode>(
-    (inner, wrap) => (wrap ? wrap(inner) : inner),
-    <Tracks tracks={tracks} />,
+  return wrapper && Wrapper ? (
+    createElement(
+      Wrapper,
+      resolveProps(wrapper.props, base),
+      <AbsoluteFill>{children}</AbsoluteFill>,
+    )
+  ) : (
+    <>{children}</>
   );
-  return <AbsoluteFill style={background ? { background } : undefined}>{content}</AbsoluteFill>;
 };
 
-const DesignBox: React.FC<{
-  design: Size;
-  children: React.ReactNode;
-}> = ({ design, children }) => {
+const DesignBox: Wrap<{ design?: Size }> = ({ design, children }) => {
   const { width, height } = useVideoConfig();
-  if (sameShape({ width, height }, design)) return <>{children}</>;
+  if (!design || sameShape({ width, height }, design)) return <>{children}</>;
   const scale = Math.min(width / design.width, height / design.height);
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
@@ -218,6 +239,8 @@ const DesignBox: React.FC<{
     </AbsoluteFill>
   );
 };
+
+const noop = () => undefined;
 
 const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }> = ({
   item,
@@ -245,8 +268,6 @@ const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }
     </Presentation>
   );
 };
-
-const noop = () => undefined;
 
 type Direction = "entering" | "exiting";
 
@@ -304,7 +325,7 @@ const AudioLayers: React.FC<{ spec: TimelineSpec }> = ({ spec }) => {
 };
 
 function audioGainAt(item: AudioItem, f: number, duration: number, spans: Span[]): number {
-  const baseVolume = (typeof item.volume === "number" ? item.volume : 1) * (item.gain ?? 1);
+  const baseVolume = (item.volume ?? 1) * (item.gain ?? 1);
   const fade = fadeWindow(f, 0, duration, {
     in: item.fadeInFrames ?? 0,
     out: item.fadeOutFrames ?? 0,

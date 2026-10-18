@@ -34,7 +34,7 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
 **Where code goes.**
 
-- Never hand-edit `src/video/elements/**`, `src/video/lib/**`, `src/video/hooks/**` or any `*.generated.ts`. Registry elements get settings through `scripts/registry-ingest.list.ts` (`controls`, `defaults`, `omit`, `NEUTRAL_DEFAULTS`, `NEUTRAL_FIXED_PROPS`) and new ingest features in `scripts/registry-ingest.ts`, then `bun run registry:ingest -- --no-add`.
+- Never hand-edit `src/video/elements/**`, `src/video/lib/**`, `src/video/hooks/**` or any `*.generated.ts`. Registry elements get settings through `scripts/registry-ingest.list.ts` (`controls`, `defaults`, `omit`, `NEUTRAL_DEFAULTS`, `NEUTRAL_FIXED_PROPS`) and new ingest features in `scripts/lib/registry-controls.ts` (reading configs, inferring controls) and `scripts/lib/registry-codegen.ts` (writing schemas), then `bun run registry:ingest -- --no-add`.
 - Prop wrappers that turn flat settings into nested props live in `src/video/registry/framing.tsx` next to `placedAt` and `painted`, and are picked by the ingest's `WRAPPERS` list.
 - Demoflow's own elements: schema in `src/shared/elements/core.ts`, component under `src/video/core/` or `src/video/camera/`.
 - Demoflow's own nodes: params in `src/shared/nodes/*.ts`; values reach the video through `compile()` and the spec types in `src/shared/compile/`.
@@ -95,7 +95,7 @@ Notes:
 
 ## Phase 2: Ingest support
 
-`scripts/registry-ingest.ts` builds every registry element's schema from `controls`. It needs these additions:
+The ingest (`scripts/registry-ingest.ts`, with `scripts/lib/registry-controls.ts` and `scripts/lib/registry-codegen.ts`) builds every registry element's schema from `controls`. It needs these additions:
 
 1. **`colors` control.** `{ type: "colors", default, min, max }` emits `z.array(zColor()).min(min).max(max).default([...])`. The ingest reads the component's own `NEUTRAL_COLORS` / `DEFAULT_COLORS` constant when no default is given, so defaults stay what the element draws today.
 2. **`rows` with columns.** `{ type: "rows", columns: { text: { type: "text" }, at: { type: "number", unit: "frames" }, ... } }` emits `z.array(z.object({...}))` built from the column controls (each column through `zodFor`), so rows get the real list editor instead of a JSON box. Rows without `columns` stay an error at ingest, not a JSON fallback. Move Terminal simulator and every remotion-ui `z.record(z.string(), z.unknown())` list to columns in the same change.

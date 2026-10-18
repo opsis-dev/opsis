@@ -4,6 +4,7 @@ import type { DockPanelName } from "@/shared/ipc";
 import type { MenuCommand } from "@/shared/menu";
 import type { LiveMessage } from "@/shared/live";
 import type { RunEvent } from "@/shared/schema/events";
+import type { PreviewQuality } from "@/shared/schema/timeline";
 import type { Workflow } from "@/shared/schema/workflow";
 import { isRecord } from "@/shared/guards";
 import { randomId } from "@/shared/ids";
@@ -20,7 +21,7 @@ import {
 } from "../store/playback";
 import { runSnapshot, useRunStore, type RunSnapshot } from "../store/run";
 import { selection, useUiStore, type Selection } from "../store/ui";
-import { useViewOptions, type PreviewQuality, type PreviewShape } from "../store/view-options";
+import { useViewOptions, type PreviewShape } from "../store/view-options";
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
 import { dispatchMenuCommand } from "./menu-commands";
 

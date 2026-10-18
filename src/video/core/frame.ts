@@ -5,7 +5,7 @@ import type { ReframeMode } from "../../shared/schema/timeline";
 import { containBox, type Size } from "./still-layout";
 import { designScaleFor } from "../camera/lib/design-width";
 
-export type Insets = { top: number; right: number; bottom: number; left: number };
+type Insets = { top: number; right: number; bottom: number; left: number };
 
 const NONE: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
 

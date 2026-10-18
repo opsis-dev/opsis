@@ -4,9 +4,9 @@ import { Video } from "@remotion/media";
 import { RimLight, WindowFrame } from "../camera/window-frame";
 import { WINDOW_FIT } from "../camera/lib/style";
 import { isLightBackdrop } from "../camera/lib/backdrop";
-import { Backdrop } from "./backgrounds";
+import { Backdrop, Backgrounded } from "./backgrounds";
 import { stillLayout, type Box, type Shot, type StillLook } from "./still-layout";
-import { visibleBackground, zoomOver } from "./anim";
+import { zoomOver } from "./anim";
 import { msToFrames } from "../../shared/timeline/time";
 import { DEFAULT_BACKDROP } from "../../shared/backdrops";
 
@@ -25,12 +25,12 @@ export const ImageElement: React.FC<{
   if (!src) return null;
   const scale = kenBurns ? zoomOver(frame, durationInFrames, KEN_BURNS_SCALE) : 1;
   return (
-    <AbsoluteFill style={{ background: visibleBackground(background) }}>
+    <Backgrounded background={background}>
       <Img
         src={src}
         style={{ width: "100%", height: "100%", objectFit: fit, transform: `scale(${scale})` }}
       />
-    </AbsoluteFill>
+    </Backgrounded>
   );
 };
 
@@ -72,7 +72,7 @@ export const VideoElement: React.FC<{
 export const VideoLoop: React.FC<{ src: string; dim?: number }> = ({ src, dim = 0.3 }) =>
   src ? (
     <AbsoluteFill>
-      <VideoElement src={src} loop muted fit="cover" />
+      <VideoElement src={src} loop />
       <AbsoluteFill style={{ background: `rgba(0,0,0,${dim})` }} />
     </AbsoluteFill>
   ) : null;
@@ -98,6 +98,53 @@ const placed = (box: Box): React.CSSProperties => ({
   height: box.height,
 });
 
+type StillLookProps = { src: string; box: Box; backdrop: string };
+
+const BleedStill: React.FC<StillLookProps> = ({ src, box }) => (
+  <PushIn origin="50% 0%">
+    <Img src={src} style={placed(box)} />
+  </PushIn>
+);
+
+const OnBackdrop: React.FC<{ backdrop: string; children: React.ReactNode }> = ({
+  backdrop,
+  children,
+}) => (
+  <AbsoluteFill>
+    <Backdrop name={backdrop} />
+    <PushIn>{children}</PushIn>
+  </AbsoluteFill>
+);
+
+const CutoutStill: React.FC<StillLookProps> = ({ src, box, backdrop }) => (
+  <OnBackdrop backdrop={backdrop}>
+    <Img
+      src={src}
+      style={{ ...placed(box), filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.45))" }}
+    />
+  </OnBackdrop>
+);
+
+const WindowStill: React.FC<StillLookProps> = ({ src, box, backdrop }) => (
+  <OnBackdrop backdrop={backdrop}>
+    <div style={placed(box)}>
+      <RimLight light={isLightBackdrop(backdrop)} />
+      <WindowFrame>
+        <Img
+          src={src}
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+        />
+      </WindowFrame>
+    </div>
+  </OnBackdrop>
+);
+
+const STILL_LOOKS: Record<StillLook, React.FC<StillLookProps>> = {
+  bleed: BleedStill,
+  cutout: CutoutStill,
+  window: WindowStill,
+};
+
 export const StillElement: React.FC<{
   src: string;
   look?: StillLook;
@@ -107,34 +154,6 @@ export const StillElement: React.FC<{
   const { width, height } = useVideoConfig();
   if (!src) return null;
   const box = stillLayout(look, shot ?? { width, height, scale: 1 }, { width, height }, WINDOW_FIT);
-  if (look === "bleed") {
-    return (
-      <PushIn origin="50% 0%">
-        <Img src={src} style={placed(box)} />
-      </PushIn>
-    );
-  }
-  return (
-    <AbsoluteFill>
-      <Backdrop name={backdrop} />
-      <PushIn>
-        {look === "cutout" ? (
-          <Img
-            src={src}
-            style={{ ...placed(box), filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.45))" }}
-          />
-        ) : (
-          <div style={placed(box)}>
-            <RimLight light={isLightBackdrop(backdrop)} />
-            <WindowFrame>
-              <Img
-                src={src}
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-              />
-            </WindowFrame>
-          </div>
-        )}
-      </PushIn>
-    </AbsoluteFill>
-  );
+  const Look = STILL_LOOKS[look];
+  return <Look src={src} box={box} backdrop={backdrop} />;
 };

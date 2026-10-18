@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { continueRender, delayRender } from "remotion";
 
 export function holdRender(label: string): () => void {
@@ -12,7 +12,7 @@ export function holdRender(label: string): () => void {
 }
 
 export function useStableValue<T>(value: T): T {
-  const key = JSON.stringify(value);
+  const key = useMemo(() => JSON.stringify(value), [value]);
   const [kept, setKept] = useState({ key, value });
   if (kept.key === key) return kept.value;
   setKept({ key, value });

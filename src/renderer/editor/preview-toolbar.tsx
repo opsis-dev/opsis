@@ -1,6 +1,6 @@
 import { VARIANTS } from "@/shared/nodes/output";
 import { formatDuration } from "@/shared/format";
-import type { TimelineSpec } from "@/shared/schema/timeline";
+import { PREVIEW_QUALITIES, type TimelineSpec } from "@/shared/schema/timeline";
 import { Badge } from "@/renderer/components/ui/badge";
 import {
   Select,
@@ -14,7 +14,7 @@ import { Spinner } from "@/renderer/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { whenFirstOneOf, whenOneOf } from "@/renderer/lib/one-of";
-import { PREVIEW_QUALITIES, PREVIEW_SHAPES, useViewOptions } from "../store/view-options";
+import { PREVIEW_SHAPES, useViewOptions } from "../store/view-options";
 import { framesToMs } from "@/shared/timeline/time";
 
 const PROJECT_SHAPE = "Project shape";

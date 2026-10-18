@@ -125,6 +125,9 @@ const masterStemSchema = z.object({ src: z.string(), hash: z.string() });
 export const REFRAMES = ["follow", "center", "fit"] as const;
 export type ReframeMode = (typeof REFRAMES)[number];
 
+export const PREVIEW_QUALITIES = ["fast", "exact"] as const;
+export type PreviewQuality = (typeof PREVIEW_QUALITIES)[number];
+
 export const timelineSpecSchema = z.object({
   width: z.number().int().positive(),
   height: z.number().int().positive(),
@@ -135,7 +138,7 @@ export const timelineSpecSchema = z.object({
   audio: z.array(audioItemSchema).default([]),
   assets: z.object({ projectBase: z.string().optional() }).optional(),
   reframe: z.enum(REFRAMES).optional(),
-  quality: z.enum(["fast", "exact"]).optional(),
+  quality: z.enum(PREVIEW_QUALITIES).optional(),
   fonts: projectFontsSchema.optional(),
   mix: masterStemSchema.optional(),
 });

@@ -15,7 +15,7 @@ import { clamp } from "../math";
 import type { RecordingProps } from "./recording";
 import type { Remap } from "./remap";
 
-type Crop = { x: number; y: number; w: number; h: number };
+export type Crop = { x: number; y: number; w: number; h: number };
 
 export type GroupProps = {
   tracks: TimelineTrack[];
