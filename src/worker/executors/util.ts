@@ -1,9 +1,9 @@
 import path from "node:path";
+import { projectRef, refTarget } from "../../shared/asset-ref";
 import { mediaInput } from "../../shared/nodes/media";
 import type { CompileValue, MediaValue } from "../../shared/schema/values";
-import type { ExecutorContext } from "../engine/context";
 import type { WorkerEnv } from "../../shared/worker-protocol";
-import { projectRef, refTarget } from "../../shared/asset-ref";
+import type { ExecutorContext } from "../engine/context";
 
 type SourceEnv = Pick<WorkerEnv, "isPackaged" | "appRoot" | "resourcesPath">;
 

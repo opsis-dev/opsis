@@ -1,5 +1,8 @@
 import { z } from "zod";
+import { extensionOf, projectRef } from "../asset-ref";
 import { itemClip, placeholderClip } from "../compile/clip";
+import { formatDuration } from "../format";
+import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS } from "../mime";
 import type { VisualEnvelope } from "../schema/timeline";
 import {
   asValue,
@@ -8,6 +11,7 @@ import {
   type MediaValue,
   type NodeResult,
 } from "../schema/values";
+import { msToFrames } from "../timeline/time";
 import { countConnected, fileRow, row, warnIf, type CardRow } from "./card";
 import { defineNode, opt, port, type CompileInputs, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
@@ -27,10 +31,6 @@ import {
   text,
   visualEnvelope,
 } from "./params";
-import { formatDuration } from "../format";
-import { msToFrames } from "../timeline/time";
-import { extensionOf, projectRef } from "../asset-ref";
-import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS } from "../mime";
 
 const base = { category: "Media" } as const;
 const fileOp = { ...base, phase: "media", executes: true } as const;

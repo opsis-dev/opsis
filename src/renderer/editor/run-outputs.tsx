@@ -1,10 +1,10 @@
 import { FolderOpen } from "lucide-react";
 import { useMemo } from "react";
+import { Button } from "@/renderer/components/ui/button";
+import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { exportedArtifacts } from "@/shared/run-progress";
 import { artifactName, type Artifact } from "@/shared/schema/values";
 import type { WorkflowNode } from "@/shared/schema/workflow";
-import { Button } from "@/renderer/components/ui/button";
-import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { useRunStore } from "../store/run";
 import { fileUrl } from "./file-url";
 import { ReplayButtons } from "./replay-buttons";

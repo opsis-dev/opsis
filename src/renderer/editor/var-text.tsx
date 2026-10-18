@@ -1,6 +1,5 @@
 import { Braces, Pause } from "lucide-react";
 import { useLayoutEffect, useRef, type RefObject } from "react";
-import { PAUSE_MARK, tokenize, type TextToken } from "@/shared/vars";
 import { Button } from "@/renderer/components/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/renderer/components/ui/dropdown-menu";
 import { cn } from "@/renderer/lib/utils";
+import { PAUSE_MARK, tokenize, type TextToken } from "@/shared/vars";
 
 export type VarInfo = { name: string; value: string };
 

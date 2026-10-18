@@ -1,5 +1,7 @@
 import path from "node:path";
 import type { z } from "zod";
+import { pressedChord } from "../../shared/chord";
+import { errorMessage } from "../../shared/errors";
 import {
   assertNode,
   chapterNode,
@@ -25,10 +27,8 @@ import { parseNodeParams, type NodeDef, type NodeParams } from "../../shared/nod
 import { customLabel, nodeName } from "../../shared/nodes/registry";
 import type { Action } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
-import { PAUSE_MARK } from "../../shared/vars";
-import { pressedChord } from "../../shared/chord";
 import { nonBlankLines } from "../../shared/text-input";
-import { errorMessage } from "../../shared/errors";
+import { PAUSE_MARK } from "../../shared/vars";
 import { parsePath } from "./drag-path";
 import { landedOnSignIn } from "./driver-helpers";
 import { elementOf, type DragTo } from "./flow-types";

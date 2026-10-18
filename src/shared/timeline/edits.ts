@@ -1,4 +1,8 @@
 import { z } from "zod";
+import { isString } from "../guards";
+import { edgeId, nodeIdPrefix } from "../ids";
+import { findById } from "../lists";
+import { clamp, numberOr, round2 } from "../math";
 import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "../nodes/params";
 import { CLIP_PORT } from "../nodes/ports";
 import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
@@ -6,6 +10,8 @@ import { cutSchema, IN_PORTS, inPortIndex, nextInPort } from "../nodes/timeline"
 import { NO_TRANSITION } from "../nodes/transitions";
 import type { ParamRef } from "../schema/timeline";
 import type { EdgeEnds, PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
+import { formatNumberList, parseNumberList } from "../text-input";
+import { absPosition, removeNodes } from "../workflow-edits";
 import {
   findHandle,
   slotIndex,
@@ -14,13 +20,7 @@ import {
   type ChainLink,
   type VideoBar,
 } from "./flatten";
-import { clamp, numberOr, round2 } from "../math";
-import { edgeId, nodeIdPrefix } from "../ids";
-import { formatNumberList, parseNumberList } from "../text-input";
 import { framesToMs, msToFrames } from "./time";
-import { absPosition, removeNodes } from "../workflow-edits";
-import { findById } from "../lists";
-import { isString } from "../guards";
 
 export type EditContext = {
   workflow: Workflow;

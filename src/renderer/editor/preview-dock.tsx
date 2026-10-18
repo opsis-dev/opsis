@@ -1,9 +1,6 @@
 import { Player, type PlayerRef } from "@remotion/player";
 import { Clapperboard } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { exportReframe, variantSize } from "@/shared/nodes/output";
-import { nodeName } from "@/shared/nodes/registry";
-import { EMPTY_SPEC, type TimelineSpec } from "@/shared/schema/timeline";
 import {
   Empty,
   EmptyDescription,
@@ -11,18 +8,21 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
+import { PROJECT_FILE_BASE } from "@/shared/asset-ref";
+import { findById } from "@/shared/lists";
+import { exportReframe, variantSize } from "@/shared/nodes/output";
+import { nodeName } from "@/shared/nodes/registry";
+import { EMPTY_SPEC, type TimelineSpec } from "@/shared/schema/timeline";
 import { playRange, wholeFrames } from "@/shared/timeline/time";
 import { usePlayback } from "../store/playback";
 import { useStillsStore } from "../store/stills";
 import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
-import { PreviewComposition } from "./preview-composition";
 import { useFilm } from "./film";
+import { PreviewComposition } from "./preview-composition";
 import { PreviewToolbar } from "./preview-toolbar";
 import { useCompiledContext } from "./use-compiled";
 import { usePlayerBridge, useSeekToSelection } from "./use-player-bridge";
-import { PROJECT_FILE_BASE } from "@/shared/asset-ref";
-import { findById } from "@/shared/lists";
 
 function NothingToPreview() {
   return (

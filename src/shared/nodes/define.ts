@@ -1,11 +1,11 @@
 import type { z } from "zod";
 import { isClip } from "../compile/clip";
+import { withDefaults } from "../elements/introspect";
 import type { ClipValue, CompileValue, NodeResult } from "../schema/values";
-import type { CardContext, CardRow } from "./card";
-import type { NodeIconName } from "./icon-name";
 import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { interpolate } from "../vars";
-import { withDefaults } from "../elements/introspect";
+import type { CardContext, CardRow } from "./card";
+import type { NodeIconName } from "./icon-name";
 
 export const NODE_CATEGORIES = [
   "Browser",

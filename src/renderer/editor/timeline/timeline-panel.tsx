@@ -1,6 +1,5 @@
 import { SquareChartGantt } from "lucide-react";
 import { useRef } from "react";
-import type { Workflow } from "@/shared/schema/workflow";
 import {
   Empty,
   EmptyDescription,
@@ -9,6 +8,7 @@ import {
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
 import { isEditingElement } from "@/renderer/lib/dom";
+import type { Workflow } from "@/shared/schema/workflow";
 import { useWorkflowStore } from "../../store/workflow";
 import { useFilm, type Film } from "../film";
 import { focusTargetRef } from "../panels";

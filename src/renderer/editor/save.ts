@@ -1,7 +1,7 @@
+import { reportError } from "@/renderer/lib/toast";
 import { normalizeWorkflow } from "@/shared/schema/workflow";
 import { useWorkflowStore } from "../store/workflow";
 import { useDiskChange, type DiskChange } from "./disk-change-store";
-import { reportError } from "@/renderer/lib/toast";
 
 export const VERSION_UNCHOSEN =
   "The project file changed on disk. Choose which version to keep first.";

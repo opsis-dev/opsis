@@ -1,15 +1,15 @@
 import { ReactFlowProvider } from "@xyflow/react";
-import { useDefaultLayout } from "react-resizable-panels";
 import { useEffect } from "react";
+import { useDefaultLayout } from "react-resizable-panels";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/renderer/components/ui/resizable";
 import { useEditorSync } from "../app/sync";
+import { useEnvironment } from "../store/environment";
 import { useMedia } from "../store/media";
 import { useStillsStore } from "../store/stills";
-import { useEnvironment } from "../store/environment";
 import { useWorkflowStore } from "../store/workflow";
 import { useApiBridge } from "./api-bridge";
 import { Canvas } from "./canvas";

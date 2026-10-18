@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { cn } from "@/renderer/lib/utils";
 import type { Marker } from "@/shared/schema/workflow";
 import type { FlatTimeline } from "@/shared/timeline/flatten";
 import { msToExactFrames } from "@/shared/timeline/time";
-import { cn } from "@/renderer/lib/utils";
 import { InlineEdit } from "../inline-edit";
 import { patchMarker } from "./timeline-actions";
 import { MARKERS_H, RULER_H, inView, type Viewport } from "./timeline-layout";

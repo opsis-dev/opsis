@@ -1,3 +1,6 @@
+import { formatPreciseDuration, humanize } from "../shared/format";
+import { isOneOf, isRecord, tryParseJson } from "../shared/guards";
+import { finiteNumber } from "../shared/math";
 import {
   CONSOLE_LEVELS,
   type TraceAction,
@@ -8,9 +11,6 @@ import {
   type TraceHeader,
   type TraceRequest,
 } from "../shared/trace";
-import { formatPreciseDuration, humanize } from "../shared/format";
-import { finiteNumber } from "../shared/math";
-import { isOneOf, isRecord, tryParseJson } from "../shared/guards";
 
 type Json = Record<string, unknown>;
 

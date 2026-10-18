@@ -1,5 +1,5 @@
-import { SAMPLE_RATE, type EqBand } from "@/shared/mix/types";
 import { clamp } from "@/shared/math";
+import { SAMPLE_RATE, type EqBand } from "@/shared/mix/types";
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;

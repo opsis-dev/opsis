@@ -1,6 +1,9 @@
 import { channelOf } from "../audio";
 import { itemHasSound, mapItems, soundNodeId, walkItems } from "../compile/clip";
+import { findById } from "../lists";
+import { numberOr } from "../math";
 import type { AudioItem, TimelineSpec } from "../schema/timeline";
+import { msToExactFrames, msToFrames } from "../timeline/time";
 import {
   DEFAULT_BUS_FOR,
   DEFAULT_STRIP,
@@ -11,9 +14,6 @@ import {
   type Mix,
   type Strip,
 } from "./types";
-import { msToExactFrames, msToFrames } from "../timeline/time";
-import { numberOr } from "../math";
-import { findById } from "../lists";
 
 export const resolveMix = (mix: Mix | undefined): Mix => mix ?? defaultMix();
 

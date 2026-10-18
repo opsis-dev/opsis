@@ -1,6 +1,6 @@
 import path from "node:path";
-import { enableTailwind } from "@remotion/tailwind-v4";
 import type { WebpackOverrideFn } from "@remotion/bundler";
+import { enableTailwind } from "@remotion/tailwind-v4";
 import { googleFontModuleFile, GOOGLE_FONT_IMPORT } from "../../shared/fonts/google-font-imports";
 
 export const makeWebpackOverride =

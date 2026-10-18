@@ -1,8 +1,8 @@
 import { useRef, type PointerEvent } from "react";
+import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
 import { spotYKey } from "@/shared/elements/introspect";
 import { percent, percentText } from "@/shared/format";
 import { clamp01, finiteNumber, numberOr, round3 } from "@/shared/math";
-import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
 import { FieldShell } from "./field-shell";
 import { SpotFrame } from "./spot-frame";
 import type { ParamFieldProps } from "./types";

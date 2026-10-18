@@ -1,19 +1,19 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { isEditingElement } from "@/renderer/lib/dom";
+import { platform } from "@/renderer/lib/platform";
+import { reportError } from "@/renderer/lib/toast";
+import { tryParseJson } from "@/shared/guards";
+import { matchesAccelerator } from "@/shared/menu";
 import {
   workflowEdgeSchema,
   workflowNodeSchema,
   type WorkflowEdge,
   type WorkflowNode,
 } from "@/shared/schema/workflow";
-import { isEditingElement } from "@/renderer/lib/dom";
-import { platform } from "@/renderer/lib/platform";
-import { matchesAccelerator } from "@/shared/menu";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { tryParseJson } from "@/shared/guards";
-import { reportError } from "@/renderer/lib/toast";
 
 const CLIPBOARD_TAG = "demoflow/v1";
 const PASTE_OFFSET = { x: 60, y: 60 };

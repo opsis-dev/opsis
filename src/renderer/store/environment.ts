@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { create } from "zustand";
-import type { EnvStatus } from "@/shared/ipc";
 import { reportError } from "@/renderer/lib/toast";
+import type { EnvStatus } from "@/shared/ipc";
 
 type EnvironmentState = {
   env: EnvStatus | null;

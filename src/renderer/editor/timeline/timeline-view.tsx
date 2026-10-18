@@ -25,8 +25,8 @@ import { TimelineRow } from "./timeline-row";
 import { useTimeline } from "./timeline-state";
 import { TransitionMarks } from "./transition-marks";
 import { useBeatFrames } from "./use-beat-frames";
-import { useTimelineDrag } from "./use-timeline-drag";
 import type { TimelineCommands } from "./use-timeline-commands";
+import { useTimelineDrag } from "./use-timeline-drag";
 import type { TimelineZoom } from "./use-timeline-zoom";
 import { VideoBarView } from "./video-bar";
 

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { cn } from "@/renderer/lib/utils";
 import { isClip } from "@/shared/compile/clip";
 import { workflowVars } from "@/shared/compile/compile";
 import { errorMessage } from "@/shared/errors";
@@ -7,7 +8,6 @@ import { uniqueKeys } from "@/shared/lists";
 import type { CardRow } from "@/shared/nodes/card";
 import { interpolatedParams, type NodeDef } from "@/shared/nodes/define";
 import type { WorkflowNode } from "@/shared/schema/workflow";
-import { cn } from "@/renderer/lib/utils";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";

@@ -1,5 +1,5 @@
-import { rulerStep } from "@/shared/timeline/snap";
 import { cn } from "@/renderer/lib/utils";
+import { rulerStep } from "@/shared/timeline/snap";
 import { HEADER_W, RULER_H } from "./timeline-layout";
 import { useFormatTime, useLoopRange } from "./timeline-state";
 

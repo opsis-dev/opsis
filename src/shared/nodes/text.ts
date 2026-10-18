@@ -1,14 +1,14 @@
 import { z } from "zod";
 import { EMPTY_CLIP_FRAMES, emptyClip, itemClip, stackClips } from "../compile/clip";
 import { CAPTIONS_ELEMENT, captionsSchema } from "../elements/core";
+import { fontStack } from "../fonts";
+import { humanize } from "../format";
 import { asValue, type CaptionsValue } from "../schema/values";
+import { msToFrames } from "../timeline/time";
 import { quotedRow, row, truncate } from "./card";
 import { annotationNode } from "./cursor";
 import { clipInput, defineNode, opt, port } from "./define";
 import { int, ms, text } from "./params";
-import { fontStack } from "../fonts";
-import { humanize } from "../format";
-import { msToFrames } from "../timeline/time";
 
 const base = { category: "Text & overlays", phase: "compile" } as const;
 

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import type { FieldMeta } from "@/shared/elements/introspect";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
+import type { FieldMeta } from "@/shared/elements/introspect";
 import type { Choice } from "./choice-select";
 
 export function Help({ meta }: { meta?: FieldMeta }) {

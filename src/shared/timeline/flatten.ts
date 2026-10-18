@@ -1,7 +1,10 @@
-import { groupOf, itemHasSound, recordingOf, type GroupProps } from "../compile/clip";
-import { lerpSegment, remapFrame, type Remap } from "../compile/remap";
+import { isProjectRef } from "../asset-ref";
 import { channelOf, soundLength } from "../audio";
+import { groupOf, itemHasSound, recordingOf, type GroupProps } from "../compile/clip";
 import type { RecordingProps } from "../compile/recording";
+import { lerpSegment, remapFrame, type Remap } from "../compile/remap";
+import { clamp, EPSILON, numberOr } from "../math";
+import { CHANNEL_KINDS, type ChannelKind } from "../mix/types";
 import type { Action } from "../schema/actions";
 import type {
   AudioItem,
@@ -12,10 +15,7 @@ import type {
   TimelineSpec,
   TimelineTrack,
 } from "../schema/timeline";
-import { clamp, EPSILON, numberOr } from "../math";
-import { isProjectRef } from "../asset-ref";
 import { msToExactFrames, recordingMsToFrames } from "./time";
-import { CHANNEL_KINDS, type ChannelKind } from "../mix/types";
 
 type Side = "start" | "end";
 

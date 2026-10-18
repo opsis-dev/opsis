@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import type { WindowState } from "@/shared/ipc";
 import { isMac } from "@/renderer/lib/platform";
+import type { WindowState } from "@/shared/ipc";
 
 export const useWindowState = create<WindowState>()(() => ({
   maximized: false,

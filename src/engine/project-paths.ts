@@ -1,9 +1,9 @@
 import path from "node:path";
-import { lastRunSchema, type LastRun } from "../shared/schema/values";
-import { readJson } from "./json";
-import { PROJECT_DIRS } from "../shared/project-dirs";
 import { projectRef } from "../shared/asset-ref";
 import { mapValues } from "../shared/pick";
+import { PROJECT_DIRS } from "../shared/project-dirs";
+import { lastRunSchema, type LastRun } from "../shared/schema/values";
+import { readJson } from "./json";
 
 export const projectPaths = (projectDir: string) =>
   mapValues(PROJECT_DIRS, (rel) => path.join(projectDir, rel));

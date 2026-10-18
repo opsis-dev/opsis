@@ -1,10 +1,10 @@
 import { create } from "zustand";
-import { usePlayback } from "../../store/playback";
-import { readPref, writePref } from "../../store/view-prefs";
+import { isBoolean } from "@/shared/guards";
+import { clamp } from "@/shared/math";
 import type { AudioEnvelopeKey, VisualEnvelopeKey } from "@/shared/schema/timeline";
 import { formatTime } from "@/shared/timeline/time";
-import { clamp } from "@/shared/math";
-import { isBoolean } from "@/shared/guards";
+import { usePlayback } from "../../store/playback";
+import { readPref, writePref } from "../../store/view-prefs";
 
 export type TimelineTool = "select" | "ripple" | "roll" | "slip" | "blade" | "rate";
 type RulerMode = "seconds" | "timecode";

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { baseName } from "../asset-ref";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
 import {
   itemClip,
@@ -8,7 +9,6 @@ import {
   recordingProps,
   wrapClip,
 } from "../compile/clip";
-import { remapDuration, remapFromSegments } from "../compile/remap";
 import {
   CAMERA_STYLES,
   DEFAULT_RECORDING_PROPS,
@@ -16,9 +16,13 @@ import {
   idleSpans,
   type RecordingProps,
 } from "../compile/recording";
+import { remapDuration, remapFromSegments } from "../compile/remap";
+import type { FieldMeta } from "../elements/introspect";
+import { formatDuration, humanize, percentText, plural } from "../format";
 import { pointRect, type Action } from "../schema/actions";
 import { asValue, type ClipValue } from "../schema/values";
-import type { FieldMeta } from "../elements/introspect";
+import { msToFrames, recordingMsToFrames } from "../timeline/time";
+import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "./capture";
 import { mutedIf, row, toggleRow, warnIf, type CardRow } from "./card";
 import { clipModifier, defineNode, port, withClip } from "./define";
 import type { NodeIconName } from "./icon-name";
@@ -35,10 +39,6 @@ import {
   text,
   zoomScale,
 } from "./params";
-import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "./capture";
-import { formatDuration, humanize, percentText, plural } from "../format";
-import { msToFrames, recordingMsToFrames } from "../timeline/time";
-import { baseName } from "../asset-ref";
 
 const base = { category: "Camera", phase: "compile" } as const;
 const modifier = { ...base, ...clipModifier };

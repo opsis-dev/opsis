@@ -20,6 +20,7 @@ export const IGNORED_PATHS = [
   "src/video/lib/**",
   "src/video/hooks/**",
   "src/renderer/components/ui/**",
+  "src/renderer/components/*.tsx",
   "src/renderer/hooks/**",
   "src/shared/elements/elements.generated.ts",
   "src/shared/fonts/bundled.generated.ts",

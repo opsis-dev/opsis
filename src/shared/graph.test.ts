@@ -7,11 +7,11 @@ import {
   topoSort,
   validateWorkflow,
 } from "./graph";
+import { findById } from "./lists";
+import type { Workflow } from "./schema/workflow";
 import { getTemplate } from "./templates";
 import { GraphBuilder } from "./templates/build";
 import { must } from "./test-fixtures";
-import type { Workflow } from "./schema/workflow";
-import { findById } from "./lists";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 

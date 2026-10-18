@@ -1,13 +1,4 @@
 import { Bookmark, Magnet, Scissors, X, ZoomIn, ZoomOut } from "lucide-react";
-import { nodeName } from "@/shared/nodes/registry";
-import { isOutputType } from "@/shared/nodes/output";
-import {
-  AUDIO_ENVELOPES,
-  VISUAL_ENVELOPES,
-  type AudioEnvelopeKey,
-  type VisualEnvelopeKey,
-} from "@/shared/schema/timeline";
-import type { Workflow } from "@/shared/schema/workflow";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import { Kbd } from "@/renderer/components/ui/kbd";
@@ -23,6 +14,16 @@ import { Separator } from "@/renderer/components/ui/separator";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
+import { findById } from "@/shared/lists";
+import { isOutputType } from "@/shared/nodes/output";
+import { nodeName } from "@/shared/nodes/registry";
+import {
+  AUDIO_ENVELOPES,
+  VISUAL_ENVELOPES,
+  type AudioEnvelopeKey,
+  type VisualEnvelopeKey,
+} from "@/shared/schema/timeline";
+import type { Workflow } from "@/shared/schema/workflow";
 import { shortcutLabel } from "../../app/menu-shortcuts";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
@@ -30,7 +31,6 @@ import { ENVELOPE_INFO } from "./envelope";
 import { useFormatTime, useLoopRange, useTimeline } from "./timeline-state";
 import { COMMAND_KEYS, TOOLS, ZOOM_KEYS, ZOOM_STEP } from "./timeline-tools";
 import type { TimelineCommands } from "./use-timeline-commands";
-import { findById } from "@/shared/lists";
 
 type VideoChoice = VisualEnvelopeKey | "off";
 

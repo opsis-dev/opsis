@@ -1,10 +1,11 @@
+import { schemaDefaults } from "../elements/introspect";
+import { findById } from "../lists";
 import { audioNodes } from "./audio";
 import { browserNodes } from "./browser";
 import { cameraNodes } from "./camera";
 import { captureNodes } from "./capture";
 import { cursorNodes } from "./cursor";
 import type { NodeDef } from "./define";
-import { schemaDefaults } from "../elements/introspect";
 import { elementNodes } from "./elements";
 import { mediaNodes } from "./media";
 import { outputNodes } from "./output";
@@ -12,7 +13,6 @@ import { textNodes } from "./text";
 import { timelineNodes } from "./timeline";
 import { transitionNodes } from "./transitions";
 import { utilityNodes } from "./utility";
-import { findById } from "../lists";
 
 export const NODE_DEFS: NodeDef[] = [
   ...browserNodes,

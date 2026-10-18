@@ -1,11 +1,3 @@
-import {
-  DEFAULT_EQ_BANDS,
-  EQ_BAND_BOUNDS,
-  EQ_TYPES,
-  type Eq,
-  type EqBand,
-  type EqType,
-} from "@/shared/mix/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import {
   Select,
@@ -15,6 +7,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/renderer/components/ui/select";
+import {
+  DEFAULT_EQ_BANDS,
+  EQ_BAND_BOUNDS,
+  EQ_TYPES,
+  type Eq,
+  type EqBand,
+  type EqType,
+} from "@/shared/mix/types";
 import { db, hz } from "./audio-format";
 import { SwitchHeader } from "./dynamics-popovers";
 import { EqCurve } from "./eq-curve";

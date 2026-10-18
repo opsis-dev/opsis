@@ -1,8 +1,8 @@
 import { mkdir, rename } from "node:fs/promises";
 import path from "node:path";
 import type { HeadlessBrowser } from "@remotion/renderer";
-import type { MainToWorker } from "../../shared/worker-protocol";
 import { keepLatest } from "../../shared/memo";
+import type { MainToWorker } from "../../shared/worker-protocol";
 import { startAssetServer, type AssetServer } from "./asset-server";
 import { getServeUrl, openRenderBrowser, renderFrame, type GlRenderer } from "./render";
 

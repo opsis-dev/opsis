@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import type { RecordingProps } from "../../shared/compile/recording";
+import { TEXT_COLOR } from "../../shared/elements/colors";
 import { CODE_FONT } from "../../shared/fonts";
 import { displayAddress } from "../../shared/format";
 import { clamp } from "../../shared/math";
 import { pick } from "../../shared/pick";
-import { TEXT_COLOR } from "../../shared/elements/colors";
 import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
 import { DemoClip } from "../camera/demo-clip";

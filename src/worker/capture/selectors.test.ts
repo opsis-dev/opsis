@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import type { Locator, Page } from "playwright-core";
+import { describe, expect, it } from "vitest";
 import { CancelledError } from "../../shared/errors";
 import { resolveTarget, SelectorError } from "./selectors";
 

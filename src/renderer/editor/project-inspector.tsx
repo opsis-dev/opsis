@@ -1,10 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { FontRole } from "@/shared/fonts";
-import { THEME_BACKGROUNDS } from "@/shared/compile/clip";
-import { firstFree, uniqueKeys } from "@/shared/lists";
-import { VARIANTS, variantCanvas } from "@/shared/nodes/output";
-import type { Workflow, WorkflowSettings } from "@/shared/schema/workflow";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -20,6 +15,11 @@ import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-gr
 import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { attempt } from "@/renderer/lib/toast";
 import { useItemKeys } from "@/renderer/lib/use-item-keys";
+import { THEME_BACKGROUNDS } from "@/shared/compile/clip";
+import type { FontRole } from "@/shared/fonts";
+import { firstFree, uniqueKeys } from "@/shared/lists";
+import { VARIANTS, variantCanvas } from "@/shared/nodes/output";
+import type { Workflow, WorkflowSettings } from "@/shared/schema/workflow";
 import { FontPicker } from "../fonts/font-picker";
 import { useMedia } from "../store/media";
 import { useRunStore } from "../store/run";

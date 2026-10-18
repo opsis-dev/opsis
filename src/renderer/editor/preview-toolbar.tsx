@@ -1,6 +1,3 @@
-import { VARIANTS } from "@/shared/nodes/output";
-import { formatDuration } from "@/shared/format";
-import { PREVIEW_QUALITIES, type TimelineSpec } from "@/shared/schema/timeline";
 import { Badge } from "@/renderer/components/ui/badge";
 import {
   Select,
@@ -13,9 +10,12 @@ import {
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { whenFirstOneOf, whenOneOf } from "@/renderer/lib/one-of";
+import { formatDuration } from "@/shared/format";
+import { VARIANTS } from "@/shared/nodes/output";
+import { PREVIEW_QUALITIES, type TimelineSpec } from "@/shared/schema/timeline";
+import { framesToMs } from "@/shared/timeline/time";
 import { PREVIEW_SHAPES, useViewOptions } from "../store/view-options";
 import { WithTooltip } from "./tooltip-button";
-import { framesToMs } from "@/shared/timeline/time";
 
 const PROJECT_SHAPE = "Project shape";
 const shapeLabel = (shape: string) => (shape === "project" ? PROJECT_SHAPE : shape);

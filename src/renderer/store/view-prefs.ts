@@ -1,5 +1,5 @@
-import { tryParseJson } from "@/shared/guards";
 import { readStored, writeStored } from "@/renderer/lib/local-storage";
+import { tryParseJson } from "@/shared/guards";
 
 let project: string | null = null;
 

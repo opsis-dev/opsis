@@ -12,11 +12,11 @@ import {
 } from "@/renderer/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { patchAppSettings, useAppSettings } from "../../store/app-settings";
 import { isWindows } from "@/renderer/lib/platform";
 import { singleQuoted } from "@/shared/format";
 import type { ApiStatus } from "@/shared/ipc";
 import type { AppSettings } from "@/shared/settings";
+import { patchAppSettings, useAppSettings } from "../../store/app-settings";
 import { SwitchField } from "./fields";
 
 const COPIED_MS = 1500;

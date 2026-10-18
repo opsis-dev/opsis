@@ -1,9 +1,9 @@
 import { Copy, Minus, Square, X } from "lucide-react";
 import type { ReactNode } from "react";
+import { isMac } from "@/renderer/lib/platform";
+import { cn } from "@/renderer/lib/utils";
 import type { WindowRole } from "@/shared/menu";
 import { useWindowState } from "../store/window-state";
-import { cn } from "@/renderer/lib/utils";
-import { isMac } from "@/renderer/lib/platform";
 
 function WindowButton({
   role,

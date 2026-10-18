@@ -1,10 +1,10 @@
 import type { AnalysisRequest, AnalysisResult } from "../../shared/analysis";
+import { errorMessage } from "../../shared/errors";
 import type { WorkerEnv } from "../../shared/worker-protocol";
 import { refToPath } from "../executors/util";
 import { renderMix } from "../mix/render";
 import { analyzeFilmstrip, analyzeWaveform } from "./analysis";
 import { createFfmpegTools } from "./ffmpeg";
-import { errorMessage } from "../../shared/errors";
 
 export async function runAnalysis(
   env: WorkerEnv,

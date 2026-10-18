@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { VARIANTS } from "@/shared/nodes/output";
 import { isBoolean, isOneOf } from "@/shared/guards";
+import { VARIANTS } from "@/shared/nodes/output";
 import { PREVIEW_QUALITIES, type PreviewQuality } from "@/shared/schema/timeline";
 import { readPref, writePref } from "./view-prefs";
 

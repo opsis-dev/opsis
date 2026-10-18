@@ -2,8 +2,8 @@ import type React from "react";
 import { useVideoConfig } from "remotion";
 import { clamp } from "../../shared/math";
 import type { ReframeMode } from "../../shared/schema/timeline";
-import { containBox, type Size } from "./still-layout";
 import { designScaleFor } from "../camera/lib/design-width";
+import { containBox, type Size } from "./still-layout";
 
 type Insets = { top: number; right: number; bottom: number; left: number };
 

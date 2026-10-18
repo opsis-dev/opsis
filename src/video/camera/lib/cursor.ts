@@ -1,6 +1,6 @@
-import type { ClickEvent, CursorSample } from "./click-log";
 import { clamp01, lerp, sampleKeyed } from "../../../shared/math";
 import type { Point } from "../../../shared/schema/actions";
+import type { ClickEvent, CursorSample } from "./click-log";
 
 export const CLICK_SQUASH = 0.9;
 export const CLICK_SQUASH_S = 0.12;

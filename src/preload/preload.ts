@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from "electron";
-import { INVOKE, IPC, type DemoflowApi, type InvokeName } from "../shared/ipc";
-import type { LiveMessage } from "../shared/live";
 import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
 import { errorMessage } from "../shared/errors";
+import { INVOKE, IPC, type DemoflowApi, type InvokeName } from "../shared/ipc";
+import type { LiveMessage } from "../shared/live";
 
 function subscribe<A extends unknown[]>(
   channel: string,

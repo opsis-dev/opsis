@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 import { Node } from "ts-morph";
 import { z } from "zod";
-import type { ControlSpec, CuratedElement } from "../registry-ingest.list";
 import { humanize } from "../../src/shared/format";
 import { hasStringType, isNumber, isRecord, isString, tryParseJson } from "../../src/shared/guards";
 import { stringsIn } from "../../src/shared/vars";
+import type { ControlSpec, CuratedElement } from "../registry-ingest.list";
 import { js } from "./registry-codegen";
 import { literalOf, scratchFile, sourceDefaults } from "./ts-literal";
 

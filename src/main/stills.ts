@@ -7,12 +7,12 @@ import { sha256Hex } from "../engine/hash";
 import { readJson, writeJson } from "../engine/json";
 import { logError } from "../engine/log";
 import { engineStatus } from "../engine/paths";
+import { projectPaths } from "../engine/project-paths";
 import { IPC, type StillRequest, type StillResult } from "../shared/ipc";
 import { oneAtATime } from "../shared/timing";
 import { getMainWindow } from "./app-windows";
 import { createQueuedWorker } from "./lazy-worker";
 import { engineDir, isRunning } from "./workers";
-import { projectPaths } from "../engine/project-paths";
 
 const STILL_WIDTH = 480;
 

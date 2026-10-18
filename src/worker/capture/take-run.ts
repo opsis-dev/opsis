@@ -1,11 +1,11 @@
 import type { Locator, Page } from "playwright-core";
-import { parseNodeParams, type NodeDef, type NodeParams } from "../../shared/nodes/define";
-import type { recordNode } from "../../shared/nodes/capture";
-import { nodeName } from "../../shared/nodes/registry";
+import { throwIfCancelled } from "../../shared/errors";
 import type { LiveEvent } from "../../shared/live";
+import type { recordNode } from "../../shared/nodes/capture";
+import { parseNodeParams, type NodeDef, type NodeParams } from "../../shared/nodes/define";
+import { nodeName } from "../../shared/nodes/registry";
 import type { Action } from "../../shared/schema/actions";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
-import { throwIfCancelled } from "../../shared/errors";
 import type { CursorSample, KeyEvent } from "../../video/camera/lib/click-log";
 import { plainError, traceGroupTitle } from "./driver-helpers";
 import type { FrameEncoder } from "./encoder";

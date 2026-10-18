@@ -1,14 +1,20 @@
-import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
 import { CameraMotionBlur } from "@remotion/motion-blur";
-import type { ClickLog } from "./lib/click-log";
-import { isNarrow, logTimeS, zoomAt, type CameraTuning } from "./lib/zoom";
-import { BASE_POSE, poseToCss, type ZoomState } from "./lib/camera";
+import React from "react";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import type { RecordingProps } from "../../shared/compile/recording";
+import { percent } from "../../shared/format";
+import { Backdrop } from "../core/backgrounds";
+import type { Size } from "../core/still-layout";
+import type { Annotation } from "./action-log";
+import { Annotations } from "./annotations";
+import { Cursor } from "./cursor";
 import { isLightBackdrop } from "./lib/backdrop";
+import { BASE_POSE, poseToCss, type ZoomState } from "./lib/camera";
+import type { ClickLog } from "./lib/click-log";
 import { useDesignScale } from "./lib/design-scale";
 import { SHOT_STYLES, type WindowShot } from "./lib/style";
-import { Cursor } from "./cursor";
+import { isNarrow, logTimeS, zoomAt, type CameraTuning } from "./lib/zoom";
 import {
   CHROME_H,
   RimLight,
@@ -17,12 +23,6 @@ import {
   type FrameTheme,
   type WindowStyle,
 } from "./window-frame";
-import { Annotations } from "./annotations";
-import type { Annotation } from "./action-log";
-import { Backdrop } from "../core/backgrounds";
-import type { Size } from "../core/still-layout";
-import type { RecordingProps } from "../../shared/compile/recording";
-import { percent } from "../../shared/format";
 
 type DemoClipProps = {
   src: string;

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { fieldMeta, type FieldMeta } from "../elements/introspect";
-import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
 import { humanize } from "../format";
+import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
 
 export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
   schema.meta({ ...fieldMeta(schema), ...extra });

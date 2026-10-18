@@ -1,8 +1,8 @@
 import React, { useLayoutEffect, useMemo, useState } from "react";
 import { cancelRender } from "remotion";
+import { groupOf, walkItems } from "../../shared/compile/clip";
 import { firstFamily } from "../../shared/fonts";
 import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "../../shared/fonts/types";
-import { groupOf, walkItems } from "../../shared/compile/clip";
 import type { TimelineTrack } from "../../shared/schema/timeline";
 import { resolveAssetRef, useAssetBase } from "../assets";
 import { holdRender, useStableValue } from "../core/loading";

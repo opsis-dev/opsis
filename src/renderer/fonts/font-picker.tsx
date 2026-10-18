@@ -1,8 +1,5 @@
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
 import { useState } from "react";
-import { familyKey, familyKeysWithBundled, sameFamily } from "@/shared/fonts";
-import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
-import type { FontFamilyDef } from "@/shared/fonts/types";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Command,
@@ -14,8 +11,11 @@ import {
   CommandSeparator,
 } from "@/renderer/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
-import { useWorkflowStore } from "../store/workflow";
 import { useBusy } from "@/renderer/lib/use-busy";
+import { familyKey, familyKeysWithBundled, sameFamily } from "@/shared/fonts";
+import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
+import type { FontFamilyDef } from "@/shared/fonts/types";
+import { useWorkflowStore } from "../store/workflow";
 import { FontSample } from "./font-sample";
 import { useFontLibrary } from "./library";
 

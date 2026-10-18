@@ -1,10 +1,10 @@
+import type { TransitionPresentation } from "@remotion/transitions";
 import { clockWipe } from "@remotion/transitions/clock-wipe";
 import { fade } from "@remotion/transitions/fade";
 import { flip } from "@remotion/transitions/flip";
 import { iris } from "@remotion/transitions/iris";
 import { slide } from "@remotion/transitions/slide";
 import { wipe } from "@remotion/transitions/wipe";
-import type { TransitionPresentation } from "@remotion/transitions";
 import type { ElementProps } from "../../shared/elements/types";
 import { presentation } from "../registry/framing";
 import type { PresentationFactory } from "../registry/types";

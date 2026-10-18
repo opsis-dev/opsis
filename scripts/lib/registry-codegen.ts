@@ -1,7 +1,7 @@
 import path from "node:path";
-import type * as framing from "../../src/video/registry/framing";
 import type { ElementKind } from "../../src/shared/elements/types";
 import { humanize } from "../../src/shared/format";
+import type * as framing from "../../src/video/registry/framing";
 import { REGISTRIES, TITLE_ACRONYMS, type CuratedElement } from "../registry-ingest.list";
 import type { Control } from "./registry-controls";
 import { VIDEO_DIR } from "./tool-config";

@@ -1,5 +1,10 @@
 import { Plus, X } from "lucide-react";
 import { z } from "zod";
+import { Button } from "@/renderer/components/ui/button";
+import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/renderer/components/ui/input-group";
+import { whenOneOf } from "@/renderer/lib/one-of";
+import { useItemKeys } from "@/renderer/lib/use-item-keys";
 import {
   AUDIO_ENVELOPES,
   EASES,
@@ -10,11 +15,6 @@ import {
   type Keyframe,
   type VisualEnvelopeKey,
 } from "@/shared/schema/timeline";
-import { Button } from "@/renderer/components/ui/button";
-import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/renderer/components/ui/input-group";
-import { whenOneOf } from "@/renderer/lib/one-of";
-import { useItemKeys } from "@/renderer/lib/use-item-keys";
 import { parseNumberText } from "@/shared/text-input";
 import { ChoiceSelect } from "./choice-select";
 import { framesScale, parseShown, shownText, trimNumber, useDecimalInput } from "./decimal";

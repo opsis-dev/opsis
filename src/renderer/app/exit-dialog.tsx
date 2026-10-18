@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { CloseRequest } from "@/shared/ipc";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,6 +11,7 @@ import {
 } from "@/renderer/components/ui/alert-dialog";
 import { Checkbox } from "@/renderer/components/ui/checkbox";
 import { Label } from "@/renderer/components/ui/label";
+import type { CloseRequest } from "@/shared/ipc";
 
 export function ExitDialog() {
   const [request, setRequest] = useState<CloseRequest | null>(null);

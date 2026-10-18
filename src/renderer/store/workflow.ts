@@ -1,5 +1,10 @@
 import { temporal } from "zundo";
 import { create } from "zustand";
+import { createForwarder } from "@/renderer/lib/forwarder";
+import { platform } from "@/renderer/lib/platform";
+import type { FontFamilyDef } from "@/shared/fonts/types";
+import { nodeIdFor, randomId } from "@/shared/ids";
+import { defaultMix, type Mix } from "@/shared/mix/types";
 import { defaultParams, getNodeDef } from "@/shared/nodes/registry";
 import {
   normalizeWorkflow,
@@ -10,12 +15,7 @@ import {
   type WorkflowNode,
   type WorkflowSettings,
 } from "@/shared/schema/workflow";
-import { defaultMix, type Mix } from "@/shared/mix/types";
-import { nodeIdFor, randomId } from "@/shared/ids";
-import type { FontFamilyDef } from "@/shared/fonts/types";
 import * as edits from "@/shared/workflow-edits";
-import { createForwarder } from "@/renderer/lib/forwarder";
-import { platform } from "@/renderer/lib/platform";
 import { cardSize } from "../editor/card-size";
 import { useUiStore } from "./ui";
 

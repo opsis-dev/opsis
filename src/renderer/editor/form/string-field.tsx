@@ -1,8 +1,4 @@
 import { Crosshair, FolderOpen, type LucideIcon } from "lucide-react";
-import { targetRoleKey } from "@/shared/elements/introspect";
-import { humanize } from "@/shared/format";
-import { withCurrent } from "@/shared/lists";
-import { BACKDROPS } from "@/shared/backdrops";
 import { Input } from "@/renderer/components/ui/input";
 import {
   InputGroup,
@@ -11,6 +7,10 @@ import {
   InputGroupInput,
 } from "@/renderer/components/ui/input-group";
 import { Textarea } from "@/renderer/components/ui/textarea";
+import { BACKDROPS } from "@/shared/backdrops";
+import { targetRoleKey } from "@/shared/elements/introspect";
+import { humanize } from "@/shared/format";
+import { withCurrent } from "@/shared/lists";
 import { FontPicker } from "../../fonts/font-picker";
 import { VarText } from "../var-text";
 import { FieldShell } from "./field-shell";

@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
 import { PanelBottomClose } from "lucide-react";
 import { useEffect } from "react";
-import { DOCK_TITLES, type DockPanelName } from "@/shared/ipc";
+import { z } from "zod";
 import { Button } from "@/renderer/components/ui/button";
 import { Spinner } from "@/renderer/components/ui/spinner";
+import { DOCK_TITLES, type DockPanelName } from "@/shared/ipc";
 import { AppBar } from "../app/app-bar";
+import { onMenuCommand, PROJECT_SWITCH_COMMANDS } from "../app/menu-commands";
 import { forwardMenuCommand, usePanelSync } from "../app/sync";
 import { DockContent } from "../editor/dock";
 import { FilmProvider } from "../editor/film";
@@ -13,7 +14,6 @@ import { isDockPanel } from "../editor/panels";
 import { CompiledContext, useCompiled } from "../editor/use-compiled";
 import { useMedia } from "../store/media";
 import { useWorkflowStore } from "../store/workflow";
-import { onMenuCommand, PROJECT_SWITCH_COMMANDS } from "../app/menu-commands";
 
 const close = () => void window.demoflow.windowRole("close");
 

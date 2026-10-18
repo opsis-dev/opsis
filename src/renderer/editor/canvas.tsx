@@ -9,10 +9,10 @@ import {
   type ReactFlowProps,
 } from "@xyflow/react";
 import { useCallback, useMemo, useRef } from "react";
-import { connectionProblem } from "@/shared/graph";
-import { DEFAULT_SETTINGS } from "@/shared/settings";
 import { ZoomSlider } from "@/renderer/components/zoom-slider";
 import { isMac } from "@/renderer/lib/platform";
+import { connectionProblem } from "@/shared/graph";
+import { DEFAULT_SETTINGS } from "@/shared/settings";
 import { useAppSettings } from "../store/app-settings";
 import { useUiStore } from "../store/ui";
 import { useViewOptions } from "../store/view-options";

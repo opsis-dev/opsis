@@ -1,6 +1,6 @@
+import { round3 } from "../../shared/math";
 import type { NodeParams } from "../../shared/nodes/define";
 import type { gifNode, scalePadNode } from "../../shared/nodes/media";
-import { round3 } from "../../shared/math";
 import { EDIT_VIDEO } from "./codecs";
 
 const padTo = (w: number, h: number, color?: string) =>

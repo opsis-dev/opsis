@@ -1,14 +1,14 @@
 import { useEffect, useEffectEvent } from "react";
 import { shallow } from "zustand/vanilla/shallow";
+import { hasStringType } from "@/shared/guards";
+import { randomId } from "@/shared/ids";
 import type { DockPanelName } from "@/shared/ipc";
-import type { MenuCommand } from "@/shared/menu";
 import type { LiveMessage } from "@/shared/live";
+import type { MenuCommand } from "@/shared/menu";
+import { pick } from "@/shared/pick";
 import type { RunEvent } from "@/shared/schema/events";
 import type { PreviewQuality } from "@/shared/schema/timeline";
 import type { Workflow } from "@/shared/schema/workflow";
-import { hasStringType } from "@/shared/guards";
-import { randomId } from "@/shared/ids";
-import { pick } from "@/shared/pick";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import {

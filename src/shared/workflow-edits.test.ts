@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import type { FontFamilyDef } from "./fonts/types";
+import { findById } from "./lists";
 import { DEFAULT_STRIP, defaultMix } from "./mix/types";
 import { GROUP_TYPE } from "./nodes/utility";
 import { GraphBuilder } from "./templates/build";
+import { workflowNode } from "./test-fixtures";
 import {
   addProjectFont,
   connect,
@@ -13,9 +16,6 @@ import {
   renameWorkflowVariable,
   ungroup,
 } from "./workflow-edits";
-import type { FontFamilyDef } from "./fonts/types";
-import { findById } from "./lists";
-import { workflowNode } from "./test-fixtures";
 
 const SIZE = { width: 200, height: 100 };
 

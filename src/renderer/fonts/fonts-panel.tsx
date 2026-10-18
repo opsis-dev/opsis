@@ -1,8 +1,6 @@
 import { FileArchive, Globe, HardDrive, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
-import type { FontFamilyDef } from "@/shared/fonts/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,9 +22,11 @@ import {
   CardTitle,
 } from "@/renderer/components/ui/card";
 import { attempt } from "@/renderer/lib/toast";
+import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
+import type { FontFamilyDef } from "@/shared/fonts/types";
 import { describeFaces } from "./font-labels";
-import { InstalledDialog } from "./installed-dialog";
 import { FontSample } from "./font-sample";
+import { InstalledDialog } from "./installed-dialog";
 import { useFontLibrary } from "./library";
 import { installedFonts, type LocalFontData } from "./local-fonts";
 import { OnlineDialog } from "./online-dialog";

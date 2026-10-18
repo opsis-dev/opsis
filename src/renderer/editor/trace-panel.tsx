@@ -1,13 +1,14 @@
 import { CircleX, Folder, MousePointerClick } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { errorMessage } from "@/shared/errors";
-import { formatPreciseDuration } from "@/shared/format";
-import { frameAt, type TraceAction, type TraceModel } from "@/shared/trace";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/renderer/components/ui/empty";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { cn } from "@/renderer/lib/utils";
+import { errorMessage } from "@/shared/errors";
+import { formatPreciseDuration } from "@/shared/format";
+import { findById } from "@/shared/lists";
+import { frameAt, type TraceAction, type TraceModel } from "@/shared/trace";
 import { OptionToggle } from "../app/option-toggle";
 import { useUiStore } from "../store/ui";
 import { fileUrl } from "./file-url";
@@ -15,7 +16,6 @@ import { FrameOverlay, OVERLAY_WIDTHS } from "./frame-overlay";
 import { ListRow } from "./list-row";
 import { MONO_TEXT } from "./text-styles";
 import { traceClock, TraceTabs } from "./trace-tabs";
-import { findById } from "@/shared/lists";
 
 const MOMENTS = ["before", "after"] as const;
 type Moment = (typeof MOMENTS)[number];

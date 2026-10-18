@@ -1,4 +1,6 @@
-import { defaultTargetRect, type ClickEvent, type ClickLog } from "./click-log";
+import { stableJson } from "../../../shared/hash";
+import { clamp, clamp01, lerp, partitionPoint, sampleKeyed } from "../../../shared/math";
+import { distance, rectCentre, type Viewport } from "../../../shared/schema/actions";
 import {
   BASE_POSE,
   interpolatePose,
@@ -9,10 +11,8 @@ import {
   type CameraPose,
   type ZoomState,
 } from "./camera";
+import { defaultTargetRect, type ClickEvent, type ClickLog } from "./click-log";
 import { designScaleFor } from "./design-width";
-import { clamp, clamp01, lerp, partitionPoint, sampleKeyed } from "../../../shared/math";
-import { distance, rectCentre, type Viewport } from "../../../shared/schema/actions";
-import { stableJson } from "../../../shared/hash";
 
 export const S_MAX = 1.74;
 

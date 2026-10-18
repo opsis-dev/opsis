@@ -1,6 +1,7 @@
 import { round3 } from "@/shared/math";
 import type { Keyframe } from "@/shared/schema/timeline";
 import { samplePoints } from "@/shared/timeline/envelope";
+import type { BarContext } from "./bar-context";
 import {
   addKeyframe,
   ENVELOPE_INFO,
@@ -10,9 +11,8 @@ import {
   type EnvelopeKey,
   type EnvelopeTarget,
 } from "./envelope";
-import type { BarContext } from "./bar-context";
-import type { KeyStart } from "./use-timeline-drag";
 import { useDoublePress } from "./use-double-press";
+import type { KeyStart } from "./use-timeline-drag";
 
 type LineShape = {
   keys: Keyframe[];

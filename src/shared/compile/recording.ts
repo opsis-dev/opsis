@@ -1,6 +1,6 @@
+import { DEFAULT_BACKDROP } from "../backdrops";
 import type { Action, ActionLog } from "../schema/actions";
 import type { AssetRef } from "../schema/values";
-import { DEFAULT_BACKDROP } from "../backdrops";
 
 export const CAMERA_STYLES = ["classic", "proof", "ledger", "stage"] as const;
 type CameraStyle = (typeof CAMERA_STYLES)[number];

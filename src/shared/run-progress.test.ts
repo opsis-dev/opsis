@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { RunEvent } from "./schema/events";
 import {
   applyRunEvent,
   emptyRunProgress,
@@ -7,6 +6,7 @@ import {
   failureMessage,
   resumeRunProgress,
 } from "./run-progress";
+import type { RunEvent } from "./schema/events";
 import { nodeResult } from "./test-fixtures";
 
 const result = (finishedAt: number, paths: string[] = []) =>

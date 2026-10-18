@@ -1,8 +1,5 @@
 import { Plus, SlidersVertical } from "lucide-react";
 import { useState } from "react";
-import { randomId } from "@/shared/ids";
-import { addBus } from "@/shared/mix/edits";
-import { soloActive } from "@/shared/mix/levels";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -13,6 +10,9 @@ import {
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
 import { Spinner } from "@/renderer/components/ui/spinner";
+import { randomId } from "@/shared/ids";
+import { addBus } from "@/shared/mix/edits";
+import { soloActive } from "@/shared/mix/levels";
 import { useMedia } from "../../store/media";
 import { toggleIds } from "../../store/ui";
 import { readPref, writePref } from "../../store/view-prefs";

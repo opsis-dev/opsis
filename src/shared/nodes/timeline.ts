@@ -10,8 +10,11 @@ import {
   type GroupProps,
 } from "../compile/clip";
 import { speedRemap } from "../compile/remap";
+import { formatDuration, plural } from "../format";
 import { asValue, type ClipValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
+import { parseNumberList } from "../text-input";
+import { msToFrames } from "../timeline/time";
 import {
   connectedPorts,
   countConnected,
@@ -40,9 +43,6 @@ import {
   TRANSITION_KINDS,
   transitionTitle,
 } from "./transitions";
-import { formatDuration, plural } from "../format";
-import { parseNumberList } from "../text-input";
-import { msToFrames } from "../timeline/time";
 
 const base = { category: "Timeline", phase: "compile" } as const;
 export const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;

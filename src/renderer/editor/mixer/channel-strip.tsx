@@ -1,11 +1,5 @@
 import { AudioLines, Clapperboard, Music } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
-import { updateChannels } from "@/shared/mix/edits";
-import { busOf, isAudible, stripOf } from "@/shared/mix/levels";
-import type { ChannelPlan } from "@/shared/mix/plan";
-import type { MixResult } from "@/shared/mix/result";
-import { PAN_RANGE, TRIM_RANGE, type Bus, type Mix, type Strip } from "@/shared/mix/types";
-import { nodeNameById } from "@/shared/nodes/registry";
 import {
   Select,
   SelectContent,
@@ -15,6 +9,13 @@ import {
   SelectValue,
 } from "@/renderer/components/ui/select";
 import { cn } from "@/renderer/lib/utils";
+import { findById } from "@/shared/lists";
+import { updateChannels } from "@/shared/mix/edits";
+import { busOf, isAudible, stripOf } from "@/shared/mix/levels";
+import type { ChannelPlan } from "@/shared/mix/plan";
+import type { MixResult } from "@/shared/mix/result";
+import { PAN_RANGE, TRIM_RANGE, type Bus, type Mix, type Strip } from "@/shared/mix/types";
+import { nodeNameById } from "@/shared/nodes/registry";
 import { toggleIds, useUiStore } from "../../store/ui";
 import { useWorkflowStore } from "../../store/workflow";
 import { db, panLabel } from "./audio-format";
@@ -31,7 +32,6 @@ import {
   stripBinding,
   type StripBinding,
 } from "./strip-parts";
-import { findById } from "@/shared/lists";
 
 const KIND_ICON = { music: Music, effect: AudioLines, clip: Clapperboard } as const;
 

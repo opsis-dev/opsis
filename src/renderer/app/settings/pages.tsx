@@ -1,4 +1,15 @@
 import { RotateCcw } from "lucide-react";
+import { Button } from "@/renderer/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/renderer/components/ui/card";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
+import { Spinner } from "@/renderer/components/ui/spinner";
+import { clamp } from "@/shared/math";
 import {
   KEEP_LAST_TRACES,
   LIVE_FPS,
@@ -9,22 +20,11 @@ import {
   type AppSettings,
 } from "@/shared/settings";
 import { parseNumberText } from "@/shared/text-input";
-import { clamp } from "@/shared/math";
-import { Button } from "@/renderer/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/renderer/components/ui/card";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
-import { SingleSlider } from "../single-slider";
-import { Spinner } from "@/renderer/components/ui/spinner";
 import { patchAppSettings } from "../../store/app-settings";
 import { useFreshEnvironment } from "../../store/environment";
 import { FolderField } from "../folder-field";
 import { OptionToggle } from "../option-toggle";
+import { SingleSlider } from "../single-slider";
 import { useProjectLocations } from "../use-loaded";
 import { CommitInput, SwitchField, useDraft } from "./fields";
 

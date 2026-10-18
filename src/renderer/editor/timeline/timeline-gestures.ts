@@ -1,10 +1,10 @@
+import { DRAG_START_PX } from "@/renderer/lib/dom";
 import { round3, clamp } from "@/shared/math";
 import { MAX_VOLUME } from "@/shared/nodes/params";
 import { setAudioVolume } from "@/shared/timeline/edits";
 import type { FlatTimeline } from "@/shared/timeline/flatten";
 import { snapFrame, type SnapTarget } from "@/shared/timeline/snap";
 import { framesToMs, msToExactFrames, wholeFrames } from "@/shared/timeline/time";
-import { DRAG_START_PX } from "@/renderer/lib/dom";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { useWorkflowStore } from "../../store/workflow";

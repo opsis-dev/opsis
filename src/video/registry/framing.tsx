@@ -2,9 +2,9 @@ import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
+import type { ElementProps } from "../../shared/elements/types";
 import { numberOr } from "../../shared/math";
 import type { Size } from "../core/still-layout";
-import type { ElementProps } from "../../shared/elements/types";
 import type { ElementComponent, Presentation, PresentationFactory } from "./types";
 
 export const component = <P,>(element: React.ComponentType<P>): ElementComponent =>

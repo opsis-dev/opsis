@@ -1,7 +1,6 @@
 import { Menu } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
-import logoUrl from "../../../brand/logo.svg";
-import type { MenuEntry } from "@/shared/menu";
+import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import {
   DropdownMenu,
@@ -25,12 +24,13 @@ import {
   MenubarShortcut,
   MenubarTrigger,
 } from "@/renderer/components/ui/menubar";
-import { Badge } from "@/renderer/components/ui/badge";
 import { Separator } from "@/renderer/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
-import { useAppSettings } from "../store/app-settings";
-import { cn } from "@/renderer/lib/utils";
 import { isMac } from "@/renderer/lib/platform";
+import { cn } from "@/renderer/lib/utils";
+import type { MenuEntry } from "@/shared/menu";
+import logoUrl from "../../../brand/logo.svg";
+import { useAppSettings } from "../store/app-settings";
 import {
   MENU_SECTIONS,
   menuItemId,

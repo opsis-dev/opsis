@@ -1,3 +1,4 @@
+import { clamp } from "../math";
 import type {
   AudioItem,
   EditHandles,
@@ -7,11 +8,10 @@ import type {
   TransitionRef,
   VisualEnvelope,
 } from "../schema/timeline";
-import { hasKeys } from "../timeline/envelope";
-import { wholeFrames } from "../timeline/time";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
-import { clamp } from "../math";
+import { hasKeys } from "../timeline/envelope";
+import { wholeFrames } from "../timeline/time";
 import type { RecordingProps } from "./recording";
 import type { Remap } from "./remap";
 

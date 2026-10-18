@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { isEditingElement } from "@/renderer/lib/dom";
+import { isMac, platform } from "@/renderer/lib/platform";
 import {
   acceleratorLabel,
   appMenu,
@@ -8,8 +10,6 @@ import {
   type MenuEntry,
   type WindowRole,
 } from "@/shared/menu";
-import { isEditingElement } from "@/renderer/lib/dom";
-import { isMac, platform } from "@/renderer/lib/platform";
 import { dispatchMenuCommand } from "./menu-commands";
 
 export const shortcutLabel = (accelerator: string) => acceleratorLabel(accelerator, platform);

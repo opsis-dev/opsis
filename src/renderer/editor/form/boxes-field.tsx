@@ -1,9 +1,9 @@
 import { X } from "lucide-react";
 import type { PointerEvent } from "react";
-import { percent } from "@/shared/format";
-import type { Bounds } from "@/shared/schema/actions";
 import { FieldDescription } from "@/renderer/components/ui/field";
 import { cn } from "@/renderer/lib/utils";
+import { percent } from "@/shared/format";
+import type { Bounds } from "@/shared/schema/actions";
 import { FieldShell } from "./field-shell";
 import { SpotFrame } from "./spot-frame";
 import type { FieldProps } from "./types";

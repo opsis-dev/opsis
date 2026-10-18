@@ -14,8 +14,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
-import { AppBar } from "./app-bar";
 import { errorMessage } from "@/shared/errors";
+import { AppBar } from "./app-bar";
 
 export function ErrorScreen({ error, reset }: ErrorComponentProps) {
   const message = errorMessage(error);

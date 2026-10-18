@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { uniqueKeys } from "@/shared/lists";
-import { boundsFromRect } from "@/shared/schema/actions";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { cn } from "@/renderer/lib/utils";
+import { uniqueKeys } from "@/shared/lists";
+import { boundsFromRect } from "@/shared/schema/actions";
 import { designScaleFor } from "@/video/camera/lib/design-width";
 import { Ripple } from "../app/motion";
 import { CLICK_RIPPLE_MS, type LiveCapture } from "../store/live";

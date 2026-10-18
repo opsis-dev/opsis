@@ -1,9 +1,9 @@
 import ELK from "elkjs/lib/elk.bundled.js";
+import { isGroupNode } from "@/shared/graph";
 import { getNodeDef } from "@/shared/nodes/registry";
 import type { Workflow } from "@/shared/schema/workflow";
 import { useWorkflowStore } from "../store/workflow";
 import { cardSize } from "./card-size";
-import { isGroupNode } from "@/shared/graph";
 
 const elk = new ELK();
 const LAYER_GAP = 80;

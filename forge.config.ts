@@ -1,22 +1,22 @@
-import { chmod, copyFile, cp, mkdir, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { chmod, copyFile, cp, mkdir, rm } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { MakerRpm } from "@electron-forge/maker-rpm";
 import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
-import { MakerAppImage } from "@reforged/maker-appimage";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
-import { installFfmpeg, installHeadlessShell, type InstallProgress } from "./src/engine/install";
+import { MakerAppImage } from "@reforged/maker-appimage";
 import { writeChromiumCredits } from "./src/engine/chromium-credits";
-import { percentText } from "./src/shared/format";
+import { installFfmpeg, installHeadlessShell, type InstallProgress } from "./src/engine/install";
 import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "./src/engine/paths";
-import { getCompositorPackage } from "./src/worker/render/compositor-package";
+import { percentText } from "./src/shared/format";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./src/worker/render/bundle";
+import { getCompositorPackage } from "./src/worker/render/compositor-package";
 
 const require = createRequire(import.meta.url);
 const ROOT = import.meta.dirname;

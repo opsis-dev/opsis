@@ -1,18 +1,6 @@
 import { ChevronRight, Plus, Trash2 } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import type { z } from "zod";
-import {
-  ANY_VALUE,
-  fieldMeta,
-  schemaDefaults,
-  shapeEntries,
-  withDefaults,
-  type FieldMeta,
-  type FieldWidget,
-} from "@/shared/elements/introspect";
-import { humanize } from "@/shared/format";
-import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/shared/nodes/params";
-import { transitionTitle } from "@/shared/nodes/transitions";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Collapsible,
@@ -29,6 +17,18 @@ import {
 import { Switch } from "@/renderer/components/ui/switch";
 import { whenOneOf } from "@/renderer/lib/one-of";
 import { useItemKeys } from "@/renderer/lib/use-item-keys";
+import {
+  ANY_VALUE,
+  fieldMeta,
+  schemaDefaults,
+  shapeEntries,
+  withDefaults,
+  type FieldMeta,
+  type FieldWidget,
+} from "@/shared/elements/introspect";
+import { humanize } from "@/shared/format";
+import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/shared/nodes/params";
+import { transitionTitle } from "@/shared/nodes/transitions";
 import { BoxesField } from "./form/boxes-field";
 import { ColorField } from "./form/color-field";
 import { EnumField } from "./form/enum-field";

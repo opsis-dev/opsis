@@ -1,13 +1,13 @@
 import { assert, describe, expect, it } from "vitest";
+import { findById } from "../lists";
 import type { TimelineSpec } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
 import { getTemplate } from "../templates";
 import { GraphBuilder } from "../templates/build";
+import { itemsOf, makeLog, must, recordedTake, recordResult, TITLE } from "../test-fixtures";
+import { flattenSpec } from "../timeline/flatten";
 import { groupOf, isClip, recordingOf } from "./clip";
 import { compileWorkflow, previewSpec } from "./compile";
-import { flattenSpec } from "../timeline/flatten";
-import { itemsOf, makeLog, must, recordedTake, recordResult, TITLE } from "../test-fixtures";
-import { findById } from "../lists";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 

@@ -1,3 +1,8 @@
+import { Checkbox } from "@/renderer/components/ui/checkbox";
+import { Label } from "@/renderer/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
+import { Switch } from "@/renderer/components/ui/switch";
+import { cn } from "@/renderer/lib/utils";
 import {
   COMP_RANGES,
   DUCK_RANGES,
@@ -5,11 +10,6 @@ import {
   type Comp,
   type DuckSettings,
 } from "@/shared/mix/types";
-import { Checkbox } from "@/renderer/components/ui/checkbox";
-import { Label } from "@/renderer/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
-import { Switch } from "@/renderer/components/ui/switch";
-import { cn } from "@/renderer/lib/utils";
 import { db, ms } from "./audio-format";
 import { commitOnce, type DragPhase } from "./gesture";
 import { Knobs, type KnobSpec } from "./knob";

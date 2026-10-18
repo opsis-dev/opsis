@@ -4,17 +4,17 @@ import path from "node:path";
 import { constants, zstdCompressSync, zstdDecompressSync } from "node:zlib";
 import { unzipSync } from "fflate";
 import { z } from "zod";
-import type { AppSettings } from "../shared/settings";
-import type { TraceHeader, TraceModel } from "../shared/trace";
-import { parseTrace, traceTextPart, type TraceTextPart } from "./model";
 import { pruneDir } from "../engine/dir";
 import { sha256Hex } from "../engine/hash";
 import { atomicWrite, nullIfMissing } from "../engine/json";
 import { projectPaths } from "../engine/project-paths";
 import { projectRef } from "../shared/asset-ref";
-import { PROJECT_DIRS } from "../shared/project-dirs";
 import { parseJsonWith } from "../shared/guards";
+import { PROJECT_DIRS } from "../shared/project-dirs";
 import { safeName } from "../shared/safe-name";
+import type { AppSettings } from "../shared/settings";
+import type { TraceHeader, TraceModel } from "../shared/trace";
+import { parseTrace, traceTextPart, type TraceTextPart } from "./model";
 
 const traceEntrySchema = z.object({
   name: z.string(),

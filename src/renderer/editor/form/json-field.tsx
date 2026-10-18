@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { tryParseJson } from "@/shared/guards";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { Textarea } from "@/renderer/components/ui/textarea";
+import { tryParseJson } from "@/shared/guards";
 import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 

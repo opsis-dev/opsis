@@ -1,12 +1,12 @@
 import { useMemo } from "react";
+import { cn } from "@/renderer/lib/utils";
 import { duckGain, duckingSpans } from "@/shared/mix/duck";
 import { applyMixLevels } from "@/shared/mix/levels";
 import type { Mix } from "@/shared/mix/types";
+import { MAX_VOLUME } from "@/shared/nodes/params";
+import { nodeNameById } from "@/shared/nodes/registry";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import { flattenSpec, type AudioBar } from "@/shared/timeline/flatten";
-import { MAX_VOLUME } from "@/shared/nodes/params";
-import { cn } from "@/renderer/lib/utils";
-import { nodeNameById } from "@/shared/nodes/registry";
 import { WaveformCanvas, type Gain } from "./bar-canvas";
 import { bladeSplit, selectOnPress, type BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";

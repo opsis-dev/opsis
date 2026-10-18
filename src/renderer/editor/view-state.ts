@@ -1,5 +1,5 @@
-import { setViewProject } from "../store/view-prefs";
 import { storedViewOptions, useViewOptions } from "../store/view-options";
+import { setViewProject } from "../store/view-prefs";
 import { storedTab, usePanels } from "./panels";
 import { useTimeline } from "./timeline/timeline-state";
 

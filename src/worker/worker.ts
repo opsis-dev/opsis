@@ -1,15 +1,15 @@
 import { randomUUID } from "node:crypto";
 import type { MessagePortMain } from "electron";
 import { installEngine } from "../engine/install";
+import { errorMessage } from "../shared/errors";
 import type { LiveMessage } from "../shared/live";
-import type { LoginRequest, MainToWorker, WorkerToMain } from "../shared/worker-protocol";
+import { pendingReplies } from "../shared/pending-replies";
 import { runFailed } from "../shared/schema/events";
+import type { LoginRequest, MainToWorker, WorkerToMain } from "../shared/worker-protocol";
 import type { ExecutorContext } from "./engine/context";
 import { runWorkflow } from "./engine/runner";
-import { renderCardStill } from "./render/card-still";
 import { runAnalysis } from "./media/run-analysis";
-import { errorMessage } from "../shared/errors";
-import { pendingReplies } from "../shared/pending-replies";
+import { renderCardStill } from "./render/card-still";
 
 let control: MessagePortMain | null = null;
 let live: MessagePortMain | null = null;

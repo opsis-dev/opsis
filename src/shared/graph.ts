@@ -1,10 +1,13 @@
-import { getNodeDef, nodeName } from "./nodes/registry";
-import { canConnect, SESSION_PORT } from "./nodes/ports";
+import { humanize } from "./format";
+import { byCodeUnit, findById } from "./lists";
 import { sessionNode } from "./nodes/browser";
 import { loginOnceNode } from "./nodes/capture";
-import { isOutputType } from "./nodes/output";
 import type { PortSpec } from "./nodes/define";
+import { isOutputType } from "./nodes/output";
 import { parseParams } from "./nodes/params";
+import { canConnect, SESSION_PORT } from "./nodes/ports";
+import { getNodeDef, nodeName } from "./nodes/registry";
+import { GROUP_TYPE, NOTE_TYPE } from "./nodes/utility";
 import {
   PORT_WORDS,
   type EdgeEnds,
@@ -15,9 +18,6 @@ import {
 } from "./schema/workflow";
 import { secretFileName } from "./secrets";
 import { interpolate } from "./vars";
-import { humanize } from "./format";
-import { GROUP_TYPE, NOTE_TYPE } from "./nodes/utility";
-import { byCodeUnit, findById } from "./lists";
 
 export type GraphIssue = {
   level: "error" | "warning";

@@ -1,7 +1,7 @@
-import { HIGHPASS_RANGE, type BusSettings, type Strip } from "@/shared/mix/types";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
 import { cn } from "@/renderer/lib/utils";
+import { HIGHPASS_RANGE, type BusSettings, type Strip } from "@/shared/mix/types";
 import { db, hz } from "./audio-format";
 import { bindChange, bindEq, bindGain, bindHighpass, type PreviewTarget } from "./bindings";
 import { CompPopover } from "./dynamics-popovers";

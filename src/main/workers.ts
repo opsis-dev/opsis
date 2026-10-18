@@ -9,6 +9,7 @@ import {
   type UtilityProcess,
 } from "electron";
 import { resolveEngineDir } from "../engine/paths";
+import { errorMessage } from "../shared/errors";
 import type { RunRequest } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
 import type { MainToWorker, WorkerEnv, WorkerReply, WorkerToMain } from "../shared/worker-protocol";
@@ -22,7 +23,6 @@ import {
   workerTempName,
   type WorkerKind,
 } from "./worker-temp";
-import { errorMessage } from "../shared/errors";
 
 export function engineDir(): string {
   return resolveEngineDir({

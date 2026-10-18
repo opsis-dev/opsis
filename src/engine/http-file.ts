@@ -1,10 +1,10 @@
 import { createReadStream, type ReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
-import { isInside } from "./project-paths";
-import { nullIfMissing } from "./json";
-import { AUDIO_MIME, IMAGE_MIME } from "../shared/mime";
 import { withoutLeadingSlashes } from "../shared/asset-ref";
+import { AUDIO_MIME, IMAGE_MIME } from "../shared/mime";
+import { nullIfMissing } from "./json";
+import { isInside } from "./project-paths";
 
 const MIME: Partial<Record<string, string>> = {
   ".mp4": "video/mp4",

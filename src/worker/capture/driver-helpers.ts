@@ -1,8 +1,8 @@
 import { stripVTControlCharacters } from "node:util";
-import type { WorkflowNode } from "../../shared/schema/workflow";
-import { interpolate } from "../../shared/vars";
 import { errorMessage, withoutCallName } from "../../shared/errors";
 import { round1 } from "../../shared/math";
+import type { WorkflowNode } from "../../shared/schema/workflow";
+import { interpolate } from "../../shared/vars";
 import { CSS_PREFIX } from "./flow-types";
 
 function samePage(a: string, b: string): boolean {

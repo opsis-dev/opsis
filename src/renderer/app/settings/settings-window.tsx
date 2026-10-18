@@ -12,10 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, type ReactNode } from "react";
-import { SETTINGS_PAGES, type SettingsPage } from "@/shared/ipc";
-import type { AppSettings } from "@/shared/settings";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
-import { Spinner } from "@/renderer/components/ui/spinner";
 import {
   Sidebar,
   SidebarContent,
@@ -26,14 +23,17 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "@/renderer/components/ui/sidebar";
-import { AppBar } from "../app-bar";
-import { useAppSettings } from "../../store/app-settings";
+import { Spinner } from "@/renderer/components/ui/spinner";
+import { SETTINGS_PAGES, type SettingsPage } from "@/shared/ipc";
+import type { AppSettings } from "@/shared/settings";
 import { FontsPanel } from "../../fonts/fonts-panel";
+import { useAppSettings } from "../../store/app-settings";
+import { AppBar } from "../app-bar";
+import { onMenuCommand } from "../menu-commands";
 import { EnginePanel } from "../setup";
 import { ApiPage } from "./api-page";
 import { LicencesPage } from "./licences-page";
 import { AboutPage, ExportPage, GeneralPage, ProjectsPage, RecordingPage } from "./pages";
-import { onMenuCommand } from "../menu-commands";
 
 type PageInfo = {
   label: string;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { must, nodeResult, recordResult } from "../test-fixtures";
-import { DEFAULT_WORKFLOW_SETTINGS as settings } from "../schema/workflow";
 import { fieldMeta } from "../elements/introspect";
+import { DEFAULT_WORKFLOW_SETTINGS as settings } from "../schema/workflow";
+import { must, nodeResult, recordResult } from "../test-fixtures";
 import { elementRow, sentence, type CardContext, type CardRow } from "./card";
 import type { NodeDef } from "./define";
 import { defaultParams, getNodeDef, NODE_DEFS } from "./registry";

@@ -1,17 +1,17 @@
+import type { AnalysisKind, AnalysisRequest, AnalysisResultFor } from "./analysis";
+import type { ApiEditorReply, ApiEditorRequest } from "./api/types";
+import type { EngineInstallEvent, EngineStatus } from "./engine";
+import type { PlannedFamily } from "./fonts/plan";
+import type { FontFamilyDef } from "./fonts/types";
 import type { LiveMessage } from "./live";
 import type { MenuCommand, WindowRole } from "./menu";
-import type { RunEvent } from "./schema/events";
 import type { RunProgress } from "./run-progress";
+import type { RunEvent } from "./schema/events";
+import type { TimelineSpec } from "./schema/timeline";
 import type { LastRun } from "./schema/values";
 import type { Workflow } from "./schema/workflow";
 import type { AppSettings, SettingsPatch } from "./settings";
-import type { ApiEditorReply, ApiEditorRequest } from "./api/types";
 import type { TraceModel } from "./trace";
-import type { FontFamilyDef } from "./fonts/types";
-import type { PlannedFamily } from "./fonts/plan";
-import type { TimelineSpec } from "./schema/timeline";
-import type { AnalysisKind, AnalysisRequest, AnalysisResultFor } from "./analysis";
-import type { EngineInstallEvent, EngineStatus } from "./engine";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 

@@ -1,5 +1,6 @@
-import { getNodeDef } from "@/shared/nodes/registry";
+import { findById } from "@/shared/lists";
 import { MAX_VOLUME } from "@/shared/nodes/params";
+import { getNodeDef } from "@/shared/nodes/registry";
 import {
   audioEnvelopeSchema,
   visualEnvelopeSchema,
@@ -11,7 +12,6 @@ import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { envelopeAt, sortKeys } from "@/shared/timeline/envelope";
 import { wholeFrames } from "@/shared/timeline/time";
 import { useWorkflowStore } from "../../store/workflow";
-import { findById } from "@/shared/lists";
 
 export type EnvelopeKey = VisualEnvelopeKey | AudioEnvelopeKey;
 

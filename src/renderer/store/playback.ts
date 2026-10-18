@@ -1,8 +1,8 @@
 import { create } from "zustand";
+import { createForwarder } from "@/renderer/lib/forwarder";
 import { clamp } from "@/shared/math";
 import { pick } from "@/shared/pick";
 import { frameIn } from "@/shared/timeline/time";
-import { createForwarder } from "@/renderer/lib/forwarder";
 
 type PlayerController = {
   seek: (frame: number) => void;

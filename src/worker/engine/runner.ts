@@ -1,7 +1,10 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import pLimit, { type LimitFunction } from "p-limit";
+import { enginePaths, type EnginePaths } from "../../engine/paths";
+import { projectPaths, readLastRun, toPosixRel } from "../../engine/project-paths";
 import { compileWorkflow, workflowVars, type CompileResult } from "../../shared/compile/compile";
+import { CANCELLED, errorMessage } from "../../shared/errors";
 import {
   downstreamOf,
   isStructural,
@@ -11,33 +14,30 @@ import {
   upstreamOf,
   validateWorkflow,
 } from "../../shared/graph";
-import { isOutputType } from "../../shared/nodes/output";
 import type { RunRequest } from "../../shared/ipc";
+import type { LiveMessage } from "../../shared/live";
 import {
   interpolatedParams,
   parseNodeParams,
   type NodeDef,
   type NodePhase,
 } from "../../shared/nodes/define";
+import { isOutputType } from "../../shared/nodes/output";
 import { getNodeDef, nodeName } from "../../shared/nodes/registry";
+import { mapValues } from "../../shared/pick";
+import { failureMessage } from "../../shared/run-progress";
 import { runFailed, type LogLevel, type RunEvent } from "../../shared/schema/events";
 import type { CompileValue, LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
-import { enginePaths, type EnginePaths } from "../../engine/paths";
-import type { LiveMessage } from "../../shared/live";
 import { secretName } from "../../shared/secrets";
 import { interpolate } from "../../shared/vars";
-import { failureMessage } from "../../shared/run-progress";
-import { mapValues } from "../../shared/pick";
 import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/take-run";
 import { getExecutor } from "../executors";
 import { createFfmpegTools, ToolError, type FfmpegTools } from "../media/ffmpeg";
 import { nodeHash, readCached, writeCached, writeLastRun } from "./cache";
-import { projectPaths, readLastRun, toPosixRel } from "../../engine/project-paths";
 import { TracedError, type ExecutorContext } from "./context";
 import { decorateArtifacts } from "./posters";
-import { CANCELLED, errorMessage } from "../../shared/errors";
 
 type RunDeps = {
   env: WorkerEnv;

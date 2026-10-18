@@ -1,10 +1,10 @@
 import { stat } from "node:fs/promises";
 import path from "node:path";
+import { toPosixRel } from "../../engine/project-paths";
+import { errorMessage } from "../../shared/errors";
 import { artifactName, type Artifact } from "../../shared/schema/values";
 import { frameGrabArgs } from "../media/codecs";
 import type { FfmpegTools } from "../media/ffmpeg";
-import { toPosixRel } from "../../engine/project-paths";
-import { errorMessage } from "../../shared/errors";
 
 const POSTER_WIDTH = 480;
 const POSTER_QUALITY = 4;

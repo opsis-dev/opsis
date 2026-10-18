@@ -1,8 +1,9 @@
-import { getNodeDef, nodeNameById } from "@/shared/nodes/registry";
+import { cn } from "@/renderer/lib/utils";
+import { findById } from "@/shared/lists";
 import type { NodeCategory } from "@/shared/nodes/define";
+import { getNodeDef, nodeNameById } from "@/shared/nodes/registry";
 import type { Workflow } from "@/shared/schema/workflow";
 import type { FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
-import { cn } from "@/renderer/lib/utils";
 import { FilmstripCanvas } from "./bar-canvas";
 import { bladeSplit, selectOnPress, type BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
@@ -10,7 +11,6 @@ import { useBarEnvelope } from "./envelope-overlay";
 import type { VideoEditKind } from "./timeline-drag";
 import { BAR_INSET, VIDEO_H, barBox, hitEdge } from "./timeline-layout";
 import { useTimeline, type TimelineTool } from "./timeline-state";
-import { findById } from "@/shared/lists";
 
 const DEFAULT_TONE = "bg-track-video";
 

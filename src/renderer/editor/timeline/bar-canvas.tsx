@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { cn } from "@/renderer/lib/utils";
+import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
 import { clamp } from "@/shared/math";
 import { lruCache } from "@/shared/memo";
-import { framesToRecordingMs } from "@/shared/timeline/time";
-import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
 import { MAX_VOLUME } from "@/shared/nodes/params";
 import type { AudioBar, BarThumbnail, VideoBar } from "@/shared/timeline/flatten";
-import { cn } from "@/renderer/lib/utils";
+import { framesToRecordingMs } from "@/shared/timeline/time";
 import { loadedFilmstrip, loadedWaveform, useMedia } from "../../store/media";
 import { fileUrl } from "../file-url";
 import { OFFSCREEN_PX, type Viewport } from "./timeline-layout";

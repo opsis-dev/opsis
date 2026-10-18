@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { Spinner } from "@/renderer/components/ui/spinner";
-import { Editor } from "../editor/editor";
 import { useOpenProject } from "../app/open-project";
+import { Editor } from "../editor/editor";
 
 function EditorRoute() {
   const { dir } = Route.useSearch();

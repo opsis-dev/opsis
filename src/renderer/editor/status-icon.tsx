@@ -1,8 +1,8 @@
 import { Circle, CircleCheck, CircleSlash, CircleX, History, Radio } from "lucide-react";
 import type { ComponentProps, ComponentType } from "react";
-import type { NodeRunStatus } from "@/shared/schema/events";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { cn } from "@/renderer/lib/utils";
+import type { NodeRunStatus } from "@/shared/schema/events";
 import { WithTooltip } from "./tooltip-button";
 
 export type RowState = NodeRunStatus | "failedBefore" | "fromLastRun";

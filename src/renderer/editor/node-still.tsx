@@ -1,6 +1,7 @@
 import { Thumbnail } from "@remotion/player";
 import { useStore as useFlowStore } from "@xyflow/react";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useDebouncedValue } from "@/renderer/lib/use-debounced-value";
 import { PROJECT_FILE_BASE, projectRef } from "@/shared/asset-ref";
 import { clipToSpec, isClip } from "@/shared/compile/clip";
 import { stableJson } from "@/shared/hash";
@@ -11,7 +12,6 @@ import type { ClipValue, NodeResult } from "@/shared/schema/values";
 import type { WorkflowSettings } from "@/shared/schema/workflow";
 import { frameIn, wholeFrames } from "@/shared/timeline/time";
 import { DemoTimeline } from "@/video/demo-timeline";
-import { useDebouncedValue } from "@/renderer/lib/use-debounced-value";
 import { useEnvironment } from "../store/environment";
 import { useRunStore } from "../store/run";
 import { useStillsStore } from "../store/stills";

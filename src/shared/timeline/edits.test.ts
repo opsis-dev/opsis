@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { findById } from "../lists";
 import { NODE_DEFS } from "../nodes/registry";
 import type { EditHandleKind } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
@@ -25,7 +26,6 @@ import {
   type FlatTimeline,
   type VideoBar,
 } from "./flatten";
-import { findById } from "../lists";
 
 let counter = 0;
 const ctxFor = (workflow: Workflow): EditContext => ({

@@ -1,8 +1,8 @@
 import type { BrowserContext } from "playwright-core";
-import type { NodeParams } from "../../shared/nodes/define";
-import type { sessionNode } from "../../shared/nodes/browser";
-import { parseJsonWith } from "../../shared/guards";
 import { onAbort } from "../../shared/errors";
+import { parseJsonWith } from "../../shared/guards";
+import type { sessionNode } from "../../shared/nodes/browser";
+import type { NodeParams } from "../../shared/nodes/define";
 import { storageStateSchema, type StorageState } from "../../shared/schema/storage-state";
 import { fitPageToScale, scaledViewport } from "./capture-scale";
 

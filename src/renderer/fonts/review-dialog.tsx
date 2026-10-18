@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { InspectedFonts } from "@/shared/ipc";
-import { plural } from "@/shared/format";
 import { Button } from "@/renderer/components/ui/button";
 import { Checkbox } from "@/renderer/components/ui/checkbox";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { useBusy } from "@/renderer/lib/use-busy";
-import { describeFaces } from "./font-labels";
+import { plural } from "@/shared/format";
+import type { InspectedFonts } from "@/shared/ipc";
 import { FontDialog } from "./font-dialog";
+import { describeFaces } from "./font-labels";
 
 export type FontReview = { fonts: InspectedFonts; installed: boolean };
 

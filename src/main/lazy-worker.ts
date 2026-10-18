@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { MessagePortMain, UtilityProcess } from "electron";
-import type { MainToWorker, WorkerEnv, WorkerToMain } from "../shared/worker-protocol";
 import { pendingReplies } from "../shared/pending-replies";
+import type { MainToWorker, WorkerEnv, WorkerToMain } from "../shared/worker-protocol";
 import type { WorkerKind } from "./worker-temp";
 import { onWorkerMessage, spawnWorker, workerEnv } from "./workers";
 

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { Removal } from "@/shared/timeline/edits";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/renderer/components/ui/alert-dialog";
+import type { Removal } from "@/shared/timeline/edits";
 
 function RemoveContent({ count, onRemove }: { count: number; onRemove: () => void }) {
   return (

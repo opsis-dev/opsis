@@ -14,10 +14,10 @@ import { ImageElement, StillElement, VideoElement, VideoLoop } from "../core/med
 import { Mosaic } from "../core/mosaic";
 import { Placeholder } from "../core/placeholder";
 import { RecordingClip } from "../core/recording-clip";
+import type { Size } from "../core/still-layout";
 import { Callout, Captions, KineticHeadline, LowerThird, Title } from "../core/text";
 import { coreTransitions } from "../core/transitions";
 import { generatedElementLoaders } from "./components.generated";
-import type { Size } from "../core/still-layout";
 import { component } from "./framing";
 import {
   isPresentation,

@@ -2,6 +2,7 @@ import { sameFamily } from "./fonts";
 import type { FontFamilyDef } from "./fonts/types";
 import { isGroupNode } from "./graph";
 import { edgeId, nodeIdFor } from "./ids";
+import { findById } from "./lists";
 import { defaultParams, getNodeDef } from "./nodes/registry";
 import { GROUP_TYPE } from "./nodes/utility";
 import {
@@ -12,7 +13,6 @@ import {
   type WorkflowNode,
 } from "./schema/workflow";
 import { renameVariable } from "./vars";
-import { findById } from "./lists";
 
 type Point = { x: number; y: number };
 type Size = { width: number; height: number };

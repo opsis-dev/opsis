@@ -1,6 +1,6 @@
+import { isOutputType } from "./nodes/output";
 import type { NodeRunStatus, RunEvent } from "./schema/events";
 import type { Artifact, NodeResult } from "./schema/values";
-import { isOutputType } from "./nodes/output";
 
 type NodeProgress = { value: number; message?: string };
 

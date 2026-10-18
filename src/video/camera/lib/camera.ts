@@ -1,7 +1,7 @@
 import { Easing } from "remotion";
-import { designScaleFor } from "./design-width";
 import { clamp, clamp01, lerp } from "../../../shared/math";
 import type { Viewport } from "../../../shared/schema/actions";
+import { designScaleFor } from "./design-width";
 
 const CAMERA_BEZIER = Easing.bezier(0.2, 0.2, 0.15, 1);
 

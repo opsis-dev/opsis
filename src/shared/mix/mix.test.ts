@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { itemHasSound } from "../compile/clip";
+import { findById } from "../lists";
 import type { TimelineSpec } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
 import { GraphBuilder } from "../templates/build";
@@ -8,7 +9,6 @@ import { busJob, channelJob, jobArgs, loudnessMeasureJob, masterJob, parseLoudno
 import { applyMixLevels, withMasterStem } from "./levels";
 import { buildMixPlan, channelIdentity, type MixPlan, type SoundPlacement } from "./plan";
 import { DEFAULT_STRIP, dbToGain, defaultMix, type Bus, type Mix, type Strip } from "./types";
-import { findById } from "../lists";
 
 function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
   const g = new GraphBuilder();

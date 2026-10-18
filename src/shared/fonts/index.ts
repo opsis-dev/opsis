@@ -1,6 +1,6 @@
+import { safeName } from "../safe-name";
 import { BUNDLED_FONTS } from "./bundled.generated";
 import type { FontFamilyDef, ProjectFonts } from "./types";
-import { safeName } from "../safe-name";
 
 const FONT_ROLES = ["main", "heading", "code"] as const;
 

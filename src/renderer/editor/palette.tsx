@@ -1,13 +1,6 @@
 import { useStoreApi } from "@xyflow/react";
 import { ArrowRight, PanelLeftOpen } from "lucide-react";
 import { useState, type DragEvent } from "react";
-import {
-  CATEGORY_LABELS,
-  NODE_CATEGORIES,
-  type NodeCategory,
-  type NodeDef,
-} from "@/shared/nodes/define";
-import { VISIBLE_NODE_DEFS } from "@/shared/nodes/registry";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Command,
@@ -22,6 +15,13 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/renderer/compon
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import { Separator } from "@/renderer/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/renderer/components/ui/tooltip";
+import {
+  CATEGORY_LABELS,
+  NODE_CATEGORIES,
+  type NodeCategory,
+  type NodeDef,
+} from "@/shared/nodes/define";
+import { VISIBLE_NODE_DEFS } from "@/shared/nodes/registry";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { NODE_DRAG_TYPE, snapToGrid } from "./canvas-grid";

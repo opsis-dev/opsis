@@ -1,9 +1,9 @@
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/renderer/components/ui/button";
 import { removeBus, updateBus, updateChannels } from "@/shared/mix/edits";
 import type { MixResult } from "@/shared/mix/result";
 import { BUILT_IN_BUSES, type Bus, type Mix } from "@/shared/mix/types";
-import { Button } from "@/renderer/components/ui/button";
 import { useWorkflowStore } from "../../store/workflow";
 import { InlineEdit } from "../inline-edit";
 import { bindChange, previewTarget } from "./bindings";

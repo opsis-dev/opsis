@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import { loudnessName, lufsText, parseParams, target } from "./params";
 
 const schema = z.object({

@@ -1,12 +1,4 @@
 import { Ellipsis } from "lucide-react";
-import {
-  applyBusSettings,
-  applyStripSettings,
-  resetBus,
-  resetStrip,
-  stripSettings,
-} from "@/shared/mix/edits";
-import { STRIP_PRESETS, type Bus, type Strip, type StripSettings } from "@/shared/mix/types";
 import { Button } from "@/renderer/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/renderer/components/ui/dropdown-menu";
+import {
+  applyBusSettings,
+  applyStripSettings,
+  resetBus,
+  resetStrip,
+  stripSettings,
+} from "@/shared/mix/edits";
+import { STRIP_PRESETS, type Bus, type Strip, type StripSettings } from "@/shared/mix/types";
 import { useMixerState } from "./mixer-state";
 
 type Apply<T> = (fn: (value: T) => T) => void;

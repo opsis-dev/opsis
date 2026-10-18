@@ -1,6 +1,6 @@
-import { clamp } from "@/shared/math";
 import { Field, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
+import { clamp } from "@/shared/math";
 import { SingleSlider } from "../../app/single-slider";
 import { parseShown, shownText, unitScale, useDecimalInput } from "./decimal";
 import { Help, LabelledChoices } from "./field-shell";

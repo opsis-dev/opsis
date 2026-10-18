@@ -1,9 +1,9 @@
 import React from "react";
+import { percent } from "../../shared/format";
+import { isFadedOut } from "../core/anim";
 import type { ClickLog } from "./lib/click-log";
 import { cursorAt } from "./lib/cursor";
 import { useDesignScale } from "./lib/design-scale";
-import { percent } from "../../shared/format";
-import { isFadedOut } from "../core/anim";
 
 const CURSOR_SCALE_EXP = 0.58;
 const HOT_X = 1;

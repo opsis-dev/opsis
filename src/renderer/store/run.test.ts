@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { RunEvent } from "@/shared/schema/events";
-import { MAX_LOG_LINES, useRunStore } from "./run";
 import { nodeResult } from "@/shared/test-fixtures";
+import { MAX_LOG_LINES, useRunStore } from "./run";
 
 const result = (finishedAt: number, traceId: string) => nodeResult({ finishedAt, traceId });
 

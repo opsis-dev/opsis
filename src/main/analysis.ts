@@ -1,7 +1,7 @@
 import { engineStatus } from "../engine/paths";
+import type { AnalysisRequest, AnalysisResult } from "../shared/analysis";
 import { ENGINE_MISSING_MESSAGE } from "../shared/engine";
 import { errorMessage } from "../shared/errors";
-import type { AnalysisRequest, AnalysisResult } from "../shared/analysis";
 import { createQueuedWorker } from "./lazy-worker";
 import { engineDir } from "./workers";
 

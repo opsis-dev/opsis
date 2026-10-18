@@ -2,6 +2,10 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import type { z } from "zod";
+import { fileIdentity } from "../../engine/dir";
+import { versionedHash } from "../../engine/hash";
+import { atomicWrite, readJson } from "../../engine/json";
+import { isInside, projectPaths, toProjectRef } from "../../engine/project-paths";
 import {
   filmstripSchema,
   waveformSchema,
@@ -9,12 +13,8 @@ import {
   type Waveform,
   type WaveformLevel,
 } from "../../shared/analysis";
-import type { MediaDeps } from "./ffmpeg";
-import { fileIdentity } from "../../engine/dir";
-import { versionedHash } from "../../engine/hash";
-import { atomicWrite, readJson } from "../../engine/json";
-import { isInside, projectPaths, toProjectRef } from "../../engine/project-paths";
 import { EPSILON, evenPx, round3 } from "../../shared/math";
+import type { MediaDeps } from "./ffmpeg";
 
 const ANALYSIS_VERSION = "demoflow-analysis/1";
 const DECODE_RATE = 8000;

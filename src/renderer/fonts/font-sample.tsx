@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import type { FontFamilyDef } from "@/shared/fonts/types";
 import { cn } from "@/renderer/lib/utils";
+import type { FontFamilyDef } from "@/shared/fonts/types";
 import { usePreviewFamily } from "./library";
 
 export function FontSample({

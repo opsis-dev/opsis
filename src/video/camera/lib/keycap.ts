@@ -1,7 +1,7 @@
 import { Easing } from "remotion";
-import type { KeyEvent } from "./click-log";
 import { chordKeys } from "../../../shared/chord";
 import { clamp01 } from "../../../shared/math";
+import type { KeyEvent } from "./click-log";
 
 const KEYCAP_BEZIER = Easing.bezier(0.15, 0.9, 0.75, 0.95);
 

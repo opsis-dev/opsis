@@ -11,8 +11,8 @@ import path from "node:path";
 import { z } from "zod";
 import { googleFontModuleFile, googleImportName } from "../src/shared/fonts/google-font-imports";
 import { FONT_CATEGORIES } from "../src/shared/fonts/types";
-import { walkFiles } from "./lib/walk";
 import { ROOT } from "./lib/tool-config";
+import { walkFiles } from "./lib/walk";
 
 const OUT = path.join(ROOT, "public", "fonts", "bundled");
 const META_OUT = path.join(ROOT, "src", "shared", "fonts", "bundled.generated.ts");

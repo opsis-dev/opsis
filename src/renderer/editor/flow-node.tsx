@@ -10,12 +10,6 @@ import {
 } from "lucide-react";
 import { memo } from "react";
 import type { z } from "zod";
-import { wholePercent } from "@/shared/format";
-import type { NodeDef, PortSpec } from "@/shared/nodes/define";
-import { getNodeDef, nodeName } from "@/shared/nodes/registry";
-import { groupParams, noteParams } from "@/shared/nodes/utility";
-import type { NodeRunStatus } from "@/shared/schema/events";
-import type { WorkflowNode } from "@/shared/schema/workflow";
 import {
   BaseNode,
   BaseNodeContent,
@@ -28,12 +22,18 @@ import { NodeStatusIndicator, type NodeStatus } from "@/renderer/components/node
 import { Badge } from "@/renderer/components/ui/badge";
 import { Progress } from "@/renderer/components/ui/progress";
 import { cn } from "@/renderer/lib/utils";
+import { wholePercent } from "@/shared/format";
+import type { NodeDef, PortSpec } from "@/shared/nodes/define";
+import { getNodeDef, nodeName } from "@/shared/nodes/registry";
+import { groupParams, noteParams } from "@/shared/nodes/utility";
+import type { NodeRunStatus } from "@/shared/schema/events";
+import type { WorkflowNode } from "@/shared/schema/workflow";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import type { CanvasNode } from "./convert";
-import { CategoryBadge } from "./category-badge";
 import { CardRows, useCardRows } from "./card-rows";
+import { CategoryBadge } from "./category-badge";
+import type { CanvasNode } from "./convert";
 import { NodeThumbnail } from "./node-still";
 import { portLabel, portTypeColor } from "./ports";
 import { useNodeProblems } from "./use-node-problems";

@@ -1,8 +1,8 @@
 import type { Locator, Page } from "playwright-core";
 import { errorMessage, throwIfCancelled, withoutCallName } from "../../shared/errors";
+import { INTERACTIVE_SELECTOR } from "../../shared/interactive";
 import { parsePoint } from "./drag-path";
 import { CSS_PREFIX, type Target } from "./flow-types";
-import { INTERACTIVE_SELECTOR } from "../../shared/interactive";
 
 type Candidate = { by: string; locator: Locator };
 

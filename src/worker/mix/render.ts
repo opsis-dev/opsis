@@ -3,6 +3,13 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import { fileIdentity, pruneDir } from "../../engine/dir";
+import { versionedHash } from "../../engine/hash";
+import { atomicWrite, readJson } from "../../engine/json";
+import { projectPaths, toProjectRef } from "../../engine/project-paths";
+import { CancelledError, errorMessage } from "../../shared/errors";
+import { EPSILON, round1 } from "../../shared/math";
+import { shareInFlight } from "../../shared/memo";
 import {
   busJob,
   channelJob,
@@ -21,16 +28,9 @@ import {
   type MixResult,
   type StemLevels,
 } from "../../shared/mix/result";
-import { ToolError, type MediaDeps } from "../media/ffmpeg";
-import { shareInFlight } from "../../shared/memo";
-import { frameLevels, parseWav } from "./wav";
 import { SILENCE_DB } from "../../shared/mix/types";
-import { CancelledError, errorMessage } from "../../shared/errors";
-import { EPSILON, round1 } from "../../shared/math";
-import { fileIdentity, pruneDir } from "../../engine/dir";
-import { versionedHash } from "../../engine/hash";
-import { atomicWrite, readJson } from "../../engine/json";
-import { projectPaths, toProjectRef } from "../../engine/project-paths";
+import { ToolError, type MediaDeps } from "../media/ffmpeg";
+import { frameLevels, parseWav } from "./wav";
 
 const MIX_VERSION = "demoflow-mix/1";
 const KEEP_PLANS = 12;

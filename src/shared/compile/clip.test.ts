@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { groupOf, itemClip, sequenceClips, clipToSpec } from "./clip";
-import { remapFrame } from "./remap";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 import { flattenSpec, nodeSpans } from "../timeline/flatten";
+import { groupOf, itemClip, sequenceClips, clipToSpec } from "./clip";
+import { remapFrame } from "./remap";
 
 const settings = {
   width: 1920,

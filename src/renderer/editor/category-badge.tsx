@@ -1,5 +1,5 @@
-import type { NodeCategory } from "@/shared/nodes/define";
 import { cn } from "@/renderer/lib/utils";
+import type { NodeCategory } from "@/shared/nodes/define";
 import { NodeIcon } from "./node-icon";
 import { CATEGORY_STYLES } from "./ports";
 

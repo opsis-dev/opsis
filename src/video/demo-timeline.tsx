@@ -1,3 +1,4 @@
+import { Audio } from "@remotion/media";
 import React, { createElement, useMemo } from "react";
 import {
   AbsoluteFill,
@@ -8,12 +9,12 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { Audio } from "@remotion/media";
 import { groupOf, type Crop, type GroupProps } from "../shared/compile/clip";
 import { remapFrame } from "../shared/compile/remap";
+import { MAIN_FONT } from "../shared/fonts";
+import { percent } from "../shared/format";
+import { clamp01 } from "../shared/math";
 import { duckGain, duckingSpans, type Span } from "../shared/mix/duck";
-import { flattenSpec, type FlatTimeline } from "../shared/timeline/flatten";
-import { envelopeAt } from "../shared/timeline/envelope";
 import type {
   AudioItem,
   TimelineItem,
@@ -22,6 +23,8 @@ import type {
   TransitionRef,
   VisualEnvelope,
 } from "../shared/schema/timeline";
+import { envelopeAt } from "../shared/timeline/envelope";
+import { flattenSpec, type FlatTimeline } from "../shared/timeline/flatten";
 import {
   AssetProvider,
   DEFAULT_QUALITY,
@@ -32,14 +35,11 @@ import {
   resolveProps,
   useAssetBase,
 } from "./assets";
-import { FontProvider } from "./fonts/font-provider";
-import { getComponent, getPresentation, isKnownElement, useElements } from "./registry";
-import { clamp01 } from "../shared/math";
-import { MAIN_FONT } from "../shared/fonts";
-import { percent } from "../shared/format";
 import { CLAMP_RIGHT, fadeWindow } from "./core/anim";
 import { sameShape } from "./core/frame";
 import type { Size } from "./core/still-layout";
+import { FontProvider } from "./fonts/font-provider";
+import { getComponent, getPresentation, isKnownElement, useElements } from "./registry";
 
 const PREMOUNT_FRAMES = 30;
 const PREMOUNTED = new Set(["core/group", "core/recording"]);

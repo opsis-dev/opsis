@@ -1,10 +1,10 @@
 import type { Page } from "playwright-core";
+import { errorMessage } from "../../shared/errors";
 import { sessionNode } from "../../shared/nodes/browser";
 import { parseNodeParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import type { ActionLog } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
-import { errorMessage } from "../../shared/errors";
 import { CURSOR_LOOK, installCursor } from "./page-scripts";
 import { SelectorError } from "./selectors";
 import { openSession, type OpenSession } from "./session";

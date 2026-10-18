@@ -1,15 +1,15 @@
 import { Trash2 } from "lucide-react";
 import { useMemo } from "react";
-import type { WorkflowNode } from "@/shared/schema/workflow";
 import { Button } from "@/renderer/components/ui/button";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
+import { findById } from "@/shared/lists";
+import type { WorkflowNode } from "@/shared/schema/workflow";
 import { useRunStore } from "../store/run";
 import { singleSelected, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { LogView } from "./log-view";
 import { RunNodeList } from "./run-node-list";
 import { RunOutputs } from "./run-outputs";
-import { findById } from "@/shared/lists";
 
 const NO_NODES: WorkflowNode[] = [];
 

@@ -1,14 +1,15 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
+import { readLastRun } from "../engine/project-paths";
 import { INVOKE, IPC, type DemoflowApi, type InvokeName, type RunRequest } from "../shared/ipc";
+import { findById } from "../shared/lists";
 import type { MenuCommand } from "../shared/menu";
 import { keysOf } from "../shared/nodes/params";
-import { readLastRun } from "../engine/project-paths";
 import { readTrace } from "../traces/store";
 import { analyze } from "./analysis";
-import { apiRunEvent } from "./api-editor";
 import { getApiStatus } from "./api";
+import { apiRunEvent } from "./api-editor";
 import { broadcast, focusMainWindow, getMainWindow, isTrusted, windowState } from "./app-windows";
 import { pickInWindow } from "./browser-windows";
 import { environment, installEngine } from "./engine-setup";
@@ -51,7 +52,6 @@ import { openSettingsWindow } from "./settings-window";
 import { listStills, requestStill } from "./stills";
 import { runWindowRole } from "./window-roles";
 import { activeRun, cancelRun, startRun } from "./workers";
-import { findById } from "../shared/lists";
 
 type InvokeHandlers = {
   [K in InvokeName]: (

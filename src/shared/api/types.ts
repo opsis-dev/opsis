@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { workflowSchema, type Workflow, type WorkflowSettings } from "../schema/workflow";
 import type { GraphIssue } from "../graph";
+import { workflowSchema, type Workflow, type WorkflowSettings } from "../schema/workflow";
 import type {
   addEdgeBody,
   addNodeBody,

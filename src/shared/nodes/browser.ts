@@ -1,4 +1,8 @@
 import { z } from "zod";
+import { chordKeys } from "../chord";
+import { formatDuration, displayAddress } from "../format";
+import { nonBlankLines } from "../text-input";
+import { PAUSE_MARK } from "../vars";
 import {
   CODE_TEXT_MAX,
   elementRow,
@@ -29,10 +33,6 @@ import {
   target,
   text,
 } from "./params";
-import { formatDuration, displayAddress } from "../format";
-import { chordKeys } from "../chord";
-import { nonBlankLines } from "../text-input";
-import { PAUSE_MARK } from "../vars";
 
 const chain = {
   inputs: { session: port("session", "Previous") },

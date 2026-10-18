@@ -1,15 +1,15 @@
 import { Download } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { familyKey, familyKeysWithBundled } from "@/shared/fonts";
-import type { FontCatalogEntry } from "@/shared/ipc";
-import { errorMessage } from "@/shared/errors";
-import { plural } from "@/shared/format";
 import { Button } from "@/renderer/components/ui/button";
 import { Spinner } from "@/renderer/components/ui/spinner";
+import { useBusy } from "@/renderer/lib/use-busy";
+import { errorMessage } from "@/shared/errors";
+import { familyKey, familyKeysWithBundled } from "@/shared/fonts";
+import { plural } from "@/shared/format";
+import type { FontCatalogEntry } from "@/shared/ipc";
 import { categoryLabel } from "./font-labels";
 import { useFontLibrary } from "./library";
-import { useBusy } from "@/renderer/lib/use-busy";
 import { matchesQuery, SearchListDialog } from "./search-list-dialog";
 
 type Catalog =

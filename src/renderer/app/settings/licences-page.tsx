@@ -1,9 +1,5 @@
 import { ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
-import type { FontFamilyDef } from "@/shared/fonts/types";
-import type { LicenceEntry } from "@/shared/ipc";
-import { errorMessage } from "@/shared/errors";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -19,9 +15,13 @@ import {
   CollapsibleTrigger,
 } from "@/renderer/components/ui/collapsible";
 import { Spinner } from "@/renderer/components/ui/spinner";
+import { attempt } from "@/renderer/lib/toast";
+import { errorMessage } from "@/shared/errors";
+import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
+import type { FontFamilyDef } from "@/shared/fonts/types";
+import type { LicenceEntry } from "@/shared/ipc";
 import { fontFileUrl, useFontLibrary } from "../../fonts/library";
 import { useLoaded } from "../use-loaded";
-import { attempt } from "@/renderer/lib/toast";
 
 function LicenceText({ text }: { text: string }) {
   return (

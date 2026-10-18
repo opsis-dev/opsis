@@ -1,9 +1,5 @@
 import { CircleX, FolderOpen } from "lucide-react";
 import { useRef, useState } from "react";
-import { formatDuration } from "@/shared/format";
-import { nodeName } from "@/shared/nodes/registry";
-import { outputOf } from "@/shared/schema/values";
-import type { ActionLog } from "@/shared/schema/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
@@ -19,15 +15,19 @@ import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
 import { whenOneOf } from "@/renderer/lib/one-of";
 import { cn } from "@/renderer/lib/utils";
+import { formatDuration } from "@/shared/format";
+import { findById } from "@/shared/lists";
+import { nodeName } from "@/shared/nodes/registry";
+import type { ActionLog } from "@/shared/schema/actions";
+import { outputOf } from "@/shared/schema/values";
 import { useRunStore } from "../store/run";
 import { REPLAY_TABS, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
 import { ListRow } from "./list-row";
-import { MONO_TEXT } from "./text-styles";
 import { revealProjectFile } from "./reveal";
+import { MONO_TEXT } from "./text-styles";
 import { TracePanel } from "./trace-panel";
-import { findById } from "@/shared/lists";
 
 type ReplayAction = ActionLog["actions"][number];
 

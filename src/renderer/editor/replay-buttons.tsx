@@ -1,6 +1,6 @@
 import { FileSearch, Film } from "lucide-react";
-import { getNodeDef } from "@/shared/nodes/registry";
 import { Button } from "@/renderer/components/ui/button";
+import { getNodeDef } from "@/shared/nodes/registry";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";

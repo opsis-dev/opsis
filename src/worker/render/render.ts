@@ -9,17 +9,17 @@ import {
   type ChromiumOptions,
   type HeadlessBrowser,
 } from "@remotion/renderer";
-import type { TimelineSpec } from "../../shared/schema/timeline";
-import type { WorkerEnv } from "../../shared/worker-protocol";
+import { freeTcpPort } from "../../engine/free-tcp-port";
 import { enginePaths, requireHeadlessShell } from "../../engine/paths";
-import { COMPOSITION_ID } from "../../video/composition-id";
-import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./bundle";
-import { CODECS, type RenderCodec } from "../media/codecs";
-import { getCompositorPackage } from "./compositor-package";
+import { onAbort } from "../../shared/errors";
 import { clamp } from "../../shared/math";
 import { keepLatest } from "../../shared/memo";
-import { onAbort } from "../../shared/errors";
-import { freeTcpPort } from "../../engine/free-tcp-port";
+import type { TimelineSpec } from "../../shared/schema/timeline";
+import type { WorkerEnv } from "../../shared/worker-protocol";
+import { COMPOSITION_ID } from "../../video/composition-id";
+import { CODECS, type RenderCodec } from "../media/codecs";
+import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./bundle";
+import { getCompositorPackage } from "./compositor-package";
 
 export type GlRenderer = NonNullable<ChromiumOptions["gl"]>;
 

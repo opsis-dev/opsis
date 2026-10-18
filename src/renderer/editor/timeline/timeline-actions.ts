@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { randomId } from "@/shared/ids";
+import type { Marker } from "@/shared/schema/workflow";
 import {
   applyRemoval,
   removalFor,
@@ -9,7 +10,6 @@ import {
   type Removal,
 } from "@/shared/timeline/edits";
 import type { FlatTimeline } from "@/shared/timeline/flatten";
-import type { Marker } from "@/shared/schema/workflow";
 import { framesToMs } from "@/shared/timeline/time";
 import { usePlayback } from "../../store/playback";
 import { toggleIds, useUiStore } from "../../store/ui";

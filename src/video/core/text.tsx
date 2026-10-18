@@ -7,10 +7,6 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { CLAMPED, entranceStyle, exitOpacity, type Entrance } from "./anim";
-import { Backgrounded } from "./backgrounds";
-import { isLandscape, JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "./frame";
-import { fontOr } from "../../shared/fonts";
 import {
   ACCENT_COLOR,
   CALLOUT_COLOR,
@@ -19,7 +15,11 @@ import {
   PANEL_COLOR,
   TEXT_COLOR,
 } from "../../shared/elements/colors";
+import { fontOr } from "../../shared/fonts";
 import { framesToMs, msToFrames } from "../../shared/timeline/time";
+import { CLAMPED, entranceStyle, exitOpacity, type Entrance } from "./anim";
+import { Backgrounded } from "./backgrounds";
+import { isLandscape, JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "./frame";
 
 const MAX_WORDS_PER_LINE = 6;
 const CAPTION_LINGER_MS = 250;

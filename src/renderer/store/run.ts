@@ -1,4 +1,7 @@
 import { create } from "zustand";
+import { CANCELLED } from "@/shared/errors";
+import { appendCapped } from "@/shared/lists";
+import { pick } from "@/shared/pick";
 import {
   applyRunEvent,
   emptyRunProgress,
@@ -7,9 +10,6 @@ import {
 } from "@/shared/run-progress";
 import type { LogLevel, RunEvent } from "@/shared/schema/events";
 import type { LastRun } from "@/shared/schema/values";
-import { appendCapped } from "@/shared/lists";
-import { CANCELLED } from "@/shared/errors";
-import { pick } from "@/shared/pick";
 
 export type LogLine = {
   id: number;

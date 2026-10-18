@@ -1,21 +1,21 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Download, FolderOpen, Plus, Settings, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
+import { Button } from "@/renderer/components/ui/button";
+import { Kbd } from "@/renderer/components/ui/kbd";
+import { formatTimeAgo } from "@/shared/format";
 import type { RecentProject } from "@/shared/ipc";
 import type { MenuCommand } from "@/shared/menu";
 import { TEMPLATES } from "@/shared/templates";
-import { formatTimeAgo } from "@/shared/format";
-import { Button } from "@/renderer/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
-import { Kbd } from "@/renderer/components/ui/kbd";
 import { NodeIcon } from "../editor/node-icon";
 import { useFreshEnvironment } from "../store/environment";
 import { AppBar } from "./app-bar";
+import { dispatchMenuCommand, onMenuCommand } from "./menu-commands";
+import { commandLabel, commandShortcut } from "./menu-shortcuts";
 import { Stagger, StaggerItem } from "./motion";
 import { NewProjectDialog } from "./new-project-dialog";
 import { useLoaded } from "./use-loaded";
-import { dispatchMenuCommand, onMenuCommand } from "./menu-commands";
-import { commandLabel, commandShortcut } from "./menu-shortcuts";
 
 const RECENT_LIMIT = 10;
 

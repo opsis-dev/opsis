@@ -1,14 +1,14 @@
+import { Video } from "@remotion/media";
 import React from "react";
 import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
-import { Video } from "@remotion/media";
-import { RimLight, WindowFrame } from "../camera/window-frame";
-import { WINDOW_FIT } from "../camera/lib/style";
+import { DEFAULT_BACKDROP } from "../../shared/backdrops";
+import { msToFrames } from "../../shared/timeline/time";
 import { isLightBackdrop } from "../camera/lib/backdrop";
+import { WINDOW_FIT } from "../camera/lib/style";
+import { RimLight, WindowFrame } from "../camera/window-frame";
+import { zoomOver } from "./anim";
 import { Backdrop, Backgrounded } from "./backgrounds";
 import { stillLayout, type Box, type Shot, type StillLook } from "./still-layout";
-import { zoomOver } from "./anim";
-import { msToFrames } from "../../shared/timeline/time";
-import { DEFAULT_BACKDROP } from "../../shared/backdrops";
 
 export type Fit = "contain" | "cover" | "fill";
 

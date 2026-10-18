@@ -1,7 +1,7 @@
 import { useRef, useState, type PointerEvent } from "react";
+import { capturePrimaryPointer, fractionIn } from "@/renderer/lib/dom";
 import { clamp, round3 } from "@/shared/math";
 import type { Bounds } from "@/shared/schema/actions";
-import { capturePrimaryPointer, fractionIn } from "@/renderer/lib/dom";
 
 type DragTarget = { mode: "new" } | { mode: "move"; index: number };
 type Drag = DragTarget & { x: number; y: number; origin: Bounds; box: Bounds };

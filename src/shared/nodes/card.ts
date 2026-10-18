@@ -1,7 +1,7 @@
+import { baseName } from "../asset-ref";
+import { formatDuration, percentText } from "../format";
 import type { NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
-import { formatDuration, percentText } from "../format";
-import { baseName } from "../asset-ref";
 import { framesToMs } from "../timeline/time";
 import type { NodeIconName } from "./icon-name";
 

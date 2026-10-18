@@ -1,12 +1,12 @@
 import { chmod, mkdir, rename, rm } from "node:fs/promises";
-import { writeJson } from "./json";
 import path from "node:path";
 import { createGunzip } from "node:zlib";
 import { ensureBrowser } from "@remotion/renderer";
-import { downloadTo } from "./download";
-import { enginePaths, FFMPEG_RELEASE_URL } from "./paths";
 import type { EngineInstallUpdate } from "../shared/engine";
 import { formatBytes } from "../shared/format";
+import { downloadTo } from "./download";
+import { writeJson } from "./json";
+import { enginePaths, FFMPEG_RELEASE_URL } from "./paths";
 
 export type InstallProgress = (update: EngineInstallUpdate) => void;
 

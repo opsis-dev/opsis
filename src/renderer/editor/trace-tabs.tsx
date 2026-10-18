@@ -1,10 +1,7 @@
 import { CircleAlert } from "lucide-react";
 import type { ReactNode } from "react";
-import type { TraceAction, TraceConsole, TraceModel } from "@/shared/trace";
-import { formatBytes, formatPreciseDuration } from "@/shared/format";
 import { Badge } from "@/renderer/components/ui/badge";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -13,7 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/renderer/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/ui/tabs";
 import { cn } from "@/renderer/lib/utils";
+import { formatBytes, formatPreciseDuration } from "@/shared/format";
+import type { TraceAction, TraceConsole, TraceModel } from "@/shared/trace";
 import { MONO_TEXT } from "./text-styles";
 
 const LEVEL_VARIANTS: Record<TraceConsole["level"], "destructive" | "secondary" | "outline"> = {

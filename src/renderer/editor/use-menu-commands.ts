@@ -1,15 +1,15 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { DOCK_PANELS } from "@/shared/ipc";
 import type { MenuCommand } from "@/shared/menu";
+import { onMenuCommand } from "../app/menu-commands";
 import { useUiStore } from "../store/ui";
 import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { tidyLayout } from "./layout";
-import { DOCK_PANELS } from "@/shared/ipc";
 import { focusPanel, PANEL_SIDES, PANEL_TOGGLES, togglePanel } from "./panels";
 import { startRun } from "./run";
 import { saveWithToast } from "./save";
-import { onMenuCommand } from "../app/menu-commands";
 
 type MenuActions = Partial<Record<MenuCommand, () => void>>;
 

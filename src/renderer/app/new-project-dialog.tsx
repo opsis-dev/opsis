@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { joinFolder, projectFolderName } from "@/shared/project-folder";
-import { getTemplate, TEMPLATES } from "@/shared/templates";
 import { Button } from "@/renderer/components/ui/button";
 import {
   Dialog,
@@ -15,6 +13,8 @@ import { Input } from "@/renderer/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { platform } from "@/renderer/lib/platform";
 import { useBusy } from "@/renderer/lib/use-busy";
+import { joinFolder, projectFolderName } from "@/shared/project-folder";
+import { getTemplate, TEMPLATES } from "@/shared/templates";
 import { FolderField } from "./folder-field";
 import { useProjectLocations } from "./use-loaded";
 

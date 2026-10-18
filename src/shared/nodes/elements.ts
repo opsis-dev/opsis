@@ -1,17 +1,17 @@
 import { z } from "zod";
+import { projectRef } from "../asset-ref";
 import { itemClip, withHandles, wrapClip } from "../compile/clip";
-import type { EditHandles, VisualEnvelope } from "../schema/timeline";
-import type { ClipValue } from "../schema/values";
 import { ELEMENTS, elementNodeType } from "../elements";
 import { CAPTIONS_ELEMENT } from "../elements/core";
-import type { ElementCategory, ElementMeta } from "../elements/types";
 import { assetKeys, widgetKeys } from "../elements/introspect";
+import type { ElementCategory, ElementMeta } from "../elements/types";
 import { fontStack } from "../fonts";
+import type { EditHandles, VisualEnvelope } from "../schema/timeline";
+import type { ClipValue } from "../schema/values";
 import { fileRow, frameSecs, quote, row, sentence, type CardRow } from "./card";
 import { clipInput, defineNode, port, type NodeCategory, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
 import { int, MAX_FRAMES, visualEnvelope } from "./params";
-import { projectRef } from "../asset-ref";
 
 const TEXT_KEYS = [
   "title",

@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { wholePercent } from "@/shared/format";
-import { nodeName, nodeNameById } from "@/shared/nodes/registry";
-import type { WorkflowNode } from "@/shared/schema/workflow";
 import { Progress } from "@/renderer/components/ui/progress";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { cn } from "@/renderer/lib/utils";
+import { wholePercent } from "@/shared/format";
+import { nodeName, nodeNameById } from "@/shared/nodes/registry";
+import type { WorkflowNode } from "@/shared/schema/workflow";
 import { AnimatedPercent } from "../app/motion";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";

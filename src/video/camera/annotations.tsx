@@ -5,9 +5,9 @@ import { TEXT_COLOR } from "../../shared/elements/colors";
 import { MAIN_FONT } from "../../shared/fonts";
 import { percent } from "../../shared/format";
 import { rectCentre, type Viewport } from "../../shared/schema/actions";
+import { fadeWindow, isFadedOut } from "../core/anim";
 import type { Annotation } from "./action-log";
 import { useDesignScale } from "./lib/design-scale";
-import { fadeWindow, isFadedOut } from "../core/anim";
 
 const FADE = {
   in: 0.18,

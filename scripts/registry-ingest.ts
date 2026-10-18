@@ -1,13 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import {
-  CURATED,
-  DESCRIPTIONS,
-  REGISTRIES,
-  unknownOverrideNames,
-  type CuratedElement,
-} from "./registry-ingest.list";
 import { errorMessage } from "../src/shared/errors";
 import { isRecord } from "../src/shared/guards";
 import {
@@ -28,8 +21,15 @@ import {
   type PropDoc,
 } from "./lib/registry-controls";
 import { install, moveInstalled, rewriteImports } from "./lib/registry-install";
-import { literalOf, scratchFile } from "./lib/ts-literal";
 import { ROOT, SRC_DIR, VIDEO_DIR } from "./lib/tool-config";
+import { literalOf, scratchFile } from "./lib/ts-literal";
+import {
+  CURATED,
+  DESCRIPTIONS,
+  REGISTRIES,
+  unknownOverrideNames,
+  type CuratedElement,
+} from "./registry-ingest.list";
 
 const OUT_META = path.join(SRC_DIR, "shared", "elements", "elements.generated.ts");
 const OUT_COMPONENTS = path.join(VIDEO_DIR, "registry", "components.generated.ts");

@@ -1,9 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, Download } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { EngineInstallEvent } from "@/shared/engine";
-import { wholePercent } from "@/shared/format";
-import { errorMessage } from "@/shared/errors";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -16,9 +13,12 @@ import {
 } from "@/renderer/components/ui/card";
 import { Progress } from "@/renderer/components/ui/progress";
 import { Spinner } from "@/renderer/components/ui/spinner";
+import type { EngineInstallEvent } from "@/shared/engine";
+import { errorMessage } from "@/shared/errors";
+import { wholePercent } from "@/shared/format";
+import { useEnvironment, useFreshEnvironment } from "../store/environment";
 import { PageBar } from "./app-bar";
 import { AnimatedPercent } from "./motion";
-import { useEnvironment, useFreshEnvironment } from "../store/environment";
 import { skipSetup } from "./startup-flags";
 
 function useEngineInstall() {

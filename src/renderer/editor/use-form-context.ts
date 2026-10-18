@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
+import { reportError } from "@/renderer/lib/toast";
 import { PROJECT_NAME_VAR, workflowVars } from "@/shared/compile/compile";
 import { hasWidget, targetRoleKey } from "@/shared/elements/introspect";
 import { errorMessage } from "@/shared/errors";
@@ -19,7 +20,6 @@ import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
 import type { FormContext, SpotBackground } from "./form/types";
 import type { VarInfo } from "./var-text";
-import { reportError } from "@/renderer/lib/toast";
 
 const SITE_VAR = "Site address";
 const NO_PAGE = "Add a Go to page action before this one, so there's a page to pick from.";

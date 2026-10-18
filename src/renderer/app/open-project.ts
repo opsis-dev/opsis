@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useState } from "react";
+import { reportError } from "@/renderer/lib/toast";
 import type { OpenProject } from "@/shared/ipc";
 import { whenSaved } from "../editor/save";
 import { loadViewState } from "../editor/view-state";
@@ -7,7 +8,6 @@ import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { reportError } from "@/renderer/lib/toast";
 
 function openProjectIntoStores(p: OpenProject): void {
   loadViewState(p.dir);

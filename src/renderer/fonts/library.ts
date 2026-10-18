@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { create } from "zustand";
-import { libraryRelPath, type FontFamilyDef } from "@/shared/fonts/types";
-import { FILE_SCHEME, encodePath } from "@/shared/asset-ref";
 import { reportError } from "@/renderer/lib/toast";
+import { FILE_SCHEME, encodePath } from "@/shared/asset-ref";
+import { libraryRelPath, type FontFamilyDef } from "@/shared/fonts/types";
 import { fileUrl } from "../editor/file-url";
 
 export function fontFileUrl(ref: string): string {

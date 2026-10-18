@@ -3,6 +3,10 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { app, type BrowserWindow, type OpenDialogOptions } from "electron";
 import { z } from "zod";
+import { sha256Hex } from "../engine/hash";
+import { atomicWrite, readJsonKeepingBroken, readTextIfPresent, writeJson } from "../engine/json";
+import { logError } from "../engine/log";
+import { projectPaths, readLastRun } from "../engine/project-paths";
 import { parseJsonWith } from "../shared/guards";
 import type {
   OpenProject,
@@ -13,14 +17,10 @@ import type {
 } from "../shared/ipc";
 import { PROJECT_DIRS } from "../shared/project-dirs";
 import { expandHome, projectFolderName } from "../shared/project-folder";
-import { PROJECTS_FOLDER_NAME } from "../shared/settings";
 import { WORKFLOW_FILE, workflowSchema, type Workflow } from "../shared/schema/workflow";
+import { PROJECTS_FOLDER_NAME } from "../shared/settings";
 import { getTemplate } from "../shared/templates";
 import { debounce } from "../shared/timing";
-import { sha256Hex } from "../engine/hash";
-import { atomicWrite, readJsonKeepingBroken, readTextIfPresent, writeJson } from "../engine/json";
-import { logError } from "../engine/log";
-import { projectPaths, readLastRun } from "../engine/project-paths";
 import { openDialog } from "./dialogs";
 import { ensureSecretsDir } from "./secrets";
 import { patchSettings, readSettings } from "./settings";

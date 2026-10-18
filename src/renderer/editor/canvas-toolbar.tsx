@@ -1,9 +1,9 @@
 import { Panel } from "@xyflow/react";
 import { Map as MapIcon, Mouse, Touchpad } from "lucide-react";
-import { CANVAS_MODES, type CanvasMode } from "@/shared/settings";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { whenFirstOneOf } from "@/renderer/lib/one-of";
+import { CANVAS_MODES, type CanvasMode } from "@/shared/settings";
 import { patchAppSettings } from "../store/app-settings";
 import { useViewOptions } from "../store/view-options";
 import { WithTooltip } from "./tooltip-button";

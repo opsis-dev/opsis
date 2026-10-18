@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import type { FontInstalledFace, InspectedFonts } from "@/shared/ipc";
-import { plural } from "@/shared/format";
-import type { LocalFontData } from "./local-fonts";
 import { useBusy } from "@/renderer/lib/use-busy";
+import { plural } from "@/shared/format";
+import type { FontInstalledFace, InspectedFonts } from "@/shared/ipc";
 import { FontSample } from "./font-sample";
+import type { LocalFontData } from "./local-fonts";
 import { BusyCount, matchesQuery, SearchListDialog } from "./search-list-dialog";
 
 async function readFaces(faces: LocalFontData[]): Promise<FontInstalledFace[]> {

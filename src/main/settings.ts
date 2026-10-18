@@ -1,6 +1,8 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { app } from "electron";
+import { readJsonKeepingBroken, writeJson } from "../engine/json";
+import { logError } from "../engine/log";
 import {
   appSettingsSchema,
   DEFAULT_SETTINGS,
@@ -8,8 +10,6 @@ import {
   type AppSettings,
   type SettingsPatch,
 } from "../shared/settings";
-import { readJsonKeepingBroken, writeJson } from "../engine/json";
-import { logError } from "../engine/log";
 import { oneAtATime } from "../shared/timing";
 
 const file = () => path.join(app.getPath("userData"), "settings.json");

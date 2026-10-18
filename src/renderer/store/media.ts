@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import type { MixPlan } from "@/shared/mix/plan";
 import type {
   AnalysisKind,
   AnalysisRequest,
@@ -10,6 +9,7 @@ import type {
 } from "@/shared/analysis";
 import { errorMessage } from "@/shared/errors";
 import { keepLast } from "@/shared/lists";
+import type { MixPlan } from "@/shared/mix/plan";
 import type { MixResult } from "@/shared/mix/result";
 import { debounce } from "@/shared/timing";
 import { useAudioPreview } from "./audio-preview";

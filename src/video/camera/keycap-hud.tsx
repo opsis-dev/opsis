@@ -1,9 +1,9 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
-import type { KeyEvent } from "./lib/click-log";
-import { chordGlyphs, keycapAt, keycapEase } from "./lib/keycap";
-import { useDesignScale } from "./lib/design-scale";
 import { useOverlayFrame } from "../core/frame";
+import type { KeyEvent } from "./lib/click-log";
+import { useDesignScale } from "./lib/design-scale";
+import { chordGlyphs, keycapAt, keycapEase } from "./lib/keycap";
 
 const KEYCAP = {
   height: 103,

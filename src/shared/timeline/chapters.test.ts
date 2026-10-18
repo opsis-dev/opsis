@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { compileWorkflow } from "../compile/compile";
 import type { Action } from "../schema/actions";
 import { GraphBuilder } from "../templates/build";
+import { makeLog, recordedTake, recordResult, TITLE } from "../test-fixtures";
 import { chapterList, chapterMetadata, filmChapters, type FilmChapter } from "./chapters";
 import { framesToMs } from "./time";
-import { makeLog, recordedTake, recordResult, TITLE } from "../test-fixtures";
 
 const chapter = (id: string, t: number, label: string): Action => ({
   id,

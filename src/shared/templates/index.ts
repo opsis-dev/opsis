@@ -1,7 +1,7 @@
-import type { Workflow } from "../schema/workflow";
-import type { NodeIconName } from "../nodes/icon-name";
-import { GraphBuilder, type TakeStep } from "./build";
 import { findById } from "../lists";
+import type { NodeIconName } from "../nodes/icon-name";
+import type { Workflow } from "../schema/workflow";
+import { GraphBuilder, type TakeStep } from "./build";
 
 type TemplateInfo = {
   id: string;

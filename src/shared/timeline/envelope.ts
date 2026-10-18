@@ -1,5 +1,5 @@
-import type { Ease, Keyframe } from "../schema/timeline";
 import { clamp01, lerp, sampleKeyed } from "../math";
+import type { Ease, Keyframe } from "../schema/timeline";
 
 function ease(kind: Ease, t: number): number {
   const x = clamp01(t);

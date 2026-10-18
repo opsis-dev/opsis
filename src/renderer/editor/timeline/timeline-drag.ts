@@ -1,6 +1,6 @@
+import { DRAG_START_PX } from "@/renderer/lib/dom";
 import type { Keyframe } from "@/shared/schema/timeline";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
-import { DRAG_START_PX } from "@/renderer/lib/dom";
 import {
   HALF_FRAME,
   applyRipple,

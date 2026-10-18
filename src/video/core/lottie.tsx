@@ -1,6 +1,6 @@
+import { Lottie, type LottieAnimationData } from "@remotion/lottie";
 import React, { useLayoutEffect, useState } from "react";
 import { cancelRender } from "remotion";
-import { Lottie, type LottieAnimationData } from "@remotion/lottie";
 import { Backgrounded } from "./backgrounds";
 import { readLottie } from "./dot-lottie";
 import { holdRender } from "./loading";

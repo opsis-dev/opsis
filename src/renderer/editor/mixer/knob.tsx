@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import { DRAG_START_PX, usePointerDrag } from "@/renderer/lib/dom";
-import { parseNumberText } from "@/shared/text-input";
-import { clamp01 } from "@/shared/math";
 import { cn } from "@/renderer/lib/utils";
+import { clamp01 } from "@/shared/math";
+import { parseNumberText } from "@/shared/text-input";
 import { commitOnce, onArrowKey, type Change, type DragPhase } from "./gesture";
 import {
   START_DEG,

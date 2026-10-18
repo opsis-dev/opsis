@@ -1,3 +1,5 @@
+import { LightLeak } from "@remotion/light-leaks";
+import { noise3D } from "@remotion/noise";
 import React from "react";
 import {
   AbsoluteFill,
@@ -7,8 +9,6 @@ import {
   staticFile,
   useCurrentFrame,
 } from "remotion";
-import { noise3D } from "@remotion/noise";
-import { LightLeak } from "@remotion/light-leaks";
 import { backdropSource } from "../camera/lib/backdrop";
 import { visibleBackground } from "./anim";
 

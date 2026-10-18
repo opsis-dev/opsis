@@ -5,10 +5,16 @@ import { app, type BrowserWindow } from "electron";
 import { unzipSync } from "fflate";
 import { create, type Font } from "fontkit";
 import { z } from "zod";
+import { readJsonKeepingBroken, writeJson } from "../engine/json";
+import { logError } from "../engine/log";
 import { baseName, extensionOf, projectRef } from "../shared/asset-ref";
 import { fontSlug, sameFamily } from "../shared/fonts";
-import { safeName } from "../shared/safe-name";
-import { firstFree } from "../shared/lists";
+import {
+  familyNameFrom,
+  planFontFiles,
+  type FontCandidate,
+  type PlannedFamily,
+} from "../shared/fonts/plan";
 import {
   fontFamilySchema,
   libraryRef,
@@ -16,16 +22,10 @@ import {
   type FontFaceDef,
   type FontFamilyDef,
 } from "../shared/fonts/types";
-import {
-  familyNameFrom,
-  planFontFiles,
-  type FontCandidate,
-  type PlannedFamily,
-} from "../shared/fonts/plan";
-import type { FontInstalledFace, InspectedFonts } from "../shared/ipc";
-import { readJsonKeepingBroken, writeJson } from "../engine/json";
-import { logError } from "../engine/log";
 import { isRecord, isString } from "../shared/guards";
+import type { FontInstalledFace, InspectedFonts } from "../shared/ipc";
+import { firstFree } from "../shared/lists";
+import { safeName } from "../shared/safe-name";
 import { oneAtATime } from "../shared/timing";
 import { openDialog } from "./dialogs";
 

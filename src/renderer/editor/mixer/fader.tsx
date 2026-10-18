@@ -1,10 +1,10 @@
+import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
 import { percent } from "@/shared/format";
 import { clamp } from "@/shared/math";
 import { MAX_DB, MIN_DB } from "@/shared/mix/types";
 import { db } from "./audio-format";
 import { commitOnce, onArrowKey, type Change } from "./gesture";
 import { roundToStep } from "./knob-math";
-import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
 
 const STEP_DB = 0.5;
 const BIG_STEP_DB = 6;

@@ -3,11 +3,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
+import { SRC_ALIAS } from "./scripts/lib/tool-config.ts";
 import {
   googleFontModuleFile,
   GOOGLE_FONT_IMPORT,
 } from "./src/shared/fonts/google-font-imports.ts";
-import { SRC_ALIAS } from "./scripts/lib/tool-config.ts";
 
 const localFonts = (): Plugin => ({
   name: "demoflow-local-fonts",

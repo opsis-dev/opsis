@@ -1,3 +1,5 @@
+import type { AnnotationKind, AnnotationSpec } from "../../shared/compile/recording";
+import { POINTER_KINDS } from "../../shared/compile/recording";
 import {
   rectCentre,
   rectUnion,
@@ -7,8 +9,6 @@ import {
   type Rect,
   type Viewport,
 } from "../../shared/schema/actions";
-import type { AnnotationKind, AnnotationSpec } from "../../shared/compile/recording";
-import { POINTER_KINDS } from "../../shared/compile/recording";
 import { defaultTargetRect, type ClickEvent, type ClickLog, type KeyEvent } from "./lib/click-log";
 
 export type Annotation = {
