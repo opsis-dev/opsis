@@ -1,32 +1,29 @@
 import type { Locator, Page } from "playwright-core";
-import { parseNodeParams, type NodeDef } from "../../shared/nodes/define";
+import { parseNodeParams, type NodeDef, type NodeParams } from "../../shared/nodes/define";
+import type { recordNode } from "../../shared/nodes/capture";
 import { nodeName } from "../../shared/nodes/registry";
 import type { LiveEvent } from "../../shared/live";
 import type { Action } from "../../shared/schema/actions";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
 import { throwIfCancelled } from "../../shared/errors";
 import type { CursorSample, KeyEvent } from "../../video/camera/lib/click-log";
-import { plainError, SignInExpiredError, traceGroupTitle } from "./driver-helpers";
+import { plainError, traceGroupTitle } from "./driver-helpers";
 import type { FrameEncoder } from "./encoder";
 import type { ActionOpts, TakeClick, TakeSink } from "./flow-types";
 import { CursorDriver } from "./recorder";
 import { resolveTarget, SelectorError } from "./selectors";
 import type { OpenSession } from "./session";
-import { runStep } from "./take-steps";
+import { clickKindOf, runStep, SignInExpiredError } from "./take-steps";
 
 export type LiveSink = {
   frame: (jpeg: Buffer, width: number, height: number, t: number) => void;
   event: (event: LiveEvent) => void;
 };
 
-type RecordOptions = {
-  fps: number;
-  quality: number;
-  establishMs: number;
-  endTailMs: number;
-  cursor: "synthetic" | "baked" | "none";
-  showActions: boolean;
-};
+type RecordOptions = Pick<
+  NodeParams<typeof recordNode>,
+  "fps" | "quality" | "establishMs" | "endTailMs" | "cursor" | "showActions"
+>;
 
 export type Recording = { encoder: FrameEncoder; record: RecordOptions };
 
@@ -56,13 +53,6 @@ type MotionParams = {
 };
 
 const LIVE_CURSOR_GAP_MS = 30;
-
-const ACTION_KINDS: Partial<Record<string, Action["kind"]>> = {
-  "browser.type": "type",
-  "browser.click": "click",
-  "browser.hover": "hover",
-  "browser.drag": "drag",
-};
 
 export class TakeRun implements TakeSink {
   readonly actions: Action[] = [];
@@ -164,10 +154,26 @@ export class TakeRun implements TakeSink {
     opts.live?.event({ kind: "step", nodeId: node.id, status: "running" });
     const clicksBefore = this.clicks.length;
     const keysBefore = this.keys.length;
-    if (opts.tracePath) {
-      await this.session.context.tracing.group(traceGroupTitle(nodeName(node), node, this.vars));
-      opts.traceGroups?.push(node.id);
+    await this.traced(node, () => this.attempt(node));
+    this.collectActions(node, clicksBefore, keysBefore);
+    opts.step(node.id, "done");
+    opts.live?.event({ kind: "step", nodeId: node.id, status: "done" });
+  }
+
+  private async traced(node: WorkflowNode, play: () => Promise<void>) {
+    const { opts } = this;
+    if (!opts.tracePath) return play();
+    await this.session.context.tracing.group(traceGroupTitle(nodeName(node), node, this.vars));
+    opts.traceGroups?.push(node.id);
+    try {
+      await play();
+    } finally {
+      await this.session.context.tracing.groupEnd().catch(() => undefined);
     }
+  }
+
+  private async attempt(node: WorkflowNode) {
+    const { opts } = this;
     try {
       await runStep(this, node);
     } catch (raw) {
@@ -178,10 +184,12 @@ export class TakeRun implements TakeSink {
       opts.step(node.id, "error", error.message);
       opts.live?.event({ kind: "step", nodeId: node.id, status: "error", message: error.message });
       throw error;
-    } finally {
-      if (opts.tracePath) await this.session.context.tracing.groupEnd().catch(() => undefined);
     }
-    for (const c of this.clicks.slice(clicksBefore)) this.actions.push(this.clickAction(c, node));
+  }
+
+  private collectActions(node: WorkflowNode, clicksBefore: number, keysBefore: number) {
+    for (const c of this.clicks.slice(clicksBefore))
+      this.pushAction(this.clickAction(c, node), node);
     for (const k of this.keys.slice(keysBefore)) {
       this.pushAction(
         {
@@ -194,12 +202,10 @@ export class TakeRun implements TakeSink {
         node,
       );
     }
-    opts.step(node.id, "done");
-    opts.live?.event({ kind: "step", nodeId: node.id, status: "done" });
   }
 
-  private clickAction(c: TakeClick, node: WorkflowNode): Action {
-    const kind = ACTION_KINDS[node.type] ?? "focus";
+  private clickAction(c: TakeClick, node: WorkflowNode): Omit<Action, "nodeId"> {
+    const kind = clickKindOf(node.type);
     return {
       id: `${node.id}:${this.actions.length}`,
       kind,
@@ -215,7 +221,6 @@ export class TakeRun implements TakeSink {
       zoom: c.zoom,
       zoomScale: c.zoomScale,
       text: kind === "type" ? c.text : undefined,
-      nodeId: node.id,
       ...(c.path ? { path: c.path } : {}),
       ...(c.drop ? { drop: c.drop } : {}),
     };

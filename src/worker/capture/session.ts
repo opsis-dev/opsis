@@ -2,6 +2,7 @@ import type { BrowserContext } from "playwright-core";
 import type { NodeParams } from "../../shared/nodes/define";
 import type { sessionNode } from "../../shared/nodes/browser";
 import { parseJsonWith } from "../../shared/guards";
+import { onAbort } from "../../shared/errors";
 import { storageStateSchema, type StorageState } from "../../shared/schema/storage-state";
 import { fitPageToScale, scaledViewport } from "./capture-scale";
 
@@ -22,7 +23,7 @@ export type OpenSession = {
 
 export async function openSession(
   params: SessionParams,
-  opts: { storageState?: string | null; executablePath: string },
+  opts: { storageState?: string | null; executablePath: string; signal?: AbortSignal },
 ): Promise<OpenSession> {
   const storageState = opts.storageState ? parseStorageState(opts.storageState) : undefined;
   const { chromium, devices } = await import("playwright-core");
@@ -34,8 +35,16 @@ export async function openSession(
     headless: true,
     args: ["--hide-scrollbars", "--disable-features=Translate"],
   });
-  const context = await browser
-    .newContext({
+  let context: BrowserContext | undefined;
+  let stopOnAbort = (): void => undefined;
+  const close = async () => {
+    stopOnAbort();
+    await context?.close().catch(() => undefined);
+    await browser.close().catch(() => undefined);
+  };
+  stopOnAbort = onAbort(opts.signal, () => void close());
+  try {
+    context = await browser.newContext({
       viewport: physical,
       deviceScaleFactor: params.dpr,
       locale: params.locale || undefined,
@@ -44,25 +53,11 @@ export async function openSession(
       userAgent: params.userAgent || (params.mobile ? devices["iPad Pro 11"].userAgent : undefined),
       ...(params.mobile ? { isMobile: true, hasTouch: true } : {}),
       ...(storageState ? { storageState } : {}),
-    })
-    .catch(async (error: unknown) => {
-      await browser.close().catch(() => undefined);
-      throw error;
     });
-  const close = async () => {
-    await context.close().catch(() => undefined);
-    await browser.close().catch(() => undefined);
-  };
-  if (scale > 1)
-    await context
-      .addInitScript(fitPageToScale, { scale, ...logical })
-      .catch(async (error: unknown) => {
-        await close();
-        throw error;
-      });
-  return {
-    context,
-    physicalViewport: physical,
-    close,
-  };
+    if (scale > 1) await context.addInitScript(fitPageToScale, { scale, ...logical });
+  } catch (error) {
+    await close();
+    throw error;
+  }
+  return { context, physicalViewport: physical, close };
 }

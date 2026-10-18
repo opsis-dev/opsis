@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import type { EngineStatus } from "../shared/engine";
+import { ENGINE_MISSING_MESSAGE, type EngineStatus } from "../shared/engine";
 
 const FFMPEG_RELEASE = "b6.1.1";
 export const FFMPEG_RELEASE_URL = `https://github.com/eugeneware/ffmpeg-static/releases/download/${FFMPEG_RELEASE}`;
@@ -57,6 +57,14 @@ export function enginePaths(
 
 export const findHeadlessShell = (paths: Pick<EnginePaths, "headlessShells">): string | null =>
   paths.headlessShells.find((file) => existsSync(file)) ?? null;
+
+export function requireEngineFile(file: string | null): string {
+  if (!file) throw new Error(ENGINE_MISSING_MESSAGE);
+  return file;
+}
+
+export const requireHeadlessShell = (paths: Pick<EnginePaths, "headlessShells">): string =>
+  requireEngineFile(findHeadlessShell(paths));
 
 export function engineStatus(dir: string): EngineStatus {
   const p = enginePaths(dir);

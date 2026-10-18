@@ -3,6 +3,9 @@ export const EPSILON = 1e-6;
 export const clamp = (value: number, lo: number, hi: number): number =>
   Math.min(hi, Math.max(lo, value));
 
+export const sum = (values: readonly number[]): number =>
+  values.reduce((total, value) => total + value, 0);
+
 export const clamp01 = (value: number): number => clamp(value, 0, 1);
 
 export const lerp = (from: number, to: number, t: number): number => from + (to - from) * t;

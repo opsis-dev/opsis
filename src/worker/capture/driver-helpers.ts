@@ -1,6 +1,4 @@
 import { stripVTControlCharacters } from "node:util";
-import { parseNodeParams } from "../../shared/nodes/define";
-import { waitNode } from "../../shared/nodes/browser";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { interpolate } from "../../shared/vars";
 import { errorMessage, withoutCallName } from "../../shared/errors";
@@ -23,13 +21,6 @@ export function landedOnSignIn(requested: string, current: string, signInUrl: st
   return !samePage(requested, signInUrl) && samePage(current, signInUrl);
 }
 
-export class SignInExpiredError extends Error {
-  constructor(readonly secretName: string) {
-    super(`The saved sign-in “${secretName}” has expired.`);
-    this.name = "SignInExpiredError";
-  }
-}
-
 export function plainError(
   error: unknown,
   node: WorkflowNode,
@@ -48,9 +39,9 @@ export function plainError(
       ? `Couldn't find ${what} on the page within ${seconds} s.`
       : `The page didn't respond within ${seconds} s.`;
   }
-  if (/net::ERR_NAME_NOT_RESOLVED/.test(text)) return "Couldn't reach the site. Check the address.";
-  if (/net::ERR_/.test(text))
-    return `Couldn't load the page (${/net::(ERR_\w+)/.exec(text)?.[1]}).`;
+  const network = /net::(ERR_\w+)/.exec(text)?.[1];
+  if (network === "ERR_NAME_NOT_RESOLVED") return "Couldn't reach the site. Check the address.";
+  if (network) return `Couldn't load the page (${network}).`;
   if (/Target (page|context|browser).*closed/.test(text))
     return "The browser closed before the action finished.";
   return withoutCallName(text);
@@ -62,26 +53,4 @@ export function traceGroupTitle(label: string, node: WorkflowNode, vars: Record<
     (v): v is string => typeof v === "string" && v.trim() !== "",
   );
   return subject ? `${label} · ${subject}` : label;
-}
-
-const OFF_CAMERA = new Set([
-  "browser.hideElements",
-  "browser.setState",
-  "browser.mockRoute",
-  "browser.freezeClock",
-  "browser.hoist",
-]);
-
-export function setupLength(steps: WorkflowNode[], vars: Record<string, string>): number {
-  const firstNav = steps.findIndex((n) => n.type === "browser.navigate");
-  if (firstNav < 0) return 0;
-  let end = firstNav + 1;
-  for (; end < steps.length; end++) {
-    const node = steps[end];
-    if (OFF_CAMERA.has(node.type)) continue;
-    if (node.type === "browser.wait" && parseNodeParams(waitNode, node, vars).mode !== "ms")
-      continue;
-    break;
-  }
-  return end;
 }

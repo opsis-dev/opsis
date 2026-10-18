@@ -6,35 +6,41 @@ const UNKNOWN_DATA_SIZE = 0xffffffff;
 
 type Pcm = { sampleRate: number; channels: number; frames: number; data: Float32Array[] };
 
-export function parseWav(buf: Buffer): Pcm {
+type WavFormat = { format: number; channels: number; sampleRate: number; bits: number };
+
+type WavLayout = WavFormat & { dataStart: number; dataLength: number };
+
+function readFormat(buf: Buffer, body: number, size: number): WavFormat {
+  const format = buf.readUInt16LE(body);
+  return {
+    format: format === WAVE_FORMAT_EXTENSIBLE && size >= 26 ? buf.readUInt16LE(body + 24) : format,
+    channels: buf.readUInt16LE(body + 2),
+    sampleRate: buf.readUInt32LE(body + 4),
+    bits: buf.readUInt16LE(body + 14),
+  };
+}
+
+function readChunks(buf: Buffer): WavLayout {
   if (buf.toString("ascii", 0, 4) !== "RIFF" || buf.toString("ascii", 8, 12) !== "WAVE")
     throw new Error("Not a WAV file");
-  let offset = 12;
-  let format = 0;
-  let channels = 0;
-  let sampleRate = 0;
-  let bits = 0;
-  let dataStart = -1;
-  let dataLength = 0;
-  while (offset + 8 <= buf.length) {
+  let fmt: WavFormat | null = null;
+  for (let offset = 12; offset + 8 <= buf.length;) {
     const id = buf.toString("ascii", offset, offset + 4);
-    let size = buf.readUInt32LE(offset + 4);
+    const size = buf.readUInt32LE(offset + 4);
     const body = offset + 8;
-    if (id === "fmt ") {
-      format = buf.readUInt16LE(body);
-      channels = buf.readUInt16LE(body + 2);
-      sampleRate = buf.readUInt32LE(body + 4);
-      bits = buf.readUInt16LE(body + 14);
-      if (format === WAVE_FORMAT_EXTENSIBLE && size >= 26) format = buf.readUInt16LE(body + 24);
-    } else if (id === "data") {
-      dataStart = body;
-      if (size === UNKNOWN_DATA_SIZE || body + size > buf.length) size = buf.length - body;
-      dataLength = size;
-      break;
+    if (id === "data") {
+      if (!fmt?.channels) break;
+      const whole = size !== UNKNOWN_DATA_SIZE && body + size <= buf.length;
+      return { ...fmt, dataStart: body, dataLength: whole ? size : buf.length - body };
     }
+    if (id === "fmt ") fmt = readFormat(buf, body, size);
     offset = body + size + (size % 2);
   }
-  if (dataStart < 0 || !channels) throw new Error("WAV file has no audio data");
+  throw new Error("WAV file has no audio data");
+}
+
+function decode(buf: Buffer, layout: WavLayout): Pcm {
+  const { format, channels, sampleRate, bits, dataStart, dataLength } = layout;
   const bytes = bits / 8;
   const frames = Math.floor(dataLength / (bytes * channels));
   const data = Array.from({ length: channels }, () => new Float32Array(frames));
@@ -44,6 +50,8 @@ export function parseWav(buf: Buffer): Pcm {
   }
   return { sampleRate, channels, frames, data };
 }
+
+export const parseWav = (buf: Buffer): Pcm => decode(buf, readChunks(buf));
 
 const FLOAT_FORMAT = 3;
 

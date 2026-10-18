@@ -1,4 +1,5 @@
 import path from "node:path";
+import type { z } from "zod";
 import {
   assertNode,
   chapterNode,
@@ -14,17 +15,21 @@ import {
   pressNode,
   scrollNode,
   selectNode,
+  sessionNode,
   setStateNode,
   typeNode,
   uploadNode,
   waitNode,
 } from "../../shared/nodes/browser";
+import { parseNodeParams, type NodeDef, type NodeParams } from "../../shared/nodes/define";
 import { customLabel, nodeName } from "../../shared/nodes/registry";
+import type { Action } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { PAUSE_MARK } from "../../shared/vars";
 import { nonBlankLines } from "../../shared/text-input";
+import { errorMessage } from "../../shared/errors";
 import { parsePath } from "./drag-path";
-import { landedOnSignIn, SignInExpiredError } from "./driver-helpers";
+import { landedOnSignIn } from "./driver-helpers";
 import { elementOf, type DragTo } from "./flow-types";
 import {
   addStyles,
@@ -41,7 +46,29 @@ import type { TakeRun } from "./take-run";
 const FIRST_PAGE_MIN_WAIT_MS = 500;
 const SCROLL_TICK_MS = 16;
 
-type StepHandler = (take: TakeRun, node: WorkflowNode) => Promise<void>;
+export class SignInExpiredError extends Error {
+  constructor(readonly secretName: string) {
+    super(`The saved sign-in “${secretName}” has expired.`);
+    this.name = "SignInExpiredError";
+  }
+}
+
+type StepSpec = {
+  run: (take: TakeRun, node: WorkflowNode) => Promise<void>;
+  clickKind?: Action["kind"];
+  offCamera?: boolean;
+};
+
+const step = <S extends z.ZodObject>(
+  def: NodeDef<S>,
+  run: (take: TakeRun, p: z.infer<S>, node: WorkflowNode) => Promise<void>,
+  more: Omit<StepSpec, "run"> = {},
+): [string, StepSpec] => [
+  def.type,
+  { ...more, run: (take, node) => run(take, take.params(def, node), node) },
+];
+
+const isTimeoutError = (error: unknown) => error instanceof Error && error.name === "TimeoutError";
 
 async function onTarget(
   take: TakeRun,
@@ -54,9 +81,33 @@ async function onTarget(
   await take.rolling().pause(p.after);
 }
 
-const STEPS: Record<string, StepHandler> = {
-  "browser.navigate": async (take, node) => {
-    const p = take.params(navigateNode, node);
+async function dragDestination(take: TakeRun, p: NodeParams<typeof dragNode>): Promise<DragTo> {
+  if (p.mode === "by") return { by: { x: p.dx, y: p.dy } };
+  if (p.mode === "path") return { path: parsePath(p.path) };
+  if (!p.to.trim()) throw new Error("Pick where to drop it.");
+  return { target: (await take.resolve(p.to)).target };
+}
+
+type ScrollParams = NodeParams<typeof scrollNode>;
+
+async function scrollToElement(take: TakeRun, p: ScrollParams) {
+  const loc = elementOf((await take.resolve(p.target)).target);
+  if (!p.smooth) return loc.scrollIntoViewIfNeeded();
+  await loc.evaluate((el) => el.scrollIntoView({ behavior: "smooth", block: "center" }));
+  await take.page.waitForTimeout(p.durationMs);
+}
+
+async function scrollByAmount({ page }: TakeRun, p: ScrollParams) {
+  if (!p.smooth) return page.evaluate((dy) => window.scrollBy(0, dy), p.deltaY);
+  const ticks = Math.max(1, Math.round(p.durationMs / SCROLL_TICK_MS));
+  for (let i = 0; i < ticks; i++) {
+    await page.mouse.wheel(0, p.deltaY / ticks);
+    await page.waitForTimeout(SCROLL_TICK_MS);
+  }
+}
+
+const STEPS = new Map<string, StepSpec>([
+  step(navigateNode, async (take, p, node) => {
     const t = take.elapsed();
     await take.page.goto(p.url, { waitUntil: p.waitUntil });
     take.pushAction(
@@ -68,71 +119,58 @@ const STEPS: Record<string, StepHandler> = {
     const { signIn } = take.opts;
     if (signIn && landedOnSignIn(p.url, take.page.url(), signIn.url))
       throw new SignInExpiredError(signIn.name);
-  },
-  "browser.click": async (take, node) => {
-    const p = take.params(clickNode, node);
-    await onTarget(take, node, p, async (driver, t, label) =>
-      driver.moveAndClick(t.target, label, await take.motion(p, t.by)),
-    );
-  },
-  "browser.type": async (take, node) => {
-    const p = take.params(typeNode, node);
-    await onTarget(take, node, p, async (driver, t, label) => {
-      await driver.typeInto(t.target, p.text.split(PAUSE_MARK), label, {
-        ...(await take.motion(p, t.by)),
-        chunkPauseMs: p.chunkPauseMs,
-      });
-      if (p.pressEnter) await driver.pressKey("Enter", "Enter");
-    });
-  },
-  "browser.hover": async (take, node) => {
-    const p = take.params(hoverNode, node);
-    await onTarget(take, node, p, async (driver, t, label) => {
-      if (p.zoom) {
-        await driver.focus(t.target, label, await take.motion(p, t.by));
-        return;
-      }
-      await driver.moveTo(t.target);
-      await driver.pause(p.hoverMs);
-    });
-  },
-  "browser.drag": async (take, node) => {
-    const p = take.params(dragNode, node);
-    await onTarget(take, node, p, async (driver, from, label) => {
-      if (p.mode === "element" && !p.to.trim()) throw new Error("Pick where to drop it.");
-      const to: DragTo =
-        p.mode === "element"
-          ? { target: (await take.resolve(p.to)).target }
-          : p.mode === "by"
-            ? { by: { x: p.dx, y: p.dy } }
-            : { path: parsePath(p.path) };
-      await driver.drag(from.target, to, label, {
-        ...(await take.motion(p, from.by)),
-        holdMs: p.holdMs,
-        dragMs: p.dragMs,
-        method: p.method,
-      });
-    });
-  },
-  "browser.scroll": async (take, node) => {
-    const p = take.params(scrollNode, node);
-    const { page } = take;
+  }),
+  step(
+    clickNode,
+    (take, p, node) =>
+      onTarget(take, node, p, async (driver, t, label) =>
+        driver.moveAndClick(t.target, label, await take.motion(p, t.by)),
+      ),
+    { clickKind: "click" },
+  ),
+  step(
+    typeNode,
+    (take, p, node) =>
+      onTarget(take, node, p, async (driver, t, label) => {
+        await driver.typeInto(t.target, p.text.split(PAUSE_MARK), label, {
+          ...(await take.motion(p, t.by)),
+          chunkPauseMs: p.chunkPauseMs,
+        });
+        if (p.pressEnter) await driver.pressKey("Enter", "Enter");
+      }),
+    { clickKind: "type" },
+  ),
+  step(
+    hoverNode,
+    (take, p, node) =>
+      onTarget(take, node, p, async (driver, t, label) => {
+        if (p.zoom) {
+          await driver.focus(t.target, label, await take.motion(p, t.by));
+          return;
+        }
+        await driver.moveTo(t.target);
+        await driver.pause(p.hoverMs);
+      }),
+    { clickKind: "hover" },
+  ),
+  step(
+    dragNode,
+    (take, p, node) =>
+      onTarget(take, node, p, async (driver, from, label) => {
+        const to = await dragDestination(take, p);
+        await driver.drag(from.target, to, label, {
+          ...(await take.motion(p, from.by)),
+          holdMs: p.holdMs,
+          dragMs: p.dragMs,
+          method: p.method,
+        });
+      }),
+    { clickKind: "drag" },
+  ),
+  step(scrollNode, async (take, p, node) => {
     const t = take.elapsed();
-    if (p.mode === "element") {
-      const loc = elementOf((await take.resolve(p.target)).target);
-      if (p.smooth) {
-        await loc.evaluate((el) => el.scrollIntoView({ behavior: "smooth", block: "center" }));
-        await page.waitForTimeout(p.durationMs);
-      } else await loc.scrollIntoViewIfNeeded();
-    } else if (p.smooth) {
-      const ticks = Math.max(1, Math.round(p.durationMs / SCROLL_TICK_MS));
-      for (let i = 0; i < ticks; i++) {
-        await page.mouse.wheel(0, p.deltaY / ticks);
-        await page.waitForTimeout(SCROLL_TICK_MS);
-      }
-    } else {
-      await page.evaluate((dy) => window.scrollBy(0, dy), p.deltaY);
-    }
+    if (p.mode === "element") await scrollToElement(take, p);
+    else await scrollByAmount(take, p);
     take.pushAction(
       {
         id: `${node.id}:scroll`,
@@ -144,29 +182,25 @@ const STEPS: Record<string, StepHandler> = {
       node,
     );
     await take.pauseIfRolling(p.after);
-  },
-  "browser.select": async (take, node) => {
-    const p = take.params(selectNode, node);
-    await onTarget(take, node, p, async (driver, t, label) => {
+  }),
+  step(selectNode, (take, p, node) =>
+    onTarget(take, node, p, async (driver, t, label) => {
       await driver.focus(t.target, label, await take.motion(p, t.by));
       const loc = elementOf(t.target);
       await loc.selectOption(p.value).catch(async () => loc.selectOption({ label: p.value }));
-    });
-  },
-  "browser.upload": async (take, node) => {
-    const p = take.params(uploadNode, node);
+    }),
+  ),
+  step(uploadNode, async (take, p) => {
     const t = await take.resolve(p.target);
     await elementOf(t.target).setInputFiles(path.resolve(take.opts.projectDir, p.file));
     await take.pauseIfRolling(p.after);
-  },
-  "browser.press": async (take, node) => {
-    const p = take.params(pressNode, node);
+  }),
+  step(pressNode, async (take, p, node) => {
     if (take.cursorDriver) await take.cursorDriver.pressKey(p.keys, nodeName(node, p.keys));
     else await take.page.keyboard.press(p.keys);
     await take.pauseIfRolling(p.after);
-  },
-  "browser.wait": async (take, node) => {
-    const p = take.params(waitNode, node);
+  }),
+  step(waitNode, async (take, p, node) => {
     const { page } = take;
     const t = take.elapsed();
     if (p.mode === "element") await take.resolve(p.target, p.timeoutMs);
@@ -175,59 +209,82 @@ const STEPS: Record<string, StepHandler> = {
     else if (p.mode === "url") await page.waitForURL(p.url, { timeout: p.timeoutMs });
     else await page.waitForTimeout(p.ms);
     take.pushAction({ id: `${node.id}:wait`, kind: "wait", t, tEnd: take.elapsed() }, node);
-  },
-  "browser.assert": async (take, node) => {
-    const p = take.params(assertNode, node);
+  }),
+  step(assertNode, async (take, p) => {
     const scope = p.target ? elementOf((await take.resolve(p.target)).target) : take.page;
     try {
       await scope.getByText(p.text).first().waitFor({ state: "visible", timeout: p.timeoutMs });
-    } catch {
-      throw new Error(`"${p.text}" isn't on the page.\n${await dumpVisible(take.page)}`);
+    } catch (error) {
+      if (!isTimeoutError(error)) throw error;
+      throw new Error(`"${p.text}" isn't on the page.\n${await dumpVisible(take.page)}`, {
+        cause: error,
+      });
     }
-  },
-  "browser.hoist": async (take, node) => {
-    const p = take.params(hoistNode, node);
-    const t = await take.resolve(p.target);
-    take.hoisted.set(p.target, elementOf(t.target));
-  },
-  "browser.setState": async (take, node) => {
-    const p = take.params(setStateNode, node);
-    if (take.page.url() === "about:blank") {
-      await take.session.context.addInitScript({ content: beforeFirstLoad(node.id, p.script) });
-      return;
-    }
-    await take.page.evaluate(runUserScript(p.script));
-    if (p.reload) await take.page.reload();
-  },
-  "browser.mockRoute": async (take, node) => {
-    const p = take.params(mockRouteNode, node);
-    await take.page.route(p.url, (route) =>
-      route.fulfill({ status: p.status, contentType: p.contentType, body: p.body }),
-    );
-  },
-  "browser.freezeClock": async (take, node) => {
-    const p = take.params(freezeClockNode, node);
-    const time = new Date(p.time);
-    if (p.mode === "fixed") await take.page.clock.setFixedTime(time);
-    else {
-      await take.page.clock.install({ time });
-      await take.page.clock.pauseAt(time);
-    }
-  },
-  "browser.hideElements": async (take, node) => {
-    const p = take.params(hideElementsNode, node);
-    const selectors = [
-      ...(p.cookieBanners ? COOKIE_BANNER_SELECTORS : []),
-      ...(p.chatWidgets ? CHAT_WIDGET_SELECTORS : []),
-      ...nonBlankLines(p.selectors),
-    ];
-    if (!selectors.length) return;
-    const css = hidingCss(selectors);
-    await take.session.context.addInitScript(addStyles, css);
-    await take.page.evaluate(addStyles, css).catch(() => undefined);
-  },
-  "browser.chapter": async (take, node) => {
-    const p = take.params(chapterNode, node);
+  }),
+  step(
+    hoistNode,
+    async (take, p) => {
+      const t = await take.resolve(p.target);
+      take.hoisted.set(p.target, elementOf(t.target));
+    },
+    { offCamera: true },
+  ),
+  step(
+    setStateNode,
+    async (take, p, node) => {
+      if (take.page.url() === "about:blank") {
+        await take.session.context.addInitScript({ content: beforeFirstLoad(node.id, p.script) });
+        return;
+      }
+      await take.page.evaluate(runUserScript(p.script));
+      if (p.reload) await take.page.reload();
+    },
+    { offCamera: true },
+  ),
+  step(
+    mockRouteNode,
+    async (take, p) => {
+      await take.page.route(p.url, (route) =>
+        route.fulfill({ status: p.status, contentType: p.contentType, body: p.body }),
+      );
+    },
+    { offCamera: true },
+  ),
+  step(
+    freezeClockNode,
+    async (take, p) => {
+      const time = new Date(p.time);
+      if (p.mode === "fixed") await take.page.clock.setFixedTime(time);
+      else {
+        await take.page.clock.install({ time });
+        await take.page.clock.pauseAt(time);
+      }
+    },
+    { offCamera: true },
+  ),
+  step(
+    hideElementsNode,
+    async (take, p) => {
+      const selectors = [
+        ...(p.cookieBanners ? COOKIE_BANNER_SELECTORS : []),
+        ...(p.chatWidgets ? CHAT_WIDGET_SELECTORS : []),
+        ...nonBlankLines(p.selectors),
+      ];
+      if (!selectors.length) return;
+      const css = hidingCss(selectors);
+      await take.session.context.addInitScript(addStyles, css);
+      await take.page
+        .evaluate(addStyles, css)
+        .catch((error: unknown) =>
+          take.opts.log(
+            "warn",
+            `Couldn't hide the elements on the current page, only on the next ones: ${errorMessage(error)}`,
+          ),
+        );
+    },
+    { offCamera: true },
+  ),
+  step(chapterNode, async (take, p, node) => {
     take.pushAction(
       {
         id: `${node.id}:chapter`,
@@ -245,22 +302,41 @@ const STEPS: Record<string, StepHandler> = {
       });
       await take.page.waitForTimeout(p.durationMs);
     }
-  },
-  "browser.overlayHtml": async (take, node) => {
-    const p = take.params(overlayHtmlNode, node);
+  }),
+  step(overlayHtmlNode, async (take, p) => {
     if (!take.recording) return;
     const overlay = await take.page.screencast.showOverlay(p.html);
     if (p.durationMs > 0)
       setTimeout(() => void overlay.dispose().catch(() => undefined), p.durationMs);
-  },
-  "browser.session": async () => {
-    throw new Error("Only one Open browser node is allowed per take.");
-  },
-};
+  }),
+  [
+    sessionNode.type,
+    {
+      run: async () => {
+        throw new Error("Only one Open browser node is allowed per take.");
+      },
+    },
+  ],
+]);
 
 export function runStep(take: TakeRun, node: WorkflowNode): Promise<void> {
-  const handler = STEPS[node.type];
-  if (!handler)
-    throw new Error(`"${nodeName({ type: node.type })}" can't be part of a browser take.`);
-  return handler(take, node);
+  const spec = STEPS.get(node.type);
+  if (!spec) throw new Error(`"${nodeName({ type: node.type })}" can't be part of a browser take.`);
+  return spec.run(take, node);
+}
+
+export const clickKindOf = (type: string): Action["kind"] => STEPS.get(type)?.clickKind ?? "focus";
+
+export function setupLength(steps: WorkflowNode[], vars: Record<string, string>): number {
+  const firstNav = steps.findIndex((n) => n.type === navigateNode.type);
+  if (firstNav < 0) return 0;
+  let end = firstNav + 1;
+  for (; end < steps.length; end++) {
+    const node = steps[end];
+    if (STEPS.get(node.type)?.offCamera) continue;
+    if (node.type === waitNode.type && parseNodeParams(waitNode, node, vars).mode !== "ms")
+      continue;
+    break;
+  }
+  return end;
 }

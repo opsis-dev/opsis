@@ -25,9 +25,7 @@ import {
   type FilmChapter,
 } from "../../shared/timeline/chapters";
 import { refToPath } from "./util";
-import { buildMixPlan, hasSound } from "../../shared/mix/plan";
-import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
-import { renderMix } from "../mix/render";
+import { mixed, specFor, within, type Stage } from "./film-spec";
 import { projectPaths, toPosixRel } from "../../engine/project-paths";
 import { framesToMs, msToFrames } from "../../shared/timeline/time";
 import { safeName } from "../../shared/safe-name";
@@ -35,15 +33,9 @@ import { projectRef } from "../../shared/asset-ref";
 
 type RenderParams = NodeParams<typeof renderNode>;
 
-export type Stage = readonly [from: number, to: number];
-
-const within = ([from, to]: Stage, p: number) => from + (to - from) * p;
-
 const MIX_STAGE: Stage = [0, 0.05];
 const BUNDLE_STAGE: Stage = [0.1, 0.2];
 const RENDER_STAGE: Stage = [0.2, 1];
-
-const relativePath = (ctx: ExecutorContext, file: string) => toPosixRel(ctx.projectDir, file);
 
 function firstArtifact(artifacts: Artifact[]): Artifact {
   const [first] = artifacts;
@@ -51,43 +43,25 @@ function firstArtifact(artifacts: Artifact[]): Artifact {
   return first;
 }
 
-export function specFor(ctx: ExecutorContext): TimelineSpec {
-  const result = ctx.compile();
-  const error = result.errors[ctx.node.id];
-  if (error) throw new Error(error);
-  const spec = result.specs[ctx.node.id];
-  if (!spec) throw new Error("Connect a clip to this node.");
-  return spec;
-}
+type RenderServer = { serveUrl: string; projectBase: string };
 
-export async function mixed(ctx: ExecutorContext, spec: TimelineSpec, stage: Stage) {
-  const plan = buildMixPlan(spec, ctx.workflow.mix);
-  if (!hasSound(plan)) return applyMixLevels(spec, ctx.workflow.mix);
-  const result = await renderMix(plan, {
-    projectDir: ctx.projectDir,
-    resolve: (ref) => refToPath(ctx, ref),
-    ffmpeg: ctx.ffmpeg,
-    signal: ctx.signal,
-    onProgress: (p, message) => ctx.progress(within(stage, p), message),
-  });
-  if (!result.master) return applyMixLevels(spec, ctx.workflow.mix);
-  const lufs = result.loudness?.integrated;
-  const peak = result.loudness?.truePeak;
-  if (lufs != null)
-    ctx.log("info", `Sound: ${lufs} LUFS${peak != null ? `, peak ${peak} dBTP` : ""}`);
-  return withMasterStem(spec, result.master);
-}
-
-async function prepare(ctx: ExecutorContext) {
+async function withRenderServer<T>(
+  ctx: ExecutorContext,
+  render: (server: RenderServer) => Promise<T>,
+): Promise<T> {
   ctx.progress(0, "Preparing render engine");
   const serveUrl = await getServeUrl(ctx.env, (p) =>
     ctx.progress(within(BUNDLE_STAGE, p), "Bundling compositions"),
   );
   const server = await startAssetServer(ctx.projectDir);
-  return { serveUrl, server };
+  try {
+    return await render({ serveUrl, projectBase: server.url });
+  } finally {
+    await server.close();
+  }
 }
 
-type RenderJob = {
+type VariantJob = {
   ctx: ExecutorContext;
   serveUrl: string;
   spec: TimelineSpec;
@@ -96,7 +70,7 @@ type RenderJob = {
 };
 
 const renderTo = (
-  { ctx, serveUrl, spec, p, progress }: RenderJob,
+  { ctx, serveUrl, spec, p, progress }: VariantJob,
   output: string,
   muted: boolean,
 ) =>
@@ -114,7 +88,7 @@ const renderTo = (
     onProgress: progress,
   });
 
-async function pictureFor(job: RenderJob): Promise<string> {
+async function pictureFor(job: VariantJob): Promise<string> {
   const { ctx, spec, p } = job;
   const ext = CODECS[p.codec].ext;
   const dir = projectPaths(ctx.projectDir).pictures;
@@ -160,7 +134,7 @@ async function chaptersFor(
 }
 
 async function renderVariant(
-  job: RenderJob,
+  job: VariantJob,
   variant: Variant,
   out: string,
   chapters: Chapters,
@@ -180,14 +154,18 @@ async function renderVariant(
     await rename(tmp, out);
   }
   const artifacts: Artifact[] = [
-    { kind: p.codec === "gif" ? "image" : "video", path: relativePath(ctx, out), label: variant },
+    {
+      kind: p.codec === "gif" ? "image" : "video",
+      path: toPosixRel(ctx.projectDir, out),
+      label: variant,
+    },
   ];
   if (chapters.listed) {
     const list = out.replace(/\.[^.]+$/, ".youtube-chapters.txt");
     await writeFile(list, chapterList(chapters.chapters));
     artifacts.push({
       kind: "file",
-      path: relativePath(ctx, list),
+      path: toPosixRel(ctx.projectDir, list),
       label: `${variant} chapter list`,
     });
   }
@@ -196,12 +174,11 @@ async function renderVariant(
 
 export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p) => {
   const spec = await mixed(ctx, specFor(ctx), MIX_STAGE);
-  const { serveUrl, server } = await prepare(ctx);
-  const artifacts: Artifact[] = [];
   const base = safeName(p.fileName, { fallback: "output" });
-  const chapters = await chaptersFor(ctx, spec, p);
   const { variants } = p;
-  try {
+  const artifacts = await withRenderServer(ctx, async ({ serveUrl, projectBase }) => {
+    const chapters = await chaptersFor(ctx, spec, p);
+    const made: Artifact[] = [];
     for (const [i, variant] of variants.entries()) {
       const size = variantSize(variant, ctx.workflow.settings);
       const suffix = variants.length > 1 ? `-${variant.replace(":", "x")}` : "";
@@ -210,19 +187,18 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
         "info",
         `Exporting ${variant} (${size.width}×${size.height}) as ${path.basename(out)}`,
       );
-      const job: RenderJob = {
+      const job: VariantJob = {
         ctx,
         serveUrl,
-        spec: { ...spec, ...size, reframe: p.reframe, assets: { projectBase: server.url } },
+        spec: { ...spec, ...size, reframe: p.reframe, assets: { projectBase } },
         p,
         progress: (x) =>
           ctx.progress(within(RENDER_STAGE, (i + x) / variants.length), `Rendering ${variant}`),
       };
-      artifacts.push(...(await renderVariant(job, variant, out, chapters)));
+      made.push(...(await renderVariant(job, variant, out, chapters)));
     }
-  } finally {
-    await server.close();
-  }
+    return made;
+  });
   const media: MediaValue = {
     type: "media",
     src: projectRef(firstArtifact(artifacts).path),
@@ -234,10 +210,9 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
 
 export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _inputs, p) => {
   const spec = specFor(ctx);
-  const { serveUrl, server } = await prepare(ctx);
-  const artifacts: Artifact[] = [];
   const base = safeName(ctx.vars[PROJECT_NAME_VAR], { fallback: "output" });
-  try {
+  const artifacts = await withRenderServer(ctx, async ({ serveUrl, projectBase }) => {
+    const made: Artifact[] = [];
     for (const [i, preset] of p.presets.entries()) {
       const size = STILL_PRESETS[preset];
       const out = path.join(ctx.outDir, `${base}-${preset}.${p.format === "jpeg" ? "jpg" : "png"}`);
@@ -245,18 +220,17 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
       await renderFrame({
         env: ctx.env,
         serveUrl,
-        spec: { ...spec, ...size, reframe: "follow", assets: { projectBase: server.url } },
+        spec: { ...spec, ...size, reframe: "follow", assets: { projectBase } },
         frame: msToFrames(p.atMs, spec.fps, 0),
         output: out,
         format: p.format,
         gl: p.gl,
         signal: ctx.signal,
       });
-      artifacts.push({ kind: "image", path: relativePath(ctx, out), label: preset });
+      made.push({ kind: "image", path: toPosixRel(ctx.projectDir, out), label: preset });
     }
-  } finally {
-    await server.close();
-  }
+    return made;
+  });
   return {
     outputs: { image: { type: "image", src: projectRef(firstArtifact(artifacts).path) } },
     artifacts,

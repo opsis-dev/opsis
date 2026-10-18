@@ -13,7 +13,7 @@ import { secretName } from "../../shared/secrets";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
 import { recordTake, stillTake } from "../capture/driver";
-import { SignInExpiredError } from "../capture/driver-helpers";
+import { SignInExpiredError } from "../capture/take-steps";
 import { FrameEncoder } from "../capture/encoder";
 import type { TakeOptions } from "../capture/take-run";
 import { elementOf } from "../capture/flow-types";
@@ -23,9 +23,8 @@ import { projectFileRef, rel } from "./util";
 import { WINDOW_FIT } from "../../video/camera/lib/style";
 import { captureScale, type Box } from "../../video/core/still-layout";
 import { errorMessage } from "../../shared/errors";
-import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { formatDuration } from "../../shared/format";
-import { findHeadlessShell } from "../../engine/paths";
+import { requireHeadlessShell } from "../../engine/paths";
 import { writeJson } from "../../engine/json";
 import type { LoginRequest } from "../../shared/worker-protocol";
 import { h264Args } from "../media/codecs";
@@ -51,10 +50,12 @@ const loginRequest = (p: LoginParams): LoginRequest => ({
 
 type SessionAccess = { secret: string | null; signIn: SignIn | undefined };
 
+const NO_ACCESS: SessionAccess = { secret: null, signIn: undefined };
+
 function sessionAccess(ctx: ExecutorContext, head: WorkflowNode | undefined): SessionAccess {
-  if (head?.type !== sessionNode.type) return { secret: null, signIn: undefined };
+  if (head?.type !== sessionNode.type) return NO_ACCESS;
   const session = parseNodeParams(sessionNode, head, ctx.vars);
-  if (!session.storageState.trim()) return { secret: null, signIn: undefined };
+  if (!session.storageState.trim()) return NO_ACCESS;
   const secret = secretName(session.storageState);
   const loginId = loginDependencies(ctx.workflow, ctx.node.id, ctx.vars)[0];
   const loginNode = findById(ctx.workflow.nodes, loginId);
@@ -87,12 +88,6 @@ async function retryAfterSignIn<T>(ctx: ExecutorContext, attempt: () => Promise<
     ctx.log("info", `Saved the new sign-in as “${signIn.name}”. Recording again.`);
     return attempt();
   }
-}
-
-function requireShell(ctx: ExecutorContext): string {
-  const shell = findHeadlessShell(ctx.engine);
-  if (!shell) throw new Error(ENGINE_MISSING_MESSAGE);
-  return shell;
 }
 
 async function saveTrace(
@@ -144,7 +139,7 @@ async function take<R>(
       chain,
       vars: ctx.vars,
       projectDir: ctx.projectDir,
-      executablePath: requireShell(ctx),
+      executablePath: requireHeadlessShell(ctx.engine),
       storageState: await storageState(ctx, secret),
       signIn,
       live: ctx.live(nodeName(ctx.node)),
@@ -158,7 +153,10 @@ async function take<R>(
     return { result, traceId: await saveTrace(ctx, tracePath, true, traceGroups) };
   } catch (error) {
     await withFrames();
-    const traceId = await saveTrace(ctx, tracePath, false, traceGroups).catch(() => undefined);
+    const traceId = await saveTrace(ctx, tracePath, false, traceGroups).catch((e: unknown) => {
+      ctx.log("warn", `Couldn't save the trace: ${errorMessage(e)}`);
+      return undefined;
+    });
     const expired = error instanceof SignInExpiredError;
     throw new TracedError(
       expired && !signIn
@@ -211,7 +209,7 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
   ctx.progress(0.02, "Starting the browser");
   const { result, traceId, frames } = await retryAfterSignIn(ctx, async () => {
     const encoder = new FrameEncoder(ctx.ffmpeg, mp4, p.fps, ctx.signal);
-    const taken = await take(ctx, encoder, (opts) => recordTake({ ...opts, encoder, record: p }));
+    const taken = await take(ctx, encoder, (opts) => recordTake(opts, { encoder, record: p }));
     return { ...taken, frames: encoder.frames };
   });
   const probe = await ctx.ffmpeg.probe(mp4);
@@ -326,14 +324,15 @@ async function captureShot(
     least: view.dpr,
   });
   const cdp = await page.context().newCDPSession(page);
-  const { data } = await cdp.send("Page.captureScreenshot", {
-    format: "png",
-    clip: { ...region, scale },
-    captureBeyondViewport:
-      p.region === "full-page" || region.width > view.width || region.height > view.height,
-  });
-  await cdp.detach().catch(() => undefined);
-  await writeFile(file, Buffer.from(data, "base64"));
+  const shot = await cdp
+    .send("Page.captureScreenshot", {
+      format: "png",
+      clip: { ...region, scale },
+      captureBeyondViewport:
+        p.region === "full-page" || region.width > view.width || region.height > view.height,
+    })
+    .finally(() => cdp.detach().catch(() => undefined));
+  await writeFile(file, Buffer.from(shot.data, "base64"));
   return { width: region.width, height: region.height, scale, ...(body ? { body } : {}) };
 }
 

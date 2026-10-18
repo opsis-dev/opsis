@@ -37,8 +37,9 @@ describe("detectBeats", () => {
 describe("waveformLevels", () => {
   it("keeps the lowest and highest sample of each step", () => {
     const samples = Float32Array.from([0.5, -0.25, 0.125, -1]);
-    expect(waveformLevels(samples, 4, [2])).toEqual([
-      { rate: 2, min: [-0.25, -1], max: [0.5, 0.125] },
-    ]);
+    const levels = waveformLevels(samples, 400);
+    expect(levels.map((l) => l.rate)).toEqual([200, 50, 10]);
+    expect(levels[0]).toEqual({ rate: 200, min: [-0.25, -1], max: [0.5, 0.125] });
+    expect(levels[1]).toEqual({ rate: 50, min: [-1], max: [0.5] });
   });
 });

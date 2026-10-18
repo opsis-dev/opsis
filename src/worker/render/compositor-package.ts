@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 const PACKAGES: Partial<Record<string, string>> = {
   "darwin-arm64": "@remotion/compositor-darwin-arm64",
   "darwin-x64": "@remotion/compositor-darwin-x64",
@@ -8,14 +10,13 @@ const PACKAGES: Partial<Record<string, string>> = {
   "win32-x64": "@remotion/compositor-win32-x64-msvc",
 };
 
+const reportSchema = z.object({
+  header: z.object({ glibcVersionRuntime: z.string().optional() }),
+});
+
 function linuxLibc(): "gnu" | "musl" {
-  const report = process.report.getReport();
-  const header = "header" in report ? report.header : null;
-  const glibc =
-    !!header && typeof header === "object" && "glibcVersionRuntime" in header
-      ? header.glibcVersionRuntime
-      : null;
-  return glibc ? "gnu" : "musl";
+  const report = reportSchema.safeParse(process.report.getReport());
+  return report.success && report.data.header.glibcVersionRuntime ? "gnu" : "musl";
 }
 
 export function getCompositorPackage({

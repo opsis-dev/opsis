@@ -95,6 +95,8 @@ export const AUDIO_FORMATS: Record<AudioFormat, string[]> = {
   wav: PCM_16,
 };
 
+export const ffmpegSeconds = (ms: number): string => (ms / 1000).toFixed(3);
+
 type FrameGrab = { atMs: number; width: number; evenHeight?: boolean; jpegQuality?: number };
 
 export const frameGrabArgs = (
@@ -103,7 +105,7 @@ export const frameGrabArgs = (
   { atMs, width, evenHeight = false, jpegQuality }: FrameGrab,
 ): string[] => [
   "-ss",
-  (atMs / 1000).toFixed(3),
+  ffmpegSeconds(atMs),
   "-i",
   input,
   "-frames:v",

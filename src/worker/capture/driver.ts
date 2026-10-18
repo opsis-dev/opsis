@@ -4,14 +4,12 @@ import { parseNodeParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import type { ActionLog } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
-import { errorMessage, onAbort } from "../../shared/errors";
-import { setupLength } from "./driver-helpers";
+import { errorMessage } from "../../shared/errors";
 import { CURSOR_LOOK, installCursor } from "./page-scripts";
 import { SelectorError } from "./selectors";
 import { openSession, type OpenSession } from "./session";
 import { TakeRun, type Recording, type TakeOptions } from "./take-run";
-
-type RecordTake = TakeOptions & Recording;
+import { setupLength } from "./take-steps";
 
 type StillTake<T> = TakeOptions & { onPage: (page: Page) => Promise<T> };
 
@@ -26,7 +24,6 @@ type OpenTake = {
   take: TakeRun;
   steps: WorkflowNode[];
   dpr: number;
-  stopOnAbort: () => void;
 };
 
 const DEFAULT_FRAME_QUALITY = 80;
@@ -86,7 +83,7 @@ async function preparePage(session: OpenSession, opts: TakeOptions, recording: R
 }
 
 async function openTake(opts: TakeOptions, recording: Recording | null): Promise<OpenTake> {
-  const { chain, vars, signal } = opts;
+  const { chain, vars } = opts;
   const head = chain[0];
   if (head?.type !== sessionNode.type)
     throw new Error("A take must start with an Open browser node.");
@@ -97,13 +94,12 @@ async function openTake(opts: TakeOptions, recording: Recording | null): Promise
   const session = await openSession(sessionParams, {
     storageState: opts.storageState,
     executablePath: opts.executablePath,
+    signal: opts.signal,
   });
-  const stopOnAbort = onAbort(signal, () => void session.close());
   let page: Page;
   try {
     page = await preparePage(session, opts, recording);
   } catch (error) {
-    stopOnAbort();
     await session.close();
     throw error;
   }
@@ -119,7 +115,6 @@ async function openTake(opts: TakeOptions, recording: Recording | null): Promise
     take: new TakeRun(opts, session, page, recording),
     steps,
     dpr: sessionParams.dpr,
-    stopOnAbort,
   };
 }
 
@@ -149,7 +144,7 @@ async function playTake<T>(
   recording: Recording | null,
   finale: (take: TakeRun) => Promise<T>,
 ): Promise<TakeResult<T>> {
-  const { take, steps, dpr, stopOnAbort } = await openTake(opts, recording);
+  const { take, steps, dpr } = await openTake(opts, recording);
   const screencasting = !!recording || !!opts.live;
   let failed = false;
   let durationMs = 0;
@@ -165,7 +160,6 @@ async function playTake<T>(
     throw error;
   } finally {
     durationMs = await stopTake(take, failed, screencasting);
-    stopOnAbort();
     await take.session.close();
   }
   opts.live?.event({ kind: "end", ok: true });
@@ -177,10 +171,8 @@ async function playTake<T>(
   };
 }
 
-export const recordTake = (opts: RecordTake): Promise<TakeResult<void>> =>
-  playTake(opts, { encoder: opts.encoder, record: opts.record }, (take) =>
-    take.page.waitForTimeout(opts.record.endTailMs),
-  );
+export const recordTake = (opts: TakeOptions, recording: Recording): Promise<TakeResult<void>> =>
+  playTake(opts, recording, (take) => take.page.waitForTimeout(recording.record.endTailMs));
 
 export const stillTake = <T>(opts: StillTake<T>): Promise<TakeResult<T>> =>
   playTake(opts, null, (take) => opts.onPage(take.page));

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clamp, clamp01, evenPx, lerp, numberOr, round2, round3, sampleKeyed } from "./math";
+import { clamp, clamp01, evenPx, lerp, numberOr, round2, round3, sampleKeyed, sum } from "./math";
 
 describe("math", () => {
   it("clamps into a range", () => {
@@ -7,6 +7,11 @@ describe("math", () => {
     expect(clamp(-1, 0, 10)).toBe(0);
     expect(clamp(11, 0, 10)).toBe(10);
     expect(clamp01(1.5)).toBe(1);
+  });
+
+  it("adds up a list, empty or not", () => {
+    expect(sum([1, 2, 3.5])).toBe(6.5);
+    expect(sum([])).toBe(0);
   });
 
   it("blends between two values", () => {

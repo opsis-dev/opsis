@@ -6,22 +6,22 @@ import {
   renderMedia,
   renderStill,
   selectComposition,
+  type ChromiumOptions,
   type HeadlessBrowser,
 } from "@remotion/renderer";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import type { WorkerEnv } from "../../shared/worker-protocol";
-import { enginePaths, findHeadlessShell } from "../../engine/paths";
+import { enginePaths, requireHeadlessShell } from "../../engine/paths";
 import { COMPOSITION_ID } from "../../video/composition-id";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./bundle";
 import { CODECS, type RenderCodec } from "../media/codecs";
 import { getCompositorPackage } from "./compositor-package";
-import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { clamp } from "../../shared/math";
 import { keepLatest } from "../../shared/memo";
 import { onAbort } from "../../shared/errors";
 import { freeTcpPort } from "../../engine/free-tcp-port";
 
-export type GlRenderer = "angle" | "swangle" | "egl" | "vulkan" | "swiftshader" | "angle-egl";
+export type GlRenderer = NonNullable<ChromiumOptions["gl"]>;
 
 type CancelSignal = ReturnType<typeof makeCancelSignal>["cancelSignal"];
 
@@ -41,11 +41,8 @@ function binariesDirectory(env: WorkerEnv): string | null {
   );
 }
 
-function browserExecutable(env: WorkerEnv): string {
-  const shell = findHeadlessShell(enginePaths(env.engineDir));
-  if (!shell) throw new Error(ENGINE_MISSING_MESSAGE);
-  return shell;
-}
+const browserExecutable = (env: WorkerEnv): string =>
+  requireHeadlessShell(enginePaths(env.engineDir));
 
 export async function getServeUrl(
   env: WorkerEnv,
@@ -63,19 +60,6 @@ export async function getServeUrl(
       onProgress: (p) => onProgress?.(p / 100),
     }),
   );
-}
-
-async function withCancel<T>(
-  signal: AbortSignal,
-  run: (cancelSignal: CancelSignal) => Promise<T>,
-): Promise<T> {
-  const { cancel, cancelSignal } = makeCancelSignal();
-  const stopListening = onAbort(signal, cancel);
-  try {
-    return await run(cancelSignal);
-  } finally {
-    stopListening();
-  }
 }
 
 type RenderJob = {
@@ -111,10 +95,18 @@ async function compositionFor(job: RenderJob) {
 
 type Prepared = Awaited<ReturnType<typeof compositionFor>> & { cancelSignal: CancelSignal };
 
-const withComposition = (job: RenderJob, render: (prepared: Prepared) => Promise<unknown>) =>
-  withCancel(job.signal, async (cancelSignal) => {
+async function withComposition(
+  job: RenderJob,
+  render: (prepared: Prepared) => Promise<unknown>,
+): Promise<void> {
+  const { cancel, cancelSignal } = makeCancelSignal();
+  const stopListening = onAbort(job.signal, cancel);
+  try {
     await render({ ...(await compositionFor(job)), cancelSignal });
-  });
+  } finally {
+    stopListening();
+  }
+}
 
 export function renderTimeline(
   opts: RenderJob & {

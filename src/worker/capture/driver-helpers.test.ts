@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { WorkflowNode } from "../../shared/schema/workflow";
-import { landedOnSignIn, plainError, setupLength, traceGroupTitle } from "./driver-helpers";
+import { landedOnSignIn, plainError, traceGroupTitle } from "./driver-helpers";
 
 const node = (type: string, params: Record<string, unknown> = {}): WorkflowNode => ({
   id: "n",
@@ -51,6 +51,9 @@ describe("plainError", () => {
     expect(
       plainError(new Error("page.goto: net::ERR_NAME_NOT_RESOLVED at https://x"), click, {}),
     ).toBe("Couldn't reach the site. Check the address.");
+    expect(
+      plainError(new Error("page.goto: net::ERR_CONNECTION_REFUSED at https://x"), click, {}),
+    ).toBe("Couldn't load the page (ERR_CONNECTION_REFUSED).");
   });
 
   it("drops the internal prefix from other errors", () => {
@@ -61,63 +64,21 @@ describe("plainError", () => {
 });
 
 describe("expired sign-in", () => {
-  it("compares pages by address, ignoring index files, queries and trailing slashes", () => {
-    const signIn = "https://x.test/login";
-    const away = "https://x.test/app";
-    expect(landedOnSignIn(away, "https://x.test/login/", signIn)).toBe(true);
-    expect(landedOnSignIn(away, "https://x.test/login/index.html", signIn)).toBe(true);
-    expect(landedOnSignIn(away, "https://x.test/login?next=app", signIn)).toBe(true);
-    expect(landedOnSignIn(away, "https://x.test/app", signIn)).toBe(false);
-    expect(landedOnSignIn(away, "not a url", signIn)).toBe(false);
-    expect(landedOnSignIn("https://x.test/login?next=app", "https://x.test/login", signIn)).toBe(
-      false,
-    );
-  });
-
-  it("notices a redirect back to the sign-in page", () => {
-    const signIn = "https://www.saucedemo.com/";
-    expect(
-      landedOnSignIn(
-        "https://www.saucedemo.com/inventory.html",
-        "https://www.saucedemo.com/",
-        signIn,
-      ),
-    ).toBe(true);
-    expect(
-      landedOnSignIn(
-        "https://www.saucedemo.com/inventory.html",
-        "https://www.saucedemo.com/inventory.html",
-        signIn,
-      ),
-    ).toBe(false);
-    expect(landedOnSignIn("https://www.saucedemo.com/", "https://www.saucedemo.com/", signIn)).toBe(
-      false,
-    );
-  });
-});
-
-describe("what happens before the camera rolls", () => {
-  it("keeps waits and invisible steps right after the first page off camera", () => {
-    const steps = [
-      node("browser.setState", { script: "1" }),
-      node("browser.navigate", { url: "https://example.com" }),
-      node("browser.wait", { mode: "element", target: "Board" }),
-      node("browser.hideElements"),
-      node("browser.click", { target: "Open" }),
-      node("browser.wait", { mode: "element", target: "Panel" }),
-    ];
-    expect(setupLength(steps, {})).toBe(4);
-  });
-
-  it("films a fixed pause after the first page", () => {
-    const steps = [
-      node("browser.navigate", { url: "https://example.com" }),
-      node("browser.wait", { mode: "ms", ms: 1500 }),
-    ];
-    expect(setupLength(steps, {})).toBe(1);
-  });
-
-  it("has no setup without a page to open", () => {
-    expect(setupLength([node("browser.press", { keys: "a" })], {})).toBe(0);
+  const signIn = "https://x.test/login";
+  const away = "https://x.test/app";
+  const root = "https://www.saucedemo.com/";
+  const inventory = "https://www.saucedemo.com/inventory.html";
+  it.each([
+    [away, "https://x.test/login/", signIn, true],
+    [away, "https://x.test/login/index.html", signIn, true],
+    [away, "https://x.test/login?next=app", signIn, true],
+    [away, "https://x.test/app", signIn, false],
+    [away, "not a url", signIn, false],
+    ["https://x.test/login?next=app", "https://x.test/login", signIn, false],
+    [inventory, root, root, true],
+    [inventory, inventory, root, false],
+    [root, root, root, false],
+  ])("asked for %s, landed on %s, sign-in at %s: %s", (requested, current, page, expired) => {
+    expect(landedOnSignIn(requested, current, page)).toBe(expired);
   });
 });

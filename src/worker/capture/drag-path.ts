@@ -1,4 +1,4 @@
-import { clamp, EPSILON } from "../../shared/math";
+import { clamp, EPSILON, sum } from "../../shared/math";
 
 export type Point = { x: number; y: number };
 
@@ -32,19 +32,10 @@ export function glidePlan(
       ? travelMs
       : clamp(dist / (GLIDE_PX_PER_MS * k), GLIDE_MIN_MS, GLIDE_MAX_MS);
   const overshooting = dist > OVERSHOOT_THRESHOLD_PX * k;
+  const past = (a: number, b: number, size: number | undefined) =>
+    clamp(b + ((b - a) / dist) * OVERSHOOT_PX * k, 1, (size ?? b) - 1);
   const aim = overshooting
-    ? {
-        x: clamp(
-          to.x + ((to.x - from.x) / dist) * OVERSHOOT_PX * k,
-          1,
-          (viewport?.width ?? to.x) - 1,
-        ),
-        y: clamp(
-          to.y + ((to.y - from.y) / dist) * OVERSHOOT_PX * k,
-          1,
-          (viewport?.height ?? to.y) - 1,
-        ),
-      }
+    ? { x: past(from.x, to.x, viewport?.width), y: past(from.y, to.y, viewport?.height) }
     : to;
   return { durationMs, aim, overshooting, at: bulgedCurve(from, to, aim) };
 }
@@ -70,15 +61,14 @@ export function bulgedCurve(from: Point, to: Point, aim: Point = to): (p: number
 const segmentLengths = (points: readonly Point[]): number[] =>
   points.slice(1).map((b, i) => Math.hypot(b.x - points[i].x, b.y - points[i].y));
 
-const pathLength = (points: readonly Point[]): number =>
-  segmentLengths(points).reduce((sum, seg) => sum + seg, 0);
+export const lastPoint = (points: readonly Point[]): Point => points[points.length - 1];
 
 export function polylineAt(points: readonly Point[]): (p: number) => Point {
   const first = points[0];
   if (!first) throw new Error("A path needs at least one point.");
-  const last = points.at(-1) ?? first;
+  const last = lastPoint(points);
   const lengths = segmentLengths(points);
-  const total = lengths.reduce((sum, seg) => sum + seg, 0);
+  const total = sum(lengths);
   return (p) => {
     if (total < EPSILON || p <= 0) return { ...first };
     let left = Math.min(p, 1) * total;
@@ -97,7 +87,7 @@ export function polylineAt(points: readonly Point[]): (p: number) => Point {
 
 export function dragDuration(points: readonly Point[], k: number, dragMs = 0): number {
   if (dragMs > 0) return dragMs;
-  return clamp(pathLength(points) / (GLIDE_PX_PER_MS * k), DRAG_MIN_MS, DRAG_MAX_MS);
+  return clamp(sum(segmentLengths(points)) / (GLIDE_PX_PER_MS * k), DRAG_MIN_MS, DRAG_MAX_MS);
 }
 
 export function nudgeToward(from: Point, to: Point, px: number): Point {
@@ -135,12 +125,12 @@ export function offsetPath(start: Point, offsets: readonly Point[]): Point[] {
   return first && first.x === start.x && first.y === start.y ? points : [start, ...points];
 }
 
-export function thinPath(points: readonly Point[], max = MAX_PATH_POINTS): Point[] {
+export function thinPath(points: readonly Point[]): Point[] {
   const rounded = points.map((p) => ({ x: Math.round(p.x), y: Math.round(p.y) }));
-  if (rounded.length <= max) return rounded;
+  if (rounded.length <= MAX_PATH_POINTS) return rounded;
   return Array.from(
-    { length: max },
-    (_, i) => rounded[Math.round((i * (rounded.length - 1)) / (max - 1))],
+    { length: MAX_PATH_POINTS },
+    (_, i) => rounded[Math.round((i * (rounded.length - 1)) / (MAX_PATH_POINTS - 1))],
   );
 }
 

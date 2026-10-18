@@ -13,14 +13,19 @@ export const exportSourceRoot = (env: SourceEnv): string =>
 export const publicDir = (env: SourceEnv): string =>
   env.isPackaged ? path.join(exportSourceRoot(env), "public") : path.join(env.appRoot, "public");
 
+export const exportUtilsFile = (env: SourceEnv): string =>
+  env.isPackaged
+    ? path.join(exportSourceRoot(env), "utils.ts")
+    : path.join(exportSourceRoot(env), "renderer", "lib", "utils.ts");
+
+export type LinkedMedia = MediaValue & { src: string };
+
 export function refToPath(ctx: Pick<ExecutorContext, "projectDir" | "env">, ref: string): string {
   if (isProjectRef(ref)) return path.join(ctx.projectDir, projectRelPath(ref));
   const app = appRelPath(ref);
   if (app !== null) return path.join(publicDir(ctx.env), app);
   return path.isAbsolute(ref) ? ref : path.join(ctx.projectDir, ref);
 }
-
-type LinkedMedia = MediaValue & { src: string };
 
 const isLinked = (media: MediaValue | undefined): media is LinkedMedia => !!media?.src;
 

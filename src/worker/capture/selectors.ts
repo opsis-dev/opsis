@@ -160,10 +160,10 @@ function listOnScreen({ max, selector }: { max: number; selector: string }): OnS
     });
 }
 
-export async function dumpVisible(page: Page, max = DUMP_LIMIT): Promise<string> {
+export async function dumpVisible(page: Page): Promise<string> {
   try {
     const items = await page.evaluate(listOnScreen, {
-      max,
+      max: DUMP_LIMIT,
       selector: `${INTERACTIVE_SELECTOR},.ant-select`,
     });
     const lines = items.map(

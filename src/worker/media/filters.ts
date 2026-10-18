@@ -1,5 +1,29 @@
+import type { NodeParams } from "../../shared/nodes/define";
+import type { gifNode, scalePadNode } from "../../shared/nodes/media";
 import { round3 } from "../../shared/math";
 import { EDIT_VIDEO } from "./codecs";
+
+const padTo = (w: number, h: number, color?: string) =>
+  `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2${color ? `:color=${color}` : ""},setsar=1`;
+
+export function fitFilter({
+  mode,
+  width: w,
+  height: h,
+  background,
+}: Pick<NodeParams<typeof scalePadNode>, "mode" | "width" | "height" | "background">): string {
+  if (mode === "pad") return padTo(w, h, background);
+  if (mode === "crop")
+    return `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1`;
+  return `scale=${w}:${h},setsar=1`;
+}
+
+export const gifFilter = ({
+  fps,
+  width,
+  dither,
+}: Pick<NodeParams<typeof gifNode>, "fps" | "width" | "dither">): string =>
+  `fps=${fps},scale=${width}:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[pal];[b][pal]paletteuse=dither=${dither}`;
 
 export function joinFilter(
   count: number,
@@ -9,8 +33,7 @@ export function joinFilter(
   const rate = round3(to.fps);
   const scaled = Array.from(
     { length: count },
-    (_, i) =>
-      `[${i}:v]scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=${rate}[v${i}]`,
+    (_, i) => `[${i}:v]${padTo(w, h)},fps=${rate}[v${i}]`,
   ).join(";");
   const chain = Array.from(
     { length: count },

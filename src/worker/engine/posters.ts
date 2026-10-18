@@ -21,7 +21,10 @@ export async function decorateArtifacts(
       const file = path.join(projectDir, artifact.path);
       const size = await stat(file).then(
         (s) => s.size,
-        () => undefined,
+        (error: unknown) => {
+          warn(`Couldn't read ${artifact.label ?? artifact.path}: ${errorMessage(error)}`);
+          return undefined;
+        },
       );
       const withSize = size === undefined ? artifact : { ...artifact, bytes: size };
       if (artifact.kind !== "video" || artifact.poster) return withSize;

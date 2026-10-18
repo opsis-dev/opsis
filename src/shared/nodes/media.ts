@@ -64,7 +64,7 @@ const qualityName = (crf: number): string =>
     { name: "", gap: Infinity },
   ).name;
 
-function kindFromPath(path: string): MediaValue["kind"] {
+export function kindFromPath(path: string): MediaValue["kind"] {
   const ext = extensionOf(path);
   if (IMAGE_EXTENSIONS.has(ext)) return "image";
   return AUDIO_EXTENSIONS.has(ext) ? "audio" : "video";

@@ -51,46 +51,48 @@ const secretsFor = (projectDir: string): ExecutorContext["secrets"] => ({
 
 const EXIT_FLUSH_MS = 50;
 
-async function failureOf(work: () => Promise<unknown>): Promise<string | undefined> {
-  try {
-    await work();
-    return undefined;
-  } catch (error) {
-    return errorMessage(error);
-  }
-}
-
-const withError = (error: string | undefined) => (error === undefined ? {} : { error });
-
 async function run(msg: Extract<MainToWorker, { type: "run" }>) {
-  const error = await failureOf(() =>
-    runWorkflow(msg.runId, msg.request, {
+  try {
+    await runWorkflow(msg.runId, msg.request, {
       env: msg.env,
       signal: controller.signal,
       emit: (event) => send({ type: "event", event }),
       live: live ? sendLive : null,
       login,
       secrets: secretsFor(msg.request.projectDir),
-    }),
-  );
-  if (error !== undefined)
+    });
+  } catch (error) {
     send({
       type: "event",
-      event: runFailed(msg.runId, error, { cancelled: controller.signal.aborted }),
+      event: runFailed(msg.runId, errorMessage(error), { cancelled: controller.signal.aborted }),
     });
+  }
   finish();
 }
 
 async function installEngineFor(msg: Extract<MainToWorker, { type: "install-engine" }>) {
-  const error = await failureOf(() =>
-    installEngine(
+  let error: string | undefined;
+  try {
+    await installEngine(
       msg.env.engineDir,
       (event) => send({ type: "install:progress", event }),
       controller.signal,
-    ),
-  );
-  send({ type: "install:done", ...withError(error) });
+    );
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  send({ type: "install:done", error });
   finish();
+}
+
+async function cardStill(msg: Extract<MainToWorker, { type: "still" }>) {
+  let error: string | undefined;
+  try {
+    await renderCardStill(msg, controller.signal);
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  send({ type: "still:done", id: msg.id, error });
 }
 
 async function handle(msg: MainToWorker): Promise<void> {
@@ -110,11 +112,8 @@ async function handle(msg: MainToWorker): Promise<void> {
       return;
     case "run":
       return run(msg);
-    case "still": {
-      const error = await failureOf(() => renderCardStill(msg, controller.signal));
-      send({ type: "still:done", id: msg.id, ...withError(error) });
-      return;
-    }
+    case "still":
+      return cardStill(msg);
     case "analysis":
       send({ type: "analysis:done", id: msg.id, result: await runAnalysis(msg.env, msg.request) });
       return;
@@ -128,7 +127,9 @@ function finish() {
 }
 
 process.parentPort.once("message", (event) => {
-  [control, live = null] = event.ports;
+  const [controlPort, livePort] = event.ports;
+  control = controlPort;
+  live = livePort ?? null;
   control.on("message", (e) => void handle(e.data as MainToWorker));
   control.start();
   live?.start();

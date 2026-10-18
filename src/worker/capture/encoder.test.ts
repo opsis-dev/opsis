@@ -39,15 +39,30 @@ describe("FrameEncoder", () => {
     expect(written.join("")).toBe("YY");
   });
 
-  it("takes frames without waiting for earlier ones to be written, and reports a failure at the end", async () => {
-    const { tools, written } = fakeFfmpeg();
-    const enc = new FrameEncoder(tools, "out.mp4", 10);
+  it("takes frames at once while the encoder is still busy, and writes them all later", async () => {
+    const written: string[] = [];
+    const stdin = new PassThrough({ highWaterMark: 1 });
+    const done = new Promise<string>((resolve) => stdin.on("finish", () => resolve("")));
+    const enc = new FrameEncoder({ pipe: () => ({ stdin, done }) }, "out.mp4", 10);
     enc.setOrigin(1000);
     enc.offer(Buffer.from("A"), 1000);
     enc.offer(Buffer.from("B"), 1250);
     enc.offer(Buffer.from("C"), 1400);
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(stdin.writableNeedDrain).toBe(true);
+    stdin.on("data", (chunk: Buffer) => written.push(chunk.toString()));
     await enc.finish(1600);
     expect(written.join("")).toBe("AAABCCC");
+  });
+
+  it("reports a failed encoder when the take finishes", async () => {
+    const stdin = new PassThrough();
+    const done = Promise.reject(new Error("The encoder crashed."));
+    const enc = new FrameEncoder({ pipe: () => ({ stdin, done }) }, "out.mp4", 10);
+    enc.setOrigin(1000);
+    enc.offer(Buffer.from("A"), 1000);
+    enc.offer(Buffer.from("B"), 1250);
+    await expect(enc.finish(1600)).rejects.toThrow("The encoder crashed.");
   });
 
   it("fails at the end instead of hanging when its process has already ended", async () => {

@@ -82,12 +82,8 @@ const floatSamples = (buf: Buffer): Float32Array =>
     Math.floor(buf.byteLength / FLOAT_BYTES),
   );
 
-export function waveformLevels(
-  samples: Float32Array,
-  rate: number,
-  rates = LEVEL_RATES,
-): WaveformLevel[] {
-  return rates.map((r) => {
+export function waveformLevels(samples: Float32Array, rate: number): WaveformLevel[] {
+  return LEVEL_RATES.map((r) => {
     const per = rate / r;
     const count = Math.ceil(samples.length / per);
     const min: number[] = [];
@@ -191,7 +187,7 @@ export async function analyzeWaveform(src: string, deps: MediaDeps): Promise<Wav
     dir: projectPaths(deps.projectDir).analysis,
     name: "waveform",
     tempExt: "raw",
-    schema: waveformSchema,
+    schema: waveformSchema.omit({ src: true }),
     make: async (_id, raw) => {
       await deps.ffmpeg.run(
         [
@@ -213,7 +209,6 @@ export async function analyzeWaveform(src: string, deps: MediaDeps): Promise<Wav
       const samples = floatSamples(await readFile(raw));
       const { beats, bpm } = detectBeats(samples, DECODE_RATE);
       return {
-        src,
         durationMs: Math.round((samples.length / DECODE_RATE) * 1000),
         levels: waveformLevels(samples, DECODE_RATE),
         beats,
@@ -232,7 +227,7 @@ export async function analyzeFilmstrip(src: string, deps: MediaDeps): Promise<Fi
     dir,
     name: "filmstrip",
     tempExt: "jpg",
-    schema: filmstripSchema,
+    schema: filmstripSchema.omit({ src: true }),
     ready: (id) => existsSync(imageOf(id)),
     make: async (id, tmp) => {
       const probe = await deps.ffmpeg.probe(file);
@@ -259,7 +254,6 @@ export async function analyzeFilmstrip(src: string, deps: MediaDeps): Promise<Fi
       const image = imageOf(id);
       await rename(tmp, image);
       return {
-        src,
         image: toProjectRef(deps.projectDir, image),
         count,
         intervalMs,

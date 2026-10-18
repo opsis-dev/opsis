@@ -2,8 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
 import type { Readable, Writable } from "node:stream";
 import { z } from "zod";
-import { engineStatus } from "../../engine/paths";
-import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
+import { engineStatus, requireEngineFile } from "../../engine/paths";
 import { CancelledError, onAbort, throwIfCancelled } from "../../shared/errors";
 import { clamp01 } from "../../shared/math";
 
@@ -48,24 +47,29 @@ const STDERR_TAIL_LINES = 6;
 
 type ToolProcess = ChildProcess & { stdout: Readable; stderr: Readable };
 
+function progressReader({ onProgress, durationMs }: RunOptions): ((text: string) => void) | null {
+  if (!onProgress) return null;
+  return (text) => {
+    if (!durationMs) return;
+    for (const m of text.matchAll(/out_time_(?:us|ms)=(\d+)/g)) {
+      const ms = Number(m[1]) / 1000;
+      onProgress(clamp01(ms / durationMs));
+    }
+  };
+}
+
 function settle(child: ToolProcess, bin: string, opts: RunOptions): Promise<string> {
   return new Promise<string>((resolve, reject) => {
-    let stdout = "";
+    let captured = "";
     let stderr = "";
     const stopListening = onAbort(opts.signal, () => child.kill("SIGKILL"));
+    const readProgress = progressReader(opts);
+    const capture = (text: string) => {
+      captured += text;
+    };
+    const onStdout = readProgress ?? capture;
 
-    child.stdout.on("data", (chunk: Buffer) => {
-      const text = chunk.toString();
-      if (!opts.onProgress) {
-        stdout += text;
-        return;
-      }
-      if (!opts.durationMs) return;
-      for (const m of text.matchAll(/out_time_(?:us|ms)=(\d+)/g)) {
-        const ms = Number(m[1]) / 1000;
-        opts.onProgress(clamp01(ms / opts.durationMs));
-      }
-    });
+    child.stdout.on("data", (chunk: Buffer) => onStdout(chunk.toString()));
     child.stderr.on("data", (chunk: Buffer) => {
       const text = chunk.toString();
       stderr += text;
@@ -79,7 +83,7 @@ function settle(child: ToolProcess, bin: string, opts: RunOptions): Promise<stri
     child.on("close", (code) => {
       stopListening();
       if (opts.signal?.aborted) reject(new CancelledError());
-      else if (code === 0) resolve(stdout);
+      else if (code === 0) resolve(captured);
       else {
         const tail = stderr.split("\n").slice(-STDERR_TAIL_LINES).join("\n");
         reject(new ToolError(`${path.basename(bin)} exited with ${code}: ${tail}`));
@@ -98,20 +102,17 @@ export function createFfmpegTools(engineDir: string): FfmpegTools {
     ...(opts?.onProgress ? ["-progress", "pipe:1", "-nostats"] : []),
     ...args,
   ];
-  const ready = (bin: string | null, opts: RunOptions): string => {
-    if (!bin) throw new Error(ENGINE_MISSING_MESSAGE);
-    throwIfCancelled(opts.signal);
-    return bin;
-  };
   const run = async (bin: string | null, args: string[], opts: RunOptions = {}) => {
-    const exe = ready(bin, opts);
+    const exe = requireEngineFile(bin);
+    throwIfCancelled(opts.signal);
     const child = spawn(exe, args, { ...spawnOptions, stdio: ["ignore", "pipe", "pipe"] });
     return settle(child, exe, opts);
   };
   return {
     run: (args, opts) => run(ffmpeg, ffmpegArgs(args, opts), opts),
     pipe: (args, opts = {}) => {
-      const exe = ready(ffmpeg, opts);
+      const exe = requireEngineFile(ffmpeg);
+      throwIfCancelled(opts.signal);
       const child = spawn(exe, ffmpegArgs(args, opts), {
         ...spawnOptions,
         stdio: ["pipe", "pipe", "pipe"],

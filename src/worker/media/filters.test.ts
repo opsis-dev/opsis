@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { atempoChain, joinFilter, speedArgs } from "./filters";
+import { atempoChain, fitFilter, gifFilter, joinFilter, speedArgs } from "./filters";
 
 describe("atempoChain", () => {
   it.each([
@@ -25,5 +25,30 @@ describe("joinFilter", () => {
     expect(filter.match(/fps=60\[/g)).toHaveLength(2);
     expect(filter).toContain("scale=1920:1080");
     expect(filter.endsWith("concat=n=2:v=1:a=1[v][a]")).toBe(true);
+  });
+});
+
+describe("fitFilter", () => {
+  it("adds bars, crops or stretches to the size", () => {
+    expect(fitFilter({ mode: "pad", width: 640, height: 360, background: "white" })).toBe(
+      "scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2:color=white,setsar=1",
+    );
+    expect(fitFilter({ mode: "pad", width: 640, height: 360, background: "" })).toBe(
+      "scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2,setsar=1",
+    );
+    expect(fitFilter({ mode: "crop", width: 640, height: 360, background: "black" })).toBe(
+      "scale=640:360:force_original_aspect_ratio=increase,crop=640:360,setsar=1",
+    );
+    expect(fitFilter({ mode: "stretch", width: 640, height: 360, background: "black" })).toBe(
+      "scale=640:360,setsar=1",
+    );
+  });
+});
+
+describe("gifFilter", () => {
+  it("makes one palette for the whole animation", () => {
+    expect(gifFilter({ fps: 15, width: 960, dither: "bayer" })).toBe(
+      "fps=15,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[pal];[b][pal]paletteuse=dither=bayer",
+    );
   });
 });

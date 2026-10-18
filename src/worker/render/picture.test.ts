@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { TimelineSpec } from "../../shared/schema/timeline";
-import { hasSoundTrack } from "../media/codecs";
 import { finishArgs, muxArgs, pictureKey } from "./picture";
 
 const spec: TimelineSpec = {
@@ -47,7 +46,6 @@ describe("pictures rendered without sound", () => {
     );
     expect(muxArgs("prores", "p.mov", "m.wav", "o.mov")).toContain("pcm_s16le");
     expect(muxArgs("vp9", "p.webm", "m.wav", "o.webm")).toContain("libopus");
-    expect(hasSoundTrack("gif")).toBe(false);
   });
 });
 

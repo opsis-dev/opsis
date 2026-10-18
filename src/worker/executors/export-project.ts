@@ -11,10 +11,10 @@ import { stringsIn } from "../../shared/vars";
 import { readJson, writeJson } from "../../engine/json";
 import { toPosixRel, toProjectRef } from "../../engine/project-paths";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
-import { mixed, specFor, type Stage } from "./output";
-import { exportSourceRoot, publicDir, refToPath } from "./util";
+import { mixed, specFor, type Stage } from "./film-spec";
+import { exportSourceRoot, exportUtilsFile, publicDir, refToPath } from "./util";
 
-const MIX_STAGE: Stage = [0, 0.3];
+const EXPORT_MIX_STAGE: Stage = [0, 0.3];
 
 const EXPORT_PEERS = ["react", "react-dom"];
 
@@ -117,9 +117,7 @@ function sourceDirs(ctx: ExecutorContext) {
   return {
     video: path.join(root, "video"),
     shared: path.join(root, "shared"),
-    utils: ctx.env.isPackaged
-      ? path.join(root, "utils.ts")
-      : path.join(root, "renderer", "lib", "utils.ts"),
+    utils: exportUtilsFile(ctx.env),
     public: publicDir(ctx.env),
   };
 }
@@ -191,7 +189,7 @@ async function packageJsonFor(ctx: ExecutorContext, name: string, dir: string) {
 }
 
 export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ctx, _inputs, p) => {
-  const spec = await mixed(ctx, specFor(ctx), MIX_STAGE);
+  const spec = await mixed(ctx, specFor(ctx), EXPORT_MIX_STAGE);
   const name = safeName(p.folderName, { fallback: "output" });
   const dir = path.join(ctx.outDir, name);
   await copySources(ctx, dir);

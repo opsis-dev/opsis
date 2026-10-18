@@ -172,8 +172,11 @@ function busSteps(p: BusPlan["processing"]): string[] {
   return [...highpassStep(p.highpass), ...eqSteps(p.eq), ...compSteps(p.comp)];
 }
 
+export const loudnormFilter = (lufs: number, truePeak: number, range: number): string =>
+  `loudnorm=I=${lufs}:TP=${truePeak}:LRA=${range}`;
+
 const loudnormBase = (target: { lufs: number; truePeak: number }) =>
-  `loudnorm=I=${target.lufs}:TP=${target.truePeak}:LRA=${LOUDNESS_RANGE}`;
+  loudnormFilter(target.lufs, target.truePeak, LOUDNESS_RANGE);
 
 function masterTail(master: Master, measured?: LoudnessMeasure | null): string[] {
   const steps = dbStep(master.fader);

@@ -41,8 +41,6 @@ const RECENT_FILE = "recent.json";
 
 type MixDeps = MediaDeps & { onProgress?: (progress: number, message: string) => void };
 
-const mixDir = (projectDir: string) => projectPaths(projectDir).mix;
-
 const sha = (value: unknown) => versionedHash(MIX_VERSION, value);
 
 const identity = (file: string): Promise<string> => fileIdentity(file).catch(() => "missing");
@@ -58,18 +56,27 @@ const recentSchema = z.array(z.array(z.string()));
 
 const stemRenders = shareInFlight<Stem>();
 
-const runStem = (...args: Parameters<typeof renderStem>): Promise<Stem> =>
-  stemRenders(path.join(mixDir(args[0].projectDir), `${args[2]}.wav`), () => renderStem(...args));
+type StemJob = {
+  hash: string;
+  makeJob: () => Job | Promise<Job>;
+  codec: "pcm_f32le" | "pcm_s16le";
+  makeup?: number;
+};
+
+const runStem = (deps: MixDeps, plan: MixPlan, stem: StemJob): Promise<Stem> =>
+  stemRenders(path.join(projectPaths(deps.projectDir).mix, `${stem.hash}.wav`), () =>
+    renderStem(deps, plan, stem),
+  );
+
+const reductionFromTaps = (pre: StemLevels, post: StemLevels, makeup: number): number[] =>
+  pre.rms.map((v, i) => (v <= QUIET_PRE_DB ? 0 : Math.max(0, round1(v - (post.rms[i] - makeup)))));
 
 async function renderStem(
   deps: MixDeps,
   plan: MixPlan,
-  hash: string,
-  makeJob: () => Job | Promise<Job>,
-  codec: "pcm_f32le" | "pcm_s16le",
-  makeup = 0,
+  { hash, makeJob, codec, makeup = 0 }: StemJob,
 ): Promise<Stem> {
-  const dir = mixDir(deps.projectDir);
+  const dir = projectPaths(deps.projectDir).mix;
   const file = path.join(dir, `${hash}.wav`);
   const meta = path.join(dir, `${hash}.json`);
   const cached = existsSync(file) ? await readJson(meta, stemMetaSchema) : null;
@@ -88,14 +95,9 @@ async function renderStem(
       signal: deps.signal,
     });
     const levels = await levelsOf(tmp);
-    let reduction: number[] | null = null;
-    if (taps) {
-      const pre = await levelsOf(taps.pre);
-      const post = await levelsOf(taps.post);
-      reduction = pre.rms.map((v, i) =>
-        v <= QUIET_PRE_DB ? 0 : Math.max(0, round1(v - (post.rms[i] - makeup))),
-      );
-    }
+    const reduction = taps
+      ? reductionFromTaps(await levelsOf(taps.pre), await levelsOf(taps.post), makeup)
+      : null;
     await rename(tmp, file);
     await atomicWrite(meta, JSON.stringify({ levels, reduction }));
     return { hash, file, levels, reduction };
@@ -109,7 +111,7 @@ async function renderStem(
 }
 
 async function loudnessOf(deps: MixDeps, plan: MixPlan, master: Stem): Promise<Loudness> {
-  const file = path.join(mixDir(deps.projectDir), `${master.hash}.loudness.json`);
+  const file = path.join(projectPaths(deps.projectDir).mix, `${master.hash}.loudness.json`);
   const cached = await readJson(file, loudnessSchema);
   if (cached) return cached;
   const lines: string[] = [];
@@ -211,8 +213,11 @@ async function channelStems(plan: MixPlan, deps: MixDeps, tick: Tick) {
     const ids = await Promise.all(channel.sounds.map((s) => identity(deps.resolve(s.src))));
     const hash = `ch-${sha({ channel: channelIdentity(plan, channel), ids })}`;
     const makeup = channel.strip.comp.on ? channel.strip.comp.makeup : 0;
-    const job = () => channelJob(plan, channel, deps.resolve);
-    channels.set(channel.id, await runStem(deps, plan, hash, job, "pcm_f32le", makeup));
+    const makeJob = () => channelJob(plan, channel, deps.resolve);
+    channels.set(
+      channel.id,
+      await runStem(deps, plan, { hash, makeJob, codec: "pcm_f32le", makeup }),
+    );
   }
   return channels;
 }
@@ -226,22 +231,15 @@ async function busStems(plan: MixPlan, deps: MixDeps, channels: Map<string, Stem
   const buses: Array<[string, Stem]> = [];
   for (const bus of plan.buses) {
     tick("Mixing sound");
-    const members = bus.channels.filter((c) => channels.has(c));
-    const keys = bus.duck?.keys.filter((c) => channels.has(c)) ?? [];
-    const busPlan = {
-      ...bus,
-      channels: members,
-      duck: bus.duck && keys.length ? { ...bus.duck, keys } : null,
-    };
     const hash = `bus-${sha({
       fps: plan.fps,
       frames: plan.durationInFrames,
-      bus: { ...busPlan, name: undefined },
-      stems: members.map((c) => stem(c).hash),
-      keys: keys.map((c) => stem(c).hash),
+      bus: { ...bus, name: undefined },
+      stems: bus.channels.map((c) => stem(c).hash),
+      keys: (bus.duck?.keys ?? []).map((c) => stem(c).hash),
     })}`;
-    const job = () => busJob(plan, busPlan, (c) => stem(c).file);
-    buses.push([bus.id, await runStem(deps, plan, hash, job, "pcm_f32le")]);
+    const makeJob = () => busJob(plan, bus, (c) => stem(c).file);
+    buses.push([bus.id, await runStem(deps, plan, { hash, makeJob, codec: "pcm_f32le" })]);
   }
   return buses;
 }
@@ -254,7 +252,7 @@ async function masterStem(plan: MixPlan, deps: MixDeps, buses: Stem[]): Promise<
     master: plan.master,
     buses: buses.map((b) => b.hash),
   })}`;
-  const job = async () => {
+  const makeJob = async () => {
     const measure = loudnessMeasureJob(plan, busFiles);
     if (!measure) return masterJob(plan, busFiles, null);
     const lines: string[] = [];
@@ -265,7 +263,7 @@ async function masterStem(plan: MixPlan, deps: MixDeps, buses: Stem[]): Promise<
     return masterJob(plan, busFiles, parseLoudnorm(lines.join("\n")));
   };
   const makeup = plan.master.comp.on ? plan.master.comp.makeup : 0;
-  return runStem(deps, plan, hash, job, "pcm_s16le", makeup);
+  return runStem(deps, plan, { hash, makeJob, codec: "pcm_s16le", makeup });
 }
 
 const levelsById = (stems: Iterable<[string, Stem]>) =>
@@ -319,7 +317,7 @@ async function renderMixStems(plan: MixPlan, deps: MixDeps): Promise<MixResult> 
 }
 
 async function remember(projectDir: string, hashes: string[]): Promise<void> {
-  const dir = mixDir(projectDir);
+  const dir = projectPaths(projectDir).mix;
   const indexFile = path.join(dir, RECENT_FILE);
   const recent = (await readJson(indexFile, recentSchema)) ?? [];
   const next = [hashes, ...recent.filter((h) => h.join() !== hashes.join())].slice(0, KEEP_PLANS);
