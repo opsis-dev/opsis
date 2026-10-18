@@ -21,6 +21,7 @@ import {
   type NodeCategory,
   type NodeDef,
 } from "@/shared/nodes/define";
+import { portLabels } from "@/shared/nodes/ports";
 import { VISIBLE_NODE_DEFS } from "@/shared/nodes/registry";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
@@ -28,7 +29,7 @@ import { NODE_DRAG_TYPE, snapToGrid } from "./canvas-grid";
 import { CategoryBadge, NodeBadge } from "./category-badge";
 import { GLYPH_HOST } from "./node-glyph";
 import { openPanel, usePanels } from "./panels";
-import { CATEGORY_STYLES, portLabels } from "./ports";
+import { CATEGORY_STYLES } from "./ports";
 
 type PaletteGroup = { category: NodeCategory; defs: NodeDef[] };
 

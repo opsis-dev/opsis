@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import type { EnginePaths } from "../../engine/paths";
 import type { CompileResult } from "../../shared/compile/compile";
+import { errorMessage } from "../../shared/errors";
 import { parseNodeParams, type NodeDef } from "../../shared/nodes/define";
 import type { LogLevel } from "../../shared/schema/events";
 import type { Artifact, CompileValue, NodeResult } from "../../shared/schema/values";
@@ -8,6 +9,14 @@ import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
 import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/take-run";
 import type { FfmpegTools } from "../media/ffmpeg";
+
+export const TRACE_NOT_SAVED = "Couldn't save the trace";
+
+export const warnFailed = (
+  log: (level: "warn", message: string) => void,
+  what: string,
+  error: unknown,
+): void => log("warn", `${what}: ${errorMessage(error)}`);
 
 export type ExecutorContext = {
   runId: string;

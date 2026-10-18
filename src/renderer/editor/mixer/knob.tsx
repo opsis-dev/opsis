@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { DRAG_START_PX } from "@/renderer/lib/dom";
+import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/renderer/lib/dom";
 import { usePointerDrag } from "@/renderer/lib/use-pointer-drag";
 import { cn } from "@/renderer/lib/utils";
 import { clamp01 } from "@/shared/math";
@@ -128,21 +128,15 @@ function useKnobDrag(
   gesture: Gesture<number>,
   disabled: boolean | undefined,
 ) {
-  return usePointerDrag<HTMLButtonElement, { y: number; from: number; started: boolean }>({
+  return usePointerDrag<HTMLButtonElement, ThresholdDrag & { y: number; from: number }>({
     disabled,
     start: (e) => ({ y: e.clientY, from: fraction, started: false }),
     move: (e, d) => {
       const dy = d.y - e.clientY;
-      if (!d.started) {
-        if (Math.abs(dy) < DRAG_START_PX) return;
-        d.started = true;
-        gesture.begin();
-      }
+      if (!startOnceMoved(d, Math.abs(dy), gesture.begin)) return;
       gesture.set(fractionToValue(range, d.from + dy / (e.shiftKey ? FINE_DRAG_PX : DRAG_PX)));
     },
-    end: (d) => {
-      if (d.started) gesture.end();
-    },
+    end: (d) => endIfStarted(d, gesture.end),
   });
 }
 

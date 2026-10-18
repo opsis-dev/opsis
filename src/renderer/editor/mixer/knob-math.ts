@@ -1,4 +1,4 @@
-import { clamp, clamp01, type StepRange } from "@/shared/math";
+import { clamp, clamp01, normalize, type StepRange } from "@/shared/math";
 import type { NumberRange } from "@/shared/mix/types";
 
 export const SWEEP_DEG = 270;
@@ -18,7 +18,7 @@ export function roundToStep(v: number, step: number): number {
 }
 
 export const valueToFraction = ({ min, max, log }: KnobRange, v: number): number =>
-  log ? Math.log(v / min) / Math.log(max / min) : (v - min) / (max - min);
+  log ? clamp01(Math.log(v / min) / Math.log(max / min)) : normalize(v, min, max);
 
 export function fractionToValue(range: KnobRange, fraction: number): number {
   const { min, max, log, step } = range;

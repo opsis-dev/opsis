@@ -169,7 +169,7 @@ function useTimelineScene({ scroller, scroll, zoom, film, workflow, commands }: 
   const geometry = timelineGeometry(flat, scroll.view, zoom.ppf);
   const masterSrc = film.result?.master?.src ?? null;
   const beats = useBeatFrames(flat);
-  const gainFor = useDuckGains(film.spec, film.mix);
+  const gainFor = useDuckGains(film);
   const drag = useTimelineDrag({
     scroller,
     workflow,
@@ -216,9 +216,7 @@ export function TimelineView(props: TimelineViewProps) {
     <div
       ref={scroller}
       className="relative h-full overflow-auto select-none"
-      onPointerMove={drag.onPointerMove}
-      onPointerUp={drag.onPointerUp}
-      onPointerCancel={drag.onPointerUp}
+      {...drag.scrollerHandlers}
       onPointerDown={drag.onEmptyDown}
       onWheel={zoom.onWheel}
       onScroll={onScroll}

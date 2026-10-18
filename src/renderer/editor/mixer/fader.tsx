@@ -1,22 +1,20 @@
 import { fractionIn } from "@/renderer/lib/dom";
 import { usePointerDrag } from "@/renderer/lib/use-pointer-drag";
 import { percent } from "@/shared/format";
-import { clamp } from "@/shared/math";
 import { MAX_DB, MIN_DB } from "@/shared/mix/types";
 import { formatDb } from "./audio-format";
 import { commitOnce, onArrowKey, type Gesture } from "./gesture";
-import { roundToStep } from "./knob-math";
+import { fractionToValue, snapValue, valueToFraction, type KnobRange } from "./knob-math";
 
 const STEP_DB = 0.5;
 const BIG_STEP_DB = 6;
 
-const faderPosition = (value: number) =>
-  (clamp(value, MIN_DB, MAX_DB) - MIN_DB) / (MAX_DB - MIN_DB);
+const FADER_RANGE: KnobRange = { min: MIN_DB, max: MAX_DB, step: STEP_DB };
 
-function valueAt(el: HTMLElement, clientY: number): number {
-  const k = 1 - fractionIn(el.getBoundingClientRect(), 0, clientY).y;
-  return roundToStep(MIN_DB + k * (MAX_DB - MIN_DB), STEP_DB);
-}
+const faderPosition = (value: number) => valueToFraction(FADER_RANGE, value);
+
+const valueAt = (el: HTMLElement, clientY: number): number =>
+  fractionToValue(FADER_RANGE, 1 - fractionIn(el.getBoundingClientRect(), 0, clientY).y);
 
 export function Fader({
   value,
@@ -51,7 +49,7 @@ export function Fader({
       onKeyDown={(e) =>
         onArrowKey(e, (dir, big) => {
           const step = big ? BIG_STEP_DB : STEP_DB;
-          commitOnce(gesture, clamp(value + dir * step, MIN_DB, MAX_DB));
+          commitOnce(gesture, snapValue(FADER_RANGE, value + dir * step));
         })
       }
     >

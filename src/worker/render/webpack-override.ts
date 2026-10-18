@@ -1,14 +1,18 @@
 import path from "node:path";
 import type { WebpackOverrideFn } from "@remotion/bundler";
 import { enableTailwind } from "@remotion/tailwind-v4";
-import { googleFontModuleFile, GOOGLE_FONT_IMPORT } from "../../shared/fonts/google-font-imports";
+import {
+  googleFontModuleFile,
+  GOOGLE_FONT_IMPORT,
+  GOOGLE_SHIM_SEGMENTS,
+} from "../../shared/fonts/google-font-imports";
 import { SOURCE_ALIAS, SOURCE_DIR } from "./source-alias";
 
 export const makeWebpackOverride =
   (projectRoot: string): WebpackOverrideFn =>
   (config) => {
     const withTailwind = enableTailwind(config);
-    const fontShims = path.join(projectRoot, "src", "video", "fonts", "google");
+    const fontShims = path.join(projectRoot, ...GOOGLE_SHIM_SEGMENTS);
     const alias = withTailwind.resolve?.alias;
     return {
       ...withTailwind,

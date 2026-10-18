@@ -13,7 +13,7 @@ function sliderRange(min: number | undefined, max: number | undefined): StepRang
   return { min, max, step: max - min <= 1 ? 0.01 : 1 };
 }
 
-export type NumberProps = FieldProps<number> & Partial<MinMax>;
+type NumberProps = FieldProps<number> & Partial<MinMax>;
 
 export function PresetNumber({
   label,

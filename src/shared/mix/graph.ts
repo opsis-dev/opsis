@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parseJsonWith } from "../guards";
 import { clamp } from "../math";
 import type { Keyframe } from "../schema/timeline";
 import { samplePoints } from "../timeline/envelope";
@@ -395,13 +396,7 @@ export function parseLoudnorm(stderr: string): LoudnessMeasure | null {
   const start = stderr.lastIndexOf("{");
   const end = stderr.lastIndexOf("}");
   if (start === -1 || end < start) return null;
-  let json: unknown;
-  try {
-    json = JSON.parse(stderr.slice(start, end + 1));
-  } catch {
-    return null;
-  }
-  const parsed = loudnessMeasureSchema.safeParse(json);
-  if (!parsed.success || parsed.data.input_i === "-inf") return null;
+  const parsed = parseJsonWith(loudnessMeasureSchema, stderr.slice(start, end + 1));
+  if (!parsed?.success || parsed.data.input_i === "-inf") return null;
   return parsed.data;
 }

@@ -1,20 +1,33 @@
 import { animate, steps, type Easing } from "motion/react";
+import { isKeyOf } from "@/shared/guards";
 import type { NodeMotion } from "@/shared/nodes/looks";
 
-export type MotionFrame = {
+const MOTION_PROPS = {
+  transform: true,
+  opacity: true,
+  filter: true,
+  clipPath: true,
+  strokeDashoffset: true,
+  maskPosition: true,
+  "--sweep": true,
+} as const;
+
+type MotionProp = keyof typeof MOTION_PROPS;
+
+export type MotionFrame = Partial<Record<MotionProp, string | number>> & {
   offset?: number;
   ease?: Easing;
-  [prop: string]: string | number | Easing | undefined;
 };
+
+type Part = "svg" | "shapes" | "ring" | "flare" | "march";
 
 type MotionSpec = {
   frames: MotionFrame[];
   ms: number;
   origin?: string;
-  part?: "svg" | "shapes" | "ring" | "flare";
+  part?: Part;
   mask?: { image: string; size?: string };
   clip?: boolean;
-  march?: boolean;
 };
 
 const EASE: Easing = [0.45, 0, 0.25, 1];
@@ -29,7 +42,7 @@ const blurred = (px: number, rest: Record<string, string | number> = {}) => ({
   ...rest,
 });
 const outAndBack = (
-  prop: string,
+  prop: MotionProp,
   rest: string,
   mid: string,
   ms: number,
@@ -38,7 +51,14 @@ const outAndBack = (
   frames: [{ [prop]: rest, ease }, { [prop]: mid, ease }, { [prop]: rest }],
   ms,
 });
-const away = (prop: string, rest: string, gone: string, back: string, ms: number, ease = EASE) => ({
+const away = (
+  prop: MotionProp,
+  rest: string,
+  gone: string,
+  back: string,
+  ms: number,
+  ease = EASE,
+) => ({
   frames: [
     { [prop]: rest, opacity: 1, ease },
     { [prop]: gone, opacity: 0, offset: 0.45, ease: STEP },
@@ -166,7 +186,7 @@ export const NODE_MOTION_SPECS: Record<NodeMotion, MotionSpec> = {
   march: {
     frames: [{ strokeDashoffset: 0, ease: LINEAR }, { strokeDashoffset: -15 }],
     ms: 1500,
-    march: true,
+    part: "march",
   },
   caret: {
     frames: [1, 0, 1, 0, 1, 1].map((opacity, i) => ({ opacity, offset: i / 5, ease: STEP })),
@@ -316,7 +336,7 @@ export function motionTimeline(frames: MotionFrame[]) {
     const to = known[next] ?? 1;
     return from + ((to - from) * (i - prev)) / (next - prev);
   });
-  const props = Object.keys(frames[0]).filter((k) => k !== "offset" && k !== "ease");
+  const props = Object.keys(frames[0]).filter((k) => isKeyOf(MOTION_PROPS, k));
   const values = Object.fromEntries(props.map((p) => [p, frames.map((f) => f[p])]));
   const ease = frames.slice(0, -1).map((f) => f.ease ?? EASE);
   return { values, times, ease };
@@ -324,8 +344,13 @@ export function motionTimeline(frames: MotionFrame[]) {
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-function marchingOutline(svg: SVGSVGElement): { ring: SVGRectElement; restore: () => void } {
-  const pieces = [...svg.children].filter((el): el is SVGElement => el instanceof SVGElement);
+type Prepared = { targets: Element[]; restore: () => void };
+
+const svgPieces = (svg: SVGSVGElement): SVGElement[] =>
+  [...svg.children].filter((el): el is SVGElement => el instanceof SVGElement);
+
+function marchingOutline(svg: SVGSVGElement): Prepared {
+  const pieces = svgPieces(svg);
   const ring = document.createElementNS(SVG_NS, "rect");
   for (const [k, v] of Object.entries({
     x: 3,
@@ -339,7 +364,7 @@ function marchingOutline(svg: SVGSVGElement): { ring: SVGRectElement; restore: (
   svg.appendChild(ring);
   for (const p of pieces) p.style.opacity = "0";
   return {
-    ring,
+    targets: [ring],
     restore: () => {
       ring.remove();
       for (const p of pieces) p.style.opacity = "";
@@ -347,14 +372,14 @@ function marchingOutline(svg: SVGSVGElement): { ring: SVGRectElement; restore: (
   };
 }
 
-function drawable(svg: SVGSVGElement): { shapes: SVGElement[]; restore: () => void } {
-  const shapes = [...svg.children].filter((el): el is SVGElement => el instanceof SVGElement);
+function drawable(svg: SVGSVGElement): Prepared {
+  const shapes = svgPieces(svg);
   for (const s of shapes) {
     s.setAttribute("pathLength", "1");
     s.style.strokeDasharray = "1";
   }
   return {
-    shapes,
+    targets: shapes,
     restore: () => {
       for (const s of shapes) {
         s.removeAttribute("pathLength");
@@ -365,17 +390,44 @@ function drawable(svg: SVGSVGElement): { shapes: SVGElement[]; restore: () => vo
   };
 }
 
-function overlay(holder: HTMLElement, className: string): { el: HTMLElement; restore: () => void } {
+function overlay(holder: HTMLElement, className: string): Prepared {
   const el = document.createElement("span");
   el.className = className;
   holder.appendChild(el);
-  return { el, restore: () => el.remove() };
+  return { targets: [el], restore: () => el.remove() };
 }
 
-export const RING_CLASS =
+const RING_CLASS =
   "pointer-events-none absolute inset-[-10%] rounded-full border-2 border-current opacity-0";
-export const FLARE_CLASS =
+const FLARE_CLASS =
   "pointer-events-none absolute inset-[-60%] opacity-0 mix-blend-screen bg-[radial-gradient(circle,rgba(255,244,214,0.95)_0%,rgba(255,190,110,0.6)_22%,rgba(255,140,60,0.25)_40%,transparent_62%)]";
+
+const PARTS: Record<Part, (svg: SVGSVGElement, holder: HTMLElement) => Prepared> = {
+  svg: (svg) => ({ targets: [svg], restore: () => undefined }),
+  shapes: drawable,
+  ring: (_svg, holder) => overlay(holder, RING_CLASS),
+  flare: (_svg, holder) => overlay(holder, FLARE_CLASS),
+  march: marchingOutline,
+};
+
+function styleFor(spec: MotionSpec, svg: SVGSVGElement, holder: HTMLElement): () => void {
+  if (spec.origin) svg.style.transformOrigin = spec.origin;
+  if (spec.clip) holder.style.overflow = "hidden";
+  if (spec.mask) {
+    svg.style.maskImage = spec.mask.image;
+    svg.style.maskSize = spec.mask.size ?? "";
+    svg.style.maskRepeat = "no-repeat";
+  }
+  return () => {
+    if (spec.origin) svg.style.transformOrigin = "";
+    if (spec.clip) holder.style.overflow = "";
+    if (spec.mask) {
+      svg.style.maskImage = "";
+      svg.style.maskSize = "";
+      svg.style.maskRepeat = "";
+    }
+  };
+}
 
 export async function playNodeMotion(
   motion: NodeMotion,
@@ -385,38 +437,12 @@ export async function playNodeMotion(
   const spec = NODE_MOTION_SPECS[motion];
   const { values, times, ease } = motionTimeline(spec.frames);
   const options = { duration: spec.ms / 1000, times, ease };
-  const restores: Array<() => void> = [];
-  let targets: Element[] = [svg];
-  if (spec.part === "shapes") {
-    const d = drawable(svg);
-    targets = d.shapes;
-    restores.push(d.restore);
-  } else if (spec.part === "ring" || spec.part === "flare") {
-    const o = overlay(holder, spec.part === "ring" ? RING_CLASS : FLARE_CLASS);
-    targets = [o.el];
-    restores.push(o.restore);
-  } else if (spec.march) {
-    const m = marchingOutline(svg);
-    targets = [m.ring];
-    restores.push(m.restore);
-  }
-  if (spec.origin) svg.style.transformOrigin = spec.origin;
-  if (spec.clip) holder.style.overflow = "hidden";
-  if (spec.mask) {
-    svg.style.maskImage = spec.mask.image;
-    svg.style.maskSize = spec.mask.size ?? "";
-    svg.style.maskRepeat = "no-repeat";
-  }
-  restores.push(() => {
-    svg.style.transformOrigin = "";
-    holder.style.overflow = "";
-    svg.style.maskImage = "";
-    svg.style.maskSize = "";
-    svg.style.maskRepeat = "";
-  });
+  const { targets, restore } = PARTS[spec.part ?? "svg"](svg, holder);
+  const restoreStyle = styleFor(spec, svg, holder);
   try {
     await Promise.all(targets.map((t) => animate(t, values, options).finished));
   } finally {
-    for (const restore of restores) restore();
+    restore();
+    restoreStyle();
   }
 }

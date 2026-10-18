@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ipcMain, type WebContents } from "electron";
 import {
+  API_EDITOR_TIMEOUT_MS,
   apiFailure,
   apiOk,
   apiProjectStateSchema,
@@ -15,10 +16,11 @@ import { IPC } from "../shared/ipc";
 import { listenerSet } from "../shared/listener-set";
 import { pendingReplies } from "../shared/pending-replies";
 import type { RunEvent } from "../shared/schema/events";
-import { getMainWindow, isEditorSender } from "./window-registry";
+import { whenReady } from "../shared/timing";
+import { getMainWindow, isEditorSender, liveWindow } from "./window-registry";
 
 const EDITOR_TIMEOUT = {
-  ms: 20_000,
+  ms: API_EDITOR_TIMEOUT_MS,
   result: { ok: false, status: 504, error: "The editor didn't answer in time." },
 } as const;
 
@@ -41,18 +43,8 @@ function setEditorListening(listening: boolean): void {
   if (listening) editorListens.emit();
 }
 
-function untilEditorListens(ms: number): Promise<boolean> {
-  if (editorListening) return Promise.resolve(true);
-  return new Promise((resolve) => {
-    const done = (listens: boolean) => {
-      clearTimeout(timer);
-      stop();
-      resolve(listens);
-    };
-    const timer = setTimeout(() => done(false), ms);
-    const stop = editorListens.add(() => done(true));
-  });
-}
+const untilEditorListens = (ms: number): Promise<true | null> =>
+  whenReady(() => editorListening || null, editorListens.add, ms);
 
 function watchEditor(contents: WebContents): void {
   if (watched.has(contents)) return;
@@ -80,8 +72,8 @@ export function registerApiEditorIpc(): void {
 }
 
 export async function askEditor(request: ApiEditorRequest): Promise<ApiEditorReply> {
-  const win = getMainWindow();
-  if (!win || win.isDestroyed()) return NO_EDITOR;
+  const win = liveWindow(getMainWindow());
+  if (!win) return NO_EDITOR;
   if (!(await untilEditorListens(EDITOR_TIMEOUT.ms))) return EDITOR_TIMEOUT.result;
   const id = randomUUID();
   const reply = replies.wait(id, EDITOR_TIMEOUT);

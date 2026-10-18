@@ -38,6 +38,7 @@ import { createFfmpegTools, ToolError, type FfmpegTools } from "../media/ffmpeg"
 import { nodeHash, readCached, writeCached } from "./cache";
 import {
   TracedError,
+  warnFailed,
   type Executor,
   type ExecutorContext,
   type ExecutorInputs,
@@ -97,9 +98,10 @@ function knownNodes(workflow: Workflow): Map<string, Known> {
 async function signInSaved(node: WorkflowNode, { vars, deps, log }: RunContext) {
   const name = secretName(interpolate(node.params, vars).secretName);
   const saved = await deps.secrets.read(name).catch((error: unknown) => {
-    log(
-      "warn",
-      `Couldn't read the saved sign-in “${name}”, so it will be asked for again: ${errorMessage(error)}`,
+    warnFailed(
+      log,
+      `Couldn't read the saved sign-in “${name}”, so it will be asked for again`,
+      error,
     );
     return null;
   });
@@ -401,7 +403,7 @@ class RunState {
       dir,
       this.tools.ffmpeg,
       out.artifacts ?? [],
-      (m) => log("warn", m, node.id),
+      (level, m) => log(level, m, node.id),
     );
     return {
       hash,
@@ -500,7 +502,7 @@ async function finishRun(
   await writeLastRun(
     req.projectDir,
     mergeLastRun(previous, state.store.results, state.failures, (id) => ids.has(id)),
-  ).catch((e: unknown) => log("warn", `Couldn't save the run results: ${errorMessage(e)}`));
+  ).catch((e: unknown) => warnFailed(log, "Couldn't save the run results", e));
 
   const failedNodeIds = [...state.failed];
   const skipped = state.skipped.size;

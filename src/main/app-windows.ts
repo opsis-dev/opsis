@@ -6,6 +6,7 @@ import { closeSettingsWindow, isSettingsSender, settingsWindow } from "./setting
 import {
   getMainWindow,
   isEditorSender,
+  liveWindow,
   makeWindow,
   rendererUrl,
   setMainWindow,
@@ -33,8 +34,8 @@ export const isTrusted = (id: number): boolean =>
   isEditorSender(id) || isPanelSender(id) || isSettingsSender(id);
 
 function appWindows(): BrowserWindow[] {
-  return [getMainWindow(), ...panelWindows(), settingsWindow()].filter(
-    (w): w is BrowserWindow => !!w && !w.isDestroyed(),
+  return [liveWindow(getMainWindow()), ...panelWindows(), settingsWindow()].filter(
+    (w) => w !== null,
   );
 }
 

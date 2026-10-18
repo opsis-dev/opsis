@@ -20,3 +20,10 @@ describe("online fonts without a connection", () => {
     );
   });
 });
+
+describe("online fonts that aren't there", () => {
+  it("says the font wasn't found without blaming the connection", async () => {
+    vi.stubGlobal("fetch", () => Promise.resolve(new Response("", { status: 404 })));
+    await expect(downloadOnlineFont("nope")).rejects.toThrow(/^Couldn't find that font online\.$/);
+  });
+});

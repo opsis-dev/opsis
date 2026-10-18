@@ -22,7 +22,7 @@ import { FontSample } from "./font-sample";
 import { InstalledDialog } from "./installed-dialog";
 import { useFontLibrary } from "./library";
 import { installedFonts } from "./local-fonts";
-import { allowOnline, isOnlineAllowed, OnlineDialog } from "./online-dialog";
+import { OnlineDialog } from "./online-dialog";
 import { ReviewDialog, type FontReview } from "./review-dialog";
 
 const SOURCE_LABEL: Record<FontFamilyDef["source"], string> = {
@@ -51,6 +51,8 @@ function LibraryRow({ def, onRemove }: { def: FontFamilyDef; onRemove: () => voi
     </FontRow>
   );
 }
+
+let onlineAllowed = false;
 
 function OnlineConsentDialog({
   onClose,
@@ -151,7 +153,7 @@ export function FontsPanel() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setDialog({ kind: isOnlineAllowed() ? "online" : "ask-online" })}
+            onClick={() => setDialog({ kind: onlineAllowed ? "online" : "ask-online" })}
           >
             <Globe data-icon="inline-start" />
             Get fonts online…
@@ -188,7 +190,7 @@ export function FontsPanel() {
         <OnlineConsentDialog
           onClose={() => closeIfStill("ask-online")}
           onConnect={() => {
-            allowOnline();
+            onlineAllowed = true;
             setDialog({ kind: "online" });
           }}
         />

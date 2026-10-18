@@ -46,6 +46,9 @@ describe("plainError", () => {
         {},
       ),
     ).toBe("The page didn't respond within 30 s.");
+    expect(plainError(new Error("page.goto: Timeout 90000ms exceeded."), click, {})).toBe(
+      "The page didn't respond within 1 min 30 s.",
+    );
   });
 
   it("explains network failures", () => {

@@ -39,6 +39,15 @@ const groupPropsSchema = z.object({
 });
 export type GroupProps = z.infer<typeof groupPropsSchema>;
 
+const videoPropsSchema = z.object({
+  src: z.string(),
+  loop: z.boolean().default(false),
+  muted: z.boolean().default(true),
+  volume: z.number().default(1),
+  trimBeforeMs: z.number().default(0),
+});
+export type VideoProps = z.infer<typeof videoPropsSchema>;
+
 type PlaceholderProps = { title: string; subtitle: string };
 
 type BuiltInProps = {
@@ -61,6 +70,11 @@ export const groupOf = (item: TimelineItem): GroupProps | null =>
 export const recordingOf = (item: TimelineItem): RecordingProps | null =>
   item.component === "core/recording" ? readRecording(item.props) : null;
 
+const readVideo = parseOncePer(videoPropsSchema);
+
+export const videoOf = (item: Pick<TimelineItem, "component" | "props">): VideoProps | null =>
+  item.component === "core/video" ? readVideo(item.props) : null;
+
 type ItemPlacement = Omit<TimelineItem, "component" | "props">;
 
 export const groupItem = (placement: ItemPlacement, props: GroupProps): TimelineItem => ({
@@ -69,8 +83,7 @@ export const groupItem = (placement: ItemPlacement, props: GroupProps): Timeline
   props,
 });
 
-export const itemHasSound = (item: TimelineItem): boolean =>
-  item.component === "core/video" && item.props.muted === false;
+export const itemHasSound = (item: TimelineItem): boolean => videoOf(item)?.muted === false;
 
 export const soundNodeId = (item: TimelineItem): string | undefined =>
   itemHasSound(item) ? item.nodeId : undefined;
@@ -437,7 +450,7 @@ export function walkItems(tracks: TimelineTrack[], visit: (item: TimelineItem) =
 
 export function patchRecordings(
   clip: ClipValue,
-  patch: (props: RecordingProps) => Partial<RecordingProps>,
+  patch: (props: RecordingProps) => RecordingProps,
 ): ClipValue {
   return {
     ...clip,

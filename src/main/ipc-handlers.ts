@@ -60,15 +60,9 @@ type Result<K extends InvokeName> =
 
 type Args<K extends InvokeName> = Parameters<DemoflowApi[K]>;
 
-type SenderHandlers = {
-  [K in InvokeName]: (event: IpcMainInvokeEvent, ...args: Args<K>) => Result<K>;
-};
-
-type PlainHandlers<N extends InvokeName> = {
-  [K in N]: (...args: Args<K>) => Result<K>;
-};
-
-const senderWindow = (event: IpcMainInvokeEvent) => BrowserWindow.fromWebContents(event.sender);
+type Handler<K extends InvokeName> =
+  | ((...args: Args<K>) => Result<K>)
+  | { withWindow: (win: BrowserWindow | null, ...args: Args<K>) => Result<K> };
 
 async function startWorkflowRun(request: RunRequest) {
   const runId = randomUUID();
@@ -102,27 +96,19 @@ async function revealInFolder(dir: string, rel?: string): Promise<void> {
   await shell.openPath(dir);
 }
 
-const SENDER_HANDLERS = {
-  createProject: (event, opts) => createProjectDir(senderWindow(event), opts),
-  pickProjectDir: (event) => pickProjectDir(senderWindow(event)),
-  chooseFolder: (event, opts) => chooseFolder(senderWindow(event), opts),
-  importAssets: (event, dir, paths) => importAssets(senderWindow(event), dir, paths),
-  pickElement: (event, request) => pickInWindow(senderWindow(event), request),
-  inspectFontFiles: (event, paths) => inspectFontFiles(senderWindow(event), paths),
-  windowRole: (event, role) => {
-    const win = senderWindow(event);
-    if (win) runWindowRole(win, role);
+const HANDLERS: { [K in InvokeName]: Handler<K> } = {
+  createProject: { withWindow: createProjectDir },
+  pickProjectDir: { withWindow: pickProjectDir },
+  chooseFolder: { withWindow: chooseFolder },
+  importAssets: { withWindow: importAssets },
+  pickElement: { withWindow: pickInWindow },
+  inspectFontFiles: { withWindow: inspectFontFiles },
+  windowRole: {
+    withWindow: (win, role) => {
+      if (win) runWindowRole(win, role);
+    },
   },
-  getWindowState: (event) => windowState(senderWindow(event)),
-} satisfies Partial<SenderHandlers>;
-
-type SenderName = keyof typeof SENDER_HANDLERS;
-
-type PlainName = Exclude<InvokeName, SenderName>;
-
-const senderHandlers: Pick<SenderHandlers, SenderName> = SENDER_HANDLERS;
-
-const PLAIN_HANDLERS: PlainHandlers<PlainName> = {
+  getWindowState: { withWindow: windowState },
   listRecentProjects: listRecent,
   openProject: openProjectDir,
   saveWorkflow: saveWorkflowFile,
@@ -174,25 +160,18 @@ function assertTrustedSender(event: IpcMainInvokeEvent): void {
   throw new Error("Blocked IPC call from an unknown renderer.");
 }
 
-function handleInvoke<K extends InvokeName>(
-  name: K,
-  call: (args: Args<K>, event: IpcMainInvokeEvent) => unknown,
-): void {
+function handle<K extends InvokeName>(name: K): void {
+  const handler: Handler<K> = HANDLERS[name];
   ipcMain.handle(INVOKE[name], async (event, ...args: Args<K>) => {
     assertTrustedSender(event);
-    return call(args, event);
+    return typeof handler === "function"
+      ? handler(...args)
+      : handler.withWindow(BrowserWindow.fromWebContents(event.sender), ...args);
   });
 }
 
-const handleWithSender = <K extends SenderName>(name: K) =>
-  handleInvoke(name, (args, event) => senderHandlers[name](event, ...args));
-
-const handlePlain = <K extends PlainName>(name: K) =>
-  handleInvoke(name, (args) => PLAIN_HANDLERS[name](...args));
-
 export function registerIpc(): void {
-  for (const name of keysOf(SENDER_HANDLERS)) handleWithSender(name);
-  for (const name of keysOf(PLAIN_HANDLERS)) handlePlain(name);
+  for (const name of keysOf(HANDLERS)) handle(name);
   ipcMain.on(IPC.menuToEditor, (event, command: MenuCommand) => {
     if (!isTrusted(event.sender.id)) return;
     focusMainWindow();

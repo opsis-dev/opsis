@@ -1,41 +1,42 @@
 import { describe, expect, it } from "vitest";
 import { acceleratorLabel, appMenu, isPrimaryModifier, matchesAccelerator } from "./menu";
-
-const key = (
-  k: string,
-  mods: Partial<Record<"ctrlKey" | "metaKey" | "altKey" | "shiftKey", boolean>> = {},
-) => ({
-  key: k,
-  ctrlKey: false,
-  metaKey: false,
-  altKey: false,
-  shiftKey: false,
-  ...mods,
-});
+import { keyEvent } from "./test-fixtures";
 
 describe("app menu", () => {
   it("matches shortcuts per platform", () => {
-    expect(matchesAccelerator("CmdOrCtrl+B", key("b", { ctrlKey: true }), "linux")).toBe(true);
-    expect(matchesAccelerator("CmdOrCtrl+B", key("b", { metaKey: true }), "darwin")).toBe(true);
+    expect(matchesAccelerator("CmdOrCtrl+B", keyEvent("b", { ctrlKey: true }), "linux")).toBe(true);
+    expect(matchesAccelerator("CmdOrCtrl+B", keyEvent("b", { metaKey: true }), "darwin")).toBe(
+      true,
+    );
     expect(
-      matchesAccelerator("CmdOrCtrl+B", key("b", { ctrlKey: true, altKey: true }), "linux"),
+      matchesAccelerator("CmdOrCtrl+B", keyEvent("b", { ctrlKey: true, altKey: true }), "linux"),
     ).toBe(false);
     expect(
-      matchesAccelerator("CmdOrCtrl+Alt+B", key("b", { ctrlKey: true, altKey: true }), "linux"),
+      matchesAccelerator(
+        "CmdOrCtrl+Alt+B",
+        keyEvent("b", { ctrlKey: true, altKey: true }),
+        "linux",
+      ),
     ).toBe(true);
     expect(
-      matchesAccelerator("CmdOrCtrl+Shift+P", key("P", { ctrlKey: true, shiftKey: true }), "win32"),
+      matchesAccelerator(
+        "CmdOrCtrl+Shift+P",
+        keyEvent("P", { ctrlKey: true, shiftKey: true }),
+        "win32",
+      ),
     ).toBe(true);
     expect(
-      matchesAccelerator("CmdOrCtrl+=", key("+", { ctrlKey: true, shiftKey: true }), "linux"),
+      matchesAccelerator("CmdOrCtrl+=", keyEvent("+", { ctrlKey: true, shiftKey: true }), "linux"),
     ).toBe(true);
-    expect(matchesAccelerator("F11", key("F11"), "linux")).toBe(true);
-    expect(matchesAccelerator("CmdOrCtrl+,", key(",", { ctrlKey: true }), "linux")).toBe(true);
+    expect(matchesAccelerator("F11", keyEvent("F11"), "linux")).toBe(true);
+    expect(matchesAccelerator("CmdOrCtrl+,", keyEvent(",", { ctrlKey: true }), "linux")).toBe(true);
   });
 
   it("matches letter shortcuts with Caps Lock on", () => {
-    expect(matchesAccelerator("CmdOrCtrl+C", key("C", { ctrlKey: true }), "linux")).toBe(true);
-    expect(matchesAccelerator("CmdOrCtrl+D", key("D", { metaKey: true }), "darwin")).toBe(true);
+    expect(matchesAccelerator("CmdOrCtrl+C", keyEvent("C", { ctrlKey: true }), "linux")).toBe(true);
+    expect(matchesAccelerator("CmdOrCtrl+D", keyEvent("D", { metaKey: true }), "darwin")).toBe(
+      true,
+    );
   });
 
   it("labels shortcuts the way each platform writes them", () => {
@@ -63,8 +64,8 @@ describe("app menu", () => {
 
 describe("isPrimaryModifier", () => {
   it("is Cmd on macOS and Ctrl elsewhere, like CmdOrCtrl in a menu accelerator", () => {
-    const ctrl = key("=", { ctrlKey: true });
-    const cmd = key("=", { metaKey: true });
+    const ctrl = keyEvent("=", { ctrlKey: true });
+    const cmd = keyEvent("=", { metaKey: true });
     expect(isPrimaryModifier(cmd, "darwin")).toBe(true);
     expect(isPrimaryModifier(ctrl, "darwin")).toBe(false);
     expect(isPrimaryModifier(ctrl, "linux")).toBe(true);

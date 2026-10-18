@@ -36,7 +36,7 @@ import { EnvelopeField } from "./form/envelope-field";
 import { ChoiceGroup, Help } from "./form/field-shell";
 import { JsonField } from "./form/json-field";
 import { KeysField } from "./form/keys-field";
-import { NumberField, PresetNumber, type NumberProps } from "./form/number-field";
+import { NumberField, PresetNumber } from "./form/number-field";
 import { OffsetsField } from "./form/offsets-field";
 import { Presets } from "./form/presets";
 import { typedField, type TypedField } from "./form/schema-kind";
@@ -61,29 +61,51 @@ import type { FieldProps, FormContext, ParamFieldProps, ParamValues } from "./fo
 
 type Entry = { key: string; field: z.ZodType; meta: FieldMeta };
 
-type Widget =
-  | { kind: "string"; Field: ComponentType<ParamFieldProps<string>> }
-  | { kind: "select"; choices: (ctx: FormContext, value: string) => SelectChoices }
-  | { kind: "number"; Field: ComponentType<ParamFieldProps<number> & NumberProps> }
-  | { kind: "presets"; presets: Readonly<Record<string, number>> };
+type FieldOf<K extends TypedField["kind"]> = Extract<TypedField, { kind: K }>;
+
+type Render<K extends TypedField["kind"]> = (
+  field: FieldOf<K>,
+  props: ParamFieldProps<unknown>,
+) => ReactNode;
+
+type Widget = { string: Render<"string"> } | { number: Render<"number"> };
+
+const stringWidget = (Control: ComponentType<ParamFieldProps<string>>): Widget => ({
+  string: (field, props) => <Control {...props} value={field.value} />,
+});
+
+const selectWidget = (choices: (ctx: FormContext, value: string) => SelectChoices): Widget => ({
+  string: (field, props) => (
+    <EnumField {...props} {...choices(props.ctx, field.value)} value={field.value} forceSelect />
+  ),
+});
+
+const presetsWidget = (presets: Readonly<Record<string, number>>): Widget => ({
+  number: (field, props) => <PresetNumber {...props} value={field.value} presets={presets} />,
+});
 
 const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
-  action: { kind: "select", choices: actionChoices },
-  variable: { kind: "select", choices: variableChoices },
-  backdrop: { kind: "select", choices: backdropChoices },
-  code: { kind: "string", Field: CodeField },
-  asset: { kind: "string", Field: AssetField },
-  font: { kind: "string", Field: FontField },
-  sound: { kind: "string", Field: SoundField },
-  target: { kind: "string", Field: TargetField },
-  secret: { kind: "string", Field: SecretField },
-  timezone: { kind: "string", Field: TimezoneField },
-  keys: { kind: "string", Field: KeysField },
-  datetime: { kind: "string", Field: DatetimeField },
-  offsets: { kind: "string", Field: OffsetsField },
-  spot: { kind: "number", Field: SpotField },
-  quality: { kind: "presets", presets: QUALITY_PRESETS },
-  loudness: { kind: "presets", presets: LOUDNESS_PRESETS },
+  action: selectWidget(actionChoices),
+  variable: selectWidget(variableChoices),
+  backdrop: selectWidget(backdropChoices),
+  code: stringWidget(CodeField),
+  asset: stringWidget(AssetField),
+  font: stringWidget(FontField),
+  sound: stringWidget(SoundField),
+  target: stringWidget(TargetField),
+  secret: stringWidget(SecretField),
+  timezone: stringWidget(TimezoneField),
+  keys: stringWidget(KeysField),
+  datetime: stringWidget(DatetimeField),
+  offsets: stringWidget(OffsetsField),
+  spot: { number: (field, props) => <SpotField {...props} value={field.value} /> },
+  quality: presetsWidget(QUALITY_PRESETS),
+  loudness: presetsWidget(LOUDNESS_PRESETS),
+};
+
+export const widgetTakes = (widget: FieldWidget, kind: TypedField["kind"]): boolean => {
+  const entry = WIDGETS[widget];
+  return !entry || Object.hasOwn(entry, kind);
 };
 
 const COLLAPSING =
@@ -179,30 +201,9 @@ function FieldBody({ schema, props }: { schema: z.ZodType; props: ParamFieldProp
   const field = typedField(schema, props.value);
   if (!field) return <JsonField {...props} />;
   const widget = props.meta.widget ? WIDGETS[props.meta.widget] : undefined;
-  return (widget && widgetBody(widget, field, props)) ?? plainBody(field, props);
-}
-
-function widgetBody(
-  widget: Widget,
-  field: TypedField,
-  props: ParamFieldProps<unknown>,
-): ReactNode | null {
-  if (widget.kind === "presets" && field.kind === "number")
-    return <PresetNumber {...props} value={field.value} presets={widget.presets} />;
-  if (widget.kind === "number" && field.kind === "number")
-    return <widget.Field {...props} value={field.value} min={field.min} max={field.max} />;
-  if (widget.kind === "select" && field.kind === "string")
-    return (
-      <EnumField
-        {...props}
-        {...widget.choices(props.ctx, field.value)}
-        value={field.value}
-        forceSelect
-      />
-    );
-  if (widget.kind === "string" && field.kind === "string")
-    return <widget.Field {...props} value={field.value} />;
-  return null;
+  if (widget && field.kind === "string" && "string" in widget) return widget.string(field, props);
+  if (widget && field.kind === "number" && "number" in widget) return widget.number(field, props);
+  return plainBody(field, props);
 }
 
 function plainBody(field: TypedField, props: ParamFieldProps<unknown>): ReactNode {

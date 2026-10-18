@@ -1,10 +1,10 @@
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { toPosixRel } from "../../engine/project-paths";
-import { errorMessage } from "../../shared/errors";
 import { artifactName, type Artifact } from "../../shared/schema/values";
 import { frameGrabArgs } from "../media/codecs";
 import type { FfmpegTools } from "../media/ffmpeg";
+import { warnFailed } from "./context";
 
 const POSTER_WIDTH = 480;
 const POSTER_QUALITY = 4;
@@ -14,7 +14,7 @@ export async function decorateArtifacts(
   nodeDir: string,
   ffmpeg: FfmpegTools,
   artifacts: Artifact[],
-  warn: (message: string) => void,
+  log: (level: "warn", message: string) => void,
 ): Promise<Artifact[]> {
   return Promise.all(
     artifacts.map(async (artifact, i) => {
@@ -22,7 +22,7 @@ export async function decorateArtifacts(
       const size = await stat(file).then(
         (s) => s.size,
         (error: unknown) => {
-          warn(`Couldn't read ${artifactName(artifact)}: ${errorMessage(error)}`);
+          warnFailed(log, `Couldn't read ${artifactName(artifact)}`, error);
           return undefined;
         },
       );
@@ -41,7 +41,7 @@ export async function decorateArtifacts(
         );
         return { ...withSize, poster: toPosixRel(projectDir, poster) };
       } catch (error) {
-        warn(`Couldn't make a poster frame for ${artifactName(artifact)}: ${errorMessage(error)}`);
+        warnFailed(log, `Couldn't make a poster frame for ${artifactName(artifact)}`, error);
         return withSize;
       }
     }),

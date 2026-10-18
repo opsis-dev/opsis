@@ -12,7 +12,7 @@ import {
 } from "@/renderer/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/renderer/components/ui/popover";
 import { useBusy } from "@/renderer/lib/use-busy";
-import { familyKey, familyKeysWithBundled, sameFamily } from "@/shared/fonts";
+import { familyKey, familyKeysOf, familyKeysWithBundled, sameFamily } from "@/shared/fonts";
 import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
 import type { FontFamilyDef } from "@/shared/fonts/types";
 import { useWorkflowStore } from "../store/workflow";
@@ -41,9 +41,6 @@ function FontCommandItem({
     </CommandItem>
   );
 }
-
-const familyKeysOf = (defs: readonly FontFamilyDef[]): ReadonlySet<string> =>
-  new Set(defs.map((d) => familyKey(d.family)));
 
 const without = (defs: FontFamilyDef[], keys: ReadonlySet<string>): FontFamilyDef[] =>
   defs.filter((d) => !keys.has(familyKey(d.family)));

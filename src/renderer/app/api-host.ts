@@ -1,8 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { create } from "zustand";
-import type { ApiEditorReply, ApiEditorRequest } from "@/shared/api/types";
+import {
+  API_OPEN_TIMEOUT_MS,
+  type ApiEditorReply,
+  type ApiEditorRequest,
+} from "@/shared/api/types";
 import { NO_PROJECT } from "@/shared/errors";
+import { whenReady } from "@/shared/timing";
 import { useWorkflowStore } from "../store/workflow";
 import { openEditor } from "./open-project";
 
@@ -17,31 +22,22 @@ export function setEditorApi(handler: Handler): () => void {
   };
 }
 
-const OPEN_TIMEOUT_MS = 15_000;
-
 function editorWithProject(dir: string): Handler | null {
   const { projectDir, workflow } = useWorkflowStore.getState();
   return projectDir === dir && workflow ? useEditorApi.getState().handler : null;
 }
 
-function waitForEditor(dir: string): Promise<Handler | null> {
-  return new Promise((resolve) => {
-    const finish = (handler: Handler | null) => {
-      clearTimeout(timer);
-      offWorkflow();
-      offEditor();
-      resolve(handler);
-    };
-    const check = () => {
-      const handler = editorWithProject(dir);
-      if (handler) finish(handler);
-    };
-    const timer = setTimeout(() => finish(null), OPEN_TIMEOUT_MS);
-    const offWorkflow = useWorkflowStore.subscribe(check);
-    const offEditor = useEditorApi.subscribe(check);
-    check();
-  });
+function onEditorChange(onChange: () => void): () => void {
+  const offWorkflow = useWorkflowStore.subscribe(onChange);
+  const offEditor = useEditorApi.subscribe(onChange);
+  return () => {
+    offWorkflow();
+    offEditor();
+  };
 }
+
+const waitForEditor = (dir: string): Promise<Handler | null> =>
+  whenReady(() => editorWithProject(dir), onEditorChange, API_OPEN_TIMEOUT_MS);
 
 export function useApiHost(): void {
   const navigate = useNavigate();

@@ -36,6 +36,15 @@ export function parseJsonWith<T>(
   return json.ok ? schema.safeParse(json.value) : null;
 }
 
+export function parseOrDefault<S extends z.ZodType>(
+  schema: S,
+  value: unknown,
+  empty?: unknown,
+): z.output<S> {
+  const parsed = schema.safeParse(value);
+  return parsed.success ? parsed.data : schema.parse(empty);
+}
+
 export const isString = (v: unknown): v is string => typeof v === "string";
 
 export const nonBlankString = (v: unknown): string | undefined =>

@@ -1,11 +1,10 @@
-import { humanize } from "./format";
 import { nonBlankString } from "./guards";
 import { byCodeUnit, findById } from "./lists";
 import { sessionNode } from "./nodes/browser";
 import { loginOnceNode } from "./nodes/capture";
 import type { PortSpec } from "./nodes/define";
 import { parseParams } from "./nodes/params";
-import { canConnect, SESSION_PORT } from "./nodes/ports";
+import { canConnect, portLabel, SESSION_PORT } from "./nodes/ports";
 import { getNodeDef, isOutputType, nodeName } from "./nodes/registry";
 import { GROUP_TYPE, NOTE_TYPE } from "./nodes/utility";
 import {
@@ -228,7 +227,7 @@ function portIssues(
   const issues: GraphIssue[] = [];
   for (const [portId, spec] of Object.entries(inputs)) {
     const edges = wf.edges.filter((e) => e.target === node.id && e.targetHandle === portId);
-    const name = spec.label ?? humanize(portId);
+    const name = portLabel(spec, "in");
     if (edges.length === 0 && !spec.optional)
       issues.push({ level: "warning", nodeId: node.id, message: `Connect something to “${name}”` });
     if (edges.length > 1 && !spec.many)

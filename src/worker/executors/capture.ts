@@ -27,7 +27,13 @@ import { elementOf } from "../capture/flow-types";
 import { resolveTarget } from "../capture/selectors";
 import type { TakeOptions } from "../capture/take-run";
 import { SignInExpiredError } from "../capture/take-steps";
-import { defineExecutor, TracedError, type ExecutorContext } from "../engine/context";
+import {
+  defineExecutor,
+  TRACE_NOT_SAVED,
+  TracedError,
+  warnFailed,
+  type ExecutorContext,
+} from "../engine/context";
 import { h264Args } from "../media/codecs";
 import { projectFileRef, rel } from "./util";
 
@@ -111,7 +117,7 @@ async function saveTrace(
     groups,
   });
   const kept = await applyRetention(ctx.projectDir, ctx.env.settings.traces).catch((e: unknown) => {
-    ctx.log("warn", `Couldn't remove old traces: ${errorMessage(e)}`);
+    warnFailed(ctx.log, "Couldn't remove old traces", e);
     return new Set([manifest.id]);
   });
   return kept.has(manifest.id) ? manifest.id : undefined;
@@ -132,7 +138,7 @@ async function addFrames(ctx: ExecutorContext, file: string, encoder: FrameEncod
       if (!frames.added)
         ctx.log("info", `Screenshots weren't added to the trace: ${frames.reason}.`);
     },
-    (e: unknown) => ctx.log("warn", `Couldn't add screenshots to the trace: ${errorMessage(e)}`),
+    (e: unknown) => warnFailed(ctx.log, "Couldn't add screenshots to the trace", e),
   );
 }
 
@@ -146,7 +152,7 @@ async function finalizeTrace(
     if (trace.path && encoder) await addFrames(ctx, trace.path, encoder);
     return await saveTrace(ctx, trace.path, ok, trace.groups);
   } catch (error) {
-    ctx.log("warn", `Couldn't save the trace: ${errorMessage(error)}`);
+    warnFailed(ctx.log, TRACE_NOT_SAVED, error);
     return undefined;
   }
 }
@@ -224,7 +230,7 @@ async function makePreviewCopy(
     return name;
   } catch (error) {
     if (ctx.signal.aborted) throw error;
-    ctx.log("warn", `Couldn't make the preview copy: ${errorMessage(error)}`);
+    warnFailed(ctx.log, "Couldn't make the preview copy", error);
     return null;
   }
 }

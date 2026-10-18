@@ -1,5 +1,6 @@
 import { useRef, useState, type PointerEvent } from "react";
-import { capturePrimaryPointer, fractionIn } from "@/renderer/lib/dom";
+import { fractionIn } from "@/renderer/lib/dom";
+import { usePointerDrag } from "@/renderer/lib/use-pointer-drag";
 import { clamp, round3 } from "@/shared/math";
 import type { Bounds } from "@/shared/schema/actions";
 
@@ -21,43 +22,56 @@ const moved = (d: Drag, x: number, y: number): Bounds => ({
   y: round3(clamp(d.origin.y + y - d.y, 0, 1 - d.origin.height)),
 });
 
-export function useBoxDrag(boxes: Bounds[], onChange: (boxes: Bounds[]) => void) {
+const BOX_INDEX = "data-box-index";
+
+export const boxHandle = (index: number) => ({ [BOX_INDEX]: index });
+
+function grabbedBox(e: PointerEvent): number | null {
+  const handle = e.target instanceof Element ? e.target.closest(`[${BOX_INDEX}]`) : null;
+  return handle ? Number(handle.getAttribute(BOX_INDEX)) : null;
+}
+
+export function useBoxDrag(boxes: Bounds[], onChange: (boxes: Bounds[]) => void, canAdd: boolean) {
   const area = useRef<HTMLDivElement>(null);
-  const drag = useRef<Drag | null>(null);
   const [draft, setDraft] = useState<Drag | null>(null);
 
   const pointIn = (e: PointerEvent) => {
     const r = area.current?.getBoundingClientRect();
     return r ? fractionIn(r, e.clientX, e.clientY) : null;
   };
-  const setDrag = (d: Drag | null) => {
-    drag.current = d;
-    setDraft(d);
-  };
-  const start = (e: PointerEvent, target: DragTarget) => {
+  const begin = (e: PointerEvent): Drag | null => {
     const at = pointIn(e);
-    if (!at || !capturePrimaryPointer(e)) return;
+    const index = grabbedBox(e);
+    if (!at) return null;
+    const target: DragTarget | null =
+      index !== null ? { mode: "move", index } : canAdd ? { mode: "new" } : null;
     const origin =
-      target.mode === "move" ? boxes.at(target.index) : boxFrom(at.x, at.y, at.x, at.y);
-    if (!origin) return;
-    setDrag({ ...target, x: at.x, y: at.y, origin, box: origin });
+      target?.mode === "move" ? boxes.at(target.index) : boxFrom(at.x, at.y, at.x, at.y);
+    return target && origin ? { ...target, x: at.x, y: at.y, origin, box: origin } : null;
   };
-  const move = (e: PointerEvent) => {
-    const d = drag.current;
-    const at = pointIn(e);
-    if (!d || !at) return;
-    setDrag({
-      ...d,
-      box: d.mode === "new" ? boxFrom(d.x, d.y, at.x, at.y) : moved(d, at.x, at.y),
-    });
-  };
-  const end = () => {
-    const d = drag.current;
-    setDrag(null);
-    if (!d) return;
-    if (d.mode === "move") onChange(boxes.map((b, i) => (i === d.index ? d.box : b)));
-    else if (d.box.width > MIN_SIDE && d.box.height > MIN_SIDE) onChange([...boxes, d.box]);
-  };
+  const frame = usePointerDrag<HTMLDivElement, { drag: Drag | null }>({
+    start: (e) => {
+      const drag = begin(e);
+      setDraft(drag);
+      return { drag };
+    },
+    move: (e, live) => {
+      const d = live.drag;
+      const at = pointIn(e);
+      if (!d || !at) return;
+      live.drag = {
+        ...d,
+        box: d.mode === "new" ? boxFrom(d.x, d.y, at.x, at.y) : moved(d, at.x, at.y),
+      };
+      setDraft(live.drag);
+    },
+    end: ({ drag: d }) => {
+      setDraft(null);
+      if (!d) return;
+      if (d.mode === "move") onChange(boxes.map((b, i) => (i === d.index ? d.box : b)));
+      else if (d.box.width > MIN_SIDE && d.box.height > MIN_SIDE) onChange([...boxes, d.box]);
+    },
+  });
   const shown = boxes.map((b, i) => (draft?.mode === "move" && draft.index === i ? draft.box : b));
-  return { area, draft, shown, start, move, end };
+  return { area, draft, shown, frame };
 }

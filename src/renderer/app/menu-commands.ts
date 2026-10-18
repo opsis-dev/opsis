@@ -1,21 +1,28 @@
+import { create } from "zustand";
 import { listenerSet } from "@/shared/listener-set";
 import type { MenuCommand } from "@/shared/menu";
 
 type Listener = (command: MenuCommand) => void;
 
-export const PROJECT_ACTIONS = ["new", "open"] as const;
+export type ProjectAction = "new" | "open";
 
-export type ProjectAction = (typeof PROJECT_ACTIONS)[number];
-
-const actionCommand = (action: ProjectAction): MenuCommand => `project:${action}`;
+const PROJECT_COMMANDS: Partial<Record<MenuCommand, ProjectAction>> = {
+  "project:new": "new",
+  "project:open": "open",
+};
 
 export const projectActionOf = (command: MenuCommand): ProjectAction | undefined =>
-  PROJECT_ACTIONS.find((action) => actionCommand(action) === command);
+  PROJECT_COMMANDS[command];
 
-export const PROJECT_SWITCH_COMMANDS: ReadonlySet<MenuCommand> = new Set([
+export const PROJECT_SWITCH_COMMANDS: ReadonlySet<MenuCommand> = new Set<MenuCommand>([
   "view:projects",
-  ...PROJECT_ACTIONS.map(actionCommand),
+  "project:new",
+  "project:open",
 ]);
+
+export const usePendingProjectAction = create<{ pending: ProjectAction | null }>()(() => ({
+  pending: null,
+}));
 
 const commands = listenerSet<[MenuCommand]>();
 let followingMenu = false;

@@ -22,3 +22,18 @@ export function capturePrimaryPointer(e: ReactPointerEvent<Element>): boolean {
   e.currentTarget.setPointerCapture(e.pointerId);
   return true;
 }
+
+export type ThresholdDrag = { started: boolean };
+
+export function startOnceMoved(d: ThresholdDrag, distance: number, begin: () => void): boolean {
+  if (d.started) return true;
+  if (distance < DRAG_START_PX) return false;
+  d.started = true;
+  begin();
+  return true;
+}
+
+export function endIfStarted(d: ThresholdDrag, end: () => void): boolean {
+  if (d.started) end();
+  return d.started;
+}

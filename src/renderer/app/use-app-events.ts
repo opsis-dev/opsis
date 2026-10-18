@@ -6,7 +6,7 @@ import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useStillsStore } from "../store/stills";
 import { useWorkflowStore } from "../store/workflow";
-import { onMenuCommand, projectActionOf } from "./menu-commands";
+import { onMenuCommand, projectActionOf, usePendingProjectAction } from "./menu-commands";
 
 export const isSecondaryWindow = (path: string): boolean =>
   path.startsWith("/panel/") || path.startsWith("/settings");
@@ -21,7 +21,10 @@ function useMenuNavigation(): void {
         const action = projectActionOf(command);
         if (command === "view:settings") void window.demoflow.openSettings();
         else if (command === "view:projects") void router.navigate({ to: "/" });
-        else if (action && path !== "/") void router.navigate({ to: "/", search: { action } });
+        else if (action) {
+          usePendingProjectAction.setState({ pending: action });
+          if (path !== "/") void router.navigate({ to: "/" });
+        }
       }),
     [router],
   );

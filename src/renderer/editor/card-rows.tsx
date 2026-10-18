@@ -12,8 +12,8 @@ import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
 import { NodeIcon } from "./node-icon";
+import { requireWorkflow } from "./require-workflow";
 import { useCompiledContext } from "./use-compiled";
-import { openWorkflow } from "./use-open-workflow";
 
 const TONE_CLASS: Record<NonNullable<CardRow["tone"]> | "plain", string> = {
   warn: "text-warning",
@@ -22,11 +22,11 @@ const TONE_CLASS: Record<NonNullable<CardRow["tone"]> | "plain", string> = {
 };
 
 function useCardInputs(node: WorkflowNode) {
-  const variables = useWorkflowStore((s) => openWorkflow(s).variables);
-  const name = useWorkflowStore((s) => openWorkflow(s).name);
-  const settings = useWorkflowStore((s) => openWorkflow(s).settings);
+  const variables = useWorkflowStore((s) => requireWorkflow(s).variables);
+  const name = useWorkflowStore((s) => requireWorkflow(s).name);
+  const settings = useWorkflowStore((s) => requireWorkflow(s).settings);
   const incoming = useWorkflowStore(
-    useShallow((s) => openWorkflow(s).edges.filter((e) => e.target === node.id)),
+    useShallow((s) => requireWorkflow(s).edges.filter((e) => e.target === node.id)),
   );
   const result = useRunStore((s) => s.results[node.id]);
   const secrets = useSecretsStore((s) => s.names);
@@ -45,45 +45,21 @@ function useCardInputs(node: WorkflowNode) {
     }
     return { inputFrames: frames, inputItems: items };
   }, [incoming, compiled]);
-  return {
-    variables,
-    name,
-    settings,
-    result,
-    secrets,
-    connected,
-    clipFrames,
-    inputFrames,
-    inputItems,
-  };
+  return useMemo(
+    () => ({
+      vars: workflowVars({ name, variables }),
+      context: { settings, result, secrets, connected, clipFrames, inputFrames, inputItems },
+    }),
+    [name, variables, settings, result, secrets, connected, clipFrames, inputFrames, inputItems],
+  );
 }
 
 export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
-  const {
-    variables,
-    name,
-    settings,
-    result,
-    secrets,
-    connected,
-    clipFrames,
-    inputFrames,
-    inputItems,
-  } = useCardInputs(node);
+  const { vars, context } = useCardInputs(node);
   return useMemo(() => {
     if (!def.card) return [];
-    const params = interpolatedParams(def, node.params, workflowVars({ name, variables }));
     try {
-      return cardRows(def, {
-        params,
-        settings,
-        result,
-        secrets,
-        connected,
-        clipFrames,
-        inputFrames,
-        inputItems,
-      });
+      return cardRows(def, { ...context, params: interpolatedParams(def, node.params, vars) });
     } catch (error) {
       return [
         {
@@ -94,19 +70,7 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
         },
       ];
     }
-  }, [
-    def,
-    node.params,
-    variables,
-    name,
-    settings,
-    result,
-    secrets,
-    connected,
-    clipFrames,
-    inputFrames,
-    inputItems,
-  ]);
+  }, [def, node.params, vars, context]);
 }
 
 export function CardRows({ rows }: { rows: CardRow[] }) {

@@ -49,6 +49,9 @@ export function formatPreciseDuration(ms: number): string {
   return s >= SECONDS_PER_MINUTE ? minutesAndSeconds(s) : `${s} s`;
 }
 
+export const pascalCase = (key: string): string =>
+  key.replace(/(^|[-_])([a-z0-9])/g, (_match, _sep, c: string) => c.toUpperCase());
+
 export function humanize(key: string): string {
   const text = key
     .replace(/[_-]+/g, " ")

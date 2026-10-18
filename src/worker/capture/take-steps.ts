@@ -1,7 +1,6 @@
 import path from "node:path";
 import type { z } from "zod";
 import { pressedChord } from "../../shared/chord";
-import { errorMessage } from "../../shared/errors";
 import {
   assertNode,
   chapterNode,
@@ -29,6 +28,7 @@ import type { Action } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { nonBlankLines } from "../../shared/text-input";
 import { PAUSE_MARK } from "../../shared/vars";
+import { warnFailed } from "../engine/context";
 import { parsePath } from "./drag-path";
 import { landedOnSignIn } from "./driver-helpers";
 import { elementOf, type DragTo } from "./flow-types";
@@ -278,9 +278,10 @@ const STEPS = new Map<string, StepSpec>([
       await take.page
         .evaluate(addStyles, css)
         .catch((error: unknown) =>
-          take.opts.log(
-            "warn",
-            `Couldn't hide the elements on the current page, only on the next ones: ${errorMessage(error)}`,
+          warnFailed(
+            take.opts.log,
+            "Couldn't hide the elements on the current page, only on the next ones",
+            error,
           ),
         );
     },

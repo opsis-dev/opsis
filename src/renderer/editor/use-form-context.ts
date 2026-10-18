@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
-import { reportError } from "@/renderer/lib/toast";
+import { attempt } from "@/renderer/lib/toast";
 import { workflowVars } from "@/shared/compile/compile";
 import { hasWidget, targetRoleKey } from "@/shared/elements/introspect";
 import { errorMessage } from "@/shared/errors";
@@ -66,26 +66,34 @@ function viewportOf(chain: WorkflowNode[]): PickerPage["viewport"] {
     : undefined;
 }
 
-function pickerPage(wf: Workflow, nodeId: string): PickerPage | { problem: string } {
-  const { chain, problem } = captureChain(wf, nodeId);
+function pageUrlBefore(chain: WorkflowNode[], nodeId: string, wf: Workflow): string | undefined {
   const idx = chain.findIndex((n) => n.id === nodeId);
   const before = idx >= 0 ? chain.slice(0, idx + 1) : chain;
   const nav = before.findLast((n) => n.type === navigateNode.type);
-  const url =
-    (nav && navigateUrl.safeParse(nav.params).data?.url) ?? wf.variables[SITE_ADDRESS_VAR];
-  if (!url) return { problem: problem ?? NO_PAGE };
+  const navUrl = nav ? navigateUrl.safeParse(nav.params).data?.url : undefined;
+  return navUrl ?? wf.variables[SITE_ADDRESS_VAR];
+}
+
+type PageResult = { ok: true; page: PickerPage } | { ok: false; problem: string };
+
+function pickerPage(wf: Workflow, nodeId: string): PageResult {
+  const { chain, problem } = captureChain(wf, nodeId);
+  const url = pageUrlBefore(chain, nodeId, wf);
+  if (!url) return { ok: false, problem: problem ?? NO_PAGE };
   const viewport = viewportOf(chain);
-  return { url: interpolate(url, workflowVars(wf)), ...(viewport ? { viewport } : {}) };
+  const page = { url: interpolate(url, workflowVars(wf)), ...(viewport ? { viewport } : {}) };
+  return { ok: true, page };
 }
 
 async function pickTarget(wf: Workflow, nodeId: string, key: string) {
-  const page = pickerPage(wf, nodeId);
-  if ("problem" in page) {
-    toast.error(page.problem);
+  const found = pickerPage(wf, nodeId);
+  if (!found.ok) {
+    toast.error(found.problem);
     return;
   }
+  const { page } = found;
   toast.info("A browser window opened. Click the element, or Shift-click a spot.");
-  try {
+  await attempt(async () => {
     const picked = await window.demoflow.pickElement(page);
     if (!picked) return;
     useWorkflowStore.getState().updateParams(nodeId, {
@@ -93,9 +101,7 @@ async function pickTarget(wf: Workflow, nodeId: string, key: string) {
       [targetRoleKey(key)]: picked.role || undefined,
     });
     toast.success(`Picked “${picked.target}”`);
-  } catch (e) {
-    reportError("Couldn't pick the element", e);
-  }
+  }, "Couldn't pick the element");
 }
 
 async function chooseAsset(projectDir: string | null, nodeId: string, key: string) {

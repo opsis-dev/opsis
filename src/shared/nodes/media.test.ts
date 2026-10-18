@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { MediaValue } from "../schema/values";
-import { compileNode } from "../test-fixtures";
+import { compileClip } from "../test-fixtures";
 
 const media = (kind: MediaValue["kind"], src: string): MediaValue => ({ type: "media", src, kind });
 
 const itemOf = (type: string, params: Record<string, unknown>, inputs = {}) => {
-  const clip = compileNode(type, params, inputs).clip;
-  if (clip?.type !== "clip") throw new Error(`no clip from ${type}`);
+  const clip = compileClip(type, params, inputs);
   return { item: clip.tracks[0].items[0], frames: clip.durationInFrames };
 };
 

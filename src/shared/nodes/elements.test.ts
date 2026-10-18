@@ -1,18 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { emptyClip, groupOf } from "../compile/clip";
-import { compileNode, must, nodeCard } from "../test-fixtures";
+import { compileClip, must, nodeCard } from "../test-fixtures";
 
 const SPRING_SETTLE = "fx.remocn.spring-settle";
 
-function compiledClip(type: string, params: Record<string, unknown>, inputs = {}) {
-  const clip = compileNode(type, params, inputs).clip;
-  if (clip?.type !== "clip") throw new Error(`no clip from ${type}`);
-  return clip;
-}
-
 describe("Spring settle", () => {
   it("plays the connected clips as scenes with its settings, pause and scene colours", () => {
-    const clip = compiledClip(
+    const clip = compileClip(
       SPRING_SETTLE,
       { gapFrames: 4, enterScale: 1.3, backgrounds: [{ scene: "in3", color: "#112233" }] },
       { in1: emptyClip(30), in3: emptyClip(20) },

@@ -23,6 +23,7 @@ import {
   type ApiRunState,
 } from "../shared/api/types";
 import { errorMessage } from "../shared/errors";
+import { tryParseJson } from "../shared/guards";
 import { WORKFLOW_FILE } from "../shared/schema/workflow";
 import { askEditor, followRunEvents, readEditorProject } from "./api-editor";
 
@@ -69,11 +70,9 @@ async function readBody(req: IncomingMessage, required: boolean): Promise<unknow
     if (required) throw new BadRequest("This request needs a JSON body.");
     return {};
   }
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new BadRequest("The request body isn't valid JSON.");
-  }
+  const json = tryParseJson(text);
+  if (!json.ok) throw new BadRequest("The request body isn't valid JSON.");
+  return json.value;
 }
 
 async function parseBody<T>(

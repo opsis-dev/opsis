@@ -7,6 +7,7 @@ import { SRC_ALIAS } from "./scripts/lib/tool-config.ts";
 import {
   googleFontModuleFile,
   GOOGLE_FONT_IMPORT,
+  GOOGLE_SHIM_SEGMENTS,
 } from "./src/shared/fonts/google-font-imports.ts";
 
 const localFonts = (): Plugin => ({
@@ -15,7 +16,7 @@ const localFonts = (): Plugin => ({
   resolveId(id) {
     const name = GOOGLE_FONT_IMPORT.exec(id)?.[1];
     return name
-      ? path.resolve(import.meta.dirname, "src/video/fonts/google", googleFontModuleFile(name))
+      ? path.resolve(import.meta.dirname, ...GOOGLE_SHIM_SEGMENTS, googleFontModuleFile(name))
       : null;
   },
 });

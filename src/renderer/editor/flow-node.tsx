@@ -9,7 +9,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { memo } from "react";
-import type { z } from "zod";
 import {
   BaseNode,
   BaseNodeContent,
@@ -23,7 +22,9 @@ import { Badge } from "@/renderer/components/ui/badge";
 import { Progress } from "@/renderer/components/ui/progress";
 import { cn } from "@/renderer/lib/utils";
 import { wholePercent } from "@/shared/format";
+import { parseOrDefault } from "@/shared/guards";
 import type { NodeDef, PortSpec } from "@/shared/nodes/define";
+import { portLabel } from "@/shared/nodes/ports";
 import { getNodeDef, nodeName } from "@/shared/nodes/registry";
 import { CARD_WIDTH } from "@/shared/nodes/size";
 import { groupParams, noteParams } from "@/shared/nodes/utility";
@@ -37,7 +38,7 @@ import { NodeBadge } from "./category-badge";
 import type { CanvasNode } from "./convert";
 import { GLYPH_HOST } from "./node-glyph";
 import { NodeThumbnail } from "./node-still";
-import { portLabel, portTypeColor } from "./ports";
+import { portTypeColor } from "./ports";
 import { useNodeProblems } from "./use-node-problems";
 
 type StatusBadge = {
@@ -72,11 +73,6 @@ const FOOTERS = {
   error: { className: "text-destructive text-xs", clamp: "line-clamp-3" },
   warning: { className: "text-muted-foreground text-[11px]", clamp: "line-clamp-2" },
 };
-
-function paramsOf<S extends z.ZodObject>(schema: S, params: unknown): z.infer<S> {
-  const parsed = schema.safeParse(params);
-  return parsed.success ? parsed.data : schema.parse({});
-}
 
 export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<CanvasNode>) {
   const def = getNodeDef(data.node.type);
@@ -203,7 +199,7 @@ export const GroupFlowNode = memo(function GroupFlowNode({
   data,
   selected,
 }: NodeProps<CanvasNode>) {
-  const { title, color } = paramsOf(groupParams, data.node.params);
+  const { title, color } = parseOrDefault(groupParams, data.node.params, {});
   const setMeta = useWorkflowStore((s) => s.setNodeMeta);
   return (
     <>
@@ -239,7 +235,7 @@ export const NoteFlowNode = memo(function NoteFlowNode({ data }: NodeProps<Canva
       className="rounded-lg border border-amber-300/40 bg-amber-200/10 p-3 text-xs leading-relaxed whitespace-pre-wrap text-amber-100"
       style={{ width: CARD_WIDTH }}
     >
-      {paramsOf(noteParams, data.node.params).text}
+      {parseOrDefault(noteParams, data.node.params, {}).text}
     </div>
   );
 });

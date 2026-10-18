@@ -23,10 +23,10 @@ import type { CanvasNode, FlowNodeType } from "./convert";
 import { FlowNode, GroupFlowNode, NoteFlowNode } from "./flow-node";
 import { MAX_ZOOM, MIN_ZOOM } from "./pinch";
 import { categoryColor } from "./ports";
+import { useRequiredWorkflow } from "./require-workflow";
 import { useCanvasDrop } from "./use-canvas-drop";
 import { useClipboardShortcuts } from "./use-clipboard-shortcuts";
 import { useFlowEdges, useFlowNodes } from "./use-flow-elements";
-import { useOpenWorkflow } from "./use-open-workflow";
 import { usePinchZoom } from "./use-pinch-zoom";
 import { useRevealNode } from "./use-reveal-node";
 
@@ -75,7 +75,7 @@ const deleteEdges = (deleted: Edge[]) =>
 const clearSelection = () => useUiStore.getState().setSelected([]);
 
 export function Canvas({ projectDir }: { projectDir: string }) {
-  const workflow = useOpenWorkflow();
+  const workflow = useRequiredWorkflow();
   const mode = useAppSettings(
     (s) => s.settings?.editor.canvasMode ?? DEFAULT_SETTINGS.editor.canvasMode,
   );

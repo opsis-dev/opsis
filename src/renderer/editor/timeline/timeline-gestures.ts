@@ -1,4 +1,4 @@
-import { DRAG_START_PX } from "@/renderer/lib/dom";
+import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/renderer/lib/dom";
 import { MAX_VOLUME } from "@/shared/limits";
 import { clamp, round3 } from "@/shared/math";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
@@ -46,20 +46,11 @@ export type GestureEnv = {
   snapTargets: (exclude: string | null) => SnapTarget[];
 };
 
-type Gesture = { started: boolean };
+const startEditOnceMoved = (d: ThresholdDrag, distance: number): boolean =>
+  startOnceMoved(d, distance, () => useWorkflowStore.getState().beginGesture());
 
-function startGestureIfMoved(d: Gesture, distance: number): boolean {
-  if (d.started) return true;
-  if (distance < DRAG_START_PX) return false;
-  d.started = true;
-  useWorkflowStore.getState().beginGesture();
-  return true;
-}
-
-function endGesture(d: Gesture): boolean {
-  if (d.started) useWorkflowStore.getState().endGesture();
-  return d.started;
-}
+const endEdit = (d: ThresholdDrag): boolean =>
+  endIfStarted(d, () => useWorkflowStore.getState().endGesture());
 
 export function editGesture(
   env: GestureEnv,
@@ -81,7 +72,7 @@ export function editGesture(
   };
   return {
     move: (ev) => {
-      if (!startGestureIfMoved(d, Math.abs(ev.clientX - d.x0))) return;
+      if (!startEditOnceMoved(d, Math.abs(ev.clientX - d.x0))) return;
       const ctx = editContext(d.base, env.flat.fps, env.sourceNodeId, d.salt);
       const snap = {
         raw: (ev.clientX - d.x0) / env.ppf,
@@ -93,7 +84,7 @@ export function editGesture(
       applyEdit(result);
     },
     finish: () => {
-      if (endGesture(d) && d.last) reportEdit(d.last);
+      if (endEdit(d) && d.last) reportEdit(d.last);
     },
   };
 }
@@ -115,12 +106,12 @@ export function volumeGesture(
   };
   return {
     move: (ev) => {
-      if (!startGestureIfMoved(d, Math.abs(ev.clientY - d.y0))) return;
+      if (!startEditOnceMoved(d, Math.abs(ev.clientY - d.y0))) return;
       const v = d.v0 - ((ev.clientY - d.y0) / d.height) * MAX_VOLUME;
       const ctx = editContext(d.base, env.flat.fps, env.sourceNodeId, d.salt);
       applyEdit(setAudioVolume(ctx, d.bar, v));
     },
-    finish: () => endGesture(d),
+    finish: () => endEdit(d),
   };
 }
 
@@ -129,7 +120,7 @@ export function keyGesture(env: GestureEnv, e: React.PointerEvent, key: KeyStart
   return {
     move: (ev) => {
       const distance = Math.abs(ev.clientX - d.x0) + Math.abs(ev.clientY - d.y0);
-      if (!startGestureIfMoved(d, distance)) return;
+      if (!startEditOnceMoved(d, distance)) return;
       const { min, max } = ENVELOPE_INFO[d.prop];
       const frame = wholeFrames(d.toLocal(env.xToFrame(ev.clientX)));
       const dragged = envelopeShift(d.prop, ev.clientY - d.y0, d.height);
@@ -141,7 +132,7 @@ export function keyGesture(env: GestureEnv, e: React.PointerEvent, key: KeyStart
       );
     },
     finish: () => {
-      if (!endGesture(d)) selectNodes([d.nodeId], false, env.sourceNodeId);
+      if (!endEdit(d)) selectNodes([d.nodeId], false, env.sourceNodeId);
     },
   };
 }
@@ -156,7 +147,7 @@ export function markerGesture(env: GestureEnv, e: React.PointerEvent, marker: Ma
   };
   return {
     move: (ev) => {
-      if (!startGestureIfMoved(d, Math.abs(ev.clientX - d.x0))) return;
+      if (!startEditOnceMoved(d, Math.abs(ev.clientX - d.x0))) return;
       let f = d.from + (ev.clientX - d.x0) / env.ppf;
       if (env.snapOn(ev.altKey)) {
         const targets = env.snapTargets(null).filter((t) => t.kind !== "marker");
@@ -165,7 +156,7 @@ export function markerGesture(env: GestureEnv, e: React.PointerEvent, marker: Ma
       patchMarker(d.id, { atMs: Math.max(0, framesToMs(f, fps)) });
     },
     finish: () => {
-      if (!endGesture(d)) useTimeline.getState().selectMarker(d.id);
+      if (!endEdit(d)) useTimeline.getState().selectMarker(d.id);
     },
   };
 }

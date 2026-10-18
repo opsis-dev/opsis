@@ -1,3 +1,4 @@
+import { uniqueKeys } from "@/shared/lists";
 import { round3 } from "@/shared/math";
 import { ENVELOPE_LABELS, type EnvelopeKey, type Keyframe } from "@/shared/schema/timeline";
 import { samplePoints } from "@/shared/timeline/envelope";
@@ -30,15 +31,6 @@ function envelopeLine({ keys, width, rest, toX, y }: LineShape): string {
     ...samples.map((p) => `${toX(p.frame)},${y(p.value)}`),
     `${width},${y(last)}`,
   ].join(" ");
-}
-
-function keyIds(keys: Keyframe[]): string[] {
-  const seen = new Map<number, number>();
-  return keys.map((k) => {
-    const n = seen.get(k.frame) ?? 0;
-    seen.set(k.frame, n + 1);
-    return n ? `${k.frame}#${n}` : String(k.frame);
-  });
 }
 
 const onKeyframe = (e: React.PointerEvent) =>
@@ -92,7 +84,7 @@ export function EnvelopeOverlay({
   const { rest } = ENVELOPE_INFO[prop];
   const label = ENVELOPE_LABELS[prop];
   const y = (v: number) => envelopeY(prop, v, height);
-  const ids = keyIds(keys);
+  const ids = uniqueKeys(keys.map((k) => String(k.frame)));
   const remove = (index: number) =>
     setEnvelopeKeys(
       nodeId,

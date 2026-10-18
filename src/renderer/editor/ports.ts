@@ -1,8 +1,7 @@
-import { humanize } from "@/shared/format";
-import type { NodeCategory, PortSpec } from "@/shared/nodes/define";
+import type { NodeCategory } from "@/shared/nodes/define";
 import type { NodeIconName } from "@/shared/nodes/icon-name";
 import { getNodeDef } from "@/shared/nodes/registry";
-import { PORT_WORDS, type PortType } from "@/shared/schema/workflow";
+import type { PortType } from "@/shared/schema/workflow";
 
 const NEUTRAL_COLOR = "#71717a";
 
@@ -45,17 +44,4 @@ export function portTypeColor(type: PortType | undefined): string {
 export function categoryColor(nodeType: string): string {
   const category = getNodeDef(nodeType)?.category;
   return category ? CATEGORY_STYLES[category].color : NEUTRAL_COLOR;
-}
-
-function portTypeLabel(type: PortType, side: "in" | "out"): string {
-  if (type === "session") return side === "in" ? "Previous" : "Next";
-  return humanize(PORT_WORDS[type]);
-}
-
-export function portLabel(spec: { type: PortType; label?: string }, side: "in" | "out"): string {
-  return spec.label ?? portTypeLabel(spec.type, side);
-}
-
-export function portLabels(ports: Record<string, PortSpec>, side: "in" | "out"): string[] {
-  return Object.values(ports).map((p) => portLabel(p, side));
 }

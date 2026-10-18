@@ -44,7 +44,7 @@ function notify(): void {
 export const panelWindow = (panel: DockPanelName) => liveWindow(windows.get(panel));
 
 export const panelWindows = (): BrowserWindow[] =>
-  [...windows.values()].filter((w) => !w.isDestroyed());
+  [...windows.values()].map(liveWindow).filter((w) => w !== null);
 
 export const isPanelSender = (id: number) => panelWindows().some((w) => w.webContents.id === id);
 

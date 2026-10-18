@@ -1,7 +1,6 @@
 import { audioKind, channelOf } from "../audio";
-import { itemHasSound, mapItems, soundNodeId, walkItems } from "../compile/clip";
+import { itemHasSound, mapItems, soundNodeId, videoOf, walkItems } from "../compile/clip";
 import { findById } from "../lists";
-import { numberOr } from "../math";
 import type { AudioItem, TimelineSpec } from "../schema/timeline";
 import { msToExactFrames, msToFrames } from "../timeline/time";
 import {
@@ -138,7 +137,7 @@ export function applyMixLevels(spec: TimelineSpec, mixIn: Mix | undefined): Time
     const id = soundNodeId(item);
     if (!id) return item;
     const gain = channelGain(mix, audible, id, "clip");
-    const volume = numberOr(item.props.volume, 1);
+    const volume = videoOf(item)?.volume ?? 1;
     return {
       ...item,
       props: { ...item.props, volume: volume * gain, ...(gain === 0 ? { muted: true } : {}) },

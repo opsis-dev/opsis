@@ -1,5 +1,6 @@
+import { humanize } from "../format";
 import type { ClipValue } from "../schema/values";
-import type { PortType } from "../schema/workflow";
+import { PORT_WORDS, type PortType } from "../schema/workflow";
 import { clipInput, opt, type CompileInputs, type PortSpec } from "./define";
 
 const ACCEPTS: Record<PortType, PortType[]> = {
@@ -17,6 +18,21 @@ const ACCEPTS: Record<PortType, PortType[]> = {
 
 export function canConnect(source: PortType, target: PortType): boolean {
   return ACCEPTS[target].includes(source);
+}
+
+export type PortSide = "in" | "out";
+
+function portTypeLabel(type: PortType, side: PortSide): string {
+  if (type === "session") return side === "in" ? "Previous" : "Next";
+  return humanize(PORT_WORDS[type]);
+}
+
+export function portLabel(spec: { type: PortType; label?: string }, side: PortSide): string {
+  return spec.label ?? portTypeLabel(spec.type, side);
+}
+
+export function portLabels(ports: Record<string, PortSpec>, side: PortSide): string[] {
+  return Object.values(ports).map((p) => portLabel(p, side));
 }
 
 export const SESSION_PORT = "session";

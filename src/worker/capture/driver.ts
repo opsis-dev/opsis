@@ -5,6 +5,7 @@ import { parseNodeParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import type { ActionLog } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
+import { TRACE_NOT_SAVED, warnFailed } from "../engine/context";
 import { CURSOR_LOOK, installCursor } from "./page-scripts";
 import { SelectorError } from "./selectors";
 import { openSession, type OpenSession } from "./session";
@@ -62,7 +63,7 @@ async function stopTake(take: TakeRun, { failed }: { failed: boolean }): Promise
   if (opts.tracePath)
     await session.context.tracing
       .stop({ path: opts.tracePath })
-      .catch((e: unknown) => opts.log("warn", `Couldn't save the trace: ${errorMessage(e)}`));
+      .catch((e: unknown) => warnFailed(opts.log, TRACE_NOT_SAVED, e));
   return durationMs;
 }
 

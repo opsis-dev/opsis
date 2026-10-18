@@ -8,10 +8,10 @@ export const VERSION_UNCHOSEN =
 
 let saving: Promise<boolean> = Promise.resolve(true);
 
-export const whenSaved = (): Promise<boolean> => saving.catch(() => false);
+export const previousSave = (): Promise<boolean> => saving.catch(() => false);
 
 export function save(): Promise<boolean> {
-  saving = whenSaved().then(async () => {
+  saving = previousSave().then(async () => {
     const { projectDir, workflow, revision, fileVersion } = useWorkflowStore.getState();
     if (!projectDir || !workflow) return true;
     if (useDiskChange.getState().change) return false;

@@ -1,13 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { emptyClip, sceneItemCount } from "../compile/clip";
 import type { ClipValue } from "../schema/values";
-import { compileNode, nodeCard } from "../test-fixtures";
+import { compileClip, nodeCard } from "../test-fixtures";
 
-function compileOver(type: string, params: Record<string, unknown>): ClipValue {
-  const clip = compileNode(type, params, { clip: emptyClip(90) }).clip;
-  if (clip?.type !== "clip") throw new Error(`no clip from ${type}`);
-  return clip;
-}
+const compileOver = (type: string, params: Record<string, unknown>): ClipValue =>
+  compileClip(type, params, { clip: emptyClip(90) });
 
 const startOf = (clip: ClipValue) => clip.tracks[0].items[0].from;
 
@@ -62,14 +59,8 @@ describe("timeline node cards", () => {
 });
 
 describe("Layers", () => {
-  const stacked = (params: Record<string, unknown>) => {
-    const clip = compileNode("timeline.stack", params, {
-      in1: emptyClip(30),
-      in2: emptyClip(30),
-    }).clip;
-    if (clip?.type !== "clip") throw new Error("no clip from Layers");
-    return clip;
-  };
+  const stacked = (params: Record<string, unknown>) =>
+    compileClip("timeline.stack", params, { in1: emptyClip(30), in2: emptyClip(30) });
 
   it("marks its layers so a sequencer can land them one by one", () => {
     expect(sceneItemCount(stacked({}))).toBe(2);

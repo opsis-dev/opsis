@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { isEditingElement } from "@/renderer/lib/dom";
 import { platform } from "@/renderer/lib/platform";
-import { reportError } from "@/renderer/lib/toast";
+import { attempt, loadOrReport } from "@/renderer/lib/toast";
 import { tryParseJson } from "@/shared/guards";
 import { matchesAccelerator } from "@/shared/menu";
 import {
@@ -52,21 +52,18 @@ function readClipboard(text: string): Subgraph | "foreign" | "unreadable" {
 async function copySelection(): Promise<void> {
   const subgraph = selectedSubgraph();
   if (!subgraph) return;
-  try {
-    await navigator.clipboard.writeText(JSON.stringify({ tag: CLIPBOARD_TAG, ...subgraph }));
-  } catch (e) {
-    reportError("Couldn't copy the nodes", e);
-  }
+  await attempt(
+    () => navigator.clipboard.writeText(JSON.stringify({ tag: CLIPBOARD_TAG, ...subgraph })),
+    "Couldn't copy the nodes",
+  );
 }
 
 async function pasteClipboard(): Promise<void> {
-  let text: string;
-  try {
-    text = await navigator.clipboard.readText();
-  } catch (e) {
-    reportError("Couldn't read the clipboard", e);
-    return;
-  }
+  const text = await loadOrReport(
+    () => navigator.clipboard.readText(),
+    "Couldn't read the clipboard",
+  );
+  if (text === null) return;
   const pasted = readClipboard(text);
   if (pasted === "foreign") return;
   if (pasted === "unreadable") {

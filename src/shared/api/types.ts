@@ -10,6 +10,12 @@ import type {
   variablesBody,
 } from "./bodies";
 
+export const API_EDITOR_TIMEOUT_MS = 20_000;
+
+const OPEN_ANSWER_MARGIN_MS = 5_000;
+
+export const API_OPEN_TIMEOUT_MS = API_EDITOR_TIMEOUT_MS - OPEN_ANSWER_MARGIN_MS;
+
 export const apiProblemSchema = z.object({
   level: z.enum(["error", "warning"]),
   message: z.string(),

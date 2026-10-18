@@ -7,6 +7,7 @@ import {
   formatTimeAgo,
   formatWhen,
   humanize,
+  pascalCase,
   percent,
   percentText,
   plural,
@@ -41,6 +42,13 @@ describe("formatDuration", () => {
     expect(formatPreciseDuration(12)).toBe("0.012 s");
     expect(formatPreciseDuration(1500)).toBe("1.5 s");
     expect(formatPreciseDuration(61_234)).toBe("1 min 1.234 s");
+  });
+});
+
+describe("pascalCase", () => {
+  it("joins kebab and snake case words", () => {
+    expect(pascalCase("my_icon-x")).toBe("MyIconX");
+    expect(pascalCase("arrow-up-0-1")).toBe("ArrowUp01");
   });
 });
 

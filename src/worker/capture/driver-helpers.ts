@@ -1,7 +1,7 @@
 import { stripVTControlCharacters } from "node:util";
 import { errorMessage, withoutCallName } from "../../shared/errors";
+import { formatDuration } from "../../shared/format";
 import { nonBlankString } from "../../shared/guards";
-import { round1 } from "../../shared/math";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { interpolate } from "../../shared/vars";
 import { CSS_PREFIX } from "./flow-types";
@@ -34,10 +34,10 @@ export function plainError(
     ? `“${target.startsWith(CSS_PREFIX) ? target.slice(CSS_PREFIX.length) : target}”`
     : "the element";
   if (timeout) {
-    const seconds = round1(Number(timeout[1]) / 1000);
+    const wait = formatDuration(Number(timeout[1]));
     return /waiting for (locator|getBy)/.test(text)
-      ? `Couldn't find ${what} on the page within ${seconds} s.`
-      : `The page didn't respond within ${seconds} s.`;
+      ? `Couldn't find ${what} on the page within ${wait}.`
+      : `The page didn't respond within ${wait}.`;
   }
   const network = /net::(ERR_\w+)/.exec(text)?.[1];
   if (network === "ERR_NAME_NOT_RESOLVED") return "Couldn't reach the site. Check the address.";

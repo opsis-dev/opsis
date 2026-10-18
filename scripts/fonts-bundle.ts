@@ -9,7 +9,11 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import { googleFontModuleFile, googleImportName } from "../src/shared/fonts/google-font-imports";
+import {
+  googleFontModuleFile,
+  googleImportName,
+  GOOGLE_SHIM_SEGMENTS,
+} from "../src/shared/fonts/google-font-imports";
 import { FONT_CATEGORIES, type FontFamilyDef } from "../src/shared/fonts/types";
 import { readJsonWith } from "./lib/read-json";
 import { ROOT } from "./lib/tool-config";
@@ -17,7 +21,7 @@ import { walkFiles } from "./lib/walk";
 
 const OUT = path.join(ROOT, "public", "fonts", "bundled");
 const META_OUT = path.join(ROOT, "src", "shared", "fonts", "bundled.generated.ts");
-const SHIM_DIR = path.join(ROOT, "src", "video", "fonts", "google");
+const SHIM_DIR = path.join(ROOT, ...GOOGLE_SHIM_SEGMENTS);
 
 type BundledFont = { pkg: string; googleFamily?: string };
 

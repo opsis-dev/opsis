@@ -1,9 +1,9 @@
 import { audioKind, channelOf, soundLength } from "../audio";
+import { videoOf } from "../compile/clip";
 import { numberOr } from "../math";
 import { CHANNEL_KINDS, type ChannelKind } from "../mix/types";
 import type { AudioItem, TimelineSpec } from "../schema/timeline";
 import type { AudioBar, VideoBar } from "./flatten";
-import { mediaProps } from "./thumbnails";
 import { msToExactFrames } from "./time";
 
 const roleOrder = (role: ChannelKind): number => CHANNEL_KINDS.indexOf(role);
@@ -38,9 +38,9 @@ function soundBar(
 }
 
 function clipSoundBar(bar: VideoBar, fps: number): AudioBar | null {
-  const media = mediaProps(bar.props);
+  const media = videoOf(bar);
   const sound = bar.sound;
-  if (!sound || !media) return null;
+  if (!sound || !media?.src) return null;
   return {
     type: "audio",
     key: `clip:${bar.key}`,

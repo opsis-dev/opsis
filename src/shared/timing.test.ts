@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { debounce, oneAtATime } from "./timing";
+import { listenerSet } from "./listener-set";
+import { debounce, oneAtATime, whenReady } from "./timing";
 
 describe("debounce", () => {
   beforeEach(() => {
@@ -47,5 +48,42 @@ describe("oneAtATime", () => {
     await expect(slow).rejects.toThrow("failed");
     await expect(second).resolves.toBe(2);
     expect(order).toEqual(["first", "second"]);
+  });
+});
+
+describe("whenReady", () => {
+  const source = () => {
+    const changes = listenerSet();
+    return { changes, subscribe: (fn: () => void) => changes.add(fn) };
+  };
+
+  it("resolves with the value once a change makes it ready, and stops listening", async () => {
+    const { changes, subscribe } = source();
+    let value: string | null = null;
+    let listening = 0;
+    const ready = whenReady(
+      () => value,
+      (fn) => {
+        listening++;
+        const off = subscribe(fn);
+        return () => {
+          listening--;
+          off();
+        };
+      },
+      1000,
+    );
+    value = "editor";
+    changes.emit();
+    expect(await ready).toBe("editor");
+    expect(listening).toBe(0);
+  });
+
+  it("resolves null after the timeout", async () => {
+    vi.useFakeTimers();
+    const ready = whenReady(() => null, source().subscribe, 1000);
+    vi.advanceTimersByTime(1000);
+    expect(await ready).toBeNull();
+    vi.useRealTimers();
   });
 });

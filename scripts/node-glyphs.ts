@@ -2,7 +2,7 @@ import { existsSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
-import { FALLBACK_LOOK, NODE_LOOKS, type NodeGlyph } from "../src/shared/nodes/looks";
+import { usedGlyphs, type NodeGlyph } from "../src/shared/nodes/looks";
 import { readJsonWith } from "./lib/read-json";
 import { ROOT } from "./lib/tool-config";
 
@@ -47,15 +47,6 @@ async function load(glyph: NodeGlyph): Promise<GlyphNode> {
   const [set, key] = glyph.split(":");
   return checked(glyph, set === "lucide" ? await lucideGlyph(key) : tablerGlyph(key));
 }
-
-const usedGlyphs = (): NodeGlyph[] => {
-  const used = new Set<NodeGlyph>([FALLBACK_LOOK.glyph]);
-  for (const look of Object.values(NODE_LOOKS)) {
-    used.add(look.glyph);
-    if (look.morph) used.add(look.morph);
-  }
-  return [...used].sort();
-};
 
 async function main(): Promise<void> {
   const glyphs = usedGlyphs();

@@ -14,14 +14,6 @@ import { FontRow } from "./font-row";
 import { useFontLibrary } from "./library";
 import { matchesQuery, SearchListDialog } from "./search-list-dialog";
 
-let onlineAllowed = false;
-
-export const isOnlineAllowed = (): boolean => onlineAllowed;
-
-export function allowOnline(): void {
-  onlineAllowed = true;
-}
-
 type Catalog =
   | { status: "loading" }
   | { status: "error"; error: string }

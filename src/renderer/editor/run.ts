@@ -1,4 +1,4 @@
-import { reportError } from "@/renderer/lib/toast";
+import { attempt } from "@/renderer/lib/toast";
 import { NO_PROJECT } from "@/shared/errors";
 import type { RunRequest } from "@/shared/ipc";
 import { useLiveStore } from "../store/live";
@@ -20,10 +20,5 @@ export async function beginRun(opts: RunTargets = {}): Promise<string> {
   return runId;
 }
 
-export async function startRun(opts: RunTargets = {}): Promise<void> {
-  try {
-    await beginRun(opts);
-  } catch (e) {
-    reportError("Couldn't start the run", e);
-  }
-}
+export const startRun = (opts: RunTargets = {}): Promise<void> =>
+  attempt(() => beginRun(opts), "Couldn't start the run");

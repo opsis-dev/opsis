@@ -3,6 +3,7 @@ import path from "node:path";
 import { z } from "zod";
 import { fetchOk } from "../src/engine/download";
 import { errorMessage } from "../src/shared/errors";
+import { pascalCase } from "../src/shared/format";
 import { isNumber, isRecord } from "../src/shared/guards";
 import {
   renderLoaderEntry,
@@ -145,9 +146,6 @@ function findElementFile(item: CuratedElement): string | null {
   return candidates.find((c) => existsSync(c)) ?? null;
 }
 
-const pascal = (s: string) =>
-  s.replace(/(^|[-_])([a-z0-9])/g, (_m, _p, c: string) => c.toUpperCase());
-
 function exportNameOf(
   item: CuratedElement,
   file: string,
@@ -157,7 +155,7 @@ function exportNameOf(
   return (
     item.exportName ??
     (cfg?.componentName && exported.includes(cfg.componentName) ? cfg.componentName : undefined) ??
-    exported.find((e) => e === pascal(item.name)) ??
+    exported.find((e) => e === pascalCase(item.name)) ??
     exported.find((e) => /^[A-Z]/.test(e))
   );
 }

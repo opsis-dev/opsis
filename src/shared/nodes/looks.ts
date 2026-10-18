@@ -270,3 +270,12 @@ export const NODE_LOOKS: Record<string, NodeLook> = {
 };
 
 export const nodeLook = (type: string): NodeLook => NODE_LOOKS[type] ?? FALLBACK_LOOK;
+
+export function usedGlyphs(): NodeGlyph[] {
+  const used = new Set<NodeGlyph>([FALLBACK_LOOK.glyph]);
+  for (const look of Object.values(NODE_LOOKS)) {
+    used.add(look.glyph);
+    if (look.morph) used.add(look.morph);
+  }
+  return [...used].sort();
+}

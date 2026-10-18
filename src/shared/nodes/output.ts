@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { clipToSpec, isClip } from "../compile/clip";
 import { formatDuration, formatBytes } from "../format";
+import { parseOrDefault } from "../guards";
 import { evenPx } from "../math";
 import { REFRAMES, type ReframeMode } from "../schema/timeline";
 import { outputOf, type Artifact, type CompileValue, type TimelineValue } from "../schema/values";
@@ -168,9 +169,7 @@ export const renderNode = defineNode({
 
 export function exportReframe(nodes: WorkflowNode[]): ReframeMode {
   const render = nodes.find((n) => n.type === renderNode.type && !n.disabled);
-  const field = renderNode.params.shape.reframe;
-  const parsed = field.safeParse(render?.params.reframe);
-  return parsed.success ? parsed.data : field.parse(undefined);
+  return parseOrDefault(renderNode.params.shape.reframe, render?.params.reframe);
 }
 
 export const stillOutputNode = defineNode({

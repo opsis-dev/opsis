@@ -5,7 +5,7 @@ import { cardRows, type CompileInputs, type CompileOutputs } from "./nodes/defin
 import { defaultParams, getNodeDef } from "./nodes/registry";
 import type { Action, ActionLog } from "./schema/actions";
 import type { TimelineItem, TimelineSpec } from "./schema/timeline";
-import type { NodeResult } from "./schema/values";
+import type { ClipValue, NodeResult } from "./schema/values";
 import { DEFAULT_WORKFLOW_SETTINGS, type Workflow, type WorkflowNode } from "./schema/workflow";
 import { GraphBuilder, type TakeStep } from "./templates/build";
 import { flattenSpec, type FlatTimeline } from "./timeline/flatten";
@@ -129,3 +129,24 @@ export function compileNode(
     }) ?? {}
   );
 }
+
+export function compileClip(
+  type: string,
+  params: Record<string, unknown>,
+  inputs: CompileInputs = {},
+): ClipValue {
+  const clip = compileNode(type, params, inputs).clip;
+  if (clip?.type !== "clip") throw new Error(`no clip from ${type}`);
+  return clip;
+}
+
+type Modifiers = Partial<Record<"ctrlKey" | "metaKey" | "altKey" | "shiftKey", boolean>>;
+
+export const keyEvent = (key: string, mods: Modifiers = {}) => ({
+  key,
+  ctrlKey: false,
+  metaKey: false,
+  altKey: false,
+  shiftKey: false,
+  ...mods,
+});

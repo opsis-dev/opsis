@@ -1,13 +1,10 @@
 import * as lucide from "lucide-react";
 import { iconNames } from "lucide-react/dynamic";
 import { describe, expect, it } from "vitest";
+import { pascalCase } from "@/shared/format";
 import { NODE_ICONS } from "./icons";
 
-const exportName = (name: string): string =>
-  `${name
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("")}Icon`;
+const exportName = (name: string): string => `${pascalCase(name)}Icon`;
 
 const lucideExports: Record<string, unknown> = lucide;
 

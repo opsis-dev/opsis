@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { usePointerSession } from "@/renderer/lib/use-pointer-drag";
 import type { Marker } from "@/shared/schema/workflow";
 import type { AudioBar } from "@/shared/timeline/flatten";
 import { snapFrame } from "@/shared/timeline/snap";
@@ -43,8 +44,15 @@ function useTimelineSnap({ flat, markers, beats }: DragOptions, ppf: number) {
   return { snapOn, snapTargets, snapAt };
 }
 
-function useDragSession(scroller: DragOptions["scroller"], zoom: TimelineZoom) {
-  const drag = useRef<ActiveDrag | null>(null);
+function useDragSession(scroller: DragOptions["scroller"], zoom: TimelineZoom, onEnd: () => void) {
+  const session = usePointerSession<HTMLDivElement, ActiveDrag>({
+    move: (e, active) => active.move(e),
+    end: (active) => {
+      zoom.release();
+      onEnd();
+      active.finish?.();
+    },
+  });
   const scrollerEl = () => {
     const el = scroller.current;
     if (!el) throw new Error("The timeline is not on screen.");
@@ -52,33 +60,19 @@ function useDragSession(scroller: DragOptions["scroller"], zoom: TimelineZoom) {
   };
   const begin = (e: React.PointerEvent, active: ActiveDrag) => {
     scrollerEl().setPointerCapture(e.pointerId);
-    drag.current = active;
+    session.track(active);
     zoom.hold();
   };
-  const end = (e: React.PointerEvent<HTMLElement>) => {
-    const active = drag.current;
-    drag.current = null;
-    zoom.release();
-    const el = e.currentTarget;
-    if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
-    active?.finish?.();
-  };
-  return {
-    scrollerEl,
-    begin,
-    end,
-    move: (e: React.PointerEvent) => drag.current?.move(e),
-    isDragging: () => drag.current !== null,
-  };
+  return { scrollerEl, begin, isDragging: session.isActive, handlers: session.handlers };
 }
 
 export function useTimelineDrag(opts: DragOptions) {
   const { workflow, flat, sourceNodeId, masterSrc, layout, zoom } = opts;
   const ppf = zoom.ppf;
   const { snapOn, snapTargets, snapAt } = useTimelineSnap(opts, ppf);
-  const session = useDragSession(opts.scroller, zoom);
-  const { begin, scrollerEl } = session;
   const [guide, setGuide] = useState<number | null>(null);
+  const session = useDragSession(opts.scroller, zoom, () => setGuide(null));
+  const { begin, scrollerEl } = session;
   const [marquee, setMarquee] = useState<MarqueeBox | null>(null);
 
   const point = (clientX: number, clientY: number) => contentPoint(scrollerEl(), clientX, clientY);
@@ -132,11 +126,6 @@ export function useTimelineDrag(opts: DragOptions) {
     begin(e, marqueeGesture(env, { x, y }, e.shiftKey, setMarquee));
   };
 
-  const onPointerUp = (e: React.PointerEvent<HTMLElement>) => {
-    setGuide(null);
-    session.end(e);
-  };
-
   return {
     guide,
     marquee,
@@ -150,7 +139,6 @@ export function useTimelineDrag(opts: DragOptions) {
     startMarker,
     onRulerDown,
     onEmptyDown,
-    onPointerMove: session.move,
-    onPointerUp,
+    scrollerHandlers: session.handlers,
   };
 }

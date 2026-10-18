@@ -25,6 +25,9 @@ export function forEachWindow(
 
 export const clamp01 = (value: number): number => clamp(value, 0, 1);
 
+export const normalize = (value: number, min: number, max: number): number =>
+  clamp01((value - min) / (max - min));
+
 export const lerp = (from: number, to: number, t: number): number => from + (to - from) * t;
 
 export const roundTo = (value: number, digits: number): number => {

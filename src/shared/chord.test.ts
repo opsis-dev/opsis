@@ -1,18 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { chordFromEvent, chordKeys, pressedChord } from "./chord";
+import { keyEvent } from "./test-fixtures";
 
-const key = (
-  k: string,
-  mods: Partial<Record<"ctrlKey" | "metaKey" | "altKey" | "shiftKey", boolean>> = {},
-) =>
-  chordFromEvent({
-    key: k,
-    ctrlKey: false,
-    metaKey: false,
-    altKey: false,
-    shiftKey: false,
-    ...mods,
-  });
+const key = (...args: Parameters<typeof keyEvent>) => chordFromEvent(keyEvent(...args));
 
 describe("recording a shortcut", () => {
   it.each([

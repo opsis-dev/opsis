@@ -3,7 +3,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 import { z } from "zod";
 import { reportError } from "@/renderer/lib/toast";
 import type { OpenProject } from "@/shared/ipc";
-import { whenSaved } from "../editor/save";
+import { previousSave } from "../editor/save";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
@@ -40,7 +40,7 @@ export function useOpenProject(dir: string, onFailed: () => void): "opening" | "
 
   useEffect(() => {
     let cancelled = false;
-    whenSaved()
+    previousSave()
       .then(() => window.demoflow.openProject(dir))
       .then((p) => {
         if (!cancelled && p) openProjectIntoStores(p);

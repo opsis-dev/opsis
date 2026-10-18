@@ -37,18 +37,9 @@ const EMPTY: Film = {
 
 const FILM_SOURCE = "film";
 
-function useFilmState(): Film {
-  const { preview } = useCompiledContext();
-  const storedMix = useWorkflowStore((s) => s.workflow?.mix);
-  const mix = useMemo(() => resolveMix(storedMix), [storedMix]);
-  const spec = preview?.spec ?? null;
-  const source = preview?.sourceNodeId ?? FILM_SOURCE;
-  const flat = useMemo(() => (spec ? flattenSpec(spec) : null), [spec]);
-  const plan = useMemo(
-    () => (spec && flat ? buildMixPlan(spec, mix, flat) : null),
-    [spec, flat, mix],
-  );
-  const sounding = plan !== null && hasSound(plan) ? plan : null;
+type MixState = { result: MixResult | null; mixing: boolean; failedKey: string | null };
+
+function useMixResult(sounding: MixPlan | null, source: string): MixState {
   const latest = useMedia((s) => s.mix.latest[source]);
   const result = useMedia((s) => (latest ? (s.mix.results[latest] ?? null) : null));
   const mixing = useMedia((s) => s.mix.pending !== null);
@@ -59,12 +50,31 @@ function useFilmState(): Film {
     if (!sounding || !projectDir || current) return;
     useMedia.getState().requestMix(source, sounding);
   }, [sounding, source, projectDir, current]);
+  return { result, mixing, failedKey };
+}
+
+function useFilmState(): Film {
+  const { preview } = useCompiledContext();
+  const storedMix = useWorkflowStore((s) => s.workflow?.mix);
+  const mix = useMemo(() => resolveMix(storedMix), [storedMix]);
+  const spec = preview?.spec ?? null;
+  const flat = useMemo(() => (spec ? flattenSpec(spec) : null), [spec]);
+  const plan = useMemo(
+    () => (spec && flat ? buildMixPlan(spec, mix, flat) : null),
+    [spec, flat, mix],
+  );
+  const sounding = plan !== null && hasSound(plan) ? plan : null;
+  const { result, mixing, failedKey } = useMixResult(
+    sounding,
+    preview?.sourceNodeId ?? FILM_SOURCE,
+  );
   const audible = useMemo(() => {
     if (!spec) return null;
     if (result?.master && sounding) return withMasterStem(spec, result.master);
     return applyMixLevels(spec, mix);
   }, [spec, result, sounding, mix]);
   if (!preview) return EMPTY;
+  const current = !!sounding && result?.key === sounding.key;
   return {
     sourceNodeId: preview.sourceNodeId,
     spec,

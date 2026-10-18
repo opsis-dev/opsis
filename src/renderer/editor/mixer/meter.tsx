@@ -1,6 +1,6 @@
 import { cn } from "@/renderer/lib/utils";
 import { percent, signedText } from "@/shared/format";
-import { clamp01 } from "@/shared/math";
+import { clamp01, normalize } from "@/shared/math";
 import { usePlayback } from "../../store/playback";
 import { useFilm } from "../film";
 import { formatLevelDb, formatSignedDb } from "./audio-format";
@@ -12,8 +12,7 @@ const MAX_REDUCTION_DB = 24;
 const CLIP_DB = -0.5;
 const HOLD_SECONDS = 1.5;
 
-const levelHeight = (level: number) =>
-  percent(clamp01((level - METER_MIN) / (METER_MAX - METER_MIN)));
+const levelHeight = (level: number) => percent(normalize(level, METER_MIN, METER_MAX));
 
 function Meter({ level, reduction }: { level: Level; reduction: number | null }) {
   const peak = level?.peak ?? METER_MIN;

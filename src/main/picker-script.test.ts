@@ -1,5 +1,9 @@
+import path from "node:path";
+import { build, type Rolldown } from "vite";
 import { describe, expect, it } from "vitest";
 import { pickerScript } from "./picker-script";
+
+type ScriptFor = (prefix: string) => string;
 
 const PREFIX = "pick:";
 
@@ -33,7 +37,7 @@ class FakeElement {
   }
 }
 
-function installInFakePage() {
+function installInFakePage(script: ScriptFor = pickerScript) {
   const listeners = new Map<string, (event: unknown) => void>();
   const logged: string[] = [];
   const document = {
@@ -51,7 +55,7 @@ function installInFakePage() {
     CSS: { escape: (s: string) => s.replaceAll('"', '\\"') },
     console: { log: (line: string) => logged.push(line) },
   };
-  const run = new Function(...Object.keys(page), pickerScript(PREFIX));
+  const run = new Function(...Object.keys(page), script(PREFIX));
   run(...Object.values(page));
   const click = (event: {
     target: FakeElement | null;
@@ -101,6 +105,43 @@ describe("pickerScript", () => {
         role: "",
         selectorUsed: "accessible name",
       },
+    ]);
+  });
+});
+
+async function minifiedPickerScript(): Promise<ScriptFor> {
+  const output = await build({
+    configFile: false,
+    logLevel: "silent",
+    build: {
+      write: false,
+      minify: true,
+      lib: {
+        entry: path.resolve(import.meta.dirname, "picker-script.ts"),
+        formats: ["cjs"],
+        fileName: "picker-script",
+      },
+    },
+  });
+  const [bundle] = Array.isArray(output) ? output : [output];
+  if (!("output" in bundle)) throw new Error("The picker script didn't build.");
+  const chunk = bundle.output.find((o): o is Rolldown.OutputChunk => o.type === "chunk");
+  if (!chunk) throw new Error("The picker script build has no code.");
+  const module: { exports: { pickerScript?: ScriptFor } } = { exports: {} };
+  new Function("module", "exports", chunk.code)(module, module.exports);
+  if (!module.exports.pickerScript) throw new Error("The built picker script has no export.");
+  return module.exports.pickerScript;
+}
+
+describe("pickerScript once minified like the packaged app", () => {
+  it("still runs on its own in a page", async () => {
+    const page = installInFakePage(await minifiedPickerScript());
+    page.click({
+      target: new FakeElement("BUTTON", { "aria-label": "Save draft" }),
+      shiftKey: false,
+    });
+    expect(page.picks()).toEqual([
+      { target: "Save draft", css: "button", role: "button", selectorUsed: "accessible name" },
     ]);
   });
 });

@@ -1,5 +1,4 @@
 import { X } from "lucide-react";
-import type { PointerEvent } from "react";
 import { FieldDescription } from "@/renderer/components/ui/field";
 import { cn } from "@/renderer/lib/utils";
 import { percent } from "@/shared/format";
@@ -7,7 +6,7 @@ import type { Bounds } from "@/shared/schema/actions";
 import { FieldShell } from "./field-shell";
 import { SpotFrame } from "./spot-frame";
 import type { FieldProps } from "./types";
-import { useBoxDrag } from "./use-box-drag";
+import { boxHandle, useBoxDrag } from "./use-box-drag";
 
 const MAX_BOXES = 8;
 
@@ -21,22 +20,17 @@ const boxStyle = (b: Bounds) => ({
 function BoxOverlay({
   box,
   number,
-  onGrab,
   onRemove,
 }: {
   box: Bounds;
   number: number;
-  onGrab: (e: PointerEvent) => void;
   onRemove: () => void;
 }) {
   return (
     <div
       className="border-primary bg-primary/25 absolute cursor-move border-2"
       style={boxStyle(box)}
-      onPointerDown={(e) => {
-        e.stopPropagation();
-        onGrab(e);
-      }}
+      {...boxHandle(number - 1)}
     >
       <button
         type="button"
@@ -52,8 +46,8 @@ function BoxOverlay({
 }
 
 export function BoxesField({ label, value: boxes, onChange, ctx, meta }: FieldProps<Bounds[]>) {
-  const { area, draft, shown, start, move, end } = useBoxDrag(boxes, onChange);
   const full = boxes.length >= MAX_BOXES;
+  const { area, draft, shown, frame } = useBoxDrag(boxes, onChange, !full);
 
   return (
     <FieldShell label={label} meta={meta}>
@@ -61,17 +55,13 @@ export function BoxesField({ label, value: boxes, onChange, ctx, meta }: FieldPr
         ref={area}
         ctx={ctx}
         className={cn("touch-none select-none", full ? "cursor-default" : "cursor-crosshair")}
-        onPointerDown={(e) => !full && start(e, { mode: "new" })}
-        onPointerMove={move}
-        onPointerUp={end}
-        onPointerCancel={end}
+        {...frame}
       >
         {shown.map((b, i) => (
           <BoxOverlay
             key={i}
             box={b}
             number={i + 1}
-            onGrab={(e) => start(e, { mode: "move", index: i })}
             onRemove={() => onChange(boxes.filter((_, j) => j !== i))}
           />
         ))}

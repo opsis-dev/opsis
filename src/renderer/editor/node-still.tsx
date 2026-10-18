@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useSettledAfterKeyChange } from "@/renderer/lib/use-settled-after-key-change";
 import { PROJECT_FILE_BASE, projectRef } from "@/shared/asset-ref";
 import { clipToSpec, isClip } from "@/shared/compile/clip";
+import { errorMessage } from "@/shared/errors";
 import { stableJson } from "@/shared/hash";
 import { showsClipStill, type NodeDef } from "@/shared/nodes/define";
 import { PROJECT_DIRS } from "@/shared/project-dirs";
@@ -18,9 +19,9 @@ import { useStillsStore } from "../store/stills";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { fileUrl } from "./file-url";
+import { requireWorkflow } from "./require-workflow";
 import { useThumbSlot } from "./thumb-slots";
 import { useCompiledContext } from "./use-compiled";
-import { openWorkflow } from "./use-open-workflow";
 
 const LIVE_THUMB_MIN_ZOOM = 0.55;
 const VIDEO_ASPECT = 16 / 9;
@@ -47,7 +48,7 @@ function posterOf(result: NodeResult | undefined): string | null {
 
 function useSettledClip(nodeId: string): SettledClip | null {
   const { result: compiled } = useCompiledContext();
-  const settings = useWorkflowStore((s) => openWorkflow(s).settings);
+  const settings = useWorkflowStore((s) => requireWorkflow(s).settings);
   const clip = compiled?.values[nodeId]?.clip;
   const current = isClip(clip) ? { key: stableJson([clip, settings]), clip, settings } : null;
   return useSettledAfterKeyChange(current, current?.key ?? "", SETTLE_MS);
@@ -69,7 +70,7 @@ function useOnScreen<T extends Element>(): [RefObject<T | null>, boolean] {
 }
 
 function LiveFrame({ nodeId }: { nodeId: string }) {
-  const settings = useWorkflowStore((s) => openWorkflow(s).settings);
+  const settings = useWorkflowStore((s) => requireWorkflow(s).settings);
   const zoom = useFlowStore((s) => s.transform[2]);
   const [ref, visible] = useOnScreen<HTMLDivElement>();
   const settled = useSettledClip(nodeId);
@@ -150,7 +151,9 @@ function CardStill({ nodeId }: { nodeId: string }) {
       .then((r) => {
         if (current && r.ready) useStillsStore.getState().ready(projectDir, nodeId, r.hash);
       })
-      .catch(() => undefined);
+      .catch((error: unknown) =>
+        console.warn(`Couldn't make the card picture for ${nodeId}: ${errorMessage(error)}`),
+      );
     return () => {
       current = false;
     };

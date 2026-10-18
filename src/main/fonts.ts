@@ -129,19 +129,24 @@ function readFontCandidate(name: string, bytes: Uint8Array): FontCandidate | nul
 
 const withoutBytes = ({ bytes: _bytes, ...face }: FontFile): FontCandidate => face;
 
-function collect(entries: FontBytes[], source: FontFamilyDef["source"]): InspectedFonts {
-  const candidates: FontFile[] = [];
-  let license: FontBytes | undefined;
-  let unreadable = 0;
+type Sorted = { candidates: FontFile[]; license?: FontBytes; unreadable: number };
+
+function sortEntries(entries: FontBytes[]): Sorted {
+  const sorted: Sorted = { candidates: [], unreadable: 0 };
   for (const entry of entries) {
     if (isFontFile(entry.name)) {
       const info = readFontCandidate(entry.name, entry.bytes);
-      if (info) candidates.push({ ...info, bytes: entry.bytes });
-      else unreadable += 1;
-    } else if (!license && LICENSE_NAME.test(entry.name)) {
-      license = entry;
+      if (info) sorted.candidates.push({ ...info, bytes: entry.bytes });
+      else sorted.unreadable += 1;
+    } else if (!sorted.license && LICENSE_NAME.test(entry.name)) {
+      sorted.license = entry;
     }
   }
+  return sorted;
+}
+
+function holdForReview(entries: FontBytes[], source: FontFamilyDef["source"]): InspectedFonts {
+  const { candidates, license, unreadable } = sortEntries(entries);
   const plan = planFontFiles(candidates);
   const token = randomUUID();
   pending = plan.length ? { token, families: plan, license, source } : null;
@@ -176,13 +181,13 @@ export async function inspectFontFiles(
       entries.push({ name: path.basename(file), bytes });
     }
   }
-  return collect(entries, "file");
+  return holdForReview(entries, "file");
 }
 
 const isOpenType = (bytes: Uint8Array) => String.fromCharCode(...bytes.subarray(0, 4)) === "OTTO";
 
 export function inspectInstalledFonts(faces: FontInstalledFace[]): InspectedFonts {
-  return collect(
+  return holdForReview(
     faces.map((f) => {
       const bytes = new Uint8Array(f.data);
       return { name: `${f.postscriptName}.${isOpenType(bytes) ? "otf" : "ttf"}`, bytes };

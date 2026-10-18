@@ -1,4 +1,4 @@
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Download, FolderOpen, Plus, Settings, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
@@ -11,12 +11,7 @@ import { TEMPLATES } from "@/shared/templates";
 import { NodeIcon } from "../editor/node-icon";
 import { useFreshEnvironment } from "../store/environment";
 import { AppBar } from "./app-bar";
-import {
-  dispatchMenuCommand,
-  onMenuCommand,
-  projectActionOf,
-  type ProjectAction,
-} from "./menu-commands";
+import { dispatchMenuCommand, usePendingProjectAction, type ProjectAction } from "./menu-commands";
 import { commandLabel, commandShortcut } from "./menu-shortcuts";
 import { Stagger, StaggerItem } from "./motion";
 import { NewProjectDialog } from "./new-project-dialog";
@@ -172,27 +167,17 @@ function useProjectActions() {
 }
 
 function useProjectCommands(startNew: () => void, open: () => Promise<void>): void {
-  const navigate = useNavigate();
-  const { action } = useSearch({ from: "/" });
+  const pending = usePendingProjectAction((s) => s.pending);
   const run = useEffectEvent((next: ProjectAction) => {
     if (next === "new") startNew();
     else void open();
   });
 
-  useEffect(
-    () =>
-      onMenuCommand((command) => {
-        const next = projectActionOf(command);
-        if (next) run(next);
-      }),
-    [],
-  );
-
   useEffect(() => {
-    if (!action) return;
-    void navigate({ to: "/", search: {}, replace: true });
-    run(action);
-  }, [action, navigate]);
+    if (!pending) return;
+    usePendingProjectAction.setState({ pending: null });
+    run(pending);
+  }, [pending]);
 }
 
 export function Projects() {
