@@ -1,25 +1,44 @@
 import { z } from "zod";
 import { projectRef } from "../asset-ref";
-import { itemClip, withHandles, wrapClip } from "../compile/clip";
+import {
+  EMPTY_CLIP_FRAMES,
+  emptyClip,
+  itemClip,
+  sceneSequence,
+  withHandles,
+  wrapClip,
+} from "../compile/clip";
 import { ELEMENTS, elementNodeType } from "../elements";
 import { CAPTIONS_ELEMENT } from "../elements/core";
 import { assetKeys, widgetKeys } from "../elements/introspect";
 import type { ElementCategory, ElementMeta } from "../elements/types";
 import { fontStack } from "../fonts";
+import { plural } from "../format";
 import { MAX_FRAMES } from "../limits";
 import type { EditHandles, VisualEnvelope } from "../schema/timeline";
 import type { ClipValue } from "../schema/values";
-import { fileRow, frameSecs, quote, row, type CardRow } from "./card";
+import {
+  connectedPorts,
+  fileRow,
+  frameSecs,
+  quote,
+  row,
+  warnIf,
+  type CardContext,
+  type CardRow,
+} from "./card";
 import {
   clipInput,
   defineNode,
   fromElement,
   port,
+  type CompileInputs,
   type NodeCategory,
   type NodeDef,
 } from "./define";
 import type { NodeIconName } from "./icon-name";
-import { int, visualEnvelope } from "./params";
+import { choice, int, more, text, visualEnvelope } from "./params";
+import { clipPorts, connectedClips, IN_PORTS, sceneLabel } from "./ports";
 
 const TEXT_KEYS = [
   "title",
@@ -153,6 +172,102 @@ function elementNode(meta: ElementMeta): NodeDef {
   });
 }
 
+const SEQUENCER_KIND = { category: "Timeline", icon: "clapperboard" } satisfies {
+  category: NodeCategory;
+  icon: NodeIconName;
+};
+
+const MAX_SCENE_GAP_FRAMES = 120;
+const DEFAULT_SCENE_BACKGROUND = "#0b0b10";
+
+const sceneBackgroundSchema = z.object({
+  scene: choice(
+    IN_PORTS,
+    "in1",
+    "Scene",
+    Object.fromEntries(IN_PORTS.map((handle) => [handle, sceneLabel(handle)])),
+  ),
+  color: more(text(DEFAULT_SCENE_BACKGROUND, "Colour"), { widget: "color" }),
+});
+
+type SceneBackground = z.infer<typeof sceneBackgroundSchema>;
+
+const sequencerFields = {
+  gapFrames: int(1, "Pause between scenes", {
+    min: 0,
+    max: MAX_SCENE_GAP_FRAMES,
+    step: 1,
+    unit: "frames",
+    help: "How long the stage stays empty between one scene leaving and the next landing.",
+  }),
+  backgrounds: z.array(sceneBackgroundSchema).default([]).meta({
+    description: "Scene backgrounds",
+    help: "A colour behind a scene. It fades into the next scene's colour.",
+    advanced: true,
+  }),
+  envelope: visualEnvelope(),
+};
+
+type SequencerParams = Record<string, unknown> & {
+  gapFrames: number;
+  backgrounds: SceneBackground[];
+  envelope: VisualEnvelope;
+};
+
+function sequencerCard({
+  params,
+  connected,
+  inputItems,
+  clipFrames,
+  settings,
+}: CardContext<SequencerParams>): Array<CardRow | false | 0 | undefined> {
+  const ports = connectedPorts(IN_PORTS, connected);
+  const items = ports.map((handle) => inputItems?.[handle] ?? 1);
+  return [
+    row("clapperboard", plural(ports.length, "scene"), warnIf(!ports.length)),
+    items.some((n) => n > 1) && row("layers", `Items per scene: ${items.join(" · ")}`),
+    params.gapFrames > 0 &&
+      row("timer", `${frameSecs(params.gapFrames, settings.fps)} between scenes`),
+    clipFrames && row("clock", frameSecs(clipFrames, settings.fps)),
+  ];
+}
+
+function compileSequencer(
+  meta: ElementMeta,
+  nodeId: string,
+  { gapFrames, backgrounds, envelope, ...params }: SequencerParams,
+  inputs: CompileInputs,
+): ClipValue {
+  const scenes = connectedClips(inputs);
+  if (!scenes.length) return emptyClip(EMPTY_CLIP_FRAMES);
+  const colorOf = (handle: string) => backgrounds.findLast((b) => b.scene === handle)?.color;
+  const clip = sceneSequence(nodeId, scenes, {
+    gap: gapFrames,
+    sequencer: {
+      component: meta.key,
+      props: { ...elementProps(meta, params), gapFrames },
+      backgrounds: scenes.map(({ port: handle }) => colorOf(handle) ?? null),
+    },
+  });
+  return withHandles(clip, {}, envelope);
+}
+
+function sequencerNode(meta: ElementMeta): NodeDef {
+  return defineNode({
+    ...fromElement(meta),
+    ...SEQUENCER_KIND,
+    type: elementNodeType(meta.key),
+    description: meta.description,
+    card: sequencerCard,
+    inputs: clipPorts(sceneLabel),
+    outputs: { clip: port("clip", "Clip") },
+    params: z.object({ ...meta.schema.shape, ...sequencerFields }),
+    compile: ({ nodeId, params, inputs }) => ({
+      clip: compileSequencer(meta, nodeId, params, inputs),
+    }),
+  });
+}
+
 export const elementNodes: NodeDef[] = ELEMENTS.filter(
   (e) => e.kind !== "presentation" && e.key !== CAPTIONS_ELEMENT,
-).map(elementNode);
+).map((meta) => (meta.kind === "sequencer" ? sequencerNode(meta) : elementNode(meta)));

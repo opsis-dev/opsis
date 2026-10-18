@@ -1,4 +1,4 @@
-import { centered, component, fitScreen, painted, placedAt, playsAtEnd, pointsFromSpots, presentation } from "./framing";
+import { centered, component, fitScreen, painted, placedAt, playsAtEnd, pointsFromSpots, presentation, sequencer } from "./framing";
 import type { ElementImpl } from "./types";
 
 export const generatedElementLoaders: Record<string, () => Promise<ElementImpl>> = {
@@ -52,7 +52,7 @@ export const generatedElementLoaders: Record<string, () => Promise<ElementImpl>>
   "remocn/polaroid": () => import("../elements/remocn/polaroid").then((m) => centered(component(m.Polaroid))),
   "remocn/tv-power-off": () => import("../elements/remocn/tv-power-off").then((m) => playsAtEnd(component(m.TvPowerOff))),
   "remocn/speed-lines": () => import("../elements/remocn/speed-lines").then((m) => component(m.SpeedLines)),
-  "remocn/spring-settle": () => import("../elements/remocn/spring-settle").then((m) => component(m.SpringSettleScenes)),
+  "remocn/spring-settle": () => import("../elements/remocn/spring-settle").then((m) => sequencer(m.SpringSettleScenes, m.SpringSettleItem)),
   "remocn/terminal-simulator": () => import("../elements/remocn/terminal-simulator").then((m) => component(m.TerminalSimulator)),
   "remocn/glass-code-block": () => import("../elements/remocn/glass-code-block").then((m) => component(m.GlassCodeBlock)),
   "remocn/code-morph": () => import("../elements/remocn/code-morph").then((m) => component(m.CodeMorph)),

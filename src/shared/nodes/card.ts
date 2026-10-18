@@ -21,6 +21,7 @@ export type CardContext<P> = {
   connected: string[];
   clipFrames?: number;
   inputFrames?: Partial<Record<string, number>>;
+  inputItems?: Partial<Record<string, number>>;
 };
 
 const TRANSITION_WARN_RATIO = 0.4;

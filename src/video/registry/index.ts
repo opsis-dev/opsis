@@ -26,9 +26,11 @@ import { generatedElementLoaders } from "./components.generated";
 import { component } from "./framing";
 import {
   isPresentation,
+  isSequencer,
   type ElementComponent,
   type ElementImpl,
   type Presentation,
+  type SceneSequencer,
 } from "./types";
 
 type CoreProps = CoreElementProps & {
@@ -113,7 +115,12 @@ export function useElement(key: string | undefined): boolean {
 
 export function getComponent(key: string): ElementComponent | undefined {
   const impl = core.get(key) ?? loaded.get(key);
-  return impl && !isPresentation(impl) ? impl : undefined;
+  return impl && !isPresentation(impl) && !isSequencer(impl) ? impl : undefined;
+}
+
+export function getSequencer(key: string): SceneSequencer | undefined {
+  const impl = loaded.get(key);
+  return impl && isSequencer(impl) ? impl : undefined;
 }
 
 export function getPresentation(

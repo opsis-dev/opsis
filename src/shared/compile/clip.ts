@@ -17,6 +17,12 @@ import type { Remap } from "./remap";
 
 export type Crop = { x: number; y: number; w: number; h: number };
 
+export type SequencerProps = {
+  component: string;
+  props: Record<string, unknown>;
+  backgrounds: Array<string | null>;
+};
+
 export type GroupProps = {
   tracks: TimelineTrack[];
   startFrom?: number;
@@ -26,6 +32,7 @@ export type GroupProps = {
   wrapper?: { component: string; props: Record<string, unknown> };
   background?: string;
   design?: { width: number; height: number };
+  sequencer?: SequencerProps;
 };
 
 type PlaceholderProps = { title: string; subtitle: string };
@@ -268,6 +275,8 @@ export function sequenceClips(
   });
 }
 
+const layerId = (nodeId: string, i: number) => `${nodeId}:l${i}`;
+
 export function stackClips(
   nodeId: string,
   clips: ClipValue[],
@@ -280,11 +289,11 @@ export function stackClips(
     const move = opts.move?.(i);
     const port = opts.ports?.[i];
     return {
-      id: `${nodeId}:l${i}`,
+      id: layerId(nodeId, i),
       items: [
         groupItem(
           {
-            id: `${nodeId}:l${i}:g`,
+            id: `${layerId(nodeId, i)}:g`,
             from: offset(i),
             durationInFrames: clip.durationInFrames,
             ...(move ? { handles: { move } } : {}),
@@ -298,8 +307,99 @@ export function stackClips(
   return makeClip({
     durationInFrames: Math.max(...clips.map((c, i) => c.durationInFrames + offset(i))),
     tracks,
-    audio: clips.flatMap((c, i) => shiftAudio(c.audio, offset(i), `${nodeId}:l${i}`)),
+    audio: clips.flatMap((c, i) => shiftAudio(c.audio, offset(i), layerId(nodeId, i))),
     recording: firstRecording(clips),
+  });
+}
+
+export const markLayers = (clip: ClipValue): ClipValue => ({
+  ...clip,
+  tracks: clip.tracks.map((track) => ({ ...track, layer: true })),
+});
+
+const isLayered = (clip: ClipValue): boolean =>
+  clip.tracks.length > 0 && clip.tracks.every((track) => track.layer);
+
+export const sceneItemCount = (clip: ClipValue): number =>
+  isLayered(clip) ? clip.tracks.length : 1;
+
+type Scene = { tracks: TimelineTrack[]; audio: AudioItem[]; durationInFrames: number };
+
+const layerStart = (track: TimelineTrack): number => track.items[0]?.from ?? 0;
+
+function startWithScene(item: TimelineItem, by: number): TimelineItem {
+  const { handles, ...rest } = item;
+  const kept = { ...handles };
+  delete kept.move;
+  return { ...rest, from: item.from - by, ...(Object.keys(kept).length ? { handles: kept } : {}) };
+}
+
+function layersStartTogether(clip: ClipValue): Scene {
+  const tracks = clip.tracks.map((track) => ({
+    ...track,
+    items: track.items.map((item) => startWithScene(item, layerStart(track))),
+  }));
+  const audio = clip.audio.map((a) => {
+    const owner = clip.tracks.find((track) => a.id.startsWith(`${track.id}/`));
+    return owner ? { ...a, from: a.from - layerStart(owner) } : a;
+  });
+  const longest = Math.max(
+    ...tracks.flatMap((t) => t.items.map((i) => i.from + i.durationInFrames)),
+  );
+  return { tracks, audio, durationInFrames: Math.min(clip.durationInFrames, longest) };
+}
+
+function sceneOf(id: string, clip: ClipValue): Scene {
+  if (isLayered(clip)) return layersStartTogether(clip);
+  const whole = groupItem(
+    { id: `${id}:i`, from: 0, durationInFrames: clip.durationInFrames },
+    { tracks: clip.tracks },
+  );
+  return {
+    tracks: [{ id: `${id}:t`, items: [whole] }],
+    audio: clip.audio,
+    durationInFrames: clip.durationInFrames,
+  };
+}
+
+export function sceneSequence(
+  nodeId: string,
+  scenes: Array<{ port: string; clip: ClipValue }>,
+  { gap, sequencer }: { gap: number; sequencer: SequencerProps },
+): ClipValue {
+  const built = scenes.map(({ port, clip }, i) => ({
+    id: `${nodeId}:s${i}`,
+    port,
+    scene: sceneOf(`${nodeId}:s${i}`, clip),
+  }));
+  const starts: number[] = [];
+  let end = 0;
+  for (const { scene } of built) {
+    starts.push(end);
+    end += scene.durationInFrames + gap;
+  }
+  const duration = Math.max(1, end - gap);
+  const placed = built.map(({ id, port, scene }, i) => ({
+    item: groupItem(
+      {
+        id,
+        from: starts[i],
+        durationInFrames: scene.durationInFrames,
+        slot: { nodeId, port },
+      },
+      { tracks: scene.tracks },
+    ),
+    audio: shiftAudio(scene.audio, starts[i], id),
+  }));
+  const group = groupItem(
+    { id: `${nodeId}:g`, from: 0, durationInFrames: duration, nodeId },
+    { tracks: [{ id: `${nodeId}:scenes`, items: placed.map((p) => p.item) }], sequencer },
+  );
+  return makeClip({
+    durationInFrames: duration,
+    tracks: [{ id: `${nodeId}:t`, items: [group] }],
+    audio: placed.flatMap((p) => p.audio),
+    recording: firstRecording(scenes.map((s) => s.clip)),
   });
 }
 

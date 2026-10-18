@@ -142,16 +142,29 @@ export function renderMetaEntry({ item, key, description, controls, duration }: 
   ].join("\n");
 }
 
+function implOf(
+  item: CuratedElement,
+  exportName: string,
+): { impl: string; helpers: FramingHelper[] } {
+  const kind = kindOf(item);
+  if (kind === "sequencer")
+    return {
+      impl: `sequencer(m.${exportName}, m.${item.sceneItem ?? exportName})`,
+      helpers: ["sequencer"],
+    };
+  const base = kind === "presentation" ? "presentation" : "component";
+  const wrappers = WRAPPERS.filter(([applies]) => applies(item)).map(([, wrapper]) => wrapper);
+  return {
+    impl: wrappers.reduce((inner, wrapper) => `${wrapper}(${inner})`, `${base}(m.${exportName})`),
+    helpers: [base, ...wrappers],
+  };
+}
+
 export function renderLoaderEntry({ item, key, file, exportName }: Resolved): {
   loader: string;
   helpers: FramingHelper[];
 } {
-  const base = kindOf(item) === "presentation" ? "presentation" : "component";
-  const wrappers = WRAPPERS.filter(([applies]) => applies(item)).map(([, wrapper]) => wrapper);
-  const impl = wrappers.reduce(
-    (inner, wrapper) => `${wrapper}(${inner})`,
-    `${base}(m.${exportName})`,
-  );
+  const { impl, helpers } = implOf(item, exportName);
   const rel =
     "../" +
     path
@@ -160,7 +173,7 @@ export function renderLoaderEntry({ item, key, file, exportName }: Resolved): {
       .replace(/(\/index)?\.tsx$/, "");
   return {
     loader: `  ${JSON.stringify(key)}: () => import(${JSON.stringify(rel)}).then((m) => ${impl}),`,
-    helpers: [base, ...wrappers],
+    helpers,
   };
 }
 

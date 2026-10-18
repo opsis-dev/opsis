@@ -12,7 +12,7 @@ export type ElementCategory =
   | "scene"
   | "device";
 
-export type ElementKind = "component" | "wrapper" | "presentation";
+export type ElementKind = "component" | "wrapper" | "presentation" | "sequencer";
 
 export type ElementProps = Record<string, unknown>;
 

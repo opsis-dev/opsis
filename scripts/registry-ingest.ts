@@ -195,6 +195,14 @@ async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved 
         `${item.registry}/${item.name}: no component export found`,
       ],
     };
+  if (item.kind === "sequencer" && !exportedNames(file).includes(item.sceneItem ?? ""))
+    return {
+      value: null,
+      problems: [
+        ...description.problems,
+        `${item.registry}/${item.name}: no scene item export "${item.sceneItem ?? ""}" found`,
+      ],
+    };
   const source = readFileSync(file, "utf8");
   const props = reg.propsUrl
     ? propControls(item, file, exportName, await fetchPropDocs(reg.propsUrl(item.name)))

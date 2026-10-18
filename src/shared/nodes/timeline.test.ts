@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyClip } from "../compile/clip";
+import { emptyClip, sceneItemCount } from "../compile/clip";
 import type { ClipValue } from "../schema/values";
 import { compileNode, nodeCard } from "../test-fixtures";
 
@@ -57,5 +57,24 @@ describe("timeline node cards", () => {
       context,
     );
     expect(held.some((r) => r.text.startsWith("Covers"))).toBe(false);
+  });
+});
+
+describe("Layers", () => {
+  const stacked = (params: Record<string, unknown>) => {
+    const clip = compileNode("timeline.stack", params, {
+      in1: emptyClip(30),
+      in2: emptyClip(30),
+    }).clip;
+    if (clip?.type !== "clip") throw new Error("no clip from Layers");
+    return clip;
+  };
+
+  it("marks its layers so a sequencer can land them one by one", () => {
+    expect(sceneItemCount(stacked({}))).toBe(2);
+  });
+
+  it("stays one item when it keeps its layout in other shapes", () => {
+    expect(sceneItemCount(stacked({ keepLayout: true }))).toBe(1);
   });
 });

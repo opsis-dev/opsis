@@ -89,6 +89,7 @@ export type TimelineItem = z.infer<typeof timelineItemSchema>;
 export const timelineTrackSchema = z.object({
   id: z.string(),
   items: z.array(timelineItemSchema),
+  layer: z.boolean().optional(),
 });
 export type TimelineTrack = z.infer<typeof timelineTrackSchema>;
 

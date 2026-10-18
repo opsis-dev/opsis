@@ -1,5 +1,6 @@
+import type { ClipValue } from "../schema/values";
 import type { PortType } from "../schema/workflow";
-import { opt, type PortSpec } from "./define";
+import { clipInput, opt, type CompileInputs, type PortSpec } from "./define";
 
 const ACCEPTS: Record<PortType, PortType[]> = {
   session: ["session"],
@@ -40,5 +41,13 @@ const LAYER_ENDS: Partial<Record<InPort, string>> = { in1: " (back)", in6: " (fr
 export const layerLabel = (handle: InPort) =>
   `Layer ${inPortIndex(handle) + 1}${LAYER_ENDS[handle] ?? ""}`;
 
+export const sceneLabel = (handle: InPort) => `Scene ${inPortIndex(handle) + 1}`;
+
 export const clipPorts = (label: (handle: InPort) => string): Record<string, PortSpec> =>
   Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", label(p))]));
+
+export const connectedClips = (inputs: CompileInputs): Array<{ port: InPort; clip: ClipValue }> =>
+  IN_PORTS.flatMap((name) => {
+    const clip = clipInput(inputs, name);
+    return clip ? [{ port: name, clip }] : [];
+  });

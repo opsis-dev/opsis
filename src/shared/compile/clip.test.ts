@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
+import { must } from "../test-fixtures";
 import { flattenSpec, nodeSpans } from "../timeline/flatten";
-import { clipToSpec, groupItem, groupOf, itemClip, sequenceClips } from "./clip";
+import {
+  clipToSpec,
+  groupItem,
+  groupOf,
+  itemClip,
+  markLayers,
+  sceneItemCount,
+  sceneSequence,
+  sequenceClips,
+  stackClips,
+  wrapClip,
+} from "./clip";
 import { remapFrame, type Remap } from "./remap";
 
 const settings = {
@@ -120,5 +132,99 @@ describe("speed changes", () => {
     );
     expect(flat.bars.map((b) => [b.nodeId, b.hasSound])).toEqual([["a", true]]);
     expect(flat.audio).toEqual([]);
+  });
+});
+
+describe("sceneSequence", () => {
+  const sequencer = { component: "remocn/spring-settle", props: {}, backgrounds: [null, null] };
+  const solid = (id: string, frames: number) => itemClip(id, "core/solid", {}, frames);
+  const sound = (id: string) => ({
+    id: `${id}:a`,
+    src: "app:sfx/pop.wav",
+    from: 0,
+    volume: 1,
+    role: "effect" as const,
+  });
+  const layered = (offsets: number[], front = solid("y", 30)) =>
+    markLayers(
+      stackClips("l", [solid("x", 30), front], offsets, {
+        ports: ["in1", "in2"],
+        move: (index) => ({ nodeId: "l", param: "offsetsMs", unit: "ms", index }),
+      }),
+    );
+  const scenesOf = (clip: ReturnType<typeof sceneSequence>) =>
+    must(groupOf(clip.tracks[0].items[0]), "sequencer group").tracks[0].items;
+
+  it("plays scenes one after another with the pause between them, and no pause after the last", () => {
+    const clip = sceneSequence(
+      "s",
+      [
+        { port: "in1", clip: solid("a", 30) },
+        { port: "in3", clip: solid("b", 45) },
+      ],
+      { gap: 5, sequencer },
+    );
+    expect(clip.durationInFrames).toBe(80);
+    expect(groupOf(clip.tracks[0].items[0])?.sequencer).toEqual(sequencer);
+    expect(scenesOf(clip).map((s) => [s.from, s.durationInFrames, s.slot])).toEqual([
+      [0, 30, { nodeId: "s", port: "in1" }],
+      [35, 45, { nodeId: "s", port: "in3" }],
+    ]);
+    expect(nodeSpans(clipToSpec(clip, settings))).toMatchObject({
+      a: { from: 0, to: 30 },
+      b: { from: 35, to: 80 },
+    });
+  });
+
+  it("makes a plain clip one item and each layer of a Layers clip its own item", () => {
+    const layers = layered([0, 12]);
+    expect(sceneItemCount(solid("p", 30))).toBe(1);
+    expect(sceneItemCount(layers)).toBe(2);
+    expect(sceneItemCount(wrapClip(layers, "w"))).toBe(1);
+    const clip = sceneSequence(
+      "s",
+      [
+        { port: "in1", clip: solid("p", 30) },
+        { port: "in2", clip: layers },
+      ],
+      { gap: 0, sequencer },
+    );
+    const [plain, stacked] = scenesOf(clip).map((s) => must(groupOf(s), "scene").tracks);
+    expect(plain).toHaveLength(1);
+    expect(stacked).toHaveLength(2);
+  });
+
+  it("starts a scene's layers together, leaving their landing to the sequencer", () => {
+    const clip = sceneSequence("s", [{ port: "in1", clip: layered([0, 12]) }], {
+      gap: 0,
+      sequencer,
+    });
+    expect(scenesOf(clip)[0].durationInFrames).toBe(30);
+    const layers = must(groupOf(scenesOf(clip)[0]), "scene").tracks.map((t) => t.items[0]);
+    expect(layers.map((l) => l.from)).toEqual([0, 0]);
+    expect(layers.map((l) => l.handles?.move)).toEqual([undefined, undefined]);
+    expect(layers.map((l) => l.slot)).toEqual([
+      { nodeId: "l", port: "in1" },
+      { nodeId: "l", port: "in2" },
+    ]);
+  });
+
+  it("keeps a Layers length that follows one layer", () => {
+    const short = { ...layered([0, 12]), durationInFrames: 20 };
+    const clip = sceneSequence("s", [{ port: "in1", clip: short }], { gap: 0, sequencer });
+    expect(clip.durationInFrames).toBe(20);
+  });
+
+  it("moves a layer's sound back with it and every scene's sound to the scene's start", () => {
+    const front = { ...solid("y", 30), audio: [sound("y")] };
+    const clip = sceneSequence(
+      "s",
+      [
+        { port: "in1", clip: { ...solid("p", 40), audio: [sound("p")] } },
+        { port: "in2", clip: layered([0, 12], front) },
+      ],
+      { gap: 2, sequencer },
+    );
+    expect(clip.audio.map((a) => a.from)).toEqual([0, 42]);
   });
 });

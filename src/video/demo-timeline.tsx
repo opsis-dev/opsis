@@ -9,7 +9,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { groupOf, type Crop, type GroupProps } from "../shared/compile/clip";
+import { groupOf, type Crop, type GroupProps, type SequencerProps } from "../shared/compile/clip";
 import { remapFrame } from "../shared/compile/remap";
 import { ERROR_COLOR, STAGE_COLOR } from "../shared/elements/colors";
 import { MAIN_FONT } from "../shared/fonts";
@@ -40,7 +40,13 @@ import { CLAMP_RIGHT, fadeWindow } from "./core/anim";
 import { sameShape } from "./core/frame";
 import type { Size } from "./core/still-layout";
 import { FontProvider } from "./fonts/font-provider";
-import { getComponent, getPresentation, isKnownElement, useElement } from "./registry";
+import {
+  getComponent,
+  getPresentation,
+  getSequencer,
+  isKnownElement,
+  useElement,
+} from "./registry";
 import { PaintRule } from "./registry/framing";
 
 const PREMOUNT_FRAMES = 30;
@@ -134,6 +140,36 @@ const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
 
 const cropScale = (crop: Crop): number => 1 / Math.max(MIN_CROP, crop.w, crop.h);
 
+const FILL: React.CSSProperties = { position: "absolute", inset: 0 };
+
+const SceneSequence: React.FC<{ sequencer: SequencerProps; tracks: TimelineTrack[] }> = ({
+  sequencer,
+  tracks,
+}) => {
+  const base = useAssetBase();
+  useElement(sequencer.component);
+  if (!isKnownElement(sequencer.component)) return <MissingElement name={sequencer.component} />;
+  const impl = getSequencer(sequencer.component);
+  if (!impl) return null;
+  const { Scenes, Item } = impl;
+  const scenes = tracks
+    .flatMap((track) => track.items)
+    .map((scene, i) => ({
+      durationInFrames: scene.durationInFrames,
+      bg: sequencer.backgrounds[i] ?? undefined,
+      content: (
+        <Sequence from={scene.from} layout="none">
+          {(groupOf(scene)?.tracks ?? []).map((track, index) => (
+            <Item key={track.id} index={index} style={FILL}>
+              <Tracks tracks={[track]} />
+            </Item>
+          ))}
+        </Sequence>
+      ),
+    }));
+  return <Scenes scenes={scenes} config={resolveProps(sequencer.props, base)} />;
+};
+
 const Group: React.FC<GroupProps> = ({
   tracks,
   startFrom,
@@ -143,9 +179,14 @@ const Group: React.FC<GroupProps> = ({
   wrapper,
   background,
   design,
+  sequencer,
 }) => {
   const frame = useCurrentFrame();
-  let layers: React.ReactNode = <Tracks tracks={tracks} />;
+  let layers: React.ReactNode = sequencer ? (
+    <SceneSequence sequencer={sequencer} tracks={tracks} />
+  ) : (
+    <Tracks tracks={tracks} />
+  );
   if (startFrom)
     layers = (
       <Sequence from={-startFrom} layout="none">

@@ -3,6 +3,7 @@ import {
   EMPTY_CLIP_FRAMES,
   emptyClip,
   groupItem,
+  markLayers,
   sequenceClips,
   stackClips,
   withHandles,
@@ -30,7 +31,6 @@ import {
   type Cover,
 } from "./card";
 import {
-  clipInput,
   clipModifier,
   defineNode,
   nodeBase,
@@ -41,7 +41,7 @@ import {
   type CompileOutputs,
 } from "./define";
 import { bool, choice, choiceOf, frames, int, more, ms, rate, text } from "./params";
-import { clipLabel, clipPorts, CUT_PORTS, IN_PORTS, layerLabel } from "./ports";
+import { clipLabel, clipPorts, connectedClips, CUT_PORTS, IN_PORTS, layerLabel } from "./ports";
 import {
   DEFAULT_TRANSITION,
   NO_TRANSITION,
@@ -51,12 +51,6 @@ import {
 } from "./transitions";
 
 const base = nodeBase("Timeline", "compile");
-
-const connectedClips = (inputs: CompileInputs): Array<{ port: string; clip: ClipValue }> =>
-  IN_PORTS.flatMap((name) => {
-    const clip = clipInput(inputs, name);
-    return clip ? [{ port: name, clip }] : [];
-  });
 
 const withConnectedClips = (
   inputs: CompileInputs,
@@ -248,10 +242,12 @@ const stackNode = defineNode({
   compile: ({ nodeId, inputs, params, settings }) =>
     withConnectedClips(inputs, (clips, ports) => {
       const offsets = parseNumberList(params.offsetsMs).map((n) => msToFrames(n, settings.fps, 0));
-      const stacked = stackClips(nodeId, clips, offsets, {
-        ports,
-        move: (index) => ({ nodeId, param: "offsetsMs", unit: "ms", index }),
-      });
+      const stacked = markLayers(
+        stackClips(nodeId, clips, offsets, {
+          ports,
+          move: (index) => ({ nodeId, param: "offsetsMs", unit: "ms", index }),
+        }),
+      );
       const source: LengthSource = LENGTH_SOURCES[params.duration];
       const pick = source.pick?.(clips);
       const clip = pick ? { ...stacked, durationInFrames: pick.durationInFrames } : stacked;

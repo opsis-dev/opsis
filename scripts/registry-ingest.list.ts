@@ -56,7 +56,8 @@ export type CuratedElement = {
   defaults?: Record<string, unknown>;
   fixedProps?: Record<string, unknown>;
   durationInFrames?: number;
-  kind?: "component" | "wrapper" | "presentation";
+  kind?: "component" | "wrapper" | "presentation" | "sequencer";
+  sceneItem?: string;
   center?: boolean;
   screen?: boolean;
   place?: "spot" | "points";
@@ -138,6 +139,8 @@ const remotionui = fromRegistry("remotionui");
 export const TITLE_ACRONYMS: ReadonlySet<string> = new Set(["AI", "CRT", "RGB", "TV", "UI", "VHS"]);
 
 export const DESCRIPTIONS: Partial<Record<string, string>> = {
+  "spring-settle":
+    "Plays clips as scenes: each scene shrinks away, the stage holds empty for a beat, and the next one lands. Connect Layers to make a scene whose layers land one after another.",
   typewriter: "Types the text out letter by letter with a blinking cursor.",
   "shimmer-sweep": "A band of light sweeps across the text.",
   keystroke: "Shows a keyboard shortcut as keycaps being pressed.",
@@ -613,7 +616,72 @@ const LIST: CuratedElement[] = [
   ...remocn("effect", ["crt-screen", "vhs-filter", "halftone-print", "camera-lens"]),
   ...remocn("effect", ["polaroid"], { center: true }),
   ...remocn("effect", ["tv-power-off"], { atEnd: true }),
-  ...remocn("effect", ["speed-lines", "spring-settle"]),
+  ...remocn("effect", ["speed-lines"]),
+  ...remocn("scene", ["spring-settle"], {
+    kind: "sequencer",
+    sceneItem: "SpringSettleItem",
+    controls: {
+      enterStagger: {
+        type: "number",
+        default: 3,
+        min: 0,
+        max: 10,
+        step: 0.5,
+        unit: "frames",
+        description: "Time between items",
+        help: "How long each item in a scene waits after the one before it.",
+      },
+      exitFrames: {
+        type: "number",
+        default: 6,
+        min: 2,
+        max: 24,
+        step: 1,
+        unit: "frames",
+        description: "Exit time",
+      },
+      enterFadeFrames: {
+        type: "number",
+        default: 5,
+        min: 0,
+        max: 30,
+        step: 1,
+        unit: "frames",
+        description: "Fade-in time",
+        advanced: true,
+      },
+      springDamping: {
+        type: "number",
+        default: 30,
+        min: 1,
+        max: 100,
+        step: 1,
+        description: "Spring damping",
+        help: "Lower values bounce more as items land.",
+        advanced: true,
+      },
+      springStiffness: {
+        type: "number",
+        default: 320,
+        min: 10,
+        max: 1000,
+        step: 10,
+        description: "Spring stiffness",
+        help: "Higher values land faster.",
+        advanced: true,
+      },
+      bgFadeFrames: {
+        type: "number",
+        default: 4,
+        min: 0,
+        max: 30,
+        step: 1,
+        unit: "frames",
+        description: "Background fade",
+        advanced: true,
+      },
+    },
+  }),
   ...remocn("ui", ["terminal-simulator"], {
     controls: {
       lines: {

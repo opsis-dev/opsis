@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/renderer/lib/utils";
-import { isClip } from "@/shared/compile/clip";
+import { isClip, sceneItemCount } from "@/shared/compile/clip";
 import { workflowVars } from "@/shared/compile/compile";
 import { errorMessage } from "@/shared/errors";
 import { uniqueKeys } from "@/shared/lists";
@@ -36,20 +36,42 @@ function useCardInputs(node: WorkflowNode) {
   const clip = compiled?.values[node.id]?.clip;
   const clipFrames = isClip(clip) ? clip.durationInFrames : undefined;
   const connected = useMemo(() => incoming.map((e) => e.targetHandle), [incoming]);
-  const inputFrames = useMemo(() => {
-    const out: Partial<Record<string, number>> = {};
+  const { inputFrames, inputItems } = useMemo(() => {
+    const frames: Partial<Record<string, number>> = {};
+    const items: Partial<Record<string, number>> = {};
     for (const e of incoming) {
       const v = compiled?.values[e.source]?.[e.sourceHandle];
-      if (isClip(v)) out[e.targetHandle] = v.durationInFrames;
+      if (!isClip(v)) continue;
+      frames[e.targetHandle] = v.durationInFrames;
+      items[e.targetHandle] = sceneItemCount(v);
     }
-    return out;
+    return { inputFrames: frames, inputItems: items };
   }, [incoming, compiled]);
-  return { variables, name, settings, result, secrets, connected, clipFrames, inputFrames };
+  return {
+    variables,
+    name,
+    settings,
+    result,
+    secrets,
+    connected,
+    clipFrames,
+    inputFrames,
+    inputItems,
+  };
 }
 
 export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
-  const { variables, name, settings, result, secrets, connected, clipFrames, inputFrames } =
-    useCardInputs(node);
+  const {
+    variables,
+    name,
+    settings,
+    result,
+    secrets,
+    connected,
+    clipFrames,
+    inputFrames,
+    inputItems,
+  } = useCardInputs(node);
   return useMemo(() => {
     if (!def.card) return [];
     const params = interpolatedParams(def, node.params, workflowVars({ name, variables }));
@@ -62,6 +84,7 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
         connected,
         clipFrames,
         inputFrames,
+        inputItems,
       }).slice(0, MAX_ROWS);
     } catch (error) {
       return [
@@ -84,6 +107,7 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
     connected,
     clipFrames,
     inputFrames,
+    inputItems,
   ]);
 }
 

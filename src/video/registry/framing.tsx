@@ -4,10 +4,15 @@ import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
 import type { ElementProps } from "../../shared/elements/types";
 import { numberOr } from "../../shared/math";
 import type { Size } from "../core/still-layout";
-import type { ElementComponent, Presentation, PresentationFactory } from "./types";
+import type { ElementComponent, Presentation, PresentationFactory, SceneSequencer } from "./types";
 
 export const component = (element: React.FC<never>): ElementComponent =>
   element as ElementComponent;
+
+export const sequencer = (Scenes: React.FC<never>, Item: React.FC<never>): SceneSequencer => ({
+  Scenes: Scenes as SceneSequencer["Scenes"],
+  Item: Item as SceneSequencer["Item"],
+});
 
 export const presentation = (make: (props: never, size: Size) => unknown): PresentationFactory => ({
   create: make as (props: ElementProps, size: Size) => Presentation,
