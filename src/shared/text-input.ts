@@ -20,4 +20,5 @@ export const nonBlankLines = (text: string): string[] =>
     .map((line) => line.trim())
     .filter(Boolean);
 
-export const chordKeys = (chord: string): string[] => chord.split(/\+(?=.)/);
+export const chordKeys = (chord: string): string[] =>
+  chord.split(/\+(?=.)/).map((key) => key.trim());

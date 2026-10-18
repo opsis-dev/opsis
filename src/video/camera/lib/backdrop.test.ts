@@ -44,6 +44,15 @@ describe("backdropSource", () => {
       path: `backdrops/${DEFAULT_BACKDROP}.jpg`,
     });
   });
+
+  it("ignores spaces around a colour or an address", () => {
+    expect(backdropSource(" #123456 ")).toEqual({ kind: "paint", css: "#123456" });
+    expect(backdropSource(" https://x.test/y.jpg")).toEqual({
+      kind: "image",
+      url: "https://x.test/y.jpg",
+    });
+    expect(backdropSource(" cobalt ")).toEqual({ kind: "file", path: "backdrops/cobalt.jpg" });
+  });
 });
 
 describe("isLightBackdrop", () => {
@@ -60,5 +69,12 @@ describe("isLightBackdrop", () => {
     expect(isLightBackdrop("rgb(250, 250, 250)")).toBe(true);
     expect(isLightBackdrop("rgba(250 250 250 / 0.9)")).toBe(true);
     expect(isLightBackdrop("rgb(20, 20, 30)")).toBe(false);
+  });
+});
+
+describe("isLightBackdrop with padding", () => {
+  it("reads a colour with spaces around it", () => {
+    expect(isLightBackdrop(" #ffffff ")).toBe(true);
+    expect(isLightBackdrop(" #101013 ")).toBe(false);
   });
 });

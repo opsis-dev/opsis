@@ -3,6 +3,12 @@ import { z } from "zod";
 const rectSchema = z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() });
 export type Rect = z.infer<typeof rectSchema>;
 
+const pointSchema = z.object({ x: z.number(), y: z.number() });
+export type Point = z.infer<typeof pointSchema>;
+
+const viewportSchema = z.object({ width: z.number(), height: z.number() });
+export type Viewport = z.infer<typeof viewportSchema>;
+
 export type Bounds = { x: number; y: number; width: number; height: number };
 
 export const rectFromBounds = (b: Bounds): Rect => ({ x: b.x, y: b.y, w: b.width, h: b.height });
@@ -11,14 +17,14 @@ export const boundsFromRect = (r: Rect): Bounds => ({ x: r.x, y: r.y, width: r.w
 
 const POINT_BOX = { w: 120, h: 48 };
 
-export const pointRect = (point: { x: number; y: number }, scale = 1): Rect => ({
+export const pointRect = (point: Point, scale = 1): Rect => ({
   x: point.x - (POINT_BOX.w / 2) * scale,
   y: point.y - (POINT_BOX.h / 2) * scale,
   w: POINT_BOX.w * scale,
   h: POINT_BOX.h * scale,
 });
 
-export const rectCentre = (r: Rect): { x: number; y: number } => ({
+export const rectCentre = (r: Rect): Point => ({
   x: r.x + r.w / 2,
   y: r.y + r.h / 2,
 });
@@ -47,8 +53,6 @@ const ACTION_KINDS = [
   "drag",
 ] as const;
 
-const pointSchema = z.object({ x: z.number(), y: z.number() });
-
 const actionSchema = z.object({
   id: z.string(),
   kind: z.enum(ACTION_KINDS),
@@ -73,7 +77,7 @@ export type Action = z.infer<typeof actionSchema>;
 const cursorSampleSchema = z.object({ t: z.number(), x: z.number(), y: z.number() });
 
 export const actionLogSchema = z.object({
-  viewport: z.object({ width: z.number(), height: z.number() }),
+  viewport: viewportSchema,
   dpr: z.number(),
   t0: z.number(),
   durationMs: z.number(),

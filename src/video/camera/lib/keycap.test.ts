@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { KeyEvent } from "./click-log";
-import { chordGlyphs, KEYCAP_HOLD_S, keycapAt, settle } from "./keycap";
+import { chordGlyphs, KEYCAP_HOLD_S, keycapAt, keycapEase } from "./keycap";
 
 describe("chordGlyphs", () => {
   it.each([
@@ -16,19 +16,19 @@ describe("chordGlyphs", () => {
   });
 });
 
-describe("settle", () => {
-  it("runs 1 -> 0 and clamps outside the move", () => {
-    expect(settle(0)).toBe(1);
-    expect(settle(1)).toBe(0);
-    expect(settle(-3)).toBe(1);
-    expect(settle(9)).toBe(0);
+describe("keycapEase", () => {
+  it("runs 0 -> 1 and clamps outside the move", () => {
+    expect(keycapEase(0)).toBe(0);
+    expect(keycapEase(1)).toBe(1);
+    expect(keycapEase(-3)).toBe(0);
+    expect(keycapEase(9)).toBe(1);
   });
 
-  it("never rises on the way down", () => {
-    let prev = settle(0);
+  it("never falls on the way up", () => {
+    let prev = keycapEase(0);
     for (let i = 1; i <= 60; i++) {
-      const v = settle(i / 60);
-      expect(v <= prev + 1e-9, `rose at u=${i / 60}: ${prev} -> ${v}`).toBe(true);
+      const v = keycapEase(i / 60);
+      expect(v).toBeGreaterThanOrEqual(prev - 1e-9);
       prev = v;
     }
   });

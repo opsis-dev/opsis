@@ -11,46 +11,48 @@ import {
 } from "./camera";
 import { designScaleFor } from "./design-width";
 import { clamp, clamp01, lerp, partitionPoint, sampleKeyed } from "../../../shared/math";
-import { rectCentre } from "../../../shared/schema/actions";
+import { rectCentre, type Viewport } from "../../../shared/schema/actions";
+import { stableJson } from "../../../shared/hash";
 
 export const S_MAX = 1.74;
-const S_MIN = 1.18;
-const S_MAX_SOFT = 1.54;
 
-const TARGET_PAD_PX = 80;
-const MENU_ROOM_PX = 110;
-const TALL_TARGET_PX = 90;
-const TALL_MENU_ROOM_PX = 24;
-const TARGET_SHARE = 0.55;
-const NARROW_TARGET_SHARE = 0.86;
-const OFF_CENTRE_X = 0.26;
-const OFF_CENTRE_Y = OFF_CENTRE_X * 0.65;
-const CLICK_EDGE_MARGIN = 0.04;
-const CLICK_EDGE_MARGIN_MAX_SHARE = 0.4;
-const CLICK_PULL = 0.2;
+const ZOOM = { min: 1.18, firstShotMax: 1.54 } as const;
 
-const GROUP_TIME_GAP = 2.2;
-const GROUP_DIST_FRAC = 0.28;
+const SUBJECT = {
+  padPx: 80,
+  menuRoomPx: 110,
+  tallTargetPx: 90,
+  tallMenuRoomPx: 24,
+  clickPull: 0.2,
+} as const;
 
-const STICKY_TIME_GAP = 2.8;
-const STICKY_DIST_FRAC = 0.22;
+const FRAMING = {
+  targetShare: 0.55,
+  narrowTargetShare: 0.86,
+  offCentre: { x: 0.26, y: 0.26 * 0.65 },
+  clickEdgeMargin: 0.04,
+  clickEdgeMarginMaxShare: 0.4,
+} as const;
 
-const LEAD_FALLBACK_S = 0.75;
-const HOLD_MIN_S = 1.3;
-const TYPE_TAIL_S = 0.4;
-const CAMERA_LEAD_S = 0.035;
-const BASE_BEAT_S = 0.6;
+const GROUPING = { gapS: 2.2, distFrac: 0.28 } as const;
 
-const MAX_PAN_PX = 500;
-const MIN_TRACK_S = 0.5;
-const KEY_EPSILON_S = 1e-4;
-const KEY_MERGE_S = 0.2;
+const STICKY = { gapS: 2.8, distFrac: 0.22 } as const;
 
-const AIM_WINDOW_S = 1.2;
-const NARROW_REST_EXP = 0.8;
-const NARROW_REST_AIM_Y = 0.5;
+const TIMING = {
+  leadFallbackS: 0.75,
+  holdMinS: 1.3,
+  typeTailS: 0.4,
+  cameraLeadS: 0.035,
+  baseBeatS: 0.6,
+} as const;
 
-export type CameraKey = { t: number; pose: CameraPose };
+const TRACK = { maxPanPx: 500, minS: 0.5, keyEpsilonS: 1e-4, keyMergeS: 0.2 } as const;
+
+const NARROW_AIM = { windowS: 1.2, restExp: 0.8, restAimY: 0.5 } as const;
+
+type CameraKey = { t: number; pose: CameraPose };
+
+type CameraTrack = [CameraKey, ...CameraKey[]];
 
 export type CameraTuning = {
   sMax?: number;
@@ -68,15 +70,20 @@ type ZoomOptions = TrackOptions & {
   fit?: number;
 };
 
-type Viewport = { width: number; height: number };
+type Aim = Pick<CameraPose, "cx" | "cy">;
 
-const logTimeS = (frame: number, fps: number, speed: number): number => (frame / fps) * speed;
+export const logTimeS = (frame: number, fps: number, speed: number): number =>
+  (frame / fps) * speed;
 
-export function cursorAim(log: ClickLog, tS: number): { cx: number; cy: number } | null {
+const narrowFactor = (tuning: CameraTuning = {}): number => tuning.narrow ?? 1;
+
+export const isNarrow = (tuning: CameraTuning = {}): boolean => narrowFactor(tuning) > 1;
+
+export function cursorAim(log: ClickLog, tS: number): Aim | null {
   const track = log.cursorTrack;
   if (!track?.length) return null;
-  const from = (tS - AIM_WINDOW_S) * 1000;
-  const to = (tS + AIM_WINDOW_S) * 1000;
+  const from = (tS - NARROW_AIM.windowS) * 1000;
+  const to = (tS + NARROW_AIM.windowS) * 1000;
   const lo = partitionPoint(track, (s) => s.t < from);
   let x = 0;
   let y = 0;
@@ -95,31 +102,25 @@ export function cursorAim(log: ClickLog, tS: number): { cx: number; cy: number }
   return { cx: x / n / log.viewport.width, cy: y / n / log.viewport.height };
 }
 
-export const zoomCeiling = (tuning: CameraTuning): number =>
-  (tuning.sMax ?? S_MAX) * (tuning.narrow ?? 1);
+const zoomCeiling = (tuning: CameraTuning): number => (tuning.sMax ?? S_MAX) * narrowFactor(tuning);
 
 export function narrowPose(
   pose: CameraPose,
   tuning: CameraTuning,
-  aim: { cx: number; cy: number } | null,
+  aimAt: () => Aim | null,
 ): CameraPose {
-  const narrow = tuning.narrow ?? 1;
-  if (narrow <= 1) return pose;
-  const rest = narrow ** NARROW_REST_EXP;
+  if (!isNarrow(tuning)) return pose;
+  const rest = narrowFactor(tuning) ** NARROW_AIM.restExp;
   const zoomed = clamp01((pose.scale - rest) / (zoomCeiling(tuning) - rest));
-  const restAim = aim ?? { cx: BASE_POSE.cx, cy: BASE_POSE.cy };
+  const restAim = aimAt() ?? { cx: BASE_POSE.cx, cy: BASE_POSE.cy };
   return {
     scale: Math.max(pose.scale, rest),
     cx: lerp(restAim.cx, pose.cx, zoomed),
-    cy: lerp(lerp(BASE_POSE.cy, restAim.cy, NARROW_REST_AIM_Y), pose.cy, zoomed),
+    cy: lerp(lerp(BASE_POSE.cy, restAim.cy, NARROW_AIM.restAimY), pose.cy, zoomed),
   };
 }
 
 const zoomable = (clicks: ClickEvent[]): ClickEvent[] => clicks.filter((c) => c.zoom !== false);
-
-const hasCluster = (c: ClickEvent): boolean => c.cluster != null && c.cluster !== "";
-
-const clusterOf = (c: ClickEvent): string | undefined => (hasCluster(c) ? c.cluster : undefined);
 
 const apartFrac = (a: ClickEvent, b: ClickEvent, vp: Viewport): number =>
   Math.hypot(b.x - a.x, b.y - a.y) / Math.hypot(vp.width, vp.height);
@@ -129,9 +130,9 @@ const gapS = (a: ClickEvent, b: ClickEvent): number => (b.tMs - a.tMs) / 1000;
 export function clusterize(clicks: ClickEvent[], vp: Viewport): ClickEvent[][] {
   const list = zoomable(clicks);
   const startsGroup = (prev: ClickEvent, c: ClickEvent): boolean =>
-    apartFrac(prev, c, vp) > GROUP_DIST_FRAC ||
-    clusterOf(prev) !== clusterOf(c) ||
-    (!hasCluster(c) && gapS(prev, c) > GROUP_TIME_GAP);
+    apartFrac(prev, c, vp) > GROUPING.distFrac ||
+    prev.cluster !== c.cluster ||
+    (c.cluster === undefined && gapS(prev, c) > GROUPING.gapS);
   const groups: ClickEvent[][] = [];
   list.forEach((c, i) => {
     if (i === 0 || startsGroup(list[i - 1], c)) groups.push([c]);
@@ -142,16 +143,18 @@ export function clusterize(clicks: ClickEvent[], vp: Viewport): ClickEvent[][] {
 
 export function stickify(groups: ClickEvent[][], vp: Viewport): ClickEvent[][] {
   if (groups.length <= 1) return groups;
-  const explicit = groups.some((g) => g.some(hasCluster));
+  const explicit = groups.some((g) => g.some((c) => c.cluster !== undefined));
   const out: ClickEvent[][] = [groups[0]];
   for (const next of groups.slice(1)) {
     const prev = out[out.length - 1];
     const last = prev[prev.length - 1];
     const first = next[0];
     const otherCluster =
-      explicit && hasCluster(last) && hasCluster(first) && last.cluster !== first.cluster;
-    const close =
-      gapS(last, first) <= STICKY_TIME_GAP && apartFrac(last, first, vp) <= STICKY_DIST_FRAC;
+      explicit &&
+      last.cluster !== undefined &&
+      first.cluster !== undefined &&
+      last.cluster !== first.cluster;
+    const close = gapS(last, first) <= STICKY.gapS && apartFrac(last, first, vp) <= STICKY.distFrac;
     if (!otherCluster && close) out[out.length - 1] = prev.concat(next);
     else out.push(next);
   }
@@ -163,13 +166,14 @@ type Subject = { x: number; y: number; w: number; h: number };
 function subjectOf(c: ClickEvent, width: number): Subject {
   const k = designScaleFor(width);
   const rect = c.rect ?? defaultTargetRect(c, width);
-  const menuRoom = (rect.h >= TALL_TARGET_PX * k ? TALL_MENU_ROOM_PX : MENU_ROOM_PX) * k;
+  const menuRoom =
+    (rect.h >= SUBJECT.tallTargetPx * k ? SUBJECT.tallMenuRoomPx : SUBJECT.menuRoomPx) * k;
   const centre = rectCentre(rect);
   return {
-    x: lerp(centre.x, c.x, CLICK_PULL),
-    y: lerp(centre.y + menuRoom / 2, c.y, CLICK_PULL),
-    w: rect.w + 2 * TARGET_PAD_PX * k,
-    h: rect.h + menuRoom + 2 * TARGET_PAD_PX * k,
+    x: lerp(centre.x, c.x, SUBJECT.clickPull),
+    y: lerp(centre.y + menuRoom / 2, c.y, SUBJECT.clickPull),
+    w: rect.w + 2 * SUBJECT.padPx * k,
+    h: rect.h + menuRoom + 2 * SUBJECT.padPx * k,
   };
 }
 
@@ -180,11 +184,12 @@ function scaleFor(
   sMax: number,
   narrow: boolean,
 ): number {
-  if (c.zoomScale != null) return clamp(c.zoomScale, S_MIN, sMax);
-  const byWidth = ((narrow ? NARROW_TARGET_SHARE : TARGET_SHARE) * vp.width) / subject.w;
-  if (narrow) return clamp(byWidth, S_MIN, sMax);
-  const byHeight = (TARGET_SHARE * vp.height) / subject.h;
-  return clamp(Math.min(byWidth, byHeight), S_MIN, sMax);
+  if (c.zoomScale != null) return clamp(c.zoomScale, ZOOM.min, sMax);
+  const share = narrow ? FRAMING.narrowTargetShare : FRAMING.targetShare;
+  const byWidth = (share * vp.width) / subject.w;
+  if (narrow) return clamp(byWidth, ZOOM.min, sMax);
+  const byHeight = (FRAMING.targetShare * vp.height) / subject.h;
+  return clamp(Math.min(byWidth, byHeight), ZOOM.min, sMax);
 }
 
 const inView = (v: number, half: number): number => clamp(v, half, 1 - half);
@@ -193,7 +198,7 @@ function offCentre(focus: number, click: number, offset: number, scale: number):
   const half = 1 / (2 * scale);
   const side = focus >= 0.5 ? 1 : -1;
   const aimed = inView(focus - (offset * side) / scale, half);
-  const margin = Math.min(CLICK_EDGE_MARGIN, half * CLICK_EDGE_MARGIN_MAX_SHARE);
+  const margin = Math.min(FRAMING.clickEdgeMargin, half * FRAMING.clickEdgeMarginMaxShare);
   return inView(clamp(aimed, click - half + margin, click + half - margin), half);
 }
 
@@ -208,34 +213,26 @@ export function frameFor(c: ClickEvent, vp: Viewport, sMax: number, narrow = fal
   }
   return {
     scale,
-    cx: offCentre(focusX, clamp01(c.x / vp.width), OFF_CENTRE_X, scale),
-    cy: offCentre(focusY, clamp01(c.y / vp.height), OFF_CENTRE_Y, scale),
+    cx: offCentre(focusX, clamp01(c.x / vp.width), FRAMING.offCentre.x, scale),
+    cy: offCentre(focusY, clamp01(c.y / vp.height), FRAMING.offCentre.y, scale),
   };
 }
 
 function departS(c: ClickEvent): number {
-  return (c.tDepartMs ?? c.tMs - LEAD_FALLBACK_S * 1000) / 1000;
+  return (c.tDepartMs ?? c.tMs - TIMING.leadFallbackS * 1000) / 1000;
 }
 
-function normalizeKeys(keys: CameraKey[]): CameraKey[] {
-  const sorted = [...keys].sort((a, b) => a.t - b.t);
-  const out: CameraKey[] = [];
-  for (const k of sorted) {
-    if (out.length === 0) {
-      out.push(k);
-      continue;
-    }
+function normalizeKeys(keys: CameraTrack): CameraTrack {
+  const [first, ...rest] = [...keys].sort((a, b) => a.t - b.t);
+  const out: CameraTrack = [first];
+  for (const k of rest) {
     const prev = out[out.length - 1];
-    if (k.t + KEY_EPSILON_S < prev.t) continue;
-    if (k.t - prev.t < KEY_EPSILON_S) {
-      out[out.length - 1] = k;
-      continue;
-    }
-    if (k.t - prev.t < KEY_MERGE_S && posesNearlyEqual(prev.pose, k.pose)) {
-      out[out.length - 1] = { t: k.t, pose: k.pose };
-      continue;
-    }
-    out.push(k);
+    if (k.t + TRACK.keyEpsilonS < prev.t) continue;
+    const replaces =
+      k.t - prev.t < TRACK.keyEpsilonS ||
+      (k.t - prev.t < TRACK.keyMergeS && posesNearlyEqual(prev.pose, k.pose));
+    if (replaces) out[out.length - 1] = k;
+    else out.push(k);
   }
   return out;
 }
@@ -275,8 +272,8 @@ function panWithin(shot: Shot, startT: number, plan: TrackPlan): CameraKey[] {
   for (let j = 1; j < shot.group.length; j++) {
     const from = shot.poses[j - 1];
     const to = shot.poses[j];
-    const tPan = Math.max(curT, departS(shot.group[j]) - CAMERA_LEAD_S);
-    if (poseTravelPx(from, to, vp) > MAX_PAN_PX) {
+    const tPan = Math.max(curT, departS(shot.group[j]) - TIMING.cameraLeadS);
+    if (poseTravelPx(from, to, vp) > TRACK.maxPanPx) {
       const durBack = moveDuration(from, BASE_POSE, "out", vp, speed);
       const durNext = moveDuration(BASE_POSE, to, "in", vp, speed);
       const holdEnd = Math.max(curT, holdUntil(shot.group[j - 1], plan));
@@ -321,7 +318,7 @@ function trailOut(
     return { keys, pose: BASE_POSE };
   }
 
-  const farApart = poseTravelPx(pose, next.poses[0], plan.vp) > MAX_PAN_PX;
+  const farApart = poseTravelPx(pose, next.poses[0], plan.vp) > TRACK.maxPanPx;
   if (next.tIn >= holdEnd + durOut || farApart) {
     const trailStart = Math.max(curT, Math.min(holdEnd, next.tIn - durOut));
     return {
@@ -335,33 +332,33 @@ function trailOut(
   return { keys: [{ t: Math.max(curT, next.tIn), pose }], pose };
 }
 
-export function buildCameraTrack(log: ClickLog, speed = 1, tuning: CameraTuning = {}): CameraKey[] {
-  const narrow = (tuning.narrow ?? 1) > 1;
+export function buildCameraTrack(log: ClickLog, speed = 1, tuning: CameraTuning = {}): CameraTrack {
+  const narrow = isNarrow(tuning);
   const sMax = zoomCeiling(tuning);
-  const sMaxSoft = Math.min(S_MAX_SOFT, sMax);
+  const firstShotMax = Math.min(ZOOM.firstShotMax, sMax);
   const vp = log.viewport;
   const endS = log.durationMs / 1000;
   const groups = stickify(clusterize(log.clicks, vp), vp);
   const start: CameraKey = { t: 0, pose: BASE_POSE };
-  if (groups.length === 0) return [start, { t: Math.max(endS, MIN_TRACK_S), pose: BASE_POSE }];
+  if (groups.length === 0) return [start, { t: Math.max(endS, TRACK.minS), pose: BASE_POSE }];
 
   const plan: TrackPlan = {
     vp,
     speed,
-    holdMin: (tuning.holdMinS ?? HOLD_MIN_S) * speed,
-    typeTail: TYPE_TAIL_S * speed,
-    baseBeat: BASE_BEAT_S * speed,
+    holdMin: (tuning.holdMinS ?? TIMING.holdMinS) * speed,
+    typeTail: TIMING.typeTailS * speed,
+    baseBeat: TIMING.baseBeatS * speed,
     endS,
   };
   const shots: Shot[] = groups.map((group, i) => ({
     group,
     poses: group.map((c) =>
-      frameFor(c, vp, i === 0 && c.zoomScale == null && !narrow ? sMaxSoft : sMax, narrow),
+      frameFor(c, vp, i === 0 && c.zoomScale == null && !narrow ? firstShotMax : sMax, narrow),
     ),
-    tIn: Math.max(0, departS(group[0]) - CAMERA_LEAD_S),
+    tIn: Math.max(0, departS(group[0]) - TIMING.cameraLeadS),
   }));
 
-  const keys = [start];
+  const keys: CameraTrack = [start];
   let pose = BASE_POSE;
   shots.forEach((shot, i) => {
     const moves = zoomIn(pose, shot, lastT(keys), plan);
@@ -374,30 +371,24 @@ export function buildCameraTrack(log: ClickLog, speed = 1, tuning: CameraTuning 
   return normalizeKeys(keys);
 }
 
-export function sampleTrack(keys: CameraKey[], t: number): CameraPose {
-  return (
-    sampleKeyed(
-      keys,
-      t,
-      (k) => k.t,
-      (k) => k.pose,
-      (a, b, p) => interpolatePose(a.pose, b.pose, p),
-    ) ?? BASE_POSE
+export function sampleTrack(keys: CameraTrack, t: number): CameraPose {
+  return sampleKeyed(
+    keys,
+    t,
+    (k) => k.t,
+    (k) => k.pose,
+    (a, b, p) => interpolatePose(a.pose, b.pose, p),
   );
 }
 
-type CachedTrack = { speed: number; tuning: CameraTuning; keys: CameraKey[] };
+const trackCache = new WeakMap<ClickLog, { key: string; keys: CameraTrack }>();
 
-const trackCache = new WeakMap<ClickLog, CachedTrack>();
-
-const sameTuning = (a: CameraTuning, b: CameraTuning): boolean =>
-  a.sMax === b.sMax && a.holdMinS === b.holdMinS && a.narrow === b.narrow;
-
-function cachedTrack(log: ClickLog, speed: number, tuning: CameraTuning): CameraKey[] {
+function cachedTrack(log: ClickLog, speed: number, tuning: CameraTuning): CameraTrack {
+  const key = stableJson({ speed, tuning });
   const hit = trackCache.get(log);
-  if (hit && hit.speed === speed && sameTuning(hit.tuning, tuning)) return hit.keys;
+  if (hit?.key === key) return hit.keys;
   const keys = buildCameraTrack(log, speed, tuning);
-  trackCache.set(log, { speed, tuning, keys });
+  trackCache.set(log, { key, keys });
   return keys;
 }
 
@@ -417,11 +408,8 @@ export function zoomAt(
   log: ClickLog,
   opts: ZoomOptions = {},
 ): ZoomState {
-  const tuning = opts.tuning ?? {};
-  const pose = poseAt(frame, fps, log, opts);
-  const aimed =
-    (tuning.narrow ?? 1) > 1
-      ? narrowPose(pose, tuning, cursorAim(log, logTimeS(frame, fps, opts.speed ?? 1)))
-      : pose;
-  return poseToCss(aimed, opts.chromeFrac ?? 0, opts.fit ?? 1);
+  const pose = narrowPose(poseAt(frame, fps, log, opts), opts.tuning ?? {}, () =>
+    cursorAim(log, logTimeS(frame, fps, opts.speed ?? 1)),
+  );
+  return poseToCss(pose, opts.chromeFrac ?? 0, opts.fit ?? 1);
 }

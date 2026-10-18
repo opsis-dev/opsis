@@ -1,6 +1,7 @@
 import { Easing } from "remotion";
 import { designScaleFor } from "./design-width";
 import { clamp, clamp01, lerp } from "../../../shared/math";
+import type { Viewport } from "../../../shared/schema/actions";
 
 const CAMERA_BEZIER = Easing.bezier(0.2, 0.2, 0.15, 1);
 
@@ -31,11 +32,13 @@ export function interpolatePose(a: CameraPose, b: CameraPose, t01: number): Came
   };
 }
 
+const SAME_POSE = { scale: 0.008, centre: 0.01 } as const;
+
 export function posesNearlyEqual(a: CameraPose, b: CameraPose): boolean {
   return (
-    Math.abs(a.scale - b.scale) < 0.008 &&
-    Math.abs(a.cx - b.cx) < 0.01 &&
-    Math.abs(a.cy - b.cy) < 0.01
+    Math.abs(a.scale - b.scale) < SAME_POSE.scale &&
+    Math.abs(a.cx - b.cx) < SAME_POSE.centre &&
+    Math.abs(a.cy - b.cy) < SAME_POSE.centre
   );
 }
 
@@ -53,7 +56,7 @@ export function moveDuration(
   from: CameraPose,
   to: CameraPose,
   kind: keyof typeof MOVE_LIMITS,
-  vp: { width: number; height: number },
+  vp: Viewport,
   speed = 1,
 ): number {
   const dS = Math.abs(to.scale - from.scale);
@@ -64,11 +67,7 @@ export function moveDuration(
   return (onScreen * speed) / 1000;
 }
 
-export function poseTravelPx(
-  from: CameraPose,
-  to: CameraPose,
-  vp: { width: number; height: number },
-): number {
+export function poseTravelPx(from: CameraPose, to: CameraPose, vp: Viewport): number {
   return (
     Math.hypot((to.cx - from.cx) * vp.width, (to.cy - from.cy) * vp.height) /
     designScaleFor(vp.width)

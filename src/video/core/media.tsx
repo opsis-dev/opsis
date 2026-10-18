@@ -1,10 +1,10 @@
 import React from "react";
 import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
-import { Backdrop } from "../camera/demo-clip";
 import { RimLight, WindowFrame } from "../camera/window-frame";
 import { WINDOW_FIT } from "../camera/lib/style";
 import { isLightBackdrop } from "../camera/lib/backdrop";
+import { Backdrop } from "./backgrounds";
 import { stillLayout, type Box, type Shot, type StillLook } from "./still-layout";
 import { visibleBackground, zoomOver } from "./anim";
 import { msToFrames } from "../../shared/timeline/time";

@@ -3,13 +3,16 @@ import {
   rectUnion,
   type Action,
   type ActionLog,
+  type Point,
   type Rect,
+  type Viewport,
 } from "../../shared/schema/actions";
 import type { AnnotationKind, AnnotationSpec } from "../../shared/compile/recording";
 import { POINTER_KINDS } from "../../shared/compile/recording";
 import { defaultTargetRect, type ClickEvent, type ClickLog, type KeyEvent } from "./lib/click-log";
 
 export type Annotation = {
+  id: string;
   kind: AnnotationKind;
   rect: Rect;
   fromS: number;
@@ -19,15 +22,13 @@ export type Annotation = {
   padding: number;
 };
 
-type Point = { x: number; y: number };
-
 export const TYPED_LINGER_S = 0.6;
 const TYPED_FALLBACK_MS = 1000;
 const DRAG_FIT_FRACTION = 0.5;
 
 const carried = (a: Action) => ({
   label: a.label,
-  cluster: a.cluster,
+  cluster: a.cluster || undefined,
   zoom: a.zoom,
   zoomScale: a.zoomScale,
 });
@@ -67,7 +68,7 @@ export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = 
   };
 }
 
-function dragEvents(a: Action, point: Point, vp: { width: number; height: number }): ClickEvent[] {
+function dragEvents(a: Action, point: Point, vp: Viewport): ClickEvent[] {
   const tDown = a.tDown ?? a.t;
   const fallback = defaultTargetRect(point, vp.width);
   const pick = a.rect ?? fallback;
@@ -85,7 +86,7 @@ function dragEvents(a: Action, point: Point, vp: { width: number; height: number
 
 export function resolveAnnotations(log: ActionLog, specs: AnnotationSpec[]): Annotation[] {
   const out: Annotation[] = [];
-  for (const spec of specs) {
+  for (const [specIndex, spec] of specs.entries()) {
     const needle = spec.match.trim().toLowerCase();
     for (const a of log.actions) {
       if (!POINTER_KINDS.has(a.kind) || !a.rect) continue;
@@ -93,6 +94,7 @@ export function resolveAnnotations(log: ActionLog, specs: AnnotationSpec[]): Ann
       const startMs = (a.tDepart ?? a.t) - spec.leadMs;
       const endMs = (a.tEnd ?? a.t) + spec.holdMs;
       out.push({
+        id: `${specIndex}:${a.id}`,
         kind: spec.kind,
         rect: a.rect,
         fromS: Math.max(0, startMs) / 1000,

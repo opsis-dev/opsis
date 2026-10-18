@@ -5,7 +5,7 @@ import { versionedHash } from "../../engine/hash";
 import { CODECS, FASTSTART, type RenderCodec, type SoundCodec } from "../media/codecs";
 import type { GlRenderer } from "./render";
 
-const PICTURE_VERSION = "demoflow-picture/3";
+const PICTURE_VERSION = "demoflow-picture/4";
 const KEEP_PICTURES = 12;
 
 type PictureOptions = { codec: RenderCodec; crf: number; scale: number; gl: GlRenderer };

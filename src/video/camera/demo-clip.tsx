@@ -1,18 +1,11 @@
 import React from "react";
-import {
-  AbsoluteFill,
-  getRemotionEnvironment,
-  Img,
-  staticFile,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { Video } from "@remotion/media";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import type { ClickLog } from "./lib/click-log";
-import { zoomAt, type CameraTuning } from "./lib/zoom";
+import { isNarrow, logTimeS, zoomAt, type CameraTuning } from "./lib/zoom";
 import { BASE_POSE, poseToCss, type ZoomState } from "./lib/camera";
-import { backdropSource, isLightBackdrop } from "./lib/backdrop";
+import { isLightBackdrop } from "./lib/backdrop";
 import { useDesignScale } from "./lib/design-scale";
 import { SHOT_STYLES, type WindowShot } from "./lib/style";
 import { Cursor } from "./cursor";
@@ -26,12 +19,12 @@ import {
 } from "./window-frame";
 import { Annotations } from "./annotations";
 import type { Annotation } from "./action-log";
+import { Backdrop } from "../core/backgrounds";
 import type { Size } from "../core/still-layout";
 import type { RecordingProps } from "../../shared/compile/recording";
 import { percent } from "../../shared/format";
 
 type DemoClipProps = {
-  name: string;
   src: string;
   log: ClickLog;
   style: RecordingProps["style"];
@@ -62,29 +55,10 @@ const BLEED_SHADOW = "0 30px 80px rgba(0,0,0,0.45)";
 const BLUR_SHUTTER_ANGLE = 180;
 const BLUR_SAMPLES = 8;
 
-const BackdropImage: React.FC<{ src: string }> = ({ src }) => {
-  const style = { ...FILL, objectFit: "cover" } as const;
-  return getRemotionEnvironment().isRendering ? (
-    <Img src={src} style={style} />
-  ) : (
-    <img src={src} alt="" decoding="async" style={style} />
-  );
-};
-
-export const Backdrop: React.FC<{ name?: string }> = ({ name }) => {
-  const source = backdropSource(name);
-  if (source.kind === "paint") return <AbsoluteFill style={{ background: source.css }} />;
-  return (
-    <AbsoluteFill>
-      <BackdropImage src={source.kind === "image" ? source.url : staticFile(source.path)} />
-    </AbsoluteFill>
-  );
-};
-
 const useClipTime = (speed: number): number => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  return (frame / fps) * speed;
+  return logTimeS(frame, fps, speed);
 };
 
 const Footage: React.FC<{ src: string; speed: number; fit: "cover" | "fill"; muted?: boolean }> = ({
@@ -99,7 +73,10 @@ const cameraTransform = (z: ZoomState) =>
 
 type Framing = { chrome: boolean; fit: number; zoom: boolean };
 
-function useCamera(clip: DemoClipProps, framing: Framing) {
+function useCamera(
+  clip: Pick<DemoClipProps, "log" | "speed" | "tuning" | "box">,
+  framing: Framing,
+) {
   const frame = useCurrentFrame();
   const { fps, height } = useVideoConfig();
   const k = useDesignScale();
@@ -143,7 +120,9 @@ const ShadowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot; light: bool
   );
 };
 
-const CursorLayer: React.FC<{ clip: DemoClipProps; timeS: number; cameraScale: number }> = ({
+type CursorOptions = Pick<DemoClipProps, "log" | "cursor" | "ripple" | "cursorScale">;
+
+const CursorLayer: React.FC<{ clip: CursorOptions; timeS: number; cameraScale: number }> = ({
   clip,
   timeS,
   cameraScale,
@@ -167,7 +146,7 @@ const WindowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot }> = ({ clip
       <div style={style}>
         <WindowFrame
           chrome={clip.chrome}
-          hostLabel={clip.address ?? clip.name.replace(/-/g, ".")}
+          hostLabel={clip.address}
           windowStyle={clip.windowStyle}
           theme={clip.frameTheme}
           addressBar={clip.addressBar}
@@ -202,7 +181,7 @@ const NarrowBleedClip: React.FC<DemoClipProps> = (clip) => {
   const { z, style } = useCamera(clip, {
     chrome: false,
     fit: 1,
-    zoom: (clip.tuning?.narrow ?? 1) > 1,
+    zoom: isNarrow(clip.tuning),
   });
   const timeS = useClipTime(clip.speed);
   return (

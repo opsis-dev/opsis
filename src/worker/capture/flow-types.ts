@@ -1,6 +1,6 @@
 import type { Locator } from "playwright-core";
 import type { ClickEvent, CursorSample, KeyEvent } from "../../video/camera/lib/click-log";
-import type { Point } from "./drag-path";
+import type { Point } from "../../shared/schema/actions";
 
 export type TakeClick = ClickEvent & { selector?: string; text?: string };
 

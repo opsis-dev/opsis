@@ -41,6 +41,20 @@ export function partitionPoint<T>(items: readonly T[], before: (item: T) => bool
 }
 
 export function sampleKeyed<K, V>(
+  keys: readonly [K, ...K[]],
+  x: number,
+  at: (key: K) => number,
+  valueOf: (key: K) => V,
+  mix: (a: K, b: K, t: number) => V,
+): V;
+export function sampleKeyed<K, V>(
+  keys: readonly K[],
+  x: number,
+  at: (key: K) => number,
+  valueOf: (key: K) => V,
+  mix: (a: K, b: K, t: number) => V,
+): V | undefined;
+export function sampleKeyed<K, V>(
   keys: readonly K[],
   x: number,
   at: (key: K) => number,

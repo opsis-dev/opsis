@@ -1,11 +1,7 @@
+import type { Viewport } from "../../../shared/schema/actions";
 import type { CameraPose } from "./camera";
 
-export const isInFrame = (
-  pose: CameraPose,
-  vp: { width: number; height: number },
-  x: number,
-  y: number,
-): boolean => {
+export const isInFrame = (pose: CameraPose, vp: Viewport, x: number, y: number): boolean => {
   const half = 1 / (2 * pose.scale);
   const nx = x / vp.width;
   const ny = y / vp.height;

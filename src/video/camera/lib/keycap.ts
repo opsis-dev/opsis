@@ -34,13 +34,10 @@ const KEY_GLYPHS = new Map([
 
 export const chordGlyphs = (chord: string): string =>
   chordKeys(chord)
-    .map((part) => {
-      const key = part.trim();
-      return KEY_GLYPHS.get(key.toLowerCase()) ?? key.toUpperCase();
-    })
+    .map((key) => KEY_GLYPHS.get(key.toLowerCase()) ?? key.toUpperCase())
     .join("");
 
-export const settle = (u: number): number => 1 - KEYCAP_BEZIER(clamp01(u));
+export const keycapEase = (u: number): number => KEYCAP_BEZIER(clamp01(u));
 
 export function keycapAt(
   keys: KeyEvent[],

@@ -44,6 +44,7 @@ describe("chordKeys", () => {
     ["Control+K", ["Control", "K"]],
     ["Shift++", ["Shift", "+"]],
     ["+", ["+"]],
+    ["Alt + Enter", ["Alt", "Enter"]],
   ])("splits %j into its keys", (chord, keys) => {
     expect(chordKeys(chord)).toEqual(keys);
   });

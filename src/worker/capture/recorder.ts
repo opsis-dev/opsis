@@ -1,6 +1,12 @@
 import type { Page } from "playwright-core";
 import { clamp01 } from "../../shared/math";
-import { pointRect, rectCentre, rectFromBounds, type Rect } from "../../shared/schema/actions";
+import {
+  pointRect,
+  rectCentre,
+  rectFromBounds,
+  type Point,
+  type Rect,
+} from "../../shared/schema/actions";
 import { cameraEase } from "../../video/camera/lib/camera";
 import { designScaleFor } from "../../video/camera/lib/design-width";
 import {
@@ -13,7 +19,6 @@ import {
   offsetPath,
   polylineAt,
   thinPath,
-  type Point,
 } from "./drag-path";
 import {
   isPoint,

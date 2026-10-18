@@ -14,7 +14,7 @@ describe("cameraEase", () => {
     let prev = cameraEase(-1);
     for (let i = 0; i <= 60; i++) {
       const v = cameraEase(i / 60);
-      expect(v >= prev - 1e-9, `fell at ${i / 60}`).toBe(true);
+      expect(v, `fell at ${i / 60}`).toBeGreaterThanOrEqual(prev - 1e-9);
       prev = v;
     }
     expect(cameraEase(2)).toBe(cameraEase(1));
@@ -26,27 +26,23 @@ describe("cameraEase", () => {
     const p15 = cameraEase(0.15);
     const early = p10 - p01;
     const next = p15 - p10;
-    expect(next > early * 0.4, "should still be accelerating through the first 15%").toBe(true);
-    expect(p01 < 0.12, "first 5% must not dump most of the distance").toBe(true);
+    expect(next, "should still be accelerating through the first 15%").toBeGreaterThan(early * 0.4);
+    expect(p01, "first 5% must not dump most of the distance").toBeLessThan(0.12);
   });
 });
 
 describe("poseTravelPx", () => {
   it("measures travel in design pixels whatever the recording size", () => {
     const to = { scale: 1.5, cx: 0.6, cy: 0.48 };
-    expect(Math.abs(poseTravelPx(BASE_POSE, to, { width: 1920, height: 1080 }) - 192) < 1e-9).toBe(
-      true,
-    );
-    expect(Math.abs(poseTravelPx(BASE_POSE, to, { width: 3840, height: 2160 }) - 192) < 1e-9).toBe(
-      true,
-    );
+    expect(poseTravelPx(BASE_POSE, to, { width: 1920, height: 1080 })).toBeCloseTo(192, 9);
+    expect(poseTravelPx(BASE_POSE, to, { width: 3840, height: 2160 })).toBeCloseTo(192, 9);
   });
 });
 
 describe("posesNearlyEqual", () => {
   it("ignores tiny differences and catches real moves", () => {
     expect(posesNearlyEqual(BASE_POSE, { scale: 1.005, cx: 0.505, cy: 0.485 })).toBe(true);
-    expect(!posesNearlyEqual(BASE_POSE, { scale: 1.2, cx: 0.5, cy: 0.48 })).toBe(true);
+    expect(posesNearlyEqual(BASE_POSE, { scale: 1.2, cx: 0.5, cy: 0.48 })).toBe(false);
   });
 });
 
@@ -56,8 +52,8 @@ describe("interpolatePose", () => {
     const b = { scale: 2, cx: 0.8, cy: 0.9 };
     const mid = interpolatePose(a, b, 0.5);
     const p = (mid.scale - 1) / 1;
-    expect(Math.abs((mid.cx - 0.2) / 0.6 - p) < 1e-9).toBe(true);
-    expect(Math.abs((mid.cy - 0.3) / 0.6 - p) < 1e-9).toBe(true);
+    expect((mid.cx - 0.2) / 0.6).toBeCloseTo(p, 9);
+    expect((mid.cy - 0.3) / 0.6).toBeCloseTo(p, 9);
   });
 });
 
@@ -77,8 +73,8 @@ describe("poseToCss", () => {
 
   it("applies the base fit to scale and translate together", () => {
     const css = poseToCss({ scale: 1.5, cx: 0.4, cy: 0.4 }, 0, 0.9);
-    expect(Math.abs(css.scale - 1.35) < 1e-9).toBe(true);
-    expect(Math.abs(css.translateX - 1.35 * (0.5 - 0.4)) < 1e-9).toBe(true);
+    expect(css.scale).toBeCloseTo(1.35, 9);
+    expect(css.translateX).toBeCloseTo(1.35 * (0.5 - 0.4), 9);
   });
 
   it("stays continuous as a zoom-out passes through base scale", () => {
@@ -88,13 +84,13 @@ describe("poseToCss", () => {
       const css = poseToCss({ scale: S, cx: 0.35, cy: 0.62 }, 0.034, 0.9);
       expect(Number.isFinite(css.translateX) && Number.isFinite(css.translateY)).toBe(true);
       expect(
-        Math.abs(css.translateX - prev.translateX) < 0.01,
-        `translateX snapped at scale ${S}: ${prev.translateX} -> ${css.translateX}`,
-      ).toBe(true);
+        Math.abs(css.translateX - prev.translateX),
+        `translateX snapped at scale ${S}`,
+      ).toBeLessThan(0.01);
       expect(
-        Math.abs(css.translateY - prev.translateY) < 0.01,
-        `translateY snapped at scale ${S}: ${prev.translateY} -> ${css.translateY}`,
-      ).toBe(true);
+        Math.abs(css.translateY - prev.translateY),
+        `translateY snapped at scale ${S}`,
+      ).toBeLessThan(0.01);
       prev = css;
     }
     expect(prev.translateX).toBe(0);
@@ -111,8 +107,9 @@ describe("moveDuration", () => {
     const inn = moveDuration(from, to, "in", vp);
     const out = moveDuration(to, from, "out", vp);
     const tiny = moveDuration(from, { scale: 1.15, cx: 0.5, cy: 0.48 }, "in", vp);
-    expect(out > inn, `${out} should be > ${inn}`).toBe(true);
-    expect(inn >= 0.55 && inn <= 1.25).toBe(true);
-    expect(tiny < inn).toBe(true);
+    expect(out).toBeGreaterThan(inn);
+    expect(inn).toBeGreaterThanOrEqual(0.55);
+    expect(inn).toBeLessThanOrEqual(1.25);
+    expect(tiny).toBeLessThan(inn);
   });
 });

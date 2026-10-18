@@ -3,6 +3,7 @@ import type { ClickLog } from "./lib/click-log";
 import { cursorAt } from "./lib/cursor";
 import { useDesignScale } from "./lib/design-scale";
 import { percent } from "../../shared/format";
+import { isFadedOut } from "../core/anim";
 
 const CURSOR_SCALE_EXP = 0.58;
 const HOT_X = 1;
@@ -18,6 +19,58 @@ const RIPPLE_GROWTH = 1.05;
 const RIPPLE_OPACITY = 0.85;
 const INK = "15, 23, 42";
 
+const Ripple: React.FC<{ progress: number; k: number }> = ({ progress, k }) => {
+  const size = RIPPLE_D * k;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        width: size,
+        height: size,
+        marginLeft: -size / 2,
+        marginTop: -size / 2,
+        borderRadius: "50%",
+        border: `${RIPPLE_STROKE * k}px solid rgba(${INK}, 0.55)`,
+        background: `rgba(${INK}, 0.10)`,
+        transform: `scale(${RIPPLE_FROM + progress * RIPPLE_GROWTH})`,
+        opacity: RIPPLE_OPACITY * (1 - progress),
+      }}
+    />
+  );
+};
+
+const Arrow: React.FC<{ squash: number; k: number }> = ({ squash, k }) => {
+  const width = ARROW_W * k;
+  const height = ARROW_H * k;
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${ARROW_VIEW_W} ${ARROW_VIEW_H}`}
+      xmlns="http://www.w3.org/2000/svg"
+      style={{
+        position: "absolute",
+        left: (-HOT_X / ARROW_VIEW_W) * width,
+        top: (-HOT_Y / ARROW_VIEW_H) * height,
+        transform: `scale(${squash})`,
+        transformOrigin: `${percent(HOT_X / ARROW_VIEW_W)} ${percent(HOT_Y / ARROW_VIEW_H)}`,
+        filter: `drop-shadow(0 ${1.5 * k}px ${2.5 * k}px rgba(${INK}, 0.34))`,
+      }}
+    >
+      <path
+        d="M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z"
+        fill="#111418"
+        stroke="#ffffff"
+        strokeWidth={1.85}
+        strokeLinejoin="round"
+        paintOrder="stroke"
+      />
+    </svg>
+  );
+};
+
 export const Cursor: React.FC<{
   log: ClickLog;
   timeS: number;
@@ -28,13 +81,10 @@ export const Cursor: React.FC<{
   const k = useDesignScale();
 
   const state = cursorAt(log.cursorTrack ?? [], log.clicks, timeS);
-  if (!state || state.opacity <= 0.001) return null;
+  if (!state || isFadedOut(state.opacity)) return null;
 
   const { width, height } = log.viewport;
-  const counter = Math.pow(cameraScale, CURSOR_SCALE_EXP - 1) * scale;
-  const arrowW = ARROW_W * k;
-  const arrowH = ARROW_H * k;
-  const rippleD = RIPPLE_D * k;
+  const counter = cameraScale ** (CURSOR_SCALE_EXP - 1) * scale;
 
   return (
     <div
@@ -50,48 +100,8 @@ export const Cursor: React.FC<{
         transformOrigin: "0 0",
       }}
     >
-      {ripple && state.ripple !== null ? (
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            width: rippleD,
-            height: rippleD,
-            marginLeft: -rippleD / 2,
-            marginTop: -rippleD / 2,
-            borderRadius: "50%",
-            border: `${RIPPLE_STROKE * k}px solid rgba(${INK}, 0.55)`,
-            background: `rgba(${INK}, 0.10)`,
-            transform: `scale(${RIPPLE_FROM + state.ripple * RIPPLE_GROWTH})`,
-            opacity: RIPPLE_OPACITY * (1 - state.ripple),
-          }}
-        />
-      ) : null}
-
-      <svg
-        width={arrowW}
-        height={arrowH}
-        viewBox={`0 0 ${ARROW_VIEW_W} ${ARROW_VIEW_H}`}
-        xmlns="http://www.w3.org/2000/svg"
-        style={{
-          position: "absolute",
-          left: (-HOT_X / ARROW_VIEW_W) * arrowW,
-          top: (-HOT_Y / ARROW_VIEW_H) * arrowH,
-          transform: `scale(${state.squash})`,
-          transformOrigin: `${percent(HOT_X / ARROW_VIEW_W)} ${percent(HOT_Y / ARROW_VIEW_H)}`,
-          filter: `drop-shadow(0 ${1.5 * k}px ${2.5 * k}px rgba(${INK}, 0.34))`,
-        }}
-      >
-        <path
-          d="M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z"
-          fill="#111418"
-          stroke="#ffffff"
-          strokeWidth={1.85}
-          strokeLinejoin="round"
-          paintOrder="stroke"
-        />
-      </svg>
+      {ripple && state.ripple !== null ? <Ripple progress={state.ripple} k={k} /> : null}
+      <Arrow squash={state.squash} k={k} />
     </div>
   );
 };

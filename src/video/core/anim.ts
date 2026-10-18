@@ -7,6 +7,10 @@ export const CLAMP_LEFT = { extrapolateLeft: "clamp" } as const;
 
 export const CLAMP_RIGHT = { extrapolateRight: "clamp" } as const;
 
+const FADED_OUT_OPACITY = 0.001;
+
+export const isFadedOut = (opacity: number): boolean => opacity <= FADED_OUT_OPACITY;
+
 export const visibleBackground = (background?: string): string | undefined =>
   background && background !== "transparent" ? background : undefined;
 

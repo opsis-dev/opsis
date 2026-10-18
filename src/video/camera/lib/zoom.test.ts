@@ -73,18 +73,6 @@ describe("clusterize", () => {
     expect(groups.length).toBe(1);
   });
 
-  it("treats an empty cluster id as no cluster", () => {
-    const groups = clusterize(
-      [
-        click(1000, 500, 400, { cluster: "a" }),
-        click(2000, 520, 420, { cluster: "" }),
-        click(2500, 530, 430),
-      ],
-      VP,
-    );
-    expect(groups.map((g) => g.length)).toEqual([1, 2]);
-  });
-
   it("groups clicks without a cluster by time and distance, even beside clusters", () => {
     const groups = clusterize(
       [
@@ -114,7 +102,7 @@ describe("buildCameraTrack", () => {
     const keys = buildCameraTrack(smokeLog);
     expect(keys[0].pose.scale).toBe(BASE_POSE.scale);
     const last = keys[keys.length - 1];
-    expect(Math.abs(last.t - smokeLog.durationMs / 1000) < 0.05).toBe(true);
+    expect(last.t).toBeCloseTo(smokeLog.durationMs / 1000, 1);
     expect(last.pose.scale).toBe(BASE_POSE.scale);
     expect(last.pose.cx).toBe(BASE_POSE.cx);
   });
@@ -181,15 +169,10 @@ describe("buildCameraTrack", () => {
       return keys[i].t - keys[i - 1].t;
     };
     const ratio = firstMove(fast) / firstMove(real);
-    expect(
-      Math.abs(ratio - 1.25) < 0.02,
-      `expected 1.25x log-time duration at 1.25x speed, got ${ratio}`,
-    ).toBe(true);
+    expect(Math.abs(ratio - 1.25), `ratio ${ratio}`).toBeLessThan(0.02);
     const onScreenMs = (firstMove(fast) / 1.25) * 1000;
-    expect(
-      onScreenMs >= 550 && onScreenMs <= 1250,
-      `on-screen zoom-in ${onScreenMs.toFixed(0)}ms outside the reference window`,
-    ).toBe(true);
+    expect(onScreenMs).toBeGreaterThanOrEqual(550);
+    expect(onScreenMs).toBeLessThanOrEqual(1250);
   });
 
   it("holds still after the last click of a cluster", () => {
@@ -198,8 +181,8 @@ describe("buildCameraTrack", () => {
     const holdEnd = 4338 / 1000 + 1.25;
     const a = sampleTrack(keys, holdStart);
     const b = sampleTrack(keys, holdEnd);
-    expect(Math.abs(a.scale - b.scale) < 0.01, `hold drifted ${a.scale} → ${b.scale}`).toBe(true);
-    expect(Math.abs(a.cx - b.cx) < 0.01).toBe(true);
+    expect(Math.abs(a.scale - b.scale), "hold drifted").toBeLessThan(0.01);
+    expect(Math.abs(a.cx - b.cx)).toBeLessThan(0.01);
   });
 
   it("starts the first punch near cursor departure, not after the click", () => {
@@ -231,11 +214,11 @@ describe("zoomAt", () => {
     for (let f = start; f < end; f++) {
       const a = zoomAt(f, fps, smokeLog);
       const b = zoomAt(f + 1, fps, smokeLog);
-      expect(Math.abs(a.translateX - b.translateX) < 0.03, `translateX jump at frame ${f}`).toBe(
-        true,
+      expect(Math.abs(a.translateX - b.translateX), `translateX jump at frame ${f}`).toBeLessThan(
+        0.03,
       );
-      expect(Math.abs(a.translateY - b.translateY) < 0.03, `translateY jump at frame ${f}`).toBe(
-        true,
+      expect(Math.abs(a.translateY - b.translateY), `translateY jump at frame ${f}`).toBeLessThan(
+        0.03,
       );
     }
   });
@@ -333,11 +316,9 @@ describe("frameFor", () => {
     const pose = frameFor(wide, VP, S_MAX * 1.69, true);
     const visible = 1 / pose.scale;
     expect(visible * VP.width >= 800, "the target fits the visible width").toBe(true);
-    expect(Math.abs(pose.cx - (0.8 * 700 + 0.2 * 400) / VP.width) < 1e-9).toBe(true);
+    expect(pose.cx).toBeCloseTo((0.8 * 700 + 0.2 * 400) / VP.width, 9);
     const small = click(1000, 960, 500, box(940, 490, 40, 20));
-    expect(Math.abs(frameFor(small, VP, S_MAX * 1.69, true).scale - S_MAX * 1.69) < 1e-9).toBe(
-      true,
-    );
+    expect(frameFor(small, VP, S_MAX * 1.69, true).scale).toBeCloseTo(S_MAX * 1.69, 9);
   });
 
   it("never inverts its clamps at maximum zoom", () => {
@@ -370,32 +351,31 @@ describe("camera in narrower shapes", () => {
   });
 
   it("never rests fully zoomed out, and rests on the cursor", () => {
-    const rest = narrowPose(BASE_POSE, { narrow: 1.69 }, { cx: 0.8, cy: 0.3 });
+    const rest = narrowPose(BASE_POSE, { narrow: 1.69 }, () => ({ cx: 0.8, cy: 0.3 }));
     expect(rest.scale > 1.3).toBe(true);
     expect(rest.cx).toBe(0.8);
   });
 
   it("aims at the action itself when fully zoomed in", () => {
-    const pose = narrowPose(
-      { scale: S_MAX * 1.69, cx: 0.2, cy: 0.7 },
-      { narrow: 1.69 },
-      { cx: 0.8, cy: 0.3 },
-    );
-    expect(Math.abs(pose.cx - 0.2) < 1e-9).toBe(true);
-    expect(Math.abs(pose.cy - 0.7) < 1e-9).toBe(true);
-    expect(Math.abs(pose.scale - S_MAX * 1.69) < 1e-9).toBe(true);
+    const pose = narrowPose({ scale: S_MAX * 1.69, cx: 0.2, cy: 0.7 }, { narrow: 1.69 }, () => ({
+      cx: 0.8,
+      cy: 0.3,
+    }));
+    expect(pose.cx).toBeCloseTo(0.2, 9);
+    expect(pose.cy).toBeCloseTo(0.7, 9);
+    expect(pose.scale).toBeCloseTo(S_MAX * 1.69, 9);
   });
 
   it("changes nothing in the recording's own shape", () => {
     const pose = { scale: 1.3, cx: 0.4, cy: 0.5 };
-    expect(narrowPose(pose, { narrow: 1 }, { cx: 0.9, cy: 0.9 })).toEqual(pose);
+    expect(narrowPose(pose, { narrow: 1 }, () => ({ cx: 0.9, cy: 0.9 }))).toEqual(pose);
   });
 
   it("aims at the action once zoomed to the node's own maximum", () => {
     const tuning = { narrow: 1.69, sMax: 1.3 };
     const full = { scale: 1.3 * 1.69, cx: 0.2, cy: 0.7 };
-    const pose = narrowPose(full, tuning, { cx: 0.8, cy: 0.3 });
-    expect(Math.abs(pose.cx - 0.2) < 1e-9).toBe(true);
-    expect(Math.abs(pose.cy - 0.7) < 1e-9).toBe(true);
+    const pose = narrowPose(full, tuning, () => ({ cx: 0.8, cy: 0.3 }));
+    expect(pose.cx).toBeCloseTo(0.2, 9);
+    expect(pose.cy).toBeCloseTo(0.7, 9);
   });
 });

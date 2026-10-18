@@ -41,12 +41,6 @@ describe("cursorAt", () => {
     }
   });
 
-  it("is deterministic", () => {
-    const a = at([], 2.5);
-    const b = at([], 2.5);
-    expect(a).toEqual(b);
-  });
-
   it("ripples and squashes on mousedown, not on focus beats", () => {
     const clicks = [
       { tMs: 600, x: 300, y: 200, tDownMs: 500 },

@@ -3,7 +3,7 @@ import { rectCentre, type ActionLog, type Rect } from "../../shared/schema/actio
 import { resolveAnnotations, toClickLog } from "./action-log";
 import { BASE_POSE } from "./lib/camera";
 import { isInFrame } from "./lib/test-fixtures";
-import { buildCameraTrack, sampleTrack } from "./lib/zoom";
+import { buildCameraTrack, clusterize, sampleTrack } from "./lib/zoom";
 
 const log: ActionLog = {
   viewport: { width: 1920, height: 1080 },
@@ -48,6 +48,22 @@ describe("ActionLog → ClickLog", () => {
     });
     expect(cl.clicks[1].typeEndMs).toBe(6500);
     expect(cl.keys).toEqual([{ tMs: 4000, chord: "Meta+K", label: "Palette" }]);
+  });
+
+  it("treats an empty zoom group as no group", () => {
+    const clicks = toClickLog(
+      {
+        ...log,
+        actions: [
+          { id: "a", kind: "click", t: 1000, point: { x: 500, y: 400 }, cluster: "a" },
+          { id: "b", kind: "click", t: 2000, point: { x: 520, y: 420 }, cluster: "" },
+          { id: "c", kind: "click", t: 2500, point: { x: 530, y: 430 } },
+        ],
+      },
+      "groups",
+    ).clicks;
+    expect(clicks.map((c) => c.cluster)).toEqual(["a", undefined, undefined]);
+    expect(clusterize(clicks, log.viewport).map((g) => g.length)).toEqual([1, 2]);
   });
 
   it("drives a camera track that leaves and returns to base", () => {

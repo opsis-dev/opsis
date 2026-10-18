@@ -12,7 +12,7 @@ import { DemoClip } from "../camera/demo-clip";
 import { KeycapHUD } from "../camera/keycap-hud";
 import { DesignWidthContext } from "../camera/lib/design-scale";
 import { SHOT_STYLES } from "../camera/lib/style";
-import { poseAt } from "../camera/lib/zoom";
+import { logTimeS, poseAt } from "../camera/lib/zoom";
 import { CLAMPED, fadeWindow } from "./anim";
 import {
   JUSTIFY_AT,
@@ -29,7 +29,6 @@ const TYPED_FADE_OUT_S = 0.2;
 const CARET_BLINKS_PER_S = 2.5;
 
 const CLIP_KEYS = [
-  "name",
   "speed",
   "style",
   "chrome",
@@ -80,7 +79,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     />
   );
 
-  const timeS = (frame / fps) * props.speed;
+  const timeS = logTimeS(frame, fps, props.speed);
   const ks = props.keystrokes;
   const followX = () => poseAt(frame, fps, log, { speed: props.speed, tuning: props.tuning }).cx;
   return (

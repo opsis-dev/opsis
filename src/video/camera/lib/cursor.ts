@@ -1,5 +1,6 @@
 import type { ClickEvent, CursorSample } from "./click-log";
 import { clamp01, lerp, sampleKeyed } from "../../../shared/math";
+import type { Point } from "../../../shared/schema/actions";
 
 export const CLICK_SQUASH = 0.9;
 export const CLICK_SQUASH_S = 0.12;
@@ -28,7 +29,7 @@ function cursorOpacity(clicks: ClickEvent[], tS: number): number {
   return opacity;
 }
 
-const trackPointAt = (track: CursorSample[], tS: number): { x: number; y: number } | undefined =>
+const trackPointAt = (track: CursorSample[], tS: number): Point | undefined =>
   sampleKeyed(
     track,
     tS * 1000,

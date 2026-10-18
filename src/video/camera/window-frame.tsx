@@ -4,7 +4,8 @@ import { useDesignScale } from "./lib/design-scale";
 
 export const CHROME_H = 38;
 const WINDOW_RADIUS = 14;
-const PILL_RADIUS = 99;
+const PILL_RADIUS = 9999;
+const WINDOW_FILTER = "saturate(1.05) contrast(1.025) brightness(1.01)";
 const SYSTEM_FONT = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
 
 export const Stage: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -82,6 +83,8 @@ const FRAME_COLORS = {
   },
 } as const;
 
+const TRAFFIC_LIGHT = { size: 11, gap: 7 } as const;
+
 const TRAFFIC_LIGHTS = [
   ["#ff5f57", "#e0443e"],
   ["#febc2e", "#dea123"],
@@ -91,13 +94,13 @@ const TRAFFIC_LIGHTS = [
 const TrafficLights: React.FC = () => {
   const k = useDesignScale();
   return (
-    <div style={{ display: "flex", gap: 7 * k, flexShrink: 0 }}>
+    <div style={{ display: "flex", gap: TRAFFIC_LIGHT.gap * k, flexShrink: 0 }}>
       {TRAFFIC_LIGHTS.map(([fill, rim]) => (
         <div
           key={fill}
           style={{
-            width: 11 * k,
-            height: 11 * k,
+            width: TRAFFIC_LIGHT.size * k,
+            height: TRAFFIC_LIGHT.size * k,
             borderRadius: PILL_RADIUS,
             background: `radial-gradient(circle at 35% 30%, ${fill} 0%, ${rim} 100%)`,
             boxShadow: `inset 0 0 0 ${0.5 * k}px rgba(0,0,0,0.12)`,
@@ -122,37 +125,74 @@ const Glyph: React.FC<{ d: string; size: number; color: string }> = ({ d, size, 
   </svg>
 );
 
-type ButtonLook = {
+type FrameColors = (typeof FRAME_COLORS)[FrameTheme];
+
+type ButtonLook = (
+  k: number,
+  c: FrameColors,
+) => {
   row: React.CSSProperties;
   button: React.CSSProperties;
   glyph: number;
 };
 
-type ButtonedStyle = Exclude<WindowStyle, "macos">;
+type Slot = "lights" | { spacer: number } | { buttons: ButtonLook } | null;
 
-const BUTTON_LOOKS: Record<
-  ButtonedStyle,
-  (k: number, c: (typeof FRAME_COLORS)[FrameTheme]) => ButtonLook
-> = {
-  linux: (k, c) => ({
-    row: { gap: 9 * k },
-    button: { width: 20 * k, height: 20 * k, borderRadius: PILL_RADIUS, background: c.button },
-    glyph: 11 * k,
-  }),
-  windows: (k) => ({
-    row: { alignSelf: "stretch", marginRight: -14 * k },
-    button: { width: 44 * k, alignSelf: "stretch" },
-    glyph: 12 * k,
-  }),
+type StyleLook = {
+  windowRadius: number;
+  fieldRadius: number;
+  fieldAlign: "center" | "flex-start";
+  lead: Slot;
+  trail: Slot;
 };
 
-const WindowButtons: React.FC<{ windowStyle: ButtonedStyle; theme: FrameTheme }> = ({
-  windowStyle,
+const TITLE_BAR = { gap: 10, padX: 14 } as const;
+
+const ADDRESS_FIELD = { height: 22, fontSize: 11.5, padX: 12 } as const;
+
+const STYLE_LOOKS: Record<WindowStyle, StyleLook> = {
+  macos: {
+    windowRadius: WINDOW_RADIUS,
+    fieldRadius: 7,
+    fieldAlign: "center",
+    lead: "lights",
+    trail: { spacer: 52 },
+  },
+  linux: {
+    windowRadius: WINDOW_RADIUS,
+    fieldRadius: 7,
+    fieldAlign: "center",
+    lead: { spacer: 88 },
+    trail: {
+      buttons: (k, c) => ({
+        row: { gap: 9 * k },
+        button: { width: 20 * k, height: 20 * k, borderRadius: PILL_RADIUS, background: c.button },
+        glyph: 11 * k,
+      }),
+    },
+  },
+  windows: {
+    windowRadius: 8,
+    fieldRadius: PILL_RADIUS,
+    fieldAlign: "flex-start",
+    lead: null,
+    trail: {
+      buttons: (k) => ({
+        row: { alignSelf: "stretch", marginRight: -TITLE_BAR.padX * k },
+        button: { width: 44 * k, alignSelf: "stretch" },
+        glyph: 12 * k,
+      }),
+    },
+  },
+};
+
+const WindowButtons: React.FC<{ buttonLook: ButtonLook; theme: FrameTheme }> = ({
+  buttonLook,
   theme,
 }) => {
   const k = useDesignScale();
   const c = FRAME_COLORS[theme];
-  const look = BUTTON_LOOKS[windowStyle](k, c);
+  const look = buttonLook(k, c);
   return (
     <div style={{ display: "flex", flexShrink: 0, ...look.row }}>
       {BUTTON_NAMES.map((n) => (
@@ -160,6 +200,80 @@ const WindowButtons: React.FC<{ windowStyle: ButtonedStyle; theme: FrameTheme }>
           <Glyph d={ICONS[n]} size={look.glyph} color={c.icon} />
         </div>
       ))}
+    </div>
+  );
+};
+
+const SlotView: React.FC<{ slot: Slot; theme: FrameTheme }> = ({ slot, theme }) => {
+  const k = useDesignScale();
+  if (slot === null) return null;
+  if (slot === "lights") return <TrafficLights />;
+  if ("buttons" in slot) return <WindowButtons buttonLook={slot.buttons} theme={theme} />;
+  return <div style={{ width: slot.spacer * k, flexShrink: 0 }} />;
+};
+
+const AddressField: React.FC<{ look: StyleLook; theme: FrameTheme; hostLabel: string }> = ({
+  look,
+  theme,
+  hostLabel,
+}) => {
+  const k = useDesignScale();
+  const c = FRAME_COLORS[theme];
+  return (
+    <div
+      style={{
+        flex: 1,
+        height: ADDRESS_FIELD.height * k,
+        borderRadius: look.fieldRadius * k,
+        background: c.field,
+        border: `${k}px solid ${c.fieldEdge}`,
+        color: c.text,
+        fontSize: ADDRESS_FIELD.fontSize * k,
+        fontFamily: SYSTEM_FONT,
+        fontWeight: 450,
+        letterSpacing: "0.01em",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: look.fieldAlign,
+        padding: `0 ${ADDRESS_FIELD.padX * k}px`,
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
+      }}
+    >
+      {hostLabel}
+    </div>
+  );
+};
+
+const TitleBar: React.FC<{
+  windowStyle: WindowStyle;
+  theme: FrameTheme;
+  addressBar: boolean;
+  hostLabel: string;
+}> = ({ windowStyle, theme, addressBar, hostLabel }) => {
+  const k = useDesignScale();
+  const c = FRAME_COLORS[theme];
+  const look = STYLE_LOOKS[windowStyle];
+  return (
+    <div
+      style={{
+        flex: `0 0 ${CHROME_H * k}px`,
+        display: "flex",
+        alignItems: "center",
+        gap: TITLE_BAR.gap * k,
+        padding: `0 ${TITLE_BAR.padX * k}px`,
+        background: c.bar,
+        borderBottom: `1px solid ${c.edge}`,
+      }}
+    >
+      <SlotView slot={look.lead} theme={theme} />
+      {addressBar ? (
+        <AddressField look={look} theme={theme} hostLabel={hostLabel} />
+      ) : (
+        <div style={{ flex: 1 }} />
+      )}
+      <SlotView slot={look.trail} theme={theme} />
     </div>
   );
 };
@@ -180,69 +294,27 @@ export const WindowFrame: React.FC<{
   children,
 }) => {
   const k = useDesignScale();
-  const c = FRAME_COLORS[theme];
-  const field = addressBar ? (
-    <div
-      style={{
-        flex: 1,
-        height: 22 * k,
-        borderRadius: windowStyle === "windows" ? PILL_RADIUS : 7 * k,
-        background: c.field,
-        border: `${k}px solid ${c.fieldEdge}`,
-        color: c.text,
-        fontSize: 11.5 * k,
-        fontFamily: SYSTEM_FONT,
-        fontWeight: 450,
-        letterSpacing: "0.01em",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: windowStyle === "windows" ? "flex-start" : "center",
-        padding: `0 ${12 * k}px`,
-        overflow: "hidden",
-        whiteSpace: "nowrap",
-        textOverflow: "ellipsis",
-      }}
-    >
-      {hostLabel}
-    </div>
-  ) : (
-    <div style={{ flex: 1 }} />
-  );
   return (
     <div
       style={{
         position: "absolute",
         inset: 0,
-        borderRadius: (windowStyle === "windows" ? 8 : WINDOW_RADIUS) * k,
+        borderRadius: STYLE_LOOKS[windowStyle].windowRadius * k,
         overflow: "hidden",
         background: "#fff",
         display: "flex",
         flexDirection: "column",
-        filter: "saturate(1.05) contrast(1.025) brightness(1.01)",
+        filter: WINDOW_FILTER,
         boxShadow: `inset 0 ${k}px 0 rgba(255,255,255,0.9)`,
       }}
     >
       {chrome ? (
-        <div
-          style={{
-            flex: `0 0 ${CHROME_H * k}px`,
-            display: "flex",
-            alignItems: "center",
-            gap: 10 * k,
-            padding: `0 ${14 * k}px`,
-            background: c.bar,
-            borderBottom: `1px solid ${c.edge}`,
-          }}
-        >
-          {windowStyle === "macos" ? <TrafficLights /> : null}
-          {windowStyle === "linux" ? <div style={{ width: 88 * k, flexShrink: 0 }} /> : null}
-          {field}
-          {windowStyle === "macos" ? (
-            <div style={{ width: 52 * k, flexShrink: 0 }} />
-          ) : (
-            <WindowButtons windowStyle={windowStyle} theme={theme} />
-          )}
-        </div>
+        <TitleBar
+          windowStyle={windowStyle}
+          theme={theme}
+          addressBar={addressBar}
+          hostLabel={hostLabel}
+        />
       ) : null}
 
       <div

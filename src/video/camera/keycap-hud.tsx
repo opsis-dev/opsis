@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import type { KeyEvent } from "./lib/click-log";
-import { chordGlyphs, keycapAt, settle } from "./lib/keycap";
+import { chordGlyphs, keycapAt, keycapEase } from "./lib/keycap";
 import { useDesignScale } from "./lib/design-scale";
 import { useOverlayFrame } from "../core/frame";
 
@@ -28,9 +28,8 @@ export const KeycapHUD: React.FC<{
   const active = keycapAt(keys, timeS);
   if (!active) return null;
 
-  const appear = 1 - settle(active.inP);
-  const leave = 1 - settle(active.outP);
-  const opacity = Math.min(appear, leave);
+  const appear = keycapEase(active.inP);
+  const opacity = Math.min(appear, keycapEase(active.outP));
   const top = position === "top";
   const rise = (1 - appear) * KEYCAP.rise * k * (top ? -1 : 1);
 

@@ -1,6 +1,5 @@
 import { clamp, EPSILON, sum } from "../../shared/math";
-
-export type Point = { x: number; y: number };
+import type { Point } from "../../shared/schema/actions";
 
 const GLIDE_PX_PER_MS = 0.55;
 const GLIDE_MIN_MS = 450;

@@ -1,8 +1,15 @@
 import React from "react";
-import { AbsoluteFill, Img, random, staticFile, useCurrentFrame } from "remotion";
+import {
+  AbsoluteFill,
+  getRemotionEnvironment,
+  Img,
+  random,
+  staticFile,
+  useCurrentFrame,
+} from "remotion";
 import { noise3D } from "@remotion/noise";
 import { LightLeak } from "@remotion/light-leaks";
-import { backdropFile } from "../camera/lib/backdrop";
+import { backdropFile, backdropSource } from "../camera/lib/backdrop";
 
 const Grain: React.FC<{ amount: number; seed?: number }> = ({ amount, seed = 3 }) =>
   amount > 0 ? (
@@ -106,6 +113,25 @@ export const StudioBackdrop: React.FC<{ name: string }> = ({ name }) => (
     />
   </AbsoluteFill>
 );
+
+const BackdropImage: React.FC<{ src: string }> = ({ src }) => {
+  const style = { width: "100%", height: "100%", objectFit: "cover" } as const;
+  return getRemotionEnvironment().isRendering ? (
+    <Img src={src} style={style} />
+  ) : (
+    <img src={src} alt="" decoding="async" style={style} />
+  );
+};
+
+export const Backdrop: React.FC<{ name?: string }> = ({ name }) => {
+  const source = backdropSource(name);
+  if (source.kind === "paint") return <AbsoluteFill style={{ background: source.css }} />;
+  return (
+    <AbsoluteFill>
+      <BackdropImage src={source.kind === "image" ? source.url : staticFile(source.path)} />
+    </AbsoluteFill>
+  );
+};
 
 export const LightLeakElement: React.FC<{ seed?: number; hueShift?: number }> = ({
   seed = 3,
