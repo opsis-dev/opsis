@@ -14,7 +14,7 @@ describe("remaps", () => {
   });
 
   it("builds a remap from speed segments", () => {
-    const remap = remapFromSegments(100, [[20, 60, 4]]);
+    const remap = remapFromSegments(100, [{ from: 20, to: 60, rate: 4 }]);
     expect(remapDuration(remap)).toBe(70);
     expect(remapFrame(remap, 30)).toBe(60);
   });

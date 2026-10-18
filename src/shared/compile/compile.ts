@@ -1,4 +1,4 @@
-import { isStructural, nodesById, topoSort } from "../graph";
+import { topoSort } from "../graph";
 import { parseParams } from "../nodes/params";
 import { getNodeDef } from "../nodes/registry";
 import type { NodeDef } from "../nodes/define";
@@ -7,7 +7,8 @@ import type { TimelineSpec } from "../schema/timeline";
 import type { CompileValue, NodeResult } from "../schema/values";
 import type { Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { interpolate } from "../vars";
-import { clipToSpec, isClip, nodeSpans, type FrameRange } from "./clip";
+import { clipToSpec, isClip } from "./clip";
+import { nodeSpans, type FrameRange } from "../timeline/flatten";
 import { errorMessage } from "../errors";
 import { projectFolderName } from "../project-folder";
 
@@ -52,11 +53,8 @@ function gatherInputs(
 
 function bypass(def: NodeDef, inputs: PortValues): PortValues {
   const out: PortValues = {};
-  const firstClip = Object.values(inputs).find(isClip);
   for (const [portId, spec] of Object.entries(def.outputs)) {
-    const match =
-      Object.values(inputs).find((v) => v?.type === spec.type) ??
-      (spec.type === "clip" ? firstClip : undefined);
+    const match = Object.values(inputs).find((v) => v?.type === spec.type);
     if (match) out[portId] = match;
   }
   return out;
@@ -93,16 +91,14 @@ function runCompile(
 }
 
 export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): CompileResult {
-  const { order } = topoSort(wf);
-  const byId = nodesById(wf.nodes);
+  const { order, sorted } = topoSort(wf);
   const vars = workflowVars(wf);
   const values: CompileResult["values"] = {};
   const errors: CompileResult["errors"] = {};
   const specs: CompileResult["specs"] = {};
 
-  for (const id of order) {
-    const node = byId.get(id)!;
-    if (isStructural(node)) continue;
+  for (const node of sorted) {
+    const { id } = node;
     const def = getNodeDef(node.type);
     if (!def) {
       errors[id] = "This node type isn't available";

@@ -15,6 +15,7 @@ import type {
 import { clamp, EPSILON, numberOr } from "../math";
 import { isProjectRef } from "../asset-ref";
 import { msToExactFrames } from "./time";
+import { CHANNEL_KINDS, type ChannelKind } from "../mix/types";
 
 type Side = "start" | "end";
 
@@ -67,7 +68,7 @@ export type AudioBar = {
   nodeId?: string;
   channel: string;
   src: string;
-  role: "music" | "effect" | "clip";
+  role: ChannelKind;
   from: number;
   to: number;
   lane: number;
@@ -112,9 +113,10 @@ export type FlatTimeline = {
 
 const MAX_LOOPS = 64;
 
-type Range = { from: number; to: number };
+export type FrameRange = { from: number; to: number };
 
-const overlaps = (a: Range, b: Range) => a.from < b.to - EPSILON && b.from < a.to - EPSILON;
+const overlaps = (a: FrameRange, b: FrameRange) =>
+  a.from < b.to - EPSILON && b.from < a.to - EPSILON;
 
 function beforeFirst(remap: Remap, r: number): number {
   const [o0, i0] = remap[0];
@@ -123,18 +125,15 @@ function beforeFirst(remap: Remap, r: number): number {
   return o0 - (i0 - r) * slope;
 }
 
-function afterLast(remap: Remap, r: number): number {
-  const [oN, iN] = remap[remap.length - 1];
-  return oN + (r - iN);
-}
+const afterLast = ([oN, iN]: Remap[number], r: number): number => oN + (r - iN);
 
-function earliestOut(remap: Remap, r: number): number {
+function earliestOut(remap: Remap, last: Remap[number], r: number): number {
   for (let k = 1; k < remap.length; k++) {
     const [a, ia] = remap[k - 1];
     const [b, ib] = remap[k];
     if (ib >= r) return ib === ia ? a : lerpSegment([ia, a], [ib, b], r);
   }
-  return afterLast(remap, r);
+  return afterLast(last, r);
 }
 
 function latestOut(remap: Remap, r: number): number {
@@ -147,11 +146,12 @@ function latestOut(remap: Remap, r: number): number {
 }
 
 function inverseRemap(remap: Remap, r: number, side: Side): number {
-  if (remap.length === 0) return r;
+  const last = remap.at(-1);
+  if (!last) return r;
   const [o0, i0] = remap[0];
   if (r < i0) return beforeFirst(remap, r);
-  if (side === "start") return r === i0 ? o0 : earliestOut(remap, r);
-  return r >= remap[remap.length - 1][1] ? afterLast(remap, r) : latestOut(remap, r);
+  if (side === "start") return r === i0 ? o0 : earliestOut(remap, last, r);
+  return r >= last[1] ? afterLast(last, r) : latestOut(remap, r);
 }
 
 function groupInstances(
@@ -279,22 +279,35 @@ function transitionMark(p: Placed, previousLength: number): TransitionMark | nul
   };
 }
 
+const recordingSpeed = (props: RecordingProps): number => props.speed || 1;
+
+type MediaProps = { src: string; trimBeforeMs: number; loop: boolean; volume: number };
+
+function mediaProps(props: Record<string, unknown>): MediaProps | null {
+  const { src, trimBeforeMs, loop, volume } = props;
+  if (typeof src !== "string" || !src) return null;
+  return {
+    src,
+    trimBeforeMs: numberOr(trimBeforeMs, 0),
+    loop: !!loop,
+    volume: numberOr(volume, 1),
+  };
+}
+
 function thumbnailOf(item: TimelineItem): BarThumbnail | null {
   const recording = recordingOf(item);
   if (recording) {
     const src = recording.proxySrc || recording.src;
-    return src
-      ? { kind: "filmstrip", src, speed: numberOr(recording.speed, 1) || 1, trimMs: 0 }
-      : null;
+    return src ? { kind: "filmstrip", src, speed: recordingSpeed(recording), trimMs: 0 } : null;
   }
-  const { src, trimBeforeMs } = item.props;
-  if (typeof src !== "string" || !src) return null;
+  const media = mediaProps(item.props);
+  if (!media) return null;
   switch (item.component) {
     case "core/video":
-      return { kind: "filmstrip", src, speed: 1, trimMs: numberOr(trimBeforeMs, 0) };
+      return { kind: "filmstrip", src: media.src, speed: 1, trimMs: media.trimBeforeMs };
     case "core/image":
     case "core/still":
-      return isProjectRef(src) ? { kind: "still", src } : null;
+      return isProjectRef(media.src) ? { kind: "still", src: media.src } : null;
     default:
       return null;
   }
@@ -328,7 +341,7 @@ function leafBar(p: Placed, link: ChainLink, order: number): VideoBar {
 
 function recordingMarks(p: Placed, props: RecordingProps, fps: number): ActionMark[] {
   const { item, from, to, key } = p;
-  const speed = props.speed || 1;
+  const speed = recordingSpeed(props);
   return props.log.actions.flatMap((action) => {
     const label = ACTION_LABELS[action.kind];
     if (!label) return [];
@@ -427,6 +440,23 @@ export function flattenSpec(
   };
 }
 
+export function nodeSpans(
+  spec: Pick<TimelineSpec, "tracks" | "audio" | "durationInFrames" | "fps">,
+): Record<string, FrameRange> {
+  const spans: Record<string, FrameRange> = {};
+  for (const bar of flattenSpec(spec).bars)
+    for (const link of bar.chain) {
+      const from = Math.round(link.from);
+      const to = Math.round(link.to);
+      if (!link.nodeId || to <= from) continue;
+      const s = spans[link.nodeId];
+      spans[link.nodeId] = s
+        ? { from: Math.min(s.from, from), to: Math.max(s.to, to) }
+        : { from, to };
+    }
+  return spans;
+}
+
 function packLanes(bars: VideoBar[]): number {
   let lanes = 0;
   for (let i = 0; i < bars.length; i++) {
@@ -440,16 +470,19 @@ function packLanes(bars: VideoBar[]): number {
   return lanes;
 }
 
-const ROLE_ORDER = { music: 0, effect: 1, clip: 2 } as const;
+const roleOrder = (role: ChannelKind): number => CHANNEL_KINDS.indexOf(role);
 
-function soundBar(a: AudioItem, spec: Pick<TimelineSpec, "durationInFrames" | "fps">): AudioBar[] {
+function soundBar(
+  a: AudioItem,
+  spec: Pick<TimelineSpec, "durationInFrames" | "fps">,
+): AudioBar | null {
   const from = Math.max(0, a.from);
   const to = Math.min(
     spec.durationInFrames,
     a.from + soundLength(a, spec.fps, spec.durationInFrames),
   );
-  if (to <= from) return [];
-  const bar: AudioBar = {
+  if (to <= from) return null;
+  return {
     key: `audio:${a.id}`,
     id: a.id,
     ...(a.nodeId ? { nodeId: a.nodeId } : {}),
@@ -465,29 +498,26 @@ function soundBar(a: AudioItem, spec: Pick<TimelineSpec, "durationInFrames" | "f
     ...(a.handles ? { handles: a.handles } : {}),
     item: a,
   };
-  return [bar];
 }
 
-function clipSoundBar(bar: VideoBar, fps: number): AudioBar[] {
-  const { src, trimBeforeMs, loop, volume } = bar.props;
-  if (!bar.hasSound || bar.remapped || typeof src !== "string" || !src) return [];
-  return [
-    {
-      key: `clip:${bar.key}`,
-      id: bar.key,
-      nodeId: bar.nodeId,
-      channel: bar.nodeId,
-      src,
-      role: "clip",
-      from: bar.from,
-      to: bar.to,
-      lane: 0,
-      trimBefore: Math.round(bar.contentStart + msToExactFrames(numberOr(trimBeforeMs, 0), fps)),
-      loop: !!loop,
-      volume: numberOr(volume, 1),
-      bar,
-    },
-  ];
+function clipSoundBar(bar: VideoBar, fps: number): AudioBar | null {
+  const media = mediaProps(bar.props);
+  if (!bar.hasSound || bar.remapped || !media) return null;
+  return {
+    key: `clip:${bar.key}`,
+    id: bar.key,
+    nodeId: bar.nodeId,
+    channel: bar.nodeId,
+    src: media.src,
+    role: "clip",
+    from: bar.from,
+    to: bar.to,
+    lane: 0,
+    trimBefore: Math.round(bar.contentStart + msToExactFrames(media.trimBeforeMs, fps)),
+    loop: media.loop,
+    volume: media.volume,
+    bar,
+  };
 }
 
 function audioBars(
@@ -495,9 +525,11 @@ function audioBars(
   bars: VideoBar[],
 ): AudioBar[] {
   return [
-    ...spec.audio.flatMap((a) => soundBar(a, spec)),
-    ...bars.flatMap((bar) => clipSoundBar(bar, spec.fps)),
-  ].toSorted((x, y) => ROLE_ORDER[x.role] - ROLE_ORDER[y.role] || x.from - y.from);
+    ...spec.audio.map((a) => soundBar(a, spec)),
+    ...bars.map((bar) => clipSoundBar(bar, spec.fps)),
+  ]
+    .filter((a) => a !== null)
+    .toSorted((x, y) => roleOrder(x.role) - roleOrder(y.role) || x.from - y.from);
 }
 
 function packAudio(audio: AudioBar[]): number {

@@ -2,12 +2,13 @@ import { lookupKey } from "../hash";
 import type { AudioEnvelope, TimelineSpec } from "../schema/timeline";
 import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
 import {
+  audibility,
   busOf,
   channelsIn,
   duckKeysFor,
-  isAudible,
   resolveMix,
   stripOf,
+  type Audibility,
   type ChannelInfo,
 } from "./levels";
 import type { Bus, ChannelKind, Master, Mix, Strip } from "./types";
@@ -76,9 +77,10 @@ function busPlans(
   channels: ChannelPlan[],
   placed: ChannelInfo[],
   fps: number,
+  audible: Audibility,
 ): BusPlan[] {
   return mix.buses.map((bus) => {
-    const keys = duckKeysFor(mix, bus, placed, fps);
+    const keys = duckKeysFor(mix, bus, placed, fps, audible);
     return {
       id: bus.id,
       name: bus.name,
@@ -98,6 +100,7 @@ export function buildMixPlan(
   flat: FlatTimeline = flattenSpec(spec),
 ): MixPlan {
   const mix = resolveMix(mixIn);
+  const audible = audibility(mix);
   const sounds = soundPlacements(flat);
   const placed = channelsIn(spec).flatMap((info) => {
     const list = sounds.get(info.id);
@@ -109,13 +112,13 @@ export function buildMixPlan(
     bus: busOf(mix, c.id, c.kind).id,
     strip: stripOf(mix, c.id),
     sounds: c.sounds,
-    audible: isAudible(mix, c.id, c.kind),
+    audible: audible(c.id, c.kind),
   }));
   const body = {
     fps: spec.fps,
     durationInFrames: spec.durationInFrames,
     channels,
-    buses: busPlans(mix, channels, placed, spec.fps),
+    buses: busPlans(mix, channels, placed, spec.fps, audible),
     master: mix.master,
   };
   return { ...body, key: lookupKey(body) };
@@ -123,7 +126,10 @@ export function buildMixPlan(
 
 export const hasSound = (plan: MixPlan) => plan.channels.some((c) => c.sounds.length > 0);
 
-export function channelIdentity(plan: MixPlan, channel: ChannelPlan) {
+export type ChannelIdentity = Pick<MixPlan, "fps" | "durationInFrames"> &
+  Pick<ChannelPlan, "sounds" | "strip">;
+
+export function channelIdentity(plan: MixPlan, channel: ChannelPlan): ChannelIdentity {
   return {
     fps: plan.fps,
     durationInFrames: plan.durationInFrames,

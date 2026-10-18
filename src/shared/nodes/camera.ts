@@ -260,7 +260,7 @@ function remapClip(
   const toFrames = (recordingMs: number) => (recordingMs / 1000 / playback) * fps;
   const remap = remapFromSegments(
     clip.durationInFrames,
-    segments.map((s) => [toFrames(s.fromMs), toFrames(s.toMs), s.rate]),
+    segments.map((s) => ({ from: toFrames(s.fromMs), to: toFrames(s.toMs), rate: s.rate })),
   );
   return wrapClip(clip, nodeId, { remap }, Math.max(1, Math.round(remapDuration(remap))));
 }

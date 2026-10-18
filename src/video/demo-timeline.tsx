@@ -11,7 +11,8 @@ import {
 import { Audio } from "@remotion/media";
 import { groupOf, type GroupProps } from "../shared/compile/clip";
 import { remapFrame } from "../shared/compile/remap";
-import { duckGain, duckingSpans, type Span } from "../shared/compile/duck";
+import { duckGain, duckingSpans, type Span } from "../shared/mix/duck";
+import { flattenSpec, type FlatTimeline } from "../shared/timeline/flatten";
 import { envelopeAt } from "../shared/timeline/envelope";
 import type {
   AudioItem,
@@ -279,11 +280,13 @@ const duckKey = (keys: string[]) => keys.join("|");
 const AudioLayers: React.FC<{ spec: TimelineSpec }> = ({ spec }) => {
   const layers = useMemo(() => {
     const spansByKey = new Map<string, Span[]>();
+    let flat: FlatTimeline | null = null;
     const spansFor = (keys: string[]) => {
       const key = duckKey(keys);
       const known = spansByKey.get(key);
       if (known) return known;
-      const spans = duckingSpans(spec, new Set(keys));
+      flat ??= flattenSpec(spec);
+      const spans = duckingSpans(spec, new Set(keys), flat);
       spansByKey.set(key, spans);
       return spans;
     };

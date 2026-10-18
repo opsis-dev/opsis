@@ -48,10 +48,17 @@ export const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
 const [, ...CUT_PORTS] = IN_PORTS;
 type InPort = (typeof IN_PORTS)[number];
 
-const clipLabel = (handle: InPort) => `Clip ${IN_PORTS.indexOf(handle) + 1}`;
+export const inPortIndex = (handle: string): number => IN_PORTS.findIndex((p) => p === handle);
+
+export function nextInPort(handle: string): InPort | undefined {
+  const index = inPortIndex(handle);
+  return index === -1 ? undefined : IN_PORTS[index + 1];
+}
+
+const clipLabel = (handle: InPort) => `Clip ${inPortIndex(handle) + 1}`;
 const LAYER_ENDS: Partial<Record<InPort, string>> = { in1: " (back)", in6: " (front)" };
 const layerLabel = (handle: InPort) =>
-  `Layer ${IN_PORTS.indexOf(handle) + 1}${LAYER_ENDS[handle] ?? ""}`;
+  `Layer ${inPortIndex(handle) + 1}${LAYER_ENDS[handle] ?? ""}`;
 
 const manyIn = Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", clipLabel(p))]));
 const layerIn = Object.fromEntries(IN_PORTS.map((p) => [p, opt("clip", layerLabel(p))]));

@@ -1,5 +1,4 @@
-import { describe, expect, it } from "vitest";
-import type { ActionLog } from "../schema/actions";
+import { assert, describe, expect, it } from "vitest";
 import type { TimelineSpec } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
 import { getTemplate } from "../templates";
@@ -7,17 +6,13 @@ import { GraphBuilder } from "../templates/build";
 import { groupOf, isClip, recordingOf } from "./clip";
 import { compileWorkflow, previewSpec } from "./compile";
 import { flattenSpec } from "../timeline/flatten";
-import { itemsOf, recordedTake, recordResult } from "../test-fixtures";
+import { itemsOf, makeLog, must, recordedTake, recordResult, TITLE } from "../test-fixtures";
 import { findById } from "../lists";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 
-const log: ActionLog = {
-  viewport: { width: 1920, height: 1080 },
-  dpr: 2,
-  t0: 0,
-  durationMs: 12_000,
-  actions: [
+const log = makeLog(
+  [
     {
       id: "a",
       kind: "type",
@@ -49,11 +44,8 @@ const log: ActionLog = {
       label: "Completed filter",
     },
   ],
-  cursorTrack: [
-    { t: 0, x: 960, y: 540 },
-    { t: 1500, x: 960, y: 200 },
-  ],
-};
+  12_000,
+);
 
 const recordingIn = (spec: TimelineSpec) => itemsOf(spec).map(recordingOf).find(Boolean);
 
@@ -85,7 +77,10 @@ describe("compileWorkflow — sample project", () => {
     const wf = todoMvc();
     const out = compileWorkflow(wf, { results: { record: recordResult(log) } });
     const flat = flattenSpec(out.specs.render);
-    const bar = flat.bars.find((b) => b.component === "core/recording")!;
+    const bar = must(
+      flat.bars.find((b) => b.component === "core/recording"),
+      "recording bar",
+    );
     const marks = flat.marks.filter((m) => m.barKey === bar.key);
     expect(marks.map((m) => m.kind)).toEqual(["type", "click", "click"]);
     expect(marks[1].label).toBe("Click Complete");
@@ -97,8 +92,8 @@ describe("compileWorkflow — sample project", () => {
   it("passes the small preview copy along with the full recording", () => {
     const result = recordResult(log);
     const recording = result.outputs.recording;
-    if (recording?.type === "recording")
-      recording.proxySrc = "project:.demoflow/cache/h/recording.preview.mp4";
+    assert(recording?.type === "recording", "recording output");
+    recording.proxySrc = "project:.demoflow/cache/h/recording.preview.mp4";
     const out = compileWorkflow(todoMvc(), { results: { record: result } });
     const props = recordingIn(out.specs.render);
     expect(props?.src).toBe("project:.demoflow/cache/h/recording.mp4");
@@ -129,7 +124,7 @@ describe("compileWorkflow — sample project", () => {
 describe("compileWorkflow — timeline nodes", () => {
   const titleWorkflow = (extra: (g: GraphBuilder, title: string) => string) => {
     const g = new GraphBuilder();
-    const title = g.node("title", "fx.core.title", 0, 0, { clipDuration: 90 });
+    const title = g.node("title", TITLE, 0, 0, { clipDuration: 90 });
     const last = extra(g, title);
     return { wf: g.build({ id: "t", name: "T" }), last };
   };
@@ -200,7 +195,7 @@ describe("layers that keep their layout", () => {
   it("wrap the layers in a box at the project's size", () => {
     const g = new GraphBuilder();
     g.node("bg", "fx.core.solid", 0, 0, { clipDuration: 60 });
-    g.node("t", "fx.core.title", 0, 1, { clipDuration: 60 });
+    g.node("t", TITLE, 0, 1, { clipDuration: 60 });
     g.node("stack", "timeline.stack", 1, 0, { keepLayout: true });
     g.link("bg", "stack", "clip", "in1").link("t", "stack", "clip", "in2");
     g.node("out", "output.render", 2, 0);
@@ -247,10 +242,12 @@ describe("sounds under a clip", () => {
 
   it("plays a sound effect on the action it's pinned to", () => {
     const spec = withSounds([["pinned", { atAction: "complete", offsetMs: -200 }]]);
-    const mark = flattenSpec(spec).marks.find((m) => m.nodeId === "complete");
+    const mark = must(
+      flattenSpec(spec).marks.find((m) => m.nodeId === "complete"),
+      "mark of the pinned action",
+    );
     const sound = spec.audio.find((a) => a.nodeId === "pinned");
-    expect(mark).toBeDefined();
-    expect(sound?.from).toBe(Math.round(mark?.frame ?? 0) - 6);
+    expect(sound?.from).toBe(Math.round(mark.frame) - 6);
   });
 });
 
@@ -258,7 +255,7 @@ describe("a transition at each cut", () => {
   const sequence = (cuts: unknown[], clips = ["in1", "in2", "in3"]) => {
     const g = new GraphBuilder();
     for (const [i, port] of clips.entries()) {
-      g.node(`c${i}`, "fx.core.title", 0, i, { clipDuration: 60 });
+      g.node(`c${i}`, TITLE, 0, i, { clipDuration: 60 });
       g.link(`c${i}`, "seq", "clip", port);
     }
     g.node("seq", "timeline.sequence", 1, 0, {

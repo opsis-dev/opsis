@@ -26,8 +26,11 @@ export function filmChapters(spec: TimelineSpec): FilmChapter[] {
     if (previous && c.startMs - previous.startMs < MIN_CHAPTER_MS) continue;
     kept.push(c);
   }
-  while (kept.length > 1 && durationMs - kept[kept.length - 1].startMs < MIN_CHAPTER_MS) kept.pop();
-  return kept.map((c, i) => ({ ...c, endMs: kept[i + 1]?.startMs ?? durationMs }));
+  const lastKept = kept.findLastIndex(
+    (c, i) => i === 0 || durationMs - c.startMs >= MIN_CHAPTER_MS,
+  );
+  const listed = kept.slice(0, lastKept + 1);
+  return listed.map((c, i) => ({ ...c, endMs: listed[i + 1]?.startMs ?? durationMs }));
 }
 
 export function chapterList(chapters: readonly FilmChapter[]): string {

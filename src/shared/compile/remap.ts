@@ -15,7 +15,7 @@ export const speedRemap = (innerDuration: number, outDuration: number): Remap =>
 ];
 
 export function remapDuration(remap: Remap): number {
-  return remap.length ? remap[remap.length - 1][0] : 0;
+  return remap.at(-1)?.[0] ?? 0;
 }
 
 export function remapFrame(remap: Remap, frame: number): number {
@@ -33,10 +33,9 @@ export function remapFrame(remap: Remap, frame: number): number {
   );
 }
 
-export function remapFromSegments(
-  innerDuration: number,
-  segments: Array<[number, number, number]>,
-): Remap {
+type RemapSegment = { from: number; to: number; rate: number };
+
+export function remapFromSegments(innerDuration: number, segments: RemapSegment[]): Remap {
   const out: Remap = [[0, 0]];
   let outPos = 0;
   let inPos = 0;
@@ -46,9 +45,9 @@ export function remapFromSegments(
     inPos = inTo;
     out.push([round3(outPos), inPos]);
   };
-  for (const [a, b, rate] of segments) {
-    push(Math.min(a, innerDuration), 1);
-    push(Math.min(b, innerDuration), Math.max(MIN_SPEED, rate));
+  for (const { from, to, rate } of segments) {
+    push(Math.min(from, innerDuration), 1);
+    push(Math.min(to, innerDuration), Math.max(MIN_SPEED, rate));
   }
   push(innerDuration, 1);
   return out;

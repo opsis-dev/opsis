@@ -3,7 +3,7 @@ import { itemHasSound } from "../compile/clip";
 import type { TimelineSpec } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
 import { GraphBuilder } from "../templates/build";
-import { filmSpec, itemsOf, must } from "../test-fixtures";
+import { filmSpec, itemsOf, must, TITLE } from "../test-fixtures";
 import { busJob, channelJob, jobArgs, loudnessMeasureJob, masterJob, parseLoudnorm } from "./graph";
 import { applyMixLevels, withMasterStem } from "./levels";
 import { buildMixPlan, channelIdentity, type MixPlan, type SoundPlacement } from "./plan";
@@ -12,7 +12,7 @@ import { findById } from "../lists";
 
 function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
   const g = new GraphBuilder();
-  g.node("t", "fx.core.title", 0, 0, { clipDuration: 300 });
+  g.node("t", TITLE, 0, 0, { clipDuration: 300 });
   g.node("clipfile", "media.import", 0, 1, { path: "assets/clip.mp4" });
   g.node("music", "audio.music", 0, 2, { src: "assets/song.mp3", fadeInMs: 0, fadeOutMs: 0 });
   g.node("fx", "audio.sfx", 0, 3, { src: "app:sfx/whoosh.wav", atMs: 2000 });
@@ -147,11 +147,12 @@ describe("mix plan", () => {
   });
 });
 
+const FILM = { fps: 30, durationInFrames: 300 };
+
 describe("mix filter graphs", () => {
   const resolve = (ref: string) => `/files/${ref.split(":")[1]}`;
 
   const PADDED = "[s0]anull,apad,atrim=end=10,asetpts=PTS-STARTPTS[out]";
-  const FILM = { fps: 30, durationInFrames: 300 };
   const soundJob = (placement: Partial<SoundPlacement>, s: Strip = DEFAULT_STRIP) =>
     channelJob(
       FILM,
@@ -270,7 +271,7 @@ describe("mix filter graphs", () => {
 
   it("ducks a bus with a sidechain keyed from other channels", () => {
     const job = busJob(
-      { fps: 30, durationInFrames: 300 },
+      FILM,
       {
         id: "music",
         name: "Music",
@@ -293,7 +294,7 @@ describe("mix filter graphs", () => {
       loudness: "web" as const,
       limiter: { on: true, ceiling: -1 },
     };
-    const plan = { fps: 30, durationInFrames: 300, master };
+    const plan = { ...FILM, master };
     expect(loudnessMeasureJob(plan, ["/b1.wav"])?.filter).toContain(
       "loudnorm=I=-14:TP=-1:LRA=11:print_format=json",
     );
@@ -345,7 +346,7 @@ describe("bus processing", () => {
       comp: { on: true, threshold: -16, ratio: 4, attack: 3, release: 80, makeup: 0 },
     };
     const job = busJob(
-      { fps: 30, durationInFrames: 300 },
+      FILM,
       { id: "fx", name: "Effects", fader: -3, channels: ["a"], duck: null, processing },
       (id) => `${id}.wav`,
     );

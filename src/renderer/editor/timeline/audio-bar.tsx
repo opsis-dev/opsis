@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { duckGain, duckingSpans } from "@/shared/compile/duck";
+import { duckGain, duckingSpans } from "@/shared/mix/duck";
 import { applyMixLevels } from "@/shared/mix/levels";
 import type { Mix } from "@/shared/mix/types";
 import type { TimelineSpec } from "@/shared/schema/timeline";
-import type { AudioBar } from "@/shared/timeline/flatten";
+import { flattenSpec, type AudioBar } from "@/shared/timeline/flatten";
 import { MAX_VOLUME } from "@/shared/nodes/params";
 import { cn } from "@/renderer/lib/utils";
 import { nodeNameById } from "@/shared/nodes/registry";
@@ -41,9 +41,11 @@ export function useDuckGains(spec: TimelineSpec | null, mix: Mix): (id: string) 
     const out = new Map<string, Gain>();
     if (!spec) return out;
     const live = applyMixLevels(spec, mix);
+    if (!live.audio.some((a) => a.duck)) return out;
+    const flat = flattenSpec(live);
     for (const a of live.audio) {
       if (!a.duck) continue;
-      const spans = duckingSpans(live, new Set(a.duck.keys));
+      const spans = duckingSpans(live, new Set(a.duck.keys), flat);
       const { level, fadeFrames } = a.duck;
       out.set(a.id, (abs) => duckGain(abs, spans, level, fadeFrames));
     }

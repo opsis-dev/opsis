@@ -35,9 +35,11 @@ export const envelopeAt = (keys: Keyframe[] | undefined, frame: number, fallback
 const STEPS_PER_SEGMENT = 8;
 const HOLD_STEP_FRAMES = 1e-3;
 
-export function samplePoints(keys: Keyframe[]): Array<{ frame: number; value: number }> {
+type EnvelopePoint = Pick<Keyframe, "frame" | "value">;
+
+export function samplePoints(keys: Keyframe[]): EnvelopePoint[] {
   const sorted = sortKeys(keys);
-  const out: Array<{ frame: number; value: number }> = [];
+  const out: EnvelopePoint[] = [];
   for (let i = 0; i < sorted.length; i++) {
     const a = sorted[i];
     out.push({ frame: a.frame, value: a.value });

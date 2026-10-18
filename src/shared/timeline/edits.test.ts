@@ -3,7 +3,7 @@ import { NODE_DEFS } from "../nodes/registry";
 import type { EditHandleKind } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
 import type { GraphBuilder } from "../templates/build";
-import { buildFilm, flatFilm, must } from "../test-fixtures";
+import { buildFilm, flatFilm, must, TITLE } from "../test-fixtures";
 import {
   moveAudio,
   moveBar,
@@ -26,8 +26,6 @@ import {
   type VideoBar,
 } from "./flatten";
 import { findById } from "../lists";
-
-const TITLE = "fx.core.title";
 
 let counter = 0;
 const ctxFor = (workflow: Workflow): EditContext => ({
@@ -118,7 +116,10 @@ const HANDLES: Record<BarHandle, HandleCase> = {
 };
 
 function feedInputs(g: GraphBuilder, id: string, type: string): void {
-  const def = NODE_DEFS.find((d) => d.type === type)!;
+  const def = must(
+    NODE_DEFS.find((d) => d.type === type),
+    `node def ${type}`,
+  );
   Object.entries(def.inputs).forEach(([port, spec], i) => {
     const src = `${id}_${port}`;
     if (spec.type === "clip") {
@@ -195,10 +196,10 @@ describe("timeline edit handles round-trip", () => {
   });
 });
 
-describe("timeline edits that add nodes", () => {
-  const single = () =>
-    buildFilm((g) => g.node("t", TITLE, 0, 0, { title: "Hello", clipDuration: 90 }));
+const single = () =>
+  buildFilm((g) => g.node("t", TITLE, 0, 0, { title: "Hello", clipDuration: 90 }));
 
+describe("timeline edits that add nodes", () => {
   it("adds a Delay to move a clip that has none", () => {
     const wf = single();
     const [bar] = flatFilm(wf).bars;
@@ -270,6 +271,16 @@ describe("timeline edits that add nodes", () => {
     expect(next.nodes.some((n) => n.type === "timeline.trim")).toBe(true);
   });
 
+  it("won't move a sequenced clip before the one before it", () => {
+    const wf = sequenceOf([
+      ["a", 60],
+      ["b", 60],
+    ]);
+    expect(moveBar(ctxFor(wf), barOf(flatFilm(wf), "b"), -10).ok).toBe(false);
+  });
+});
+
+describe("timeline splits and cuts", () => {
   it("splits a clip at the playhead into two parts in a sequence", () => {
     const wf = single();
     const [bar] = flatFilm(wf).bars;
@@ -363,15 +374,9 @@ describe("timeline edits that add nodes", () => {
     expect(barOf(after, "b").to).toBeCloseTo(120, 0);
     expect(rollCut(ctxFor(wf), a, b, -12).ok).toBe(false);
   });
+});
 
-  it("won't move a sequenced clip before the one before it", () => {
-    const wf = sequenceOf([
-      ["a", 60],
-      ["b", 60],
-    ]);
-    expect(moveBar(ctxFor(wf), barOf(flatFilm(wf), "b"), -10).ok).toBe(false);
-  });
-
+describe("removing clips from the timeline", () => {
   it("removes the nodes that only feed one clip", () => {
     const wf = buildFilm((g) => {
       g.node("a", TITLE, 0, 0, { clipDuration: 60 });

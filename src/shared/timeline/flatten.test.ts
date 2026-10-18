@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildFilm, flatFilm } from "../test-fixtures";
-import { findHandle } from "./flatten";
-
-const TITLE = "fx.core.title";
+import { buildFilm, filmSpec, flatFilm, TITLE } from "../test-fixtures";
+import { findHandle, nodeSpans } from "./flatten";
 
 describe("flattening", () => {
   it("maps bars through speed and trims", () => {
@@ -53,6 +51,21 @@ describe("flattening", () => {
       [30, 60],
       [60, 90],
     ]);
+  });
+
+  it("spans every loop and speed change of a node", () => {
+    const wf = buildFilm((g) => {
+      g.node("t", TITLE, 0, 0, { clipDuration: 60 });
+      g.node("speed", "timeline.speed", 1, 0, { rate: 2 });
+      g.node("loop", "timeline.loop", 2, 0, { times: 3 });
+      g.link("t", "speed").link("speed", "loop");
+      return "loop";
+    });
+    expect(nodeSpans(filmSpec(wf))).toEqual({
+      t: { from: 0, to: 90 },
+      speed: { from: 0, to: 90 },
+      loop: { from: 0, to: 90 },
+    });
   });
 
   it("marks transitions between sequenced clips", () => {

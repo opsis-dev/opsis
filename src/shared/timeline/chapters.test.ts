@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { compileWorkflow } from "../compile/compile";
-import type { Action, ActionLog } from "../schema/actions";
+import type { Action } from "../schema/actions";
 import { GraphBuilder } from "../templates/build";
 import { chapterList, chapterMetadata, filmChapters, type FilmChapter } from "./chapters";
 import { framesToMs } from "./time";
-import { recordedTake, recordResult } from "../test-fixtures";
+import { makeLog, recordedTake, recordResult, TITLE } from "../test-fixtures";
 
 const chapter = (id: string, t: number, label: string): Action => ({
   id,
@@ -14,19 +14,15 @@ const chapter = (id: string, t: number, label: string): Action => ({
   label,
 });
 
-const log: ActionLog = {
-  viewport: { width: 1920, height: 1080 },
-  dpr: 1,
-  t0: 0,
-  durationMs: 60_000,
-  actions: [
+const log = makeLog(
+  [
     chapter("a", 2000, "Sign in"),
     chapter("b", 20_000, "Build"),
     chapter("c", 25_000, "Too short"),
     chapter("d", 45_000, "Ship"),
   ],
-  cursorTrack: [{ t: 0, x: 960, y: 540 }],
-};
+  60_000,
+);
 
 function film(edit?: { type: string; params: Record<string, unknown> }) {
   const g = new GraphBuilder();
@@ -91,7 +87,7 @@ describe("filmChapters", () => {
 
   it("has nothing for a film without chapters", () => {
     const g = new GraphBuilder();
-    g.node("t", "fx.core.title", 0, 0, { clipDuration: 90 });
+    g.node("t", TITLE, 0, 0, { clipDuration: 90 });
     g.node("out", "output.render", 1, 0);
     g.link("t", "out", "clip", "timeline");
     expect(filmChapters(compileWorkflow(g.build({ id: "x", name: "x" })).specs.out)).toEqual([]);

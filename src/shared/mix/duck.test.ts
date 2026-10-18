@@ -79,7 +79,7 @@ describe("ducking", () => {
                       from: 10,
                       durationInFrames: 200,
                       component: "core/video",
-                      props: { muted: false },
+                      props: { src: "project:v.mp4", muted: false },
                       nodeId: "v",
                     },
                     {
@@ -87,7 +87,7 @@ describe("ducking", () => {
                       from: 0,
                       durationInFrames: 20,
                       component: "core/video",
-                      props: { muted: true },
+                      props: { src: "project:q.mp4", muted: true },
                       nodeId: "q",
                     },
                   ],
@@ -103,6 +103,41 @@ describe("ducking", () => {
       [0, 10],
       [60, 150],
     ]);
+  });
+
+  it("lowers under every repeat of a looped clip with sound", () => {
+    const tracks: TimelineSpec["tracks"] = [
+      {
+        id: "t",
+        items: [
+          {
+            id: "g",
+            from: 20,
+            durationInFrames: 90,
+            component: "core/group",
+            props: {
+              loopEvery: 30,
+              tracks: [
+                {
+                  id: "inner",
+                  items: [
+                    {
+                      id: "v",
+                      from: 0,
+                      durationInFrames: 30,
+                      component: "core/video",
+                      props: { src: "project:v.mp4", muted: false },
+                      nodeId: "v",
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ];
+    expect(duckingSpans(spec([], tracks), keys("v"))).toEqual([[20, 110]]);
   });
 
   const spans: Span[] = [[30, 40]];

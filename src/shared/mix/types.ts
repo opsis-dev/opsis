@@ -80,18 +80,20 @@ export const MIN_DB = -60;
 export const SILENCE_DB = -120;
 export const MAX_DB = 12;
 
-export const busSettingsSchema = z.object({
+const FADER_RANGE: NumberRange = { min: MIN_DB, max: MAX_DB, default: 0 };
+
+const busSettingsSchema = z.object({
   highpass: highpassSchema.prefault({}),
   eq: eqSchema.prefault({}),
   comp: compSchema.prefault({}),
-  fader: z.number().min(MIN_DB).max(MAX_DB).default(0),
+  fader: ranged(FADER_RANGE),
 });
 export type BusSettings = z.infer<typeof busSettingsSchema>;
 
 export const TRIM_RANGE: NumberRange = { min: -24, max: 24, default: 0 };
 export const PAN_RANGE: NumberRange = { min: -1, max: 1, default: 0 };
 
-export const stripSettingsSchema = z.object({
+const stripSettingsSchema = z.object({
   trim: ranged(TRIM_RANGE),
   ...busSettingsSchema.shape,
   pan: ranged(PAN_RANGE),
@@ -147,7 +149,7 @@ export const LIMITER_CEILING_RANGE: NumberRange = { min: -12, max: 0, default: -
 const GENTLE_MASTER_COMP = { threshold: -12, ratio: 2, attack: 20, release: 250 };
 
 const masterSchema = z.object({
-  fader: z.number().min(MIN_DB).max(MAX_DB).default(0),
+  fader: ranged(FADER_RANGE),
   eq: eqSchema.prefault({}),
   comp: compSchema.prefault(GENTLE_MASTER_COMP),
   limiter: z
@@ -179,7 +181,8 @@ export const DEFAULT_STRIP: Strip = stripSchema.parse({});
 export const DEFAULT_MASTER: Master = masterSchema.parse({});
 export const defaultMix = (): Mix => mixSchema.parse({});
 
-export type ChannelKind = "music" | "effect" | "clip";
+export const CHANNEL_KINDS = ["music", "effect", "clip"] as const;
+export type ChannelKind = (typeof CHANNEL_KINDS)[number];
 
 export const DEFAULT_BUS_FOR: Record<ChannelKind, string> = {
   music: "music",

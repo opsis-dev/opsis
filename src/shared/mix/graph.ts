@@ -43,6 +43,10 @@ export type Job = {
 
 type Plan = Pick<MixPlan, "fps" | "durationInFrames">;
 
+type MasterPlan = Pick<MixPlan, "fps" | "durationInFrames" | "master">;
+
+const STEM_TAPS: Taps = { pre: "pre", post: "post" };
+
 const num = (n: number, digits = 6) => {
   const s = n.toFixed(digits).replace(/\.?0+$/, "");
   return s === "-0" ? "0" : s;
@@ -55,9 +59,10 @@ const dbStep = (db: number): string[] =>
 
 function envelopeExpr(keys: Keyframe[], fps: number): string {
   const points = samplePoints(keys).map((p) => ({ t: p.frame / fps, v: p.value }));
-  if (points.length === 0) return "1";
-  if (points.length === 1) return num(points[0].v);
-  let expr = num(points[points.length - 1].v);
+  const last = points.at(-1);
+  if (!last) return "1";
+  if (points.length === 1) return num(last.v);
+  let expr = num(last.v);
   for (let i = points.length - 2; i >= 0; i--) {
     const a = points[i];
     const b = points[i + 1];
@@ -195,15 +200,17 @@ function masterTail(master: Master, measured?: LoudnessMeasure | null): string[]
   return steps;
 }
 
-function masterSteps(master: Master, measured?: LoudnessMeasure | null): string[] {
-  return [...eqSteps(master.eq), ...compSteps(master.comp), ...masterTail(master, measured)];
-}
+const masterStages = (master: Master, measured?: LoudnessMeasure | null): Stages => ({
+  pre: eqSteps(master.eq),
+  comp: compSteps(master.comp),
+  post: masterTail(master, measured),
+});
 
 const PINNED = `aformat=sample_fmts=fltp:sample_rates=${SAMPLE_RATE}:channel_layouts=stereo`;
 
 function tapped(sum: string, comp: string[], post: string[]): string {
   const tail = post.length ? post.join(",") : "anull";
-  return `[${sum}]${PINNED},asplit=2[pre][c];[c]${comp.join(",")},${PINNED},asplit=2[post][m];[m]${tail}[out]`;
+  return `[${sum}]${PINNED},asplit=2[${STEM_TAPS.pre}][c];[c]${comp.join(",")},${PINNED},asplit=2[${STEM_TAPS.post}][m];[m]${tail}[out]`;
 }
 
 const silenceJob = ({ fps, durationInFrames }: Plan): Job => ({
@@ -239,7 +246,7 @@ function stripJob(
     inputs,
     filter: [...sources.chains, mixed, tapped("sum", comp, post)].join(";"),
     output: "out",
-    taps: { pre: "pre", post: "post" },
+    taps: { ...STEM_TAPS },
   };
 }
 
@@ -293,7 +300,7 @@ export function busJob(plan: Plan, bus: BusPlan, stem: (channelId: string) => st
 }
 
 export function masterJob(
-  plan: Pick<MixPlan, "fps" | "durationInFrames" | "master">,
+  plan: MasterPlan,
   buses: string[],
   measured: LoudnessMeasure | null,
 ): Job {
@@ -302,26 +309,25 @@ export function masterJob(
     plan,
     buses,
     { chains: [], labels: streamLabels(buses) },
-    {
-      pre: eqSteps(plan.master.eq),
-      comp: compSteps(plan.master.comp),
-      post: masterTail(plan.master, measured),
-    },
+    masterStages(plan.master, measured),
   );
 }
 
-export function loudnessMeasureJob(
-  plan: Pick<MixPlan, "fps" | "durationInFrames" | "master">,
-  buses: string[],
-): Job | null {
+export function loudnessMeasureJob(plan: MasterPlan, buses: string[]): Job | null {
   const target = LOUDNESS_TARGETS[plan.master.loudness];
   if (!target || buses.length === 0) return null;
-  const pre = masterSteps({ ...plan.master, loudness: "off", limiter: { on: false, ceiling: 0 } });
+  const { pre, comp, post } = masterStages({
+    ...plan.master,
+    loudness: "off",
+    limiter: { on: false, ceiling: 0 },
+  });
   return {
     inputs: buses,
     filter: mixOf(streamLabels(buses), "out", [
       fit(plan),
       ...pre,
+      ...comp,
+      ...post,
       `${loudnormBase(target)}:print_format=json`,
     ]),
     output: "out",

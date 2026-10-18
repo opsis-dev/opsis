@@ -1,11 +1,22 @@
 import { walkItems } from "./compile/clip";
 import { compileWorkflow, previewSpec } from "./compile/compile";
-import type { ActionLog } from "./schema/actions";
+import type { Action, ActionLog } from "./schema/actions";
 import type { TimelineItem, TimelineSpec } from "./schema/timeline";
 import type { NodeResult } from "./schema/values";
 import type { Workflow } from "./schema/workflow";
 import { GraphBuilder } from "./templates/build";
 import { flattenSpec, type FlatTimeline } from "./timeline/flatten";
+
+export const TITLE = "fx.core.title";
+
+export const makeLog = (actions: Action[], durationMs: number): ActionLog => ({
+  viewport: { width: 1920, height: 1080 },
+  dpr: 1,
+  t0: 0,
+  durationMs,
+  actions,
+  cursorTrack: [{ t: 0, x: 960, y: 540 }],
+});
 
 export const nodeResult = (fields: Partial<NodeResult> = {}): NodeResult => ({
   hash: "h",

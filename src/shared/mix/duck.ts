@@ -1,6 +1,6 @@
 import { channelOf, soundLength } from "../audio";
 import type { AudioItem, TimelineSpec } from "../schema/timeline";
-import { soundNodeId, walkItems } from "./clip";
+import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
 
 export type Span = readonly [number, number];
 
@@ -26,43 +26,31 @@ function soundSpans(
     .map((a) => [a.from, a.from + soundLength(a, fps, total)] as const);
 }
 
-function clipSpans(
-  spec: Pick<TimelineSpec, "tracks" | "durationInFrames">,
-  keys: ReadonlySet<string>,
-): Span[] {
-  const spans: Span[] = [];
-  const film = { from: 0, to: spec.durationInFrames };
-  walkItems(
-    spec.tracks,
-    (item, { from, to }) => {
-      const id = soundNodeId(item);
-      if (id && keys.has(id)) spans.push([from, to]);
-    },
-    film,
-  );
-  return spans;
-}
+const clipSpans = (flat: FlatTimeline, keys: ReadonlySet<string>): Span[] =>
+  flat.audio
+    .filter((a) => a.role === "clip" && keys.has(a.channel))
+    .map((a) => [a.from, a.to] as const);
 
 export function duckingSpans(
   spec: Pick<TimelineSpec, "tracks" | "audio" | "durationInFrames" | "fps">,
   keys: ReadonlySet<string>,
+  flat: FlatTimeline = flattenSpec(spec),
 ): Span[] {
   return mergeSpans([
     ...soundSpans(spec.audio, keys, spec.fps, spec.durationInFrames),
-    ...clipSpans(spec, keys),
+    ...clipSpans(flat, keys),
   ]);
+}
+
+function spanGain(frame: number, [start, end]: Span, level: number, fadeFrames: number): number {
+  if (frame >= start && frame < end) return level;
+  const away = frame < start ? start - frame : frame - end;
+  if (fadeFrames <= 0 || away >= fadeFrames) return 1;
+  return level + (away / fadeFrames) * (1 - level);
 }
 
 export function duckGain(frame: number, spans: Span[], level: number, fadeFrames: number): number {
   let gain = 1;
-  for (const [start, end] of spans) {
-    let g = 1;
-    if (frame >= start && frame < end) g = level;
-    else if (fadeFrames > 0 && frame >= start - fadeFrames && frame < start)
-      g = 1 - ((frame - (start - fadeFrames)) / fadeFrames) * (1 - level);
-    else if (fadeFrames > 0 && frame >= end && frame < end + fadeFrames)
-      g = level + ((frame - end) / fadeFrames) * (1 - level);
-    gain = Math.min(gain, g);
-  }
+  for (const span of spans) gain = Math.min(gain, spanGain(frame, span, level, fadeFrames));
   return gain;
 }

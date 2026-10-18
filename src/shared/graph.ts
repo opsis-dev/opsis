@@ -41,7 +41,11 @@ const edgeEnds = (e: WorkflowEdge, byId: ReadonlyMap<string, WorkflowNode>) => {
 const byPosition = (a: WorkflowNode, b: WorkflowNode) =>
   a.position.x - b.position.x || a.position.y - b.position.y || byCodeUnit(a.id, b.id);
 
-export function topoSort(wf: Workflow): { order: string[]; cyclic: string[] } {
+export function topoSort(wf: Workflow): {
+  order: string[];
+  sorted: WorkflowNode[];
+  cyclic: string[];
+} {
   const nodes = wf.nodes.filter((n) => !isStructural(n));
   const byId = nodesById(nodes);
   const indegree = new Map(nodes.map((n) => [n.id, 0]));
@@ -53,9 +57,9 @@ export function topoSort(wf: Workflow): { order: string[]; cyclic: string[] } {
     indegree.set(ends.target.id, (indegree.get(ends.target.id) ?? 0) + 1);
   }
   const ready = nodes.filter((n) => indegree.get(n.id) === 0).sort(byPosition);
-  const order: string[] = [];
+  const sorted: WorkflowNode[] = [];
   for (let node = ready.shift(); node; node = ready.shift()) {
-    order.push(node.id);
+    sorted.push(node);
     for (const after of next.get(node.id) ?? []) {
       const left = (indegree.get(after.id) ?? 0) - 1;
       indegree.set(after.id, left);
@@ -63,8 +67,12 @@ export function topoSort(wf: Workflow): { order: string[]; cyclic: string[] } {
     }
     ready.sort(byPosition);
   }
-  const ordered = new Set(order);
-  return { order, cyclic: nodes.filter((n) => !ordered.has(n.id)).map((n) => n.id) };
+  const ordered = new Set(sorted);
+  return {
+    order: sorted.map((n) => n.id),
+    sorted,
+    cyclic: nodes.filter((n) => !ordered.has(n)).map((n) => n.id),
+  };
 }
 
 function reach(wf: Workflow, nodeId: string, direction: "up" | "down"): Set<string> {

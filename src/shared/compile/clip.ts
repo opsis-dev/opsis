@@ -43,14 +43,10 @@ export const recordingOf = (item: TimelineItem): RecordingProps | null =>
 
 type ItemPlacement = Omit<TimelineItem, "component" | "props">;
 
-const builtInItem = <C extends keyof BuiltInProps>(
+export const groupItem = (
   { id, from, durationInFrames, ...rest }: ItemPlacement,
-  component: C,
-  props: BuiltInProps[C],
-): TimelineItem => ({ id, from, durationInFrames, component, props, ...rest });
-
-export const groupItem = (placement: ItemPlacement, props: GroupProps): TimelineItem =>
-  builtInItem(placement, "core/group", props);
+  props: GroupProps,
+): TimelineItem => ({ id, from, durationInFrames, component: "core/group", props, ...rest });
 
 export const itemHasSound = (item: TimelineItem): boolean =>
   item.component === "core/video" && item.props.muted === false;
@@ -204,6 +200,34 @@ function placeClip(
   );
 }
 
+function withExit(item: TimelineItem, clip: ClipValue, exit: TransitionRef | undefined) {
+  if (!exit) return item;
+  const before = exit.hold
+    ? holdLastFrame(item, clip.durationInFrames, exit.durationInFrames)
+    : item;
+  return { ...before, exit };
+}
+
+type Placement = { from: number; lead: number };
+
+function sequencePlacements(
+  clips: ClipValue[],
+  enters: Array<TransitionRef | undefined>,
+): { at: Placement[]; end: number } {
+  const at: Placement[] = [];
+  let end = 0;
+  clips.forEach((clip, i) => {
+    const enter = enters[i];
+    const frames = enter?.durationInFrames ?? 0;
+    const held = !!enter?.hold;
+    const from = held ? end : Math.max(0, end - frames);
+    const lead = held ? frames : 0;
+    at.push({ from, lead });
+    end = from + lead + clip.durationInFrames;
+  });
+  return { at, end };
+}
+
 export function sequenceClips(
   nodeId: string,
   clips: ClipValue[],
@@ -211,34 +235,20 @@ export function sequenceClips(
   opts: { ports?: string[]; slotNode?: string } = {},
 ): ClipValue {
   if (clips.length === 0) return emptyClip();
-  const items: TimelineItem[] = [];
-  const audio: AudioItem[] = [];
-  let cursor = 0;
-  clips.forEach((clip, i) => {
-    const previous = i > 0 ? clips[i - 1] : undefined;
-    const enter = previous ? resolveEnter(previous, clip, transitions[i]) : undefined;
-    const frames = enter?.durationInFrames ?? 0;
-    const held = !!enter?.hold;
-    if (previous && enter) {
-      const before = held
-        ? holdLastFrame(items[i - 1], previous.durationInFrames, frames)
-        : items[i - 1];
-      items[i - 1] = { ...before, exit: enter };
-    }
-    const from = held ? cursor : Math.max(0, cursor - frames);
-    const lead = held ? frames : 0;
+  const enters = clips.map((clip, i) =>
+    i > 0 ? resolveEnter(clips[i - 1], clip, transitions[i]) : undefined,
+  );
+  const { at, end } = sequencePlacements(clips, enters);
+  const items = clips.map((clip, i) => {
     const port = opts.ports?.[i];
     const slot = port ? { nodeId: opts.slotNode ?? nodeId, port } : undefined;
-    items.push(placeClip(`${nodeId}:s${i}`, clip, { from, lead }, enter, slot));
-    audio.push(...shiftAudio(clip.audio, from + lead, `${nodeId}:s${i}`));
-    cursor = from + lead + clip.durationInFrames;
+    const item = placeClip(`${nodeId}:s${i}`, clip, at[i], enters[i], slot);
+    return withExit(item, clip, enters[i + 1]);
   });
-  return makeClip(
-    Math.max(1, cursor),
-    [{ id: `${nodeId}:seq`, items }],
-    audio,
-    firstRecording(clips),
+  const audio = clips.flatMap((clip, i) =>
+    shiftAudio(clip.audio, at[i].from + at[i].lead, `${nodeId}:s${i}`),
   );
+  return makeClip(Math.max(1, end), [{ id: `${nodeId}:seq`, items }], audio, firstRecording(clips));
 }
 
 export function stackClips(
@@ -292,26 +302,12 @@ export function mapItems(
   }));
 }
 
-export type FrameRange = { from: number; to: number };
-
-const EVERYWHERE: FrameRange = { from: -Infinity, to: Infinity };
-
-export function walkItems(
-  tracks: TimelineTrack[],
-  visit: (item: TimelineItem, span: FrameRange) => void,
-  within: FrameRange = EVERYWHERE,
-  offset = 0,
-): void {
+export function walkItems(tracks: TimelineTrack[], visit: (item: TimelineItem) => void): void {
   for (const track of tracks)
     for (const item of track.items) {
-      const start = offset + item.from;
-      const span = {
-        from: Math.max(within.from, start),
-        to: Math.min(within.to, start + item.durationInFrames),
-      };
-      visit(item, span);
+      visit(item);
       const group = groupOf(item);
-      if (group) walkItems(group.tracks, visit, span, start - (group.startFrom ?? 0));
+      if (group) walkItems(group.tracks, visit);
     }
 }
 
@@ -353,19 +349,4 @@ export function clipToSpec(clip: ClipValue, settings: WorkflowSettings): Timelin
     audio: clip.audio,
     fonts: settings.fonts,
   };
-}
-
-export function nodeSpans(spec: TimelineSpec): Record<string, FrameRange> {
-  const spans: Record<string, FrameRange> = {};
-  const film = { from: 0, to: spec.durationInFrames };
-  walkItems(
-    spec.tracks,
-    ({ nodeId }, { from, to }) => {
-      if (to <= from || !nodeId) return;
-      const s = spans[nodeId];
-      spans[nodeId] = s ? { from: Math.min(s.from, from), to: Math.max(s.to, to) } : { from, to };
-    },
-    film,
-  );
-  return spans;
 }

@@ -11,7 +11,7 @@ export const msToFrames = (ms: number, fps: number, min = 1): number =>
   wholeFrames(msToExactFrames(ms, fps), min);
 
 export const framesToMs = (frames: number, fps: number): number =>
-  Math.round((frames * 1000) / Math.max(1, fps));
+  Math.round((frames * 1000) / fps);
 
 export const frameIn = (frame: number, total: number): number =>
   clamp(Math.round(frame), 0, Math.max(0, total - 1));
