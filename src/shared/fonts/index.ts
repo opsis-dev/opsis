@@ -1,6 +1,6 @@
 import { BUNDLED_FONTS } from "./bundled.generated";
 import type { FontFamilyDef, ProjectFonts } from "./types";
-import { safeName } from "../project-folder";
+import { safeName } from "../safe-name";
 
 const FONT_ROLES = ["main", "heading", "code"] as const;
 
@@ -57,7 +57,7 @@ export function fontStack(
   return `"${name.replaceAll('"', "")}", ${GENERIC[def?.category ?? "sans-serif"]}`;
 }
 
-export function roleStack(role: FontRole): string {
+function roleStack(role: FontRole): string {
   const fallback = role === "code" ? "ui-monospace, monospace" : "system-ui, sans-serif";
   return `"${roleFamily(role)}", ${fallback}`;
 }
@@ -66,8 +66,6 @@ export const fontOr = (family: string | undefined, role: FontRole): string =>
   family || roleStack(role);
 
 export const MAIN_FONT = roleStack("main");
-
-export const HEADING_FONT = roleStack("heading");
 
 export const CODE_FONT = roleStack("code");
 

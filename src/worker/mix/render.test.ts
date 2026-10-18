@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CancelledError } from "../../shared/errors";
 import { ToolError } from "../media/ffmpeg";
 import { friendlyMixError, parseEbur128 } from "./render";
 
@@ -19,8 +20,10 @@ describe("mix errors", () => {
     expect(friendlyMixError(error).message).not.toMatch(/ffmpeg/i);
   });
 
-  it("passes a cancel on", () => {
-    expect(friendlyMixError(new Error("Cancelled")).message).toBe("Cancelled");
+  it("passes a cancel on, and only a real one", () => {
+    const cancel = new CancelledError();
+    expect(friendlyMixError(cancel)).toBe(cancel);
+    expect(friendlyMixError(new Error("Cancelled"))).not.toBeInstanceOf(CancelledError);
   });
 });
 

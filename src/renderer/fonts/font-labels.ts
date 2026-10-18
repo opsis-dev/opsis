@@ -1,5 +1,5 @@
 import { FONT_CATEGORIES } from "@/shared/fonts/types";
-import { isOneOf } from "@/renderer/lib/one-of";
+import { isOneOf } from "@/shared/guards";
 
 const CATALOG_CATEGORIES = [...FONT_CATEGORIES, "icons"] as const;
 

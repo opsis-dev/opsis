@@ -14,7 +14,7 @@ import { projectPaths } from "../engine/project-paths";
 import { projectRef } from "../shared/asset-ref";
 import { PROJECT_DIRS } from "../shared/project-dirs";
 import { parseJsonWith } from "../shared/guards";
-import { safeName } from "../shared/project-folder";
+import { safeName } from "../shared/safe-name";
 
 const traceEntrySchema = z.object({
   name: z.string(),
@@ -38,7 +38,6 @@ type TraceManifest = z.infer<typeof manifestSchema>;
 const BINARY = /\.(jpe?g|png|webp|gif|avif|woff2?|mp4|webm)$/i;
 const MANIFEST_SUFFIX = ".json.zst";
 
-export const traceRoot = (projectDir: string) => projectPaths(projectDir).traces;
 const blobName = (e: TraceEntry) =>
   e.zstd ? `${e.sha}.zst` : `${e.sha}${path.extname(e.name).toLowerCase()}`;
 const blobRel = (e: TraceEntry) => path.posix.join("blobs", e.sha.slice(0, 2), blobName(e));
@@ -64,7 +63,7 @@ export async function ingestTrace(
   zipFile: string,
   meta: { nodeId: string; label: string; ok: boolean; groups: string[] },
 ): Promise<TraceManifest> {
-  const root = traceRoot(projectDir);
+  const root = projectPaths(projectDir).traces;
   const files = unzipSync(new Uint8Array(await readFile(zipFile)));
   const entries: TraceEntry[] = [];
   for (const [name, data] of Object.entries(files)) {
@@ -94,7 +93,7 @@ export async function ingestTrace(
 }
 
 export async function listTraces(projectDir: string): Promise<TraceManifest[]> {
-  const dir = runsDir(traceRoot(projectDir));
+  const dir = runsDir(projectPaths(projectDir).traces);
   if (!existsSync(dir)) return [];
   const out: TraceManifest[] = [];
   for (const f of await readdir(dir)) {
@@ -107,7 +106,7 @@ export async function listTraces(projectDir: string): Promise<TraceManifest[]> {
 
 export async function readTrace(projectDir: string, id: string): Promise<TraceModel> {
   if (!/^[\w-]+$/.test(id)) throw new Error("Invalid trace id");
-  const root = traceRoot(projectDir);
+  const root = projectPaths(projectDir).traces;
   const manifest = await readManifestFile(manifestPath(root, id));
   if (!manifest) throw new Error("This trace can't be read.");
   const { groups, entries, ...header } = manifest;
@@ -158,7 +157,7 @@ export async function applyRetention(
   projectDir: string,
   policy: AppSettings["traces"],
 ): Promise<ReadonlySet<string>> {
-  const root = traceRoot(projectDir);
+  const root = projectPaths(projectDir).traces;
   const all = await listTraces(projectDir);
   const kept = keptTraces(all, policy);
   const keep = new Set(kept.map((m) => m.id));

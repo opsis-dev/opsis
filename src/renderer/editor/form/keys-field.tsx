@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Kbd } from "@/renderer/components/ui/kbd";
 import { cn } from "@/renderer/lib/utils";
-import { chordKeys } from "@/shared/format";
+import { chordKeys } from "@/shared/text-input";
 import { chordFromEvent } from "../keys";
 import { FieldShell } from "./field-shell";
 import type { FieldProps } from "./types";

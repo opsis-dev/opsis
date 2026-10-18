@@ -134,7 +134,9 @@ export function menuCommandEntry(
   return undefined;
 }
 
-const SHIFTED_TWINS: Partial<Record<string, string>> = { "=": "+", "-": "-" };
+const SHIFT_AGNOSTIC_KEYS: ReadonlySet<string> = new Set(["=", "-"]);
+
+const SHIFTED_KEYS: Partial<Record<string, string>> = { "=": "+" };
 
 type KeyLike = Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey">;
 
@@ -156,9 +158,8 @@ export function matchesAccelerator(
   if (e.ctrlKey !== wantCtrl || e.metaKey !== wantMeta) return false;
   if (e.altKey !== mods.has("alt")) return false;
   const pressed = e.key.toLowerCase();
-  const twin = SHIFTED_TWINS[key];
-  if (twin === undefined && e.shiftKey !== mods.has("shift")) return false;
-  return pressed === key || pressed === twin;
+  if (!SHIFT_AGNOSTIC_KEYS.has(key) && e.shiftKey !== mods.has("shift")) return false;
+  return pressed === key || pressed === SHIFTED_KEYS[key];
 }
 
 export function acceleratorLabel(accelerator: string, platform: NodeJS.Platform): string {

@@ -62,6 +62,8 @@ export const workflowEdgeSchema = z.object({
 });
 export type WorkflowEdge = z.infer<typeof workflowEdgeSchema>;
 
+export type EdgeEnds = Omit<WorkflowEdge, "id">;
+
 const markerSchema = z.object({
   id: z.string().min(1),
   atMs: z.number().int().nonnegative(),

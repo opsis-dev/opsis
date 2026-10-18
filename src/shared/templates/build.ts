@@ -1,6 +1,7 @@
 import { defaultParams, getNodeDef } from "../nodes/registry";
 import { edgeId, randomId } from "../ids";
 import { CARD_GAP, CARD_WIDTH, COLUMN_WIDTH, estimateCardHeight, ROW_HEIGHT } from "../nodes/size";
+import { CLIP_PORT, SESSION_PORT } from "../nodes/ports";
 import {
   DEFAULT_WORKFLOW_SETTINGS,
   type Workflow,
@@ -9,10 +10,16 @@ import {
   type WorkflowSettings,
 } from "../schema/workflow";
 
-const CLIP_PORT = "clip";
-const SESSION_PORT = "session";
-
 type Placed = { node: WorkflowNode; height: number };
+
+export type TakeStep = {
+  id: string;
+  type: string;
+  params?: Record<string, unknown>;
+  label?: string;
+};
+
+type TakeOptions = { camera?: Record<string, unknown>; row?: number; prefix?: string };
 
 const overlaps = (p: Placed, x: number, y: number, height: number) =>
   Math.abs(p.node.position.x - x) < CARD_WIDTH + CARD_GAP &&
@@ -76,6 +83,17 @@ export class GraphBuilder {
   chain(ids: string[]): this {
     for (let i = 1; i < ids.length; i++) this.link(ids[i - 1], ids[i], SESSION_PORT, SESSION_PORT);
     return this;
+  }
+
+  recordTake(steps: TakeStep[], { camera = {}, row = 0, prefix = "" }: TakeOptions = {}): string {
+    const ids = steps.map((step, x) =>
+      this.node(`${prefix}${step.id}`, step.type, x, row, step.params, step.label),
+    );
+    const rec = this.node(`${prefix}record`, "capture.record", steps.length, row);
+    this.chain([...ids, rec]);
+    const cam = this.node(`${prefix}camera`, "camera.autoZoom", steps.length, row + 1, camera);
+    this.link(rec, cam, "recording", "recording");
+    return cam;
   }
 
   build(meta: {

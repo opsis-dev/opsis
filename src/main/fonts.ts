@@ -7,7 +7,7 @@ import { create, type Font } from "fontkit";
 import { z } from "zod";
 import { baseName, extensionOf, projectRef } from "../shared/asset-ref";
 import { fontSlug, sameFamily } from "../shared/fonts";
-import { safeName } from "../shared/project-folder";
+import { safeName } from "../shared/safe-name";
 import { firstFree } from "../shared/lists";
 import {
   fontFamilySchema,

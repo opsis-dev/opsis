@@ -40,7 +40,8 @@ import {
   TRANSITION_KINDS,
   transitionTitle,
 } from "./transitions";
-import { formatDuration, parseNumberList, plural } from "../format";
+import { formatDuration, plural } from "../format";
+import { parseNumberList } from "../text-input";
 import { msToFrames } from "../timeline/time";
 
 const base = { category: "Timeline", phase: "compile" } as const;

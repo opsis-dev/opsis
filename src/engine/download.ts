@@ -13,7 +13,7 @@ export async function downloadTo(
     transform?: Transform;
   } = {},
 ): Promise<void> {
-  const res = await fetch(url, { signal: opts.signal, redirect: "follow" });
+  const res = await fetch(url, { signal: opts.signal });
   if (!res.ok || !res.body) throw new Error(`Download failed (${res.status}): ${url}`);
   const total = Number(res.headers.get("content-length")) || null;
   let received = 0;

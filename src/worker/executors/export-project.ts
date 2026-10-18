@@ -5,7 +5,7 @@ import { z } from "zod";
 import { walkItems } from "../../shared/compile/clip";
 import { exportProjectNode } from "../../shared/nodes/output";
 import type { TimelineSpec } from "../../shared/schema/timeline";
-import { slugify } from "../../shared/project-folder";
+import { safeName } from "../../shared/safe-name";
 import { isProjectRef, projectRelPath } from "../../shared/asset-ref";
 import { stringsIn } from "../../shared/vars";
 import { readJson, writeJson } from "../../engine/json";
@@ -192,7 +192,7 @@ async function packageJsonFor(ctx: ExecutorContext, name: string, dir: string) {
 
 export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ctx, _inputs, p) => {
   const spec = await mixed(ctx, specFor(ctx), MIX_STAGE);
-  const name = slugify(p.folderName, "output");
+  const name = safeName(p.folderName, { fallback: "output" });
   const dir = path.join(ctx.outDir, name);
   await copySources(ctx, dir);
   await copyProjectFiles(ctx, spec, dir);

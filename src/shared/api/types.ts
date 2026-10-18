@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { workflowSchema, type Workflow, type WorkflowSettings } from "../schema/workflow";
+import type { GraphIssue } from "../graph";
 import type {
   addEdgeBody,
   addNodeBody,
@@ -15,8 +16,8 @@ export const apiProblemSchema = z.object({
   nodeId: z.string().optional(),
   edgeId: z.string().optional(),
   path: z.string().optional().meta({ description: "Where in the file, for format problems" }),
-});
-export type ApiProblem = z.infer<typeof apiProblemSchema>;
+}) satisfies z.ZodType<ApiProblem>;
+export type ApiProblem = GraphIssue & { path?: string };
 
 const problemList = z.array(apiProblemSchema);
 
@@ -92,7 +93,7 @@ type ApiEditorResults = {
   stop: ApiRunState;
 };
 
-export type ApiFailure = { ok: false; status: number; error: string; problems?: ApiProblem[] };
+type ApiFailure = { ok: false; status: number; error: string; problems?: ApiProblem[] };
 
 export type ApiReply<R> = { ok: true; result: R } | ApiFailure;
 

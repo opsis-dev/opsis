@@ -1,4 +1,5 @@
 import { isRecord } from "./guards";
+import { mapValues } from "./pick";
 
 const VAR_SOURCE = String.raw`\{\{\s*([^{}]+?)\s*\}\}`;
 
@@ -41,24 +42,24 @@ export function stringsIn(value: unknown, test: (text: string) => boolean): stri
   return [];
 }
 
-function mapStrings<T>(value: T, fn: (text: string) => string): T {
+function mapJsonStrings<T>(value: T, fn: (text: string) => string): T {
   const walk = (v: unknown): unknown => {
     if (typeof v === "string") return fn(v);
     if (Array.isArray(v)) return v.map(walk);
-    if (isRecord(v)) return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    if (isRecord(v)) return mapValues(v, walk);
     return v;
   };
   return walk(value) as T;
 }
 
 export const interpolate = <T>(value: T, vars: Record<string, string>): T =>
-  mapStrings(value, (text) =>
+  mapJsonStrings(value, (text) =>
     text.replace(varPattern(), (whole, name: string) =>
       Object.hasOwn(vars, name) ? vars[name] : whole,
     ),
   );
 
 export const renameVariable = <T>(value: T, from: string, to: string): T =>
-  mapStrings(value, (text) =>
+  mapJsonStrings(value, (text) =>
     text.replace(varPattern(), (whole, name: string) => (name === from ? `{{${to}}}` : whole)),
   );

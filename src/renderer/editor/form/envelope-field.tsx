@@ -14,7 +14,7 @@ import { Button } from "@/renderer/components/ui/button";
 import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/renderer/components/ui/input-group";
 import { newKeyedItem, useItemKeys, type KeyedItem } from "@/renderer/lib/use-item-keys";
-import { parseNumberText } from "@/shared/format";
+import { parseNumberText } from "@/shared/text-input";
 import { round2 } from "@/shared/math";
 import { ChoiceSelect } from "./choice-select";
 import { framesScale, parseShown, shownText, trimNumber, useDecimalInput } from "./decimal";

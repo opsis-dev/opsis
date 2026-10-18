@@ -1,13 +1,15 @@
 import { existsSync } from "node:fs";
-import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { strToU8, zipSync } from "fflate";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { applyRetention, ingestTrace, listTraces, readTrace, traceRoot } from "./store";
+import { sha256Hex } from "../engine/hash";
+import { projectPaths } from "../engine/project-paths";
+import { tempDirs } from "../engine/test-temp-dirs";
+import { applyRetention, ingestTrace, listTraces, readTrace } from "./store";
 import { FRAME, LATER, ndjson } from "./test-fixtures";
 
-const dirs: string[] = [];
+const project = tempDirs("demoflow-trace-");
 const START = Date.UTC(2026, 0, 1);
 
 beforeEach(() => {
@@ -15,16 +17,9 @@ beforeEach(() => {
   vi.setSystemTime(START);
 });
 
-afterEach(async () => {
+afterEach(() => {
   vi.useRealTimers();
-  for (const d of dirs.splice(0)) await rm(d, { recursive: true, force: true });
 });
-
-async function project() {
-  const dir = await mkdtemp(path.join(tmpdir(), "demoflow-trace-"));
-  dirs.push(dir);
-  return dir;
-}
 
 const EVENTS = [
   { type: "before", callId: "c@1", startTime: 100, method: "tracingGroup", title: "Open site" },
@@ -33,25 +28,29 @@ const EVENTS = [
   { type: "screencast-frame", file: LATER, width: 1280, height: 720, timestamp: 800 },
 ];
 
+const FRAMES = [FRAME, LATER];
+
+const traceFiles = (trace: string): Record<string, Uint8Array> => ({
+  "trace.trace": strToU8(trace),
+  "trace.network": strToU8(""),
+  "resources/page.html": strToU8("<html>shared</html>".repeat(200)),
+  [FRAME]: new Uint8Array([255, 216, 255, 1]),
+  [LATER]: new Uint8Array([255, 216, 255, 2]),
+});
+
+const distinctFiles = (...traces: string[]) =>
+  new Set(traces.flatMap((t) => Object.values(traceFiles(t)).map((data) => sha256Hex(data)))).size;
+
 async function traceZip(dir: string, name: string, trace = ndjson(EVENTS)) {
   const file = path.join(dir, name);
-  await writeFile(
-    file,
-    zipSync({
-      "trace.trace": strToU8(trace),
-      "trace.network": strToU8(""),
-      "resources/page.html": strToU8("<html>shared</html>".repeat(200)),
-      [FRAME]: new Uint8Array([255, 216, 255, 1]),
-      [LATER]: new Uint8Array([255, 216, 255, 2]),
-    }),
-  );
+  await writeFile(file, zipSync(traceFiles(trace)));
   return file;
 }
 
 const meta = (ok = true) => ({ nodeId: "rec", label: "Record", ok, groups: ["nav"] });
 
 async function blobs(dir: string) {
-  const root = path.join(traceRoot(dir), "blobs");
+  const root = path.join(projectPaths(dir).traces, "blobs");
   const shards = await readdir(root);
   return (await Promise.all(shards.map((s) => readdir(path.join(root, s))))).flat();
 }
@@ -77,9 +76,11 @@ describe("trace store", () => {
     vi.setSystemTime(START + 1_000);
     await ingestTrace(dir, await traceZip(dir, "b.zip", "two"), meta());
     const names = await blobs(dir);
-    expect(names).toHaveLength(6);
-    expect(names.filter((n) => n.endsWith(".jpeg"))).toHaveLength(2);
-    expect(names.filter((n) => n.endsWith(".zst"))).toHaveLength(4);
+    expect(names).toHaveLength(distinctFiles("one", "two"));
+    expect(names.filter((n) => n.endsWith(".jpeg"))).toHaveLength(FRAMES.length);
+    expect(names.filter((n) => n.endsWith(".zst"))).toHaveLength(
+      distinctFiles("one", "two") - FRAMES.length,
+    );
   });
 
   it("keeps only failures when asked and collects orphaned blobs", async () => {
@@ -89,7 +90,7 @@ describe("trace store", () => {
     await ingestTrace(dir, await traceZip(dir, "b.zip", "bad"), meta(false));
     await applyRetention(dir, { retention: "failures", keepLast: 10 });
     expect((await listTraces(dir)).map((m) => m.ok)).toEqual([false]);
-    expect(await blobs(dir)).toHaveLength(5);
+    expect(await blobs(dir)).toHaveLength(distinctFiles("bad"));
   });
 
   it("reads traces of nodes whose ids aren't plain names", async () => {

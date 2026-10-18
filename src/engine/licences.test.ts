@@ -1,17 +1,11 @@
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { completeEngineLicences, shippedCreditsCandidates } from "./licences";
 import { CHROMIUM_CREDITS_FILE, enginePaths } from "./paths";
+import { tempDirs } from "./test-temp-dirs";
 
-const made: string[] = [];
-
-async function tempDir(): Promise<string> {
-  const dir = await mkdtemp(path.join(os.tmpdir(), "demoflow-licences-"));
-  made.push(dir);
-  return dir;
-}
+const tempDir = tempDirs("demoflow-licences-");
 
 async function fakeEngine(dir: string): Promise<void> {
   const p = enginePaths(dir);
@@ -20,10 +14,6 @@ async function fakeEngine(dir: string): Promise<void> {
     await writeFile(file, "");
   }
 }
-
-afterEach(async () => {
-  await Promise.all(made.splice(0).map((d) => rm(d, { recursive: true, force: true })));
-});
 
 describe("engine licences", () => {
   it("copies the credits that ship with the app into a set-up engine", async () => {

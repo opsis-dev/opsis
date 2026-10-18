@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { defaultParams, getNodeDef } from "@/shared/nodes/registry";
 import {
   normalizeWorkflow,
+  type EdgeEnds,
   type Marker,
   type Workflow,
   type WorkflowEdge,
@@ -40,7 +41,7 @@ type Actions = {
   ) => void;
   moveNodes: (positions: Record<string, { x: number; y: number }>) => void;
   removeNodes: (ids: string[]) => void;
-  addEdge: (edge: Omit<WorkflowEdge, "id">) => void;
+  addEdge: (edge: EdgeEnds) => void;
   removeEdges: (ids: string[]) => void;
   setSettings: (patch: Partial<WorkflowSettings>) => void;
   addProjectFont: (def: FontFamilyDef) => void;

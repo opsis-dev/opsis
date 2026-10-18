@@ -1,4 +1,4 @@
-import { safeName } from "./project-folder";
+import { safeName } from "./safe-name";
 
 export const secretName = (raw: string | undefined): string => raw?.trim() || "default";
 

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { readFile, rename, writeFile } from "node:fs/promises";
+import { readFile, rename, rm, writeFile } from "node:fs/promises";
 import type { z } from "zod";
 import { parseJsonWith } from "../shared/guards";
 
@@ -53,8 +53,12 @@ export async function readJsonKeepingBroken<T>(
 
 export async function atomicWrite(file: string, data: string | Uint8Array): Promise<void> {
   const tmp = `${file}.${randomUUID()}.tmp`;
-  await writeFile(tmp, data);
-  await rename(tmp, file);
+  try {
+    await writeFile(tmp, data);
+    await rename(tmp, file);
+  } finally {
+    await rm(tmp, { force: true }).catch(() => undefined);
+  }
 }
 
 export const writeJson = (file: string, value: unknown): Promise<void> =>

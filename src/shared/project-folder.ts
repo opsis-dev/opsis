@@ -1,20 +1,6 @@
-const UNSAFE = { word: /[^\w.-]+/g, alnum: /[^a-z0-9]+/gi } as const;
+import { safeName } from "./safe-name";
 
-export function safeName(
-  text: string,
-  {
-    fallback,
-    lower = true,
-    alphabet = "word",
-  }: { fallback: string; lower?: boolean; alphabet?: keyof typeof UNSAFE },
-): string {
-  const safe = text.replace(UNSAFE[alphabet], "-").replace(/^-+|-+$/g, "");
-  return (lower ? safe.toLowerCase() : safe) || fallback;
-}
-
-export const slugify = (text: string, fallback: string): string => safeName(text, { fallback });
-
-export const projectFolderName = (name: string): string => slugify(name, "demo");
+export const projectFolderName = (name: string): string => safeName(name, { fallback: "demo" });
 
 export function joinFolder(parent: string, child: string, platform: string): string {
   const sep = platform === "win32" ? "\\" : "/";

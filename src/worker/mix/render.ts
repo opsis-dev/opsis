@@ -25,7 +25,7 @@ import { ToolError, type MediaDeps } from "../media/ffmpeg";
 import { shareInFlight } from "../../shared/memo";
 import { frameLevels, parseWav } from "./wav";
 import { SILENCE_DB } from "../../shared/mix/types";
-import { CancelledError, errorMessage, isCancelled } from "../../shared/errors";
+import { CancelledError, errorMessage } from "../../shared/errors";
 import { EPSILON, round1 } from "../../shared/math";
 import { fileIdentity, pruneDir } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
@@ -186,7 +186,7 @@ export function parseEbur128(lines: string[], fps: number, frames: number): Loud
 
 export function friendlyMixError(error: unknown): Error {
   const text = error instanceof ToolError ? error.output : errorMessage(error);
-  if (isCancelled(error)) return new CancelledError();
+  if (error instanceof CancelledError) return error;
   const missing =
     /Error opening input file .*?([^/\\]+?)\.?$/m.exec(text) ??
     /([^/\\\s]+\.\w+): No such file or directory/.exec(text);

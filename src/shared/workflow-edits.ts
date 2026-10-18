@@ -6,6 +6,7 @@ import { defaultParams, getNodeDef } from "./nodes/registry";
 import { GROUP_TYPE } from "./nodes/utility";
 import {
   normalizeWorkflow,
+  type EdgeEnds,
   type Workflow,
   type WorkflowEdge,
   type WorkflowNode,
@@ -16,8 +17,8 @@ import { findById } from "./lists";
 type Point = { x: number; y: number };
 type Size = { width: number; height: number };
 
-const GROUP_PAD = 40;
-const GROUP_TITLE_HEIGHT = 24;
+export const GROUP_PAD = 40;
+export const GROUP_TITLE_HEIGHT = 24;
 
 export function absPosition(wf: Workflow, node: WorkflowNode): Point {
   if (!node.parentId) return node.position;
@@ -27,7 +28,7 @@ export function absPosition(wf: Workflow, node: WorkflowNode): Point {
   return { x: p.x + node.position.x, y: p.y + node.position.y };
 }
 
-export function detachFromParent(node: WorkflowNode, parent: Point | undefined): WorkflowNode {
+function detachFromParent(node: WorkflowNode, parent: Point | undefined): WorkflowNode {
   const { parentId: _parentId, ...rest } = node;
   return {
     ...rest,
@@ -49,13 +50,13 @@ export function removeNodes(wf: Workflow, ids: readonly string[]): Workflow {
   });
 }
 
-const sameEnds = (a: Omit<WorkflowEdge, "id">, b: Omit<WorkflowEdge, "id">) =>
+const sameEnds = (a: EdgeEnds, b: EdgeEnds) =>
   a.source === b.source &&
   a.sourceHandle === b.sourceHandle &&
   a.target === b.target &&
   a.targetHandle === b.targetHandle;
 
-export function connect(wf: Workflow, edge: Omit<WorkflowEdge, "id">): Workflow {
+export function connect(wf: Workflow, edge: EdgeEnds): Workflow {
   const target = findById(wf.nodes, edge.target);
   const many = !!(target && getNodeDef(target.type)?.inputs[edge.targetHandle]?.many);
   const replaced = (e: WorkflowEdge) =>
@@ -72,16 +73,14 @@ export function pasteNodes(
   edges: readonly WorkflowEdge[],
   offset: Point,
 ): { workflow: Workflow; ids: string[] } {
-  const ids = new Map(nodes.map((node) => [node.id, nodeIdFor(node.type)]));
-  const fresh = nodes.map((n): WorkflowNode => {
-    const parentId = n.parentId ? ids.get(n.parentId) : undefined;
-    const at = absPosition(wf, n);
-    return {
-      ...n,
-      id: ids.get(n.id) ?? n.id,
-      parentId,
-      position: parentId ? n.position : { x: at.x + offset.x, y: at.y + offset.y },
-    };
+  const copies = nodes.map((node) => ({ node, id: nodeIdFor(node.type) }));
+  const ids = new Map(copies.map((c) => [c.node.id, c.id]));
+  const fresh = copies.map(({ node, id }): WorkflowNode => {
+    const { parentId: copiedParent, ...rest } = node;
+    const parentId = copiedParent && ids.get(copiedParent);
+    if (parentId) return { ...rest, id, parentId };
+    const at = absPosition(wf, node);
+    return { ...rest, id, position: { x: at.x + offset.x, y: at.y + offset.y } };
   });
   const freshEdges = edges.flatMap((e) => {
     const source = ids.get(e.source);

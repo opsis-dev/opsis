@@ -22,7 +22,7 @@ import {
 import { customLabel, nodeName } from "../../shared/nodes/registry";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { PAUSE_MARK } from "../../shared/vars";
-import { nonBlankLines } from "../../shared/format";
+import { nonBlankLines } from "../../shared/text-input";
 import { parsePath } from "./drag-path";
 import { landedOnSignIn, SignInExpiredError } from "./driver-helpers";
 import { elementOf, type DragTo } from "./flow-types";

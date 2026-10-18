@@ -1,6 +1,6 @@
 import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
-import { formatNumberList, parseNumberList } from "@/shared/format";
+import { formatNumberList, parseNumberList } from "@/shared/text-input";
 import { MS_SCALE, parseShown, shownText, useDecimalInput } from "./decimal";
 import type { FieldProps } from "./types";
 

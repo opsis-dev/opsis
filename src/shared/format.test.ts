@@ -1,14 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  chordKeys,
   displayAddress,
   formatBytes,
   formatDuration,
   formatPreciseDuration,
-  formatNumberList,
   humanize,
-  parseNumberList,
-  parseNumberText,
   percent,
   percentText,
   singleQuoted,
@@ -75,35 +71,16 @@ describe("singleQuoted", () => {
   });
 });
 
-describe("parseNumberText", () => {
-  it("reads comma decimals and gives nothing for blank text", () => {
-    expect(parseNumberText("1,5")).toBe(1.5);
-    expect(parseNumberText(" 2 ")).toBe(2);
-    expect(parseNumberText("")).toBeNull();
-    expect(parseNumberText("   ")).toBeNull();
-    expect(parseNumberText("12 dB")).toBeNull();
-  });
-
-  it("ignores units when lenient", () => {
-    expect(parseNumberText("-12 dB", { lenient: true })).toBe(-12);
-    expect(parseNumberText("5s", { lenient: true })).toBe(5);
-    expect(parseNumberText("dB", { lenient: true })).toBeNull();
-  });
-});
-
-describe("number lists", () => {
-  it("parses comma lists and drops trailing zeros when writing", () => {
-    expect(parseNumberList("100, x,250")).toEqual([100, 0, 250]);
-    expect(parseNumberList("")).toEqual([0]);
-    expect(formatNumberList([100, 0, 0])).toBe("100");
-    expect(formatNumberList([0, 0])).toBe("");
-  });
-});
-
 describe("percent", () => {
   it("writes a fraction as a CSS percentage", () => {
     expect(percent(0.25)).toBe("25%");
     expect(percent(-0.5)).toBe("-50%");
+  });
+
+  it("leaves out floating point noise", () => {
+    expect(percent(0.07)).toBe("7%");
+    expect(percent(0.29)).toBe("29%");
+    expect(percent(1 / 3)).toBe("33.333333%");
   });
 });
 
@@ -112,15 +89,5 @@ describe("percentText", () => {
     expect(percentText(0.504)).toBe("50%");
     expect(percentText(1.7)).toBe("170%");
     expect(percentText(1.7, { max: 100 })).toBe("100%");
-  });
-});
-
-describe("chordKeys", () => {
-  it.each([
-    ["Control+K", ["Control", "K"]],
-    ["Shift++", ["Shift", "+"]],
-    ["+", ["+"]],
-  ])("splits %j into its keys", (chord, keys) => {
-    expect(chordKeys(chord)).toEqual(keys);
   });
 });

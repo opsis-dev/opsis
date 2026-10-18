@@ -1,15 +1,16 @@
-import type {
-  TraceAction,
-  TraceConsole,
-  TraceError,
-  TraceFrame,
-  TraceModel,
-  TraceHeader,
-  TraceRequest,
+import {
+  CONSOLE_LEVELS,
+  type TraceAction,
+  type TraceConsole,
+  type TraceError,
+  type TraceFrame,
+  type TraceModel,
+  type TraceHeader,
+  type TraceRequest,
 } from "../shared/trace";
 import { formatPreciseDuration, humanize } from "../shared/format";
 import { finiteNumber } from "../shared/math";
-import { isRecord, tryParseJson } from "../shared/guards";
+import { isOneOf, isRecord, tryParseJson } from "../shared/guards";
 
 type Json = Record<string, unknown>;
 
@@ -44,18 +45,8 @@ const VERBS: Partial<Record<string, string>> = {
 const COLLAPSIBLE = new Set(["mouseMove", "mouseWheel"]);
 const PAUSE_MS = 100;
 
-const LEVELS: ReadonlySet<string> = new Set<TraceConsole["level"]>([
-  "log",
-  "info",
-  "warning",
-  "error",
-  "debug",
-]);
-
-const isLevel = (type: string): type is TraceConsole["level"] => LEVELS.has(type);
-
 const consoleLevel = (type = "log"): TraceConsole["level"] =>
-  isLevel(type) ? type : type === "warn" ? "warning" : "log";
+  isOneOf(CONSOLE_LEVELS, type) ? type : type === "warn" ? "warning" : "log";
 
 const TEXT_PARTS = ["trace", "network"] as const;
 export type TraceTextPart = (typeof TEXT_PARTS)[number];

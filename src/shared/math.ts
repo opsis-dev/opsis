@@ -24,11 +24,6 @@ export const finiteNumber = (value: unknown): number | undefined =>
 export const numberOr = (value: unknown, fallback: number): number =>
   finiteNumber(value) ?? fallback;
 
-export const finiteOr = (value: unknown, fallback: number): number => {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-};
-
 export const evenPx = (value: number): number => Math.round(value / 2) * 2;
 
 export function partitionPoint<T>(items: readonly T[], before: (item: T) => boolean): number {

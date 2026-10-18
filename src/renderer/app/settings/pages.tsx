@@ -9,7 +9,7 @@ import {
   TRACE_RETENTION_LABELS,
   type AppSettings,
 } from "@/shared/settings";
-import { parseNumberText } from "@/shared/format";
+import { parseNumberText } from "@/shared/text-input";
 import { clamp } from "@/shared/math";
 import { Button } from "@/renderer/components/ui/button";
 import {

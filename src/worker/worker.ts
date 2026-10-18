@@ -3,7 +3,7 @@ import type { MessagePortMain } from "electron";
 import { installEngine } from "../engine/install";
 import type { LiveMessage } from "../shared/live";
 import type { LoginRequest, MainToWorker, WorkerToMain } from "../shared/worker-protocol";
-import { runFailed } from "../shared/run-progress";
+import { runFailed } from "../shared/schema/events";
 import type { ExecutorContext } from "./engine/context";
 import { runWorkflow } from "./engine/runner";
 import { renderCardStill } from "./render/card-still";

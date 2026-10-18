@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const TRACE_RETENTION = ["always", "failures", "last-n", "off"] as const;
-export type TraceRetention = (typeof TRACE_RETENTION)[number];
+type TraceRetention = (typeof TRACE_RETENTION)[number];
 
 export const TRACE_RETENTION_LABELS: Record<TraceRetention, string> = {
   always: "Always",
@@ -15,7 +15,7 @@ export const KEEP_LAST_TRACES = { min: 1, max: 500 };
 export const LIVE_FPS = { min: 1, max: 30 };
 
 export const START_OPTIONS = ["start-screen", "last-project", "new-project"] as const;
-export type StartOption = (typeof START_OPTIONS)[number];
+type StartOption = (typeof START_OPTIONS)[number];
 
 export const START_OPTION_LABELS: Record<StartOption, string> = {
   "start-screen": "Show the start screen",
@@ -76,18 +76,12 @@ export const DEFAULT_SETTINGS: AppSettings = appSettingsSchema.parse({});
 
 export type SettingsPatch = { [K in keyof AppSettings]?: Partial<AppSettings[K]> };
 
-const SETTINGS_SECTIONS = appSettingsSchema.keyof().options;
-
-function mergeSection<K extends keyof AppSettings>(
-  next: AppSettings,
-  patch: SettingsPatch,
-  key: K,
-): void {
-  next[key] = { ...next[key], ...patch[key] };
-}
-
-export function mergeSettings(current: AppSettings, patch: SettingsPatch): AppSettings {
-  const next = { ...current };
-  for (const key of SETTINGS_SECTIONS) mergeSection(next, patch, key);
-  return next;
-}
+export const mergeSettings = (current: AppSettings, patch: SettingsPatch): AppSettings => ({
+  app: { ...current.app, ...patch.app },
+  traces: { ...current.traces, ...patch.traces },
+  live: { ...current.live, ...patch.live },
+  render: { ...current.render, ...patch.render },
+  projects: { ...current.projects, ...patch.projects },
+  editor: { ...current.editor, ...patch.editor },
+  api: { ...current.api, ...patch.api },
+});

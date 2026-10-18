@@ -1,23 +1,18 @@
 import { existsSync } from "node:fs";
-import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
+import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { nullIfMissing, readJson, readJsonKeepingBroken, writeJson } from "./json";
+import { atomicWrite, nullIfMissing, readJson, readJsonKeepingBroken, writeJson } from "./json";
+import { tempDirs } from "./test-temp-dirs";
 
-const made: string[] = [];
 const schema = z.object({ n: z.number() });
+const tempDir = tempDirs("demoflow-json-");
 
-async function tempFile(): Promise<string> {
-  const dir = await mkdtemp(path.join(os.tmpdir(), "demoflow-json-"));
-  made.push(dir);
-  return path.join(dir, "data.json");
-}
+const tempFile = async (): Promise<string> => path.join(await tempDir(), "data.json");
 
-afterEach(async () => {
+afterEach(() => {
   vi.restoreAllMocks();
-  await Promise.all(made.splice(0).map((d) => rm(d, { recursive: true, force: true })));
 });
 
 describe("reading JSON files", () => {
@@ -50,5 +45,14 @@ describe("nullIfMissing", () => {
     await writeFile(file, "x");
     expect(await nullIfMissing(readdir(path.join(file, "inside")))).toBeNull();
     await expect(nullIfMissing(Promise.reject(new Error("denied")))).rejects.toThrow("denied");
+  });
+});
+
+describe("atomicWrite", () => {
+  it("leaves no temporary file behind when the write fails", async () => {
+    const file = await tempFile();
+    await mkdir(path.join(file, "inside"), { recursive: true });
+    await expect(atomicWrite(file, "x")).rejects.toHaveProperty("code");
+    expect(await readdir(path.dirname(file))).toEqual([path.basename(file)]);
   });
 });

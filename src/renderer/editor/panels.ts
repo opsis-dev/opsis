@@ -1,7 +1,7 @@
 import { PanelBottom, PanelLeft, PanelRight, type LucideIcon } from "lucide-react";
 import type { LayoutStorage, PanelImperativeHandle } from "react-resizable-panels";
 import { create } from "zustand";
-import { isOneOf } from "@/renderer/lib/one-of";
+import { isOneOf } from "@/shared/guards";
 import { DOCK_PANELS, type DockPanelName } from "@/shared/ipc";
 import type { MenuCommand } from "@/shared/menu";
 import { readStored, writeStored } from "@/renderer/lib/local-storage";

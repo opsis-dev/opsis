@@ -5,6 +5,8 @@ import { GraphBuilder } from "./templates/build";
 import {
   addProjectFont,
   connect,
+  GROUP_PAD,
+  GROUP_TITLE_HEIGHT,
   groupNodes,
   pasteNodes,
   removeNodes,
@@ -65,10 +67,11 @@ describe("workflow edits", () => {
     const group = findById(wf.nodes, "g");
     expect(group?.type).toBe(GROUP_TYPE);
     const [a, b] = sounds().nodes;
-    expect(group?.position).toEqual({ x: a.position.x - 40, y: a.position.y - 64 });
+    const top = GROUP_PAD + GROUP_TITLE_HEIGHT;
+    expect(group?.position).toEqual({ x: a.position.x - GROUP_PAD, y: a.position.y - top });
     expect(group?.size).toEqual({
-      width: SIZE.width + 80,
-      height: b.position.y - a.position.y + SIZE.height + 104,
+      width: SIZE.width + 2 * GROUP_PAD,
+      height: b.position.y - a.position.y + SIZE.height + top + GROUP_PAD,
     });
     expect(wf.nodes.filter((n) => n.parentId === "g").map((n) => n.id)).toEqual(["a", "b"]);
     expect(ungroup(wf, "g").nodes).toEqual(sounds().nodes);
@@ -125,7 +128,7 @@ describe("workflow edits", () => {
     if (!group || !inGroup) throw new Error("fixture changed");
     const { workflow } = pasteNodes(source, [inGroup], [], { x: 10, y: 20 });
     const pasted = workflow.nodes.at(-1);
-    expect(pasted?.parentId).toBeUndefined();
+    expect(pasted && "parentId" in pasted).toBe(false);
     expect(pasted?.position).toEqual({
       x: group.position.x + inGroup.position.x + 10,
       y: group.position.y + inGroup.position.y + 20,

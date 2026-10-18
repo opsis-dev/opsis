@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "../nodes/params";
-import type { clipModifier } from "../nodes/define";
+import { CLIP_PORT } from "../nodes/ports";
 import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
 import { cutSchema, IN_PORTS, inPortIndex, nextInPort } from "../nodes/timeline";
 import { NO_TRANSITION } from "../nodes/transitions";
 import type { ParamRef } from "../schema/timeline";
-import type { PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
+import type { EdgeEnds, PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
 import {
   findHandle,
   slotIndex,
@@ -14,12 +14,13 @@ import {
   type ChainLink,
   type VideoBar,
 } from "./flatten";
-import { clamp, finiteOr, round2 } from "../math";
+import { clamp, numberOr, round2 } from "../math";
 import { edgeId, nodeIdPrefix } from "../ids";
-import { formatNumberList, parseNumberList } from "../format";
+import { formatNumberList, parseNumberList } from "../text-input";
 import { framesToMs, msToFrames } from "./time";
 import { absPosition, removeNodes } from "../workflow-edits";
 import { findById } from "../lists";
+import { isString } from "../guards";
 
 export type EditContext = {
   workflow: Workflow;
@@ -55,17 +56,23 @@ type ParamAt = Pick<ParamRef, "nodeId" | "param" | "index">;
 const paramValue = (node: WorkflowNode, param: string): unknown =>
   node.params[param] ?? defaultParams(node.type)[param];
 
+const numberListParam = (node: WorkflowNode, param: string): number[] => {
+  const raw = paramValue(node, param);
+  return parseNumberList(isString(raw) ? raw : undefined);
+};
+
 function readParam(wf: Workflow, ref: ParamAt): number {
   const node = findById(wf.nodes, ref.nodeId);
   if (!node) return 0;
-  const raw = paramValue(node, ref.param);
-  return ref.index === undefined ? finiteOr(raw, 0) : (parseNumberList(raw)[ref.index] ?? 0);
+  return ref.index === undefined
+    ? numberOr(paramValue(node, ref.param), 0)
+    : (numberListParam(node, ref.param)[ref.index] ?? 0);
 }
 
 function writeParam(wf: Workflow, ref: ParamAt, value: number): Workflow {
   const write = (node: WorkflowNode): unknown => {
     if (ref.index === undefined) return value;
-    const parts = parseNumberList(paramValue(node, ref.param));
+    const parts = numberListParam(node, ref.param);
     while (parts.length <= ref.index) parts.push(0);
     parts[ref.index] = value;
     return formatNumberList(parts);
@@ -129,7 +136,7 @@ function setLength(
   return writeParam(wf, ref, ref.unit === "ms" ? framesToMs(frames, fps) : frames);
 }
 
-const makeEdge = (e: Omit<WorkflowEdge, "id">): WorkflowEdge => ({ ...e, id: edgeId(e) });
+const makeEdge = (e: EdgeEnds): WorkflowEdge => ({ ...e, id: edgeId(e) });
 
 function placeNear(
   wf: Workflow,
@@ -168,9 +175,6 @@ function newNode(
     ...placeNear(wf, source, target, index),
   };
 }
-
-const CLIP_PORT = "clip" satisfies keyof (typeof clipModifier)["inputs"] &
-  keyof (typeof clipModifier)["outputs"];
 
 const clipEdge = (
   source: string,

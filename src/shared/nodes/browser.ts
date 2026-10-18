@@ -29,7 +29,8 @@ import {
   target,
   text,
 } from "./params";
-import { chordKeys, formatDuration, displayAddress, nonBlankLines } from "../format";
+import { formatDuration, displayAddress } from "../format";
+import { chordKeys, nonBlankLines } from "../text-input";
 import { PAUSE_MARK } from "../vars";
 
 const chain = {

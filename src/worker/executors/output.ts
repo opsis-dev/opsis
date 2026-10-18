@@ -30,7 +30,7 @@ import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
 import { renderMix } from "../mix/render";
 import { projectPaths, toPosixRel } from "../../engine/project-paths";
 import { framesToMs, msToFrames } from "../../shared/timeline/time";
-import { slugify } from "../../shared/project-folder";
+import { safeName } from "../../shared/safe-name";
 import { projectRef } from "../../shared/asset-ref";
 
 type RenderParams = NodeParams<typeof renderNode>;
@@ -198,7 +198,7 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
   const spec = await mixed(ctx, specFor(ctx), MIX_STAGE);
   const { serveUrl, server } = await prepare(ctx);
   const artifacts: Artifact[] = [];
-  const base = slugify(p.fileName, "output");
+  const base = safeName(p.fileName, { fallback: "output" });
   const chapters = await chaptersFor(ctx, spec, p);
   const { variants } = p;
   try {
@@ -236,7 +236,7 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
   const spec = specFor(ctx);
   const { serveUrl, server } = await prepare(ctx);
   const artifacts: Artifact[] = [];
-  const base = slugify(ctx.vars[PROJECT_NAME_VAR], "output");
+  const base = safeName(ctx.vars[PROJECT_NAME_VAR], { fallback: "output" });
   try {
     for (const [i, preset] of p.presets.entries()) {
       const size = STILL_PRESETS[preset];

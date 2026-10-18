@@ -1,3 +1,5 @@
+import type { EdgeEnds } from "./schema/workflow";
+
 const ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const ID_LENGTH = 8;
 
@@ -10,8 +12,6 @@ export function randomId(prefix?: string): string {
 export const nodeIdPrefix = (type: string): string => type.split(".")[0];
 
 export const nodeIdFor = (type: string): string => randomId(nodeIdPrefix(type));
-
-type EdgeEnds = { source: string; sourceHandle: string; target: string; targetHandle: string };
 
 export const edgeId = (e: EdgeEnds): string =>
   `${e.source}.${e.sourceHandle}->${e.target}.${e.targetHandle}`;

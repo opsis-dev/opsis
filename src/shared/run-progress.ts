@@ -29,6 +29,14 @@ const without = <T>(record: Record<string, T>, ids: readonly string[]): Record<s
   return Object.fromEntries(Object.entries(record).filter(([id]) => !drop.has(id)));
 };
 
+type RerunFields = Pick<RunProgress, "progress" | "cached" | "errors">;
+
+const forgetNodes = (state: RerunFields, ids: readonly string[]): RerunFields => ({
+  progress: without(state.progress, ids),
+  cached: without(state.cached, ids),
+  errors: without(state.errors, ids),
+});
+
 export function applyRunEvent<S extends RunProgress>(state: S, e: RunEvent): S {
   switch (e.type) {
     case "run:start":
@@ -39,9 +47,7 @@ export function applyRunEvent<S extends RunProgress>(state: S, e: RunEvent): S {
           ...state.statuses,
           ...Object.fromEntries(e.nodeIds.map((id) => [id, "queued" as const])),
         },
-        progress: without(state.progress, e.nodeIds),
-        cached: without(state.cached, e.nodeIds),
-        errors: without(state.errors, e.nodeIds),
+        ...forgetNodes(state, e.nodeIds),
       };
     case "node:start":
       return { ...state, statuses: { ...state.statuses, [e.nodeId]: "running" } };
@@ -85,14 +91,14 @@ export function applyRunEvent<S extends RunProgress>(state: S, e: RunEvent): S {
 }
 
 export function resumeRunProgress<S extends RunProgress>(state: S, saved: RunProgress): S {
-  const inRun = Object.keys(saved.statuses);
+  const kept = forgetNodes(state, Object.keys(saved.statuses));
   return {
     ...state,
     runId: saved.runId,
     statuses: { ...state.statuses, ...saved.statuses },
-    progress: { ...without(state.progress, inRun), ...saved.progress },
-    cached: { ...without(state.cached, inRun), ...saved.cached },
-    errors: { ...without(state.errors, inRun), ...saved.errors },
+    progress: { ...kept.progress, ...saved.progress },
+    cached: { ...kept.cached, ...saved.cached },
+    errors: { ...kept.errors, ...saved.errors },
     traces: { ...state.traces, ...saved.traces },
     results: { ...state.results, ...saved.results },
   };
@@ -105,22 +111,6 @@ export function failureMessage(failedNames: readonly string[], skipped: number):
   if (failedNames.length === 1) return `${failedNames[0]} failed${skippedText}`;
   return `${failedNames.length} nodes failed: ${failedNames.join(", ")}${skippedText}`;
 }
-
-export const runFailed = (
-  runId: string,
-  error: string,
-  opts: { cancelled?: boolean; failedNodeIds?: string[] } = {},
-): RunEvent => ({
-  type: "run:done",
-  runId,
-  ok: false,
-  cancelled: opts.cancelled ?? false,
-  error,
-  failedNodeIds: opts.failedNodeIds ?? [],
-  skippedNodeIds: [],
-  outputs: [],
-  at: Date.now(),
-});
 
 export function exportedArtifacts(
   nodes: ReadonlyArray<{ id: string; type: string }>,

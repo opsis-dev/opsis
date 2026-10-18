@@ -3,18 +3,10 @@ import { lastRunSchema, type LastRun } from "../shared/schema/values";
 import { readJson } from "./json";
 import { PROJECT_DIRS } from "../shared/project-dirs";
 import { projectRef } from "../shared/asset-ref";
+import { mapValues } from "../shared/pick";
 
-export const projectPaths = (projectDir: string) => ({
-  meta: path.join(projectDir, PROJECT_DIRS.meta),
-  cache: path.join(projectDir, PROJECT_DIRS.cache),
-  stills: path.join(projectDir, PROJECT_DIRS.stills),
-  analysis: path.join(projectDir, PROJECT_DIRS.analysis),
-  mix: path.join(projectDir, PROJECT_DIRS.mix),
-  pictures: path.join(projectDir, PROJECT_DIRS.pictures),
-  traces: path.join(projectDir, PROJECT_DIRS.traces),
-  out: path.join(projectDir, PROJECT_DIRS.out),
-  lastRun: path.join(projectDir, PROJECT_DIRS.lastRun),
-});
+export const projectPaths = (projectDir: string) =>
+  mapValues(PROJECT_DIRS, (rel) => path.join(projectDir, rel));
 
 export function isInside(root: string, file: string): boolean {
   const rel = path.relative(root, file);

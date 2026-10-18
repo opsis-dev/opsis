@@ -9,6 +9,15 @@ describe("recording frames in traces", () => {
     ];
     expect(jpegSize(new Uint8Array(sof))).toEqual({ width: 960, height: 540 });
     expect(jpegSize(new Uint8Array([1, 2, 3]))).toBeNull();
+    expect(jpegSize(new Uint8Array([0, ...sof.slice(1)]))).toBeNull();
+  });
+
+  it("skips fill bytes before a marker", () => {
+    const filled = [
+      0xff, 0xd8, 0xff, 0xff, 0xff, 0xe0, 0x00, 0x04, 0x00, 0x00, 0xff, 0xff, 0xc0, 0x00, 0x11,
+      0x08, 0x02, 0x1c, 0x03, 0xc0,
+    ];
+    expect(jpegSize(new Uint8Array(filled))).toEqual({ width: 960, height: 540 });
   });
 
   it("places frames on the trace clock", () => {

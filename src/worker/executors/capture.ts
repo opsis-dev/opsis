@@ -131,8 +131,9 @@ async function take<R>(
       workDir: ctx.dir,
       ffmpeg: ctx.ffmpeg,
     }).then(
-      (skipped) => {
-        if (skipped) ctx.log("info", `Screenshots weren't added to the trace: ${skipped}.`);
+      (frames) => {
+        if (!frames.added)
+          ctx.log("info", `Screenshots weren't added to the trace: ${frames.reason}.`);
       },
       (e: unknown) => ctx.log("warn", `Couldn't add screenshots to the trace: ${errorMessage(e)}`),
     );

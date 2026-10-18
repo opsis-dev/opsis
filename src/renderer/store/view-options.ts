@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { VARIANTS } from "@/shared/nodes/output";
-import { isOneOf } from "@/renderer/lib/one-of";
-import { isBoolean } from "@/shared/guards";
+import { isBoolean, isOneOf } from "@/shared/guards";
 import { readPref, writePref } from "./view-prefs";
 
 export const PREVIEW_QUALITIES = ["fast", "exact"] as const;

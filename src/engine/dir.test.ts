@@ -1,15 +1,15 @@
 import { existsSync } from "node:fs";
-import { mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
+import { utimes, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { fileIdentity, pruneDir } from "./dir";
+import { tempDirs } from "./test-temp-dirs";
 
-const made: string[] = [];
+const tempDir = tempDirs("demoflow-dir-");
 
 async function dirWith(ages: Record<string, number>): Promise<string> {
-  const dir = await mkdtemp(path.join(os.tmpdir(), "demoflow-dir-"));
-  made.push(dir);
+  const dir = await tempDir();
   const now = Date.now() / 1000;
   for (const [name, ageSeconds] of Object.entries(ages)) {
     const file = path.join(dir, name);
@@ -21,10 +21,6 @@ async function dirWith(ages: Record<string, number>): Promise<string> {
 
 const left = (dir: string, names: string[]) =>
   names.filter((name) => existsSync(path.join(dir, name)));
-
-afterEach(async () => {
-  await Promise.all(made.splice(0).map((d) => rm(d, { recursive: true, force: true })));
-});
 
 describe("pruneDir", () => {
   it("keeps the newest files", async () => {

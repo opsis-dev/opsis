@@ -1,6 +1,6 @@
 import type { Workflow } from "../schema/workflow";
 import type { NodeIconName } from "../nodes/icon-name";
-import { GraphBuilder } from "./build";
+import { GraphBuilder, type TakeStep } from "./build";
 import { findById } from "../lists";
 
 type TemplateInfo = {
@@ -10,25 +10,6 @@ type TemplateInfo = {
   icon: NodeIconName;
   build: (name: string) => Workflow;
 };
-
-type Step = { id: string; type: string; params?: Record<string, unknown>; label?: string };
-
-type TakeOptions = { camera?: Record<string, unknown>; row?: number; prefix?: string };
-
-function recordTake(
-  g: GraphBuilder,
-  steps: Step[],
-  { camera = {}, row = 0, prefix = "" }: TakeOptions = {},
-): string {
-  const ids = steps.map((step, x) =>
-    g.node(`${prefix}${step.id}`, step.type, x, row, step.params, step.label),
-  );
-  const rec = g.node(`${prefix}record`, "capture.record", steps.length, row);
-  g.chain([...ids, rec]);
-  const cam = g.node(`${prefix}camera`, "camera.autoZoom", steps.length, row + 1, camera);
-  g.link(rec, cam, "recording", "recording");
-  return cam;
-}
 
 function exportVideo(
   g: GraphBuilder,
@@ -43,15 +24,15 @@ function exportVideo(
 
 const TODO_SITE = "https://demo.playwright.dev/todomvc";
 
-const session: Step = { id: "session", type: "browser.session" };
+const session: TakeStep = { id: "session", type: "browser.session" };
 
-const open = (url = "{{Site address}}", after?: number): Step => ({
+const open = (url = "{{Site address}}", after?: number): TakeStep => ({
   id: "open",
   type: "browser.navigate",
   params: after === undefined ? { url } : { url, after },
 });
 
-const addTodo = (id: string, text: string, after: number): Step => ({
+const addTodo = (id: string, text: string, after: number): TakeStep => ({
   id,
   type: "browser.type",
   params: { target: "What needs to be done?", text, pressEnter: true, cluster: "add", after },
@@ -60,7 +41,7 @@ const addTodo = (id: string, text: string, after: number): Step => ({
 
 function todoMvcSample(name: string): Workflow {
   const g = new GraphBuilder();
-  const cam = recordTake(g, [
+  const cam = g.recordTake([
     session,
     open("{{Site address}}/#/", 900),
     addTodo("todo1", "Record a real product flow", 500),
@@ -124,7 +105,7 @@ function todoMvcSample(name: string): Workflow {
 
 function featureLaunch(name: string): Workflow {
   const g = new GraphBuilder();
-  const cam = recordTake(g, [
+  const cam = g.recordTake([
     session,
     open(),
     {
@@ -176,7 +157,7 @@ function changelogClip(name: string): Workflow {
 
 function onboarding(name: string): Workflow {
   const g = new GraphBuilder();
-  const cam = recordTake(g, [
+  const cam = g.recordTake([
     session,
     open(),
     { id: "chapter1", type: "browser.chapter", params: { title: "Create your first item" } },
@@ -210,8 +191,7 @@ function onboarding(name: string): Workflow {
 
 function socialTeaser(name: string): Workflow {
   const g = new GraphBuilder();
-  const cam = recordTake(
-    g,
+  const cam = g.recordTake(
     [
       { ...session, params: { viewportWidth: 1440, viewportHeight: 900 } },
       open(),
@@ -245,7 +225,7 @@ function socialTeaser(name: string): Workflow {
 function beforeAfter(name: string): Workflow {
   const g = new GraphBuilder();
   const take = (prefix: string, row: number, url: string) => {
-    const cam = recordTake(g, [session, open(url, 2500)], {
+    const cam = g.recordTake([session, open(url, 2500)], {
       camera: { zoom: false },
       row,
       prefix: `${prefix}-`,

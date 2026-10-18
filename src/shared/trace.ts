@@ -18,8 +18,10 @@ export type TraceAction = {
   box?: { x: number; y: number; width: number; height: number };
 };
 
+export const CONSOLE_LEVELS = ["log", "info", "warning", "error", "debug"] as const;
+
 export type TraceConsole = {
-  level: "log" | "info" | "warning" | "error" | "debug";
+  level: (typeof CONSOLE_LEVELS)[number];
   text: string;
   time: number;
   url?: string;

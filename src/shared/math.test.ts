@@ -1,15 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  clamp,
-  clamp01,
-  evenPx,
-  finiteOr,
-  lerp,
-  numberOr,
-  round2,
-  round3,
-  sampleKeyed,
-} from "./math";
+import { clamp, clamp01, evenPx, lerp, numberOr, round2, round3, sampleKeyed } from "./math";
 
 describe("math", () => {
   it("clamps into a range", () => {
@@ -30,10 +20,17 @@ describe("math", () => {
     expect(round2(1.235)).toBe(1.24);
   });
 
-  it("reads numbers with a fallback", () => {
+  it("reads finite numbers with a fallback", () => {
     expect(numberOr(0.5, 1)).toBe(0.5);
     expect(numberOr("0.5", 1)).toBe(1);
     expect(numberOr(undefined, 1)).toBe(1);
+    expect(numberOr(Number.NaN, 1)).toBe(1);
+    expect(numberOr(Infinity, 1)).toBe(1);
+  });
+
+  it("rounds to even pixels", () => {
+    expect(evenPx(1079)).toBe(1080);
+    expect(evenPx(607.5)).toBe(608);
   });
 });
 
@@ -66,20 +63,5 @@ describe("sampleKeyed", () => {
 
   it("gives nothing without keys", () => {
     expect(sampleKeyed([], 1, Number, Number, () => 0)).toBeUndefined();
-  });
-});
-
-describe("number coercion", () => {
-  it("only accepts finite numbers", () => {
-    expect(numberOr(Number.NaN, 1)).toBe(1);
-    expect(numberOr(Infinity, 1)).toBe(1);
-    expect(numberOr("5", 1)).toBe(1);
-    expect(finiteOr("5", 1)).toBe(5);
-    expect(finiteOr("x", 1)).toBe(1);
-  });
-
-  it("rounds to even pixels", () => {
-    expect(evenPx(1079)).toBe(1080);
-    expect(evenPx(607.5)).toBe(608);
   });
 });

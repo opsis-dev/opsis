@@ -4,7 +4,7 @@ import type { Action, ActionLog } from "./schema/actions";
 import type { TimelineItem, TimelineSpec } from "./schema/timeline";
 import type { NodeResult } from "./schema/values";
 import type { Workflow } from "./schema/workflow";
-import { GraphBuilder } from "./templates/build";
+import { GraphBuilder, type TakeStep } from "./templates/build";
 import { flattenSpec, type FlatTimeline } from "./timeline/flatten";
 
 export const TITLE = "fx.core.title";
@@ -42,18 +42,15 @@ export const recordResult = (log: ActionLog, hash = "h"): NodeResult =>
     },
   });
 
-type TakeStep = { id: string; type: string; params: Record<string, unknown> };
-
-export function recordedTake(g: GraphBuilder, steps: TakeStep[] = []): string {
-  const session = g.node("session", "browser.session", 0, 0);
-  const open = g.node("open", "browser.navigate", 1, 0, { url: "https://example.com" });
-  const actions = steps.map((s, i) => g.node(s.id, s.type, 2 + i, 0, s.params));
-  const record = g.node("record", "capture.record", 2 + steps.length, 0);
-  g.chain([session, open, ...actions, record]);
-  const camera = g.node("camera", "camera.autoZoom", 2 + steps.length, 1, { speed: 1 });
-  g.link(record, camera, "recording", "recording");
-  return camera;
-}
+export const recordedTake = (g: GraphBuilder, steps: TakeStep[] = []): string =>
+  g.recordTake(
+    [
+      { id: "session", type: "browser.session" },
+      { id: "open", type: "browser.navigate", params: { url: "https://example.com" } },
+      ...steps,
+    ],
+    { camera: { speed: 1 } },
+  );
 
 export function buildFilm(fn: (g: GraphBuilder) => string): Workflow {
   const g = new GraphBuilder();

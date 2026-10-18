@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from "react";
-import { parseNumberText } from "@/shared/format";
+import { parseNumberText } from "@/shared/text-input";
 import { round3 } from "@/shared/math";
 
 export const trimNumber = (n: number): string => String(round3(n));

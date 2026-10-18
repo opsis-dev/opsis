@@ -13,15 +13,32 @@ type FfmpegRunner = { run: (args: string[]) => Promise<string> };
 
 type RecordingFrame = { file: string; width: number; height: number; atMs: number };
 
+const JPEG_MARK = 0xff;
+const JPEG_START = 0xd8;
+const MARKER_LENGTH = 2;
+const FRAME_START_FIRST = 0xc0;
+const FRAME_START_LAST = 0xc3;
+const SEGMENT_LENGTH_AT = 2;
+const FRAME_HEIGHT_AT = 5;
+const FRAME_WIDTH_AT = 7;
+
 export function jpegSize(data: Uint8Array): { width: number; height: number } | null {
+  if (data[0] !== JPEG_MARK || data[1] !== JPEG_START) return null;
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-  let i = 2;
-  while (i + 8 < data.length) {
-    if (data[i] !== 0xff) return null;
+  let i = MARKER_LENGTH;
+  while (i + FRAME_WIDTH_AT + 1 < data.length) {
+    if (data[i] !== JPEG_MARK) return null;
     const marker = data[i + 1];
-    if (marker >= 0xc0 && marker <= 0xc3)
-      return { height: view.getUint16(i + 5), width: view.getUint16(i + 7) };
-    i += 2 + view.getUint16(i + 2);
+    if (marker === JPEG_MARK) {
+      i++;
+      continue;
+    }
+    if (marker >= FRAME_START_FIRST && marker <= FRAME_START_LAST)
+      return {
+        height: view.getUint16(i + FRAME_HEIGHT_AT),
+        width: view.getUint16(i + FRAME_WIDTH_AT),
+      };
+    i += MARKER_LENGTH + view.getUint16(i + SEGMENT_LENGTH_AT);
   }
   return null;
 }
@@ -94,27 +111,31 @@ function appendFrames(zip: TraceZip, frames: ExtractedFrame[], lines: string[]):
   return zipSync(out);
 }
 
+type FramesAdded = { added: true } | { added: false; reason: string };
+
+const skipped = (reason: string): FramesAdded => ({ added: false, reason });
+
 export async function addRecordingFrames(opts: {
   zipFile: string;
   video: string;
   originWallMs: number;
   workDir: string;
   ffmpeg: FfmpegRunner;
-}): Promise<string | null> {
+}): Promise<FramesAdded> {
   if (!existsSync(opts.zipFile) || !existsSync(opts.video))
-    return "the recording or its trace is missing";
+    return skipped("the recording or its trace is missing");
   const dir = path.join(opts.workDir, "trace-frames");
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
   try {
     const frames = await extractFrames(opts.ffmpeg, opts.video, dir);
-    if (!frames.length) return "no frames came out of the recording";
+    if (!frames.length) return skipped("no frames came out of the recording");
     const zip = await readTraceZip(opts.zipFile);
-    if (!zip) return "the trace has no list of actions";
+    if (!zip) return skipped("the trace has no list of actions");
     const lines = frameEvents(zip.text, frames, opts.originWallMs);
-    if (!lines.length) return "the trace has no clock";
+    if (!lines.length) return skipped("the trace has no clock");
     await writeFile(opts.zipFile, appendFrames(zip, frames, lines));
-    return null;
+    return { added: true };
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

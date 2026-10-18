@@ -37,3 +37,19 @@ export type RunEvent =
       outputs: string[];
       at: number;
     };
+
+export const runFailed = (
+  runId: string,
+  error: string,
+  opts: { cancelled?: boolean; failedNodeIds?: string[] } = {},
+): RunEvent => ({
+  type: "run:done",
+  runId,
+  ok: false,
+  cancelled: opts.cancelled ?? false,
+  error,
+  failedNodeIds: opts.failedNodeIds ?? [],
+  skippedNodeIds: [],
+  outputs: [],
+  at: Date.now(),
+});
