@@ -286,6 +286,7 @@ export const IPC = {
   apiStatusChanged: "demoflow:api:status-changed",
   apiRequest: "demoflow:api:request",
   apiReply: "demoflow:api:reply",
+  apiListening: "demoflow:api:listening",
 } as const;
 
 export type BroadcastPayloads = {

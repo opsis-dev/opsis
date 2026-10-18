@@ -48,10 +48,16 @@ const api: DemoflowApi = {
   onEngineInstall: (listener) => subscribe(IPC.engineEvent, listener),
   onSettingsChanged: (listener) => subscribe(IPC.settingsChanged, listener),
   onApiStatus: (listener) => subscribe(IPC.apiStatusChanged, listener),
-  onApiRequest: (listener) =>
-    subscribe(IPC.apiRequest, (id: string, request: ApiEditorRequest) =>
+  onApiRequest: (listener) => {
+    const off = subscribe(IPC.apiRequest, (id: string, request: ApiEditorRequest) =>
       answerApiRequest(listener, id, request),
-    ),
+    );
+    ipcRenderer.send(IPC.apiListening, true);
+    return () => {
+      off();
+      ipcRenderer.send(IPC.apiListening, false);
+    };
+  },
   onLive: (listener) => {
     liveListeners.add(listener);
     return () => liveListeners.delete(listener);
