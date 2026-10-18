@@ -89,4 +89,16 @@ describe("exportedArtifacts", () => {
     });
     expect(files.map((a) => a.path)).toEqual(["code", "film.mp4"]);
   });
+
+  it("lists a file written by two exports once, from the newest", () => {
+    const nodes = [
+      { id: "a", type: "output.still" },
+      { id: "b", type: "output.still" },
+    ];
+    const files = exportedArtifacts(nodes, {
+      a: result(1, ["out/project-og.png"]),
+      b: result(4, ["out/project-og.png", "out/project-square.png"]),
+    });
+    expect(files.map((a) => a.path)).toEqual(["out/project-og.png", "out/project-square.png"]);
+  });
 });

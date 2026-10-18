@@ -121,5 +121,6 @@ export function exportedArtifacts(
     .flatMap((n) => results[n.id] ?? [])
     .filter((r) => r.artifacts.length)
     .toSorted((a, b) => b.finishedAt - a.finishedAt)
-    .flatMap((r) => r.artifacts);
+    .flatMap((r) => r.artifacts)
+    .filter((a, i, all) => all.findIndex((b) => b.path === a.path) === i);
 }
