@@ -6,8 +6,6 @@ import { REGISTRIES, TITLE_ACRONYMS, type CuratedElement } from "../registry-ing
 import type { Control } from "./registry-controls";
 import { VIDEO_DIR } from "./tool-config";
 
-export const js = (v: unknown): string => JSON.stringify(v);
-
 function metaOf(key: string, c: Control, extra: Record<string, unknown> = {}): string {
   const meta: Record<string, unknown> = {
     description: c.description ?? c.label ?? key,
@@ -20,12 +18,20 @@ function metaOf(key: string, c: Control, extra: Record<string, unknown> = {}): s
     ...(c.hidden ? { hidden: true } : {}),
   };
   const body = Object.entries(meta)
-    .map(([k, v]) => `${k}: ${js(v)}`)
+    .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
     .join(", ");
   return `.meta({ ${body} })`;
 }
 
-const stringField = (text: string, meta: string) => `z.string().default(${js(text)})${meta}`;
+const COLLECTIONS = {
+  strings: { zod: "z.array(z.string())", empty: [] },
+  numbers: { zod: "z.array(z.number())", empty: [] },
+  rows: { zod: "z.array(z.record(z.string(), z.unknown()))", empty: [] },
+  object: { zod: "z.record(z.string(), z.unknown())", empty: {} },
+} as const;
+
+const stringField = (text: string, meta: string) =>
+  `z.string().default(${JSON.stringify(text)})${meta}`;
 
 function zodFor(key: string, c: Control): string | null {
   const withMeta = (extra: Record<string, unknown> = {}) => metaOf(key, c, extra);
@@ -42,7 +48,6 @@ function zodFor(key: string, c: Control): string | null {
     case "font":
       return stringField("", withMeta({ widget: "font" }));
     case "image":
-      return stringField(text, withMeta({ widget: "asset" }));
     case "asset":
       return stringField(
         text,
@@ -56,7 +61,7 @@ function zodFor(key: string, c: Control): string | null {
       return s + withMeta();
     }
     case "color":
-      return `zColor().default(${js(String(c.default ?? "#000000"))})${withMeta()}`;
+      return `zColor().default(${JSON.stringify(String(c.default ?? "#000000"))})${withMeta()}`;
     case "boolean":
       return `z.boolean().default(${c.default === true})${withMeta()}`;
     case "enum":
@@ -65,18 +70,15 @@ function zodFor(key: string, c: Control): string | null {
       if (opts.length === 0) return null;
       const def =
         c.default != null && opts.includes(String(c.default)) ? String(c.default) : opts[0];
-      return `z.enum(${js(opts.map(String))}).default(${js(def)})${withMeta()}`;
+      return `z.enum(${JSON.stringify(opts.map(String))}).default(${JSON.stringify(def)})${withMeta()}`;
     }
     case "strings":
-      return `z.array(z.string()).default(${js(c.default ?? [])})${withMeta()}`;
     case "numbers":
-      return `z.array(z.number()).default(${js(c.default ?? [])})${withMeta()}`;
     case "rows":
-      return `z.array(z.record(z.string(), z.unknown())).default(${js(c.default ?? [])})${withMeta()}`;
-    case "object":
-      return `z.record(z.string(), z.unknown()).default(${js(c.default ?? {})})${withMeta()}`;
-    default:
-      return null;
+    case "object": {
+      const { zod, empty } = COLLECTIONS[c.type];
+      return `${zod}.default(${JSON.stringify(c.default ?? empty)})${withMeta()}`;
+    }
   }
 }
 
@@ -122,19 +124,19 @@ export function renderMetaEntry({ item, key, description, controls, duration }: 
   const fields = controls
     .map(([k, c]) => [k, zodFor(k, c)] as const)
     .filter((f): f is readonly [string, string] => f[1] != null)
-    .map(([k, schema]) => `      ${IDENTIFIER.test(k) ? k : js(k)}: ${schema},`);
+    .map(([k, schema]) => `      ${IDENTIFIER.test(k) ? k : JSON.stringify(k)}: ${schema},`);
   return [
     `  {`,
-    `    key: ${js(key)},`,
-    `    title: ${js(item.title ?? titleOf(item.name))},`,
-    ...(description ? [`    description: ${js(description)},`] : []),
-    `    category: ${js(item.category)},`,
-    `    kind: ${js(kindOf(item))},`,
-    `    source: { registry: ${js(reg.label)}, url: ${js(`${reg.docs}/${item.name}`)}, license: ${js(reg.license)} },`,
+    `    key: ${JSON.stringify(key)},`,
+    `    title: ${JSON.stringify(item.title ?? titleOf(item.name))},`,
+    ...(description ? [`    description: ${JSON.stringify(description)},`] : []),
+    `    category: ${JSON.stringify(item.category)},`,
+    `    kind: ${JSON.stringify(kindOf(item))},`,
+    `    source: { registry: ${JSON.stringify(reg.label)}, url: ${JSON.stringify(`${reg.docs}/${item.name}`)}, license: ${JSON.stringify(reg.license)} },`,
     `    schema: z.object({`,
     ...fields,
     `    }),`,
-    `    fixedProps: ${js(item.fixedProps ?? {})},`,
+    `    fixedProps: ${JSON.stringify(item.fixedProps ?? {})},`,
     `    defaultDurationInFrames: ${duration},`,
     `  },`,
   ].join("\n");
@@ -157,7 +159,7 @@ export function renderLoaderEntry({ item, key, file, exportName }: Resolved): {
       .replace(/\\/g, "/")
       .replace(/(\/index)?\.tsx$/, "");
   return {
-    loader: `  ${js(key)}: () => import(${js(rel)}).then((m) => ${impl}),`,
+    loader: `  ${JSON.stringify(key)}: () => import(${JSON.stringify(rel)}).then((m) => ${impl}),`,
     helpers: [base, ...wrappers],
   };
 }

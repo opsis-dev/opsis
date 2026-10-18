@@ -177,7 +177,7 @@ const config: ForgeConfig = {
     new VitePlugin({
       build: [
         { entry: "src/main/main.ts", config: "vite.main.config.ts", target: "main" },
-        { entry: "src/preload/preload.ts", config: "vite.preload.config.ts", target: "preload" },
+        { entry: "src/preload/preload.ts", config: "vite.main.config.ts", target: "preload" },
         { entry: "src/worker/worker.ts", config: "vite.worker.config.ts", target: "main" },
       ],
       renderer: [{ name: "main_window", config: "vite.renderer.config.ts" }],

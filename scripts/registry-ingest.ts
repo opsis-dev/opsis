@@ -41,10 +41,19 @@ if (only && skipAdd)
 
 const registryItemSchema = z.object({ description: z.string().nullish() });
 
-async function fetchDescription(item: CuratedElement): Promise<string> {
-  const url = REGISTRIES[item.registry].itemUrl(item.name);
+const DEFAULT_PREVIEW_FRAMES = 120;
+const DEFAULT_ELEMENT_FRAMES = 90;
+
+type WithProblems<T> = { value: T; problems: string[] };
+
+async function fetchOk(url: string): Promise<Response> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url}: ${res.status}`);
+  return res;
+}
+
+async function fetchDescription(item: CuratedElement): Promise<string> {
+  const res = await fetchOk(REGISTRIES[item.registry].itemUrl(item.name));
   const { description } = registryItemSchema.parse(await res.json());
   return (description ?? "")
     .split(/(?<=[.!?])\s+/)
@@ -57,18 +66,22 @@ async function fetchDescription(item: CuratedElement): Promise<string> {
 async function descriptionOf(
   item: CuratedElement,
   key: string,
-  problems: string[],
-): Promise<string | undefined> {
-  const known = item.description ?? DESCRIPTIONS[item.name];
-  if (known) return known;
+): Promise<WithProblems<string | undefined>> {
+  const known = DESCRIPTIONS[item.name];
+  if (known) return { value: known, problems: [] };
   try {
     const fetched = await fetchDescription(item);
-    if (fetched) return fetched;
-    problems.push(`${key}: the registry gives no usable description; add one to DESCRIPTIONS`);
+    if (fetched) return { value: fetched, problems: [] };
+    return {
+      value: undefined,
+      problems: [`${key}: the registry gives no usable description; add one to DESCRIPTIONS`],
+    };
   } catch (error) {
-    problems.push(`${key}: no description (${errorMessage(error)}); add one to DESCRIPTIONS`);
+    return {
+      value: undefined,
+      problems: [`${key}: no description (${errorMessage(error)}); add one to DESCRIPTIONS`],
+    };
   }
-  return undefined;
 }
 
 async function fetchConfig(item: CuratedElement, installed: string): Promise<ParsedConfig | null> {
@@ -82,44 +95,48 @@ async function fetchConfig(item: CuratedElement, installed: string): Promise<Par
 }
 
 async function fetchPropDocs(url: string): Promise<PropDoc[]> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${url}: ${res.status}`);
+  const res = await fetchOk(url);
   return propDocsSchema.parse(await res.json()).props;
 }
 
-const durationTables = new Map<string, Promise<Record<string, number>>>();
+type PreviewDurations = { byName: Record<string, number>; fallback: number };
 
-function previewDurations(url: string): Promise<Record<string, number>> {
-  let pending = durationTables.get(url);
-  if (!pending) {
-    pending = fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`${url}: ${res.status}`);
-        return res.text();
-      })
-      .then((text) => {
-        const sf = scratchFile("preview", "ts", text);
-        const table =
-          literalOf(sf.getVariableDeclaration("PREVIEW_META")?.getInitializer(), isRecord, sf) ??
-          {};
-        const fallback =
-          literalOf(
-            sf.getVariableDeclaration("PREVIEW_DEFAULTS")?.getInitializer(),
-            isRecord,
-            sf,
-          ) ?? {};
-        const out: Record<string, number> = {
-          "*": typeof fallback.durationInFrames === "number" ? fallback.durationInFrames : 120,
-        };
-        for (const [k, v] of Object.entries(table)) {
-          const d = isRecord(v) ? v.durationInFrames : undefined;
-          if (typeof d === "number") out[k] = d;
-        }
-        return out;
-      });
-    durationTables.set(url, pending);
-  }
-  return pending;
+const frameCount = (value: unknown): number | undefined =>
+  isRecord(value) && typeof value.durationInFrames === "number"
+    ? value.durationInFrames
+    : undefined;
+
+function parsePreviewDurations(text: string): PreviewDurations {
+  const sf = scratchFile("preview", "ts", text);
+  const table =
+    literalOf(sf.getVariableDeclaration("PREVIEW_META")?.getInitializer(), isRecord, sf) ?? {};
+  const defaults = literalOf(
+    sf.getVariableDeclaration("PREVIEW_DEFAULTS")?.getInitializer(),
+    isRecord,
+    sf,
+  );
+  return {
+    byName: Object.fromEntries(
+      Object.entries(table).flatMap(([name, entry]) => {
+        const frames = frameCount(entry);
+        return frames === undefined ? [] : [[name, frames]];
+      }),
+    ),
+    fallback: frameCount(defaults) ?? DEFAULT_PREVIEW_FRAMES,
+  };
+}
+
+let previews: { url: string; durations: Promise<PreviewDurations> } | undefined;
+
+function previewDurations(url: string): Promise<PreviewDurations> {
+  if (previews?.url !== url)
+    previews = {
+      url,
+      durations: fetchOk(url)
+        .then((res) => res.text())
+        .then(parsePreviewDurations),
+    };
+  return previews.durations;
 }
 
 function exportedNames(file: string): string[] {
@@ -155,54 +172,69 @@ function exportNameOf(
 async function registryDuration(item: CuratedElement): Promise<number | undefined> {
   const url = REGISTRIES[item.registry].durationsUrl;
   if (!url) return undefined;
-  const durations = await previewDurations(url);
-  return durations[item.name] ?? durations["*"];
+  const { byName, fallback } = await previewDurations(url);
+  return byName[item.name] ?? fallback;
 }
 
 type Ingested = { meta: string } & ReturnType<typeof renderLoaderEntry>;
 
-async function resolveItem(item: CuratedElement, problems: string[]): Promise<Resolved | null> {
+async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved | null>> {
   const file = findElementFile(item);
-  if (!file) {
-    problems.push(`${item.registry}/${item.name}: not installed`);
-    return null;
-  }
-  if (item.installOnly) return null;
+  if (!file) return { value: null, problems: [`${item.registry}/${item.name}: not installed`] };
+  if (item.installOnly) return { value: null, problems: [] };
   const reg = REGISTRIES[item.registry];
   const key = `${reg.keyPrefix}/${item.name}`;
-  const cfg = item.noConfig || reg.propsUrl ? null : await fetchConfig(item, file);
-  const description = await descriptionOf(item, key, problems);
+  const cfg = reg.propsUrl ? null : await fetchConfig(item, file);
+  const description = await descriptionOf(item, key);
   const exportName = exportNameOf(item, file, cfg);
-  if (!exportName) {
-    problems.push(`${item.registry}/${item.name}: no component export found`);
-    return null;
-  }
+  if (!exportName)
+    return {
+      value: null,
+      problems: [
+        ...description.problems,
+        `${item.registry}/${item.name}: no component export found`,
+      ],
+    };
   const source = readFileSync(file, "utf8");
   const props = reg.propsUrl
     ? propControls(item, file, exportName, await fetchPropDocs(reg.propsUrl(item.name)))
     : undefined;
   const controls = controlsFor(item, source, props ? props.controls : cfg?.controls, !!props);
-  problems.push(...defaultProblems(key, controls, item.fixedProps));
   const duration =
     item.durationInFrames ??
     cfg?.durationInFrames ??
     props?.durationInFrames ??
     (await registryDuration(item)) ??
-    90;
-  return { item, key, file, exportName, description, controls, duration };
+    DEFAULT_ELEMENT_FRAMES;
+  return {
+    value: {
+      item,
+      key,
+      file,
+      exportName,
+      description: description.value,
+      controls,
+      duration,
+    },
+    problems: [...description.problems, ...defaultProblems(key, controls, item.fixedProps)],
+  };
 }
 
-async function ingest(item: CuratedElement, problems: string[]): Promise<Ingested | null> {
-  const resolved = await resolveItem(item, problems);
-  return resolved ? { meta: renderMetaEntry(resolved), ...renderLoaderEntry(resolved) } : null;
+async function ingest(item: CuratedElement): Promise<WithProblems<Ingested | null>> {
+  const { value, problems } = await resolveItem(item);
+  return {
+    value: value ? { meta: renderMetaEntry(value), ...renderLoaderEntry(value) } : null,
+    problems,
+  };
 }
 
 async function generate(): Promise<void> {
   const problems: string[] = [...unknownOverrideNames()];
   const ingested: Ingested[] = [];
   for (const item of CURATED) {
-    const result = await ingest(item, problems);
-    if (result) ingested.push(result);
+    const result = await ingest(item);
+    problems.push(...result.problems);
+    if (result.value) ingested.push(result.value);
   }
   const helpers = new Set(ingested.flatMap((i) => i.helpers));
   for (const [file, text] of [

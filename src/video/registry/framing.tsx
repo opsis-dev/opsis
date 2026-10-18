@@ -1,4 +1,3 @@
-import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
@@ -7,17 +6,12 @@ import { numberOr } from "../../shared/math";
 import type { Size } from "../core/still-layout";
 import type { ElementComponent, Presentation, PresentationFactory } from "./types";
 
-export const component = <P,>(element: React.ComponentType<P>): ElementComponent =>
+export const component = (element: React.FC<never>): ElementComponent =>
   element as ElementComponent;
 
-export function presentation<I, P extends Record<string, unknown>>(
-  make: (props: I, size: Size) => TransitionPresentation<P>,
-): PresentationFactory {
-  const erased = make as (props: ElementProps, size: Size) => Presentation;
-  return Object.assign((props: ElementProps, size: Size) => erased(props, size), {
-    presentation: true as const,
-  });
-}
+export const presentation = (make: (props: never, size: Size) => unknown): PresentationFactory => ({
+  create: make as (props: ElementProps, size: Size) => Presentation,
+});
 
 export function centered(Component: ElementComponent): ElementComponent {
   const Centered: ElementComponent = (props) => (
@@ -99,13 +93,14 @@ export function pointsFromSpots(Component: ElementComponent): ElementComponent {
 
 const PAINT_RULE = ".df-painted > div { background: var(--df-paint) !important; }";
 
+export const PaintRule: React.FC = () => <style>{PAINT_RULE}</style>;
+
 export function painted(Component: ElementComponent): ElementComponent {
   const Painted: ElementComponent = ({ background, ...props }) => (
     <AbsoluteFill
       className="df-painted"
       style={{ "--df-paint": String(background ?? "transparent") } as React.CSSProperties}
     >
-      <style>{PAINT_RULE}</style>
       <Component {...props} />
     </AbsoluteFill>
   );

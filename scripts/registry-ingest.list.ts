@@ -9,8 +9,28 @@ type ElementCategory =
   | "scene"
   | "device";
 
+export const CONTROL_TYPES = [
+  "text",
+  "text-content",
+  "code",
+  "font",
+  "image",
+  "asset",
+  "number",
+  "color",
+  "boolean",
+  "enum",
+  "select",
+  "strings",
+  "numbers",
+  "rows",
+  "object",
+] as const;
+
+export type ControlType = (typeof CONTROL_TYPES)[number];
+
 export type ControlSpec = {
-  type: string;
+  type: ControlType;
   default?: unknown;
   min?: number;
   max?: number;
@@ -30,9 +50,7 @@ export type CuratedElement = {
   name: string;
   category: ElementCategory;
   title?: string;
-  description?: string;
   exportName?: string;
-  noConfig?: boolean;
   controls?: Record<string, ControlSpec>;
   omit?: string[];
   defaults?: Record<string, unknown>;
@@ -115,11 +133,7 @@ const fromRegistry =
 const remocn = fromRegistry("remocn");
 const snapcn = fromRegistry("snapcn", { fixedProps: { mode: "dark" } });
 
-const remotionui = (
-  name: string,
-  category: ElementCategory,
-  extra: Partial<CuratedElement> = {},
-): CuratedElement => ({ registry: "remotionui", name, category, ...extra });
+const remotionui = fromRegistry("remotionui");
 
 export const TITLE_ACRONYMS: ReadonlySet<string> = new Set(["AI", "CRT", "RGB", "TV", "UI", "VHS"]);
 
@@ -189,32 +203,32 @@ const METRICS = [
 ];
 
 const REMOTION_UI: CuratedElement[] = [
-  remotionui("grid-pixelate-wipe", "transition", {
+  ...remotionui("transition", ["grid-pixelate-wipe"], {
     title: "Pixel grid wipe",
     exportName: "gridPixelateWipe",
   }),
-  remotionui("frosted-glass-wipe", "transition", {
+  ...remotionui("transition", ["frosted-glass-wipe"], {
     title: "Frosted glass wipe",
     exportName: "frostedGlassWipe",
   }),
-  remotionui("chromatic-aberration-wipe", "transition", {
+  ...remotionui("transition", ["chromatic-aberration-wipe"], {
     title: "Colour split slide",
     exportName: "chromaticAberrationWipe",
   }),
-  remotionui("transition-blinds", "transition", { title: "Blinds", exportName: "blinds" }),
-  remotionui("transition-morph-shape", "transition", {
+  ...remotionui("transition", ["transition-blinds"], { title: "Blinds", exportName: "blinds" }),
+  ...remotionui("transition", ["transition-morph-shape"], {
     title: "Shape morph",
     exportName: "morphShape",
   }),
-  remotionui("stat-card", "data", {
+  ...remotionui("data", ["stat-card"], {
     title: "Stat card",
     defaults: { prefix: "", caption: "Customer survey, last 30 days", delta: 4 },
   }),
-  remotionui("metric-ticker", "data", {
+  ...remotionui("data", ["metric-ticker"], {
     title: "Metric cards",
     defaults: { eyebrow: "Quarter recap", title: "Growth this quarter", metrics: METRICS },
   }),
-  remotionui("funnel-chart", "data", {
+  ...remotionui("data", ["funnel-chart"], {
     title: "Funnel chart",
     center: true,
     defaults: {
@@ -229,7 +243,7 @@ const REMOTION_UI: CuratedElement[] = [
       ],
     },
   }),
-  remotionui("donut-chart", "data", {
+  ...remotionui("data", ["donut-chart"], {
     title: "Donut chart",
     center: true,
     defaults: {
@@ -243,7 +257,7 @@ const REMOTION_UI: CuratedElement[] = [
       ],
     },
   }),
-  remotionui("comparison-bars", "data", {
+  ...remotionui("data", ["comparison-bars"], {
     title: "Before and after bars",
     center: true,
     defaults: {
@@ -259,7 +273,7 @@ const REMOTION_UI: CuratedElement[] = [
       ],
     },
   }),
-  remotionui("bar-chart-race", "data", {
+  ...remotionui("data", ["bar-chart-race"], {
     title: "Bar chart race",
     center: true,
     defaults: {
@@ -278,12 +292,12 @@ const REMOTION_UI: CuratedElement[] = [
       ],
     },
   }),
-  remotionui("gauge-dial", "data", {
+  ...remotionui("data", ["gauge-dial"], {
     title: "Gauge",
     center: true,
     defaults: { value: 78, label: "Weekly goal", unit: "%", size: 480 },
   }),
-  remotionui("data-story", "scene", {
+  ...remotionui("scene", ["data-story"], {
     title: "Data story",
     defaults: {
       ctaLabel: "Get started",
@@ -301,7 +315,7 @@ const REMOTION_UI: CuratedElement[] = [
       ],
     },
   }),
-  remotionui("logo-reveal", "scene", {
+  ...remotionui("scene", ["logo-reveal"], {
     title: "Logo reveal",
     defaults: {
       pathD:
@@ -310,14 +324,14 @@ const REMOTION_UI: CuratedElement[] = [
       tagline: "Ship your next release faster",
     },
   }),
-  remotionui("pricing-card", "scene", { title: "Pricing card" }),
-  remotionui("comparison-table", "scene", { title: "Plan comparison table" }),
-  remotionui("changelog-entry", "scene", { title: "Changelog" }),
-  remotionui("logo-wall", "scene", {
+  ...remotionui("scene", ["pricing-card"], { title: "Pricing card" }),
+  ...remotionui("scene", ["comparison-table"], { title: "Plan comparison table" }),
+  ...remotionui("scene", ["changelog-entry"], { title: "Changelog" }),
+  ...remotionui("scene", ["logo-wall"], {
     title: "Logo wall",
     defaults: { title: "Teams that ship with us" },
   }),
-  remotionui("end-card", "scene", {
+  ...remotionui("scene", ["end-card"], {
     title: "End card",
     defaults: {
       eyebrow: "",
@@ -328,7 +342,7 @@ const REMOTION_UI: CuratedElement[] = [
       handles: ["@acme", "github.com/acme"],
     },
   }),
-  remotionui("code-reveal", "ui", {
+  ...remotionui("ui", ["code-reveal"], {
     title: "Code reveal",
     defaults: {
       title: "checkout.ts",
@@ -343,8 +357,8 @@ const REMOTION_UI: CuratedElement[] = [
       highlightedLines: [3],
     },
   }),
-  remotionui("code-diff-wipe", "ui", { title: "Code diff" }),
-  remotionui("kanban-move", "ui", {
+  ...remotionui("ui", ["code-diff-wipe"], { title: "Code diff" }),
+  ...remotionui("ui", ["kanban-move"], {
     title: "Kanban board",
     defaults: {
       cards: [
@@ -371,7 +385,7 @@ const REMOTION_UI: CuratedElement[] = [
       ],
     },
   }),
-  remotionui("file-tree-reveal", "ui", {
+  ...remotionui("ui", ["file-tree-reveal"], {
     title: "File tree",
     defaults: {
       title: "acme-app",
@@ -394,16 +408,16 @@ const REMOTION_UI: CuratedElement[] = [
       ],
     },
   }),
-  remotionui("drag-drop-flow", "ui", { title: "File upload" }),
-  remotionui("commit-graph", "ui", { title: "Commit graph" }),
-  remotionui("notification-stack", "overlay", { title: "Notification stack" }),
-  remotionui("device-mockup-zoom", "device", {
+  ...remotionui("ui", ["drag-drop-flow"], { title: "File upload" }),
+  ...remotionui("ui", ["commit-graph"], { title: "Commit graph" }),
+  ...remotionui("overlay", ["notification-stack"], { title: "Notification stack" }),
+  ...remotionui("device", ["device-mockup-zoom"], {
     title: "Device mockup",
     kind: "wrapper",
     screen: true,
     defaults: { eyebrow: "", title: "", subtitle: "" },
   }),
-  remotionui("multi-device-lineup", "device", {
+  ...remotionui("device", ["multi-device-lineup"], {
     title: "Device lineup",
     kind: "wrapper",
     screen: true,
@@ -415,19 +429,19 @@ const REMOTION_UI: CuratedElement[] = [
       laptop: { label: "Laptop" },
     },
   }),
-  remotionui("handwriting-text", "text", {
+  ...remotionui("text", ["handwriting-text"], {
     title: "Handwriting",
     center: true,
     omit: ["durationInFrames"],
     defaults: { text: "Signed by hand", penColor: "#e8b86d" },
   }),
-  remotionui("neon-flicker-text", "text", {
+  ...remotionui("text", ["neon-flicker-text"], {
     title: "Neon sign",
     center: true,
     omit: ["durationInFrames"],
     defaults: { text: "Open all night" },
   }),
-  remotionui("text-mask-video", "text", {
+  ...remotionui("text", ["text-mask-video"], {
     title: "Text mask",
     center: true,
     defaults: { text: "LAUNCH\nDAY", media: "gradient" },
@@ -441,8 +455,8 @@ const REMOTION_UI: CuratedElement[] = [
       },
     },
   }),
-  remotionui("aurora-bg", "background", { title: "Aurora" }),
-  remotionui("particle-field", "background", { title: "Particle field" }),
+  ...remotionui("background", ["aurora-bg"], { title: "Aurora" }),
+  ...remotionui("background", ["particle-field"], { title: "Particle field" }),
 ];
 
 function spotControls(
@@ -537,7 +551,7 @@ const LIST: CuratedElement[] = [
   ...remocn("overlay", ["marker-highlight", "inline-highlight"]),
   ...remocn("overlay", ["ink-underline"], {
     place: "spot",
-    controls: { ...spotControls("Where", 0.5, 0.62) },
+    controls: spotControls("Where", 0.5, 0.62),
   }),
   ...remocn("overlay", ["scribble-circle"], {
     place: "spot",

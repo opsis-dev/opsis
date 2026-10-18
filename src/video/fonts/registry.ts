@@ -1,4 +1,3 @@
-import { continueRender, delayRender } from "remotion";
 import { findFamily, ROLE_ALIASES, roleFamilyName } from "../../shared/fonts";
 import {
   DEFAULT_PROJECT_FONTS,
@@ -6,6 +5,7 @@ import {
   type ProjectFonts,
 } from "../../shared/fonts/types";
 import { resolveAssetRef } from "../assets";
+import { holdRender } from "../core/loading";
 
 type Resolve = (ref: string) => string;
 type FontContext = { fonts: ProjectFonts; resolve: Resolve };
@@ -68,8 +68,8 @@ function isLoaded(name: string, ctx: FontContext): boolean {
 export function ensureFontNow(name: string): void {
   const ctx = current;
   if (!canRegister() || isLoaded(name, ctx)) return;
-  const handle = delayRender(`Loading font ${name}`);
-  void ensureFont(name, ctx).finally(() => continueRender(handle));
+  const release = holdRender(`Loading font ${name}`);
+  void ensureFont(name, ctx).finally(release);
 }
 
 export function applyProjectFonts(

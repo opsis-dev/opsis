@@ -1,11 +1,15 @@
 import { readFileSync } from "node:fs";
-import { Node } from "ts-morph";
+import { Node, type ObjectLiteralExpression } from "ts-morph";
 import { z } from "zod";
 import { humanize } from "../../src/shared/format";
-import { hasStringType, isNumber, isRecord, isString, tryParseJson } from "../../src/shared/guards";
+import { isNumber, isRecord, isString, tryParseJson } from "../../src/shared/guards";
 import { stringsIn } from "../../src/shared/vars";
-import type { ControlSpec, CuratedElement } from "../registry-ingest.list";
-import { js } from "./registry-codegen";
+import {
+  CONTROL_TYPES,
+  type ControlSpec,
+  type ControlType,
+  type CuratedElement,
+} from "../registry-ingest.list";
 import { literalOf, scratchFile, sourceDefaults } from "./ts-literal";
 
 export type Control = ControlSpec & {
@@ -19,28 +23,35 @@ export type ParsedConfig = {
   componentName?: string;
 };
 
+const isControlType = (value: unknown): value is ControlType =>
+  CONTROL_TYPES.some((type) => type === value);
+
+const isControl = (value: unknown): value is Control =>
+  isRecord(value) && isControlType(value.type);
+
+function assignment(init: ObjectLiteralExpression, name: string) {
+  const prop = init.getProperty(name);
+  return prop && Node.isPropertyAssignment(prop) ? prop : undefined;
+}
+
+const literalProp = <T>(
+  init: ObjectLiteralExpression,
+  name: string,
+  guard: (value: unknown) => value is T,
+): T | undefined => literalOf(assignment(init, name)?.getInitializer(), guard);
+
 export function parseConfig(source: string, name: string): ParsedConfig | null {
   const sf = scratchFile(name, "ts", source);
   for (const decl of sf.getVariableDeclarations()) {
     const init = decl.getInitializer();
-    if (!init || !Node.isObjectLiteralExpression(init)) continue;
-    const controlsProp = init.getProperty("controls");
-    if (!controlsProp || !Node.isPropertyAssignment(controlsProp)) continue;
-    const controls = Object.entries(literalOf(controlsProp.getInitializer(), isRecord) ?? {});
-    const dur = init.getProperty("durationInFrames");
-    const comp = init.getProperty("componentName");
+    if (!init || !Node.isObjectLiteralExpression(init) || !assignment(init, "controls")) continue;
+    const controls = Object.entries(literalProp(init, "controls", isRecord) ?? {});
     return {
       controls: Object.fromEntries(
-        controls.filter((entry): entry is [string, Control] => hasStringType(entry[1])),
+        controls.filter((entry): entry is [string, Control] => isControl(entry[1])),
       ),
-      durationInFrames:
-        dur && Node.isPropertyAssignment(dur)
-          ? literalOf(dur.getInitializer(), isNumber)
-          : undefined,
-      componentName:
-        comp && Node.isPropertyAssignment(comp)
-          ? literalOf(comp.getInitializer(), isString)
-          : undefined,
+      durationInFrames: literalProp(init, "durationInFrames", isNumber),
+      componentName: literalProp(init, "componentName", isString),
     };
   }
   return null;
@@ -72,147 +83,25 @@ export const propDocsSchema = z.object({
 
 export type PropDoc = z.infer<typeof propDocsSchema>["props"][number];
 
-const SKIP_PROPS = new Set([
-  "children",
-  "frame",
-  "className",
-  "style",
-  "delayInFrames",
-  "exitAtInFrames",
-  "exitInFrames",
-  "exitStaggerInFrames",
-  "mediaFilter",
-  "gradient",
-  "startFrom",
-  "valueFormatter",
-]);
 const TRANSITION_INTERNALS = new Set(["durationInFrames", "variant"]);
-const ASSET_ACCEPT: Record<string, string> = {
-  src: "image/*",
-  logoSrc: "image/*",
-  backgroundSrc: "image/*",
-  imageSrc: "image/*",
-};
-const ADVANCED_PROPS = new Set([
-  "seed",
-  "stagger",
-  "rowStagger",
-  "framesPerStep",
-  "decimals",
-  "edgeSoftness",
-  "inkSoftness",
-  "wobble",
-  "penSize",
-  "hum",
-  "buzz",
-  "offLevel",
-  "overshoot",
-  "warp",
-  "originX",
-  "originY",
-  "striation",
-  "horizonGlow",
-  "depthBlur",
-  "minSize",
-  "drift",
-  "zoom",
-  "tailOpacity",
-  "labelWidth",
-  "rowHeight",
-  "gap",
-  "tickCount",
-  "sweepInDegrees",
-  "visibleRows",
-  "slide",
-  "panelWidth",
-  "startLine",
-  "language",
-]);
-const LABELS: Record<string, string> = {
-  durationInFrames: "Animation length",
-  src: "Media",
-  logoSrc: "Logo",
-  cta: "Button label",
-  ctaLabel: "Button label",
-  url: "Address",
-  pathD: "Logo outline",
-  viewBox: "Outline area",
-  highlightedLines: "Highlighted lines",
-  showLineNumbers: "Line numbers",
-  framesPerStep: "Time per step",
-  cols: "Columns",
-  inkColor: "Text color",
-  barInkColor: "Bar text color",
-  eyebrow: "Small heading",
-  insightEyebrow: "Takeaway heading",
-  insight: "Takeaway",
-  ctaTitle: "Closing title",
-  showDropoff: "Show drop-off",
-  dropoffColor: "Drop-off color",
-  sweepInDegrees: "Sweep angle",
-  originX: "Horizontal origin",
-  originY: "Vertical origin",
-  centerY: "Vertical position",
-  seed: "Variation",
-  stroke: "Line color",
-  fill: "Fill color",
-  offColor: "Unlit color",
-  offLevel: "Unlit brightness",
-  siblings: "Other files",
-  activeLabel: "Label while dragging",
-  doneLabel: "Label when done",
-  sourceLabel: "Library title",
-  selectedPath: "Highlighted file",
-  highlightColumn: "Highlighted column",
-  highlightLabel: "Highlight badge",
-  laneColors: "Branch colors",
-  toasts: "Notifications",
-  align: "Position",
-  showProgress: "Show timer bar",
-  lifeSeconds: "Time on screen (seconds)",
-  tier: "Plan name",
-  period: "Billing period",
-  note: "Small print",
-  dealStaggerSeconds: "Card stagger (seconds)",
-  moveSeconds: "Move time (seconds)",
-  warmSeconds: "Colour fade (seconds)",
-  minSize: "Smallest size",
-  count: "Particles",
-  angle: "Direction",
-  maxCards: "Most cards",
-  barData: "Chart data",
-  steps: "Steps",
-  wordmark: "Name",
-  penColor: "Pen color",
-  nodes: "Files",
-  windowTitle: "Window title",
-  tailOpacity: "Last bar opacity",
-  slide: "Slide distance",
-  media: "Fill",
-  downColor: "Decrease color",
-  showDelta: "Show change",
-  delta: "Change",
-  deltaSuffix: "Change suffix",
-};
 
 const isColorProp = (name: string) =>
   /colou?r$/i.test(name) || name === "stroke" || name === "fill";
 
 function propLabel(name: string): string {
-  if (LABELS[name]) return LABELS[name];
-  const seconds = name.endsWith("Seconds");
-  const label = humanize(name.replace(/InFrames$|Seconds$/, ""));
-  return seconds ? `${label} (seconds)` : label;
+  const label = PROP_OVERRIDES[name]?.label;
+  if (label) return label;
+  const words = humanize(name.replace(/InFrames$|Seconds$/, ""));
+  return name.endsWith("Seconds") ? `${words} (seconds)` : words;
 }
 
 const TECHNICAL_HELP = /`|\bpx\b|staticFile|\bprops?\b|\b[a-z]+[A-Z][A-Za-z]*\b/;
 
+const splitSentences = (text: string): string[] => text.split(/(?<=[.!?])(?<!\be\.g\.)\s+/);
+
 function cleanHelp(text: string | undefined): string | undefined {
-  const sentences = (text ?? "")
-    .replace(/,?\s*e\.g\.\s*`[^`]*`/g, "")
-    .replace(/\be\.g\.\s/g, "e.g.\u00a0")
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim().replace(/\u00a0/g, " "))
+  const sentences = splitSentences((text ?? "").replace(/,?\s*e\.g\.\s*`[^`]*`/g, ""))
+    .map((s) => s.trim())
     .filter((s) => s && !TECHNICAL_HELP.test(s) && !LIBRARY_WORDS.test(s));
   return sentences.join(" ") || undefined;
 }
@@ -228,6 +117,125 @@ const SPEED_RANGE = { min: 0.25, max: 4, step: 0.25 } as const;
 
 const SPEED_CONTROL: Control = { type: "number", default: 1, ...SPEED_RANGE, description: "Speed" };
 
+type PropOverride = {
+  skip?: true;
+  label?: string;
+  type?: "code";
+  accept?: string;
+  unit?: "frames";
+  range?: typeof SPEED_RANGE;
+  advanced?: true;
+};
+
+const PROP_OVERRIDES: Partial<Record<string, PropOverride>> = {
+  children: { skip: true },
+  frame: { skip: true },
+  className: { skip: true },
+  style: { skip: true },
+  delayInFrames: { skip: true },
+  exitAtInFrames: { skip: true },
+  exitInFrames: { skip: true },
+  exitStaggerInFrames: { skip: true },
+  mediaFilter: { skip: true },
+  gradient: { skip: true },
+  startFrom: { skip: true },
+  valueFormatter: { skip: true },
+  src: { label: "Media", accept: "image/*" },
+  logoSrc: { label: "Logo", accept: "image/*" },
+  backgroundSrc: { accept: "image/*" },
+  imageSrc: { accept: "image/*" },
+  durationInFrames: { label: "Animation length" },
+  cta: { label: "Button label" },
+  ctaLabel: { label: "Button label" },
+  url: { label: "Address" },
+  pathD: { label: "Logo outline", type: "code" },
+  viewBox: { label: "Outline area" },
+  highlightedLines: { label: "Highlighted lines" },
+  showLineNumbers: { label: "Line numbers" },
+  framesPerStep: { label: "Time per step", unit: "frames", advanced: true },
+  cols: { label: "Columns" },
+  inkColor: { label: "Text color" },
+  barInkColor: { label: "Bar text color" },
+  eyebrow: { label: "Small heading" },
+  insightEyebrow: { label: "Takeaway heading" },
+  insight: { label: "Takeaway" },
+  ctaTitle: { label: "Closing title" },
+  showDropoff: { label: "Show drop-off" },
+  dropoffColor: { label: "Drop-off color" },
+  sweepInDegrees: { label: "Sweep angle", advanced: true },
+  originX: { label: "Horizontal origin", advanced: true },
+  originY: { label: "Vertical origin", advanced: true },
+  centerY: { label: "Vertical position" },
+  seed: { label: "Variation", advanced: true },
+  stroke: { label: "Line color" },
+  fill: { label: "Fill color" },
+  offColor: { label: "Unlit color" },
+  offLevel: { label: "Unlit brightness", advanced: true },
+  siblings: { label: "Other files" },
+  activeLabel: { label: "Label while dragging" },
+  doneLabel: { label: "Label when done" },
+  sourceLabel: { label: "Library title" },
+  selectedPath: { label: "Highlighted file" },
+  highlightColumn: { label: "Highlighted column" },
+  highlightLabel: { label: "Highlight badge" },
+  laneColors: { label: "Branch colors" },
+  toasts: { label: "Notifications" },
+  align: { label: "Position" },
+  showProgress: { label: "Show timer bar" },
+  lifeSeconds: { label: "Time on screen (seconds)" },
+  tier: { label: "Plan name" },
+  period: { label: "Billing period" },
+  note: { label: "Small print" },
+  dealStaggerSeconds: { label: "Card stagger (seconds)" },
+  moveSeconds: { label: "Move time (seconds)" },
+  warmSeconds: { label: "Colour fade (seconds)" },
+  minSize: { label: "Smallest size", advanced: true },
+  count: { label: "Particles" },
+  angle: { label: "Direction" },
+  maxCards: { label: "Most cards" },
+  barData: { label: "Chart data" },
+  steps: { label: "Steps" },
+  wordmark: { label: "Name" },
+  penColor: { label: "Pen color" },
+  nodes: { label: "Files" },
+  windowTitle: { label: "Window title" },
+  tailOpacity: { label: "Last bar opacity", advanced: true },
+  slide: { label: "Slide distance", advanced: true },
+  media: { label: "Fill" },
+  downColor: { label: "Decrease color" },
+  showDelta: { label: "Show change" },
+  delta: { label: "Change" },
+  deltaSuffix: { label: "Change suffix" },
+  stagger: { advanced: true },
+  rowStagger: { advanced: true },
+  decimals: { advanced: true },
+  edgeSoftness: { advanced: true },
+  inkSoftness: { advanced: true },
+  wobble: { advanced: true },
+  penSize: { advanced: true },
+  hum: { advanced: true },
+  buzz: { advanced: true },
+  overshoot: { advanced: true },
+  warp: { advanced: true },
+  striation: { advanced: true },
+  horizonGlow: { advanced: true },
+  depthBlur: { advanced: true },
+  drift: { advanced: true },
+  zoom: { advanced: true },
+  labelWidth: { advanced: true },
+  rowHeight: { advanced: true },
+  gap: { advanced: true },
+  tickCount: { advanced: true },
+  visibleRows: { advanced: true },
+  panelWidth: { advanced: true },
+  startLine: { advanced: true },
+  language: { advanced: true },
+  code: { type: "code" },
+  before: { type: "code" },
+  after: { type: "code" },
+  speed: { range: SPEED_RANGE },
+};
+
 const FONT_CONTROL: Control = {
   type: "font",
   default: "",
@@ -237,25 +245,27 @@ const FONT_CONTROL: Control = {
 
 function propControl(
   name: string,
-  type: string,
+  docType: string | undefined,
   value: unknown,
   help: string | undefined,
 ): Control | null {
-  const base: Control = {
-    type: "",
+  const override = PROP_OVERRIDES[name];
+  const unit = override?.unit ?? (name.endsWith("InFrames") ? "frames" : undefined);
+  const base = {
     description: propLabel(name),
     help,
-    ...(name.endsWith("InFrames") || name === "framesPerStep" ? { unit: "frames" } : {}),
-    ...(/InFrames$|Seconds$/.test(name) || ADVANCED_PROPS.has(name) ? { advanced: true } : {}),
+    ...(unit ? { unit } : {}),
+    ...(/InFrames$|Seconds$/.test(name) || override?.advanced ? { advanced: true } : {}),
   };
+  const type = docType ?? "";
   if (/=>|ReactNode|ReactElement|CSSProperties|SpringConfig/.test(type)) return null;
   if (name === "fontFamily") return FONT_CONTROL;
-  if (name in ASSET_ACCEPT)
+  if (override?.accept)
     return {
       ...base,
       type: "asset",
       default: typeof value === "string" ? value : "",
-      accept: ASSET_ACCEPT[name],
+      accept: override.accept,
     };
   if (Array.isArray(value)) {
     if (value.every(isString)) return { ...base, type: "strings", default: value };
@@ -276,15 +286,13 @@ function propControl(
       default: typeof value === "string" && options.includes(value) ? value : options[0],
     };
   if (typeof value === "number") {
-    if (name === "speed") return { ...base, type: "number", default: value, ...SPEED_RANGE };
+    if (override?.range) return { ...base, type: "number", default: value, ...override.range };
     const step = Number.isInteger(value) ? undefined : Math.abs(value) < 1 ? 0.01 : 0.1;
     return { ...base, type: "number", default: value, ...(step ? { step } : {}) };
   }
   if (typeof value !== "string") return null;
   if (isColorProp(name)) return { ...base, type: "color", default: value };
-  if (["code", "before", "after", "pathD"].includes(name))
-    return { ...base, type: "code", default: value };
-  return { ...base, type: "text", default: value };
+  return { ...base, type: override?.type ?? "text", default: value };
 }
 
 export function propControls(
@@ -298,18 +306,13 @@ export function propControls(
   const names = [...new Set([...docs.map((d) => d.name), ...fromSource.keys()])];
   const out: Record<string, Control> = {};
   for (const name of names) {
-    if (SKIP_PROPS.has(name) || (transition && TRANSITION_INTERNALS.has(name))) continue;
+    if (PROP_OVERRIDES[name]?.skip || (transition && TRANSITION_INTERNALS.has(name))) continue;
     const doc = docs.find((d) => d.name === name);
     const value =
       item.defaults && name in item.defaults
         ? item.defaults[name]
         : (fromSource.get(name) ?? parseDocDefault(doc?.default));
-    const control = propControl(
-      name,
-      doc?.type ?? typeof value,
-      value,
-      cleanHelp(doc?.description),
-    );
+    const control = propControl(name, doc?.type, value, cleanHelp(doc?.description));
     if (control) out[name] = control;
   }
   const length =
@@ -354,7 +357,7 @@ export function defaultProblems(
   controls: Array<[string, Control]>,
   fixedProps: Record<string, unknown> | undefined,
 ): string[] {
-  const shown = (hit: string) => js(hit).slice(0, 80);
+  const shown = (hit: string) => JSON.stringify(hit).slice(0, 80);
   return [
     ...controls.flatMap(([k, c]) => [
       ...stringsIn(c.default, namesLibrary).map(

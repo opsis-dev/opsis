@@ -11,6 +11,7 @@ import {
 } from "remotion";
 import { groupOf, type Crop, type GroupProps } from "../shared/compile/clip";
 import { remapFrame } from "../shared/compile/remap";
+import { ERROR_COLOR, STAGE_COLOR } from "../shared/elements/colors";
 import { MAIN_FONT } from "../shared/fonts";
 import { percent } from "../shared/format";
 import { clamp01 } from "../shared/math";
@@ -39,7 +40,8 @@ import { CLAMP_RIGHT, fadeWindow } from "./core/anim";
 import { sameShape } from "./core/frame";
 import type { Size } from "./core/still-layout";
 import { FontProvider } from "./fonts/font-provider";
-import { getComponent, getPresentation, isKnownElement, useElements } from "./registry";
+import { getComponent, getPresentation, isKnownElement, useElement } from "./registry";
+import { PaintRule } from "./registry/framing";
 
 const PREMOUNT_FRAMES = 30;
 const PREMOUNTED = new Set(["core/group", "core/recording"]);
@@ -49,7 +51,8 @@ export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
   <AssetProvider value={spec.assets ?? {}}>
     <ReframeProvider value={spec.reframe ?? DEFAULT_REFRAME}>
       <QualityProvider value={spec.quality ?? DEFAULT_QUALITY}>
-        <AbsoluteFill style={{ background: spec.background ?? "#000", overflow: "hidden" }}>
+        <AbsoluteFill style={{ background: spec.background ?? STAGE_COLOR, overflow: "hidden" }}>
+          <PaintRule />
           <FontProvider fonts={spec.fonts} tracks={spec.tracks}>
             <Tracks tracks={spec.tracks} />
           </FontProvider>
@@ -123,9 +126,9 @@ const ItemContent: React.FC<{ item: TimelineItem }> = ({ item }) => {
 
 const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
   const base = useAssetBase();
-  const ready = useElements([item.component]);
+  useElement(item.component);
   if (!isKnownElement(item.component)) return <MissingElement name={item.component} />;
-  const component = ready ? getComponent(item.component) : undefined;
+  const component = getComponent(item.component);
   return component ? createElement(component, resolveProps(item.props, base)) : null;
 };
 
@@ -142,20 +145,22 @@ const Group: React.FC<GroupProps> = ({
   design,
 }) => {
   const frame = useCurrentFrame();
+  let layers: React.ReactNode = <Tracks tracks={tracks} />;
+  if (startFrom)
+    layers = (
+      <Sequence from={-startFrom} layout="none">
+        {layers}
+      </Sequence>
+    );
+  if (loopEvery !== undefined && loopEvery > 0)
+    layers = <Loop durationInFrames={loopEvery}>{layers}</Loop>;
+  if (remap?.length)
+    layers = <Freeze frame={Math.max(0, Math.round(remapFrame(remap, frame)))}>{layers}</Freeze>;
+  if (crop) layers = <CropBox crop={crop}>{layers}</CropBox>;
   return (
     <AbsoluteFill style={background ? { background } : undefined}>
       <DesignBox design={design}>
-        <Wrapped wrapper={wrapper}>
-          <Cropped crop={crop}>
-            <Remapped frame={remap?.length ? remapFrame(remap, frame) : undefined}>
-              <Looped every={loopEvery}>
-                <StartOffset startFrom={startFrom}>
-                  <Tracks tracks={tracks} />
-                </StartOffset>
-              </Looped>
-            </Remapped>
-          </Cropped>
-        </Wrapped>
+        <Wrapped wrapper={wrapper}>{layers}</Wrapped>
       </DesignBox>
     </AbsoluteFill>
   );
@@ -163,48 +168,22 @@ const Group: React.FC<GroupProps> = ({
 
 type Wrap<P> = React.FC<P & { children: React.ReactNode }>;
 
-const StartOffset: Wrap<{ startFrom?: number }> = ({ startFrom, children }) =>
-  startFrom ? (
-    <Sequence from={-startFrom} layout="none">
+const CropBox: Wrap<{ crop: Crop }> = ({ crop, children }) => (
+  <AbsoluteFill style={{ overflow: "hidden" }}>
+    <AbsoluteFill
+      style={{
+        transformOrigin: "0 0",
+        transform: `scale(${cropScale(crop)}) translate(${percent(-crop.x)}, ${percent(-crop.y)})`,
+      }}
+    >
       {children}
-    </Sequence>
-  ) : (
-    <>{children}</>
-  );
-
-const Looped: Wrap<{ every?: number }> = ({ every, children }) =>
-  every !== undefined && every > 0 ? (
-    <Loop durationInFrames={every}>{children}</Loop>
-  ) : (
-    <>{children}</>
-  );
-
-const Remapped: Wrap<{ frame?: number }> = ({ frame, children }) =>
-  frame === undefined ? (
-    <>{children}</>
-  ) : (
-    <Freeze frame={Math.max(0, Math.round(frame))}>{children}</Freeze>
-  );
-
-const Cropped: Wrap<{ crop?: Crop }> = ({ crop, children }) =>
-  crop ? (
-    <AbsoluteFill style={{ overflow: "hidden" }}>
-      <AbsoluteFill
-        style={{
-          transformOrigin: "0 0",
-          transform: `scale(${cropScale(crop)}) translate(${percent(-crop.x)}, ${percent(-crop.y)})`,
-        }}
-      >
-        {children}
-      </AbsoluteFill>
     </AbsoluteFill>
-  ) : (
-    <>{children}</>
-  );
+  </AbsoluteFill>
+);
 
 const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children }) => {
   const base = useAssetBase();
-  useElements([wrapper?.component]);
+  useElement(wrapper?.component);
   const Wrapper = wrapper ? getComponent(wrapper.component) : undefined;
   return wrapper && Wrapper ? (
     createElement(
@@ -248,7 +227,8 @@ const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }
 }) => {
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
-  useElements([item.enter?.kind, item.exit?.kind]);
+  useElement(item.enter?.kind);
+  useElement(item.exit?.kind);
   const active = activeTransition(item, frame);
   if (!active) return <>{children}</>;
   const presentation = getPresentation(active.ref.kind, active.ref.params ?? {}, { width, height });
@@ -269,29 +249,22 @@ const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }
   );
 };
 
-type Direction = "entering" | "exiting";
+type ActiveTransition = {
+  ref: TransitionRef;
+  direction: "entering" | "exiting";
+  progress: number;
+};
 
-function transitionAt(
-  item: TimelineItem,
-  frame: number,
-): { ref: TransitionRef; direction: Direction; start: number } | null {
+function activeTransition(item: TimelineItem, frame: number): ActiveTransition | null {
   const { enter, exit, durationInFrames } = item;
+  const progressFrom = (ref: TransitionRef, start: number) =>
+    interpolate(frame, [start, start + ref.durationInFrames], [0, 1], CLAMP_RIGHT);
   if (enter && frame < enter.durationInFrames)
-    return { ref: enter, direction: "entering", start: 0 };
+    return { ref: enter, direction: "entering", progress: progressFrom(enter, 0) };
   const exitStart = exit ? durationInFrames - exit.durationInFrames : 0;
-  if (exit && frame >= exitStart) return { ref: exit, direction: "exiting", start: exitStart };
+  if (exit && frame >= exitStart)
+    return { ref: exit, direction: "exiting", progress: progressFrom(exit, exitStart) };
   return null;
-}
-
-function activeTransition(
-  item: TimelineItem,
-  frame: number,
-): { ref: TransitionRef; direction: Direction; progress: number } | null {
-  const at = transitionAt(item, frame);
-  if (!at) return null;
-  const { ref, direction, start } = at;
-  const progress = interpolate(frame, [start, start + ref.durationInFrames], [0, 1], CLAMP_RIGHT);
-  return { ref, direction, progress };
 }
 
 const NO_SPANS: Span[] = [];
@@ -358,7 +331,7 @@ const MissingElement: React.FC<{ name: string }> = ({ name }) => (
     style={{
       alignItems: "center",
       justifyContent: "center",
-      color: "#f87171",
+      color: ERROR_COLOR,
       fontFamily: MAIN_FONT,
       fontSize: 40,
     }}

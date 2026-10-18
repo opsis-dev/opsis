@@ -1,9 +1,8 @@
 import { Lottie, type LottieAnimationData } from "@remotion/lottie";
-import React, { useLayoutEffect, useState } from "react";
-import { cancelRender } from "remotion";
+import React from "react";
 import { Backgrounded } from "./backgrounds";
 import { readLottie } from "./dot-lottie";
-import { holdRender } from "./loading";
+import { useHeldLoad } from "./loading";
 
 type LottieFit = "contain" | "cover";
 
@@ -21,26 +20,8 @@ export const LottieElement: React.FC<{
   fit?: LottieFit;
   background?: string;
 }> = ({ src, loop = true, speed = 1, backwards = false, fit = "contain", background }) => {
-  const [loaded, setLoaded] = useState<{ src: string; data: LottieAnimationData } | null>(null);
-
-  useLayoutEffect(() => {
-    if (!src) return;
-    const release = holdRender(`Loading animation ${src}`);
-    let alive = true;
-    loadAnimation(src)
-      .then((data) => {
-        if (!alive) return;
-        setLoaded({ src, data });
-        release();
-      })
-      .catch((err: unknown) => cancelRender(err));
-    return () => {
-      alive = false;
-      release();
-    };
-  }, [src]);
-
-  const data = loaded?.src === src ? loaded.data : null;
+  const loaded = useHeldLoad(`Loading animation ${src}`, src || null, () => loadAnimation(src));
+  const data = loaded?.key === src ? loaded.value : null;
   if (!src || !data) return null;
   return (
     <Backgrounded background={background}>

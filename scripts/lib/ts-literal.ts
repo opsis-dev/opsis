@@ -9,7 +9,7 @@ export const scratchFile = (name: string, ext: string, source: string): SourceFi
 
 const MAX_DEPTH = 8;
 
-export function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown {
+function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown {
   if (!node || depth > MAX_DEPTH) return undefined;
   const next = (n: Node | undefined) => literal(n, scope, depth + 1);
   if (Node.isStringLiteral(node) || Node.isNoSubstitutionTemplateLiteral(node))

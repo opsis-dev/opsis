@@ -46,13 +46,12 @@ export const captionsSchema = z.object({
   fontFamily: font(),
 });
 
-type CoreComponent = Omit<ElementMetaInput, "source" | "fixedProps" | "kind"> & {
+type CoreComponent = Omit<ElementMetaInput, "key" | "source" | "fixedProps" | "kind"> & {
   kind?: "wrapper";
 };
 
-const components: CoreComponent[] = [
-  {
-    key: "core/title",
+const components = {
+  "core/title": {
     title: "Title card",
     description: "A full-screen title with an optional eyebrow and subtitle.",
     category: "text",
@@ -70,8 +69,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 75,
   },
-  {
-    key: "core/kinetic-headline",
+  "core/kinetic-headline": {
     title: "Animated headline",
     description: "A headline that animates in word by word.",
     category: "text",
@@ -89,8 +87,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 90,
   },
-  {
-    key: "core/lower-third",
+  "core/lower-third": {
     title: "Lower third",
     description: "A name or caption bar in the lower part of the screen.",
     category: "overlay",
@@ -109,8 +106,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 120,
   },
-  {
-    key: "core/callout",
+  "core/callout": {
     title: "Callout",
     description: "A short note that points something out.",
     category: "overlay",
@@ -125,16 +121,14 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 75,
   },
-  {
-    key: CAPTIONS_ELEMENT,
+  [CAPTIONS_ELEMENT]: {
     title: "Captions",
     description: "Captions shown over the video.",
     category: "overlay",
     schema: captionsSchema,
     defaultDurationInFrames: 150,
   },
-  {
-    key: "core/image",
+  "core/image": {
     title: "Image",
     description: "Shows an image from your project.",
     category: "core",
@@ -146,8 +140,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 90,
   },
-  {
-    key: "core/mosaic",
+  "core/mosaic": {
     title: "Mosaic",
     description:
       "Covers parts of the screen with coarse blocks, to hide keys, emails and personal details.",
@@ -174,8 +167,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 90,
   },
-  {
-    key: "core/lottie",
+  "core/lottie": {
     title: "Animation",
     description: "Plays an animation file from your project, looped or once, at any speed.",
     category: "overlay",
@@ -192,8 +184,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 90,
   },
-  {
-    key: "core/video",
+  "core/video": {
     title: "Video",
     description: "Plays a video from your project.",
     category: "core",
@@ -208,16 +199,14 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 150,
   },
-  {
-    key: "core/solid",
+  "core/solid": {
     title: "Solid colour",
     description: "A plain colour background.",
     category: "background",
     schema: z.object({ color: color("#09090b", "Colour") }),
     defaultDurationInFrames: 90,
   },
-  {
-    key: "core/gradient",
+  "core/gradient": {
     title: "Gradient",
     description: "A gradient background.",
     category: "background",
@@ -229,8 +218,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 90,
   },
-  {
-    key: "core/noise",
+  "core/noise": {
     title: "Noise",
     description: "A soft moving noise background.",
     category: "background",
@@ -242,8 +230,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 150,
   },
-  {
-    key: "core/starburst",
+  "core/starburst": {
     title: "Starburst",
     description: "Rays spreading from the centre.",
     category: "background",
@@ -255,8 +242,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 150,
   },
-  {
-    key: "core/paper",
+  "core/paper": {
     title: "Paper",
     description: "A paper texture background.",
     category: "background",
@@ -266,8 +252,7 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 150,
   },
-  {
-    key: "core/backdrop",
+  "core/backdrop": {
     title: "Studio backdrop",
     description: "A ready-made studio background image.",
     category: "background",
@@ -276,23 +261,25 @@ const components: CoreComponent[] = [
     }),
     defaultDurationInFrames: 150,
   },
-  {
-    key: "core/video-loop",
+  "core/video-loop": {
     title: "Looping video",
     description: "A video that loops for as long as needed.",
     category: "background",
     schema: z.object({ src: asset("Video", "video/*"), dim: num(0.3, 0, 1, "Dim", 0.05) }),
     defaultDurationInFrames: 150,
   },
-  {
-    key: "core/light-leak",
+  "core/light-leak": {
     title: "Light leak",
     description: "A warm light flare over the video.",
     category: "overlay",
     schema: z.object({ seed: num(3, 0, 100, "Seed"), hueShift: num(0, 0, 360, "Hue shift") }),
     defaultDurationInFrames: 45,
   },
-];
+} satisfies Record<string, CoreComponent>;
+
+export type CoreElementProps = {
+  [K in keyof typeof components]: z.output<(typeof components)[K]["schema"]>;
+};
 
 const presentation = (
   slug: string,
@@ -334,6 +321,12 @@ const presentations: ElementMetaInput[] = [
 ];
 
 export const coreElementMeta: ElementMeta[] = [
-  ...components.map((def) => ({ kind: "component" as const, ...def, source, fixedProps: {} })),
+  ...Object.entries(components).map(([key, def]): ElementMetaInput => ({
+    kind: "component",
+    key,
+    ...def,
+    source,
+    fixedProps: {},
+  })),
   ...presentations,
 ].map(defineElementMeta);

@@ -44,7 +44,7 @@ export const overlayPadding = (pad: number, insets: Insets): React.CSSProperties
 
 export const JUSTIFY_AT = { top: "flex-start", center: "center", bottom: "flex-end" } as const;
 
-export const overlayScale = (width: number, height: number): number =>
+const overlayScale = (width: number, height: number): number =>
   designScaleFor(Math.max(width, height));
 
 export const zoomBoost = (sourceAspect: number, outAspect: number): number =>

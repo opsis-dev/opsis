@@ -10,7 +10,8 @@ import {
 import path from "node:path";
 import { z } from "zod";
 import { googleFontModuleFile, googleImportName } from "../src/shared/fonts/google-font-imports";
-import { FONT_CATEGORIES } from "../src/shared/fonts/types";
+import { FONT_CATEGORIES, type FontFamilyDef } from "../src/shared/fonts/types";
+import { readJsonWith } from "./lib/read-json";
 import { ROOT } from "./lib/tool-config";
 import { walkFiles } from "./lib/walk";
 
@@ -56,13 +57,11 @@ const metadataSchema = z.object({
   license: z.object({ type: z.string() }),
 });
 
-type Face = { file: string; weight: string; style: string; format: string };
+type Face = FontFamilyDef["faces"][number];
 
-function bundle({ pkg }: BundledFont): string {
+function copyFontFiles({ pkg }: BundledFont): FontFamilyDef {
   const dir = path.join(ROOT, "node_modules", pkg);
-  const meta = metadataSchema.parse(
-    JSON.parse(readFileSync(path.join(dir, "metadata.json"), "utf8")),
-  );
+  const meta = readJsonWith(metadataSchema, path.join(dir, "metadata.json"));
   const variable = pkg.startsWith("@fontsource-variable/");
   const dest = path.join(OUT, meta.id);
   mkdirSync(dest, { recursive: true });
@@ -84,7 +83,7 @@ function bundle({ pkg }: BundledFont): string {
     }
   }
   copyFileSync(path.join(dir, "LICENSE"), path.join(dest, "LICENSE"));
-  const def = {
+  return {
     id: meta.id,
     family: meta.family,
     category: meta.category,
@@ -93,7 +92,6 @@ function bundle({ pkg }: BundledFont): string {
     licenseFile: `app:fonts/bundled/${meta.id}/LICENSE`,
     faces,
   };
-  return `  ${JSON.stringify(def)},`;
 }
 
 function checkImports(): void {
@@ -113,14 +111,14 @@ function checkImports(): void {
 function writeBundle(): void {
   rmSync(OUT, { recursive: true, force: true });
   mkdirSync(OUT, { recursive: true });
-  const defs = FONTS.map(bundle);
+  const defs = FONTS.map(copyFontFiles);
   writeFileSync(
     META_OUT,
     [
       'import type { FontFamilyDef } from "./types";',
       "",
       "export const BUNDLED_FONTS: FontFamilyDef[] = [",
-      ...defs,
+      ...defs.map((def) => `  ${JSON.stringify(def)},`),
       "];",
       "",
     ].join("\n"),

@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { continueRender, delayRender } from "remotion";
+import { useEffectEvent, useLayoutEffect, useState } from "react";
+import { cancelRender, continueRender, delayRender } from "remotion";
 
 export function holdRender(label: string): () => void {
   const handle = delayRender(label);
@@ -11,10 +11,30 @@ export function holdRender(label: string): () => void {
   };
 }
 
-export function useStableValue<T>(value: T): T {
-  const key = useMemo(() => JSON.stringify(value), [value]);
-  const [kept, setKept] = useState({ key, value });
-  if (kept.key === key) return kept.value;
-  setKept({ key, value });
-  return value;
+type Loaded<T> = { key: string; value: T };
+
+export function useHeldLoad<T>(
+  label: string,
+  key: string | null,
+  load: () => Promise<T>,
+): Loaded<T> | null {
+  const [loaded, setLoaded] = useState<Loaded<T> | null>(null);
+  const start = useEffectEvent(load);
+  useLayoutEffect(() => {
+    if (key === null) return;
+    const release = holdRender(label);
+    let alive = true;
+    start()
+      .then((value) => {
+        if (!alive) return;
+        setLoaded({ key, value });
+        release();
+      })
+      .catch((error: unknown) => cancelRender(error));
+    return () => {
+      alive = false;
+      release();
+    };
+  }, [key, label]);
+  return loaded;
 }

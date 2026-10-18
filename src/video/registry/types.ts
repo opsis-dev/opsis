@@ -7,11 +7,10 @@ export type ElementComponent = React.ComponentType<ElementProps & { children?: R
 
 export type Presentation = TransitionPresentation<ElementProps>;
 
-export type PresentationFactory = ((props: ElementProps, size: Size) => Presentation) & {
-  readonly presentation: true;
+export type PresentationFactory = {
+  readonly create: (props: ElementProps, size: Size) => Presentation;
 };
 
 export type ElementImpl = ElementComponent | PresentationFactory;
 
-export const isPresentation = (impl: ElementImpl): impl is PresentationFactory =>
-  "presentation" in impl;
+export const isPresentation = (impl: ElementImpl): impl is PresentationFactory => "create" in impl;

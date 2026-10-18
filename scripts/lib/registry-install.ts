@@ -29,13 +29,16 @@ const MOVES: Array<[string, string]> = [
   ["hooks", "hooks"],
 ];
 
-const FLAT_MOVES: Array<[string, string]> = [
-  ["remotion/primitives", "elements/remotion-ui"],
-  ["remotion/scenes", "elements/remotion-ui"],
-  ["compositions", "elements/remotion-ui"],
-  ["remotion/lib", "lib/remotion-ui"],
-  ["remotion/hooks", "hooks/remotion-ui"],
-];
+const REMOTION_UI_FOLDERS = {
+  "remotion/primitives": "elements",
+  "remotion/scenes": "elements",
+  compositions: "elements",
+  "remotion/lib": "lib",
+  "remotion/hooks": "hooks",
+} as const;
+
+const isRemotionUiFolder = (folder: string): folder is keyof typeof REMOTION_UI_FOLDERS =>
+  Object.hasOwn(REMOTION_UI_FOLDERS, folder);
 
 function moveTree(from: string, dest: string): void {
   for (const file of walkFiles(from)) {
@@ -45,8 +48,9 @@ function moveTree(from: string, dest: string): void {
   }
 }
 
-const REMOTION_UI_SPEC =
-  /^@\/(?:remotion\/(primitives|scenes|lib|hooks)|(compositions))\/([^/]+)(\/.*)?$/;
+const REMOTION_UI_SPEC = new RegExp(
+  `^@/(${Object.keys(REMOTION_UI_FOLDERS).join("|")})/([^/]+)(/.*)?$`,
+);
 
 export function moveInstalled(): void {
   for (const [from, to] of MOVES) {
@@ -62,11 +66,12 @@ export function moveInstalled(): void {
     rmSync(fromDir, { recursive: true, force: true });
   }
 
-  for (const [from, to] of FLAT_MOVES) {
+  for (const [from, kind] of Object.entries(REMOTION_UI_FOLDERS)) {
     const fromDir = path.join(SRC_DIR, from);
-    if (existsSync(fromDir)) moveTree(fromDir, path.join(VIDEO_DIR, to));
+    if (existsSync(fromDir)) moveTree(fromDir, path.join(VIDEO_DIR, kind, "remotion-ui"));
   }
   for (const dir of ["remotion", "compositions"]) {
+    if (!existsSync(path.join(SRC_DIR, dir))) continue;
     const left = walkFiles(path.join(SRC_DIR, dir));
     if (left.length)
       throw new Error(`Unexpected files left after relocating:\n  ${left.join("\n  ")}`);
@@ -83,15 +88,11 @@ function installedNamespaces(): Namespaces {
 }
 
 function rewriteSpec(spec: string, ns: Namespaces): string {
-  if (spec === "@/lib/utils") return "@/renderer/lib/utils";
   if (spec.startsWith("@/components/ui/"))
     return spec.replace("@/components/ui/", "@/renderer/components/ui/");
-  const ui = REMOTION_UI_SPEC.exec(spec);
-  if (ui) {
-    const kind = ui[1] ?? ui[2];
-    const base = kind === "lib" || kind === "hooks" ? kind : "elements";
-    return `@/video/${base}/remotion-ui/${ui[3]}${ui[4] ?? ""}`;
-  }
+  const [, folder = "", item, tail = ""] = REMOTION_UI_SPEC.exec(spec) ?? [];
+  if (isRemotionUiFolder(folder))
+    return `@/video/${REMOTION_UI_FOLDERS[folder]}/remotion-ui/${item}${tail}`;
   const m = /^@\/(?:renderer\/|video\/)?(components|elements|lib|hooks)\/([^/]+)(\/.*)?$/.exec(
     spec,
   );

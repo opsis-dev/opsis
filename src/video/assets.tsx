@@ -7,13 +7,24 @@ import {
   isAssetRef,
   refTarget,
 } from "../shared/asset-ref";
+import type { ElementProps } from "../shared/elements/types";
 import type { PreviewQuality, ReframeMode } from "../shared/schema/timeline";
 
 type AssetBase = { projectBase?: string };
 
-const AssetContext = createContext<AssetBase>({});
+function makeContext<T>(fallback: T) {
+  const Context = createContext<T>(fallback);
+  function useValue(): T {
+    return useContext(Context);
+  }
+  return { Provider: Context.Provider, useValue };
+}
 
-export const AssetProvider = AssetContext.Provider;
+const assetContext = makeContext<AssetBase>({});
+
+export const AssetProvider = assetContext.Provider;
+
+export const useAssetBase = assetContext.useValue;
 
 export function resolveAssetRef(ref: string, base: AssetBase): string {
   const target = refTarget(ref);
@@ -28,7 +39,7 @@ const MAX_PROP_DEPTH = 3;
 
 const isNestedTimeline = (v: object, depth: number) => depth > 0 && "tracks" in v;
 
-export function resolveProps<T extends Record<string, unknown>>(props: T, base: AssetBase): T {
+export function resolveProps(props: ElementProps, base: AssetBase): ElementProps {
   const visit = (v: unknown, depth: number): unknown => {
     if (isAssetRef(v)) return resolveAssetRef(v, base);
     if (depth > MAX_PROP_DEPTH || v === null || typeof v !== "object") return v;
@@ -36,10 +47,8 @@ export function resolveProps<T extends Record<string, unknown>>(props: T, base: 
     if (isNestedTimeline(v, depth)) return v;
     return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, visit(x, depth + 1)]));
   };
-  return visit(props, 0) as T;
+  return Object.fromEntries(Object.entries(props).map(([k, v]) => [k, visit(v, 1)]));
 }
-
-export const useAssetBase = () => useContext(AssetContext);
 
 export const useAsset = (ref: string | null | undefined): string | null => {
   const base = useAssetBase();
@@ -47,11 +56,11 @@ export const useAsset = (ref: string | null | undefined): string | null => {
 };
 
 export const DEFAULT_REFRAME: ReframeMode = "follow";
-const ReframeContext = createContext<ReframeMode>(DEFAULT_REFRAME);
-export const ReframeProvider = ReframeContext.Provider;
-export const useReframe = () => useContext(ReframeContext);
+const reframeContext = makeContext<ReframeMode>(DEFAULT_REFRAME);
+export const ReframeProvider = reframeContext.Provider;
+export const useReframe = reframeContext.useValue;
 
 export const DEFAULT_QUALITY: PreviewQuality = "exact";
-const QualityContext = createContext<PreviewQuality>(DEFAULT_QUALITY);
-export const QualityProvider = QualityContext.Provider;
-export const useQuality = () => useContext(QualityContext);
+const qualityContext = makeContext<PreviewQuality>(DEFAULT_QUALITY);
+export const QualityProvider = qualityContext.Provider;
+export const useQuality = qualityContext.useValue;

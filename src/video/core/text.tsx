@@ -30,6 +30,109 @@ const WORD_SPRING = { damping: 18, stiffness: 160 };
 const EMPHASIS_SWEEP_FRAMES = [8, 22];
 const WORD_FADE_FRAMES = 6;
 
+const TITLE = {
+  padding: "0 9%",
+  gapEm: 0.22,
+  eyebrow: { sizeEm: 0.26, weight: 700, letterSpacing: "0.18em", delay: 0 },
+  title: { weight: 760, letterSpacing: "-0.035em", lineHeight: 1.02, delay: 4 },
+  subtitle: { sizeEm: 0.34, weight: 450, opacity: 0.7, maxWidth: "80%", delay: 10 },
+} as const;
+
+const KINETIC = {
+  padding: "0 8%",
+  columnGapEm: 0.28,
+  rowGapEm: 0.08,
+  weight: 780,
+  letterSpacing: "-0.04em",
+  lineHeight: 1.05,
+} as const;
+
+const LOWER_THIRD = {
+  paddingPx: 80,
+  gapPx: 18,
+  barWidthPx: 8,
+  panelRadiusPx: 18,
+  panelPaddingPx: [18, 28],
+  panelBlur: "blur(12px)",
+  titleSizePx: 44,
+  titleWeight: 720,
+  titleLetterSpacing: "-0.02em",
+  subtitleSizePx: 28,
+  subtitleOpacity: 0.7,
+  subtitleGapPx: 4,
+} as const;
+
+const CALLOUT = {
+  drawFrames: 18,
+  offsetPx: 170,
+  bendPx: 40,
+  strokePx: 7,
+  dashSlack: 1.3,
+  dotPx: 14,
+  labelPaddingPx: [12, 22],
+  labelRadiusPx: 14,
+  labelSizePx: 34,
+  labelWeight: 700,
+} as const;
+
+const CAPTIONS = {
+  paddingPx: 90,
+  sidePadding: "10%",
+  wordGapEm: 0.28,
+  weight: 800,
+  shadow: "0 4px 24px rgba(0,0,0,0.55)",
+  boxPaddingPx: [10, 22],
+  boxRadiusPx: 16,
+  box: "rgba(0,0,0,0.35)",
+  popFrom: 0.85,
+  popGrowth: 0.15,
+  unspokenOpacity: 0.55,
+} as const;
+
+const CAPTION_POP_SPRING = { damping: 14, stiffness: 220 };
+
+type TitleLineProps = { text: string; color: string; fontSize: number; entrance: Entrance };
+
+const TitleEyebrow: React.FC<TitleLineProps> = ({ text, color, fontSize, entrance }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const { sizeEm, weight, letterSpacing, delay } = TITLE.eyebrow;
+  return (
+    <div
+      style={{
+        ...entranceStyle(entrance, frame, fps, delay),
+        color,
+        fontSize: fontSize * sizeEm,
+        fontWeight: weight,
+        letterSpacing,
+        textTransform: "uppercase",
+      }}
+    >
+      {text}
+    </div>
+  );
+};
+
+const TitleSubtitle: React.FC<TitleLineProps> = ({ text, color, fontSize, entrance }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const { sizeEm, weight, opacity, maxWidth, delay } = TITLE.subtitle;
+  return (
+    <div
+      style={{
+        ...entranceStyle(entrance, frame, fps, delay),
+        color,
+        opacity,
+        fontSize: fontSize * sizeEm,
+        fontWeight: weight,
+        maxWidth,
+      }}
+    >
+      {text}
+    </div>
+  );
+};
+
 export const Title: React.FC<{
   eyebrow?: string;
   title: string;
@@ -63,53 +166,31 @@ export const Title: React.FC<{
         style={{
           alignItems: align === "center" ? "center" : "flex-start",
           justifyContent: "center",
-          padding: "0 9%",
+          padding: TITLE.padding,
           textAlign: align,
           fontFamily: fontOr(fontFamily, "heading"),
           opacity: out,
-          gap: fontSize * 0.22,
+          gap: fontSize * TITLE.gapEm,
         }}
       >
         {eyebrow ? (
-          <div
-            style={{
-              ...entranceStyle(entrance, frame, fps),
-              color: accent,
-              fontSize: fontSize * 0.26,
-              fontWeight: 700,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-            }}
-          >
-            {eyebrow}
-          </div>
+          <TitleEyebrow text={eyebrow} color={accent} fontSize={fontSize} entrance={entrance} />
         ) : null}
         <div
           style={{
-            ...entranceStyle(entrance, frame, fps, 4),
+            ...entranceStyle(entrance, frame, fps, TITLE.title.delay),
             color,
             fontSize,
-            fontWeight: 760,
-            letterSpacing: "-0.035em",
-            lineHeight: 1.02,
+            fontWeight: TITLE.title.weight,
+            letterSpacing: TITLE.title.letterSpacing,
+            lineHeight: TITLE.title.lineHeight,
             maxWidth: "100%",
           }}
         >
           {title}
         </div>
         {subtitle ? (
-          <div
-            style={{
-              ...entranceStyle(entrance, frame, fps, 10),
-              color,
-              opacity: 0.7,
-              fontSize: fontSize * 0.34,
-              fontWeight: 450,
-              maxWidth: "80%",
-            }}
-          >
-            {subtitle}
-          </div>
+          <TitleSubtitle text={subtitle} color={color} fontSize={fontSize} entrance={entrance} />
         ) : null}
       </AbsoluteFill>
     </AbsoluteFill>
@@ -143,7 +224,7 @@ export const KineticHeadline: React.FC<{
         style={{
           alignItems: "center",
           justifyContent: "center",
-          padding: "0 8%",
+          padding: KINETIC.padding,
           opacity: exitOpacity(frame, durationInFrames),
         }}
       >
@@ -152,13 +233,13 @@ export const KineticHeadline: React.FC<{
             display: "flex",
             flexWrap: "wrap",
             justifyContent: "center",
-            columnGap: fontSize * 0.28,
-            rowGap: fontSize * 0.08,
+            columnGap: fontSize * KINETIC.columnGapEm,
+            rowGap: fontSize * KINETIC.rowGapEm,
             fontFamily: fontOr(fontFamily, "heading"),
             fontSize,
-            fontWeight: 780,
-            letterSpacing: "-0.04em",
-            lineHeight: 1.05,
+            fontWeight: KINETIC.weight,
+            letterSpacing: KINETIC.letterSpacing,
+            lineHeight: KINETIC.lineHeight,
           }}
         >
           {words.map(({ word, em }, i) => (
@@ -227,6 +308,9 @@ const KineticWord: React.FC<
   );
 };
 
+const slideOffset = (enter: number, exit: number, dir: number): number =>
+  (1 - enter) * LOWER_THIRD_SLIDE_PX * dir + exit * LOWER_THIRD_SLIDE_PX * dir;
+
 export const LowerThird: React.FC<{
   title: string;
   subtitle?: string;
@@ -255,20 +339,20 @@ export const LowerThird: React.FC<{
   });
   const top = position.startsWith("top") || !isLandscape(width, height);
   const right = position.endsWith("right");
-  const dir = right ? 1 : -1;
-  const x = (1 - enter) * LOWER_THIRD_SLIDE_PX * dir + exit * LOWER_THIRD_SLIDE_PX * dir;
+  const x = slideOffset(enter, exit, right ? 1 : -1);
+  const [panelPadY, panelPadX] = LOWER_THIRD.panelPaddingPx;
   return (
     <AbsoluteFill
       style={{
         justifyContent: top ? "flex-start" : "flex-end",
         alignItems: right ? "flex-end" : "flex-start",
-        ...overlayPadding(80 * k, insets),
+        ...overlayPadding(LOWER_THIRD.paddingPx * k, insets),
       }}
     >
       <div
         style={{
           display: "flex",
-          gap: 18 * k,
+          gap: LOWER_THIRD.gapPx * k,
           alignItems: "stretch",
           transform: `translateX(${x * k}px)`,
           opacity: Math.min(enter, 1 - exit),
@@ -277,7 +361,7 @@ export const LowerThird: React.FC<{
       >
         <div
           style={{
-            width: 8 * k,
+            width: LOWER_THIRD.barWidthPx * k,
             borderRadius: 99,
             background: accent,
             transform: `scaleY(${enter})`,
@@ -287,16 +371,30 @@ export const LowerThird: React.FC<{
         <div
           style={{
             background: panel,
-            borderRadius: 18 * k,
-            padding: `${18 * k}px ${28 * k}px`,
-            backdropFilter: "blur(12px)",
+            borderRadius: LOWER_THIRD.panelRadiusPx * k,
+            padding: `${panelPadY * k}px ${panelPadX * k}px`,
+            backdropFilter: LOWER_THIRD.panelBlur,
           }}
         >
-          <div style={{ color, fontSize: 44 * k, fontWeight: 720, letterSpacing: "-0.02em" }}>
+          <div
+            style={{
+              color,
+              fontSize: LOWER_THIRD.titleSizePx * k,
+              fontWeight: LOWER_THIRD.titleWeight,
+              letterSpacing: LOWER_THIRD.titleLetterSpacing,
+            }}
+          >
             {title}
           </div>
           {subtitle ? (
-            <div style={{ color, opacity: 0.7, fontSize: 28 * k, marginTop: 4 * k }}>
+            <div
+              style={{
+                color,
+                opacity: LOWER_THIRD.subtitleOpacity,
+                fontSize: LOWER_THIRD.subtitleSizePx * k,
+                marginTop: LOWER_THIRD.subtitleGapPx * k,
+              }}
+            >
               {subtitle}
             </div>
           ) : null}
@@ -325,28 +423,29 @@ export const Callout: React.FC<{
   const frame = useCurrentFrame();
   const { width, height, durationInFrames } = useVideoConfig();
   const { k } = useOverlayFrame();
-  const draw = interpolate(frame, [0, 18], [0, 1], {
+  const draw = interpolate(frame, [0, CALLOUT.drawFrames], [0, 1], {
     ...CLAMPED,
     easing: Easing.out(Easing.cubic),
   });
-  const off = 170 * k;
+  const off = CALLOUT.offsetPx * k;
   const [dx, dy] = CALLOUT_DIRECTION[side];
   const sx = x * width + dx * off;
   const sy = y * height + dy * off;
   const len = Math.hypot(dx * off, dy * off);
+  const [labelPadY, labelPadX] = CALLOUT.labelPaddingPx;
   return (
     <AbsoluteFill style={{ opacity: exitOpacity(frame, durationInFrames) }}>
       <svg width={width} height={height} style={{ position: "absolute", inset: 0 }}>
         <path
-          d={`M ${sx} ${sy} Q ${(sx + x * width) / 2 + 40 * k} ${(sy + y * height) / 2} ${x * width} ${y * height}`}
+          d={`M ${sx} ${sy} Q ${(sx + x * width) / 2 + CALLOUT.bendPx * k} ${(sy + y * height) / 2} ${x * width} ${y * height}`}
           fill="none"
           stroke={accent}
-          strokeWidth={7 * k}
+          strokeWidth={CALLOUT.strokePx * k}
           strokeLinecap="round"
-          strokeDasharray={len * 1.3}
-          strokeDashoffset={len * 1.3 * (1 - draw)}
+          strokeDasharray={len * CALLOUT.dashSlack}
+          strokeDashoffset={len * CALLOUT.dashSlack * (1 - draw)}
         />
-        <circle cx={x * width} cy={y * height} r={14 * k * draw} fill={accent} />
+        <circle cx={x * width} cy={y * height} r={CALLOUT.dotPx * k * draw} fill={accent} />
       </svg>
       <div
         style={{
@@ -354,13 +453,13 @@ export const Callout: React.FC<{
           left: sx,
           top: sy,
           transform: `translate(-50%, ${dy > 0 ? "0" : "-100%"})`,
-          padding: `${12 * k}px ${22 * k}px`,
-          borderRadius: 14 * k,
+          padding: `${labelPadY * k}px ${labelPadX * k}px`,
+          borderRadius: CALLOUT.labelRadiusPx * k,
           background: accent,
           color,
           fontFamily: fontOr(fontFamily, "main"),
-          fontWeight: 700,
-          fontSize: 34 * k,
+          fontWeight: CALLOUT.labelWeight,
+          fontSize: CALLOUT.labelSizePx * k,
           opacity: draw,
           whiteSpace: "nowrap",
         }}
@@ -387,9 +486,56 @@ export function groupCaptions(captions: Caption[]): Caption[][] {
   return lines;
 }
 
+type CaptionStyle = "word-by-word" | "karaoke" | "line";
+
+function isLit(style: CaptionStyle, spoken: boolean, active: boolean): boolean {
+  switch (style) {
+    case "karaoke":
+      return spoken;
+    case "word-by-word":
+      return active;
+    case "line":
+      return false;
+  }
+}
+
+const CaptionWord: React.FC<{
+  word: Caption;
+  style: CaptionStyle;
+  tMs: number;
+  color: string;
+  highlightColor: string;
+}> = ({ word, style, tMs, color, highlightColor }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const active = tMs >= word.startMs && tMs < word.endMs;
+  const spoken = tMs >= word.startMs;
+  if (style === "word-by-word" && !spoken) return null;
+  const pop = spring({
+    frame: frame - msToFrames(word.startMs, fps, 0),
+    fps,
+    config: CAPTION_POP_SPRING,
+  });
+  return (
+    <span
+      style={{
+        color: isLit(style, spoken, active) ? highlightColor : color,
+        display: "inline-block",
+        transform:
+          style === "word-by-word"
+            ? `scale(${CAPTIONS.popFrom + pop * CAPTIONS.popGrowth})`
+            : undefined,
+        opacity: style === "karaoke" && !spoken ? CAPTIONS.unspokenOpacity : 1,
+      }}
+    >
+      {word.text}
+    </span>
+  );
+};
+
 export const Captions: React.FC<{
   captions: Caption[];
-  style?: "word-by-word" | "karaoke" | "line";
+  style?: CaptionStyle;
   position?: "bottom" | "center" | "top";
   fontSize?: number;
   color?: string;
@@ -413,14 +559,15 @@ export const Captions: React.FC<{
     (l) => tMs >= l[0].startMs && tMs <= l[l.length - 1].endMs + CAPTION_LINGER_MS,
   );
   if (!line) return null;
+  const [boxPadY, boxPadX] = CAPTIONS.boxPaddingPx;
   return (
     <AbsoluteFill
       style={{
         justifyContent: JUSTIFY_AT[position],
         alignItems: "center",
-        ...overlayPadding(90 * k, verticalInsets(insets)),
-        paddingLeft: "10%",
-        paddingRight: "10%",
+        ...overlayPadding(CAPTIONS.paddingPx * k, verticalInsets(insets)),
+        paddingLeft: CAPTIONS.sidePadding,
+        paddingRight: CAPTIONS.sidePadding,
       }}
     >
       <div
@@ -428,40 +575,26 @@ export const Captions: React.FC<{
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "center",
-          gap: `0 ${fontSize * 0.28 * k}px`,
+          gap: `0 ${fontSize * CAPTIONS.wordGapEm * k}px`,
           fontFamily: fontOr(fontFamily, "main"),
           fontSize: fontSize * k,
-          fontWeight: 800,
-          textShadow: "0 4px 24px rgba(0,0,0,0.55)",
-          padding: `${10 * k}px ${22 * k}px`,
-          borderRadius: 16 * k,
-          background: "rgba(0,0,0,0.35)",
+          fontWeight: CAPTIONS.weight,
+          textShadow: CAPTIONS.shadow,
+          padding: `${boxPadY * k}px ${boxPadX * k}px`,
+          borderRadius: CAPTIONS.boxRadiusPx * k,
+          background: CAPTIONS.box,
         }}
       >
-        {line.map((w, i) => {
-          const active = tMs >= w.startMs && tMs < w.endMs;
-          const spoken = tMs >= w.startMs;
-          if (style === "word-by-word" && !spoken) return null;
-          const pop = spring({
-            frame: frame - msToFrames(w.startMs, fps, 0),
-            fps,
-            config: { damping: 14, stiffness: 220 },
-          });
-          const lit = { karaoke: spoken, "word-by-word": active, line: false }[style];
-          return (
-            <span
-              key={i}
-              style={{
-                color: lit ? highlightColor : color,
-                display: "inline-block",
-                transform: style === "word-by-word" ? `scale(${0.85 + pop * 0.15})` : undefined,
-                opacity: style === "karaoke" && !spoken ? 0.55 : 1,
-              }}
-            >
-              {w.text}
-            </span>
-          );
-        })}
+        {line.map((word, i) => (
+          <CaptionWord
+            key={i}
+            word={word}
+            style={style}
+            tMs={tMs}
+            color={color}
+            highlightColor={highlightColor}
+          />
+        ))}
       </div>
     </AbsoluteFill>
   );

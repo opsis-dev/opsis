@@ -1,12 +1,7 @@
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import path from "node:path";
 
-export function walkFiles(dir: string, out: string[] = []): string[] {
-  if (!existsSync(dir)) return out;
-  for (const entry of readdirSync(dir)) {
-    const p = path.join(dir, entry);
-    if (statSync(p).isDirectory()) walkFiles(p, out);
-    else out.push(p);
-  }
-  return out;
-}
+export const walkFiles = (dir: string): string[] =>
+  readdirSync(dir, { withFileTypes: true, recursive: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => path.join(entry.parentPath, entry.name));

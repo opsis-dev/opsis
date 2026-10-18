@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import type { RecordingProps } from "../../shared/compile/recording";
-import { TEXT_COLOR } from "../../shared/elements/colors";
+import { TEXT_COLOR, STAGE_COLOR } from "../../shared/elements/colors";
 import { CODE_FONT } from "../../shared/fonts";
 import { displayAddress } from "../../shared/format";
 import { clamp } from "../../shared/math";
@@ -145,7 +145,9 @@ const Letterboxed: React.FC<{ height: number; children: React.ReactNode }> = ({
 }) => {
   const { width } = useVideoConfig();
   return (
-    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", background: "#000" }}>
+    <AbsoluteFill
+      style={{ alignItems: "center", justifyContent: "center", background: STAGE_COLOR }}
+    >
       <DesignWidthContext.Provider value={width}>
         <div style={{ position: "relative", width, height }}>{children}</div>
       </DesignWidthContext.Provider>

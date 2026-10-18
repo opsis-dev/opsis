@@ -10,7 +10,7 @@ import { zoomOver } from "./anim";
 import { Backdrop, Backgrounded } from "./backgrounds";
 import { stillLayout, type Box, type Shot, type StillLook } from "./still-layout";
 
-export type Fit = "contain" | "cover" | "fill";
+type Fit = "contain" | "cover" | "fill";
 
 const KEN_BURNS_SCALE = 1.06;
 

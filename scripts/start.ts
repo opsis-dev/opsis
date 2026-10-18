@@ -15,4 +15,4 @@ const args = [
   ...(electronArgs.length || extra.length ? ["--", ...electronArgs, ...extra] : []),
 ];
 const child = spawn(forge, args, { stdio: "inherit", shell: process.platform === "win32" });
-child.on("exit", (code) => process.exit(code ?? 0));
+child.on("exit", (code, signal) => process.exit(code ?? (signal ? 1 : 0)));

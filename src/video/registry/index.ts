@@ -1,5 +1,9 @@
+import type React from "react";
 import { useEffect, useSyncExternalStore } from "react";
-import { cancelRender, continueRender, delayRender } from "remotion";
+import { cancelRender } from "remotion";
+import type { RecordingProps } from "../../shared/compile/recording";
+import type { CoreElementProps } from "../../shared/elements/core";
+import type { CaptionsValue } from "../../shared/schema/values";
 import {
   Backdrop,
   Gradient,
@@ -9,12 +13,13 @@ import {
   Solid,
   Starburst,
 } from "../core/backgrounds";
+import { holdRender } from "../core/loading";
 import { LottieElement } from "../core/lottie";
 import { ImageElement, StillElement, VideoElement, VideoLoop } from "../core/media";
 import { Mosaic } from "../core/mosaic";
 import { Placeholder } from "../core/placeholder";
 import { RecordingClip } from "../core/recording-clip";
-import type { Size } from "../core/still-layout";
+import type { Shot, Size, StillLook } from "../core/still-layout";
 import { Callout, Captions, KineticHeadline, LowerThird, Title } from "../core/text";
 import { coreTransitions } from "../core/transitions";
 import { generatedElementLoaders } from "./components.generated";
@@ -26,28 +31,40 @@ import {
   type Presentation,
 } from "./types";
 
-const core: Partial<Record<string, ElementComponent>> = {
-  "core/recording": component(RecordingClip),
-  "core/placeholder": component(Placeholder),
-  "core/still": component(StillElement),
-  "core/title": component(Title),
-  "core/kinetic-headline": component(KineticHeadline),
-  "core/lower-third": component(LowerThird),
-  "core/callout": component(Callout),
-  "core/captions": component(Captions),
-  "core/image": component(ImageElement),
-  "core/lottie": component(LottieElement),
-  "core/mosaic": component(Mosaic),
-  "core/video": component(VideoElement),
-  "core/video-loop": component(VideoLoop),
-  "core/solid": component(Solid),
-  "core/gradient": component(Gradient),
-  "core/noise": component(NoiseField),
-  "core/starburst": component(Starburst),
-  "core/paper": component(Paper),
-  "core/backdrop": component(Backdrop),
-  "core/light-leak": component(LightLeakElement),
+type CoreProps = CoreElementProps & {
+  "core/recording": RecordingProps;
+  "core/placeholder": { title: string; subtitle: string };
+  "core/still": { src: string; look: StillLook; backdrop: string; shot?: Shot };
+  "core/captions": { captions: CaptionsValue["captions"] };
+  "core/mosaic": { children?: React.ReactNode };
 };
+
+const CORE_ELEMENTS: { [K in keyof CoreProps]: React.FC<CoreProps[K]> } = {
+  "core/recording": RecordingClip,
+  "core/placeholder": Placeholder,
+  "core/still": StillElement,
+  "core/title": Title,
+  "core/kinetic-headline": KineticHeadline,
+  "core/lower-third": LowerThird,
+  "core/callout": Callout,
+  "core/captions": Captions,
+  "core/image": ImageElement,
+  "core/lottie": LottieElement,
+  "core/mosaic": Mosaic,
+  "core/video": VideoElement,
+  "core/video-loop": VideoLoop,
+  "core/solid": Solid,
+  "core/gradient": Gradient,
+  "core/noise": NoiseField,
+  "core/starburst": Starburst,
+  "core/paper": Paper,
+  "core/backdrop": Backdrop,
+  "core/light-leak": LightLeakElement,
+};
+
+const core = new Map(
+  Object.entries(CORE_ELEMENTS).map(([key, element]) => [key, component(element)]),
+);
 
 const loaded = new Map<string, ElementImpl>();
 const loading = new Map<string, Promise<ElementImpl | undefined>>();
@@ -58,16 +75,17 @@ function subscribeToLoads(listener: () => void): () => void {
   return () => loadListeners.delete(listener);
 }
 
-const isCore = (key: string) => key in core || key in coreTransitions;
+const isGenerated = (key: string) => Object.hasOwn(generatedElementLoaders, key);
+
+const isCore = (key: string) => core.has(key) || Object.hasOwn(coreTransitions, key);
 
 function loadElement(key: string): Promise<ElementImpl | undefined> {
   const hit = loaded.get(key);
   if (hit) return Promise.resolve(hit);
-  const loader = generatedElementLoaders[key];
-  if (!loader) return Promise.resolve(undefined);
+  if (!isGenerated(key)) return Promise.resolve(undefined);
   let pending = loading.get(key);
   if (!pending) {
-    pending = loader().then((impl) => {
+    pending = generatedElementLoaders[key]().then((impl) => {
       loaded.set(key, impl);
       for (const listener of loadListeners) listener();
       return impl;
@@ -77,29 +95,24 @@ function loadElement(key: string): Promise<ElementImpl | undefined> {
   return pending;
 }
 
-const KEY_SEPARATOR = "\n";
+const needsLoad = (key: string | undefined): boolean =>
+  !!key && !isCore(key) && !loaded.has(key) && isGenerated(key);
 
-const missingKeys = (keys: Array<string | undefined>): string =>
-  keys
-    .filter((k): k is string => !!k && !isCore(k) && !loaded.has(k) && k in generatedElementLoaders)
-    .join(KEY_SEPARATOR);
-
-export function useElements(keys: Array<string | undefined>): boolean {
-  const snapshot = () => missingKeys(keys);
+export function useElement(key: string | undefined): boolean {
+  const snapshot = () => needsLoad(key);
   const missing = useSyncExternalStore(subscribeToLoads, snapshot, snapshot);
   useEffect(() => {
-    if (!missing) return;
-    const wanted = missing.split(KEY_SEPARATOR);
-    const handle = delayRender(`Loading ${wanted.join(", ")}`);
-    Promise.all(wanted.map(loadElement))
-      .then(() => continueRender(handle))
+    if (!missing || !key) return;
+    const release = holdRender(`Loading ${key}`);
+    loadElement(key)
+      .then(release)
       .catch((error: unknown) => cancelRender(error));
-  }, [missing]);
-  return missing === "";
+  }, [key, missing]);
+  return !missing;
 }
 
 export function getComponent(key: string): ElementComponent | undefined {
-  const impl = core[key] ?? loaded.get(key);
+  const impl = core.get(key) ?? loaded.get(key);
   return impl && !isPresentation(impl) ? impl : undefined;
 }
 
@@ -108,8 +121,9 @@ export function getPresentation(
   params: Record<string, unknown>,
   size: Size,
 ): Presentation | null {
-  const impl = coreTransitions[key] ?? loaded.get(key);
-  return impl && isPresentation(impl) ? impl(params, size) : null;
+  const impl =
+    (Object.hasOwn(coreTransitions, key) ? coreTransitions[key] : undefined) ?? loaded.get(key);
+  return impl && isPresentation(impl) ? impl.create(params, size) : null;
 }
 
-export const isKnownElement = (key: string) => isCore(key) || key in generatedElementLoaders;
+export const isKnownElement = (key: string) => isCore(key) || isGenerated(key);

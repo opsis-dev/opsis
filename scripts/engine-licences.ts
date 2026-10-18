@@ -1,14 +1,15 @@
-import { readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
 import { writeChromiumCredits } from "../src/engine/chromium-credits";
 import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "../src/engine/paths";
+import { readJsonWith } from "./lib/read-json";
 import { ROOT } from "./lib/tool-config";
 
-const appName = z
-  .object({ productName: z.string() })
-  .parse(JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"))).productName;
+const appName = readJsonWith(
+  z.object({ productName: z.string() }),
+  path.join(ROOT, "package.json"),
+).productName;
 
 function electronAppData(): string {
   if (process.platform === "darwin")

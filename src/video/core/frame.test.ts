@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { overlayScale, sameShape, shapeInsets, zoomBoost } from "./frame";
+import { sameShape, shapeInsets, zoomBoost } from "./frame";
 
 describe("other shapes", () => {
   it("adds margins only outside landscape, and more the narrower the frame", () => {
@@ -13,10 +13,6 @@ describe("other shapes", () => {
   it("keeps overlays clear of the bottom of a vertical frame more than the top", () => {
     const tall = shapeInsets(1080, 1920);
     expect(tall.bottom).toBeGreaterThan(tall.top);
-  });
-
-  it("sizes overlays by the long side, so a vertical frame isn't shrunk", () => {
-    expect(overlayScale(1080, 1920)).toBeGreaterThanOrEqual(overlayScale(1920, 1080));
   });
 
   it("treats nearly equal shapes as the same", () => {
