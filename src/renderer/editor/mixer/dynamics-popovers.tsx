@@ -134,7 +134,7 @@ export function CompPopover({
         render={
           <PopoverButton
             on={comp.on}
-            className="flex h-5 min-w-0 flex-1 items-center justify-between"
+            className="flex h-5 min-w-0 flex-1 items-center justify-between gap-1"
             aria-label="Compressor"
           />
         }
