@@ -25,7 +25,8 @@ import { VISIBLE_NODE_DEFS } from "@/shared/nodes/registry";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { NODE_DRAG_TYPE, snapToGrid } from "./canvas-grid";
-import { CategoryBadge } from "./category-badge";
+import { CategoryBadge, NodeBadge } from "./category-badge";
+import { GLYPH_HOST } from "./node-glyph";
 import { openPanel, usePanels } from "./panels";
 import { CATEGORY_STYLES, portLabels } from "./ports";
 
@@ -60,7 +61,7 @@ function NodePreview({ def }: { def: NodeDef }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <CategoryBadge category={def.category} icon={def.icon} size="lg" />
+        <NodeBadge def={def} size="lg" />
         <div className="flex min-w-0 flex-col">
           <span className="truncate font-medium">{def.title}</span>
           <span className="text-muted-foreground text-xs">{CATEGORY_LABELS[def.category]}</span>
@@ -106,6 +107,7 @@ function PaletteList({
         >
           {defs.map((def) => (
             <CommandItem
+              {...GLYPH_HOST}
               key={def.type}
               value={`${def.title} ${CATEGORY_LABELS[category]} ${def.description ?? ""}`}
               onSelect={() => onPick(def.type)}
@@ -121,7 +123,7 @@ function PaletteList({
                   delay={500}
                   render={<span className="flex min-w-0 flex-1 items-center gap-2" />}
                 >
-                  <CategoryBadge category={category} icon={def.icon} />
+                  <NodeBadge def={def} />
                   <span className="truncate">{def.title}</span>
                 </HoverCardTrigger>
                 <HoverCardContent side="right" align="start" sideOffset={12}>

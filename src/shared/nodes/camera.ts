@@ -116,7 +116,6 @@ const autoZoomNode = defineNode({
   ...base,
   type: "camera.autoZoom",
   title: "Auto zoom",
-  icon: "scan-search",
   description:
     "Turns a recording into a polished clip: the window floats on a backdrop and the camera zooms to every click.",
   inputs: { recording: port("recording", "Recording") },
@@ -184,7 +183,6 @@ const manualZoomNode = defineNode({
   ...modifier,
   type: "camera.manualZoom",
   title: "Zoom here",
-  icon: "zoom-in",
   description: "Zooms to a spot of your choice at a set time.",
   card: ({ params: p }) => [
     row("zoom-in", `${p.scale}× at ${formatDuration(p.atMs)}`),
@@ -209,7 +207,6 @@ const panNode = defineNode({
   ...modifier,
   type: "camera.pan",
   title: "Pan",
-  icon: "move",
   description: "Moves the camera from one spot to another.",
   card: ({ params: p }) => [
     row("move", `${formatDuration(p.atMs)} → ${formatDuration(p.atMs + p.durationMs)}`),
@@ -237,7 +234,6 @@ const followCursorNode = defineNode({
   ...modifier,
   type: "camera.followCursor",
   title: "Follow cursor",
-  icon: "crosshair",
   description: "Keeps the camera on the cursor, good for tall formats.",
   card: ({ params: p }) => [
     row("locate-fixed", `${p.scale}× · re-aim every ${formatDuration(p.everyMs)}`),
@@ -286,7 +282,6 @@ const idleSpeedupNode = defineNode({
   ...modifier,
   type: "camera.idleSpeedup",
   title: "Skip quiet parts",
-  icon: "fast-forward",
   description: "Speeds through moments where nothing happens.",
   card: ({ params: p }) => [
     row("fast-forward", `${p.rate}× when quiet over ${formatDuration(p.thresholdMs)}`),
@@ -316,7 +311,6 @@ const speedRampNode = defineNode({
   ...modifier,
   type: "camera.speedRamp",
   title: "Speed ramp",
-  icon: "gauge",
   description: "Speeds up or slows down chosen parts.",
   card: ({ params: p }) => [
     row("gauge", plural(p.segments.length, "part"), mutedIf(!p.segments.length)),
@@ -342,7 +336,6 @@ const cropNode = defineNode({
   ...modifier,
   type: "camera.crop",
   title: "Crop",
-  icon: "crop",
   description: "Cuts the recording down to an area.",
   card: ({ params: p }) => [
     row(
@@ -374,7 +367,6 @@ const deviceFrameNode = defineNode({
   ...modifier,
   type: "camera.deviceFrame",
   title: "Device frame",
-  icon: "laptop",
   description: "Puts the video inside a browser window, laptop or phone.",
   card: ({ params: p }) => [
     row(DEVICES[p.device].icon, DEVICES[p.device].label),
@@ -459,7 +451,6 @@ const backdropNode = defineNode({
   ...modifier,
   type: "camera.backdrop",
   title: "Backdrop",
-  icon: "image",
   description: "The background behind the floating window: a studio image, colour or gradient.",
   card: ({ params: p }) => [BACKDROP_KINDS[p.kind].row(p)],
   params: backdropParams,
@@ -475,7 +466,6 @@ const motionBlurNode = defineNode({
   ...modifier,
   type: "camera.motionBlur",
   title: "Motion blur",
-  icon: "wind",
   description: "Adds blur to fast camera moves.",
   card: ({ params: p }) => [toggleRow("wind", p.enabled)],
   params: z.object({ enabled: bool(true, "Motion blur") }),

@@ -41,7 +41,6 @@ export const recordNode = defineNode({
   ...base,
   type: "capture.record",
   title: "Record take",
-  icon: "video",
   description: "Plays all connected browser actions in one go and records the screen.",
   inputs: { session: port("session", "Previous") },
   outputs: { recording: port("recording", "Recording") },
@@ -101,7 +100,6 @@ export const stillNode = defineNode({
   ...base,
   type: "capture.still",
   title: "Screenshot",
-  icon: "camera",
   description:
     "Plays the connected actions, then takes a sharp screenshot of the page or one element.",
   inputs: { session: port("session", "Previous") },
@@ -170,7 +168,6 @@ export const loginOnceNode = defineNode({
   ...base,
   type: "capture.loginOnce",
   title: "Sign in once",
-  icon: "key-round",
   volatile: true,
   description:
     "Opens a window where you sign in yourself. Demoflow keeps the sign-in, encrypted, for later takes.",

@@ -115,7 +115,6 @@ export const renderNode = defineNode({
   ...base,
   type: "output.render",
   title: "Export video",
-  icon: "clapperboard",
   phase: "render",
   description: "Renders the final video, one file per shape (16:9, 9:16…).",
   outputs: { media: port("media", "File") },
@@ -178,7 +177,6 @@ export const stillOutputNode = defineNode({
   ...base,
   type: "output.still",
   title: "Export images",
-  icon: "image-down",
   phase: "render",
   description:
     "Saves a frame as images at social sizes: wide, link preview, square, portrait, story.",
@@ -208,7 +206,6 @@ export const exportProjectNode = defineNode({
   ...base,
   type: "output.exportProject",
   title: "Export as code",
-  icon: "folder-code",
   phase: "post",
   description: "Saves this video as an editable code project for developers.",
   outputs: { file: port("file", "Folder") },

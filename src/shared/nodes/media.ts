@@ -109,7 +109,6 @@ const op = <S extends z.ZodObject>(def: Omit<NodeDef<S>, "category" | "phase" | 
 export const importMediaNode = op({
   type: "media.import",
   title: "Media file",
-  icon: "file-play",
   description: "A video, image or sound from your project. Drop files on the canvas to add one.",
   inputs: {},
   outputs: { media: port("media", "File"), clip: port("clip", "Clip") },
@@ -156,7 +155,6 @@ const mediaToClipNode = defineNode({
   ...nodeBase("Media", "compile"),
   type: "media.toClip",
   title: "Use as clip",
-  icon: "film",
   description: "Turns a file into a clip you can place in the video.",
   inputs: { media: port("media", "File") },
   outputs: { clip: port("clip", "Clip") },
@@ -201,7 +199,6 @@ export const mediaTrimNode = op({
   ...one,
   type: "media.trim",
   title: "Trim file",
-  icon: "scissors",
   description: "Cuts a file down to a start and end." + NEW_FILE,
   card: ({ params: p, result }) => [
     row(
@@ -228,7 +225,6 @@ const CONCAT_INPUTS = {
 export const concatNode = op({
   type: "media.concat",
   title: "Join files",
-  icon: "combine",
   description: "Joins files end to end. Fast when they match, otherwise converts them." + NEW_FILE,
   inputs: CONCAT_INPUTS,
   outputs: { media: port("media", "File") },
@@ -244,7 +240,6 @@ export const mediaSpeedNode = op({
   ...one,
   type: "media.speed",
   title: "Change speed",
-  icon: "fast-forward",
   description: "Speeds a file up or slows it down." + NEW_FILE,
   card: ({ params: p }) => [
     row("gauge", `${p.rate}×`),
@@ -260,7 +255,6 @@ export const reverseNode = op({
   ...one,
   type: "media.reverse",
   title: "Reverse",
-  icon: "undo-2",
   description: "Plays a file backwards." + NEW_FILE,
   card: ({ result }) => [lengthRow(result)],
   params: z.object({}),
@@ -270,7 +264,6 @@ export const scalePadNode = op({
   ...one,
   type: "media.scalePad",
   title: "Resize",
-  icon: "maximize",
   description: "Resizes a file, adding bars or cropping to fit." + NEW_FILE,
   card: ({ params: p }) => [
     row("ratio", `${p.width} × ${p.height}`),
@@ -291,7 +284,6 @@ export const convertNode = op({
   ...one,
   type: "media.convert",
   title: "Convert",
-  icon: "refresh-cw",
   description: "Saves a file in another format or quality." + NEW_FILE,
   card: ({ params: p }) => [
     row("file-video", FORMAT_NAMES[p.codec]),
@@ -310,7 +302,6 @@ export const gifNode = op({
   ...one,
   type: "media.gif",
   title: "Make GIF",
-  icon: "image-play",
   description: "Turns a video into a GIF with clean colours." + NEW_FILE,
   card: ({ params: p }) => [
     row("image-play", `${p.width} px · ${p.fps} fps`),
@@ -338,7 +329,6 @@ export const extractAudioNode = op({
   ...one,
   type: "media.extractAudio",
   title: "Extract sound",
-  icon: "audio-lines",
   description: "Saves the sound of a video as its own file." + NEW_FILE,
   card: ({ params: p }) => [row("audio-lines", p.format.toUpperCase())],
   params: z.object({
@@ -354,7 +344,6 @@ export const loudnormNode = op({
   ...one,
   type: "media.loudnorm",
   title: "Even out volume",
-  icon: "volume-2",
   description: "Makes the sound as loud as most online videos." + NEW_FILE,
   card: ({ params: p }) => [row("volume-2", loudnessName(p.integrated))],
   params: z.object({
@@ -367,7 +356,6 @@ export const loudnormNode = op({
 export const thumbnailNode = op({
   type: "media.thumbnail",
   title: "Grab frame",
-  icon: "image",
   description: "Saves one frame of a video as an image." + NEW_FILE,
   inputs: { media: port("media", "File") },
   outputs: { image: port("image", "Image") },
@@ -383,7 +371,6 @@ export const faststartNode = op({
   ...one,
   type: "media.faststart",
   title: "Web-ready",
-  icon: "zap",
   description: "Prepares a video to start playing instantly on the web." + NEW_FILE,
   params: z.object({}),
 });
@@ -391,7 +378,6 @@ export const faststartNode = op({
 export const probeNode = op({
   type: "media.probe",
   title: "File info",
-  icon: "info",
   description: "Shows a file's length, size, frame rate and format.",
   inputs: { media: port("media", "File") },
   outputs: { file: port("file", "Info"), media: port("media", "File") },

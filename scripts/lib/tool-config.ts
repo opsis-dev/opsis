@@ -22,6 +22,7 @@ export const IGNORED_PATHS = [
   "src/renderer/hooks/**",
   "src/shared/elements/elements.generated.ts",
   "src/shared/fonts/bundled.generated.ts",
+  "src/renderer/editor/node-glyphs.generated.ts",
   "src/video/fonts/google/**",
   "src/video/registry/components.generated.ts",
 ];

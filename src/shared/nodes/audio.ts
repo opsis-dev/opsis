@@ -116,7 +116,6 @@ const musicNode = defineNode({
     p.loop && row("repeat", "Loops"),
     p.lengthMs > 0 && row("clock", `Plays for ${formatDuration(p.lengthMs)}`),
   ],
-  icon: "music",
   params: z.object({
     src: soundFile("Song"),
     volume: volume(0.5),
@@ -176,7 +175,6 @@ const sfxNode = defineNode({
       : row("clock", `At ${formatDuration(p.atMs)}`),
     p.keepMusic && row("music", "Music stays up"),
   ],
-  icon: "audio-lines",
   params: z.object({
     src: more(soundFile("Sound"), { widget: "sound" }),
     atAction: z.string().default("").meta({
@@ -235,7 +233,6 @@ const mixNode = defineNode({
   ...base,
   type: "audio.mix",
   title: "Add sound",
-  icon: "audio-waveform",
   description:
     "Puts sounds under a clip. Connect as many as you like. Sound stops where the clip ends.",
   card: ({ connected }) => {

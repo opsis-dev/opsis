@@ -135,7 +135,6 @@ const sequenceNode = defineNode({
   ...base,
   type: "timeline.sequence",
   title: "Sequence",
-  icon: "list-video",
   description: "Plays clips one after another, with a transition between each.",
   inputs: clipPorts(clipLabel),
   outputs: { clip: port("clip", "Clip") },
@@ -220,7 +219,6 @@ const stackNode = defineNode({
   ...base,
   type: "timeline.stack",
   title: "Layers",
-  icon: "layers",
   description: "Stacks clips on top of each other: Layer 1 at the back, the last at the front.",
   inputs: clipPorts(layerLabel),
   outputs: { clip: port("clip", "Clip") },
@@ -260,7 +258,6 @@ const trimNode = defineNode({
   ...clipModifier,
   type: "timeline.trim",
   title: "Trim",
-  icon: "scissors",
   description: "Keeps only part of a clip.",
   card: ({ params: p }) => [
     row(
@@ -298,7 +295,6 @@ const loopNode = defineNode({
   ...clipModifier,
   type: "timeline.loop",
   title: "Repeat",
-  icon: "repeat",
   description: "Plays a clip several times.",
   card: ({ params: p }) => [row("repeat", `${p.times}×`)],
   params: z.object({
@@ -320,7 +316,6 @@ const delayNode = defineNode({
   ...clipModifier,
   type: "timeline.delay",
   title: "Delay",
-  icon: "timer",
   description: "Starts a clip later.",
   card: ({ params: p }) => [row("clock", `+${formatDuration(p.ms)}`)],
   params: z.object({ ms: ms(500, "Delay") }),
@@ -337,7 +332,6 @@ const speedNode = defineNode({
   ...clipModifier,
   type: "timeline.speed",
   title: "Speed",
-  icon: "fast-forward",
   description: "Plays a clip faster or slower.",
   card: ({ params: p }) => [
     row("gauge", `${p.rate}×`),
@@ -419,7 +413,6 @@ const durationFitNode = defineNode({
   ...base,
   type: "timeline.durationFit",
   title: "Fit length",
-  icon: "ruler",
   description:
     "Makes a clip a set length, or as long as a sound, by speeding up, holding or cutting.",
   inputs: { clip: port("clip", "Clip"), audio: opt("audio", "Fit to this sound") },
@@ -449,7 +442,6 @@ const branchNode = defineNode({
   ...base,
   type: "timeline.branch",
   title: "Choose by variable",
-  icon: "split",
   description:
     "Uses the first clip when a variable has a value, otherwise the second. Handy for A/B versions.",
   inputs: { a: opt("clip", "First"), b: opt("clip", "Otherwise") },

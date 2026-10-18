@@ -74,7 +74,6 @@ function transitionNode(meta: ElementMeta): NodeDef {
       !p.keepWhole &&
         coverRow(cover(p.durationInFrames, [inputFrames?.a, inputFrames?.b]), settings.fps),
     ],
-    icon: "blend",
     params: z.object({
       ...meta.schema.shape,
       durationInFrames: frames(meta.defaultDurationInFrames, "Length"),
@@ -105,7 +104,6 @@ const lightLeakTransitionNode = defineNode({
   title: "Light leak cut",
   category: "Transitions",
   description: "Cuts between two clips under a warm light flare.",
-  icon: "sun",
   phase: "compile",
   card: ({ params, settings }) => [row("sun", frameSecs(params.durationInFrames, settings.fps))],
   params: z.object({

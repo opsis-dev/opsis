@@ -1,6 +1,7 @@
 import { cn } from "@/renderer/lib/utils";
-import type { NodeCategory } from "@/shared/nodes/define";
+import type { NodeCategory, NodeDef } from "@/shared/nodes/define";
 import type { NodeIconName } from "@/shared/nodes/icon-name";
+import { NodeGlyph } from "./node-glyph";
 import { NodeIcon } from "./node-icon";
 import { CATEGORY_STYLES } from "./ports";
 
@@ -26,6 +27,26 @@ export function CategoryBadge({
       style={{ background: CATEGORY_STYLES[category].color }}
     >
       <NodeIcon name={icon} className={SIZES[size].icon} />
+    </span>
+  );
+}
+
+export function NodeBadge({
+  def,
+  size = "sm",
+}: {
+  def: Pick<NodeDef, "type" | "category">;
+  size?: keyof typeof SIZES;
+}) {
+  return (
+    <span
+      className={cn(
+        "relative grid shrink-0 place-items-center overflow-hidden text-black",
+        SIZES[size].box,
+      )}
+      style={{ background: CATEGORY_STYLES[def.category].color }}
+    >
+      <NodeGlyph type={def.type} className={SIZES[size].icon} />
     </span>
   );
 }

@@ -37,7 +37,6 @@ import {
   type NodeCategory,
   type NodeDef,
 } from "./define";
-import type { NodeIconName } from "./icon-name";
 import { choice, int, more, text, visualEnvelope } from "./params";
 import { clipPorts, connectedClips, IN_PORTS, sceneLabel } from "./ports";
 
@@ -92,17 +91,17 @@ function durationRow(meta: ElementMeta, duration: number, fps: number): CardRow 
   return row("clock", frameSecs(duration || usual, fps));
 }
 
-const NODE_KIND_FOR: Record<ElementCategory, { category: NodeCategory; icon: NodeIconName }> = {
-  core: { category: "Elements", icon: "box" },
-  text: { category: "Text & overlays", icon: "type" },
-  overlay: { category: "Text & overlays", icon: "sticker" },
-  background: { category: "Backgrounds", icon: "wallpaper" },
-  effect: { category: "Effects", icon: "sparkles" },
-  ui: { category: "Elements", icon: "app-window" },
-  data: { category: "Elements", icon: "chart-column" },
-  scene: { category: "Elements", icon: "clapperboard" },
-  device: { category: "Elements", icon: "smartphone" },
-  transition: { category: "Transitions", icon: "blend" },
+const NODE_CATEGORY_FOR: Record<ElementCategory, NodeCategory> = {
+  core: "Elements",
+  text: "Text & overlays",
+  overlay: "Text & overlays",
+  background: "Backgrounds",
+  effect: "Effects",
+  ui: "Elements",
+  data: "Elements",
+  scene: "Elements",
+  device: "Elements",
+  transition: "Transitions",
 };
 
 function elementProps(meta: ElementMeta, params: Record<string, unknown>): Record<string, unknown> {
@@ -146,7 +145,7 @@ function elementNode(meta: ElementMeta): NodeDef {
   const titles = titleKeys(meta.schema);
   return defineNode({
     ...fromElement(meta),
-    ...NODE_KIND_FOR[meta.category],
+    category: NODE_CATEGORY_FOR[meta.category],
     type: elementNodeType(meta.key),
     description: meta.description,
     card: ({ params, settings }) => elementCard(meta, titles, params, settings.fps),
@@ -168,10 +167,7 @@ function elementNode(meta: ElementMeta): NodeDef {
   });
 }
 
-const SEQUENCER_KIND = { category: "Timeline", icon: "clapperboard" } satisfies {
-  category: NodeCategory;
-  icon: NodeIconName;
-};
+const SEQUENCER_CATEGORY: NodeCategory = "Timeline";
 
 const MAX_SCENE_GAP_FRAMES = 120;
 const DEFAULT_SCENE_BACKGROUND = "#0b0b10";
@@ -251,7 +247,7 @@ function compileSequencer(
 function sequencerNode(meta: ElementMeta): NodeDef {
   return defineNode({
     ...fromElement(meta),
-    ...SEQUENCER_KIND,
+    category: SEQUENCER_CATEGORY,
     type: elementNodeType(meta.key),
     description: meta.description,
     card: sequencerCard,

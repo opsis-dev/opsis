@@ -6,7 +6,6 @@ import type { ClipValue, CompileValue, NodeResult } from "../schema/values";
 import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { interpolate } from "../vars";
 import { MAX_CARD_ROWS, sentence, type CardContext, type CardRow } from "./card";
-import type { NodeIconName } from "./icon-name";
 
 export const NODE_CATEGORIES = [
   "Browser",
@@ -67,7 +66,6 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
   title: string;
   category: NodeCategory;
   description?: string;
-  icon?: NodeIconName;
   phase: NodePhase;
   inputs: Record<string, PortSpec>;
   outputs: Record<string, PortSpec>;

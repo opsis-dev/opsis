@@ -24,7 +24,7 @@ import { SwapFade } from "../app/motion";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
-import { CategoryBadge } from "./category-badge";
+import { NodeBadge } from "./category-badge";
 import { ProjectInspector } from "./project-inspector";
 import { ReplayButtons } from "./replay-buttons";
 import { startRun } from "./run";
@@ -90,7 +90,7 @@ function NodeDetails({
 function NodeHeader({ node, def }: { node: WorkflowNode; def: NodeDef }) {
   return (
     <div className="flex items-start gap-3">
-      <CategoryBadge category={def.category} icon={def.icon} size="xl" />
+      <NodeBadge def={def} size="xl" />
       <div className="flex min-w-0 flex-col gap-1">
         <h2 className="truncate font-semibold">{nodeName(node)}</h2>
         <div className="flex flex-wrap gap-1">

@@ -33,8 +33,9 @@ import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { CardRows, useCardRows } from "./card-rows";
-import { CategoryBadge } from "./category-badge";
+import { NodeBadge } from "./category-badge";
 import type { CanvasNode } from "./convert";
+import { GLYPH_HOST } from "./node-glyph";
 import { NodeThumbnail } from "./node-still";
 import { portLabel, portTypeColor } from "./ports";
 import { useNodeProblems } from "./use-node-problems";
@@ -101,6 +102,7 @@ function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: Nod
     <NodeStatusIndicator status={indicator} variant="border">
       {succeeded ? <div className={DONE_BORDER} /> : null}
       <BaseNode
+        {...GLYPH_HOST}
         className={cn(node.disabled && "opacity-50", active && "ring-primary/70 ring-2")}
         style={{ width: CARD_WIDTH }}
       >
@@ -129,7 +131,7 @@ function NodeHeader({
   const badge = status && status !== "running" ? STATUS[status] : undefined;
   return (
     <BaseNodeHeader className="border-b">
-      <CategoryBadge category={def.category} icon={def.icon} size="md" />
+      <NodeBadge def={def} size="md" />
       <BaseNodeHeaderTitle className="truncate text-sm">{title}</BaseNodeHeaderTitle>
       {badge ? (
         <Badge

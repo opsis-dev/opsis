@@ -76,7 +76,6 @@ export const sessionNode = defineNode({
   ...base,
   type: "browser.session",
   title: "Open browser",
-  icon: "globe",
   description:
     "Starts a browser window for the actions that follow: size, device, language, sign-in.",
   inputs: {},
@@ -153,7 +152,6 @@ export const navigateNode = defineNode({
   ...chain,
   type: "browser.navigate",
   title: "Go to page",
-  icon: "link",
   description: "Opens a page address.",
   params: z.object({
     url: text(SITE_ADDRESS, "Page address"),
@@ -182,7 +180,6 @@ export const clickNode = defineNode({
   ...action,
   type: "browser.click",
   title: "Click",
-  icon: "mouse-pointer-click",
   description: "Moves the cursor to an element and clicks it.",
   params: z.object({ ...targetFields(), ...pointerAction(220, "Hover before clicking") }),
   card: ({ params: p }) => [
@@ -195,7 +192,6 @@ export const typeNode = defineNode({
   ...action,
   type: "browser.type",
   title: "Type text",
-  icon: "keyboard",
   description: "Types into a field, key by key.",
   params: z.object({
     ...targetFields(),
@@ -223,7 +219,6 @@ export const hoverNode = defineNode({
   ...action,
   type: "browser.hover",
   title: "Hover",
-  icon: "pointer",
   description:
     "Moves the cursor over an element without clicking, so a menu or tooltip can appear.",
   params: z.object({ ...targetFields(), ...pointerAction(600, "Hover for") }),
@@ -311,7 +306,6 @@ export const dragNode = defineNode({
   ...action,
   type: "browser.drag",
   title: "Drag",
-  icon: "grab",
   description:
     "Drags an element onto another one, by a distance, or along a path, like moving a card or drawing a shape.",
   params: dragParams,
@@ -322,7 +316,6 @@ export const scrollNode = defineNode({
   ...action,
   type: "browser.scroll",
   title: "Scroll",
-  icon: "arrow-down-up",
   description: "Scrolls to an element or by a distance.",
   params: z.object({
     mode: choice(["element", "by"], "element", "Scroll to", {
@@ -356,7 +349,6 @@ export const selectNode = defineNode({
   ...action,
   type: "browser.select",
   title: "Choose option",
-  icon: "list-checks",
   description: "Picks an option in a dropdown.",
   params: z.object({
     ...targetFields(),
@@ -374,7 +366,6 @@ export const uploadNode = defineNode({
   ...action,
   type: "browser.upload",
   title: "Upload file",
-  icon: "upload",
   description: "Attaches a file from your project to a file field.",
   params: z.object({
     ...targetFields("File field", "Pick the upload field, or type its label."),
@@ -392,7 +383,6 @@ export const pressNode = defineNode({
   ...action,
   type: "browser.press",
   title: "Press keys",
-  icon: "command",
   description: "Presses a key or shortcut, like Ctrl+K. Shows in keystroke chips.",
   params: z.object({
     keys: more(text("Enter", "Keys"), {
@@ -446,7 +436,6 @@ export const waitNode = defineNode({
   ...chain,
   type: "browser.wait",
   title: "Wait",
-  icon: "hourglass",
   description:
     "Waits for an element, a quiet page, an address, or a fixed time. Waiting for something is more reliable than a fixed time.",
   params: waitParams,
@@ -458,7 +447,6 @@ export const assertNode = defineNode({
   ...chain,
   type: "browser.assert",
   title: "Check text",
-  icon: "badge-check",
   description:
     "Stops the recording early if some text is not on the page, so you don't export a broken take.",
   params: z.object({
@@ -478,7 +466,6 @@ export const hoistNode = defineNode({
   ...chain,
   type: "browser.hoist",
   title: "Find element early",
-  icon: "anchor",
   description:
     "Looks an element up ahead of time so a later action doesn't pause on screen while searching.",
   params: z.object(targetFields()),
@@ -490,7 +477,6 @@ export const setStateNode = defineNode({
   ...chain,
   type: "browser.setState",
   title: "Run page script",
-  icon: "braces",
   description:
     "Runs a small script in the page, e.g. to skip onboarding or turn on a feature. Put it before Go to page to run it as the site first opens.",
   params: z.object({
@@ -510,7 +496,6 @@ export const mockRouteNode = defineNode({
   ...chain,
   type: "browser.mockRoute",
   title: "Fake a response",
-  icon: "server",
   description:
     "Makes the site show fixed data for matching requests, so every take looks the same.",
   params: z.object({
@@ -535,7 +520,6 @@ export const freezeClockNode = defineNode({
   ...chain,
   type: "browser.freezeClock",
   title: "Freeze time",
-  icon: "clock",
   description:
     'Pins the date and time the page sees, so clocks and "x minutes ago" never change between takes.',
   params: z.object({
@@ -550,7 +534,6 @@ export const hideElementsNode = defineNode({
   ...chain,
   type: "browser.hideElements",
   title: "Hide clutter",
-  icon: "eye-off",
   description: "Hides cookie banners, chat bubbles and anything else you list.",
   params: z.object({
     cookieBanners: bool(true, "Cookie banners"),
@@ -578,7 +561,6 @@ export const chapterNode = defineNode({
   ...chain,
   type: "browser.chapter",
   title: "Chapter",
-  icon: "bookmark",
   description: "Starts a new chapter. Can show a chapter card in the video.",
   params: z.object({
     title: text("Chapter", "Title"),
@@ -599,7 +581,6 @@ export const overlayHtmlNode = defineNode({
   ...chain,
   type: "browser.overlayHtml",
   title: "HTML overlay",
-  icon: "code",
   description: "Shows your own HTML on top of the page while recording.",
   params: z.object({
     html: text('<div style="font:600 32px system-ui">Hello</div>', "HTML", "code"),

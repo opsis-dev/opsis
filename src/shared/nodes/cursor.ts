@@ -17,7 +17,6 @@ const cursorStyleNode = defineNode({
   ...base,
   type: "cursor.style",
   title: "Cursor",
-  icon: "mouse-pointer-2",
   description: "Shows or hides the drawn cursor and sets its size.",
   card: ({ params: p }) => [
     row("mouse-pointer", p.visible ? `Shown · ${p.size}×` : "Hidden", mutedIf(!p.visible)),
@@ -36,7 +35,6 @@ const clickRippleNode = defineNode({
   ...base,
   type: "cursor.clickRipple",
   title: "Click ripple",
-  icon: "circle-dot",
   description: "A ring that pulses on every click.",
   card: ({ params: p }) => [toggleRow("circle-dot", p.enabled)],
   params: z.object({ enabled: bool(true, "Ripple on every click") }),
@@ -48,7 +46,6 @@ const keystrokeChipsNode = defineNode({
   ...base,
   type: "cursor.keystrokeChips",
   title: "Keystroke chips",
-  icon: "keyboard",
   description: "Shows keys and typed text as keycaps on screen.",
   card: ({ params: p }) => [
     row(
@@ -74,13 +71,13 @@ type Annotation = Pick<NodeDef, "type" | "title" | "description"> & {
   defaults: { text?: string; color: string };
 };
 
-export function annotationNode({ kind, defaults, category = "Cursor", ...def }: Annotation) {
+export function annotationNode({ kind, defaults, icon, category = "Cursor", ...def }: Annotation) {
   return defineNode({
     ...modifierBase(category),
     ...def,
     card: ({ params: p }) => [
       row(
-        def.icon,
+        icon,
         p.match.trim() ? `On actions named ${quote(p.match, LABELLED_TEXT_MAX)}` : "On every click",
       ),
       p.text.trim() && row("type", quote(p.text)),
