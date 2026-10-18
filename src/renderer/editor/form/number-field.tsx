@@ -1,53 +1,45 @@
-import type { ComponentType } from "react";
-import type { FieldWidget } from "@/shared/elements/introspect";
 import { clamp } from "@/shared/math";
-import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/shared/nodes/params";
 import { Field, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
 import { SingleSlider } from "../../app/single-slider";
 import { parseShown, shownText, unitScale, useDecimalInput } from "./decimal";
 import { Help, LabelledChoices } from "./field-shell";
-import { SpotField } from "./spot-field";
 import type { FieldProps } from "./types";
 
 const MAX_SLIDER_RANGE = 5000;
 
-const FINE_SLIDER_RANGE = 1;
+type SliderRange = { min: number; max: number; step: number };
 
-const sliderStep = (min: number, max: number) => (max - min <= FINE_SLIDER_RANGE ? 0.01 : 1);
-
-type NumberProps = FieldProps<number> & { min?: number; max?: number };
-
-const presetNumber =
-  (presets: Readonly<Record<string, number>>) =>
-  ({ label, meta, value, onChange }: NumberProps) => {
-    const options = Object.entries(presets).map(([name, n]) => ({ label: name, value: n }));
-    const gaps = options.map((o) => Math.abs(o.value - value));
-    const nearest = gaps.indexOf(Math.min(...gaps));
-    return (
-      <LabelledChoices
-        label={label}
-        meta={meta}
-        options={options}
-        current={nearest < 0 ? undefined : nearest}
-        onPick={onChange}
-      />
-    );
-  };
-
-const NUMBER_WIDGETS: Partial<Record<FieldWidget, ComponentType<NumberProps>>> = {
-  quality: presetNumber(QUALITY_PRESETS),
-  loudness: presetNumber(LOUDNESS_PRESETS),
-  spot: SpotField,
-};
-
-export function NumberControl(props: NumberProps) {
-  const { meta } = props;
-  const Widget = (meta.widget && NUMBER_WIDGETS[meta.widget]) || NumberField;
-  return <Widget {...props} />;
+function sliderRange(min: number | undefined, max: number | undefined): SliderRange | null {
+  if (min == null || max == null || max - min > MAX_SLIDER_RANGE) return null;
+  return { min, max, step: max - min <= 1 ? 0.01 : 1 };
 }
 
-function NumberField({ id, label, value, min, max, meta, ctx, onChange }: NumberProps) {
+export type NumberProps = FieldProps<number> & { min?: number; max?: number };
+
+export function PresetNumber({
+  label,
+  meta,
+  value,
+  onChange,
+  presets,
+}: FieldProps<number> & { presets: Readonly<Record<string, number>> }) {
+  const options = Object.entries(presets).map(([name, n]) => ({ label: name, value: n }));
+  const nearest = options.reduce((best, o) =>
+    Math.abs(o.value - value) < Math.abs(best.value - value) ? o : best,
+  );
+  return (
+    <LabelledChoices
+      label={label}
+      meta={meta}
+      options={options}
+      current={nearest.label}
+      onPick={onChange}
+    />
+  );
+}
+
+export function NumberField({ id, label, value, min, max, meta, ctx, onChange }: NumberProps) {
   const scale = unitScale(meta.unit, ctx.fps);
   const shown = meta.zeroLabel && value === 0 ? "" : shownText(value, scale);
   const input = useDecimalInput(shown, "edit", (text) => {
@@ -58,7 +50,7 @@ function NumberField({ id, label, value, min, max, meta, ctx, onChange }: Number
     const n = parseShown(text, scale);
     if (n !== null) onChange(clamp(n, min ?? -Infinity, max ?? Infinity));
   });
-  const slider = min != null && max != null && max - min <= MAX_SLIDER_RANGE && !scale.time;
+  const slider = scale.time ? null : sliderRange(min, max);
   return (
     <Field>
       <div className="flex items-center justify-between gap-2">
@@ -77,9 +69,9 @@ function NumberField({ id, label, value, min, max, meta, ctx, onChange }: Number
       </div>
       {slider ? (
         <SingleSlider
-          min={min}
-          max={max}
-          step={meta.step ?? sliderStep(min, max)}
+          min={slider.min}
+          max={slider.max}
+          step={meta.step ?? slider.step}
           value={value}
           onChange={onChange}
         />

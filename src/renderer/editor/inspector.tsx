@@ -40,23 +40,20 @@ export function Inspector() {
   if (!workflow) return null;
   const present = selected.filter((id) => workflow.nodes.some((n) => n.id === id));
   const node = present.length === 1 ? findById(workflow.nodes, present[0]) : undefined;
+  const def = node && getNodeDef(node.type);
   return (
     <ScrollArea className="h-full" {...typing}>
       <SwapFade id={node?.id ?? "project"}>
-        {node ? (
-          <NodeInspector workflow={workflow} node={node} />
-        ) : (
+        {!node ? (
           <ProjectInspector workflow={workflow} multi={present.length} />
+        ) : def ? (
+          <NodeDetails workflow={workflow} node={node} def={def} />
+        ) : (
+          <p className="p-4 text-sm">This node type isn't available.</p>
         )}
       </SwapFade>
     </ScrollArea>
   );
-}
-
-function NodeInspector({ workflow, node }: { workflow: Workflow; node: WorkflowNode }) {
-  const def = getNodeDef(node.type);
-  if (!def) return <p className="p-4 text-sm">This node type isn't available.</p>;
-  return <NodeDetails workflow={workflow} node={node} def={def} />;
 }
 
 function NodeDetails({
@@ -107,19 +104,39 @@ function NodeHeader({ node, def }: { node: WorkflowNode; def: NodeDef }) {
 
 function NodeProblems({ nodeId }: { nodeId: string }) {
   const { errors, warnings } = useNodeProblems(nodeId);
-  const problems = [...errors, ...warnings];
+  return (
+    <>
+      <ProblemAlert
+        problems={errors}
+        variant="destructive"
+        title={(n) => (n === 1 ? "Something needs attention" : `${n} things need attention`)}
+      />
+      <ProblemAlert
+        problems={warnings}
+        variant="default"
+        title={(n) => (n === 1 ? "Something to check" : `${n} things to check`)}
+      />
+    </>
+  );
+}
+
+function ProblemAlert({
+  problems,
+  variant,
+  title,
+}: {
+  problems: string[];
+  variant: "default" | "destructive";
+  title: (count: number) => string;
+}) {
   if (!problems.length) return null;
   return (
-    <Alert variant="destructive">
+    <Alert variant={variant}>
       <CircleAlert />
-      <AlertTitle>
-        {problems.length === 1
-          ? "Something needs attention"
-          : `${problems.length} things need attention`}
-      </AlertTitle>
+      <AlertTitle>{title(problems.length)}</AlertTitle>
       <AlertDescription>
-        {problems.map((p, i) => (
-          <p key={i} className="whitespace-pre-wrap">
+        {problems.map((p) => (
+          <p key={p} className="whitespace-pre-wrap">
             {p}
           </p>
         ))}

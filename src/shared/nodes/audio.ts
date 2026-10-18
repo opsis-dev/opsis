@@ -14,6 +14,7 @@ import { asset, audioEnvelope, bool, int, more, ms, volume } from "./params";
 import { formatDuration, percentText, plural } from "../format";
 import { msToFrames, msToSignedFrames } from "../timeline/time";
 import { baseName, projectRef } from "../asset-ref";
+import { ANY_VALUE } from "../elements/introspect";
 
 const base = { category: "Audio", phase: "compile" } as const;
 
@@ -164,7 +165,7 @@ const sfxNode = defineNode({
       unit: "ms",
       step: 50,
       help: "Negative plays it before the action, for sounds that build up to it.",
-      showIf: { atAction: ["*"] },
+      showIf: { atAction: [ANY_VALUE] },
     }),
     volume: volume(1),
     keepMusic: more(bool(false, "Keep music up"), {

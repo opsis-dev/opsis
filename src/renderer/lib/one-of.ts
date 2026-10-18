@@ -1,12 +1,16 @@
-import { isOneOf } from "@/shared/guards";
+const optionFor = <T extends string | number>(
+  options: readonly T[],
+  value: unknown,
+): T | undefined => options.find((o) => String(o) === value);
 
 export const whenOneOf =
-  <T extends string>(values: readonly T[], apply: (value: T) => void) =>
+  <T extends string | number>(options: readonly T[], apply: (value: T) => void) =>
   (value: unknown): void => {
-    if (isOneOf(values, value)) apply(value);
+    const picked = optionFor(options, value);
+    if (picked !== undefined) apply(picked);
   };
 
 export const whenFirstOneOf =
-  <T extends string>(values: readonly T[], apply: (value: T) => void) =>
+  <T extends string | number>(options: readonly T[], apply: (value: T) => void) =>
   (picked: readonly unknown[]): void =>
-    whenOneOf(values, apply)(picked[0]);
+    whenOneOf(options, apply)(picked[0]);

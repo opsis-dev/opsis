@@ -2,11 +2,12 @@ import { useState } from "react";
 import { tryParseJson } from "@/shared/guards";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { Textarea } from "@/renderer/components/ui/textarea";
+import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 
 const INVALID = "This isn't valid. Check brackets and quotes.";
 
-export function JsonField({ id, label, value, onChange }: FieldProps<unknown>) {
+export function JsonField({ id, label, value, onChange, meta }: FieldProps<unknown>) {
   const [draft, setDraft] = useState<string | null>(null);
   const [invalid, setInvalid] = useState(false);
   return (
@@ -29,6 +30,7 @@ export function JsonField({ id, label, value, onChange }: FieldProps<unknown>) {
         }}
       />
       {invalid ? <FieldDescription>{INVALID}</FieldDescription> : null}
+      <Help meta={meta} />
     </Field>
   );
 }

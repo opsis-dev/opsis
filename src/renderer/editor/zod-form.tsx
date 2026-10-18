@@ -2,13 +2,16 @@ import { ChevronRight, Plus, Trash2 } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import type { z } from "zod";
 import {
+  ANY_VALUE,
   fieldMeta,
   schemaDefaults,
+  shapeEntries,
+  withDefaults,
   type FieldMeta,
   type FieldWidget,
 } from "@/shared/elements/introspect";
 import { humanize } from "@/shared/format";
-import { isBoolean, isNumber, isRecord, isString, isStringOrNumber } from "@/shared/guards";
+import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/shared/nodes/params";
 import { transitionTitle } from "@/shared/nodes/transitions";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -24,55 +27,74 @@ import {
   FieldSet,
 } from "@/renderer/components/ui/field";
 import { Switch } from "@/renderer/components/ui/switch";
-import { newKeyedItem, useItemKeys } from "@/renderer/lib/use-item-keys";
-import { BoxesField, isBoxList } from "./form/boxes-field";
+import { whenOneOf } from "@/renderer/lib/one-of";
+import { useItemKeys } from "@/renderer/lib/use-item-keys";
+import { BoxesField } from "./form/boxes-field";
 import { ColorField } from "./form/color-field";
 import { EnumField } from "./form/enum-field";
-import { EnvelopeField, isEnvelope } from "./form/envelope-field";
+import { EnvelopeField } from "./form/envelope-field";
 import { ChoiceGroup, Help } from "./form/field-shell";
 import { JsonField } from "./form/json-field";
-import { NumberControl } from "./form/number-field";
+import { KeysField } from "./form/keys-field";
+import { NumberField, PresetNumber, type NumberProps } from "./form/number-field";
+import { OffsetsField } from "./form/offsets-field";
 import { Presets } from "./form/presets";
-import { schemaKind } from "./form/schema-kind";
-import { isColor, labelFor } from "./form/schema-meta";
-import { StringField } from "./form/string-field";
-import type { FieldProps, FormContext, Patch } from "./form/types";
+import { typedField } from "./form/schema-kind";
+import { labelFor } from "./form/schema-meta";
+import { SecretField } from "./form/secret-field";
+import { SoundField } from "./form/sound-field";
+import { SpotField } from "./form/spot-field";
+import {
+  actionChoices,
+  AssetField,
+  backdropChoices,
+  CodeField,
+  DatetimeField,
+  FontField,
+  TargetField,
+  TextField,
+  variableChoices,
+  type SelectChoices,
+} from "./form/string-field";
+import { TimezoneField } from "./form/timezone-field";
+import type { FieldProps, FormContext, ParamFieldProps, ParamValues } from "./form/types";
 
 type Entry = { key: string; field: z.ZodType; meta: FieldMeta };
 
-type AnyFieldProps = FieldProps<unknown>;
+type Widget =
+  | { kind: "string"; Field: ComponentType<ParamFieldProps<string>> }
+  | { kind: "select"; choices: (ctx: FormContext, value: string) => SelectChoices }
+  | { kind: "number"; Field: ComponentType<ParamFieldProps<number> & NumberProps> }
+  | { kind: "presets"; presets: Readonly<Record<string, number>> };
 
-function checked<V, X extends object = object>(
-  is: (v: unknown) => v is V,
-  empty: (props: X) => V,
-  Component: ComponentType<FieldProps<V> & NoInfer<X>>,
-): ComponentType<AnyFieldProps & X> {
-  return function CheckedField(props) {
-    const value = props.value ?? empty(props);
-    return is(value) ? <Component {...props} value={value} /> : <JsonField {...props} />;
-  };
-}
-
-const BoxesKindField = checked(isBoxList, () => [], BoxesField);
-const EnvelopeKindField = checked(isEnvelope, () => ({}), EnvelopeField);
-
-const VALUE_WIDGETS: Partial<Record<FieldWidget, ComponentType<AnyFieldProps>>> = {
-  boxes: BoxesKindField,
-  envelope: EnvelopeKindField,
+const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
+  action: { kind: "select", choices: actionChoices },
+  variable: { kind: "select", choices: variableChoices },
+  backdrop: { kind: "select", choices: backdropChoices },
+  code: { kind: "string", Field: CodeField },
+  asset: { kind: "string", Field: AssetField },
+  font: { kind: "string", Field: FontField },
+  sound: { kind: "string", Field: SoundField },
+  target: { kind: "string", Field: TargetField },
+  secret: { kind: "string", Field: SecretField },
+  timezone: { kind: "string", Field: TimezoneField },
+  keys: { kind: "string", Field: KeysField },
+  datetime: { kind: "string", Field: DatetimeField },
+  offsets: { kind: "string", Field: OffsetsField },
+  spot: { kind: "number", Field: SpotField },
+  quality: { kind: "presets", presets: QUALITY_PRESETS },
+  loudness: { kind: "presets", presets: LOUDNESS_PRESETS },
 };
 
 const COLLAPSING =
   "h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-200 ease-out data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0";
 
-const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every(isString);
-const isRecordList = (v: unknown): v is Patch[] => Array.isArray(v) && v.every(isRecord);
-
-function visible(meta: FieldMeta, value: Patch): boolean {
+function visible(meta: FieldMeta, values: ParamValues): boolean {
   if (meta.hidden) return false;
   if (!meta.showIf) return true;
   return Object.entries(meta.showIf).every(([k, allowed]) => {
-    const v = value[k] == null ? "" : String(value[k]);
-    return allowed.includes(v) || (allowed.includes("*") && v !== "");
+    const v = values[k] == null ? "" : String(values[k]);
+    return allowed.includes(v) || (allowed.includes(ANY_VALUE) && v !== "");
   });
 }
 
@@ -81,32 +103,35 @@ export function ZodForm({
   value,
   onChange,
   ctx,
-  omit = [],
 }: {
   schema: z.ZodObject;
-  value: Patch;
-  onChange: (patch: Patch) => void;
+  value: ParamValues;
+  onChange: (patch: ParamValues) => void;
   ctx: FormContext;
-  omit?: string[];
 }) {
-  const entries = Object.entries(schema.shape)
-    .filter(([key]) => !omit.includes(key))
-    .map(([key, field]: [string, z.ZodType]): Entry => ({ key, field, meta: fieldMeta(field) }))
-    .filter(({ meta }) => visible(meta, value));
+  const values = withDefaults(schema, value);
+  const entries = shapeEntries(schema)
+    .map(([key, field]): Entry => ({ key, field, meta: fieldMeta(field) }))
+    .filter(({ meta }) => visible(meta, values));
   if (entries.length === 0) return <p className="text-muted-foreground text-sm">No settings.</p>;
   const basic = entries.filter(({ meta }) => !meta.advanced);
   const advanced = entries.filter(({ meta }) => meta.advanced);
   const render = (list: Entry[]) =>
-    list.map(({ key, field }) => (
+    list.map(({ key, field, meta }) => (
       <FieldControl
         key={key}
-        name={key}
         schema={field}
-        value={value[key]}
-        all={value}
-        onChange={(v) => onChange({ [key]: v })}
-        onPatch={onChange}
-        ctx={ctx}
+        props={{
+          id: `f-${key}`,
+          name: key,
+          label: labelFor(key, field),
+          meta,
+          value: values[key],
+          all: values,
+          onChange: (v) => onChange({ [key]: v }),
+          onPatch: onChange,
+          ctx,
+        }}
       />
     ));
   return (
@@ -138,48 +163,65 @@ function AdvancedSection({ children }: { children: ReactNode }) {
   );
 }
 
-function FieldControl({
-  schema,
-  ...rest
-}: Omit<AnyFieldProps, "id" | "label" | "meta"> & { schema: z.ZodType }) {
-  const meta = fieldMeta(schema);
-  const props: AnyFieldProps = {
-    ...rest,
-    id: `f-${rest.name}`,
-    label: labelFor(rest.name, schema),
-    meta,
-  };
+function FieldControl({ schema, props }: { schema: z.ZodType; props: ParamFieldProps<unknown> }) {
+  const { presets, presetsLabel } = props.meta;
   return (
     <>
-      {meta.presets ? <Presets meta={meta} all={rest.all} onPatch={rest.onPatch} /> : null}
+      {presets ? (
+        <Presets presets={presets} label={presetsLabel} all={props.all} onPatch={props.onPatch} />
+      ) : null}
       <FieldBody schema={schema} props={props} />
     </>
   );
 }
 
-function FieldBody({ schema, props }: { schema: z.ZodType; props: AnyFieldProps }) {
-  const { meta } = props;
-  if (isColor(schema)) return <ColorKindField {...props} />;
-  const Widget = meta.widget ? VALUE_WIDGETS[meta.widget] : undefined;
-  if (Widget) return <Widget {...props} />;
-  const kind = schemaKind(schema);
-  switch (kind.kind) {
+function FieldBody({ schema, props }: { schema: z.ZodType; props: ParamFieldProps<unknown> }) {
+  const field = typedField(schema, props.value);
+  if (!field) return <JsonField {...props} />;
+  const widget = props.meta.widget ? WIDGETS[props.meta.widget] : undefined;
+  switch (field.kind) {
+    case "color":
+      return <ColorField {...props} value={field.value} />;
+    case "boxes":
+      return <BoxesField {...props} value={field.value} />;
+    case "envelope":
+      return <EnvelopeField {...props} value={field.value} />;
     case "boolean":
-      return <BooleanKindField {...props} />;
-    case "number":
-      return <NumberKindField {...props} min={kind.min} max={kind.max} />;
-    case "string":
-      return <StringKindField {...props} />;
+      return <BooleanField {...props} value={field.value} />;
+    case "number": {
+      if (widget?.kind === "presets")
+        return <PresetNumber {...props} value={field.value} presets={widget.presets} />;
+      const NumberWidget = widget?.kind === "number" ? widget.Field : NumberField;
+      return <NumberWidget {...props} value={field.value} min={field.min} max={field.max} />;
+    }
+    case "string": {
+      if (widget?.kind === "select")
+        return (
+          <EnumField
+            {...props}
+            {...widget.choices(props.ctx, field.value)}
+            value={field.value}
+            forceSelect
+          />
+        );
+      const TextWidget = widget?.kind === "string" ? widget.Field : TextField;
+      return <TextWidget {...props} value={field.value} />;
+    }
     case "enum":
-      return <EnumKindField {...props} options={kind.options} />;
+      return (
+        <EnumField
+          {...props}
+          value={field.value}
+          options={field.options}
+          format={enumFormat(props.meta)}
+        />
+      );
     case "literals":
-      return <LiteralsField {...props} options={kind.options} />;
+      return <LiteralChoice {...props} value={field.value} options={field.options} />;
     case "enumList":
-      return <EnumListField {...props} options={kind.options} />;
+      return <EnumListChoice {...props} value={field.value} options={field.options} />;
     case "objectList":
-      return <ObjectListKindField {...props} item={kind.item} />;
-    default:
-      return <JsonField {...props} />;
+      return <ObjectListField {...props} value={field.value} item={field.item} />;
   }
 }
 
@@ -201,10 +243,6 @@ function enumFormat(meta: FieldMeta): (v: string) => string {
 
 type Options<O> = { options: O[] };
 
-function EnumChoice(props: FieldProps<string> & Options<string>) {
-  return <EnumField {...props} format={enumFormat(props.meta)} />;
-}
-
 function LiteralChoice({
   options,
   value,
@@ -217,10 +255,7 @@ function LiteralChoice({
       {...props}
       options={options.map(String)}
       value={String(value)}
-      onChange={(v) => {
-        const picked = options.find((o) => String(o) === v);
-        if (picked !== undefined) onChange(picked);
-      }}
+      onChange={whenOneOf(options, onChange)}
       format={(v) => (unit ? `${v} ${unit}` : v)}
     />
   );
@@ -245,31 +280,6 @@ function EnumListChoice({
   );
 }
 
-const ColorKindField = checked(isString, () => "", ColorField);
-const StringKindField = checked(isString, () => "", StringField);
-const BooleanKindField = checked(isBoolean, () => false, BooleanField);
-const NumberKindField = checked<number, { min?: number; max?: number }>(
-  isNumber,
-  () => 0,
-  NumberControl,
-);
-const EnumKindField = checked<string, Options<string>>(
-  isString,
-  ({ options }) => options[0] ?? "",
-  EnumChoice,
-);
-const LiteralsField = checked<string | number, Options<string | number>>(
-  isStringOrNumber,
-  () => "",
-  LiteralChoice,
-);
-const EnumListField = checked<string[], Options<string>>(isStringList, () => [], EnumListChoice);
-const ObjectListKindField = checked<Patch[], { item: z.ZodObject }>(
-  isRecordList,
-  () => [],
-  ObjectListField,
-);
-
 function ObjectListField({
   label,
   meta,
@@ -277,28 +287,22 @@ function ObjectListField({
   value,
   onChange,
   ctx,
-}: FieldProps<Patch[]> & { item: z.ZodObject }) {
-  const { rows, commit } = useItemKeys(value);
+}: FieldProps<ParamValues[]> & { item: z.ZodObject }) {
+  const list = useItemKeys(value);
   return (
     <FieldSet>
       <FieldLegend variant="label">{label}</FieldLegend>
       <Help meta={meta} />
       <div className="flex flex-col gap-3">
-        {rows.map(({ item: entry, key }, i) => (
+        {list.rows.map(({ item: entry, key }, i) => (
           <div key={key} className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3">
             <ZodForm
               schema={item}
               value={entry}
               ctx={ctx}
-              onChange={(patch) =>
-                onChange(value.map((v, j) => (j === i ? { ...v, ...patch } : v)))
-              }
+              onChange={(patch) => onChange(list.update(i, { ...entry, ...patch }))}
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onChange(commit(rows.toSpliced(i, 1)))}
-            >
+            <Button variant="ghost" size="sm" onClick={() => onChange(list.remove(i))}>
               <Trash2 data-icon="inline-start" />
               Remove
             </Button>
@@ -307,7 +311,7 @@ function ObjectListField({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onChange(commit([...rows, newKeyedItem(schemaDefaults(item))]))}
+          onClick={() => onChange(list.add(schemaDefaults(item)))}
         >
           <Plus data-icon="inline-start" />
           Add

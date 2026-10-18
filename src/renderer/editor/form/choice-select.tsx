@@ -9,7 +9,7 @@ import {
 
 export type Choice = { value: string; label: string; disabled?: boolean; hint?: string };
 
-const NONE = "__none";
+const NONE_VALUE = "__none";
 
 export function ChoiceSelect({
   id,
@@ -33,14 +33,14 @@ export function ChoiceSelect({
   "aria-label"?: string;
 }) {
   const [first = [], ...rest] = groups;
-  const lists = noneLabel ? [[{ value: NONE, label: noneLabel }, ...first], ...rest] : groups;
-  const selected = noneLabel && !value ? NONE : value;
+  const lists = noneLabel ? [[{ value: NONE_VALUE, label: noneLabel }, ...first], ...rest] : groups;
+  const selected = noneLabel && !value ? NONE_VALUE : value;
   return (
     <Select
       items={lists.flat()}
       value={selected}
       onValueChange={(v) => {
-        if (v != null) onChange(v === NONE ? "" : String(v));
+        if (v != null) onChange(v === NONE_VALUE ? "" : String(v));
       }}
     >
       <SelectTrigger id={id} size={size} className={className} aria-label={ariaLabel}>

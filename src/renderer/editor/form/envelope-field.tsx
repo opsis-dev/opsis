@@ -13,9 +13,9 @@ import {
 import { Button } from "@/renderer/components/ui/button";
 import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/renderer/components/ui/input-group";
-import { newKeyedItem, useItemKeys, type KeyedItem } from "@/renderer/lib/use-item-keys";
+import { whenOneOf } from "@/renderer/lib/one-of";
+import { useItemKeys } from "@/renderer/lib/use-item-keys";
 import { parseNumberText } from "@/shared/text-input";
-import { round2 } from "@/shared/math";
 import { ChoiceSelect } from "./choice-select";
 import { framesScale, parseShown, shownText, trimNumber, useDecimalInput } from "./decimal";
 import { Help } from "./field-shell";
@@ -30,7 +30,7 @@ type Format = {
 };
 
 const envelopeSchema = z.record(z.string(), z.array(keyframeSchema).optional());
-type Envelope = z.infer<typeof envelopeSchema>;
+export type Envelope = z.infer<typeof envelopeSchema>;
 
 export const isEnvelope = (value: unknown): value is Envelope =>
   envelopeSchema.safeParse(value).success;
@@ -48,7 +48,7 @@ const ENVELOPE_FORMAT: Record<EnvelopeKey, Format> = {
   y: { ...FRACTION_AS_PERCENT, initial: 0 },
   scale: { unit: "×", toShown: (v) => v, fromShown: (v) => v, initial: 1 },
   volume: { ...FRACTION_AS_PERCENT, initial: 1 },
-  pan: { unit: "", toShown: fromFraction, fromShown: toFraction, initial: 0 },
+  pan: { ...FRACTION_AS_PERCENT, unit: "", initial: 0 },
 };
 
 const NEW_KEYFRAME_GAP_SECONDS = 1;
@@ -61,7 +61,6 @@ const EASE_LABELS: Record<Ease, string> = {
   hold: "Jump",
 };
 const EASE_ITEMS = EASES.map((e) => ({ value: e, label: EASE_LABELS[e] }));
-const easeOf = (v: unknown): Ease | undefined => EASES.find((e) => e === v);
 
 export function EnvelopeField({ label, value: env, onChange, meta, ctx }: FieldProps<Envelope>) {
   const tracks = Object.entries(meta.labels ?? {}).flatMap(([prop, text]) =>
@@ -104,21 +103,17 @@ function EnvelopeTrack({
   fps: number;
   onChange: (keys: Keyframe[]) => void;
 }) {
-  const { rows, commit } = useItemKeys(keys);
-  const sortAndCommit = (next: KeyedItem<Keyframe>[]) =>
-    onChange(commit(next.toSorted((a, b) => a.item.frame - b.item.frame)));
+  const list = useItemKeys(keys, (a, b) => a.frame - b.frame);
   const add = () => {
     const last = keys.at(-1);
-    const added: Keyframe = {
-      frame: last ? last.frame + NEW_KEYFRAME_GAP_SECONDS * fps : 0,
-      value: last ? last.value : format.initial,
-      ease: "linear",
-    };
-    sortAndCommit([...rows, newKeyedItem(added)]);
+    onChange(
+      list.add({
+        frame: last ? last.frame + NEW_KEYFRAME_GAP_SECONDS * fps : 0,
+        value: last ? last.value : format.initial,
+        ease: "linear",
+      }),
+    );
   };
-  const updateKey = (i: number, patch: Partial<Keyframe>) =>
-    sortAndCommit(rows.map((r, j) => (j === i ? { ...r, item: { ...r.item, ...patch } } : r)));
-  const removeKey = (i: number) => sortAndCommit(rows.toSpliced(i, 1));
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
@@ -128,14 +123,14 @@ function EnvelopeTrack({
           Add
         </Button>
       </div>
-      {rows.map(({ item: k, key }, i) => (
+      {list.rows.map(({ item: k, key }, i) => (
         <KeyframeRow
           key={key}
           keyframe={k}
           format={format}
           fps={fps}
-          onChange={(patch) => updateKey(i, patch)}
-          onRemove={() => removeKey(i)}
+          onChange={(patch) => onChange(list.update(i, { ...k, ...patch }))}
+          onRemove={() => onChange(list.remove(i))}
         />
       ))}
     </div>
@@ -160,19 +155,15 @@ function KeyframeRow({
     const frame = parseShown(text, frames);
     if (frame !== null) onChange({ frame: Math.max(0, frame) });
   });
-  const amount = useDecimalInput(
-    trimNumber(round2(format.toShown(keyframe.value))),
-    "blur",
-    (text) => {
-      const n = parseNumberText(text);
-      if (n !== null) onChange({ value: format.fromShown(n) });
-    },
-  );
+  const amount = useDecimalInput(trimNumber(format.toShown(keyframe.value)), "blur", (text) => {
+    const n = parseNumberText(text);
+    if (n !== null) onChange({ value: format.fromShown(n) });
+  });
   return (
     <div className="grid grid-cols-[1fr_1fr_1.3fr_auto] items-center gap-1">
       <InputGroup className="h-7">
         <InputGroupInput className="text-right tabular-nums" aria-label="At" {...at} />
-        <InputGroupAddon align="inline-end">s</InputGroupAddon>
+        <InputGroupAddon align="inline-end">{frames.unit}</InputGroupAddon>
       </InputGroup>
       <InputGroup className="h-7">
         <InputGroupInput className="text-right tabular-nums" aria-label="Value" {...amount} />
@@ -191,10 +182,7 @@ function EaseSelect({ ease, onChange }: { ease: Ease; onChange: (ease: Ease) => 
     <ChoiceSelect
       groups={[EASE_ITEMS]}
       value={ease}
-      onChange={(v) => {
-        const picked = easeOf(v);
-        if (picked) onChange(picked);
-      }}
+      onChange={whenOneOf(EASES, onChange)}
       size="sm"
       className="h-7 text-xs"
       aria-label="Easing"

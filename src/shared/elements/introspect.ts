@@ -51,6 +51,8 @@ export type FieldMeta = {
   showIf?: Record<string, string[]>;
 };
 
+export const ANY_VALUE = "*";
+
 const WRAPPERS: ReadonlySet<z.core.$ZodTypeDef["type"]> = new Set([
   "default",
   "optional",
@@ -85,8 +87,11 @@ export const targetRoleKey = (targetKey: string): string => `${targetKey}Role`;
 export const spotYKey = (spotXKey: string): string =>
   spotXKey === "x" ? "y" : spotXKey.replace(/X$/, "Y");
 
+export const shapeEntries = (schema: z.ZodObject): Array<[string, z.ZodType]> =>
+  Object.entries(schema.shape);
+
 export const widgetKeys = (schema: z.ZodObject, widget: FieldWidget): string[] =>
-  Object.entries(schema.shape)
+  shapeEntries(schema)
     .filter(([, s]) => fieldMeta(s).widget === widget)
     .map(([k]) => k);
 
@@ -97,9 +102,18 @@ export const hasWidget = (schema: z.ZodObject, widget: FieldWidget): boolean =>
 
 export function schemaDefaults(schema: z.ZodObject): Record<string, unknown> {
   const out: Record<string, unknown> = {};
-  for (const [key, field] of Object.entries(schema.shape)) {
+  for (const [key, field] of shapeEntries(schema)) {
     const parsed = field.safeParse(undefined);
     if (parsed.success && parsed.data !== undefined) out[key] = parsed.data;
   }
+  return out;
+}
+
+export function withDefaults(
+  schema: z.ZodObject,
+  values: Record<string, unknown>,
+): Record<string, unknown> {
+  const out = schemaDefaults(schema);
+  for (const [key, value] of Object.entries(values)) if (value !== undefined) out[key] = value;
   return out;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendCapped, firstFree, keepLast, withCurrent } from "./lists";
+import { appendCapped, firstFree, keepLast, uniqueKeys, withCurrent } from "./lists";
 
 describe("lists", () => {
   it("keeps the last items", () => {
@@ -20,6 +20,12 @@ describe("withCurrent", () => {
     expect(withCurrent(["a", "b"], "c")).toEqual(["a", "b", "c"]);
     expect(withCurrent(["a", "b"], "a")).toEqual(["a", "b"]);
     expect(withCurrent(["a"], "")).toEqual(["a"]);
+  });
+});
+
+describe("uniqueKeys", () => {
+  it("numbers repeated keys so every key is different", () => {
+    expect(uniqueKeys(["a", "b", "a", "a"])).toEqual(["a", "b", "a#2", "a#3"]);
   });
 });
 

@@ -10,6 +10,15 @@ export const withCurrent = (options: readonly string[], current: string): string
   ...new Set(current ? [...options, current] : options),
 ];
 
+export function uniqueKeys(keys: readonly string[]): string[] {
+  const seen = new Map<string, number>();
+  return keys.map((key) => {
+    const count = (seen.get(key) ?? 0) + 1;
+    seen.set(key, count);
+    return count === 1 ? key : `${key}#${count}`;
+  });
+}
+
 export const byCodeUnit = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 export function firstFree(

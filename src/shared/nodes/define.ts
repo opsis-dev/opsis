@@ -5,7 +5,7 @@ import type { CardContext, CardRow } from "./card";
 import type { NodeIconName } from "./icon-name";
 import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { interpolate } from "../vars";
-import { schemaDefaults } from "../elements/introspect";
+import { withDefaults } from "../elements/introspect";
 
 export const NODE_CATEGORIES = [
   "Browser",
@@ -97,8 +97,7 @@ export const interpolatedParams = (
   def: Pick<NodeDef, "params"> | undefined,
   params: WorkflowNode["params"],
   vars: Record<string, string>,
-): WorkflowNode["params"] =>
-  interpolate({ ...(def ? schemaDefaults(def.params) : {}), ...params }, vars);
+): WorkflowNode["params"] => interpolate(def ? withDefaults(def.params, params) : params, vars);
 
 export const parseNodeParams = <S extends z.ZodObject>(
   def: NodeDef<S>,

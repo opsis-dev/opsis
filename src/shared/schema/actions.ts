@@ -10,7 +10,16 @@ export type Point = z.infer<typeof pointSchema>;
 const viewportSchema = z.object({ width: z.number(), height: z.number() });
 export type Viewport = z.infer<typeof viewportSchema>;
 
-export type Bounds = { x: number; y: number; width: number; height: number };
+const boundsSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  width: z.number(),
+  height: z.number(),
+});
+export type Bounds = z.infer<typeof boundsSchema>;
+
+export const isBoundsList = (value: unknown): value is Bounds[] =>
+  z.array(boundsSchema).safeParse(value).success;
 
 export const rectFromBounds = (b: Bounds): Rect => ({ x: b.x, y: b.y, w: b.width, h: b.height });
 

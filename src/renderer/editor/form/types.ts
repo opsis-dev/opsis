@@ -9,23 +9,26 @@ export type FormContext = {
   aspect: number;
   vars: VarInfo[];
   secrets: string[] | null;
-  layers?: number;
-  spotBackground?: SpotBackground;
-  pickTarget?: (key: string) => void;
-  chooseAsset?: (key: string) => void;
-  actions?: Array<{ id: string; label: string }>;
+  layers: number;
+  spotBackground: SpotBackground;
+  pickTarget: (key: string) => void;
+  chooseAsset: (key: string) => void;
+  actions: Array<{ id: string; label: string }>;
 };
 
-export type Patch = Record<string, unknown>;
+export type ParamValues = Record<string, unknown>;
 
 export type FieldProps<V> = {
   id: string;
-  name: string;
   label: string;
   meta: FieldMeta;
   value: V;
-  all: Patch;
   onChange: (value: V) => void;
-  onPatch: (patch: Patch) => void;
   ctx: FormContext;
+};
+
+export type ParamFieldProps<V> = FieldProps<V> & {
+  name: string;
+  all: ParamValues;
+  onPatch: (patch: ParamValues) => void;
 };

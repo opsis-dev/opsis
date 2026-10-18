@@ -19,7 +19,7 @@ export function SpotFrame({
     >
       {bg ? (
         <video
-          src={`${bg.src}#t=${(timeMs || bg.timeMs) / 1000}`}
+          src={`${bg.src}#t=${(timeMs ?? bg.timeMs) / 1000}`}
           muted
           preload="auto"
           className="pointer-events-none absolute inset-0 size-full object-cover"

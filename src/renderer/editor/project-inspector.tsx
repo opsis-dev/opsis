@@ -1,9 +1,8 @@
 import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 import type { FontRole } from "@/shared/fonts";
 import { THEME_BACKGROUNDS } from "@/shared/compile/clip";
-import { firstFree } from "@/shared/lists";
+import { firstFree, uniqueKeys } from "@/shared/lists";
 import { VARIANTS, variantCanvas } from "@/shared/nodes/output";
 import type { Workflow, WorkflowSettings } from "@/shared/schema/workflow";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
@@ -20,7 +19,7 @@ import { Input } from "@/renderer/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { attempt } from "@/renderer/lib/toast";
-import { newKeyedItem, useItemKeys } from "@/renderer/lib/use-item-keys";
+import { useItemKeys } from "@/renderer/lib/use-item-keys";
 import { FontPicker } from "../fonts/font-picker";
 import { useMedia } from "../store/media";
 import { useRunStore } from "../store/run";
@@ -159,10 +158,7 @@ function FrameRateField({ fps }: { fps: number }) {
         variant="outline"
         size="sm"
         value={[String(fps)]}
-        onValueChange={(v) => {
-          const picked = FRAME_RATES.find((r) => String(r) === v[0]);
-          if (picked) setSettings({ fps: picked });
-        }}
+        onValueChange={whenFirstOneOf(FRAME_RATES, (rate) => setSettings({ fps: rate }))}
       >
         {FRAME_RATES.map((r) => (
           <ToggleGroupItem key={r} value={String(r)}>
@@ -190,12 +186,9 @@ function BackgroundField({ background, theme }: Pick<WorkflowSettings, "backgrou
 }
 
 function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
-  const update = useWorkflowStore((s) => s.update);
+  const setSettings = useWorkflowStore((s) => s.setSettings);
   const pick = (role: FontRole, family: string) =>
-    update((wf) => ({
-      ...wf,
-      settings: { ...wf.settings, fonts: { ...wf.settings.fonts, [role]: family } },
-    }));
+    setSettings({ fonts: { ...fonts, [role]: family } });
   return (
     <FieldSet>
       <FieldLegend variant="label">Fonts</FieldLegend>
@@ -221,14 +214,13 @@ function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
 
 function VariablesEditor({ variables }: { variables: Record<string, string> }) {
   const { setVariables, renameVariable } = useWorkflowStore.getState();
-  const { rows, commit } = useItemKeys(Object.entries(variables));
-  const [refused, setRefused] = useState(0);
+  const list = useItemKeys(Object.entries(variables));
   const renameAt = (from: string, raw: string) => {
     const to = raw.replace(/[{}]/g, "").trim();
-    if (!to) return setRefused((n) => n + 1);
+    if (!to) return;
     if (to in variables) {
       toast.error(`There's already a variable called “${to}”.`);
-      return setRefused((n) => n + 1);
+      return;
     }
     renameVariable(from, to);
   };
@@ -237,7 +229,7 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
       (n) => `Variable ${n}`,
       (taken) => taken in variables,
     );
-    setVariables(Object.fromEntries(commit([...rows, newKeyedItem([name, ""] as const)])));
+    setVariables(Object.fromEntries(list.add([name, ""])));
   };
   return (
     <FieldSet>
@@ -246,10 +238,10 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
         Reuse values like your site's address. Insert them into any text with Insert variable.
       </p>
       <div className="flex flex-col gap-2">
-        {rows.map(({ item: [key, value], key: rowKey }, i) => (
+        {list.rows.map(({ item: [key, value], key: rowKey }, i) => (
           <div key={rowKey} className="flex gap-2">
             <InlineEdit
-              key={`${key}:${refused}`}
+              key={key}
               label="Variable name"
               autoFocus={false}
               className="w-2/5 text-xs"
@@ -266,7 +258,7 @@ function VariablesEditor({ variables }: { variables: Record<string, string> }) {
               size="icon"
               variant="ghost"
               aria-label="Remove variable"
-              onClick={() => setVariables(Object.fromEntries(commit(rows.toSpliced(i, 1))))}
+              onClick={() => setVariables(Object.fromEntries(list.remove(i)))}
             >
               <Trash2 />
             </Button>
@@ -311,13 +303,15 @@ function SavedResults() {
 function ProblemList() {
   const { issues } = useCompiledContext();
   if (!issues.length) return null;
+  const shown = issues.slice(0, MAX_PROBLEMS);
+  const keys = uniqueKeys(shown.map((issue) => issue.message));
   return (
     <FieldSet>
       <FieldLegend variant="label">Problems</FieldLegend>
       <ul className="flex flex-col gap-1 text-xs">
-        {issues.slice(0, MAX_PROBLEMS).map((issue, i) => (
+        {shown.map((issue, i) => (
           <li
-            key={i}
+            key={keys[i]}
             className={issue.level === "error" ? "text-destructive" : "text-muted-foreground"}
           >
             {issue.message}

@@ -2,14 +2,15 @@ import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
 import { formatNumberList, parseNumberList } from "@/shared/text-input";
 import { MS_SCALE, parseShown, shownText, useDecimalInput } from "./decimal";
+import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 
 const withOffset = (list: number[], index: number, ms: number): string =>
   formatNumberList(list.map((v, i) => (i === index ? ms : v)));
 
-export function OffsetsField({ label, value, onChange, ctx }: FieldProps<string>) {
+export function OffsetsField({ label, value, onChange, ctx, meta }: FieldProps<string>) {
   const parts = parseNumberList(value);
-  const count = Math.max(ctx.layers ?? 2, parts.length, 1);
+  const count = Math.max(ctx.layers, parts.length, 1);
   const list = Array.from({ length: count }, (_, i) => parts[i] ?? 0);
   return (
     <FieldSet>
@@ -24,6 +25,7 @@ export function OffsetsField({ label, value, onChange, ctx }: FieldProps<string>
           />
         ))}
       </div>
+      <Help meta={meta} />
     </FieldSet>
   );
 }

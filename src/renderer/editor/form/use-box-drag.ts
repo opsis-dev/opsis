@@ -30,7 +30,7 @@ export function useBoxDrag(boxes: Bounds[], onChange: (boxes: Bounds[]) => void)
     const r = area.current?.getBoundingClientRect();
     return r ? fractionIn(r, e.clientX, e.clientY) : null;
   };
-  const show = (d: Drag | null) => {
+  const setDrag = (d: Drag | null) => {
     drag.current = d;
     setDraft(d);
   };
@@ -38,17 +38,20 @@ export function useBoxDrag(boxes: Bounds[], onChange: (boxes: Bounds[]) => void)
     const at = pointIn(e);
     if (!at || !capturePrimaryPointer(e)) return;
     const origin = target.mode === "move" ? boxes[target.index] : boxFrom(at.x, at.y, at.x, at.y);
-    show({ ...target, x: at.x, y: at.y, origin, box: origin });
+    setDrag({ ...target, x: at.x, y: at.y, origin, box: origin });
   };
   const move = (e: PointerEvent) => {
     const d = drag.current;
     const at = pointIn(e);
     if (!d || !at) return;
-    show({ ...d, box: d.mode === "new" ? boxFrom(d.x, d.y, at.x, at.y) : moved(d, at.x, at.y) });
+    setDrag({
+      ...d,
+      box: d.mode === "new" ? boxFrom(d.x, d.y, at.x, at.y) : moved(d, at.x, at.y),
+    });
   };
   const end = () => {
     const d = drag.current;
-    show(null);
+    setDrag(null);
     if (!d) return;
     if (d.mode === "move") onChange(boxes.map((b, i) => (i === d.index ? d.box : b)));
     else if (d.box.width > MIN_SIDE && d.box.height > MIN_SIDE) onChange([...boxes, d.box]);

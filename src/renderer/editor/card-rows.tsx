@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { isClip } from "@/shared/compile/clip";
 import { workflowVars } from "@/shared/compile/compile";
 import { errorMessage } from "@/shared/errors";
+import { uniqueKeys } from "@/shared/lists";
 import type { CardRow } from "@/shared/nodes/card";
 import { interpolatedParams, type NodeDef } from "@/shared/nodes/define";
 import type { WorkflowNode } from "@/shared/schema/workflow";
@@ -83,11 +84,12 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
 
 export function CardRows({ rows }: { rows: CardRow[] }) {
   if (!rows.length) return null;
+  const keys = uniqueKeys(rows.map((r) => `${r.icon}:${r.text}`));
   return (
     <ul className="flex flex-col gap-1 px-3">
       {rows.map((r, i) => (
         <li
-          key={i}
+          key={keys[i]}
           title={r.title ?? r.text}
           className={cn("flex min-w-0 items-center gap-1.5 text-xs", TONE_CLASS[r.tone ?? "plain"])}
         >

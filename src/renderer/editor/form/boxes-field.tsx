@@ -1,18 +1,13 @@
 import { X } from "lucide-react";
 import type { PointerEvent } from "react";
-import { z } from "zod";
 import { percent } from "@/shared/format";
 import type { Bounds } from "@/shared/schema/actions";
-import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
+import { FieldDescription } from "@/renderer/components/ui/field";
 import { cn } from "@/renderer/lib/utils";
+import { FieldShell } from "./field-shell";
 import { SpotFrame } from "./spot-frame";
 import type { FieldProps } from "./types";
 import { useBoxDrag } from "./use-box-drag";
-
-const boxSchema = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() });
-
-export const isBoxList = (value: unknown): value is Bounds[] =>
-  z.array(boxSchema).safeParse(value).success;
 
 const MAX_BOXES = 8;
 
@@ -61,8 +56,7 @@ export function BoxesField({ label, value: boxes, onChange, ctx, meta }: FieldPr
   const full = boxes.length >= MAX_BOXES;
 
   return (
-    <Field>
-      <FieldLabel>{label}</FieldLabel>
+    <FieldShell label={label} meta={meta}>
       <SpotFrame
         ref={area}
         ctx={ctx}
@@ -91,9 +85,8 @@ export function BoxesField({ label, value: boxes, onChange, ctx, meta }: FieldPr
       <FieldDescription>
         {full
           ? `Up to ${MAX_BOXES} areas. Remove one to add another.`
-          : `${boxes.length} of ${MAX_BOXES} areas.`}{" "}
-        {meta.help}
+          : `${boxes.length} of ${MAX_BOXES} areas.`}
       </FieldDescription>
-    </Field>
+    </FieldShell>
   );
 }

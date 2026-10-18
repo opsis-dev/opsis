@@ -63,8 +63,6 @@ export function ChoiceGroup({
   );
 }
 
-const UNMATCHED = "unmatched";
-
 export function LabelledChoices<T>({
   label,
   meta,
@@ -76,20 +74,22 @@ export function LabelledChoices<T>({
   label: string;
   meta?: FieldMeta;
   options: ReadonlyArray<{ label: string; value: T }>;
-  current: number | undefined;
+  current: string | undefined;
   unmatchedLabel?: string;
   onPick: (value: T) => void;
 }) {
-  const choices: Choice[] = options.map((o, i) => ({ value: String(i), label: o.label }));
-  if (unmatchedLabel) choices.push({ value: UNMATCHED, label: unmatchedLabel, disabled: true });
+  const choices: Choice[] = options.map((o) => ({ value: o.label, label: o.label }));
+  if (unmatchedLabel)
+    choices.push({ value: unmatchedLabel, label: unmatchedLabel, disabled: true });
+  const pressed = current ?? unmatchedLabel;
   return (
     <ChoiceGroup
       label={label}
       meta={meta}
       choices={choices}
-      value={[current === undefined ? UNMATCHED : String(current)]}
+      value={pressed === undefined ? [] : [pressed]}
       onChange={(v) => {
-        const hit = v[0] === undefined ? undefined : options[Number(v[0])];
+        const hit = options.find((o) => o.label === v[0]);
         if (hit) onPick(hit.value);
       }}
     />

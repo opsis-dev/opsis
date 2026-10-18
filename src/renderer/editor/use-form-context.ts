@@ -25,6 +25,7 @@ const SITE_VAR = "Site address";
 const NO_PAGE = "Add a Go to page action before this one, so there's a page to pick from.";
 const CAPTURE_TYPES = new Set([recordNode.type, stillNode.type]);
 const viewportParams = sessionNode.params.pick({ viewportWidth: true, viewportHeight: true });
+const navigateUrl = navigateNode.params.pick({ url: true });
 
 type PickerPage = { url: string; viewport?: { width: number; height: number } };
 
@@ -72,11 +73,8 @@ function pickerPage(wf: Workflow, nodeId: string): PickerPage | { problem: strin
   const { chain, problem } = captureChain(wf, nodeId);
   const idx = chain.findIndex((n) => n.id === nodeId);
   const before = idx >= 0 ? chain.slice(0, idx + 1) : chain;
-  const navUrl = before.toReversed().find((n) => n.type === navigateNode.type)?.params.url;
-  const url =
-    (typeof navUrl === "string" ? navUrl : undefined) ??
-    wf.variables[SITE_VAR] ??
-    wf.variables.BASE_URL;
+  const nav = before.findLast((n) => n.type === navigateNode.type);
+  const url = (nav && navigateUrl.safeParse(nav.params).data?.url) ?? wf.variables[SITE_VAR];
   if (!url) return { problem: problem ?? NO_PAGE };
   const viewport = viewportOf(chain);
   return { url: interpolate(url, workflowVars(wf)), ...(viewport ? { viewport } : {}) };

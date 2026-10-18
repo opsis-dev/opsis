@@ -1,11 +1,11 @@
 import { useRef, type PointerEvent } from "react";
 import { spotYKey } from "@/shared/elements/introspect";
 import { percent, percentText } from "@/shared/format";
-import { clamp01, numberOr, round3 } from "@/shared/math";
+import { clamp01, finiteNumber, numberOr, round3 } from "@/shared/math";
 import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
 import { FieldShell } from "./field-shell";
 import { SpotFrame } from "./spot-frame";
-import type { FieldProps } from "./types";
+import type { ParamFieldProps } from "./types";
 
 const NUDGES: Partial<Record<string, [number, number]>> = {
   ArrowLeft: [-1, 0],
@@ -15,11 +15,19 @@ const NUDGES: Partial<Record<string, [number, number]>> = {
 };
 const NUDGE_STEP = 0.01;
 const SHIFT_NUDGE_STEP = 0.1;
+const SPOT_CENTRE = 0.5;
 
-export function SpotField({ label, name, all, onPatch, ctx, meta }: FieldProps<number>) {
+export function SpotField({
+  label,
+  name,
+  value: x,
+  all,
+  onPatch,
+  ctx,
+  meta,
+}: ParamFieldProps<number>) {
   const yKey = spotYKey(name);
-  const x = numberOr(all[name], 0.5);
-  const y = numberOr(all[yKey], 0.5);
+  const y = numberOr(all[yKey], SPOT_CENTRE);
   const box = useRef<HTMLDivElement>(null);
   const place = (nextX: number, nextY: number) =>
     onPatch({ [name]: round3(clamp01(nextX)), [yKey]: round3(clamp01(nextY)) });
@@ -35,7 +43,7 @@ export function SpotField({ label, name, all, onPatch, ctx, meta }: FieldProps<n
       <SpotFrame
         ref={box}
         ctx={ctx}
-        timeMs={meta.timeKey ? numberOr(all[meta.timeKey], 0) : undefined}
+        timeMs={meta.timeKey ? finiteNumber(all[meta.timeKey]) : undefined}
         role="button"
         tabIndex={0}
         aria-label={`${label}: ${percentText(x)}, ${percentText(y)}`}

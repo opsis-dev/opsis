@@ -1,12 +1,11 @@
-import { Field, FieldLabel } from "@/renderer/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/renderer/components/ui/input-group";
+import { FieldShell } from "./field-shell";
 import type { FieldProps } from "./types";
 
-export function ColorField({ id, label, value, onChange }: FieldProps<string>) {
+export function ColorField({ id, label, value, onChange, meta }: FieldProps<string>) {
   const hex = /^#[0-9a-f]{6}$/i.test(value) ? value : "#000000";
   return (
-    <Field>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+    <FieldShell id={id} label={label} meta={meta}>
       <InputGroup>
         <InputGroupAddon>
           <input
@@ -24,6 +23,6 @@ export function ColorField({ id, label, value, onChange }: FieldProps<string>) {
           className="font-mono text-xs"
         />
       </InputGroup>
-    </Field>
+    </FieldShell>
   );
 }

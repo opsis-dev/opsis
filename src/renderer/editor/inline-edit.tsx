@@ -40,7 +40,7 @@ export function InlineEdit({
         cancelled.current = false;
         onDone?.();
         if (!keep && text && text !== value) onCommit(text);
-        else e.currentTarget.value = value;
+        e.currentTarget.value = value;
       }}
     />
   );

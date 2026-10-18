@@ -1,5 +1,6 @@
 import { CircleCheck, CircleX, Radio, type LucideIcon } from "lucide-react";
 import { useState } from "react";
+import { uniqueKeys } from "@/shared/lists";
 import { boundsFromRect } from "@/shared/schema/actions";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Spinner } from "@/renderer/components/ui/spinner";
@@ -60,6 +61,7 @@ export function LiveView({ capture, className }: { capture: LiveCapture; classNa
   const { width, height } = capture.viewport;
   const current = capture.steps.find((s) => s.status === "running");
   const target = capture.target;
+  const clickKeys = uniqueKeys(capture.clicks.map((c) => String(c.at)));
   return (
     <div
       className={cn("relative overflow-hidden rounded-md bg-black", className)}
@@ -83,8 +85,8 @@ export function LiveView({ capture, className }: { capture: LiveCapture; classNa
         point={capture.cursor}
         pointSize={OVERLAY_WIDTHS.livePoint}
       >
-        {capture.clicks.map((c) => (
-          <ClickRipple key={c.at} click={c} width={width} />
+        {capture.clicks.map((c, i) => (
+          <ClickRipple key={clickKeys[i]} click={c} width={width} />
         ))}
       </FrameOverlay>
       <div className="absolute inset-x-2 bottom-2 flex items-center gap-1.5">
