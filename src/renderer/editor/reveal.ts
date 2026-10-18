@@ -5,4 +5,4 @@ export const revealOutputs = (projectDir: string): Promise<void> =>
   window.demoflow.revealInFolder(projectDir, PROJECT_DIRS.out);
 
 export const revealProjectFile = (projectDir: string, ref: string): Promise<void> =>
-  window.demoflow.revealInFolder(projectDir, projectRelPath(ref));
+  window.demoflow.revealInFolder(projectDir, projectRelPath(ref) ?? undefined);

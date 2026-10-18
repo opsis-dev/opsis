@@ -1,33 +1,34 @@
 import { describe, expect, it } from "vitest";
-import type { WorkflowNode } from "../../shared/schema/workflow";
+import { workflowNode } from "../../shared/test-fixtures";
 import { landedOnSignIn, plainError, traceGroupTitle } from "./driver-helpers";
-
-const node = (type: string, params: Record<string, unknown> = {}): WorkflowNode => ({
-  id: "n",
-  type,
-  position: { x: 0, y: 0 },
-  params,
-});
 
 describe("traceGroupTitle", () => {
   it("names the step after what it acts on, with variables filled in", () => {
     expect(
-      traceGroupTitle("Navigate", node("browser.navigate", { url: "{{BASE}}/login" }), {
+      traceGroupTitle("Navigate", workflowNode("browser.navigate", { url: "{{BASE}}/login" }), {
         BASE: "https://x.test",
       }),
     ).toBe("Navigate · https://x.test/login");
     expect(
-      traceGroupTitle("Type", node("browser.type", { target: "Username", text: "tom" }), {}),
+      traceGroupTitle(
+        "Type",
+        workflowNode("browser.type", { target: "Username", text: "tom" }),
+        {},
+      ),
     ).toBe("Type · Username");
     expect(
-      traceGroupTitle("Assert", node("browser.assert", { text: "Welcome", target: "" }), {}),
+      traceGroupTitle(
+        "Assert",
+        workflowNode("browser.assert", { text: "Welcome", target: "" }),
+        {},
+      ),
     ).toBe("Assert · Welcome");
-    expect(traceGroupTitle("Wait", node("browser.wait", { ms: 500 }), {})).toBe("Wait");
+    expect(traceGroupTitle("Wait", workflowNode("browser.wait", { ms: 500 }), {})).toBe("Wait");
   });
 });
 
 describe("plainError", () => {
-  const click = node("browser.click", { target: "css=#add-to-cart" });
+  const click = workflowNode("browser.click", { target: "css=#add-to-cart" });
   it("explains timeouts in words", () => {
     expect(
       plainError(
@@ -41,7 +42,7 @@ describe("plainError", () => {
     expect(
       plainError(
         new Error("page.goto: Timeout 30000ms exceeded."),
-        node("browser.navigate", {}),
+        workflowNode("browser.navigate", {}),
         {},
       ),
     ).toBe("The page didn't respond within 30 s.");

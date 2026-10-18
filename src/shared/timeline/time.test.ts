@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { chapterTime, formatTime, framesToMs, msToFrames, playRange, wholeFrames } from "./time";
+import {
+  chapterTime,
+  formatTime,
+  framesToMs,
+  framesToRecordingMs,
+  msToFrames,
+  playRange,
+  recordingMsToFrames,
+  wholeFrames,
+} from "./time";
 
 describe("ms and frames", () => {
   it("rounds to whole frames with a minimum", () => {
@@ -53,5 +62,13 @@ describe("play range", () => {
 
   it("has no range in a film too short for one", () => {
     expect(playRange(0, 0, 1)).toEqual({});
+  });
+});
+
+describe("recording time", () => {
+  it("places a recording moment on the timeline at the playback speed, and back", () => {
+    expect(recordingMsToFrames(2000, 2, 30)).toBe(30);
+    expect(recordingMsToFrames(1000, 0.5, 30)).toBe(60);
+    expect(framesToRecordingMs(30, 2, 30)).toBe(2000);
   });
 });

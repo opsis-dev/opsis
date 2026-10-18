@@ -3,7 +3,7 @@ import { Node } from "ts-morph";
 import { z } from "zod";
 import type { ControlSpec, CuratedElement } from "../registry-ingest.list";
 import { humanize } from "../../src/shared/format";
-import { isNumber, isRecord, isString, tryParseJson } from "../../src/shared/guards";
+import { hasStringType, isNumber, isRecord, isString, tryParseJson } from "../../src/shared/guards";
 import { stringsIn } from "../../src/shared/vars";
 import { js } from "./registry-codegen";
 import { literalOf, scratchFile, sourceDefaults } from "./ts-literal";
@@ -12,9 +12,6 @@ export type Control = ControlSpec & {
   label?: string;
   variants?: Record<string, unknown>;
 };
-
-const isControl = (value: unknown): value is Control =>
-  isRecord(value) && typeof value.type === "string";
 
 export type ParsedConfig = {
   controls: Record<string, Control>;
@@ -34,7 +31,7 @@ export function parseConfig(source: string, name: string): ParsedConfig | null {
     const comp = init.getProperty("componentName");
     return {
       controls: Object.fromEntries(
-        controls.filter((entry): entry is [string, Control] => isControl(entry[1])),
+        controls.filter((entry): entry is [string, Control] => hasStringType(entry[1])),
       ),
       durationInFrames:
         dur && Node.isPropertyAssignment(dur)

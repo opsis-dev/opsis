@@ -12,7 +12,7 @@ import { readJson, writeJson } from "../../engine/json";
 import { toPosixRel, toProjectRef } from "../../engine/project-paths";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
 import { mixed, specFor, type Stage } from "./film-spec";
-import { exportSourceRoot, exportUtilsFile, publicDir, refToPath } from "./util";
+import { exportSourceRoot, exportUtilsFile, publicDir } from "./util";
 
 const EXPORT_MIX_STAGE: Stage = [0, 0.3];
 
@@ -145,17 +145,17 @@ async function importedPackages(srcDir: string): Promise<Set<string>> {
   return names;
 }
 
-function projectRefs(spec: TimelineSpec): Set<string> {
+function projectFiles(spec: TimelineSpec): Set<string> {
   const values: unknown[] = [spec.audio.map((a) => a.src), spec.mix?.src];
   walkItems(spec.tracks, (item) => values.push(item.props));
-  return new Set(stringsIn(values, isProjectRef));
+  return new Set(stringsIn(values, isProjectRef).flatMap((ref) => projectRelPath(ref) ?? []));
 }
 
 async function copyProjectFiles(ctx: ExecutorContext, spec: TimelineSpec, dir: string) {
-  for (const ref of projectRefs(spec)) {
-    const target = path.join(dir, "public", "project", projectRelPath(ref));
+  for (const rel of projectFiles(spec)) {
+    const target = path.join(dir, "public", "project", rel);
     await mkdir(path.dirname(target), { recursive: true });
-    await cp(refToPath(ctx, ref), target);
+    await cp(path.join(ctx.projectDir, rel), target);
   }
 }
 

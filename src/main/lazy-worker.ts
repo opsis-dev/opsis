@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { MessagePortMain, UtilityProcess } from "electron";
 import type { MainToWorker, WorkerEnv, WorkerToMain } from "../shared/worker-protocol";
+import { pendingReplies } from "../shared/pending-replies";
 import type { WorkerKind } from "./worker-temp";
 import { onWorkerMessage, spawnWorker, workerEnv } from "./workers";
 
@@ -20,7 +21,7 @@ type LazyWorker<R> = {
 function createLazyWorker<R>(options: LazyWorkerOptions<R>): LazyWorker<R> {
   let worker: { child: UtilityProcess; control: MessagePortMain } | null = null;
   let idleTimer: NodeJS.Timeout | null = null;
-  const waiting = new Map<string, (result: R) => void>();
+  const replies = pendingReplies<R>();
 
   const cancelIdle = () => {
     if (idleTimer) clearTimeout(idleTimer);
@@ -33,17 +34,11 @@ function createLazyWorker<R>(options: LazyWorkerOptions<R>): LazyWorker<R> {
     const spawned = spawnWorker(options.kind);
     onWorkerMessage(spawned.control, (msg) => {
       const reply = options.reply(msg);
-      if (!reply) return;
-      const done = waiting.get(reply.id);
-      waiting.delete(reply.id);
-      done?.(reply.result);
+      if (reply) replies.settle(reply.id, reply.result);
     });
     spawned.child.on("exit", () => {
       if (worker?.child === spawned.child) worker = null;
-      for (const [id, done] of waiting) {
-        waiting.delete(id);
-        done(options.stopped);
-      }
+      replies.settleAll(options.stopped);
     });
     worker = { child: spawned.child, control: spawned.control };
     return worker;
@@ -60,10 +55,9 @@ function createLazyWorker<R>(options: LazyWorkerOptions<R>): LazyWorker<R> {
       const env = await workerEnv();
       const { control } = ensure();
       const id = randomUUID();
-      return new Promise<R>((resolve) => {
-        waiting.set(id, resolve);
-        control.postMessage(message(env, id));
-      });
+      const reply = replies.wait(id);
+      control.postMessage(message(env, id));
+      return reply;
     },
     scheduleIdle: () => {
       cancelIdle();

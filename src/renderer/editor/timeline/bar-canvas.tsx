@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { clamp } from "@/shared/math";
 import { lruCache } from "@/shared/memo";
+import { framesToRecordingMs } from "@/shared/timeline/time";
 import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
 import { MAX_VOLUME } from "@/shared/nodes/params";
 import type { AudioBar, BarThumbnail, VideoBar } from "@/shared/timeline/flatten";
@@ -112,7 +113,7 @@ const tileStart = (left: number, offset: number, tileW: number) =>
 type Filmed = Extract<BarThumbnail, { kind: "filmstrip" }>;
 
 const sourceMs = (thumb: Filmed, local: number, fps: number): number =>
-  (local / fps) * thumb.speed * 1000 + thumb.trimMs;
+  framesToRecordingMs(local, thumb.speed, fps) + thumb.trimMs;
 
 type SpriteGeometry = {
   bar: VideoBar;

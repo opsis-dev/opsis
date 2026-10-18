@@ -11,7 +11,7 @@ import {
 } from "./camera";
 import { designScaleFor } from "./design-width";
 import { clamp, clamp01, lerp, partitionPoint, sampleKeyed } from "../../../shared/math";
-import { rectCentre, type Viewport } from "../../../shared/schema/actions";
+import { distance, rectCentre, type Viewport } from "../../../shared/schema/actions";
 import { stableJson } from "../../../shared/hash";
 
 export const S_MAX = 1.74;
@@ -123,7 +123,7 @@ export function narrowPose(
 const zoomable = (clicks: ClickEvent[]): ClickEvent[] => clicks.filter((c) => c.zoom !== false);
 
 const apartFrac = (a: ClickEvent, b: ClickEvent, vp: Viewport): number =>
-  Math.hypot(b.x - a.x, b.y - a.y) / Math.hypot(vp.width, vp.height);
+  distance(a, b) / Math.hypot(vp.width, vp.height);
 
 const gapS = (a: ClickEvent, b: ClickEvent): number => (b.tMs - a.tMs) / 1000;
 

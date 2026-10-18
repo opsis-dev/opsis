@@ -14,7 +14,7 @@ import type {
 } from "../schema/timeline";
 import { clamp, EPSILON, numberOr } from "../math";
 import { isProjectRef } from "../asset-ref";
-import { msToExactFrames } from "./time";
+import { msToExactFrames, recordingMsToFrames } from "./time";
 import { CHANNEL_KINDS, type ChannelKind } from "../mix/types";
 
 type Side = "start" | "end";
@@ -377,7 +377,7 @@ function recordingMarks(p: Placed, props: RecordingProps, fps: number): ActionMa
   return props.log.actions.flatMap((action) => {
     const label = ACTION_LABELS[action.kind];
     if (!label) return [];
-    const local = (action.t / 1000 / speed) * fps;
+    const local = recordingMsToFrames(action.t, speed, fps);
     const frame = p.walk.inst.toAbs(item.from + local, "start");
     if (frame < from || frame >= to) return [];
     return [

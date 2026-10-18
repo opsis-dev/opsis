@@ -3,6 +3,11 @@ import type { z } from "zod";
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+export const hasStringType = (
+  value: unknown,
+): value is Record<string, unknown> & { type: string } =>
+  isRecord(value) && typeof value.type === "string";
+
 type ParsedJson = { ok: true; value: unknown } | { ok: false };
 
 export function tryParseJson(text: string): ParsedJson {

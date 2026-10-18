@@ -1,3 +1,4 @@
+import { lerp } from "../../shared/math";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { buildMixPlan, hasSound } from "../../shared/mix/plan";
 import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
@@ -6,8 +7,6 @@ import { renderMix } from "../mix/render";
 import { refToPath } from "./util";
 
 export type Stage = readonly [from: number, to: number];
-
-export const within = ([from, to]: Stage, p: number) => from + (to - from) * p;
 
 export function specFor(ctx: ExecutorContext): TimelineSpec {
   const result = ctx.compile();
@@ -26,7 +25,7 @@ export async function mixed(ctx: ExecutorContext, spec: TimelineSpec, stage: Sta
     resolve: (ref) => refToPath(ctx, ref),
     ffmpeg: ctx.ffmpeg,
     signal: ctx.signal,
-    onProgress: (p, message) => ctx.progress(within(stage, p), message),
+    onProgress: (p, message) => ctx.progress(lerp(...stage, p), message),
   });
   if (!result.master) return applyMixLevels(spec, ctx.workflow.mix);
   const lufs = result.loudness?.integrated;

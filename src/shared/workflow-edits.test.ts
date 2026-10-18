@@ -15,6 +15,7 @@ import {
 } from "./workflow-edits";
 import type { FontFamilyDef } from "./fonts/types";
 import { findById } from "./lists";
+import { workflowNode } from "./test-fixtures";
 
 const SIZE = { width: 200, height: 100 };
 
@@ -139,14 +140,7 @@ describe("workflow edits", () => {
     const wf = {
       ...sounds(),
       variables: { site: "https://example.com" },
-      nodes: [
-        {
-          id: "n",
-          type: "browser.navigate",
-          position: { x: 0, y: 0 },
-          params: { url: "{{site}}" },
-        },
-      ],
+      nodes: [workflowNode("browser.navigate", { url: "{{site}}" })],
     };
     const renamed = renameWorkflowVariable(wf, "site", "home");
     expect(renamed.variables).toEqual({ home: "https://example.com" });

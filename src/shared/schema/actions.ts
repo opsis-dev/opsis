@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { lerp } from "../math";
 
 const rectSchema = z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() });
 export type Rect = z.infer<typeof rectSchema>;
@@ -27,6 +28,13 @@ export const pointRect = (point: Point, scale = 1): Rect => ({
 export const rectCentre = (r: Rect): Point => ({
   x: r.x + r.w / 2,
   y: r.y + r.h / 2,
+});
+
+export const distance = (a: Point, b: Point): number => Math.hypot(b.x - a.x, b.y - a.y);
+
+export const lerpPoint = (a: Point, b: Point, t: number): Point => ({
+  x: lerp(a.x, b.x, t),
+  y: lerp(a.y, b.y, t),
 });
 
 export function rectUnion(a: Rect, b: Rect): Rect {

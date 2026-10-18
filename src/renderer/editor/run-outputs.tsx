@@ -1,7 +1,7 @@
 import { FolderOpen } from "lucide-react";
 import { useMemo } from "react";
 import { exportedArtifacts } from "@/shared/run-progress";
-import type { Artifact } from "@/shared/schema/values";
+import { artifactName, type Artifact } from "@/shared/schema/values";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { Button } from "@/renderer/components/ui/button";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
@@ -24,7 +24,7 @@ function ArtifactPreview({ artifact }: { artifact: Artifact }) {
     return (
       <img
         src={fileUrl(artifact.path)}
-        alt={artifact.label ?? artifact.path}
+        alt={artifactName(artifact)}
         className="w-full rounded-md"
       />
     );
@@ -73,7 +73,7 @@ export function RunOutputs({
               className="h-auto justify-start p-0"
               onClick={() => void revealProjectFile(projectDir, a.path)}
             >
-              {a.label ?? a.path}
+              {artifactName(a)}
             </Button>
           </div>
         ))}

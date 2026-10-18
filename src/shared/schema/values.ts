@@ -97,6 +97,8 @@ const artifactSchema = z.object({
 });
 export type Artifact = z.infer<typeof artifactSchema>;
 
+export const artifactName = (artifact: Artifact): string => artifact.label ?? artifact.path;
+
 export const nodeResultSchema = z.object({
   hash: z.string(),
   outputs: z.record(z.string(), compileValueSchema),

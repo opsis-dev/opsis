@@ -82,5 +82,7 @@ const PERCENT_DIGITS = 6;
 
 export const percent = (fraction: number): string => `${roundTo(fraction * 100, PERCENT_DIGITS)}%`;
 
+export const wholePercent = (fraction: number): number => Math.round(fraction * 100);
+
 export const percentText = (fraction: number, { max = Infinity }: { max?: number } = {}): string =>
-  `${Math.min(max, Math.round(fraction * 100))}%`;
+  `${Math.min(max, wholePercent(fraction))}%`;

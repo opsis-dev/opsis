@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { WorkflowNode } from "../schema/workflow";
+import { workflowNode } from "../test-fixtures";
 import { exportReframe, variantCanvas, variantSize } from "./output";
 
 describe("variantSize", () => {
@@ -22,14 +22,10 @@ describe("variantCanvas", () => {
 });
 
 describe("exportReframe", () => {
-  const render = (id: string, params: Record<string, unknown>, disabled?: boolean) =>
-    ({
-      id,
-      type: "output.render",
-      position: { x: 0, y: 0 },
-      params,
-      ...(disabled ? { disabled } : {}),
-    }) satisfies WorkflowNode;
+  const render = (id: string, params: Record<string, unknown>, disabled?: boolean) => ({
+    ...workflowNode("output.render", params, id),
+    ...(disabled ? { disabled } : {}),
+  });
 
   it("uses the first enabled Export video node", () => {
     expect(

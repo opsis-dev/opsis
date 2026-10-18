@@ -1,6 +1,6 @@
 import { stat } from "node:fs/promises";
 import path from "node:path";
-import type { Artifact } from "../../shared/schema/values";
+import { artifactName, type Artifact } from "../../shared/schema/values";
 import { frameGrabArgs } from "../media/codecs";
 import type { FfmpegTools } from "../media/ffmpeg";
 import { toPosixRel } from "../../engine/project-paths";
@@ -22,7 +22,7 @@ export async function decorateArtifacts(
       const size = await stat(file).then(
         (s) => s.size,
         (error: unknown) => {
-          warn(`Couldn't read ${artifact.label ?? artifact.path}: ${errorMessage(error)}`);
+          warn(`Couldn't read ${artifactName(artifact)}: ${errorMessage(error)}`);
           return undefined;
         },
       );
@@ -41,9 +41,7 @@ export async function decorateArtifacts(
         );
         return { ...withSize, poster: toPosixRel(projectDir, poster) };
       } catch (error) {
-        warn(
-          `Couldn't make a poster frame for ${artifact.label ?? artifact.path}: ${errorMessage(error)}`,
-        );
+        warn(`Couldn't make a poster frame for ${artifactName(artifact)}: ${errorMessage(error)}`);
         return withSize;
       }
     }),

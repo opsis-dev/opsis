@@ -1,6 +1,8 @@
 import type { Page } from "playwright-core";
 import { clamp01 } from "../../shared/math";
 import {
+  distance,
+  lerpPoint,
   pointRect,
   rectCentre,
   rectFromBounds,
@@ -97,7 +99,7 @@ async function boxOf(page: Page, target: Target, k: number): Promise<Box> {
   await loc.scrollIntoViewIfNeeded();
   const box = await loc.boundingBox();
   if (!box) throw new Error("Couldn't see the element on the page.");
-  if (before && Math.hypot(box.x - before.x, box.y - before.y) > SCROLL_MOVED_PX * k)
+  if (before && distance(before, box) > SCROLL_MOVED_PX * k)
     await page.waitForTimeout(SCROLL_SETTLE_MS);
   const rect = rectFromBounds(box);
   const centre = rectCentre(rect);
@@ -220,17 +222,14 @@ export class CursorDriver {
 
   private async glideTo(x: number, y: number, settleMs = SETTLE_MS, travelMs?: number) {
     const { k } = this;
-    const dist = Math.hypot(x - this.last.x, y - this.last.y);
+    const dist = distance(this.last, { x, y });
     this.lastDepartMs = this.elapsed();
     if (dist >= GLIDE_MIN_PX * k) {
       const glide = glidePlan(this.last, { x, y }, k, this.viewport, travelMs);
       await this.walk(this.elapsed(), glide.durationMs, glide.at);
       if (glide.overshooting) {
         const { aim } = glide;
-        await this.walk(this.elapsed(), OVERSHOOT_RETURN_MS, (p) => ({
-          x: aim.x + (x - aim.x) * p,
-          y: aim.y + (y - aim.y) * p,
-        }));
+        await this.walk(this.elapsed(), OVERSHOOT_RETURN_MS, (p) => lerpPoint(aim, { x, y }, p));
       }
     }
     this.park(x, y);

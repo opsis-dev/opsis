@@ -6,7 +6,7 @@ import type { LiveMessage } from "@/shared/live";
 import type { RunEvent } from "@/shared/schema/events";
 import type { PreviewQuality } from "@/shared/schema/timeline";
 import type { Workflow } from "@/shared/schema/workflow";
-import { isRecord } from "@/shared/guards";
+import { hasStringType } from "@/shared/guards";
 import { randomId } from "@/shared/ids";
 import { pick } from "@/shared/pick";
 import { loadViewState } from "../editor/view-state";
@@ -80,14 +80,11 @@ const SYNC_TYPES: Record<SyncMessage["type"], true> = {
 
 const windowId = randomId();
 
-const isMessage = (data: unknown): data is { type: string } =>
-  isRecord(data) && typeof data.type === "string";
-
 const isSyncMessage = (data: unknown): data is SyncMessage =>
-  isMessage(data) && Object.hasOwn(SYNC_TYPES, data.type);
+  hasStringType(data) && Object.hasOwn(SYNC_TYPES, data.type);
 
 const isLiveMessage = (data: unknown): data is LiveMessage =>
-  isMessage(data) && "captureId" in data && typeof data.captureId === "string";
+  hasStringType(data) && typeof data.captureId === "string";
 
 function whileApplying(applying: Flag, fn: () => void): void {
   applying.current = true;

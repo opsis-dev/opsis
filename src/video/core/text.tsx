@@ -19,7 +19,7 @@ import {
   PANEL_COLOR,
   TEXT_COLOR,
 } from "../../shared/elements/colors";
-import { msToFrames } from "../../shared/timeline/time";
+import { framesToMs, msToFrames } from "../../shared/timeline/time";
 
 const MAX_WORDS_PER_LINE = 6;
 const CAPTION_LINGER_MS = 250;
@@ -407,7 +407,7 @@ export const Captions: React.FC<{
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { k, insets } = useOverlayFrame();
-  const tMs = (frame / fps) * 1000;
+  const tMs = framesToMs(frame, fps);
   const lines = useMemo(() => groupCaptions(captions), [captions]);
   const line = lines.find(
     (l) => tMs >= l[0].startMs && tMs <= l[l.length - 1].endMs + CAPTION_LINGER_MS,

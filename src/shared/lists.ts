@@ -6,6 +6,10 @@ export const appendCapped = <T>(items: readonly T[], item: T, max: number): T[] 
   item,
 ];
 
+export const withCurrent = (options: readonly string[], current: string): string[] => [
+  ...new Set(current ? [...options, current] : options),
+];
+
 export const byCodeUnit = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 export function firstFree(

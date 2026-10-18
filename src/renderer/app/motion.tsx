@@ -20,10 +20,10 @@ export function MotionProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function AnimatedPercent({ value, className }: { value: number; className?: string }) {
-  const spring = useSpring(value, { stiffness: 180, damping: 28 });
-  const text = useTransform(spring, (v) => percentText(Math.round(v) / 100));
-  useEffect(() => spring.set(value), [spring, value]);
+export function AnimatedPercent({ fraction, className }: { fraction: number; className?: string }) {
+  const spring = useSpring(fraction, { stiffness: 180, damping: 28 });
+  const text = useTransform(spring, (v) => percentText(v));
+  useEffect(() => spring.set(fraction), [spring, fraction]);
   return <motion.span className={cn("tabular-nums", className)}>{text}</motion.span>;
 }
 

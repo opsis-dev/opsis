@@ -1,5 +1,5 @@
 import { clamp, EPSILON, sum } from "../../shared/math";
-import type { Point } from "../../shared/schema/actions";
+import { distance, lerpPoint, type Point } from "../../shared/schema/actions";
 
 const GLIDE_PX_PER_MS = 0.55;
 const GLIDE_MIN_MS = 450;
@@ -25,7 +25,7 @@ export function glidePlan(
   viewport: { width: number; height: number } | null,
   travelMs?: number,
 ): Glide {
-  const dist = Math.hypot(to.x - from.x, to.y - from.y);
+  const dist = distance(from, to);
   const durationMs =
     travelMs != null && travelMs > 0
       ? travelMs
@@ -40,7 +40,7 @@ export function glidePlan(
 }
 
 export function bulgedCurve(from: Point, to: Point, aim: Point = to): (p: number) => Point {
-  const dist = Math.hypot(to.x - from.x, to.y - from.y);
+  const dist = distance(from, to);
   if (dist < EPSILON) return () => ({ ...to });
   const nx = -(to.y - from.y) / dist;
   const ny = (to.x - from.x) / dist;
@@ -58,7 +58,7 @@ export function bulgedCurve(from: Point, to: Point, aim: Point = to): (p: number
 }
 
 const segmentLengths = (points: readonly Point[]): number[] =>
-  points.slice(1).map((b, i) => Math.hypot(b.x - points[i].x, b.y - points[i].y));
+  points.slice(1).map((b, i) => distance(points[i], b));
 
 export const lastPoint = (points: readonly Point[]): Point => points[points.length - 1];
 
@@ -73,10 +73,7 @@ export function polylineAt(points: readonly Point[]): (p: number) => Point {
     let left = Math.min(p, 1) * total;
     for (const [i, seg] of lengths.entries()) {
       if (left <= seg && seg > 0) {
-        const a = points[i];
-        const b = points[i + 1];
-        const u = left / seg;
-        return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
+        return lerpPoint(points[i], points[i + 1], left / seg);
       }
       left -= seg;
     }
@@ -90,7 +87,7 @@ export function dragDuration(points: readonly Point[], k: number, dragMs = 0): n
 }
 
 export function nudgeToward(from: Point, to: Point, px: number): Point {
-  const dist = Math.hypot(to.x - from.x, to.y - from.y);
+  const dist = distance(from, to);
   if (dist < EPSILON) return { x: from.x + px, y: from.y };
   const step = Math.min(px, dist);
   return {

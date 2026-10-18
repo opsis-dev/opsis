@@ -3,7 +3,7 @@ import { mediaInput } from "../../shared/nodes/media";
 import type { CompileValue, MediaValue } from "../../shared/schema/values";
 import type { ExecutorContext } from "../engine/context";
 import type { WorkerEnv } from "../../shared/worker-protocol";
-import { appRelPath, isProjectRef, projectRef, projectRelPath } from "../../shared/asset-ref";
+import { projectRef, refTarget } from "../../shared/asset-ref";
 
 type SourceEnv = Pick<WorkerEnv, "isPackaged" | "appRoot" | "resourcesPath">;
 
@@ -21,10 +21,11 @@ export const exportUtilsFile = (env: SourceEnv): string =>
 export type LinkedMedia = MediaValue & { src: string };
 
 export function refToPath(ctx: Pick<ExecutorContext, "projectDir" | "env">, ref: string): string {
-  if (isProjectRef(ref)) return path.join(ctx.projectDir, projectRelPath(ref));
-  const app = appRelPath(ref);
-  if (app !== null) return path.join(publicDir(ctx.env), app);
-  return path.isAbsolute(ref) ? ref : path.join(ctx.projectDir, ref);
+  const target = refTarget(ref);
+  if (target.kind === "project") return path.join(ctx.projectDir, target.rel);
+  if (target.kind === "app") return path.join(publicDir(ctx.env), target.rel);
+  if (target.kind === "absolute") return target.path;
+  throw new Error("Use a file on this computer, not a web address.");
 }
 
 const isLinked = (media: MediaValue | undefined): media is LinkedMedia => !!media?.src;

@@ -3,6 +3,7 @@ import { isGroupNode } from "@/shared/graph";
 import { findById } from "@/shared/lists";
 import { CATEGORY_LABELS, type NodeDef } from "@/shared/nodes/define";
 import { customLabel, getNodeDef, nodeName } from "@/shared/nodes/registry";
+import { artifactName } from "@/shared/schema/values";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Badge } from "@/renderer/components/ui/badge";
@@ -223,7 +224,7 @@ function ArtifactList({ nodeId }: { nodeId: string }) {
           onClick={() => void window.demoflow.revealInFolder(projectDir, a.path)}
         >
           <ExternalLink data-icon="inline-start" />
-          {a.label ?? a.path}
+          {artifactName(a)}
         </Button>
       ))}
     </FieldSet>

@@ -9,29 +9,21 @@ import { runWorkflow } from "./engine/runner";
 import { renderCardStill } from "./render/card-still";
 import { runAnalysis } from "./media/run-analysis";
 import { errorMessage } from "../shared/errors";
+import { pendingReplies } from "../shared/pending-replies";
 
 let control: MessagePortMain | null = null;
 let live: MessagePortMain | null = null;
 const controller = new AbortController();
-const pending = new Map<
-  string,
-  { resolve: (v: string | null) => void; reject: (e: Error) => void }
->();
+const replies = pendingReplies<{ value: string | null } | { error: string }>();
 
 const send = (msg: WorkerToMain) => control?.postMessage(msg);
 
-function request(msg: Extract<WorkerToMain, { id: string }>): Promise<string | null> {
-  return new Promise((resolve, reject) => {
-    pending.set(msg.id, { resolve, reject });
-    send(msg);
-  });
-}
-
-function settle(id: string, outcome: { value: string | null } | { error: string }) {
-  const entry = pending.get(id);
-  pending.delete(id);
-  if ("error" in outcome) entry?.reject(new Error(outcome.error));
-  else entry?.resolve(outcome.value);
+async function request(msg: Extract<WorkerToMain, { id: string }>): Promise<string | null> {
+  const reply = replies.wait(msg.id);
+  send(msg);
+  const outcome = await reply;
+  if ("error" in outcome) throw new Error(outcome.error);
+  return outcome.value;
 }
 
 const sendLive = (message: LiveMessage) => live?.postMessage(message);
@@ -102,13 +94,13 @@ async function handle(msg: MainToWorker): Promise<void> {
       return;
     case "secret:value":
     case "login:state":
-      settle(msg.id, { value: msg.value });
+      replies.settle(msg.id, { value: msg.value });
       return;
     case "secret:written":
-      settle(msg.id, { value: null });
+      replies.settle(msg.id, { value: null });
       return;
     case "request:failed":
-      settle(msg.id, { error: msg.error });
+      replies.settle(msg.id, { error: msg.error });
       return;
     case "run":
       return run(msg);
@@ -131,6 +123,7 @@ process.parentPort.once("message", (event) => {
   control = controlPort;
   live = livePort ?? null;
   control.on("message", (e) => void handle(e.data as MainToWorker));
+  control.on("close", () => replies.settleAll({ error: "Demoflow closed before it answered." }));
   control.start();
   live?.start();
 });

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { wholePercent } from "@/shared/format";
 import { nodeName, nodeNameById } from "@/shared/nodes/registry";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { Progress } from "@/renderer/components/ui/progress";
@@ -83,10 +84,10 @@ function NodeRow({ node, active }: { node: WorkflowNode; active: boolean }) {
       </div>
       {status === "running" && progress !== undefined ? (
         <div className="flex items-center gap-2 pl-6">
-          <Progress className="flex-1" value={Math.round(progress * 100)} />
+          <Progress className="flex-1" value={wholePercent(progress)} />
           <AnimatedPercent
             className="text-muted-foreground w-10 text-right text-[11px]"
-            value={progress * 100}
+            fraction={progress}
           />
         </div>
       ) : null}

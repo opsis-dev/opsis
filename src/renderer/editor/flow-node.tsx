@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { memo } from "react";
 import type { z } from "zod";
+import { wholePercent } from "@/shared/format";
 import type { NodeDef, PortSpec } from "@/shared/nodes/define";
 import { getNodeDef, nodeName } from "@/shared/nodes/registry";
 import { groupParams, noteParams } from "@/shared/nodes/utility";
@@ -172,7 +173,7 @@ function RunProgress({ id }: { id: string }) {
   if (!progress) return null;
   return (
     <div className="flex flex-col gap-1 px-3">
-      <Progress value={Math.round(progress.value * 100)} />
+      <Progress value={wholePercent(progress.value)} />
       {progress.message ? (
         <span className="text-muted-foreground truncate text-[11px]">{progress.message}</span>
       ) : null}

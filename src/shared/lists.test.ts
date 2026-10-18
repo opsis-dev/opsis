@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendCapped, firstFree, keepLast } from "./lists";
+import { appendCapped, firstFree, keepLast, withCurrent } from "./lists";
 
 describe("lists", () => {
   it("keeps the last items", () => {
@@ -12,6 +12,14 @@ describe("lists", () => {
     expect(appendCapped([1, 2, 3], 4, 3)).toEqual([2, 3, 4]);
     expect(appendCapped([1], 2, 3)).toEqual([1, 2]);
     expect(appendCapped([1, 2], 3, 1)).toEqual([3]);
+  });
+});
+
+describe("withCurrent", () => {
+  it("adds the current value when the list lacks it, once", () => {
+    expect(withCurrent(["a", "b"], "c")).toEqual(["a", "b", "c"]);
+    expect(withCurrent(["a", "b"], "a")).toEqual(["a", "b"]);
+    expect(withCurrent(["a"], "")).toEqual(["a"]);
   });
 });
 

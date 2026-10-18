@@ -2,6 +2,7 @@ import { Crosshair, FolderOpen, type LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
 import { targetRoleKey, type FieldWidget } from "@/shared/elements/introspect";
 import { humanize } from "@/shared/format";
+import { withCurrent } from "@/shared/lists";
 import { BACKDROPS } from "@/shared/backdrops";
 import { Input } from "@/renderer/components/ui/input";
 import {
@@ -150,7 +151,10 @@ function DatetimeField({ id, label, value, onChange, meta }: StringProps) {
 }
 
 function VariableField({ id, label, value, onChange, meta, ctx }: StringProps) {
-  const options = [...new Set([...ctx.vars.map((v) => v.name), ...(value ? [value] : [])])];
+  const options = withCurrent(
+    ctx.vars.map((v) => v.name),
+    value,
+  );
   return (
     <EnumField
       id={id}

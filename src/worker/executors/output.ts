@@ -24,7 +24,8 @@ import {
   type FilmChapter,
 } from "../../shared/timeline/chapters";
 import { refToPath } from "./util";
-import { mixed, specFor, within, type Stage } from "./film-spec";
+import { mixed, specFor, type Stage } from "./film-spec";
+import { lerp } from "../../shared/math";
 import { projectPaths, toPosixRel } from "../../engine/project-paths";
 import { framesToMs, msToFrames } from "../../shared/timeline/time";
 import { safeName } from "../../shared/safe-name";
@@ -50,7 +51,7 @@ async function withRenderServer<T>(
 ): Promise<T> {
   ctx.progress(0, "Preparing render engine");
   const serveUrl = await getServeUrl(ctx.env, (p) =>
-    ctx.progress(within(BUNDLE_STAGE, p), "Bundling compositions"),
+    ctx.progress(lerp(...BUNDLE_STAGE, p), "Bundling compositions"),
   );
   const server = await startAssetServer(ctx.projectDir);
   try {
@@ -192,7 +193,7 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
         spec: { ...spec, ...size, reframe: p.reframe, assets: { projectBase } },
         p,
         progress: (x) =>
-          ctx.progress(within(RENDER_STAGE, (i + x) / variants.length), `Rendering ${variant}`),
+          ctx.progress(lerp(...RENDER_STAGE, (i + x) / variants.length), `Rendering ${variant}`),
       };
       made.push(...(await renderVariant(job, variant, out, chapters)));
     }
@@ -215,7 +216,7 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
     for (const [i, preset] of p.presets.entries()) {
       const size = STILL_PRESETS[preset];
       const out = path.join(ctx.outDir, `${base}-${preset}.${p.format === "jpeg" ? "jpg" : "png"}`);
-      ctx.progress(within(RENDER_STAGE, i / p.presets.length), `Still ${preset}`);
+      ctx.progress(lerp(...RENDER_STAGE, i / p.presets.length), `Still ${preset}`);
       await renderFrame({
         env: ctx.env,
         serveUrl,

@@ -37,7 +37,7 @@ import {
 } from "./params";
 import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "./capture";
 import { formatDuration, humanize, percentText, plural } from "../format";
-import { msToFrames } from "../timeline/time";
+import { msToFrames, recordingMsToFrames } from "../timeline/time";
 import { baseName } from "../asset-ref";
 
 const base = { category: "Camera", phase: "compile" } as const;
@@ -257,7 +257,7 @@ function remapClip(
   segments: SpeedSegment[],
 ): ClipValue {
   const playback = clip.recording ? lastRecordingSpeed(clip) : 1;
-  const toFrames = (recordingMs: number) => (recordingMs / 1000 / playback) * fps;
+  const toFrames = (recordingMs: number) => recordingMsToFrames(recordingMs, playback, fps);
   const remap = remapFromSegments(
     clip.durationInFrames,
     segments.map((s) => ({ from: toFrames(s.fromMs), to: toFrames(s.toMs), rate: s.rate })),

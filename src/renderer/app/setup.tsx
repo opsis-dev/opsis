@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { EngineInstallEvent } from "@/shared/engine";
+import { wholePercent } from "@/shared/format";
 import { errorMessage } from "@/shared/errors";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
@@ -54,10 +55,10 @@ function EngineProgress({
     <CardContent className="flex flex-col gap-2">
       {!error && event?.progress != null ? (
         <div key={`${event.part}|${event.step}`} className="flex items-center gap-2">
-          <Progress className="flex-1" value={Math.round(event.progress * 100)} />
+          <Progress className="flex-1" value={wholePercent(event.progress)} />
           <AnimatedPercent
             className="text-muted-foreground w-10 text-right text-xs"
-            value={event.progress * 100}
+            fraction={event.progress}
           />
         </div>
       ) : null}

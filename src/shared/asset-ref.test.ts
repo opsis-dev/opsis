@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { baseName, encodePath, extensionOf, projectRelPath } from "./asset-ref";
+import {
+  baseName,
+  encodePath,
+  extensionOf,
+  projectRef,
+  projectRelPath,
+  refTarget,
+} from "./asset-ref";
 
 describe("asset refs", () => {
   it("encodes each path segment", () => {
@@ -9,6 +16,26 @@ describe("asset refs", () => {
   it("strips the project prefix and leading slashes", () => {
     expect(projectRelPath("project:/assets/a.mp4")).toBe("assets/a.mp4");
     expect(projectRelPath("assets/a.mp4")).toBe("assets/a.mp4");
+    expect(projectRelPath("app:sfx/a.wav")).toBeNull();
+  });
+
+  it("sorts every ref into project, app, web and absolute files", () => {
+    expect(refTarget("project:assets/a.png")).toEqual({ kind: "project", rel: "assets/a.png" });
+    expect(refTarget("assets/a.png")).toEqual({ kind: "project", rel: "assets/a.png" });
+    expect(refTarget("app:backdrops/a.jpg")).toEqual({ kind: "app", rel: "backdrops/a.jpg" });
+    expect(refTarget("https://x.test/a.png")).toEqual({
+      kind: "external",
+      url: "https://x.test/a.png",
+    });
+    expect(refTarget("/abs/a.png")).toEqual({ kind: "absolute", path: "/abs/a.png" });
+    expect(refTarget("C:\\clips\\a.mp4")).toEqual({ kind: "absolute", path: "C:\\clips\\a.mp4" });
+  });
+
+  it("makes project refs of relative paths only", () => {
+    expect(projectRef("assets/a.png")).toBe("project:assets/a.png");
+    expect(projectRef("project:assets/a.png")).toBe("project:assets/a.png");
+    expect(projectRef("/abs/a.png")).toBe("/abs/a.png");
+    expect(projectRef("app:sfx/a.wav")).toBe("app:sfx/a.wav");
   });
 
   it("names the last segment, ignoring a trailing slash", () => {

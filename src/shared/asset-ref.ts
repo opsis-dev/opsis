@@ -24,16 +24,29 @@ export const isProjectRef = (ref: string): boolean => ref.startsWith(PROJECT_SCH
 export const isAssetRef = (value: unknown): value is string =>
   isString(value) && startsWithAny(value, [PROJECT_SCHEME, APP_SCHEME]);
 
-export const projectRelPath = (ref: string): string =>
-  withoutLeadingSlashes(isProjectRef(ref) ? ref.slice(PROJECT_SCHEME.length) : ref);
-
-export const appRelPath = (ref: string): string | null =>
-  ref.startsWith(APP_SCHEME) ? ref.slice(APP_SCHEME.length) : null;
-
-export const projectFileUrl = (ref: string): string =>
-  `${PROJECT_FILE_BASE}${encodePath(projectRelPath(ref))}`;
-
 export const isExternalRef = (ref: string): boolean => startsWithAny(ref, EXTERNAL_SCHEMES);
+
+const ABSOLUTE_PATH = /^(\/|[A-Za-z]:[\\/]|\\\\)/;
+
+export type RefTarget =
+  | { kind: "project"; rel: string }
+  | { kind: "app"; rel: string }
+  | { kind: "external"; url: string }
+  | { kind: "absolute"; path: string };
+
+export function refTarget(ref: string): RefTarget {
+  if (isProjectRef(ref))
+    return { kind: "project", rel: withoutLeadingSlashes(ref.slice(PROJECT_SCHEME.length)) };
+  if (ref.startsWith(APP_SCHEME)) return { kind: "app", rel: ref.slice(APP_SCHEME.length) };
+  if (isExternalRef(ref)) return { kind: "external", url: ref };
+  if (ABSOLUTE_PATH.test(ref)) return { kind: "absolute", path: ref };
+  return { kind: "project", rel: ref };
+}
+
+export function projectRelPath(ref: string): string | null {
+  const target = refTarget(ref);
+  return target.kind === "project" ? target.rel : null;
+}
 
 export function extensionOf(file: string): string {
   const name = file.slice(file.lastIndexOf("/") + 1);
@@ -43,9 +56,7 @@ export function extensionOf(file: string): string {
 
 export const baseName = (ref: string): string => ref.replace(/\/+$/, "").split("/").pop() || ref;
 
-const REF_SCHEMES = [PROJECT_SCHEME, APP_SCHEME, ...EXTERNAL_SCHEMES];
-
 export const projectRef = (path: string): string =>
-  !path || startsWithAny(path, REF_SCHEMES)
+  !path || isProjectRef(path) || refTarget(path).kind !== "project"
     ? path
-    : `${PROJECT_SCHEME}${withoutLeadingSlashes(path)}`;
+    : `${PROJECT_SCHEME}${path}`;

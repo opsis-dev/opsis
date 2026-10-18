@@ -3,11 +3,9 @@ import { staticFile } from "remotion";
 import {
   PROJECT_FILE_BASE,
   STATIC_PROJECT_BASE,
-  appRelPath,
   encodePath,
   isAssetRef,
-  isProjectRef,
-  projectRelPath,
+  refTarget,
 } from "../shared/asset-ref";
 import type { PreviewQuality, ReframeMode } from "../shared/schema/timeline";
 
@@ -18,14 +16,12 @@ const AssetContext = createContext<AssetBase>({});
 export const AssetProvider = AssetContext.Provider;
 
 export function resolveAssetRef(ref: string, base: AssetBase): string {
-  if (isProjectRef(ref)) {
-    const rel = projectRelPath(ref);
-    if (base.projectBase === STATIC_PROJECT_BASE) return staticFile(`project/${rel}`);
-    const root = base.projectBase ?? PROJECT_FILE_BASE;
-    return root.endsWith("/") ? root + encodePath(rel) : `${root}/${encodePath(rel)}`;
-  }
-  const app = appRelPath(ref);
-  return app === null ? ref : staticFile(app);
+  const target = refTarget(ref);
+  if (target.kind === "app") return staticFile(target.rel);
+  if (target.kind !== "project") return ref;
+  if (base.projectBase === STATIC_PROJECT_BASE) return staticFile(`project/${target.rel}`);
+  const root = base.projectBase ?? PROJECT_FILE_BASE;
+  return root.endsWith("/") ? root + encodePath(target.rel) : `${root}/${encodePath(target.rel)}`;
 }
 
 const MAX_PROP_DEPTH = 3;
