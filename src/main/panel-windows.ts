@@ -50,6 +50,7 @@ export const isPanelSender = (id: number) => panelWindows().some((w) => w.webCon
 
 export async function openPanelWindow(panel: DockPanelName): Promise<void> {
   const win = await openRememberedWindow({
+    key: `panel:${panel}`,
     existing: panelWindow(panel),
     saved: async () => (await panelBounds())[panel],
     save: (rect) => savePanelBounds(panel, rect),

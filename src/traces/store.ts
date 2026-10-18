@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { constants, zstdCompressSync, zstdDecompressSync } from "node:zlib";
 import { unzipSync } from "fflate";
@@ -99,7 +99,7 @@ export async function ingestTrace(
     const file = path.join(root, blobRel(entry));
     if (!existsSync(file)) {
       await mkdir(path.dirname(file), { recursive: true });
-      await writeFile(file, entry.zstd ? zstd(data) : data);
+      await atomicWrite(file, entry.zstd ? zstd(data) : data);
     }
     entries.push(entry);
   }

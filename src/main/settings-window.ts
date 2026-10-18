@@ -13,10 +13,9 @@ export const settingsWindow = () => liveWindow(win);
 export const isSettingsSender = (id: number) => settingsWindow()?.webContents.id === id;
 
 export async function openSettingsWindow(page?: SettingsPage): Promise<void> {
-  const open = settingsWindow();
-  if (open && page) open.webContents.send(IPC.settingsPage, page);
   const created = await openRememberedWindow({
-    existing: open,
+    key: "settings",
+    existing: settingsWindow(),
     saved: store.load,
     save: store.save,
     options: {
@@ -32,6 +31,7 @@ export async function openSettingsWindow(page?: SettingsPage): Promise<void> {
     },
   });
   if (created) win = created;
+  else if (page) settingsWindow()?.webContents.send(IPC.settingsPage, page);
 }
 
 export function closeSettingsWindow(): void {

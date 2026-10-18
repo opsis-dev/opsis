@@ -4,6 +4,7 @@ import { mediaInput } from "../../shared/nodes/media";
 import type { CompileValue, MediaValue } from "../../shared/schema/values";
 import type { WorkerEnv } from "../../shared/worker-protocol";
 import type { ExecutorContext } from "../engine/context";
+import type { FfmpegTools } from "../media/ffmpeg";
 
 type SourceEnv = Pick<WorkerEnv, "isPackaged" | "appRoot" | "resourcesPath">;
 
@@ -20,7 +21,7 @@ export const exportUtilsFile = (env: SourceEnv): string =>
 
 export type LinkedMedia = MediaValue & { src: string };
 
-export function refToPath(ctx: Pick<ExecutorContext, "projectDir" | "env">, ref: string): string {
+export function refToPath(ctx: { projectDir: string; env: SourceEnv }, ref: string): string {
   const target = refTarget(ref);
   if (target.kind === "project") return path.join(ctx.projectDir, target.rel);
   if (target.kind === "app") return path.join(publicDir(ctx.env), target.rel);
@@ -35,6 +36,13 @@ export function requireMedia(value: CompileValue | undefined): LinkedMedia {
   if (!isLinked(media))
     throw new Error("Connect a media input (and run the node that produces it).");
   return media;
+}
+
+export async function mediaHasSound(
+  ctx: { projectDir: string; env: SourceEnv; ffmpeg: Pick<FfmpegTools, "probe"> },
+  media: LinkedMedia,
+): Promise<boolean> {
+  return media.hasAudio ?? !!(await ctx.ffmpeg.probe(refToPath(ctx, media.src))).audio;
 }
 
 export const rel = (ctx: Pick<ExecutorContext, "relDir">, file: string) => `${ctx.relDir}/${file}`;

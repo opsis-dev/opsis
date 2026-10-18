@@ -7,6 +7,7 @@ import type { VisualEnvelope } from "../schema/timeline";
 import {
   asValue,
   outputOf,
+  type ClipValue,
   type CompileValue,
   type MediaValue,
   type NodeResult,
@@ -86,22 +87,35 @@ type Fit = keyof typeof FITS;
 
 const fitField = () => choiceOf(FITS, "contain", "Fit");
 
-type MediaClip = {
-  src: string;
-  kind: MediaValue["kind"];
-  fit: Fit;
-  muted: boolean;
-  frames: number;
-  envelope: VisualEnvelope;
-};
-
-const mediaClip = (nodeId: string, { src, kind, fit, muted, frames, envelope }: MediaClip) =>
-  itemClip(nodeId, kind === "image" ? "core/image" : "core/video", { src, fit, muted }, frames, {
-    envelope,
-  });
-
 const IMAGE_MS = 3000;
 const MEDIA_MS = 5000;
+
+type ClipLook = {
+  fit: Fit;
+  muted: boolean;
+  envelope: VisualEnvelope;
+  fps: number;
+  unlinked: { title: string; subtitle: string };
+  soundLabel: string;
+};
+
+function mediaToClip(
+  nodeId: string,
+  media: MediaValue | undefined,
+  { fit, muted, envelope, fps, unlinked, soundLabel }: ClipLook,
+): ClipValue {
+  const frames = msToFrames(
+    media?.durationMs ?? (media?.kind === "image" ? IMAGE_MS : MEDIA_MS),
+    fps,
+  );
+  if (!media?.src) return placeholderClip(nodeId, unlinked, frames, { envelope });
+  if (media.kind === "audio")
+    return placeholderClip(nodeId, { title: "Sound file", subtitle: soundLabel }, frames, {
+      envelope,
+    });
+  const component = media.kind === "image" ? "core/image" : "core/video";
+  return itemClip(nodeId, component, { src: media.src, fit, muted }, frames, { envelope });
+}
 
 const op = <S extends z.ZodObject>(def: Omit<NodeDef<S>, "category" | "phase" | "executes">) =>
   defineNode<S>({ ...fileOp, compile: passMedia, ...def });
@@ -127,26 +141,14 @@ export const importMediaNode = op({
       src: params.path ? projectRef(params.path) : null,
       kind: kindFromPath(params.path),
     };
-    const frames = msToFrames(
-      media.durationMs ?? (media.kind === "image" ? IMAGE_MS : MEDIA_MS),
-      settings.fps,
-    );
-    const clip =
-      !media.src || media.kind === "audio"
-        ? placeholderClip(
-            nodeId,
-            { title: media.src ? "Sound file" : "No file chosen", subtitle: params.path },
-            frames,
-            { envelope: params.envelope },
-          )
-        : mediaClip(nodeId, {
-            src: media.src,
-            kind: media.kind,
-            fit: params.fit,
-            muted: false,
-            frames,
-            envelope: params.envelope,
-          });
+    const clip = mediaToClip(nodeId, media, {
+      fit: params.fit,
+      muted: false,
+      envelope: params.envelope,
+      fps: settings.fps,
+      unlinked: { title: "No file chosen", subtitle: params.path },
+      soundLabel: params.path,
+    });
     return { media, clip };
   },
 });
@@ -164,29 +166,16 @@ const mediaToClipNode = defineNode({
     muted: bool(false, "Muted"),
     envelope: visualEnvelope(),
   }),
-  compile: ({ nodeId, inputs, params, settings }) => {
-    const media = mediaInput(inputs.media);
-    const frames = msToFrames(media?.durationMs ?? MEDIA_MS, settings.fps);
-    if (!media?.src)
-      return {
-        clip: placeholderClip(
-          nodeId,
-          { title: "No file connected", subtitle: "Connect a file to use it as a clip" },
-          frames,
-          { envelope: params.envelope },
-        ),
-      };
-    return {
-      clip: mediaClip(nodeId, {
-        src: media.src,
-        kind: media.kind,
-        fit: params.fit,
-        muted: params.muted,
-        frames,
-        envelope: params.envelope,
-      }),
-    };
-  },
+  compile: ({ nodeId, inputs, params, settings }) => ({
+    clip: mediaToClip(nodeId, mediaInput(inputs.media), {
+      fit: params.fit,
+      muted: params.muted,
+      envelope: params.envelope,
+      fps: settings.fps,
+      unlinked: { title: "No file connected", subtitle: "Connect a file to use it as a clip" },
+      soundLabel: "Sound files can't be shown as a clip",
+    }),
+  }),
 });
 
 const SCALE_MODES = {

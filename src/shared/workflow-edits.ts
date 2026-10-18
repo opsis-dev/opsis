@@ -164,7 +164,13 @@ export const addProjectFont = (wf: Workflow, def: FontFamilyDef): Workflow => ({
 
 export function renameWorkflowVariable(wf: Workflow, from: string, to: string): Workflow {
   const name = nonBlankString(to);
-  if (!name || name === from || name in wf.variables || !(from in wf.variables)) return wf;
+  if (
+    !name ||
+    name === from ||
+    Object.hasOwn(wf.variables, name) ||
+    !Object.hasOwn(wf.variables, from)
+  )
+    return wf;
   return {
     ...wf,
     variables: Object.fromEntries(

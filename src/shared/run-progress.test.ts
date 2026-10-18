@@ -49,6 +49,19 @@ describe("applyRunEvent", () => {
     expect(second.progress).toEqual({});
   });
 
+  it("forgets an included node's old trace, so a later run without one shows none", () => {
+    const failed = run([
+      { type: "run:start", runId: "r1", nodeIds: ["a", "b"], at: 0 },
+      { type: "node:error", runId: "r1", nodeId: "a", message: "boom", traceId: "t1" },
+      { type: "node:error", runId: "r1", nodeId: "b", message: "boom", traceId: "t2" },
+    ]);
+    const rerun = [
+      { type: "run:start", runId: "r2", nodeIds: ["a"], at: 1 },
+      { type: "node:done", runId: "r2", nodeId: "a", cached: false, result: result(2) },
+    ] satisfies RunEvent[];
+    expect(rerun.reduce(applyRunEvent, failed).traces).toEqual({ b: "t2" });
+  });
+
   it("resumes over a freshly opened project", () => {
     const opened = { ...emptyRunProgress(), errors: { old: "earlier" }, results: { x: result(1) } };
     const saved = run([

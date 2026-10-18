@@ -46,21 +46,38 @@ function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => void): vo
   });
 }
 
-export async function openRememberedWindow(opts: {
+type RememberedWindow = {
+  key: string;
   existing: BrowserWindow | null;
   saved: () => Promise<Rectangle | null | undefined>;
   save: (rect: Rectangle) => void;
   options: WindowOptions;
   hash: string;
   onClosed: (win: BrowserWindow) => void;
-}): Promise<BrowserWindow | null> {
-  if (opts.existing) {
-    raiseWindow(opts.existing);
-    return null;
-  }
+};
+
+const opening = new Map<string, Promise<BrowserWindow>>();
+
+async function createRememberedWindow(opts: RememberedWindow): Promise<BrowserWindow> {
   const win = makeWindow({ ...opts.options, ...visibleBounds(await opts.saved()) });
   rememberBounds(win, opts.save);
   win.on("closed", () => opts.onClosed(win));
   void win.loadURL(rendererUrl(opts.hash));
   return win;
+}
+
+export function openRememberedWindow(opts: RememberedWindow): Promise<BrowserWindow | null> {
+  const pending = opening.get(opts.key);
+  if (pending)
+    return pending.then((win) => {
+      raiseWindow(win);
+      return null;
+    });
+  if (opts.existing) {
+    raiseWindow(opts.existing);
+    return Promise.resolve(null);
+  }
+  const created = createRememberedWindow(opts).finally(() => opening.delete(opts.key));
+  opening.set(opts.key, created);
+  return created;
 }

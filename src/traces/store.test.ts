@@ -11,6 +11,7 @@ import { applyRetention, ingestTrace, readTrace } from "./store";
 import { FRAME, LATER, ndjson } from "./test-fixtures";
 
 const unreadable = vi.hoisted(() => new Set<string>());
+const cutOff = vi.hoisted(() => ({ next: false }));
 vi.mock("node:fs/promises", async (importOriginal) => {
   const fs = await importOriginal<typeof FsPromises>();
   return {
@@ -19,6 +20,12 @@ vi.mock("node:fs/promises", async (importOriginal) => {
       unreadable.has(String(args[0]))
         ? Promise.reject(Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" }))
         : fs.readFile(...args),
+    writeFile: async (...args: Parameters<typeof fs.writeFile>) => {
+      if (!cutOff.next || !String(args[0]).includes("blobs")) return fs.writeFile(...args);
+      cutOff.next = false;
+      await fs.writeFile(args[0], "cut");
+      throw Object.assign(new Error("ENOSPC: no space left on device"), { code: "ENOSPC" });
+    },
   };
 });
 
@@ -81,6 +88,14 @@ describe("trace store", () => {
       expect(f.src).toMatch(/^project:\.demoflow\/traces\/blobs\/[0-9a-f]{2}\/[0-9a-f]{64}\.jpeg$/);
       expect(existsSync(path.join(dir, f.src.slice("project:".length)))).toBe(true);
     }
+  });
+
+  it("never keeps a blob that was cut off while it was written", async () => {
+    const dir = await project();
+    cutOff.next = true;
+    await expect(ingestTrace(dir, await traceZip(dir, "a.zip"), meta())).rejects.toThrow("ENOSPC");
+    const m = await ingestTrace(dir, await traceZip(dir, "b.zip"), meta());
+    expect((await readTrace(dir, m.id)).frames).toHaveLength(FRAMES.length);
   });
 
   it("stores identical resources once across runs, compressed text and raw images", async () => {

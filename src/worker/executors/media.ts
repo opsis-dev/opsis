@@ -40,7 +40,14 @@ import {
 } from "../media/codecs";
 import { canStreamCopy, type ProbeResult } from "../media/ffmpeg";
 import { fitFilter, gifFilter, joinFilter, speedArgs } from "../media/filters";
-import { projectFileRef, refToPath, rel, requireMedia, type LinkedMedia } from "./util";
+import {
+  mediaHasSound,
+  projectFileRef,
+  refToPath,
+  rel,
+  requireMedia,
+  type LinkedMedia,
+} from "./util";
 
 const mediaKind = (probe: ProbeResult, file: string): MediaValue["kind"] => {
   const named = kindFromPath(file);
@@ -188,17 +195,18 @@ export const mediaExecutors: Executor[] = [
     const input = requireMedia(inputs.media);
     const probe = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
     const fps = probe.video?.fps || ctx.workflow.settings.fps;
+    const sound = p.keepAudio && (await mediaHasSound(ctx, input));
     return transcodeMedia(ctx, input, {
       file: "speed.mp4",
       label: `Speed ${p.rate}×`,
       durationMs: input.durationMs ? input.durationMs / p.rate : undefined,
-      args: (i, o) =>
-        speedArgs(i, o, { rate: p.rate, fps, sound: p.keepAudio && input.hasAudio !== false }),
+      args: (i, o) => speedArgs(i, o, { rate: p.rate, fps, sound }),
     });
   }),
 
   defineExecutor(reverseNode, async (ctx, inputs) => {
     const input = requireMedia(inputs.media);
+    const sound = await mediaHasSound(ctx, input);
     return transcodeMedia(ctx, input, {
       file: "reversed.mp4",
       label: "Reversed",
@@ -207,7 +215,7 @@ export const mediaExecutors: Executor[] = [
         i,
         "-vf",
         "reverse",
-        ...(input.hasAudio ? ["-af", "areverse"] : ["-an"]),
+        ...(sound ? ["-af", "areverse"] : ["-an"]),
         ...EDIT_VIDEO,
         o,
       ],

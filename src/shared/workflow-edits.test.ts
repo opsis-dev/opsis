@@ -152,6 +152,10 @@ describe("workflow edits", () => {
         .variables,
     ).toEqual({ site: "a", home: "b" });
     expect(renameWorkflowVariable(wf, "missing", "other")).toBe(wf);
+    expect(renameWorkflowVariable(wf, "constructor", "other")).toBe(wf);
+    expect(renameWorkflowVariable(wf, "site", "constructor").variables).toEqual({
+      constructor: "https://example.com",
+    });
   });
 
   it("replaces a project font of the same family", () => {

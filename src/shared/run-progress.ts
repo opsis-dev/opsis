@@ -30,12 +30,13 @@ const without = <T>(record: Record<string, T>, ids: readonly string[]): Record<s
   return Object.fromEntries(Object.entries(record).filter(([id]) => !drop.has(id)));
 };
 
-type RerunFields = Pick<RunProgress, "progress" | "cached" | "errors">;
+type RerunFields = Pick<RunProgress, "progress" | "cached" | "errors" | "traces">;
 
 const forgetNodes = (state: RerunFields, ids: readonly string[]): RerunFields => ({
   progress: without(state.progress, ids),
   cached: without(state.cached, ids),
   errors: without(state.errors, ids),
+  traces: without(state.traces, ids),
 });
 
 export function applyRunEvent<S extends RunProgress>(state: S, e: RunEvent): S {
@@ -100,7 +101,7 @@ export function resumeRunProgress<S extends RunProgress>(state: S, saved: RunPro
     progress: { ...kept.progress, ...saved.progress },
     cached: { ...kept.cached, ...saved.cached },
     errors: { ...kept.errors, ...saved.errors },
-    traces: { ...state.traces, ...saved.traces },
+    traces: { ...kept.traces, ...saved.traces },
     results: { ...state.results, ...saved.results },
   };
 }

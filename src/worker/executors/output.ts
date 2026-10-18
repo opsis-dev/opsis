@@ -192,11 +192,14 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
     }
     return made;
   });
+  const exported = firstArtifact(artifacts).path;
+  const probe = await ctx.ffmpeg.probe(path.join(ctx.projectDir, exported));
   const media: MediaValue = {
     type: "media",
-    src: projectRef(firstArtifact(artifacts).path),
+    src: projectRef(exported),
     kind: kindOfCodec(p.codec),
     durationMs: framesToMs(spec.durationInFrames, spec.fps),
+    hasAudio: !!probe.audio,
   };
   return { outputs: { media }, artifacts };
 });
