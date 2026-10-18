@@ -6,6 +6,8 @@ const PROJECT_SCHEME = "project:";
 
 const APP_SCHEME = "app:";
 
+const LIBRARY_SCHEME = "library:";
+
 const EXTERNAL_SCHEMES = ["http:", "https:", "data:", "blob:", `${FILE_SCHEME}:`];
 
 const startsWithAny = (ref: string, schemes: readonly string[]): boolean =>
@@ -47,6 +49,11 @@ export function projectRelPath(ref: string): string | null {
   const target = refTarget(ref);
   return target.kind === "project" ? target.rel : null;
 }
+
+export const libraryRef = (rel: string): string => `${LIBRARY_SCHEME}${rel}`;
+
+export const libraryRelPath = (ref: string): string | null =>
+  ref.startsWith(LIBRARY_SCHEME) ? ref.slice(LIBRARY_SCHEME.length) : null;
 
 export function extensionOf(file: string): string {
   const name = file.slice(file.lastIndexOf("/") + 1);

@@ -19,7 +19,16 @@ export function uniqueKeys(keys: readonly string[]): string[] {
   });
 }
 
-export const byCodeUnit = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+export function byCodeUnit(a: string, b: string): number {
+  if (a < b) return -1;
+  return a > b ? 1 : 0;
+}
+
+export function uniqueBy<T>(items: readonly T[], key: (item: T) => string): T[] {
+  const seen = new Map<string, T>();
+  for (const item of items) if (!seen.has(key(item))) seen.set(key(item), item);
+  return [...seen.values()];
+}
 
 export function firstFree(
   candidate: (n: number) => string,

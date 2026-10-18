@@ -85,11 +85,11 @@ function KnobValue({
   );
 }
 
-function KnobDial({ size, t, centreT }: { size: number; t: number; centreT: number }) {
+function KnobDial({ size, t, centerT }: { size: number; t: number; centerT: number }) {
   const c = size / 2;
   const r = c - RING_INSET;
   const angle = angleOf(t);
-  const centre = angleOf(centreT);
+  const center = angleOf(centerT);
   const tip = polar(c, r - POINTER_INSET, angle);
   return (
     <svg width={size} height={size}>
@@ -100,9 +100,9 @@ function KnobDial({ size, t, centreT }: { size: number; t: number; centreT: numb
         fill="none"
         strokeLinecap="round"
       />
-      {Math.abs(angle - centre) > 0.5 ? (
+      {Math.abs(angle - center) > 0.5 ? (
         <path
-          d={arcPath(c, r, Math.min(centre, angle), Math.max(centre, angle))}
+          d={arcPath(c, r, Math.min(center, angle), Math.max(center, angle))}
           className="stroke-primary"
           strokeWidth={3}
           fill="none"
@@ -169,7 +169,7 @@ export function Knob({
   const range = { min, max, step, log };
   const fraction = clamp01(valueToFraction(range, value));
   const nudge = (by: number) => commitOnce(gesture, fractionToValue(range, fraction + by));
-  const centreT = min < 0 && max > 0 && !log ? valueToFraction(range, 0) : 0;
+  const centerT = min < 0 && max > 0 && !log ? valueToFraction(range, 0) : 0;
   const dragProps = useKnobDrag(range, fraction, gesture, disabled);
   const spoken = `${label}: ${withUnit(format(value), unit)}`;
   return (
@@ -188,7 +188,7 @@ export function Knob({
         }}
         onKeyDown={(e) => onArrowKey(e, (dir, big) => nudge(dir * (big ? BIG_NUDGE : NUDGE)))}
       >
-        <KnobDial size={size} t={fraction} centreT={centreT} />
+        <KnobDial size={size} t={fraction} centerT={centerT} />
       </button>
       <span className="text-muted-foreground text-[10px] leading-none">{label}</span>
       <KnobValue

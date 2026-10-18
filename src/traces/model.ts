@@ -1,6 +1,6 @@
+import { z } from "zod";
 import { formatPreciseDuration, humanize } from "../shared/format";
 import { isOneOf, isRecord, tryParseJson } from "../shared/guards";
-import { finiteNumber } from "../shared/math";
 import {
   CONSOLE_LEVELS,
   type TraceAction,
@@ -45,8 +45,10 @@ const VERBS: Partial<Record<string, string>> = {
 const COLLAPSIBLE = new Set(["mouseMove", "mouseWheel"]);
 const PAUSE_MS = 100;
 
+const CONSOLE_ALIASES: Partial<Record<string, TraceConsole["level"]>> = { warn: "warning" };
+
 const consoleLevel = (type = "log"): TraceConsole["level"] =>
-  isOneOf(CONSOLE_LEVELS, type) ? type : type === "warn" ? "warning" : "log";
+  isOneOf(CONSOLE_LEVELS, type) ? type : (CONSOLE_ALIASES[type] ?? "log");
 
 const TEXT_PARTS = ["trace", "network"] as const;
 export type TraceTextPart = (typeof TEXT_PARTS)[number];
@@ -68,84 +70,125 @@ export const parseNdjson = (text: string): Json[] =>
     .filter((line) => line.trim())
     .flatMap(parseLine);
 
-const str = (v: unknown) => (typeof v === "string" ? v : undefined);
-const obj = (v: unknown): Json => (isRecord(v) ? v : {});
+const text = z.string().optional().catch(undefined);
+const count = z.number().optional().catch(undefined);
+const lenient = <S extends z.ZodRawShape>(shape: S) =>
+  z.object(shape).catch(() => z.object(shape).parse({}));
 
-function readPoint(value: unknown, fallbackY?: number): TraceAction["point"] {
-  const p = obj(value);
-  const x = finiteNumber(p.x);
-  const y = finiteNumber(p.y) ?? fallbackY;
-  return x === undefined || y === undefined ? undefined : { x, y };
-}
+const pointShape = lenient({ x: count, y: count });
+const boxShape = lenient({ x: count, y: count, width: count, height: count });
+const messageShape = lenient({ message: text, stack: text, s: text });
+const errorShape = lenient({ message: text, error: messageShape, value: messageShape });
 
-function readBox(value: unknown): TraceAction["box"] {
-  const b = obj(value);
-  const width = finiteNumber(b.width);
-  if (width === undefined) return undefined;
-  return {
-    x: finiteNumber(b.x) ?? 0,
-    y: finiteNumber(b.y) ?? 0,
-    width,
-    height: finiteNumber(b.height) ?? 0,
-  };
-}
+const callParams = lenient({
+  selector: text,
+  url: text,
+  value: text,
+  text,
+  key: text,
+  waitTimeout: count,
+  timeout: count,
+  x: count,
+  y: count,
+});
 
-function describeCall(method: string, params: Json): { title: string; target?: string } {
+const EVENTS = {
+  "context-options": z.object({
+    options: lenient({ viewport: lenient({ width: count, height: count }) }),
+  }),
+  before: z.object({
+    callId: text,
+    method: text,
+    title: text,
+    parentId: text,
+    params: callParams,
+    startTime: count,
+  }),
+  log: z.object({ callId: text, message: text }),
+  input: z.object({ callId: text, point: pointShape, box: boxShape }),
+  after: z.object({ callId: text, endTime: count, error: errorShape, point: pointShape }),
+  console: z.object({
+    text,
+    messageType: text,
+    time: count,
+    location: lenient({ url: text }),
+  }),
+  event: z.object({ method: text, params: lenient({ error: errorShape }), time: count }),
+  "screencast-frame": z.object({
+    sha1: text,
+    file: text,
+    timestamp: count,
+    width: count,
+    height: count,
+  }),
+};
+
+type Event<K extends keyof typeof EVENTS> = z.infer<(typeof EVENTS)[K]>;
+
+const pointOf = (p: z.infer<typeof pointShape>, fallbackY?: number): TraceAction["point"] => {
+  const y = p.y ?? fallbackY;
+  return p.x === undefined || y === undefined ? undefined : { x: p.x, y };
+};
+
+const boxOf = (b: z.infer<typeof boxShape>): TraceAction["box"] =>
+  b.width === undefined
+    ? undefined
+    : { x: b.x ?? 0, y: b.y ?? 0, width: b.width, height: b.height ?? 0 };
+
+function describeCall(
+  method: string,
+  params: z.infer<typeof callParams>,
+): { title: string; target?: string } {
   const verb = VERBS[method] ?? humanize(method);
-  const selector = str(params.selector);
+  const { selector } = params;
   switch (method) {
     case "goto":
-      return { title: verb, target: str(params.url) };
+      return { title: verb, target: params.url };
     case "fill":
     case "type":
     case "keyboardType":
     case "keyboardInsertText": {
-      const value = str(params.value) ?? str(params.text);
+      const value = params.value ?? params.text;
       return { title: value === undefined ? verb : `${verb} "${value}"`, target: selector };
     }
     case "press":
     case "keyboardPress":
     case "keyboardDown":
     case "keyboardUp":
-      return { title: `${verb} ${str(params.key) ?? ""}`.trim(), target: selector };
+      return { title: `${verb} ${params.key ?? ""}`.trim(), target: selector };
     case "waitForTimeout":
       return {
-        title: `${verb} ${formatPreciseDuration(finiteNumber(params.waitTimeout) ?? finiteNumber(params.timeout) ?? 0)}`,
+        title: `${verb} ${formatPreciseDuration(params.waitTimeout ?? params.timeout ?? 0)}`,
       };
     default:
       return { title: verb, target: selector };
   }
 }
 
-function traceErrorMessage(value: unknown): string | undefined {
-  const e = obj(value);
-  return str(e.message) ?? str(obj(e.error).message) ?? str(obj(e.value).message);
-}
+const errorMessageOf = (e: z.infer<typeof errorShape>): string | undefined =>
+  e.message ?? e.error.message ?? e.value.message;
 
-function readViewport(e: Json): TraceModel["viewport"] {
-  const v = obj(obj(e.options).viewport);
-  const width = finiteNumber(v.width);
-  const height = finiteNumber(v.height);
+function viewportOf(e: Event<"context-options">): TraceModel["viewport"] {
+  const { width, height } = e.options.viewport;
   return width && height ? { width, height } : null;
 }
 
-function beginCall(e: Json, nextGroup: () => string | undefined): Call | undefined {
-  const id = str(e.callId);
+function beginCall(e: Event<"before">, nextGroup: () => string | undefined): Call | undefined {
+  const id = e.callId;
   if (!id) return undefined;
-  const method = str(e.method) ?? "";
+  const method = e.method ?? "";
   const group = method === "tracingGroup";
-  const params = obj(e.params);
-  const described = describeCall(method, params);
-  const start = finiteNumber(e.startTime) ?? 0;
-  const point = method.startsWith("mouse") ? readPoint(params) : undefined;
+  const described = describeCall(method, e.params);
+  const start = e.startTime ?? 0;
+  const point = method.startsWith("mouse") ? pointOf(e.params) : undefined;
   return {
     method,
     action: {
       id,
-      parentId: str(e.parentId),
+      parentId: e.parentId,
       group,
       nodeId: group ? nextGroup() : undefined,
-      title: str(e.title) ?? described.title,
+      title: e.title ?? described.title,
       target: described.target,
       start,
       end: start,
@@ -163,56 +206,49 @@ function addLog(a: TraceAction, message: string): void {
     a.target = waiting[1];
 }
 
-function addInput(a: TraceAction, e: Json): void {
-  const point = readPoint(e.point, 0);
-  const box = readBox(e.box);
+function addInput(a: TraceAction, e: Event<"input">): void {
+  const point = pointOf(e.point, 0);
+  const box = boxOf(e.box);
   if (point) a.point = point;
   if (box) a.box = box;
 }
 
-function endAction(a: TraceAction, e: Json): void {
-  a.end = finiteNumber(e.endTime) ?? a.start;
-  a.error = traceErrorMessage(e.error);
-  const point = a.point ?? readPoint(e.point, 0);
+function endAction(a: TraceAction, e: Event<"after">): void {
+  a.end = e.endTime ?? a.start;
+  a.error = errorMessageOf(e.error);
+  const point = a.point ?? pointOf(e.point, 0);
   if (point) a.point = point;
 }
 
-function readConsole(e: Json): TraceConsole | undefined {
-  const text = str(e.text)?.replaceAll("%c", "");
-  if (text === undefined) return undefined;
+function consoleOf(e: Event<"console">): TraceConsole | undefined {
+  const message = e.text?.replaceAll("%c", "");
+  if (message === undefined) return undefined;
   return {
-    level: consoleLevel(str(e.messageType)),
-    text,
-    time: finiteNumber(e.time) ?? 0,
-    url: str(obj(e.location).url) || undefined,
+    level: consoleLevel(e.messageType),
+    text: message,
+    time: e.time ?? 0,
+    url: e.location.url || undefined,
   };
 }
 
-function readPageError(e: Json): TraceError | undefined {
+function pageErrorOf(e: Event<"event">): TraceError | undefined {
   if (e.method !== "pageError") return undefined;
-  const error = obj(obj(e.params).error);
-  const inner = obj(error.error);
+  const { error } = e.params;
   return {
-    message: str(inner.message) ?? str(obj(error.value).s) ?? "Page error",
-    stack: str(inner.stack),
-    time: finiteNumber(e.time) ?? 0,
+    message: error.error.message ?? error.value.s ?? "Page error",
+    stack: error.error.stack,
+    time: e.time ?? 0,
   };
 }
 
-function readFrame(
-  e: Json,
+function frameOf(
+  e: Event<"screencast-frame">,
   frameSrc: (file: string) => string | undefined,
 ): TraceFrame | undefined {
-  const sha1 = str(e.sha1);
-  const file = str(e.file) ?? (sha1 ? `resources/${sha1}` : undefined);
+  const file = e.file ?? (e.sha1 ? `resources/${e.sha1}` : undefined);
   const src = file ? frameSrc(file) : undefined;
   if (!src) return undefined;
-  return {
-    src,
-    time: finiteNumber(e.timestamp) ?? 0,
-    width: finiteNumber(e.width) ?? 0,
-    height: finiteNumber(e.height) ?? 0,
-  };
+  return { src, time: e.timestamp ?? 0, width: e.width ?? 0, height: e.height ?? 0 };
 }
 
 type TraceEvents = {
@@ -224,7 +260,7 @@ type TraceEvents = {
 };
 
 function readEvents(
-  text: string,
+  traceText: string,
   groups: string[],
   frameSrc: (file: string) => string | undefined,
 ): TraceEvents {
@@ -240,69 +276,81 @@ function readEvents(
   const keep = <T>(list: T[], item: T | undefined) => {
     if (item) list.push(item);
   };
-  for (const e of parseNdjson(text)) {
-    const action = events.calls.get(str(e.callId) ?? "")?.action;
+  for (const e of parseNdjson(traceText)) {
+    const action = events.calls.get(text.safeParse(e.callId).data ?? "")?.action;
     switch (e.type) {
       case "context-options":
-        events.viewport = readViewport(e) ?? events.viewport;
+        events.viewport = viewportOf(EVENTS["context-options"].parse(e)) ?? events.viewport;
         break;
       case "before": {
-        const call = beginCall(e, nextGroup);
+        const call = beginCall(EVENTS.before.parse(e), nextGroup);
         if (call) events.calls.set(call.action.id, call);
         break;
       }
       case "log": {
-        const message = str(e.message);
+        const { message } = EVENTS.log.parse(e);
         if (action && message !== undefined) addLog(action, message);
         break;
       }
       case "input":
-        if (action) addInput(action, e);
+        if (action) addInput(action, EVENTS.input.parse(e));
         break;
       case "after":
         if (!action) break;
-        endAction(action, e);
+        endAction(action, EVENTS.after.parse(e));
         if (action.error)
           events.errors.push({ message: action.error, time: action.end, actionId: action.id });
         break;
       case "console":
-        keep(events.console, readConsole(e));
+        keep(events.console, consoleOf(EVENTS.console.parse(e)));
         break;
       case "event":
-        keep(events.errors, readPageError(e));
+        keep(events.errors, pageErrorOf(EVENTS.event.parse(e)));
         break;
       case "screencast-frame":
-        keep(events.frames, readFrame(e, frameSrc));
+        keep(events.frames, frameOf(EVENTS["screencast-frame"].parse(e), frameSrc));
         break;
     }
   }
   return events;
 }
 
-function parseNetwork(text: string): TraceRequest[] {
-  return parseNdjson(text)
+const resourceSnapshot = z.object({
+  snapshot: lenient({
+    request: lenient({ method: text, url: text }),
+    response: lenient({
+      status: count,
+      bodySize: count,
+      _transferSize: count,
+      _failureText: text,
+      content: lenient({ size: count, mimeType: text }),
+    }),
+    _resourceType: text,
+    _monotonicTime: count,
+    time: count,
+  }),
+});
+
+function requestOf(e: z.infer<typeof resourceSnapshot>): TraceRequest {
+  const { request, response } = e.snapshot;
+  const size = response.content.size ?? -1;
+  return {
+    method: request.method ?? "GET",
+    url: request.url ?? "",
+    status: response.status ?? -1,
+    mimeType: response.content.mimeType ?? "",
+    resourceType: e.snapshot["_resourceType"] ?? "",
+    size: size >= 0 ? size : (response["_transferSize"] ?? response.bodySize ?? -1),
+    start: e.snapshot["_monotonicTime"] ?? 0,
+    duration: e.snapshot.time ?? 0,
+    failure: response["_failureText"],
+  };
+}
+
+function parseNetwork(networkText: string): TraceRequest[] {
+  return parseNdjson(networkText)
     .filter((e) => e.type === "resource-snapshot")
-    .map((e) => {
-      const s = obj(e.snapshot);
-      const request = obj(s.request);
-      const response = obj(s.response);
-      const content = obj(response.content);
-      const size = finiteNumber(content.size) ?? -1;
-      return {
-        method: str(request.method) ?? "GET",
-        url: str(request.url) ?? "",
-        status: finiteNumber(response.status) ?? -1,
-        mimeType: str(content.mimeType) ?? "",
-        resourceType: str(s["_resourceType"]) ?? "",
-        size:
-          size >= 0
-            ? size
-            : (finiteNumber(response["_transferSize"]) ?? finiteNumber(response.bodySize) ?? -1),
-        start: finiteNumber(s["_monotonicTime"]) ?? 0,
-        duration: finiteNumber(s.time) ?? 0,
-        failure: str(response["_failureText"]),
-      };
-    })
+    .map((e) => requestOf(resourceSnapshot.parse(e)))
     .sort((a, b) => a.start - b.start);
 }
 

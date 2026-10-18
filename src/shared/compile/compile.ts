@@ -90,7 +90,7 @@ function runCompile(
 }
 
 export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): CompileResult {
-  const { order, sorted } = topoSort(wf);
+  const { sorted } = topoSort(wf);
   const vars = workflowVars(wf);
   const values: CompileResult["values"] = {};
   const errors: CompileResult["errors"] = {};
@@ -115,7 +115,7 @@ export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): Compil
     if (isOutputType(node.type) && tl?.type === "timeline") specs[id] = tl.spec;
   }
 
-  return { values, errors, specs, order };
+  return { values, errors, specs, order: sorted.map((n) => n.id) };
 }
 
 export type PreviewTarget = {

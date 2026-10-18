@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { readFile, rename, rm, writeFile } from "node:fs/promises";
 import type { z } from "zod";
 import { parseJsonWith } from "../shared/guards";
+import { logWarning } from "./log";
 
 const MISSING_CODES = new Set(["ENOENT", "ENOTDIR"]);
 
@@ -44,9 +45,9 @@ export async function readJsonKeepingBroken<T>(
   const broken = `${file}.broken`;
   try {
     await rename(file, broken);
-    process.stderr.write(`[json] ${file} couldn't be read and was moved to ${broken}\n`);
+    logWarning("json", `${file} couldn't be read and was moved to ${broken}`);
   } catch {
-    process.stderr.write(`[json] ${file} couldn't be read\n`);
+    logWarning("json", `${file} couldn't be read`);
   }
   return null;
 }

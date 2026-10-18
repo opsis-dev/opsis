@@ -5,8 +5,9 @@ import { app, type BrowserWindow, type OpenDialogOptions } from "electron";
 import { z } from "zod";
 import { sha256Hex } from "../engine/hash";
 import { atomicWrite, readJsonKeepingBroken, readTextIfPresent, writeJson } from "../engine/json";
+import { readLastRun } from "../engine/last-run";
 import { logError } from "../engine/log";
-import { projectPaths, readLastRun } from "../engine/project-paths";
+import { projectPaths } from "../engine/project-paths";
 import { parseJsonWith } from "../shared/guards";
 import type {
   OpenProject,

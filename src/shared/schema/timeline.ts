@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { projectFontsSchema } from "../fonts/types";
+import { DEFAULT_WORKFLOW_SETTINGS } from "./workflow";
 
 export const transitionRefSchema = z.object({
   kind: z.string(),
@@ -145,9 +146,9 @@ export const timelineSpecSchema = z.object({
 export type TimelineSpec = z.infer<typeof timelineSpecSchema>;
 
 export const EMPTY_SPEC: TimelineSpec = {
-  width: 1920,
-  height: 1080,
-  fps: 30,
+  width: DEFAULT_WORKFLOW_SETTINGS.width,
+  height: DEFAULT_WORKFLOW_SETTINGS.height,
+  fps: DEFAULT_WORKFLOW_SETTINGS.fps,
   durationInFrames: 90,
   tracks: [],
   audio: [],

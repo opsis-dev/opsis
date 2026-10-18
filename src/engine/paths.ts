@@ -55,7 +55,7 @@ export function enginePaths(
   };
 }
 
-export const findHeadlessShell = (paths: Pick<EnginePaths, "headlessShells">): string | null =>
+const findHeadlessShell = (paths: Pick<EnginePaths, "headlessShells">): string | null =>
   paths.headlessShells.find((file) => existsSync(file)) ?? null;
 
 export function requireEngineFile(file: string | null): string {

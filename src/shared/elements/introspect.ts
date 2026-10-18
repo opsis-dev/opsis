@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "zod";
 
 type FieldPreset = { label: string; values: Record<string, unknown> };
 
@@ -63,13 +63,14 @@ const WRAPPERS: ReadonlySet<z.core.$ZodTypeDef["type"]> = new Set([
   "nonoptional",
 ]);
 
-const innerOf = (schema: z.ZodType): z.ZodType | undefined =>
-  WRAPPERS.has(schema.def.type)
-    ? (schema.def as z.core.$ZodDefaultDef<z.ZodType>).innerType
-    : undefined;
+function innerOf(schema: z.ZodType): z.ZodType | undefined {
+  const { def } = schema;
+  if (!WRAPPERS.has(def.type) || !("innerType" in def)) return undefined;
+  return def.innerType instanceof z.ZodType ? def.innerType : undefined;
+}
 
-function chainOf(schema: z.ZodType): z.ZodType[] {
-  const chain = [schema];
+function chainOf(schema: z.ZodType): [z.ZodType, ...z.ZodType[]] {
+  const chain: [z.ZodType, ...z.ZodType[]] = [schema];
   for (let inner = innerOf(schema); inner; inner = innerOf(inner)) chain.push(inner);
   return chain;
 }
@@ -80,7 +81,10 @@ export function fieldMeta(schema: z.ZodType): FieldMeta {
   return out;
 }
 
-export const unwrap = (schema: z.ZodType): z.ZodType => chainOf(schema).at(-1) ?? schema;
+export function unwrap(schema: z.ZodType): z.ZodType {
+  const chain = chainOf(schema);
+  return chain[chain.length - 1];
+}
 
 export const targetRoleKey = (targetKey: string): string => `${targetKey}Role`;
 

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { compileWorkflow } from "../compile/compile";
 import { validateWorkflow } from "../graph";
 import { normalizeWorkflow, workflowSchema, type Workflow } from "../schema/workflow";
@@ -9,12 +10,6 @@ export const problemCheck = (problems: ApiProblem[]): ApiCheck => ({
   ok: !problems.some((p) => p.level === "error"),
   problems,
 });
-
-const pathText = (path: PropertyKey[]) =>
-  path
-    .map((p) => (typeof p === "number" ? `[${p}]` : `.${String(p)}`))
-    .join("")
-    .replace(/^\./, "");
 
 export function workflowProblems(wf: Workflow): ApiProblem[] {
   const problems: ApiProblem[] = validateWorkflow(wf);
@@ -33,7 +28,7 @@ export function checkWorkflow(input: unknown): CheckResult {
       problems: parsed.error.issues.map((issue) => ({
         level: "error",
         message: issue.message,
-        path: pathText(issue.path),
+        path: z.core.toDotPath(issue.path),
       })),
     };
   const workflow = normalizeWorkflow(parsed.data);

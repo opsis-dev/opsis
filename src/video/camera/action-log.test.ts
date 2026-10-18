@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rectCentre, type ActionLog, type Rect } from "../../shared/schema/actions";
+import { rectCenter, type ActionLog, type Rect } from "../../shared/schema/actions";
 import { resolveAnnotations, toClickLog } from "./action-log";
 import { BASE_POSE } from "./lib/camera";
 import { isInFrame } from "./lib/test-fixtures";
@@ -108,7 +108,7 @@ describe("ActionLog → ClickLog", () => {
         t: 4000,
         tDepart: 2400,
         tDown: 3000,
-        point: rectCentre(drop),
+        point: rectCenter(drop),
         rect: { x: 300, y: 300, w: 200, h: 80 },
         drop,
         label: "Card",

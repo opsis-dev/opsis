@@ -32,13 +32,13 @@ export function interpolatePose(a: CameraPose, b: CameraPose, t01: number): Came
   };
 }
 
-const SAME_POSE = { scale: 0.008, centre: 0.01 } as const;
+const SAME_POSE = { scale: 0.008, center: 0.01 } as const;
 
 export function posesNearlyEqual(a: CameraPose, b: CameraPose): boolean {
   return (
     Math.abs(a.scale - b.scale) < SAME_POSE.scale &&
-    Math.abs(a.cx - b.cx) < SAME_POSE.centre &&
-    Math.abs(a.cy - b.cy) < SAME_POSE.centre
+    Math.abs(a.cx - b.cx) < SAME_POSE.center &&
+    Math.abs(a.cy - b.cy) < SAME_POSE.center
   );
 }
 

@@ -31,8 +31,8 @@ function windowBox(aspect: number, canvas: Size, fit: number): Size {
   return { width: Math.round(box.width), height: Math.round(box.height) };
 }
 
-const centredLeft = (size: Size, canvas: Size) => (canvas.width - size.width) / 2;
-const centredTop = (size: Size, canvas: Size) => (canvas.height - size.height) / 2;
+const centeredLeft = (size: Size, canvas: Size) => (canvas.width - size.width) / 2;
+const centeredTop = (size: Size, canvas: Size) => (canvas.height - size.height) / 2;
 
 const aspectOf = (s: Size) => s.width / s.height;
 
@@ -40,8 +40,8 @@ function windowLayout(shot: Shot, canvas: Size, fit: number): Box {
   const tall = aspectOf(shot) * TALL_SHOT < aspectOf(canvas);
   const size = windowBox(tall ? aspectOf(canvas) : aspectOf(shot), canvas, fit);
   return {
-    x: Math.round(centredLeft(size, canvas)),
-    y: Math.round(centredTop(size, canvas)),
+    x: Math.round(centeredLeft(size, canvas)),
+    y: Math.round(centeredTop(size, canvas)),
     ...size,
   };
 }
@@ -52,8 +52,8 @@ function cutoutLayout(shot: Shot, canvas: Size): Box {
   const s = Math.min(want.width / body.width, shot.scale * CUTOUT_MAX_UPSCALE);
   const placed = { width: body.width * s, height: body.height * s };
   return {
-    x: centredLeft(placed, canvas) - body.x * s,
-    y: centredTop(placed, canvas) - body.y * s,
+    x: centeredLeft(placed, canvas) - body.x * s,
+    y: centeredTop(placed, canvas) - body.y * s,
     width: shot.width * s,
     height: shot.height * s,
   };
@@ -62,7 +62,7 @@ function cutoutLayout(shot: Shot, canvas: Size): Box {
 function bleedLayout(shot: Shot, canvas: Size): Box {
   const zoom = Math.max(canvas.width / shot.width, canvas.height / shot.height);
   const size = { width: shot.width * zoom, height: shot.height * zoom };
-  return { x: centredLeft(size, canvas), y: 0, ...size };
+  return { x: centeredLeft(size, canvas), y: 0, ...size };
 }
 
 export function stillLayout(look: StillLook, shot: Shot, canvas: Size, windowFit: number): Box {

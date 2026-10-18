@@ -1,7 +1,7 @@
 import type { AnnotationKind, AnnotationSpec } from "../../shared/compile/recording";
 import { POINTER_KINDS } from "../../shared/compile/recording";
 import {
-  rectCentre,
+  rectCenter,
   rectUnion,
   type Action,
   type ActionLog,
@@ -77,9 +77,9 @@ function dragEvents(a: Action, point: Point, vp: Viewport): ClickEvent[] {
   const shared = { ...carried(a), path: a.path };
   const press = { ...shared, tDepartMs: a.tDepart, tDownMs: tDown, tUpMs: a.t };
   if (both.w <= vp.width * DRAG_FIT_FRACTION && both.h <= vp.height * DRAG_FIT_FRACTION)
-    return [{ ...press, tMs: a.t, ...rectCentre(both), rect: both, drop }];
+    return [{ ...press, tMs: a.t, ...rectCenter(both), rect: both, drop }];
   return [
-    { ...press, tMs: tDown, ...rectCentre(pick), rect: pick },
+    { ...press, tMs: tDown, ...rectCenter(pick), rect: pick },
     { ...shared, tMs: a.t, tDepartMs: tDown, ...point, rect: drop, drop },
   ];
 }

@@ -1,5 +1,10 @@
-import { encodePath, FILE_SCHEME, PROJECT_FILE_BASE, refTarget } from "@/shared/asset-ref";
-import { libraryRelPath } from "@/shared/fonts/types";
+import {
+  encodePath,
+  FILE_SCHEME,
+  libraryRelPath,
+  PROJECT_FILE_BASE,
+  refTarget,
+} from "@/shared/asset-ref";
 
 export function fileUrl(ref: string): string {
   const target = refTarget(ref);

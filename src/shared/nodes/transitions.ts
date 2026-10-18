@@ -125,8 +125,8 @@ const lightLeakTransitionNode = defineNode({
         { seed: params.seed, hueShift: params.hueShift },
         params.durationInFrames,
       );
-      const leakCentredOnCut = a.durationInFrames - Math.round(params.durationInFrames / 2);
-      return stackClips(nodeId, [cut, leak], [0, Math.max(0, leakCentredOnCut)]);
+      const leakCenteredOnCut = a.durationInFrames - Math.round(params.durationInFrames / 2);
+      return stackClips(nodeId, [cut, leak], [0, Math.max(0, leakCenteredOnCut)]);
     }),
 });
 

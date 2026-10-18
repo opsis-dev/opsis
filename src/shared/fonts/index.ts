@@ -26,22 +26,12 @@ const GENERIC: Record<FontFamilyDef["category"], string> = {
   handwriting: "cursive",
 };
 
-function allFamilies(fonts: Pick<ProjectFonts, "families">): FontFamilyDef[] {
-  const seen = new Set<string>();
-  return [...fonts.families, ...BUNDLED_FONTS].filter((f) => {
-    const key = familyKey(f.family);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
 export function findFamily(
   name: string,
   fonts: Pick<ProjectFonts, "families">,
 ): FontFamilyDef | undefined {
   const wanted = FAMILY_ALIASES[name] ?? name;
-  return allFamilies(fonts).find((f) => sameFamily(f.family, wanted));
+  return [...fonts.families, ...BUNDLED_FONTS].find((f) => sameFamily(f.family, wanted));
 }
 
 export function roleFamilyName(role: FontRole, fonts: ProjectFonts): string {

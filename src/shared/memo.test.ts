@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lruCache, shareInFlight } from "./memo";
+import { keepLatest, lruCache, shareInFlight } from "./memo";
 
 describe("shareInFlight", () => {
   it("runs one job per key at a time and starts again once it settles", async () => {
@@ -32,5 +32,25 @@ describe("lruCache", () => {
     expect(cache.peek("b")).toBeUndefined();
     cache.delete("a");
     expect(cache.use("a", make)).toBe(4);
+  });
+});
+
+describe("keepLatest", () => {
+  it("keeps one value, reuses it for the same key and disposes of it when the key changes", async () => {
+    const disposed: string[] = [];
+    const latest = keepLatest<string>((value) => disposed.push(value));
+    let made = 0;
+    const make = (name: string) => () => Promise.resolve(`${name}${++made}`);
+    expect(await latest("a", make("a"))).toBe("a1");
+    expect(await latest("a", make("a"))).toBe("a1");
+    expect(await latest("b", make("b"))).toBe("b2");
+    await Promise.resolve();
+    expect(disposed).toEqual(["a1"]);
+  });
+
+  it("forgets a value that failed, so the same key can be made again", async () => {
+    const latest = keepLatest<number>();
+    await expect(latest("k", () => Promise.reject(new Error("boom")))).rejects.toThrow("boom");
+    expect(await latest("k", () => Promise.resolve(3))).toBe(3);
   });
 });

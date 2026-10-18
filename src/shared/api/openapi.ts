@@ -36,13 +36,34 @@ components.add(catalogPortSchema, { id: "Port" });
 components.add(catalogNodeSchema, { id: "NodeType" });
 components.add(apiErrorSchema, { id: "Error" });
 
-const ref = (name: string) => ({ $ref: `${SCHEMAS}${name}` });
+type JsonSchema = Record<string, unknown>;
 
-const content = (schema: unknown) => ({ "application/json": { schema } });
+type JsonContent = { "application/json": { schema: JsonSchema } };
 
-const json = (schema: unknown, description = "OK") => ({ description, content: content(schema) });
+type ApiResponse = { description: string; content?: JsonContent };
 
-const body = (schema: unknown, required = true) => ({ required, content: content(schema) });
+type PathParameter = { name: string; in: "path"; required: true; schema: JsonSchema };
+
+type Operation = {
+  summary: string;
+  description?: string;
+  parameters?: PathParameter[];
+  requestBody?: { required: boolean; content: JsonContent };
+  responses: Record<string, ApiResponse>;
+};
+
+type PathItem = Partial<Record<"get" | "post" | "put" | "patch" | "delete", Operation>>;
+
+const ref = (name: string): JsonSchema => ({ $ref: `${SCHEMAS}${name}` });
+
+const content = (schema: JsonSchema): JsonContent => ({ "application/json": { schema } });
+
+const json = (schema: JsonSchema, description = "OK"): ApiResponse => ({
+  description,
+  content: content(schema),
+});
+
+const body = (schema: JsonSchema, required = true) => ({ required, content: content(schema) });
 
 const errors = {
   "400": json(ref("Error"), "The request isn't valid"),
@@ -54,11 +75,9 @@ const projectRead = json(ref("Project"));
 
 const edited = json(ref("Edited"));
 
-const pathParam = (name: string) => [
+const pathParam = (name: string): PathParameter[] => [
   { name, in: "path", required: true, schema: { type: "string" } },
 ];
-
-type Operation = { responses: Record<string, unknown> } & Record<string, unknown>;
 
 const projectOp = (op: Operation): Operation => ({
   ...op,
@@ -72,7 +91,7 @@ const DESCRIPTION = [
   "A connection joins an output port (source, sourceHandle) to an input port (target, targetHandle). Ports have types; GET /nodes/{type} lists them.",
 ].join("\n\n");
 
-const PATHS: Record<string, Record<string, Operation>> = {
+const PATHS: Record<string, PathItem> = {
   "/openapi.json": {
     get: { summary: "This document", responses: { "200": json({ type: "object" }) } },
   },
@@ -219,7 +238,7 @@ const PATHS: Record<string, Record<string, Operation>> = {
 const componentSchemas = () =>
   z.toJSONSchema(components, { ...JSON_SCHEMA_OPTIONS, uri: (id) => `${SCHEMAS}${id}` }).schemas;
 
-export function openApiDocument(version: string): Record<string, unknown> {
+export function openApiDocument(version: string) {
   return {
     openapi: "3.1.0",
     info: { title: "Demoflow local API", version, description: DESCRIPTION },

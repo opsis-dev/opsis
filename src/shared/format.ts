@@ -14,7 +14,7 @@ export function formatBytes(n: number): string {
 }
 
 const SECONDS_PER_MINUTE = 60;
-const TENTHS_FROM_SECONDS = 10;
+const ONE_DECIMAL_FROM_SECONDS = 10;
 
 function minutesAndSeconds(seconds: number): string {
   const m = Math.floor(seconds / SECONDS_PER_MINUTE);
@@ -26,7 +26,7 @@ export function formatDuration(ms: number): string {
   if (!Number.isFinite(ms)) return "";
   const s = ms / 1000;
   if (s >= SECONDS_PER_MINUTE) return minutesAndSeconds(Math.round(s));
-  return `${s >= TENTHS_FROM_SECONDS ? round1(s) : round2(s)} s`;
+  return `${s >= ONE_DECIMAL_FROM_SECONDS ? round1(s) : round2(s)} s`;
 }
 
 export function formatPreciseDuration(ms: number): string {
@@ -62,7 +62,7 @@ export function displayAddress(url: string, opts: { keepQuery?: boolean } = {}):
   return `${address.replace(/^www\./, "").replace(/\/$/, "")}${query}`;
 }
 
-const RELATIVE = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+const RELATIVE = new Intl.RelativeTimeFormat("en-GB", { numeric: "auto" });
 
 const RELATIVE_STEPS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
   ["year", 31_536_000],

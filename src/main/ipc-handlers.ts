@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
-import { readLastRun } from "../engine/project-paths";
+import { readLastRun } from "../engine/last-run";
 import { INVOKE, IPC, type DemoflowApi, type InvokeName, type RunRequest } from "../shared/ipc";
 import { findById } from "../shared/lists";
 import type { MenuCommand } from "../shared/menu";

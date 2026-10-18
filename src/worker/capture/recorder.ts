@@ -4,7 +4,7 @@ import {
   distance,
   lerpPoint,
   pointRect,
-  rectCentre,
+  rectCenter,
   rectFromBounds,
   type Point,
   type Rect,
@@ -63,7 +63,7 @@ type Viewport = { width: number; height: number } | null;
 
 const viewportScale = (vp: Viewport): number => (vp ? designScaleFor(vp.width) : 1);
 
-const centreOf = (vp: Viewport): Point =>
+const centerOf = (vp: Viewport): Point =>
   vp ? { x: vp.width / 2, y: vp.height / 2 } : { x: 0, y: 0 };
 
 const roundRect = (r: Rect): Rect => ({
@@ -102,8 +102,8 @@ async function boxOf(page: Page, target: Target, k: number): Promise<Box> {
   if (before && distance(before, box) > SCROLL_MOVED_PX * k)
     await page.waitForTimeout(SCROLL_SETTLE_MS);
   const rect = rectFromBounds(box);
-  const centre = rectCentre(rect);
-  return { cx: centre.x, cy: centre.y, rect: padSmallTarget(rect, k) };
+  const center = rectCenter(rect);
+  return { cx: center.x, cy: center.y, rect: padSmallTarget(rect, k) };
 }
 
 const NOT_ON_SCREEN =
@@ -114,7 +114,7 @@ async function dropBox(page: Page, target: Target, k: number, vp: Viewport): Pro
   const box = await target.first().boundingBox();
   if (!box) throw new Error(NOT_ON_SCREEN);
   const rect = rectFromBounds(box);
-  const { x: cx, y: cy } = rectCentre(rect);
+  const { x: cx, y: cy } = rectCenter(rect);
   if (vp && (cx < 0 || cy < 0 || cx > vp.width || cy > vp.height)) throw new Error(NOT_ON_SCREEN);
   return { cx, cy, rect };
 }
@@ -137,7 +137,7 @@ export class CursorDriver {
   ) {
     this.viewport = page.viewportSize();
     this.k = viewportScale(this.viewport);
-    this.last = centreOf(this.viewport);
+    this.last = centerOf(this.viewport);
     this.mark(this.last.x, this.last.y);
   }
 

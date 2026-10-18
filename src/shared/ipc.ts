@@ -2,7 +2,7 @@ import type { AnalysisKind, AnalysisRequest, AnalysisResultFor } from "./analysi
 import type { ApiEditorReply, ApiEditorRequest } from "./api/types";
 import type { EngineInstallEvent, EngineStatus } from "./engine";
 import type { PlannedFamily } from "./fonts/plan";
-import type { FontFamilyDef } from "./fonts/types";
+import type { CatalogCategory, FontFamilyDef } from "./fonts/types";
 import type { LiveMessage } from "./live";
 import type { MenuCommand, WindowRole } from "./menu";
 import type { RunProgress } from "./run-progress";
@@ -67,7 +67,7 @@ export type RunRequest = {
 };
 
 export type EnvStatus = {
-  platform: string;
+  platform: NodeJS.Platform;
   arch: string;
   isPackaged: boolean;
   edition: "full" | "lite" | "dev";
@@ -109,7 +109,7 @@ export type InspectedFonts = {
 export type FontCatalogEntry = {
   id: string;
   family: string;
-  category: string;
+  category: CatalogCategory;
   variable: boolean;
   styles: string[];
   weights: number[];

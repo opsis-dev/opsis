@@ -7,7 +7,7 @@ import { create, type Font } from "fontkit";
 import { z } from "zod";
 import { readJsonKeepingBroken, writeJson } from "../engine/json";
 import { logError } from "../engine/log";
-import { baseName, extensionOf, projectRef } from "../shared/asset-ref";
+import { baseName, extensionOf, libraryRef, libraryRelPath, projectRef } from "../shared/asset-ref";
 import { fontSlug, sameFamily } from "../shared/fonts";
 import {
   familyNameFrom,
@@ -15,13 +15,7 @@ import {
   type FontCandidate,
   type PlannedFamily,
 } from "../shared/fonts/plan";
-import {
-  fontFamilySchema,
-  libraryRef,
-  libraryRelPath,
-  type FontFaceDef,
-  type FontFamilyDef,
-} from "../shared/fonts/types";
+import { fontFamilySchema, type FontFaceDef, type FontFamilyDef } from "../shared/fonts/types";
 import { isRecord, isString } from "../shared/guards";
 import type { FontInstalledFace, InspectedFonts } from "../shared/ipc";
 import { firstFree } from "../shared/lists";

@@ -2,8 +2,6 @@ import path from "node:path";
 import { projectRef } from "../shared/asset-ref";
 import { mapValues } from "../shared/pick";
 import { PROJECT_DIRS } from "../shared/project-dirs";
-import { lastRunSchema, type LastRun } from "../shared/schema/values";
-import { readJson } from "./json";
 
 export const projectPaths = (projectDir: string) =>
   mapValues(PROJECT_DIRS, (rel) => path.join(projectDir, rel));
@@ -18,6 +16,3 @@ export const toPosixRel = (root: string, file: string): string =>
 
 export const toProjectRef = (root: string, file: string): string =>
   projectRef(toPosixRel(root, file));
-
-export const readLastRun = (projectDir: string): Promise<LastRun | null> =>
-  readJson(projectPaths(projectDir).lastRun, lastRunSchema);

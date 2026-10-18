@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FONT_CATEGORIES, type FontFamilyDef } from "../shared/fonts/types";
+import { CATALOG_CATEGORIES, FONT_CATEGORIES, type FontFamilyDef } from "../shared/fonts/types";
 import { parseJsonWith } from "../shared/guards";
 import type { FontCatalogEntry } from "../shared/ipc";
 import { addFamilies, guessCategory, type FontBytes, type NewFamily } from "./fonts";
@@ -10,7 +10,7 @@ const CDN = "https://cdn.jsdelivr.net";
 const catalogEntrySchema = z.object({
   id: z.string(),
   family: z.string(),
-  category: z.string(),
+  category: z.enum(CATALOG_CATEGORIES).catch("other"),
   variable: z.boolean(),
   styles: z.array(z.string()),
   weights: z.array(z.number()),

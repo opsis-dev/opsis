@@ -31,13 +31,13 @@ export const snapValue = (range: KnobRange, v: number): number =>
 
 export const angleOf = (fraction: number): number => START_DEG + fraction * SWEEP_DEG;
 
-export function polar(centre: number, radius: number, deg: number): { x: number; y: number } {
+export function polar(center: number, radius: number, deg: number): { x: number; y: number } {
   const rad = ((deg - 90) * Math.PI) / 180;
-  return { x: centre + radius * Math.cos(rad), y: centre + radius * Math.sin(rad) };
+  return { x: center + radius * Math.cos(rad), y: center + radius * Math.sin(rad) };
 }
 
-export function arcPath(centre: number, radius: number, from: number, to: number): string {
-  const a = polar(centre, radius, from);
-  const b = polar(centre, radius, to);
+export function arcPath(center: number, radius: number, from: number, to: number): string {
+  const a = polar(center, radius, from);
+  const b = polar(center, radius, to);
   return `M ${a.x} ${a.y} A ${radius} ${radius} 0 ${to - from > 180 ? 1 : 0} 1 ${b.x} ${b.y}`;
 }

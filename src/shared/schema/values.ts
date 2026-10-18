@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { actionLogSchema } from "./actions";
+import { actionLogSchema, viewportSchema } from "./actions";
 import {
   audioItemSchema,
   timelineSpecSchema,
@@ -17,7 +17,7 @@ const recordingValueSchema = z.object({
   proxySrc: z.string().optional(),
   log: actionLogSchema.nullable(),
   durationMs: z.number(),
-  viewport: z.object({ width: z.number(), height: z.number() }),
+  viewport: viewportSchema,
   nodeId: z.string(),
 });
 export type RecordingValue = z.infer<typeof recordingValueSchema>;

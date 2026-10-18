@@ -3,9 +3,8 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { versionedHash } from "../../engine/hash";
 import { readJson, writeJson } from "../../engine/json";
-import { projectPaths } from "../../engine/project-paths";
 import { byCodeUnit } from "../../shared/lists";
-import { nodeResultSchema, type LastRun, type NodeResult } from "../../shared/schema/values";
+import { nodeResultSchema, type NodeResult } from "../../shared/schema/values";
 
 export const ENGINE_VERSION = "demoflow-engine/1";
 
@@ -29,9 +28,4 @@ export async function writeCached(cacheDir: string, result: NodeResult): Promise
   const dir = path.join(cacheDir, result.hash);
   await mkdir(dir, { recursive: true });
   await writeJson(path.join(dir, "result.json"), result);
-}
-
-export async function writeLastRun(projectDir: string, lastRun: LastRun): Promise<void> {
-  await mkdir(projectPaths(projectDir).meta, { recursive: true });
-  await writeJson(projectPaths(projectDir).lastRun, lastRun);
 }

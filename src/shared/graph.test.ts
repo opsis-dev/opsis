@@ -24,7 +24,8 @@ const disable = (wf: Workflow, id: string) => {
 describe("graph", () => {
   it("topologically sorts the sample", () => {
     const wf = todoMvc();
-    const { order, cyclic } = topoSort(wf);
+    const { sorted, cyclic } = topoSort(wf);
+    const order = sorted.map((n) => n.id);
     expect(cyclic).toEqual([]);
     expect(order.indexOf("session")).toBeLessThan(order.indexOf("record"));
     expect(order.indexOf("record")).toBeLessThan(order.indexOf("camera"));

@@ -54,44 +54,32 @@ export const apiProjectStateSchema = apiRunStateSchema.extend({
 });
 export type ApiProjectState = z.infer<typeof apiProjectStateSchema>;
 
-export type ApiEditorRequest =
-  | ({ op: "open" } & z.infer<typeof openBody>)
-  | { op: "read" }
-  | { op: "replace"; workflow: Workflow }
-  | ({ op: "addNode" } & z.infer<typeof addNodeBody>)
-  | ({ op: "updateNode"; id: string } & z.infer<typeof updateNodeBody>)
-  | { op: "removeNodes"; ids: string[] }
-  | ({ op: "addEdge" } & z.infer<typeof addEdgeBody>)
-  | { op: "removeEdges"; ids: string[] }
-  | { op: "setSettings"; settings: Partial<WorkflowSettings> }
-  | { op: "setVariables"; variables: z.infer<typeof variablesBody> }
-  | { op: "problems" }
-  | { op: "undo" }
-  | { op: "redo" }
-  | { op: "save" }
-  | ({ op: "run" } & z.infer<typeof runBody>)
-  | { op: "stop" };
+type NoBody = Record<never, never>;
 
-type ApiEditorOp = ApiEditorRequest["op"];
-
-type ApiEditorResults = {
-  open: ApiProjectState;
-  read: ApiProjectState;
-  replace: ApiEdited;
-  addNode: ApiEdited;
-  updateNode: ApiEdited;
-  removeNodes: ApiEdited;
-  addEdge: ApiEdited;
-  removeEdges: ApiEdited;
-  setSettings: ApiEdited;
-  setVariables: ApiEdited;
-  problems: ApiCheck;
-  undo: ApiEdited;
-  redo: ApiEdited;
-  save: ApiEdited;
-  run: ApiRunState;
-  stop: ApiRunState;
+type ApiEditorOps = {
+  open: { body: z.infer<typeof openBody>; result: ApiProjectState };
+  read: { body: NoBody; result: ApiProjectState };
+  replace: { body: { workflow: Workflow }; result: ApiEdited };
+  addNode: { body: z.infer<typeof addNodeBody>; result: ApiEdited };
+  updateNode: { body: { id: string } & z.infer<typeof updateNodeBody>; result: ApiEdited };
+  removeNodes: { body: { ids: string[] }; result: ApiEdited };
+  addEdge: { body: z.infer<typeof addEdgeBody>; result: ApiEdited };
+  removeEdges: { body: { ids: string[] }; result: ApiEdited };
+  setSettings: { body: { settings: Partial<WorkflowSettings> }; result: ApiEdited };
+  setVariables: { body: { variables: z.infer<typeof variablesBody> }; result: ApiEdited };
+  problems: { body: NoBody; result: ApiCheck };
+  undo: { body: NoBody; result: ApiEdited };
+  redo: { body: NoBody; result: ApiEdited };
+  save: { body: NoBody; result: ApiEdited };
+  run: { body: z.infer<typeof runBody>; result: ApiRunState };
+  stop: { body: NoBody; result: ApiRunState };
 };
+
+type ApiEditorOp = keyof ApiEditorOps;
+
+export type ApiEditorRequest = {
+  [O in ApiEditorOp]: { op: O } & ApiEditorOps[O]["body"];
+}[ApiEditorOp];
 
 type ApiFailure = { ok: false; status: number; error: string; problems?: ApiProblem[] };
 
@@ -105,4 +93,6 @@ export const apiFailure = (status: number, error: string): ApiFailure => ({
   error,
 });
 
-export type ApiEditorReply<O extends ApiEditorOp = ApiEditorOp> = ApiReply<ApiEditorResults[O]>;
+export type ApiEditorReply<O extends ApiEditorOp = ApiEditorOp> = ApiReply<
+  ApiEditorOps[O]["result"]
+>;

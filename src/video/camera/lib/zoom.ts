@@ -1,6 +1,6 @@
 import { stableJson } from "../../../shared/hash";
 import { clamp, clamp01, lerp, partitionPoint, sampleKeyed } from "../../../shared/math";
-import { distance, rectCentre, type Viewport } from "../../../shared/schema/actions";
+import { distance, rectCenter, type Viewport } from "../../../shared/schema/actions";
 import {
   BASE_POSE,
   interpolatePose,
@@ -29,7 +29,7 @@ const SUBJECT = {
 const FRAMING = {
   targetShare: 0.55,
   narrowTargetShare: 0.86,
-  offCentre: { x: 0.26, y: 0.26 * 0.65 },
+  offCenter: { x: 0.26, y: 0.26 * 0.65 },
   clickEdgeMargin: 0.04,
   clickEdgeMarginMaxShare: 0.4,
 } as const;
@@ -168,10 +168,10 @@ function subjectOf(c: ClickEvent, width: number): Subject {
   const rect = c.rect ?? defaultTargetRect(c, width);
   const menuRoom =
     (rect.h >= SUBJECT.tallTargetPx * k ? SUBJECT.tallMenuRoomPx : SUBJECT.menuRoomPx) * k;
-  const centre = rectCentre(rect);
+  const center = rectCenter(rect);
   return {
-    x: lerp(centre.x, c.x, SUBJECT.clickPull),
-    y: lerp(centre.y + menuRoom / 2, c.y, SUBJECT.clickPull),
+    x: lerp(center.x, c.x, SUBJECT.clickPull),
+    y: lerp(center.y + menuRoom / 2, c.y, SUBJECT.clickPull),
     w: rect.w + 2 * SUBJECT.padPx * k,
     h: rect.h + menuRoom + 2 * SUBJECT.padPx * k,
   };
@@ -194,7 +194,7 @@ function scaleFor(
 
 const inView = (v: number, half: number): number => clamp(v, half, 1 - half);
 
-function offCentre(focus: number, click: number, offset: number, scale: number): number {
+function offCenter(focus: number, click: number, offset: number, scale: number): number {
   const half = 1 / (2 * scale);
   const side = focus >= 0.5 ? 1 : -1;
   const aimed = inView(focus - (offset * side) / scale, half);
@@ -213,8 +213,8 @@ export function frameFor(c: ClickEvent, vp: Viewport, sMax: number, narrow = fal
   }
   return {
     scale,
-    cx: offCentre(focusX, clamp01(c.x / vp.width), FRAMING.offCentre.x, scale),
-    cy: offCentre(focusY, clamp01(c.y / vp.height), FRAMING.offCentre.y, scale),
+    cx: offCenter(focusX, clamp01(c.x / vp.width), FRAMING.offCenter.x, scale),
+    cy: offCenter(focusY, clamp01(c.y / vp.height), FRAMING.offCenter.y, scale),
   };
 }
 

@@ -49,7 +49,7 @@ describe("node cards", () => {
   it("gives every visible node a description and no internal names", () => {
     const visible = NODE_DEFS.filter((d) => !d.hidden);
     const banned =
-      /playwright|remotion|chromium|ffmpeg|ffprobe|page\.evaluate|safeStorage|\.mp4|crf|dpr\b/i;
+      /playwright|remotion|chromium|ffmpeg|ffprobe|lottie|after effects|page\.evaluate|safeStorage|\.mp4|\.json|crf|dpr\b/i;
     const fieldCopy = (def: NodeDef) =>
       Object.values(def.params.shape).flatMap((field) => {
         const meta = fieldMeta(field);

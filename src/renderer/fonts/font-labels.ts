@@ -1,19 +1,16 @@
-import { FONT_CATEGORIES } from "@/shared/fonts/types";
-import { isOneOf } from "@/shared/guards";
+import type { CatalogCategory } from "@/shared/fonts/types";
 
-const CATALOG_CATEGORIES = [...FONT_CATEGORIES, "icons"] as const;
-
-const FONT_CATEGORY_LABELS: Record<(typeof CATALOG_CATEGORIES)[number], string> = {
+const FONT_CATEGORY_LABELS: Record<CatalogCategory, string> = {
   "sans-serif": "Sans serif",
   serif: "Serif",
   monospace: "Monospace",
   display: "Display",
   handwriting: "Handwriting",
   icons: "Icons",
+  other: "Other",
 };
 
-export const categoryLabel = (category: string): string =>
-  isOneOf(CATALOG_CATEGORIES, category) ? FONT_CATEGORY_LABELS[category] : "Other";
+export const categoryLabel = (category: CatalogCategory): string => FONT_CATEGORY_LABELS[category];
 
 const WEIGHT_NAMES: Partial<Record<string, string>> = {
   "100": "Thin",

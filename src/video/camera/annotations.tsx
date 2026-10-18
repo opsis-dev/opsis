@@ -4,7 +4,7 @@ import type { AnnotationKind } from "../../shared/compile/recording";
 import { TEXT_COLOR } from "../../shared/elements/colors";
 import { MAIN_FONT } from "../../shared/fonts";
 import { percent } from "../../shared/format";
-import { rectCentre, type Viewport } from "../../shared/schema/actions";
+import { rectCenter, type Viewport } from "../../shared/schema/actions";
 import { fadeWindow, isFadedOut } from "../core/anim";
 import type { Annotation } from "./action-log";
 import { useDesignScale } from "./lib/design-scale";
@@ -86,7 +86,7 @@ const Tooltip: React.FC<MarkProps> = ({
   <div
     style={{
       position: "absolute",
-      left: pct(rectCentre(annotation.rect).x, viewport.width),
+      left: pct(rectCenter(annotation.rect).x, viewport.width),
       top: pct(annotation.rect.y - annotation.padding, viewport.height),
       transform: `translate(-50%, -100%) translateY(${(1 - opacity) * TOOLTIP.rise * k}px) scale(${counter * POP_SCALE})`,
       transformOrigin: "50% 100%",

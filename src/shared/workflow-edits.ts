@@ -5,6 +5,7 @@ import { edgeId, nodeIdFor } from "./ids";
 import { findById } from "./lists";
 import { defaultParams, getNodeDef } from "./nodes/registry";
 import { GROUP_TYPE } from "./nodes/utility";
+import type { Point, Viewport } from "./schema/actions";
 import {
   normalizeWorkflow,
   type EdgeEnds,
@@ -13,9 +14,6 @@ import {
   type WorkflowNode,
 } from "./schema/workflow";
 import { renameVariable } from "./vars";
-
-type Point = { x: number; y: number };
-type Size = { width: number; height: number };
 
 export const GROUP_PAD = 40;
 
@@ -110,7 +108,7 @@ export function pasteNodes(
 export function groupNodes(
   wf: Workflow,
   ids: readonly string[],
-  group: { id: string; title: string; sizeOf: (node: WorkflowNode) => Size },
+  group: { id: string; title: string; sizeOf: (node: WorkflowNode) => Viewport },
 ): Workflow {
   const members = wf.nodes.filter((n) => ids.includes(n.id) && !n.parentId && !isGroupNode(n));
   if (members.length < 2) return wf;

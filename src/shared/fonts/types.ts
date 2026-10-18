@@ -7,14 +7,11 @@ export const FONT_CATEGORIES = [
   "display",
   "handwriting",
 ] as const;
+export const CATALOG_CATEGORIES = [...FONT_CATEGORIES, "icons", "other"] as const;
+
+export type CatalogCategory = (typeof CATALOG_CATEGORIES)[number];
+
 const FONT_SOURCES = ["bundled", "online", "file", "installed"] as const;
-
-const LIBRARY_PREFIX = "library:";
-
-export const libraryRef = (rel: string): string => `${LIBRARY_PREFIX}${rel}`;
-
-export const libraryRelPath = (ref: string): string | null =>
-  ref.startsWith(LIBRARY_PREFIX) ? ref.slice(LIBRARY_PREFIX.length) : null;
 
 const fontFaceSchema = z.object({
   file: z.string(),

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { DEFAULT_PROJECT_FONTS, projectFontsSchema } from "../fonts/types";
 import { mixSchema } from "../mix/types";
+import { viewportSchema } from "./actions";
 
 const PORT_TYPES = [
   "session",
@@ -58,7 +59,7 @@ export const workflowNodeSchema = z.object({
   label: z.string().optional(),
   disabled: z.boolean().optional(),
   parentId: z.string().optional(),
-  size: z.object({ width: z.number(), height: z.number() }).optional(),
+  size: viewportSchema.optional(),
 });
 export type WorkflowNode = z.infer<typeof workflowNodeSchema>;
 

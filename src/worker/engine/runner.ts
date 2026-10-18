@@ -1,8 +1,9 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import pLimit, { type LimitFunction } from "p-limit";
+import { readLastRun, writeLastRun } from "../../engine/last-run";
 import { enginePaths, type EnginePaths } from "../../engine/paths";
-import { projectPaths, readLastRun, toPosixRel } from "../../engine/project-paths";
+import { projectPaths, toPosixRel } from "../../engine/project-paths";
 import { compileWorkflow, workflowVars, type CompileResult } from "../../shared/compile/compile";
 import { CANCELLED, errorMessage } from "../../shared/errors";
 import {
@@ -35,7 +36,7 @@ import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/take-run";
 import { getExecutor } from "../executors";
 import { createFfmpegTools, ToolError, type FfmpegTools } from "../media/ffmpeg";
-import { nodeHash, readCached, writeCached, writeLastRun } from "./cache";
+import { nodeHash, readCached, writeCached } from "./cache";
 import { TracedError, type ExecutorContext } from "./context";
 import { decorateArtifacts } from "./posters";
 

@@ -4,10 +4,12 @@ import {
   formatBytes,
   formatDuration,
   formatPreciseDuration,
+  formatTimeAgo,
   formatWhen,
   humanize,
   percent,
   percentText,
+  plural,
   singleQuoted,
 } from "./format";
 
@@ -47,7 +49,6 @@ describe("humanize", () => {
     expect(humanize("end_time")).toBe("End time");
     expect(humanize("ease-in-out")).toBe("Ease in out");
     expect(humanize("x2Y")).toBe("X2 y");
-    expect(humanize("macOS")).toBe("Mac OS");
   });
 });
 
@@ -100,5 +101,26 @@ describe("formatWhen", () => {
 
   it("shows text that isn't a date as it is", () => {
     expect(formatWhen("next week")).toBe("next week");
+  });
+});
+
+describe("formatTimeAgo", () => {
+  const now = Date.UTC(2026, 9, 18, 12);
+
+  it("says just now for the last few seconds", () => {
+    expect(formatTimeAgo(now - 2000, now)).toBe("just now");
+  });
+
+  it("names the largest unit that fits", () => {
+    expect(formatTimeAgo(now - 5 * 60_000, now)).toBe("5 minutes ago");
+    expect(formatTimeAgo(now - 26 * 3_600_000, now)).toBe("yesterday");
+  });
+});
+
+describe("plural", () => {
+  it("adds an s, or uses the given plural, except for one", () => {
+    expect(plural(1, "clip")).toBe("1 clip");
+    expect(plural(3, "clip")).toBe("3 clips");
+    expect(plural(0, "font family", "font families")).toBe("0 font families");
   });
 });

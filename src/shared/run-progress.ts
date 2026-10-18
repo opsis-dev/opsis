@@ -1,3 +1,4 @@
+import { uniqueBy } from "./lists";
 import { isOutputType } from "./nodes/registry";
 import type { NodeRunStatus, RunEvent } from "./schema/events";
 import type { Artifact, NodeResult } from "./schema/values";
@@ -116,11 +117,10 @@ export function exportedArtifacts(
   nodes: ReadonlyArray<{ id: string; type: string }>,
   results: Partial<Record<string, NodeResult>>,
 ): Artifact[] {
-  return nodes
+  const newestFirst = nodes
     .filter((n) => isOutputType(n.type))
     .flatMap((n) => results[n.id] ?? [])
-    .filter((r) => r.artifacts.length)
     .toSorted((a, b) => b.finishedAt - a.finishedAt)
-    .flatMap((r) => r.artifacts)
-    .filter((a, i, all) => all.findIndex((b) => b.path === a.path) === i);
+    .flatMap((r) => r.artifacts);
+  return uniqueBy(newestFirst, (a) => a.path);
 }

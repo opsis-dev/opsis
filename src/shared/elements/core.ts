@@ -176,9 +176,8 @@ const components: CoreComponent[] = [
   },
   {
     key: "core/lottie",
-    title: "Lottie animation",
-    description:
-      "Plays an animation made in After Effects or downloaded from LottieFiles (.json or .lottie).",
+    title: "Animation",
+    description: "Plays an animation file from your project, looped or once, at any speed.",
     category: "overlay",
     schema: z.object({
       src: asset("Animation file", ".json,.lottie"),

@@ -7,7 +7,7 @@ export type Rect = z.infer<typeof rectSchema>;
 const pointSchema = z.object({ x: z.number(), y: z.number() });
 export type Point = z.infer<typeof pointSchema>;
 
-const viewportSchema = z.object({ width: z.number(), height: z.number() });
+export const viewportSchema = z.object({ width: z.number(), height: z.number() });
 export type Viewport = z.infer<typeof viewportSchema>;
 
 const boundsSchema = z.object({
@@ -34,7 +34,7 @@ export const pointRect = (point: Point, scale = 1): Rect => ({
   h: POINT_BOX.h * scale,
 });
 
-export const rectCentre = (r: Rect): Point => ({
+export const rectCenter = (r: Rect): Point => ({
   x: r.x + r.w / 2,
   y: r.y + r.h / 2,
 });

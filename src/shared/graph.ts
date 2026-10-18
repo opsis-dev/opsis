@@ -31,7 +31,7 @@ export const isNoteNode = (node: Pick<WorkflowNode, "type">) => node.type === NO
 
 export const isStructural = (node: WorkflowNode) => isGroupNode(node) || isNoteNode(node);
 
-export const nodesById = (nodes: readonly WorkflowNode[]): Map<string, WorkflowNode> =>
+const nodesById = (nodes: readonly WorkflowNode[]): Map<string, WorkflowNode> =>
   new Map(nodes.map((n) => [n.id, n]));
 
 const byPosition = (a: WorkflowNode, b: WorkflowNode) =>
@@ -39,11 +39,7 @@ const byPosition = (a: WorkflowNode, b: WorkflowNode) =>
 
 type Vertex = { node: WorkflowNode; indegree: number; next: Vertex[] };
 
-export function topoSort(wf: Workflow): {
-  order: string[];
-  sorted: WorkflowNode[];
-  cyclic: string[];
-} {
+export function topoSort(wf: Workflow): { sorted: WorkflowNode[]; cyclic: string[] } {
   const nodes = wf.nodes.filter((n) => !isStructural(n));
   const vertices = nodes.map((node): Vertex => ({ node, indegree: 0, next: [] }));
   const byId = new Map(vertices.map((v) => [v.node.id, v]));
@@ -63,11 +59,7 @@ export function topoSort(wf: Workflow): {
     ready.sort(byVertexPosition);
   }
   const ordered = new Set(sorted);
-  return {
-    order: sorted.map((n) => n.id),
-    sorted,
-    cyclic: nodes.filter((n) => !ordered.has(n)).map((n) => n.id),
-  };
+  return { sorted, cyclic: nodes.filter((n) => !ordered.has(n)).map((n) => n.id) };
 }
 
 function reach(wf: Workflow, nodeId: string, direction: "up" | "down"): Set<string> {
@@ -180,9 +172,9 @@ function walkSessionChain(wf: Workflow, captureNodeId: string): SessionWalk {
   const byId = nodesById(wf.nodes);
   const chain: WorkflowNode[] = [];
   const seen = new Set<string>();
-  for (let current = captureNodeId; ;) {
-    const edge = wf.edges.find((e) => e.target === current && e.targetHandle === SESSION_PORT);
-    if (!edge) break;
+  const feedingEdge = (id: string) =>
+    wf.edges.find((e) => e.target === id && e.targetHandle === SESSION_PORT);
+  for (let edge = feedingEdge(captureNodeId); edge; edge = feedingEdge(edge.source)) {
     if (seen.has(edge.source))
       return { ok: false, problem: "The browser action chain loops back on itself." };
     seen.add(edge.source);
@@ -190,7 +182,6 @@ function walkSessionChain(wf: Workflow, captureNodeId: string): SessionWalk {
     if (!node) return { ok: false, problem: `Missing node ${edge.source}` };
     chain.unshift(node);
     if (node.type === sessionNode.type) return { ok: true, chain };
-    current = node.id;
   }
   const head = chain[0];
   return {
@@ -213,8 +204,8 @@ export function loginDependencies(
   vars: Record<string, string>,
 ): string[] {
   const param = (node: WorkflowNode, key: string) => {
-    const value = interpolate(node.params, vars)[key];
-    return typeof value === "string" ? value.trim() : "";
+    const value = node.params[key];
+    return typeof value === "string" ? interpolate(value, vars).trim() : "";
   };
   const walk = walkSessionChain(wf, captureNodeId);
   const storageState = walk.ok ? param(walk.chain[0], "storageState") : "";
