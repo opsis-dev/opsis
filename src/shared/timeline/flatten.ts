@@ -59,8 +59,10 @@ export type VideoBar = {
   loop: number;
   localAt: (abs: number) => number;
   hasSound: boolean;
-  remapped: boolean;
+  sound: SoundWindow | null;
 };
+
+type SoundWindow = { from: number; to: number; contentStart: number };
 
 export type AudioBar = {
   key: string;
@@ -214,8 +216,38 @@ type Walk = {
   path: string;
   chain: ChainLink[];
   loop: number;
-  remapped: boolean;
+  timing: Timing;
 };
+
+type Timing = "plain" | "held" | "changed";
+
+const isFreezeOrPlay = (remap: Remap): boolean =>
+  remap.every((point, k) => {
+    if (k === 0) return true;
+    const [o0, i0] = remap[k - 1];
+    const slope = (point[1] - i0) / Math.max(EPSILON, point[0] - o0);
+    return Math.abs(slope) < EPSILON || Math.abs(slope - 1) < EPSILON;
+  });
+
+function timingWith(timing: Timing, remap: Remap | null): Timing {
+  if (!remap || timing === "changed") return timing;
+  return isFreezeOrPlay(remap) ? "held" : "changed";
+}
+
+function soundWindow(
+  p: Placed,
+  from: number,
+  to: number,
+  startContent: number,
+): SoundWindow | null {
+  const { timing, inst } = p.walk;
+  if (timing === "plain") return { from, to, contentStart: startContent - p.item.from };
+  if (timing === "changed") return null;
+  const playFrom = Math.max(from, inst.toAbs(startContent, "end"));
+  const playTo = Math.min(to, inst.toAbs(p.contentEnd - 1, "start") + 1);
+  if (playTo - playFrom < 1) return null;
+  return { from: playFrom, to: playTo, contentStart: contentAt(p, playFrom) - p.item.from };
+}
 
 type Placed = {
   item: TimelineItem;
@@ -335,7 +367,7 @@ function leafBar(p: Placed, link: ChainLink, order: number): VideoBar {
     loop: walk.loop,
     localAt: (abs: number) => contentAt(p, abs) - item.from,
     hasSound: itemHasSound(item),
-    remapped: walk.remapped,
+    sound: itemHasSound(item) ? soundWindow(p, from, to, startContent) : null,
   };
 }
 
@@ -407,7 +439,7 @@ function visitGroup(acc: Collected, p: Placed, group: GroupProps, link: ChainLin
       path: looped ? `${key}#${k}` : key,
       chain,
       loop: looped ? k : walk.loop,
-      remapped: walk.remapped || !!group.remap?.length,
+      timing: timingWith(walk.timing, group.remap?.length ? group.remap : null),
     });
   });
 }
@@ -424,7 +456,7 @@ export function flattenSpec(
 ): FlatTimeline {
   const acc: Collected = { fps: spec.fps, bars: [], transitions: [], marks: [] };
   const root: Instance = { toAbs: (c) => c, lo: 0, hi: spec.durationInFrames };
-  visitTracks(acc, spec.tracks, { inst: root, path: "", chain: [], loop: 0, remapped: false });
+  visitTracks(acc, spec.tracks, { inst: root, path: "", chain: [], loop: 0, timing: "plain" });
   const { bars } = acc;
   const lanes = packLanes(bars);
   const audio = audioBars(spec, bars);
@@ -502,7 +534,8 @@ function soundBar(
 
 function clipSoundBar(bar: VideoBar, fps: number): AudioBar | null {
   const media = mediaProps(bar.props);
-  if (!bar.hasSound || bar.remapped || !media) return null;
+  const sound = bar.sound;
+  if (!sound || !media) return null;
   return {
     key: `clip:${bar.key}`,
     id: bar.key,
@@ -510,10 +543,10 @@ function clipSoundBar(bar: VideoBar, fps: number): AudioBar | null {
     channel: bar.nodeId,
     src: media.src,
     role: "clip",
-    from: bar.from,
-    to: bar.to,
+    from: sound.from,
+    to: sound.to,
     lane: 0,
-    trimBefore: Math.round(bar.contentStart + msToExactFrames(media.trimBeforeMs, fps)),
+    trimBefore: Math.round(sound.contentStart + msToExactFrames(media.trimBeforeMs, fps)),
     loop: media.loop,
     volume: media.volume,
     bar,

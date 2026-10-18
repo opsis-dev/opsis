@@ -65,6 +65,64 @@ describe("held transitions", () => {
     expect(seq.audio.map((x) => x.from)).toEqual([0, 75, 145]);
   });
 
+  it("delay a clip's own sound by the held frames instead of dropping it", () => {
+    const video = (id: string, frames: number) =>
+      itemClip(id, "core/video", { src: `project:${id}.mp4`, muted: false }, frames);
+    const spec = (hold: boolean) =>
+      clipToSpec(
+        sequenceClips(
+          "seq",
+          [video("a", 45), video("b", 60)],
+          [undefined, { kind: "core/fade", durationInFrames: 30, hold }],
+        ),
+        settings,
+      );
+    const sounds = (hold: boolean) =>
+      flattenSpec(spec(hold)).audio.map((a) => [a.channel, a.from, a.to, a.trimBefore]);
+    expect(sounds(false)).toEqual([
+      ["a", 0, 45, 0],
+      ["b", 15, 75, 0],
+    ]);
+    expect(sounds(true)).toEqual([
+      ["a", 0, 45, 0],
+      ["b", 75, 135, 0],
+    ]);
+  });
+
+  it("drop a clip's own sound under a speed change", () => {
+    const sped = clipToSpec(
+      {
+        ...itemClip("a", "core/video", { src: "project:a.mp4", muted: false }, 60),
+        tracks: [
+          {
+            id: "t",
+            items: [
+              {
+                id: "g",
+                component: "core/group",
+                from: 0,
+                durationInFrames: 30,
+                props: {
+                  tracks: itemClip("a", "core/video", { src: "project:a.mp4", muted: false }, 60)
+                    .tracks,
+                  remap: [
+                    [0, 0],
+                    [30, 60],
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+        durationInFrames: 30,
+      },
+      settings,
+    );
+    const flat = flattenSpec(sped);
+    expect(flat.bars.map((b) => [b.nodeId, b.hasSound])).toEqual([["a", true]]);
+    expect(flat.audio).toEqual([]);
+  });
+
   it("are not flagged on the timeline, while overlapping ones are", () => {
     const parts = [itemClip("a", "core/title", {}, 45), itemClip("b", "core/title", {}, 45)];
     const spec = (hold: boolean) =>
