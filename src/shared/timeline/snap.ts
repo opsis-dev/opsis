@@ -40,12 +40,12 @@ export function snapSpan(
 const FRAME_STEPS = [1, 2, 5, 10];
 const FRAME_TICKS = 5;
 
-const WIDEST_SECONDS = 600;
 const SECOND_STEPS = [
   { seconds: 0.5, ticks: 2 },
-  ...[1, 2, 5, 10, 15, 30, 60, 120, 300, WIDEST_SECONDS].map((seconds) => ({ seconds, ticks: 5 })),
+  ...[1, 2, 5, 10, 15, 30, 60, 120, 300, 600].map((seconds) => ({ seconds, ticks: 5 })),
 ];
-const WIDEST_STEP = { seconds: WIDEST_SECONDS, ticks: 10 };
+const WIDEST_STEP = SECOND_STEPS[SECOND_STEPS.length - 1];
+const BEYOND_WIDEST_STEP = { ...WIDEST_STEP, ticks: 10 };
 const MIN_STEP_PX = 72;
 
 export function rulerStep(
@@ -57,7 +57,7 @@ export function rulerStep(
     if (step * pxPerFrame >= minPx && step < fps / 2)
       return { step, minor: Math.max(1, step / FRAME_TICKS) };
   const fit =
-    SECOND_STEPS.find(({ seconds }) => seconds * fps * pxPerFrame >= minPx) ?? WIDEST_STEP;
+    SECOND_STEPS.find(({ seconds }) => seconds * fps * pxPerFrame >= minPx) ?? BEYOND_WIDEST_STEP;
   const step = fit.seconds * fps;
   return { step, minor: step / fit.ticks };
 }

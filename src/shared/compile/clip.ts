@@ -9,7 +9,7 @@ import type {
   VisualEnvelope,
 } from "../schema/timeline";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
-import type { WorkflowSettings } from "../schema/workflow";
+import { THEME_BACKGROUNDS, type WorkflowSettings } from "../schema/workflow";
 import { hasKeys } from "../timeline/envelope";
 import { wholeFrames } from "../timeline/time";
 import type { RecordingProps } from "./recording";
@@ -28,25 +28,37 @@ export type GroupProps = {
   design?: { width: number; height: number };
 };
 
-type BuiltInProps = { "core/group": GroupProps; "core/recording": RecordingProps };
+type PlaceholderProps = { title: string; subtitle: string };
 
-const propsOf = <C extends keyof BuiltInProps>(
-  item: TimelineItem,
-  component: C,
-): BuiltInProps[C] | null =>
-  item.component === component ? (item.props as BuiltInProps[C]) : null;
+type BuiltInProps = {
+  "core/group": GroupProps;
+  "core/recording": RecordingProps;
+  "core/placeholder": PlaceholderProps;
+};
 
-export const groupOf = (item: TimelineItem): GroupProps | null => propsOf(item, "core/group");
+type PropsFor<C extends string> = C extends keyof BuiltInProps
+  ? BuiltInProps[C]
+  : Record<string, unknown>;
+
+const isGroupProps = (props: Record<string, unknown>): props is GroupProps =>
+  Array.isArray(props.tracks);
+
+const isRecordingProps = (props: Record<string, unknown>): props is RecordingProps =>
+  typeof props.src === "string" && typeof props.log === "object" && props.log !== null;
+
+export const groupOf = (item: TimelineItem): GroupProps | null =>
+  item.component === "core/group" && isGroupProps(item.props) ? item.props : null;
 
 export const recordingOf = (item: TimelineItem): RecordingProps | null =>
-  propsOf(item, "core/recording");
+  item.component === "core/recording" && isRecordingProps(item.props) ? item.props : null;
 
 type ItemPlacement = Omit<TimelineItem, "component" | "props">;
 
-export const groupItem = (
-  { id, from, durationInFrames, ...rest }: ItemPlacement,
-  props: GroupProps,
-): TimelineItem => ({ id, from, durationInFrames, component: "core/group", props, ...rest });
+export const groupItem = (placement: ItemPlacement, props: GroupProps): TimelineItem => ({
+  ...placement,
+  component: "core/group",
+  props,
+});
 
 export const itemHasSound = (item: TimelineItem): boolean =>
   item.component === "core/video" && item.props.muted === false;
@@ -65,12 +77,7 @@ export function emptyClip(durationInFrames = 1): ClipValue {
 const firstRecording = (clips: ClipValue[]): RecordingValue | undefined =>
   clips.find((c) => c.recording)?.recording;
 
-const makeClip = (
-  durationInFrames: number,
-  tracks: TimelineTrack[],
-  audio: AudioItem[],
-  recording: RecordingValue | undefined,
-): ClipValue => ({ type: "clip", durationInFrames, tracks, audio, recording });
+const makeClip = (parts: Omit<ClipValue, "type">): ClipValue => ({ type: "clip", ...parts });
 
 export type ItemExtra = {
   recording?: RecordingValue;
@@ -79,10 +86,10 @@ export type ItemExtra = {
   envelope?: VisualEnvelope;
 };
 
-export function itemClip(
+export function itemClip<C extends string>(
   nodeId: string,
-  component: string,
-  props: Record<string, unknown>,
+  component: C,
+  props: PropsFor<C>,
   durationInFrames: number,
   extra: ItemExtra = {},
 ): ClipValue {
@@ -97,17 +104,17 @@ export function itemClip(
     ...(extra.handles ? { handles: extra.handles } : {}),
     ...(hasKeys(extra.envelope) ? { envelope: extra.envelope } : {}),
   };
-  return makeClip(
-    duration,
-    [{ id: `${nodeId}:t`, items: [item] }],
-    extra.audio ?? [],
-    extra.recording,
-  );
+  return makeClip({
+    durationInFrames: duration,
+    tracks: [{ id: `${nodeId}:t`, items: [item] }],
+    audio: extra.audio ?? [],
+    recording: extra.recording,
+  });
 }
 
 export const placeholderClip = (
   nodeId: string,
-  text: { title: string; subtitle: string },
+  text: PlaceholderProps,
   durationInFrames: number,
   extra: ItemExtra = {},
 ): ClipValue => itemClip(nodeId, "core/placeholder", text, durationInFrames, extra);
@@ -130,7 +137,12 @@ export function wrapClip(
     { id: `${nodeId}:g`, from: 0, durationInFrames: duration, nodeId },
     { ...props, tracks: clip.tracks },
   );
-  return makeClip(duration, [{ id: `${nodeId}:t`, items: [group] }], clip.audio, clip.recording);
+  return makeClip({
+    durationInFrames: duration,
+    tracks: [{ id: `${nodeId}:t`, items: [group] }],
+    audio: clip.audio,
+    recording: clip.recording,
+  });
 }
 
 export function withHandles(
@@ -248,7 +260,12 @@ export function sequenceClips(
   const audio = clips.flatMap((clip, i) =>
     shiftAudio(clip.audio, at[i].from + at[i].lead, `${nodeId}:s${i}`),
   );
-  return makeClip(Math.max(1, end), [{ id: `${nodeId}:seq`, items }], audio, firstRecording(clips));
+  return makeClip({
+    durationInFrames: Math.max(1, end),
+    tracks: [{ id: `${nodeId}:seq`, items }],
+    audio,
+    recording: firstRecording(clips),
+  });
 }
 
 export function stackClips(
@@ -278,12 +295,12 @@ export function stackClips(
       ],
     };
   });
-  return makeClip(
-    Math.max(...clips.map((c, i) => c.durationInFrames + offset(i))),
+  return makeClip({
+    durationInFrames: Math.max(...clips.map((c, i) => c.durationInFrames + offset(i))),
     tracks,
-    clips.flatMap((c, i) => shiftAudio(c.audio, offset(i), `${nodeId}:l${i}`)),
-    firstRecording(clips),
-  );
+    audio: clips.flatMap((c, i) => shiftAudio(c.audio, offset(i), `${nodeId}:l${i}`)),
+    recording: firstRecording(clips),
+  });
 }
 
 export function mapItems(
@@ -332,11 +349,6 @@ export function recordingProps(clip: ClipValue): RecordingProps[] {
   });
   return out;
 }
-
-export const THEME_BACKGROUNDS: Record<WorkflowSettings["theme"], string> = {
-  light: "#fafafa",
-  dark: "#09090b",
-};
 
 export function clipToSpec(clip: ClipValue, settings: WorkflowSettings): TimelineSpec {
   return {

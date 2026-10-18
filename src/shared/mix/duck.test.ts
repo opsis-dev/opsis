@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { AudioItem, TimelineSpec } from "../schema/timeline";
+import { groupItem } from "../compile/clip";
+import type { AudioItem, TimelineItem, TimelineSpec } from "../schema/timeline";
 import { duckGain, duckingSpans, type Span } from "./duck";
 
 const effect = (id: string, from: number, extra: Partial<AudioItem> = {}): AudioItem => ({
@@ -13,6 +14,28 @@ const effect = (id: string, from: number, extra: Partial<AudioItem> = {}): Audio
 });
 
 const keys = (...ids: string[]) => new Set(ids);
+
+type Place = { from: number; durationInFrames: number };
+
+const videoItem = (
+  id: string,
+  { muted = false, ...place }: Place & { muted?: boolean },
+): TimelineItem => ({
+  id,
+  ...place,
+  component: "core/video",
+  props: { src: `project:${id}.mp4`, muted },
+  nodeId: id,
+});
+
+const groupWith = (
+  id: string,
+  { loopEvery, ...place }: Place & { loopEvery?: number },
+  items: TimelineItem[],
+): TimelineItem =>
+  groupItem({ id, ...place }, { tracks: [{ id: `${id}:inner`, items }], loopEvery });
+
+const trackOf = (item: TimelineItem): TimelineSpec["tracks"] => [{ id: "t", items: [item] }];
 
 const spec = (audio: AudioItem[], tracks: TimelineSpec["tracks"] = []) => ({
   fps: 30,
@@ -60,44 +83,12 @@ describe("ducking", () => {
   });
 
   it("finds clips with sound inside groups", () => {
-    const tracks: TimelineSpec["tracks"] = [
-      {
-        id: "t",
-        items: [
-          {
-            id: "g",
-            from: 50,
-            durationInFrames: 100,
-            component: "core/group",
-            props: {
-              tracks: [
-                {
-                  id: "inner",
-                  items: [
-                    {
-                      id: "v",
-                      from: 10,
-                      durationInFrames: 200,
-                      component: "core/video",
-                      props: { src: "project:v.mp4", muted: false },
-                      nodeId: "v",
-                    },
-                    {
-                      id: "quiet",
-                      from: 0,
-                      durationInFrames: 20,
-                      component: "core/video",
-                      props: { src: "project:q.mp4", muted: true },
-                      nodeId: "q",
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-        ],
-      },
-    ];
+    const tracks = trackOf(
+      groupWith("g", { from: 50, durationInFrames: 100 }, [
+        videoItem("v", { from: 10, durationInFrames: 200 }),
+        videoItem("q", { from: 0, durationInFrames: 20, muted: true }),
+      ]),
+    );
     expect(duckingSpans(spec([effect("a", 0)], tracks), keys("v", "q"))).toEqual([[60, 150]]);
     expect(duckingSpans(spec([effect("a", 0)], tracks), keys("a", "v", "q"))).toEqual([
       [0, 10],
@@ -106,37 +97,11 @@ describe("ducking", () => {
   });
 
   it("lowers under every repeat of a looped clip with sound", () => {
-    const tracks: TimelineSpec["tracks"] = [
-      {
-        id: "t",
-        items: [
-          {
-            id: "g",
-            from: 20,
-            durationInFrames: 90,
-            component: "core/group",
-            props: {
-              loopEvery: 30,
-              tracks: [
-                {
-                  id: "inner",
-                  items: [
-                    {
-                      id: "v",
-                      from: 0,
-                      durationInFrames: 30,
-                      component: "core/video",
-                      props: { src: "project:v.mp4", muted: false },
-                      nodeId: "v",
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-        ],
-      },
-    ];
+    const tracks = trackOf(
+      groupWith("g", { from: 20, durationInFrames: 90, loopEvery: 30 }, [
+        videoItem("v", { from: 0, durationInFrames: 30 }),
+      ]),
+    );
     expect(duckingSpans(spec([], tracks), keys("v"))).toEqual([[20, 110]]);
   });
 

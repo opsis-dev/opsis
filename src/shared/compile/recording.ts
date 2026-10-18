@@ -41,7 +41,12 @@ export type RecordingProps = {
   annotations: AnnotationSpec[];
 };
 
-export const DEFAULT_RECORDING_PROPS: Omit<RecordingProps, "src" | "proxySrc" | "log" | "name"> = {
+export const recordingSpeed = (props: Pick<RecordingProps, "speed">): number => props.speed || 1;
+
+export const defaultRecordingProps = (): Omit<
+  RecordingProps,
+  "src" | "proxySrc" | "log" | "name"
+> => ({
   speed: 1.25,
   zoom: true,
   tuning: {},
@@ -54,7 +59,7 @@ export const DEFAULT_RECORDING_PROPS: Omit<RecordingProps, "src" | "proxySrc" | 
   ripple: true,
   extraBeats: [],
   annotations: [],
-};
+});
 
 export const POINTER_KINDS = new Set<Action["kind"]>(["click", "type", "hover", "focus", "drag"]);
 

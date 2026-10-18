@@ -9,13 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/renderer/components/ui/dropdown-menu";
-import {
-  applyBusSettings,
-  applyStripSettings,
-  resetBus,
-  resetStrip,
-  stripSettings,
-} from "@/shared/mix/edits";
+import { applyBusSettings, resetBus, resetStrip, stripSettings } from "@/shared/mix/edits";
 import { STRIP_PRESETS, type Bus, type Strip, type StripSettings } from "@/shared/mix/types";
 import { useMixerState } from "./mixer-state";
 
@@ -24,7 +18,7 @@ type Apply<T> = (fn: (value: T) => T) => void;
 const applyToStrips =
   (onApply: Apply<Strip>) =>
   (settings: Partial<StripSettings>): void =>
-    onApply((s) => applyStripSettings(s, settings));
+    onApply((s) => ({ ...s, ...settings }));
 
 function SettingsMenu({
   label,

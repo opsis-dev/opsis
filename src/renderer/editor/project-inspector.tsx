@@ -15,10 +15,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-gr
 import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { attempt } from "@/renderer/lib/toast";
 import { useItemKeys } from "@/renderer/lib/use-item-keys";
-import { THEME_BACKGROUNDS } from "@/shared/compile/clip";
 import type { FontRole } from "@/shared/fonts";
 import { firstFree, uniqueKeys } from "@/shared/lists";
 import { VARIANTS, variantCanvas } from "@/shared/nodes/output";
+import { THEME_BACKGROUNDS } from "@/shared/schema/workflow";
 import type { Workflow, WorkflowSettings } from "@/shared/schema/workflow";
 import { FontPicker } from "../fonts/font-picker";
 import { useMedia } from "../store/media";

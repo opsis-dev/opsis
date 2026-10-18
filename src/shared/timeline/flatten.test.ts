@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildFilm, filmSpec, flatFilm, TITLE } from "../test-fixtures";
-import { findHandle, nodeSpans } from "./flatten";
+import { nodeSpans } from "./flatten";
+import { findHandle } from "./handles";
 
 describe("flattening", () => {
   it("maps bars through speed and trims", () => {

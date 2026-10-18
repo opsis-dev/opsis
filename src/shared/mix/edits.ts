@@ -1,6 +1,9 @@
+import { pick } from "../pick";
 import { stripOf } from "./levels";
 import {
+  BUS_SETTING_KEYS,
   DEFAULT_STRIP,
+  STRIP_SETTING_KEYS,
   busSchema,
   type Bus,
   type BusSettings,
@@ -9,25 +12,12 @@ import {
   type StripSettings,
 } from "./types";
 
-const busSettings = ({ highpass, eq, comp, fader }: BusSettings): BusSettings => ({
-  highpass,
-  eq,
-  comp,
-  fader,
-});
+const busSettings = (settings: BusSettings): BusSettings => pick(settings, BUS_SETTING_KEYS);
 
-export const stripSettings = (strip: StripSettings): StripSettings => ({
-  trim: strip.trim,
-  ...busSettings(strip),
-  pan: strip.pan,
-});
+export const stripSettings = (strip: StripSettings): StripSettings =>
+  pick(strip, STRIP_SETTING_KEYS);
 
 export const resetStrip = (strip: Strip): Strip => ({ ...strip, ...stripSettings(DEFAULT_STRIP) });
-
-export const applyStripSettings = (strip: Strip, settings: Partial<StripSettings>): Strip => ({
-  ...strip,
-  ...settings,
-});
 
 export const applyBusSettings = (bus: Bus, settings: Partial<StripSettings>): Bus => ({
   ...bus,

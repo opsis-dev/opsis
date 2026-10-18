@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { randomId } from "../ids";
 import { findById } from "../lists";
 import { NODE_DEFS } from "../nodes/registry";
 import type { EditHandleKind } from "../schema/timeline";
@@ -19,21 +20,19 @@ import {
   type EditContext,
   type EditResult,
 } from "./edits";
-import {
-  findHandle,
-  type AudioBar,
-  type ChainLink,
-  type FlatTimeline,
-  type VideoBar,
-} from "./flatten";
+import type { AudioBar, ChainLink, FlatTimeline, VideoBar } from "./flatten";
+import { findHandle } from "./handles";
 
-let counter = 0;
-const ctxFor = (workflow: Workflow): EditContext => ({
-  workflow,
-  fps: workflow.settings.fps,
-  sourceNodeId: "out",
-  makeId: (prefix) => `${prefix}_t${++counter}`,
-});
+function ctxFor(workflow: Workflow): EditContext {
+  const salt = randomId();
+  let made = 0;
+  return {
+    workflow,
+    fps: workflow.settings.fps,
+    sourceNodeId: "out",
+    makeId: (prefix) => `${prefix}_${salt}${++made}`,
+  };
+}
 
 const applied = (r: EditResult): Workflow => {
   if (!r.ok) throw new Error(r.error);
@@ -169,14 +168,8 @@ function roundTrips(type: string): RoundTrip[] {
 
 describe("timeline edit handles round-trip", () => {
   const clipNodes = NODE_DEFS.filter((d) => d.compile && d.outputs.clip && !d.hidden);
-  const trips = new Map<string, RoundTrip[]>();
-  const tripsOf = (type: string): RoundTrip[] => {
-    const known = trips.get(type);
-    if (known) return known;
-    const fresh = roundTrips(type);
-    trips.set(type, fresh);
-    return fresh;
-  };
+  const trips = new Map(clipNodes.map((d) => [d.type, roundTrips(d.type)]));
+  const tripsOf = (type: string): RoundTrip[] => trips.get(type) ?? [];
 
   it.each(clipNodes.map((d) => [d.type]))("%s: every handle moves its bar by the delta", (type) => {
     const misses = tripsOf(type)

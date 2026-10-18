@@ -92,7 +92,7 @@ describe("compileWorkflow — sample project", () => {
   it("passes the small preview copy along with the full recording", () => {
     const result = recordResult(log);
     const recording = result.outputs.recording;
-    assert(recording?.type === "recording", "recording output");
+    assert(recording.type === "recording", "recording output");
     recording.proxySrc = "project:.demoflow/cache/h/recording.preview.mp4";
     const out = compileWorkflow(todoMvc(), { results: { record: result } });
     const props = recordingIn(out.specs.render);
@@ -105,11 +105,10 @@ describe("compileWorkflow — sample project", () => {
     const spec = compileWorkflow(wf, { results: { record: recordResult(log) } }).specs.render;
     const seq = spec.tracks[0].items;
     expect(seq).toHaveLength(3);
-    expect(seq[1].enter?.kind).toBe("remocn/whip-pan");
+    const enter = must(seq[1].enter, "transition into the second clip");
+    expect(enter.kind).toBe("remocn/whip-pan");
     expect(seq[0].exit?.kind).toBe("remocn/whip-pan");
-    expect(seq[1].from).toBe(
-      seq[0].from + seq[0].durationInFrames - seq[1].enter!.durationInFrames,
-    );
+    expect(seq[1].from).toBe(seq[0].from + seq[0].durationInFrames - enter.durationInFrames);
     expect(spec.durationInFrames).toBe(seq[2].from + seq[2].durationInFrames);
   });
 
@@ -166,7 +165,7 @@ describe("compileWorkflow — timeline nodes", () => {
       g.link(title, loop);
       return loop;
     });
-    findById(wf.nodes, "loop")!.disabled = true;
+    must(findById(wf.nodes, "loop"), "loop node").disabled = true;
     const clip = compiledClip(wf, last);
     expect(clip.durationInFrames).toBe(90);
   });

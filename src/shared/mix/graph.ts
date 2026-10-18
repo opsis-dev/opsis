@@ -76,23 +76,31 @@ function envelopeExpr(keys: Keyframe[], fps: number): string {
   return `if(lt(t,${num(points[0].t)}),${num(points[0].v)},${expr})`;
 }
 
-function panChain(
-  label: string,
-  steps: string[],
-  panKeys: Keyframe[],
-  delayStep: string[],
-  fps: number,
-): string {
-  const pan = envelopeExpr(panKeys, fps);
-  const left = `${label}l`;
-  const right = `${label}r`;
-  const leftOut = `${label}L`;
-  const rightOut = `${label}R`;
+const LEFT = -1;
+const RIGHT = 1;
+
+const sideGain = (side: typeof LEFT | typeof RIGHT, pan: number | string): string =>
+  typeof pan === "number"
+    ? num(Math.min(1, 1 + side * pan), 4)
+    : `min(1,1${side === LEFT ? "-" : "+"}(${pan}))`;
+
+function panChain({
+  label,
+  steps,
+  pan,
+  after,
+}: {
+  label: string;
+  steps: string[];
+  pan: string;
+  after: string[];
+}): string {
+  const [left, right, leftOut, rightOut] = ["l", "r", "L", "R"].map((side) => `${label}${side}`);
   return [
     `${steps.join(",")},channelsplit=channel_layout=stereo[${left}][${right}]`,
-    `[${left}]volume=eval=frame:volume='min(1,1-(${pan}))'[${leftOut}]`,
-    `[${right}]volume=eval=frame:volume='min(1,1+(${pan}))'[${rightOut}]`,
-    `[${leftOut}][${rightOut}]${["join=inputs=2:channel_layout=stereo", ...delayStep].join(",")}[${label}]`,
+    `[${left}]volume=eval=frame:volume='${sideGain(LEFT, pan)}'[${leftOut}]`,
+    `[${right}]volume=eval=frame:volume='${sideGain(RIGHT, pan)}'[${rightOut}]`,
+    `[${leftOut}][${rightOut}]${["join=inputs=2:channel_layout=stereo", ...after].join(",")}[${label}]`,
   ].join(";");
 }
 
@@ -120,10 +128,12 @@ function placementSteps(sound: SoundPlacement, fps: number): string[] {
 function soundChain(sound: SoundPlacement, input: number, label: string, fps: number): string {
   const steps = placementSteps(sound, fps);
   const delay = framesToMs(sound.at, fps);
-  const delayStep = delay > 0 ? [`adelay=delays=${delay}:all=1`] : [];
+  const after = delay > 0 ? [`adelay=delays=${delay}:all=1`] : [];
   const panKeys = sound.envelope?.pan;
-  if (panKeys?.length) return `[${input}:a]${panChain(label, steps, panKeys, delayStep, fps)}`;
-  return `[${input}:a]${[...steps, ...delayStep].join(",")}[${label}]`;
+  const chain = panKeys?.length
+    ? panChain({ label, steps, pan: envelopeExpr(panKeys, fps), after })
+    : `${[...steps, ...after].join(",")}[${label}]`;
+  return `[${input}:a]${chain}`;
 }
 
 function eqSteps(eq: Eq): string[] {
@@ -152,9 +162,7 @@ function compSteps(comp: Comp): string[] {
 
 function panStep(pan: number): string[] {
   if (Math.abs(pan) < MIN_PAN) return [];
-  const left = Math.min(1, 1 - pan);
-  const right = Math.min(1, 1 + pan);
-  return [`pan=stereo|c0=${num(left, 4)}*c0|c1=${num(right, 4)}*c1`];
+  return [`pan=stereo|c0=${sideGain(LEFT, pan)}*c0|c1=${sideGain(RIGHT, pan)}*c1`];
 }
 
 const highpassStep = (highpass: { on: boolean; freq: number }): string[] =>
@@ -351,21 +359,29 @@ const outputArgs = (label: string, limit: string[], format: string[], file: stri
   file,
 ];
 
-const pcm = (codec: string) => ["-ar", String(SAMPLE_RATE), "-c:a", codec];
+type PcmCodec = "pcm_f32le" | "pcm_s16le";
+
+const TAP_CODEC: PcmCodec = "pcm_f32le";
+
+const stereoPcm = (codec: PcmCodec) => ["-ac", "2", "-ar", String(SAMPLE_RATE), "-c:a", codec];
 
 export function jobArgs(
   job: Job,
   output: string,
-  codec: "pcm_f32le" | "pcm_s16le",
+  codec: PcmCodec,
   taps?: Taps,
   maxSeconds?: number,
 ): string[] {
   const limit = maxSeconds ? ["-t", num(maxSeconds, 3)] : [];
-  const tap = (label: string, file: string) => outputArgs(label, limit, pcm("pcm_f32le"), file);
+  const stem = (label: string, file: string, format: PcmCodec) =>
+    outputArgs(label, limit, stereoPcm(format), file);
+  const tapLabels = taps && job.taps;
   return [
     ...inputArgs(job),
-    ...outputArgs(job.output, limit, ["-ac", "2", ...pcm(codec)], output),
-    ...(job.taps && taps ? [...tap(job.taps.pre, taps.pre), ...tap(job.taps.post, taps.post)] : []),
+    ...stem(job.output, output, codec),
+    ...(tapLabels
+      ? [...stem(tapLabels.pre, taps.pre, TAP_CODEC), ...stem(tapLabels.post, taps.post, TAP_CODEC)]
+      : []),
   ];
 }
 

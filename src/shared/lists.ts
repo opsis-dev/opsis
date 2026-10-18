@@ -36,3 +36,5 @@ export const findById = <T extends { id: string }>(
   items: readonly T[] | undefined,
   id: string | null | undefined,
 ): T | undefined => items?.find((item) => item.id === id);
+
+export const isNonEmpty = <T>(list: readonly T[]): list is readonly [T, ...T[]] => list.length > 0;

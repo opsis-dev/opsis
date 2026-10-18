@@ -1,4 +1,4 @@
-import { channelOf } from "../audio";
+import { audioKind, channelOf } from "../audio";
 import { itemHasSound, mapItems, soundNodeId, walkItems } from "../compile/clip";
 import { findById } from "../lists";
 import { numberOr } from "../math";
@@ -25,8 +25,6 @@ export function busOf(mix: Mix, channel: string, kind: ChannelKind): Bus {
     findById(mix.buses, strip.bus) ?? findById(mix.buses, DEFAULT_BUS_FOR[kind]) ?? mix.buses[0]
   );
 }
-
-const kindOfAudio = (a: AudioItem): ChannelKind => (a.role === "music" ? "music" : "effect");
 
 export function soloActive(mix: Mix): boolean {
   return Object.values(mix.channels).some((s) => s.solo) || mix.buses.some((b) => b.solo);
@@ -68,7 +66,7 @@ function soundChannel(a: AudioItem, prev: ChannelInfo | undefined): ChannelInfo 
   const everyEarlierKeepsMusic = prev?.keepMusic ?? true;
   return {
     id: channelOf(a),
-    kind: kindOfAudio(a),
+    kind: audioKind(a),
     keepMusic: everyEarlierKeepsMusic && !!a.keepMusic,
     lengthFrames: Math.max(prev?.lengthFrames ?? 0, playedFrames(a)),
   };
@@ -83,7 +81,10 @@ const clipChannel = (id: string): ChannelInfo => ({
 
 export function channelsIn(spec: Pick<TimelineSpec, "tracks" | "audio">): ChannelInfo[] {
   const out = new Map<string, ChannelInfo>();
-  for (const a of spec.audio) out.set(channelOf(a), soundChannel(a, out.get(channelOf(a))));
+  for (const a of spec.audio) {
+    const id = channelOf(a);
+    out.set(id, soundChannel(a, out.get(id)));
+  }
   walkItems(spec.tracks, (item) => {
     const id = soundNodeId(item);
     if (id) out.set(id, clipChannel(id));
@@ -126,7 +127,7 @@ export function applyMixLevels(spec: TimelineSpec, mixIn: Mix | undefined): Time
   }
   const audio = spec.audio.map((a) => {
     const id = channelOf(a);
-    const kind = kindOfAudio(a);
+    const kind = audioKind(a);
     return {
       ...a,
       gain: channelGain(mix, audible, id, kind),

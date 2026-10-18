@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
 import { flattenSpec, nodeSpans } from "../timeline/flatten";
-import { groupOf, itemClip, sequenceClips, clipToSpec } from "./clip";
-import { remapFrame } from "./remap";
+import { clipToSpec, groupItem, groupOf, itemClip, sequenceClips } from "./clip";
+import { remapFrame, type Remap } from "./remap";
 
 const settings = {
   width: 1920,
@@ -89,40 +89,6 @@ describe("held transitions", () => {
     ]);
   });
 
-  it("drop a clip's own sound under a speed change", () => {
-    const sped = clipToSpec(
-      {
-        ...itemClip("a", "core/video", { src: "project:a.mp4", muted: false }, 60),
-        tracks: [
-          {
-            id: "t",
-            items: [
-              {
-                id: "g",
-                component: "core/group",
-                from: 0,
-                durationInFrames: 30,
-                props: {
-                  tracks: itemClip("a", "core/video", { src: "project:a.mp4", muted: false }, 60)
-                    .tracks,
-                  remap: [
-                    [0, 0],
-                    [30, 60],
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-        durationInFrames: 30,
-      },
-      settings,
-    );
-    const flat = flattenSpec(sped);
-    expect(flat.bars.map((b) => [b.nodeId, b.hasSound])).toEqual([["a", true]]);
-    expect(flat.audio).toEqual([]);
-  });
-
   it("are not flagged on the timeline, while overlapping ones are", () => {
     const parts = [itemClip("a", "core/title", {}, 45), itemClip("b", "core/title", {}, 45)];
     const spec = (hold: boolean) =>
@@ -132,5 +98,27 @@ describe("held transitions", () => {
       );
     expect(flattenSpec(spec(false)).transitions[0].covers).toBeCloseTo(30 / 45);
     expect(flattenSpec(spec(true)).transitions[0].covers).toBe(0);
+  });
+});
+
+describe("speed changes", () => {
+  it("drop a clip's own sound", () => {
+    const video = itemClip("a", "core/video", { src: "project:a.mp4", muted: false }, 60);
+    const remap: Remap = [
+      [0, 0],
+      [30, 60],
+    ];
+    const group = groupItem(
+      { id: "g", from: 0, durationInFrames: 30 },
+      { tracks: video.tracks, remap },
+    );
+    const flat = flattenSpec(
+      clipToSpec(
+        { ...video, tracks: [{ id: "t", items: [group] }], durationInFrames: 30 },
+        settings,
+      ),
+    );
+    expect(flat.bars.map((b) => [b.nodeId, b.hasSound])).toEqual([["a", true]]);
+    expect(flat.audio).toEqual([]);
   });
 });

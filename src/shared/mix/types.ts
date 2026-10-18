@@ -90,6 +90,8 @@ const busSettingsSchema = z.object({
 });
 export type BusSettings = z.infer<typeof busSettingsSchema>;
 
+export const BUS_SETTING_KEYS = busSettingsSchema.keyof().options;
+
 export const TRIM_RANGE: NumberRange = { min: -24, max: 24, default: 0 };
 export const PAN_RANGE: NumberRange = { min: -1, max: 1, default: 0 };
 
@@ -99,6 +101,8 @@ const stripSettingsSchema = z.object({
   pan: ranged(PAN_RANGE),
 });
 export type StripSettings = z.infer<typeof stripSettingsSchema>;
+
+export const STRIP_SETTING_KEYS = stripSettingsSchema.keyof().options;
 
 const stripSchema = stripSettingsSchema.extend({
   mute: z.boolean().default(false),
@@ -162,10 +166,12 @@ const masterSchema = z.object({
 });
 export type Master = z.infer<typeof masterSchema>;
 
+const BUS_IDS = { music: "music", effects: "effects", clips: "clips" } as const;
+
 const DEFAULT_BUSES: Bus[] = [
-  busSchema.parse({ id: "music", name: "Music" }),
-  busSchema.parse({ id: "effects", name: "Effects" }),
-  busSchema.parse({ id: "clips", name: "Clips" }),
+  busSchema.parse({ id: BUS_IDS.music, name: "Music" }),
+  busSchema.parse({ id: BUS_IDS.effects, name: "Effects" }),
+  busSchema.parse({ id: BUS_IDS.clips, name: "Clips" }),
 ];
 
 export const BUILT_IN_BUSES = new Set(DEFAULT_BUSES.map((b) => b.id));
@@ -185,9 +191,9 @@ export const CHANNEL_KINDS = ["music", "effect", "clip"] as const;
 export type ChannelKind = (typeof CHANNEL_KINDS)[number];
 
 export const DEFAULT_BUS_FOR: Record<ChannelKind, string> = {
-  music: "music",
-  effect: "effects",
-  clip: "clips",
+  music: BUS_IDS.music,
+  effect: BUS_IDS.effects,
+  clip: BUS_IDS.clips,
 };
 
 type StripPreset = { id: string; label: string; strip: Partial<StripSettings> };

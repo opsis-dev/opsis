@@ -11,7 +11,7 @@ import {
 } from "../compile/clip";
 import {
   CAMERA_STYLES,
-  DEFAULT_RECORDING_PROPS,
+  defaultRecordingProps,
   followCursorBeats,
   idleSpans,
   type RecordingProps,
@@ -158,7 +158,7 @@ const autoZoomNode = defineNode({
       };
     }
     const props: RecordingProps = {
-      ...DEFAULT_RECORDING_PROPS,
+      ...defaultRecordingProps(),
       src: rec.src,
       ...(rec.proxySrc ? { proxySrc: rec.proxySrc } : {}),
       log: rec.log,

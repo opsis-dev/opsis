@@ -13,14 +13,8 @@ import type { ParamRef } from "../schema/timeline";
 import type { EdgeEnds, PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
 import { formatNumberList, parseNumberList } from "../text-input";
 import { absPosition, mapNode, patchNodeParams, removeNodes } from "../workflow-edits";
-import {
-  findHandle,
-  slotIndex,
-  slotLink,
-  type AudioBar,
-  type ChainLink,
-  type VideoBar,
-} from "./flatten";
+import type { AudioBar, ChainLink, VideoBar } from "./flatten";
+import { findHandle, slotIndex, slotLink } from "./handles";
 import { framesToMs, msToFrames } from "./time";
 
 export type EditContext = {
@@ -134,6 +128,9 @@ function setLength(
 
 const makeEdge = (e: EdgeEnds): WorkflowEdge => ({ ...e, id: edgeId(e) });
 
+const NEW_NODE_OFFSET = { x: 60, y: 170 };
+const NEW_NODE_STEP = { x: 30, y: 150 };
+
 function placeNear(
   wf: Workflow,
   source: WorkflowNode | undefined,
@@ -143,7 +140,10 @@ function placeNear(
   const anchor = source ?? target;
   if (!anchor) return { position: { x: 0, y: 0 } };
   const abs = absPosition(wf, anchor);
-  const pos = { x: abs.x + 60 + index * 30, y: abs.y + 170 + index * 150 };
+  const pos = {
+    x: abs.x + NEW_NODE_OFFSET.x + index * NEW_NODE_STEP.x,
+    y: abs.y + NEW_NODE_OFFSET.y + index * NEW_NODE_STEP.y,
+  };
   const parentId =
     source?.parentId && target?.parentId === source.parentId ? source.parentId : undefined;
   const parent = findById(wf.nodes, parentId);
@@ -267,8 +267,18 @@ function leafEdge(ctx: EditContext, bar: VideoBar): WorkflowEdge | undefined {
   return pathEdge(ctx.workflow, bar.nodeId, next);
 }
 
-function owns(link: ChainLink, wf: Workflow): boolean {
+const nodeIdSets = new WeakMap<Workflow, ReadonlySet<string>>();
+
+function nodeIdsOf(wf: Workflow): ReadonlySet<string> {
+  const known = nodeIdSets.get(wf);
+  if (known) return known;
   const ids = new Set(wf.nodes.map((n) => n.id));
+  nodeIdSets.set(wf, ids);
+  return ids;
+}
+
+function owns(link: ChainLink, wf: Workflow): boolean {
+  const ids = nodeIdsOf(wf);
   return Object.values(link.handles ?? {}).some((h) => !!h && ids.has(h.nodeId));
 }
 
@@ -606,7 +616,7 @@ export function applyRipple(
 
 export function moveHandleKey(bar: VideoBar | AudioBar): string | null {
   const ref =
-    "chain" in bar ? findHandle(bar, "move", "outer")?.link.handles?.move : bar.handles?.move;
+    bar.type === "video" ? findHandle(bar, "move", "outer")?.link.handles?.move : bar.handles?.move;
   return ref ? handleKey(ref) : null;
 }
 
@@ -618,7 +628,7 @@ export type Removal = { nodeIds: string[]; edgeIds: string[] };
 
 export function removalFor(ctx: EditContext, bar: VideoBar | AudioBar): Removal {
   const wf = ctx.workflow;
-  if (!("chain" in bar)) {
+  if (bar.type === "audio") {
     if (bar.bar) return removalFor(ctx, bar.bar);
     return { nodeIds: bar.nodeId ? [bar.nodeId] : [], edgeIds: [] };
   }

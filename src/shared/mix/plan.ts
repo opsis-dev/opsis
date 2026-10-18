@@ -126,7 +126,7 @@ export function buildMixPlan(
 
 export const hasSound = (plan: MixPlan) => plan.channels.some((c) => c.sounds.length > 0);
 
-export type ChannelIdentity = Pick<MixPlan, "fps" | "durationInFrames"> &
+type ChannelIdentity = Pick<MixPlan, "fps" | "durationInFrames"> &
   Pick<ChannelPlan, "sounds" | "strip">;
 
 export function channelIdentity(plan: MixPlan, channel: ChannelPlan): ChannelIdentity {

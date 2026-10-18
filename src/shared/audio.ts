@@ -1,3 +1,4 @@
+import type { ChannelKind } from "./mix/types";
 import type { AudioItem } from "./schema/timeline";
 
 export const channelOf = (a: Pick<AudioItem, "channel" | "nodeId" | "id">): string =>
@@ -12,3 +13,5 @@ export function soundLength(a: AudioItem, fps: number, total: number): number {
   }
   return a.durationInFrames ?? Math.max(0, total - a.from);
 }
+
+export const audioKind = (a: AudioItem): ChannelKind => a.role ?? "effect";

@@ -41,6 +41,11 @@ export type WorkflowSettings = z.infer<typeof workflowSettingsSchema>;
 
 export const DEFAULT_WORKFLOW_SETTINGS: WorkflowSettings = workflowSettingsSchema.parse({});
 
+export const THEME_BACKGROUNDS: Record<WorkflowSettings["theme"], string> = {
+  light: "#fafafa",
+  dark: "#09090b",
+};
+
 export const DEFAULT_VIEWPORT = { width: 1920, height: 1080 };
 
 export const DEFAULT_TAKE_MS = 6000;
