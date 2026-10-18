@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CancelledError } from "../../shared/errors";
 import { ToolError } from "../media/ffmpeg";
-import { friendlyMixError, parseEbur128 } from "./render";
+import { friendlyMixError, parseEbur128, parseFrameLines, parseSummary, toFrames } from "./render";
 
 describe("mix errors", () => {
   it.each([
@@ -41,6 +41,39 @@ describe("parseEbur128", () => {
     "  True peak:",
     "    Peak:       -1.37 dBFS",
   ];
+
+  it("reads the time, momentary and short-term readings of each frame line", () => {
+    expect(
+      parseFrameLines([frame(0.1, "-inf", "-inf"), "Summary:", frame(0.5, "-18.24", "-19.91")]),
+    ).toEqual([
+      { t: 0.1, m: -120, s: -120 },
+      { t: 0.5, m: -18.24, s: -19.91 },
+    ]);
+  });
+
+  it("reads each summary value under its own heading only", () => {
+    expect(parseSummary([frame(0.1, "-20", "-20"), ...summary])).toEqual({
+      integrated: -16.04,
+      range: 4.26,
+      truePeak: -1.37,
+    });
+    expect(parseSummary(["    I:         -16.04 LUFS", "  True peak:"])).toEqual({
+      integrated: null,
+      range: null,
+      truePeak: null,
+    });
+  });
+
+  it("holds the latest reading at the end of each frame and leaves earlier frames silent", () => {
+    const samples = [
+      { t: 0.6, m: -18.24, s: -19.91 },
+      { t: 1.1, m: -10.04, s: -12.26 },
+    ];
+    expect(toFrames(samples, 2, 4)).toEqual({
+      momentary: [-120, -18.2, -10, -10],
+      shortTerm: [-120, -19.9, -12.3, -12.3],
+    });
+  });
 
   it("reads the summary and one reading per frame", () => {
     const lines = [frame(0.1, "-inf", "-inf"), frame(0.5, "-18.24", "-19.91"), ...summary];

@@ -29,17 +29,13 @@ export function joinFilter(
   count: number,
   to: { width: number; height: number; fps: number; sound: boolean },
 ): string {
-  const { width: w, height: h } = to;
   const rate = round3(to.fps);
-  const scaled = Array.from(
-    { length: count },
-    (_, i) => `[${i}:v]${padTo(w, h)},fps=${rate}[v${i}]`,
-  ).join(";");
-  const chain = Array.from(
-    { length: count },
-    (_, i) => `[v${i}]${to.sound ? `[${i}:a]` : ""}`,
-  ).join("");
-  return `${scaled};${chain}concat=n=${count}:v=1:a=${to.sound ? 1 : 0}[v]${to.sound ? "[a]" : ""}`;
+  const inputs = Array.from({ length: count }, (_, i) => i);
+  const scaled = inputs.map((i) => `[${i}:v]${padTo(to.width, to.height)},fps=${rate}[v${i}]`);
+  const join = to.sound
+    ? { pads: inputs.map((i) => `[v${i}][${i}:a]`), audio: 1, out: "[v][a]" }
+    : { pads: inputs.map((i) => `[v${i}]`), audio: 0, out: "[v]" };
+  return `${scaled.join(";")};${join.pads.join("")}concat=n=${count}:v=1:a=${join.audio}${join.out}`;
 }
 
 export function atempoChain(rate: number): string {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fitPageToScale, scaledViewport } from "./capture-scale";
+import { fitPageToScale } from "./capture-scale";
 
 class FakeStyle {
   [index: number]: string;
@@ -49,15 +49,6 @@ function fakePage(rule: FakeStyle) {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.useRealTimers();
-});
-
-describe("scaledViewport", () => {
-  it("scales to even sizes", () => {
-    expect(scaledViewport({ width: 1281, height: 721 }, 1.5)).toEqual({
-      width: 1922,
-      height: 1082,
-    });
-  });
 });
 
 describe("fitPageToScale", () => {

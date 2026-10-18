@@ -29,7 +29,8 @@ import {
   type StemLevels,
 } from "../../shared/mix/result";
 import { SILENCE_DB } from "../../shared/mix/types";
-import { ToolError, type MediaDeps } from "../media/ffmpeg";
+import type { MediaDeps } from "../media/analysis";
+import { ToolError } from "../media/ffmpeg";
 import { frameLevels, parseWav } from "./wav";
 
 const MIX_VERSION = "demoflow-mix/1";
@@ -38,6 +39,9 @@ const UNUSED_STEM_MS = 10 * 60_000;
 const LOUDNESS_FLOOR_DB = -70;
 const QUIET_PRE_DB = -100;
 const RECENT_FILE = "recent.json";
+
+const stemName = (hash: string, suffix: string): string => `${hash}.${suffix}`;
+const stemHash = (name: string): string => name.split(".")[0];
 
 type MixDeps = MediaDeps & { onProgress?: (progress: number, message: string) => void };
 
@@ -64,7 +68,7 @@ type StemJob = {
 };
 
 const runStem = (deps: MixDeps, plan: MixPlan, stem: StemJob): Promise<Stem> =>
-  stemRenders(path.join(projectPaths(deps.projectDir).mix, `${stem.hash}.wav`), () =>
+  stemRenders(path.join(projectPaths(deps.projectDir).mix, stemName(stem.hash, "wav")), () =>
     renderStem(deps, plan, stem),
   );
 
@@ -77,8 +81,8 @@ async function renderStem(
   { hash, makeJob, codec, makeup = 0 }: StemJob,
 ): Promise<Stem> {
   const dir = projectPaths(deps.projectDir).mix;
-  const file = path.join(dir, `${hash}.wav`);
-  const meta = path.join(dir, `${hash}.json`);
+  const file = path.join(dir, stemName(hash, "wav"));
+  const meta = path.join(dir, stemName(hash, "json"));
   const cached = existsSync(file) ? await readJson(meta, stemMetaSchema) : null;
   if (cached) return { hash, file, ...cached };
   await mkdir(dir, { recursive: true });
@@ -111,7 +115,7 @@ async function renderStem(
 }
 
 async function loudnessOf(deps: MixDeps, plan: MixPlan, master: Stem): Promise<Loudness> {
-  const file = path.join(projectPaths(deps.projectDir).mix, `${master.hash}.loudness.json`);
+  const file = path.join(projectPaths(deps.projectDir).mix, stemName(master.hash, "loudness.json"));
   const cached = await readJson(file, loudnessSchema);
   if (cached) return cached;
   const lines: string[] = [];
@@ -150,21 +154,33 @@ const decibels = (v: string) => {
   return Number.isFinite(n) ? n : SILENCE_DB;
 };
 
-export function parseEbur128(lines: string[], fps: number, frames: number): Loudness {
-  const samples: Array<{ t: number; m: number; s: number }> = [];
+type LoudnessSample = { t: number; m: number; s: number };
+
+export function parseFrameLines(lines: string[]): LoudnessSample[] {
+  return lines.flatMap((line) => {
+    const m = FRAME_LINE.exec(line);
+    return m ? [{ t: Number(m[1]), m: decibels(m[2]), s: decibels(m[3]) }] : [];
+  });
+}
+
+export function parseSummary(lines: string[]): Summary {
   const summary: Summary = { integrated: null, range: null, truePeak: null };
   let section: (typeof SUMMARY_SECTIONS)[number] | undefined;
   for (const line of lines) {
-    const m = FRAME_LINE.exec(line);
-    if (m) {
-      samples.push({ t: Number(m[1]), m: decibels(m[2]), s: decibels(m[3]) });
-      continue;
-    }
+    if (FRAME_LINE.test(line)) continue;
     const text = line.replace(/^\[[^\]]*\]\s*/, "").trim();
     section = SUMMARY_SECTIONS.find((s) => text.startsWith(s.heading)) ?? section;
     const value = /^(I|LRA|Peak):\s*(-?[\d.]+|-?inf)/.exec(text);
     if (value && section && value[1] === section.label) summary[section.key] = decibels(value[2]);
   }
+  return summary;
+}
+
+export function toFrames(
+  samples: LoudnessSample[],
+  fps: number,
+  frames: number,
+): Pick<Loudness, "momentary" | "shortTerm"> {
   const momentary = Array.from({ length: frames }, () => SILENCE_DB);
   const shortTerm = Array.from({ length: frames }, () => SILENCE_DB);
   let k = -1;
@@ -175,11 +191,14 @@ export function parseEbur128(lines: string[], fps: number, frames: number): Loud
     momentary[f] = round1(samples[k].m);
     shortTerm[f] = round1(samples[k].s);
   }
-  const { integrated, range, truePeak } = summary;
+  return { momentary, shortTerm };
+}
+
+export function parseEbur128(lines: string[], fps: number, frames: number): Loudness {
+  const { integrated, range, truePeak } = parseSummary(lines);
   return {
     fps,
-    momentary,
-    shortTerm,
+    ...toFrames(parseFrameLines(lines), fps, frames),
     integrated: integrated === null || integrated <= LOUDNESS_FLOOR_DB ? null : round1(integrated),
     range: range === null ? null : round1(range),
     truePeak: truePeak === null || truePeak <= SILENCE_DB ? null : round1(truePeak),
@@ -187,8 +206,8 @@ export function parseEbur128(lines: string[], fps: number, frames: number): Loud
 }
 
 export function friendlyMixError(error: unknown): Error {
-  const text = error instanceof ToolError ? error.output : errorMessage(error);
   if (error instanceof CancelledError) return error;
+  const text = error instanceof ToolError ? error.output : errorMessage(error);
   const missing =
     /Error opening input file .*?([^/\\]+?)\.?$/m.exec(text) ??
     /([^/\\\s]+\.\w+): No such file or directory/.exec(text);
@@ -228,7 +247,7 @@ async function busStems(plan: MixPlan, deps: MixDeps, channels: Map<string, Stem
     if (!found) throw new Error(`The sound channel ${id} wasn't mixed.`);
     return found;
   };
-  const buses: Array<[string, Stem]> = [];
+  const buses = new Map<string, Stem>();
   for (const bus of plan.buses) {
     tick("Mixing sound");
     const hash = `bus-${sha({
@@ -239,7 +258,7 @@ async function busStems(plan: MixPlan, deps: MixDeps, channels: Map<string, Stem
       keys: (bus.duck?.keys ?? []).map((c) => stem(c).hash),
     })}`;
     const makeJob = () => busJob(plan, bus, (c) => stem(c).file);
-    buses.push([bus.id, await runStem(deps, plan, { hash, makeJob, codec: "pcm_f32le" })]);
+    buses.set(bus.id, await runStem(deps, plan, { hash, makeJob, codec: "pcm_f32le" }));
   }
   return buses;
 }
@@ -266,7 +285,7 @@ async function masterStem(plan: MixPlan, deps: MixDeps, buses: Stem[]): Promise<
   return runStem(deps, plan, { hash, makeJob, codec: "pcm_s16le", makeup });
 }
 
-const levelsById = (stems: Iterable<[string, Stem]>) =>
+const levelsById = (stems: Map<string, Stem>) =>
   Object.fromEntries([...stems].map(([id, s]) => [id, s.levels]));
 
 const emptyMixResult = (plan: MixPlan): MixResult => ({
@@ -289,16 +308,12 @@ async function renderMixStems(plan: MixPlan, deps: MixDeps): Promise<MixResult> 
   const channels = await channelStems(plan, deps, tick);
   const buses = await busStems(plan, deps, channels, tick);
   tick(MASTER_STEPS[0]);
-  const master = await masterStem(
-    plan,
-    deps,
-    buses.map(([, s]) => s),
-  );
+  const master = await masterStem(plan, deps, [...buses.values()]);
   tick(MASTER_STEPS[1]);
   const loudness = await loudnessOf(deps, plan, master);
   await remember(deps.projectDir, [
     ...[...channels.values()].map((s) => s.hash),
-    ...buses.map(([, s]) => s.hash),
+    ...[...buses.values()].map((s) => s.hash),
     master.hash,
   ]);
   progress(1, "Sound mixed");
@@ -324,7 +339,7 @@ async function remember(projectDir: string, hashes: string[]): Promise<void> {
   await atomicWrite(indexFile, JSON.stringify(next));
   const keep = new Set(next.flat());
   await pruneDir(dir, {
-    keep: (name) => name === RECENT_FILE || keep.has(name.split(".")[0]),
+    keep: (name) => name === RECENT_FILE || keep.has(stemHash(name)),
     unusedForMs: UNUSED_STEM_MS,
   });
 }

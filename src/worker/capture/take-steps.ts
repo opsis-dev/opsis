@@ -44,7 +44,6 @@ import type { CursorDriver } from "./recorder";
 import { dumpVisible, type Resolved } from "./selectors";
 import type { TakeRun } from "./take-run";
 
-const FIRST_PAGE_MIN_WAIT_MS = 500;
 const SCROLL_TICK_MS = 16;
 
 export class SignInExpiredError extends Error {
@@ -66,7 +65,7 @@ const step = <S extends z.ZodObject>(
   more: Omit<StepSpec, "run"> = {},
 ): [string, StepSpec] => [
   def.type,
-  { ...more, run: (take, node) => run(take, take.params(def, node), node) },
+  { ...more, run: (take, node) => run(take, parseNodeParams(def, node, take.vars), node) },
 ];
 
 const isTimeoutError = (error: unknown) => error instanceof Error && error.name === "TimeoutError";
@@ -115,8 +114,7 @@ const STEPS = new Map<string, StepSpec>([
       { id: `${node.id}:nav`, kind: "navigate", t, tEnd: take.elapsed(), label: p.url },
       node,
     );
-    if (take.cursorDriver) await take.cursorDriver.pause(p.after);
-    else await take.page.waitForTimeout(Math.max(FIRST_PAGE_MIN_WAIT_MS, p.after));
+    await take.settleAfterPage(p.after);
     const { signIn } = take.opts;
     if (signIn && landedOnSignIn(p.url, take.page.url(), signIn.url))
       throw new SignInExpiredError(signIn.name);
@@ -184,12 +182,15 @@ const STEPS = new Map<string, StepSpec>([
     );
     await take.pauseIfRolling(p.after);
   }),
-  step(selectNode, (take, p, node) =>
-    onTarget(take, node, p, async (driver, t, label) => {
-      await driver.focus(t.target, label, await take.motion(p, t.by));
-      const loc = elementOf(t.target);
-      await loc.selectOption(p.value).catch(async () => loc.selectOption({ label: p.value }));
-    }),
+  step(
+    selectNode,
+    (take, p, node) =>
+      onTarget(take, node, p, async (driver, t, label) => {
+        await driver.focus(t.target, label, await take.motion(p, t.by));
+        const loc = elementOf(t.target);
+        await loc.selectOption(p.value).catch(async () => loc.selectOption({ label: p.value }));
+      }),
+    { clickKind: "focus" },
   ),
   step(uploadNode, async (take, p) => {
     const t = await take.resolve(p.target);
@@ -198,8 +199,7 @@ const STEPS = new Map<string, StepSpec>([
   }),
   step(pressNode, async (take, p, node) => {
     const chord = pressedChord(p.keys);
-    if (take.cursorDriver) await take.cursorDriver.pressKey(chord, nodeName(node, p.keys));
-    else await take.page.keyboard.press(chord);
+    await take.pressKey(chord, nodeName(node, p.keys));
     await take.pauseIfRolling(p.after);
   }),
   step(waitNode, async (take, p, node) => {
@@ -311,23 +311,22 @@ const STEPS = new Map<string, StepSpec>([
     if (p.durationMs > 0)
       setTimeout(() => void overlay.dispose().catch(() => undefined), p.durationMs);
   }),
-  [
-    sessionNode.type,
-    {
-      run: async () => {
-        throw new Error("Only one Open browser node is allowed per take.");
-      },
-    },
-  ],
+  step(sessionNode, async () => {
+    throw new Error("Only one Open browser node is allowed per take.");
+  }),
 ]);
 
-export function runStep(take: TakeRun, node: WorkflowNode): Promise<void> {
+export async function runStep(take: TakeRun, node: WorkflowNode): Promise<void> {
   const spec = STEPS.get(node.type);
   if (!spec) throw new Error(`"${nodeName({ type: node.type })}" can't be part of a browser take.`);
-  return spec.run(take, node);
+  await spec.run(take, node);
 }
 
-export const clickKindOf = (type: string): Action["kind"] => STEPS.get(type)?.clickKind ?? "focus";
+export function clickKindOf(type: string): Action["kind"] {
+  const kind = STEPS.get(type)?.clickKind;
+  if (!kind) throw new Error(`"${nodeName({ type })}" doesn't point at anything.`);
+  return kind;
+}
 
 export function setupLength(steps: WorkflowNode[], vars: Record<string, string>): number {
   const firstNav = steps.findIndex((n) => n.type === navigateNode.type);

@@ -1,7 +1,6 @@
-import { existsSync } from "node:fs";
-import { mkdir, rename, utimes, writeFile } from "node:fs/promises";
+import { rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { projectPaths, toPosixRel } from "../../engine/project-paths";
+import { toPosixRel } from "../../engine/project-paths";
 import { projectRef } from "../../shared/asset-ref";
 import { lerp } from "../../shared/math";
 import type { NodeParams } from "../../shared/nodes/define";
@@ -24,9 +23,9 @@ import {
 } from "../../shared/timeline/chapters";
 import { framesToMs, msToFrames } from "../../shared/timeline/time";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
-import { CODECS, hasSoundTrack } from "../media/codecs";
+import { CODECS, hasSoundTrack, kindOfCodec } from "../media/codecs";
 import { startAssetServer } from "../render/asset-server";
-import { finishArgs, muxArgs, pictureKey, prunePictures } from "../render/picture";
+import { cachedPicture, finishArgs, muxArgs, pictureKey } from "../render/picture";
 import { getServeUrl, renderFrame, renderTimeline } from "../render/render";
 import { mixed, specFor, type Stage } from "./film-spec";
 import { refToPath } from "./util";
@@ -72,7 +71,7 @@ type VariantJob = {
 const renderTo = (
   { ctx, serveUrl, spec, p, progress }: VariantJob,
   output: string,
-  muted: boolean,
+  { muted }: { muted: boolean },
 ) =>
   renderTimeline({
     env: ctx.env,
@@ -90,23 +89,15 @@ const renderTo = (
 
 async function pictureFor(job: VariantJob): Promise<string> {
   const { ctx, spec, p } = job;
-  const ext = CODECS[p.codec].ext;
-  const dir = projectPaths(ctx.projectDir).pictures;
-  await mkdir(dir, { recursive: true });
   const key = pictureKey(spec, { codec: p.codec, crf: p.crf, scale: p.scale, gl: p.gl });
-  const file = path.join(dir, `${key}.${ext}`);
-  if (existsSync(file)) {
-    const now = new Date();
-    await utimes(file, now, now).catch(() => undefined);
+  const picture = await cachedPicture(ctx.projectDir, `${key}.${CODECS[p.codec].ext}`, (temp) =>
+    renderTo(job, temp, { muted: true }),
+  );
+  if (picture.reused) {
     ctx.log("info", "The picture hasn't changed, so only the sound is added again.");
     job.progress(1);
-    return file;
   }
-  const temp = `${file}.part.${ext}`;
-  await renderTo(job, temp, true);
-  await rename(temp, file);
-  await prunePictures(dir);
-  return file;
+  return picture.file;
 }
 
 type Chapters = {
@@ -144,7 +135,7 @@ async function renderVariant(
     const sound = refToPath(ctx, spec.mix.src);
     const picture = await pictureFor(job);
     await ctx.ffmpeg.run(muxArgs(p.codec, picture, sound, out), { signal: ctx.signal });
-  } else await renderTo(job, out, false);
+  } else await renderTo(job, out, { muted: false });
   const { faststart } = CODECS[p.codec];
   if (faststart || chapters.metadata) {
     const tmp = `${out}.finish${path.extname(out)}`;
@@ -155,13 +146,14 @@ async function renderVariant(
   }
   const artifacts: Artifact[] = [
     {
-      kind: p.codec === "gif" ? "image" : "video",
+      kind: kindOfCodec(p.codec),
       path: toPosixRel(ctx.projectDir, out),
       label: variant,
     },
   ];
   if (chapters.listed) {
-    const list = out.replace(/\.[^.]+$/, ".youtube-chapters.txt");
+    const { dir, name } = path.parse(out);
+    const list = path.join(dir, `${name}.youtube-chapters.txt`);
     await writeFile(list, chapterList(chapters.chapters));
     artifacts.push({
       kind: "file",
@@ -202,7 +194,7 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
   const media: MediaValue = {
     type: "media",
     src: projectRef(firstArtifact(artifacts).path),
-    kind: p.codec === "gif" ? "image" : "video",
+    kind: kindOfCodec(p.codec),
     durationMs: framesToMs(spec.durationInFrames, spec.fps),
   };
   return { outputs: { media }, artifacts };

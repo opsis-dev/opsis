@@ -27,45 +27,33 @@ export const h264Args = ({ crf, preset, keyframeEvery, faststart = false }: H264
 const AAC = ["-c:a", "aac"];
 const PCM_16 = ["-c:a", "pcm_s16le"];
 
+type Preset = ConvertParams["preset"];
+
 type CodecInfo = {
   ext: string;
   audio: string[] | null;
   faststart: boolean;
   crf: boolean;
+  video: ((crf: number, preset: Preset) => string[]) | null;
 };
 
 const AAC_EXPORT = [...AAC, "-b:a", "320k"];
 const OPUS_EXPORT = ["-c:a", "libopus", "-b:a", "192k"];
 
 export const CODECS = {
-  h264: { ext: "mp4", audio: AAC_EXPORT, faststart: true, crf: true },
-  h265: { ext: "mp4", audio: AAC_EXPORT, faststart: true, crf: true },
-  vp8: { ext: "webm", audio: OPUS_EXPORT, faststart: false, crf: true },
-  vp9: { ext: "webm", audio: OPUS_EXPORT, faststart: false, crf: true },
-  prores: { ext: "mov", audio: PCM_16, faststart: false, crf: false },
-  gif: { ext: "gif", audio: null, faststart: false, crf: false },
-} satisfies Record<RenderCodec, CodecInfo>;
-
-export type SoundCodec = Exclude<RenderCodec, "gif">;
-
-export const hasSoundTrack = (codec: RenderCodec): codec is SoundCodec =>
-  CODECS[codec].audio !== null;
-
-export const EDIT_VIDEO = h264Args({ crf: 18 });
-
-export const EDIT_AUDIO = AAC;
-
-export const CONVERT: Record<
-  ConvertParams["codec"],
-  { ext: string; args: (crf: number, preset: ConvertParams["preset"]) => string[] }
-> = {
   h264: {
     ext: "mp4",
-    args: (crf, preset) => [...h264Args({ crf, preset, faststart: true }), ...AAC],
+    audio: AAC_EXPORT,
+    faststart: true,
+    crf: true,
+    video: (crf, preset) => h264Args({ crf, preset }),
   },
   h265: {
     ext: "mp4",
-    args: (crf, preset) => [
+    audio: AAC_EXPORT,
+    faststart: true,
+    crf: true,
+    video: (crf, preset) => [
       "-c:v",
       "libx265",
       "-crf",
@@ -76,18 +64,42 @@ export const CONVERT: Record<
       "hvc1",
       "-pix_fmt",
       "yuv420p",
-      ...AAC,
     ],
   },
+  vp8: { ext: "webm", audio: OPUS_EXPORT, faststart: false, crf: true, video: null },
   vp9: {
     ext: "webm",
-    args: (crf) => ["-c:v", "libvpx-vp9", "-crf", String(crf), "-b:v", "0", "-c:a", "libopus"],
+    audio: OPUS_EXPORT,
+    faststart: false,
+    crf: true,
+    video: (crf) => ["-c:v", "libvpx-vp9", "-crf", String(crf), "-b:v", "0"],
   },
   prores: {
     ext: "mov",
-    args: () => ["-c:v", "prores_ks", "-profile:v", "3", "-pix_fmt", "yuv422p10le", ...PCM_16],
+    audio: PCM_16,
+    faststart: false,
+    crf: false,
+    video: () => ["-c:v", "prores_ks", "-profile:v", "3", "-pix_fmt", "yuv422p10le"],
   },
-};
+  gif: { ext: "gif", audio: null, faststart: false, crf: false, video: null },
+} satisfies Record<RenderCodec, CodecInfo>;
+
+export type SoundCodec = Exclude<RenderCodec, "gif">;
+
+export const hasSoundTrack = (codec: RenderCodec): codec is SoundCodec =>
+  CODECS[codec].audio !== null;
+
+export const kindOfCodec = (codec: RenderCodec): "image" | "video" =>
+  codec === "gif" ? "image" : "video";
+
+export const EDIT_VIDEO = h264Args({ crf: 18 });
+
+export const EDIT_AUDIO = AAC;
+
+export function convertArgs(codec: ConvertParams["codec"], crf: number, preset: Preset): string[] {
+  const { video, audio, faststart } = CODECS[codec];
+  return [...video(crf, preset), ...(faststart ? FASTSTART : []), ...audio];
+}
 
 export const AUDIO_FORMATS: Record<AudioFormat, string[]> = {
   m4a: [...AAC, "-b:a", "192k"],

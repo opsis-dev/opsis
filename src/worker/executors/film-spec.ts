@@ -1,6 +1,6 @@
 import { lerp } from "../../shared/math";
 import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
-import { buildMixPlan, hasSound } from "../../shared/mix/plan";
+import { buildMixPlan } from "../../shared/mix/plan";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import type { ExecutorContext } from "../engine/context";
 import { renderMix } from "../mix/render";
@@ -18,9 +18,7 @@ export function specFor(ctx: ExecutorContext): TimelineSpec {
 }
 
 export async function mixed(ctx: ExecutorContext, spec: TimelineSpec, stage: Stage) {
-  const plan = buildMixPlan(spec, ctx.workflow.mix);
-  if (!hasSound(plan)) return applyMixLevels(spec, ctx.workflow.mix);
-  const result = await renderMix(plan, {
+  const result = await renderMix(buildMixPlan(spec, ctx.workflow.mix), {
     projectDir: ctx.projectDir,
     resolve: (ref) => refToPath(ctx, ref),
     ffmpeg: ctx.ffmpeg,

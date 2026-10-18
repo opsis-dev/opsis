@@ -1,5 +1,9 @@
+import { existsSync } from "node:fs";
+import { mkdir, rename, utimes } from "node:fs/promises";
+import path from "node:path";
 import { pruneDir } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
+import { projectPaths } from "../../engine/project-paths";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { ENGINE_VERSION } from "../engine/cache";
 import { CODECS, FASTSTART, type RenderCodec, type SoundCodec } from "../media/codecs";
@@ -53,6 +57,22 @@ export function finishArgs(
   ];
 }
 
-export async function prunePictures(dir: string): Promise<void> {
+export async function cachedPicture(
+  projectDir: string,
+  name: string,
+  render: (temp: string) => Promise<unknown>,
+): Promise<{ file: string; reused: boolean }> {
+  const dir = projectPaths(projectDir).pictures;
+  await mkdir(dir, { recursive: true });
+  const file = path.join(dir, name);
+  if (existsSync(file)) {
+    const now = new Date();
+    await utimes(file, now, now).catch(() => undefined);
+    return { file, reused: true };
+  }
+  const temp = `${file}.part${path.extname(name)}`;
+  await render(temp);
+  await rename(temp, file);
   await pruneDir(dir, { newest: KEEP_PICTURES });
+  return { file, reused: false };
 }

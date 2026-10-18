@@ -8,6 +8,7 @@ import {
   rectFromBounds,
   type Point,
   type Rect,
+  type Viewport,
 } from "../../shared/schema/actions";
 import { cameraEase } from "../../video/camera/lib/camera";
 import { designScaleFor } from "../../video/camera/lib/design-width";
@@ -55,15 +56,15 @@ const TARGET_LIFT = 8;
 
 type Box = { cx: number; cy: number; rect: Rect };
 
+type Path = [Point, ...Point[]];
+
 type DragPlan = { points: Point[]; end: Point; drop: Rect };
 
 type Aim = { at: Point; rect: Rect };
 
-type Viewport = { width: number; height: number } | null;
+const viewportScale = (vp: Viewport | null): number => (vp ? designScaleFor(vp.width) : 1);
 
-const viewportScale = (vp: Viewport): number => (vp ? designScaleFor(vp.width) : 1);
-
-const centerOf = (vp: Viewport): Point =>
+const centerOf = (vp: Viewport | null): Point =>
   vp ? { x: vp.width / 2, y: vp.height / 2 } : { x: 0, y: 0 };
 
 const roundRect = (r: Rect): Rect => ({
@@ -109,7 +110,7 @@ async function boxOf(page: Page, target: Target, k: number): Promise<Box> {
 const NOT_ON_SCREEN =
   "The place to drop it isn't on screen. Scroll to it first, or use a bigger window.";
 
-async function dropBox(page: Page, target: Target, k: number, vp: Viewport): Promise<Box> {
+async function dropBox(page: Page, target: Target, k: number, vp: Viewport | null): Promise<Box> {
   if (isPoint(target)) return boxOf(page, target, k);
   const box = await target.first().boundingBox();
   if (!box) throw new Error(NOT_ON_SCREEN);
@@ -125,7 +126,7 @@ function ontoPlan(origin: Point, drop: Box): DragPlan {
 }
 
 export class CursorDriver {
-  private readonly viewport: Viewport;
+  private readonly viewport: Viewport | null;
   private readonly k: number;
   private last: Point;
   private lastDepartMs = 0;
@@ -256,12 +257,12 @@ export class CursorDriver {
       x: Math.round(at.x),
       y: Math.round(at.y),
       rect: roundRect(rect),
+      selector: opts?.selector,
+      cluster: opts?.cluster,
+      zoom: opts?.zoom === false ? false : undefined,
+      zoomScale: opts?.zoomScale,
       ...extra,
     };
-    if (opts?.selector != null) event.selector = opts.selector;
-    if (opts?.cluster != null) event.cluster = opts.cluster;
-    if (opts?.zoom === false) event.zoom = false;
-    if (opts?.zoomScale != null) event.zoomScale = opts.zoomScale;
     this.sink.click(event);
     return event;
   }
@@ -285,19 +286,23 @@ export class CursorDriver {
     origin: Point,
     opts?: DragOpts,
   ): Promise<DragPlan> {
-    const quick = opts?.method === "quick";
-    const dragMs = opts?.dragMs;
-    if ("target" in to) {
-      const onto = to.target;
-      return quick
-        ? this.quickOnto(from, onto, origin)
-        : this.pressed(opts, () => this.smoothOnto(onto, origin, dragMs));
-    }
+    if ("target" in to) return this.dragOnto(from, to.target, origin, opts);
     const points = offsetPath(origin, "by" in to ? [to.by] : to.path);
-    await this.pressed(opts, () =>
-      quick ? this.quickAlong(points) : this.smoothAlong(points, origin, dragMs),
-    );
+    await this.dragAlong(points, origin, opts);
     return { points, end: lastPoint(points), drop: boundsOf(points) };
+  }
+
+  private dragOnto(from: Target, onto: Target, origin: Point, opts?: DragOpts) {
+    if (opts?.method === "quick") return this.quickOnto(from, onto, origin);
+    return this.pressed(opts, () => this.smoothOnto(onto, origin, opts?.dragMs));
+  }
+
+  private dragAlong(points: Path, origin: Point, opts?: DragOpts) {
+    return this.pressed(opts, () =>
+      opts?.method === "quick"
+        ? this.quickAlong(points)
+        : this.smoothAlong(points, origin, opts?.dragMs),
+    );
   }
 
   private async pressed<T>(opts: DragOpts | undefined, move: () => Promise<T>): Promise<T> {
@@ -346,7 +351,7 @@ export class CursorDriver {
     return plan;
   }
 
-  private async quickAlong(points: Point[]): Promise<void> {
+  private async quickAlong(points: Path): Promise<void> {
     for (const point of points.slice(1))
       await this.page.mouse.move(point.x, point.y, { steps: QUICK_DRAG_STEPS });
     const end = lastPoint(points);
@@ -354,7 +359,7 @@ export class CursorDriver {
   }
 
   private async smoothAlong(
-    points: Point[],
+    points: Path,
     origin: Point,
     dragMs: number | undefined,
   ): Promise<void> {

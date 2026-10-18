@@ -3,8 +3,21 @@ export const EPSILON = 1e-6;
 export const clamp = (value: number, lo: number, hi: number): number =>
   Math.min(hi, Math.max(lo, value));
 
-export const sum = (values: readonly number[]): number =>
-  values.reduce((total, value) => total + value, 0);
+export function sum(values: Iterable<number>): number {
+  let total = 0;
+  for (const value of values) total += value;
+  return total;
+}
+
+export function forEachWindow(
+  count: number,
+  per: number,
+  length: number,
+  visit: (start: number, end: number) => void,
+): void {
+  for (let i = 0; i < count; i++)
+    visit(Math.floor(i * per), Math.min(length, Math.floor((i + 1) * per)));
+}
 
 export const clamp01 = (value: number): number => clamp(value, 0, 1);
 

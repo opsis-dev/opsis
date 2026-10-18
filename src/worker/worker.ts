@@ -5,7 +5,12 @@ import { errorMessage } from "../shared/errors";
 import type { LiveMessage } from "../shared/live";
 import { pendingReplies } from "../shared/pending-replies";
 import { runFailed } from "../shared/schema/events";
-import type { LoginRequest, MainToWorker, WorkerToMain } from "../shared/worker-protocol";
+import type {
+  LoginRequest,
+  MainMessage,
+  MainToWorker,
+  WorkerToMain,
+} from "../shared/worker-protocol";
 import type { ExecutorContext } from "./engine/context";
 import { runWorkflow } from "./engine/runner";
 import { runAnalysis } from "./media/run-analysis";
@@ -43,47 +48,48 @@ const secretsFor = (projectDir: string): ExecutorContext["secrets"] => ({
 
 const EXIT_FLUSH_MS = 50;
 
-async function run(msg: Extract<MainToWorker, { type: "run" }>) {
+async function errorOf(work: () => Promise<unknown>): Promise<string | undefined> {
   try {
-    await runWorkflow(msg.runId, msg.request, {
+    await work();
+    return undefined;
+  } catch (error) {
+    return errorMessage(error);
+  }
+}
+
+async function run(msg: MainMessage<"run">) {
+  const error = await errorOf(() =>
+    runWorkflow(msg.runId, msg.request, {
       env: msg.env,
       signal: controller.signal,
       emit: (event) => send({ type: "event", event }),
       live: live ? sendLive : null,
       login,
       secrets: secretsFor(msg.request.projectDir),
-    });
-  } catch (error) {
+    }),
+  );
+  if (error !== undefined)
     send({
       type: "event",
-      event: runFailed(msg.runId, errorMessage(error), { cancelled: controller.signal.aborted }),
+      event: runFailed(msg.runId, error, { cancelled: controller.signal.aborted }),
     });
-  }
   finish();
 }
 
-async function installEngineFor(msg: Extract<MainToWorker, { type: "install-engine" }>) {
-  let error: string | undefined;
-  try {
-    await installEngine(
+async function installEngineFor(msg: MainMessage<"install-engine">) {
+  const error = await errorOf(() =>
+    installEngine(
       msg.env.engineDir,
       (event) => send({ type: "install:progress", event }),
       controller.signal,
-    );
-  } catch (e) {
-    error = errorMessage(e);
-  }
+    ),
+  );
   send({ type: "install:done", error });
   finish();
 }
 
-async function cardStill(msg: Extract<MainToWorker, { type: "still" }>) {
-  let error: string | undefined;
-  try {
-    await renderCardStill(msg, controller.signal);
-  } catch (e) {
-    error = errorMessage(e);
-  }
+async function cardStill(msg: MainMessage<"still">) {
+  const error = await errorOf(() => renderCardStill(msg, controller.signal));
   send({ type: "still:done", id: msg.id, error });
 }
 
@@ -122,7 +128,7 @@ process.parentPort.once("message", (event) => {
   const [controlPort, livePort] = event.ports;
   control = controlPort;
   live = livePort ?? null;
-  control.on("message", (e) => void handle(e.data as MainToWorker));
+  control.on("message", (e: { data: MainToWorker }) => void handle(e.data));
   control.on("close", () => replies.settleAll({ error: "Demoflow closed before it answered." }));
   control.start();
   live?.start();

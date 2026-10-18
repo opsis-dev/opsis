@@ -3,6 +3,7 @@ import { onAbort } from "../../shared/errors";
 import { parseJsonWith } from "../../shared/guards";
 import type { sessionNode } from "../../shared/nodes/browser";
 import type { NodeParams } from "../../shared/nodes/define";
+import type { Viewport } from "../../shared/schema/actions";
 import { storageStateSchema, type StorageState } from "../../shared/schema/storage-state";
 import { fitPageToScale, scaledViewport } from "./capture-scale";
 
@@ -17,7 +18,7 @@ function parseStorageState(text: string): StorageState {
 
 export type OpenSession = {
   context: BrowserContext;
-  physicalViewport: { width: number; height: number };
+  physicalViewport: Viewport;
   close: () => Promise<void>;
 };
 
@@ -36,13 +37,12 @@ export async function openSession(
     args: ["--hide-scrollbars", "--disable-features=Translate"],
   });
   let context: BrowserContext | undefined;
-  let stopOnAbort = (): void => undefined;
-  const close = async () => {
+  const stopOnAbort = onAbort(opts.signal, () => void close());
+  async function close() {
     stopOnAbort();
     await context?.close().catch(() => undefined);
     await browser.close().catch(() => undefined);
-  };
-  stopOnAbort = onAbort(opts.signal, () => void close());
+  }
   try {
     context = await browser.newContext({
       viewport: physical,
@@ -52,7 +52,7 @@ export async function openSession(
       colorScheme: params.colorScheme,
       userAgent: params.userAgent || (params.mobile ? devices["iPad Pro 11"].userAgent : undefined),
       ...(params.mobile ? { isMobile: true, hasTouch: true } : {}),
-      ...(storageState ? { storageState } : {}),
+      storageState,
     });
     if (scale > 1) await context.addInitScript(fitPageToScale, { scale, ...logical });
   } catch (error) {

@@ -28,7 +28,7 @@ import { getNodeDef, nodeName } from "../../shared/nodes/registry";
 import { mapValues } from "../../shared/pick";
 import { failureMessage } from "../../shared/run-progress";
 import { runFailed, type LogLevel, type RunEvent } from "../../shared/schema/events";
-import type { CompileValue, LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
+import type { LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
 import { secretName } from "../../shared/secrets";
 import { interpolate } from "../../shared/vars";
@@ -37,7 +37,13 @@ import type { LiveSink } from "../capture/take-run";
 import { getExecutor } from "../executors";
 import { createFfmpegTools, ToolError, type FfmpegTools } from "../media/ffmpeg";
 import { nodeHash, readCached, writeCached } from "./cache";
-import { TracedError, type ExecutorContext } from "./context";
+import {
+  TracedError,
+  type Executor,
+  type ExecutorContext,
+  type ExecutorInputs,
+  type NodeResults,
+} from "./context";
 import { decorateArtifacts } from "./posters";
 
 type RunDeps = {
@@ -63,8 +69,6 @@ type Known = { node: WorkflowNode; def: NodeDef };
 
 type Job = Known & { hash: string; needs: string[] };
 
-type Results = Partial<Record<string, NodeResult>>;
-
 const LANE_LIMITS: Readonly<Record<NodePhase, number>> = {
   capture: 3,
   media: 4,
@@ -80,7 +84,7 @@ const doneEvent = (
   nodeId: string,
   cached: boolean,
   result?: NodeResult,
-): RunEvent => ({ type: "node:done", runId, nodeId, cached, ...(result ? { result } : {}) });
+): RunEvent => ({ type: "node:done", runId, nodeId, cached, result });
 
 function knownNodes(workflow: Workflow): Map<string, Known> {
   const known = new Map<string, Known>();
@@ -137,9 +141,10 @@ function hashNodes(
     const upstream = workflow.edges
       .filter((e) => e.target === node.id && hashes.has(e.source))
       .map((e): [string, string] => [e.targetHandle, `${hashes.get(e.source)}:${e.sourceHandle}`]);
-    const params = interpolatedParams(getNodeDef(node.type), node.params, vars);
+    const def = getNodeDef(node.type);
+    const params = interpolatedParams(def, node.params, vars);
     const keyed =
-      getNodeDef(node.type)?.phase === "render"
+      def?.phase === "render"
         ? { params, settings: workflow.settings, mix: workflow.mix ?? null }
         : params;
     hashes.set(node.id, nodeHash(node.type, keyed, upstream));
@@ -155,7 +160,7 @@ function requireHash(hashes: ReadonlyMap<string, string>, id: string): string {
 
 function mergeLastRun(
   previous: LastRun,
-  results: Results,
+  results: NodeResults,
   failures: Record<string, NodeFailure>,
   existing: (id: string) => boolean,
 ): LastRun {
@@ -209,7 +214,7 @@ class Scheduler {
 }
 
 class ResultStore {
-  readonly results: Results = {};
+  readonly results: NodeResults = {};
   private version = 0;
   private compiled: { version: number; result: CompileResult } | null = null;
 
@@ -229,8 +234,8 @@ class ResultStore {
     return this.compiled.result;
   };
 
-  inputsFor(id: string): Partial<Record<string, CompileValue>> {
-    const inputs: Partial<Record<string, CompileValue>> = {};
+  inputsFor(id: string): ExecutorInputs {
+    const inputs: ExecutorInputs = {};
     const values: Partial<CompileResult["values"]> = this.compile().values;
     for (const e of this.workflow.edges) {
       if (e.target !== id) continue;
@@ -356,54 +361,67 @@ class RunState {
   }
 
   async runNode(job: Job): Promise<void> {
-    const { node, def, hash } = job;
-    const { runId, req, deps, vars, log } = this.run;
-    const { emit } = deps;
-    const id = node.id;
-    if (deps.signal.aborted) return;
-    if (job.needs.some((d) => this.blocked(d))) {
-      this.skipped.add(id);
-      emit({ type: "node:skipped", runId, nodeId: id, reason: "Something before it failed" });
-      return;
-    }
-    if (!def.volatile && !this.forced.has(id) && (await this.fromCache(job))) return;
-
+    const { node, def } = job;
+    const { runId, deps } = this.run;
+    if (deps.signal.aborted || this.skipIfBlocked(job)) return;
+    if (!def.volatile && !this.forced.has(node.id) && (await this.fromCache(job))) return;
     const executor = getExecutor(node.type);
     if (!executor) {
-      this.failed.add(id);
-      emit({ type: "node:error", runId, nodeId: id, message: `No executor for ${node.type}` });
+      this.failed.add(node.id);
+      deps.emit({
+        type: "node:error",
+        runId,
+        nodeId: node.id,
+        message: `No executor for ${node.type}`,
+      });
       return;
     }
+    try {
+      const result = await this.executeJob(job, executor);
+      this.store.set(node.id, result);
+      if (!def.volatile) await writeCached(this.cacheDir, result);
+      deps.emit(doneEvent(runId, node.id, false, result));
+      this.collectOutputs(node, result);
+    } catch (error) {
+      this.fail(node.id, error);
+    }
+  }
 
+  private skipIfBlocked({ node, needs }: Job): boolean {
+    if (!needs.some((d) => this.blocked(d))) return false;
+    this.skipped.add(node.id);
+    this.run.deps.emit({
+      type: "node:skipped",
+      runId: this.run.runId,
+      nodeId: node.id,
+      reason: "Something before it failed",
+    });
+    return true;
+  }
+
+  private async executeJob({ node, hash }: Job, executor: Executor): Promise<NodeResult> {
+    const { runId, req, deps, log } = this.run;
     const started = Date.now();
-    emit({ type: "node:start", runId, nodeId: id, at: started });
+    deps.emit({ type: "node:start", runId, nodeId: node.id, at: started });
     const dir = path.join(this.cacheDir, hash);
     await mkdir(dir, { recursive: true });
     const ctx = executorContext(this.run, this.tools, this.store, { node, hash, dir });
-    const inputs = this.store.inputsFor(id);
-    try {
-      const out = await executor.run(ctx, inputs, parseNodeParams(def, node, vars));
-      const result: NodeResult = {
-        hash,
-        outputs: out.outputs,
-        artifacts: await decorateArtifacts(
-          req.projectDir,
-          dir,
-          this.tools.ffmpeg,
-          out.artifacts ?? [],
-          (m) => log("warn", m, id),
-        ),
-        finishedAt: Date.now(),
-        durationMs: Date.now() - started,
-        ...(out.traceId ? { traceId: out.traceId } : {}),
-      };
-      this.store.set(id, result);
-      if (!def.volatile) await writeCached(this.cacheDir, result);
-      emit(doneEvent(runId, id, false, result));
-      this.collectOutputs(node, result);
-    } catch (error) {
-      this.fail(id, error);
-    }
+    const out = await executor.run(ctx, this.store.inputsFor(node.id));
+    const artifacts = await decorateArtifacts(
+      req.projectDir,
+      dir,
+      this.tools.ffmpeg,
+      out.artifacts ?? [],
+      (m) => log("warn", m, node.id),
+    );
+    return {
+      hash,
+      outputs: out.outputs,
+      artifacts,
+      finishedAt: Date.now(),
+      durationMs: Date.now() - started,
+      traceId: out.traceId,
+    };
   }
 
   private async fromCache({ node, hash }: Job): Promise<boolean> {
@@ -430,7 +448,7 @@ class RunState {
       stack: error instanceof Error ? error.stack : undefined,
       traceId,
     });
-    this.failures[id] = { message, at: Date.now(), ...(traceId ? { traceId } : {}) };
+    this.failures[id] = { message, at: Date.now(), traceId };
   }
 }
 
@@ -446,15 +464,11 @@ async function planRun(run: RunContext): Promise<RunPlan> {
   const known = knownNodes(workflow);
   const { sorted: order } = topoSort(workflow);
   const needed = await neededNodes(run, known, order);
+  const runs = (node: WorkflowNode, entry: Known | undefined): entry is Known =>
+    !!entry && needed.has(node.id) && !node.disabled && !isStructural(node) && !!entry.def.executes;
   const toRun = order.flatMap((node) => {
     const entry = known.get(node.id);
-    return entry &&
-      needed.has(node.id) &&
-      !node.disabled &&
-      !isStructural(node) &&
-      entry.def.executes
-      ? [entry]
-      : [];
+    return runs(node, entry) ? [entry] : [];
   });
   return { known, order, needed, toRun };
 }

@@ -13,8 +13,15 @@ import {
   type Waveform,
   type WaveformLevel,
 } from "../../shared/analysis";
-import { EPSILON, evenPx, round3 } from "../../shared/math";
-import type { MediaDeps } from "./ffmpeg";
+import { EPSILON, evenPx, forEachWindow, round3, sum } from "../../shared/math";
+import type { FfmpegTools } from "./ffmpeg";
+
+export type MediaDeps = {
+  projectDir: string;
+  resolve: (ref: string) => string;
+  ffmpeg: FfmpegTools;
+  signal?: AbortSignal;
+};
 
 const ANALYSIS_VERSION = "demoflow-analysis/1";
 const DECODE_RATE = 8000;
@@ -24,9 +31,13 @@ const MIN_TILE_MS = 500;
 const TILE_HEIGHT = 72;
 
 const ONSETS_PER_SECOND = 100;
+const ONSETS_PER_MINUTE = 60 * ONSETS_PER_SECOND;
+const ONSET_LOG_GAIN = 100;
 const MIN_BEAT_FRAMES = 400;
-const MIN_LAG = 33;
-const MAX_LAG = 100;
+const MIN_BPM = 60;
+const MAX_BPM = 180;
+const MIN_LAG = Math.floor(ONSETS_PER_MINUTE / MAX_BPM);
+const MAX_LAG = Math.ceil(ONSETS_PER_MINUTE / MIN_BPM);
 const PRIOR_BPM = 120;
 const PRIOR_WIDTH_OCTAVES = 0.9;
 const PRIOR_FLOOR = 0.85;
@@ -39,14 +50,15 @@ async function idFor(file: string): Promise<string> {
   return versionedHash(ANALYSIS_VERSION, { file, identity: await fileIdentity(file) });
 }
 
+const isNodeCacheFile = (paths: ReturnType<typeof projectPaths>, file: string): boolean =>
+  isInside(paths.cache, file) &&
+  path.dirname(file) !== paths.cache &&
+  !isInside(paths.analysis, file) &&
+  !isInside(paths.mix, file);
+
 function filmstripDir(projectDir: string, file: string): string {
   const paths = projectPaths(projectDir);
-  const insideNodeFolder =
-    isInside(paths.cache, file) &&
-    path.dirname(file) !== paths.cache &&
-    !isInside(paths.analysis, file) &&
-    !isInside(paths.mix, file);
-  return insideNodeFolder ? path.dirname(file) : paths.analysis;
+  return isNodeCacheFile(paths, file) ? path.dirname(file) : paths.analysis;
 }
 
 type Analysis<T> = {
@@ -85,12 +97,9 @@ const floatSamples = (buf: Buffer): Float32Array =>
 export function waveformLevels(samples: Float32Array, rate: number): WaveformLevel[] {
   return LEVEL_RATES.map((r) => {
     const per = rate / r;
-    const count = Math.ceil(samples.length / per);
     const min: number[] = [];
     const max: number[] = [];
-    for (let i = 0; i < count; i++) {
-      const a = Math.floor(i * per);
-      const b = Math.min(samples.length, Math.floor((i + 1) * per));
+    forEachWindow(Math.ceil(samples.length / per), per, samples.length, (a, b) => {
       let lo = 0;
       let hi = 0;
       for (let k = a; k < b; k++) {
@@ -100,7 +109,7 @@ export function waveformLevels(samples: Float32Array, rate: number): WaveformLev
       }
       min.push(round3(lo));
       max.push(round3(hi));
-    }
+    });
     return { rate: r, min, max };
   });
 }
@@ -110,9 +119,9 @@ function onsetEnvelope(samples: Float32Array, rate: number): Float32Array {
   const frames = Math.floor(samples.length / hop);
   const energy = new Float32Array(frames);
   for (let f = 0; f < frames; f++) {
-    let sum = 0;
-    for (let k = f * hop; k < (f + 1) * hop; k++) sum += samples[k] * samples[k];
-    energy[f] = Math.log1p(100 * Math.sqrt(sum / hop));
+    let squares = 0;
+    for (let k = f * hop; k < (f + 1) * hop; k++) squares += samples[k] * samples[k];
+    energy[f] = Math.log1p(ONSET_LOG_GAIN * Math.sqrt(squares / hop));
   }
   const onset = new Float32Array(frames);
   for (let f = 1; f < frames; f++) onset[f] = Math.max(0, energy[f] - energy[f - 1]);
@@ -120,7 +129,7 @@ function onsetEnvelope(samples: Float32Array, rate: number): Float32Array {
 }
 
 const tempoPrior = (lag: number) => {
-  const bpm = (60 * ONSETS_PER_SECOND) / lag;
+  const bpm = ONSETS_PER_MINUTE / lag;
   const octaves = Math.log2(bpm / PRIOR_BPM) / PRIOR_WIDTH_OCTAVES;
   return PRIOR_FLOOR + PRIOR_WEIGHT * Math.exp(-0.5 * octaves ** 2);
 };
@@ -166,7 +175,7 @@ export function detectBeats(
   const none = { beats: [], bpm: null };
   const onset = onsetEnvelope(samples, rate);
   if (onset.length < MIN_BEAT_FRAMES) return none;
-  const mean = onset.reduce((a, b) => a + b, 0) / onset.length;
+  const mean = sum(onset) / onset.length;
   if (mean <= EPSILON) return none;
   const period = beatPeriod(onset);
   if (period === null) return none;

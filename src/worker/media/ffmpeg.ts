@@ -7,8 +7,8 @@ import { CancelledError, onAbort, throwIfCancelled } from "../../shared/errors";
 import { clamp01 } from "../../shared/math";
 
 export type FfmpegTools = {
-  run: (args: string[], opts?: RunOptions) => Promise<string>;
-  pipe: (args: string[], opts?: RunOptions) => { stdin: Writable; done: Promise<string> };
+  run: (args: string[], opts?: RunOptions) => Promise<void>;
+  pipe: (args: string[], opts?: RunOptions) => { stdin: Writable; done: Promise<void> };
   probe: (file: string) => Promise<ProbeResult>;
 };
 
@@ -27,13 +27,6 @@ export type ProbeResult = {
   raw: unknown;
 };
 
-export type MediaDeps = {
-  projectDir: string;
-  resolve: (ref: string) => string;
-  ffmpeg: FfmpegTools;
-  signal?: AbortSignal;
-};
-
 export class ToolError extends Error {
   constructor(readonly output: string) {
     super("The video engine couldn't process a file.");
@@ -47,8 +40,10 @@ const STDERR_TAIL_LINES = 6;
 
 type ToolProcess = ChildProcess & { stdout: Readable; stderr: Readable };
 
-function progressReader({ onProgress, durationMs }: RunOptions): ((text: string) => void) | null {
-  if (!onProgress) return null;
+const ignoreOutput = () => undefined;
+
+function progressReader({ onProgress, durationMs }: RunOptions): (text: string) => void {
+  if (!onProgress) return ignoreOutput;
   return (text) => {
     if (!durationMs) return;
     for (const m of text.matchAll(/out_time_(?:us|ms)=(\d+)/g)) {
@@ -58,17 +53,15 @@ function progressReader({ onProgress, durationMs }: RunOptions): ((text: string)
   };
 }
 
-function settle(child: ToolProcess, bin: string, opts: RunOptions): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    let captured = "";
+function settle(
+  child: ToolProcess,
+  opts: RunOptions,
+  onStdout: (text: string) => void,
+): Promise<void> {
+  const name = path.basename(child.spawnfile);
+  return new Promise<void>((resolve, reject) => {
     let stderr = "";
     const stopListening = onAbort(opts.signal, () => child.kill("SIGKILL"));
-    const readProgress = progressReader(opts);
-    const capture = (text: string) => {
-      captured += text;
-    };
-    const onStdout = readProgress ?? capture;
-
     child.stdout.on("data", (chunk: Buffer) => onStdout(chunk.toString()));
     child.stderr.on("data", (chunk: Buffer) => {
       const text = chunk.toString();
@@ -78,21 +71,27 @@ function settle(child: ToolProcess, bin: string, opts: RunOptions): Promise<stri
     });
     child.on("error", (err) => {
       stopListening();
-      reject(new ToolError(`${path.basename(bin)}: ${err.message}`));
+      reject(new ToolError(`${name}: ${err.message}`));
     });
     child.on("close", (code) => {
       stopListening();
       if (opts.signal?.aborted) reject(new CancelledError());
-      else if (code === 0) resolve(captured);
+      else if (code === 0) resolve();
       else {
         const tail = stderr.split("\n").slice(-STDERR_TAIL_LINES).join("\n");
-        reject(new ToolError(`${path.basename(bin)} exited with ${code}: ${tail}`));
+        reject(new ToolError(`${name} exited with ${code}: ${tail}`));
       }
     });
   });
 }
 
 const spawnOptions = { windowsHide: true } as const;
+
+function readyTool(bin: string | null, signal: AbortSignal | undefined): string {
+  const exe = requireEngineFile(bin);
+  throwIfCancelled(signal);
+  return exe;
+}
 
 export function createFfmpegTools(engineDir: string): FfmpegTools {
   const { ffmpeg, ffprobe } = engineStatus(engineDir);
@@ -102,33 +101,36 @@ export function createFfmpegTools(engineDir: string): FfmpegTools {
     ...(opts?.onProgress ? ["-progress", "pipe:1", "-nostats"] : []),
     ...args,
   ];
-  const run = async (bin: string | null, args: string[], opts: RunOptions = {}) => {
-    const exe = requireEngineFile(bin);
-    throwIfCancelled(opts.signal);
+  const run = async (
+    bin: string | null,
+    args: string[],
+    opts: RunOptions,
+    onStdout: (text: string) => void,
+  ) => {
+    const exe = readyTool(bin, opts.signal);
     const child = spawn(exe, args, { ...spawnOptions, stdio: ["ignore", "pipe", "pipe"] });
-    return settle(child, exe, opts);
+    return settle(child, opts, onStdout);
   };
   return {
-    run: (args, opts) => run(ffmpeg, ffmpegArgs(args, opts), opts),
+    run: (args, opts = {}) => run(ffmpeg, ffmpegArgs(args, opts), opts, progressReader(opts)),
     pipe: (args, opts = {}) => {
-      const exe = requireEngineFile(ffmpeg);
-      throwIfCancelled(opts.signal);
-      const child = spawn(exe, ffmpegArgs(args, opts), {
+      const child = spawn(readyTool(ffmpeg, opts.signal), ffmpegArgs(args, opts), {
         ...spawnOptions,
         stdio: ["pipe", "pipe", "pipe"],
       });
-      return { stdin: child.stdin, done: settle(child, exe, opts) };
+      return { stdin: child.stdin, done: settle(child, opts, progressReader(opts)) };
     },
     probe: async (file) => {
-      const out = await run(ffprobe, [
-        "-v",
-        "error",
-        "-print_format",
-        "json",
-        "-show_format",
-        "-show_streams",
-        file,
-      ]);
+      let out = "";
+      const collect = (text: string) => {
+        out += text;
+      };
+      await run(
+        ffprobe,
+        ["-v", "error", "-print_format", "json", "-show_format", "-show_streams", file],
+        {},
+        collect,
+      );
       return parseProbe(JSON.parse(out));
     },
   };

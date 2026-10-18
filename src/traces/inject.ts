@@ -9,7 +9,7 @@ const TRACE_FRAME_WIDTH = 960;
 const TRACE_FRAME_JPEG_QUALITY = "5";
 const STORED_UNCOMPRESSED = { level: 0 } as const;
 
-type FfmpegRunner = { run: (args: string[]) => Promise<string> };
+type FfmpegRunner = { run: (args: string[]) => Promise<void> };
 
 type RecordingFrame = { file: string; width: number; height: number; atMs: number };
 

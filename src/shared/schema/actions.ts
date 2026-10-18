@@ -18,6 +18,13 @@ const boundsSchema = z.object({
 });
 export type Bounds = z.infer<typeof boundsSchema>;
 
+const POINT_TEXT = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/;
+
+export function parsePoint(text: string): Point | null {
+  const m = POINT_TEXT.exec(text);
+  return m ? { x: Number(m[1]), y: Number(m[2]) } : null;
+}
+
 export const isBoundsList = (value: unknown): value is Bounds[] =>
   z.array(boundsSchema).safeParse(value).success;
 

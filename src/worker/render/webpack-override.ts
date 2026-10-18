@@ -2,6 +2,7 @@ import path from "node:path";
 import type { WebpackOverrideFn } from "@remotion/bundler";
 import { enableTailwind } from "@remotion/tailwind-v4";
 import { googleFontModuleFile, GOOGLE_FONT_IMPORT } from "../../shared/fonts/google-font-imports";
+import { SOURCE_ALIAS, SOURCE_DIR } from "./source-alias";
 
 export const makeWebpackOverride =
   (projectRoot: string): WebpackOverrideFn =>
@@ -28,7 +29,7 @@ export const makeWebpackOverride =
         ...withTailwind.resolve,
         alias: {
           ...(Array.isArray(alias) ? {} : alias),
-          "@": path.join(projectRoot, "src"),
+          [SOURCE_ALIAS]: path.join(projectRoot, SOURCE_DIR),
         },
       },
     };

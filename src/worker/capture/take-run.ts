@@ -2,7 +2,7 @@ import type { Locator, Page } from "playwright-core";
 import { throwIfCancelled } from "../../shared/errors";
 import type { LiveEvent } from "../../shared/live";
 import type { recordNode } from "../../shared/nodes/capture";
-import { parseNodeParams, type NodeDef, type NodeParams } from "../../shared/nodes/define";
+import type { NodeParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import type { Action } from "../../shared/schema/actions";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
@@ -35,7 +35,7 @@ export type TakeOptions = {
   executablePath: string;
   live?: LiveSink | null;
   tracePath?: string;
-  traceGroups?: string[];
+  traceGroup?: (nodeId: string) => void;
   signIn?: { url: string; name: string };
   storageState?: string | null;
   signal: AbortSignal;
@@ -53,6 +53,7 @@ type MotionParams = {
 };
 
 const LIVE_CURSOR_GAP_MS = 30;
+const FIRST_PAGE_MIN_WAIT_MS = 500;
 
 export class TakeRun implements TakeSink {
   readonly actions: Action[] = [];
@@ -100,10 +101,6 @@ export class TakeRun implements TakeSink {
     this.keys.push(event);
   }
 
-  params<S extends NodeDef["params"]>(def: NodeDef<S>, node: WorkflowNode) {
-    return parseNodeParams(def, node, this.vars);
-  }
-
   elapsed = () => Date.now() - this.t0;
 
   rolling(): CursorDriver {
@@ -114,6 +111,16 @@ export class TakeRun implements TakeSink {
 
   async pauseIfRolling(ms: number) {
     if (this.cursorDriver) await this.cursorDriver.pause(ms);
+  }
+
+  async settleAfterPage(ms: number) {
+    if (this.cursorDriver) await this.cursorDriver.pause(ms);
+    else await this.page.waitForTimeout(Math.max(FIRST_PAGE_MIN_WAIT_MS, ms));
+  }
+
+  async pressKey(chord: string, label: string) {
+    if (this.cursorDriver) await this.cursorDriver.pressKey(chord, label);
+    else await this.page.keyboard.press(chord);
   }
 
   resolve(raw: string, timeoutMs?: number) {
@@ -164,7 +171,7 @@ export class TakeRun implements TakeSink {
     const { opts } = this;
     if (!opts.tracePath) return play();
     await this.session.context.tracing.group(traceGroupTitle(nodeName(node), node, this.vars));
-    opts.traceGroups?.push(node.id);
+    opts.traceGroup?.(node.id);
     try {
       await play();
     } finally {
@@ -221,8 +228,8 @@ export class TakeRun implements TakeSink {
       zoom: c.zoom,
       zoomScale: c.zoomScale,
       text: kind === "type" ? c.text : undefined,
-      ...(c.path ? { path: c.path } : {}),
-      ...(c.drop ? { drop: c.drop } : {}),
+      path: c.path,
+      drop: c.drop,
     };
   }
 }

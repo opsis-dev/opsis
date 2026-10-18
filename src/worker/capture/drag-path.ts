@@ -1,5 +1,13 @@
+import { isNonEmpty } from "../../shared/lists";
 import { clamp, EPSILON, sum } from "../../shared/math";
-import { distance, lerpPoint, type Point } from "../../shared/schema/actions";
+import {
+  distance,
+  lerpPoint,
+  parsePoint,
+  type Point,
+  type Rect,
+  type Viewport,
+} from "../../shared/schema/actions";
 
 const GLIDE_PX_PER_MS = 0.55;
 const GLIDE_MIN_MS = 450;
@@ -22,7 +30,7 @@ export function glidePlan(
   from: Point,
   to: Point,
   k: number,
-  viewport: { width: number; height: number } | null,
+  viewport: Viewport | null,
   travelMs?: number,
 ): Glide {
   const dist = distance(from, to);
@@ -60,11 +68,11 @@ export function bulgedCurve(from: Point, to: Point, aim: Point = to): (p: number
 const segmentLengths = (points: readonly Point[]): number[] =>
   points.slice(1).map((b, i) => distance(points[i], b));
 
-export const lastPoint = (points: readonly Point[]): Point => points[points.length - 1];
+export const lastPoint = (points: readonly [Point, ...Point[]]): Point => points[points.length - 1];
 
 export function polylineAt(points: readonly Point[]): (p: number) => Point {
-  const first = points[0];
-  if (!first) throw new Error("A path needs at least one point.");
+  if (!isNonEmpty(points)) throw new Error("A path needs at least one point.");
+  const [first] = points;
   const last = lastPoint(points);
   const lengths = segmentLengths(points);
   const total = sum(lengths);
@@ -96,14 +104,7 @@ export function nudgeToward(from: Point, to: Point, px: number): Point {
   };
 }
 
-const POINT_TEXT = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/;
-
-export function parsePoint(text: string): Point | null {
-  const m = POINT_TEXT.exec(text);
-  return m ? { x: Number(m[1]), y: Number(m[2]) } : null;
-}
-
-export function parsePath(text: string): Point[] {
+export function parsePath(text: string): [Point, ...Point[]] {
   const points: Point[] = [];
   text.split("\n").forEach((line, i) => {
     if (!line.trim()) return;
@@ -111,14 +112,17 @@ export function parsePath(text: string): Point[] {
     if (!point) throw new Error(`Line ${i + 1} of the path isn't two numbers.`);
     points.push(point);
   });
-  if (points.length === 0) throw new Error("Add at least one point to the path.");
-  return points;
+  const [first, ...rest] = points;
+  if (!first) throw new Error("Add at least one point to the path.");
+  return [first, ...rest];
 }
 
-export function offsetPath(start: Point, offsets: readonly Point[]): Point[] {
+export function offsetPath(start: Point, offsets: readonly Point[]): [Point, ...Point[]] {
   const points = offsets.map((o) => ({ x: start.x + o.x, y: start.y + o.y }));
-  const first = points[0];
-  return first && first.x === start.x && first.y === start.y ? points : [start, ...points];
+  const [first, ...rest] = points;
+  return first && first.x === start.x && first.y === start.y
+    ? [first, ...rest]
+    : [start, ...points];
 }
 
 export function thinPath(points: readonly Point[]): Point[] {
@@ -130,7 +134,7 @@ export function thinPath(points: readonly Point[]): Point[] {
   );
 }
 
-export function boundsOf(points: readonly Point[]): { x: number; y: number; w: number; h: number } {
+export function boundsOf(points: readonly Point[]): Rect {
   const xs = points.map((p) => p.x);
   const ys = points.map((p) => p.y);
   const x = Math.min(...xs);

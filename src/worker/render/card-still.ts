@@ -2,11 +2,11 @@ import { mkdir, rename } from "node:fs/promises";
 import path from "node:path";
 import type { HeadlessBrowser } from "@remotion/renderer";
 import { keepLatest } from "../../shared/memo";
-import type { MainToWorker } from "../../shared/worker-protocol";
+import type { MainMessage } from "../../shared/worker-protocol";
 import { startAssetServer, type AssetServer } from "./asset-server";
 import { getServeUrl, openRenderBrowser, renderFrame, type GlRenderer } from "./render";
 
-type StillRequest = Extract<MainToWorker, { type: "still" }>;
+type StillRequest = MainMessage<"still">;
 
 const CARD_GL: GlRenderer = "angle";
 const CARD_JPEG_QUALITY = 82;

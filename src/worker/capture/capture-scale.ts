@@ -27,6 +27,8 @@ export function fitPageToScale({ scale, width, height }: PageScale): void {
     pin(window.visualViewport, "height", height);
   }
 
+  const mayHaveViewportUnit = (value: string) => value.includes("v");
+
   function toPx(text: string) {
     return text.replace(
       viewportUnit,
@@ -39,7 +41,7 @@ export function fitPageToScale({ scale, width, height }: PageScale): void {
     for (let i = 0; i < style.length; i++) {
       const prop = style[i];
       const value = style.getPropertyValue(prop);
-      if (!value.includes("v")) continue;
+      if (!mayHaveViewportUnit(value)) continue;
       const next = toPx(value);
       if (next !== value) style.setProperty(prop, next, style.getPropertyPriority(prop));
     }

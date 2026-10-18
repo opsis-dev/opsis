@@ -19,7 +19,7 @@ import type { LoginRequest } from "../../shared/worker-protocol";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
 import { WINDOW_FIT } from "../../video/camera/lib/style";
-import { captureScale, type Box } from "../../video/core/still-layout";
+import { captureCanvas, captureScale, type Box } from "../../video/core/still-layout";
 import { recordTake, stillTake } from "../capture/driver";
 import { FrameEncoder } from "../capture/encoder";
 import { elementOf } from "../capture/flow-types";
@@ -30,16 +30,15 @@ import { defineExecutor, TracedError, type ExecutorContext } from "../engine/con
 import { h264Args } from "../media/codecs";
 import { projectFileRef, rel } from "./util";
 
-const CAPTURE_MAX_EXPORT_SCALE = 2;
-
-const captureCanvas = (settings: { width: number; height: number }) => ({
-  width: settings.width * CAPTURE_MAX_EXPORT_SCALE,
-  height: settings.height * CAPTURE_MAX_EXPORT_SCALE,
-});
+const RECORDING_FILE = "recording.mp4";
+const PREVIEW_FILE = "recording.preview.mp4";
+const ACTIONS_FILE = "actions.json";
+const STILL_FILE = "still.png";
+const TRACE_FILE = "trace.zip";
 
 type LoginParams = NodeParams<typeof loginOnceNode>;
 
-type SignIn = { name: string; url: string; request: LoginRequest };
+type SignIn = { url: string; request: LoginRequest };
 
 const loginRequest = (p: LoginParams): LoginRequest => ({
   url: p.url,
@@ -61,7 +60,7 @@ function sessionAccess(ctx: ExecutorContext, head: WorkflowNode | undefined): Se
   const loginNode = findById(ctx.workflow.nodes, loginId);
   if (!loginNode) return { secret, signIn: undefined };
   const login = parseNodeParams(loginOnceNode, loginNode, ctx.vars);
-  return { secret, signIn: { name: secret, url: login.url, request: loginRequest(login) } };
+  return { secret, signIn: { url: login.url, request: loginRequest(login) } };
 }
 
 async function storageState(ctx: ExecutorContext, secret: string | null): Promise<string | null> {
@@ -72,21 +71,28 @@ async function storageState(ctx: ExecutorContext, secret: string | null): Promis
   return value;
 }
 
-async function retryAfterSignIn<T>(ctx: ExecutorContext, attempt: () => Promise<T>): Promise<T> {
+type Session = { chain: WorkflowNode[]; access: SessionAccess };
+
+async function retryAfterSignIn<T>(
+  ctx: ExecutorContext,
+  attempt: (session: Session) => Promise<T>,
+): Promise<T> {
+  const chain = sessionChain(ctx.workflow, ctx.node.id);
+  const session = { chain, access: sessionAccess(ctx, chain[0]) };
   try {
-    return await attempt();
+    return await attempt(session);
   } catch (error) {
     if (!(error instanceof TracedError && error.signInExpired) || ctx.signal.aborted) throw error;
-    const { signIn } = sessionAccess(ctx, sessionChain(ctx.workflow, ctx.node.id)[0]);
-    if (!signIn) throw error;
+    const { secret, signIn } = session.access;
+    if (!signIn || !secret) throw error;
     ctx.log(
       "info",
-      `The saved sign-in “${signIn.name}” has expired. Sign in again in the window that opened.`,
+      `The saved sign-in “${secret}” has expired. Sign in again in the window that opened.`,
     );
     const state = await ctx.login(signIn.request);
-    await ctx.secrets.write(signIn.name, state);
-    ctx.log("info", `Saved the new sign-in as “${signIn.name}”. Recording again.`);
-    return attempt();
+    await ctx.secrets.write(secret, state);
+    ctx.log("info", `Saved the new sign-in as “${secret}”. Recording again.`);
+    return attempt(session);
   }
 }
 
@@ -110,31 +116,45 @@ async function saveTrace(
   return kept.has(manifest.id) ? manifest.id : undefined;
 }
 
+type TraceFile = { path: string | undefined; groups: string[] };
+
+async function addFrames(ctx: ExecutorContext, file: string, encoder: FrameEncoder) {
+  if (encoder.originMs === null) return;
+  await addRecordingFrames({
+    zipFile: file,
+    video: encoder.output,
+    originWallMs: encoder.originMs,
+    workDir: ctx.dir,
+    ffmpeg: ctx.ffmpeg,
+  }).then(
+    (frames) => {
+      if (!frames.added)
+        ctx.log("info", `Screenshots weren't added to the trace: ${frames.reason}.`);
+    },
+    (e: unknown) => ctx.log("warn", `Couldn't add screenshots to the trace: ${errorMessage(e)}`),
+  );
+}
+
+async function finalizeTrace(
+  ctx: ExecutorContext,
+  trace: TraceFile,
+  encoder: FrameEncoder | undefined,
+  ok: boolean,
+): Promise<string | undefined> {
+  if (trace.path && encoder) await addFrames(ctx, trace.path, encoder);
+  return saveTrace(ctx, trace.path, ok, trace.groups);
+}
+
 async function take<R>(
   ctx: ExecutorContext,
+  { chain, access }: Session,
   encoder: FrameEncoder | undefined,
   play: (opts: TakeOptions) => Promise<R>,
 ): Promise<{ result: R; traceId: string | undefined }> {
-  const chain = sessionChain(ctx.workflow, ctx.node.id);
-  const { secret, signIn } = sessionAccess(ctx, chain[0]);
-  const tracePath =
-    ctx.env.settings.traces.retention === "off" ? undefined : path.join(ctx.dir, "trace.zip");
-  const traceGroups: string[] = [];
-  const withFrames = async () => {
-    if (!tracePath || !encoder || encoder.originMs === null) return;
-    await addRecordingFrames({
-      zipFile: tracePath,
-      video: encoder.output,
-      originWallMs: encoder.originMs,
-      workDir: ctx.dir,
-      ffmpeg: ctx.ffmpeg,
-    }).then(
-      (frames) => {
-        if (!frames.added)
-          ctx.log("info", `Screenshots weren't added to the trace: ${frames.reason}.`);
-      },
-      (e: unknown) => ctx.log("warn", `Couldn't add screenshots to the trace: ${errorMessage(e)}`),
-    );
+  const { secret, signIn } = access;
+  const trace: TraceFile = {
+    path: ctx.env.settings.traces.retention === "off" ? undefined : path.join(ctx.dir, TRACE_FILE),
+    groups: [],
   };
   try {
     const result = await play({
@@ -144,19 +164,17 @@ async function take<R>(
       projectDir: ctx.projectDir,
       executablePath: requireHeadlessShell(ctx.engine),
       storageState: await storageState(ctx, secret),
-      signIn,
+      signIn: signIn && secret ? { url: signIn.url, name: secret } : undefined,
       live: ctx.live(nodeName(ctx.node)),
-      tracePath,
-      traceGroups,
+      tracePath: trace.path,
+      traceGroup: (nodeId) => trace.groups.push(nodeId),
       signal: ctx.signal,
       log: ctx.log,
       step: ctx.step,
     });
-    await withFrames();
-    return { result, traceId: await saveTrace(ctx, tracePath, true, traceGroups) };
+    return { result, traceId: await finalizeTrace(ctx, trace, encoder, true) };
   } catch (error) {
-    await withFrames();
-    const traceId = await saveTrace(ctx, tracePath, false, traceGroups).catch((e: unknown) => {
+    const traceId = await finalizeTrace(ctx, trace, encoder, false).catch((e: unknown) => {
       ctx.log("warn", `Couldn't save the trace: ${errorMessage(e)}`);
       return undefined;
     });
@@ -180,7 +198,7 @@ async function makePreviewCopy(
   mp4: string,
   fps: number,
 ): Promise<string | null> {
-  const name = "recording.preview.mp4";
+  const name = PREVIEW_FILE;
   try {
     await ctx.ffmpeg.run(
       [
@@ -208,11 +226,13 @@ async function makePreviewCopy(
 }
 
 export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p) => {
-  const mp4 = path.join(ctx.dir, "recording.mp4");
+  const mp4 = path.join(ctx.dir, RECORDING_FILE);
   ctx.progress(0.02, "Starting the browser");
-  const { result, traceId, frames } = await retryAfterSignIn(ctx, async () => {
+  const { result, traceId, frames } = await retryAfterSignIn(ctx, async (session) => {
     const encoder = new FrameEncoder(ctx.ffmpeg, mp4, p.fps, ctx.signal);
-    const taken = await take(ctx, encoder, (opts) => recordTake(opts, { encoder, record: p }));
+    const taken = await take(ctx, session, encoder, (opts) =>
+      recordTake(opts, { encoder, record: p }),
+    );
     return { ...taken, frames: encoder.frames };
   });
   const probe = await ctx.ffmpeg.probe(mp4);
@@ -222,12 +242,12 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
       ? Math.min(result.log.durationMs, probe.durationMs)
       : result.log.durationMs,
   };
-  await writeJson(path.join(ctx.dir, "actions.json"), log);
+  await writeJson(path.join(ctx.dir, ACTIONS_FILE), log);
   ctx.progress(0.95, "Making a preview copy");
   const proxy = await makePreviewCopy(ctx, mp4, p.fps);
   const recording: RecordingValue = {
     type: "recording",
-    src: projectFileRef(ctx, "recording.mp4"),
+    src: projectFileRef(ctx, RECORDING_FILE),
     ...(proxy ? { proxySrc: projectFileRef(ctx, proxy) } : {}),
     log,
     durationMs: log.durationMs,
@@ -241,8 +261,8 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
   return {
     outputs: { recording },
     artifacts: [
-      { kind: "video", path: rel(ctx, "recording.mp4"), label: "Recording" },
-      { kind: "json", path: rel(ctx, "actions.json"), label: "Action log" },
+      { kind: "video", path: rel(ctx, RECORDING_FILE), label: "Recording" },
+      { kind: "json", path: rel(ctx, ACTIONS_FILE), label: "Action log" },
     ],
     traceId,
   };
@@ -340,9 +360,9 @@ async function captureShot(
 }
 
 export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) => {
-  const file = path.join(ctx.dir, "still.png");
-  const { result, traceId } = await retryAfterSignIn(ctx, () =>
-    take(ctx, undefined, (opts) =>
+  const file = path.join(ctx.dir, STILL_FILE);
+  const { result, traceId } = await retryAfterSignIn(ctx, (session) =>
+    take(ctx, session, undefined, (opts) =>
       stillTake({ ...opts, onPage: (page) => captureShot(ctx, page, p, file) }),
     ),
   );
@@ -352,8 +372,8 @@ export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) =
     `Screenshot ${Math.round(shot.width * shot.scale)} × ${Math.round(shot.height * shot.scale)} px`,
   );
   return {
-    outputs: { image: { type: "image", src: projectFileRef(ctx, "still.png"), ...shot } },
-    artifacts: [{ kind: "image", path: rel(ctx, "still.png"), label: "Screenshot" }],
+    outputs: { image: { type: "image", src: projectFileRef(ctx, STILL_FILE), ...shot } },
+    artifacts: [{ kind: "image", path: rel(ctx, STILL_FILE), label: "Screenshot" }],
     traceId,
   };
 });

@@ -63,5 +63,5 @@ export function spawnWorker(kind: WorkerKind, id: string = randomUUID()): Spawne
 }
 
 export function onWorkerMessage(port: MessagePortMain, handler: (msg: WorkerToMain) => void): void {
-  port.on("message", (e) => handler(e.data as WorkerToMain));
+  port.on("message", (e: { data: WorkerToMain }) => handler(e.data));
 }

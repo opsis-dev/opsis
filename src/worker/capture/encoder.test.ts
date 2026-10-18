@@ -2,17 +2,12 @@ import { PassThrough } from "node:stream";
 import { describe, expect, it } from "vitest";
 import { FrameEncoder } from "./encoder";
 
-function fakeFfmpeg() {
+function fakeFfmpeg(given: { stdin?: PassThrough; done?: Promise<void> } = {}) {
   const written: string[] = [];
-  const stdin = new PassThrough();
-  stdin.on("data", (chunk: Buffer) => written.push(chunk.toString()));
-  let finish: () => void = () => undefined;
-  const done = new Promise<string>((resolve) => {
-    finish = () => resolve("");
-  });
-  stdin.on("finish", () => finish());
-  const tools = { pipe: () => ({ stdin, done }) };
-  return { tools, written };
+  const stdin = given.stdin ?? new PassThrough();
+  if (!given.stdin) stdin.on("data", (chunk: Buffer) => written.push(chunk.toString()));
+  const done = given.done ?? new Promise<void>((resolve) => stdin.on("finish", () => resolve()));
+  return { tools: { pipe: () => ({ stdin, done }) }, written };
 }
 
 describe("FrameEncoder", () => {
@@ -42,8 +37,7 @@ describe("FrameEncoder", () => {
   it("takes frames at once while the encoder is still busy, and writes them all later", async () => {
     const written: string[] = [];
     const stdin = new PassThrough({ highWaterMark: 1 });
-    const done = new Promise<string>((resolve) => stdin.on("finish", () => resolve("")));
-    const enc = new FrameEncoder({ pipe: () => ({ stdin, done }) }, "out.mp4", 10);
+    const enc = new FrameEncoder(fakeFfmpeg({ stdin }).tools, "out.mp4", 10);
     enc.setOrigin(1000);
     enc.offer(Buffer.from("A"), 1000);
     enc.offer(Buffer.from("B"), 1250);
@@ -56,9 +50,12 @@ describe("FrameEncoder", () => {
   });
 
   it("reports a failed encoder when the take finishes", async () => {
-    const stdin = new PassThrough();
     const done = Promise.reject(new Error("The encoder crashed."));
-    const enc = new FrameEncoder({ pipe: () => ({ stdin, done }) }, "out.mp4", 10);
+    const enc = new FrameEncoder(
+      fakeFfmpeg({ stdin: new PassThrough(), done }).tools,
+      "out.mp4",
+      10,
+    );
     enc.setOrigin(1000);
     enc.offer(Buffer.from("A"), 1000);
     enc.offer(Buffer.from("B"), 1250);

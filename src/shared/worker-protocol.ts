@@ -44,6 +44,8 @@ export type MainToWorker =
   | { type: "cancel" }
   | WorkerReply;
 
+export type MainMessage<T extends MainToWorker["type"]> = Extract<MainToWorker, { type: T }>;
+
 export type WorkerToMain =
   | { type: "event"; event: RunEvent }
   | { type: "secret:read"; id: string; projectDir: string; name: string }

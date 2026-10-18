@@ -11,6 +11,7 @@ const CUTOUT_MAX_UPSCALE = 1.5;
 const TALL_SHOT = 1.5;
 
 const CAPTURE = {
+  maxExportScale: 2,
   maxScale: 8,
   scaleSteps: 2,
   hdPixels: 1920 * 1080,
@@ -79,6 +80,11 @@ function maxScaleFor(region: Size): number {
     CAPTURE.maxScale,
   );
 }
+
+export const captureCanvas = (project: Size): Size => ({
+  width: project.width * CAPTURE.maxExportScale,
+  height: project.height * CAPTURE.maxExportScale,
+});
 
 export function captureScale(
   look: StillLook,

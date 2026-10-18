@@ -13,12 +13,7 @@ import { setupLength } from "./take-steps";
 
 type StillTake<T> = TakeOptions & { onPage: (page: Page) => Promise<T> };
 
-type TakeResult<T> = {
-  log: ActionLog;
-  t0: number;
-  physicalViewport: { width: number; height: number };
-  fromPage: T;
-};
+type TakeResult<T> = { log: ActionLog; fromPage: T };
 
 type OpenTake = {
   take: TakeRun;
@@ -28,6 +23,8 @@ type OpenTake = {
 
 const DEFAULT_FRAME_QUALITY = 80;
 const SHOW_ACTIONS_MS = 600;
+
+const screencasts = (take: TakeRun): boolean => !!take.recording || !!take.opts.live;
 
 async function startScreencast(take: TakeRun) {
   const { page, session, opts, recording } = take;
@@ -44,11 +41,11 @@ async function startScreencast(take: TakeRun) {
     await page.screencast.showActions({ cursor: "pointer", duration: SHOW_ACTIONS_MS });
 }
 
-async function stopTake(take: TakeRun, failed: boolean, screencasting: boolean): Promise<number> {
+async function stopTake(take: TakeRun, { failed }: { failed: boolean }): Promise<number> {
   const { opts, page, session, recording } = take;
   const end = Date.now();
   let durationMs = end - take.t0;
-  if (screencasting)
+  if (screencasts(take))
     await page.screencast
       .stop()
       .catch((e: unknown) =>
@@ -145,12 +142,11 @@ async function playTake<T>(
   finale: (take: TakeRun) => Promise<T>,
 ): Promise<TakeResult<T>> {
   const { take, steps, dpr } = await openTake(opts, recording);
-  const screencasting = !!recording || !!opts.live;
   let failed = false;
   let durationMs = 0;
   let fromPage: T;
   try {
-    if (screencasting) await startScreencast(take);
+    if (screencasts(take)) await startScreencast(take);
     await playChain(take, steps);
     fromPage = await finale(take);
   } catch (error) {
@@ -159,16 +155,11 @@ async function playTake<T>(
     opts.live?.event({ kind: "end", ok: false, message: errorMessage(error) });
     throw error;
   } finally {
-    durationMs = await stopTake(take, failed, screencasting);
+    durationMs = await stopTake(take, { failed });
     await take.session.close();
   }
   opts.live?.event({ kind: "end", ok: true });
-  return {
-    t0: take.t0,
-    physicalViewport: take.session.physicalViewport,
-    fromPage,
-    log: takeLog(take, dpr, durationMs),
-  };
+  return { fromPage, log: takeLog(take, dpr, durationMs) };
 }
 
 export const recordTake = (opts: TakeOptions, recording: Recording): Promise<TakeResult<void>> =>

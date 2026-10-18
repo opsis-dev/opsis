@@ -1,7 +1,7 @@
 import type { Locator, Page } from "playwright-core";
 import { errorMessage, throwIfCancelled, withoutCallName } from "../../shared/errors";
 import { INTERACTIVE_SELECTOR } from "../../shared/interactive";
-import { parsePoint } from "./drag-path";
+import { parsePoint } from "../../shared/schema/actions";
 import { CSS_PREFIX, type Target } from "./flow-types";
 
 type Candidate = { by: string; locator: Locator };
@@ -29,7 +29,7 @@ const INTERACTIVE_ANCESTOR =
   ' or @role="tab" or @role="option" or @role="combobox" or self::button or' +
   " self::a][1]";
 
-export function autoCandidates(page: Page, name: string): Candidate[] {
+function autoCandidates(page: Page, name: string): Candidate[] {
   const exact = new RegExp(`^${escapeRegExp(name)}$`, "i");
   const loose = new RegExp(escapeRegExp(name), "i");
   return [

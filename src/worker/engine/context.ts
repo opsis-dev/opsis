@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import type { EnginePaths } from "../../engine/paths";
 import type { CompileResult } from "../../shared/compile/compile";
-import type { NodeDef } from "../../shared/nodes/define";
+import { parseNodeParams, type NodeDef } from "../../shared/nodes/define";
 import type { LogLevel } from "../../shared/schema/events";
 import type { Artifact, CompileValue, NodeResult } from "../../shared/schema/values";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
@@ -29,7 +29,7 @@ export type ExecutorContext = {
   progress: (progress: number, message?: string) => void;
   step: (nodeId: string, status: "start" | "done" | "error", message?: string) => void;
   compile: () => CompileResult;
-  results: Partial<Record<string, NodeResult>>;
+  results: NodeResults;
   secrets: {
     read: (name: string) => Promise<string | null>;
     write: (name: string, value: string) => Promise<void>;
@@ -53,11 +53,13 @@ export class TracedError extends Error {
   }
 }
 
-type ExecutorInputs = Partial<Record<string, CompileValue>>;
+export type ExecutorInputs = Partial<Record<string, CompileValue>>;
 
-export type Executor<P = unknown> = {
+export type NodeResults = Partial<Record<string, NodeResult>>;
+
+export type Executor = {
   type: string;
-  run(ctx: ExecutorContext, inputs: ExecutorInputs, params: P): Promise<ExecutorOutput>;
+  run: (ctx: ExecutorContext, inputs: ExecutorInputs) => Promise<ExecutorOutput>;
 };
 
 export function defineExecutor<S extends z.ZodObject>(
@@ -67,6 +69,9 @@ export function defineExecutor<S extends z.ZodObject>(
     inputs: ExecutorInputs,
     params: z.infer<S>,
   ) => Promise<ExecutorOutput>,
-): Executor<z.infer<S>> {
-  return { type: def.type, run };
+): Executor {
+  return {
+    type: def.type,
+    run: (ctx, inputs) => run(ctx, inputs, parseNodeParams(def, ctx.node, ctx.vars)),
+  };
 }

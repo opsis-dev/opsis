@@ -43,10 +43,19 @@ const userScript = (body: string, { async = false } = {}): string =>
 
 export const runUserScript = (script: string): string => userScript(script, { async: true });
 
+function onceThisSession(key: string, run: () => void): void {
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+  } catch {
+    return;
+  }
+  run();
+}
+
 export function beforeFirstLoad(id: string, script: string): string {
   const key = JSON.stringify(`demoflow-script:${id}`);
-  const once = `try { if (sessionStorage.getItem(${key})) return; sessionStorage.setItem(${key}, "1"); } catch { return; }`;
-  return `${userScript(`${once}\n${script}`)};`;
+  return `(${onceThisSession.toString()})(${key}, () => {\n${script}\n});`;
 }
 
 const HOTSPOT = { x: 2, y: 2 };

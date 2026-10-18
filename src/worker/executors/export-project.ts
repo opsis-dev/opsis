@@ -11,6 +11,7 @@ import { safeName } from "../../shared/safe-name";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { stringsIn } from "../../shared/vars";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
+import { SOURCE_ALIAS, SOURCE_DIR } from "../render/source-alias";
 import { mixed, specFor, type Stage } from "./film-spec";
 import { exportSourceRoot, exportUtilsFile, publicDir } from "./util";
 
@@ -62,6 +63,8 @@ export const ExportRoot = () => (
 );
 `;
 
+const CANT_EXPORT_CODE = "This copy of Demoflow can't export code.";
+
 const REMOTION_CONFIG_TS = `import path from "node:path";
 import { Config } from "@remotion/cli/config";
 import { enableTailwind } from "@remotion/tailwind-v4";
@@ -73,7 +76,10 @@ Config.overrideWebpackConfig((c) => {
     ...t,
     resolve: {
       ...t.resolve,
-      alias: { ...(Array.isArray(alias) ? {} : alias), "@": path.join(process.cwd(), "src") },
+      alias: {
+        ...(Array.isArray(alias) ? {} : alias),
+        ${JSON.stringify(SOURCE_ALIAS)}: path.join(process.cwd(), ${JSON.stringify(SOURCE_DIR)}),
+      },
     },
   };
 });
@@ -89,7 +95,7 @@ const TSCONFIG = {
     skipLibCheck: true,
     resolveJsonModule: true,
     noEmit: true,
-    paths: { "@/*": ["./src/*"] },
+    paths: { [`${SOURCE_ALIAS}/*`]: [`./${SOURCE_DIR}/*`] },
   },
   include: ["src"],
 };
@@ -124,7 +130,7 @@ function sourceDirs(ctx: ExecutorContext) {
 
 async function copySources(ctx: ExecutorContext, dir: string) {
   const src = sourceDirs(ctx);
-  if (!existsSync(src.video)) throw new Error("This copy of Demoflow can't export code.");
+  if (!existsSync(src.video)) throw new Error(CANT_EXPORT_CODE);
   await mkdir(path.join(dir, "src", "renderer", "lib"), { recursive: true });
   await cp(src.video, path.join(dir, "src", "video"), { recursive: true });
   await cp(src.shared, path.join(dir, "src", "shared"), { recursive: true });
@@ -161,7 +167,7 @@ async function copyProjectFiles(ctx: ExecutorContext, spec: TimelineSpec, dir: s
 
 async function packageJsonFor(ctx: ExecutorContext, name: string, dir: string) {
   const appPkg = await readJson(path.join(ctx.env.appRoot, "package.json"), appPackageSchema);
-  if (!appPkg) throw new Error("This copy of Demoflow can't export code.");
+  if (!appPkg) throw new Error(CANT_EXPORT_CODE);
   const versions: Partial<Record<string, string>> = {
     ...appPkg.devDependencies,
     ...appPkg.dependencies,

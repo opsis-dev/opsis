@@ -33,7 +33,7 @@ export async function decorateArtifacts(
         const probe = await ffmpeg.probe(file);
         await ffmpeg.run(
           frameGrabArgs(file, poster, {
-            atMs: Math.max(0, probe.durationMs / 2),
+            atMs: probe.durationMs / 2,
             width: POSTER_WIDTH,
             evenHeight: true,
             jpegQuality: POSTER_QUALITY,

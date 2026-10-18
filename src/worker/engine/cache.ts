@@ -1,8 +1,7 @@
-import { existsSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
+import { mkdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { versionedHash } from "../../engine/hash";
-import { readJson, writeJson } from "../../engine/json";
+import { nullIfMissing, readJson, writeJson } from "../../engine/json";
 import { byCodeUnit } from "../../shared/lists";
 import { nodeResultSchema, type NodeResult } from "../../shared/schema/values";
 
@@ -20,8 +19,10 @@ export async function readCached(
 ): Promise<NodeResult | null> {
   const result = await readJson(path.join(cacheDir, hash, "result.json"), nodeResultSchema);
   if (!result) return null;
-  const missing = result.artifacts.some((a) => !existsSync(path.join(projectDir, a.path)));
-  return missing ? null : result;
+  const present = await Promise.all(
+    result.artifacts.map((a) => nullIfMissing(stat(path.join(projectDir, a.path)))),
+  );
+  return present.every((info) => info !== null) ? result : null;
 }
 
 export async function writeCached(cacheDir: string, result: NodeResult): Promise<void> {

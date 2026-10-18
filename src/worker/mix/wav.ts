@@ -1,7 +1,8 @@
-import { EPSILON, round1 } from "../../shared/math";
+import { EPSILON, forEachWindow, round1 } from "../../shared/math";
 import { SILENCE_DB } from "../../shared/mix/types";
 
 const WAVE_FORMAT_EXTENSIBLE = 0xfffe;
+const FLOAT_FORMAT = 3;
 const UNKNOWN_DATA_SIZE = 0xffffffff;
 
 type Pcm = { sampleRate: number; channels: number; frames: number; data: Float32Array[] };
@@ -39,6 +40,14 @@ function readChunks(buf: Buffer): WavLayout {
   throw new Error("WAV file has no audio data");
 }
 
+function sampleReader(buf: Buffer, format: number, bits: number): (at: number) => number {
+  if (format === FLOAT_FORMAT)
+    return bits === 64 ? (at) => buf.readDoubleLE(at) : (at) => buf.readFloatLE(at);
+  if (bits === 16) return (at) => buf.readInt16LE(at) / 32768;
+  if (bits === 24) return (at) => buf.readIntLE(at, 3) / 8388608;
+  return (at) => buf.readInt32LE(at) / 2147483648;
+}
+
 function decode(buf: Buffer, layout: WavLayout): Pcm {
   const { format, channels, sampleRate, bits, dataStart, dataLength } = layout;
   const bytes = bits / 8;
@@ -53,16 +62,6 @@ function decode(buf: Buffer, layout: WavLayout): Pcm {
 
 export const parseWav = (buf: Buffer): Pcm => decode(buf, readChunks(buf));
 
-const FLOAT_FORMAT = 3;
-
-function sampleReader(buf: Buffer, format: number, bits: number): (at: number) => number {
-  if (format === FLOAT_FORMAT)
-    return bits === 64 ? (at) => buf.readDoubleLE(at) : (at) => buf.readFloatLE(at);
-  if (bits === 16) return (at) => buf.readInt16LE(at) / 32768;
-  if (bits === 24) return (at) => buf.readIntLE(at, 3) / 8388608;
-  return (at) => buf.readInt32LE(at) / 2147483648;
-}
-
 type FrameLevels = { fps: number; peak: number[]; rms: number[] };
 
 const toDb = (v: number) => (v <= EPSILON ? SILENCE_DB : round1(20 * Math.log10(v)));
@@ -71,9 +70,7 @@ export function frameLevels(pcm: Pcm, fps: number, frames: number): FrameLevels 
   const per = pcm.sampleRate / fps;
   const peak: number[] = [];
   const rms: number[] = [];
-  for (let f = 0; f < frames; f++) {
-    const a = Math.floor(f * per);
-    const b = Math.min(pcm.frames, Math.floor((f + 1) * per));
+  forEachWindow(frames, per, pcm.frames, (a, b) => {
     let p = 0;
     let sum = 0;
     let n = 0;
@@ -87,6 +84,6 @@ export function frameLevels(pcm: Pcm, fps: number, frames: number): FrameLevels 
     }
     peak.push(toDb(p));
     rms.push(toDb(n ? Math.sqrt(sum / n) : 0));
-  }
+  });
   return { fps, peak, rms };
 }
