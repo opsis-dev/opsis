@@ -19,6 +19,7 @@ import { ENGINE_MISSING_MESSAGE } from "../../shared/engine";
 import { clamp } from "../../shared/math";
 import { keepLatest } from "../../shared/memo";
 import { onAbort } from "../../shared/errors";
+import { freeTcpPort } from "../../engine/free-tcp-port";
 
 export type GlRenderer = "angle" | "swangle" | "egl" | "vulkan" | "swiftshader" | "angle-egl";
 
@@ -95,8 +96,17 @@ async function compositionFor(job: RenderJob) {
     chromiumOptions: { gl: job.gl },
     ...(job.browser ? { puppeteerInstance: job.browser } : {}),
   };
-  const composition = await selectComposition({ ...common, id: COMPOSITION_ID });
-  return { ...common, composition, licenseKey: remotionLicenseKey(job.env) };
+  const composition = await selectComposition({
+    ...common,
+    id: COMPOSITION_ID,
+    port: await freeTcpPort(),
+  });
+  return {
+    ...common,
+    port: await freeTcpPort(),
+    composition,
+    licenseKey: remotionLicenseKey(job.env),
+  };
 }
 
 type Prepared = Awaited<ReturnType<typeof compositionFor>> & { cancelSignal: CancelSignal };
