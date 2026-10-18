@@ -24,6 +24,8 @@ import {
 } from "../shared/fonts/plan";
 import type { FontInstalledFace, InspectedFonts } from "../shared/ipc";
 import { readJsonKeepingBroken, writeJson } from "../engine/json";
+import { logError } from "../engine/log";
+import { isRecord, isString } from "../shared/guards";
 import { oneAtATime } from "../shared/timing";
 import { openDialog } from "./dialogs";
 
@@ -51,6 +53,7 @@ export type NewFamily = {
 type FontFile = FontCandidate & { bytes: Uint8Array };
 
 type Pending = {
+  token: string;
   families: Array<PlannedFamily<FontFile>>;
   license?: FontBytes;
   source: FontFamilyDef["source"];
@@ -64,21 +67,38 @@ const librarySchema = z.object({ families: z.array(z.unknown()) });
 export const fontsDir = () => path.join(app.getPath("userData"), "fonts");
 const manifestPath = () => path.join(fontsDir(), "library.json");
 
-const pending = new Map<string, Pending>();
+let pending: Pending | null = null;
 const changeLibrary = oneAtATime();
 
-export async function listLibrary(): Promise<FontFamilyDef[]> {
+type Library = { families: FontFamilyDef[]; unreadable: unknown[] };
+
+async function readLibrary(): Promise<Library> {
   const stored = await readJsonKeepingBroken(manifestPath(), librarySchema);
-  return (stored?.families ?? []).flatMap((f) => {
-    const parsed = fontFamilySchema.safeParse(f);
-    return parsed.success ? [parsed.data] : [];
-  });
+  const library: Library = { families: [], unreadable: [] };
+  for (const entry of stored?.families ?? []) {
+    const parsed = fontFamilySchema.safeParse(entry);
+    if (parsed.success) library.families.push(parsed.data);
+    else {
+      logError("fonts", parsed.error, "a library entry couldn't be read and was kept as it is");
+      library.unreadable.push(entry);
+    }
+  }
+  return library;
 }
 
-async function saveLibrary(families: FontFamilyDef[]): Promise<void> {
-  await mkdir(fontsDir(), { recursive: true });
-  await writeJson(manifestPath(), { families });
+export async function listLibrary(): Promise<FontFamilyDef[]> {
+  return (await readLibrary()).families;
 }
+
+async function saveLibrary({ families, unreadable }: Library): Promise<void> {
+  await mkdir(fontsDir(), { recursive: true });
+  await writeJson(manifestPath(), { families: [...unreadable, ...families] });
+}
+
+const libraryIds = ({ families, unreadable }: Library): string[] => [
+  ...families.map((f) => f.id),
+  ...unreadable.flatMap((entry) => (isRecord(entry) && isString(entry.id) ? [entry.id] : [])),
+];
 
 function openFont(bytes: Uint8Array): FontTables | null {
   try {
@@ -89,23 +109,24 @@ function openFont(bytes: Uint8Array): FontTables | null {
   }
 }
 
-function describe(name: string, bytes: Uint8Array): FontCandidate | null {
+const isItalic = (font: FontTables): boolean =>
+  Boolean(font["OS/2"]?.fsSelection?.italic) ||
+  /italic|oblique/i.test(font.subfamilyName ?? "") ||
+  Boolean(font.variationAxes?.ital);
+
+function readFontCandidate(name: string, bytes: Uint8Array): FontCandidate | null {
   const font = openFont(bytes);
   if (!font) return null;
   const ext = extensionOf(name);
-  const axes = font.variationAxes;
-  const wght = axes?.wght;
+  const wght = font.variationAxes?.wght;
   const os2 = font["OS/2"];
-  const sub = (font.subfamilyName ?? "").toLowerCase();
-  const italic =
-    Boolean(os2?.fsSelection?.italic) || /italic|oblique/.test(sub) || Boolean(axes?.ital);
   return {
     name,
     family: familyNameFrom(font.getName("preferredFamily", "en"), font.familyName),
     weight: wght
       ? `${Math.round(wght.min)} ${Math.round(wght.max)}`
       : String(os2?.usWeightClass ?? 400),
-    style: italic ? "italic" : "normal",
+    style: isItalic(font) ? "italic" : "normal",
     variable: Boolean(wght),
     format: FORMAT[ext] ?? "truetype",
     size: bytes.byteLength,
@@ -120,7 +141,7 @@ function collect(entries: FontBytes[], source: FontFamilyDef["source"]): Inspect
   let unreadable = 0;
   for (const entry of entries) {
     if (isFontFile(entry.name)) {
-      const info = describe(entry.name, entry.bytes);
+      const info = readFontCandidate(entry.name, entry.bytes);
       if (info) candidates.push({ ...info, bytes: entry.bytes });
       else unreadable += 1;
     } else if (!license && LICENSE_NAME.test(entry.name)) {
@@ -129,7 +150,7 @@ function collect(entries: FontBytes[], source: FontFamilyDef["source"]): Inspect
   }
   const plan = planFontFiles(candidates);
   const token = randomUUID();
-  pending.set(token, { families: plan, license, source });
+  pending = plan.length ? { token, families: plan, license, source } : null;
   return {
     token,
     families: plan.map((fam) => ({ family: fam.family, faces: fam.faces.map(withoutBytes) })),
@@ -154,7 +175,7 @@ export async function inspectFontFiles(
   const entries: FontBytes[] = [];
   for (const file of files) {
     const bytes = new Uint8Array(await readFile(file));
-    if (/\.zip$/i.test(file)) {
+    if (extensionOf(file) === "zip") {
       for (const [name, data] of Object.entries(unzipSync(bytes)))
         if (!name.endsWith("/") && !name.includes("__MACOSX")) entries.push({ name, bytes: data });
     } else {
@@ -176,10 +197,10 @@ export function inspectInstalledFonts(faces: FontInstalledFace[]): InspectedFont
   );
 }
 
-const uniqueId = (base: string, library: FontFamilyDef[]): string =>
+const uniqueId = (base: string, taken: string[]): string =>
   firstFree(
     (n) => (n === 1 ? base : `${base}-${n}`),
-    (id) => library.some((f) => f.id === id),
+    (id) => taken.includes(id),
   );
 
 export function guessCategory(family: string): FontFamilyDef["category"] {
@@ -188,9 +209,9 @@ export function guessCategory(family: string): FontFamilyDef["category"] {
   return "sans-serif";
 }
 
-async function writeFamily(library: FontFamilyDef[], fam: NewFamily): Promise<FontFamilyDef> {
-  const existing = library.find((f) => sameFamily(f.family, fam.family));
-  const id = existing?.id ?? uniqueId(fontSlug(fam.family), library);
+async function writeFamily(library: Library, fam: NewFamily): Promise<FontFamilyDef> {
+  const existing = library.families.find((f) => sameFamily(f.family, fam.family));
+  const id = existing?.id ?? uniqueId(fontSlug(fam.family), libraryIds(library));
   const dir = path.join(fontsDir(), id);
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
@@ -214,11 +235,11 @@ async function writeFamily(library: FontFamilyDef[], fam: NewFamily): Promise<Fo
 
 export function addFamilies(families: NewFamily[]): Promise<FontFamilyDef[]> {
   return changeLibrary(async () => {
-    let library = await listLibrary();
+    let library = await readLibrary();
     const added: FontFamilyDef[] = [];
     for (const fam of families) {
       const def = await writeFamily(library, fam);
-      library = [...library.filter((f) => f.id !== def.id), def];
+      library = { ...library, families: [...library.families.filter((f) => f.id !== def.id), def] };
       added.push(def);
     }
     await saveLibrary(library);
@@ -230,9 +251,10 @@ export async function addInspectedFonts(
   token: string,
   families: string[],
 ): Promise<FontFamilyDef[]> {
-  const data = pending.get(token);
-  if (!data) throw new Error("Those fonts are no longer ready to add. Choose them again.");
-  pending.delete(token);
+  const data = pending;
+  if (data?.token !== token)
+    throw new Error("Those fonts are no longer ready to add. Choose them again.");
+  pending = null;
   return addFamilies(
     data.families
       .filter((f) => families.includes(f.family))
@@ -250,11 +272,15 @@ export async function addInspectedFonts(
   );
 }
 
+export function releaseInspectedFonts(token: string): void {
+  if (pending?.token === token) pending = null;
+}
+
 export function removeLibraryFont(id: string): Promise<void> {
   return changeLibrary(async () => {
-    const library = await listLibrary();
+    const library = await readLibrary();
     await rm(path.join(fontsDir(), id), { recursive: true, force: true });
-    await saveLibrary(library.filter((f) => f.id !== id));
+    await saveLibrary({ ...library, families: library.families.filter((f) => f.id !== id) });
   });
 }
 

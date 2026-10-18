@@ -208,6 +208,7 @@ export interface DemoflowApi {
   inspectFontFiles(paths?: string[]): Promise<InspectedFonts | null>;
   inspectInstalledFonts(faces: FontInstalledFace[]): Promise<InspectedFonts>;
   addInspectedFonts(token: string, families: string[]): Promise<FontFamilyDef[]>;
+  releaseInspectedFonts(token: string): Promise<void>;
   removeFont(id: string): Promise<void>;
   fontCatalog(): Promise<FontCatalogEntry[]>;
   downloadFont(id: string): Promise<FontFamilyDef>;
@@ -244,6 +245,7 @@ export const INVOKE = {
   inspectFontFiles: "demoflow:fonts:inspect-files",
   inspectInstalledFonts: "demoflow:fonts:inspect-installed",
   addInspectedFonts: "demoflow:fonts:add",
+  releaseInspectedFonts: "demoflow:fonts:release",
   removeFont: "demoflow:fonts:remove",
   fontCatalog: "demoflow:fonts:catalog",
   downloadFont: "demoflow:fonts:download",

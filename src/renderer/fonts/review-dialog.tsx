@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { InspectedFonts } from "@/shared/ipc";
 import { plural } from "@/shared/format";
@@ -32,6 +32,17 @@ export function ReviewDialog({
   const [chosen, setChosen] = useState(() => fonts.families.map((f) => f.family));
   const { isBusy, run } = useBusy();
 
+  useEffect(() => {
+    const release = () => void window.demoflow.releaseInspectedFonts(fonts.token);
+    window.addEventListener("pagehide", release);
+    return () => window.removeEventListener("pagehide", release);
+  }, [fonts.token]);
+
+  const close = () => {
+    void window.demoflow.releaseInspectedFonts(fonts.token);
+    onClose();
+  };
+
   const add = () =>
     run("add", async () => {
       const added = await window.demoflow.addInspectedFonts(fonts.token, chosen);
@@ -39,13 +50,13 @@ export function ReviewDialog({
         added.length === 1 ? `Added ${added[0].family}` : `Added ${plural(added.length, "font")}`,
       );
       await onAdded();
-      onClose();
+      close();
     });
 
   return (
     <FontDialog
       open
-      onClose={onClose}
+      onClose={close}
       title="Add fonts"
       description={
         <>
@@ -58,7 +69,7 @@ export function ReviewDialog({
       }
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
           <Button disabled={!chosen.length || isBusy} onClick={() => void add()}>

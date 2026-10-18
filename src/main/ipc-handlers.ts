@@ -19,6 +19,7 @@ import {
   inspectFontFiles,
   inspectInstalledFonts,
   listLibrary,
+  releaseInspectedFonts,
   removeLibraryFont,
 } from "./fonts";
 import { downloadOnlineFont, fontCatalog } from "./fonts-online";
@@ -118,7 +119,7 @@ async function revealInFolder(dir: string, rel?: string): Promise<void> {
 
 const HANDLERS: InvokeHandlers = {
   listRecentProjects: plain(listRecent),
-  createProject: async (_event, opts) => remember(await createProjectDir(getMainWindow(), opts)),
+  createProject: async (event, opts) => remember(await createProjectDir(senderWindow(event), opts)),
   pickProjectDir: (event) => pickProjectDir(senderWindow(event)),
   openProject: async (_event, dir) => remember(await openProjectDir(dir)),
   saveWorkflow: plain(saveWorkflowFile),
@@ -129,12 +130,12 @@ const HANDLERS: InvokeHandlers = {
       getMainWindow()?.webContents.send(IPC.projectFileChanged, change),
     ),
   readLastRun: plain(readLastRun),
-  importAssets: (_event, dir, paths) => importAssets(getMainWindow(), dir, paths),
+  importAssets: (event, dir, paths) => importAssets(senderWindow(event), dir, paths),
   revealInFolder: plain(revealInFolder),
   runWorkflow: plain(startWorkflowRun),
   cancelRun: plain(cancelRun),
   runStatus: plain(runStatus),
-  pickElement: (_event, request) => pickInWindow(getMainWindow(), request),
+  pickElement: (event, request) => pickInWindow(senderWindow(event), request),
   getEnvironment: plain(environment),
   installEngine: () =>
     track(
@@ -150,9 +151,10 @@ const HANDLERS: InvokeHandlers = {
   readTrace: plain(readTrace),
   listSecrets: plain(listSecrets),
   listFonts: plain(listLibrary),
-  inspectFontFiles: (_event, paths) => inspectFontFiles(getMainWindow(), paths),
+  inspectFontFiles: (event, paths) => inspectFontFiles(senderWindow(event), paths),
   inspectInstalledFonts: plain(inspectInstalledFonts),
   addInspectedFonts: plain(addInspectedFonts),
+  releaseInspectedFonts: plain(releaseInspectedFonts),
   removeFont: plain(removeLibraryFont),
   fontCatalog: plain(fontCatalog),
   downloadFont: (_event, id) => track("A font is being downloaded.", downloadOnlineFont(id)),

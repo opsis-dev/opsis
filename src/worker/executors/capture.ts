@@ -103,7 +103,10 @@ async function saveTrace(
     ok,
     groups,
   });
-  const kept = await applyRetention(ctx.projectDir, ctx.env.settings.traces);
+  const kept = await applyRetention(ctx.projectDir, ctx.env.settings.traces).catch((e: unknown) => {
+    ctx.log("warn", `Couldn't remove old traces: ${errorMessage(e)}`);
+    return new Set([manifest.id]);
+  });
   return kept.has(manifest.id) ? manifest.id : undefined;
 }
 

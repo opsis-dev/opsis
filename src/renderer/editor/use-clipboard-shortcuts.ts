@@ -8,6 +8,8 @@ import {
   type WorkflowNode,
 } from "@/shared/schema/workflow";
 import { isEditingElement } from "@/renderer/lib/dom";
+import { platform } from "@/renderer/lib/platform";
+import { matchesAccelerator } from "@/shared/menu";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { tryParseJson } from "@/shared/guards";
@@ -81,15 +83,18 @@ function duplicateSelection(): void {
   if (subgraph) pasteSubgraph(subgraph);
 }
 
+const isPressed = (e: KeyboardEvent, accelerator: string) =>
+  matchesAccelerator(accelerator, e, platform);
+
 export function useClipboardShortcuts(wrapper: React.RefObject<HTMLDivElement | null>): void {
   useEffect(() => {
     const el = wrapper.current;
     if (!el) return;
     const onKey = (e: KeyboardEvent) => {
-      if (isEditingElement(e.target) || !(e.metaKey || e.ctrlKey)) return;
-      if (e.key === "c") void copySelection();
-      else if (e.key === "v") void pasteClipboard();
-      else if (e.key === "d") {
+      if (isEditingElement(e.target)) return;
+      if (isPressed(e, "CmdOrCtrl+C")) void copySelection();
+      else if (isPressed(e, "CmdOrCtrl+V")) void pasteClipboard();
+      else if (isPressed(e, "CmdOrCtrl+D")) {
         e.preventDefault();
         duplicateSelection();
       }

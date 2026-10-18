@@ -29,14 +29,7 @@ export function SwitchField({
   );
 }
 
-export function CommitInput({
-  value,
-  onCommit,
-  ...props
-}: Omit<ComponentProps<typeof Input>, "value" | "onChange" | "onBlur" | "onKeyDown"> & {
-  value: string;
-  onCommit: (text: string) => void;
-}) {
+export function useDraft(value: string, onCommit: (text: string) => void) {
   const [draft, setDraft] = useState<string | null>(null);
   const pending = useRef<{ text: string; commit: (text: string) => void } | null>(null);
   const flush = useCallback(() => {
@@ -51,22 +44,38 @@ export function CommitInput({
       flush();
     };
   }, [flush]);
-  const commit = () => {
-    if (draft === null) return;
+  const commitText = (text: string) => {
     setDraft(null);
     pending.current = null;
-    if (draft !== value) onCommit(draft);
+    if (text !== value) onCommit(text);
   };
+  return {
+    text: draft ?? value,
+    change: (text: string) => {
+      setDraft(text);
+      pending.current = { text, commit: onCommit };
+    },
+    commit: () => draft !== null && commitText(draft),
+    commitText,
+  };
+}
+
+export function CommitInput({
+  value,
+  onCommit,
+  ...props
+}: Omit<ComponentProps<typeof Input>, "value" | "onChange" | "onBlur" | "onKeyDown"> & {
+  value: string;
+  onCommit: (text: string) => void;
+}) {
+  const draft = useDraft(value, onCommit);
   return (
     <Input
       {...props}
-      value={draft ?? value}
-      onChange={(e) => {
-        setDraft(e.target.value);
-        pending.current = { text: e.target.value, commit: onCommit };
-      }}
-      onBlur={commit}
-      onKeyDown={(e) => e.key === "Enter" && commit()}
+      value={draft.text}
+      onChange={(e) => draft.change(e.target.value)}
+      onBlur={draft.commit}
+      onKeyDown={(e) => e.key === "Enter" && draft.commit()}
     />
   );
 }

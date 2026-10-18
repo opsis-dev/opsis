@@ -33,6 +33,11 @@ describe("app menu", () => {
     expect(matchesAccelerator("CmdOrCtrl+,", key(",", { ctrlKey: true }), "linux")).toBe(true);
   });
 
+  it("matches letter shortcuts with Caps Lock on", () => {
+    expect(matchesAccelerator("CmdOrCtrl+C", key("C", { ctrlKey: true }), "linux")).toBe(true);
+    expect(matchesAccelerator("CmdOrCtrl+D", key("D", { metaKey: true }), "darwin")).toBe(true);
+  });
+
   it("labels shortcuts the way each platform writes them", () => {
     expect(acceleratorLabel("CmdOrCtrl+Shift+P", "linux")).toBe("Ctrl+Shift+P");
     expect(acceleratorLabel("CmdOrCtrl+Shift+P", "darwin")).toBe("⌘⇧P");

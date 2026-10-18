@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { readdir, writeFile } from "node:fs/promises";
+import { chmod, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { strToU8, zipSync } from "fflate";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -91,6 +91,40 @@ describe("trace store", () => {
     await applyRetention(dir, { retention: "failures", keepLast: 10 });
     expect((await listTraces(dir)).map((m) => m.ok)).toEqual([false]);
     expect(await blobs(dir)).toHaveLength(distinctFiles("bad"));
+  });
+
+  it("keeps every blob when a manifest can't be read for a moment", async () => {
+    const dir = await project();
+    const failed = await ingestTrace(dir, await traceZip(dir, "a.zip", "kept"), meta(false));
+    vi.setSystemTime(START + 1_000);
+    await ingestTrace(dir, await traceZip(dir, "b.zip", "ok"), meta(true));
+    const before = await blobs(dir);
+    const manifest = path.join(projectPaths(dir).traces, "runs", `${failed.id}.json.zst`);
+    await chmod(manifest, 0o000);
+    try {
+      await expect(applyRetention(dir, { retention: "failures", keepLast: 10 })).rejects.toThrow(
+        "EACCES",
+      );
+    } finally {
+      await chmod(manifest, 0o644);
+    }
+    expect((await blobs(dir)).toSorted()).toEqual(before.toSorted());
+  });
+
+  it("removes broken manifests and still applies retention", async () => {
+    const dir = await project();
+    await ingestTrace(dir, await traceZip(dir, "a.zip", "ok"), meta(true));
+    const broken = path.join(projectPaths(dir).traces, "runs", "broken-1.json.zst");
+    await writeFile(broken, "not zstd");
+    await applyRetention(dir, { retention: "failures", keepLast: 10 });
+    expect(existsSync(broken)).toBe(false);
+    expect(await listTraces(dir)).toEqual([]);
+    expect(await blobs(dir)).toEqual([]);
+  });
+
+  it("says a missing trace can't be read", async () => {
+    const dir = await project();
+    await expect(readTrace(dir, "gone-1")).rejects.toThrow("This trace can't be read.");
   });
 
   it("reads traces of nodes whose ids aren't plain names", async () => {

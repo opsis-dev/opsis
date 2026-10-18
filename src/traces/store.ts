@@ -7,9 +7,9 @@ import { z } from "zod";
 import type { AppSettings } from "../shared/settings";
 import type { TraceHeader, TraceModel } from "../shared/trace";
 import { parseTrace, traceTextPart, type TraceTextPart } from "./model";
-import { datedFiles, pruneDir } from "../engine/dir";
+import { pruneDir } from "../engine/dir";
 import { sha256Hex } from "../engine/hash";
-import { atomicWrite } from "../engine/json";
+import { atomicWrite, nullIfMissing } from "../engine/json";
 import { projectPaths } from "../engine/project-paths";
 import { projectRef } from "../shared/asset-ref";
 import { PROJECT_DIRS } from "../shared/project-dirs";
@@ -53,9 +53,32 @@ async function writeManifest(root: string, manifest: TraceManifest): Promise<voi
   await atomicWrite(manifestPath(root, manifest.id), zstd(Buffer.from(JSON.stringify(manifest))));
 }
 
-async function readManifestFile(file: string): Promise<TraceManifest | null> {
-  const text = zstdDecompressSync(await readFile(file)).toString();
+function parseManifest(data: Buffer): TraceManifest | null {
+  let text: string;
+  try {
+    text = zstdDecompressSync(data).toString();
+  } catch {
+    return null;
+  }
   return parseJsonWith(manifestSchema, text)?.data ?? null;
+}
+
+type Runs = { manifests: TraceManifest[]; broken: string[] };
+
+async function readRuns(root: string): Promise<Runs> {
+  const dir = runsDir(root);
+  const runs: Runs = { manifests: [], broken: [] };
+  for (const name of (await nullIfMissing(readdir(dir))) ?? []) {
+    if (!name.endsWith(MANIFEST_SUFFIX)) continue;
+    const file = path.join(dir, name);
+    const data = await nullIfMissing(readFile(file));
+    if (data === null) continue;
+    const manifest = parseManifest(data);
+    if (manifest) runs.manifests.push(manifest);
+    else runs.broken.push(file);
+  }
+  runs.manifests.sort((a, b) => b.createdAt - a.createdAt);
+  return runs;
 }
 
 export async function ingestTrace(
@@ -93,21 +116,14 @@ export async function ingestTrace(
 }
 
 export async function listTraces(projectDir: string): Promise<TraceManifest[]> {
-  const dir = runsDir(projectPaths(projectDir).traces);
-  if (!existsSync(dir)) return [];
-  const out: TraceManifest[] = [];
-  for (const f of await readdir(dir)) {
-    if (!f.endsWith(MANIFEST_SUFFIX)) continue;
-    const manifest = await readManifestFile(path.join(dir, f)).catch(() => null);
-    if (manifest) out.push(manifest);
-  }
-  return out.sort((a, b) => b.createdAt - a.createdAt);
+  return (await readRuns(projectPaths(projectDir).traces)).manifests;
 }
 
 export async function readTrace(projectDir: string, id: string): Promise<TraceModel> {
   if (!/^[\w-]+$/.test(id)) throw new Error("Invalid trace id");
   const root = projectPaths(projectDir).traces;
-  const manifest = await readManifestFile(manifestPath(root, id));
+  const data = await nullIfMissing(readFile(manifestPath(root, id)));
+  const manifest = data && parseManifest(data);
   if (!manifest) throw new Error("This trace can't be read.");
   const { groups, entries, ...header } = manifest;
   const parts: Record<TraceTextPart, string[]> = { trace: [], network: [] };
@@ -149,8 +165,9 @@ function keptTraces(all: TraceManifest[], policy: AppSettings["traces"]): TraceM
 }
 
 async function sweepBlobs(root: string, live: Set<string>): Promise<void> {
-  for (const shard of await datedFiles(path.join(root, "blobs")))
-    await pruneDir(shard.file, { keep: (name) => live.has(name) });
+  const blobs = path.join(root, "blobs");
+  for (const shard of (await nullIfMissing(readdir(blobs))) ?? [])
+    await pruneDir(path.join(blobs, shard), { keep: (name) => live.has(name) });
 }
 
 export async function applyRetention(
@@ -158,10 +175,12 @@ export async function applyRetention(
   policy: AppSettings["traces"],
 ): Promise<ReadonlySet<string>> {
   const root = projectPaths(projectDir).traces;
-  const all = await listTraces(projectDir);
-  const kept = keptTraces(all, policy);
+  const { manifests, broken } = await readRuns(root);
+  const kept = keptTraces(manifests, policy);
   const keep = new Set(kept.map((m) => m.id));
-  for (const m of all) if (!keep.has(m.id)) await rm(manifestPath(root, m.id), { force: true });
+  for (const m of manifests)
+    if (!keep.has(m.id)) await rm(manifestPath(root, m.id), { force: true });
+  for (const file of broken) await rm(file, { force: true });
   await sweepBlobs(root, new Set(kept.flatMap((m) => m.entries.map(blobName))));
   return keep;
 }

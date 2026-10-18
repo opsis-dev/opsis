@@ -1,5 +1,4 @@
 import { RotateCcw } from "lucide-react";
-import { useState } from "react";
 import {
   KEEP_LAST_TRACES,
   LIVE_FPS,
@@ -27,7 +26,7 @@ import { useFreshEnvironment } from "../../store/environment";
 import { FolderField } from "../folder-field";
 import { OptionToggle } from "../option-toggle";
 import { useProjectLocations } from "../use-loaded";
-import { CommitInput, SwitchField } from "./fields";
+import { CommitInput, SwitchField, useDraft } from "./fields";
 
 export function GeneralPage({ settings }: { settings: AppSettings }) {
   return (
@@ -67,13 +66,9 @@ function useDefaultFolder(custom: string): string {
 export function ProjectsPage({ settings }: { settings: AppSettings }) {
   const custom = settings.projects.defaultDir;
   const fallback = useDefaultFolder(custom);
-  const [draft, setDraft] = useState<string | null>(null);
-  const shown = draft ?? (custom || fallback);
-
-  const commit = (dir: string) => {
-    setDraft(null);
+  const folder = useDraft(custom || fallback, (dir) => {
     void patchAppSettings({ projects: { defaultDir: dir.trim() === fallback ? "" : dir.trim() } });
-  };
+  });
 
   return (
     <Card>
@@ -90,11 +85,11 @@ export function ProjectsPage({ settings }: { settings: AppSettings }) {
             <FieldLabel htmlFor="projects-dir">Folder</FieldLabel>
             <FolderField
               id="projects-dir"
-              value={shown}
+              value={folder.text}
               title="Choose the default projects folder"
-              onChange={setDraft}
-              onPicked={commit}
-              onCommit={() => draft !== null && commit(draft)}
+              onChange={folder.change}
+              onPicked={folder.commitText}
+              onCommit={folder.commit}
             />
             <FieldDescription>
               {custom
