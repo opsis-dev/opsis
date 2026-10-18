@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { mkdir, rename, utimes, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { PROJECT_NAME_VAR } from "../../shared/compile/compile";
 import type { NodeParams } from "../../shared/nodes/define";
 import {
   renderNode,
@@ -210,7 +209,7 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
 
 export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _inputs, p) => {
   const spec = specFor(ctx);
-  const base = safeName(ctx.vars[PROJECT_NAME_VAR], { fallback: "output" });
+  const base = safeName(p.fileName, { fallback: "output" });
   const artifacts = await withRenderServer(ctx, async ({ serveUrl, projectBase }) => {
     const made: Artifact[] = [];
     for (const [i, preset] of p.presets.entries()) {

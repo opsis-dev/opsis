@@ -4,10 +4,8 @@ import { isClip } from "@/shared/compile/clip";
 import { workflowVars } from "@/shared/compile/compile";
 import { errorMessage } from "@/shared/errors";
 import type { CardRow } from "@/shared/nodes/card";
-import type { NodeDef } from "@/shared/nodes/define";
-import { defaultParams } from "@/shared/nodes/registry";
+import { interpolatedParams, type NodeDef } from "@/shared/nodes/define";
 import type { WorkflowNode } from "@/shared/schema/workflow";
-import { interpolate } from "@/shared/vars";
 import { cn } from "@/renderer/lib/utils";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
@@ -53,10 +51,7 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
     useCardInputs(node);
   return useMemo(() => {
     if (!def.card) return [];
-    const params = {
-      ...defaultParams(node.type),
-      ...interpolate(node.params, workflowVars({ name, variables })),
-    };
+    const params = interpolatedParams(def, node.params, workflowVars({ name, variables }));
     try {
       return def
         .card({ params, settings, result, secrets, connected, clipFrames, inputFrames })
@@ -74,7 +69,6 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
     }
   }, [
     def,
-    node.type,
     node.params,
     variables,
     name,

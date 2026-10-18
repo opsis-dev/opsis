@@ -170,6 +170,7 @@ export const stillOutputNode = defineNode({
     row("clock", `At ${formatDuration(p.atMs)} · ${p.format.toUpperCase()}`),
   ],
   params: z.object({
+    fileName: text("{{Project name}}", "File name"),
     atMs: ms(1000, "Frame at"),
     presets: z
       .array(z.enum(keysOf(STILL_PRESETS)))

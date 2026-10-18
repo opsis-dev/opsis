@@ -1,12 +1,11 @@
 import { topoSort } from "../graph";
 import { parseParams } from "../nodes/params";
 import { getNodeDef } from "../nodes/registry";
-import type { NodeDef } from "../nodes/define";
+import { interpolatedParams, type NodeDef } from "../nodes/define";
 import { isOutputType } from "../nodes/output";
 import type { TimelineSpec } from "../schema/timeline";
 import type { CompileValue, NodeResult } from "../schema/values";
 import type { Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
-import { interpolate } from "../vars";
 import { clipToSpec, isClip } from "./clip";
 import { nodeSpans, type FrameRange } from "../timeline/flatten";
 import { errorMessage } from "../errors";
@@ -69,7 +68,7 @@ function runCompile(
   inputs: PortValues,
   ctx: { vars: Record<string, string>; result: NodeResult | undefined },
 ): NodeOutcome {
-  const parsed = parseParams(def.params, interpolate(node.params, ctx.vars));
+  const parsed = parseParams(def.params, interpolatedParams(def, node.params, ctx.vars));
   if (!parsed.ok) return { values: {}, error: parsed.problem };
   try {
     const values =

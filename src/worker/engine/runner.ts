@@ -13,7 +13,12 @@ import {
 } from "../../shared/graph";
 import { isOutputType } from "../../shared/nodes/output";
 import type { RunRequest } from "../../shared/ipc";
-import { parseNodeParams, type NodeDef, type NodePhase } from "../../shared/nodes/define";
+import {
+  interpolatedParams,
+  parseNodeParams,
+  type NodeDef,
+  type NodePhase,
+} from "../../shared/nodes/define";
 import { getNodeDef, nodeName } from "../../shared/nodes/registry";
 import { runFailed, type LogLevel, type RunEvent } from "../../shared/schema/events";
 import type { CompileValue, LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
@@ -131,7 +136,7 @@ function hashNodes(
     const upstream = workflow.edges
       .filter((e) => e.target === node.id && hashes.has(e.source))
       .map((e): [string, string] => [e.targetHandle, `${hashes.get(e.source)}:${e.sourceHandle}`]);
-    const params = interpolate(node.params, vars);
+    const params = interpolatedParams(getNodeDef(node.type), node.params, vars);
     const keyed =
       getNodeDef(node.type)?.phase === "render"
         ? { params, settings: workflow.settings, mix: workflow.mix ?? null }
