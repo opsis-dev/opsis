@@ -3,7 +3,7 @@ import { projectRef } from "../asset-ref";
 import { itemClip, withHandles, wrapClip } from "../compile/clip";
 import { ELEMENTS, elementNodeType } from "../elements";
 import { CAPTIONS_ELEMENT } from "../elements/core";
-import { assetKeys, fieldMeta, shapeEntries, unwrap, widgetKeys } from "../elements/introspect";
+import { assetKeys, widgetKeys } from "../elements/introspect";
 import type { ElementCategory, ElementMeta } from "../elements/types";
 import { fontStack } from "../fonts";
 import { MAX_FRAMES } from "../limits";
@@ -43,19 +43,8 @@ const stringParam = (params: Record<string, unknown>, key: string): string | und
   return typeof value === "string" ? value : undefined;
 };
 
-const PLAIN_TEXT_WIDGETS = new Set([undefined, "textarea"]);
-
-function titleKeys(schema: ElementMeta["schema"]): string[] {
-  const plain = shapeEntries(schema)
-    .filter(
-      ([, f]) => unwrap(f) instanceof z.ZodString && PLAIN_TEXT_WIDGETS.has(fieldMeta(f).widget),
-    )
-    .map(([key]) => key);
-  return [
-    ...TEXT_KEYS.filter((k) => plain.includes(k)),
-    ...plain.filter((k) => !TEXT_KEYS.includes(k)),
-  ];
-}
+const titleKeys = (schema: ElementMeta["schema"]): string[] =>
+  TEXT_KEYS.filter((k) => k in schema.shape);
 
 function elementCard(
   meta: ElementMeta,
