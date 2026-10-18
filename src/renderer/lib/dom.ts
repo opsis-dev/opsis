@@ -25,20 +25,3 @@ export function capturePrimaryPointer(e: ReactPointerEvent<Element>): boolean {
   e.currentTarget.setPointerCapture(e.pointerId);
   return true;
 }
-
-type PointerDrag<E extends Element> = {
-  onStart?: (e: ReactPointerEvent<E>) => boolean | void;
-  onMove: (e: ReactPointerEvent<E>) => void;
-  onEnd?: () => void;
-};
-
-export const usePointerDrag = <E extends Element>({ onStart, onMove, onEnd }: PointerDrag<E>) => ({
-  onPointerDown: (e: ReactPointerEvent<E>) => {
-    if (!capturePrimaryPointer(e)) return;
-    if (onStart?.(e) === false) e.currentTarget.releasePointerCapture(e.pointerId);
-  },
-  onPointerMove: (e: ReactPointerEvent<E>) => {
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) onMove(e);
-  },
-  onLostPointerCapture: () => onEnd?.(),
-});

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-export function useDebouncedValue<T>(value: T, key: string, ms: number): T {
+export function useSettledAfterKeyChange<T>(value: T, key: string, ms: number): T {
   const latest = useRef(value);
   const [settled, setSettled] = useState({ key, value });
   useLayoutEffect(() => {

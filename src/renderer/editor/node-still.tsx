@@ -1,7 +1,7 @@
 import { Thumbnail } from "@remotion/player";
 import { useStore as useFlowStore } from "@xyflow/react";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { useDebouncedValue } from "@/renderer/lib/use-debounced-value";
+import { useSettledAfterKeyChange } from "@/renderer/lib/use-settled-after-key-change";
 import { PROJECT_FILE_BASE, projectRef } from "@/shared/asset-ref";
 import { clipToSpec, isClip } from "@/shared/compile/clip";
 import { stableJson } from "@/shared/hash";
@@ -50,7 +50,7 @@ function useSettledClip(nodeId: string): SettledClip | null {
   const settings = useWorkflowStore((s) => openWorkflow(s).settings);
   const clip = compiled?.values[nodeId]?.clip;
   const current = isClip(clip) ? { key: stableJson([clip, settings]), clip, settings } : null;
-  return useDebouncedValue(current, current?.key ?? "", SETTLE_MS);
+  return useSettledAfterKeyChange(current, current?.key ?? "", SETTLE_MS);
 }
 
 function useOnScreen<T extends Element>(): [RefObject<T | null>, boolean] {

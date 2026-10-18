@@ -56,7 +56,7 @@ const blank = (captureId: string, nodeId: string): LiveCapture => ({
   startedAt: Date.now(),
 });
 
-const frameUrl = (jpeg: Uint8Array<ArrayBuffer>) =>
+const objectUrl = (jpeg: Uint8Array<ArrayBuffer>) =>
   URL.createObjectURL(new Blob([jpeg], { type: "image/jpeg" }));
 
 function applyEvent(prev: LiveCapture, e: LiveEvent): LiveCapture {
@@ -95,8 +95,17 @@ function applyMessage(prev: LiveCapture, message: LiveMessage): LiveCapture {
   if (prev.frameUrl) URL.revokeObjectURL(prev.frameUrl);
   return {
     ...prev,
-    frameUrl: frameUrl(message.jpeg),
+    frameUrl: objectUrl(message.jpeg),
     clicks: recentClicks(prev.clicks, Date.now()),
+  };
+}
+
+function opened(s: LiveState, captureId: string): Partial<LiveState> {
+  const focusLive = s.focusId !== null && s.captures[s.focusId]?.status === "live";
+  return {
+    order: [...s.order, captureId],
+    focusId: focusLive ? s.focusId : captureId,
+    pipOpen: liveAutoOpen() || s.pipOpen,
   };
 }
 
@@ -112,17 +121,7 @@ export const useLiveStore = create<LiveState>()((set, get) => ({
     const s = get();
     const prev = s.captures[captureId];
     const next = applyMessage(prev ?? blank(captureId, message.nodeId), message);
-    if (prev) {
-      set({ captures: { ...s.captures, [captureId]: next } });
-      return;
-    }
-    const focusLive = s.focusId !== null && s.captures[s.focusId]?.status === "live";
-    set({
-      captures: { ...s.captures, [captureId]: next },
-      order: [...s.order, captureId],
-      focusId: focusLive ? s.focusId : captureId,
-      pipOpen: liveAutoOpen() || s.pipOpen,
-    });
+    set({ captures: { ...s.captures, [captureId]: next }, ...(prev ? {} : opened(s, captureId)) });
   },
   setPipOpen: (pipOpen) => set({ pipOpen }),
   focus: (focusId) => set({ focusId }),

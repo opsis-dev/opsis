@@ -1,14 +1,9 @@
 import { useEffect } from "react";
 import { create } from "zustand";
 import { reportError } from "@/renderer/lib/toast";
-import { FILE_SCHEME, encodePath } from "@/shared/asset-ref";
-import { libraryRelPath, type FontFamilyDef } from "@/shared/fonts/types";
-import { fileUrl } from "../editor/file-url";
-
-export function fontFileUrl(ref: string): string {
-  const rel = libraryRelPath(ref);
-  return rel === null ? fileUrl(ref) : `${FILE_SCHEME}://fonts/${encodePath(rel)}`;
-}
+import { errorMessage } from "@/shared/errors";
+import type { FontFamilyDef } from "@/shared/fonts/types";
+import { fontFileUrl } from "../editor/file-url";
 
 const previewFamily = (def: FontFamilyDef) => `df-preview-${def.source}-${def.id}`;
 
@@ -17,12 +12,19 @@ const facesKey = (def: FontFamilyDef) =>
 
 const registered = new Map<string, { key: string; faces: FontFace[] }>();
 
+function unregisterPreview(name: string): void {
+  for (const face of registered.get(name)?.faces ?? []) document.fonts.delete(face);
+  registered.delete(name);
+}
+
+const warnUnreadable = (def: FontFamilyDef, e: unknown) =>
+  console.warn(`Couldn't load ${def.family} for its preview: ${errorMessage(e)}`);
+
 function registerPreview(def: FontFamilyDef): void {
   const name = previewFamily(def);
   const key = facesKey(def);
-  const current = registered.get(name);
-  if (current?.key === key) return;
-  for (const face of current?.faces ?? []) document.fonts.delete(face);
+  if (registered.get(name)?.key === key) return;
+  unregisterPreview(name);
   const faces = def.faces.map(
     (face) =>
       new FontFace(name, `url("${fontFileUrl(face.file)}")`, {
@@ -32,7 +34,7 @@ function registerPreview(def: FontFamilyDef): void {
   );
   for (const face of faces) {
     document.fonts.add(face);
-    void face.load().catch(() => undefined);
+    void face.load().catch((e: unknown) => warnUnreadable(def, e));
   }
   registered.set(name, { key, faces });
 }
@@ -47,27 +49,29 @@ export function usePreviewFamily(def: FontFamilyDef | undefined): string | undef
 type LibraryState = {
   library: FontFamilyDef[];
   status: "idle" | "loading" | "ready";
-  onlineAllowed: boolean;
   refresh: () => Promise<void>;
   ensureLoaded: () => void;
-  allowOnline: () => void;
+  remove: (def: FontFamilyDef) => Promise<void>;
 };
 
 export const useFontLibrary = create<LibraryState>((set, get) => ({
   library: [],
   status: "idle",
-  onlineAllowed: false,
   refresh: async () => {
     if (get().status === "idle") set({ status: "loading" });
     try {
       set({ library: await window.demoflow.listFonts(), status: "ready" });
     } catch (e) {
       if (get().status === "loading") set({ status: "idle" });
-      reportError("Could not read your font library", e);
+      reportError("Couldn't read your font library", e);
     }
   },
   ensureLoaded: () => {
     if (get().status === "idle") void get().refresh();
   },
-  allowOnline: () => set({ onlineAllowed: true }),
+  remove: async (def) => {
+    await window.demoflow.removeFont(def.id);
+    unregisterPreview(previewFamily(def));
+    await get().refresh();
+  },
 }));

@@ -1,5 +1,6 @@
 import { useRef, type PointerEvent } from "react";
-import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
+import { fractionIn } from "@/renderer/lib/dom";
+import { usePointerDrag } from "@/renderer/lib/use-pointer-drag";
 import { spotYKey } from "@/shared/elements/introspect";
 import { percent, percentText } from "@/shared/format";
 import { clamp01, finiteNumber, numberOr, round3 } from "@/shared/math";
@@ -37,7 +38,7 @@ export function SpotField({
     const at = fractionIn(r, e.clientX, e.clientY);
     place(at.x, at.y);
   };
-  const drag = usePointerDrag({ onStart: placeAt, onMove: placeAt });
+  const drag = usePointerDrag({ start: placeAt, move: placeAt });
   return (
     <FieldShell label={label} meta={meta}>
       <SpotFrame

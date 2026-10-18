@@ -12,6 +12,7 @@ import {
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { envelopeAt, sortKeys } from "@/shared/timeline/envelope";
 import { wholeFrames } from "@/shared/timeline/time";
+import { patchNodeParams } from "@/shared/workflow-edits";
 import { useWorkflowStore } from "../../store/workflow";
 
 export type EnvelopeKey = VisualEnvelopeKey | AudioEnvelopeKey;
@@ -80,10 +81,7 @@ export function setEnvelopeKeys(nodeId: string, prop: EnvelopeKey, keys: Keyfram
   const envelope = { ...current };
   if (keys.length) envelope[prop] = sortKeys(keys);
   else delete envelope[prop];
-  useWorkflowStore.getState().update((wf) => ({
-    ...wf,
-    nodes: wf.nodes.map((n) => (n.id === nodeId ? { ...n, params: { ...n.params, envelope } } : n)),
-  }));
+  useWorkflowStore.getState().update((wf) => patchNodeParams(wf, nodeId, { envelope }));
 }
 
 export function addKeyframe(nodeId: string, prop: EnvelopeKey, keys: Keyframe[], at: number) {

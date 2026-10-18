@@ -30,7 +30,7 @@ function useCollapsedBuses() {
 
 function MixStatus({ film }: { film: Film }) {
   const unavailable = useMedia((s) => s.unavailable);
-  const mixError = useMedia((s) => s.mixError);
+  const mixError = useMedia((s) => s.mix.error);
   if (unavailable)
     return (
       <span className="text-muted-foreground">

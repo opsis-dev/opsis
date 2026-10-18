@@ -34,9 +34,14 @@ export function runMenuItem(entry: MenuItem): void {
   else void window.demoflow.windowRole(entry.role);
 }
 
-const NATIVE_WHILE_EDITING: ReadonlySet<MenuCommand | WindowRole> = new Set<
-  MenuCommand | WindowRole
->(["cut", "copy", "paste", "selectAll", "edit:undo", "edit:redo"]);
+const NATIVE_WHILE_EDITING = new Set<MenuCommand | WindowRole>([
+  "cut",
+  "copy",
+  "paste",
+  "selectAll",
+  "edit:undo",
+  "edit:redo",
+]);
 
 export function useMenuShortcuts(): void {
   useEffect(() => {

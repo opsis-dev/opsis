@@ -6,40 +6,42 @@ import { Spinner } from "@/renderer/components/ui/spinner";
 import { useBusy } from "@/renderer/lib/use-busy";
 import { errorMessage } from "@/shared/errors";
 import { familyKey, familyKeysWithBundled } from "@/shared/fonts";
+import type { FontFamilyDef } from "@/shared/fonts/types";
 import { plural } from "@/shared/format";
 import type { FontCatalogEntry } from "@/shared/ipc";
 import { categoryLabel } from "./font-labels";
+import { FontRow } from "./font-row";
 import { useFontLibrary } from "./library";
 import { matchesQuery, SearchListDialog } from "./search-list-dialog";
+
+let onlineAllowed = false;
+
+export const isOnlineAllowed = (): boolean => onlineAllowed;
+
+export function allowOnline(): void {
+  onlineAllowed = true;
+}
 
 type Catalog =
   | { status: "loading" }
   | { status: "error"; error: string }
   | { status: "ready"; entries: FontCatalogEntry[] };
 
-function fetchCatalog(show: (catalog: Catalog) => void): void {
-  window.demoflow.fontCatalog().then(
-    (entries) => show({ status: "ready", entries }),
-    (e: unknown) => show({ status: "error", error: errorMessage(e) }),
-  );
-}
-
-function useCatalog(open: boolean): { catalog: Catalog; retry: () => void } {
+function useCatalog(): { catalog: Catalog; retry: () => void } {
   const [catalog, setCatalog] = useState<Catalog>({ status: "loading" });
-  const ready = catalog.status === "ready";
+  const loading = catalog.status === "loading";
   useEffect(() => {
-    if (!open || ready) return;
+    if (!loading) return;
     let current = true;
-    fetchCatalog((next) => current && setCatalog(next));
+    window.demoflow.fontCatalog().then(
+      (entries) => current && setCatalog({ status: "ready", entries }),
+      (e: unknown) => current && setCatalog({ status: "error", error: errorMessage(e) }),
+    );
     return () => {
       current = false;
     };
-  }, [open, ready]);
-  const retry = () => {
-    setCatalog({ status: "loading" });
-    fetchCatalog(setCatalog);
-  };
-  return { catalog, retry };
+  }, [loading]);
+  return { catalog, retry: () => setCatalog({ status: "loading" }) };
 }
 
 function CatalogStatus({ catalog, onRetry }: { catalog: Catalog; onRetry: () => void }) {
@@ -80,7 +82,7 @@ function CatalogRow({
   onDownload: () => void;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-md px-2 py-1.5 text-sm">
+    <FontRow>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-medium">{entry.family}</span>
         <span className="text-muted-foreground truncate text-xs">
@@ -97,20 +99,26 @@ function CatalogRow({
         <DownloadIcon busy={busy} added={added} />
         {added ? "Added" : "Download"}
       </Button>
-    </div>
+    </FontRow>
   );
 }
 
+function announceDownload(def: FontFamilyDef): void {
+  if (def.licenseFile) toast.success(`Added ${def.family}`);
+  else
+    toast.warning(`Added ${def.family}, but its licence file didn't download`, {
+      description: "Check that you're allowed to use this font in videos.",
+    });
+}
+
 export function OnlineDialog({
-  open,
   onClose,
   onAdded,
 }: {
-  open: boolean;
   onClose: () => void;
   onAdded: () => Promise<void>;
 }) {
-  const { catalog, retry } = useCatalog(open);
+  const { catalog, retry } = useCatalog();
   const [query, setQuery] = useState("");
   const { busy, isBusy, run } = useBusy();
   const library = useFontLibrary((s) => s.library);
@@ -123,18 +131,12 @@ export function OnlineDialog({
 
   const download = (entry: FontCatalogEntry) =>
     run(entry.id, async () => {
-      const def = await window.demoflow.downloadFont(entry.id);
-      if (def.licenseFile) toast.success(`Added ${def.family}`);
-      else
-        toast.warning(`Added ${def.family}, but its licence file didn't download`, {
-          description: "Check that you're allowed to use this font in videos.",
-        });
+      announceDownload(await window.demoflow.downloadFont(entry.id));
       await onAdded();
     });
 
   return (
     <SearchListDialog
-      open={open}
       onClose={onClose}
       title="Get fonts online"
       description={

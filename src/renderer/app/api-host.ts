@@ -4,6 +4,7 @@ import { create } from "zustand";
 import type { ApiEditorReply, ApiEditorRequest } from "@/shared/api/types";
 import { NO_PROJECT } from "@/shared/errors";
 import { useWorkflowStore } from "../store/workflow";
+import { openEditor } from "./open-project";
 
 type Handler = (request: ApiEditorRequest) => Promise<ApiEditorReply>;
 
@@ -48,7 +49,7 @@ export function useApiHost(): void {
     () =>
       window.demoflow.onApiRequest(async (request) => {
         if (request.op === "open") {
-          void navigate({ to: "/editor", search: { dir: request.dir } });
+          openEditor(navigate, request.dir);
           const handler = await waitForEditor(request.dir);
           if (!handler)
             return { ok: false, status: 504, error: "The project didn't open in time." };

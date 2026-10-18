@@ -3,13 +3,6 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/renderer/components/ui/card";
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -20,8 +13,10 @@ import { errorMessage } from "@/shared/errors";
 import { BUNDLED_FONTS } from "@/shared/fonts/bundled.generated";
 import type { FontFamilyDef } from "@/shared/fonts/types";
 import type { LicenceEntry } from "@/shared/ipc";
-import { fontFileUrl, useFontLibrary } from "../../fonts/library";
+import { fontFileUrl } from "../../editor/file-url";
+import { useFontLibrary } from "../../fonts/library";
 import { useLoaded } from "../use-loaded";
+import { SettingsCard } from "./settings-card";
 
 function LicenceText({ text }: { text: string }) {
   return (
@@ -123,7 +118,7 @@ function FontLicenceRows({ fonts }: { fonts: FontFamilyDef[] }) {
 }
 
 export function LicencesPage() {
-  const entries = useLoaded(() => window.demoflow.listLicences(), "Could not list the licences");
+  const entries = useLoaded(() => window.demoflow.listLicences(), "Couldn't list the licences");
   const library = useFontLibrary((s) => s.library);
   useEffect(() => {
     void useFontLibrary.getState().refresh();
@@ -131,43 +126,28 @@ export function LicencesPage() {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Software</CardTitle>
-          <CardDescription>
-            Demoflow and the programs it ships with or sets up. The recording browser and the video
-            tools appear once the engine is set up.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="divide-y">
-          {entries === null ? (
-            <Spinner />
-          ) : (
-            entries.map((e) => <SoftwareRow key={e.id} entry={e} />)
-          )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Built-in fonts</CardTitle>
-          <CardDescription>Fonts that come with Demoflow.</CardDescription>
-        </CardHeader>
-        <CardContent className="divide-y">
-          <FontLicenceRows fonts={BUNDLED_FONTS} />
-        </CardContent>
-      </Card>
+      <SettingsCard
+        title="Software"
+        description="Demoflow and the programs it ships with or sets up. The recording browser and the video tools appear once the engine is set up."
+        contentClassName="divide-y"
+      >
+        {entries === null ? <Spinner /> : entries.map((e) => <SoftwareRow key={e.id} entry={e} />)}
+      </SettingsCard>
+      <SettingsCard
+        title="Built-in fonts"
+        description="Fonts that come with Demoflow."
+        contentClassName="divide-y"
+      >
+        <FontLicenceRows fonts={BUNDLED_FONTS} />
+      </SettingsCard>
       {library.length ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Your fonts</CardTitle>
-            <CardDescription>
-              Fonts in your library, with the licence they came with.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="divide-y">
-            <FontLicenceRows fonts={library} />
-          </CardContent>
-        </Card>
+        <SettingsCard
+          title="Your fonts"
+          description="Fonts in your library, with the licence they came with."
+          contentClassName="divide-y"
+        >
+          <FontLicenceRows fonts={library} />
+        </SettingsCard>
       ) : null}
     </>
   );

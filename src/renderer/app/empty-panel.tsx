@@ -8,6 +8,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/renderer/components/ui/empty";
+import { Spinner } from "@/renderer/components/ui/spinner";
+import { cn } from "@/renderer/lib/utils";
 
 export function EmptyPanel({
   icon: Icon,
@@ -33,5 +35,13 @@ export function EmptyPanel({
       </EmptyHeader>
       {children ? <EmptyContent>{children}</EmptyContent> : null}
     </Empty>
+  );
+}
+
+export function LoadingPanel({ className = "h-full" }: { className?: string }) {
+  return (
+    <div className={cn("grid place-items-center", className)}>
+      <Spinner />
+    </div>
   );
 }

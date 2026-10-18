@@ -42,6 +42,20 @@ function FontCommandItem({
   );
 }
 
+const familyKeysOf = (defs: readonly FontFamilyDef[]): ReadonlySet<string> =>
+  new Set(defs.map((d) => familyKey(d.family)));
+
+const without = (defs: FontFamilyDef[], keys: ReadonlySet<string>): FontFamilyDef[] =>
+  defs.filter((d) => !keys.has(familyKey(d.family)));
+
+function fontGroups(project: FontFamilyDef[], library: FontFamilyDef[], value: string) {
+  return {
+    builtIn: without(BUNDLED_FONTS, familyKeysOf(project)),
+    extra: without(library, familyKeysWithBundled(project)),
+    current: [...project, ...BUNDLED_FONTS, ...library].find((f) => sameFamily(f.family, value)),
+  };
+}
+
 async function copyIntoProject(def: FontFamilyDef): Promise<FontFamilyDef> {
   const projectDir = useWorkflowStore.getState().projectDir;
   if (!projectDir) throw new Error("Open a project to use this font.");
@@ -71,32 +85,22 @@ export function FontPicker({
     if (next) useFontLibrary.getState().ensureLoaded();
   };
 
-  const taken = familyKeysWithBundled(project);
-  const extra = library.filter((f) => !taken.has(familyKey(f.family)));
-  const builtIn = BUNDLED_FONTS.filter((d) => !project.some((p) => sameFamily(p.family, d.family)));
-  const current = [...project, ...BUNDLED_FONTS, ...library].find((f) =>
-    sameFamily(f.family, value),
-  );
+  const { builtIn, extra, current } = fontGroups(project, library, value);
 
-  const pick = (family: string) => {
+  const choose = (def: FontFamilyDef | null) => {
     setOpen(false);
-    onChange(family);
+    if (def && extra.includes(def))
+      void run(def.id, async () => onChange((await copyIntoProject(def)).family));
+    else onChange(def?.family ?? "");
   };
 
-  const pickDef = (def: FontFamilyDef) => pick(def.family);
-
-  const pickFromLibrary = (def: FontFamilyDef) => {
-    setOpen(false);
-    void run(def.id, async () => onChange((await copyIntoProject(def)).family));
-  };
-
-  const items = (defs: FontFamilyDef[], onPick: (def: FontFamilyDef) => void) =>
+  const items = (defs: FontFamilyDef[]) =>
     defs.map((def) => (
       <FontCommandItem
         key={`${def.source}-${def.id}`}
         def={def}
         selected={sameFamily(value, def.family)}
-        onPick={onPick}
+        onPick={choose}
       />
     ));
 
@@ -128,18 +132,18 @@ export function FontPicker({
             <CommandEmpty>No font found.</CommandEmpty>
             {emptyLabel ? (
               <CommandGroup>
-                <CommandItem value={emptyLabel} onSelect={() => pick("")}>
+                <CommandItem value={emptyLabel} onSelect={() => choose(null)}>
                   {emptyLabel}
                   <SelectedMark selected={!value} />
                 </CommandItem>
               </CommandGroup>
             ) : null}
             {project.length ? (
-              <CommandGroup heading="In this project">{items(project, pickDef)}</CommandGroup>
+              <CommandGroup heading="In this project">{items(project)}</CommandGroup>
             ) : null}
-            <CommandGroup heading="Built in">{items(builtIn, pickDef)}</CommandGroup>
+            <CommandGroup heading="Built in">{items(builtIn)}</CommandGroup>
             {extra.length ? (
-              <CommandGroup heading="Your library">{items(extra, pickFromLibrary)}</CommandGroup>
+              <CommandGroup heading="Your library">{items(extra)}</CommandGroup>
             ) : null}
             <CommandSeparator />
             <CommandGroup>

@@ -1,6 +1,6 @@
 type Send<T> = (message: T) => void;
 
-export type Forwarder<T> = {
+type Forwarder<T> = {
   to: (send: Send<T> | null) => void;
   send: (message: T) => boolean;
 };

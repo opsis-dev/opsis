@@ -54,12 +54,12 @@ function useEditorSetup(projectDir: string): void {
 export function Editor({ projectDir }: { projectDir: string }) {
   const compiled = useCompiled();
   const horizontal = useDefaultLayout({
-    id: `demoflow-editor-columns:${projectDir}`,
+    id: `demoflow:editor-columns:${projectDir}`,
     storage: layoutStorage,
     panelIds: ["left", "center", "right"],
   });
   const vertical = useDefaultLayout({
-    id: `demoflow-editor-rows:${projectDir}`,
+    id: `demoflow:editor-rows:${projectDir}`,
     storage: layoutStorage,
     panelIds: ["canvas", "bottom"],
   });

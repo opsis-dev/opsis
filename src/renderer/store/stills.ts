@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { reportError } from "@/renderer/lib/toast";
+import { loadOrReport } from "@/renderer/lib/toast";
 
 type StillsState = {
   projectDir: string | null;
@@ -17,12 +17,11 @@ export const useStillsStore = create<StillsState>((set, get) => ({
   load: async (projectDir) => {
     set({ projectDir, index: {}, wanted: {} });
     if (!projectDir) return;
-    try {
-      const index = await window.demoflow.listStills(projectDir);
-      if (get().projectDir === projectDir) set({ index: { ...index, ...get().index } });
-    } catch (e) {
-      reportError("Could not read the saved node previews", e);
-    }
+    const index = await loadOrReport(
+      () => window.demoflow.listStills(projectDir),
+      "Couldn't read the saved node previews",
+    );
+    if (index && get().projectDir === projectDir) set({ index: { ...index, ...get().index } });
   },
   want: (nodeIds) => {
     const missing = nodeIds.filter((id) => !get().wanted[id]);

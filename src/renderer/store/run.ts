@@ -20,7 +20,26 @@ export type LogLine = {
 };
 
 let logCount = 0;
-const logLine = (line: Omit<LogLine, "id">): LogLine => ({ id: ++logCount, ...line });
+
+type NodeLog = Extract<RunEvent, { type: "node:log" }>;
+
+type NodeError = Extract<RunEvent, { type: "node:error" }>;
+
+const logLine = ({ at, level, nodeId, message }: NodeLog): LogLine => ({
+  id: ++logCount,
+  at,
+  level,
+  nodeId,
+  message,
+});
+
+const errorLine = ({ nodeId, message }: NodeError): LogLine => ({
+  id: ++logCount,
+  at: Date.now(),
+  level: "error",
+  nodeId,
+  message,
+});
 
 export const MAX_LOG_LINES = 2000;
 
@@ -60,6 +79,15 @@ const runDoneError = (e: RunDone): string | null => {
   return e.error ?? (e.cancelled ? CANCELLED : RUN_FAILED);
 };
 
+const finishedRun = (e: RunDone): Partial<RunState> => ({
+  runId: e.runId,
+  running: false,
+  outputs: e.outputs,
+  failedNodeIds: e.failedNodeIds ?? [],
+  skippedNodeIds: e.skippedNodeIds ?? [],
+  lastError: runDoneError(e),
+});
+
 const newerFailures = (lastRun: LastRun | null) =>
   Object.entries(lastRun?.failures ?? {}).filter(
     ([id, f]) => f.at > (lastRun?.nodes[id]?.finishedAt ?? 0),
@@ -96,29 +124,11 @@ export const useRunStore = create<RunState>()((set) => ({
         case "run:start":
           return { ...applyRunEvent(s, e), ...freshRun(true) };
         case "node:log":
-          return {
-            logs: withLine(
-              s.logs,
-              logLine({ at: e.at, level: e.level, nodeId: e.nodeId, message: e.message }),
-            ),
-          };
+          return { logs: withLine(s.logs, logLine(e)) };
         case "node:error":
-          return {
-            ...applyRunEvent(s, e),
-            logs: withLine(
-              s.logs,
-              logLine({ at: Date.now(), level: "error", nodeId: e.nodeId, message: e.message }),
-            ),
-          };
+          return { ...applyRunEvent(s, e), logs: withLine(s.logs, errorLine(e)) };
         case "run:done":
-          return {
-            runId: e.runId,
-            running: false,
-            outputs: e.outputs,
-            failedNodeIds: e.failedNodeIds ?? [],
-            skippedNodeIds: e.skippedNodeIds ?? [],
-            lastError: runDoneError(e),
-          };
+          return finishedRun(e);
         default:
           return applyRunEvent(s, e);
       }
@@ -127,7 +137,7 @@ export const useRunStore = create<RunState>()((set) => ({
   clearLogs: () => set({ logs: [] }),
 }));
 
-export const RUN_SYNC_KEYS = [
+const RUN_SYNC_KEYS = [
   "runId",
   "running",
   "statuses",

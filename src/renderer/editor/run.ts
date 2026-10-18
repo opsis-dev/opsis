@@ -24,6 +24,6 @@ export async function startRun(opts: RunTargets = {}): Promise<void> {
   try {
     await beginRun(opts);
   } catch (e) {
-    reportError("Could not start the run", e);
+    reportError("Couldn't start the run", e);
   }
 }

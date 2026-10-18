@@ -3,14 +3,6 @@ import { CheckCircle2, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/renderer/components/ui/card";
 import { Progress } from "@/renderer/components/ui/progress";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import type { EngineInstallEvent } from "@/shared/engine";
@@ -19,6 +11,7 @@ import { wholePercent } from "@/shared/format";
 import { useEnvironment, useFreshEnvironment } from "../store/environment";
 import { PageBar } from "./app-bar";
 import { AnimatedPercent } from "./motion";
+import { SettingsCard } from "./settings/settings-card";
 import { skipSetup } from "./startup-flags";
 
 function useEngineInstall() {
@@ -52,7 +45,7 @@ function EngineProgress({
   error: string | null;
 }) {
   return (
-    <CardContent className="flex flex-col gap-2">
+    <>
       {!error && event?.progress != null ? (
         <div key={`${event.part}|${event.step}`} className="flex items-center gap-2">
           <Progress className="flex-1" value={wholePercent(event.progress)} />
@@ -65,7 +58,7 @@ function EngineProgress({
       <p className={error ? "text-destructive text-xs" : "text-muted-foreground text-xs"}>
         {error ?? event?.message ?? "Starting…"}
       </p>
-    </CardContent>
+    </>
   );
 }
 
@@ -100,37 +93,34 @@ export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void;
   const bundled = env?.edition === "full";
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {title}
-          <EngineBadges ready={ready} bundled={bundled} edition={env?.edition} />
-        </CardTitle>
-        <CardDescription>
-          The recording browser and video tools Demoflow uses to record takes and export videos.
-          Editing and preview work without them.
-        </CardDescription>
-      </CardHeader>
+    <SettingsCard
+      title={title}
+      badges={<EngineBadges ready={ready} bundled={bundled} edition={env?.edition} />}
+      description="The recording browser and video tools Demoflow uses to record takes and export videos. Editing and preview work without them."
+      contentClassName="flex flex-col gap-2"
+      footer={
+        <>
+          {bundled ? null : (
+            <Button
+              size="sm"
+              variant={ready ? "outline" : "default"}
+              disabled={busy}
+              onClick={() => void install()}
+            >
+              {busy ? <Spinner data-icon="inline-start" /> : <Download data-icon="inline-start" />}
+              {ready ? "Set up again" : "Set up engine"}
+            </Button>
+          )}
+          {onDone ? (
+            <Button size="sm" variant="ghost" onClick={onDone}>
+              {ready ? "Continue" : "Skip for now"}
+            </Button>
+          ) : null}
+        </>
+      }
+    >
       {busy || error ? <EngineProgress event={event} error={error} /> : null}
-      <CardFooter className="gap-2">
-        {bundled ? null : (
-          <Button
-            size="sm"
-            variant={ready ? "outline" : "default"}
-            disabled={busy}
-            onClick={() => void install()}
-          >
-            {busy ? <Spinner data-icon="inline-start" /> : <Download data-icon="inline-start" />}
-            {ready ? "Set up again" : "Set up engine"}
-          </Button>
-        )}
-        {onDone ? (
-          <Button size="sm" variant="ghost" onClick={onDone}>
-            {ready ? "Continue" : "Skip for now"}
-          </Button>
-        ) : null}
-      </CardFooter>
-    </Card>
+    </SettingsCard>
   );
 }
 

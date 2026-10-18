@@ -17,3 +17,12 @@ export async function attempt(action: () => Promise<unknown>, failure?: string):
     else showError(error);
   }
 }
+
+export async function loadOrReport<T>(load: () => Promise<T>, failure: string): Promise<T | null> {
+  try {
+    return await load();
+  } catch (error) {
+    reportError(failure, error);
+    return null;
+  }
+}

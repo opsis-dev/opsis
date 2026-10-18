@@ -11,10 +11,16 @@ import { TEMPLATES } from "@/shared/templates";
 import { NodeIcon } from "../editor/node-icon";
 import { useFreshEnvironment } from "../store/environment";
 import { AppBar } from "./app-bar";
-import { dispatchMenuCommand, onMenuCommand } from "./menu-commands";
+import {
+  dispatchMenuCommand,
+  onMenuCommand,
+  projectActionOf,
+  type ProjectAction,
+} from "./menu-commands";
 import { commandLabel, commandShortcut } from "./menu-shortcuts";
 import { Stagger, StaggerItem } from "./motion";
 import { NewProjectDialog } from "./new-project-dialog";
+import { openEditor } from "./open-project";
 import { useLoaded } from "./use-loaded";
 
 const RECENT_LIMIT = 10;
@@ -26,8 +32,6 @@ const START_ACTIONS: Array<{ icon: LucideIcon; command: MenuCommand }> = [
   { icon: FolderOpen, command: "project:open" },
   { icon: Settings, command: "view:settings" },
 ];
-
-const ACTION_COMMANDS = { new: "project:new", open: "project:open" } as const;
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
@@ -145,18 +149,14 @@ function TemplateGrid({ onPick }: { onPick: (id: string) => void }) {
   );
 }
 
-type NewDialog = { template: string; fixed: boolean; session: number };
+type NewDialog = { template: string; fixed: boolean };
 
 function useProjectActions() {
   const navigate = useNavigate();
-  const [dialog, setDialog] = useState<NewDialog>({
-    template: DEFAULT_TEMPLATE,
-    fixed: false,
-    session: 0,
-  });
+  const [dialog, setDialog] = useState<NewDialog>({ template: DEFAULT_TEMPLATE, fixed: false });
   const [creating, setCreating] = useState(false);
 
-  const go = (dir: string) => void navigate({ to: "/editor", search: { dir } });
+  const go = (dir: string) => openEditor(navigate, dir);
 
   async function open(dir?: string) {
     const target = dir ?? (await window.demoflow.pickProjectDir());
@@ -164,11 +164,7 @@ function useProjectActions() {
   }
 
   const startNew = (template?: string) => {
-    setDialog((d) => ({
-      template: template ?? d.template,
-      fixed: template !== undefined,
-      session: d.session + 1,
-    }));
+    setDialog((d) => ({ template: template ?? d.template, fixed: template !== undefined }));
     setCreating(true);
   };
 
@@ -178,24 +174,31 @@ function useProjectActions() {
 function useProjectCommands(startNew: () => void, open: () => Promise<void>): void {
   const navigate = useNavigate();
   const { action } = useSearch({ from: "/" });
-  const run = useEffectEvent((command: MenuCommand) => {
-    if (command === "project:new") startNew();
-    if (command === "project:open") void open();
+  const run = useEffectEvent((next: ProjectAction) => {
+    if (next === "new") startNew();
+    else void open();
   });
 
-  useEffect(() => onMenuCommand((command) => run(command)), []);
+  useEffect(
+    () =>
+      onMenuCommand((command) => {
+        const next = projectActionOf(command);
+        if (next) run(next);
+      }),
+    [],
+  );
 
   useEffect(() => {
     if (!action) return;
     void navigate({ to: "/", search: {}, replace: true });
-    run(ACTION_COMMANDS[action]);
+    run(action);
   }, [action, navigate]);
 }
 
 export function Projects() {
   const recent = useLoaded(
     () => window.demoflow.listRecentProjects(),
-    "Could not read the recent projects",
+    "Couldn't read the recent projects",
   );
   const env = useFreshEnvironment();
   const { dialog, creating, setCreating, go, open, startNew } = useProjectActions();
@@ -219,7 +222,6 @@ export function Projects() {
             </div>
           </div>
           <NewProjectDialog
-            key={dialog.session}
             open={creating}
             onOpenChange={setCreating}
             template={dialog.template}

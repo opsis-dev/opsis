@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { DRAG_START_PX, usePointerDrag } from "@/renderer/lib/dom";
+import { DRAG_START_PX } from "@/renderer/lib/dom";
+import { usePointerDrag } from "@/renderer/lib/use-pointer-drag";
 import { cn } from "@/renderer/lib/utils";
 import { clamp01 } from "@/shared/math";
 import { parseNumberText } from "@/shared/text-input";
@@ -127,15 +128,10 @@ function useKnobDrag(
   gesture: Gesture<number>,
   disabled: boolean | undefined,
 ) {
-  const drag = useRef<{ y: number; from: number; started: boolean } | null>(null);
-  return usePointerDrag<HTMLButtonElement>({
-    onStart: (e) => {
-      if (disabled) return false;
-      drag.current = { y: e.clientY, from: fraction, started: false };
-    },
-    onMove: (e) => {
-      const d = drag.current;
-      if (!d) return;
+  return usePointerDrag<HTMLButtonElement, { y: number; from: number; started: boolean }>({
+    disabled,
+    start: (e) => ({ y: e.clientY, from: fraction, started: false }),
+    move: (e, d) => {
       const dy = d.y - e.clientY;
       if (!d.started) {
         if (Math.abs(dy) < DRAG_START_PX) return;
@@ -144,10 +140,8 @@ function useKnobDrag(
       }
       gesture.set(fractionToValue(range, d.from + dy / (e.shiftKey ? FINE_DRAG_PX : DRAG_PX)));
     },
-    onEnd: () => {
-      const d = drag.current;
-      drag.current = null;
-      if (d?.started) gesture.end();
+    end: (d) => {
+      if (d.started) gesture.end();
     },
   });
 }

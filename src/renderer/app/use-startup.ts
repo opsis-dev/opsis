@@ -4,6 +4,7 @@ import { reportError } from "@/renderer/lib/toast";
 import { loadedAppSettings } from "../store/app-settings";
 import { useEnvironment } from "../store/environment";
 import { dispatchMenuCommand } from "./menu-commands";
+import { openEditor } from "./open-project";
 import { isSetupSkipped, markStarted } from "./startup-flags";
 
 export function useStartup(): void {
@@ -21,11 +22,11 @@ export function useStartup(): void {
         if (!first) return;
         if (settings.app.onStart === "last-project") {
           const [last] = await window.demoflow.listRecentProjects();
-          if (last) void router.navigate({ to: "/editor", search: { dir: last.dir } });
+          if (last) openEditor(router.navigate, last.dir);
         } else if (settings.app.onStart === "new-project") {
           dispatchMenuCommand("project:new");
         }
       })
-      .catch((e: unknown) => reportError("Could not finish starting up", e));
+      .catch((e: unknown) => reportError("Couldn't finish starting up", e));
   }, [router]);
 }

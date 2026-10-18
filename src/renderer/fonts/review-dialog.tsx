@@ -55,7 +55,6 @@ export function ReviewDialog({
 
   return (
     <FontDialog
-      open
       onClose={close}
       title="Add fonts"
       description={

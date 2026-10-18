@@ -77,9 +77,7 @@ export const useUiStore = create<UiState>()((set) => ({
     }),
 }));
 
-export const SELECTION_KEYS = ["selectedIds", "activeIds", "pinnedSource"] as const;
-
-export const UI_LOCAL_KEYS = ["paletteOpen", "replayNodeId", "replayTab", "reveal"] as const;
+const SELECTION_KEYS = ["selectedIds", "activeIds", "pinnedSource"] as const;
 
 export type Selection = Pick<UiState, (typeof SELECTION_KEYS)[number]>;
 

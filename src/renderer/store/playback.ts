@@ -4,17 +4,13 @@ import { clamp } from "@/shared/math";
 import { pick } from "@/shared/pick";
 import { frameIn } from "@/shared/timeline/time";
 
-type PlayerController = {
-  seek: (frame: number) => void;
-  play: () => void;
-  pause: () => void;
-};
+type PlayerCalls = { seek: [frame: number]; play: []; pause: []; rate: [rate: number] };
 
-export type PlaybackCommand =
-  | { type: "seek"; frame: number }
-  | { type: "play" }
-  | { type: "pause" }
-  | { type: "rate"; rate: number };
+type Player = { [K in keyof PlayerCalls]: (...args: PlayerCalls[K]) => void };
+
+export type PlaybackCommand = {
+  [K in keyof PlayerCalls]: { call: K; args: PlayerCalls[K] };
+}[keyof PlayerCalls];
 
 type PlaybackState = {
   frame: number;
@@ -36,32 +32,22 @@ type PlaybackState = {
   clearRange: () => void;
 };
 
-let local: PlayerController | null = null;
+let local: Player | null = null;
 const remote = createForwarder<PlaybackCommand>();
 
-export function registerPlayer(controller: PlayerController | null): void {
-  local = controller;
+export function registerPlayer(controller: Omit<Player, "rate"> | null): void {
+  local = controller && { ...controller, rate: (rate) => usePlayback.setState({ rate }) };
   usePlayback.setState({ hasPlayer: !!controller });
 }
 
 export const forwardPlaybackTo = remote.to;
 
-export function runPlaybackCommand(command: PlaybackCommand): void {
-  if (!local) return;
-  switch (command.type) {
-    case "seek":
-      local.seek(command.frame);
-      break;
-    case "play":
-      local.play();
-      break;
-    case "pause":
-      local.pause();
-      break;
-    case "rate":
-      usePlayback.setState({ rate: command.rate });
-      break;
-  }
+function callPlayer<K extends keyof PlayerCalls>(player: Player, call: K, args: PlayerCalls[K]) {
+  player[call](...args);
+}
+
+export function runPlaybackCommand({ call, args }: PlaybackCommand): void {
+  if (local) callPlayer(local, call, args);
 }
 
 const dispatch = (command: PlaybackCommand) => {
@@ -70,11 +56,12 @@ const dispatch = (command: PlaybackCommand) => {
 };
 
 const MAX_SHUTTLE_RATE = 4;
+const SHUTTLE_RATE_STEP = 2;
 
 export const usePlayback = create<PlaybackState>()((set, get) => {
   const setRate = (rate: number) => {
     set({ rate });
-    dispatch({ type: "rate", rate });
+    dispatch({ call: "rate", args: [rate] });
   };
   return {
     frame: 0,
@@ -88,13 +75,13 @@ export const usePlayback = create<PlaybackState>()((set, get) => {
     seek: (frame) => {
       const f = frameIn(frame, get().durationInFrames);
       set({ frame: f });
-      dispatch({ type: "seek", frame: f });
+      dispatch({ call: "seek", args: [f] });
     },
     play: () => {
       if (get().rate !== 1) setRate(1);
-      dispatch({ type: "play" });
+      dispatch({ call: "play", args: [] });
     },
-    pause: () => dispatch({ type: "pause" }),
+    pause: () => dispatch({ call: "pause", args: [] }),
     toggle: () => (get().playing ? get().pause() : get().play()),
     step: (frames) => {
       get().pause();
@@ -108,9 +95,11 @@ export const usePlayback = create<PlaybackState>()((set, get) => {
         return;
       }
       const same = playing && Math.sign(rate) === direction;
-      const next = same ? clamp(rate * 2, -MAX_SHUTTLE_RATE, MAX_SHUTTLE_RATE) : direction;
+      const next = same
+        ? clamp(rate * SHUTTLE_RATE_STEP, -MAX_SHUTTLE_RATE, MAX_SHUTTLE_RATE)
+        : direction;
       setRate(next);
-      if (!playing) dispatch({ type: "play" });
+      if (!playing) dispatch({ call: "play", args: [] });
     },
     setIn: (inPoint) =>
       set((s) => ({
@@ -128,7 +117,7 @@ export const usePlayback = create<PlaybackState>()((set, get) => {
   };
 });
 
-export const PLAYBACK_SYNC_KEYS = [
+const PLAYBACK_SYNC_KEYS = [
   "frame",
   "playing",
   "rate",
@@ -137,8 +126,6 @@ export const PLAYBACK_SYNC_KEYS = [
   "inPoint",
   "outPoint",
 ] as const;
-
-export const PLAYBACK_LOCAL_KEYS = ["hasPlayer"] as const;
 
 export type PlaybackSnapshot = Pick<PlaybackState, (typeof PLAYBACK_SYNC_KEYS)[number]>;
 

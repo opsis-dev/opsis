@@ -1,4 +1,6 @@
+import type { NavigateFn } from "@tanstack/react-router";
 import { useEffect, useEffectEvent, useState } from "react";
+import { z } from "zod";
 import { reportError } from "@/renderer/lib/toast";
 import type { OpenProject } from "@/shared/ipc";
 import { whenSaved } from "../editor/save";
@@ -8,6 +10,11 @@ import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
+
+export const PROJECT_DIR_PARAM = z.coerce.string().default("");
+
+export const openEditor = (navigate: NavigateFn, dir: string): void =>
+  void navigate({ to: "/editor", search: { dir } });
 
 function openProjectIntoStores(p: OpenProject): void {
   loadViewState(p.dir);
@@ -27,7 +34,7 @@ export function useOpenProject(dir: string, onFailed: () => void): "opening" | "
   const [failedDir, setFailedDir] = useState<string | null>(null);
   const fail = useEffectEvent((failed: string, e: unknown) => {
     setFailedDir(failed);
-    reportError("Could not open the project", e);
+    reportError("Couldn't open the project", e);
     onFailed();
   });
 

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Input } from "@/renderer/components/ui/input";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
-import { Spinner } from "@/renderer/components/ui/spinner";
 import { FontDialog } from "./font-dialog";
 
 const MAX_LISTED = 100;
@@ -11,17 +10,7 @@ export function matchesQuery(query: string, ...texts: string[]): boolean {
   return !q || texts.some((text) => text.toLowerCase().includes(q));
 }
 
-export function BusyCount({ busy, children }: { busy: boolean; children: ReactNode }) {
-  return (
-    <span className="text-muted-foreground flex items-center gap-2 text-xs">
-      {busy ? <Spinner /> : null}
-      {children}
-    </span>
-  );
-}
-
 export function SearchListDialog<T>({
-  open,
   onClose,
   title,
   description,
@@ -33,7 +22,6 @@ export function SearchListDialog<T>({
   footer,
   children,
 }: {
-  open: boolean;
   onClose: () => void;
   title: string;
   description: ReactNode;
@@ -46,13 +34,7 @@ export function SearchListDialog<T>({
   children: (item: T) => ReactNode;
 }) {
   return (
-    <FontDialog
-      open={open}
-      onClose={onClose}
-      title={title}
-      description={description}
-      footer={footer}
-    >
+    <FontDialog onClose={onClose} title={title} description={description} footer={footer}>
       <Input
         placeholder={placeholder}
         value={query}

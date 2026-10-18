@@ -11,6 +11,7 @@ import {
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
+import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { platform } from "@/renderer/lib/platform";
 import { useBusy } from "@/renderer/lib/use-busy";
 import { joinFolder, projectFolderName } from "@/shared/project-folder";
@@ -19,6 +20,8 @@ import { FolderField } from "./folder-field";
 import { useProjectLocations } from "./use-loaded";
 
 type Template = (typeof TEMPLATES)[number];
+
+const TEMPLATE_IDS = TEMPLATES.map((t) => t.id);
 
 const DEFAULT_PROJECT_NAME = "My launch video";
 
@@ -59,7 +62,7 @@ function TemplateField({
           orientation="vertical"
           variant="outline"
           value={[value]}
-          onValueChange={(v) => v[0] && onChange(v[0])}
+          onValueChange={whenFirstOneOf(TEMPLATE_IDS, onChange)}
           className="w-full"
         >
           {TEMPLATES.map((t) => (
@@ -88,18 +91,17 @@ function useNewProject(initialTemplate: string, onCreated: (dir: string) => void
   const { isBusy, run } = useBusy();
   const locations = useProjectLocations();
   const location = typedLocation ?? locations?.suggestedDir ?? "";
-  const folder = location.trim()
-    ? joinFolder(location.trim(), projectFolderName(name), platform)
-    : "";
+  const dir = location.trim();
+  const folder = dir ? joinFolder(dir, projectFolderName(name), platform) : "";
 
   const create = () =>
     run(
       "create",
       async () => {
-        const p = await window.demoflow.createProject({ name, template, dir: location.trim() });
+        const p = await window.demoflow.createProject({ name, template, dir });
         if (p) onCreated(p.dir);
       },
-      "Could not create the project",
+      "Couldn't create the project",
     );
 
   return {
@@ -110,27 +112,80 @@ function useNewProject(initialTemplate: string, onCreated: (dir: string) => void
     location,
     setTypedLocation,
     folder,
-    busy: isBusy,
+    ready: name.trim() !== "" && dir !== "" && !isBusy,
     create,
   };
+}
+
+type FormProps = {
+  template: string;
+  fixedTemplate: boolean;
+  onCreated: (dir: string) => void;
+  onCancel: () => void;
+};
+
+function NewProjectForm({
+  template: initialTemplate,
+  fixedTemplate,
+  onCreated,
+  onCancel,
+}: FormProps) {
+  const {
+    name,
+    setName,
+    template,
+    setTemplate,
+    location,
+    setTypedLocation,
+    folder,
+    ready,
+    create,
+  } = useNewProject(initialTemplate, onCreated);
+
+  return (
+    <>
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="project-name">Name</FieldLabel>
+          <Input
+            id="project-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="project-location">Location</FieldLabel>
+          <FolderField
+            id="project-location"
+            value={location}
+            title="Choose where to create the project"
+            onChange={setTypedLocation}
+            onPicked={setTypedLocation}
+          />
+          <FieldDescription className="break-all">
+            {folder ? `Creates ${folder}` : "Choose where the project folder goes."}
+          </FieldDescription>
+        </Field>
+        <TemplateField value={template} onChange={setTemplate} fixed={fixedTemplate} />
+      </FieldGroup>
+      <DialogFooter>
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button onClick={() => void create()} disabled={!ready}>
+          Create
+        </Button>
+      </DialogFooter>
+    </>
+  );
 }
 
 export function NewProjectDialog({
   open,
   onOpenChange,
-  template: initialTemplate,
-  fixedTemplate,
-  onCreated,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  template: string;
-  fixedTemplate: boolean;
-  onCreated: (dir: string) => void;
-}) {
-  const { name, setName, template, setTemplate, location, setTypedLocation, folder, busy, create } =
-    useNewProject(initialTemplate, onCreated);
-
+  ...form
+}: Omit<FormProps, "onCancel"> & { open: boolean; onOpenChange: (open: boolean) => void }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -140,39 +195,7 @@ export function NewProjectDialog({
             Each project is a folder with your flow, files and finished videos.
           </DialogDescription>
         </DialogHeader>
-        <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="project-name">Name</FieldLabel>
-            <Input
-              id="project-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="project-location">Location</FieldLabel>
-            <FolderField
-              id="project-location"
-              value={location}
-              title="Choose where to create the project"
-              onChange={setTypedLocation}
-              onPicked={setTypedLocation}
-            />
-            <FieldDescription className="break-all">
-              {folder ? `Creates ${folder}` : "Choose where the project folder goes."}
-            </FieldDescription>
-          </Field>
-          <TemplateField value={template} onChange={setTemplate} fixed={fixedTemplate} />
-        </FieldGroup>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={() => void create()} disabled={!name.trim() || !location.trim() || busy}>
-            Create
-          </Button>
-        </DialogFooter>
+        <NewProjectForm {...form} onCancel={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
   );

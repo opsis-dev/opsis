@@ -1,4 +1,5 @@
-import { fractionIn, usePointerDrag } from "@/renderer/lib/dom";
+import { fractionIn } from "@/renderer/lib/dom";
+import { usePointerDrag } from "@/renderer/lib/use-pointer-drag";
 import { percent } from "@/shared/format";
 import { clamp } from "@/shared/math";
 import { MAX_DB, MIN_DB } from "@/shared/mix/types";
@@ -26,13 +27,13 @@ export function Fader({
   gesture: Gesture<number>;
   label: string;
 }) {
-  const drag = usePointerDrag<HTMLDivElement>({
-    onStart: (e) => {
+  const drag = usePointerDrag<HTMLDivElement, void>({
+    start: (e) => {
       gesture.begin();
       gesture.set(valueAt(e.currentTarget, e.clientY));
     },
-    onMove: (e) => gesture.set(valueAt(e.currentTarget, e.clientY)),
-    onEnd: gesture.end,
+    move: (e) => gesture.set(valueAt(e.currentTarget, e.clientY)),
+    end: gesture.end,
   });
   return (
     <div

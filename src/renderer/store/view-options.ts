@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { isBoolean, isOneOf } from "@/shared/guards";
 import { VARIANTS } from "@/shared/nodes/output";
+import { pick } from "@/shared/pick";
 import { PREVIEW_QUALITIES, type PreviewQuality } from "@/shared/schema/timeline";
 import { readPref, writePref } from "./view-prefs";
 
@@ -16,21 +17,11 @@ type ViewOptions = {
   minimap: boolean;
 };
 
-type Persisted<T> = { fallback: T; valid: (v: unknown) => v is T };
-
-const PERSISTED: { [K in keyof ViewOptions]: Persisted<ViewOptions[K]> } = {
-  previewQuality: { fallback: "fast", valid: isPreviewQuality },
-  previewShape: { fallback: "project", valid: isPreviewShape },
-  minimap: { fallback: true, valid: isBoolean },
-};
-
-const VIEW_OPTION_KEYS = Object.keys(PERSISTED) as Array<keyof ViewOptions>;
-
-const stored = <K extends keyof ViewOptions>(key: K): ViewOptions[K] =>
-  readPref(key, PERSISTED[key].fallback, PERSISTED[key].valid);
-
-export const storedViewOptions = (): ViewOptions =>
-  Object.fromEntries(VIEW_OPTION_KEYS.map((key) => [key, stored(key)])) as ViewOptions;
+export const storedViewOptions = (): ViewOptions => ({
+  previewQuality: readPref("previewQuality", "fast", isPreviewQuality),
+  previewShape: readPref("previewShape", "project", isPreviewShape),
+  minimap: readPref("minimap", true, isBoolean),
+});
 
 type ViewOptionsState = ViewOptions & {
   setViewOption: <K extends keyof ViewOptions>(key: K, value: ViewOptions[K]) => void;
@@ -39,9 +30,13 @@ type ViewOptionsState = ViewOptions & {
 export const useViewOptions = create<ViewOptionsState>()((set) => ({
   ...storedViewOptions(),
   setViewOption: (key, value) => {
-    const patch: Partial<ViewOptions> = {};
-    patch[key] = value;
-    set(patch);
+    set((s) => ({ ...s, [key]: value }));
     writePref(key, value);
   },
 }));
+
+const SYNCED_VIEW_OPTIONS = ["previewQuality", "previewShape"] as const;
+
+export type SyncedView = Pick<ViewOptions, (typeof SYNCED_VIEW_OPTIONS)[number]>;
+
+export const syncedView = (): SyncedView => pick(useViewOptions.getState(), SYNCED_VIEW_OPTIONS);

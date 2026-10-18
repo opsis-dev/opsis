@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { create } from "zustand";
-import { reportError } from "@/renderer/lib/toast";
+import { loadOrReport } from "@/renderer/lib/toast";
 import type { EnvStatus } from "@/shared/ipc";
 
 type EnvironmentState = {
@@ -11,14 +11,12 @@ type EnvironmentState = {
 export const useEnvironment = create<EnvironmentState>()((set) => ({
   env: null,
   refresh: async () => {
-    try {
-      const env = await window.demoflow.getEnvironment();
-      set({ env });
-      return env;
-    } catch (e) {
-      reportError("Could not read the engine status", e);
-      return null;
-    }
+    const env = await loadOrReport(
+      () => window.demoflow.getEnvironment(),
+      "Couldn't read the engine status",
+    );
+    if (env) set({ env });
+    return env;
   },
 }));
 

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { Spinner } from "@/renderer/components/ui/spinner";
-import { useOpenProject } from "../app/open-project";
+import { LoadingPanel } from "../app/empty-panel";
+import { PROJECT_DIR_PARAM, useOpenProject } from "../app/open-project";
 import { Editor } from "../editor/editor";
 
 function EditorRoute() {
@@ -9,17 +9,12 @@ function EditorRoute() {
   const navigate = useNavigate();
   const status = useOpenProject(dir, () => void navigate({ to: "/" }));
 
-  if (status !== "open") {
-    return (
-      <div className="grid h-screen place-items-center">
-        {status === "failed" ? null : <Spinner />}
-      </div>
-    );
-  }
+  if (status === "failed") return null;
+  if (status === "opening") return <LoadingPanel className="h-screen" />;
   return <Editor key={dir} projectDir={dir} />;
 }
 
 export const Route = createFileRoute("/editor")({
-  validateSearch: z.object({ dir: z.coerce.string().default("") }),
+  validateSearch: z.object({ dir: PROJECT_DIR_PARAM }),
   component: EditorRoute,
 });

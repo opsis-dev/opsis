@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { reportError } from "@/renderer/lib/toast";
+import { loadOrReport } from "@/renderer/lib/toast";
 import type { ApiStatus } from "@/shared/ipc";
 import {
   DEFAULT_SETTINGS,
@@ -18,11 +18,18 @@ export const useAppSettings = create<AppSettingsState>()(() => ({ settings: null
 export const liveAutoOpen = () =>
   (useAppSettings.getState().settings ?? DEFAULT_SETTINGS).live.autoOpen;
 
-const reloadSettings = () =>
-  window.demoflow
-    .getSettings()
-    .then((settings) => useAppSettings.setState({ settings }))
-    .catch((e: unknown) => reportError("Could not read the settings", e));
+async function reloadSettings(): Promise<void> {
+  const settings = await loadOrReport(
+    () => window.demoflow.getSettings(),
+    "Couldn't read the settings",
+  );
+  if (settings) useAppSettings.setState({ settings });
+}
+
+async function reloadApiStatus(): Promise<void> {
+  const api = await loadOrReport(() => window.demoflow.apiStatus(), "Couldn't read the API status");
+  if (api) useAppSettings.setState({ api });
+}
 
 export function loadedAppSettings(): Promise<AppSettings> {
   const current = useAppSettings.getState().settings;
@@ -42,10 +49,7 @@ export function watchAppSettings(): void {
   if (started) return;
   started = true;
   void reloadSettings();
-  void window.demoflow.apiStatus().then(
-    (api) => useAppSettings.setState({ api }),
-    (e: unknown) => reportError("Could not read the API status", e),
-  );
+  void reloadApiStatus();
   window.demoflow.onSettingsChanged((settings) => useAppSettings.setState({ settings }));
   window.demoflow.onApiStatus((api) => useAppSettings.setState({ api }));
 }

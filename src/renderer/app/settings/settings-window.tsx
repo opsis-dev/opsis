@@ -11,7 +11,7 @@ import {
   Video,
   type LucideIcon,
 } from "lucide-react";
-import { useCallback, useEffect, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import {
   Sidebar,
@@ -31,9 +31,13 @@ import { useAppSettings } from "../../store/app-settings";
 import { AppBar } from "../app-bar";
 import { onMenuCommand } from "../menu-commands";
 import { EnginePanel } from "../setup";
+import { AboutPage } from "./about-page";
 import { ApiPage } from "./api-page";
+import { ExportPage } from "./export-page";
+import { GeneralPage } from "./general-page";
 import { LicencesPage } from "./licences-page";
-import { AboutPage, ExportPage, GeneralPage, ProjectsPage, RecordingPage } from "./pages";
+import { ProjectsPage } from "./projects-page";
+import { RecordingPage } from "./recording-page";
 
 type PageInfo = {
   label: string;
@@ -47,13 +51,13 @@ const PAGES: Record<SettingsPage, PageInfo> = {
     label: "General",
     icon: SlidersHorizontal,
     description: "What Demoflow does when it opens and before it closes.",
-    render: (settings) => <GeneralPage settings={settings} />,
+    render: (settings) => <GeneralPage app={settings.app} />,
   },
   projects: {
     label: "Projects",
     icon: FolderKanban,
     description: "Where new projects go.",
-    render: (settings) => <ProjectsPage settings={settings} />,
+    render: (settings) => <ProjectsPage projects={settings.projects} />,
   },
   engine: {
     label: "Engine",
@@ -65,7 +69,7 @@ const PAGES: Record<SettingsPage, PageInfo> = {
     label: "Recording",
     icon: Video,
     description: "Traces of each take and the live view while a run is going.",
-    render: (settings) => <RecordingPage settings={settings} />,
+    render: (settings) => <RecordingPage traces={settings.traces} live={settings.live} />,
   },
   fonts: {
     label: "Fonts",
@@ -77,13 +81,13 @@ const PAGES: Record<SettingsPage, PageInfo> = {
     label: "Export licence",
     icon: Clapperboard,
     description: "The licence for exporting videos.",
-    render: (settings) => <ExportPage settings={settings} />,
+    render: (settings) => <ExportPage render={settings.render} />,
   },
   api: {
     label: "API",
     icon: Plug,
     description: "Let scripts and AI agents on this computer read, edit and run the open project.",
-    render: (settings) => <ApiPage settings={settings} />,
+    render: (settings) => <ApiPage api={settings.api} />,
   },
   licences: {
     label: "Licences",
@@ -104,11 +108,8 @@ export function SettingsWindow() {
   const { page } = useSearch({ from: "/settings" });
   const settings = useAppSettings((s) => s.settings);
   const meta = PAGES[page];
-  const showPage = useCallback(
-    (next: SettingsPage) =>
-      void navigate({ to: "/settings", search: { page: next }, replace: true }),
-    [navigate],
-  );
+  const showPage = (next: SettingsPage) =>
+    void navigate({ to: "/settings", search: { page: next }, replace: true });
 
   useEffect(() => window.demoflow.setTitle("Settings — Demoflow"), []);
 

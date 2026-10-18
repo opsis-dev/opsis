@@ -203,7 +203,7 @@ function VariablesMenu({
 
 const SURFACE = [
   "border-input min-w-0 rounded-lg border bg-transparent px-2.5 py-1 text-sm break-words whitespace-pre-wrap transition-colors outline-none",
-  "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 dark:bg-input/30",
+  "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
   "data-[empty=true]:before:text-muted-foreground data-[empty=true]:before:content-[attr(data-placeholder)]",
 ];
 

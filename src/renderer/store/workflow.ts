@@ -30,7 +30,6 @@ type WorkflowState = {
 type Actions = {
   load: (dir: string, workflow: Workflow, fileVersion?: string | null) => void;
   setFileVersion: (version: string | null) => void;
-  close: () => void;
   markSaved: (revision: number, fileVersion: string) => void;
   update: (fn: (wf: Workflow) => Workflow) => void;
   addNode: (type: string, position: { x: number; y: number }, params?: NodeParams) => string;
@@ -149,10 +148,6 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
         history().clear();
       },
       setFileVersion: (fileVersion) => set({ fileVersion }),
-      close: () => {
-        gestures.drop();
-        set({ ...opened(null, null), fileVersion: null });
-      },
       markSaved: (revision, fileVersion) => set({ savedRevision: revision, fileVersion }),
 
       update: (fn) => {
@@ -204,19 +199,10 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
         return id;
       },
 
-      updateParams: (id, patch) =>
-        get().update((wf) => ({
-          ...wf,
-          nodes: wf.nodes.map((n) =>
-            n.id === id ? { ...n, params: { ...n.params, ...patch } } : n,
-          ),
-        })),
+      updateParams: (id, patch) => get().update((wf) => edits.patchNodeParams(wf, id, patch)),
 
       setNodeMeta: (id, patch) =>
-        get().update((wf) => ({
-          ...wf,
-          nodes: wf.nodes.map((n) => (n.id === id ? { ...n, ...patch } : n)),
-        })),
+        get().update((wf) => edits.mapNode(wf, id, (n) => ({ ...n, ...patch }))),
 
       moveNodes: (positions) =>
         get().update((wf) => ({

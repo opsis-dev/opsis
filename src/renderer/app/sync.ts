@@ -5,9 +5,7 @@ import { randomId } from "@/shared/ids";
 import type { DockPanelName } from "@/shared/ipc";
 import type { LiveMessage } from "@/shared/live";
 import type { MenuCommand } from "@/shared/menu";
-import { pick } from "@/shared/pick";
 import type { RunEvent } from "@/shared/schema/events";
-import type { PreviewQuality } from "@/shared/schema/timeline";
 import type { Workflow } from "@/shared/schema/workflow";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
@@ -21,7 +19,7 @@ import {
 } from "../store/playback";
 import { runSnapshot, useRunStore, type RunSnapshot } from "../store/run";
 import { selection, useUiStore, type Selection } from "../store/ui";
-import { useViewOptions, type PreviewShape } from "../store/view-options";
+import { syncedView, useViewOptions, type SyncedView } from "../store/view-options";
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
 import { dispatchMenuCommand } from "./menu-commands";
 
@@ -37,16 +35,14 @@ type SyncMessage =
       ack: number;
       run: RunSnapshot;
       selection: Selection;
-      quality: PreviewQuality;
-      shape: PreviewShape;
+      view: SyncedView;
       playback: PlaybackSnapshot;
       host: boolean;
     }
   | { type: "workflow"; workflow: Workflow; ack: number }
   | { type: "run-event"; event: RunEvent }
   | { type: "selection"; selection: Selection; from: string }
-  | { type: "quality"; quality: PreviewQuality }
-  | { type: "shape"; shape: PreviewShape }
+  | { type: "view"; view: SyncedView }
   | { type: "edit"; edit: RemoteEdit; seq: number }
   | { type: "menu"; command: MenuCommand }
   | { type: "replay"; nodeId: string | null }
@@ -67,8 +63,7 @@ const SYNC_TYPES: Record<SyncMessage["type"], true> = {
   workflow: true,
   "run-event": true,
   selection: true,
-  quality: true,
-  shape: true,
+  view: true,
   edit: true,
   menu: true,
   replay: true,
@@ -125,20 +120,8 @@ const watchSelection = (post: Post, applying: Flag): (() => void) =>
     post({ type: "selection", selection: next, from: windowId }),
   );
 
-const SYNCED_VIEW_OPTIONS = ["previewQuality", "previewShape"] as const;
-
 const watchViewOptions = (post: Post, applying: Flag): (() => void) =>
-  watchChanges(
-    useViewOptions,
-    () => pick(useViewOptions.getState(), SYNCED_VIEW_OPTIONS),
-    applying,
-    (next, last) => {
-      if (next.previewQuality !== last.previewQuality)
-        post({ type: "quality", quality: next.previewQuality });
-      if (next.previewShape !== last.previewShape)
-        post({ type: "shape", shape: next.previewShape });
-    },
-  );
+  watchChanges(useViewOptions, syncedView, applying, (next) => post({ type: "view", view: next }));
 
 const sharedHandlers = (applying: Flag): Handlers => ({
   frame: (m) => {
@@ -155,9 +138,7 @@ const sharedHandlers = (applying: Flag): Handlers => ({
   selection: (m) => {
     if (m.from !== windowId) whileApplying(applying, () => useUiStore.setState(m.selection));
   },
-  quality: (m) =>
-    whileApplying(applying, () => useViewOptions.setState({ previewQuality: m.quality })),
-  shape: (m) => whileApplying(applying, () => useViewOptions.setState({ previewShape: m.shape })),
+  view: (m) => whileApplying(applying, () => useViewOptions.setState(m.view)),
 });
 
 function handle<T extends keyof MessageOf>(
@@ -168,13 +149,18 @@ function handle<T extends keyof MessageOf>(
   handlers[type]?.(message);
 }
 
-type SyncChannel = { post: Post; applying: Flag; close: () => void };
+type SyncChannel = {
+  post: Post;
+  applying: Flag;
+  on: (handlers: Handlers) => void;
+  close: () => void;
+};
 
-function openSyncChannel(handlers: (channel: Omit<SyncChannel, "close">) => Handlers): SyncChannel {
+function openSyncChannel(): SyncChannel {
   const bc = new BroadcastChannel(CHANNEL);
   const post: Post = (m) => bc.postMessage(m);
   const applying = { current: false };
-  const table = { ...sharedHandlers(applying), ...handlers({ post, applying }) };
+  const table = sharedHandlers(applying);
   forwardPlaybackTo((command) => post({ type: "playback", command }));
   const offs = [
     watchSelection(post, applying),
@@ -187,6 +173,7 @@ function openSyncChannel(handlers: (channel: Omit<SyncChannel, "close">) => Hand
   return {
     post,
     applying,
+    on: (handlers) => Object.assign(table, handlers),
     close: () => {
       for (const off of offs) off();
       forwardPlaybackTo(null);
@@ -212,7 +199,6 @@ function useLiveRelay(): void {
 function sendState(post: Post, ack: number): void {
   const { projectDir, workflow } = useWorkflowStore.getState();
   if (!projectDir || !workflow) return;
-  const { previewQuality, previewShape } = useViewOptions.getState();
   post({
     type: "state",
     projectDir,
@@ -220,8 +206,7 @@ function sendState(post: Post, ack: number): void {
     ack,
     run: runSnapshot(),
     selection: selection(),
-    quality: previewQuality,
-    shape: previewShape,
+    view: syncedView(),
     playback: playbackSnapshot(),
     host: usePlayback.getState().hasPlayer,
   });
@@ -247,15 +232,16 @@ export function useEditorSync(): void {
   useLiveRelay();
   useEffect(() => {
     let ack = 0;
-    const channel = openSyncChannel(({ post }) => ({
-      hello: () => sendState(post, ack),
+    const channel = openSyncChannel();
+    channel.on({
+      hello: () => sendState(channel.post, ack),
       edit: (m) => {
         ack = Math.max(ack, m.seq);
         applyRemoteEdit(m.edit);
       },
       menu: (m) => dispatchMenuCommand(m.command),
       replay: (m) => useUiStore.getState().setReplay(m.nodeId),
-    }));
+    });
     const offs = [
       watchWorkflow(channel.post, () => ack),
       window.demoflow.onRunEvent((event) => channel.post({ type: "run-event", event })),
@@ -275,7 +261,7 @@ function applyState(m: MessageOf["state"], applying: Flag): void {
   useRunStore.setState(m.run);
   whileApplying(applying, () => {
     useUiStore.setState(m.selection);
-    useViewOptions.setState({ previewQuality: m.quality, previewShape: m.shape });
+    useViewOptions.setState(m.view);
     if (!usePlayback.getState().hasPlayer) usePlayback.setState(m.playback);
   });
 }
@@ -285,14 +271,15 @@ export function usePanelSync(panel: DockPanelName, onClosed: () => void): void {
   const closed = useEffectEvent(onClosed);
   useEffect(() => {
     let seq = 0;
-    const channel = openSyncChannel(({ applying }) => ({
-      state: (m) => applyState(m, applying),
+    const channel = openSyncChannel();
+    channel.on({
+      state: (m) => applyState(m, channel.applying),
       workflow: (m) => {
         if (m.ack >= seq) useWorkflowStore.getState().mirrorSaved(m.workflow);
       },
       "run-event": (m) => useRunStore.getState().apply(m.event),
       "editor-closed": () => closed(),
-    }));
+    });
     mirrorEditsTo((edit) => channel.post({ type: "edit", edit, seq: ++seq }));
     channel.post({ type: "hello", panel });
     return () => {

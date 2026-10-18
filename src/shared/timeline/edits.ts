@@ -11,7 +11,7 @@ import { NO_TRANSITION } from "../nodes/transitions";
 import type { ParamRef } from "../schema/timeline";
 import type { EdgeEnds, PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
 import { formatNumberList, parseNumberList } from "../text-input";
-import { absPosition, removeNodes } from "../workflow-edits";
+import { absPosition, mapNode, patchNodeParams, removeNodes } from "../workflow-edits";
 import {
   findHandle,
   slotIndex,
@@ -77,12 +77,7 @@ function writeParam(wf: Workflow, ref: ParamAt, value: number): Workflow {
     parts[ref.index] = value;
     return formatNumberList(parts);
   };
-  return {
-    ...wf,
-    nodes: wf.nodes.map((n) =>
-      n.id === ref.nodeId ? { ...n, params: { ...n.params, [ref.param]: write(n) } } : n,
-    ),
-  };
+  return mapNode(wf, ref.nodeId, (n) => ({ ...n, params: { ...n.params, [ref.param]: write(n) } }));
 }
 
 function shiftParam(
@@ -463,11 +458,7 @@ function splitInSequence(
   });
   return {
     ...wf,
-    nodes: [
-      ...wf.nodes.map((n) => (n.id === container.id ? { ...n, params: { ...n.params, cuts } } : n)),
-      head,
-      tail,
-    ],
+    nodes: [...patchNodeParams(wf, container.id, { cuts }).nodes, head, tail],
     edges: [
       ...shifted.filter((e) => e.id !== edge.id),
       ...feeds,

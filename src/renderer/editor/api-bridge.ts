@@ -15,6 +15,7 @@ import { connectionProblem } from "@/shared/graph";
 import { edgeId, nodeIdFor } from "@/shared/ids";
 import { getNodeDef } from "@/shared/nodes/registry";
 import { workflowSettingsSchema, type Workflow, type WorkflowNode } from "@/shared/schema/workflow";
+import { mapNode } from "@/shared/workflow-edits";
 import { setEditorApi } from "../app/api-host";
 import { useRunStore } from "../store/run";
 import { newNodeParams, useWorkflowStore } from "../store/workflow";
@@ -92,10 +93,9 @@ const addNode: Handler<"addNode"> = (request, wf) => {
 
 const updateNode: Handler<"updateNode"> = (request, wf) => {
   if (!hasNode(wf, request.id)) return apiFailure(404, `There's no node “${request.id}”.`);
-  useWorkflowStore.getState().update((w) => ({
-    ...w,
-    nodes: w.nodes.map((n) => (n.id === request.id ? applyNodePatch(n, request) : n)),
-  }));
+  useWorkflowStore
+    .getState()
+    .update((w) => mapNode(w, request.id, (n) => applyNodePatch(n, request)));
   return edited();
 };
 

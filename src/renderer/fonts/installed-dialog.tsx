@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { Spinner } from "@/renderer/components/ui/spinner";
 import { useBusy } from "@/renderer/lib/use-busy";
 import { plural } from "@/shared/format";
 import type { FontInstalledFace, InspectedFonts } from "@/shared/ipc";
+import { ListRow } from "../editor/list-row";
 import { FontSample } from "./font-sample";
 import type { LocalFontData } from "./local-fonts";
-import { BusyCount, matchesQuery, SearchListDialog } from "./search-list-dialog";
+import { matchesQuery, SearchListDialog } from "./search-list-dialog";
 
 async function readFaces(faces: LocalFontData[]): Promise<FontInstalledFace[]> {
   const data: FontInstalledFace[] = [];
@@ -14,6 +16,15 @@ async function readFaces(faces: LocalFontData[]): Promise<FontInstalledFace[]> {
       data: await (await face.blob()).arrayBuffer(),
     });
   return data;
+}
+
+function BusyCount({ busy, children }: { busy: boolean; children: ReactNode }) {
+  return (
+    <span className="text-muted-foreground flex items-center gap-2 text-xs">
+      {busy ? <Spinner /> : null}
+      {children}
+    </span>
+  );
 }
 
 const groupByFamily = (fonts: LocalFontData[]): Array<[string, LocalFontData[]]> =>
@@ -40,7 +51,6 @@ export function InstalledDialog({
 
   return (
     <SearchListDialog
-      open
       onClose={onClose}
       title="Add an installed font"
       description={`${families.length} font families are installed on this computer. Pick one to copy into your library.`}
@@ -50,16 +60,15 @@ export function InstalledDialog({
       items={shown}
     >
       {([name, faces]) => (
-        <button
+        <ListRow
           key={name}
-          type="button"
-          className="hover:bg-muted flex items-center justify-between rounded-md px-2 py-1.5 text-left text-sm"
+          className="justify-between"
           disabled={isBusy}
           onClick={() => void pick(name, faces)}
         >
           <FontSample family={name}>{name}</FontSample>
           <BusyCount busy={busy === name}>{plural(faces.length, "style")}</BusyCount>
-        </button>
+        </ListRow>
       )}
     </SearchListDialog>
   );

@@ -9,14 +9,12 @@ import {
 } from "@/renderer/components/ui/dialog";
 
 export function FontDialog({
-  open,
   onClose,
   title,
   description,
   footer,
   children,
 }: {
-  open: boolean;
   onClose: () => void;
   title: string;
   description: ReactNode;
@@ -24,7 +22,7 @@ export function FontDialog({
   children: ReactNode;
 }) {
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

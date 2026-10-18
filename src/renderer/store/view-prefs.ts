@@ -3,7 +3,7 @@ import { tryParseJson } from "@/shared/guards";
 
 let project: string | null = null;
 
-const key = (name: string) => `demoflow.view:${project ?? "none"}:${name}`;
+const key = (name: string) => `demoflow:view:${project ?? "none"}:${name}`;
 
 export function setViewProject(dir: string | null): void {
   project = dir;

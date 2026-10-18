@@ -6,7 +6,7 @@ import {
   useTransform,
   type Variants,
 } from "motion/react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, type ComponentProps, type ReactNode } from "react";
 import { cn } from "@/renderer/lib/utils";
 import { percentText } from "@/shared/format";
 
@@ -74,31 +74,21 @@ export function StaggerItem({ children, className }: { children: ReactNode; clas
   );
 }
 
+type RippleCircle = Omit<
+  ComponentProps<typeof motion.circle>,
+  "r" | "opacity" | "initial" | "animate" | "transition"
+>;
+
 export function Ripple({
-  cx,
-  cy,
   from,
   to,
   opacity,
-  strokeWidth,
   seconds,
-  className,
-}: {
-  cx: number;
-  cy: number;
-  from: number;
-  to: number;
-  opacity: number;
-  strokeWidth: number;
-  seconds: number;
-  className?: string;
-}) {
+  ...circle
+}: RippleCircle & { from: number; to: number; opacity: number; seconds: number }) {
   return (
     <motion.circle
-      cx={cx}
-      cy={cy}
-      className={className}
-      strokeWidth={strokeWidth}
+      {...circle}
       initial={{ r: from, opacity }}
       animate={{ r: to, opacity: 0 }}
       transition={{ duration: seconds, ease: "linear" }}

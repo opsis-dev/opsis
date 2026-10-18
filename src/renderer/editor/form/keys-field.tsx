@@ -13,7 +13,7 @@ export function KeysField({ id, label, value, onChange, meta }: FieldProps<strin
         id={id}
         type="button"
         className={cn(
-          "border-input flex min-h-8 w-full items-center gap-1 rounded-lg border px-2.5 text-left text-sm outline-none dark:bg-input/30",
+          "border-input flex min-h-8 w-full items-center gap-1 rounded-lg border px-2.5 text-left text-sm outline-none",
           "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
         )}
         onFocus={() => setListening(true)}

@@ -18,6 +18,18 @@ type Point = { x: number; y: number };
 type Size = { width: number; height: number };
 
 export const GROUP_PAD = 40;
+
+export const mapNode = (
+  wf: Workflow,
+  id: string,
+  change: (node: WorkflowNode) => WorkflowNode,
+): Workflow => ({ ...wf, nodes: wf.nodes.map((n) => (n.id === id ? change(n) : n)) });
+
+export const patchNodeParams = (
+  wf: Workflow,
+  id: string,
+  patch: Record<string, unknown>,
+): Workflow => mapNode(wf, id, (n) => ({ ...n, params: { ...n.params, ...patch } }));
 export const GROUP_TITLE_HEIGHT = 24;
 
 export function absPosition(wf: Workflow, node: WorkflowNode): Point {

@@ -3,12 +3,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/renderer/components/ui/empty";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
-import { Spinner } from "@/renderer/components/ui/spinner";
 import { cn } from "@/renderer/lib/utils";
 import { errorMessage } from "@/shared/errors";
 import { formatPreciseDuration } from "@/shared/format";
 import { findById } from "@/shared/lists";
 import { frameAt, type TraceAction, type TraceModel } from "@/shared/trace";
+import { LoadingPanel } from "../app/empty-panel";
 import { OptionToggle } from "../app/option-toggle";
 import { useUiStore } from "../store/ui";
 import { fileUrl } from "./file-url";
@@ -221,11 +221,6 @@ export function TracePanel({ projectDir, traceId }: { projectDir: string; traceI
         </EmptyHeader>
       </Empty>
     );
-  if (!trace)
-    return (
-      <div className="grid h-full place-items-center">
-        <Spinner />
-      </div>
-    );
+  if (!trace) return <LoadingPanel />;
   return <TraceDetails trace={trace} />;
 }

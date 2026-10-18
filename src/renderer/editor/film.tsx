@@ -49,10 +49,10 @@ function useFilmState(): Film {
     [spec, flat, mix],
   );
   const sounding = plan !== null && hasSound(plan) ? plan : null;
-  const latest = useMedia((s) => s.latest[source]);
-  const result = useMedia((s) => (latest ? (s.mixes[latest] ?? null) : null));
-  const mixing = useMedia((s) => s.mixing !== null);
-  const failedKey = useMedia((s) => s.failedKey);
+  const latest = useMedia((s) => s.mix.latest[source]);
+  const result = useMedia((s) => (latest ? (s.mix.results[latest] ?? null) : null));
+  const mixing = useMedia((s) => s.mix.pending !== null);
+  const failedKey = useMedia((s) => s.mix.failedKey);
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const current = !!sounding && result?.key === sounding.key;
   useEffect(() => {

@@ -3,10 +3,11 @@ import { PanelBottomClose } from "lucide-react";
 import { useEffect } from "react";
 import { z } from "zod";
 import { Button } from "@/renderer/components/ui/button";
-import { Spinner } from "@/renderer/components/ui/spinner";
 import { DOCK_TITLES, type DockPanelName } from "@/shared/ipc";
 import { AppBar } from "../app/app-bar";
+import { LoadingPanel } from "../app/empty-panel";
 import { onMenuCommand, PROJECT_SWITCH_COMMANDS } from "../app/menu-commands";
+import { PROJECT_DIR_PARAM } from "../app/open-project";
 import { forwardMenuCommand, usePanelSync } from "../app/sync";
 import { DockContent } from "../editor/dock";
 import { FilmProvider } from "../editor/film";
@@ -38,7 +39,7 @@ function PanelBody({ panel }: { panel: DockPanelName }) {
 function PanelRoute() {
   const { name: panel } = Route.useParams();
   const { project } = Route.useSearch();
-  const workflow = useWorkflowStore((s) => s.workflow);
+  const projectName = useWorkflowStore((s) => s.workflow?.name ?? null);
   usePanelSync(panel, close);
 
   useEffect(() => {
@@ -46,8 +47,9 @@ function PanelRoute() {
   }, [project]);
 
   useEffect(() => {
-    if (workflow) window.demoflow.setTitle(`${DOCK_TITLES[panel]} · ${workflow.name} — Demoflow`);
-  }, [panel, workflow]);
+    if (projectName !== null)
+      window.demoflow.setTitle(`${DOCK_TITLES[panel]} · ${projectName} — Demoflow`);
+  }, [panel, projectName]);
 
   useEffect(
     () =>
@@ -61,22 +63,16 @@ function PanelRoute() {
     <div className="flex h-screen flex-col">
       <AppBar>
         <span className="truncate font-semibold">{DOCK_TITLES[panel]}</span>
-        {workflow ? (
-          <span className="text-muted-foreground truncate text-sm">{workflow.name}</span>
-        ) : null}
+        {projectName === null ? null : (
+          <span className="text-muted-foreground truncate text-sm">{projectName}</span>
+        )}
         <div className="flex-1" />
         <Button variant="ghost" size="sm" onClick={close}>
           <PanelBottomClose data-icon="inline-start" />
           Back to the editor
         </Button>
       </AppBar>
-      {workflow ? (
-        <PanelBody panel={panel} />
-      ) : (
-        <div className="grid flex-1 place-items-center">
-          <Spinner />
-        </div>
-      )}
+      {projectName === null ? <LoadingPanel className="flex-1" /> : <PanelBody panel={panel} />}
     </div>
   );
 }
@@ -88,6 +84,6 @@ export const Route = createFileRoute("/panel/$name")({
       return { name };
     },
   },
-  validateSearch: z.object({ project: z.coerce.string().default("") }),
+  validateSearch: z.object({ project: PROJECT_DIR_PARAM }),
   component: PanelRoute,
 });
