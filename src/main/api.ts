@@ -1,11 +1,12 @@
-import { chmod, rm } from "node:fs/promises";
+import { chmod, lstat, rm } from "node:fs/promises";
 import { createServer, type Server } from "node:http";
 import { connect } from "node:net";
-import { userInfo } from "node:os";
+import { homedir, userInfo } from "node:os";
 import path from "node:path";
 import { app } from "electron";
-import { errorMessage } from "../shared/errors";
+import { errorCode, errorMessage } from "../shared/errors";
 import { IPC, type ApiStatus } from "../shared/ipc";
+import { API_SOCKET_ENV, apiAddress } from "./api-address";
 import { endRunEventStreams } from "./api-editor";
 import { handleApiRequest } from "./api-routes";
 import { broadcast } from "./app-windows";
@@ -15,16 +16,20 @@ const OWNER_ONLY_UMASK = 0o077;
 const OWNER_ONLY_MODE = 0o600;
 const USES_SOCKET_FILE = process.platform !== "win32";
 
-const apiAddress = () =>
-  USES_SOCKET_FILE
-    ? path.join(app.getPath("userData"), "api.sock")
-    : `\\\\.\\pipe\\demoflow-api-${userInfo().username}`;
+const resolveAddress = () =>
+  apiAddress({
+    platform: process.platform,
+    userData: app.getPath("userData"),
+    home: homedir(),
+    username: userInfo().username,
+    env: process.env,
+  });
 
 let server: Server | null = null;
 let status: ApiStatus | null = null;
 
 export const getApiStatus = (): ApiStatus =>
-  (status ??= { enabled: false, listening: false, address: apiAddress() });
+  (status ??= { enabled: false, listening: false, address: resolveAddress().address });
 
 function setStatus(next: ApiStatus): void {
   status = next;
@@ -43,7 +48,24 @@ function inUse(address: string): Promise<boolean> {
 }
 
 async function removeSocket(address: string): Promise<void> {
-  if (USES_SOCKET_FILE) await rm(address, { force: true });
+  if (!USES_SOCKET_FILE) return;
+  const stats = await lstat(address).catch(() => null);
+  if (stats?.isSocket()) await rm(address, { force: true });
+}
+
+function listenError(e: unknown, address: string): string {
+  if (!USES_SOCKET_FILE) return errorMessage(e);
+  const folder = path.dirname(address);
+  switch (errorCode(e)) {
+    case "ENOENT":
+      return `The folder ${folder} doesn't exist. Create it, or set ${API_SOCKET_ENV} to a path in a folder that does, and restart Demoflow.`;
+    case "EACCES":
+      return `Demoflow can't create files in ${folder}. Set ${API_SOCKET_ENV} to a path in a folder you own, and restart Demoflow.`;
+    case "EADDRINUSE":
+      return `A file that isn't Demoflow's API is already at ${address}. Move it, or set ${API_SOCKET_ENV} to another path, and restart Demoflow.`;
+    default:
+      return errorMessage(e);
+  }
 }
 
 function listenOwnerOnly(next: Server, address: string): Promise<void> {
@@ -62,13 +84,17 @@ function listenOwnerOnly(next: Server, address: string): Promise<void> {
 }
 
 async function setApiEnabled(enabled: boolean): Promise<void> {
-  const address = apiAddress();
+  const { address, error } = resolveAddress();
   if (!enabled) {
     await stopApi();
     setStatus({ enabled: false, listening: false, address });
     return;
   }
   if (server) return;
+  if (error) {
+    setStatus({ enabled: true, listening: false, address, error });
+    return;
+  }
   if (await inUse(address)) {
     setStatus({
       enabled: true,
@@ -91,7 +117,7 @@ async function setApiEnabled(enabled: boolean): Promise<void> {
       enabled: true,
       listening: false,
       address,
-      error: errorMessage(e),
+      error: listenError(e, address),
     });
   }
 }
@@ -111,5 +137,5 @@ export async function stopApi(): Promise<void> {
   const closed = new Promise<void>((resolve) => current.close(() => resolve()));
   current.closeAllConnections();
   await closed;
-  await removeSocket(apiAddress());
+  await removeSocket(resolveAddress().address);
 }
