@@ -3,6 +3,10 @@ export const EPSILON = 1e-6;
 export const clamp = (value: number, lo: number, hi: number): number =>
   Math.min(hi, Math.max(lo, value));
 
+export type MinMax = { min: number; max: number };
+
+export type StepRange = MinMax & { step: number };
+
 export function sum(values: Iterable<number>): number {
   let total = 0;
   for (const value of values) total += value;

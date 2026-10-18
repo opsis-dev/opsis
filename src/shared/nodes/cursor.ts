@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { patchRecordings } from "../compile/clip";
-import type { AnnotationKind, AnnotationSpec } from "../compile/recording";
+import type { AnnotationKind, AnnotationSpec, KeystrokePosition } from "../compile/recording";
 import { LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
 import { defineNode, modifierBase, withClip, type NodeCategory, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
@@ -8,7 +8,10 @@ import { bool, choiceOf, int, more, ms, num, text } from "./params";
 
 const base = modifierBase("Cursor");
 
-const CHIP_POSITIONS = { bottom: "Bottom", top: "Top" };
+const CHIP_POSITIONS: Record<KeystrokePosition, string> = {
+  bottom: "Bottom",
+  top: "Top",
+};
 
 const cursorStyleNode = defineNode({
   ...base,

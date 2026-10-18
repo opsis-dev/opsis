@@ -112,7 +112,7 @@ export function RunNodeList({ nodes, filter }: { nodes: WorkflowNode[]; filter: 
     () => nodes.filter((n) => statuses[n.id] || errors[n.id] || results[n.id]?.artifacts.length),
     [nodes, statuses, errors, results],
   );
-  const nameOf = (id: string) => nodeNameById({ nodes }, id, "A deleted node");
+  const nameOf = (id: string) => nodeNameById(nodes, id, "A deleted node");
 
   return (
     <ScrollArea className="h-full">

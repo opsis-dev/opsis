@@ -109,10 +109,7 @@ export function guardClose(win: BrowserWindow): void {
   });
 }
 
-export function interceptQuit(
-  event: { preventDefault: () => void },
-  win: BrowserWindow | null,
-): void {
+export function interceptQuit(event: Electron.Event, win: BrowserWindow | null): void {
   if (allowClose || !win || win.isDestroyed()) return;
   event.preventDefault();
   quitting = true;

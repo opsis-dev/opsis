@@ -1,3 +1,4 @@
+import { MINUS, signedText } from "@/shared/format";
 import { MIN_DB, SILENCE_DB } from "@/shared/mix/types";
 
 const WHOLE_MS_FROM = 100;
@@ -5,17 +6,16 @@ const KILOHERTZ_FROM = 1000;
 const WHOLE_KILOHERTZ_FROM = 10_000;
 const CENTRE_PAN = 0.01;
 
-export const formatSignedDb = (v: number): string => {
-  const text = Math.abs(v).toFixed(1);
-  return Number(text) === 0 ? text : `${v > 0 ? "+" : "−"}${text}`;
-};
+const MINUS_INFINITY = `${MINUS}∞`;
 
-const dbAbove = (floor: number, v: number): string =>
-  Number.isNaN(v) || v <= floor ? "−∞" : formatSignedDb(v);
+export const formatSignedDb = (v: number): string => signedText(v, { digits: 1, plus: true });
 
-export const formatDb = (v: number): string => dbAbove(MIN_DB, v);
+export const formatReading = (v: number, floor = -Infinity, plus = false): string =>
+  Number.isNaN(v) || v <= floor ? MINUS_INFINITY : signedText(v, { digits: 1, plus });
 
-export const formatLevelDb = (v: number): string => dbAbove(SILENCE_DB, v);
+export const formatDb = (v: number): string => formatReading(v, MIN_DB, true);
+
+export const formatLevelDb = (v: number): string => formatReading(v, SILENCE_DB, true);
 
 export const formatHz = (v: number): string =>
   v >= KILOHERTZ_FROM

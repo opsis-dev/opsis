@@ -1,5 +1,6 @@
 import { isExternalRef } from "../../../shared/asset-ref";
 import { BACKDROP_TONES, DEFAULT_BACKDROP, type BackdropName } from "../../../shared/backdrops";
+import { isKeyOf, nonBlankString } from "../../../shared/guards";
 
 const LIGHT_LUMA = 0.6;
 const HEX_COLOUR = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -26,18 +27,17 @@ function luma(colour: string): number | null {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-const isBackdropName = (value: string): value is BackdropName =>
-  Object.hasOwn(BACKDROP_TONES, value);
+const isBackdropName = (value: string): value is BackdropName => isKeyOf(BACKDROP_TONES, value);
 
 export function isLightBackdrop(backdrop?: string): boolean {
-  const value = backdrop?.trim() ?? "";
+  const value = nonBlankString(backdrop) ?? "";
   return isBackdropName(value)
     ? BACKDROP_TONES[value] === "light"
     : (luma(value) ?? 0) > LIGHT_LUMA;
 }
 
 function backdropFile(name?: string): string {
-  const file = name?.trim() || DEFAULT_BACKDROP;
+  const file = nonBlankString(name) ?? DEFAULT_BACKDROP;
   return file.includes(".") ? `backdrops/${file}` : `backdrops/${file}.jpg`;
 }
 
@@ -47,7 +47,7 @@ type BackdropSource =
   | { kind: "file"; path: string };
 
 export function backdropSource(backdrop?: string): BackdropSource {
-  const value = backdrop?.trim() ?? "";
+  const value = nonBlankString(backdrop) ?? "";
   if (CSS_PAINT.test(value)) return { kind: "paint", css: value };
   if (isExternalRef(value)) return { kind: "image", url: value };
   return { kind: "file", path: backdropFile(value) };

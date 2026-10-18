@@ -20,7 +20,7 @@ export const LottieElement: React.FC<{
   fit?: LottieFit;
   background?: string;
 }> = ({ src, loop = true, speed = 1, backwards = false, fit = "contain", background }) => {
-  const loaded = useHeldLoad(`Loading animation ${src}`, src || null, () => loadAnimation(src));
+  const loaded = useHeldLoad(`Loading animation ${src}`, src || null, loadAnimation);
   const data = loaded?.key === src ? loaded.value : null;
   if (!src || !data) return null;
   return (

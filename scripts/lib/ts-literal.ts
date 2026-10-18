@@ -19,8 +19,8 @@ function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown
     const v = next(node.getOperand());
     return typeof v === "number" ? -v : undefined;
   }
-  if (node.getKind() === SyntaxKind.TrueKeyword) return true;
-  if (node.getKind() === SyntaxKind.FalseKeyword) return false;
+  if (Node.isTrueLiteral(node)) return true;
+  if (Node.isFalseLiteral(node)) return false;
   if (
     Node.isAsExpression(node) ||
     Node.isSatisfiesExpression(node) ||

@@ -1,6 +1,8 @@
 import { lookupKey } from "../hash";
 import type { AudioEnvelope, TimelineSpec } from "../schema/timeline";
 import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
+import { wholeFrames } from "../timeline/time";
+import { stripSettings } from "./edits";
 import {
   audibility,
   busOf,
@@ -11,7 +13,7 @@ import {
   type Audibility,
   type ChannelInfo,
 } from "./levels";
-import type { Bus, ChannelKind, Master, Mix, Strip } from "./types";
+import type { Bus, ChannelKind, Master, Mix, Strip, StripSettings } from "./types";
 
 export type SoundPlacement = {
   src: string;
@@ -60,7 +62,7 @@ function soundPlacements(flat: FlatTimeline): Map<string, SoundPlacement[]> {
       src: a.src,
       at: Math.round(a.from),
       offset: Math.max(0, Math.round(a.trimBefore)),
-      length: Math.max(1, Math.round(a.to - a.from)),
+      length: wholeFrames(a.to - a.from, 1),
       loop: a.loop,
       volume: a.volume,
       fadeIn: a.item?.fadeInFrames ?? 0,
@@ -127,13 +129,13 @@ export function buildMixPlan(
 export const hasSound = (plan: MixPlan) => plan.channels.some((c) => c.sounds.length > 0);
 
 type ChannelIdentity = Pick<MixPlan, "fps" | "durationInFrames"> &
-  Pick<ChannelPlan, "sounds" | "strip">;
+  Pick<ChannelPlan, "sounds"> & { strip: StripSettings };
 
 export function channelIdentity(plan: MixPlan, channel: ChannelPlan): ChannelIdentity {
   return {
     fps: plan.fps,
     durationInFrames: plan.durationInFrames,
     sounds: channel.sounds,
-    strip: { ...channel.strip, mute: false, solo: false, bus: undefined },
+    strip: stripSettings(channel.strip),
   };
 }

@@ -8,7 +8,7 @@ import {
   type UtilityProcess,
 } from "electron";
 import { resolveEngineDir } from "../engine/paths";
-import type { WorkerEnv, WorkerToMain } from "../shared/worker-protocol";
+import { isWorkerToMain, type WorkerEnv, type WorkerToMain } from "../shared/worker-protocol";
 import { readSettings } from "./settings";
 import {
   makeWorkerTemp,
@@ -63,5 +63,7 @@ export function spawnWorker(kind: WorkerKind, id: string = randomUUID()): Spawne
 }
 
 export function onWorkerMessage(port: MessagePortMain, handler: (msg: WorkerToMain) => void): void {
-  port.on("message", (e: { data: WorkerToMain }) => handler(e.data));
+  port.on("message", (e) => {
+    if (isWorkerToMain(e.data)) handler(e.data);
+  });
 }

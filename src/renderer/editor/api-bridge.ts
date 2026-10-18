@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { problemCheck, workflowProblems } from "@/shared/api/check";
-import type { ApiEdited } from "@/shared/api/types";
 import {
   apiFailure,
   apiOk,
+  type ApiEdited,
   type ApiEditorReply,
   type ApiEditorRequest,
   type ApiProjectState,

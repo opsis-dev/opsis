@@ -1,3 +1,4 @@
+import { listenerSet } from "@/shared/listener-set";
 import type { MenuCommand } from "@/shared/menu";
 
 type Listener = (command: MenuCommand) => void;
@@ -16,11 +17,11 @@ export const PROJECT_SWITCH_COMMANDS: ReadonlySet<MenuCommand> = new Set([
   ...PROJECT_ACTIONS.map(actionCommand),
 ]);
 
-const listeners = new Set<Listener>();
+const commands = listenerSet<[MenuCommand]>();
 let followingMenu = false;
 
 export function dispatchMenuCommand(command: MenuCommand): void {
-  for (const listener of listeners) listener(command);
+  commands.emit(command);
 }
 
 export function onMenuCommand(listener: Listener): () => void {
@@ -28,8 +29,5 @@ export function onMenuCommand(listener: Listener): () => void {
     followingMenu = true;
     window.demoflow.onMenuCommand(dispatchMenuCommand);
   }
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
+  return commands.add(listener);
 }

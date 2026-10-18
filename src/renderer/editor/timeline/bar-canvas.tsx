@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/renderer/lib/utils";
 import type { Filmstrip, Waveform, WaveformLevel } from "@/shared/analysis";
 import { MAX_VOLUME } from "@/shared/limits";
@@ -33,26 +33,22 @@ function newImage(ref: string): HTMLImageElement {
   return img;
 }
 
-const isLoaded = (img: HTMLImageElement | undefined): img is HTMLImageElement =>
-  !!img?.complete && img.naturalWidth > 0;
+const isLoaded = (img: HTMLImageElement): boolean => img.complete && img.naturalWidth > 0;
 
 function useImage(ref: string | null): HTMLImageElement | null {
-  const held = useRef<{ ref: string; img: HTMLImageElement } | null>(null);
-  const subscribe = useCallback(
-    (onLoad: () => void) => {
-      if (!ref) return () => {};
-      const img = images.use(ref, () => newImage(ref));
-      held.current = { ref, img };
-      img.addEventListener("load", onLoad);
-      return () => img.removeEventListener("load", onLoad);
-    },
-    [ref],
-  );
-  return useSyncExternalStore(subscribe, () => {
-    if (!ref) return null;
-    const img = held.current?.ref === ref ? held.current.img : images.peek(ref);
-    return isLoaded(img) ? img : null;
-  });
+  const [shown, setShown] = useState<{ ref: string; img: HTMLImageElement } | null>(null);
+  useEffect(() => {
+    if (!ref) return;
+    const img = images.use(ref, () => newImage(ref));
+    const show = () => setShown({ ref, img });
+    if (isLoaded(img)) show();
+    else img.addEventListener("load", show);
+    return () => img.removeEventListener("load", show);
+  }, [ref]);
+  if (!ref) return null;
+  if (shown?.ref === ref) return shown.img;
+  const cached = images.peek(ref);
+  return cached && isLoaded(cached) ? cached : null;
 }
 
 function prepare(canvas: HTMLCanvasElement, width: number, height: number) {

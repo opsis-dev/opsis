@@ -23,7 +23,7 @@ import { MIN_SPEED } from "../limits";
 import { pointRect, type Action } from "../schema/actions";
 import { asValue, type ClipValue } from "../schema/values";
 import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
-import { msToFrames, recordingMsToFrames } from "../timeline/time";
+import { msToFrames, recordingMsToFrames, wholeFrames } from "../timeline/time";
 import {
   DEFAULT_ADDRESS_BAR,
   DEFAULT_FRAME_THEME,
@@ -279,7 +279,7 @@ function remapClip(
     clip.durationInFrames,
     segments.map((s) => ({ from: toFrames(s.fromMs), to: toFrames(s.toMs), rate: s.rate })),
   );
-  return wrapClip(clip, nodeId, { remap }, Math.max(1, Math.round(remapDuration(remap))));
+  return wrapClip(clip, nodeId, { remap }, wholeFrames(remapDuration(remap), 1));
 }
 
 const idleSpeedupNode = defineNode({

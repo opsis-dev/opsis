@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, rm } from "node:fs/promises";
+import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import { writeViaTemp } from "../../engine/atomic";
 import { fileIdentity, pruneDir } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
 import { atomicWrite, readJson } from "../../engine/json";
@@ -88,25 +89,26 @@ async function renderStem(
   await mkdir(dir, { recursive: true });
   const job = await makeJob();
   const unique = randomUUID();
-  const tmp = `${file}.${unique}.partial.wav`;
   const taps = job.taps
     ? { pre: `${file}.${unique}.pre.wav`, post: `${file}.${unique}.post.wav` }
     : undefined;
   const levelsOf = async (wav: string) =>
     frameLevels(parseWav(await readFile(wav)), plan.fps, plan.durationInFrames);
   try {
-    await deps.ffmpeg.run(jobArgs(job, tmp, codec, taps, plan.durationInFrames / plan.fps + 1), {
-      signal: deps.signal,
+    const { levels, reduction } = await writeViaTemp(file, async (temp) => {
+      await deps.ffmpeg.run(jobArgs(job, temp, codec, taps, plan.durationInFrames / plan.fps + 1), {
+        signal: deps.signal,
+      });
+      return {
+        levels: await levelsOf(temp),
+        reduction: taps
+          ? reductionFromTaps(await levelsOf(taps.pre), await levelsOf(taps.post), makeup)
+          : null,
+      };
     });
-    const levels = await levelsOf(tmp);
-    const reduction = taps
-      ? reductionFromTaps(await levelsOf(taps.pre), await levelsOf(taps.post), makeup)
-      : null;
-    await rename(tmp, file);
     await atomicWrite(meta, JSON.stringify({ levels, reduction }));
     return { hash, file, levels, reduction };
   } finally {
-    await rm(tmp, { force: true });
     if (taps) {
       await rm(taps.pre, { force: true });
       await rm(taps.post, { force: true });

@@ -16,7 +16,7 @@ export const INTERACTIVE_SELECTOR = [
   ...INTERACTIVE_ROLES.map((role) => `[role=${role}]`),
 ].join(",");
 
-export const PICKED_ROLES = [
+const PICKED_ROLES = [
   "button",
   "link",
   "textbox",

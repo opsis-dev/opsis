@@ -17,7 +17,10 @@ export const PROJECT_FILE_BASE = `${FILE_SCHEME}://project/`;
 
 export const STATIC_PROJECT_BASE = "static:";
 
-export const encodePath = (p: string): string => p.split("/").map(encodeURIComponent).join("/");
+const encodePath = (p: string): string => p.split("/").map(encodeURIComponent).join("/");
+
+export const joinUrl = (base: string, rel: string): string =>
+  `${base.endsWith("/") ? base : `${base}/`}${encodePath(rel)}`;
 
 export const withoutLeadingSlashes = (path: string): string => path.replace(/^\/+/, "");
 
@@ -30,7 +33,7 @@ export const isExternalRef = (ref: string): boolean => startsWithAny(ref, EXTERN
 
 const ABSOLUTE_PATH = /^(\/|[A-Za-z]:[\\/]|\\\\)/;
 
-export type RefTarget =
+type RefTarget =
   | { kind: "project"; rel: string }
   | { kind: "app"; rel: string }
   | { kind: "external"; url: string }

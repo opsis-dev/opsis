@@ -5,7 +5,6 @@ import { plural } from "@/shared/format";
 import type { FontInstalledFace, InspectedFonts } from "@/shared/ipc";
 import { ListRow } from "../editor/list-row";
 import { FontSample } from "./font-sample";
-import type { LocalFontData } from "./local-fonts";
 import { matchesQuery, SearchListDialog } from "./search-list-dialog";
 
 async function readFaces(faces: LocalFontData[]): Promise<FontInstalledFace[]> {

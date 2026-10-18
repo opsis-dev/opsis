@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { groupOf, walkItems } from "../../shared/compile/clip";
 import { firstFamily } from "../../shared/fonts";
 import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "../../shared/fonts/types";
+import { nonBlankString } from "../../shared/guards";
 import type { TimelineTrack } from "../../shared/schema/timeline";
 import { resolveAssetRef, useAssetBase } from "../assets";
 import { useHeldLoad } from "../core/loading";
@@ -10,7 +11,8 @@ import { applyProjectFonts } from "./registry";
 export function usedFontNames(tracks: TimelineTrack[]): string[] {
   const out = new Set<string>();
   const add = (font: unknown) => {
-    if (typeof font === "string" && font.trim()) out.add(firstFamily(font));
+    const name = nonBlankString(font);
+    if (name) out.add(firstFamily(name));
   };
   walkItems(tracks, (item) => {
     add(item.props.fontFamily);

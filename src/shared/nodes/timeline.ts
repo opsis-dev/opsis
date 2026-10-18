@@ -16,7 +16,7 @@ import { MIN_SPEED } from "../limits";
 import { asValue, type ClipValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { parseNumberList } from "../text-input";
-import { msToFrames } from "../timeline/time";
+import { msToFrames, wholeFrames } from "../timeline/time";
 import {
   connectedPorts,
   cover,
@@ -143,8 +143,9 @@ const sequenceNode = defineNode({
     const ports = connectedPorts(IN_PORTS, connected);
     const cuts = cutsFor(p, ports);
     const own = cuts.filter((c) => c.own).length;
+    const length = clipFrames ? ` · ${frameSecs(clipFrames, settings.fps)}` : "";
     return [
-      row("list-video", plural(ports.length, "clip"), warnIf(!ports.length)),
+      row("list-video", `${plural(ports.length, "clip")}${length}`, warnIf(!ports.length)),
       p.transition !== NO_TRANSITION &&
         row(
           "arrow-right-left",
@@ -156,7 +157,6 @@ const sequenceNode = defineNode({
           `${plural(own, "cut")} ${own === 1 ? "uses its" : "use their"} own transition`,
         ),
       worstCover(cuts, inputFrames ?? {}, settings.fps),
-      clipFrames && row("clock", frameSecs(clipFrames, settings.fps)),
     ];
   },
   params: z.object({
@@ -351,7 +351,7 @@ const speedNode = defineNode({
   }),
   compile: ({ nodeId, inputs, params }) =>
     withClip(inputs, (clip) => {
-      const out = Math.max(1, Math.round(clip.durationInFrames / params.rate));
+      const out = wholeFrames(clip.durationInFrames / params.rate, 1);
       return withHandles(
         wrapClip(clip, nodeId, { remap: speedRemap(clip.durationInFrames, out) }, out),
         { speed: { nodeId, param: "rate", unit: "rate" } },

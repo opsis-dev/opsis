@@ -1,49 +1,32 @@
-import type { Locator, Page } from "playwright-core";
 import { describe, expect, it } from "vitest";
 import { CancelledError } from "../../shared/errors";
 import { resolveTarget, SelectorError } from "./selectors";
 
-type FakeLocator = Pick<Locator, "filter" | "locator" | "first" | "isVisible" | "waitFor">;
-
-type FakePage = Pick<
-  Page,
-  | "getByRole"
-  | "getByLabel"
-  | "getByPlaceholder"
-  | "getByTestId"
-  | "getByText"
-  | "locator"
-  | "waitForTimeout"
-  | "evaluate"
->;
-
-const asLocator = (fake: FakeLocator): Locator => fake as unknown as Locator;
-
-const asPage = (fake: FakePage): Page => fake as unknown as Page;
+type FakePage = Parameters<typeof resolveTarget>[0];
+type FakeLocator = ReturnType<FakePage["locator"]>;
 
 function fakePage(shown: (query: string) => boolean) {
   const waited: string[] = [];
   let polls = 0;
-  const locator = (query: string): Locator =>
-    asLocator({
-      filter: (opts) => locator(`${query}.filter(${String(opts?.hasText)})`),
-      locator: (selector) => locator(`${query}.locator(${String(selector)})`),
-      first: () => locator(query),
-      isVisible: async () => shown(query),
-      waitFor: async () => void waited.push(query),
-    });
-  const page = asPage({
-    getByRole: (role, opts) => locator(`role ${role} ${String(opts?.name)}`),
+  const locator = (query: string): FakeLocator => ({
+    filter: (opts) => locator(`${query}.filter(${String(opts.hasText)})`),
+    locator: (selector) => locator(`${query}.locator(${selector})`),
+    first: () => locator(query),
+    isVisible: async () => shown(query),
+    waitFor: async () => void waited.push(query),
+  });
+  const page: FakePage = {
+    getByRole: (role, opts) => locator(`role ${role} ${String(opts.name)}`),
     getByLabel: (text) => locator(`label ${String(text)}`),
     getByPlaceholder: (text) => locator(`placeholder ${String(text)}`),
-    getByTestId: (id) => locator(`testid ${String(id)}`),
+    getByTestId: (id) => locator(`testid ${id}`),
     getByText: (text) => locator(`text ${String(text)}`),
-    locator: (selector) => locator(`css ${String(selector)}`),
+    locator: (selector) => locator(`css ${selector}`),
     waitForTimeout: async () => void polls++,
     evaluate: async () => {
       throw new Error("Nothing to list.");
     },
-  });
+  };
   return { page, waited, polls: () => polls };
 }
 
@@ -75,13 +58,13 @@ describe("resolveTarget", () => {
 
   it("uses a held element, a point or a selector as given", async () => {
     const { page, waited } = fakePage(() => false);
-    const held = asLocator({
+    const held: FakeLocator = {
       filter: () => held,
       locator: () => held,
       first: () => held,
       isVisible: async () => true,
       waitFor: async () => undefined,
-    });
+    };
     const hoisted = new Map([["Row", held]]);
     expect(await resolveTarget(page, "Row", opts({ hoisted }))).toEqual({
       target: held,

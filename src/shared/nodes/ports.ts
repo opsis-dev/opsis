@@ -23,7 +23,7 @@ export const SESSION_PORT = "session";
 
 export const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
 
-export type InPort = (typeof IN_PORTS)[number];
+type InPort = (typeof IN_PORTS)[number];
 
 export const [, ...CUT_PORTS] = IN_PORTS;
 

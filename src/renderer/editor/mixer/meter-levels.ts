@@ -17,11 +17,7 @@ export const reductionAt = (reduction: Reduction, frame: number): number | null 
 
 const power = (db: number) => 10 ** (db / 10);
 
-export function share(
-  result: MixResult | null,
-  levels: Pick<StemLevels, "rms"> | undefined,
-  frame: number,
-): number {
+export function share(result: MixResult | null, levels: Levels, frame: number): number {
   const master = sampleAt(result?.levels.master?.rms, frame);
   const channel = sampleAt(levels?.rms, frame);
   if (master === null || channel === null) return 1;

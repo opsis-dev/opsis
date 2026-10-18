@@ -13,14 +13,19 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 import { MakerAppImage } from "@reforged/maker-appimage";
 import { writeChromiumCredits } from "./src/engine/chromium-credits";
 import { installFfmpeg, installHeadlessShell, type InstallProgress } from "./src/engine/install";
-import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "./src/engine/paths";
+import {
+  bundledEngineDir,
+  CHROMIUM_CREDITS_FILE,
+  ENGINE_LICENCES_FOLDER,
+  engineStatus,
+} from "./src/engine/paths";
 import { percentText } from "./src/shared/format";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./src/worker/render/bundle";
 import { getCompositorPackage } from "./src/worker/render/compositor-package";
 
 const require = createRequire(import.meta.url);
 const ROOT = import.meta.dirname;
-const ENGINE_DIR = path.join(ROOT, "resources", "engine");
+const ENGINE_DIR = bundledEngineDir(path.join(ROOT, "resources"));
 const CHROMIUM_CREDITS = path.join(ENGINE_DIR, CHROMIUM_CREDITS_FILE);
 const ENGINE_LICENCES_DIR = path.join(ROOT, "resources", ENGINE_LICENCES_FOLDER);
 const EXPORT_SRC_DIR = path.join(ROOT, "resources", "export-src");

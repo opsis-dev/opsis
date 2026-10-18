@@ -1,10 +1,10 @@
-import type { MixResult, StemLevels } from "@/shared/mix/result";
+import type { MixResult } from "@/shared/mix/result";
 import type { Eq, EqType } from "@/shared/mix/types";
 import { useAudioPreview, type Contribution } from "../../store/audio-preview";
 import { usePlayback } from "../../store/playback";
 import { useWorkflowStore } from "../../store/workflow";
 import type { Gesture } from "./gesture";
-import { share } from "./meter-levels";
+import { share, type Levels } from "./meter-levels";
 
 const HIGHPASS_Q = 0.7;
 const MIN_POWER = 1e-9;
@@ -24,7 +24,7 @@ export const MASTER_TARGET: PreviewTarget = { key: "master", fraction: () => 1 }
 export const previewTarget = (
   key: string,
   result: MixResult | null,
-  levels: Pick<StemLevels, "rms"> | undefined,
+  levels: Levels,
 ): PreviewTarget => ({
   key,
   fraction: () => share(result, levels, usePlayback.getState().frame),

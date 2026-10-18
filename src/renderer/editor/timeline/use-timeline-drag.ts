@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import type { Marker, Workflow } from "@/shared/schema/workflow";
-import type { AudioBar, FlatTimeline } from "@/shared/timeline/flatten";
+import type { Marker } from "@/shared/schema/workflow";
+import type { AudioBar } from "@/shared/timeline/flatten";
 import { snapFrame } from "@/shared/timeline/snap";
 import { usePlayback } from "../../store/playback";
 import { snapTargetsFor, type EditTarget, type KeyStart, type MarqueeBox } from "./timeline-drag";
@@ -15,26 +15,17 @@ import {
   type ActiveDrag,
   type GestureEnv,
 } from "./timeline-gestures";
-import {
-  RULER_H,
-  SNAP_PX,
-  contentPoint,
-  contentX,
-  frameAtX,
-  type LaneLayout,
-} from "./timeline-layout";
+import { RULER_H, SNAP_PX, contentPoint, contentX, frameAtX } from "./timeline-layout";
 import { useTimeline } from "./timeline-state";
 import type { TimelineZoom } from "./use-timeline-zoom";
 
-type DragOptions = {
+type DragOptions = Pick<
+  GestureEnv,
+  "workflow" | "flat" | "layout" | "sourceNodeId" | "masterSrc"
+> & {
   scroller: React.RefObject<HTMLDivElement | null>;
-  workflow: Workflow;
-  flat: FlatTimeline;
-  sourceNodeId: string | null;
-  masterSrc: string | null;
   markers: Marker[];
   beats: number[];
-  layout: LaneLayout;
   zoom: TimelineZoom;
 };
 

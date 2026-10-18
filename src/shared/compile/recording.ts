@@ -1,45 +1,52 @@
+import { z } from "zod";
 import { DEFAULT_BACKDROP } from "../backdrops";
-import type { Action, ActionLog } from "../schema/actions";
-import type { AssetRef } from "../schema/values";
-import type { FrameTheme, WindowStyle } from "../window-styles";
+import { actionLogSchema, type Action, type ActionLog } from "../schema/actions";
+import { FRAME_THEMES, WINDOW_STYLES } from "../window-styles";
 
 export const CAMERA_STYLES = ["classic", "proof", "ledger", "stage"] as const;
-type CameraStyle = (typeof CAMERA_STYLES)[number];
 
-export type AnnotationKind = "highlight" | "spotlight" | "tooltip" | "callout";
+const ANNOTATION_KINDS = ["highlight", "spotlight", "tooltip", "callout"] as const;
+export type AnnotationKind = (typeof ANNOTATION_KINDS)[number];
 
-export type AnnotationSpec = {
-  kind: AnnotationKind;
-  match: string;
-  text: string;
-  color: string;
-  padding: number;
-  leadMs: number;
-  holdMs: number;
-};
+const annotationSpecSchema = z.object({
+  kind: z.enum(ANNOTATION_KINDS),
+  match: z.string(),
+  text: z.string(),
+  color: z.string(),
+  padding: z.number(),
+  leadMs: z.number(),
+  holdMs: z.number(),
+});
+export type AnnotationSpec = z.infer<typeof annotationSpecSchema>;
 
-export type RecordingProps = {
-  src: AssetRef;
-  proxySrc?: AssetRef;
-  log: ActionLog;
-  name: string;
-  speed: number;
-  zoom: boolean;
-  tuning: { sMax?: number; holdMinS?: number };
-  motionBlur: boolean;
-  style: CameraStyle;
-  chrome: boolean;
-  windowStyle?: WindowStyle;
-  frameTheme?: FrameTheme;
-  addressBar?: boolean;
-  backdrop: string;
-  cursor: boolean;
-  cursorScale: number;
-  ripple: boolean;
-  extraBeats: Action[];
-  keystrokes?: { position: "bottom" | "top"; typed: boolean; chords: boolean };
-  annotations: AnnotationSpec[];
-};
+const KEYSTROKE_POSITIONS = ["bottom", "top"] as const;
+export type KeystrokePosition = (typeof KEYSTROKE_POSITIONS)[number];
+
+export const recordingPropsSchema = z.object({
+  src: z.string(),
+  proxySrc: z.string().optional(),
+  log: actionLogSchema,
+  name: z.string(),
+  speed: z.number(),
+  zoom: z.boolean(),
+  tuning: z.object({ sMax: z.number().optional(), holdMinS: z.number().optional() }),
+  motionBlur: z.boolean(),
+  style: z.enum(CAMERA_STYLES),
+  chrome: z.boolean(),
+  windowStyle: z.enum(WINDOW_STYLES).optional(),
+  frameTheme: z.enum(FRAME_THEMES).optional(),
+  addressBar: z.boolean().optional(),
+  backdrop: z.string(),
+  cursor: z.boolean(),
+  cursorScale: z.number(),
+  ripple: z.boolean(),
+  extraBeats: actionLogSchema.shape.actions,
+  keystrokes: z
+    .object({ position: z.enum(KEYSTROKE_POSITIONS), typed: z.boolean(), chords: z.boolean() })
+    .optional(),
+  annotations: z.array(annotationSpecSchema),
+});
+export type RecordingProps = z.infer<typeof recordingPropsSchema>;
 
 export const recordingSpeed = (props: Pick<RecordingProps, "speed">): number => props.speed || 1;
 

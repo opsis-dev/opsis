@@ -1,3 +1,4 @@
+import { MAX_CARD_ROWS } from "./card";
 import { hasCardPicture, type NodeDef } from "./define";
 
 export const CARD_WIDTH = 256;
@@ -9,7 +10,6 @@ const PORT_ROW = 22;
 const CARD_ROW = 20;
 const THUMB = 156;
 const PADDING = 16;
-const MAX_CARD_ROWS = 4;
 const UNKNOWN_HEIGHT = 120;
 
 export function estimateCardHeight(def: NodeDef | undefined): number {

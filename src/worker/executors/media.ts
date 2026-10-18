@@ -2,8 +2,7 @@ import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { writeJson } from "../../engine/json";
 import { projectRef } from "../../shared/asset-ref";
-import { singleQuoted } from "../../shared/format";
-import { formatPreciseDuration } from "../../shared/format";
+import { formatPreciseDuration, singleQuoted } from "../../shared/format";
 import { kindFromPath } from "../../shared/mime";
 import { loudnormFilter } from "../../shared/mix/graph";
 import {

@@ -1,9 +1,10 @@
 import type { BrowserWindow, Rectangle } from "electron";
 import { IPC, type SettingsPage } from "../shared/ipc";
-import { boundsStore, openRememberedWindow, rectangleSchema } from "./window-bounds";
+import { boundsSchema } from "../shared/schema/actions";
+import { boundsStore, openRememberedWindow } from "./window-bounds";
 import { liveWindow } from "./window-registry";
 
-const store = boundsStore<Rectangle>("settings-window.json", rectangleSchema);
+const store = boundsStore<Rectangle>("settings-window.json", boundsSchema);
 
 let win: BrowserWindow | null = null;
 

@@ -2,6 +2,7 @@ import path from "node:path";
 import { app, BrowserWindow, shell } from "electron";
 import { IPC, type WindowState } from "../shared/ipc";
 import type { MenuCommand } from "../shared/menu";
+import { CANVAS_BACKGROUND } from "./canvas-color";
 import { APP_SCHEME } from "./protocol";
 import { raiseWindow } from "./raise-window";
 
@@ -14,8 +15,6 @@ export type WindowOptions = {
   y?: number;
   title: string;
 };
-
-const CANVAS_BACKGROUND = "#101013";
 
 let mainWindow: BrowserWindow | null = null;
 

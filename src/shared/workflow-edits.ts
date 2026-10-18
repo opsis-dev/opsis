@@ -1,6 +1,7 @@
 import { sameFamily } from "./fonts";
 import type { FontFamilyDef } from "./fonts/types";
 import { isGroupNode } from "./graph";
+import { nonBlankString } from "./guards";
 import { edgeId, nodeIdFor } from "./ids";
 import { findById } from "./lists";
 import { defaultParams, getNodeDef } from "./nodes/registry";
@@ -162,7 +163,7 @@ export const addProjectFont = (wf: Workflow, def: FontFamilyDef): Workflow => ({
 });
 
 export function renameWorkflowVariable(wf: Workflow, from: string, to: string): Workflow {
-  const name = to.trim();
+  const name = nonBlankString(to);
   if (!name || name === from || name in wf.variables || !(from in wf.variables)) return wf;
   return {
     ...wf,

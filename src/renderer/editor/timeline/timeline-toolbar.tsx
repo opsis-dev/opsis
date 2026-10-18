@@ -6,11 +6,11 @@ import { Separator } from "@/renderer/components/ui/separator";
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/renderer/components/ui/toggle-group";
 import { findById } from "@/shared/lists";
-import { isOutputType } from "@/shared/nodes/registry";
-import { nodeName } from "@/shared/nodes/registry";
+import { isOutputType, nodeName } from "@/shared/nodes/registry";
 import {
   AUDIO_ENVELOPES,
   VISUAL_ENVELOPES,
+  ENVELOPE_LABELS,
   type AudioEnvelopeKey,
   type VisualEnvelopeKey,
 } from "@/shared/schema/timeline";
@@ -20,7 +20,6 @@ import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { OptionSelect } from "../option-select";
 import { WithTooltip } from "../tooltip-button";
-import { ENVELOPE_INFO } from "./envelope";
 import { useFormatTime, useLoopRange, useTimeline } from "./timeline-state";
 import { COMMAND_KEYS, TOOLS, ZOOM_KEYS, ZOOM_STEP } from "./timeline-tools";
 import type { TimelineCommands } from "./use-timeline-commands";
@@ -29,7 +28,7 @@ type VideoChoice = VisualEnvelopeKey | "off";
 
 const VIDEO_CHOICES: VideoChoice[] = ["off", ...VISUAL_ENVELOPES];
 
-const videoLabel = (v: VideoChoice) => (v === "off" ? "No keyframes" : ENVELOPE_INFO[v].label);
+const videoLabel = (v: VideoChoice) => (v === "off" ? "No keyframes" : ENVELOPE_LABELS[v]);
 
 function IconTip({
   label,
@@ -118,7 +117,7 @@ function ToolPicker() {
   );
 }
 
-const audioLabel = (v: AudioEnvelopeKey) => ENVELOPE_INFO[v].label;
+const audioLabel = (v: AudioEnvelopeKey) => ENVELOPE_LABELS[v];
 
 function EnvelopePickers() {
   const videoChoice: VideoChoice = useTimeline((s) => s.videoEnvelope) ?? "off";

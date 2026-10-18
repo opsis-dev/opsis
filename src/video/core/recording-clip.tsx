@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import type { RecordingProps } from "../../shared/compile/recording";
+import type { KeystrokePosition, RecordingProps } from "../../shared/compile/recording";
 import { TEXT_COLOR, STAGE_COLOR } from "../../shared/elements/colors";
 import { CODE_FONT } from "../../shared/fonts";
 import { displayAddress } from "../../shared/format";
@@ -183,7 +183,7 @@ const Cropped: React.FC<{ box: Size; cx: number; children: React.ReactNode }> = 
 const TypedChip: React.FC<{
   beats: Array<{ text: string; fromS: number; toS: number }>;
   timeS: number;
-  position: "top" | "bottom";
+  position: KeystrokePosition;
 }> = ({ beats, timeS, position }) => {
   const { k, insets } = useOverlayFrame();
   const beat = beats.find((b) => timeS >= b.fromS && timeS <= b.toS);

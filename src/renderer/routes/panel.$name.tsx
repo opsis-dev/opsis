@@ -1,19 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PanelBottomClose } from "lucide-react";
 import { useEffect } from "react";
-import { z } from "zod";
 import { Button } from "@/renderer/components/ui/button";
 import { DOCK_TITLES, type DockPanelName } from "@/shared/ipc";
 import { AppBar } from "../app/app-bar";
 import { LoadingPanel } from "../app/empty-panel";
 import { onMenuCommand, PROJECT_SWITCH_COMMANDS } from "../app/menu-commands";
-import { PROJECT_DIR_PARAM } from "../app/open-project";
 import { forwardMenuCommand, usePanelSync } from "../app/sync";
 import { DockContent } from "../editor/dock";
 import { FilmProvider } from "../editor/film";
 import { isDockPanel } from "../editor/panels";
 import { CompiledContext, useCompiled } from "../editor/use-compiled";
-import { useMedia } from "../store/media";
 import { useWorkflowStore } from "../store/workflow";
 
 const close = () => void window.demoflow.windowRole("close");
@@ -38,13 +35,8 @@ function PanelBody({ panel }: { panel: DockPanelName }) {
 
 function PanelRoute() {
   const { name: panel } = Route.useParams();
-  const { project } = Route.useSearch();
   const projectName = useWorkflowStore((s) => s.workflow?.name ?? null);
   usePanelSync(panel, close);
-
-  useEffect(() => {
-    useMedia.getState().reset(project || null);
-  }, [project]);
 
   useEffect(() => {
     if (projectName !== null)
@@ -84,6 +76,5 @@ export const Route = createFileRoute("/panel/$name")({
       return { name };
     },
   },
-  validateSearch: z.object({ project: PROJECT_DIR_PARAM }),
   component: PanelRoute,
 });

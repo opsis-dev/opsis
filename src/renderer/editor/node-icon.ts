@@ -1,8 +1,7 @@
-import { Box, type LucideIcon } from "lucide-react";
+import { Box } from "lucide-react";
 import { createElement } from "react";
+import type { NodeIconName } from "@/shared/nodes/icon-name";
 import { NODE_ICONS } from "./icons";
 
-const ICONS = new Map<string, LucideIcon>(Object.entries(NODE_ICONS));
-
-export const NodeIcon = ({ name, className }: { name?: string; className?: string }) =>
-  createElement((name && ICONS.get(name)) || Box, { className });
+export const NodeIcon = ({ name, className }: { name?: NodeIconName; className?: string }) =>
+  createElement(name ? NODE_ICONS[name] : Box, { className });

@@ -1,0 +1,148 @@
+import React, { useMemo } from "react";
+import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import type { CoreElementProps } from "../../shared/elements/core";
+import { fontOr } from "../../shared/fonts";
+import type { CaptionsValue } from "../../shared/schema/values";
+import { framesToMs, msToFrames } from "../../shared/timeline/time";
+import { JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "./frame";
+
+const MAX_WORDS_PER_LINE = 6;
+const CAPTION_LINGER_MS = 250;
+
+const CAPTIONS = {
+  paddingPx: 90,
+  sidePadding: "10%",
+  wordGapEm: 0.28,
+  weight: 800,
+  shadow: "0 4px 24px rgba(0,0,0,0.55)",
+  boxPaddingPx: [10, 22],
+  boxRadiusPx: 16,
+  box: "rgba(0,0,0,0.35)",
+  popFrom: 0.85,
+  popGrowth: 0.15,
+  unspokenOpacity: 0.55,
+} as const;
+
+const CAPTION_POP_SPRING = { damping: 14, stiffness: 220 };
+
+type Caption = CaptionsValue["captions"][number];
+
+export function groupCaptions(captions: Caption[]): Caption[][] {
+  const lines: Caption[][] = [];
+  let line: Caption[] = [];
+  for (const caption of captions) {
+    line.push(caption);
+    if (line.length >= MAX_WORDS_PER_LINE || /[.!?]$/.test(caption.text)) {
+      lines.push(line);
+      line = [];
+    }
+  }
+  if (line.length) lines.push(line);
+  return lines;
+}
+
+type CaptionStyle = CoreElementProps["core/captions"]["style"];
+
+function isLit(style: CaptionStyle, spoken: boolean, active: boolean): boolean {
+  switch (style) {
+    case "karaoke":
+      return spoken;
+    case "word-by-word":
+      return active;
+    case "line":
+      return false;
+  }
+}
+
+const CaptionWord: React.FC<{
+  word: Caption;
+  style: CaptionStyle;
+  tMs: number;
+  color: string;
+  highlightColor: string;
+}> = ({ word, style, tMs, color, highlightColor }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const active = tMs >= word.startMs && tMs < word.endMs;
+  const spoken = tMs >= word.startMs;
+  if (style === "word-by-word" && !spoken) return null;
+  const pop = spring({
+    frame: frame - msToFrames(word.startMs, fps, 0),
+    fps,
+    config: CAPTION_POP_SPRING,
+  });
+  return (
+    <span
+      style={{
+        color: isLit(style, spoken, active) ? highlightColor : color,
+        display: "inline-block",
+        transform:
+          style === "word-by-word"
+            ? `scale(${CAPTIONS.popFrom + pop * CAPTIONS.popGrowth})`
+            : undefined,
+        opacity: style === "karaoke" && !spoken ? CAPTIONS.unspokenOpacity : 1,
+      }}
+    >
+      {word.text}
+    </span>
+  );
+};
+
+export const Captions: React.FC<CoreElementProps["core/captions"] & { captions: Caption[] }> = ({
+  captions,
+  style,
+  position,
+  fontSize,
+  color,
+  highlightColor,
+  fontFamily,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const { k, insets } = useOverlayFrame();
+  const tMs = framesToMs(frame, fps);
+  const lines = useMemo(() => groupCaptions(captions), [captions]);
+  const line = lines.find(
+    (l) => tMs >= l[0].startMs && tMs <= l[l.length - 1].endMs + CAPTION_LINGER_MS,
+  );
+  if (!line) return null;
+  const [boxPadY, boxPadX] = CAPTIONS.boxPaddingPx;
+  return (
+    <AbsoluteFill
+      style={{
+        justifyContent: JUSTIFY_AT[position],
+        alignItems: "center",
+        ...overlayPadding(CAPTIONS.paddingPx * k, verticalInsets(insets)),
+        paddingLeft: CAPTIONS.sidePadding,
+        paddingRight: CAPTIONS.sidePadding,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: `0 ${fontSize * CAPTIONS.wordGapEm * k}px`,
+          fontFamily: fontOr(fontFamily, "main"),
+          fontSize: fontSize * k,
+          fontWeight: CAPTIONS.weight,
+          textShadow: CAPTIONS.shadow,
+          padding: `${boxPadY * k}px ${boxPadX * k}px`,
+          borderRadius: CAPTIONS.boxRadiusPx * k,
+          background: CAPTIONS.box,
+        }}
+      >
+        {line.map((word, i) => (
+          <CaptionWord
+            key={i}
+            word={word}
+            style={style}
+            tMs={tMs}
+            color={color}
+            highlightColor={highlightColor}
+          />
+        ))}
+      </div>
+    </AbsoluteFill>
+  );
+};

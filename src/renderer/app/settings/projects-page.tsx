@@ -1,11 +1,11 @@
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/renderer/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
+import { useCommitDraft } from "@/renderer/lib/use-commit-draft";
 import type { AppSettings } from "@/shared/settings";
 import { patchAppSettings } from "../../store/app-settings";
 import { FolderField } from "../folder-field";
 import { useProjectLocations } from "../use-loaded";
-import { useDraft } from "./fields";
 import { SettingsCard } from "./settings-card";
 
 function useDefaultFolder(custom: string): string {
@@ -16,7 +16,7 @@ function useDefaultFolder(custom: string): string {
 export function ProjectsPage({ projects }: { projects: AppSettings["projects"] }) {
   const custom = projects.defaultDir;
   const fallback = useDefaultFolder(custom);
-  const folder = useDraft(custom || fallback, (dir) => {
+  const folder = useCommitDraft(custom || fallback, (dir) => {
     void patchAppSettings({ projects: { defaultDir: dir.trim() === fallback ? "" : dir.trim() } });
   });
 

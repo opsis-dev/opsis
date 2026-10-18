@@ -13,8 +13,7 @@ describe("browser action cards", () => {
     });
     expect(out.map((r) => [r.icon, r.text])).toEqual([
       ["crosshair", "“Username” field"],
-      ["keyboard", "“tom … smith”"],
-      ["corner-down-left", "Then Enter"],
+      ["keyboard", "“tom … smith”, then Enter"],
       ["timer", "Pause 0.5 s"],
       ["zoom-in", "Zoom group “login”"],
     ]);

@@ -1,12 +1,11 @@
 import { z } from "zod";
+import type { MinMax } from "../math";
 
 export const SAMPLE_RATE = 48_000;
 
-type Bounds = { min: number; max: number };
+export type NumberRange = MinMax & { default: number };
 
-export type NumberRange = Bounds & { default: number };
-
-const bounded = ({ min, max }: Bounds) => z.number().min(min).max(max);
+const bounded = ({ min, max }: MinMax) => z.number().min(min).max(max);
 
 const ranged = (range: NumberRange) => bounded(range).default(range.default);
 
@@ -17,7 +16,7 @@ export const EQ_BAND_BOUNDS = {
   freq: { min: 20, max: 20_000 },
   gain: { min: -18, max: 18 },
   q: { min: 0.1, max: 10 },
-} as const satisfies Record<string, Bounds>;
+} as const satisfies Record<string, MinMax>;
 
 const eqBandSchema = z.object({
   type: z.enum(EQ_TYPES),

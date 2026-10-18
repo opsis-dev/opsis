@@ -14,12 +14,3 @@ export type BarContext = {
   select: (ids: string[], additive: boolean) => void;
   splitAt: (bar: VideoBar, frame: number) => void;
 };
-
-export function bladeSplit(ctx: BarContext, bar: VideoBar, clientX: number, alt: boolean): void {
-  const at = ctx.drag.snapAt(ctx.drag.xToFrame(clientX), alt);
-  ctx.splitAt(bar, Math.round(at));
-}
-
-export function selectOnPress(ctx: BarContext, nodeId: string, shift: boolean): void {
-  if (!ctx.selected.has(nodeId) || shift) ctx.select([nodeId], shift && ctx.tool === "select");
-}

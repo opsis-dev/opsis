@@ -8,12 +8,14 @@ import {
   groupOf,
   itemClip,
   markLayers,
+  recordingOf,
   sceneItemCount,
   sceneSequence,
   sequenceClips,
   stackClips,
   wrapClip,
 } from "./clip";
+import { defaultRecordingProps } from "./recording";
 import { remapFrame, type Remap } from "./remap";
 
 const settings = {
@@ -226,5 +228,47 @@ describe("sceneSequence", () => {
       { gap: 2, sequencer },
     );
     expect(clip.audio.map((a) => a.from)).toEqual([0, 42]);
+  });
+});
+
+describe("built-in item props", () => {
+  const log = {
+    viewport: { width: 1280, height: 720 },
+    dpr: 1,
+    t0: 0,
+    durationMs: 1000,
+    actions: [],
+  };
+  const recording = () =>
+    must(
+      itemClip(
+        "rec",
+        "core/recording",
+        { ...defaultRecordingProps(), src: "project:take.mp4", name: "Take", log },
+        30,
+      ).tracks[0]?.items[0],
+      "recording item",
+    );
+
+  it("reads a recording's and a group's props whole, once per props object", () => {
+    const item = recording();
+    const read = recordingOf(item);
+    expect(read).toEqual(item.props);
+    expect(recordingOf(item)).toBe(read);
+    const group = groupItem(
+      { id: "g", from: 0, durationInFrames: 30 },
+      { tracks: [{ id: "t", items: [item] }], remap: [[0, 0]], crop: { x: 0, y: 0, w: 1, h: 1 } },
+    );
+    expect(groupOf(group)).toEqual(group.props);
+  });
+
+  it("refuses props that don't fit the component", () => {
+    const item = recording();
+    expect(recordingOf({ ...item, props: { ...item.props, log: { actions: [] } } })).toBeNull();
+    expect(recordingOf({ ...item, props: { ...item.props, style: "fancy" } })).toBeNull();
+    expect(
+      groupOf({ ...item, component: "core/group", props: { tracks: [], remap: "fast" } }),
+    ).toBeNull();
+    expect(groupOf(item)).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
-import { mkdir, rename } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { HeadlessBrowser } from "@remotion/renderer";
+import { writeViaTemp } from "../../engine/atomic";
 import { keepLatest } from "../../shared/memo";
 import type { MainMessage } from "../../shared/worker-protocol";
 import { startAssetServer, type AssetServer } from "./asset-server";
@@ -19,19 +20,19 @@ export async function renderCardStill(msg: StillRequest, signal: AbortSignal): P
   const server = await projectServer(msg.projectDir, () => startAssetServer(msg.projectDir));
   const browser = await cardBrowser(CARD_GL, () => openRenderBrowser(msg.env, CARD_GL));
   await mkdir(path.dirname(msg.output), { recursive: true });
-  const tmp = `${msg.output}.partial.jpg`;
-  await renderFrame({
-    env: msg.env,
-    serveUrl,
-    spec: { ...msg.spec, assets: { projectBase: server.url } },
-    frame: msg.frame,
-    output: tmp,
-    format: "jpeg",
-    gl: CARD_GL,
-    signal,
-    browser,
-    scale: Math.min(1, msg.width / msg.spec.width),
-    jpegQuality: CARD_JPEG_QUALITY,
-  });
-  await rename(tmp, msg.output);
+  await writeViaTemp(msg.output, (temp) =>
+    renderFrame({
+      env: msg.env,
+      serveUrl,
+      spec: { ...msg.spec, assets: { projectBase: server.url } },
+      frame: msg.frame,
+      output: temp,
+      format: "jpeg",
+      gl: CARD_GL,
+      signal,
+      browser,
+      scale: Math.min(1, msg.width / msg.spec.width),
+      jpegQuality: CARD_JPEG_QUALITY,
+    }),
+  );
 }

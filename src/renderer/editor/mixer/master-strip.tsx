@@ -15,7 +15,7 @@ import { loudnessName, lufsText } from "@/shared/nodes/params";
 import { usePlayback } from "../../store/playback";
 import { useWorkflowStore } from "../../store/workflow";
 import { OptionSelect } from "../option-select";
-import { formatDb } from "./audio-format";
+import { formatDb, formatReading } from "./audio-format";
 import { bindChange, bindEq, bindGain, MASTER_TARGET } from "./bindings";
 import { CompPopover } from "./dynamics-popovers";
 import { EqPopover } from "./eq-popover";
@@ -49,7 +49,7 @@ function Readout({
     <div className="flex w-full items-baseline justify-between text-[10px]">
       <span className="text-muted-foreground">{label}</span>
       <span className="tabular-nums">
-        {value === null || value <= floor ? "—" : value.toFixed(1)}{" "}
+        {value === null ? "—" : formatReading(value, floor)}{" "}
         <span className="text-muted-foreground">{unit}</span>
       </span>
     </div>

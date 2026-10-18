@@ -1,5 +1,4 @@
-import type { CameraPose, ZoomState } from "./camera";
-import { poseToCss } from "./camera";
+import { poseToCss, type CameraPose, type ZoomState } from "./camera";
 import {
   buildCameraTrack,
   cursorAim,

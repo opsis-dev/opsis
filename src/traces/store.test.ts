@@ -1,13 +1,26 @@
 import { existsSync } from "node:fs";
-import { chmod, readdir, writeFile } from "node:fs/promises";
+import type * as FsPromises from "node:fs/promises";
+import { readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { strToU8, zipSync } from "fflate";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sha256Hex } from "../engine/hash";
 import { projectPaths } from "../engine/project-paths";
 import { tempDirs } from "../engine/test-temp-dirs";
-import { applyRetention, ingestTrace, listTraces, readTrace } from "./store";
+import { applyRetention, ingestTrace, readTrace } from "./store";
 import { FRAME, LATER, ndjson } from "./test-fixtures";
+
+const unreadable = vi.hoisted(() => new Set<string>());
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const fs = await importOriginal<typeof FsPromises>();
+  return {
+    ...fs,
+    readFile: (...args: Parameters<typeof fs.readFile>) =>
+      unreadable.has(String(args[0]))
+        ? Promise.reject(Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" }))
+        : fs.readFile(...args),
+  };
+});
 
 const project = tempDirs("demoflow-trace-");
 const START = Date.UTC(2026, 0, 1);
@@ -85,11 +98,12 @@ describe("trace store", () => {
 
   it("keeps only failures when asked and collects orphaned blobs", async () => {
     const dir = await project();
-    await ingestTrace(dir, await traceZip(dir, "a.zip", "ok"), meta(true));
+    const ok = await ingestTrace(dir, await traceZip(dir, "a.zip", "ok"), meta(true));
     vi.setSystemTime(START + 1_000);
-    await ingestTrace(dir, await traceZip(dir, "b.zip", "bad"), meta(false));
+    const bad = await ingestTrace(dir, await traceZip(dir, "b.zip", "bad"), meta(false));
     await applyRetention(dir, { retention: "failures", keepLast: 10 });
-    expect((await listTraces(dir)).map((m) => m.ok)).toEqual([false]);
+    await expect(readTrace(dir, ok.id)).rejects.toThrow("This trace can't be read.");
+    expect((await readTrace(dir, bad.id)).ok).toBe(false);
     expect(await blobs(dir)).toHaveLength(distinctFiles("bad"));
   });
 
@@ -100,25 +114,25 @@ describe("trace store", () => {
     await ingestTrace(dir, await traceZip(dir, "b.zip", "ok"), meta(true));
     const before = await blobs(dir);
     const manifest = path.join(projectPaths(dir).traces, "runs", `${failed.id}.json.zst`);
-    await chmod(manifest, 0o000);
+    unreadable.add(manifest);
     try {
       await expect(applyRetention(dir, { retention: "failures", keepLast: 10 })).rejects.toThrow(
         "EACCES",
       );
     } finally {
-      await chmod(manifest, 0o644);
+      unreadable.delete(manifest);
     }
     expect((await blobs(dir)).toSorted()).toEqual(before.toSorted());
   });
 
   it("removes broken manifests and still applies retention", async () => {
     const dir = await project();
-    await ingestTrace(dir, await traceZip(dir, "a.zip", "ok"), meta(true));
+    const ok = await ingestTrace(dir, await traceZip(dir, "a.zip", "ok"), meta(true));
     const broken = path.join(projectPaths(dir).traces, "runs", "broken-1.json.zst");
     await writeFile(broken, "not zstd");
-    await applyRetention(dir, { retention: "failures", keepLast: 10 });
+    expect(await applyRetention(dir, { retention: "failures", keepLast: 10 })).toEqual(new Set());
     expect(existsSync(broken)).toBe(false);
-    expect(await listTraces(dir)).toEqual([]);
+    await expect(readTrace(dir, ok.id)).rejects.toThrow("This trace can't be read.");
     expect(await blobs(dir)).toEqual([]);
   });
 

@@ -10,6 +10,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { isKeyOf } from "../../src/shared/guards";
 import type { CuratedElement } from "../registry-ingest.list";
 import { ROOT, SRC_DIR, VIDEO_DIR } from "./tool-config";
 import { walkFiles } from "./walk";
@@ -37,8 +38,7 @@ const REMOTION_UI_FOLDERS = {
   "remotion/hooks": "hooks",
 } as const;
 
-const isRemotionUiFolder = (folder: string): folder is keyof typeof REMOTION_UI_FOLDERS =>
-  Object.hasOwn(REMOTION_UI_FOLDERS, folder);
+const isRemotionUiFolder = (folder: string) => isKeyOf(REMOTION_UI_FOLDERS, folder);
 
 function moveTree(from: string, dest: string): void {
   for (const file of walkFiles(from)) {

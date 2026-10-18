@@ -5,6 +5,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/renderer/components/ui/input-group";
+import { nonBlankString } from "@/shared/guards";
 
 export function FolderField({
   id,
@@ -24,7 +25,7 @@ export function FolderField({
   async function browse() {
     const picked = await window.demoflow.chooseFolder({
       title,
-      defaultPath: value.trim() || undefined,
+      defaultPath: nonBlankString(value),
     });
     if (picked) onPicked(picked);
   }

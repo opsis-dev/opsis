@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright-core";
-import { engineStatus } from "../src/engine/paths";
+import { bundledEngineDir, engineStatus } from "../src/engine/paths";
 import { ROOT } from "./lib/tool-config";
 
 const SVG = path.join(ROOT, "brand", "logo.svg");
@@ -10,7 +10,7 @@ const ICON_SIZES = [16, 24, 32, 48, 64, 128, 256, 512, 1024];
 
 const shell =
   process.env.DEMOFLOW_HEADLESS_SHELL ??
-  engineStatus(path.join(ROOT, "resources", "engine")).headlessShell;
+  engineStatus(bundledEngineDir(path.join(ROOT, "resources"))).headlessShell;
 if (!shell)
   throw new Error(
     "No recording browser found. Run `bun run make` once (it stages resources/engine) or set DEMOFLOW_HEADLESS_SHELL.",

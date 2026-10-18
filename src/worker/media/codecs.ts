@@ -1,3 +1,4 @@
+import { isKeyOf } from "../../shared/guards";
 import type { NodeParams } from "../../shared/nodes/define";
 import type { convertNode, extractAudioNode } from "../../shared/nodes/media";
 import type { renderNode } from "../../shared/nodes/output";
@@ -107,7 +108,7 @@ export const AUDIO_FORMATS: Record<AudioFormat, string[]> = {
   wav: PCM_16,
 };
 
-const isAudioFormat = (ext: string): ext is AudioFormat => Object.hasOwn(AUDIO_FORMATS, ext);
+const isAudioFormat = (ext: string): ext is AudioFormat => isKeyOf(AUDIO_FORMATS, ext);
 
 export const audioFormatFor = (ext: string): AudioFormat => (isAudioFormat(ext) ? ext : "m4a");
 

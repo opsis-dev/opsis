@@ -1,6 +1,11 @@
 export const errorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
+export const errorCode = (error: unknown): string | undefined =>
+  error instanceof Error && "code" in error && typeof error.code === "string"
+    ? error.code
+    : undefined;
+
 export const CANCELLED = "Cancelled";
 
 export const NO_PROJECT = "No project is open.";

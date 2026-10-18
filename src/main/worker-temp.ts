@@ -1,5 +1,6 @@
 import { mkdirSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
+import { errorCode } from "../shared/errors";
 
 export type WorkerKind = "run" | "stills" | "analysis" | "setup";
 
@@ -24,7 +25,7 @@ const alive = (pid: number): boolean => {
     process.kill(pid, 0);
     return true;
   } catch (error) {
-    return (error as NodeJS.ErrnoException).code === "EPERM";
+    return errorCode(error) === "EPERM";
   }
 };
 

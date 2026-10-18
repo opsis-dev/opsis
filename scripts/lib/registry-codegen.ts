@@ -1,4 +1,5 @@
 import path from "node:path";
+import type { FieldMeta } from "../../src/shared/elements/introspect";
 import type { ElementKind } from "../../src/shared/elements/types";
 import { humanize } from "../../src/shared/format";
 import type * as framing from "../../src/video/registry/framing";
@@ -6,8 +7,8 @@ import { REGISTRIES, TITLE_ACRONYMS, type CuratedElement } from "../registry-ing
 import type { Control } from "./registry-controls";
 import { VIDEO_DIR } from "./tool-config";
 
-function metaOf(key: string, c: Control, extra: Record<string, unknown> = {}): string {
-  const meta: Record<string, unknown> = {
+function metaOf(key: string, c: Control, extra: FieldMeta = {}): string {
+  const meta: FieldMeta = {
     description: c.description ?? c.label ?? key,
     ...extra,
     ...(typeof c.step === "number" ? { step: c.step } : {}),
@@ -34,7 +35,7 @@ const stringField = (text: string, meta: string) =>
   `z.string().default(${JSON.stringify(text)})${meta}`;
 
 function zodFor(key: string, c: Control): string | null {
-  const withMeta = (extra: Record<string, unknown> = {}) => metaOf(key, c, extra);
+  const withMeta = (extra: FieldMeta = {}) => metaOf(key, c, extra);
   const text = String(c.default ?? "");
   switch (c.type) {
     case "text":

@@ -1,5 +1,6 @@
 import { baseName } from "../asset-ref";
 import { formatDuration, percentText } from "../format";
+import { nonBlankString } from "../guards";
 import type { PickedRole } from "../interactive";
 import type { NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
@@ -23,6 +24,8 @@ export type CardContext<P> = {
   inputFrames?: Partial<Record<string, number>>;
   inputItems?: Partial<Record<string, number>>;
 };
+
+export const MAX_CARD_ROWS = 4;
 
 const TRANSITION_WARN_RATIO = 0.4;
 
@@ -96,8 +99,11 @@ export const quotedRow = (
   icon: NodeIconName,
   text: string,
   empty: string,
-  extra: Partial<CardRow> = {},
-): CardRow => (text.trim() ? row(icon, quote(text), extra) : missing(icon, empty));
+  { suffix = "", ...extra }: Partial<CardRow> & { suffix?: string } = {},
+): CardRow =>
+  text.trim()
+    ? row(icon, `${quote(text, QUOTED_TEXT_MAX - suffix.length)}${suffix}`, extra)
+    : missing(icon, empty);
 
 export const connectedPorts = <P extends string>(
   ports: readonly P[],
@@ -123,7 +129,7 @@ const ROLE_WORDS: Partial<Record<string, string>> = {
 } satisfies Record<PickedRole, string>;
 
 function elementName(target: string | undefined, role: string | undefined): string | null {
-  const t = target?.trim();
+  const t = nonBlankString(target);
   if (!t) return null;
   if (t.startsWith("css=")) return "Custom element";
   const point = /^(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)$/.exec(t);

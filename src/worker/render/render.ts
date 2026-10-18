@@ -12,6 +12,7 @@ import {
 import { freeTcpPort } from "../../engine/free-tcp-port";
 import { enginePaths, requireHeadlessShell } from "../../engine/paths";
 import { onAbort } from "../../shared/errors";
+import { nonBlankString } from "../../shared/guards";
 import { clamp } from "../../shared/math";
 import { keepLatest } from "../../shared/memo";
 import type { TimelineSpec } from "../../shared/schema/timeline";
@@ -28,7 +29,7 @@ type CancelSignal = ReturnType<typeof makeCancelSignal>["cancelSignal"];
 const devBundle = keepLatest<string>();
 
 function remotionLicenseKey(env: WorkerEnv): string {
-  return env.settings.render.licenseKey.trim() || "free-license";
+  return nonBlankString(env.settings.render.licenseKey) ?? "free-license";
 }
 
 function binariesDirectory(env: WorkerEnv): string | null {

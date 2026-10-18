@@ -36,7 +36,7 @@ components.add(catalogPortSchema, { id: "Port" });
 components.add(catalogNodeSchema, { id: "NodeType" });
 components.add(apiErrorSchema, { id: "Error" });
 
-type JsonSchema = Record<string, unknown>;
+type JsonSchema = z.core.JSONSchema.JSONSchema;
 
 type JsonContent = { "application/json": { schema: JsonSchema } };
 

@@ -32,10 +32,10 @@ describe("recording frames in traces", () => {
         { file: "screencast/demoflow-00001.jpeg", width: 960, height: 540, atMs: 250 },
       ],
       1_002_000,
-    ).map((l) => JSON.parse(l) as { timestamp: number; type: string; file: string });
-    expect(lines.map((l) => [l.type, l.timestamp])).toEqual([
-      ["screencast-frame", 2500],
-      ["screencast-frame", 2750],
+    ).map((l): unknown => JSON.parse(l));
+    expect(lines).toMatchObject([
+      { type: "screencast-frame", timestamp: 2500 },
+      { type: "screencast-frame", timestamp: 2750 },
     ]);
   });
 

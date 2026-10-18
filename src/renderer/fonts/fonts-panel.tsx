@@ -21,7 +21,7 @@ import { FontRow } from "./font-row";
 import { FontSample } from "./font-sample";
 import { InstalledDialog } from "./installed-dialog";
 import { useFontLibrary } from "./library";
-import { installedFonts, type LocalFontData } from "./local-fonts";
+import { installedFonts } from "./local-fonts";
 import { allowOnline, isOnlineAllowed, OnlineDialog } from "./online-dialog";
 import { ReviewDialog, type FontReview } from "./review-dialog";
 

@@ -37,7 +37,9 @@ export function useBoxDrag(boxes: Bounds[], onChange: (boxes: Bounds[]) => void)
   const start = (e: PointerEvent, target: DragTarget) => {
     const at = pointIn(e);
     if (!at || !capturePrimaryPointer(e)) return;
-    const origin = target.mode === "move" ? boxes[target.index] : boxFrom(at.x, at.y, at.x, at.y);
+    const origin =
+      target.mode === "move" ? boxes.at(target.index) : boxFrom(at.x, at.y, at.x, at.y);
+    if (!origin) return;
     setDrag({ ...target, x: at.x, y: at.y, origin, box: origin });
   };
   const move = (e: PointerEvent) => {

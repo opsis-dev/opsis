@@ -13,6 +13,20 @@ export function formatBytes(n: number): string {
   return unit === 0 ? `${Math.round(value)} B` : `${value.toFixed(1)} ${UNITS[unit]}`;
 }
 
+export const MINUS = "−";
+
+export const signOf = (value: number, plus = false): string =>
+  value < 0 ? MINUS : plus && value > 0 ? "+" : "";
+
+export function signedText(
+  value: number,
+  { digits, plus = false }: { digits?: number; plus?: boolean } = {},
+): string {
+  const magnitude = Math.abs(value);
+  const text = digits === undefined ? String(magnitude) : magnitude.toFixed(digits);
+  return Number(text) === 0 ? text : `${signOf(value, plus)}${text}`;
+}
+
 const SECONDS_PER_MINUTE = 60;
 const ONE_DECIMAL_FROM_SECONDS = 10;
 

@@ -140,6 +140,13 @@ const SHIFT_AGNOSTIC_KEYS: ReadonlySet<string> = new Set(["=", "-"]);
 
 const SHIFTED_KEYS: Partial<Record<string, string>> = { "=": "+" };
 
+const primaryKey = (platform: NodeJS.Platform) => (isMacPlatform(platform) ? "metaKey" : "ctrlKey");
+
+export const isPrimaryModifier = (
+  e: { ctrlKey: boolean; metaKey: boolean },
+  platform: NodeJS.Platform,
+): boolean => e[primaryKey(platform)];
+
 export function matchesAccelerator(
   accelerator: string,
   e: KeyLike,
@@ -152,9 +159,9 @@ export function matchesAccelerator(
       .slice(0, -1)
       .map((p) => p.toLowerCase()),
   );
-  const mac = isMacPlatform(platform);
-  const wantCtrl = mods.has("ctrl") || mods.has("control") || (!mac && mods.has("cmdorctrl"));
-  const wantMeta = mods.has("cmd") || mods.has("command") || (mac && mods.has("cmdorctrl"));
+  const primary = mods.has("cmdorctrl") ? primaryKey(platform) : null;
+  const wantCtrl = mods.has("ctrl") || mods.has("control") || primary === "ctrlKey";
+  const wantMeta = mods.has("cmd") || mods.has("command") || primary === "metaKey";
   if (e.ctrlKey !== wantCtrl || e.metaKey !== wantMeta) return false;
   if (e.altKey !== mods.has("alt")) return false;
   const pressed = e.key.toLowerCase();

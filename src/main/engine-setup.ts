@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
-import path from "node:path";
 import { app } from "electron";
-import { engineStatus } from "../engine/paths";
+import { bundledEngineDir, engineStatus } from "../engine/paths";
 import type { EngineInstallEvent } from "../shared/engine";
 import type { EnvStatus } from "../shared/ipc";
 import type { MainToWorker } from "../shared/worker-protocol";
@@ -10,7 +9,7 @@ import { engineDir, onWorkerMessage, spawnWorker, workerEnv } from "./workers";
 
 function edition(): EnvStatus["edition"] {
   if (!app.isPackaged) return "dev";
-  return existsSync(path.join(process.resourcesPath, "engine")) ? "full" : "lite";
+  return existsSync(bundledEngineDir(process.resourcesPath)) ? "full" : "lite";
 }
 
 export function environment(): EnvStatus {

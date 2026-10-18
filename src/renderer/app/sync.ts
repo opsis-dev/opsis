@@ -1,14 +1,15 @@
 import { useEffect, useEffectEvent } from "react";
 import { shallow } from "zustand/vanilla/shallow";
-import { hasStringType } from "@/shared/guards";
+import { hasTypeIn } from "@/shared/guards";
 import { randomId } from "@/shared/ids";
 import type { DockPanelName } from "@/shared/ipc";
-import type { LiveMessage } from "@/shared/live";
+import { isLiveMessage } from "@/shared/live";
 import type { MenuCommand } from "@/shared/menu";
 import type { RunEvent } from "@/shared/schema/events";
 import type { Workflow } from "@/shared/schema/workflow";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
+import { useMedia } from "../store/media";
 import {
   forwardPlaybackTo,
   playbackSnapshot,
@@ -75,11 +76,7 @@ const SYNC_TYPES: Record<SyncMessage["type"], true> = {
 
 const windowId = randomId();
 
-const isSyncMessage = (data: unknown): data is SyncMessage =>
-  hasStringType(data) && Object.hasOwn(SYNC_TYPES, data.type);
-
-const isLiveMessage = (data: unknown): data is LiveMessage =>
-  hasStringType(data) && typeof data.captureId === "string";
+const isSyncMessage = hasTypeIn<SyncMessage>(SYNC_TYPES);
 
 function whileApplying(applying: Flag, fn: () => void): void {
   applying.current = true;
@@ -256,7 +253,10 @@ export function useEditorSync(): void {
 }
 
 function applyState(m: MessageOf["state"], applying: Flag): void {
-  if (useWorkflowStore.getState().projectDir !== m.projectDir) loadViewState(m.projectDir);
+  if (useWorkflowStore.getState().projectDir !== m.projectDir) {
+    loadViewState(m.projectDir);
+    useMedia.getState().reset(m.projectDir);
+  }
   useWorkflowStore.getState().mirrorProject(m.projectDir, m.workflow);
   useRunStore.setState(m.run);
   whileApplying(applying, () => {

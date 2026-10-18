@@ -42,11 +42,12 @@ describe("timeline node cards", () => {
     const context = {
       connected: ["in1", "in2", "in3"],
       inputFrames: { in1: 300, in2: 100, in3: 300 },
+      clipFrames: 690,
     };
     expect(
       nodeCard("timeline.sequence", { transitionDuration: 10, cuts }, context).map((r) => r.text),
     ).toEqual([
-      "3 clips",
+      "3 clips · 23 s",
       "Fade · 0.33 s",
       "1 cut uses its own transition",
       "Covers 50% of a 3.33 s clip",

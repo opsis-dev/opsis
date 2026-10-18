@@ -15,7 +15,7 @@ import { formatNumberList, parseNumberList } from "../text-input";
 import { absPosition, mapNode, patchNodeParams, removeNodes } from "../workflow-edits";
 import type { AudioBar, ChainLink, VideoBar } from "./flatten";
 import { findHandle, slotIndex, slotLink } from "./handles";
-import { framesToMs, msToFrames } from "./time";
+import { framesToMs, msToFrames, wholeFrames } from "./time";
 
 export type EditContext = {
   workflow: Workflow;
@@ -44,7 +44,7 @@ const ok = (workflow: Workflow, message?: string, selectNodeId?: string): EditRe
   ...(selectNodeId ? { selectNodeId } : {}),
 });
 
-const clipName = (wf: Workflow, id: string) => nodeNameById(wf, id, "this clip");
+const clipName = (wf: Workflow, id: string) => nodeNameById(wf.nodes, id, "this clip");
 
 type ParamAt = Pick<ParamRef, "nodeId" | "param" | "index">;
 
@@ -122,7 +122,7 @@ function setLength(
   lengthContentFrames: number,
   fps: number,
 ): Workflow {
-  const frames = Math.max(1, Math.round(lengthContentFrames * (ref.scale ?? 1)));
+  const frames = wholeFrames(lengthContentFrames * (ref.scale ?? 1), 1);
   return writeParam(wf, ref, ref.unit === "ms" ? framesToMs(frames, fps) : frames);
 }
 

@@ -78,12 +78,17 @@ export function engineStatus(dir: string): EngineStatus {
   return { ...status, complete: !!(status.headlessShell && status.ffmpeg && status.ffprobe) };
 }
 
+export const userEngineDir = (userData: string): string => path.join(userData, "engine");
+
+export const bundledEngineDir = (resourcesPath: string): string =>
+  path.join(resourcesPath, "engine");
+
 export function resolveEngineDir(opts: {
   isPackaged: boolean;
   resourcesPath: string;
   userData: string;
 }): string {
-  const bundled = path.join(opts.resourcesPath, "engine");
+  const bundled = bundledEngineDir(opts.resourcesPath);
   if (opts.isPackaged && engineStatus(bundled).complete) return bundled;
-  return path.join(opts.userData, "engine");
+  return userEngineDir(opts.userData);
 }

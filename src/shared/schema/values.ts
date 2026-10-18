@@ -7,8 +7,6 @@ import {
   transitionRefSchema,
 } from "./timeline";
 
-export type AssetRef = string;
-
 const assetRefSchema = z.string().nullable();
 
 const recordingValueSchema = z.object({

@@ -5,7 +5,7 @@ import type { ElementMeta } from "../elements/types";
 import type { ClipValue, CompileValue, NodeResult } from "../schema/values";
 import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { interpolate } from "../vars";
-import { sentence, type CardContext, type CardRow } from "./card";
+import { MAX_CARD_ROWS, sentence, type CardContext, type CardRow } from "./card";
 import type { NodeIconName } from "./icon-name";
 
 export const NODE_CATEGORIES = [
@@ -87,7 +87,7 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
 
 export type NodeParams<D extends NodeDef> = z.infer<D["params"]>;
 
-export const hasNoCardPicture = (def: Pick<NodeDef, "category">): boolean =>
+const hasNoCardPicture = (def: Pick<NodeDef, "category">): boolean =>
   def.category === "Browser" || def.category === "Utility";
 
 export const showsClipStill = (def: Pick<NodeDef, "category" | "outputs">): boolean =>
@@ -99,7 +99,7 @@ export const hasCardPicture = (def: NodeDef): boolean =>
 export const cardRows = <S extends z.ZodObject>(
   def: NodeDef<S>,
   ctx: CardContext<z.infer<S>>,
-): CardRow[] => (def.card?.(ctx) ?? []).filter((r): r is CardRow => !!r);
+): CardRow[] => (def.card?.(ctx) ?? []).filter((r): r is CardRow => !!r).slice(0, MAX_CARD_ROWS);
 
 export function defineNode<S extends z.ZodObject>(def: NodeDef<S>): NodeDef<S> {
   return def;

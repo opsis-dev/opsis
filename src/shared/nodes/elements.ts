@@ -14,6 +14,7 @@ import { assetKeys, widgetKeys } from "../elements/introspect";
 import type { ElementCategory, ElementMeta } from "../elements/types";
 import { fontStack } from "../fonts";
 import { plural } from "../format";
+import { isString, nonBlankString } from "../guards";
 import { MAX_FRAMES } from "../limits";
 import type { EditHandles, VisualEnvelope } from "../schema/timeline";
 import type { ClipValue } from "../schema/values";
@@ -57,11 +58,6 @@ type ElementParams = Record<string, unknown> & ElementTiming;
 
 const SHORT_ELEMENT_RATIO = 0.6;
 
-const stringParam = (params: Record<string, unknown>, key: string): string | undefined => {
-  const value = params[key];
-  return typeof value === "string" ? value : undefined;
-};
-
 const titleKeys = (schema: ElementMeta["schema"]): string[] =>
   TEXT_KEYS.filter((k) => k in schema.shape);
 
@@ -72,10 +68,10 @@ function elementCard(
   fps: number,
 ): CardRow[] {
   const rows: CardRow[] = [];
-  const title = titles.map((k) => stringParam(params, k)?.trim()).find(Boolean);
+  const title = titles.map((k) => nonBlankString(params[k])).find(Boolean);
   if (title) rows.push(row("type", quote(title)));
   for (const asset of assetKeys(meta.schema)) {
-    const file = stringParam(params, asset);
+    const file = nonBlankString(params[asset]);
     if (file) rows.push(fileRow("file", file));
   }
   rows.push(durationRow(meta, params.clipDuration, fps));
@@ -112,13 +108,13 @@ const NODE_KIND_FOR: Record<ElementCategory, { category: NodeCategory; icon: Nod
 function elementProps(meta: ElementMeta, params: Record<string, unknown>): Record<string, unknown> {
   const props: Record<string, unknown> = { ...meta.fixedProps, ...params };
   for (const key of widgetKeys(meta.schema, "font")) {
-    const name = stringParam(props, key)?.trim();
+    const name = nonBlankString(props[key]);
     if (name) props[key] = fontStack(name);
     else delete props[key];
   }
   for (const key of assetKeys(meta.schema)) {
-    const path = stringParam(props, key);
-    if (path !== undefined) props[key] = projectRef(path);
+    const path = props[key];
+    if (isString(path)) props[key] = projectRef(path);
   }
   return props;
 }

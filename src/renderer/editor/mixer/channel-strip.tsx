@@ -32,7 +32,7 @@ const CHANNEL_FALLBACK = "Sound";
 
 const useChannelName = (nodeId: string): string =>
   useWorkflowStore((s) =>
-    s.workflow ? nodeNameById(s.workflow, nodeId, CHANNEL_FALLBACK) : CHANNEL_FALLBACK,
+    s.workflow ? nodeNameById(s.workflow.nodes, nodeId, CHANNEL_FALLBACK) : CHANNEL_FALLBACK,
   );
 
 function BusSelect({

@@ -23,7 +23,6 @@ export const NODE_ICON_NAMES = [
   "columns-2",
   "combine",
   "command",
-  "corner-down-left",
   "crop",
   "crosshair",
   "eye",

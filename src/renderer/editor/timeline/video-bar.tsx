@@ -5,7 +5,7 @@ import { getNodeDef, nodeNameById } from "@/shared/nodes/registry";
 import type { Workflow } from "@/shared/schema/workflow";
 import type { FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
 import { FilmstripCanvas } from "./bar-canvas";
-import { bladeSplit, selectOnPress, type BarContext } from "./bar-context";
+import type { BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
 import { useBarEnvelope } from "./envelope-overlay";
 import type { VideoEditKind } from "./timeline-drag";
@@ -60,8 +60,10 @@ const onSpeedCorner = (e: React.PointerEvent) =>
 function barTitles(wf: Workflow, bar: VideoBar) {
   const wrappers = bar.chain
     .slice(1)
-    .flatMap((l) => (l.nodeId && l.nodeId !== bar.nodeId ? [nodeNameById(wf, l.nodeId, "")] : []));
-  return { title: nodeNameById(wf, bar.nodeId, ""), wrappers };
+    .flatMap((l) =>
+      l.nodeId && l.nodeId !== bar.nodeId ? [nodeNameById(wf.nodes, l.nodeId, "")] : [],
+    );
+  return { title: nodeNameById(wf.nodes, bar.nodeId, ""), wrappers };
 }
 
 function ActionTicks({
@@ -98,18 +100,15 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
   const ppf = ctx.viewport.pxPerFrame;
   const videoEnvelope = useTimeline((s) => s.videoEnvelope);
   const box = barBox(bar.from, bar.to, ppf);
-  const isSelected = ctx.selected.has(bar.nodeId);
-  const related = !isSelected && bar.chain.some((l) => l.nodeId && ctx.selected.has(l.nodeId));
+  const related =
+    !ctx.selected.has(bar.nodeId) && bar.chain.some((l) => l.nodeId && ctx.selected.has(l.nodeId));
   const { title, wrappers } = barTitles(ctx.workflow, bar);
   const envelope = useBarEnvelope(ctx, bar.nodeId, videoEnvelope, {
     toX: (local) => ((local - bar.contentStart) / bar.rate) * ppf,
     toLocal: (abs) => bar.localAt(abs),
   });
 
-  const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!drag.beginPointer(e)) return;
-    if (tool === "blade") return bladeSplit(ctx, bar, e.clientX, e.altKey);
-    selectOnPress(ctx, bar.nodeId, e.shiftKey);
+  const onPress = (e: React.PointerEvent<HTMLDivElement>) => {
     const { kind, ripple } = editFor(tool, hitEdge(e, box.width), onSpeedCorner(e));
     drag.startEdit(e, { domain: "video", kind, bar }, ripple);
   };
@@ -119,7 +118,8 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
       ctx={ctx}
       box={box}
       height={HEIGHT}
-      selected={isSelected}
+      nodeId={bar.nodeId}
+      split={bar}
       title={[title, ...wrappers].join(" · ")}
       className={cn(
         toneFor(ctx, bar),
@@ -127,7 +127,7 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
         TOOL_CURSOR[tool] ?? "cursor-grab",
       )}
       cursorAt={TOOL_CURSOR[tool] ? null : (e) => (hitEdge(e, box.width) ? "ew-resize" : "")}
-      onPointerDown={onDown}
+      onPress={onPress}
       envelope={envelope}
       above={<SpeedCorner />}
     >

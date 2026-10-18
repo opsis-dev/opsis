@@ -39,7 +39,7 @@ import { KeysField } from "./form/keys-field";
 import { NumberField, PresetNumber, type NumberProps } from "./form/number-field";
 import { OffsetsField } from "./form/offsets-field";
 import { Presets } from "./form/presets";
-import { typedField } from "./form/schema-kind";
+import { typedField, type TypedField } from "./form/schema-kind";
 import { labelFor } from "./form/schema-meta";
 import { SecretField } from "./form/secret-field";
 import { SoundField } from "./form/sound-field";
@@ -179,34 +179,46 @@ function FieldBody({ schema, props }: { schema: z.ZodType; props: ParamFieldProp
   const field = typedField(schema, props.value);
   if (!field) return <JsonField {...props} />;
   const widget = props.meta.widget ? WIDGETS[props.meta.widget] : undefined;
+  return (widget && widgetBody(widget, field, props)) ?? plainBody(field, props);
+}
+
+function widgetBody(
+  widget: Widget,
+  field: TypedField,
+  props: ParamFieldProps<unknown>,
+): ReactNode | null {
+  if (widget.kind === "presets" && field.kind === "number")
+    return <PresetNumber {...props} value={field.value} presets={widget.presets} />;
+  if (widget.kind === "number" && field.kind === "number")
+    return <widget.Field {...props} value={field.value} min={field.min} max={field.max} />;
+  if (widget.kind === "select" && field.kind === "string")
+    return (
+      <EnumField
+        {...props}
+        {...widget.choices(props.ctx, field.value)}
+        value={field.value}
+        forceSelect
+      />
+    );
+  if (widget.kind === "string" && field.kind === "string")
+    return <widget.Field {...props} value={field.value} />;
+  return null;
+}
+
+function plainBody(field: TypedField, props: ParamFieldProps<unknown>): ReactNode {
   switch (field.kind) {
     case "color":
       return <ColorField {...props} value={field.value} />;
     case "boxes":
       return <BoxesField {...props} value={field.value} />;
     case "envelope":
-      return <EnvelopeField {...props} value={field.value} />;
+      return <EnvelopeField {...props} value={field.value} tracks={field.tracks} />;
     case "boolean":
       return <BooleanField {...props} value={field.value} />;
-    case "number": {
-      if (widget?.kind === "presets")
-        return <PresetNumber {...props} value={field.value} presets={widget.presets} />;
-      const NumberWidget = widget?.kind === "number" ? widget.Field : NumberField;
-      return <NumberWidget {...props} value={field.value} min={field.min} max={field.max} />;
-    }
-    case "string": {
-      if (widget?.kind === "select")
-        return (
-          <EnumField
-            {...props}
-            {...widget.choices(props.ctx, field.value)}
-            value={field.value}
-            forceSelect
-          />
-        );
-      const TextWidget = widget?.kind === "string" ? widget.Field : TextField;
-      return <TextWidget {...props} value={field.value} />;
-    }
+    case "number":
+      return <NumberField {...props} value={field.value} min={field.min} max={field.max} />;
+    case "string":
+      return <TextField {...props} value={field.value} />;
     case "enum":
       return (
         <EnumField

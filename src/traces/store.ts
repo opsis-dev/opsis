@@ -115,10 +115,6 @@ export async function ingestTrace(
   return manifest;
 }
 
-export async function listTraces(projectDir: string): Promise<TraceManifest[]> {
-  return (await readRuns(projectPaths(projectDir).traces)).manifests;
-}
-
 export async function readTrace(projectDir: string, id: string): Promise<TraceModel> {
   if (!/^[\w-]+$/.test(id)) throw new Error("Invalid trace id");
   const root = projectPaths(projectDir).traces;

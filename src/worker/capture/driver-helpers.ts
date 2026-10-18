@@ -1,5 +1,6 @@
 import { stripVTControlCharacters } from "node:util";
 import { errorMessage, withoutCallName } from "../../shared/errors";
+import { nonBlankString } from "../../shared/guards";
 import { round1 } from "../../shared/math";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { interpolate } from "../../shared/vars";
@@ -28,11 +29,10 @@ export function plainError(
 ): string {
   const text = stripVTControlCharacters(errorMessage(error));
   const timeout = /Timeout (\d+)ms exceeded/.exec(text);
-  const target = interpolate(node.params, vars).target;
-  const what =
-    typeof target === "string" && target.trim()
-      ? `“${target.startsWith(CSS_PREFIX) ? target.slice(CSS_PREFIX.length) : target}”`
-      : "the element";
+  const target = nonBlankString(interpolate(node.params, vars).target);
+  const what = target
+    ? `“${target.startsWith(CSS_PREFIX) ? target.slice(CSS_PREFIX.length) : target}”`
+    : "the element";
   if (timeout) {
     const seconds = round1(Number(timeout[1]) / 1000);
     return /waiting for (locator|getBy)/.test(text)
@@ -49,8 +49,6 @@ export function plainError(
 
 export function traceGroupTitle(label: string, node: WorkflowNode, vars: Record<string, string>) {
   const p = interpolate(node.params, vars);
-  const subject = [p.target, p.url, p.text, p.keys].find(
-    (v): v is string => typeof v === "string" && v.trim() !== "",
-  );
+  const subject = [p.target, p.url, p.text, p.keys].map(nonBlankString).find(Boolean);
   return subject ? `${label} · ${subject}` : label;
 }

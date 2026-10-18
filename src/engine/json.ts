@@ -1,13 +1,13 @@
-import { randomUUID } from "node:crypto";
-import { readFile, rename, rm, writeFile } from "node:fs/promises";
+import { readFile, rename, writeFile } from "node:fs/promises";
 import type { z } from "zod";
+import { errorCode } from "../shared/errors";
 import { parseJsonWith } from "../shared/guards";
+import { writeViaTemp } from "./atomic";
 import { logWarning } from "./log";
 
-const MISSING_CODES = new Set(["ENOENT", "ENOTDIR"]);
+const MISSING_CODES = new Set<string | undefined>(["ENOENT", "ENOTDIR"]);
 
-const isMissingFile = (error: unknown): boolean =>
-  error instanceof Error && "code" in error && MISSING_CODES.has(String(error.code));
+const isMissingFile = (error: unknown): boolean => MISSING_CODES.has(errorCode(error));
 
 export async function nullIfMissing<T>(work: Promise<T>): Promise<T | null> {
   try {
@@ -52,15 +52,8 @@ export async function readJsonKeepingBroken<T>(
   return null;
 }
 
-export async function atomicWrite(file: string, data: string | Uint8Array): Promise<void> {
-  const tmp = `${file}.${randomUUID()}.tmp`;
-  try {
-    await writeFile(tmp, data);
-    await rename(tmp, file);
-  } finally {
-    await rm(tmp, { force: true }).catch(() => undefined);
-  }
-}
+export const atomicWrite = (file: string, data: string | Uint8Array): Promise<void> =>
+  writeViaTemp(file, (temp) => writeFile(temp, data));
 
 export const writeJson = (file: string, value: unknown): Promise<void> =>
   atomicWrite(file, `${JSON.stringify(value, null, 2)}\n`);

@@ -2,6 +2,7 @@ import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
 import type { ElementProps } from "../../shared/elements/types";
+import { isString } from "../../shared/guards";
 import { numberOr } from "../../shared/math";
 import type { Size } from "../core/still-layout";
 import type { ElementComponent, Presentation, PresentationFactory, SceneSequencer } from "./types";
@@ -101,14 +102,16 @@ const PAINT_RULE = ".df-painted > div { background: var(--df-paint) !important; 
 export const PaintRule: React.FC = () => <style>{PAINT_RULE}</style>;
 
 export function painted(Component: ElementComponent): ElementComponent {
-  const Painted: ElementComponent = ({ background, ...props }) => (
-    <AbsoluteFill
-      className="df-painted"
-      style={{ "--df-paint": String(background ?? "transparent") } as React.CSSProperties}
-    >
-      <Component {...props} />
-    </AbsoluteFill>
-  );
+  const Painted: ElementComponent = ({ background, ...props }) => {
+    const paint: React.CSSProperties & Record<"--df-paint", string> = {
+      "--df-paint": isString(background) ? background : "transparent",
+    };
+    return (
+      <AbsoluteFill className="df-painted" style={paint}>
+        <Component {...props} />
+      </AbsoluteFill>
+    );
+  };
   return Painted;
 }
 

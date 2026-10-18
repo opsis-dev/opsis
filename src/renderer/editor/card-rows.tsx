@@ -15,8 +15,6 @@ import { NodeIcon } from "./node-icon";
 import { useCompiledContext } from "./use-compiled";
 import { openWorkflow } from "./use-open-workflow";
 
-const MAX_ROWS = 4;
-
 const TONE_CLASS: Record<NonNullable<CardRow["tone"]> | "plain", string> = {
   warn: "text-warning",
   muted: "text-muted-foreground",
@@ -85,7 +83,7 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
         clipFrames,
         inputFrames,
         inputItems,
-      }).slice(0, MAX_ROWS);
+      });
     } catch (error) {
       return [
         {

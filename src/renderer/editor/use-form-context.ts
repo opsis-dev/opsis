@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { reportError } from "@/renderer/lib/toast";
-import { PROJECT_NAME_VAR, workflowVars } from "@/shared/compile/compile";
+import { workflowVars } from "@/shared/compile/compile";
 import { hasWidget, targetRoleKey } from "@/shared/elements/introspect";
 import { errorMessage } from "@/shared/errors";
 import { downstreamOf, sessionChain, upstreamOf } from "@/shared/graph";
@@ -13,7 +13,7 @@ import { IN_PORTS } from "@/shared/nodes/ports";
 import { nodeName } from "@/shared/nodes/registry";
 import type { NodeResult } from "@/shared/schema/values";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
-import { interpolate } from "@/shared/vars";
+import { interpolate, PROJECT_NAME_VAR, SITE_ADDRESS_VAR } from "@/shared/vars";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
@@ -21,7 +21,6 @@ import { fileUrl } from "./file-url";
 import type { FormContext, SpotBackground } from "./form/types";
 import type { VarInfo } from "./var-text";
 
-const SITE_VAR = "Site address";
 const NO_PAGE = "Add a Go to page action before this one, so there's a page to pick from.";
 const CAPTURE_TYPES = new Set([recordNode.type, stillNode.type]);
 const viewportParams = sessionNode.params.pick({ viewportWidth: true, viewportHeight: true });
@@ -49,10 +48,8 @@ function spotBackground(
 }
 
 function captureChain(wf: Workflow, nodeId: string): { chain: WorkflowNode[]; problem?: string } {
-  const types = new Map(wf.nodes.map((n) => [n.id, n.type]));
-  const capture = [nodeId, ...downstreamOf(wf, nodeId)].find((id) =>
-    CAPTURE_TYPES.has(types.get(id) ?? ""),
-  );
+  const captures = new Set(wf.nodes.filter((n) => CAPTURE_TYPES.has(n.type)).map((n) => n.id));
+  const capture = [nodeId, ...downstreamOf(wf, nodeId)].find((id) => captures.has(id));
   if (!capture) return { chain: [] };
   try {
     return { chain: sessionChain(wf, capture) };
@@ -74,7 +71,8 @@ function pickerPage(wf: Workflow, nodeId: string): PickerPage | { problem: strin
   const idx = chain.findIndex((n) => n.id === nodeId);
   const before = idx >= 0 ? chain.slice(0, idx + 1) : chain;
   const nav = before.findLast((n) => n.type === navigateNode.type);
-  const url = (nav && navigateUrl.safeParse(nav.params).data?.url) ?? wf.variables[SITE_VAR];
+  const url =
+    (nav && navigateUrl.safeParse(nav.params).data?.url) ?? wf.variables[SITE_ADDRESS_VAR];
   if (!url) return { problem: problem ?? NO_PAGE };
   const viewport = viewportOf(chain);
   return { url: interpolate(url, workflowVars(wf)), ...(viewport ? { viewport } : {}) };

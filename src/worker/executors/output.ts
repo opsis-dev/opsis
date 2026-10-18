@@ -1,5 +1,6 @@
-import { rename, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
+import { writeViaTemp } from "../../engine/atomic";
 import { toPosixRel } from "../../engine/project-paths";
 import { projectRef } from "../../shared/asset-ref";
 import { lerp } from "../../shared/math";
@@ -138,11 +139,11 @@ async function renderVariant(
   } else await renderTo(job, out, { muted: false });
   const { faststart } = CODECS[p.codec];
   if (faststart || chapters.metadata) {
-    const tmp = `${out}.finish${path.extname(out)}`;
-    await ctx.ffmpeg.run(finishArgs(out, tmp, { faststart, chapters: chapters.metadata }), {
-      signal: ctx.signal,
-    });
-    await rename(tmp, out);
+    await writeViaTemp(out, (temp) =>
+      ctx.ffmpeg.run(finishArgs(out, temp, { faststart, chapters: chapters.metadata }), {
+        signal: ctx.signal,
+      }),
+    );
   }
   const artifacts: Artifact[] = [
     {

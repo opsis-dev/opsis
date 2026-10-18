@@ -1,6 +1,6 @@
 import { DRAG_START_PX } from "@/renderer/lib/dom";
 import { randomId } from "@/shared/ids";
-import type { Keyframe } from "@/shared/schema/timeline";
+import type { EnvelopeKey, Keyframe } from "@/shared/schema/timeline";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
 import {
   HALF_FRAME,
@@ -20,7 +20,7 @@ import {
 } from "@/shared/timeline/edits";
 import type { AudioBar, FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
 import { snapFrame, snapSpan, type SnapTarget } from "@/shared/timeline/snap";
-import type { EnvelopeKey } from "./envelope";
+import { wholeFrames } from "@/shared/timeline/time";
 import {
   AUDIO_H,
   HEADER_W,
@@ -225,7 +225,7 @@ function videoOutcome(
       });
     case "speed":
       return edge(d.bar.to, (delta) =>
-        speedBar(ctx, d.bar, Math.max(1, Math.round(d.bar.to - d.bar.from + delta))),
+        speedBar(ctx, d.bar, wholeFrames(d.bar.to - d.bar.from + delta, 1)),
       );
   }
 }

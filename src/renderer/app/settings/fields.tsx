@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import { Field, FieldDescription, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
 import { Switch } from "@/renderer/components/ui/switch";
+import { useCommitDraft } from "@/renderer/lib/use-commit-draft";
 
 export function SwitchField({
   id,
@@ -29,37 +30,6 @@ export function SwitchField({
   );
 }
 
-export function useDraft(value: string, onCommit: (text: string) => void) {
-  const [draft, setDraft] = useState<string | null>(null);
-  const pending = useRef<{ text: string; commit: (text: string) => void } | null>(null);
-  const flush = useCallback(() => {
-    const unsaved = pending.current;
-    pending.current = null;
-    unsaved?.commit(unsaved.text);
-  }, []);
-  useEffect(() => {
-    window.addEventListener("pagehide", flush);
-    return () => {
-      window.removeEventListener("pagehide", flush);
-      flush();
-    };
-  }, [flush]);
-  const commitText = (text: string) => {
-    setDraft(null);
-    pending.current = null;
-    if (text !== value) onCommit(text);
-  };
-  return {
-    text: draft ?? value,
-    change: (text: string) => {
-      setDraft(text);
-      pending.current = { text, commit: onCommit };
-    },
-    commit: () => draft !== null && commitText(draft),
-    commitText,
-  };
-}
-
 export function CommitInput({
   value,
   onCommit,
@@ -68,7 +38,7 @@ export function CommitInput({
   value: string;
   onCommit: (text: string) => void;
 }) {
-  const draft = useDraft(value, onCommit);
+  const draft = useCommitDraft(value, onCommit);
   return (
     <Input
       {...props}

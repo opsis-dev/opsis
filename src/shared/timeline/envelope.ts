@@ -12,7 +12,7 @@ function ease(kind: Ease, t: number): number {
       return x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
     case "hold":
       return 0;
-    default:
+    case "linear":
       return x;
   }
 }

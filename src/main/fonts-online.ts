@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fetchOk } from "../engine/download";
 import { CATALOG_CATEGORIES, FONT_CATEGORIES, type FontFamilyDef } from "../shared/fonts/types";
 import { parseJsonWith } from "../shared/guards";
 import type { FontCatalogEntry } from "../shared/ipc";
@@ -44,25 +45,16 @@ const axesSchema = z.object({
 
 const CHECK_CONNECTION = "Check your internet connection.";
 
-async function reach(url: string, failure: string): Promise<Response> {
-  try {
-    return await fetch(url);
-  } catch (error) {
+const online = <T>(work: Promise<T>, failure: string): Promise<T> =>
+  work.catch((error: unknown) => {
     throw new Error(`${failure} ${CHECK_CONNECTION}`, { cause: error });
-  }
-}
-
-async function fetchOk(url: string, failure: string): Promise<Response> {
-  const res = await reach(url, failure);
-  if (!res.ok) throw new Error(`${failure} ${CHECK_CONNECTION}`);
-  return res;
-}
+  });
 
 let catalog: FontCatalogEntry[] | null = null;
 
 export async function fontCatalog(): Promise<FontCatalogEntry[]> {
   if (catalog) return catalog;
-  const res = await fetchOk(`${API}/fonts`, "Couldn't load the font list.");
+  const res = await online(fetchOk(`${API}/fonts`), "Couldn't load the font list.");
   const rows = z.array(z.unknown()).parse(await res.json());
   catalog = rows.flatMap((row) => {
     const parsed = catalogRowSchema.safeParse(row);
@@ -74,12 +66,15 @@ export async function fontCatalog(): Promise<FontCatalogEntry[]> {
 }
 
 async function fetchBytes(url: string): Promise<Uint8Array> {
-  const res = await fetchOk(url, "A font file didn't download.");
+  const res = await online(fetchOk(url), "A font file didn't download.");
   return new Uint8Array(await res.arrayBuffer());
 }
 
 async function weightAxis(id: string): Promise<{ min: string; max: string } | undefined> {
-  const res = await reach(`${API}/variable/${encodeURIComponent(id)}`, "A font didn't download.");
+  const res = await online(
+    fetch(`${API}/variable/${encodeURIComponent(id)}`),
+    "A font didn't download.",
+  );
   if (!res.ok) return undefined;
   return parseJsonWith(axesSchema, await res.text())?.data?.axes?.wght;
 }
@@ -125,8 +120,8 @@ const categoryOf = (detail: FontsourceDetail): FontFamilyDef["category"] =>
   z.enum(FONT_CATEGORIES).safeParse(detail.category).data ?? guessCategory(detail.family);
 
 export async function downloadOnlineFont(id: string): Promise<FontFamilyDef> {
-  const res = await reach(
-    `${API}/fonts/${encodeURIComponent(id)}`,
+  const res = await online(
+    fetch(`${API}/fonts/${encodeURIComponent(id)}`),
     "Couldn't find that font online.",
   );
   if (!res.ok) throw new Error("Couldn't find that font online.");

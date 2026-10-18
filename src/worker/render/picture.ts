@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
-import { mkdir, rename, utimes } from "node:fs/promises";
+import { mkdir, utimes } from "node:fs/promises";
 import path from "node:path";
+import { writeViaTemp } from "../../engine/atomic";
 import { pruneDir } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
 import { projectPaths } from "../../engine/project-paths";
@@ -70,9 +71,7 @@ export async function cachedPicture(
     await utimes(file, now, now).catch(() => undefined);
     return { file, reused: true };
   }
-  const temp = `${file}.part${path.extname(name)}`;
-  await render(temp);
-  await rename(temp, file);
+  await writeViaTemp(file, render);
   await pruneDir(dir, { newest: KEEP_PICTURES });
   return { file, reused: false };
 }

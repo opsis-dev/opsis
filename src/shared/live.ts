@@ -1,3 +1,4 @@
+import { hasStringType } from "./guards";
 import type { Rect } from "./schema/actions";
 import type { NodeRunStatus } from "./schema/events";
 
@@ -27,3 +28,6 @@ export type LiveMessage =
       t: number;
     }
   | { type: "event"; captureId: string; nodeId: string; t: number; event: LiveEvent };
+
+export const isLiveMessage = (data: unknown): data is LiveMessage =>
+  hasStringType(data) && typeof data.captureId === "string";

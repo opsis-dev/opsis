@@ -1,9 +1,18 @@
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ipcMain, type WebContents } from "electron";
-import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
+import {
+  apiFailure,
+  apiOk,
+  apiProjectStateSchema,
+  type ApiEditorReply,
+  type ApiEditorRequest,
+  type ApiProjectState,
+  type ApiReply,
+} from "../shared/api/types";
 import { NO_PROJECT } from "../shared/errors";
 import { IPC } from "../shared/ipc";
+import { listenerSet } from "../shared/listener-set";
 import { pendingReplies } from "../shared/pending-replies";
 import type { RunEvent } from "../shared/schema/events";
 import { getMainWindow, isEditorSender } from "./window-registry";
@@ -24,25 +33,24 @@ const RELOADED = {
 const replies = pendingReplies<ApiEditorReply>();
 const streams = new Set<ServerResponse>();
 const watched = new WeakSet<WebContents>();
-const wakeOnListening = new Set<() => void>();
+const editorListens = listenerSet();
 let editorListening = false;
 
 function setEditorListening(listening: boolean): void {
   editorListening = listening;
-  if (listening) for (const wake of wakeOnListening) wake();
+  if (listening) editorListens.emit();
 }
 
 function untilEditorListens(ms: number): Promise<boolean> {
   if (editorListening) return Promise.resolve(true);
   return new Promise((resolve) => {
-    const done = (listening: boolean) => {
+    const done = (listens: boolean) => {
       clearTimeout(timer);
-      wakeOnListening.delete(wake);
-      resolve(listening);
+      stop();
+      resolve(listens);
     };
-    const wake = () => done(true);
     const timer = setTimeout(() => done(false), ms);
-    wakeOnListening.add(wake);
+    const stop = editorListens.add(() => done(true));
   });
 }
 
@@ -71,16 +79,23 @@ export function registerApiEditorIpc(): void {
   });
 }
 
-export async function askEditor<R extends ApiEditorRequest>(
-  request: R,
-): Promise<ApiEditorReply<R["op"]>> {
+export async function askEditor(request: ApiEditorRequest): Promise<ApiEditorReply> {
   const win = getMainWindow();
   if (!win || win.isDestroyed()) return NO_EDITOR;
   if (!(await untilEditorListens(EDITOR_TIMEOUT.ms))) return EDITOR_TIMEOUT.result;
   const id = randomUUID();
   const reply = replies.wait(id, EDITOR_TIMEOUT);
   win.webContents.send(IPC.apiRequest, id, request);
-  return (await reply) as ApiEditorReply<R["op"]>;
+  return reply;
+}
+
+export async function readEditorProject(): Promise<ApiReply<ApiProjectState>> {
+  const reply = await askEditor({ op: "read" });
+  if (!reply.ok) return reply;
+  const project = apiProjectStateSchema.safeParse(reply.result);
+  return project.success
+    ? apiOk(project.data)
+    : apiFailure(502, "The editor's answer couldn't be read.");
 }
 
 export function followRunEvents(req: IncomingMessage, res: ServerResponse): void {

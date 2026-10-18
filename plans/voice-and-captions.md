@@ -138,7 +138,7 @@ Already in place:
 - Sounds join a clip through Add sound (`addAudioNode`, `src/shared/nodes/audio.ts`), which takes any number of `audio` values (`many()`) and places anchored ones at their action's mark with `anchorSounds()` (via `flattenSpec`). Sound effect stores its action in `atAction` (`widget: "action"`) and an `offsetMs`.
 - `AudioItem` (`src/shared/schema/timeline.ts`) carries `channel`, `role`, `lengthFrames`, `anchor` and `handles`; each `channel` is one Mixer strip.
 - Ducking is a bus setting: `duckKeysFor` (`src/shared/mix/levels.ts`) keys a bus on the buses named in `bus.duck.keys`; `buildMixPlan` (`src/shared/mix/plan.ts`) renders it with `sidechaincompress`. A **Voice** strip preset already exists in `STRIP_PRESETS` (`src/shared/mix/types.ts`).
-- `CaptionsValue` (`src/shared/schema/values.ts`) is `{ text, startMs, endMs }` per word; `captionsNode` (Show captions, `src/shared/nodes/text.ts`) draws it with `core/captions`, whose `Captions` component (`src/video/core/text.tsx`) groups words into lines of up to six or at sentence ends.
+- `CaptionsValue` (`src/shared/schema/values.ts`) is `{ text, startMs, endMs }` per word; `captionsNode` (Show captions, `src/shared/nodes/text.ts`) draws it with `core/captions`, whose `Captions` component (`src/video/core/captions.tsx`) groups words into lines of up to six or at sentence ends.
 - Executors that run FFmpeg and return files: `mediaResult()` and `transcode()` in `src/worker/executors/media.ts`; `ExecutorContext` has `ffmpeg`, `dir`, `progress()`, `signal`, and `projectFileRef(ctx, file)` (`src/worker/executors/util.ts`) makes a file's `project:` ref. A compile can read its executor's outputs from `result` (as `src/shared/nodes/media.ts` does).
 
 Missing:

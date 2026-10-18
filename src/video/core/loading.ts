@@ -16,7 +16,7 @@ type Loaded<T> = { key: string; value: T };
 export function useHeldLoad<T>(
   label: string,
   key: string | null,
-  load: () => Promise<T>,
+  load: (key: string) => Promise<T>,
 ): Loaded<T> | null {
   const [loaded, setLoaded] = useState<Loaded<T> | null>(null);
   const start = useEffectEvent(load);
@@ -24,7 +24,7 @@ export function useHeldLoad<T>(
     if (key === null) return;
     const release = holdRender(label);
     let alive = true;
-    start()
+    start(key)
       .then((value) => {
         if (!alive) return;
         setLoaded({ key, value });

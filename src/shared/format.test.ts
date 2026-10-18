@@ -10,6 +10,7 @@ import {
   percent,
   percentText,
   plural,
+  signedText,
   singleQuoted,
 } from "./format";
 
@@ -122,5 +123,15 @@ describe("plural", () => {
     expect(plural(1, "clip")).toBe("1 clip");
     expect(plural(3, "clip")).toBe("3 clips");
     expect(plural(0, "font family", "font families")).toBe("0 font families");
+  });
+});
+
+describe("signedText", () => {
+  it("writes a typographic minus, a plus only when asked, and no sign on zero", () => {
+    expect(signedText(-14.25, { digits: 1 })).toBe("−14.3");
+    expect(signedText(1.24, { digits: 1, plus: true })).toBe("+1.2");
+    expect(signedText(1.24, { digits: 1 })).toBe("1.2");
+    expect(signedText(-0.01, { digits: 1, plus: true })).toBe("0.0");
+    expect(signedText(-23)).toBe("−23");
   });
 });

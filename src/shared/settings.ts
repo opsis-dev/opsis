@@ -76,12 +76,9 @@ export const DEFAULT_SETTINGS: AppSettings = appSettingsSchema.parse({});
 
 export type SettingsPatch = { [K in keyof AppSettings]?: Partial<AppSettings[K]> };
 
-export const mergeSettings = (current: AppSettings, patch: SettingsPatch): AppSettings => ({
-  app: { ...current.app, ...patch.app },
-  traces: { ...current.traces, ...patch.traces },
-  live: { ...current.live, ...patch.live },
-  render: { ...current.render, ...patch.render },
-  projects: { ...current.projects, ...patch.projects },
-  editor: { ...current.editor, ...patch.editor },
-  api: { ...current.api, ...patch.api },
-});
+const SETTINGS_SECTIONS = appSettingsSchema.keyof().options;
+
+export const mergeSettings = (current: AppSettings, patch: SettingsPatch): AppSettings =>
+  appSettingsSchema.parse(
+    Object.fromEntries(SETTINGS_SECTIONS.map((key) => [key, { ...current[key], ...patch[key] }])),
+  );

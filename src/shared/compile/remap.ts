@@ -1,10 +1,12 @@
+import { z } from "zod";
 import { MIN_SPEED } from "../limits";
 import { isNonEmpty } from "../lists";
 import { lerp, round3, sampleKeyed } from "../math";
 
-export type Remap = Array<[number, number]>;
+export const remapSchema = z.array(z.tuple([z.number(), z.number()]));
+export type Remap = z.infer<typeof remapSchema>;
 
-export const lerpSegment = (
+const lerpSegment = (
   [x0, y0]: readonly [number, number],
   [x1, y1]: readonly [number, number],
   x: number,

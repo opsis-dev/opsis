@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { acceleratorLabel, appMenu, matchesAccelerator } from "./menu";
+import { acceleratorLabel, appMenu, isPrimaryModifier, matchesAccelerator } from "./menu";
 
 const key = (
   k: string,
@@ -58,5 +58,19 @@ describe("app menu", () => {
         .flatMap((i) => (i.kind !== "separator" && i.accelerator ? [i.accelerator] : []));
       expect(new Set(accels).size).toBe(accels.length);
     }
+  });
+});
+
+describe("isPrimaryModifier", () => {
+  it("is Cmd on macOS and Ctrl elsewhere, like CmdOrCtrl in a menu accelerator", () => {
+    const ctrl = key("=", { ctrlKey: true });
+    const cmd = key("=", { metaKey: true });
+    expect(isPrimaryModifier(cmd, "darwin")).toBe(true);
+    expect(isPrimaryModifier(ctrl, "darwin")).toBe(false);
+    expect(isPrimaryModifier(ctrl, "linux")).toBe(true);
+    expect(isPrimaryModifier(cmd, "win32")).toBe(false);
+    for (const platform of ["darwin", "linux", "win32"] as const)
+      for (const e of [ctrl, cmd])
+        expect(isPrimaryModifier(e, platform)).toBe(matchesAccelerator("CmdOrCtrl+=", e, platform));
   });
 });

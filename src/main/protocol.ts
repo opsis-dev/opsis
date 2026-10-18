@@ -54,13 +54,13 @@ export function registerProtocolHandlers(opts: {
   getFontsDir: () => string;
   rendererDir: string;
 }): void {
-  const roots: Partial<Record<string, () => string | null>> = {
-    project: opts.getProjectDir,
-    fonts: opts.getFontsDir,
-  };
+  const roots = new Map([
+    ["project", opts.getProjectDir],
+    ["fonts", opts.getFontsDir],
+  ]);
   protocol.handle(FILE_SCHEME, (request) => {
     const url = new URL(request.url);
-    const root = Object.hasOwn(roots, url.hostname) ? roots[url.hostname]?.() : null;
+    const root = roots.get(url.hostname)?.();
     if (!root) return new Response("No project open", { status: 404 });
     const file = resolveInside(root, url.pathname);
     if (!file) return new Response("Forbidden", { status: 403 });

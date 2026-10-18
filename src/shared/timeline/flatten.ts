@@ -391,16 +391,15 @@ export function flattenSpec(
   const acc: Collected = { fps: spec.fps, bars: [], transitions: [], marks: [] };
   const root: Instance = { toAbs: (c) => c, lo: 0, hi: spec.durationInFrames };
   visitTracks(acc, spec.tracks, { inst: root, path: "", chain: [], loop: 0, timing: "plain" });
-  const { bars } = acc;
-  const lanes = packLanes(bars);
-  const audio = audioBars(spec, bars);
+  const { bars, lanes } = packLanes(acc.bars);
+  const { audio, lanes: audioLanes } = packAudio(audioBars(spec, bars));
   return {
     fps: spec.fps,
     durationInFrames: spec.durationInFrames,
     bars,
     lanes,
     audio,
-    audioLanes: packAudio(audio),
+    audioLanes,
     transitions: placeTransitions(acc.transitions, bars),
     marks: acc.marks.toSorted((x, y) => x.frame - y.frame),
   };

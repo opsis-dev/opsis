@@ -1,3 +1,5 @@
+import type { z } from "zod";
+
 export function keepLatest<T>(
   dispose?: (value: T) => unknown,
 ): (key: string, make: () => Promise<T>) => Promise<T> {
@@ -39,5 +41,16 @@ export function lruCache<T extends NonNullable<unknown>>(limit: number) {
       if (items.size > limit && oldest !== undefined) items.delete(oldest);
       return value;
     },
+  };
+}
+
+export function parseOncePer<T>(schema: z.ZodType<T>): (value: object) => T | null {
+  const results = new WeakMap<object, T | null>();
+  return (value) => {
+    if (!results.has(value)) {
+      const parsed = schema.safeParse(value);
+      results.set(value, parsed.success ? parsed.data : null);
+    }
+    return results.get(value) ?? null;
   };
 }

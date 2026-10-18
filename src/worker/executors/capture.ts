@@ -15,6 +15,7 @@ import { nodeName } from "../../shared/nodes/registry";
 import type { RecordingValue } from "../../shared/schema/values";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { secretName } from "../../shared/secrets";
+import { wholeFrames } from "../../shared/timeline/time";
 import type { LoginRequest } from "../../shared/worker-protocol";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
@@ -141,8 +142,13 @@ async function finalizeTrace(
   encoder: FrameEncoder | undefined,
   ok: boolean,
 ): Promise<string | undefined> {
-  if (trace.path && encoder) await addFrames(ctx, trace.path, encoder);
-  return saveTrace(ctx, trace.path, ok, trace.groups);
+  try {
+    if (trace.path && encoder) await addFrames(ctx, trace.path, encoder);
+    return await saveTrace(ctx, trace.path, ok, trace.groups);
+  } catch (error) {
+    ctx.log("warn", `Couldn't save the trace: ${errorMessage(error)}`);
+    return undefined;
+  }
 }
 
 async function take<R>(
@@ -156,8 +162,9 @@ async function take<R>(
     path: ctx.env.settings.traces.retention === "off" ? undefined : path.join(ctx.dir, TRACE_FILE),
     groups: [],
   };
+  let result: R;
   try {
-    const result = await play({
+    result = await play({
       workflow: ctx.workflow,
       chain,
       vars: ctx.vars,
@@ -172,12 +179,8 @@ async function take<R>(
       log: ctx.log,
       step: ctx.step,
     });
-    return { result, traceId: await finalizeTrace(ctx, trace, encoder, true) };
   } catch (error) {
-    const traceId = await finalizeTrace(ctx, trace, encoder, false).catch((e: unknown) => {
-      ctx.log("warn", `Couldn't save the trace: ${errorMessage(e)}`);
-      return undefined;
-    });
+    const traceId = await finalizeTrace(ctx, trace, encoder, false);
     const expired = error instanceof SignInExpiredError;
     throw new TracedError(
       expired && !signIn
@@ -187,6 +190,7 @@ async function take<R>(
       expired,
     );
   }
+  return { result, traceId: await finalizeTrace(ctx, trace, encoder, true) };
 }
 
 const PREVIEW_WIDTH = 960;
@@ -210,7 +214,7 @@ async function makePreviewCopy(
         ...h264Args({
           crf: PREVIEW_CRF,
           preset: "veryfast",
-          keyframeEvery: Math.max(1, Math.round(fps / PREVIEW_KEYFRAMES_PER_SECOND)),
+          keyframeEvery: wholeFrames(fps / PREVIEW_KEYFRAMES_PER_SECOND, 1),
           faststart: true,
         }),
         path.join(ctx.dir, name),

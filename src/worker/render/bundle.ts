@@ -1,11 +1,8 @@
 import { rm } from "node:fs/promises";
 import path from "node:path";
-import type { BundleOptions } from "@remotion/bundler";
 
 const PREBUILT_REMOTION_BUNDLE_DIR = "remotion-bundle";
 const REMOTION_ENTRY = path.join("src", "video", "index.ts");
-
-type BundleProgress = Parameters<NonNullable<BundleOptions["onProgress"]>>[0];
 
 export const getPrebuiltRemotionBundlePath = (appRoot: string) =>
   path.join(appRoot, PREBUILT_REMOTION_BUNDLE_DIR);
@@ -17,7 +14,7 @@ export async function bundleRemotionProject({
 }: {
   projectRoot: string;
   outDir?: string;
-  onProgress?: (progress: BundleProgress) => void;
+  onProgress?: (percent: number) => void;
 }): Promise<string> {
   const { bundle } = await import("@remotion/bundler");
   const { makeWebpackOverride } = await import("./webpack-override");

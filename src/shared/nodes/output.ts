@@ -5,6 +5,7 @@ import { evenPx } from "../math";
 import { REFRAMES, type ReframeMode } from "../schema/timeline";
 import { outputOf, type Artifact, type CompileValue, type TimelineValue } from "../schema/values";
 import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
+import { PROJECT_NAME } from "../vars";
 import { row } from "./card";
 import { defineNode, port, type CompileInputs, type CompileOutputs } from "./define";
 import {
@@ -88,7 +89,7 @@ const exportedShortSide = (variant: Variant, settings: WorkflowSettings, scale: 
   return Math.round(Math.min(size.width, size.height) * scale);
 };
 
-const fileNameField = () => text("{{Project name}}", "File name");
+const fileNameField = () => text(PROJECT_NAME, "File name");
 
 const toTimeline = (
   input: CompileValue | undefined,

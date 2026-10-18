@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { isPrimaryModifier } from "@/renderer/lib/dom";
+import { platform } from "@/renderer/lib/platform";
+import { isPrimaryModifier } from "@/shared/menu";
 import type { StripSettings } from "@/shared/mix/types";
 import { toggleIds, useUiStore } from "../../store/ui";
 
@@ -26,7 +27,7 @@ function pickedStrips(id: string, order: string[], modifiers: PickModifiers): st
     const [a, b] = [order.indexOf(anchor), order.indexOf(id)].toSorted((x, y) => x - y);
     return [...new Set([...selectedIds, ...order.slice(a, b + 1)])];
   }
-  if (isPrimaryModifier(modifiers)) return toggleIds(selectedIds, [id]);
+  if (isPrimaryModifier(modifiers, platform)) return toggleIds(selectedIds, [id]);
   return [id];
 }
 

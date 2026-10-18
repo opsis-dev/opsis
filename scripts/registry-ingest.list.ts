@@ -1,13 +1,8 @@
-type ElementCategory =
-  | "text"
-  | "overlay"
-  | "transition"
-  | "background"
-  | "effect"
-  | "ui"
-  | "data"
-  | "scene"
-  | "device";
+import type { FieldWidget } from "../src/shared/elements/introspect";
+import type { ElementCategory } from "../src/shared/elements/types";
+import type { StepRange } from "../src/shared/math";
+
+type RegistryCategory = Exclude<ElementCategory, "core">;
 
 export const CONTROL_TYPES = [
   "text",
@@ -41,14 +36,14 @@ export type ControlSpec = {
   advanced?: boolean;
   accept?: string;
   options?: string[];
-  widget?: string;
+  widget?: FieldWidget;
   hidden?: boolean;
 };
 
 export type CuratedElement = {
   registry: "remocn" | "snapcn" | "remotionui";
   name: string;
-  category: ElementCategory;
+  category: RegistryCategory;
   title?: string;
   exportName?: string;
   controls?: Record<string, ControlSpec>;
@@ -125,7 +120,7 @@ export const REGISTRIES: Record<CuratedElement["registry"], RegistryInfo> = {
 const fromRegistry =
   (registry: CuratedElement["registry"], base: Partial<CuratedElement> = {}) =>
   (
-    category: ElementCategory,
+    category: RegistryCategory,
     names: string[],
     extra: Partial<CuratedElement> = {},
   ): CuratedElement[] =>
@@ -462,6 +457,25 @@ const REMOTION_UI: CuratedElement[] = [
   ...remotionui("background", ["particle-field"], { title: "Particle field" }),
 ];
 
+export const numberControl = (
+  description: string,
+  defaultValue: number,
+  { min, max, step }: StepRange,
+  extra: Pick<ControlSpec, "unit" | "help" | "advanced" | "widget" | "hidden"> = {},
+): ControlSpec => ({
+  type: "number",
+  default: defaultValue,
+  min,
+  max,
+  step,
+  description,
+  ...extra,
+});
+
+const FRACTION: StepRange = { min: 0, max: 1, step: 0.01 };
+
+const FRAME_COUNT: StepRange = { min: 0, max: 30, step: 1 };
+
 function spotControls(
   label: string,
   x: number,
@@ -470,16 +484,12 @@ function spotControls(
 ): Record<string, ControlSpec> {
   const xKey = prefix ? `${prefix}X` : "x";
   const yKey = prefix ? `${prefix}Y` : "y";
-  const fraction = { type: "number", min: 0, max: 1, step: 0.01 } as const;
   return {
-    [xKey]: {
-      ...fraction,
-      default: x,
-      description: label,
+    [xKey]: numberControl(label, x, FRACTION, {
       widget: "spot",
       help: "Click the frame to choose the spot.",
-    },
-    [yKey]: { ...fraction, default: y, description: `${label} vertical`, hidden: true },
+    }),
+    [yKey]: numberControl(`${label} vertical`, y, FRACTION, { hidden: true }),
   };
 }
 
@@ -560,24 +570,8 @@ const LIST: CuratedElement[] = [
     place: "spot",
     controls: {
       ...spotControls("Around", 0.5, 0.5),
-      width: {
-        type: "number",
-        default: 420,
-        min: 20,
-        max: 3840,
-        step: 10,
-        unit: "px",
-        description: "Width",
-      },
-      height: {
-        type: "number",
-        default: 220,
-        min: 20,
-        max: 2160,
-        step: 10,
-        unit: "px",
-        description: "Height",
-      },
+      width: numberControl("Width", 420, { min: 20, max: 3840, step: 10 }, { unit: "px" }),
+      height: numberControl("Height", 220, { min: 20, max: 2160, step: 10 }, { unit: "px" }),
     },
   }),
   ...remocn("overlay", ["ink-arrow"], {
@@ -621,65 +615,33 @@ const LIST: CuratedElement[] = [
     kind: "sequencer",
     sceneItem: "SpringSettleItem",
     controls: {
-      enterStagger: {
-        type: "number",
-        default: 3,
-        min: 0,
-        max: 10,
-        step: 0.5,
+      enterStagger: numberControl(
+        "Time between items",
+        3,
+        { min: 0, max: 10, step: 0.5 },
+        { unit: "frames", help: "How long each item in a scene waits after the one before it." },
+      ),
+      exitFrames: numberControl("Exit time", 6, { min: 2, max: 24, step: 1 }, { unit: "frames" }),
+      enterFadeFrames: numberControl("Fade-in time", 5, FRAME_COUNT, {
         unit: "frames",
-        description: "Time between items",
-        help: "How long each item in a scene waits after the one before it.",
-      },
-      exitFrames: {
-        type: "number",
-        default: 6,
-        min: 2,
-        max: 24,
-        step: 1,
+        advanced: true,
+      }),
+      springDamping: numberControl(
+        "Spring damping",
+        30,
+        { min: 1, max: 100, step: 1 },
+        { help: "Lower values bounce more as items land.", advanced: true },
+      ),
+      springStiffness: numberControl(
+        "Spring stiffness",
+        320,
+        { min: 10, max: 1000, step: 10 },
+        { help: "Higher values land faster.", advanced: true },
+      ),
+      bgFadeFrames: numberControl("Background fade", 4, FRAME_COUNT, {
         unit: "frames",
-        description: "Exit time",
-      },
-      enterFadeFrames: {
-        type: "number",
-        default: 5,
-        min: 0,
-        max: 30,
-        step: 1,
-        unit: "frames",
-        description: "Fade-in time",
         advanced: true,
-      },
-      springDamping: {
-        type: "number",
-        default: 30,
-        min: 1,
-        max: 100,
-        step: 1,
-        description: "Spring damping",
-        help: "Lower values bounce more as items land.",
-        advanced: true,
-      },
-      springStiffness: {
-        type: "number",
-        default: 320,
-        min: 10,
-        max: 1000,
-        step: 10,
-        description: "Spring stiffness",
-        help: "Higher values land faster.",
-        advanced: true,
-      },
-      bgFadeFrames: {
-        type: "number",
-        default: 4,
-        min: 0,
-        max: 30,
-        step: 1,
-        unit: "frames",
-        description: "Background fade",
-        advanced: true,
-      },
+      }),
     },
   }),
   ...remocn("ui", ["terminal-simulator"], {

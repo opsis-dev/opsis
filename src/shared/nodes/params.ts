@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { fieldMeta, type FieldMeta } from "../elements/introspect";
-import { humanize } from "../format";
+import { humanize, signedText } from "../format";
+import { isKeyOf } from "../guards";
 import { MAX_FRAMES, MAX_SPEED, MAX_VOLUME } from "../limits";
+import type { MinMax } from "../math";
 import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
 
 export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
@@ -21,7 +23,7 @@ export const optionalTarget = (description: string, help?: string) =>
 export const pickedRole = () =>
   z.string().optional().meta({ description: "Role of the picked element", hidden: true });
 
-type NumberOptions = FieldMeta & { min: number; max: number };
+type NumberOptions = FieldMeta & MinMax;
 
 export const num = (def: number, description: string, { min, max, ...meta }: NumberOptions) =>
   z
@@ -72,8 +74,11 @@ export const asset = (description: string, accept = "*/*") =>
 export const bool = (def: boolean, description: string) =>
   z.boolean().default(def).meta({ description });
 
-export const keysOf = <K extends string>(map: Record<K, unknown>): [K, ...K[]] =>
-  Object.keys(map) as [K, ...K[]];
+export function keysOf<K extends string>(map: Record<K, unknown>): [K, ...K[]] {
+  const [first, ...rest] = Object.keys(map).filter((key) => isKeyOf(map, key));
+  if (first === undefined) throw new Error("keysOf needs at least one key.");
+  return [first, ...rest];
+}
 
 export const choice = <const T extends readonly [string, ...string[]]>(
   values: T,
@@ -134,7 +139,7 @@ export function choiceFrom<K extends string, const T extends readonly [K, ...K[]
 
 export const LOUDNESS_PRESETS = { "Online video": -14, Podcast: -16, Broadcast: -23 } as const;
 
-export const lufsText = (lufs: number): string => `${lufs < 0 ? "−" : ""}${Math.abs(lufs)}`;
+export const lufsText = (lufs: number): string => signedText(lufs);
 
 export const loudnessName = (lufs: number): string =>
   Object.entries(LOUDNESS_PRESETS).find(([, v]) => v === lufs)?.[0] ?? `${lufsText(lufs)} LUFS`;
@@ -153,7 +158,7 @@ export const pauseAfter = {
   }),
 };
 
-export const zoomFields = {
+const zoomFields = {
   cluster: more(text("", "Zoom group"), {
     help: "Actions in the same group share one zoom instead of zooming in and out each time.",
   }),
@@ -173,7 +178,7 @@ export const frameFields = {
   frameRole: pickedRole(),
 };
 
-export const pointerFields = {
+const pointerFields = {
   ...frameFields,
   zoomScale: num(0, "Zoom amount", {
     min: 0,
@@ -197,7 +202,6 @@ export const visualEnvelope = () =>
     description: "Keyframes",
     help: "Change opacity, position and size over time. Edit them here or on the timeline.",
     widget: "envelope",
-    labels: { opacity: "Opacity", x: "Move across", y: "Move up and down", scale: "Size" },
   });
 
 export const audioEnvelope = () =>
@@ -205,7 +209,6 @@ export const audioEnvelope = () =>
     description: "Keyframes",
     help: "Change volume and left–right balance over time. Edit them here or on the timeline.",
     widget: "envelope",
-    labels: { volume: "Volume", pan: "Balance" },
   });
 
 type ParsedParams<T> = { ok: true; data: T } | { ok: false; problem: string };

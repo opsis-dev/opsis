@@ -1,5 +1,8 @@
-import type { AnnotationKind, AnnotationSpec } from "../../shared/compile/recording";
-import { POINTER_KINDS } from "../../shared/compile/recording";
+import {
+  POINTER_KINDS,
+  type AnnotationKind,
+  type AnnotationSpec,
+} from "../../shared/compile/recording";
 import {
   pointRect,
   rectCenter,

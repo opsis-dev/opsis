@@ -1,4 +1,5 @@
-import { useState, type ChangeEvent } from "react";
+import type { ChangeEvent } from "react";
+import { useCommitDraft } from "@/renderer/lib/use-commit-draft";
 import { round3 } from "@/shared/math";
 import { parseNumberText } from "@/shared/text-input";
 
@@ -30,17 +31,11 @@ export function useDecimalInput(
   applyOn: "edit" | "blur",
   apply: (text: string) => void,
 ) {
-  const [draft, setDraft] = useState<string | null>(null);
+  const draft = useCommitDraft(shown, apply, applyOn);
   return {
     inputMode: "decimal" as const,
-    value: draft ?? shown,
-    onChange: (e: ChangeEvent<HTMLInputElement>) => {
-      setDraft(e.target.value);
-      if (applyOn === "edit") apply(e.target.value);
-    },
-    onBlur: () => {
-      if (applyOn === "blur" && draft !== null) apply(draft);
-      setDraft(null);
-    },
+    value: draft.text,
+    onChange: (e: ChangeEvent<HTMLInputElement>) => draft.change(e.target.value),
+    onBlur: draft.commit,
   };
 }

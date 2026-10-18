@@ -7,6 +7,7 @@ import { outputOf } from "../schema/values";
 import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
 import { secretFileName, secretName } from "../secrets";
 import { msToFrames } from "../timeline/time";
+import { SITE_ADDRESS } from "../vars";
 import { elementRow, LABELLED_TEXT_MAX, quote, row, warnIf } from "./card";
 import { defineNode, nodeBase, port } from "./define";
 import {
@@ -176,7 +177,7 @@ export const loginOnceNode = defineNode({
   inputs: {},
   outputs: {},
   params: z.object({
-    url: text("{{Site address}}/login", "Sign-in page"),
+    url: text(`${SITE_ADDRESS}/login`, "Sign-in page"),
     secretName: more(text("default", "Save as"), {
       help: "Pick this name under Signed in as on an Open browser node.",
     }),

@@ -1,6 +1,6 @@
 import { Field, FieldLabel } from "@/renderer/components/ui/field";
 import { Input } from "@/renderer/components/ui/input";
-import { clamp } from "@/shared/math";
+import { clamp, type MinMax, type StepRange } from "@/shared/math";
 import { SingleSlider } from "../../app/single-slider";
 import { parseShown, shownText, unitScale, useDecimalInput } from "./decimal";
 import { Help, LabelledChoices } from "./field-shell";
@@ -8,14 +8,12 @@ import type { FieldProps } from "./types";
 
 const MAX_SLIDER_RANGE = 5000;
 
-type SliderRange = { min: number; max: number; step: number };
-
-function sliderRange(min: number | undefined, max: number | undefined): SliderRange | null {
+function sliderRange(min: number | undefined, max: number | undefined): StepRange | null {
   if (min == null || max == null || max - min > MAX_SLIDER_RANGE) return null;
   return { min, max, step: max - min <= 1 ? 0.01 : 1 };
 }
 
-export type NumberProps = FieldProps<number> & { min?: number; max?: number };
+export type NumberProps = FieldProps<number> & Partial<MinMax>;
 
 export function PresetNumber({
   label,

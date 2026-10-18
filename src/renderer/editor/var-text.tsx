@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/renderer/components/ui/dropdown-menu";
 import { cn } from "@/renderer/lib/utils";
-import { PAUSE_MARK, tokenize, type TextToken } from "@/shared/vars";
+import { PAUSE_MARK, tokenize, varToken, type TextToken } from "@/shared/vars";
 
 export type VarInfo = { name: string; value: string };
 
@@ -44,7 +44,7 @@ const blockBreak = (index: number) => (index > 0 ? "\n" : "");
 function serializeNode(n: Node, index: number): string {
   if (n.nodeType === Node.TEXT_NODE) return n.nodeValue ?? "";
   if (!(n instanceof HTMLElement)) return "";
-  if (n.dataset.var !== undefined) return `{{${n.dataset.var}}}`;
+  if (n.dataset.var !== undefined) return varToken(n.dataset.var);
   if (n.dataset.pause !== undefined) return PAUSE_MARK;
   switch (n.tagName) {
     case "BR":

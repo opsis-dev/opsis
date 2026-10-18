@@ -9,13 +9,14 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { groupOf, type Crop, type GroupProps, type SequencerProps } from "../shared/compile/clip";
+import { groupOf, type GroupProps, type SequencerProps } from "../shared/compile/clip";
 import { remapFrame } from "../shared/compile/remap";
 import { ERROR_COLOR, STAGE_COLOR } from "../shared/elements/colors";
 import { MAIN_FONT } from "../shared/fonts";
 import { percent } from "../shared/format";
 import { clamp01 } from "../shared/math";
 import { duckGain, duckingSpans, type Span } from "../shared/mix/duck";
+import type { Rect } from "../shared/schema/actions";
 import type {
   AudioItem,
   TimelineItem,
@@ -138,7 +139,7 @@ const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
   return component ? createElement(component, resolveProps(item.props, base)) : null;
 };
 
-const cropScale = (crop: Crop): number => 1 / Math.max(MIN_CROP, crop.w, crop.h);
+const cropScale = (crop: Rect): number => 1 / Math.max(MIN_CROP, crop.w, crop.h);
 
 const FILL: React.CSSProperties = { position: "absolute", inset: 0 };
 
@@ -209,7 +210,7 @@ const Group: React.FC<GroupProps> = ({
 
 type Wrap<P> = React.FC<P & { children: React.ReactNode }>;
 
-const CropBox: Wrap<{ crop: Crop }> = ({ crop, children }) => (
+const CropBox: Wrap<{ crop: Rect }> = ({ crop, children }) => (
   <AbsoluteFill style={{ overflow: "hidden" }}>
     <AbsoluteFill
       style={{

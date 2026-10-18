@@ -1,6 +1,7 @@
 import { findById } from "../lists";
 import type { NodeIconName } from "../nodes/icon-name";
 import type { Workflow } from "../schema/workflow";
+import { PROJECT_NAME, SITE_ADDRESS, SITE_ADDRESS_VAR, varToken } from "../vars";
 import { GraphBuilder, type TakeStep } from "./build";
 
 type TemplateInfo = {
@@ -24,9 +25,17 @@ function exportVideo(
 
 const TODO_SITE = "https://demo.playwright.dev/todomvc";
 
+const PRODUCT_NAME_VAR = "Product name";
+
+const VERSION_VAR = "Version";
+
+const BEFORE_ADDRESS_VAR = "Before address";
+
+const AFTER_ADDRESS_VAR = "After address";
+
 const session: TakeStep = { id: "session", type: "browser.session" };
 
-const open = (url = "{{Site address}}", after?: number): TakeStep => ({
+const open = (url = SITE_ADDRESS, after?: number): TakeStep => ({
   id: "open",
   type: "browser.navigate",
   params: after === undefined ? { url } : { url, after },
@@ -43,7 +52,7 @@ function todoMvcSample(name: string): Workflow {
   const g = new GraphBuilder();
   const cam = g.recordTake([
     session,
-    open("{{Site address}}/#/", 900),
+    open(`${SITE_ADDRESS}/#/`, 900),
     addTodo("todo1", "Record a real product flow", 500),
     addTodo("todo2", "Auto-zoom on every click", 500),
     addTodo("todo3", "Render 16:9 and 9:16", 1200),
@@ -80,7 +89,7 @@ function todoMvcSample(name: string): Workflow {
   const outro = g.node("outro", "fx.core.title", 5, 4, {
     eyebrow: "Made with",
     title: "Demoflow",
-    subtitle: "{{Site address}}",
+    subtitle: SITE_ADDRESS,
     clipDuration: 75,
   });
 
@@ -94,13 +103,13 @@ function todoMvcSample(name: string): Workflow {
     variants: ["16:9", "9:16"],
     codec: "h264",
     reframe: "follow",
-    fileName: "{{Project name}}",
+    fileName: PROJECT_NAME,
   });
   g.node("note", "core.note", 0, 2, {
     text: "Sample project.\n\n1. Press Run. Demoflow records the flow in a hidden browser.\n2. The preview updates with the real footage, camera moves and cursor.\n3. Finished videos appear in Outputs.",
   });
 
-  return g.build({ name, variables: { "Site address": TODO_SITE } });
+  return g.build({ name, variables: { [SITE_ADDRESS_VAR]: TODO_SITE } });
 }
 
 function featureLaunch(name: string): Workflow {
@@ -118,19 +127,19 @@ function featureLaunch(name: string): Workflow {
   const spot = g.node("spotlight", "cursor.spotlight", 3, 2, { match: "Get started" });
   g.link(cam, spot);
   const intro = g.node("headline", "fx.core.kinetic-headline", 1, 2, {
-    text: "Introducing *{{Product name}}*",
+    text: `Introducing *${varToken(PRODUCT_NAME_VAR)}*`,
     background: "#09090b",
   });
   const outro = g.node("outro", "fx.core.title", 2, 3, {
-    title: "Try {{Product name}} today",
-    subtitle: "{{Site address}}",
+    title: `Try ${varToken(PRODUCT_NAME_VAR)} today`,
+    subtitle: SITE_ADDRESS,
   });
   const seq = g.node("sequence", "timeline.sequence", 4, 2, { transition: "remocn/zoom-blur" });
   g.clipsInto(seq, [intro, spot, outro]);
   exportVideo(g, seq, 5, 2);
   return g.build({
     name,
-    variables: { "Site address": "https://example.com", "Product name": "Acme" },
+    variables: { [SITE_ADDRESS_VAR]: "https://example.com", [PRODUCT_NAME_VAR]: "Acme" },
   });
 }
 
@@ -138,12 +147,12 @@ function changelogClip(name: string): Workflow {
   const g = new GraphBuilder();
   const title = g.node("title", "fx.core.title", 0, 0, {
     eyebrow: "Changelog",
-    title: "What's new in {{Version}}",
+    title: `What's new in ${varToken(VERSION_VAR)}`,
   });
   const term = g.node("terminal", "fx.remocn.terminal-simulator", 0, 1, { clipDuration: 150 });
   const chart = g.node("chart", "fx.remocn.animated-bar-chart", 0, 2, { clipDuration: 120 });
   const lower = g.node("credit", "fx.core.lower-third", 1, 3, {
-    title: "{{Product name}} {{Version}}",
+    title: `${varToken(PRODUCT_NAME_VAR)} ${varToken(VERSION_VAR)}`,
     subtitle: "Out now",
   });
   const bg = g.node("bg", "fx.core.gradient", 1, 2);
@@ -152,7 +161,7 @@ function changelogClip(name: string): Workflow {
   const seq = g.node("sequence", "timeline.sequence", 3, 1, { transition: "core/slide" });
   g.clipsInto(seq, [title, term, chartScene]);
   exportVideo(g, seq, 4, 1, { variants: ["16:9", "1:1"] });
-  return g.build({ name, variables: { "Product name": "Acme", Version: "v2.4" } });
+  return g.build({ name, variables: { [PRODUCT_NAME_VAR]: "Acme", [VERSION_VAR]: "v2.4" } });
 }
 
 function onboarding(name: string): Workflow {
@@ -186,7 +195,7 @@ function onboarding(name: string): Workflow {
   const caps = g.node("captions", "text.captions", 7, 3);
   g.link(script, caps, "captions", "captions").link(tip, caps, "clip", "clip");
   exportVideo(g, caps, 8, 3);
-  return g.build({ name, variables: { "Site address": TODO_SITE } });
+  return g.build({ name, variables: { [SITE_ADDRESS_VAR]: TODO_SITE } });
 }
 
 function socialTeaser(name: string): Workflow {
@@ -218,7 +227,7 @@ function socialTeaser(name: string): Workflow {
   return g.build({
     name,
     settings: { width: 1080, height: 1920 },
-    variables: { "Site address": TODO_SITE },
+    variables: { [SITE_ADDRESS_VAR]: TODO_SITE },
   });
 }
 
@@ -238,14 +247,17 @@ function beforeAfter(name: string): Workflow {
     g.clipsInto(stack, [cam, label]);
     return stack;
   };
-  const before = take("before", 0, "{{Before address}}");
-  const after = take("after", 5, "{{After address}}");
+  const before = take("before", 0, varToken(BEFORE_ADDRESS_VAR));
+  const after = take("after", 5, varToken(AFTER_ADDRESS_VAR));
   const wipe = g.node("wipe", "transition.core.wipe", 5, 3, { durationInFrames: 24 });
   g.link(before, wipe, "clip", "a").link(after, wipe, "clip", "b");
   exportVideo(g, wipe, 6, 3);
   return g.build({
     name,
-    variables: { "Before address": "https://example.com", "After address": "https://example.org" },
+    variables: {
+      [BEFORE_ADDRESS_VAR]: "https://example.com",
+      [AFTER_ADDRESS_VAR]: "https://example.org",
+    },
   });
 }
 

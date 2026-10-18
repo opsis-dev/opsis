@@ -2,7 +2,7 @@ import { z } from "zod";
 import { baseName, projectRef } from "../asset-ref";
 import { clipToSpec } from "../compile/clip";
 import { ANY_VALUE } from "../elements/introspect";
-import { formatDuration, percentText, plural } from "../format";
+import { formatDuration, percentText, plural, signOf } from "../format";
 import type { AudioEnvelope, AudioItem, EditHandles } from "../schema/timeline";
 import { asValue, type ClipValue, type CompileValue, type MediaValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
@@ -66,7 +66,7 @@ const framesIfSet = (durationMs: number, fps: number): number | undefined =>
   durationMs ? msToFrames(durationMs, fps) : undefined;
 
 const offsetLabel = (offsetMs: number): string =>
-  offsetMs ? ` ${offsetMs > 0 ? "+" : "−"}${formatDuration(Math.abs(offsetMs))}` : "";
+  offsetMs ? ` ${signOf(offsetMs, true)}${formatDuration(Math.abs(offsetMs))}` : "";
 
 function sourceRow(icon: NodeIconName, src: string, connected: string[], empty: string): CardRow {
   if (src) return fileRow(icon, src, builtinSound(src)?.label ?? baseName(src));

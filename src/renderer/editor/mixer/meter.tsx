@@ -1,5 +1,5 @@
 import { cn } from "@/renderer/lib/utils";
-import { percent } from "@/shared/format";
+import { percent, signedText } from "@/shared/format";
 import { clamp01 } from "@/shared/math";
 import { usePlayback } from "../../store/playback";
 import { useFilm } from "../film";
@@ -53,7 +53,7 @@ function Meter({ level, reduction }: { level: Level; reduction: number | null })
       {reduction !== null ? (
         <div
           className="bg-muted relative h-full w-1 overflow-hidden rounded-sm"
-          title={`Compressor lowers by ${reduction.toFixed(1)} dB`}
+          title={`Compressor lowers by ${signedText(reduction, { digits: 1 })} dB`}
         >
           <div
             className="bg-keyframe absolute inset-x-0 top-0"

@@ -22,7 +22,7 @@ function transitionTip(wf: Workflow, t: TransitionMark): string {
   const edge = slot
     ? wf.edges.find((e) => e.target === slot.nodeId && e.targetHandle === slot.port)
     : undefined;
-  const into = edge ? ` into ${nodeNameById(wf, edge.source, "")}` : "";
+  const into = edge ? ` into ${nodeNameById(wf.nodes, edge.source, "")}` : "";
   const cover = coversTooMuch(t.covers)
     ? `. It covers ${percentText(t.covers, { max: 100 })} of a clip: turn on Keep every clip whole, or shorten it`
     : "";

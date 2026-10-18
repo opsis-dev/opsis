@@ -6,7 +6,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { chromium } from "playwright-core";
 import { z } from "zod";
-import { downloadTo } from "./download";
+import { downloadTo, fetchOk } from "./download";
 import { remotionPlatform, type RemotionPlatform } from "./paths";
 
 const run = promisify(execFile);
@@ -44,8 +44,7 @@ async function chromiumVersion(browser: string): Promise<string> {
 }
 
 async function findChromeUrl(version: string, platform: RemotionPlatform): Promise<string> {
-  const res = await fetch(KNOWN_GOOD);
-  if (!res.ok) throw new Error(`Couldn't read the Chrome for Testing index (${res.status}).`);
+  const res = await fetchOk(KNOWN_GOOD);
   const index = knownGoodSchema.parse(await res.json());
   const url = index.versions
     .find((v) => v.version === version)

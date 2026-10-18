@@ -21,11 +21,12 @@ describe("meter levels", () => {
 
   it("gives a channel's share of the master's power", () => {
     const result = withMaster([-10, -10]);
-    expect(share(result, { rms: [-10, -20] }, 0)).toBeCloseTo(1);
-    expect(share(result, { rms: [-10, -20] }, 1)).toBeCloseTo(0.1);
-    expect(share(null, { rms: [-10] }, 0)).toBe(1);
+    const channel = { peak: [-4, -14], rms: [-10, -20] };
+    expect(share(result, channel, 0)).toBeCloseTo(1);
+    expect(share(result, channel, 1)).toBeCloseTo(0.1);
+    expect(share(null, channel, 0)).toBe(1);
     expect(share(result, undefined, 0)).toBe(1);
-    expect(share(withMaster([-150]), { rms: [-10] }, 0)).toBe(1);
+    expect(share(withMaster([-150]), channel, 0)).toBe(1);
   });
 
   it("reads peak, average and the held peak together", () => {

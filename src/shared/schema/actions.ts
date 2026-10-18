@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { lerp } from "../math";
 
-const rectSchema = z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() });
+export const rectSchema = z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() });
 export type Rect = z.infer<typeof rectSchema>;
 
 const pointSchema = z.object({ x: z.number(), y: z.number() });
@@ -10,7 +10,7 @@ export type Point = z.infer<typeof pointSchema>;
 export const viewportSchema = z.object({ width: z.number(), height: z.number() });
 export type Viewport = z.infer<typeof viewportSchema>;
 
-const boundsSchema = z.object({
+export const boundsSchema = z.object({
   x: z.number(),
   y: z.number(),
   width: z.number(),

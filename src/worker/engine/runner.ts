@@ -23,8 +23,7 @@ import {
   type NodeDef,
   type NodePhase,
 } from "../../shared/nodes/define";
-import { isOutputType } from "../../shared/nodes/registry";
-import { getNodeDef, nodeName } from "../../shared/nodes/registry";
+import { getNodeDef, isOutputType, nodeName } from "../../shared/nodes/registry";
 import { mapValues } from "../../shared/pick";
 import { failureMessage } from "../../shared/run-progress";
 import { runFailed, type LogLevel, type RunEvent } from "../../shared/schema/events";
@@ -96,8 +95,7 @@ function knownNodes(workflow: Workflow): Map<string, Known> {
 }
 
 async function signInSaved(node: WorkflowNode, { vars, deps, log }: RunContext) {
-  const raw = interpolate(node.params, vars).secretName;
-  const name = secretName(typeof raw === "string" ? raw : undefined);
+  const name = secretName(interpolate(node.params, vars).secretName);
   const saved = await deps.secrets.read(name).catch((error: unknown) => {
     log(
       "warn",
@@ -365,18 +363,9 @@ class RunState {
     const { runId, deps } = this.run;
     if (deps.signal.aborted || this.skipIfBlocked(job)) return;
     if (!def.volatile && !this.forced.has(node.id) && (await this.fromCache(job))) return;
-    const executor = getExecutor(node.type);
-    if (!executor) {
-      this.failed.add(node.id);
-      deps.emit({
-        type: "node:error",
-        runId,
-        nodeId: node.id,
-        message: `No executor for ${node.type}`,
-      });
-      return;
-    }
     try {
+      const executor = getExecutor(node.type);
+      if (!executor) throw new Error("This kind of node can't run.");
       const result = await this.executeJob(job, executor);
       this.store.set(node.id, result);
       if (!def.volatile) await writeCached(this.cacheDir, result);

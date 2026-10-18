@@ -1,5 +1,6 @@
 import { cn } from "@/renderer/lib/utils";
 import type { NodeCategory } from "@/shared/nodes/define";
+import type { NodeIconName } from "@/shared/nodes/icon-name";
 import { NodeIcon } from "./node-icon";
 import { CATEGORY_STYLES } from "./ports";
 
@@ -16,7 +17,7 @@ export function CategoryBadge({
   size = "sm",
 }: {
   category: NodeCategory;
-  icon: string | undefined;
+  icon: NodeIconName | undefined;
   size?: keyof typeof SIZES;
 }) {
   return (

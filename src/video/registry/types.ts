@@ -11,7 +11,7 @@ export type PresentationFactory = {
   readonly create: (props: ElementProps, size: Size) => Presentation;
 };
 
-export type SceneDef = { durationInFrames: number; bg?: string; content: React.ReactNode };
+type SceneDef = { durationInFrames: number; bg?: string; content: React.ReactNode };
 
 export type SceneSequencer = {
   readonly Scenes: React.ComponentType<{ scenes: SceneDef[]; config: ElementProps }>;

@@ -1,5 +1,5 @@
 import { clamp01, lerp, sampleKeyed } from "../../../shared/math";
-import type { Point } from "../../../shared/schema/actions";
+import { lerpPoint, type Point } from "../../../shared/schema/actions";
 import type { ClickEvent, CursorSample } from "./click-log";
 
 const CLICK_SQUASH = 0.9;
@@ -35,7 +35,7 @@ const trackPointAt = (track: CursorSample[], tS: number): Point | undefined =>
     tS * 1000,
     (s) => s.t,
     (s) => ({ x: s.x, y: s.y }),
-    (a, b, p) => ({ x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p) }),
+    lerpPoint,
   );
 
 function squashAfter(releasedS: number): number {

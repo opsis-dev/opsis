@@ -191,7 +191,7 @@ export interface DemoflowApi {
   analyze<K extends AnalysisKind>(
     request: Extract<AnalysisRequest, { kind: K }>,
   ): Promise<AnalysisResultFor<K>>;
-  openPanelWindow(panel: DockPanelName, projectDir: string): Promise<void>;
+  openPanelWindow(panel: DockPanelName): Promise<void>;
   focusPanelWindow(panel: DockPanelName): Promise<void>;
   closePanelWindow(panel: DockPanelName): Promise<void>;
   closePanelWindows(): Promise<void>;

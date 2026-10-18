@@ -8,7 +8,7 @@ import { atomicWrite, readJsonKeepingBroken, readTextIfPresent, writeJson } from
 import { readLastRun } from "../engine/last-run";
 import { logError } from "../engine/log";
 import { projectPaths } from "../engine/project-paths";
-import { parseJsonWith } from "../shared/guards";
+import { nonBlankString, parseJsonWith } from "../shared/guards";
 import type {
   OpenProject,
   ProjectFileChange,
@@ -154,7 +154,7 @@ export async function createProjectDir(
   await mkdir(path.join(dir, "assets"), { recursive: true });
   await ensureSecretsDir(dir);
   await writeFile(path.join(dir, ".gitignore"), `${PROJECT_DIRS.meta}/\n`);
-  const workflow = getTemplate(opts.template).build(opts.name.trim() || "Demo");
+  const workflow = getTemplate(opts.template).build(nonBlankString(opts.name) ?? "Demo");
   const version = await writeWorkflowFile(dir, workflow);
   await patchSettings({ projects: { lastDir: parent } });
   return { dir, workflow, lastRun: null, version };

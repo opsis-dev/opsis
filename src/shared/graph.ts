@@ -1,4 +1,5 @@
 import { humanize } from "./format";
+import { nonBlankString } from "./guards";
 import { byCodeUnit, findById } from "./lists";
 import { sessionNode } from "./nodes/browser";
 import { loginOnceNode } from "./nodes/capture";
@@ -203,12 +204,10 @@ export function loginDependencies(
   captureNodeId: string,
   vars: Record<string, string>,
 ): string[] {
-  const param = (node: WorkflowNode, key: string) => {
-    const value = node.params[key];
-    return typeof value === "string" ? interpolate(value, vars).trim() : "";
-  };
+  const param = (node: WorkflowNode, key: string) =>
+    nonBlankString(interpolate(node.params[key], vars));
   const walk = walkSessionChain(wf, captureNodeId);
-  const storageState = walk.ok ? param(walk.chain[0], "storageState") : "";
+  const storageState = walk.ok ? param(walk.chain[0], "storageState") : undefined;
   if (!storageState) return [];
   const secret = secretFileName(storageState);
   return wf.nodes

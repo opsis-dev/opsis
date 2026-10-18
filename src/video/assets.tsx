@@ -3,8 +3,8 @@ import { staticFile } from "remotion";
 import {
   PROJECT_FILE_BASE,
   STATIC_PROJECT_BASE,
-  encodePath,
   isAssetRef,
+  joinUrl,
   refTarget,
 } from "../shared/asset-ref";
 import type { ElementProps } from "../shared/elements/types";
@@ -31,8 +31,7 @@ export function resolveAssetRef(ref: string, base: AssetBase): string {
   if (target.kind === "app") return staticFile(target.rel);
   if (target.kind !== "project") return ref;
   if (base.projectBase === STATIC_PROJECT_BASE) return staticFile(`project/${target.rel}`);
-  const root = base.projectBase ?? PROJECT_FILE_BASE;
-  return root.endsWith("/") ? root + encodePath(target.rel) : `${root}/${encodePath(target.rel)}`;
+  return joinUrl(base.projectBase ?? PROJECT_FILE_BASE, target.rel);
 }
 
 const MAX_PROP_DEPTH = 3;

@@ -3,7 +3,7 @@ import { MAX_VOLUME } from "@/shared/limits";
 import { nodeNameById } from "@/shared/nodes/registry";
 import type { AudioBar } from "@/shared/timeline/flatten";
 import { WaveformCanvas, type Gain } from "./bar-canvas";
-import { bladeSplit, selectOnPress, type BarContext } from "./bar-context";
+import type { BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
 import { useBarEnvelope } from "./envelope-overlay";
 import { AUDIO_H, barBox, barHeight, hitEdge } from "./timeline-layout";
@@ -54,7 +54,7 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
   const audioEnvelope = useTimeline((s) => s.audioEnvelope);
   const box = barBox(bar.from, bar.to, ppf);
   const nodeId = bar.nodeId;
-  const title = nodeId ? nodeNameById(ctx.workflow, nodeId, "") : "";
+  const title = nodeId ? nodeNameById(ctx.workflow.nodes, nodeId, "") : "";
   const envelope = useBarEnvelope(ctx, nodeId, audioEnvelope, {
     toX: (local) => local * ppf,
     toLocal: (abs) => abs - bar.from,
@@ -63,10 +63,7 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
   const lineY = showLine ? volumeLineY(bar.volume) : null;
   const hitAt = (e: React.PointerEvent<HTMLElement>) => audioHit(e, box.width, lineY);
 
-  const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!drag.beginPointer(e)) return;
-    if (tool === "blade" && bar.bar) return bladeSplit(ctx, bar.bar, e.clientX, e.altKey);
-    if (nodeId) selectOnPress(ctx, nodeId, e.shiftKey);
+  const onPress = (e: React.PointerEvent<HTMLDivElement>) => {
     const hit = hitAt(e);
     if (hit === "line") drag.startVolume(e, bar, HEIGHT);
     else
@@ -82,11 +79,12 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
       ctx={ctx}
       box={box}
       height={HEIGHT}
-      selected={!!nodeId && ctx.selected.has(nodeId)}
+      nodeId={nodeId}
+      split={bar.bar}
       title={title || undefined}
       className={cn("cursor-grab", AUDIO_TONE[bar.role])}
       cursorAt={(e) => HIT_CURSOR[hitAt(e)]}
-      onPointerDown={onDown}
+      onPress={onPress}
       envelope={envelope}
     >
       <WaveformCanvas

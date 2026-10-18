@@ -8,7 +8,7 @@ import { readPref, writePref } from "./view-prefs";
 const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PREVIEW_QUALITIES, v);
 
 export const PREVIEW_SHAPES = ["project", ...VARIANTS] as const;
-export type PreviewShape = (typeof PREVIEW_SHAPES)[number];
+type PreviewShape = (typeof PREVIEW_SHAPES)[number];
 const isPreviewShape = (v: unknown): v is PreviewShape => isOneOf(PREVIEW_SHAPES, v);
 
 type ViewOptions = {

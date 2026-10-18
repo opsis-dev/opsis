@@ -1,5 +1,11 @@
 import { clamp, clamp01, lerp, partitionPoint, sampleKeyed } from "../../../shared/math";
-import { distance, pointRect, rectCenter, type Viewport } from "../../../shared/schema/actions";
+import {
+  distance,
+  lerpPoint,
+  pointRect,
+  rectCenter,
+  type Viewport,
+} from "../../../shared/schema/actions";
 import {
   BASE_POSE,
   interpolatePose,
@@ -154,8 +160,7 @@ function subjectOf(c: ClickEvent, width: number): Subject {
     (rect.h >= SUBJECT.tallTargetPx * k ? SUBJECT.tallMenuRoomPx : SUBJECT.menuRoomPx) * k;
   const center = rectCenter(rect);
   return {
-    x: lerp(center.x, c.x, SUBJECT.clickPull),
-    y: lerp(center.y + menuRoom / 2, c.y, SUBJECT.clickPull),
+    ...lerpPoint({ x: center.x, y: center.y + menuRoom / 2 }, c, SUBJECT.clickPull),
     w: rect.w + 2 * SUBJECT.padPx * k,
     h: rect.h + menuRoom + 2 * SUBJECT.padPx * k,
   };
@@ -239,13 +244,37 @@ const holdUntil = (c: ClickEvent, plan: TrackPlan): number =>
     ? Math.max(c.tMs / 1000 + plan.holdMin, c.typeEndMs / 1000 + plan.typeTail)
     : c.tMs / 1000 + plan.holdMin;
 
+const move = (t: number, from: CameraPose, to: CameraPose, duration: number): CameraKey[] => [
+  { t, pose: from },
+  { t: t + duration, pose: to },
+];
+
 function zoomIn(from: CameraPose, shot: Shot, afterT: number, plan: TrackPlan): CameraKey[] {
   const to = shot.poses[0];
-  const startT = Math.max(shot.tIn, afterT);
-  const endT = startT + moveDuration(from, to, "in", plan.vp, plan.speed);
+  return move(
+    Math.max(shot.tIn, afterT),
+    from,
+    to,
+    moveDuration(from, to, "in", plan.vp, plan.speed),
+  );
+}
+
+function routeViaBase(
+  from: CameraPose,
+  to: CameraPose,
+  { tPan, holdEnd }: { tPan: number; holdEnd: number },
+  { vp, speed }: TrackPlan,
+): CameraKey[] {
+  const durBack = moveDuration(from, BASE_POSE, "out", vp, speed);
+  const backStart = clamp(tPan - durBack, holdEnd, tPan);
   return [
-    { t: startT, pose: from },
-    { t: endT, pose: to },
+    ...move(backStart, from, BASE_POSE, durBack),
+    ...move(
+      Math.max(backStart + durBack, tPan),
+      BASE_POSE,
+      to,
+      moveDuration(BASE_POSE, to, "in", vp, speed),
+    ),
   ];
 }
 
@@ -257,22 +286,12 @@ function panWithin(shot: Shot, startT: number, plan: TrackPlan): CameraKey[] {
     const from = shot.poses[j - 1];
     const to = shot.poses[j];
     const tPan = Math.max(curT, departS(shot.group[j]) - TIMING.cameraLeadS);
-    if (poseTravelPx(from, to, vp) > TRACK.maxPanPx) {
-      const durBack = moveDuration(from, BASE_POSE, "out", vp, speed);
-      const durNext = moveDuration(BASE_POSE, to, "in", vp, speed);
-      const holdEnd = Math.max(curT, holdUntil(shot.group[j - 1], plan));
-      const backStart = clamp(tPan - durBack, holdEnd, tPan);
-      const inStart = Math.max(backStart + durBack, tPan);
-      keys.push(
-        { t: backStart, pose: from },
-        { t: backStart + durBack, pose: BASE_POSE },
-        { t: inStart, pose: BASE_POSE },
-        { t: inStart + durNext, pose: to },
-      );
-    } else {
-      const durPan = moveDuration(from, to, "pan", vp, speed);
-      keys.push({ t: tPan, pose: from }, { t: tPan + durPan, pose: to });
-    }
+    const holdEnd = Math.max(curT, holdUntil(shot.group[j - 1], plan));
+    keys.push(
+      ...(poseTravelPx(from, to, vp) > TRACK.maxPanPx
+        ? routeViaBase(from, to, { tPan, holdEnd }, plan)
+        : move(tPan, from, to, moveDuration(from, to, "pan", vp, speed))),
+    );
     curT = lastT(keys);
   }
   return keys;
@@ -293,11 +312,7 @@ function trailOut(
     const trailStart = Math.max(curT, Math.min(holdEnd, clipEnd - durOut - plan.baseBeat));
     const keys =
       trailStart + durOut <= clipEnd
-        ? [
-            { t: trailStart, pose },
-            { t: trailStart + durOut, pose: BASE_POSE },
-            { t: clipEnd, pose: BASE_POSE },
-          ]
+        ? [...move(trailStart, pose, BASE_POSE, durOut), { t: clipEnd, pose: BASE_POSE }]
         : [{ t: clipEnd, pose }];
     return { keys, pose: BASE_POSE };
   }
@@ -305,43 +320,40 @@ function trailOut(
   const farApart = poseTravelPx(pose, next.poses[0], plan.vp) > TRACK.maxPanPx;
   if (next.tIn >= holdEnd + durOut || farApart) {
     const trailStart = Math.max(curT, Math.min(holdEnd, next.tIn - durOut));
-    return {
-      keys: [
-        { t: trailStart, pose },
-        { t: trailStart + durOut, pose: BASE_POSE },
-      ],
-      pose: BASE_POSE,
-    };
+    return { keys: move(trailStart, pose, BASE_POSE, durOut), pose: BASE_POSE };
   }
   return { keys: [{ t: Math.max(curT, next.tIn), pose }], pose };
 }
 
-export function buildCameraTrack(log: ClickLog, speed: number, tuning: CameraTuning): CameraTrack {
+function planShots(log: ClickLog, tuning: CameraTuning): Shot[] {
   const narrow = isNarrow(tuning);
   const sMax = zoomCeiling(tuning);
   const firstShotMax = Math.min(ZOOM.firstShotMax, sMax);
   const vp = log.viewport;
-  const endS = log.durationMs / 1000;
-  const groups = stickify(clusterize(log.clicks, vp), vp);
-  const start: CameraKey = { t: 0, pose: BASE_POSE };
-  if (groups.length === 0) return [start, { t: Math.max(endS, TRACK.minS), pose: BASE_POSE }];
-
-  const plan: TrackPlan = {
-    vp,
-    speed,
-    holdMin: (tuning.holdMinS ?? TIMING.holdMinS) * speed,
-    typeTail: TIMING.typeTailS * speed,
-    baseBeat: TIMING.baseBeatS * speed,
-    endS,
-  };
   const shotMax = (i: number, c: ClickEvent): number =>
     i === 0 && c.zoomScale == null && !narrow ? firstShotMax : sMax;
-  const shots: Shot[] = groups.map((group, i) => ({
+  return stickify(clusterize(log.clicks, vp), vp).map((group, i) => ({
     group,
     poses: group.map((c) => frameFor(c, vp, shotMax(i, c), narrow)),
     tIn: Math.max(0, departS(group[0]) - TIMING.cameraLeadS),
   }));
+}
 
+const trackPlan = (log: ClickLog, speed: number, tuning: CameraTuning): TrackPlan => ({
+  vp: log.viewport,
+  speed,
+  holdMin: (tuning.holdMinS ?? TIMING.holdMinS) * speed,
+  typeTail: TIMING.typeTailS * speed,
+  baseBeat: TIMING.baseBeatS * speed,
+  endS: log.durationMs / 1000,
+});
+
+export function buildCameraTrack(log: ClickLog, speed: number, tuning: CameraTuning): CameraTrack {
+  const shots = planShots(log, tuning);
+  const start: CameraKey = { t: 0, pose: BASE_POSE };
+  const endS = log.durationMs / 1000;
+  if (shots.length === 0) return [start, { t: Math.max(endS, TRACK.minS), pose: BASE_POSE }];
+  const plan = trackPlan(log, speed, tuning);
   const keys: CameraTrack = [start];
   let pose = BASE_POSE;
   shots.forEach((shot, i) => {

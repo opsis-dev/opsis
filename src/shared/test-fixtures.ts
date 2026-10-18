@@ -85,7 +85,7 @@ export function itemsOf(spec: Pick<TimelineSpec, "tracks">): TimelineItem[] {
   return items;
 }
 
-export const emptyWorkflow = (): Workflow => ({
+const emptyWorkflow = (): Workflow => ({
   version: 1,
   id: "wf",
   name: "Test",

@@ -1,8 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import { fetchOk } from "../src/engine/download";
 import { errorMessage } from "../src/shared/errors";
-import { isRecord } from "../src/shared/guards";
+import { isNumber, isRecord } from "../src/shared/guards";
 import {
   renderLoaderEntry,
   renderLoaders,
@@ -17,6 +18,7 @@ import {
   parseConfig,
   propControls,
   propDocsSchema,
+  splitSentences,
   type ParsedConfig,
   type PropDoc,
 } from "./lib/registry-controls";
@@ -46,17 +48,10 @@ const DEFAULT_ELEMENT_FRAMES = 90;
 
 type WithProblems<T> = { value: T; problems: string[] };
 
-async function fetchOk(url: string): Promise<Response> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${url}: ${res.status}`);
-  return res;
-}
-
 async function fetchDescription(item: CuratedElement): Promise<string> {
   const res = await fetchOk(REGISTRIES[item.registry].itemUrl(item.name));
   const { description } = registryItemSchema.parse(await res.json());
-  return (description ?? "")
-    .split(/(?<=[.!?])\s+/)
+  return splitSentences(description ?? "")
     .map((s) => s.trim())
     .filter((s) => s && !namesLibrary(s))
     .slice(0, 2)
@@ -102,9 +97,7 @@ async function fetchPropDocs(url: string): Promise<PropDoc[]> {
 type PreviewDurations = { byName: Record<string, number>; fallback: number };
 
 const frameCount = (value: unknown): number | undefined =>
-  isRecord(value) && typeof value.durationInFrames === "number"
-    ? value.durationInFrames
-    : undefined;
+  isRecord(value) && isNumber(value.durationInFrames) ? value.durationInFrames : undefined;
 
 function parsePreviewDurations(text: string): PreviewDurations {
   const sf = scratchFile("preview", "ts", text);

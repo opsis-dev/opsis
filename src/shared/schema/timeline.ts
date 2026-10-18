@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { projectFontsSchema } from "../fonts/types";
+import { isKeyOf, isRecord } from "../guards";
 import { DEFAULT_WORKFLOW_SETTINGS } from "./workflow";
 
 export const transitionRefSchema = z.object({
@@ -13,7 +14,7 @@ export type TransitionRef = z.infer<typeof transitionRefSchema>;
 export const EASES = ["linear", "in", "out", "in-out", "hold"] as const;
 export type Ease = (typeof EASES)[number];
 
-export const keyframeSchema = z.object({
+const keyframeSchema = z.object({
   frame: z.number().int().nonnegative(),
   value: z.number(),
   ease: z.enum(EASES).default("linear"),
@@ -36,6 +37,21 @@ export const audioEnvelopeSchema = z.object({ volume: keyframes(), pan: keyframe
 export type AudioEnvelope = z.infer<typeof audioEnvelopeSchema>;
 export const AUDIO_ENVELOPES = audioEnvelopeSchema.keyof().options;
 export type AudioEnvelopeKey = keyof AudioEnvelope;
+
+export type EnvelopeKey = VisualEnvelopeKey | AudioEnvelopeKey;
+export const envelopeSchema = visualEnvelopeSchema.extend(audioEnvelopeSchema.shape);
+export type Envelope = z.infer<typeof envelopeSchema>;
+
+export const ENVELOPE_LABELS: Record<EnvelopeKey, string> = {
+  opacity: "Opacity",
+  x: "Move across",
+  y: "Move up and down",
+  scale: "Size",
+  volume: "Volume",
+  pan: "Balance",
+};
+
+export const isEnvelopeKey = (key: string): key is EnvelopeKey => isKeyOf(ENVELOPE_LABELS, key);
 
 const PARAM_UNITS = ["ms", "frames", "rate", "number"] as const;
 
@@ -70,12 +86,15 @@ export type EditHandleKind = keyof EditHandles;
 const slotSchema = z.object({ nodeId: z.string(), port: z.string() });
 export type Slot = z.infer<typeof slotSchema>;
 
-const timelineItemSchema = z.object({
+export const elementRefSchema = z.object({
+  component: z.string(),
+  props: z.custom<Record<string, unknown>>(isRecord),
+});
+
+const timelineItemSchema = elementRefSchema.extend({
   id: z.string(),
   from: z.number().int(),
   durationInFrames: z.number().int().positive(),
-  component: z.string(),
-  props: z.record(z.string(), z.unknown()),
   enter: transitionRefSchema.optional(),
   exit: transitionRefSchema.optional(),
   nodeId: z.string().optional(),
@@ -111,6 +130,7 @@ export const audioItemSchema = z.object({
   fadeOutFrames: z.number().int().nonnegative().optional(),
   nodeId: z.string().optional(),
   channel: z.string().optional(),
+  layerTrack: z.string().optional(),
   role: z.enum(["music", "effect"]).optional(),
   lengthFrames: z.number().int().positive().optional(),
   keepMusic: z.boolean().optional(),

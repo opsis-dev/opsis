@@ -5,11 +5,12 @@ import { errorMessage } from "../shared/errors";
 import type { LiveMessage } from "../shared/live";
 import { pendingReplies } from "../shared/pending-replies";
 import { runFailed } from "../shared/schema/events";
-import type {
-  LoginRequest,
-  MainMessage,
-  MainToWorker,
-  WorkerToMain,
+import {
+  isMainToWorker,
+  type LoginRequest,
+  type MainMessage,
+  type MainToWorker,
+  type WorkerToMain,
 } from "../shared/worker-protocol";
 import type { ExecutorContext } from "./engine/context";
 import { runWorkflow } from "./engine/runner";
@@ -128,7 +129,9 @@ process.parentPort.once("message", (event) => {
   const [controlPort, livePort] = event.ports;
   control = controlPort;
   live = livePort ?? null;
-  control.on("message", (e: { data: MainToWorker }) => void handle(e.data));
+  control.on("message", (e) => {
+    if (isMainToWorker(e.data)) void handle(e.data);
+  });
   control.on("close", () => replies.settleAll({ error: "Demoflow closed before it answered." }));
   control.start();
   live?.start();

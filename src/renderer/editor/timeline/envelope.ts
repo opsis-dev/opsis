@@ -1,13 +1,14 @@
 import { toast } from "sonner";
 import { MAX_VOLUME } from "@/shared/limits";
 import { findById } from "@/shared/lists";
+import type { MinMax } from "@/shared/math";
+import { parseOncePer } from "@/shared/memo";
 import { getNodeDef } from "@/shared/nodes/registry";
 import {
-  audioEnvelopeSchema,
-  visualEnvelopeSchema,
-  type AudioEnvelopeKey,
+  envelopeSchema,
+  type Envelope,
+  type EnvelopeKey,
   type Keyframe,
-  type VisualEnvelopeKey,
 } from "@/shared/schema/timeline";
 import type { Workflow, WorkflowNode } from "@/shared/schema/workflow";
 import { envelopeAt, sortKeys } from "@/shared/timeline/envelope";
@@ -15,17 +16,15 @@ import { wholeFrames } from "@/shared/timeline/time";
 import { patchNodeParams } from "@/shared/workflow-edits";
 import { useWorkflowStore } from "../../store/workflow";
 
-export type EnvelopeKey = VisualEnvelopeKey | AudioEnvelopeKey;
-
-type EnvelopeInfo = { label: string; min: number; max: number; rest: number };
+type EnvelopeInfo = MinMax & { rest: number };
 
 export const ENVELOPE_INFO: Record<EnvelopeKey, EnvelopeInfo> = {
-  opacity: { label: "Opacity", min: 0, max: 1, rest: 1 },
-  x: { label: "Move across", min: -1, max: 1, rest: 0 },
-  y: { label: "Move up and down", min: -1, max: 1, rest: 0 },
-  scale: { label: "Size", min: 0, max: 3, rest: 1 },
-  volume: { label: "Volume", min: 0, max: MAX_VOLUME, rest: 1 },
-  pan: { label: "Balance", min: -1, max: 1, rest: 0 },
+  opacity: { min: 0, max: 1, rest: 1 },
+  x: { min: -1, max: 1, rest: 0 },
+  y: { min: -1, max: 1, rest: 0 },
+  scale: { min: 0, max: 3, rest: 1 },
+  volume: { min: 0, max: MAX_VOLUME, rest: 1 },
+  pan: { min: -1, max: 1, rest: 0 },
 };
 
 const PAD = 5;
@@ -40,21 +39,13 @@ export const envelopeShift = (prop: EnvelopeKey, dy: number, height: number): nu
 
 export type EnvelopeTarget = { nodeId: string; prop: EnvelopeKey; keys: Keyframe[] };
 
-const envelopeSchema = visualEnvelopeSchema.extend(audioEnvelopeSchema.shape);
-
-type Envelope = Partial<Record<EnvelopeKey, Keyframe[]>>;
-
-const parsed = new WeakMap<object, Envelope | null>();
+const parseEnvelope = parseOncePer(envelopeSchema);
 
 function readEnvelope(node: WorkflowNode): Envelope | null {
   const raw = node.params.envelope;
   if (raw === undefined) return {};
   if (typeof raw !== "object" || raw === null) return null;
-  if (!parsed.has(raw)) {
-    const result = envelopeSchema.safeParse(raw);
-    parsed.set(raw, result.success ? result.data : null);
-  }
-  return parsed.get(raw) ?? null;
+  return parseEnvelope(raw);
 }
 
 export function envelopeTarget(

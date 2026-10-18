@@ -4,14 +4,33 @@ import { INTERACTIVE_SELECTOR } from "../../shared/interactive";
 import { parsePoint } from "../../shared/schema/actions";
 import { CSS_PREFIX, type Target } from "./flow-types";
 
-type Candidate = { by: string; locator: Locator };
+interface FindLocator {
+  first(): this;
+  filter(options: { hasText: RegExp }): this;
+  locator(selector: string): this;
+  isVisible(): Promise<boolean>;
+  waitFor(options: { state: "visible"; timeout: number }): Promise<void>;
+}
 
-export type Resolved = { target: Target; by: string };
+type FindPage<L extends FindLocator> = {
+  getByRole(role: NamedRole, options: { name: RegExp }): L;
+  getByLabel(text: RegExp): L;
+  getByPlaceholder(text: RegExp): L;
+  getByTestId(id: string): L;
+  getByText(text: RegExp): L;
+  locator(selector: string): L;
+  waitForTimeout(ms: number): Promise<void>;
+  evaluate: Page["evaluate"];
+};
 
-type ResolveOptions = {
+type Candidate<L> = { by: string; locator: L };
+
+export type Resolved<L = Locator> = { target: Target<L>; by: string };
+
+type ResolveOptions<L> = {
   log: (level: "info", message: string) => void;
   signal: AbortSignal;
-  hoisted?: ReadonlyMap<string, Locator>;
+  hoisted?: ReadonlyMap<string, L>;
   timeoutMs?: number;
 };
 
@@ -23,13 +42,14 @@ const DUMP_LIMIT = 24;
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const NAMED_ROLES = ["button", "link", "textbox", "combobox", "option", "tab"] as const;
+type NamedRole = (typeof NAMED_ROLES)[number];
 
 const INTERACTIVE_ANCESTOR =
   'xpath=ancestor-or-self::*[@role="button" or @role="link" or @role="menuitem"' +
   ' or @role="tab" or @role="option" or @role="combobox" or self::button or' +
   " self::a][1]";
 
-function autoCandidates(page: Page, name: string): Candidate[] {
+function autoCandidates<L extends FindLocator>(page: FindPage<L>, name: string): Candidate<L>[] {
   const exact = new RegExp(`^${escapeRegExp(name)}$`, "i");
   const loose = new RegExp(escapeRegExp(name), "i");
   return [
@@ -63,7 +83,7 @@ export class SelectorError extends Error {
   }
 }
 
-async function visibleNow(locator: Locator): Promise<boolean> {
+async function visibleNow(locator: FindLocator): Promise<boolean> {
   try {
     return await locator.isVisible();
   } catch (error) {
@@ -72,7 +92,9 @@ async function visibleNow(locator: Locator): Promise<boolean> {
   }
 }
 
-async function firstVisible(candidates: Candidate[]): Promise<Resolved | null> {
+async function firstVisible<L extends FindLocator>(
+  candidates: Candidate<L>[],
+): Promise<Resolved<L> | null> {
   for (const c of candidates) {
     const locator = c.locator.first();
     if (await visibleNow(locator)) return { target: locator, by: c.by };
@@ -80,11 +102,11 @@ async function firstVisible(candidates: Candidate[]): Promise<Resolved | null> {
   return null;
 }
 
-export async function resolveTarget(
-  page: Page,
+export async function resolveTarget<L extends FindLocator>(
+  page: FindPage<L>,
   raw: string,
-  opts: ResolveOptions,
-): Promise<Resolved> {
+  opts: ResolveOptions<L>,
+): Promise<Resolved<L>> {
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const hit = opts.hoisted?.get(raw);
   if (hit) return { target: hit, by: "hoisted" };
@@ -160,7 +182,7 @@ function listOnScreen({ max, selector }: { max: number; selector: string }): OnS
     });
 }
 
-export async function dumpVisible(page: Page): Promise<string> {
+export async function dumpVisible(page: Pick<Page, "evaluate">): Promise<string> {
   try {
     const items = await page.evaluate(listOnScreen, {
       max: DUMP_LIMIT,

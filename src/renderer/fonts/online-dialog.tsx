@@ -1,5 +1,5 @@
 import { Download } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/renderer/components/ui/button";
 import { Spinner } from "@/renderer/components/ui/spinner";
@@ -29,19 +29,18 @@ type Catalog =
 
 function useCatalog(): { catalog: Catalog; retry: () => void } {
   const [catalog, setCatalog] = useState<Catalog>({ status: "loading" });
-  const loading = catalog.status === "loading";
-  useEffect(() => {
-    if (!loading) return;
-    let current = true;
+  const fetchCatalog = useCallback(() => {
     window.demoflow.fontCatalog().then(
-      (entries) => current && setCatalog({ status: "ready", entries }),
-      (e: unknown) => current && setCatalog({ status: "error", error: errorMessage(e) }),
+      (entries) => setCatalog({ status: "ready", entries }),
+      (e: unknown) => setCatalog({ status: "error", error: errorMessage(e) }),
     );
-    return () => {
-      current = false;
-    };
-  }, [loading]);
-  return { catalog, retry: () => setCatalog({ status: "loading" }) };
+  }, []);
+  useEffect(fetchCatalog, [fetchCatalog]);
+  const retry = () => {
+    setCatalog({ status: "loading" });
+    fetchCatalog();
+  };
+  return { catalog, retry };
 }
 
 function CatalogStatus({ catalog, onRetry }: { catalog: Catalog; onRetry: () => void }) {

@@ -6,6 +6,7 @@ import { isNumber, isRecord, isString, tryParseJson } from "../../src/shared/gua
 import { stringsIn } from "../../src/shared/vars";
 import {
   CONTROL_TYPES,
+  numberControl,
   type ControlSpec,
   type ControlType,
   type CuratedElement,
@@ -97,7 +98,7 @@ function propLabel(name: string): string {
 
 const TECHNICAL_HELP = /`|\bpx\b|staticFile|\bprops?\b|\b[a-z]+[A-Z][A-Za-z]*\b/;
 
-const splitSentences = (text: string): string[] => text.split(/(?<=[.!?])(?<!\be\.g\.)\s+/);
+export const splitSentences = (text: string): string[] => text.split(/(?<=[.!?])(?<!\be\.g\.)\s+/);
 
 function cleanHelp(text: string | undefined): string | undefined {
   const sentences = splitSentences((text ?? "").replace(/,?\s*e\.g\.\s*`[^`]*`/g, ""))
@@ -115,7 +116,7 @@ function parseDocDefault(text: string | undefined): unknown {
 
 const SPEED_RANGE = { min: 0.25, max: 4, step: 0.25 } as const;
 
-const SPEED_CONTROL: Control = { type: "number", default: 1, ...SPEED_RANGE, description: "Speed" };
+const SPEED_CONTROL: Control = numberControl("Speed", 1, SPEED_RANGE);
 
 type PropOverride = {
   skip?: true;
@@ -243,23 +244,69 @@ const FONT_CONTROL: Control = {
   help: "Project font follows the fonts set for the whole project.",
 };
 
+const UNEDITABLE_TYPE = /=>|ReactNode|ReactElement|CSSProperties|SpringConfig/;
+const STRING_UNION = /^\s*"[^"]*"(\s*\|\s*("[^"]*"|string))+\s*$/;
+const QUOTED = /"([^"]*)"/g;
+
+type ControlBase = Omit<Control, "type" | "default">;
+
+function baseControl(name: string, override: PropOverride | undefined, help?: string): ControlBase {
+  const unit = override?.unit ?? (name.endsWith("InFrames") ? "frames" : undefined);
+  return {
+    description: propLabel(name),
+    help,
+    ...(unit ? { unit } : {}),
+    ...(/InFrames$|Seconds$/.test(name) || override?.advanced ? { advanced: true } : {}),
+  };
+}
+
+function listFromValue(base: ControlBase, value: unknown[]): Control | null {
+  if (value.every(isString)) return { ...base, type: "strings", default: value };
+  if (value.every(isNumber)) return { ...base, type: "numbers", default: value };
+  if (value.every(isRecord)) return { ...base, type: "rows", default: value };
+  return null;
+}
+
+function enumFromDoc(base: ControlBase, docType: string, value: unknown): Control | null {
+  const options = [...docType.matchAll(QUOTED)].map((m) => m[1]);
+  if (options.length < 2 || !STRING_UNION.test(docType)) return null;
+  return {
+    ...base,
+    type: "enum",
+    options,
+    default: typeof value === "string" && options.includes(value) ? value : options[0],
+  };
+}
+
+function numberFromValue(base: ControlBase, value: number, override?: PropOverride): Control {
+  if (override?.range) return { ...base, type: "number", default: value, ...override.range };
+  const step = Number.isInteger(value) ? undefined : Math.abs(value) < 1 ? 0.01 : 0.1;
+  return { ...base, type: "number", default: value, ...(step ? { step } : {}) };
+}
+
+function scalarFromValue(
+  name: string,
+  base: ControlBase,
+  value: unknown,
+  override?: PropOverride,
+): Control | null {
+  if (typeof value === "number") return numberFromValue(base, value, override);
+  if (typeof value !== "string") return null;
+  if (isColorProp(name)) return { ...base, type: "color", default: value };
+  return { ...base, type: override?.type ?? "text", default: value };
+}
+
 function propControl(
   name: string,
   docType: string | undefined,
   value: unknown,
   help: string | undefined,
 ): Control | null {
-  const override = PROP_OVERRIDES[name];
-  const unit = override?.unit ?? (name.endsWith("InFrames") ? "frames" : undefined);
-  const base = {
-    description: propLabel(name),
-    help,
-    ...(unit ? { unit } : {}),
-    ...(/InFrames$|Seconds$/.test(name) || override?.advanced ? { advanced: true } : {}),
-  };
   const type = docType ?? "";
-  if (/=>|ReactNode|ReactElement|CSSProperties|SpringConfig/.test(type)) return null;
+  if (UNEDITABLE_TYPE.test(type)) return null;
   if (name === "fontFamily") return FONT_CONTROL;
+  const override = PROP_OVERRIDES[name];
+  const base = baseControl(name, override, help);
   if (override?.accept)
     return {
       ...base,
@@ -267,32 +314,12 @@ function propControl(
       default: typeof value === "string" ? value : "",
       accept: override.accept,
     };
-  if (Array.isArray(value)) {
-    if (value.every(isString)) return { ...base, type: "strings", default: value };
-    if (value.every(isNumber)) return { ...base, type: "numbers", default: value };
-    if (value.every(isRecord)) return { ...base, type: "rows", default: value };
-    return null;
-  }
+  if (Array.isArray(value)) return listFromValue(base, value);
   if (isRecord(value)) return { ...base, type: "object", default: value };
   if (type === "boolean" || typeof value === "boolean")
     return { ...base, type: "boolean", default: value === true };
   if (value === undefined) return null;
-  const options = [...type.matchAll(/"([^"]*)"/g)].map((m) => m[1]);
-  if (options.length >= 2 && /^\s*"[^"]*"(\s*\|\s*("[^"]*"|string))+\s*$/.test(type))
-    return {
-      ...base,
-      type: "enum",
-      options,
-      default: typeof value === "string" && options.includes(value) ? value : options[0],
-    };
-  if (typeof value === "number") {
-    if (override?.range) return { ...base, type: "number", default: value, ...override.range };
-    const step = Number.isInteger(value) ? undefined : Math.abs(value) < 1 ? 0.01 : 0.1;
-    return { ...base, type: "number", default: value, ...(step ? { step } : {}) };
-  }
-  if (typeof value !== "string") return null;
-  if (isColorProp(name)) return { ...base, type: "color", default: value };
-  return { ...base, type: override?.type ?? "text", default: value };
+  return enumFromDoc(base, type, value) ?? scalarFromValue(name, base, value, override);
 }
 
 export function propControls(

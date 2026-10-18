@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
-import os from "node:os";
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { tempDirs } from "../engine/test-temp-dirs";
 import {
   clearStaleWorkerTemps,
   makeWorkerTemp,
@@ -9,15 +9,7 @@ import {
   workerTempName,
 } from "./worker-temp";
 
-const roots: string[] = [];
-const root = () => {
-  const dir = mkdtempSync(path.join(os.tmpdir(), "demoflow-worker-temp-test-"));
-  roots.push(dir);
-  return dir;
-};
-afterEach(() => {
-  for (const dir of roots.splice(0)) rmSync(dir, { recursive: true, force: true });
-});
+const root = tempDirs("demoflow-worker-temp-test-");
 
 describe("worker temp folders", () => {
   it("names a folder after the app process, the kind of worker and the run", () => {
@@ -26,15 +18,15 @@ describe("worker temp folders", () => {
     );
   });
 
-  it("makes and removes a worker's folder with everything in it", () => {
-    const dir = makeWorkerTemp(root(), workerTempName("stills", "abc"));
+  it("makes and removes a worker's folder with everything in it", async () => {
+    const dir = makeWorkerTemp(await root(), workerTempName("stills", "abc"));
     mkdirSync(path.join(dir, "react-motion-render123", "frames"), { recursive: true });
     removeWorkerTemp(dir);
     expect(existsSync(dir)).toBe(false);
   });
 
-  it("clears folders left by app processes that are gone, and keeps live ones", () => {
-    const base = root();
+  it("clears folders left by app processes that are gone, and keeps live ones", async () => {
+    const base = await root();
     for (const name of [
       `${process.pid}-run-mine0000`,
       "111-run-alive000",
@@ -49,7 +41,7 @@ describe("worker temp folders", () => {
     );
   });
 
-  it("does nothing when the folder doesn't exist yet", () => {
-    expect(clearStaleWorkerTemps(path.join(root(), "missing"))).toEqual([]);
+  it("does nothing when the folder doesn't exist yet", async () => {
+    expect(clearStaleWorkerTemps(path.join(await root(), "missing"))).toEqual([]);
   });
 });

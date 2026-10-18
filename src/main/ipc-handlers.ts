@@ -58,12 +58,14 @@ type Result<K extends InvokeName> =
   | ReturnType<DemoflowApi[K]>
   | Awaited<ReturnType<DemoflowApi[K]>>;
 
+type Args<K extends InvokeName> = Parameters<DemoflowApi[K]>;
+
 type SenderHandlers = {
-  [K in InvokeName]: (event: IpcMainInvokeEvent, ...args: Parameters<DemoflowApi[K]>) => Result<K>;
+  [K in InvokeName]: (event: IpcMainInvokeEvent, ...args: Args<K>) => Result<K>;
 };
 
 type PlainHandlers<N extends InvokeName> = {
-  [K in N]: (...args: Parameters<DemoflowApi[K]>) => Result<K>;
+  [K in N]: (...args: Args<K>) => Result<K>;
 };
 
 const senderWindow = (event: IpcMainInvokeEvent) => BrowserWindow.fromWebContents(event.sender);
@@ -114,7 +116,13 @@ const SENDER_HANDLERS = {
   getWindowState: (event) => windowState(senderWindow(event)),
 } satisfies Partial<SenderHandlers>;
 
-const PLAIN_HANDLERS: PlainHandlers<Exclude<InvokeName, keyof typeof SENDER_HANDLERS>> = {
+type SenderName = keyof typeof SENDER_HANDLERS;
+
+type PlainName = Exclude<InvokeName, SenderName>;
+
+const senderHandlers: Pick<SenderHandlers, SenderName> = SENDER_HANDLERS;
+
+const PLAIN_HANDLERS: PlainHandlers<PlainName> = {
   listRecentProjects: listRecent,
   openProject: openProjectDir,
   saveWorkflow: saveWorkflowFile,
@@ -166,24 +174,25 @@ function assertTrustedSender(event: IpcMainInvokeEvent): void {
   throw new Error("Blocked IPC call from an unknown renderer.");
 }
 
-type Call = (event: IpcMainInvokeEvent, args: never[]) => unknown;
-
-function handleInvoke(name: InvokeName, call: Call): void {
-  ipcMain.handle(INVOKE[name], async (event, ...args) => {
+function handleInvoke<K extends InvokeName>(
+  name: K,
+  call: (args: Args<K>, event: IpcMainInvokeEvent) => unknown,
+): void {
+  ipcMain.handle(INVOKE[name], async (event, ...args: Args<K>) => {
     assertTrustedSender(event);
-    return call(event, args as never[]);
+    return call(args, event);
   });
 }
 
+const handleWithSender = <K extends SenderName>(name: K) =>
+  handleInvoke(name, (args, event) => senderHandlers[name](event, ...args));
+
+const handlePlain = <K extends PlainName>(name: K) =>
+  handleInvoke(name, (args) => PLAIN_HANDLERS[name](...args));
+
 export function registerIpc(): void {
-  for (const name of keysOf(SENDER_HANDLERS)) {
-    const handler: (event: IpcMainInvokeEvent, ...args: never[]) => unknown = SENDER_HANDLERS[name];
-    handleInvoke(name, (event, args) => handler(event, ...args));
-  }
-  for (const name of keysOf(PLAIN_HANDLERS)) {
-    const handler: (...args: never[]) => unknown = PLAIN_HANDLERS[name];
-    handleInvoke(name, (_event, args) => handler(...args));
-  }
+  for (const name of keysOf(SENDER_HANDLERS)) handleWithSender(name);
+  for (const name of keysOf(PLAIN_HANDLERS)) handlePlain(name);
   ipcMain.on(IPC.menuToEditor, (event, command: MenuCommand) => {
     if (!isTrusted(event.sender.id)) return;
     focusMainWindow();

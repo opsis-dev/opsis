@@ -1,4 +1,5 @@
 import { schemaDefaults } from "../elements/introspect";
+import { nonBlankString } from "../guards";
 import { findById } from "../lists";
 import { audioNodes } from "./audio";
 import { browserNodes } from "./browser";
@@ -40,17 +41,17 @@ for (const def of NODE_DEFS) {
 export const getNodeDef = (type: string): NodeDef | undefined => byType.get(type);
 
 export const customLabel = (node: { label?: string }): string | undefined =>
-  node.label?.trim() || undefined;
+  nonBlankString(node.label);
 
 export const nodeName = (node: { label?: string; type: string }, fallback?: string): string =>
   customLabel(node) ?? fallback ?? (getNodeDef(node.type)?.title || node.type);
 
 export function nodeNameById(
-  wf: { nodes: ReadonlyArray<{ id: string; label?: string; type: string }> },
+  nodes: ReadonlyArray<{ id: string; label?: string; type: string }>,
   id: string,
   whenMissing = id,
 ): string {
-  const node = findById(wf.nodes, id);
+  const node = findById(nodes, id);
   return node ? nodeName(node) : whenMissing;
 }
 

@@ -1,19 +1,17 @@
 import { Plus, X } from "lucide-react";
-import { z } from "zod";
 import { Button } from "@/renderer/components/ui/button";
 import { FieldLegend, FieldSet } from "@/renderer/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/renderer/components/ui/input-group";
 import { whenOneOf } from "@/renderer/lib/one-of";
 import { useItemKeys } from "@/renderer/lib/use-item-keys";
 import {
-  AUDIO_ENVELOPES,
   EASES,
-  VISUAL_ENVELOPES,
-  keyframeSchema,
-  type AudioEnvelopeKey,
+  ENVELOPE_LABELS,
+  envelopeSchema,
   type Ease,
+  type Envelope,
+  type EnvelopeKey,
   type Keyframe,
-  type VisualEnvelopeKey,
 } from "@/shared/schema/timeline";
 import { parseNumberText } from "@/shared/text-input";
 import { ChoiceSelect } from "./choice-select";
@@ -21,7 +19,6 @@ import { framesScale, parseShown, shownText, trimNumber, useDecimalInput } from 
 import { Help } from "./field-shell";
 import type { FieldProps } from "./types";
 
-type EnvelopeKey = VisualEnvelopeKey | AudioEnvelopeKey;
 type Format = {
   unit: string;
   toShown: (v: number) => number;
@@ -29,14 +26,8 @@ type Format = {
   initial: number;
 };
 
-const envelopeSchema = z.record(z.string(), z.array(keyframeSchema).optional());
-export type Envelope = z.infer<typeof envelopeSchema>;
-
 export const isEnvelope = (value: unknown): value is Envelope =>
   envelopeSchema.safeParse(value).success;
-
-const ENVELOPE_KEYS: readonly string[] = [...VISUAL_ENVELOPES, ...AUDIO_ENVELOPES];
-const isEnvelopeKey = (key: string): key is EnvelopeKey => ENVELOPE_KEYS.includes(key);
 
 const fromFraction = (v: number) => v * 100;
 const toFraction = (v: number) => v / 100;
@@ -62,10 +53,14 @@ const EASE_LABELS: Record<Ease, string> = {
 };
 const EASE_ITEMS = EASES.map((e) => ({ value: e, label: EASE_LABELS[e] }));
 
-export function EnvelopeField({ label, value: env, onChange, meta, ctx }: FieldProps<Envelope>) {
-  const tracks = Object.entries(meta.labels ?? {}).flatMap(([prop, text]) =>
-    isEnvelopeKey(prop) && text ? [{ prop, text }] : [],
-  );
+export function EnvelopeField({
+  label,
+  value: env,
+  onChange,
+  meta,
+  ctx,
+  tracks,
+}: FieldProps<Envelope> & { tracks: EnvelopeKey[] }) {
   const write = (prop: EnvelopeKey, keys: Keyframe[]) => {
     const next: Envelope = { ...env };
     if (keys.length) next[prop] = keys;
@@ -76,10 +71,10 @@ export function EnvelopeField({ label, value: env, onChange, meta, ctx }: FieldP
     <FieldSet>
       <FieldLegend variant="label">{label}</FieldLegend>
       <Help meta={meta} />
-      {tracks.map(({ prop, text }) => (
+      {tracks.map((prop) => (
         <EnvelopeTrack
           key={prop}
-          label={text}
+          label={ENVELOPE_LABELS[prop]}
           keys={env[prop] ?? []}
           format={ENVELOPE_FORMAT[prop]}
           fps={ctx.fps}

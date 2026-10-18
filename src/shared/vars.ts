@@ -59,7 +59,17 @@ export const interpolate = <T>(value: T, vars: Record<string, string>): T =>
     ),
   );
 
+export const varToken = (name: string): string => `{{${name}}}`;
+
+export const SITE_ADDRESS_VAR = "Site address";
+
+export const SITE_ADDRESS = varToken(SITE_ADDRESS_VAR);
+
+export const PROJECT_NAME_VAR = "Project name";
+
+export const PROJECT_NAME = varToken(PROJECT_NAME_VAR);
+
 export const renameVariable = <T>(value: T, from: string, to: string): T =>
   mapJsonStrings(value, (text) =>
-    text.replace(varPattern(), (whole, name: string) => (name === from ? `{{${to}}}` : whole)),
+    text.replace(varPattern(), (whole, name: string) => (name === from ? varToken(to) : whole)),
   );

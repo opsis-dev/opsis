@@ -19,19 +19,30 @@ let current: FontContext = {
 
 const canRegister = () => typeof document !== "undefined" && typeof FontFace !== "undefined";
 
-const urlsOf = (def: FontFamilyDef, ctx: FontContext) => def.faces.map((f) => ctx.resolve(f.file));
+const urlsOf = (def: FontFamilyDef, resolve: Resolve) => def.faces.map((f) => resolve(f.file));
 
-const signatureOf = (def: FontFamilyDef, urls: string[]) => `${def.id}|${urls.join("|")}`;
+const signatureOf = (def: FontFamilyDef, urls: string[]) =>
+  [def.id, ...def.faces.map((f, i) => `${urls[i]} ${f.weight} ${f.style}`)].join("|");
 
 const settled = (face: FontFace) => face.status === "loaded" || face.status === "error";
 
-function register(cssName: string, def: FontFamilyDef, ctx: FontContext): Promise<void> {
+export function unregisterFaces(cssName: string): void {
+  for (const face of registered.get(cssName)?.faces ?? []) document.fonts.delete(face);
+  registered.delete(cssName);
+}
+
+export function registerFaces(
+  cssName: string,
+  def: FontFamilyDef,
+  resolve: Resolve,
+  onUnreadable?: () => void,
+): Promise<void> {
   if (!canRegister()) return Promise.resolve();
-  const urls = urlsOf(def, ctx);
+  const urls = urlsOf(def, resolve);
   const signature = signatureOf(def, urls);
   const existing = registered.get(cssName);
   if (existing?.signature === signature) return existing.ready;
-  for (const face of existing?.faces ?? []) document.fonts.delete(face);
+  unregisterFaces(cssName);
   const faces = def.faces.map(
     (f, i) =>
       new FontFace(cssName, `url("${urls[i]}") format("${f.format}")`, {
@@ -41,7 +52,9 @@ function register(cssName: string, def: FontFamilyDef, ctx: FontContext): Promis
       }),
   );
   for (const face of faces) document.fonts.add(face);
-  const ready = Promise.allSettled(faces.map((f) => f.load())).then(() => undefined);
+  const ready = Promise.allSettled(faces.map((f) => f.load())).then((results) => {
+    if (results.some((r) => r.status === "rejected")) onUnreadable?.();
+  });
   registered.set(cssName, { signature, faces, ready });
   return ready;
 }
@@ -55,14 +68,14 @@ function targetFor(name: string, ctx: FontContext): FontFamilyDef | undefined {
 
 function ensureFont(name: string, ctx: FontContext): Promise<void> {
   const def = targetFor(name, ctx);
-  return def ? register(name, def, ctx) : Promise.resolve();
+  return def ? registerFaces(name, def, ctx.resolve) : Promise.resolve();
 }
 
 function isLoaded(name: string, ctx: FontContext): boolean {
   const def = targetFor(name, ctx);
   const entry = registered.get(name);
   if (!def || !entry?.faces.every(settled)) return false;
-  return entry.signature === signatureOf(def, urlsOf(def, ctx));
+  return entry.signature === signatureOf(def, urlsOf(def, ctx.resolve));
 }
 
 export function ensureFontNow(name: string): void {

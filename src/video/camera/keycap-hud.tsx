@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
+import type { KeystrokePosition } from "../../shared/compile/recording";
 import { useOverlayFrame } from "../core/frame";
 import type { KeyEvent } from "./lib/click-log";
 import { useDesignScale } from "./lib/design-scale";
@@ -21,7 +22,7 @@ const KEYCAP = {
 export const KeycapHUD: React.FC<{
   keys: KeyEvent[];
   timeS: number;
-  position: "top" | "bottom";
+  position: KeystrokePosition;
 }> = ({ keys, timeS, position }) => {
   const k = useDesignScale();
   const { insets } = useOverlayFrame();

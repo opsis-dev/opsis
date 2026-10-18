@@ -2,7 +2,12 @@ import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
 import { writeChromiumCredits } from "../src/engine/chromium-credits";
-import { CHROMIUM_CREDITS_FILE, ENGINE_LICENCES_FOLDER, engineStatus } from "../src/engine/paths";
+import {
+  CHROMIUM_CREDITS_FILE,
+  ENGINE_LICENCES_FOLDER,
+  engineStatus,
+  userEngineDir,
+} from "../src/engine/paths";
 import { readJsonWith } from "./lib/read-json";
 import { ROOT } from "./lib/tool-config";
 
@@ -19,7 +24,7 @@ function electronAppData(): string {
   return process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), ".config");
 }
 
-const engine = process.argv[2] ?? path.join(electronAppData(), appName, "engine");
+const engine = process.argv[2] ?? userEngineDir(path.join(electronAppData(), appName));
 const { complete, headlessShell } = engineStatus(engine);
 if (!complete || !headlessShell) {
   console.error(`No engine in ${engine}. Set it up from Settings → Engine first.`);

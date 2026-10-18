@@ -4,7 +4,7 @@ import { nullIfMissing } from "./json";
 
 type DatedFile = { name: string; file: string; mtimeMs: number | null };
 
-export async function datedFiles(dir: string): Promise<DatedFile[]> {
+async function datedFiles(dir: string): Promise<DatedFile[]> {
   const names = (await nullIfMissing(readdir(dir))) ?? [];
   return Promise.all(
     names.map(async (name) => {

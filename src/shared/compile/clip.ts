@@ -1,39 +1,43 @@
+import { z } from "zod";
+import { findById } from "../lists";
 import { clamp } from "../math";
-import type {
-  AudioItem,
-  EditHandles,
-  TimelineItem,
-  TimelineSpec,
-  TimelineTrack,
-  TransitionRef,
-  VisualEnvelope,
+import { parseOncePer } from "../memo";
+import { rectSchema, viewportSchema } from "../schema/actions";
+import {
+  elementRefSchema,
+  timelineTrackSchema,
+  type AudioItem,
+  type EditHandles,
+  type TimelineItem,
+  type TimelineSpec,
+  type TimelineTrack,
+  type TransitionRef,
+  type VisualEnvelope,
 } from "../schema/timeline";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import { THEME_BACKGROUNDS, type WorkflowSettings } from "../schema/workflow";
 import { hasKeys } from "../timeline/envelope";
 import { wholeFrames } from "../timeline/time";
-import type { RecordingProps } from "./recording";
-import type { Remap } from "./remap";
+import { recordingPropsSchema, type RecordingProps } from "./recording";
+import { remapSchema, type Remap } from "./remap";
 
-export type Crop = { x: number; y: number; w: number; h: number };
+const sequencerPropsSchema = elementRefSchema.extend({
+  backgrounds: z.array(z.string().nullable()),
+});
+export type SequencerProps = z.infer<typeof sequencerPropsSchema>;
 
-export type SequencerProps = {
-  component: string;
-  props: Record<string, unknown>;
-  backgrounds: Array<string | null>;
-};
-
-export type GroupProps = {
-  tracks: TimelineTrack[];
-  startFrom?: number;
-  remap?: Remap;
-  loopEvery?: number;
-  crop?: Crop;
-  wrapper?: { component: string; props: Record<string, unknown> };
-  background?: string;
-  design?: { width: number; height: number };
-  sequencer?: SequencerProps;
-};
+const groupPropsSchema = z.object({
+  tracks: z.array(timelineTrackSchema),
+  startFrom: z.number().optional(),
+  remap: remapSchema.optional(),
+  loopEvery: z.number().optional(),
+  crop: rectSchema.optional(),
+  wrapper: elementRefSchema.optional(),
+  background: z.string().optional(),
+  design: viewportSchema.optional(),
+  sequencer: sequencerPropsSchema.optional(),
+});
+export type GroupProps = z.infer<typeof groupPropsSchema>;
 
 type PlaceholderProps = { title: string; subtitle: string };
 
@@ -47,17 +51,15 @@ type PropsFor<C extends string> = C extends keyof BuiltInProps
   ? BuiltInProps[C]
   : Record<string, unknown>;
 
-const isGroupProps = (props: Record<string, unknown>): props is GroupProps =>
-  Array.isArray(props.tracks);
+const readGroup = parseOncePer(groupPropsSchema);
 
-const isRecordingProps = (props: Record<string, unknown>): props is RecordingProps =>
-  typeof props.src === "string" && typeof props.log === "object" && props.log !== null;
+const readRecording = parseOncePer(recordingPropsSchema);
 
 export const groupOf = (item: TimelineItem): GroupProps | null =>
-  item.component === "core/group" && isGroupProps(item.props) ? item.props : null;
+  item.component === "core/group" ? readGroup(item.props) : null;
 
 export const recordingOf = (item: TimelineItem): RecordingProps | null =>
-  item.component === "core/recording" && isRecordingProps(item.props) ? item.props : null;
+  item.component === "core/recording" ? readRecording(item.props) : null;
 
 type ItemPlacement = Omit<TimelineItem, "component" | "props">;
 
@@ -307,7 +309,12 @@ export function stackClips(
   return makeClip({
     durationInFrames: Math.max(...clips.map((c, i) => c.durationInFrames + offset(i))),
     tracks,
-    audio: clips.flatMap((c, i) => shiftAudio(c.audio, offset(i), layerId(nodeId, i))),
+    audio: clips.flatMap((c, i) =>
+      shiftAudio(c.audio, offset(i), layerId(nodeId, i)).map((a) => ({
+        ...a,
+        layerTrack: layerId(nodeId, i),
+      })),
+    ),
     recording: firstRecording(clips),
   });
 }
@@ -340,7 +347,7 @@ function layersStartTogether(clip: ClipValue): Scene {
     items: track.items.map((item) => startWithScene(item, layerStart(track))),
   }));
   const audio = clip.audio.map((a) => {
-    const owner = clip.tracks.find((track) => a.id.startsWith(`${track.id}/`));
+    const owner = findById(clip.tracks, a.layerTrack);
     return owner ? { ...a, from: a.from - layerStart(owner) } : a;
   });
   const longest = Math.max(

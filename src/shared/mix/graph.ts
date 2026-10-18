@@ -79,10 +79,12 @@ function envelopeExpr(keys: Keyframe[], fps: number): string {
 const LEFT = -1;
 const RIGHT = 1;
 
-const sideGain = (side: typeof LEFT | typeof RIGHT, pan: number | string): string =>
-  typeof pan === "number"
-    ? num(Math.min(1, 1 + side * pan), 4)
-    : `min(1,1${side === LEFT ? "-" : "+"}(${pan}))`;
+type Side = typeof LEFT | typeof RIGHT;
+
+const sideGain = (side: Side, pan: number): string => num(Math.min(1, 1 + side * pan), 4);
+
+const sideGainExpr = (side: Side, pan: string): string =>
+  `min(1,1${side === LEFT ? "-" : "+"}(${pan}))`;
 
 function panChain({
   label,
@@ -98,8 +100,8 @@ function panChain({
   const [left, right, leftOut, rightOut] = ["l", "r", "L", "R"].map((side) => `${label}${side}`);
   return [
     `${steps.join(",")},channelsplit=channel_layout=stereo[${left}][${right}]`,
-    `[${left}]volume=eval=frame:volume='${sideGain(LEFT, pan)}'[${leftOut}]`,
-    `[${right}]volume=eval=frame:volume='${sideGain(RIGHT, pan)}'[${rightOut}]`,
+    `[${left}]volume=eval=frame:volume='${sideGainExpr(LEFT, pan)}'[${leftOut}]`,
+    `[${right}]volume=eval=frame:volume='${sideGainExpr(RIGHT, pan)}'[${rightOut}]`,
     `[${leftOut}][${rightOut}]${["join=inputs=2:channel_layout=stereo", ...after].join(",")}[${label}]`,
   ].join(";");
 }

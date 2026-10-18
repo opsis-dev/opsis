@@ -1,16 +1,12 @@
 import { describe, expect, it } from "vitest";
-import {
-  baseName,
-  encodePath,
-  extensionOf,
-  projectRef,
-  projectRelPath,
-  refTarget,
-} from "./asset-ref";
+import { baseName, extensionOf, joinUrl, projectRef, projectRelPath, refTarget } from "./asset-ref";
 
 describe("asset refs", () => {
-  it("encodes each path segment", () => {
-    expect(encodePath("assets/my clip#1.mp4")).toBe("assets/my%20clip%231.mp4");
+  it("joins a base and an encoded path, with or without the base's slash", () => {
+    expect(joinUrl("demoflow-file://project/", "assets/my clip#1.mp4")).toBe(
+      "demoflow-file://project/assets/my%20clip%231.mp4",
+    );
+    expect(joinUrl("http://127.0.0.1:5000", "a b.png")).toBe("http://127.0.0.1:5000/a%20b.png");
   });
 
   it("strips the project prefix and leading slashes", () => {

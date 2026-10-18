@@ -1,3 +1,4 @@
+import { nonBlankString } from "../guards";
 import type { Action } from "../schema/actions";
 
 const naming =
@@ -18,5 +19,5 @@ const ACTION_LABELS: Partial<Record<Action["kind"], (what: string) => string>> =
 
 export function actionLabel(action: Pick<Action, "kind" | "label" | "text">): string | null {
   const label = ACTION_LABELS[action.kind];
-  return label ? label(action.label?.trim() || action.text?.trim() || "") : null;
+  return label ? label(nonBlankString(action.label) ?? nonBlankString(action.text) ?? "") : null;
 }

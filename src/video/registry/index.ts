@@ -1,6 +1,4 @@
 import type React from "react";
-import { useEffect, useSyncExternalStore } from "react";
-import { cancelRender } from "remotion";
 import type { RecordingProps } from "../../shared/compile/recording";
 import type { CoreElementProps } from "../../shared/elements/core";
 import type { CaptionsValue } from "../../shared/schema/values";
@@ -13,14 +11,18 @@ import {
   Solid,
   Starburst,
 } from "../core/backgrounds";
-import { holdRender } from "../core/loading";
+import { Callout } from "../core/callout";
+import { Captions } from "../core/captions";
+import { KineticHeadline } from "../core/kinetic-headline";
+import { useHeldLoad } from "../core/loading";
 import { LottieElement } from "../core/lottie";
+import { LowerThird } from "../core/lower-third";
 import { ImageElement, StillElement, VideoElement, VideoLoop } from "../core/media";
 import { Mosaic } from "../core/mosaic";
 import { Placeholder } from "../core/placeholder";
 import { RecordingClip } from "../core/recording-clip";
 import type { Shot, Size, StillLook } from "../core/still-layout";
-import { Callout, Captions, KineticHeadline, LowerThird, Title } from "../core/text";
+import { Title } from "../core/title";
 import { coreTransitions } from "../core/transitions";
 import { generatedElementLoaders } from "./components.generated";
 import { component } from "./framing";
@@ -70,12 +72,6 @@ const core = new Map(
 
 const loaded = new Map<string, ElementImpl>();
 const loading = new Map<string, Promise<ElementImpl | undefined>>();
-const loadListeners = new Set<() => void>();
-
-function subscribeToLoads(listener: () => void): () => void {
-  loadListeners.add(listener);
-  return () => loadListeners.delete(listener);
-}
 
 const isGenerated = (key: string) => Object.hasOwn(generatedElementLoaders, key);
 
@@ -89,7 +85,6 @@ function loadElement(key: string): Promise<ElementImpl | undefined> {
   if (!pending) {
     pending = generatedElementLoaders[key]().then((impl) => {
       loaded.set(key, impl);
-      for (const listener of loadListeners) listener();
       return impl;
     });
     loading.set(key, pending);
@@ -97,20 +92,11 @@ function loadElement(key: string): Promise<ElementImpl | undefined> {
   return pending;
 }
 
-const needsLoad = (key: string | undefined): boolean =>
+const needsLoad = (key: string | undefined): key is string =>
   !!key && !isCore(key) && !loaded.has(key) && isGenerated(key);
 
-export function useElement(key: string | undefined): boolean {
-  const snapshot = () => needsLoad(key);
-  const missing = useSyncExternalStore(subscribeToLoads, snapshot, snapshot);
-  useEffect(() => {
-    if (!missing || !key) return;
-    const release = holdRender(`Loading ${key}`);
-    loadElement(key)
-      .then(release)
-      .catch((error: unknown) => cancelRender(error));
-  }, [key, missing]);
-  return !missing;
+export function useElement(key: string | undefined): void {
+  useHeldLoad(`Loading ${key}`, needsLoad(key) ? key : null, loadElement);
 }
 
 export function getComponent(key: string): ElementComponent | undefined {

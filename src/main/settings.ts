@@ -3,6 +3,7 @@ import path from "node:path";
 import { app } from "electron";
 import { readJsonKeepingBroken, writeJson } from "../engine/json";
 import { logError } from "../engine/log";
+import { listenerSet } from "../shared/listener-set";
 import {
   appSettingsSchema,
   DEFAULT_SETTINGS,
@@ -15,14 +16,9 @@ import { oneAtATime } from "../shared/timing";
 const file = () => path.join(app.getPath("userData"), "settings.json");
 
 let cached: AppSettings | null = null;
-const listeners = new Set<(settings: AppSettings, previous: AppSettings) => void>();
+const changes = listenerSet<[settings: AppSettings, previous: AppSettings]>();
 
-export function onSettingsChange(
-  listener: (settings: AppSettings, previous: AppSettings) => void,
-): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
+export const onSettingsChange = changes.add;
 
 async function storedSettings(): Promise<AppSettings | null> {
   try {
@@ -45,13 +41,11 @@ const forgetLastDirOnNewDefault = (next: AppSettings, previous: AppSettings): Ap
 
 async function writeSettings(patch: SettingsPatch): Promise<AppSettings> {
   const previous = await readSettings();
-  const next = appSettingsSchema.parse(
-    forgetLastDirOnNewDefault(mergeSettings(previous, patch), previous),
-  );
+  const next = forgetLastDirOnNewDefault(mergeSettings(previous, patch), previous);
   await mkdir(path.dirname(file()), { recursive: true });
   await writeJson(file(), next);
   cached = next;
-  for (const listener of listeners) listener(next, previous);
+  changes.emit(next, previous);
   return next;
 }
 

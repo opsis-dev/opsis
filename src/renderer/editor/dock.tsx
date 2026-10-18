@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/renderer/components/
 import { whenOneOf } from "@/renderer/lib/one-of";
 import { DOCK_PANELS, DOCK_TITLES, type DockPanelName } from "@/shared/ipc";
 import { commandShortcut } from "../app/menu-shortcuts";
-import { useWorkflowStore } from "../store/workflow";
 import { MixerPanel } from "./mixer/mixer-panel";
 import { focusPanel, openPanel, showPanel, togglePanel, usePanels } from "./panels";
 import { PreviewDock } from "./preview-dock";
@@ -38,10 +37,8 @@ function markPopped(popped: readonly DockPanelName[]): void {
 }
 
 function popOut(panel: DockPanelName): void {
-  const dir = useWorkflowStore.getState().projectDir;
-  if (!dir) return;
   markPopped([...usePanels.getState().popped, panel]);
-  void window.demoflow.openPanelWindow(panel, dir);
+  void window.demoflow.openPanelWindow(panel);
 }
 
 function DockTab({ panel, popped }: { panel: DockPanelName; popped: boolean }) {

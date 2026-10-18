@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Input } from "@/renderer/components/ui/input";
+import { nonBlankString } from "@/shared/guards";
 
 export function InlineEdit({
   value,
@@ -35,7 +36,7 @@ export function InlineEdit({
         if (e.key === "Enter" || e.key === "Escape") e.currentTarget.blur();
       }}
       onBlur={(e) => {
-        const text = e.currentTarget.value.trim();
+        const text = nonBlankString(e.currentTarget.value);
         const keep = cancelled.current;
         cancelled.current = false;
         onDone?.();

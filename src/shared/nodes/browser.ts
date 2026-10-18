@@ -4,7 +4,7 @@ import { formatDuration, displayAddress, formatWhen } from "../format";
 import { mimeSubtype } from "../mime";
 import { DEFAULT_VIEWPORT } from "../schema/workflow";
 import { nonBlankLines } from "../text-input";
-import { PAUSE_MARK } from "../vars";
+import { PAUSE_MARK, SITE_ADDRESS } from "../vars";
 import {
   CODE_TEXT_MAX,
   elementRow,
@@ -132,14 +132,20 @@ export const sessionNode = defineNode({
       advanced: true,
     }),
   }),
-  card: ({ params: p }) => [
-    row("monitor", `${p.viewportWidth} × ${p.viewportHeight}`),
-    p.mobile && row("smartphone", "Mobile"),
-    p.storageState.trim() &&
-      row("user-round", `Signed in as ${quote(p.storageState, LABELLED_TEXT_MAX)}`),
-    p.colorScheme === "dark" && row("moon", "Dark theme"),
-    p.locale && p.locale !== "en-US" && row("languages", p.locale),
-  ],
+  card: ({ params: p }) => {
+    const size = `${p.viewportWidth} × ${p.viewportHeight}`;
+    const dark = p.colorScheme === "dark";
+    const look = [
+      dark ? "Dark theme" : null,
+      p.locale && p.locale !== "en-US" ? p.locale : null,
+    ].filter((part) => part !== null);
+    return [
+      row(p.mobile ? "smartphone" : "monitor", p.mobile ? `${size} · Mobile` : size),
+      p.storageState.trim() &&
+        row("user-round", `Signed in as ${quote(p.storageState, LABELLED_TEXT_MAX)}`),
+      look.length > 0 && row(dark ? "moon" : "languages", look.join(" · ")),
+    ];
+  },
 });
 
 export const navigateNode = defineNode({
@@ -150,7 +156,7 @@ export const navigateNode = defineNode({
   icon: "link",
   description: "Opens a page address.",
   params: z.object({
-    url: text("{{Site address}}", "Page address"),
+    url: text(SITE_ADDRESS, "Page address"),
     waitUntil: choice(
       ["load", "domcontentloaded", "networkidle", "commit"],
       "load",
@@ -204,10 +210,10 @@ export const typeNode = defineNode({
   }),
   card: ({ params: p }) => {
     const typed = p.text.replaceAll(PAUSE_MARK, " … ");
+    const enter = p.pressEnter ? ", then Enter" : "";
     return [
       elementRow("crosshair", p.target, p.targetRole),
-      quotedRow("keyboard", typed, "Add text to type", { title: typed }),
-      p.pressEnter && row("corner-down-left", "Then Enter"),
+      quotedRow("keyboard", typed, "Add text to type", { title: typed, suffix: enter }),
       ...beatRows(p),
     ];
   },

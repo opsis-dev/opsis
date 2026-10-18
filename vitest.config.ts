@@ -4,7 +4,12 @@ import { SRC_ALIAS } from "./scripts/lib/tool-config.ts";
 export default defineConfig({
   resolve: { alias: SRC_ALIAS },
   test: {
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
-    environment: "node",
+    projects: [
+      { extends: true, test: { name: "node", include: ["src/**/*.test.ts"], environment: "node" } },
+      {
+        extends: true,
+        test: { name: "dom", include: ["src/**/*.test.tsx"], environment: "happy-dom" },
+      },
+    ],
   },
 });

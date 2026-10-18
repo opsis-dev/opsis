@@ -1,8 +1,10 @@
 import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from "electron";
 import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
 import { errorMessage } from "../shared/errors";
-import { INVOKE, IPC, type DemoflowApi, type InvokeName } from "../shared/ipc";
-import type { LiveMessage } from "../shared/live";
+import { INVOKE, IPC, type DemoflowApi } from "../shared/ipc";
+import { listenerSet } from "../shared/listener-set";
+import { isLiveMessage, type LiveMessage } from "../shared/live";
+import { mapValues } from "../shared/pick";
 
 function subscribe<A extends unknown[]>(
   channel: string,
@@ -13,22 +15,22 @@ function subscribe<A extends unknown[]>(
   return () => ipcRenderer.removeListener(channel, handler);
 }
 
-const liveListeners = new Set<(message: LiveMessage) => void>();
+const live = listenerSet<[LiveMessage]>();
 
 ipcRenderer.on(IPC.livePort, (event) => {
   const [port] = event.ports;
   port.addEventListener("message", (message) => {
-    for (const listener of liveListeners) listener(message.data as LiveMessage);
+    if (isLiveMessage(message.data)) live.emit(message.data);
   });
   port.start();
 });
 
-const invokers = Object.fromEntries(
-  Object.entries(INVOKE).map(([name, channel]) => [
-    name,
-    (...args: unknown[]) => ipcRenderer.invoke(channel, ...args),
-  ]),
-) as Pick<DemoflowApi, InvokeName>;
+const invokers = mapValues(
+  INVOKE,
+  (channel) =>
+    (...args: unknown[]) =>
+      ipcRenderer.invoke(channel, ...args),
+);
 
 const answerApiRequest = (
   listener: (request: ApiEditorRequest) => Promise<ApiEditorReply>,
@@ -58,10 +60,7 @@ const api: DemoflowApi = {
       ipcRenderer.send(IPC.apiListening, false);
     };
   },
-  onLive: (listener) => {
-    liveListeners.add(listener);
-    return () => liveListeners.delete(listener);
-  },
+  onLive: (listener) => live.add(listener),
   onMenuCommand: (listener) => subscribe(IPC.menu, listener),
   sendMenuToEditor: (command) => ipcRenderer.send(IPC.menuToEditor, command),
   onPanelWindows: (listener) => subscribe(IPC.panelWindows, listener),

@@ -1,5 +1,5 @@
 import { round3 } from "@/shared/math";
-import type { Keyframe } from "@/shared/schema/timeline";
+import { ENVELOPE_LABELS, type EnvelopeKey, type Keyframe } from "@/shared/schema/timeline";
 import { samplePoints } from "@/shared/timeline/envelope";
 import type { BarContext } from "./bar-context";
 import {
@@ -8,7 +8,6 @@ import {
   envelopeTarget,
   envelopeY,
   setEnvelopeKeys,
-  type EnvelopeKey,
   type EnvelopeTarget,
 } from "./envelope";
 import type { KeyStart } from "./timeline-drag";
@@ -90,7 +89,8 @@ export function EnvelopeOverlay({
   const { target, toX, toLocal } = envelope;
   if (!target) return null;
   const { nodeId, prop, keys } = target;
-  const { label, rest } = ENVELOPE_INFO[prop];
+  const { rest } = ENVELOPE_INFO[prop];
+  const label = ENVELOPE_LABELS[prop];
   const y = (v: number) => envelopeY(prop, v, height);
   const ids = keyIds(keys);
   const remove = (index: number) =>

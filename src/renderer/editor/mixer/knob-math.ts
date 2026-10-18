@@ -1,10 +1,10 @@
-import { clamp, clamp01 } from "@/shared/math";
+import { clamp, clamp01, type StepRange } from "@/shared/math";
 import type { NumberRange } from "@/shared/mix/types";
 
 export const SWEEP_DEG = 270;
 export const START_DEG = -SWEEP_DEG / 2;
 
-export type KnobRange = { min: number; max: number; step: number; log?: boolean };
+export type KnobRange = StepRange & { log?: boolean };
 
 export const rangeProps = (range: NumberRange) => ({
   min: range.min,

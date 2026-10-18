@@ -5,7 +5,7 @@ import { numberOr } from "../math";
 import type { TimelineItem } from "../schema/timeline";
 import type { BarThumbnail } from "./flatten";
 
-export type MediaProps = { src: string; trimBeforeMs: number; loop: boolean; volume: number };
+type MediaProps = { src: string; trimBeforeMs: number; loop: boolean; volume: number };
 
 export function mediaProps(props: Record<string, unknown>): MediaProps | null {
   const { src, trimBeforeMs, loop, volume } = props;

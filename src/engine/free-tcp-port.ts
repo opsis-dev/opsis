@@ -1,4 +1,4 @@
-import { createServer, type AddressInfo } from "node:net";
+import { createServer } from "node:net";
 
 export function freeTcpPort(): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -6,8 +6,12 @@ export function freeTcpPort(): Promise<number> {
     server.unref();
     server.on("error", reject);
     server.listen(0, () => {
-      const { port } = server.address() as AddressInfo;
-      server.close(() => resolve(port));
+      const address = server.address();
+      if (address === null || typeof address === "string") {
+        server.close(() => reject(new Error("Couldn't find a free port.")));
+        return;
+      }
+      server.close(() => resolve(address.port));
     });
   });
 }

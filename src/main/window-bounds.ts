@@ -1,6 +1,6 @@
 import path from "node:path";
 import { app, screen, type BrowserWindow, type Rectangle } from "electron";
-import { z } from "zod";
+import type { z } from "zod";
 import { readJson, writeJson } from "../engine/json";
 import { debounce } from "../shared/timing";
 import { raiseWindow } from "./raise-window";
@@ -9,13 +9,6 @@ import { makeWindow, rendererUrl, type WindowOptions } from "./window-registry";
 const SAVE_AFTER_MS = 400;
 const MIN_VISIBLE_PX = 40;
 const ABOVE_WORK_AREA_PX = 20;
-
-export const rectangleSchema = z.object({
-  x: z.number(),
-  y: z.number(),
-  width: z.number(),
-  height: z.number(),
-});
 
 function isVisible(rect: Rectangle): boolean {
   return screen.getAllDisplays().some(({ workArea: area }) => {
@@ -28,7 +21,7 @@ function isVisible(rect: Rectangle): boolean {
   });
 }
 
-export const visibleBounds = (rect: Rectangle | null | undefined): Rectangle | undefined =>
+const visibleBounds = (rect: Rectangle | null | undefined): Rectangle | undefined =>
   rect && isVisible(rect) ? rect : undefined;
 
 export function boundsStore<T>(name: string, schema: z.ZodType<T>) {
@@ -39,7 +32,7 @@ export function boundsStore<T>(name: string, schema: z.ZodType<T>) {
   };
 }
 
-export function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => void): void {
+function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => void): void {
   const remember = () => {
     if (!win.isDestroyed() && !win.isMinimized() && !win.isMaximized() && !win.isFullScreen())
       save(win.getBounds());

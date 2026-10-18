@@ -18,13 +18,13 @@ import { openApiDocument } from "../shared/api/openapi";
 import {
   apiFailure,
   apiOk,
-  type ApiEditorReply,
+  type ApiProjectState,
   type ApiReply,
   type ApiRunState,
 } from "../shared/api/types";
 import { errorMessage } from "../shared/errors";
 import { WORKFLOW_FILE } from "../shared/schema/workflow";
-import { askEditor, followRunEvents } from "./api-editor";
+import { askEditor, followRunEvents, readEditorProject } from "./api-editor";
 
 const MAX_BODY = 20 * 1024 * 1024;
 
@@ -87,7 +87,7 @@ async function parseBody<T>(
 }
 
 async function appStatus(): Promise<Answer> {
-  const project = await askEditor({ op: "read" });
+  const project = await readEditorProject();
   const read = project.ok ? project.result : null;
   return apiOk({
     app: "Demoflow",
@@ -119,7 +119,7 @@ async function replaceProject({ req }: Context): Promise<Answer> {
   return askEditor({ op: "replace", workflow: result.workflow });
 }
 
-const runState = (read: ApiEditorReply<"read">): ApiReply<ApiRunState> =>
+const runState = (read: ApiReply<ApiProjectState>): ApiReply<ApiRunState> =>
   read.ok ? apiOk({ running: read.result.running, runId: read.result.runId }) : read;
 
 const segmentsOf = (pattern: string) => pattern.split("/").filter(Boolean);
@@ -173,7 +173,7 @@ const ROUTES: Route[] = [
   route("POST", "/project/undo", () => askEditor({ op: "undo" })),
   route("POST", "/project/redo", () => askEditor({ op: "redo" })),
   route("POST", "/project/save", () => askEditor({ op: "save" })),
-  route("GET", "/project/run", async () => runState(await askEditor({ op: "read" }))),
+  route("GET", "/project/run", async () => runState(await readEditorProject())),
   route("POST", "/project/run", async ({ req }) =>
     askEditor({ op: "run", ...(await parseBody(req, runBody, false)) }),
   ),
