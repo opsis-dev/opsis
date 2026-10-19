@@ -81,14 +81,15 @@ Already in place:
 - The engine download pattern: `installFfmpeg` and `download()` in `src/engine/install.ts` stream with progress, write `.part` then rename; `megabytes()` formats sizes; `calmProgress()` throttles progress; the install runs in a worker (`case "install-engine"` in `src/worker/worker.ts`) started by `installEngine` in `src/main/workers.ts`, which relays `EngineInstallEvent`s to the renderer.
 - Ask-first downloads in the renderer: the font library's online fonts confirm with an `AlertDialog` before the first request (`onlineAllowed` in `src/renderer/fonts/fonts-panel.tsx`).
 - Settings pages: `PAGES` and `Page()` in `src/renderer/app/settings/settings-window.tsx`, `SettingsPage` in `src/shared/ipc.ts`, app settings in `appSettingsSchema` (`src/shared/settings.ts`) saved by `patchSettings` (`src/main/settings.ts`).
-- Encrypted secrets: `writeSecret` / `readSecret` (`src/main/secrets.ts`) take a folder, so `app.getPath("userData")` works as one; the worker asks main for secrets with `secret:read` and `secret:write` (`src/main/workers.ts`, `src/shared/worker-protocol.ts`).
+- Project sign-ins: `writeSecret` / `readSecret` (`src/main/secrets.ts`) encrypt with `safeStorage` into the project's `secrets/` folder and refuse to save when `isEncryptionAvailable()` is false; the worker asks main for them with `secret:read` and `secret:write` (`src/main/workers.ts`, `src/shared/worker-protocol.ts`).
+- The app state database (`src/main/db/`, **App state is one database** in `AGENTS.md`) and its unused column type `encryptedText()` (`src/main/db/crypto.ts`): it seals a value with `safeStorage` (base64 in a text column), refuses to save without secure storage or when Linux's keyring is `basic_text`, and reports "This key can't be read on this computer. Enter it again." when a value won't decrypt.
 - Long main-process work is listed on exit through `track(label, promise)` (`src/main/exit.ts`).
 - Licence entries that appear once a file exists: `sources()` / `listLicences()` in `src/main/licences.ts`.
 
 Missing:
 
 - A speech folder, catalogue and installer. `download()` isn't exported, checks no hash, and only un-gzips; the speech program comes as `.tar.bz2`. `fflate` (already a dependency) does zip and gzip; tar and bzip2 need `tar-stream` and `seek-bzip` (both MIT).
-- App-wide secrets: `secret:read` reads from the project's folder only.
+- App-wide secrets: no `secrets` table, and `secret:read` reads from the project's folder only.
 - A `"speech"` `SettingsPage` and its page component.
 
 ### Work
@@ -98,7 +99,13 @@ Missing:
 3. **Paths.** `src/engine/speech.ts`: `speechPaths(userData)` → `<userData>/speech/{program,voices/<id>,models/<id>}`, and `speechStatus()` that reports what's installed, like `engineStatus()`.
 4. **Installer.** `src/engine/speech-install.ts`: export `download()` from `install.ts` and add an optional SHA-256 check; `installSpeechTool(kind)`, `installVoicePack(id)`, `installTranscribeModel(id)`, each extracting into a staging folder and renaming into place, `chmod 0o755` on programs; `removeSpeechItem(id)`. Models download with the same hashed `download()` as voice packs.
 5. **Worker and main.** A `install-speech` worker message beside `install-engine`, a `installSpeech(item)` IPC in `src/main/main.ts` wrapped in `track("Downloading speech files", …)`, progress events through the same shape as `EngineInstallEvent`.
-6. **App-wide secrets.** Service keys live in the app state database's `secrets` table (`scope: "app"`), sealed with `encryptedText` (`plans/app-state.md`, **Encrypted values**); project sign-ins stay in the project's `secrets/` folder. New IPC `setServiceKey(service, key)` / `hasServiceKey(service)`; the renderer never reads a key back.
+6. **App-wide secrets.** Unless `plans/ai-assist.md` has already done it:
+   - Add a `secrets` table to `src/main/db/schema.ts`: `id` integer primary key, `name` text not null, unique, `value` `encryptedText()` not null. Run `bun run db:schema`; development databases are replaced on the next start.
+   - Remove the `// TODO: To be used later` comment above `encryptedText` and the note about it in `AGENTS.md`.
+   - `src/main/app-secrets.ts`, shared with the assistant's key store: `writeAppSecret(name, value)`, `hasAppSecret(name)`, `clearAppSecret(name)`, and `readAppSecret(name)` for main only.
+
+   Service keys are named `speech:<service>`. Project sign-ins stay in the project's `secrets/` folder. New IPC `setServiceKey(service, key)` / `hasServiceKey(service)`; the renderer never reads a key back, and the worker asks main for a service key with a new `app-secret:read` message (`secret:read` takes a project folder), and only for the service it calls. Tests open the database with `openDatabase(IN_MEMORY)` and mock `safeStorage`.
+
 7. **Settings.** `appSettingsSchema` gains `speech: { voice: string, transcribe: "english" | "european", online: { elevenlabs: boolean, openai: boolean, openrouter: boolean, compatible: { enabled: boolean, address: string, voiceModel: string, transcribeModel: string } } }`, all off or empty by default. Add `"speech"` to `SettingsPage`, a `SpeechPage` in `src/renderer/app/settings/speech-page.tsx` and a `PAGES` row ("Voice and captions", icon `AudioLines`). Download buttons open an `AlertDialog` naming the size before anything is fetched. The `?` cards are one small `InfoHint` component (the installed shadcn `HoverCard` with a `CircleHelp` icon trigger) fed from the catalogue entry, so the details live in one place.
 8. **Licences.** Entries in `sources()` for the speech program (with the pronunciation data's GPL-3.0 text), each voice pack and each transcription model (CC-BY-4.0, crediting NVIDIA), read from the downloaded folders.
 9. **Tests.** Catalogue test; `speechPaths` per platform (like `paths.test.ts`); hash mismatch rejects and deletes the `.part`.
@@ -111,7 +118,7 @@ Missing:
 
 - **Linux builds and old systems.** The `linux-x64-shared` build links the C++ runtime of the machine it was built on; an AppImage user on an older distribution may not have it. Check on the oldest supported distribution; fall back to building it in CI if it fails.
 - **macOS.** sherpa-onnx ships macOS builds (`osx-arm64-shared` 20.3 MB, `osx-x64-shared` 22.8 MB, and universal2). Check that a program the app downloads runs without Gatekeeper prompts on a notarized and an unsigned app (`plans/shipping.md`).
-- **Unencrypted keys.** `writeSecret` falls back to plain text when `safeStorage.isEncryptionAvailable()` is false (Linux without a keyring). For service keys, say so in Settings before saving.
+- **No keyring.** `encryptedText` refuses to save when `safeStorage` can't encrypt or Linux's keyring is `basic_text`. Settings shows its message where the key is entered, and the online service stays off until a keyring is set up.
 
 ### Sources
 

@@ -73,19 +73,26 @@ Already in place:
 
 - Global settings: `appSettingsSchema` (`src/shared/settings.ts`), written one section at a time with `patchSettings` (`src/main/settings.ts`) and followed in every window through `useAppSettings` / `patchAppSettings` (`src/renderer/store/app-settings.ts`).
 - The Settings window: pages are listed in `PAGES` (`src/renderer/app/settings/settings-window.tsx`) and typed by `SettingsPage` (`src/shared/ipc.ts`). `ApiPage` (`api-page.tsx`) is the model for an off-by-default switch with a status badge.
-- Encryption: `writeSecret` / `readSecret` (`src/main/secrets.ts`) use `safeStorage`, but per project (`<project>/secrets/`), and they write plain bytes when `isEncryptionAvailable()` is false.
+- Encryption: `writeSecret` / `readSecret` (`src/main/secrets.ts`) use `safeStorage`, but per project (`<project>/secrets/`), and refuse to save when `isEncryptionAvailable()` is false.
+- The app state database (`src/main/db/`, **App state is one database** in `AGENTS.md`): tables in `src/main/db/schema.ts`, exported by `bun run db:schema`, and the `projects` table with every project ever opened. Its unused column type `encryptedText()` (`src/main/db/crypto.ts`) seals a value with `safeStorage`, refuses to save without secure storage or when Linux's keyring is `basic_text`, and reports "This key can't be read on this computer. Enter it again." when a value won't decrypt.
 - Asking before going online: the "Go online to get fonts?" `AlertDialog` (`src/renderer/fonts/fonts-panel.tsx`); main fetches with `fetch` (`src/main/fonts.ts`).
 - IPC is restricted to the app's own windows by `assertTrustedSender` in `handle` / `handleFrom` (`src/main/main.ts`). Long main-process work is listed on exit with `track` (`src/main/exit.ts`).
 - Licences of downloaded things are shown in Settings → Licences (`licences-page.tsx`, fonts via `fontLicence`).
 
 Missing:
 
-- An `assist` settings section, a page, a key store outside projects, the model client and a consent step.
+- An `assist` settings section, a page, a key store outside projects (no `secrets` table yet), the model client, a consent step and a request log (no `assist_log` table).
 
 ### Work
 
 1. **Settings.** Add `assist` to `appSettingsSchema`: `mode: "off" | "local" | "online"` (default `off`), `localAddress` (default `http://127.0.0.1:11434/v1`), `localModel`, `provider: "anthropic" | "openai" | "compatible"`, `onlineAddress`, `onlineModel`, `askEachTime` (default `true`).
-2. **Key store.** Provider keys live in the app state database's `secrets` table (`scope: "app"`), sealed with `encryptedText` (`plans/app-state.md`, **Encrypted values**), which refuses to store anything when Linux's `safeStorage` falls back to `basic_text`. `src/main/assist/keys.ts` wraps it: `writeModelKey(provider, key)`, `hasModelKey(provider)`, `clearModelKey(provider)`, and `readModelKey` used only inside `src/main/assist/`. The renderer only ever learns `hasKey: boolean`.
+2. **Key store.** Unless `plans/voice-and-captions.md` has already done it:
+   - Add a `secrets` table to `src/main/db/schema.ts`: `id` integer primary key, `name` text not null, unique, `value` `encryptedText()` not null. Run `bun run db:schema`; development databases are replaced on the next start.
+   - Remove the `// TODO: To be used later` comment above `encryptedText` and the note about it in `AGENTS.md`.
+   - `src/main/app-secrets.ts`, shared with the voice plan's service keys: `writeAppSecret(name, value)`, `hasAppSecret(name)`, `clearAppSecret(name)`, and `readAppSecret(name)` for main only.
+
+   `src/main/assist/keys.ts` wraps it with keys named `assist:<provider>`: `writeModelKey(provider, key)`, `hasModelKey(provider)`, `clearModelKey(provider)`, and `readModelKey` used only inside `src/main/assist/`. Saving shows `encryptedText`'s message when there's no keyring. The renderer only ever learns `hasKey: boolean`. Tests open the database with `openDatabase(IN_MEMORY)` and mock `safeStorage`.
+
 3. **Client.** `src/main/assist/client.ts`: `askModel({ task, system, input, schema, signal })` returns parsed JSON or a plain error. It picks the provider:
    - local server: OpenAI-compatible chat completions with `response_format` and a JSON schema
    - Anthropic: Messages API with `output_config.format`
@@ -98,7 +105,8 @@ Missing:
 5. **Consent.** IPC `assist:ask` (via `handleFrom`). For an online request the renderer first shows `AssistConsentDialog`: what will be sent (the exact text, expandable) and Send / Cancel, plus "Don't ask again", which turns `askEachTime` off for the whole app (decided: app-wide, not per project). It can be turned back on in Settings → Assistant. Main issues a one-time token per approved request id and rejects online requests without one.
 6. **Page.** `src/renderer/app/settings/assistant-page.tsx` and a `SettingsPage` `"assistant"` entry: the three-way choice ("Off", "A model on this computer", "Online"), address and model fields, provider choice (Anthropic, OpenAI, Compatible service) and key field (Save / Remove; never shown back), **Test** (one tiny request; for online, through the consent dialog), and "Ask before every online request". "A model on this computer" has a circled `?` hover card (the same `InfoHint` as the voice plan) naming programs known to work (Ollama, llama.cpp's server, LM Studio) and their usual addresses; the plain label is all a normal user sees.
 7. **Indicator.** Like the API badge, show a small "Assistant" badge in the app bar while `mode` is `online`, so the user knows requests can leave the computer.
-8. **Tests.** The schemas convert to JSON Schema with no unsupported keywords and every field required. The client refuses without the switch, without consent and on a non-loopback local address (with a fake `fetch`). Keys never appear in IPC replies.
+8. **Request log.** Add an `assist_log` table to `src/main/db/schema.ts`: `id` integer primary key, `at` integer, `projectId` integer referencing `projects` (null when no project is open, `onDelete: "set null"`), `task`, `service`, `model` text, `request` and `response` JSON text, `error` text (null on success), `ms` integer; run `bun run db:schema`. `logAssist(entry)` in `src/main/assist/log.ts`, called by `askModel` after every request, local or online. Keys and request headers are never logged. Settings → Assistant lists the entries newest first with what was sent and what came back, and has **Clear log**. Keep the last 1,000 entries or 30 days, whichever is smaller, pruned at startup. Tests: an entry round-trips, nothing secret is stored, pruning keeps the newest.
+9. **Tests.** The schemas convert to JSON Schema with no unsupported keywords and every field required. The client refuses without the switch, without consent and on a non-loopback local address (with a fake `fetch`). Keys never appear in IPC replies.
 
 ### Decisions for the user
 
@@ -290,4 +298,4 @@ Missing:
 ## Decided
 
 - **Editions (decided):** both lite and full; the assistant adds no files to either.
-- **Request log (decided):** every request and answer is stored in the app state database's `assist_log` table (`plans/app-state.md`, **Assistant request log**), with a list and **Clear log** in Settings → Assistant. Keys and headers are never logged.
+- **Request log (decided):** every request and answer is stored in the app state database's `assist_log` table (**Model access**, step 8), with a list and **Clear log** in Settings → Assistant. Keys and headers are never logged.

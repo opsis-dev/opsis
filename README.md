@@ -100,7 +100,6 @@ Each has a plan in [`plans/`](./plans):
 
 - Voiceover and captions from speech ([voice-and-captions](./plans/voice-and-captions.md)).
 - AI assist: a flow from a sentence, chapter names, headline variants, picker suggestions ([ai-assist](./plans/ai-assist.md)).
-- An app state database in place of the JSON files in the app's data folder ([app-state](./plans/app-state.md)).
 - Ported web motion components, Rive animations and element thumbnails ([motion-library](./plans/motion-library.md)) and more Remotion libraries ([remotion-extras](./plans/remotion-extras.md)).
 - Windows and macOS builds (never built or run yet), their icons, code signing, updates and node packs ([shipping](./plans/shipping.md)).
 
