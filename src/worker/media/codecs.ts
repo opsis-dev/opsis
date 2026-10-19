@@ -26,7 +26,7 @@ export const h264Args = ({ crf, preset, keyframeEvery, faststart = false }: H264
 ];
 
 const AAC = ["-c:a", "aac"];
-const PCM_16 = ["-c:a", "pcm_s16le"];
+export const PCM_16 = ["-c:a", "pcm_s16le"];
 
 type Preset = ConvertParams["preset"];
 

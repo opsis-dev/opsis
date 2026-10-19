@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { writeJson } from "../../engine/json";
 import { projectRef } from "../../shared/asset-ref";
@@ -37,9 +37,21 @@ import {
   FASTSTART,
   ffmpegSeconds,
   frameGrabArgs,
+  PCM_16,
 } from "../media/codecs";
 import { canStreamCopy, type ProbeResult } from "../media/ffmpeg";
 import { fitFilter, gifFilter, joinFilter, speedArgs } from "../media/filters";
+import {
+  frameBytes,
+  joinReversedArgs,
+  pieceLengthMs,
+  REVERSE_BUDGET_BYTES,
+  reverseArgs,
+  reversedPartsList,
+  reversePieces,
+  WHOLE_FILE,
+  type ReversePiece,
+} from "../media/reverse";
 import {
   mediaHasSound,
   projectFileRef,
@@ -105,6 +117,50 @@ const extOf = (src: string) => path.extname(src).toLowerCase() || ".mp4";
 
 const concatList = (paths: readonly string[]) =>
   paths.map((f) => `file ${singleQuoted(f)}`).join("\n");
+
+const PARTS_SHARE = 0.9;
+
+type ReverseParts = { pieces: readonly ReversePiece[]; sound: boolean; durationMs: number };
+
+async function reverseInParts(
+  ctx: ExecutorContext,
+  src: string,
+  out: string,
+  { pieces, sound, durationMs }: ReverseParts,
+): Promise<void> {
+  const partsDir = path.join(ctx.dir, "reverse-parts");
+  await rm(partsDir, { recursive: true, force: true });
+  await mkdir(partsDir, { recursive: true });
+  try {
+    const parts = pieces.map((piece, n) => ({
+      file: path.join(partsDir, `part-${n}.mkv`),
+      lengthMs: pieceLengthMs(piece, durationMs),
+    }));
+    let done = 0;
+    for (const [n, piece] of pieces.entries()) {
+      const { file, lengthMs } = parts[n];
+      const share = (PARTS_SHARE * lengthMs) / durationMs;
+      const message = `Reversing part ${n + 1} of ${pieces.length}`;
+      const start = done;
+      ctx.progress(start, message);
+      await ctx.ffmpeg.run(reverseArgs(src, file, { piece, sound, soundCodec: PCM_16 }), {
+        signal: ctx.signal,
+        durationMs: lengthMs,
+        onProgress: (p) => ctx.progress(start + p * share, message),
+      });
+      done += share;
+    }
+    const list = path.join(partsDir, "parts.txt");
+    await writeFile(list, reversedPartsList(parts));
+    await ctx.ffmpeg.run(joinReversedArgs(list, out, sound), {
+      signal: ctx.signal,
+      durationMs,
+      onProgress: (p) => ctx.progress(PARTS_SHARE + p * (1 - PARTS_SHARE), "Joining the parts"),
+    });
+  } finally {
+    await rm(partsDir, { recursive: true, force: true });
+  }
+}
 
 function probeSummary(probe: ProbeResult): string {
   const { video, audio } = probe;
@@ -206,20 +262,33 @@ export const mediaExecutors: Executor[] = [
 
   defineExecutor(reverseNode, async (ctx, inputs) => {
     const input = requireMedia(inputs.media);
+    const src = refToPath(ctx, input.src);
     const sound = await mediaHasSound(ctx, input);
-    return transcodeMedia(ctx, input, {
-      file: "reversed.mp4",
-      label: "Reversed",
-      args: (i, o) => [
-        "-i",
-        i,
-        "-vf",
-        "reverse",
-        ...(sound ? ["-af", "areverse"] : ["-an"]),
-        ...EDIT_VIDEO,
-        o,
-      ],
+    const probe = await ctx.ffmpeg.probe(src);
+    const pieces = probe.video
+      ? reversePieces({
+          durationMs: probe.durationMs,
+          fps: probe.video.fps || ctx.workflow.settings.fps,
+          frameBytes: frameBytes(probe.video),
+          budgetBytes: REVERSE_BUDGET_BYTES,
+        })
+      : [WHOLE_FILE];
+    const file = "reversed.mp4";
+    const label = "Reversed";
+    if (pieces.length === 1) {
+      return transcodeMedia(ctx, input, {
+        file,
+        label,
+        args: (i, o) => reverseArgs(i, o, { sound }),
+      });
+    }
+    ctx.log("info", `Reversing in ${pieces.length} parts to keep memory low.`);
+    await reverseInParts(ctx, src, path.join(ctx.dir, file), {
+      pieces,
+      sound,
+      durationMs: probe.durationMs,
     });
+    return mediaResult(ctx, file, label);
   }),
 
   defineExecutor(scalePadNode, async (ctx, inputs, p) => {

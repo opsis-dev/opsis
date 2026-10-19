@@ -90,3 +90,34 @@ Missing:
 - [FFmpeg-devel: the patch that added the reverse filter](https://ffmpeg.org/pipermail/ffmpeg-devel/2015-July/175725.html)
 - [Avoiding out-of-memory errors in long video filtergraphs](https://www.vmeg.ai/research/avoiding-oom-in-long-video-filtergraphs/)
 - [FFmpeg wiki: concatenate](https://trac.ffmpeg.org/wiki/Concatenate)
+
+## What was built differently
+
+Built on 2026-10-19 in `src/worker/media/reverse.ts` (planner and commands, tested in `reverse.test.ts`) and `reverseInParts` in `src/worker/executors/media.ts`. Checked with the dev engine's FFmpeg 7.0.2. Where the build departs from **Work**:
+
+- **Budget is 512 MiB, not 1 GiB.** A 345-frame 1080p piece (1 GiB) peaked at 1.89 GB, and a 5 s piece at 1.29 GB, so the fixed cost is about 0.8 GB, not 1.2 GB, and item 6's "under about 1.5 GB" needed the smaller budget. At 1080p 30 fps that is 170 frames (about 5.7 s) per part.
+- **No 1 s floor.** A part holds at least one frame, so the budget holds for 8K and high bit depth too.
+- **Each cut has two times, both whole milliseconds, rounded once in the planner.** The picture is cut halfway between two frames (`pictureMs`), so no frame sits on a cut whatever the rounding; the sound is cut at the next frame's time (`soundMs`), where that frame starts showing, so picture and sound keep in step. Cutting the sound at the halfway point made every later frame half a frame late; rounding each part's start and length separately lost 1 ms of sound at a join.
+- **Parts end with `trim=end=` / `atrim=end=`, not `-t` or `-to`.** An input `-t`/`-to` is measured from the first kept frame, so a part that starts half a frame after its cut kept one frame of the next part. The trim filters compare absolute times. Parts after the first start at zero with `setpts=PTS-STARTPTS` / `asetpts=PTS-STARTPTS`; the sound of those parts also trims its first half frame (`atrim=start=`). The first part has no `-ss`, the last no end.
+- **The join list gives every part its length** (`duration` lines, `reversedPartsList`). Reversed parts carry no frame durations, so a part's own length stops at its last frame's start: without the lines a file with no sound came out 0.2 s short over 13 joins, and a part whose sound had already ended lost a frame.
+- **Files with no picture** (sound files) always take the single command; the planner only runs when the probe finds a picture, with the project's fps when the file has none.
+- **Clean-up** also deletes `reverse-parts/` before the first part, since the node folder is keyed by its hash and a killed worker never reaches `finally`. The join list lives inside that folder.
+- **Progress** says "Reversing part 2 of 5" and "Joining the parts"; the log says "Reversing in 5 parts to keep memory low."
+- **Bit depth** is read from `p10`/`p12`/`p16` and the `p010`/`p016` families; `rgb48` and `rgba64` have their own sizes.
+
+Results (lossless parts against a lossless full reverse unless noted):
+
+| File                               | Parts | Frames            | Frame times      | Sound                                  |
+| ---------------------------------- | ----- | ----------------- | ---------------- | -------------------------------------- |
+| 20 s 1080p 29.97 fps               | 4     | 600/600 identical | within 1 ms      | same except the source's last 42 ms    |
+| 10 s 720p 60 fps                   | 13    | 600/600 identical | exact            | within one step in 32768               |
+| Variable frame rate                | 5     | 234/234 identical | up to 117 ms off | identical                              |
+| Sound 2 s shorter than the picture | 7     | 300/300 identical | exact            | identical                              |
+| Sound 1 s longer than the picture  | 7     | 300/300 identical | see below        | at most 6 steps off, in the first part |
+| No sound                           | 13    | 600               | 9.999 s for 10 s | none                                   |
+| 3 min 1080p 30 fps, real executor  | 32    | 5400              | 180.000 s        | 180.000 s; peak memory 1.71 GB, 59 s   |
+
+- The 42 ms differ by at most −64 dB and come from decoding the source's sound after a seek: decoding it forwards from the same point gives the same samples. Nothing changes at a join.
+- With a variable frame rate the full reverse gives the reversed frames the whole file's frame times and the parts give each part's own, so the times differ; neither is more right.
+- When the sound runs past the picture, the old command moves the whole picture out of step by the difference; the parts keep it in step after the first part and hold a frame for the difference instead.
+- Stopping during the third part cancels the node and leaves its folder empty. The old command was not run on the 3-minute file (about 16 GB by the estimate above).
