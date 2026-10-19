@@ -34,6 +34,7 @@ import {
   openPanelWindow,
   panelWindow,
 } from "./panel-windows";
+import { applyProjectWindow } from "./project-window";
 import {
   chooseFolder,
   clearCache,
@@ -87,6 +88,12 @@ async function useFontInProject(dir: string, fontId: string) {
   return copyFontToProject(dir, def);
 }
 
+async function openProjectInWindow(win: BrowserWindow | null, dir: string) {
+  const opened = await openProjectDir(dir);
+  if (win && win === getMainWindow()) applyProjectWindow(win, opened.view);
+  return opened;
+}
+
 function setViewPref(dir: string, key: string, value: unknown): void {
   if (writeViewState(dir, key, value)) broadcast(IPC.viewPrefChanged, { dir, key, value });
 }
@@ -110,7 +117,7 @@ const HANDLERS: { [K in InvokeName]: Handler<K> } = {
   },
   getWindowState: { withWindow: windowState },
   listRecentProjects: listRecent,
-  openProject: openProjectDir,
+  openProject: { withWindow: openProjectInWindow },
   saveWorkflow: saveWorkflowFile,
   projectLocations,
   watchProject: (dir) =>

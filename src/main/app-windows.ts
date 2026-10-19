@@ -2,6 +2,7 @@ import type { BrowserWindow } from "electron";
 import type { BroadcastPayloads } from "../shared/ipc";
 import { guardClose } from "./exit";
 import { closePanelWindows, isPanelSender, panelWindows } from "./panel-windows";
+import { rememberProjectWindow } from "./project-window";
 import { closeSettingsWindow, isSettingsSender, settingsWindow } from "./settings-window";
 import {
   getMainWindow,
@@ -21,6 +22,7 @@ export function createMainWindow(): void {
     title: "Opsis",
   });
   setMainWindow(win);
+  rememberProjectWindow(win);
   void win.loadURL(rendererUrl());
   guardClose(win);
   win.on("closed", () => {

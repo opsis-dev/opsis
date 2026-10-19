@@ -1,28 +1,11 @@
 import { eq } from "drizzle-orm";
-import { screen, type BrowserWindow, type Rectangle } from "electron";
+import type { BrowserWindow, Rectangle } from "electron";
 import { debounce } from "../shared/timing";
 import { db } from "./db";
 import { windowBounds } from "./db/schema";
 import { raiseWindow } from "./raise-window";
+import { SAVE_BOUNDS_AFTER_MS, visibleBounds } from "./window-placement";
 import { makeWindow, rendererUrl, type WindowOptions } from "./window-registry";
-
-const SAVE_AFTER_MS = 400;
-const MIN_VISIBLE_PX = 40;
-const ABOVE_WORK_AREA_PX = 20;
-
-function isVisible(rect: Rectangle): boolean {
-  return screen.getAllDisplays().some(({ workArea: area }) => {
-    const overlapsAcross =
-      rect.x < area.x + area.width - MIN_VISIBLE_PX &&
-      rect.x + rect.width > area.x + MIN_VISIBLE_PX;
-    const titleBarReachable =
-      rect.y >= area.y - ABOVE_WORK_AREA_PX && rect.y < area.y + area.height - MIN_VISIBLE_PX;
-    return overlapsAcross && titleBarReachable;
-  });
-}
-
-const visibleBounds = (rect: Rectangle | null | undefined): Rectangle | undefined =>
-  rect && isVisible(rect) ? rect : undefined;
 
 function savedBounds(window: string): Rectangle | undefined {
   const row = db().select().from(windowBounds).where(eq(windowBounds.window, window)).get();
@@ -42,7 +25,7 @@ function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => void): vo
     if (!win.isDestroyed() && !win.isMinimized() && !win.isMaximized() && !win.isFullScreen())
       save(win.getBounds());
   };
-  const rememberSoon = debounce(remember, SAVE_AFTER_MS);
+  const rememberSoon = debounce(remember, SAVE_BOUNDS_AFTER_MS);
   win.on("resized", rememberSoon);
   win.on("moved", rememberSoon);
   win.on("close", () => {
