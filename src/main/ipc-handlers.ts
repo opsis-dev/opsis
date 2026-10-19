@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
 import { readLastRun } from "../engine/last-run";
-import { INVOKE, IPC, type DemoflowApi, type InvokeName, type RunRequest } from "../shared/ipc";
+import { INVOKE, IPC, type OpsisApi, type InvokeName, type RunRequest } from "../shared/ipc";
 import { findById } from "../shared/lists";
 import type { MenuCommand } from "../shared/menu";
 import { keysOf } from "../shared/nodes/params";
@@ -54,11 +54,9 @@ import { listStills, requestStill } from "./stills";
 import { focusMainWindow, getMainWindow, sendMenuCommand, windowState } from "./window-registry";
 import { runWindowRole } from "./window-roles";
 
-type Result<K extends InvokeName> =
-  | ReturnType<DemoflowApi[K]>
-  | Awaited<ReturnType<DemoflowApi[K]>>;
+type Result<K extends InvokeName> = ReturnType<OpsisApi[K]> | Awaited<ReturnType<OpsisApi[K]>>;
 
-type Args<K extends InvokeName> = Parameters<DemoflowApi[K]>;
+type Args<K extends InvokeName> = Parameters<OpsisApi[K]>;
 
 type Handler<K extends InvokeName> =
   | ((...args: Args<K>) => Result<K>)

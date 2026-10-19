@@ -33,7 +33,7 @@ export const useFontLibrary = create<LibraryState>((set, get) => ({
   refresh: async () => {
     if (get().status === "idle") set({ status: "loading" });
     try {
-      set({ library: await window.demoflow.listFonts(), status: "ready" });
+      set({ library: await window.opsis.listFonts(), status: "ready" });
     } catch (e) {
       if (get().status === "loading") set({ status: "idle" });
       reportError("Couldn't read your font library", e);
@@ -43,7 +43,7 @@ export const useFontLibrary = create<LibraryState>((set, get) => ({
     if (get().status === "idle") void get().refresh();
   },
   remove: async (def) => {
-    await window.demoflow.removeFont(def.id);
+    await window.opsis.removeFont(def.id);
     unregisterFaces(previewFamily(def));
     await get().refresh();
   },

@@ -25,9 +25,9 @@ export function useCanvasDrop(projectDir: string): (event: React.DragEvent) => P
       }
       const files = [...event.dataTransfer.files];
       if (!files.length) return;
-      const paths = files.map((f) => window.demoflow.pathForFile(f)).filter(Boolean);
+      const paths = files.map((f) => window.opsis.pathForFile(f)).filter(Boolean);
       await attempt(async () => {
-        const assets = await window.demoflow.importAssets(projectDir, paths);
+        const assets = await window.opsis.importAssets(projectDir, paths);
         assets.forEach((asset, i) =>
           addAt(
             "media.import",

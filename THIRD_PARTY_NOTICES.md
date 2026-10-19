@@ -1,6 +1,6 @@
 # Third-party notices
 
-Demoflow vendors source from the registries and projects below. Their licences require the notices to be kept.
+Opsis vendors source from the registries and projects below. Their licences require the notices to be kept.
 
 ## Remocn — src/video/elements/remocn, src/video/lib/remocn*
 
@@ -122,7 +122,7 @@ The full edition bundles Google's Chrome Headless Shell from Chrome for Testing 
 
 ## Remotion
 
-Videos are rendered with Remotion (https://www.remotion.dev), which is not under an open-source licence: it is free for individuals, non-profits and for-profit organisations with up to 3 employees, and larger companies need a Remotion company licence (https://www.remotion.dev/license). Demoflow passes the key entered in Settings → Video export licence, or the free licence when it is empty. Remotion packages are installed from npm and keep their own `LICENSE.md`.
+Videos are rendered with Remotion (https://www.remotion.dev), which is not under an open-source licence: it is free for individuals, non-profits and for-profit organisations with up to 3 employees, and larger companies need a Remotion company licence (https://www.remotion.dev/license). Opsis passes the key entered in Settings → Video export licence, or the free licence when it is empty. Remotion packages are installed from npm and keep their own `LICENSE.md`.
 
 ## React Flow UI — src/renderer/components/{base-node,labeled-handle,…}.tsx
 

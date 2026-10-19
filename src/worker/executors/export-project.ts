@@ -69,7 +69,7 @@ export const ExportRoot = () => (
 );
 `;
 
-const CANT_EXPORT_CODE = "This copy of Demoflow can't export code.";
+const CANT_EXPORT_CODE = "This copy of Opsis can't export code.";
 
 const REMOTION_CONFIG_TS = `import { Config } from "@remotion/cli/config";
 import { makeWebpackOverride } from "./${[SOURCE_DIR, ...WEBPACK_OVERRIDE_DIR, "webpack-override"].join("/")}";
@@ -94,7 +94,7 @@ const TSCONFIG = {
 
 const readme = (name: string) => `# ${name}
 
-Exported from Demoflow. Edit \`src/timeline.json\` or the components in \`src/video\`, then:
+Exported from Opsis. Edit \`src/timeline.json\` or the components in \`src/video\`, then:
 
 \`\`\`sh
 bun install

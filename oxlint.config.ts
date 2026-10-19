@@ -5,7 +5,7 @@ const WALL_CLOCK_LIBS = ["framer-motion", "motion", "motion/react", "motion/reac
 
 export default defineConfig({
   plugins: ["typescript", "react", "unicorn", "oxc", "import", "vitest"],
-  jsPlugins: ["./scripts/oxlint-plugin-demoflow.ts"],
+  jsPlugins: ["./scripts/oxlint-plugin-opsis.ts"],
   categories: {
     correctness: "error",
     suspicious: "warn",
@@ -30,11 +30,11 @@ export default defineConfig({
     "react/hooks": "off",
     "import/no-cycle": "off",
     "unicorn/filename-case": ["error", { case: "kebabCase", ignore: ["^__root\\.tsx$"] }],
-    "demoflow/use-find-by-id": "error",
-    "demoflow/use-on-abort": "error",
-    "demoflow/use-parse-json-with": "error",
-    "demoflow/use-percent-text": "error",
-    "demoflow/use-type-guards": "error",
+    "opsis/use-find-by-id": "error",
+    "opsis/use-on-abort": "error",
+    "opsis/use-parse-json-with": "error",
+    "opsis/use-percent-text": "error",
+    "opsis/use-type-guards": "error",
   },
   overrides: [
     {
@@ -69,17 +69,17 @@ export default defineConfig({
     {
       files: ["src/video/**/*.ts", "src/video/**/*.tsx"],
       rules: {
-        "demoflow/no-animate-class": "error",
+        "opsis/no-animate-class": "error",
       },
     },
     {
       files: ["scripts/**/*.ts"],
       excludeFiles: ["scripts/lib/tool-config.ts"],
-      rules: { "demoflow/use-root": "error" },
+      rules: { "opsis/use-root": "error" },
     },
-    { files: ["src/shared/lists.ts"], rules: { "demoflow/use-find-by-id": "off" } },
-    { files: ["src/shared/errors.ts"], rules: { "demoflow/use-on-abort": "off" } },
-    { files: ["src/shared/guards.ts"], rules: { "demoflow/use-type-guards": "off" } },
+    { files: ["src/shared/lists.ts"], rules: { "opsis/use-find-by-id": "off" } },
+    { files: ["src/shared/errors.ts"], rules: { "opsis/use-on-abort": "off" } },
+    { files: ["src/shared/guards.ts"], rules: { "opsis/use-type-guards": "off" } },
     {
       files: ["**/*.test.ts", "**/*.test.tsx"],
       rules: {

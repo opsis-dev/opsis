@@ -133,7 +133,7 @@ describe("mixer levels", () => {
 
   it("plays only the master stem when one is ready", () => {
     const { spec } = project();
-    const stem = withMasterStem(spec, { src: "project:.demoflow/cache/mix/m.wav", hash: "m" });
+    const stem = withMasterStem(spec, { src: "project:.opsis/cache/mix/m.wav", hash: "m" });
     expect(stem.audio).toEqual([]);
     expect(stem.mix?.hash).toBe("m");
     expect(itemsOf(stem).filter(itemHasSound)).toEqual([]);

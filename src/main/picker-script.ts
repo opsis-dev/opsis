@@ -117,8 +117,8 @@ function spotOf(e: MouseEvent): { x: number; y: number; text: string } {
 }
 
 function installPicker(prefix: string, interactive: string): void {
-  if (Reflect.get(window, "__demoflowPicker")) return;
-  Reflect.set(window, "__demoflowPicker", true);
+  if (Reflect.get(window, "__opsisPicker")) return;
+  Reflect.set(window, "__opsisPicker", true);
 
   const SPOT_SIZE = 12;
   const TAG_GAP = 26;

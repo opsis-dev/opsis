@@ -6,10 +6,10 @@ type FlowNodeData = { node: WorkflowNode };
 
 export type CanvasNode = Node<FlowNodeData>;
 
-export type FlowNodeType = "demoflow" | "group" | "note";
+export type FlowNodeType = "opsis" | "group" | "note";
 
 function toFlowNode(n: WorkflowNode, group: boolean, selected: ReadonlySet<string>): CanvasNode {
-  const type: FlowNodeType = group ? "group" : isNoteNode(n) ? "note" : "demoflow";
+  const type: FlowNodeType = group ? "group" : isNoteNode(n) ? "note" : "opsis";
   return {
     id: n.id,
     type,

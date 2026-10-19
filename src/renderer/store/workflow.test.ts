@@ -3,7 +3,7 @@ import { getTemplate } from "@/shared/templates";
 import { useUiStore } from "./ui";
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "./workflow";
 
-vi.hoisted(() => vi.stubGlobal("window", { demoflow: { platform: "linux" } }));
+vi.hoisted(() => vi.stubGlobal("window", { opsis: { platform: "linux" } }));
 
 const store = () => useWorkflowStore.getState();
 const pastSteps = () => useWorkflowStore.temporal.getState().pastStates.length;

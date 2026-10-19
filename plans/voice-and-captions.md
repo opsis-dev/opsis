@@ -1,13 +1,13 @@
 # Voice and captions
 
-What Demoflow needs to speak a script and to caption speech: a Voiceover node that turns text into a voice on this computer (or, when the user turns it on, through an online service), captions from the speech in a file, a film that fits the voice's length, and a Settings page for the voices and speech models. This is milestone M4 ("Audio & captions") of the original spec, minus the parts that are already built (Captions from script, Show captions, the Mixer and its ducking).
+What Opsis needs to speak a script and to caption speech: a Voiceover node that turns text into a voice on this computer (or, when the user turns it on, through an online service), captions from the speech in a file, a film that fits the voice's length, and a Settings page for the voices and speech models. This is milestone M4 ("Audio & captions") of the original spec, minus the parts that are already built (Captions from script, Show captions, the Mixer and its ducking).
 
 Status: plan only. Nothing here is built yet.
 
 ## How to read this plan
 
 - Each section is one feature. The user picks which to build and when; the first section (downloads and Settings) comes before the others because they all use it.
-- Each feature section has the same parts: **What it adds**, **Fit with Demoflow**, **Work**, **Licence**, **Risks**, **Sources**.
+- Each feature section has the same parts: **What it adds**, **Fit with Opsis**, **Work**, **Licence**, **Risks**, **Sources**.
 - Sizes are download sizes of the pinned archives, read from the release listings on the date in **Sources**. Sizes on disk are measured during the work and written into the catalogue.
 
 ## Conventions
@@ -16,7 +16,7 @@ These apply to every feature in this plan. They restate rules from `AGENTS.md`; 
 
 **Versions.**
 
-- Every `remotion` / `@remotion/*` package stays at exact `4.0.535`: `bun add --exact @remotion/<name>@4.0.535`. `@remotion/captions`, `@remotion/openai-whisper` and `@remotion/elevenlabs` are already in `node_modules` (through `@remotion/studio`) but Demoflow imports them directly, so each becomes a direct dependency.
+- Every `remotion` / `@remotion/*` package stays at exact `4.0.535`: `bun add --exact @remotion/<name>@4.0.535`. `@remotion/captions`, `@remotion/openai-whisper` and `@remotion/elevenlabs` are already in `node_modules` (through `@remotion/studio`) but Opsis imports them directly, so each becomes a direct dependency.
 - Other packages: the latest release, through `bun add` / `bun add -d`. Never edit dependency blocks by hand.
 - Downloaded programs and models are pinned like FFmpeg (`FFMPEG_RELEASE` in `src/engine/paths.ts`): a fixed release, a fixed URL per platform, and a SHA-256 checked after the download.
 
@@ -59,7 +59,7 @@ These apply to every feature in this plan. They restate rules from `AGENTS.md`; 
 | Voiceover node                     | A voice reading a script with variables, line by line, at a set speed; lines can start on browser actions; its own Voice bus that lowers the music; captions that follow the voice | Apache-2.0 voices (Kokoro, Kitten)                            | 31 MB (small voice), 132 MB (natural voices)                  |
 | Online voices and transcription    | The same nodes using ElevenLabs, OpenAI, OpenRouter or any compatible address, after the user turns it on and enters a key                                                         | Service terms; converter packages MIT                         | Nothing to download                                           |
 | Captions from speech               | Word-timed captions from the speech in a video or sound file, for Show captions, plus a subtitle file                                                                              | CC-BY-4.0 (transcription models)                              | 460 MB (English), 464 MB (25 European languages)              |
-| Fit length to the voiceover        | Fit length makes the film as long as the voice, plus a tail, by speeding up, holding or cutting                                                                                    | Demoflow's own                                                | None                                                          |
+| Fit length to the voiceover        | Fit length makes the film as long as the voice, plus a tail, by speeding up, holding or cutting                                                                                    | Opsis's own                                                   | None                                                          |
 
 ## Speech downloads and the Voice and captions settings page
 
@@ -74,7 +74,7 @@ A Settings page, **Voice and captions**, that lists everything speech needs and 
 
 The first voice download also gets the speech program (shown in the same size line: "132 MB voice + 21 MB program"); the first model download also gets the same program if no voice was downloaded yet: one speech program speaks and transcribes.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -115,7 +115,7 @@ Missing:
 
 ### Sources
 
-- Demoflow source: `src/engine/install.ts`, `src/main/secrets.ts`, `src/main/licences.ts`, `src/renderer/app/settings/settings-window.tsx` (checked 2026-10-16)
+- Opsis source: `src/engine/install.ts`, `src/main/secrets.ts`, `src/main/licences.ts`, `src/renderer/app/settings/settings-window.tsx` (checked 2026-10-16)
 - [sherpa-onnx v1.13.8 release](https://github.com/k2-fsa/sherpa-onnx/releases/tag/v1.13.8): `linux-x64-shared` 28.2 MB, `linux-aarch64-shared-cpu` 28.1 MB, `osx-arm64-shared` 20.3 MB, `osx-x64-shared` 22.8 MB, `win-x64-shared-MD-Release` 20.5 MB (checked 2026-10-16)
 - npm metadata: `tar-stream@3.2.2`, `seek-bzip@2.0.0` (checked 2026-10-16)
 
@@ -131,7 +131,7 @@ A **Voiceover** node (Audio): a script, a voice and a speed in, a voice track an
 - **Lines on actions**: any line can start on a browser action of the clip it's added to, plus an offset, like Sound effect's **On an action**.
 - Outputs: **Sound** (to Add sound or Fit length) and **Captions** (to Show captions), so captions follow the voice word by word.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -151,10 +151,10 @@ Missing:
 
 ### Work
 
-1. **Speech program.** The voices run in sherpa-onnx's `sherpa-onnx-offline-tts` program (downloaded in the section above) as a separate process: `--kokoro-model`, `--kokoro-voices`, `--kokoro-tokens`, `--kokoro-data-dir` (or the Kitten equivalents), `--sid`, `--speed`, `--num-threads`, `--output-filename`. Keeping it out of Demoflow's process avoids native addons in Electron and keeps the GPL-3.0 pronunciation part in a separate program, as with FFmpeg.
+1. **Speech program.** The voices run in sherpa-onnx's `sherpa-onnx-offline-tts` program (downloaded in the section above) as a separate process: `--kokoro-model`, `--kokoro-voices`, `--kokoro-tokens`, `--kokoro-data-dir` (or the Kitten equivalents), `--sid`, `--speed`, `--num-threads`, `--output-filename`. Keeping it out of Opsis's process avoids native addons in Electron and keeps the GPL-3.0 pronunciation part in a separate program, as with FFmpeg.
 2. **Voice packs** in `VOICE_PACKS`: "Natural voices" = `kokoro-int8-multi-lang-v1_0` (132 MB, 53 voices, English and Chinese); "Small voices" = `kitten-nano-en-v0_8-int8` (31 MB, English). Measure the full-precision Kokoro pack (350 MB) against int8 by ear before deciding whether to offer it. Piper voices are out (decided): licences differ per voice (`ryan` is CC BY-NC-SA 4.0, `lessac` uses the Blizzard licence).
 3. **Node.** `audio.voiceover` in `src/shared/nodes/audio.ts`: `phase: "media"`, `executes: true`, `inputs: {}`, outputs `audio` and `captions`. Params: `script` (`text(…, "textarea")`), `voice` (new `voice` widget: catalogue voices, installed or not, with a Download link to Settings), `speed` (0.5–2, step 0.05), `startMs`, `pauseMs` (`ms(400, "Pause between lines", 5000)`), `nudgesMs` (`offsets` widget, one per line), `lineActions` (`z.array(z.object({ line, atAction, offsetMs }))` with a new `lineActions` widget that lists the script's lines with the existing action picker, matched by line text so reordering keeps them), and `wordTiming` under `advanced` ("From the voice" when a transcription model is installed, else "Estimated"). Card: first line quoted, voice name, total length, "N lines on actions"; warn when the voice isn't downloaded.
-4. **Executor.** `voiceoverExecutor` in a new `src/worker/executors/speech.ts`, added to `EXECUTORS` (`src/worker/executors/index.ts`): for each line, synthesise to WAV in a shared cache `.demoflow/cache/voice/<sha256 of pack, voice, speed, text>.wav`, so editing one line re-speaks only that line; probe each length with `ctx.ffmpeg.probe`; word times from `wordTiming` (see step 6). Outputs `{ lines: [{ src, durationMs, words }] }` as JSON in the node's folder, plus an `audio` artifact of the whole voice for the card.
+4. **Executor.** `voiceoverExecutor` in a new `src/worker/executors/speech.ts`, added to `EXECUTORS` (`src/worker/executors/index.ts`): for each line, synthesise to WAV in a shared cache `.opsis/cache/voice/<sha256 of pack, voice, speed, text>.wav`, so editing one line re-speaks only that line; probe each length with `ctx.ffmpeg.probe`; word times from `wordTiming` (see step 6). Outputs `{ lines: [{ src, durationMs, words }] }` as JSON in the node's folder, plus an `audio` artifact of the whole voice for the card.
 5. **Compile.** From `result` and the params (so moving or pausing never re-speaks): one `AudioItem` per line with `channel: nodeId`, `role: "voice"`, `lengthFrames`, `anchor` from `lineActions`, `from` = start + earlier lines + pauses + nudges, `handles.move` = `{ param: "nudgesMs", index: i }` (or the line's `offsetMs` when anchored). `AudioValue.durationInFrames` = end of the last unanchored line. `CaptionsValue` with each word's times, shifted the same way.
 6. **Word timing.** "Estimated": spread the line's length over its words by character count, with a short lead-in; a pure function in `src/shared/speech/words.ts`, unit-tested. "From the voice": run the transcriber on each line (Captions from speech's code) and keep its word times when the words match the script, else fall back to the estimate.
 7. **Voice role and bus.** `role` gains `"voice"` in `audioItemSchema`; `ChannelKind` and `DEFAULT_BUS_FOR` gain `voice → "voice"`; `kindOfAudio` returns `"voice"`; `soundLength` (`src/shared/compile/duck.ts`) treats voice like effects (natural length); the `flatten.ts` role union gains it. `DEFAULT_BUSES` gains a Voice bus starting from the Voice preset's EQ and compressor; `normalizeWorkflow` (`src/shared/nodes/registry.ts`) adds it to saved mixes that lack it. When the first Voiceover is added, the workflow store turns on the Music bus's ducking keyed on `"voice"` if it's off, in the same undo step.
@@ -189,7 +189,7 @@ Missing:
 
 The Voiceover node and Captions from speech can use an online service instead of this computer, once the user turns the service on in Settings and enters a key. Four choices: ElevenLabs, OpenAI, OpenRouter (a preset with its address filled in and its transcription format handled), and **Compatible service**, any address that speaks OpenAI's audio API, including speech servers the user runs on their own computer. Voices from the service appear in the voice picker under "Online voices". Results are saved in the node's cache, so a run with nothing changed sends nothing.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -218,7 +218,7 @@ Missing:
 
 ### Licence
 
-`@remotion/captions`, `@remotion/elevenlabs`, `@remotion/openai-whisper`: MIT, entries in `THIRD_PARTY_NOTICES.md`. Use of the services is under each service's terms with the user's own key; Demoflow ships nothing from them.
+`@remotion/captions`, `@remotion/elevenlabs`, `@remotion/openai-whisper`: MIT, entries in `THIRD_PARTY_NOTICES.md`. Use of the services is under each service's terms with the user's own key; Opsis ships nothing from them.
 
 ### Risks
 
@@ -239,7 +239,7 @@ Missing:
 
 A **Captions from speech** node (Text & overlays): a video or sound file in, word-timed captions out, transcribed on this computer (or online, when turned on). Settings: **Language** ("English" or "European languages", from the downloaded models), **Fix words** (a find-and-replace list applied after, for names and product terms), and **Starts at**. It also saves a subtitle file next to its result.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -287,7 +287,7 @@ NVIDIA Parakeet TDT 0.6B v2 and v3: CC-BY-4.0 (the Hugging Face model data for `
 
 Fit length makes a clip as long as the voiceover, by speeding up, holding the end or cutting, with an extra **Hold after the sound** so the film doesn't end on the last word.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -308,7 +308,7 @@ Missing:
 
 ### Licence
 
-Demoflow's own code.
+Opsis's own code.
 
 ### Risks
 
@@ -316,7 +316,7 @@ Demoflow's own code.
 
 ### Sources
 
-- Demoflow source: `durationFitNode`, `fitRow` (`src/shared/nodes/timeline.ts`), `addAudioNode`, `anchorSounds` (`src/shared/nodes/audio.ts`), `canConnect` (`src/shared/nodes/ports.ts`) (checked 2026-10-16)
+- Opsis source: `durationFitNode`, `fitRow` (`src/shared/nodes/timeline.ts`), `addAudioNode`, `anchorSounds` (`src/shared/nodes/audio.ts`), `canConnect` (`src/shared/nodes/ports.ts`) (checked 2026-10-16)
 
 ## Decided
 

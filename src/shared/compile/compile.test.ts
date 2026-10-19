@@ -68,7 +68,7 @@ describe("compileWorkflow — sample project", () => {
     const wf = todoMvc();
     const out = compileWorkflow(wf, { results: { record: recordResult(log) } });
     const props = recordingIn(out.specs.render);
-    expect(props?.src).toBe("project:.demoflow/cache/h/recording.mp4");
+    expect(props?.src).toBe("project:.opsis/cache/h/recording.mp4");
     expect(props?.tuning.sMax).toBe(1.74);
     expect(props?.keystrokes).toEqual({ position: "bottom", typed: true, chords: true });
   });
@@ -93,11 +93,11 @@ describe("compileWorkflow — sample project", () => {
     const result = recordResult(log);
     const recording = result.outputs.recording;
     assert(recording.type === "recording", "recording output");
-    recording.proxySrc = "project:.demoflow/cache/h/recording.preview.mp4";
+    recording.proxySrc = "project:.opsis/cache/h/recording.preview.mp4";
     const out = compileWorkflow(todoMvc(), { results: { record: result } });
     const props = recordingIn(out.specs.render);
-    expect(props?.src).toBe("project:.demoflow/cache/h/recording.mp4");
-    expect(props?.proxySrc).toBe("project:.demoflow/cache/h/recording.preview.mp4");
+    expect(props?.src).toBe("project:.opsis/cache/h/recording.mp4");
+    expect(props?.proxySrc).toBe("project:.opsis/cache/h/recording.preview.mp4");
   });
 
   it("sequences clips with overlapping transitions (TransitionSeries semantics)", () => {

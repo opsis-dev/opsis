@@ -132,7 +132,7 @@ process.parentPort.once("message", (event) => {
   control.on("message", (e) => {
     if (isMainToWorker(e.data)) void handle(e.data);
   });
-  control.on("close", () => replies.settleAll({ error: "Demoflow closed before it answered." }));
+  control.on("close", () => replies.settleAll({ error: "Opsis closed before it answered." }));
   control.start();
   live?.start();
 });

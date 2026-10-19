@@ -11,7 +11,7 @@ import { remotionPlatform, type RemotionPlatform } from "./paths";
 
 const run = promisify(execFile);
 
-const CREDITS_CACHE = path.join(os.homedir(), ".cache", "demoflow-chromium-credits");
+const CREDITS_CACHE = path.join(os.homedir(), ".cache", "opsis-chromium-credits");
 
 const KNOWN_GOOD =
   "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json";

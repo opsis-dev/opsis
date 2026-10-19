@@ -25,7 +25,7 @@ function useTrace(projectDir: string, traceId: string) {
   const [state, setState] = useState<{ trace?: TraceModel; error?: string; id?: string }>({});
   useEffect(() => {
     let live = true;
-    window.demoflow.readTrace(projectDir, traceId).then(
+    window.opsis.readTrace(projectDir, traceId).then(
       (trace) => live && setState({ trace, id: traceId }),
       (e: unknown) => live && setState({ error: errorMessage(e), id: traceId }),
     );

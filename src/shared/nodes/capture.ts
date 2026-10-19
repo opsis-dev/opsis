@@ -171,7 +171,7 @@ export const loginOnceNode = defineNode({
   title: "Sign in once",
   volatile: true,
   description:
-    "Opens a window where you sign in yourself. Demoflow keeps the sign-in, encrypted, for later takes.",
+    "Opens a window where you sign in yourself. Opsis keeps the sign-in, encrypted, for later takes.",
   inputs: {},
   outputs: {},
   params: z.object({

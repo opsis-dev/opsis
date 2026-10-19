@@ -1,8 +1,8 @@
-# Demoflow
+# Opsis
 
 Record a real website and turn it into a polished product demo.
 
-Demoflow is a desktop app with a node editor. Browser nodes drive a real website (clicks, typing, scrolling) and record it in one take; camera, cursor, text, motion-graphics, transition, audio and media nodes turn the recording into a finished video, exported in several shapes at once. Everything runs on your computer.
+Opsis is a desktop app with a node editor. Browser nodes drive a real website (clicks, typing, scrolling) and record it in one take; camera, cursor, text, motion-graphics, transition, audio and media nodes turn the recording into a finished video, exported in several shapes at once. Everything runs on your computer.
 
 > **Early preview.** Built and tested on Linux (dev, `.deb`, AppImage). Windows and macOS builds haven't been made or tested yet, and there are no signed installers or auto-updates. Expect rough edges.
 
@@ -21,9 +21,9 @@ Built with [Electron](https://www.electronjs.org), [xyflow](https://reactflow.de
 - **Timeline:** the film as bars with filmstrips, waveforms, action marks, chapters, markers and music beats; move, trim, split, ripple, roll, slip, speed and keyframes, each written back to the nodes (or added as a named node) as one undo step; snapping, J/K/L, in and out points.
 - **Mixer:** a strip per sound with trim, low cut, 4-band EQ, compressor, pan, fader, mute and solo, grouped under its bus; buses with low cut, EQ, compressor, presets for the bus or every sound on it, and sidechain ducking that can ignore short sounds; a master with EQ, compressor, limiter and loudness targets (−14, −16, −23 LUFS); meters and loudness readouts; type exact values on any knob; Ctrl-click or Shift-click strip names to apply a preset, paste or reset to several sounds at once. Exports play exactly the rendered mix, and a mix change only adds the new sound to the already rendered picture.
 - **Editor:** 203 node types, 7 templates, undo/redo, groups, auto layout, card previews saved as stills, a preview that matches the export frame for frame. Preview, Timeline, Mixer and Run are tabs, and each can open in its own window. The canvas has a mouse mode and a touchpad mode (two fingers move, pinch zooms) and a minimap you can hide; the node list keeps its group titles in view.
-- **Projects:** new projects go to `~/DemoflowProjects` (changeable in Settings), and the New project dialog shows the folder it will create. If the project file changes on disk while it's open (a text editor, a script, version control), the editor loads it, or asks first when you have unsaved edits; it never saves over a change it hasn't seen.
-- **Settings:** its own window with pages for General, Projects, Engine, Recording, Fonts, Export licence, API, Licences (every licence Demoflow and its fonts come with) and About.
-- **Local API (off by default):** scripts and AI agents on your computer can read, change and run the open project over plain HTTP on a local socket (a named pipe on Windows) that only your user account can open. The socket is `api.sock` in the app's data folder; set `DEMOFLOW_API_SOCKET` to another full path (at most 100 bytes) if that path is too long. `GET /openapi.json` describes it; `GET /nodes/{type}` gives each node's ports and settings. Every request is one undo step in the editor.
+- **Projects:** new projects go to `~/OpsisProjects` (changeable in Settings), and the New project dialog shows the folder it will create. If the project file changes on disk while it's open (a text editor, a script, version control), the editor loads it, or asks first when you have unsaved edits; it never saves over a change it hasn't seen.
+- **Settings:** its own window with pages for General, Projects, Engine, Recording, Fonts, Export licence, API, Licences (every licence Opsis and its fonts come with) and About.
+- **Local API (off by default):** scripts and AI agents on your computer can read, change and run the open project over plain HTTP on a local socket (a named pipe on Windows) that only your user account can open. The socket is `api.sock` in the app's data folder; set `OPSIS_API_SOCKET` to another full path (at most 100 bytes) if that path is too long. `GET /openapi.json` describes it; `GET /nodes/{type}` gives each node's ports and settings. Every request is one undo step in the editor.
 
 ## Getting started
 
@@ -40,11 +40,11 @@ Ready-made copies of every template are in [`examples/`](./examples) (**Open pro
 
 ## Building
 
-| Command                                    | What it does                                                    |
-| ------------------------------------------ | --------------------------------------------------------------- |
-| `bun run make -- --targets deb,AppImage`   | Linux `.deb` and AppImage (the RPM maker also needs `rpmbuild`) |
-| `DEMOFLOW_EDITION=lite bun run make …`     | Leave the engine out; users set it up from Settings             |
-| `DEMOFLOW_OUT_DIR=~/.cache/demoflow-build` | Put build output outside the repo                               |
+| Command                                  | What it does                                                    |
+| ---------------------------------------- | --------------------------------------------------------------- |
+| `bun run make -- --targets deb,AppImage` | Linux `.deb` and AppImage (the RPM maker also needs `rpmbuild`) |
+| `OPSIS_EDITION=lite bun run make …`      | Leave the engine out; users set it up from Settings             |
+| `OPSIS_OUT_DIR=~/.cache/opsis-build`     | Put build output outside the repo                               |
 
 The full edition bundles the engine and saves the recording browser's licence notices next to it. CI ([`.github/workflows/build.yml`](./.github/workflows/build.yml)) runs the checks, then builds both editions on Linux (x64), Windows (x64) and macOS (Apple Silicon and Intel) and uploads the packages as artifacts. On systems that block unprivileged user namespaces (Ubuntu 24.04 and later), the AppImage starts without Chromium's sandbox; the `.deb` keeps it.
 
@@ -62,12 +62,12 @@ The full edition bundles the engine and saves the recording browser's licence no
 | `bun run brand:icons`     | Render `brand/logo.svg` to the app icon PNGs                            |
 | `bun run routes`          | Regenerate the TanStack Router route tree                               |
 | `bun run studio`          | Remotion Studio on the `DemoTimeline` composition                       |
-| `bun run examples`        | Rewrite `examples/*/project.demoflow.json` from the templates           |
+| `bun run examples`        | Rewrite `examples/*/project.opsis.json` from the templates              |
 
 ## Architecture
 
 ```
-Renderer (React 19 + shadcn/Base UI + xyflow)  ── preload (window.demoflow) ──  Main (Electron)
+Renderer (React 19 + shadcn/Base UI + xyflow)  ── preload (window.opsis) ──  Main (Electron)
    canvas · node list · inspector · <Player>                                     window · menus · protocols
    live compile (graph → TimelineSpec)                                           projects · logins · fonts · stills
                                                                                       │ MessagePort
@@ -78,12 +78,12 @@ Renderer (React 19 + shadcn/Base UI + xyflow)  ── preload (window.demoflow) 
 
 - **Nodes never generate Remotion code.** They produce files and compile to a `TimelineSpec`; one composition, `DemoTimeline`, renders any spec. The editor's `<Player>` and the export use the same composition, so the preview matches the export.
 - **Browser nodes form a chain** that the Record node replays in one continuous take. Timing comes from the recorded frames' own timestamps, so cursor moves, clicks and camera zooms line up with the picture.
-- **Caching:** every node is hashed from its type, settings and upstream hashes; results are cached in `.demoflow/cache/<hash>`, so only changed branches run again.
+- **Caching:** every node is hashed from its type, settings and upstream hashes; results are cached in `.opsis/cache/<hash>`, so only changed branches run again.
 
 ```
 src/
 ├─ main/       Electron main: window, menus, IPC, protocols, projects, secrets, fonts, card stills, workers
-├─ preload/    typed window.demoflow API
+├─ preload/    typed window.opsis API
 ├─ engine/     engine paths, installer and licence notices (headless shell + FFmpeg)
 ├─ traces/     compressed, deduplicated Playwright trace store
 ├─ shared/     runtime-neutral: schema, nodes, elements, fonts, compile, templates
@@ -106,8 +106,8 @@ Each has a plan in [`plans/`](./plans):
 
 ## Licences
 
-Demoflow is licensed under the [Apache License 2.0](./LICENSE).
+Opsis is licensed under the [Apache License 2.0](./LICENSE).
 
-**Remotion is not open source.** Demoflow renders videos with [Remotion](https://www.remotion.dev), which is free for individuals, non-profits and companies with up to 3 employees. Larger companies need a [Remotion company licence](https://www.remotion.dev/license) and must enter its key in **Settings → Video export licence**.
+**Remotion is not open source.** Opsis renders videos with [Remotion](https://www.remotion.dev), which is free for individuals, non-profits and companies with up to 3 employees. Larger companies need a [Remotion company licence](https://www.remotion.dev/license) and must enter its key in **Settings → Video export licence**.
 
 Bundled and vendored third-party code, fonts, sounds, FFmpeg and the recording browser keep their own licences; see [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).

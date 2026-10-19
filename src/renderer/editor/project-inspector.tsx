@@ -283,7 +283,7 @@ function SavedResults() {
     attempt(async () => {
       const dir = useWorkflowStore.getState().projectDir;
       if (!dir) return;
-      await window.demoflow.clearCache(dir);
+      await window.opsis.clearCache(dir);
       useRunStore.getState().seed(null);
       useMedia.getState().reset(dir);
       await useStillsStore.getState().load(dir);
@@ -293,7 +293,7 @@ function SavedResults() {
     <FieldSet>
       <FieldLegend variant="label">Saved results</FieldLegend>
       <p className="text-muted-foreground text-xs">
-        Demoflow keeps the result of every node so unchanged parts don't run again. Clear them to
+        Opsis keeps the result of every node so unchanged parts don't run again. Clear them to
         record and export everything again on the next run.
       </p>
       <Button size="sm" variant="outline" disabled={running} onClick={() => void clear()}>

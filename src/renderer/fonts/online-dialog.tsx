@@ -22,7 +22,7 @@ type Catalog =
 function useCatalog(): { catalog: Catalog; retry: () => void } {
   const [catalog, setCatalog] = useState<Catalog>({ status: "loading" });
   const fetchCatalog = useCallback(() => {
-    window.demoflow.fontCatalog().then(
+    window.opsis.fontCatalog().then(
       (entries) => setCatalog({ status: "ready", entries }),
       (e: unknown) => setCatalog({ status: "error", error: errorMessage(e) }),
     );
@@ -122,7 +122,7 @@ export function OnlineDialog({
 
   const download = (entry: FontCatalogEntry) =>
     run(entry.id, async () => {
-      announceDownload(await window.demoflow.downloadFont(entry.id));
+      announceDownload(await window.opsis.downloadFont(entry.id));
       await onAdded();
     });
 

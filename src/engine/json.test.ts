@@ -7,7 +7,7 @@ import { atomicWrite, nullIfMissing, readJson, readJsonKeepingBroken, writeJson 
 import { tempDirs } from "./test-temp-dirs";
 
 const schema = z.object({ n: z.number() });
-const tempDir = tempDirs("demoflow-json-");
+const tempDir = tempDirs("opsis-json-");
 
 const tempFile = async (): Promise<string> => path.join(await tempDir(), "data.json");
 

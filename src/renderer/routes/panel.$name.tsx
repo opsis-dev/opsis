@@ -13,7 +13,7 @@ import { isDockPanel } from "../editor/panels";
 import { CompiledContext, useCompiled } from "../editor/use-compiled";
 import { useWorkflowStore } from "../store/workflow";
 
-const close = () => void window.demoflow.windowRole("close");
+const close = () => void window.opsis.windowRole("close");
 
 function PanelBody({ panel }: { panel: DockPanelName }) {
   const compiled = useCompiled();
@@ -40,7 +40,7 @@ function PanelRoute() {
 
   useEffect(() => {
     if (projectName !== null)
-      window.demoflow.setTitle(`${DOCK_TITLES[panel]} · ${projectName} — Demoflow`);
+      window.opsis.setTitle(`${DOCK_TITLES[panel]} · ${projectName} — Opsis`);
   }, [panel, projectName]);
 
   useEffect(

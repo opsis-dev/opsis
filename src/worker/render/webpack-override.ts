@@ -20,8 +20,8 @@ export const makeWebpackOverride =
         ...(withTailwind.plugins ?? []),
         {
           apply(compiler) {
-            compiler.hooks.normalModuleFactory.tap("demoflow-local-fonts", (factory) => {
-              factory.hooks.beforeResolve.tap("demoflow-local-fonts", (data) => {
+            compiler.hooks.normalModuleFactory.tap("opsis-local-fonts", (factory) => {
+              factory.hooks.beforeResolve.tap("opsis-local-fonts", (data) => {
                 const name = GOOGLE_FONT_IMPORT.exec(data.request)?.[1];
                 if (name) data.request = path.join(fontShims, googleFontModuleFile(name));
               });

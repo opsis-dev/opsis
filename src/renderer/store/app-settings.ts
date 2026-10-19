@@ -20,14 +20,14 @@ export const liveAutoOpen = () =>
 
 async function reloadSettings(): Promise<void> {
   const settings = await loadOrReport(
-    () => window.demoflow.getSettings(),
+    () => window.opsis.getSettings(),
     "Couldn't read the settings",
   );
   if (settings) useAppSettings.setState({ settings });
 }
 
 async function reloadApiStatus(): Promise<void> {
-  const api = await loadOrReport(() => window.demoflow.apiStatus(), "Couldn't read the API status");
+  const api = await loadOrReport(() => window.opsis.apiStatus(), "Couldn't read the API status");
   if (api) useAppSettings.setState({ api });
 }
 
@@ -50,14 +50,14 @@ export function watchAppSettings(): void {
   started = true;
   void reloadSettings();
   void reloadApiStatus();
-  window.demoflow.onSettingsChanged((settings) => useAppSettings.setState({ settings }));
-  window.demoflow.onApiStatus((api) => useAppSettings.setState({ api }));
+  window.opsis.onSettingsChanged((settings) => useAppSettings.setState({ settings }));
+  window.opsis.onApiStatus((api) => useAppSettings.setState({ api }));
 }
 
 export function patchAppSettings(patch: SettingsPatch): Promise<AppSettings> {
   const current = useAppSettings.getState().settings;
   if (current) useAppSettings.setState({ settings: mergeSettings(current, patch) });
-  return window.demoflow.patchSettings(patch).catch((error: unknown) => {
+  return window.opsis.patchSettings(patch).catch((error: unknown) => {
     void reloadSettings();
     throw error;
   });

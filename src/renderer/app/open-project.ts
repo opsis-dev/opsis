@@ -24,7 +24,7 @@ function openProjectIntoStores(p: OpenProject): void {
   useUiStore.getState().setReplay(null);
   useLiveStore.getState().reset();
   void useSecretsStore.getState().refresh(p.dir);
-  void window.demoflow.runStatus().then((s) => {
+  void window.opsis.runStatus().then((s) => {
     if (s.runId && s.projectDir === p.dir) useRunStore.getState().resume(s.progress);
   });
 }
@@ -41,7 +41,7 @@ export function useOpenProject(dir: string, onFailed: () => void): "opening" | "
   useEffect(() => {
     let cancelled = false;
     previousSave()
-      .then(() => window.demoflow.openProject(dir))
+      .then(() => window.opsis.openProject(dir))
       .then((p) => {
         if (!cancelled && p) openProjectIntoStores(p);
       })

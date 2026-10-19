@@ -1,13 +1,13 @@
 # App state database
 
-One SQLite database for Demoflow's own state, instead of the JSON files in the app's data folder and the renderer's local storage. It holds what belongs to the app on this computer: settings, recent projects, window positions, the font library index, each project's view state, service keys and the assistant's request log. Projects stay plain folders.
+One SQLite database for Opsis's own state, instead of the JSON files in the app's data folder and the renderer's local storage. It holds what belongs to the app on this computer: settings, recent projects, window positions, the font library index, each project's view state, service keys and the assistant's request log. Projects stay plain folders.
 
 Status: plan only. Nothing here is built yet.
 
 ## How to read this plan
 
 - One feature, built in the order of **Work**; each step is checked before the next starts.
-- Sections: **What it adds**, **Fit with Demoflow** (Already in place / Missing, every file and function named was checked in the repo), **Stack (decided)**, **Work**, **Licence**, **Risks**, **Sources**.
+- Sections: **What it adds**, **Fit with Opsis** (Already in place / Missing, every file and function named was checked in the repo), **Stack (decided)**, **Work**, **Licence**, **Risks**, **Sources**.
 - Other plans store data here: the request log in `plans/ai-assist.md`, the service keys in `plans/voice-and-captions.md` and `plans/ai-assist.md`.
 
 ## Conventions
@@ -15,7 +15,7 @@ Status: plan only. Nothing here is built yet.
 These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
 - **Main process only.** Only `src/main` opens the database. Windows read and write through IPC, like `getSettings` / `patchSettings` today. Nothing from `node:sqlite` or `drizzle-orm/node-sqlite` in `src/shared`, `src/video` or `src/renderer`; the schema itself (`drizzle-orm/sqlite-core` tables) may live in `src/main/db/`.
-- **Projects stay files.** `project.demoflow.json`, `assets/`, `secrets/` and `.demoflow/` (cache, renders, traces, `last-run.json`, the stills index) stay in the project folder, so a project can be copied, put in git, opened on another computer, and edited by an agent or a text editor; the file watcher (`watchProject`, `src/main/projects.ts`) depends on that.
+- **Projects stay files.** `project.opsis.json`, `assets/`, `secrets/` and `.opsis/` (cache, renders, traces, `last-run.json`, the stills index) stay in the project folder, so a project can be copied, put in git, opened on another computer, and edited by an agent or a text editor; the file watcher (`watchProject`, `src/main/projects.ts`) depends on that.
 - **Tools run on Node, never on Bun's runtime.** Bun is the package manager only; no command runs with `--bun` (`bun --bun x …`). `drizzle-kit` runs through a `package.json` script on Node.
 - **Checks.** `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the no-comments check from `AGENTS.md`, and a run of the app: start, change settings in the Settings window, open projects, pop out panels, restart, and see everything restored. Don't commit.
 
@@ -32,9 +32,9 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
 ### What it adds
 
-`<userData>/demoflow.db`, opened once by main at startup, in WAL mode so reads never wait on a write. A typed schema and versioned migrations, so a new app version can change the shape without losing anything.
+`<userData>/opsis.db`, opened once by main at startup, in WAL mode so reads never wait on a write. A typed schema and versioned migrations, so a new app version can change the shape without losing anything.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -58,7 +58,7 @@ Missing:
 2. **Dependencies** as in **Stack**.
 3. **Schema.** `src/main/db/schema.ts` with `sqliteTable`s (below). Keys: integer primary keys with a unique text column where the natural key is text (a project folder, a setting section), not TEXT primary keys (see **Risks**, #6165).
 4. **Config and migrations.** `drizzle.config.ts` at the repo root (`dialect: "sqlite"`, schema `src/main/db/schema.ts`, out `src/main/db/migrations`). A script `"db:generate": "drizzle-kit generate"`, run on Node. Generated migration files are checked in; add `src/main/db/migrations/**` to the generated-files table in `AGENTS.md` ("never hand-edit; regenerate with `bun run db:generate`").
-5. **Opening.** `src/main/db/index.ts`: `openDatabase()` at `app.whenReady()` before anything reads settings; `PRAGMA journal_mode = WAL`, `PRAGMA foreign_keys = ON`, `PRAGMA busy_timeout`; before migrating, copy the file to `demoflow.db.bak-<schema version>`; run `migrate()` from `drizzle-orm/node-sqlite/migrator` with the folder Forge ships (stage `src/main/db/migrations` as an extra resource or import the SQL as text at build time); close on `will-quit`.
+5. **Opening.** `src/main/db/index.ts`: `openDatabase()` at `app.whenReady()` before anything reads settings; `PRAGMA journal_mode = WAL`, `PRAGMA foreign_keys = ON`, `PRAGMA busy_timeout`; before migrating, copy the file to `opsis.db.bak-<schema version>`; run `migrate()` from `drizzle-orm/node-sqlite/migrator` with the folder Forge ships (stage `src/main/db/migrations` as an extra resource or import the SQL as text at build time); close on `will-quit`.
 6. **Packaging.** Nothing native to stage. Check the packaged app finds its migrations and that the database lands in `<userData>`.
 7. **Tests** (vitest, in-memory database): every migration applies to an empty database in order; a failed transaction leaves nothing behind (#1723); no migration file ends with an empty `--> statement-breakpoint` (#6207).
 
@@ -80,7 +80,7 @@ Missing:
 
 Panel sizes, the active tab, Fast/Exact preview, preview shape, minimap, mixer folding and the Timeline's ruler and snapping are saved once per project for every window, instead of in each window's own local storage.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -103,10 +103,10 @@ Missing:
 
 `encryptedText()`, a Drizzle column type that seals values before they reach the database, for the service keys the voice and assistant plans need.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 - The model is the email client's `encryptedText` (`../email-client/apps/web/src/db/crypto.ts`): a `customType<{ data: string; driverData: string }>` with `dataType: "text"`, AES-256-GCM, a 12-byte random IV, and the stored form `v1:<iv>:<tag>:<body>` in base64.
-- Demoflow already encrypts project sign-ins with `safeStorage` (`src/main/secrets.ts`, files in the project's `secrets/`).
+- Opsis already encrypts project sign-ins with `safeStorage` (`src/main/secrets.ts`, files in the project's `secrets/`).
 
 ### Work
 

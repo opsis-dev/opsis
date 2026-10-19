@@ -139,7 +139,7 @@ function CardStill({ nodeId }: { nodeId: string }) {
     if (!engine || !projectDir || !settled || (!hash && !wanted)) return;
     const spec = fastSpec(settled);
     let current = true;
-    void window.demoflow
+    void window.opsis
       .requestStill({
         projectDir,
         nodeId,

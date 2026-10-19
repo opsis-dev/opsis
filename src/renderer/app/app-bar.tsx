@@ -146,7 +146,7 @@ export function AppBar({
       )}
     >
       <div className="flex h-full min-w-0 flex-1 items-center gap-2">
-        <img src={logoUrl} alt="Demoflow" className="mx-1 size-5 shrink-0" draggable={false} />
+        <img src={logoUrl} alt="Opsis" className="mx-1 size-5 shrink-0" draggable={false} />
         {isMac || !menu ? null : (
           <>
             <WideMenu />
@@ -180,7 +180,7 @@ function ApiBadge() {
           <button
             type="button"
             className="ml-2 shrink-0"
-            onClick={() => void window.demoflow.openSettings("api")}
+            onClick={() => void window.opsis.openSettings("api")}
           />
         }
       >

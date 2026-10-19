@@ -19,7 +19,7 @@ function useMenuNavigation(): void {
         const path = router.state.location.pathname;
         if (isSecondaryWindow(path)) return;
         const action = projectActionOf(command);
-        if (command === "view:settings") void window.demoflow.openSettings();
+        if (command === "view:settings") void window.opsis.openSettings();
         else if (command === "view:projects") void router.navigate({ to: "/" });
         else if (action) {
           usePendingProjectAction.setState({ pending: action });
@@ -33,7 +33,7 @@ function useMenuNavigation(): void {
 function useRunEvents(): void {
   useEffect(
     () =>
-      window.demoflow.onRunEvent((e) => {
+      window.opsis.onRunEvent((e) => {
         useRunStore.getState().apply(e);
         if (e.type !== "run:done") return;
         void useSecretsStore.getState().refresh(useWorkflowStore.getState().projectDir);
@@ -47,7 +47,7 @@ function useRunEvents(): void {
 function useStillEvents(): void {
   useEffect(
     () =>
-      window.demoflow.onStillReady((still) =>
+      window.opsis.onStillReady((still) =>
         useStillsStore.getState().ready(still.projectDir, still.nodeId, still.hash),
       ),
     [],
@@ -55,7 +55,7 @@ function useStillEvents(): void {
 }
 
 function useLiveEvents(): void {
-  useEffect(() => window.demoflow.onLive((message) => useLiveStore.getState().apply(message)), []);
+  useEffect(() => window.opsis.onLive((message) => useLiveStore.getState().apply(message)), []);
 }
 
 export function useAppEvents(): void {

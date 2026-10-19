@@ -17,8 +17,8 @@ function sources(): LicenceSource[] {
   const engine = engineDir();
   return [
     {
-      id: "demoflow",
-      title: "Demoflow",
+      id: "opsis",
+      title: "Opsis",
       summary: "Apache License 2.0",
       kind: "text",
       path: path.join(resourceDir(), "LICENSE"),
@@ -26,7 +26,7 @@ function sources(): LicenceSource[] {
     {
       id: "third-party",
       title: "Included source code",
-      summary: "Notices for the components and code Demoflow includes",
+      summary: "Notices for the components and code Opsis includes",
       kind: "text",
       path: path.join(resourceDir(), "THIRD_PARTY_NOTICES.md"),
     },

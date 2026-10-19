@@ -31,7 +31,7 @@ const CHROMIUM_CREDITS = path.join(ENGINE_DIR, CHROMIUM_CREDITS_FILE);
 const ENGINE_LICENCES_DIR = path.join(ROOT, "resources", ENGINE_LICENCES_FOLDER);
 const EXPORT_SRC_DIR = path.join(ROOT, "resources", "export-src");
 const LEGAL_FILES = [path.join(ROOT, "LICENSE"), path.join(ROOT, "THIRD_PARTY_NOTICES.md")];
-const EDITION = process.env.DEMOFLOW_EDITION === "lite" ? "lite" : "full";
+const EDITION = process.env.OPSIS_EDITION === "lite" ? "lite" : "full";
 
 const DARWIN_COMPOSITOR_PACKAGES = [
   "@remotion/compositor-darwin-x64",
@@ -118,16 +118,16 @@ async function stageExportSource(): Promise<void> {
 }
 
 const LINUX_CATEGORIES: Array<"AudioVideo" | "Video"> = ["AudioVideo", "Video"];
-const APPIMAGE_LAUNCHER = "demoflow-launcher";
+const APPIMAGE_LAUNCHER = "opsis-launcher";
 const ICONS_DIR = path.join(ROOT, "brand", "icons");
 const APPIMAGE_ICON_SIZES = [512, 256, 128, 64, 48, 32, 16];
 const icon = (size: number) => path.join(ICONS_DIR, `${size}.png`);
 
 const config: ForgeConfig = {
-  outDir: process.env.DEMOFLOW_OUT_DIR || "out",
+  outDir: process.env.OPSIS_OUT_DIR || "out",
   packagerConfig: {
-    name: "Demoflow",
-    executableName: "demoflow",
+    name: "Opsis",
+    executableName: "opsis",
     asar: {
       unpackDir: "node_modules/@remotion/compositor-*",
     },

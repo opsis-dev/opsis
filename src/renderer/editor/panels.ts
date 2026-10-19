@@ -73,7 +73,7 @@ export function openPanel(side: PanelSide): void {
 
 export function showPanel(panel: DockPanelName): boolean {
   if (usePanels.getState().popped.includes(panel)) {
-    void window.demoflow.focusPanelWindow(panel);
+    void window.opsis.focusPanelWindow(panel);
     return false;
   }
   openPanel("bottom");

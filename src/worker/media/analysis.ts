@@ -24,7 +24,7 @@ export type MediaDeps = {
   signal?: AbortSignal;
 };
 
-const ANALYSIS_VERSION = "demoflow-analysis/1";
+const ANALYSIS_VERSION = "opsis-analysis/1";
 const DECODE_RATE = 8000;
 const LEVEL_RATES = [200, 50, 10];
 const MAX_TILES = 100;

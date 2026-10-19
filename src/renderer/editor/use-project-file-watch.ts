@@ -22,8 +22,8 @@ function decideDiskChange(
 
 export function useProjectFileWatch(projectDir: string): void {
   useEffect(() => {
-    void window.demoflow.watchProject(projectDir);
-    const off = window.demoflow.onProjectFileChanged((change) => {
+    void window.opsis.watchProject(projectDir);
+    const off = window.opsis.onProjectFileChanged((change) => {
       const store = useWorkflowStore.getState();
       const decision = decideDiskChange(change, {
         projectDir: store.projectDir,
@@ -43,7 +43,7 @@ export function useProjectFileWatch(projectDir: string): void {
     });
     return () => {
       off();
-      void window.demoflow.watchProject(null);
+      void window.opsis.watchProject(null);
       useDiskChange.getState().clear();
     };
   }, [projectDir]);

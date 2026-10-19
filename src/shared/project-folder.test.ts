@@ -15,11 +15,11 @@ describe("projectFolderName", () => {
 
 describe("joinFolder", () => {
   it("joins with the platform separator and drops trailing separators", () => {
-    expect(joinFolder("/home/me/DemoflowProjects/", "demo", "linux")).toBe(
-      "/home/me/DemoflowProjects/demo",
+    expect(joinFolder("/home/me/OpsisProjects/", "demo", "linux")).toBe(
+      "/home/me/OpsisProjects/demo",
     );
-    expect(joinFolder("C:\\Users\\me\\DemoflowProjects", "demo", "win32")).toBe(
-      "C:\\Users\\me\\DemoflowProjects\\demo",
+    expect(joinFolder("C:\\Users\\me\\OpsisProjects", "demo", "win32")).toBe(
+      "C:\\Users\\me\\OpsisProjects\\demo",
     );
     expect(joinFolder("/", "demo", "darwin")).toBe("/demo");
   });

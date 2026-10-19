@@ -169,7 +169,7 @@ const saveProject: Handler<"save"> = async () =>
   (await save()) ? edited() : apiFailure(409, VERSION_UNCHOSEN);
 
 const stop: Handler<"stop"> = async () => {
-  await window.demoflow.cancelRun();
+  await window.opsis.cancelRun();
   return apiOk(runState());
 };
 

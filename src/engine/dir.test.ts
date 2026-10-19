@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { fileIdentity, pruneDir } from "./dir";
 import { tempDirs } from "./test-temp-dirs";
 
-const tempDir = tempDirs("demoflow-dir-");
+const tempDir = tempDirs("opsis-dir-");
 
 async function dirWith(ages: Record<string, number>): Promise<string> {
   const dir = await tempDir();
@@ -36,9 +36,7 @@ describe("pruneDir", () => {
   });
 
   it("does nothing for a missing folder", async () => {
-    await expect(
-      pruneDir(path.join(os.tmpdir(), "demoflow-dir-none"), {}),
-    ).resolves.toBeUndefined();
+    await expect(pruneDir(path.join(os.tmpdir(), "opsis-dir-none"), {})).resolves.toBeUndefined();
   });
 });
 

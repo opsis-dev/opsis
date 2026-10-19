@@ -23,7 +23,7 @@ export function FolderField({
   onCommit?: () => void;
 }) {
   async function browse() {
-    const picked = await window.demoflow.chooseFolder({
+    const picked = await window.opsis.chooseFolder({
       title,
       defaultPath: nonBlankString(value),
     });

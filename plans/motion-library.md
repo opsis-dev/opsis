@@ -1,6 +1,6 @@
 # Motion library
 
-What's left of milestone M3 of the original spec ("port the top 20 web components", Remotion Elements): which web motion components Demoflow should rewrite as frame-driven elements, the two missing Remotion Elements, Rive animations, still thumbnails for every element, and a CI check that renders each element. Every feature has its own section with the same parts, so the plan can grow one section at a time.
+What's left of milestone M3 of the original spec ("port the top 20 web components", Remotion Elements): which web motion components Opsis should rewrite as frame-driven elements, the two missing Remotion Elements, Rive animations, still thumbnails for every element, and a CI check that renders each element. Every feature has its own section with the same parts, so the plan can grow one section at a time.
 
 Status: plan only. Nothing here is built yet.
 
@@ -8,7 +8,7 @@ Status: plan only. Nothing here is built yet.
 
 - Each feature is one section. The user picks which to build and when. A large one is split into phases, each checked before the next starts.
 - **Status** in the summary is one of: `not built`, `partly in place` (some pieces exist), `covered elsewhere` (another plan builds it).
-- Each section has the same parts: **What it adds**, **Fit with Demoflow** (Already in place / Missing), **Work**, **Licence**, **Risks**, **Sources**.
+- Each section has the same parts: **What it adds**, **Fit with Opsis** (Already in place / Missing), **Work**, **Licence**, **Risks**, **Sources**.
 - External facts carry the date they were checked. Licences were read from each project's own licence file.
 
 ## Conventions
@@ -16,7 +16,7 @@ Status: plan only. Nothing here is built yet.
 The conventions in `plans/remotion-extras.md` (**Conventions**: versions, where code goes, behaviour, user-facing copy, licences) apply here unchanged; `AGENTS.md` wins when they disagree. In short:
 
 - Every `remotion` / `@remotion/*` package stays at exact `4.0.535` (`bun add --exact`). Other packages through `bun add` / `bun add -d`, latest release. Never edit dependency blocks by hand.
-- Never hand-edit `src/video/elements/**`, `src/video/lib/**`, `src/video/hooks/**` or any `*.generated.ts`. Ported code is Demoflow's own code and never goes there.
+- Never hand-edit `src/video/elements/**`, `src/video/lib/**`, `src/video/hooks/**` or any `*.generated.ts`. Ported code is Opsis's own code and never goes there.
 - Every animation in `src/video` is a pure function of `useCurrentFrame()`; randomness through `random(seed)`; async through `delayRender`. Nothing loads from the internet at preview or render time.
 - No library, tool or format names in titles, descriptions, labels or errors (the Lottie element's description is the one precedent for naming the tool that made a file).
 - No comments anywhere, kebab-case file names.
@@ -36,16 +36,16 @@ The conventions in `plans/remotion-extras.md` (**Conventions**: versions, where 
 | Liquid contours background   | A flowing two-colour contour background                                                                           | Remotion licence (`@remotion/effects`) | not built         |
 | Crossed-off marker           | A hand-drawn cross over a word or a part of the page                                                              | MIT (`@remotion/rough-notation`)       | covered elsewhere |
 | Rive animations              | Play `.riv` files from the project, offline                                                                       | MIT (Rive runtime), Remotion licence   | not built         |
-| Element thumbnails           | A picture (and on hover, a live preview) of every element in the node list                                        | Demoflow's own                         | not built         |
-| Visual check in CI           | Every element rendered and compared on each change, so a registry update can't silently break one                 | Demoflow's own                         | not built         |
+| Element thumbnails           | A picture (and on hover, a live preview) of every element in the node list                                        | Opsis's own                            | not built         |
+| Visual check in CI           | Every element rendered and compared on each change, so a registry update can't silently break one                 | Opsis's own                            | not built         |
 
 ## Ported web motion components
 
 ### What it adds
 
-Demoflow's own frame-driven rewrites of components from web motion libraries. The originals run on Framer Motion (`motion/react`), CSS keyframes, `requestAnimationFrame`, timers and `Math.random()`, none of which survive a render; a port keeps the look and replaces the clock with the frame.
+Opsis's own frame-driven rewrites of components from web motion libraries. The originals run on Framer Motion (`motion/react`), CSS keyframes, `requestAnimationFrame`, timers and `Math.random()`, none of which survive a render; a port keeps the look and replaces the clock with the frame.
 
-For users, 18 elements that product demos use often and that Demoflow doesn't have yet (each checked against the 23 built-in and 109 registry elements in `src/shared/elements/core.ts` and `elements.generated.ts`):
+For users, 18 elements that product demos use often and that Opsis doesn't have yet (each checked against the 23 built-in and 109 registry elements in `src/shared/elements/core.ts` and `elements.generated.ts`):
 
 | #   | Title (draft)         | Source file                                                                                                                                                                                                                                             | Category     | What the original does to time, and the port                                                                                                                                                                |
 | --- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -68,17 +68,17 @@ For users, 18 elements that product demos use often and that Demoflow doesn't ha
 | 17  | Assistant orb         | SmoothUI `siri-orb`                                                                                                                                                                                                                                     | `background` | Rotating conic gradients through CSS animation. Angles from the frame.                                                                                                                                      |
 | 18  | Animated icon         | lucide-animated (about 20 icons: `check`, `bell`, `sparkles`, `rocket`, `send`, `download`, `upload`, `search`, `settings`, `heart`, `zap`, `lock`, `clock`, `refresh-cw`, `cloud-upload`, `bot`, `party-popper`, `arrow-right`, `copy`, `trending-up`) | `overlay`    | Motion `variants` started on hover (`useAnimation`). One element with an `icon` choice; each icon's variant keyframes become a table of `interpolate` ranges played once at the element's start, or looped. |
 
-Left out on purpose because Demoflow already has them: number tickers (Rolling Number, Slot Machine Roll), text scramble (Matrix Decode), shimmer text (Shimmer Sweep), typewriters, blur-in text (Soft Blur In), notification lists (Notification stack), terminals, device mockups, file trees, confetti, particles, gauges, hand-drawn highlights (Marker Highlight, Ink Underline, Scribble Circle, and `@remotion/rough-notation` in `plans/remotion-extras.md`). SmoothUI's `soft-blur-in`, `shimmer-sweep`, `mask-reveal-up`, `line-by-line-slide` and `kinetic-center-build` share names with Remocn elements already ingested; skip them. Hover-, scroll- and pointer-driven components (Magic UI `magic-card`, `lens`, `dock`, `smooth-cursor`, `scroll-progress`, Motion Primitives `magnetic`, `tilt`) have no meaning in a video.
+Left out on purpose because Opsis already has them: number tickers (Rolling Number, Slot Machine Roll), text scramble (Matrix Decode), shimmer text (Shimmer Sweep), typewriters, blur-in text (Soft Blur In), notification lists (Notification stack), terminals, device mockups, file trees, confetti, particles, gauges, hand-drawn highlights (Marker Highlight, Ink Underline, Scribble Circle, and `@remotion/rough-notation` in `plans/remotion-extras.md`). SmoothUI's `soft-blur-in`, `shimmer-sweep`, `mask-reveal-up`, `line-by-line-slide` and `kinetic-center-build` share names with Remocn elements already ingested; skip them. Hover-, scroll- and pointer-driven components (Magic UI `magic-card`, `lens`, `dock`, `smooth-cursor`, `scroll-progress`, Motion Primitives `magnetic`, `tilt`) have no meaning in a video.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
-- `ElementMeta` (`src/shared/elements/types.ts`) already has `source: { registry, url, license }`; registry elements fill it (`registry: "Remocn"`, `url: "https://remocn.dev/docs/components/…"`, `license: "MIT"` in `elements.generated.ts`), core ones use `registry: "Demoflow"`.
+- `ElementMeta` (`src/shared/elements/types.ts`) already has `source: { registry, url, license }`; registry elements fill it (`registry: "Remocn"`, `url: "https://remocn.dev/docs/components/…"`, `license: "MIT"` in `elements.generated.ts`), core ones use `registry: "Opsis"`.
 - `ELEMENTS` (`src/shared/elements/index.ts`) concatenates `coreElementMeta` and `generatedElementMeta`; `elementNode()` (`src/shared/nodes/elements.ts`) makes a node for every entry, with its card, length handle and envelope. A third list is all a port needs on the metadata side.
 - Lazy loading: `loadElement`, `useElements` and `isKnownElement` in `src/video/registry/index.ts` load registry modules through `generatedElementLoaders` (`components.generated.ts`) under `delayRender`.
 - Framing helpers in `src/video/registry/framing.tsx`: `centered`, `fitScreen`, `placedAt` (spot placement for the `spot` widget), `pointsFromSpots`, `painted`, `playsAtEnd`.
-- Guardrails already cover any new folder in `src/video`: `no-restricted-imports` bans `framer-motion`, `motion`, `motion/react`, `motion/react-client`, `gsap` and `demoflow/no-animate-class` bans Tailwind `animate-*` (`oxlint.config.ts`, `scripts/oxlint-plugin-demoflow.ts`). Ported folders are not in `ignorePatterns`, so they are linted.
+- Guardrails already cover any new folder in `src/video`: `no-restricted-imports` bans `framer-motion`, `motion`, `motion/react`, `motion/react-client`, `gsap` and `opsis/no-animate-class` bans Tailwind `animate-*` (`oxlint.config.ts`, `scripts/oxlint-plugin-opsis.ts`). Ported folders are not in `ignorePatterns`, so they are linted.
 - Fonts: the `font()` param in `core.ts` and `fontStack` turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts (`src/video/fonts/registry.ts`).
 - Placeholder images in `public/placeholders` (`logo-mark.svg`, `screen-wide.svg`, `screen-tall.svg`) for logo and image defaults.
 
@@ -122,11 +122,11 @@ Checked 2026-10-16 from each repository's licence file:
 | Cult UI (`nolly-studio/cult-ui`)                     | MIT, "Copyright (c) 2023 Jordan-Gilliam"                                                                                                                                                                                    | yes    |
 | SmoothUI (`educlopez/smoothui`)                      | MIT, "Copyright (c) 2024 Eduardo Calvo"                                                                                                                                                                                     | yes    |
 | lucide-animated (`pqoqubbw/icons`)                   | MIT, "Copyright (c) 2024-2026 pqoqubbw"; the shapes are Lucide icons (ISC, as in the installed `lucide-react`)                                                                                                              | yes    |
-| Aceternity UI                                        | Its own licence: "You cannot re-distribute the Item as a stock image or its source files, regardless of modifications." Demoflow's source is public, so a port would redistribute it.                                       | **no** |
+| Aceternity UI                                        | Its own licence: "You cannot re-distribute the Item as a stock image or its source files, regardless of modifications." Opsis's source is public, so a port would redistribute it.                                          | **no** |
 | React Bits (`DavidHDev/react-bits`)                  | MIT + Commons Clause: commercial use allowed "so long as you do not sell, sublicense, or redistribute the components themselves".                                                                                           | **no** |
 | Animate UI (`imskyleen/animate-ui`), incl. its icons | MIT + Commons Clause: rights granted only "as part of an application, website, or product", and "so long as you do not sell or redistribute the components themselves in their original form—whether alone or in a bundle". | **no** |
 
-The Commons Clause sources and Aceternity are left out because Demoflow's repository is Apache-2.0 and public: ported files would be redistributed source under terms that forbid it. MIT code keeps its own licence inside its folder, which Apache-2.0 allows.
+The Commons Clause sources and Aceternity are left out because Opsis's repository is Apache-2.0 and public: ported files would be redistributed source under terms that forbid it. MIT code keeps its own licence inside its folder, which Apache-2.0 allows.
 
 ### Risks
 
@@ -152,7 +152,7 @@ The Commons Clause sources and Aceternity are left out because Demoflow's reposi
 
 A flowing background of alternating bands in two colours, like the Remotion Elements "Liquid Contours" example. Settings: two colours, band width, shape size, detail, edge softness, seed and how far the bands flow over the element's length.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -175,7 +175,7 @@ Missing:
 
 ### Licence
 
-`@remotion/effects` is under the Remotion licence (npm `UNLICENSED`), covered by the existing Remotion notice. The example on the Remotion Elements page states no licence; Demoflow writes its own few lines rather than copying it.
+`@remotion/effects` is under the Remotion licence (npm `UNLICENSED`), covered by the existing Remotion notice. The example on the Remotion Elements page states no licence; Opsis writes its own few lines rather than copying it.
 
 ### Risks
 
@@ -193,7 +193,7 @@ Missing:
 
 A hand-drawn cross over a word (a title word, an old price) or over a part of the page in a take. The Remotion Elements "Crossed Off" example is `<CrossedOff>` from `@remotion/rough-notation` with `progress` from `interpolate`, `iterations: 10`, `roughness: 2` (checked 2026-10-16).
 
-### Fit with Demoflow
+### Fit with Opsis
 
 - `plans/remotion-extras.md`, section **@remotion/rough-notation**, already builds this: Work item 5 gives Title card a `markLook` with "Crossed out". Don't add a separate element here.
 - Close existing elements: Strikethrough Replace (Remocn) and Text Highlight (RemotionUI, includes a strikethrough).
@@ -221,13 +221,13 @@ See that plan's **Risks** (seed 0 is random, sizes from layout).
 
 A **Rive animation** element that plays a `.riv` file from the project: pick the file, the artboard and the animation by name, and the fit. Like the Lottie element, the file is copied into the project's assets. It works with no internet: the runtime ships with the app.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
-- `LottieElement` (`src/video/core/lottie.tsx`) is the pattern: an `asset` param resolved by `resolveProps` (`src/video/assets.tsx`) to `demoflow-file://project/…` in the editor or the worker's asset server in renders, `fetch()` under `delayRender`, `cancelRender` on failure. `core/lottie` in `core.ts` uses `asset("Animation file", ".json,.lottie")`.
+- `LottieElement` (`src/video/core/lottie.tsx`) is the pattern: an `asset` param resolved by `resolveProps` (`src/video/assets.tsx`) to `opsis-file://project/…` in the editor or the worker's asset server in renders, `fetch()` under `delayRender`, `cancelRender` on failure. `core/lottie` in `core.ts` uses `asset("Animation file", ".json,.lottie")`.
 - `importAssets` (`src/main/projects.ts`) lists `lottie` among its file types; the asset server's `MIME` table (`src/worker/render/asset-server.ts`) maps `.lottie`.
-- Both bundlers already swap one import for Demoflow's own module: the font redirect (`GOOGLE_FONT` in `vite.renderer.config.ts`, a Vite plugin's `resolveId`; the same pattern in `src/worker/render/webpack-override.ts`). Rive's runtime uses the same mechanism.
+- Both bundlers already swap one import for Opsis's own module: the font redirect (`GOOGLE_FONT` in `vite.renderer.config.ts`, a Vite plugin's `resolveId`; the same pattern in `src/worker/render/webpack-override.ts`). Rive's runtime uses the same mechanism.
 
 What the packages do (from the tarballs of `@remotion/rive@4.0.535` and `@rive-app/canvas-advanced@2.31.5`, checked 2026-10-16):
 
@@ -239,11 +239,11 @@ What the packages do (from the tarballs of `@remotion/rive@4.0.535` and `@rive-a
 
 ### Approach (decided)
 
-Use Remotion's `<RemotionRiveCanvas>` and download nothing at run time: both bundlers send `@rive-app/canvas-advanced` to a small Demoflow module that calls the real runtime with a local `locateFile`, so the hard-coded unpkg address is never used.
+Use Remotion's `<RemotionRiveCanvas>` and download nothing at run time: both bundlers send `@rive-app/canvas-advanced` to a small Opsis module that calls the real runtime with a local `locateFile`, so the hard-coded unpkg address is never used.
 
 ### Work
 
-1. **Dependencies.** `bun add --exact @remotion/rive@4.0.535`, and `bun add --exact @rive-app/canvas-advanced@2.31.5` because Demoflow imports it directly (the version `@remotion/rive` pins).
+1. **Dependencies.** `bun add --exact @remotion/rive@4.0.535`, and `bun add --exact @rive-app/canvas-advanced@2.31.5` because Opsis imports it directly (the version `@remotion/rive` pins).
 2. **Bundled runtime.** A script `scripts/rive-runtime.ts` (`bun run rive:runtime`) copies `node_modules/@rive-app/canvas-advanced/rive.wasm` to `public/rive/rive.wasm`, like `fonts:bundle` copies fonts; add the row to the generated-files table in `AGENTS.md`. A test checks the copy matches the installed package byte for byte, so a version bump can't leave an old runtime behind. `rive_fallback.wasm` isn't needed: the advanced runtime never names it.
 3. **Runtime redirect.** `src/video/rive/runtime.ts`: `import real from "@rive-app/canvas-advanced/canvas_advanced.mjs"` and export a default function that calls `real({ ...options, locateFile: () => staticFile("rive/rive.wasm") })`, whatever `locateFile` the caller passed. In `vite.renderer.config.ts` and `webpack-override.ts`, resolve the bare `@rive-app/canvas-advanced` to that module, next to the font redirect; the `.mjs` subpath is left alone, so the wrapper doesn't redirect to itself. A test bundles a module that imports the bare name and checks it resolves to the wrapper in both configs.
 4. **Element.** `core/rive` in `core.ts`: `src` (`asset("Animation file", ".riv")`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`. `defaultDurationInFrames: 90`. Component `src/video/core/rive.tsx`, loaded lazily, renders `<RemotionRiveCanvas src={…} artboard={…} animation={…} fit={…} enableRiveAssetCdn={false} />`, with `src` resolved like Lottie's.
@@ -254,7 +254,7 @@ Use Remotion's `<RemotionRiveCanvas>` and download nothing at run time: both bun
    - With networking off: the element loads in the Preview and in an export, and the worker's request log shows no request to unpkg or Rive's servers.
    - Frame stepping: a card still of the middle frame (a fresh page jumping straight to one frame) matches the same frame in the export; scrubbing backwards and jumping around in the Preview match the export too. If they don't, use the fallback below.
 
-### Fallback: Demoflow's own element
+### Fallback: Opsis's own element
 
 If stepping from the previous frame gives wrong pictures, write `src/video/core/rive.tsx` on the runtime directly instead of `<RemotionRiveCanvas>`: load the runtime through the same wrapper, `rive.load(bytes, undefined, false)`, and on each frame set `LinearAnimationInstance.time` from the frame (wrapping for loop), then `apply(1)`, `artboard.advance(0)` and draw. That makes every frame a pure function of the frame number. State machines stay out of scope either way: they need inputs over time.
 
@@ -272,7 +272,7 @@ If stepping from the previous frame gives wrong pictures, write `src/video/core/
 
 - [Remotion: @remotion/rive](https://www.remotion.dev/docs/rive/) (checked 2026-10-16)
 - [Rive: Preloading WASM](https://rive.app/docs/runtimes/web/preloading-wasm) and [Low-level API usage](https://rive.app/docs/runtimes/web/low-level-api-usage) (`locateFile`, self-hosting the WASM with a matching version; checked 2026-10-17)
-- Package source and npm metadata of `@remotion/rive@4.0.535` (`dist/esm/index.mjs`: unpkg `locateFile`, `enableRiveAssetCdn`, `advance(diff / fps)`) and `@rive-app/canvas-advanced@2.31.5` (`package.json`, `rive.wasm`, `rive_advanced.mjs.d.ts`, MIT), unpacked in `~/.cache/demoflow-research/rive-check` (checked 2026-10-17)
+- Package source and npm metadata of `@remotion/rive@4.0.535` (`dist/esm/index.mjs`: unpkg `locateFile`, `enableRiveAssetCdn`, `advance(diff / fps)`) and `@rive-app/canvas-advanced@2.31.5` (`package.json`, `rive.wasm`, `rive_advanced.mjs.d.ts`, MIT), unpacked in `~/.cache/opsis-research/rive-check` (checked 2026-10-17)
 
 ## Element thumbnails
 
@@ -280,14 +280,14 @@ If stepping from the previous frame gives wrong pictures, write `src/video/core/
 
 In the node list, hovering an element shows a picture of it in the hover card, and after a moment the picture starts playing. Works offline and costs nothing at run time.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
 - The hover card: `NodePreview` in `src/renderer/editor/palette.tsx`, inside `HoverCard`, shows the title, category, description and ports.
 - `ElementMeta.thumbnail?: string` exists in `src/shared/elements/types.ts` and is never read.
 - `renderFrame`, `openRenderBrowser` and `getServeUrl` (`src/worker/render/render.ts`) and `bundleRemotionProject` (`src/worker/render/bundle.ts`) render one frame of a spec; `itemClip` and `clipToSpec` (`src/shared/compile/clip.ts`) build a spec for one element.
-- `scripts/brand-icons.ts` already finds the recording browser for a dev script (`resources/engine` or `DEMOFLOW_HEADLESS_SHELL`).
+- `scripts/brand-icons.ts` already finds the recording browser for a dev script (`resources/engine` or `OPSIS_HEADLESS_SHELL`).
 - Node cards already play live with `<Thumbnail>` and `DemoTimeline` (`src/renderer/editor/node-still.tsx`).
 
 Missing:
@@ -305,7 +305,7 @@ Missing:
 
 ### Licence
 
-Demoflow's own renders of its elements; the elements' own notices already cover them.
+Opsis's own renders of its elements; the elements' own notices already cover them.
 
 ### Risks
 
@@ -322,7 +322,7 @@ Demoflow's own renders of its elements; the elements' own notices already cover 
 
 On every pull request that touches elements, CI renders one frame of every element and compares it with the stored still, so a registry update, a Remotion bump or a font change that breaks an element fails the build instead of reaching users.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -336,8 +336,8 @@ Missing:
 
 ### Work
 
-1. **Compare mode.** `scripts/element-stills.ts --check` renders every element as in the thumbnails section to `~/.cache/demoflow-element-stills/` and compares each with its stored still using the engine's FFmpeg `ssim` filter (no new dependency). Fail when SSIM is below a threshold (start at 0.97; measure the spread across a few runs first), when an element has no stored still, or when a still has no element. For each failure, write a side-by-side image (`hstack`: stored | new).
-2. **Workflow.** A job `elements` in `build.yml`, `needs: checks`, `ubuntu-latest`, only when the change touches `src/video/**`, `src/shared/elements/**`, `scripts/registry-ingest*`, `public/fonts/**`, `package.json` or `bun.lock` (use a paths check step, since `build.yml` runs on several events). Steps: install, restore `~/.cache/demoflow-engine` (key on `src/engine/**` and `bun.lock`), install the engine there if missing, run `bun run elements:stills -- --check`, upload the side-by-side images on failure. Check the workflow with `actionlint`.
+1. **Compare mode.** `scripts/element-stills.ts --check` renders every element as in the thumbnails section to `~/.cache/opsis-element-stills/` and compares each with its stored still using the engine's FFmpeg `ssim` filter (no new dependency). Fail when SSIM is below a threshold (start at 0.97; measure the spread across a few runs first), when an element has no stored still, or when a still has no element. For each failure, write a side-by-side image (`hstack`: stored | new).
+2. **Workflow.** A job `elements` in `build.yml`, `needs: checks`, `ubuntu-latest`, only when the change touches `src/video/**`, `src/shared/elements/**`, `scripts/registry-ingest*`, `public/fonts/**`, `package.json` or `bun.lock` (use a paths check step, since `build.yml` runs on several events). Steps: install, restore `~/.cache/opsis-engine` (key on `src/engine/**` and `bun.lock`), install the engine there if missing, run `bun run elements:stills -- --check`, upload the side-by-side images on failure. Check the workflow with `actionlint`.
 3. **Updating references.** A `workflow_dispatch` input `update-stills` runs the script in write mode and uploads the stills as an artifact, so references come from the same machine type as the check. Locally on Linux x64, `bun run elements:stills` writes them directly.
 4. **Check.** Break one element on purpose (change a default colour); the job fails with its side-by-side image. Revert; it passes twice in a row.
 

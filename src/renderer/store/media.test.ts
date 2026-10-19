@@ -4,7 +4,7 @@ import { useMedia } from "./media";
 
 const failingAnalyze = vi.fn(() => Promise.reject(new Error("worker gone")));
 
-vi.stubGlobal("window", { demoflow: { analyze: failingAnalyze } });
+vi.stubGlobal("window", { opsis: { analyze: failingAnalyze } });
 
 afterEach(() => vi.useRealTimers());
 

@@ -43,7 +43,7 @@ export function useApiHost(): void {
   const navigate = useNavigate();
   useEffect(
     () =>
-      window.demoflow.onApiRequest(async (request) => {
+      window.opsis.onApiRequest(async (request) => {
         if (request.op === "open") {
           openEditor(navigate, request.dir);
           const handler = await waitForEditor(request.dir);

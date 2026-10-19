@@ -18,7 +18,7 @@ export function createMainWindow(): void {
     height: 1000,
     minWidth: 1100,
     minHeight: 700,
-    title: "Demoflow",
+    title: "Opsis",
   });
   setMainWindow(win);
   void win.loadURL(rendererUrl());

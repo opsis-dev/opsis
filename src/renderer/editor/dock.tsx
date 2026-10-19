@@ -38,7 +38,7 @@ function markPopped(popped: readonly DockPanelName[]): void {
 
 function popOut(panel: DockPanelName): void {
   markPopped([...usePanels.getState().popped, panel]);
-  void window.demoflow.openPanelWindow(panel);
+  void window.opsis.openPanelWindow(panel);
 }
 
 function DockTab({ panel, popped }: { panel: DockPanelName; popped: boolean }) {
@@ -121,8 +121,8 @@ export function BottomDock() {
   const current: DockPanelName | null = docked.includes(active) ? active : (docked[0] ?? null);
 
   useEffect(() => {
-    void window.demoflow.listPanelWindows().then(markPopped);
-    return window.demoflow.onPanelWindows(markPopped);
+    void window.opsis.listPanelWindows().then(markPopped);
+    return window.opsis.onPanelWindows(markPopped);
   }, []);
 
   return (

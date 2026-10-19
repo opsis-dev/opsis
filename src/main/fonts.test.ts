@@ -15,7 +15,7 @@ import {
 const userData = vi.hoisted(() => ({ dir: "" }));
 vi.mock("electron", () => ({ app: { getPath: () => userData.dir } }));
 
-const tempDir = tempDirs("demoflow-fonts-");
+const tempDir = tempDirs("opsis-fonts-");
 
 beforeEach(async () => {
   userData.dir = await tempDir();

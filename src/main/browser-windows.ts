@@ -8,7 +8,7 @@ import type { LoginRequest } from "../shared/worker-protocol";
 import { storageState, type LocalStorageByOrigin } from "./login-state";
 import { pickerScript } from "./picker-script";
 
-const PICK_PREFIX = "__demoflow_pick__:";
+const PICK_PREFIX = "__opsis_pick__:";
 const PICKER_SCRIPT = pickerScript(PICK_PREFIX);
 const SELECTOR_POLL_MS = 500;
 
@@ -47,7 +47,7 @@ export function pickInWindow(parent: BrowserWindow | null, req: PickRequest): Pr
     const win = sandboxedWindow(
       parent,
       "Pick an element — click it, or Shift-click a spot",
-      `demoflow-picker-${randomUUID()}`,
+      `opsis-picker-${randomUUID()}`,
       req.viewport,
     );
     let result: PickResult = null;
@@ -127,7 +127,7 @@ export function loginInWindow(
   req: LoginRequest,
 ): Promise<string | null> {
   return new Promise((resolve) => {
-    const partition = `demoflow-login-${randomUUID()}`;
+    const partition = `opsis-login-${randomUUID()}`;
     const win = sandboxedWindow(parent, "Log in — close this window when you're done", partition);
     const origins: LocalStorageByOrigin = new Map();
     let finished = false;

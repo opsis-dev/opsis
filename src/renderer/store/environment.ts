@@ -12,7 +12,7 @@ export const useEnvironment = create<EnvironmentState>()((set) => ({
   env: null,
   refresh: async () => {
     const env = await loadOrReport(
-      () => window.demoflow.getEnvironment(),
+      () => window.opsis.getEnvironment(),
       "Couldn't read the engine status",
     );
     if (env) set({ env });

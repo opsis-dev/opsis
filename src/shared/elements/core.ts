@@ -14,8 +14,8 @@ import {
 import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
 
 const source = {
-  registry: "Demoflow",
-  url: "https://github.com/bismitpanda/demoflow",
+  registry: "Opsis",
+  url: "https://github.com/bismitpanda/opsis",
   license: "Apache-2.0",
 };
 const num = (def: number, min: number, max: number, description: string, step = 1) =>

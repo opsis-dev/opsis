@@ -29,7 +29,7 @@ export function buildMenu(): void {
       { role: "appMenu" },
       ...sections,
       { role: "windowMenu" },
-      { role: "help", submenu: [{ label: `Demoflow ${app.getVersion()}`, enabled: false }] },
+      { role: "help", submenu: [{ label: `Opsis ${app.getVersion()}`, enabled: false }] },
     ]),
   );
 }

@@ -23,7 +23,7 @@ export async function openSettingsWindow(page?: SettingsPage): Promise<void> {
       height: 720,
       minWidth: 720,
       minHeight: 480,
-      title: "Settings — Demoflow",
+      title: "Settings — Opsis",
     },
     hash: `/settings${page ? `?page=${page}` : ""}`,
     onClosed: (closed) => {

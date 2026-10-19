@@ -19,13 +19,13 @@ function useEngineInstall() {
   const [failure, setFailure] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => window.demoflow.onEngineInstall(setEvent), []);
+  useEffect(() => window.opsis.onEngineInstall(setEvent), []);
 
   async function install() {
     setBusy(true);
     setFailure(null);
     try {
-      await window.demoflow.installEngine();
+      await window.opsis.installEngine();
     } catch (e) {
       setFailure(errorMessage(e));
     } finally {
@@ -96,7 +96,7 @@ export function EnginePanel({ onDone, title = "Engine" }: { onDone?: () => void;
     <SettingsCard
       title={title}
       badges={<EngineBadges ready={ready} bundled={bundled} edition={env?.edition} />}
-      description="The recording browser and video tools Demoflow uses to record takes and export videos. Editing and preview work without them."
+      description="The recording browser and video tools Opsis uses to record takes and export videos. Editing and preview work without them."
       contentClassName="flex flex-col gap-2"
       footer={
         <>
@@ -132,7 +132,7 @@ export function Setup() {
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex min-h-full max-w-xl flex-col justify-center gap-6 px-6 py-10">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Welcome to Demoflow</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Welcome to Opsis</h1>
             <p className="text-muted-foreground text-sm">
               This version doesn't include the recording and export engine. Set it up once to record
               and export.

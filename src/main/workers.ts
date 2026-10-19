@@ -50,7 +50,7 @@ export function spawnWorker(kind: WorkerKind, id: string = randomUUID()): Spawne
   const live = kind === "run" ? new MessageChannelMain() : null;
   const temp = makeWorkerTemp(workerTempRoot(), workerTempName(kind, id));
   const child = utilityProcess.fork(path.join(__dirname, "worker.cjs"), [], {
-    serviceName: "Demoflow worker",
+    serviceName: "Opsis worker",
     stdio: "pipe",
     env: { ...process.env, ...tempEnv(temp) },
   });

@@ -161,7 +161,7 @@ const usePercentText: Rule = {
 };
 
 export default {
-  meta: { name: "demoflow" },
+  meta: { name: "opsis" },
   rules: {
     "no-animate-class": noAnimateClass,
     "use-find-by-id": useFindById,

@@ -1,16 +1,16 @@
 # Remotion extras
 
-Which libraries from the Remotion ecosystem Demoflow should add, what each one gives users, and the work needed to add it. Every library has its own section with the same parts, so the plan can grow one section at a time.
+Which libraries from the Remotion ecosystem Opsis should add, what each one gives users, and the work needed to add it. Every library has its own section with the same parts, so the plan can grow one section at a time.
 
 Status: plan only. Nothing here is built yet.
 
-Written by two sessions: demoflow-92 wrote the frame of this file and `@remotion/three`; demoflow-8c wrote the sections for `@remotion/effects`, `@remotion/rough-notation` and `@remotion/mac-cursors`. Later updates add a section per library in the same format.
+Written by two sessions: opsis-92 wrote the frame of this file and `@remotion/three`; opsis-8c wrote the sections for `@remotion/effects`, `@remotion/rough-notation` and `@remotion/mac-cursors`. Later updates add a section per library in the same format.
 
 ## How to read this plan
 
 - Each library is one feature. The user picks which to build and when. A large one is split into phases, each checked before the next starts.
-- **Status** is one of: `in use` (already imported by Demoflow), `installed indirectly` (in `node_modules` only as another package's dependency), `not installed`.
-- Each library section has the same parts: **What it adds**, **Fit with Demoflow**, **Work**, **Licence**, **Risks**, **Sources**.
+- **Status** is one of: `in use` (already imported by Opsis), `installed indirectly` (in `node_modules` only as another package's dependency), `not installed`.
+- Each library section has the same parts: **What it adds**, **Fit with Opsis**, **Work**, **Licence**, **Risks**, **Sources**.
 
 ## Conventions
 
@@ -19,13 +19,13 @@ These apply to every library in this plan. They restate rules from `AGENTS.md`; 
 **Versions.**
 
 - Every `remotion` / `@remotion/*` package stays at exact `4.0.535`: `bun add --exact @remotion/<name>@4.0.535`. 4.0.536 is out, but moving to it is a separate step that moves every `@remotion/*` package together; don't do it as part of this plan.
-- A package that Demoflow imports directly must be a direct dependency, added with `bun add`, even when it's already in `node_modules` through another package.
+- A package that Opsis imports directly must be a direct dependency, added with `bun add`, even when it's already in `node_modules` through another package.
 - Other packages: the latest release, through `bun add` / `bun add -d`. Never edit dependency blocks by hand. If a peer range conflicts with what the project has (React, TypeScript), stop and report instead of forcing it.
 
 **Where code goes.**
 
 - Never hand-edit `src/video/elements/**`, `src/video/lib/**`, `src/video/hooks/**` (registry-owned) or any generated file.
-- Demoflow's own elements: metadata in `src/shared/elements/core.ts` (zod schema with `.meta()`, `kind`, `category`, `defaultDurationInFrames`), component under `src/video/core/` or a new folder in `src/video/`, keyed in `src/video/registry/index.ts`. `elementNode()` (`src/shared/nodes/elements.ts`) then makes the node, its card, length handle and envelope with no extra work.
+- Opsis's own elements: metadata in `src/shared/elements/core.ts` (zod schema with `.meta()`, `kind`, `category`, `defaultDurationInFrames`), component under `src/video/core/` or a new folder in `src/video/`, keyed in `src/video/registry/index.ts`. `elementNode()` (`src/shared/nodes/elements.ts`) then makes the node, its card, length handle and envelope with no extra work.
 - Libraries that are large or have side effects load lazily (`import()`), like the registry elements, so projects that don't use them never load them.
 - Nothing from `node:*`, `electron`, `playwright-core`, `@remotion/renderer` or `@remotion/bundler` in `src/shared` or `src/video`.
 
@@ -80,7 +80,7 @@ For users:
 - **3D screen**: a recording (or any clip) on a 3D laptop, monitor, phone or floating screen, with camera moves that end face-on so it cuts cleanly to the flat recording.
 - **3D camera keyframes**: every 3D element's camera can follow a preset move or keyframes set in the Inspector and shown on the Timeline.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -114,7 +114,7 @@ Build it in five phases. Each phase ends with the checks in item 20 that apply t
 
 1. **Dependencies.** `bun add --exact @remotion/three@4.0.535`, `bun add three @react-three/fiber`, `bun add -d @types/three`. Not `@react-three/drei`: its model loader and lighting presets fetch decoders and images from CDNs by default.
 2. **Lazy loading for core elements.** Add a map of lazy core loaders in `src/video/registry/index.ts` (key → `() => import("../three/…")`), used by `loadElement` and `useElements` next to `generatedElementLoaders`, and keep `isCore` correct. Check in the Vite and Remotion builds that `three` lands in its own chunk.
-3. **Lint.** In `oxlint.config.ts`, ban `useFrame` from `@react-three/fiber` in `src/video` (`no-restricted-imports` with `importNames`). If simple, add a rule to `scripts/oxlint-plugin-demoflow.ts` against `setAnimationLoop`, `THREE.Clock` and `THREE.Timer`.
+3. **Lint.** In `oxlint.config.ts`, ban `useFrame` from `@react-three/fiber` in `src/video` (`no-restricted-imports` with `importNames`). If simple, add a rule to `scripts/oxlint-plugin-opsis.ts` against `setAnimationLoop`, `THREE.Clock` and `THREE.Timer`.
 4. **Stage.** `src/video/three/stage.tsx`, shared by every 3D element: `<ThreeCanvas>` sized from `useVideoConfig()` (width and height are required), transparent background so the element sits over footage, antialiasing on, a perspective camera (fixed until the camera path in item 18 drives it), and three lighting presets built from plain lights (Studio, Soft, Dramatic); no environment images. Any `<Sequence>` inside the canvas uses `layout="none"`.
 5. **Motion presets.** `src/video/three/motion.ts`: pure functions `(frame, fps, durationInFrames, params) → { rotation, position, scale }` for Spin, Tilt in, Float, Orbit, Swing, with Remotion's `interpolate`/`spring` and `random(seed)`. Unit tests in `motion.test.ts`: values at chosen frames, and scrubbing backwards gives the same values.
 6. **3D elements** in `src/shared/elements/core.ts` (category `scene`), components in `src/video/three/`:
@@ -125,8 +125,8 @@ Build it in five phases. Each phase ends with the checks in item 20 that apply t
 7. **Font outlines for 3D text.** Woff2 is fine as a source: it holds every letter's outline, only in a format Three can't read. Convert once, automatically:
    - `src/fonts/outlines.ts`, a new Node-only folder shared by main and the worker like `src/traces` (add it to the layout in `AGENTS.md`): read the font with `fontkit`; for a variable font, take the instance at the asked weight (`font.getVariation`); write Three's typeface JSON (`glyphs` with `o` path commands, `ha`, `resolution`, `boundingBox`, `underlinePosition`, `underlineThickness`, `familyName`) for the font's Latin glyphs.
    - The file is found the way the video finds fonts: bundled families from `src/shared/fonts/bundled.generated.ts` (`public/fonts/bundled`), project fonts from `settings.fonts.families` (`assets/fonts/<id>/`), the roles from `settings.fonts`.
-   - Cache in the project: `.demoflow/cache/outlines/<sha256 of font file + weight + italic>.json`, so a changed font file gets new outlines.
-   - The editor asks main for the outlines of every 3D text node's font when it compiles (an IPC call like `requestStill`), and the render executor makes any that are missing in the worker before rendering, with the same module. The element loads `project:.demoflow/cache/outlines/<key>.json` inside `delayRender` and fails with "Couldn't prepare this font for 3D text." when it's missing.
+   - Cache in the project: `.opsis/cache/outlines/<sha256 of font file + weight + italic>.json`, so a changed font file gets new outlines.
+   - The editor asks main for the outlines of every 3D text node's font when it compiles (an IPC call like `requestStill`), and the render executor makes any that are missing in the worker before rendering, with the same module. The element loads `project:.opsis/cache/outlines/<key>.json` inside `delayRender` and fails with "Couldn't prepare this font for 3D text." when it's missing.
    - Unit-test the conversion with a bundled font: "A" has path commands, advances are positive, two weights of a variable font differ.
 8. **3D text** (`core/text-3d`): Three's `FontLoader` + `TextGeometry` with the converted outlines. Params: text, font (`font` widget, empty = the heading role), weight, italic, depth, bevel, colour, metalness, alignment, motion, lighting. Long text wraps on spaces at a width param.
 9. **3D model element** `core/model-3d` (category `scene`). Params: model (`asset`, accept `.glb,.gltf`), motion (Turntable, Orbit, Swing, Still), animation (which one: name text, empty = first), animation speed, loop, zoom, lighting preset, floor shadow on/off; seed and loader details under `advanced`.
@@ -139,7 +139,7 @@ Build it in five phases. Each phase ends with the checks in item 20 that apply t
 13. **Animation.** One `AnimationMixer` per model; on every frame, `mixer.setTime((frame / fps) * speed)` with the chosen clip's loop mode, before the frame is drawn. Never `mixer.update(delta)`. Check that React Three Fiber draws after the mutation (it may need `invalidate()`), by scrubbing backwards in the Preview and by rendering frames twice.
 14. **Model card.** `elementCard` covers the params; add a row with the model's file name.
 15. **3D screen** `core/screen-3d`, `kind: "wrapper"`: takes a clip (the recording or anything else) and shows it on a device in 3D. Params: device (Laptop, Monitor, Phone, Floating screen), device colour, camera move preset (Push in, Orbit, Tilt reveal, Rise), **End face-on** (on by default: the camera's last pose has the screen facing it and filling the frame), lighting, background. Devices are built from Three's shapes in `src/video/three/devices.tsx` (rounded boxes for body, bezel and stand), not model files, so they need no assets and stay sharp at any size.
-16. **The screen is a DOM layer, not a texture.** Render `children` in a `div` laid over the canvas and place it with a CSS `matrix3d` computed every frame from the camera and the screen plane's world matrix (the same projection `drei`'s `<Html transform>` uses; write it in `src/video/three/project.ts`, don't add drei). This keeps Demoflow's whole clip (camera zooms, cursor, captions, overlays) pixel-sharp with no video texture and no second render. Add a subtle glare as a DOM gradient on top. Unit-test `project.ts`: the four screen corners map to the expected pixels for a known camera. A texture through `@remotion/media`'s `onVideoFrame` would only be needed for curved screens or objects in front of the screen; don't build it.
+16. **The screen is a DOM layer, not a texture.** Render `children` in a `div` laid over the canvas and place it with a CSS `matrix3d` computed every frame from the camera and the screen plane's world matrix (the same projection `drei`'s `<Html transform>` uses; write it in `src/video/three/project.ts`, don't add drei). This keeps Opsis's whole clip (camera zooms, cursor, captions, overlays) pixel-sharp with no video texture and no second render. Add a subtle glare as a DOM gradient on top. Unit-test `project.ts`: the four screen corners map to the expected pixels for a known camera. A texture through `@remotion/media`'s `onVideoFrame` would only be needed for curved screens or objects in front of the screen; don't build it.
 17. **Other shapes.** The canvas follows `useVideoConfig()`, and the camera fits the subject to the frame's aspect; test in 16:9, 9:16, 1:1 and 4:5.
 18. **Camera keyframes.** One camera path for every 3D element:
     - Param `camera` on every 3D element: a preset (the element's moves, plus Keyframes) and a list of keys `{ frame, yaw, pitch, distance, height, ease }`, frames local to the item like `envelope`. Schema next to the envelope's in `src/shared/schema/timeline.ts`; add it to `src/shared/nodes/params.ts` as `cameraPath()`.
@@ -150,7 +150,7 @@ Build it in five phases. Each phase ends with the checks in item 20 that apply t
 20. **Check.**
     - Each 3D element exported for 3 s at 16:9 and 9:16 matches the Preview. Frames 0, 30 and 60 rendered twice give identical images. One export with **Draw with** set to software still renders correctly.
     - 3D text in a bundled font, a variable weight and a font from the user's library; changing the project's heading font changes the text.
-    - Models: static, animated, Draco, Meshopt, and a `.gltf` with separate textures, imported and exported. Samples are small CC0 files kept under `~/.cache/demoflow-three-samples/`, never in the repo.
+    - Models: static, animated, Draco, Meshopt, and a `.gltf` with separate textures, imported and exported. Samples are small CC0 files kept under `~/.cache/opsis-three-samples/`, never in the repo.
     - A recording through **3D screen** into a transition to the same recording flat: with End face-on, the cut must not jump. At every shape.
     - Camera keyframes: add, drag on the Timeline, undo in one step, scrub backwards; the export matches the Preview.
 
@@ -203,11 +203,11 @@ For users:
 - **Blur areas**: blurred areas on a recording that stay on the same part of the browser window while the camera zooms and pans, to hide emails, keys and personal details. Each Blur areas node has its own start and end times, and its areas can be drawn on any frame of the take. Areas that need different times go in separate nodes.
 - **Picture look**: vignette, colour and grain on a recording or a video or image clip.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
-- `@remotion/effects@4.0.535` is in `node_modules` because `@remotion/light-leaks` depends on it (and `@remotion/web-renderer`, through `@remotion/studio`). Demoflow doesn't import it.
+- `@remotion/effects@4.0.535` is in `node_modules` because `@remotion/light-leaks` depends on it (and `@remotion/web-renderer`, through `@remotion/studio`). Opsis doesn't import it.
 - Recordings play through `<Video>` from `@remotion/media` in `src/video/camera/demo-clip.tsx`, in three places: the window shot, the full-page shot and the narrow-shape shot with its blurred copy behind it. An effect there sits inside the camera, so it zooms and pans with the page.
 - The `boxes` widget (`BoxesField` in `src/renderer/editor/zod-form.tsx`) already draws areas over the upstream recording's first frame (`spotBackground`, `src/renderer/editor/inspector.tsx`) and stores them as fractions of that frame. Those are the UV coordinates `regionBlur` takes.
 - Clip modifiers change recording props with `patchRecordings` (`src/shared/compile/clip.ts`), as `cursor.style` and the annotation nodes do (`src/shared/nodes/cursor.ts`).
@@ -278,14 +278,14 @@ Hand-drawn marks drawn with Rough.js around any element: `<Box>`, `<Circle>`, `<
 
 - Shared props: `progress` (0–1, how much of the stroke is drawn), `seed`, `color`, `strokeWidth`, `roughness`, `bowing`, `padding`, and the `<Sequence>` timing props.
 - It measures the wrapped element with `offsetLeft` / `offsetWidth` (a `ResizeObserver` keeps it current). It waits with `delayRender` until it has a size.
-- It redraws on every frame from `progress` and `seed`, so the drawing is a pure function of the frame when Demoflow drives `progress` from `useCurrentFrame()`.
+- It redraws on every frame from `progress` and `seed`, so the drawing is a pure function of the frame when Opsis drives `progress` from `useCurrentFrame()`.
 
 For users:
 
 - **Hand-drawn Highlight box**: the existing Highlight box node gets a look: Clean (today's box), Hand-drawn box, Circle, Underline or Marker. The mark draws itself in when the action starts.
 - **Marked words in titles**: circle, underline, box, marker or crossed out on a chosen word of a Title.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -294,7 +294,7 @@ Already in place:
 
 Missing:
 
-- `@remotion/rough-notation` and `roughjs` aren't installed. `roughjs` comes in as its dependency; Demoflow never imports it directly.
+- `@remotion/rough-notation` and `roughjs` aren't installed. `roughjs` comes in as its dependency; Opsis never imports it directly.
 - `annotationNode` gives every annotation node the same params, so the look needs a way to add params to one node.
 
 ### Work
@@ -311,7 +311,7 @@ Missing:
 
    For Marker, set `mixBlendMode: "multiply"` and a low opacity so the page under it stays readable.
 
-5. **Marked words in titles.** `core/title` (`src/shared/elements/core.ts`, component under `src/video/core/`): params `mark` (text to find in the title, empty = none), `markLook` (Underline, Circle, Box, Marker, Crossed out) and `markColor`. Wrap the matching word in a `<span>` inside the component's text, so measuring stays within Demoflow's own markup. Wrap that span in the mark, with `progress` starting after the title's entrance.
+5. **Marked words in titles.** `core/title` (`src/shared/elements/core.ts`, component under `src/video/core/`): params `mark` (text to find in the title, empty = none), `markLook` (Underline, Circle, Box, Marker, Crossed out) and `markColor`. Wrap the matching word in a `<span>` inside the component's text, so measuring stays within Opsis's own markup. Wrap that span in the mark, with `progress` starting after the title's entrance.
 6. **Tests.** Unit-test the progress curve (pure, frame in, value out). Keep `card.test.ts` passing.
 7. **Licences.** `THIRD_PARTY_NOTICES.md`: `@remotion/rough-notation` (MIT) and `roughjs` (MIT).
 8. **Check.**
@@ -352,7 +352,7 @@ It maps CSS cursor values to 40 SVGs: arrow, pointing hand, open and grabbing ha
 
 For users: a **Mac** look for the drawn cursor, chosen on the Cursor node. The cursor turns into a pointing hand over links and buttons and a text cursor over fields, as it would on a Mac. "Simple arrow" stays the default everywhere.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 

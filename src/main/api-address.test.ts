@@ -3,7 +3,7 @@ import { API_SOCKET_ENV, MAX_SOCKET_PATH_BYTES, apiAddress } from "./api-address
 
 const host = (
   env: Record<string, string | undefined> = {},
-  userData = "/home/ada/.config/Demoflow",
+  userData = "/home/ada/.config/Opsis",
 ) => ({
   platform: "linux" as const,
   userData,
@@ -16,7 +16,7 @@ const pathOfBytes = (bytes: number) => `/${"a".repeat(bytes - "/api.sock".length
 
 describe("api address", () => {
   it("uses the socket in the app's data folder by default", () => {
-    expect(apiAddress(host())).toEqual({ address: "/home/ada/.config/Demoflow/api.sock" });
+    expect(apiAddress(host())).toEqual({ address: "/home/ada/.config/Opsis/api.sock" });
   });
 
   it("uses the path the environment variable names", () => {
@@ -35,9 +35,9 @@ describe("api address", () => {
   });
 
   it("counts a long default path and says how to fix it", () => {
-    const { error } = apiAddress(host({}, `/home/ada/${"deep/".repeat(20)}Demoflow`));
+    const { error } = apiAddress(host({}, `/home/ada/${"deep/".repeat(20)}Opsis`));
     expect(error).toContain(
-      `Set ${API_SOCKET_ENV} to a shorter full path, like /home/ada/.demoflow-api.sock`,
+      `Set ${API_SOCKET_ENV} to a shorter full path, like /home/ada/.opsis-api.sock`,
     );
   });
 
@@ -55,7 +55,7 @@ describe("api address", () => {
 
   it("uses the named pipe on Windows and ignores the variable", () => {
     expect(apiAddress({ ...host({ [API_SOCKET_ENV]: "/x.sock" }), platform: "win32" })).toEqual({
-      address: "\\\\.\\pipe\\demoflow-api-ada",
+      address: "\\\\.\\pipe\\opsis-api-ada",
     });
   });
 });

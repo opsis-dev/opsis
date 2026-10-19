@@ -4,7 +4,7 @@ import { NODE_DEFS } from "@/shared/nodes/registry";
 import { typedField } from "./form/schema-kind";
 import { widgetTakes } from "./zod-form";
 
-vi.hoisted(() => Object.assign(window, { demoflow: { platform: "linux" } }));
+vi.hoisted(() => Object.assign(window, { opsis: { platform: "linux" } }));
 
 describe("Inspector widgets", () => {
   it("can draw every setting that names them", () => {

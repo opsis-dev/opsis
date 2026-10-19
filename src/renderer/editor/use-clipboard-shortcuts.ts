@@ -15,7 +15,7 @@ import {
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 
-const CLIPBOARD_TAG = "demoflow/v1";
+const CLIPBOARD_TAG = "opsis/v1";
 const PASTE_OFFSET = { x: 60, y: 60 };
 
 const clipboardTagSchema = z.object({ tag: z.literal(CLIPBOARD_TAG) });

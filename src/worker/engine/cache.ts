@@ -5,7 +5,7 @@ import { nullIfMissing, readJson, writeJson } from "../../engine/json";
 import { byCodeUnit } from "../../shared/lists";
 import { nodeResultSchema, type NodeResult } from "../../shared/schema/values";
 
-export const ENGINE_VERSION = "demoflow-engine/2";
+export const ENGINE_VERSION = "opsis-engine/2";
 
 export function nodeHash(type: string, params: unknown, upstream: Array<[string, string]>): string {
   const ports = upstream.toSorted(([a], [b]) => byCodeUnit(a, b));

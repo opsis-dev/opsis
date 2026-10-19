@@ -34,7 +34,7 @@ export function dispatchMenuCommand(command: MenuCommand): void {
 export function onMenuCommand(listener: Listener): () => void {
   if (!followingMenu) {
     followingMenu = true;
-    window.demoflow.onMenuCommand(dispatchMenuCommand);
+    window.opsis.onMenuCommand(dispatchMenuCommand);
   }
   return commands.add(listener);
 }

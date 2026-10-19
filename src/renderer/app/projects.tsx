@@ -109,7 +109,7 @@ function EngineAlert() {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => void window.demoflow.openSettings("engine")}
+          onClick={() => void window.opsis.openSettings("engine")}
         >
           Open Settings
         </Button>
@@ -154,7 +154,7 @@ function useProjectActions() {
   const go = (dir: string) => openEditor(navigate, dir);
 
   async function open(dir?: string) {
-    const target = dir ?? (await window.demoflow.pickProjectDir());
+    const target = dir ?? (await window.opsis.pickProjectDir());
     if (target) go(target);
   }
 
@@ -182,14 +182,14 @@ function useProjectCommands(startNew: () => void, open: () => Promise<void>): vo
 
 export function Projects() {
   const recent = useLoaded(
-    () => window.demoflow.listRecentProjects(),
+    () => window.opsis.listRecentProjects(),
     "Couldn't read the recent projects",
   );
   const env = useFreshEnvironment();
   const { dialog, creating, setCreating, go, open, startNew } = useProjectActions();
   useProjectCommands(startNew, open);
 
-  useEffect(() => window.demoflow.setTitle("Demoflow"), []);
+  useEffect(() => window.opsis.setTitle("Opsis"), []);
 
   return (
     <div className="flex h-screen flex-col">

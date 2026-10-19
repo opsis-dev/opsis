@@ -13,7 +13,7 @@ for (const t of TEMPLATES.filter((x) => x.id !== "blank")) {
   });
   await mkdir(path.join(dir, "assets"), { recursive: true });
   await writeFile(path.join(dir, "assets", ".gitkeep"), "");
-  await writeJson(path.join(dir, "project.demoflow.json"), wf);
-  await writeFile(path.join(dir, ".gitignore"), ".demoflow/\nsecrets/\n");
-  console.log(`wrote examples/${t.id}/project.demoflow.json (${wf.nodes.length} nodes)`);
+  await writeJson(path.join(dir, "project.opsis.json"), wf);
+  await writeFile(path.join(dir, ".gitignore"), ".opsis/\nsecrets/\n");
+  console.log(`wrote examples/${t.id}/project.opsis.json (${wf.nodes.length} nodes)`);
 }

@@ -1,6 +1,6 @@
 import { isString } from "./guards";
 
-export const FILE_SCHEME = "demoflow-file";
+export const FILE_SCHEME = "opsis-file";
 
 const PROJECT_SCHEME = "project:";
 

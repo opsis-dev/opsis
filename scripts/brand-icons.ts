@@ -9,11 +9,11 @@ const OUT = path.join(ROOT, "brand", "icons");
 const ICON_SIZES = [16, 24, 32, 48, 64, 128, 256, 512, 1024];
 
 const shell =
-  process.env.DEMOFLOW_HEADLESS_SHELL ??
+  process.env.OPSIS_HEADLESS_SHELL ??
   engineStatus(bundledEngineDir(path.join(ROOT, "resources"))).headlessShell;
 if (!shell)
   throw new Error(
-    "No recording browser found. Run `bun run make` once (it stages resources/engine) or set DEMOFLOW_HEADLESS_SHELL.",
+    "No recording browser found. Run `bun run make` once (it stages resources/engine) or set OPSIS_HEADLESS_SHELL.",
   );
 
 const svg = readFileSync(SVG, "utf8");

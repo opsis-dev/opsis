@@ -90,7 +90,7 @@ async function appStatus(): Promise<Answer> {
   const project = await readEditorProject();
   const read = project.ok ? project.result : null;
   return apiOk({
-    app: "Demoflow",
+    app: "Opsis",
     version: app.getVersion(),
     project: read ? { dir: read.dir, name: read.workflow.name } : null,
     running: read?.running ?? false,
@@ -101,7 +101,7 @@ async function openInEditor({ req }: Context): Promise<Answer> {
   const { dir } = await parseBody(req, openBody);
   if (!path.isAbsolute(dir)) throw new BadRequest("dir must be an absolute folder path.");
   if (!existsSync(path.join(dir, WORKFLOW_FILE)))
-    return apiFailure(404, `There's no Demoflow project in ${dir}.`);
+    return apiFailure(404, `There's no Opsis project in ${dir}.`);
   return askEditor({ op: "open", dir });
 }
 

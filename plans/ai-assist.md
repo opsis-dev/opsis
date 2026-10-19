@@ -1,6 +1,6 @@
 # AI assist
 
-How Demoflow should add the AI assist features from milestone M7 of the original spec ("prompt → flow, auto-chapters, copy variants, element picker suggestions"): what each one gives users, how it uses a model the user chose, and the work needed. Every feature has its own section with the same parts, so the plan can grow one section at a time.
+How Opsis should add the AI assist features from milestone M7 of the original spec ("prompt → flow, auto-chapters, copy variants, element picker suggestions"): what each one gives users, how it uses a model the user chose, and the work needed. Every feature has its own section with the same parts, so the plan can grow one section at a time.
 
 Status: plan only. Nothing here is built yet.
 
@@ -8,7 +8,7 @@ Status: plan only. Nothing here is built yet.
 
 - **Model access** comes first: every other feature depends on it. The other four can be built in any order after it, and each can ship on its own.
 - Each feature is checked before the next one starts.
-- Each section has the same parts: **What it adds**, **Fit with Demoflow** (Already in place / Missing, with the files and functions involved), **Work**, **Decisions for the user**, **Risks**, **Sources**.
+- Each section has the same parts: **What it adds**, **Fit with Opsis** (Already in place / Missing, with the files and functions involved), **Work**, **Decisions for the user**, **Risks**, **Sources**.
 - External facts link their source and the date they were checked.
 
 ## Conventions
@@ -25,12 +25,12 @@ These apply to every feature here. They restate rules from `AGENTS.md`; when the
 **Where code goes.**
 
 - `src/shared/assist/`: the output schemas (zod), prompt builders and the functions that turn a model's answer into a workflow change. Pure and runtime-neutral, so they're tested without a model and could later be exposed on the Local API.
-- `src/main/assist/`: the only code that talks to a model, through `fetch` in main. The renderer's CSP (`connect-src 'self' demoflow-file: blob: data:`, `src/main/protocol.ts`) blocks other addresses, and keys stay in main.
+- `src/main/assist/`: the only code that talks to a model, through `fetch` in main. The renderer's CSP (`connect-src 'self' opsis-file: blob: data:`, `src/main/protocol.ts`) blocks other addresses, and keys stay in main.
 - `src/worker/`: anything that needs the hidden browser (page outline).
 - `src/renderer/assist/`: dialogs and the suggestion UI.
 - Dependencies through `bun add` only; file names kebab-case; no comments.
 
-**Model output is never trusted.** Every answer is parsed with the zod schema it was asked for, then every workflow change goes through `checkWorkflow` / `workflowProblems` (`src/shared/api/check.ts`), the same checks the editor and the Local API use. A model never writes params or edges directly. It fills a small draft that Demoflow's code turns into nodes.
+**Model output is never trusted.** Every answer is parsed with the zod schema it was asked for, then every workflow change goes through `checkWorkflow` / `workflowProblems` (`src/shared/api/check.ts`), the same checks the editor and the Local API use. A model never writes params or edges directly. It fills a small draft that Opsis's code turns into nodes.
 
 **User-facing copy.** No library, tool, model or service names in node titles, descriptions, labels, badges, toasts or errors. Decided exception, added to `AGENTS.md` when this is built: Settings → Assistant may name Anthropic and OpenAI in its provider choice and key field, and its circled `?` hover cards may name local model programs; nothing else names them. The feature is called "Assistant" in the UI. Sentence case. Browser nodes are "actions".
 
@@ -55,7 +55,7 @@ These apply to every feature here. They restate rules from `AGENTS.md`; when the
 
 The Local API (Settings → API, `src/main/api.ts`) already lets an agent on the same computer (Claude Code or any script) build a flow with no in-app AI: `GET /openapi.json`, `GET /nodes` and `GET /nodes/{type}` (`nodeCatalog`, `catalogEntry`, `paramsJsonSchema` in `src/shared/api/catalog.ts`), `POST /validate` (`checkWorkflow`), then edits under `/project`, each one store update and one undo step through `handle` in `src/renderer/editor/api-bridge.ts`, plus `POST /project/run` with events on `/project/run/events`. An outside agent inspects the site with its own browser.
 
-In-app AI reuses the same pieces rather than a second path: the catalogue for node titles, descriptions and settings, `checkWorkflow` for validation, and one `useWorkflowStore.getState().update(...)` for the insert, as the bridge's `replace` does. What it adds that the API lacks is a page outline taken in Demoflow's own hidden browser, and a model the user doesn't have to run themselves.
+In-app AI reuses the same pieces rather than a second path: the catalogue for node titles, descriptions and settings, `checkWorkflow` for validation, and one `useWorkflowStore.getState().update(...)` for the insert, as the bridge's `replace` does. What it adds that the API lacks is a page outline taken in Opsis's own hidden browser, and a model the user doesn't have to run themselves.
 
 ## Model access
 
@@ -63,11 +63,11 @@ In-app AI reuses the same pieces rather than a second path: the catalogue for no
 
 A Settings page, **Assistant**, with three choices: Off (default), "A model on this computer", "An online model". Every assist feature asks through one main-process function, so the privacy rules live in one place.
 
-- **On this computer: a local server.** Any server that speaks the OpenAI-compatible chat API on a loopback address. Ollama (MIT, `http://localhost:11434`), llama.cpp's `llama-server` (MIT) and LM Studio (`http://localhost:1234/v1`) all do, and all accept a JSON schema to shape the answer. The user installs and runs the server. Demoflow only stores its address and model name, lists the server's models, and has a **Test** button.
-- **No model inside Demoflow (decided).** The assistant always talks to a service the user chooses, on this computer or online. Demoflow ships no model runtime and downloads no models.
+- **On this computer: a local server.** Any server that speaks the OpenAI-compatible chat API on a loopback address. Ollama (MIT, `http://localhost:11434`), llama.cpp's `llama-server` (MIT) and LM Studio (`http://localhost:1234/v1`) all do, and all accept a JSON schema to shape the answer. The user installs and runs the server. Opsis only stores its address and model name, lists the server's models, and has a **Test** button.
+- **No model inside Opsis (decided).** The assistant always talks to a service the user chooses, on this computer or online. Opsis ships no model runtime and downloads no models.
 - **Online.** A provider, a model name and an API key. Both large providers can force an answer to match a JSON schema: Anthropic through `output_config.format` (type `json_schema`) and strict tool use, OpenAI through `text.format` with `strict: true`. A third option, "Compatible service", takes an address too; OpenRouter and similar services go there, with no preset of their own (decided).
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -109,7 +109,7 @@ Missing:
 ### Risks
 
 - **Linux keyrings.** Without a desktop keyring, `safeStorage` falls back to `basic_text`, which is a hardcoded password. Refusing to store keys there means some Linux users must paste the key each session; offer that, kept in memory only.
-- **Small local models** follow schemas but plan poorly. Keep every task to "fill this small draft" and let Demoflow's code do the structure.
+- **Small local models** follow schemas but plan poorly. Keep every task to "fill this small draft" and let Opsis's code do the structure.
 - **A local server isn't the internet but is still a server.** Never connect to a non-loopback address without the online consent flow.
 - **Cost and limits** of online models belong to the user; show the model's error text plainly and don't retry more than once.
 
@@ -125,9 +125,9 @@ Missing:
 
 ### What it adds
 
-On an empty canvas, in the New project dialog and in the Edit menu: **Describe a demo…**. The user writes one sentence ("Sign up, create a project and invite a teammate") and the site address. Demoflow opens the page in the hidden browser, takes an outline of what's on it, and asks the model for a draft. The user reviews the draft as a list of actions, edits it, and inserts it: Session, Go to page, the actions, Record take, Auto zoom, a Title card, a Sequence and Export, as one undo step.
+On an empty canvas, in the New project dialog and in the Edit menu: **Describe a demo…**. The user writes one sentence ("Sign up, create a project and invite a teammate") and the site address. Opsis opens the page in the hidden browser, takes an outline of what's on it, and asks the model for a draft. The user reviews the draft as a list of actions, edits it, and inserts it: Session, Go to page, the actions, Record take, Auto zoom, a Title card, a Sequence and Export, as one undo step.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -177,9 +177,9 @@ Missing:
 
 ### What it adds
 
-On a Record take that has run: **Suggest chapters**. Demoflow splits the take where it moves to a new page or pauses, the model names each part ("Create a project", "Invite a teammate"), and the user edits the titles and inserts them. Decided outputs, all four: Chapter actions in the take's chain (the take records again on the next run), Timeline markers at the same moments, chapters written into exported MP4, MOV and MKV files, and a YouTube timestamp list next to the export. The last two come from Chapter actions in general, with or without the assistant; Export video already writes them (**Chapters in exports** in `AGENTS.md`), so Suggest chapters only adds the Chapter actions and markers. Optionally it also names unnamed actions, since an action's name is also its camera, chapter and caption label.
+On a Record take that has run: **Suggest chapters**. Opsis splits the take where it moves to a new page or pauses, the model names each part ("Create a project", "Invite a teammate"), and the user edits the titles and inserts them. Decided outputs, all four: Chapter actions in the take's chain (the take records again on the next run), Timeline markers at the same moments, chapters written into exported MP4, MOV and MKV files, and a YouTube timestamp list next to the export. The last two come from Chapter actions in general, with or without the assistant; Export video already writes them (**Chapters in exports** in `AGENTS.md`), so Suggest chapters only adds the Chapter actions and markers. Optionally it also names unnamed actions, since an action's name is also its camera, chapter and caption label.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -219,7 +219,7 @@ Missing:
 
 A sparkles button next to headline text fields (Title card's eyebrow, title and subtitle; Animated headline's text; other text elements). It opens a list of five alternatives in a chosen tone (Plain, Bold, Playful, Technical); clicking one applies it as one undo step, **More** asks again.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 
@@ -254,9 +254,9 @@ Missing:
 
 ### What it adds
 
-After picking an element, the Inspector shows a suggestion when the picked name is weak: "This text appears 3 times on the page. Use “Save invoice” (button) instead?", plus a name for the action ("Save the invoice") when it has none. The uniqueness check works without a model; the model only chooses among names Demoflow verified and words the action name.
+After picking an element, the Inspector shows a suggestion when the picked name is weak: "This text appears 3 times on the page. Use “Save invoice” (button) instead?", plus a name for the action ("Save the invoice") when it has none. The uniqueness check works without a model; the model only chooses among names Opsis verified and words the action name.
 
-### Fit with Demoflow
+### Fit with Opsis
 
 Already in place:
 

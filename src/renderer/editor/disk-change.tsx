@@ -22,8 +22,8 @@ export function DiskChangeDialog() {
           <AlertDialogTitle>The project file changed on disk</AlertDialogTitle>
           <AlertDialogDescription>
             {readable
-              ? "Something outside Demoflow changed this project while you had unsaved edits. Load the file to use its version (Undo brings yours back), or keep yours to save over it."
-              : "Something outside Demoflow changed this project, and the file isn't a valid project right now. Keep yours to save over it, or wait and fix the file first."}
+              ? "Something outside Opsis changed this project while you had unsaved edits. Load the file to use its version (Undo brings yours back), or keep yours to save over it."
+              : "Something outside Opsis changed this project, and the file isn't a valid project right now. Keep yours to save over it, or wait and fix the file first."}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -50,7 +50,7 @@ const PAGES: Record<SettingsPage, PageInfo> = {
   general: {
     label: "General",
     icon: SlidersHorizontal,
-    description: "What Demoflow does when it opens and before it closes.",
+    description: "What Opsis does when it opens and before it closes.",
     render: (settings) => <GeneralPage app={settings.app} />,
   },
   projects: {
@@ -92,7 +92,7 @@ const PAGES: Record<SettingsPage, PageInfo> = {
   licences: {
     label: "Licences",
     icon: Scale,
-    description: "Licences of Demoflow and everything it includes.",
+    description: "Licences of Opsis and everything it includes.",
     render: () => <LicencesPage />,
   },
   about: {
@@ -114,14 +114,14 @@ export function SettingsWindow() {
     [navigate],
   );
 
-  useEffect(() => window.demoflow.setTitle("Settings — Demoflow"), []);
+  useEffect(() => window.opsis.setTitle("Settings — Opsis"), []);
 
-  useEffect(() => window.demoflow.onSettingsPage(showPage), [showPage]);
+  useEffect(() => window.opsis.onSettingsPage(showPage), [showPage]);
 
   useEffect(
     () =>
       onMenuCommand((command) => {
-        if (command !== "view:settings") window.demoflow.sendMenuToEditor(command);
+        if (command !== "view:settings") window.opsis.sendMenuToEditor(command);
       }),
     [],
   );

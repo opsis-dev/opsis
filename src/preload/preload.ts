@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from "electron";
 import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
 import { errorMessage } from "../shared/errors";
-import { INVOKE, IPC, type DemoflowApi } from "../shared/ipc";
+import { INVOKE, IPC, type OpsisApi } from "../shared/ipc";
 import { listenerSet } from "../shared/listener-set";
 import { isLiveMessage, type LiveMessage } from "../shared/live";
 import { mapValues } from "../shared/objects";
@@ -41,7 +41,7 @@ const answerApiRequest = (
     .catch((e: unknown): ApiEditorReply => ({ ok: false, status: 500, error: errorMessage(e) }))
     .then((reply) => ipcRenderer.send(IPC.apiReply, id, reply));
 
-const api: DemoflowApi = {
+const api: OpsisApi = {
   ...invokers,
   platform: process.platform,
   pathForFile: (file) => webUtils.getPathForFile(file),
@@ -80,4 +80,4 @@ const api: DemoflowApi = {
   setTitle: (title) => ipcRenderer.send(IPC.setTitle, title),
 };
 
-contextBridge.exposeInMainWorld("demoflow", api);
+contextBridge.exposeInMainWorld("opsis", api);

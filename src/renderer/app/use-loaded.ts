@@ -24,4 +24,4 @@ export function useLoaded<T>(load: () => Promise<T>, failure: string, key = ""):
 }
 
 export const useProjectLocations = (key = "") =>
-  useLoaded(() => window.demoflow.projectLocations(), "Couldn't find the projects folder", key);
+  useLoaded(() => window.opsis.projectLocations(), "Couldn't find the projects folder", key);

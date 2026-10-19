@@ -9,7 +9,7 @@ import {
   workerTempName,
 } from "./worker-temp";
 
-const root = tempDirs("demoflow-worker-temp-test-");
+const root = tempDirs("opsis-worker-temp-test-");
 
 describe("worker temp folders", () => {
   it("names a folder after the app process, the kind of worker and the run", () => {

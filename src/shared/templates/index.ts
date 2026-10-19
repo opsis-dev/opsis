@@ -90,7 +90,7 @@ function todoMvcSample(name: string): Workflow {
 
   const outro = g.node("outro", "fx.core.title", 5, 4, {
     eyebrow: "Made with",
-    title: "Demoflow",
+    title: "Opsis",
     subtitle: SITE_ADDRESS,
     clipDuration: 75,
   });
@@ -108,7 +108,7 @@ function todoMvcSample(name: string): Workflow {
     fileName: PROJECT_NAME,
   });
   g.node("note", "core.note", 0, 2, {
-    text: "Sample project.\n\n1. Press Run. Demoflow records the flow in a hidden browser.\n2. The preview updates with the real footage, camera moves and cursor.\n3. Finished videos appear in Outputs.",
+    text: "Sample project.\n\n1. Press Run. Opsis records the flow in a hidden browser.\n2. The preview updates with the real footage, camera moves and cursor.\n3. Finished videos appear in Outputs.",
   });
 
   return g.build({ name, variables: { [SITE_ADDRESS_VAR]: TODO_SITE } });

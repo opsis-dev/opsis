@@ -40,7 +40,7 @@ function useEditorSetup(projectDir: string): void {
   useProjectFileWatch(projectDir);
   useApiBridge();
   useEffect(() => {
-    if (name) window.demoflow.setTitle(`${name} — Demoflow`);
+    if (name) window.opsis.setTitle(`${name} — Opsis`);
   }, [name]);
   useEffect(() => {
     void useStillsStore.getState().load(projectDir);
@@ -48,18 +48,18 @@ function useEditorSetup(projectDir: string): void {
     useMedia.getState().reset(projectDir);
   }, [projectDir]);
   useEditorSync();
-  useEffect(() => () => void window.demoflow.closePanelWindows(), []);
+  useEffect(() => () => void window.opsis.closePanelWindows(), []);
 }
 
 export function Editor({ projectDir }: { projectDir: string }) {
   const compiled = useCompiled();
   const horizontal = useDefaultLayout({
-    id: `demoflow:editor-columns:${projectDir}`,
+    id: `opsis:editor-columns:${projectDir}`,
     storage: layoutStorage,
     panelIds: ["left", "center", "right"],
   });
   const vertical = useDefaultLayout({
-    id: `demoflow:editor-rows:${projectDir}`,
+    id: `opsis:editor-rows:${projectDir}`,
     storage: layoutStorage,
     panelIds: ["canvas", "bottom"],
   });

@@ -96,7 +96,7 @@ export const workflowSchema = z.object({
 });
 export type Workflow = z.infer<typeof workflowSchema>;
 
-export const WORKFLOW_FILE = "project.demoflow.json";
+export const WORKFLOW_FILE = "project.opsis.json";
 
 export function normalizeWorkflow(wf: Workflow): Workflow {
   if (!wf.mix) return wf;

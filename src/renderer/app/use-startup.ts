@@ -21,7 +21,7 @@ export function useStartup(): void {
         }
         if (!first) return;
         if (settings.app.onStart === "last-project") {
-          const [last] = await window.demoflow.listRecentProjects();
+          const [last] = await window.opsis.listRecentProjects();
           if (last) openEditor(router.navigate, last.dir);
         } else if (settings.app.onStart === "new-project") {
           dispatchMenuCommand("project:new");

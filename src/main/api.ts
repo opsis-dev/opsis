@@ -61,11 +61,11 @@ function listenError(e: unknown, address: string): string {
   const folder = path.dirname(address);
   switch (errorCode(e)) {
     case "ENOENT":
-      return `The folder ${folder} doesn't exist. Create it, or set ${API_SOCKET_ENV} to a path in a folder that does, and restart Demoflow.`;
+      return `The folder ${folder} doesn't exist. Create it, or set ${API_SOCKET_ENV} to a path in a folder that does, and restart Opsis.`;
     case "EACCES":
-      return `Demoflow can't create files in ${folder}. Set ${API_SOCKET_ENV} to a path in a folder you own, and restart Demoflow.`;
+      return `Opsis can't create files in ${folder}. Set ${API_SOCKET_ENV} to a path in a folder you own, and restart Opsis.`;
     case "EADDRINUSE":
-      return `A file that isn't Demoflow's API is already at ${address}. Move it, or set ${API_SOCKET_ENV} to another path, and restart Demoflow.`;
+      return `A file that isn't Opsis's API is already at ${address}. Move it, or set ${API_SOCKET_ENV} to another path, and restart Opsis.`;
     default:
       return errorMessage(e);
   }
@@ -103,7 +103,7 @@ async function setApiEnabled(enabled: boolean): Promise<void> {
       enabled: true,
       listening: false,
       address,
-      error: "Another copy of Demoflow is already using this address.",
+      error: "Another copy of Opsis is already using this address.",
     });
     return;
   }

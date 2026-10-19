@@ -14,7 +14,7 @@ export async function beginRun(opts: RunTargets = {}): Promise<string> {
   const { projectDir, workflow } = useWorkflowStore.getState();
   if (!projectDir || !workflow) throw new Error(NO_PROJECT);
   useLiveStore.getState().reset();
-  const { runId } = await window.demoflow.runWorkflow({ projectDir, workflow, ...opts });
+  const { runId } = await window.opsis.runWorkflow({ projectDir, workflow, ...opts });
   useRunStore.getState().start(runId);
   showPanel("run");
   return runId;

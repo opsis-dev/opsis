@@ -42,7 +42,7 @@ export const recordResult = (log: ActionLog, hash = "h"): NodeResult =>
     outputs: {
       recording: {
         type: "recording",
-        src: `project:.demoflow/cache/${hash}/recording.mp4`,
+        src: `project:.opsis/cache/${hash}/recording.mp4`,
         log,
         durationMs: log.durationMs,
         viewport: log.viewport,

@@ -7,7 +7,7 @@ Status: plan only. The runtime checks this replaces are in place: `groupOf` and 
 ## How to read this plan
 
 - One change, built in the order of **Work**; each step type-checks and passes the tests before the next starts.
-- Sections: **The problem**, **Fit with Demoflow** (Already in place / Missing; every file, function and count named was checked in the repo on 2026-10-19), **Design**, **Work**, **Risks**, **Sources**.
+- Sections: **The problem**, **Fit with Opsis** (Already in place / Missing; every file, function and count named was checked in the repo on 2026-10-19), **Design**, **Work**, **Risks**, **Sources**.
 
 ## Conventions
 
@@ -17,7 +17,7 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 - `src/shared` and `src/video` stay runtime-neutral: zod schemas only, no Node imports.
 - **No old formats.** Nothing has been released, so there is no migration or fallback for specs in the old shape. Caches that depend on the spec get new keys and fill again.
 - Before writing a helper, search for one that already does the job; after moving an export, check it still has users outside its file.
-- **Checks.** `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the no-comments check from `AGENTS.md`, and the parity check in **Work** item 7. App checks open Demoflow windows on the user's screen: ask before running them. Don't commit.
+- **Checks.** `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the no-comments check from `AGENTS.md`, and the parity check in **Work** item 7. App checks open Opsis windows on the user's screen: ask before running them. Don't commit.
 
 ## The problem
 
@@ -41,7 +41,7 @@ The same gap shows in code that rewrites items generically:
 - `mapItems` rebuilds a group as `{ ...mapped, props: { ...group, tracks } }`, and `patchRecordings` as `{ ...item, props: patch(props) }`; both rely on the runtime check to know what they hold.
 - `RecordingClip` is drawn through the element registry (`CORE_ELEMENTS` in `src/video/registry/index.ts`), so its props pass through the `component()` cast in `src/video/registry/framing.tsx` like any installed element.
 
-## Fit with Demoflow
+## Fit with Opsis
 
 Already in place:
 
@@ -120,7 +120,7 @@ type TimelineItem = ItemBase &
 ## Risks
 
 - **Recursive inference.** zod 4 infers recursive objects through getters, but a recursive schema inside a discriminated union can need explicit `z.ZodType` annotations, and can slow the type check. Measure in step 2; if inference fails, annotate the group schema's type rather than casting.
-- **Remotion's composition schema.** `root.tsx` passes `timelineSpecSchema` as the composition `schema`, and Remotion validates input props with it before rendering. With props validated, every render start parses its recordings once (0.31 ms for the measured take). The Studio props editor may not draw a recursive union; Demoflow doesn't use the Studio.
+- **Remotion's composition schema.** `root.tsx` passes `timelineSpecSchema` as the composition `schema`, and Remotion validates input props with it before rendering. With props validated, every render start parses its recordings once (0.31 ms for the measured take). The Studio props editor may not draw a recursive union; Opsis doesn't use the Studio.
 - **Exported projects.** The generated `export-root.tsx` parses `timeline.json` with the same schema, so an exported project validates its recordings too. Projects exported before the change keep their own copy of the old sources and still work.
 - **Item spreads.** `{ ...item, props: … }` on a union keeps the kind only when the new props match it; TypeScript reports each mismatch, which is the point. Fix them by narrowing, never by widening the props type or casting.
 - **Cache refills.** Every export renders its picture once and card stills redraw once after the change, because their keys hash the spec. Expected, and in line with **No old formats**.

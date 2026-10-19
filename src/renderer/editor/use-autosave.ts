@@ -10,10 +10,10 @@ export function useAutosave(): void {
   const saved = useWorkflowStore((s) => s.savedRevision);
   const drafts = useHeldDrafts();
   useEffect(() => {
-    window.demoflow.reportUnsaved(revision !== saved || drafts);
+    window.opsis.reportUnsaved(revision !== saved || drafts);
   }, [revision, saved, drafts]);
   useEffect(() => {
-    const off = window.demoflow.onFlushSave(() => {
+    const off = window.opsis.onFlushSave(() => {
       commitHeldDrafts();
       return save().then(() => undefined);
     });
@@ -22,7 +22,7 @@ export function useAutosave(): void {
       commitHeldDrafts();
       const state = useWorkflowStore.getState();
       if (state.revision !== state.savedRevision) void saveWithToast();
-      window.demoflow.reportUnsaved(false);
+      window.opsis.reportUnsaved(false);
     };
   }, []);
   useEffect(() => {

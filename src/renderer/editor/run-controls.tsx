@@ -12,7 +12,7 @@ export function RunningLabel({ className }: { className?: string }) {
 
 export function StopRunButton({ size }: { size: "xs" | "sm" }) {
   return (
-    <Button size={size} variant="outline" onClick={() => void window.demoflow.cancelRun()}>
+    <Button size={size} variant="outline" onClick={() => void window.opsis.cancelRun()}>
       <Square data-icon="inline-start" />
       Stop
     </Button>

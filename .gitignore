@@ -145,10 +145,10 @@ vite.config.ts.timestamp-*
 # Electron-Forge
 out/
 
-# Demoflow
+# Opsis
 resources/engine/
 resources/engine-licences/
 resources/export-src/
 remotion-bundle/
-.demoflow/
+.opsis/
 examples/**/secrets/

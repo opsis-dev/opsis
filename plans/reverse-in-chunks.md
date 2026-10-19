@@ -7,7 +7,7 @@ Status: plan only. Nothing here is built yet.
 ## How to read this plan
 
 - One fix, built in the order of **Work**; each step is checked before the next starts.
-- Sections: **The problem (measured)**, **Fit with Demoflow** (Already in place / Missing, every file and function named was checked in the repo), **Work**, **Risks**, **Sources**.
+- Sections: **The problem (measured)**, **Fit with Opsis** (Already in place / Missing, every file and function named was checked in the repo), **Work**, **Risks**, **Sources**.
 
 ## Conventions
 
@@ -40,7 +40,7 @@ About 1.2 GB of fixed cost plus about 85 MB per second of 1080p at 30 fps, one r
 
 Sound was not part of that test; see **Work** item 3.
 
-## Fit with Demoflow
+## Fit with Opsis
 
 Already in place:
 

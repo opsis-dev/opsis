@@ -235,7 +235,7 @@ function ArtifactList({ nodeId }: { nodeId: string }) {
           variant="link"
           size="sm"
           className="h-auto justify-start p-0"
-          onClick={() => void window.demoflow.revealInFolder(projectDir, a.path)}
+          onClick={() => void window.opsis.revealInFolder(projectDir, a.path)}
         >
           <ExternalLink data-icon="inline-start" />
           {artifactName(a)}

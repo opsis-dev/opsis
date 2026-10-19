@@ -70,10 +70,7 @@ function FileRow({ file, ...head }: RowProps & { file: string }) {
         size="sm"
         variant="outline"
         onClick={() =>
-          void attempt(
-            () => window.demoflow.openLicenceFile(file),
-            "Couldn't open the licence file",
-          )
+          void attempt(() => window.opsis.openLicenceFile(file), "Couldn't open the licence file")
         }
       >
         <ExternalLink data-icon="inline-start" />
@@ -118,7 +115,7 @@ function FontLicenceRows({ fonts }: { fonts: FontFamilyDef[] }) {
 }
 
 export function LicencesPage() {
-  const entries = useLoaded(() => window.demoflow.listLicences(), "Couldn't list the licences");
+  const entries = useLoaded(() => window.opsis.listLicences(), "Couldn't list the licences");
   const library = useFontLibrary((s) => s.library);
   useEffect(() => {
     void useFontLibrary.getState().refresh();
@@ -128,14 +125,14 @@ export function LicencesPage() {
     <>
       <SettingsCard
         title="Software"
-        description="Demoflow and the programs it ships with or sets up. The recording browser and the video tools appear once the engine is set up."
+        description="Opsis and the programs it ships with or sets up. The recording browser and the video tools appear once the engine is set up."
         contentClassName="divide-y"
       >
         {entries === null ? <Spinner /> : entries.map((e) => <SoftwareRow key={e.id} entry={e} />)}
       </SettingsCard>
       <SettingsCard
         title="Built-in fonts"
-        description="Fonts that come with Demoflow."
+        description="Fonts that come with Opsis."
         contentClassName="divide-y"
       >
         <FontLicenceRows fonts={BUNDLED_FONTS} />

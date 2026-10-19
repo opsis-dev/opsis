@@ -44,7 +44,7 @@ const userScript = (body: string, { async = false } = {}): string =>
 export const runUserScript = (script: string): string => userScript(script, { async: true });
 
 export function beforeFirstLoad(id: string, script: string): string {
-  const key = JSON.stringify(`demoflow-script:${id}`);
+  const key = JSON.stringify(`opsis-script:${id}`);
   const firstTime = [
     "try {",
     `  if (sessionStorage.getItem(${key})) return;`,

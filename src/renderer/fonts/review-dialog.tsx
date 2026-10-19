@@ -33,19 +33,19 @@ export function ReviewDialog({
   const { isBusy, run } = useBusy();
 
   useEffect(() => {
-    const release = () => void window.demoflow.releaseInspectedFonts(fonts.token);
+    const release = () => void window.opsis.releaseInspectedFonts(fonts.token);
     window.addEventListener("pagehide", release);
     return () => window.removeEventListener("pagehide", release);
   }, [fonts.token]);
 
   const close = () => {
-    void window.demoflow.releaseInspectedFonts(fonts.token);
+    void window.opsis.releaseInspectedFonts(fonts.token);
     onClose();
   };
 
   const add = () =>
     run("add", async () => {
-      const added = await window.demoflow.addInspectedFonts(fonts.token, chosen);
+      const added = await window.opsis.addInspectedFonts(fonts.token, chosen);
       toast.success(
         added.length === 1 ? `Added ${added[0].family}` : `Added ${plural(added.length, "font")}`,
       );

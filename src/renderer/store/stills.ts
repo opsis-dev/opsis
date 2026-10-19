@@ -18,7 +18,7 @@ export const useStillsStore = create<StillsState>((set, get) => ({
     set({ projectDir, index: {}, wanted: {} });
     if (!projectDir) return;
     const index = await loadOrReport(
-      () => window.demoflow.listStills(projectDir),
+      () => window.opsis.listStills(projectDir),
       "Couldn't read the saved node previews",
     );
     if (index && get().projectDir === projectDir) set({ index: { ...index, ...get().index } });

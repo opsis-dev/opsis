@@ -5,7 +5,7 @@ import { completeEngineLicences, shippedCreditsCandidates } from "./licences";
 import { CHROMIUM_CREDITS_FILE, enginePaths } from "./paths";
 import { tempDirs } from "./test-temp-dirs";
 
-const tempDir = tempDirs("demoflow-licences-");
+const tempDir = tempDirs("opsis-licences-");
 
 async function fakeEngine(dir: string): Promise<void> {
   const p = enginePaths(dir);

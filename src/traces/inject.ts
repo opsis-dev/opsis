@@ -55,7 +55,7 @@ export function frameEvents(
   return frames.map((f) =>
     JSON.stringify({
       type: "screencast-frame",
-      pageId: "demoflow-recording",
+      pageId: "opsis-recording",
       file: f.file,
       width: f.width,
       height: f.height,
@@ -87,7 +87,7 @@ async function extractFrames(
     const size = jpegSize(data);
     if (!size) continue;
     frames.push({
-      file: `screencast/demoflow-${String(k).padStart(5, "0")}.jpeg`,
+      file: `screencast/opsis-${String(k).padStart(5, "0")}.jpeg`,
       data,
       ...size,
       atMs: (k * 1000) / TRACE_FRAME_FPS,

@@ -11,7 +11,7 @@ import {
 } from "./src/shared/fonts/google-font-imports.ts";
 
 const localFonts = (): Plugin => ({
-  name: "demoflow-local-fonts",
+  name: "opsis-local-fonts",
   enforce: "pre",
   resolveId(id) {
     const name = GOOGLE_FONT_IMPORT.exec(id)?.[1];

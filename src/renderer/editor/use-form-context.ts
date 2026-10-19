@@ -94,7 +94,7 @@ async function pickTarget(wf: Workflow, nodeId: string, key: string) {
   const { page } = found;
   toast.info("A browser window opened. Click the element, or Shift-click a spot.");
   await attempt(async () => {
-    const picked = await window.demoflow.pickElement(page);
+    const picked = await window.opsis.pickElement(page);
     if (!picked) return;
     useWorkflowStore.getState().updateParams(nodeId, {
       [key]: picked.target,
@@ -107,7 +107,7 @@ async function pickTarget(wf: Workflow, nodeId: string, key: string) {
 async function chooseAsset(projectDir: string | null, nodeId: string, key: string) {
   if (!projectDir) return;
   await attempt(async () => {
-    const [path] = await window.demoflow.importAssets(projectDir);
+    const [path] = await window.opsis.importAssets(projectDir);
     if (path) useWorkflowStore.getState().updateParams(nodeId, { [key]: path });
   }, "Couldn't add the file");
 }

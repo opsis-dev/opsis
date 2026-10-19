@@ -9,7 +9,7 @@ const editor = vi.hoisted(() => {
     flush: null,
   };
   Object.assign(window, {
-    demoflow: {
+    opsis: {
       platform: "linux",
       reportUnsaved: (unsaved: boolean) => state.reports.push(unsaved),
       onFlushSave: (listener: () => Promise<void>) => {

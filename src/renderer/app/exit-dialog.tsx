@@ -19,8 +19,8 @@ export function ExitDialog() {
 
   useEffect(
     () =>
-      window.demoflow.onConfirmClose((next) => {
-        window.demoflow.closeShown();
+      window.opsis.onConfirmClose((next) => {
+        window.opsis.closeShown();
         setDontAsk(false);
         setRequest(next);
       }),
@@ -28,7 +28,7 @@ export function ExitDialog() {
   );
 
   const answer = (close: boolean) => {
-    window.demoflow.decideClose({ close, dontAsk: close && dontAsk });
+    window.opsis.decideClose({ close, dontAsk: close && dontAsk });
     setRequest(null);
   };
 

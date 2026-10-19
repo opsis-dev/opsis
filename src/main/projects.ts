@@ -108,7 +108,7 @@ const workflowOrNull = (text: string): Workflow | null => {
 
 export async function pickProjectDir(win: BrowserWindow | null): Promise<string | null> {
   const { defaultDir } = await projectLocations();
-  return chooseFolder(win, { title: "Open Demoflow project", defaultPath: defaultDir }, [
+  return chooseFolder(win, { title: "Open Opsis project", defaultPath: defaultDir }, [
     "openDirectory",
   ]);
 }
@@ -119,7 +119,7 @@ export const currentProjectDir = (): string | null => openDir;
 
 export async function openProjectDir(target: string): Promise<OpenProject> {
   const file = await readProjectFile(target);
-  if (!file) throw new Error(`There's no Demoflow project in ${target}.`);
+  if (!file) throw new Error(`There's no Opsis project in ${target}.`);
   const parsed = parseWorkflowText(file.text);
   if (!parsed.ok) throw new Error(`The project in ${target} can't be read (${parsed.problem}).`);
   const { workflow } = parsed;

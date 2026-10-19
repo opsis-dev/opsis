@@ -19,7 +19,7 @@ export function AboutPage() {
   ];
   return (
     <SettingsCard
-      title={`Demoflow ${env.versions.app}`}
+      title={`Opsis ${env.versions.app}`}
       description="Everything runs on this computer."
     >
       <dl className="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">

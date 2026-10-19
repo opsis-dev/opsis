@@ -56,7 +56,7 @@ const shellDownload = (onProgress: InstallProgress, progress: number, size: stri
 async function downloadShellInto(staging: string, onProgress: InstallProgress): Promise<string> {
   await mkdir(staging, { recursive: true });
   await writeJson(path.join(staging, "package.json"), {
-    name: "demoflow-engine-download",
+    name: "opsis-engine-download",
     private: true,
   });
   const previous = process.cwd();

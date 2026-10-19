@@ -54,7 +54,7 @@ export async function openPanelWindow(panel: DockPanelName): Promise<void> {
     existing: panelWindow(panel),
     saved: async () => (await panelBounds())[panel],
     save: (rect) => savePanelBounds(panel, rect),
-    options: { ...DEFAULT_SIZE[panel], ...MIN_SIZE, title: `${DOCK_TITLES[panel]} — Demoflow` },
+    options: { ...DEFAULT_SIZE[panel], ...MIN_SIZE, title: `${DOCK_TITLES[panel]} — Opsis` },
     hash: `/panel/${panel}`,
     onClosed: (closed) => {
       if (windows.get(panel) === closed) windows.delete(panel);

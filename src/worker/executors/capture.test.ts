@@ -22,7 +22,7 @@ vi.mock("../capture/driver", () => ({
   },
 }));
 
-const project = tempDirs("demoflow-capture-");
+const project = tempDirs("opsis-capture-");
 
 async function stillContext(logs: string[]): Promise<ExecutorContext> {
   const dir = await project();
@@ -35,7 +35,7 @@ async function stillContext(logs: string[]): Promise<ExecutorContext> {
   const shell = engine.headlessShells[0];
   await mkdir(path.dirname(shell), { recursive: true });
   await writeFile(shell, "");
-  const nodeDir = path.join(dir, ".demoflow", "cache", "shot");
+  const nodeDir = path.join(dir, ".opsis", "cache", "shot");
   await mkdir(nodeDir, { recursive: true });
   const unused = () => {
     throw new Error("Not used by a screenshot.");
@@ -54,7 +54,7 @@ async function stillContext(logs: string[]): Promise<ExecutorContext> {
     },
     projectDir: dir,
     dir: nodeDir,
-    relDir: ".demoflow/cache/shot",
+    relDir: ".opsis/cache/shot",
     outDir: path.join(dir, "out"),
     hash: "shot",
     vars: {},

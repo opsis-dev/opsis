@@ -52,7 +52,7 @@ export async function getServeUrl(
   if (env.isPackaged) {
     const prebuilt = getPrebuiltRemotionBundlePath(env.appRoot);
     if (!existsSync(prebuilt))
-      throw new Error("This copy of Demoflow is incomplete. Reinstall the app.");
+      throw new Error("This copy of Opsis is incomplete. Reinstall the app.");
     return prebuilt;
   }
   return devBundle(env.appRoot, () =>

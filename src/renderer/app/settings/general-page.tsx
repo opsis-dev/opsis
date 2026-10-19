@@ -10,7 +10,7 @@ export function GeneralPage({ app }: { app: AppSettings["app"] }) {
     <SettingsCard title="Starting and closing">
       <FieldGroup>
         <Field>
-          <FieldLabel>When Demoflow starts</FieldLabel>
+          <FieldLabel>When Opsis starts</FieldLabel>
           <OptionToggle
             options={START_OPTIONS}
             labels={START_OPTION_LABELS}
@@ -21,7 +21,7 @@ export function GeneralPage({ app }: { app: AppSettings["app"] }) {
         <SwitchField
           id="confirm-exit"
           label="Ask before closing"
-          description="When this is off, Demoflow still asks if a run, an engine setup or a save hasn't finished."
+          description="When this is off, Opsis still asks if a run, an engine setup or a save hasn't finished."
           checked={app.confirmExit}
           onChange={(v) => void patchAppSettings({ app: { confirmExit: v } })}
         />

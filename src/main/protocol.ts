@@ -3,7 +3,7 @@ import { protocol } from "electron";
 import { fileReply, resolveInside } from "../engine/http-file";
 import { FILE_SCHEME } from "../shared/asset-ref";
 
-export const APP_SCHEME = "demoflow-app";
+export const APP_SCHEME = "opsis-app";
 
 const FILE_SOURCE = `${FILE_SCHEME}:`;
 

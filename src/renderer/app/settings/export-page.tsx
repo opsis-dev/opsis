@@ -16,7 +16,7 @@ export function ExportPage({ render }: { render: AppSettings["render"] }) {
   return (
     <SettingsCard
       title="Video export licence"
-      description="Demoflow renders videos with Remotion, which has its own licence. It's free for individuals, non-profits and companies with up to 3 employees. Larger companies need a Remotion company licence and must enter its key here."
+      description="Opsis renders videos with Remotion, which has its own licence. It's free for individuals, non-profits and companies with up to 3 employees. Larger companies need a Remotion company licence and must enter its key here."
     >
       <FieldGroup>
         <Field>

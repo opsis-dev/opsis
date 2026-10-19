@@ -10,7 +10,7 @@ export const useSecretsStore = create<{
     set({
       names: dir
         ? await loadOrReport(
-            () => window.demoflow.listSecrets(dir),
+            () => window.opsis.listSecrets(dir),
             "Couldn't read the saved sign-ins",
           )
         : null,

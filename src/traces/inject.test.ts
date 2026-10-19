@@ -28,8 +28,8 @@ describe("recording frames in traces", () => {
     const lines = frameEvents(
       trace,
       [
-        { file: "screencast/demoflow-00000.jpeg", width: 960, height: 540, atMs: 0 },
-        { file: "screencast/demoflow-00001.jpeg", width: 960, height: 540, atMs: 250 },
+        { file: "screencast/opsis-00000.jpeg", width: 960, height: 540, atMs: 0 },
+        { file: "screencast/opsis-00001.jpeg", width: 960, height: 540, atMs: 250 },
       ],
       1_002_000,
     ).map((l): unknown => JSON.parse(l));

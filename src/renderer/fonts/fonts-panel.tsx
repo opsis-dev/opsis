@@ -66,9 +66,9 @@ function OnlineConsentDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Go online to get fonts?</AlertDialogTitle>
           <AlertDialogDescription>
-            Demoflow will connect to the internet to show the list of free fonts, and to download
-            the ones you pick. Each font is saved to your library and works offline afterwards.
-            Nothing about you or your projects is sent.
+            Opsis will connect to the internet to show the list of free fonts, and to download the
+            ones you pick. Each font is saved to your library and works offline afterwards. Nothing
+            about you or your projects is sent.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -125,7 +125,7 @@ export function FontsPanel() {
 
   const addFiles = () =>
     attempt(async () => {
-      const fonts = await window.demoflow.inspectFontFiles();
+      const fonts = await window.opsis.inspectFontFiles();
       if (!fonts) return;
       if (!fonts.families.length) throw new Error("No fonts found in those files.");
       setDialog({ kind: "review", review: { fonts, installed: false } });
@@ -141,7 +141,7 @@ export function FontsPanel() {
   return (
     <SettingsCard
       title="Your library"
-      description={`${BUNDLED_FONTS.length} fonts come with Demoflow. Fonts you add here work in every project; a project keeps its own copy of the fonts it uses.`}
+      description={`${BUNDLED_FONTS.length} fonts come with Opsis. Fonts you add here work in every project; a project keeps its own copy of the fonts it uses.`}
       contentClassName="flex flex-col gap-1"
       footer={
         <>

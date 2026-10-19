@@ -24,7 +24,7 @@ function WindowButton({
         "text-muted-foreground hover:text-foreground grid h-full w-12 place-items-center transition-colors",
         className,
       )}
-      onClick={() => void window.demoflow.windowRole(role)}
+      onClick={() => void window.opsis.windowRole(role)}
     >
       {children}
     </button>

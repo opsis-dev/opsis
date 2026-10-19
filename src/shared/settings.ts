@@ -26,7 +26,7 @@ export const START_OPTION_LABELS: Record<StartOption, string> = {
 export const CANVAS_MODES = ["mouse", "touchpad"] as const;
 export type CanvasMode = (typeof CANVAS_MODES)[number];
 
-export const PROJECTS_FOLDER_NAME = "DemoflowProjects";
+export const PROJECTS_FOLDER_NAME = "OpsisProjects";
 
 export const appSettingsSchema = z.object({
   app: z

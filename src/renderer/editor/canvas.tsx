@@ -30,7 +30,7 @@ import { usePinchZoom } from "./use-pinch-zoom";
 import { useRevealNode } from "./use-reveal-node";
 
 const nodeTypes = {
-  demoflow: FlowNode,
+  opsis: FlowNode,
   group: GroupFlowNode,
   note: NoteFlowNode,
 } satisfies Record<FlowNodeType, unknown>;

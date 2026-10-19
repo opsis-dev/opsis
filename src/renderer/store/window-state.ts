@@ -14,6 +14,6 @@ export function watchWindowState(): void {
   if (started || isMac) return;
   started = true;
   const apply = (state: WindowState) => useWindowState.setState(state);
-  void window.demoflow.getWindowState().then(apply);
-  window.demoflow.onWindowState(apply);
+  void window.opsis.getWindowState().then(apply);
+  window.opsis.onWindowState(apply);
 }

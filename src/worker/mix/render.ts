@@ -34,7 +34,7 @@ import type { MediaDeps } from "../media/analysis";
 import { ToolError } from "../media/ffmpeg";
 import { frameLevels, parseWav } from "./wav";
 
-const MIX_VERSION = "demoflow-mix/1";
+const MIX_VERSION = "opsis-mix/1";
 const KEEP_PLANS = 12;
 const UNUSED_STEM_MS = 10 * 60_000;
 const LOUDNESS_FLOOR_DB = -70;

@@ -98,7 +98,7 @@ function useNewProject(initialTemplate: string, onCreated: (dir: string) => void
     run(
       "create",
       async () => {
-        const p = await window.demoflow.createProject({ name, template, dir });
+        const p = await window.opsis.createProject({ name, template, dir });
         if (p) onCreated(p.dir);
       },
       "Couldn't create the project",

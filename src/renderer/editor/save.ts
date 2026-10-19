@@ -15,7 +15,7 @@ export function save(): Promise<boolean> {
     const { projectDir, workflow, revision, fileVersion } = useWorkflowStore.getState();
     if (!projectDir || !workflow) return true;
     if (useDiskChange.getState().change) return false;
-    const result = await window.demoflow.saveWorkflow(projectDir, workflow, fileVersion);
+    const result = await window.opsis.saveWorkflow(projectDir, workflow, fileVersion);
     if (!result.ok) {
       useDiskChange.getState().show({ workflow: result.workflow, version: result.version });
       return false;

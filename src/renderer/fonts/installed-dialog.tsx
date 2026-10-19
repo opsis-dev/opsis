@@ -45,7 +45,7 @@ export function InstalledDialog({
 
   const pick = (family: string, faces: LocalFontData[]) =>
     run(family, async () =>
-      onPicked(await window.demoflow.inspectInstalledFonts(await readFaces(faces))),
+      onPicked(await window.opsis.inspectInstalledFonts(await readFaces(faces))),
     );
 
   return (

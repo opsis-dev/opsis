@@ -31,7 +31,7 @@ export const menuItemId = (entry: MenuItem): MenuCommand | WindowRole =>
 
 export function runMenuItem(entry: MenuItem): void {
   if (entry.kind === "command") dispatchMenuCommand(entry.command);
-  else void window.demoflow.windowRole(entry.role);
+  else void window.opsis.windowRole(entry.role);
 }
 
 const NATIVE_WHILE_EDITING = new Set<MenuCommand | WindowRole>([

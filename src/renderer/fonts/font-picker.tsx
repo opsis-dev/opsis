@@ -56,7 +56,7 @@ function fontGroups(project: FontFamilyDef[], library: FontFamilyDef[], value: s
 async function copyIntoProject(def: FontFamilyDef): Promise<FontFamilyDef> {
   const projectDir = useWorkflowStore.getState().projectDir;
   if (!projectDir) throw new Error("Open a project to use this font.");
-  const copied = await window.demoflow.useFontInProject(projectDir, def.id);
+  const copied = await window.opsis.useFontInProject(projectDir, def.id);
   useWorkflowStore.getState().addProjectFont(copied);
   return copied;
 }
@@ -148,7 +148,7 @@ export function FontPicker({
                 value="manage fonts"
                 onSelect={() => {
                   setOpen(false);
-                  void window.demoflow.openSettings("fonts");
+                  void window.opsis.openSettings("fonts");
                 }}
               >
                 <Settings2 />

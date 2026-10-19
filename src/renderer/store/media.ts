@@ -114,7 +114,7 @@ function finishMix(
 function analyze<K extends AnalysisKind>(
   request: Extract<AnalysisRequest, { kind: K }>,
 ): Promise<AnalysisResultFor<K>> {
-  return window.demoflow
+  return window.opsis
     .analyze<K>(request)
     .catch((e: unknown): AnalysisResultFor<K> => ({ kind: "error", error: errorMessage(e) }));
 }

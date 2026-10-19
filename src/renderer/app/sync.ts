@@ -24,8 +24,8 @@ import { syncedView, useViewOptions, type SyncedView } from "../store/view-optio
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
 import { dispatchMenuCommand } from "./menu-commands";
 
-const CHANNEL = "demoflow-sync";
-const LIVE_CHANNEL = "demoflow-live";
+const CHANNEL = "opsis-sync";
+const LIVE_CHANNEL = "opsis-live";
 
 type SyncMessage =
   | { type: "hello"; panel: DockPanelName }
@@ -182,7 +182,7 @@ function openSyncChannel(): SyncChannel {
 function useLiveRelay(): void {
   useEffect(() => {
     const bc = new BroadcastChannel(LIVE_CHANNEL);
-    const offLocal = window.demoflow.onLive((message) => bc.postMessage(message));
+    const offLocal = window.opsis.onLive((message) => bc.postMessage(message));
     bc.addEventListener("message", (e) => {
       if (isLiveMessage(e.data)) useLiveStore.getState().apply(e.data);
     });
@@ -241,7 +241,7 @@ export function useEditorSync(): void {
     });
     const offs = [
       watchWorkflow(channel.post, () => ack),
-      window.demoflow.onRunEvent((event) => channel.post({ type: "run-event", event })),
+      window.opsis.onRunEvent((event) => channel.post({ type: "run-event", event })),
     ];
     sendState(channel.post, ack);
     return () => {

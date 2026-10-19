@@ -85,7 +85,7 @@ const projectOp = (op: Operation): Operation => ({
 });
 
 const DESCRIPTION = [
-  "Reads, edits and runs the project open in Demoflow. It listens only on a local socket (a named pipe on Windows) that only your user account can open, and only while it's switched on in Settings → API.",
+  "Reads, edits and runs the project open in Opsis. It listens only on a local socket (a named pipe on Windows) that only your user account can open, and only while it's switched on in Settings → API.",
   "Edits go through the open editor: each request is one undo step, saves itself and shows in every window.",
   "Start with GET /nodes for the node types, GET /nodes/{type} for one type's ports and settings, and GET /project for the open project.",
   "A connection joins an output port (source, sourceHandle) to an input port (target, targetHandle). Ports have types; GET /nodes/{type} lists them.",
@@ -241,7 +241,7 @@ const componentSchemas = () =>
 export function openApiDocument(version: string) {
   return {
     openapi: "3.1.0",
-    info: { title: "Demoflow local API", version, description: DESCRIPTION },
+    info: { title: "Opsis local API", version, description: DESCRIPTION },
     servers: [{ url: "http://localhost", description: "Over the local socket or pipe" }],
     paths: PATHS,
     components: { schemas: componentSchemas() },

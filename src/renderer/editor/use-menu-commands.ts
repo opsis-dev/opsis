@@ -24,7 +24,7 @@ const MENU_ACTIONS: MenuActions = {
   "edit:redo": () => useWorkflowStore.getState().redo(),
   "project:save": () => void saveWithToast().then((ok) => ok && toast.success("Saved")),
   "run:start": () => void startRun(),
-  "run:cancel": () => void window.demoflow.cancelRun(),
+  "run:cancel": () => void window.opsis.cancelRun(),
   "edit:group": () => useWorkflowStore.getState().groupNodes(useUiStore.getState().selectedIds),
   "edit:layout": () => void tidyLayout(),
   "edit:add-node": () => useUiStore.getState().setPaletteOpen(true),

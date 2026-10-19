@@ -29,7 +29,7 @@ vi.mock("node:fs/promises", async (importOriginal) => {
   };
 });
 
-const project = tempDirs("demoflow-trace-");
+const project = tempDirs("opsis-trace-");
 const START = Date.UTC(2026, 0, 1);
 
 beforeEach(() => {
@@ -85,7 +85,7 @@ describe("trace store", () => {
     expect(trace.actions.map((a) => [a.title, a.nodeId])).toEqual([["Open site", "nav"]]);
     expect(trace.frames).toHaveLength(2);
     for (const f of trace.frames) {
-      expect(f.src).toMatch(/^project:\.demoflow\/traces\/blobs\/[0-9a-f]{2}\/[0-9a-f]{64}\.jpeg$/);
+      expect(f.src).toMatch(/^project:\.opsis\/traces\/blobs\/[0-9a-f]{2}\/[0-9a-f]{64}\.jpeg$/);
       expect(existsSync(path.join(dir, f.src.slice("project:".length)))).toBe(true);
     }
   });
