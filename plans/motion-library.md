@@ -15,7 +15,7 @@ Status: plan only. Nothing here is built yet.
 
 The conventions in `plans/remotion-extras.md` (**Conventions**: versions, where code goes, behaviour, user-facing copy, licences) apply here unchanged; `AGENTS.md` wins when they disagree. In short:
 
-- Every `remotion` / `@remotion/*` package stays at exact `4.0.535` (`bun add --exact`). Other packages through `bun add` / `bun add -d`, latest release. Never edit dependency blocks by hand.
+- Every `remotion` / `@remotion/*` package stays at exact `4.0.536` (`bun add --exact`). Other packages through `bun add` / `bun add -d`, latest release. Never edit dependency blocks by hand.
 - Never hand-edit `src/video/elements/**`, `src/video/lib/**`, `src/video/hooks/**` or any `*.generated.ts`. Ported code is Opsis's own code and never goes there.
 - Every animation in `src/video` is a pure function of `useCurrentFrame()`; randomness through `random(seed)`; async through `delayRender`. Nothing loads from the internet at preview or render time.
 - No library, tool or format names in titles, descriptions, labels or errors (the Lottie element's description is the one precedent for naming the tool that made a file).
@@ -157,18 +157,18 @@ A flowing background of alternating bands in two colours, like the Remotion Elem
 Already in place:
 
 - The Remotion Elements page is example source, not a registry: it gives no install command and no package (checked 2026-10-16). The example is a few lines around `liquidContours()` from `@remotion/effects/liquid-contours`, applied to Remotion's `<Solid>` through its `effects` prop, with `phase` interpolated from the frame.
-- `@remotion/effects@4.0.535` is in `node_modules` (through `@remotion/light-leaks`), exports `./liquid-contours`, and its params are `firstColor`, `secondColor`, `spacing` (2–300), `scale` (20–1000), `complexity` (0–1), `smoothness` (0–1), `seed`, `offsetX`, `offsetY`, `phase` (from `dist/liquid-contours.d.ts`). It draws with a WebGL2 shader and fetches nothing.
-- `remotion@4.0.535`'s `<Solid>` accepts `effects`.
+- `@remotion/effects@4.0.536` is in `node_modules` (through `@remotion/light-leaks`), exports `./liquid-contours`, and its params are `firstColor`, `secondColor`, `spacing` (2–300), `scale` (20–1000), `complexity` (0–1), `smoothness` (0–1), `seed`, `offsetX`, `offsetY`, `phase` (from `dist/liquid-contours.d.ts`). It draws with a WebGL2 shader and fetches nothing.
+- `remotion@4.0.536`'s `<Solid>` accepts `effects`.
 - Background elements live in `src/video/core/backgrounds.tsx`; keys in `core.ts` and `src/video/registry/index.ts`.
 
 Missing:
 
-- `@remotion/effects` isn't a direct dependency; the **@remotion/effects** section of `plans/remotion-extras.md` adds it. Whichever is built first runs `bun add --exact @remotion/effects@4.0.535`.
+- `@remotion/effects` isn't a direct dependency; the **@remotion/effects** section of `plans/remotion-extras.md` adds it. Whichever is built first runs `bun add --exact @remotion/effects@4.0.536`.
 - No core element uses Remotion's `<Solid>`; `backgrounds.tsx` exports its own `Solid`, so import Remotion's under another name.
 
 ### Work
 
-1. **Dependency** (if not already added): `bun add --exact @remotion/effects@4.0.535`.
+1. **Dependency** (if not already added): `bun add --exact @remotion/effects@4.0.536`.
 2. **Element.** `core/liquid-contours` in `core.ts` (`category: "background"`, `defaultDurationInFrames: 150`): `firstColor`, `secondColor`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much `phase` moves over the element, default 1). Component `LiquidContours` in `backgrounds.tsx` draws `<Solid color={secondColor} effects={[liquidContours({ …, phase: 3.23 + flow * frame / durationInFrames })]} />`, sizes scaled from 1920×1080. Load lazily: put it in the ported/lazy loader map (Work item 1 of the previous section) rather than the eager `core` map, so projects without it never load the effects package.
 3. **Copy.** "Liquid contours", "A flowing background of two-colour bands."
 4. **Check.** Card still (`gl: "angle"`), export with the default renderer and with software drawing (**Draw with**, `src/shared/nodes/output.ts`), 9:16.
@@ -185,7 +185,7 @@ Missing:
 ### Sources
 
 - [Remotion Elements](https://www.remotion.dev/elements) and [Liquid Contours](https://www.remotion.dev/elements/backgrounds/liquid-contours/) (checked 2026-10-16)
-- Package source of `@remotion/effects@4.0.535` (`dist/liquid-contours.d.ts`, `dist/esm/liquid-contours.mjs`: WebGL2, no network) and `remotion@4.0.535` `<Solid>` (checked 2026-10-16)
+- Package source of `@remotion/effects@4.0.536` (`dist/liquid-contours.d.ts`, `dist/esm/liquid-contours.mjs`: WebGL2, no network) and `remotion@4.0.536` `<Solid>` (checked 2026-10-19)
 
 ## Crossed-off marker
 
@@ -229,7 +229,7 @@ Already in place:
 - `importAssets` (`src/main/projects.ts`) lists `lottie` among its file types; the asset server's `MIME` table (`src/worker/render/asset-server.ts`) maps `.lottie`.
 - Both bundlers already swap one import for Opsis's own module: the font redirect (`GOOGLE_FONT` in `vite.renderer.config.ts`, a Vite plugin's `resolveId`; the same pattern in `src/worker/render/webpack-override.ts`). Rive's runtime uses the same mechanism.
 
-What the packages do (from the tarballs of `@remotion/rive@4.0.535` and `@rive-app/canvas-advanced@2.31.5`, checked 2026-10-16):
+What the packages do (from the tarballs of `@remotion/rive@4.0.536` and `@rive-app/canvas-advanced@2.31.5`, checked 2026-10-19):
 
 - `<RemotionRiveCanvas>` takes `src`, `fit`, `alignment`, `artboard`, `animation`, `onLoad`, `assetLoader` and `enableRiveAssetCdn`. It loads the runtime with `riveCanvas({ locateFile: () => "https://unpkg.com/@rive-app/canvas-advanced@2.31.5/rive.wasm" })`, fixed in the component with no prop to change it.
 - The runtime package ships `rive.wasm` itself (1,449,487 bytes, MIT). Its `package.json` has `main: "canvas_advanced.mjs"` and no `exports` field, so `@rive-app/canvas-advanced/canvas_advanced.mjs` can be imported directly.
@@ -243,7 +243,7 @@ Use Remotion's `<RemotionRiveCanvas>` and download nothing at run time: both bun
 
 ### Work
 
-1. **Dependencies.** `bun add --exact @remotion/rive@4.0.535`, and `bun add --exact @rive-app/canvas-advanced@2.31.5` because Opsis imports it directly (the version `@remotion/rive` pins).
+1. **Dependencies.** `bun add --exact @remotion/rive@4.0.536`, and `bun add --exact @rive-app/canvas-advanced@2.31.5` because Opsis imports it directly (the version `@remotion/rive` pins).
 2. **Bundled runtime.** A script `scripts/rive-runtime.ts` (`bun run rive:runtime`) copies `node_modules/@rive-app/canvas-advanced/rive.wasm` to `public/rive/rive.wasm`, like `fonts:bundle` copies fonts; add the row to the generated-files table in `AGENTS.md`. A test checks the copy matches the installed package byte for byte, so a version bump can't leave an old runtime behind. `rive_fallback.wasm` isn't needed: the advanced runtime never names it.
 3. **Runtime redirect.** `src/video/rive/runtime.ts`: `import real from "@rive-app/canvas-advanced/canvas_advanced.mjs"` and export a default function that calls `real({ ...options, locateFile: () => staticFile("rive/rive.wasm") })`, whatever `locateFile` the caller passed. In `vite.renderer.config.ts` and `webpack-override.ts`, resolve the bare `@rive-app/canvas-advanced` to that module, next to the font redirect; the `.mjs` subpath is left alone, so the wrapper doesn't redirect to itself. A test bundles a module that imports the bare name and checks it resolves to the wrapper in both configs.
 4. **Element.** `core/rive` in `core.ts`: `src` (`asset("Animation file", ".riv")`), `artboard` and `animation` (text, empty = the default), `fit` ("Show all" / "Fill the frame"), `background`. `defaultDurationInFrames: 90`. Component `src/video/core/rive.tsx`, loaded lazily, renders `<RemotionRiveCanvas src={…} artboard={…} animation={…} fit={…} enableRiveAssetCdn={false} />`, with `src` resolved like Lottie's.
@@ -272,7 +272,7 @@ If stepping from the previous frame gives wrong pictures, write `src/video/core/
 
 - [Remotion: @remotion/rive](https://www.remotion.dev/docs/rive/) (checked 2026-10-16)
 - [Rive: Preloading WASM](https://rive.app/docs/runtimes/web/preloading-wasm) and [Low-level API usage](https://rive.app/docs/runtimes/web/low-level-api-usage) (`locateFile`, self-hosting the WASM with a matching version; checked 2026-10-17)
-- Package source and npm metadata of `@remotion/rive@4.0.535` (`dist/esm/index.mjs`: unpkg `locateFile`, `enableRiveAssetCdn`, `advance(diff / fps)`) and `@rive-app/canvas-advanced@2.31.5` (`package.json`, `rive.wasm`, `rive_advanced.mjs.d.ts`, MIT), unpacked in `~/.cache/opsis-research/rive-check` (checked 2026-10-17)
+- Package source and npm metadata of `@remotion/rive@4.0.536` (`dist/esm/index.mjs`: unpkg `locateFile`, `enableRiveAssetCdn`, `advance(diff / fps)`) and `@rive-app/canvas-advanced@2.31.5` (`package.json`, `rive.wasm`, `rive_advanced.mjs.d.ts`, MIT), unpacked in `~/.cache/opsis-research/rive-check` (checked 2026-10-19)
 
 ## Element thumbnails
 
@@ -314,7 +314,7 @@ Opsis's own renders of its elements; the elements' own notices already cover the
 
 ### Sources
 
-- Remotion `renderStill` image formats in `@remotion/renderer@4.0.535` (`validStillImageFormats`: png, jpeg, pdf, webp; checked 2026-10-16)
+- Remotion `renderStill` image formats in `@remotion/renderer@4.0.536` (`validStillImageFormats`: png, jpeg, pdf, webp; checked 2026-10-19)
 
 ## Visual check in CI
 

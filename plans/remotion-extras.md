@@ -18,7 +18,7 @@ These apply to every library in this plan. They restate rules from `AGENTS.md`; 
 
 **Versions.**
 
-- Every `remotion` / `@remotion/*` package stays at exact `4.0.535`: `bun add --exact @remotion/<name>@4.0.535`. 4.0.536 is out, but moving to it is a separate step that moves every `@remotion/*` package together; don't do it as part of this plan.
+- Every `remotion` / `@remotion/*` package stays at one exact version, 4.0.536 today: `bun add --exact @remotion/<name>@4.0.536`. Moving to a newer release moves every `@remotion/*` package together.
 - A package that Opsis imports directly must be a direct dependency, added with `bun add`, even when it's already in `node_modules` through another package.
 - Other packages: the latest release, through `bun add` / `bun add -d`. Never edit dependency blocks by hand. If a peer range conflicts with what the project has (React, TypeScript), stop and report instead of forcing it.
 
@@ -100,7 +100,7 @@ Missing:
 - Three's 3D text reads fonts only in its own format (typeface JSON: the letter outlines as JSON). Nothing turns a project font into it.
 - Nothing stops `useFrame` (React Three Fiber's own animation loop) from being used.
 
-Peer ranges checked on npm: `@remotion/three@4.0.535` wants `remotion` exactly `4.0.535`, `three >=0.137`, `@react-three/fiber >=8`. `@react-three/fiber` 9.8.2 (latest) wants `react >=19 <19.4` and `three >=0.156`; the project has React `^19.3.1` and the latest `three` is 0.186.1, so they fit today.
+Peer ranges checked on npm: `@remotion/three@4.0.536` wants `remotion` exactly `4.0.536`, `three >=0.137`, `@react-three/fiber >=8`. `@react-three/fiber` 9.8.2 (latest) wants `react >=19 <19.4` and `three >=0.156`; the project has React `^19.3.1` and the latest `three` is 0.186.1, so they fit today.
 
 ### Work
 
@@ -112,7 +112,7 @@ Build it in five phases. Each phase ends with the checks in item 20 that apply t
 - **Phase 4, 3D screen:** items 15–16.
 - **Phase 5, camera keyframes:** item 18.
 
-1. **Dependencies.** `bun add --exact @remotion/three@4.0.535`, `bun add three @react-three/fiber`, `bun add -d @types/three`. Not `@react-three/drei`: its model loader and lighting presets fetch decoders and images from CDNs by default.
+1. **Dependencies.** `bun add --exact @remotion/three@4.0.536`, `bun add three @react-three/fiber`, `bun add -d @types/three`. Not `@react-three/drei`: its model loader and lighting presets fetch decoders and images from CDNs by default.
 2. **Lazy loading for core elements.** Add a map of lazy core loaders in `src/video/registry/index.ts` (key → `() => import("../three/…")`), used by `loadElement` and `useElements` next to `generatedElementLoaders`, and keep `isCore` correct. Check in the Vite and Remotion builds that `three` lands in its own chunk.
 3. **Lint.** In `oxlint.config.ts`, ban `useFrame` from `@react-three/fiber` in `src/video` (`no-restricted-imports` with `importNames`). If simple, add a rule to `scripts/oxlint-plugin-opsis.ts` against `setAnimationLoop`, `THREE.Clock` and `THREE.Timer`.
 4. **Stage.** `src/video/three/stage.tsx`, shared by every 3D element: `<ThreeCanvas>` sized from `useVideoConfig()` (width and height are required), transparent background so the element sits over footage, antialiasing on, a perspective camera (fixed until the camera path in item 18 drives it), and three lighting presets built from plain lights (Studio, Soft, Dramatic); no environment images. Any `<Sequence>` inside the canvas uses `layout="none"`.
@@ -183,13 +183,13 @@ Build it in five phases. Each phase ends with the checks in item 20 that apply t
 - [three.js: FontLoader](https://threejs.org/docs/pages/FontLoader.html), [TextGeometry](https://threejs.org/docs/pages/TextGeometry.html)
 - [fontkit](https://github.com/foliojs/fontkit)
 - [HyperFrames three skill (seek-driven Three.js pattern)](https://skills.sh/heygen-com/hyperframes/three)
-- npm metadata for `@remotion/three@4.0.535`, `@react-three/fiber@9.8.2`, `three@0.186.1` (licences and peer ranges, checked 2026-10-16)
+- npm metadata for `@remotion/three@4.0.536`, `@react-three/fiber@9.8.2`, `three@0.186.1` (licences and peer ranges, checked 2026-10-19)
 
 ## @remotion/effects
 
 ### What it adds
 
-Pixel effects for Remotion's own picture components (`<Video>` from `@remotion/media`, `<Img>`, `<Solid>`, `<HtmlInCanvas>`, the `@remotion/shapes` components), passed as an `effects` prop. Each effect is a function that returns a descriptor, for example `regionBlur({ topLeft, bottomRight, blurRadius, feather, roundness, disabled })`. Version 4.0.535 exports about 70 of them:
+Pixel effects for Remotion's own picture components (`<Video>` from `@remotion/media`, `<Img>`, `<Solid>`, `<HtmlInCanvas>`, the `@remotion/shapes` components), passed as an `effects` prop. Each effect is a function that returns a descriptor, for example `regionBlur({ topLeft, bottomRight, blurRadius, feather, roundness, disabled })`. Version 4.0.536 exports about 70 of them:
 
 - blurs: `blur`, `regionBlur`, `zoomBlur`, linear and radial progressive blur and pixelate
 - colour: `colorCorrection`, `levels`, `lut`, `whiteBalance`, `vibrance`, `duotone`, `tint`
@@ -207,7 +207,7 @@ For users:
 
 Already in place:
 
-- `@remotion/effects@4.0.535` is in `node_modules` because `@remotion/light-leaks` depends on it (and `@remotion/web-renderer`, through `@remotion/studio`). Opsis doesn't import it.
+- `@remotion/effects@4.0.536` is in `node_modules` because `@remotion/light-leaks` depends on it (and `@remotion/web-renderer`, through `@remotion/studio`). Opsis doesn't import it.
 - Recordings play through `<Video>` from `@remotion/media` in `src/video/camera/demo-clip.tsx`, in three places: the window shot, the full-page shot and the narrow-shape shot with its blurred copy behind it. An effect there sits inside the camera, so it zooms and pans with the page.
 - The `boxes` widget (`BoxesField` in `src/renderer/editor/zod-form.tsx`) already draws areas over the upstream recording's first frame (`spotBackground`, `src/renderer/editor/inspector.tsx`) and stores them as fractions of that frame. Those are the UV coordinates `regionBlur` takes.
 - Clip modifiers change recording props with `patchRecordings` (`src/shared/compile/clip.ts`), as `cursor.style` and the annotation nodes do (`src/shared/nodes/cursor.ts`).
@@ -220,7 +220,7 @@ Missing:
 
 ### Work
 
-1. **Dependency.** `bun add --exact @remotion/effects@4.0.535`.
+1. **Dependency.** `bun add --exact @remotion/effects@4.0.536`.
 2. **Spec.** In `src/shared/compile/recording.ts`, add `blurAreas?: BlurArea[]` and `look?: PictureLook` to `RecordingProps`.
    - `BlurArea = { x, y, width, height, strength, softness, roundness, fromMs?, untilMs? }`. Position and size are fractions of the recording frame, as the `boxes` widget stores them. `fromMs` / `untilMs` are on the take's clock, like annotations; missing means the whole clip.
    - `PictureLook = { vignette, brightness, contrast, saturation, warmth, grain }`, all optional.
@@ -268,7 +268,7 @@ Remotion licence (npm shows `UNLICENSED`). The existing Remotion licence notice 
 - [Remotion: @remotion/effects API](https://www.remotion.dev/docs/effects/api)
 - [Remotion: regionBlur()](https://www.remotion.dev/docs/effects/region-blur)
 - [Remotion: `<Video>` from @remotion/media](https://www.remotion.dev/docs/media/video)
-- Package source and npm metadata of `@remotion/effects@4.0.535`, `@remotion/media@4.0.535` and `remotion@4.0.535` (exports, WebGL2 use, effect chain; checked 2026-10-16)
+- Package source and npm metadata of `@remotion/effects@4.0.536`, `@remotion/media@4.0.536` and `remotion@4.0.536` (exports, WebGL2 use, effect chain; checked 2026-10-19)
 
 ## @remotion/rough-notation
 
@@ -299,7 +299,7 @@ Missing:
 
 ### Work
 
-1. **Dependency.** `bun add --exact @remotion/rough-notation@4.0.535`.
+1. **Dependency.** `bun add --exact @remotion/rough-notation@4.0.536`.
 2. **Spec.** Add `look?: "clean" | "box" | "circle" | "underline" | "marker"` to `AnnotationSpec` (`src/shared/compile/recording.ts`) and to `Annotation` (`annotations.tsx`), and pass it through `resolveAnnotations`. A missing value means `clean`, so saved projects look the same.
 3. **Highlight box node.** Let `annotationNode` take extra params for one node, and give `cursor.highlightBox` a `look` choice: "Clean", "Hand-drawn box", "Circle", "Underline", "Marker". Add a `sketchiness` slider under `advanced`. The card adds the look to its row.
 4. **Drawing on the take.** In `annotations.tsx`, the `highlight` kind with a hand-drawn look renders an absolutely positioned block at the padded rect and wraps it in the matching component, with these props:
@@ -336,7 +336,7 @@ MIT (`@remotion/rough-notation`, `roughjs`). Both get entries in `THIRD_PARTY_NO
 - [Remotion: @remotion/rough-notation API](https://www.remotion.dev/docs/rough-notation/api)
 - [Remotion: `<Highlight>`](https://www.remotion.dev/docs/rough-notation/highlight), [`<Box>`](https://www.remotion.dev/docs/rough-notation/box), [`<Circle>`](https://www.remotion.dev/docs/rough-notation/circle), [`<Underline>`](https://www.remotion.dev/docs/rough-notation/underline)
 - [Remotion: Text highlights](https://www.remotion.dev/docs/text-highlights)
-- Package source and npm metadata of `@remotion/rough-notation@4.0.535` (measuring, `delayRender`, seed handling, `roughjs@4.6.6`; checked 2026-10-16)
+- Package source and npm metadata of `@remotion/rough-notation@4.0.536` (measuring, `delayRender`, seed handling, `roughjs@4.6.6`; checked 2026-10-19)
 
 ## @remotion/mac-cursors
 
@@ -378,7 +378,7 @@ Missing:
 
 3. **When to read.** Read once when a glide settles on its target and at each click or hover action, then carry the value forward. A glide starts with the arrow (`default`) and takes the read value when it settles, so a hand doesn't stay on all the way across the page after the cursor leaves a link. Shapes the cursor would show while passing over things mid-glide aren't recorded; that's accepted. Don't read on every travel sample: one page round trip per sample would slow the glide. Capture timing comes from frames, so make sure the extra reads don't change pacing noticeably.
 4. **Cache.** Bump `ENGINE_VERSION` in `src/worker/engine/cache.ts`: the Record executor's output changes. Takes are recorded again on their next run.
-5. **Dependency.** `bun add --exact @remotion/mac-cursors@4.0.535`. A static import is fine: 72 KB and no side effects.
+5. **Dependency.** `bun add --exact @remotion/mac-cursors@4.0.536`. A static import is fine: 72 KB and no side effects.
 6. **Spec and node.** Add `cursorLook?: "arrow" | "mac"` to `RecordingProps` (`src/shared/compile/recording.ts`), defaulting to `arrow`. Give `cursor.style` a `look` choice, "Simple arrow" (default) or "Mac", and show it on the card row.
 7. **Drawing.** In `cursor.tsx`, for `mac`, draw `resolveCursor(state.c ?? "default")` with `<Img>`. Size it 32 design px × `k` × the existing counter-scale, and offset it by the hotspot so the click point stays where the arrow tip was. The shape changes at the sample's time, without a crossfade. `null` (`none`) hides the cursor. The ripple stays centred on the hotspot.
 8. **Tests.** Unit-test the keyword clean-up (`"url(a.png) 4 4, pointer"` → `pointer`, `auto` on an input → `text`). Extend `src/video/camera/lib/cursor.test.ts` so `cursorAt` returns the latest sample's cursor.
@@ -397,8 +397,8 @@ npm shows `Remotion License`; the existing Remotion licence notice covers it, so
 ### Sources
 
 - [Remotion: @remotion/mac-cursors](https://www.remotion.dev/docs/mac-cursors)
-- Package source and npm metadata of `@remotion/mac-cursors@4.0.535` (cursor list, hotspots, inline SVGs, `resolveCursor`'s `url()` handling; checked 2026-10-16)
+- Package source and npm metadata of `@remotion/mac-cursors@4.0.536` (cursor list, hotspots, inline SVGs, `resolveCursor`'s `url()` handling; checked 2026-10-19)
 
 ## Decided
 
-- **Cursor artwork (decided): ship it,** relying on the package's Remotion licence. Checked 2026-10-17: the package (`@remotion/mac-cursors@4.0.535`, 39 cursors embedded as SVG data) credits no source, and the PR that added it ([remotion-dev/remotion#10264](https://github.com/remotion-dev/remotion/pull/10264)) doesn't say where the artwork came from. The file names match the folder names of macOS's own system cursors, so they are redrawings of Apple's cursor designs; they aren't copies of [cursor.in](https://github.com/sawyerh/cursor.in) (no licence; 7 files compared, all differ) or the GPL-3.0 `apple_cursor` set. Revisit if Remotion documents a source or licence for them.
+- **Cursor artwork (decided): ship it,** relying on the package's Remotion licence. Checked 2026-10-19: the package (`@remotion/mac-cursors@4.0.536`, 39 cursors embedded as SVG data) credits no source, and the PR that added it ([remotion-dev/remotion#10264](https://github.com/remotion-dev/remotion/pull/10264)) doesn't say where the artwork came from. The file names match the folder names of macOS's own system cursors, so they are redrawings of Apple's cursor designs; they aren't copies of [cursor.in](https://github.com/sawyerh/cursor.in) (no licence; 7 files compared, all differ) or the GPL-3.0 `apple_cursor` set. Revisit if Remotion documents a source or licence for them.

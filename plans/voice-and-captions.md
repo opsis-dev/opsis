@@ -16,7 +16,7 @@ These apply to every feature in this plan. They restate rules from `AGENTS.md`; 
 
 **Versions.**
 
-- Every `remotion` / `@remotion/*` package stays at exact `4.0.535`: `bun add --exact @remotion/<name>@4.0.535`. `@remotion/captions`, `@remotion/openai-whisper` and `@remotion/elevenlabs` are already in `node_modules` (through `@remotion/studio`) but Opsis imports them directly, so each becomes a direct dependency.
+- Every `remotion` / `@remotion/*` package stays at exact `4.0.536`: `bun add --exact @remotion/<name>@4.0.536`. `@remotion/captions`, `@remotion/openai-whisper` and `@remotion/elevenlabs` are already in `node_modules` (through `@remotion/studio`) but Opsis imports them directly, so each becomes a direct dependency.
 - Other packages: the latest release, through `bun add` / `bun add -d`. Never edit dependency blocks by hand.
 - Downloaded programs and models are pinned like FFmpeg (`FFMPEG_RELEASE` in `src/engine/paths.ts`): a fixed release, a fixed URL per platform, and a SHA-256 checked after the download.
 
@@ -193,7 +193,7 @@ The Voiceover node and Captions from speech can use an online service instead of
 
 Already in place:
 
-- `@remotion/elevenlabs` (`elevenLabsTranscriptToCaptions`) and `@remotion/openai-whisper` (`openAiWhisperApiToCaptions`) turn the services' transcripts into `Caption[]` (`{ text, startMs, endMs, timestampMs, confidence }`); both are in `node_modules` at 4.0.535, MIT, and make no requests themselves.
+- `@remotion/elevenlabs` (`elevenLabsTranscriptToCaptions`) and `@remotion/openai-whisper` (`openAiWhisperApiToCaptions`) turn the services' transcripts into `Caption[]` (`{ text, startMs, endMs, timestampMs, confidence }`); both are in `node_modules` at 4.0.536, MIT, and make no requests themselves.
 - Encrypted keys and the ask-first pattern from the first section.
 
 Missing:
@@ -202,7 +202,7 @@ Missing:
 
 ### Work
 
-1. **Dependencies.** `bun add --exact @remotion/captions@4.0.535 @remotion/elevenlabs@4.0.535 @remotion/openai-whisper@4.0.535`.
+1. **Dependencies.** `bun add --exact @remotion/captions@4.0.536 @remotion/elevenlabs@4.0.536 @remotion/openai-whisper@4.0.536`.
 2. **Requests** in `src/worker/speech/online.ts`, with `fetch` and the key read through `secret:read` (app scope):
    - ElevenLabs voice: `POST /v1/text-to-speech/{voice_id}/with-timestamps` (`xi-api-key` header, `voice_settings.speed`); decode `audio_base64`, turn `alignment` (per-character start and end times) into word times with a pure, tested function.
    - OpenAI voice: `POST /v1/audio/speech` with `gpt-4o-mini-tts`, a built-in voice and `response_format: "wav"`. It returns no timestamps and documents no speed setting, so word timing uses the Voiceover's estimate or the transcriber, and Speed is applied with FFmpeg's `atempo`.
@@ -231,7 +231,7 @@ Missing:
 - [ElevenLabs: Create speech with timing](https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps) and [Speech to text](https://elevenlabs.io/docs/api-reference/speech-to-text/convert) (checked 2026-10-16)
 - [OpenRouter: New audio APIs](https://openrouter.ai/blog/announcements/announcing-audio-apis/), [Text-to-speech](https://openrouter.ai/docs/guides/overview/multimodal/tts), [Create speech](https://openrouter.ai/docs/api/api-reference/tts/create-speech), [Speech-to-text](https://openrouter.ai/docs/guides/overview/multimodal/stt) and the [OpenRouter STT skill](https://github.com/OpenRouterTeam/skills/blob/main/skills/openrouter-stt/SKILL.md), which says the endpoint isn't OpenAI-compatible (checked 2026-10-17)
 - [OpenAI: Text to speech guide](https://developers.openai.com/docs/guides/text-to-speech) and [Speech to text guide](https://developers.openai.com/docs/guides/speech-to-text) (`timestamp_granularities` only for `whisper-1`) (checked 2026-10-16)
-- Package source of `@remotion/elevenlabs@4.0.535`, `@remotion/openai-whisper@4.0.535`, `@remotion/captions@4.0.535` in `node_modules` (exports, MIT) (checked 2026-10-16)
+- Package source of `@remotion/elevenlabs@4.0.536`, `@remotion/openai-whisper@4.0.536`, `@remotion/captions@4.0.536` in `node_modules` (exports, MIT) (checked 2026-10-19)
 
 ## Captions from speech
 

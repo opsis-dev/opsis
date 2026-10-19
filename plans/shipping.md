@@ -17,7 +17,7 @@ This covers milestone M6 of the original spec ("installers per OS via Forge make
 
 These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
-- No comments of any kind, kebab-case file names, dependencies only through `bun add` / `bun add -d` (latest releases; `remotion` / `@remotion/*` stay at exact `4.0.535`, `typescript` at `6.0.3`).
+- No comments of any kind, kebab-case file names, dependencies only through `bun add` / `bun add -d` (latest releases; `remotion` / `@remotion/*` stay at exact `4.0.536`, `typescript` at `6.0.3`).
 - Packaging rules in `AGENTS.md` **Packaging** hold: Forge's Vite plugin ships only `.vite/`, runtime packages are staged in `packageAfterCopy`, the Remotion bundle is prebuilt, the engine is staged for the host only, `LICENSES.chromium.html` always ships with the engine.
 - **Nothing uses the internet unless the user asks.** Checking for updates, downloading them and downloading node packs each sit behind a button or a setting that is off by default, and say what they will download before they do.
 - **User-facing copy** never names the tools behind it: "Check for updates", not "Squirrel"; "This app isn't signed yet", not "notarization failed".
@@ -291,7 +291,7 @@ GPL-only parts Opsis uses (searched `src/worker` and `src/shared/mix`):
 - [ffmpeg-static README](https://github.com/eugeneware/ffmpeg-static) (sources of the binaries per platform; checked 2026-10-16)
 - [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) (`lgpl` variants for Windows and Linux only, without libx264/libx265; checked 2026-10-16)
 - [OpenH264 FAQ](https://www.openh264.org/faq.html) (BSD source, royalties covered only for Cisco's binary; checked 2026-10-16)
-- `ffmpeg -version` of the installed ffmpeg-static binary and of `@remotion/compositor-linux-x64-gnu@4.0.535` (configure lines; run 2026-10-16)
+- `ffmpeg -version` of the installed ffmpeg-static binary and of `@remotion/compositor-linux-x64-gnu@4.0.536` (configure lines; run 2026-10-19)
 
 ## 6. Release test pass
 
