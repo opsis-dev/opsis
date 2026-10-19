@@ -62,6 +62,7 @@ export const Title: React.FC<CoreElementProps["core/title"]> = ({
   accent,
   background,
   fontSize,
+  fontWeight,
   fontFamily,
 }) => {
   const frame = useCurrentFrame();
@@ -85,7 +86,12 @@ export const Title: React.FC<CoreElementProps["core/title"]> = ({
         {eyebrow ? (
           <TitleLine look={LINES.eyebrow} text={eyebrow} color={accent} {...line} />
         ) : null}
-        <TitleLine look={LINES.title} text={title} color={color} {...line} />
+        <TitleLine
+          look={{ ...LINES.title, style: { ...LINES.title.style, fontWeight } }}
+          text={title}
+          color={color}
+          {...line}
+        />
         {subtitle ? (
           <TitleLine look={LINES.subtitle} text={subtitle} color={color} {...line} />
         ) : null}

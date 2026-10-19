@@ -13,11 +13,9 @@ const CAPTIONS = {
   paddingPx: 90,
   sidePadding: "10%",
   wordGapEm: 0.28,
-  weight: 800,
   shadow: "0 4px 24px rgba(0,0,0,0.55)",
   boxPaddingPx: [10, 22],
   boxRadiusPx: 16,
-  box: "rgba(0,0,0,0.35)",
   popFrom: 0.85,
   popGrowth: 0.15,
   unspokenOpacity: 0.55,
@@ -95,6 +93,8 @@ export const Captions: React.FC<CoreElementProps["core/captions"] & { captions: 
   fontSize,
   color,
   highlightColor,
+  panel,
+  fontWeight,
   fontFamily,
 }) => {
   const frame = useCurrentFrame();
@@ -125,11 +125,11 @@ export const Captions: React.FC<CoreElementProps["core/captions"] & { captions: 
           gap: `0 ${fontSize * CAPTIONS.wordGapEm * k}px`,
           fontFamily: fontOr(fontFamily, "main"),
           fontSize: fontSize * k,
-          fontWeight: CAPTIONS.weight,
+          fontWeight,
           textShadow: CAPTIONS.shadow,
           padding: `${boxPadY * k}px ${boxPadX * k}px`,
           borderRadius: CAPTIONS.boxRadiusPx * k,
-          background: CAPTIONS.box,
+          background: panel,
         }}
       >
         {line.map((word, i) => (

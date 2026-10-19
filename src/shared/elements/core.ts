@@ -7,6 +7,7 @@ import {
   ACCENT_COLOR,
   CALLOUT_COLOR,
   CAPTION_COLOR,
+  CAPTION_PANEL_COLOR,
   HIGHLIGHT_COLOR,
   PANEL_COLOR,
   TEXT_COLOR,
@@ -21,6 +22,8 @@ const source = {
 const num = (def: number, min: number, max: number, description: string, step = 1) =>
   z.number().min(min).max(max).default(def).meta({ description, step });
 const color = (def: string, description: string) => zColor().default(def).meta({ description });
+const weight = (def: number) =>
+  z.number().min(100).max(900).default(def).meta({ description: "Font weight", step: 10 });
 const font = () =>
   z.string().default("").meta({
     description: "Font",
@@ -43,6 +46,10 @@ export const captionsSchema = z.object({
   fontSize: num(56, 16, 140, "Font size"),
   color: color(CAPTION_COLOR, "Text colour"),
   highlightColor: color(HIGHLIGHT_COLOR, "Highlight colour"),
+  panel: more(color(CAPTION_PANEL_COLOR, "Panel colour"), {
+    help: "The box behind the words. Lower its opacity to let the video show through.",
+  }),
+  fontWeight: weight(800),
   fontFamily: font(),
 });
 
@@ -65,6 +72,7 @@ const components = {
       accent: color(ACCENT_COLOR, "Accent"),
       background: background("Background (colour, gradient or 'transparent')"),
       fontSize: num(112, 24, 260, "Font size"),
+      fontWeight: weight(760),
       fontFamily: font(),
     }),
     defaultDurationInFrames: 75,

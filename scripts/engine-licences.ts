@@ -1,6 +1,4 @@
-import os from "node:os";
 import path from "node:path";
-import { z } from "zod";
 import { writeChromiumCredits } from "../src/engine/chromium-credits";
 import {
   CHROMIUM_CREDITS_FILE,
@@ -8,23 +6,10 @@ import {
   engineStatus,
   userEngineDir,
 } from "../src/engine/paths";
-import { readJsonWith } from "./lib/read-json";
+import { devUserData } from "./lib/app-data";
 import { ROOT } from "./lib/tool-config";
 
-const appName = readJsonWith(
-  z.object({ productName: z.string() }),
-  path.join(ROOT, "package.json"),
-).productName;
-
-function electronAppData(): string {
-  if (process.platform === "darwin")
-    return path.join(os.homedir(), "Library", "Application Support");
-  if (process.platform === "win32")
-    return process.env.APPDATA ?? path.join(os.homedir(), "AppData", "Roaming");
-  return process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), ".config");
-}
-
-const engine = process.argv[2] ?? userEngineDir(path.join(electronAppData(), appName));
+const engine = process.argv[2] ?? userEngineDir(devUserData());
 const { complete, headlessShell } = engineStatus(engine);
 if (!complete || !headlessShell) {
   console.error(`No engine in ${engine}. Set it up from Settings → Engine first.`);

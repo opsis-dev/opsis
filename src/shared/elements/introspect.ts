@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isRecord } from "../guards";
 
 type FieldPreset = { label: string; values: Record<string, unknown> };
 
@@ -12,6 +13,7 @@ export const FIELD_WIDGETS = [
   "datetime",
   "envelope",
   "font",
+  "gradient",
   "keys",
   "loudness",
   "multiselect",
@@ -22,6 +24,7 @@ export const FIELD_WIDGETS = [
   "spot",
   "target",
   "textarea",
+  "theme",
   "timezone",
   "transition",
   "variable",
@@ -49,7 +52,13 @@ export type FieldMeta = {
   pauses?: boolean;
   timeKey?: string;
   showIf?: Record<string, string[]>;
+  showIfFile?: Record<string, Array<"image" | "video" | "audio">>;
+  themes?: Partial<Record<ThemeMode, Record<string, string>>>;
 };
+
+export const THEME_MODES = ["light", "dark"] as const;
+
+export type ThemeMode = (typeof THEME_MODES)[number];
 
 export const ANY_VALUE = "*";
 
@@ -121,3 +130,31 @@ export function withDefaults(
   for (const [key, value] of Object.entries(values)) if (value !== undefined) out[key] = value;
   return out;
 }
+
+export function mapLeaves(
+  schema: z.ZodType,
+  value: unknown,
+  leaf: (meta: FieldMeta, value: unknown) => unknown,
+): unknown {
+  const inner = unwrap(schema);
+  if (inner instanceof z.ZodObject && isRecord(value)) {
+    const out: Record<string, unknown> = { ...value };
+    for (const [key, field] of shapeEntries(inner)) {
+      if (!(key in value)) continue;
+      const mapped = mapLeaves(field, value[key], leaf);
+      if (mapped === undefined) delete out[key];
+      else out[key] = mapped;
+    }
+    return out;
+  }
+  if (inner instanceof z.ZodArray && Array.isArray(value) && inner.element instanceof z.ZodType) {
+    const element = inner.element;
+    return value.map((v) => mapLeaves(element, v, leaf));
+  }
+  return leaf(fieldMeta(schema), value);
+}
+
+export const REMOTION_COLOR = "__remotion-color";
+
+export const isColorSchema = (schema: z.ZodType): boolean =>
+  unwrap(schema).description === REMOTION_COLOR || fieldMeta(schema).widget === "color";

@@ -16,7 +16,8 @@ function sliderRange(min: number | undefined, max: number | undefined): StepRang
   return { min, max, step: max - min <= FINE_RANGE ? FINE_STEP : WHOLE_STEP };
 }
 
-type NumberProps = FieldProps<number> & Partial<MinMax>;
+type NumberProps = Omit<FieldProps<number>, "value"> &
+  Partial<MinMax> & { value: number | undefined; onClear?: () => void };
 
 export function PresetNumber({
   label,
@@ -40,12 +41,24 @@ export function PresetNumber({
   );
 }
 
-export function NumberField({ id, label, value, min, max, meta, ctx, onChange }: NumberProps) {
+export function NumberField({
+  id,
+  label,
+  value,
+  min,
+  max,
+  meta,
+  ctx,
+  onChange,
+  onClear,
+}: NumberProps) {
   const scale = unitScale(meta.unit, ctx.fps);
-  const shown = meta.zeroLabel && value === 0 ? "" : shownText(value, scale);
+  const zeroIsEmpty = !onClear && meta.zeroLabel && value === 0;
+  const shown = value === undefined || zeroIsEmpty ? "" : shownText(value, scale);
   const input = useDecimalInput(shown, "edit", (text) => {
     if (text.trim() === "") {
-      if (meta.zeroLabel) onChange(0);
+      if (onClear) onClear();
+      else if (meta.zeroLabel) onChange(0);
       return;
     }
     const n = parseShown(text, scale);
@@ -60,7 +73,7 @@ export function NumberField({ id, label, value, min, max, meta, ctx, onChange }:
           <Input
             id={id}
             className="h-7 w-24 text-right tabular-nums"
-            placeholder={meta.zeroLabel}
+            placeholder={onClear ? (meta.zeroLabel ?? "Auto") : meta.zeroLabel}
             {...input}
           />
           {scale.unit ? (
@@ -73,7 +86,7 @@ export function NumberField({ id, label, value, min, max, meta, ctx, onChange }:
           min={slider.min}
           max={slider.max}
           step={meta.step ?? slider.step}
-          value={value}
+          value={value ?? min ?? 0}
           onChange={onChange}
         />
       ) : null}

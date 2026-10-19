@@ -70,7 +70,14 @@ describe("compileWorkflow — sample project", () => {
     const props = recordingIn(out.specs.render);
     expect(props?.src).toBe("project:.opsis/cache/h/recording.mp4");
     expect(props?.tuning.sMax).toBe(1.74);
-    expect(props?.keystrokes).toEqual({ position: "bottom", typed: true, chords: true });
+    expect(props?.keystrokes).toEqual({
+      position: "bottom",
+      typed: true,
+      chords: true,
+      keycap: "#0a0a0a",
+      ink: "#ffffff",
+      size: 1,
+    });
   });
 
   it("marks every action of the recording on the timeline at its frame", () => {

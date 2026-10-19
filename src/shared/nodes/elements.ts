@@ -10,13 +10,24 @@ import {
 } from "../compile/clip";
 import { ELEMENTS, elementNodeType } from "../elements";
 import { CAPTIONS_ELEMENT } from "../elements/core";
-import { assetKeys, widgetKeys } from "../elements/introspect";
+import {
+  assetKeys,
+  fieldMeta,
+  isColorSchema,
+  mapLeaves,
+  shapeEntries,
+  unwrap,
+  widgetKeys,
+  type FieldMeta,
+} from "../elements/introspect";
+import { isThemeValue, themeColors } from "../elements/theme";
 import type { ElementCategory, ElementMeta } from "../elements/types";
 import { fontProp } from "../fonts";
 import { plural } from "../format";
-import { isString, nonBlankString } from "../guards";
+import { parseGradient } from "../gradient";
+import { isNumber, isRecord, isString, nonBlankString } from "../guards";
 import { MAX_FRAMES } from "../limits";
-import type { EditHandles, VisualEnvelope } from "../schema/timeline";
+import type { AudioItem, EditHandles, VisualEnvelope } from "../schema/timeline";
 import type { ClipValue } from "../schema/values";
 import {
   connectedPorts,
@@ -61,6 +72,59 @@ const SHORT_ELEMENT_RATIO = 0.6;
 const titleKeys = (schema: ElementMeta["schema"]): string[] =>
   TEXT_KEYS.filter((k) => k in schema.shape);
 
+function paletteRow(colors: unknown): CardRow | null {
+  if (!Array.isArray(colors) || colors.length === 0 || !colors.every(isString)) return null;
+  return row("palette", plural(colors.length, "colour"), {
+    title: colors.join(", "),
+    swatches: colors,
+  });
+}
+
+function gradientRow(value: unknown): CardRow | null {
+  if (!isString(value)) return null;
+  const gradient = parseGradient(value);
+  if (!gradient) return null;
+  const stops = gradient.stops.map((s) => s.color);
+  return row("blend", gradient.type === "linear" ? "Straight gradient" : "Round gradient", {
+    title: value,
+    swatches: stops,
+  });
+}
+
+function themeRow(value: unknown): CardRow | null {
+  if (!isThemeValue(value)) return null;
+  const changed = Object.values(themeColors(value));
+  const mode = value.mode === "light" ? "Light theme" : "Dark theme";
+  return row(
+    value.mode === "light" ? "sun" : "moon",
+    changed.length ? `${mode} · ${plural(changed.length, "colour")} changed` : mode,
+    changed.length ? { swatches: changed } : {},
+  );
+}
+
+function lookRow(meta: ElementMeta, params: ElementParams): CardRow | null {
+  for (const [key, field] of shapeEntries(meta.schema)) {
+    const inner = unwrap(field);
+    const { widget, showIf } = fieldMeta(field);
+    const shown = Object.entries(showIf ?? {}).every(([k, allowed]) =>
+      allowed.includes(String(params[k] ?? "")),
+    );
+    if (!shown) continue;
+    const found =
+      inner instanceof z.ZodArray &&
+      inner.element instanceof z.ZodType &&
+      isColorSchema(inner.element)
+        ? paletteRow(params[key])
+        : widget === "gradient"
+          ? gradientRow(params[key])
+          : widget === "theme"
+            ? themeRow(params[key])
+            : null;
+    if (found) return found;
+  }
+  return null;
+}
+
 function elementCard(
   meta: ElementMeta,
   titles: string[],
@@ -70,10 +134,12 @@ function elementCard(
   const rows: CardRow[] = [];
   const title = titles.map((k) => nonBlankString(params[k])).find(Boolean);
   if (title) rows.push(row("type", quote(title)));
-  for (const asset of assetKeys(meta.schema)) {
-    const file = nonBlankString(params[asset]);
-    if (file) rows.push(fileRow("file", file));
-  }
+  const file = assetKeys(meta.schema)
+    .map((k) => nonBlankString(params[k]))
+    .find(Boolean);
+  if (file) rows.push(fileRow("file", file));
+  const look = lookRow(meta, params);
+  if (look) rows.push(look);
   rows.push(durationRow(meta, params.clipDuration, fps));
   return rows;
 }
@@ -105,18 +171,54 @@ const NODE_CATEGORY_FOR: Record<ElementCategory, NodeCategory> = {
   transition: "Transitions",
 };
 
+function settingValue(meta: FieldMeta, value: unknown): unknown {
+  if (meta.zeroLabel && value === "") return undefined;
+  if (meta.widget === "asset" && isString(value)) return projectRef(value);
+  return value;
+}
+
 function elementProps(meta: ElementMeta, params: Record<string, unknown>): Record<string, unknown> {
-  const props: Record<string, unknown> = { ...meta.fixedProps, ...params };
+  const mapped = mapLeaves(meta.schema, params, settingValue);
+  const props: Record<string, unknown> = {
+    ...meta.fixedProps,
+    ...(isRecord(mapped) ? mapped : {}),
+  };
   for (const key of widgetKeys(meta.schema, "font")) {
     const stack = fontProp(props[key]);
     if (stack) props[key] = stack;
     else delete props[key];
   }
-  for (const key of assetKeys(meta.schema)) {
-    const path = props[key];
-    if (isString(path)) props[key] = projectRef(path);
-  }
   return props;
+}
+
+export const soundVolumeKey = (soundKey: string): string => `${soundKey}Volume`;
+
+function elementSounds(
+  meta: ElementMeta,
+  nodeId: string,
+  props: Record<string, unknown>,
+  frames: number,
+): AudioItem[] {
+  return widgetKeys(meta.schema, "sound").flatMap((key): AudioItem[] => {
+    const src = props[key];
+    const volume = props[soundVolumeKey(key)];
+    delete props[key];
+    delete props[soundVolumeKey(key)];
+    if (!isString(src) || !src) return [];
+    return [
+      {
+        id: `${nodeId}:${key}`,
+        src: projectRef(src),
+        from: 0,
+        durationInFrames: frames,
+        volume: isNumber(volume) ? volume : 1,
+        nodeId,
+        channel: nodeId,
+        role: "music",
+        handles: { volume: { nodeId, param: soundVolumeKey(key), unit: "number" } },
+      },
+    ];
+  });
 }
 
 function compileElement(
@@ -127,11 +229,11 @@ function compileElement(
 ): ClipValue {
   const props = elementProps(meta, params);
   const handles: EditHandles = { trimEnd: { nodeId, param: "clipDuration", unit: "frames" } };
-  if (meta.kind !== "wrapper" || !input)
-    return itemClip(nodeId, meta.key, props, clipDuration || meta.defaultDurationInFrames, {
-      handles,
-      envelope,
-    });
+  if (meta.kind !== "wrapper" || !input) {
+    const frames = clipDuration || meta.defaultDurationInFrames;
+    const audio = elementSounds(meta, nodeId, props, frames);
+    return itemClip(nodeId, meta.key, props, frames, { handles, envelope, audio });
+  }
   const wrapped = wrapClip(
     input,
     nodeId,

@@ -116,3 +116,15 @@ export function sourceDefaults(source: string, exportName: string): Map<string, 
   }
   return out;
 }
+
+export function bindingDefaults(source: string): Map<string, unknown> {
+  const sf = scratchFile("bindings", "tsx", source);
+  const out = new Map<string, unknown>();
+  for (const el of sf.getDescendantsOfKind(SyntaxKind.BindingElement)) {
+    const init = el.getInitializer();
+    if (!init || el.getDotDotDotToken()) continue;
+    const key = el.getPropertyNameNode()?.getText() ?? el.getName();
+    if (!out.has(key)) out.set(key, literal(init, sf));
+  }
+  return out;
+}

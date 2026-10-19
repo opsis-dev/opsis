@@ -216,6 +216,7 @@ function Surface({
   pauses,
   placeholder,
   empty,
+  lines,
 }: {
   id: string;
   editable: Editable;
@@ -223,6 +224,7 @@ function Surface({
   pauses: boolean;
   placeholder?: string;
   empty: boolean;
+  lines?: LineHandlers;
 }) {
   const { ref, commit, saveRange, insert } = editable;
   return (
@@ -242,13 +244,24 @@ function Surface({
       onMouseUp={saveRange}
       onBlur={saveRange}
       onKeyDown={(e) => {
+        if (e.key === "Backspace" && empty && lines) {
+          e.preventDefault();
+          lines.onRemoveEmpty();
+          return;
+        }
         if (e.key !== "Enter") return;
         e.preventDefault();
         if (multiline) document.execCommand("insertLineBreak");
+        else lines?.onEnter();
       }}
       onPaste={(e) => {
         e.preventDefault();
         const text = e.clipboardData.getData("text/plain");
+        const pasted = text.split(/\r?\n/).filter((line) => line.trim());
+        if (!multiline && lines && pasted.length > 1) {
+          lines.onPasteLines(pasted);
+          return;
+        }
         saveRange();
         insert(tokenize(multiline ? text : flattenLines(text), pauses));
       }}
@@ -286,6 +299,12 @@ function MultilineFooter({
   );
 }
 
+export type LineHandlers = {
+  onEnter: () => void;
+  onRemoveEmpty: () => void;
+  onPasteLines: (lines: string[]) => void;
+};
+
 export function VarText({
   id,
   value,
@@ -294,6 +313,7 @@ export function VarText({
   multiline = false,
   pauses = false,
   placeholder,
+  lines,
 }: {
   id: string;
   value: string;
@@ -302,6 +322,7 @@ export function VarText({
   multiline?: boolean;
   pauses?: boolean;
   placeholder?: string;
+  lines?: LineHandlers;
 }) {
   const editable = useEditable({ value, onChange, vars, pauses });
   const surface = (
@@ -312,6 +333,7 @@ export function VarText({
       pauses={pauses}
       placeholder={placeholder}
       empty={!value}
+      lines={lines}
     />
   );
   if (multiline)

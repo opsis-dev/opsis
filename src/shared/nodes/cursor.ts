@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { patchRecordings } from "../compile/clip";
-import type { AnnotationKind, AnnotationSpec, KeystrokePosition } from "../compile/recording";
+import {
+  DEFAULT_CURSOR_LOOK,
+  DEFAULT_KEYCAP,
+  DEFAULT_RIPPLE,
+  type AnnotationKind,
+  type AnnotationSpec,
+  type KeystrokePosition,
+} from "../compile/recording";
+import { fontProp } from "../fonts";
 import { joinParts, LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
 import { defineNode, modifierBase, withClip, type NodeCategory, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
@@ -17,17 +25,27 @@ const cursorStyleNode = defineNode({
   ...base,
   type: "cursor.style",
   title: "Cursor",
-  description: "Shows or hides the drawn cursor and sets its size.",
+  description: "Shows or hides the drawn cursor and sets its size and colours.",
   card: ({ params: p }) => [
-    row("mouse-pointer", p.visible ? `Shown · ${p.size}×` : "Hidden", mutedIf(!p.visible)),
+    row("mouse-pointer", p.visible ? `Shown · ${p.size}×` : "Hidden", {
+      ...mutedIf(!p.visible),
+      ...(p.visible ? { swatches: [p.color, p.outline] } : {}),
+    }),
   ],
   params: z.object({
     visible: bool(true, "Show the cursor"),
     size: num(1, "Size", { min: 0.4, max: 3, step: 0.05, unit: "×" }),
+    color: more(text(DEFAULT_CURSOR_LOOK.fill, "Colour"), { widget: "color" }),
+    outline: more(text(DEFAULT_CURSOR_LOOK.edge, "Outline colour"), { widget: "color" }),
   }),
   compile: ({ inputs, params }) =>
     withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({ ...p, cursor: params.visible, cursorScale: params.size })),
+      patchRecordings(clip, (p) => ({
+        ...p,
+        cursor: params.visible,
+        cursorScale: params.size,
+        cursorLook: { fill: params.color, edge: params.outline },
+      })),
     ),
 });
 
@@ -36,10 +54,25 @@ const clickRippleNode = defineNode({
   type: "cursor.clickRipple",
   title: "Click ripple",
   description: "A ring that pulses on every click.",
-  card: ({ params: p }) => [toggleRow("circle-dot", p.enabled)],
-  params: z.object({ enabled: bool(true, "Ripple on every click") }),
-  compile: ({ inputs, params }) =>
-    withClip(inputs, (clip) => patchRecordings(clip, (p) => ({ ...p, ripple: params.enabled }))),
+  card: ({ params: p }) => [
+    toggleRow("circle-dot", p.enabled),
+    p.enabled && row("palette", `${p.size}×`, { swatches: [p.color] }),
+  ],
+  params: z.object({
+    enabled: bool(true, "Ripple on every click"),
+    color: more(text(DEFAULT_RIPPLE.color, "Colour"), { widget: "color" }),
+    size: num(DEFAULT_RIPPLE.size, "Size", { min: 0.3, max: 4, step: 0.05, unit: "×" }),
+    width: more(
+      num(DEFAULT_RIPPLE.width, "Ring width", { min: 0.5, max: 12, step: 0.5, unit: "px" }),
+      {
+        advanced: true,
+      },
+    ),
+  }),
+  compile: ({ inputs, params: { enabled, color, size, width } }) =>
+    withClip(inputs, (clip) =>
+      patchRecordings(clip, (p) => ({ ...p, ripple: enabled ? { color, size, width } : null })),
+    ),
 });
 
 const keystrokeChipsNode = defineNode({
@@ -61,19 +94,46 @@ const keystrokeChipsNode = defineNode({
     position: choiceOf(CHIP_POSITIONS, "bottom", "Position"),
     typed: bool(true, "Show typed text"),
     chords: bool(true, "Show shortcuts"),
+    keycap: more(text(DEFAULT_KEYCAP.keycap, "Keycap colour"), { widget: "color" }),
+    ink: more(text(DEFAULT_KEYCAP.ink, "Text colour"), { widget: "color" }),
+    size: num(1, "Size", { min: 0.4, max: 3, step: 0.05, unit: "×" }),
   }),
   compile: ({ inputs, params }) =>
     withClip(inputs, (clip) => patchRecordings(clip, (p) => ({ ...p, keystrokes: params }))),
 });
+
+type AnnotationText = { fontSize: number; textColor?: string };
 
 type Annotation = Pick<NodeDef, "type" | "title" | "description"> & {
   category?: NodeCategory;
   icon: NodeIconName;
   kind: AnnotationKind;
   defaults: { text?: string; color: string };
+  label?: AnnotationText;
 };
 
-export function annotationNode({ kind, defaults, icon, category = "Cursor", ...def }: Annotation) {
+function labelParams(label: AnnotationText | undefined) {
+  if (!label) return {};
+  return {
+    ...(label.textColor
+      ? { textColor: more(text(label.textColor, "Text colour"), { widget: "color" }) }
+      : {}),
+    fontSize: int(label.fontSize, "Font size", { min: 8, max: 160, unit: "px" }),
+    font: more(text("", "Font"), {
+      widget: "font",
+      help: "Project font follows the fonts set for the whole project.",
+    }),
+  };
+}
+
+export function annotationNode({
+  kind,
+  defaults,
+  icon,
+  label,
+  category = "Cursor",
+  ...def
+}: Annotation) {
   return defineNode({
     ...modifierBase(category),
     ...def,
@@ -93,14 +153,19 @@ export function annotationNode({ kind, defaults, icon, category = "Cursor", ...d
       padding: int(10, "Space around", { min: 0, max: 80, unit: "px" }),
       leadMs: ms(250, "Appear early by", 5000),
       holdMs: ms(1400, "Stay for", 10_000),
+      ...labelParams(label),
     }),
-    compile: ({ inputs, params }) =>
-      withClip(inputs, (clip) =>
-        patchRecordings(clip, (p) => ({
-          ...p,
-          annotations: [...p.annotations, { kind, ...params } satisfies AnnotationSpec],
-        })),
-      ),
+    compile: ({ inputs, params }) => {
+      const { font, ...rest }: { font?: string } & Omit<AnnotationSpec, "kind"> = params;
+      const spec: AnnotationSpec = {
+        kind,
+        ...rest,
+        ...(fontProp(font) ? { font: fontProp(font) } : {}),
+      };
+      return withClip(inputs, (clip) =>
+        patchRecordings(clip, (p) => ({ ...p, annotations: [...p.annotations, spec] })),
+      );
+    },
   });
 }
 

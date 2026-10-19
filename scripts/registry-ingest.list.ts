@@ -1,5 +1,6 @@
 import type { FieldWidget } from "../src/shared/elements/introspect";
 import type { ElementCategory } from "../src/shared/elements/types";
+import { pascalCase } from "../src/shared/format";
 import type { StepRange } from "../src/shared/math";
 
 type RegistryCategory = Exclude<ElementCategory, "core">;
@@ -20,6 +21,9 @@ export const CONTROL_TYPES = [
   "numbers",
   "rows",
   "object",
+  "colors",
+  "gradient",
+  "theme",
 ] as const;
 
 export type ControlType = (typeof CONTROL_TYPES)[number];
@@ -38,7 +42,44 @@ export type ControlSpec = {
   options?: string[];
   widget?: FieldWidget;
   hidden?: boolean;
+  columns?: Record<string, ControlSpec>;
+  emptyLabel?: string;
+  optional?: boolean;
+  showIf?: Record<string, string[]>;
+  labels?: Record<string, string>;
 };
+
+export const OMIT_KINDS = ["timing", "function", "react-node", "internal", "sound"] as const;
+
+type OmitKind = (typeof OMIT_KINDS)[number];
+
+export type OmitReason = OmitKind | `${OmitKind}: ${string}`;
+
+export const HIDDEN_PROPS: Record<string, OmitReason> = {
+  children: "react-node",
+  ref: "internal",
+  className: "internal",
+  style: "internal",
+  frame: "internal: the timeline sets the frame",
+  delay: "timing",
+  delayInFrames: "timing",
+  startFrame: "timing",
+  startFrom: "timing",
+  holdSeconds: "timing",
+  exitAtInFrames: "timing",
+  exitInFrames: "timing",
+  exitStaggerInFrames: "timing",
+  valueFormatter: "function",
+  mediaFilter: "internal",
+};
+
+export type ThemeFamily = "prop" | "context";
+
+export type ThemeSource = { family: ThemeFamily; presets: string; mode: "light" | "dark" };
+
+export type RowLists = Record<string, Record<string, string>>;
+
+export type LogoMarks = { from: string; to: string };
 
 export type CuratedElement = {
   registry: "remocn" | "snapcn" | "remotionui";
@@ -47,7 +88,14 @@ export type CuratedElement = {
   title?: string;
   exportName?: string;
   controls?: Record<string, ControlSpec>;
-  omit?: string[];
+  omit?: Partial<Record<string, OmitReason>>;
+  nest?: Record<string, string>;
+  lists?: RowLists;
+  marks?: LogoMarks;
+  theme?: ThemeSource;
+  ticks?: string;
+  tree?: string;
+  props?: "unchecked";
   defaults?: Record<string, unknown>;
   fixedProps?: Record<string, unknown>;
   durationInFrames?: number;
@@ -127,7 +175,7 @@ const fromRegistry =
     names.map((name) => ({ registry, name, category, ...base, ...extra }));
 
 const remocn = fromRegistry("remocn");
-const snapcn = fromRegistry("snapcn", { fixedProps: { mode: "dark" } });
+const snapcn = fromRegistry("snapcn");
 
 const remotionui = fromRegistry("remotionui");
 
@@ -186,6 +234,10 @@ export const DESCRIPTIONS: Partial<Record<string, string>> = {
   "text-mask-video": "Big letters with a video, image or gradient showing through them.",
   "aurora-bg": "Soft ribbons of light drifting across a dark sky.",
   "particle-field": "Glowing particles drifting at different depths.",
+  "laptop-frame":
+    "A laptop that opens, shows a notification in its notch, then moves the camera into the screen until your clip fills the frame.",
+  "phone-frame":
+    "A phone frame with a notch and a screen slot for your clip, flat or tilted, with rise, rotate-in or float entrances.",
 };
 
 const METRICS = [
@@ -337,7 +389,7 @@ const REMOTION_UI: CuratedElement[] = [
       subtitle: "Start free. No credit card needed.",
       cta: "Start free trial",
       url: "example.com/signup",
-      handles: ["@acme", "github.com/acme"],
+      handles: ["@acme", "acme.example/blog"],
     },
   }),
   ...remotionui("ui", ["code-reveal"], {
@@ -421,22 +473,17 @@ const REMOTION_UI: CuratedElement[] = [
     screen: true,
     center: true,
     defaults: { scale: 1.6 },
-    fixedProps: {
-      phone: { label: "Phone" },
-      tablet: { label: "Tablet" },
-      laptop: { label: "Laptop" },
-    },
   }),
   ...remotionui("text", ["handwriting-text"], {
     title: "Handwriting",
     center: true,
-    omit: ["durationInFrames"],
+    omit: { durationInFrames: "timing: the clip length sets it" },
     defaults: { text: "Signed by hand", penColor: "#e8b86d" },
   }),
   ...remotionui("text", ["neon-flicker-text"], {
     title: "Neon sign",
     center: true,
-    omit: ["durationInFrames"],
+    omit: { durationInFrames: "timing: the clip length sets it" },
     defaults: { text: "Open all night" },
   }),
   ...remotionui("text", ["text-mask-video"], {
@@ -451,7 +498,25 @@ const REMOTION_UI: CuratedElement[] = [
         help: "A video or image to show through the letters.",
         accept: "video/*,image/*",
       },
+      gradient: {
+        type: "gradient",
+        default: "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)",
+        description: "Gradient fill",
+        showIf: { media: ["gradient"] },
+      },
+      fontSize: {
+        type: "number",
+        optional: true,
+        min: 12,
+        max: 600,
+        description: "Font size",
+        emptyLabel: "Fit",
+        unit: "px",
+        help: "Leave empty to fit the text to the frame.",
+        advanced: true,
+      },
     },
+    omit: { width: "internal: sized from the text", height: "internal: sized from the text" },
   }),
   ...remotionui("background", ["aurora-bg"], { title: "Aurora" }),
   ...remotionui("background", ["particle-field"], { title: "Particle field" }),
@@ -498,7 +563,10 @@ const NEUTRAL_DEFAULTS: Partial<Record<string, Record<string, unknown>>> = {
   "inline-highlight": { before: "Ship faster with ", highlight: "Acme", after: "." },
   "terminal-simulator": { title: "~/projects/acme" },
   "search-reveal": { text: "acme" },
-  "laptop-frame": { screenSrc: "app:placeholders/screen-wide.svg" },
+  "laptop-frame": {
+    screenSrc: "app:placeholders/screen-wide.svg",
+    notchLabel: "Recording started",
+  },
   "phone-frame": { screenSrc: "app:placeholders/screen-tall.svg" },
   "screen-recording": { src: "app:placeholders/screen-wide.svg" },
   "announce-title": {
@@ -523,13 +591,7 @@ const NEUTRAL_DEFAULTS: Partial<Record<string, Record<string, unknown>>> = {
   },
 };
 
-const NEUTRAL_FIXED_PROPS: Partial<Record<string, Record<string, unknown>>> = {
-  "logo-assemble": {
-    images: ["aurora", "bloom", "canyon", "chalk", "cobalt", "dusk", "ember", "flare"].map(
-      (name) => `app:backdrops/${name}.jpg`,
-    ),
-  },
-};
+const NEUTRAL_FIXED_PROPS: Partial<Record<string, Record<string, unknown>>> = {};
 
 const PAINTED: Partial<Record<string, string>> = {
   typewriter: "white",
@@ -542,6 +604,952 @@ const PAINTED: Partial<Record<string, string>> = {
   "strikethrough-replace": "white",
   "marker-highlight": "white",
   "inline-highlight": "white",
+};
+
+export const FONT_WEIGHTS = ["400", "500", "600", "700"];
+
+const fontWeight = (value: number): ControlSpec => ({
+  type: "enum",
+  options: FONT_WEIGHTS,
+  default: String(value),
+  description: "Font weight",
+});
+
+const colorsControl = (min: number, max: number, help?: string): ControlSpec => ({
+  type: "colors",
+  min,
+  max,
+  description: "Colours",
+  ...(help ? { help } : {}),
+});
+
+export const SPEED_RANGE: StepRange = { min: 0.25, max: 4, step: 0.25 };
+
+const advancedNumber = (description: string, value: number, range: StepRange): ControlSpec =>
+  numberControl(description, value, range, { advanced: true });
+
+const themeBackground: ControlSpec = {
+  type: "color",
+  default: "",
+  emptyLabel: "Theme",
+  description: "Background",
+  help: "Leave empty to follow the theme.",
+};
+
+const optionalColor = (description: string, emptyLabel = "Default"): ControlSpec => ({
+  type: "color",
+  default: "",
+  emptyLabel,
+  description,
+});
+
+const optionalNumber = (
+  description: string,
+  range: StepRange,
+  extra: Pick<ControlSpec, "unit" | "help" | "advanced" | "emptyLabel"> = {},
+): ControlSpec => ({
+  type: "number",
+  optional: true,
+  emptyLabel: "Auto",
+  description,
+  ...range,
+  ...extra,
+});
+
+const text = (
+  description: string,
+  value: string,
+  extra: Partial<ControlSpec> = {},
+): ControlSpec => ({
+  type: "text",
+  default: value,
+  description,
+  ...extra,
+});
+
+const image = (description: string, value = "", extra: Partial<ControlSpec> = {}): ControlSpec => ({
+  type: "asset",
+  default: value,
+  accept: "image/*",
+  description,
+  ...extra,
+});
+
+const theme = (family: ThemeFamily, mode: "light" | "dark"): Partial<CuratedElement> => ({
+  theme: {
+    family,
+    mode,
+    presets: family === "prop" ? "snap-cn-ui/theme.ts" : "remocn-ui/theme.ts",
+  },
+  controls: { theme: { type: "theme", description: "Theme" } },
+  omit: { mode: "internal: the theme sets it" },
+});
+
+const snapTheme = (mode: "light" | "dark", extra: Partial<CuratedElement> = {}) => {
+  const base = theme("prop", mode);
+  return {
+    ...extra,
+    ...base,
+    controls: { ...base.controls, ...extra.controls },
+    omit: { ...base.omit, ...extra.omit },
+  };
+};
+
+const remocnTheme = (extra: Partial<CuratedElement> = {}) => {
+  const base = theme("context", "light");
+  return {
+    ...extra,
+    ...base,
+    controls: { ...base.controls, ...extra.controls },
+    omit: { ...base.omit, ...extra.omit },
+  };
+};
+
+const SHADER_SPEED: Record<string, ControlSpec> = {
+  speed: advancedNumber("Speed", 1, SPEED_RANGE),
+};
+
+const transitionColors = (
+  [min, max]: [number, number],
+  extra: Record<string, ControlSpec> = {},
+) => ({
+  controls: { colors: colorsControl(min, max), ...SHADER_SPEED, ...extra },
+});
+
+const LOGO_MARK = "app:placeholders/logo-mark.svg";
+
+const MUSIC: Record<string, ControlSpec> = {
+  music: {
+    type: "text",
+    default: "",
+    widget: "sound",
+    emptyLabel: "None",
+    description: "Music",
+    help: "Plays through the Mixer like any other music.",
+  },
+  musicVolume: numberControl("Music volume", 1, { min: 0, max: 1, step: 0.01 }),
+};
+
+const LAUNCH_COPY: Array<[key: string, scene: string, label: string, text: string]> = [
+  ["ready", "Opening", "after the subject", "deserve a stage"],
+  ["next", "Action", "lead-in", "Let’s make"],
+  ["action", "Action", "button text", "them real"],
+  ["proof", "Proof", "headline", "Your work.\nA clearer view."],
+  ["industry", "Industry", "headline", "Built around you"],
+  ["promise", "Industry", "promise", "Made to be yours."],
+  ["launch", "Closing", "call to action", "Begin"],
+  ["shoppers", "Shop screen", "headline", "Small things. Well made."],
+  ["shopName", "Shop screen", "shop name", "Object Study"],
+  ["shopHeadline", "Shop screen", "shop headline", "Everyday, considered."],
+  ["shopDetail", "Shop screen", "shop detail", "Useful objects. Quiet details."],
+  ["shopAction", "Shop screen", "shop button", "Explore the objects"],
+  ["builder", "Builder screen", "headline", "Turn a brief into a workspace"],
+  ["builderPrompt", "Builder screen", "prompt", "Create a workspace for our next product release"],
+  ["trading", "Review screen", "headline", "Review once.\nMove forward."],
+  ["loyalty", "Ideas screen", "headline", "A place for every idea"],
+  ["loyaltyPayoff", "Ideas screen", "payoff", "Room for the next one"],
+  ["integration", "Tools screen", "headline", "Bring your work together"],
+  ["connections", "Tools screen", "closing line", "Connect your tools.\nKeep work moving."],
+];
+
+const LAUNCH_SCREENS = [
+  "dashboard",
+  "shoppers",
+  "exchange",
+  "builder",
+  "trading",
+  "loyalty",
+  "integrations",
+];
+
+const LAUNCH_MEDIA = ["desk", "horizon", "rocket", "earth"];
+
+const launchAnything: Partial<CuratedElement> = {
+  controls: {
+    opening: text("Opening: first word", "Good"),
+    subject: text("Opening: second word", "ideas"),
+    brandUrl: text("Closing: web address", "yourproduct.example"),
+    accentColor: { type: "color", default: "#245744", description: "Accent colour" },
+    ...Object.fromEntries(
+      LAUNCH_COPY.map(([key, scene, label, value]) => [
+        `copy${pascalCase(key)}`,
+        text(`${scene}: ${label}`, value, { advanced: true }),
+      ]),
+    ),
+    copyIntegrations: {
+      type: "strings",
+      default: ["Files", "Messages", "Calendar"],
+      description: "Tools screen: tools",
+      advanced: true,
+    },
+    ...Object.fromEntries(
+      LAUNCH_SCREENS.map((id) => [
+        `screen${pascalCase(id)}`,
+        image(`Screen: ${id}`, "", {
+          emptyLabel: "Built-in screen",
+          help: "Shown on the laptop for this part. Leave empty for the built-in screen.",
+          advanced: true,
+        }),
+      ]),
+    ),
+    ...Object.fromEntries(
+      LAUNCH_MEDIA.map((id) => [
+        `photo${pascalCase(id)}`,
+        image(`Photo: ${id}`, "", { emptyLabel: "Built-in photo", advanced: true }),
+      ]),
+    ),
+    logoImages: {
+      type: "rows",
+      default: [],
+      description: "Logos",
+      help: "Marks for the floating grid in the proof scene.",
+      columns: { image: image("Image", LOGO_MARK) },
+    },
+    logoSrc: image("Logo", "", { emptyLabel: "Built-in mark" }),
+    ...MUSIC,
+  },
+  nest: {
+    ...Object.fromEntries(LAUNCH_COPY.map(([key]) => [`copy${pascalCase(key)}`, `content.${key}`])),
+    copyIntegrations: "content.integrations",
+    ...Object.fromEntries(
+      LAUNCH_SCREENS.map((id) => [`screen${pascalCase(id)}`, `screenImages.${id}`]),
+    ),
+    ...Object.fromEntries(LAUNCH_MEDIA.map((id) => [`photo${pascalCase(id)}`, `media.${id}`])),
+  },
+  lists: { logoImages: { image: "logos" } },
+  omit: {
+    audioSrc: "sound: the Music setting plays it through the mix",
+    volume: "sound: the Music setting plays it through the mix",
+  },
+};
+
+const NEUTRAL_AGENT_RUN = {
+  title: "Checkout conversion drop",
+  prompt: "Why did checkout conversion drop last week?",
+  plan: [
+    "Compare the checkout funnel with the week before",
+    "Break the drop down by device and step",
+    "Check what shipped and what the error logs say",
+  ],
+  steps: [
+    {
+      icon: "chart",
+      name: "Query analytics",
+      detail: "checkout funnel, last 7 days vs prior 7",
+      duration: 1.4,
+    },
+    {
+      icon: "database",
+      name: "Run a query",
+      detail: "conversion by device and step",
+      duration: 2.3,
+    },
+    {
+      icon: "search",
+      name: "Search logs",
+      detail: "card payment errors on tablets",
+      duration: 1.1,
+    },
+    {
+      icon: "book",
+      name: "Read 12 sources",
+      duration: 3.2,
+      sources: [
+        "Checkout funnel",
+        "Device report",
+        "Release 4.12",
+        "Change #2186",
+        "Payments guide",
+        "Error log",
+        "Incident notes",
+        "Runbook",
+        "Support tickets",
+        "Status page",
+        "Team notes",
+        "Design spec",
+      ],
+    },
+  ],
+  answer: [
+    "## Card payments broke on tablets in release 4.12",
+    "",
+    "Checkout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].",
+    "",
+    "- Tablet conversion halved, from 3.5% to 1.8%",
+    "- Phones and desktops held steady at 3.3%",
+    "- 4.12 moved the card form into a frame without the payment permission [3]",
+    "",
+    "```tsx",
+    "<iframe",
+    "  src={cardFormUrl}",
+    '  allow="payment"',
+    "/>",
+    "```",
+    "",
+    "**Fix:** add the permission and ship 4.12.1 today.",
+  ].join("\n"),
+};
+
+const DRIFT_TILES = [
+  ["Rc", "Record", "#1f2430", "#ffffff", 163, 232, -54, 12, 109, 0.28],
+  ["Ed", "Edit", "#f2f4f7", "#16181d", 128, -209, 81, 32, 122, 0.48],
+  ["Zm", "Zoom", "#10131a", "#7dd3fc", -384, 344, -27, -68, 200, 0.95],
+  ["Cc", "Captions", "#e7e8ea", "#16181d", 519, 45, -31, 64, 144, 1.51],
+  ["Mx", "Mix", "#f1ece2", "#8a5a2b", -692, -125, 41, -71, 214, 1.55],
+] as const;
+
+const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "word-push": { controls: { fontWeight: fontWeight(400) } },
+  "gradient-scale-cut-text": { controls: { fontWeight: fontWeight(700) } },
+  "scribble-circle": { omit: { release: "internal: how the stroke lifts off at the end" } },
+  keystroke: {
+    controls: {
+      steps: {
+        type: "rows",
+        description: "Keys",
+        help: "Join keys pressed together with +, like mod+k. Separate keys pressed one after another with a space.",
+        columns: {
+          keys: text("Keys", "mod+k"),
+          at: numberControl("At", 0, { min: 0, max: 3600, step: 1 }, { unit: "frames" }),
+          hold: { ...optionalNumber("Hold", { min: 1, max: 600, step: 1 }), unit: "frames" },
+        },
+      },
+    },
+  },
+  confetti: {
+    controls: {
+      colors: colorsControl(1, 12),
+      ...spotControls("Burst from", 0.5, 0.5, "origin"),
+      lifetime: numberControl(
+        "How long pieces last",
+        90,
+        { min: 10, max: 600, step: 1 },
+        { unit: "frames" },
+      ),
+    },
+  },
+  "lens-zoom": {
+    omit: Object.fromEntries(
+      [
+        "inScaleFrom",
+        "inScaleTo",
+        "inFovFrom",
+        "inFovTo",
+        "inBlurFrom",
+        "inBlurTo",
+        "inRotationFrom",
+        "inRotationTo",
+        "outScaleFrom",
+        "outScaleTo",
+        "outFovFrom",
+        "outFovTo",
+        "outBlurFrom",
+        "outBlurTo",
+        "outRotationFrom",
+        "outRotationTo",
+        "anticipateScale",
+        "anticipatePortion",
+        "blurScaleGain",
+        "blurFade",
+        "shakeFrequency",
+        "shakeCyclesPerUnit",
+        "shakeRotateDeg",
+        "redScale",
+        "greenScale",
+        "blueScale",
+        "letterboxAspect",
+        "distortionCenterX",
+        "distortionCenterY",
+        "width",
+        "height",
+      ].map((k): [string, OmitReason] => [k, "internal: animation tuning"]),
+    ),
+  },
+  "ripple-zoom": transitionColors([2, 7], {
+    zoom: advancedNumber("Zoom", 4, { min: 1, max: 8, step: 0.1 }),
+    noise: advancedNumber("Grain", 0.5, { min: 0, max: 1, step: 0.01 }),
+  }),
+  "wave-wipe": transitionColors([2, 7], {
+    zoom: advancedNumber("Zoom", 1.16, { min: 0.5, max: 4, step: 0.01 }),
+  }),
+  "smoke-dissolve": transitionColors([1, 10]),
+  "grain-dissolve": transitionColors([2, 7]),
+  "swirl-dissolve": transitionColors([2, 10]),
+  "dither-dissolve": { controls: { speed: advancedNumber("Speed", 1.5, SPEED_RANGE) } },
+  "page-turn": { omit: { origin: "internal: the corner the page turns on, tuned with the angle" } },
+  "shader-mesh-gradient": { controls: { colors: colorsControl(2, 10) } },
+  "shader-grain-gradient": { controls: { colors: colorsControl(2, 7) } },
+  "shader-warp": { controls: { colors: colorsControl(2, 10) } },
+  "shader-swirl": { controls: { colors: colorsControl(2, 10) } },
+  "shader-god-rays": {
+    controls: {
+      colors: colorsControl(1, 5),
+      colorBloom: { type: "color", default: "#3a3a5c", description: "Glow colour" },
+    },
+  },
+  "shader-dithering": {
+    controls: {
+      shape: {
+        type: "enum",
+        options: ["simplex", "warp", "dots", "wave", "ripple", "swirl", "sphere"],
+        default: "wave",
+        description: "Pattern",
+        advanced: true,
+      },
+      type: {
+        type: "enum",
+        options: ["random", "2x2", "4x4", "8x8"],
+        default: "4x4",
+        description: "Dot grid",
+        labels: { random: "Random", "2x2": "2 × 2", "4x4": "4 × 4", "8x8": "8 × 8" },
+        advanced: true,
+      },
+    },
+  },
+  polaroid: {
+    controls: {
+      frameColor: { type: "color", default: "#fdfcf8", description: "Frame colour" },
+      captionColor: { type: "color", default: "#26242c", description: "Caption colour" },
+    },
+  },
+  "speed-lines": {
+    omit: {
+      from: "internal: where the lines come from, set by the mode",
+      to: "internal: the spot sets where the lines aim",
+    },
+  },
+  "spring-settle": {
+    controls: {
+      loop: {
+        type: "boolean",
+        default: false,
+        description: "Loop",
+        help: "Start again from the first scene after the last.",
+      },
+    },
+  },
+  "terminal-simulator": {
+    controls: {
+      chromeColor: { type: "color", default: "#1a1a1a", description: "Title bar colour" },
+      lines: {
+        type: "rows",
+        description: "Lines",
+        help: "Lines ending in ... pause before the next one.",
+        default: [
+          { text: "deploy --production", type: "command", delay: 0 },
+          { text: "Running tests...", type: "log", delay: 6 },
+          { text: "128 tests passed", type: "success", delay: 10 },
+          { text: "Building the image...", type: "log", delay: 8 },
+          { text: "Image ready in 41s", type: "success", delay: 10 },
+          { text: "Rolling out to everyone...", type: "log", delay: 8 },
+          { text: "Live in production", type: "success", delay: 12 },
+        ],
+        columns: {
+          text: text("Text", "Done"),
+          type: {
+            type: "enum",
+            options: ["command", "log", "success", "error"],
+            default: "log",
+            description: "Kind",
+          },
+          delay: numberControl("Wait before", 8, { min: 0, max: 600, step: 1 }, { unit: "frames" }),
+        },
+      },
+    },
+  },
+  "glass-code-block": {
+    controls: {
+      code: {
+        type: "code",
+        default: [
+          "export async function publish(draft: Draft) {",
+          "  const page = await render(draft);",
+          "  await upload(page, { public: true });",
+          "  return page.url;",
+          "}",
+        ].join("\n"),
+        description: "Code",
+      },
+      aura: { type: "boolean", default: false, description: "Glow behind the window" },
+    },
+  },
+  "code-morph": {
+    controls: {
+      steps: {
+        type: "rows",
+        description: "Versions",
+        help: "Each version of the code and when it starts to show.",
+        default: [
+          {
+            at: 0,
+            code: [
+              'import { loadInvoices } from "./api";',
+              "",
+              "export async function showInvoices(list: HTMLElement) {",
+              '  list.textContent = "Loading…";',
+              "  const invoices = await loadInvoices();",
+              '  list.textContent = "";',
+              "  for (const invoice of invoices) {",
+              '    const row = document.createElement("li");',
+              "    row.textContent = invoice.title;",
+              "    list.append(row);",
+              "  }",
+              "}",
+            ].join("\n"),
+          },
+          {
+            at: 48,
+            code: [
+              'import { loadInvoices } from "./api";',
+              'import { renderRows } from "./rows";',
+              "",
+              "export async function showInvoices(list: HTMLElement) {",
+              '  list.textContent = "Loading…";',
+              "  renderRows(list, await loadInvoices());",
+              "}",
+            ].join("\n"),
+          },
+        ],
+        columns: {
+          code: { type: "code", default: "", description: "Code" },
+          at: numberControl("Show at", 0, { min: 0, max: 3600, step: 1 }, { unit: "frames" }),
+        },
+      },
+    },
+  },
+  "logo-enter": {
+    controls: {
+      logos: {
+        type: "rows",
+        description: "Logos",
+        min: 1,
+        default: ["#2563eb", "#0f766e", "#b45309", "#7c3aed"].map((background) => ({
+          image: LOGO_MARK,
+          background,
+        })),
+        columns: {
+          image: image("Image", LOGO_MARK),
+          background: { type: "color", default: "#2563eb", description: "Background" },
+        },
+      },
+    },
+    marks: { from: "logos", to: "logos" },
+  },
+  "check-list": {
+    center: true,
+    controls: {
+      items: {
+        type: "rows",
+        description: "Items",
+        default: [
+          { text: "Record the walkthrough", checked: true },
+          { text: "Add captions and zooms", checked: true },
+          { text: "Export for the launch", checked: false },
+        ],
+        columns: {
+          text: text("Text", "New item"),
+          checked: { type: "boolean", default: true, description: "Ticked" },
+        },
+      },
+      width: numberControl("Width", 720, { min: 200, max: 1800, step: 10 }, { unit: "px" }),
+      boxColor: { type: "color", default: "#26242c", description: "Box colour" },
+      weight: fontWeight(600),
+      rowGap: optionalNumber(
+        "Row gap",
+        { min: 0, max: 200, step: 1 },
+        { unit: "px", advanced: true },
+      ),
+      seed: text("Variation", "checklist", {
+        advanced: true,
+        help: "Change it to draw the handwriting a little differently.",
+      }),
+    },
+  },
+  "agent-run": {
+    controls: {
+      runTitle: text("Title", NEUTRAL_AGENT_RUN.title),
+      runPrompt: text("Prompt", NEUTRAL_AGENT_RUN.prompt),
+      runPlan: { type: "strings", default: NEUTRAL_AGENT_RUN.plan, description: "Plan" },
+      runSteps: {
+        type: "rows",
+        default: NEUTRAL_AGENT_RUN.steps,
+        description: "Steps",
+        columns: {
+          name: text("Name", "Search logs"),
+          detail: { type: "text", optional: true, description: "Detail" },
+          duration: numberControl("Length", 1.5, { min: 0.2, max: 20, step: 0.1 }, { unit: "s" }),
+          icon: {
+            type: "enum",
+            options: ["chart", "database", "search", "book", "globe", "terminal", "file"],
+            optional: true,
+            description: "Icon",
+          },
+          sources: { type: "strings", optional: true, description: "Sources" },
+        },
+      },
+      runAnswer: {
+        type: "text",
+        default: NEUTRAL_AGENT_RUN.answer,
+        description: "Answer",
+        help: "Use ## for a heading, - for a list, **bold**, `code` and [1] to cite a source.",
+      },
+    },
+    nest: {
+      runTitle: "run.title",
+      runPrompt: "run.prompt",
+      runPlan: "run.plan",
+      runSteps: "run.steps",
+      runAnswer: "run.answer",
+    },
+  },
+  "animated-bar-chart": {
+    controls: {
+      bars: {
+        type: "rows",
+        description: "Bars",
+        help: "Leave every label empty to draw the bars without labels.",
+        default: [35, 60, 45, 80, 55, 70, 90, 65].map((value) => ({ label: "", value })),
+        columns: {
+          label: text("Label", ""),
+          value: numberControl("Value", 50, { min: 0, max: 1_000_000, step: 1 }),
+        },
+      },
+      width: advancedNumber("Width", 1000, { min: 200, max: 3840, step: 10 }),
+      height: advancedNumber("Height", 500, { min: 100, max: 2160, step: 10 }),
+    },
+    lists: { bars: { label: "labels", value: "data" } },
+  },
+  "animated-line-chart": {
+    controls: {
+      data: {
+        type: "numbers",
+        description: "Values",
+        help: "Paste a column from a spreadsheet to fill the list.",
+      },
+      width: advancedNumber("Width", 1000, { min: 200, max: 3840, step: 10 }),
+      height: advancedNumber("Height", 500, { min: 100, max: 2160, step: 10 }),
+    },
+  },
+  "signup-flow": remocnTheme({
+    controls: {
+      title: text("Title", "Create an account"),
+      description: text("Description", "Enter your information below to create your account"),
+      fullName: text("Name typed in", "John Doe"),
+      email: text("Email typed in", "m@example.com"),
+      password: text("Password shown", "••••••••"),
+      createLabel: text("Button label", "Create account"),
+      toastTitle: text("Notice", "Account created"),
+    },
+    omit: {
+      googleLabel: "internal: declared but never drawn",
+      signinText: "internal: declared but never drawn",
+    },
+  }),
+  "ai-prompt-flow": remocnTheme({
+    controls: {
+      prompt: text("Prompt", "Summarize this thread"),
+      buttonLabel: text("Button label", "Generate"),
+      answerLines: {
+        type: "strings",
+        description: "Answer",
+        help: "One line of the answer per item.",
+      },
+      toastTitle: text("Notice", "Response ready"),
+    },
+  }),
+  "command-menu": remocnTheme({
+    controls: {
+      items: {
+        type: "rows",
+        description: "Items",
+        columns: {
+          icon: {
+            type: "enum",
+            options: ["search", "settings", "user", "file"],
+            optional: true,
+            description: "Icon",
+          },
+          label: text("Label", "New item"),
+          shortcut: { type: "text", optional: true, description: "Shortcut" },
+        },
+      },
+      pressedIndex: numberControl(
+        "Press item",
+        -1,
+        { min: -1, max: 20, step: 1 },
+        { help: "The item that gets pressed, counting from 0. -1 presses none." },
+      ),
+    },
+    omit: { itemStyles: "internal: per-item animation styles" },
+  }),
+  "release-teaser": {
+    controls: {
+      statements: {
+        type: "strings",
+        default: [
+          "Start with an idea",
+          "Make room\nfor better work",
+          "Bring every detail to life",
+          "Move together.\nGo further.",
+          "A fresh chapter.\nNo starting over.",
+        ],
+        min: 5,
+        max: 5,
+        description: "Statements",
+        help: "The five lines, in order.",
+      },
+      logoSrc: image("Logo", "", { emptyLabel: "Name only" }),
+      themeBackground: optionalColor("Background"),
+      themeSurface: optionalColor("Panel colour"),
+      themeForeground: optionalColor("Text colour"),
+      themeMuted: optionalColor("Soft text colour"),
+      lightIntensity: advancedNumber("Light", 1, { min: 0, max: 2, step: 0.05 }),
+      ...MUSIC,
+    },
+    nest: {
+      themeBackground: "theme.background",
+      themeSurface: "theme.surface",
+      themeForeground: "theme.foreground",
+      themeMuted: "theme.muted",
+    },
+    omit: {
+      audioSrc: "sound: the Music setting plays it through the mix",
+      volume: "sound: the Music setting plays it through the mix",
+    },
+  },
+  "launch-anything": launchAnything,
+  "laptop-frame": snapTheme("dark", {
+    controls: {
+      indicatorColor: { type: "color", default: "#30D158", description: "Recording light" },
+    },
+  }),
+  "phone-frame": snapTheme("dark"),
+  "screen-recording": snapTheme("dark", {
+    omit: {
+      crop: "internal: the crop settings set it",
+      sourceAspect: "internal: the recording sets it",
+      camera: "internal: the recording sets it",
+    },
+  }),
+  "punch-lines": snapTheme("light", { controls: { fontWeight: fontWeight(600) } }),
+  "text-highlight": snapTheme("dark", {
+    controls: {
+      fontWeight: fontWeight(600),
+      logoSrc: image("Logo", LOGO_MARK, { help: "The mark the logo wipe uses." }),
+    },
+    omit: {
+      springConfig: "internal: animation tuning",
+      logo: "react-node: the logo setting sets the mark",
+    },
+  }),
+  "status-cycle": snapTheme("dark", {
+    controls: {
+      fontWeight: fontWeight(400),
+      chipFontWeight: { ...fontWeight(400), description: "Chip font weight" },
+      pillRadius: optionalNumber(
+        "Status corner radius",
+        { min: 0, max: 200, step: 1 },
+        { unit: "px", advanced: true },
+      ),
+      chipRadius: optionalNumber(
+        "Chip corner radius",
+        { min: 0, max: 200, step: 1 },
+        { unit: "px", advanced: true },
+      ),
+      chipBorderWidth: optionalNumber(
+        "Chip border width",
+        { min: 0, max: 20, step: 0.5 },
+        { unit: "px", advanced: true },
+      ),
+    },
+    omit: { motion: "internal: animation tuning" },
+  }),
+  "logo-assemble": snapTheme("dark", {
+    controls: {
+      images: {
+        type: "rows",
+        description: "Images",
+        min: 1,
+        default: ["aurora", "bloom", "canyon", "chalk", "cobalt", "dusk", "ember", "flare"].map(
+          (name) => ({ image: `app:backdrops/${name}.jpg` }),
+        ),
+        columns: { image: image("Image", "app:backdrops/aurora.jpg") },
+      },
+    },
+    lists: { images: { image: "images" } },
+  }),
+  "logo-drift": snapTheme("light", {
+    controls: {
+      fontWeight: fontWeight(500),
+      glowColor: optionalColor("Glow colour", "Accent"),
+      tiles: {
+        type: "rows",
+        description: "Tiles",
+        default: DRIFT_TILES.map(([glyph, label, background, color, x, y, vx, vy, size, at]) => ({
+          glyph,
+          label,
+          background,
+          color,
+          x,
+          y,
+          vx,
+          vy,
+          size,
+          at,
+        })),
+        columns: {
+          glyph: text("Mark", "Ab", { help: "One to three characters." }),
+          label: { type: "text", optional: true, description: "Label" },
+          background: { type: "color", default: "#1f2430", description: "Background" },
+          color: optionalColor("Text colour"),
+          x: advancedNumber("Start across", 0, { min: -1200, max: 1200, step: 1 }),
+          y: advancedNumber("Start down", 0, { min: -800, max: 800, step: 1 }),
+          vx: advancedNumber("Drift across", 0, { min: -200, max: 200, step: 1 }),
+          vy: advancedNumber("Drift down", 0, { min: -200, max: 200, step: 1 }),
+          size: advancedNumber("Size", 140, { min: 20, max: 400, step: 1 }),
+          at: advancedNumber("Appears at", 1, { min: 0, max: 10, step: 0.01 }),
+        },
+      },
+    },
+    omit: {
+      wordAt: "internal: animation tuning",
+      exitScale: "internal: animation tuning",
+      exitBlur: "internal: animation tuning",
+    },
+  }),
+  "hero-launch": snapTheme("dark"),
+  "stat-card": {
+    controls: {
+      backgroundColor: themeBackground,
+      max: optionalNumber(
+        "Ring full at",
+        { min: 0, max: 1_000_000_000, step: 1 },
+        {
+          emptyLabel: "Full ring",
+          help: "The ring fills to the value out of this. Leave empty for a full ring.",
+        },
+      ),
+    },
+  },
+  "funnel-chart": {
+    controls: {
+      labelWidth: optionalNumber(
+        "Label width",
+        { min: 0, max: 2000, step: 10 },
+        { unit: "px", advanced: true },
+      ),
+    },
+  },
+  "logo-reveal": {
+    controls: {
+      viewBox: {
+        type: "text",
+        default: "",
+        emptyLabel: "Fit",
+        description: "Outline area",
+        advanced: true,
+        help: "Leave empty to fit the outline.",
+      },
+      size: optionalNumber("Logo size", { min: 20, max: 2000, step: 10 }, { unit: "px" }),
+      strokeWidth: optionalNumber(
+        "Line width",
+        { min: 1, max: 40, step: 0.5 },
+        { unit: "px", advanced: true },
+      ),
+      fill: optionalColor("Fill colour", "None"),
+    },
+  },
+  "pricing-card": {
+    controls: {
+      backgroundColor: themeBackground,
+      wasPrice: optionalNumber(
+        "Old price",
+        { min: 0, max: 1_000_000, step: 1 },
+        {
+          emptyLabel: "None",
+          help: "Shown struck out next to the price.",
+        },
+      ),
+    },
+  },
+  "comparison-table": {
+    controls: {
+      backgroundColor: themeBackground,
+      rows: {
+        type: "rows",
+        description: "Rows",
+        help: "Type yes or no in a cell for a tick or a dash.",
+        columns: {
+          label: text("Label", "New feature"),
+          cells: { type: "strings", default: ["yes", "yes", "yes"], description: "Cells" },
+        },
+        default: [
+          { label: "Render minutes", cells: ["60", "2,000", "Unlimited"] },
+          { label: "1080p exports", cells: ["yes", "yes", "yes"] },
+          { label: "4K exports", cells: ["no", "yes", "yes"] },
+          { label: "Team seats", cells: ["1", "9", "Unlimited"] },
+          { label: "Render API", cells: ["no", "yes", "yes"] },
+          { label: "Priority queue", cells: ["no", "no", "yes"] },
+        ],
+      },
+    },
+    ticks: "rows",
+  },
+  "changelog-entry": {
+    controls: {
+      backgroundColor: themeBackground,
+      kindAdded: optionalColor("Added colour"),
+      kindFixed: optionalColor("Fixed colour"),
+      kindChanged: optionalColor("Changed colour"),
+      kindRemoved: optionalColor("Removed colour"),
+    },
+    nest: {
+      kindAdded: "kindColors.added",
+      kindFixed: "kindColors.fixed",
+      kindChanged: "kindColors.changed",
+      kindRemoved: "kindColors.removed",
+    },
+  },
+  "logo-wall": { controls: { backgroundColor: themeBackground } },
+  "end-card": {
+    controls: {
+      backgroundColor: themeBackground,
+      logoSize: optionalNumber("Logo size", { min: 10, max: 600, step: 1 }, { unit: "px" }),
+    },
+  },
+  "code-reveal": { controls: { backgroundColor: themeBackground } },
+  "code-diff-wipe": { controls: { backgroundColor: themeBackground } },
+  "kanban-move": { controls: { backgroundColor: themeBackground } },
+  "file-tree-reveal": {
+    controls: {
+      backgroundColor: themeBackground,
+      nodes: {
+        type: "strings",
+        description: "Files",
+        help: "One path per item, like src/app.ts. End a folder with / to show it empty.",
+        default: [
+          "src/components/cart.tsx",
+          "src/components/checkout.tsx",
+          "src/lib/api.ts",
+          "src/index.ts",
+          "public/logo.svg",
+          "README.md",
+          "package.json",
+        ],
+      },
+    },
+    tree: "nodes",
+  },
+  "drag-drop-flow": { controls: { backgroundColor: themeBackground } },
+  "commit-graph": { controls: { backgroundColor: themeBackground } },
+  "multi-device-lineup": {
+    controls: {
+      phoneLabel: text("Phone label", "Phone"),
+      tabletLabel: text("Tablet label", "Tablet"),
+      laptopLabel: text("Laptop label", "Laptop"),
+    },
+    nest: { phoneLabel: "phone.label", tabletLabel: "tablet.label", laptopLabel: "laptop.label" },
+  },
 };
 
 const LIST: CuratedElement[] = [
@@ -644,24 +1652,7 @@ const LIST: CuratedElement[] = [
       }),
     },
   }),
-  ...remocn("ui", ["terminal-simulator"], {
-    controls: {
-      lines: {
-        type: "rows",
-        default: [
-          { text: "deploy --production", type: "command", delay: 0 },
-          { text: "Running tests...", type: "log", delay: 6 },
-          { text: "128 tests passed", type: "success", delay: 10 },
-          { text: "Building the image...", type: "log", delay: 8 },
-          { text: "Image ready in 41s", type: "success", delay: 10 },
-          { text: "Rolling out to everyone...", type: "log", delay: 8 },
-          { text: "Live in production", type: "success", delay: 12 },
-        ],
-        description: "Lines",
-        help: "Each line has text and a type: command, log, success or error. Lines ending in ... pause before the next one.",
-      },
-    },
-  }),
+  ...remocn("ui", ["terminal-simulator"]),
   ...remocn("ui", [
     "glass-code-block",
     "code-morph",
@@ -677,14 +1668,14 @@ const LIST: CuratedElement[] = [
   ...snapcn("device", ["laptop-frame", "phone-frame", "screen-recording"], {
     durationInFrames: 240,
   }),
-  ...snapcn("text", ["announce-title"], { fixedProps: {} }),
+  ...snapcn("text", ["announce-title"]),
   ...snapcn("text", ["punch-lines", "text-highlight", "status-cycle"]),
   ...snapcn("scene", ["logo-assemble", "logo-drift", "hero-launch"], { durationInFrames: 180 }),
   ...remocn("effect", ["pixelate-region"], { installOnly: true }),
   ...REMOTION_UI,
 ];
 
-const OVERRIDES = { DESCRIPTIONS, NEUTRAL_DEFAULTS, NEUTRAL_FIXED_PROPS, PAINTED };
+const OVERRIDES = { DESCRIPTIONS, NEUTRAL_DEFAULTS, NEUTRAL_FIXED_PROPS, PAINTED, SETTINGS };
 
 export function unknownOverrideNames(): string[] {
   const names = new Set(LIST.map((item) => item.name));
@@ -702,7 +1693,19 @@ const paintControl = (paint: string): ControlSpec => ({
   help: "Set it to transparent to lay the text over other layers.",
 });
 
-function withOverrides(item: CuratedElement): CuratedElement {
+function withSettings(item: CuratedElement): CuratedElement {
+  const extra = SETTINGS[item.name];
+  if (!extra) return item;
+  return {
+    ...item,
+    ...extra,
+    controls: { ...item.controls, ...extra.controls },
+    omit: { ...item.omit, ...extra.omit },
+  };
+}
+
+function withOverrides(base: CuratedElement): CuratedElement {
+  const item = withSettings(base);
   const defaults = NEUTRAL_DEFAULTS[item.name];
   const fixedProps = NEUTRAL_FIXED_PROPS[item.name];
   const paint = PAINTED[item.name];

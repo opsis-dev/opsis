@@ -8,6 +8,9 @@ const INK = "15, 23, 42";
 
 export const ink = (alpha: number): string => `rgba(${INK}, ${alpha})`;
 
+export const faded = (color: string, share: string): string =>
+  `color-mix(in srgb, ${color} ${share}, transparent)`;
+
 export type WindowShot = {
   framing: "window";
   windowFit: number;

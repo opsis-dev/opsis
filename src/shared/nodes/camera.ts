@@ -414,8 +414,8 @@ const backdropParams = z.object({
     .default(DEFAULT_BACKDROP)
     .meta({ description: "Studio image", showIf: { kind: ["image"] } }),
   color: more(text("#0b0b10", "Colour"), { widget: "color", showIf: { kind: ["solid"] } }),
-  gradient: more(text("linear-gradient(135deg, #1e1b4b, #0f172a)", "Gradient"), {
-    help: "A CSS gradient.",
+  gradient: more(text("linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", "Gradient"), {
+    widget: "gradient",
     showIf: { kind: ["gradient"] },
   }),
   asset: more(asset("Image", "image/*"), { showIf: { kind: ["asset"] } }),

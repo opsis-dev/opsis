@@ -2,7 +2,30 @@
 
 Every value a user would reasonably want to change in a node must be a setting in the Inspector, not a constant in code. An audit on 2026-10-18 found about 45 nodes that hard-code colours, copy, content lists, images or sizes. This plan fixes all of them, adds the Inspector inputs the fixes need, and adds checks so new nodes can't regress.
 
-Status: plan only. Nothing here is built yet.
+Status: built, phases 1 to 6, on 2026-10-19. Checked with the type check, lint, format, the tests, the ingest (no problems), `bun run elements:render` (all 109 elements render with their defaults; compared with the commit before, only the five elements whose defaults changed on purpose look different, and Check list, which crashed before, now renders) and the dev app driven over its debugging port.
+
+What the build found that this plan had wrong or missed:
+
+- The ingest had no test file; `scripts/lib/registry-ingest.test.ts` is new and `vitest.config.ts` now runs `scripts/**/*.test.ts`.
+- Phase 3e's missing font weights came from remocn configs that name their options through an imported constant (`enumVariants(FONT_WEIGHT_OPTIONS)`): the ingest dropped those settings without a word. It now fails on any control it can't write and fills font weights with 400–700.
+- The ingest wrote `#000000` for a colour with no default, so Status cycle drew black on black and Screen recording's letterbox was always black. Colours with no default now take the component's own or follow the theme.
+- Themed snapcn elements had colour settings with fixed defaults that override the theme (Punch lines' ground and ink, Status cycle's colours), so the theme switch did nothing. A colour the component takes from a theme token now follows the theme while its default equals that token.
+- remocn components force light mode (`useRemocnTheme(theme, "light")`) in Command menu and in the field, skeleton, cursor and menu item parts, so the mode from `RemocnUIProvider` can't reach them. `themed` passes the whole chosen preset with the changed colours on top, which is item 6 of phase 2.
+- Defaults and descriptions named companies and products, beyond the libraries the check knew: Logo drift's tiles (Remotion, shadcn/ui, React, Next.js, Tailwind, Figma, Motion, TypeScript, Vercel), Agent run's copy (a payment brand, browsers, their websites), Text highlight's logo wipe (the snapcn mark), Code morph's sample code (imports from React), Laptop frame's notch label (AirPods), End card's handle (GitHub), and the Laptop and Phone frame descriptions (MacBook, iPhone). All are neutral now and the check knows common company and product names.
+- Logo enter's brand marks are bare SVG paths with no text, so neither a static scan nor rendering to markup can catch them (phase 5, item 2). The scan reads the text and labels of hidden defaults and the constants they name, which catches the other cases.
+- remotion-ui colour lists (Donut chart, Bar chart race, Commit graph's branch colours, Aurora) came from the prop docs as text lists, and Glass code block's colour as text; they are palettes and a colour field now.
+- Check list's `width` was required and hidden too, not only `items`. Animated charts' sizes, Text mask's font size, Ripple zoom's grain, Dither dissolve's speed, Page turn's corner, Lens zoom's tuning, Status cycle's radii and Signup flow's unused `googleLabel`/`signinText` were also hidden. Signup flow never draws a Google button.
+- Punch lines and Logo drift already had a `mode` setting that overrode the fixed dark mode, so they keep light as their default.
+- Release teaser and Launch anything play their music through the mix: compile turns an element's `sound` setting into a music item on the node's own Mixer channel, so it is more than a wrapper but less than the plan feared.
+- Logo enter and Logo assemble need at least one image: an empty list falls back to brand marks or to images on the internet. Inferred palettes need one colour.
+- Smoke dissolve's own default is one colour, so its palette allows 1–10.
+- The Dice UI colour picker's Base UI version reads only 6-digit hex from its value and keeps alpha in its own state, so `rgba()` values would lose their transparency. The picker is written in `src/renderer/editor/form/color-picker.tsx` instead. Dice UI's Base UI Sortable installs and passes as-is. Its tags input isn't Base UI and can't show variables as chips, so the text list is written in `form/list-fields.tsx` on `VarText`.
+- Keystroke's keys are a text column, not the `keys` widget: the widget records one chord and Keystroke also takes sequences ("g i").
+- Command menu's icons are the four the element draws, not the editor's icon names. Changelog's kind colours are four colour fields (the prop is a map by kind, so rows would allow duplicates).
+- The Media file line numbers were stale (`IMAGE_MS` is `DEFAULT_STILL_MS`); the setting is `stillMs`.
+- Under Software drawing, Grain dissolve's shader draws nothing in the middle of the transition, with its default colours too; the other four shader transitions match the graphics card. The element can't be changed here.
+
+Checked in the dev app (Playwright over the debugging port) and with renders: every changed node's Inspector opens without an error at the default and the narrowest width; every new setting was changed and rendered against its default (178 settings, more frames for those that show late); colour drags are one undo step; an export of changed settings matches the Preview; the five shader transitions were exported with each Draw with setting.
 
 ## How to read this plan
 

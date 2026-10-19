@@ -160,6 +160,7 @@
         "accent": "#a78bfa",
         "background": "transparent",
         "fontSize": 112,
+        "fontWeight": 760,
         "fontFamily": "",
         "clipDuration": 75,
         "envelope": {}

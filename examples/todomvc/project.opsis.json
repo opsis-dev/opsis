@@ -195,7 +195,10 @@
       "params": {
         "position": "bottom",
         "typed": true,
-        "chords": true
+        "chords": true,
+        "keycap": "#0a0a0a",
+        "ink": "#ffffff",
+        "size": 1
       }
     },
     {
@@ -209,6 +212,7 @@
         "speed": 1,
         "distortion": 0.6,
         "swirl": 0.1,
+        "colors": ["#12121a", "#232338", "#3a3a5c", "#52527a"],
         "clipDuration": 75,
         "envelope": {}
       }
@@ -261,6 +265,7 @@
         "accent": "#a78bfa",
         "background": "transparent",
         "fontSize": 112,
+        "fontWeight": 760,
         "fontFamily": "",
         "clipDuration": 75,
         "envelope": {}

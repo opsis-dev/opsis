@@ -36,6 +36,7 @@
         "accent": "#a78bfa",
         "background": "transparent",
         "fontSize": 112,
+        "fontWeight": 760,
         "fontFamily": "",
         "clipDuration": 75,
         "envelope": {}
@@ -109,6 +110,42 @@
         "barColor": "#0ea5e9",
         "gap": 16,
         "staggerFrames": 6,
+        "bars": [
+          {
+            "label": "",
+            "value": 35
+          },
+          {
+            "label": "",
+            "value": 60
+          },
+          {
+            "label": "",
+            "value": 45
+          },
+          {
+            "label": "",
+            "value": 80
+          },
+          {
+            "label": "",
+            "value": 55
+          },
+          {
+            "label": "",
+            "value": 70
+          },
+          {
+            "label": "",
+            "value": 90
+          },
+          {
+            "label": "",
+            "value": 65
+          }
+        ],
+        "width": 1000,
+        "height": 500,
         "speed": 1,
         "clipDuration": 120,
         "envelope": {}

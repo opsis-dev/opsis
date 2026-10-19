@@ -5,7 +5,14 @@ export default defineConfig({
   resolve: { alias: SRC_ALIAS },
   test: {
     projects: [
-      { extends: true, test: { name: "node", include: ["src/**/*.test.ts"], environment: "node" } },
+      {
+        extends: true,
+        test: {
+          name: "node",
+          include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
+          environment: "node",
+        },
+      },
       {
         extends: true,
         test: { name: "dom", include: ["src/**/*.test.tsx"], environment: "happy-dom" },

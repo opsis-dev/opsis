@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import type { KeystrokePosition, RecordingProps } from "../../shared/compile/recording";
-import { TEXT_COLOR, STAGE_COLOR } from "../../shared/elements/colors";
+import type { KeystrokeLook, RecordingProps } from "../../shared/compile/recording";
+import { STAGE_COLOR } from "../../shared/elements/colors";
 import { CODE_FONT } from "../../shared/fonts";
 import { displayAddress } from "../../shared/format";
 import { clamp } from "../../shared/math";
@@ -11,7 +11,7 @@ import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../c
 import { DemoClip, useClipTime } from "../camera/demo-clip";
 import { KeycapHUD } from "../camera/keycap-hud";
 import { DesignWidthContext } from "../camera/lib/design-scale";
-import { SHOT_STYLES } from "../camera/lib/style";
+import { faded, SHOT_STYLES } from "../camera/lib/style";
 import { poseAt } from "../camera/lib/zoom";
 import { CLAMPED, fadeWindow } from "./anim";
 import {
@@ -36,7 +36,7 @@ const TYPED_CHIP = {
   shadowY: 8,
   shadowBlur: 24,
   maxWidth: "70%",
-  background: "rgba(10,10,12,0.82)",
+  keycapShare: "82%",
   shadow: "rgba(0,0,0,0.35)",
 } as const;
 
@@ -50,6 +50,7 @@ const CLIP_KEYS = [
   "backdrop",
   "cursor",
   "cursorScale",
+  "cursorLook",
   "ripple",
 ] as const satisfies ReadonlyArray<keyof RecordingProps>;
 
@@ -104,10 +105,10 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
       </LayoutFrame>
       <DesignWidthContext.Provider value={Math.max(width, height)}>
         {keystrokes?.chords && log.keys?.length ? (
-          <KeycapHUD keys={log.keys} timeS={timeS} position={keystrokes.position} />
+          <KeycapHUD keys={log.keys} timeS={timeS} look={keystrokes} />
         ) : null}
         {keystrokes?.typed ? (
-          <TypedChip beats={typedBeats(props.log)} timeS={timeS} position={keystrokes.position} />
+          <TypedChip beats={typedBeats(props.log)} timeS={timeS} look={keystrokes} />
         ) : null}
       </DesignWidthContext.Provider>
     </AbsoluteFill>
@@ -183,9 +184,11 @@ const Cropped: React.FC<{ box: Size; cx: number; children: React.ReactNode }> = 
 const TypedChip: React.FC<{
   beats: Array<{ text: string; fromS: number; toS: number }>;
   timeS: number;
-  position: KeystrokePosition;
-}> = ({ beats, timeS, position }) => {
-  const { k, insets } = useOverlayFrame();
+  look: KeystrokeLook;
+}> = ({ beats, timeS, look }) => {
+  const { position } = look;
+  const { k: frameScale, insets } = useOverlayFrame();
+  const k = frameScale * look.size;
   const beat = beats.find((b) => timeS >= b.fromS && timeS <= b.toS);
   if (!beat) return null;
   const typingEnd = beat.toS - TYPED_LINGER_S;
@@ -201,7 +204,7 @@ const TypedChip: React.FC<{
       style={{
         justifyContent: JUSTIFY_AT[position],
         alignItems: "center",
-        ...overlayPadding(TYPED_CHIP.margin * k, verticalInsets(insets)),
+        ...overlayPadding(TYPED_CHIP.margin * frameScale, verticalInsets(insets)),
         pointerEvents: "none",
       }}
     >
@@ -211,8 +214,8 @@ const TypedChip: React.FC<{
           maxWidth: TYPED_CHIP.maxWidth,
           padding: `${TYPED_CHIP.padY * k}px ${TYPED_CHIP.padX * k}px`,
           borderRadius: 999,
-          background: TYPED_CHIP.background,
-          color: TEXT_COLOR,
+          background: faded(look.keycap, TYPED_CHIP.keycapShare),
+          color: look.ink,
           fontFamily: CODE_FONT,
           fontSize: TYPED_CHIP.fontSize * k,
           whiteSpace: "nowrap",

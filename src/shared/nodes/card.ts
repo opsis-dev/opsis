@@ -12,6 +12,7 @@ export type CardRow = {
   text: string;
   title?: string;
   tone?: "muted" | "warn";
+  swatches?: string[];
 };
 
 export type CardContext<P> = {

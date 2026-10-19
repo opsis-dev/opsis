@@ -1,5 +1,6 @@
-import { ChevronRight, Plus, Trash2 } from "lucide-react";
-import type { ComponentType, ReactNode } from "react";
+import { cn } from "cn";
+import { ChevronRight, Copy, Plus, Trash2 } from "lucide-react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import type { z } from "zod";
 import { Button } from "@/renderer/components/ui/button";
 import {
@@ -17,6 +18,7 @@ import {
 import { Switch } from "@/renderer/components/ui/switch";
 import { whenOneOf } from "@/renderer/lib/one-of";
 import { useItemKeys } from "@/renderer/lib/use-item-keys";
+import { baseName } from "@/shared/asset-ref";
 import {
   ANY_VALUE,
   fieldMeta,
@@ -27,6 +29,8 @@ import {
   type FieldWidget,
 } from "@/shared/elements/introspect";
 import { humanize } from "@/shared/format";
+import { isNumber } from "@/shared/guards";
+import { kindFromPath } from "@/shared/mime";
 import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/shared/nodes/params";
 import { transitionTitle } from "@/shared/nodes/transitions";
 import { BoxesField } from "./form/boxes-field";
@@ -34,8 +38,17 @@ import { ColorField } from "./form/color-field";
 import { EnumField } from "./form/enum-field";
 import { EnvelopeField } from "./form/envelope-field";
 import { ChoiceGroup, Help } from "./form/field-shell";
+import { GradientField } from "./form/gradient-field";
 import { JsonField } from "./form/json-field";
 import { KeysField } from "./form/keys-field";
+import {
+  ColorListField,
+  DragHandle,
+  NumberListField,
+  SortableRows,
+  StringListField,
+} from "./form/list-fields";
+import type { LengthLimits } from "./form/list-values";
 import { NumberField, PresetNumber } from "./form/number-field";
 import { OffsetsField } from "./form/offsets-field";
 import { Presets } from "./form/presets";
@@ -56,6 +69,7 @@ import {
   variableChoices,
   type SelectChoices,
 } from "./form/string-field";
+import { ThemeField } from "./form/theme-field";
 import { TimezoneField } from "./form/timezone-field";
 import type { FieldProps, FormContext, ParamFieldProps, ParamValues } from "./form/types";
 
@@ -111,8 +125,15 @@ export const widgetTakes = (widget: FieldWidget, kind: TypedField["kind"]): bool
 const COLLAPSING =
   "h-(--collapsible-panel-height) overflow-hidden transition-[height,opacity] duration-200 ease-out data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0";
 
+function fileKindsMatch(meta: FieldMeta, values: ParamValues): boolean {
+  return Object.entries(meta.showIfFile ?? {}).every(([k, kinds]) => {
+    const path = values[k];
+    return typeof path === "string" && path !== "" && kinds.includes(kindFromPath(path));
+  });
+}
+
 function visible(meta: FieldMeta, values: ParamValues): boolean {
-  if (meta.hidden) return false;
+  if (meta.hidden || !fileKindsMatch(meta, values)) return false;
   if (!meta.showIf) return true;
   return Object.entries(meta.showIf).every(([k, allowed]) => {
     const v = values[k] == null ? "" : String(values[k]);
@@ -125,11 +146,13 @@ export function ZodForm({
   value,
   onChange,
   ctx,
+  idPrefix = "f",
 }: {
   schema: z.ZodObject;
   value: ParamValues;
   onChange: (patch: ParamValues) => void;
   ctx: FormContext;
+  idPrefix?: string;
 }) {
   const values = withDefaults(schema, value);
   const entries = shapeEntries(schema)
@@ -144,7 +167,7 @@ export function ZodForm({
         key={key}
         schema={field}
         props={{
-          id: `f-${key}`,
+          id: `${idPrefix}-${key}`,
           name: key,
           label: labelFor(key, field),
           meta,
@@ -218,6 +241,16 @@ function plainBody(field: TypedField, props: ParamFieldProps<unknown>): ReactNod
       return <BooleanField {...props} value={field.value} />;
     case "number":
       return <NumberField {...props} value={field.value} min={field.min} max={field.max} />;
+    case "optionalNumber":
+      return (
+        <NumberField
+          {...props}
+          value={field.value}
+          min={field.min}
+          max={field.max}
+          onClear={() => props.onChange(undefined)}
+        />
+      );
     case "string":
       return <TextField {...props} value={field.value} />;
     case "enum":
@@ -234,7 +267,17 @@ function plainBody(field: TypedField, props: ParamFieldProps<unknown>): ReactNod
     case "enumList":
       return <EnumListChoice {...props} value={field.value} options={field.options} />;
     case "objectList":
-      return <ObjectListField {...props} value={field.value} item={field.item} />;
+      return <ObjectListField {...props} value={field.value} item={field.item} limits={field} />;
+    case "stringList":
+      return <StringListField {...props} value={field.value} limits={field} />;
+    case "numberList":
+      return <NumberListField {...props} value={field.value} limits={field} />;
+    case "colorList":
+      return <ColorListField {...props} value={field.value} limits={field} />;
+    case "gradient":
+      return <GradientField {...props} value={field.value} />;
+    case "theme":
+      return <ThemeField {...props} value={field.value} />;
   }
 }
 
@@ -291,43 +334,130 @@ function EnumListChoice({
   );
 }
 
+const COLLAPSE_FROM = 4;
+
+const SUMMARY_SKIPS: ReadonlySet<string | undefined> = new Set(["asset", "color", "code", "sound"]);
+
+function rowSummary(item: z.ZodObject, entry: ParamValues, index: number): string {
+  const fields = shapeEntries(item);
+  const textOf = (key: string) => {
+    const v = entry[key];
+    return typeof v === "string" ? v.split("\n")[0]?.trim() : undefined;
+  };
+  const text = fields
+    .filter(
+      ([, f]) =>
+        typedField(f, undefined)?.kind === "string" && !SUMMARY_SKIPS.has(fieldMeta(f).widget),
+    )
+    .map(([k]) => textOf(k))
+    .find(Boolean);
+  const file = fields
+    .filter(([, f]) => fieldMeta(f).widget === "asset")
+    .map(([k]) => textOf(k))
+    .find(Boolean);
+  const number = fields.map(([k]) => entry[k]).find(isNumber);
+  const shown = text ?? (file ? baseName(file) : number === undefined ? undefined : String(number));
+  return shown ? shown.slice(0, 60) : `Item ${index + 1}`;
+}
+
 function ObjectListField({
+  id,
   label,
   meta,
   item,
   value,
   onChange,
   ctx,
-}: FieldProps<ParamValues[]> & { item: z.ZodObject }) {
+  limits,
+}: FieldProps<ParamValues[]> & { item: z.ZodObject; limits: LengthLimits }) {
   const list = useItemKeys(value);
+  const [closed, setClosed] = useState<ReadonlySet<string>>(() =>
+    value.length < COLLAPSE_FROM ? new Set() : new Set(list.rows.map((r) => r.key)),
+  );
+  const toggle = (key: string) =>
+    setClosed((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
   return (
     <FieldSet>
       <FieldLegend variant="label">{label}</FieldLegend>
       <Help meta={meta} />
-      <div className="flex flex-col gap-3">
-        {list.rows.map(({ item: entry, key }, i) => (
-          <div key={key} className="bg-muted/40 flex flex-col gap-3 rounded-lg border p-3">
-            <ZodForm
-              schema={item}
-              value={entry}
-              ctx={ctx}
-              onChange={(patch) => onChange(list.update(i, { ...entry, ...patch }))}
-            />
-            <Button variant="ghost" size="sm" onClick={() => onChange(list.remove(i))}>
-              <Trash2 data-icon="inline-start" />
-              Remove
-            </Button>
-          </div>
-        ))}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onChange(list.add(schemaDefaults(item)))}
-        >
-          <Plus data-icon="inline-start" />
-          Add
-        </Button>
-      </div>
+      <SortableRows
+        rows={list.rows}
+        className="flex flex-col gap-2"
+        onReorder={(keys) => onChange(list.reorder(keys))}
+      >
+        {({ item: entry, key }, i) => {
+          const expanded = !closed.has(key);
+          const name = rowSummary(item, entry, i);
+          return (
+            <div className="bg-muted/40 flex min-w-0 flex-1 flex-col rounded-lg border">
+              <div className="flex items-center gap-1 px-1 py-1">
+                <DragHandle label={name} />
+                <button
+                  type="button"
+                  aria-expanded={expanded}
+                  className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 text-left text-sm"
+                  onClick={() => toggle(key)}
+                >
+                  <ChevronRight
+                    className={cn(
+                      "size-3.5 shrink-0 transition-transform",
+                      expanded && "rotate-90",
+                    )}
+                  />
+                  <span className="truncate">{name}</span>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-muted-foreground"
+                  aria-label={`Duplicate ${name}`}
+                  title="Duplicate"
+                  disabled={value.length >= limits.max}
+                  onClick={() => onChange(list.insert(i + 1, [structuredClone(entry)]))}
+                >
+                  <Copy />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-muted-foreground"
+                  aria-label={`Remove ${name}`}
+                  title="Remove"
+                  disabled={value.length <= limits.min}
+                  onClick={() => onChange(list.remove(i))}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+              {expanded ? (
+                <div className="border-t p-3">
+                  <ZodForm
+                    idPrefix={`${id}-${i}`}
+                    schema={item}
+                    value={entry}
+                    ctx={ctx}
+                    onChange={(patch) => onChange(list.update(i, { ...entry, ...patch }))}
+                  />
+                </div>
+              ) : null}
+            </div>
+          );
+        }}
+      </SortableRows>
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-fit"
+        disabled={value.length >= limits.max}
+        onClick={() => onChange(list.add(schemaDefaults(item)))}
+      >
+        <Plus data-icon="inline-start" />
+        Add
+      </Button>
     </FieldSet>
   );
 }

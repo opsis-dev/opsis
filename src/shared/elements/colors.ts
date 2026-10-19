@@ -19,3 +19,5 @@ export const PLACEHOLDER_COLOR = "#0c0c10";
 export const PLACEHOLDER_TITLE_COLOR = "#e4e4e7";
 
 export const PLACEHOLDER_SUBTITLE_COLOR = "#a1a1aa";
+
+export const CAPTION_PANEL_COLOR = "rgba(0,0,0,0.35)";

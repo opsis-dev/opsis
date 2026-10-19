@@ -90,15 +90,7 @@ function InputWithButton({
   );
 }
 
-export function AssetField({
-  id,
-  name,
-  label,
-  value,
-  onChange,
-  meta,
-  ctx,
-}: ParamFieldProps<string>) {
+export function AssetField({ id, label, value, onChange, meta, ctx }: StringProps) {
   return (
     <FieldShell id={id} label={label} meta={meta}>
       <InputWithButton
@@ -109,7 +101,7 @@ export function AssetField({
         action={{
           icon: FolderOpen,
           label: "Choose",
-          onClick: () => ctx.chooseAsset(name),
+          onClick: () => ctx.chooseAsset(onChange),
           disabled: !ctx.projectDir,
         }}
       />

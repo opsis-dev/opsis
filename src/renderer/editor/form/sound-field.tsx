@@ -6,22 +6,14 @@ import { BUILTIN_SOUNDS, builtinSound } from "@/shared/sounds";
 import { fileUrl } from "../file-url";
 import { ChoiceSelect } from "./choice-select";
 import { FieldShell } from "./field-shell";
-import type { ParamFieldProps } from "./types";
+import type { FieldProps } from "./types";
 
 const OWN_FILE = "own-file";
 
 const play = (ref: string) =>
   void new Audio(fileUrl(ref)).play().catch(() => toast.error("Couldn't play this sound."));
 
-export function SoundField({
-  id,
-  name,
-  label,
-  value,
-  onChange,
-  meta,
-  ctx,
-}: ParamFieldProps<string>) {
+export function SoundField({ id, label, value, onChange, meta, ctx }: FieldProps<string>) {
   const builtin = builtinSound(value);
   const ownLabel = value && !builtin ? baseName(value) : "Your own file…";
   const selectedKey = builtin?.ref ?? (value ? OWN_FILE : null);
@@ -37,10 +29,11 @@ export function SoundField({
           ]}
           value={selectedKey}
           onChange={(v) => {
-            if (v === OWN_FILE) ctx.chooseAsset(name);
+            if (v === OWN_FILE) ctx.chooseAsset(onChange);
             else onChange(v);
           }}
           placeholder="Choose a sound"
+          noneLabel={meta.zeroLabel}
         />
         <Button
           variant="outline"

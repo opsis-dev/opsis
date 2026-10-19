@@ -1,11 +1,14 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
-import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, Sequence, useVideoConfig } from "remotion";
+import { isThemeValue, themeColors } from "../../shared/elements/theme";
 import type { ElementProps } from "../../shared/elements/types";
-import { isString } from "../../shared/guards";
+import { isRecord, isString } from "../../shared/guards";
 import { numberOr } from "../../shared/math";
 import type { Size } from "../core/still-layout";
+import { defaultDarkTheme, defaultLightTheme, RemocnUIProvider } from "../lib/remocn-ui/theme";
+import { SnapCnUIProvider } from "../lib/snap-cn-ui/theme";
 import type { ElementComponent, Presentation, PresentationFactory, SceneSequencer } from "./types";
 
 export const component = (element: React.FC<never>): ElementComponent =>
@@ -125,4 +128,140 @@ export function playsAtEnd(Component: ElementComponent): ElementComponent {
     return <Component {...props} delay={Math.max(0, durationInFrames - length)} />;
   };
   return AtEnd;
+}
+
+function setPath(target: ElementProps, path: string[], value: unknown): void {
+  const [head, ...rest] = path;
+  if (!head) return;
+  if (rest.length === 0) {
+    target[head] = value;
+    return;
+  }
+  const inner = isRecord(target[head]) ? { ...target[head] } : {};
+  setPath(inner, rest, value);
+  target[head] = inner;
+}
+
+export function nested(
+  Component: ElementComponent,
+  paths: Record<string, string>,
+): ElementComponent {
+  const Nested: ElementComponent = (props) => {
+    const out: ElementProps & { children?: React.ReactNode } = {};
+    for (const [key, value] of Object.entries(props))
+      if (!Object.hasOwn(paths, key)) out[key] = value;
+    for (const [key, path] of Object.entries(paths))
+      if (props[key] !== undefined) setPath(out, path.split("."), props[key]);
+    return <Component {...out} />;
+  };
+  return Nested;
+}
+
+const rowsOf = (value: unknown): ElementProps[] =>
+  Array.isArray(value) ? value.filter(isRecord) : [];
+
+export function listsFromRows(
+  Component: ElementComponent,
+  lists: Record<string, Record<string, string>>,
+): ElementComponent {
+  const Unzipped: ElementComponent = (props) => {
+    const out: ElementProps & { children?: React.ReactNode } = { ...props };
+    for (const [key, columns] of Object.entries(lists)) {
+      const rows = rowsOf(props[key]);
+      delete out[key];
+      for (const [column, prop] of Object.entries(columns)) {
+        const values = rows.map((r) => r[column]);
+        if (values.some((v) => v !== undefined && v !== "")) out[prop] = values;
+      }
+    }
+    return <Component {...out} />;
+  };
+  return Unzipped;
+}
+
+export function marksFromImages(
+  Component: ElementComponent,
+  { from, to }: { from: string; to: string },
+): ElementComponent {
+  const Marked: ElementComponent = (props) => {
+    const marks = rowsOf(props[from]).map((row) => ({
+      mark:
+        isString(row.image) && row.image ? (
+          <Img src={row.image} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+        ) : null,
+      ...(isString(row.background) && row.background ? { bg: row.background } : {}),
+    }));
+    const rest = Object.fromEntries(Object.entries(props).filter(([k]) => k !== from));
+    return <Component {...rest} {...{ [to]: marks }} />;
+  };
+  return Marked;
+}
+
+const TICK_WORDS: Partial<Record<string, boolean>> = { yes: true, no: false };
+
+export function ticksFromWords(Component: ElementComponent, key: string): ElementComponent {
+  const Ticked: ElementComponent = (props) => {
+    const rows = rowsOf(props[key]).map((row) => ({
+      ...row,
+      cells: Array.isArray(row.cells)
+        ? row.cells.map((cell) =>
+            isString(cell) ? (TICK_WORDS[cell.trim().toLowerCase()] ?? cell) : cell,
+          )
+        : row.cells,
+    }));
+    return <Component {...props} {...{ [key]: rows }} />;
+  };
+  return Ticked;
+}
+
+type TreeNode = { name: string; children?: TreeNode[] };
+
+export function treeFromPaths(paths: readonly string[]): TreeNode[] {
+  const root: TreeNode = { name: "", children: [] };
+  for (const path of paths) {
+    const parts = path.split("/").map((p) => p.trim());
+    const folder = parts.at(-1) === "";
+    const names = parts.filter(Boolean);
+    let node = root;
+    names.forEach((name, i) => {
+      node.children ??= [];
+      let child = node.children.find((c) => c.name === name);
+      if (!child) {
+        child = { name, ...(i < names.length - 1 || folder ? { children: [] } : {}) };
+        node.children.push(child);
+      } else if (i < names.length - 1) child.children ??= [];
+      node = child;
+    });
+  }
+  return root.children ?? [];
+}
+
+export function treeFrom(Component: ElementComponent, key: string): ElementComponent {
+  const Tree: ElementComponent = (props) => {
+    const paths = Array.isArray(props[key]) ? props[key].filter(isString) : [];
+    return <Component {...props} {...{ [key]: treeFromPaths(paths) }} />;
+  };
+  return Tree;
+}
+
+const REMOCN_PRESETS = { light: defaultLightTheme, dark: defaultDarkTheme } as const;
+
+export function themed(Component: ElementComponent, family: "context" | "prop"): ElementComponent {
+  const Themed: ElementComponent = (props) => {
+    const { theme } = props;
+    if (!isThemeValue(theme)) return <Component {...props} />;
+    if (family === "prop")
+      return (
+        <SnapCnUIProvider mode={theme.mode}>
+          <Component {...props} theme={themeColors(theme)} mode={theme.mode} />
+        </SnapCnUIProvider>
+      );
+    const tokens = { ...REMOCN_PRESETS[theme.mode], ...themeColors(theme) };
+    return (
+      <RemocnUIProvider mode={theme.mode} theme={tokens}>
+        <Component {...props} theme={tokens} />
+      </RemocnUIProvider>
+    );
+  };
+  return Themed;
 }

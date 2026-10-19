@@ -3,7 +3,7 @@ import { projectRef } from "../asset-ref";
 import { itemClip } from "../compile/clip";
 import { formatDuration } from "../format";
 import { kindFromPath } from "../mime";
-import type { VisualEnvelope } from "../schema/timeline";
+import type { EditHandles, VisualEnvelope } from "../schema/timeline";
 import {
   asValue,
   outputOf,
@@ -94,17 +94,20 @@ type ClipLook = {
   fps: number;
   unlinked: { title: string; subtitle: string };
   soundLabel: string;
+  still?: { ms: number; handles: EditHandles };
 };
+
+function clipMs(media: MediaValue | undefined, still: ClipLook["still"]): number {
+  if (media?.kind === "image") return still?.ms ?? media.durationMs ?? DEFAULT_STILL_MS;
+  return media?.durationMs ?? MEDIA_MS;
+}
 
 function mediaToClip(
   nodeId: string,
   media: MediaValue | undefined,
-  { fit, muted, envelope, fps, unlinked, soundLabel }: ClipLook,
+  { fit, muted, envelope, fps, unlinked, soundLabel, still }: ClipLook,
 ): ClipValue {
-  const frames = msToFrames(
-    media?.durationMs ?? (media?.kind === "image" ? DEFAULT_STILL_MS : MEDIA_MS),
-    fps,
-  );
+  const frames = msToFrames(clipMs(media, still), fps);
   if (!media?.src) return itemClip(nodeId, "core/placeholder", unlinked, frames, { envelope });
   if (media.kind === "audio")
     return itemClip(
@@ -116,8 +119,12 @@ function mediaToClip(
         envelope,
       },
     );
-  const component = media.kind === "image" ? "core/image" : "core/video";
-  return itemClip(nodeId, component, { src: media.src, fit, muted }, frames, { envelope });
+  if (media.kind === "image")
+    return itemClip(nodeId, "core/image", { src: media.src, fit, muted }, frames, {
+      envelope,
+      ...(still ? { handles: still.handles } : {}),
+    });
+  return itemClip(nodeId, "core/video", { src: media.src, fit, muted }, frames, { envelope });
 }
 
 const op = <S extends z.ZodObject>(def: Omit<NodeDef<S>, "category" | "phase" | "executes">) =>
@@ -131,11 +138,17 @@ export const importMediaNode = op({
   outputs: { media: port("media", "File"), clip: port("clip", "Clip") },
   card: ({ params: p, result }) => [
     p.path ? fileRow("file-video", p.path) : missing("file-video", "Choose a file"),
-    lengthRow(result),
+    p.path && kindFromPath(p.path) === "image"
+      ? row("clock", formatDuration(p.stillMs))
+      : lengthRow(result),
   ],
   params: z.object({
     path: asset("File"),
     fit: fitField(),
+    stillMs: more(ms(DEFAULT_STILL_MS, "Length", 3_600_000), {
+      help: "How long the image stays on screen.",
+      showIfFile: { path: ["image"] },
+    }),
     envelope: visualEnvelope(),
   }),
   compile: ({ nodeId, result, params, settings }) => {
@@ -151,6 +164,10 @@ export const importMediaNode = op({
       fps: settings.fps,
       unlinked: { title: "No file chosen", subtitle: params.path },
       soundLabel: params.path,
+      still: {
+        ms: params.stillMs,
+        handles: { trimEnd: { nodeId, param: "stillMs", unit: "ms" } },
+      },
     });
     return { media, clip };
   },

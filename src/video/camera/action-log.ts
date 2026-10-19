@@ -25,6 +25,7 @@ export type Annotation = {
   text: string;
   color: string;
   padding: number;
+  label: Pick<AnnotationSpec, "textColor" | "fontSize" | "font">;
 };
 
 export const TYPED_LINGER_S = 0.6;
@@ -107,6 +108,7 @@ export function resolveAnnotations(log: ActionLog, specs: AnnotationSpec[]): Ann
         text: spec.text,
         color: spec.color,
         padding: spec.padding,
+        label: { textColor: spec.textColor, fontSize: spec.fontSize, font: spec.font },
       });
     }
   }

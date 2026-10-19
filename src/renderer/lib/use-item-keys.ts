@@ -18,5 +18,9 @@ export function useItemKeys<T>(items: readonly T[], order?: (a: T, b: T) => numb
     update: (index: number, item: T): T[] =>
       commit(rows.map((r, i) => (i === index ? { ...r, item } : r))),
     remove: (index: number): T[] => commit(rows.toSpliced(index, 1)),
+    insert: (index: number, added: T[]): T[] =>
+      commit(rows.toSpliced(index, 0, ...added.map((item) => ({ item, key: randomId() })))),
+    reorder: (keyOrder: string[]): T[] =>
+      commit(keyOrder.flatMap((key) => rows.find((r) => r.key === key) ?? [])),
   };
 }

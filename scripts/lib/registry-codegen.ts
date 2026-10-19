@@ -8,7 +8,19 @@ import { REGISTRIES, TITLE_ACRONYMS, type CuratedElement } from "../registry-ing
 import type { Control } from "./registry-controls";
 import { VIDEO_DIR } from "./tool-config";
 
-const CONTROL_META_KEYS = ["step", "unit", "help", "advanced", "widget", "hidden"] as const;
+const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
+
+const CONTROL_META_KEYS = [
+  "step",
+  "unit",
+  "help",
+  "advanced",
+  "widget",
+  "hidden",
+  "showIf",
+  "labels",
+  "themes",
+] as const;
 
 const controlMeta = (c: Control): FieldMeta =>
   pick(
@@ -20,6 +32,7 @@ function metaOf(key: string, c: Control, extra: FieldMeta = {}): string {
   const meta: FieldMeta = {
     description: c.description ?? c.label ?? key,
     ...extra,
+    ...(c.emptyLabel ? { zeroLabel: c.emptyLabel } : {}),
     ...controlMeta(c),
   };
   const body = Object.entries(meta)
@@ -31,60 +44,90 @@ function metaOf(key: string, c: Control, extra: FieldMeta = {}): string {
 const COLLECTIONS = {
   strings: { zod: "z.array(z.string())", empty: [] },
   numbers: { zod: "z.array(z.number())", empty: [] },
-  rows: { zod: "z.array(z.record(z.string(), z.unknown()))", empty: [] },
   object: { zod: "z.record(z.string(), z.unknown())", empty: {} },
 } as const;
 
-const stringField = (text: string, meta: string) =>
-  `z.string().default(${JSON.stringify(text)})${meta}`;
+const lengths = (c: Control) =>
+  `${typeof c.min === "number" ? `.min(${c.min})` : ""}${typeof c.max === "number" ? `.max(${c.max})` : ""}`;
 
-function zodFor(key: string, c: Control): string | null {
-  const withMeta = (extra: FieldMeta = {}) => metaOf(key, c, extra);
+function rowsZod(c: Control): string | null {
+  const fields = Object.entries(c.columns ?? {}).map(([k, col]) => {
+    const schema = zodFor(k, col);
+    return schema ? `${IDENTIFIER.test(k) ? k : JSON.stringify(k)}: ${schema}` : null;
+  });
+  if (fields.length === 0 || fields.includes(null)) return null;
+  return `z.array(z.object({ ${fields.join(", ")} }))`;
+}
+
+function baseZod(c: Control): { zod: string; fallback: unknown; extra?: FieldMeta } | null {
   const text = String(c.default ?? "");
   switch (c.type) {
     case "text":
     case "text-content":
-      return stringField(
-        text,
-        withMeta(text.includes("\n") || text.length > 60 ? { widget: "textarea" } : {}),
-      );
+      return {
+        zod: "z.string()",
+        fallback: text,
+        extra: text.includes("\n") || text.length > 60 ? { widget: "textarea" } : {},
+      };
     case "code":
-      return stringField(text, withMeta({ widget: "code" }));
+      return { zod: "z.string()", fallback: text, extra: { widget: "code" } };
     case "font":
-      return stringField("", withMeta({ widget: "font" }));
+      return { zod: "z.string()", fallback: "", extra: { widget: "font" } };
     case "image":
     case "asset":
-      return stringField(
-        text,
-        withMeta({ widget: "asset", ...(c.accept ? { accept: c.accept } : {}) }),
-      );
+      return {
+        zod: "z.string()",
+        fallback: text,
+        extra: { widget: "asset", ...(c.accept ? { accept: c.accept } : {}) },
+      };
+    case "gradient":
+      return { zod: "z.string()", fallback: text, extra: { widget: "gradient" } };
     case "number": {
-      let s = "z.number()";
-      if (typeof c.min === "number") s += `.min(${c.min})`;
-      if (typeof c.max === "number") s += `.max(${c.max})`;
-      s += `.default(${typeof c.default === "number" ? c.default : 0})`;
-      return s + withMeta();
+      let zod = "z.number()";
+      if (typeof c.min === "number") zod += `.min(${c.min})`;
+      if (typeof c.max === "number") zod += `.max(${c.max})`;
+      return { zod, fallback: typeof c.default === "number" ? c.default : 0 };
     }
     case "color":
-      return `zColor().default(${JSON.stringify(String(c.default ?? "#000000"))})${withMeta()}`;
+      return c.emptyLabel
+        ? { zod: "z.string()", fallback: text, extra: { widget: "color" } }
+        : { zod: "zColor()", fallback: String(c.default ?? "#000000") };
     case "boolean":
-      return `z.boolean().default(${c.default === true})${withMeta()}`;
+      return { zod: "z.boolean()", fallback: c.default === true };
     case "enum":
     case "select": {
       const opts = c.options ?? Object.keys(c.variants ?? {});
       if (opts.length === 0) return null;
       const def =
         c.default != null && opts.includes(String(c.default)) ? String(c.default) : opts[0];
-      return `z.enum(${JSON.stringify(opts.map(String))}).default(${JSON.stringify(def)})${withMeta()}`;
+      return { zod: `z.enum(${JSON.stringify(opts.map(String))})`, fallback: def };
+    }
+    case "colors":
+      return { zod: `z.array(zColor())${lengths(c)}`, fallback: c.default ?? [] };
+    case "theme":
+      return {
+        zod: "themeValueSchema",
+        fallback: { mode: c.default === "light" ? "light" : "dark", colors: {} },
+        extra: { widget: "theme" },
+      };
+    case "rows": {
+      const zod = rowsZod(c);
+      return zod ? { zod: `${zod}${lengths(c)}`, fallback: c.default ?? [] } : null;
     }
     case "strings":
     case "numbers":
-    case "rows":
     case "object": {
       const { zod, empty } = COLLECTIONS[c.type];
-      return `${zod}.default(${JSON.stringify(c.default ?? empty)})${withMeta()}`;
+      return { zod: `${zod}${lengths(c)}`, fallback: c.default ?? empty };
     }
   }
+}
+
+export function zodFor(key: string, c: Control): string | null {
+  const base = baseZod(c);
+  if (!base) return null;
+  const tail = c.optional ? ".optional()" : `.default(${JSON.stringify(base.fallback)})`;
+  return `${base.zod}${tail}${metaOf(key, c, base.extra)}`;
 }
 
 const titleOf = (name: string): string =>
@@ -103,13 +146,21 @@ const kindOf = (item: CuratedElement): ElementKind =>
 
 type FramingHelper = keyof typeof framing;
 
-const WRAPPERS: Array<[applies: (item: CuratedElement) => boolean, wrapper: FramingHelper]> = [
-  [(item) => !!item.screen, "fitScreen"],
-  [(item) => !!item.center, "centered"],
-  [(item) => !!item.atEnd, "playsAtEnd"],
-  [(item) => !!item.paint, "painted"],
-  [(item) => item.place === "spot", "placedAt"],
-  [(item) => item.place === "points", "pointsFromSpots"],
+type Wrap = { helper: FramingHelper; arg?: unknown };
+
+const WRAPPERS: Array<(item: CuratedElement) => Wrap | null> = [
+  (item) => (item.nest ? { helper: "nested", arg: item.nest } : null),
+  (item) => (item.lists ? { helper: "listsFromRows", arg: item.lists } : null),
+  (item) => (item.marks ? { helper: "marksFromImages", arg: item.marks } : null),
+  (item) => (item.ticks ? { helper: "ticksFromWords", arg: item.ticks } : null),
+  (item) => (item.tree ? { helper: "treeFrom", arg: item.tree } : null),
+  (item) => (item.theme ? { helper: "themed", arg: item.theme.family } : null),
+  (item) => (item.screen ? { helper: "fitScreen" } : null),
+  (item) => (item.center ? { helper: "centered" } : null),
+  (item) => (item.atEnd ? { helper: "playsAtEnd" } : null),
+  (item) => (item.paint ? { helper: "painted" } : null),
+  (item) => (item.place === "spot" ? { helper: "placedAt" } : null),
+  (item) => (item.place === "points" ? { helper: "pointsFromSpots" } : null),
 ];
 
 export type Resolved = {
@@ -121,8 +172,6 @@ export type Resolved = {
   controls: Array<[string, Control]>;
   duration: number;
 };
-
-const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 
 export function renderMetaEntry({ item, key, description, controls, duration }: Resolved): string {
   const reg = REGISTRIES[item.registry];
@@ -158,10 +207,14 @@ function implOf(
       helpers: ["sequencer"],
     };
   const base = kind === "presentation" ? "presentation" : "component";
-  const wrappers = WRAPPERS.filter(([applies]) => applies(item)).map(([, wrapper]) => wrapper);
+  const wraps = WRAPPERS.flatMap((wrap) => wrap(item) ?? []);
   return {
-    impl: wrappers.reduce((inner, wrapper) => `${wrapper}(${inner})`, `${base}(m.${exportName})`),
-    helpers: [base, ...wrappers],
+    impl: wraps.reduce(
+      (inner, { helper, arg }) =>
+        `${helper}(${inner}${arg === undefined ? "" : `, ${JSON.stringify(arg)}`})`,
+      `${base}(m.${exportName})`,
+    ),
+    helpers: [base, ...wraps.map((w) => w.helper)],
   };
 }
 
@@ -186,6 +239,7 @@ export const renderMeta = (entries: string[]): string =>
   [
     'import { zColor } from "@remotion/zod-types";',
     'import { z } from "zod";',
+    'import { themeValueSchema } from "./theme";',
     'import { defineElementMeta, type ElementMetaInput } from "./types";',
     "",
     "const defs: ElementMetaInput[] = [",

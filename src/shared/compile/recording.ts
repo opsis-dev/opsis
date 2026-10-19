@@ -16,11 +16,36 @@ const annotationSpecSchema = z.object({
   padding: z.number(),
   leadMs: z.number(),
   holdMs: z.number(),
+  textColor: z.string().optional(),
+  fontSize: z.number().optional(),
+  font: z.string().optional(),
 });
 export type AnnotationSpec = z.infer<typeof annotationSpecSchema>;
 
 const KEYSTROKE_POSITIONS = ["bottom", "top"] as const;
 export type KeystrokePosition = (typeof KEYSTROKE_POSITIONS)[number];
+
+const cursorLookSchema = z.object({ fill: z.string(), edge: z.string() });
+export type CursorLook = z.infer<typeof cursorLookSchema>;
+
+const rippleLookSchema = z.object({ color: z.string(), size: z.number(), width: z.number() });
+export type RippleLook = z.infer<typeof rippleLookSchema>;
+
+const keystrokeLookSchema = z.object({
+  position: z.enum(KEYSTROKE_POSITIONS),
+  typed: z.boolean(),
+  chords: z.boolean(),
+  keycap: z.string(),
+  ink: z.string(),
+  size: z.number(),
+});
+export type KeystrokeLook = z.infer<typeof keystrokeLookSchema>;
+
+export const DEFAULT_CURSOR_LOOK: CursorLook = { fill: "#111418", edge: "#ffffff" };
+
+export const DEFAULT_RIPPLE: RippleLook = { color: "#0f172a", size: 1, width: 2 };
+
+export const DEFAULT_KEYCAP = { keycap: "#0a0a0a", ink: "#ffffff" } as const;
 
 export const recordingPropsSchema = z.object({
   src: z.string(),
@@ -39,11 +64,10 @@ export const recordingPropsSchema = z.object({
   backdrop: z.string(),
   cursor: z.boolean(),
   cursorScale: z.number(),
-  ripple: z.boolean(),
+  cursorLook: cursorLookSchema,
+  ripple: rippleLookSchema.nullable(),
   extraBeats: actionLogSchema.shape.actions,
-  keystrokes: z
-    .object({ position: z.enum(KEYSTROKE_POSITIONS), typed: z.boolean(), chords: z.boolean() })
-    .optional(),
+  keystrokes: keystrokeLookSchema.optional(),
   annotations: z.array(annotationSpecSchema),
 });
 export type RecordingProps = z.infer<typeof recordingPropsSchema>;
@@ -63,7 +87,8 @@ export const defaultRecordingProps = (): Omit<
   backdrop: DEFAULT_BACKDROP,
   cursor: true,
   cursorScale: 1,
-  ripple: true,
+  cursorLook: DEFAULT_CURSOR_LOOK,
+  ripple: DEFAULT_RIPPLE,
   extraBeats: [],
   annotations: [],
 });

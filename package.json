@@ -38,11 +38,17 @@
     "brand:icons": "tsx scripts/brand-icons.ts",
     "engine:licences": "tsx scripts/engine-licences.ts",
     "examples": "tsx scripts/write-examples.ts",
+    "elements:render": "tsx scripts/render-elements.ts",
     "glyphs:bundle": "tsx scripts/node-glyphs.ts",
     "db:schema": "drizzle-kit export --config drizzle.config.ts > src/main/db/schema.generated.sql"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
+    "@base-ui/utils": "^0.5.0",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/caveat": "^5.3.0",
     "@fontsource-variable/dm-sans": "^5.3.0",
     "@fontsource-variable/fraunces": "^5.3.0",

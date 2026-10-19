@@ -140,9 +140,9 @@ type RoundTrip = {
   addedNodes: number;
 };
 
-function roundTrips(type: string): RoundTrip[] {
+function roundTrips(type: string, params?: Record<string, unknown>): RoundTrip[] {
   const wf = buildFilm((g) => {
-    g.node("x", type, 3, 0);
+    g.node("x", type, 3, 0, params);
     feedInputs(g, "x", type);
     return "x";
   });
@@ -186,6 +186,14 @@ describe("timeline edit handles round-trip", () => {
     expect(owners("trimEnd")).toContain("timeline.trim");
     expect(owners("trimEnd")).toContain(TITLE);
     expect(owners("speed")).toContain("timeline.speed");
+  });
+
+  it("trims an image Media file through its length", () => {
+    const image = roundTrips("media.import", { path: "assets/still.png", stillMs: 4000 });
+    expect(image).toContainEqual(
+      expect.objectContaining({ kind: "trimEnd", owner: "media.import", addedNodes: 0 }),
+    );
+    expect(image.every((t) => Math.abs(t.off) <= t.tolerance)).toBe(true);
   });
 });
 

@@ -19,11 +19,13 @@ import {
   parseConfig,
   propControls,
   propDocsSchema,
+  resolveControls,
   splitSentences,
   type ParsedConfig,
   type PropDoc,
 } from "./lib/registry-controls";
 import { install, moveInstalled, rewriteImports } from "./lib/registry-install";
+import { hiddenPropProblems } from "./lib/registry-props";
 import { ROOT, SRC_DIR, VIDEO_DIR } from "./lib/tool-config";
 import { literalOf, scratchFile } from "./lib/ts-literal";
 import {
@@ -193,20 +195,20 @@ async function controlsAndDuration(
   file: string,
   exportName: string,
   cfg: ParsedConfig | null,
-): Promise<Pick<Resolved, "controls" | "duration">> {
+): Promise<Pick<Resolved, "controls" | "duration"> & { problems: string[] }> {
   const { propsUrl } = REGISTRIES[item.registry];
-  const props = propsUrl
-    ? propControls(item, file, exportName, await fetchPropDocs(propsUrl(item.name)))
-    : undefined;
+  const docs = propsUrl ? await fetchPropDocs(propsUrl(item.name)) : [];
+  const props = propsUrl ? propControls(item, file, exportName, docs) : undefined;
   const source = readFileSync(file, "utf8");
-  const controls = controlsFor(item, source, props ? props.controls : cfg?.controls, !!props);
+  const found = controlsFor(item, source, props ? props.controls : cfg?.controls, !!props);
+  const { controls, problems } = resolveControls(item, file, found, docs);
   const duration =
     item.durationInFrames ??
     cfg?.durationInFrames ??
     props?.durationInFrames ??
     (await registryDuration(item)) ??
     DEFAULT_ELEMENT_FRAMES;
-  return { controls, duration };
+  return { controls, duration, problems: problems.map((p) => `${itemName(item)}: ${p}`) };
 }
 
 async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved | null>> {
@@ -219,7 +221,16 @@ async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved 
   const description = await descriptionOf(item, key);
   const exported = componentExport(item, file, cfg);
   if (!exported.ok) return failed([...description.problems, exported.problem]);
-  const { controls, duration } = await controlsAndDuration(item, file, exported.name, cfg);
+  const resolved = await controlsAndDuration(item, file, exported.name, cfg);
+  const { controls, duration } = resolved;
+  const shown = new Set([...controls.map(([k]) => k), ...Object.keys(item.fixedProps ?? {})]);
+  const hidden = hiddenPropProblems({
+    key,
+    item,
+    file,
+    exportName: exported.name,
+    shown,
+  });
   return {
     value: {
       item,
@@ -230,7 +241,12 @@ async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved 
       controls,
       duration,
     },
-    problems: [...description.problems, ...defaultProblems(key, controls, item.fixedProps)],
+    problems: [
+      ...description.problems,
+      ...resolved.problems,
+      ...hidden,
+      ...defaultProblems(key, controls, item.fixedProps),
+    ],
   };
 }
 

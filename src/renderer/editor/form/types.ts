@@ -12,7 +12,8 @@ export type FormContext = {
   layers: number;
   spotBackground: SpotBackground;
   pickTarget: (key: string) => void;
-  chooseAsset: (key: string) => void;
+  chooseAsset: (apply: (path: string) => void) => void;
+  swatches: string[];
   actions: Array<{ id: string; label: string }>;
 };
 

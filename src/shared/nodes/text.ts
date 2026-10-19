@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { EMPTY_CLIP_FRAMES, emptyClip, itemClip, stackClips } from "../compile/clip";
+import { TEXT_COLOR } from "../elements/colors";
 import { CAPTIONS_ELEMENT, captionsSchema } from "../elements/core";
 import { fontProp } from "../fonts";
 import { humanize } from "../format";
@@ -39,6 +40,7 @@ const tooltipNode = annotationNode({
   icon: "message-square",
   description: "A tooltip that stays attached to an element as the camera moves.",
   defaults: { text: "Click to continue", color: "#18181b" },
+  label: { fontSize: 18, textColor: TEXT_COLOR },
 });
 
 const calloutArrowNode = annotationNode({
@@ -49,6 +51,7 @@ const calloutArrowNode = annotationNode({
   icon: "move-up-right",
   description: "A hand-drawn arrow pointing at an element, with a label.",
   defaults: { text: "New!", color: "#f43f5e" },
+  label: { fontSize: 30 },
 });
 
 const captionsFromTextNode = defineNode({

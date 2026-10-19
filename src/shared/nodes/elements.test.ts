@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyClip, groupOf } from "../compile/clip";
+import { ELEMENTS } from "../elements";
 import { compileClip, must, nodeCard } from "../test-fixtures";
 
 const SPRING_SETTLE = "fx.remocn.spring-settle";
@@ -31,5 +32,105 @@ describe("Spring settle", () => {
 
   it("warns when no scene is connected", () => {
     expect(nodeCard(SPRING_SETTLE)[0]).toMatchObject({ text: "0 scenes", tone: "warn" });
+  });
+});
+
+const firstItem = (type: string, params: Record<string, unknown>) =>
+  must(compileClip(type, params).tracks[0]?.items[0], `${type} item`);
+
+describe("element settings", () => {
+  it("makes files inside rows project files", () => {
+    const item = firstItem("fx.remocn.logo-enter", {
+      logos: [
+        { image: "assets/a.svg", background: "#000" },
+        { image: "app:placeholders/logo-mark.svg", background: "#111" },
+      ],
+    });
+    expect(item.props.logos).toEqual([
+      { image: "project:assets/a.svg", background: "#000" },
+      { image: "app:placeholders/logo-mark.svg", background: "#111" },
+    ]);
+  });
+
+  it("leaves out colours left on the theme", () => {
+    expect(firstItem("fx.remotion-ui.stat-card", { backgroundColor: "" }).props).not.toHaveProperty(
+      "backgroundColor",
+    );
+    expect(
+      firstItem("fx.remotion-ui.stat-card", { backgroundColor: "#123456" }).props,
+    ).toMatchObject({
+      backgroundColor: "#123456",
+    });
+  });
+
+  it("shows a palette on the card", () => {
+    const palette = nodeCard("fx.remocn.shader-mesh-gradient").find((r) => r.icon === "palette");
+    expect(palette).toMatchObject({
+      text: "4 colours",
+      swatches: ["#12121a", "#232338", "#3a3a5c", "#52527a"],
+    });
+  });
+});
+
+describe("element defaults", () => {
+  it("pass their own schema", () => {
+    const failing = ELEMENTS.flatMap((meta) => {
+      const parsed = meta.schema.safeParse(meta.defaultProps);
+      return parsed.success ? [] : [`${meta.key}: ${parsed.error.issues[0]?.path.join(".")}`];
+    });
+    expect(failing).toEqual([]);
+  });
+});
+
+describe("element music", () => {
+  it("plays through the mix as the node's own channel, never inside the element", () => {
+    const clip = compileClip("fx.remocn.release-teaser", {
+      music: "assets/song.mp3",
+      musicVolume: 0.4,
+    });
+    expect(clip.audio).toEqual([
+      expect.objectContaining({
+        src: "project:assets/song.mp3",
+        volume: 0.4,
+        channel: "n",
+        role: "music",
+        durationInFrames: clip.durationInFrames,
+      }),
+    ]);
+    const props = must(clip.tracks[0]?.items[0], "teaser item").props;
+    expect(props).not.toHaveProperty("music");
+    expect(props).not.toHaveProperty("musicVolume");
+  });
+
+  it("adds no sound while the music is None", () => {
+    expect(compileClip("fx.remocn.release-teaser", {}).audio).toEqual([]);
+  });
+});
+
+describe("element look rows", () => {
+  it("shows a gradient's stops while the fill is a gradient", () => {
+    const rows = nodeCard("fx.remotion-ui.text-mask-video");
+    expect(rows.find((r) => r.icon === "blend")).toMatchObject({
+      text: "Straight gradient",
+      swatches: ["#e8b86d", "#f472b6", "#2dd4bf"],
+    });
+    expect(
+      nodeCard("fx.remotion-ui.text-mask-video", { media: "video" }).some(
+        (r) => r.icon === "blend",
+      ),
+    ).toBe(false);
+  });
+
+  it("shows the theme and its changed colours", () => {
+    expect(nodeCard("fx.snapcn.hero-launch").find((r) => r.icon === "moon")?.text).toBe(
+      "Dark theme",
+    );
+    const light = nodeCard("fx.snapcn.hero-launch", {
+      theme: { mode: "light", colors: { background: "#fff" } },
+    });
+    expect(light.find((r) => r.icon === "sun")).toMatchObject({
+      text: "Light theme · 1 colour changed",
+      swatches: ["#fff"],
+    });
   });
 });

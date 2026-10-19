@@ -183,7 +183,10 @@
         "color": "#18181b",
         "padding": 10,
         "leadMs": 250,
-        "holdMs": 1400
+        "holdMs": 1400,
+        "textColor": "#fafafa",
+        "fontSize": 18,
+        "font": ""
       }
     },
     {
@@ -213,6 +216,8 @@
         "fontSize": 56,
         "color": "#ffffff",
         "highlightColor": "#facc15",
+        "panel": "rgba(0,0,0,0.35)",
+        "fontWeight": 800,
         "fontFamily": ""
       }
     },

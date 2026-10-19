@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
-import type { KeystrokePosition } from "../../shared/compile/recording";
+import type { KeystrokeLook } from "../../shared/compile/recording";
 import { useOverlayFrame } from "../core/frame";
 import type { KeyEvent } from "./lib/click-log";
 import { useDesignScale } from "./lib/design-scale";
@@ -15,16 +15,16 @@ const KEYCAP = {
   glyph: 44,
   glyphGap: 0.28,
   rise: 10,
-  ground: "#0a0a0a",
-  ink: "#ffffff",
 } as const;
 
 export const KeycapHUD: React.FC<{
   keys: KeyEvent[];
   timeS: number;
-  position: KeystrokePosition;
-}> = ({ keys, timeS, position }) => {
-  const k = useDesignScale();
+  look: KeystrokeLook;
+}> = ({ keys, timeS, look }) => {
+  const { position } = look;
+  const frameScale = useDesignScale();
+  const k = frameScale * look.size;
   const { insets } = useOverlayFrame();
   const active = keycapAt(keys, timeS);
   if (!active) return null;
@@ -39,8 +39,8 @@ export const KeycapHUD: React.FC<{
       style={{
         alignItems: "center",
         justifyContent: top ? "flex-start" : "flex-end",
-        paddingTop: top ? KEYCAP.edge * k + insets.top : 0,
-        paddingBottom: top ? 0 : KEYCAP.edge * k + insets.bottom,
+        paddingTop: top ? KEYCAP.edge * frameScale + insets.top : 0,
+        paddingBottom: top ? 0 : KEYCAP.edge * frameScale + insets.bottom,
         pointerEvents: "none",
       }}
     >
@@ -53,8 +53,8 @@ export const KeycapHUD: React.FC<{
           height: KEYCAP.height * k,
           padding: `0 ${KEYCAP.padX * k}px`,
           borderRadius: KEYCAP.radius * k,
-          backgroundColor: KEYCAP.ground,
-          color: KEYCAP.ink,
+          backgroundColor: look.keycap,
+          color: look.ink,
           fontSize: KEYCAP.glyph * k,
           gap: KEYCAP.glyphGap * KEYCAP.glyph * k,
           lineHeight: 1,

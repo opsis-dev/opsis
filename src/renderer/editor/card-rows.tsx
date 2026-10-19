@@ -73,6 +73,8 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
   }, [def, node.params, vars, context]);
 }
 
+const MAX_SWATCHES = 8;
+
 export function CardRows({ rows }: { rows: CardRow[] }) {
   if (!rows.length) return null;
   const keys = uniqueKeys(rows.map((r) => `${r.icon}:${r.text}`));
@@ -88,6 +90,17 @@ export function CardRows({ rows }: { rows: CardRow[] }) {
             name={r.icon}
             className={cn("size-3.5 shrink-0", r.tone ? undefined : "text-muted-foreground")}
           />
+          {r.swatches?.length ? (
+            <span className="flex shrink-0 -space-x-1" aria-hidden>
+              {r.swatches.slice(0, MAX_SWATCHES).map((color, j) => (
+                <span
+                  key={j}
+                  className="ring-card size-3 rounded-full ring-1"
+                  style={{ background: color }}
+                />
+              ))}
+            </span>
+          ) : null}
           <span className="truncate">{r.text}</span>
         </li>
       ))}

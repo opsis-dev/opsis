@@ -8,6 +8,7 @@ import { rectCenter, type Viewport } from "../../shared/schema/actions";
 import { fadeWindow, isFadedOut } from "../core/anim";
 import type { Annotation } from "./action-log";
 import { useDesignScale } from "./lib/design-scale";
+import { faded } from "./lib/style";
 
 const FADE = {
   in: 0.18,
@@ -81,7 +82,7 @@ const Highlight: React.FC<MarkProps> = (props) => {
         ...boxOf(props),
         borderRadius: HIGHLIGHT.radius * k,
         border: `${HIGHLIGHT.border * k * counter}px solid ${annotation.color}`,
-        background: `color-mix(in srgb, ${annotation.color} ${HIGHLIGHT.fill}, transparent)`,
+        background: faded(annotation.color, HIGHLIGHT.fill),
         opacity,
         transform: `scale(${interpolate(opacity, [0, 1], [HIGHLIGHT.growFrom, 1])})`,
       }}
@@ -105,10 +106,10 @@ const Tooltip: React.FC<MarkProps> = (props) => {
       <div
         style={{
           background: annotation.color,
-          color: TEXT_COLOR,
-          fontFamily: MAIN_FONT,
+          color: annotation.label.textColor ?? TEXT_COLOR,
+          fontFamily: annotation.label.font ?? MAIN_FONT,
           fontWeight: TOOLTIP.fontWeight,
-          fontSize: TOOLTIP.fontSize * k,
+          fontSize: (annotation.label.fontSize ?? TOOLTIP.fontSize) * k,
           padding: `${TOOLTIP.padY * k}px ${TOOLTIP.padX * k}px`,
           borderRadius: TOOLTIP.radius * k,
           whiteSpace: "nowrap",
@@ -176,9 +177,9 @@ const Callout: React.FC<MarkProps> = (props) => {
           left: CALLOUT.textLeft * k,
           bottom: CALLOUT.textBottom * k,
           color: annotation.color,
-          fontFamily: MAIN_FONT,
+          fontFamily: annotation.label.font ?? MAIN_FONT,
           fontWeight: CALLOUT.fontWeight,
-          fontSize: CALLOUT.fontSize * k,
+          fontSize: (annotation.label.fontSize ?? CALLOUT.fontSize) * k,
           whiteSpace: "nowrap",
           transform: CALLOUT.tilt,
         }}

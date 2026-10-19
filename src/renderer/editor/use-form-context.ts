@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { attempt } from "@/renderer/lib/toast";
+import { projectSwatches } from "@/shared/color";
 import { workflowVars } from "@/shared/compile/compile";
 import { hasWidget, targetRoleKey } from "@/shared/elements/introspect";
 import { errorMessage } from "@/shared/errors";
@@ -104,11 +105,11 @@ async function pickTarget(wf: Workflow, nodeId: string, key: string) {
   }, "Couldn't pick the element");
 }
 
-async function chooseAsset(projectDir: string | null, nodeId: string, key: string) {
+async function chooseAsset(projectDir: string | null, apply: (path: string) => void) {
   if (!projectDir) return;
   await attempt(async () => {
     const [path] = await window.opsis.importAssets(projectDir);
-    if (path) useWorkflowStore.getState().updateParams(nodeId, { [key]: path });
+    if (path) apply(path);
   }, "Couldn't add the file");
 }
 
@@ -154,6 +155,7 @@ function formContext({
       .map((n) => ({ id: n.id, label: nodeName(n) })),
     spotBackground: needsBackground ? spotBackground(workflow, nodeId, results) : null,
     pickTarget: (key) => void pickTarget(workflow, nodeId, key),
-    chooseAsset: (key) => void chooseAsset(projectDir, nodeId, key),
+    chooseAsset: (apply) => void chooseAsset(projectDir, apply),
+    swatches: projectSwatches(workflow.nodes.map((n) => n.params)),
   };
 }
