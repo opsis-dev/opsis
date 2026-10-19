@@ -13,16 +13,10 @@ import { STATUS_LOOKS } from "./status-icon";
 const RIPPLE_START_PX = 12;
 const RIPPLE_GROWTH_PX = 36;
 
-const BADGE_VARIANTS: Record<LiveCapture["status"], "default" | "secondary" | "destructive"> = {
-  live: "default",
-  done: "secondary",
-  error: "destructive",
-};
-
 function StatusBadge({ status }: { status: LiveCapture["status"] }) {
-  const { icon: Icon, word, short } = STATUS_LOOKS[status];
+  const { icon: Icon, word, short, badge } = STATUS_LOOKS[status];
   return (
-    <Badge variant={BADGE_VARIANTS[status]}>
+    <Badge variant={badge}>
       <Icon data-icon="inline-start" />
       {short ?? word}
     </Badge>

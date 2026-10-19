@@ -8,24 +8,29 @@ export type CanvasNode = Node<FlowNodeData>;
 
 export type FlowNodeType = "demoflow" | "group" | "note";
 
-function flowNodeType(node: WorkflowNode): FlowNodeType {
-  if (isGroupNode(node)) return "group";
-  return isNoteNode(node) ? "note" : "demoflow";
-}
-
-export function toFlowNodes(wf: Workflow, selected: ReadonlySet<string>): CanvasNode[] {
-  const ordered = [...wf.nodes.filter(isGroupNode), ...wf.nodes.filter((n) => !isGroupNode(n))];
-  return ordered.map((n) => ({
+function toFlowNode(n: WorkflowNode, group: boolean, selected: ReadonlySet<string>): CanvasNode {
+  const type: FlowNodeType = group ? "group" : isNoteNode(n) ? "note" : "demoflow";
+  return {
     id: n.id,
-    type: flowNodeType(n),
+    type,
     position: n.position,
     data: { node: n },
     selected: selected.has(n.id),
     ...(n.parentId ? { parentId: n.parentId } : {}),
-    ...(isGroupNode(n) && n.size
+    ...(group && n.size
       ? { style: { width: n.size.width, height: n.size.height }, zIndex: -1 }
       : {}),
-  }));
+  };
+}
+
+export function toFlowNodes(wf: Workflow, selected: ReadonlySet<string>): CanvasNode[] {
+  const groups: CanvasNode[] = [];
+  const others: CanvasNode[] = [];
+  for (const n of wf.nodes) {
+    const group = isGroupNode(n);
+    (group ? groups : others).push(toFlowNode(n, group, selected));
+  }
+  return [...groups, ...others];
 }
 
 export function toFlowEdges(

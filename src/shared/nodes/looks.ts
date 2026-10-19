@@ -1,4 +1,4 @@
-export const NODE_GLYPH_SETS = ["lucide", "tabler"] as const;
+const NODE_GLYPH_SETS = ["lucide", "tabler"] as const;
 
 export type NodeGlyph = `${(typeof NODE_GLYPH_SETS)[number]}:${string}`;
 

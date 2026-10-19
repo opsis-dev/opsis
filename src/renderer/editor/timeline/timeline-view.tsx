@@ -35,12 +35,12 @@ import { VideoBarView } from "./video-bar";
 export type TimelineFilm = Film & { flat: FlatTimeline };
 
 const FOLLOW_MARGIN_PX = 24;
-const INITIAL_VIEW = { left: 0, width: 800, height: 300 };
+const FALLBACK_VIEW = { left: 0, width: 800, height: 300 };
 
 type ScrollerView = ReturnType<typeof useScrollerView>;
 
 export function useScrollerView(scroller: React.RefObject<HTMLDivElement | null>) {
-  const [view, setView] = useState(INITIAL_VIEW);
+  const [view, setView] = useState(FALLBACK_VIEW);
   useLayoutEffect(() => {
     const el = scroller.current;
     if (!el) return;

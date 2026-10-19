@@ -40,7 +40,7 @@ export function ChoiceSelect({
       items={lists.flat()}
       value={selected}
       onValueChange={(v) => {
-        if (v != null) onChange(v === NONE_VALUE ? "" : String(v));
+        if (v != null) onChange(v === NONE_VALUE ? "" : v);
       }}
     >
       <SelectTrigger id={id} size={size} className={className} aria-label={ariaLabel}>

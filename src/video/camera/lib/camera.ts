@@ -77,7 +77,7 @@ export function poseTravelPx(from: CameraPose, to: CameraPose, vp: Viewport): nu
 export function poseToCss(pose: CameraPose, chromeFrac: number, fit = 1): ZoomState {
   const { scale } = pose;
   const effective = fit * scale;
-  const windowCy = chromeFrac > 0 ? chromeFrac + pose.cy * (1 - chromeFrac) : pose.cy;
+  const windowCy = chromeFrac + pose.cy * (1 - chromeFrac);
   const half = 1 / (2 * scale);
   const focusX = clamp(pose.cx, half, 1 - half);
   const focusY = clamp(windowCy, half, 1 - half);

@@ -42,6 +42,9 @@ export type EnvelopeKey = VisualEnvelopeKey | AudioEnvelopeKey;
 export const envelopeSchema = visualEnvelopeSchema.extend(audioEnvelopeSchema.shape);
 export type Envelope = z.infer<typeof envelopeSchema>;
 
+export const isEnvelope = (value: unknown): value is Envelope =>
+  envelopeSchema.safeParse(value).success;
+
 export const ENVELOPE_LABELS: Record<EnvelopeKey, string> = {
   opacity: "Opacity",
   x: "Move across",

@@ -9,10 +9,8 @@ import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
 export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
   schema.meta({ ...fieldMeta(schema), ...extra });
 
-export const target = (
-  description = "Element",
-  help = "Pick it on the page, or type its visible text.",
-) => z.string().min(1, "Pick an element").meta({ description, help, widget: "target" });
+const target = (description = "Element", help = "Pick it on the page, or type its visible text.") =>
+  z.string().min(1, "Pick an element").meta({ description, help, widget: "target" });
 
 export const optionalTarget = (description: string, help?: string) =>
   z
@@ -118,13 +116,21 @@ export const FORMAT_NAMES = {
 
 export const QUALITY_PRESETS = { Low: 28, Medium: 23, High: 18, Max: 12 } as const;
 
-const nearerThenFiner =
-  (crf: number) =>
-  ([, a]: [string, number], [, b]: [string, number]): number =>
-    Math.abs(a - crf) - Math.abs(b - crf) || a - b;
-
-export const qualityName = (crf: number): string =>
-  Object.entries(QUALITY_PRESETS).toSorted(nearerThenFiner(crf))[0][0];
+export function qualityName(crf: number): string {
+  const [[firstName, firstCrf], ...rest] = Object.entries(QUALITY_PRESETS);
+  let bestName = firstName;
+  let bestCrf: number = firstCrf;
+  for (const [name, presetCrf] of rest) {
+    const distance = Math.abs(presetCrf - crf);
+    const bestDistance = Math.abs(bestCrf - crf);
+    const finer = presetCrf < bestCrf;
+    if (distance < bestDistance || (distance === bestDistance && finer)) {
+      bestName = name;
+      bestCrf = presetCrf;
+    }
+  }
+  return bestName;
+}
 
 export function choiceFrom<K extends string, const T extends readonly [K, ...K[]]>(
   labels: Record<K, string>,
@@ -139,10 +145,8 @@ export function choiceFrom<K extends string, const T extends readonly [K, ...K[]
 
 export const LOUDNESS_PRESETS = { "Online video": -14, Podcast: -16, Broadcast: -23 } as const;
 
-export const lufsText = (lufs: number): string => signedText(lufs);
-
 export const loudnessName = (lufs: number): string =>
-  Object.entries(LOUDNESS_PRESETS).find(([, v]) => v === lufs)?.[0] ?? `${lufsText(lufs)} LUFS`;
+  Object.entries(LOUDNESS_PRESETS).find(([, v]) => v === lufs)?.[0] ?? `${signedText(lufs)} LUFS`;
 
 export const quality = (def: number, description = "Quality") =>
   int(def, description, { min: 0, max: 51, widget: "quality" });

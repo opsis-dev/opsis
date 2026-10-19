@@ -18,10 +18,8 @@ import { overlaps, packAudio, packLanes } from "./lanes";
 import { thumbnailOf } from "./thumbnails";
 import { recordingMsToFrames } from "./time";
 
-type Side = RemapSide;
-
 type Instance = {
-  toAbs: (content: number, side: Side) => number;
+  toAbs: (content: number, side: RemapSide) => number;
   lo: number;
   hi: number;
 };
@@ -134,14 +132,14 @@ function groupInstances(
   const remap = nonEmptyRemap(group);
   const loop = group.loopEvery && group.loopEvery > 0 ? group.loopEvery : 0;
   const dur = item.durationInFrames;
-  const toOuter = (o: number, side: Side) => parent.toAbs(item.from + o, side);
+  const toOuter = (o: number, side: RemapSide) => parent.toAbs(item.from + o, side);
   const inv = (r: number, side: RemapSide) => (remap ? inverseRemap(remap, r, side) : r);
   const lo = Math.max(parent.lo, absFrom);
   const hi = Math.min(parent.hi, absTo);
   if (!loop) {
     return [
       {
-        toAbs: (c: number, side: Side) => toOuter(inv(c - startFrom, side), side),
+        toAbs: (c: number, side: RemapSide) => toOuter(inv(c - startFrom, side), side),
         lo,
         hi,
       },
@@ -153,7 +151,7 @@ function groupInstances(
     const start = toOuter(inv(k * loop, "start"), "start");
     const end = toOuter(inv((k + 1) * loop, "end"), "end");
     return {
-      toAbs: (c: number, side: Side) => toOuter(inv(c - startFrom + k * loop, side), side),
+      toAbs: (c: number, side: RemapSide) => toOuter(inv(c - startFrom + k * loop, side), side),
       lo: Math.max(lo, start),
       hi: Math.min(hi, end),
     };
@@ -282,6 +280,7 @@ function leafBar(p: Placed, link: ChainLink, order: number): VideoBar {
   const { item, walk, from, to } = p;
   const startContent = from > p.absStart + EPSILON ? contentAt(p, from) : item.from;
   const endContent = to < p.absEnd - EPSILON ? contentAt(p, to) : p.contentEnd;
+  const hasSound = itemHasSound(item);
   return {
     type: "video",
     key: p.key,
@@ -300,8 +299,8 @@ function leafBar(p: Placed, link: ChainLink, order: number): VideoBar {
     contentEnd: endContent - item.from,
     loop: walk.loop,
     localAt: (abs: number) => contentAt(p, abs) - item.from,
-    hasSound: itemHasSound(item),
-    sound: itemHasSound(item) ? soundWindow(p, from, to, startContent) : null,
+    hasSound,
+    sound: hasSound ? soundWindow(p, from, to, startContent) : null,
   };
 }
 

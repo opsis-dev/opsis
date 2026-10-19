@@ -34,14 +34,14 @@ export const saveWithToast = (): Promise<boolean> =>
 
 export function loadFromDisk({ workflow, version }: DiskChange): void {
   if (!workflow) return;
-  const store = useWorkflowStore.getState();
-  store.update(() => normalizeWorkflow(workflow));
-  store.markSaved(useWorkflowStore.getState().revision, version);
-  useDiskChange.getState().show(null);
+  useWorkflowStore.getState().update(() => normalizeWorkflow(workflow));
+  const { revision, markSaved } = useWorkflowStore.getState();
+  markSaved(revision, version);
+  useDiskChange.getState().clear();
 }
 
 export function keepMine(change: DiskChange): Promise<boolean> {
   useWorkflowStore.getState().setFileVersion(change.version);
-  useDiskChange.getState().show(null);
+  useDiskChange.getState().clear();
   return save();
 }

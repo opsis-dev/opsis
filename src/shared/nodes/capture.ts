@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { DEFAULT_BACKDROP } from "../backdrops";
-import { itemClip, placeholderClip, type ItemExtra } from "../compile/clip";
+import { itemClip, type ItemExtra } from "../compile/clip";
 import { formatDuration, displayAddress } from "../format";
 import type { Bounds } from "../schema/actions";
 import { outputOf } from "../schema/values";
-import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
+import { DEFAULT_STILL_MS, DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
 import { secretFileName, secretName } from "../secrets";
 import { msToFrames } from "../timeline/time";
 import { SITE_ADDRESS } from "../vars";
@@ -120,7 +120,7 @@ export const stillNode = defineNode({
       bleed: "Full bleed",
     }),
     backdrop: more(text(DEFAULT_BACKDROP, "Backdrop"), { widget: "backdrop" }),
-    durationMs: ms(3000, "Length"),
+    durationMs: ms(DEFAULT_STILL_MS, "Length"),
     envelope: visualEnvelope(),
   }),
   card: ({ params: p, result }) => {
@@ -154,8 +154,9 @@ export const stillNode = defineNode({
           frames,
           extra,
         )
-      : placeholderClip(
+      : itemClip(
           nodeId,
+          "core/placeholder",
           { title: "Screenshot not taken yet", subtitle: "Run to take it" },
           frames,
           extra,

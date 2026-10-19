@@ -16,9 +16,6 @@ import type { TimelineTool } from "./timeline-tools";
 const DEFAULT_TONE = "bg-track-video";
 
 const CATEGORY_TONE: Partial<Record<NodeCategory, string>> = {
-  Capture: "bg-track-video",
-  Camera: "bg-track-video",
-  Cursor: "bg-track-video",
   "Text & overlays": "bg-track-text",
   Elements: "bg-track-graphics",
   Backgrounds: "bg-track-graphics",
@@ -54,8 +51,12 @@ function editFor(
   return { kind: "move", ripple };
 }
 
+const SPEED_CORNER = "speed";
+
+const WRAPPER_SEPARATOR = " · ";
+
 const onSpeedCorner = (e: React.PointerEvent) =>
-  e.target instanceof HTMLElement && e.target.dataset.corner === "speed";
+  e.target instanceof HTMLElement && e.target.dataset.corner === SPEED_CORNER;
 
 function barTitles(wf: Workflow, bar: VideoBar) {
   const wrappers = bar.chain
@@ -88,7 +89,7 @@ function ActionTicks({
 function SpeedCorner() {
   return (
     <div
-      data-corner="speed"
+      data-corner={SPEED_CORNER}
       title="Drag to change the speed"
       className="absolute top-0 right-0 size-2.5 cursor-nesw-resize bg-foreground/30 [clip-path:polygon(0_0,100%_0,100%_100%)] hover:bg-foreground/70"
     />
@@ -120,13 +121,13 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
       height={HEIGHT}
       nodeId={bar.nodeId}
       split={bar}
-      title={[title, ...wrappers].join(" · ")}
+      title={[title, ...wrappers].join(WRAPPER_SEPARATOR)}
       className={cn(
         toneFor(ctx, bar),
         related && "ring-1 ring-foreground/40",
         TOOL_CURSOR[tool] ?? "cursor-grab",
       )}
-      cursorAt={TOOL_CURSOR[tool] ? null : (e) => (hitEdge(e, box.width) ? "ew-resize" : "")}
+      cursorAt={TOOL_CURSOR[tool] ? undefined : (e) => (hitEdge(e, box.width) ? "ew-resize" : "")}
       onPress={onPress}
       envelope={envelope}
       above={<SpeedCorner />}
@@ -135,7 +136,10 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
       <BarLabel className="block py-0.5 leading-tight">
         {title}
         {wrappers.length ? (
-          <span className="text-foreground/60"> · {wrappers.join(" · ")}</span>
+          <span className="text-foreground/60">
+            {WRAPPER_SEPARATOR}
+            {wrappers.join(WRAPPER_SEPARATOR)}
+          </span>
         ) : null}
       </BarLabel>
       <ActionTicks

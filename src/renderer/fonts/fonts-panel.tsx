@@ -21,7 +21,6 @@ import { FontRow } from "./font-row";
 import { FontSample } from "./font-sample";
 import { InstalledDialog } from "./installed-dialog";
 import { useFontLibrary } from "./library";
-import { installedFonts } from "./local-fonts";
 import { OnlineDialog } from "./online-dialog";
 import { ReviewDialog, type FontReview } from "./review-dialog";
 
@@ -133,7 +132,11 @@ export function FontsPanel() {
     });
 
   const openInstalled = () =>
-    attempt(async () => setDialog({ kind: "installed", fonts: await installedFonts() }));
+    attempt(async () => {
+      if (!window.queryLocalFonts)
+        throw new Error("This computer doesn't let apps list installed fonts.");
+      setDialog({ kind: "installed", fonts: await window.queryLocalFonts() });
+    });
 
   return (
     <SettingsCard

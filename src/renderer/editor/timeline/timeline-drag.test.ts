@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
+import { randomId } from "@/shared/ids";
 import { GraphBuilder } from "@/shared/templates/build";
 
 const workflow = new GraphBuilder().build({ name: "Ids" });
 
 async function firstIdOfALaunch(): Promise<string> {
   vi.resetModules();
-  const { editContext, gestureSalt } = await import("./timeline-drag");
-  return editContext(workflow, 30, null, gestureSalt()).makeId("timeline");
+  const { editContext } = await import("./timeline-drag");
+  return editContext(workflow, 30, null, randomId()).makeId("timeline");
 }
 
 describe("timeline edit ids", () => {

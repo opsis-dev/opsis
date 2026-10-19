@@ -1,5 +1,5 @@
 import type { MixResult, StemLevels } from "@/shared/mix/result";
-import { frameIn } from "@/shared/timeline/time";
+import { clampFrame } from "@/shared/timeline/time";
 
 const SILENT_POWER = 1e-12;
 
@@ -10,7 +10,7 @@ export type Reduction = number[] | null | undefined;
 export type Level = { peak: number; rms: number; hold: number } | null;
 
 export const sampleAt = (values: number[] | null | undefined, frame: number): number | null =>
-  values?.length ? values[frameIn(frame, values.length)] : null;
+  values?.length ? values[clampFrame(frame, values.length)] : null;
 
 export const reductionAt = (reduction: Reduction, frame: number): number | null =>
   reduction ? (sampleAt(reduction, frame) ?? 0) : null;
@@ -27,7 +27,7 @@ export function share(result: MixResult | null, levels: Levels, frame: number): 
 
 export function levelAt(levels: Levels, frame: number, holdFrames: number): Level {
   if (!levels?.peak.length) return null;
-  const f = frameIn(frame, levels.peak.length);
+  const f = clampFrame(frame, levels.peak.length);
   const hold = Math.max(...levels.peak.slice(Math.max(0, f - holdFrames), f + 1));
   return { peak: levels.peak[f], rms: levels.rms[f], hold };
 }

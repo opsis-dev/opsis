@@ -6,7 +6,7 @@ import { whenFirstOneOf } from "@/renderer/lib/one-of";
 import { CANVAS_MODES, type CanvasMode } from "@/shared/settings";
 import { patchAppSettings } from "../store/app-settings";
 import { useViewOptions } from "../store/view-options";
-import { WithTooltip } from "./tooltip-button";
+import { WithTooltip } from "./with-tooltip";
 
 export function CanvasToolbar({ mode }: { mode: CanvasMode }) {
   const minimap = useViewOptions((s) => s.minimap);
@@ -42,7 +42,7 @@ export function CanvasToolbar({ mode }: { mode: CanvasMode }) {
             size="sm"
             aria-label="Minimap"
             pressed={minimap}
-            onPressedChange={(v) => useViewOptions.getState().setViewOption("minimap", v)}
+            onPressedChange={useViewOptions.getState().toggleMinimap}
           />
         }
         tip={minimap ? "Hide the minimap" : "Show the minimap"}

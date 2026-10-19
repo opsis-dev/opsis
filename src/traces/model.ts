@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { formatPreciseDuration, humanize } from "../shared/format";
-import { isOneOf, isRecord, tryParseJson } from "../shared/guards";
+import { isOneOf, isRecord, isString, tryParseJson } from "../shared/guards";
 import {
   CONSOLE_LEVELS,
   type TraceAction,
@@ -64,8 +64,8 @@ const parseLine = (line: string): Json[] => {
   return json.ok && isRecord(json.value) ? [json.value] : [];
 };
 
-export const parseNdjson = (text: string): Json[] =>
-  text
+export const parseNdjson = (ndjson: string): Json[] =>
+  ndjson
     .split("\n")
     .filter((line) => line.trim())
     .flatMap(parseLine);
@@ -277,7 +277,7 @@ function readEvents(
     if (item) list.push(item);
   };
   for (const e of parseNdjson(traceText)) {
-    const action = events.calls.get(text.safeParse(e.callId).data ?? "")?.action;
+    const action = events.calls.get(isString(e.callId) ? e.callId : "")?.action;
     switch (e.type) {
       case "context-options":
         events.viewport = viewportOf(EVENTS["context-options"].parse(e)) ?? events.viewport;
@@ -388,9 +388,14 @@ function timeBounds(actions: TraceAction[], frames: TraceFrame[]): { start: numb
   const times = [...actions.flatMap((a) => [a.start, a.end]), ...frames.map((f) => f.time)].filter(
     (t) => t > 0,
   );
-  return times.length
-    ? { start: Math.min(...times), end: Math.max(...times) }
-    : { start: 0, end: 0 };
+  if (!times.length) return { start: 0, end: 0 };
+  let start = Infinity;
+  let end = -Infinity;
+  for (const t of times) {
+    start = Math.min(start, t);
+    end = Math.max(end, t);
+  }
+  return { start, end };
 }
 
 export function parseTrace(input: {

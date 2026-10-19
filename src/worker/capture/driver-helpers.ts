@@ -1,10 +1,13 @@
 import { stripVTControlCharacters } from "node:util";
-import { errorMessage, withoutCallName } from "../../shared/errors";
+import { errorMessage } from "../../shared/errors";
 import { formatDuration } from "../../shared/format";
 import { nonBlankString } from "../../shared/guards";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { interpolate } from "../../shared/vars";
 import { CSS_PREFIX } from "./flow-types";
+
+export const withoutCallName = (text: string): string =>
+  text.split("\n")[0].replace(/^(locator|page|frame|elementHandle|mouse|keyboard)\.\w+:\s*/, "");
 
 function samePage(a: string, b: string): boolean {
   try {

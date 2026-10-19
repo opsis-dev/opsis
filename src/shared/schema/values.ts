@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { actionLogSchema, viewportSchema } from "./actions";
+import { actionLogSchema, boundsSchema, viewportSchema } from "./actions";
 import {
   audioItemSchema,
   timelineSpecSchema,
@@ -26,9 +26,7 @@ const imageValueSchema = z.object({
   width: z.number().optional(),
   height: z.number().optional(),
   scale: z.number().optional(),
-  body: z
-    .object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() })
-    .optional(),
+  body: boundsSchema.optional(),
 });
 
 const mediaValueSchema = z.object({

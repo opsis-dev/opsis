@@ -60,14 +60,14 @@ function notifyRunFinished(event: RunDone): void {
   notification.show();
 }
 
+function nextProgress(event: RunEvent, current: RunProgress | null): RunProgress | null {
+  if (event.type === "run:done") return null;
+  const base = event.type === "run:start" || !current ? emptyRunProgress(event.runId) : current;
+  return applyRunEvent(base, event);
+}
+
 export function reportRunEvent(event: RunEvent): void {
-  progress =
-    event.type === "run:done"
-      ? null
-      : applyRunEvent(
-          event.type === "run:start" || !progress ? emptyRunProgress(event.runId) : progress,
-          event,
-        );
+  progress = nextProgress(event, progress);
   showProgressBar(event);
   if (event.type === "run:done") notifyRunFinished(event);
 }

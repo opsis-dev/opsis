@@ -15,7 +15,7 @@ import { nodeName } from "../../shared/nodes/registry";
 import type { RecordingValue } from "../../shared/schema/values";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { secretName } from "../../shared/secrets";
-import { wholeFrames } from "../../shared/timeline/time";
+import { atLeastOneFrame } from "../../shared/timeline/time";
 import type { LoginRequest } from "../../shared/worker-protocol";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
@@ -157,7 +157,7 @@ async function finalizeTrace(
   }
 }
 
-async function take<R>(
+async function runTakeWithTrace<R>(
   ctx: ExecutorContext,
   { chain, access }: Session,
   encoder: FrameEncoder | undefined,
@@ -208,7 +208,6 @@ async function makePreviewCopy(
   mp4: string,
   fps: number,
 ): Promise<string | null> {
-  const name = PREVIEW_FILE;
   try {
     await ctx.ffmpeg.run(
       [
@@ -220,14 +219,14 @@ async function makePreviewCopy(
         ...h264Args({
           crf: PREVIEW_CRF,
           preset: "veryfast",
-          keyframeEvery: wholeFrames(fps / PREVIEW_KEYFRAMES_PER_SECOND, 1),
+          keyframeEvery: atLeastOneFrame(fps / PREVIEW_KEYFRAMES_PER_SECOND),
           faststart: true,
         }),
-        path.join(ctx.dir, name),
+        path.join(ctx.dir, PREVIEW_FILE),
       ],
       { signal: ctx.signal },
     );
-    return name;
+    return PREVIEW_FILE;
   } catch (error) {
     if (ctx.signal.aborted) throw error;
     warnFailed(ctx.log, "Couldn't make the preview copy", error);
@@ -240,7 +239,7 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
   ctx.progress(0.02, "Starting the browser");
   const { result, traceId, frames } = await retryAfterSignIn(ctx, async (session) => {
     const encoder = new FrameEncoder(ctx.ffmpeg, mp4, p.fps, ctx.signal);
-    const taken = await take(ctx, session, encoder, (opts) =>
+    const taken = await runTakeWithTrace(ctx, session, encoder, (opts) =>
       recordTake(opts, { encoder, record: p }),
     );
     return { ...taken, frames: encoder.frames };
@@ -372,7 +371,7 @@ async function captureShot(
 export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) => {
   const file = path.join(ctx.dir, STILL_FILE);
   const { result, traceId } = await retryAfterSignIn(ctx, (session) =>
-    take(ctx, session, undefined, (opts) =>
+    runTakeWithTrace(ctx, session, undefined, (opts) =>
       stillTake({ ...opts, onPage: (page) => captureShot(ctx, page, p, file) }),
     ),
   );

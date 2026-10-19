@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { MinMax } from "../math";
+import { pick } from "../objects";
 
 export const SAMPLE_RATE = 48_000;
 
@@ -102,6 +103,9 @@ const stripSettingsSchema = z.object({
 export type StripSettings = z.infer<typeof stripSettingsSchema>;
 
 export const STRIP_SETTING_KEYS = stripSettingsSchema.keyof().options;
+
+export const stripSettings = (strip: StripSettings): StripSettings =>
+  pick(strip, STRIP_SETTING_KEYS);
 
 const stripSchema = stripSettingsSchema.extend({
   mute: z.boolean().default(false),

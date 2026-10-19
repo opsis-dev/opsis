@@ -23,7 +23,7 @@ export const shownText = (stored: number, scale: UnitScale): string =>
 export function parseShown(text: string, scale: UnitScale): number | null {
   const n = parseNumberText(text);
   if (n === null) return null;
-  return scale.time ? Math.round(n * scale.factor) : n * scale.factor;
+  return scale.time ? Math.round(n * scale.factor) : n;
 }
 
 export function useDecimalInput(

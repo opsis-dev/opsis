@@ -288,19 +288,20 @@ const STEPS = new Map<string, StepSpec>([
     { offCamera: true },
   ),
   step(chapterNode, async (take, p, node) => {
+    const description = p.description || undefined;
     take.pushAction(
       {
         id: `${node.id}:chapter`,
         kind: "chapter",
         t: take.elapsed(),
         label: p.title,
-        text: p.description || undefined,
+        text: description,
       },
       node,
     );
     if (p.showInVideo && take.recording) {
       await take.page.screencast.showChapter(p.title, {
-        description: p.description || undefined,
+        description,
         duration: p.durationMs,
       });
       await take.page.waitForTimeout(p.durationMs);

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { pick } from "@/shared/pick";
+import { pick } from "@/shared/objects";
 
 export const singleSelected = (ids: string[]): string | null => (ids.length === 1 ? ids[0] : null);
 

@@ -10,17 +10,13 @@ const FILE_STAGGER = 30;
 
 export function useCanvasDrop(projectDir: string): (event: React.DragEvent) => Promise<void> {
   const flow = useReactFlow();
-  const addAt = useCallback(
-    (type: string, clientX: number, clientY: number, params?: { path: string }) => {
-      const pos = flow.screenToFlowPosition({ x: clientX, y: clientY });
-      const id = useWorkflowStore.getState().addNode(type, snapToGrid(pos), params);
-      useUiStore.getState().setSelected([id]);
-    },
-    [flow],
-  );
-
   return useCallback(
     async (event: React.DragEvent) => {
+      const addAt = (type: string, clientX: number, clientY: number, params?: { path: string }) => {
+        const pos = flow.screenToFlowPosition({ x: clientX, y: clientY });
+        const id = useWorkflowStore.getState().addNode(type, snapToGrid(pos), params);
+        useUiStore.getState().setSelected([id]);
+      };
       event.preventDefault();
       const type = event.dataTransfer.getData(NODE_DRAG_TYPE);
       if (type) {
@@ -48,6 +44,6 @@ export function useCanvasDrop(projectDir: string): (event: React.DragEvent) => P
           );
       }, "Couldn't add the files");
     },
-    [addAt, projectDir],
+    [flow, projectDir],
   );
 }

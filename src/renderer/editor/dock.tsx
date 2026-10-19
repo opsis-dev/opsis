@@ -11,7 +11,7 @@ import { focusPanel, openPanel, showPanel, togglePanel, usePanels } from "./pane
 import { PreviewDock } from "./preview-dock";
 import { RunPanel } from "./run-panel";
 import { TimelinePanel } from "./timeline/timeline-panel";
-import { TooltipButton, WithTooltip } from "./tooltip-button";
+import { TooltipButton, WithTooltip } from "./with-tooltip";
 
 export const DOCK_TAB_BAR_PX = 36;
 

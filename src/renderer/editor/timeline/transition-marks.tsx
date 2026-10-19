@@ -16,6 +16,7 @@ import {
 } from "./timeline-layout";
 
 const MIN_LABEL_PX = 40;
+const MIN_TRANSITION_PX = 4;
 
 function transitionTip(wf: Workflow, t: TransitionMark): string {
   const slot = t.slot;
@@ -48,7 +49,6 @@ export function TransitionMarks({
     .map((t) => {
       const top = Math.max(...t.lanes);
       const bottom = Math.min(...t.lanes);
-      const slot = t.slot;
       return (
         <div
           key={t.key}
@@ -58,7 +58,7 @@ export function TransitionMarks({
           )}
           style={{
             left: HEADER_W + t.from * ppf,
-            width: Math.max(4, (t.to - t.from) * ppf),
+            width: Math.max(MIN_TRANSITION_PX, (t.to - t.from) * ppf),
             top: videoRowTop(layout, top) + BAR_INSET / 2,
             height: (top - bottom + 1) * VIDEO_H - BAR_INSET,
           }}
@@ -69,7 +69,9 @@ export function TransitionMarks({
               className="bg-background/70 hover:bg-background pointer-events-auto mb-0.5 rounded px-1 text-[10px] whitespace-nowrap"
               title={transitionTip(workflow, t)}
               onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => slot && onSelect(slot.nodeId)}
+              onClick={() => {
+                if (t.slot) onSelect(t.slot.nodeId);
+              }}
             >
               {transitionTitle(t.kind)}
             </button>

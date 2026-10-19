@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { loadOrReport } from "@/renderer/lib/toast";
-import type { ApiStatus } from "@/shared/ipc";
+import type { ApiServerStatus } from "@/shared/ipc";
 import {
   DEFAULT_SETTINGS,
   mergeSettings,
@@ -10,7 +10,7 @@ import {
 
 type AppSettingsState = {
   settings: AppSettings | null;
-  api: ApiStatus | null;
+  api: ApiServerStatus | null;
 };
 
 export const useAppSettings = create<AppSettingsState>()(() => ({ settings: null, api: null }));

@@ -2,21 +2,25 @@ import path from "node:path";
 import type { FieldMeta } from "../../src/shared/elements/introspect";
 import type { ElementKind } from "../../src/shared/elements/types";
 import { humanize } from "../../src/shared/format";
+import { pick } from "../../src/shared/objects";
 import type * as framing from "../../src/video/registry/framing";
 import { REGISTRIES, TITLE_ACRONYMS, type CuratedElement } from "../registry-ingest.list";
 import type { Control } from "./registry-controls";
 import { VIDEO_DIR } from "./tool-config";
 
+const CONTROL_META_KEYS = ["step", "unit", "help", "advanced", "widget", "hidden"] as const;
+
+const controlMeta = (c: Control): FieldMeta =>
+  pick(
+    c,
+    CONTROL_META_KEYS.filter((k) => typeof c[k] === "number" || Boolean(c[k])),
+  );
+
 function metaOf(key: string, c: Control, extra: FieldMeta = {}): string {
   const meta: FieldMeta = {
     description: c.description ?? c.label ?? key,
     ...extra,
-    ...(typeof c.step === "number" ? { step: c.step } : {}),
-    ...(c.unit ? { unit: c.unit } : {}),
-    ...(c.help ? { help: c.help } : {}),
-    ...(c.advanced ? { advanced: true } : {}),
-    ...(c.widget ? { widget: c.widget } : {}),
-    ...(c.hidden ? { hidden: true } : {}),
+    ...controlMeta(c),
   };
   const body = Object.entries(meta)
     .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)

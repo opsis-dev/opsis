@@ -1,4 +1,4 @@
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import { clamp01 } from "@/shared/math";
 
 export function isEditingElement(target: EventTarget | null): boolean {
@@ -36,4 +36,18 @@ export function startOnceMoved(d: ThresholdDrag, distance: number, begin: () => 
 export function endIfStarted(d: ThresholdDrag, end: () => void): boolean {
   if (d.started) end();
   return d.started;
+}
+
+function arrowDirection(key: string): -1 | 0 | 1 {
+  if (key === "ArrowUp" || key === "ArrowRight") return 1;
+  if (key === "ArrowDown" || key === "ArrowLeft") return -1;
+  return 0;
+}
+
+export function onArrowKey(e: ReactKeyboardEvent, step: (dir: -1 | 1, big: boolean) => void) {
+  const dir = arrowDirection(e.key);
+  if (!dir) return;
+  e.preventDefault();
+  e.stopPropagation();
+  step(dir, e.shiftKey);
 }

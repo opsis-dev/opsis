@@ -1,6 +1,5 @@
-import { act, cleanup, fireEvent, render, renderHook } from "@testing-library/react";
+import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { useDecimalInput } from "../editor/form/decimal";
 import { commitHeldDrafts, useCommitDraft, useHeldDrafts } from "./use-commit-draft";
 
 afterEach(cleanup);
@@ -62,20 +61,5 @@ describe("useCommitDraft", () => {
     act(() => result.current.change("new"));
     unmount();
     expect(commits).toEqual(["ne", "new"]);
-  });
-});
-
-function DecimalField({ apply }: { apply: (text: string) => void }) {
-  const input = useDecimalInput("1", "blur", apply);
-  return <input aria-label="Seconds" {...input} />;
-}
-
-describe("useDecimalInput", () => {
-  it("keeps a number typed into a field that closes before it loses focus", () => {
-    const applied: string[] = [];
-    const view = render(<DecimalField apply={(text) => applied.push(text)} />);
-    fireEvent.change(view.getByLabelText("Seconds"), { target: { value: "2.5" } });
-    view.unmount();
-    expect(applied).toEqual(["2.5"]);
   });
 });

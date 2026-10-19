@@ -12,20 +12,11 @@ import { useUiStore } from "../store/ui";
 import { RunningLabel, StopRunButton } from "./run-controls";
 import { StatusIcon, type RowState } from "./status-icon";
 
-function FailureLine({
-  message,
-  failed,
-  skipped,
-  nameOf,
-}: {
-  message: string;
-  failed: string[];
-  skipped: number;
-  nameOf: (id: string) => string;
-}) {
-  if (failed.length === 0) return <p className="text-destructive px-2 pb-2 text-xs">{message}</p>;
+const FAILURE_LINE = "text-destructive px-2 pb-2 text-xs";
+
+function FailureLinks({ failed, nameOf }: { failed: string[]; nameOf: (id: string) => string }) {
   const select = (id: string) => useUiStore.getState().setSelected([id]);
-  const names = failed.map((id, i) => (
+  return failed.map((id, i) => (
     <span key={id}>
       {i > 0 ? ", " : null}
       <button
@@ -37,8 +28,23 @@ function FailureLine({
       </button>
     </span>
   ));
+}
+
+function FailureLine({
+  message,
+  failed,
+  skipped,
+  nameOf,
+}: {
+  message: string;
+  failed: string[];
+  skipped: number;
+  nameOf: (id: string) => string;
+}) {
+  if (failed.length === 0) return <p className={FAILURE_LINE}>{message}</p>;
+  const names = <FailureLinks failed={failed} nameOf={nameOf} />;
   return (
-    <p className="text-destructive px-2 pb-2 text-xs">
+    <p className={FAILURE_LINE}>
       {failed.length === 1 ? (
         <>{names} failed</>
       ) : (

@@ -24,7 +24,7 @@ import { LiveToggle } from "./live-pip";
 import { PANEL_SIDES, PANEL_TOGGLES, usePanels } from "./panels";
 import { revealOutputs } from "./reveal";
 import { RunningLabel, StopRunButton } from "./run-controls";
-import { TooltipButton, WithTooltip } from "./tooltip-button";
+import { TooltipButton, WithTooltip } from "./with-tooltip";
 
 const PANEL_BUTTONS = PANEL_SIDES.map((side) => ({
   side,

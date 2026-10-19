@@ -3,7 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/renderer/lib/utils";
 import { findById } from "@/shared/lists";
 import { updateChannels } from "@/shared/mix/edits";
-import { busOf, isAudible, stripOf } from "@/shared/mix/levels";
+import { audibility, busOf, stripOf } from "@/shared/mix/levels";
 import type { ChannelPlan } from "@/shared/mix/plan";
 import type { MixResult } from "@/shared/mix/result";
 import { PAN_RANGE, TRIM_RANGE, type Bus, type Mix, type Strip } from "@/shared/mix/types";
@@ -123,7 +123,7 @@ export function ChannelStrip({
   const name = useChannelName(channel.id);
   return (
     <StripShell
-      dim={!isAudible(mix, channel.id, channel.kind)}
+      dim={!audibility(mix)(channel.id, channel.kind)}
       className={cn(group.length > 1 && "ring-primary/60 ring-1 ring-inset")}
     >
       <button

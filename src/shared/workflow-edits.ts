@@ -17,6 +17,7 @@ import {
 import { renameVariable } from "./vars";
 
 export const GROUP_PAD = 40;
+export const GROUP_TITLE_HEIGHT = 24;
 
 export const mapNode = (
   wf: Workflow,
@@ -29,7 +30,6 @@ export const patchNodeParams = (
   id: string,
   patch: Record<string, unknown>,
 ): Workflow => mapNode(wf, id, (n) => ({ ...n, params: { ...n.params, ...patch } }));
-export const GROUP_TITLE_HEIGHT = 24;
 
 export function absPosition(wf: Workflow, node: WorkflowNode): Point {
   if (!node.parentId) return node.position;

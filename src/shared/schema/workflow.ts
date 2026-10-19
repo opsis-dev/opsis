@@ -51,6 +51,8 @@ export const DEFAULT_VIEWPORT = { width: 1920, height: 1080 };
 
 export const DEFAULT_TAKE_MS = 6000;
 
+export const DEFAULT_STILL_MS = 3000;
+
 export const workflowNodeSchema = z.object({
   id: z.string().min(1),
   type: z.string().min(1),

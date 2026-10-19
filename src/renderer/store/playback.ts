@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { createForwarder } from "@/renderer/lib/forwarder";
 import { clamp } from "@/shared/math";
-import { pick } from "@/shared/pick";
-import { frameIn } from "@/shared/timeline/time";
+import { pick } from "@/shared/objects";
+import { clampFrame } from "@/shared/timeline/time";
 
 type PlayerCalls = { seek: [frame: number]; play: []; pause: []; rate: [rate: number] };
 
@@ -73,7 +73,7 @@ export const usePlayback = create<PlaybackState>()((set, get) => {
     outPoint: null,
     hasPlayer: false,
     seek: (frame) => {
-      const f = frameIn(frame, get().durationInFrames);
+      const f = clampFrame(frame, get().durationInFrames);
       set({ frame: f });
       dispatch({ call: "seek", args: [f] });
     },

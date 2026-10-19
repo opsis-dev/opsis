@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { randomId } from "@/shared/ids";
 import type { Workflow } from "@/shared/schema/workflow";
 import { splitBar, type Removal } from "@/shared/timeline/edits";
 import type { FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
@@ -12,7 +13,7 @@ import {
   selectionRemoval,
   splitAtPlayhead,
 } from "./timeline-actions";
-import { editContext, gestureSalt } from "./timeline-drag";
+import { editContext } from "./timeline-drag";
 import { useTimeline } from "./timeline-state";
 import type { TimelineZoom } from "./use-timeline-zoom";
 
@@ -37,7 +38,7 @@ export function useTimelineCommands({
   zoom: TimelineZoom;
 }) {
   const [removal, setRemoval] = useState<Removal | null>(null);
-  const context = () => editContext(workflow, flat.fps, sourceNodeId, gestureSalt());
+  const context = () => editContext(workflow, flat.fps, sourceNodeId, randomId());
 
   const remove = () => {
     if (hasSelectedMarker()) return removeSelectedMarker();

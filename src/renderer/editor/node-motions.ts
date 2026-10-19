@@ -14,7 +14,7 @@ const MOTION_PROPS = {
 
 type MotionProp = keyof typeof MOTION_PROPS;
 
-export type MotionFrame = Partial<Record<MotionProp, string | number>> & {
+type MotionFrame = Partial<Record<MotionProp, string | number>> & {
   offset?: number;
   ease?: Easing;
 };

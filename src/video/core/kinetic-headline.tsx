@@ -23,7 +23,23 @@ const KINETIC = {
   weight: 780,
   letterSpacing: "-0.04em",
   lineHeight: 1.05,
+  riseEm: 0.5,
+  tiltDeg: 4,
+  underlineBottom: "0.02em",
+  underlineHeight: "0.09em",
+  underlineRadius: 99,
 } as const;
+
+type EmphasisedWord = { word: string; em: boolean };
+
+export const emphasisedWords = (text: string): EmphasisedWord[] =>
+  text
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => ({
+      word: w.replace(/^\*|\*$/g, ""),
+      em: w.startsWith("*") || w.endsWith("*"),
+    }));
 
 export const KineticHeadline: React.FC<CoreElementProps["core/kinetic-headline"]> = ({
   text,
@@ -79,17 +95,6 @@ export const KineticHeadline: React.FC<CoreElementProps["core/kinetic-headline"]
   );
 };
 
-type EmphasisedWord = { word: string; em: boolean };
-
-export const emphasisedWords = (text: string): EmphasisedWord[] =>
-  text
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((w) => ({
-      word: w.replace(/^\*|\*$/g, ""),
-      em: w.startsWith("*") || w.endsWith("*"),
-    }));
-
 const KineticWord: React.FC<
   EmphasisedWord & { frame: number; fps: number; color: string; emphasisColor: string }
 > = ({ word, em, frame, fps, color, emphasisColor }) => {
@@ -105,7 +110,7 @@ const KineticWord: React.FC<
         display: "inline-block",
         color,
         opacity: interpolate(frame, [0, WORD_FADE_FRAMES], [0, 1], CLAMPED),
-        transform: `translateY(${(1 - s) * 0.5}em) rotate(${(1 - s) * 4}deg)`,
+        transform: `translateY(${(1 - s) * KINETIC.riseEm}em) rotate(${(1 - s) * KINETIC.tiltDeg}deg)`,
       }}
     >
       {word}
@@ -115,12 +120,12 @@ const KineticWord: React.FC<
             position: "absolute",
             left: 0,
             right: 0,
-            bottom: "0.02em",
-            height: "0.09em",
+            bottom: KINETIC.underlineBottom,
+            height: KINETIC.underlineHeight,
             background: emphasisColor,
             transformOrigin: "0 50%",
             transform: `scaleX(${sweep})`,
-            borderRadius: 99,
+            borderRadius: KINETIC.underlineRadius,
           }}
         />
       ) : null}

@@ -1,7 +1,7 @@
 import { Toggle } from "@/renderer/components/ui/toggle";
 import { cn } from "@/renderer/lib/utils";
 import { HIGHPASS_RANGE, type BusSettings, type Strip } from "@/shared/mix/types";
-import { WithTooltip } from "../tooltip-button";
+import { WithTooltip } from "../with-tooltip";
 import { formatDb, formatHz } from "./audio-format";
 import { bindChange, bindEq, bindGain, bindHighpass, type PreviewTarget } from "./bindings";
 import { CompPopover } from "./dynamics-popovers";

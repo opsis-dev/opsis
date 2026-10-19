@@ -9,6 +9,7 @@ import {
   CODE_TEXT_MAX,
   elementRow,
   fileRow,
+  joinParts,
   LABELLED_TEXT_MAX,
   missing,
   mutedIf,
@@ -53,14 +54,14 @@ const pause = (after: number): CardRow | null =>
 const giveUpRow = (timeoutMs: number): CardRow =>
   row("timer-off", `Give up after ${formatDuration(timeoutMs)}`, { tone: "muted" });
 
-function zoomRow(p: { zoom?: boolean; cluster?: string }): CardRow | null {
-  if (p.zoom === false) return row("zoom-out", "No zoom", { tone: "muted" });
-  return p.cluster?.trim()
+function zoomRow(p: { zoom: boolean; cluster: string }): CardRow | null {
+  if (!p.zoom) return row("zoom-out", "No zoom", { tone: "muted" });
+  return p.cluster.trim()
     ? row("zoom-in", `Zoom group “${truncate(p.cluster, TAG_TEXT_MAX)}”`)
     : null;
 }
 
-const beatRows = (p: { after: number; zoom?: boolean; cluster?: string }) => [
+const beatRows = (p: { after: number; zoom: boolean; cluster: string }) => [
   pause(p.after),
   zoomRow(p),
 ];
@@ -134,15 +135,15 @@ export const sessionNode = defineNode({
   card: ({ params: p }) => {
     const size = `${p.viewportWidth} × ${p.viewportHeight}`;
     const dark = p.colorScheme === "dark";
-    const look = [
+    const look = joinParts(
       dark ? "Dark theme" : null,
       p.locale && p.locale !== "en-US" ? p.locale : null,
-    ].filter((part) => part !== null);
+    );
     return [
       row(p.mobile ? "smartphone" : "monitor", p.mobile ? `${size} · Mobile` : size),
       p.storageState.trim() &&
         row("user-round", `Signed in as ${quote(p.storageState, LABELLED_TEXT_MAX)}`),
-      look.length > 0 && row(dark ? "moon" : "languages", look.join(" · ")),
+      look !== "" && row(dark ? "moon" : "languages", look),
     ];
   },
 });
@@ -545,14 +546,12 @@ export const hideElementsNode = defineNode({
   }),
   card: ({ params: p }) => {
     const extra = nonBlankLines(p.selectors).length;
-    const parts = [
+    const parts = joinParts(
       p.cookieBanners ? "Cookie banners" : null,
       p.chatWidgets ? "Chat widgets" : null,
       extra ? `+${extra} more` : null,
-    ].filter((part) => part !== null);
-    return [
-      row("eye-off", parts.length ? parts.join(" · ") : "Nothing yet", mutedIf(!parts.length)),
-    ];
+    );
+    return [row("eye-off", parts || "Nothing yet", mutedIf(!parts))];
   },
 });
 

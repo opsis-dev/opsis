@@ -20,17 +20,20 @@ const svg = readFileSync(SVG, "utf8");
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ executablePath: shell });
-const page = await browser.newPage();
-for (const size of ICON_SIZES) {
-  await page.setViewportSize({ width: size, height: size });
-  await page.setContent(
-    `<html><body style="margin:0;background:transparent"><style>svg{display:block;width:${size}px;height:${size}px}</style>${svg}</body></html>`,
-  );
-  await page.screenshot({
-    path: path.join(OUT, `${size}.png`),
-    omitBackground: true,
-    clip: { x: 0, y: 0, width: size, height: size },
-  });
+try {
+  const page = await browser.newPage();
+  for (const size of ICON_SIZES) {
+    await page.setViewportSize({ width: size, height: size });
+    await page.setContent(
+      `<html><body style="margin:0;background:transparent"><style>svg{display:block;width:${size}px;height:${size}px}</style>${svg}</body></html>`,
+    );
+    await page.screenshot({
+      path: path.join(OUT, `${size}.png`),
+      omitBackground: true,
+      clip: { x: 0, y: 0, width: size, height: size },
+    });
+  }
+} finally {
+  await browser.close();
 }
-await browser.close();
 console.log(`${ICON_SIZES.length} icons in ${path.relative(ROOT, OUT)}`);

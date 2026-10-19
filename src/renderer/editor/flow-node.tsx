@@ -5,7 +5,6 @@ import {
   CircleSlash,
   CircleX,
   Clock,
-  LoaderCircle,
   type LucideIcon,
 } from "lucide-react";
 import { memo } from "react";
@@ -49,7 +48,6 @@ type StatusBadge = {
 
 const STATUS: Partial<Record<NodeRunStatus, StatusBadge>> = {
   queued: { label: "Waiting", icon: Clock, variant: "outline" },
-  running: { label: "Running", icon: LoaderCircle, variant: "outline" },
   done: { label: "Done", icon: CircleCheck, variant: "outline" },
   cached: { label: "Up to date", icon: CheckCheck, variant: "secondary" },
   skipped: { label: "Skipped", icon: CircleSlash, variant: "outline" },
@@ -124,7 +122,7 @@ function NodeHeader({
   def: NodeDef;
   status: NodeRunStatus | undefined;
 }) {
-  const badge = status && status !== "running" ? STATUS[status] : undefined;
+  const badge = status ? STATUS[status] : undefined;
   return (
     <BaseNodeHeader className="border-b">
       <NodeBadge def={def} size="md" />
@@ -143,17 +141,20 @@ function NodeHeader({
 }
 
 function PortHandles({ ports, side }: { ports: Record<string, PortSpec>; side: "in" | "out" }) {
-  return Object.entries(ports).map(([portId, port]) => (
-    <LabeledHandle
-      key={portId}
-      id={portId}
-      type={side === "in" ? "target" : "source"}
-      position={side === "in" ? Position.Left : Position.Right}
-      title={portLabel(port, side)}
-      labelClassName={cn("text-xs", side === "in" && port.optional && "text-muted-foreground")}
-      style={{ background: portTypeColor(port.type), borderColor: portTypeColor(port.type) }}
-    />
-  ));
+  return Object.entries(ports).map(([portId, port]) => {
+    const color = portTypeColor(port.type);
+    return (
+      <LabeledHandle
+        key={portId}
+        id={portId}
+        type={side === "in" ? "target" : "source"}
+        position={side === "in" ? Position.Left : Position.Right}
+        title={portLabel(port, side)}
+        labelClassName={cn("text-xs", side === "in" && port.optional && "text-muted-foreground")}
+        style={{ background: color, borderColor: color }}
+      />
+    );
+  });
 }
 
 function NodePorts({ def }: { def: NodeDef }) {

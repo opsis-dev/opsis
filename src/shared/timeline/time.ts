@@ -1,11 +1,15 @@
 import { clamp } from "../math";
 
-export const msToExactFrames = (ms: number, fps: number): number => (ms / 1000) * fps;
+export const msToSeconds = (ms: number): number => ms / 1000;
+
+export const msToExactFrames = (ms: number, fps: number): number => msToSeconds(ms) * fps;
 
 export const msToSignedFrames = (ms: number, fps: number): number =>
   Math.round(msToExactFrames(ms, fps));
 
 export const wholeFrames = (frames: number, min = 0): number => Math.max(min, Math.round(frames));
+
+export const atLeastOneFrame = (frames: number): number => wholeFrames(frames, 1);
 
 export const msToFrames = (ms: number, fps: number, min = 1): number =>
   wholeFrames(msToExactFrames(ms, fps), min);
@@ -19,7 +23,7 @@ export const recordingMsToFrames = (ms: number, speed: number, fps: number): num
 export const framesToRecordingMs = (frames: number, speed: number, fps: number): number =>
   (frames / fps) * speed * 1000;
 
-export const frameIn = (frame: number, total: number): number =>
+export const clampFrame = (frame: number, total: number): number =>
   clamp(Math.round(frame), 0, Math.max(0, total - 1));
 
 export function playRange(

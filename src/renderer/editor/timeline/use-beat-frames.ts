@@ -1,13 +1,14 @@
 import { useMemo } from "react";
 import type { Waveform } from "@/shared/analysis";
 import type { AudioBar, FlatTimeline } from "@/shared/timeline/flatten";
+import { msToSeconds } from "@/shared/timeline/time";
 import { loaded, useMedia } from "../../store/media";
 
 const MAX_LOOPS = 200;
 
 function barBeats(a: AudioBar, wave: Waveform, fps: number): number[] {
   const out: number[] = [];
-  const len = wave.durationMs / 1000;
+  const len = msToSeconds(wave.durationMs);
   const offset = a.trimBefore / fps;
   for (let cycle = 0; cycle < (a.loop ? MAX_LOOPS : 1); cycle++) {
     const before = out.length;

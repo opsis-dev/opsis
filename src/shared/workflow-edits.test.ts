@@ -4,7 +4,7 @@ import { findById } from "./lists";
 import { DEFAULT_STRIP, defaultMix } from "./mix/types";
 import { GROUP_TYPE } from "./nodes/utility";
 import { GraphBuilder } from "./templates/build";
-import { workflowNode } from "./test-fixtures";
+import { must, workflowNode } from "./test-fixtures";
 import {
   addProjectFont,
   connect,
@@ -124,9 +124,8 @@ describe("workflow edits", () => {
 
   it("pastes a grouped node without its group at its place on the canvas", () => {
     const source = grouped();
-    const group = findById(source.nodes, "g");
-    const inGroup = findById(source.nodes, "a");
-    if (!group || !inGroup) throw new Error("fixture changed");
+    const group = must(findById(source.nodes, "g"), "group");
+    const inGroup = must(findById(source.nodes, "a"), "grouped node");
     const { workflow } = pasteNodes(source, [inGroup], [], { x: 10, y: 20 });
     const pasted = workflow.nodes.at(-1);
     expect(pasted && "parentId" in pasted).toBe(false);

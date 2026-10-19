@@ -25,9 +25,13 @@ export function byCodeUnit(a: string, b: string): number {
 }
 
 export function uniqueBy<T>(items: readonly T[], key: (item: T) => string): T[] {
-  const seen = new Map<string, T>();
-  for (const item of items) if (!seen.has(key(item))) seen.set(key(item), item);
-  return [...seen.values()];
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const k = key(item);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 }
 
 export function firstFree(

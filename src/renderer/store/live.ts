@@ -100,7 +100,7 @@ function applyMessage(prev: LiveCapture, message: LiveMessage): LiveCapture {
   };
 }
 
-function opened(s: LiveState, captureId: string): Partial<LiveState> {
+function withNewCapture(s: LiveState, captureId: string): Partial<LiveState> {
   const focusLive = s.focusId !== null && s.captures[s.focusId]?.status === "live";
   return {
     order: [...s.order, captureId],
@@ -121,7 +121,9 @@ export const useLiveStore = create<LiveState>()((set, get) => ({
     const s = get();
     const prev = s.captures[captureId];
     const next = applyMessage(prev ?? blank(captureId, message.nodeId), message);
-    set({ captures: { ...s.captures, [captureId]: next }, ...(prev ? {} : opened(s, captureId)) });
+    const captures = { ...s.captures, [captureId]: next };
+    if (prev) set({ captures });
+    else set({ captures, ...withNewCapture(s, captureId) });
   },
   setPipOpen: (pipOpen) => set({ pipOpen }),
   focus: (focusId) => set({ focusId }),

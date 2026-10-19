@@ -5,7 +5,7 @@ import { homedir, userInfo } from "node:os";
 import path from "node:path";
 import { app } from "electron";
 import { errorCode, errorMessage } from "../shared/errors";
-import { IPC, type ApiStatus } from "../shared/ipc";
+import { IPC, type ApiServerStatus } from "../shared/ipc";
 import { API_SOCKET_ENV, apiAddress } from "./api-address";
 import { endRunEventStreams } from "./api-editor";
 import { handleApiRequest } from "./api-routes";
@@ -26,12 +26,15 @@ const resolveAddress = () =>
   });
 
 let server: Server | null = null;
-let status: ApiStatus | null = null;
+let status: ApiServerStatus | null = null;
 
-export const getApiStatus = (): ApiStatus =>
-  (status ??= { enabled: false, listening: false, address: resolveAddress().address });
+export function getApiStatus(): ApiServerStatus {
+  if (status === null)
+    status = { enabled: false, listening: false, address: resolveAddress().address };
+  return status;
+}
 
-function setStatus(next: ApiStatus): void {
+function setStatus(next: ApiServerStatus): void {
   status = next;
   broadcast(IPC.apiStatusChanged, next);
 }

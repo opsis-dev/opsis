@@ -1,4 +1,5 @@
 import { CircleAlert, ExternalLink, Play, RotateCcw, Trash2, Ungroup } from "lucide-react";
+import type { ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/renderer/components/ui/alert";
 import { Badge } from "@/renderer/components/ui/badge";
 import { Button } from "@/renderer/components/ui/button";
@@ -38,20 +39,16 @@ export function Inspector() {
   const workflow = useWorkflowStore((s) => s.workflow);
   const typing = useTypingAsOneUndoStep();
   if (!workflow) return null;
-  const present = selected.filter((id) => workflow.nodes.some((n) => n.id === id));
-  const node = present.length === 1 ? findById(workflow.nodes, present[0]) : undefined;
+  const present = selected.flatMap((id) => findById(workflow.nodes, id) ?? []);
+  const node = present.length === 1 ? present[0] : undefined;
   const def = node && getNodeDef(node.type);
+  let body: ReactNode;
+  if (!node) body = <ProjectInspector workflow={workflow} multi={present.length} />;
+  else if (def) body = <NodeDetails workflow={workflow} node={node} def={def} />;
+  else body = <p className="p-4 text-sm">This node type isn't available.</p>;
   return (
     <ScrollArea className="h-full" {...typing}>
-      <SwapFade id={node?.id ?? "project"}>
-        {!node ? (
-          <ProjectInspector workflow={workflow} multi={present.length} />
-        ) : def ? (
-          <NodeDetails workflow={workflow} node={node} def={def} />
-        ) : (
-          <p className="p-4 text-sm">This node type isn't available.</p>
-        )}
-      </SwapFade>
+      <SwapFade id={node?.id ?? "project"}>{body}</SwapFade>
     </ScrollArea>
   );
 }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { patchRecordings } from "../compile/clip";
 import type { AnnotationKind, AnnotationSpec, KeystrokePosition } from "../compile/recording";
-import { LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
+import { joinParts, LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
 import { defineNode, modifierBase, withClip, type NodeCategory, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
 import { bool, choiceOf, int, more, ms, num, text } from "./params";
@@ -50,9 +50,11 @@ const keystrokeChipsNode = defineNode({
   card: ({ params: p }) => [
     row(
       "keyboard",
-      [CHIP_POSITIONS[p.position], p.typed ? "typed text" : null, p.chords ? "shortcuts" : null]
-        .filter((part) => part !== null)
-        .join(" · "),
+      joinParts(
+        CHIP_POSITIONS[p.position],
+        p.typed ? "typed text" : null,
+        p.chords ? "shortcuts" : null,
+      ),
     ),
   ],
   params: z.object({

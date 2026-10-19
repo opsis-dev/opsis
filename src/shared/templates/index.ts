@@ -24,6 +24,8 @@ function exportVideo(
 }
 
 const TODO_SITE = "https://demo.playwright.dev/todomvc";
+const EXAMPLE_SITE = "https://example.com";
+const EXAMPLE_PRODUCT = "Acme";
 
 const PRODUCT_NAME_VAR = "Product name";
 
@@ -139,7 +141,7 @@ function featureLaunch(name: string): Workflow {
   exportVideo(g, seq, 5, 2);
   return g.build({
     name,
-    variables: { [SITE_ADDRESS_VAR]: "https://example.com", [PRODUCT_NAME_VAR]: "Acme" },
+    variables: { [SITE_ADDRESS_VAR]: EXAMPLE_SITE, [PRODUCT_NAME_VAR]: EXAMPLE_PRODUCT },
   });
 }
 
@@ -161,7 +163,10 @@ function changelogClip(name: string): Workflow {
   const seq = g.node("sequence", "timeline.sequence", 3, 1, { transition: "core/slide" });
   g.clipsInto(seq, [title, term, chartScene]);
   exportVideo(g, seq, 4, 1, { variants: ["16:9", "1:1"] });
-  return g.build({ name, variables: { [PRODUCT_NAME_VAR]: "Acme", [VERSION_VAR]: "v2.4" } });
+  return g.build({
+    name,
+    variables: { [PRODUCT_NAME_VAR]: EXAMPLE_PRODUCT, [VERSION_VAR]: "v2.4" },
+  });
 }
 
 function onboarding(name: string): Workflow {
@@ -255,7 +260,7 @@ function beforeAfter(name: string): Workflow {
   return g.build({
     name,
     variables: {
-      [BEFORE_ADDRESS_VAR]: "https://example.com",
+      [BEFORE_ADDRESS_VAR]: EXAMPLE_SITE,
       [AFTER_ADDRESS_VAR]: "https://example.org",
     },
   });

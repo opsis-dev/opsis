@@ -1,9 +1,9 @@
-import { fractionIn } from "@/renderer/lib/dom";
+import { fractionIn, onArrowKey } from "@/renderer/lib/dom";
 import { usePointerDrag } from "@/renderer/lib/use-pointer-drag";
 import { percent } from "@/shared/format";
 import { MAX_DB, MIN_DB } from "@/shared/mix/types";
 import { formatDb } from "./audio-format";
-import { commitOnce, onArrowKey, type Gesture } from "./gesture";
+import { commitOnce, type Gesture } from "./gesture";
 import { fractionToValue, snapValue, valueToFraction, type KnobRange } from "./knob-math";
 
 const STEP_DB = 0.5;

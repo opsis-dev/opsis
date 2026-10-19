@@ -136,9 +136,9 @@ export function menuCommandEntry(
   return undefined;
 }
 
-const SHIFT_AGNOSTIC_KEYS: ReadonlySet<string> = new Set(["=", "-"]);
+const ZOOM_KEYS_SHIFT_MAY_TYPE: ReadonlySet<string> = new Set(["=", "-"]);
 
-const SHIFTED_KEYS: Partial<Record<string, string>> = { "=": "+" };
+const ZOOM_KEYS_SHIFTED: Partial<Record<string, string>> = { "=": "+" };
 
 const primaryKey = (platform: NodeJS.Platform) => (isMacPlatform(platform) ? "metaKey" : "ctrlKey");
 
@@ -165,8 +165,8 @@ export function matchesAccelerator(
   if (e.ctrlKey !== wantCtrl || e.metaKey !== wantMeta) return false;
   if (e.altKey !== mods.has("alt")) return false;
   const pressed = e.key.toLowerCase();
-  if (!SHIFT_AGNOSTIC_KEYS.has(key) && e.shiftKey !== mods.has("shift")) return false;
-  return pressed === key || pressed === SHIFTED_KEYS[key];
+  if (!ZOOM_KEYS_SHIFT_MAY_TYPE.has(key) && e.shiftKey !== mods.has("shift")) return false;
+  return pressed === key || pressed === ZOOM_KEYS_SHIFTED[key];
 }
 
 export function acceleratorLabel(accelerator: string, platform: NodeJS.Platform): string {

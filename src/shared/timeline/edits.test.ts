@@ -150,16 +150,16 @@ function roundTrips(type: string): RoundTrip[] {
   return before.bars.flatMap((bar) =>
     BAR_HANDLES.flatMap((kind) => {
       const owner = findHandle(bar, kind, "outer");
-      const ref = owner?.link.handles?.[kind];
+      const ref = owner?.handles?.[kind];
       const node = findById(wf.nodes, ref?.nodeId);
       if (!owner || !node) return [];
       const handle = HANDLES[kind];
-      const next = applied(handle.act(ctxFor(wf), bar, owner.link));
+      const next = applied(handle.act(ctxFor(wf), bar, owner));
       const after = must(
         flatFilm(next).bars.find((b) => b.key === bar.key),
         `${type} bar after its ${kind} edit`,
       );
-      const off = handle.measured(bar, after) - handle.expected(owner.link);
+      const off = handle.measured(bar, after) - handle.expected(owner);
       const addedNodes = next.nodes.length - wf.nodes.length;
       return [{ kind, owner: node.type, off, tolerance: handle.tolerance, addedNodes }];
     }),

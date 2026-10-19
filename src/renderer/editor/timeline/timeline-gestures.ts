@@ -1,11 +1,12 @@
 import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/renderer/lib/dom";
+import { randomId } from "@/shared/ids";
 import { MAX_VOLUME } from "@/shared/limits";
 import { clamp, round3 } from "@/shared/math";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
 import { setAudioVolume } from "@/shared/timeline/edits";
 import type { AudioBar, FlatTimeline } from "@/shared/timeline/flatten";
 import { snapFrame, type SnapTarget } from "@/shared/timeline/snap";
-import { frameIn, framesToMs, wholeFrames } from "@/shared/timeline/time";
+import { clampFrame, framesToMs, wholeFrames } from "@/shared/timeline/time";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { useWorkflowStore } from "../../store/workflow";
@@ -15,7 +16,6 @@ import { applyEdit, patchMarker, reportEdit, selectNodes } from "./timeline-acti
 import {
   editContext,
   editOutcome,
-  gestureSalt,
   isClick,
   marqueeIds,
   normalizeMarquee,
@@ -25,7 +25,6 @@ import {
   type KeyStart,
   type MarkerDrag,
   type MarqueeBox,
-  type MarqueeDrag,
   type VolumeDrag,
 } from "./timeline-drag";
 import { SNAP_PX, frameAtX, markerFrame, type LaneLayout } from "./timeline-layout";
@@ -65,7 +64,7 @@ export function editGesture(
     base: env.workflow,
     flat: env.flat,
     targets: env.snapTargets(target.bar.key),
-    salt: gestureSalt(),
+    salt: randomId(),
     started: false,
     last: null,
     ripple,
@@ -100,7 +99,7 @@ export function volumeGesture(
     y0: e.clientY,
     v0: bar.volume,
     base: env.workflow,
-    salt: gestureSalt(),
+    salt: randomId(),
     started: false,
     height,
   };
@@ -162,7 +161,7 @@ export function markerGesture(env: GestureEnv, e: React.PointerEvent, marker: Ma
 }
 
 const timelineFrame = (env: GestureEnv, frame: number): number =>
-  frameIn(frame, env.flat.durationInFrames);
+  clampFrame(frame, env.flat.durationInFrames);
 
 export function scrubTo(env: GestureEnv, frame: number): void {
   const at = timelineFrame(env, frame);
@@ -180,7 +179,7 @@ export function marqueeGesture(
   additive: boolean,
   showBox: (box: MarqueeBox | null) => void,
 ): ActiveDrag {
-  const d: MarqueeDrag = { x0: start.x, y0: start.y, x1: start.x, y1: start.y, additive };
+  const d: MarqueeBox = { x0: start.x, y0: start.y, x1: start.x, y1: start.y };
   return {
     move: (e) => {
       const { x, y } = env.point(e.clientX, e.clientY);
@@ -192,10 +191,10 @@ export function marqueeGesture(
       showBox(null);
       const box = normalizeMarquee(d);
       if (!isClick(box)) {
-        selectNodes(marqueeIds(env.flat, box, env.layout, env.ppf), d.additive, env.sourceNodeId);
+        selectNodes(marqueeIds(env.flat, box, env.layout, env.ppf), additive, env.sourceNodeId);
         return;
       }
-      if (!d.additive) useUiStore.getState().selectPinned([], env.sourceNodeId);
+      if (!additive) useUiStore.getState().selectPinned([], env.sourceNodeId);
       usePlayback.getState().seek(timelineFrame(env, frameAtX(d.x0, env.ppf)));
       useTimeline.getState().selectMarker(null);
     },

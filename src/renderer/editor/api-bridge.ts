@@ -40,7 +40,7 @@ function runState(): ApiRunState {
   return { running, runId };
 }
 
-function read(wf: Workflow): ApiReply<ApiProjectState> {
+function read(_request: unknown, wf: Workflow): ApiReply<ApiProjectState> {
   const { projectDir, revision, savedRevision } = useWorkflowStore.getState();
   return apiOk({
     dir: projectDir,
@@ -146,8 +146,6 @@ const run: Handler<"run"> = async (request) => {
   }
 };
 
-const readProject = (_request: unknown, wf: Workflow) => read(wf);
-
 const replace: Handler<"replace"> = (request) => {
   useWorkflowStore.getState().update(() => request.workflow);
   return edited();
@@ -179,8 +177,8 @@ const stop: Handler<"stop"> = async () => {
 };
 
 const HANDLERS: { [O in Op]: Handler<O> } = {
-  open: readProject,
-  read: readProject,
+  open: read,
+  read,
   replace,
   addNode,
   updateNode,

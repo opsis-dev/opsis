@@ -72,7 +72,8 @@ const VARIANT_RATIOS: Record<Variant, [width: number, height: number]> = {
 
 function sizeFor(variant: Variant, edge: number, anchor: "long" | "short") {
   const [w, h] = VARIANT_RATIOS[variant];
-  const edgeIsWidth = w >= h === (anchor === "long");
+  const landscape = w >= h;
+  const edgeIsWidth = anchor === "long" ? landscape : !landscape;
   return edgeIsWidth
     ? { width: evenPx(edge), height: evenPx((edge * h) / w) }
     : { width: evenPx((edge * w) / h), height: evenPx(edge) };

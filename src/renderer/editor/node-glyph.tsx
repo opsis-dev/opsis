@@ -6,7 +6,9 @@ import { FALLBACK_LOOK, nodeLook, type NodeGlyph as Glyph } from "@/shared/nodes
 import { NODE_GLYPHS } from "./node-glyphs.generated";
 import { playNodeMotion } from "./node-motions";
 
-export const GLYPH_HOST = { "data-glyph-host": "" };
+const GLYPH_HOST_ATTRIBUTE = "data-glyph-host";
+
+export const GLYPH_HOST = { [GLYPH_HOST_ATTRIBUTE]: "" };
 
 const glyphNode = (glyph: Glyph) => NODE_GLYPHS[glyph] ?? NODE_GLYPHS[FALLBACK_LOOK.glyph];
 
@@ -14,7 +16,7 @@ function useHostHover(ref: RefObject<HTMLElement | null>): boolean {
   const [hovered, setHovered] = useState(false);
   useEffect(() => {
     const own = ref.current;
-    const host = own?.closest("[data-glyph-host]") ?? own;
+    const host = own?.closest(`[${GLYPH_HOST_ATTRIBUTE}]`) ?? own;
     if (!host) return;
     const enter = () => setHovered(true);
     const leave = () => setHovered(false);

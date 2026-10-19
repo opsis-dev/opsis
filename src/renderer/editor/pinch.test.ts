@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MAX_ZOOM, MIN_ZOOM, pinchViewport } from "./pinch";
+import { MAX_ZOOM, MIN_ZOOM } from "./canvas-grid";
+import { pinchViewport } from "./pinch";
 
 const at = (zoom: number) => ({ x: 0, y: 0, zoom });
 const zoomAfter = (zoom: number, deltaY: number) => pinchViewport(at(zoom), deltaY, 0, 0).zoom;

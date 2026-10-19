@@ -39,7 +39,7 @@ export function RunOutputs({
   projectDir,
 }: {
   nodes: WorkflowNode[];
-  filterNode: WorkflowNode | null;
+  filterNode: WorkflowNode | undefined;
   projectDir: string;
 }) {
   const results = useRunStore((s) => s.results);

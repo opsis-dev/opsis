@@ -16,7 +16,7 @@ import {
   type ActiveDrag,
   type GestureEnv,
 } from "./timeline-gestures";
-import { RULER_H, SNAP_PX, contentPoint, contentX, frameAtX } from "./timeline-layout";
+import { RULER_H, SNAP_PX, clientXToFrame, contentPoint } from "./timeline-layout";
 import { useTimeline } from "./timeline-state";
 import type { TimelineZoom } from "./use-timeline-zoom";
 
@@ -32,7 +32,12 @@ type DragOptions = Pick<
 
 export type TimelineDrag = ReturnType<typeof useTimelineDrag>;
 
-function useTimelineSnap({ flat, markers, beats }: DragOptions, ppf: number) {
+const inStickyRuler = (y: number, scrollTop: number) => y >= scrollTop && y < scrollTop + RULER_H;
+
+function useTimelineSnap(
+  { flat, markers, beats }: Pick<DragOptions, "flat" | "markers" | "beats">,
+  ppf: number,
+) {
   const snapping = useTimeline((s) => s.snapping);
   const snapOn = (alt: boolean) => snapping && !alt;
   const snapTargets = (exclude: string | null) => {
@@ -76,7 +81,7 @@ export function useTimelineDrag(opts: DragOptions) {
   const [marquee, setMarquee] = useState<MarqueeBox | null>(null);
 
   const point = (clientX: number, clientY: number) => contentPoint(scrollerEl(), clientX, clientY);
-  const xToFrame = (clientX: number) => frameAtX(contentX(scrollerEl(), clientX), ppf);
+  const xToFrame = (clientX: number) => clientXToFrame(scrollerEl(), clientX, ppf);
   const env: GestureEnv = {
     workflow,
     flat,
@@ -122,7 +127,7 @@ export function useTimelineDrag(opts: DragOptions) {
   const onEmptyDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     const { x, y, scrollTop } = point(e.clientX, e.clientY);
-    if (y < RULER_H + scrollTop && y >= scrollTop) return;
+    if (inStickyRuler(y, scrollTop)) return;
     begin(e, marqueeGesture(env, { x, y }, e.shiftKey, setMarquee));
   };
 

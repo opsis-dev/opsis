@@ -98,11 +98,11 @@ export async function installHeadlessShell(dir: string, onProgress: InstallProgr
 
 export function calmProgress(onProgress: InstallProgress): InstallProgress {
   let step = "";
-  let shown = -1;
+  let shown: number | null = null;
   let lastAt = 0;
   return (update) => {
     const current = `${update.part}|${update.step}`;
-    const percent = update.progress == null ? -1 : Math.floor(update.progress * 100);
+    const percent = update.progress === null ? null : Math.floor(update.progress * 100);
     const now = Date.now();
     if (current === step && percent === shown && now - lastAt < CALM_MS) return;
     step = current;

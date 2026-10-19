@@ -24,7 +24,7 @@ import {
   type NodePhase,
 } from "../../shared/nodes/define";
 import { getNodeDef, isOutputType, nodeName } from "../../shared/nodes/registry";
-import { mapValues } from "../../shared/pick";
+import { mapValues } from "../../shared/objects";
 import { failureMessage } from "../../shared/run-progress";
 import { runFailed, type LogLevel, type RunEvent } from "../../shared/schema/events";
 import type { LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
@@ -350,7 +350,7 @@ class RunState {
   }
 
   private markChain(node: WorkflowNode) {
-    if (!isCapture(getNodeDef(node.type))) return;
+    if (!isCapture(this.known.get(node.id)?.def)) return;
     for (const up of upstreamOf(this.run.req.workflow, node.id))
       if (this.known.get(up)?.def.virtual) this.run.deps.emit(doneEvent(this.run.runId, up, true));
   }

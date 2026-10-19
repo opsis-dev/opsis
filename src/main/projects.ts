@@ -135,6 +135,16 @@ export async function openProjectDir(target: string): Promise<OpenProject> {
   };
 }
 
+async function writeWorkflowFile(dir: string, workflow: Workflow): Promise<string> {
+  const normalized = workflowSchema.parse(workflow);
+  const text = `${JSON.stringify(normalized, null, 2)}\n`;
+  const version = versionOf(text);
+  written.set(dir, version);
+  await atomicWrite(path.join(dir, WORKFLOW_FILE), text);
+  await touchRecent(dir, normalized.name);
+  return version;
+}
+
 export async function createProjectDir(
   win: BrowserWindow | null,
   opts: { name: string; template: string; dir?: string },
@@ -158,16 +168,6 @@ export async function createProjectDir(
   const version = await writeWorkflowFile(dir, workflow);
   await patchSettings({ projects: { lastDir: parent } });
   return { dir, workflow, lastRun: null, version };
-}
-
-async function writeWorkflowFile(dir: string, workflow: Workflow): Promise<string> {
-  const normalizedForSave = workflowSchema.parse(workflow);
-  const text = `${JSON.stringify(normalizedForSave, null, 2)}\n`;
-  const version = versionOf(text);
-  written.set(dir, version);
-  await atomicWrite(path.join(dir, WORKFLOW_FILE), text);
-  await touchRecent(dir, normalizedForSave.name);
-  return version;
 }
 
 export async function saveWorkflowFile(

@@ -7,6 +7,7 @@ export const readLastRun = (projectDir: string): Promise<LastRun | null> =>
   readJson(projectPaths(projectDir).lastRun, lastRunSchema);
 
 export async function writeLastRun(projectDir: string, lastRun: LastRun): Promise<void> {
-  await mkdir(projectPaths(projectDir).meta, { recursive: true });
-  await writeJson(projectPaths(projectDir).lastRun, lastRun);
+  const paths = projectPaths(projectDir);
+  await mkdir(paths.meta, { recursive: true });
+  await writeJson(paths.lastRun, lastRun);
 }

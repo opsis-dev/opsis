@@ -1,6 +1,6 @@
 import { clamp } from "@/shared/math";
-export const MIN_ZOOM = 0.1;
-export const MAX_ZOOM = 2;
+import { MAX_ZOOM, MIN_ZOOM } from "./canvas-grid";
+
 const PINCH_SPEED = 0.02;
 const PINCH_STEP_LIMIT = 0.5;
 

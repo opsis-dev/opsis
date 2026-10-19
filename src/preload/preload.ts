@@ -4,7 +4,7 @@ import { errorMessage } from "../shared/errors";
 import { INVOKE, IPC, type DemoflowApi } from "../shared/ipc";
 import { listenerSet } from "../shared/listener-set";
 import { isLiveMessage, type LiveMessage } from "../shared/live";
-import { mapValues } from "../shared/pick";
+import { mapValues } from "../shared/objects";
 
 function subscribe<A extends unknown[]>(
   channel: string,

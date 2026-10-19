@@ -10,6 +10,13 @@ const MIN_CHAPTER_MS = 10_000;
 export const MIN_LISTED_CHAPTERS = 3;
 const OPENING_TITLE = "Intro";
 
+function dropShortTail(kept: ChapterStart[], durationMs: number): ChapterStart[] {
+  const lastLongEnough = kept.findLastIndex(
+    (c, i) => i === 0 || durationMs - c.startMs >= MIN_CHAPTER_MS,
+  );
+  return kept.slice(0, lastLongEnough + 1);
+}
+
 export function filmChapters(spec: TimelineSpec): FilmChapter[] {
   const durationMs = framesToMs(spec.durationInFrames, spec.fps);
   const starts = flattenSpec(spec)
@@ -26,10 +33,7 @@ export function filmChapters(spec: TimelineSpec): FilmChapter[] {
     if (previous && c.startMs - previous.startMs < MIN_CHAPTER_MS) continue;
     kept.push(c);
   }
-  const lastKept = kept.findLastIndex(
-    (c, i) => i === 0 || durationMs - c.startMs >= MIN_CHAPTER_MS,
-  );
-  const listed = kept.slice(0, lastKept + 1);
+  const listed = dropShortTail(kept, durationMs);
   return listed.map((c, i) => ({ ...c, endMs: listed[i + 1]?.startMs ?? durationMs }));
 }
 

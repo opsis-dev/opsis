@@ -5,7 +5,7 @@ import { MAX_VOLUME } from "@/shared/limits";
 import { clamp } from "@/shared/math";
 import { lruCache } from "@/shared/memo";
 import type { AudioBar, BarThumbnail, VideoBar } from "@/shared/timeline/flatten";
-import { framesToRecordingMs } from "@/shared/timeline/time";
+import { framesToRecordingMs, msToSeconds } from "@/shared/timeline/time";
 import { loadedFilmstrip, loadedWaveform, useMedia } from "../../store/media";
 import { fileUrl } from "../file-url";
 import { OFFSCREEN_PX, type BarBox, type Viewport } from "./timeline-layout";
@@ -216,7 +216,7 @@ function drawWaveform(
   const level = pickLevel(wave, g.pxPerFrame * g.fps);
   if (!level) return;
   const { bar } = g;
-  const durationS = wave.durationMs / 1000;
+  const durationS = msToSeconds(wave.durationMs);
   const mid = g.height / 2;
   ctx.fillStyle = getComputedStyle(ctx.canvas).getPropertyValue("--waveform").trim();
   for (let i = 0; i < part.width; i++) {

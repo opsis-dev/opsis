@@ -1,5 +1,4 @@
 import { DRAG_START_PX } from "@/renderer/lib/dom";
-import { randomId } from "@/shared/ids";
 import type { EnvelopeKey, Keyframe } from "@/shared/schema/timeline";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
 import {
@@ -20,7 +19,7 @@ import {
 } from "@/shared/timeline/edits";
 import type { AudioBar, FlatTimeline, VideoBar } from "@/shared/timeline/flatten";
 import { snapFrame, snapSpan, type SnapTarget } from "@/shared/timeline/snap";
-import { wholeFrames } from "@/shared/timeline/time";
+import { atLeastOneFrame } from "@/shared/timeline/time";
 import {
   AUDIO_H,
   HEADER_W,
@@ -86,16 +85,6 @@ export type KeyDrag = {
 export type KeyStart = Omit<KeyDrag, "x0" | "y0" | "started">;
 
 export type MarkerDrag = { id: string; x0: number; from: number; started: boolean };
-
-export type MarqueeDrag = {
-  x0: number;
-  y0: number;
-  x1: number;
-  y1: number;
-  additive: boolean;
-};
-
-export const gestureSalt = (): string => randomId();
 
 export function editContext(
   base: Workflow,
@@ -225,7 +214,7 @@ function videoOutcome(
       });
     case "speed":
       return edge(d.bar.to, (delta) =>
-        speedBar(ctx, d.bar, wholeFrames(d.bar.to - d.bar.from + delta, 1)),
+        speedBar(ctx, d.bar, atLeastOneFrame(d.bar.to - d.bar.from + delta)),
       );
   }
 }
@@ -282,7 +271,7 @@ export type MarqueeBox = { x0: number; x1: number; y0: number; y1: number };
 export const isClick = (box: MarqueeBox) =>
   box.x1 - box.x0 < DRAG_START_PX && box.y1 - box.y0 < DRAG_START_PX;
 
-export function normalizeMarquee(d: MarqueeDrag): MarqueeBox {
+export function normalizeMarquee(d: MarqueeBox): MarqueeBox {
   return {
     x0: Math.min(d.x0, d.x1) - HEADER_W,
     x1: Math.max(d.x0, d.x1) - HEADER_W,

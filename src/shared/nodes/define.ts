@@ -61,6 +61,8 @@ type CompileContext<P> = {
 
 export type CompileOutputs = Partial<Record<string, CompileValue>>;
 
+export type CardLine = CardRow | false | null | undefined | "" | 0;
+
 export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
   type: string;
   title: string;
@@ -80,7 +82,7 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
   cardHeight?: number;
   hostDefaults?(platform: NodeJS.Platform): Partial<z.infer<S>>;
   compile?(ctx: CompileContext<z.infer<S>>): CompileOutputs | undefined;
-  card?(ctx: CardContext<z.infer<S>>): Array<CardRow | false | null | undefined | "" | 0>;
+  card?(ctx: CardContext<z.infer<S>>): CardLine[];
 }
 
 export type NodeParams<D extends NodeDef> = z.infer<D["params"]>;
@@ -115,11 +117,7 @@ export const parseNodeParams = <S extends z.ZodObject>(
   vars: Record<string, string>,
 ): z.infer<S> => def.params.parse(interpolatedParams(def, node.params, vars));
 
-export const port = (type: PortType, label?: string): PortSpec => ({
-  type,
-  label,
-  optional: false,
-});
+export const port = (type: PortType, label?: string): PortSpec => ({ type, label });
 
 export const opt = (type: PortType, label?: string): PortSpec => ({
   ...port(type, label),
@@ -133,7 +131,7 @@ export const many = (type: PortType, label?: string): PortSpec => ({
 
 export const CLIP_PORT = "clip";
 
-export const clipModifier = {
+const clipModifier = {
   inputs: { [CLIP_PORT]: port("clip", "Clip") },
   outputs: { [CLIP_PORT]: port("clip", "Clip") },
 } as const;

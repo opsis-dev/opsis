@@ -1,8 +1,7 @@
 import { lookupKey } from "../hash";
 import type { AudioEnvelope, TimelineSpec } from "../schema/timeline";
 import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
-import { wholeFrames } from "../timeline/time";
-import { stripSettings } from "./edits";
+import { atLeastOneFrame } from "../timeline/time";
 import {
   audibility,
   busOf,
@@ -13,7 +12,15 @@ import {
   type Audibility,
   type ChannelInfo,
 } from "./levels";
-import type { Bus, ChannelKind, Master, Mix, Strip, StripSettings } from "./types";
+import {
+  stripSettings,
+  type Bus,
+  type ChannelKind,
+  type Master,
+  type Mix,
+  type Strip,
+  type StripSettings,
+} from "./types";
 
 export type SoundPlacement = {
   src: string;
@@ -62,7 +69,7 @@ function soundPlacements(flat: FlatTimeline): Map<string, SoundPlacement[]> {
       src: a.src,
       at: Math.round(a.from),
       offset: Math.max(0, Math.round(a.trimBefore)),
-      length: wholeFrames(a.to - a.from, 1),
+      length: atLeastOneFrame(a.to - a.from),
       loop: a.loop,
       volume: a.volume,
       fadeIn: a.item?.fadeInFrames ?? 0,

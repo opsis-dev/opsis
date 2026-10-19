@@ -41,7 +41,7 @@ export const usePanels = create<{
   open: { left: true, bottom: true, right: true },
   popped: [],
   setOpen: (side, open) =>
-    set((s) => (s.open[side] === open ? {} : { open: { ...s.open, [side]: open } })),
+    set((s) => (s.open[side] === open ? s : { open: { ...s.open, [side]: open } })),
   setPopped: (popped) => set({ popped }),
 }));
 
@@ -81,11 +81,12 @@ export function showPanel(panel: DockPanelName): boolean {
   return true;
 }
 
+const focusAfterPaint = (target: () => HTMLElement | null) =>
+  requestAnimationFrame(() => target()?.focus());
+
 export function focusPanel(panel: DockPanelName): void {
   if (!showPanel(panel)) return;
-  requestAnimationFrame(() =>
-    (focusTargets[panel] ?? document.getElementById(`panel-${panel}`))?.focus(),
-  );
+  focusAfterPaint(() => focusTargets[panel] ?? document.getElementById(`panel-${panel}`));
 }
 
 export const layoutStorage: LayoutStorage = { getItem: readStored, setItem: writeStored };

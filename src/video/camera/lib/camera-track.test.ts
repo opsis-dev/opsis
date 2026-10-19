@@ -302,7 +302,7 @@ describe("frameFor", () => {
   it("does NOT surrender the zoom just because the region is oversized", () => {
     const pose = frameFor(click(0, 1721, 655, box(1280, 0, 640, 1080)), VP, S_MAX);
     expect(pose, "should still be zoomed in").not.toEqual(BASE_POSE);
-    expect(pose.scale > 1.1, `expected a real zoom, got ${pose.scale}`).toBe(true);
+    expect(pose.scale, "expected a real zoom").toBeGreaterThan(1.1);
     expect(isInFrame(pose, VP, 1721, 655)).toBe(true);
   });
 
@@ -316,7 +316,7 @@ describe("frameFor", () => {
 
   it("still frames ordinary controls off-centre", () => {
     const pose = frameFor(click(0, 476, 223, box(273, 190, 406, 66)), VP, 1.54);
-    expect(pose.scale > 1.2, `expected a real zoom, got ${pose.scale}`).toBe(true);
+    expect(pose.scale, "expected a real zoom").toBeGreaterThan(1.2);
     expect(isInFrame(pose, VP, 476, 223)).toBe(true);
     expect(pose).not.toEqual(BASE_POSE);
   });
@@ -325,7 +325,7 @@ describe("frameFor", () => {
     const wide = click(1000, 400, 200, box(300, 180, 800, 40));
     const pose = frameFor(wide, VP, S_MAX * 1.69, true);
     const visible = 1 / pose.scale;
-    expect(visible * VP.width >= 800, "the target fits the visible width").toBe(true);
+    expect(visible * VP.width, "the target fits the visible width").toBeGreaterThanOrEqual(800);
     expect(pose.cx).toBeCloseTo((0.8 * 700 + 0.2 * 400) / VP.width, 9);
     const small = click(1000, 960, 500, box(940, 490, 40, 20));
     expect(frameFor(small, VP, S_MAX * 1.69, true).scale).toBeCloseTo(S_MAX * 1.69, 9);
@@ -334,8 +334,8 @@ describe("frameFor", () => {
   it("never inverts its clamps at maximum zoom", () => {
     const pose = frameFor(click(0, 1919, 1079), VP, S_MAX);
     expect(Number.isFinite(pose.cx) && Number.isFinite(pose.cy)).toBe(true);
-    expect(pose.cx >= 1 / (2 * pose.scale) - 1e-9).toBe(true);
-    expect(pose.cy <= 1 - 1 / (2 * pose.scale) + 1e-9).toBe(true);
+    expect(pose.cx).toBeGreaterThanOrEqual(1 / (2 * pose.scale) - 1e-9);
+    expect(pose.cy).toBeLessThanOrEqual(1 - 1 / (2 * pose.scale) + 1e-9);
   });
 });
 
@@ -362,7 +362,7 @@ describe("camera in narrower shapes", () => {
 
   it("never rests fully zoomed out, and rests on the cursor", () => {
     const rest = narrowPose(BASE_POSE, { narrow: 1.69 }, { cx: 0.8, cy: 0.3 });
-    expect(rest.scale > 1.3).toBe(true);
+    expect(rest.scale).toBeGreaterThan(1.3);
     expect(rest.cx).toBe(0.8);
   });
 

@@ -52,7 +52,7 @@ export type LicenceEntry = {
   file?: string;
 };
 
-export type ApiStatus = {
+export type ApiServerStatus = {
   enabled: boolean;
   listening: boolean;
   address: string;
@@ -175,8 +175,8 @@ export interface DemoflowApi {
   sendMenuToEditor(command: MenuCommand): void;
   listLicences(): Promise<LicenceEntry[]>;
   openLicenceFile(file: string): Promise<void>;
-  apiStatus(): Promise<ApiStatus>;
-  onApiStatus(listener: (status: ApiStatus) => void): () => void;
+  apiStatus(): Promise<ApiServerStatus>;
+  onApiStatus(listener: (status: ApiServerStatus) => void): () => void;
   onApiRequest(listener: (request: ApiEditorRequest) => Promise<ApiEditorReply>): () => void;
   onLive(listener: (message: LiveMessage) => void): () => void;
   readTrace(dir: string, traceId: string): Promise<TraceModel>;
@@ -294,7 +294,7 @@ export const IPC = {
 export type BroadcastPayloads = {
   [IPC.engineEvent]: EngineInstallEvent;
   [IPC.settingsChanged]: AppSettings;
-  [IPC.apiStatusChanged]: ApiStatus;
+  [IPC.apiStatusChanged]: ApiServerStatus;
 };
 
 declare global {

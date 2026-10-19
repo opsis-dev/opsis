@@ -1,14 +1,7 @@
 import { z } from "zod";
 import { baseName } from "../asset-ref";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
-import {
-  itemClip,
-  patchRecordings,
-  placeholderClip,
-  recordingClip,
-  recordingProps,
-  wrapClip,
-} from "../compile/clip";
+import { itemClip, patchRecordings, recordingProps, wrapClip } from "../compile/clip";
 import {
   CAMERA_STYLES,
   defaultRecordingProps,
@@ -149,8 +142,9 @@ const autoZoomNode = defineNode({
     const frames = msToFrames(durationMs / params.speed, settings.fps);
     if (!rec?.src || !rec.log) {
       return {
-        clip: placeholderClip(
+        clip: itemClip(
           nodeId,
+          "core/placeholder",
           {
             title: "Not recorded yet",
             subtitle: "Run to record the take. The camera moves appear here afterwards.",
@@ -175,7 +169,7 @@ const autoZoomNode = defineNode({
         : windowFrameProps(params.frame, params.frameTheme, params.addressBar)),
       backdrop: params.backdrop,
     };
-    return { clip: recordingClip(nodeId, props, frames, { recording: rec }) };
+    return { clip: itemClip(nodeId, "core/recording", props, frames, { recording: rec }) };
   },
 });
 

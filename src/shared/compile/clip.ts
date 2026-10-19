@@ -17,7 +17,7 @@ import {
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import { THEME_BACKGROUNDS, type WorkflowSettings } from "../schema/workflow";
 import { hasKeys } from "../timeline/envelope";
-import { wholeFrames } from "../timeline/time";
+import { atLeastOneFrame } from "../timeline/time";
 import { recordingPropsSchema, type RecordingProps } from "./recording";
 import { remapSchema, type Remap } from "./remap";
 
@@ -93,13 +93,17 @@ export const isClip = (v: CompileValue | undefined): v is ClipValue => v?.type =
 export const EMPTY_CLIP_FRAMES = 30;
 
 export function emptyClip(durationInFrames = 1): ClipValue {
-  return { type: "clip", durationInFrames, tracks: [], audio: [] };
+  return makeClip({ durationInFrames, tracks: [], audio: [] });
 }
 
 const firstRecording = (clips: ClipValue[]): RecordingValue | undefined =>
   clips.find((c) => c.recording)?.recording;
 
 const makeClip = (parts: Omit<ClipValue, "type">): ClipValue => ({ type: "clip", ...parts });
+
+const oneTrack = (id: string, item: TimelineItem): TimelineTrack[] => [
+  { id: `${id}:t`, items: [item] },
+];
 
 export type ItemExtra = {
   recording?: RecordingValue;
@@ -115,7 +119,7 @@ export function itemClip<C extends string>(
   durationInFrames: number,
   extra: ItemExtra = {},
 ): ClipValue {
-  const duration = wholeFrames(durationInFrames, 1);
+  const duration = atLeastOneFrame(durationInFrames);
   const item: TimelineItem = {
     id: `${nodeId}:i`,
     from: 0,
@@ -128,25 +132,11 @@ export function itemClip<C extends string>(
   };
   return makeClip({
     durationInFrames: duration,
-    tracks: [{ id: `${nodeId}:t`, items: [item] }],
+    tracks: oneTrack(nodeId, item),
     audio: extra.audio ?? [],
     recording: extra.recording,
   });
 }
-
-export const placeholderClip = (
-  nodeId: string,
-  text: PlaceholderProps,
-  durationInFrames: number,
-  extra: ItemExtra = {},
-): ClipValue => itemClip(nodeId, "core/placeholder", text, durationInFrames, extra);
-
-export const recordingClip = (
-  nodeId: string,
-  props: RecordingProps,
-  durationInFrames: number,
-  extra: ItemExtra = {},
-): ClipValue => itemClip(nodeId, "core/recording", props, durationInFrames, extra);
 
 export function wrapClip(
   clip: ClipValue,
@@ -154,14 +144,14 @@ export function wrapClip(
   props: Omit<GroupProps, "tracks"> = {},
   durationInFrames = clip.durationInFrames,
 ): ClipValue {
-  const duration = wholeFrames(durationInFrames, 1);
+  const duration = atLeastOneFrame(durationInFrames);
   const group = groupItem(
     { id: `${nodeId}:g`, from: 0, durationInFrames: duration, nodeId },
     { ...props, tracks: clip.tracks },
   );
   return makeClip({
     durationInFrames: duration,
-    tracks: [{ id: `${nodeId}:t`, items: [group] }],
+    tracks: oneTrack(nodeId, group),
     audio: clip.audio,
     recording: clip.recording,
   });
@@ -349,8 +339,7 @@ const layerStart = (track: TimelineTrack): number => track.items[0]?.from ?? 0;
 
 function startWithScene(item: TimelineItem, by: number): TimelineItem {
   const { handles, ...rest } = item;
-  const kept = { ...handles };
-  delete kept.move;
+  const { move: _move, ...kept } = handles ?? {};
   return { ...rest, from: item.from - by, ...(Object.keys(kept).length ? { handles: kept } : {}) };
 }
 
@@ -376,7 +365,7 @@ function sceneOf(id: string, clip: ClipValue): Scene {
     { tracks: clip.tracks },
   );
   return {
-    tracks: [{ id: `${id}:t`, items: [whole] }],
+    tracks: oneTrack(id, whole),
     audio: clip.audio,
     durationInFrames: clip.durationInFrames,
   };
@@ -417,7 +406,7 @@ export function sceneSequence(
   );
   return makeClip({
     durationInFrames: duration,
-    tracks: [{ id: `${nodeId}:t`, items: [group] }],
+    tracks: oneTrack(nodeId, group),
     audio: placed.flatMap((p) => p.audio),
     recording: firstRecording(scenes.map((s) => s.clip)),
   });

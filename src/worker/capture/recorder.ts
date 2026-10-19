@@ -54,7 +54,7 @@ const GROWN_TARGET_H = 72;
 const TARGET_PAD_X = 24;
 const TARGET_LIFT = 8;
 
-type Box = { cx: number; cy: number; rect: Rect };
+type TargetBox = { cx: number; cy: number; rect: Rect };
 
 type Path = [Point, ...Point[]];
 
@@ -74,24 +74,24 @@ const roundRect = (r: Rect): Rect => ({
   h: Math.round(r.h),
 });
 
-function padSmallTarget(rect: Rect, k: number): Rect {
-  if (rect.h >= MIN_TARGET_H * k) return rect;
-  const height = GROWN_TARGET_H * k;
+function padSmallTarget(rect: Rect, designScale: number): Rect {
+  if (rect.h >= MIN_TARGET_H * designScale) return rect;
+  const height = GROWN_TARGET_H * designScale;
   const grow = (height - rect.h) / 2;
   return {
-    x: Math.max(0, rect.x - TARGET_PAD_X * k),
-    y: Math.max(0, rect.y - grow - TARGET_LIFT * k),
-    w: rect.w + 2 * TARGET_PAD_X * k,
+    x: Math.max(0, rect.x - TARGET_PAD_X * designScale),
+    y: Math.max(0, rect.y - grow - TARGET_LIFT * designScale),
+    w: rect.w + 2 * TARGET_PAD_X * designScale,
     h: height,
   };
 }
 
-async function boxOf(page: Page, target: Target, k: number): Promise<Box> {
+async function boxOf(page: Page, target: Target, designScale: number): Promise<TargetBox> {
   if (isPoint(target)) {
     return {
       cx: target.x,
       cy: target.y,
-      rect: pointRect(target, k),
+      rect: pointRect(target, designScale),
     };
   }
   const loc = target.first();
@@ -100,18 +100,23 @@ async function boxOf(page: Page, target: Target, k: number): Promise<Box> {
   await loc.scrollIntoViewIfNeeded();
   const box = await loc.boundingBox();
   if (!box) throw new Error("Couldn't see the element on the page.");
-  if (before && distance(before, box) > SCROLL_MOVED_PX * k)
+  if (before && distance(before, box) > SCROLL_MOVED_PX * designScale)
     await page.waitForTimeout(SCROLL_SETTLE_MS);
   const rect = rectFromBounds(box);
   const center = rectCenter(rect);
-  return { cx: center.x, cy: center.y, rect: padSmallTarget(rect, k) };
+  return { cx: center.x, cy: center.y, rect: padSmallTarget(rect, designScale) };
 }
 
 const NOT_ON_SCREEN =
   "The place to drop it isn't on screen. Scroll to it first, or use a bigger window.";
 
-async function dropBox(page: Page, target: Target, k: number, vp: Viewport | null): Promise<Box> {
-  if (isPoint(target)) return boxOf(page, target, k);
+async function dropBox(
+  page: Page,
+  target: Target,
+  designScale: number,
+  vp: Viewport | null,
+): Promise<TargetBox> {
+  if (isPoint(target)) return boxOf(page, target, designScale);
   const box = await target.first().boundingBox();
   if (!box) throw new Error(NOT_ON_SCREEN);
   const rect = rectFromBounds(box);
@@ -120,14 +125,14 @@ async function dropBox(page: Page, target: Target, k: number, vp: Viewport | nul
   return { cx, cy, rect };
 }
 
-function ontoPlan(origin: Point, drop: Box): DragPlan {
+function ontoPlan(origin: Point, drop: TargetBox): DragPlan {
   const end = { x: drop.cx, y: drop.cy };
   return { points: [origin, end], end, drop: drop.rect };
 }
 
 export class CursorDriver {
   private readonly viewport: Viewport | null;
-  private readonly k: number;
+  private readonly designScale: number;
   private last: Point;
   private lastDepartMs = 0;
 
@@ -137,7 +142,7 @@ export class CursorDriver {
     private readonly sink: TakeSink,
   ) {
     this.viewport = page.viewportSize();
-    this.k = viewportScale(this.viewport);
+    this.designScale = viewportScale(this.viewport);
     this.last = centerOf(this.viewport);
     this.mark(this.last.x, this.last.y);
   }
@@ -153,7 +158,7 @@ export class CursorDriver {
   }
 
   async moveTo(target: Target): Promise<void> {
-    const { cx, cy } = await boxOf(this.page, target, this.k);
+    const { cx, cy } = await boxOf(this.page, target, this.designScale);
     await this.glideTo(cx, cy, MOVE_SETTLE_MS);
   }
 
@@ -222,11 +227,11 @@ export class CursorDriver {
   }
 
   private async glideTo(x: number, y: number, settleMs = SETTLE_MS, travelMs?: number) {
-    const { k } = this;
+    const { designScale } = this;
     const dist = distance(this.last, { x, y });
     this.lastDepartMs = this.elapsed();
-    if (dist >= GLIDE_MIN_PX * k) {
-      const glide = glidePlan(this.last, { x, y }, k, this.viewport, travelMs);
+    if (dist >= GLIDE_MIN_PX * designScale) {
+      const glide = glidePlan(this.last, { x, y }, designScale, this.viewport, travelMs);
       await this.walk(this.elapsed(), glide.durationMs, glide.at);
       if (glide.overshooting) {
         const { aim } = glide;
@@ -238,8 +243,8 @@ export class CursorDriver {
   }
 
   private async approach(target: Target, opts: ActionOpts | undefined): Promise<Aim> {
-    const point = await boxOf(this.page, target, this.k);
-    const frame = opts?.frame ? await boxOf(this.page, opts.frame, this.k) : point;
+    const point = await boxOf(this.page, target, this.designScale);
+    const frame = opts?.frame ? await boxOf(this.page, opts.frame, this.designScale) : point;
     await this.glideTo(point.cx, point.cy, opts?.hoverMs ?? SETTLE_MS, opts?.travelMs);
     return { at: { x: point.cx, y: point.cy }, rect: frame.rect };
   }
@@ -315,14 +320,14 @@ export class CursorDriver {
   }
 
   private async nudgeFrom(origin: Point, toward: Point): Promise<Point> {
-    const nudge = nudgeToward(origin, toward, DRAG_NUDGE_PX * this.k);
+    const nudge = nudgeToward(origin, toward, DRAG_NUDGE_PX * this.designScale);
     this.mark(nudge.x, nudge.y);
     await this.page.mouse.move(nudge.x, nudge.y);
     return nudge;
   }
 
   private async quickOnto(from: Target, onto: Target, origin: Point): Promise<DragPlan> {
-    const plan = ontoPlan(origin, await dropBox(this.page, onto, this.k, this.viewport));
+    const plan = ontoPlan(origin, await dropBox(this.page, onto, this.designScale, this.viewport));
     const { end } = plan;
     if (!isPoint(from) && !isPoint(onto))
       await from.first().dragTo(onto.first(), { steps: QUICK_DRAG_STEPS });
@@ -340,12 +345,12 @@ export class CursorDriver {
     origin: Point,
     dragMs: number | undefined,
   ): Promise<DragPlan> {
-    const before = await dropBox(this.page, onto, this.k, this.viewport);
+    const before = await dropBox(this.page, onto, this.designScale, this.viewport);
     const nudge = await this.nudgeFrom(origin, { x: before.cx, y: before.cy });
-    const plan = ontoPlan(origin, await dropBox(this.page, onto, this.k, this.viewport));
+    const plan = ontoPlan(origin, await dropBox(this.page, onto, this.designScale, this.viewport));
     await this.walk(
       this.elapsed(),
-      dragDuration([nudge, plan.end], this.k, dragMs),
+      dragDuration([nudge, plan.end], this.designScale, dragMs),
       bulgedCurve(nudge, plan.end),
     );
     return plan;
@@ -366,7 +371,7 @@ export class CursorDriver {
     const nudge = await this.nudgeFrom(origin, points[1] ?? origin);
     await this.walk(
       this.elapsed(),
-      dragDuration(points, this.k, dragMs),
+      dragDuration(points, this.designScale, dragMs),
       polylineAt([nudge, ...points.slice(1)]),
     );
   }

@@ -14,13 +14,13 @@ export function sum(values: Iterable<number>): number {
 }
 
 export function forEachWindow(
-  count: number,
-  per: number,
-  length: number,
+  windowCount: number,
+  windowSize: number,
+  totalLength: number,
   visit: (start: number, end: number) => void,
 ): void {
-  for (let i = 0; i < count; i++)
-    visit(Math.floor(i * per), Math.min(length, Math.floor((i + 1) * per)));
+  for (let i = 0; i < windowCount; i++)
+    visit(Math.floor(i * windowSize), Math.min(totalLength, Math.floor((i + 1) * windowSize)));
 }
 
 export const clamp01 = (value: number): number => clamp(value, 0, 1);

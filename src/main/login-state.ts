@@ -3,8 +3,12 @@ import type { StorageState } from "../shared/schema/storage-state";
 
 export type LocalStorageByOrigin = Map<string, Array<{ name: string; value: string }>>;
 
-const sameSite = (s: Cookie["sameSite"]) =>
-  s === "strict" ? "Strict" : s === "no_restriction" ? "None" : "Lax";
+const SAME_SITE: Record<Cookie["sameSite"], "Strict" | "Lax" | "None"> = {
+  strict: "Strict",
+  no_restriction: "None",
+  lax: "Lax",
+  unspecified: "Lax",
+};
 
 function cookieDomain(c: Cookie): string {
   if (c.hostOnly || !c.domain) return (c.domain ?? "").replace(/^\./, "");
@@ -21,7 +25,7 @@ export function storageState(cookies: Cookie[], origins: LocalStorageByOrigin): 
       expires: c.session || !c.expirationDate ? -1 : c.expirationDate,
       httpOnly: !!c.httpOnly,
       secure: !!c.secure,
-      sameSite: sameSite(c.sameSite),
+      sameSite: SAME_SITE[c.sameSite],
     })),
     origins: [...origins].map(([origin, localStorage]) => ({ origin, localStorage })),
   };

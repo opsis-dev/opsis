@@ -88,6 +88,20 @@ export const fileRow = (icon: NodeIconName, path: string, name = baseName(path))
 
 export const frameSecs = (frames: number, fps: number) => formatDuration(framesToMs(frames, fps));
 
+export const rangeRow = (startMs: number, endMs: number | null): CardRow =>
+  row(
+    "scissors",
+    endMs === null
+      ? `From ${formatDuration(startMs)} to the end`
+      : `${formatDuration(startMs)} → ${formatDuration(endMs)}`,
+  );
+
+export const transitionLengthText = (frames: number, fps: number, held: boolean): string =>
+  `${frameSecs(frames, fps)}${held ? " · held" : ""}`;
+
+export const joinParts = (...parts: Array<string | null>): string =>
+  parts.filter((part) => part !== null).join(" · ");
+
 export function truncate(text: string, max = CARD_TEXT_MAX): string {
   const one = text.replace(/\s+/g, " ").trim();
   return one.length > max ? `${one.slice(0, max - 1)}…` : one;

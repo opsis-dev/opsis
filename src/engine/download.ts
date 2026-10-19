@@ -26,7 +26,8 @@ export async function downloadTo(
     received += chunk.length;
     opts.onBytes?.(received, total);
   });
-  await writeViaTemp(dest, (temp) =>
-    pipeline(body, ...(opts.transform ? [opts.transform] : []), createWriteStream(temp)),
-  );
+  await writeViaTemp(dest, (temp) => {
+    const file = createWriteStream(temp);
+    return opts.transform ? pipeline(body, opts.transform, file) : pipeline(body, file);
+  });
 }

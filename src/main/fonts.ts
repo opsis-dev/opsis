@@ -184,7 +184,10 @@ export async function inspectFontFiles(
   return holdForReview(entries, "file");
 }
 
-const isOpenType = (bytes: Uint8Array) => String.fromCharCode(...bytes.subarray(0, 4)) === "OTTO";
+const OPENTYPE_CFF_TAG = "OTTO";
+
+const isOpenType = (bytes: Uint8Array) =>
+  new TextDecoder().decode(bytes.subarray(0, OPENTYPE_CFF_TAG.length)) === OPENTYPE_CFF_TAG;
 
 export function inspectInstalledFonts(faces: FontInstalledFace[]): InspectedFonts {
   return holdForReview(

@@ -16,7 +16,7 @@ import { MIN_SPEED } from "../limits";
 import { asValue, type ClipValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { parseNumberList } from "../text-input";
-import { msToFrames, wholeFrames } from "../timeline/time";
+import { atLeastOneFrame, msToFrames } from "../timeline/time";
 import {
   connectedPorts,
   cover,
@@ -24,15 +24,17 @@ import {
   frameSecs,
   missing,
   quote,
+  rangeRow,
   row,
   TAG_TEXT_MAX,
+  transitionLengthText,
   warnIf,
   type CardRow,
   type Cover,
 } from "./card";
 import {
-  clipModifier,
   defineNode,
+  modifierBase,
   nodeBase,
   opt,
   port,
@@ -51,6 +53,8 @@ import {
 } from "./transitions";
 
 const base = nodeBase("Timeline", "compile");
+
+const modifier = modifierBase("Timeline");
 
 const withConnectedClips = (
   inputs: CompileInputs,
@@ -148,7 +152,7 @@ const sequenceNode = defineNode({
       p.transition !== NO_TRANSITION &&
         row(
           "arrow-right-left",
-          `${transitionTitle(p.transition)} · ${frameSecs(p.transitionDuration, settings.fps)}${p.keepWhole ? " · held" : ""}`,
+          `${transitionTitle(p.transition)} · ${transitionLengthText(p.transitionDuration, settings.fps, p.keepWhole)}`,
         ),
       own > 0 &&
         row(
@@ -254,19 +258,11 @@ const stackNode = defineNode({
 });
 
 const trimNode = defineNode({
-  ...base,
-  ...clipModifier,
+  ...modifier,
   type: "timeline.trim",
   title: "Trim",
   description: "Keeps only part of a clip.",
-  card: ({ params: p }) => [
-    row(
-      "scissors",
-      p.durationMs
-        ? `${formatDuration(p.startMs)} → ${formatDuration(p.startMs + p.durationMs)}`
-        : `From ${formatDuration(p.startMs)} to the end`,
-    ),
-  ],
+  card: ({ params: p }) => [rangeRow(p.startMs, p.durationMs ? p.startMs + p.durationMs : null)],
   params: z.object({
     startMs: ms(0, "Start"),
     durationMs: more(ms(0, "Keep"), { zeroLabel: "To the end" }),
@@ -291,8 +287,7 @@ const trimNode = defineNode({
 });
 
 const loopNode = defineNode({
-  ...base,
-  ...clipModifier,
+  ...modifier,
   type: "timeline.loop",
   title: "Repeat",
   description: "Plays a clip several times.",
@@ -312,8 +307,7 @@ const loopNode = defineNode({
 });
 
 const delayNode = defineNode({
-  ...base,
-  ...clipModifier,
+  ...modifier,
   type: "timeline.delay",
   title: "Delay",
   description: "Starts a clip later.",
@@ -328,8 +322,7 @@ const delayNode = defineNode({
 });
 
 const speedNode = defineNode({
-  ...base,
-  ...clipModifier,
+  ...modifier,
   type: "timeline.speed",
   title: "Speed",
   description: "Plays a clip faster or slower.",
@@ -345,7 +338,7 @@ const speedNode = defineNode({
   }),
   compile: ({ nodeId, inputs, params }) =>
     withClip(inputs, (clip) => {
-      const out = wholeFrames(clip.durationInFrames / params.rate, 1);
+      const out = atLeastOneFrame(clip.durationInFrames / params.rate);
       return withHandles(
         wrapClip(clip, nodeId, { remap: speedRemap(clip.durationInFrames, out) }, out),
         { speed: { nodeId, param: "rate", unit: "rate" } },

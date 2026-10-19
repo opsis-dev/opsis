@@ -1,9 +1,9 @@
-import { pick } from "../pick";
+import { pick } from "../objects";
 import { stripOf } from "./levels";
 import {
   BUS_SETTING_KEYS,
   DEFAULT_STRIP,
-  STRIP_SETTING_KEYS,
+  stripSettings,
   busSchema,
   type Bus,
   type BusSettings,
@@ -13,9 +13,6 @@ import {
 } from "./types";
 
 const busSettings = (settings: BusSettings): BusSettings => pick(settings, BUS_SETTING_KEYS);
-
-export const stripSettings = (strip: StripSettings): StripSettings =>
-  pick(strip, STRIP_SETTING_KEYS);
 
 export const resetStrip = (strip: Strip): Strip => ({ ...strip, ...stripSettings(DEFAULT_STRIP) });
 

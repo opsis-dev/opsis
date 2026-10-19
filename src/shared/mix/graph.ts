@@ -48,6 +48,17 @@ type MasterPlan = Pick<MixPlan, "fps" | "durationInFrames" | "master">;
 
 const STEM_TAPS: Taps = { pre: "pre", post: "post" };
 
+const DIGITS = {
+  gainDb: 2,
+  freq: 1,
+  q: 3,
+  pan: 4,
+  ratio: 3,
+  compTime: 3,
+  duckTime: 2,
+  seconds: 3,
+} as const;
+
 const num = (n: number, digits = 6) => {
   const s = n.toFixed(digits).replace(/\.?0+$/, "");
   return s === "-0" ? "0" : s;
@@ -56,7 +67,7 @@ const num = (n: number, digits = 6) => {
 const secs = (frames: number, fps: number) => num(frames / fps);
 
 const dbStep = (db: number): string[] =>
-  Math.abs(db) >= MIN_LEVEL_DB ? [`volume=${num(db, 2)}dB`] : [];
+  Math.abs(db) >= MIN_LEVEL_DB ? [`volume=${num(db, DIGITS.gainDb)}dB`] : [];
 
 function envelopeExpr(keys: Keyframe[], fps: number): string {
   const points = samplePoints(keys).map((p) => ({ t: p.frame / fps, v: p.value }));
@@ -82,7 +93,7 @@ const RIGHT = 1;
 
 type Side = typeof LEFT | typeof RIGHT;
 
-const sideGain = (side: Side, pan: number): string => num(Math.min(1, 1 + side * pan), 4);
+const sideGain = (side: Side, pan: number): string => num(Math.min(1, 1 + side * pan), DIGITS.pan);
 
 const sideGainExpr = (side: Side, pan: string): string =>
   `min(1,1${side === LEFT ? "-" : "+"}(${pan}))`;
@@ -145,7 +156,7 @@ function eqSteps(eq: Eq): string[] {
     .filter((b) => Math.abs(b.gain) >= MIN_EQ_GAIN_DB)
     .map((b) => {
       const name = b.type === "peak" ? "equalizer" : b.type;
-      return `${name}=f=${num(b.freq, 1)}:t=q:w=${num(b.q, 3)}:g=${num(b.gain, 2)}`;
+      return `${name}=f=${num(b.freq, DIGITS.freq)}:t=q:w=${num(b.q, DIGITS.q)}:g=${num(b.gain, DIGITS.gainDb)}`;
     });
 }
 
@@ -155,9 +166,9 @@ function compSteps(comp: Comp): string[] {
   const makeup = clamp(dbToGain(comp.makeup), 1, MAX_COMP_MAKEUP);
   const options = [
     `threshold=${num(threshold)}`,
-    `ratio=${num(comp.ratio, 3)}`,
-    `attack=${num(comp.attack, 3)}`,
-    `release=${num(comp.release, 3)}`,
+    `ratio=${num(comp.ratio, DIGITS.ratio)}`,
+    `attack=${num(comp.attack, DIGITS.compTime)}`,
+    `release=${num(comp.release, DIGITS.compTime)}`,
     `makeup=${num(makeup)}`,
   ];
   return [`acompressor=${options.join(":")}`];
@@ -169,7 +180,7 @@ function panStep(pan: number): string[] {
 }
 
 const highpassStep = (highpass: { on: boolean; freq: number }): string[] =>
-  highpass.on ? [`highpass=f=${num(highpass.freq, 1)}`] : [];
+  highpass.on ? [`highpass=f=${num(highpass.freq, DIGITS.freq)}`] : [];
 
 type Stages = { pre: string[]; comp: string[]; post: string[] };
 
@@ -224,7 +235,10 @@ const PINNED = `aformat=sample_fmts=fltp:sample_rates=${SAMPLE_RATE}:channel_lay
 
 function tapped(sum: string, comp: string[], post: string[]): string {
   const tail = post.length ? post.join(",") : "anull";
-  return `[${sum}]${PINNED},asplit=2[${STEM_TAPS.pre}][c];[c]${comp.join(",")},${PINNED},asplit=2[${STEM_TAPS.post}][m];[m]${tail}[out]`;
+  const split = `[${sum}]${PINNED},asplit=2[${STEM_TAPS.pre}][c]`;
+  const compressed = `[c]${comp.join(",")},${PINNED},asplit=2[${STEM_TAPS.post}][m]`;
+  const finished = `[m]${tail}[out]`;
+  return [split, compressed, finished].join(";");
 }
 
 const silenceJob = ({ fps, durationInFrames }: Plan): Job => ({
@@ -288,9 +302,9 @@ function duckRatio(amount: number): number {
 function sidechain(duck: NonNullable<BusPlan["duck"]>): string {
   const options = [
     `threshold=${num(dbToGain(DUCK_THRESHOLD_DB))}`,
-    `ratio=${num(duckRatio(duck.amount), 3)}`,
-    `attack=${num(duck.attack, 2)}`,
-    `release=${num(duck.release, 2)}`,
+    `ratio=${num(duckRatio(duck.amount), DIGITS.ratio)}`,
+    `attack=${num(duck.attack, DIGITS.duckTime)}`,
+    `release=${num(duck.release, DIGITS.duckTime)}`,
     "makeup=1",
   ];
   return `sidechaincompress=${options.join(":")}`;
@@ -375,17 +389,14 @@ export function jobArgs(
   taps?: Taps,
   maxSeconds?: number,
 ): string[] {
-  const limit = maxSeconds ? ["-t", num(maxSeconds, 3)] : [];
+  const limit = maxSeconds ? ["-t", num(maxSeconds, DIGITS.seconds)] : [];
   const stem = (label: string, file: string, format: PcmCodec) =>
     outputArgs(label, limit, stereoPcm(format), file);
-  const tapLabels = taps && job.taps;
-  return [
-    ...inputArgs(job),
-    ...stem(job.output, output, codec),
-    ...(tapLabels
-      ? [...stem(tapLabels.pre, taps.pre, TAP_CODEC), ...stem(tapLabels.post, taps.post, TAP_CODEC)]
-      : []),
-  ];
+  const tapStems =
+    taps && job.taps
+      ? [...stem(job.taps.pre, taps.pre, TAP_CODEC), ...stem(job.taps.post, taps.post, TAP_CODEC)]
+      : [];
+  return [...inputArgs(job), ...stem(job.output, output, codec), ...tapStems];
 }
 
 export function measureArgs(job: Job): string[] {

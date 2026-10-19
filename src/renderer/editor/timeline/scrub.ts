@@ -11,7 +11,7 @@ const END_MARGIN_S = 0.1;
 
 const buffers = lruCache<Promise<AudioBuffer | null>>(CACHED_SOURCES);
 let context: AudioContext | null = null;
-let last = 0;
+let lastScrubAt = 0;
 let current: AudioBufferSourceNode | null = null;
 
 function decode(ctx: AudioContext, src: string): Promise<AudioBuffer | null> {
@@ -40,8 +40,8 @@ export function preloadScrub(src: string | null): void {
 export function scrubAt(src: string | null, seconds: number): void {
   if (!src) return;
   const now = performance.now();
-  if (now - last < MIN_INTERVAL_MS) return;
-  last = now;
+  if (now - lastScrubAt < MIN_INTERVAL_MS) return;
+  lastScrubAt = now;
   const ctx = audioContext();
   void load(src).then((buffer) => {
     if (!buffer) return;

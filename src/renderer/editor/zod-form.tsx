@@ -254,14 +254,12 @@ function enumFormat(meta: FieldMeta): (v: string) => string {
   return (v) => meta.labels?.[v] ?? humanize(v);
 }
 
-type Options<O> = { options: O[] };
-
 function LiteralChoice({
   options,
   value,
   onChange,
   ...props
-}: FieldProps<string | number> & Options<string | number>) {
+}: FieldProps<string | number> & { options: Array<string | number> }) {
   const { unit } = props.meta;
   return (
     <EnumField
@@ -280,7 +278,7 @@ function EnumListChoice({
   value,
   onChange,
   options,
-}: FieldProps<string[]> & Options<string>) {
+}: FieldProps<string[]> & { options: string[] }) {
   return (
     <ChoiceGroup
       multiple

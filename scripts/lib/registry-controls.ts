@@ -86,37 +86,7 @@ export type PropDoc = z.infer<typeof propDocsSchema>["props"][number];
 
 const TRANSITION_INTERNALS = new Set(["durationInFrames", "variant"]);
 
-const isColorProp = (name: string) =>
-  /colou?r$/i.test(name) || name === "stroke" || name === "fill";
-
-function propLabel(name: string): string {
-  const label = PROP_OVERRIDES[name]?.label;
-  if (label) return label;
-  const words = humanize(name.replace(/InFrames$|Seconds$/, ""));
-  return name.endsWith("Seconds") ? `${words} (seconds)` : words;
-}
-
-const TECHNICAL_HELP = /`|\bpx\b|staticFile|\bprops?\b|\b[a-z]+[A-Z][A-Za-z]*\b/;
-
-export const splitSentences = (text: string): string[] => text.split(/(?<=[.!?])(?<!\be\.g\.)\s+/);
-
-function cleanHelp(text: string | undefined): string | undefined {
-  const sentences = splitSentences((text ?? "").replace(/,?\s*e\.g\.\s*`[^`]*`/g, ""))
-    .map((s) => s.trim())
-    .filter((s) => s && !TECHNICAL_HELP.test(s) && !LIBRARY_WORDS.test(s));
-  return sentences.join(" ") || undefined;
-}
-
-function parseDocDefault(text: string | undefined): unknown {
-  if (text === undefined) return undefined;
-  const parsed = tryParseJson(text);
-  if (parsed.ok) return parsed.value;
-  return /^(#|rgba?\(|hsla?\()/.test(text.trim()) ? text.trim() : undefined;
-}
-
 const SPEED_RANGE = { min: 0.25, max: 4, step: 0.25 } as const;
-
-const SPEED_CONTROL: Control = numberControl("Speed", 1, SPEED_RANGE);
 
 type PropOverride = {
   skip?: true;
@@ -236,6 +206,36 @@ const PROP_OVERRIDES: Partial<Record<string, PropOverride>> = {
   after: { type: "code" },
   speed: { range: SPEED_RANGE },
 };
+
+const isColorProp = (name: string) =>
+  /colou?r$/i.test(name) || name === "stroke" || name === "fill";
+
+function propLabel(name: string): string {
+  const label = PROP_OVERRIDES[name]?.label;
+  if (label) return label;
+  const words = humanize(name.replace(/InFrames$|Seconds$/, ""));
+  return name.endsWith("Seconds") ? `${words} (seconds)` : words;
+}
+
+const TECHNICAL_HELP = /`|\bpx\b|staticFile|\bprops?\b|\b[a-z]+[A-Z][A-Za-z]*\b/;
+
+export const splitSentences = (text: string): string[] => text.split(/(?<=[.!?])(?<!\be\.g\.)\s+/);
+
+function cleanHelp(text: string | undefined): string | undefined {
+  const sentences = splitSentences((text ?? "").replace(/,?\s*e\.g\.\s*`[^`]*`/g, ""))
+    .map((s) => s.trim())
+    .filter((s) => s && !TECHNICAL_HELP.test(s) && !LIBRARY_WORDS.test(s));
+  return sentences.join(" ") || undefined;
+}
+
+function parseDocDefault(text: string | undefined): unknown {
+  if (text === undefined) return undefined;
+  const parsed = tryParseJson(text);
+  if (parsed.ok) return parsed.value;
+  return /^(#|rgba?\(|hsla?\()/.test(text.trim()) ? text.trim() : undefined;
+}
+
+const SPEED_CONTROL: Control = numberControl("Speed", 1, SPEED_RANGE);
 
 const FONT_CONTROL: Control = {
   type: "font",

@@ -4,7 +4,16 @@ import { ELEMENTS, getElementMeta } from "../elements";
 import type { ElementMeta } from "../elements/types";
 import type { TransitionRef } from "../schema/timeline";
 import type { ClipValue } from "../schema/values";
-import { cover, coverRow, frameSecs, row, sentence, squeezedTooMuch, type CardRow } from "./card";
+import {
+  cover,
+  coverRow,
+  frameSecs,
+  row,
+  sentence,
+  squeezedTooMuch,
+  transitionLengthText,
+  type CardRow,
+} from "./card";
 import {
   clipInput,
   defineNode,
@@ -66,10 +75,7 @@ function transitionNode(meta: ElementMeta): NodeDef {
     category: "Transitions",
     description: `Plays the first clip, then the second, joined with a ${sentence(meta.title).toLowerCase()} transition. Tip: cut where the picture is still.`,
     card: ({ params: p, settings, inputFrames }) => [
-      row(
-        "arrow-right-left",
-        `${frameSecs(p.durationInFrames, settings.fps)}${p.keepWhole ? " · held" : ""}`,
-      ),
+      row("arrow-right-left", transitionLengthText(p.durationInFrames, settings.fps, p.keepWhole)),
       speedRow(p.durationInFrames, meta.defaultDurationInFrames, settings.fps),
       !p.keepWhole &&
         coverRow(cover(p.durationInFrames, [inputFrames?.a, inputFrames?.b]), settings.fps),

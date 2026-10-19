@@ -4,6 +4,7 @@ import {
   lerpPoint,
   pointRect,
   rectCenter,
+  type Rect,
   type Viewport,
 } from "../../../shared/schema/actions";
 import {
@@ -151,9 +152,7 @@ export function stickify(groups: ClickEvent[][], vp: Viewport): ClickEvent[][] {
   return out;
 }
 
-type Subject = { x: number; y: number; w: number; h: number };
-
-function subjectOf(c: ClickEvent, width: number): Subject {
+function subjectOf(c: ClickEvent, width: number): Rect {
   const k = designScaleFor(width);
   const rect = c.rect ?? pointRect(c, k);
   const menuRoom =
@@ -168,7 +167,7 @@ function subjectOf(c: ClickEvent, width: number): Subject {
 
 function scaleFor(
   c: ClickEvent,
-  subject: Subject,
+  subject: Rect,
   vp: Viewport,
   sMax: number,
   narrow: boolean,
@@ -351,9 +350,8 @@ const trackPlan = (log: ClickLog, speed: number, tuning: CameraTuning): TrackPla
 export function buildCameraTrack(log: ClickLog, speed: number, tuning: CameraTuning): CameraTrack {
   const shots = planShots(log, tuning);
   const start: CameraKey = { t: 0, pose: BASE_POSE };
-  const endS = log.durationMs / 1000;
-  if (shots.length === 0) return [start, { t: Math.max(endS, TRACK.minS), pose: BASE_POSE }];
   const plan = trackPlan(log, speed, tuning);
+  if (shots.length === 0) return [start, { t: Math.max(plan.endS, TRACK.minS), pose: BASE_POSE }];
   const keys: CameraTrack = [start];
   let pose = BASE_POSE;
   shots.forEach((shot, i) => {

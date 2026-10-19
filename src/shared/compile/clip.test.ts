@@ -18,6 +18,14 @@ import {
 import { defaultRecordingProps } from "./recording";
 import { remapFrame, type Remap } from "./remap";
 
+const popSound = (id: string) => ({
+  id: `${id}:a`,
+  src: "app:sfx/pop.wav",
+  from: 0,
+  volume: 1,
+  role: "effect" as const,
+});
+
 const settings = {
   width: 1920,
   height: 1080,
@@ -50,7 +58,7 @@ describe("sequenceClips", () => {
 describe("held transitions", () => {
   const withSound = (id: string, frames: number) => ({
     ...itemClip(id, "core/title", {}, frames),
-    audio: [{ id: `${id}:a`, src: "app:sfx/pop.wav", from: 0, volume: 1, role: "effect" as const }],
+    audio: [popSound(id)],
   });
 
   it("keep every clip whole and play the transition over held frames", () => {
@@ -140,13 +148,6 @@ describe("speed changes", () => {
 describe("sceneSequence", () => {
   const sequencer = { component: "remocn/spring-settle", props: {}, backgrounds: [null, null] };
   const solid = (id: string, frames: number) => itemClip(id, "core/solid", {}, frames);
-  const sound = (id: string) => ({
-    id: `${id}:a`,
-    src: "app:sfx/pop.wav",
-    from: 0,
-    volume: 1,
-    role: "effect" as const,
-  });
   const layered = (offsets: number[], front = solid("y", 30)) =>
     markLayers(
       stackClips("l", [solid("x", 30), front], offsets, {
@@ -218,11 +219,11 @@ describe("sceneSequence", () => {
   });
 
   it("moves a layer's sound back with it and every scene's sound to the scene's start", () => {
-    const front = { ...solid("y", 30), audio: [sound("y")] };
+    const front = { ...solid("y", 30), audio: [popSound("y")] };
     const clip = sceneSequence(
       "s",
       [
-        { port: "in1", clip: { ...solid("p", 40), audio: [sound("p")] } },
+        { port: "in1", clip: { ...solid("p", 40), audio: [popSound("p")] } },
         { port: "in2", clip: layered([0, 12], front) },
       ],
       { gap: 2, sequencer },
@@ -246,7 +247,7 @@ describe("built-in item props", () => {
         "core/recording",
         { ...defaultRecordingProps(), src: "project:take.mp4", name: "Take", log },
         30,
-      ).tracks[0]?.items[0],
+      ).tracks[0].items[0],
       "recording item",
     );
 

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { isBoolean, isOneOf } from "@/shared/guards";
 import { VARIANTS } from "@/shared/nodes/output";
-import { pick } from "@/shared/pick";
+import { pick } from "@/shared/objects";
 import { PREVIEW_QUALITIES, type PreviewQuality } from "@/shared/schema/timeline";
 import { readPref, writePref } from "./view-prefs";
 
@@ -25,14 +25,16 @@ export const storedViewOptions = (): ViewOptions => ({
 
 type ViewOptionsState = ViewOptions & {
   setViewOption: <K extends keyof ViewOptions>(key: K, value: ViewOptions[K]) => void;
+  toggleMinimap: () => void;
 };
 
-export const useViewOptions = create<ViewOptionsState>()((set) => ({
+export const useViewOptions = create<ViewOptionsState>()((set, get) => ({
   ...storedViewOptions(),
   setViewOption: (key, value) => {
     set((s) => ({ ...s, [key]: value }));
     writePref(key, value);
   },
+  toggleMinimap: () => get().setViewOption("minimap", !get().minimap),
 }));
 
 const SYNCED_VIEW_OPTIONS = ["previewQuality", "previewShape"] as const;

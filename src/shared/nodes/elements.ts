@@ -33,6 +33,7 @@ import {
   defineNode,
   fromElement,
   port,
+  type CardLine,
   type CompileInputs,
   type NodeCategory,
   type NodeDef,
@@ -167,8 +168,6 @@ function elementNode(meta: ElementMeta): NodeDef {
   });
 }
 
-const SEQUENCER_CATEGORY: NodeCategory = "Timeline";
-
 const MAX_SCENE_GAP_FRAMES = 120;
 const DEFAULT_SCENE_BACKGROUND = "#0b0b10";
 
@@ -212,7 +211,7 @@ function sequencerCard({
   inputItems,
   clipFrames,
   settings,
-}: CardContext<SequencerParams>): Array<CardRow | false | 0 | undefined> {
+}: CardContext<SequencerParams>): CardLine[] {
   const ports = connectedPorts(IN_PORTS, connected);
   const items = ports.map((handle) => inputItems?.[handle] ?? 1);
   return [
@@ -247,7 +246,7 @@ function compileSequencer(
 function sequencerNode(meta: ElementMeta): NodeDef {
   return defineNode({
     ...fromElement(meta),
-    category: SEQUENCER_CATEGORY,
+    category: "Timeline",
     type: elementNodeType(meta.key),
     description: meta.description,
     card: sequencerCard,

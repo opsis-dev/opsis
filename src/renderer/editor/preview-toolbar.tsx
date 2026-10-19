@@ -15,7 +15,7 @@ import { VARIANTS } from "@/shared/nodes/output";
 import { PREVIEW_QUALITIES, type TimelineSpec } from "@/shared/schema/timeline";
 import { framesToMs } from "@/shared/timeline/time";
 import { PREVIEW_SHAPES, useViewOptions } from "../store/view-options";
-import { WithTooltip } from "./tooltip-button";
+import { WithTooltip } from "./with-tooltip";
 
 const PROJECT_SHAPE = "Project shape";
 const shapeLabel = (shape: string) => (shape === "project" ? PROJECT_SHAPE : shape);

@@ -12,19 +12,11 @@ import type { PreviewQuality, ReframeMode } from "../shared/schema/timeline";
 
 type AssetBase = { projectBase?: string };
 
-function makeContext<T>(fallback: T) {
-  const Context = createContext<T>(fallback);
-  function useValue(): T {
-    return useContext(Context);
-  }
-  return { Provider: Context.Provider, useValue };
-}
+const AssetContext = createContext<AssetBase>({});
 
-const assetContext = makeContext<AssetBase>({});
+export const AssetProvider = AssetContext.Provider;
 
-export const AssetProvider = assetContext.Provider;
-
-export const useAssetBase = assetContext.useValue;
+export const useAssetBase = (): AssetBase => useContext(AssetContext);
 
 export function resolveAssetRef(ref: string, base: AssetBase): string {
   const target = refTarget(ref);
@@ -55,11 +47,11 @@ export const useAsset = (ref: string | null | undefined): string | null => {
 };
 
 export const DEFAULT_REFRAME: ReframeMode = "follow";
-const reframeContext = makeContext<ReframeMode>(DEFAULT_REFRAME);
-export const ReframeProvider = reframeContext.Provider;
-export const useReframe = reframeContext.useValue;
+const ReframeContext = createContext<ReframeMode>(DEFAULT_REFRAME);
+export const ReframeProvider = ReframeContext.Provider;
+export const useReframe = (): ReframeMode => useContext(ReframeContext);
 
 export const DEFAULT_QUALITY: PreviewQuality = "exact";
-const qualityContext = makeContext<PreviewQuality>(DEFAULT_QUALITY);
-export const QualityProvider = qualityContext.Provider;
-export const useQuality = qualityContext.useValue;
+const QualityContext = createContext<PreviewQuality>(DEFAULT_QUALITY);
+export const QualityProvider = QualityContext.Provider;
+export const useQuality = (): PreviewQuality => useContext(QualityContext);

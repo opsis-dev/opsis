@@ -61,9 +61,8 @@ export function registerFaces(
 
 function targetFor(name: string, ctx: FontContext): FontFamilyDef | undefined {
   const role = ROLE_ALIASES[name];
-  if (role)
-    return findFamily(roleFamilyName(role, ctx.fonts), ctx.fonts) ?? findFamily(name, ctx.fonts);
-  return findFamily(name, ctx.fonts);
+  const fromRole = role ? findFamily(roleFamilyName(role, ctx.fonts), ctx.fonts) : undefined;
+  return fromRole ?? findFamily(name, ctx.fonts);
 }
 
 function ensureFont(name: string, ctx: FontContext): Promise<void> {

@@ -3,7 +3,7 @@ import path from "node:path";
 export const API_SOCKET_ENV = "DEMOFLOW_API_SOCKET";
 export const MAX_SOCKET_PATH_BYTES = 100;
 
-export type ApiAddress = { address: string; error?: string };
+type ApiAddress = { address: string; error?: string };
 
 type Host = {
   platform: NodeJS.Platform;
@@ -19,7 +19,6 @@ export function apiAddress({ platform, userData, home, username, env }: Host): A
   if (platform === "win32") return { address: `\\\\.\\pipe\\demoflow-api-${username}` };
   const custom = env[API_SOCKET_ENV]?.trim();
   const address = custom || path.join(userData, "api.sock");
-  const fix = `Set ${API_SOCKET_ENV} to a shorter full path, like ${exampleSocket(home)}, and restart Demoflow.`;
   if (custom && !path.isAbsolute(custom))
     return {
       address,
@@ -29,7 +28,7 @@ export function apiAddress({ platform, userData, home, username, env }: Host): A
   if (bytes > MAX_SOCKET_PATH_BYTES)
     return {
       address,
-      error: `The API address is ${bytes} bytes long, and it can be at most ${MAX_SOCKET_PATH_BYTES}. ${fix}`,
+      error: `The API address is ${bytes} bytes long, and it can be at most ${MAX_SOCKET_PATH_BYTES}. Set ${API_SOCKET_ENV} to a shorter full path, like ${exampleSocket(home)}, and restart Demoflow.`,
     };
   return { address };
 }

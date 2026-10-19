@@ -65,6 +65,8 @@ function parseManifest(data: Buffer): TraceManifest | null {
 
 type Runs = { manifests: TraceManifest[]; broken: string[] };
 
+const newestFirst = (a: TraceManifest, b: TraceManifest) => b.createdAt - a.createdAt;
+
 async function readRuns(root: string): Promise<Runs> {
   const dir = runsDir(root);
   const runs: Runs = { manifests: [], broken: [] };
@@ -77,7 +79,6 @@ async function readRuns(root: string): Promise<Runs> {
     if (manifest) runs.manifests.push(manifest);
     else runs.broken.push(file);
   }
-  runs.manifests.sort((a, b) => b.createdAt - a.createdAt);
   return runs;
 }
 
@@ -146,7 +147,7 @@ export async function readTrace(projectDir: string, id: string): Promise<TraceMo
 
 function keptTraces(all: TraceManifest[], policy: AppSettings["traces"]): TraceManifest[] {
   const byNode = new Map<string, TraceManifest[]>();
-  for (const m of all) {
+  for (const m of all.toSorted(newestFirst)) {
     const list = byNode.get(m.nodeId);
     if (list) list.push(m);
     else byNode.set(m.nodeId, [m]);

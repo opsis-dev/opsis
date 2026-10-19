@@ -83,9 +83,13 @@ const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
             premountFor={PREMOUNTED.has(item.component) ? PREMOUNT_FRAMES : undefined}
           >
             <TransitionWrap item={item}>
-              <Enveloped envelope={item.envelope}>
+              {item.envelope ? (
+                <EnvelopeWrap envelope={item.envelope}>
+                  <ItemContent item={item} />
+                </EnvelopeWrap>
+              ) : (
                 <ItemContent item={item} />
-              </Enveloped>
+              )}
             </TransitionWrap>
           </Sequence>
         ))}
@@ -93,11 +97,6 @@ const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
     ))}
   </>
 );
-
-const Enveloped: React.FC<{ envelope?: VisualEnvelope; children: React.ReactNode }> = ({
-  envelope,
-  children,
-}) => (envelope ? <EnvelopeWrap envelope={envelope}>{children}</EnvelopeWrap> : <>{children}</>);
 
 const EnvelopeWrap: React.FC<{ envelope: VisualEnvelope; children: React.ReactNode }> = ({
   envelope,

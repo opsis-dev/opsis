@@ -41,9 +41,6 @@ export function audibility(mix: Mix): Audibility {
   };
 }
 
-export const isAudible = (mix: Mix, channel: string, kind: ChannelKind): boolean =>
-  audibility(mix)(channel, kind);
-
 function channelGain(mix: Mix, audible: Audibility, channel: string, kind: ChannelKind): number {
   if (!audible(channel, kind)) return 0;
   const strip = stripOf(mix, channel);

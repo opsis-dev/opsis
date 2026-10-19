@@ -3,8 +3,12 @@ import { fieldMeta, unwrap } from "@/shared/elements/introspect";
 import { isBoolean, isNumber, isRecord, isString, isStringOrNumber } from "@/shared/guards";
 import type { MinMax } from "@/shared/math";
 import { isBoundsList, type Bounds } from "@/shared/schema/actions";
-import { isEnvelopeKey, type Envelope, type EnvelopeKey } from "@/shared/schema/timeline";
-import { isEnvelope } from "./envelope-field";
+import {
+  isEnvelope,
+  isEnvelopeKey,
+  type Envelope,
+  type EnvelopeKey,
+} from "@/shared/schema/timeline";
 import { isColor } from "./schema-meta";
 import type { ParamValues } from "./types";
 

@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, type FocusEvent } from "react";
 import { isEditingElement } from "@/renderer/lib/dom";
 import { useWorkflowStore } from "../store/workflow";
 
-export function useTypingAsOneUndoStep() {
+type TypingHandlers = { onFocus: (e: FocusEvent) => void; onBlur: (e: FocusEvent) => void };
+
+export function useTypingAsOneUndoStep(): TypingHandlers {
   const typing = useRef(false);
   const stop = useCallback(() => {
     if (!typing.current) return;

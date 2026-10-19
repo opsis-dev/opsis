@@ -33,9 +33,11 @@ export const markerFrame = (marker: Pick<Marker, "atMs">, fps: number): number =
 
 export type BarBox = { left: number; width: number };
 
+const MIN_BAR_PX = 2;
+
 export const barBox = (from: number, to: number, ppf: number): BarBox => ({
   left: from * ppf,
-  width: Math.max(2, (to - from) * ppf),
+  width: Math.max(MIN_BAR_PX, (to - from) * ppf),
 });
 
 export const inView = (view: Viewport, from: number, to: number): boolean =>
@@ -61,6 +63,9 @@ export const contentPoint = (el: HTMLElement, clientX: number, clientY: number) 
 });
 
 export const frameAtX = (x: number, ppf: number): number => (x - HEADER_W) / ppf;
+
+export const clientXToFrame = (el: HTMLElement, clientX: number, ppf: number): number =>
+  frameAtX(contentX(el, clientX), ppf);
 
 export function timelineGeometry(
   flat: Pick<FlatTimeline, "lanes" | "audioLanes" | "durationInFrames">,

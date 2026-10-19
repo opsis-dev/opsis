@@ -28,10 +28,7 @@ const MENU_ACTIONS: MenuActions = {
   "edit:group": () => useWorkflowStore.getState().groupNodes(useUiStore.getState().selectedIds),
   "edit:layout": () => void tidyLayout(),
   "edit:add-node": () => useUiStore.getState().setPaletteOpen(true),
-  "view:toggle-minimap": () => {
-    const view = useViewOptions.getState();
-    view.setViewOption("minimap", !view.minimap);
-  },
+  "view:toggle-minimap": () => useViewOptions.getState().toggleMinimap(),
   ...actionsFor(PANEL_SIDES, (side) => PANEL_TOGGLES[side].command, togglePanel),
   ...actionsFor(DOCK_PANELS, (panel) => `view:focus-${panel}`, focusPanel),
 };

@@ -18,11 +18,11 @@ export const WINDOW_STYLE_LABELS: Record<WindowStyle, string> = {
   linux: "Linux",
 };
 
-const HOST_PLATFORMS: Record<WindowStyle, NodeJS.Platform> = {
-  macos: "darwin",
-  windows: "win32",
+const HOST_STYLES: Partial<Record<NodeJS.Platform, WindowStyle>> = {
+  darwin: "macos",
+  win32: "windows",
   linux: "linux",
 };
 
 export const hostWindowStyle = (platform: NodeJS.Platform): WindowStyle =>
-  WINDOW_STYLES.find((style) => HOST_PLATFORMS[style] === platform) ?? DEFAULT_WINDOW_STYLE;
+  HOST_STYLES[platform] ?? DEFAULT_WINDOW_STYLE;

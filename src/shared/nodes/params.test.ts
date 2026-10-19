@@ -5,18 +5,17 @@ import {
   choiceFrom,
   choiceOf,
   loudnessName,
-  lufsText,
   more,
   parseParams,
   qualityName,
-  target,
+  targetFields,
   text,
 } from "./params";
 
 const schema = z.object({
   name: z.string().meta({ description: "Name" }),
   count: z.number().min(1).max(3),
-  target: target(),
+  ...targetFields(),
 });
 
 const problem = (values: unknown) => {
@@ -44,8 +43,6 @@ describe("loudness names", () => {
   it("names the presets and writes other levels with a real minus sign", () => {
     expect(loudnessName(-14)).toBe("Online video");
     expect(loudnessName(-18)).toBe("−18 LUFS");
-    expect(lufsText(-23)).toBe("−23");
-    expect(lufsText(0)).toBe("0");
   });
 });
 

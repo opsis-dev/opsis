@@ -5,8 +5,10 @@ export type DiskChange = { workflow: Workflow | null; version: string };
 
 export const useDiskChange = create<{
   change: DiskChange | null;
-  show: (change: DiskChange | null) => void;
+  show: (change: DiskChange) => void;
+  clear: () => void;
 }>()((set) => ({
   change: null,
   show: (change) => set({ change }),
+  clear: () => set({ change: null }),
 }));

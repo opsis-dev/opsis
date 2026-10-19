@@ -40,7 +40,7 @@ function createLazyWorker<R>(options: LazyWorkerOptions<R>): LazyWorker<R> {
       if (worker?.child === spawned.child) worker = null;
       replies.settleAll(options.stopped);
     });
-    worker = { child: spawned.child, control: spawned.control };
+    worker = spawned;
     return worker;
   };
 

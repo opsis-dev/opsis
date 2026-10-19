@@ -109,7 +109,13 @@ type StyleLook = {
 
 const TITLE_BAR = { gap: 10, padX: 14 } as const;
 
-const ADDRESS_FIELD = { height: 22, fontSize: 11.5, padX: 12 } as const;
+const ADDRESS_FIELD = {
+  height: 22,
+  fontSize: 11.5,
+  padX: 12,
+  fontWeight: 450,
+  letterSpacing: "0.01em",
+} as const;
 
 const STYLE_LOOKS: Record<WindowStyle, StyleLook> = {
   macos: {
@@ -196,8 +202,8 @@ const AddressField: React.FC<{ look: StyleLook; theme: FrameTheme; address: stri
         color: c.text,
         fontSize: ADDRESS_FIELD.fontSize * k,
         fontFamily: SYSTEM_FONT,
-        fontWeight: 450,
-        letterSpacing: "0.01em",
+        fontWeight: ADDRESS_FIELD.fontWeight,
+        letterSpacing: ADDRESS_FIELD.letterSpacing,
         display: "flex",
         alignItems: "center",
         justifyContent: look.fieldAlign,

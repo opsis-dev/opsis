@@ -83,7 +83,7 @@ export function MixerPanel() {
   return (
     <div className="flex h-full flex-col">
       <MixerToolbar film={film} />
-      <div className="flex min-h-0 flex-1 overflow-x-auto overflow-y-auto">
+      <div className="flex min-h-0 flex-1 overflow-auto">
         <div className="flex min-h-full gap-px">
           {mix.buses.map((b) => {
             const members = channels.filter((c) => c.bus === b.id);

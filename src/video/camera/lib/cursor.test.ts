@@ -48,7 +48,7 @@ describe("cursorAt", () => {
     ];
     const during = at(clicks, 0.55);
     expect(during.ripple !== null && during.ripple > 0).toBe(true);
-    expect(during.squash < 1, "no squash on mousedown").toBe(true);
+    expect(during.squash, "no squash on mousedown").toBeLessThan(1);
 
     const after = at(clicks, 1.2);
     expect(after.ripple).toBe(null);

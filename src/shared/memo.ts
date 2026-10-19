@@ -38,7 +38,7 @@ export function lruCache<T extends NonNullable<unknown>>(limit: number) {
       items.delete(key);
       items.set(key, value);
       const [oldest] = items.keys();
-      if (items.size > limit && oldest !== undefined) items.delete(oldest);
+      if (items.size > limit) items.delete(oldest);
       return value;
     },
   };

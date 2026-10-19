@@ -1,7 +1,8 @@
 import type { Locator, Page } from "playwright-core";
-import { errorMessage, throwIfCancelled, withoutCallName } from "../../shared/errors";
+import { errorMessage, throwIfCancelled } from "../../shared/errors";
 import { INTERACTIVE_SELECTOR } from "../../shared/interactive";
 import { parsePoint } from "../../shared/schema/actions";
+import { withoutCallName } from "./driver-helpers";
 import { CSS_PREFIX, type Target } from "./flow-types";
 
 interface FindLocator {
@@ -44,10 +45,12 @@ const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&
 const NAMED_ROLES = ["button", "link", "textbox", "combobox", "option", "tab"] as const;
 type NamedRole = (typeof NAMED_ROLES)[number];
 
-const INTERACTIVE_ANCESTOR =
-  'xpath=ancestor-or-self::*[@role="button" or @role="link" or @role="menuitem"' +
-  ' or @role="tab" or @role="option" or @role="combobox" or self::button or' +
-  " self::a][1]";
+const ANCESTOR_ROLES = ["button", "link", "menuitem", "tab", "option", "combobox"];
+const ANCESTOR_TAGS = ["button", "a"];
+const INTERACTIVE_ANCESTOR = `xpath=ancestor-or-self::*[${[
+  ...ANCESTOR_ROLES.map((role) => `@role="${role}"`),
+  ...ANCESTOR_TAGS.map((tag) => `self::${tag}`),
+].join(" or ")}][1]`;
 
 function autoCandidates<L extends FindLocator>(page: FindPage<L>, name: string): Candidate<L>[] {
   const exact = new RegExp(`^${escapeRegExp(name)}$`, "i");

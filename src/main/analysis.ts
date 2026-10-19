@@ -5,12 +5,17 @@ import { errorMessage } from "../shared/errors";
 import { createQueuedWorker } from "./lazy-worker";
 import { engineDir } from "./workers";
 
-type Job = { request: AnalysisRequest; key: string; done: Array<(r: AnalysisResult) => void> };
+type Job = { request: AnalysisRequest; done: Array<(r: AnalysisResult) => void> };
+
+const IDLE_MS = 90_000;
+
+const requestKey = (r: AnalysisRequest) =>
+  r.kind === "mix" ? `mix:${r.projectDir}` : `${r.kind}:${r.projectDir}:${r.src}`;
 
 const analysis = createQueuedWorker<AnalysisResult, Job>({
   kind: "analysis",
-  idleMs: 90_000,
-  keyOf: (job) => job.key,
+  idleMs: IDLE_MS,
+  keyOf: (job) => requestKey(job.request),
   merge: (queued, incoming) => {
     if (incoming.request.kind !== "mix")
       return { ...queued, done: [...queued.done, ...incoming.done] };
@@ -33,17 +38,11 @@ const analysis = createQueuedWorker<AnalysisResult, Job>({
   },
 });
 
-const keyOf = (r: AnalysisRequest) =>
-  r.kind === "mix" ? `mix:${r.projectDir}` : `${r.kind}:${r.projectDir}:${r.src}`;
-
 export function analyze(request: AnalysisRequest): Promise<AnalysisResult> {
   if (!engineStatus(engineDir()).ffmpeg)
     return Promise.resolve({ kind: "error", error: ENGINE_MISSING_MESSAGE, engineMissing: true });
   return new Promise((resolve) =>
-    analysis.enqueue(
-      { request, key: keyOf(request), done: [resolve] },
-      { first: request.kind === "mix" },
-    ),
+    analysis.enqueue({ request, done: [resolve] }, { first: request.kind === "mix" }),
   );
 }
 

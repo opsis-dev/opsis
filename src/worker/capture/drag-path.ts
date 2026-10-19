@@ -29,7 +29,7 @@ type Glide = {
 export function glidePlan(
   from: Point,
   to: Point,
-  k: number,
+  designScale: number,
   viewport: Viewport | null,
   travelMs?: number,
 ): Glide {
@@ -37,10 +37,10 @@ export function glidePlan(
   const durationMs =
     travelMs != null && travelMs > 0
       ? travelMs
-      : clamp(dist / (GLIDE_PX_PER_MS * k), GLIDE_MIN_MS, GLIDE_MAX_MS);
-  const overshooting = dist > OVERSHOOT_THRESHOLD_PX * k;
+      : clamp(dist / (GLIDE_PX_PER_MS * designScale), GLIDE_MIN_MS, GLIDE_MAX_MS);
+  const overshooting = dist > OVERSHOOT_THRESHOLD_PX * designScale;
   const past = (a: number, b: number, size: number | undefined) =>
-    clamp(b + ((b - a) / dist) * OVERSHOOT_PX * k, 1, (size ?? b) - 1);
+    clamp(b + ((b - a) / dist) * OVERSHOOT_PX * designScale, 1, (size ?? b) - 1);
   const aim = overshooting
     ? { x: past(from.x, to.x, viewport?.width), y: past(from.y, to.y, viewport?.height) }
     : to;
@@ -89,9 +89,13 @@ export function polylineAt(points: readonly Point[]): (p: number) => Point {
   };
 }
 
-export function dragDuration(points: readonly Point[], k: number, dragMs = 0): number {
+export function dragDuration(points: readonly Point[], designScale: number, dragMs = 0): number {
   if (dragMs > 0) return dragMs;
-  return clamp(sum(segmentLengths(points)) / (GLIDE_PX_PER_MS * k), DRAG_MIN_MS, DRAG_MAX_MS);
+  return clamp(
+    sum(segmentLengths(points)) / (GLIDE_PX_PER_MS * designScale),
+    DRAG_MIN_MS,
+    DRAG_MAX_MS,
+  );
 }
 
 export function nudgeToward(from: Point, to: Point, px: number): Point {

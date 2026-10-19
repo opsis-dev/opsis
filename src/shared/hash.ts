@@ -13,7 +13,7 @@ export function stableJson(value: unknown): string {
   return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${stableJson(v)}`).join(",")}}`;
 }
 
-function quickHash(text: string): string {
+function cyrb64(text: string): string {
   let h1 = 0xdeadbeef;
   let h2 = 0x41c6ce57;
   for (let i = 0; i < text.length; i++) {
@@ -26,4 +26,4 @@ function quickHash(text: string): string {
   return (h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0");
 }
 
-export const lookupKey = (value: unknown) => quickHash(stableJson(value));
+export const lookupKey = (value: unknown) => cyrb64(stableJson(value));

@@ -2,6 +2,7 @@ import { Ellipsis } from "lucide-react";
 import { Button } from "@/renderer/components/ui/button";
 import { Label } from "@/renderer/components/ui/label";
 import { Switch } from "@/renderer/components/ui/switch";
+import { signedText } from "@/shared/format";
 import type { Loudness, MixResult } from "@/shared/mix/result";
 import {
   DEFAULT_MASTER,
@@ -11,7 +12,7 @@ import {
   type LoudnessTarget,
   type Master,
 } from "@/shared/mix/types";
-import { loudnessName, lufsText } from "@/shared/nodes/params";
+import { loudnessName } from "@/shared/nodes/params";
 import { usePlayback } from "../../store/playback";
 import { useWorkflowStore } from "../../store/workflow";
 import { OptionSelect } from "../option-select";
@@ -26,13 +27,15 @@ import { FaderMeter } from "./strip-parts";
 
 function loudnessLabel(target: LoudnessTarget): string {
   const aim = LOUDNESS_TARGETS[target];
-  return aim ? `${loudnessName(aim.lufs)} (${lufsText(aim.lufs)})` : "Off";
+  return aim ? `${loudnessName(aim.lufs)} (${signedText(aim.lufs)})` : "Off";
 }
 
 const QUIET_LUFS = -70;
 
-const updateMaster = (fn: (m: Master) => Master) =>
-  useWorkflowStore.getState().setMix((mix) => ({ ...mix, master: fn(mix.master) }));
+function useUpdateMaster() {
+  const setMix = useWorkflowStore((s) => s.setMix);
+  return (fn: (m: Master) => Master) => setMix((mix) => ({ ...mix, master: fn(mix.master) }));
+}
 
 function Readout({
   label,
@@ -88,13 +91,14 @@ function LoudnessReadouts({
       <Readout label="True peak" value={loudness?.truePeak ?? null} unit="dBTP" />
       <Readout label="Range" value={loudness?.range ?? null} unit="LU" />
       {aim ? (
-        <span className="text-muted-foreground text-[10px]">Aim: {lufsText(aim.lufs)} LUFS</span>
+        <span className="text-muted-foreground text-[10px]">Aim: {signedText(aim.lufs)} LUFS</span>
       ) : null}
     </div>
   );
 }
 
 function LimiterRow({ limiter }: { limiter: Master["limiter"] }) {
+  const updateMaster = useUpdateMaster();
   return (
     <div className="flex w-full items-center justify-between gap-1">
       <Label className="text-[10px] font-normal">Limiter</Label>
@@ -122,6 +126,7 @@ function LimiterRow({ limiter }: { limiter: Master["limiter"] }) {
 }
 
 function LoudnessSelect({ value }: { value: LoudnessTarget }) {
+  const updateMaster = useUpdateMaster();
   return (
     <div className="flex w-full flex-col gap-0.5">
       <span className="text-muted-foreground text-[10px]">Loudness target</span>
@@ -139,6 +144,7 @@ function LoudnessSelect({ value }: { value: LoudnessTarget }) {
 
 export function MasterStrip({ master, result }: { master: Master; result: MixResult | null }) {
   const reduction = result?.reduction.master;
+  const updateMaster = useUpdateMaster();
   return (
     <div className="bg-sidebar sticky right-0 flex w-[250px] shrink-0 gap-2 border-l px-2 py-1.5">
       <div className="flex min-w-0 flex-1 flex-col gap-1 [&>*]:shrink-0">

@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
-import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/renderer/lib/dom";
+import { endIfStarted, onArrowKey, startOnceMoved, type ThresholdDrag } from "@/renderer/lib/dom";
 import { usePointerDrag } from "@/renderer/lib/use-pointer-drag";
 import { cn } from "@/renderer/lib/utils";
 import { clamp01 } from "@/shared/math";
 import { parseNumberText } from "@/shared/text-input";
-import { commitOnce, onArrowKey, type Gesture } from "./gesture";
+import { commitOnce, type Gesture } from "./gesture";
 import {
   START_DEG,
   SWEEP_DEG,

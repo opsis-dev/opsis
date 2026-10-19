@@ -26,11 +26,13 @@ const stillPath = (projectDir: string, hash: string) =>
 
 type Job = StillRequest & { hash: string };
 
+const IDLE_MS = 60_000;
+
 const reportFailure = (job: Job, error: unknown) => logError("stills", error, job.nodeId);
 
 const stills = createQueuedWorker<string | undefined, Job>({
   kind: "stills",
-  idleMs: 60_000,
+  idleMs: IDLE_MS,
   keyOf: (job) => JSON.stringify([job.projectDir, job.nodeId]),
   reply: (msg) => (msg.type === "still:done" ? { id: msg.id, result: msg.error } : null),
   stopped: "The preview worker stopped.",

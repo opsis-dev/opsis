@@ -1,6 +1,6 @@
-import type { FieldMeta } from "@/shared/elements/introspect";
 import { ChoiceSelect } from "./choice-select";
 import { ChoiceGroup, FieldShell } from "./field-shell";
+import type { FieldProps } from "./types";
 
 const SHORT_OPTIONS = 4;
 const SHORT_TEXT = 34;
@@ -15,14 +15,9 @@ export function EnumField({
   meta,
   forceSelect,
   noneLabel,
-}: {
-  id: string;
-  label: string;
+}: FieldProps<string> & {
   options: string[];
-  value: string;
-  onChange: (v: string) => void;
   format?: (v: string) => string;
-  meta: FieldMeta;
   forceSelect?: boolean;
   noneLabel?: string;
 }) {
@@ -39,7 +34,9 @@ export function EnumField({
         meta={meta}
         choices={choices}
         value={[value]}
-        onChange={(v) => v[0] && onChange(v[0])}
+        onChange={(v) => {
+          if (v[0]) onChange(v[0]);
+        }}
       />
     );
   return (

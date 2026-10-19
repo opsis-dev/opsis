@@ -1,6 +1,6 @@
 import path from "node:path";
 import { projectRef } from "../shared/asset-ref";
-import { mapValues } from "../shared/pick";
+import { mapValues } from "../shared/objects";
 import { PROJECT_DIRS } from "../shared/project-dirs";
 
 export const projectPaths = (projectDir: string) =>

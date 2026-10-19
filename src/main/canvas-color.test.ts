@@ -9,6 +9,7 @@ describe("window background", () => {
     const css = readFileSync(path.resolve(import.meta.dirname, "../renderer/index.css"), "utf8");
     const root = css.slice(css.indexOf(":root {"));
     const [, token] = /--background: (oklch\([^)]*\))/.exec(root) ?? [];
+    expect(token).toBeDefined();
     expect(formatHex(token)).toBe(CANVAS_BACKGROUND);
   });
 });

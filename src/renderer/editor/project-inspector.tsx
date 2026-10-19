@@ -30,6 +30,11 @@ import { useCompiledContext } from "./use-compiled";
 
 const CANVAS_SHORT_SIDE = 1080;
 
+const CANVAS_PRESETS = VARIANTS.map((variant) => ({
+  variant,
+  size: variantCanvas(variant, CANVAS_SHORT_SIDE),
+}));
+
 const FRAME_RATES = [30, 60] as const;
 
 const FONT_ROLES: Array<{ role: FontRole; label: string; empty?: string }> = [
@@ -105,10 +110,9 @@ function SizeInput({
 
 function CanvasSettings({ settings }: { settings: WorkflowSettings }) {
   const setSettings = useWorkflowStore((s) => s.setSettings);
-  const preset = VARIANTS.find((v) => {
-    const size = variantCanvas(v, CANVAS_SHORT_SIDE);
-    return size.width === settings.width && size.height === settings.height;
-  });
+  const preset = CANVAS_PRESETS.find(
+    ({ size }) => size.width === settings.width && size.height === settings.height,
+  )?.variant;
   return (
     <>
       <Field>
@@ -212,7 +216,8 @@ function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
 }
 
 function VariablesEditor({ variables }: { variables: Record<string, string> }) {
-  const { setVariables, renameVariable } = useWorkflowStore.getState();
+  const setVariables = useWorkflowStore((s) => s.setVariables);
+  const renameVariable = useWorkflowStore((s) => s.renameVariable);
   const list = useItemKeys(Object.entries(variables));
   const renameAt = (from: string, raw: string) => {
     const to = raw.replace(/[{}]/g, "").trim();

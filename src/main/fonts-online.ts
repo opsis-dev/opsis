@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { logError } from "../engine/log";
 import { CATALOG_CATEGORIES, FONT_CATEGORIES, type FontFamilyDef } from "../shared/fonts/types";
 import { parseJsonWith } from "../shared/guards";
 import type { FontCatalogEntry } from "../shared/ipc";
@@ -117,7 +118,10 @@ async function downloadFaces(detail: FontsourceDetail): Promise<NewFamily["files
 const downloadLicense = (id: string): Promise<FontBytes | undefined> =>
   fetchBytes(`${CDN}/npm/@fontsource/${id}/LICENSE`).then(
     (bytes) => ({ name: "LICENSE", bytes }),
-    () => undefined,
+    (error: unknown) => {
+      logError("fonts", error, `${id} licence`);
+      return undefined;
+    },
   );
 
 const categoryOf = (detail: FontsourceDetail): FontFamilyDef["category"] =>

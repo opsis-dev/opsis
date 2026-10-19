@@ -106,8 +106,10 @@ async function pickTarget(wf: Workflow, nodeId: string, key: string) {
 
 async function chooseAsset(projectDir: string | null, nodeId: string, key: string) {
   if (!projectDir) return;
-  const [path] = await window.demoflow.importAssets(projectDir);
-  if (path) useWorkflowStore.getState().updateParams(nodeId, { [key]: path });
+  await attempt(async () => {
+    const [path] = await window.demoflow.importAssets(projectDir);
+    if (path) useWorkflowStore.getState().updateParams(nodeId, { [key]: path });
+  }, "Couldn't add the file");
 }
 
 export function useFormContext(workflow: Workflow, nodeId: string, def: NodeDef): FormContext {
@@ -135,7 +137,7 @@ function formContext({
   secrets: string[] | null;
   results: Partial<Record<string, NodeResult>>;
 }): FormContext {
-  const layers = connectedPorts(
+  const layerCount = connectedPorts(
     IN_PORTS,
     workflow.edges.filter((e) => e.target === nodeId).map((e) => e.targetHandle),
   ).length;
@@ -146,7 +148,7 @@ function formContext({
     aspect: workflow.settings.width / workflow.settings.height,
     vars: variableList(workflow),
     secrets,
-    layers: Math.max(1, layers),
+    layers: Math.max(1, layerCount),
     actions: workflow.nodes
       .filter((n) => ACTION_NODE_TYPES.has(n.type))
       .map((n) => ({ id: n.id, label: nodeName(n) })),

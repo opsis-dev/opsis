@@ -7,7 +7,7 @@ import { Field, FieldGroup, FieldLabel } from "@/renderer/components/ui/field";
 import { Spinner } from "@/renderer/components/ui/spinner";
 import { isWindows } from "@/renderer/lib/platform";
 import { singleQuoted } from "@/shared/format";
-import type { ApiStatus } from "@/shared/ipc";
+import type { ApiServerStatus } from "@/shared/ipc";
 import type { AppSettings } from "@/shared/settings";
 import { patchAppSettings, useAppSettings } from "../../store/app-settings";
 import { SwitchField } from "./fields";
@@ -49,7 +49,7 @@ function ApiStateBadge({ on, listening }: { on: boolean; listening: boolean }) {
   );
 }
 
-function ApiStatusCard({ on, status }: { on: boolean; status: ApiStatus }) {
+function ApiStatusCard({ on, status }: { on: boolean; status: ApiServerStatus }) {
   return (
     <SettingsCard
       title="Local API"

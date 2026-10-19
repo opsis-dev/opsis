@@ -33,7 +33,7 @@ describe("flattening", () => {
     const b = f.bars.find((x) => x.nodeId === "b");
     expect(b?.lane).toBe(1);
     expect(b?.from).toBeCloseTo(15, 0);
-    expect(b && findHandle(b, "move", "outer")?.link.handles?.move).toMatchObject({
+    expect(b && findHandle(b, "move", "outer")?.handles?.move).toMatchObject({
       nodeId: "layers",
       param: "offsetsMs",
       index: 1,

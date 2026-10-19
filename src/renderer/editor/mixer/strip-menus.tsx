@@ -9,7 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/renderer/components/ui/dropdown-menu";
-import { applyBusSettings, resetBus, resetStrip, stripSettings } from "@/shared/mix/edits";
+import { applyBusSettings, resetBus, resetStrip } from "@/shared/mix/edits";
+import { stripSettings } from "@/shared/mix/types";
 import { STRIP_PRESETS, type Bus, type Strip, type StripSettings } from "@/shared/mix/types";
 import { useMixerState } from "./mixer-state";
 

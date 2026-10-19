@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { create } from "zustand";
 import { useUiStore } from "../store/ui";
 
-const MAX_LIVE_THUMBS = 6;
+export const MAX_LIVE_THUMBS = 6;
 
 type ThumbSlot = { id: string; priority: boolean };
 
@@ -15,11 +15,9 @@ export function claimSlot(
   const slot = { id, priority };
   if (active.length < MAX_LIVE_THUMBS) return [...active, slot];
   if (!priority) return active;
-  const evict = Math.max(
-    0,
-    active.findIndex((s) => !s.priority),
-  );
-  return [...active.toSpliced(evict, 1), slot];
+  const firstPlain = active.findIndex((s) => !s.priority);
+  const evictIndex = firstPlain === -1 ? 0 : firstPlain;
+  return [...active.toSpliced(evictIndex, 1), slot];
 }
 
 const useThumbSlots = create<{

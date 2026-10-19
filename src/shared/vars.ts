@@ -1,5 +1,5 @@
 import { isRecord } from "./guards";
-import { mapValues } from "./pick";
+import { mapValues } from "./objects";
 
 const VAR_SOURCE = String.raw`\{\{\s*([^{}]+?)\s*\}\}`;
 

@@ -7,10 +7,13 @@ import { Help, LabelledChoices } from "./field-shell";
 import type { FieldProps } from "./types";
 
 const MAX_SLIDER_RANGE = 5000;
+const FINE_RANGE = 1;
+const FINE_STEP = 0.01;
+const WHOLE_STEP = 1;
 
 function sliderRange(min: number | undefined, max: number | undefined): StepRange | null {
   if (min == null || max == null || max - min > MAX_SLIDER_RANGE) return null;
-  return { min, max, step: max - min <= 1 ? 0.01 : 1 };
+  return { min, max, step: max - min <= FINE_RANGE ? FINE_STEP : WHOLE_STEP };
 }
 
 type NumberProps = FieldProps<number> & Partial<MinMax>;

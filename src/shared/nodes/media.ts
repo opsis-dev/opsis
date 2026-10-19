@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { projectRef } from "../asset-ref";
-import { itemClip, placeholderClip } from "../compile/clip";
+import { itemClip } from "../compile/clip";
 import { formatDuration } from "../format";
 import { kindFromPath } from "../mime";
 import type { VisualEnvelope } from "../schema/timeline";
@@ -12,9 +12,9 @@ import {
   type MediaValue,
   type NodeResult,
 } from "../schema/values";
-import { DEFAULT_VIEWPORT } from "../schema/workflow";
+import { DEFAULT_STILL_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
 import { msToFrames } from "../timeline/time";
-import { connectedPorts, fileRow, missing, row, warnIf, type CardRow } from "./card";
+import { connectedPorts, fileRow, missing, rangeRow, row, warnIf, type CardRow } from "./card";
 import { defineNode, nodeBase, opt, port, type CompileInputs, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
 import {
@@ -42,14 +42,6 @@ const one = {
   outputs: { media: port("media", "File") },
 } as const;
 const NEW_FILE = " Makes a new file.";
-
-const lengthRow = (
-  result: NodeResult | undefined,
-  icon: NodeIconName = "clock",
-): CardRow | null => {
-  const m = outputOf(result, "media", "media");
-  return m?.durationMs ? row(icon, formatDuration(m.durationMs)) : null;
-};
 const CONVERT_FORMATS = ["h264", "h265", "vp9", "prores"] as const;
 const PRESET_LABELS = {
   ultrafast: "Fastest, biggest",
@@ -57,6 +49,17 @@ const PRESET_LABELS = {
   medium: "Balanced",
   slow: "Small",
   veryslow: "Smallest, slowest",
+};
+const FITS = { cover: "Fill the frame", contain: "Show all" };
+type Fit = keyof typeof FITS;
+const MEDIA_MS = 5000;
+
+const lengthRow = (
+  result: NodeResult | undefined,
+  icon: NodeIconName = "clock",
+): CardRow | null => {
+  const m = outputOf(result, "media", "media");
+  return m?.durationMs ? row(icon, formatDuration(m.durationMs)) : null;
 };
 
 export function mediaInput(value: CompileValue | undefined): MediaValue | undefined {
@@ -82,13 +85,7 @@ const passMedia = (
   fallbackPort = "media",
 ) => ({ media: outputOf(result, "media", "media") ?? mediaInput(inputs[fallbackPort]) });
 
-const FITS = { cover: "Fill the frame", contain: "Show all" };
-type Fit = keyof typeof FITS;
-
 const fitField = () => choiceOf(FITS, "contain", "Fit");
-
-const IMAGE_MS = 3000;
-const MEDIA_MS = 5000;
 
 type ClipLook = {
   fit: Fit;
@@ -105,14 +102,20 @@ function mediaToClip(
   { fit, muted, envelope, fps, unlinked, soundLabel }: ClipLook,
 ): ClipValue {
   const frames = msToFrames(
-    media?.durationMs ?? (media?.kind === "image" ? IMAGE_MS : MEDIA_MS),
+    media?.durationMs ?? (media?.kind === "image" ? DEFAULT_STILL_MS : MEDIA_MS),
     fps,
   );
-  if (!media?.src) return placeholderClip(nodeId, unlinked, frames, { envelope });
+  if (!media?.src) return itemClip(nodeId, "core/placeholder", unlinked, frames, { envelope });
   if (media.kind === "audio")
-    return placeholderClip(nodeId, { title: "Sound file", subtitle: soundLabel }, frames, {
-      envelope,
-    });
+    return itemClip(
+      nodeId,
+      "core/placeholder",
+      { title: "Sound file", subtitle: soundLabel },
+      frames,
+      {
+        envelope,
+      },
+    );
   const component = media.kind === "image" ? "core/image" : "core/video";
   return itemClip(nodeId, component, { src: media.src, fit, muted }, frames, { envelope });
 }
@@ -189,15 +192,7 @@ export const mediaTrimNode = op({
   type: "media.trim",
   title: "Trim file",
   description: "Cuts a file down to a start and end." + NEW_FILE,
-  card: ({ params: p, result }) => [
-    row(
-      "scissors",
-      p.endMs
-        ? `${formatDuration(p.startMs)} → ${formatDuration(p.endMs)}`
-        : `From ${formatDuration(p.startMs)} to the end`,
-    ),
-    lengthRow(result),
-  ],
+  card: ({ params: p, result }) => [rangeRow(p.startMs, p.endMs || null), lengthRow(result)],
   params: z.object({
     startMs: ms(0, "Start"),
     endMs: more(ms(0, "End", 36_000_000), { zeroLabel: "To the end" }),

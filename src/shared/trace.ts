@@ -1,4 +1,5 @@
 import { partitionPoint } from "./math";
+import type { Bounds } from "./schema/actions";
 
 export type TraceFrame = { src: string; time: number; width: number; height: number };
 
@@ -15,7 +16,7 @@ export type TraceAction = {
   error?: string;
   logs: string[];
   point?: { x: number; y: number };
-  box?: { x: number; y: number; width: number; height: number };
+  box?: Bounds;
 };
 
 export const CONSOLE_LEVELS = ["log", "info", "warning", "error", "debug"] as const;

@@ -1,14 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  addBus,
-  applyBusSettings,
-  removeBus,
-  resetBus,
-  resetStrip,
-  stripSettings,
-  updateChannels,
-} from "./edits";
-import { DEFAULT_STRIP, STRIP_PRESETS, busSchema, defaultMix } from "./types";
+import { addBus, applyBusSettings, removeBus, resetBus, resetStrip, updateChannels } from "./edits";
+import { DEFAULT_STRIP, STRIP_PRESETS, busSchema, defaultMix, stripSettings } from "./types";
 
 describe("mix edits", () => {
   it("copies a strip's settings without its routing", () => {

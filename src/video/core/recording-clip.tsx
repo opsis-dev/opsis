@@ -5,7 +5,7 @@ import { TEXT_COLOR, STAGE_COLOR } from "../../shared/elements/colors";
 import { CODE_FONT } from "../../shared/fonts";
 import { displayAddress } from "../../shared/format";
 import { clamp } from "../../shared/math";
-import { pick } from "../../shared/pick";
+import { pick } from "../../shared/objects";
 import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
 import { DemoClip, useClipTime } from "../camera/demo-clip";

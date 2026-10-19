@@ -156,6 +156,8 @@ function useEditable({
   };
 }
 
+const flattenLines = (text: string) => text.replace(/\s*\n\s*/g, " ");
+
 const INSERT_VARIABLE = "Insert variable";
 
 function VariablesMenu({
@@ -248,7 +250,7 @@ function Surface({
         e.preventDefault();
         const text = e.clipboardData.getData("text/plain");
         saveRange();
-        insert(tokenize(multiline ? text : text.replace(/\s*\n\s*/g, " "), pauses));
+        insert(tokenize(multiline ? text : flattenLines(text), pauses));
       }}
       onDrop={(e) => e.preventDefault()}
     />

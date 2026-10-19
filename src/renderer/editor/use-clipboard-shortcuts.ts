@@ -80,18 +80,15 @@ function duplicateSelection(): void {
   if (subgraph) pasteSubgraph(subgraph);
 }
 
-const isPressed = (e: KeyboardEvent, accelerator: string) =>
-  matchesAccelerator(accelerator, e, platform);
-
 export function useClipboardShortcuts(wrapper: React.RefObject<HTMLDivElement | null>): void {
   useEffect(() => {
     const el = wrapper.current;
     if (!el) return;
     const onKey = (e: KeyboardEvent) => {
       if (isEditingElement(e.target)) return;
-      if (isPressed(e, "CmdOrCtrl+C")) void copySelection();
-      else if (isPressed(e, "CmdOrCtrl+V")) void pasteClipboard();
-      else if (isPressed(e, "CmdOrCtrl+D")) {
+      if (matchesAccelerator("CmdOrCtrl+C", e, platform)) void copySelection();
+      else if (matchesAccelerator("CmdOrCtrl+V", e, platform)) void pasteClipboard();
+      else if (matchesAccelerator("CmdOrCtrl+D", e, platform)) {
         e.preventDefault();
         duplicateSelection();
       }

@@ -9,7 +9,9 @@ describe("formatDb", () => {
     expect(formatDb(-3)).toBe("−3.0");
     expect(formatDb(-0.01)).toBe("0.0");
   });
+});
 
+describe("formatSignedDb", () => {
   it("keeps large reductions as numbers", () => {
     expect(formatSignedDb(-70)).toBe("−70.0");
   });

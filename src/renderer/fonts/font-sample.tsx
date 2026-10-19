@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/renderer/lib/utils";
+import { fontStack } from "@/shared/fonts";
 import type { FontFamilyDef } from "@/shared/fonts/types";
 import { usePreviewFamily } from "./library";
 
@@ -18,7 +19,7 @@ export function FontSample({
   return (
     <span
       className={cn("truncate", className)}
-      style={shown ? { fontFamily: `"${shown}", sans-serif` } : undefined}
+      style={shown ? { fontFamily: fontStack(shown) } : undefined}
     >
       {children}
     </span>

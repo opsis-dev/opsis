@@ -7,7 +7,6 @@ import { useItemKeys } from "@/renderer/lib/use-item-keys";
 import {
   EASES,
   ENVELOPE_LABELS,
-  envelopeSchema,
   type Ease,
   type Envelope,
   type EnvelopeKey,
@@ -25,9 +24,6 @@ type Format = {
   fromShown: (v: number) => number;
   initial: number;
 };
-
-export const isEnvelope = (value: unknown): value is Envelope =>
-  envelopeSchema.safeParse(value).success;
 
 const fromFraction = (v: number) => v * 100;
 const toFraction = (v: number) => v / 100;

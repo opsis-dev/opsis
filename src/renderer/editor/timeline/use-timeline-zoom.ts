@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { platform } from "@/renderer/lib/platform";
 import { isPrimaryModifier } from "@/shared/menu";
 import { usePlayback } from "../../store/playback";
-import { FIT_PADDING_PX, HEADER_W, contentX, frameAtX } from "./timeline-layout";
+import { FIT_PADDING_PX, HEADER_W, clientXToFrame } from "./timeline-layout";
 import { clampZoom, useTimeline } from "./timeline-state";
 
 const WHEEL_ZOOM_STEP = 1.15;
@@ -55,7 +55,7 @@ export function useTimelineZoom(
     const el = e.currentTarget;
     if (isPinchOrPrimary(e)) {
       const factor = e.deltaY < 0 ? WHEEL_ZOOM_STEP : 1 / WHEEL_ZOOM_STEP;
-      zoomAround(factor, frameAtX(contentX(el, e.clientX), ppf));
+      zoomAround(factor, clientXToFrame(el, e.clientX, ppf));
     } else if (
       !e.shiftKey &&
       Math.abs(e.deltaY) > Math.abs(e.deltaX) &&

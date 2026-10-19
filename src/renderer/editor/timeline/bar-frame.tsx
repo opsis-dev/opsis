@@ -31,11 +31,11 @@ export function BarFrame({
   ctx: BarContext;
   box: BarBox;
   height: number;
-  nodeId: string | undefined;
-  split: VideoBar | undefined;
-  title: string | undefined;
+  nodeId?: string;
+  split?: VideoBar;
+  title?: string;
   className: string;
-  cursorAt: ((e: React.PointerEvent<HTMLDivElement>) => string) | null;
+  cursorAt?: (e: React.PointerEvent<HTMLDivElement>) => string;
   onPress: (e: React.PointerEvent<HTMLDivElement>) => void;
   envelope: BarEnvelope;
   above?: React.ReactNode;

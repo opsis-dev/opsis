@@ -2,6 +2,7 @@ import path from "node:path";
 import { app, screen, type BrowserWindow, type Rectangle } from "electron";
 import type { z } from "zod";
 import { readJson, writeJson } from "../engine/json";
+import { logError } from "../engine/log";
 import { debounce } from "../shared/timing";
 import { raiseWindow } from "./raise-window";
 import { makeWindow, rendererUrl, type WindowOptions } from "./window-registry";
@@ -28,7 +29,8 @@ export function boundsStore<T>(name: string, schema: z.ZodType<T>) {
   const file = () => path.join(app.getPath("userData"), name);
   return {
     load: (): Promise<T | null> => readJson(file(), schema),
-    save: (value: T): void => void writeJson(file(), value).catch(() => undefined),
+    save: (value: T): void =>
+      void writeJson(file(), value).catch((error: unknown) => logError("windows", error, name)),
   };
 }
 

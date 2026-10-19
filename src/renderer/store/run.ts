@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { CANCELLED } from "@/shared/errors";
 import { appendCapped } from "@/shared/lists";
-import { pick } from "@/shared/pick";
+import { pick } from "@/shared/objects";
 import {
   applyRunEvent,
   emptyRunProgress,
@@ -25,21 +25,13 @@ type NodeLog = Extract<RunEvent, { type: "node:log" }>;
 
 type NodeError = Extract<RunEvent, { type: "node:error" }>;
 
-const logLine = ({ at, level, nodeId, message }: NodeLog): LogLine => ({
-  id: ++logCount,
-  at,
-  level,
-  nodeId,
-  message,
-});
+const makeLine = (fields: Omit<LogLine, "id">): LogLine => ({ id: ++logCount, ...fields });
 
-const errorLine = ({ nodeId, message }: NodeError): LogLine => ({
-  id: ++logCount,
-  at: Date.now(),
-  level: "error",
-  nodeId,
-  message,
-});
+const logLine = ({ at, level, nodeId, message }: NodeLog): LogLine =>
+  makeLine({ at, level, nodeId, message });
+
+const errorLine = ({ nodeId, message }: NodeError): LogLine =>
+  makeLine({ at: Date.now(), level: "error", nodeId, message });
 
 export const MAX_LOG_LINES = 2000;
 

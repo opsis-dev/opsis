@@ -11,7 +11,7 @@ import { PROJECT_DIRS } from "@/shared/project-dirs";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import type { ClipValue, NodeResult } from "@/shared/schema/values";
 import type { WorkflowSettings } from "@/shared/schema/workflow";
-import { frameIn, wholeFrames } from "@/shared/timeline/time";
+import { atLeastOneFrame, clampFrame } from "@/shared/timeline/time";
 import { DemoTimeline } from "@/video/demo-timeline";
 import { useEnvironment } from "../store/environment";
 import { useRunStore } from "../store/run";
@@ -36,7 +36,7 @@ const fastSpec = ({ clip, settings }: SettledClip): TimelineSpec => ({
 });
 
 const middleFrame = (spec: TimelineSpec): number =>
-  frameIn(spec.durationInFrames / 2, spec.durationInFrames);
+  clampFrame(spec.durationInFrames / 2, spec.durationInFrames);
 
 function posterOf(result: NodeResult | undefined): string | null {
   for (const a of result?.artifacts ?? []) {
@@ -69,7 +69,7 @@ function useOnScreen<T extends Element>(): [RefObject<T | null>, boolean] {
   return [ref, visible];
 }
 
-function LiveFrame({ nodeId }: { nodeId: string }) {
+function FallbackThumbnail({ nodeId }: { nodeId: string }) {
   const settings = useWorkflowStore((s) => requireWorkflow(s).settings);
   const zoom = useFlowStore((s) => s.transform[2]);
   const [ref, visible] = useOnScreen<HTMLDivElement>();
@@ -94,7 +94,7 @@ function LiveFrame({ nodeId }: { nodeId: string }) {
           inputProps={spec}
           compositionWidth={spec.width}
           compositionHeight={spec.height}
-          durationInFrames={wholeFrames(spec.durationInFrames, 1)}
+          durationInFrames={atLeastOneFrame(spec.durationInFrames)}
           fps={spec.fps}
           frameToDisplay={middleFrame(spec)}
           style={{ aspectRatio, [fittedSide]: "100%" }}
@@ -159,7 +159,7 @@ function CardStill({ nodeId }: { nodeId: string }) {
     };
   }, [engine, projectDir, settled, hash, wanted, selected, nodeId]);
 
-  if (engine === false) return <LiveFrame nodeId={nodeId} />;
+  if (engine === false) return <FallbackThumbnail nodeId={nodeId} />;
   if (!hash) return null;
   return <FramePicture src={projectRef(`${PROJECT_DIRS.stills}/${hash}.jpg`)} />;
 }

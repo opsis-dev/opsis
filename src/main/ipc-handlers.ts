@@ -89,11 +89,8 @@ async function useFontInProject(dir: string, fontId: string) {
 }
 
 async function revealInFolder(dir: string, rel?: string): Promise<void> {
-  if (rel) {
-    shell.showItemInFolder(path.join(dir, rel));
-    return;
-  }
-  await shell.openPath(dir);
+  if (rel) shell.showItemInFolder(path.join(dir, rel));
+  else await shell.openPath(dir);
 }
 
 const HANDLERS: { [K in InvokeName]: Handler<K> } = {

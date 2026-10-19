@@ -9,7 +9,7 @@ import { IN_PORTS, inPortIndex, nextInPort } from "../nodes/ports";
 import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
 import { cutSchema } from "../nodes/timeline";
 import { NO_TRANSITION } from "../nodes/transitions";
-import type { ParamRef } from "../schema/timeline";
+import type { EditHandleKind, ParamRef } from "../schema/timeline";
 import type { EdgeEnds, PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
 import { formatNumberList, parseNumberList } from "../text-input";
 import { absPosition, mapNode, patchNodeParams, removeNodes } from "../workflow-edits";
@@ -33,6 +33,9 @@ export const HALF_FRAME = 0.5;
 const noMove = (delta: number) => Math.abs(delta) < HALF_FRAME;
 
 const fail = (error: string): EditResult => ({ ok: false, error });
+
+const NEEDS_A_FRAME = "A clip needs at least one frame.";
+const PLAYHEAD_OUTSIDE_CLIP = "Put the playhead inside the clip.";
 
 const notConnected = (doIt: string) =>
   fail(`Connect this clip to an export or a sequence to ${doIt} here.`);
@@ -172,12 +175,17 @@ function newNode(
   };
 }
 
-const clipEdge = (
-  source: string,
-  target: string,
-  targetHandle: string,
-  sourceHandle: string = CLIP_PORT,
-): WorkflowEdge => makeEdge({ source, sourceHandle, target, targetHandle });
+const clipEdge = ({
+  source,
+  sourceHandle = CLIP_PORT,
+  target,
+  targetHandle,
+}: {
+  source: string;
+  sourceHandle?: string;
+  target: string;
+  targetHandle: string;
+}): WorkflowEdge => makeEdge({ source, sourceHandle, target, targetHandle });
 
 const ADDED_NODES = {
   "timeline.delay": { label: "Delay from timeline", where: "before" },
@@ -203,8 +211,13 @@ function insertOnEdge(
       nodes: [...wf.nodes, node],
       edges: [
         ...wf.edges.filter((e) => e.id !== edge.id),
-        clipEdge(edge.source, node.id, CLIP_PORT, edge.sourceHandle),
-        clipEdge(node.id, edge.target, edge.targetHandle),
+        clipEdge({
+          source: edge.source,
+          sourceHandle: edge.sourceHandle,
+          target: node.id,
+          targetHandle: CLIP_PORT,
+        }),
+        clipEdge({ source: node.id, target: edge.target, targetHandle: edge.targetHandle }),
       ],
     },
   };
@@ -267,29 +280,20 @@ function leafEdge(ctx: EditContext, bar: VideoBar): WorkflowEdge | undefined {
   return pathEdge(ctx.workflow, bar.nodeId, next);
 }
 
-const nodeIdSets = new WeakMap<Workflow, ReadonlySet<string>>();
-
-function nodeIdsOf(wf: Workflow): ReadonlySet<string> {
-  const known = nodeIdSets.get(wf);
-  if (known) return known;
-  const ids = new Set(wf.nodes.map((n) => n.id));
-  nodeIdSets.set(wf, ids);
-  return ids;
-}
-
 function owns(link: ChainLink, wf: Workflow): boolean {
-  const ids = nodeIdsOf(wf);
-  return Object.values(link.handles ?? {}).some((h) => !!h && ids.has(h.nodeId));
+  return Object.values(link.handles ?? {}).some(
+    (h) => !!h && wf.nodes.some((n) => n.id === h.nodeId),
+  );
 }
 
 function ownedHandle(
   ctx: EditContext,
   bar: VideoBar,
-  kind: keyof NonNullable<ChainLink["handles"]>,
+  kind: EditHandleKind,
 ): { link: ChainLink; ref: ParamRef } | null {
-  const owner = findHandle(bar, kind, "outer");
-  const ref = owner?.link.handles?.[kind];
-  return owner && ref && owns(owner.link, ctx.workflow) ? { link: owner.link, ref } : null;
+  const link = findHandle(bar, kind, "outer");
+  const ref = link?.handles?.[kind];
+  return link && ref && owns(link, ctx.workflow) ? { link, ref } : null;
 }
 
 function shiftOwned(
@@ -360,14 +364,14 @@ function trimEnd(ctx: EditContext, bar: VideoBar, delta: number): EditResult {
   const owned = ownedHandle(ctx, bar, "trimEnd");
   if (owned) {
     const length = owned.link.end + delta * owned.link.rateEnd;
-    if (length < 1) return fail("A clip needs at least one frame.");
+    if (length < 1) return fail(NEEDS_A_FRAME);
     return ok(setLength(ctx.workflow, owned.ref, length, ctx.fps));
   }
   if (delta > 0) return fail("That's the end of the clip.");
   const edge = leafEdge(ctx, bar);
   if (!edge) return notConnected("trim it");
   const keep = Math.round(bar.contentEnd - bar.contentStart + delta * bar.rate);
-  if (keep < 1) return fail("A clip needs at least one frame.");
+  if (keep < 1) return fail(NEEDS_A_FRAME);
   return addTrim(ctx, bar, edge, Math.round(bar.contentStart), keep);
 }
 
@@ -417,9 +421,9 @@ const clampRate = (rate: number) => clamp(round2(rate), MIN_SPEED, MAX_SPEED);
 
 export function speedBar(ctx: EditContext, bar: VideoBar, newLength: number): EditResult {
   const owned = ownedHandle(ctx, bar, "speed");
-  const span = findHandle(bar, "speed", "outer")?.link ?? outermostLink(bar);
+  const span = findHandle(bar, "speed", "outer") ?? outermostLink(bar);
   const current = span.to - span.from;
-  if (newLength < 1 || current < 1) return fail("A clip needs at least one frame.");
+  if (newLength < 1 || current < 1) return fail(NEEDS_A_FRAME);
   const factor = current / newLength;
   if (owned) {
     const rate = readParam(ctx.workflow, owned.ref) || 1;
@@ -439,7 +443,14 @@ function splitParts(ctx: EditContext, edge: WorkflowEdge, offset: number) {
     newNode(ctx, "timeline.trim", params, label, near, index);
   const head = part("Split: first part", { startMs: 0, durationMs: cut }, 0);
   const tail = part("Split: second part", { startMs: cut, durationMs: 0 }, 1);
-  const feeds = [head, tail].map((p) => clipEdge(edge.source, p.id, CLIP_PORT, edge.sourceHandle));
+  const feeds = [head, tail].map((p) =>
+    clipEdge({
+      source: edge.source,
+      sourceHandle: edge.sourceHandle,
+      target: p.id,
+      targetHandle: CLIP_PORT,
+    }),
+  );
   return { head, tail, feeds };
 }
 
@@ -473,8 +484,8 @@ function splitInSequence(
     edges: [
       ...shifted.filter((e) => e.id !== edge.id),
       ...feeds,
-      clipEdge(head.id, edge.target, edge.targetHandle),
-      clipEdge(tail.id, edge.target, next),
+      clipEdge({ source: head.id, target: edge.target, targetHandle: edge.targetHandle }),
+      clipEdge({ source: tail.id, target: edge.target, targetHandle: next }),
     ],
   };
 }
@@ -499,9 +510,9 @@ function splitWithNewSequence(
     edges: [
       ...wf.edges.filter((e) => e.id !== edge.id),
       ...feeds,
-      clipEdge(head.id, join.id, "in1"),
-      clipEdge(tail.id, join.id, "in2"),
-      clipEdge(join.id, edge.target, edge.targetHandle),
+      clipEdge({ source: head.id, target: join.id, targetHandle: "in1" }),
+      clipEdge({ source: tail.id, target: join.id, targetHandle: "in2" }),
+      clipEdge({ source: join.id, target: edge.target, targetHandle: edge.targetHandle }),
     ],
   };
 }
@@ -519,13 +530,12 @@ function freePortAfter(
 }
 
 export function splitBar(ctx: EditContext, bar: VideoBar, at: number): EditResult {
-  if (at <= bar.from + HALF_FRAME || at >= bar.to - HALF_FRAME)
-    return fail("Put the playhead inside the clip.");
+  if (at <= bar.from + HALF_FRAME || at >= bar.to - HALF_FRAME) return fail(PLAYHEAD_OUTSIDE_CLIP);
   const edge = slotEdge(ctx, bar);
   if (!edge) return notConnected("split it");
   const level = slotLevel(bar);
   const offset = Math.round((at - level.from) * level.rate);
-  if (offset < 1) return fail("Put the playhead inside the clip.");
+  if (offset < 1) return fail(PLAYHEAD_OUTSIDE_CLIP);
   const parts = splitParts(ctx, edge, offset);
   const container = findById(ctx.workflow.nodes, edge.target);
   const next = freePortAfter(ctx.workflow, container, edge);
@@ -616,7 +626,7 @@ export function applyRipple(
 
 export function moveHandleKey(bar: VideoBar | AudioBar): string | null {
   const ref =
-    bar.type === "video" ? findHandle(bar, "move", "outer")?.link.handles?.move : bar.handles?.move;
+    bar.type === "video" ? findHandle(bar, "move", "outer")?.handles?.move : bar.handles?.move;
   return ref ? handleKey(ref) : null;
 }
 

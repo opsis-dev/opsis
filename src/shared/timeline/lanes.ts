@@ -21,7 +21,8 @@ export function packAudio(audio: AudioBar[]): { audio: AudioBar[]; lanes: number
   const ends: number[] = [];
   let lastRole: AudioBar["role"] | null = null;
   let base = 0;
-  const placed = audio.map((a) => {
+  const placed: AudioBar[] = [];
+  for (const a of audio) {
     if (a.role !== lastRole) {
       base = ends.length;
       lastRole = a.role;
@@ -29,7 +30,7 @@ export function packAudio(audio: AudioBar[]): { audio: AudioBar[]; lanes: number
     let lane = base;
     while (lane < ends.length && ends[lane] > a.from + EPSILON) lane++;
     ends[lane] = a.to;
-    return { ...a, lane };
-  });
+    placed.push({ ...a, lane });
+  }
   return { audio: placed, lanes: ends.length };
 }

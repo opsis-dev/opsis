@@ -6,7 +6,7 @@ import { findById } from "@/shared/lists";
 import { exportReframe, variantSize } from "@/shared/nodes/output";
 import { nodeName } from "@/shared/nodes/registry";
 import { EMPTY_SPEC, type TimelineSpec } from "@/shared/schema/timeline";
-import { playRange, wholeFrames } from "@/shared/timeline/time";
+import { atLeastOneFrame, playRange } from "@/shared/timeline/time";
 import { EmptyPanel } from "../app/empty-panel";
 import { usePlayback } from "../store/playback";
 import { useStillsStore } from "../store/stills";
@@ -61,7 +61,7 @@ export function PreviewDock() {
     if (sourceNodeId) useStillsStore.getState().want([sourceNodeId]);
   }, [sourceNodeId]);
 
-  const duration = wholeFrames(spec?.durationInFrames ?? 1, 1);
+  const duration = atLeastOneFrame(spec?.durationInFrames ?? 1);
   useSeekToSelection(player, preview);
   usePlayerBridge(player, preview, {
     fps: spec?.fps ?? EMPTY_SPEC.fps,

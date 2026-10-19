@@ -2,7 +2,7 @@ import type { LottieAnimationData } from "@remotion/lottie";
 import { strFromU8, unzipSync, type Unzipped } from "fflate";
 import { z } from "zod";
 import { extensionOf } from "../../shared/asset-ref";
-import { isRecord } from "../../shared/guards";
+import { isRecord, isString } from "../../shared/guards";
 import { IMAGE_MIME } from "../../shared/mime";
 
 const toBase64 = (bytes: Uint8Array) => {
@@ -42,7 +42,7 @@ export const readLottie = (bytes: Uint8Array): LottieAnimationData =>
 function firstAnimationId(manifest: unknown): string | undefined {
   const animations = isRecord(manifest) ? manifest.animations : undefined;
   const first = Array.isArray(animations) ? animations[0] : undefined;
-  return isRecord(first) && typeof first.id === "string" ? first.id : undefined;
+  return isRecord(first) && isString(first.id) ? first.id : undefined;
 }
 
 function embedImage(asset: LottieAsset, files: Unzipped): LottieAsset {

@@ -11,7 +11,6 @@ import {
   AUDIO_ENVELOPES,
   VISUAL_ENVELOPES,
   ENVELOPE_LABELS,
-  type AudioEnvelopeKey,
   type VisualEnvelopeKey,
 } from "@/shared/schema/timeline";
 import type { Workflow } from "@/shared/schema/workflow";
@@ -19,7 +18,7 @@ import { shortcutLabel } from "../../app/menu-shortcuts";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
 import { OptionSelect } from "../option-select";
-import { WithTooltip } from "../tooltip-button";
+import { WithTooltip } from "../with-tooltip";
 import { useFormatTime, useLoopRange, useTimeline } from "./timeline-state";
 import { COMMAND_KEYS, TOOLS, ZOOM_KEYS, ZOOM_STEP } from "./timeline-tools";
 import type { TimelineCommands } from "./use-timeline-commands";
@@ -117,8 +116,6 @@ function ToolPicker() {
   );
 }
 
-const audioLabel = (v: AudioEnvelopeKey) => ENVELOPE_LABELS[v];
-
 function EnvelopePickers() {
   const videoChoice: VideoChoice = useTimeline((s) => s.videoEnvelope) ?? "off";
   const audioEnvelope = useTimeline((s) => s.audioEnvelope);
@@ -136,7 +133,7 @@ function EnvelopePickers() {
         label="Sound keyframes"
         value={audioEnvelope}
         options={AUDIO_ENVELOPES}
-        optionLabel={audioLabel}
+        optionLabel={(v) => ENVELOPE_LABELS[v]}
         className="w-28"
         onChange={(v) => useTimeline.getState().setAudioEnvelope(v)}
       />

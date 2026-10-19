@@ -91,7 +91,7 @@ describe("card length", () => {
   }
 
   function contexts(def: NodeDef) {
-    const ports = Object.keys(def.inputs ?? {});
+    const ports = Object.keys(def.inputs);
     const each = (n: number) => Object.fromEntries(ports.map((p) => [p, n]));
     const log = makeLog(
       [

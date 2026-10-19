@@ -24,7 +24,7 @@ const LOWER_THIRD = {
 } as const;
 
 const slideOffset = (enter: number, exit: number, dir: number): number =>
-  (1 - enter) * LOWER_THIRD_SLIDE_PX * dir + exit * LOWER_THIRD_SLIDE_PX * dir;
+  LOWER_THIRD_SLIDE_PX * dir * (1 - enter + exit);
 
 export const LowerThird: React.FC<CoreElementProps["core/lower-third"]> = ({
   title,

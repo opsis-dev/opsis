@@ -4,8 +4,6 @@ import { logError } from "../../engine/log";
 
 export type AssetServer = { url: string; close: () => Promise<void> };
 
-const logFailure = (asked: string, error: unknown) => logError("assets", error, asked);
-
 export async function startAssetServer(root: string): Promise<AssetServer> {
   const server: Server = createServer(async (req, res) => {
     const asked = req.url ?? "/";
@@ -26,12 +24,12 @@ export async function startAssetServer(root: string): Promise<AssetServer> {
         reply
           .open()
           .on("error", (error) => {
-            logFailure(file, error);
+            logError("assets", error, file);
             res.destroy();
           })
           .pipe(res);
     } catch (error) {
-      logFailure(asked, error);
+      logError("assets", error, asked);
       res.writeHead(500).end();
     }
   });

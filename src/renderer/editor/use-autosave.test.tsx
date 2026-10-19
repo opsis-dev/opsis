@@ -23,7 +23,7 @@ const editor = vi.hoisted(() => {
 
 afterEach(cleanup);
 
-function Editor({ apply }: { apply: (text: string) => void }) {
+function DraftHarness({ apply }: { apply: (text: string) => void }) {
   useAutosave();
   const input = useDecimalInput("1", "blur", apply);
   return <input aria-label="Seconds" {...input} />;
@@ -32,7 +32,7 @@ function Editor({ apply }: { apply: (text: string) => void }) {
 describe("closing the window with a value still being typed", () => {
   it("reports the typed value as unsaved, then commits it before saving", async () => {
     const applied: string[] = [];
-    const view = render(<Editor apply={(text) => applied.push(text)} />);
+    const view = render(<DraftHarness apply={(text) => applied.push(text)} />);
     expect(editor.reports.at(-1)).toBe(false);
     fireEvent.change(view.getByLabelText("Seconds"), { target: { value: "2.5" } });
     expect(editor.reports.at(-1)).toBe(true);

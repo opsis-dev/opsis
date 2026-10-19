@@ -32,7 +32,7 @@ export function DiskChangeDialog() {
               Load the file
             </AlertDialogAction>
           ) : (
-            <AlertDialogCancel onClick={() => useDiskChange.getState().show(null)}>
+            <AlertDialogCancel onClick={() => useDiskChange.getState().clear()}>
               Wait
             </AlertDialogCancel>
           )}

@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { claimSlot } from "./thumb-slots";
-
-const FULL = 6;
+import { claimSlot, MAX_LIVE_THUMBS } from "./thumb-slots";
 
 const plain = (count: number, prefix = "p") =>
   Array.from({ length: count }, (_, i) => ({ id: `${prefix}${i}`, priority: false }));
@@ -14,21 +12,21 @@ describe("claimSlot", () => {
   });
 
   it("refuses a plain claim when full", () => {
-    const active = plain(FULL);
+    const active = plain(MAX_LIVE_THUMBS);
     expect(claimSlot(active, "c", false)).toBe(active);
   });
 
   it("evicts the oldest plain holder for a priority claim", () => {
-    const active = [{ id: "a", priority: true }, ...plain(FULL - 1)];
+    const active = [{ id: "a", priority: true }, ...plain(MAX_LIVE_THUMBS - 1)];
     expect(claimSlot(active, "d", true)).toEqual([
       { id: "a", priority: true },
-      ...plain(FULL - 1).slice(1),
+      ...plain(MAX_LIVE_THUMBS - 1).slice(1),
       { id: "d", priority: true },
     ]);
   });
 
   it("evicts the oldest holder when every holder has priority", () => {
-    const active = plain(FULL).map((s) => ({ ...s, priority: true }));
+    const active = plain(MAX_LIVE_THUMBS).map((s) => ({ ...s, priority: true }));
     expect(claimSlot(active, "c", true)).toEqual([...active.slice(1), { id: "c", priority: true }]);
   });
 });
