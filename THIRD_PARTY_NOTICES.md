@@ -234,6 +234,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Drizzle ORM — the drizzle-orm package
+
+Reads and writes the app's saved state (settings, recent projects, window positions, the font library and each project's view). Installed from npm and bundled into the app. By Drizzle Team, https://github.com/drizzle-team/drizzle-orm
+
+Licensed under the Apache License, Version 2.0, the same licence as Opsis; its full text is in `LICENSE`. The package ships no NOTICE file.
+
 ## Built-in sound effects — public/sfx
 
 Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero/1.0/). No attribution is required; credits are kept here. Files were taken from the set Remotion lists in `@remotion/sfx` (https://www.remotion.dev/docs/sfx), with each licence checked on its source page.

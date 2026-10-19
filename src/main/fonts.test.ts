@@ -1,8 +1,9 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { tempDirs } from "../engine/test-temp-dirs";
 import { must } from "../shared/test-fixtures";
+import { closeDatabase, db, IN_MEMORY, openDatabase } from "./db";
+import { fonts } from "./db/schema";
 import {
   addFamilies,
   addInspectedFonts,
@@ -10,6 +11,7 @@ import {
   inspectInstalledFonts,
   listLibrary,
   releaseInspectedFonts,
+  removeLibraryFont,
 } from "./fonts";
 
 const userData = vi.hoisted(() => ({ dir: "" }));
@@ -19,6 +21,8 @@ const tempDir = tempDirs("opsis-fonts-");
 
 beforeEach(async () => {
   userData.dir = await tempDir();
+  openDatabase(IN_MEMORY);
+  return closeDatabase;
 });
 
 const bundled = (file: string) => path.resolve("public/fonts/bundled", file);
@@ -74,32 +78,33 @@ describe("inspected fonts", () => {
   });
 });
 
+const oldFont = {
+  family: "Old",
+  category: "sans-serif",
+  source: "file",
+  files: [
+    {
+      name: "old.woff2",
+      bytes: new Uint8Array([1]),
+      face: { weight: "400", style: "normal", format: "woff2" },
+    },
+  ],
+} as const;
+
 describe("font library", () => {
   it("keeps entries it can't read when the library changes", async () => {
-    const unreadable = { id: "old", family: "Old" };
-    await mkdir(path.join(userData.dir, "fonts"), { recursive: true });
-    await writeFile(
-      path.join(userData.dir, "fonts", "library.json"),
-      JSON.stringify({ families: [unreadable] }),
-    );
-    await addFamilies([
-      {
-        family: "Old",
-        category: "sans-serif",
-        source: "file",
-        files: [
-          {
-            name: "old.woff2",
-            bytes: new Uint8Array([1]),
-            face: { weight: "400", style: "normal", format: "woff2" },
-          },
-        ],
-      },
-    ]);
-    const saved = JSON.parse(
-      await readFile(path.join(userData.dir, "fonts", "library.json"), "utf8"),
-    );
-    expect(saved.families[0]).toEqual(unreadable);
-    expect((await listLibrary()).map((f) => f.id)).toEqual(["old-2"]);
+    const unreadable = JSON.stringify({ id: "old", family: "Old" });
+    db().insert(fonts).values({ fontId: "old", def: unreadable }).run();
+    await addFamilies([{ ...oldFont, files: [...oldFont.files] }]);
+    expect(db().select().from(fonts).all()[0]).toMatchObject({ fontId: "old", def: unreadable });
+    expect(listLibrary().map((f) => f.id)).toEqual(["old-2"]);
+  });
+
+  it("replaces a family added again and removes it by id", async () => {
+    const [first] = await addFamilies([{ ...oldFont, files: [...oldFont.files] }]);
+    await addFamilies([{ ...oldFont, files: [...oldFont.files] }]);
+    expect(listLibrary().map((f) => f.id)).toEqual([first?.id]);
+    await removeLibraryFont(must(first, "added family").id);
+    expect(listLibrary()).toEqual([]);
   });
 });

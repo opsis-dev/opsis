@@ -17,7 +17,7 @@ export const openEditor = (navigate: NavigateFn, dir: string): void =>
   void navigate({ to: "/editor", search: { dir } });
 
 function openProjectIntoStores(p: OpenProject): void {
-  loadViewState(p.dir);
+  loadViewState(p.dir, p.view);
   useWorkflowStore.getState().load(p.dir, p.workflow, p.version);
   useRunStore.getState().seed(p.lastRun);
   useUiStore.getState().setSelected([]);

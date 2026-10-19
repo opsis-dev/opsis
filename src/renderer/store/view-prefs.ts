@@ -1,21 +1,32 @@
-import { readStored, writeStored } from "@/renderer/lib/local-storage";
-import { tryParseJson } from "@/shared/guards";
+import type { ViewPrefChange, ViewPrefs } from "@/shared/ipc";
 
 let project: string | null = null;
+let prefs: ViewPrefs = {};
 
-const key = (name: string) => `opsis:view:${project ?? "none"}:${name}`;
-
-export function setViewProject(dir: string | null): void {
+export function setViewProject(dir: string | null, stored: ViewPrefs): void {
   project = dir;
+  prefs = { ...stored };
 }
 
+export const viewPrefs = (): ViewPrefs => prefs;
+
 export function readPref<T>(name: string, fallback: T, valid: (v: unknown) => v is T): T {
-  const raw = readStored(key(name));
-  if (raw === null) return fallback;
-  const parsed = tryParseJson(raw);
-  return parsed.ok && valid(parsed.value) ? parsed.value : fallback;
+  const value = prefs[name];
+  return Object.hasOwn(prefs, name) && valid(value) ? value : fallback;
 }
 
 export function writePref(name: string, value: unknown): void {
-  writeStored(key(name), JSON.stringify(value));
+  prefs = { ...prefs, [name]: value };
+  if (project)
+    window.opsis
+      .setViewPref(project, name, value)
+      .catch((error: unknown) => console.error("A view setting couldn't be saved.", error));
+}
+
+function applyViewPref({ dir, key, value }: ViewPrefChange): void {
+  if (dir === project) prefs = { ...prefs, [key]: value };
+}
+
+export function watchViewPrefs(): void {
+  window.opsis.onViewPrefChanged(applyViewPref);
 }

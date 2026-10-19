@@ -1,10 +1,10 @@
 import { existsSync, watch, type FSWatcher } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { desc } from "drizzle-orm";
 import { app, type BrowserWindow, type OpenDialogOptions } from "electron";
-import { z } from "zod";
 import { sha256Hex } from "../engine/hash";
-import { atomicWrite, readJsonKeepingBroken, readTextIfPresent, writeJson } from "../engine/json";
+import { atomicWrite, readTextIfPresent } from "../engine/json";
 import { readLastRun } from "../engine/last-run";
 import { logError } from "../engine/log";
 import { projectPaths } from "../engine/project-paths";
@@ -23,51 +23,39 @@ import { WORKFLOW_FILE, workflowSchema, type Workflow } from "../shared/schema/w
 import { PROJECTS_FOLDER_NAME } from "../shared/settings";
 import { getTemplate } from "../shared/templates";
 import { debounce } from "../shared/timing";
+import { db } from "./db";
+import { projects } from "./db/schema";
 import { openDialog } from "./dialogs";
 import { ensureSecretsDir } from "./secrets";
 import { patchSettings, readSettings } from "./settings";
+import { forgetViewState, readViewState } from "./view-state";
 
 const MAX_RECENT = 20;
 
-const recentSchema = z.object({
-  dir: z.string(),
-  name: z.string(),
-  openedAt: z.number(),
-}) satisfies z.ZodType<RecentProject>;
-
-const recentFile = () => path.join(app.getPath("userData"), "recent-projects.json");
-
 const existingDir = (dir?: string) => (dir && existsSync(dir) ? dir : undefined);
 
-async function readRecent(): Promise<RecentProject[] | null> {
-  try {
-    const stored = await readJsonKeepingBroken(recentFile(), z.array(z.unknown()));
-    return (stored ?? []).flatMap((entry) => {
-      const parsed = recentSchema.safeParse(entry);
-      return parsed.success && existsSync(path.join(parsed.data.dir, WORKFLOW_FILE))
-        ? [parsed.data]
-        : [];
-    });
-  } catch (error) {
-    logError("projects", error, "recent projects");
-    return null;
-  }
+export const listRecent = (): RecentProject[] =>
+  db()
+    .select({ dir: projects.dir, name: projects.name, openedAt: projects.openedAt })
+    .from(projects)
+    .orderBy(desc(projects.openedAt))
+    .all()
+    .filter((p) => existsSync(path.join(p.dir, WORKFLOW_FILE)))
+    .slice(0, MAX_RECENT);
+
+function touchRecent(dir: string, name: string): void {
+  const openedAt = Date.now();
+  db()
+    .insert(projects)
+    .values({ dir, name, openedAt })
+    .onConflictDoUpdate({ target: projects.dir, set: { name, openedAt } })
+    .run();
 }
 
-export const listRecent = async (): Promise<RecentProject[]> => (await readRecent()) ?? [];
-
-async function touchRecent(dir: string, name: string): Promise<void> {
-  const list = await readRecent();
-  if (!list) return;
-  const next = [{ dir, name, openedAt: Date.now() }, ...list.filter((p) => p.dir !== dir)];
-  await mkdir(path.dirname(recentFile()), { recursive: true });
-  await writeJson(recentFile(), next.slice(0, MAX_RECENT));
-}
-
-export async function projectLocations(): Promise<ProjectLocations> {
-  const { projects } = await readSettings();
-  const defaultDir = projects.defaultDir || path.join(app.getPath("home"), PROJECTS_FOLDER_NAME);
-  return { defaultDir, suggestedDir: existingDir(projects.lastDir) ?? defaultDir };
+export function projectLocations(): ProjectLocations {
+  const { projects: folders } = readSettings();
+  const defaultDir = folders.defaultDir || path.join(app.getPath("home"), PROJECTS_FOLDER_NAME);
+  return { defaultDir, suggestedDir: existingDir(folders.lastDir) ?? defaultDir };
 }
 
 export async function chooseFolder(
@@ -107,7 +95,7 @@ const workflowOrNull = (text: string): Workflow | null => {
 };
 
 export async function pickProjectDir(win: BrowserWindow | null): Promise<string | null> {
-  const { defaultDir } = await projectLocations();
+  const { defaultDir } = projectLocations();
   return chooseFolder(win, { title: "Open Opsis project", defaultPath: defaultDir }, [
     "openDirectory",
   ]);
@@ -124,13 +112,14 @@ export async function openProjectDir(target: string): Promise<OpenProject> {
   if (!parsed.ok) throw new Error(`The project in ${target} can't be read (${parsed.problem}).`);
   const { workflow } = parsed;
   written.set(target, file.version);
-  await touchRecent(target, workflow.name);
+  touchRecent(target, workflow.name);
   openDir = target;
   return {
     dir: target,
     workflow,
     lastRun: await readLastRun(target),
     version: file.version,
+    view: readViewState(target),
   };
 }
 
@@ -140,7 +129,7 @@ async function writeWorkflowFile(dir: string, workflow: Workflow): Promise<strin
   const version = versionOf(text);
   written.set(dir, version);
   await atomicWrite(path.join(dir, WORKFLOW_FILE), text);
-  await touchRecent(dir, normalized.name);
+  touchRecent(dir, normalized.name);
   return version;
 }
 
@@ -152,7 +141,7 @@ export async function createProjectDir(
     opts.dir ??
     (await chooseFolder(win, {
       title: "Choose where to create the project",
-      defaultPath: (await projectLocations()).suggestedDir,
+      defaultPath: projectLocations().suggestedDir,
     }));
   if (!chosen) return null;
   const parent = expandHome(chosen, app.getPath("home"));
@@ -164,9 +153,10 @@ export async function createProjectDir(
   await ensureSecretsDir(dir);
   await writeFile(path.join(dir, ".gitignore"), `${PROJECT_DIRS.meta}/\n`);
   const workflow = getTemplate(opts.template).build(nonBlankString(opts.name) ?? "Demo");
+  forgetViewState(dir);
   const version = await writeWorkflowFile(dir, workflow);
-  await patchSettings({ projects: { lastDir: parent } });
-  return { dir, workflow, lastRun: null, version };
+  patchSettings({ projects: { lastDir: parent } });
+  return { dir, workflow, lastRun: null, version, view: {} };
 }
 
 export async function saveWorkflowFile(

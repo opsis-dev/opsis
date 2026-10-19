@@ -51,6 +51,7 @@ import { listSecrets } from "./secrets";
 import { patchSettings, readSettings } from "./settings";
 import { openSettingsWindow } from "./settings-window";
 import { listStills, requestStill } from "./stills";
+import { writeViewState } from "./view-state";
 import { focusMainWindow, getMainWindow, sendMenuCommand, windowState } from "./window-registry";
 import { runWindowRole } from "./window-roles";
 
@@ -81,9 +82,13 @@ function runStatus() {
 }
 
 async function useFontInProject(dir: string, fontId: string) {
-  const def = findById(await listLibrary(), fontId);
+  const def = findById(listLibrary(), fontId);
   if (!def) throw new Error("That font isn't in your library any more.");
   return copyFontToProject(dir, def);
+}
+
+function setViewPref(dir: string, key: string, value: unknown): void {
+  if (writeViewState(dir, key, value)) broadcast(IPC.viewPrefChanged, { dir, key, value });
 }
 
 async function revealInFolder(dir: string, rel?: string): Promise<void> {
@@ -125,6 +130,7 @@ const HANDLERS: { [K in InvokeName]: Handler<K> } = {
     ),
   getSettings: readSettings,
   patchSettings,
+  setViewPref,
   openSettings: openSettingsWindow,
   listLicences,
   openLicenceFile,

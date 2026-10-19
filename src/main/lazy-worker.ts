@@ -52,7 +52,7 @@ function createLazyWorker<R>(options: LazyWorkerOptions<R>): LazyWorker<R> {
 
   return {
     request: async (message) => {
-      const env = await workerEnv();
+      const env = workerEnv();
       const { control } = ensure();
       const id = randomUUID();
       const reply = replies.wait(id);

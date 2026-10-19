@@ -9,9 +9,11 @@ import { ErrorScreen } from "./app/error-screen";
 import { MotionProvider } from "./app/motion";
 import { routeTree } from "./routeTree.gen";
 import { watchAppSettings } from "./store/app-settings";
+import { watchViewPrefs } from "./store/view-prefs";
 import { watchWindowState } from "./store/window-state";
 
 watchAppSettings();
+watchViewPrefs();
 watchWindowState();
 
 const router = createRouter({

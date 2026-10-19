@@ -1,12 +1,14 @@
-import { readSession, readStored, writeSession, writeStored } from "@/renderer/lib/local-storage";
+import { readSession, writeSession } from "@/renderer/lib/session-storage";
+import { reportError } from "@/renderer/lib/toast";
+import { patchAppSettings } from "../store/app-settings";
 
-const SETUP_SKIPPED_KEY = "opsis:setup-skipped";
 const STARTED_KEY = "opsis:started";
 const ON = "1";
 
-export const isSetupSkipped = (): boolean => readStored(SETUP_SKIPPED_KEY) === ON;
-
-export const skipSetup = (): void => writeStored(SETUP_SKIPPED_KEY, ON);
+export const skipSetup = (): void =>
+  void patchAppSettings({ app: { setupSkipped: true } }).catch((e: unknown) =>
+    reportError("Couldn't save that choice", e),
+  );
 
 export function markStarted(): boolean {
   const first = readSession(STARTED_KEY) !== ON;

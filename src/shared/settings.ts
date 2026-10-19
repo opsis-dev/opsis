@@ -33,6 +33,7 @@ export const appSettingsSchema = z.object({
     .object({
       onStart: z.enum(START_OPTIONS).default("start-screen"),
       confirmExit: z.boolean().default(true),
+      setupSkipped: z.boolean().default(false),
     })
     .prefault({}),
   traces: z

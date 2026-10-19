@@ -1,8 +1,7 @@
 import { PanelBottom, PanelLeft, PanelRight, type LucideIcon } from "lucide-react";
 import type { LayoutStorage, PanelImperativeHandle } from "react-resizable-panels";
 import { create } from "zustand";
-import { readStored, writeStored } from "@/renderer/lib/local-storage";
-import { isOneOf } from "@/shared/guards";
+import { isOneOf, isString } from "@/shared/guards";
 import { DOCK_PANELS, type DockPanelName } from "@/shared/ipc";
 import type { MenuCommand } from "@/shared/menu";
 import { readPref, writePref } from "../store/view-prefs";
@@ -89,4 +88,7 @@ export function focusPanel(panel: DockPanelName): void {
   focusAfterPaint(() => focusTargets[panel] ?? document.getElementById(`panel-${panel}`));
 }
 
-export const layoutStorage: LayoutStorage = { getItem: readStored, setItem: writeStored };
+export const layoutStorage: LayoutStorage = {
+  getItem: (key) => readPref<string | null>(key, null, isString),
+  setItem: writePref,
+};

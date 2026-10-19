@@ -15,11 +15,16 @@ import type { TraceModel } from "./trace";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 
+export type ViewPrefs = Record<string, unknown>;
+
+export type ViewPrefChange = { dir: string; key: string; value: unknown };
+
 export type OpenProject = {
   dir: string;
   workflow: Workflow;
   lastRun: LastRun | null;
   version: string;
+  view: ViewPrefs;
 };
 
 export type SaveResult =
@@ -171,6 +176,8 @@ export interface OpsisApi {
   getSettings(): Promise<AppSettings>;
   patchSettings(patch: SettingsPatch): Promise<AppSettings>;
   onSettingsChanged(listener: (settings: AppSettings) => void): () => void;
+  setViewPref(dir: string, key: string, value: unknown): Promise<void>;
+  onViewPrefChanged(listener: (change: ViewPrefChange) => void): () => void;
   openSettings(page?: SettingsPage): Promise<void>;
   sendMenuToEditor(command: MenuCommand): void;
   listLicences(): Promise<LicenceEntry[]>;
@@ -236,6 +243,7 @@ export const INVOKE = {
   installEngine: "opsis:engine:install",
   getSettings: "opsis:settings:get",
   patchSettings: "opsis:settings:patch",
+  setViewPref: "opsis:view:set",
   openSettings: "opsis:settings:open-window",
   listLicences: "opsis:licences:list",
   openLicenceFile: "opsis:licences:open",
@@ -283,6 +291,7 @@ export const IPC = {
   closeShown: "opsis:exit:shown",
   projectFileChanged: "opsis:projects:file-changed",
   settingsChanged: "opsis:settings:changed",
+  viewPrefChanged: "opsis:view:changed",
   settingsPage: "opsis:settings:page",
   menuToEditor: "opsis:menu:to-editor",
   apiStatusChanged: "opsis:api:status-changed",
@@ -294,6 +303,7 @@ export const IPC = {
 export type BroadcastPayloads = {
   [IPC.engineEvent]: EngineInstallEvent;
   [IPC.settingsChanged]: AppSettings;
+  [IPC.viewPrefChanged]: ViewPrefChange;
   [IPC.apiStatusChanged]: ApiServerStatus;
 };
 

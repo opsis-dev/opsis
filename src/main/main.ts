@@ -5,6 +5,7 @@ import { stopAnalysis } from "./analysis";
 import { followApiSetting, stopApi } from "./api";
 import { registerApiEditorIpc } from "./api-editor";
 import { broadcast, createMainWindow } from "./app-windows";
+import { closeDatabase, openDatabase } from "./db";
 import { interceptQuit, registerExitIpc } from "./exit";
 import { fontsDir } from "./fonts";
 import { registerIpc } from "./ipc-handlers";
@@ -24,6 +25,7 @@ if (started) app.quit();
 registerSchemes();
 
 app.whenReady().then(() => {
+  openDatabase();
   clearStaleWorkerTemps(workerTempRoot());
   registerProtocolHandlers({
     getProjectDir: currentProjectDir,
@@ -54,4 +56,5 @@ app.on("will-quit", () => {
   stopAnalysis();
   stopStills();
   void stopApi();
+  closeDatabase();
 });

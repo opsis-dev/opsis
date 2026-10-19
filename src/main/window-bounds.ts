@@ -1,9 +1,8 @@
-import path from "node:path";
-import { app, screen, type BrowserWindow, type Rectangle } from "electron";
-import type { z } from "zod";
-import { readJson, writeJson } from "../engine/json";
-import { logError } from "../engine/log";
+import { eq } from "drizzle-orm";
+import { screen, type BrowserWindow, type Rectangle } from "electron";
 import { debounce } from "../shared/timing";
+import { db } from "./db";
+import { windowBounds } from "./db/schema";
 import { raiseWindow } from "./raise-window";
 import { makeWindow, rendererUrl, type WindowOptions } from "./window-registry";
 
@@ -25,13 +24,17 @@ function isVisible(rect: Rectangle): boolean {
 const visibleBounds = (rect: Rectangle | null | undefined): Rectangle | undefined =>
   rect && isVisible(rect) ? rect : undefined;
 
-export function boundsStore<T>(name: string, schema: z.ZodType<T>) {
-  const file = () => path.join(app.getPath("userData"), name);
-  return {
-    load: (): Promise<T | null> => readJson(file(), schema),
-    save: (value: T): void =>
-      void writeJson(file(), value).catch((error: unknown) => logError("windows", error, name)),
-  };
+function savedBounds(window: string): Rectangle | undefined {
+  const row = db().select().from(windowBounds).where(eq(windowBounds.window, window)).get();
+  return row && { x: row.x, y: row.y, width: row.width, height: row.height };
+}
+
+function saveBounds(window: string, rect: Rectangle): void {
+  db()
+    .insert(windowBounds)
+    .values({ window, ...rect })
+    .onConflictDoUpdate({ target: windowBounds.window, set: rect })
+    .run();
 }
 
 function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => void): void {
@@ -51,8 +54,6 @@ function rememberBounds(win: BrowserWindow, save: (rect: Rectangle) => void): vo
 type RememberedWindow = {
   key: string;
   existing: BrowserWindow | null;
-  saved: () => Promise<Rectangle | null | undefined>;
-  save: (rect: Rectangle) => void;
   options: WindowOptions;
   hash: string;
   onClosed: (win: BrowserWindow) => void;
@@ -60,9 +61,9 @@ type RememberedWindow = {
 
 const opening = new Map<string, Promise<BrowserWindow>>();
 
-async function createRememberedWindow(opts: RememberedWindow): Promise<BrowserWindow> {
-  const win = makeWindow({ ...opts.options, ...visibleBounds(await opts.saved()) });
-  rememberBounds(win, opts.save);
+function createRememberedWindow(opts: RememberedWindow): BrowserWindow {
+  const win = makeWindow({ ...opts.options, ...visibleBounds(savedBounds(opts.key)) });
+  rememberBounds(win, (rect) => saveBounds(opts.key, rect));
   win.on("closed", () => opts.onClosed(win));
   void win.loadURL(rendererUrl(opts.hash));
   return win;
@@ -79,7 +80,9 @@ export function openRememberedWindow(opts: RememberedWindow): Promise<BrowserWin
     raiseWindow(opts.existing);
     return Promise.resolve(null);
   }
-  const created = createRememberedWindow(opts).finally(() => opening.delete(opts.key));
+  const created = Promise.resolve(createRememberedWindow(opts)).finally(() =>
+    opening.delete(opts.key),
+  );
   opening.set(opts.key, created);
   return created;
 }

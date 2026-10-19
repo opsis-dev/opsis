@@ -30,7 +30,7 @@ export function environment(): EnvStatus {
 }
 
 export async function installEngine(onEvent: (e: EngineInstallEvent) => void): Promise<void> {
-  const env = await workerEnv();
+  const env = workerEnv();
   await new Promise<void>((resolve, reject) => {
     const { child, control } = spawnWorker("setup");
     let installed = false;

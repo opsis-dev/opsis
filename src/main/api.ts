@@ -129,7 +129,7 @@ export function followApiSetting(): void {
   onSettingsChange((settings, previous) => {
     if (settings.api.enabled !== previous.api.enabled) void setApiEnabled(settings.api.enabled);
   });
-  void readSettings().then((settings) => setApiEnabled(settings.api.enabled));
+  void setApiEnabled(readSettings().api.enabled);
 }
 
 export async function stopApi(): Promise<void> {

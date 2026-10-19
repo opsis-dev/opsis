@@ -95,7 +95,7 @@ export async function startRun(
       });
   });
   try {
-    const env = await workerEnv();
+    const env = workerEnv();
     control.postMessage({ type: "run", env, request, runId } satisfies MainToWorker);
     return live;
   } catch (error) {

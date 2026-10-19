@@ -26,14 +26,14 @@ export function engineDir(): string {
   });
 }
 
-export async function workerEnv(): Promise<WorkerEnv> {
+export function workerEnv(): WorkerEnv {
   return {
     appRoot: app.getAppPath(),
     isPackaged: app.isPackaged,
     resourcesPath: process.resourcesPath,
     userData: app.getPath("userData"),
     engineDir: engineDir(),
-    settings: await readSettings(),
+    settings: readSettings(),
   };
 }
 

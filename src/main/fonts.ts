@@ -1,12 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { eq } from "drizzle-orm";
 import { app, type BrowserWindow } from "electron";
 import { unzipSync } from "fflate";
 import { create, type Font } from "fontkit";
-import { z } from "zod";
-import { readJsonKeepingBroken, writeJson } from "../engine/json";
-import { logError } from "../engine/log";
+import { logWarning } from "../engine/log";
 import { baseName, extensionOf, libraryRef, libraryRelPath, projectRef } from "../shared/asset-ref";
 import { fontSlug, sameFamily } from "../shared/fonts";
 import {
@@ -16,11 +15,13 @@ import {
   type PlannedFamily,
 } from "../shared/fonts/plan";
 import { fontFamilySchema, type FontFaceDef, type FontFamilyDef } from "../shared/fonts/types";
-import { isRecord, isString } from "../shared/guards";
+import { parseJsonWith } from "../shared/guards";
 import type { FontInstalledFace, InspectedFonts } from "../shared/ipc";
 import { firstFree } from "../shared/lists";
 import { safeName } from "../shared/safe-name";
 import { oneAtATime } from "../shared/timing";
+import { db } from "./db";
+import { fonts } from "./db/schema";
 import { openDialog } from "./dialogs";
 
 const LICENSE_NAME = /(^|\/)(licen[cs]e|ofl|ffl|copying)[^/]*$/i;
@@ -56,43 +57,34 @@ type Pending = {
 type FontTables = Pick<Font, "familyName" | "getName"> &
   Partial<Pick<Font, "subfamilyName" | "variationAxes" | "OS/2">>;
 
-const librarySchema = z.object({ families: z.array(z.unknown()) });
-
 export const fontsDir = () => path.join(app.getPath("userData"), "fonts");
-const manifestPath = () => path.join(fontsDir(), "library.json");
 
 let pending: Pending | null = null;
 const changeLibrary = oneAtATime();
 
-type Library = { families: FontFamilyDef[]; unreadable: unknown[] };
+type Library = { families: FontFamilyDef[]; ids: string[] };
 
-async function readLibrary(): Promise<Library> {
-  const stored = await readJsonKeepingBroken(manifestPath(), librarySchema);
-  const library: Library = { families: [], unreadable: [] };
-  for (const entry of stored?.families ?? []) {
-    const parsed = fontFamilySchema.safeParse(entry);
-    if (parsed.success) library.families.push(parsed.data);
-    else {
-      logError("fonts", parsed.error, "a library entry couldn't be read and was kept as it is");
-      library.unreadable.push(entry);
-    }
+function readLibrary(): Library {
+  const library: Library = { families: [], ids: [] };
+  for (const row of db().select().from(fonts).orderBy(fonts.id).all()) {
+    library.ids.push(row.fontId);
+    const parsed = parseJsonWith(fontFamilySchema, row.def);
+    if (parsed?.success) library.families.push(parsed.data);
+    else logWarning("fonts", `${row.fontId} couldn't be read and was kept as it is`);
   }
   return library;
 }
 
-export async function listLibrary(): Promise<FontFamilyDef[]> {
-  return (await readLibrary()).families;
-}
+export const listLibrary = (): FontFamilyDef[] => readLibrary().families;
 
-async function saveLibrary({ families, unreadable }: Library): Promise<void> {
-  await mkdir(fontsDir(), { recursive: true });
-  await writeJson(manifestPath(), { families: [...unreadable, ...families] });
+function saveFamily(def: FontFamilyDef): void {
+  const json = JSON.stringify(def);
+  db()
+    .insert(fonts)
+    .values({ fontId: def.id, def: json })
+    .onConflictDoUpdate({ target: fonts.fontId, set: { def: json } })
+    .run();
 }
-
-const libraryIds = ({ families, unreadable }: Library): string[] => [
-  ...families.map((f) => f.id),
-  ...unreadable.flatMap((entry) => (isRecord(entry) && isString(entry.id) ? [entry.id] : [])),
-];
 
 function openFont(bytes: Uint8Array): FontTables | null {
   try {
@@ -213,7 +205,7 @@ export function guessCategory(family: string): FontFamilyDef["category"] {
 
 async function writeFamily(library: Library, fam: NewFamily): Promise<FontFamilyDef> {
   const existing = library.families.find((f) => sameFamily(f.family, fam.family));
-  const id = existing?.id ?? uniqueId(fontSlug(fam.family), libraryIds(library));
+  const id = existing?.id ?? uniqueId(fontSlug(fam.family), library.ids);
   const dir = path.join(fontsDir(), id);
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
@@ -237,14 +229,12 @@ async function writeFamily(library: Library, fam: NewFamily): Promise<FontFamily
 
 export function addFamilies(families: NewFamily[]): Promise<FontFamilyDef[]> {
   return changeLibrary(async () => {
-    let library = await readLibrary();
     const added: FontFamilyDef[] = [];
     for (const fam of families) {
-      const def = await writeFamily(library, fam);
-      library = { ...library, families: [...library.families.filter((f) => f.id !== def.id), def] };
+      const def = await writeFamily(readLibrary(), fam);
+      saveFamily(def);
       added.push(def);
     }
-    await saveLibrary(library);
     return added;
   });
 }
@@ -280,9 +270,8 @@ export function releaseInspectedFonts(token: string): void {
 
 export function removeLibraryFont(id: string): Promise<void> {
   return changeLibrary(async () => {
-    const library = await readLibrary();
     await rm(path.join(fontsDir(), id), { recursive: true, force: true });
-    await saveLibrary({ ...library, families: library.families.filter((f) => f.id !== id) });
+    db().delete(fonts).where(eq(fonts.fontId, id)).run();
   });
 }
 

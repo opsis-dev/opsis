@@ -1,9 +1,6 @@
-import { mkdir } from "node:fs/promises";
-import path from "node:path";
-import { app } from "electron";
-import { readJsonKeepingBroken, writeJson } from "../engine/json";
 import { logError } from "../engine/log";
 import { listenerSet } from "../shared/listener-set";
+import { keysOf } from "../shared/nodes/params";
 import {
   appSettingsSchema,
   DEFAULT_SETTINGS,
@@ -11,27 +8,21 @@ import {
   type AppSettings,
   type SettingsPatch,
 } from "../shared/settings";
-import { oneAtATime } from "../shared/timing";
+import { db } from "./db";
+import { settings as settingsTable } from "./db/schema";
 
-const file = () => path.join(app.getPath("userData"), "settings.json");
-
-let cached: AppSettings | null = null;
 const changes = listenerSet<[settings: AppSettings, previous: AppSettings]>();
 
 export const onSettingsChange = changes.add;
 
-async function storedSettings(): Promise<AppSettings | null> {
-  try {
-    return await readJsonKeepingBroken(file(), appSettingsSchema);
-  } catch (error) {
-    logError("settings", error);
-    return null;
-  }
-}
-
-export async function readSettings(): Promise<AppSettings> {
-  cached ??= (await storedSettings()) ?? DEFAULT_SETTINGS;
-  return cached;
+export function readSettings(): AppSettings {
+  const rows = db().select().from(settingsTable).all();
+  const parsed = appSettingsSchema.safeParse(
+    Object.fromEntries(rows.map((row) => [row.section, row.value])),
+  );
+  if (parsed.success) return parsed.data;
+  logError("settings", parsed.error);
+  return DEFAULT_SETTINGS;
 }
 
 const forgetLastDirOnNewDefault = (next: AppSettings, previous: AppSettings): AppSettings =>
@@ -39,17 +30,16 @@ const forgetLastDirOnNewDefault = (next: AppSettings, previous: AppSettings): Ap
     ? { ...next, projects: { ...next.projects, lastDir: "" } }
     : next;
 
-async function writeSettings(patch: SettingsPatch): Promise<AppSettings> {
-  const previous = await readSettings();
+export function patchSettings(patch: SettingsPatch): AppSettings {
+  const previous = readSettings();
   const next = forgetLastDirOnNewDefault(mergeSettings(previous, patch), previous);
-  await mkdir(path.dirname(file()), { recursive: true });
-  await writeJson(file(), next);
-  cached = next;
+  db().transaction((tx) => {
+    for (const section of keysOf(next))
+      tx.insert(settingsTable)
+        .values({ section, value: next[section] })
+        .onConflictDoUpdate({ target: settingsTable.section, set: { value: next[section] } })
+        .run();
+  });
   changes.emit(next, previous);
   return next;
 }
-
-const oneWriteAtATime = oneAtATime();
-
-export const patchSettings = (patch: SettingsPatch): Promise<AppSettings> =>
-  oneWriteAtATime(() => writeSettings(patch));

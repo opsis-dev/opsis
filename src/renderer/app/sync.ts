@@ -2,7 +2,7 @@ import { useEffect, useEffectEvent } from "react";
 import { shallow } from "zustand/vanilla/shallow";
 import { hasTypeIn } from "@/shared/guards";
 import { randomId } from "@/shared/ids";
-import type { DockPanelName } from "@/shared/ipc";
+import type { DockPanelName, ViewPrefs } from "@/shared/ipc";
 import { isLiveMessage } from "@/shared/live";
 import type { MenuCommand } from "@/shared/menu";
 import type { RunEvent } from "@/shared/schema/events";
@@ -21,6 +21,7 @@ import {
 import { runSnapshot, useRunStore, type RunSnapshot } from "../store/run";
 import { selection, useUiStore, type Selection } from "../store/ui";
 import { syncedView, useViewOptions, type SyncedView } from "../store/view-options";
+import { viewPrefs } from "../store/view-prefs";
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
 import { dispatchMenuCommand } from "./menu-commands";
 
@@ -37,6 +38,7 @@ type SyncMessage =
       run: RunSnapshot;
       selection: Selection;
       view: SyncedView;
+      prefs: ViewPrefs;
       playback: PlaybackSnapshot;
       host: boolean;
     }
@@ -204,6 +206,7 @@ function sendState(post: Post, ack: number): void {
     run: runSnapshot(),
     selection: selection(),
     view: syncedView(),
+    prefs: viewPrefs(),
     playback: playbackSnapshot(),
     host: usePlayback.getState().hasPlayer,
   });
@@ -254,7 +257,7 @@ export function useEditorSync(): void {
 
 function applyState(m: MessageOf["state"], applying: Flag): void {
   if (useWorkflowStore.getState().projectDir !== m.projectDir) {
-    loadViewState(m.projectDir);
+    loadViewState(m.projectDir, m.prefs);
     useMedia.getState().reset(m.projectDir);
   }
   useWorkflowStore.getState().mirrorProject(m.projectDir, m.workflow);

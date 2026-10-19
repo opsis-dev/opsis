@@ -38,7 +38,8 @@
     "brand:icons": "tsx scripts/brand-icons.ts",
     "engine:licences": "tsx scripts/engine-licences.ts",
     "examples": "tsx scripts/write-examples.ts",
-    "glyphs:bundle": "tsx scripts/node-glyphs.ts"
+    "glyphs:bundle": "tsx scripts/node-glyphs.ts",
+    "db:schema": "drizzle-kit export --config drizzle.config.ts > src/main/db/schema.generated.sql"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -82,6 +83,7 @@
     "cmdk": "^1.1.1",
     "cn": "^0.5.0",
     "culori": "^4.0.2",
+    "drizzle-orm": "1.0.0-rc.4",
     "electron-squirrel-startup": "^1.0.1",
     "elkjs": "^0.12.0",
     "fflate": "^0.8.3",
@@ -138,6 +140,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "drizzle-kit": "1.0.0-rc.4",
     "electron": "^44.7.2",
     "happy-dom": "^21.0.3",
     "lucide": "^1.59.0",

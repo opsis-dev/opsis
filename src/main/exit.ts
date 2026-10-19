@@ -71,13 +71,13 @@ function askRenderer(win: BrowserWindow, request: CloseRequest): Promise<CloseDe
 }
 
 async function confirmClose(win: BrowserWindow): Promise<boolean> {
-  const ask = (await readSettings()).app.confirmExit;
+  const ask = readSettings().app.confirmExit;
   const busy = ongoing();
   if (!ask && busy.length === 0) return true;
   raiseWindow(win);
   const decision = await askRenderer(win, { ask, busy });
   if (!decision.close) return false;
-  if (ask && decision.dontAsk) await patchSettings({ app: { confirmExit: false } });
+  if (ask && decision.dontAsk) patchSettings({ app: { confirmExit: false } });
   await flushSave(win);
   cancelRun();
   return true;

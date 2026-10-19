@@ -54,12 +54,12 @@ function useEditorSetup(projectDir: string): void {
 export function Editor({ projectDir }: { projectDir: string }) {
   const compiled = useCompiled();
   const horizontal = useDefaultLayout({
-    id: `opsis:editor-columns:${projectDir}`,
+    id: "opsis:editor-columns",
     storage: layoutStorage,
     panelIds: ["left", "center", "right"],
   });
   const vertical = useDefaultLayout({
-    id: `opsis:editor-rows:${projectDir}`,
+    id: "opsis:editor-rows",
     storage: layoutStorage,
     panelIds: ["canvas", "bottom"],
   });

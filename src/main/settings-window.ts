@@ -1,10 +1,7 @@
-import type { BrowserWindow, Rectangle } from "electron";
+import type { BrowserWindow } from "electron";
 import { IPC, type SettingsPage } from "../shared/ipc";
-import { boundsSchema } from "../shared/schema/actions";
-import { boundsStore, openRememberedWindow } from "./window-bounds";
+import { openRememberedWindow } from "./window-bounds";
 import { liveWindow } from "./window-registry";
-
-const store = boundsStore<Rectangle>("settings-window.json", boundsSchema);
 
 let win: BrowserWindow | null = null;
 
@@ -16,8 +13,6 @@ export async function openSettingsWindow(page?: SettingsPage): Promise<void> {
   const created = await openRememberedWindow({
     key: "settings",
     existing: settingsWindow(),
-    saved: store.load,
-    save: store.save,
     options: {
       width: 980,
       height: 720,

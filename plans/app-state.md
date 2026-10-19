@@ -2,7 +2,7 @@
 
 One SQLite database for Opsis's own state, instead of the JSON files in the app's data folder and the renderer's local storage. It holds what belongs to the app on this computer: settings, the projects opened, window positions, the font library index, each project's view state, service keys and the assistant's request log. Projects stay plain folders, `.opsis/` included.
 
-Status: in progress.
+Status: **Database and schema** and **Per-project view state** are built (not committed). **Encrypted values** has its column type built and tested (`src/main/db/crypto.ts`), unused and marked `// TODO: To be used later`; the `secrets` table comes with the first plan that stores a key. **Assistant request log** is not started; it adds its table with `plans/ai-assist.md`.
 
 ## How to read this plan
 
@@ -64,31 +64,31 @@ Missing:
 
 ### Work
 
-1. **Check the runtime.** Under Electron's Node (`ELECTRON_RUN_AS_NODE=1`): `new DatabaseSync(":memory:")`, a table, an insert, a select, a transaction that rolls back. Record the Node version. If it fails, stop and switch to the fallback.
+1. **Check the runtime.** Under Electron's Node (`ELECTRON_RUN_AS_NODE=1`): `new DatabaseSync(":memory:")`, a table, an insert, a select, a transaction that rolls back. Done: Electron 44.9.0 runs Node 24.22.0 with SQLite 3.53.4, and the rollback held, so no fallback.
 2. **Dependencies** as in **Stack**.
 3. **Schema.** `src/main/db/schema.ts` with `sqliteTable`s (below). Integer primary keys with a unique text column where the natural key is text (a project folder, a setting section), not TEXT primary keys (see **Risks**, #6165).
 4. **Config and DDL.** `drizzle.config.ts` at the repo root (`dialect: "sqlite"`, schema `src/main/db/schema.ts`). The `db:schema` script and the staleness test from **Schema without migrations**.
 5. **Opening.** `src/main/db/index.ts`: `openDatabase()` at `app.whenReady()` before anything reads settings; `PRAGMA journal_mode = WAL`, `PRAGMA foreign_keys = ON`, `PRAGMA busy_timeout`; the hash check; close on `will-quit`. Tests open it with `":memory:"`.
 6. **Move each store,** deleting its JSON code: settings, projects (recents become a query), window bounds, the font library index.
-7. **Packaging.** Nothing native to stage. Check the packaged app finds the DDL and that the database lands in `<userData>`.
+7. **Packaging.** Nothing native to stage. Check the packaged app finds the DDL and that the database lands in `<userData>`. Not done yet: checked only in development (`bun start`).
 8. **Tests** (vitest, in-memory database): the DDL creates every table; a changed hash recreates the database; a failed transaction leaves nothing behind (#1723); each moved store round-trips.
 
 ### Tables
 
-| Table           | Columns (short)                                                                                            | Replaces                                                                  |
-| --------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `meta`          | `id` (always 1), `schemaHash`                                                                              | new                                                                       |
-| `settings`      | `section` (unique), `value` (JSON text)                                                                    | `settings.json`                                                           |
-| `projects`      | `id`, `dir` (unique), `name`, `openedAt`                                                                   | `recent-projects.json`                                                    |
-| `app_state`     | `key` (unique), `value` (JSON)                                                                             | app-wide local storage (`opsis:setup-skipped`, view keys with no project) |
-| `view_state`    | `projectId` (not null, references `projects`, cascade), `key`, `value` (JSON), unique (`projectId`, `key`) | `readPref` / `writePref` and `layoutStorage` in local storage             |
-| `window_bounds` | `window` (unique: `settings`, `panel:preview`…), `x`, `y`, `width`, `height`                               | `panel-windows.json`, `settings-window.json`                              |
-| `fonts`         | `fontId` (unique), `def` (JSON `FontFamilyDef`, kept as text when it no longer parses)                     | `library.json` (font files stay in `<userData>/fonts`)                    |
-| `secrets`       | `scope` (`app`), `name` (unique per scope), `value` (`encryptedText`)                                      | new: service keys for voice and the assistant                             |
-| `assist_log`    | `id`, `at`, `projectId`, `task`, `service`, `model`, `request` (JSON), `response` (JSON), `error`, `ms`    | new                                                                       |
+| Table           | Columns (short)                                                                                            | Replaces                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `meta`          | `id` (always 1), `schemaHash`                                                                              | new                                                           |
+| `settings`      | `section` (unique), `value` (JSON text)                                                                    | `settings.json`                                               |
+| `projects`      | `id`, `dir` (unique), `name`, `openedAt`                                                                   | `recent-projects.json`                                        |
+| `view_state`    | `projectId` (not null, references `projects`, cascade), `key`, `value` (JSON), unique (`projectId`, `key`) | `readPref` / `writePref` and `layoutStorage` in local storage |
+| `window_bounds` | `window` (unique: `settings`, `panel:preview`…), `x`, `y`, `width`, `height`                               | `panel-windows.json`, `settings-window.json`                  |
+| `fonts`         | `fontId` (unique), `def` (JSON `FontFamilyDef`, kept as text when it no longer parses)                     | `library.json` (font files stay in `<userData>/fonts`)        |
+| `secrets`       | `scope` (`app`), `name` (unique per scope), `value` (`encryptedText`)                                      | new: service keys for voice and the assistant                 |
+| `assist_log`    | `id`, `at`, `projectId`, `task`, `service`, `model`, `request` (JSON), `response` (JSON), `error`, `ms`    | new                                                           |
 
 - **`projects` keeps every project opened**, never just the last 20: `view_state` and `assist_log` hang off it, and pruning it would drop their rows. Recent projects are a query: newest `openedAt` first, skipping folders without a project file, first 20 (`MAX_RECENT`).
-- App-wide values live in `app_state`, not in `view_state` with a null project: SQLite treats every NULL as distinct, so `unique(projectId, key)` would let app-wide rows repeat.
+- No app-wide view rows: `view_state.projectId` is never null (SQLite treats every NULL as distinct, so `unique(projectId, key)` couldn't stop app-wide rows repeating). The one app-wide value in local storage, `opsis:setup-skipped`, became the setting `app.setupSkipped`, and view prefs changed while no project is open are kept in memory only.
+- `secrets` and `assist_log` are added with the plans that use them, not before.
 
 ## Per-project view state
 
@@ -106,15 +106,17 @@ Already in place:
 
 Missing:
 
-- An IPC pair (`getViewState(projectDir)`, `setViewState(projectDir, key, value)`) and a renderer cache, because `readPref` and `layoutStorage.getItem` are synchronous today.
+- A way to get a project's view state to the renderer before the stores read it, because `readPref` and `layoutStorage.getItem` are synchronous, and a way to save and share changes.
 
 ### Work
 
-1. `loadViewState` becomes async: one IPC call fetches the project's whole view state into a small renderer cache before the stores read it; `readPref` and `layoutStorage.getItem` read that cache synchronously; writes update it and send `setViewState`. The editor renders only after the project's view state is loaded.
-2. Layout keys stop carrying the folder (`opsis:editor-columns`), since the row already belongs to the project.
-3. App-wide values (`opsis:setup-skipped`, view keys with no project open) go to `app_state` through `getAppState` / `setAppState`, loaded once before the first render.
-4. Window bounds use `window_bounds` instead of the two JSON files.
-5. Update `AGENTS.md` ("View state is per project, on this computer", "Settings is its own window", the pop-out bounds and the font library) to name the database instead of local storage and the JSON files.
+1. `openProject` returns the project's view state (`OpenProject.view`), so it arrives with the workflow and needs no second call; `loadViewState(dir, view)` puts it in the renderer's cache (`view-prefs.ts`) before the stores read it, and the editor renders after that as before. `readPref` and `layoutStorage.getItem` read the cache synchronously.
+2. `writePref` updates the cache and sends `setViewPref(dir, key, value)`; main saves it and broadcasts `viewPrefChanged`, so every window's cache follows (`watchViewPrefs` in `main.tsx`). Panel windows get the editor's cache in the sync `state` message.
+3. Layout ids stop carrying the folder (`opsis:editor-columns`, `opsis:editor-rows`), since the row already belongs to the project; the editor remounts per project (`key={dir}`).
+4. A project created in a folder that held one before starts with no saved view (`forgetViewState`).
+5. `opsis:setup-skipped` becomes the setting `app.setupSkipped`; the renderer keeps nothing in local storage (`session-storage.ts` keeps the once-per-launch flag).
+6. Window bounds use `window_bounds`, keyed by the window's key in `openRememberedWindow` (`settings`, `panel:<name>`), instead of the two JSON files.
+7. `AGENTS.md` names the database instead of local storage and the JSON files, and has an **App state is one database** section.
 
 ## Encrypted values
 

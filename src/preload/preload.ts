@@ -49,6 +49,7 @@ const api: OpsisApi = {
   onRunEvent: (listener) => subscribe(IPC.runEvent, listener),
   onEngineInstall: (listener) => subscribe(IPC.engineEvent, listener),
   onSettingsChanged: (listener) => subscribe(IPC.settingsChanged, listener),
+  onViewPrefChanged: (listener) => subscribe(IPC.viewPrefChanged, listener),
   onApiStatus: (listener) => subscribe(IPC.apiStatusChanged, listener),
   onApiRequest: (listener) => {
     const off = subscribe(IPC.apiRequest, (id: string, request: ApiEditorRequest) =>
