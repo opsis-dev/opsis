@@ -10,7 +10,7 @@ import { ENGINE_VERSION } from "../engine/cache";
 import { CODECS, FASTSTART, type RenderCodec, type SoundCodec } from "../media/codecs";
 import type { GlRenderer } from "./render";
 
-const PICTURE_VERSION = "opsis-picture/4";
+const PICTURE_VERSION = "opsis-picture/1";
 const KEEP_PICTURES = 12;
 
 type PictureOptions = { codec: RenderCodec; crf: number; scale: number; gl: GlRenderer };

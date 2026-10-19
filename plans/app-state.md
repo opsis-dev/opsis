@@ -1,8 +1,8 @@
 # App state database
 
-One SQLite database for Opsis's own state, instead of the JSON files in the app's data folder and the renderer's local storage. It holds what belongs to the app on this computer: settings, recent projects, window positions, the font library index, each project's view state, service keys and the assistant's request log. Projects stay plain folders.
+One SQLite database for Opsis's own state, instead of the JSON files in the app's data folder and the renderer's local storage. It holds what belongs to the app on this computer: settings, the projects opened, window positions, the font library index, each project's view state, service keys and the assistant's request log. Projects stay plain folders, `.opsis/` included.
 
-Status: plan only. Nothing here is built yet.
+Status: in progress.
 
 ## How to read this plan
 
@@ -14,78 +14,95 @@ Status: plan only. Nothing here is built yet.
 
 These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
-- **Main process only.** Only `src/main` opens the database. Windows read and write through IPC, like `getSettings` / `patchSettings` today. Nothing from `node:sqlite` or `drizzle-orm/node-sqlite` in `src/shared`, `src/video` or `src/renderer`; the schema itself (`drizzle-orm/sqlite-core` tables) may live in `src/main/db/`.
-- **Projects stay files.** `project.opsis.json`, `assets/`, `secrets/` and `.opsis/` (cache, renders, traces, `last-run.json`, the stills index) stay in the project folder, so a project can be copied, put in git, opened on another computer, and edited by an agent or a text editor; the file watcher (`watchProject`, `src/main/projects.ts`) depends on that.
-- **Tools run on Node, never on Bun's runtime.** Bun is the package manager only; no command runs with `--bun` (`bun --bun x …`). `drizzle-kit` runs through a `package.json` script on Node.
+- **Main process only.** Only `src/main` opens the database. Windows read and write through IPC, like `getSettings` / `patchSettings` today. Nothing from `node:sqlite` or `drizzle-orm/node-sqlite` in `src/shared`, `src/video` or `src/renderer`; the schema (`drizzle-orm/sqlite-core` tables) lives in `src/main/db/`.
+- **Projects stay files.** `project.opsis.json`, `assets/`, `secrets/` and `.opsis/` (cache, exports, traces, `last-run.json`, the stills index) stay in the project folder, so a project can be copied, put in git, opened on another computer, and edited by an agent or a text editor; the file watcher (`watchProject`, `src/main/projects.ts`) depends on that.
+- **No old formats.** Nothing has been released: no migrations, no import of the old JSON files or local storage, no backups. A schema change replaces the dev database (see **Schema without migrations**).
+- **Tools run on Node, never on Bun's runtime.** Bun is the package manager only; no command runs with `--bun`. `drizzle-kit` runs through a `package.json` script on Node.
 - **Checks.** `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, the no-comments check from `AGENTS.md`, and a run of the app: start, change settings in the Settings window, open projects, pop out panels, restart, and see everything restored. Don't commit.
 
 ## Summary
 
-| Part                    | What users get                                                                                           | Size |
-| ----------------------- | -------------------------------------------------------------------------------------------------------- | ---- |
-| Database and migrations | Nothing visible; state survives updates and a crash mid-write, and windows never disagree about settings | M    |
-| Per-project view state  | Panel sizes, tabs, preview shape, minimap and Timeline settings shared by every window, not per window   | M    |
-| Encrypted values        | Service keys stored once for the app, encrypted                                                          | S    |
-| Assistant request log   | What was sent to a model and what came back, viewable later                                              | S    |
+| Part                   | What users get                                                                                       | Size |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- | ---- |
+| Database and schema    | Nothing visible; one file for the app's state instead of five JSON files and the browser's storage   | M    |
+| Per-project view state | Panel sizes, tabs, preview shape, minimap and Timeline settings kept by main, not in browser storage | M    |
+| Encrypted values       | Service keys stored once for the app, encrypted                                                      | S    |
+| Assistant request log  | What was sent to a model and what came back, viewable later (built with `plans/ai-assist.md`)        | S    |
 
-## Database and migrations
+## Database and schema
 
 ### What it adds
 
-`<userData>/opsis.db`, opened once by main at startup, in WAL mode so reads never wait on a write. A typed schema and versioned migrations, so a new app version can change the shape without losing anything.
+`<userData>/opsis.db`, opened once by main at startup, in WAL mode so reads never wait on a write, with a typed schema.
 
 ### Fit with Opsis
 
 Already in place:
 
-- App state in JSON files under `<userData>`: `settings.json` (`src/main/settings.ts`: `readSettings`, `patchSettings`, `onSettingsChange`), `recent-projects.json` (`src/main/projects.ts`: `listRecent`, `touchRecent`), `panel-windows.json` (`src/main/panel-windows.ts`, through `boundsStore` in `src/main/window-bounds.ts`), `settings-window.json` (`src/main/settings-window.ts`: `savedBounds`), and the font library index `library.json` (`manifestPath` in `src/main/fonts.ts`).
-- Settings already go through one IPC path (`patchSettings`, broadcast as `settingsChanged`), so moving their storage changes no renderer code.
-- Electron 44.7.2 (`node_modules/electron/package.json`), whose Node line includes the built-in `node:sqlite` (`DatabaseSync`).
+- App state in JSON files under `<userData>`: `settings.json` (`src/main/settings.ts`: `readSettings`, `patchSettings`, `onSettingsChange`), `recent-projects.json` (`src/main/projects.ts`: `listRecent`, `touchRecent`, capped at `MAX_RECENT` = 20 and filtered to folders that still hold a project file), `panel-windows.json` (`src/main/panel-windows.ts`) and `settings-window.json` (`src/main/settings-window.ts`), both through `boundsStore` in `src/main/window-bounds.ts`, and the font library index `library.json` (`manifestPath` in `src/main/fonts.ts`, which keeps entries it can't read).
+- Every JSON file is already written atomically (`writeJson` → `atomicWrite`) and broken files are moved aside (`readJsonKeepingBroken`); settings changes already reach every window (`patchSettings`, broadcast as `settingsChanged`). The database doesn't fix a bug here: it replaces five file formats with one and lets main answer queries (recent projects, per-project view state) without reading whole files.
+- Settings already go through one IPC path, so moving their storage changes no renderer code.
+- Electron 44.9.0 (`node_modules/electron/package.json`), whose Node line includes the built-in `node:sqlite` (`DatabaseSync`).
 
 Missing:
 
-- `drizzle-orm`, `drizzle-kit`, a schema, migrations, and a place that opens the database.
+- `drizzle-orm`, `drizzle-kit`, a schema, and a place that opens the database.
 
 ### Stack (decided)
 
-- **`drizzle-orm` and `drizzle-kit` at exactly `1.0.0-rc.4`.** The stable line (`latest`, 0.45.4 when checked) has no `node:sqlite` driver; the 1.0 release candidates have `drizzle-orm/node-sqlite`. This is an exception to the "latest release" rule, pinned exactly like Remotion and TypeScript, until 1.0 is stable: `bun add --exact drizzle-orm@1.0.0-rc.4` and `bun add -d --exact drizzle-kit@1.0.0-rc.4`. Add the exception to the dependency rules in `AGENTS.md`.
+- **`drizzle-orm` and `drizzle-kit` at exactly `1.0.0-rc.4`.** The stable line (`latest`: `drizzle-orm` 0.45.4, `drizzle-kit` 0.31.11 when checked) has no `node:sqlite` driver; the 1.0 release candidates have `drizzle-orm/node-sqlite`. This is an exception to the "latest release" rule, pinned exactly like Remotion and TypeScript, until 1.0 is stable: `bun add --exact drizzle-orm@1.0.0-rc.4` and `bun add -d --exact drizzle-kit@1.0.0-rc.4`. Add the exception to the dependency rules in `AGENTS.md`.
 - **Driver:** `drizzle({ client: new DatabaseSync(file) })` from `drizzle-orm/node-sqlite`, with the synchronous query methods (`.all()`, `.get()`, `.run()`). No native module, so nothing to rebuild for Electron or unpack from the app archive.
-- **Fallback** if `node:sqlite` turns out unusable in Electron 44.7.2: `better-sqlite3` with the same Drizzle version (a native module, rebuilt for Electron and staged in `forge.config.ts` `packageAfterCopy` like playwright-core). Decide only if step 1 of **Work** fails.
+- **Fallback** if `node:sqlite` turns out unusable in Electron 44.9.0: `better-sqlite3` with the same Drizzle version (a native module, rebuilt for Electron and staged in `forge.config.ts` `packageAfterCopy` like playwright-core). Decide only if step 1 of **Work** fails.
+
+### Schema without migrations
+
+- `drizzle-kit export` prints the schema as plain DDL. `bun run db:schema` writes it to `src/main/db/schema.generated.sql` (checked in, in the generated-files table of `AGENTS.md`: never hand-edited).
+- Main imports it as text (`schema.generated.sql?raw`), so Vite bundles it into `main.cjs`; nothing is staged as a resource.
+- A one-row `meta` table holds the sha256 of that DDL. At startup: no file, or no `meta` row → create the tables and write the hash. Another hash → close, delete the database and its `-wal` / `-shm` files, and create it again. Only development databases exist, so nothing is lost that matters.
+- A test fails when `schema.generated.sql` differs from what `drizzle-kit export` prints now, so the file can't go stale.
+- Real migrations (`drizzle-kit generate` and `migrate()`) come with the first release, as a separate step.
 
 ### Work
 
-1. **Check the runtime.** A small check in the dev app's main process: `new DatabaseSync(":memory:")`, a table, an insert, a select, a transaction that rolls back. Record the Node version Electron reports. If it fails, stop and switch to the fallback.
+1. **Check the runtime.** Under Electron's Node (`ELECTRON_RUN_AS_NODE=1`): `new DatabaseSync(":memory:")`, a table, an insert, a select, a transaction that rolls back. Record the Node version. If it fails, stop and switch to the fallback.
 2. **Dependencies** as in **Stack**.
-3. **Schema.** `src/main/db/schema.ts` with `sqliteTable`s (below). Keys: integer primary keys with a unique text column where the natural key is text (a project folder, a setting section), not TEXT primary keys (see **Risks**, #6165).
-4. **Config and migrations.** `drizzle.config.ts` at the repo root (`dialect: "sqlite"`, schema `src/main/db/schema.ts`, out `src/main/db/migrations`). A script `"db:generate": "drizzle-kit generate"`, run on Node. Generated migration files are checked in; add `src/main/db/migrations/**` to the generated-files table in `AGENTS.md` ("never hand-edit; regenerate with `bun run db:generate`").
-5. **Opening.** `src/main/db/index.ts`: `openDatabase()` at `app.whenReady()` before anything reads settings; `PRAGMA journal_mode = WAL`, `PRAGMA foreign_keys = ON`, `PRAGMA busy_timeout`; before migrating, copy the file to `opsis.db.bak-<schema version>`; run `migrate()` from `drizzle-orm/node-sqlite/migrator` with the folder Forge ships (stage `src/main/db/migrations` as an extra resource or import the SQL as text at build time); close on `will-quit`.
-6. **Packaging.** Nothing native to stage. Check the packaged app finds its migrations and that the database lands in `<userData>`.
-7. **Tests** (vitest, in-memory database): every migration applies to an empty database in order; a failed transaction leaves nothing behind (#1723); no migration file ends with an empty `--> statement-breakpoint` (#6207).
+3. **Schema.** `src/main/db/schema.ts` with `sqliteTable`s (below). Integer primary keys with a unique text column where the natural key is text (a project folder, a setting section), not TEXT primary keys (see **Risks**, #6165).
+4. **Config and DDL.** `drizzle.config.ts` at the repo root (`dialect: "sqlite"`, schema `src/main/db/schema.ts`). The `db:schema` script and the staleness test from **Schema without migrations**.
+5. **Opening.** `src/main/db/index.ts`: `openDatabase()` at `app.whenReady()` before anything reads settings; `PRAGMA journal_mode = WAL`, `PRAGMA foreign_keys = ON`, `PRAGMA busy_timeout`; the hash check; close on `will-quit`. Tests open it with `":memory:"`.
+6. **Move each store,** deleting its JSON code: settings, projects (recents become a query), window bounds, the font library index.
+7. **Packaging.** Nothing native to stage. Check the packaged app finds the DDL and that the database lands in `<userData>`.
+8. **Tests** (vitest, in-memory database): the DDL creates every table; a changed hash recreates the database; a failed transaction leaves nothing behind (#1723); each moved store round-trips.
 
 ### Tables
 
-| Table           | Columns (short)                                                                                         | Replaces                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `settings`      | `section` (unique), `value` (JSON text), `updatedAt`                                                    | `settings.json`                                               |
-| `projects`      | `id`, `dir` (unique), `name`, `openedAt`                                                                | `recent-projects.json`                                        |
-| `view_state`    | `projectId` (null = app-wide), `key`, `value` (JSON), unique (`projectId`, `key`)                       | `readPref` / `writePref` and `layoutStorage` in local storage |
-| `window_bounds` | `window` (unique: `settings`, `panel:preview`…), `x`, `y`, `width`, `height`                            | `panel-windows.json`, `settings-window.json`                  |
-| `fonts`         | `fontId` (unique), `def` (JSON `FontFamilyDef`)                                                         | `library.json` (font files stay in `<userData>/fonts`)        |
-| `secrets`       | `scope` (`app`), `name` (unique per scope), `value` (`encryptedText`)                                   | new: service keys for voice and the assistant                 |
-| `assist_log`    | `id`, `at`, `projectId`, `task`, `service`, `model`, `request` (JSON), `response` (JSON), `error`, `ms` | new                                                           |
+| Table           | Columns (short)                                                                                            | Replaces                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `meta`          | `id` (always 1), `schemaHash`                                                                              | new                                                                       |
+| `settings`      | `section` (unique), `value` (JSON text)                                                                    | `settings.json`                                                           |
+| `projects`      | `id`, `dir` (unique), `name`, `openedAt`                                                                   | `recent-projects.json`                                                    |
+| `app_state`     | `key` (unique), `value` (JSON)                                                                             | app-wide local storage (`opsis:setup-skipped`, view keys with no project) |
+| `view_state`    | `projectId` (not null, references `projects`, cascade), `key`, `value` (JSON), unique (`projectId`, `key`) | `readPref` / `writePref` and `layoutStorage` in local storage             |
+| `window_bounds` | `window` (unique: `settings`, `panel:preview`…), `x`, `y`, `width`, `height`                               | `panel-windows.json`, `settings-window.json`                              |
+| `fonts`         | `fontId` (unique), `def` (JSON `FontFamilyDef`, kept as text when it no longer parses)                     | `library.json` (font files stay in `<userData>/fonts`)                    |
+| `secrets`       | `scope` (`app`), `name` (unique per scope), `value` (`encryptedText`)                                      | new: service keys for voice and the assistant                             |
+| `assist_log`    | `id`, `at`, `projectId`, `task`, `service`, `model`, `request` (JSON), `response` (JSON), `error`, `ms`    | new                                                                       |
+
+- **`projects` keeps every project opened**, never just the last 20: `view_state` and `assist_log` hang off it, and pruning it would drop their rows. Recent projects are a query: newest `openedAt` first, skipping folders without a project file, first 20 (`MAX_RECENT`).
+- App-wide values live in `app_state`, not in `view_state` with a null project: SQLite treats every NULL as distinct, so `unique(projectId, key)` would let app-wide rows repeat.
 
 ## Per-project view state
 
 ### What it adds
 
-Panel sizes, the active tab, Fast/Exact preview, preview shape, minimap, mixer folding and the Timeline's ruler and snapping are saved once per project for every window, instead of in each window's own local storage.
+Panel sizes, the active tab, Fast/Exact preview, preview shape, minimap, mixer folding and the Timeline's ruler and snapping move from the renderer's local storage into the database, so the app's state is in one place, main can read it, and clearing the browser storage loses nothing. Windows already share it today (one origin, and `useViewOptions` is mirrored over `opsis-sync` in `src/renderer/app/sync.ts`); that stays as it is.
 
 ### Fit with Opsis
 
 Already in place:
 
-- `src/renderer/store/view-prefs.ts` (`readPref`, `writePref`, `setViewProject`) is the single read/write path for the per-project preferences (`dockTab`, `previewQuality`, `previewShape`, `minimap`, `mixerCollapsed`, `rulerMode`, `snapping`), and `loadViewState` (`src/renderer/editor/view-state.ts`) loads them when a project opens.
-- Panel layouts go through `layoutStorage` (`src/renderer/editor/panels.ts`) passed to `useDefaultLayout`.
+- `src/renderer/store/view-prefs.ts` (`readPref`, `writePref`, `setViewProject`) is the single read/write path for the per-project preferences (`dockTab`, `previewQuality`, `previewShape`, `minimap`, `mixerCollapsed`, `rulerMode`, `snapping`), and `loadViewState` (`src/renderer/editor/view-state.ts`) loads them when a project opens (`open-project.ts`, and `applyState` in `sync.ts` for panel windows).
+- Panel layouts go through `layoutStorage` (`src/renderer/editor/panels.ts`) passed to `useDefaultLayout`, with ids that already name the project folder (`opsis:editor-columns:<dir>`, `opsis:editor-rows:<dir>`).
+- `src/renderer/app/startup-flags.ts` keeps `opsis:setup-skipped` in local storage (app-wide).
 
 Missing:
 
@@ -93,9 +110,11 @@ Missing:
 
 ### Work
 
-1. `loadViewState` fetches the project's whole view state once (one IPC call) into a small store before the editor renders; `readPref` and `layoutStorage.getItem` read that store synchronously; writes update the store and send `setViewState`.
-2. Main broadcasts changes so pop-out windows follow, like `settingsChanged`.
-3. Window bounds use `window_bounds` instead of the two JSON files.
+1. `loadViewState` becomes async: one IPC call fetches the project's whole view state into a small renderer cache before the stores read it; `readPref` and `layoutStorage.getItem` read that cache synchronously; writes update it and send `setViewState`. The editor renders only after the project's view state is loaded.
+2. Layout keys stop carrying the folder (`opsis:editor-columns`), since the row already belongs to the project.
+3. App-wide values (`opsis:setup-skipped`, view keys with no project open) go to `app_state` through `getAppState` / `setAppState`, loaded once before the first render.
+4. Window bounds use `window_bounds` instead of the two JSON files.
+5. Update `AGENTS.md` ("View state is per project, on this computer", "Settings is its own window", the pop-out bounds and the font library) to name the database instead of local storage and the JSON files.
 
 ## Encrypted values
 
@@ -105,18 +124,19 @@ Missing:
 
 ### Fit with Opsis
 
-- The model is the email client's `encryptedText` (`../email-client/apps/web/src/db/crypto.ts`): a `customType<{ data: string; driverData: string }>` with `dataType: "text"`, AES-256-GCM, a 12-byte random IV, and the stored form `v1:<iv>:<tag>:<body>` in base64.
-- Opsis already encrypts project sign-ins with `safeStorage` (`src/main/secrets.ts`, files in the project's `secrets/`).
+- Opsis already encrypts project sign-ins with `safeStorage` (`src/main/secrets.ts`, files in the project's `secrets/`), and refuses to save them when `safeStorage.isEncryptionAvailable()` is false.
 
 ### Work
 
-1. `src/main/db/crypto.ts`: the same `seal` / `open` and `encryptedText(name)`. The 32-byte key isn't an environment variable: it's made once with `crypto.randomBytes(32)`, encrypted with `safeStorage.encryptString` and kept in `<userData>/db-key.enc` (outside the database, so a copied database alone reveals nothing).
-2. Refuse to create or use the key when `safeStorage.isEncryptionAvailable()` is false or, on Linux, `safeStorage.getSelectedStorageBackend()` is `basic_text`, and say why on the Settings page that asked for it.
-3. A wrong key or a tampered value fails the GCM check: report "This key can't be read on this computer. Enter it again." and never crash.
-4. Project sign-ins stay in the project's `secrets/` folder for now: they belong to the project, and moving them is a separate decision.
-5. Tests: seal → open round trip, a tampered tag fails, an old prefix fails cleanly.
+1. `src/main/db/crypto.ts`: `encryptedText(name)` is a `customType<{ data: string; driverData: string }>` whose `toDriver` is `safeStorage.encryptString(value)` in base64 and whose `fromDriver` decrypts it. No key of our own: `safeStorage` already keeps its key in the OS keychain, so a copied database alone reveals nothing, and a second layer would add a key file without adding protection.
+2. Refuse to store a value when `safeStorage.isEncryptionAvailable()` is false or, on Linux, `safeStorage.getSelectedStorageBackend()` is `basic_text`, and say why on the Settings page that asked for it.
+3. A value that can't be decrypted on this computer reports "This key can't be read on this computer. Enter it again." and never crashes.
+4. Project sign-ins stay in the project's `secrets/` folder: they belong to the project.
+5. Tests (with `safeStorage` mocked): round trip, a value that fails to decrypt reports cleanly, `basic_text` is refused.
 
 ## Assistant request log
+
+Built together with `plans/ai-assist.md`, which calls it.
 
 ### What it adds
 
@@ -134,17 +154,17 @@ Each request the assistant sends (local or online) and its answer, stored in `as
 
 ## Risks
 
-- **Release candidate.** No stable date for Drizzle 1.0 when checked: `rc.4` came out on 2026-06-27, with only unlabelled `rc.5` test builds since, while 0.45.x kept getting patches. Breaking changes between RCs are possible; moving to the stable release is a separate step that re-runs the migration tests.
-- **#6165:** drizzle-kit v1 leaves `NOT NULL` off SQLite TEXT primary keys (open against `rc.4`). Avoided by integer keys (step 3); review each generated migration anyway.
-- **#6207:** the migrator sends blank statements when a migration ends with an empty breakpoint. Avoided by never hand-editing migrations and by the test in step 7.
+- **Release candidate.** No stable date for Drizzle 1.0 when checked: `rc.4` came out on 2026-06-27, while 0.45.x kept getting patches (0.45.4 on 2026-10-08). Breaking changes between RCs are possible; moving to the stable release is a separate step that re-runs the tests.
+- **#6165:** drizzle-kit v1 leaves `NOT NULL` off SQLite TEXT primary keys (open against `rc.4`). Avoided by integer keys (step 3); review the exported DDL anyway.
 - **#5515:** drizzle-kit can't find `node:sqlite` under Bun's runtime. Not a risk here: nothing runs under `--bun`.
 - **#1723:** reports of transactions not rolling back (old, mostly other drivers). Covered by the rollback test.
-- **Downgrades.** An older app version doesn't know the database. The pre-migration backup lets a user go back by hand.
+- **`node:sqlite` in the main bundle.** Forge's Vite plugin keeps Node's built-ins external using the build machine's `builtinModules`; it lists `node:sqlite` on Node 26. Check CI's Node does too (step 7).
+- **Schema changes wipe dev state.** Until real migrations exist, changing the schema resets settings and view state on every development machine.
 
 ## Sources
 
-- [Drizzle: Node SQLite driver](https://orm.drizzle.team/docs/sqlite/connect-node-sqlite) and [v1 roadmap](https://orm.drizzle.team/roadmap) (checked 2026-10-17)
-- npm metadata of `drizzle-orm`: dist-tags (`latest` 0.45.4, `rc` 1.0.0-rc.4), release dates, `exports` of 0.45.4 (no `./node-sqlite`) and 1.0.0-rc.4 (`./node-sqlite`, `./node-sqlite/driver`) (checked 2026-10-17)
-- Drizzle issues [#2648](https://github.com/drizzle-team/drizzle-orm/issues/2648), [#6165](https://github.com/drizzle-team/drizzle-orm/issues/6165), [#6207](https://github.com/drizzle-team/drizzle-orm/issues/6207), [#5515](https://github.com/drizzle-team/drizzle-orm/issues/5515), [#1723](https://github.com/drizzle-team/drizzle-orm/issues/1723) and advisory [GHSA-gpj5-g38j-94v9](https://github.com/advisories/GHSA-gpj5-g38j-94v9) (fixed in 1.0.0-beta.20, so not in rc.4) (checked 2026-10-17)
+- [Drizzle: Node SQLite driver](https://orm.drizzle.team/docs/sqlite/connect-node-sqlite), [drizzle-kit export](https://orm.drizzle.team/docs/drizzle-kit-export) and [v1 roadmap](https://orm.drizzle.team/roadmap) (checked 2026-10-17)
+- npm metadata of `drizzle-orm` and `drizzle-kit`: dist-tags (`latest` 0.45.4 / 0.31.11, `rc` 1.0.0-rc.4), release dates, `exports` of 0.45.4 (no `./node-sqlite`) and 1.0.0-rc.4 (`./node-sqlite`, `./node-sqlite/driver`) (checked 2026-10-19)
+- Drizzle issues [#2648](https://github.com/drizzle-team/drizzle-orm/issues/2648), [#6165](https://github.com/drizzle-team/drizzle-orm/issues/6165), [#5515](https://github.com/drizzle-team/drizzle-orm/issues/5515), [#1723](https://github.com/drizzle-team/drizzle-orm/issues/1723) and advisory [GHSA-gpj5-g38j-94v9](https://github.com/advisories/GHSA-gpj5-g38j-94v9) (fixed in 1.0.0-beta.20, released before rc.1, so not in rc.4) (checked 2026-10-17)
 - [Electron PR #47757](https://github.com/electron/electron/pull/47757) (missing SQLite built-in fixed) and [issue #45532](https://github.com/electron/electron/issues/45532) (checked 2026-10-17)
-- `../email-client/apps/web/src/db/crypto.ts` (the encrypted column type this plan copies)
+- [Electron `safeStorage`](https://www.electronjs.org/docs/latest/api/safe-storage) (`getSelectedStorageBackend` on Linux)
