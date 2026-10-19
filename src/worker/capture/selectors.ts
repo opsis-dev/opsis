@@ -5,33 +5,26 @@ import { parsePoint } from "../../shared/schema/actions";
 import { withoutCallName } from "./driver-helpers";
 import { CSS_PREFIX, type Target } from "./flow-types";
 
-interface FindLocator {
-  first(): this;
-  filter(options: { hasText: RegExp }): this;
-  locator(selector: string): this;
-  isVisible(): Promise<boolean>;
-  waitFor(options: { state: "visible"; timeout: number }): Promise<void>;
-}
+type FindPage = Pick<
+  Page,
+  | "getByRole"
+  | "getByLabel"
+  | "getByPlaceholder"
+  | "getByTestId"
+  | "getByText"
+  | "locator"
+  | "waitForTimeout"
+  | "evaluate"
+>;
 
-type FindPage<L extends FindLocator> = {
-  getByRole(role: NamedRole, options: { name: RegExp }): L;
-  getByLabel(text: RegExp): L;
-  getByPlaceholder(text: RegExp): L;
-  getByTestId(id: string): L;
-  getByText(text: RegExp): L;
-  locator(selector: string): L;
-  waitForTimeout(ms: number): Promise<void>;
-  evaluate: Page["evaluate"];
-};
+type Candidate = { by: string; locator: Locator };
 
-type Candidate<L> = { by: string; locator: L };
+export type Resolved = { target: Target; by: string };
 
-export type Resolved<L = Locator> = { target: Target<L>; by: string };
-
-type ResolveOptions<L> = {
+type ResolveOptions = {
   log: (level: "info", message: string) => void;
   signal: AbortSignal;
-  hoisted?: ReadonlyMap<string, L>;
+  hoisted?: ReadonlyMap<string, Locator>;
   timeoutMs?: number;
 };
 
@@ -43,7 +36,6 @@ const DUMP_LIMIT = 24;
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const NAMED_ROLES = ["button", "link", "textbox", "combobox", "option", "tab"] as const;
-type NamedRole = (typeof NAMED_ROLES)[number];
 
 const ANCESTOR_ROLES = ["button", "link", "menuitem", "tab", "option", "combobox"];
 const ANCESTOR_TAGS = ["button", "a"];
@@ -52,7 +44,7 @@ const INTERACTIVE_ANCESTOR = `xpath=ancestor-or-self::*[${[
   ...ANCESTOR_TAGS.map((tag) => `self::${tag}`),
 ].join(" or ")}][1]`;
 
-function autoCandidates<L extends FindLocator>(page: FindPage<L>, name: string): Candidate<L>[] {
+function autoCandidates(page: FindPage, name: string): Candidate[] {
   const exact = new RegExp(`^${escapeRegExp(name)}$`, "i");
   const loose = new RegExp(escapeRegExp(name), "i");
   return [
@@ -86,7 +78,7 @@ export class SelectorError extends Error {
   }
 }
 
-async function visibleNow(locator: FindLocator): Promise<boolean> {
+async function visibleNow(locator: Locator): Promise<boolean> {
   try {
     return await locator.isVisible();
   } catch (error) {
@@ -95,9 +87,7 @@ async function visibleNow(locator: FindLocator): Promise<boolean> {
   }
 }
 
-async function firstVisible<L extends FindLocator>(
-  candidates: Candidate<L>[],
-): Promise<Resolved<L> | null> {
+async function firstVisible(candidates: Candidate[]): Promise<Resolved | null> {
   for (const c of candidates) {
     const locator = c.locator.first();
     if (await visibleNow(locator)) return { target: locator, by: c.by };
@@ -105,11 +95,11 @@ async function firstVisible<L extends FindLocator>(
   return null;
 }
 
-export async function resolveTarget<L extends FindLocator>(
-  page: FindPage<L>,
+export async function resolveTarget(
+  page: FindPage,
   raw: string,
-  opts: ResolveOptions<L>,
-): Promise<Resolved<L>> {
+  opts: ResolveOptions,
+): Promise<Resolved> {
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const hit = opts.hoisted?.get(raw);
   if (hit) return { target: hit, by: "hoisted" };

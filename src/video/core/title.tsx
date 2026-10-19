@@ -5,49 +5,46 @@ import { fontOr } from "../../shared/fonts";
 import { entranceStyle, exitOpacity, type Entrance } from "./anim";
 import { Backgrounded } from "./backgrounds";
 
-const TITLE = {
-  padding: "0 9%",
-  gapEm: 0.22,
-  eyebrow: { sizeEm: 0.26, weight: 700, letterSpacing: "0.18em", delay: 0 },
-  title: { weight: 760, letterSpacing: "-0.035em", lineHeight: 1.02, delay: 4 },
-  subtitle: { sizeEm: 0.34, weight: 450, opacity: 0.7, maxWidth: "80%", delay: 10 },
-} as const;
+const TITLE = { padding: "0 9%", gapEm: 0.22 } as const;
 
-type TitleLineProps = { text: string; color: string; fontSize: number; entrance: Entrance };
+type LineLook = { sizeEm: number; delay: number; style: React.CSSProperties };
 
-const TitleEyebrow: React.FC<TitleLineProps> = ({ text, color, fontSize, entrance }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const { sizeEm, weight, letterSpacing, delay } = TITLE.eyebrow;
-  return (
-    <div
-      style={{
-        ...entranceStyle(entrance, frame, fps, delay),
-        color,
-        fontSize: fontSize * sizeEm,
-        fontWeight: weight,
-        letterSpacing,
-        textTransform: "uppercase",
-      }}
-    >
-      {text}
-    </div>
-  );
+const LINES = {
+  eyebrow: {
+    sizeEm: 0.26,
+    delay: 0,
+    style: { fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" },
+  },
+  title: {
+    sizeEm: 1,
+    delay: 4,
+    style: { fontWeight: 760, letterSpacing: "-0.035em", lineHeight: 1.02, maxWidth: "100%" },
+  },
+  subtitle: {
+    sizeEm: 0.34,
+    delay: 10,
+    style: { fontWeight: 450, opacity: 0.7, maxWidth: "80%" },
+  },
+} satisfies Record<string, LineLook>;
+
+type TitleLineProps = {
+  look: LineLook;
+  text: string;
+  color: string;
+  fontSize: number;
+  entrance: Entrance;
 };
 
-const TitleSubtitle: React.FC<TitleLineProps> = ({ text, color, fontSize, entrance }) => {
+const TitleLine: React.FC<TitleLineProps> = ({ look, text, color, fontSize, entrance }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const { sizeEm, weight, opacity, maxWidth, delay } = TITLE.subtitle;
   return (
     <div
       style={{
-        ...entranceStyle(entrance, frame, fps, delay),
+        ...entranceStyle(entrance, frame, fps, look.delay),
         color,
-        opacity,
-        fontSize: fontSize * sizeEm,
-        fontWeight: weight,
-        maxWidth,
+        fontSize: fontSize * look.sizeEm,
+        ...look.style,
       }}
     >
       {text}
@@ -68,8 +65,9 @@ export const Title: React.FC<CoreElementProps["core/title"]> = ({
   fontFamily,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
   const out = exitOpacity(frame, durationInFrames);
+  const line = { fontSize, entrance };
   return (
     <AbsoluteFill>
       <Backgrounded background={background} />
@@ -85,23 +83,11 @@ export const Title: React.FC<CoreElementProps["core/title"]> = ({
         }}
       >
         {eyebrow ? (
-          <TitleEyebrow text={eyebrow} color={accent} fontSize={fontSize} entrance={entrance} />
+          <TitleLine look={LINES.eyebrow} text={eyebrow} color={accent} {...line} />
         ) : null}
-        <div
-          style={{
-            ...entranceStyle(entrance, frame, fps, TITLE.title.delay),
-            color,
-            fontSize,
-            fontWeight: TITLE.title.weight,
-            letterSpacing: TITLE.title.letterSpacing,
-            lineHeight: TITLE.title.lineHeight,
-            maxWidth: "100%",
-          }}
-        >
-          {title}
-        </div>
+        <TitleLine look={LINES.title} text={title} color={color} {...line} />
         {subtitle ? (
-          <TitleSubtitle text={subtitle} color={color} fontSize={fontSize} entrance={entrance} />
+          <TitleLine look={LINES.subtitle} text={subtitle} color={color} {...line} />
         ) : null}
       </AbsoluteFill>
     </AbsoluteFill>

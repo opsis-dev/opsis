@@ -1,11 +1,11 @@
-import { readdir, rm, stat } from "node:fs/promises";
+import { rm, stat } from "node:fs/promises";
 import path from "node:path";
-import { nullIfMissing } from "./json";
+import { readDirIfPresent } from "./json";
 
 type DatedFile = { name: string; file: string; mtimeMs: number | null };
 
 async function datedFiles(dir: string): Promise<DatedFile[]> {
-  const names = (await nullIfMissing(readdir(dir))) ?? [];
+  const names = await readDirIfPresent(dir);
   return Promise.all(
     names.map(async (name) => {
       const file = path.join(dir, name);

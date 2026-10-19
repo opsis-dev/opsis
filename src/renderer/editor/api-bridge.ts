@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { problemCheck, workflowProblems } from "@/shared/api/check";
+import { firstIssueText } from "@/shared/api/issue-text";
 import {
   apiFailure,
   apiOk,
@@ -124,11 +125,7 @@ const removeEdges: Handler<"removeEdges"> = (request, wf) => {
 
 const setSettings: Handler<"setSettings"> = (request) => {
   const parsed = workflowSettingsSchema.partial().strict().safeParse(request.settings);
-  if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    const where = issue.path.length ? `${issue.path.join(".")}: ` : "";
-    return apiFailure(400, `${where}${issue.message}`);
-  }
+  if (!parsed.success) return apiFailure(400, firstIssueText(parsed.error));
   useWorkflowStore.getState().setSettings(parsed.data);
   return edited();
 };

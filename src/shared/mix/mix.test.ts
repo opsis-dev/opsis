@@ -111,6 +111,26 @@ describe("mixer levels", () => {
     expect(sound(live, "fx").duck).toBeUndefined();
   });
 
+  it("ducks only for clips whose sound plays", () => {
+    const musicOver = (rate: number) => {
+      const g = new GraphBuilder();
+      g.node("music", "audio.music", 0, 0, { src: "assets/song.mp3", fadeInMs: 0, fadeOutMs: 0 });
+      g.node("clipfile", "media.import", 0, 1, { path: "assets/clip.mp4" });
+      g.node("fast", "timeline.speed", 1, 1, { rate });
+      g.node("mix", "audio.mix", 2, 0);
+      g.node("out", "output.render", 3, 0);
+      g.link("clipfile", "fast")
+        .link("fast", "mix")
+        .link("music", "mix", "audio", "sounds")
+        .link("mix", "out", "clip", "timeline");
+      const spec = filmSpec(g.build({ id: "wf", name: "Sped up" }));
+      expect(itemsOf(spec).some(itemHasSound)).toBe(true);
+      return sound(applyMixLevels(spec, withDuck(defaultMix(), { keys: ["clips"] })), "music");
+    };
+    expect(musicOver(1).duck?.keys).toEqual(["clipfile"]);
+    expect(musicOver(2).duck).toBeUndefined();
+  });
+
   it("plays only the master stem when one is ready", () => {
     const { spec } = project();
     const stem = withMasterStem(spec, { src: "project:.demoflow/cache/mix/m.wav", hash: "m" });
@@ -121,6 +141,21 @@ describe("mixer levels", () => {
 });
 
 describe("mix plan", () => {
+  it("lists channels in the order their sounds are connected, not by when they play", () => {
+    const g = new GraphBuilder();
+    g.node("t", TITLE, 0, 0, { clipDuration: 300 });
+    g.node("late", "audio.sfx", 0, 1, { src: "app:sfx/whoosh.wav", atMs: 5000 });
+    g.node("early", "audio.sfx", 0, 2, { src: "app:sfx/whip.wav", atMs: 1000 });
+    g.node("mix", "audio.mix", 1, 0);
+    g.node("out", "output.render", 2, 0);
+    g.link("t", "mix")
+      .link("late", "mix", "audio", "sounds")
+      .link("early", "mix", "audio", "sounds")
+      .link("mix", "out", "clip", "timeline");
+    const plan = buildMixPlan(filmSpec(g.build({ id: "wf", name: "Order" })), undefined);
+    expect(plan.channels.map((c) => c.id)).toEqual(["late", "early"]);
+  });
+
   it("has a channel per sound source, routed to the default buses", () => {
     const { spec } = project();
     const plan = buildMixPlan(spec, undefined);

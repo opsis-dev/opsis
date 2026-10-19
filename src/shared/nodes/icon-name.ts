@@ -30,7 +30,6 @@ export const NODE_ICON_NAMES = [
   "git-branch",
   "globe",
   "grab",
-  "group",
   "hard-drive",
   "hourglass",
   "image",

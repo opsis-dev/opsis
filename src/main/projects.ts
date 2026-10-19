@@ -8,6 +8,7 @@ import { atomicWrite, readJsonKeepingBroken, readTextIfPresent, writeJson } from
 import { readLastRun } from "../engine/last-run";
 import { logError } from "../engine/log";
 import { projectPaths } from "../engine/project-paths";
+import { firstIssueText } from "../shared/api/issue-text";
 import { nonBlankString, parseJsonWith } from "../shared/guards";
 import type {
   OpenProject,
@@ -97,9 +98,7 @@ function parseWorkflowText(text: string): ParsedWorkflow {
   const parsed = parseJsonWith(workflowSchema, text);
   if (!parsed) return { ok: false, problem: "the file is damaged" };
   if (parsed.success) return { ok: true, workflow: parsed.data };
-  const issue = parsed.error.issues[0];
-  const where = issue.path.length ? `${issue.path.join(".")}: ` : "";
-  return { ok: false, problem: `${where}${issue.message}` };
+  return { ok: false, problem: firstIssueText(parsed.error) };
 }
 
 const workflowOrNull = (text: string): Workflow | null => {

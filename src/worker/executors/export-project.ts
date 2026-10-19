@@ -11,7 +11,12 @@ import { safeName } from "../../shared/safe-name";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { stringsIn } from "../../shared/vars";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
-import { SOURCE_ALIAS, SOURCE_DIR } from "../render/source-alias";
+import {
+  SOURCE_ALIAS,
+  SOURCE_DIR,
+  WEBPACK_OVERRIDE_DIR,
+  WEBPACK_OVERRIDE_FILES,
+} from "../render/source-alias";
 import { mixed, specFor, type Stage } from "./film-spec";
 import { exportSourceRoot, exportUtilsFile, publicDir } from "./util";
 
@@ -25,6 +30,7 @@ const EXPORT_DEV_DEPENDENCIES = [
   "tailwindcss",
   "typescript",
   "@types/react",
+  "@types/node",
 ];
 
 const SOURCE_FILE = /\.(ts|tsx|mts|css)$/;
@@ -65,24 +71,10 @@ export const ExportRoot = () => (
 
 const CANT_EXPORT_CODE = "This copy of Demoflow can't export code.";
 
-const REMOTION_CONFIG_TS = `import path from "node:path";
-import { Config } from "@remotion/cli/config";
-import { enableTailwind } from "@remotion/tailwind-v4";
+const REMOTION_CONFIG_TS = `import { Config } from "@remotion/cli/config";
+import { makeWebpackOverride } from "./${[SOURCE_DIR, ...WEBPACK_OVERRIDE_DIR, "webpack-override"].join("/")}";
 
-Config.overrideWebpackConfig((c) => {
-  const t = enableTailwind(c);
-  const alias = t.resolve?.alias;
-  return {
-    ...t,
-    resolve: {
-      ...t.resolve,
-      alias: {
-        ...(Array.isArray(alias) ? {} : alias),
-        ${JSON.stringify(SOURCE_ALIAS)}: path.join(process.cwd(), ${JSON.stringify(SOURCE_DIR)}),
-      },
-    },
-  };
-});
+Config.overrideWebpackConfig(makeWebpackOverride(process.cwd()));
 `;
 
 const TSCONFIG = {
@@ -125,6 +117,7 @@ function sourceDirs(ctx: ExecutorContext) {
     shared: path.join(root, "shared"),
     utils: exportUtilsFile(ctx.env),
     public: publicDir(ctx.env),
+    webpack: path.join(root, ...WEBPACK_OVERRIDE_DIR),
   };
 }
 
@@ -136,6 +129,11 @@ async function copySources(ctx: ExecutorContext, dir: string) {
   await cp(src.shared, path.join(dir, "src", "shared"), { recursive: true });
   await cp(src.utils, path.join(dir, "src", "renderer", "lib", "utils.ts"));
   await cp(src.public, path.join(dir, "public"), { recursive: true });
+  for (const file of WEBPACK_OVERRIDE_FILES)
+    await cp(
+      path.join(src.webpack, file),
+      path.join(dir, SOURCE_DIR, ...WEBPACK_OVERRIDE_DIR, file),
+    );
 }
 
 async function importedPackages(srcDir: string): Promise<Set<string>> {

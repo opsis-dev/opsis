@@ -1,4 +1,4 @@
-import { readFile, rename, writeFile } from "node:fs/promises";
+import { readdir, readFile, rename, writeFile } from "node:fs/promises";
 import type { z } from "zod";
 import { errorCode } from "../shared/errors";
 import { parseJsonWith } from "../shared/guards";
@@ -20,6 +20,12 @@ export async function nullIfMissing<T>(work: Promise<T>): Promise<T | null> {
 
 export const readTextIfPresent = (file: string): Promise<string | null> =>
   nullIfMissing(readFile(file, "utf8"));
+
+export const readBytesIfPresent = (file: string): Promise<Buffer | null> =>
+  nullIfMissing(readFile(file));
+
+export const readDirIfPresent = async (dir: string): Promise<string[]> =>
+  (await nullIfMissing(readdir(dir))) ?? [];
 
 type Read<T> = { kind: "missing" } | { kind: "invalid" } | { kind: "valid"; value: T };
 

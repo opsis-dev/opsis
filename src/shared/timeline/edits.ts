@@ -249,10 +249,11 @@ const ROOT_LEVEL = { rate: 1, from: 0 };
 const slotLevel = (bar: Pick<VideoBar, "chain">): { rate: number; from: number } =>
   slotLink(bar) ?? ROOT_LEVEL;
 
-function pathEdge(wf: Workflow, from: string, to: string): WorkflowEdge | undefined {
+function firstEdgeOnPath(wf: Workflow, from: string, to: string): WorkflowEdge | undefined {
   const seen = new Set<string>([from]);
   const queue: Array<{ id: string; first?: WorkflowEdge }> = [{ id: from }];
-  for (const { id, first } of queue) {
+  for (let i = 0; i < queue.length; i++) {
+    const { id, first } = queue[i];
     for (const e of wf.edges) {
       if (e.source !== id || seen.has(e.target)) continue;
       const head = first ?? e;
@@ -264,26 +265,23 @@ function pathEdge(wf: Workflow, from: string, to: string): WorkflowEdge | undefi
   return undefined;
 }
 
-function leafEdge(ctx: EditContext, bar: VideoBar): WorkflowEdge | undefined {
-  const slot = slotLink(bar)?.slot;
-  const next =
-    bar.chain.slice(1).find((l) => l.nodeId && l.nodeId !== bar.nodeId)?.nodeId ??
-    slot?.nodeId ??
-    ctx.sourceNodeId;
-  if (!next) return undefined;
-  if (slot && next === slot.nodeId) {
-    const direct = ctx.workflow.edges.find(
-      (e) => e.source === bar.nodeId && e.target === slot.nodeId && e.targetHandle === slot.port,
-    );
-    if (direct) return direct;
-  }
-  return pathEdge(ctx.workflow, bar.nodeId, next);
+function nodeAfterClip(ctx: EditContext, bar: VideoBar): string | null {
+  const wrapper = bar.chain.slice(1).find((l) => l.nodeId && l.nodeId !== bar.nodeId);
+  return wrapper?.nodeId ?? slotLink(bar)?.slot?.nodeId ?? ctx.sourceNodeId;
 }
 
-function owns(link: ChainLink, wf: Workflow): boolean {
-  return Object.values(link.handles ?? {}).some(
-    (h) => !!h && wf.nodes.some((n) => n.id === h.nodeId),
+function slotInputEdge(ctx: EditContext, bar: VideoBar, next: string): WorkflowEdge | undefined {
+  const slot = slotLink(bar)?.slot;
+  if (!slot || slot.nodeId !== next) return undefined;
+  return ctx.workflow.edges.find(
+    (e) => e.source === bar.nodeId && e.target === slot.nodeId && e.targetHandle === slot.port,
   );
+}
+
+function edgeOutOfClip(ctx: EditContext, bar: VideoBar): WorkflowEdge | undefined {
+  const next = nodeAfterClip(ctx, bar);
+  if (!next) return undefined;
+  return slotInputEdge(ctx, bar, next) ?? firstEdgeOnPath(ctx.workflow, bar.nodeId, next);
 }
 
 function ownedHandle(
@@ -293,7 +291,7 @@ function ownedHandle(
 ): { link: ChainLink; ref: ParamRef } | null {
   const link = findHandle(bar, kind, "outer");
   const ref = link?.handles?.[kind];
-  return link && ref && owns(link, ctx.workflow) ? { link, ref } : null;
+  return link && ref && findById(ctx.workflow.nodes, ref.nodeId) ? { link, ref } : null;
 }
 
 function shiftOwned(
@@ -355,7 +353,7 @@ function trimStart(ctx: EditContext, bar: VideoBar, delta: number): EditResult {
   const owned = ownedHandle(ctx, bar, "trimStart");
   if (owned) return shiftOwned(ctx, owned, delta, AT_START);
   if (delta < 0) return fail(AT_START);
-  const edge = leafEdge(ctx, bar);
+  const edge = edgeOutOfClip(ctx, bar);
   if (!edge) return notConnected("trim it");
   return addTrim(ctx, bar, edge, Math.round((bar.contentStart + delta) * bar.rate), 0);
 }
@@ -368,7 +366,7 @@ function trimEnd(ctx: EditContext, bar: VideoBar, delta: number): EditResult {
     return ok(setLength(ctx.workflow, owned.ref, length, ctx.fps));
   }
   if (delta > 0) return fail("That's the end of the clip.");
-  const edge = leafEdge(ctx, bar);
+  const edge = edgeOutOfClip(ctx, bar);
   if (!edge) return notConnected("trim it");
   const keep = Math.round(bar.contentEnd - bar.contentStart + delta * bar.rate);
   if (keep < 1) return fail(NEEDS_A_FRAME);
@@ -397,7 +395,7 @@ export function slipBar(ctx: EditContext, bar: VideoBar, delta: number): EditRes
     return shiftTo(wf, { ...owned.ref, linked: [] }, content, ctx.fps, AT_START);
   }
   if (content < 0) return fail(AT_START);
-  const edge = leafEdge(ctx, bar);
+  const edge = edgeOutOfClip(ctx, bar);
   if (!edge) return notConnected("edit it");
   const length = Math.round(bar.contentEnd - bar.contentStart);
   return addTrim(ctx, bar, edge, Math.round(bar.contentStart) + content, length);

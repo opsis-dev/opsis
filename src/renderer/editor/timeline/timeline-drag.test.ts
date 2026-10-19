@@ -1,17 +1,23 @@
-import { describe, expect, it, vi } from "vitest";
-import { randomId } from "@/shared/ids";
+import { describe, expect, it } from "vitest";
 import { GraphBuilder } from "@/shared/templates/build";
+import { editContext } from "./timeline-drag";
 
 const workflow = new GraphBuilder().build({ name: "Ids" });
 
-async function firstIdOfALaunch(): Promise<string> {
-  vi.resetModules();
-  const { editContext } = await import("./timeline-drag");
-  return editContext(workflow, 30, null, randomId()).makeId("timeline");
-}
+const idsOf = (salt: string) => {
+  const ctx = editContext(workflow, 30, null, salt);
+  return [ctx.makeId("timeline"), ctx.makeId("timeline")];
+};
 
 describe("timeline edit ids", () => {
-  it("never repeat an id minted in an earlier launch", async () => {
-    expect(await firstIdOfALaunch()).not.toBe(await firstIdOfALaunch());
+  it("are the same for the same salt and never repeat within one edit", () => {
+    const ids = idsOf("a");
+    expect(idsOf("a")).toEqual(ids);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("differ between edits with different salts", () => {
+    const [first] = idsOf("a");
+    expect(idsOf("b")).not.toContain(first);
   });
 });

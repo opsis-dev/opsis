@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { EMPTY_CLIP_FRAMES, emptyClip, itemClip, stackClips } from "../compile/clip";
 import { CAPTIONS_ELEMENT, captionsSchema } from "../elements/core";
-import { fontStack } from "../fonts";
+import { fontProp } from "../fonts";
 import { humanize } from "../format";
 import { asValue, type CaptionsValue } from "../schema/values";
 import { msToFrames } from "../timeline/time";
@@ -94,7 +94,7 @@ const captionsNode = defineNode({
       CAPTIONS_ELEMENT,
       {
         ...params,
-        fontFamily: params.fontFamily ? fontStack(params.fontFamily) : undefined,
+        fontFamily: fontProp(params.fontFamily),
         captions: caps.captions,
       },
       msToFrames(end + CAPTION_TAIL_MS, settings.fps),

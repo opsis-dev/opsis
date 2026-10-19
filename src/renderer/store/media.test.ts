@@ -23,9 +23,12 @@ describe("media requests", () => {
     useMedia.getState().reset("/project");
     const plan = buildMixPlan({ tracks: [], audio: [], durationInFrames: 30, fps: 30 }, undefined);
     useMedia.getState().requestMix("film", plan);
-    expect(useMedia.getState().mix.pending).toBe(plan.key);
+    expect(useMedia.getState().mix.status).toEqual({ kind: "pending", key: plan.key });
     await vi.runAllTimersAsync();
-    expect(useMedia.getState().mix.pending).toBeNull();
-    expect(useMedia.getState().mix.error).toBe("worker gone");
+    expect(useMedia.getState().mix.status).toEqual({
+      kind: "failed",
+      key: plan.key,
+      error: "worker gone",
+    });
   });
 });

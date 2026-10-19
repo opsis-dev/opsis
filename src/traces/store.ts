@@ -1,12 +1,12 @@
 import { existsSync } from "node:fs";
-import { mkdir, readdir, readFile, rm } from "node:fs/promises";
+import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { constants, zstdCompressSync, zstdDecompressSync } from "node:zlib";
 import { unzipSync } from "fflate";
 import { z } from "zod";
 import { pruneDir } from "../engine/dir";
 import { sha256Hex } from "../engine/hash";
-import { atomicWrite, nullIfMissing } from "../engine/json";
+import { atomicWrite, readBytesIfPresent, readDirIfPresent } from "../engine/json";
 import { projectPaths } from "../engine/project-paths";
 import { projectRef } from "../shared/asset-ref";
 import { parseJsonWith } from "../shared/guards";
@@ -70,10 +70,10 @@ const newestFirst = (a: TraceManifest, b: TraceManifest) => b.createdAt - a.crea
 async function readRuns(root: string): Promise<Runs> {
   const dir = runsDir(root);
   const runs: Runs = { manifests: [], broken: [] };
-  for (const name of (await nullIfMissing(readdir(dir))) ?? []) {
+  for (const name of await readDirIfPresent(dir)) {
     if (!name.endsWith(MANIFEST_SUFFIX)) continue;
     const file = path.join(dir, name);
-    const data = await nullIfMissing(readFile(file));
+    const data = await readBytesIfPresent(file);
     if (data === null) continue;
     const manifest = parseManifest(data);
     if (manifest) runs.manifests.push(manifest);
@@ -119,7 +119,7 @@ export async function ingestTrace(
 export async function readTrace(projectDir: string, id: string): Promise<TraceModel> {
   if (!/^[\w-]+$/.test(id)) throw new Error("Invalid trace id");
   const root = projectPaths(projectDir).traces;
-  const data = await nullIfMissing(readFile(manifestPath(root, id)));
+  const data = await readBytesIfPresent(manifestPath(root, id));
   const manifest = data && parseManifest(data);
   if (!manifest) throw new Error("This trace can't be read.");
   const { groups, entries, ...header } = manifest;
@@ -163,7 +163,7 @@ function keptTraces(all: TraceManifest[], policy: AppSettings["traces"]): TraceM
 
 async function sweepBlobs(root: string, live: Set<string>): Promise<void> {
   const blobs = path.join(root, "blobs");
-  for (const shard of (await nullIfMissing(readdir(blobs))) ?? [])
+  for (const shard of await readDirIfPresent(blobs))
     await pruneDir(path.join(blobs, shard), { keep: (name) => live.has(name) });
 }
 

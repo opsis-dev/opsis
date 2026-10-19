@@ -12,7 +12,7 @@ export type TakeSink = {
 
 export const CSS_PREFIX = "css=";
 
-export type Target<L = Locator> = Point | L;
+export type Target = Point | Locator;
 
 export const isPoint = (target: Target): target is Point => "x" in target;
 

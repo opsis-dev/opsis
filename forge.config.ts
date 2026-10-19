@@ -22,6 +22,7 @@ import {
 import { percentText } from "./src/shared/format";
 import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./src/worker/render/bundle";
 import { getCompositorPackage } from "./src/worker/render/compositor-package";
+import { WEBPACK_OVERRIDE_DIR, WEBPACK_OVERRIDE_FILES } from "./src/worker/render/source-alias";
 
 const require = createRequire(import.meta.url);
 const ROOT = import.meta.dirname;
@@ -103,6 +104,10 @@ const EXPORT_SOURCES: Array<[from: string[], to: string]> = [
   [["src", "shared"], "shared"],
   [["src", "renderer", "lib", "utils.ts"], "utils.ts"],
   [["public"], "public"],
+  ...WEBPACK_OVERRIDE_FILES.map((file): [string[], string] => [
+    ["src", ...WEBPACK_OVERRIDE_DIR, file],
+    path.join(...WEBPACK_OVERRIDE_DIR, file),
+  ]),
 ];
 
 async function stageExportSource(): Promise<void> {

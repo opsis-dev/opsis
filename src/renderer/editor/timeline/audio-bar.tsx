@@ -1,10 +1,10 @@
 import { cn } from "@/renderer/lib/utils";
-import { MAX_VOLUME } from "@/shared/limits";
 import { nodeNameById } from "@/shared/nodes/registry";
 import type { AudioBar } from "@/shared/timeline/flatten";
 import { WaveformCanvas, type Gain } from "./bar-canvas";
 import type { BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
+import { envelopeY } from "./envelope";
 import { useBarEnvelope } from "./envelope-overlay";
 import { AUDIO_H, barBox, barHeight, hitEdge } from "./timeline-layout";
 import { useTimeline } from "./timeline-state";
@@ -37,8 +37,6 @@ function audioHit(e: React.PointerEvent<HTMLElement>, width: number, lineY: numb
   return Math.abs(y - lineY) <= LINE_GRAB_PX ? "line" : "body";
 }
 
-const volumeLineY = (volume: number) => HEIGHT * (1 - Math.min(MAX_VOLUME, volume) / MAX_VOLUME);
-
 function VolumeLine({ y }: { y: number }) {
   return (
     <div
@@ -60,7 +58,7 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
     toLocal: (abs) => abs - bar.from,
   });
   const showLine = audioEnvelope === "volume" && !envelope.target?.keys.length;
-  const lineY = showLine ? volumeLineY(bar.volume) : null;
+  const lineY = showLine ? envelopeY("volume", bar.volume, HEIGHT) : null;
   const hitAt = (e: React.PointerEvent<HTMLElement>) => audioHit(e, box.width, lineY);
 
   const onPress = (e: React.PointerEvent<HTMLDivElement>) => {

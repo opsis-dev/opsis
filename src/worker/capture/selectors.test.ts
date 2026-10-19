@@ -1,22 +1,26 @@
+import type { Locator } from "playwright-core";
 import { describe, expect, it } from "vitest";
 import { CancelledError } from "../../shared/errors";
 import { resolveTarget, SelectorError } from "./selectors";
 
 type FakePage = Parameters<typeof resolveTarget>[0];
-type FakeLocator = ReturnType<FakePage["locator"]>;
+type FakeLocator = Pick<Locator, "filter" | "locator" | "first" | "isVisible" | "waitFor">;
+
+const asLocator = (fake: FakeLocator) => fake as Locator;
 
 function fakePage(shown: (query: string) => boolean) {
   const waited: string[] = [];
   let polls = 0;
-  const locator = (query: string): FakeLocator => ({
-    filter: (opts) => locator(`${query}.filter(${String(opts.hasText)})`),
-    locator: (selector) => locator(`${query}.locator(${selector})`),
-    first: () => locator(query),
-    isVisible: async () => shown(query),
-    waitFor: async () => void waited.push(query),
-  });
+  const locator = (query: string): Locator =>
+    asLocator({
+      filter: (opts) => locator(`${query}.filter(${String(opts?.hasText)})`),
+      locator: (selector) => locator(`${query}.locator(${String(selector)})`),
+      first: () => locator(query),
+      isVisible: async () => shown(query),
+      waitFor: async () => void waited.push(query),
+    });
   const page: FakePage = {
-    getByRole: (role, opts) => locator(`role ${role} ${String(opts.name)}`),
+    getByRole: (role, opts) => locator(`role ${role} ${String(opts?.name)}`),
     getByLabel: (text) => locator(`label ${String(text)}`),
     getByPlaceholder: (text) => locator(`placeholder ${String(text)}`),
     getByTestId: (id) => locator(`testid ${id}`),
@@ -58,13 +62,13 @@ describe("resolveTarget", () => {
 
   it("uses a held element, a point or a selector as given", async () => {
     const { page, waited } = fakePage(() => false);
-    const held: FakeLocator = {
+    const held: Locator = asLocator({
       filter: () => held,
       locator: () => held,
       first: () => held,
       isVisible: async () => true,
       waitFor: async () => undefined,
-    };
+    });
     const hoisted = new Map([["Row", held]]);
     expect(await resolveTarget(page, "Row", opts({ hoisted }))).toEqual({
       target: held,

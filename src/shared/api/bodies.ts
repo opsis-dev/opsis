@@ -1,24 +1,23 @@
 import { z } from "zod";
 
 const OBJECT_BODY = { error: "The request body must be a JSON object." };
-const POSITION = "position needs numbers x and y.";
-
-const text = (name: string) => z.string({ error: `${name} must be text.` });
-const required = (name: string) => z.string({ error: `${name} is required.` });
+const text = () => z.string({ error: "must be text." });
+const required = () => z.string({ error: "is required." });
+const coordinate = () => z.number({ error: "must be a number." });
 
 const positionSchema = z.object(
-  { x: z.number({ error: POSITION }), y: z.number({ error: POSITION }) },
-  { error: POSITION },
+  { x: coordinate(), y: coordinate() },
+  { error: "needs numbers x and y." },
 );
 
-const paramsSchema = z.record(z.string(), z.unknown(), { error: "params must be an object." });
+const paramsSchema = z.record(z.string(), z.unknown(), { error: "must be an object." });
 
 export const objectBody = z.record(z.string(), z.unknown(), OBJECT_BODY);
 
 export const openBody = z.object(
   {
     dir: z
-      .string({ error: "dir must be an absolute folder path." })
+      .string({ error: "must be an absolute folder path." })
       .meta({ description: "The project folder" }),
   },
   OBJECT_BODY,
@@ -26,9 +25,9 @@ export const openBody = z.object(
 
 export const addNodeBody = z.object(
   {
-    type: required("type"),
-    id: text("id").meta({ description: "Leave out to get a new id" }).optional(),
-    label: text("label").optional(),
+    type: required(),
+    id: text().meta({ description: "Leave out to get a new id" }).optional(),
+    label: text().optional(),
     position: positionSchema.optional(),
     params: paramsSchema.optional(),
   },
@@ -37,9 +36,9 @@ export const addNodeBody = z.object(
 
 export const updateNodeBody = z.object(
   {
-    label: text("label").nullable().optional(),
+    label: text().nullable().optional(),
     position: positionSchema.optional(),
-    disabled: z.boolean({ error: "disabled must be true or false." }).optional(),
+    disabled: z.boolean({ error: "must be true or false." }).optional(),
     params: paramsSchema.optional(),
   },
   OBJECT_BODY,
@@ -47,26 +46,20 @@ export const updateNodeBody = z.object(
 
 export const addEdgeBody = z.object(
   {
-    source: required("source"),
-    sourceHandle: required("sourceHandle"),
-    target: required("target"),
-    targetHandle: required("targetHandle"),
+    source: required(),
+    sourceHandle: required(),
+    target: required(),
+    targetHandle: required(),
   },
   OBJECT_BODY,
 );
 
-export const variablesBody = z.record(
-  z.string(),
-  z.string({ error: "Every variable must be text." }),
-  OBJECT_BODY,
-);
+export const variablesBody = z.record(z.string(), text(), OBJECT_BODY);
 
 export const runBody = z.object(
   {
-    targetNodeIds: z
-      .array(text("Every node id"), { error: "targetNodeIds must be a list of node ids." })
-      .optional(),
-    fromNodeId: text("fromNodeId").optional(),
+    targetNodeIds: z.array(text(), { error: "must be a list of node ids." }).optional(),
+    fromNodeId: text().optional(),
   },
   OBJECT_BODY,
 );

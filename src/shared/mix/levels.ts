@@ -2,6 +2,7 @@ import { audioKind, channelOf } from "../audio";
 import { itemHasSound, mapItems, soundNodeId, videoOf, walkItems } from "../compile/clip";
 import { findById } from "../lists";
 import type { AudioItem, TimelineSpec } from "../schema/timeline";
+import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
 import { msToExactFrames, msToFrames } from "../timeline/time";
 import {
   DEFAULT_BUS_FOR,
@@ -75,15 +76,19 @@ const clipChannel = (id: string): ChannelInfo => ({
   lengthFrames: Infinity,
 });
 
-export function channelsIn(spec: Pick<TimelineSpec, "tracks" | "audio">): ChannelInfo[] {
+export function channelsIn(
+  spec: Pick<TimelineSpec, "tracks" | "audio">,
+  flat: Pick<FlatTimeline, "audio">,
+): ChannelInfo[] {
+  const playing = new Set(flat.audio.map((a) => a.channel));
   const out = new Map<string, ChannelInfo>();
   for (const a of spec.audio) {
     const id = channelOf(a);
-    out.set(id, soundChannel(a, out.get(id)));
+    if (playing.has(id)) out.set(id, soundChannel(a, out.get(id)));
   }
   walkItems(spec.tracks, (item) => {
     const id = soundNodeId(item);
-    if (id) out.set(id, clipChannel(id));
+    if (id && playing.has(id)) out.set(id, clipChannel(id));
   });
   return [...out.values()];
 }
@@ -107,10 +112,14 @@ export function duckKeysFor(
     .map((c) => c.id);
 }
 
-export function applyMixLevels(spec: TimelineSpec, mixIn: Mix | undefined): TimelineSpec {
+export function applyMixLevels(
+  spec: TimelineSpec,
+  mixIn: Mix | undefined,
+  flat: FlatTimeline = flattenSpec(spec),
+): TimelineSpec {
   const mix = resolveMix(mixIn);
   const audible = audibility(mix);
-  const channels = channelsIn(spec);
+  const channels = channelsIn(spec, flat);
   const duckFor = new Map<string, AudioItem["duck"]>();
   for (const bus of mix.buses) {
     const keys = duckKeysFor(mix, bus, channels, spec.fps, audible);

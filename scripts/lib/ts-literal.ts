@@ -9,49 +9,83 @@ export const scratchFile = (name: string, ext: string, source: string): SourceFi
 
 const MAX_DEPTH = 8;
 
-function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown {
-  if (!node || depth > MAX_DEPTH) return undefined;
-  const next = (n: Node | undefined) => literal(n, scope, depth + 1);
+const NOT_THIS_KIND = Symbol("not this kind");
+
+type Resolve = (node: Node | undefined) => unknown;
+
+type Resolver = (node: Node, next: Resolve, scope?: SourceFile) => unknown;
+
+const scalarValue: Resolver = (node) => {
   if (Node.isStringLiteral(node) || Node.isNoSubstitutionTemplateLiteral(node))
     return node.getLiteralValue();
   if (Node.isNumericLiteral(node)) return node.getLiteralValue();
-  if (Node.isPrefixUnaryExpression(node) && node.getOperatorToken() === SyntaxKind.MinusToken) {
-    const v = next(node.getOperand());
-    return typeof v === "number" ? -v : undefined;
-  }
   if (Node.isTrueLiteral(node)) return true;
   if (Node.isFalseLiteral(node)) return false;
-  if (
-    Node.isAsExpression(node) ||
-    Node.isSatisfiesExpression(node) ||
-    Node.isParenthesizedExpression(node)
-  )
-    return next(node.getExpression());
-  if (Node.isArrayLiteralExpression(node)) return node.getElements().map((e) => next(e));
-  if (Node.isObjectLiteralExpression(node)) {
-    const out: Record<string, unknown> = {};
-    for (const prop of node.getProperties()) {
-      if (Node.isPropertyAssignment(prop)) {
-        const name = prop
-          .getNameNode()
-          .getText()
-          .replace(/^["']|["']$/g, "");
-        out[name] = next(prop.getInitializer());
-      }
-    }
-    return out;
-  }
-  if (Node.isCallExpression(node) && node.getExpression().getText() === "enumVariants") {
-    const arr = next(node.getArguments()[0]);
-    if (Array.isArray(arr)) return Object.fromEntries(arr.map((v) => [String(v), {}]));
-  }
-  if (scope && Node.isIdentifier(node)) {
-    const decl = scope.getVariableDeclaration(node.getText());
-    return decl ? next(decl.getInitializer()) : undefined;
-  }
-  if (scope && Node.isPropertyAccessExpression(node)) {
-    const owner = next(node.getExpression());
-    if (isRecord(owner)) return owner[node.getName()];
+  return NOT_THIS_KIND;
+};
+
+const negatedValue: Resolver = (node, next) => {
+  if (!Node.isPrefixUnaryExpression(node) || node.getOperatorToken() !== SyntaxKind.MinusToken)
+    return NOT_THIS_KIND;
+  const v = next(node.getOperand());
+  return typeof v === "number" ? -v : undefined;
+};
+
+const unwrappedValue: Resolver = (node, next) =>
+  Node.isAsExpression(node) ||
+  Node.isSatisfiesExpression(node) ||
+  Node.isParenthesizedExpression(node)
+    ? next(node.getExpression())
+    : NOT_THIS_KIND;
+
+const arrayValue: Resolver = (node, next) =>
+  Node.isArrayLiteralExpression(node) ? node.getElements().map((e) => next(e)) : NOT_THIS_KIND;
+
+const propertyName = (prop: Node) => prop.getText().replace(/^["']|["']$/g, "");
+
+const objectValue: Resolver = (node, next) => {
+  if (!Node.isObjectLiteralExpression(node)) return NOT_THIS_KIND;
+  const out: Record<string, unknown> = {};
+  for (const prop of node.getProperties())
+    if (Node.isPropertyAssignment(prop))
+      out[propertyName(prop.getNameNode())] = next(prop.getInitializer());
+  return out;
+};
+
+const enumVariantsValue: Resolver = (node, next) => {
+  if (!Node.isCallExpression(node) || node.getExpression().getText() !== "enumVariants")
+    return NOT_THIS_KIND;
+  const variants = next(node.getArguments()[0]);
+  return Array.isArray(variants)
+    ? Object.fromEntries(variants.map((v) => [String(v), {}]))
+    : undefined;
+};
+
+const referencedValue: Resolver = (node, next, scope) => {
+  if (!scope) return NOT_THIS_KIND;
+  if (Node.isIdentifier(node))
+    return next(scope.getVariableDeclaration(node.getText())?.getInitializer());
+  if (!Node.isPropertyAccessExpression(node)) return NOT_THIS_KIND;
+  const owner = next(node.getExpression());
+  return isRecord(owner) ? owner[node.getName()] : undefined;
+};
+
+const RESOLVERS = [
+  scalarValue,
+  negatedValue,
+  unwrappedValue,
+  arrayValue,
+  objectValue,
+  enumVariantsValue,
+  referencedValue,
+];
+
+function literal(node: Node | undefined, scope?: SourceFile, depth = 0): unknown {
+  if (!node || depth > MAX_DEPTH) return undefined;
+  const next: Resolve = (n) => literal(n, scope, depth + 1);
+  for (const resolve of RESOLVERS) {
+    const value = resolve(node, next, scope);
+    if (value !== NOT_THIS_KIND) return value;
   }
   return undefined;
 }

@@ -2,6 +2,7 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import pLimit, { type LimitFunction } from "p-limit";
 import { readLastRun, writeLastRun } from "../../engine/last-run";
+import { logWarning } from "../../engine/log";
 import { enginePaths, type EnginePaths } from "../../engine/paths";
 import { projectPaths, toPosixRel } from "../../engine/project-paths";
 import { compileWorkflow, workflowVars, type CompileResult } from "../../shared/compile/compile";
@@ -426,9 +427,9 @@ class RunState {
   }
 
   private fail(id: string, error: unknown) {
-    const { runId, deps, log } = this.run;
+    const { runId, deps } = this.run;
     this.failed.add(id);
-    if (error instanceof ToolError) log("error", error.output, id);
+    if (error instanceof ToolError) logWarning("run", `${id}: ${error.output}`);
     const traceId = error instanceof TracedError ? error.traceId : undefined;
     const message = deps.signal.aborted ? CANCELLED : errorMessage(error);
     deps.emit({

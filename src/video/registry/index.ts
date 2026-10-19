@@ -119,4 +119,20 @@ export function getPresentation(
   return impl && isPresentation(impl) ? impl.create(params, size) : null;
 }
 
-export const isKnownElement = (key: string) => isCore(key) || isGenerated(key);
+const isKnownElement = (key: string) => isCore(key) || isGenerated(key);
+
+type ResolvedElement<T> =
+  | { status: "unknown" }
+  | { status: "loading" }
+  | { status: "ready"; impl: T };
+
+export function useResolvedElement<T>(
+  key: string | undefined,
+  get: (key: string) => T | undefined,
+): ResolvedElement<T> | null {
+  useElement(key);
+  if (key === undefined) return null;
+  if (!isKnownElement(key)) return { status: "unknown" };
+  const impl = get(key);
+  return impl ? { status: "ready", impl } : { status: "loading" };
+}

@@ -169,35 +169,36 @@ async function registryDuration(item: CuratedElement): Promise<number | undefine
 
 type Ingested = { meta: string } & ReturnType<typeof renderLoaderEntry>;
 
-async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved | null>> {
-  const file = findElementFile(item);
-  if (!file) return { value: null, problems: [`${item.registry}/${item.name}: not installed`] };
-  if (item.installOnly) return { value: null, problems: [] };
-  const reg = REGISTRIES[item.registry];
-  const key = `${reg.keyPrefix}/${item.name}`;
-  const cfg = reg.propsUrl ? null : await fetchConfig(item, file);
-  const description = await descriptionOf(item, key);
-  const exportName = exportNameOf(item, file, cfg);
-  if (!exportName)
-    return {
-      value: null,
-      problems: [
-        ...description.problems,
-        `${item.registry}/${item.name}: no component export found`,
-      ],
-    };
-  if (item.kind === "sequencer" && !exportedNames(file).includes(item.sceneItem ?? ""))
-    return {
-      value: null,
-      problems: [
-        ...description.problems,
-        `${item.registry}/${item.name}: no scene item export "${item.sceneItem ?? ""}" found`,
-      ],
-    };
-  const source = readFileSync(file, "utf8");
-  const props = reg.propsUrl
-    ? propControls(item, file, exportName, await fetchPropDocs(reg.propsUrl(item.name)))
+const itemName = (item: CuratedElement) => `${item.registry}/${item.name}`;
+
+const failed = (problems: string[]): WithProblems<null> => ({ value: null, problems });
+
+type CheckedExport = { ok: true; name: string } | { ok: false; problem: string };
+
+function componentExport(
+  item: CuratedElement,
+  file: string,
+  cfg: ParsedConfig | null,
+): CheckedExport {
+  const name = exportNameOf(item, file, cfg);
+  if (!name) return { ok: false, problem: `${itemName(item)}: no component export found` };
+  const sceneItem = item.sceneItem ?? "";
+  if (item.kind === "sequencer" && !exportedNames(file).includes(sceneItem))
+    return { ok: false, problem: `${itemName(item)}: no scene item export "${sceneItem}" found` };
+  return { ok: true, name };
+}
+
+async function controlsAndDuration(
+  item: CuratedElement,
+  file: string,
+  exportName: string,
+  cfg: ParsedConfig | null,
+): Promise<Pick<Resolved, "controls" | "duration">> {
+  const { propsUrl } = REGISTRIES[item.registry];
+  const props = propsUrl
+    ? propControls(item, file, exportName, await fetchPropDocs(propsUrl(item.name)))
     : undefined;
+  const source = readFileSync(file, "utf8");
   const controls = controlsFor(item, source, props ? props.controls : cfg?.controls, !!props);
   const duration =
     item.durationInFrames ??
@@ -205,12 +206,26 @@ async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved 
     props?.durationInFrames ??
     (await registryDuration(item)) ??
     DEFAULT_ELEMENT_FRAMES;
+  return { controls, duration };
+}
+
+async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved | null>> {
+  const file = findElementFile(item);
+  if (!file) return failed([`${itemName(item)}: not installed`]);
+  if (item.installOnly) return failed([]);
+  const reg = REGISTRIES[item.registry];
+  const key = `${reg.keyPrefix}/${item.name}`;
+  const cfg = reg.propsUrl ? null : await fetchConfig(item, file);
+  const description = await descriptionOf(item, key);
+  const exported = componentExport(item, file, cfg);
+  if (!exported.ok) return failed([...description.problems, exported.problem]);
+  const { controls, duration } = await controlsAndDuration(item, file, exported.name, cfg);
   return {
     value: {
       item,
       key,
       file,
-      exportName,
+      exportName: exported.name,
       description: description.value,
       controls,
       duration,

@@ -5,7 +5,7 @@ import type { MixResult } from "@/shared/mix/result";
 import type { Mix } from "@/shared/mix/types";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import { flattenSpec, type FlatTimeline } from "@/shared/timeline/flatten";
-import { useMedia } from "../store/media";
+import { mixFailure, useMedia } from "../store/media";
 import { useWorkflowStore } from "../store/workflow";
 import { useCompiledContext } from "./use-compiled";
 
@@ -42,8 +42,8 @@ type MixState = { result: MixResult | null; mixing: boolean; failedKey: string |
 function useMixResult(sounding: MixPlan | null, source: string): MixState {
   const latest = useMedia((s) => s.mix.latest[source]);
   const result = useMedia((s) => (latest ? (s.mix.results[latest] ?? null) : null));
-  const mixing = useMedia((s) => s.mix.pending !== null);
-  const failedKey = useMedia((s) => s.mix.failedKey);
+  const mixing = useMedia((s) => s.mix.status.kind === "pending");
+  const failedKey = useMedia((s) => mixFailure(s)?.key ?? null);
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const current = !!sounding && result?.key === sounding.key;
   useEffect(() => {
@@ -69,10 +69,10 @@ function useFilmState(): Film {
     preview?.sourceNodeId ?? FILM_SOURCE,
   );
   const audible = useMemo(() => {
-    if (!spec) return null;
+    if (!spec || !flat) return null;
     if (result?.master && sounding) return withMasterStem(spec, result.master);
-    return applyMixLevels(spec, mix);
-  }, [spec, result, sounding, mix]);
+    return applyMixLevels(spec, mix, flat);
+  }, [spec, flat, result, sounding, mix]);
   if (!preview) return EMPTY;
   const current = !!sounding && result?.key === sounding.key;
   return {

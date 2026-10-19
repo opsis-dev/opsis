@@ -12,7 +12,7 @@ import { ELEMENTS, elementNodeType } from "../elements";
 import { CAPTIONS_ELEMENT } from "../elements/core";
 import { assetKeys, widgetKeys } from "../elements/introspect";
 import type { ElementCategory, ElementMeta } from "../elements/types";
-import { fontStack } from "../fonts";
+import { fontProp } from "../fonts";
 import { plural } from "../format";
 import { isString, nonBlankString } from "../guards";
 import { MAX_FRAMES } from "../limits";
@@ -108,8 +108,8 @@ const NODE_CATEGORY_FOR: Record<ElementCategory, NodeCategory> = {
 function elementProps(meta: ElementMeta, params: Record<string, unknown>): Record<string, unknown> {
   const props: Record<string, unknown> = { ...meta.fixedProps, ...params };
   for (const key of widgetKeys(meta.schema, "font")) {
-    const name = nonBlankString(props[key]);
-    if (name) props[key] = fontStack(name);
+    const stack = fontProp(props[key]);
+    if (stack) props[key] = stack;
     else delete props[key];
   }
   for (const key of assetKeys(meta.schema)) {

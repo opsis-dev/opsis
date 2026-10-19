@@ -1,6 +1,8 @@
-import type { RuleTester } from "oxlint/plugins-dev";
+import type { ESTree, Rule } from "@oxlint/plugins";
 
-type Rule = Parameters<RuleTester["run"]>[1];
+type Node = ESTree.Node;
+type MaybeNode = Node | null | undefined;
+type StaticMember = ESTree.StaticMemberExpression;
 
 const ANIMATE_CLASS =
   /(^|\s)(motion-safe:|motion-reduce:|hover:|group-hover:)?animate-[a-z0-9[\]-]+/;
@@ -26,13 +28,6 @@ const noAnimateClass: Rule = {
   },
 };
 
-type Visitor = ReturnType<Exclude<Rule["create"], undefined>>;
-type NodeOf<K extends string> = Parameters<Exclude<Visitor[K], undefined>>[0];
-type CallExpression = NodeOf<"CallExpression">;
-type Node = CallExpression["parent"];
-type MaybeNode = Node | null | undefined;
-type StaticMember = Extract<Node, { type: "MemberExpression"; computed: false }>;
-
 const isIdentifier = (node: MaybeNode, name?: string): boolean =>
   node?.type === "Identifier" && (name === undefined || node.name === name);
 
@@ -45,7 +40,7 @@ const isLiteral = (node: MaybeNode, value: unknown): boolean =>
 const callRule = (
   description: string,
   message: string,
-  matches: (call: CallExpression) => boolean,
+  matches: (call: ESTree.CallExpression) => boolean,
 ): Rule => ({
   meta: { type: "suggestion", docs: { description } },
   create(context) {

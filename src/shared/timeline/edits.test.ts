@@ -427,3 +427,21 @@ describe("audio edits", () => {
     expect(trimAudio(ctxFor(wf), audioOf(flatFilm(wf), "fx"), "end", -3).ok).toBe(false);
   });
 });
+
+describe("owned handles", () => {
+  it("moves through a new node when the move setting's node is gone, even if another handle's node is there", () => {
+    const wf = sequenceOf([
+      ["a", 60],
+      ["b", 60],
+    ]);
+    const bar = barOf(flatFilm(wf), "b");
+    const owner = must(findHandle(bar, "trimEnd", "outer"), "trim end handle");
+    const stale: ChainLink = {
+      ...owner,
+      handles: { ...owner.handles, move: { nodeId: "gone", param: "ms", unit: "ms" } },
+    };
+    const staleBar: VideoBar = { ...bar, chain: bar.chain.map((l) => (l === owner ? stale : l)) };
+    const moved = applied(moveBar(ctxFor(wf), staleBar, DELTA));
+    expect(moved.nodes.filter((n) => n.type === "timeline.delay")).toHaveLength(1);
+  });
+});

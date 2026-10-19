@@ -1,3 +1,4 @@
+import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Sequence, useVideoConfig } from "remotion";
@@ -15,7 +16,9 @@ export const sequencer = (Scenes: React.FC<never>, Item: React.FC<never>): Scene
   Item: Item as SceneSequencer["Item"],
 });
 
-export const presentation = (make: (props: never, size: Size) => unknown): PresentationFactory => ({
+export const presentation = <P extends Record<string, unknown>>(
+  make: (props: never, size: Size) => TransitionPresentation<P>,
+): PresentationFactory => ({
   create: make as (props: ElementProps, size: Size) => Presentation,
 });
 

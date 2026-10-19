@@ -45,8 +45,8 @@ import {
   getComponent,
   getPresentation,
   getSequencer,
-  isKnownElement,
   useElement,
+  useResolvedElement,
 } from "./registry";
 import { PaintRule } from "./registry/framing";
 
@@ -132,10 +132,11 @@ const ItemContent: React.FC<{ item: TimelineItem }> = ({ item }) => {
 
 const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
   const base = useAssetBase();
-  useElement(item.component);
-  if (!isKnownElement(item.component)) return <MissingElement name={item.component} />;
-  const component = getComponent(item.component);
-  return component ? createElement(component, resolveProps(item.props, base)) : null;
+  const element = useResolvedElement(item.component, getComponent);
+  if (element?.status === "unknown") return <MissingElement name={item.component} />;
+  return element?.status === "ready"
+    ? createElement(element.impl, resolveProps(item.props, base))
+    : null;
 };
 
 const cropScale = (crop: Rect): number => 1 / Math.max(MIN_CROP, crop.w, crop.h);
@@ -147,11 +148,10 @@ const SceneSequence: React.FC<{ sequencer: SequencerProps; tracks: TimelineTrack
   tracks,
 }) => {
   const base = useAssetBase();
-  useElement(sequencer.component);
-  if (!isKnownElement(sequencer.component)) return <MissingElement name={sequencer.component} />;
-  const impl = getSequencer(sequencer.component);
-  if (!impl) return null;
-  const { Scenes, Item } = impl;
+  const element = useResolvedElement(sequencer.component, getSequencer);
+  if (element?.status === "unknown") return <MissingElement name={sequencer.component} />;
+  if (element?.status !== "ready") return null;
+  const { Scenes, Item } = element.impl;
   const scenes = tracks
     .flatMap((track) => track.items)
     .map((scene, i) => ({
@@ -224,16 +224,19 @@ const CropBox: Wrap<{ crop: Rect }> = ({ crop, children }) => (
 
 const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children }) => {
   const base = useAssetBase();
-  useElement(wrapper?.component);
-  const Wrapper = wrapper ? getComponent(wrapper.component) : undefined;
-  return wrapper && Wrapper ? (
-    createElement(
-      Wrapper,
-      resolveProps(wrapper.props, base),
-      <AbsoluteFill>{children}</AbsoluteFill>,
-    )
-  ) : (
-    <>{children}</>
+  const element = useResolvedElement(wrapper?.component, getComponent);
+  if (!wrapper || element?.status === "loading") return <>{children}</>;
+  if (element?.status !== "ready")
+    return (
+      <>
+        {children}
+        <MissingElement name={wrapper.component} />
+      </>
+    );
+  return createElement(
+    element.impl,
+    resolveProps(wrapper.props, base),
+    <AbsoluteFill>{children}</AbsoluteFill>,
   );
 };
 

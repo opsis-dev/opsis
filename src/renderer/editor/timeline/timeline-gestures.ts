@@ -1,6 +1,5 @@
 import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/renderer/lib/dom";
 import { randomId } from "@/shared/ids";
-import { MAX_VOLUME } from "@/shared/limits";
 import { clamp, round3 } from "@/shared/math";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
 import { setAudioVolume } from "@/shared/timeline/edits";
@@ -106,7 +105,7 @@ export function volumeGesture(
   return {
     move: (ev) => {
       if (!startEditOnceMoved(d, Math.abs(ev.clientY - d.y0))) return;
-      const v = d.v0 - ((ev.clientY - d.y0) / d.height) * MAX_VOLUME;
+      const v = d.v0 - envelopeShift("volume", ev.clientY - d.y0, d.height);
       const ctx = editContext(d.base, env.flat.fps, env.sourceNodeId, d.salt);
       applyEdit(setAudioVolume(ctx, d.bar, v));
     },

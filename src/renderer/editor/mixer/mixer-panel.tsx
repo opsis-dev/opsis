@@ -7,7 +7,7 @@ import { randomId } from "@/shared/ids";
 import { addBus } from "@/shared/mix/edits";
 import { soloActive } from "@/shared/mix/levels";
 import { EmptyPanel } from "../../app/empty-panel";
-import { useMedia } from "../../store/media";
+import { mixFailure, useMedia } from "../../store/media";
 import { toggleIds } from "../../store/ui";
 import { readPref, writePref } from "../../store/view-prefs";
 import { useWorkflowStore } from "../../store/workflow";
@@ -30,7 +30,7 @@ function useCollapsedBuses() {
 
 function MixStatus({ film }: { film: Film }) {
   const unavailable = useMedia((s) => s.unavailable);
-  const mixError = useMedia((s) => s.mix.error);
+  const mixError = useMedia((s) => mixFailure(s)?.error ?? null);
   if (unavailable)
     return (
       <span className="text-muted-foreground">

@@ -20,12 +20,15 @@ type MediaOf = { waveform: Waveform; filmstrip: Filmstrip };
 type MediaKind = keyof MediaOf;
 type Analyses = { [K in MediaKind]: Record<string, Entry<MediaOf[K]>> };
 
+type MixStatus =
+  | { kind: "idle" }
+  | { kind: "pending"; key: string }
+  | { kind: "failed"; key: string; error: string };
+
 type MixState = {
   results: Partial<Record<string, MixResult>>;
   latest: Record<string, string>;
-  pending: string | null;
-  error: string | null;
-  failedKey: string | null;
+  status: MixStatus;
 };
 
 type MediaState = {
@@ -42,12 +45,14 @@ type MediaState = {
 const MAX_MIXES = 8;
 const MIX_DEBOUNCE_MS = 250;
 
+const IDLE: MixStatus = { kind: "idle" };
+
 const engineMissing = (r: AnalysisResult) => r.kind === "error" && !!r.engineMissing;
 
 const emptyMedia = (projectDir: string | null) => ({
   projectDir,
   analyses: { waveform: {}, filmstrip: {} },
-  mix: { results: {}, latest: {}, pending: null, error: null, failedKey: null },
+  mix: { results: {}, latest: {}, status: IDLE },
   unavailable: false,
 });
 
@@ -69,13 +74,22 @@ const pruneLatest = (
 ): MixState["latest"] =>
   Object.fromEntries(Object.entries(latest).filter(([, k]) => Object.hasOwn(results, k)));
 
-function withResult(mix: MixState, source: string, key: string, result: MixResult): MixState {
+const waitingForAnother = (status: MixStatus, key: string): boolean =>
+  status.kind === "pending" && status.key !== key;
+
+function mixDone(mix: MixState, source: string, key: string, result: MixResult): MixState {
   const results = keepNewestResult(mix.results, key, result);
-  return { ...mix, results, latest: { ...pruneLatest(mix.latest, results), [source]: key } };
+  return {
+    results,
+    latest: { ...pruneLatest(mix.latest, results), [source]: key },
+    status: waitingForAnother(mix.status, key) ? mix.status : IDLE,
+  };
 }
 
-const pendingAfter = (mix: MixState, key: string): string | null =>
-  mix.pending === key ? null : mix.pending;
+const mixFailed = (mix: MixState, key: string, error: string): MixState => ({
+  ...mix,
+  status: waitingForAnother(mix.status, key) ? mix.status : { kind: "failed", key, error },
+});
 
 function updateMixClearingPreview(
   update: (mix: MixState) => MixState,
@@ -93,22 +107,8 @@ function finishMix(
 ): void {
   if (useMedia.getState().projectDir !== projectDir || r.kind === "skipped") return;
   if (r.kind === "error")
-    updateMixClearingPreview(
-      (mix) => ({
-        ...mix,
-        pending: pendingAfter(mix, plan.key),
-        error: r.error,
-        failedKey: plan.key,
-      }),
-      engineMissing(r),
-    );
-  else
-    updateMixClearingPreview((mix) => ({
-      ...withResult(mix, source, plan.key, r.mix),
-      pending: pendingAfter(mix, plan.key),
-      error: null,
-      failedKey: null,
-    }));
+    updateMixClearingPreview((mix) => mixFailed(mix, plan.key, r.error), engineMissing(r));
+  else updateMixClearingPreview((mix) => mixDone(mix, source, plan.key, r.mix));
 }
 
 function analyze<K extends AnalysisKind>(
@@ -142,7 +142,7 @@ export const useMedia = create<MediaState>()((set, get) => ({
         updateMixClearingPreview((m) => ({ ...m, latest: { ...m.latest, [source]: plan.key } }));
       return;
     }
-    set({ mix: { ...mix, pending: plan.key } });
+    set({ mix: { ...mix, status: { kind: "pending", key: plan.key } } });
     mixSoon(projectDir, source, plan);
   },
 }));
@@ -167,6 +167,8 @@ function loadAnalysis<K extends MediaKind>(kind: K, src: string): void {
     put(MEDIA_VALUE[kind](r) ?? "error");
   });
 }
+
+export const mixFailure = (s: MediaState) => (s.mix.status.kind === "failed" ? s.mix.status : null);
 
 export const loaded = <T extends object>(entry: Entry<T> | undefined): T | null =>
   typeof entry === "object" ? entry : null;

@@ -14,6 +14,7 @@ import {
 } from "../shared/api/bodies";
 import { catalogEntry, nodeCatalog } from "../shared/api/catalog";
 import { checkWorkflow } from "../shared/api/check";
+import { firstIssueText } from "../shared/api/issue-text";
 import { openApiDocument } from "../shared/api/openapi";
 import {
   apiFailure,
@@ -81,7 +82,7 @@ async function parseBody<T>(
   required = true,
 ): Promise<T> {
   const parsed = schema.safeParse(await readBody(req, required));
-  if (!parsed.success) throw new BadRequest(parsed.error.issues[0].message);
+  if (!parsed.success) throw new BadRequest(firstIssueText(parsed.error));
   return parsed.data;
 }
 

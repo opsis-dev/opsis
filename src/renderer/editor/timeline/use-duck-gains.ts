@@ -14,7 +14,7 @@ export function useDuckGains({ spec, flat, mix }: DuckedFilm): (id: string) => G
   const gains = useMemo(() => {
     const out = new Map<string, Gain>();
     if (!spec || !flat) return out;
-    const live = applyMixLevels(spec, mix);
+    const live = applyMixLevels(spec, mix, flat);
     for (const a of live.audio) {
       if (!a.duck) continue;
       const spans = duckingSpans(live, new Set(a.duck.keys), flat);

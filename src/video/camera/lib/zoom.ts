@@ -1,3 +1,4 @@
+import { stableJson } from "../../../shared/hash";
 import { poseToCss, type CameraPose, type ZoomState } from "./camera";
 import {
   buildCameraTrack,
@@ -24,18 +25,16 @@ type ZoomOptions = TrackOptions & {
 export const logTimeS = (frame: number, fps: number, speed: number): number =>
   (frame / fps) * speed;
 
-type CachedTrack = { speed: number; tuning: CameraTuning; keys: CameraTrack };
+type CachedTrack = { options: string; keys: CameraTrack };
 
 const trackCache = new WeakMap<ClickLog, CachedTrack>();
 
-const sameTuning = (a: CameraTuning, b: CameraTuning): boolean =>
-  a.sMax === b.sMax && a.holdMinS === b.holdMinS && a.narrow === b.narrow;
-
 function cachedTrack(log: ClickLog, speed: number, tuning: CameraTuning): CameraTrack {
+  const options = stableJson({ speed, tuning });
   const hit = trackCache.get(log);
-  if (hit && hit.speed === speed && sameTuning(hit.tuning, tuning)) return hit.keys;
+  if (hit?.options === options) return hit.keys;
   const keys = buildCameraTrack(log, speed, tuning);
-  trackCache.set(log, { speed, tuning, keys });
+  trackCache.set(log, { options, keys });
   return keys;
 }
 

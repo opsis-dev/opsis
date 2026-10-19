@@ -1,3 +1,4 @@
+import { nonBlankString } from "../guards";
 import { safeName } from "../safe-name";
 import { BUNDLED_FONTS } from "./bundled.generated";
 import type { FontFamilyDef, ProjectFonts } from "./types";
@@ -45,6 +46,11 @@ export function fontStack(
 ): string {
   const def = findFamily(name, fonts);
   return `"${name.replaceAll('"', "")}", ${GENERIC[def?.category ?? "sans-serif"]}`;
+}
+
+export function fontProp(value: unknown): string | undefined {
+  const name = nonBlankString(value);
+  return name ? fontStack(name) : undefined;
 }
 
 function roleStack(role: FontRole): string {

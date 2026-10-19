@@ -111,10 +111,10 @@ export function buildMixPlan(
   const mix = resolveMix(mixIn);
   const audible = audibility(mix);
   const sounds = soundPlacements(flat);
-  const placed = channelsIn(spec).flatMap((info) => {
-    const list = sounds.get(info.id);
-    return list ? [{ ...info, sounds: list }] : [];
-  });
+  const placed = channelsIn(spec, flat).map((info) => ({
+    ...info,
+    sounds: sounds.get(info.id) ?? [],
+  }));
   const channels: ChannelPlan[] = placed.map((c) => ({
     id: c.id,
     kind: c.kind,
