@@ -4,9 +4,10 @@ import { interpolatedParams, type NodeDef } from "../nodes/define";
 import { parseParams } from "../nodes/params";
 import { getNodeDef, isOutputType } from "../nodes/registry";
 import type { TimelineSpec } from "../schema/timeline";
-import type { CompileValue, NodeResult } from "../schema/values";
+import type { CompileValue, MediaValue, NodeResult } from "../schema/values";
 import type { Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { nodeSpans, type FrameRange } from "../timeline/flatten";
+import { msToFrames } from "../timeline/time";
 import { workflowVars } from "../vars";
 import { clipToSpec, isClip } from "./clip";
 
@@ -32,8 +33,12 @@ function gatherInputs(
   const inputs: PortValues = {};
   for (const e of wf.edges) {
     if (e.target !== id) continue;
-    const v = values[e.source]?.[e.sourceHandle];
-    if (!v) continue;
+    const raw = values[e.source]?.[e.sourceHandle];
+    if (!raw) continue;
+    const v =
+      def.inputs[e.targetHandle]?.type === "audio" && raw.type === "media"
+        ? mediaSound(raw, e.source, wf.settings.fps)
+        : raw;
     const prev = inputs[e.targetHandle];
     inputs[e.targetHandle] =
       prev?.type === "audio" && v.type === "audio" && def.inputs[e.targetHandle]?.many
@@ -41,6 +46,29 @@ function gatherInputs(
         : v;
   }
   return inputs;
+}
+
+function mediaSound(media: MediaValue, nodeId: string, fps: number): CompileValue {
+  const { src } = media;
+  const silent = !src || media.kind === "image" || media.hasAudio === false;
+  const frames = media.durationMs ? msToFrames(media.durationMs, fps) : undefined;
+  return {
+    type: "audio",
+    items: silent
+      ? []
+      : [
+          {
+            id: `${nodeId}:sound`,
+            src,
+            from: 0,
+            role: "effect",
+            nodeId,
+            channel: nodeId,
+            ...(frames ? { lengthFrames: frames } : {}),
+          },
+        ],
+    ...(frames ? { durationInFrames: frames } : {}),
+  };
 }
 
 function bypass(def: NodeDef, inputs: PortValues): PortValues {

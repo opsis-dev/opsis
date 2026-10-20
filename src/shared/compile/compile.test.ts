@@ -4,7 +4,15 @@ import type { TimelineSpec } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
 import { getTemplate } from "../templates";
 import { GraphBuilder } from "../templates/build";
-import { itemsOf, makeLog, must, recordedTake, recordResult, TITLE } from "../test-fixtures";
+import {
+  itemsOf,
+  makeLog,
+  must,
+  nodeResult,
+  recordedTake,
+  recordResult,
+  TITLE,
+} from "../test-fixtures";
 import { flattenSpec } from "../timeline/flatten";
 import { groupOf, isClip, recordingOf } from "./clip";
 import { compileWorkflow, previewSpec } from "./compile";
@@ -299,5 +307,34 @@ describe("a transition at each cut", () => {
       ["in1", "in2"],
     );
     expect(enters(items)).toEqual([null, ["core/iris", 8, false]]);
+  });
+});
+
+describe("a file connected to a sound input", () => {
+  it("joins the other sounds instead of replacing them", () => {
+    const g = new GraphBuilder();
+    g.node("bg", "fx.core.solid", 0, 0, { clipDuration: 90 });
+    g.node("file", "media.import", 0, 1, { path: "assets/voice.wav" });
+    g.node("whoosh", "audio.sfx", 0, 2, { src: "assets/whoosh.wav", atMs: 500 });
+    g.node("mix", "audio.mix", 1, 0);
+    g.link("bg", "mix", "clip", "clip");
+    g.link("file", "mix", "media", "sounds");
+    g.link("whoosh", "mix", "audio", "sounds");
+    const wf = g.build({ id: "x", name: "x" });
+    const voice = {
+      type: "media",
+      src: "project:assets/voice.wav",
+      kind: "audio",
+      durationMs: 2000,
+      hasAudio: true,
+    } as const;
+    const out = compileWorkflow(wf, {
+      results: { file: nodeResult({ outputs: { media: voice } }) },
+    });
+    const clip = out.values.mix?.clip;
+    expect(clip?.type === "clip" ? clip.audio.map((a) => [a.src, a.from]) : null).toEqual([
+      ["project:assets/voice.wav", 0],
+      ["project:assets/whoosh.wav", 15],
+    ]);
   });
 });
