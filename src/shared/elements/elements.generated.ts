@@ -1521,9 +1521,9 @@ const defs: ElementMetaInput[] = [
     kind: "component",
     source: { registry: "snapcn", url: "https://snapcn.dev/docs/text-highlight", license: "MIT" },
     schema: z.object({
-      before: z.string().default("Powered by ").meta({ description: "Before" }),
+      before: z.string().default("Powered by ").meta({ description: "Before", showIf: {"preset":["marker","color","underline","strikethrough","shimmer"]} }),
       highlight: z.string().default("Northwind").meta({ description: "Highlight / wordmark" }),
-      after: z.string().default("").meta({ description: "After" }),
+      after: z.string().default("").meta({ description: "After", showIf: {"preset":["marker","color","underline","strikethrough","shimmer"]} }),
       preset: z.enum(["logo-wipe","marker","color","underline","strikethrough","shimmer"]).default("logo-wipe").meta({ description: "Preset" }),
       baseColor: z.string().default("#101828").meta({ description: "Base color", widget: "color", zeroLabel: "Theme" }),
       accentColor: z.string().default("#266DF0").meta({ description: "Accent color", widget: "color", zeroLabel: "Theme" }),

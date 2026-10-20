@@ -971,6 +971,8 @@ const DRIFT_TILES = [
 
 const MANUAL_MENU = { autoplay: ["false"] };
 
+const WRITTEN_PRESETS = ["marker", "color", "underline", "strikethrough", "shimmer"];
+
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   "announce-title": {
     controls: {
@@ -1554,6 +1556,18 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   "punch-lines": snapTheme("light", { controls: { fontWeight: fontWeight(600) } }),
   "text-highlight": snapTheme("dark", {
     controls: {
+      before: {
+        type: "text",
+        default: "Powered by ",
+        description: "Before",
+        showIf: { preset: WRITTEN_PRESETS },
+      },
+      after: {
+        type: "text",
+        default: "",
+        description: "After",
+        showIf: { preset: WRITTEN_PRESETS },
+      },
       fontWeight: fontWeight(600),
       logoSrc: image("Logo", LOGO_MARK, { help: "The mark the logo wipe uses." }),
     },
