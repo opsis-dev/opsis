@@ -31,7 +31,6 @@ const ZoomBlurPresentation: React.FC<
         filter: p < 1 ? `blur(${(1 - p) * blur}px)` : undefined,
       }
     : {
-        opacity: 1 - p,
         transform: `scale(${1 + p * 0.12})${
           rise > 0 ? ` translateY(${-p * rise}px)` : ""
         }`,

@@ -1,0 +1,15 @@
+Fixes:
+- Keep the outgoing scene opaque under the incoming one, so the two always cover the frame and the backdrop never shows through mid-way.
+
+diff --git a/src/video/elements/remocn/zoom-blur.tsx b/src/video/elements/remocn/zoom-blur.tsx
+index 24f497c..71a0572 100644
+--- a/src/video/elements/remocn/zoom-blur.tsx
++++ b/src/video/elements/remocn/zoom-blur.tsx
+@@ -31,7 +31,6 @@ const ZoomBlurPresentation: React.FC<
+         filter: p < 1 ? `blur(${(1 - p) * blur}px)` : undefined,
+       }
+     : {
+-        opacity: 1 - p,
+         transform: `scale(${1 + p * 0.12})${
+           rise > 0 ? ` translateY(${-p * rise}px)` : ""
+         }`,
