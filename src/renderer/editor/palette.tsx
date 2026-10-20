@@ -245,12 +245,15 @@ export function QuickAdd() {
     >
       <Command>
         <CommandInput placeholder="Add a node…" />
-        <PaletteList
-          onPick={(type) => {
-            add(type);
-            setOpen(false);
-          }}
-        />
+        <div className="max-h-[calc(66vh-4rem)] overflow-y-auto">
+          <PaletteList
+            onPick={(type) => {
+              add(type);
+              setOpen(false);
+            }}
+            stickyHeadings
+          />
+        </div>
       </Command>
     </CommandDialog>
   );
