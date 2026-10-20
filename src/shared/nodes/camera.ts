@@ -31,7 +31,7 @@ import {
   type FrameTheme,
   type WindowStyle,
 } from "../window-styles";
-import { missing, mutedIf, row, toggleRow, type CardRow } from "./card";
+import { missing, mutedIf, row, toggleRow, type CardRow, type InputTake } from "./card";
 import { defineNode, modifierBase, nodeBase, port, withClip } from "./define";
 import type { NodeIconName } from "./icon-name";
 import {
@@ -42,6 +42,7 @@ import {
   fraction,
   more,
   ms,
+  msAtLeast,
   num,
   rate,
   text,
@@ -80,6 +81,19 @@ const appendBeats = (clip: ClipValue, beats: Action[]) =>
   patchRecordings(clip, (p) => ({ ...p, extraBeats: [...p.extraBeats, ...beats] }));
 
 const FOCUS_LEAD_MS = 400;
+
+function takeRow(take: InputTake | undefined, atMs: number): CardRow | null {
+  if (take === null)
+    return row("triangle-alert", "Needs a recording", {
+      tone: "warn",
+      title: "The camera moves only over a recorded take.",
+    });
+  if (take && atMs >= take.durationMs)
+    return row("triangle-alert", `After the take ends at ${formatDuration(take.durationMs)}`, {
+      tone: "warn",
+    });
+  return null;
+}
 
 type FocusSpot = { id: string; t: number; x: number; y: number; tDepart?: number };
 
@@ -184,13 +198,14 @@ const manualZoomNode = defineNode({
   type: "camera.manualZoom",
   title: "Zoom here",
   description: "Zooms to a spot of your choice at a set time.",
-  card: ({ params: p }) => [
+  card: ({ params: p, inputTakes }) => [
     row("zoom-in", `${p.scale}× at ${formatDuration(p.atMs)}`),
     row("hourglass", `Hold ${formatDuration(p.holdMs)}`),
+    takeRow(inputTakes?.clip, p.atMs),
   ],
   params: z.object({
     atMs: ms(1000, "At"),
-    holdMs: ms(1500, "Hold"),
+    holdMs: msAtLeast(1500, "Hold", 100),
     ...zoomSpot,
     scale: zoomFactor(1.5),
   }),
@@ -208,13 +223,14 @@ const panNode = defineNode({
   type: "camera.pan",
   title: "Pan",
   description: "Moves the camera from one spot to another.",
-  card: ({ params: p }) => [
+  card: ({ params: p, inputTakes }) => [
     row("move", `${formatDuration(p.atMs)} → ${formatDuration(p.atMs + p.durationMs)}`),
     row("zoom-in", `${p.scale}×`),
+    takeRow(inputTakes?.clip, p.atMs),
   ],
   params: z.object({
     atMs: ms(1000, "Start at"),
-    durationMs: ms(1500, "Pan for"),
+    durationMs: msAtLeast(1500, "Pan for", 100),
     fromX: panFrom.x,
     fromY: panFrom.y,
     toX: panTo.x,
@@ -235,12 +251,21 @@ const followCursorNode = defineNode({
   type: "camera.followCursor",
   title: "Follow cursor",
   description: "Keeps the camera on the cursor, good for tall formats.",
-  card: ({ params: p }) => [
-    row("locate-fixed", `${p.scale}× · re-aim every ${formatDuration(p.everyMs)}`),
-  ],
+  card: ({ params: p, inputTakes }) => {
+    const take = inputTakes?.clip;
+    return [
+      row("locate-fixed", `${p.scale}× · re-aim every ${formatDuration(p.everyMs)}`),
+      take?.cursorTrack === false
+        ? row("triangle-alert", "The take has no cursor to follow", {
+            tone: "warn",
+            title: "Set Cursor to Smooth on the Record take node.",
+          })
+        : takeRow(take, 0),
+    ];
+  },
   params: z.object({
     scale: zoomFactor(1.35),
-    everyMs: ms(700, "Re-aim every", 5000),
+    everyMs: msAtLeast(700, "Re-aim every", 200, 5000),
   }),
   compile: ({ nodeId, inputs, params }) =>
     withClip(inputs, (clip) =>
@@ -379,11 +404,11 @@ const deviceFrameNode = defineNode({
   type: "camera.deviceFrame",
   title: "Device frame",
   description: "Puts the video inside a browser window, laptop or phone.",
-  card: ({ params: p, inputRecordings }) => [
+  card: ({ params: p, inputTakes }) => [
     row(DEVICES[p.device].icon, DEVICES[p.device].label),
     p.device === "laptop" && p.entrance !== "none" && row("sparkles", ENTRANCES[p.entrance]),
     p.device === "browser" &&
-      inputRecordings?.clip === false &&
+      inputTakes?.clip === null &&
       row("triangle-alert", "Needs a recording; try Laptop or Phone", {
         tone: "warn",
         title: "A browser window frames only a recording. Laptop and Phone frame any clip.",

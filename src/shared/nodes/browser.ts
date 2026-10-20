@@ -34,6 +34,7 @@ import {
   int,
   more,
   ms,
+  msAtLeast,
   num,
   optionalTarget,
   pauseAfter,
@@ -55,8 +56,7 @@ const action = { ...base, ...chain, action: true } as const;
 const pause = (after: number): CardRow | null =>
   after > 0 ? row("timer", `Pause ${formatDuration(after)}`) : null;
 
-const giveUpAfter = (def: number) =>
-  int(def, "Give up after", { min: 500, max: 600_000, step: 50, unit: "ms" });
+const giveUpAfter = (def: number) => msAtLeast(def, "Give up after", 500);
 
 const giveUpRow = (timeoutMs: number): CardRow =>
   row("timer-off", `Give up after ${formatDuration(timeoutMs)}`, { tone: "muted" });

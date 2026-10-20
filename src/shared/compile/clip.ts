@@ -2,6 +2,7 @@ import { z } from "zod";
 import { findById } from "../lists";
 import { clamp } from "../math";
 import { parseOncePer } from "../memo";
+import type { InputTake } from "../nodes/card";
 import { rectSchema, viewportSchema } from "../schema/actions";
 import {
   elementRefSchema,
@@ -467,6 +468,16 @@ export function clipFrameOfRecording(
       }
     }
   return null;
+}
+
+export function inputTake(clip: ClipValue): InputTake | undefined {
+  const log = clip.recording?.log;
+  if (log) return { durationMs: log.durationMs, cursorTrack: !!log.cursorTrack?.length };
+  let placeholder = false;
+  walkItems(clip.tracks, (item) => {
+    if (item.component === "core/placeholder") placeholder = true;
+  });
+  return placeholder ? undefined : null;
 }
 
 export function recordingProps(clip: ClipValue): RecordingProps[] {

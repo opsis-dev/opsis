@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/renderer/lib/utils";
-import { isClip, sceneItemCount } from "@/shared/compile/clip";
+import { inputTake, isClip, sceneItemCount } from "@/shared/compile/clip";
 import { errorMessage } from "@/shared/errors";
 import { uniqueKeys } from "@/shared/lists";
-import type { CardRow } from "@/shared/nodes/card";
+import type { CardRow, InputTake } from "@/shared/nodes/card";
 import { cardParams, cardRows, type NodeDef } from "@/shared/nodes/define";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { workflowVars } from "@/shared/vars";
@@ -34,18 +34,19 @@ function useCardInputs(node: WorkflowNode) {
   const clip = compiled?.values[node.id]?.clip;
   const clipFrames = isClip(clip) ? clip.durationInFrames : undefined;
   const connected = useMemo(() => incoming.map((e) => e.targetHandle), [incoming]);
-  const { inputFrames, inputItems, inputRecordings } = useMemo(() => {
+  const { inputFrames, inputItems, inputTakes } = useMemo(() => {
     const frames: Partial<Record<string, number>> = {};
     const items: Partial<Record<string, number>> = {};
-    const recordings: Partial<Record<string, boolean>> = {};
+    const takes: Partial<Record<string, InputTake>> = {};
     for (const e of incoming) {
       const v = compiled?.values[e.source]?.[e.sourceHandle];
       if (!isClip(v)) continue;
       frames[e.targetHandle] = v.durationInFrames;
       items[e.targetHandle] = sceneItemCount(v);
-      recordings[e.targetHandle] = !!v.recording;
+      const take = inputTake(v);
+      if (take !== undefined) takes[e.targetHandle] = take;
     }
-    return { inputFrames: frames, inputItems: items, inputRecordings: recordings };
+    return { inputFrames: frames, inputItems: items, inputTakes: takes };
   }, [incoming, compiled]);
   return useMemo(
     () => ({
@@ -58,7 +59,7 @@ function useCardInputs(node: WorkflowNode) {
         clipFrames,
         inputFrames,
         inputItems,
-        inputRecordings,
+        inputTakes,
       },
     }),
     [
@@ -71,7 +72,7 @@ function useCardInputs(node: WorkflowNode) {
       clipFrames,
       inputFrames,
       inputItems,
-      inputRecordings,
+      inputTakes,
     ],
   );
 }

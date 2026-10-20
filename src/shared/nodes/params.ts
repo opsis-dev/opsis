@@ -44,6 +44,9 @@ export const int = (def: number, description: string, { min, max, ...meta }: Num
 export const ms = (def: number, description: string, max = 600_000) =>
   int(def, description, { min: 0, max, step: 50, unit: "ms" });
 
+export const msAtLeast = (def: number, description: string, min: number, max = 600_000) =>
+  int(def, description, { min, max, step: 50, unit: "ms" });
+
 export const frames = (def: number, description: string) =>
   int(def, description, { min: 1, max: MAX_FRAMES, step: 1, unit: "frames" });
 

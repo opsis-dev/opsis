@@ -3,6 +3,7 @@ import { clipFrameOfRecording, emptyClip, groupOf, itemClip } from "../compile/c
 import { defaultRecordingProps } from "../compile/recording";
 import type { ClipValue } from "../schema/values";
 import { compileClip, makeLog, must, nodeCard } from "../test-fixtures";
+import type { InputTake } from "./card";
 import { parseParams } from "./params";
 import { getNodeDef } from "./registry";
 
@@ -67,7 +68,7 @@ describe("Device frame", () => {
       nodeCard(
         "camera.deviceFrame",
         { device: "browser" },
-        { inputRecordings: { clip: recording } },
+        { inputTakes: { clip: recording ? { durationMs: 5000, cursorTrack: true } : null } },
       ).map((r) => r.text);
     expect(texts(false)).toContain("Needs a recording; try Laptop or Phone");
     expect(texts(true)).not.toContain("Needs a recording; try Laptop or Phone");
@@ -81,5 +82,38 @@ describe("Backdrop", () => {
     expect(problem("camera.backdrop", { kind: "gradient", gradient: " " })).toBe("Pick a gradient");
     expect(problem("camera.backdrop", { kind: "asset", asset: "" })).toBe("Choose an image");
     expect(problem("camera.backdrop", { kind: "image" })).toBeNull();
+  });
+});
+
+describe("Zoom here, Pan and Follow cursor", () => {
+  const take = { durationMs: 6000, cursorTrack: true };
+  const texts = (type: string, params: Record<string, unknown>, clip: InputTake) =>
+    nodeCard(type, params, { inputTakes: { clip } }).map((r) => r.text);
+
+  it("warns when the move starts after the take ends", () => {
+    expect(texts("camera.manualZoom", { atMs: 60_000 }, take)).toContain(
+      "After the take ends at 6 s",
+    );
+    expect(texts("camera.pan", { atMs: 7000 }, take)).toContain("After the take ends at 6 s");
+    expect(texts("camera.manualZoom", { atMs: 1000 }, take)).not.toContain(
+      "After the take ends at 6 s",
+    );
+  });
+
+  it("warns when there is no recording to move over", () => {
+    for (const type of ["camera.manualZoom", "camera.pan", "camera.followCursor"])
+      expect(texts(type, {}, null)).toContain("Needs a recording");
+  });
+
+  it("warns when the take has no cursor to follow", () => {
+    expect(texts("camera.followCursor", {}, { ...take, cursorTrack: false })).toContain(
+      "The take has no cursor to follow",
+    );
+  });
+
+  it("never holds, pans or re-aims for no time at all", () => {
+    expect(problem("camera.manualZoom", { holdMs: 0 })).toBe("Hold is too small");
+    expect(problem("camera.pan", { durationMs: 0 })).toBe("Pan for is too small");
+    expect(problem("camera.followCursor", { everyMs: 0 })).toBe("Re-aim every is too small");
   });
 });
