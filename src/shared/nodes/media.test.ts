@@ -61,3 +61,12 @@ describe("Convert card", () => {
     expect(texts("prores")).toEqual(["ProRes"]);
   });
 });
+
+describe("Join files card", () => {
+  it("counts the files and asks for what's missing", () => {
+    const text = (connected: string[]) => nodeCard("media.concat", {}, { connected })[0].text;
+    expect(text([])).toBe("Connect two files");
+    expect(text(["in1"])).toBe("Connect one more file");
+    expect(text(["in1", "in2", "in3"])).toBe("3 files");
+  });
+});

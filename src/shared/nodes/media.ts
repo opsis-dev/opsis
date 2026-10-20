@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { projectRef } from "../asset-ref";
 import { itemClip } from "../compile/clip";
-import { formatDuration } from "../format";
+import { formatDuration, plural } from "../format";
 import { kindFromPath } from "../mime";
 import type { EditHandles, VisualEnvelope } from "../schema/timeline";
 import {
@@ -14,7 +14,7 @@ import {
 } from "../schema/values";
 import { DEFAULT_STILL_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
 import { msToFrames } from "../timeline/time";
-import { connectedPorts, fileRow, missing, rangeRow, row, warnIf, type CardRow } from "./card";
+import { connectedPorts, fileRow, missing, rangeRow, row, type CardRow } from "./card";
 import { defineNode, nodeBase, opt, port, type CompileInputs, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
 import {
@@ -241,7 +241,12 @@ export const concatNode = op({
   outputs: { media: port("media", "File") },
   card: ({ connected, result }) => {
     const n = connectedPorts(Object.keys(CONCAT_INPUTS), connected).length;
-    return [row("combine", `${n} files`, warnIf(n < 2)), lengthRow(result)];
+    return [
+      n < 2
+        ? missing("combine", n ? "Connect one more file" : "Connect two files")
+        : row("combine", plural(n, "file")),
+      lengthRow(result),
+    ];
   },
   params: z.object({ forceReencode: more(bool(false, "Always convert"), { advanced: true }) }),
   compile: (ctx) => passMedia(ctx, "in1"),
