@@ -1,9 +1,9 @@
-import { cp, mkdir } from "node:fs/promises";
+import { cp, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { tempDirs } from "../../engine/test-temp-dirs";
 import { nodeResult } from "../../shared/test-fixtures";
-import { nodeHash, readCached, writeCached } from "./cache";
+import { nodeHash, readCached, stampArtifacts, writeCached } from "./cache";
 
 describe("nodeHash", () => {
   it("is stable under key order and changes with params or upstream", () => {
@@ -68,5 +68,20 @@ describe("readCached", () => {
     await mkdir(path.join(cache, "bbb"), { recursive: true });
     await cp(path.join(cache, "aaa", "result.json"), path.join(cache, "bbb", "result.json"));
     expect(await readCached(cache, "bbb", dir)).toBeNull();
+  });
+
+  it("reads a saved result only while its files are the ones it saved", async () => {
+    const dir = await newDir();
+    const cache = path.join(dir, "cache");
+    await mkdir(path.join(dir, "out"), { recursive: true });
+    await writeFile(path.join(dir, "out", "film.png"), "red");
+    const result = await stampArtifacts(
+      nodeResult({ hash: "red", artifacts: [{ kind: "image", path: "out/film.png" }] }),
+      dir,
+    );
+    await writeCached(cache, result);
+    expect(await readCached(cache, "red", dir)).not.toBeNull();
+    await writeFile(path.join(dir, "out", "film.png"), "blue, written by another export");
+    expect(await readCached(cache, "red", dir)).toBeNull();
   });
 });

@@ -37,7 +37,7 @@ import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/take-run";
 import { getExecutor } from "../executors";
 import { createFfmpegTools, ToolError, type FfmpegTools } from "../media/ffmpeg";
-import { nodeHash, readCached, writeCached } from "./cache";
+import { nodeHash, readCached, stampArtifacts, writeCached } from "./cache";
 import {
   TracedError,
   warnFailed,
@@ -393,7 +393,10 @@ class RunState {
     try {
       const executor = getExecutor(node.type);
       if (!executor) throw new Error("This kind of node can't run.");
-      const result = await this.executeJob(job, executor);
+      const result = await stampArtifacts(
+        await this.executeJob(job, executor),
+        this.run.req.projectDir,
+      );
       this.store.set(node.id, result);
       if (!def.volatile) await writeCached(this.cacheDir, result);
       deps.emit(doneEvent(runId, node.id, false, result));

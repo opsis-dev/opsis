@@ -90,6 +90,7 @@ const artifactSchema = z.object({
   label: z.string().optional(),
   poster: z.string().optional(),
   bytes: z.number().optional(),
+  stamp: z.string().optional(),
 });
 export type Artifact = z.infer<typeof artifactSchema>;
 
