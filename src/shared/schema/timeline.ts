@@ -129,6 +129,7 @@ export const audioItemSchema = z.object({
   volume: z.number().optional(),
   trimBefore: z.number().int().nonnegative().optional(),
   loop: z.boolean().optional(),
+  rate: z.number().positive().optional(),
   fadeInFrames: z.number().int().nonnegative().optional(),
   fadeOutFrames: z.number().int().nonnegative().optional(),
   nodeId: z.string().optional(),

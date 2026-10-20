@@ -9,6 +9,7 @@ import {
   timelineTrackSchema,
   type AudioItem,
   type EditHandles,
+  type Keyframe,
   type TimelineItem,
   type TimelineSpec,
   type TimelineTrack,
@@ -139,6 +140,92 @@ export function itemClip<C extends string>(
   });
 }
 
+function cutSoundStart(a: AudioItem, by: number): AudioItem | null {
+  if (by <= 0) return a;
+  if (a.durationInFrames !== undefined && a.durationInFrames <= by) return null;
+  const sourceCut = Math.round(by * (a.rate ?? 1));
+  if (a.lengthFrames !== undefined && a.lengthFrames <= sourceCut) return null;
+  return {
+    ...a,
+    from: a.from + by,
+    trimBefore: (a.trimBefore ?? 0) + sourceCut,
+    ...(a.durationInFrames === undefined ? {} : { durationInFrames: a.durationInFrames - by }),
+    ...(a.lengthFrames === undefined ? {} : { lengthFrames: a.lengthFrames - sourceCut }),
+  };
+}
+
+function fitWithin(a: AudioItem, end: number): AudioItem | null {
+  const placed = cutSoundStart(a, -a.from);
+  if (!placed || placed.from >= end) return null;
+  const room = end - placed.from;
+  return {
+    ...placed,
+    durationInFrames: Math.min(placed.durationInFrames ?? room, room),
+  };
+}
+
+const scaleKeys = (keys: Keyframe[] | undefined, by: number) =>
+  keys?.map((k) => ({ ...k, frame: Math.round(k.frame * by) }));
+
+function speedSound(a: AudioItem, innerPerOuter: number): AudioItem {
+  const outer = (frames: number | undefined) =>
+    frames === undefined ? undefined : Math.max(1, Math.round(frames / innerPerOuter));
+  return {
+    ...a,
+    from: Math.round(a.from / innerPerOuter),
+    rate: (a.rate ?? 1) * innerPerOuter,
+    ...(a.durationInFrames === undefined ? {} : { durationInFrames: outer(a.durationInFrames) }),
+    ...(a.fadeInFrames ? { fadeInFrames: outer(a.fadeInFrames) } : {}),
+    ...(a.fadeOutFrames ? { fadeOutFrames: outer(a.fadeOutFrames) } : {}),
+    ...(a.envelope
+      ? {
+          envelope: {
+            volume: scaleKeys(a.envelope.volume, 1 / innerPerOuter),
+            pan: scaleKeys(a.envelope.pan, 1 / innerPerOuter),
+          },
+        }
+      : {}),
+  };
+}
+
+const uniformRate = (remap: Remap): number | null => {
+  const [[x0, y0], ...rest] = remap;
+  const last = rest.at(-1);
+  if (rest.length !== 1 || x0 !== 0 || y0 !== 0 || !last || last[0] <= 0) return null;
+  return last[1] / last[0];
+};
+
+export function wrapSounds(
+  audio: AudioItem[],
+  props: Pick<GroupProps, "startFrom" | "loopEvery" | "remap">,
+  duration: number,
+): AudioItem[] {
+  let items = audio.flatMap(
+    (a) => cutSoundStart({ ...a, from: a.from - (props.startFrom ?? 0) }, 0) ?? [],
+  );
+  const loop = props.loopEvery ?? 0;
+  if (loop > 0) {
+    const count = Math.ceil(duration / loop);
+    items = Array.from({ length: count }, (_, k) =>
+      items.flatMap((a) => {
+        const inLoop = fitWithin(a, loop);
+        if (!inLoop) return [];
+        const copy = { ...inLoop, from: inLoop.from + k * loop };
+        return k === 0 ? [copy] : [{ ...copy, id: `${a.id}:r${k}`, handles: undefined }];
+      }),
+    ).flat();
+  }
+  const { remap } = props;
+  if (remap?.length) {
+    const rate = uniformRate(remap);
+    items =
+      rate === null
+        ? items.map((a) => ({ ...a, from: Math.round(inverseRemap(remap, a.from, "start")) }))
+        : items.map((a) => speedSound(a, rate));
+  }
+  return items.flatMap((a) => fitWithin(a, duration) ?? []);
+}
+
 export function wrapClip(
   clip: ClipValue,
   nodeId: string,
@@ -153,7 +240,7 @@ export function wrapClip(
   return makeClip({
     durationInFrames: duration,
     tracks: oneTrack(nodeId, group),
-    audio: clip.audio,
+    audio: wrapSounds(clip.audio, props, duration),
     recording: clip.recording,
   });
 }

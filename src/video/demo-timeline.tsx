@@ -384,6 +384,7 @@ const AudioLayer: React.FC<{ item: AudioItem; spans: Span[] }> = ({ item, spans 
       <Audio
         src={resolveAssetRef(item.src, base)}
         loop={item.loop}
+        playbackRate={item.rate}
         trimBefore={item.trimBefore}
         volume={(f) => audioGainAt(item, f, duration, spans)}
       />

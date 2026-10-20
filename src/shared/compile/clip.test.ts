@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
+import type { AudioItem } from "../schema/timeline";
 import { must } from "../test-fixtures";
 import { flattenSpec, nodeSpans } from "../timeline/flatten";
 import {
@@ -14,6 +15,7 @@ import {
   sequenceClips,
   stackClips,
   wrapClip,
+  wrapSounds,
 } from "./clip";
 import { defaultRecordingProps } from "./recording";
 import { remapFrame, type Remap } from "./remap";
@@ -271,5 +273,52 @@ describe("built-in item props", () => {
       groupOf({ ...item, component: "core/group", props: { tracks: [], remap: "fast" } }),
     ).toBeNull();
     expect(groupOf(item)).toBeNull();
+  });
+});
+
+describe("wrapSounds", () => {
+  const beep = (from: number, durationInFrames?: number): AudioItem => ({
+    id: "b",
+    src: "project:beeps.wav",
+    from,
+    ...(durationInFrames === undefined ? {} : { durationInFrames }),
+  });
+  const placed = (items: AudioItem[]) =>
+    items.map((a) => [a.from, a.durationInFrames, a.trimBefore ?? 0, a.rate ?? 1]);
+
+  it("cuts sounds with a trimmed start, keeping their place in the picture", () => {
+    expect(placed(wrapSounds([beep(0, 120)], { startFrom: 30 }, 90))).toEqual([[0, 90, 30, 1]]);
+    expect(placed(wrapSounds([beep(60, 10)], { startFrom: 30 }, 90))).toEqual([[30, 10, 0, 1]]);
+    expect(wrapSounds([beep(10, 10)], { startFrom: 30 }, 90)).toEqual([]);
+  });
+
+  it("repeats sounds with each repeat of the clip", () => {
+    const out = wrapSounds([beep(15, 10)], { loopEvery: 60 }, 180);
+    expect(out.map((a) => [a.id, a.from])).toEqual([
+      ["b", 15],
+      ["b:r1", 75],
+      ["b:r2", 135],
+    ]);
+  });
+
+  it("speeds sounds up with the clip", () => {
+    expect(
+      placed(
+        wrapSounds(
+          [beep(30, 60)],
+          {
+            remap: [
+              [0, 0],
+              [60, 120],
+            ],
+          },
+          60,
+        ),
+      ),
+    ).toEqual([[15, 30, 0, 2]]);
+  });
+
+  it("stops sounds where the clip ends", () => {
+    expect(placed(wrapSounds([beep(0)], {}, 50))).toEqual([[0, 50, 0, 1]]);
   });
 });

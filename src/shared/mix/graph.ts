@@ -5,6 +5,7 @@ import type { Keyframe } from "../schema/timeline";
 import { samplePoints } from "../timeline/envelope";
 import { framesToMs } from "../timeline/time";
 import type { BusPlan, ChannelPlan, MixPlan, SoundPlacement } from "./plan";
+import { atempoChain } from "./tempo";
 import { LOUDNESS_TARGETS, SAMPLE_RATE, dbToGain, type Comp, type Eq, type Master } from "./types";
 
 const MIN_COMP_THRESHOLD = 0.000976563;
@@ -126,6 +127,7 @@ function placementSteps(sound: SoundPlacement, fps: number): string[] {
   if (sound.offset > 0)
     steps.push(`atrim=start=${secs(sound.offset, fps)}`, "asetpts=PTS-STARTPTS");
   if (sound.loop) steps.push(`aloop=loop=-1:size=${ENDLESS_LOOP}`);
+  if (sound.rate !== 1) steps.push(atempoChain(sound.rate), "asetpts=PTS-STARTPTS");
   steps.push(`atrim=end=${secs(sound.length, fps)}`, "asetpts=PTS-STARTPTS");
   if (sound.volume !== 1) steps.push(`volume=${num(sound.volume)}`);
   if (sound.fadeIn > 0)

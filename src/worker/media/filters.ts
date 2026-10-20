@@ -1,5 +1,6 @@
 import { formatColor, parseColor } from "../../shared/color";
 import { round3 } from "../../shared/math";
+import { atempoChain } from "../../shared/mix/tempo";
 import type { NodeParams } from "../../shared/nodes/define";
 import type { gifNode, scalePadNode } from "../../shared/nodes/media";
 import { EDIT_VIDEO, evenDown, withEvenFrame } from "./codecs";
@@ -68,21 +69,6 @@ export function joinFilter(
   const out = `${video ? "[v]" : ""}${audio ? "[a]" : ""}`;
   const join = `${pads.join("")}concat=n=${parts.length}:v=${video ? 1 : 0}:a=${audio ? 1 : 0}${out}`;
   return { filter: `${chains.join(";")};${join}`, video, audio };
-}
-
-export function atempoChain(rate: number): string {
-  const parts: number[] = [];
-  let r = rate;
-  while (r > 2) {
-    parts.push(2);
-    r /= 2;
-  }
-  while (r < 0.5) {
-    parts.push(0.5);
-    r /= 0.5;
-  }
-  parts.push(r);
-  return parts.map((x) => `atempo=${x.toFixed(4)}`).join(",");
 }
 
 export function speedArgs(

@@ -28,6 +28,7 @@ export type SoundPlacement = {
   offset: number;
   length: number;
   loop: boolean;
+  rate: number;
   volume: number;
   fadeIn: number;
   fadeOut: number;
@@ -71,6 +72,7 @@ function soundPlacements(flat: FlatTimeline): Map<string, SoundPlacement[]> {
       offset: Math.max(0, Math.round(a.trimBefore)),
       length: atLeastOneFrame(a.to - a.from),
       loop: a.loop,
+      rate: a.item?.rate ?? 1,
       volume: a.volume,
       fadeIn: a.item?.fadeInFrames ?? 0,
       fadeOut: a.item?.fadeOutFrames ?? 0,

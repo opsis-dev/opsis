@@ -198,6 +198,7 @@ describe("mix filter graphs", () => {
             at: 0,
             offset: 0,
             length: 90,
+            rate: 1,
             loop: false,
             volume: 1,
             fadeIn: 0,

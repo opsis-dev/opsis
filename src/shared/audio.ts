@@ -7,7 +7,7 @@ export const channelOf = (a: Pick<AudioItem, "channel" | "nodeId" | "id">): stri
 export function soundLength(a: AudioItem, total: number): number {
   const rest = Math.max(0, total - a.from);
   if (a.role === "effect") {
-    const natural = a.lengthFrames ?? rest;
+    const natural = a.lengthFrames === undefined ? rest : a.lengthFrames / (a.rate ?? 1);
     return Math.min(natural, a.durationInFrames ?? natural);
   }
   return a.durationInFrames ?? rest;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { atempoChain, ffmpegColor, fitFilter, gifFilter, joinFilter, speedArgs } from "./filters";
+import { atempoChain } from "../../shared/mix/tempo";
+import { ffmpegColor, fitFilter, gifFilter, joinFilter, speedArgs } from "./filters";
 
 describe("atempoChain", () => {
   it.each([
