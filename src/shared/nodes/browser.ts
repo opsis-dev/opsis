@@ -447,7 +447,7 @@ const waitParams = z
       showIf: { mode: ["url"] },
     }),
     ms: more(ms(1000, "Time"), { showIf: { mode: ["ms"] } }),
-    timeoutMs: giveUpAfter(20_000),
+    timeoutMs: more(giveUpAfter(20_000), { showIf: { mode: ["element", "network-idle", "url"] } }),
   })
   .superRefine((p, ctx) => {
     const missingWhat =
