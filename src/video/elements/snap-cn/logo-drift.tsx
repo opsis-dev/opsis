@@ -540,9 +540,12 @@ export function LogoDrift({
           <div
             style={{
               display: "flex",
+              flexWrap: "wrap",
+              maxWidth: REF_W * 0.88,
               alignItems: "baseline",
               justifyContent: "center",
-              gap: fontSize * 0.28,
+              columnGap: fontSize * 0.28,
+              rowGap: fontSize * 0.08,
               fontFamily: face,
               fontSize,
               fontWeight,
