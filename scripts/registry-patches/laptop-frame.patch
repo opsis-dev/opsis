@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- In portrait, zoom until the screen fits the frame's width instead of covering its height, so the whole screen stays in view.
 
 diff --git a/src/video/elements/snap-cn/laptop-frame.tsx b/src/video/elements/snap-cn/laptop-frame.tsx
-index a727915..78fb14c 100644
+index a727915..50b6f33 100644
 --- a/src/video/elements/snap-cn/laptop-frame.tsx
 +++ b/src/video/elements/snap-cn/laptop-frame.tsx
 @@ -6,9 +6,8 @@ import {
@@ -16,7 +17,19 @@ index a727915..78fb14c 100644
  import {
    mixOklch,
    resolveFont,
-@@ -716,7 +715,7 @@ export function LaptopFrame({
+@@ -248,7 +247,10 @@ export function cameraPose(
+   // Screen inner, at the resting base scale, must cover the whole frame.
+   const innerW = (LID_WIDTH - 2 * BEZEL_WIDTH) * baseScale;
+   const innerH = (LID_HEIGHT - 2 * BEZEL_WIDTH) * baseScale;
+-  const cover = Math.max(compWidth / innerW, compHeight / innerH);
++  const cover =
++    compWidth >= compHeight
++      ? Math.max(compWidth / innerW, compHeight / innerH)
++      : Math.min(compWidth / innerW, compHeight / innerH);
+   const scale = 1 + (cover - 1) * p;
+ 
+   // The screen centre sits `d` px above the camera-box centre (the deck pulls the
+@@ -716,7 +718,7 @@ export function LaptopFrame({
    speed = 1,
    className,
  }: LaptopFrameProps) {
@@ -25,7 +38,7 @@ index a727915..78fb14c 100644
    // The screen shows an app, so it follows the app theme. The lid, the notch
    // and the drop shadow are a physical object photographed on a desk: they take
    // the dark end of the system whatever mode the screen is in.
-@@ -726,7 +725,7 @@ export function LaptopFrame({
+@@ -726,7 +728,7 @@ export function LaptopFrame({
    const lid = bezelColor ?? mixOklch(shell.background, shell.foreground, 0.09);
    const glass = screenColor ?? t.card;
    const drop = shadow ?? `0 40px 80px ${withAlpha(shell.background, 0.45)}`;

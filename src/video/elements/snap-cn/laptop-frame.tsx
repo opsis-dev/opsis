@@ -247,7 +247,10 @@ export function cameraPose(
   // Screen inner, at the resting base scale, must cover the whole frame.
   const innerW = (LID_WIDTH - 2 * BEZEL_WIDTH) * baseScale;
   const innerH = (LID_HEIGHT - 2 * BEZEL_WIDTH) * baseScale;
-  const cover = Math.max(compWidth / innerW, compHeight / innerH);
+  const cover =
+    compWidth >= compHeight
+      ? Math.max(compWidth / innerW, compHeight / innerH)
+      : Math.min(compWidth / innerW, compHeight / innerH);
   const scale = 1 + (cover - 1) * p;
 
   // The screen centre sits `d` px above the camera-box centre (the deck pulls the
