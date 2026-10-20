@@ -34,4 +34,5 @@ export default defineConfig({
     tailwindcss(),
   ],
   resolve: { alias: SRC_ALIAS },
+  server: { watch: { ignored: ["**/out/**"] } },
 });
