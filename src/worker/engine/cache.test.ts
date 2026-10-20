@@ -30,3 +30,17 @@ describe("nodeHash", () => {
     );
   });
 });
+
+describe("nodeHash for a port that takes several connections", () => {
+  it("doesn't depend on the order the connections were made", () => {
+    const one = nodeHash("audio.mix", {}, [
+      ["sounds", "a:audio"],
+      ["sounds", "b:audio"],
+    ]);
+    const two = nodeHash("audio.mix", {}, [
+      ["sounds", "b:audio"],
+      ["sounds", "a:audio"],
+    ]);
+    expect(one).toBe(two);
+  });
+});

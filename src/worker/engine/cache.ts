@@ -8,7 +8,9 @@ import { nodeResultSchema, type NodeResult } from "../../shared/schema/values";
 export const ENGINE_VERSION = "opsis-engine/1";
 
 export function nodeHash(type: string, params: unknown, upstream: Array<[string, string]>): string {
-  const ports = upstream.toSorted(([a], [b]) => byCodeUnit(a, b));
+  const ports = upstream.toSorted(
+    ([portA, fromA], [portB, fromB]) => byCodeUnit(portA, portB) || byCodeUnit(fromA, fromB),
+  );
   return versionedHash(ENGINE_VERSION, { type, params, ports });
 }
 
