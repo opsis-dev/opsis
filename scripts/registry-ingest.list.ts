@@ -1768,6 +1768,22 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
     },
   }),
   "hero-launch": snapTheme("dark"),
+  "metric-ticker": {
+    controls: {
+      theme: {
+        type: "enum",
+        options: ["dark", "light"],
+        default: "dark",
+        description: "Theme",
+        help: "Surface palette: text, cards and the change colours.",
+      },
+      backgroundColor: themeBackground,
+      accentColor: {
+        ...optionalColor("Accent color", "Theme"),
+        help: "Value colour, overridable per metric. Leave empty to follow the theme.",
+      },
+    },
+  },
   "stat-card": {
     controls: {
       backgroundColor: themeBackground,

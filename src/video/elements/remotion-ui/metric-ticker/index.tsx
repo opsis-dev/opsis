@@ -42,6 +42,8 @@ export type MetricTickerProps = {
   maxCards?: number;
   backgroundColor?: string;
   accentColor?: string;
+  /** Surface palette: ink, cards and the change colours. */
+  theme?: "dark" | "light";
   /**
    * Seconds after which the panel leaves. Omit to hold — correct inside a
    * `TransitionSeries`, where the transition covers the tail, and wrong on
@@ -50,16 +52,29 @@ export type MetricTickerProps = {
   holdSeconds?: number;
 };
 
-const COLORS = {
-  bg: "#080810",
-  ink: "#fafafa",
-  label: "rgba(250,250,250,0.58)",
-  eyebrow: "rgba(250,250,250,0.44)",
-  card: "rgba(250,250,250,0.035)",
-  border: "rgba(250,250,250,0.10)",
-  accent: "#e8b86d",
-  up: "#2dd4bf",
-  down: "#f87171",
+const PALETTES = {
+  dark: {
+    bg: "#080810",
+    ink: "#fafafa",
+    label: "rgba(250,250,250,0.58)",
+    eyebrow: "rgba(250,250,250,0.44)",
+    card: "rgba(250,250,250,0.035)",
+    border: "rgba(250,250,250,0.10)",
+    accent: "#e8b86d",
+    up: "#2dd4bf",
+    down: "#f87171",
+  },
+  light: {
+    bg: "#F4F4F2",
+    ink: "#22252B",
+    label: "rgba(34,37,43,0.62)",
+    eyebrow: "rgba(34,37,43,0.48)",
+    card: "#FFFFFF",
+    border: "rgba(0,0,0,0.10)",
+    accent: "#b45309",
+    up: "#0f766e",
+    down: "#dc2626",
+  },
 } as const;
 
 const DELTA_GLYPH = { up: "↑", down: "↓", flat: "" } as const;
@@ -78,10 +93,13 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
   eyebrow,
   valueFormatter = formatCompactNumber,
   maxCards = 4,
-  backgroundColor = COLORS.bg,
-  accentColor = COLORS.accent,
+  backgroundColor,
+  accentColor: accentSetting,
+  theme = "dark",
   holdSeconds,
 }) => {
+  const COLORS = PALETTES[theme];
+  const accentColor = accentSetting ?? COLORS.accent;
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const safe = getSafeAreaPadding({ width, height });
@@ -119,7 +137,7 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
       style={{
         width,
         height,
-        background: backgroundColor,
+        background: backgroundColor ?? COLORS.bg,
         backgroundImage: `radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, ${accentColor} 7%, transparent), transparent 70%)`,
         color: COLORS.ink,
         fontFamily,
