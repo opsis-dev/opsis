@@ -63,12 +63,10 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const reframe = useReframe();
   const timeS = useClipTime(props.speed);
 
-  const log = useMemo(() => {
-    const clickLog = toClickLog(props.log, props.name, props.extraBeats);
-    return props.zoom
-      ? clickLog
-      : { ...clickLog, clicks: clickLog.clicks.map((click) => ({ ...click, zoom: false })) };
-  }, [props.log, props.name, props.extraBeats, props.zoom]);
+  const log = useMemo(
+    () => toClickLog(props.log, props.name, props.extraBeats, { zoomActions: props.zoom }),
+    [props.log, props.name, props.extraBeats, props.zoom],
+  );
   const annotations = useMemo(
     () => resolveAnnotations(props.log, props.annotations),
     [props.log, props.annotations],

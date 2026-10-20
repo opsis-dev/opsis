@@ -4,13 +4,13 @@ import path from "node:path";
 import { writeViaTemp } from "../../engine/atomic";
 import { pruneDir } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
+import { PICTURE_VERSION } from "../../engine/picture-version";
 import { projectPaths } from "../../engine/project-paths";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { ENGINE_VERSION } from "../engine/cache";
 import { CODECS, FASTSTART, type RenderCodec, type SoundCodec } from "../media/codecs";
 import type { GlRenderer } from "./render";
 
-const PICTURE_VERSION = "opsis-picture/1";
 const KEEP_PICTURES = 12;
 
 type PictureOptions = { codec: RenderCodec; crf: number; scale: number; gl: GlRenderer };

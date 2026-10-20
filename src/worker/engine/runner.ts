@@ -4,6 +4,7 @@ import pLimit, { type LimitFunction } from "p-limit";
 import { readLastRun, writeLastRun } from "../../engine/last-run";
 import { logWarning } from "../../engine/log";
 import { enginePaths, type EnginePaths } from "../../engine/paths";
+import { PICTURE_VERSION } from "../../engine/picture-version";
 import { projectPaths, toPosixRel } from "../../engine/project-paths";
 import { compileWorkflow, type CompileResult } from "../../shared/compile/compile";
 import { CANCELLED, errorMessage } from "../../shared/errors";
@@ -146,7 +147,12 @@ function hashNodes(
     const params = interpolatedParams(def, node.params, vars);
     const keyed =
       def?.phase === "render"
-        ? { params, settings: workflow.settings, mix: workflow.mix ?? null }
+        ? {
+            params,
+            settings: workflow.settings,
+            mix: workflow.mix ?? null,
+            picture: PICTURE_VERSION,
+          }
         : params;
     hashes.set(node.id, nodeHash(node.type, keyed, upstream));
   }

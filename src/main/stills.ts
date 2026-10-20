@@ -7,6 +7,7 @@ import { sha256Hex } from "../engine/hash";
 import { readJson, writeJson } from "../engine/json";
 import { logError } from "../engine/log";
 import { engineStatus } from "../engine/paths";
+import { PICTURE_VERSION } from "../engine/picture-version";
 import { projectPaths } from "../engine/project-paths";
 import { IPC, type StillRequest, type StillResult } from "../shared/ipc";
 import { oneAtATime } from "../shared/timing";
@@ -83,7 +84,7 @@ async function recordStill(projectDir: string, nodeId: string, hash: string): Pr
 }
 
 export async function requestStill(request: StillRequest): Promise<StillResult> {
-  const hash = sha256Hex(request.key, 24);
+  const hash = sha256Hex(`${PICTURE_VERSION}:${request.key}`, 24);
   if (existsSync(stillPath(request.projectDir, hash))) {
     await recordStill(request.projectDir, request.nodeId, hash);
     return { hash, ready: true };

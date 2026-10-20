@@ -36,6 +36,23 @@ const log: ActionLog = {
 };
 
 describe("ActionLog → ClickLog", () => {
+  it("turns off zoom on the take's own actions only, keeping zooms placed by camera nodes", () => {
+    const zoomHere = {
+      id: "z:a",
+      kind: "focus" as const,
+      t: 3000,
+      point: { x: 960, y: 540 },
+      zoomScale: 2,
+      cluster: "z:zoom",
+    };
+    const cl = toClickLog(log, "demo", [zoomHere], { zoomActions: false });
+    expect(cl.clicks.map((c) => [c.tMs, c.zoom])).toEqual([
+      [2000, false],
+      [3000, undefined],
+      [5000, false],
+    ]);
+  });
+
   it("keeps pointer beats as clicks and chords as keys", () => {
     const cl = toClickLog(log, "demo");
     expect(cl.clicks.map((c) => c.label)).toEqual(["Save", "Search"]);

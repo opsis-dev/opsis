@@ -39,8 +39,14 @@ const carried = (a: Action) => ({
   zoomScale: a.zoomScale,
 });
 
-export function toClickLog(log: ActionLog, name: string, extraBeats: Action[] = []): ClickLog {
-  const actions = [...log.actions, ...extraBeats].sort((a, b) => a.t - b.t);
+export function toClickLog(
+  log: ActionLog,
+  name: string,
+  extraBeats: Action[] = [],
+  { zoomActions = true }: { zoomActions?: boolean } = {},
+): ClickLog {
+  const taken = zoomActions ? log.actions : log.actions.map((a) => ({ ...a, zoom: false }));
+  const actions = [...taken, ...extraBeats].sort((a, b) => a.t - b.t);
   const clicks: ClickEvent[] = [];
   const keys: KeyEvent[] = [];
   for (const a of actions) {
