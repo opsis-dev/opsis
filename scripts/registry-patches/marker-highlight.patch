@@ -1,11 +1,12 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Take the font as a prop, following the project's main font by default.
 
 diff --git a/src/video/elements/remocn/marker-highlight.tsx b/src/video/elements/remocn/marker-highlight.tsx
-index a3e3d00..4d207d8 100644
+index a3e3d00..efb6c34 100644
 --- a/src/video/elements/remocn/marker-highlight.tsx
 +++ b/src/video/elements/remocn/marker-highlight.tsx
-@@ -2,9 +2,8 @@ import {
+@@ -2,11 +2,11 @@ import {
    interpolate,
    interpolateColors,
    spring,
@@ -15,8 +16,19 @@ index a3e3d00..4d207d8 100644
 +import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
  
  export interface MarkerHighlightProps {
++  fontFamily?: string;
    before?: string;
-@@ -31,8 +30,8 @@ export function MarkerHighlight({
+   highlight: string;
+   after?: string;
+@@ -20,6 +20,7 @@ export interface MarkerHighlightProps {
+ }
+ 
+ export function MarkerHighlight({
++  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+   before = "",
+   highlight,
+   after = "",
+@@ -31,8 +32,8 @@ export function MarkerHighlight({
    speed = 1,
    className,
  }: MarkerHighlightProps) {
@@ -27,3 +39,13 @@ index a3e3d00..4d207d8 100644
  
    const markerScale = spring({
      frame: frame - 15,
+@@ -67,8 +68,7 @@ export function MarkerHighlight({
+           fontWeight,
+           color: baseColor,
+           letterSpacing: "-0.03em",
+-          fontFamily:
+-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
++          fontFamily,
+         }}
+       >
+         {before}

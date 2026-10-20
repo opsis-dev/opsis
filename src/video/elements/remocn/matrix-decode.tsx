@@ -2,6 +2,7 @@ import { random } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface MatrixDecodeProps {
+  fontFamily?: string;
   text: string;
   charset?: string;
   fontSize?: number;
@@ -13,6 +14,7 @@ export interface MatrixDecodeProps {
 }
 
 export function MatrixDecode({
+  fontFamily = "var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace",
   text,
   charset = "!@#$%^&*()_+-=<>?/\\|",
   fontSize = 72,
@@ -59,8 +61,7 @@ export function MatrixDecode({
           color,
           letterSpacing: "0.05em",
           whiteSpace: "pre",
-          fontFamily:
-            "var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace",
+          fontFamily,
         }}
       >
         {output}

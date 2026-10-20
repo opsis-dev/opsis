@@ -1,12 +1,13 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Size each column to its widest glyph in the drawn font and keep a padding space one line tall, so wide letters are not clipped and a longer new value rolls into every column.
+- Take the font as a prop, following the project's main font by default.
 
 diff --git a/src/video/elements/remocn/slot-machine-roll.tsx b/src/video/elements/remocn/slot-machine-roll.tsx
-index 985f0be..fb5418d 100644
+index 985f0be..0702662 100644
 --- a/src/video/elements/remocn/slot-machine-roll.tsx
 +++ b/src/video/elements/remocn/slot-machine-roll.tsx
-@@ -1,4 +1,27 @@
+@@ -1,6 +1,31 @@
 -import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 +import { useMemo } from "react";
 +import { spring } from "remotion";
@@ -21,12 +22,13 @@ index 985f0be..fb5418d 100644
 +  to: string,
 +  fontSize: number,
 +  fontWeight: number,
++  fontFamily: string,
 +): number[] {
 +  const fixed = () => Array.from(from, () => COLUMN_EM * fontSize);
 +  if (typeof document === "undefined") return fixed();
 +  const ctx = document.createElement("canvas").getContext("2d");
 +  if (!ctx) return fixed();
-+  ctx.font = `${fontWeight} ${fontSize}px ${MAIN_FONT}`;
++  ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
 +  ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
 +  return Array.from(from, (char, i) =>
 +    Math.max(ctx.measureText(char).width, ctx.measureText(to[i] ?? "").width),
@@ -34,8 +36,19 @@ index 985f0be..fb5418d 100644
 +}
  
  export interface SlotMachineRollProps {
++  fontFamily?: string;
    from?: string;
-@@ -19,12 +42,16 @@ export function SlotMachineRoll({
+   to?: string;
+   fontSize?: number;
+@@ -11,6 +36,7 @@ export interface SlotMachineRollProps {
+ }
+ 
+ export function SlotMachineRoll({
++  fontFamily = MAIN_FONT,
+   from = "$99",
+   to = "$199",
+   fontSize = 120,
+@@ -19,12 +45,16 @@ export function SlotMachineRoll({
    speed = 1,
    className,
  }: SlotMachineRollProps) {
@@ -48,13 +61,13 @@ index 985f0be..fb5418d 100644
    const paddedFrom = from.padStart(len, " ");
    const paddedTo = to.padStart(len, " ");
 +  const widths = useMemo(
-+    () => columnWidths(paddedFrom, paddedTo, fontSize, fontWeight),
-+    [paddedFrom, paddedTo, fontSize, fontWeight],
++    () => columnWidths(paddedFrom, paddedTo, fontSize, fontWeight, fontFamily),
++    [paddedFrom, paddedTo, fontSize, fontWeight, fontFamily],
 +  );
  
    const columns = [];
    for (let i = 0; i < len; i++) {
-@@ -43,7 +70,7 @@ export function SlotMachineRoll({
+@@ -43,7 +73,7 @@ export function SlotMachineRoll({
            height: "1.1em",
            lineHeight: "1.1em",
            verticalAlign: "top",
@@ -63,7 +76,7 @@ index 985f0be..fb5418d 100644
            textAlign: "center",
          }}
        >
-@@ -54,8 +81,8 @@ export function SlotMachineRoll({
+@@ -54,8 +84,8 @@ export function SlotMachineRoll({
              translate: `0 ${-t * fontSize * 1.1}px`,
            }}
          >
@@ -74,12 +87,15 @@ index 985f0be..fb5418d 100644
          </span>
        </span>,
      );
-@@ -78,7 +105,7 @@ export function SlotMachineRoll({
+@@ -78,9 +108,8 @@ export function SlotMachineRoll({
            fontSize,
            fontWeight,
            color,
 -          letterSpacing: "-0.03em",
+-          fontFamily:
+-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
 +          letterSpacing: `${LETTER_SPACING_EM}em`,
-           fontFamily:
-             "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
++          fontFamily,
            lineHeight: 1.1,
+         }}
+       >

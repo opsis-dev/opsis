@@ -2,6 +2,7 @@ import { Easing, interpolate } from "remotion";
 import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface SoftBlurInProps {
+  fontFamily?: string;
   text: string;
   blur?: number;
   fontSize?: number;
@@ -12,6 +13,7 @@ export interface SoftBlurInProps {
 }
 
 export function SoftBlurIn({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   text,
   blur = 12,
   fontSize = 72,
@@ -45,8 +47,7 @@ export function SoftBlurIn({
           fontWeight,
           color,
           letterSpacing: "-0.05em",
-          fontFamily:
-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily,
         }}
       >
         {chars.map((char, i) => {

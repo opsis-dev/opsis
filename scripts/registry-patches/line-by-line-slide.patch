@@ -1,19 +1,31 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
+- Take the font as a prop, following the project's main font by default.
 
 diff --git a/src/video/elements/remocn/line-by-line-slide.tsx b/src/video/elements/remocn/line-by-line-slide.tsx
-index 67935ab..6680a6e 100644
+index 67935ab..f97cf95 100644
 --- a/src/video/elements/remocn/line-by-line-slide.tsx
 +++ b/src/video/elements/remocn/line-by-line-slide.tsx
-@@ -1,4 +1,5 @@
+@@ -1,6 +1,8 @@
 -import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 +import { Easing, interpolate } from "remotion";
 +import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
  
  export interface LineByLineSlideProps {
++  fontFamily?: string;
    text: string;
-@@ -19,8 +20,9 @@ export function LineByLineSlide({
+   distance?: number;
+   fontSize?: number;
+@@ -11,6 +13,7 @@ export interface LineByLineSlideProps {
+ }
+ 
+ export function LineByLineSlide({
++  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+   text,
+   distance = 48,
+   fontSize = 72,
+@@ -19,8 +22,9 @@ export function LineByLineSlide({
    speed = 1,
    className,
  }: LineByLineSlideProps) {
@@ -25,3 +37,13 @@ index 67935ab..6680a6e 100644
  
    const lines = text.split("\n");
  
+@@ -60,8 +64,7 @@ export function LineByLineSlide({
+           letterSpacing: "-0.03em",
+           lineHeight: 1.1,
+           textAlign: "left",
+-          fontFamily:
+-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
++          fontFamily,
+         }}
+       >
+         {lines.map((line, i) => {

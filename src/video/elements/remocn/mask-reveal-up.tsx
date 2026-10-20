@@ -2,6 +2,7 @@ import { Easing, interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface MaskRevealUpProps {
+  fontFamily?: string;
   text: string;
   distance?: number;
   fontSize?: number;
@@ -12,6 +13,7 @@ export interface MaskRevealUpProps {
 }
 
 export function MaskRevealUp({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   text,
   distance = 30,
   fontSize = 72,
@@ -62,8 +64,7 @@ export function MaskRevealUp({
           letterSpacing: "-0.03em",
           lineHeight: 1.1,
           textAlign: "center",
-          fontFamily:
-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily,
         }}
       >
         {lines.map((line, i) => {

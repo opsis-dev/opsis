@@ -1,19 +1,31 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
+- Take the font as a prop, following the project's main font by default.
 
 diff --git a/src/video/elements/remocn/strikethrough-replace.tsx b/src/video/elements/remocn/strikethrough-replace.tsx
-index 3dc83d9..5e9ada4 100644
+index 3dc83d9..d814ae4 100644
 --- a/src/video/elements/remocn/strikethrough-replace.tsx
 +++ b/src/video/elements/remocn/strikethrough-replace.tsx
-@@ -1,4 +1,5 @@
+@@ -1,6 +1,8 @@
 -import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 +import { interpolate } from "remotion";
 +import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
  
  export interface StrikethroughReplaceProps {
++  fontFamily?: string;
    from: string;
-@@ -21,8 +22,9 @@ export function StrikethroughReplace({
+   to: string;
+   lineColor?: string;
+@@ -12,6 +14,7 @@ export interface StrikethroughReplaceProps {
+ }
+ 
+ export function StrikethroughReplace({
++  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+   from,
+   to,
+   lineColor = "#ff5e3a",
+@@ -21,8 +24,9 @@ export function StrikethroughReplace({
    speed = 1,
    className,
  }: StrikethroughReplaceProps) {
@@ -25,3 +37,13 @@ index 3dc83d9..5e9ada4 100644
  
    // Phases:
    // 0 .. 40% -> draw strikethrough across `from`
+@@ -56,8 +60,7 @@ export function StrikethroughReplace({
+     fontWeight,
+     color,
+     letterSpacing: "-0.03em",
+-    fontFamily:
+-      "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
++    fontFamily,
+     whiteSpace: "nowrap",
+   };
+ 

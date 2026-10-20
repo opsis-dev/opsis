@@ -4,6 +4,7 @@ import { MAIN_FONT } from "@/shared/fonts";
 import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface KineticCenterBuildProps {
+  fontFamily?: string;
   text: string;
   entryOffset?: number;
   fontSize?: number;
@@ -13,27 +14,26 @@ export interface KineticCenterBuildProps {
   className?: string;
 }
 
-const FONT_FAMILY =
-  "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif";
-
 const LETTER_SPACING_EM = -0.03;
 
 function measureWidths(
   words: string[],
   fontSize: number,
   fontWeight: number,
+  fontFamily: string,
 ): number[] {
   if (typeof document === "undefined") {
     return words.map((w) => w.length * fontSize * 0.55);
   }
   const ctx = document.createElement("canvas").getContext("2d");
   if (!ctx) return words.map((w) => w.length * fontSize * 0.55);
-  ctx.font = `${fontWeight} ${fontSize}px ${MAIN_FONT}`;
+  ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
   ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
   return words.map((w) => ctx.measureText(w).width);
 }
 
 export function KineticCenterBuild({
+  fontFamily = MAIN_FONT,
   text,
   entryOffset = 88,
   fontSize = 72,
@@ -46,8 +46,8 @@ export function KineticCenterBuild({
 
   const words = useMemo(() => text.split(" "), [text]);
   const widths = useMemo(
-    () => measureWidths(words, fontSize, fontWeight),
-    [words, fontSize, fontWeight],
+    () => measureWidths(words, fontSize, fontWeight, fontFamily),
+    [words, fontSize, fontWeight, fontFamily],
   );
 
   const gap = 10;
@@ -97,7 +97,7 @@ export function KineticCenterBuild({
           fontWeight,
           color,
           letterSpacing: `${LETTER_SPACING_EM}em`,
-          fontFamily: FONT_FAMILY,
+          fontFamily,
           whiteSpace: "nowrap",
         }}
       >

@@ -2,6 +2,7 @@ import { interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface StrikethroughReplaceProps {
+  fontFamily?: string;
   from: string;
   to: string;
   lineColor?: string;
@@ -13,6 +14,7 @@ export interface StrikethroughReplaceProps {
 }
 
 export function StrikethroughReplace({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   from,
   to,
   lineColor = "#ff5e3a",
@@ -58,8 +60,7 @@ export function StrikethroughReplace({
     fontWeight,
     color,
     letterSpacing: "-0.03em",
-    fontFamily:
-      "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+    fontFamily,
     whiteSpace: "nowrap",
   };
 

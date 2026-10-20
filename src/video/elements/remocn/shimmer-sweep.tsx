@@ -2,6 +2,7 @@ import { interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface ShimmerSweepProps {
+  fontFamily?: string;
   text: string;
   baseColor?: string;
   shineColor?: string;
@@ -12,6 +13,7 @@ export interface ShimmerSweepProps {
 }
 
 export function ShimmerSweep({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   text,
   baseColor = "#3f3f46",
   shineColor = "#fafafa",
@@ -35,8 +37,7 @@ export function ShimmerSweep({
     fontSize,
     fontWeight,
     letterSpacing: "-0.03em",
-    fontFamily:
-      "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+    fontFamily,
     margin: 0,
     lineHeight: 1,
   };

@@ -4,6 +4,7 @@ import { MAIN_FONT } from "@/shared/fonts";
 import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface WordPushProps {
+  fontFamily?: string;
   text: string;
   fontSize?: number;
   color?: string;
@@ -21,12 +22,17 @@ const CHAR_WIDTH_EM = 0.5;
 const SPACE_WIDTH_EM = 0.22;
 const LETTER_SPACING_EM = -0.02;
 
-function measureWords(words: string[], fontSize: number, fontWeight: number): number[] {
+function measureWords(
+  words: string[],
+  fontSize: number,
+  fontWeight: number,
+  fontFamily: string,
+): number[] {
   const guess = () => words.map((word) => word.length * CHAR_WIDTH_EM * fontSize);
   if (typeof document === "undefined") return guess();
   const ctx = document.createElement("canvas").getContext("2d");
   if (!ctx) return guess();
-  ctx.font = `${fontWeight} ${fontSize}px ${MAIN_FONT}`;
+  ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
   ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
   return words.map((word) => ctx.measureText(word).width);
 }
@@ -52,6 +58,7 @@ const pushEasing = Easing.out(Easing.cubic);
 const driveEasing = Easing.bezier(0.15, 0.7, 0.25, 1);
 
 export function WordPush({
+  fontFamily = MAIN_FONT,
   text,
   fontSize = 72,
   color = "#171717",
@@ -65,8 +72,8 @@ export function WordPush({
 
   const words = text.trim().split(/\s+/).filter(Boolean);
   const widths = useMemo(
-    () => measureWords(text.trim().split(/\s+/).filter(Boolean), fontSize, fontWeight),
-    [text, fontSize, fontWeight],
+    () => measureWords(text.trim().split(/\s+/).filter(Boolean), fontSize, fontWeight, fontFamily),
+    [text, fontSize, fontWeight, fontFamily],
   );
 
   let lineX = interpolate(
@@ -115,8 +122,7 @@ export function WordPush({
           fontWeight,
           color,
           letterSpacing: `${LETTER_SPACING_EM}em`,
-          fontFamily:
-            "var(--font-geist-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif)",
+          fontFamily,
         }}
       >
         {words.map((word, j) => {

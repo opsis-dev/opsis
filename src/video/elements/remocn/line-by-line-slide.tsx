@@ -2,6 +2,7 @@ import { Easing, interpolate } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface LineByLineSlideProps {
+  fontFamily?: string;
   text: string;
   distance?: number;
   fontSize?: number;
@@ -12,6 +13,7 @@ export interface LineByLineSlideProps {
 }
 
 export function LineByLineSlide({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   text,
   distance = 48,
   fontSize = 72,
@@ -62,8 +64,7 @@ export function LineByLineSlide({
           letterSpacing: "-0.03em",
           lineHeight: 1.1,
           textAlign: "left",
-          fontFamily:
-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily,
         }}
       >
         {lines.map((line, i) => {

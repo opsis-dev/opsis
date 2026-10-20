@@ -6,6 +6,7 @@ import {
 import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface MarkerHighlightProps {
+  fontFamily?: string;
   before?: string;
   highlight: string;
   after?: string;
@@ -19,6 +20,7 @@ export interface MarkerHighlightProps {
 }
 
 export function MarkerHighlight({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   before = "",
   highlight,
   after = "",
@@ -66,8 +68,7 @@ export function MarkerHighlight({
           fontWeight,
           color: baseColor,
           letterSpacing: "-0.03em",
-          fontFamily:
-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily,
         }}
       >
         {before}

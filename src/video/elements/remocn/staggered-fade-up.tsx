@@ -2,6 +2,7 @@ import { interpolate } from "remotion";
 import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface StaggeredFadeUpProps {
+  fontFamily?: string;
   text: string;
   staggerDelay?: number;
   distance?: number;
@@ -13,6 +14,7 @@ export interface StaggeredFadeUpProps {
 }
 
 export function StaggeredFadeUp({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   text,
   staggerDelay = 4,
   distance = 20,
@@ -44,8 +46,7 @@ export function StaggeredFadeUp({
           fontWeight,
           color,
           letterSpacing: "-0.03em",
-          fontFamily:
-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily,
         }}
       >
         {words.map((word, i) => {

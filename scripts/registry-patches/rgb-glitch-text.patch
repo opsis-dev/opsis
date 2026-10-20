@@ -1,19 +1,23 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Take the three glitch colours and how they blend as props, so the glitch can be coloured and shows on dark backgrounds.
+- Take the font as a prop, following the project's main font by default.
 
 diff --git a/src/video/elements/remocn/rgb-glitch-text.tsx b/src/video/elements/remocn/rgb-glitch-text.tsx
-index f7f7295..8b45baf 100644
+index f7f7295..4b2c536 100644
 --- a/src/video/elements/remocn/rgb-glitch-text.tsx
 +++ b/src/video/elements/remocn/rgb-glitch-text.tsx
-@@ -1,4 +1,5 @@
+@@ -1,6 +1,8 @@
 -import { random, useCurrentFrame } from "remotion";
 +import { random } from "remotion";
 +import { useAuthoredFrame } from "@/video/core/authored-clock";
  
  export interface RGBGlitchTextProps {
++  fontFamily?: string;
    text: string;
-@@ -9,10 +10,14 @@ export interface RGBGlitchTextProps {
+   fontSize?: number;
+   color?: string;
+@@ -9,11 +11,16 @@ export interface RGBGlitchTextProps {
    glitchDuration?: number;
    intensity?: number;
    seed?: string;
@@ -26,9 +30,11 @@ index f7f7295..8b45baf 100644
 +const GLITCH_COLORS = ["#ff0040", "#00ff80", "#0080ff"];
 +
  export function RGBGlitchText({
++  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
    text,
    fontSize = 96,
-@@ -22,10 +27,12 @@ export function RGBGlitchText({
+   color = "#171717",
+@@ -22,10 +29,12 @@ export function RGBGlitchText({
    glitchDuration = 8,
    intensity = 6,
    seed = "glitch",
@@ -42,15 +48,29 @@ index f7f7295..8b45baf 100644
  
    const isGlitching = frame >= glitchAt && frame < glitchAt + glitchDuration;
  
-@@ -51,7 +58,7 @@ export function RGBGlitchText({
-     fontFamily:
-       "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+@@ -48,10 +57,9 @@ export function RGBGlitchText({
+     fontSize,
+     fontWeight,
+     letterSpacing: "-0.03em",
+-    fontFamily:
+-      "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
++    fontFamily,
      whiteSpace: "pre",
 -    mixBlendMode: "multiply",
 +    mixBlendMode: blend,
    };
  
    return (
+@@ -76,8 +84,7 @@ export function RGBGlitchText({
+             fontWeight,
+             color,
+             letterSpacing: "-0.03em",
+-            fontFamily:
+-              "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
++            fontFamily,
+             whiteSpace: "pre",
+           }}
+         >
 @@ -86,7 +93,7 @@ export function RGBGlitchText({
          <span
            style={{

@@ -1,18 +1,30 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Take the font as a prop, following the project's main font by default.
 
 diff --git a/src/video/elements/remocn/soft-blur-in.tsx b/src/video/elements/remocn/soft-blur-in.tsx
-index 5749adc..cf89d37 100644
+index 5749adc..05dff0e 100644
 --- a/src/video/elements/remocn/soft-blur-in.tsx
 +++ b/src/video/elements/remocn/soft-blur-in.tsx
-@@ -1,4 +1,5 @@
+@@ -1,6 +1,8 @@
 -import { Easing, interpolate, useCurrentFrame } from "remotion";
 +import { Easing, interpolate } from "remotion";
 +import { useAuthoredFrame } from "@/video/core/authored-clock";
  
  export interface SoftBlurInProps {
++  fontFamily?: string;
    text: string;
-@@ -19,7 +20,7 @@ export function SoftBlurIn({
+   blur?: number;
+   fontSize?: number;
+@@ -11,6 +13,7 @@ export interface SoftBlurInProps {
+ }
+ 
+ export function SoftBlurIn({
++  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+   text,
+   blur = 12,
+   fontSize = 72,
+@@ -19,7 +22,7 @@ export function SoftBlurIn({
    speed = 1,
    className,
  }: SoftBlurInProps) {
@@ -21,3 +33,13 @@ index 5749adc..cf89d37 100644
  
    const chars = Array.from(text);
    const charDurationFrames = 27;
+@@ -44,8 +47,7 @@ export function SoftBlurIn({
+           fontWeight,
+           color,
+           letterSpacing: "-0.05em",
+-          fontFamily:
+-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
++          fontFamily,
+         }}
+       >
+         {chars.map((char, i) => {

@@ -1,19 +1,31 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
+- Take the font as a prop, following the project's main font by default.
 
 diff --git a/src/video/elements/remocn/shimmer-sweep.tsx b/src/video/elements/remocn/shimmer-sweep.tsx
-index b7b5039..1dc0998 100644
+index b7b5039..e928c06 100644
 --- a/src/video/elements/remocn/shimmer-sweep.tsx
 +++ b/src/video/elements/remocn/shimmer-sweep.tsx
-@@ -1,4 +1,5 @@
+@@ -1,6 +1,8 @@
 -import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 +import { interpolate } from "remotion";
 +import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
  
  export interface ShimmerSweepProps {
++  fontFamily?: string;
    text: string;
-@@ -19,8 +20,9 @@ export function ShimmerSweep({
+   baseColor?: string;
+   shineColor?: string;
+@@ -11,6 +13,7 @@ export interface ShimmerSweepProps {
+ }
+ 
+ export function ShimmerSweep({
++  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+   text,
+   baseColor = "#3f3f46",
+   shineColor = "#fafafa",
+@@ -19,8 +22,9 @@ export function ShimmerSweep({
    speed = 1,
    className,
  }: ShimmerSweepProps) {
@@ -25,3 +37,13 @@ index b7b5039..1dc0998 100644
  
    const position = interpolate(
      frame,
+@@ -33,8 +37,7 @@ export function ShimmerSweep({
+     fontSize,
+     fontWeight,
+     letterSpacing: "-0.03em",
+-    fontFamily:
+-      "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
++    fontFamily,
+     margin: 0,
+     lineHeight: 1,
+   };

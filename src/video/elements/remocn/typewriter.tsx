@@ -2,6 +2,7 @@ import { Caret } from "@/video/elements/remocn/caret";
 import { useTypewriter } from "@/video/lib/remocn-ui";
 
 export interface TypewriterProps {
+  fontFamily?: string;
   text: string;
   cursor?: boolean;
   charsPerSecond?: number;
@@ -14,6 +15,7 @@ export interface TypewriterProps {
 }
 
 export function Typewriter({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   text,
   cursor = true,
   charsPerSecond = 22,
@@ -44,8 +46,7 @@ export function Typewriter({
           fontWeight,
           color,
           letterSpacing: "-0.03em",
-          fontFamily:
-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily,
           whiteSpace: "pre",
         }}
       >

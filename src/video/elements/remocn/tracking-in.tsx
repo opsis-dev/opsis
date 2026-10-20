@@ -2,6 +2,7 @@ import { interpolate, spring } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface TrackingInProps {
+  fontFamily?: string;
   text: string;
   startTracking?: number;
   startBlur?: number;
@@ -13,6 +14,7 @@ export interface TrackingInProps {
 }
 
 export function TrackingIn({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   text,
   startTracking = 0.5,
   startBlur = 12,
@@ -58,8 +60,7 @@ export function TrackingIn({
           letterSpacing,
           opacity,
           filter: `blur(${blurAmount}px)`,
-          fontFamily:
-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily,
           whiteSpace: "nowrap",
         }}
       >

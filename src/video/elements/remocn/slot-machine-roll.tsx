@@ -11,12 +11,13 @@ function columnWidths(
   to: string,
   fontSize: number,
   fontWeight: number,
+  fontFamily: string,
 ): number[] {
   const fixed = () => Array.from(from, () => COLUMN_EM * fontSize);
   if (typeof document === "undefined") return fixed();
   const ctx = document.createElement("canvas").getContext("2d");
   if (!ctx) return fixed();
-  ctx.font = `${fontWeight} ${fontSize}px ${MAIN_FONT}`;
+  ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
   ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
   return Array.from(from, (char, i) =>
     Math.max(ctx.measureText(char).width, ctx.measureText(to[i] ?? "").width),
@@ -24,6 +25,7 @@ function columnWidths(
 }
 
 export interface SlotMachineRollProps {
+  fontFamily?: string;
   from?: string;
   to?: string;
   fontSize?: number;
@@ -34,6 +36,7 @@ export interface SlotMachineRollProps {
 }
 
 export function SlotMachineRoll({
+  fontFamily = MAIN_FONT,
   from = "$99",
   to = "$199",
   fontSize = 120,
@@ -49,8 +52,8 @@ export function SlotMachineRoll({
   const paddedFrom = from.padStart(len, " ");
   const paddedTo = to.padStart(len, " ");
   const widths = useMemo(
-    () => columnWidths(paddedFrom, paddedTo, fontSize, fontWeight),
-    [paddedFrom, paddedTo, fontSize, fontWeight],
+    () => columnWidths(paddedFrom, paddedTo, fontSize, fontWeight, fontFamily),
+    [paddedFrom, paddedTo, fontSize, fontWeight, fontFamily],
   );
 
   const columns = [];
@@ -106,8 +109,7 @@ export function SlotMachineRoll({
           fontWeight,
           color,
           letterSpacing: `${LETTER_SPACING_EM}em`,
-          fontFamily:
-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily,
           lineHeight: 1.1,
         }}
       >

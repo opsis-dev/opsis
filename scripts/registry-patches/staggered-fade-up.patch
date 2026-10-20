@@ -1,18 +1,30 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Take the font as a prop, following the project's main font by default.
 
 diff --git a/src/video/elements/remocn/staggered-fade-up.tsx b/src/video/elements/remocn/staggered-fade-up.tsx
-index ca02a4e..47e5bfc 100644
+index ca02a4e..e54cac2 100644
 --- a/src/video/elements/remocn/staggered-fade-up.tsx
 +++ b/src/video/elements/remocn/staggered-fade-up.tsx
-@@ -1,4 +1,5 @@
+@@ -1,6 +1,8 @@
 -import { interpolate, useCurrentFrame } from "remotion";
 +import { interpolate } from "remotion";
 +import { useAuthoredFrame } from "@/video/core/authored-clock";
  
  export interface StaggeredFadeUpProps {
++  fontFamily?: string;
    text: string;
-@@ -21,7 +22,7 @@ export function StaggeredFadeUp({
+   staggerDelay?: number;
+   distance?: number;
+@@ -12,6 +14,7 @@ export interface StaggeredFadeUpProps {
+ }
+ 
+ export function StaggeredFadeUp({
++  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+   text,
+   staggerDelay = 4,
+   distance = 20,
+@@ -21,7 +24,7 @@ export function StaggeredFadeUp({
    speed = 1,
    className,
  }: StaggeredFadeUpProps) {
@@ -21,3 +33,13 @@ index ca02a4e..47e5bfc 100644
  
    const words = text.split(" ");
  
+@@ -43,8 +46,7 @@ export function StaggeredFadeUp({
+           fontWeight,
+           color,
+           letterSpacing: "-0.03em",
+-          fontFamily:
+-            "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
++          fontFamily,
+         }}
+       >
+         {words.map((word, i) => {

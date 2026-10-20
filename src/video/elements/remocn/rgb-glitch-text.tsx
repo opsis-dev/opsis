@@ -2,6 +2,7 @@ import { random } from "remotion";
 import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface RGBGlitchTextProps {
+  fontFamily?: string;
   text: string;
   fontSize?: number;
   color?: string;
@@ -19,6 +20,7 @@ export interface RGBGlitchTextProps {
 const GLITCH_COLORS = ["#ff0040", "#00ff80", "#0080ff"];
 
 export function RGBGlitchText({
+  fontFamily = "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
   text,
   fontSize = 96,
   color = "#171717",
@@ -55,8 +57,7 @@ export function RGBGlitchText({
     fontSize,
     fontWeight,
     letterSpacing: "-0.03em",
-    fontFamily:
-      "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+    fontFamily,
     whiteSpace: "pre",
     mixBlendMode: blend,
   };
@@ -83,8 +84,7 @@ export function RGBGlitchText({
             fontWeight,
             color,
             letterSpacing: "-0.03em",
-            fontFamily:
-              "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+            fontFamily,
             whiteSpace: "pre",
           }}
         >
