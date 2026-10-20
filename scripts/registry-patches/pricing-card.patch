@@ -1,12 +1,23 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
+- The rolled price was rounded to a whole number, so 19.99 showed as 20; it now keeps the price's own decimals, up to two.
 
 diff --git a/src/video/elements/remotion-ui/pricing-card/index.tsx b/src/video/elements/remotion-ui/pricing-card/index.tsx
-index c07918e..da16bb6 100644
+index c07918e..a8a9112 100644
 --- a/src/video/elements/remotion-ui/pricing-card/index.tsx
 +++ b/src/video/elements/remotion-ui/pricing-card/index.tsx
-@@ -176,7 +176,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+@@ -139,7 +139,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+   const headIn = ease(T.head, T.head + T.headFor);
+ 
+   const roll = ease(priceAtSeconds, priceAtSeconds + rollSeconds, EASING.editorial);
+-  const shown = Math.round(interpolate(roll, [0, 1], [0, price]));
++  const priceDecimals = Math.min(2, (String(price).split(".")[1] ?? "").length);
++  const shown = interpolate(roll, [0, 1], [0, price]).toFixed(priceDecimals);
+   // Motion blur only while the digits are actually changing — it clears over the
+   // last third of the roll so the settled price is never soft.
+   const rollBlur = Math.sin(Math.PI * roll) * 2.2;
+@@ -176,7 +177,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
            width: cardW,
            borderRadius: 24 * u,
            background: palette.window,
@@ -15,7 +26,7 @@ index c07918e..da16bb6 100644
            boxShadow: `inset 0 1px 0 ${palette.highlight}, 0 ${28 * u}px ${
              70 * u
            }px ${palette.shadow}`,
-@@ -194,7 +194,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+@@ -194,7 +195,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
            style={{
              position: "absolute",
              inset: 0,
@@ -24,7 +35,7 @@ index c07918e..da16bb6 100644
            }}
          />
  
-@@ -223,8 +223,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+@@ -223,8 +224,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
                  style={{
                    padding: `${3.5 * u}px ${9 * u}px`,
                    borderRadius: 999,
@@ -35,7 +46,7 @@ index c07918e..da16bb6 100644
                    color: accentColor,
                    fontSize: 14.5 * u,
                    fontWeight: 600,
-@@ -329,7 +329,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+@@ -329,7 +330,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
                const featureIn = ease(featureAt, featureAt + 0.38);
                return (
                  <div
@@ -44,7 +55,7 @@ index c07918e..da16bb6 100644
                    style={{
                      display: "flex",
                      alignItems: "center",
-@@ -339,7 +339,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+@@ -339,7 +340,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
                    }}
                  >
                    <svg width={18 * u} height={18 * u} viewBox="0 0 24 24" fill="none">
@@ -53,7 +64,7 @@ index c07918e..da16bb6 100644
                      <path
                        d="M6.5 12.5 L10.5 16.5 L17.5 8"
                        stroke={accentColor}
-@@ -381,7 +381,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+@@ -381,7 +382,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
                  letterSpacing: "0.01em",
                  opacity: Math.min(1, ctaIn * 1.4),
                  scale: `${0.94 + ctaIn * 0.06}`,

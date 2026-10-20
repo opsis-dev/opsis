@@ -139,7 +139,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   const headIn = ease(T.head, T.head + T.headFor);
 
   const roll = ease(priceAtSeconds, priceAtSeconds + rollSeconds, EASING.editorial);
-  const shown = Math.round(interpolate(roll, [0, 1], [0, price]));
+  const priceDecimals = Math.min(2, (String(price).split(".")[1] ?? "").length);
+  const shown = interpolate(roll, [0, 1], [0, price]).toFixed(priceDecimals);
   // Motion blur only while the digits are actually changing — it clears over the
   // last third of the roll so the settled price is never soft.
   const rollBlur = Math.sin(Math.PI * roll) * 2.2;
