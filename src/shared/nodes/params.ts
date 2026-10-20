@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parseColor } from "../color";
 import { fieldMeta, type FieldMeta } from "../elements/introspect";
 import { humanize, signedText } from "../format";
 import { isKeyOf } from "../guards";
@@ -76,6 +77,15 @@ export const requiredText = (description: string, missing: string, def = "") =>
     .refine((t) => t.replaceAll(PAUSE_MARK, "").trim() !== "", missing)
     .default(def)
     .meta({ description });
+
+export const colorSetting = (def: string, description: string) =>
+  z
+    .string()
+    .refine((c) => !c.trim() || parseColor(c.trim()) !== null, "Pick a colour")
+    .default(def)
+    .meta({ description, widget: "color", zeroLabel: "Default" });
+
+export const colorOr = (color: string, def: string): string => color.trim() || def;
 
 export const asset = (description: string, accept = "*/*") =>
   z.string().default("").meta({ description, widget: "asset", accept });
