@@ -3,6 +3,7 @@ import {
   Sequence,
 } from "remotion";
 import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "@/video/core/authored-clock";
+import { parseColor } from "@/video/lib/remocn-ui/color";
 
 export type TerminalLineType = "command" | "log" | "success" | "error";
 
@@ -55,6 +56,21 @@ const TYPE_COLORS: Record<TerminalLineType, string> = {
   error: "#ef4444",
 };
 
+const LIGHT_TYPE_COLORS: Record<TerminalLineType, string> = {
+  command: "#18181b",
+  log: "#52525b",
+  success: "#15803d",
+  error: "#b91c1c",
+};
+
+const CHROME_HEIGHT = 40;
+const BODY_PADDING = 20;
+
+function isLight(color: string): boolean {
+  const { r, g, b, alpha = 1 } = parseColor(color);
+  return alpha > 0.5 && 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5;
+}
+
 /** Auto freeze-frame heuristic: any line ending in "..." holds the camera. */
 function autoPause(line: TerminalLine): number {
   if (line.pause !== undefined) return line.pause;
@@ -79,9 +95,13 @@ export function TerminalSimulator({
   const realFrames = useRealFrames();
 
   const lineHeight = Math.round(fontSize * 1.6);
-  const visibleLines = 8;
   const windowWidth = 900;
   const windowHeight = 480;
+  const visibleLines = Math.max(
+    1,
+    Math.floor((windowHeight - CHROME_HEIGHT - BODY_PADDING * 2) / lineHeight),
+  );
+  const typeColors = isLight(background) ? LIGHT_TYPE_COLORS : TYPE_COLORS;
 
   // Compute cumulative start frames for each line, including auto/explicit
   // pauses AFTER a line finishes typing.
@@ -165,8 +185,9 @@ export function TerminalSimulator({
         <div
           style={{
             flex: 1,
-            padding: 20,
+            padding: BODY_PADDING,
             overflow: "hidden",
+            clipPath: `inset(${BODY_PADDING}px 0)`,
             position: "relative",
           }}
         >
@@ -187,6 +208,7 @@ export function TerminalSimulator({
               >
                 <TerminalLineRow
                   line={line}
+                  colors={typeColors}
                   prompt={prompt}
                   fontSize={fontSize}
                   lineHeight={lineHeight}
@@ -220,6 +242,7 @@ function Light({ color }: { color: string }) {
 
 function TerminalLineRow({
   line,
+  colors,
   prompt,
   fontSize,
   lineHeight,
@@ -229,6 +252,7 @@ function TerminalLineRow({
   speed,
 }: {
   line: TerminalLine;
+  colors: Record<TerminalLineType, string>;
   prompt: string;
   fontSize: number;
   lineHeight: number;
@@ -263,14 +287,14 @@ function TerminalLineRow({
       style={{
         height: lineHeight,
         fontSize,
-        color: TYPE_COLORS[line.type],
+        color: colors[line.type],
         display: "flex",
         alignItems: "center",
         whiteSpace: "pre",
       }}
     >
       {line.type === "command" && (
-        <span style={{ color: "#22c55e", marginRight: 8 }}>{prompt}</span>
+        <span style={{ color: colors.success, marginRight: 8 }}>{prompt}</span>
       )}
       <span>{visible}</span>
       {!typingDone && cursorVisible && (
