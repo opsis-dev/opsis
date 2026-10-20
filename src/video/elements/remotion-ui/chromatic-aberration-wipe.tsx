@@ -88,13 +88,8 @@ const ChromaticPresentation: React.FC<
 
   // Under ~0.1px the three copies are indistinguishable from the original and
   // only cost three extra composites, so the split layer is dropped entirely.
-  if (separation < 0.1) {
-    return (
-      <AbsoluteFill style={{ opacity: phase.opacity, translate: shift }}>
-        {children}
-      </AbsoluteFill>
-    );
-  }
+  const split = separation >= 0.1;
+  const shown = split ? channels : [{ channel: channels[0].channel, style: {} }];
 
   return (
     // `isolation` keeps the screen blend inside this scene. Without it the
@@ -121,7 +116,7 @@ const ChromaticPresentation: React.FC<
           )}
         </defs>
       </svg>
-      {channels.map(({ channel, style }) => (
+      {shown.map(({ channel, style }) => (
         <AbsoluteFill key={channel} style={style}>
           {children}
         </AbsoluteFill>
