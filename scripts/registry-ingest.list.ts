@@ -550,6 +550,15 @@ const REMOTION_UI: CuratedElement[] = [
     center: true,
     omit: { durationInFrames: "timing: the clip length sets it" },
     defaults: { text: "Open all night" },
+    controls: {
+      offColor: {
+        type: "color",
+        default: "",
+        emptyLabel: "From the glow",
+        description: "Unlit color",
+        help: "The tube with no gas lit: cold glass, not invisible. Leave empty for a faint glow colour.",
+      },
+    },
   }),
   ...remotionui("text", ["text-mask-video"], {
     title: "Text mask",

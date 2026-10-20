@@ -13,7 +13,7 @@ export type NeonFlickerTextProps = Omit<
   glowColor?: string;
   /** Halo radius in px at full brightness. */
   glowSize?: number;
-  /** The tube with no gas lit — cold glass, not invisible. */
+  /** The tube with no gas lit — cold glass, not invisible. Defaults to a faint `glowColor`. */
   offColor?: string;
   /** Brightness of an unlit tube, 0–1. */
   offLevel?: number;
@@ -44,7 +44,7 @@ function noise(index: number, beat: number, seed: number): number {
 export const NeonFlickerText: React.FC<NeonFlickerTextProps> = ({
   glowColor = "#f472b6",
   glowSize = 26,
-  offColor = "rgba(244,114,182,0.16)",
+  offColor: offSetting,
   offLevel = 0.14,
   hum = 0.12,
   buzz = 0.06,
@@ -54,6 +54,7 @@ export const NeonFlickerText: React.FC<NeonFlickerTextProps> = ({
   ...splitProps
 }) => {
   const frame = useCurrentFrame();
+  const offColor = offSetting ?? `color-mix(in srgb, ${glowColor} 16%, transparent)`;
 
   const renderUnit = (unit: SplitUnitState) => {
     const striking = unit.enter > 0 && unit.enter < 1;
@@ -104,6 +105,7 @@ export const NeonFlickerText: React.FC<NeonFlickerTextProps> = ({
   return (
     <SplitTextChars
       {...splitProps}
+      exit={splitProps.exit ?? true}
       color={color}
       seed={seed}
       effect="none"
