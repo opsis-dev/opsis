@@ -1,14 +1,13 @@
 import { z } from "zod";
 import { DEFAULT_BACKDROP } from "../backdrops";
 import { itemClip, type ItemExtra } from "../compile/clip";
-import { displayAddress, formatDuration, plural } from "../format";
+import { formatDuration, plural } from "../format";
 import type { Bounds } from "../schema/actions";
 import { outputOf } from "../schema/values";
 import { DEFAULT_STILL_MS, DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
-import { secretFileName, secretName } from "../secrets";
 import { msToFrames } from "../timeline/time";
-import { SITE_ADDRESS } from "../vars";
-import { elementRow, LABELLED_TEXT_MAX, quote, row, warnIf } from "./card";
+import { sessionPort, startRecordingNode } from "./browser";
+import { elementRow, row } from "./card";
 import { defineNode, nodeBase, port } from "./define";
 import {
   bool,
@@ -20,10 +19,10 @@ import {
   msAtLeast,
   optionalTarget,
   pickedRole,
-  requiredText,
   text,
   visualEnvelope,
 } from "./params";
+import { SESSION_PORT } from "./ports";
 
 const CURSORS = {
   synthetic: { label: "Smooth", row: "Smooth cursor" },
@@ -44,7 +43,7 @@ export const recordNode = defineNode({
   type: "capture.record",
   title: "Record take",
   description: "Plays all connected browser actions in one go and records the screen.",
-  inputs: { session: port("session", "Previous") },
+  inputs: { [SESSION_PORT]: sessionPort() },
   outputs: { recording: port("recording", "Recording") },
   params: z.object({
     fps: z
@@ -69,13 +68,21 @@ export const recordNode = defineNode({
       advanced: true,
     }),
   }),
-  card: ({ params: p, result }) => {
+  card: ({ params: p, result, inputSteps }) => {
     const rec = outputOf(result, "recording", "recording");
+    const steps = inputSteps?.[SESSION_PORT];
     return [
       row("video", `${p.fps} fps`),
       row("mouse-pointer", CURSORS[p.cursor].row),
-      rec?.src && row("clock", formatDuration(rec.durationMs)),
-      rec?.log && row("list-checks", plural(rec.log.actions.length, "action")),
+      steps &&
+        !steps.includes(startRecordingNode.type) &&
+        row("clapperboard", "Starts with the first action", { tone: "muted" }),
+      rec?.src &&
+        rec.log &&
+        row(
+          "clock",
+          `${formatDuration(rec.durationMs)} · ${plural(rec.log.actions.length, "action")}`,
+        ),
     ];
   },
   mutates: (p) => p.mutates || undefined,
@@ -87,6 +94,7 @@ export const recordNode = defineNode({
       durationMs: DEFAULT_TAKE_MS,
       viewport: DEFAULT_VIEWPORT,
       nodeId,
+      style: [],
     },
   }),
 });
@@ -105,7 +113,7 @@ export const stillNode = defineNode({
   usesProjectSize: true,
   description:
     "Plays the connected actions, then takes a sharp screenshot of the page or one element.",
-  inputs: { session: port("session", "Previous") },
+  inputs: { [SESSION_PORT]: sessionPort() },
   outputs: { image: port("image", "Image"), clip: port("clip", "Clip") },
   params: z
     .object({
@@ -173,59 +181,4 @@ export const stillNode = defineNode({
   },
 });
 
-export const loginOnceNode = defineNode({
-  ...base,
-  type: "capture.loginOnce",
-  title: "Sign in once",
-  volatile: true,
-  description:
-    "Opens a window where you sign in yourself. Opsis keeps the sign-in, encrypted, for later takes.",
-  inputs: {},
-  outputs: {},
-  params: z
-    .object({
-      url: requiredText("Sign-in page", "Add the sign-in page", `${SITE_ADDRESS}/login`),
-      secretName: more(text("default", "Save as"), {
-        help: "Pick this name under Signed in as on an Open browser node.",
-      }),
-      doneWhen: choice(
-        ["url-change", "selector", "window-closed"],
-        "window-closed",
-        "Finish when",
-        {
-          "url-change": "The address changes",
-          selector: "An element appears",
-          "window-closed": "I close the window",
-        },
-      ),
-      selector: more(text("", "Element that appears after signing in"), {
-        help: "A CSS selector, e.g. .account-menu.",
-        showIf: { doneWhen: ["selector"] },
-      }),
-      timeoutSec: int(300, "Give up after", { min: 10, max: 3600, unit: "s" }),
-    })
-    .superRefine((p, ctx) => {
-      if (p.doneWhen === "selector" && !p.selector.trim())
-        ctx.addIssue({
-          code: "custom",
-          message: "Add the element that appears after signing in",
-          path: ["selector"],
-        });
-    }),
-  card: ({ params: p, secrets }) => {
-    const name = secretName(p.secretName);
-    const saved = secrets?.includes(secretFileName(name));
-    return [
-      row("key-round", `Saves as ${quote(name, LABELLED_TEXT_MAX)}`),
-      p.url.trim() && row("link", displayAddress(p.url, { keepQuery: true }), { title: p.url }),
-      secrets &&
-        row(
-          saved ? "shield-check" : "shield-alert",
-          saved ? "Signed in" : "Not signed in yet",
-          warnIf(!saved),
-        ),
-    ];
-  },
-});
-
-export const captureNodes = [recordNode, stillNode, loginOnceNode];
+export const captureNodes = [recordNode, stillNode];

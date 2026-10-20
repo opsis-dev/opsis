@@ -20,7 +20,7 @@ function exportVideo(
   params: Record<string, unknown> = {},
 ): void {
   g.node("render", "output.render", x, y, params);
-  g.link(from, "render", "clip", "timeline");
+  g.link(from, "render");
 }
 
 const TODO_SITE = "https://demo.playwright.dev/todomvc";
@@ -35,7 +35,7 @@ const BEFORE_ADDRESS_VAR = "Before address";
 
 const AFTER_ADDRESS_VAR = "After address";
 
-const session: TakeStep = { id: "session", type: "browser.session" };
+const session: TakeStep = { id: "session", type: "browser.open" };
 
 const open = (url = SITE_ADDRESS, after?: number): TakeStep => ({
   id: "open",
@@ -52,31 +52,33 @@ const addTodo = (id: string, text: string, after: number): TakeStep => ({
 
 function todoMvcSample(name: string): Workflow {
   const g = new GraphBuilder();
-  const cam = g.recordTake([
-    session,
-    open(`${SITE_ADDRESS}/#/`, 900),
-    addTodo("todo1", "Record a real product flow", 500),
-    addTodo("todo2", "Auto-zoom on every click", 500),
-    addTodo("todo3", "Render 16:9 and 9:16", 1200),
-    {
-      id: "complete",
-      type: "browser.click",
-      params: { target: "Toggle Todo", targetRole: "checkbox", cluster: "done", after: 1100 },
-      label: "Complete",
-    },
-    {
-      id: "filter",
-      type: "browser.click",
-      params: { target: "Completed", targetRole: "link", cluster: "filter", after: 1500 },
-      label: "Completed filter",
-    },
-  ]);
-  const chips = g.node("chips", "cursor.keystrokeChips", 7, 2, {
-    position: "bottom",
-    typed: true,
-    chords: true,
-  });
-  g.link(cam, chips);
+  const chips: TakeStep = {
+    id: "chips",
+    type: "cursor.keystrokeChips",
+    params: { position: "bottom", typed: true, chords: true },
+  };
+  const cam = g.recordTake(
+    [
+      session,
+      open(`${SITE_ADDRESS}/#/`, 900),
+      addTodo("todo1", "Record a real product flow", 500),
+      addTodo("todo2", "Auto-zoom on every click", 500),
+      addTodo("todo3", "Render 16:9 and 9:16", 1200),
+      {
+        id: "complete",
+        type: "browser.click",
+        params: { target: "Toggle Todo", targetRole: "checkbox", cluster: "done", after: 1100 },
+        label: "Complete",
+      },
+      {
+        id: "filter",
+        type: "browser.click",
+        params: { target: "Completed", targetRole: "link", cluster: "filter", after: 1500 },
+        label: "Completed filter",
+      },
+    ],
+    { style: [chips] },
+  );
 
   const bg = g.node("intro-bg", "fx.remocn.shader-mesh-gradient", 4, 2, { clipDuration: 75 });
   const title = g.node("intro-title", "fx.remocn.soft-blur-in", 4, 3, {
@@ -99,7 +101,7 @@ function todoMvcSample(name: string): Workflow {
     transition: "remocn/whip-pan",
     transitionDuration: 18,
   });
-  g.clipsInto(seq, [intro, chips, outro]);
+  g.clipsInto(seq, [intro, cam, outro]);
 
   exportVideo(g, seq, 9, 2, {
     variants: ["16:9", "9:16"],
@@ -116,18 +118,19 @@ function todoMvcSample(name: string): Workflow {
 
 function featureLaunch(name: string): Workflow {
   const g = new GraphBuilder();
-  const cam = g.recordTake([
-    session,
-    open(),
-    {
-      id: "cta",
-      type: "browser.click",
-      params: { target: "Get started", after: 1500 },
-      label: "Get started",
-    },
-  ]);
-  const spot = g.node("spotlight", "cursor.spotlight", 3, 2, { match: "Get started" });
-  g.link(cam, spot);
+  const cam = g.recordTake(
+    [
+      session,
+      open(),
+      {
+        id: "cta",
+        type: "browser.click",
+        params: { target: "Get started", after: 1500 },
+        label: "Get started",
+      },
+    ],
+    { style: [{ id: "spotlight", type: "cursor.spotlight", params: { match: "Get started" } }] },
+  );
   const intro = g.node("headline", "fx.core.kinetic-headline", 1, 2, {
     text: `Introducing *${varToken(PRODUCT_NAME_VAR)}*`,
     background: "#09090b",
@@ -137,7 +140,7 @@ function featureLaunch(name: string): Workflow {
     subtitle: SITE_ADDRESS,
   });
   const seq = g.node("sequence", "timeline.sequence", 4, 2, { transition: "remocn/zoom-blur" });
-  g.clipsInto(seq, [intro, spot, outro]);
+  g.clipsInto(seq, [intro, cam, outro]);
   exportVideo(g, seq, 5, 2);
   return g.build({
     name,
@@ -171,34 +174,38 @@ function changelogClip(name: string): Workflow {
 
 function onboarding(name: string): Workflow {
   const g = new GraphBuilder();
-  const cam = g.recordTake([
-    session,
-    open(),
-    { id: "chapter1", type: "browser.chapter", params: { title: "Create your first item" } },
+  const cam = g.recordTake(
+    [
+      session,
+      open(),
+      { id: "chapter1", type: "browser.chapter", params: { title: "Create your first item" } },
+      {
+        id: "type",
+        type: "browser.type",
+        params: { target: "What needs to be done?", text: "Invite the team", pressEnter: true },
+        label: "New item",
+      },
+      { id: "chapter2", type: "browser.chapter", params: { title: "Mark it done" } },
+      {
+        id: "done",
+        type: "browser.click",
+        params: { target: "css=.todo-list li:nth-child(1) .toggle", after: 1400 },
+        label: "Done",
+      },
+    ],
     {
-      id: "type",
-      type: "browser.type",
-      params: { target: "What needs to be done?", text: "Invite the team", pressEnter: true },
-      label: "New item",
+      style: [
+        { id: "highlight", type: "cursor.highlightBox" },
+        { id: "tooltip", type: "text.tooltip", params: { match: "Done", text: "Tick it off" } },
+      ],
     },
-    { id: "chapter2", type: "browser.chapter", params: { title: "Mark it done" } },
-    {
-      id: "done",
-      type: "browser.click",
-      params: { target: "css=.todo-list li:nth-child(1) .toggle", after: 1400 },
-      label: "Done",
-    },
-  ]);
-  const hl = g.node("highlight", "cursor.highlightBox", 6, 2);
-  g.link(cam, hl);
-  const tip = g.node("tooltip", "text.tooltip", 6, 3, { match: "Done", text: "Tick it off" });
-  g.link(hl, tip);
+  );
   const script = g.node("script", "text.captionsFromText", 4, 3, {
     script: "Create an item. Then tick it off. That's it.",
     startMs: 1500,
   });
   const caps = g.node("captions", "text.captions", 7, 3);
-  g.link(script, caps, "captions", "captions").link(tip, caps, "clip", "clip");
+  g.link(script, caps, "captions", "captions").link(cam, caps);
   exportVideo(g, caps, 8, 3);
   return g.build({ name, variables: { [SITE_ADDRESS_VAR]: TODO_SITE } });
 }

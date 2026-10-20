@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, rmdir } from "node:fs/promises";
 import path from "node:path";
 import pLimit, { type LimitFunction } from "p-limit";
 import { readLastRun, writeLastRun } from "../../engine/last-run";
@@ -7,16 +7,9 @@ import { enginePaths, type EnginePaths } from "../../engine/paths";
 import { PICTURE_VERSION } from "../../engine/picture-version";
 import { projectPaths, toPosixRel } from "../../engine/project-paths";
 import { workflowProblems } from "../../shared/api/check";
-import { compileWorkflow, type CompileResult } from "../../shared/compile/compile";
+import { compileWorkflow, gatherInputs, type CompileResult } from "../../shared/compile/compile";
 import { CANCELLED, errorMessage } from "../../shared/errors";
-import {
-  downstreamOf,
-  isStructural,
-  loginDependencies,
-  runTargets,
-  topoSort,
-  upstreamOf,
-} from "../../shared/graph";
+import { downstreamOf, isStructural, runTargets, topoSort, upstreamOf } from "../../shared/graph";
 import type { RunRequest } from "../../shared/ipc";
 import type { LiveMessage } from "../../shared/live";
 import {
@@ -32,7 +25,7 @@ import { runFailed, type LogLevel, type RunEvent } from "../../shared/schema/eve
 import type { LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
 import { secretName } from "../../shared/secrets";
-import { interpolate, workflowVars } from "../../shared/vars";
+import { workflowVars } from "../../shared/vars";
 import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/take-run";
 import { getExecutor } from "../executors";
@@ -98,41 +91,27 @@ function knownNodes(workflow: Workflow): Map<string, Known> {
   return known;
 }
 
-async function signInSaved(node: WorkflowNode, { vars, deps, log }: RunContext) {
-  const name = secretName(interpolate(node.params, vars).secretName);
-  const saved = await deps.secrets.read(name).catch((error: unknown) => {
-    warnFailed(
-      log,
-      `Couldn't read the saved sign-in “${name}”, so it will be asked for again`,
-      error,
-    );
-    return null;
-  });
-  return !!saved;
-}
-
-async function neededNodes(
-  run: RunContext,
-  known: Map<string, Known>,
-  order: readonly WorkflowNode[],
-): Promise<Set<string>> {
-  const { workflow, targetNodeIds } = run.req;
+function neededNodes({ workflow, targetNodeIds }: RunRequest): Set<string> {
   const targets = targetNodeIds?.length ? targetNodeIds : runTargets(workflow);
   const needed = new Set<string>();
   for (const id of targets) {
     needed.add(id);
     for (const up of upstreamOf(workflow, id)) needed.add(up);
   }
-  const captures = order.filter((n) => needed.has(n.id) && isCapture(known.get(n.id)?.def));
-  for (const { id } of captures) {
-    for (const login of loginDependencies(workflow, id, run.vars)) {
-      const node = known.get(login)?.node;
-      if (needed.has(login) || !node) continue;
-      if (!(await signInSaved(node, run))) needed.add(login);
-    }
-  }
   return needed;
 }
+
+const secretStamps = (
+  def: NodeDef | undefined,
+  params: Record<string, unknown>,
+  projectDir: string,
+): Record<string, string> =>
+  Object.fromEntries(
+    (def?.secretParams ?? []).flatMap((key) => {
+      const stamp = signInStamp(projectDir, secretName(params[key]));
+      return stamp ? [[`secret:${key}`, stamp]] : [];
+    }),
+  );
 
 export function hashNodes(
   workflow: Workflow,
@@ -152,11 +131,7 @@ export function hashNodes(
     }
     const def = getNodeDef(node.type);
     const params = interpolatedParams(def, node.params, vars);
-    const signIn =
-      typeof params.storageState === "string" && params.storageState.trim()
-        ? signInStamp(projectDir, params.storageState)
-        : null;
-    const files = { ...fileStamps(projectDir, params), ...(signIn ? { signIn } : {}) };
+    const files = { ...fileStamps(projectDir, params), ...secretStamps(def, params, projectDir) };
     const keyed =
       def?.phase === "render"
         ? {
@@ -259,16 +234,14 @@ class ResultStore {
     return this.compiled.result;
   };
 
-  inputsFor(id: string): ExecutorInputs {
-    const inputs: ExecutorInputs = {};
+  inputsFor({ node, def }: Known): ExecutorInputs {
     const values: Partial<CompileResult["values"]> = this.compile().values;
-    for (const e of this.workflow.edges) {
-      if (e.target !== id) continue;
-      const v =
-        this.results[e.source]?.outputs[e.sourceHandle] ?? values[e.source]?.[e.sourceHandle];
-      if (v) inputs[e.targetHandle] = v;
-    }
-    return inputs;
+    return gatherInputs(
+      this.workflow,
+      def,
+      node.id,
+      (e) => this.results[e.source]?.outputs[e.sourceHandle] ?? values[e.source]?.[e.sourceHandle],
+    );
   }
 }
 
@@ -301,7 +274,7 @@ function executorContext(
   run: RunContext,
   tools: RunTools,
   store: ResultStore,
-  { node, hash, dir }: { node: WorkflowNode; hash: string; dir: string },
+  { node, hash, dir, forced }: { node: WorkflowNode; hash: string; dir: string; forced: boolean },
 ): ExecutorContext {
   const { runId, req, deps, vars, log } = run;
   const { emit } = deps;
@@ -316,6 +289,7 @@ function executorContext(
     relDir: toPosixRel(req.projectDir, dir),
     outDir: tools.outDir,
     hash,
+    forced,
     vars,
     signal: deps.signal,
     ffmpeg: tools.ffmpeg,
@@ -350,6 +324,7 @@ class RunState {
     private readonly run: RunContext,
     private readonly known: Map<string, Known>,
     private readonly forced: Set<string>,
+    private readonly rekey: (id: string) => string,
   ) {
     const paths = projectPaths(run.req.projectDir);
     this.store = new ResultStore(run.req.workflow);
@@ -361,12 +336,9 @@ class RunState {
     };
   }
 
-  dependencies(node: WorkflowNode, def: NodeDef, toRun: ReadonlySet<string>): string[] {
-    const { workflow } = this.run.req;
-    const id = node.id;
-    const logins = isCapture(def) ? loginDependencies(workflow, id, this.run.vars) : [];
-    return [...new Set([...upstreamOf(workflow, id), ...logins])].filter(
-      (u) => u !== id && toRun.has(u),
+  dependencies(node: WorkflowNode, toRun: ReadonlySet<string>): string[] {
+    return [...upstreamOf(this.run.req.workflow, node.id)].filter(
+      (u) => u !== node.id && toRun.has(u),
     );
   }
 
@@ -386,24 +358,32 @@ class RunState {
   }
 
   async runNode(job: Job): Promise<void> {
-    const { node, def } = job;
+    const { node } = job;
     const { runId, deps } = this.run;
     if (deps.signal.aborted || this.skipIfBlocked(job)) return;
-    if (!def.volatile && !this.forced.has(node.id) && (await this.fromCache(job))) return;
+    if (!this.forced.has(node.id) && (await this.fromCache(job))) return;
     try {
       const executor = getExecutor(node.type);
       if (!executor) throw new Error("This kind of node can't run.");
       const result = await stampArtifacts(
-        await this.executeJob(job, executor),
+        await this.keyedAfterRun(job, await this.executeJob(job, executor)),
         this.run.req.projectDir,
       );
       this.store.set(node.id, result);
-      if (!def.volatile) await writeCached(this.cacheDir, result);
+      await writeCached(this.cacheDir, result);
       deps.emit(doneEvent(runId, node.id, false, result));
       this.collectOutputs(node, result);
     } catch (error) {
       this.fail(node.id, error);
     }
+  }
+
+  private async keyedAfterRun({ node, def }: Job, result: NodeResult): Promise<NodeResult> {
+    if (!def.secretParams?.length) return result;
+    const hash = this.rekey(node.id);
+    if (hash === result.hash) return result;
+    await rmdir(path.join(this.cacheDir, result.hash)).catch(() => undefined);
+    return { ...result, hash };
   }
 
   private skipIfBlocked({ node, needs }: Job): boolean {
@@ -418,14 +398,20 @@ class RunState {
     return true;
   }
 
-  private async executeJob({ node, hash }: Job, executor: Executor): Promise<NodeResult> {
+  private async executeJob(job: Job, executor: Executor): Promise<NodeResult> {
+    const { node, hash } = job;
     const { runId, req, deps, log } = this.run;
     const started = Date.now();
     deps.emit({ type: "node:start", runId, nodeId: node.id, at: started });
     const dir = path.join(this.cacheDir, hash);
     await mkdir(dir, { recursive: true });
-    const ctx = executorContext(this.run, this.tools, this.store, { node, hash, dir });
-    const out = await executor.run(ctx, this.store.inputsFor(node.id));
+    const ctx = executorContext(this.run, this.tools, this.store, {
+      node,
+      hash,
+      dir,
+      forced: this.forced.has(node.id),
+    });
+    const out = await executor.run(ctx, this.store.inputsFor(job));
     const artifacts = await decorateArtifacts(
       req.projectDir,
       dir,
@@ -478,11 +464,11 @@ type RunPlan = {
   toRun: Known[];
 };
 
-async function planRun(run: RunContext): Promise<RunPlan> {
+function planRun(run: RunContext): RunPlan {
   const { workflow } = run.req;
   const known = knownNodes(workflow);
   const { sorted: order } = topoSort(workflow);
-  const needed = await neededNodes(run, known, order);
+  const needed = neededNodes(run.req);
   const runs = (node: WorkflowNode, entry: Known | undefined): entry is Known =>
     !!entry && needed.has(node.id) && !node.disabled && !isStructural(node) && !!entry.def.executes;
   const toRun = order.flatMap((node) => {
@@ -566,7 +552,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
   await mkdir(paths.cache, { recursive: true });
   await mkdir(paths.out, { recursive: true });
 
-  const plan = await planRun(run);
+  const plan = planRun(run);
   if (reportInvalid(run, plan)) return;
   const { known, toRun } = plan;
 
@@ -574,17 +560,22 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
 
   const hashes = hashNodes(workflow, plan.order, vars, projectDir, deps.env.appVersion);
   const previous: LastRun = (await readLastRun(projectDir)) ?? { updatedAt: 0, nodes: {} };
-  const state = new RunState(run, known, forcedNodes(req));
+  const jobs = new Map<string, Job>();
+  const rekey = (id: string): string => {
+    const fresh = hashNodes(workflow, plan.order, vars, projectDir, deps.env.appVersion);
+    for (const job of jobs.values()) job.hash = requireHash(fresh, job.node.id);
+    return requireHash(fresh, id);
+  };
+  const state = new RunState(run, known, forcedNodes(req), rekey);
   for (const [id, r] of Object.entries(previous.nodes))
     if (hashes.get(id) === r.hash) state.store.set(id, r);
 
   const runSet = new Set(toRun.map((j) => j.node.id));
-  const jobs = new Map<string, Job>();
   for (const entry of toRun)
     jobs.set(entry.node.id, {
       ...entry,
       hash: requireHash(hashes, entry.node.id),
-      needs: state.dependencies(entry.node, entry.def, runSet),
+      needs: state.dependencies(entry.node, runSet),
     });
   const scheduler = new Scheduler(
     jobs,

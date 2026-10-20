@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/renderer/lib/utils";
-import { inputTake, isClip, sceneItemCount } from "@/shared/compile/clip";
+import { inputTake, isClip, recordingTake, sceneItemCount } from "@/shared/compile/clip";
 import { errorMessage } from "@/shared/errors";
 import { uniqueKeys } from "@/shared/lists";
 import type { CardContext, CardRow, InputTake } from "@/shared/nodes/card";
@@ -34,16 +34,24 @@ function useCardInputs(node: WorkflowNode) {
   const clip = compiled?.values[node.id]?.clip;
   const clipFrames = isClip(clip) ? clip.durationInFrames : undefined;
   const connected = useMemo(() => incoming.map((e) => e.targetHandle), [incoming]);
-  const { inputFrames, inputItems, inputTakes, inputMedia, inputCaptionsMs } = useMemo(() => {
+  const inputs = useMemo(() => {
     const frames: Partial<Record<string, number>> = {};
     const items: Partial<Record<string, number>> = {};
     const takes: Partial<Record<string, InputTake>> = {};
     const media: NonNullable<CardContext<unknown>["inputMedia"]> = {};
     const captions: Partial<Record<string, number>> = {};
+    const steps: Partial<Record<string, string[]>> = {};
+    const style: Partial<Record<string, string[]>> = {};
     for (const e of incoming) {
       const v = compiled?.values[e.source]?.[e.sourceHandle];
       if (v?.type === "media") media[e.targetHandle] = { kind: v.kind, hasAudio: v.hasAudio };
       if (v?.type === "captions") captions[e.targetHandle] = v.captions.at(-1)?.endMs ?? 0;
+      if (v?.type === "browser-session") steps[e.targetHandle] = v.steps.map((s) => s.type);
+      if (v?.type === "recording-style") style[e.targetHandle] = v.entries.map((s) => s.type);
+      if (v?.type === "recording") {
+        const take = recordingTake(v);
+        if (take !== undefined) takes[e.targetHandle] = take;
+      }
       if (!isClip(v)) continue;
       frames[e.targetHandle] = v.durationInFrames;
       items[e.targetHandle] = sceneItemCount(v);
@@ -56,6 +64,8 @@ function useCardInputs(node: WorkflowNode) {
       inputTakes: takes,
       inputMedia: media,
       inputCaptionsMs: captions,
+      inputSteps: steps,
+      inputStyle: style,
     };
   }, [incoming, compiled]);
   return useMemo(
@@ -67,27 +77,10 @@ function useCardInputs(node: WorkflowNode) {
         secrets,
         connected,
         clipFrames,
-        inputFrames,
-        inputItems,
-        inputTakes,
-        inputMedia,
-        inputCaptionsMs,
+        ...inputs,
       },
     }),
-    [
-      name,
-      variables,
-      settings,
-      result,
-      secrets,
-      connected,
-      clipFrames,
-      inputFrames,
-      inputItems,
-      inputTakes,
-      inputMedia,
-      inputCaptionsMs,
-    ],
+    [name, variables, settings, result, secrets, connected, clipFrames, inputs],
   );
 }
 

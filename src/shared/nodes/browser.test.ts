@@ -1,4 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { compileWorkflow } from "../compile/compile";
+import { findById } from "../lists";
+import { asValue } from "../schema/values";
+import type { Workflow } from "../schema/workflow";
+import { GraphBuilder } from "../templates/build";
 import { must, nodeCard } from "../test-fixtures";
 import { PAUSE_MARK } from "../vars";
 import {
@@ -179,7 +184,9 @@ describe("every browser action", () => {
 
   it("asks a new action only for what the user has to fill in", () => {
     expect(Object.fromEntries(browserNodes.map((n) => [n.type, firstProblem(n.type)]))).toEqual({
-      "browser.session": null,
+      "browser.open": null,
+      "browser.signIn": null,
+      "browser.startRecording": null,
       "browser.navigate": null,
       "browser.click": "Element is missing",
       "browser.type": "Element is missing",
@@ -217,7 +224,7 @@ describe("every browser action", () => {
     expect(firstProblem("browser.drag", { target: "Card", mode: "by", dx: -10_001 })).toBe(
       "Across must be at least −10,000 px",
     );
-    expect(firstProblem("browser.session", { viewportWidth: 10 })).toBe(
+    expect(firstProblem("browser.open", { viewportWidth: 10 })).toBe(
       "Window width must be at least 320 px",
     );
     expect(firstProblem("browser.click", { target: "Save", after: -1 })).toBe(
@@ -246,5 +253,64 @@ describe("every browser action", () => {
       expect({ type: n.type, rows: rows.length }).not.toEqual({ type: n.type, rows: 0 });
       expect(rows.filter((r) => !r.text.trim())).toEqual([]);
     }
+  });
+});
+
+describe("the browser session", () => {
+  const sessionAt = (wf: Workflow, id: string) =>
+    asValue(compileWorkflow(wf).values[id]?.session, "browser-session");
+  const stepIds = (wf: Workflow, id: string) => sessionAt(wf, id)?.steps.map((s) => s.id);
+
+  const take = () => {
+    const g = new GraphBuilder();
+    g.node("open", "browser.open", 0, 0, { viewportWidth: 1280, viewportHeight: 720 });
+    g.node("go", "browser.navigate", 1, 0, { url: "{{Site address}}/app" });
+    g.node("click", "browser.click", 2, 0, { target: "Save" }, "Save it");
+    g.node("rec", "capture.record", 3, 0);
+    g.chain(["open", "go", "click", "rec"]);
+    return g;
+  };
+
+  it("lists the actions in chain order, with their settings filled in", () => {
+    const wf = take().build({
+      id: "x",
+      name: "x",
+      variables: { "Site address": "https://example.com" },
+    });
+    const into = compileWorkflow(wf).values;
+    const session = asValue(into.click?.session, "browser-session");
+    expect(session?.browser).toMatchObject({
+      nodeId: "open",
+      params: { viewportWidth: 1280, viewportHeight: 720 },
+    });
+    expect(session?.steps.map((s) => [s.id, s.type, s.label])).toEqual([
+      ["go", "browser.navigate", undefined],
+      ["click", "browser.click", "Save it"],
+    ]);
+    expect(session?.steps[0].params).toMatchObject({ url: "https://example.com/app" });
+  });
+
+  it("leaves a skipped action out", () => {
+    const wf = take().build({ id: "x", name: "x" });
+    must(findById(wf.nodes, "click"), "click").disabled = true;
+    expect(stepIds(wf, "click")).toEqual(["go"]);
+  });
+
+  it("gives each branch of a fork its own list", () => {
+    const g = take();
+    g.node("other", "browser.press", 2, 1, { keys: "Escape" });
+    g.node("shot", "capture.still", 3, 1);
+    g.chain(["go", "other", "shot"]);
+    const wf = g.build({ id: "x", name: "x" });
+    expect(stepIds(wf, "click")).toEqual(["go", "click"]);
+    expect(stepIds(wf, "other")).toEqual(["go", "other"]);
+  });
+
+  it("passes nothing on from actions that don't start from Open browser", () => {
+    const g = new GraphBuilder();
+    g.node("go", "browser.navigate", 0, 0, { url: "https://example.com" });
+    g.node("click", "browser.click", 1, 0, { target: "Save" });
+    g.chain(["go", "click"]);
+    expect(sessionAt(g.build({ id: "x", name: "x" }), "click")).toBeUndefined();
   });
 });

@@ -19,7 +19,6 @@ export const FIELD_WIDGETS = [
   "multiselect",
   "offsets",
   "quality",
-  "secret",
   "sound",
   "spot",
   "target",

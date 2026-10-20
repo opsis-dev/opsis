@@ -568,9 +568,14 @@ export function clipFrameOfRecording(
   return null;
 }
 
+export const recordingTake = (recording: RecordingValue): InputTake | undefined =>
+  recording.log
+    ? { durationMs: recording.log.durationMs, cursorTrack: !!recording.log.cursorTrack?.length }
+    : undefined;
+
 export function inputTake(clip: ClipValue): InputTake | undefined {
-  const log = clip.recording?.log;
-  if (log) return { durationMs: log.durationMs, cursorTrack: !!log.cursorTrack?.length };
+  const take = clip.recording && recordingTake(clip.recording);
+  if (take) return take;
   let placeholder = false;
   walkItems(clip.tracks, (item) => {
     if (item.component === "core/placeholder") placeholder = true;

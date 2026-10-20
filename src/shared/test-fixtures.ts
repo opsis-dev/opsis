@@ -5,7 +5,13 @@ import { cardRows, type CompileInputs, type CompileOutputs } from "./nodes/defin
 import { defaultParams, getNodeDef } from "./nodes/registry";
 import type { Action, ActionLog } from "./schema/actions";
 import type { TimelineItem, TimelineSpec } from "./schema/timeline";
-import type { ClipValue, NodeResult } from "./schema/values";
+import type {
+  ClipValue,
+  NodeResult,
+  RecordingStyleValue,
+  RecordingValue,
+  StyleEntry,
+} from "./schema/values";
 import { DEFAULT_WORKFLOW_SETTINGS, type Workflow, type WorkflowNode } from "./schema/workflow";
 import { GraphBuilder, type TakeStep } from "./templates/build";
 import { flattenSpec, type FlatTimeline } from "./timeline/flatten";
@@ -47,14 +53,50 @@ export const recordResult = (log: ActionLog, hash = "h"): NodeResult =>
         durationMs: log.durationMs,
         viewport: log.viewport,
         nodeId: "record",
+        style: [],
       },
     },
   });
 
+export const takeRecording = (log: ActionLog = makeLog([], 3000)): RecordingValue => ({
+  type: "recording",
+  src: "project:rec.mp4",
+  log,
+  durationMs: log.durationMs,
+  viewport: log.viewport,
+  nodeId: "rec",
+  style: [],
+});
+
+export type StyleStepSpec = [type: string, params?: Record<string, unknown>];
+
+export const styleEntries = (steps: StyleStepSpec[], prefix = "s"): StyleEntry[] =>
+  steps.map(([type, params = {}], i) => ({
+    nodeId: `${prefix}${i}`,
+    type,
+    params: must(getNodeDef(type), type).params.parse({ ...defaultParams(type), ...params }),
+  }));
+
+export const styleValue = (steps: StyleStepSpec[]): RecordingStyleValue => ({
+  type: "recording-style",
+  entries: styleEntries(steps),
+});
+
+export function zoomed(
+  opts: { style?: StyleStepSpec[]; own?: StyleStepSpec[]; log?: ActionLog } = {},
+  camera: Record<string, unknown> = { speed: 1 },
+): ClipValue {
+  const recording = { ...takeRecording(opts.log), style: styleEntries(opts.own ?? [], "t") };
+  return compileClip("camera.autoZoom", camera, {
+    recording,
+    ...(opts.style ? { style: styleValue(opts.style) } : {}),
+  });
+}
+
 export const recordedTake = (g: GraphBuilder, steps: TakeStep[] = []): string =>
   g.recordTake(
     [
-      { id: "session", type: "browser.session" },
+      { id: "session", type: "browser.open" },
       { id: "open", type: "browser.navigate", params: { url: "https://example.com" } },
       ...steps,
     ],
@@ -65,7 +107,7 @@ export function buildFilm(fn: (g: GraphBuilder) => string): Workflow {
   const g = new GraphBuilder();
   const last = fn(g);
   g.node("out", "output.render", 9, 0);
-  g.link(last, "out", "clip", "timeline");
+  g.link(last, "out");
   return g.build({ id: "wf", name: "Test" });
 }
 
@@ -123,6 +165,7 @@ export function compileNode(
   return (
     compile({
       nodeId: "n",
+      type,
       params: def.params.parse({ ...defaultParams(type), ...params }),
       inputs,
       settings: workflow.settings,

@@ -57,8 +57,8 @@ function useAddAtCenter() {
 }
 
 function NodePreview({ def }: { def: NodeDef }) {
-  const inputs = portLabels(def.inputs, "in");
-  const outputs = portLabels(def.outputs, "out");
+  const inputs = portLabels(def.inputs);
+  const outputs = portLabels(def.outputs);
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">

@@ -130,7 +130,12 @@ export function loginInWindow(
 ): Promise<string | null> {
   return new Promise((resolve) => {
     const partition = `opsis-login-${randomUUID()}`;
-    const win = sandboxedWindow(parent, "Log in — close this window when you're done", partition);
+    const win = sandboxedWindow(
+      parent,
+      "Log in — close this window when you're done",
+      partition,
+      req.viewport,
+    );
     const origins: LocalStorageByOrigin = new Map();
     let finished = false;
     const stopWatching = watchForLogin(win, req, {

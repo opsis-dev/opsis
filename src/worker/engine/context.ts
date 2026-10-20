@@ -28,6 +28,7 @@ export type ExecutorContext = {
   relDir: string;
   outDir: string;
   hash: string;
+  forced: boolean;
   vars: Record<string, string>;
   signal: AbortSignal;
   ffmpeg: FfmpegTools;
@@ -55,7 +56,6 @@ export class TracedError extends Error {
   constructor(
     message: string,
     readonly traceId: string | undefined,
-    readonly signInExpired = false,
   ) {
     super(message);
     this.name = "TracedError";

@@ -13,8 +13,10 @@ describe("node catalogue", () => {
     expect(catalogEntry("browser.click")).toMatchObject({
       title: "Click",
       runs: true,
-      inputs: { session: { type: "session", optional: false, many: false } },
-      outputs: { session: { type: "session" } },
+      inputs: {
+        session: { type: "browser-session", label: "Browser", optional: false, many: false },
+      },
+      outputs: { session: { type: "browser-session", label: "Browser" } },
       params: { type: "object", properties: { target: expect.anything() } },
     });
     for (const node of nodeCatalog())

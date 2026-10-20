@@ -1,4 +1,5 @@
 import { assert, describe, expect, it } from "vitest";
+import { connectionProblem } from "../graph";
 import { findById } from "../lists";
 import type { TimelineSpec } from "../schema/timeline";
 import type { Workflow } from "../schema/workflow";
@@ -213,7 +214,7 @@ describe("layers that keep their layout", () => {
     g.node("stack", "timeline.stack", 1, 0, { keepLayout: true });
     g.link("bg", "stack", "clip", "in1").link("t", "stack", "clip", "in2");
     g.node("out", "output.render", 2, 0);
-    g.link("stack", "out", "clip", "timeline");
+    g.link("stack", "out");
     const spec = compileWorkflow(g.build({ id: "x", name: "x" })).specs.out;
     const props = groupOf(spec.tracks[0].items[0]);
     expect(props?.design).toEqual({ width: 1920, height: 1080 });
@@ -244,7 +245,7 @@ describe("sounds under a clip", () => {
       g.link(id, "mix", "audio", "sounds");
     }
     g.node("out", "output.render", 5, 1);
-    g.link("mix", "out", "clip", "timeline");
+    g.link("mix", "out");
     return compileWorkflow(g.build({ id: "x", name: "x" }), { results: { record: tagged } }).specs
       .out;
   };
@@ -278,7 +279,7 @@ describe("a transition at each cut", () => {
       cuts,
     });
     g.node("out", "output.render", 2, 0);
-    g.link("seq", "out", "clip", "timeline");
+    g.link("seq", "out");
     return compileWorkflow(g.build({ id: "x", name: "x" })).specs.out.tracks[0].items;
   };
   const enters = (items: TimelineSpec["tracks"][number]["items"]) =>
@@ -310,32 +311,77 @@ describe("a transition at each cut", () => {
   });
 });
 
-describe("a file connected to a sound input", () => {
-  it("joins the other sounds instead of replacing them", () => {
+describe("sounds under a clip from several nodes", () => {
+  it("joins two Sound effects on one port", () => {
     const g = new GraphBuilder();
     g.node("bg", "fx.core.solid", 0, 0, { clipDuration: 90 });
-    g.node("file", "media.import", 0, 1, { path: "assets/voice.wav" });
+    g.node("click", "audio.sfx", 0, 1, { src: "assets/click.wav", atMs: 0 });
     g.node("whoosh", "audio.sfx", 0, 2, { src: "assets/whoosh.wav", atMs: 500 });
     g.node("mix", "audio.mix", 1, 0);
-    g.link("bg", "mix", "clip", "clip");
-    g.link("file", "mix", "media", "sounds");
+    g.link("bg", "mix");
+    g.link("click", "mix", "audio", "sounds");
     g.link("whoosh", "mix", "audio", "sounds");
-    const wf = g.build({ id: "x", name: "x" });
-    const voice = {
-      type: "media",
-      src: "project:assets/voice.wav",
-      kind: "audio",
-      durationMs: 2000,
-      hasAudio: true,
-    } as const;
-    const out = compileWorkflow(wf, {
-      results: { file: nodeResult({ outputs: { media: voice } }) },
-    });
-    const clip = out.values.mix?.clip;
+    const clip = compileWorkflow(g.build({ id: "x", name: "x" })).values.mix?.clip;
     expect(clip?.type === "clip" ? clip.audio.map((a) => [a.src, a.from]) : null).toEqual([
-      ["project:assets/voice.wav", 0],
+      ["project:assets/click.wav", 0],
       ["project:assets/whoosh.wav", 15],
     ]);
+  });
+
+  it("won't take a file as a sound without Music or Sound effect", () => {
+    const g = new GraphBuilder();
+    g.node("file", "media.import", 0, 0, { path: "assets/voice.wav" });
+    g.node("mix", "audio.mix", 1, 0);
+    g.link("file", "mix", "media", "sounds");
+    expect(connectionProblem(g.build({ id: "x", name: "x" }), g.edges[0])?.message).toBe(
+      "A file can't connect to a sound input.",
+    );
+  });
+});
+
+describe("files from captures", () => {
+  it("hands a screenshot and a recording to the file tools as files", () => {
+    const g = new GraphBuilder();
+    g.node("session", "browser.open", 0, 0);
+    g.node("shot", "capture.still", 1, 0);
+    g.node("rec", "capture.record", 1, 1);
+    g.chain(["session", "shot"]).chain(["session", "rec"]);
+    g.node("trim", "media.trim", 2, 0);
+    g.node("convert", "media.convert", 2, 1);
+    g.link("shot", "trim", "image", "media").link("rec", "convert", "recording", "media");
+    const wf = g.build({ id: "x", name: "x" });
+    const shot = { type: "image", src: "project:shot.png", width: 800, height: 600 } as const;
+    const take = recordResult(makeLog([], 4000));
+    const out = compileWorkflow(wf, {
+      results: { shot: nodeResult({ outputs: { image: shot } }), rec: take },
+    });
+    expect(out.values.trim?.media).toEqual({
+      type: "media",
+      kind: "image",
+      src: "project:shot.png",
+      width: 800,
+      height: 600,
+    });
+    expect(out.values.convert?.media).toMatchObject({
+      type: "media",
+      kind: "video",
+      src: take.outputs.recording?.type === "recording" ? take.outputs.recording.src : null,
+      durationMs: 4000,
+    });
+  });
+});
+
+describe("an export", () => {
+  it("takes its film from the clip connected to it", () => {
+    const g = new GraphBuilder();
+    g.node("title", "fx.core.title", 0, 0, { clipDuration: 45 });
+    g.node("film", "output.render", 1, 0);
+    g.node("loose", "output.render", 1, 1, { fileName: "loose" });
+    g.link("title", "film");
+    const out = compileWorkflow(g.build({ id: "x", name: "x" }));
+    expect(out.specs.film?.durationInFrames).toBe(45);
+    expect(out.specs.loose).toBeUndefined();
+    expect(out.values.film).toEqual({});
   });
 });
 

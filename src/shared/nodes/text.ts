@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { EMPTY_CLIP_FRAMES, emptyClip, itemClip, stackClips } from "../compile/clip";
+import type { StyleSteps } from "../compile/style";
 import { TEXT_COLOR } from "../elements/colors";
 import { CAPTIONS_ELEMENT, captionsSchema } from "../elements/core";
 import { fontProp } from "../fonts";
@@ -58,7 +59,7 @@ export function scriptToCaptions(script: string, pace: ScriptPace): CaptionsValu
 const EMPTY_CAPTIONS_MS = 1000;
 const CAPTION_TAIL_MS = 500;
 
-const tooltipNode = annotationNode({
+const tooltip = annotationNode({
   type: "text.tooltip",
   title: "Tooltip",
   kind: "tooltip",
@@ -69,7 +70,7 @@ const tooltipNode = annotationNode({
   label: { fontSize: 18, textColor: TEXT_COLOR },
 });
 
-const calloutArrowNode = annotationNode({
+const calloutArrow = annotationNode({
   type: "text.calloutArrow",
   title: "Callout arrow",
   kind: "callout",
@@ -157,4 +158,6 @@ const captionsNode = defineNode({
   },
 });
 
-export const textNodes = [tooltipNode, calloutArrowNode, captionsFromTextNode, captionsNode];
+export const textNodes = [tooltip.node, calloutArrow.node, captionsFromTextNode, captionsNode];
+
+export const textStyles: StyleSteps = [tooltip.step, calloutArrow.step];

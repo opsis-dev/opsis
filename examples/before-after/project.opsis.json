@@ -21,7 +21,7 @@
   "nodes": [
     {
       "id": "before-session",
-      "type": "browser.session",
+      "type": "browser.open",
       "position": {
         "x": 0,
         "y": 0
@@ -32,7 +32,6 @@
         "dpr": 2,
         "mobile": false,
         "userAgent": "",
-        "storageState": "",
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
@@ -53,10 +52,19 @@
       }
     },
     {
+      "id": "before-start",
+      "type": "browser.startRecording",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {}
+    },
+    {
       "id": "before-record",
       "type": "capture.record",
       "position": {
-        "x": 600,
+        "x": 900,
         "y": 0
       },
       "params": {
@@ -73,7 +81,7 @@
       "id": "before-camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 600,
+        "x": 900,
         "y": 356
       },
       "params": {
@@ -94,7 +102,7 @@
       "type": "fx.core.lower-third",
       "position": {
         "x": 900,
-        "y": 170
+        "y": 734
       },
       "params": {
         "title": "Before",
@@ -123,7 +131,7 @@
     },
     {
       "id": "after-session",
-      "type": "browser.session",
+      "type": "browser.open",
       "position": {
         "x": 0,
         "y": 850
@@ -134,7 +142,6 @@
         "dpr": 2,
         "mobile": false,
         "userAgent": "",
-        "storageState": "",
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
@@ -155,11 +162,20 @@
       }
     },
     {
-      "id": "after-record",
-      "type": "capture.record",
+      "id": "after-start",
+      "type": "browser.startRecording",
       "position": {
         "x": 600,
         "y": 850
+      },
+      "params": {}
+    },
+    {
+      "id": "after-record",
+      "type": "capture.record",
+      "position": {
+        "x": 900,
+        "y": 1090
       },
       "params": {
         "fps": 30,
@@ -175,8 +191,8 @@
       "id": "after-camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 600,
-        "y": 1206
+        "x": 900,
+        "y": 1446
       },
       "params": {
         "zoom": false,
@@ -196,7 +212,7 @@
       "type": "fx.core.lower-third",
       "position": {
         "x": 900,
-        "y": 1020
+        "y": 1824
       },
       "params": {
         "title": "After",
@@ -265,8 +281,15 @@
       "targetHandle": "session"
     },
     {
-      "id": "before-open.session->before-record.session",
+      "id": "before-open.session->before-start.session",
       "source": "before-open",
+      "sourceHandle": "session",
+      "target": "before-start",
+      "targetHandle": "session"
+    },
+    {
+      "id": "before-start.session->before-record.session",
+      "source": "before-start",
       "sourceHandle": "session",
       "target": "before-record",
       "targetHandle": "session"
@@ -300,8 +323,15 @@
       "targetHandle": "session"
     },
     {
-      "id": "after-open.session->after-record.session",
+      "id": "after-open.session->after-start.session",
       "source": "after-open",
+      "sourceHandle": "session",
+      "target": "after-start",
+      "targetHandle": "session"
+    },
+    {
+      "id": "after-start.session->after-record.session",
+      "source": "after-start",
       "sourceHandle": "session",
       "target": "after-record",
       "targetHandle": "session"
@@ -342,11 +372,11 @@
       "targetHandle": "b"
     },
     {
-      "id": "wipe.clip->render.timeline",
+      "id": "wipe.clip->render.clip",
       "source": "wipe",
       "sourceHandle": "clip",
       "target": "render",
-      "targetHandle": "timeline"
+      "targetHandle": "clip"
     }
   ],
   "markers": []

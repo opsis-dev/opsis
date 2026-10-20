@@ -2,6 +2,7 @@ import type { AnalysisRequest, AnalysisResult } from "./analysis";
 import type { EngineInstallEvent } from "./engine";
 import { hasTypeIn } from "./guards";
 import type { RunRequest } from "./ipc";
+import type { Viewport } from "./schema/actions";
 import type { RunEvent } from "./schema/events";
 import type { TimelineSpec } from "./schema/timeline";
 import type { AppSettings } from "./settings";
@@ -21,6 +22,7 @@ export type LoginRequest = {
   doneWhen: "url-change" | "selector" | "window-closed";
   selector: string;
   timeoutSec: number;
+  viewport?: Viewport;
 };
 
 export type WorkerReply =

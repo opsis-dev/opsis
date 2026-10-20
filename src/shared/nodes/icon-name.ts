@@ -85,7 +85,6 @@ export const NODE_ICON_NAMES = [
   "triangle-alert",
   "type",
   "upload",
-  "user-round",
   "video",
   "volume-2",
   "volume-x",

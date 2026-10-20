@@ -1,8 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { clipFrameOfRecording, emptyClip, groupOf, itemClip } from "../compile/clip";
-import { defaultRecordingProps } from "../compile/recording";
+import {
+  clipFrameOfRecording,
+  emptyClip,
+  groupOf,
+  recordingProps,
+  sequenceClips,
+} from "../compile/clip";
 import type { ClipValue } from "../schema/values";
-import { compileClip, makeLog, must, nodeCard } from "../test-fixtures";
+import {
+  compileClip,
+  compileNode,
+  makeLog,
+  must,
+  nodeCard,
+  styleValue,
+  takeRecording,
+  zoomed,
+  type StyleStepSpec,
+} from "../test-fixtures";
 import type { InputTake } from "./card";
 import { parseParams } from "./params";
 import { getNodeDef } from "./registry";
@@ -28,31 +43,24 @@ describe("Crop", () => {
 });
 
 describe("Speed ramp", () => {
-  const take = (): ClipValue => {
-    const log = makeLog([], 10_000);
-    const props = { ...defaultRecordingProps(), speed: 1, src: "rec.mp4", log, name: "Take" };
-    return itemClip("rec", "core/recording", props, 300, {
-      recording: {
-        type: "recording",
-        src: "rec.mp4",
-        log,
-        durationMs: 10_000,
-        nodeId: "rec",
-        viewport: log.viewport,
-      },
-    });
-  };
-  const ramp = (clip: ClipValue, fromMs: number, toMs: number) =>
-    compileClip("camera.speedRamp", { segments: [{ fromMs, toMs, rate: 2 }] }, { clip });
+  const ramp = (fromMs: number, toMs: number): StyleStepSpec => [
+    "camera.speedRamp",
+    { segments: [{ fromMs, toMs, rate: 2 }] },
+  ];
   const frameOf = (clip: ClipValue, ms: number) =>
     clipFrameOfRecording(clip.tracks, () => (ms / 1000) * 30);
 
   it("places a second ramp at its own recording time, after the first one sped up", () => {
-    const both = ramp(ramp(take(), 1000, 2000), 3000, 4000);
+    const both = zoomed({ own: [ramp(1000, 2000), ramp(3000, 4000)], log: makeLog([], 10_000) });
     expect(both.durationInFrames).toBe(270);
     expect(frameOf(both, 3000)).toBeCloseTo(75);
     expect(frameOf(both, 4000)).toBeCloseTo(90);
     expect(frameOf(both, 6000)).toBeCloseTo(150);
+  });
+
+  it("adds its part to the take it's connected to", () => {
+    const out = compileNode("camera.speedRamp", {}, { recording: takeRecording() }).recording;
+    expect(out).toMatchObject({ type: "recording", style: [{ type: "camera.speedRamp" }] });
   });
 });
 
@@ -64,16 +72,14 @@ describe("Device frame", () => {
       expect(groupOf(framed.tracks[0].items[0])?.wrapper?.component).toBe(`snapcn/${device}-frame`);
     }
   });
+});
 
-  it("warns that a browser window needs a recording", () => {
-    const texts = (recording: boolean) =>
-      nodeCard(
-        "camera.deviceFrame",
-        { device: "browser" },
-        { inputTakes: { clip: recording ? { durationMs: 5000, cursorTrack: true } : null } },
-      ).map((r) => r.text);
-    expect(texts(false)).toContain("Needs a recording; try Laptop or Phone");
-    expect(texts(true)).not.toContain("Needs a recording; try Laptop or Phone");
+describe("Window frame", () => {
+  it("draws the title bar it's set to", () => {
+    const [props] = recordingProps(
+      zoomed({ style: [["camera.windowFrame", { windowStyle: "windows", addressBar: false }]] }),
+    );
+    expect(props).toMatchObject({ chrome: true, windowStyle: "windows", addressBar: false });
   });
 });
 
@@ -89,8 +95,8 @@ describe("Backdrop", () => {
 
 describe("Zoom here, Pan and Follow cursor", () => {
   const take = { durationMs: 6000, cursorTrack: true };
-  const texts = (type: string, params: Record<string, unknown>, clip: InputTake) =>
-    nodeCard(type, params, { inputTakes: { clip } }).map((r) => r.text);
+  const texts = (type: string, params: Record<string, unknown>, recording: InputTake) =>
+    nodeCard(type, params, { inputTakes: { recording } }).map((r) => r.text);
 
   it("warns when the move starts after the take ends", () => {
     expect(texts("camera.manualZoom", { atMs: 60_000 }, take)).toContain(
@@ -102,15 +108,20 @@ describe("Zoom here, Pan and Follow cursor", () => {
     );
   });
 
-  it("warns when there is no recording to move over", () => {
-    for (const type of ["camera.manualZoom", "camera.pan", "camera.followCursor"])
-      expect(texts(type, {}, null)).toContain("Needs a recording");
-  });
-
-  it("warns when the take has no cursor to follow", () => {
-    expect(texts("camera.followCursor", {}, { ...take, cursorTrack: false })).toContain(
-      "The take has no cursor to follow",
-    );
+  it("warns on Auto zoom when its style follows a take with no cursor", () => {
+    const card = (cursorTrack: boolean, style: string[]) =>
+      nodeCard(
+        "camera.autoZoom",
+        {},
+        {
+          inputTakes: { recording: { ...take, cursorTrack } },
+          inputStyle: { style },
+        },
+      ).map((r) => r.text);
+    const warning = "The take has no cursor to follow";
+    expect(card(false, ["camera.followCursor"])).toContain(warning);
+    expect(card(true, ["camera.followCursor"])).not.toContain(warning);
+    expect(card(false, ["camera.backdrop"])).not.toContain(warning);
   });
 
   it("never holds, pans or re-aims for no time at all", () => {
@@ -118,6 +129,50 @@ describe("Zoom here, Pan and Follow cursor", () => {
     expect(problem("camera.pan", { durationMs: 0 })).toBe("Pan for must be at least 0.1 s");
     expect(problem("camera.followCursor", { everyMs: 0 })).toBe(
       "Re-aim every must be at least 0.2 s",
+    );
+  });
+});
+
+describe("a recording's style", () => {
+  it("lets the style beat Auto zoom's own settings, and the take's own nodes come last", () => {
+    const [props] = recordingProps(
+      zoomed(
+        {
+          style: [
+            ["camera.backdrop", { kind: "solid", color: "#123456" }],
+            ["camera.followCursor"],
+          ],
+          own: [["camera.manualZoom", { atMs: 500 }]],
+        },
+        { speed: 1, backdrop: "aurora" },
+      ),
+    );
+    expect(props.backdrop).toBe("#123456");
+    expect(props.backdropChosen).toBe(true);
+    expect(props.extraBeats.map((b) => b.nodeId)).toEqual(["s1", "t0", "t0"]);
+  });
+
+  it("keeps Auto zoom's backdrop without a style", () => {
+    const [props] = recordingProps(zoomed({}, { speed: 1, backdrop: "aurora" }));
+    expect(props.backdrop).toBe("aurora");
+  });
+
+  it("styles every take in a sequence through Apply style", () => {
+    const sequence = sequenceClips("seq", [zoomed(), zoomed()]);
+    const styled = compileClip(
+      "camera.applyStyle",
+      {},
+      { clip: sequence, style: styleValue([["cursor.style", { size: 2 }]]) },
+    );
+    expect(recordingProps(styled).map((p) => p.cursorScale)).toEqual([2, 2]);
+  });
+
+  it("warns on Apply style when the clip has no recording", () => {
+    const texts = (take: InputTake) =>
+      nodeCard("camera.applyStyle", {}, { inputTakes: { clip: take } }).map((r) => r.text);
+    expect(texts(null)).toContain("No recording in this clip");
+    expect(texts({ durationMs: 1000, cursorTrack: true })).not.toContain(
+      "No recording in this clip",
     );
   });
 });

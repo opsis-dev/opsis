@@ -437,7 +437,7 @@ export const mediaExecutors: Executor[] = [
     ctx.log("info", probeSummary(probe));
     return {
       outputs: {
-        file: { type: "file", src: projectFileRef(ctx, "probe.json") },
+        info: { type: "file-info", src: projectFileRef(ctx, "probe.json") },
         media: mediaValueFrom(probe, input.src, input.kind),
       },
       artifacts: [{ kind: "json", path: rel(ctx, "probe.json"), label: "Probe" }],

@@ -54,7 +54,6 @@ import { OffsetsField } from "./form/offsets-field";
 import { Presets } from "./form/presets";
 import { typedField, type TypedField } from "./form/schema-kind";
 import { labelFor } from "./form/schema-meta";
-import { SecretField } from "./form/secret-field";
 import { SoundField } from "./form/sound-field";
 import { SpotField } from "./form/spot-field";
 import {
@@ -107,7 +106,6 @@ const WIDGETS: Partial<Record<FieldWidget, Widget>> = {
   font: stringWidget(FontField),
   sound: stringWidget(SoundField),
   target: stringWidget(TargetField),
-  secret: stringWidget(SecretField),
   timezone: stringWidget(TimezoneField),
   keys: stringWidget(KeysField),
   datetime: stringWidget(DatetimeField),

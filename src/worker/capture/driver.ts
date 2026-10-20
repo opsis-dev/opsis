@@ -1,16 +1,15 @@
 import type { Page } from "playwright-core";
 import { errorMessage } from "../../shared/errors";
-import { sessionNode } from "../../shared/nodes/browser";
-import { parseNodeParams } from "../../shared/nodes/define";
+import { openBrowserNode, openBrowserParams } from "../../shared/nodes/browser";
 import { nodeName } from "../../shared/nodes/registry";
 import type { ActionLog } from "../../shared/schema/actions";
-import type { WorkflowNode } from "../../shared/schema/workflow";
+import type { SessionStep } from "../../shared/schema/values";
 import { TRACE_NOT_SAVED, warnFailed } from "../engine/context";
 import { CURSOR_LOOK, installCursor } from "./page-scripts";
 import { SelectorError } from "./selectors";
 import { openSession, type OpenSession } from "./session";
 import { TakeRun, type Recording, type TakeOptions } from "./take-run";
-import { setupLength } from "./take-steps";
+import { videoStart } from "./take-steps";
 
 type StillTake<T> = TakeOptions & { onPage: (page: Page) => Promise<T> };
 
@@ -18,7 +17,7 @@ type TakeResult<T> = { log: ActionLog; fromPage: T };
 
 type OpenTake = {
   take: TakeRun;
-  steps: WorkflowNode[];
+  steps: SessionStep[];
   dpr: number;
 };
 
@@ -81,16 +80,11 @@ async function preparePage(session: OpenSession, opts: TakeOptions, recording: R
 }
 
 async function openTake(opts: TakeOptions, recording: Recording | null): Promise<OpenTake> {
-  const { chain, vars } = opts;
-  const head = chain[0];
-  if (head?.type !== sessionNode.type)
-    throw new Error("A take must start with an Open browser node.");
-  const sessionParams = parseNodeParams(sessionNode, head, vars);
-  const steps = chain.slice(1).filter((n) => !n.disabled);
+  const { browser, steps } = opts.session;
+  const params = openBrowserParams(opts.session);
 
-  opts.step(head.id, "start");
-  const session = await openSession(sessionParams, {
-    storageState: opts.storageState,
+  opts.step(browser.nodeId, "start");
+  const session = await openSession(params, {
     executablePath: opts.executablePath,
     signal: opts.signal,
   });
@@ -101,28 +95,28 @@ async function openTake(opts: TakeOptions, recording: Recording | null): Promise
     await session.close();
     throw error;
   }
-  opts.step(head.id, "done");
+  opts.step(browser.nodeId, "done");
 
   opts.live?.event({
     kind: "start",
-    title: nodeName(head),
+    title: openBrowserNode.title,
     viewport: session.physicalViewport,
     steps: steps.map((n) => ({ nodeId: n.id, label: nodeName(n) })),
   });
   return {
     take: new TakeRun(opts, session, page, recording),
     steps,
-    dpr: sessionParams.dpr,
+    dpr: params.dpr,
   };
 }
 
-async function playChain(take: TakeRun, steps: WorkflowNode[]) {
+async function playChain(take: TakeRun, steps: SessionStep[]) {
   const { record } = take.recording ?? {};
-  const setupEnd = setupLength(steps, take.vars);
-  for (const node of steps.slice(0, setupEnd)) await take.run(node);
+  const start = videoStart(steps);
+  for (const node of steps.slice(0, start)) await take.run(node);
   take.start();
   if (record) await take.page.waitForTimeout(record.establishMs);
-  for (const node of steps.slice(setupEnd)) await take.run(node);
+  for (const node of steps.slice(start)) await take.run(node);
 }
 
 function takeLog(take: TakeRun, dpr: number, durationMs: number): ActionLog {

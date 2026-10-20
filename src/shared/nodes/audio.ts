@@ -22,7 +22,6 @@ import {
 } from "./card";
 import { defineNode, many, nodeBase, opt, port, withClip, type CompileOutputs } from "./define";
 import type { NodeIconName } from "./icon-name";
-import { mediaInput } from "./media";
 import { asset, audioEnvelope, bool, int, more, ms, volume } from "./params";
 
 const base = nodeBase("Audio", "compile");
@@ -40,7 +39,7 @@ const withSource = (
   path: string,
   build: (src: string, media: MediaValue | undefined) => CompileOutputs,
 ): CompileOutputs => {
-  const media = mediaInput(input);
+  const media = asValue(input, "media");
   const silent = media && (media.kind === "image" || media.hasAudio === false);
   const src = media?.src ?? (path ? projectRef(path) : null);
   return src && !silent ? build(src, media) : { audio: { type: "audio", items: [] } };

@@ -3,27 +3,20 @@ import { workflowNode } from "../../shared/test-fixtures";
 import { landedOnSignIn, plainError, traceGroupTitle } from "./driver-helpers";
 
 describe("traceGroupTitle", () => {
-  it("names the step after what it acts on, with variables filled in", () => {
+  it("names the step after what it acts on", () => {
     expect(
-      traceGroupTitle("Navigate", workflowNode("browser.navigate", { url: "{{BASE}}/login" }), {
-        BASE: "https://x.test",
-      }),
+      traceGroupTitle(
+        "Navigate",
+        workflowNode("browser.navigate", { url: "https://x.test/login" }),
+      ),
     ).toBe("Navigate · https://x.test/login");
     expect(
-      traceGroupTitle(
-        "Type",
-        workflowNode("browser.type", { target: "Username", text: "tom" }),
-        {},
-      ),
+      traceGroupTitle("Type", workflowNode("browser.type", { target: "Username", text: "tom" })),
     ).toBe("Type · Username");
     expect(
-      traceGroupTitle(
-        "Assert",
-        workflowNode("browser.assert", { text: "Welcome", target: "" }),
-        {},
-      ),
+      traceGroupTitle("Assert", workflowNode("browser.assert", { text: "Welcome", target: "" })),
     ).toBe("Assert · Welcome");
-    expect(traceGroupTitle("Wait", workflowNode("browser.wait", { ms: 500 }), {})).toBe("Wait");
+    expect(traceGroupTitle("Wait", workflowNode("browser.wait", { ms: 500 }))).toBe("Wait");
   });
 });
 
@@ -36,32 +29,30 @@ describe("plainError", () => {
           "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#add-to-cart').first() to be visible\u001b[22m\n",
         ),
         click,
-        {},
       ),
     ).toBe("Couldn't find “#add-to-cart” on the page within 15 s.");
     expect(
       plainError(
         new Error("page.goto: Timeout 30000ms exceeded."),
         workflowNode("browser.navigate", {}),
-        {},
       ),
     ).toBe("The page didn't respond within 30 s.");
-    expect(plainError(new Error("page.goto: Timeout 90000ms exceeded."), click, {})).toBe(
+    expect(plainError(new Error("page.goto: Timeout 90000ms exceeded."), click)).toBe(
       "The page didn't respond within 1 min 30 s.",
     );
   });
 
   it("explains network failures", () => {
+    expect(plainError(new Error("page.goto: net::ERR_NAME_NOT_RESOLVED at https://x"), click)).toBe(
+      "Couldn't reach the site. Check the address.",
+    );
     expect(
-      plainError(new Error("page.goto: net::ERR_NAME_NOT_RESOLVED at https://x"), click, {}),
-    ).toBe("Couldn't reach the site. Check the address.");
-    expect(
-      plainError(new Error("page.goto: net::ERR_CONNECTION_REFUSED at https://x"), click, {}),
+      plainError(new Error("page.goto: net::ERR_CONNECTION_REFUSED at https://x"), click),
     ).toBe("Couldn't load the page (ERR_CONNECTION_REFUSED).");
   });
 
   it("drops the internal prefix from other errors", () => {
-    expect(plainError(new Error("locator.click: Element is not attached\nmore"), click, {})).toBe(
+    expect(plainError(new Error("locator.click: Element is not attached\nmore"), click)).toBe(
       "Element is not attached",
     );
   });

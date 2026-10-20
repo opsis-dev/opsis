@@ -8,7 +8,6 @@ export type FormContext = {
   fps: number;
   aspect: number;
   vars: VarInfo[];
-  secrets: string[] | null;
   layers: number;
   spotBackground: SpotBackground;
   pickTarget: (key: string) => void;

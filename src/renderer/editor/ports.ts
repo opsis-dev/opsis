@@ -22,19 +22,17 @@ export const CATEGORY_STYLES: Record<NodeCategory, { color: string; icon: NodeIc
   Utility: { color: NEUTRAL_COLOR, icon: "sticky-note" },
 };
 
-const CLIP_COLOR = CATEGORY_STYLES["Text & overlays"].color;
-
 const PORT_COLORS: Record<PortType, string> = {
-  session: CATEGORY_STYLES.Browser.color,
+  "browser-session": CATEGORY_STYLES.Browser.color,
   recording: CATEGORY_STYLES.Capture.color,
-  clip: CLIP_COLOR,
-  scene: CLIP_COLOR,
-  timeline: CATEGORY_STYLES.Timeline.color,
+  "recording-style": CATEGORY_STYLES.Cursor.color,
+  clip: CATEGORY_STYLES["Text & overlays"].color,
   audio: CATEGORY_STYLES.Audio.color,
   captions: "#facc15",
   image: "#2dd4bf",
   media: CATEGORY_STYLES.Media.color,
-  file: "#94a3b8",
+  "file-info": "#94a3b8",
+  folder: "#94a3b8",
 };
 
 export function portTypeColor(type: PortType | undefined): string {

@@ -12,13 +12,20 @@ import {
   type RecordingProps,
 } from "../compile/recording";
 import { remapDuration, remapFromSegments } from "../compile/remap";
+import {
+  restyleWith,
+  retimeWith,
+  styleStep,
+  type StyleSteps,
+  type StyleTable,
+} from "../compile/style";
 import type { FieldMeta } from "../elements/introspect";
 import { formatDuration, humanize, percentText, plural } from "../format";
 import { MIN_CROP, MIN_SPEED } from "../limits";
 import { EPSILON } from "../math";
 import { pointRect, type Action } from "../schema/actions";
 import { asValue, type ClipValue } from "../schema/values";
-import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
+import { DEFAULT_TAKE_MS } from "../schema/workflow";
 import { msToFrames, recordingMsToFrames, wholeFrames } from "../timeline/time";
 import {
   DEFAULT_ADDRESS_BAR,
@@ -32,7 +39,20 @@ import {
   type WindowStyle,
 } from "../window-styles";
 import { missing, mutedIf, row, toggleRow, type CardRow, type InputTake } from "./card";
-import { defineNode, modifierBase, nodeBase, port, withClip } from "./define";
+import { cursorStyles } from "./cursor";
+import {
+  CLIP_PORT,
+  defineNode,
+  modifierBase,
+  nodeBase,
+  opt,
+  port,
+  recordingModifier,
+  RECORDING_PORT,
+  STYLE_PORT,
+  styleModifier,
+  withClip,
+} from "./define";
 import type { NodeIconName } from "./icon-name";
 import {
   asset,
@@ -48,9 +68,12 @@ import {
   text,
   zoomFactor,
 } from "./params";
+import { textStyles } from "./text";
 
 const base = nodeBase("Camera", "compile");
 const modifier = modifierBase("Camera");
+const styleNode = styleModifier("Camera");
+const takeNode = recordingModifier("Camera");
 
 const spotFields = (x: number, y: number, label: string, help: string) => ({
   x: more(fraction(x, label), { widget: "spot", timeKey: "atMs", help }),
@@ -77,17 +100,14 @@ const windowFrameProps = (
   addressBar,
 });
 
-const appendBeats = (clip: ClipValue, beats: Action[]) =>
-  patchRecordings(clip, (p) => ({ ...p, extraBeats: [...p.extraBeats, ...beats] }));
+const appendBeats = (props: RecordingProps, beats: Action[]): RecordingProps => ({
+  ...props,
+  extraBeats: [...props.extraBeats, ...beats],
+});
 
 const FOCUS_LEAD_MS = 400;
 
 function takeRow(take: InputTake | undefined, atMs: number): CardRow | null {
-  if (take === null)
-    return row("triangle-alert", "Needs a recording", {
-      tone: "warn",
-      title: "The camera moves only over a recorded take.",
-    });
   if (take && atMs >= take.durationMs)
     return row("triangle-alert", `After the take ends at ${formatDuration(take.durationMs)}`, {
       tone: "warn",
@@ -98,15 +118,15 @@ function takeRow(take: InputTake | undefined, atMs: number): CardRow | null {
 type FocusSpot = { id: string; t: number; x: number; y: number; tDepart?: number };
 
 const focusBeats = (
-  clip: ClipValue,
+  props: RecordingProps,
   nodeId: string,
   cluster: string,
   scale: number,
   spots: FocusSpot[],
-): ClipValue => {
-  const vp = clip.recording?.viewport ?? DEFAULT_VIEWPORT;
+): RecordingProps => {
+  const vp = props.log.viewport;
   return appendBeats(
-    clip,
+    props,
     spots.map(({ id, x, y, ...timing }): Action => {
       const point = { x: x * vp.width, y: y * vp.height };
       return {
@@ -129,9 +149,18 @@ const autoZoomNode = defineNode({
   title: "Auto zoom",
   description:
     "Turns a recording into a polished clip: the window floats on a backdrop and the camera zooms to every click.",
-  inputs: { recording: port("recording", "Recording") },
+  inputs: {
+    [RECORDING_PORT]: port("recording", "Recording"),
+    [STYLE_PORT]: opt("recording-style", "Style"),
+  },
   outputs: { clip: port("clip", "Clip") },
-  card: ({ params: p }) => [
+  card: ({ params: p, inputTakes, inputStyle }) => [
+    inputTakes?.[RECORDING_PORT]?.cursorTrack === false &&
+      inputStyle?.[STYLE_PORT]?.includes(followCursorNode.type) &&
+      row("triangle-alert", "The take has no cursor to follow", {
+        tone: "warn",
+        title: "Set Cursor to Smooth on the Record take node.",
+      }),
     p.zoom ? row("zoom-in", `Up to ${p.maxScale}×`) : row("zoom-out", "No zoom", { tone: "muted" }),
     p.zoom && row("hourglass", `Hold ${formatDuration(p.hold)}`),
     p.style === "classic" && row("image", `${humanize(p.backdrop)} backdrop`),
@@ -157,23 +186,26 @@ const autoZoomNode = defineNode({
     motionBlur: bool(true, "Motion blur"),
   }),
   compile: ({ nodeId, inputs, params, settings }) => {
-    const rec = asValue(inputs.recording, "recording");
+    const rec = asValue(inputs[RECORDING_PORT], "recording");
+    const entries = [
+      ...(asValue(inputs[STYLE_PORT], "recording-style")?.entries ?? []),
+      ...(rec?.style ?? []),
+    ];
     const durationMs = rec?.durationMs ?? DEFAULT_TAKE_MS;
     const frames = msToFrames(durationMs / params.speed, settings.fps);
     if (!rec?.src || !rec.log) {
-      return {
-        clip: itemClip(
-          nodeId,
-          "core/placeholder",
-          {
-            title: "Not recorded yet",
-            subtitle: "Run to record the take. The camera moves appear here afterwards.",
-          },
-          frames,
-        ),
-      };
+      const placeholder = itemClip(
+        nodeId,
+        "core/placeholder",
+        {
+          title: "Not recorded yet",
+          subtitle: "Run to record the take. The camera moves appear here afterwards.",
+        },
+        frames,
+      );
+      return { clip: retimeWith(STYLE_TABLE, placeholder, entries, settings.fps) };
     }
-    const props: RecordingProps = {
+    const own: RecordingProps = {
       ...defaultRecordingProps(),
       src: rec.src,
       ...(rec.proxySrc ? { proxySrc: rec.proxySrc } : {}),
@@ -189,19 +221,21 @@ const autoZoomNode = defineNode({
         : windowFrameProps(params.frame, params.frameTheme, params.addressBar)),
       backdrop: params.backdrop,
     };
-    return { clip: itemClip(nodeId, "core/recording", props, frames, { recording: rec }) };
+    const props = restyleWith(STYLE_TABLE, own, entries);
+    const clip = itemClip(nodeId, "core/recording", props, frames, { recording: rec });
+    return { clip: retimeWith(STYLE_TABLE, clip, entries, settings.fps) };
   },
 });
 
 const manualZoomNode = defineNode({
-  ...modifier,
+  ...takeNode,
   type: "camera.manualZoom",
   title: "Zoom here",
   description: "Zooms to a spot of your choice at a set time.",
   card: ({ params: p, inputTakes }) => [
     row("zoom-in", `${p.scale}× at ${formatDuration(p.atMs)}`),
     row("hourglass", `Hold ${formatDuration(p.holdMs)}`),
-    takeRow(inputTakes?.clip, p.atMs),
+    takeRow(inputTakes?.[RECORDING_PORT], p.atMs),
   ],
   params: z.object({
     atMs: ms(1000, "At"),
@@ -209,24 +243,17 @@ const manualZoomNode = defineNode({
     ...zoomSpot,
     scale: zoomFactor(1.5),
   }),
-  compile: ({ nodeId, inputs, params: p }) =>
-    withClip(inputs, (clip) =>
-      focusBeats(clip, nodeId, "zoom", p.scale, [
-        { id: "a", t: p.atMs, tDepart: Math.max(0, p.atMs - FOCUS_LEAD_MS), x: p.x, y: p.y },
-        { id: "b", t: p.atMs + p.holdMs, x: p.x, y: p.y },
-      ]),
-    ),
 });
 
 const panNode = defineNode({
-  ...modifier,
+  ...takeNode,
   type: "camera.pan",
   title: "Pan",
   description: "Moves the camera from one spot to another.",
   card: ({ params: p, inputTakes }) => [
     row("move", `${formatDuration(p.atMs)} → ${formatDuration(p.atMs + p.durationMs)}`),
     row("zoom-in", `${p.scale}×`),
-    takeRow(inputTakes?.clip, p.atMs),
+    takeRow(inputTakes?.[RECORDING_PORT], p.atMs),
   ],
   params: z.object({
     atMs: ms(1000, "Start at"),
@@ -237,45 +264,20 @@ const panNode = defineNode({
     toY: panTo.y,
     scale: zoomFactor(1.4),
   }),
-  compile: ({ nodeId, inputs, params: p }) =>
-    withClip(inputs, (clip) =>
-      focusBeats(clip, nodeId, "pan", p.scale, [
-        { id: "a", t: p.atMs, x: p.fromX, y: p.fromY },
-        { id: "b", t: p.atMs + p.durationMs, x: p.toX, y: p.toY },
-      ]),
-    ),
 });
 
 const followCursorNode = defineNode({
-  ...modifier,
+  ...styleNode,
   type: "camera.followCursor",
   title: "Follow cursor",
   description: "Keeps the camera on the cursor, good for tall formats.",
-  card: ({ params: p, inputTakes }) => {
-    const take = inputTakes?.clip;
-    return [
-      row("locate-fixed", `${p.scale}× · re-aim every ${formatDuration(p.everyMs)}`),
-      take?.cursorTrack === false
-        ? row("triangle-alert", "The take has no cursor to follow", {
-            tone: "warn",
-            title: "Set Cursor to Smooth on the Record take node.",
-          })
-        : takeRow(take, 0),
-    ];
-  },
+  card: ({ params: p }) => [
+    row("locate-fixed", `${p.scale}× · re-aim every ${formatDuration(p.everyMs)}`),
+  ],
   params: z.object({
     scale: zoomFactor(1.35),
     everyMs: msAtLeast(700, "Re-aim every", 200, 5000),
   }),
-  compile: ({ nodeId, inputs, params }) =>
-    withClip(inputs, (clip) =>
-      clip.recording?.log
-        ? appendBeats(
-            clip,
-            followCursorBeats(clip.recording.log, params.scale, params.everyMs, nodeId),
-          )
-        : clip,
-    ),
 });
 
 const speedSegmentSchema = z.object({
@@ -304,7 +306,7 @@ function remapClip(
 }
 
 const idleSpeedupNode = defineNode({
-  ...modifier,
+  ...styleNode,
   type: "camera.idleSpeedup",
   title: "Skip quiet parts",
   description: "Speeds through moments where nothing happens.",
@@ -316,24 +318,10 @@ const idleSpeedupNode = defineNode({
     padMs: ms(400, "Keep around each action", 5000),
     rate: rate(4, "Speed while quiet", { min: 1.5, step: 0.5 }),
   }),
-  compile: ({ nodeId, inputs, params, settings }) =>
-    withClip(inputs, (clip) => {
-      const log = clip.recording?.log;
-      if (!log) return clip;
-      const spans = idleSpans(log, params.thresholdMs, params.padMs);
-      return spans.length
-        ? remapClip(
-            clip,
-            nodeId,
-            settings.fps,
-            spans.map(([fromMs, toMs]) => ({ fromMs, toMs, rate: params.rate })),
-          )
-        : clip;
-    }),
 });
 
 const speedRampNode = defineNode({
-  ...modifier,
+  ...takeNode,
   type: "camera.speedRamp",
   title: "Speed ramp",
   description: "Speeds up or slows down chosen parts.",
@@ -346,15 +334,6 @@ const speedRampNode = defineNode({
       .default([{ fromMs: 0, toMs: 1000, rate: 2 }])
       .meta({ description: "Parts" }),
   }),
-  compile: ({ nodeId, inputs, params, settings }) =>
-    withClip(inputs, (clip) =>
-      remapClip(
-        clip,
-        nodeId,
-        settings.fps,
-        params.segments.toSorted((a, b) => a.fromMs - b.fromMs),
-      ),
-    ),
 });
 
 const cropNode = defineNode({
@@ -389,10 +368,9 @@ const cropNode = defineNode({
     withClip(inputs, (clip) => wrapClip(clip, nodeId, { crop: params })),
 });
 
-type Device = { label: string; icon: NodeIconName; component?: string };
+type Device = { label: string; icon: NodeIconName; component: string };
 
 const DEVICES = {
-  browser: { label: "Browser window", icon: "app-window" },
   laptop: { label: "Laptop", icon: "laptop", component: "snapcn/laptop-frame" },
   phone: { label: "Phone", icon: "smartphone", component: "snapcn/phone-frame" },
 } satisfies Record<string, Device>;
@@ -403,40 +381,17 @@ const deviceFrameNode = defineNode({
   ...modifier,
   type: "camera.deviceFrame",
   title: "Device frame",
-  description: "Puts the video inside a browser window, laptop or phone.",
-  card: ({ params: p, inputTakes }) => [
+  description: "Puts the video inside a laptop or phone.",
+  card: ({ params: p }) => [
     row(DEVICES[p.device].icon, DEVICES[p.device].label),
     p.device === "laptop" && p.entrance !== "none" && row("sparkles", ENTRANCES[p.entrance]),
-    p.device === "browser" &&
-      inputTakes?.clip === null &&
-      row("triangle-alert", "Needs a recording; try Laptop or Phone", {
-        tone: "warn",
-        title: "A browser window frames only a recording. Laptop and Phone frame any clip.",
-      }),
   ],
   params: z.object({
-    device: choiceOf(DEVICES, "browser", "Device"),
-    windowStyle: more(
-      choice(WINDOW_STYLES, DEFAULT_WINDOW_STYLE, "Window style", WINDOW_STYLE_LABELS),
-      {
-        showIf: { device: ["browser"] },
-      },
-    ),
-    frameTheme: frameThemeField({ device: ["browser"] }),
+    device: choiceOf(DEVICES, "laptop", "Device"),
     entrance: more(choiceOf(ENTRANCES, "open", "Entrance"), { showIf: { device: ["laptop"] } }),
   }),
-  hostDefaults: (platform) => ({ windowStyle: hostWindowStyle(platform) }),
   compile: ({ nodeId, inputs, params }) =>
     withClip(inputs, (clip) => {
-      if (params.device === "browser")
-        return patchRecordings(clip, (p) => ({
-          ...p,
-          ...windowFrameProps(
-            params.windowStyle,
-            params.frameTheme,
-            p.addressBar ?? DEFAULT_ADDRESS_BAR,
-          ),
-        }));
       const laptop = params.device === "laptop";
       return wrapClip(
         patchRecordings(clip, (p) => ({ ...p, screen: true })),
@@ -503,37 +458,138 @@ const BACKDROP_KINDS: Record<BackdropParams["kind"], BackdropKind> = {
 };
 
 const backdropNode = defineNode({
-  ...modifier,
+  ...styleNode,
   type: "camera.backdrop",
   title: "Backdrop",
   description: "The background behind the floating window: a studio image, colour or gradient.",
   card: ({ params: p }) => [BACKDROP_KINDS[p.kind].row(p)],
   params: backdropParams,
-  compile: ({ inputs, params }) => {
-    const override = BACKDROP_KINDS[params.kind].override(params);
-    return withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) =>
-        override ? { ...p, backdrop: override, backdropChosen: true } : p,
-      ),
-    );
-  },
 });
 
 const motionBlurNode = defineNode({
-  ...modifier,
+  ...styleNode,
   type: "camera.motionBlur",
   title: "Motion blur",
   description: "Adds blur to fast camera moves.",
   card: ({ params: p }) => [toggleRow("wind", p.enabled)],
   params: z.object({ enabled: bool(true, "Motion blur") }),
-  compile: ({ inputs, params }) =>
-    withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({ ...p, motionBlur: params.enabled })),
-    ),
+});
+
+const windowFrameNode = defineNode({
+  ...styleNode,
+  type: "camera.windowFrame",
+  title: "Window frame",
+  description: "Draws a browser window's title bar around the recording.",
+  card: ({ params: p }) => [
+    row("app-window", `${WINDOW_STYLE_LABELS[p.windowStyle]} · ${humanize(p.frameTheme)}`),
+    row("link", p.addressBar ? "Address bar" : "No address bar", mutedIf(!p.addressBar)),
+  ],
+  params: z.object({
+    windowStyle: choice(WINDOW_STYLES, DEFAULT_WINDOW_STYLE, "Window style", WINDOW_STYLE_LABELS),
+    frameTheme: choice(FRAME_THEMES, DEFAULT_FRAME_THEME, "Frame colour"),
+    addressBar: more(bool(DEFAULT_ADDRESS_BAR, "Address bar"), {
+      help: "Shows the page's address in the title bar.",
+    }),
+  }),
+  hostDefaults: (platform) => ({ windowStyle: hostWindowStyle(platform) }),
+});
+
+const cameraStyles: StyleSteps = [
+  styleStep(manualZoomNode, {
+    restyle: (props, p, nodeId) =>
+      focusBeats(props, nodeId, "zoom", p.scale, [
+        { id: "a", t: p.atMs, tDepart: Math.max(0, p.atMs - FOCUS_LEAD_MS), x: p.x, y: p.y },
+        { id: "b", t: p.atMs + p.holdMs, x: p.x, y: p.y },
+      ]),
+  }),
+  styleStep(panNode, {
+    restyle: (props, p, nodeId) =>
+      focusBeats(props, nodeId, "pan", p.scale, [
+        { id: "a", t: p.atMs, x: p.fromX, y: p.fromY },
+        { id: "b", t: p.atMs + p.durationMs, x: p.toX, y: p.toY },
+      ]),
+  }),
+  styleStep(followCursorNode, {
+    restyle: (props, p, nodeId) =>
+      appendBeats(props, followCursorBeats(props.log, p.scale, p.everyMs, nodeId)),
+  }),
+  styleStep(idleSpeedupNode, {
+    retime: (clip, p, { nodeId, fps }) => {
+      const log = clip.recording?.log;
+      if (!log) return clip;
+      const spans = idleSpans(log, p.thresholdMs, p.padMs);
+      return spans.length
+        ? remapClip(
+            clip,
+            nodeId,
+            fps,
+            spans.map(([fromMs, toMs]) => ({ fromMs, toMs, rate: p.rate })),
+          )
+        : clip;
+    },
+  }),
+  styleStep(speedRampNode, {
+    retime: (clip, p, { nodeId, fps }) =>
+      remapClip(
+        clip,
+        nodeId,
+        fps,
+        p.segments.toSorted((a, b) => a.fromMs - b.fromMs),
+      ),
+  }),
+  styleStep(backdropNode, {
+    restyle: (props, p) => {
+      const override = BACKDROP_KINDS[p.kind].override(p);
+      return override ? { ...props, backdrop: override, backdropChosen: true } : props;
+    },
+  }),
+  styleStep(motionBlurNode, {
+    restyle: (props, p) => ({ ...props, motionBlur: p.enabled }),
+  }),
+  styleStep(windowFrameNode, {
+    restyle: (props, p) => ({
+      ...props,
+      ...windowFrameProps(p.windowStyle, p.frameTheme, p.addressBar),
+    }),
+  }),
+];
+
+const STYLE_TABLE: StyleTable = new Map([...cursorStyles, ...textStyles, ...cameraStyles]);
+
+const applyStyleNode = defineNode({
+  ...base,
+  type: "camera.applyStyle",
+  title: "Apply style",
+  description:
+    "Gives every recording in a clip the same style, for takes joined in a Sequence or Layers.",
+  inputs: {
+    [CLIP_PORT]: port("clip", "Clip"),
+    [STYLE_PORT]: port("recording-style", "Style"),
+  },
+  outputs: { [CLIP_PORT]: port("clip", "Clip") },
+  card: ({ inputStyle, inputTakes }) => {
+    const entries = inputStyle?.[STYLE_PORT]?.length ?? 0;
+    return [
+      row("palette", plural(entries, "style setting"), mutedIf(!entries)),
+      inputTakes?.[CLIP_PORT] === null &&
+        row("triangle-alert", "No recording in this clip", {
+          tone: "warn",
+          title: "A style changes only recordings.",
+        }),
+    ];
+  },
+  params: z.object({}),
+  compile: ({ inputs, settings }) =>
+    withClip(inputs, (clip) => {
+      const entries = asValue(inputs[STYLE_PORT], "recording-style")?.entries ?? [];
+      const styled = patchRecordings(clip, (props) => restyleWith(STYLE_TABLE, props, entries));
+      return retimeWith(STYLE_TABLE, styled, entries, settings.fps);
+    }),
 });
 
 export const cameraNodes = [
   autoZoomNode,
+  applyStyleNode,
   manualZoomNode,
   panNode,
   followCursorNode,
@@ -541,6 +597,7 @@ export const cameraNodes = [
   speedRampNode,
   cropNode,
   deviceFrameNode,
+  windowFrameNode,
   backdropNode,
   motionBlurNode,
 ];

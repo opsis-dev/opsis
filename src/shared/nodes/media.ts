@@ -8,7 +8,6 @@ import {
   asValue,
   outputOf,
   type ClipValue,
-  type CompileValue,
   type MediaValue,
   type NodeResult,
 } from "../schema/values";
@@ -65,28 +64,10 @@ const lengthRow = (
   return m?.durationMs ? row(icon, formatDuration(m.durationMs)) : null;
 };
 
-export function mediaInput(value: CompileValue | undefined): MediaValue | undefined {
-  const media = asValue(value, "media");
-  if (media) return media;
-  const image = asValue(value, "image");
-  if (image) {
-    return {
-      type: "media",
-      kind: "image",
-      src: image.src,
-      width: image.width,
-      height: image.height,
-    };
-  }
-  const file = asValue(value, "file");
-  if (!file?.src) return undefined;
-  return { type: "media", src: file.src, kind: kindFromPath(file.src) };
-}
-
 const passMedia = (
   { result, inputs }: { result?: NodeResult; inputs: CompileInputs },
   fallbackPort = "media",
-) => ({ media: outputOf(result, "media", "media") ?? mediaInput(inputs[fallbackPort]) });
+) => ({ media: outputOf(result, "media", "media") ?? asValue(inputs[fallbackPort], "media") });
 
 const fitField = () => choiceOf(FITS, "contain", "Fit");
 
@@ -190,7 +171,7 @@ const mediaToClipNode = defineNode({
     envelope: visualEnvelope(),
   }),
   compile: ({ nodeId, inputs, params, settings }) => ({
-    clip: mediaToClip(nodeId, mediaInput(inputs.media), {
+    clip: mediaToClip(nodeId, asValue(inputs.media, "media"), {
       fit: params.fit,
       muted: params.muted,
       envelope: params.envelope,
@@ -410,12 +391,12 @@ export const probeNode = op({
   title: "File info",
   description: "Shows a file's length, size, frame rate and format.",
   inputs: { media: port("media", "File") },
-  outputs: { file: port("file", "Info"), media: port("media", "File") },
+  outputs: { info: port("file-info", "Info"), media: port("media", "File") },
   card: ({ result }) => [
     lengthRow(result, "info") ?? row("info", "Run to read the file", { tone: "muted" }),
   ],
   params: z.object({}),
-  compile: (ctx) => ({ file: outputOf(ctx.result, "file", "file"), ...passMedia(ctx) }),
+  compile: (ctx) => ({ info: outputOf(ctx.result, "info", "file-info"), ...passMedia(ctx) }),
 });
 
 export const mediaNodes: NodeDef[] = [

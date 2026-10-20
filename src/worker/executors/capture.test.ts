@@ -8,8 +8,9 @@ import { findById } from "../../shared/lists";
 import { DEFAULT_SETTINGS } from "../../shared/settings";
 import { GraphBuilder } from "../../shared/templates/build";
 import { must } from "../../shared/test-fixtures";
+import type { LoginRequest } from "../../shared/worker-protocol";
 import { TracedError, type ExecutorContext } from "../engine/context";
-import { stillExecutor } from "./capture";
+import { signInExecutor, stillExecutor } from "./capture";
 
 const take = vi.hoisted((): { failure: Error | null } => ({ failure: null }));
 
@@ -24,12 +25,22 @@ vi.mock("../capture/driver", () => ({
 
 const project = tempDirs("opsis-capture-");
 
-async function stillContext(logs: string[]): Promise<ExecutorContext> {
+const sessionInputs = (ctx: ExecutorContext) => ({
+  session: compileWorkflow(ctx.workflow).values.session?.session,
+});
+
+async function stillContext(
+  logs: string[],
+  nodeId = "shot",
+  more: Partial<ExecutorContext> = {},
+): Promise<ExecutorContext> {
   const dir = await project();
   const g = new GraphBuilder();
-  g.node("session", "browser.session", 0, 0);
-  g.node("shot", "capture.still", 1, 0);
+  g.node("session", "browser.open", 0, 0, { viewportWidth: 1280, viewportHeight: 800 });
+  g.node("login", "browser.signIn", 1, 0, { url: "https://x.test/login", secretName: "shop" });
+  g.node("shot", "capture.still", 2, 0);
   g.chain(["session", "shot"]);
+  g.chain(["session", "login"]);
   const workflow = g.build({ id: "wf", name: "Capture test" });
   const engine = enginePaths(path.join(dir, "engine"));
   const shell = engine.headlessShells[0];
@@ -42,7 +53,7 @@ async function stillContext(logs: string[]): Promise<ExecutorContext> {
   };
   return {
     runId: "run",
-    node: must(findById(workflow.nodes, "shot"), "screenshot node"),
+    node: must(findById(workflow.nodes, nodeId), nodeId),
     workflow,
     env: {
       appRoot: dir,
@@ -58,6 +69,7 @@ async function stillContext(logs: string[]): Promise<ExecutorContext> {
     relDir: ".opsis/cache/shot",
     outDir: path.join(dir, "out"),
     hash: "shot",
+    forced: false,
     vars: {},
     signal: new AbortController().signal,
     ffmpeg: { run: unused, pipe: unused, probe: unused },
@@ -70,6 +82,7 @@ async function stillContext(logs: string[]): Promise<ExecutorContext> {
     compile: () => compileWorkflow(workflow),
     results: {},
     secrets: { read: async () => null, write: async () => undefined },
+    ...more,
   };
 }
 
@@ -77,7 +90,8 @@ describe("taking a screenshot", () => {
   it("keeps the screenshot when its trace can't be saved", async () => {
     take.failure = null;
     const logs: string[] = [];
-    const out = await stillExecutor.run(await stillContext(logs), {});
+    const ctx = await stillContext(logs);
+    const out = await stillExecutor.run(ctx, sessionInputs(ctx));
     expect(out.outputs.image).toMatchObject({ type: "image", width: 320, height: 200 });
     expect(out.traceId).toBeUndefined();
     expect(logs.some((l) => l.startsWith("warn: Couldn't save the trace"))).toBe(true);
@@ -86,12 +100,57 @@ describe("taking a screenshot", () => {
   it("reports the page's error, not the trace's, when both fail", async () => {
     take.failure = new Error("The page closed.");
     const logs: string[] = [];
-    const error = await stillExecutor.run(await stillContext(logs), {}).then(
+    const ctx = await stillContext(logs);
+    const error = await stillExecutor.run(ctx, sessionInputs(ctx)).then(
       () => null,
       (e: unknown) => e,
     );
     expect(error).toBeInstanceOf(TracedError);
     expect(error).toHaveProperty("message", "The page closed.");
     expect(logs.some((l) => l.startsWith("warn: Couldn't save the trace"))).toBe(true);
+  });
+});
+
+describe("signing in", () => {
+  const signIn = async (saved: string | null, forced = false) => {
+    const opened: LoginRequest[] = [];
+    const written: string[] = [];
+    const ctx = await stillContext([], "login", {
+      forced,
+      login: async (request) => {
+        opened.push(request);
+        return "new sign-in";
+      },
+      secrets: {
+        read: async () => saved,
+        write: async (name, value) => {
+          written.push(`${name}=${value}`);
+        },
+      },
+    });
+    await signInExecutor.run(ctx, sessionInputs(ctx));
+    return { opened, written };
+  };
+
+  it("opens no window for a sign-in that is already saved", async () => {
+    expect(await signIn("old sign-in")).toEqual({ opened: [], written: [] });
+  });
+
+  it("opens a window the size of the browser and saves what comes back", async () => {
+    const { opened, written } = await signIn(null);
+    expect(opened).toEqual([
+      {
+        url: "https://x.test/login",
+        doneWhen: "window-closed",
+        selector: "",
+        timeoutSec: 300,
+        viewport: { width: 1280, height: 800 },
+      },
+    ]);
+    expect(written).toEqual(["shop=new sign-in"]);
+  });
+
+  it("signs in again when asked to run, even with a saved sign-in", async () => {
+    expect((await signIn("old sign-in", true)).written).toEqual(["shop=new sign-in"]);
   });
 });

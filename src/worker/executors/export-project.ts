@@ -217,7 +217,7 @@ export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ct
   await writeJson(path.join(dir, "tsconfig.json"), TSCONFIG);
   await writeFile(path.join(dir, "README.md"), readme(p.folderName));
   return {
-    outputs: { file: { type: "file", src: toProjectRef(ctx.projectDir, dir) } },
+    outputs: { folder: { type: "folder", src: toProjectRef(ctx.projectDir, dir) } },
     artifacts: [
       { kind: "file", path: toPosixRel(ctx.projectDir, dir), label: "Video project code" },
     ],

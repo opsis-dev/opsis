@@ -27,6 +27,8 @@ export type CardContext<P> = {
   inputTakes?: Partial<Record<string, InputTake>>;
   inputMedia?: Partial<Record<string, Pick<MediaValue, "kind" | "hasAudio">>>;
   inputCaptionsMs?: Partial<Record<string, number>>;
+  inputSteps?: Partial<Record<string, string[]>>;
+  inputStyle?: Partial<Record<string, string[]>>;
 };
 
 export type InputTake = { durationMs: number; cursorTrack: boolean } | null;

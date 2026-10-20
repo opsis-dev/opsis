@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CATEGORY_LABELS, type NodeDef, type PortSpec } from "../nodes/define";
-import { portLabel, type PortSide } from "../nodes/ports";
+import { portLabel } from "../nodes/ports";
 import { getNodeDef, NODE_DEFS } from "../nodes/registry";
 import { jsonSchemaOf } from "./bodies";
 
@@ -31,11 +31,11 @@ type CatalogNode = Omit<z.infer<typeof catalogNodeSchema>, "params">;
 
 type CatalogEntry = CatalogNode & { params: z.core.JSONSchema.JSONSchema };
 
-const ports = (specs: Record<string, PortSpec>, side: PortSide): Record<string, CatalogPort> =>
+const ports = (specs: Record<string, PortSpec>): Record<string, CatalogPort> =>
   Object.fromEntries(
     Object.entries(specs).map(([id, p]) => [
       id,
-      { type: p.type, label: portLabel(p, side), optional: !!p.optional, many: !!p.many },
+      { type: p.type, label: portLabel(p), optional: !!p.optional, many: !!p.many },
     ]),
   );
 
@@ -45,8 +45,8 @@ const catalogNode = (def: NodeDef): CatalogNode => ({
   category: CATEGORY_LABELS[def.category],
   description: def.description ?? "",
   runs: !!(def.executes || def.virtual),
-  inputs: ports(def.inputs, "in"),
-  outputs: ports(def.outputs, "out"),
+  inputs: ports(def.inputs),
+  outputs: ports(def.outputs),
 });
 
 export const nodeCatalog = (): CatalogNode[] => NODE_DEFS.filter((d) => !d.hidden).map(catalogNode);

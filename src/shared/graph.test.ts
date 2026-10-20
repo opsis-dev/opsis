@@ -1,19 +1,10 @@
 import { describe, expect, it } from "vitest";
-import {
-  connectionProblem,
-  loginDependencies,
-  runTargets,
-  sessionChain,
-  topoSort,
-  validateWorkflow,
-} from "./graph";
+import { connectionProblem, runTargets, topoSort, validateWorkflow } from "./graph";
 import { findById } from "./lists";
 import type { Workflow } from "./schema/workflow";
 import { getTemplate } from "./templates";
 import { GraphBuilder } from "./templates/build";
 import { must } from "./test-fixtures";
-
-const TITLE_TYPE = "fx.core.title";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 
@@ -35,11 +26,6 @@ describe("graph", () => {
     expect(order).not.toContain("note");
   });
 
-  it("finds the action chain a capture node closes", () => {
-    const chain = sessionChain(todoMvc(), "record").map((n) => n.id);
-    expect(chain).toEqual(["session", "open", "todo1", "todo2", "todo3", "complete", "filter"]);
-  });
-
   it("validates the sample without errors", () => {
     const errors = validateWorkflow(todoMvc()).filter((i) => i.level === "error");
     expect(errors).toEqual([]);
@@ -56,34 +42,20 @@ describe("graph", () => {
     });
     expect(
       connectionProblem(wf, { ...edge, target: "open", targetHandle: "session" })?.message,
-    ).toBe("A clip can't connect to a browser action input.");
+    ).toBe("A clip can't connect to a browser session input.");
   });
 
-  it("follows the working connection into an action, not a broken one listed first", () => {
-    const g = new GraphBuilder();
-    g.node("bg", TITLE_TYPE, 0, 0);
-    g.node("session", "browser.session", 0, 1);
-    g.node("go", "browser.navigate", 1, 1, { url: "https://example.com" });
-    g.node("click", "browser.click", 2, 1, { target: "Save" });
-    g.node("rec", "capture.record", 3, 1);
-    g.link("bg", "click", "clip", "session");
-    g.chain(["session", "go", "click", "rec"]);
-    expect(sessionChain(build(g), "rec").map((n) => n.id)).toEqual(["session", "go", "click"]);
-  });
-
-  it("explains an action chain that doesn't start from Open browser", () => {
+  it("asks for the browser where an action chain doesn't start from Open browser", () => {
     const g = new GraphBuilder();
     g.node("go", "browser.navigate", 1, 0, { url: "https://example.com" });
     g.node("rec", "capture.record", 2, 0);
     g.node("lone", "capture.record", 3, 0);
     g.chain(["go", "rec"]);
-    const wf = build(g);
-    expect(() => sessionChain(wf, "rec")).toThrow(
-      "The actions starting at “Go to page” don't start from an Open browser node.",
-    );
-    expect(() => sessionChain(wf, "lone")).toThrow(
-      "Connect Open browser and its actions to this node's “Previous” input.",
-    );
+    const errors = validateWorkflow(build(g)).filter((i) => i.level === "error");
+    expect(errors.map((i) => [i.nodeId, i.message])).toEqual([
+      ["go", "Connect something to “Browser”"],
+      ["lone", "Connect something to “Browser”"],
+    ]);
   });
 
   it("asks for another action when a sound's action is gone", () => {
@@ -111,7 +83,7 @@ describe("graph", () => {
     const messages = validateWorkflow(wf)
       .filter((i) => i.nodeId === "rec" || i.edgeId === "e")
       .map((i) => i.message);
-    expect(messages).toContain("Connect something to “Previous”");
+    expect(messages).toContain("Connect something to “Browser”");
     expect(messages).toContain("A connection points at a deleted node");
     expect(messages.some((m) => m.includes("only take one connection"))).toBe(false);
   });
@@ -134,11 +106,11 @@ describe("graph", () => {
     expect(warn(wf)).toEqual([]);
   });
 
-  it("stops two Sign in once nodes from saving the same sign-in", () => {
+  it("stops two Sign in nodes from saving the same sign-in", () => {
     const g = new GraphBuilder();
-    g.node("a", "capture.loginOnce", 0, 0, { url: "https://x.test/login", secretName: "acct" });
-    g.node("b", "capture.loginOnce", 1, 0, { url: "https://x.test/login", secretName: "acct" });
-    g.node("c", "capture.loginOnce", 2, 0, { url: "https://x.test/login", secretName: "other" });
+    g.node("a", "browser.signIn", 0, 0, { url: "https://x.test/login", secretName: "acct" });
+    g.node("b", "browser.signIn", 1, 0, { url: "https://x.test/login", secretName: "acct" });
+    g.node("c", "browser.signIn", 2, 0, { url: "https://x.test/login", secretName: "other" });
     const clashes = validateWorkflow(build(g)).filter((i) =>
       i.message.includes("also saves the sign-in"),
     );
@@ -160,7 +132,7 @@ describe("graph", () => {
 
   it("names a variable the project doesn't have", () => {
     const g = new GraphBuilder();
-    g.node("session", "browser.session", 0, 0);
+    g.node("session", "browser.open", 0, 0);
     g.node("go", "browser.navigate", 1, 0, { url: "{{Site address}}/pricing" });
     g.node("rec", "capture.record", 2, 0);
     g.chain(["session", "go", "rec"]);
@@ -176,7 +148,7 @@ describe("graph", () => {
   it("warns that a reload before the first page does nothing", () => {
     const reloads = (beforePage: boolean) => {
       const g = new GraphBuilder();
-      g.node("session", "browser.session", 0, 0);
+      g.node("session", "browser.open", 0, 0);
       g.node("script", "browser.setState", 1, 0, { script: "1", reload: true });
       g.node("go", "browser.navigate", 2, 0, { url: "https://example.com" });
       g.node("rec", "capture.record", 3, 0);
@@ -206,41 +178,16 @@ describe("graph", () => {
     g.link(a, rec, "clip", "session");
     const issues = validateWorkflow(build(g));
     expect(issues.some((i) => i.message.includes("loops back"))).toBe(true);
-    expect(issues.some((i) => i.message === "A clip can't connect to a browser action input")).toBe(
-      true,
-    );
-  });
-
-  it("makes a capture wait for the Login once node that saves its session's login", () => {
-    const g = new GraphBuilder();
-    const s = g.node("s", "browser.session", 0, 0, { storageState: "{{SHOP}}-login" });
-    const nav = g.node("nav", "browser.navigate", 1, 0, { url: "https://shop.test" });
-    const rec = g.node("rec", "capture.record", 2, 0);
-    g.chain([s, nav, rec]);
-    g.node("login", "capture.loginOnce", 0, 1, { secretName: "sauce-login" });
-    g.node("other", "capture.loginOnce", 0, 2, { secretName: "admin" });
-    const off = g.node("off", "capture.loginOnce", 0, 3, { secretName: "sauce-login" });
-    const wf = build(g);
-    disable(wf, off);
-    expect(loginDependencies(wf, "rec", { SHOP: "sauce" })).toEqual(["login"]);
-    expect(loginDependencies(wf, "rec", {})).toEqual([]);
-    expect(loginDependencies(todoMvc(), "record", {})).toEqual([]);
-  });
-
-  it("matches sign-in names the way they are saved", () => {
-    const g = new GraphBuilder();
-    const s = g.node("s", "browser.session", 0, 0, { storageState: " default " });
-    const rec = g.node("rec", "capture.record", 1, 0);
-    g.chain([s, rec]);
-    g.node("login", "capture.loginOnce", 0, 1, { secretName: "" });
-    expect(loginDependencies(build(g), "rec", {})).toEqual(["login"]);
+    expect(
+      issues.some((i) => i.message === "A clip can't connect to a browser session input"),
+    ).toBe(true);
   });
 
   it("runs every export and the nodes that come after one", () => {
     const g = new GraphBuilder();
     const title = g.node("title", "fx.core.title", 0, 0);
     const film = g.node("film", "output.render", 1, 0);
-    g.link(title, film, "clip", "timeline");
+    g.link(title, film);
     const gif = g.node("gif", "media.gif", 2, 0);
     g.link(film, gif, "media", "media");
     const web = g.node("web", "media.faststart", 3, 0);
@@ -260,13 +207,13 @@ describe("graph", () => {
     expect(runTargets(build(g)).toSorted()).toEqual(["a", "b"]);
   });
 
-  it("leaves Sign in once to the takes that need it when there is no export", () => {
+  it("runs Sign in like any node of the chain when there is no export", () => {
     const g = new GraphBuilder();
-    g.node("login", "capture.loginOnce", 0, 0, { secretName: "admin" });
-    g.node("session", "browser.session", 0, 1, { storageState: "admin" });
-    g.node("go", "browser.navigate", 1, 1, { url: "https://example.com" });
-    g.node("rec", "capture.record", 2, 1);
-    g.chain(["session", "go", "rec"]);
-    expect(runTargets(build(g))).toEqual(["rec"]);
+    g.node("session", "browser.open", 0, 0);
+    g.node("login", "browser.signIn", 1, 0, { secretName: "admin" });
+    g.node("go", "browser.navigate", 2, 0, { url: "https://example.com" });
+    g.node("rec", "capture.record", 3, 0);
+    g.chain(["session", "login", "go", "rec"]);
+    expect(runTargets(build(g))).toEqual(["login", "rec"]);
   });
 });

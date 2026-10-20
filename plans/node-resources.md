@@ -11,7 +11,7 @@ It adds two resources, both built the same way: a list collected forward, one en
 
 The workarounds that exist only because of the old shape are deleted, not kept as fallbacks: the backward walks, the hidden sign-in scheduling and retry, the guessed start of the video, Export's undeclared output, and the scattered input conversions.
 
-Status: plan only.
+Status: built on 2026-10-21.
 
 ## How to read this plan
 
@@ -37,14 +37,15 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
 `sessionValueSchema` (`src/shared/schema/values.ts:71`) is `{ type: "session" }` with no fields, and nothing produces it. None of the 19 `browser.*` nodes has a `compile()`, so every browser edge carries `undefined` (`runCompile`, `src/shared/compile/compile.ts:87`). Every user of the chain walks backwards instead (`walkSessionChain`, `src/shared/graph.ts:179`):
 
-| Where | Walks back for |
-| --- | --- |
-| `retryAfterSignIn` → `sessionChain` (`src/worker/executors/capture.ts:93`) | The steps a take replays |
-| `loginDependencies` (`graph.ts:210`), used by `neededNodes` (`runner.ts:128`) and `RunState.dependencies` (`runner.ts:367`) | Whether a take needs a sign-in |
-| `captureChain` (`src/renderer/editor/use-form-context.ts:50`) | The element picker's window size and start address. It searches *forward* for a capture node, then walks back from it. With a fork it takes the first capture it finds; with none connected, the picker gets no size. |
-| `runsBeforeFirstPage` (`graph.ts:414`) | The "reload before any page" warning on Run page script |
+| Where                                                                                                                       | Walks back for                                                                                                                                                                                                        |
+| --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `retryAfterSignIn` → `sessionChain` (`src/worker/executors/capture.ts:93`)                                                  | The steps a take replays                                                                                                                                                                                              |
+| `loginDependencies` (`graph.ts:210`), used by `neededNodes` (`runner.ts:128`) and `RunState.dependencies` (`runner.ts:367`) | Whether a take needs a sign-in                                                                                                                                                                                        |
+| `captureChain` (`src/renderer/editor/use-form-context.ts:50`)                                                               | The element picker's window size and start address. It searches _forward_ for a capture node, then walks back from it. With a fork it takes the first capture it finds; with none connected, the picker gets no size. |
+| `runsBeforeFirstPage` (`graph.ts:414`)                                                                                      | The "reload before any page" warning on Run page script                                                                                                                                                               |
 
 Because the chain is read as raw workflow nodes, the take also has to:
+
 - Drop Open browser and disabled steps itself (`chain.slice(1).filter((n) => !n.disabled)`, `src/worker/capture/driver.ts:89`).
 - Interpolate and parse every step's params again with its own copy of the variables (`step`, `take-steps.ts:67`; `TakeRun.vars`, `take-run.ts:84`).
 
@@ -108,18 +109,18 @@ Missing:
 
 ### Resources
 
-| Type | Port id | Label | Value | Accepts |
-| --- | --- | --- | --- | --- |
-| `browser-session` (was `session`) | `session` | Browser | `{ browser, steps }` | `browser-session` |
-| `recording` | `recording` | Recording | as today, plus `style: StyleEntry[]` | `recording` |
-| `recording-style` (new) | `style` | Style | `{ entries: StyleEntry[] }` | `recording-style` |
-| `clip` | `clip` | Clip | as today | `clip` |
-| `media` | `media` | File | as today | `media`, `image`, `recording` |
-| `image` | `image` | Image | as today | `image` |
-| `audio` | `sounds` / `audio` | Sound | as today | `audio` |
-| `captions` | `captions` | Captions | as today | `captions` |
-| `file-info` (was `file`) | `info` | Info | `{ src }` | `file-info` |
-| `folder` (was `file`) | `folder` | Folder | `{ src }` | `folder` |
+| Type                              | Port id            | Label     | Value                                | Accepts                       |
+| --------------------------------- | ------------------ | --------- | ------------------------------------ | ----------------------------- |
+| `browser-session` (was `session`) | `session`          | Browser   | `{ browser, steps }`                 | `browser-session`             |
+| `recording`                       | `recording`        | Recording | as today, plus `style: StyleEntry[]` | `recording`                   |
+| `recording-style` (new)           | `style`            | Style     | `{ entries: StyleEntry[] }`          | `recording-style`             |
+| `clip`                            | `clip`             | Clip      | as today                             | `clip`                        |
+| `media`                           | `media`            | File      | as today                             | `media`, `image`, `recording` |
+| `image`                           | `image`            | Image     | as today                             | `image`                       |
+| `audio`                           | `sounds` / `audio` | Sound     | as today                             | `audio`                       |
+| `captions`                        | `captions`         | Captions  | as today                             | `captions`                    |
+| `file-info` (was `file`)          | `info`             | Info      | `{ src }`                            | `file-info`                   |
+| `folder` (was `file`)             | `folder`           | Folder    | `{ src }`                            | `folder`                      |
 
 - A port's id is its resource's short name, as `clip`, `recording` and `media` already are. Export's input becomes `clip`.
 - `scene` and `timeline` leave `PORT_TYPES`. `timeline`, `transition` and `session` leave `CompileValue`.
@@ -132,7 +133,9 @@ Missing:
 `ACCEPTS` becomes a table of conversions next to it in `ports.ts`:
 
 ```ts
-const CONVERT: { [T in PortType]?: Partial<Record<PortType, (v: CompileValue) => CompileValue | undefined>> } = {
+const CONVERT: {
+  [T in PortType]?: Partial<Record<PortType, (v: CompileValue) => CompileValue | undefined>>;
+} = {
   media: { image: imageAsMedia, recording: recordingAsMedia },
 };
 ```
@@ -203,7 +206,11 @@ const browserSessionValueSchema = z.object({
 ### Recording style
 
 ```ts
-const styleEntrySchema = z.object({ nodeId: z.string(), type: z.string(), params: z.record(z.string(), z.unknown()) });
+const styleEntrySchema = z.object({
+  nodeId: z.string(),
+  type: z.string(),
+  params: z.record(z.string(), z.unknown()),
+});
 ```
 
 Each node that edits a recording exports two pure functions next to its definition, built from its current compile body:
@@ -214,6 +221,7 @@ Each node that edits a recording exports two pure functions next to its definiti
 `STYLE_STEPS` maps node type to these functions, the same pattern as `STEPS` in `take-steps.ts`.
 
 **Style nodes: `recording-style? → recording-style`.** The input is optional, so the first node starts the style.
+
 - `cursor.style`, `cursor.clickRipple`, `cursor.keystrokeChips`, `cursor.spotlight`, `cursor.highlightBox`
 - `text.tooltip`, `text.calloutArrow`
 - `camera.followCursor`, `camera.idleSpeedup`, `camera.backdrop`, `camera.motionBlur`
@@ -222,11 +230,13 @@ Each node that edits a recording exports two pure functions next to its definiti
 Their `compile()` appends `{ nodeId, type, params }` to `entries`. A `styleModifier` base sits next to `modifierBase` in `define.ts`.
 
 **Per-take nodes: `recording → recording`.** These need one take's frames and times, and the spot picker shows a frame of the recording upstream (`spotBackground`, `use-form-context.ts:38`):
+
 - `camera.manualZoom`, `camera.pan`, `camera.speedRamp`
 
 Their `compile()` appends to the recording value's own `style`. A `recordingModifier` base: `recording` in and out.
 
 **Auto zoom: `recording + recording-style? → clip`.**
+
 1. Builds `RecordingProps` from its own fields, as today.
 2. Applies the connected style's entries in order, then the recording's own entries.
 3. Builds the clip, then runs each entry's `retime` in the same order.

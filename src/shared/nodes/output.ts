@@ -1,16 +1,15 @@
 import { z } from "zod";
-import { clipToSpec, isClip } from "../compile/clip";
 import { formatDuration, formatBytes } from "../format";
 import { parseOrDefault } from "../guards";
 import { evenPx } from "../math";
 import { safeName } from "../safe-name";
 import { REFRAMES, type ReframeMode } from "../schema/timeline";
-import { outputOf, type Artifact, type CompileValue, type TimelineValue } from "../schema/values";
+import { outputOf, type Artifact } from "../schema/values";
 import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { framesToMs } from "../timeline/time";
 import { PROJECT_NAME } from "../vars";
 import { row } from "./card";
-import { defineNode, port, type CompileInputs, type CompileOutputs } from "./define";
+import { CLIP_PORT, defineNode, port } from "./define";
 import {
   bool,
   choice,
@@ -126,24 +125,10 @@ const exportedShortSide = (variant: Variant, settings: WorkflowSettings, scale: 
 
 const fileNameField = () => text(PROJECT_NAME, "File name");
 
-const toTimeline = (
-  input: CompileValue | undefined,
-  settings: WorkflowSettings,
-): TimelineValue | undefined => {
-  if (input?.type === "timeline") return input;
-  if (isClip(input)) return { type: "timeline", spec: clipToSpec(input, settings) };
-  return undefined;
-};
-
-const passTimeline = (inputs: CompileInputs, settings: WorkflowSettings): CompileOutputs => {
-  const timeline = toTimeline(inputs.timeline, settings);
-  return timeline ? { timeline } : {};
-};
-
 const base = {
   category: "Output",
   executes: true,
-  inputs: { timeline: port("timeline", "Clip") },
+  inputs: { [CLIP_PORT]: port("clip", "Clip") },
 } as const;
 
 export const renderNode = defineNode({
@@ -196,10 +181,7 @@ export const renderNode = defineNode({
     }),
     gl: gl(),
   }),
-  compile: ({ inputs, settings, result }) => ({
-    ...passTimeline(inputs, settings),
-    media: outputOf(result, "media", "media"),
-  }),
+  compile: ({ result }) => ({ media: outputOf(result, "media", "media") }),
 });
 
 export function exportReframe(nodes: WorkflowNode[]): ReframeMode {
@@ -216,7 +198,7 @@ export const stillOutputNode = defineNode({
     "Saves a frame as images at social sizes: wide, link preview, square, portrait, story.",
   outputs: { image: port("image", "Image") },
   card: ({ params: p, inputFrames, settings }) => {
-    const filmMs = inputFrames?.timeline && framesToMs(inputFrames.timeline, settings.fps);
+    const filmMs = inputFrames?.clip && framesToMs(inputFrames.clip, settings.fps);
     return [
       row("image", p.presets.map((k) => STILL_NAMES[k]).join(" · ")),
       row("clock", `At ${formatDuration(p.atMs)} · ${p.format.toUpperCase()}`),
@@ -243,10 +225,7 @@ export const stillOutputNode = defineNode({
     format: choice(["png", "jpeg"], "png", "Format", { png: "PNG", jpeg: "JPEG" }),
     gl: gl(),
   }),
-  compile: ({ result, inputs, settings }) => ({
-    image: outputOf(result, "image", "image"),
-    ...passTimeline(inputs, settings),
-  }),
+  compile: ({ result }) => ({ image: outputOf(result, "image", "image") }),
 });
 
 export const exportProjectNode = defineNode({
@@ -255,15 +234,12 @@ export const exportProjectNode = defineNode({
   title: "Export as code",
   phase: "post",
   description: "Saves this video as an editable code project for developers.",
-  outputs: { file: port("file", "Folder") },
+  outputs: { folder: port("folder", "Folder") },
   card: ({ params: p }) => [
     row("folder-output", safeName(p.folderName, { fallback: EXPORT_FOLDER_FALLBACK })),
   ],
   params: z.object({ folderName: text("video-code", "Folder name") }),
-  compile: ({ result, inputs, settings }) => ({
-    file: outputOf(result, "file", "file"),
-    ...passTimeline(inputs, settings),
-  }),
+  compile: ({ result }) => ({ folder: outputOf(result, "folder", "folder") }),
 });
 
 export const outputNodes = [renderNode, stillOutputNode, exportProjectNode];

@@ -193,7 +193,7 @@ Already in place:
 
 - The action log: `actionSchema` / `ActionLog` (`src/shared/schema/actions.ts`) with `kind`, `t`, `label`, `text`, `nodeId`. The Record executor writes it to `actions.json` and returns it as `outputs.recording.log` (`src/worker/executors/capture.ts`); the renderer has it in `useRunStore` `results` (`NodeResult`, `src/shared/schema/values.ts`).
 - The Chapter action `browser.chapter` (`chapterNode`, `src/shared/nodes/browser.ts`: title, description, optional card). The driver logs it as a `chapter` action, and the Timeline draws chapter marks (`flattenSpec`, `marker-row.tsx`).
-- `sessionChain(wf, captureNodeId)` (`src/shared/graph.ts`) lists the chain in order.
+- The compiled `browser-session` value at a capture's `session` input (`sessionInto` in `src/shared/graph.ts`) lists the chain's steps in order.
 
 Missing:
 
@@ -205,7 +205,7 @@ Missing:
 2. **Name.** Schema `{ chapters: [{ startNodeId, title, description }] }` with `startNodeId` an enum of the spans' first nodes. Input: spans, node labels, project name. Typed text is left out unless the user ticks "Include typed text".
 3. **Insert.** `insertChapters(wf, captureNodeId, chapters)` (pure): a `browser.chapter` node before each start node, rewiring the session edges; an existing Chapter at that spot is renamed instead. One `update`, then `checkWorkflow`.
 4. **UI.** A button on the Record take's Inspector when it has a result; a dialog with editable titles, "Show a chapter card in the video" off by default, and a note that the next run records the take again.
-5. **Tests.** Spans from fixture logs; `insertChapters` keeps one chain, leaves `sessionChain` order intact and passes `checkWorkflow`.
+5. **Tests.** Spans from fixture logs; `insertChapters` keeps one chain, leaves the session's step order intact and passes `checkWorkflow`.
 
 ### Decisions for the user
 

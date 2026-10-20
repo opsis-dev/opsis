@@ -20,7 +20,7 @@
   "nodes": [
     {
       "id": "session",
-      "type": "browser.session",
+      "type": "browser.open",
       "position": {
         "x": 0,
         "y": 0
@@ -31,7 +31,6 @@
         "dpr": 2,
         "mobile": false,
         "userAgent": "",
-        "storageState": "",
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
@@ -52,10 +51,19 @@
       }
     },
     {
+      "id": "start",
+      "type": "browser.startRecording",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {}
+    },
+    {
       "id": "todo1",
       "type": "browser.type",
       "position": {
-        "x": 600,
+        "x": 900,
         "y": 0
       },
       "params": {
@@ -74,7 +82,7 @@
       "id": "todo2",
       "type": "browser.type",
       "position": {
-        "x": 900,
+        "x": 1200,
         "y": 0
       },
       "params": {
@@ -93,7 +101,7 @@
       "id": "todo3",
       "type": "browser.type",
       "position": {
-        "x": 1200,
+        "x": 1500,
         "y": 0
       },
       "params": {
@@ -112,7 +120,7 @@
       "id": "complete",
       "type": "browser.click",
       "position": {
-        "x": 1500,
+        "x": 1800,
         "y": 0
       },
       "params": {
@@ -132,7 +140,7 @@
       "id": "filter",
       "type": "browser.click",
       "position": {
-        "x": 1800,
+        "x": 2100,
         "y": 0
       },
       "params": {
@@ -152,7 +160,7 @@
       "id": "record",
       "type": "capture.record",
       "position": {
-        "x": 2100,
+        "x": 2400,
         "y": 0
       },
       "params": {
@@ -169,7 +177,7 @@
       "id": "camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 2100,
+        "x": 2400,
         "y": 356
       },
       "params": {
@@ -190,7 +198,7 @@
       "type": "cursor.keystrokeChips",
       "position": {
         "x": 2100,
-        "y": 712
+        "y": 200
       },
       "params": {
         "position": "bottom",
@@ -230,6 +238,8 @@
         "fontSize": 104,
         "color": "#fafafa",
         "fontWeight": "600",
+        "background": "white",
+        "fontFamily": "",
         "speed": 1,
         "clipDuration": 75,
         "envelope": {}
@@ -276,7 +286,7 @@
       "type": "timeline.sequence",
       "position": {
         "x": 2400,
-        "y": 340
+        "y": 734
       },
       "params": {
         "transition": "remocn/whip-pan",
@@ -325,8 +335,15 @@
       "targetHandle": "session"
     },
     {
-      "id": "open.session->todo1.session",
+      "id": "open.session->start.session",
       "source": "open",
+      "sourceHandle": "session",
+      "target": "start",
+      "targetHandle": "session"
+    },
+    {
+      "id": "start.session->todo1.session",
+      "source": "start",
       "sourceHandle": "session",
       "target": "todo1",
       "targetHandle": "session"
@@ -374,11 +391,11 @@
       "targetHandle": "recording"
     },
     {
-      "id": "camera.clip->chips.clip",
-      "source": "camera",
-      "sourceHandle": "clip",
-      "target": "chips",
-      "targetHandle": "clip"
+      "id": "chips.style->camera.style",
+      "source": "chips",
+      "sourceHandle": "style",
+      "target": "camera",
+      "targetHandle": "style"
     },
     {
       "id": "intro-bg.clip->intro.in1",
@@ -402,8 +419,8 @@
       "targetHandle": "in1"
     },
     {
-      "id": "chips.clip->sequence.in2",
-      "source": "chips",
+      "id": "camera.clip->sequence.in2",
+      "source": "camera",
       "sourceHandle": "clip",
       "target": "sequence",
       "targetHandle": "in2"
@@ -416,11 +433,11 @@
       "targetHandle": "in3"
     },
     {
-      "id": "sequence.clip->render.timeline",
+      "id": "sequence.clip->render.clip",
       "source": "sequence",
       "sourceHandle": "clip",
       "target": "render",
-      "targetHandle": "timeline"
+      "targetHandle": "clip"
     }
   ],
   "markers": []

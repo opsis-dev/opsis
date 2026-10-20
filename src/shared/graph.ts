@@ -1,7 +1,7 @@
+import { compileWorkflow, type CompileResult } from "./compile/compile";
 import { nonBlankString } from "./guards";
 import { byCodeUnit, findById } from "./lists";
-import { ACTION_NODE_TYPES, navigateNode, sessionNode, setStateNode } from "./nodes/browser";
-import { loginOnceNode } from "./nodes/capture";
+import { ACTION_NODE_TYPES, navigateNode, setStateNode, signInNode } from "./nodes/browser";
 import type { PortSpec } from "./nodes/define";
 import {
   exportBaseName,
@@ -14,6 +14,7 @@ import { parseParams } from "./nodes/params";
 import { canConnect, portLabel, SESSION_PORT } from "./nodes/ports";
 import { getNodeDef, isOutputType, nodeName } from "./nodes/registry";
 import { GROUP_TYPE, NOTE_TYPE } from "./nodes/utility";
+import { asValue, type BrowserSessionValue } from "./schema/values";
 import {
   PORT_WORDS,
   type EdgeEnds,
@@ -166,66 +167,20 @@ export function runTargets(wf: Workflow): string[] {
     !!n && !n.disabled && !isStructural(n) && !!getNodeDef(n.type)?.executes;
   const byId = nodesById(wf.nodes);
   const outputs = wf.nodes.filter((n) => executes(n) && isOutputType(n.type));
-  if (!outputs.length)
-    return wf.nodes.filter((n) => executes(n) && n.type !== loginOnceNode.type).map((n) => n.id);
+  if (!outputs.length) return wf.nodes.filter(executes).map((n) => n.id);
   const targets = new Set(outputs.map((n) => n.id));
   for (const out of outputs)
     for (const id of downstreamOf(wf, out.id)) if (executes(byId.get(id))) targets.add(id);
   return [...targets];
 }
 
-type SessionWalk = { ok: true; chain: WorkflowNode[] } | { ok: false; problem: string };
-
-function walkSessionChain(wf: Workflow, captureNodeId: string): SessionWalk {
-  const byId = nodesById(wf.nodes);
-  const chain: WorkflowNode[] = [];
-  const seen = new Set<string>();
-  const feedingEdge = (id: string) =>
-    wf.edges.find((e) => e.target === id && e.targetHandle === SESSION_PORT && !edgeFault(e, byId));
-  for (let edge = feedingEdge(captureNodeId); edge; edge = feedingEdge(edge.source)) {
-    if (seen.has(edge.source))
-      return { ok: false, problem: "The browser action chain loops back on itself." };
-    seen.add(edge.source);
-    const node = byId.get(edge.source);
-    if (!node)
-      return { ok: false, problem: "A connection in the action chain points at a deleted node." };
-    chain.unshift(node);
-    if (node.type === sessionNode.type) return { ok: true, chain };
-  }
-  const head = chain[0];
-  return {
-    ok: false,
-    problem: head
-      ? `The actions starting at “${nodeName(head)}” don't start from an ${sessionNode.title} node.`
-      : `Connect ${sessionNode.title} and its actions to this node's “Previous” input.`,
-  };
-}
-
-export function sessionChain(wf: Workflow, captureNodeId: string): WorkflowNode[] {
-  const walk = walkSessionChain(wf, captureNodeId);
-  if (!walk.ok) throw new Error(walk.problem);
-  return walk.chain;
-}
-
-export function loginDependencies(
+export function sessionInto(
   wf: Workflow,
-  captureNodeId: string,
-  vars: Record<string, string>,
-): string[] {
-  const param = (node: WorkflowNode, key: string) =>
-    nonBlankString(interpolate(node.params[key], vars));
-  const walk = walkSessionChain(wf, captureNodeId);
-  const storageState = walk.ok ? param(walk.chain[0], "storageState") : undefined;
-  if (!storageState) return [];
-  const secret = secretFileName(storageState);
-  return wf.nodes
-    .filter(
-      (n) =>
-        n.type === loginOnceNode.type &&
-        !n.disabled &&
-        secretFileName(param(n, "secretName")) === secret,
-    )
-    .map((n) => n.id);
+  values: CompileResult["values"],
+  nodeId: string,
+): BrowserSessionValue | undefined {
+  const edge = wf.edges.find((e) => e.target === nodeId && e.targetHandle === SESSION_PORT);
+  return edge && asValue(values[edge.source]?.[edge.sourceHandle], "browser-session");
 }
 
 function portIssues(
@@ -239,7 +194,7 @@ function portIssues(
     const edges = wf.edges.filter(
       (e) => e.target === node.id && e.targetHandle === portId && !edgeFault(e, byId),
     );
-    const name = portLabel(spec, "in");
+    const name = portLabel(spec);
     if (edges.length === 0 && !spec.optional)
       issues.push({ level: "error", nodeId: node.id, message: `Connect something to “${name}”` });
     if (edges.length > 1 && !spec.many)
@@ -350,7 +305,7 @@ function signInClashes(wf: Workflow): GraphIssue[] {
   const vars = workflowVars(wf);
   const saver = new Map<string, WorkflowNode>();
   const issues: GraphIssue[] = [];
-  for (const node of wf.nodes.filter((n) => n.type === loginOnceNode.type && !n.disabled)) {
+  for (const node of wf.nodes.filter((n) => n.type === signInNode.type && !n.disabled)) {
     const name = secretName(nonBlankString(interpolate(node.params.secretName, vars)) ?? "");
     const key = secretFileName(name);
     const first = saver.get(key);
@@ -411,19 +366,23 @@ function skippedSourceIssues(wf: Workflow): GraphIssue[] {
   });
 }
 
-const runsBeforeFirstPage = (wf: Workflow, nodeId: string): boolean => {
-  const walk = walkSessionChain(wf, nodeId);
-  return walk.ok && !walk.chain.some((n) => n.type === navigateNode.type);
+const runsBeforeFirstPage = (
+  wf: Workflow,
+  values: CompileResult["values"],
+  nodeId: string,
+): boolean => {
+  const session = sessionInto(wf, values, nodeId);
+  return !!session && !session.steps.some((step) => step.type === navigateNode.type);
 };
 
-const reloadIssues = (wf: Workflow): GraphIssue[] =>
+const reloadIssues = (wf: Workflow, compiled: CompileResult): GraphIssue[] =>
   wf.nodes
     .filter(
       (n) =>
         n.type === setStateNode.type &&
         !n.disabled &&
         n.params.reload === true &&
-        runsBeforeFirstPage(wf, n.id),
+        runsBeforeFirstPage(wf, compiled.values, n.id),
     )
     .map((n) => ({
       level: "warning",
@@ -432,11 +391,14 @@ const reloadIssues = (wf: Workflow): GraphIssue[] =>
         "Before Go to page the script runs as the site first opens, so there's nothing to reload. Turn off Reload, or move this after Go to page.",
     }));
 
-export const validateWorkflow = (wf: Workflow): GraphIssue[] => [
+export const validateWorkflow = (
+  wf: Workflow,
+  compiled: CompileResult = compileWorkflow(wf),
+): GraphIssue[] => [
   ...nodeIssues(wf),
   ...edgeIssues(wf),
   ...cycleIssues(wf),
-  ...reloadIssues(wf),
+  ...reloadIssues(wf, compiled),
   ...anchorIssues(wf),
   ...exportClashes(wf),
   ...signInClashes(wf),

@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { isInside } from "../../engine/project-paths";
 import { projectRelPath } from "../../shared/asset-ref";
 import { pressedChord } from "../../shared/chord";
+import { parseJsonWith } from "../../shared/guards";
 import {
   assertNode,
   chapterNode,
@@ -18,16 +19,19 @@ import {
   pressNode,
   scrollNode,
   selectNode,
-  sessionNode,
   setStateNode,
+  signInNode,
+  startRecordingNode,
   typeNode,
   uploadNode,
   waitNode,
 } from "../../shared/nodes/browser";
-import { parseNodeParams, type NodeDef, type NodeParams } from "../../shared/nodes/define";
+import type { NodeDef, NodeParams } from "../../shared/nodes/define";
 import { customLabel, nodeName } from "../../shared/nodes/registry";
 import type { Action } from "../../shared/schema/actions";
-import type { WorkflowNode } from "../../shared/schema/workflow";
+import { storageStateSchema } from "../../shared/schema/storage-state";
+import type { SessionStep } from "../../shared/schema/values";
+import { secretName } from "../../shared/secrets";
 import { nonBlankLines } from "../../shared/text-input";
 import { PAUSE_MARK } from "../../shared/vars";
 import { wallTimeIn } from "../../shared/wall-time";
@@ -43,7 +47,9 @@ import {
   hidingCss,
   invalidSelectors,
   optionValue,
+  restoreLocalStorage,
   runUserScript,
+  type SavedStorage,
 } from "./page-scripts";
 import type { CursorDriver } from "./recorder";
 import { dumpVisible, type Resolved } from "./selectors";
@@ -51,33 +57,25 @@ import type { TakeRun } from "./take-run";
 
 const SCROLL_TICK_MS = 16;
 
-export class SignInExpiredError extends Error {
-  constructor(readonly secretName: string) {
-    super(`The saved sign-in “${secretName}” has expired.`);
-    this.name = "SignInExpiredError";
-  }
-}
-
 type StepSpec = {
-  run: (take: TakeRun, node: WorkflowNode) => Promise<void>;
+  run: (take: TakeRun, node: SessionStep) => Promise<void>;
   clickKind?: Action["kind"];
-  offCamera?: boolean;
 };
 
 const step = <S extends z.ZodObject>(
   def: NodeDef<S>,
-  run: (take: TakeRun, p: z.infer<S>, node: WorkflowNode) => Promise<void>,
+  run: (take: TakeRun, p: z.infer<S>, node: SessionStep) => Promise<void>,
   more: Omit<StepSpec, "run"> = {},
 ): [string, StepSpec] => [
   def.type,
-  { ...more, run: (take, node) => run(take, parseNodeParams(def, node, take.vars), node) },
+  { ...more, run: (take, node) => run(take, def.params.parse(node.params), node) },
 ];
 
 const isTimeoutError = (error: unknown) => error instanceof Error && error.name === "TimeoutError";
 
 async function onTarget(
   take: TakeRun,
-  node: WorkflowNode,
+  node: SessionStep,
   p: { target: string; after: number },
   act: (driver: CursorDriver, target: Resolved, label: string) => Promise<void>,
 ): Promise<void> {
@@ -120,9 +118,9 @@ const STEPS = new Map<string, StepSpec>([
       node,
     );
     await take.settleAfterPage(p.after);
-    const { signIn } = take.opts;
-    if (signIn && landedOnSignIn(p.url, take.page.url(), signIn.url))
-      throw new SignInExpiredError(signIn.name);
+    const { signedIn } = take;
+    if (signedIn && landedOnSignIn(p.url, take.page.url(), signedIn.url))
+      throw new Error(`Signed out during the take. Run “${signedIn.name}” again.`);
   }),
   step(
     clickNode,
@@ -228,79 +226,59 @@ const STEPS = new Map<string, StepSpec>([
       });
     }
   }),
-  step(
-    hoistNode,
-    async (take, p) => {
-      const t = await take.resolve(p.target);
-      take.hoisted.set(p.target, elementOf(t.target));
-    },
-    { offCamera: true },
-  ),
-  step(
-    setStateNode,
-    async (take, p, node) => {
-      if (take.page.url() === "about:blank") {
-        await take.session.context.addInitScript({ content: beforeFirstLoad(node.id, p.script) });
-        return;
-      }
-      await take.page.evaluate(runUserScript(p.script));
-      if (p.reload) await take.page.reload();
-    },
-    { offCamera: true },
-  ),
-  step(
-    mockRouteNode,
-    async (take, p) => {
-      await take.page.route(p.url, (route) =>
-        route.fulfill({ status: p.status, contentType: p.contentType, body: p.body }),
+  step(hoistNode, async (take, p) => {
+    const t = await take.resolve(p.target);
+    take.hoisted.set(p.target, elementOf(t.target));
+  }),
+  step(setStateNode, async (take, p, node) => {
+    if (take.page.url() === "about:blank") {
+      await take.session.context.addInitScript({ content: beforeFirstLoad(node.id, p.script) });
+      return;
+    }
+    await take.page.evaluate(runUserScript(p.script));
+    if (p.reload) await take.page.reload();
+  }),
+  step(mockRouteNode, async (take, p) => {
+    await take.page.route(p.url, (route) =>
+      route.fulfill({ status: p.status, contentType: p.contentType, body: p.body }),
+    );
+  }),
+  step(freezeClockNode, async (take, p) => {
+    const zone = await take.page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
+    const time = wallTimeIn(p.time, zone);
+    if (p.mode === "fixed") await take.page.clock.setFixedTime(time);
+    else {
+      await take.page.clock.install({ time });
+      await take.page.clock.pauseAt(time);
+    }
+  }),
+  step(hideElementsNode, async (take, p) => {
+    const selectors = [
+      ...(p.cookieBanners ? COOKIE_BANNER_SELECTORS : []),
+      ...(p.chatWidgets ? CHAT_WIDGET_SELECTORS : []),
+      ...nonBlankLines(p.selectors),
+    ];
+    if (!selectors.length) return;
+    const invalid = await take.page
+      .evaluate(invalidSelectors, nonBlankLines(p.selectors))
+      .catch(() => []);
+    if (invalid.length)
+      take.opts.log(
+        "warn",
+        `Can't hide ${invalid.map((s) => `“${s}”`).join(", ")}: not a CSS selector. The rest are hidden.`,
       );
-    },
-    { offCamera: true },
-  ),
-  step(
-    freezeClockNode,
-    async (take, p) => {
-      const zone = await take.page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
-      const time = wallTimeIn(p.time, zone);
-      if (p.mode === "fixed") await take.page.clock.setFixedTime(time);
-      else {
-        await take.page.clock.install({ time });
-        await take.page.clock.pauseAt(time);
-      }
-    },
-    { offCamera: true },
-  ),
-  step(
-    hideElementsNode,
-    async (take, p) => {
-      const selectors = [
-        ...(p.cookieBanners ? COOKIE_BANNER_SELECTORS : []),
-        ...(p.chatWidgets ? CHAT_WIDGET_SELECTORS : []),
-        ...nonBlankLines(p.selectors),
-      ];
-      if (!selectors.length) return;
-      const invalid = await take.page
-        .evaluate(invalidSelectors, nonBlankLines(p.selectors))
-        .catch(() => []);
-      if (invalid.length)
-        take.opts.log(
-          "warn",
-          `Can't hide ${invalid.map((s) => `“${s}”`).join(", ")}: not a CSS selector. The rest are hidden.`,
-        );
-      const css = hidingCss(selectors);
-      await take.session.context.addInitScript(addStyles, css);
-      await take.page
-        .evaluate(addStyles, css)
-        .catch((error: unknown) =>
-          warnFailed(
-            take.opts.log,
-            "Couldn't hide the elements on the current page, only on the next ones",
-            error,
-          ),
-        );
-    },
-    { offCamera: true },
-  ),
+    const css = hidingCss(selectors);
+    await take.session.context.addInitScript(addStyles, css);
+    await take.page
+      .evaluate(addStyles, css)
+      .catch((error: unknown) =>
+        warnFailed(
+          take.opts.log,
+          "Couldn't hide the elements on the current page, only on the next ones",
+          error,
+        ),
+      );
+  }),
   step(chapterNode, async (take, p, node) => {
     const description = p.description || undefined;
     take.pushAction(
@@ -327,12 +305,32 @@ const STEPS = new Map<string, StepSpec>([
     if (p.durationMs > 0)
       setTimeout(() => void overlay.dispose().catch(() => undefined), p.durationMs);
   }),
-  step(sessionNode, async () => {
-    throw new Error("Only one Open browser node is allowed per take.");
+  step(signInNode, async (take, p, node) => {
+    const name = secretName(p.secretName);
+    const saved = await take.opts.secrets.read(name);
+    if (!saved)
+      throw new Error(`The sign-in “${name}” isn't saved yet. Run “${nodeName(node)}” first.`);
+    const state = parseJsonWith(storageStateSchema, saved);
+    if (!state?.success)
+      throw new Error(`The saved sign-in can't be read. Run “${nodeName(node)}” again.`);
+    const { context } = take.session;
+    await context.addCookies(state.data.cookies);
+    const pageOrigin = URL.parse(take.page.url())?.origin;
+    for (const { origin, localStorage } of state.data.origins) {
+      const storage: SavedStorage = {
+        key: `opsis-sign-in:${node.id}`,
+        origin,
+        items: localStorage,
+      };
+      await context.addInitScript(restoreLocalStorage, storage);
+      if (origin === pageOrigin) await take.page.evaluate(restoreLocalStorage, storage);
+    }
+    take.signedIn = { url: p.url, name: nodeName(node) };
   }),
+  step(startRecordingNode, async () => undefined),
 ]);
 
-export async function runStep(take: TakeRun, node: WorkflowNode): Promise<void> {
+export async function runStep(take: TakeRun, node: SessionStep): Promise<void> {
   const spec = STEPS.get(node.type);
   if (!spec) throw new Error(`"${nodeName({ type: node.type })}" can't be part of a browser take.`);
   await spec.run(take, node);
@@ -344,16 +342,8 @@ export function clickKindOf(type: string): Action["kind"] {
   return kind;
 }
 
-export function setupLength(steps: WorkflowNode[], vars: Record<string, string>): number {
-  const firstNav = steps.findIndex((n) => n.type === navigateNode.type);
-  if (firstNav < 0) return 0;
-  let end = firstNav + 1;
-  for (; end < steps.length; end++) {
-    const node = steps[end];
-    if (STEPS.get(node.type)?.offCamera) continue;
-    if (node.type === waitNode.type && parseNodeParams(waitNode, node, vars).mode !== "ms")
-      continue;
-    break;
-  }
-  return end;
-}
+export const videoStart = (steps: readonly SessionStep[]): number =>
+  Math.max(
+    0,
+    steps.findIndex((s) => s.type === startRecordingNode.type),
+  );

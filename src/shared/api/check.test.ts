@@ -14,7 +14,7 @@ describe("checkWorkflow", () => {
 
   it("fails a project with a required input left empty", () => {
     const wf = todo();
-    wf.edges = wf.edges.filter((e) => !(e.target === "render" && e.targetHandle === "timeline"));
+    wf.edges = wf.edges.filter((e) => !(e.target === "render" && e.targetHandle === "clip"));
     const result = checkWorkflow(wf);
     expect(result.ok).toBe(false);
     expect(result.problems).toContainEqual(

@@ -1,19 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { recordingProps } from "../compile/clip";
-import { itemClip } from "../compile/clip";
-import { DEFAULT_CURSOR_LOOK, DEFAULT_KEYCAP, defaultRecordingProps } from "../compile/recording";
-import { compileClip, makeLog, nodeCard } from "../test-fixtures";
+import { DEFAULT_CURSOR_LOOK, DEFAULT_KEYCAP } from "../compile/recording";
+import { compileClip, nodeCard, zoomed, type StyleStepSpec } from "../test-fixtures";
 import { parseParams } from "./params";
 import { getNodeDef } from "./registry";
 
-const take = () => {
-  const log = makeLog([], 3000);
-  const props = { ...defaultRecordingProps(), src: "rec.mp4", log, name: "Take" };
-  return itemClip("rec", "core/recording", props, 90);
-};
-
 const propsAfter = (type: string, params: Record<string, unknown>) =>
-  recordingProps(compileClip(type, params, { clip: take() }))[0];
+  recordingProps(zoomed({ style: [[type, params]] }))[0];
 
 describe("cursor colours", () => {
   it("uses the default colour when a colour is cleared", () => {
@@ -55,43 +48,42 @@ describe("marks on actions", () => {
   });
 });
 
-describe("camera and marks in a chain", () => {
-  const chain = (steps: Array<[string, Record<string, unknown>]>) =>
-    steps.reduce((clip, [type, params]) => compileClip(type, params, { clip }), take());
+describe("camera and marks in a style", () => {
+  const styled = (style: StyleStepSpec[], own: StyleStepSpec[] = []) =>
+    recordingProps(zoomed({ style, own }))[0];
 
   it("keeps marks in the order their nodes are chained", () => {
-    const props = recordingProps(
-      chain([
-        ["cursor.spotlight", {}],
-        ["cursor.highlightBox", {}],
-        ["text.tooltip", { text: "Save" }],
-      ]),
-    )[0];
+    const props = styled([
+      ["cursor.spotlight"],
+      ["cursor.highlightBox"],
+      ["text.tooltip", { text: "Save" }],
+    ]);
     expect(props.annotations.map((a) => a.kind)).toEqual(["spotlight", "highlight", "tooltip"]);
   });
 
   it("applies the cursor, backdrop and zoom whichever order they come in", () => {
-    const steps: Array<[string, Record<string, unknown>]> = [
+    const style: StyleStepSpec[] = [
       ["cursor.style", { size: 2 }],
       ["camera.backdrop", { kind: "solid", color: "#ff0000" }],
-      ["camera.manualZoom", { atMs: 500 }],
     ];
-    const pick = (clip: ReturnType<typeof chain>) => {
-      const p = recordingProps(clip)[0];
-      return { scale: p.cursorScale, backdrop: p.backdrop, beats: p.extraBeats.length };
-    };
-    const forward = pick(chain(steps));
+    const zoom: StyleStepSpec[] = [["camera.manualZoom", { atMs: 500 }]];
+    const pick = (p: ReturnType<typeof styled>) => ({
+      scale: p.cursorScale,
+      backdrop: p.backdrop,
+      beats: p.extraBeats.length,
+    });
+    const forward = pick(styled(style, zoom));
     expect(forward).toEqual({ scale: 2, backdrop: "#ff0000", beats: 2 });
-    expect(pick(chain(steps.toReversed()))).toEqual(forward);
+    expect(pick(styled(style.toReversed(), zoom))).toEqual(forward);
   });
 
   it("keeps zooms and marks made before a laptop frame on its screen", () => {
+    const clip = zoomed({
+      style: [["cursor.spotlight"]],
+      own: [["camera.manualZoom", { atMs: 500 }]],
+    });
     const props = recordingProps(
-      chain([
-        ["camera.manualZoom", { atMs: 500 }],
-        ["cursor.spotlight", {}],
-        ["camera.deviceFrame", { device: "laptop" }],
-      ]),
+      compileClip("camera.deviceFrame", { device: "laptop" }, { clip }),
     )[0];
     expect(props.screen).toBe(true);
     expect(props.extraBeats).toHaveLength(2);

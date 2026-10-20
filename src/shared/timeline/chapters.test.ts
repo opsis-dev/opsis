@@ -33,7 +33,7 @@ function film(edit?: { type: string; params: Record<string, unknown> }) {
     last = "edit";
   }
   g.node("out", "output.render", 5, 0);
-  g.link(last, "out", "clip", "timeline");
+  g.link(last, "out");
   const spec = compileWorkflow(g.build({ id: "x", name: "x" }), {
     results: { record: recordResult(log) },
   }).specs.out;
@@ -89,7 +89,7 @@ describe("filmChapters", () => {
     const g = new GraphBuilder();
     g.node("t", TITLE, 0, 0, { clipDuration: 90 });
     g.node("out", "output.render", 1, 0);
-    g.link("t", "out", "clip", "timeline");
+    g.link("t", "out");
     expect(filmChapters(compileWorkflow(g.build({ id: "x", name: "x" })).specs.out)).toEqual([]);
   });
 });

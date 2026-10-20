@@ -77,6 +77,23 @@ export function beforeFirstLoad(id: string, script: string): string {
   return userScript(`${firstTime}\n${script}`);
 }
 
+export type SavedStorage = {
+  key: string;
+  origin: string;
+  items: Array<{ name: string; value: string }>;
+};
+
+export function restoreLocalStorage({ key, origin, items }: SavedStorage): void {
+  if (location.origin !== origin) return;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    for (const { name, value } of items) localStorage.setItem(name, value);
+  } catch {
+    return;
+  }
+}
+
 const HOTSPOT = { x: 2, y: 2 };
 const OFF_SCREEN_PX = -300;
 const PRESSED_SCALE = 0.9;

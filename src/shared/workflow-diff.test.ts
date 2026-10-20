@@ -8,7 +8,7 @@ const film = () => {
   g.node("b", "fx.core.solid", 0, 1);
   g.node("trim", "timeline.trim", 1, 0);
   g.node("out", "output.render", 2, 0);
-  g.link("a", "trim").link("trim", "out", "clip", "timeline");
+  g.link("a", "trim").link("trim", "out");
   return g.build({ id: "x", name: "x" });
 };
 

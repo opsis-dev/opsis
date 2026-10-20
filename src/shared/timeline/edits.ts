@@ -223,7 +223,7 @@ function insertOnEdge(
   };
 }
 
-const ROOT_PORT_TYPES = new Set<PortType>(["clip", "timeline"]);
+const ROOT_PORT_TYPES = new Set<PortType>(["clip"]);
 
 function rootEdge(ctx: EditContext): WorkflowEdge | undefined {
   const source = findById(ctx.workflow.nodes, ctx.sourceNodeId);

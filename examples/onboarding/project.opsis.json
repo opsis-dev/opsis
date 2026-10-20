@@ -20,7 +20,7 @@
   "nodes": [
     {
       "id": "session",
-      "type": "browser.session",
+      "type": "browser.open",
       "position": {
         "x": 0,
         "y": 0
@@ -31,7 +31,6 @@
         "dpr": 2,
         "mobile": false,
         "userAgent": "",
-        "storageState": "",
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
@@ -52,10 +51,19 @@
       }
     },
     {
+      "id": "start",
+      "type": "browser.startRecording",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {}
+    },
+    {
       "id": "chapter1",
       "type": "browser.chapter",
       "position": {
-        "x": 600,
+        "x": 900,
         "y": 0
       },
       "params": {
@@ -69,7 +77,7 @@
       "id": "type",
       "type": "browser.type",
       "position": {
-        "x": 900,
+        "x": 1200,
         "y": 0
       },
       "params": {
@@ -88,7 +96,7 @@
       "id": "chapter2",
       "type": "browser.chapter",
       "position": {
-        "x": 1200,
+        "x": 1500,
         "y": 0
       },
       "params": {
@@ -102,7 +110,7 @@
       "id": "done",
       "type": "browser.click",
       "position": {
-        "x": 1500,
+        "x": 1800,
         "y": 0
       },
       "params": {
@@ -121,7 +129,7 @@
       "id": "record",
       "type": "capture.record",
       "position": {
-        "x": 1800,
+        "x": 2100,
         "y": 0
       },
       "params": {
@@ -138,7 +146,7 @@
       "id": "camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 1800,
+        "x": 2100,
         "y": 356
       },
       "params": {
@@ -158,8 +166,8 @@
       "id": "highlight",
       "type": "cursor.highlightBox",
       "position": {
-        "x": 1800,
-        "y": 712
+        "x": 1500,
+        "y": 200
       },
       "params": {
         "match": "",
@@ -175,7 +183,7 @@
       "type": "text.tooltip",
       "position": {
         "x": 1800,
-        "y": 1068
+        "y": 200
       },
       "params": {
         "match": "Done",
@@ -208,7 +216,7 @@
       "type": "text.captions",
       "position": {
         "x": 2100,
-        "y": 510
+        "y": 734
       },
       "params": {
         "style": "word-by-word",
@@ -250,8 +258,15 @@
       "targetHandle": "session"
     },
     {
-      "id": "open.session->chapter1.session",
+      "id": "open.session->start.session",
       "source": "open",
+      "sourceHandle": "session",
+      "target": "start",
+      "targetHandle": "session"
+    },
+    {
+      "id": "start.session->chapter1.session",
+      "source": "start",
       "sourceHandle": "session",
       "target": "chapter1",
       "targetHandle": "session"
@@ -292,18 +307,18 @@
       "targetHandle": "recording"
     },
     {
-      "id": "camera.clip->highlight.clip",
-      "source": "camera",
-      "sourceHandle": "clip",
-      "target": "highlight",
-      "targetHandle": "clip"
+      "id": "highlight.style->tooltip.style",
+      "source": "highlight",
+      "sourceHandle": "style",
+      "target": "tooltip",
+      "targetHandle": "style"
     },
     {
-      "id": "highlight.clip->tooltip.clip",
-      "source": "highlight",
-      "sourceHandle": "clip",
-      "target": "tooltip",
-      "targetHandle": "clip"
+      "id": "tooltip.style->camera.style",
+      "source": "tooltip",
+      "sourceHandle": "style",
+      "target": "camera",
+      "targetHandle": "style"
     },
     {
       "id": "script.captions->captions.captions",
@@ -313,18 +328,18 @@
       "targetHandle": "captions"
     },
     {
-      "id": "tooltip.clip->captions.clip",
-      "source": "tooltip",
+      "id": "camera.clip->captions.clip",
+      "source": "camera",
       "sourceHandle": "clip",
       "target": "captions",
       "targetHandle": "clip"
     },
     {
-      "id": "captions.clip->render.timeline",
+      "id": "captions.clip->render.clip",
       "source": "captions",
       "sourceHandle": "clip",
       "target": "render",
-      "targetHandle": "timeline"
+      "targetHandle": "clip"
     }
   ],
   "markers": []

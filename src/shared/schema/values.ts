@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { actionLogSchema, boundsSchema, viewportSchema } from "./actions";
-import {
-  audioItemSchema,
-  timelineSpecSchema,
-  timelineTrackSchema,
-  transitionRefSchema,
-} from "./timeline";
+import { audioItemSchema, timelineTrackSchema } from "./timeline";
 
 const assetRefSchema = z.string().nullable();
+
+const paramsSchema = z.record(z.string(), z.unknown());
+
+const styleEntrySchema = z.object({ nodeId: z.string(), type: z.string(), params: paramsSchema });
+export type StyleEntry = z.infer<typeof styleEntrySchema>;
 
 const recordingValueSchema = z.object({
   type: z.literal("recording"),
@@ -17,6 +17,7 @@ const recordingValueSchema = z.object({
   durationMs: z.number(),
   viewport: viewportSchema,
   nodeId: z.string(),
+  style: z.array(styleEntrySchema),
 });
 export type RecordingValue = z.infer<typeof recordingValueSchema>;
 
@@ -40,7 +41,9 @@ const mediaValueSchema = z.object({
 });
 export type MediaValue = z.infer<typeof mediaValueSchema>;
 
-const fileValueSchema = z.object({ type: z.literal("file"), src: assetRefSchema });
+const fileInfoValueSchema = z.object({ type: z.literal("file-info"), src: assetRefSchema });
+
+const folderValueSchema = z.object({ type: z.literal("folder"), src: assetRefSchema });
 
 const clipValueSchema = z.object({
   type: z.literal("clip"),
@@ -63,24 +66,38 @@ const captionsValueSchema = z.object({
 });
 export type CaptionsValue = z.infer<typeof captionsValueSchema>;
 
-const timelineValueSchema = z.object({ type: z.literal("timeline"), spec: timelineSpecSchema });
-export type TimelineValue = z.infer<typeof timelineValueSchema>;
+const sessionStepSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  label: z.string().optional(),
+  params: paramsSchema,
+});
+export type SessionStep = z.infer<typeof sessionStepSchema>;
 
-const transitionValueSchema = z.object({ type: z.literal("transition"), ref: transitionRefSchema });
+const browserSessionValueSchema = z.object({
+  type: z.literal("browser-session"),
+  browser: z.object({ nodeId: z.string(), params: paramsSchema }),
+  steps: z.array(sessionStepSchema),
+});
+export type BrowserSessionValue = z.infer<typeof browserSessionValueSchema>;
 
-const sessionValueSchema = z.object({ type: z.literal("session") });
+const recordingStyleValueSchema = z.object({
+  type: z.literal("recording-style"),
+  entries: z.array(styleEntrySchema),
+});
+export type RecordingStyleValue = z.infer<typeof recordingStyleValueSchema>;
 
 const compileValueSchema = z.discriminatedUnion("type", [
+  browserSessionValueSchema,
   recordingValueSchema,
+  recordingStyleValueSchema,
   imageValueSchema,
   mediaValueSchema,
-  fileValueSchema,
+  fileInfoValueSchema,
+  folderValueSchema,
   clipValueSchema,
   audioValueSchema,
   captionsValueSchema,
-  timelineValueSchema,
-  transitionValueSchema,
-  sessionValueSchema,
 ]);
 export type CompileValue = z.infer<typeof compileValueSchema>;
 

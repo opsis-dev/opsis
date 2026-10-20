@@ -1,38 +1,50 @@
 import { humanize } from "../format";
-import type { ClipValue } from "../schema/values";
+import type { ClipValue, CompileValue, MediaValue } from "../schema/values";
 import { PORT_WORDS, type PortType } from "../schema/workflow";
 import { clipInput, opt, type CompileInputs, type PortSpec } from "./define";
 
-const ACCEPTS: Record<PortType, PortType[]> = {
-  session: ["session"],
-  recording: ["recording"],
-  clip: ["clip", "scene"],
-  scene: ["clip", "scene"],
-  timeline: ["timeline", "clip", "scene"],
-  audio: ["audio", "media"],
-  captions: ["captions"],
-  image: ["image", "media"],
-  media: ["media", "image", "file"],
-  file: ["file", "media", "image"],
+type Conversion = (value: CompileValue) => CompileValue | undefined;
+
+const imageAsMedia: Conversion = (value): MediaValue | undefined =>
+  value.type === "image"
+    ? { type: "media", kind: "image", src: value.src, width: value.width, height: value.height }
+    : undefined;
+
+const recordingAsMedia: Conversion = (value): MediaValue | undefined =>
+  value.type === "recording"
+    ? {
+        type: "media",
+        kind: "video",
+        src: value.src,
+        durationMs: value.durationMs,
+        width: value.viewport.width,
+        height: value.viewport.height,
+        hasAudio: false,
+      }
+    : undefined;
+
+const CONVERT: { [T in PortType]?: Partial<Record<PortType, Conversion>> } = {
+  media: { image: imageAsMedia, recording: recordingAsMedia },
 };
 
 export function canConnect(source: PortType, target: PortType): boolean {
-  return ACCEPTS[target].includes(source);
+  return source === target || !!CONVERT[target]?.[source];
 }
 
-export type PortSide = "in" | "out";
-
-function portTypeLabel(type: PortType, side: PortSide): string {
-  if (type === "session") return side === "in" ? "Previous" : "Next";
-  return humanize(PORT_WORDS[type]);
+export function convertInput(
+  value: CompileValue | undefined,
+  spec: Pick<PortSpec, "type"> | undefined,
+): CompileValue | undefined {
+  if (!value || !spec || value.type === spec.type) return value;
+  return CONVERT[spec.type]?.[value.type]?.(value);
 }
 
-export function portLabel(spec: { type: PortType; label?: string }, side: PortSide): string {
-  return spec.label ?? portTypeLabel(spec.type, side);
+export function portLabel(spec: { type: PortType; label?: string }): string {
+  return spec.label ?? humanize(PORT_WORDS[spec.type]);
 }
 
-export function portLabels(ports: Record<string, PortSpec>, side: PortSide): string[] {
-  return Object.values(ports).map((p) => portLabel(p, side));
+export function portLabels(ports: Record<string, PortSpec>): string[] {
+  return Object.values(ports).map(portLabel);
 }
 
 export const SESSION_PORT = "session";

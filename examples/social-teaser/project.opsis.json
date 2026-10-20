@@ -20,7 +20,7 @@
   "nodes": [
     {
       "id": "session",
-      "type": "browser.session",
+      "type": "browser.open",
       "position": {
         "x": 0,
         "y": 0
@@ -31,7 +31,6 @@
         "dpr": 2,
         "mobile": false,
         "userAgent": "",
-        "storageState": "",
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
@@ -52,10 +51,19 @@
       }
     },
     {
+      "id": "start",
+      "type": "browser.startRecording",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {}
+    },
+    {
       "id": "type",
       "type": "browser.type",
       "position": {
-        "x": 600,
+        "x": 900,
         "y": 0
       },
       "params": {
@@ -73,7 +81,7 @@
       "id": "record",
       "type": "capture.record",
       "position": {
-        "x": 900,
+        "x": 1200,
         "y": 0
       },
       "params": {
@@ -90,7 +98,7 @@
       "id": "camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 900,
+        "x": 1200,
         "y": 356
       },
       "params": {
@@ -119,6 +127,8 @@
         "fontSize": 72,
         "color": "#171717",
         "fontWeight": "600",
+        "background": "white",
+        "fontFamily": "",
         "speed": 1,
         "clipDuration": 60,
         "envelope": {}
@@ -129,7 +139,7 @@
       "type": "timeline.sequence",
       "position": {
         "x": 1200,
-        "y": 340
+        "y": 734
       },
       "params": {
         "transition": "remocn/push-through",
@@ -143,7 +153,7 @@
       "type": "audio.music",
       "position": {
         "x": 1200,
-        "y": 806
+        "y": 1200
       },
       "params": {
         "src": "",
@@ -195,8 +205,15 @@
       "targetHandle": "session"
     },
     {
-      "id": "open.session->type.session",
+      "id": "open.session->start.session",
       "source": "open",
+      "sourceHandle": "session",
+      "target": "start",
+      "targetHandle": "session"
+    },
+    {
+      "id": "start.session->type.session",
+      "source": "start",
       "sourceHandle": "session",
       "target": "type",
       "targetHandle": "session"
@@ -244,11 +261,11 @@
       "targetHandle": "sounds"
     },
     {
-      "id": "mix.clip->render.timeline",
+      "id": "mix.clip->render.clip",
       "source": "mix",
       "sourceHandle": "clip",
       "target": "render",
-      "targetHandle": "timeline"
+      "targetHandle": "clip"
     }
   ],
   "markers": []

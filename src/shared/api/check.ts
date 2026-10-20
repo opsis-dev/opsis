@@ -12,9 +12,10 @@ export const problemCheck = (problems: ApiProblem[]): ApiCheck => ({
 });
 
 export function workflowProblems(wf: Workflow): ApiProblem[] {
-  const problems: ApiProblem[] = validateWorkflow(wf);
+  const compiled = compileWorkflow(wf);
+  const problems: ApiProblem[] = validateWorkflow(wf, compiled);
   const flagged = new Set(problems.filter((p) => p.level === "error").map((p) => p.nodeId));
-  for (const [nodeId, message] of Object.entries(compileWorkflow(wf).errors))
+  for (const [nodeId, message] of Object.entries(compiled.errors))
     if (!flagged.has(nodeId)) problems.push({ level: "error", nodeId, message });
   return problems;
 }

@@ -55,7 +55,9 @@ export type NodeLook = { glyph: NodeGlyph; motion?: NodeMotion; morph?: NodeGlyp
 export const FALLBACK_LOOK: NodeLook = { glyph: "lucide:box" };
 
 export const NODE_LOOKS: Record<string, NodeLook> = {
-  "browser.session": { glyph: "lucide:app-window" },
+  "browser.open": { glyph: "lucide:app-window" },
+  "browser.signIn": { glyph: "lucide:key", motion: "twist" },
+  "browser.startRecording": { glyph: "lucide:circle-play" },
   "browser.navigate": { glyph: "lucide:globe" },
   "browser.click": { glyph: "lucide:mouse-pointer-click", motion: "press" },
   "browser.type": { glyph: "lucide:text-cursor-input" },
@@ -76,8 +78,8 @@ export const NODE_LOOKS: Record<string, NodeLook> = {
   "browser.overlayHtml": { glyph: "lucide:file-code" },
   "capture.record": { glyph: "lucide:circle-dot", morph: "lucide:circle-stop" },
   "capture.still": { glyph: "lucide:camera" },
-  "capture.loginOnce": { glyph: "lucide:key", motion: "twist" },
   "camera.autoZoom": { glyph: "lucide:scan-search" },
+  "camera.applyStyle": { glyph: "lucide:paint-roller" },
   "camera.manualZoom": { glyph: "lucide:zoom-in" },
   "camera.pan": { glyph: "lucide:move", motion: "pan" },
   "camera.followCursor": { glyph: "lucide:crosshair", motion: "track" },
@@ -85,6 +87,7 @@ export const NODE_LOOKS: Record<string, NodeLook> = {
   "camera.speedRamp": { glyph: "lucide:chart-spline" },
   "camera.crop": { glyph: "lucide:crop" },
   "camera.deviceFrame": { glyph: "lucide:laptop", morph: "lucide:smartphone" },
+  "camera.windowFrame": { glyph: "lucide:panel-top" },
   "camera.backdrop": { glyph: "tabler:background" },
   "camera.motionBlur": { glyph: "lucide:wind", motion: "smear" },
   "cursor.style": { glyph: "lucide:mouse-pointer-2" },

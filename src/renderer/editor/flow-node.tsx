@@ -149,7 +149,7 @@ function PortHandles({ ports, side }: { ports: Record<string, PortSpec>; side: "
         id={portId}
         type={side === "in" ? "target" : "source"}
         position={side === "in" ? Position.Left : Position.Right}
-        title={portLabel(port, side)}
+        title={portLabel(port)}
         labelClassName={cn("text-xs", side === "in" && port.optional && "text-muted-foreground")}
         style={{ background: color, borderColor: color }}
       />

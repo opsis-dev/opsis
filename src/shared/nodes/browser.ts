@@ -5,7 +5,9 @@ import { formatDuration, displayAddress, formatWhen, plural } from "../format";
 import { isLocale, isTimeZone } from "../locale";
 import { mimeSubtype } from "../mime";
 import { readPath } from "../schema/actions";
+import { asValue, type BrowserSessionValue } from "../schema/values";
 import { DEFAULT_VIEWPORT } from "../schema/workflow";
+import { secretFileName, secretName } from "../secrets";
 import { nonBlankLines } from "../text-input";
 import { PAUSE_MARK, SITE_ADDRESS } from "../vars";
 import { isWallTime } from "../wall-time";
@@ -22,9 +24,10 @@ import {
   row,
   TAG_TEXT_MAX,
   truncate,
+  warnIf,
   type CardRow,
 } from "./card";
-import { defineNode, nodeBase, port } from "./define";
+import { defineNode, nodeBase, port, type CompileContext, type CompileOutputs } from "./define";
 import {
   beatFields,
   bool,
@@ -44,13 +47,27 @@ import {
   targetFields,
   text,
 } from "./params";
+import { SESSION_PORT } from "./ports";
+
+export const sessionPort = () => port("browser-session", "Browser");
+
+type StepContext = Pick<CompileContext<object>, "nodeId" | "type" | "label" | "params" | "inputs">;
+
+const appendStep = ({ nodeId, type, label, params, inputs }: StepContext): CompileOutputs => {
+  const session = asValue(inputs[SESSION_PORT], "browser-session");
+  if (!session) return {};
+  const step = { id: nodeId, type, label, params: { ...params } };
+  return { [SESSION_PORT]: { ...session, steps: [...session.steps, step] } };
+};
 
 const chain = {
-  inputs: { session: port("session", "Previous") },
-  outputs: { session: port("session", "Next") },
+  inputs: { [SESSION_PORT]: sessionPort() },
+  outputs: { [SESSION_PORT]: sessionPort() },
+  compile: appendStep,
 } as const;
 
-const base = { ...nodeBase("Browser", "capture"), virtual: true };
+const browserNode = nodeBase("Browser", "capture");
+const base = { ...browserNode, virtual: true };
 const action = { ...base, ...chain, action: true } as const;
 
 const pause = (after: number): CardRow | null =>
@@ -80,14 +97,13 @@ const viewportPreset = (width: number, height: number) => ({
   values: { viewportWidth: width, viewportHeight: height },
 });
 
-export const sessionNode = defineNode({
+export const openBrowserNode = defineNode({
   ...base,
-  type: "browser.session",
+  type: "browser.open",
   title: "Open browser",
-  description:
-    "Starts a browser window for the actions that follow: size, device, language, sign-in.",
+  description: "Starts a browser window for the actions that follow: size, device and language.",
   inputs: {},
-  outputs: { session: port("session", "Next") },
+  outputs: { [SESSION_PORT]: sessionPort() },
   params: z.object({
     viewportWidth: int(DEFAULT_VIEWPORT.width, "Window width", {
       min: 320,
@@ -118,10 +134,6 @@ export const sessionNode = defineNode({
     userAgent: more(text("", "Browser identity"), {
       help: "Pretend to be a specific browser. Leave empty for the default.",
       advanced: true,
-    }),
-    storageState: more(text("", "Signed in as"), {
-      widget: "secret",
-      help: "A sign-in saved by a Sign in once node.",
     }),
     locale: z
       .string()
@@ -160,12 +172,20 @@ export const sessionNode = defineNode({
     );
     return [
       row(p.mobile ? "smartphone" : "monitor", p.mobile ? `${size} · Mobile` : size),
-      p.storageState.trim() &&
-        row("user-round", `Signed in as ${quote(p.storageState, LABELLED_TEXT_MAX)}`),
       look !== "" && row(dark ? "moon" : "languages", look),
     ];
   },
+  compile: ({ nodeId, params }) => ({
+    [SESSION_PORT]: {
+      type: "browser-session",
+      browser: { nodeId, params: { ...params } },
+      steps: [],
+    },
+  }),
 });
+
+export const openBrowserParams = (session: BrowserSessionValue) =>
+  openBrowserNode.params.parse(session.browser.params);
 
 export const navigateNode = defineNode({
   ...base,
@@ -659,8 +679,77 @@ export const overlayHtmlNode = defineNode({
   ],
 });
 
+export const signInNode = defineNode({
+  ...browserNode,
+  ...chain,
+  executes: true,
+  secretParams: ["secretName"],
+  type: "browser.signIn",
+  title: "Sign in",
+  description:
+    "Opens a window where you sign in yourself, once. Opsis keeps the sign-in, encrypted, and the actions after this one use it.",
+  params: z
+    .object({
+      url: requiredText("Sign-in page", "Add the sign-in page", `${SITE_ADDRESS}/login`),
+      secretName: more(text("default", "Save as"), {
+        help: "The name the sign-in is kept under. Sign in nodes with the same name share it.",
+      }),
+      doneWhen: choice(
+        ["url-change", "selector", "window-closed"],
+        "window-closed",
+        "Finish when",
+        {
+          "url-change": "The address changes",
+          selector: "An element appears",
+          "window-closed": "I close the window",
+        },
+      ),
+      selector: more(text("", "Element that appears after signing in"), {
+        help: "A CSS selector, e.g. .account-menu.",
+        showIf: { doneWhen: ["selector"] },
+      }),
+      timeoutSec: int(300, "Give up after", { min: 10, max: 3600, unit: "s" }),
+    })
+    .superRefine((p, ctx) => {
+      if (p.doneWhen === "selector" && !p.selector.trim())
+        ctx.addIssue({
+          code: "custom",
+          message: "Add the element that appears after signing in",
+          path: ["selector"],
+        });
+    }),
+  card: ({ params: p, secrets }) => {
+    const name = secretName(p.secretName);
+    const saved = secrets?.includes(secretFileName(name));
+    return [
+      row("key-round", `Saves as ${quote(name, LABELLED_TEXT_MAX)}`),
+      p.url.trim() && row("link", displayAddress(p.url, { keepQuery: true }), { title: p.url }),
+      secrets &&
+        row(
+          saved ? "shield-check" : "shield-alert",
+          saved ? "Signed in" : "Not signed in yet",
+          warnIf(!saved),
+        ),
+      row("refresh-cw", "Applies from the next page load", { tone: "muted" }),
+    ];
+  },
+});
+
+export const startRecordingNode = defineNode({
+  ...base,
+  ...chain,
+  type: "browser.startRecording",
+  title: "Start recording",
+  description:
+    "The video starts here. The actions before it run off camera, like signing in and the first page load.",
+  params: z.object({}),
+  card: () => [row("video", "Video starts here")],
+});
+
 export const browserNodes = [
-  sessionNode,
+  openBrowserNode,
+  signInNode,
+  startRecordingNode,
   navigateNode,
   clickNode,
   typeNode,

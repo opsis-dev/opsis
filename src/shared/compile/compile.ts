@@ -1,13 +1,13 @@
 import { errorMessage } from "../errors";
 import { topoSort } from "../graph";
-import { interpolatedParams, type NodeDef } from "../nodes/define";
+import { CLIP_PORT, interpolatedParams, type NodeDef } from "../nodes/define";
 import { parseParams } from "../nodes/params";
+import { convertInput } from "../nodes/ports";
 import { getNodeDef, isOutputType } from "../nodes/registry";
 import type { TimelineSpec } from "../schema/timeline";
-import type { CompileValue, MediaValue, NodeResult } from "../schema/values";
-import type { Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
+import type { CompileValue, NodeResult } from "../schema/values";
+import type { Workflow, WorkflowEdge, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { nodeSpans, type FrameRange } from "../timeline/flatten";
-import { msToFrames } from "../timeline/time";
 import { workflowVars } from "../vars";
 import { clipToSpec, isClip } from "./clip";
 
@@ -24,51 +24,27 @@ export type CompileResult = {
   order: string[];
 };
 
-function gatherInputs(
+const mergeValues = (prev: CompileValue, next: CompileValue): CompileValue =>
+  prev.type === "audio" && next.type === "audio"
+    ? { ...prev, items: [...prev.items, ...next.items] }
+    : next;
+
+export function gatherInputs(
   wf: Workflow,
   def: NodeDef,
   id: string,
-  values: CompileResult["values"],
+  valueOf: (edge: WorkflowEdge) => CompileValue | undefined,
 ): PortValues {
   const inputs: PortValues = {};
   for (const e of wf.edges) {
     if (e.target !== id) continue;
-    const raw = values[e.source]?.[e.sourceHandle];
-    if (!raw) continue;
-    const v =
-      def.inputs[e.targetHandle]?.type === "audio" && raw.type === "media"
-        ? mediaSound(raw, e.source, wf.settings.fps)
-        : raw;
+    const spec = def.inputs[e.targetHandle];
+    const value = convertInput(valueOf(e), spec);
+    if (!value) continue;
     const prev = inputs[e.targetHandle];
-    inputs[e.targetHandle] =
-      prev?.type === "audio" && v.type === "audio" && def.inputs[e.targetHandle]?.many
-        ? { ...prev, items: [...prev.items, ...v.items] }
-        : v;
+    inputs[e.targetHandle] = spec?.many && prev ? mergeValues(prev, value) : value;
   }
   return inputs;
-}
-
-function mediaSound(media: MediaValue, nodeId: string, fps: number): CompileValue {
-  const { src } = media;
-  const silent = !src || media.kind === "image" || media.hasAudio === false;
-  const frames = media.durationMs ? msToFrames(media.durationMs, fps) : undefined;
-  return {
-    type: "audio",
-    items: silent
-      ? []
-      : [
-          {
-            id: `${nodeId}:sound`,
-            src,
-            from: 0,
-            role: "effect",
-            nodeId,
-            channel: nodeId,
-            ...(frames ? { lengthFrames: frames } : {}),
-          },
-        ],
-    ...(frames ? { durationInFrames: frames } : {}),
-  };
 }
 
 function bypass(def: NodeDef, inputs: PortValues): PortValues {
@@ -101,6 +77,8 @@ function runCompile(
     const values =
       def.compile?.({
         nodeId: node.id,
+        type: node.type,
+        label: node.label,
         params: parsed.data,
         inputs,
         settings: wf.settings,
@@ -130,16 +108,16 @@ export function compileWorkflow(wf: Workflow, opts: CompileOptions = {}): Compil
       errors[id] = "This node type isn't available";
       continue;
     }
-    const inputs = gatherInputs(wf, def, id, values);
+    const inputs = gatherInputs(wf, def, id, (e) => values[e.source]?.[e.sourceHandle]);
     if (node.disabled) {
       values[id] = bypass(def, inputs);
       continue;
     }
     const outcome = runCompile(wf, node, def, inputs, { vars, result: opts.results?.[id] });
     values[id] = outcome.values;
+    const clip = inputs[CLIP_PORT];
     if (outcome.error !== undefined) errors[id] = outcome.error;
-    const tl = outcome.values.timeline;
-    if (isOutputType(node.type) && tl?.type === "timeline") specs[id] = tl.spec;
+    else if (isOutputType(node.type) && isClip(clip)) specs[id] = clipToSpec(clip, wf.settings);
   }
 
   return { values, errors, specs, order: sorted.map((n) => n.id) };

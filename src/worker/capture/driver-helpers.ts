@@ -2,8 +2,7 @@ import { stripVTControlCharacters } from "node:util";
 import { errorMessage } from "../../shared/errors";
 import { formatDuration } from "../../shared/format";
 import { nonBlankString } from "../../shared/guards";
-import type { WorkflowNode } from "../../shared/schema/workflow";
-import { interpolate } from "../../shared/vars";
+import type { SessionStep } from "../../shared/schema/values";
 import { CSS_PREFIX } from "./flow-types";
 
 export const withoutCallName = (text: string): string =>
@@ -25,14 +24,10 @@ export function landedOnSignIn(requested: string, current: string, signInUrl: st
   return !samePage(requested, signInUrl) && samePage(current, signInUrl);
 }
 
-export function plainError(
-  error: unknown,
-  node: WorkflowNode,
-  vars: Record<string, string>,
-): string {
+export function plainError(error: unknown, node: Pick<SessionStep, "params">): string {
   const text = stripVTControlCharacters(errorMessage(error));
   const timeout = /Timeout (\d+)ms exceeded/.exec(text);
-  const target = nonBlankString(interpolate(node.params, vars).target);
+  const target = nonBlankString(node.params.target);
   const what = target
     ? `“${target.startsWith(CSS_PREFIX) ? target.slice(CSS_PREFIX.length) : target}”`
     : "the element";
@@ -50,8 +45,8 @@ export function plainError(
   return withoutCallName(text);
 }
 
-export function traceGroupTitle(label: string, node: WorkflowNode, vars: Record<string, string>) {
-  const p = interpolate(node.params, vars);
+export function traceGroupTitle(label: string, node: Pick<SessionStep, "params">) {
+  const p = node.params;
   const subject = [p.target, p.url, p.text, p.keys].map(nonBlankString).find(Boolean);
   return subject ? `${label} · ${subject}` : label;
 }

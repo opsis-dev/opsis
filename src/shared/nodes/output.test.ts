@@ -94,7 +94,7 @@ describe("export file names", () => {
 describe("Export images card", () => {
   it("warns when the frame is past the end of the film", () => {
     const texts = (atMs: number) =>
-      nodeCard("output.still", { atMs }, { inputFrames: { timeline: 60 } }).map((r) => r.text);
+      nodeCard("output.still", { atMs }, { inputFrames: { clip: 60 } }).map((r) => r.text);
     expect(texts(5000)).toContain("The film ends at 2 s, so it uses the last frame");
     expect(texts(1000)).toHaveLength(2);
   });

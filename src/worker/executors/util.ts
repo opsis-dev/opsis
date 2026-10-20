@@ -1,7 +1,6 @@
 import path from "node:path";
 import { projectRef, refTarget } from "../../shared/asset-ref";
-import { mediaInput } from "../../shared/nodes/media";
-import type { CompileValue, MediaValue } from "../../shared/schema/values";
+import { asValue, type CompileValue, type MediaValue } from "../../shared/schema/values";
 import type { WorkerEnv } from "../../shared/worker-protocol";
 import type { ExecutorContext } from "../engine/context";
 import type { FfmpegTools } from "../media/ffmpeg";
@@ -32,7 +31,7 @@ export function refToPath(ctx: { projectDir: string; env: SourceEnv }, ref: stri
 const isLinked = (media: MediaValue | undefined): media is LinkedMedia => !!media?.src;
 
 export function requireMedia(value: CompileValue | undefined): LinkedMedia {
-  const media = mediaInput(value);
+  const media = asValue(value, "media");
   if (!isLinked(media))
     throw new Error("Connect a media input (and run the node that produces it).");
   return media;

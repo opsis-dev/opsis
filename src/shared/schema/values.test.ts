@@ -14,7 +14,8 @@ describe("saved node results", () => {
     const outputs = {
       media: { type: "media", src: "project:a.mp4", kind: "video", durationMs: 1200 },
       image: { type: "image", src: null, width: 640, height: 360, scale: 2 },
-      file: { type: "file", src: "project:probe.json" },
+      info: { type: "file-info", src: "project:probe.json" },
+      folder: { type: "folder", src: "project:video-code" },
       recording: {
         type: "recording",
         src: "project:r.mp4",
@@ -22,6 +23,7 @@ describe("saved node results", () => {
         durationMs: 5000,
         viewport: { width: 1920, height: 1080 },
         nodeId: "record",
+        style: [{ nodeId: "zoom", type: "camera.manualZoom", params: { atMs: 500 } }],
       },
     };
     expect(nodeResultSchema.parse(result(outputs)).outputs).toEqual(outputs);
@@ -39,7 +41,7 @@ describe("lastRunSchema", () => {
   it("keeps the readable node results when one entry is damaged", () => {
     const parsed = lastRunSchema.parse({
       updatedAt: 1,
-      nodes: { good: result({}), bad: result({ file: { type: "file" } }) },
+      nodes: { good: result({}), bad: result({ info: { type: "file-info" } }) },
     });
     expect(Object.keys(parsed.nodes)).toEqual(["good"]);
   });

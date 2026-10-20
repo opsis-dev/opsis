@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compileNode, nodeCard, nodeResult, recordResult } from "../test-fixtures";
-import { loginOnceNode, stillNode } from "./capture";
+import { signInNode } from "./browser";
+import { stillNode } from "./capture";
 import { parseNodeParams } from "./define";
 import { parseParams } from "./params";
 
@@ -19,20 +20,26 @@ describe("capture cards", () => {
     expect(nodeCard("capture.record", {}, { result: record }).map((r) => r.text)).toEqual([
       "30 fps",
       "Smooth cursor",
-      "14.5 s",
-      "2 actions",
+      "14.5 s · 2 actions",
     ]);
   });
 
+  it("says where the video starts", () => {
+    const starts = (steps: string[]) =>
+      nodeCard("capture.record", {}, { inputSteps: { session: steps } }).map((r) => r.text);
+    expect(starts(["browser.navigate", "browser.click"])).toContain("Starts with the first action");
+    expect(starts(["browser.navigate", "browser.startRecording"])).not.toContain(
+      "Starts with the first action",
+    );
+  });
+
   it("tells whether a sign-in is saved", () => {
-    expect(
-      nodeCard("capture.loginOnce", { secretName: "sauce demo" }, { secrets: ["sauce-demo"] }).at(
-        -1,
-      ),
-    ).toMatchObject({ text: "Signed in" });
-    expect(
-      nodeCard("capture.loginOnce", { secretName: "other" }, { secrets: [] }).at(-1),
-    ).toMatchObject({ text: "Not signed in yet", tone: "warn" });
+    const status = (secretName: string, secrets: string[]) =>
+      nodeCard("browser.signIn", { secretName }, { secrets }).find((r) =>
+        r.icon.startsWith("shield"),
+      );
+    expect(status("sauce demo", ["sauce-demo"])).toMatchObject({ text: "Signed in" });
+    expect(status("other", [])).toMatchObject({ text: "Not signed in yet", tone: "warn" });
   });
 
   it("describes the element a Screenshot captures in words", () => {
@@ -70,9 +77,9 @@ describe("Screenshot settings", () => {
   });
 });
 
-describe("Sign in once settings", () => {
+describe("Sign in settings", () => {
   const problem = (params: Record<string, unknown>) => {
-    const parsed = parseParams(loginOnceNode.params, params);
+    const parsed = parseParams(signInNode.params, params);
     return parsed.ok ? null : parsed.problem;
   };
 
@@ -88,7 +95,7 @@ describe("Sign in once settings", () => {
 
   it("fills the site address into the sign-in page", () => {
     const parsed = parseNodeParams(
-      loginOnceNode,
+      signInNode,
       { params: {} },
       { "Site address": "https://app.example.com" },
     );

@@ -24,7 +24,10 @@ export function useCompiled(): Compiled {
     () => (workflow ? compileWorkflow(workflow, { results }) : null),
     [workflow, results],
   );
-  const issues = useMemo(() => (workflow ? validateWorkflow(workflow) : []), [workflow]);
+  const issues = useMemo(
+    () => (workflow && result ? validateWorkflow(workflow, result) : []),
+    [workflow, result],
+  );
   const preview = useMemo(
     () => (workflow && result ? previewSpec(workflow.settings, result, selectedId) : null),
     [workflow, result, selectedId],

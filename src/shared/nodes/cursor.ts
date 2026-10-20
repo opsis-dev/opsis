@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { patchRecordings } from "../compile/clip";
 import {
   DEFAULT_CURSOR_LOOK,
   DEFAULT_KEYCAP,
@@ -8,9 +7,10 @@ import {
   type AnnotationSpec,
   type KeystrokePosition,
 } from "../compile/recording";
+import { styleStep, type StyleSteps } from "../compile/style";
 import { fontProp } from "../fonts";
 import { joinParts, LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
-import { defineNode, modifierBase, withClip, type NodeCategory, type NodeDef } from "./define";
+import { defineNode, styleModifier, type NodeCategory, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
 import {
   bool,
@@ -25,7 +25,7 @@ import {
   text,
 } from "./params";
 
-const base = modifierBase("Cursor");
+const base = styleModifier("Cursor");
 
 const CHIP_POSITIONS: Record<KeystrokePosition, string> = {
   bottom: "Bottom",
@@ -56,18 +56,6 @@ const cursorStyleNode = defineNode({
     color: colorSetting(DEFAULT_CURSOR_LOOK.fill, "Colour"),
     outline: colorSetting(DEFAULT_CURSOR_LOOK.edge, "Outline colour"),
   }),
-  compile: ({ inputs, params }) =>
-    withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({
-        ...p,
-        cursor: params.visible,
-        cursorScale: params.size,
-        cursorLook: {
-          fill: colorOr(params.color, DEFAULT_CURSOR_LOOK.fill),
-          edge: colorOr(params.outline, DEFAULT_CURSOR_LOOK.edge),
-        },
-      })),
-    ),
 });
 
 const clickRippleNode = defineNode({
@@ -91,13 +79,6 @@ const clickRippleNode = defineNode({
       },
     ),
   }),
-  compile: ({ inputs, params: { enabled, color, size, width } }) =>
-    withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({
-        ...p,
-        ripple: enabled ? { color: colorOr(color, DEFAULT_RIPPLE.color), size, width } : null,
-      })),
-    ),
 });
 
 const keystrokeChipsNode = defineNode({
@@ -123,17 +104,6 @@ const keystrokeChipsNode = defineNode({
     ink: colorSetting(DEFAULT_KEYCAP.ink, "Text colour"),
     size: num(1, "Size", { min: 0.4, max: 3, step: 0.05, unit: "×" }),
   }),
-  compile: ({ inputs, params }) =>
-    withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({
-        ...p,
-        keystrokes: {
-          ...params,
-          keycap: colorOr(params.keycap, DEFAULT_KEYCAP.keycap),
-          ink: colorOr(params.ink, DEFAULT_KEYCAP.ink),
-        },
-      })),
-    ),
 });
 
 type AnnotationText = { fontSize: number; textColor?: string };
@@ -166,8 +136,8 @@ export function annotationNode({
   category = "Cursor",
   ...def
 }: Annotation) {
-  return defineNode({
-    ...modifierBase(category),
+  const node = defineNode({
+    ...styleModifier(category),
     ...def,
     card: ({ params: p }) => [
       row(
@@ -191,7 +161,9 @@ export function annotationNode({
       holdMs: ms(1400, "Stay for", 10_000),
       ...labelParams(label),
     }),
-    compile: ({ inputs, params }) => {
+  });
+  const step = styleStep(node, {
+    restyle: (props, params) => {
       const { font, ...rest }: { font?: string } & Omit<AnnotationSpec, "kind"> = params;
       const spec: AnnotationSpec = {
         kind,
@@ -202,14 +174,13 @@ export function annotationNode({
           : {}),
         ...(fontProp(font) ? { font: fontProp(font) } : {}),
       };
-      return withClip(inputs, (clip) =>
-        patchRecordings(clip, (p) => ({ ...p, annotations: [...p.annotations, spec] })),
-      );
+      return { ...props, annotations: [...props.annotations, spec] };
     },
   });
+  return { node, step };
 }
 
-const spotlightNode = annotationNode({
+const spotlight = annotationNode({
   type: "cursor.spotlight",
   title: "Spotlight",
   kind: "spotlight",
@@ -217,7 +188,7 @@ const spotlightNode = annotationNode({
   description: "Darkens everything except the element being used.",
   defaults: { color: "rgba(0,0,0,0.55)" },
 });
-const highlightBoxNode = annotationNode({
+const highlightBox = annotationNode({
   type: "cursor.highlightBox",
   title: "Highlight box",
   kind: "highlight",
@@ -230,6 +201,38 @@ export const cursorNodes = [
   cursorStyleNode,
   clickRippleNode,
   keystrokeChipsNode,
-  spotlightNode,
-  highlightBoxNode,
+  spotlight.node,
+  highlightBox.node,
+];
+
+export const cursorStyles: StyleSteps = [
+  styleStep(cursorStyleNode, {
+    restyle: (props, p) => ({
+      ...props,
+      cursor: p.visible,
+      cursorScale: p.size,
+      cursorLook: {
+        fill: colorOr(p.color, DEFAULT_CURSOR_LOOK.fill),
+        edge: colorOr(p.outline, DEFAULT_CURSOR_LOOK.edge),
+      },
+    }),
+  }),
+  styleStep(clickRippleNode, {
+    restyle: (props, { enabled, color, size, width }) => ({
+      ...props,
+      ripple: enabled ? { color: colorOr(color, DEFAULT_RIPPLE.color), size, width } : null,
+    }),
+  }),
+  styleStep(keystrokeChipsNode, {
+    restyle: (props, p) => ({
+      ...props,
+      keystrokes: {
+        ...p,
+        keycap: colorOr(p.keycap, DEFAULT_KEYCAP.keycap),
+        ink: colorOr(p.ink, DEFAULT_KEYCAP.ink),
+      },
+    }),
+  }),
+  spotlight.step,
+  highlightBox.step,
 ];

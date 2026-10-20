@@ -6,17 +6,14 @@ import { writeJson } from "../../engine/json";
 import { requireHeadlessShell } from "../../engine/paths";
 import { errorMessage } from "../../shared/errors";
 import { formatDuration, plural } from "../../shared/format";
-import { loginDependencies, sessionChain } from "../../shared/graph";
-import { findById } from "../../shared/lists";
-import { sessionNode } from "../../shared/nodes/browser";
-import { loginOnceNode, recordNode, stillNode } from "../../shared/nodes/capture";
-import { parseNodeParams, type NodeParams } from "../../shared/nodes/define";
+import { openBrowserParams, signInNode } from "../../shared/nodes/browser";
+import { recordNode, stillNode } from "../../shared/nodes/capture";
+import type { NodeParams } from "../../shared/nodes/define";
+import { SESSION_PORT } from "../../shared/nodes/ports";
 import { nodeName } from "../../shared/nodes/registry";
-import type { RecordingValue } from "../../shared/schema/values";
-import type { WorkflowNode } from "../../shared/schema/workflow";
+import { asValue, type BrowserSessionValue, type RecordingValue } from "../../shared/schema/values";
 import { secretName } from "../../shared/secrets";
 import { atLeastOneFrame } from "../../shared/timeline/time";
-import type { LoginRequest } from "../../shared/worker-protocol";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
 import { WINDOW_FIT } from "../../video/camera/lib/style";
@@ -32,13 +29,13 @@ import { FrameEncoder } from "../capture/encoder";
 import { elementOf } from "../capture/flow-types";
 import { resolveTarget } from "../capture/selectors";
 import type { TakeOptions } from "../capture/take-run";
-import { SignInExpiredError } from "../capture/take-steps";
 import {
   defineExecutor,
   TRACE_NOT_SAVED,
   TracedError,
   warnFailed,
   type ExecutorContext,
+  type ExecutorInputs,
 } from "../engine/context";
 import { h264Args } from "../media/codecs";
 import { projectFileRef, rel } from "./util";
@@ -49,64 +46,10 @@ const ACTIONS_FILE = "actions.json";
 const STILL_FILE = "still.png";
 const TRACE_FILE = "trace.zip";
 
-type LoginParams = NodeParams<typeof loginOnceNode>;
-
-type SignIn = { url: string; request: LoginRequest };
-
-const loginRequest = (p: LoginParams): LoginRequest => ({
-  url: p.url,
-  doneWhen: p.doneWhen,
-  selector: p.selector,
-  timeoutSec: p.timeoutSec,
-});
-
-type SessionAccess = { secret: string | null; signIn: SignIn | undefined };
-
-const NO_ACCESS: SessionAccess = { secret: null, signIn: undefined };
-
-function sessionAccess(ctx: ExecutorContext, head: WorkflowNode | undefined): SessionAccess {
-  if (head?.type !== sessionNode.type) return NO_ACCESS;
-  const session = parseNodeParams(sessionNode, head, ctx.vars);
-  if (!session.storageState.trim()) return NO_ACCESS;
-  const secret = secretName(session.storageState);
-  const loginId = loginDependencies(ctx.workflow, ctx.node.id, ctx.vars)[0];
-  const loginNode = findById(ctx.workflow.nodes, loginId);
-  if (!loginNode) return { secret, signIn: undefined };
-  const login = parseNodeParams(loginOnceNode, loginNode, ctx.vars);
-  return { secret, signIn: { url: login.url, request: loginRequest(login) } };
-}
-
-async function storageState(ctx: ExecutorContext, secret: string | null): Promise<string | null> {
-  if (!secret) return null;
-  const value = await ctx.secrets.read(secret);
-  if (!value)
-    throw new Error(`The sign-in “${secret}” isn't saved yet. Run its Sign in once node first.`);
-  return value;
-}
-
-type Session = { chain: WorkflowNode[]; access: SessionAccess };
-
-async function retryAfterSignIn<T>(
-  ctx: ExecutorContext,
-  attempt: (session: Session) => Promise<T>,
-): Promise<T> {
-  const chain = sessionChain(ctx.workflow, ctx.node.id);
-  const session = { chain, access: sessionAccess(ctx, chain[0]) };
-  try {
-    return await attempt(session);
-  } catch (error) {
-    if (!(error instanceof TracedError && error.signInExpired) || ctx.signal.aborted) throw error;
-    const { secret, signIn } = session.access;
-    if (!signIn || !secret) throw error;
-    ctx.log(
-      "info",
-      `The saved sign-in “${secret}” has expired. Sign in again in the window that opened.`,
-    );
-    const state = await ctx.login(signIn.request);
-    await ctx.secrets.write(secret, state);
-    ctx.log("info", `Saved the new sign-in as “${secret}”. Recording again.`);
-    return attempt(session);
-  }
+function sessionInput(inputs: ExecutorInputs): BrowserSessionValue {
+  const session = asValue(inputs[SESSION_PORT], "browser-session");
+  if (!session) throw new Error("Connect Open browser and its actions to this node.");
+  return session;
 }
 
 async function saveTrace(
@@ -165,11 +108,10 @@ async function finalizeTrace(
 
 async function runTakeWithTrace<R>(
   ctx: ExecutorContext,
-  { chain, access }: Session,
+  session: BrowserSessionValue,
   encoder: FrameEncoder | undefined,
   play: (opts: TakeOptions) => Promise<R>,
 ): Promise<{ result: R; traceId: string | undefined }> {
-  const { secret, signIn } = access;
   const trace: TraceFile = {
     path: ctx.env.settings.traces.retention === "off" ? undefined : path.join(ctx.dir, TRACE_FILE),
     groups: [],
@@ -177,13 +119,10 @@ async function runTakeWithTrace<R>(
   let result: R;
   try {
     result = await play({
-      workflow: ctx.workflow,
-      chain,
-      vars: ctx.vars,
+      session,
       projectDir: ctx.projectDir,
       executablePath: requireHeadlessShell(ctx.engine),
-      storageState: await storageState(ctx, secret),
-      signIn: signIn && secret ? { url: signIn.url, name: secret } : undefined,
+      secrets: ctx.secrets,
       live: ctx.live(nodeName(ctx.node)),
       tracePath: trace.path,
       traceGroup: (nodeId) => trace.groups.push(nodeId),
@@ -193,14 +132,7 @@ async function runTakeWithTrace<R>(
     });
   } catch (error) {
     const traceId = await finalizeTrace(ctx, trace, encoder, false);
-    const expired = error instanceof SignInExpiredError;
-    throw new TracedError(
-      expired && !signIn
-        ? `${error.message} Run its Sign in once node again.`
-        : errorMessage(error),
-      traceId,
-      expired,
-    );
+    throw new TracedError(errorMessage(error), traceId);
   }
   return { result, traceId: await finalizeTrace(ctx, trace, encoder, true) };
 }
@@ -240,16 +172,15 @@ async function makePreviewCopy(
   }
 }
 
-export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p) => {
+export const recordExecutor = defineExecutor(recordNode, async (ctx, inputs, p) => {
+  const session = sessionInput(inputs);
   const mp4 = path.join(ctx.dir, RECORDING_FILE);
   ctx.progress(0.02, "Starting the browser");
-  const { result, traceId, frames } = await retryAfterSignIn(ctx, async (session) => {
-    const encoder = new FrameEncoder(ctx.ffmpeg, mp4, p.fps, ctx.signal);
-    const taken = await runTakeWithTrace(ctx, session, encoder, (opts) =>
-      recordTake(opts, { encoder, record: p }),
-    );
-    return { ...taken, frames: encoder.frames };
-  });
+  const encoder = new FrameEncoder(ctx.ffmpeg, mp4, p.fps, ctx.signal);
+  const { result, traceId } = await runTakeWithTrace(ctx, session, encoder, (opts) =>
+    recordTake(opts, { encoder, record: p }),
+  );
+  const { frames } = encoder;
   const probe = await ctx.ffmpeg.probe(mp4);
   const log = {
     ...result.log,
@@ -268,6 +199,7 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
     durationMs: log.durationMs,
     viewport: log.viewport,
     nodeId: ctx.node.id,
+    style: [],
   };
   ctx.log(
     "info",
@@ -387,12 +319,10 @@ async function captureShot(
   return { width: region.width, height: region.height, scale, ...(body ? { body } : {}) };
 }
 
-export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) => {
+export const stillExecutor = defineExecutor(stillNode, async (ctx, inputs, p) => {
   const file = path.join(ctx.dir, STILL_FILE);
-  const { result, traceId } = await retryAfterSignIn(ctx, (session) =>
-    runTakeWithTrace(ctx, session, undefined, (opts) =>
-      stillTake({ ...opts, onPage: (page) => captureShot(ctx, page, p, file) }),
-    ),
+  const { result, traceId } = await runTakeWithTrace(ctx, sessionInput(inputs), undefined, (opts) =>
+    stillTake({ ...opts, onPage: (page) => captureShot(ctx, page, p, file) }),
   );
   const shot = result.fromPage;
   ctx.log(
@@ -406,10 +336,24 @@ export const stillExecutor = defineExecutor(stillNode, async (ctx, _inputs, p) =
   };
 });
 
-export const loginOnceExecutor = defineExecutor(loginOnceNode, async (ctx, _inputs, p) => {
-  ctx.log("info", "Sign in in the window that opened.");
-  const state = await ctx.login(loginRequest(p));
+export const signInExecutor = defineExecutor(signInNode, async (ctx, inputs, p) => {
   const name = secretName(p.secretName);
+  if (!ctx.forced && (await ctx.secrets.read(name))) {
+    ctx.log("info", `Using the saved sign-in “${name}”.`);
+    return { outputs: {} };
+  }
+  const session = asValue(inputs[SESSION_PORT], "browser-session");
+  const browser = session && openBrowserParams(session);
+  ctx.log("info", "Sign in in the window that opened.");
+  const state = await ctx.login({
+    url: p.url,
+    doneWhen: p.doneWhen,
+    selector: p.selector,
+    timeoutSec: p.timeoutSec,
+    ...(browser
+      ? { viewport: { width: browser.viewportWidth, height: browser.viewportHeight } }
+      : {}),
+  });
   await ctx.secrets.write(name, state);
   ctx.log("info", `Saved the sign-in as “${name}”.`);
   return { outputs: {} };

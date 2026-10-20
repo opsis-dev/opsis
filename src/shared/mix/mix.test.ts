@@ -24,7 +24,7 @@ function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
     .link("layers", "mix")
     .link("music", "mix", "audio", "sounds")
     .link("fx", "mix", "audio", "sounds")
-    .link("mix", "out", "clip", "timeline");
+    .link("mix", "out");
   const wf = { ...g.build({ id: "wf", name: "Mix" }), ...(mix ? { mix } : {}) };
   return { wf, spec: filmSpec(wf) };
 }
@@ -122,7 +122,7 @@ describe("mixer levels", () => {
       g.link("clipfile", "fast")
         .link("fast", "mix")
         .link("music", "mix", "audio", "sounds")
-        .link("mix", "out", "clip", "timeline");
+        .link("mix", "out");
       const spec = filmSpec(g.build({ id: "wf", name: "Sped up" }));
       expect(itemsOf(spec).some(itemHasSound)).toBe(true);
       return sound(applyMixLevels(spec, withDuck(defaultMix(), { keys: ["clips"] })), "music");
@@ -151,7 +151,7 @@ describe("mix plan", () => {
     g.link("t", "mix")
       .link("late", "mix", "audio", "sounds")
       .link("early", "mix", "audio", "sounds")
-      .link("mix", "out", "clip", "timeline");
+      .link("mix", "out");
     const plan = buildMixPlan(filmSpec(g.build({ id: "wf", name: "Order" })), undefined);
     expect(plan.channels.map((c) => c.id)).toEqual(["late", "early"]);
   });

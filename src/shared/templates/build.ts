@@ -1,5 +1,6 @@
 import { edgeId, randomId } from "../ids";
-import { CLIP_PORT } from "../nodes/define";
+import { navigateNode, startRecordingNode, waitNode } from "../nodes/browser";
+import { CLIP_PORT, RECORDING_PORT, STYLE_PORT } from "../nodes/define";
 import { SESSION_PORT } from "../nodes/ports";
 import { defaultParams, getNodeDef } from "../nodes/registry";
 import { CARD_GAP, CARD_WIDTH, COLUMN_WIDTH, estimateCardHeight, ROW_HEIGHT } from "../nodes/size";
@@ -20,7 +21,21 @@ export type TakeStep = {
   label?: string;
 };
 
-type TakeOptions = { camera?: Record<string, unknown>; row?: number; prefix?: string };
+type TakeOptions = {
+  camera?: Record<string, unknown>;
+  row?: number;
+  prefix?: string;
+  style?: TakeStep[];
+};
+
+function withVideoStart(steps: TakeStep[]): TakeStep[] {
+  const page = steps.findIndex((s) => s.type === navigateNode.type);
+  if (page < 0) return steps;
+  let at = page + 1;
+  while (steps[at]?.type === waitNode.type) at++;
+  const start = { id: "start", type: startRecordingNode.type };
+  return [...steps.slice(0, at), start, ...steps.slice(at)];
+}
 
 const overlaps = (p: Placed, x: number, y: number, height: number) =>
   Math.abs(p.node.position.x - x) < CARD_WIDTH + CARD_GAP &&
@@ -86,14 +101,29 @@ export class GraphBuilder {
     return this;
   }
 
-  recordTake(steps: TakeStep[], { camera = {}, row = 0, prefix = "" }: TakeOptions = {}): string {
-    const ids = steps.map((step, x) =>
+  recordTake(
+    steps: TakeStep[],
+    { camera = {}, row = 0, prefix = "", style = [] }: TakeOptions = {},
+  ): string {
+    const ids = withVideoStart(steps).map((step, x) =>
       this.node(`${prefix}${step.id}`, step.type, x, row, step.params, step.label),
     );
-    const rec = this.node(`${prefix}record`, "capture.record", steps.length, row);
+    const rec = this.node(`${prefix}record`, "capture.record", ids.length, row);
     this.chain([...ids, rec]);
-    const cam = this.node(`${prefix}camera`, "camera.autoZoom", steps.length, row + 1, camera);
-    this.link(rec, cam, "recording", "recording");
+    const cam = this.node(`${prefix}camera`, "camera.autoZoom", ids.length, row + 1, camera);
+    this.link(rec, cam, RECORDING_PORT, RECORDING_PORT);
+    const styled = style.map((step, i) =>
+      this.node(
+        `${prefix}${step.id}`,
+        step.type,
+        ids.length - style.length + i,
+        row + 1,
+        step.params,
+        step.label,
+      ),
+    );
+    for (const [i, id] of styled.entries())
+      this.link(id, styled[i + 1] ?? cam, STYLE_PORT, STYLE_PORT);
     return cam;
   }
 

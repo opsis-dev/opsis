@@ -66,32 +66,32 @@
           {
             "text": "Running tests...",
             "type": "log",
-            "delay": 6
+            "delay": 0.2
           },
           {
             "text": "128 tests passed",
             "type": "success",
-            "delay": 10
+            "delay": 0.3333
           },
           {
             "text": "Building the image...",
             "type": "log",
-            "delay": 8
+            "delay": 0.2667
           },
           {
             "text": "Image ready in 41s",
             "type": "success",
-            "delay": 10
+            "delay": 0.3333
           },
           {
             "text": "Rolling out to everyone...",
             "type": "log",
-            "delay": 8
+            "delay": 0.2667
           },
           {
             "text": "Live in production",
             "type": "success",
-            "delay": 12
+            "delay": 0.4
           }
         ],
         "speed": 1,
@@ -109,7 +109,7 @@
       "params": {
         "barColor": "#0ea5e9",
         "gap": 16,
-        "staggerFrames": 6,
+        "staggerFrames": 0.2,
         "bars": [
           {
             "label": "",
@@ -146,6 +146,8 @@
         ],
         "width": 1000,
         "height": 500,
+        "baselineColor": "#27272a",
+        "labelColor": "#a1a1aa",
         "speed": 1,
         "clipDuration": 120,
         "envelope": {}
@@ -277,11 +279,11 @@
       "targetHandle": "in3"
     },
     {
-      "id": "sequence.clip->render.timeline",
+      "id": "sequence.clip->render.clip",
       "source": "sequence",
       "sourceHandle": "clip",
       "target": "render",
-      "targetHandle": "timeline"
+      "targetHandle": "clip"
     }
   ],
   "markers": []

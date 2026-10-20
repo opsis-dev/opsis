@@ -4,30 +4,30 @@ import { mixSchema } from "../mix/types";
 import { viewportSchema } from "./actions";
 
 const PORT_TYPES = [
-  "session",
+  "browser-session",
   "recording",
+  "recording-style",
   "clip",
-  "scene",
   "audio",
   "captions",
   "image",
   "media",
-  "timeline",
-  "file",
+  "file-info",
+  "folder",
 ] as const;
 export type PortType = (typeof PORT_TYPES)[number];
 
 export const PORT_WORDS: Record<PortType, string> = {
-  session: "browser action",
+  "browser-session": "browser session",
   recording: "recording",
+  "recording-style": "style",
   clip: "clip",
-  scene: "clip",
   audio: "sound",
   captions: "captions",
   image: "image",
   media: "file",
-  timeline: "clip",
-  file: "file",
+  "file-info": "file info",
+  folder: "folder",
 };
 
 export const workflowSettingsSchema = z.object({

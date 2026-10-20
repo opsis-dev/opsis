@@ -5,7 +5,7 @@ import type { recordNode } from "../../shared/nodes/capture";
 import type { NodeParams } from "../../shared/nodes/define";
 import { nodeName } from "../../shared/nodes/registry";
 import type { Action } from "../../shared/schema/actions";
-import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
+import type { BrowserSessionValue, SessionStep } from "../../shared/schema/values";
 import type { CursorSample, KeyEvent } from "../../video/camera/lib/click-log";
 import { plainError, traceGroupTitle } from "./driver-helpers";
 import type { FrameEncoder } from "./encoder";
@@ -13,7 +13,7 @@ import type { ActionOpts, TakeClick, TakeSink } from "./flow-types";
 import { CursorDriver } from "./recorder";
 import { resolveTarget, SelectorError } from "./selectors";
 import type { OpenSession } from "./session";
-import { clickKindOf, runStep, SignInExpiredError } from "./take-steps";
+import { clickKindOf, runStep } from "./take-steps";
 
 export type LiveSink = {
   frame: (jpeg: Buffer, width: number, height: number, t: number) => void;
@@ -28,16 +28,13 @@ type RecordOptions = Pick<
 export type Recording = { encoder: FrameEncoder; record: RecordOptions };
 
 export type TakeOptions = {
-  workflow: Workflow;
-  chain: WorkflowNode[];
-  vars: Record<string, string>;
+  session: BrowserSessionValue;
   projectDir: string;
   executablePath: string;
   live?: LiveSink | null;
   tracePath?: string;
   traceGroup?: (nodeId: string) => void;
-  signIn?: { url: string; name: string };
-  storageState?: string | null;
+  secrets: { read: (name: string) => Promise<string | null> };
   signal: AbortSignal;
   log: (level: "info" | "warn" | "error", message: string) => void;
   step: (nodeId: string, status: "start" | "done" | "error", message?: string) => void;
@@ -70,6 +67,7 @@ export class TakeRun implements TakeSink {
   readonly cursorTrack: CursorSample[] = [];
   readonly hoisted = new Map<string, Locator>();
   cursorDriver: CursorDriver | null = null;
+  signedIn: { url: string; name: string } | null = null;
   t0 = Date.now();
   private lastLiveCursorAt = 0;
 
@@ -79,10 +77,6 @@ export class TakeRun implements TakeSink {
     readonly page: Page,
     readonly recording: Recording | null,
   ) {}
-
-  get vars() {
-    return this.opts.vars;
-  }
 
   click(event: TakeClick) {
     this.clicks.push(event);
@@ -112,8 +106,9 @@ export class TakeRun implements TakeSink {
   elapsed = () => Date.now() - this.t0;
 
   rolling(): CursorDriver {
-    if (!this.cursorDriver)
+    if (this.page.url() === "about:blank")
       throw new Error("Mouse actions must come after the first Go to page action.");
+    if (!this.cursorDriver) throw new Error("Mouse actions must come after Start recording.");
     return this.cursorDriver;
   }
 
@@ -152,7 +147,7 @@ export class TakeRun implements TakeSink {
     };
   }
 
-  pushAction(action: Omit<Action, "nodeId">, node: WorkflowNode) {
+  pushAction(action: Omit<Action, "nodeId">, node: SessionStep) {
     this.actions.push({ ...action, nodeId: node.id });
   }
 
@@ -163,7 +158,7 @@ export class TakeRun implements TakeSink {
     this.cursorDriver = new CursorDriver(this.page, this.elapsed, this);
   }
 
-  async run(node: WorkflowNode) {
+  async run(node: SessionStep) {
     const { opts } = this;
     throwIfCancelled(opts.signal);
     opts.step(node.id, "start");
@@ -176,10 +171,10 @@ export class TakeRun implements TakeSink {
     opts.live?.event({ kind: "step", nodeId: node.id, status: "done" });
   }
 
-  private async traced(node: WorkflowNode, play: () => Promise<void>) {
+  private async traced(node: SessionStep, play: () => Promise<void>) {
     const { opts } = this;
     if (!opts.tracePath) return play();
-    await this.session.context.tracing.group(traceGroupTitle(nodeName(node), node, this.vars));
+    await this.session.context.tracing.group(traceGroupTitle(nodeName(node), node));
     opts.traceGroup?.(node.id);
     try {
       await play();
@@ -188,22 +183,19 @@ export class TakeRun implements TakeSink {
     }
   }
 
-  private async attempt(node: WorkflowNode) {
+  private async attempt(node: SessionStep) {
     const { opts } = this;
     try {
       await runStep(this, node);
     } catch (raw) {
-      const error =
-        raw instanceof SelectorError || raw instanceof SignInExpiredError
-          ? raw
-          : new Error(plainError(raw, node, this.vars));
+      const error = raw instanceof SelectorError ? raw : new Error(plainError(raw, node));
       opts.step(node.id, "error", error.message);
       opts.live?.event({ kind: "step", nodeId: node.id, status: "error", message: error.message });
       throw error;
     }
   }
 
-  private collectActions(node: WorkflowNode, clicksBefore: number, keysBefore: number) {
+  private collectActions(node: SessionStep, clicksBefore: number, keysBefore: number) {
     for (const c of this.clicks.slice(clicksBefore))
       this.pushAction(this.clickAction(c, node), node);
     for (const k of this.keys.slice(keysBefore)) {
@@ -220,7 +212,7 @@ export class TakeRun implements TakeSink {
     }
   }
 
-  private clickAction(c: TakeClick, node: WorkflowNode): Omit<Action, "nodeId"> {
+  private clickAction(c: TakeClick, node: SessionStep): Omit<Action, "nodeId"> {
     const kind = clickKindOf(node.type);
     return {
       id: `${node.id}:${this.actions.length}`,

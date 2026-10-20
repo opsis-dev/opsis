@@ -21,7 +21,7 @@
   "nodes": [
     {
       "id": "session",
-      "type": "browser.session",
+      "type": "browser.open",
       "position": {
         "x": 0,
         "y": 0
@@ -32,7 +32,6 @@
         "dpr": 2,
         "mobile": false,
         "userAgent": "",
-        "storageState": "",
         "locale": "en-US",
         "timezone": "",
         "colorScheme": "light",
@@ -53,10 +52,19 @@
       }
     },
     {
+      "id": "start",
+      "type": "browser.startRecording",
+      "position": {
+        "x": 600,
+        "y": 0
+      },
+      "params": {}
+    },
+    {
       "id": "cta",
       "type": "browser.click",
       "position": {
-        "x": 600,
+        "x": 900,
         "y": 0
       },
       "params": {
@@ -75,7 +83,7 @@
       "id": "record",
       "type": "capture.record",
       "position": {
-        "x": 900,
+        "x": 1200,
         "y": 0
       },
       "params": {
@@ -92,7 +100,7 @@
       "id": "camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 900,
+        "x": 1200,
         "y": 356
       },
       "params": {
@@ -113,7 +121,7 @@
       "type": "cursor.spotlight",
       "position": {
         "x": 900,
-        "y": 712
+        "y": 200
       },
       "params": {
         "match": "Get started",
@@ -171,7 +179,7 @@
       "type": "timeline.sequence",
       "position": {
         "x": 1200,
-        "y": 340
+        "y": 734
       },
       "params": {
         "transition": "remocn/zoom-blur",
@@ -209,8 +217,15 @@
       "targetHandle": "session"
     },
     {
-      "id": "open.session->cta.session",
+      "id": "open.session->start.session",
       "source": "open",
+      "sourceHandle": "session",
+      "target": "start",
+      "targetHandle": "session"
+    },
+    {
+      "id": "start.session->cta.session",
+      "source": "start",
       "sourceHandle": "session",
       "target": "cta",
       "targetHandle": "session"
@@ -230,11 +245,11 @@
       "targetHandle": "recording"
     },
     {
-      "id": "camera.clip->spotlight.clip",
-      "source": "camera",
-      "sourceHandle": "clip",
-      "target": "spotlight",
-      "targetHandle": "clip"
+      "id": "spotlight.style->camera.style",
+      "source": "spotlight",
+      "sourceHandle": "style",
+      "target": "camera",
+      "targetHandle": "style"
     },
     {
       "id": "headline.clip->sequence.in1",
@@ -244,8 +259,8 @@
       "targetHandle": "in1"
     },
     {
-      "id": "spotlight.clip->sequence.in2",
-      "source": "spotlight",
+      "id": "camera.clip->sequence.in2",
+      "source": "camera",
       "sourceHandle": "clip",
       "target": "sequence",
       "targetHandle": "in2"
@@ -258,11 +273,11 @@
       "targetHandle": "in3"
     },
     {
-      "id": "sequence.clip->render.timeline",
+      "id": "sequence.clip->render.clip",
       "source": "sequence",
       "sourceHandle": "clip",
       "target": "render",
-      "targetHandle": "timeline"
+      "targetHandle": "clip"
     }
   ],
   "markers": []
