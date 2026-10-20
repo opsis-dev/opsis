@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { DEFAULT_BACKDROP } from "../backdrops";
 import { itemClip, type ItemExtra } from "../compile/clip";
-import { formatDuration, displayAddress } from "../format";
+import { displayAddress, formatDuration, plural } from "../format";
 import type { Bounds } from "../schema/actions";
 import { outputOf } from "../schema/values";
 import { DEFAULT_STILL_MS, DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
@@ -75,7 +75,7 @@ export const recordNode = defineNode({
       row("video", `${p.fps} fps`),
       row("mouse-pointer", CURSORS[p.cursor].row),
       rec?.src && row("clock", formatDuration(rec.durationMs)),
-      rec?.log && row("list-checks", `${rec.log.actions.length} actions`),
+      rec?.log && row("list-checks", plural(rec.log.actions.length, "action")),
     ];
   },
   mutates: (p) => p.mutates || undefined,

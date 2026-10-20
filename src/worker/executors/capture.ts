@@ -5,7 +5,7 @@ import type { Locator, Page } from "playwright-core";
 import { writeJson } from "../../engine/json";
 import { requireHeadlessShell } from "../../engine/paths";
 import { errorMessage } from "../../shared/errors";
-import { formatDuration } from "../../shared/format";
+import { formatDuration, plural } from "../../shared/format";
 import { loginDependencies, sessionChain } from "../../shared/graph";
 import { findById } from "../../shared/lists";
 import { sessionNode } from "../../shared/nodes/browser";
@@ -271,7 +271,7 @@ export const recordExecutor = defineExecutor(recordNode, async (ctx, _inputs, p)
   };
   ctx.log(
     "info",
-    `Recorded ${formatDuration(log.durationMs)}, ${frames} frames, ${log.actions.length} actions`,
+    `Recorded ${formatDuration(log.durationMs)}, ${plural(frames, "frame")}, ${plural(log.actions.length, "action")}`,
   );
   return {
     outputs: { recording },
