@@ -34,23 +34,45 @@ function useCardInputs(node: WorkflowNode) {
   const clip = compiled?.values[node.id]?.clip;
   const clipFrames = isClip(clip) ? clip.durationInFrames : undefined;
   const connected = useMemo(() => incoming.map((e) => e.targetHandle), [incoming]);
-  const { inputFrames, inputItems } = useMemo(() => {
+  const { inputFrames, inputItems, inputRecordings } = useMemo(() => {
     const frames: Partial<Record<string, number>> = {};
     const items: Partial<Record<string, number>> = {};
+    const recordings: Partial<Record<string, boolean>> = {};
     for (const e of incoming) {
       const v = compiled?.values[e.source]?.[e.sourceHandle];
       if (!isClip(v)) continue;
       frames[e.targetHandle] = v.durationInFrames;
       items[e.targetHandle] = sceneItemCount(v);
+      recordings[e.targetHandle] = !!v.recording;
     }
-    return { inputFrames: frames, inputItems: items };
+    return { inputFrames: frames, inputItems: items, inputRecordings: recordings };
   }, [incoming, compiled]);
   return useMemo(
     () => ({
       vars: workflowVars({ name, variables }),
-      context: { settings, result, secrets, connected, clipFrames, inputFrames, inputItems },
+      context: {
+        settings,
+        result,
+        secrets,
+        connected,
+        clipFrames,
+        inputFrames,
+        inputItems,
+        inputRecordings,
+      },
     }),
-    [name, variables, settings, result, secrets, connected, clipFrames, inputFrames, inputItems],
+    [
+      name,
+      variables,
+      settings,
+      result,
+      secrets,
+      connected,
+      clipFrames,
+      inputFrames,
+      inputItems,
+      inputRecordings,
+    ],
   );
 }
 

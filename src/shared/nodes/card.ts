@@ -24,6 +24,7 @@ export type CardContext<P> = {
   clipFrames?: number;
   inputFrames?: Partial<Record<string, number>>;
   inputItems?: Partial<Record<string, number>>;
+  inputRecordings?: Partial<Record<string, boolean>>;
 };
 
 export const MAX_CARD_ROWS = 4;

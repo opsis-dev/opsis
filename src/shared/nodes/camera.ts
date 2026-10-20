@@ -376,9 +376,15 @@ const deviceFrameNode = defineNode({
   type: "camera.deviceFrame",
   title: "Device frame",
   description: "Puts the video inside a browser window, laptop or phone.",
-  card: ({ params: p }) => [
+  card: ({ params: p, inputRecordings }) => [
     row(DEVICES[p.device].icon, DEVICES[p.device].label),
     p.device === "laptop" && p.entrance !== "none" && row("sparkles", ENTRANCES[p.entrance]),
+    p.device === "browser" &&
+      inputRecordings?.clip === false &&
+      row("triangle-alert", "Needs a recording; try Laptop or Phone", {
+        tone: "warn",
+        title: "A browser window frames only a recording. Laptop and Phone frame any clip.",
+      }),
   ],
   params: z.object({
     device: choiceOf(DEVICES, "browser", "Device"),
@@ -403,7 +409,6 @@ const deviceFrameNode = defineNode({
             p.addressBar ?? DEFAULT_ADDRESS_BAR,
           ),
         }));
-      if (!clip.recording) return clip;
       const laptop = params.device === "laptop";
       return wrapClip(
         patchRecordings(clip, (p) => ({ ...p, screen: true })),

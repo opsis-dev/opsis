@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { clipFrameOfRecording, itemClip } from "../compile/clip";
+import { clipFrameOfRecording, emptyClip, groupOf, itemClip } from "../compile/clip";
 import { defaultRecordingProps } from "../compile/recording";
 import type { ClipValue } from "../schema/values";
-import { compileClip, makeLog, must } from "../test-fixtures";
+import { compileClip, makeLog, must, nodeCard } from "../test-fixtures";
 import { parseParams } from "./params";
 import { getNodeDef } from "./registry";
 
@@ -50,5 +50,26 @@ describe("Speed ramp", () => {
     expect(frameOf(both, 3000)).toBeCloseTo(75);
     expect(frameOf(both, 4000)).toBeCloseTo(90);
     expect(frameOf(both, 6000)).toBeCloseTo(150);
+  });
+});
+
+describe("Device frame", () => {
+  it("frames any clip in a laptop or phone", () => {
+    const red = emptyClip(60);
+    for (const device of ["laptop", "phone"]) {
+      const framed = compileClip("camera.deviceFrame", { device }, { clip: red });
+      expect(groupOf(framed.tracks[0].items[0])?.wrapper?.component).toBe(`snapcn/${device}-frame`);
+    }
+  });
+
+  it("warns that a browser window needs a recording", () => {
+    const texts = (recording: boolean) =>
+      nodeCard(
+        "camera.deviceFrame",
+        { device: "browser" },
+        { inputRecordings: { clip: recording } },
+      ).map((r) => r.text);
+    expect(texts(false)).toContain("Needs a recording; try Laptop or Phone");
+    expect(texts(true)).not.toContain("Needs a recording; try Laptop or Phone");
   });
 });
