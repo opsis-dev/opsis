@@ -13,6 +13,8 @@ import { getTemplate } from "./templates";
 import { GraphBuilder } from "./templates/build";
 import { must } from "./test-fixtures";
 
+const TITLE_TYPE = "fx.core.title";
+
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 
 const build = (g: GraphBuilder) => g.build({ id: "x", name: "x" });
@@ -55,6 +57,18 @@ describe("graph", () => {
     expect(
       connectionProblem(wf, { ...edge, target: "open", targetHandle: "session" })?.message,
     ).toBe("A clip can't connect to a browser action input.");
+  });
+
+  it("follows the working connection into an action, not a broken one listed first", () => {
+    const g = new GraphBuilder();
+    g.node("bg", TITLE_TYPE, 0, 0);
+    g.node("session", "browser.session", 0, 1);
+    g.node("go", "browser.navigate", 1, 1, { url: "https://example.com" });
+    g.node("click", "browser.click", 2, 1, { target: "Save" });
+    g.node("rec", "capture.record", 3, 1);
+    g.link("bg", "click", "clip", "session");
+    g.chain(["session", "go", "click", "rec"]);
+    expect(sessionChain(build(g), "rec").map((n) => n.id)).toEqual(["session", "go", "click"]);
   });
 
   it("explains an action chain that doesn't start from Open browser", () => {

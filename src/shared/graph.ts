@@ -181,7 +181,7 @@ function walkSessionChain(wf: Workflow, captureNodeId: string): SessionWalk {
   const chain: WorkflowNode[] = [];
   const seen = new Set<string>();
   const feedingEdge = (id: string) =>
-    wf.edges.find((e) => e.target === id && e.targetHandle === SESSION_PORT);
+    wf.edges.find((e) => e.target === id && e.targetHandle === SESSION_PORT && !edgeFault(e, byId));
   for (let edge = feedingEdge(captureNodeId); edge; edge = feedingEdge(edge.source)) {
     if (seen.has(edge.source))
       return { ok: false, problem: "The browser action chain loops back on itself." };
