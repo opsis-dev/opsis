@@ -1,11 +1,33 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- The highlighted file had to match a row exactly, so a trailing slash, backslashes or different capitals selected nothing; the path is now read with either slash, without outer slashes and ignoring case.
 
 diff --git a/src/video/elements/remotion-ui/file-tree-reveal/index.tsx b/src/video/elements/remotion-ui/file-tree-reveal/index.tsx
-index 36269d9..3064989 100644
+index 36269d9..e453c65 100644
 --- a/src/video/elements/remotion-ui/file-tree-reveal/index.tsx
 +++ b/src/video/elements/remotion-ui/file-tree-reveal/index.tsx
-@@ -340,7 +340,9 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
+@@ -215,6 +215,11 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
+     rows.length > 0 ? revealAt(rows.length - 1) + T.rowFor : T.rows;
+   const selectAt = lastRowEnd + T.beforeSelect;
+   const select = selectedPath ? ease(selectAt, selectAt + T.selectFor, EASING.editorial) : 0;
++  const wantedPath = (selectedPath ?? "")
++    .trim()
++    .replace(/\\/g, "/")
++    .replace(/^\/+|\/+$/g, "")
++    .toLowerCase();
+ 
+   const panel = spring({
+     frame: frame - at(T.panel),
+@@ -320,7 +325,7 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
+             const childAt =
+               row.firstChildIndex === null ? null : revealAt(row.firstChildIndex);
+             const turn = childAt === null ? 0 : ease(childAt - 0.08, childAt + 0.22);
+-            const selected = selectedPath === row.path;
++            const selected = wantedPath !== "" && row.path.toLowerCase() === wantedPath;
+             const lit = selected ? select : 0;
+             const nameColor = row.isFolder
+               ? palette.fg
+@@ -340,7 +345,9 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
                    paddingLeft: 8 * u + row.depth * indent,
                    paddingRight: 10 * u,
                    borderRadius: 8 * u,
@@ -16,7 +38,7 @@ index 36269d9..3064989 100644
                    opacity: rowIn,
                    overflow: "hidden",
                  }}
-@@ -376,7 +378,7 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
+@@ -376,7 +383,7 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
                  {row.isFolder ? (
                    <FolderGlyph size={16 * u} color={palette.dim} />
                  ) : (

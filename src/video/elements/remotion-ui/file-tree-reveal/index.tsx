@@ -215,6 +215,11 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
     rows.length > 0 ? revealAt(rows.length - 1) + T.rowFor : T.rows;
   const selectAt = lastRowEnd + T.beforeSelect;
   const select = selectedPath ? ease(selectAt, selectAt + T.selectFor, EASING.editorial) : 0;
+  const wantedPath = (selectedPath ?? "")
+    .trim()
+    .replace(/\\/g, "/")
+    .replace(/^\/+|\/+$/g, "")
+    .toLowerCase();
 
   const panel = spring({
     frame: frame - at(T.panel),
@@ -320,7 +325,7 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
             const childAt =
               row.firstChildIndex === null ? null : revealAt(row.firstChildIndex);
             const turn = childAt === null ? 0 : ease(childAt - 0.08, childAt + 0.22);
-            const selected = selectedPath === row.path;
+            const selected = wantedPath !== "" && row.path.toLowerCase() === wantedPath;
             const lit = selected ? select : 0;
             const nameColor = row.isFolder
               ? palette.fg
