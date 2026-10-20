@@ -2110,7 +2110,7 @@ const defs: ElementMetaInput[] = [
     source: { registry: "RemotionUI", url: "https://remotionui.com/docs/components/code-reveal", license: "MIT" },
     schema: z.object({
       code: z.string().default("export async function checkout(cart: Cart) {\n  const total = cart.items.reduce((sum, item) => sum + item.price, 0);\n  const order = await api.orders.create({ items: cart.items, total });\n\n  return order.id;\n}").meta({ description: "Code", widget: "code", help: "Source shown in the editor; surrounding blank lines are trimmed." }),
-      highlightedLines: z.array(z.number()).default([3]).meta({ description: "Highlighted lines", help: "1-based lines focused once the listing finishes writing." }),
+      highlightedLines: z.array(z.number()).default([3]).meta({ description: "Highlighted lines", help: "Line numbers as shown in the gutter, focused once the listing finishes writing." }),
       title: z.string().default("checkout.ts").meta({ description: "Title", help: "Filename on the editor tab." }),
       language: z.string().default("tsx").meta({ description: "Language", help: "Language badge on the right of the header.", advanced: true }),
       startLine: z.number().default(1).meta({ description: "Start line", help: "First line number in the gutter, for excerpts.", advanced: true }),

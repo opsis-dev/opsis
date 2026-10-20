@@ -102,7 +102,17 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
     extrapolateRight: "clamp" as const,
   };
 
-  const lines = code.replace(/\s+$/, "").replace(/^\n+/, "").split("\n");
+  const lines = code.replace(/\s+$/, "").replace(/^(\r?\n)+/, "").split(/\r?\n/);
+  const longest = Math.max(0, ...lines.map((line) => line.length));
+  const windowWidth = Math.max(
+    WINDOW_WIDTH,
+    Math.ceil(
+      (showLineNumbers ? GUTTER_WIDTH + CODE_INSET : BODY_PADDING) +
+        longest * FONT_SIZE * MONO_ADVANCE +
+        BODY_PADDING * 2,
+    ),
+  );
+  const fit = Math.min(1, (REF_WIDTH * 0.94) / windowWidth);
   const tokenLines = tokenizeCode(lines);
   const focused = new Set(highlightedLines);
   const hasFocus = highlightedLines.length > 0;
@@ -217,8 +227,8 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
 
       <div
         style={{
-          width: WINDOW_WIDTH,
-          transform: `scale(${scale * interpolate(enter, [0, 1], [0.965, 1])}) translateY(${interpolate(enter, [0, 1], [26, 0])}px)`,
+          width: windowWidth,
+          transform: `scale(${scale * fit * interpolate(enter, [0, 1], [0.965, 1])}) translateY(${interpolate(enter, [0, 1], [26, 0])}px)`,
           opacity: enter,
           borderRadius: 16,
           background: palette.window,

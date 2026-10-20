@@ -175,7 +175,10 @@ function endCardEnd(s: Settings): number {
 }
 
 function codeRevealEnd(s: Settings): number {
-  const rows = str(s.code).replace(/\s+$/, "").replace(/^\n+/, "").split("\n");
+  const rows = str(s.code)
+    .replace(/\s+$/, "")
+    .replace(/^(\r?\n)+/, "")
+    .split(/\r?\n/);
   const typed = rows.reduce((sum, row) => sum + row.trimStart().length, 0);
   return 0.4 + typed / 55 + lastIndex(rows.length) * 0.07 + 0.84;
 }

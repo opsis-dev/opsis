@@ -6,7 +6,12 @@ import {
   useVideoConfig,
 } from "remotion";
 import { stageScale } from "@/video/lib/remotion-ui/ai-composer-utils";
-import { CODE_THEMES, CodeLine, tokenizeCode } from "@/video/lib/remotion-ui/code-syntax";
+import {
+  CODE_THEMES,
+  CodeLine,
+  MONO_ADVANCE,
+  tokenizeCode,
+} from "@/video/lib/remotion-ui/code-syntax";
 import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
 
 const { fontFamily } = loadFont("normal", {
@@ -168,6 +173,13 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
     after.replace(/\s+$/, "").replace(/^\n+/, "").split("\n"),
   );
   const tokenRows = tokenizeCode(rows.map((row) => row.text));
+  const longest = Math.max(0, ...rows.map((row) => row.text.length));
+  const windowWidth = Math.max(
+    WINDOW_WIDTH,
+    Math.ceil(GUTTER_WIDTH + CODE_INSET + longest * FONT_SIZE * MONO_ADVANCE + BODY_PADDING * 2),
+  );
+  const tallest = HEADER_HEIGHT + rows.length * ROW_HEIGHT + BODY_PADDING * 2;
+  const fit = Math.min(1, (REF_WIDTH * 0.94) / windowWidth, (REF_HEIGHT * 0.92) / tallest);
 
   const added = rows.filter((row) => row.kind === "add").length;
   const removed = rows.filter((row) => row.kind === "remove").length;
@@ -282,8 +294,8 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
 
       <div
         style={{
-          width: WINDOW_WIDTH,
-          transform: `scale(${scale * interpolate(enter, [0, 1], [0.965, 1])}) translateY(${interpolate(enter, [0, 1], [26, 0])}px)`,
+          width: windowWidth,
+          transform: `scale(${scale * fit * interpolate(enter, [0, 1], [0.965, 1])}) translateY(${interpolate(enter, [0, 1], [26, 0])}px)`,
           opacity: enter,
           borderRadius: 16,
           background: palette.window,

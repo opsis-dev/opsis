@@ -2062,7 +2062,17 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
       logoSize: optionalNumber("Logo size", { min: 10, max: 600, step: 1 }, { unit: "px" }),
     },
   },
-  "code-reveal": { controls: { backgroundColor: themeBackground } },
+  "code-reveal": {
+    controls: {
+      backgroundColor: themeBackground,
+      highlightedLines: {
+        type: "numbers",
+        default: [3],
+        description: "Highlighted lines",
+        help: "Line numbers as shown in the gutter, focused once the listing finishes writing.",
+      },
+    },
+  },
   "code-diff-wipe": { controls: { backgroundColor: themeBackground } },
   "kanban-move": { controls: { backgroundColor: themeBackground } },
   "file-tree-reveal": {
