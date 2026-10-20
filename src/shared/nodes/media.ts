@@ -44,6 +44,8 @@ const one = {
 } as const;
 const NEW_FILE = " Makes a new file.";
 const CONVERT_FORMATS = ["h264", "h265", "vp9", "prores"] as const;
+const QUALITY_FORMATS: ReadonlyArray<(typeof CONVERT_FORMATS)[number]> = ["h264", "h265", "vp9"];
+const PRESET_FORMATS: ReadonlyArray<(typeof CONVERT_FORMATS)[number]> = ["h264", "h265"];
 const PRESET_LABELS = {
   ultrafast: "Fastest, biggest",
   fast: "Fast",
@@ -305,13 +307,14 @@ export const convertNode = op({
   description: "Saves a file in another format or quality." + NEW_FILE,
   card: ({ params: p }) => [
     row("file-video", FORMAT_NAMES[p.codec]),
-    row("sparkles", `${qualityName(p.crf)} quality`),
+    QUALITY_FORMATS.includes(p.codec) && row("sparkles", `${qualityName(p.crf)} quality`),
   ],
   params: z.object({
     codec: choiceFrom(FORMAT_NAMES, CONVERT_FORMATS, "h264", "Format"),
-    crf: quality(18),
+    crf: more(quality(18), { showIf: { codec: [...QUALITY_FORMATS] } }),
     preset: more(choiceOf(PRESET_LABELS, "medium", "Speed vs file size"), {
       advanced: true,
+      showIf: { codec: [...PRESET_FORMATS] },
     }),
   }),
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MediaValue } from "../schema/values";
-import { compileClip } from "../test-fixtures";
+import { compileClip, nodeCard } from "../test-fixtures";
 import { importMediaNode, mediaTrimNode } from "./media";
 import { parseParams } from "./params";
 
@@ -51,5 +51,13 @@ describe("Media file settings", () => {
       ok: false,
       problem: "Length is too small",
     });
+  });
+});
+
+describe("Convert card", () => {
+  it("shows quality only for formats that use it", () => {
+    const texts = (codec: string) => nodeCard("media.convert", { codec }).map((r) => r.text);
+    expect(texts("h264")).toEqual(["MP4", "High quality"]);
+    expect(texts("prores")).toEqual(["ProRes"]);
   });
 });
