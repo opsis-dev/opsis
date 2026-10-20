@@ -34,6 +34,15 @@ export const invalidSelectors = (selectors: readonly string[]): string[] =>
     }
   });
 
+export function optionValue(el: Element, wanted: string): string | null | undefined {
+  if (!(el instanceof HTMLSelectElement)) return null;
+  const options = [...el.options];
+  const option =
+    options.find((o) => o.value === wanted) ??
+    options.find((o) => o.label.trim() === wanted.trim());
+  return option?.value;
+}
+
 export function addStyles(css: string): void {
   const style = document.createElement("style");
   style.textContent = css;

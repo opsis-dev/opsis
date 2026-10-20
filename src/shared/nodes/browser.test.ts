@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard } from "../test-fixtures";
-import { assertNode, uploadNode, waitNode } from "./browser";
+import { assertNode, selectNode, uploadNode, waitNode } from "./browser";
 import { parseParams } from "./params";
 
 describe("browser action cards", () => {
@@ -81,6 +81,14 @@ describe("browser action settings", () => {
     expect(problem({ mode: "url", url: "*/done*" })).toBeNull();
     expect(problem({ mode: "network-idle" })).toBeNull();
     expect(problem({ mode: "ms", ms: 500 })).toBeNull();
+  });
+
+  it("asks for the option to choose", () => {
+    expect(parseParams(selectNode.params, { target: "Plan", value: "" })).toEqual({
+      ok: false,
+      problem: "Choose an option",
+    });
+    expect(parseParams(selectNode.params, { target: "Plan", value: "pro" }).ok).toBe(true);
   });
 
   it("refuses to check for blank text, which every page contains", () => {

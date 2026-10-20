@@ -66,6 +66,13 @@ export const text = (def: string, description: string, widget?: "textarea" | "co
     .default(def)
     .meta({ description, ...(widget ? { widget } : {}) });
 
+export const requiredText = (description: string, missing: string) =>
+  z
+    .string()
+    .refine((t) => t.trim() !== "", missing)
+    .default("")
+    .meta({ description });
+
 export const asset = (description: string, accept = "*/*") =>
   z.string().default("").meta({ description, widget: "asset", accept });
 

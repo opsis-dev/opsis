@@ -42,6 +42,7 @@ import {
   COOKIE_BANNER_SELECTORS,
   hidingCss,
   invalidSelectors,
+  optionValue,
   runUserScript,
 } from "./page-scripts";
 import type { CursorDriver } from "./recorder";
@@ -192,7 +193,9 @@ const STEPS = new Map<string, StepSpec>([
       onTarget(take, node, p, async (driver, t, label) => {
         await driver.focus(t.target, label, await take.motion(p, t.by));
         const loc = elementOf(t.target);
-        await loc.selectOption(p.value).catch(async () => loc.selectOption({ label: p.value }));
+        const option = await loc.evaluate(optionValue, p.value);
+        if (option === undefined) throw new Error(`“${p.value}” isn't an option in “${label}”.`);
+        await loc.selectOption(option ?? p.value);
       }),
     { clickKind: "focus" },
   ),

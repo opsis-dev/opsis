@@ -37,6 +37,7 @@ import {
   pauseAfter,
   pickedRole,
   pointerAction,
+  requiredText,
   targetFields,
   text,
 } from "./params";
@@ -357,7 +358,7 @@ export const selectNode = defineNode({
   description: "Picks an option in a dropdown.",
   params: z.object({
     ...targetFields(),
-    value: text("", "Option"),
+    value: requiredText("Option", "Choose an option"),
     ...beatFields,
   }),
   card: ({ params: p }) => [
@@ -472,11 +473,7 @@ export const assertNode = defineNode({
   description:
     "Stops the recording early if some text is not on the page, so you don't export a broken take.",
   params: z.object({
-    text: z
-      .string()
-      .refine((t) => t.trim() !== "", "Add the text to look for")
-      .default("")
-      .meta({ description: "Text" }),
+    text: requiredText("Text", "Add the text to look for"),
     target: optionalTarget("Only inside (optional)"),
     targetRole: pickedRole(),
     timeoutMs: giveUpAfter(10_000),
