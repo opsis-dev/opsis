@@ -103,7 +103,7 @@ const clamp = {
  */
 export const KanbanMove: React.FC<KanbanMoveProps> = ({
   columns = DEFAULT_COLUMNS,
-  cards = DEFAULT_CARDS,
+  cards: cardsProp = DEFAULT_CARDS,
   moveSeconds = 0.62,
   dealStaggerSeconds = 0.08,
   holdSeconds,
@@ -128,39 +128,20 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
   // shrinking it grows the layout into the margin it was leaving empty and
   // lifts every tier of type with it, instead of hand-tuning font sizes against
   // a layout that stays too small.
-  const u = portrait
+  const designU = portrait
     ? Math.min(width / 496, height / 896)
     : Math.min(width / 1024, height / 576);
 
-  const boardIn = spring({
-    frame: frame - at(T.board),
-    fps,
-    config: { damping: 18, stiffness: 130, mass: 0.9 },
+  const lastColumn = Math.max(0, columns.length - 1);
+  const onBoard = (column: number) => Math.min(lastColumn, Math.max(0, Math.round(column)));
+  const cards: KanbanCard[] = cardsProp.map((card) => {
+    const column = onBoard(card.column);
+    const moveTo =
+      card.moveTo === undefined || card.moveAtSeconds === undefined
+        ? undefined
+        : onBoard(card.moveTo);
+    return { ...card, column, moveTo: moveTo === column ? undefined : moveTo };
   });
-  const open = ease(T.board, T.board + T.boardFor, EASING.editorial);
-
-  // Exits accelerate away; entrances decelerate in.
-  const exit =
-    holdSeconds === undefined
-      ? 0
-      : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
-          easing: EASING.exit,
-          ...clamp,
-        });
-
-  const boardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 1000 * u);
-  const gutter = 18 * u;
-  const columnW = (boardW - gutter * (columns.length - 1)) / columns.length;
-  const cardH = 74 * u;
-  const cardGap = 10 * u;
-  const headerH = 34 * u;
-  const listH = cardH * 3 + cardGap * 2;
-
-  /** How far through its move each card is, 0 while it still waits. */
-  const progressOf = (card: KanbanCard) =>
-    card.moveTo === undefined || card.moveAtSeconds === undefined
-      ? 0
-      : ease(card.moveAtSeconds, card.moveAtSeconds + moveSeconds, EASING.editorial);
 
   const startSlot = (card: KanbanCard, index: number) =>
     cards.filter(
@@ -188,6 +169,51 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
     ).length;
     return resident - gone + earlier;
   };
+
+  const rows = Math.max(
+    3,
+    ...cards.map(
+      (card, index) =>
+        Math.max(
+          startSlot(card, index),
+          card.moveTo === undefined ? 0 : landingSlot(card, index),
+        ) + 1,
+    ),
+  );
+  const u = Math.min(
+    designU,
+    (height - safe.paddingTop - safe.paddingBottom) / (34 + rows * 74 + (rows - 1) * 10),
+  );
+
+  const boardIn = spring({
+    frame: frame - at(T.board),
+    fps,
+    config: { damping: 18, stiffness: 130, mass: 0.9 },
+  });
+  const open = ease(T.board, T.board + T.boardFor, EASING.editorial);
+
+  // Exits accelerate away; entrances decelerate in.
+  const exit =
+    holdSeconds === undefined
+      ? 0
+      : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
+          easing: EASING.exit,
+          ...clamp,
+        });
+
+  const boardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 1000 * u);
+  const gutter = 18 * u;
+  const columnW = (boardW - gutter * (columns.length - 1)) / columns.length;
+  const cardH = 74 * u;
+  const cardGap = 10 * u;
+  const headerH = 34 * u;
+  const listH = cardH * rows + cardGap * (rows - 1);
+
+  /** How far through its move each card is, 0 while it still waits. */
+  const progressOf = (card: KanbanCard) =>
+    card.moveTo === undefined || card.moveAtSeconds === undefined
+      ? 0
+      : ease(card.moveAtSeconds, card.moveAtSeconds + moveSeconds, EASING.editorial);
 
   /**
    * Slots close up behind a departure. A card shifts one row for every card

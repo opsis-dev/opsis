@@ -1,12 +1,124 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
+- Columns held three cards, so a fourth spilled out; a card with a destination but no time never moved yet still took a slot there; and with fewer columns a card could sit off the board; columns now grow to their fullest moment and the board shrinks to fit, only a card with both a destination and a time moves, and every card is kept on the board.
 
 diff --git a/src/video/elements/remotion-ui/kanban-move/index.tsx b/src/video/elements/remotion-ui/kanban-move/index.tsx
-index ad3870d..c552676 100644
+index ad3870d..6a39973 100644
 --- a/src/video/elements/remotion-ui/kanban-move/index.tsx
 +++ b/src/video/elements/remotion-ui/kanban-move/index.tsx
-@@ -253,7 +253,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+@@ -103,7 +103,7 @@ const clamp = {
+  */
+ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+   columns = DEFAULT_COLUMNS,
+-  cards = DEFAULT_CARDS,
++  cards: cardsProp = DEFAULT_CARDS,
+   moveSeconds = 0.62,
+   dealStaggerSeconds = 0.08,
+   holdSeconds,
+@@ -128,39 +128,20 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+   // shrinking it grows the layout into the margin it was leaving empty and
+   // lifts every tier of type with it, instead of hand-tuning font sizes against
+   // a layout that stays too small.
+-  const u = portrait
++  const designU = portrait
+     ? Math.min(width / 496, height / 896)
+     : Math.min(width / 1024, height / 576);
+ 
+-  const boardIn = spring({
+-    frame: frame - at(T.board),
+-    fps,
+-    config: { damping: 18, stiffness: 130, mass: 0.9 },
++  const lastColumn = Math.max(0, columns.length - 1);
++  const onBoard = (column: number) => Math.min(lastColumn, Math.max(0, Math.round(column)));
++  const cards: KanbanCard[] = cardsProp.map((card) => {
++    const column = onBoard(card.column);
++    const moveTo =
++      card.moveTo === undefined || card.moveAtSeconds === undefined
++        ? undefined
++        : onBoard(card.moveTo);
++    return { ...card, column, moveTo: moveTo === column ? undefined : moveTo };
+   });
+-  const open = ease(T.board, T.board + T.boardFor, EASING.editorial);
+-
+-  // Exits accelerate away; entrances decelerate in.
+-  const exit =
+-    holdSeconds === undefined
+-      ? 0
+-      : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
+-          easing: EASING.exit,
+-          ...clamp,
+-        });
+-
+-  const boardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 1000 * u);
+-  const gutter = 18 * u;
+-  const columnW = (boardW - gutter * (columns.length - 1)) / columns.length;
+-  const cardH = 74 * u;
+-  const cardGap = 10 * u;
+-  const headerH = 34 * u;
+-  const listH = cardH * 3 + cardGap * 2;
+-
+-  /** How far through its move each card is, 0 while it still waits. */
+-  const progressOf = (card: KanbanCard) =>
+-    card.moveTo === undefined || card.moveAtSeconds === undefined
+-      ? 0
+-      : ease(card.moveAtSeconds, card.moveAtSeconds + moveSeconds, EASING.editorial);
+ 
+   const startSlot = (card: KanbanCard, index: number) =>
+     cards.filter(
+@@ -189,6 +170,51 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+     return resident - gone + earlier;
+   };
+ 
++  const rows = Math.max(
++    3,
++    ...cards.map(
++      (card, index) =>
++        Math.max(
++          startSlot(card, index),
++          card.moveTo === undefined ? 0 : landingSlot(card, index),
++        ) + 1,
++    ),
++  );
++  const u = Math.min(
++    designU,
++    (height - safe.paddingTop - safe.paddingBottom) / (34 + rows * 74 + (rows - 1) * 10),
++  );
++
++  const boardIn = spring({
++    frame: frame - at(T.board),
++    fps,
++    config: { damping: 18, stiffness: 130, mass: 0.9 },
++  });
++  const open = ease(T.board, T.board + T.boardFor, EASING.editorial);
++
++  // Exits accelerate away; entrances decelerate in.
++  const exit =
++    holdSeconds === undefined
++      ? 0
++      : interpolate(frame, [at(holdSeconds), at(holdSeconds + T.exitFor)], [0, 1], {
++          easing: EASING.exit,
++          ...clamp,
++        });
++
++  const boardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 1000 * u);
++  const gutter = 18 * u;
++  const columnW = (boardW - gutter * (columns.length - 1)) / columns.length;
++  const cardH = 74 * u;
++  const cardGap = 10 * u;
++  const headerH = 34 * u;
++  const listH = cardH * rows + cardGap * (rows - 1);
++
++  /** How far through its move each card is, 0 while it still waits. */
++  const progressOf = (card: KanbanCard) =>
++    card.moveTo === undefined || card.moveAtSeconds === undefined
++      ? 0
++      : ease(card.moveAtSeconds, card.moveAtSeconds + moveSeconds, EASING.editorial);
++
+   /**
+    * Slots close up behind a departure. A card shifts one row for every card
+    * above it that leaves the column *after* the card itself got there — a
+@@ -253,7 +279,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
  
            return (
              <div
@@ -15,7 +127,7 @@ index ad3870d..c552676 100644
                style={{
                  position: "absolute",
                  left: columnX(columnIndex),
-@@ -264,13 +264,11 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+@@ -264,13 +290,11 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
                  background: palette.band,
                  border: `1px solid ${
                    incoming > 0.02
@@ -31,7 +143,7 @@ index ad3870d..c552676 100644
                    : "none",
                }}
              >
-@@ -342,7 +340,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+@@ -342,7 +366,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
  
            return (
              <div
@@ -40,7 +152,7 @@ index ad3870d..c552676 100644
                style={{
                  position: "absolute",
                  left: x + 8 * u,
-@@ -353,7 +351,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+@@ -353,7 +377,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
                  zIndex: lift > 0.01 ? 20 : 1,
                  borderRadius: 11 * u,
                  background: palette.window,
