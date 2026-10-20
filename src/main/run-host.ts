@@ -1,5 +1,5 @@
 import type { MessagePortMain, UtilityProcess } from "electron";
-import { errorMessage } from "../shared/errors";
+import { CANCELLED, errorMessage } from "../shared/errors";
 import type { RunRequest } from "../shared/ipc";
 import type { RunEvent } from "../shared/schema/events";
 import type { MainToWorker, WorkerReply, WorkerToMain } from "../shared/worker-protocol";
@@ -27,7 +27,7 @@ function respond<T>(
   );
 }
 
-function answerRequests(port: MessagePortMain, msg: WorkerToMain): boolean {
+function answerRequests(port: MessagePortMain, msg: WorkerToMain, ended: AbortSignal): boolean {
   switch (msg.type) {
     case "secret:read":
       respond(port, msg.id, readSecret(msg.projectDir, msg.name), (value) => ({
@@ -43,7 +43,7 @@ function answerRequests(port: MessagePortMain, msg: WorkerToMain): boolean {
       }));
       return true;
     case "login:request":
-      respond(port, msg.id, loginInWindow(getMainWindow(), msg.request), (value) => ({
+      respond(port, msg.id, loginInWindow(getMainWindow(), msg.request, ended), (value) => ({
         type: "login:state",
         id: msg.id,
         value,
@@ -59,6 +59,7 @@ type ActiveRun = {
   projectDir: string;
   child: UtilityProcess;
   control: MessagePortMain;
+  ended: AbortController;
 };
 let active: ActiveRun | null = null;
 
@@ -72,10 +73,11 @@ export async function startRun(
 ): Promise<MessagePortMain | null> {
   if (active) throw new Error("A run is already in progress.");
   const { child, control, live } = spawnWorker("run", runId);
-  active = { runId, projectDir: request.projectDir, child, control };
+  const ended = new AbortController();
+  active = { runId, projectDir: request.projectDir, child, control, ended };
   let finished = false;
   onWorkerMessage(control, (msg) => {
-    if (answerRequests(control, msg)) return;
+    if (answerRequests(control, msg, ended.signal)) return;
     if (msg.type === "event") {
       if (msg.event.type === "run:done") finished = true;
       onEvent(msg.event);
@@ -83,13 +85,15 @@ export async function startRun(
   });
   child.on("exit", (code) => {
     if (active?.runId === runId) active = null;
+    const stopped = code === null || ended.signal.aborted;
+    ended.abort();
     if (!finished)
       onEvent({
         type: "run:done",
         runId,
         ok: false,
-        cancelled: code === null,
-        error: code === null ? "Stopped" : `The run stopped unexpectedly (${code})`,
+        cancelled: stopped,
+        error: stopped ? CANCELLED : `The run stopped unexpectedly (${code})`,
         outputs: [],
         at: Date.now(),
       });
@@ -108,6 +112,7 @@ export function cancelRun(): void {
   const run = active;
   if (!run) return;
   run.control.postMessage({ type: "cancel" } satisfies MainToWorker);
+  run.ended.abort();
   setTimeout(() => {
     if (active?.runId === run.runId) run.child.kill();
   }, KILL_CANCELLED_RUN_AFTER_MS);

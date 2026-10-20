@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { BrowserWindow, session as electronSession } from "electron";
 import { z } from "zod";
 import { logError } from "../engine/log";
+import { onAbort } from "../shared/errors";
 import { parseJsonWith } from "../shared/guards";
 import { PICKED_BY, type PickRequest, type PickResult } from "../shared/ipc";
 import type { LoginRequest } from "../shared/worker-protocol";
@@ -125,6 +126,7 @@ function watchForLogin(
 export function loginInWindow(
   parent: BrowserWindow | null,
   req: LoginRequest,
+  signal: AbortSignal,
 ): Promise<string | null> {
   return new Promise((resolve) => {
     const partition = `opsis-login-${randomUUID()}`;
@@ -149,6 +151,14 @@ export function loginInWindow(
       event.preventDefault();
       void finish();
     });
+    const stopOnAbort = onAbort(signal, () => {
+      if (finished) return;
+      finished = true;
+      stopWatching();
+      if (!win.isDestroyed()) win.destroy();
+      resolve(null);
+    });
+    win.on("closed", stopOnAbort);
     void win.loadURL(req.url);
   });
 }

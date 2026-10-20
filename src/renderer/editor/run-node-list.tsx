@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { Progress } from "@/renderer/components/ui/progress";
 import { ScrollArea } from "@/renderer/components/ui/scroll-area";
 import { cn } from "@/renderer/lib/utils";
+import { CANCELLED } from "@/shared/errors";
 import { wholePercent } from "@/shared/format";
 import { nodeName, nodeNameById } from "@/shared/nodes/registry";
 import type { WorkflowNode } from "@/shared/schema/workflow";
@@ -57,13 +58,23 @@ function FailureLine({
   );
 }
 
-function RunHeader({ running, failed }: { running: boolean; failed: boolean }) {
+function RunHeader({
+  running,
+  failed,
+  stopped,
+}: {
+  running: boolean;
+  failed: boolean;
+  stopped: boolean;
+}) {
   return (
     <div className="flex items-center justify-between px-2 pb-2">
       {running ? (
         <RunningLabel className="text-sm font-medium" />
       ) : (
-        <span className="text-sm font-medium">{failed ? "Last run failed" : "Nodes"}</span>
+        <span className="text-sm font-medium">
+          {stopped ? "Last run stopped" : failed ? "Last run failed" : "Nodes"}
+        </span>
       )}
       {running ? <StopRunButton size="xs" /> : null}
     </div>
@@ -123,7 +134,7 @@ export function RunNodeList({ nodes, filter }: { nodes: WorkflowNode[]; filter: 
   return (
     <ScrollArea className="h-full">
       <div className="flex flex-col p-2">
-        <RunHeader running={running} failed={!!lastError} />
+        <RunHeader running={running} failed={!!lastError} stopped={lastError === CANCELLED} />
         {lastError && !running ? (
           <FailureLine
             message={lastError}

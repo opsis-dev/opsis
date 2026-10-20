@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { MessagePortMain } from "electron";
 import { installEngine } from "../engine/install";
-import { errorMessage } from "../shared/errors";
+import { CANCELLED, errorMessage } from "../shared/errors";
 import type { LiveMessage } from "../shared/live";
 import { pendingReplies } from "../shared/pending-replies";
 import { runFailed } from "../shared/schema/events";
@@ -98,6 +98,7 @@ async function handle(msg: MainToWorker): Promise<void> {
   switch (msg.type) {
     case "cancel":
       controller.abort();
+      replies.settleAll({ error: CANCELLED });
       return;
     case "secret:value":
     case "login:state":

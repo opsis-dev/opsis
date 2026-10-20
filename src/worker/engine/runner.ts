@@ -518,9 +518,11 @@ async function finishRun(
     runId,
     ok: !aborted && !anyFailed && !error,
     cancelled: aborted,
-    error: error ?? (anyFailed ? failureMessage(failedNodeIds.map(nameOf), skipped) : undefined),
-    failedNodeIds,
-    skippedNodeIds: [...state.skipped],
+    error: aborted
+      ? undefined
+      : (error ?? (anyFailed ? failureMessage(failedNodeIds.map(nameOf), skipped) : undefined)),
+    failedNodeIds: aborted ? [] : failedNodeIds,
+    skippedNodeIds: aborted ? [] : [...state.skipped],
     outputs: state.outputs,
     at: Date.now(),
   });
