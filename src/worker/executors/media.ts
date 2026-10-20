@@ -34,7 +34,7 @@ import {
   convertArgs,
   EDIT_AUDIO,
   EDIT_VIDEO,
-  EVEN_FRAME,
+  editedFile,
   evenDown,
   FASTSTART,
   ffmpegSeconds,
@@ -185,8 +185,12 @@ export const mediaExecutors: Executor[] = [
 
   defineExecutor(mediaTrimNode, async (ctx, inputs, p) => {
     const input = requireMedia(inputs.media);
+    const probe = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
+    const moving = !!probe.video && probe.durationMs > 0;
+    const out = editedFile(extOf(input.src), { video: moving, audio: !!probe.audio });
+    if (!out) throw new Error("Trim works on video and sound. A still image has nothing to trim.");
     return transcodeMedia(ctx, input, {
-      file: `trimmed${extOf(input.src)}`,
+      file: `trimmed${out.ext}`,
       label: "Trimmed",
       durationMs: p.endMs ? p.endMs - p.startMs : input.durationMs,
       args: (i, o) => [
@@ -195,10 +199,7 @@ export const mediaExecutors: Executor[] = [
         ...(p.endMs ? ["-to", ffmpegSeconds(p.endMs)] : []),
         "-i",
         i,
-        "-vf",
-        EVEN_FRAME,
-        ...EDIT_VIDEO,
-        ...EDIT_AUDIO,
+        ...out.codecs,
         o,
       ],
     });

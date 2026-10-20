@@ -140,3 +140,25 @@ export const frameGrabArgs = (
   ...(jpegQuality ? ["-q:v", String(jpegQuality)] : []),
   output,
 ];
+
+const SOUND_FILES: Record<string, readonly string[]> = {
+  ".mp3": AUDIO_FORMATS.mp3,
+  ".wav": AUDIO_FORMATS.wav,
+  ".m4a": AUDIO_FORMATS.m4a,
+};
+
+export function editedFile(
+  ext: string,
+  streams: { video: boolean; audio: boolean },
+): { ext: string; codecs: string[] } | null {
+  if (streams.video)
+    return {
+      ext: ".mp4",
+      codecs: ["-vf", EVEN_FRAME, ...EDIT_VIDEO, ...(streams.audio ? EDIT_AUDIO : ["-an"])],
+    };
+  if (!streams.audio) return null;
+  const sound = SOUND_FILES[ext];
+  return sound
+    ? { ext, codecs: ["-vn", ...sound] }
+    : { ext: ".m4a", codecs: ["-vn", ...AUDIO_FORMATS.m4a] };
+}
