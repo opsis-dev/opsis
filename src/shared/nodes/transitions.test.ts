@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyClip } from "../compile/clip";
+import { ELEMENTS } from "../elements";
 import { compileClip, nodeCard } from "../test-fixtures";
 
 const leakIn = (a: number, b: number, length: number) => {
@@ -29,5 +30,22 @@ describe("Light leak cut", () => {
       );
     expect(texts(30, 30)).toEqual(["3 s", "Longer than both clips, so it plays for 2 s"]);
     expect(texts(60, 60)).toEqual(["3 s"]);
+  });
+});
+
+describe("transitions with one clip", () => {
+  const types = ELEMENTS.filter((meta) => meta.kind === "presentation").map(
+    (meta) => `transition.${meta.key.replace("/", ".")}`,
+  );
+
+  it("covers every transition element", () => {
+    expect(types.length).toBeGreaterThan(10);
+  });
+
+  it.each(types)("%s passes a lone clip through unchanged", (type) => {
+    const first = emptyClip(40);
+    const then = emptyClip(70);
+    expect(compileClip(type, {}, { a: first })).toEqual(first);
+    expect(compileClip(type, {}, { b: then })).toEqual(then);
   });
 });
