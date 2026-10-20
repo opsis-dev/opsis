@@ -633,8 +633,43 @@ const REMOTION_UI: CuratedElement[] = [
       media: "internal: the fill follows the chosen file, or the gradient without one",
     },
   }),
-  ...remotionui("background", ["aurora-bg"], { title: "Aurora" }),
-  ...remotionui("background", ["particle-field"], { title: "Particle field" }),
+  ...remotionui("background", ["aurora-bg"], {
+    title: "Aurora",
+    controls: {
+      speed: {
+        type: "number",
+        default: 1,
+        min: 0,
+        max: 4,
+        step: 0.25,
+        description: "Speed",
+        help: "Drift speed. 0 freezes the sky.",
+      },
+      ribbonCount: {
+        type: "number",
+        default: 4,
+        min: 1,
+        max: 12,
+        step: 1,
+        description: "Ribbon count",
+        help: "How many curtains.",
+      },
+    },
+  }),
+  ...remotionui("background", ["particle-field"], {
+    title: "Particle field",
+    controls: {
+      count: {
+        type: "number",
+        default: 70,
+        min: 1,
+        max: 400,
+        step: 1,
+        description: "Particles",
+        help: "How many particles.",
+      },
+    },
+  }),
 ];
 
 export const numberControl = (

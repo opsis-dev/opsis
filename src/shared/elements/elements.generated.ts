@@ -2373,12 +2373,12 @@ const defs: ElementMetaInput[] = [
     schema: z.object({
       backgroundColor: zColor().default("#050505").meta({ description: "Background color", help: "Plate behind the curtains." }),
       colors: z.array(zColor()).min(1).default(["#e4ac59","#e07a5f","#c2557a"]).meta({ description: "Colors", help: "Curtain colours, cycled." }),
-      ribbonCount: z.number().default(4).meta({ description: "Ribbon count", help: "How many curtains." }),
+      ribbonCount: z.number().min(1).max(12).default(4).meta({ description: "Ribbon count", step: 1, help: "How many curtains." }),
       amplitude: z.number().default(9).meta({ description: "Amplitude", help: "Vertical travel of a fold, in percent of the frame." }),
       thickness: z.number().default(15).meta({ description: "Thickness", help: "Curtain height at its thickest point, in percent." }),
       centerY: z.number().default(46).meta({ description: "Vertical position", help: "Where the band sits, in percent of the frame height." }),
       spread: z.number().default(34).meta({ description: "Spread" }),
-      speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25, help: "Drift speed. 0 freezes the sky." }),
+      speed: z.number().min(0).max(4).default(1).meta({ description: "Speed", step: 0.25, help: "Drift speed. 0 freezes the sky." }),
       blur: z.number().default(14).meta({ description: "Blur", help: "Much above 20 and the folds become blobs." }),
       intensity: z.number().default(1.3).meta({ description: "Intensity", step: 0.1, help: "Overall brightness." }),
       horizonGlow: z.number().default(0.5).meta({ description: "Horizon glow", step: 0.01, help: "Ground glow under the band. 0 removes it.", advanced: true }),
@@ -2398,7 +2398,7 @@ const defs: ElementMetaInput[] = [
     schema: z.object({
       backgroundColor: zColor().default("#05070f").meta({ description: "Background color", help: "Plate behind the field." }),
       color: zColor().default("#e8b86d").meta({ description: "Color", help: "Particle colour." }),
-      count: z.number().default(70).meta({ description: "Particles", help: "How many particles." }),
+      count: z.number().min(1).max(400).default(70).meta({ description: "Particles", step: 1, help: "How many particles." }),
       angle: z.number().default(8).meta({ description: "Direction", help: "Direction of travel in degrees. 0 drifts straight up." }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25, help: "Traverse speed. 1 crosses the frame in about eight seconds." }),
       size: z.number().default(14).meta({ description: "Size" }),
