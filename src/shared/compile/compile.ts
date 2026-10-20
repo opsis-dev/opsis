@@ -66,7 +66,11 @@ function runCompile(
   inputs: PortValues,
   ctx: { vars: Record<string, string>; result: NodeResult | undefined },
 ): NodeOutcome {
-  const parsed = parseParams(def.params, interpolatedParams(def, node.params, ctx.vars));
+  const parsed = parseParams(
+    def.params,
+    interpolatedParams(def, node.params, ctx.vars),
+    node.params,
+  );
   if (!parsed.ok) return { values: {}, error: parsed.problem };
   try {
     const values =

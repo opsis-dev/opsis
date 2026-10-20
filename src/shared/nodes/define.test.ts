@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { defineNode, parseNodeParams } from "./define";
+import { cardParams, defineNode, parseNodeParams } from "./define";
 
 const exportNode = defineNode({
   type: "test.export",
@@ -33,5 +33,16 @@ describe("parseNodeParams", () => {
       { "Project name": "Demo" },
     );
     expect(params.fileName).toBe("Demo still");
+  });
+});
+
+describe("cardParams", () => {
+  it("shows the default on the card for a value of the wrong kind", () => {
+    expect(
+      cardParams(exportNode, { fileName: "{{Name}}", atMs: "{{Pause}}" }, { Name: "Demo" }),
+    ).toEqual({
+      fileName: "Demo",
+      atMs: 1000,
+    });
   });
 });

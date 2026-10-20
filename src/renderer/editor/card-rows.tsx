@@ -6,7 +6,7 @@ import { workflowVars } from "@/shared/compile/compile";
 import { errorMessage } from "@/shared/errors";
 import { uniqueKeys } from "@/shared/lists";
 import type { CardRow } from "@/shared/nodes/card";
-import { cardRows, interpolatedParams, type NodeDef } from "@/shared/nodes/define";
+import { cardParams, cardRows, type NodeDef } from "@/shared/nodes/define";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
@@ -59,7 +59,7 @@ export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
   return useMemo(() => {
     if (!def.card) return [];
     try {
-      return cardRows(def, { ...context, params: interpolatedParams(def, node.params, vars) });
+      return cardRows(def, { ...context, params: cardParams(def, node.params, vars) });
     } catch (error) {
       return [
         {

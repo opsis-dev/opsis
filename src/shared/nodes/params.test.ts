@@ -38,6 +38,13 @@ describe("parseParams", () => {
     expect(problem({ ...valid, target: "" })).toBe("Element is empty");
   });
 
+  it("says a number setting can't hold a variable", () => {
+    expect(problem({ ...valid, count: "{{Count}}" })).toBe(
+      "Count takes a number. Variables work only in text settings",
+    );
+    expect(problem({ ...valid, count: "2" })).toBe("Count isn't valid");
+  });
+
   it("lists the allowed values of a fixed choice", () => {
     const fps = z.object({
       fps: z

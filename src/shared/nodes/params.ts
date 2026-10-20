@@ -5,7 +5,7 @@ import { isKeyOf } from "../guards";
 import { MAX_FRAMES, MAX_SPEED, MAX_VOLUME } from "../limits";
 import type { MinMax } from "../math";
 import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
-import { PAUSE_MARK } from "../vars";
+import { PAUSE_MARK, tokenize } from "../vars";
 
 export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
   schema.meta({ ...fieldMeta(schema), ...extra });
@@ -225,6 +225,9 @@ export const audioEnvelope = () =>
 
 type ParsedParams<T> = { ok: true; data: T } | { ok: false; problem: string };
 
+const hasVariable = (input: unknown): boolean =>
+  typeof input === "string" && tokenize(input).some((t) => t.kind === "var");
+
 function allowedValues(issue: z.core.$ZodIssue): unknown[] | null {
   if (issue.code !== "invalid_union") return null;
   const nested = issue.errors.flat();
@@ -239,7 +242,10 @@ function choiceList(values: unknown[], unit: string | undefined): string {
   return unit ? `${list} ${unit}` : list;
 }
 
-function issueWording(issue: z.core.$ZodIssue, unit?: string): string | null {
+function issueWording(
+  issue: z.core.$ZodIssue,
+  { unit, written }: { unit?: string; written?: unknown } = {},
+): string | null {
   const allowed = allowedValues(issue);
   if (allowed) return `must be ${choiceList(allowed, unit)}`;
   switch (issue.code) {
@@ -248,7 +254,10 @@ function issueWording(issue: z.core.$ZodIssue, unit?: string): string | null {
     case "too_big":
       return "is too large";
     case "invalid_type":
-      return issue.input === undefined ? "is missing" : "isn't valid";
+      if (issue.input === undefined) return "is missing";
+      return issue.expected === "number" && hasVariable(written ?? issue.input)
+        ? "takes a number. Variables work only in text settings"
+        : "isn't valid";
     case "invalid_value":
       return "has a value that isn't allowed";
     case "custom":
@@ -261,6 +270,7 @@ function issueWording(issue: z.core.$ZodIssue, unit?: string): string | null {
 export function parseParams<T extends z.ZodObject>(
   schema: T,
   values: unknown,
+  written?: Record<string, unknown>,
 ): ParsedParams<z.output<T>> {
   const parsed = schema.safeParse(values, { reportInput: true });
   if (parsed.success) return { ok: true, data: parsed.data };
@@ -269,7 +279,7 @@ export function parseParams<T extends z.ZodObject>(
   const key = typeof first === "string" ? first : "";
   const field: z.ZodType | undefined = schema.shape[key];
   const meta = field ? fieldMeta(field) : undefined;
-  const wording = issueWording(issue, meta?.unit);
+  const wording = issueWording(issue, { unit: meta?.unit, written: written?.[key] });
   if (wording === null) return { ok: false, problem: issue.message };
   const label = meta?.description || (key ? humanize(key) : "A setting");
   return { ok: false, problem: `${label} ${wording}` };

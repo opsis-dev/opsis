@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import { isClip } from "../compile/clip";
-import { withDefaults } from "../elements/introspect";
+import { schemaDefaults, withDefaults } from "../elements/introspect";
 import type { ElementMeta } from "../elements/types";
 import type { ClipValue, CompileValue, NodeResult } from "../schema/values";
 import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
@@ -110,6 +110,22 @@ export const interpolatedParams = (
   params: WorkflowNode["params"],
   vars: Record<string, string>,
 ): WorkflowNode["params"] => interpolate(def ? withDefaults(def.params, params) : params, vars);
+
+function sameKind(a: unknown, b: unknown): boolean {
+  return typeof a === typeof b && Array.isArray(a) === Array.isArray(b);
+}
+
+export function cardParams(
+  def: Pick<NodeDef, "params">,
+  params: WorkflowNode["params"],
+  vars: Record<string, string>,
+): WorkflowNode["params"] {
+  const values = interpolatedParams(def, params, vars);
+  const defaults = schemaDefaults(def.params);
+  for (const [key, fallback] of Object.entries(defaults))
+    if (!sameKind(values[key], fallback)) values[key] = fallback;
+  return values;
+}
 
 export const parseNodeParams = <S extends z.ZodObject>(
   def: NodeDef<S>,
