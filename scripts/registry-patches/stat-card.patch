@@ -1,11 +1,39 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- The change chip could not be removed once the card had a change; a switch now hides it.
 
 diff --git a/src/video/elements/remotion-ui/stat-card/index.tsx b/src/video/elements/remotion-ui/stat-card/index.tsx
-index d257987..059a52c 100644
+index d257987..57952fd 100644
 --- a/src/video/elements/remotion-ui/stat-card/index.tsx
 +++ b/src/video/elements/remotion-ui/stat-card/index.tsx
-@@ -164,7 +164,7 @@ export const StatCard: React.FC<StatCardProps> = ({
+@@ -27,6 +27,8 @@ export type StatCardProps = {
+   label?: string;
+   /** Line under the label — the source, the window, the cohort. */
+   caption?: string;
++  /** Shows the change chip. */
++  showDelta?: boolean;
+   /** Change against the previous period, e.g. 12 for "+12%". */
+   delta?: number;
+   /** Unit on the delta chip. */
+@@ -78,7 +80,8 @@ export const StatCard: React.FC<StatCardProps> = ({
+   decimals = 0,
+   label = "Satisfaction",
+   caption,
+-  delta,
++  delta: deltaSetting,
++  showDelta = true,
+   deltaSuffix = "%",
+   backgroundColor,
+   accentColor = "#2DD4BF",
+@@ -88,6 +91,7 @@ export const StatCard: React.FC<StatCardProps> = ({
+ }) => {
+   const frame = useCurrentFrame();
+   const { fps, width, height } = useVideoConfig();
++  const delta = showDelta ? deltaSetting : undefined;
+   const palette = CODE_THEMES[theme];
+   const safe = getSafeAreaPadding({ width, height });
+ 
+@@ -164,7 +168,7 @@ export const StatCard: React.FC<StatCardProps> = ({
          style={{
            position: "absolute",
            inset: 0,
@@ -14,7 +42,7 @@ index d257987..059a52c 100644
          }}
        />
  
-@@ -277,8 +277,8 @@ export const StatCard: React.FC<StatCardProps> = ({
+@@ -277,8 +281,8 @@ export const StatCard: React.FC<StatCardProps> = ({
                gap: 8 * u,
                padding: `${8 * u}px ${15 * u}px`,
                borderRadius: 999,

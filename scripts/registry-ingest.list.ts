@@ -1771,6 +1771,29 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   "stat-card": {
     controls: {
       backgroundColor: themeBackground,
+      decimals: numberControl(
+        "Decimals",
+        0,
+        { min: 0, max: 6, step: 1 },
+        { help: "Decimal places while counting and at rest.", advanced: true },
+      ),
+      delta: {
+        type: "number",
+        default: 4,
+        min: -1_000_000,
+        max: 1_000_000,
+        step: 1,
+        description: "Change",
+        help: "Change against the previous period; lands after the number settles.",
+        showIf: { showDelta: ["true"] },
+      },
+      deltaSuffix: {
+        type: "text",
+        default: "%",
+        description: "Change suffix",
+        help: "Unit on the delta chip.",
+        showIf: { showDelta: ["true"] },
+      },
       max: optionalNumber(
         "Ring full at",
         { min: 0, max: 1_000_000_000, step: 1 },

@@ -27,6 +27,8 @@ export type StatCardProps = {
   label?: string;
   /** Line under the label — the source, the window, the cohort. */
   caption?: string;
+  /** Shows the change chip. */
+  showDelta?: boolean;
   /** Change against the previous period, e.g. 12 for "+12%". */
   delta?: number;
   /** Unit on the delta chip. */
@@ -78,7 +80,8 @@ export const StatCard: React.FC<StatCardProps> = ({
   decimals = 0,
   label = "Satisfaction",
   caption,
-  delta,
+  delta: deltaSetting,
+  showDelta = true,
   deltaSuffix = "%",
   backgroundColor,
   accentColor = "#2DD4BF",
@@ -88,6 +91,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
+  const delta = showDelta ? deltaSetting : undefined;
   const palette = CODE_THEMES[theme];
   const safe = getSafeAreaPadding({ width, height });
 
