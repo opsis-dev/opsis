@@ -25,6 +25,7 @@ const SmokeDissolvePresentation: React.FC<
   children,
   presentationProgress,
   presentationDirection,
+  presentationDurationInFrames,
   passedProps,
 }) => {
   const {
@@ -33,7 +34,13 @@ const SmokeDissolvePresentation: React.FC<
     speed = 1,
   } = passedProps;
   const entering = presentationDirection === "entering";
-  const p = presentationProgress;
+  const p =
+    presentationDurationInFrames > 1
+      ? Math.min(
+          1,
+          (presentationProgress * presentationDurationInFrames) / (presentationDurationInFrames - 1),
+        )
+      : 1;
 
   const radius = interpolate(p, [0, 1], [0, 1], clampOpts);
   const scale = interpolate(p, [0, 1], [1, 2], clampOpts);

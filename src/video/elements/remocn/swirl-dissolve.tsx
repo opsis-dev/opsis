@@ -27,6 +27,7 @@ const SwirlDissolvePresentation: React.FC<
   children,
   presentationProgress,
   presentationDirection,
+  presentationDurationInFrames,
   passedProps,
 }) => {
   const {
@@ -37,7 +38,13 @@ const SwirlDissolvePresentation: React.FC<
     speed = 1,
   } = passedProps;
   const entering = presentationDirection === "entering";
-  const p = presentationProgress;
+  const p =
+    presentationDurationInFrames > 1
+      ? Math.min(
+          1,
+          (presentationProgress * presentationDurationInFrames) / (presentationDurationInFrames - 1),
+        )
+      : 1;
 
   const twist = interpolate(p, [0.1, 0.42, 0.64, 1], [1, 0, 0, 1], {
     ...clampOpts,

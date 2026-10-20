@@ -1,0 +1,30 @@
+Fixes:
+- Stretch the progress so the last frame reaches the end, so the incoming scene lands at full size instead of popping in after.
+
+diff --git a/src/video/elements/remocn/swirl-dissolve.tsx b/src/video/elements/remocn/swirl-dissolve.tsx
+index 52a1bea..f51d974 100644
+--- a/src/video/elements/remocn/swirl-dissolve.tsx
++++ b/src/video/elements/remocn/swirl-dissolve.tsx
+@@ -27,6 +27,7 @@ const SwirlDissolvePresentation: React.FC<
+   children,
+   presentationProgress,
+   presentationDirection,
++  presentationDurationInFrames,
+   passedProps,
+ }) => {
+   const {
+@@ -37,7 +38,13 @@ const SwirlDissolvePresentation: React.FC<
+     speed = 1,
+   } = passedProps;
+   const entering = presentationDirection === "entering";
+-  const p = presentationProgress;
++  const p =
++    presentationDurationInFrames > 1
++      ? Math.min(
++          1,
++          (presentationProgress * presentationDurationInFrames) / (presentationDurationInFrames - 1),
++        )
++      : 1;
+ 
+   const twist = interpolate(p, [0.1, 0.42, 0.64, 1], [1, 0, 0, 1], {
+     ...clampOpts,
