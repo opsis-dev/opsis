@@ -197,6 +197,7 @@ export const SECONDS: Partial<Record<string, Record<string, string | true>>> = {
   "ink-arrow": { step: "Time per pose", drawDur: "Draw time", headDur: "Arrowhead time" },
   polaroid: { step: "Time per pose" },
   keystroke: { linger: "Linger", "steps.at": "At", "steps.hold": "Hold" },
+  "screen-recording": { "camera.at": "At", "camera.duration": "Length" },
   "terminal-simulator": { "lines.delay": "Wait before" },
   "glass-code-block": { staggerFrames: "Line stagger" },
   "code-morph": { morphDuration: "Morph time", "steps.at": "Show at" },
@@ -1518,10 +1519,27 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   }),
   "phone-frame": snapTheme("dark"),
   "screen-recording": snapTheme("dark", {
+    controls: {
+      camera: {
+        type: "rows",
+        description: "Camera moves",
+        help: "Each move zooms to a spot. Leave the list empty for a still shot.",
+        default: [
+          { at: 34, duration: 25, zoom: 1.6, x: 0.36, y: 0.42 },
+          { at: 96, duration: 25, zoom: 1, x: 0.5, y: 0.5 },
+        ],
+        columns: {
+          at: numberControl("At", 0, { min: 0, max: 3600, step: 1 }),
+          duration: numberControl("Length", 25, { min: 1, max: 600, step: 1 }),
+          zoom: numberControl("Zoom", 1.6, { min: 1, max: 6, step: 0.1 }, { unit: "×" }),
+          x: numberControl("Across", 0.5, { min: 0, max: 1, step: 0.01 }),
+          y: numberControl("Down", 0.5, { min: 0, max: 1, step: 0.01 }),
+        },
+      },
+    },
     omit: {
       crop: "internal: the crop settings set it",
       sourceAspect: "internal: the recording sets it",
-      camera: "internal: the recording sets it",
     },
   }),
   "punch-lines": snapTheme("light", { controls: { fontWeight: fontWeight(600) } }),
