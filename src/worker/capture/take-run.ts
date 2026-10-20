@@ -55,6 +55,14 @@ type MotionParams = {
 const LIVE_CURSOR_GAP_MS = 30;
 const FIRST_PAGE_MIN_WAIT_MS = 500;
 
+export const atTakeStart = (action: Action): Action => ({
+  ...action,
+  t: 0,
+  ...(action.tEnd === undefined ? {} : { tEnd: 0 }),
+  ...(action.tDepart === undefined ? {} : { tDepart: 0 }),
+  ...(action.tDown === undefined ? {} : { tDown: 0 }),
+});
+
 export class TakeRun implements TakeSink {
   readonly actions: Action[] = [];
   readonly keys: KeyEvent[] = [];
@@ -149,6 +157,7 @@ export class TakeRun implements TakeSink {
   }
 
   start() {
+    this.actions.splice(0, this.actions.length, ...this.actions.map(atTakeStart));
     this.t0 = Date.now();
     this.recording?.encoder.setOrigin(this.t0);
     this.cursorDriver = new CursorDriver(this.page, this.elapsed, this);

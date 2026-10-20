@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { workflowNode } from "../../shared/test-fixtures";
+import { atTakeStart } from "./take-run";
 import { clickKindOf, setupLength } from "./take-steps";
 
 describe("what happens before the camera rolls", () => {
@@ -37,5 +38,22 @@ describe("clickKindOf", () => {
     ["browser.select", "focus"],
   ])("logs a %s as a %s", (type, kind) => {
     expect(clickKindOf(type)).toBe(kind);
+  });
+});
+
+describe("actions before the camera rolls", () => {
+  it("sit at the start of the take", () => {
+    expect(atTakeStart({ id: "c:chapter", kind: "chapter", t: 3008, label: "Intro" })).toEqual({
+      id: "c:chapter",
+      kind: "chapter",
+      t: 0,
+      label: "Intro",
+    });
+    expect(atTakeStart({ id: "n:nav", kind: "navigate", t: 3009, tEnd: 3037 })).toEqual({
+      id: "n:nav",
+      kind: "navigate",
+      t: 0,
+      tEnd: 0,
+    });
   });
 });
