@@ -7,6 +7,7 @@ import { safeName } from "../safe-name";
 import { REFRAMES, type ReframeMode } from "../schema/timeline";
 import { outputOf, type Artifact, type CompileValue, type TimelineValue } from "../schema/values";
 import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
+import { framesToMs } from "../timeline/time";
 import { PROJECT_NAME } from "../vars";
 import { row } from "./card";
 import { defineNode, port, type CompileInputs, type CompileOutputs } from "./define";
@@ -214,10 +215,22 @@ export const stillOutputNode = defineNode({
   description:
     "Saves a frame as images at social sizes: wide, link preview, square, portrait, story.",
   outputs: { image: port("image", "Image") },
-  card: ({ params: p }) => [
-    row("image", p.presets.map((k) => STILL_NAMES[k]).join(" · ")),
-    row("clock", `At ${formatDuration(p.atMs)} · ${p.format.toUpperCase()}`),
-  ],
+  card: ({ params: p, inputFrames, settings }) => {
+    const filmMs = inputFrames?.timeline && framesToMs(inputFrames.timeline, settings.fps);
+    return [
+      row("image", p.presets.map((k) => STILL_NAMES[k]).join(" · ")),
+      row("clock", `At ${formatDuration(p.atMs)} · ${p.format.toUpperCase()}`),
+      filmMs &&
+        p.atMs >= filmMs &&
+        row(
+          "triangle-alert",
+          `The film ends at ${formatDuration(filmMs)}, so it uses the last frame`,
+          {
+            tone: "warn",
+          },
+        ),
+    ];
+  },
   params: z.object({
     fileName: fileNameField(),
     atMs: ms(1000, "Frame at"),

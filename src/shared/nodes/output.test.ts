@@ -90,3 +90,12 @@ describe("export file names", () => {
     expect(stillOutputNode.params.safeParse({ presets: ["og", "og"] }).success).toBe(false);
   });
 });
+
+describe("Export images card", () => {
+  it("warns when the frame is past the end of the film", () => {
+    const texts = (atMs: number) =>
+      nodeCard("output.still", { atMs }, { inputFrames: { timeline: 60 } }).map((r) => r.text);
+    expect(texts(5000)).toContain("The film ends at 2 s, so it uses the last frame");
+    expect(texts(1000)).toHaveLength(2);
+  });
+});
