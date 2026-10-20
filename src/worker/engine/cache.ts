@@ -25,7 +25,7 @@ export async function readCached(
   projectDir: string,
 ): Promise<NodeResult | null> {
   const result = await readJson(path.join(cacheDir, hash, "result.json"), nodeResultSchema);
-  if (!result) return null;
+  if (result?.hash !== hash) return null;
   const present = await Promise.all(
     result.artifacts.map((a) => nullIfMissing(stat(path.join(projectDir, a.path)))),
   );

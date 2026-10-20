@@ -1,5 +1,9 @@
+import { cp, mkdir } from "node:fs/promises";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { nodeHash } from "./cache";
+import { tempDirs } from "../../engine/test-temp-dirs";
+import { nodeResult } from "../../shared/test-fixtures";
+import { nodeHash, readCached, writeCached } from "./cache";
 
 describe("nodeHash", () => {
   it("is stable under key order and changes with params or upstream", () => {
@@ -50,5 +54,19 @@ describe("nodeHash across releases", () => {
     expect(nodeHash("media.trim", {}, [], "0.1.0")).not.toBe(
       nodeHash("media.trim", {}, [], "0.2.0"),
     );
+  });
+});
+
+describe("readCached", () => {
+  const newDir = tempDirs("opsis-cache-");
+
+  it("reads a saved result only from the folder of its own key", async () => {
+    const dir = await newDir();
+    const cache = path.join(dir, "cache");
+    await writeCached(cache, nodeResult({ hash: "aaa" }));
+    expect((await readCached(cache, "aaa", dir))?.hash).toBe("aaa");
+    await mkdir(path.join(cache, "bbb"), { recursive: true });
+    await cp(path.join(cache, "aaa", "result.json"), path.join(cache, "bbb", "result.json"));
+    expect(await readCached(cache, "bbb", dir)).toBeNull();
   });
 });
