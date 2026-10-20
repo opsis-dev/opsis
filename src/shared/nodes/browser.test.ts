@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard } from "../test-fixtures";
+import { assertNode, waitNode } from "./browser";
 
 describe("browser action cards", () => {
   it("shows what the Type text node does", () => {
@@ -42,5 +43,14 @@ describe("browser action cards", () => {
 
   it("asks for a script on an empty Run page script", () => {
     expect(nodeCard("browser.setState", { script: " " })[0]).toMatchObject({ tone: "warn" });
+  });
+});
+
+describe("browser action settings", () => {
+  it("never gives up after 0 s, which would wait forever", () => {
+    for (const node of [waitNode, assertNode]) {
+      expect(node.params.safeParse({ timeoutMs: 0 }).success).toBe(false);
+      expect(node.params.safeParse({ timeoutMs: 500 }).success).toBe(true);
+    }
   });
 });

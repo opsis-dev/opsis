@@ -51,6 +51,9 @@ const action = { ...base, ...chain, action: true } as const;
 const pause = (after: number): CardRow | null =>
   after > 0 ? row("timer", `Pause ${formatDuration(after)}`) : null;
 
+const giveUpAfter = (def: number) =>
+  int(def, "Give up after", { min: 500, max: 600_000, step: 50, unit: "ms" });
+
 const giveUpRow = (timeoutMs: number): CardRow =>
   row("timer-off", `Give up after ${formatDuration(timeoutMs)}`, { tone: "muted" });
 
@@ -414,7 +417,7 @@ const waitParams = z.object({
     showIf: { mode: ["url"] },
   }),
   ms: more(ms(1000, "Time"), { showIf: { mode: ["ms"] } }),
-  timeoutMs: ms(20_000, "Give up after"),
+  timeoutMs: giveUpAfter(20_000),
 });
 
 function waitRow(p: z.infer<typeof waitParams>): CardRow {
@@ -454,7 +457,7 @@ export const assertNode = defineNode({
     text: text("", "Text"),
     target: optionalTarget("Only inside (optional)"),
     targetRole: pickedRole(),
-    timeoutMs: ms(10_000, "Give up after"),
+    timeoutMs: giveUpAfter(10_000),
   }),
   card: ({ params: p }) => [
     quotedRow("circle-check", p.text, "Add the text to look for"),
