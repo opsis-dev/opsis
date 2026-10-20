@@ -1985,6 +1985,13 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   "comparison-table": {
     controls: {
       backgroundColor: themeBackground,
+      columns: {
+        type: "strings",
+        default: ["Free", "Studio", "Scale"],
+        description: "Columns",
+        help: "Column headings. The feature-label column is unnamed and sits ahead of these.",
+        min: 1,
+      },
       rows: {
         type: "rows",
         description: "Rows",

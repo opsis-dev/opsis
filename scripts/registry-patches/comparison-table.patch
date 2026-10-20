@@ -1,12 +1,38 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
+- No columns divided by zero, a row with more or fewer cells than columns drew past the table or left gaps, and ten or more rows ran off the frame; the table now draws one cell per column, empty where a row has none, and shrinks to fit its rows.
 
 diff --git a/src/video/elements/remotion-ui/comparison-table/index.tsx b/src/video/elements/remotion-ui/comparison-table/index.tsx
-index 577e469..2e51a3c 100644
+index 577e469..0bebc73 100644
 --- a/src/video/elements/remotion-ui/comparison-table/index.tsx
 +++ b/src/video/elements/remotion-ui/comparison-table/index.tsx
-@@ -218,8 +218,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+@@ -151,9 +151,14 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+   // shrinking it grows the layout into the margin it was leaving empty and
+   // lifts every tier of type with it, instead of hand-tuning font sizes against
+   // a layout that stays too small.
+-  const u = portrait
++  const designU = portrait
+     ? Math.min(width / 496, height / 896)
+     : Math.min(width / 1024, height / 576);
++  const tableUnits = 24 * 2 + (title ? 44 : 0) + 44 + 46 * rows.length;
++  const u = Math.min(
++    designU,
++    (height - safe.paddingTop - safe.paddingBottom) / tableUnits,
++  );
+ 
+   const cardIn = spring({
+     frame: frame - at(T.card),
+@@ -174,7 +179,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+   const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 880 * u);
+   const pad = 24 * u;
+   const labelW = (cardW - pad * 2) * 0.36;
+-  const colW = ((cardW - pad * 2) - labelW) / columns.length;
++  const colW = ((cardW - pad * 2) - labelW) / Math.max(1, columns.length);
+   const rowH = 46 * u;
+   const headH = 44 * u;
+ 
+@@ -218,8 +223,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                width: colW,
                height: headH + rows.length * rowH,
                borderRadius: 12 * u,
@@ -17,7 +43,7 @@ index 577e469..2e51a3c 100644
                opacity: headIn,
              }}
            />
-@@ -245,8 +245,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+@@ -245,8 +250,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                  style={{
                    padding: `${4 * u}px ${10 * u}px`,
                    borderRadius: 999,
@@ -28,7 +54,7 @@ index 577e469..2e51a3c 100644
                    color: accentColor,
                    fontSize: 14.5 * u,
                    fontWeight: 600,
-@@ -264,7 +264,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+@@ -264,7 +269,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
              <div style={{ width: labelW }} />
              {columns.map((column, columnIndex) => (
                <div
@@ -37,7 +63,7 @@ index 577e469..2e51a3c 100644
                  style={{
                    width: colW,
                    textAlign: "center",
-@@ -288,7 +288,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+@@ -288,7 +293,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
              const rowIn = ease(rowAt, rowAt + 0.4);
              return (
                <div
@@ -46,7 +72,16 @@ index 577e469..2e51a3c 100644
                  style={{
                    display: "flex",
                    alignItems: "center",
-@@ -315,7 +315,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+@@ -308,14 +313,15 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+                 >
+                   {row.label}
+                 </div>
+-                {row.cells.map((cell, cellIndex) => {
++                {columns.map((_, cellIndex) => {
++                  const cell = row.cells[cellIndex] ?? "";
+                   // Cells trail their label so the row resolves left to right.
+                   const cellAt = rowAt + 0.09 + cellIndex * 0.07;
+                   const cellIn = ease(cellAt, cellAt + 0.3, EASING.editorial);
                    const lit = cellIndex === highlightColumn;
                    return (
                      <div

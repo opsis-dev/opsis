@@ -2013,7 +2013,7 @@ const defs: ElementMetaInput[] = [
     kind: "component",
     source: { registry: "RemotionUI", url: "https://remotionui.com/docs/components/comparison-table", license: "MIT" },
     schema: z.object({
-      columns: z.array(z.string()).default(["Free","Studio","Scale"]).meta({ description: "Columns", help: "Column headings. The feature-label column is unnamed and sits ahead of these." }),
+      columns: z.array(z.string()).min(1).default(["Free","Studio","Scale"]).meta({ description: "Columns", help: "Column headings. The feature-label column is unnamed and sits ahead of these." }),
       rows: z.array(z.object({ label: z.string().default("New feature").meta({ description: "Label" }), cells: z.array(z.string()).default(["yes","yes","yes"]).meta({ description: "Cells" }) })).default([{"label":"Render minutes","cells":["60","2,000","Unlimited"]},{"label":"1080p exports","cells":["yes","yes","yes"]},{"label":"4K exports","cells":["no","yes","yes"]},{"label":"Team seats","cells":["1","9","Unlimited"]},{"label":"Render API","cells":["no","yes","yes"]},{"label":"Priority queue","cells":["no","no","yes"]}]).meta({ description: "Rows", help: "Type yes or no in a cell for a tick or a dash." }),
       title: z.string().default("What you get").meta({ description: "Title", help: "Heading above the table. Omit to drop it." }),
       highlightColumn: z.number().default(1).meta({ description: "Highlighted column", help: "Column kept lit throughout. Pass -1 for a table with no favourite." }),

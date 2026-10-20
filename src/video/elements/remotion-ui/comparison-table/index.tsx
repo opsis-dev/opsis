@@ -151,9 +151,14 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
   // shrinking it grows the layout into the margin it was leaving empty and
   // lifts every tier of type with it, instead of hand-tuning font sizes against
   // a layout that stays too small.
-  const u = portrait
+  const designU = portrait
     ? Math.min(width / 496, height / 896)
     : Math.min(width / 1024, height / 576);
+  const tableUnits = 24 * 2 + (title ? 44 : 0) + 44 + 46 * rows.length;
+  const u = Math.min(
+    designU,
+    (height - safe.paddingTop - safe.paddingBottom) / tableUnits,
+  );
 
   const cardIn = spring({
     frame: frame - at(T.card),
@@ -174,7 +179,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
   const cardW = Math.min(width - safe.paddingLeft - safe.paddingRight, 880 * u);
   const pad = 24 * u;
   const labelW = (cardW - pad * 2) * 0.36;
-  const colW = ((cardW - pad * 2) - labelW) / columns.length;
+  const colW = ((cardW - pad * 2) - labelW) / Math.max(1, columns.length);
   const rowH = 46 * u;
   const headH = 44 * u;
 
@@ -308,7 +313,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                 >
                   {row.label}
                 </div>
-                {row.cells.map((cell, cellIndex) => {
+                {columns.map((_, cellIndex) => {
+                  const cell = row.cells[cellIndex] ?? "";
                   // Cells trail their label so the row resolves left to right.
                   const cellAt = rowAt + 0.09 + cellIndex * 0.07;
                   const cellIn = ease(cellAt, cellAt + 0.3, EASING.editorial);
