@@ -12,7 +12,7 @@ const defs: ElementMetaInput[] = [
     kind: "component",
     source: { registry: "Remocn", url: "https://remocn.dev/docs/components/soft-blur-in", license: "MIT" },
     schema: z.object({
-      text: z.string().default("Think different.").meta({ description: "Text" }),
+      text: z.string().default("Made for every take.").meta({ description: "Text" }),
       blur: z.number().min(1).max(30).default(12).meta({ description: "Blur", step: 1 }),
       fontSize: z.number().min(12).max(160).default(72).meta({ description: "Font size", step: 1 }),
       color: zColor().default("#171717").meta({ description: "Color" }),
@@ -293,7 +293,7 @@ const defs: ElementMetaInput[] = [
     kind: "component",
     source: { registry: "Remocn", url: "https://remocn.dev/docs/components/line-by-line-slide", license: "MIT" },
     schema: z.object({
-      text: z.string().default("Think different.\nDo more.").meta({ description: "Text", widget: "textarea" }),
+      text: z.string().default("Record once.\nShare everywhere.").meta({ description: "Text", widget: "textarea" }),
       distance: z.number().min(0).max(160).default(48).meta({ description: "Distance", step: 1 }),
       fontSize: z.number().min(12).max(160).default(72).meta({ description: "Font size", step: 1 }),
       color: zColor().default("#171717").meta({ description: "Color" }),

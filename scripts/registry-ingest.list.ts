@@ -614,6 +614,8 @@ function spotControls(
 
 const NEUTRAL_DEFAULTS: Partial<Record<string, Record<string, unknown>>> = {
   "staggered-fade-up": { text: "Ship your demo in minutes" },
+  "soft-blur-in": { text: "Made for every take." },
+  "line-by-line-slide": { text: "Record once.\nShare everywhere." },
   "inline-highlight": { before: "Ship faster with ", highlight: "Acme", after: "." },
   "terminal-simulator": { title: "~/projects/acme" },
   "search-reveal": { text: "acme" },
