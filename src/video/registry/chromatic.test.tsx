@@ -22,6 +22,9 @@ it("keeps the scene mounted as the colour split opens", () => {
       presentationDirection="entering"
       presentationDurationInFrames={20}
       passedProps={{}}
+      onElementImage={() => undefined}
+      onUnmount={() => undefined}
+      bothEnteringAndExiting={false}
     >
       <Scene />
     </Presentation>
