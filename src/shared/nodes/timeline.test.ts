@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { emptyClip, sceneItemCount } from "../compile/clip";
 import { MAX_FRAMES } from "../limits";
 import type { ClipValue } from "../schema/values";
-import { compileClip, nodeCard } from "../test-fixtures";
+import { compileClip, compileNode, nodeCard } from "../test-fixtures";
+import { branchPort } from "./timeline";
 
 const compileOver = (type: string, params: Record<string, unknown>): ClipValue =>
   compileClip(type, params, { clip: emptyClip(90) });
@@ -81,5 +82,39 @@ describe("Repeat", () => {
       compileClip("timeline.loop", { times: 50 }, { clip: emptyClip(MAX_FRAMES / 50) })
         .durationInFrames,
     ).toBe(MAX_FRAMES);
+  });
+});
+
+describe("Choose by variable", () => {
+  it("uses the first clip when the variable has a value, or the given one", () => {
+    expect(branchPort("A", "A")).toBe("a");
+    expect(branchPort(" A ", "A")).toBe("a");
+    expect(branchPort("B", "A")).toBe("b");
+    expect(branchPort("B", "")).toBe("a");
+    expect(branchPort(undefined, "")).toBe("b");
+    expect(branchPort("  ", "")).toBe("b");
+    expect(branchPort(undefined, "A")).toBe("b");
+  });
+
+  it("reads a variable name typed with spaces around it", () => {
+    const pick = compileNode(
+      "timeline.branch",
+      { variable: " Version ", equals: "A" },
+      { a: emptyClip(10), b: emptyClip(20) },
+      undefined,
+      { Version: "A" },
+    ).clip;
+    expect(pick?.type === "clip" ? pick.durationInFrames : null).toBe(10);
+  });
+
+  it("asks for the clip it chose when that input is empty", () => {
+    expect(() =>
+      compileNode("timeline.branch", { variable: "Version", equals: "" }, { a: emptyClip(10) }),
+    ).toThrow("Connect a clip to “Otherwise”.");
+  });
+
+  it("says what it checks on the card", () => {
+    expect(nodeCard("timeline.branch", { equals: "" })[0].text).toBe("Version has a value");
+    expect(nodeCard("timeline.branch", { equals: "A" })[0].text).toBe("Version = “A”");
   });
 });

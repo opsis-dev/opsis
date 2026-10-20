@@ -436,22 +436,39 @@ const branchNode = defineNode({
   type: "timeline.branch",
   title: "Choose by variable",
   description:
-    "Uses the first clip when a variable has a value, otherwise the second. Handy for A/B versions.",
+    "Uses the first clip when a variable has a value, or the value you give, otherwise the second. Handy for A/B versions.",
   inputs: { a: opt("clip", "First"), b: opt("clip", "Otherwise") },
   outputs: { clip: port("clip", "Clip") },
   card: ({ params: p }) => [
     p.variable.trim()
-      ? row("git-branch", `${p.variable} = ${quote(p.equals, TAG_TEXT_MAX)}`)
+      ? row(
+          "git-branch",
+          p.equals
+            ? `${p.variable.trim()} = ${quote(p.equals, TAG_TEXT_MAX)}`
+            : `${p.variable.trim()} has a value`,
+        )
       : missing("git-branch", "Choose a variable"),
   ],
   params: z.object({
     variable: more(text("Version", "Variable"), { widget: "variable" }),
-    equals: text("A", "Equals"),
+    equals: more(text("A", "Equals"), {
+      help: "Leave empty to use the first clip whenever the variable has a value.",
+      zeroLabel: "Any value",
+    }),
   }),
-  compile: ({ inputs, params, vars }) => ({
-    clip: (vars[params.variable] ?? "") === params.equals ? inputs.a : inputs.b,
-  }),
+  compile: ({ inputs, params, vars }) => {
+    const chosen = branchPort(vars[params.variable.trim()], params.equals);
+    const clip = inputs[chosen];
+    if (!clip) throw new Error(`Connect a clip to “${chosen === "a" ? "First" : "Otherwise"}”.`);
+    return { clip };
+  },
 });
+
+export function branchPort(value: string | undefined, equals: string): "a" | "b" {
+  const has = value !== undefined && value.trim() !== "";
+  if (!equals) return has ? "a" : "b";
+  return has && value.trim() === equals.trim() ? "a" : "b";
+}
 
 export const timelineNodes = [
   sequenceNode,

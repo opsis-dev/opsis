@@ -6,6 +6,7 @@ import { logWarning } from "../../engine/log";
 import { enginePaths, type EnginePaths } from "../../engine/paths";
 import { PICTURE_VERSION } from "../../engine/picture-version";
 import { projectPaths, toPosixRel } from "../../engine/project-paths";
+import { workflowProblems } from "../../shared/api/check";
 import { compileWorkflow, type CompileResult } from "../../shared/compile/compile";
 import { CANCELLED, errorMessage } from "../../shared/errors";
 import {
@@ -15,7 +16,6 @@ import {
   runTargets,
   topoSort,
   upstreamOf,
-  validateWorkflow,
 } from "../../shared/graph";
 import type { RunRequest } from "../../shared/ipc";
 import type { LiveMessage } from "../../shared/live";
@@ -478,7 +478,7 @@ async function planRun(run: RunContext): Promise<RunPlan> {
 }
 
 function reportInvalid({ runId, req, deps, log }: RunContext, plan: RunPlan) {
-  const issues = validateWorkflow(req.workflow).filter(
+  const issues = workflowProblems(req.workflow).filter(
     (i) => i.level === "error" && (!i.nodeId || plan.needed.has(i.nodeId)),
   );
   if (!issues.length) return false;
