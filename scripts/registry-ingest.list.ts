@@ -2095,7 +2095,14 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
     },
     tree: "nodes",
   },
-  "drag-drop-flow": { controls: { backgroundColor: themeBackground } },
+  "drag-drop-flow": {
+    controls: {
+      backgroundColor: themeBackground,
+      uploadingLabel: text("Label while uploading", "Uploading", {
+        help: "Label while the file uploads.",
+      }),
+    },
+  },
   "commit-graph": { controls: { backgroundColor: themeBackground } },
   "multi-device-lineup": {
     controls: {

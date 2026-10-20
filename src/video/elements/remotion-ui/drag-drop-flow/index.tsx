@@ -25,6 +25,8 @@ export type DragDropFlowProps = {
   hint?: string;
   /** Prompt while the file is held over the zone. */
   activeLabel?: string;
+  /** Label while the file uploads. */
+  uploadingLabel?: string;
   /** Label once the upload finishes. */
   doneLabel?: string;
   accentColor?: string;
@@ -159,6 +161,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
   label = "Drop your clip",
   hint = "MP4 or MOV, up to 2 GB",
   activeLabel = "Release to upload",
+  uploadingLabel = "Uploading",
   doneLabel = "Uploaded",
   accentColor = "#E8B86D",
   backgroundColor,
@@ -187,18 +190,23 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
   // D1. See the note in `weather-card`: a 1120x620 reference resolves to
   // u = 0.71 on the 818x440 docs stage, so the design was drawn at 71% of the
   // room it had and every secondary tier fell under the legibility floor.
-  const u = Math.min(stage.w / 900, stage.h / 500);
-
-  const trayPad = 26 * u;
-  const rowH = 74 * u;
-  const rowGap = 12 * u;
   /** The dragged file sits mid-list so the ghost it leaves reads clearly. */
   const draggedIndex = Math.min(1, siblings.length);
   const rows = [
     ...siblings.slice(0, draggedIndex),
     fileName,
     ...siblings.slice(draggedIndex),
-  ].slice(0, 3);
+  ];
+  const trayUnits = 26 * 2 + 46 + rows.length * 74 + (rows.length - 1) * 12;
+  const u = Math.min(
+    stage.w / 900,
+    stage.h / 500,
+    (portrait ? stage.h * 0.45 : stage.h) / trayUnits,
+  );
+
+  const trayPad = 26 * u;
+  const rowH = 74 * u;
+  const rowGap = 12 * u;
 
   // Both panels are sized to what they hold and then centred, rather than
   // stretched to the safe area — a half-empty list panel reads as a bug.
@@ -322,7 +330,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
   const zoneArmed = armed > 0 || released;
   const zoneLabel = released
     ? upload < 1
-      ? "Uploading"
+      ? uploadingLabel
       : doneLabel
     : armed > 0.5
       ? activeLabel

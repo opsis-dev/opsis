@@ -2202,6 +2202,7 @@ const defs: ElementMetaInput[] = [
       accentColor: zColor().default("#E8B86D").meta({ description: "Accent color", help: "Zone, cursor ring, and progress colour." }),
       theme: z.enum(["dark","light"]).default("dark").meta({ description: "Theme", help: "Surface palette." }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25, help: "Animation speed multiplier." }),
+      uploadingLabel: z.string().default("Uploading").meta({ description: "Label while uploading", help: "Label while the file uploads." }),
       backgroundColor: z.string().default("").meta({ description: "Background", widget: "color", zeroLabel: "Theme", help: "Leave empty to follow the theme." }),
     }),
     fixedProps: {},
