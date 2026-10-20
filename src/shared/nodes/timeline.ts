@@ -262,7 +262,16 @@ const trimNode = defineNode({
   type: "timeline.trim",
   title: "Trim",
   description: "Keeps only part of a clip.",
-  card: ({ params: p }) => [rangeRow(p.startMs, p.durationMs ? p.startMs + p.durationMs : null)],
+  card: ({ params: p, inputFrames, settings }) => {
+    const clipMs = inputFrames?.clip && framesToMs(inputFrames.clip, settings.fps);
+    const end = p.durationMs ? p.startMs + p.durationMs : null;
+    return [
+      rangeRow(p.startMs, end),
+      clipMs &&
+        (end ?? p.startMs) > clipMs &&
+        row("triangle-alert", `The clip ends at ${formatDuration(clipMs)}`, { tone: "warn" }),
+    ];
+  },
   params: z.object({
     startMs: ms(0, "Start"),
     durationMs: more(ms(0, "Keep"), { zeroLabel: "To the end" }),
@@ -270,7 +279,11 @@ const trimNode = defineNode({
   compile: ({ nodeId, inputs, params, settings }) =>
     withClip(inputs, (clip) => {
       const start = msToFrames(params.startMs, settings.fps, 0);
-      const rest = Math.max(1, clip.durationInFrames - start);
+      if (start >= clip.durationInFrames)
+        throw new Error(
+          `Start is at or after the end of the clip, which is ${formatDuration(framesToMs(clip.durationInFrames, settings.fps))} long.`,
+        );
+      const rest = clip.durationInFrames - start;
       const duration = params.durationMs
         ? Math.min(rest, msToFrames(params.durationMs, settings.fps))
         : rest;

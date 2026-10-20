@@ -118,3 +118,21 @@ describe("Choose by variable", () => {
     expect(nodeCard("timeline.branch", { equals: "A" })[0].text).toBe("Version = “A”");
   });
 });
+
+describe("Trim", () => {
+  it("refuses a start at or after the clip's end", () => {
+    expect(() => compileClip("timeline.trim", { startMs: 2000 }, { clip: emptyClip(60) })).toThrow(
+      "Start is at or after the end of the clip, which is 2 s long.",
+    );
+    expect(
+      compileClip("timeline.trim", { startMs: 1000 }, { clip: emptyClip(60) }).durationInFrames,
+    ).toBe(30);
+  });
+
+  it("warns when it keeps more than the clip has", () => {
+    const texts = (p: Record<string, unknown>) =>
+      nodeCard("timeline.trim", p, { inputFrames: { clip: 60 } }).map((r) => r.text);
+    expect(texts({ startMs: 1000, durationMs: 10_000 })).toContain("The clip ends at 2 s");
+    expect(texts({ startMs: 500, durationMs: 1000 })).not.toContain("The clip ends at 2 s");
+  });
+});
