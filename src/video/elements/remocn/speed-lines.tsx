@@ -609,8 +609,7 @@ export function SpeedLines({
             position: "absolute",
             left: `${state.left}%`,
             top: `${state.top}%`,
-            width,
-            height,
+            width: "max-content",
             transform: state.transform,
             transformOrigin: "50% 50%",
           }}

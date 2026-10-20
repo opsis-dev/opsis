@@ -951,9 +951,9 @@ const defs: ElementMetaInput[] = [
   {
     key: "remocn/speed-lines",
     title: "Speed lines",
-    description: "Parallel streaks trail an element as it flies in at its real speed, the element stretching with that speed and landing with a squash and a small bounce as the streaks die, or radial lines rush in from the frame edges and snap onto one point for a manga-style impact frame.",
+    description: "Streaks shoot across the frame toward a point and die as they land, or radial focus lines rush in from the edges and snap onto one point for an impact frame. Lay it over a clip with Layers.",
     category: "effect",
-    kind: "wrapper",
+    kind: "component",
     source: { registry: "Remocn", url: "https://remocn.dev/docs/components/speed-lines", license: "MIT" },
     schema: z.object({
       mode: z.enum(["trail","focus"]).default("trail").meta({ description: "Mode" }),
@@ -962,7 +962,6 @@ const defs: ElementMetaInput[] = [
       spread: z.number().min(16).max(320).default(96).meta({ description: "Spread", step: 4 }),
       duration: z.number().min(6).max(40).default(14).meta({ description: "Travel frames", step: 1 }),
       bounce: z.number().min(0).max(1).default(0.5).meta({ description: "Bounce", step: 0.05 }),
-      squash: z.number().min(0).max(1).default(0.5).meta({ description: "Squash", step: 0.05 }),
       x: z.number().min(0).max(1).default(0.5).meta({ description: "Point x", step: 0.01 }),
       y: z.number().min(0).max(1).default(0.5).meta({ description: "Point y", step: 0.01 }),
       delay: z.number().min(0).max(60).default(0).meta({ description: "Delay", step: 1 }),
@@ -970,7 +969,7 @@ const defs: ElementMetaInput[] = [
       seed: z.number().min(1).default(1).meta({ description: "Seed", step: 1 }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25 }),
     }),
-    fixedProps: {},
+    fixedProps: {"children":null},
     defaultDurationInFrames: 55,
   },
   {

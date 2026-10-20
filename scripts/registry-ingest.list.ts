@@ -238,6 +238,8 @@ export const DESCRIPTIONS: Partial<Record<string, string>> = {
   "spring-settle":
     "Plays clips as scenes: each scene shrinks away, the stage holds empty for a beat, and the next one lands. Connect Layers to make a scene whose layers land one after another.",
   typewriter: "Types the text out letter by letter with a blinking cursor.",
+  "speed-lines":
+    "Streaks shoot across the frame toward a point and die as they land, or radial focus lines rush in from the edges and snap onto one point for an impact frame. Lay it over a clip with Layers.",
   "shimmer-sweep": "A band of light sweeps across the text.",
   keystroke: "Shows a keyboard shortcut as keycaps being pressed.",
   confetti: "A burst of confetti to celebrate a moment.",
@@ -1376,6 +1378,7 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
     omit: {
       from: "internal: where the lines come from, set by the mode",
       to: "internal: the spot sets where the lines aim",
+      squash: "internal: it only shapes a carried element, and the lines are drawn on their own",
     },
   },
   "spring-settle": {
@@ -2186,7 +2189,7 @@ const LIST: CuratedElement[] = [
   ...remocn("effect", ["crt-screen", "vhs-filter", "halftone-print", "camera-lens"]),
   ...remocn("effect", ["polaroid"], { center: true }),
   ...remocn("effect", ["tv-power-off"], { atEnd: true }),
-  ...remocn("effect", ["speed-lines"]),
+  ...remocn("effect", ["speed-lines"], { kind: "component", fixedProps: { children: null } }),
   ...remocn("scene", ["spring-settle"], {
     kind: "sequencer",
     sceneItem: "SpringSettleItem",
