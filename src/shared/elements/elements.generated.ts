@@ -71,7 +71,7 @@ const defs: ElementMetaInput[] = [
     source: { registry: "Remocn", url: "https://remocn.dev/docs/components/matrix-decode", license: "MIT" },
     schema: z.object({
       text: z.string().default("DECRYPTED").meta({ description: "Text" }),
-      charset: z.string().default("!@#$%^&*()_+-=<>?/\\|").meta({ description: "Charset" }),
+      charset: z.string().default("!@#$%^&*()_+-=<>?/\\|").meta({ description: "Scramble characters", zeroLabel: "Built-in", help: "Characters the text flickers through before it settles." }),
       fontSize: z.number().min(12).max(160).default(72).meta({ description: "Font size", step: 1 }),
       color: zColor().default("#22c55e").meta({ description: "Color" }),
       fontWeight: z.enum(["400","500","600","700"]).default("600").meta({ description: "Font weight" }),

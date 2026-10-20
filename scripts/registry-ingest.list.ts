@@ -957,6 +957,17 @@ const DRIFT_TILES = [
 ] as const;
 
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "matrix-decode": {
+    controls: {
+      charset: {
+        type: "text",
+        default: "!@#$%^&*()_+-=<>?/\\|",
+        description: "Scramble characters",
+        emptyLabel: "Built-in",
+        help: "Characters the text flickers through before it settles.",
+      },
+    },
+  },
   "word-push": { controls: { fontWeight: fontWeight(400) } },
   "gradient-scale-cut-text": { controls: { fontWeight: fontWeight(700) } },
   "scribble-circle": { omit: { release: "internal: how the stroke lifts off at the end" } },
