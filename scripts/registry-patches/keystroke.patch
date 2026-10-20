@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Size the keys by the frame's short side, so a chord fits in portrait and square frames.
 
 diff --git a/src/video/elements/remocn/keystroke.tsx b/src/video/elements/remocn/keystroke.tsx
-index 5125811..94f9191 100644
+index 5125811..5bfd53f 100644
 --- a/src/video/elements/remocn/keystroke.tsx
 +++ b/src/video/elements/remocn/keystroke.tsx
 @@ -1,5 +1,6 @@
@@ -13,6 +14,15 @@ index 5125811..94f9191 100644
  
  export type KeystrokePlatform = "mac" | "windows";
  export type KeystrokeTheme = "light" | "dark";
+@@ -835,7 +836,7 @@ export function getKeystrokeState(
+ ) {
+   const width = Math.max(1, finite(options.width, 1280));
+   const height = Math.max(1, finite(options.height, 720));
+-  const unit = height / 720;
++  const unit = Math.min(height / 720, width / 1280);
+   const reference = within(
+     options.size,
+     keystrokeDefaults.size,
 @@ -921,8 +922,8 @@ export function Keystroke({
    speed = keystrokeDefaults.speed,
    className,

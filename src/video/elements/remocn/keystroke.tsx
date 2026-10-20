@@ -836,7 +836,7 @@ export function getKeystrokeState(
 ) {
   const width = Math.max(1, finite(options.width, 1280));
   const height = Math.max(1, finite(options.height, 720));
-  const unit = height / 720;
+  const unit = Math.min(height / 720, width / 1280);
   const reference = within(
     options.size,
     keystrokeDefaults.size,
