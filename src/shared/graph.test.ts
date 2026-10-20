@@ -72,6 +72,17 @@ describe("graph", () => {
     );
   });
 
+  it("asks for another action when a sound's action is gone", () => {
+    const g = new GraphBuilder();
+    g.node("save", "browser.click", 0, 0, { target: "Save" });
+    g.node("on", "audio.sfx", 1, 0, { src: "a.wav", atAction: "save" });
+    g.node("gone", "audio.sfx", 2, 0, { src: "a.wav", atAction: "deleted" });
+    const problems = validateWorkflow(build(g)).filter((i) =>
+      i.message.includes("action this sound"),
+    );
+    expect(problems.map((i) => i.nodeId)).toEqual(["gone"]);
+  });
+
   it("names a variable the project doesn't have", () => {
     const g = new GraphBuilder();
     g.node("session", "browser.session", 0, 0);

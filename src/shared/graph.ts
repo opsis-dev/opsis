@@ -1,6 +1,6 @@
 import { nonBlankString } from "./guards";
 import { byCodeUnit, findById } from "./lists";
-import { navigateNode, sessionNode, setStateNode } from "./nodes/browser";
+import { ACTION_NODE_TYPES, navigateNode, sessionNode, setStateNode } from "./nodes/browser";
 import { loginOnceNode } from "./nodes/capture";
 import type { PortSpec } from "./nodes/define";
 import { parseParams } from "./nodes/params";
@@ -307,6 +307,18 @@ const cycleIssues = (wf: Workflow): GraphIssue[] =>
     message: "This node loops back into itself",
   }));
 
+const anchorIssues = (wf: Workflow): GraphIssue[] => {
+  const actions = new Set(wf.nodes.filter((n) => ACTION_NODE_TYPES.has(n.type)).map((n) => n.id));
+  return wf.nodes
+    .filter((n) => !n.disabled && typeof n.params.atAction === "string" && n.params.atAction)
+    .filter((n) => !actions.has(String(n.params.atAction)))
+    .map((n) => ({
+      level: "error",
+      nodeId: n.id,
+      message: "The action this sound plays on is gone. Pick another, or play it at a time.",
+    }));
+};
+
 const runsBeforeFirstPage = (wf: Workflow, nodeId: string): boolean => {
   const walk = walkSessionChain(wf, nodeId);
   return walk.ok && !walk.chain.some((n) => n.type === navigateNode.type);
@@ -333,4 +345,5 @@ export const validateWorkflow = (wf: Workflow): GraphIssue[] => [
   ...edgeIssues(wf),
   ...cycleIssues(wf),
   ...reloadIssues(wf),
+  ...anchorIssues(wf),
 ];

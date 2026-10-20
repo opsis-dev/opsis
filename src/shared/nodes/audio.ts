@@ -222,12 +222,11 @@ function anchorSounds(
 ): AudioItem[] {
   if (!items.some((a) => a.anchor)) return items;
   const marks = flattenSpec(clipToSpec(clip, settings)).marks;
-  return items.map((a) => {
-    if (!a.anchor) return a;
+  return items.flatMap((a) => {
+    if (!a.anchor) return [a];
     const { nodeId } = a.anchor;
     const mark = marks.find((m) => m.nodeId === nodeId && m.kind !== "chapter");
-    const markFrame = mark ? Math.round(mark.frame) : 0;
-    return { ...a, from: Math.max(0, markFrame + a.from) };
+    return mark ? [{ ...a, from: Math.max(0, Math.round(mark.frame) + a.from) }] : [];
   });
 }
 
