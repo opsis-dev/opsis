@@ -15,7 +15,7 @@ import { ERROR_COLOR, STAGE_COLOR } from "../shared/elements/colors";
 import { MAIN_FONT } from "../shared/fonts";
 import { percent } from "../shared/format";
 import { MIN_CROP } from "../shared/limits";
-import { clamp01 } from "../shared/math";
+import { clamp01, EPSILON } from "../shared/math";
 import { duckGain, duckingSpans, type Span } from "../shared/mix/duck";
 import type { Rect } from "../shared/schema/actions";
 import type {
@@ -196,7 +196,9 @@ const Group: React.FC<GroupProps> = ({
   if (loopEvery !== undefined && loopEvery > 0)
     layers = <Loop durationInFrames={loopEvery}>{layers}</Loop>;
   if (remap?.length)
-    layers = <Freeze frame={Math.max(0, Math.round(remapFrame(remap, frame)))}>{layers}</Freeze>;
+    layers = (
+      <Freeze frame={Math.max(0, Math.floor(remapFrame(remap, frame) + EPSILON))}>{layers}</Freeze>
+    );
   if (crop) layers = <CropBox crop={crop}>{layers}</CropBox>;
   return (
     <AbsoluteFill style={background ? { background } : undefined}>

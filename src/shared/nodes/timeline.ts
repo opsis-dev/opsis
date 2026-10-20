@@ -381,27 +381,41 @@ const FIT_MODES = {
   hold: {
     label: "Hold the end",
     row: "By holding the end",
-    remap: (length, target) =>
-      target <= length
-        ? undefined
-        : [
-            [0, 0],
-            [length - 1, length - 1],
-            [target, length - 1],
-          ],
+    remap: (length, target) => {
+      if (target <= length) return undefined;
+      if (length <= 1)
+        return [
+          [0, 0],
+          [target, 0],
+        ];
+      return [
+        [0, 0],
+        [length - 1, length - 1],
+        [target, length - 1],
+      ];
+    },
   },
   cut: {
     label: "Cut",
     row: "By cutting",
     remap: () => undefined,
-    warning: (input, output, fps) =>
-      input > output
+    warning: (input, output, fps) => {
+      if (input < output)
+        return row(
+          "triangle-alert",
+          `Ends ${frameSecs(output - input, fps)} early, then shows nothing`,
+          {
+            tone: "warn",
+          },
+        );
+      return input > output
         ? row(
             "scissors",
             `Cuts ${frameSecs(input - output, fps)} off the end`,
             warnIf(input - output > fps / 2),
           )
-        : null,
+        : null;
+    },
   },
 } satisfies Record<string, FitMode>;
 
@@ -434,7 +448,8 @@ const durationFitNode = defineNode({
   }),
   compile: ({ nodeId, inputs, params, settings }) =>
     withClip(inputs, (clip) => {
-      const soundFrames = asValue(inputs.audio, "audio")?.durationInFrames;
+      const sound = asValue(inputs.audio, "audio")?.durationInFrames;
+      const soundFrames = sound && sound > 0 ? sound : undefined;
       const target = Math.max(1, soundFrames ?? msToFrames(params.targetMs, settings.fps));
       const remap = FIT_MODES[params.mode].remap(clip.durationInFrames, target);
       const fitted = wrapClip(clip, nodeId, remap ? { remap } : {}, target);

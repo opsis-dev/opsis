@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { emptyClip, sceneItemCount } from "../compile/clip";
+import { emptyClip, groupOf, sceneItemCount } from "../compile/clip";
 import { MAX_FRAMES } from "../limits";
-import type { ClipValue } from "../schema/values";
+import type { ClipValue, CompileValue } from "../schema/values";
+
+type AudioValue = Extract<CompileValue, { type: "audio" }>;
 import { compileClip, compileNode, nodeCard } from "../test-fixtures";
 import { branchPort } from "./timeline";
 
@@ -134,5 +136,37 @@ describe("Trim", () => {
       nodeCard("timeline.trim", p, { inputFrames: { clip: 60 } }).map((r) => r.text);
     expect(texts({ startMs: 1000, durationMs: 10_000 })).toContain("The clip ends at 2 s");
     expect(texts({ startMs: 500, durationMs: 1000 })).not.toContain("The clip ends at 2 s");
+  });
+});
+
+describe("Fit length", () => {
+  const fit = (params: Record<string, unknown>, frames: number, audio?: AudioValue) =>
+    compileClip("timeline.durationFit", params, {
+      clip: emptyClip(frames),
+      ...(audio ? { audio } : {}),
+    });
+  const remapOf = (clip: ClipValue) => groupOf(clip.tracks[0].items[0])?.remap;
+
+  it("holds a one-frame clip with a plain freeze", () => {
+    expect(remapOf(fit({ targetMs: 3000, mode: "hold" }, 1))).toEqual([
+      [0, 0],
+      [90, 0],
+    ]);
+  });
+
+  it("warns when cutting a clip that is already shorter", () => {
+    const texts = nodeCard(
+      "timeline.durationFit",
+      { targetMs: 3000, mode: "cut" },
+      { inputFrames: { clip: 30 }, clipFrames: 90 },
+    ).map((r) => r.text);
+    expect(texts).toContain("Ends 2 s early, then shows nothing");
+  });
+
+  it("uses its own length when the connected sound has none", () => {
+    const silent: AudioValue = { type: "audio", items: [], durationInFrames: 0 };
+    const clip = fit({ targetMs: 2000, mode: "speed" }, 30, silent);
+    expect(clip.durationInFrames).toBe(60);
+    expect(clip.tracks[0].items[0].handles?.trimEnd).toMatchObject({ param: "targetMs" });
   });
 });
