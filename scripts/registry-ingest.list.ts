@@ -625,6 +625,10 @@ const colorsControl = (min: number, max: number, help?: string): ControlSpec => 
 
 export const SPEED_RANGE: StepRange = { min: 0.25, max: 4, step: 0.25 };
 
+export const ANIMATION_FRAMES: StepRange = { min: 1, max: 300, step: 1 };
+
+export const ANIMATION_SECONDS: StepRange = { min: 0.05, max: 10, step: 0.01 };
+
 const advancedNumber = (description: string, value: number, range: StepRange): ControlSpec =>
   numberControl(description, value, range, { advanced: true });
 
