@@ -15,9 +15,9 @@ const KEEP_PICTURES = 12;
 
 type PictureOptions = { codec: RenderCodec; crf: number; scale: number; gl: GlRenderer };
 
-export function pictureKey(spec: TimelineSpec, opts: PictureOptions): string {
+export function pictureKey(spec: TimelineSpec, opts: PictureOptions, appVersion = ""): string {
   const picture = { ...spec, audio: undefined, mix: undefined, assets: undefined };
-  return versionedHash(PICTURE_VERSION, { engine: ENGINE_VERSION, picture, opts });
+  return versionedHash(PICTURE_VERSION, { engine: ENGINE_VERSION, app: appVersion, picture, opts });
 }
 
 export function muxArgs(codec: SoundCodec, picture: string, sound: string, out: string): string[] {

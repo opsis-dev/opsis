@@ -44,3 +44,11 @@ describe("nodeHash for a port that takes several connections", () => {
     expect(one).toBe(two);
   });
 });
+
+describe("nodeHash across releases", () => {
+  it("changes with the app's version, so a new release never reads old results", () => {
+    expect(nodeHash("media.trim", {}, [], "0.1.0")).not.toBe(
+      nodeHash("media.trim", {}, [], "0.2.0"),
+    );
+  });
+});

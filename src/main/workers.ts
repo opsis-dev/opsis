@@ -29,6 +29,7 @@ export function engineDir(): string {
 export function workerEnv(): WorkerEnv {
   return {
     appRoot: app.getAppPath(),
+    appVersion: app.getVersion(),
     isPackaged: app.isPackaged,
     resourcesPath: process.resourcesPath,
     userData: app.getPath("userData"),

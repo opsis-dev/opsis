@@ -37,6 +37,7 @@ function inputsFor(meta: ElementMeta): Record<string, ClipValue> {
 const userData = process.env.OPSIS_USER_DATA ?? devUserData();
 const env: WorkerEnv = {
   appRoot: ROOT,
+  appVersion: "dev",
   isPackaged: false,
   resourcesPath: path.join(ROOT, "resources"),
   userData,

@@ -8,6 +8,7 @@ import type { AppSettings } from "./settings";
 
 export type WorkerEnv = {
   appRoot: string;
+  appVersion: string;
   isPackaged: boolean;
   resourcesPath: string;
   userData: string;

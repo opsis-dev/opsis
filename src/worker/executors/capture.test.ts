@@ -46,6 +46,7 @@ async function stillContext(logs: string[]): Promise<ExecutorContext> {
     workflow,
     env: {
       appRoot: dir,
+      appVersion: "test",
       isPackaged: false,
       resourcesPath: dir,
       userData: dir,

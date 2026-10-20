@@ -139,6 +139,7 @@ function hashNodes(
   order: readonly WorkflowNode[],
   vars: Record<string, string>,
   projectDir: string,
+  appVersion: string,
 ): Map<string, string> {
   const hashes = new Map<string, string>();
   for (const node of order) {
@@ -167,7 +168,7 @@ function hashNodes(
           : Object.keys(files).length
             ? { params, files }
             : params;
-    hashes.set(node.id, nodeHash(node.type, keyed, upstream));
+    hashes.set(node.id, nodeHash(node.type, keyed, upstream, appVersion));
   }
   return hashes;
 }
@@ -564,7 +565,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
 
   deps.emit({ type: "run:start", runId, nodeIds: toRun.map((j) => j.node.id), at: Date.now() });
 
-  const hashes = hashNodes(workflow, plan.order, vars, projectDir);
+  const hashes = hashNodes(workflow, plan.order, vars, projectDir, deps.env.appVersion);
   const previous: LastRun = (await readLastRun(projectDir)) ?? { updatedAt: 0, nodes: {} };
   const state = new RunState(run, known, forcedNodes(req));
   for (const [id, r] of Object.entries(previous.nodes))

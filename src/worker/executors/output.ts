@@ -92,7 +92,11 @@ const renderTo = (
 
 async function pictureFor(job: VariantJob): Promise<string> {
   const { ctx, spec, p } = job;
-  const key = pictureKey(spec, { codec: p.codec, crf: p.crf, scale: p.scale, gl: p.gl });
+  const key = pictureKey(
+    spec,
+    { codec: p.codec, crf: p.crf, scale: p.scale, gl: p.gl },
+    ctx.env.appVersion,
+  );
   const picture = await cachedPicture(ctx.projectDir, `${key}.${CODECS[p.codec].ext}`, (temp) =>
     renderTo(job, temp, { muted: true }),
   );
