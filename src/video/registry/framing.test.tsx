@@ -1,3 +1,4 @@
+import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { isValidElement } from "react";
 import { describe, expect, it } from "vitest";
@@ -6,6 +7,9 @@ import {
   listsFromRows,
   marksFromImages,
   nested,
+  painted,
+  placedAt,
+  pointsFromSpots,
   themed,
   ticksFromWords,
   treeFrom,
@@ -20,6 +24,20 @@ function spy() {
     return null;
   };
   return { Component, last: () => seen.at(-1) ?? {} };
+}
+
+function onFrame(Component: ElementComponent, props: ElementProps) {
+  return render(
+    <Thumbnail
+      component={Component}
+      inputProps={props}
+      durationInFrames={30}
+      fps={30}
+      compositionWidth={1000}
+      compositionHeight={500}
+      frameToDisplay={0}
+    />,
+  );
 }
 
 describe("nested", () => {
@@ -115,5 +133,40 @@ describe("themed", () => {
     const Themed = themed(Component, "prop");
     render(<Themed mode="dark" />);
     expect(last()).toEqual({ mode: "dark" });
+  });
+});
+
+describe("placedAt", () => {
+  it("centres the element on the spot, as a share of the frame", () => {
+    const { Component, last } = spy();
+    const view = onFrame(placedAt(Component), { x: 0.25, y: 0.5, width: 100, height: 40, ink: 1 });
+    expect(last()).toEqual({ width: 100, height: 40, ink: 1 });
+    const box = [...view.container.querySelectorAll<HTMLElement>("div[style*='left']")].at(-1);
+    expect([box?.style.left, box?.style.top]).toEqual(["200px", "230px"]);
+  });
+});
+
+describe("pointsFromSpots", () => {
+  it("turns the two spots into points on the frame", () => {
+    const { Component, last } = spy();
+    onFrame(pointsFromSpots(Component), { fromX: 0.1, fromY: 0.2, toX: 0.9, ink: 1 });
+    expect(last()).toEqual({ ink: 1, from: { x: 100, y: 100 }, to: { x: 900, y: 250 } });
+  });
+});
+
+describe("painted", () => {
+  it("paints the element's own background with the chosen colour", () => {
+    const { Component, last } = spy();
+    const view = onFrame(painted(Component), { background: "#123456", ink: 1 });
+    expect(last()).toEqual({ ink: 1 });
+    const fill = view.container.querySelector<HTMLElement>(".df-painted");
+    expect(fill?.style.getPropertyValue("--df-paint")).toBe("#123456");
+  });
+
+  it("leaves the background clear without a colour", () => {
+    const { Component } = spy();
+    const view = onFrame(painted(Component), {});
+    const fill = view.container.querySelector<HTMLElement>(".df-painted");
+    expect(fill?.style.getPropertyValue("--df-paint")).toBe("transparent");
   });
 });
