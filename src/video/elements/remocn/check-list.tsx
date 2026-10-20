@@ -238,6 +238,8 @@ export function CheckList({
     width,
     fontSize,
   );
+  const labelSize = (text: string) =>
+    Math.min(fontSize, labelWidth / Math.max(1, Array.from(text).length * CAVEAT_ADVANCE));
 
   return (
     <div
@@ -322,7 +324,7 @@ export function CheckList({
             >
               <Handwrite
                 text={item.text}
-                fontSize={fontSize}
+                fontSize={labelSize(item.text)}
                 color={color}
                 delay={beat.labelAt}
                 perStep={perStep}
@@ -344,8 +346,8 @@ export function CheckList({
                 >
                   <path
                     d={strikePath(
-                      checkListStrikeWidth(item.text, fontSize, labelWidth),
-                      fontSize,
+                      checkListStrikeWidth(item.text, labelSize(item.text), labelWidth),
+                      labelSize(item.text),
                       rowHeight,
                       seed,
                       i,
