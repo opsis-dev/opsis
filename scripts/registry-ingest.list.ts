@@ -975,6 +975,26 @@ const MANUAL_MENU = { autoplay: ["false"] };
 const WRITTEN_PRESETS = ["marker", "color", "underline", "strikethrough", "shimmer"];
 
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "grid-pixelate-wipe": {
+    controls: {
+      cols: numberControl(
+        "Columns",
+        12,
+        { min: 1, max: 48, step: 1 },
+        { help: "Grid column count." },
+      ),
+      rows: numberControl("Rows", 8, { min: 1, max: 48, step: 1 }, { help: "Grid row count." }),
+      stagger: numberControl(
+        "Stagger",
+        0.82,
+        { min: 0, max: 1, step: 0.01 },
+        {
+          advanced: true,
+          help: "0 pops every cell together; 1 spreads them across the whole window.",
+        },
+      ),
+    },
+  },
   "transition-morph-shape": {
     controls: {
       overshoot: optionalNumber(
