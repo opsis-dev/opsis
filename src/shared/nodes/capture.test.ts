@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard, nodeResult, recordResult } from "../test-fixtures";
+import { stillNode } from "./capture";
+import { parseParams } from "./params";
 
 describe("capture cards", () => {
   it("adds the take's length and actions to Record take", () => {
@@ -53,5 +55,16 @@ describe("capture cards", () => {
       ).map((r) => r.text);
     expect(sized({ width: 1200, height: 800 })).toContain("1200 × 800");
     expect(sized({ width: 1200 }).some((t) => t.includes("×"))).toBe(false);
+  });
+});
+
+describe("Screenshot settings", () => {
+  it("asks for the element when capturing one element", () => {
+    expect(parseParams(stillNode.params, { region: "element", target: "" })).toEqual({
+      ok: false,
+      problem: "Pick an element",
+    });
+    expect(parseParams(stillNode.params, { region: "element", target: "Go" }).ok).toBe(true);
+    expect(parseParams(stillNode.params, { region: "viewport" }).ok).toBe(true);
   });
 });

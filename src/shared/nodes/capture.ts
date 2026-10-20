@@ -104,25 +104,30 @@ export const stillNode = defineNode({
     "Plays the connected actions, then takes a sharp screenshot of the page or one element.",
   inputs: { session: port("session", "Previous") },
   outputs: { image: port("image", "Image"), clip: port("clip", "Clip") },
-  params: z.object({
-    region: choiceOf(REGION_LABELS, "viewport", "Capture"),
-    target: more(optionalTarget("Element"), { showIf: { region: ["element"] } }),
-    targetRole: pickedRole(),
-    padding: int(24, "Space around", {
-      min: 0,
-      max: 400,
-      unit: "px",
-      showIf: { region: ["element"] },
+  params: z
+    .object({
+      region: choiceOf(REGION_LABELS, "viewport", "Capture"),
+      target: more(optionalTarget("Element"), { showIf: { region: ["element"] } }),
+      targetRole: pickedRole(),
+      padding: int(24, "Space around", {
+        min: 0,
+        max: 400,
+        unit: "px",
+        showIf: { region: ["element"] },
+      }),
+      look: choice(["window", "cutout", "bleed"], "window", "Style", {
+        window: "Window",
+        cutout: "Cut-out",
+        bleed: "Full bleed",
+      }),
+      backdrop: more(text(DEFAULT_BACKDROP, "Backdrop"), { widget: "backdrop" }),
+      durationMs: ms(DEFAULT_STILL_MS, "Length"),
+      envelope: visualEnvelope(),
+    })
+    .superRefine((p, ctx) => {
+      if (p.region === "element" && !p.target.trim())
+        ctx.addIssue({ code: "custom", message: "Pick an element", path: ["target"] });
     }),
-    look: choice(["window", "cutout", "bleed"], "window", "Style", {
-      window: "Window",
-      cutout: "Cut-out",
-      bleed: "Full bleed",
-    }),
-    backdrop: more(text(DEFAULT_BACKDROP, "Backdrop"), { widget: "backdrop" }),
-    durationMs: ms(DEFAULT_STILL_MS, "Length"),
-    envelope: visualEnvelope(),
-  }),
   card: ({ params: p, result }) => {
     const image = outputOf(result, "image", "image");
     const shot = image && shotOf(image);
