@@ -1,6 +1,6 @@
 import { nonBlankString } from "./guards";
 import { byCodeUnit, findById } from "./lists";
-import { sessionNode } from "./nodes/browser";
+import { navigateNode, sessionNode, setStateNode } from "./nodes/browser";
 import { loginOnceNode } from "./nodes/capture";
 import type { PortSpec } from "./nodes/define";
 import { parseParams } from "./nodes/params";
@@ -295,8 +295,30 @@ const cycleIssues = (wf: Workflow): GraphIssue[] =>
     message: "This node loops back into itself",
   }));
 
+const runsBeforeFirstPage = (wf: Workflow, nodeId: string): boolean => {
+  const walk = walkSessionChain(wf, nodeId);
+  return walk.ok && !walk.chain.some((n) => n.type === navigateNode.type);
+};
+
+const reloadIssues = (wf: Workflow): GraphIssue[] =>
+  wf.nodes
+    .filter(
+      (n) =>
+        n.type === setStateNode.type &&
+        !n.disabled &&
+        n.params.reload === true &&
+        runsBeforeFirstPage(wf, n.id),
+    )
+    .map((n) => ({
+      level: "warning",
+      nodeId: n.id,
+      message:
+        "Before Go to page the script runs as the site first opens, so there's nothing to reload. Turn off Reload, or move this after Go to page.",
+    }));
+
 export const validateWorkflow = (wf: Workflow): GraphIssue[] => [
   ...nodeIssues(wf),
   ...edgeIssues(wf),
   ...cycleIssues(wf),
+  ...reloadIssues(wf),
 ];

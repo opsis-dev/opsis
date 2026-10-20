@@ -57,6 +57,22 @@ describe("graph", () => {
     ).toBe("A clip can't connect to a browser action input.");
   });
 
+  it("warns that a reload before the first page does nothing", () => {
+    const reloads = (beforePage: boolean) => {
+      const g = new GraphBuilder();
+      g.node("session", "browser.session", 0, 0);
+      g.node("script", "browser.setState", 1, 0, { script: "1", reload: true });
+      g.node("go", "browser.navigate", 2, 0, { url: "https://example.com" });
+      g.node("rec", "capture.record", 3, 0);
+      g.chain(beforePage ? ["session", "script", "go", "rec"] : ["session", "go", "script", "rec"]);
+      return validateWorkflow(build(g)).filter((i) => i.nodeId === "script");
+    };
+    expect(reloads(true).map((i) => i.message)).toEqual([
+      expect.stringContaining("there's nothing to reload"),
+    ]);
+    expect(reloads(false)).toEqual([]);
+  });
+
   it("reports group and note settings that can't be read", () => {
     const g = new GraphBuilder();
     g.node("note", "core.note", 0, 0, { text: 5 });
