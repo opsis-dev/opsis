@@ -60,16 +60,7 @@ const FONT_FAMILY =
 /** Sample images. Absolute, because a root-relative default becomes
  *  `staticFile()` in a render and 404s in the project this file was just
  *  copied into. Pass your own — root-relative or remote, both resolve. */
-const DEFAULT_IMAGES = [
-  "https://snapcn.dev/showcase-assets/438b9e6b50654a44d404fbf358c26e9f.webp",
-  "https://snapcn.dev/showcase-assets/5e5305b05bd405a0d89570725434099e.webp",
-  "https://snapcn.dev/showcase-assets/767d99bb371a54d0d36751e8cecae43c.jpg",
-  "https://snapcn.dev/showcase-assets/821d815affa6496c39cbdeeec7a84603.jpg",
-  "https://snapcn.dev/showcase-assets/937438c560ada1c83317f2c11b3454b0.jpg",
-  "https://snapcn.dev/showcase-assets/98f89cb9994f5c382ab964062c4039db.jpg",
-  "https://snapcn.dev/showcase-assets/b25b82db2892efff9be3204e860d30ee.jpg",
-  "https://snapcn.dev/showcase-assets/c9ebc6337aa2268ac4b357f9cb1ac547.jpg",
-];
+const DEFAULT_IMAGES: string[] = [];
 
 // ─── Timeline (frames @ 30fps; ~3.6s) ──────────────────────────────────────────
 /** The ring spins inward from here (radius → 0, cards vanish). */
@@ -195,10 +186,10 @@ function resolveSrc(src: string): string {
 }
 
 export function LogoAssemble({
-  logoSrc = "https://snapcn.dev/logo/snapcn-white.png",
+  logoSrc = "",
   brandName = "snapcn",
   middleText = "Cinematic components\nfor React",
-  images = DEFAULT_IMAGES,
+  images: imageList = DEFAULT_IMAGES,
   count = 10,
   background,
   speed = 1,
@@ -207,6 +198,7 @@ export function LogoAssemble({
   mode,
   fontFamily,
 }: LogoAssembleProps) {
+  const images = imageList.filter((src) => src.trim() !== "");
   const frame = useAuthoredFrame() * speed;
   const { width, height } = useAuthoredConfig();
   const t = useSnapCnTheme(theme, mode ?? "dark");
@@ -258,6 +250,7 @@ export function LogoAssemble({
     >
       {/* The ring of images */}
       {cOpacity > 0 &&
+        images.length > 0 &&
         Array.from({ length: n }, (_, i) => {
           const theta = (i / n) * Math.PI * 2 + a;
           const x = cx + Math.cos(theta) * R * rs;
@@ -333,7 +326,7 @@ export function LogoAssemble({
       )}
 
       {/* Simple logo, born at the centre, then sliding left */}
-      {logo.opacity > 0 && (
+      {logo.opacity > 0 && logoSrc.trim() !== "" && (
         <Img
           src={resolveSrc(logoSrc)}
           style={{
