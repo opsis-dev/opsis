@@ -73,6 +73,7 @@ export function applyRunEvent<S extends RunProgress>(state: S, e: RunEvent): S {
         statuses: { ...state.statuses, [e.nodeId]: e.cached ? "cached" : "done" },
         cached: { ...state.cached, [e.nodeId]: e.cached },
         progress: { ...state.progress, [e.nodeId]: { value: 1 } },
+        errors: without(state.errors, [e.nodeId]),
         results: keep ? { ...state.results, [e.nodeId]: result } : state.results,
         traces: result?.traceId ? { ...state.traces, [e.nodeId]: result.traceId } : state.traces,
       };

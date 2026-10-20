@@ -25,6 +25,7 @@ import { SidePanel } from "./side-panel";
 import { TopBar } from "./top-bar";
 import { useAutosave } from "./use-autosave";
 import { CompiledContext, useCompiled } from "./use-compiled";
+import { useForgetStaleErrors } from "./use-forget-stale-errors";
 import { useMenuCommands } from "./use-menu-commands";
 import { useProjectFileWatch } from "./use-project-file-watch";
 
@@ -36,6 +37,7 @@ function InspectorPanel() {
 function useEditorSetup(projectDir: string): void {
   const name = useWorkflowStore((s) => s.workflow?.name);
   useAutosave();
+  useForgetStaleErrors();
   useMenuCommands();
   useProjectFileWatch(projectDir);
   useApiBridge();

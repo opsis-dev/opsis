@@ -115,3 +115,21 @@ describe("exportedArtifacts", () => {
     expect(files.map((a) => a.path)).toEqual(["out/project-og.png", "out/project-square.png"]);
   });
 });
+
+describe("an earlier failure", () => {
+  it("is forgotten when the node finishes in a later run", () => {
+    const failed = applyRunEvent(emptyRunProgress("r1"), {
+      type: "node:error",
+      runId: "r1",
+      nodeId: "wait",
+      message: "The browser closed before the action finished.",
+    });
+    const done = applyRunEvent(failed, {
+      type: "node:done",
+      runId: "r2",
+      nodeId: "wait",
+      cached: false,
+    });
+    expect(done.errors).toEqual({});
+  });
+});

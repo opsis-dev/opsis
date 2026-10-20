@@ -50,6 +50,7 @@ type RunState = RunProgress & {
   resume: (progress: RunProgress) => void;
   apply: (event: RunEvent) => void;
   clearLogs: () => void;
+  forgetErrors: (ids: readonly string[]) => void;
 };
 
 const freshRun = (running: boolean) => ({
@@ -127,6 +128,17 @@ export const useRunStore = create<RunState>()((set) => ({
     }),
 
   clearLogs: () => set({ logs: [] }),
+
+  forgetErrors: (ids) =>
+    set((s) =>
+      ids.some((id) => s.errors[id] !== undefined)
+        ? {
+            errors: Object.fromEntries(
+              Object.entries(s.errors).filter(([id]) => !ids.includes(id)),
+            ),
+          }
+        : {},
+    ),
 }));
 
 const RUN_SYNC_KEYS = [
