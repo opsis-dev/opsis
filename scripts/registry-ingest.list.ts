@@ -47,6 +47,7 @@ export type ControlSpec = {
   optional?: boolean;
   showIf?: Record<string, string[]>;
   labels?: Record<string, string>;
+  framesAt?: number;
 };
 
 export const OMIT_KINDS = ["timing", "function", "react-node", "internal", "sound"] as const;
@@ -183,6 +184,51 @@ const snapcn = fromRegistry("snapcn");
 const remotionui = fromRegistry("remotionui");
 
 export const TITLE_ACRONYMS: ReadonlySet<string> = new Set(["AI", "CRT", "RGB", "TV", "UI", "VHS"]);
+
+export const SECONDS: Partial<Record<string, Record<string, string | true>>> = {
+  "matrix-decode": { revealDuration: "Reveal time" },
+  "staggered-fade-up": { staggerDelay: "Stagger" },
+  "rgb-glitch-text": { glitchAt: "Glitch at", glitchDuration: "Glitch length" },
+  "gradient-scale-cut-text": { cutFrame: "Hard cut at" },
+  "ink-underline": { step: "Time per pose" },
+  "scribble-circle": { step: "Time per pose" },
+  "ink-arrow": { step: "Time per pose", drawDur: "Draw time", headDur: "Arrowhead time" },
+  polaroid: { step: "Time per pose" },
+  keystroke: { linger: "Linger", "steps.at": "At", "steps.hold": "Hold" },
+  "terminal-simulator": { "lines.delay": "Wait before" },
+  "glass-code-block": { staggerFrames: "Line stagger" },
+  "code-morph": { morphDuration: "Morph time", "steps.at": "Show at" },
+  "logo-enter": { stagger: "Stagger" },
+  "check-list": {
+    step: "Time per pose",
+    itemGap: "Time between items",
+    closeGap: "Time between ticks",
+  },
+  "search-reveal": { framesPerCharacter: "Time per letter" },
+  "animated-bar-chart": { staggerFrames: "Stagger" },
+  confetti: { lifetime: true },
+  "status-cycle": {
+    introFrames: "Intro length",
+    statusHold: "Status hold",
+    chipStagger: "Chip stagger",
+    startAt: "Start at",
+  },
+  "text-highlight": {
+    startAt: "Start at",
+    drawDuration: "Draw time",
+    holdDuration: "Lockup hold",
+    rushDuration: "Rush time",
+  },
+  "punch-lines": {
+    holds: "Card lengths",
+    lead: "Entrance lead",
+    lineStagger: "Line stagger",
+    punchFrames: "Punch",
+    wordStagger: "Word stagger",
+    rushLead: "Rush lead",
+    rushFrames: "Rush",
+  },
+};
 
 export const DESCRIPTIONS: Partial<Record<string, string>> = {
   "spring-settle":

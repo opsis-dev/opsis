@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ELEMENTS } from "../../shared/elements";
 import { animationLength } from "../../shared/elements/lengths";
+import { settingsInFrames } from "../../shared/elements/seconds";
 import type { ElementMeta } from "../../shared/elements/types";
 import { getAgentRunDuration } from "../elements/remocn/agent-run";
 import { checkListDuration } from "../elements/remocn/check-list";
@@ -19,6 +20,9 @@ const meta = (key: string): ElementMeta => {
 };
 
 const defaultsOf = (key: string): Settings => ({ ...meta(key).defaultProps });
+
+const inFrames = (key: string, settings: Settings): Settings =>
+  settingsInFrames(meta(key), settings);
 
 const growth = (key: string, changed: Settings, fps = 30) =>
   animationLength(meta(key), { ...defaultsOf(key), ...changed }, fps) -
@@ -46,13 +50,14 @@ describe("element lengths", () => {
   it("grows a search reveal by as much as its own length does", () => {
     const text = "a much longer search phrase to type";
     const usual = { text: String(defaultsOf("remocn/search-reveal").text) };
-    expect(growth("remocn/search-reveal", { text, framesPerCharacter: 6 })).toBe(
+    expect(growth("remocn/search-reveal", { text, framesPerCharacter: 0.2 })).toBe(
       getSearchRevealDuration({ text, framesPerCharacter: 6 }) - getSearchRevealDuration(usual),
     );
   });
 
   it("grows a checklist by as much as its own length does", () => {
     const usual = defaultsOf("remocn/check-list");
+    const key = "remocn/check-list";
     const timing = (s: Settings) => ({
       step: Number(s.step),
       itemGap: Number(s.itemGap),
@@ -66,38 +71,52 @@ describe("element lengths", () => {
       { text: "Check the captions twice before sending", checked: true },
       { text: "Publish", checked: true },
     ];
-    const changed = { ...usual, items, itemGap: 24 };
-    expect(growth("remocn/check-list", changed)).toBe(
-      checkListDuration(items, timing(changed)) -
-        checkListDuration(usual.items as typeof items, timing(usual)),
+    const changed = { ...usual, items, itemGap: 0.8 };
+    expect(growth(key, changed)).toBe(
+      checkListDuration(items, timing(inFrames(key, changed))) -
+        checkListDuration(usual.items as typeof items, timing(inFrames(key, usual))),
     );
   });
 
   it("grows a code morph by as much as its own length does", () => {
-    const usual = defaultsOf("remocn/code-morph");
-    const steps = [
-      { at: 0, code: "a" },
-      { at: 40, code: "b" },
-      { at: 120, code: "c" },
-    ];
-    expect(growth("remocn/code-morph", { steps, morphDuration: 50 })).toBe(
-      getCodeMorphDuration({ steps, morphDuration: 50 }) -
+    const key = "remocn/code-morph";
+    const usual = inFrames(key, defaultsOf(key));
+    const changed = {
+      steps: [
+        { at: 0, code: "a" },
+        { at: 2, code: "b" },
+        { at: 4, code: "c" },
+      ],
+      morphDuration: 1.5,
+    };
+    const framed = inFrames(key, changed);
+    type Steps = { at: number; code: string }[];
+    expect(growth(key, changed)).toBe(
+      getCodeMorphDuration({
+        steps: framed.steps as Steps,
+        morphDuration: Number(framed.morphDuration),
+      }) -
         getCodeMorphDuration({
-          steps: usual.steps as typeof steps,
+          steps: usual.steps as Steps,
           morphDuration: Number(usual.morphDuration),
         }),
     );
   });
 
   it("grows a shortcut sequence about as much as its own length does", () => {
-    const usual = defaultsOf("remocn/keystroke");
-    const steps = [...(usual.steps as { at: number; keys: string }[]), { at: 260, keys: "mod+s" }];
+    const key = "remocn/keystroke";
+    type Steps = { at: number; keys: string }[];
+    const usual = defaultsOf(key);
+    const changed = { steps: [...(usual.steps as Steps), { at: 9, keys: "mod+s" }], linger: 1.5 };
+    const framed = inFrames(key, changed);
+    const framedUsual = inFrames(key, usual);
     const expected =
-      getKeystrokeDuration({ steps, linger: 40 }) -
-      getKeystrokeDuration({ steps: usual.steps as typeof steps, linger: Number(usual.linger) });
-    expect(
-      Math.abs(growth("remocn/keystroke", { steps, linger: 40 }) - expected),
-    ).toBeLessThanOrEqual(4);
+      getKeystrokeDuration({ steps: framed.steps as Steps, linger: Number(framed.linger) }) -
+      getKeystrokeDuration({
+        steps: framedUsual.steps as Steps,
+        linger: Number(framedUsual.linger),
+      });
+    expect(Math.abs(growth(key, changed) - expected)).toBeLessThanOrEqual(4);
   });
 
   it("grows an agent run about as much as its own length does", () => {
@@ -120,10 +139,11 @@ describe("element lengths", () => {
   });
 
   it("grows punch lines by as much as their own length does", () => {
-    const usual = defaultsOf("snapcn/punch-lines");
+    const key = "snapcn/punch-lines";
+    const usual = inFrames(key, defaultsOf(key));
     const script = "One. | Two. | Three. | Four. | Five.";
-    expect(growth("snapcn/punch-lines", { script, holds: "40, 60" })).toBe(
-      punchLinesDuration(script, "40, 60") -
+    expect(growth(key, { script, holds: "1.5, 2" })).toBe(
+      punchLinesDuration(script, "45, 60") -
         punchLinesDuration(String(usual.script), String(usual.holds)),
     );
   });

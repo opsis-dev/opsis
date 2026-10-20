@@ -21,6 +21,7 @@ import {
   type FieldMeta,
 } from "../elements/introspect";
 import { animationLength, fitsItsAnimation } from "../elements/lengths";
+import { framesFromSeconds } from "../elements/seconds";
 import { isThemeValue, themeColors } from "../elements/theme";
 import type { ElementCategory, ElementMeta } from "../elements/types";
 import { fontProp } from "../fonts";
@@ -176,7 +177,7 @@ const NODE_CATEGORY_FOR: Record<ElementCategory, NodeCategory> = {
 function settingValue(meta: FieldMeta, value: unknown): unknown {
   if (meta.zeroLabel && value === "") return undefined;
   if (meta.widget === "asset" && isString(value)) return projectRef(value);
-  return value;
+  return framesFromSeconds(meta, value);
 }
 
 function elementProps(meta: ElementMeta, params: Record<string, unknown>): Record<string, unknown> {

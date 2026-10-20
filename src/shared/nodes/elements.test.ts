@@ -135,6 +135,16 @@ describe("element look rows", () => {
   });
 });
 
+describe("element timing", () => {
+  it("passes times set in seconds to the element as frames of 30 a second", () => {
+    expect(firstItem("fx.snapcn.status-cycle", { statusHold: 1.5 }).props.statusHold).toBe(45);
+    expect(firstItem("fx.snapcn.punch-lines", { holds: "1, 2.5" }).props.holds).toBe("30, 75");
+    const steps = firstItem("fx.remocn.keystroke", { steps: [{ keys: "mod+k", at: 2, hold: 0.5 }] })
+      .props.steps;
+    expect(steps).toEqual([{ keys: "mod+k", at: 60, hold: 15 }]);
+  });
+});
+
 describe("element layout", () => {
   it("draws a fixed-size element on the frame it was laid out for", () => {
     expect(firstItem("fx.remotion-ui.funnel-chart", {}).design).toEqual({

@@ -1,10 +1,13 @@
 import path from "node:path";
 import type { FieldMeta } from "../../src/shared/elements/introspect";
+import { AUTHORED_FPS } from "../../src/shared/elements/lengths";
 import type { ElementKind } from "../../src/shared/elements/types";
 import { humanize } from "../../src/shared/format";
+import { isNumber, isRecord, isString } from "../../src/shared/guards";
+import { roundTo } from "../../src/shared/math";
 import { pick } from "../../src/shared/objects";
 import type * as framing from "../../src/video/registry/framing";
-import { REGISTRIES, TITLE_ACRONYMS, type CuratedElement } from "../registry-ingest.list";
+import { REGISTRIES, SECONDS, TITLE_ACRONYMS, type CuratedElement } from "../registry-ingest.list";
 import type { Control } from "./registry-controls";
 import { VIDEO_DIR } from "./tool-config";
 
@@ -20,6 +23,7 @@ const CONTROL_META_KEYS = [
   "showIf",
   "labels",
   "themes",
+  "framesAt",
 ] as const;
 
 const controlMeta = (c: Control): FieldMeta =>
@@ -173,9 +177,94 @@ export type Resolved = {
   duration: number;
 };
 
+const seconds = (frames: number): number => roundTo(frames / AUTHORED_FPS, 4);
+
+const secondsText = (text: string): string =>
+  text
+    .split(",")
+    .map((part) => {
+      const frames = Number(part.trim());
+      return part.trim() && Number.isFinite(frames) ? String(seconds(frames)) : part.trim();
+    })
+    .join(", ");
+
+function inSeconds(c: Control, label: string | true): Control {
+  const named = label === true ? {} : { description: label };
+  if (c.type === "text") {
+    return {
+      ...c,
+      ...named,
+      default: isString(c.default) ? secondsText(c.default) : c.default,
+      framesAt: AUTHORED_FPS,
+    };
+  }
+  if (c.type !== "number")
+    throw new Error(`${label}: only number and text settings can be in seconds`);
+  return {
+    ...c,
+    ...named,
+    default: isNumber(c.default) ? seconds(c.default) : c.default,
+    ...(isNumber(c.min) ? { min: seconds(c.min) } : {}),
+    ...(isNumber(c.max) ? { max: seconds(c.max) } : {}),
+    step: 0.01,
+    unit: "s",
+    framesAt: AUTHORED_FPS,
+  };
+}
+
+function rowsInSeconds(c: Control, columns: Record<string, string | true>): Control {
+  const changed = Object.fromEntries(
+    Object.entries(c.columns ?? {}).map(([name, column]) => [
+      name,
+      columns[name] === undefined ? column : inSeconds(column, columns[name]),
+    ]),
+  );
+  const rows = Array.isArray(c.default)
+    ? c.default.map((row: unknown) =>
+        isRecord(row)
+          ? Object.fromEntries(
+              Object.entries(row).map(([name, value]) => [
+                name,
+                columns[name] !== undefined && isNumber(value) ? seconds(value) : value,
+              ]),
+            )
+          : row,
+      )
+    : c.default;
+  return { ...c, columns: changed, default: rows };
+}
+
+export function withSeconds(
+  name: string,
+  controls: Array<[string, Control]>,
+): Array<[string, Control]> {
+  const spec = SECONDS[name];
+  if (!spec) return controls;
+  const used = new Set<string>();
+  const out = controls.map(([key, c]): [string, Control] => {
+    const columns = Object.fromEntries(
+      Object.entries(spec)
+        .filter(([setting]) => setting.startsWith(`${key}.`))
+        .map(([setting, label]) => [setting.slice(key.length + 1), label]),
+    );
+    if (Object.keys(columns).length) {
+      for (const column of Object.keys(columns)) used.add(`${key}.${column}`);
+      return [key, rowsInSeconds(c, columns)];
+    }
+    const label = spec[key];
+    if (label === undefined) return [key, c];
+    used.add(key);
+    return [key, inSeconds(c, label)];
+  });
+  const unknown = Object.keys(spec).filter((setting) => !used.has(setting));
+  if (unknown.length)
+    throw new Error(`${name}: no settings named ${unknown.join(", ")} to show in seconds`);
+  return out;
+}
+
 export function renderMetaEntry({ item, key, description, controls, duration }: Resolved): string {
   const reg = REGISTRIES[item.registry];
-  const fields = controls
+  const fields = withSeconds(item.name, controls)
     .map(([k, c]) => [k, zodFor(k, c)] as const)
     .filter((f): f is readonly [string, string] => f[1] != null)
     .map(([k, schema]) => `      ${IDENTIFIER.test(k) ? k : JSON.stringify(k)}: ${schema},`);

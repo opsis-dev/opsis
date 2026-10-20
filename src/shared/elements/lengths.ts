@@ -1,4 +1,5 @@
 import { isNumber, isRecord, isString } from "../guards";
+import { settingsInFrames } from "./seconds";
 import type { ElementMeta } from "./types";
 
 type Settings = Record<string, unknown>;
@@ -384,8 +385,11 @@ function endFrames(timing: Timing, settings: Settings, fps: number): number {
 export function animationLength(meta: ElementMeta, params: Settings, fps: number): number {
   const timing = timingOf(meta);
   if (!timing) return meta.defaultDurationInFrames;
-  const defaults = { ...meta.defaultProps, ...meta.fixedProps };
-  const settings = { ...defaults, ...meta.fixedProps, ...params };
+  const defaults = { ...settingsInFrames(meta, meta.defaultProps), ...meta.fixedProps };
+  const settings = {
+    ...settingsInFrames(meta, { ...meta.defaultProps, ...params }),
+    ...meta.fixedProps,
+  };
   const hold = Math.max(
     0,
     meta.defaultDurationInFrames -
