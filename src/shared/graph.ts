@@ -179,7 +179,8 @@ function walkSessionChain(wf: Workflow, captureNodeId: string): SessionWalk {
       return { ok: false, problem: "The browser action chain loops back on itself." };
     seen.add(edge.source);
     const node = byId.get(edge.source);
-    if (!node) return { ok: false, problem: `Missing node ${edge.source}` };
+    if (!node)
+      return { ok: false, problem: "A connection in the action chain points at a deleted node." };
     chain.unshift(node);
     if (node.type === sessionNode.type) return { ok: true, chain };
   }
@@ -187,8 +188,8 @@ function walkSessionChain(wf: Workflow, captureNodeId: string): SessionWalk {
   return {
     ok: false,
     problem: head
-      ? `The action chain starting at "${nodeName(head)}" is not connected to a Session node.`
-      : "Connect a Session → actions chain to this node's session input.",
+      ? `The actions starting at “${nodeName(head)}” don't start from an ${sessionNode.title} node.`
+      : `Connect ${sessionNode.title} and its actions to this node's “Previous” input.`,
   };
 }
 

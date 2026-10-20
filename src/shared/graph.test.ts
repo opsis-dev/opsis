@@ -57,6 +57,21 @@ describe("graph", () => {
     ).toBe("A clip can't connect to a browser action input.");
   });
 
+  it("explains an action chain that doesn't start from Open browser", () => {
+    const g = new GraphBuilder();
+    g.node("go", "browser.navigate", 1, 0, { url: "https://example.com" });
+    g.node("rec", "capture.record", 2, 0);
+    g.node("lone", "capture.record", 3, 0);
+    g.chain(["go", "rec"]);
+    const wf = build(g);
+    expect(() => sessionChain(wf, "rec")).toThrow(
+      "The actions starting at “Go to page” don't start from an Open browser node.",
+    );
+    expect(() => sessionChain(wf, "lone")).toThrow(
+      "Connect Open browser and its actions to this node's “Previous” input.",
+    );
+  });
+
   it("names a variable the project doesn't have", () => {
     const g = new GraphBuilder();
     g.node("session", "browser.session", 0, 0);
