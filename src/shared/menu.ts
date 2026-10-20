@@ -7,6 +7,7 @@ export type MenuCommand =
   | "edit:undo"
   | "edit:redo"
   | "edit:group"
+  | "edit:select-all"
   | "edit:layout"
   | "run:start"
   | "run:cancel"
@@ -86,7 +87,7 @@ export function appMenu(platform: NodeJS.Platform): MenuSection[] {
         role("Cut", "cut", "CmdOrCtrl+X"),
         role("Copy", "copy", "CmdOrCtrl+C"),
         role("Paste", "paste", "CmdOrCtrl+V"),
-        role("Select all", "selectAll", "CmdOrCtrl+A"),
+        command("Select all", "edit:select-all", "CmdOrCtrl+A"),
         separator,
         command("Add node…", "edit:add-node", "CmdOrCtrl+K"),
         command("Group selection", "edit:group", "CmdOrCtrl+G"),

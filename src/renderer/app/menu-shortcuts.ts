@@ -39,6 +39,7 @@ const NATIVE_WHILE_EDITING = new Set<MenuCommand | WindowRole>([
   "copy",
   "paste",
   "selectAll",
+  "edit:select-all",
   "edit:undo",
   "edit:redo",
 ]);

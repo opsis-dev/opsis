@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { isEditingElement } from "@/renderer/lib/dom";
 import { DOCK_PANELS } from "@/shared/ipc";
 import type { MenuCommand } from "@/shared/menu";
 import { onMenuCommand } from "../app/menu-commands";
@@ -26,6 +27,14 @@ const MENU_ACTIONS: MenuActions = {
   "run:start": () => void startRun(),
   "run:cancel": () => void window.opsis.cancelRun(),
   "edit:group": () => useWorkflowStore.getState().groupNodes(useUiStore.getState().selectedIds),
+  "edit:select-all": () => {
+    if (isEditingElement(document.activeElement)) {
+      void window.opsis.windowRole("selectAll");
+      return;
+    }
+    const nodes = useWorkflowStore.getState().workflow?.nodes ?? [];
+    useUiStore.getState().setSelected(nodes.map((n) => n.id));
+  },
   "edit:layout": () => void tidyLayout(),
   "edit:add-node": () => useUiStore.getState().setPaletteOpen(true),
   "view:toggle-minimap": () => useViewOptions.getState().toggleMinimap(),
