@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { baseName } from "../asset-ref";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
-import { itemClip, patchRecordings, recordingProps, wrapClip } from "../compile/clip";
+import { clipFrameOfRecording, itemClip, patchRecordings, wrapClip } from "../compile/clip";
 import {
   CAMERA_STYLES,
   defaultRecordingProps,
   followCursorBeats,
   idleSpans,
+  recordingSpeed,
   type RecordingProps,
 } from "../compile/recording";
 import { remapDuration, remapFromSegments } from "../compile/remap";
@@ -249,8 +250,6 @@ const followCursorNode = defineNode({
     ),
 });
 
-const lastRecordingSpeed = (clip: ClipValue): number => recordingProps(clip).at(-1)?.speed ?? 1;
-
 const speedSegmentSchema = z.object({
   fromMs: ms(0, "From", Number.MAX_SAFE_INTEGER),
   toMs: ms(1000, "To", Number.MAX_SAFE_INTEGER),
@@ -265,8 +264,10 @@ function remapClip(
   fps: number,
   segments: SpeedSegment[],
 ): ClipValue {
-  const playback = clip.recording ? lastRecordingSpeed(clip) : 1;
-  const toFrames = (recordingMs: number) => recordingMsToFrames(recordingMs, playback, fps);
+  const toFrames = (recordingMs: number) =>
+    clipFrameOfRecording(clip.tracks, (rec) =>
+      recordingMsToFrames(recordingMs, recordingSpeed(rec), fps),
+    ) ?? recordingMsToFrames(recordingMs, 1, fps);
   const remap = remapFromSegments(
     clip.durationInFrames,
     segments.map((s) => ({ from: toFrames(s.fromMs), to: toFrames(s.toMs), rate: s.rate })),

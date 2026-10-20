@@ -19,7 +19,7 @@ import { THEME_BACKGROUNDS, type WorkflowSettings } from "../schema/workflow";
 import { hasKeys } from "../timeline/envelope";
 import { atLeastOneFrame } from "../timeline/time";
 import { recordingPropsSchema, type RecordingProps } from "./recording";
-import { remapSchema, type Remap } from "./remap";
+import { inverseRemap, remapSchema, type Remap } from "./remap";
 
 const sequencerPropsSchema = elementRefSchema.extend({
   backgrounds: z.array(z.string().nullable()),
@@ -448,6 +448,25 @@ export function patchRecordings(
       return props ? { ...item, props: patch(props) } : item;
     }),
   };
+}
+
+export function clipFrameOfRecording(
+  tracks: TimelineTrack[],
+  content: (recording: RecordingProps) => number,
+): number | null {
+  for (const track of tracks)
+    for (const item of track.items) {
+      const recording = recordingOf(item);
+      if (recording) return item.from + content(recording);
+      const group = groupOf(item);
+      const inner = group ? clipFrameOfRecording(group.tracks, content) : null;
+      if (group && inner !== null) {
+        const local = inner - (group.startFrom ?? 0);
+        const outer = group.remap?.length ? inverseRemap(group.remap, local, "start") : local;
+        return item.from + outer;
+      }
+    }
+  return null;
 }
 
 export function recordingProps(clip: ClipValue): RecordingProps[] {
