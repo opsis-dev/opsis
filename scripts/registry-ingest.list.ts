@@ -662,6 +662,7 @@ const PAINTED: Partial<Record<string, string>> = {
   "word-push": "white",
   "line-by-line-slide": "white",
   "check-list": "white",
+  "rolling-number": "white",
   "staggered-fade-up": "white",
   "tracking-in": "white",
   "rgb-glitch-text": "#fafafa",
@@ -969,6 +970,13 @@ const DRIFT_TILES = [
 const MANUAL_MENU = { autoplay: ["false"] };
 
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "rolling-number": {
+    design: FULL_HD,
+    controls: {
+      from: numberControl("From", 0, { min: 0, max: 999_999_999_999, step: 1 }),
+      to: numberControl("To", 24813, { min: 0, max: 999_999_999_999, step: 1 }),
+    },
+  },
   "rgb-glitch-text": {
     controls: {
       glitchColors: {

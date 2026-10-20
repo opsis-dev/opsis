@@ -18,6 +18,7 @@ export interface RollingNumberProps {
 }
 
 const COUNT_PORTION = 0.8;
+const FIT_WIDTH = 1800;
 const COUNT_EASING = Easing.out(Easing.poly(4));
 const REVEAL_BAND = 0.4;
 const REVEAL_EASING = Easing.inOut(Easing.sin);
@@ -130,7 +131,9 @@ export function RollingNumber({
 
   const maxVal = Math.max(start, end);
   const digits = String(maxVal);
-  const cellHeight = fontSize * 1.1;
+  const groups = Math.floor((digits.length - 1) / 3);
+  const fittedSize = Math.min(fontSize, FIT_WIDTH / ((digits.length + groups * 0.34) * 0.62));
+  const cellHeight = fittedSize * 1.1;
 
   const cells: React.ReactNode[] = [];
   for (let place = 0; place < digits.length; place++) {
@@ -154,7 +157,7 @@ export function RollingNumber({
       <DigitColumn
         key={`d${place}`}
         value={wrap10(pos)}
-        fontSize={fontSize}
+        fontSize={fittedSize}
         reveal={placeReveal(current, place)}
       />,
     );
@@ -172,7 +175,7 @@ export function RollingNumber({
         style={{
           display: "flex",
           alignItems: "flex-start",
-          fontSize,
+          fontSize: fittedSize,
           fontWeight: 800,
           color,
           fontFamily: MONO_FAMILY,

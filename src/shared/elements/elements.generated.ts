@@ -1204,14 +1204,16 @@ const defs: ElementMetaInput[] = [
     kind: "component",
     source: { registry: "Remocn", url: "https://remocn.dev/docs/components/rolling-number", license: "MIT" },
     schema: z.object({
-      from: z.number().min(0).default(0).meta({ description: "From", step: 1 }),
-      to: z.number().min(0).default(24813).meta({ description: "To", step: 1 }),
+      from: z.number().min(0).max(999999999999).default(0).meta({ description: "From", step: 1 }),
+      to: z.number().min(0).max(999999999999).default(24813).meta({ description: "To", step: 1 }),
       fontSize: z.number().min(24).max(280).default(120).meta({ description: "Font size", step: 4 }),
       color: zColor().default("#171717").meta({ description: "Color" }),
+      background: zColor().default("white").meta({ description: "Background", help: "Set it to transparent to lay the text over other layers." }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25 }),
     }),
     fixedProps: {},
     defaultDurationInFrames: 150,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/signup-flow",

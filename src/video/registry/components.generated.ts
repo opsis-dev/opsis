@@ -62,7 +62,7 @@ export const generatedElementLoaders: Record<string, () => Promise<ElementImpl>>
   "remocn/agent-run": () => import("../elements/remocn/agent-run").then((m) => nested(component(m.AgentRun), {"runTitle":"run.title","runPrompt":"run.prompt","runPlan":"run.plan","runSteps":"run.steps","runAnswer":"run.answer"})),
   "remocn/animated-bar-chart": () => import("../elements/remocn/animated-bar-chart").then((m) => listsFromRows(component(m.AnimatedBarChart), {"bars":{"label":"labels","value":"data"}})),
   "remocn/animated-line-chart": () => import("../elements/remocn/animated-line-chart").then((m) => component(m.AnimatedLineChart)),
-  "remocn/rolling-number": () => import("../elements/remocn/rolling-number").then((m) => component(m.RollingNumber)),
+  "remocn/rolling-number": () => import("../elements/remocn/rolling-number").then((m) => painted(component(m.RollingNumber))),
   "remocn/signup-flow": () => import("../elements/remocn/signup-flow").then((m) => themed(component(m.SignupFlow), "context")),
   "remocn/ai-prompt-flow": () => import("../elements/remocn/ai-prompt-flow").then((m) => themed(component(m.AiPromptFlow), "context")),
   "remocn/command-menu": () => import("../elements/remocn/command-menu").then((m) => themed(component(m.CommandMenu), "context")),
