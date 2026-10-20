@@ -2265,6 +2265,7 @@ const defs: ElementMetaInput[] = [
       device: z.enum(["phone","browser","laptop"]).default("laptop").meta({ description: "Device", help: "Mockup shell. Laptop includes a physical base, browser renders chrome only, phone renders a handheld frame." }),
       backgroundColor: zColor().default("#080810").meta({ description: "Background color" }),
       accentColor: zColor().default("#e8b86d").meta({ description: "Accent color" }),
+      textColor: zColor().default("#f8fafc").meta({ description: "Text color" }),
     }),
     fixedProps: {},
     defaultDurationInFrames: 90,

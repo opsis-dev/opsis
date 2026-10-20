@@ -25,6 +25,8 @@ export type DeviceMockupZoomProps = {
   device?: "phone" | "browser" | "laptop";
   backgroundColor?: string;
   accentColor?: string;
+  /** Title colour; the subtitle and the small heading's chip are drawn from it. */
+  textColor?: string;
 };
 
 const COLORS = {
@@ -761,6 +763,7 @@ export const DeviceMockupZoom: React.FC<DeviceMockupZoomProps> = ({
   device = "laptop",
   backgroundColor = COLORS.bg,
   accentColor = COLORS.accent,
+  textColor = "#f8fafc",
 }) => {
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
@@ -857,7 +860,7 @@ export const DeviceMockupZoom: React.FC<DeviceMockupZoomProps> = ({
           paddingRight: safe.paddingRight,
           paddingTop: safe.paddingTop,
           paddingBottom: safe.paddingBottom,
-          color: "#f8fafc",
+          color: textColor,
           fontFamily,
           display: "grid",
           gridTemplateColumns,
@@ -886,8 +889,8 @@ export const DeviceMockupZoom: React.FC<DeviceMockupZoomProps> = ({
                   alignSelf: "flex-start",
                   borderRadius: 999,
                   padding: `${scaleFont(9, width)}px ${scaleFont(14, width)}px`,
-                  background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: `color-mix(in srgb, ${textColor} 8%, transparent)`,
+                  border: `1px solid color-mix(in srgb, ${textColor} 12%, transparent)`,
                   color: accentColor,
                   fontSize: scaleFont(16, width),
                   lineHeight: 1,
@@ -912,7 +915,7 @@ export const DeviceMockupZoom: React.FC<DeviceMockupZoomProps> = ({
             {subtitle ? (
               <div
                 style={{
-                  color: "#cbd5e1",
+                  color: `color-mix(in srgb, ${textColor} 78%, ${backgroundColor})`,
                   fontSize: scaleFont(portrait ? 28 : 24, width),
                   lineHeight: 1.35,
                   fontWeight: 600,
