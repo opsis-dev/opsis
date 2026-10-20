@@ -37,6 +37,7 @@ import {
   EDIT_VIDEO,
   editedFile,
   evenDown,
+  EVEN_FRAME,
   FASTSTART,
   ffmpegSeconds,
   frameGrabArgs,
@@ -115,6 +116,8 @@ async function transcodeMedia(
   });
   return mediaResult(ctx, file, label);
 }
+
+const MP4_PICTURES: ReadonlySet<string> = new Set(["h264", "hevc", "av1", "vp9", "mpeg4"]);
 
 const extOf = (src: string) => path.extname(src).toLowerCase() || ".mp4";
 
@@ -358,7 +361,12 @@ export const mediaExecutors: Executor[] = [
   defineExecutor(loudnormNode, async (ctx, inputs, p) => {
     const input = requireMedia(inputs.media);
     const format = input.kind === "audio" ? audioFormatFor(extOf(input.src).slice(1)) : null;
-    const { audio } = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
+    const { audio, video } = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
+    if (!audio) throw new Error("This file has no sound to even out.");
+    const picture =
+      video && MP4_PICTURES.has(video.codec)
+        ? ["-c:v", "copy"]
+        : ["-vf", EVEN_FRAME, ...EDIT_VIDEO];
     return transcodeMedia(ctx, input, {
       file: `loudnorm.${format ?? "mp4"}`,
       label: "Loudness normalised",
@@ -367,8 +375,9 @@ export const mediaExecutors: Executor[] = [
         i,
         "-af",
         loudnormFilter(p.integrated, p.truePeak, p.lra),
-        ...(audio ? ["-ar", String(audio.sampleRate)] : []),
-        ...(format ? AUDIO_FORMATS[format] : ["-c:v", "copy", ...EDIT_AUDIO]),
+        "-ar",
+        String(audio.sampleRate),
+        ...(format ? AUDIO_FORMATS[format] : [...picture, ...EDIT_AUDIO]),
         o,
       ],
     });
