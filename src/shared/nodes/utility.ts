@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { missing, row, truncate } from "./card";
 import { defineNode } from "./define";
 import { more, text } from "./params";
 
@@ -34,6 +35,12 @@ const noteNode = defineNode({
   inputs: {},
   outputs: {},
   params: noteParams,
+  card: ({ params: p }) => {
+    const first = p.text.split("\n").find((line) => line.trim());
+    return [
+      first ? row("sticky-note", truncate(first.trim())) : missing("sticky-note", "Write a note"),
+    ];
+  },
 });
 
 export const utilityNodes = [groupNode, noteNode];

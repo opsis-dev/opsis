@@ -275,7 +275,7 @@ export const reverseNode = op({
   usesProjectSize: true,
   title: "Reverse",
   description: "Plays a file backwards." + NEW_FILE,
-  card: ({ result }) => [lengthRow(result)],
+  card: ({ result }) => [row("refresh-cw", "Plays backwards"), lengthRow(result)],
   params: z.object({}),
 });
 
@@ -401,6 +401,7 @@ export const faststartNode = op({
   type: "media.faststart",
   title: "Web-ready",
   description: "Prepares a video to start playing instantly on the web." + NEW_FILE,
+  card: ({ result }) => [row("globe", "Starts playing before it fully loads"), lengthRow(result)],
   params: z.object({}),
 });
 

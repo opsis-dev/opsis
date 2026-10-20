@@ -35,7 +35,7 @@ describe("node cards", () => {
     const result = nodeResult({
       outputs: { media: { type: "media", src: null, kind: "video", durationMs: 1000 } },
     });
-    const empty = NODE_DEFS.filter((def) => def.card).filter((def) => {
+    const empty = NODE_DEFS.filter((def) => !def.hidden).filter((def) => {
       const out = cardRows(def, {
         params: defaultParams(def.type),
         settings,
