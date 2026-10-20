@@ -184,6 +184,7 @@ const PROP_OVERRIDES: Partial<Record<string, PropOverride>> = {
   tailOpacity: { label: "Last bar opacity", advanced: true },
   slide: { label: "Slide distance", advanced: true },
   media: { label: "Fill" },
+  upColor: { label: "Increase color" },
   downColor: { label: "Decrease color" },
   showDelta: { label: "Show change" },
   delta: { label: "Change" },

@@ -1,6 +1,7 @@
 import { interpolate, useCurrentFrame } from "remotion";
 import {
   formatCompactNumber,
+  readDelta,
   type ChartDatum,
 } from "@/video/lib/remotion-ui/chart-utils";
 import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
@@ -24,6 +25,10 @@ export type DonutChartProps = {
   trackColor?: string;
   labelColor?: string;
   inkColor?: string;
+  /** Colour of a legend change that is a rise. */
+  upColor?: string;
+  /** Colour of a legend change that is a fall. */
+  downColor?: string;
   /** Length of one segment's sweep. Segments overlap by design. */
   durationInFrames?: number;
   /** Frames between the start of one segment and the next. */
@@ -66,6 +71,8 @@ export const DonutChart: React.FC<DonutChartProps> = ({
   trackColor = "rgba(250,250,250,0.08)",
   labelColor = "rgba(250,250,250,0.58)",
   inkColor = "#fafafa",
+  upColor = "#2dd4bf",
+  downColor = "#f87171",
   durationInFrames = 26,
   staggerInFrames = 9,
   delayInFrames = 0,
@@ -252,6 +259,23 @@ export const DonutChart: React.FC<DonutChartProps> = ({
               >
                 {Math.round(segment.fraction * segment.progress * 100)}%
               </span>
+              {segment.delta ? (
+                <span
+                  style={{
+                    color:
+                      readDelta(segment.delta).direction === "down"
+                        ? downColor
+                        : readDelta(segment.delta).direction === "up"
+                          ? upColor
+                          : labelColor,
+                    fontSize: size * 0.052,
+                    fontWeight: 600,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {readDelta(segment.delta).text}
+                </span>
+              ) : null}
             </div>
           ))}
         </div>

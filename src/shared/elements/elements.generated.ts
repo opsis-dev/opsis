@@ -1836,6 +1836,8 @@ const defs: ElementMetaInput[] = [
       trackColor: zColor().default("rgba(250,250,250,0.08)").meta({ description: "Track color" }),
       labelColor: zColor().default("rgba(250,250,250,0.58)").meta({ description: "Label color" }),
       inkColor: zColor().default("#fafafa").meta({ description: "Text color" }),
+      upColor: zColor().default("#2dd4bf").meta({ description: "Increase color" }),
+      downColor: zColor().default("#f87171").meta({ description: "Decrease color" }),
     }),
     fixedProps: {},
     defaultDurationInFrames: 120,
