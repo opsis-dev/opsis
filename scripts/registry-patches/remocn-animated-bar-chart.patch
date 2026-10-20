@@ -1,9 +1,10 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Treat an all-zero chart as zero-height bars and shrink the gap when many bars would not fit, so bars never get a NaN height or a negative width.
 
 diff --git a/src/video/elements/remocn/animated-bar-chart.tsx b/src/video/elements/remocn/animated-bar-chart.tsx
-index 9884a8e..2f8904f 100644
+index 9884a8e..b4de6dd 100644
 --- a/src/video/elements/remocn/animated-bar-chart.tsx
 +++ b/src/video/elements/remocn/animated-bar-chart.tsx
 @@ -1,4 +1,5 @@
@@ -13,7 +14,7 @@ index 9884a8e..2f8904f 100644
  
  export interface AnimatedBarChartProps {
    data?: number[];
-@@ -23,8 +24,8 @@ export function AnimatedBarChart({
+@@ -23,15 +24,19 @@ export function AnimatedBarChart({
    speed = 1,
    className,
  }: AnimatedBarChartProps) {
@@ -24,7 +25,29 @@ index 9884a8e..2f8904f 100644
  
    const padding = 60;
    const labelSpace = labels ? 40 : 0;
-@@ -84,7 +85,7 @@ export function AnimatedBarChart({
+   const innerWidth = width - padding * 2;
+   const innerHeight = height - padding * 2 - labelSpace;
+-  const max = Math.max(...data);
+-  const barWidth = (innerWidth - gap * (data.length - 1)) / data.length;
++  const max = Math.max(...data, 0) || 1;
++  const fitGap = Math.max(
++    0,
++    Math.min(gap, (innerWidth - data.length) / Math.max(1, data.length - 1)),
++  );
++  const barWidth = Math.max(1, (innerWidth - fitGap * (data.length - 1)) / data.length);
+   const baseY = padding + innerHeight;
+ 
+   return (
+@@ -60,7 +65,7 @@ export function AnimatedBarChart({
+ 
+         {data.map((value, index) => {
+           const targetHeight = (value / max) * innerHeight;
+-          const x = padding + index * (barWidth + gap);
++          const x = padding + index * (barWidth + fitGap);
+           const y = baseY - targetHeight;
+ 
+           const scaleY = spring({
+@@ -84,7 +89,7 @@ export function AnimatedBarChart({
                    scale: `1 ${scaleY}`,
                    transformOrigin: `${x + barWidth / 2}px ${baseY}px`,
                    transformBox: "fill-box",

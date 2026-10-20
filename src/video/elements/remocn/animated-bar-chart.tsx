@@ -31,8 +31,12 @@ export function AnimatedBarChart({
   const labelSpace = labels ? 40 : 0;
   const innerWidth = width - padding * 2;
   const innerHeight = height - padding * 2 - labelSpace;
-  const max = Math.max(...data);
-  const barWidth = (innerWidth - gap * (data.length - 1)) / data.length;
+  const max = Math.max(...data, 0) || 1;
+  const fitGap = Math.max(
+    0,
+    Math.min(gap, (innerWidth - data.length) / Math.max(1, data.length - 1)),
+  );
+  const barWidth = Math.max(1, (innerWidth - fitGap * (data.length - 1)) / data.length);
   const baseY = padding + innerHeight;
 
   return (
@@ -61,7 +65,7 @@ export function AnimatedBarChart({
 
         {data.map((value, index) => {
           const targetHeight = (value / max) * innerHeight;
-          const x = padding + index * (barWidth + gap);
+          const x = padding + index * (barWidth + fitGap);
           const y = baseY - targetHeight;
 
           const scaleY = spring({
