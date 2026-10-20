@@ -57,6 +57,8 @@ type Token = {
   kind: "code" | "comment" | "string" | "keyword" | "number";
 };
 
+const MIN_FONT_SIZE = 9;
+
 function tokenizeLine(line: string): Token[] {
   // Whole-line comment.
   const trimmed = line.trimStart();
@@ -66,7 +68,7 @@ function tokenizeLine(line: string): Token[] {
 
   const tokens: Token[] = [];
   // Split keeping delimiters: words, strings, numbers, everything else.
-  const re = /("[^"]*"|'[^']*'|`[^`]*`|\b\d+\b|\b[A-Za-z_$][\w$]*\b|[^\w"']+)/g;
+  const re = /("[^"]*"|'[^']*'|`[^`]*`|\b\d+\b|\b[A-Za-z_$][\w$]*\b|[^\w"'`]+|["'`])/g;
   let match: RegExpExecArray | null = re.exec(line);
   while (match !== null) {
     const t = match[0];
@@ -108,6 +110,23 @@ export function GlassCodeBlock({
 }: GlassCodeBlockProps) {
   const realFrames = useRealFrames();
   const lines = code.split("\n");
+  const digits = String(lines.length).length;
+  const longest = Math.max(1, ...lines.map((line) => line.length));
+  const bodyHeight = height - 2 - 40 - 40;
+  const fitted = Math.max(
+    MIN_FONT_SIZE,
+    Math.min(
+      fontSize,
+      (width - 2 - 48) / ((longest + digits + 1) * 0.62),
+      (bodyHeight / lines.length - 4) / 1.55,
+    ),
+  );
+  const frame = useAuthoredFrame();
+  const shown =
+    staggerFrames > 0
+      ? Math.min(lines.length, Math.floor((frame * speed) / staggerFrames) + 1)
+      : lines.length;
+  const scroll = Math.max(0, shown * (fitted * 1.55 + 4) - bodyHeight);
 
   return (
     <div
@@ -186,22 +205,26 @@ export function GlassCodeBlock({
             style={{
               flex: 1,
               padding: "20px 24px",
+              overflow: "hidden",
+              clipPath: "inset(20px 0)",
               display: "flex",
               flexDirection: "column",
               gap: 4,
-              fontSize,
+              fontSize: fitted,
               lineHeight: 1.55,
             }}
           >
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, translate: `0 ${-scroll}px` }}>
             {lines.map((line, i) => (
               <Sequence
                 key={i}
                 from={Math.round(realFrames((i * staggerFrames) / speed))}
                 layout="none"
               >
-                <CodeLine line={line} index={i} fontSize={fontSize} />
+                <CodeLine line={line} index={i} digits={digits} fontSize={fitted} />
               </Sequence>
             ))}
+            </div>
           </div>
         </div>
       </div>
@@ -226,10 +249,12 @@ function Light({ color }: { color: string }) {
 function CodeLine({
   line,
   index,
+  digits,
   fontSize,
 }: {
   line: string;
   index: number;
+  digits: number;
   fontSize: number;
 }) {
   const frame = useAuthoredFrame();
@@ -258,8 +283,8 @@ function CodeLine({
         gap: 0,
       }}
     >
-      <span style={{ width: 28, color: "#3f3f46", userSelect: "none" }}>
-        {String(index + 1).padStart(2, " ")}
+      <span style={{ width: `${digits + 1}ch`, flexShrink: 0, color: "#3f3f46", userSelect: "none" }}>
+        {String(index + 1).padStart(digits, " ")}
       </span>
       <span>
         {tokens.map((t, i) => (
