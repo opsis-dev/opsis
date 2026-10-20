@@ -409,22 +409,34 @@ export const pressNode = defineNode({
   ],
 });
 
-const waitParams = z.object({
-  mode: choice(["element", "network-idle", "url", "ms"], "element", "Wait for", {
-    element: "An element",
-    "network-idle": "A quiet page",
-    url: "An address",
-    ms: "A fixed time",
-  }),
-  target: more(optionalTarget("Element"), { showIf: { mode: ["element"] } }),
-  targetRole: pickedRole(),
-  url: more(text("", "Address pattern"), {
-    help: "Use * as a wildcard, e.g. */dashboard*.",
-    showIf: { mode: ["url"] },
-  }),
-  ms: more(ms(1000, "Time"), { showIf: { mode: ["ms"] } }),
-  timeoutMs: giveUpAfter(20_000),
-});
+const waitParams = z
+  .object({
+    mode: choice(["element", "network-idle", "url", "ms"], "element", "Wait for", {
+      element: "An element",
+      "network-idle": "A quiet page",
+      url: "An address",
+      ms: "A fixed time",
+    }),
+    target: more(optionalTarget("Element"), { showIf: { mode: ["element"] } }),
+    targetRole: pickedRole(),
+    url: more(text("", "Address pattern"), {
+      help: "Use * as a wildcard, e.g. */dashboard*.",
+      showIf: { mode: ["url"] },
+    }),
+    ms: more(ms(1000, "Time"), { showIf: { mode: ["ms"] } }),
+    timeoutMs: giveUpAfter(20_000),
+  })
+  .superRefine((p, ctx) => {
+    const missingWhat =
+      (p.mode === "element" && !p.target.trim() && "Pick what to wait for") ||
+      (p.mode === "url" && !p.url.trim() && "Add an address pattern");
+    if (missingWhat)
+      ctx.addIssue({
+        code: "custom",
+        message: missingWhat,
+        path: [p.mode === "url" ? "url" : "target"],
+      });
+  });
 
 function waitRow(p: z.infer<typeof waitParams>): CardRow {
   switch (p.mode) {

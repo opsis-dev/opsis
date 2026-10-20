@@ -51,7 +51,9 @@ describe("browser action settings", () => {
   it("never gives up after 0 s, which would wait forever", () => {
     for (const node of [waitNode, assertNode]) {
       expect(node.params.safeParse({ timeoutMs: 0 }).success).toBe(false);
-      expect(node.params.safeParse({ text: "Saved", timeoutMs: 500 }).success).toBe(true);
+      expect(
+        node.params.safeParse({ mode: "network-idle", text: "Saved", timeoutMs: 500 }).success,
+      ).toBe(true);
     }
   });
 
@@ -67,6 +69,18 @@ describe("browser action settings", () => {
     expect(problem("assets/../../secret.txt")).toBe("Choose a file inside the project folder");
     expect(problem("/etc/passwd")).toBe("Choose a file inside the project folder");
     expect(problem("C:\\Users\\me\\a.txt")).toBe("Choose a file inside the project folder");
+  });
+
+  it("asks what to wait for instead of waiting on nothing", () => {
+    const problem = (params: Record<string, unknown>) => {
+      const parsed = parseParams(waitNode.params, params);
+      return parsed.ok ? null : parsed.problem;
+    };
+    expect(problem({ mode: "element", target: " " })).toBe("Pick what to wait for");
+    expect(problem({ mode: "url", url: "" })).toBe("Add an address pattern");
+    expect(problem({ mode: "url", url: "*/done*" })).toBeNull();
+    expect(problem({ mode: "network-idle" })).toBeNull();
+    expect(problem({ mode: "ms", ms: 500 })).toBeNull();
   });
 
   it("refuses to check for blank text, which every page contains", () => {
