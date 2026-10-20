@@ -11,6 +11,7 @@ export type Shot = ShotArea & { scale: number };
 const CUTOUT_FIT = 0.8;
 const CUTOUT_MAX_UPSCALE = 1.5;
 const TALL_SHOT = 1.5;
+const TALLEST_CUTOUT = 4;
 
 const CAPTURE = {
   maxExportScale: 2,
@@ -89,6 +90,9 @@ function maxScaleFor(region: Size): number {
     CAPTURE.maxScale,
   );
 }
+
+export const tallestShot = (look: StillLook, width: number, canvas: Size): number =>
+  Math.ceil(look === "cutout" ? width * TALLEST_CUTOUT : (width * TALL_SHOT) / aspectOf(canvas));
 
 export const captureCanvas = (project: Size): Size => ({
   width: project.width * CAPTURE.maxExportScale,

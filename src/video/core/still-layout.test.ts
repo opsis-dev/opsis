@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { captureScale, containBox, stillLayout, type Box, type Shot } from "./still-layout";
+import {
+  captureScale,
+  containBox,
+  stillLayout,
+  tallestShot,
+  type Box,
+  type Shot,
+} from "./still-layout";
 
 const HD = { width: 1920, height: 1080 };
 
@@ -127,5 +134,18 @@ describe("captureScale", () => {
     expect(
       captureScale("bleed", { width: 1920, height: 20_000 }, canvas, { fit: 0.86, least: 2 }),
     ).toBe(1);
+  });
+});
+
+describe("tallestShot", () => {
+  const canvas = { width: 3840, height: 2160 };
+
+  it("keeps as much of a tall page as a window or full bleed can show", () => {
+    expect(tallestShot("window", 1920, canvas)).toBe(1620);
+    expect(tallestShot("bleed", 1920, canvas)).toBe(1620);
+  });
+
+  it("lets a cut-out keep a page four times taller than wide", () => {
+    expect(tallestShot("cutout", 1920, canvas)).toBe(7680);
   });
 });

@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Page } from "playwright-core";
+import type { Locator, Page } from "playwright-core";
 import { writeJson } from "../../engine/json";
 import { requireHeadlessShell } from "../../engine/paths";
 import { errorMessage } from "../../shared/errors";
@@ -20,7 +20,7 @@ import type { LoginRequest } from "../../shared/worker-protocol";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
 import { WINDOW_FIT } from "../../video/camera/lib/style";
-import { captureCanvas, captureScale, type Box } from "../../video/core/still-layout";
+import { captureCanvas, captureScale, tallestShot, type Box } from "../../video/core/still-layout";
 import { recordTake, stillTake } from "../capture/driver";
 import { FrameEncoder } from "../capture/encoder";
 import { elementOf } from "../capture/flow-types";
@@ -304,6 +304,18 @@ const viewOf = (page: Page): Promise<View> =>
     dpr: window.devicePixelRatio,
   }));
 
+const SIZE_TRIES = 20;
+const SIZE_POLL_MS = 50;
+
+async function sizedBox(page: Page, loc: Locator) {
+  let box = await loc.boundingBox();
+  for (let i = 0; i < SIZE_TRIES && box && (box.width < 1 || box.height < 1); i++) {
+    await page.waitForTimeout(SIZE_POLL_MS);
+    box = await loc.boundingBox();
+  }
+  return box;
+}
+
 async function elementRegion(
   ctx: ExecutorContext,
   page: Page,
@@ -312,8 +324,12 @@ async function elementRegion(
   const { target } = await resolveTarget(page, p.target, { log: ctx.log, signal: ctx.signal });
   const loc = elementOf(target);
   await loc.scrollIntoViewIfNeeded().catch(() => undefined);
-  const box = await loc.boundingBox();
-  if (!box) throw new Error(`Couldn't find "${p.target}" on the page for the screenshot.`);
+  const box = await sizedBox(page, loc);
+  if (!box) throw new Error(`Couldn't find “${p.target}” on the page for the screenshot.`);
+  if (box.width < 1 || box.height < 1)
+    throw new Error(
+      `“${p.target}” has no size on the page, so there's nothing to capture. Add space around it, or pick another element.`,
+    );
   const scroll = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
   const left = box.x + scroll.x;
   const top = box.y + scroll.y;
@@ -337,8 +353,17 @@ async function regionFor(
   view: View,
 ): Promise<ShotRegion> {
   if (p.region === "element") return elementRegion(ctx, page, p);
-  if (p.region === "full-page")
-    return { region: { x: 0, y: 0, width: view.pageWidth, height: view.pageHeight } };
+  if (p.region === "full-page") {
+    const tallest = tallestShot(p.look, view.pageWidth, captureCanvas(ctx.workflow.settings));
+    if (view.pageHeight > tallest)
+      ctx.log(
+        "info",
+        `The page is ${view.pageHeight} px tall; keeping the top ${tallest} px, as much as the video can show.`,
+      );
+    return {
+      region: { x: 0, y: 0, width: view.pageWidth, height: Math.min(view.pageHeight, tallest) },
+    };
+  }
   return { region: { x: view.x, y: view.y, width: view.width, height: view.height } };
 }
 
