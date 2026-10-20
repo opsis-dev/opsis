@@ -33,9 +33,27 @@ describe("parseParams", () => {
   it("names the first setting that is wrong and how", () => {
     expect(problem({ ...valid, name: undefined })).toBe("Name is missing");
     expect(problem({ ...valid, name: 3 })).toBe("Name isn't valid");
-    expect(problem({ ...valid, count: 0 })).toBe("Count is too small");
-    expect(problem({ ...valid, count: 9 })).toBe("Count is too large");
+    expect(problem({ ...valid, count: 0 })).toBe("Count must be at least 1");
+    expect(problem({ ...valid, count: 9 })).toBe("Count must be at most 3");
     expect(problem({ ...valid, target: "" })).toBe("Element is empty");
+  });
+
+  it("names the limit a number broke, in the unit the field shows", () => {
+    const limits = z.object({
+      waitMs: z.number().min(500).meta({ description: "Wait", unit: "ms" }),
+      lengthInFrames: z.number().min(1).meta({ description: "Length", unit: "frames" }),
+      zoom: z.number().max(4).meta({ description: "Zoom", unit: "×" }),
+      gap: z.number().positive().meta({ description: "Gap", unit: "px" }),
+    });
+    const ok = { waitMs: 500, lengthInFrames: 1, zoom: 1, gap: 1 };
+    const wrong = (values: object) => {
+      const parsed = parseParams(limits, { ...ok, ...values });
+      return parsed.ok ? null : parsed.problem;
+    };
+    expect(wrong({ waitMs: 100 })).toBe("Wait must be at least 0.5 s");
+    expect(wrong({ lengthInFrames: 0 })).toBe("Length is too short");
+    expect(wrong({ zoom: 5 })).toBe("Zoom must be at most 4×");
+    expect(wrong({ gap: 0 })).toBe("Gap must be more than 0 px");
   });
 
   it("says a number setting can't hold a variable", () => {

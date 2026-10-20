@@ -209,14 +209,20 @@ describe("every browser action", () => {
 
   it("keeps numbers inside their limits", () => {
     expect(firstProblem("browser.scroll", { mode: "by", deltaY: 20_001 })).toBe(
-      "Distance is too large",
+      "Distance must be at most 20,000 px",
     );
-    expect(firstProblem("browser.wait", { mode: "ms", ms: 600_001 })).toBe("Time is too large");
+    expect(firstProblem("browser.wait", { mode: "ms", ms: 600_001 })).toBe(
+      "Time must be at most 10 min",
+    );
     expect(firstProblem("browser.drag", { target: "Card", mode: "by", dx: -10_001 })).toBe(
-      "Across is too small",
+      "Across must be at least −10,000 px",
     );
-    expect(firstProblem("browser.session", { viewportWidth: 10 })).toMatch(/is too small$/);
-    expect(firstProblem("browser.click", { target: "Save", after: -1 })).toMatch(/is too small$/);
+    expect(firstProblem("browser.session", { viewportWidth: 10 })).toBe(
+      "Window width must be at least 320 px",
+    );
+    expect(firstProblem("browser.click", { target: "Save", after: -1 })).toBe(
+      "Pause after must be at least 0 s",
+    );
   });
 
   it("fills variables into text settings before a run", () => {

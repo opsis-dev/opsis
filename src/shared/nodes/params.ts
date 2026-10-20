@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { parseColor } from "../color";
 import { fieldMeta, type FieldMeta } from "../elements/introspect";
-import { humanize, signedText } from "../format";
+import { formatDuration, humanize, signOf, signedText } from "../format";
 import { isKeyOf } from "../guards";
 import { MAX_FRAMES, MAX_SPEED, MAX_VOLUME } from "../limits";
 import type { MinMax } from "../math";
@@ -255,6 +255,31 @@ function choiceList(values: unknown[], unit: string | undefined): string {
   return unit ? `${list} ${unit}` : list;
 }
 
+const ATTACHED_UNITS = new Set(["×", "%", "°"]);
+
+function limitText(limit: number, unit: string | undefined): string | null {
+  if (unit === "frames") return null;
+  if (unit === "ms") return formatDuration(limit);
+  const number = `${signOf(limit)}${Math.abs(limit).toLocaleString("en-GB", { maximumFractionDigits: 3 })}`;
+  if (!unit) return number;
+  return ATTACHED_UNITS.has(unit) ? `${number}${unit}` : `${number} ${unit}`;
+}
+
+function rangeWording(
+  issue: z.core.$ZodIssueTooSmall | z.core.$ZodIssueTooBig,
+  unit: string | undefined,
+): string {
+  const low = issue.code === "too_small";
+  const bound = low ? issue.minimum : issue.maximum;
+  const limit = issue.origin === "number" ? limitText(Number(bound), unit) : null;
+  if (limit === null) {
+    if (issue.origin === "number" && unit === "frames") return low ? "is too short" : "is too long";
+    return low ? "is too small" : "is too large";
+  }
+  if (issue.inclusive === false) return `must be ${low ? "more" : "less"} than ${limit}`;
+  return `must be at ${low ? "least" : "most"} ${limit}`;
+}
+
 function issueWording(
   issue: z.core.$ZodIssue,
   { unit, written }: { unit?: string; written?: unknown } = {},
@@ -263,9 +288,11 @@ function issueWording(
   if (allowed) return `must be ${choiceList(allowed, unit)}`;
   switch (issue.code) {
     case "too_small":
-      return issue.origin === "string" && Number(issue.minimum) === 1 ? "is empty" : "is too small";
+      return issue.origin === "string" && Number(issue.minimum) === 1
+        ? "is empty"
+        : rangeWording(issue, unit);
     case "too_big":
-      return "is too large";
+      return rangeWording(issue, unit);
     case "invalid_type":
       if (issue.input === undefined) return "is missing";
       return issue.expected === "number" && hasVariable(written ?? issue.input)

@@ -50,7 +50,7 @@ describe("Media file settings", () => {
   it("never shows an image for no time at all", () => {
     expect(parseParams(importMediaNode.params, { path: "a.png", stillMs: 0 })).toEqual({
       ok: false,
-      problem: "Length is too small",
+      problem: "Length must be at least 0.1 s",
     });
   });
 });

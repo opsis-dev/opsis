@@ -139,7 +139,7 @@ describe("Screenshot clip", () => {
   it("never lasts no time at all", () => {
     expect(parseParams(stillNode.params, { durationMs: 0 })).toEqual({
       ok: false,
-      problem: "Length is too small",
+      problem: "Length must be at least 0.1 s",
     });
   });
 });

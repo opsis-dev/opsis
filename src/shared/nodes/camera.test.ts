@@ -21,7 +21,9 @@ describe("Crop", () => {
     expect(problem("camera.crop", { x: 0, y: 0.6, w: 0.5, h: 0.5 })).toBe(
       "The area runs past the bottom edge",
     );
-    expect(problem("camera.crop", { x: 0, y: 0, w: 0, h: 0.5 })).toBe("Width is too small");
+    expect(problem("camera.crop", { x: 0, y: 0, w: 0, h: 0.5 })).toBe(
+      "Width must be at least 0.05",
+    );
   });
 });
 
@@ -112,8 +114,10 @@ describe("Zoom here, Pan and Follow cursor", () => {
   });
 
   it("never holds, pans or re-aims for no time at all", () => {
-    expect(problem("camera.manualZoom", { holdMs: 0 })).toBe("Hold is too small");
-    expect(problem("camera.pan", { durationMs: 0 })).toBe("Pan for is too small");
-    expect(problem("camera.followCursor", { everyMs: 0 })).toBe("Re-aim every is too small");
+    expect(problem("camera.manualZoom", { holdMs: 0 })).toBe("Hold must be at least 0.1 s");
+    expect(problem("camera.pan", { durationMs: 0 })).toBe("Pan for must be at least 0.1 s");
+    expect(problem("camera.followCursor", { everyMs: 0 })).toBe(
+      "Re-aim every must be at least 0.2 s",
+    );
   });
 });
