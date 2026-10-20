@@ -99,6 +99,7 @@ export type CuratedElement = {
   defaults?: Record<string, unknown>;
   fixedProps?: Record<string, unknown>;
   durationInFrames?: number;
+  design?: { width: number; height: number };
   kind?: "component" | "wrapper" | "presentation" | "sequencer";
   sceneItem?: string;
   center?: boolean;
@@ -173,6 +174,8 @@ const fromRegistry =
     extra: Partial<CuratedElement> = {},
   ): CuratedElement[] =>
     names.map((name) => ({ registry, name, category, ...base, ...extra }));
+
+const FULL_HD = { width: 1920, height: 1080 };
 
 const remocn = fromRegistry("remocn");
 const snapcn = fromRegistry("snapcn");
@@ -280,6 +283,7 @@ const REMOTION_UI: CuratedElement[] = [
   }),
   ...remotionui("data", ["funnel-chart"], {
     title: "Funnel chart",
+    design: FULL_HD,
     center: true,
     defaults: {
       width: 1100,
@@ -295,6 +299,7 @@ const REMOTION_UI: CuratedElement[] = [
   }),
   ...remotionui("data", ["donut-chart"], {
     title: "Donut chart",
+    design: FULL_HD,
     center: true,
     defaults: {
       size: 520,
@@ -309,6 +314,7 @@ const REMOTION_UI: CuratedElement[] = [
   }),
   ...remotionui("data", ["comparison-bars"], {
     title: "Before and after bars",
+    design: FULL_HD,
     center: true,
     defaults: {
       width: 1100,
@@ -325,6 +331,7 @@ const REMOTION_UI: CuratedElement[] = [
   }),
   ...remotionui("data", ["bar-chart-race"], {
     title: "Bar chart race",
+    design: FULL_HD,
     center: true,
     defaults: {
       width: 1200,
@@ -469,6 +476,7 @@ const REMOTION_UI: CuratedElement[] = [
   }),
   ...remotionui("device", ["multi-device-lineup"], {
     title: "Device lineup",
+    design: FULL_HD,
     kind: "wrapper",
     screen: true,
     center: true,
@@ -1666,12 +1674,14 @@ const LIST: CuratedElement[] = [
     "agent-run",
   ]),
   ...remocn("data", ["animated-bar-chart", "animated-line-chart", "rolling-number"]),
-  ...remocn("scene", ["signup-flow", "ai-prompt-flow", "command-menu"], { durationInFrames: 240 }),
+  ...remocn("scene", ["signup-flow", "ai-prompt-flow", "command-menu"], {
+    durationInFrames: 240,
+    design: FULL_HD,
+  }),
   ...remocn("scene", ["release-teaser"], { durationInFrames: 300 }),
   ...remocn("scene", ["launch-anything"], { durationInFrames: 600 }),
-  ...snapcn("device", ["laptop-frame", "phone-frame", "screen-recording"], {
-    durationInFrames: 240,
-  }),
+  ...snapcn("device", ["laptop-frame", "phone-frame"], { durationInFrames: 240, design: FULL_HD }),
+  ...snapcn("device", ["screen-recording"], { durationInFrames: 240 }),
   ...snapcn("text", ["announce-title"]),
   ...snapcn("text", ["punch-lines", "text-highlight", "status-cycle"]),
   ...snapcn("scene", ["logo-assemble", "logo-drift", "hero-launch"], { durationInFrames: 180 }),

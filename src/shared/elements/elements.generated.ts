@@ -1193,6 +1193,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 240,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/ai-prompt-flow",
@@ -1210,6 +1211,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 240,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/command-menu",
@@ -1230,6 +1232,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 240,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/release-teaser",
@@ -1337,6 +1340,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 240,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "snapcn/phone-frame",
@@ -1365,6 +1369,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 240,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "snapcn/screen-recording",
@@ -1764,6 +1769,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 120,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remotion-ui/donut-chart",
@@ -1788,6 +1794,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 120,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remotion-ui/comparison-bars",
@@ -1815,6 +1822,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 120,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remotion-ui/bar-chart-race",
@@ -1839,6 +1847,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 120,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remotion-ui/gauge-dial",
@@ -2223,6 +2232,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 120,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remotion-ui/handwriting-text",

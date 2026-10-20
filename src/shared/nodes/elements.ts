@@ -235,12 +235,17 @@ function compileElement(
   if (meta.kind !== "wrapper" || !input) {
     const frames = clipDuration || animationLength(meta, params, fps);
     const audio = elementSounds(meta, nodeId, props, frames);
-    return itemClip(nodeId, meta.key, props, frames, { handles, envelope, audio });
+    return itemClip(nodeId, meta.key, props, frames, {
+      handles,
+      envelope,
+      audio,
+      design: meta.design,
+    });
   }
   const wrapped = wrapClip(
     input,
     nodeId,
-    { wrapper: { component: meta.key, props } },
+    { wrapper: { component: meta.key, props }, ...(meta.design ? { design: meta.design } : {}) },
     clipDuration || input.durationInFrames,
   );
   return withHandles(wrapped, handles, envelope);

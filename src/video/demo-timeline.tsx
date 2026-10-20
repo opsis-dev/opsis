@@ -39,7 +39,6 @@ import {
   useAssetBase,
 } from "./assets";
 import { CLAMP_RIGHT, fadeWindow } from "./core/anim";
-import { sameShape } from "./core/frame";
 import type { Size } from "./core/still-layout";
 import { FontProvider } from "./fonts/font-provider";
 import {
@@ -146,9 +145,11 @@ const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
   const base = useAssetBase();
   const element = useResolvedElement(item.component, getComponent);
   if (element?.status === "unknown") return <MissingElement name={item.component} />;
-  return element?.status === "ready"
-    ? createElement(element.impl, resolveProps(item.props, base))
-    : null;
+  return element?.status === "ready" ? (
+    <DesignBox design={item.design}>
+      {createElement(element.impl, resolveProps(item.props, base))}
+    </DesignBox>
+  ) : null;
 };
 
 const cropScale = (crop: Rect): number => 1 / Math.max(MIN_CROP, crop.w, crop.h);
@@ -277,7 +278,7 @@ const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children 
 
 const DesignBox: Wrap<{ design?: Size }> = ({ design, children }) => {
   const { width, height } = useVideoConfig();
-  if (!design || sameShape({ width, height }, design)) return <>{children}</>;
+  if (!design || (width === design.width && height === design.height)) return <>{children}</>;
   const scale = Math.min(width / design.width, height / design.height);
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", overflow: "hidden" }}>

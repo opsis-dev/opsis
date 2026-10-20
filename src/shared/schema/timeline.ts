@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { projectFontsSchema } from "../fonts/types";
 import { isKeyOf, isRecord } from "../guards";
+import { viewportSchema } from "./actions";
 import { DEFAULT_WORKFLOW_SETTINGS } from "./workflow";
 
 export const transitionRefSchema = z.object({
@@ -104,6 +105,7 @@ const timelineItemSchema = elementRefSchema.extend({
   handles: editHandlesSchema.optional(),
   slot: slotSchema.optional(),
   envelope: visualEnvelopeSchema.optional(),
+  design: viewportSchema.optional(),
 });
 
 export type TimelineItem = z.infer<typeof timelineItemSchema>;

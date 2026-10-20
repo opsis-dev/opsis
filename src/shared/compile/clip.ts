@@ -3,7 +3,7 @@ import { findById } from "../lists";
 import { clamp } from "../math";
 import { parseOncePer } from "../memo";
 import type { InputTake } from "../nodes/card";
-import { rectSchema, viewportSchema } from "../schema/actions";
+import { rectSchema, type Viewport, viewportSchema } from "../schema/actions";
 import {
   elementRefSchema,
   timelineTrackSchema,
@@ -112,6 +112,7 @@ export type ItemExtra = {
   audio?: AudioItem[];
   handles?: EditHandles;
   envelope?: VisualEnvelope;
+  design?: Viewport;
 };
 
 export function itemClip<C extends string>(
@@ -131,6 +132,7 @@ export function itemClip<C extends string>(
     nodeId,
     ...(extra.handles ? { handles: extra.handles } : {}),
     ...(hasKeys(extra.envelope) ? { envelope: extra.envelope } : {}),
+    ...(extra.design ? { design: extra.design } : {}),
   };
   return makeClip({
     durationInFrames: duration,

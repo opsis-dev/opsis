@@ -134,3 +134,13 @@ describe("element look rows", () => {
     });
   });
 });
+
+describe("element layout", () => {
+  it("draws a fixed-size element on the frame it was laid out for", () => {
+    expect(firstItem("fx.remotion-ui.funnel-chart", {}).design).toEqual({
+      width: 1920,
+      height: 1080,
+    });
+    expect(firstItem("fx.remocn.soft-blur-in", { text: "Hi" }).design).toBeUndefined();
+  });
+});
