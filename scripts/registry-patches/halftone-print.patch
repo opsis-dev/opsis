@@ -1,0 +1,41 @@
+Fixes:
+- Read the colour through the shared colour parser, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours tint the effect instead of turning white.
+
+diff --git a/src/video/elements/remocn/halftone-print.tsx b/src/video/elements/remocn/halftone-print.tsx
+index 65890e1..0a6f728 100644
+--- a/src/video/elements/remocn/halftone-print.tsx
++++ b/src/video/elements/remocn/halftone-print.tsx
+@@ -5,6 +5,7 @@ import {
+   makeCanvasFilter,
+   makeFilterShader,
+ } from "@/video/lib/remocn/canvas-presentation";
++import { parseColor } from "@/video/lib/remocn-ui/color";
+ 
+ export type HalftonePrintProps = {
+   dotSize?: number;
+@@ -90,22 +91,9 @@ void main() {
+   outColor = vec4(color * source.a, source.a);
+ }`;
+ 
+-function toRgb(hex: string): [number, number, number] {
+-  const value = hex.replace("#", "");
+-  const full =
+-    value.length === 3
+-      ? value
+-          .split("")
+-          .map((c) => c + c)
+-          .join("")
+-      : value;
+-  const int = Number.parseInt(full, 16);
+-  if (Number.isNaN(int)) return [1, 1, 1];
+-  return [
+-    ((int >> 16) & 255) / 255,
+-    ((int >> 8) & 255) / 255,
+-    (int & 255) / 255,
+-  ];
++function toRgb(color: string): [number, number, number] {
++  const { r, g, b } = parseColor(color);
++  return [r, g, b];
+ }
+ 
+ const shader = makeFilterShader<NormalizedProps>(
