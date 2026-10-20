@@ -24,6 +24,8 @@ export type LogoRevealProps = {
   /** Fill flooded into the mark once the stroke closes. */
   fill?: string;
   backgroundColor?: string;
+  /** Wordmark colour; the tagline is a faded copy of it. */
+  textColor?: string;
   /**
    * Seconds the finished lockup holds before it retreats. Omit to leave it up
    * for the rest of the scene — inside a `TransitionSeries` the transition
@@ -35,9 +37,7 @@ export type LogoRevealProps = {
 const COLORS = {
   bg: "#080810",
   stroke: "#e8b86d",
-  glow: "rgba(232,184,109,0.22)",
   ink: "#f4f4f5",
-  muted: "rgba(244,244,245,0.6)",
 } as const;
 
 /** Beats: bloom → mark draws → wordmark → tagline. */
@@ -60,6 +60,7 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
   strokeWidth,
   fill,
   backgroundColor = COLORS.bg,
+  textColor = COLORS.ink,
   holdSeconds,
 }) => {
   const frame = useCurrentFrame();
@@ -156,7 +157,7 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
             width: markSize * 1.8,
             height: markSize * 1.8,
             borderRadius: "50%",
-            background: `radial-gradient(circle, ${COLORS.glow}, transparent 70%)`,
+            background: `radial-gradient(circle, color-mix(in srgb, ${stroke} 22%, transparent), transparent 70%)`,
             filter: `blur(${scaleFont(36, width)}px)`,
             opacity: bloom * 0.9,
             scale: 0.8 + bloom * 0.35,
@@ -180,7 +181,7 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
       {wordmark ? (
         <div
           style={{
-            color: COLORS.ink,
+            color: textColor,
             fontSize: scaleFont(84, width),
             fontWeight: 600,
             lineHeight: 1,
@@ -200,7 +201,7 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
       {tagline ? (
         <div
           style={{
-            color: COLORS.muted,
+            color: `color-mix(in srgb, ${textColor} 60%, transparent)`,
             fontSize: scaleFont(40, width),
             fontWeight: 500,
             lineHeight: 1.2,

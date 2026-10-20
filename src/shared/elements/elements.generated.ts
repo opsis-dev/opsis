@@ -1962,6 +1962,7 @@ const defs: ElementMetaInput[] = [
       tagline: z.string().default("Ship your next release faster").meta({ description: "Tagline", help: "Supporting line, entering last." }),
       stroke: zColor().default("#e8b86d").meta({ description: "Line color", help: "Mark stroke color." }),
       backgroundColor: zColor().default("#080810").meta({ description: "Background color", help: "Scene background." }),
+      textColor: zColor().default("#f4f4f5").meta({ description: "Text color" }),
       viewBox: z.string().default("").meta({ description: "Outline area", zeroLabel: "Fit", help: "Leave empty to fit the outline.", advanced: true }),
       size: z.number().min(20).max(2000).optional().meta({ description: "Logo size", zeroLabel: "Auto", step: 10, unit: "px" }),
       strokeWidth: z.number().min(1).max(40).optional().meta({ description: "Line width", zeroLabel: "Auto", step: 0.5, unit: "px", advanced: true }),
