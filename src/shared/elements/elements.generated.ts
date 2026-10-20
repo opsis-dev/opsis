@@ -2042,7 +2042,6 @@ const defs: ElementMetaInput[] = [
       summary: z.string().default("Captions, webhooks, and a queue that stops sulking.").meta({ description: "Summary", help: "Headline under the version. Omit for releases without one." }),
       startAtSeconds: z.number().default(0.66).meta({ description: "Start at (seconds)", step: 0.01, help: "Second the first change row arrives.", advanced: true }),
       staggerSeconds: z.number().default(0.28).meta({ description: "Stagger (seconds)", step: 0.01, help: "Seconds between rows. Each sentence trails its own tag by 0.08s.", advanced: true }),
-      accentColor: zColor().default("#E8B86D").meta({ description: "Accent color", help: "Fallback tag colour for kinds with no colour set." }),
       theme: z.enum(["dark","light"]).default("dark").meta({ description: "Theme", help: "Surface palette." }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25, help: "Animation speed multiplier." }),
       backgroundColor: z.string().default("").meta({ description: "Background", widget: "color", zeroLabel: "Theme", help: "Leave empty to follow the theme." }),

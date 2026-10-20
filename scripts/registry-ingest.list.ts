@@ -433,7 +433,13 @@ const REMOTION_UI: CuratedElement[] = [
   }),
   ...remotionui("scene", ["pricing-card"], { title: "Pricing card" }),
   ...remotionui("scene", ["comparison-table"], { title: "Plan comparison table" }),
-  ...remotionui("scene", ["changelog-entry"], { title: "Changelog" }),
+  ...remotionui("scene", ["changelog-entry"], {
+    title: "Changelog",
+    omit: {
+      accentColor:
+        "internal: a fallback for tag kinds with no colour, and every kind has its own colour",
+    },
+  }),
   ...remotionui("scene", ["logo-wall"], {
     title: "Logo wall",
     defaults: { title: "Teams that ship with us" },
