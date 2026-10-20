@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Draw a background that follows the theme, so the text reads in light and dark mode.
 
 diff --git a/src/video/elements/snap-cn/text-highlight.tsx b/src/video/elements/snap-cn/text-highlight.tsx
-index 2838e7e..d77258f 100644
+index 2838e7e..fa570d4 100644
 --- a/src/video/elements/snap-cn/text-highlight.tsx
 +++ b/src/video/elements/snap-cn/text-highlight.tsx
 @@ -6,9 +6,8 @@ import {
@@ -16,7 +17,23 @@ index 2838e7e..d77258f 100644
  import {
    parseColor,
    resolveFont,
-@@ -401,8 +400,8 @@ export function TextHighlight({
+@@ -366,6 +365,7 @@ export interface TextHighlightProps {
+   fontSize?: number;
+   fontWeight?: number;
+   speed?: number;
++  background?: string;
+   className?: string;
+ }
+ 
+@@ -376,6 +376,7 @@ export function TextHighlight({
+   preset = "logo-wipe",
+   baseColor,
+   accentColor,
++  background,
+   theme,
+   mode,
+   fontFamily,
+@@ -401,9 +402,10 @@ export function TextHighlight({
    speed = 1,
    className,
  }: TextHighlightProps) {
@@ -25,5 +42,23 @@ index 2838e7e..d77258f 100644
 +  const frame = useAuthoredFrame() * speed;
 +  const { fps, width, height } = useAuthoredConfig();
    const t = useSnapCnTheme(theme, mode);
++  const ground = background ?? t.background;
    const face =
      resolveFont(fontFamily ?? t.fontFamily) ??
+     "Inter, -apple-system, BlinkMacSystemFont, sans-serif";
+@@ -530,6 +532,7 @@ export function TextHighlight({
+         style={{
+           position: "absolute",
+           inset: 0,
++          background: ground,
+           display: "flex",
+           alignItems: "center",
+           justifyContent: "center",
+@@ -882,6 +885,7 @@ export function TextHighlight({
+       style={{
+         position: "absolute",
+         inset: 0,
++        background: ground,
+         display: "flex",
+         alignItems: "center",
+         justifyContent: "center",

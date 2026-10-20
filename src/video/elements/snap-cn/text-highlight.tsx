@@ -365,6 +365,7 @@ export interface TextHighlightProps {
   fontSize?: number;
   fontWeight?: number;
   speed?: number;
+  background?: string;
   className?: string;
 }
 
@@ -375,6 +376,7 @@ export function TextHighlight({
   preset = "logo-wipe",
   baseColor,
   accentColor,
+  background,
   theme,
   mode,
   fontFamily,
@@ -403,6 +405,7 @@ export function TextHighlight({
   const frame = useAuthoredFrame() * speed;
   const { fps, width, height } = useAuthoredConfig();
   const t = useSnapCnTheme(theme, mode);
+  const ground = background ?? t.background;
   const face =
     resolveFont(fontFamily ?? t.fontFamily) ??
     "Inter, -apple-system, BlinkMacSystemFont, sans-serif";
@@ -529,6 +532,7 @@ export function TextHighlight({
         style={{
           position: "absolute",
           inset: 0,
+          background: ground,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -881,6 +885,7 @@ export function TextHighlight({
       style={{
         position: "absolute",
         inset: 0,
+        background: ground,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

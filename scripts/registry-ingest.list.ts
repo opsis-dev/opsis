@@ -638,6 +638,7 @@ const NEUTRAL_DEFAULTS: Partial<Record<string, Record<string, unknown>>> = {
     statuses: "recording, editing, exporting, live",
     chips: "Record, Auto zoom, Captions, Export, Share",
   },
+  "text-highlight": { baseColor: "" },
   "logo-assemble": {
     background: "",
     brandName: "Acme",
@@ -1567,6 +1568,11 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
         default: "",
         description: "After",
         showIf: { preset: WRITTEN_PRESETS },
+      },
+      highlightedTextColor: optionalColor("Highlighted text colour", "Auto"),
+      background: {
+        ...optionalColor("Background", "Theme"),
+        help: "Set it to transparent to lay the text over other layers.",
       },
       fontWeight: fontWeight(600),
       logoSrc: image("Logo", LOGO_MARK, { help: "The mark the logo wipe uses." }),
