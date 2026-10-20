@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
-import type { AudioItem } from "../schema/timeline";
+import type { AudioItem, TransitionRef } from "../schema/timeline";
 import { must } from "../test-fixtures";
 import { flattenSpec, nodeSpans } from "../timeline/flatten";
 import {
   clipToSpec,
+  emptyClip,
   groupItem,
   groupOf,
   itemClip,
@@ -320,5 +321,50 @@ describe("wrapSounds", () => {
 
   it("stops sounds where the clip ends", () => {
     expect(placed(wrapSounds([beep(0)], {}, 50))).toEqual([[0, 50, 0, 1]]);
+  });
+});
+
+describe("sequence transitions", () => {
+  const fade = (frames: number, hold = false): TransitionRef => ({
+    kind: "fade",
+    durationInFrames: frames,
+    ...(hold ? { hold } : {}),
+  });
+  const spans = (clips: number[], cuts: Array<TransitionRef | undefined>) => {
+    const seq = sequenceClips(
+      "s",
+      clips.map((f) => emptyClip(f)),
+      cuts,
+    );
+    return {
+      film: seq.durationInFrames,
+      items: seq.tracks[0].items.map((i) => [i.from, i.from + i.durationInFrames]),
+      cuts: seq.tracks[0].items.map((i) => i.enter?.durationInFrames ?? 0),
+    };
+  };
+  const most = (items: number[][], film: number) =>
+    Math.max(
+      ...Array.from({ length: film }, (_, f) => items.filter(([a, b]) => f >= a && f < b).length),
+    );
+
+  it("never lets one clip's two transitions overlap, so at most two clips show", () => {
+    const { film, items, cuts } = spans([30, 30, 30], [undefined, fade(60), fade(60)]);
+    expect(cuts).toEqual([0, 15, 15]);
+    expect(film).toBe(60);
+    expect(most(items, film)).toBe(2);
+  });
+
+  it("lets a transition between two clips use nearly all of the shorter one", () => {
+    expect(spans([30, 60], [undefined, fade(60)]).cuts).toEqual([0, 29]);
+  });
+
+  it("drops a transition into a one-frame clip", () => {
+    expect(spans([30, 1], [undefined, fade(10)]).cuts).toEqual([0, 0]);
+  });
+
+  it("keeps a held transition at its length, since the clips don't overlap", () => {
+    const { film, cuts } = spans([30, 30], [undefined, fade(45, true)]);
+    expect(cuts).toEqual([0, 45]);
+    expect(film).toBe(105);
   });
 });

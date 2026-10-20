@@ -264,17 +264,28 @@ export function withHandles(
 const shiftAudio = (audio: AudioItem[], offset: number, prefix: string): AudioItem[] =>
   audio.map((a) => ({ ...a, id: `${prefix}/${a.id}`, from: a.from + offset }));
 
-function resolveEnter(
-  previous: ClipValue,
-  clip: ClipValue,
-  enter: TransitionRef | undefined,
-): TransitionRef | undefined {
-  if (!enter) return undefined;
-  const longest = enter.hold
-    ? enter.durationInFrames
-    : Math.min(previous.durationInFrames, clip.durationInFrames) - 1;
-  const frames = clamp(longest, 0, enter.durationInFrames);
-  return frames > 0 ? { ...enter, durationInFrames: frames } : undefined;
+const overlaps = (t: TransitionRef | undefined): boolean => !!t && !t.hold;
+
+function shareOf(clip: ClipValue, otherSide: TransitionRef | undefined): number {
+  return overlaps(otherSide) ? Math.floor(clip.durationInFrames / 2) : clip.durationInFrames - 1;
+}
+
+function resolveEnters(
+  clips: ClipValue[],
+  transitions: Array<TransitionRef | undefined>,
+): Array<TransitionRef | undefined> {
+  return clips.map((clip, i) => {
+    const enter = i > 0 ? transitions[i] : undefined;
+    if (!enter) return undefined;
+    const longest = enter.hold
+      ? enter.durationInFrames
+      : Math.min(
+          shareOf(clips[i - 1], i > 1 ? transitions[i - 1] : undefined),
+          shareOf(clip, transitions[i + 1]),
+        );
+    const frames = clamp(longest, 0, enter.durationInFrames);
+    return frames > 0 ? { ...enter, durationInFrames: frames } : undefined;
+  });
 }
 
 const REMAP_START: Remap = [[0, 0]];
@@ -347,9 +358,7 @@ export function sequenceClips(
   opts: { ports?: string[]; slotNode?: string } = {},
 ): ClipValue {
   if (clips.length === 0) return emptyClip();
-  const enters = clips.map((clip, i) =>
-    i > 0 ? resolveEnter(clips[i - 1], clip, transitions[i]) : undefined,
-  );
+  const enters = resolveEnters(clips, transitions);
   const { at, end } = sequencePlacements(clips, enters);
   const items = clips.map((clip, i) => {
     const port = opts.ports?.[i];
