@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- The wrapped clip sat in a box sized to its content, and a clip fills its parent, so it had no room: text wrapped to one letter per line; the box now has the frame's size, so the clip flies in whole and lands covering the frame.
 
 diff --git a/src/video/elements/remocn/speed-lines.tsx b/src/video/elements/remocn/speed-lines.tsx
-index 5b1e6a0..9d21eea 100644
+index 5b1e6a0..2ecfe43 100644
 --- a/src/video/elements/remocn/speed-lines.tsx
 +++ b/src/video/elements/remocn/speed-lines.tsx
 @@ -1,5 +1,6 @@
@@ -24,3 +25,13 @@ index 5b1e6a0..9d21eea 100644
    const state = getSpeedLinesState(frame, {
      mode,
      from,
+@@ -608,7 +609,8 @@ export function SpeedLines({
+             position: "absolute",
+             left: `${state.left}%`,
+             top: `${state.top}%`,
+-            width: "max-content",
++            width,
++            height,
+             transform: state.transform,
+             transformOrigin: "50% 50%",
+           }}
