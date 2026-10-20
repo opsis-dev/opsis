@@ -1,18 +1,41 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Size each column to its widest glyph in the drawn font and keep a padding space one line tall, so wide letters are not clipped and a longer new value rolls into every column.
 
 diff --git a/src/video/elements/remocn/slot-machine-roll.tsx b/src/video/elements/remocn/slot-machine-roll.tsx
-index 985f0be..bb7ee42 100644
+index 985f0be..fb5418d 100644
 --- a/src/video/elements/remocn/slot-machine-roll.tsx
 +++ b/src/video/elements/remocn/slot-machine-roll.tsx
-@@ -1,4 +1,5 @@
+@@ -1,4 +1,27 @@
 -import { spring, useCurrentFrame, useVideoConfig } from "remotion";
++import { useMemo } from "react";
 +import { spring } from "remotion";
++import { MAIN_FONT } from "@/shared/fonts";
 +import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++
++const COLUMN_EM = 0.7;
++const LETTER_SPACING_EM = -0.03;
++
++function columnWidths(
++  from: string,
++  to: string,
++  fontSize: number,
++  fontWeight: number,
++): number[] {
++  const fixed = () => Array.from(from, () => COLUMN_EM * fontSize);
++  if (typeof document === "undefined") return fixed();
++  const ctx = document.createElement("canvas").getContext("2d");
++  if (!ctx) return fixed();
++  ctx.font = `${fontWeight} ${fontSize}px ${MAIN_FONT}`;
++  ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
++  return Array.from(from, (char, i) =>
++    Math.max(ctx.measureText(char).width, ctx.measureText(to[i] ?? "").width),
++  );
++}
  
  export interface SlotMachineRollProps {
    from?: string;
-@@ -19,8 +20,8 @@ export function SlotMachineRoll({
+@@ -19,12 +42,16 @@ export function SlotMachineRoll({
    speed = 1,
    className,
  }: SlotMachineRollProps) {
@@ -23,3 +46,40 @@ index 985f0be..bb7ee42 100644
  
    const len = Math.max(from.length, to.length);
    const paddedFrom = from.padStart(len, " ");
+   const paddedTo = to.padStart(len, " ");
++  const widths = useMemo(
++    () => columnWidths(paddedFrom, paddedTo, fontSize, fontWeight),
++    [paddedFrom, paddedTo, fontSize, fontWeight],
++  );
+ 
+   const columns = [];
+   for (let i = 0; i < len; i++) {
+@@ -43,7 +70,7 @@ export function SlotMachineRoll({
+           height: "1.1em",
+           lineHeight: "1.1em",
+           verticalAlign: "top",
+-          width: "0.7em",
++          width: widths[i],
+           textAlign: "center",
+         }}
+       >
+@@ -54,8 +81,8 @@ export function SlotMachineRoll({
+             translate: `0 ${-t * fontSize * 1.1}px`,
+           }}
+         >
+-          <span>{paddedFrom[i]}</span>
+-          <span>{paddedTo[i]}</span>
++          <span style={{ height: "1.1em", whiteSpace: "pre" }}>{paddedFrom[i]}</span>
++          <span style={{ height: "1.1em", whiteSpace: "pre" }}>{paddedTo[i]}</span>
+         </span>
+       </span>,
+     );
+@@ -78,7 +105,7 @@ export function SlotMachineRoll({
+           fontSize,
+           fontWeight,
+           color,
+-          letterSpacing: "-0.03em",
++          letterSpacing: `${LETTER_SPACING_EM}em`,
+           fontFamily:
+             "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+           lineHeight: 1.1,

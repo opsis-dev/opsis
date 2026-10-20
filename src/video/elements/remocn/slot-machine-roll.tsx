@@ -1,5 +1,27 @@
+import { useMemo } from "react";
 import { spring } from "remotion";
+import { MAIN_FONT } from "@/shared/fonts";
 import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+
+const COLUMN_EM = 0.7;
+const LETTER_SPACING_EM = -0.03;
+
+function columnWidths(
+  from: string,
+  to: string,
+  fontSize: number,
+  fontWeight: number,
+): number[] {
+  const fixed = () => Array.from(from, () => COLUMN_EM * fontSize);
+  if (typeof document === "undefined") return fixed();
+  const ctx = document.createElement("canvas").getContext("2d");
+  if (!ctx) return fixed();
+  ctx.font = `${fontWeight} ${fontSize}px ${MAIN_FONT}`;
+  ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
+  return Array.from(from, (char, i) =>
+    Math.max(ctx.measureText(char).width, ctx.measureText(to[i] ?? "").width),
+  );
+}
 
 export interface SlotMachineRollProps {
   from?: string;
@@ -26,6 +48,10 @@ export function SlotMachineRoll({
   const len = Math.max(from.length, to.length);
   const paddedFrom = from.padStart(len, " ");
   const paddedTo = to.padStart(len, " ");
+  const widths = useMemo(
+    () => columnWidths(paddedFrom, paddedTo, fontSize, fontWeight),
+    [paddedFrom, paddedTo, fontSize, fontWeight],
+  );
 
   const columns = [];
   for (let i = 0; i < len; i++) {
@@ -44,7 +70,7 @@ export function SlotMachineRoll({
           height: "1.1em",
           lineHeight: "1.1em",
           verticalAlign: "top",
-          width: "0.7em",
+          width: widths[i],
           textAlign: "center",
         }}
       >
@@ -55,8 +81,8 @@ export function SlotMachineRoll({
             translate: `0 ${-t * fontSize * 1.1}px`,
           }}
         >
-          <span>{paddedFrom[i]}</span>
-          <span>{paddedTo[i]}</span>
+          <span style={{ height: "1.1em", whiteSpace: "pre" }}>{paddedFrom[i]}</span>
+          <span style={{ height: "1.1em", whiteSpace: "pre" }}>{paddedTo[i]}</span>
         </span>
       </span>,
     );
@@ -79,7 +105,7 @@ export function SlotMachineRoll({
           fontSize,
           fontWeight,
           color,
-          letterSpacing: "-0.03em",
+          letterSpacing: `${LETTER_SPACING_EM}em`,
           fontFamily:
             "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
           lineHeight: 1.1,
