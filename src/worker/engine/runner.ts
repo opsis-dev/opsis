@@ -134,7 +134,7 @@ async function neededNodes(
   return needed;
 }
 
-function hashNodes(
+export function hashNodes(
   workflow: Workflow,
   order: readonly WorkflowNode[],
   vars: Record<string, string>,
@@ -146,6 +146,10 @@ function hashNodes(
     const upstream = workflow.edges
       .filter((e) => e.target === node.id && hashes.has(e.source))
       .map((e): [string, string] => [e.targetHandle, `${hashes.get(e.source)}:${e.sourceHandle}`]);
+    if (node.disabled) {
+      hashes.set(node.id, nodeHash(`${node.type}:skipped`, null, upstream, appVersion));
+      continue;
+    }
     const def = getNodeDef(node.type);
     const params = interpolatedParams(def, node.params, vars);
     const signIn =
