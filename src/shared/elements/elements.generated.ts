@@ -1100,6 +1100,7 @@ const defs: ElementMetaInput[] = [
       weight: z.enum(["400","500","600","700"]).default("600").meta({ description: "Font weight" }),
       rowGap: z.number().min(0).max(200).optional().meta({ description: "Row gap", zeroLabel: "Auto", step: 1, unit: "px", advanced: true }),
       seed: z.string().default("checklist").meta({ description: "Variation", help: "Change it to draw the handwriting a little differently.", advanced: true }),
+      background: zColor().default("white").meta({ description: "Background", help: "Set it to transparent to lay the text over other layers." }),
     }),
     fixedProps: {},
     defaultDurationInFrames: 360,

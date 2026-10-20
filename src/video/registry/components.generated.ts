@@ -57,7 +57,7 @@ export const generatedElementLoaders: Record<string, () => Promise<ElementImpl>>
   "remocn/glass-code-block": () => import("../elements/remocn/glass-code-block").then((m) => component(m.GlassCodeBlock)),
   "remocn/code-morph": () => import("../elements/remocn/code-morph").then((m) => component(m.CodeMorph)),
   "remocn/logo-enter": () => import("../elements/remocn/logo-enter").then((m) => marksFromImages(component(m.LogoEnter), {"from":"logos","to":"logos"})),
-  "remocn/check-list": () => import("../elements/remocn/check-list").then((m) => centered(component(m.CheckList))),
+  "remocn/check-list": () => import("../elements/remocn/check-list").then((m) => painted(centered(component(m.CheckList)))),
   "remocn/search-reveal": () => import("../elements/remocn/search-reveal").then((m) => component(m.SearchReveal)),
   "remocn/agent-run": () => import("../elements/remocn/agent-run").then((m) => nested(component(m.AgentRun), {"runTitle":"run.title","runPrompt":"run.prompt","runPlan":"run.plan","runSteps":"run.steps","runAnswer":"run.answer"})),
   "remocn/animated-bar-chart": () => import("../elements/remocn/animated-bar-chart").then((m) => listsFromRows(component(m.AnimatedBarChart), {"bars":{"label":"labels","value":"data"}})),

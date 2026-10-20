@@ -661,6 +661,7 @@ const PAINTED: Partial<Record<string, string>> = {
   "mask-reveal-up": "white",
   "word-push": "white",
   "line-by-line-slide": "white",
+  "check-list": "white",
   "staggered-fade-up": "white",
   "tracking-in": "white",
   "rgb-glitch-text": "#fafafa",
