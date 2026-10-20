@@ -61,6 +61,14 @@ function serialize(root: Node): string {
   return [...root.childNodes].map(serializeNode).join("");
 }
 
+const isBreak = (n: Node | undefined): boolean => n instanceof HTMLElement && n.tagName === "BR";
+
+function serializeField(root: Node): string {
+  const nodes = [...root.childNodes];
+  if (isBreak(nodes.at(-1))) nodes.pop();
+  return nodes.map(serializeNode).join("");
+}
+
 type Rendered = { vars: string; text: string };
 
 type Editable = {
@@ -132,7 +140,7 @@ function useEditable({
   const commit = () => {
     const el = ref.current;
     if (!el) return;
-    const next = serialize(el);
+    const next = serializeField(el);
     rendered.current = { vars: varsKey, text: next };
     if (next !== value) onChange(next);
   };

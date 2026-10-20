@@ -163,6 +163,7 @@ export function TextField({ id, label, value, onChange, meta, ctx }: StringProps
         vars={ctx.vars}
         multiline={meta.widget === "textarea"}
         pauses={meta.pauses}
+        placeholder={meta.zeroLabel}
       />
     </FieldShell>
   );
