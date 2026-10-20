@@ -37,6 +37,7 @@ describe("element lengths", () => {
     expect(lengths.filter((length) => length.change < 0)).toEqual([]);
     expect(lengths.filter((length) => length.change > 0).map((length) => length.key)).toEqual([
       "remocn/terminal-simulator",
+      "remocn/signup-flow",
       "remotion-ui/notification-stack",
     ]);
   });

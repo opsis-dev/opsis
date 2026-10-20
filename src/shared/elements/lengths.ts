@@ -245,6 +245,7 @@ const ELEMENT_TIMINGS: Partial<Record<string, Timing>> = {
     return Math.max(90, 54 + characters(str(s.text)) * step + 10);
   }),
   "remocn/agent-run": authored(agentRunEnd),
+  "remocn/signup-flow": authored(() => 348),
   "remocn/animated-bar-chart": authored(
     (s) => lastIndex(list(s.bars).length) * num(s.staggerFrames, 6),
   ),
