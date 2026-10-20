@@ -22,6 +22,8 @@ import { workerTempRoot } from "./workers";
 
 if (started) app.quit();
 
+app.commandLine.appendSwitch("enable-features", "CanvasDrawElement");
+
 registerSchemes();
 
 app.whenReady().then(() => {
