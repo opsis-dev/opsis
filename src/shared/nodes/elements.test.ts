@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { emptyClip, groupOf } from "../compile/clip";
 import { ELEMENTS } from "../elements";
+import { fieldMeta } from "../elements/introspect";
 import { compileClip, must, nodeCard } from "../test-fixtures";
+import { getNodeDef } from "./registry";
 
 const SPRING_SETTLE = "fx.remocn.spring-settle";
 
@@ -152,5 +154,39 @@ describe("element layout", () => {
       height: 1080,
     });
     expect(firstItem("fx.remocn.soft-blur-in", { text: "Hi" }).design).toBeUndefined();
+  });
+});
+
+describe("Device mockup", () => {
+  const DEVICE_MOCKUP = "fx.remotion-ui.device-mockup-zoom";
+
+  it("runs without a clip, showing its own screen", () => {
+    expect(must(getNodeDef(DEVICE_MOCKUP), "node").inputs.clip?.optional).toBe(true);
+    const item = firstItem(DEVICE_MOCKUP, { src: "project:assets/screen.png" });
+    expect(item.component).toBe("remotion-ui/device-mockup-zoom");
+    expect(item.props).toMatchObject({ src: "project:assets/screen.png" });
+  });
+
+  it("says how long it plays with and without a clip", () => {
+    const length = must(getNodeDef(DEVICE_MOCKUP), "node").params.shape.clipDuration;
+    expect(fieldMeta(length)).toMatchObject({
+      zeroLabel: "Match the clip",
+      unconnectedZeroLabel: "Usual length",
+    });
+    const clock = (connected: string[]) =>
+      nodeCard(DEVICE_MOCKUP, {}, { connected }).find((r) => r.icon === "clock")?.text;
+    expect(clock(["clip"])).toBe("Matches the clip");
+    expect(clock([])).toBe("3 s");
+    expect(
+      nodeCard("fx.remotion-ui.multi-device-lineup").find((r) => r.icon === "clock")?.text,
+    ).toBe("Matches the clip");
+  });
+
+  it("puts a connected clip on the screen", () => {
+    const clip = compileClip(DEVICE_MOCKUP, {}, { clip: emptyClip(45) });
+    expect(clip.durationInFrames).toBe(45);
+    expect(groupOf(must(clip.tracks[0]?.items[0], "item"))?.wrapper?.component).toBe(
+      "remotion-ui/device-mockup-zoom",
+    );
   });
 });

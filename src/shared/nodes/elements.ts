@@ -45,6 +45,7 @@ import {
   clipInput,
   defineNode,
   fromElement,
+  opt,
   port,
   type CardLine,
   type CompileInputs,
@@ -132,6 +133,7 @@ function elementCard(
   titles: string[],
   params: ElementParams,
   fps: number,
+  clipConnected: boolean,
 ): CardRow[] {
   const rows: CardRow[] = [];
   const title = titles.map((k) => nonBlankString(params[k])).find(Boolean);
@@ -142,13 +144,18 @@ function elementCard(
   if (file) rows.push(fileRow("file", file));
   const look = lookRow(meta, params);
   if (look) rows.push(look);
-  rows.push(durationRow(meta, params, fps));
+  rows.push(durationRow(meta, params, fps, clipConnected));
   return rows;
 }
 
-function durationRow(meta: ElementMeta, params: ElementParams, fps: number): CardRow {
+function durationRow(
+  meta: ElementMeta,
+  params: ElementParams,
+  fps: number,
+  clipConnected: boolean,
+): CardRow {
   const duration = params.clipDuration;
-  if (meta.kind === "wrapper")
+  if (meta.kind === "wrapper" && (clipConnected || !meta.optionalClip))
     return duration
       ? row("clock", frameSecs(duration, fps))
       : row("clock", "Matches the clip", { tone: "muted" });
@@ -261,8 +268,9 @@ function elementNode(meta: ElementMeta): NodeDef {
     category: NODE_CATEGORY_FOR[meta.category],
     type: elementNodeType(meta.key),
     description: meta.description,
-    card: ({ params, settings }) => elementCard(meta, titles, params, settings.fps),
-    inputs: wrapper ? { clip: port("clip", "Clip") } : {},
+    card: ({ params, settings, connected }) =>
+      elementCard(meta, titles, params, settings.fps, connected.includes("clip")),
+    inputs: wrapper ? { clip: (meta.optionalClip ? opt : port)("clip", "Clip") } : {},
     outputs: { clip: port("clip", "Clip") },
     params: z.object({
       ...meta.schema.shape,
@@ -271,6 +279,7 @@ function elementNode(meta: ElementMeta): NodeDef {
         max: MAX_FRAMES,
         unit: "frames",
         ...(wrapper ? { zeroLabel: "Match the clip" } : {}),
+        ...(meta.optionalClip ? { unconnectedZeroLabel: "Usual length" } : {}),
         ...(fits ? { zeroLabel: "Fit the animation" } : {}),
       }),
       envelope: visualEnvelope(),

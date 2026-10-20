@@ -28,6 +28,7 @@ export interface ElementMeta {
   fixedProps: ElementProps;
   defaultDurationInFrames: number;
   design?: { width: number; height: number; exact?: boolean };
+  optionalClip?: boolean;
   thumbnail?: string;
 }
 

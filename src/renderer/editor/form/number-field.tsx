@@ -53,12 +53,16 @@ export function NumberField({
   onClear,
 }: NumberProps) {
   const scale = unitScale(meta.unit, ctx.fps);
-  const zeroIsEmpty = !onClear && meta.zeroLabel && value === 0;
+  const zeroLabel =
+    meta.unconnectedZeroLabel && ctx.connectedInputs.length === 0
+      ? meta.unconnectedZeroLabel
+      : meta.zeroLabel;
+  const zeroIsEmpty = !onClear && zeroLabel && value === 0;
   const shown = value === undefined || zeroIsEmpty ? "" : shownText(value, scale);
   const input = useDecimalInput(shown, "edit", (text) => {
     if (text.trim() === "") {
       if (onClear) onClear();
-      else if (meta.zeroLabel) onChange(0);
+      else if (zeroLabel) onChange(0);
       return;
     }
     const n = parseShown(text, scale);
@@ -73,7 +77,7 @@ export function NumberField({
           <Input
             id={id}
             className="h-7 w-24 text-right tabular-nums"
-            placeholder={onClear ? (meta.zeroLabel ?? "Auto") : meta.zeroLabel}
+            placeholder={onClear ? (zeroLabel ?? "Auto") : zeroLabel}
             {...input}
           />
           {scale.unit ? (

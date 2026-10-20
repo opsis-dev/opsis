@@ -102,6 +102,7 @@ export type CuratedElement = {
   durationInFrames?: number;
   design?: { width: number; height: number; exact?: boolean };
   kind?: "component" | "wrapper" | "presentation" | "sequencer";
+  optionalClip?: boolean;
   sceneItem?: string;
   center?: boolean;
   screen?: boolean;
@@ -520,6 +521,7 @@ const REMOTION_UI: CuratedElement[] = [
   ...remotionui("device", ["device-mockup-zoom"], {
     title: "Device mockup",
     kind: "wrapper",
+    optionalClip: true,
     screen: true,
     defaults: { eyebrow: "", title: "", subtitle: "" },
   }),
@@ -1782,6 +1784,14 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
         ...optionalColor("Accent color", "Theme"),
         help: "Value colour, overridable per metric. Leave empty to follow the theme.",
       },
+    },
+  },
+  "device-mockup-zoom": {
+    controls: {
+      src: image("Media", "", {
+        emptyLabel: "Built-in screen",
+        help: "Shown on the screen when no clip is connected. Leave empty for a built-in demo screen.",
+      }),
     },
   },
   "stat-card": {

@@ -1,8 +1,9 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- The backdrop's own dark gradient covered the Background colour; the gradient is now made from that colour.
 
 diff --git a/src/video/elements/remotion-ui/device-mockup-zoom/index.tsx b/src/video/elements/remotion-ui/device-mockup-zoom/index.tsx
-index efb3900..b989ec5 100644
+index efb3900..80572aa 100644
 --- a/src/video/elements/remotion-ui/device-mockup-zoom/index.tsx
 +++ b/src/video/elements/remotion-ui/device-mockup-zoom/index.tsx
 @@ -551,7 +551,7 @@ const DeviceShell: React.FC<DeviceShellProps> = ({
@@ -19,7 +20,7 @@ index efb3900..b989ec5 100644
        <AbsoluteFill
          style={{
 -          background: `radial-gradient(circle at 72% 42%, ${accentColor}30 0, transparent 32%), radial-gradient(circle at 16% 82%, ${COLORS.teal}20 0, transparent 26%), linear-gradient(135deg, #080810 0%, #10131d 54%, #07070d 100%)`,
-+          background: `radial-gradient(circle at 72% 42%, color-mix(in srgb, ${accentColor} 19%, transparent) 0, transparent 32%), radial-gradient(circle at 16% 82%, ${COLORS.teal}20 0, transparent 26%), linear-gradient(135deg, #080810 0%, #10131d 54%, #07070d 100%)`,
++          background: `radial-gradient(circle at 72% 42%, color-mix(in srgb, ${accentColor} 19%, transparent) 0, transparent 32%), radial-gradient(circle at 16% 82%, ${COLORS.teal}20 0, transparent 26%), linear-gradient(135deg, ${backgroundColor} 0%, color-mix(in srgb, ${backgroundColor} 93%, #5b6b9a) 54%, color-mix(in srgb, ${backgroundColor} 97%, black) 100%)`,
          }}
        />
        <AbsoluteFill

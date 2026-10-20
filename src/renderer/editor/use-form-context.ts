@@ -137,10 +137,10 @@ function formContext({
   secrets: string[] | null;
   results: Partial<Record<string, NodeResult>>;
 }): FormContext {
-  const layerCount = connectedPorts(
-    IN_PORTS,
-    workflow.edges.filter((e) => e.target === nodeId).map((e) => e.targetHandle),
-  ).length;
+  const connectedInputs = workflow.edges
+    .filter((e) => e.target === nodeId)
+    .map((e) => e.targetHandle);
+  const layerCount = connectedPorts(IN_PORTS, connectedInputs).length;
   const needsBackground = def.category === "Camera" || hasWidget(def.params, "boxes");
   return {
     projectDir,
@@ -156,5 +156,6 @@ function formContext({
     pickTarget: (key) => void pickTarget(workflow, nodeId, key),
     chooseAsset: (apply) => void chooseAsset(projectDir, apply),
     swatches: projectSwatches(workflow.nodes.map((n) => n.params)),
+    connectedInputs,
   };
 }

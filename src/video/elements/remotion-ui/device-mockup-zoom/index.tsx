@@ -834,7 +834,7 @@ export const DeviceMockupZoom: React.FC<DeviceMockupZoomProps> = ({
     <AbsoluteFill style={{ background: backgroundColor, overflow: "hidden" }}>
       <AbsoluteFill
         style={{
-          background: `radial-gradient(circle at 72% 42%, color-mix(in srgb, ${accentColor} 19%, transparent) 0, transparent 32%), radial-gradient(circle at 16% 82%, ${COLORS.teal}20 0, transparent 26%), linear-gradient(135deg, #080810 0%, #10131d 54%, #07070d 100%)`,
+          background: `radial-gradient(circle at 72% 42%, color-mix(in srgb, ${accentColor} 19%, transparent) 0, transparent 32%), radial-gradient(circle at 16% 82%, ${COLORS.teal}20 0, transparent 26%), linear-gradient(135deg, ${backgroundColor} 0%, color-mix(in srgb, ${backgroundColor} 93%, #5b6b9a) 54%, color-mix(in srgb, ${backgroundColor} 97%, black) 100%)`,
         }}
       />
       <AbsoluteFill

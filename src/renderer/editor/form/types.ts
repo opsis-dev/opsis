@@ -15,6 +15,7 @@ export type FormContext = {
   chooseAsset: (apply: (path: string) => void) => void;
   swatches: string[];
   actions: Array<{ id: string; label: string }>;
+  connectedInputs: string[];
 };
 
 export type ParamValues = Record<string, unknown>;

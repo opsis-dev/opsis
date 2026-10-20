@@ -47,6 +47,7 @@ export type FieldMeta = {
   hidden?: boolean;
   labels?: Partial<Record<string, string>>;
   zeroLabel?: string;
+  unconnectedZeroLabel?: string;
   presets?: FieldPreset[];
   presetsLabel?: string;
   pauses?: boolean;

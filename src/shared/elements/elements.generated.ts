@@ -2252,7 +2252,7 @@ const defs: ElementMetaInput[] = [
     kind: "wrapper",
     source: { registry: "RemotionUI", url: "https://remotionui.com/docs/components/device-mockup-zoom", license: "MIT" },
     schema: z.object({
-      src: z.string().default("").meta({ description: "Media", widget: "asset", accept: "image/*", help: "Optional screen content image. When omitted, the scene renders a polished product dashboard mockup." }),
+      src: z.string().default("").meta({ description: "Media", widget: "asset", accept: "image/*", zeroLabel: "Built-in screen", help: "Shown on the screen when no clip is connected. Leave empty for a built-in demo screen." }),
       title: z.string().default("").meta({ description: "Title", help: "Optional headline. When omitted, the device remains the sole focal point." }),
       subtitle: z.string().default("").meta({ description: "Subtitle", help: "Optional supporting line under the headline." }),
       eyebrow: z.string().default("").meta({ description: "Small heading", help: "Optional accent label above the headline." }),
@@ -2262,6 +2262,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 90,
+    optionalClip: true,
   },
   {
     key: "remotion-ui/multi-device-lineup",

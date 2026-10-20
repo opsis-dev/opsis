@@ -282,6 +282,7 @@ export function renderMetaEntry({ item, key, description, controls, duration }: 
     `    fixedProps: ${JSON.stringify(item.fixedProps ?? {})},`,
     `    defaultDurationInFrames: ${duration},`,
     ...(item.design ? [`    design: ${JSON.stringify(item.design)},`] : []),
+    ...(item.optionalClip ? [`    optionalClip: true,`] : []),
     `  },`,
   ].join("\n");
 }
