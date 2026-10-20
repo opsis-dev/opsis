@@ -13,6 +13,10 @@ export const AUTHORED_FPS = 30;
 
 const CUT_OFF_HOLD = AUTHORED_FPS / 2;
 
+const RELEASE_TEASER_SECONDS = (960 * 1001) / 60000;
+
+const LAUNCH_ANYTHING_SECONDS = 1600 / 60;
+
 const num = (value: unknown, fallback: number): number =>
   isNumber(value) && Number.isFinite(value) ? value : fallback;
 
@@ -246,6 +250,8 @@ const ELEMENT_TIMINGS: Partial<Record<string, Timing>> = {
   }),
   "remocn/agent-run": authored(agentRunEnd),
   "remocn/signup-flow": authored(() => 348),
+  "remocn/release-teaser": seconds(() => RELEASE_TEASER_SECONDS),
+  "remocn/launch-anything": seconds(() => LAUNCH_ANYTHING_SECONDS),
   "remocn/animated-bar-chart": authored(
     (s) => lastIndex(list(s.bars).length) * num(s.staggerFrames, 6),
   ),
