@@ -223,7 +223,7 @@ const STEPS = new Map<string, StepSpec>([
       await scope.getByText(p.text).first().waitFor({ state: "visible", timeout: p.timeoutMs });
     } catch (error) {
       if (!isTimeoutError(error)) throw error;
-      throw new Error(`"${p.text}" isn't on the page.\n${await dumpVisible(take.page)}`, {
+      throw new Error(`“${p.text}” isn't on the page.\n${await dumpVisible(take.page)}`, {
         cause: error,
       });
     }

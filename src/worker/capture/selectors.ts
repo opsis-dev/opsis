@@ -73,7 +73,7 @@ export class SelectorError extends Error {
     public readonly tried: string[],
     public readonly dump: string,
   ) {
-    super(`Couldn't find "${label}" on the page.\n  Looked for: ${tried.join(" | ")}\n${dump}`);
+    super(`Couldn't find “${label}” on the page.\n  Looked for: ${tried.join(" | ")}\n${dump}`);
     this.name = "SelectorError";
   }
 }

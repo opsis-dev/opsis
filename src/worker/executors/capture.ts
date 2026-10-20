@@ -80,7 +80,7 @@ async function storageState(ctx: ExecutorContext, secret: string | null): Promis
   if (!secret) return null;
   const value = await ctx.secrets.read(secret);
   if (!value)
-    throw new Error(`The sign-in "${secret}" isn't saved yet. Run its Sign in once node first.`);
+    throw new Error(`The sign-in “${secret}” isn't saved yet. Run its Sign in once node first.`);
   return value;
 }
 
@@ -411,6 +411,6 @@ export const loginOnceExecutor = defineExecutor(loginOnceNode, async (ctx, _inpu
   const state = await ctx.login(loginRequest(p));
   const name = secretName(p.secretName);
   await ctx.secrets.write(name, state);
-  ctx.log("info", `Saved the sign-in as "${name}".`);
+  ctx.log("info", `Saved the sign-in as “${name}”.`);
   return { outputs: {} };
 });
