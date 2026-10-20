@@ -2106,6 +2106,12 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   "commit-graph": { controls: { backgroundColor: themeBackground } },
   "multi-device-lineup": {
     controls: {
+      scale: numberControl(
+        "Scale",
+        1.6,
+        { min: 0.4, max: 2, step: 0.1 },
+        { help: "Overall size of the lineup." },
+      ),
       phoneLabel: text("Phone label", "Phone"),
       tabletLabel: text("Tablet label", "Tablet"),
       laptopLabel: text("Laptop label", "Laptop"),

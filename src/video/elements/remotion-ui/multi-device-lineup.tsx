@@ -1,3 +1,4 @@
+import { loadFont } from "@remotion/google-fonts/Inter";
 import type { ReactNode } from "react";
 import {
   interpolate,
@@ -6,6 +7,8 @@ import {
   useVideoConfig,
 } from "remotion";
 import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
+
+const { fontFamily } = loadFont("normal", { weights: ["500", "600"], subsets: ["latin"] });
 
 export type LineupScreen = {
   /** What fills the device's screen. Rendered at the device's own viewport. */
@@ -260,7 +263,7 @@ export const MultiDeviceLineup: React.FC<MultiDeviceLineupProps> = ({
                   fontWeight: 600,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  fontFamily: "ui-sans-serif, system-ui, sans-serif",
+                  fontFamily,
                 }}
               >
                 {device.screen.label}

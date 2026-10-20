@@ -2278,7 +2278,7 @@ const defs: ElementMetaInput[] = [
     kind: "wrapper",
     source: { registry: "RemotionUI", url: "https://remotionui.com/docs/components/multi-device-lineup", license: "MIT" },
     schema: z.object({
-      scale: z.number().default(1.6).meta({ description: "Scale", step: 0.1, help: "Overall size of the lineup." }),
+      scale: z.number().min(0.4).max(2).default(1.6).meta({ description: "Scale", step: 0.1, help: "Overall size of the lineup." }),
       staggerInFrames: z.number().default(9).meta({ description: "Stagger", unit: "frames", help: "Frames between devices.", advanced: true }),
       bezelColor: zColor().default("#15171D").meta({ description: "Bezel color", help: "Device body." }),
       screenColor: zColor().default("#0B0C11").meta({ description: "Screen color", help: "Screen behind your content." }),
