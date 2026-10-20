@@ -88,6 +88,9 @@ export function LogoEnter({
   const frame = useAuthoredFrame();
   const { fps } = useAuthoredConfig();
   const isVertical = orientation === "vertical";
+  const room = isVertical ? 980 : 1800;
+  const span = logos.length * diameter - Math.max(0, logos.length - 1) * overlap;
+  const fit = span > room ? room / span : 1;
 
   return (
     <AbsoluteFill
@@ -101,6 +104,7 @@ export function LogoEnter({
         style={{
           display: "flex",
           flexDirection: isVertical ? "column" : "row",
+          scale: `${fit}`,
         }}
       >
         {logos.map(({ mark, bg }, i) => {

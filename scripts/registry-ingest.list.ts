@@ -1271,6 +1271,7 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
         type: "rows",
         description: "Logos",
         min: 1,
+        max: 16,
         default: ["#2563eb", "#0f766e", "#b45309", "#7c3aed"].map((background) => ({
           image: LOGO_MARK,
           background,
@@ -1280,8 +1281,11 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
           background: { type: "color", default: "#2563eb", description: "Background" },
         },
       },
+      diameter: numberControl("Diameter", 118, { min: 48, max: 320, step: 1 }, { unit: "px" }),
+      overlap: numberControl("Overlap", 38, { min: 0, max: 200, step: 1 }, { unit: "px" }),
     },
     marks: { from: "logos", to: "logos" },
+    design: FULL_HD,
   },
   "check-list": {
     center: true,
