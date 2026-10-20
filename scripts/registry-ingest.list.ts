@@ -1001,6 +1001,25 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
       ),
     },
   },
+  "gauge-dial": {
+    controls: {
+      sweepInDegrees: numberControl(
+        "Sweep angle",
+        250,
+        { min: 10, max: 360, step: 1 },
+        {
+          help: "Total travel, centred on twelve o'clock. 180 gives a half-moon meter.",
+          advanced: true,
+        },
+      ),
+      tickCount: numberControl(
+        "Tick count",
+        9,
+        { min: 0, max: 60, step: 1 },
+        { help: "Tick marks around the arc. 0 hides them.", advanced: true },
+      ),
+    },
+  },
   "grid-pixelate-wipe": {
     controls: {
       cols: numberControl(

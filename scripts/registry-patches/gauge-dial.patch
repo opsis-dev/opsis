@@ -1,0 +1,80 @@
+Fixes:
+- A single tick divided by zero, a sweep of 360 degrees drew an arc from a point to itself, and the readout rounded the clamped value; ticks now spread over the sweep, the arc draws in two halves and the readout counts to the value at its own precision.
+
+diff --git a/src/video/elements/remotion-ui/gauge-dial.tsx b/src/video/elements/remotion-ui/gauge-dial.tsx
+index 3f2c908..9a92732 100644
+--- a/src/video/elements/remotion-ui/gauge-dial.tsx
++++ b/src/video/elements/remotion-ui/gauge-dial.tsx
+@@ -22,7 +22,7 @@ export type GaugeDialProps = {
+   unit?: string;
+   /** Tick marks around the arc. `0` hides them. */
+   tickCount?: number;
+-  /** Formats the readout. Defaults to a rounded integer. */
++  /** Formats the readout. Defaults to as many decimals as `value` has, up to three. */
+   valueFormatter?: (value: number) => string;
+   durationInFrames?: number;
+   delayInFrames?: number;
+@@ -51,9 +51,13 @@ function arcPath(
+ ): string {
+   if (endAngle - startAngle <= 0.001) return "";
+   const start = polar(cx, cy, radius, startAngle);
++  const middle = polar(cx, cy, radius, (startAngle + endAngle) / 2);
+   const end = polar(cx, cy, radius, endAngle);
+-  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+-  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArc} 1 ${end.x} ${end.y}`;
++  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 1 ${middle.x} ${middle.y} A ${radius} ${radius} 0 0 1 ${end.x} ${end.y}`;
++}
++
++function decimalsOf(value: number): number {
++  return Math.min(3, (String(value).split(".")[1] ?? "").length);
+ }
+ 
+ /**
+@@ -70,7 +74,7 @@ export const GaugeDial: React.FC<GaugeDialProps> = ({
+   max = 100,
+   size = 360,
+   thickness = 26,
+-  sweepInDegrees = 250,
++  sweepInDegrees: sweepSetting = 250,
+   color = "#e8b86d",
+   trackColor = "rgba(250,250,250,0.10)",
+   inkColor = "#fafafa",
+@@ -78,7 +82,7 @@ export const GaugeDial: React.FC<GaugeDialProps> = ({
+   label,
+   unit = "",
+   tickCount = 9,
+-  valueFormatter = (input: number) => String(Math.round(input)),
++  valueFormatter,
+   durationInFrames = 44,
+   delayInFrames = 0,
+   exitAtInFrames,
+@@ -88,6 +92,11 @@ export const GaugeDial: React.FC<GaugeDialProps> = ({
+   const localFrame = useCurrentFrame();
+   const frame = frameOverride ?? localFrame;
+ 
++  const sweepInDegrees = Math.min(360, Math.max(1, sweepSetting));
++  const fullCircle = sweepInDegrees >= 360;
++  const tickSteps = fullCircle ? tickCount : tickCount - 1;
++  const format =
++    valueFormatter ?? ((input: number) => input.toFixed(decimalsOf(value)));
+   const centre = size / 2;
+   const radius = (size - thickness) / 2;
+   const startAngle = -sweepInDegrees / 2;
+@@ -161,7 +170,7 @@ export const GaugeDial: React.FC<GaugeDialProps> = ({
+ 
+         {tickCount > 0
+           ? Array.from({ length: tickCount }, (_, index) => {
+-              const fraction = index / (tickCount - 1);
++              const fraction = tickSteps > 0 ? index / tickSteps : 0;
+               const angle = startAngle + fraction * sweepInDegrees;
+               const outer = polar(centre, centre, radius - thickness * 0.72, angle);
+               const inner = polar(centre, centre, radius - thickness * 1.05, angle);
+@@ -216,7 +225,7 @@ export const GaugeDial: React.FC<GaugeDialProps> = ({
+             fontVariantNumeric: "tabular-nums",
+           }}
+         >
+-          {valueFormatter(min + span * arcFraction)}
++          {format(min + (value - min) * arcProgress * (1 - exit))}
+           {unit}
+         </div>
+         {label ? (
