@@ -1,12 +1,12 @@
 import { existsSync } from "node:fs";
-import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import { readJson, writeJson } from "../../engine/json";
 import { toPosixRel, toProjectRef } from "../../engine/project-paths";
 import { isProjectRef, projectRelPath, STATIC_PROJECT_BASE } from "../../shared/asset-ref";
 import { walkItems } from "../../shared/compile/clip";
-import { exportProjectNode } from "../../shared/nodes/output";
+import { EXPORT_FOLDER_FALLBACK, exportProjectNode } from "../../shared/nodes/output";
 import { safeName } from "../../shared/safe-name";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import { stringsIn } from "../../shared/vars";
@@ -163,6 +163,12 @@ async function copyProjectFiles(ctx: ExecutorContext, spec: TimelineSpec, dir: s
   }
 }
 
+function checkProjectFiles(ctx: ExecutorContext, spec: TimelineSpec) {
+  for (const rel of projectFiles(spec))
+    if (!existsSync(path.join(ctx.projectDir, rel)))
+      throw new Error(`“${rel}” is missing from the project. Choose the file again, or remove it.`);
+}
+
 async function packageJsonFor(ctx: ExecutorContext, name: string, dir: string) {
   const appPkg = await readJson(path.join(ctx.env.appRoot, "package.json"), appPackageSchema);
   if (!appPkg) throw new Error(CANT_EXPORT_CODE);
@@ -194,8 +200,10 @@ async function packageJsonFor(ctx: ExecutorContext, name: string, dir: string) {
 
 export const exportProjectExecutor = defineExecutor(exportProjectNode, async (ctx, _inputs, p) => {
   const spec = await mixed(ctx, specFor(ctx), EXPORT_MIX_STAGE);
-  const name = safeName(p.folderName, { fallback: "output" });
+  const name = safeName(p.folderName, { fallback: EXPORT_FOLDER_FALLBACK });
   const dir = path.join(ctx.outDir, name);
+  checkProjectFiles(ctx, spec);
+  await rm(dir, { recursive: true, force: true });
   await copySources(ctx, dir);
   await copyProjectFiles(ctx, spec, dir);
   await writeJson(path.join(dir, "package.json"), await packageJsonFor(ctx, name, dir));

@@ -64,3 +64,10 @@ describe("Export video card", () => {
     expect(texts(["16:9", "1:1"])[1]).toBe("MP4 · 1080p / 1920p · 30 fps");
   });
 });
+
+describe("Export as code card", () => {
+  it("shows the folder the code is written to", () => {
+    expect(nodeCard("output.exportProject", { folderName: ".." })[0].text).toBe("output");
+    expect(nodeCard("output.exportProject", { folderName: "My Code" })[0].text).toBe("my-code");
+  });
+});

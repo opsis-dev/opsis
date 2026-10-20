@@ -3,6 +3,7 @@ import { clipToSpec, isClip } from "../compile/clip";
 import { formatDuration, formatBytes } from "../format";
 import { parseOrDefault } from "../guards";
 import { evenPx } from "../math";
+import { safeName } from "../safe-name";
 import { REFRAMES, type ReframeMode } from "../schema/timeline";
 import { outputOf, type Artifact, type CompileValue, type TimelineValue } from "../schema/values";
 import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
@@ -202,6 +203,8 @@ export const stillOutputNode = defineNode({
   }),
 });
 
+export const EXPORT_FOLDER_FALLBACK = "output";
+
 export const exportProjectNode = defineNode({
   ...base,
   type: "output.exportProject",
@@ -209,7 +212,9 @@ export const exportProjectNode = defineNode({
   phase: "post",
   description: "Saves this video as an editable code project for developers.",
   outputs: { file: port("file", "Folder") },
-  card: ({ params: p }) => [row("folder-output", p.folderName)],
+  card: ({ params: p }) => [
+    row("folder-output", safeName(p.folderName, { fallback: EXPORT_FOLDER_FALLBACK })),
+  ],
   params: z.object({ folderName: text("video-code", "Folder name") }),
   compile: ({ result, inputs, settings }) => ({
     file: outputOf(result, "file", "file"),

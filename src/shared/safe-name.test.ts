@@ -8,4 +8,12 @@ describe("safeName", () => {
     expect(safeName(" Login! ", { fallback: "x", lower: false })).toBe("Login");
     expect(safeName("***", { fallback: "x" })).toBe("x");
   });
+
+  it("never names the folder itself, its parent or a hidden file", () => {
+    expect(safeName(".", { fallback: "x" })).toBe("x");
+    expect(safeName("..", { fallback: "x" })).toBe("x");
+    expect(safeName("../../etc", { fallback: "x" })).toBe("etc");
+    expect(safeName(".hidden", { fallback: "x" })).toBe("hidden");
+    expect(safeName("v2.1.", { fallback: "x" })).toBe("v2.1");
+  });
 });
