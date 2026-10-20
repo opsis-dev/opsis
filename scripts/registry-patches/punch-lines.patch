@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Measure the lines again when the size or spacing changes, so the fit never uses stale widths.
 
 diff --git a/src/video/elements/snap-cn/punch-lines.tsx b/src/video/elements/snap-cn/punch-lines.tsx
-index b32d7e8..5ca70d0 100644
+index b32d7e8..7dd7f73 100644
 --- a/src/video/elements/snap-cn/punch-lines.tsx
 +++ b/src/video/elements/snap-cn/punch-lines.tsx
 @@ -6,9 +6,8 @@ import {
@@ -27,3 +28,12 @@ index b32d7e8..5ca70d0 100644
    const t = useSnapCnTheme(theme, mode);
    const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
    // A card is a full-bleed page, so it takes the page's own two colours rather
+@@ -469,7 +468,7 @@ export function PunchLines({
+         .map((el) => (el ? el.offsetWidth : 0)),
+     );
+     setMetrics({ baseline, inkAscent, inkDescent });
+-  }, [handle, face, fontWeight, beats]);
++  }, [handle, face, fontWeight, beats, fontSize, letterSpacing, wordSpacing]);
+ 
+   // Release the render only once the measurement has re-rendered, so the very
+   // first captured frame already carries the correct geometry.

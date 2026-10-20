@@ -468,7 +468,7 @@ export function PunchLines({
         .map((el) => (el ? el.offsetWidth : 0)),
     );
     setMetrics({ baseline, inkAscent, inkDescent });
-  }, [handle, face, fontWeight, beats]);
+  }, [handle, face, fontWeight, beats, fontSize, letterSpacing, wordSpacing]);
 
   // Release the render only once the measurement has re-rendered, so the very
   // first captured frame already carries the correct geometry.
