@@ -40,6 +40,7 @@ import {
 } from "./assets";
 import { CLAMP_RIGHT, fadeWindow } from "./core/anim";
 import type { Size } from "./core/still-layout";
+import { CutBoardProvider, useCutBoard } from "./core/transition-cuts";
 import { FontProvider } from "./fonts/font-provider";
 import {
   getComponent,
@@ -82,7 +83,7 @@ export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
 );
 
 const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
-  <>
+  <CutBoardProvider>
     {tracks.map((track) => (
       <AbsoluteFill key={track.id}>
         {track.items.map((item) => (
@@ -106,7 +107,7 @@ const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
         ))}
       </AbsoluteFill>
     ))}
-  </>
+  </CutBoardProvider>
 );
 
 const EnvelopeWrap: React.FC<{ envelope: VisualEnvelope; children: React.ReactNode }> = ({
@@ -302,14 +303,13 @@ const DesignBox: Wrap<{ design?: Size; fill?: boolean }> = ({ design, fill, chil
   );
 };
 
-const noop = () => undefined;
-
 const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }> = ({
   item,
   children,
 }) => {
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
+  const board = useCutBoard();
   useElement(item.enter?.kind);
   useElement(item.exit?.kind);
   const active = activeTransition(item, frame);
@@ -317,14 +317,19 @@ const TransitionWrap: React.FC<{ item: TimelineItem; children: React.ReactNode }
   const presentation = getPresentation(active.ref.kind, active.ref.params ?? {}, { width, height });
   if (!presentation) return <>{children}</>;
   const Presentation = presentation.component;
+  const { direction, progress } = active;
+  const cut =
+    direction === "entering"
+      ? item.from
+      : item.from + item.durationInFrames - active.ref.durationInFrames;
   return (
     <Presentation
-      presentationProgress={active.progress}
-      presentationDirection={active.direction}
+      presentationProgress={progress}
+      presentationDirection={direction}
       passedProps={presentation.props}
       presentationDurationInFrames={active.ref.durationInFrames}
-      onElementImage={noop}
-      onUnmount={noop}
+      onElementImage={(image, draw) => board?.report(cut, direction, { image, progress, draw })}
+      onUnmount={() => board?.leave(cut, direction)}
       bothEnteringAndExiting={false}
     >
       {children}
