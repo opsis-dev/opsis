@@ -103,7 +103,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
           easing: EASING.exit,
         });
 
-  const bandWidth = (value: number) => (value / peak) * funnelWidth;
+  const bandWidth = (value: number) => (Math.max(0, value) / (peak || 1)) * funnelWidth;
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
@@ -193,7 +193,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
               {showConversion ? ` · ${conversion}%` : ""}
             </text>
 
-            {showDropoff && next ? (
+            {showDropoff && next && stage.value > 0 ? (
               <text
                 x={width - labelSize * 0.5}
                 y={bottom + gap / 2}

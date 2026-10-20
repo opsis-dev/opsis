@@ -975,6 +975,32 @@ const MANUAL_MENU = { autoplay: ["false"] };
 const WRITTEN_PRESETS = ["marker", "color", "underline", "strikethrough", "shimmer"];
 
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "funnel-chart": {
+    controls: {
+      stages: {
+        type: "rows",
+        description: "Stages",
+        min: 1,
+        default: [
+          { label: "Visited the site", value: 42800 },
+          { label: "Signed up", value: 18600 },
+          { label: "Created a project", value: 9400 },
+          { label: "Invited a teammate", value: 4100 },
+          { label: "Upgraded", value: 1750 },
+        ],
+        columns: {
+          label: text("Label", "Upgraded"),
+          value: numberControl("Value", 1750, { min: 0, max: 1_000_000_000, step: 1 }),
+          color: optionalColor("Color", "None"),
+        },
+      },
+      labelWidth: optionalNumber(
+        "Label width",
+        { min: 0, max: 2000, step: 10 },
+        { unit: "px", advanced: true },
+      ),
+    },
+  },
   "grid-pixelate-wipe": {
     controls: {
       cols: numberControl(
@@ -1706,15 +1732,6 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
           emptyLabel: "Full ring",
           help: "The ring fills to the value out of this. Leave empty for a full ring.",
         },
-      ),
-    },
-  },
-  "funnel-chart": {
-    controls: {
-      labelWidth: optionalNumber(
-        "Label width",
-        { min: 0, max: 2000, step: 10 },
-        { unit: "px", advanced: true },
       ),
     },
   },

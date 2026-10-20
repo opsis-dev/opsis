@@ -1797,7 +1797,7 @@ const defs: ElementMetaInput[] = [
     kind: "component",
     source: { registry: "RemotionUI", url: "https://remotionui.com/docs/components/funnel-chart", license: "MIT" },
     schema: z.object({
-      stages: z.array(z.object({ label: z.string().default("Upgraded").meta({ description: "Label" }), value: z.number().default(1750).meta({ description: "Value" }), color: z.string().optional().meta({ description: "Color", widget: "color", zeroLabel: "None" }) })).default([{"label":"Visited the site","value":42800},{"label":"Signed up","value":18600},{"label":"Created a project","value":9400},{"label":"Invited a teammate","value":4100},{"label":"Upgraded","value":1750}]).meta({ description: "Stages" }),
+      stages: z.array(z.object({ label: z.string().default("Upgraded").meta({ description: "Label" }), value: z.number().min(0).max(1000000000).default(1750).meta({ description: "Value", step: 1 }), color: z.string().optional().meta({ description: "Color", widget: "color", zeroLabel: "None" }) })).min(1).default([{"label":"Visited the site","value":42800},{"label":"Signed up","value":18600},{"label":"Created a project","value":9400},{"label":"Invited a teammate","value":4100},{"label":"Upgraded","value":1750}]).meta({ description: "Stages" }),
       width: z.number().default(1100).meta({ description: "Width", help: "Overall width: label gutter, funnel and drop-off gutter." }),
       height: z.number().default(560).meta({ description: "Height", help: "Overall height. Bands split it evenly." }),
       gap: z.number().default(10).meta({ description: "Gap", help: "Space between bands.", advanced: true }),
