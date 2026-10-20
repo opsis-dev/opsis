@@ -173,7 +173,7 @@ export function HeroLaunch({
   const { width, height } = useAuthoredConfig();
   const t = useSnapCnTheme(theme, mode ?? "dark");
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
-  const s = height / 720;
+  const s = Math.min(height / 720, width / 1280);
 
   const cardW = 1000 * s;
   const cardH = 620 * s;

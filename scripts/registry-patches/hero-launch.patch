@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Size the cards by the frame's short side, so portrait and square frames show both cards whole.
 
 diff --git a/src/video/elements/snap-cn/hero-launch.tsx b/src/video/elements/snap-cn/hero-launch.tsx
-index 4b5674d..ada004c 100644
+index 4b5674d..7fea633 100644
 --- a/src/video/elements/snap-cn/hero-launch.tsx
 +++ b/src/video/elements/snap-cn/hero-launch.tsx
 @@ -9,9 +9,8 @@ import {
@@ -16,7 +17,7 @@ index 4b5674d..ada004c 100644
  import {
    Item,
    mixOklch,
-@@ -170,8 +169,8 @@ export function HeroLaunch({
+@@ -170,11 +169,11 @@ export function HeroLaunch({
    mode,
    fontFamily,
  }: HeroLaunchProps) {
@@ -26,4 +27,8 @@ index 4b5674d..ada004c 100644
 +  const { width, height } = useAuthoredConfig();
    const t = useSnapCnTheme(theme, mode ?? "dark");
    const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
-   const s = height / 720;
+-  const s = height / 720;
++  const s = Math.min(height / 720, width / 1280);
+ 
+   const cardW = 1000 * s;
+   const cardH = 620 * s;
