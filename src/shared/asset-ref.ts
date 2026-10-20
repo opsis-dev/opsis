@@ -53,6 +53,11 @@ export function projectRelPath(ref: string): string | null {
   return target.kind === "project" ? target.rel : null;
 }
 
+export function staysInProject(ref: string): boolean {
+  const rel = projectRelPath(ref);
+  return rel !== null && !rel.split(/[\\/]/).includes("..");
+}
+
 export const libraryRef = (rel: string): string => `${LIBRARY_SCHEME}${rel}`;
 
 export const libraryRelPath = (ref: string): string | null =>

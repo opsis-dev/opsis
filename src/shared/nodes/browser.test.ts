@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard } from "../test-fixtures";
-import { assertNode, waitNode } from "./browser";
+import { assertNode, uploadNode, waitNode } from "./browser";
 import { parseParams } from "./params";
 
 describe("browser action cards", () => {
@@ -53,6 +53,20 @@ describe("browser action settings", () => {
       expect(node.params.safeParse({ timeoutMs: 0 }).success).toBe(false);
       expect(node.params.safeParse({ text: "Saved", timeoutMs: 500 }).success).toBe(true);
     }
+  });
+
+  it("uploads only a chosen file inside the project", () => {
+    const problem = (file: string) => {
+      const parsed = parseParams(uploadNode.params, { target: "Avatar", file });
+      return parsed.ok ? null : parsed.problem;
+    };
+    expect(problem("assets/photo.png")).toBeNull();
+    expect(problem("project:assets/photo.png")).toBeNull();
+    expect(problem("")).toBe("Choose a file");
+    expect(problem("../secret.txt")).toBe("Choose a file inside the project folder");
+    expect(problem("assets/../../secret.txt")).toBe("Choose a file inside the project folder");
+    expect(problem("/etc/passwd")).toBe("Choose a file inside the project folder");
+    expect(problem("C:\\Users\\me\\a.txt")).toBe("Choose a file inside the project folder");
   });
 
   it("refuses to check for blank text, which every page contains", () => {

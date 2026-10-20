@@ -1,5 +1,7 @@
 import path from "node:path";
 import type { z } from "zod";
+import { isInside } from "../../engine/project-paths";
+import { projectRelPath } from "../../shared/asset-ref";
 import { pressedChord } from "../../shared/chord";
 import {
   assertNode,
@@ -194,7 +196,10 @@ const STEPS = new Map<string, StepSpec>([
   ),
   step(uploadNode, async (take, p) => {
     const t = await take.resolve(p.target);
-    await elementOf(t.target).setInputFiles(path.resolve(take.opts.projectDir, p.file));
+    const file = path.resolve(take.opts.projectDir, projectRelPath(p.file) ?? p.file);
+    if (!isInside(take.opts.projectDir, file))
+      throw new Error("Choose a file inside the project folder.");
+    await elementOf(t.target).setInputFiles(file);
     await take.pauseIfRolling(p.after);
   }),
   step(pressNode, async (take, p, node) => {

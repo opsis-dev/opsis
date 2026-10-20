@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { staysInProject } from "../asset-ref";
 import { chordKeys } from "../chord";
 import { formatDuration, displayAddress, formatWhen } from "../format";
 import { mimeSubtype } from "../mime";
@@ -22,7 +23,6 @@ import {
 } from "./card";
 import { defineNode, nodeBase, port } from "./define";
 import {
-  asset,
   beatFields,
   bool,
   choice,
@@ -373,7 +373,12 @@ export const uploadNode = defineNode({
   description: "Attaches a file from your project to a file field.",
   params: z.object({
     ...targetFields("File field", "Pick the upload field, or type its label."),
-    file: asset("File"),
+    file: z
+      .string()
+      .refine((f) => f.trim() !== "", "Choose a file")
+      .refine(staysInProject, "Choose a file inside the project folder")
+      .default("")
+      .meta({ description: "File", widget: "asset", accept: "*/*" }),
     ...beatFields,
   }),
   card: ({ params: p }) => [
