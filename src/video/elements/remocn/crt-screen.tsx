@@ -29,18 +29,21 @@ uniform float u_curvature;
 uniform float u_scanlines;
 uniform float u_mask_scale;
 uniform float u_vignette;
+uniform vec2 u_size;
 
 in vec2 v_uv;
 out vec4 outColor;
 
 const float PI = 3.141592653589793;
 const float SCAN_LINES = 240.0;
+const float REFERENCE_ASPECT = 16.0 / 9.0;
+const float REFERENCE_HEIGHT = 1080.0;
 
-vec2 warpTube(vec2 uv, float k) {
+vec2 warpTube(vec2 uv, float k, float aspect) {
   vec2 p = uv * 2.0 - 1.0;
   float x2 = p.x * p.x;
   float y2 = p.y * p.y;
-  p.x *= 1.0 + k * 0.11 * y2;
+  p.x *= 1.0 + k * 0.11 * (REFERENCE_ASPECT / aspect) * y2;
   p.y *= 1.0 + k * 0.17 * x2;
   p /= 1.0 + k * 0.045;
   return p * 0.5 + 0.5;
@@ -57,7 +60,8 @@ vec3 phosphorMask(float x, float scale) {
 }
 
 void main() {
-  vec2 uv = warpTube(v_uv, u_curvature);
+  float aspect = u_size.x / max(u_size.y, 1.0);
+  vec2 uv = warpTube(v_uv, u_curvature, aspect);
 
   vec2 edge =
     smoothstep(vec2(0.0), vec2(0.005), uv) *
@@ -74,7 +78,7 @@ void main() {
   vec3 bloom = max(spread - 0.5, vec3(0.0));
 
   vec3 color = base.rgb;
-  color *= phosphorMask(gl_FragCoord.x, u_mask_scale);
+  color *= phosphorMask(v_uv.x * u_size.x * (REFERENCE_HEIGHT / max(u_size.y, 1.0)), u_mask_scale);
   color += bloom * 0.75;
 
   float scan = mix(1.0, 0.5 + 0.5 * cos(uv.y * SCAN_LINES * PI * 2.0), 0.55);
@@ -92,7 +96,7 @@ void main() {
 
 const shader = makeFilterShader<CrtScreenProps>(
   FRAGMENT_SHADER,
-  ({ gl, uniform, passedProps }) => {
+  ({ gl, uniform, passedProps, width, height }) => {
     const {
       curvature = DEFAULTS.curvature,
       scanlines = DEFAULTS.scanlines,
@@ -103,6 +107,7 @@ const shader = makeFilterShader<CrtScreenProps>(
     gl.uniform1f(uniform("u_scanlines"), scanlines);
     gl.uniform1f(uniform("u_mask_scale"), maskScale);
     gl.uniform1f(uniform("u_vignette"), vignette);
+    gl.uniform2f(uniform("u_size"), width, height);
   },
 );
 
