@@ -94,6 +94,26 @@ function maxScaleFor(region: Size): number {
 export const tallestShot = (look: StillLook, width: number, canvas: Size): number =>
   Math.ceil(look === "cutout" ? width * TALLEST_CUTOUT : (width * TALL_SHOT) / aspectOf(canvas));
 
+export function paddedRegion(
+  box: Box,
+  scroll: { x: number; y: number },
+  padding: number,
+): { region: Box; body: Box } {
+  const left = box.x + scroll.x;
+  const top = box.y + scroll.y;
+  const x = Math.max(0, left - padding);
+  const y = Math.max(0, top - padding);
+  return {
+    region: {
+      x,
+      y,
+      width: left + box.width + padding - x,
+      height: top + box.height + padding - y,
+    },
+    body: { x: left - x, y: top - y, width: box.width, height: box.height },
+  };
+}
+
 export const captureCanvas = (project: Size): Size => ({
   width: project.width * CAPTURE.maxExportScale,
   height: project.height * CAPTURE.maxExportScale,

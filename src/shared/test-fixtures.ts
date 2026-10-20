@@ -114,6 +114,7 @@ export function compileNode(
   type: string,
   params: Record<string, unknown>,
   inputs: CompileInputs = {},
+  result?: NodeResult,
 ): CompileOutputs {
   const def = must(getNodeDef(type), type);
   const compile = must(def.compile, `compile for ${type}`);
@@ -126,6 +127,7 @@ export function compileNode(
       settings: workflow.settings,
       vars: {},
       workflow,
+      result,
     }) ?? {}
   );
 }

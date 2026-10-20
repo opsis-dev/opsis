@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   captureScale,
   containBox,
+  paddedRegion,
   stillLayout,
   tallestShot,
   type Box,
@@ -147,5 +148,23 @@ describe("tallestShot", () => {
 
   it("lets a cut-out keep a page four times taller than wide", () => {
     expect(tallestShot("cutout", 1920, canvas)).toBe(7680);
+  });
+});
+
+describe("paddedRegion", () => {
+  it("adds the space around an element in page coordinates", () => {
+    const box = { x: 100, y: 50, width: 200, height: 40 };
+    expect(paddedRegion(box, { x: 0, y: 300 }, 24)).toEqual({
+      region: { x: 76, y: 326, width: 248, height: 88 },
+      body: { x: 24, y: 24, width: 200, height: 40 },
+    });
+  });
+
+  it("stops the space at the page's top and left edges", () => {
+    const box = { x: 10, y: 5, width: 200, height: 40 };
+    expect(paddedRegion(box, { x: 0, y: 0 }, 24)).toEqual({
+      region: { x: 0, y: 0, width: 234, height: 69 },
+      body: { x: 10, y: 5, width: 200, height: 40 },
+    });
   });
 });

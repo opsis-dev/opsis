@@ -54,3 +54,47 @@ describe("marks on actions", () => {
     expect(nodeCard("cursor.spotlight", { match: "" })[0].text).toBe("On every action");
   });
 });
+
+describe("camera and marks in a chain", () => {
+  const chain = (steps: Array<[string, Record<string, unknown>]>) =>
+    steps.reduce((clip, [type, params]) => compileClip(type, params, { clip }), take());
+
+  it("keeps marks in the order their nodes are chained", () => {
+    const props = recordingProps(
+      chain([
+        ["cursor.spotlight", {}],
+        ["cursor.highlightBox", {}],
+        ["text.tooltip", { text: "Save" }],
+      ]),
+    )[0];
+    expect(props.annotations.map((a) => a.kind)).toEqual(["spotlight", "highlight", "tooltip"]);
+  });
+
+  it("applies the cursor, backdrop and zoom whichever order they come in", () => {
+    const steps: Array<[string, Record<string, unknown>]> = [
+      ["cursor.style", { size: 2 }],
+      ["camera.backdrop", { kind: "solid", color: "#ff0000" }],
+      ["camera.manualZoom", { atMs: 500 }],
+    ];
+    const pick = (clip: ReturnType<typeof chain>) => {
+      const p = recordingProps(clip)[0];
+      return { scale: p.cursorScale, backdrop: p.backdrop, beats: p.extraBeats.length };
+    };
+    const forward = pick(chain(steps));
+    expect(forward).toEqual({ scale: 2, backdrop: "#ff0000", beats: 2 });
+    expect(pick(chain(steps.toReversed()))).toEqual(forward);
+  });
+
+  it("keeps zooms and marks made before a laptop frame on its screen", () => {
+    const props = recordingProps(
+      chain([
+        ["camera.manualZoom", { atMs: 500 }],
+        ["cursor.spotlight", {}],
+        ["camera.deviceFrame", { device: "laptop" }],
+      ]),
+    )[0];
+    expect(props.screen).toBe(true);
+    expect(props.extraBeats).toHaveLength(2);
+    expect(props.annotations).toHaveLength(1);
+  });
+});

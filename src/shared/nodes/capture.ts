@@ -17,6 +17,7 @@ import {
   int,
   more,
   ms,
+  msAtLeast,
   optionalTarget,
   pickedRole,
   requiredText,
@@ -122,7 +123,7 @@ export const stillNode = defineNode({
         bleed: "Full bleed",
       }),
       backdrop: more(text(DEFAULT_BACKDROP, "Backdrop"), { widget: "backdrop" }),
-      durationMs: ms(DEFAULT_STILL_MS, "Length"),
+      durationMs: msAtLeast(DEFAULT_STILL_MS, "Length", 100),
       envelope: visualEnvelope(),
     })
     .superRefine((p, ctx) => {

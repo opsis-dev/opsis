@@ -20,7 +20,13 @@ import type { LoginRequest } from "../../shared/worker-protocol";
 import { addRecordingFrames } from "../../traces/inject";
 import { applyRetention, ingestTrace } from "../../traces/store";
 import { WINDOW_FIT } from "../../video/camera/lib/style";
-import { captureCanvas, captureScale, tallestShot, type Box } from "../../video/core/still-layout";
+import {
+  captureCanvas,
+  captureScale,
+  paddedRegion,
+  tallestShot,
+  type Box,
+} from "../../video/core/still-layout";
 import { recordTake, stillTake } from "../capture/driver";
 import { FrameEncoder } from "../capture/encoder";
 import { elementOf } from "../capture/flow-types";
@@ -331,19 +337,7 @@ async function elementRegion(
       `“${p.target}” has no size on the page, so there's nothing to capture. Add space around it, or pick another element.`,
     );
   const scroll = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
-  const left = box.x + scroll.x;
-  const top = box.y + scroll.y;
-  const x = Math.max(0, left - p.padding);
-  const y = Math.max(0, top - p.padding);
-  return {
-    region: {
-      x,
-      y,
-      width: left + box.width + p.padding - x,
-      height: top + box.height + p.padding - y,
-    },
-    body: { x: left - x, y: top - y, width: box.width, height: box.height },
-  };
+  return paddedRegion(box, scroll, p.padding);
 }
 
 async function regionFor(

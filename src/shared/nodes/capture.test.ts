@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nodeCard, nodeResult, recordResult } from "../test-fixtures";
+import { compileNode, nodeCard, nodeResult, recordResult } from "../test-fixtures";
 import { loginOnceNode, stillNode } from "./capture";
 import { parseNodeParams } from "./define";
 import { parseParams } from "./params";
@@ -93,5 +93,53 @@ describe("Sign in once settings", () => {
       { "Site address": "https://app.example.com" },
     );
     expect(parsed.url).toBe("https://app.example.com/login");
+  });
+});
+
+describe("Screenshot clip", () => {
+  type ShotImage = { src: string; width?: number; height?: number; scale?: number };
+  const compileStill = (params: Record<string, unknown>, image?: ShotImage) => {
+    const out = compileNode(
+      "capture.still",
+      params,
+      {},
+      image ? nodeResult({ outputs: { image: { type: "image", ...image } } }) : undefined,
+    );
+    const clip = out.clip;
+    if (clip?.type !== "clip") throw new Error("no clip");
+    return { image: out.image, item: clip.tracks[0].items[0], frames: clip.durationInFrames };
+  };
+
+  it("shows a placeholder until the screenshot is taken", () => {
+    const { image, item, frames } = compileStill({ durationMs: 3000 });
+    expect(image).toEqual({ type: "image", src: null });
+    expect(item.component).toBe("core/placeholder");
+    expect(frames).toBe(90);
+  });
+
+  it("shows the screenshot with its size once taken", () => {
+    const { item } = compileStill(
+      { look: "cutout" },
+      { src: "project:shot.png", width: 400, height: 300, scale: 2 },
+    );
+    expect(item.component).toBe("core/still");
+    expect(item.props).toMatchObject({
+      src: "project:shot.png",
+      look: "cutout",
+      shot: { width: 400, height: 300, scale: 2 },
+    });
+  });
+
+  it("still draws a screenshot whose size isn't known", () => {
+    const { item } = compileStill({}, { src: "project:shot.png" });
+    expect(item.component).toBe("core/still");
+    expect(item.props).toMatchObject({ src: "project:shot.png", shot: undefined });
+  });
+
+  it("never lasts no time at all", () => {
+    expect(parseParams(stillNode.params, { durationMs: 0 })).toEqual({
+      ok: false,
+      problem: "Length is too small",
+    });
   });
 });
