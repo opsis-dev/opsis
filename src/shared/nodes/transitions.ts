@@ -2,6 +2,7 @@ import { z } from "zod";
 import { itemClip, sequenceClips, stackClips } from "../compile/clip";
 import { ELEMENTS, getElementMeta } from "../elements";
 import type { ElementMeta } from "../elements/types";
+import { clamp } from "../math";
 import type { TransitionRef } from "../schema/timeline";
 import type { ClipValue } from "../schema/values";
 import {
@@ -111,7 +112,21 @@ const lightLeakTransitionNode = defineNode({
   category: "Transitions",
   description: "Cuts between two clips under a warm light flare.",
   phase: "compile",
-  card: ({ params, settings }) => [row("sun", frameSecs(params.durationInFrames, settings.fps))],
+  card: ({ params, settings, inputFrames }) => {
+    const film = (inputFrames?.a ?? 0) + (inputFrames?.b ?? 0);
+    const squeezed = inputFrames?.a && inputFrames.b && params.durationInFrames > film;
+    return [
+      row("sun", frameSecs(params.durationInFrames, settings.fps)),
+      squeezed &&
+        row(
+          "triangle-alert",
+          `Longer than both clips, so it plays for ${frameSecs(film, settings.fps)}`,
+          {
+            tone: "warn",
+          },
+        ),
+    ];
+  },
   params: z.object({
     durationInFrames: frames(30, "Length"),
     seed: int(3, "Variation", { min: 0, max: 100 }),
@@ -123,14 +138,16 @@ const lightLeakTransitionNode = defineNode({
         ports: ["a", "b"],
         slotNode: nodeId,
       });
+      const length = Math.min(params.durationInFrames, cut.durationInFrames);
       const leak = itemClip(
         `${nodeId}:leak`,
         "core/light-leak",
         { seed: params.seed, hueShift: params.hueShift },
-        params.durationInFrames,
+        length,
       );
-      const leakCenteredOnCut = a.durationInFrames - Math.round(params.durationInFrames / 2);
-      return stackClips(nodeId, [cut, leak], [0, Math.max(0, leakCenteredOnCut)]);
+      const centredOnCut = a.durationInFrames - Math.round(length / 2);
+      const start = clamp(centredOnCut, 0, cut.durationInFrames - length);
+      return stackClips(nodeId, [cut, leak], [0, start]);
     }),
 });
 
