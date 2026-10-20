@@ -5,6 +5,7 @@ import { isKeyOf } from "../guards";
 import { MAX_FRAMES, MAX_SPEED, MAX_VOLUME } from "../limits";
 import type { MinMax } from "../math";
 import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
+import { PAUSE_MARK } from "../vars";
 
 export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
   schema.meta({ ...fieldMeta(schema), ...extra });
@@ -69,7 +70,7 @@ export const text = (def: string, description: string, widget?: "textarea" | "co
 export const requiredText = (description: string, missing: string) =>
   z
     .string()
-    .refine((t) => t.trim() !== "", missing)
+    .refine((t) => t.replaceAll(PAUSE_MARK, "").trim() !== "", missing)
     .default("")
     .meta({ description });
 

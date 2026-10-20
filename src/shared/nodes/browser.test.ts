@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard } from "../test-fixtures";
-import { assertNode, selectNode, uploadNode, waitNode } from "./browser";
+import { PAUSE_MARK } from "../vars";
+import { assertNode, selectNode, typeNode, uploadNode, waitNode } from "./browser";
 import { parseParams } from "./params";
 
 describe("browser action cards", () => {
@@ -89,6 +90,16 @@ describe("browser action settings", () => {
       problem: "Choose an option",
     });
     expect(parseParams(selectNode.params, { target: "Plan", value: "pro" }).ok).toBe(true);
+  });
+
+  it("asks for the text to type instead of clearing the field", () => {
+    const problem = (text: string) => {
+      const parsed = parseParams(typeNode.params, { target: "Name", text });
+      return parsed.ok ? null : parsed.problem;
+    };
+    expect(problem("")).toBe("Add text to type");
+    expect(problem(`${PAUSE_MARK}${PAUSE_MARK}`)).toBe("Add text to type");
+    expect(problem(`tom${PAUSE_MARK}smith`)).toBeNull();
   });
 
   it("refuses to check for blank text, which every page contains", () => {

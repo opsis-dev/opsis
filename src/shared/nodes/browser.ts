@@ -201,7 +201,8 @@ export const typeNode = defineNode({
   description: "Types into a field, key by key.",
   params: z.object({
     ...targetFields(),
-    text: more(text("", "Text to type", "textarea"), {
+    text: more(requiredText("Text to type", "Add text to type"), {
+      widget: "textarea",
       pauses: true,
       help: "Use Add pause to hold still for a moment in the middle of typing.",
     }),
