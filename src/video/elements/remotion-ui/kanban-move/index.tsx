@@ -253,7 +253,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
 
           return (
             <div
-              key={column}
+              key={columnIndex}
               style={{
                 position: "absolute",
                 left: columnX(columnIndex),
@@ -342,7 +342,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
 
           return (
             <div
-              key={card.title}
+              key={index}
               style={{
                 position: "absolute",
                 left: x + 8 * u,

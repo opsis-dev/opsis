@@ -329,7 +329,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
               const featureIn = ease(featureAt, featureAt + 0.38);
               return (
                 <div
-                  key={feature}
+                  key={index}
                   style={{
                     display: "flex",
                     alignItems: "center",

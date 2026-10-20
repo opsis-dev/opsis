@@ -138,9 +138,9 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
         opacity: 1 - clamp01(exit / 0.8),
       }}
     >
-      {current.map((entry) => {
+      {current.map((entry, index) => {
         const rank = current.reduce((sum, other) => {
-          if (other.label === entry.label) return sum;
+          if (other === entry) return sum;
           return sum + 1 / (1 + Math.exp((entry.current - other.current) / softness));
         }, 0);
 
@@ -151,7 +151,7 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
 
         return (
           <div
-            key={entry.label}
+            key={index}
             style={{
               position: "absolute",
               top: 0,

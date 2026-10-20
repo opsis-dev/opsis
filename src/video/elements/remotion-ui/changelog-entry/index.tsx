@@ -243,7 +243,7 @@ export const ChangelogEntry: React.FC<ChangelogEntryProps> = ({
 
             return (
               <div
-                key={`${change.kind}-${change.text}`}
+                key={index}
                 style={{
                   display: "flex",
                   alignItems: "center",

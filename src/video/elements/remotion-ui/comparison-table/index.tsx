@@ -264,7 +264,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
             <div style={{ width: labelW }} />
             {columns.map((column, columnIndex) => (
               <div
-                key={column}
+                key={columnIndex}
                 style={{
                   width: colW,
                   textAlign: "center",
@@ -288,7 +288,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
             const rowIn = ease(rowAt, rowAt + 0.4);
             return (
               <div
-                key={row.label}
+                key={rowIndex}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -315,7 +315,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
                   const lit = cellIndex === highlightColumn;
                   return (
                     <div
-                      key={`${row.label}-${cellIndex}`}
+                      key={cellIndex}
                       style={{
                         width: colW,
                         display: "flex",

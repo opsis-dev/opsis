@@ -144,7 +144,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
             stroke={trackColor}
             strokeWidth={thickness}
           />
-          {drawn.map((segment) => {
+          {drawn.map((segment, index) => {
             const length = Math.max(
               0,
               segment.fraction * circumference * segment.progress - gap,
@@ -152,7 +152,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
             return (
               <circle
-                key={segment.label}
+                key={index}
                 cx={size / 2}
                 cy={size / 2}
                 r={radius}
@@ -210,9 +210,9 @@ export const DonutChart: React.FC<DonutChartProps> = ({
 
       {showLegend ? (
         <div style={{ display: "grid", gap: size * 0.055 }}>
-          {drawn.map((segment) => (
+          {drawn.map((segment, index) => (
             <div
-              key={segment.label}
+              key={index}
               style={{
                 display: "flex",
                 alignItems: "center",

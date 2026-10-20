@@ -1,0 +1,29 @@
+Fixes:
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
+- Rank each bar against every other bar, not only those with another label, so two series with the same label take separate places.
+
+diff --git a/src/video/elements/remotion-ui/bar-chart-race.tsx b/src/video/elements/remotion-ui/bar-chart-race.tsx
+index e45e424..dc45325 100644
+--- a/src/video/elements/remotion-ui/bar-chart-race.tsx
++++ b/src/video/elements/remotion-ui/bar-chart-race.tsx
+@@ -138,9 +138,9 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
+         opacity: 1 - clamp01(exit / 0.8),
+       }}
+     >
+-      {current.map((entry) => {
++      {current.map((entry, index) => {
+         const rank = current.reduce((sum, other) => {
+-          if (other.label === entry.label) return sum;
++          if (other === entry) return sum;
+           return sum + 1 / (1 + Math.exp((entry.current - other.current) / softness));
+         }, 0);
+ 
+@@ -151,7 +151,7 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
+ 
+         return (
+           <div
+-            key={entry.label}
++            key={index}
+             style={{
+               position: "absolute",
+               top: 0,

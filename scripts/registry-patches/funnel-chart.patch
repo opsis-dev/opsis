@@ -1,0 +1,16 @@
+Fixes:
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
+
+diff --git a/src/video/elements/remotion-ui/funnel-chart.tsx b/src/video/elements/remotion-ui/funnel-chart.tsx
+index cc0beff..0865462 100644
+--- a/src/video/elements/remotion-ui/funnel-chart.tsx
++++ b/src/video/elements/remotion-ui/funnel-chart.tsx
+@@ -153,7 +153,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
+         );
+ 
+         return (
+-          <g key={stage.label}>
++          <g key={index}>
+             <path
+               d={path}
+               fill={stage.color ?? color}

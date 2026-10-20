@@ -1,10 +1,41 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
 diff --git a/src/video/elements/remotion-ui/commit-graph/index.tsx b/src/video/elements/remotion-ui/commit-graph/index.tsx
-index 90457e6..e876378 100644
+index 90457e6..1048960 100644
 --- a/src/video/elements/remotion-ui/commit-graph/index.tsx
 +++ b/src/video/elements/remotion-ui/commit-graph/index.tsx
+@@ -266,9 +266,9 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
+                   stroke: laneColor(commits[commit.mergeFrom].lane ?? 0),
+                 });
+               }
+-              return edges.map((edge) => (
++              return edges.map((edge, edgeIndex) => (
+                 <path
+-                  key={`${index}-${edge.from}`}
++                  key={edgeIndex}
+                   d={edgePath(edge.from, index)}
+                   fill="none"
+                   stroke={edge.stroke}
+@@ -291,7 +291,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
+               const color = laneColor(commit.lane ?? 0);
+               return (
+                 <circle
+-                  key={commit.hash}
++                  key={index}
+                   cx={laneX(commit.lane ?? 0)}
+                   cy={rowY(index)}
+                   r={dotR * (0.6 + pop * 0.4)}
+@@ -309,7 +309,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
+             const textIn = interpolate(progress, [0.86, 1], [0, 1], clamp);
+             return (
+               <div
+-                key={commit.hash}
++                key={index}
+                 style={{
+                   position: "absolute",
+                   left: 18 * u + graphW + 14 * u,
 @@ -352,8 +352,8 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
                        flexShrink: 0,
                        padding: `${2.5 * u}px ${8 * u}px`,

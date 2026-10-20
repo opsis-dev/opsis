@@ -128,7 +128,7 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
         >
           {[beforeColor, afterColor].map((swatch, index) => (
             <span
-              key={swatch}
+              key={index}
               style={{ display: "flex", alignItems: "center", gap: 8 }}
             >
               <span
@@ -159,7 +159,7 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
 
         return (
           <div
-            key={row.label}
+            key={index}
             style={{
               display: "flex",
               alignItems: "center",

@@ -266,9 +266,9 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
                   stroke: laneColor(commits[commit.mergeFrom].lane ?? 0),
                 });
               }
-              return edges.map((edge) => (
+              return edges.map((edge, edgeIndex) => (
                 <path
-                  key={`${index}-${edge.from}`}
+                  key={edgeIndex}
                   d={edgePath(edge.from, index)}
                   fill="none"
                   stroke={edge.stroke}
@@ -291,7 +291,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
               const color = laneColor(commit.lane ?? 0);
               return (
                 <circle
-                  key={commit.hash}
+                  key={index}
                   cx={laneX(commit.lane ?? 0)}
                   cy={rowY(index)}
                   r={dotR * (0.6 + pop * 0.4)}
@@ -309,7 +309,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
             const textIn = interpolate(progress, [0.86, 1], [0, 1], clamp);
             return (
               <div
-                key={commit.hash}
+                key={index}
                 style={{
                   position: "absolute",
                   left: 18 * u + graphW + 14 * u,

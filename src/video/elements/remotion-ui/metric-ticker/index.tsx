@@ -206,7 +206,7 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
 
           return (
             <div
-              key={metric.label}
+              key={index}
               style={{
                 display: "grid",
                 gap: scaleFont(14, width),

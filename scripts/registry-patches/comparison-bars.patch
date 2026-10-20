@@ -1,0 +1,25 @@
+Fixes:
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
+
+diff --git a/src/video/elements/remotion-ui/comparison-bars.tsx b/src/video/elements/remotion-ui/comparison-bars.tsx
+index f814ecf..de2bc8b 100644
+--- a/src/video/elements/remotion-ui/comparison-bars.tsx
++++ b/src/video/elements/remotion-ui/comparison-bars.tsx
+@@ -128,7 +128,7 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
+         >
+           {[beforeColor, afterColor].map((swatch, index) => (
+             <span
+-              key={swatch}
++              key={index}
+               style={{ display: "flex", alignItems: "center", gap: 8 }}
+             >
+               <span
+@@ -159,7 +159,7 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
+ 
+         return (
+           <div
+-            key={row.label}
++            key={index}
+             style={{
+               display: "flex",
+               alignItems: "center",

@@ -1,8 +1,9 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
 diff --git a/src/video/elements/remotion-ui/metric-ticker/index.tsx b/src/video/elements/remotion-ui/metric-ticker/index.tsx
-index ad2c5e6..1dd959f 100644
+index ad2c5e6..53e3815 100644
 --- a/src/video/elements/remotion-ui/metric-ticker/index.tsx
 +++ b/src/video/elements/remotion-ui/metric-ticker/index.tsx
 @@ -120,7 +120,7 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
@@ -14,3 +15,12 @@ index ad2c5e6..1dd959f 100644
          color: COLORS.ink,
          fontFamily,
          paddingLeft: safe.paddingLeft,
+@@ -206,7 +206,7 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
+ 
+           return (
+             <div
+-              key={metric.label}
++              key={index}
+               style={{
+                 display: "grid",
+                 gap: scaleFont(14, width),

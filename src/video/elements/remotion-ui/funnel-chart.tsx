@@ -153,7 +153,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
         );
 
         return (
-          <g key={stage.label}>
+          <g key={index}>
             <path
               d={path}
               fill={stage.color ?? color}

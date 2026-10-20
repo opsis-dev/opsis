@@ -1,8 +1,9 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
 diff --git a/src/video/elements/remotion-ui/end-card/index.tsx b/src/video/elements/remotion-ui/end-card/index.tsx
-index 074ea9a..c75399c 100644
+index 074ea9a..fdb3b65 100644
 --- a/src/video/elements/remotion-ui/end-card/index.tsx
 +++ b/src/video/elements/remotion-ui/end-card/index.tsx
 @@ -156,7 +156,7 @@ export const EndCard: React.FC<EndCardProps> = ({
@@ -23,3 +24,14 @@ index 074ea9a..c75399c 100644
                  // The label rises out of the pill from below it, so the
                  // pill must clip vertically — which means a label long enough to
                  // wrap would be cut mid-glyph. Keep it on one line and bounded
+@@ -353,8 +353,8 @@ export const EndCard: React.FC<EndCardProps> = ({
+               translate: `0 ${(1 - handlesIn) * 10 * u}px`,
+             }}
+           >
+-            {handles.map((handle) => (
+-              <span key={handle}>{handle}</span>
++            {handles.map((handle, index) => (
++              <span key={index}>{handle}</span>
+             ))}
+           </div>
+         ) : null}

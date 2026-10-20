@@ -205,7 +205,7 @@ export const LogoWall: React.FC<LogoWallProps> = ({
 
             return (
               <div
-                key={logo.name}
+                key={index}
                 style={{
                   width: tileW,
                   height: tileH,

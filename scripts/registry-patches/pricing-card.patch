@@ -1,8 +1,9 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
 diff --git a/src/video/elements/remotion-ui/pricing-card/index.tsx b/src/video/elements/remotion-ui/pricing-card/index.tsx
-index c07918e..7ffdd64 100644
+index c07918e..da16bb6 100644
 --- a/src/video/elements/remotion-ui/pricing-card/index.tsx
 +++ b/src/video/elements/remotion-ui/pricing-card/index.tsx
 @@ -176,7 +176,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
@@ -34,6 +35,15 @@ index c07918e..7ffdd64 100644
                    color: accentColor,
                    fontSize: 14.5 * u,
                    fontWeight: 600,
+@@ -329,7 +329,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+               const featureIn = ease(featureAt, featureAt + 0.38);
+               return (
+                 <div
+-                  key={feature}
++                  key={index}
+                   style={{
+                     display: "flex",
+                     alignItems: "center",
 @@ -339,7 +339,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
                    }}
                  >

@@ -1,10 +1,20 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
 diff --git a/src/video/elements/remotion-ui/changelog-entry/index.tsx b/src/video/elements/remotion-ui/changelog-entry/index.tsx
-index fc8053a..a9cedaa 100644
+index fc8053a..29cedeb 100644
 --- a/src/video/elements/remotion-ui/changelog-entry/index.tsx
 +++ b/src/video/elements/remotion-ui/changelog-entry/index.tsx
+@@ -243,7 +243,7 @@ export const ChangelogEntry: React.FC<ChangelogEntryProps> = ({
+ 
+             return (
+               <div
+-                key={`${change.kind}-${change.text}`}
++                key={index}
+                 style={{
+                   display: "flex",
+                   alignItems: "center",
 @@ -258,8 +258,8 @@ export const ChangelogEntry: React.FC<ChangelogEntryProps> = ({
                      textAlign: "center",
                      padding: `${4 * u}px 0`,

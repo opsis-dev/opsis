@@ -1,11 +1,20 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
 diff --git a/src/video/elements/remotion-ui/logo-wall/index.tsx b/src/video/elements/remotion-ui/logo-wall/index.tsx
-index a5eccf7..7e42179 100644
+index a5eccf7..ebcc715 100644
 --- a/src/video/elements/remotion-ui/logo-wall/index.tsx
 +++ b/src/video/elements/remotion-ui/logo-wall/index.tsx
-@@ -212,7 +212,7 @@ export const LogoWall: React.FC<LogoWallProps> = ({
+@@ -205,14 +205,14 @@ export const LogoWall: React.FC<LogoWallProps> = ({
+ 
+             return (
+               <div
+-                key={logo.name}
++                key={index}
+                 style={{
+                   width: tileW,
+                   height: tileH,
                    borderRadius: 14 * u,
                    background: palette.band,
                    border: `1px solid ${

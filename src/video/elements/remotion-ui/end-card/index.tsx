@@ -353,8 +353,8 @@ export const EndCard: React.FC<EndCardProps> = ({
               translate: `0 ${(1 - handlesIn) * 10 * u}px`,
             }}
           >
-            {handles.map((handle) => (
-              <span key={handle}>{handle}</span>
+            {handles.map((handle, index) => (
+              <span key={index}>{handle}</span>
             ))}
           </div>
         ) : null}

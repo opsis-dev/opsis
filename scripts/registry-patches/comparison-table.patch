@@ -1,8 +1,9 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
 diff --git a/src/video/elements/remotion-ui/comparison-table/index.tsx b/src/video/elements/remotion-ui/comparison-table/index.tsx
-index 577e469..9d5f46e 100644
+index 577e469..2e51a3c 100644
 --- a/src/video/elements/remotion-ui/comparison-table/index.tsx
 +++ b/src/video/elements/remotion-ui/comparison-table/index.tsx
 @@ -218,8 +218,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
@@ -27,3 +28,30 @@ index 577e469..9d5f46e 100644
                    color: accentColor,
                    fontSize: 14.5 * u,
                    fontWeight: 600,
+@@ -264,7 +264,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+             <div style={{ width: labelW }} />
+             {columns.map((column, columnIndex) => (
+               <div
+-                key={column}
++                key={columnIndex}
+                 style={{
+                   width: colW,
+                   textAlign: "center",
+@@ -288,7 +288,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+             const rowIn = ease(rowAt, rowAt + 0.4);
+             return (
+               <div
+-                key={row.label}
++                key={rowIndex}
+                 style={{
+                   display: "flex",
+                   alignItems: "center",
+@@ -315,7 +315,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+                   const lit = cellIndex === highlightColumn;
+                   return (
+                     <div
+-                      key={`${row.label}-${cellIndex}`}
++                      key={cellIndex}
+                       style={{
+                         width: colW,
+                         display: "flex",

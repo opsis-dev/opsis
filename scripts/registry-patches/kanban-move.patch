@@ -1,10 +1,20 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
 diff --git a/src/video/elements/remotion-ui/kanban-move/index.tsx b/src/video/elements/remotion-ui/kanban-move/index.tsx
-index ad3870d..d732b96 100644
+index ad3870d..857ca68 100644
 --- a/src/video/elements/remotion-ui/kanban-move/index.tsx
 +++ b/src/video/elements/remotion-ui/kanban-move/index.tsx
+@@ -253,7 +253,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+ 
+           return (
+             <div
+-              key={column}
++              key={columnIndex}
+               style={{
+                 position: "absolute",
+                 left: columnX(columnIndex),
 @@ -270,7 +270,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
                      : palette.border
                  }`,
@@ -14,3 +24,12 @@ index ad3870d..d732b96 100644
                    : "none",
                }}
              >
+@@ -342,7 +342,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+ 
+           return (
+             <div
+-              key={card.title}
++              key={index}
+               style={{
+                 position: "absolute",
+                 left: x + 8 * u,

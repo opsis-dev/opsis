@@ -1,0 +1,37 @@
+Fixes:
+- Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
+
+diff --git a/src/video/elements/remotion-ui/donut-chart.tsx b/src/video/elements/remotion-ui/donut-chart.tsx
+index f068605..efee8ff 100644
+--- a/src/video/elements/remotion-ui/donut-chart.tsx
++++ b/src/video/elements/remotion-ui/donut-chart.tsx
+@@ -144,7 +144,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
+             stroke={trackColor}
+             strokeWidth={thickness}
+           />
+-          {drawn.map((segment) => {
++          {drawn.map((segment, index) => {
+             const length = Math.max(
+               0,
+               segment.fraction * circumference * segment.progress - gap,
+@@ -152,7 +152,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
+ 
+             return (
+               <circle
+-                key={segment.label}
++                key={index}
+                 cx={size / 2}
+                 cy={size / 2}
+                 r={radius}
+@@ -210,9 +210,9 @@ export const DonutChart: React.FC<DonutChartProps> = ({
+ 
+       {showLegend ? (
+         <div style={{ display: "grid", gap: size * 0.055 }}>
+-          {drawn.map((segment) => (
++          {drawn.map((segment, index) => (
+             <div
+-              key={segment.label}
++              key={index}
+               style={{
+                 display: "flex",
+                 alignItems: "center",
