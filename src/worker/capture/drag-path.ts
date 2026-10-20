@@ -3,7 +3,7 @@ import { clamp, EPSILON, sum } from "../../shared/math";
 import {
   distance,
   lerpPoint,
-  parsePoint,
+  readPath,
   type Point,
   type Rect,
   type Viewport,
@@ -109,16 +109,9 @@ export function nudgeToward(from: Point, to: Point, px: number): Point {
 }
 
 export function parsePath(text: string): [Point, ...Point[]] {
-  const points: Point[] = [];
-  text.split("\n").forEach((line, i) => {
-    if (!line.trim()) return;
-    const point = parsePoint(line);
-    if (!point) throw new Error(`Line ${i + 1} of the path isn't two numbers.`);
-    points.push(point);
-  });
-  const [first, ...rest] = points;
-  if (!first) throw new Error("Add at least one point to the path.");
-  return [first, ...rest];
+  const path = readPath(text);
+  if (!path.ok) throw new Error(`${path.problem}.`);
+  return path.points;
 }
 
 export function offsetPath(start: Point, offsets: readonly Point[]): [Point, ...Point[]] {

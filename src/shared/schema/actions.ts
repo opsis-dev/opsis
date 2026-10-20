@@ -25,6 +25,23 @@ export function parsePoint(text: string): Point | null {
   return m ? { x: Number(m[1]), y: Number(m[2]) } : null;
 }
 
+export type PathText = { ok: true; points: [Point, ...Point[]] } | { ok: false; problem: string };
+
+export function readPath(text: string): PathText {
+  const points: Point[] = [];
+  for (const [i, line] of text.split("\n").entries()) {
+    if (!line.trim()) continue;
+    const point = parsePoint(line);
+    if (!point) return { ok: false, problem: `Line ${i + 1} of the path isn't two numbers` };
+    points.push(point);
+  }
+  const [first, ...rest] = points;
+  if (!first) return { ok: false, problem: "Add points to the path" };
+  if (points.every((p) => p.x === 0 && p.y === 0))
+    return { ok: false, problem: "Add a point away from where the drag starts" };
+  return { ok: true, points: [first, ...rest] };
+}
+
 export const isBoundsList = (value: unknown): value is Bounds[] =>
   z.array(boundsSchema).safeParse(value).success;
 

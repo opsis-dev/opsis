@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard } from "../test-fixtures";
 import { PAUSE_MARK } from "../vars";
-import { assertNode, selectNode, typeNode, uploadNode, waitNode } from "./browser";
+import { assertNode, dragNode, selectNode, typeNode, uploadNode, waitNode } from "./browser";
 import { parseParams } from "./params";
 
 describe("browser action cards", () => {
@@ -41,6 +41,15 @@ describe("browser action cards", () => {
       "Zoom group “Board”",
     ]);
     expect(texts({ mode: "path", path: "" })).toEqual(["“Deal card”", "Add points to the path"]);
+    expect(texts({ mode: "path", path: "100, 0" })).toEqual(["“Deal card”", "Along 1 point"]);
+    expect(texts({ mode: "path", path: "100, 0\nnot a point" })).toEqual([
+      "“Deal card”",
+      "Line 2 of the path isn't two numbers",
+    ]);
+    expect(texts({ mode: "path", path: "0, 0" })).toEqual([
+      "“Deal card”",
+      "Add a point away from where the drag starts",
+    ]);
   });
 
   it("doesn't call passing over an element a 0 s hover", () => {
@@ -89,6 +98,16 @@ describe("browser action settings", () => {
     expect(problem({ mode: "url", url: "*/done*" })).toBeNull();
     expect(problem({ mode: "network-idle" })).toBeNull();
     expect(problem({ mode: "ms", ms: 500 })).toBeNull();
+  });
+
+  it("checks a drag path before the run", () => {
+    const problem = (path: string) => {
+      const parsed = parseParams(dragNode.params, { target: "Card", mode: "path", path });
+      return parsed.ok ? null : parsed.problem;
+    };
+    expect(problem("0, 0\n40, 40")).toBeNull();
+    expect(problem("100, 0\nnot a point")).toBe("Line 2 of the path isn't two numbers");
+    expect(problem("")).toBe("Add points to the path");
   });
 
   it("asks for the option to choose", () => {

@@ -76,7 +76,7 @@ describe("parsePath", () => {
       { x: -120.5, y: -80 },
     ]);
     expect(() => parsePath("0, 0\n10, 10\nleft")).toThrow("Line 3 of the path isn't two numbers.");
-    expect(() => parsePath("  \n")).toThrow("Add at least one point to the path.");
+    expect(() => parsePath("  \n")).toThrow("Add points to the path.");
   });
 });
 

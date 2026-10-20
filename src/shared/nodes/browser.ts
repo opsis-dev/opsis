@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { staysInProject } from "../asset-ref";
 import { chordKeys } from "../chord";
-import { formatDuration, displayAddress, formatWhen } from "../format";
+import { formatDuration, displayAddress, formatWhen, plural } from "../format";
 import { mimeSubtype } from "../mime";
+import { readPath } from "../schema/actions";
 import { DEFAULT_VIEWPORT } from "../schema/workflow";
 import { nonBlankLines } from "../text-input";
 import { PAUSE_MARK, SITE_ADDRESS } from "../vars";
@@ -265,39 +266,44 @@ const distance = (description: string, def: number) =>
     showIf: { mode: ["by"] },
   });
 
-const dragParams = z.object({
-  ...targetFields(
-    "Element to drag",
-    "Pick it on the page, type its visible text, or give a spot as across, down.",
-  ),
-  mode: choice(["element", "by", "path"], "element", "Drag", {
-    element: "Onto an element",
-    by: "By a distance",
-    path: "Along a path",
-  }),
-  to: more(optionalTarget("Drop on"), { showIf: { mode: ["element"] } }),
-  toRole: pickedRole(),
-  dx: distance("Across", 300),
-  dy: distance("Down", 0),
-  path: more(text("", "Path", "textarea"), {
-    help: "One point per line, as across, down in pixels from where the drag starts.",
-    presets: Object.entries(PATH_PRESETS).map(([label, path]) => ({
-      label,
-      values: { path },
-    })),
-    showIf: { mode: ["path"] },
-  }),
-  holdMs: ms(150, "Hold before moving", 5000),
-  dragMs: more(ms(0, "Drag time", 10_000), { zeroLabel: "Auto" }),
-  method: more(
-    choice(["smooth", "quick"], "smooth", "How", {
-      smooth: "Smooth, with the cursor",
-      quick: "Quick, for pages that ignore the smooth drag",
+const dragParams = z
+  .object({
+    ...targetFields(
+      "Element to drag",
+      "Pick it on the page, type its visible text, or give a spot as across, down.",
+    ),
+    mode: choice(["element", "by", "path"], "element", "Drag", {
+      element: "Onto an element",
+      by: "By a distance",
+      path: "Along a path",
     }),
-    { advanced: true },
-  ),
-  ...pointerAction(220, "Hover before picking it up"),
-});
+    to: more(optionalTarget("Drop on"), { showIf: { mode: ["element"] } }),
+    toRole: pickedRole(),
+    dx: distance("Across", 300),
+    dy: distance("Down", 0),
+    path: more(text("", "Path", "textarea"), {
+      help: "One point per line, as across, down in pixels from where the drag starts.",
+      presets: Object.entries(PATH_PRESETS).map(([label, path]) => ({
+        label,
+        values: { path },
+      })),
+      showIf: { mode: ["path"] },
+    }),
+    holdMs: more(ms(150, "Hold before moving", 5000), { showIf: { method: ["smooth"] } }),
+    dragMs: more(ms(0, "Drag time", 10_000), { zeroLabel: "Auto", showIf: { method: ["smooth"] } }),
+    method: more(
+      choice(["smooth", "quick"], "smooth", "How", {
+        smooth: "Smooth, with the cursor",
+        quick: "Quick, for pages that ignore the smooth drag",
+      }),
+      { advanced: true },
+    ),
+    ...pointerAction(220, "Hover before picking it up"),
+  })
+  .superRefine((p, ctx) => {
+    const path = p.mode === "path" ? readPath(p.path) : null;
+    if (path && !path.ok) ctx.addIssue({ code: "custom", message: path.problem, path: ["path"] });
+  });
 
 type DropParams = Pick<z.infer<typeof dragParams>, "mode" | "to" | "toRole" | "dx" | "dy" | "path">;
 
@@ -305,10 +311,10 @@ function dropRow(p: DropParams): CardRow {
   if (p.mode === "element")
     return onto(elementRow("move", p.to, p.toRole, "Pick where to drop it"));
   if (p.mode === "by") return row("move", `By ${p.dx}, ${p.dy} px`);
-  const points = nonBlankLines(p.path).length;
-  return points
-    ? row("spline", `Along ${points} points`)
-    : missing("spline", "Add points to the path");
+  const path = readPath(p.path);
+  return path.ok
+    ? row("spline", `Along ${plural(path.points.length, "point")}`)
+    : missing("spline", path.problem);
 }
 
 export const dragNode = defineNode({
