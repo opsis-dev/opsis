@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MediaValue } from "../schema/values";
 import { compileClip } from "../test-fixtures";
-import { mediaTrimNode } from "./media";
+import { importMediaNode, mediaTrimNode } from "./media";
 import { parseParams } from "./params";
 
 const media = (kind: MediaValue["kind"], src: string): MediaValue => ({ type: "media", src, kind });
@@ -42,5 +42,14 @@ describe("Trim file settings", () => {
 
   it("lets the start go as far into a file as the end can", () => {
     expect(problem({ startMs: 700_000, endMs: 800_000 })).toBeNull();
+  });
+});
+
+describe("Media file settings", () => {
+  it("never shows an image for no time at all", () => {
+    expect(parseParams(importMediaNode.params, { path: "a.png", stillMs: 0 })).toEqual({
+      ok: false,
+      problem: "Length is too small",
+    });
   });
 });

@@ -29,6 +29,7 @@ import {
   loudnessName,
   more,
   ms,
+  msAtLeast,
   num,
   quality,
   qualityName,
@@ -145,7 +146,7 @@ export const importMediaNode = op({
   params: z.object({
     path: asset("File"),
     fit: fitField(),
-    stillMs: more(ms(DEFAULT_STILL_MS, "Length", 3_600_000), {
+    stillMs: more(msAtLeast(DEFAULT_STILL_MS, "Length", 100, 3_600_000), {
       help: "How long the image stays on screen.",
       showIfFile: { path: ["image"] },
     }),
