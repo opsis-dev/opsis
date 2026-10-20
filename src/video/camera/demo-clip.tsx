@@ -116,7 +116,21 @@ const ShadowGroup: React.FC<{ clip: CameraClip; shot: WindowShot; light: boolean
   );
 };
 
-type FootageClip = Pick<DemoClipProps, "src" | "speed"> & CursorOptions;
+type FootageClip = Pick<DemoClipProps, "src" | "speed" | "annotations"> & CursorOptions;
+
+const Marks: React.FC<{ clip: FootageClip; timeS: number; cameraScale: number }> = ({
+  clip,
+  timeS,
+  cameraScale,
+}) =>
+  clip.annotations?.length ? (
+    <Annotations
+      annotations={clip.annotations}
+      viewport={clip.log.viewport}
+      timeS={timeS}
+      cameraScale={cameraScale}
+    />
+  ) : null;
 
 const WindowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot }> = ({ clip, shot }) => {
   const { z, style } = useCamera(clip, windowFraming(clip, shot));
@@ -133,14 +147,7 @@ const WindowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot }> = ({ clip
           addressBar={clip.addressBar}
         >
           <Footage src={clip.src} speed={clip.speed} fit="fill" />
-          {clip.annotations?.length ? (
-            <Annotations
-              annotations={clip.annotations}
-              viewport={clip.log.viewport}
-              timeS={timeS}
-              cameraScale={z.scale}
-            />
-          ) : null}
+          <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
           <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
         </WindowFrame>
       </div>
@@ -153,6 +160,7 @@ const FullBleedClip: React.FC<{ clip: FootageClip }> = ({ clip }) => {
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: PAGE_BG }}>
       <Footage src={clip.src} speed={clip.speed} fit="cover" />
+      <Marks clip={clip} timeS={timeS} cameraScale={1} />
       <Cursor clip={clip} timeS={timeS} cameraScale={1} />
     </AbsoluteFill>
   );
@@ -173,6 +181,7 @@ const NarrowBleedClip: React.FC<{ clip: FootageClip & CameraClip }> = ({ clip })
       <Stage>
         <div style={{ ...style, boxShadow: BLEED_SHADOW }}>
           <Footage src={clip.src} speed={clip.speed} fit="fill" muted />
+          <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
           <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
         </div>
       </Stage>
