@@ -359,6 +359,7 @@ export const mediaExecutors: Executor[] = [
 
   defineExecutor(extractAudioNode, async (ctx, inputs, p) => {
     const input = requireMedia(inputs.media);
+    if (!(await mediaHasSound(ctx, input))) throw new Error("This file has no sound to take out.");
     return transcodeMedia(ctx, input, {
       file: `audio.${p.format}`,
       label: "Audio",
