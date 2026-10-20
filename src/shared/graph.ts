@@ -16,7 +16,7 @@ import {
   type WorkflowNode,
 } from "./schema/workflow";
 import { secretFileName } from "./secrets";
-import { interpolate } from "./vars";
+import { interpolate, unknownVariables, workflowVars } from "./vars";
 
 export type GraphIssue = {
   level: "error" | "warning";
@@ -255,9 +255,19 @@ function definitionIssues(wf: Workflow, node: WorkflowNode): GraphIssue[] {
   if (!def) return [{ level: "error", nodeId: node.id, message: "This node type isn't available" }];
   if (node.disabled) return [];
   const parsed = parseParams(def.params, node.params);
-  const paramIssues: GraphIssue[] = parsed.ok
-    ? []
-    : [{ level: "error", nodeId: node.id, message: parsed.problem }];
+  const missingVar = unknownVariables(node.params, workflowVars(wf))[0];
+  const paramIssues: GraphIssue[] = [
+    ...(parsed.ok ? [] : [{ level: "error" as const, nodeId: node.id, message: parsed.problem }]),
+    ...(missingVar === undefined
+      ? []
+      : [
+          {
+            level: "error" as const,
+            nodeId: node.id,
+            message: `“${missingVar}” isn't one of the project's variables. Add it under Variables in the project settings, or change this setting.`,
+          },
+        ]),
+  ];
   return isStructural(node) ? paramIssues : [...paramIssues, ...portIssues(wf, node, def.inputs)];
 }
 

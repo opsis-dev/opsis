@@ -57,6 +57,21 @@ describe("graph", () => {
     ).toBe("A clip can't connect to a browser action input.");
   });
 
+  it("names a variable the project doesn't have", () => {
+    const g = new GraphBuilder();
+    g.node("session", "browser.session", 0, 0);
+    g.node("go", "browser.navigate", 1, 0, { url: "{{Site address}}/pricing" });
+    g.node("rec", "capture.record", 2, 0);
+    g.chain(["session", "go", "rec"]);
+    const wf = build(g);
+    const problems = () => validateWorkflow(wf).filter((i) => i.nodeId === "go");
+    expect(problems().map((i) => i.message)).toEqual([
+      "“Site address” isn't one of the project's variables. Add it under Variables in the project settings, or change this setting.",
+    ]);
+    wf.variables = { "Site address": "https://example.com" };
+    expect(problems()).toEqual([]);
+  });
+
   it("warns that a reload before the first page does nothing", () => {
     const reloads = (beforePage: boolean) => {
       const g = new GraphBuilder();

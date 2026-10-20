@@ -5,7 +5,7 @@ import { readLastRun, writeLastRun } from "../../engine/last-run";
 import { logWarning } from "../../engine/log";
 import { enginePaths, type EnginePaths } from "../../engine/paths";
 import { projectPaths, toPosixRel } from "../../engine/project-paths";
-import { compileWorkflow, workflowVars, type CompileResult } from "../../shared/compile/compile";
+import { compileWorkflow, type CompileResult } from "../../shared/compile/compile";
 import { CANCELLED, errorMessage } from "../../shared/errors";
 import {
   downstreamOf,
@@ -31,7 +31,7 @@ import { runFailed, type LogLevel, type RunEvent } from "../../shared/schema/eve
 import type { LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
 import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
 import { secretName } from "../../shared/secrets";
-import { interpolate } from "../../shared/vars";
+import { interpolate, workflowVars } from "../../shared/vars";
 import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/take-run";
 import { getExecutor } from "../executors";

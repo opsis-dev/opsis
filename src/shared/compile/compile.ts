@@ -3,12 +3,11 @@ import { topoSort } from "../graph";
 import { interpolatedParams, type NodeDef } from "../nodes/define";
 import { parseParams } from "../nodes/params";
 import { getNodeDef, isOutputType } from "../nodes/registry";
-import { projectFolderName } from "../project-folder";
 import type { TimelineSpec } from "../schema/timeline";
 import type { CompileValue, NodeResult } from "../schema/values";
 import type { Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
 import { nodeSpans, type FrameRange } from "../timeline/flatten";
-import { PROJECT_NAME_VAR } from "../vars";
+import { workflowVars } from "../vars";
 import { clipToSpec, isClip } from "./clip";
 
 type CompileOptions = {
@@ -23,10 +22,6 @@ export type CompileResult = {
   specs: Record<string, TimelineSpec>;
   order: string[];
 };
-
-export function workflowVars(wf: Pick<Workflow, "name" | "variables">): Record<string, string> {
-  return { [PROJECT_NAME_VAR]: projectFolderName(wf.name), ...wf.variables };
-}
 
 function gatherInputs(
   wf: Workflow,

@@ -37,6 +37,15 @@ describe("parseNodeParams", () => {
 });
 
 describe("cardParams", () => {
+  it("shows a variable the project doesn't have by its name", () => {
+    expect(
+      cardParams(exportNode, { fileName: "{{Site address}}/{{Name}}" }, { Name: "x" }),
+    ).toEqual({
+      fileName: "Site address/x",
+      atMs: 1000,
+    });
+  });
+
   it("shows the default on the card for a value of the wrong kind", () => {
     expect(
       cardParams(exportNode, { fileName: "{{Name}}", atMs: "{{Pause}}" }, { Name: "Demo" }),

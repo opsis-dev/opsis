@@ -4,7 +4,7 @@ import { schemaDefaults, withDefaults } from "../elements/introspect";
 import type { ElementMeta } from "../elements/types";
 import type { ClipValue, CompileValue, NodeResult } from "../schema/values";
 import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
-import { interpolate } from "../vars";
+import { interpolate, namesForUnknownVariables } from "../vars";
 import { MAX_CARD_ROWS, sentence, type CardContext, type CardRow } from "./card";
 
 export const NODE_CATEGORIES = [
@@ -120,7 +120,7 @@ export function cardParams(
   params: WorkflowNode["params"],
   vars: Record<string, string>,
 ): WorkflowNode["params"] {
-  const values = interpolatedParams(def, params, vars);
+  const values = namesForUnknownVariables(interpolatedParams(def, params, vars));
   const defaults = schemaDefaults(def.params);
   for (const [key, fallback] of Object.entries(defaults))
     if (!sameKind(values[key], fallback)) values[key] = fallback;

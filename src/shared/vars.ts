@@ -1,5 +1,6 @@
 import { isRecord } from "./guards";
 import { mapValues } from "./objects";
+import { projectFolderName } from "./project-folder";
 
 const VAR_SOURCE = String.raw`\{\{\s*([^{}]+?)\s*\}\}`;
 
@@ -73,3 +74,23 @@ export const renameVariable = <T>(value: T, from: string, to: string): T =>
   mapJsonStrings(value, (text) =>
     text.replace(varPattern(), (whole, name: string) => (name === from ? varToken(to) : whole)),
   );
+
+export function workflowVars(wf: {
+  name: string;
+  variables: Record<string, string>;
+}): Record<string, string> {
+  return { [PROJECT_NAME_VAR]: projectFolderName(wf.name), ...wf.variables };
+}
+
+export const unknownVariables = (value: unknown, vars: Record<string, string>): string[] => [
+  ...new Set(
+    stringsIn(value, () => true).flatMap((text) =>
+      tokenize(text).flatMap((t) =>
+        t.kind === "var" && !Object.hasOwn(vars, t.name) ? [t.name] : [],
+      ),
+    ),
+  ),
+];
+
+export const namesForUnknownVariables = <T>(value: T): T =>
+  mapJsonStrings(value, (text) => text.replace(varPattern(), (_, name: string) => name));
