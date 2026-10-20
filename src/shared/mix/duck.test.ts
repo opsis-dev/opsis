@@ -68,18 +68,16 @@ describe("ducking", () => {
     expect(spans).toEqual([[30, 40]]);
   });
 
-  it("uses one second for effects of unknown length, capped by their placed length", () => {
-    const spans = duckingSpans(
-      spec([
-        effect("a", 0, { lengthFrames: undefined }),
-        effect("b", 100, { lengthFrames: undefined, durationInFrames: 12 }),
-      ]),
-      keys("a", "b"),
-    );
-    expect(spans).toEqual([
-      [0, 30],
-      [100, 112],
+  it("plays effects of unknown length to the end, as the exported sound does, unless placed shorter", () => {
+    expect(duckingSpans(spec([effect("a", 0, { lengthFrames: undefined })]), keys("a"))).toEqual([
+      [0, 300],
     ]);
+    expect(
+      duckingSpans(
+        spec([effect("b", 100, { lengthFrames: undefined, durationInFrames: 12 })]),
+        keys("b"),
+      ),
+    ).toEqual([[100, 112]]);
   });
 
   it("finds clips with sound inside groups", () => {

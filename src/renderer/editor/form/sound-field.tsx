@@ -6,14 +6,37 @@ import { BUILTIN_SOUNDS, builtinSound } from "@/shared/sounds";
 import { fileUrl } from "../file-url";
 import { ChoiceSelect } from "./choice-select";
 import { FieldShell } from "./field-shell";
-import type { FieldProps } from "./types";
+import type { ParamFieldProps } from "./types";
 
 const OWN_FILE = "own-file";
 
 const play = (ref: string) =>
   void new Audio(fileUrl(ref)).play().catch(() => toast.error("Couldn't play this sound."));
 
-export function SoundField({ id, label, value, onChange, meta, ctx }: FieldProps<string>) {
+const lengthMsOf = (ref: string): Promise<number | undefined> =>
+  new Promise((resolve) => {
+    const audio = new Audio();
+    audio.preload = "metadata";
+    audio.addEventListener("loadedmetadata", () =>
+      resolve(Number.isFinite(audio.duration) ? Math.round(audio.duration * 1000) : undefined),
+    );
+    audio.addEventListener("error", () => resolve(undefined));
+    audio.src = fileUrl(ref);
+  });
+
+export function SoundField({
+  id,
+  label,
+  value,
+  onChange,
+  onPatch,
+  name,
+  meta,
+  ctx,
+}: ParamFieldProps<string>) {
+  const { lengthKey } = meta;
+  const choose = (ref: string, lengthMs?: number) =>
+    lengthKey ? onPatch({ [name]: ref, [lengthKey]: lengthMs }) : onChange(ref);
   const builtin = builtinSound(value);
   const ownLabel = value && !builtin ? baseName(value) : "Your own file…";
   const selectedKey = builtin?.ref ?? (value ? OWN_FILE : null);
@@ -29,8 +52,12 @@ export function SoundField({ id, label, value, onChange, meta, ctx }: FieldProps
           ]}
           value={selectedKey}
           onChange={(v) => {
-            if (v === OWN_FILE) ctx.chooseAsset(onChange);
-            else onChange(v);
+            if (v === OWN_FILE)
+              ctx.chooseAsset((path) => {
+                if (!lengthKey) return choose(path);
+                void lengthMsOf(path).then((ms) => choose(path, ms));
+              });
+            else choose(v ?? "");
           }}
           placeholder="Choose a sound"
           noneLabel={meta.zeroLabel}

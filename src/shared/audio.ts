@@ -4,14 +4,13 @@ import type { AudioItem } from "./schema/timeline";
 export const channelOf = (a: Pick<AudioItem, "channel" | "nodeId" | "id">): string =>
   a.channel ?? a.nodeId ?? a.id;
 
-const EFFECT_FALLBACK_SECONDS = 1;
-
-export function soundLength(a: AudioItem, fps: number, total: number): number {
+export function soundLength(a: AudioItem, total: number): number {
+  const rest = Math.max(0, total - a.from);
   if (a.role === "effect") {
-    const natural = a.lengthFrames ?? fps * EFFECT_FALLBACK_SECONDS;
+    const natural = a.lengthFrames ?? rest;
     return Math.min(natural, a.durationInFrames ?? natural);
   }
-  return a.durationInFrames ?? Math.max(0, total - a.from);
+  return a.durationInFrames ?? rest;
 }
 
 export const audioKind = (a: AudioItem): ChannelKind => a.role ?? "effect";

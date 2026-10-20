@@ -13,10 +13,7 @@ function soundBar(
   spec: Pick<TimelineSpec, "durationInFrames" | "fps">,
 ): AudioBar | null {
   const from = Math.max(0, a.from);
-  const to = Math.min(
-    spec.durationInFrames,
-    a.from + soundLength(a, spec.fps, spec.durationInFrames),
-  );
+  const to = Math.min(spec.durationInFrames, a.from + soundLength(a, spec.durationInFrames));
   if (to <= from) return null;
   return {
     type: "audio",

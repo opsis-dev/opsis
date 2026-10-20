@@ -51,6 +51,7 @@ export type FieldMeta = {
   presetsLabel?: string;
   pauses?: boolean;
   timeKey?: string;
+  lengthKey?: string;
   showIf?: Record<string, string[]>;
   showIfFile?: Record<string, Array<"image" | "video" | "audio">>;
   themes?: Partial<Record<ThemeMode, Record<string, string>>>;

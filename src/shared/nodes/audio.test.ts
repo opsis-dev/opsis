@@ -1,0 +1,27 @@
+import { describe, expect, it } from "vitest";
+import { soundLength } from "../audio";
+import type { AudioItem } from "../schema/timeline";
+import { BUILTIN_SOUNDS } from "../sounds";
+import { compileNode } from "../test-fixtures";
+
+const sfxItem = (params: Record<string, unknown>): AudioItem => {
+  const audio = compileNode("audio.sfx", params).audio;
+  if (audio?.type !== "audio") throw new Error("no sound");
+  return audio.items[0];
+};
+
+describe("Sound effect length", () => {
+  it("uses the length the Inspector measured for your own file", () => {
+    expect(sfxItem({ src: "assets/tone.wav", srcMs: 3000 }).lengthFrames).toBe(90);
+  });
+
+  it("plays a file of unknown length to the end of the film instead of cutting it", () => {
+    const item = sfxItem({ src: "assets/tone.wav" });
+    expect(item.lengthFrames).toBeUndefined();
+    expect(soundLength(item, 150)).toBe(150);
+  });
+
+  it("knows the length of built-in sounds", () => {
+    expect(sfxItem({ src: BUILTIN_SOUNDS[0].ref }).lengthFrames).toBeGreaterThan(0);
+  });
+});

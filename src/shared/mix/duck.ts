@@ -15,15 +15,10 @@ function mergeSpans(spans: Span[]): Span[] {
   return out;
 }
 
-function soundSpans(
-  audio: AudioItem[],
-  keys: ReadonlySet<string>,
-  fps: number,
-  total: number,
-): Span[] {
+function soundSpans(audio: AudioItem[], keys: ReadonlySet<string>, total: number): Span[] {
   return audio
     .filter((a) => keys.has(channelOf(a)) && !a.keepMusic)
-    .map((a) => [a.from, a.from + soundLength(a, fps, total)] as const);
+    .map((a) => [a.from, a.from + soundLength(a, total)] as const);
 }
 
 const clipSpans = (flat: FlatTimeline, keys: ReadonlySet<string>): Span[] =>
@@ -37,7 +32,7 @@ export function duckingSpans(
   flat: FlatTimeline = flattenSpec(spec),
 ): Span[] {
   return mergeSpans([
-    ...soundSpans(spec.audio, keys, spec.fps, spec.durationInFrames),
+    ...soundSpans(spec.audio, keys, spec.durationInFrames),
     ...clipSpans(flat, keys),
   ]);
 }

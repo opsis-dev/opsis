@@ -176,7 +176,8 @@ const sfxNode = defineNode({
     p.keepMusic && row("music", "Music stays up"),
   ],
   params: z.object({
-    src: more(soundFile("Sound"), { widget: "sound" }),
+    src: more(soundFile("Sound"), { widget: "sound", lengthKey: "srcMs" }),
+    srcMs: z.number().positive().optional().meta({ description: "Sound length", hidden: true }),
     atAction: z.string().default("").meta({
       description: "On an action",
       widget: "action",
@@ -200,7 +201,8 @@ const sfxNode = defineNode({
   }),
   compile: ({ nodeId, inputs, params, settings }) =>
     withSource(inputs.media, params.src, (src, media) => {
-      const lengthMs = media?.durationMs ?? builtinSound(src)?.durationMs ?? 0;
+      const lengthMs =
+        media?.durationMs ?? builtinSound(src)?.durationMs ?? (media ? 0 : (params.srcMs ?? 0));
       const item = soundItem({
         nodeId,
         src,
