@@ -119,7 +119,8 @@ export function RollingNumber({
   speed = 1,
 }: RollingNumberProps) {
   const frame = useAuthoredFrame();
-  const { durationInFrames } = useAuthoredConfig();
+  const { durationInFrames: clipFrames } = useAuthoredConfig();
+  const durationInFrames = clipFrames * speed;
 
   const start = Math.max(0, Math.round(from));
   const end = Math.max(0, Math.round(to));

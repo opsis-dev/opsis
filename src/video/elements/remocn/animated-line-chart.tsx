@@ -25,7 +25,8 @@ export function AnimatedLineChart({
   className,
 }: AnimatedLineChartProps) {
   const frame = useAuthoredFrame() * speed;
-  const { fps, durationInFrames } = useAuthoredConfig();
+  const { fps, durationInFrames: clipFrames } = useAuthoredConfig();
+  const durationInFrames = clipFrames * speed;
 
   const padding = 60;
   const innerWidth = width - padding * 2;

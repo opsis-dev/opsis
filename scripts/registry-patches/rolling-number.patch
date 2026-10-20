@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 
 diff --git a/src/video/elements/remocn/rolling-number.tsx b/src/video/elements/remocn/rolling-number.tsx
-index 3a3cdd0..4a011e5 100644
+index 3a3cdd0..f370c7d 100644
 --- a/src/video/elements/remocn/rolling-number.tsx
 +++ b/src/video/elements/remocn/rolling-number.tsx
 @@ -4,9 +4,8 @@ import {
@@ -16,14 +17,15 @@ index 3a3cdd0..4a011e5 100644
  
  const { fontFamily: MONO_FAMILY } = loadMono();
  
-@@ -119,8 +118,8 @@ export function RollingNumber({
+@@ -119,8 +118,9 @@ export function RollingNumber({
    color = "#171717",
    speed = 1,
  }: RollingNumberProps) {
 -  const frame = useCurrentFrame();
 -  const { durationInFrames } = useVideoConfig();
 +  const frame = useAuthoredFrame();
-+  const { durationInFrames } = useAuthoredConfig();
++  const { durationInFrames: clipFrames } = useAuthoredConfig();
++  const durationInFrames = clipFrames * speed;
  
    const start = Math.max(0, Math.round(from));
    const end = Math.max(0, Math.round(to));

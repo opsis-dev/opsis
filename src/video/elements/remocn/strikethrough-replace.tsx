@@ -23,7 +23,8 @@ export function StrikethroughReplace({
   className,
 }: StrikethroughReplaceProps) {
   const frame = useAuthoredFrame() * speed;
-  const { durationInFrames } = useAuthoredConfig();
+  const { durationInFrames: clipFrames } = useAuthoredConfig();
+  const durationInFrames = clipFrames * speed;
 
   // Phases:
   // 0 .. 40% -> draw strikethrough across `from`

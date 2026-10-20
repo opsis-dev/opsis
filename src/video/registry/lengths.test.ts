@@ -165,6 +165,12 @@ describe("element lengths", () => {
     expect(lengths).toEqual([2, 2, 2]);
   });
 
+  it("runs an element with no timing of its own for its usual length at its speed", () => {
+    const element = meta("remocn/strikethrough-replace");
+    const usual = element.defaultDurationInFrames;
+    expect(animationLength(element, { ...element.defaultProps, speed: 0.5 }, 30)).toBe(2 * usual);
+  });
+
   it("plays faster at a higher speed", () => {
     const element = meta("remocn/soft-blur-in");
     const usual = animationLength(element, element.defaultProps, 30);

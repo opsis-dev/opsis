@@ -21,7 +21,8 @@ export function ShimmerSweep({
   className,
 }: ShimmerSweepProps) {
   const frame = useAuthoredFrame() * speed;
-  const { durationInFrames } = useAuthoredConfig();
+  const { durationInFrames: clipFrames } = useAuthoredConfig();
+  const durationInFrames = clipFrames * speed;
 
   const position = interpolate(
     frame,

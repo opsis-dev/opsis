@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 
 diff --git a/src/video/elements/remocn/mask-reveal-up.tsx b/src/video/elements/remocn/mask-reveal-up.tsx
-index 6ee09df..971ddad 100644
+index 6ee09df..be25582 100644
 --- a/src/video/elements/remocn/mask-reveal-up.tsx
 +++ b/src/video/elements/remocn/mask-reveal-up.tsx
 @@ -1,4 +1,5 @@
@@ -12,14 +13,15 @@ index 6ee09df..971ddad 100644
  
  export interface MaskRevealUpProps {
    text: string;
-@@ -19,8 +20,8 @@ export function MaskRevealUp({
+@@ -19,8 +20,9 @@ export function MaskRevealUp({
    speed = 1,
    className,
  }: MaskRevealUpProps) {
 -  const frame = useCurrentFrame() * speed;
 -  const { durationInFrames } = useVideoConfig();
 +  const frame = useAuthoredFrame() * speed;
-+  const { durationInFrames } = useAuthoredConfig();
++  const { durationInFrames: clipFrames } = useAuthoredConfig();
++  const durationInFrames = clipFrames * speed;
  
    const lines = text.split("\n");
  

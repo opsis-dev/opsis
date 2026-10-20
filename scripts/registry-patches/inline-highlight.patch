@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 
 diff --git a/src/video/elements/remocn/inline-highlight.tsx b/src/video/elements/remocn/inline-highlight.tsx
-index d74be90..c1c3eb4 100644
+index d74be90..fbfb1b1 100644
 --- a/src/video/elements/remocn/inline-highlight.tsx
 +++ b/src/video/elements/remocn/inline-highlight.tsx
 @@ -1,9 +1,8 @@
@@ -16,14 +17,15 @@ index d74be90..c1c3eb4 100644
  
  export interface InlineHighlightProps {
    before: string;
-@@ -28,8 +27,8 @@ export function InlineHighlight({
+@@ -28,8 +27,9 @@ export function InlineHighlight({
    speed = 1,
    className,
  }: InlineHighlightProps) {
 -  const frame = useCurrentFrame() * speed;
 -  const { durationInFrames } = useVideoConfig();
 +  const frame = useAuthoredFrame() * speed;
-+  const { durationInFrames } = useAuthoredConfig();
++  const { durationInFrames: clipFrames } = useAuthoredConfig();
++  const durationInFrames = clipFrames * speed;
  
    const progress = interpolate(
      frame,

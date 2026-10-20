@@ -21,7 +21,8 @@ export function LineByLineSlide({
   className,
 }: LineByLineSlideProps) {
   const frame = useAuthoredFrame() * speed;
-  const { durationInFrames } = useAuthoredConfig();
+  const { durationInFrames: clipFrames } = useAuthoredConfig();
+  const durationInFrames = clipFrames * speed;
 
   const lines = text.split("\n");
 

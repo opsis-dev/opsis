@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 
 diff --git a/src/video/elements/remocn/strikethrough-replace.tsx b/src/video/elements/remocn/strikethrough-replace.tsx
-index 3dc83d9..358c6b1 100644
+index 3dc83d9..5e9ada4 100644
 --- a/src/video/elements/remocn/strikethrough-replace.tsx
 +++ b/src/video/elements/remocn/strikethrough-replace.tsx
 @@ -1,4 +1,5 @@
@@ -12,14 +13,15 @@ index 3dc83d9..358c6b1 100644
  
  export interface StrikethroughReplaceProps {
    from: string;
-@@ -21,8 +22,8 @@ export function StrikethroughReplace({
+@@ -21,8 +22,9 @@ export function StrikethroughReplace({
    speed = 1,
    className,
  }: StrikethroughReplaceProps) {
 -  const frame = useCurrentFrame() * speed;
 -  const { durationInFrames } = useVideoConfig();
 +  const frame = useAuthoredFrame() * speed;
-+  const { durationInFrames } = useAuthoredConfig();
++  const { durationInFrames: clipFrames } = useAuthoredConfig();
++  const durationInFrames = clipFrames * speed;
  
    // Phases:
    // 0 .. 40% -> draw strikethrough across `from`

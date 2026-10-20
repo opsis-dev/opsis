@@ -398,5 +398,6 @@ export function animationLength(meta: ElementMeta, params: Settings, fps: number
   const scaledHold = timing.unit === "frames" ? hold : (hold * fps) / AUTHORED_FPS;
   const speed = num(settings.speed, 1);
   if (speed <= 0) return 1;
+  if (timing === KEEPS_ITS_LENGTH) return Math.max(1, Math.ceil(scaledHold / speed));
   return Math.max(1, Math.ceil(endFrames(timing, settings, fps) / speed + scaledHold));
 }

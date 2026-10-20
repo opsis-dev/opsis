@@ -28,7 +28,8 @@ export function InlineHighlight({
   className,
 }: InlineHighlightProps) {
   const frame = useAuthoredFrame() * speed;
-  const { durationInFrames } = useAuthoredConfig();
+  const { durationInFrames: clipFrames } = useAuthoredConfig();
+  const durationInFrames = clipFrames * speed;
 
   const progress = interpolate(
     frame,

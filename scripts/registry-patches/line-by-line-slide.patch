@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 
 diff --git a/src/video/elements/remocn/line-by-line-slide.tsx b/src/video/elements/remocn/line-by-line-slide.tsx
-index 67935ab..695a0eb 100644
+index 67935ab..6680a6e 100644
 --- a/src/video/elements/remocn/line-by-line-slide.tsx
 +++ b/src/video/elements/remocn/line-by-line-slide.tsx
 @@ -1,4 +1,5 @@
@@ -12,14 +13,15 @@ index 67935ab..695a0eb 100644
  
  export interface LineByLineSlideProps {
    text: string;
-@@ -19,8 +20,8 @@ export function LineByLineSlide({
+@@ -19,8 +20,9 @@ export function LineByLineSlide({
    speed = 1,
    className,
  }: LineByLineSlideProps) {
 -  const frame = useCurrentFrame() * speed;
 -  const { durationInFrames } = useVideoConfig();
 +  const frame = useAuthoredFrame() * speed;
-+  const { durationInFrames } = useAuthoredConfig();
++  const { durationInFrames: clipFrames } = useAuthoredConfig();
++  const durationInFrames = clipFrames * speed;
  
    const lines = text.split("\n");
  
