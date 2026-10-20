@@ -155,6 +155,7 @@ function hashNodes(
             settings: workflow.settings,
             mix: workflow.mix ?? null,
             picture: PICTURE_VERSION,
+            vars,
             files,
           }
         : Object.keys(files).length
