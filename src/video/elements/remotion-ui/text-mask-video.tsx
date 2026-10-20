@@ -1,6 +1,7 @@
 import { useId } from "react";
 import type { CSSProperties } from "react";
 import { Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
+import { kindFromPath } from "@/shared/mime";
 import { scaleFont } from "@/video/lib/remotion-ui/layout";
 import {
   useEnterExit,
@@ -14,7 +15,7 @@ export type TextMaskVideoProps = EnterExitOptions & {
   text: string;
   /** Video or image source. Wrap local files in `staticFile()`. */
   src?: string;
-  /** Defaults to `video` when `src` is set, `gradient` when it is not. */
+  /** Defaults to what `src` holds, an image or a video, and `gradient` when it is empty. */
   media?: TextMaskMedia;
   /** Fill used by `media="gradient"`. Any CSS background value. */
   gradient?: string;
@@ -42,6 +43,9 @@ export type TextMaskVideoProps = EnterExitOptions & {
   style?: CSSProperties;
   className?: string;
 };
+
+/** Widest heavy glyphs run about this share of the font size. */
+const GLYPH_WIDTH = 0.72;
 
 const REVEAL_INSET: Record<
   Exclude<TextMaskVideoProps["reveal"] & string, "none">,
@@ -91,13 +95,26 @@ export const TextMaskVideo: React.FC<TextMaskVideoProps> = ({
   ...motionProps
 }) => {
   const frame = useCurrentFrame();
-  const { width: videoWidth, fps } = useVideoConfig();
+  const { width: videoWidth, height: videoHeight, fps } = useVideoConfig();
   const clipId = `mask-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
 
-  const kind: TextMaskMedia = media ?? (src ? "video" : "gradient");
-  const fontSize = fontSizeProp ?? scaleFont(150, videoWidth);
+  const fileKind: TextMaskMedia | null = src
+    ? kindFromPath(src) === "image"
+      ? "image"
+      : "video"
+    : null;
+  const kind: TextMaskMedia = media === "gradient" || !fileKind ? "gradient" : fileKind;
   const lines = text.split(/\r?\n/);
-  const width = widthProp ?? Math.round(fontSize * 6.2);
+  const longest = Math.max(1, ...lines.map((line) => Array.from(line).length));
+  const fittedSize = Math.min(
+    scaleFont(150, videoWidth),
+    (videoWidth * 0.9) / longest / GLYPH_WIDTH - letterSpacing / GLYPH_WIDTH,
+    (videoHeight * 0.85) / (lines.length * lineHeight * 1.25),
+  );
+  const fontSize = fontSizeProp ?? Math.max(1, fittedSize);
+  const width =
+    widthProp ??
+    Math.round(Math.max(fontSize * 6.2, longest * (fontSize * GLYPH_WIDTH + letterSpacing)));
   const height = heightProp ?? Math.round(fontSize * lineHeight * lines.length * 1.25);
 
   const { motion, opacity, exitProgress } = useEnterExit(motionProps);

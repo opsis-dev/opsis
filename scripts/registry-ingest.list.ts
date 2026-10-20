@@ -554,20 +554,21 @@ const REMOTION_UI: CuratedElement[] = [
   ...remotionui("text", ["text-mask-video"], {
     title: "Text mask",
     center: true,
-    defaults: { text: "LAUNCH\nDAY", media: "gradient" },
+    defaults: { text: "LAUNCH\nDAY" },
     controls: {
       src: {
         type: "asset",
         default: "",
+        emptyLabel: "Gradient",
         description: "Media",
-        help: "A video or image to show through the letters.",
+        help: "A video or image to show through the letters. Leave empty for the gradient.",
         accept: "video/*,image/*",
       },
       gradient: {
         type: "gradient",
         default: "linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)",
         description: "Gradient fill",
-        showIf: { media: ["gradient"] },
+        showIf: { src: [""] },
       },
       fontSize: {
         type: "number",
@@ -581,7 +582,11 @@ const REMOTION_UI: CuratedElement[] = [
         advanced: true,
       },
     },
-    omit: { width: "internal: sized from the text", height: "internal: sized from the text" },
+    omit: {
+      width: "internal: sized from the text",
+      height: "internal: sized from the text",
+      media: "internal: the fill follows the chosen file, or the gradient without one",
+    },
   }),
   ...remotionui("background", ["aurora-bg"], { title: "Aurora" }),
   ...remotionui("background", ["particle-field"], { title: "Particle field" }),

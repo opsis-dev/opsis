@@ -2344,9 +2344,8 @@ const defs: ElementMetaInput[] = [
     source: { registry: "RemotionUI", url: "https://remotionui.com/docs/components/text-mask-video", license: "MIT" },
     schema: z.object({
       text: z.string().default("LAUNCH\nDAY").meta({ description: "Text", widget: "textarea", help: "The letterforms the media is seen through." }),
-      src: z.string().default("").meta({ description: "Media", widget: "asset", accept: "video/*,image/*", help: "A video or image to show through the letters." }),
-      media: z.enum(["video","image","gradient"]).default("gradient").meta({ description: "Fill", help: "Which layer is drawn behind the letters." }),
-      gradient: z.string().default("linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)").meta({ description: "Gradient fill", widget: "gradient", showIf: {"media":["gradient"]} }),
+      src: z.string().default("").meta({ description: "Media", widget: "asset", accept: "video/*,image/*", zeroLabel: "Gradient", help: "A video or image to show through the letters. Leave empty for the gradient." }),
+      gradient: z.string().default("linear-gradient(115deg, #e8b86d 0%, #f472b6 42%, #2dd4bf 100%)").meta({ description: "Gradient fill", widget: "gradient", showIf: {"src":[""]} }),
       reveal: z.enum(["left","right","up","down","none"]).default("left").meta({ description: "Reveal", help: "Which way the letters are uncovered." }),
       drift: z.number().default(26).meta({ description: "Drift", advanced: true }),
       zoom: z.number().default(0.12).meta({ description: "Zoom", step: 0.01, help: "Extra scale the media breathes through. 0 holds it still.", advanced: true }),

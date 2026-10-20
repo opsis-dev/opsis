@@ -110,14 +110,14 @@ describe("element music", () => {
 });
 
 describe("element look rows", () => {
-  it("shows a gradient's stops while the fill is a gradient", () => {
+  it("shows a gradient's stops while no file replaces the gradient", () => {
     const rows = nodeCard("fx.remotion-ui.text-mask-video");
     expect(rows.find((r) => r.icon === "blend")).toMatchObject({
       text: "Straight gradient",
       swatches: ["#e8b86d", "#f472b6", "#2dd4bf"],
     });
     expect(
-      nodeCard("fx.remotion-ui.text-mask-video", { media: "video" }).some(
+      nodeCard("fx.remotion-ui.text-mask-video", { src: "project:assets/clip.mp4" }).some(
         (r) => r.icon === "blend",
       ),
     ).toBe(false);
