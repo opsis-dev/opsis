@@ -1083,6 +1083,17 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
         "height",
       ].map((k): [string, OmitReason] => [k, "internal: animation tuning"]),
     ),
+    controls: {
+      lensSteps: numberControl("Lens steps", 9, { min: 4, max: 12, step: 1 }),
+      blurSamples: numberControl("Blur samples", 7, { min: 2, max: 12, step: 1 }),
+      colorSplit: {
+        type: "boolean",
+        default: true,
+        description: "Colour fringe",
+        help: "Splits the colours at the edges. Off draws the transition a third as often, for heavy scenes.",
+        advanced: true,
+      },
+    },
   },
   "ripple-zoom": transitionColors([2, 7], {
     zoom: advancedNumber("Zoom", 4, { min: 1, max: 8, step: 0.1 }),

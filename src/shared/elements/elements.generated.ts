@@ -562,10 +562,11 @@ const defs: ElementMetaInput[] = [
     kind: "presentation",
     source: { registry: "Remocn", url: "https://remocn.dev/docs/components/lens-zoom", license: "MIT" },
     schema: z.object({
-      lensSteps: z.number().min(4).max(32).default(9).meta({ description: "Lens steps", step: 1 }),
-      blurSamples: z.number().min(2).max(32).default(7).meta({ description: "Blur samples", step: 1 }),
+      lensSteps: z.number().min(4).max(12).default(9).meta({ description: "Lens steps", step: 1 }),
+      blurSamples: z.number().min(2).max(12).default(7).meta({ description: "Blur samples", step: 1 }),
       shakeAmount: z.number().min(0).max(300).default(50).meta({ description: "Shake amount", step: 5 }),
       shakeTranslatePx: z.number().min(0).max(80).default(73).meta({ description: "Shake travel (px)", step: 1 }),
+      colorSplit: z.boolean().default(true).meta({ description: "Colour fringe", help: "Splits the colours at the edges. Off draws the transition a third as often, for heavy scenes.", advanced: true }),
     }),
     fixedProps: {},
     defaultDurationInFrames: 112,

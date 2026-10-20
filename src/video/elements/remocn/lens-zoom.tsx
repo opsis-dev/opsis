@@ -44,6 +44,7 @@ export type LensZoomProps = {
   redScale?: number;
   greenScale?: number;
   blueScale?: number;
+  colorSplit?: boolean;
   letterboxAspect?: number;
   width?: number;
   height?: number;
@@ -431,6 +432,7 @@ const LensZoomPresentation: React.FC<
     redScale = 1.01,
     greenScale = 1.0,
     blueScale = 0.99,
+    colorSplit = true,
 
     letterboxAspect = 0,
 
@@ -515,9 +517,9 @@ const LensZoomPresentation: React.FC<
       shakeCyclesPerUnit={shakeCyclesPerUnit}
       shakeTranslatePx={shakeTranslatePx}
       shakeRotateDeg={shakeRotateDeg}
-      redScale={redScale}
+      redScale={colorSplit ? redScale : greenScale}
       greenScale={greenScale}
-      blueScale={blueScale}
+      blueScale={colorSplit ? blueScale : greenScale}
       letterboxAspect={letterboxAspect}
     />
   );
