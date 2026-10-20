@@ -1350,10 +1350,13 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
           value: numberControl("Value", 50, { min: 0, max: 1_000_000, step: 1 }),
         },
       },
-      width: advancedNumber("Width", 1000, { min: 200, max: 3840, step: 10 }),
-      height: advancedNumber("Height", 500, { min: 100, max: 2160, step: 10 }),
+      width: advancedNumber("Width", 1000, { min: 200, max: 1920, step: 10 }),
+      height: advancedNumber("Height", 500, { min: 100, max: 1080, step: 10 }),
+      baselineColor: { type: "color", default: "#27272a", description: "Baseline colour" },
+      labelColor: { type: "color", default: "#a1a1aa", description: "Label colour" },
     },
     lists: { bars: { label: "labels", value: "data" } },
+    design: FULL_HD,
   },
   "animated-line-chart": {
     controls: {

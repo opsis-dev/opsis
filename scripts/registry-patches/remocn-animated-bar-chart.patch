@@ -2,9 +2,10 @@ Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Treat an all-zero chart as zero-height bars and shrink the gap when many bars would not fit, so bars never get a NaN height or a negative width.
+- Take the baseline and label colours as props and shrink a long label to fit its bar.
 
 diff --git a/src/video/elements/remocn/animated-bar-chart.tsx b/src/video/elements/remocn/animated-bar-chart.tsx
-index 9884a8e..b4de6dd 100644
+index 9884a8e..a1ca5f9 100644
 --- a/src/video/elements/remocn/animated-bar-chart.tsx
 +++ b/src/video/elements/remocn/animated-bar-chart.tsx
 @@ -1,4 +1,5 @@
@@ -14,7 +15,23 @@ index 9884a8e..b4de6dd 100644
  
  export interface AnimatedBarChartProps {
    data?: number[];
-@@ -23,15 +24,19 @@ export function AnimatedBarChart({
+@@ -6,6 +7,8 @@ export interface AnimatedBarChartProps {
+   width?: number;
+   height?: number;
+   barColor?: string;
++  baselineColor?: string;
++  labelColor?: string;
+   gap?: number;
+   staggerFrames?: number;
+   speed?: number;
+@@ -18,20 +21,26 @@ export function AnimatedBarChart({
+   width = 1000,
+   height = 500,
+   barColor = "#0ea5e9",
++  baselineColor = "#27272a",
++  labelColor = "#a1a1aa",
+   gap = 16,
+   staggerFrames = 6,
    speed = 1,
    className,
  }: AnimatedBarChartProps) {
@@ -38,7 +55,14 @@ index 9884a8e..b4de6dd 100644
    const baseY = padding + innerHeight;
  
    return (
-@@ -60,7 +65,7 @@ export function AnimatedBarChart({
+@@ -54,13 +63,13 @@ export function AnimatedBarChart({
+           x2={padding + innerWidth}
+           y1={baseY}
+           y2={baseY}
+-          stroke="#27272a"
++          stroke={baselineColor}
+           strokeWidth={2}
+         />
  
          {data.map((value, index) => {
            const targetHeight = (value / max) * innerHeight;
@@ -47,7 +71,7 @@ index 9884a8e..b4de6dd 100644
            const y = baseY - targetHeight;
  
            const scaleY = spring({
-@@ -84,7 +89,7 @@ export function AnimatedBarChart({
+@@ -84,15 +93,15 @@ export function AnimatedBarChart({
                    scale: `1 ${scaleY}`,
                    transformOrigin: `${x + barWidth / 2}px ${baseY}px`,
                    transformBox: "fill-box",
@@ -56,3 +80,13 @@ index 9884a8e..b4de6dd 100644
                  }}
                />
                {labels?.[index] && (
+                 <text
+                   x={x + barWidth / 2}
+                   y={baseY + 28}
+-                  fill="#a1a1aa"
+-                  fontSize={16}
++                  fill={labelColor}
++                  fontSize={Math.min(16, (barWidth + fitGap * 0.8) / Math.max(1, labels[index].length * 0.56))}
+                   textAnchor="middle"
+                   style={{
+                     opacity: scaleY,

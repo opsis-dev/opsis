@@ -7,6 +7,8 @@ export interface AnimatedBarChartProps {
   width?: number;
   height?: number;
   barColor?: string;
+  baselineColor?: string;
+  labelColor?: string;
   gap?: number;
   staggerFrames?: number;
   speed?: number;
@@ -19,6 +21,8 @@ export function AnimatedBarChart({
   width = 1000,
   height = 500,
   barColor = "#0ea5e9",
+  baselineColor = "#27272a",
+  labelColor = "#a1a1aa",
   gap = 16,
   staggerFrames = 6,
   speed = 1,
@@ -59,7 +63,7 @@ export function AnimatedBarChart({
           x2={padding + innerWidth}
           y1={baseY}
           y2={baseY}
-          stroke="#27272a"
+          stroke={baselineColor}
           strokeWidth={2}
         />
 
@@ -96,8 +100,8 @@ export function AnimatedBarChart({
                 <text
                   x={x + barWidth / 2}
                   y={baseY + 28}
-                  fill="#a1a1aa"
-                  fontSize={16}
+                  fill={labelColor}
+                  fontSize={Math.min(16, (barWidth + fitGap * 0.8) / Math.max(1, labels[index].length * 0.56))}
                   textAnchor="middle"
                   style={{
                     opacity: scaleY,
