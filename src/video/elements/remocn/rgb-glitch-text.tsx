@@ -10,9 +10,13 @@ export interface RGBGlitchTextProps {
   glitchDuration?: number;
   intensity?: number;
   seed?: string;
+  glitchColors?: string[];
+  blend?: "multiply" | "screen" | "normal";
   speed?: number;
   className?: string;
 }
+
+const GLITCH_COLORS = ["#ff0040", "#00ff80", "#0080ff"];
 
 export function RGBGlitchText({
   text,
@@ -23,6 +27,8 @@ export function RGBGlitchText({
   glitchDuration = 8,
   intensity = 6,
   seed = "glitch",
+  glitchColors = GLITCH_COLORS,
+  blend = "multiply",
   speed = 1,
   className,
 }: RGBGlitchTextProps) {
@@ -52,7 +58,7 @@ export function RGBGlitchText({
     fontFamily:
       "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
     whiteSpace: "pre",
-    mixBlendMode: "multiply",
+    mixBlendMode: blend,
   };
 
   return (
@@ -87,7 +93,7 @@ export function RGBGlitchText({
         <span
           style={{
             ...baseStyle,
-            color: "#ff0040",
+            color: glitchColors[0] ?? GLITCH_COLORS[0],
             opacity: copyOpacity,
             translate: `${rX}px ${rY}px`,
           }}
@@ -97,7 +103,7 @@ export function RGBGlitchText({
         <span
           style={{
             ...baseStyle,
-            color: "#00ff80",
+            color: glitchColors[1] ?? GLITCH_COLORS[1],
             opacity: copyOpacity,
             translate: `${gX}px ${gY}px`,
           }}
@@ -107,7 +113,7 @@ export function RGBGlitchText({
         <span
           style={{
             ...baseStyle,
-            color: "#0080ff",
+            color: glitchColors[2] ?? GLITCH_COLORS[2],
             opacity: copyOpacity,
             translate: `${bX}px ${bY}px`,
           }}

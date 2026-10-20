@@ -957,6 +957,27 @@ const DRIFT_TILES = [
 ] as const;
 
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "rgb-glitch-text": {
+    controls: {
+      glitchColors: {
+        ...colorsControl(3, 3, "The three copies that split off while the text glitches."),
+        default: ["#ff0040", "#00ff80", "#0080ff"],
+        description: "Glitch colours",
+      },
+      blend: {
+        type: "enum",
+        options: ["multiply", "screen", "normal"],
+        default: "multiply",
+        description: "Glitch blend",
+        labels: {
+          multiply: "On a light background",
+          screen: "On a dark background",
+          normal: "On any background",
+        },
+        help: "How the split copies mix with what is behind them.",
+      },
+    },
+  },
   "matrix-decode": {
     controls: {
       charset: {

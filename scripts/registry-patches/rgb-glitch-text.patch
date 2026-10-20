@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Take the three glitch colours and how they blend as props, so the glitch can be coloured and shows on dark backgrounds.
 
 diff --git a/src/video/elements/remocn/rgb-glitch-text.tsx b/src/video/elements/remocn/rgb-glitch-text.tsx
-index f7f7295..2cc7bd0 100644
+index f7f7295..8b45baf 100644
 --- a/src/video/elements/remocn/rgb-glitch-text.tsx
 +++ b/src/video/elements/remocn/rgb-glitch-text.tsx
 @@ -1,4 +1,5 @@
@@ -12,7 +13,27 @@ index f7f7295..2cc7bd0 100644
  
  export interface RGBGlitchTextProps {
    text: string;
-@@ -25,7 +26,7 @@ export function RGBGlitchText({
+@@ -9,10 +10,14 @@ export interface RGBGlitchTextProps {
+   glitchDuration?: number;
+   intensity?: number;
+   seed?: string;
++  glitchColors?: string[];
++  blend?: "multiply" | "screen" | "normal";
+   speed?: number;
+   className?: string;
+ }
+ 
++const GLITCH_COLORS = ["#ff0040", "#00ff80", "#0080ff"];
++
+ export function RGBGlitchText({
+   text,
+   fontSize = 96,
+@@ -22,10 +27,12 @@ export function RGBGlitchText({
+   glitchDuration = 8,
+   intensity = 6,
+   seed = "glitch",
++  glitchColors = GLITCH_COLORS,
++  blend = "multiply",
    speed = 1,
    className,
  }: RGBGlitchTextProps) {
@@ -21,3 +42,39 @@ index f7f7295..2cc7bd0 100644
  
    const isGlitching = frame >= glitchAt && frame < glitchAt + glitchDuration;
  
+@@ -51,7 +58,7 @@ export function RGBGlitchText({
+     fontFamily:
+       "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif",
+     whiteSpace: "pre",
+-    mixBlendMode: "multiply",
++    mixBlendMode: blend,
+   };
+ 
+   return (
+@@ -86,7 +93,7 @@ export function RGBGlitchText({
+         <span
+           style={{
+             ...baseStyle,
+-            color: "#ff0040",
++            color: glitchColors[0] ?? GLITCH_COLORS[0],
+             opacity: copyOpacity,
+             translate: `${rX}px ${rY}px`,
+           }}
+@@ -96,7 +103,7 @@ export function RGBGlitchText({
+         <span
+           style={{
+             ...baseStyle,
+-            color: "#00ff80",
++            color: glitchColors[1] ?? GLITCH_COLORS[1],
+             opacity: copyOpacity,
+             translate: `${gX}px ${gY}px`,
+           }}
+@@ -106,7 +113,7 @@ export function RGBGlitchText({
+         <span
+           style={{
+             ...baseStyle,
+-            color: "#0080ff",
++            color: glitchColors[2] ?? GLITCH_COLORS[2],
+             opacity: copyOpacity,
+             translate: `${bX}px ${bY}px`,
+           }}

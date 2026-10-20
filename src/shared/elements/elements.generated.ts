@@ -212,6 +212,8 @@ const defs: ElementMetaInput[] = [
       glitchDuration: z.number().min(0.0333).max(2).default(0.2667).meta({ description: "Glitch length", step: 0.01, unit: "s", framesAt: 30 }),
       intensity: z.number().min(0).max(30).default(6).meta({ description: "Intensity (px)", step: 1 }),
       seed: z.string().default("glitch").meta({ description: "Seed" }),
+      glitchColors: z.array(zColor()).min(3).max(3).default(["#ff0040","#00ff80","#0080ff"]).meta({ description: "Glitch colours", help: "The three copies that split off while the text glitches." }),
+      blend: z.enum(["multiply","screen","normal"]).default("multiply").meta({ description: "Glitch blend", help: "How the split copies mix with what is behind them.", labels: {"multiply":"On a light background","screen":"On a dark background","normal":"On any background"} }),
       background: zColor().default("#fafafa").meta({ description: "Background", help: "Set it to transparent to lay the text over other layers." }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25 }),
     }),
