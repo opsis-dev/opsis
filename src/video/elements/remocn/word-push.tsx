@@ -1,4 +1,6 @@
+import { useMemo } from "react";
 import { Easing, interpolate } from "remotion";
+import { MAIN_FONT } from "@/shared/fonts";
 import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface WordPushProps {
@@ -17,6 +19,17 @@ const SLIDE_FRAMES = 12;
 const OVERSHOOT_EM = 0.5;
 const CHAR_WIDTH_EM = 0.5;
 const SPACE_WIDTH_EM = 0.22;
+const LETTER_SPACING_EM = -0.02;
+
+function measureWords(words: string[], fontSize: number, fontWeight: number): number[] {
+  const guess = () => words.map((word) => word.length * CHAR_WIDTH_EM * fontSize);
+  if (typeof document === "undefined") return guess();
+  const ctx = document.createElement("canvas").getContext("2d");
+  if (!ctx) return guess();
+  ctx.font = `${fontWeight} ${fontSize}px ${MAIN_FONT}`;
+  ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
+  return words.map((word) => ctx.measureText(word).width);
+}
 
 function revealFrame(index: number, wordGap: number, accel: number): number {
   if (accel === 1) return index * wordGap;
@@ -51,6 +64,10 @@ export function WordPush({
   const frame = useAuthoredFrame() * speed;
 
   const words = text.trim().split(/\s+/).filter(Boolean);
+  const widths = useMemo(
+    () => measureWords(text.trim().split(/\s+/).filter(Boolean), fontSize, fontWeight),
+    [text, fontSize, fontWeight],
+  );
 
   let lineX = interpolate(
     frame,
@@ -63,8 +80,7 @@ export function WordPush({
     },
   );
   for (let j = 1; j < words.length; j++) {
-    const wordWidth =
-      (words[j].length * CHAR_WIDTH_EM + SPACE_WIDTH_EM) * fontSize;
+    const wordWidth = widths[j] + SPACE_WIDTH_EM * fontSize;
     const revealAt = revealFrame(j, wordGap, accel);
     const pushed = interpolate(
       frame,
@@ -98,7 +114,7 @@ export function WordPush({
           fontSize,
           fontWeight,
           color,
-          letterSpacing: "-0.02em",
+          letterSpacing: `${LETTER_SPACING_EM}em`,
           fontFamily:
             "var(--font-geist-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif)",
         }}
