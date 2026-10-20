@@ -2027,7 +2027,35 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
       kindRemoved: "kindColors.removed",
     },
   },
-  "logo-wall": { controls: { backgroundColor: themeBackground } },
+  "logo-wall": {
+    controls: {
+      backgroundColor: themeBackground,
+      columns: {
+        type: "number",
+        default: 4,
+        min: 1,
+        step: 1,
+        description: "Columns",
+        help: "Tiles per row.",
+      },
+      logos: {
+        type: "rows",
+        description: "Logos",
+        help: "Wordmark, brand colour and the glyph in the mark beside it, or a logo image in their place.",
+        default: [
+          { name: "Northstar", color: "#E8B86D" },
+          { name: "Halcyon", color: "#7DD3E8" },
+          { name: "Fernweh", color: "#9BD4A0" },
+          { name: "Orbital", color: "#C99BE8" },
+          { name: "Lumen", color: "#8FB8F0" },
+          { name: "Tidewater", color: "#E89B9B" },
+          { name: "Kestrel", color: "#E8B86D" },
+          { name: "Marrow", color: "#7DD3E8" },
+        ],
+        columns: { image: image("Image", "", { emptyLabel: "Name and glyph" }) },
+      },
+    },
+  },
   "end-card": {
     controls: {
       backgroundColor: themeBackground,

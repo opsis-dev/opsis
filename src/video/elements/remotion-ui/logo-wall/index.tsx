@@ -1,6 +1,7 @@
 import { loadFont } from "@remotion/google-fonts/Inter";
 import {
   AbsoluteFill,
+  Img,
   interpolate,
   useCurrentFrame,
   useVideoConfig,
@@ -23,6 +24,8 @@ export type WallLogo = {
    * Glyph in the mark beside the wordmark. Defaults to the name's first letter.
    */
   glyph?: string;
+  /** Logo image shown on the tile in place of the mark and wordmark. */
+  image?: string;
 };
 
 export type LogoWallProps = {
@@ -136,7 +139,8 @@ export const LogoWall: React.FC<LogoWallProps> = ({
 
   const wallW = Math.min(width - safe.paddingLeft - safe.paddingRight, 900 * u);
   const gap = 14 * u;
-  const tileW = (wallW - gap * (columns - 1)) / columns;
+  const perRow = Math.max(1, Math.round(columns));
+  const tileW = (wallW - gap * (perRow - 1)) / perRow;
   const tileH = 88 * u;
 
   return (
@@ -190,8 +194,8 @@ export const LogoWall: React.FC<LogoWallProps> = ({
 
         <div style={{ display: "flex", flexWrap: "wrap", gap }}>
           {logos.map((logo, index) => {
-            const row = Math.floor(index / columns);
-            const column = index % columns;
+            const row = Math.floor(index / perRow);
+            const column = index % perRow;
             // Tiles arrive fast in reading order so the wall is whole early;
             // the colour is the slow part, sweeping the diagonal afterwards.
             const arriveAt = startAtSeconds + index * arriveStaggerSeconds;
@@ -226,10 +230,22 @@ export const LogoWall: React.FC<LogoWallProps> = ({
                   filter: `saturate(${warm}) brightness(${0.72 + warm * 0.28})`,
                 }}
               >
+                {logo.image ? (
+                  <Img
+                    src={logo.image}
+                    style={{
+                      maxWidth: "78%",
+                      maxHeight: 46 * u,
+                      objectFit: "contain",
+                    }}
+                  />
+                ) : (
+                <>
                 <div
                   style={{
                     width: 30 * u,
                     height: 30 * u,
+                    flexShrink: 0,
                     borderRadius: 9 * u,
                     display: "grid",
                     placeItems: "center",
@@ -251,10 +267,17 @@ export const LogoWall: React.FC<LogoWallProps> = ({
                     fontSize: 19 * u,
                     fontWeight: 700,
                     letterSpacing: "-0.02em",
+                    minWidth: 0,
+                    maxWidth: tileW - 30 * u - 10 * u - 24 * u,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {logo.name}
                 </span>
+                </>
+                )}
               </div>
             );
           })}
