@@ -20,11 +20,33 @@ describe("speedArgs", () => {
 });
 
 describe("joinFilter", () => {
+  const clip = { video: true, audio: true, durationMs: 2000 };
+  const to = { width: 1920, height: 1080, fps: 60 };
+
   it("converts every file to the first file's size and frame rate", () => {
-    const filter = joinFilter(2, { width: 1920, height: 1080, fps: 60, sound: true });
-    expect(filter.match(/fps=60\[/g)).toHaveLength(2);
+    const { filter } = joinFilter([clip, clip], to);
+    expect(filter.match(/fps=60,/g)).toHaveLength(2);
     expect(filter).toContain("scale=1920:1080");
     expect(filter.endsWith("concat=n=2:v=1:a=1[v][a]")).toBe(true);
+  });
+
+  it("keeps the sound when one file has none, filling it with silence", () => {
+    const { filter, audio } = joinFilter([clip, { ...clip, audio: false }], to);
+    expect(audio).toBe(true);
+    expect(filter).toContain("anullsrc=r=48000:cl=stereo,atrim=duration=2[a1]");
+    expect(filter).toContain("[0:a]aresample=48000");
+  });
+
+  it("shows black under a sound-only file between videos", () => {
+    const { filter } = joinFilter([{ ...clip, video: false, durationMs: 1500 }, clip], to);
+    expect(filter).toContain("color=c=black:s=1920x1080:r=60:d=1.5,format=yuv420p[v0]");
+  });
+
+  it("joins sound files into sound only", () => {
+    const sound = { video: false, audio: true, durationMs: 1000 };
+    const join = joinFilter([sound, sound], to);
+    expect(join).toMatchObject({ video: false, audio: true });
+    expect(join.filter.endsWith("concat=n=2:v=0:a=1[a]")).toBe(true);
   });
 });
 
@@ -55,7 +77,8 @@ describe("gifFilter", () => {
 
 describe("odd sizes", () => {
   it("joins files at an even size, which the video encoder needs", () => {
-    expect(joinFilter(2, { width: 321, height: 241, fps: 30, sound: false })).toContain(
+    const part = { video: true, audio: false, durationMs: 1000 };
+    expect(joinFilter([part, part], { width: 321, height: 241, fps: 30 }).filter).toContain(
       "scale=320:240",
     );
   });

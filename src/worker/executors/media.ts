@@ -21,6 +21,7 @@ import {
   thumbnailNode,
 } from "../../shared/nodes/media";
 import type { MediaValue } from "../../shared/schema/values";
+import { DEFAULT_STILL_MS } from "../../shared/schema/workflow";
 import {
   defineExecutor,
   type Executor,
@@ -213,11 +214,21 @@ export const mediaExecutors: Executor[] = [
     if (items.length < 2) throw new Error("Connect at least two files.");
     const paths = items.map((m) => refToPath(ctx, m.src));
     const probes = await Promise.all(paths.map((f) => ctx.ffmpeg.probe(f)));
-    const total = probes.reduce((s, x) => s + x.durationMs, 0);
-    const file = "concat.mp4";
+    const parts = items.map((m, i) => {
+      const still = m.kind === "image";
+      return {
+        still,
+        video: !!probes[i].video,
+        audio: !!probes[i].audio,
+        durationMs: still ? (m.durationMs ?? DEFAULT_STILL_MS) : probes[i].durationMs,
+      };
+    });
+    const total = parts.reduce((s, x) => s + x.durationMs, 0);
+    const anyVideo = parts.some((x) => x.video);
+    const file = anyVideo ? "concat.mp4" : "concat.m4a";
     const out = path.join(ctx.dir, file);
     const runOptions = { signal: ctx.signal, durationMs: total, onProgress: ctx.progress };
-    if (!p.forceReencode && probes.every((x) => canStreamCopy(probes[0], x))) {
+    if (!p.forceReencode && anyVideo && probes.every((x) => canStreamCopy(probes[0], x))) {
       const list = path.join(ctx.dir, "concat.txt");
       await writeFile(list, concatList(paths));
       ctx.log("info", "The files match, joining them without converting.");
@@ -227,22 +238,24 @@ export const mediaExecutors: Executor[] = [
       );
     } else {
       ctx.log("info", "The files differ, converting them to match the first one.");
-      const allAudio = probes.every((x) => x.audio);
-      const filter = joinFilter(paths.length, {
-        width: probes[0].video?.width ?? ctx.workflow.settings.width,
-        height: probes[0].video?.height ?? ctx.workflow.settings.height,
-        fps: probes[0].video?.fps || ctx.workflow.settings.fps,
-        sound: allAudio,
+      const first = probes.find((x) => x.video)?.video;
+      const join = joinFilter(parts, {
+        width: first?.width ?? ctx.workflow.settings.width,
+        height: first?.height ?? ctx.workflow.settings.height,
+        fps: first?.fps || ctx.workflow.settings.fps,
       });
       await ctx.ffmpeg.run(
         [
-          ...paths.flatMap((f) => ["-i", f]),
+          ...paths.flatMap((f, i) => {
+            const part = parts[i];
+            return part.still
+              ? ["-loop", "1", "-t", ffmpegSeconds(part.durationMs), "-i", f]
+              : ["-i", f];
+          }),
           "-filter_complex",
-          filter,
-          "-map",
-          "[v]",
-          ...(allAudio ? ["-map", "[a]", ...EDIT_AUDIO] : []),
-          ...EDIT_VIDEO,
+          join.filter,
+          ...(join.video ? ["-map", "[v]", ...EDIT_VIDEO] : []),
+          ...(join.audio ? ["-map", "[a]", ...EDIT_AUDIO] : []),
           ...FASTSTART,
           out,
         ],
