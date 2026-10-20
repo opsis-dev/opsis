@@ -420,8 +420,20 @@ export function StatusCycle({
   // the right tool. Measured in a hidden, untransformed copy so frame 0 can
   // never be captured against the wrong geometry.
   // -------------------------------------------------------------------------
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const measureKey = JSON.stringify([
+    glyphs,
+    labels,
+    chipLabels,
+    nominalEm,
+    nominalChipEm,
+    face,
+    fontWeight,
+    chipFontWeight,
+  ]);
+  const [measured, setMeasured] = useState<{ key: string; value: Metrics } | null>(null);
+  const metrics = measured?.key === measureKey ? measured.value : null;
   const [handle] = useState(() => delayRender("status-cycle: measuring"));
+  const released = useRef(false);
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const prefixRef = useRef<HTMLSpanElement | null>(null);
   const baselineRef = useRef<HTMLSpanElement | null>(null);
@@ -430,12 +442,13 @@ export function StatusCycle({
 
   useEffect(() => {
     if (metrics) {
-      continueRender(handle);
+      if (!released.current) continueRender(handle);
+      released.current = true;
       return;
     }
     const prefixWidth = prefixRef.current?.offsetWidth ?? 0;
     if (prefixWidth <= 0) return;
-    setMetrics({
+    setMeasured({ key: measureKey, value: {
       letters: glyphs.map((_, i) => ({
         left: letterRefs.current[i]?.offsetLeft ?? 0,
         width: letterRefs.current[i]?.offsetWidth ?? 0,
@@ -448,8 +461,8 @@ export function StatusCycle({
       chipWidths: chipLabels.map(
         (_, i) => chipRefs.current[i]?.offsetWidth ?? 0,
       ),
-    });
-  }, [metrics, handle, glyphs, labels, chipLabels]);
+    } });
+  }, [metrics, handle, glyphs, labels, chipLabels, measureKey]);
 
   // -------------------------------------------------------------------------
   // Timeline
