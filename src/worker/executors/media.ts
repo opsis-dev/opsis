@@ -34,6 +34,8 @@ import {
   convertArgs,
   EDIT_AUDIO,
   EDIT_VIDEO,
+  EVEN_FRAME,
+  evenDown,
   FASTSTART,
   ffmpegSeconds,
   frameGrabArgs,
@@ -193,6 +195,8 @@ export const mediaExecutors: Executor[] = [
         ...(p.endMs ? ["-to", ffmpegSeconds(p.endMs)] : []),
         "-i",
         i,
+        "-vf",
+        EVEN_FRAME,
         ...EDIT_VIDEO,
         ...EDIT_AUDIO,
         o,
@@ -301,7 +305,9 @@ export const mediaExecutors: Executor[] = [
         "-i",
         i,
         "-vf",
-        fitFilter(p),
+        image
+          ? fitFilter(p)
+          : fitFilter({ ...p, width: evenDown(p.width), height: evenDown(p.height) }),
         ...(image ? [] : [...EDIT_VIDEO, "-c:a", "copy"]),
         o,
       ],

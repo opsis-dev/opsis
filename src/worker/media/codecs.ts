@@ -11,6 +11,12 @@ type AudioFormat = NodeParams<typeof extractAudioNode>["format"];
 
 export const FASTSTART = ["-movflags", "+faststart"];
 
+export const EVEN_FRAME = "crop=trunc(iw/2)*2:trunc(ih/2)*2";
+
+export const evenDown = (size: number): number => size - (size % 2);
+
+export const withEvenFrame = (filter: string): string => `${filter},${EVEN_FRAME}`;
+
 type H264 = { crf: number; preset?: string; keyframeEvery?: number; faststart?: boolean };
 
 export const h264Args = ({ crf, preset, keyframeEvery, faststart = false }: H264): string[] => [
@@ -47,7 +53,7 @@ export const CODECS = {
     audio: AAC_EXPORT,
     faststart: true,
     crf: true,
-    video: (crf, preset) => h264Args({ crf, preset }),
+    video: (crf, preset) => ["-vf", EVEN_FRAME, ...h264Args({ crf, preset })],
   },
   h265: {
     ext: "mp4",
@@ -55,6 +61,8 @@ export const CODECS = {
     faststart: true,
     crf: true,
     video: (crf, preset) => [
+      "-vf",
+      EVEN_FRAME,
       "-c:v",
       "libx265",
       "-crf",

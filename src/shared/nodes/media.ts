@@ -271,8 +271,20 @@ export const scalePadNode = op({
     row("maximize", SCALE_MODES[p.mode].row),
   ],
   params: z.object({
-    width: int(DEFAULT_VIEWPORT.width, "Width", { min: 16, max: 7680, unit: "px" }),
-    height: int(DEFAULT_VIEWPORT.height, "Height", { min: 16, max: 7680, unit: "px" }),
+    width: int(DEFAULT_VIEWPORT.width, "Width", {
+      min: 16,
+      max: 7680,
+      step: 2,
+      unit: "px",
+      help: "A video takes even sizes; an odd one loses a pixel.",
+    }),
+    height: int(DEFAULT_VIEWPORT.height, "Height", {
+      min: 16,
+      max: 7680,
+      step: 2,
+      unit: "px",
+      help: "A video takes even sizes; an odd one loses a pixel.",
+    }),
     mode: choiceOf(SCALE_MODES, "pad", "Fit"),
     background: more(text("black", "Bar colour"), {
       widget: "color",

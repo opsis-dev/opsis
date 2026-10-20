@@ -52,3 +52,17 @@ describe("gifFilter", () => {
     );
   });
 });
+
+describe("odd sizes", () => {
+  it("joins files at an even size, which the video encoder needs", () => {
+    expect(joinFilter(2, { width: 321, height: 241, fps: 30, sound: false })).toContain(
+      "scale=320:240",
+    );
+  });
+
+  it("crops a sped-up video to an even size", () => {
+    expect(speedArgs("in.mp4", "out.mp4", { rate: 2, fps: 30, sound: false })).toContain(
+      "setpts=PTS/2,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+    );
+  });
+});

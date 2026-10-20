@@ -1,5 +1,5 @@
 import { singleQuoted } from "../../shared/format";
-import { EDIT_AUDIO, EDIT_VIDEO, ffmpegSeconds } from "./codecs";
+import { EDIT_AUDIO, EDIT_VIDEO, ffmpegSeconds, withEvenFrame } from "./codecs";
 
 export const REVERSE_BUDGET_BYTES = 512 * 1024 ** 2;
 
@@ -93,7 +93,7 @@ export const reverseArgs = (
   "-i",
   inPath,
   "-vf",
-  pictureFilter(piece),
+  withEvenFrame(pictureFilter(piece)),
   ...(sound ? ["-af", soundFilter(piece), ...soundCodec] : ["-an"]),
   ...EDIT_VIDEO,
   outPath,

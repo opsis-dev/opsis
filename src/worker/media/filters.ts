@@ -1,7 +1,7 @@
 import { round3 } from "../../shared/math";
 import type { NodeParams } from "../../shared/nodes/define";
 import type { gifNode, scalePadNode } from "../../shared/nodes/media";
-import { EDIT_VIDEO } from "./codecs";
+import { EDIT_VIDEO, evenDown, withEvenFrame } from "./codecs";
 
 const padTo = (w: number, h: number, color?: string) =>
   `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2${color ? `:color=${color}` : ""},setsar=1`;
@@ -30,8 +30,10 @@ export function joinFilter(
   to: { width: number; height: number; fps: number; sound: boolean },
 ): string {
   const rate = round3(to.fps);
+  const width = evenDown(to.width);
+  const height = evenDown(to.height);
   const inputs = Array.from({ length: count }, (_, i) => i);
-  const scaled = inputs.map((i) => `[${i}:v]${padTo(to.width, to.height)},fps=${rate}[v${i}]`);
+  const scaled = inputs.map((i) => `[${i}:v]${padTo(width, height)},fps=${rate}[v${i}]`);
   const join = to.sound
     ? { pads: inputs.map((i) => `[v${i}][${i}:a]`), audio: 1, out: "[v][a]" }
     : { pads: inputs.map((i) => `[v${i}]`), audio: 0, out: "[v]" };
@@ -62,7 +64,7 @@ export function speedArgs(
     "-i",
     inPath,
     "-vf",
-    `setpts=PTS/${opts.rate}`,
+    withEvenFrame(`setpts=PTS/${opts.rate}`),
     "-r",
     String(round3(opts.fps)),
     ...(opts.sound ? ["-af", atempoChain(opts.rate)] : ["-an"]),

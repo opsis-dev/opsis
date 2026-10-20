@@ -93,7 +93,7 @@ describe("reverseArgs", () => {
       "-i",
       "in.mp4",
       "-vf",
-      "reverse",
+      "reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
       "-af",
       "areverse",
       "-c:v",
@@ -118,7 +118,7 @@ describe("reverseArgs", () => {
       "-i",
       "in.mp4",
       "-vf",
-      "trim=end=2.000,reverse,setpts=PTS-STARTPTS",
+      "trim=end=2.000,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
       "-af",
       "atrim=start=0.017:end=2.017,areverse,asetpts=PTS-STARTPTS",
     ]);
@@ -132,7 +132,7 @@ describe("reverseArgs", () => {
       "-i",
       "in.mp4",
       "-vf",
-      "trim=end=0.483,reverse",
+      "trim=end=0.483,reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
       "-af",
       "atrim=end=0.500,areverse",
     ]);
@@ -143,7 +143,7 @@ describe("reverseArgs", () => {
       "-i",
       "in.mp4",
       "-vf",
-      "reverse,setpts=PTS-STARTPTS",
+      "reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
       "-af",
       "atrim=start=0.017,areverse,asetpts=PTS-STARTPTS",
     ]);
