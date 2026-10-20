@@ -231,7 +231,9 @@ export const hoverNode = defineNode({
   params: z.object({ ...targetFields(), ...pointerAction(600, "Hover for") }),
   card: ({ params: p }) => [
     elementRow("mouse-pointer-2", p.target, p.targetRole),
-    row("hourglass", `Hover ${formatDuration(p.hoverMs)}`),
+    p.hoverMs > 0
+      ? row("hourglass", `Hover ${formatDuration(p.hoverMs)}`)
+      : row("hourglass", "Passes over it", { tone: "muted" }),
     ...beatRows(p),
   ],
 });

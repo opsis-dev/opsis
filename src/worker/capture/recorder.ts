@@ -37,7 +37,6 @@ const DEFAULT_PAUSE_MS = 700;
 const SAMPLE_MS = 8;
 const GLIDE_MIN_PX = 6;
 const SETTLE_MS = 220;
-const MOVE_SETTLE_MS = 120;
 const OVERSHOOT_RETURN_MS = 130;
 const CLICK_HOLD_MS = 80;
 const FIELD_FOCUS_MS = 150;
@@ -155,11 +154,6 @@ export class CursorDriver {
     const tMs = this.elapsed();
     await this.page.keyboard.press(chord);
     this.sink.key(label ? { tMs, chord, label } : { tMs, chord });
-  }
-
-  async moveTo(target: Target): Promise<void> {
-    const { cx, cy } = await boxOf(this.page, target, this.designScale);
-    await this.glideTo(cx, cy, MOVE_SETTLE_MS);
   }
 
   async focus(target: Target, label?: string, opts?: ActionOpts): Promise<void> {

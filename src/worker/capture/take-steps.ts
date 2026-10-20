@@ -147,14 +147,9 @@ const STEPS = new Map<string, StepSpec>([
   step(
     hoverNode,
     (take, p, node) =>
-      onTarget(take, node, p, async (driver, t, label) => {
-        if (p.zoom) {
-          await driver.focus(t.target, label, await take.motion(p, t.by));
-          return;
-        }
-        await driver.moveTo(t.target);
-        await driver.pause(p.hoverMs);
-      }),
+      onTarget(take, node, p, async (driver, t, label) =>
+        driver.focus(t.target, label, await take.motion(p, t.by)),
+      ),
     { clickKind: "hover" },
   ),
   step(

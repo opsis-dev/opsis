@@ -43,6 +43,13 @@ describe("browser action cards", () => {
     expect(texts({ mode: "path", path: "" })).toEqual(["“Deal card”", "Add points to the path"]);
   });
 
+  it("doesn't call passing over an element a 0 s hover", () => {
+    const texts = (hoverMs: number) =>
+      nodeCard("browser.hover", { target: "Menu", hoverMs, after: 0 }).map((r) => r.text);
+    expect(texts(600)).toEqual(["“Menu”", "Hover 0.6 s"]);
+    expect(texts(0)).toEqual(["“Menu”", "Passes over it"]);
+  });
+
   it("asks for a script on an empty Run page script", () => {
     expect(nodeCard("browser.setState", { script: " " })[0]).toMatchObject({ tone: "warn" });
   });
