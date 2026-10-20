@@ -1,4 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { emptyClip } from "../compile/clip";
+import type { CaptionsValue } from "../schema/values";
+import { compileClip, must, nodeCard } from "../test-fixtures";
+import { parseParams } from "./params";
+import { getNodeDef } from "./registry";
 import { endsSentence, scriptToCaptions } from "./text";
 
 describe("scriptToCaptions", () => {
@@ -37,5 +42,43 @@ describe("scriptToCaptions", () => {
 
   it("splits text written without spaces into words", () => {
     expect(scriptToCaptions("今日はいい天気です。", pace).length).toBeGreaterThan(1);
+  });
+});
+
+describe("Show captions", () => {
+  const captions: CaptionsValue = {
+    type: "captions",
+    captions: [{ text: "Hi", startMs: 0, endMs: 2500 }],
+  };
+
+  it("lasts until the last caption has been read", () => {
+    expect(compileClip("text.captions", {}, { captions }).durationInFrames).toBe(90);
+  });
+
+  it("keeps the length of the clip it is shown over", () => {
+    expect(
+      compileClip("text.captions", {}, { captions, clip: emptyClip(30) }).durationInFrames,
+    ).toBe(30);
+  });
+
+  it("warns when the captions run past the clip", () => {
+    const texts = nodeCard(
+      "text.captions",
+      {},
+      {
+        inputCaptionsMs: { captions: 2500 },
+        inputFrames: { clip: 30 },
+      },
+    ).map((r) => r.text);
+    expect(texts).toContain("Runs 1.5 s past the clip, which cuts it off");
+  });
+
+  it("needs a script to make captions from", () => {
+    expect(
+      parseParams(must(getNodeDef("text.captionsFromText"), "node").params, { script: " " }),
+    ).toEqual({
+      ok: false,
+      problem: "Write a script",
+    });
   });
 });

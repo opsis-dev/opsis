@@ -34,21 +34,29 @@ function useCardInputs(node: WorkflowNode) {
   const clip = compiled?.values[node.id]?.clip;
   const clipFrames = isClip(clip) ? clip.durationInFrames : undefined;
   const connected = useMemo(() => incoming.map((e) => e.targetHandle), [incoming]);
-  const { inputFrames, inputItems, inputTakes, inputMedia } = useMemo(() => {
+  const { inputFrames, inputItems, inputTakes, inputMedia, inputCaptionsMs } = useMemo(() => {
     const frames: Partial<Record<string, number>> = {};
     const items: Partial<Record<string, number>> = {};
     const takes: Partial<Record<string, InputTake>> = {};
     const media: NonNullable<CardContext<unknown>["inputMedia"]> = {};
+    const captions: Partial<Record<string, number>> = {};
     for (const e of incoming) {
       const v = compiled?.values[e.source]?.[e.sourceHandle];
       if (v?.type === "media") media[e.targetHandle] = { kind: v.kind, hasAudio: v.hasAudio };
+      if (v?.type === "captions") captions[e.targetHandle] = v.captions.at(-1)?.endMs ?? 0;
       if (!isClip(v)) continue;
       frames[e.targetHandle] = v.durationInFrames;
       items[e.targetHandle] = sceneItemCount(v);
       const take = inputTake(v);
       if (take !== undefined) takes[e.targetHandle] = take;
     }
-    return { inputFrames: frames, inputItems: items, inputTakes: takes, inputMedia: media };
+    return {
+      inputFrames: frames,
+      inputItems: items,
+      inputTakes: takes,
+      inputMedia: media,
+      inputCaptionsMs: captions,
+    };
   }, [incoming, compiled]);
   return useMemo(
     () => ({
@@ -63,6 +71,7 @@ function useCardInputs(node: WorkflowNode) {
         inputItems,
         inputTakes,
         inputMedia,
+        inputCaptionsMs,
       },
     }),
     [
@@ -77,6 +86,7 @@ function useCardInputs(node: WorkflowNode) {
       inputItems,
       inputTakes,
       inputMedia,
+      inputCaptionsMs,
     ],
   );
 }

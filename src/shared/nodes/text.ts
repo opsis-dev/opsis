@@ -3,13 +3,13 @@ import { EMPTY_CLIP_FRAMES, emptyClip, itemClip, stackClips } from "../compile/c
 import { TEXT_COLOR } from "../elements/colors";
 import { CAPTIONS_ELEMENT, captionsSchema } from "../elements/core";
 import { fontProp } from "../fonts";
-import { humanize } from "../format";
+import { formatDuration, humanize } from "../format";
 import { asValue, type CaptionsValue } from "../schema/values";
-import { msToFrames } from "../timeline/time";
+import { framesToMs, msToFrames } from "../timeline/time";
 import { quotedRow, row, truncate } from "./card";
 import { annotationNode } from "./cursor";
 import { clipInput, defineNode, nodeBase, opt, port } from "./define";
-import { int, ms, text } from "./params";
+import { int, more, ms, requiredText } from "./params";
 
 const base = nodeBase("Text & overlays", "compile");
 
@@ -92,7 +92,14 @@ const captionsFromTextNode = defineNode({
     row("gauge", `${p.wordsPerMinute} words/min`),
   ],
   params: z.object({
-    script: text("Record a real flow. Turn it into a cinematic demo.", "Script", "textarea"),
+    script: more(
+      requiredText(
+        "Script",
+        "Write a script",
+        "Record a real flow. Turn it into a cinematic demo.",
+      ),
+      { widget: "textarea" },
+    ),
     wordsPerMinute: int(165, "Speaking pace", { min: 60, max: 400, unit: "words/min" }),
     startMs: ms(0, "Start at"),
     linePauseMs: ms(350, "Pause between sentences", 5000),
@@ -109,9 +116,23 @@ const captionsNode = defineNode({
   description: "Displays captions over the video, word by word, karaoke or line by line.",
   inputs: { captions: port("captions", "Captions"), clip: opt("clip", "Over clip") },
   outputs: { clip: port("clip", "Clip") },
-  card: ({ params: p }) => [
-    row("captions", truncate([p.style, p.position].filter(Boolean).map(humanize).join(" · "))),
-  ],
+  card: ({ params: p, inputCaptionsMs, inputFrames, settings }) => {
+    const spoken = inputCaptionsMs?.captions;
+    const clipMs = inputFrames?.clip && framesToMs(inputFrames.clip, settings.fps);
+    return [
+      row("captions", truncate([p.style, p.position].filter(Boolean).map(humanize).join(" · "))),
+      spoken !== undefined &&
+        clipMs &&
+        spoken > clipMs &&
+        row(
+          "triangle-alert",
+          `Runs ${formatDuration(spoken - clipMs)} past the clip, which cuts it off`,
+          {
+            tone: "warn",
+          },
+        ),
+    ];
+  },
   params: captionsSchema,
   compile: ({ nodeId, inputs, params, settings }) => {
     const caps = asValue(inputs.captions, "captions");
