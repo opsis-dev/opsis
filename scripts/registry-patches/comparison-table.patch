@@ -1,0 +1,29 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remotion-ui/comparison-table/index.tsx b/src/video/elements/remotion-ui/comparison-table/index.tsx
+index 577e469..9d5f46e 100644
+--- a/src/video/elements/remotion-ui/comparison-table/index.tsx
++++ b/src/video/elements/remotion-ui/comparison-table/index.tsx
+@@ -218,8 +218,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+               width: colW,
+               height: headH + rows.length * rowH,
+               borderRadius: 12 * u,
+-              background: `${accentColor}12`,
+-              border: `1px solid ${accentColor}3A`,
++              background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
++              border: `1px solid color-mix(in srgb, ${accentColor} 23%, transparent)`,
+               opacity: headIn,
+             }}
+           />
+@@ -245,8 +245,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
+                 style={{
+                   padding: `${4 * u}px ${10 * u}px`,
+                   borderRadius: 999,
+-                  background: `${accentColor}20`,
+-                  border: `1px solid ${accentColor}66`,
++                  background: `color-mix(in srgb, ${accentColor} 13%, transparent)`,
++                  border: `1px solid color-mix(in srgb, ${accentColor} 40%, transparent)`,
+                   color: accentColor,
+                   fontSize: 14.5 * u,
+                   fontWeight: 600,

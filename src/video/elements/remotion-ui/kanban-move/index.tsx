@@ -270,7 +270,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
                     : palette.border
                 }`,
                 boxShadow: incoming > 0.02
-                  ? `0 0 ${incoming * 26 * u}px ${accentColor}33`
+                  ? `0 0 ${incoming * 26 * u}px color-mix(in srgb, ${accentColor} 20%, transparent)`
                   : "none",
               }}
             >

@@ -1,0 +1,25 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remotion-ui/caption-bumper/index.tsx b/src/video/elements/remotion-ui/caption-bumper/index.tsx
+index 92b2171..ea8e7fb 100644
+--- a/src/video/elements/remotion-ui/caption-bumper/index.tsx
++++ b/src/video/elements/remotion-ui/caption-bumper/index.tsx
+@@ -137,7 +137,7 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
+         style={{
+           position: "absolute",
+           inset: 0,
+-          background: `radial-gradient(ellipse 70% 55% at 50% 50%, ${accentColor}22, transparent 72%)`,
++          background: `radial-gradient(ellipse 70% 55% at 50% 50%, color-mix(in srgb, ${accentColor} 13%, transparent), transparent 72%)`,
+           clipPath: `inset(${(1 - ground) * 50}% 0 ${(1 - ground) * 50}% 0)`,
+           opacity: 1 - exit,
+         }}
+@@ -216,7 +216,7 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
+             height: 4 * u,
+             borderRadius: 999,
+             background: accentColor,
+-            boxShadow: `0 0 ${16 * u}px ${accentColor}88`,
++            boxShadow: `0 0 ${16 * u}px color-mix(in srgb, ${accentColor} 53%, transparent)`,
+             transformOrigin: "center",
+             scale: `${rule} 1`,
+           }}

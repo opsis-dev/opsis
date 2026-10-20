@@ -137,7 +137,7 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 70% 55% at 50% 50%, ${accentColor}22, transparent 72%)`,
+          background: `radial-gradient(ellipse 70% 55% at 50% 50%, color-mix(in srgb, ${accentColor} 13%, transparent), transparent 72%)`,
           clipPath: `inset(${(1 - ground) * 50}% 0 ${(1 - ground) * 50}% 0)`,
           opacity: 1 - exit,
         }}
@@ -216,7 +216,7 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
             height: 4 * u,
             borderRadius: 999,
             background: accentColor,
-            boxShadow: `0 0 ${16 * u}px ${accentColor}88`,
+            boxShadow: `0 0 ${16 * u}px color-mix(in srgb, ${accentColor} 53%, transparent)`,
             transformOrigin: "center",
             scale: `${rule} 1`,
           }}

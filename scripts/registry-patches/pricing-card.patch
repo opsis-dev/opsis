@@ -1,0 +1,54 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remotion-ui/pricing-card/index.tsx b/src/video/elements/remotion-ui/pricing-card/index.tsx
+index c07918e..7ffdd64 100644
+--- a/src/video/elements/remotion-ui/pricing-card/index.tsx
++++ b/src/video/elements/remotion-ui/pricing-card/index.tsx
+@@ -176,7 +176,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+           width: cardW,
+           borderRadius: 24 * u,
+           background: palette.window,
+-          border: `1px solid ${accentColor}3A`,
++          border: `1px solid color-mix(in srgb, ${accentColor} 23%, transparent)`,
+           boxShadow: `inset 0 1px 0 ${palette.highlight}, 0 ${28 * u}px ${
+             70 * u
+           }px ${palette.shadow}`,
+@@ -194,7 +194,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+           style={{
+             position: "absolute",
+             inset: 0,
+-            background: `radial-gradient(120% 80% at 8% 0%, ${accentColor}1F, transparent 62%)`,
++            background: `radial-gradient(120% 80% at 8% 0%, color-mix(in srgb, ${accentColor} 12%, transparent), transparent 62%)`,
+           }}
+         />
+ 
+@@ -223,8 +223,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+                 style={{
+                   padding: `${3.5 * u}px ${9 * u}px`,
+                   borderRadius: 999,
+-                  background: `${accentColor}22`,
+-                  border: `1px solid ${accentColor}66`,
++                  background: `color-mix(in srgb, ${accentColor} 13%, transparent)`,
++                  border: `1px solid color-mix(in srgb, ${accentColor} 40%, transparent)`,
+                   color: accentColor,
+                   fontSize: 14.5 * u,
+                   fontWeight: 600,
+@@ -339,7 +339,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+                   }}
+                 >
+                   <svg width={18 * u} height={18 * u} viewBox="0 0 24 24" fill="none">
+-                    <circle cx="12" cy="12" r="11" fill={`${accentColor}22`} />
++                    <circle cx="12" cy="12" r="11" fill={`color-mix(in srgb, ${accentColor} 13%, transparent)`} />
+                     <path
+                       d="M6.5 12.5 L10.5 16.5 L17.5 8"
+                       stroke={accentColor}
+@@ -381,7 +381,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
+                 letterSpacing: "0.01em",
+                 opacity: Math.min(1, ctaIn * 1.4),
+                 scale: `${0.94 + ctaIn * 0.06}`,
+-                boxShadow: `0 ${10 * u}px ${26 * u}px ${accentColor}33`,
++                boxShadow: `0 ${10 * u}px ${26 * u}px color-mix(in srgb, ${accentColor} 20%, transparent)`,
+               }}
+             >
+               {ctaLabel}

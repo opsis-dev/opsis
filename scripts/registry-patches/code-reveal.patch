@@ -1,0 +1,25 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remotion-ui/code-reveal/index.tsx b/src/video/elements/remotion-ui/code-reveal/index.tsx
+index ee13e2b..95c3276 100644
+--- a/src/video/elements/remotion-ui/code-reveal/index.tsx
++++ b/src/video/elements/remotion-ui/code-reveal/index.tsx
+@@ -200,7 +200,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
+         style={{
+           position: "absolute",
+           inset: 0,
+-          background: `radial-gradient(ellipse 70% 50% at 50% 38%, ${accentColor}1C, transparent 70%)`,
++          background: `radial-gradient(ellipse 70% 50% at 50% 38%, color-mix(in srgb, ${accentColor} 11%, transparent), transparent 70%)`,
+           opacity: chromeIn * (0.55 + focusProgress * 0.45),
+         }}
+       />
+@@ -371,7 +371,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
+                           style={{
+                             position: "absolute",
+                             inset: 0,
+-                            background: `${accentColor}14`,
++                            background: `color-mix(in srgb, ${accentColor} 8%, transparent)`,
+                             opacity: focusProgress,
+                           }}
+                         />

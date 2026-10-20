@@ -200,7 +200,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 70% 50% at 50% 38%, ${accentColor}1C, transparent 70%)`,
+          background: `radial-gradient(ellipse 70% 50% at 50% 38%, color-mix(in srgb, ${accentColor} 11%, transparent), transparent 70%)`,
           opacity: chromeIn * (0.55 + focusProgress * 0.45),
         }}
       />
@@ -371,7 +371,7 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
                           style={{
                             position: "absolute",
                             inset: 0,
-                            background: `${accentColor}14`,
+                            background: `color-mix(in srgb, ${accentColor} 8%, transparent)`,
                             opacity: focusProgress,
                           }}
                         />

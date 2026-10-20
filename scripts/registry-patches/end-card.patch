@@ -1,0 +1,25 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remotion-ui/end-card/index.tsx b/src/video/elements/remotion-ui/end-card/index.tsx
+index 074ea9a..c75399c 100644
+--- a/src/video/elements/remotion-ui/end-card/index.tsx
++++ b/src/video/elements/remotion-ui/end-card/index.tsx
+@@ -156,7 +156,7 @@ export const EndCard: React.FC<EndCardProps> = ({
+         style={{
+           position: "absolute",
+           inset: 0,
+-          background: `radial-gradient(ellipse 60% 46% at 50% 44%, ${accentColor}1F, transparent 72%)`,
++          background: `radial-gradient(ellipse 60% 46% at 50% 44%, color-mix(in srgb, ${accentColor} 12%, transparent), transparent 72%)`,
+         }}
+       />
+ 
+@@ -261,7 +261,7 @@ export const EndCard: React.FC<EndCardProps> = ({
+                 fontSize: 27 * u,
+                 fontWeight: 700,
+                 letterSpacing: "-0.01em",
+-                boxShadow: `0 ${14 * u}px ${40 * u}px ${accentColor}44`,
++                boxShadow: `0 ${14 * u}px ${40 * u}px color-mix(in srgb, ${accentColor} 27%, transparent)`,
+                 // The label rises out of the pill from below it, so the
+                 // pill must clip vertically — which means a label long enough to
+                 // wrap would be cut mid-glyph. Keep it on one line and bounded

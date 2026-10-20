@@ -212,7 +212,7 @@ export const LogoWall: React.FC<LogoWallProps> = ({
                   borderRadius: 14 * u,
                   background: palette.band,
                   border: `1px solid ${
-                    warm > 0.5 ? `${color}44` : palette.border
+                    warm > 0.5 ? `color-mix(in srgb, ${color} 27%, transparent)` : palette.border
                   }`,
                   display: "flex",
                   alignItems: "center",
@@ -233,7 +233,7 @@ export const LogoWall: React.FC<LogoWallProps> = ({
                     borderRadius: 9 * u,
                     display: "grid",
                     placeItems: "center",
-                    background: `linear-gradient(140deg, ${color}, ${color}88)`,
+                    background: `linear-gradient(140deg, ${color}, color-mix(in srgb, ${color} 53%, transparent))`,
                     color: theme === "dark" ? "#12100C" : "#FFFFFF",
                     fontSize: 16 * u,
                     fontWeight: 800,

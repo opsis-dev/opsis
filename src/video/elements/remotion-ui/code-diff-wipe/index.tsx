@@ -265,7 +265,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 70% 50% at 50% 38%, ${accentColor}1C, transparent 70%)`,
+          background: `radial-gradient(ellipse 70% 50% at 50% 38%, color-mix(in srgb, ${accentColor} 11%, transparent), transparent 70%)`,
           opacity: chromeIn,
         }}
       />
@@ -458,7 +458,7 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
                 height: 2,
                 background: accentColor,
                 opacity: frontVisible * 0.9,
-                boxShadow: `0 0 18px 2px ${accentColor}66`,
+                boxShadow: `0 0 18px 2px color-mix(in srgb, ${accentColor} 40%, transparent)`,
               }}
             />
           </div>

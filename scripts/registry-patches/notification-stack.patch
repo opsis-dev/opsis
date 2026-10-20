@@ -1,0 +1,18 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remotion-ui/notification-stack/index.tsx b/src/video/elements/remotion-ui/notification-stack/index.tsx
+index 8754de3..875584f 100644
+--- a/src/video/elements/remotion-ui/notification-stack/index.tsx
++++ b/src/video/elements/remotion-ui/notification-stack/index.tsx
+@@ -276,8 +276,8 @@ export const NotificationStack: React.FC<NotificationStackProps> = ({
+                     width: 32 * u,
+                     height: 32 * u,
+                     borderRadius: 10 * u,
+-                    background: `${color}1F`,
+-                    border: `1px solid ${color}59`,
++                    background: `color-mix(in srgb, ${color} 12%, transparent)`,
++                    border: `1px solid color-mix(in srgb, ${color} 35%, transparent)`,
+                     display: "flex",
+                     alignItems: "center",
+                     justifyContent: "center",

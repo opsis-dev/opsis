@@ -1,0 +1,16 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remocn/animated-line-chart.tsx b/src/video/elements/remocn/animated-line-chart.tsx
+index 99461bf..57df915 100644
+--- a/src/video/elements/remocn/animated-line-chart.tsx
++++ b/src/video/elements/remocn/animated-line-chart.tsx
+@@ -164,7 +164,7 @@ export function AnimatedLineChart({
+           strokeDasharray={pathLength}
+           strokeDashoffset={dashOffset}
+           style={{
+-            filter: `drop-shadow(0 0 12px ${strokeColor}55)`,
++            filter: `drop-shadow(0 0 12px color-mix(in srgb, ${strokeColor} 33%, transparent))`,
+           }}
+         />
+ 

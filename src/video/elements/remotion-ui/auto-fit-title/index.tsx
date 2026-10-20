@@ -118,7 +118,7 @@ export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 64% 50% at 50% 46%, ${accentColor}1A, transparent 72%)`,
+          background: `radial-gradient(ellipse 64% 50% at 50% 46%, color-mix(in srgb, ${accentColor} 10%, transparent), transparent 72%)`,
           scale: `${interpolate(push, [0, 1], [1, 1.1])}`,
         }}
       />

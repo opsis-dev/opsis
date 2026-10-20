@@ -376,7 +376,7 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
                 {row.isFolder ? (
                   <FolderGlyph size={16 * u} color={palette.dim} />
                 ) : (
-                  <FileGlyph size={16 * u} color={`${nameColor}B3`} />
+                  <FileGlyph size={16 * u} color={`color-mix(in srgb, ${nameColor} 70%, transparent)`} />
                 )}
 
                 <span

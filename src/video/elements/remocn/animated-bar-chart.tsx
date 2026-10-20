@@ -84,7 +84,7 @@ export function AnimatedBarChart({
                   scale: `1 ${scaleY}`,
                   transformOrigin: `${x + barWidth / 2}px ${baseY}px`,
                   transformBox: "fill-box",
-                  filter: `drop-shadow(0 4px 16px ${barColor}55)`,
+                  filter: `drop-shadow(0 4px 16px color-mix(in srgb, ${barColor} 33%, transparent))`,
                 }}
               />
               {labels?.[index] && (

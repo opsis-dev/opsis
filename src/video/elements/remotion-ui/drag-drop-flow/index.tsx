@@ -476,7 +476,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
               : palette.band,
             boxShadow: `0 0 ${
               52 * u * Math.max(armed, released ? 0.3 : 0)
-            }px ${accentColor}55`,
+            }px color-mix(in srgb, ${accentColor} 33%, transparent)`,
             opacity: panel,
             transform: `scale(${1 + armed * 0.012})`,
           }}
@@ -541,7 +541,7 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
             borderRadius: 14 * u,
             background: palette.window,
             border: `1px solid ${
-              lift > 0.2 || released ? `${accentColor}88` : palette.border
+              lift > 0.2 || released ? `color-mix(in srgb, ${accentColor} 53%, transparent)` : palette.border
             }`,
             boxShadow: `0 ${(6 + lift * 22) * u}px ${(16 + lift * 46) * u}px ${
               palette.shadow

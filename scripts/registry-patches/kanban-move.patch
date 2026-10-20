@@ -1,0 +1,16 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remotion-ui/kanban-move/index.tsx b/src/video/elements/remotion-ui/kanban-move/index.tsx
+index ad3870d..d732b96 100644
+--- a/src/video/elements/remotion-ui/kanban-move/index.tsx
++++ b/src/video/elements/remotion-ui/kanban-move/index.tsx
+@@ -270,7 +270,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+                     : palette.border
+                 }`,
+                 boxShadow: incoming > 0.02
+-                  ? `0 0 ${incoming * 26 * u}px ${accentColor}33`
++                  ? `0 0 ${incoming * 26 * u}px color-mix(in srgb, ${accentColor} 20%, transparent)`
+                   : "none",
+               }}
+             >

@@ -164,7 +164,7 @@ export function AnimatedLineChart({
           strokeDasharray={pathLength}
           strokeDashoffset={dashOffset}
           style={{
-            filter: `drop-shadow(0 0 12px ${strokeColor}55)`,
+            filter: `drop-shadow(0 0 12px color-mix(in srgb, ${strokeColor} 33%, transparent))`,
           }}
         />
 

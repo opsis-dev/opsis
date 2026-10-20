@@ -1,0 +1,27 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remotion-ui/stat-card/index.tsx b/src/video/elements/remotion-ui/stat-card/index.tsx
+index d257987..059a52c 100644
+--- a/src/video/elements/remotion-ui/stat-card/index.tsx
++++ b/src/video/elements/remotion-ui/stat-card/index.tsx
+@@ -164,7 +164,7 @@ export const StatCard: React.FC<StatCardProps> = ({
+         style={{
+           position: "absolute",
+           inset: 0,
+-          background: `radial-gradient(ellipse 55% 50% at 50% 45%, ${accentColor}1A, transparent 72%)`,
++          background: `radial-gradient(ellipse 55% 50% at 50% 45%, color-mix(in srgb, ${accentColor} 10%, transparent), transparent 72%)`,
+         }}
+       />
+ 
+@@ -277,8 +277,8 @@ export const StatCard: React.FC<StatCardProps> = ({
+               gap: 8 * u,
+               padding: `${8 * u}px ${15 * u}px`,
+               borderRadius: 999,
+-              background: `${accentColor}18`,
+-              border: `1px solid ${accentColor}55`,
++              background: `color-mix(in srgb, ${accentColor} 9%, transparent)`,
++              border: `1px solid color-mix(in srgb, ${accentColor} 33%, transparent)`,
+               color: accentColor,
+               fontSize: 22 * u,
+               fontWeight: 600,

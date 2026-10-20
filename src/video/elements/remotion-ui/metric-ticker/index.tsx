@@ -120,7 +120,7 @@ export const MetricTicker: React.FC<MetricTickerProps> = ({
         width,
         height,
         background: backgroundColor,
-        backgroundImage: `radial-gradient(ellipse 70% 50% at 50% 0%, ${accentColor}12, transparent 70%)`,
+        backgroundImage: `radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, ${accentColor} 7%, transparent), transparent 70%)`,
         color: COLORS.ink,
         fontFamily,
         paddingLeft: safe.paddingLeft,

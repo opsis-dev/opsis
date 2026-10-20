@@ -1,0 +1,16 @@
+Fixes:
+- Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+
+diff --git a/src/video/elements/remocn/animated-bar-chart.tsx b/src/video/elements/remocn/animated-bar-chart.tsx
+index 9884a8e..c3b687b 100644
+--- a/src/video/elements/remocn/animated-bar-chart.tsx
++++ b/src/video/elements/remocn/animated-bar-chart.tsx
+@@ -84,7 +84,7 @@ export function AnimatedBarChart({
+                   scale: `1 ${scaleY}`,
+                   transformOrigin: `${x + barWidth / 2}px ${baseY}px`,
+                   transformBox: "fill-box",
+-                  filter: `drop-shadow(0 4px 16px ${barColor}55)`,
++                  filter: `drop-shadow(0 4px 16px color-mix(in srgb, ${barColor} 33%, transparent))`,
+                 }}
+               />
+               {labels?.[index] && (
