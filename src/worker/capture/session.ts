@@ -47,8 +47,8 @@ export async function openSession(
     context = await browser.newContext({
       viewport: physical,
       deviceScaleFactor: params.dpr,
-      locale: params.locale || undefined,
-      timezoneId: params.timezone || undefined,
+      locale: params.locale.trim() || Intl.DateTimeFormat().resolvedOptions().locale,
+      timezoneId: params.timezone.trim() || undefined,
       colorScheme: params.colorScheme,
       userAgent: params.userAgent || (params.mobile ? devices["iPad Pro 11"].userAgent : undefined),
       ...(params.mobile ? { isMobile: true, hasTouch: true } : {}),

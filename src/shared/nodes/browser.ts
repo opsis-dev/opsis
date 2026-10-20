@@ -2,6 +2,7 @@ import { z } from "zod";
 import { staysInProject } from "../asset-ref";
 import { chordKeys } from "../chord";
 import { formatDuration, displayAddress, formatWhen, plural } from "../format";
+import { isLocale, isTimeZone } from "../locale";
 import { mimeSubtype } from "../mime";
 import { readPath } from "../schema/actions";
 import { DEFAULT_VIEWPORT } from "../schema/workflow";
@@ -122,8 +123,20 @@ export const sessionNode = defineNode({
       widget: "secret",
       help: "A sign-in saved by a Sign in once node.",
     }),
-    locale: more(text("en-US", "Language"), { help: "For example en-US, de-DE, ja-JP." }),
-    timezone: more(text("", "Time zone"), { widget: "timezone" }),
+    locale: z
+      .string()
+      .refine((t) => !t.trim() || isLocale(t.trim()), "Use a language like en-US, de-DE or ja-JP")
+      .default("en-US")
+      .meta({
+        description: "Language",
+        help: "For example en-US, de-DE, ja-JP.",
+        zeroLabel: "This computer's language",
+      }),
+    timezone: z
+      .string()
+      .refine((t) => !t.trim() || isTimeZone(t.trim()), "Pick a time zone from the list")
+      .default("")
+      .meta({ description: "Time zone", widget: "timezone" }),
     colorScheme: choice(["light", "dark", "no-preference"], "light", "Theme", {
       light: "Light",
       dark: "Dark",
