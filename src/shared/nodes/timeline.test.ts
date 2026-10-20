@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyClip, sceneItemCount } from "../compile/clip";
+import { MAX_FRAMES } from "../limits";
 import type { ClipValue } from "../schema/values";
 import { compileClip, nodeCard } from "../test-fixtures";
 
@@ -68,5 +69,17 @@ describe("Layers", () => {
 
   it("stays one item when it keeps its layout in other shapes", () => {
     expect(sceneItemCount(stacked({ keepLayout: true }))).toBe(1);
+  });
+});
+
+describe("Repeat", () => {
+  it("refuses to make a film longer than the frame limit", () => {
+    expect(() =>
+      compileClip("timeline.loop", { times: 100 }, { clip: emptyClip(MAX_FRAMES / 50) }),
+    ).toThrow("Repeated 100 times the clip would run");
+    expect(
+      compileClip("timeline.loop", { times: 50 }, { clip: emptyClip(MAX_FRAMES / 50) })
+        .durationInFrames,
+    ).toBe(MAX_FRAMES);
   });
 });

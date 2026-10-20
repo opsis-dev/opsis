@@ -12,11 +12,11 @@ import {
 } from "../compile/clip";
 import { speedRemap } from "../compile/remap";
 import { formatDuration, plural } from "../format";
-import { MIN_SPEED } from "../limits";
+import { MAX_FRAMES, MAX_REPEATS, MIN_SPEED } from "../limits";
 import { asValue, type ClipValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { parseNumberList } from "../text-input";
-import { atLeastOneFrame, msToFrames } from "../timeline/time";
+import { atLeastOneFrame, framesToMs, msToFrames } from "../timeline/time";
 import {
   connectedPorts,
   cover,
@@ -293,17 +293,17 @@ const loopNode = defineNode({
   description: "Plays a clip several times.",
   card: ({ params: p }) => [row("repeat", `${p.times}×`)],
   params: z.object({
-    times: int(2, "Times", { min: 1, max: 100, unit: "×" }),
+    times: int(2, "Times", { min: 1, max: MAX_REPEATS, unit: "×" }),
   }),
-  compile: ({ nodeId, inputs, params }) =>
-    withClip(inputs, (clip) =>
-      wrapClip(
-        clip,
-        nodeId,
-        { loopEvery: clip.durationInFrames },
-        clip.durationInFrames * params.times,
-      ),
-    ),
+  compile: ({ nodeId, inputs, params, settings }) =>
+    withClip(inputs, (clip) => {
+      const total = clip.durationInFrames * params.times;
+      if (total > MAX_FRAMES)
+        throw new Error(
+          `Repeated ${params.times} times the clip would run ${formatDuration(framesToMs(total, settings.fps))}, longer than the ${formatDuration(framesToMs(MAX_FRAMES, settings.fps))} a film can be.`,
+        );
+      return wrapClip(clip, nodeId, { loopEvery: clip.durationInFrames }, total);
+    }),
 });
 
 const delayNode = defineNode({

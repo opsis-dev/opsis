@@ -54,6 +54,18 @@ describe("flattening", () => {
     ]);
   });
 
+  it("draws a bar for each of the most repeats a Repeat allows", () => {
+    const wf = buildFilm((g) => {
+      g.node("t", TITLE, 0, 0, { clipDuration: 15 });
+      g.node("loop", "timeline.loop", 1, 0, { times: 100 });
+      g.link("t", "loop");
+      return "loop";
+    });
+    const bars = flatFilm(wf).bars;
+    expect(bars).toHaveLength(100);
+    expect(Math.round(bars.at(-1)?.to ?? 0)).toBe(1500);
+  });
+
   it("spans every loop and speed change of a node", () => {
     const wf = buildFilm((g) => {
       g.node("t", TITLE, 0, 0, { clipDuration: 60 });

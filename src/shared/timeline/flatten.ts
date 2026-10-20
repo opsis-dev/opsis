@@ -1,6 +1,7 @@
 import { groupOf, itemHasSound, recordingOf, type GroupProps } from "../compile/clip";
 import { recordingSpeed, type RecordingProps } from "../compile/recording";
 import { inverseRemap, remapFrame, type Remap, type RemapSide } from "../compile/remap";
+import { MAX_REPEATS } from "../limits";
 import { clamp, EPSILON } from "../math";
 import type { ChannelKind } from "../mix/types";
 import type { Action } from "../schema/actions";
@@ -114,7 +115,7 @@ export type FlatTimeline = {
   marks: ActionMark[];
 };
 
-const MAX_LOOPS = 64;
+const MAX_LOOPS = MAX_REPEATS;
 
 export type FrameRange = { from: number; to: number };
 
