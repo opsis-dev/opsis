@@ -2,7 +2,7 @@ import { mkdir, utimes, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { tempDirs } from "../../engine/test-temp-dirs";
-import { fileStamps } from "./file-stamps";
+import { fileStamps, signInStamp } from "./file-stamps";
 
 const newDir = tempDirs("opsis-stamps-");
 
@@ -30,5 +30,18 @@ describe("fileStamps", () => {
       app: "app:placeholders/logo.svg",
     });
     expect(Object.keys(stamps)).toEqual(["project:logo.png"]);
+  });
+});
+
+describe("signInStamp", () => {
+  it("changes when the sign-in is saved again, and is empty before it is saved", async () => {
+    const dir = await newDir();
+    expect(signInStamp(dir, "acct")).toBeNull();
+    await mkdir(path.join(dir, "secrets"));
+    const file = path.join(dir, "secrets", "acct.json.enc");
+    await writeFile(file, "one");
+    const first = signInStamp(dir, "acct");
+    await writeFile(file, "a longer one");
+    expect(signInStamp(dir, "acct")).not.toBe(first);
   });
 });

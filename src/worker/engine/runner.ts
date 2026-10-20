@@ -46,7 +46,7 @@ import {
   type ExecutorInputs,
   type NodeResults,
 } from "./context";
-import { fileStamps } from "./file-stamps";
+import { fileStamps, signInStamp } from "./file-stamps";
 import { decorateArtifacts } from "./posters";
 
 type RunDeps = {
@@ -147,7 +147,11 @@ function hashNodes(
       .map((e): [string, string] => [e.targetHandle, `${hashes.get(e.source)}:${e.sourceHandle}`]);
     const def = getNodeDef(node.type);
     const params = interpolatedParams(def, node.params, vars);
-    const files = fileStamps(projectDir, params);
+    const signIn =
+      typeof params.storageState === "string" && params.storageState.trim()
+        ? signInStamp(projectDir, params.storageState)
+        : null;
+    const files = { ...fileStamps(projectDir, params), ...(signIn ? { signIn } : {}) };
     const keyed =
       def?.phase === "render"
         ? {

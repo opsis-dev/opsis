@@ -3,15 +3,9 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { safeStorage } from "electron";
 import { readBytesIfPresent, readDirIfPresent } from "../engine/json";
-import { secretFileName } from "../shared/secrets";
+import { SECRET_EXT, secretFile, secretsDir } from "../engine/secret-paths";
 
-const SECRETS_DIR = "secrets";
-const SECRET_EXT = ".json.enc";
-
-const secretsDir = (projectDir: string) => path.join(projectDir, SECRETS_DIR);
-
-const fileFor = (projectDir: string, name: string) =>
-  path.join(secretsDir(projectDir), `${secretFileName(name)}${SECRET_EXT}`);
+const fileFor = secretFile;
 
 function requireEncryption(): void {
   if (!safeStorage.isEncryptionAvailable())

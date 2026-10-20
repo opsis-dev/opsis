@@ -83,6 +83,17 @@ describe("graph", () => {
     expect(problems.map((i) => i.nodeId)).toEqual(["gone"]);
   });
 
+  it("stops two Sign in once nodes from saving the same sign-in", () => {
+    const g = new GraphBuilder();
+    g.node("a", "capture.loginOnce", 0, 0, { url: "https://x.test/login", secretName: "acct" });
+    g.node("b", "capture.loginOnce", 1, 0, { url: "https://x.test/login", secretName: "acct" });
+    g.node("c", "capture.loginOnce", 2, 0, { url: "https://x.test/login", secretName: "other" });
+    const clashes = validateWorkflow(build(g)).filter((i) =>
+      i.message.includes("also saves the sign-in"),
+    );
+    expect(clashes.map((i) => i.nodeId)).toEqual(["b"]);
+  });
+
   it("stops two exports from saving the same file", () => {
     const g = new GraphBuilder();
     g.node("one", "output.render", 0, 0, { fileName: "film" });

@@ -22,7 +22,7 @@ import {
   type WorkflowEdge,
   type WorkflowNode,
 } from "./schema/workflow";
-import { secretFileName } from "./secrets";
+import { secretFileName, secretName } from "./secrets";
 import { interpolate, unknownVariables, workflowVars } from "./vars";
 
 export type GraphIssue = {
@@ -343,6 +343,25 @@ function exportFiles(node: WorkflowNode, vars: Record<string, string>): string[]
   return [];
 }
 
+function signInClashes(wf: Workflow): GraphIssue[] {
+  const vars = workflowVars(wf);
+  const saver = new Map<string, WorkflowNode>();
+  const issues: GraphIssue[] = [];
+  for (const node of wf.nodes.filter((n) => n.type === loginOnceNode.type && !n.disabled)) {
+    const name = secretName(nonBlankString(interpolate(node.params.secretName, vars)) ?? "");
+    const key = secretFileName(name);
+    const first = saver.get(key);
+    if (!first) saver.set(key, node);
+    else
+      issues.push({
+        level: "error",
+        nodeId: node.id,
+        message: `“${nodeName(first)}” also saves the sign-in “${name}”. Give one of them another name.`,
+      });
+  }
+  return issues;
+}
+
 function exportClashes(wf: Workflow): GraphIssue[] {
   const vars = workflowVars(wf);
   const writer = new Map<string, WorkflowNode>();
@@ -389,4 +408,5 @@ export const validateWorkflow = (wf: Workflow): GraphIssue[] => [
   ...reloadIssues(wf),
   ...anchorIssues(wf),
   ...exportClashes(wf),
+  ...signInClashes(wf),
 ];
