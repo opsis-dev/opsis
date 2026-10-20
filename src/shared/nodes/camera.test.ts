@@ -73,3 +73,13 @@ describe("Device frame", () => {
     expect(texts(true)).not.toContain("Needs a recording; try Laptop or Phone");
   });
 });
+
+describe("Backdrop", () => {
+  it("asks for the colour, gradient or image its kind needs", () => {
+    expect(problem("camera.backdrop", { kind: "solid", color: "" })).toBe("Pick a colour");
+    expect(problem("camera.backdrop", { kind: "solid", color: "red" })).toBeNull();
+    expect(problem("camera.backdrop", { kind: "gradient", gradient: " " })).toBe("Pick a gradient");
+    expect(problem("camera.backdrop", { kind: "asset", asset: "" })).toBe("Choose an image");
+    expect(problem("camera.backdrop", { kind: "image" })).toBeNull();
+  });
+});

@@ -43,6 +43,12 @@ describe("backdropSource", () => {
     });
   });
 
+  it("paints named colours instead of looking for an image of that name", () => {
+    expect(backdropSource("red")).toEqual({ kind: "paint", css: "red" });
+    expect(backdropSource("white")).toEqual({ kind: "paint", css: "white" });
+    expect(isLightBackdrop("white")).toBe(true);
+  });
+
   it("ignores spaces around a colour or an address", () => {
     expect(backdropSource(" #123456 ")).toEqual({ kind: "paint", css: "#123456" });
     expect(backdropSource(" https://x.test/y.jpg")).toEqual({

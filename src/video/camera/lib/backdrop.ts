@@ -1,5 +1,6 @@
 import { isExternalRef } from "../../../shared/asset-ref";
 import { BACKDROP_TONES, DEFAULT_BACKDROP, type BackdropName } from "../../../shared/backdrops";
+import { opaqueHex, parseColor } from "../../../shared/color";
 import { isKeyOf, nonBlankString } from "../../../shared/guards";
 
 const LIGHT_LUMA = 0.6;
@@ -21,7 +22,8 @@ function colourChannels(colour: string): number[] | null {
 }
 
 function luma(colour: string): number | null {
-  const channels = colourChannels(colour);
+  const parsed = parseColor(colour);
+  const channels = colourChannels(colour) ?? (parsed ? colourChannels(opaqueHex(parsed)) : null);
   if (!channels) return null;
   const [r, g, b] = channels;
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -48,7 +50,8 @@ type BackdropSource =
 
 export function backdropSource(backdrop?: string): BackdropSource {
   const value = nonBlankString(backdrop) ?? "";
-  if (CSS_PAINT.test(value)) return { kind: "paint", css: value };
+  if (CSS_PAINT.test(value) || (!isBackdropName(value) && parseColor(value)))
+    return { kind: "paint", css: value };
   if (isExternalRef(value)) return { kind: "image", url: value };
   return { kind: "file", path: backdropFile(value) };
 }

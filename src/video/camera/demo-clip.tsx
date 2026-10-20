@@ -34,6 +34,7 @@ type DemoClipProps = {
   tuning?: CameraTuning;
   annotations?: Annotation[];
   backdrop?: string;
+  backdropChosen?: boolean;
   box?: Size;
   windowStyle?: WindowStyle;
   frameTheme?: FrameTheme;
@@ -223,7 +224,7 @@ export const DemoClip: React.FC<DemoClipProps> = (props) => {
   if (shot.framing !== "window")
     return props.box ? <NarrowBleedClip clip={props} /> : <FullBleedClip clip={props} />;
 
-  const backdrop = shot.ground ?? props.backdrop;
+  const backdrop = props.backdropChosen ? props.backdrop : (shot.ground ?? props.backdrop);
   const windowGroup = <WindowGroup clip={props} shot={shot} />;
   return (
     <AbsoluteFill>

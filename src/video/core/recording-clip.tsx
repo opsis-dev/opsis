@@ -48,6 +48,7 @@ const CLIP_KEYS = [
   "frameTheme",
   "addressBar",
   "backdrop",
+  "backdropChosen",
   "cursor",
   "cursorScale",
   "cursorLook",

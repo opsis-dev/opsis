@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { baseName } from "../asset-ref";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
+import { parseColor } from "../color";
 import { clipFrameOfRecording, itemClip, patchRecordings, wrapClip } from "../compile/clip";
 import {
   CAMERA_STYLES,
@@ -119,7 +120,7 @@ const autoZoomNode = defineNode({
   card: ({ params: p }) => [
     p.zoom ? row("zoom-in", `Up to ${p.maxScale}×`) : row("zoom-out", "No zoom", { tone: "muted" }),
     p.zoom && row("hourglass", `Hold ${formatDuration(p.hold)}`),
-    row("image", `${humanize(p.backdrop)} backdrop`),
+    p.style === "classic" && row("image", `${humanize(p.backdrop)} backdrop`),
     p.speed !== 1 && row("gauge", `${p.speed}× speed`),
   ],
   params: z.object({
@@ -130,7 +131,9 @@ const autoZoomNode = defineNode({
     hold: ms(1300, "Hold each zoom at least", 10_000),
     speed: rate(1.25, "Playback speed", { min: 0.25, max: 4 }),
     style: choice(CAMERA_STYLES, "classic", "Camera style"),
-    backdrop: choice(BACKDROPS, DEFAULT_BACKDROP, "Backdrop"),
+    backdrop: more(choice(BACKDROPS, DEFAULT_BACKDROP, "Backdrop"), {
+      showIf: { style: ["classic"] },
+    }),
     frame: choice(["none", ...WINDOW_STYLES], "none", "Window frame", FRAME_LABELS),
     frameTheme: frameThemeField({ frame: [...WINDOW_STYLES] }),
     addressBar: more(bool(DEFAULT_ADDRESS_BAR, "Address bar"), {
@@ -424,24 +427,35 @@ const deviceFrameNode = defineNode({
     }),
 });
 
-const backdropParams = z.object({
-  kind: choice(["image", "solid", "gradient", "asset"], "image", "Kind", {
-    image: "Studio image",
-    solid: "Colour",
-    gradient: "Gradient",
-    asset: "Your image",
-  }),
-  name: z
-    .enum(BACKDROPS)
-    .default(DEFAULT_BACKDROP)
-    .meta({ description: "Studio image", showIf: { kind: ["image"] } }),
-  color: more(text("#0b0b10", "Colour"), { widget: "color", showIf: { kind: ["solid"] } }),
-  gradient: more(text("linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", "Gradient"), {
-    widget: "gradient",
-    showIf: { kind: ["gradient"] },
-  }),
-  asset: more(asset("Image", "image/*"), { showIf: { kind: ["asset"] } }),
-});
+const backdropParams = z
+  .object({
+    kind: choice(["image", "solid", "gradient", "asset"], "image", "Kind", {
+      image: "Studio image",
+      solid: "Colour",
+      gradient: "Gradient",
+      asset: "Your image",
+    }),
+    name: z
+      .enum(BACKDROPS)
+      .default(DEFAULT_BACKDROP)
+      .meta({ description: "Studio image", showIf: { kind: ["image"] } }),
+    color: more(text("#0b0b10", "Colour"), { widget: "color", showIf: { kind: ["solid"] } }),
+    gradient: more(text("linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)", "Gradient"), {
+      widget: "gradient",
+      showIf: { kind: ["gradient"] },
+    }),
+    asset: more(asset("Image", "image/*"), { showIf: { kind: ["asset"] } }),
+  })
+  .superRefine((p, ctx) => {
+    const missingWhat =
+      (p.kind === "solid" &&
+        !parseColor(p.color.trim()) &&
+        (["color", "Pick a colour"] as const)) ||
+      (p.kind === "gradient" && !p.gradient.trim() && (["gradient", "Pick a gradient"] as const)) ||
+      (p.kind === "asset" && !p.asset.trim() && (["asset", "Choose an image"] as const));
+    if (missingWhat)
+      ctx.addIssue({ code: "custom", message: missingWhat[1], path: [missingWhat[0]] });
+  });
 
 type BackdropParams = z.infer<typeof backdropParams>;
 
@@ -473,7 +487,9 @@ const backdropNode = defineNode({
   compile: ({ inputs, params }) => {
     const override = BACKDROP_KINDS[params.kind].override(params);
     return withClip(inputs, (clip) =>
-      patchRecordings(clip, (p) => ({ ...p, backdrop: override ?? p.backdrop })),
+      patchRecordings(clip, (p) =>
+        override ? { ...p, backdrop: override, backdropChosen: true } : p,
+      ),
     );
   },
 });

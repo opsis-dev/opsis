@@ -62,6 +62,7 @@ export const recordingPropsSchema = z.object({
   frameTheme: z.enum(FRAME_THEMES).optional(),
   addressBar: z.boolean().optional(),
   backdrop: z.string(),
+  backdropChosen: z.boolean().optional(),
   cursor: z.boolean(),
   cursorScale: z.number(),
   cursorLook: cursorLookSchema,
