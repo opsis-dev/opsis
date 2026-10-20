@@ -14,17 +14,43 @@ import { int, ms, text } from "./params";
 const base = nodeBase("Text & overlays", "compile");
 
 const MS_PER_MINUTE = 60_000;
-const ENDS_SENTENCE = /[.!?]$/;
+const ENDS_SENTENCE = /[.!?…。！？]$/u;
+const CLOSING_MARKS = /["'”’)\]}»」』]+$/u;
+const ABBREVIATION = /^(?:\p{L}\.){2,}$|^(?:mr|mrs|ms|dr|st|vs|etc|inc|ltd|no|fig|approx)\.$/iu;
+const UNSPACED_SCRIPT = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Thai}]/u;
+const PARAGRAPH_BREAK = /\n\s*\n/;
 
 type ScriptPace = { wordsPerMinute: number; startMs: number; linePauseMs: number };
+
+function wordsOf(chunk: string): string[] {
+  if (!UNSPACED_SCRIPT.test(chunk)) return [chunk];
+  const words: string[] = [];
+  for (const { segment, isWordLike } of new Intl.Segmenter(undefined, {
+    granularity: "word",
+  }).segment(chunk)) {
+    if (isWordLike || !words.length) words.push(segment);
+    else words[words.length - 1] += segment;
+  }
+  return words;
+}
+
+export function endsSentence(word: string): boolean {
+  const bare = word.replace(CLOSING_MARKS, "");
+  return ENDS_SENTENCE.test(bare) && !ABBREVIATION.test(bare);
+}
 
 export function scriptToCaptions(script: string, pace: ScriptPace): CaptionsValue["captions"] {
   const perWord = MS_PER_MINUTE / pace.wordsPerMinute;
   const captions: CaptionsValue["captions"] = [];
   let t = pace.startMs;
-  for (const word of script.split(/\s+/).filter(Boolean)) {
-    captions.push({ text: word, startMs: t, endMs: t + perWord });
-    t += perWord + (ENDS_SENTENCE.test(word) ? pace.linePauseMs : 0);
+  for (const paragraph of script.split(PARAGRAPH_BREAK)) {
+    const words = paragraph.split(/\s+/).filter(Boolean).flatMap(wordsOf);
+    for (const [i, word] of words.entries()) {
+      captions.push({ text: word, startMs: t, endMs: t + perWord });
+      const last = i === words.length - 1;
+      const pause = last ? pace.linePauseMs * 2 : endsSentence(word) ? pace.linePauseMs : 0;
+      t += perWord + pause;
+    }
   }
   return captions;
 }
