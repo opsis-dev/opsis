@@ -105,7 +105,7 @@ const timelineItemSchema = elementRefSchema.extend({
   handles: editHandlesSchema.optional(),
   slot: slotSchema.optional(),
   envelope: visualEnvelopeSchema.optional(),
-  design: viewportSchema.optional(),
+  design: viewportSchema.extend({ exact: z.boolean().optional() }).optional(),
 });
 
 export type TimelineItem = z.infer<typeof timelineItemSchema>;

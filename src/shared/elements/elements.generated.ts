@@ -1227,7 +1227,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 240,
-    design: {"width":1920,"height":1080},
+    design: {"width":1280,"height":720,"exact":true},
   },
   {
     key: "remocn/ai-prompt-flow",
@@ -1245,7 +1245,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 240,
-    design: {"width":1920,"height":1080},
+    design: {"width":1280,"height":720,"exact":true},
   },
   {
     key: "remocn/command-menu",
@@ -1266,7 +1266,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 240,
-    design: {"width":1920,"height":1080},
+    design: {"width":1280,"height":720,"exact":true},
   },
   {
     key: "remocn/release-teaser",

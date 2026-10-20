@@ -112,7 +112,7 @@ export type ItemExtra = {
   audio?: AudioItem[];
   handles?: EditHandles;
   envelope?: VisualEnvelope;
-  design?: Viewport;
+  design?: Viewport & { exact?: boolean };
 };
 
 export function itemClip<C extends string>(

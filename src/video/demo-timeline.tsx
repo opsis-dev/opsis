@@ -146,7 +146,7 @@ const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
   const element = useResolvedElement(item.component, getComponent);
   if (element?.status === "unknown") return <MissingElement name={item.component} />;
   return element?.status === "ready" ? (
-    <DesignBox design={item.design} fill>
+    <DesignBox design={item.design} fill={!item.design?.exact}>
       {createElement(element.impl, resolveProps(item.props, base))}
     </DesignBox>
   ) : null;

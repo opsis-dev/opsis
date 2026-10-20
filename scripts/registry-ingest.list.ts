@@ -100,7 +100,7 @@ export type CuratedElement = {
   defaults?: Record<string, unknown>;
   fixedProps?: Record<string, unknown>;
   durationInFrames?: number;
-  design?: { width: number; height: number };
+  design?: { width: number; height: number; exact?: boolean };
   kind?: "component" | "wrapper" | "presentation" | "sequencer";
   sceneItem?: string;
   center?: boolean;
@@ -177,6 +177,8 @@ const fromRegistry =
     names.map((name) => ({ registry, name, category, ...base, ...extra }));
 
 const FULL_HD = { width: 1920, height: 1080 };
+
+const FIXED_HD = { width: 1280, height: 720, exact: true };
 
 const remocn = fromRegistry("remocn");
 const snapcn = fromRegistry("snapcn");
@@ -1794,7 +1796,7 @@ const LIST: CuratedElement[] = [
   ...remocn("data", ["animated-bar-chart", "animated-line-chart", "rolling-number"]),
   ...remocn("scene", ["signup-flow", "ai-prompt-flow", "command-menu"], {
     durationInFrames: 240,
-    design: FULL_HD,
+    design: FIXED_HD,
   }),
   ...remocn("scene", ["release-teaser"], { durationInFrames: 300 }),
   ...remocn("scene", ["launch-anything"], { durationInFrames: 600 }),
