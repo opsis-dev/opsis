@@ -12,7 +12,7 @@ import {
 import { groupOf, type GroupProps, type SequencerProps } from "../shared/compile/clip";
 import { remapFrame } from "../shared/compile/remap";
 import { ERROR_COLOR, STAGE_COLOR } from "../shared/elements/colors";
-import { MAIN_FONT } from "../shared/fonts";
+import { CODE_FONT, MAIN_FONT } from "../shared/fonts";
 import { percent } from "../shared/format";
 import { MIN_CROP } from "../shared/limits";
 import { clamp01, EPSILON } from "../shared/math";
@@ -51,6 +51,12 @@ import {
 } from "./registry";
 import { PaintRule } from "./registry/framing";
 
+const ELEMENT_FONTS: React.CSSProperties &
+  Record<"--font-geist-sans" | "--font-geist-mono", string> = {
+  "--font-geist-sans": MAIN_FONT,
+  "--font-geist-mono": CODE_FONT,
+};
+
 const PREMOUNT_FRAMES = 30;
 const PREMOUNTED = new Set(["core/group", "core/recording"]);
 
@@ -58,7 +64,13 @@ export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
   <AssetProvider value={spec.assets ?? {}}>
     <ReframeProvider value={spec.reframe ?? DEFAULT_REFRAME}>
       <QualityProvider value={spec.quality ?? DEFAULT_QUALITY}>
-        <AbsoluteFill style={{ background: spec.background ?? STAGE_COLOR, overflow: "hidden" }}>
+        <AbsoluteFill
+          style={{
+            ...ELEMENT_FONTS,
+            background: spec.background ?? STAGE_COLOR,
+            overflow: "hidden",
+          }}
+        >
           <PaintRule />
           <FontProvider fonts={spec.fonts} tracks={spec.tracks}>
             <Tracks tracks={spec.tracks} />

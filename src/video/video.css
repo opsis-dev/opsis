@@ -1,6 +1,1 @@
 @import "tailwindcss";
-@import "@fontsource-variable/geist";
-
-:root {
-  --font-geist-sans: "Geist Variable", -apple-system, BlinkMacSystemFont, sans-serif;
-}
