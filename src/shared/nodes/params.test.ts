@@ -37,6 +37,18 @@ describe("parseParams", () => {
     expect(problem({ ...valid, count: 9 })).toBe("Count is too large");
     expect(problem({ ...valid, target: "" })).toBe("Element is empty");
   });
+
+  it("lists the allowed values of a fixed choice", () => {
+    const fps = z.object({
+      fps: z
+        .union([z.literal(25), z.literal(30), z.literal(60)])
+        .meta({ description: "Frame rate", unit: "fps" }),
+    });
+    expect(parseParams(fps, { fps: 24 })).toEqual({
+      ok: false,
+      problem: "Frame rate must be 25, 30 or 60 fps",
+    });
+  });
 });
 
 describe("loudness names", () => {

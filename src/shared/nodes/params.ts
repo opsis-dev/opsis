@@ -225,7 +225,23 @@ export const audioEnvelope = () =>
 
 type ParsedParams<T> = { ok: true; data: T } | { ok: false; problem: string };
 
-function issueWording(issue: z.core.$ZodIssue): string | null {
+function allowedValues(issue: z.core.$ZodIssue): unknown[] | null {
+  if (issue.code !== "invalid_union") return null;
+  const nested = issue.errors.flat();
+  if (!nested.length || !nested.every((i) => i.code === "invalid_value")) return null;
+  return nested.flatMap((i) => (i.code === "invalid_value" ? i.values : []));
+}
+
+function choiceList(values: unknown[], unit: string | undefined): string {
+  const words = values.map(String);
+  const last = words.pop();
+  const list = words.length ? `${words.join(", ")} or ${last}` : String(last);
+  return unit ? `${list} ${unit}` : list;
+}
+
+function issueWording(issue: z.core.$ZodIssue, unit?: string): string | null {
+  const allowed = allowedValues(issue);
+  if (allowed) return `must be ${choiceList(allowed, unit)}`;
   switch (issue.code) {
     case "too_small":
       return issue.origin === "string" && Number(issue.minimum) === 1 ? "is empty" : "is too small";
@@ -249,12 +265,12 @@ export function parseParams<T extends z.ZodObject>(
   const parsed = schema.safeParse(values, { reportInput: true });
   if (parsed.success) return { ok: true, data: parsed.data };
   const issue = parsed.error.issues[0];
-  const wording = issueWording(issue);
-  if (wording === null) return { ok: false, problem: issue.message };
   const first = issue.path.at(0);
   const key = typeof first === "string" ? first : "";
   const field: z.ZodType | undefined = schema.shape[key];
-  const label =
-    (field ? fieldMeta(field).description : undefined) || (key ? humanize(key) : "A setting");
+  const meta = field ? fieldMeta(field) : undefined;
+  const wording = issueWording(issue, meta?.unit);
+  if (wording === null) return { ok: false, problem: issue.message };
+  const label = meta?.description || (key ? humanize(key) : "A setting");
   return { ok: false, problem: `${label} ${wording}` };
 }
