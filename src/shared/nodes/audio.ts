@@ -250,11 +250,12 @@ const mixNode = defineNode({
   compile: ({ inputs, settings }) =>
     withClip(inputs, (clip) => {
       const items = asValue(inputs.sounds, "audio")?.items ?? [];
-      const placed = anchorSounds(items, clip, settings).map((a) => {
+      const placed = anchorSounds(items, clip, settings).flatMap((a) => {
         const remaining = clip.durationInFrames - a.from;
+        if (remaining < 1) return [];
         const length =
           a.durationInFrames === undefined ? remaining : Math.min(a.durationInFrames, remaining);
-        return { ...a, durationInFrames: Math.max(1, length) };
+        return [{ ...a, durationInFrames: Math.max(1, length) }];
       });
       return { ...clip, audio: [...clip.audio, ...placed] };
     }),
