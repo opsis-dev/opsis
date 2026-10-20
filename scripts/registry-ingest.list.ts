@@ -1786,6 +1786,35 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
       },
     },
   },
+  "data-story": {
+    controls: {
+      theme: {
+        type: "enum",
+        options: ["dark", "light"],
+        default: "dark",
+        description: "Theme",
+        help: "Light or dark surfaces for every scene.",
+      },
+      backgroundColor: themeBackground,
+      accentColor: {
+        type: "color",
+        default: "#e8b86d",
+        description: "Accent color",
+        help: "Title and closing card.",
+      },
+      dataColor: {
+        type: "color",
+        default: "#2dd4bf",
+        description: "Data color",
+        help: "Bars, key numbers and the takeaway.",
+      },
+      timelineColor: {
+        type: "color",
+        default: "#f59e0b",
+        description: "Timeline color",
+      },
+    },
+  },
   "device-mockup-zoom": {
     controls: {
       src: image("Media", "", {

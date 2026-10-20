@@ -1,0 +1,172 @@
+Fixes:
+- Every colour was fixed and the scenes had fixed lengths summing to 420 frames, so a shorter clip cut the last scenes off; the story takes a theme, background and accents, and its scenes scale to fill the clip.
+
+diff --git a/src/video/elements/remotion-ui/data-story/index.tsx b/src/video/elements/remotion-ui/data-story/index.tsx
+index 4a5dcce..2d7988d 100644
+--- a/src/video/elements/remotion-ui/data-story/index.tsx
++++ b/src/video/elements/remotion-ui/data-story/index.tsx
+@@ -1,4 +1,4 @@
+-import { AbsoluteFill } from "remotion";
++import { AbsoluteFill, useVideoConfig } from "remotion";
+ import { TransitionSeries } from "@remotion/transitions";
+ import { transitionFade } from "@/video/elements/remotion-ui/transition-fade";
+ import { DURATION } from "@/video/lib/remotion-ui/motion-tokens";
+@@ -43,6 +43,30 @@ const SCENE_DURATIONS = {
+ 
+ const FADE = transitionFade({ durationInFrames: DURATION.fast });
+ 
++const SCENE_COUNT = Object.keys(SCENE_DURATIONS).length;
++const OVERLAP = (SCENE_COUNT - 1) * DURATION.fast;
++const AUTHORED_TOTAL =
++  Object.values(SCENE_DURATIONS).reduce((sum, frames) => sum + frames, 0) - OVERLAP;
++const HOOK_EXIT_LEAD = 26;
++
++/**
++ * Stretches or squeezes every scene by the same share so the whole story
++ * fills the clip, never shorter than two fades so each scene still shows.
++ */
++function sceneLengths(total: number) {
++  const factor = (total + OVERLAP) / (AUTHORED_TOTAL + OVERLAP);
++  const scaled = (frames: number) =>
++    Math.max(2 * DURATION.fast + 1, Math.round(frames * factor));
++  return {
++    hook: scaled(SCENE_DURATIONS.hook),
++    chart: scaled(SCENE_DURATIONS.chart),
++    metrics: scaled(SCENE_DURATIONS.metrics),
++    timeline: scaled(SCENE_DURATIONS.timeline),
++    insight: scaled(SCENE_DURATIONS.insight),
++    end: scaled(SCENE_DURATIONS.end),
++  };
++}
++
+ export type DataStoryProps = {
+   title?: string;
+   subtitle?: string;
+@@ -56,6 +80,16 @@ export type DataStoryProps = {
+   insightEyebrow?: string;
+   ctaTitle?: string;
+   ctaLabel?: string;
++  /** Light or dark surfaces for every scene. */
++  theme?: "dark" | "light";
++  /** One background for every scene. Omit for the theme's own. */
++  backgroundColor?: string;
++  /** Title and closing card accent. */
++  accentColor?: string;
++  /** Bars, key numbers and takeaway accent. */
++  dataColor?: string;
++  /** Timeline accent. */
++  timelineColor?: string;
+ };
+ 
+ export const DataStory: React.FC<DataStoryProps> = ({
+@@ -71,10 +105,20 @@ export const DataStory: React.FC<DataStoryProps> = ({
+   insightEyebrow = "Takeaway",
+   ctaTitle = "Turn your data into motion",
+   ctaLabel,
+-}) => (
+-  <AbsoluteFill style={{ backgroundColor: COLORS.bg }}>
++  theme = "dark",
++  backgroundColor,
++  accentColor = COLORS.hookAccent,
++  dataColor = COLORS.chartBar,
++  timelineColor = COLORS.timelineAccent,
++}) => {
++  const { durationInFrames, fps } = useVideoConfig();
++  const scenes = sceneLengths(durationInFrames);
++  const dark = theme === "dark";
++  const sceneBg = (darkTint: string) => backgroundColor ?? (dark ? darkTint : undefined);
++  return (
++  <AbsoluteFill style={{ backgroundColor: sceneBg(COLORS.bg) }}>
+     <TransitionSeries>
+-      <TransitionSeries.Sequence durationInFrames={SCENE_DURATIONS.hook}>
++      <TransitionSeries.Sequence durationInFrames={scenes.hook}>
+         <AutoFitTitle
+           title={title}
+           subtitle={subtitle}
+@@ -82,60 +126,67 @@ export const DataStory: React.FC<DataStoryProps> = ({
+           // frames 58–70 at 30fps, and the crossfade to the chart only starts
+           // at frame 72 (84 − 12). Without this the hook headline and the
+           // chart's own title are both legible for the whole 12-frame overlap.
+-          holdSeconds={58 / 30}
++          holdSeconds={(scenes.hook - HOOK_EXIT_LEAD) / fps}
+           maxFontSize={88}
+-          accentColor={COLORS.hookAccent}
+-          backgroundColor={COLORS.hookBg}
++          theme={theme}
++          accentColor={accentColor}
++          backgroundColor={sceneBg(COLORS.hookBg)}
+         />
+       </TransitionSeries.Sequence>
+       <TransitionSeries.Transition {...FADE} />
+-      <TransitionSeries.Sequence durationInFrames={SCENE_DURATIONS.chart}>
++      <TransitionSeries.Sequence durationInFrames={scenes.chart}>
+         <AnimatedBarChart
+           title={chartTitle}
+           data={barData}
+-          backgroundColor={COLORS.chartBg}
+-          barColor={COLORS.chartBar}
++          theme={theme}
++          backgroundColor={sceneBg(COLORS.chartBg)}
++          barColor={dataColor}
+         />
+       </TransitionSeries.Sequence>
+       <TransitionSeries.Transition {...FADE} />
+-      <TransitionSeries.Sequence durationInFrames={SCENE_DURATIONS.metrics}>
++      <TransitionSeries.Sequence durationInFrames={scenes.metrics}>
+         <MetricTicker
+           title={metricsTitle}
+           metrics={metrics}
+-          backgroundColor={COLORS.tickerBg}
+-          accentColor={COLORS.tickerAccent}
++          theme={theme}
++          backgroundColor={sceneBg(COLORS.tickerBg)}
++          accentColor={dataColor}
+         />
+       </TransitionSeries.Sequence>
+       <TransitionSeries.Transition {...FADE} />
+-      <TransitionSeries.Sequence durationInFrames={SCENE_DURATIONS.timeline}>
++      <TransitionSeries.Sequence durationInFrames={scenes.timeline}>
+         <TimelineSteps
+           // Three steps walked inside an 88-frame window.
+           speed={1.5}
+           title={timelineTitle}
+           steps={steps}
+-          backgroundColor={COLORS.timelineBg}
+-          accentColor={COLORS.timelineAccent}
++          theme={theme}
++          backgroundColor={sceneBg(COLORS.timelineBg)}
++          accentColor={timelineColor}
+         />
+       </TransitionSeries.Sequence>
+       <TransitionSeries.Transition {...FADE} />
+-      <TransitionSeries.Sequence durationInFrames={SCENE_DURATIONS.insight}>
++      <TransitionSeries.Sequence durationInFrames={scenes.insight}>
+         <CaptionBumper
+           text={insight}
+           eyebrow={insightEyebrow}
+-          backgroundColor={COLORS.insightBg}
+-          accentColor={COLORS.insightAccent}
++          theme={theme}
++          backgroundColor={sceneBg(COLORS.insightBg)}
++          accentColor={dataColor}
+         />
+       </TransitionSeries.Sequence>
+       <TransitionSeries.Transition {...FADE} />
+-      <TransitionSeries.Sequence durationInFrames={SCENE_DURATIONS.end}>
++      <TransitionSeries.Sequence durationInFrames={scenes.end}>
+         <EndCard
+           speed={1.4}
+           title={ctaTitle}
+           cta={ctaLabel}
+-          backgroundColor={COLORS.endBg}
+-          accentColor={COLORS.endAccent}
++          theme={theme}
++          backgroundColor={sceneBg(COLORS.endBg)}
++          accentColor={accentColor}
+         />
+       </TransitionSeries.Sequence>
+     </TransitionSeries>
+   </AbsoluteFill>
+-);
++  );
++};

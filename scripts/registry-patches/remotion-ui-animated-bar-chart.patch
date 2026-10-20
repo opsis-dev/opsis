@@ -1,11 +1,84 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
+- The bar chart had only dark colours, so the data story it is part of could not go light; it now takes a dark or light theme.
 
 diff --git a/src/video/elements/remotion-ui/animated-bar-chart/index.tsx b/src/video/elements/remotion-ui/animated-bar-chart/index.tsx
-index 76471ea..c0c25be 100644
+index 76471ea..44161b6 100644
 --- a/src/video/elements/remotion-ui/animated-bar-chart/index.tsx
 +++ b/src/video/elements/remotion-ui/animated-bar-chart/index.tsx
-@@ -316,9 +316,9 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
+@@ -33,6 +33,8 @@ export type AnimatedBarChartProps = {
+   barColor?: string;
+   accentColor?: string;
+   backgroundColor?: string;
++  /** Surface palette: text, axis, track and the change colours. */
++  theme?: "dark" | "light";
+   /**
+    * Seconds the finished chart holds before it retreats. Omit to leave it up
+    * for the rest of the scene — inside a `TransitionSeries` the transition
+@@ -41,17 +43,31 @@ export type AnimatedBarChartProps = {
+   holdSeconds?: number;
+ };
+ 
+-const COLORS = {
+-  bg: "#080810",
+-  label: "rgba(250,250,250,0.62)",
+-  axis: "rgba(250,250,250,0.42)",
+-  grid: "rgba(250,250,250,0.08)",
+-  track: "rgba(250,250,250,0.05)",
+-  ink: "#fafafa",
+-  bar: "#2dd4bf",
+-  accent: "#e8b86d",
+-  up: "#2dd4bf",
+-  down: "#f87171",
++const PALETTES = {
++  dark: {
++    bg: "#080810",
++    label: "rgba(250,250,250,0.62)",
++    axis: "rgba(250,250,250,0.42)",
++    grid: "rgba(250,250,250,0.08)",
++    track: "rgba(250,250,250,0.05)",
++    ink: "#fafafa",
++    bar: "#2dd4bf",
++    accent: "#e8b86d",
++    up: "#2dd4bf",
++    down: "#f87171",
++  },
++  light: {
++    bg: "#F4F4F2",
++    label: "rgba(34,37,43,0.66)",
++    axis: "rgba(34,37,43,0.48)",
++    grid: "rgba(34,37,43,0.10)",
++    track: "rgba(34,37,43,0.06)",
++    ink: "#22252B",
++    bar: "#0f766e",
++    accent: "#b45309",
++    up: "#0f766e",
++    down: "#dc2626",
++  },
+ } as const;
+ 
+ /** Length of the retreat once `holdSeconds` is up, in seconds. */
+@@ -74,11 +90,16 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
+   highlightLabel,
+   showAxis = true,
+   maxBars = 6,
+-  barColor = COLORS.bar,
+-  accentColor = COLORS.accent,
+-  backgroundColor = COLORS.bg,
++  barColor: barSetting,
++  accentColor: accentSetting,
++  backgroundColor: backgroundSetting,
++  theme = "dark",
+   holdSeconds,
+ }) => {
++  const COLORS = PALETTES[theme];
++  const barColor = barSetting ?? COLORS.bar;
++  const accentColor = accentSetting ?? COLORS.accent;
++  const backgroundColor = backgroundSetting ?? COLORS.bg;
+   const frame = useCurrentFrame();
+   const { fps, width, height } = useVideoConfig();
+   const safe = getSafeAreaPadding({ width, height });
+@@ -316,9 +337,9 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
                        width: `${Math.max(ratio, 0.015) * enter * 100}%`,
                        height: "100%",
                        borderRadius: barHeight / 2,
