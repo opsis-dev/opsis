@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard, nodeResult, recordResult } from "../test-fixtures";
-import { stillNode } from "./capture";
+import { loginOnceNode, stillNode } from "./capture";
+import { parseNodeParams } from "./define";
 import { parseParams } from "./params";
 
 describe("capture cards", () => {
@@ -66,5 +67,31 @@ describe("Screenshot settings", () => {
     });
     expect(parseParams(stillNode.params, { region: "element", target: "Go" }).ok).toBe(true);
     expect(parseParams(stillNode.params, { region: "viewport" }).ok).toBe(true);
+  });
+});
+
+describe("Sign in once settings", () => {
+  const problem = (params: Record<string, unknown>) => {
+    const parsed = parseParams(loginOnceNode.params, params);
+    return parsed.ok ? null : parsed.problem;
+  };
+
+  it("asks for the sign-in page and, when finishing on an element, the element", () => {
+    expect(problem({ url: " " })).toBe("Add the sign-in page");
+    expect(problem({ url: "https://example.com/login", doneWhen: "selector", selector: "" })).toBe(
+      "Add the element that appears after signing in",
+    );
+    expect(
+      problem({ url: "https://example.com/login", doneWhen: "selector", selector: ".avatar" }),
+    ).toBeNull();
+  });
+
+  it("fills the site address into the sign-in page", () => {
+    const parsed = parseNodeParams(
+      loginOnceNode,
+      { params: {} },
+      { "Site address": "https://app.example.com" },
+    );
+    expect(parsed.url).toBe("https://app.example.com/login");
   });
 });

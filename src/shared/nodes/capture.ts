@@ -19,6 +19,7 @@ import {
   ms,
   optionalTarget,
   pickedRole,
+  requiredText,
   text,
   visualEnvelope,
 } from "./params";
@@ -179,22 +180,36 @@ export const loginOnceNode = defineNode({
     "Opens a window where you sign in yourself. Opsis keeps the sign-in, encrypted, for later takes.",
   inputs: {},
   outputs: {},
-  params: z.object({
-    url: text(`${SITE_ADDRESS}/login`, "Sign-in page"),
-    secretName: more(text("default", "Save as"), {
-      help: "Pick this name under Signed in as on an Open browser node.",
+  params: z
+    .object({
+      url: requiredText("Sign-in page", "Add the sign-in page", `${SITE_ADDRESS}/login`),
+      secretName: more(text("default", "Save as"), {
+        help: "Pick this name under Signed in as on an Open browser node.",
+      }),
+      doneWhen: choice(
+        ["url-change", "selector", "window-closed"],
+        "window-closed",
+        "Finish when",
+        {
+          "url-change": "The address changes",
+          selector: "An element appears",
+          "window-closed": "I close the window",
+        },
+      ),
+      selector: more(text("", "Element that appears after signing in"), {
+        help: "A CSS selector, e.g. .account-menu.",
+        showIf: { doneWhen: ["selector"] },
+      }),
+      timeoutSec: int(300, "Give up after", { min: 10, max: 3600, unit: "s" }),
+    })
+    .superRefine((p, ctx) => {
+      if (p.doneWhen === "selector" && !p.selector.trim())
+        ctx.addIssue({
+          code: "custom",
+          message: "Add the element that appears after signing in",
+          path: ["selector"],
+        });
     }),
-    doneWhen: choice(["url-change", "selector", "window-closed"], "window-closed", "Finish when", {
-      "url-change": "The address changes",
-      selector: "An element appears",
-      "window-closed": "I close the window",
-    }),
-    selector: more(text("", "Element that appears after signing in"), {
-      help: "A CSS selector, e.g. .account-menu.",
-      showIf: { doneWhen: ["selector"] },
-    }),
-    timeoutSec: int(300, "Give up after", { min: 10, max: 3600, unit: "s" }),
-  }),
   card: ({ params: p, secrets }) => {
     const name = secretName(p.secretName);
     const saved = secrets?.includes(secretFileName(name));
