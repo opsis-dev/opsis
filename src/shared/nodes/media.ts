@@ -23,6 +23,7 @@ import {
   choice,
   choiceFrom,
   choiceOf,
+  colorSetting,
   FORMAT_NAMES,
   int,
   loudnessName,
@@ -32,7 +33,6 @@ import {
   quality,
   qualityName,
   rate,
-  text,
   visualEnvelope,
 } from "./params";
 
@@ -286,10 +286,7 @@ export const scalePadNode = op({
       help: "A video takes even sizes; an odd one loses a pixel.",
     }),
     mode: choiceOf(SCALE_MODES, "pad", "Fit"),
-    background: more(text("black", "Bar colour"), {
-      widget: "color",
-      showIf: { mode: ["pad"] },
-    }),
+    background: more(colorSetting("black", "Bar colour"), { showIf: { mode: ["pad"] } }),
   }),
 });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { atempoChain, fitFilter, gifFilter, joinFilter, speedArgs } from "./filters";
+import { atempoChain, ffmpegColor, fitFilter, gifFilter, joinFilter, speedArgs } from "./filters";
 
 describe("atempoChain", () => {
   it.each([
@@ -31,7 +31,7 @@ describe("joinFilter", () => {
 describe("fitFilter", () => {
   it("adds bars, crops or stretches to the size", () => {
     expect(fitFilter({ mode: "pad", width: 640, height: 360, background: "white" })).toBe(
-      "scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2:color=white,setsar=1",
+      "scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2:color=#ffffff,setsar=1",
     );
     expect(fitFilter({ mode: "pad", width: 640, height: 360, background: "" })).toBe(
       "scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2,setsar=1",
@@ -64,5 +64,20 @@ describe("odd sizes", () => {
     expect(speedArgs("in.mp4", "out.mp4", { rate: 2, fps: 30, sound: false })).toContain(
       "setpts=PTS/2,crop=trunc(iw/2)*2:trunc(ih/2)*2",
     );
+  });
+});
+
+describe("bar colours", () => {
+  it("writes any colour the picker makes as hex for the filter", () => {
+    expect(ffmpegColor("rgb(255, 0, 0)")).toBe("#ff0000");
+    expect(ffmpegColor("hsl(120, 100%, 50%)")).toBe("#00ff00");
+    expect(ffmpegColor("oklch(0.628 0.258 29.2)")).toMatch(/^#f[a-f0-9]{5}$/);
+    expect(ffmpegColor("#00000080")).toBe("#00000080");
+    expect(ffmpegColor("black")).toBe("#000000");
+  });
+
+  it("puts the colour into the pad filter without commas or brackets", () => {
+    const filter = fitFilter({ mode: "pad", width: 640, height: 360, background: "rgb(1, 2, 3)" });
+    expect(filter).toContain(":color=#010203,");
   });
 });

@@ -1,7 +1,13 @@
+import { formatColor, parseColor } from "../../shared/color";
 import { round3 } from "../../shared/math";
 import type { NodeParams } from "../../shared/nodes/define";
 import type { gifNode, scalePadNode } from "../../shared/nodes/media";
 import { EDIT_VIDEO, evenDown, withEvenFrame } from "./codecs";
+
+export function ffmpegColor(color: string): string {
+  const parsed = parseColor(color.trim());
+  return parsed ? formatColor(parsed, "hex") : "black";
+}
 
 const padTo = (w: number, h: number, color?: string) =>
   `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2${color ? `:color=${color}` : ""},setsar=1`;
@@ -12,7 +18,7 @@ export function fitFilter({
   height: h,
   background,
 }: Pick<NodeParams<typeof scalePadNode>, "mode" | "width" | "height" | "background">): string {
-  if (mode === "pad") return padTo(w, h, background);
+  if (mode === "pad") return padTo(w, h, background ? ffmpegColor(background) : undefined);
   if (mode === "crop")
     return `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1`;
   return `scale=${w}:${h},setsar=1`;
