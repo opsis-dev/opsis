@@ -1,16 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { nodeCard } from "../test-fixtures";
+import { must, nodeCard } from "../test-fixtures";
 import { PAUSE_MARK } from "../vars";
 import {
   assertNode,
+  browserNodes,
   dragNode,
   mockRouteNode,
+  navigateNode,
   selectNode,
   typeNode,
   uploadNode,
   waitNode,
 } from "./browser";
+import { parseNodeParams } from "./define";
 import { parseParams } from "./params";
+import { defaultParams, getNodeDef } from "./registry";
 
 describe("browser action cards", () => {
   it("shows what the Type text node does", () => {
@@ -153,5 +157,72 @@ describe("browser action settings", () => {
       ok: false,
       problem: "Add the text to look for",
     });
+  });
+});
+
+describe("every browser action", () => {
+  const firstProblem = (type: string, params: Record<string, unknown> = {}) => {
+    const def = must(getNodeDef(type), type);
+    const parsed = parseParams(def.params, { ...defaultParams(type), ...params });
+    return parsed.ok ? null : parsed.problem;
+  };
+
+  it("asks a new action only for what the user has to fill in", () => {
+    expect(Object.fromEntries(browserNodes.map((n) => [n.type, firstProblem(n.type)]))).toEqual({
+      "browser.session": null,
+      "browser.navigate": null,
+      "browser.click": "Element is missing",
+      "browser.type": "Element is missing",
+      "browser.hover": "Element is missing",
+      "browser.drag": "Element to drag is missing",
+      "browser.scroll": null,
+      "browser.select": "Element is missing",
+      "browser.upload": "File field is missing",
+      "browser.press": null,
+      "browser.wait": "Pick what to wait for",
+      "browser.assert": "Add the text to look for",
+      "browser.hoist": "Element is missing",
+      "browser.setState": null,
+      "browser.mockRoute": null,
+      "browser.freezeClock": null,
+      "browser.hideElements": null,
+      "browser.chapter": null,
+      "browser.overlayHtml": null,
+    });
+  });
+
+  it("keeps numbers inside their limits", () => {
+    expect(firstProblem("browser.scroll", { mode: "by", deltaY: 20_001 })).toBe(
+      "Distance is too large",
+    );
+    expect(firstProblem("browser.wait", { mode: "ms", ms: 600_001 })).toBe("Time is too large");
+    expect(firstProblem("browser.drag", { target: "Card", mode: "by", dx: -10_001 })).toBe(
+      "Across is too small",
+    );
+    expect(firstProblem("browser.session", { viewportWidth: 10 })).toMatch(/is too small$/);
+    expect(firstProblem("browser.click", { target: "Save", after: -1 })).toMatch(/is too small$/);
+  });
+
+  it("fills variables into text settings before a run", () => {
+    const go = parseNodeParams(
+      navigateNode,
+      { params: { url: "{{Site address}}/pricing" } },
+      { "Site address": "https://example.com" },
+    );
+    expect(go.url).toBe("https://example.com/pricing");
+    const typed = parseNodeParams(
+      typeNode,
+      { params: { target: "{{Field}}", text: "Hello {{Name}}" } },
+      { Field: "Name", Name: "Ada" },
+    );
+    expect([typed.target, typed.text]).toEqual(["Name", "Hello Ada"]);
+  });
+
+  it("draws a card for every action with its defaults", () => {
+    for (const n of browserNodes) {
+      const rows = nodeCard(n.type);
+      expect({ type: n.type, rows: rows.length }).not.toEqual({ type: n.type, rows: 0 });
+      expect(rows.filter((r) => !r.text.trim())).toEqual([]);
+    }
   });
 });
