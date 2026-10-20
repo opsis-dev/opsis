@@ -1,9 +1,10 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - The window was 940 wide with no limit on rows, so long lines were cut off and about 18 or more rows ran off the frame; the window grows to the longest line and shrinks to fit both its width and its rows.
+- Before and After split on newlines only, so pasted Windows line endings left a stray character on every line; they now split on either ending.
 
 diff --git a/src/video/elements/remotion-ui/code-diff-wipe/index.tsx b/src/video/elements/remotion-ui/code-diff-wipe/index.tsx
-index e5caac2..32ab60b 100644
+index e5caac2..5fbcec2 100644
 --- a/src/video/elements/remotion-ui/code-diff-wipe/index.tsx
 +++ b/src/video/elements/remotion-ui/code-diff-wipe/index.tsx
 @@ -6,7 +6,12 @@ import {
@@ -20,8 +21,14 @@ index e5caac2..32ab60b 100644
  import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
  
  const { fontFamily } = loadFont("normal", {
-@@ -168,6 +173,13 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
-     after.replace(/\s+$/, "").replace(/^\n+/, "").split("\n"),
+@@ -164,10 +169,17 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
+   };
+ 
+   const rows = diffLines(
+-    before.replace(/\s+$/, "").replace(/^\n+/, "").split("\n"),
+-    after.replace(/\s+$/, "").replace(/^\n+/, "").split("\n"),
++    before.replace(/\s+$/, "").replace(/^(\r?\n)+/, "").split(/\r?\n/),
++    after.replace(/\s+$/, "").replace(/^(\r?\n)+/, "").split(/\r?\n/),
    );
    const tokenRows = tokenizeCode(rows.map((row) => row.text));
 +  const longest = Math.max(0, ...rows.map((row) => row.text.length));

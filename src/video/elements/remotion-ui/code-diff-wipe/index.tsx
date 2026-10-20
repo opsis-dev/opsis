@@ -169,8 +169,8 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({
   };
 
   const rows = diffLines(
-    before.replace(/\s+$/, "").replace(/^\n+/, "").split("\n"),
-    after.replace(/\s+$/, "").replace(/^\n+/, "").split("\n"),
+    before.replace(/\s+$/, "").replace(/^(\r?\n)+/, "").split(/\r?\n/),
+    after.replace(/\s+$/, "").replace(/^(\r?\n)+/, "").split(/\r?\n/),
   );
   const tokenRows = tokenizeCode(rows.map((row) => row.text));
   const longest = Math.max(0, ...rows.map((row) => row.text.length));
