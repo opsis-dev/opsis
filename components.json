@@ -24,6 +24,7 @@
   "registries": {
     "@remocn": "https://remocn.dev/r/{name}.json",
     "@snapcn": "https://snapcn.dev/r/{name}.json",
-    "@remotionui": "https://remotionui.com/r/{name}.json"
+    "@remotionui": "https://remotionui.com/r/{name}.json",
+    "@diceui": "https://diceui.com/r/{style}/{name}.json"
   }
 }

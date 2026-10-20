@@ -23,7 +23,9 @@ import { outputOf } from "@/shared/schema/values";
 import { useRunStore } from "../store/run";
 import { REPLAY_TABS, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
+import { VideoFilePlayer } from "./file-player";
 import { fileUrl } from "./file-url";
+import { ImagePreview } from "./image-preview";
 import { ListRow } from "./list-row";
 import { revealProjectFile } from "./reveal";
 import { MONO_TEXT } from "./text-styles";
@@ -79,16 +81,15 @@ function Footage({
 }) {
   if (recordingSrc)
     return (
-      <video
-        ref={video}
+      <VideoFilePlayer
+        videoRef={video}
         src={fileUrl(recordingSrc)}
-        controls
-        className="w-full rounded-md bg-black"
+        label="Recording"
+        className="rounded-md"
         onTimeUpdate={(e) => onTime(e.currentTarget.currentTime)}
       />
     );
-  if (imageSrc)
-    return <img src={fileUrl(imageSrc)} alt="Captured still" className="w-full rounded-md" />;
+  if (imageSrc) return <ImagePreview src={fileUrl(imageSrc)} alt="Captured still" />;
   return (
     <Empty>
       <EmptyHeader>

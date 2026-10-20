@@ -6,30 +6,27 @@ import { exportedArtifacts } from "@/shared/run-progress";
 import { artifactName, type Artifact } from "@/shared/schema/values";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { useRunStore } from "../store/run";
+import { AudioFilePlayer, VideoFilePlayer } from "./file-player";
 import { fileUrl } from "./file-url";
+import { ImagePreview } from "./image-preview";
 import { ReplayButtons } from "./replay-buttons";
 import { revealOutputs, revealProjectFile } from "./reveal";
 
 function ArtifactPreview({ artifact }: { artifact: Artifact }) {
   if (artifact.kind === "video")
     return (
-      <video
+      <VideoFilePlayer
         src={fileUrl(artifact.path)}
-        controls
+        label={artifactName(artifact)}
         muted
-        className="aspect-video w-full rounded-md bg-black"
+        className="rounded-md"
+        videoClassName="aspect-video"
       />
     );
   if (artifact.kind === "image")
-    return (
-      <img
-        src={fileUrl(artifact.path)}
-        alt={artifactName(artifact)}
-        className="w-full rounded-md"
-      />
-    );
+    return <ImagePreview src={fileUrl(artifact.path)} alt={artifactName(artifact)} />;
   if (artifact.kind === "audio")
-    return <audio src={fileUrl(artifact.path)} controls className="w-full" />;
+    return <AudioFilePlayer src={fileUrl(artifact.path)} label={artifactName(artifact)} />;
   return null;
 }
 

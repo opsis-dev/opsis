@@ -14,6 +14,7 @@ import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { useFilm } from "./film";
 import { PreviewComposition } from "./preview-composition";
+import { PreviewStage } from "./preview-controls";
 import { PreviewToolbar } from "./preview-toolbar";
 import { useCompiledContext } from "./use-compiled";
 import { usePlayerBridge, useSeekToSelection } from "./use-player-bridge";
@@ -77,7 +78,7 @@ export function PreviewDock() {
         sourceTitle={source ? nodeName(source) : null}
         stale={film.stale}
       />
-      <div className="grid min-h-0 flex-1 place-items-center">
+      <PreviewStage player={player} fps={spec.fps} duration={duration}>
         <Player
           ref={setPlayer}
           component={PreviewComposition}
@@ -88,13 +89,13 @@ export function PreviewDock() {
           compositionHeight={spec.height}
           playbackRate={rate}
           {...playRange(inPoint, outPoint, duration)}
-          controls
+          controls={false}
           loop
           clickToPlay
           acknowledgeRemotionLicense
           style={{ width: "100%", height: "100%" }}
         />
-      </div>
+      </PreviewStage>
     </div>
   );
 }
