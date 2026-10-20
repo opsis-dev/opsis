@@ -116,6 +116,24 @@ describe("graph", () => {
     expect(messages.some((m) => m.includes("only take one connection"))).toBe(false);
   });
 
+  it("warns a node fed by a skipped node that has nothing to pass on", () => {
+    const g = new GraphBuilder();
+    g.node("bg", "fx.core.solid", 0, 0);
+    g.node("trim", "timeline.trim", 1, 0);
+    g.node("speed", "timeline.speed", 2, 0);
+    g.link("bg", "trim").link("trim", "speed");
+    const wf = build(g);
+    must(findById(wf.nodes, "bg"), "bg").disabled = true;
+    const warn = (w: Workflow) =>
+      validateWorkflow(w)
+        .filter((i) => i.message.includes("is skipped"))
+        .map((i) => i.nodeId);
+    expect(warn(wf)).toEqual(["trim"]);
+    must(findById(wf.nodes, "bg"), "bg").disabled = false;
+    must(findById(wf.nodes, "trim"), "trim").disabled = true;
+    expect(warn(wf)).toEqual([]);
+  });
+
   it("stops two Sign in once nodes from saving the same sign-in", () => {
     const g = new GraphBuilder();
     g.node("a", "capture.loginOnce", 0, 0, { url: "https://x.test/login", secretName: "acct" });

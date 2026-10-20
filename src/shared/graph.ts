@@ -383,6 +383,34 @@ function exportClashes(wf: Workflow): GraphIssue[] {
   return issues;
 }
 
+function passesNothing(wf: Workflow, skipped: WorkflowNode, handle: string): boolean {
+  const def = getNodeDef(skipped.type);
+  const type = def?.outputs[handle]?.type;
+  if (!def || !type) return false;
+  const byId = nodesById(wf.nodes);
+  return !wf.edges.some(
+    (e) =>
+      e.target === skipped.id && def.inputs[e.targetHandle]?.type === type && !edgeFault(e, byId),
+  );
+}
+
+function skippedSourceIssues(wf: Workflow): GraphIssue[] {
+  const byId = nodesById(wf.nodes);
+  return wf.edges.flatMap((e): GraphIssue[] => {
+    const source = byId.get(e.source);
+    const target = byId.get(e.target);
+    if (!source?.disabled || !target || target.disabled) return [];
+    if (!passesNothing(wf, source, e.sourceHandle)) return [];
+    return [
+      {
+        level: "warning",
+        nodeId: target.id,
+        message: `“${nodeName(source)}” is skipped and has nothing to pass on, so this gets nothing from it.`,
+      },
+    ];
+  });
+}
+
 const runsBeforeFirstPage = (wf: Workflow, nodeId: string): boolean => {
   const walk = walkSessionChain(wf, nodeId);
   return walk.ok && !walk.chain.some((n) => n.type === navigateNode.type);
@@ -412,4 +440,5 @@ export const validateWorkflow = (wf: Workflow): GraphIssue[] => [
   ...anchorIssues(wf),
   ...exportClashes(wf),
   ...signInClashes(wf),
+  ...skippedSourceIssues(wf),
 ];
