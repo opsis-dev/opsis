@@ -6,13 +6,15 @@ import { projectRef } from "../../shared/asset-ref";
 import { lerp } from "../../shared/math";
 import type { NodeParams } from "../../shared/nodes/define";
 import {
+  exportBaseName,
   renderNode,
   STILL_PRESETS,
+  stillFileNames,
   stillOutputNode,
+  videoFileNames,
   variantSize,
   type Variant,
 } from "../../shared/nodes/output";
-import { safeName } from "../../shared/safe-name";
 import type { TimelineSpec } from "../../shared/schema/timeline";
 import type { Artifact, MediaValue } from "../../shared/schema/values";
 import {
@@ -132,11 +134,14 @@ async function renderVariant(
   chapters: Chapters,
 ): Promise<Artifact[]> {
   const { ctx, spec, p } = job;
-  if (spec.mix && hasSoundTrack(p.codec)) {
+  const { codec } = p;
+  if (spec.mix && hasSoundTrack(codec)) {
     const sound = refToPath(ctx, spec.mix.src);
     const picture = await pictureFor(job);
-    await ctx.ffmpeg.run(muxArgs(p.codec, picture, sound, out), { signal: ctx.signal });
-  } else await renderTo(job, out, { muted: false });
+    await writeViaTemp(out, (temp) =>
+      ctx.ffmpeg.run(muxArgs(codec, picture, sound, temp), { signal: ctx.signal }),
+    );
+  } else await writeViaTemp(out, (temp) => renderTo(job, temp, { muted: false }));
   const { faststart } = CODECS[p.codec];
   if (faststart || chapters.metadata) {
     await writeViaTemp(out, (temp) =>
@@ -167,15 +172,14 @@ async function renderVariant(
 
 export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p) => {
   const spec = await mixed(ctx, specFor(ctx), MIX_STAGE);
-  const base = safeName(p.fileName, { fallback: "output" });
   const { variants } = p;
+  const names = videoFileNames(exportBaseName(p.fileName), p.codec, variants);
   const artifacts = await withRenderServer(ctx, async ({ serveUrl, projectBase }) => {
     const chapters = await chaptersFor(ctx, spec, p);
     const made: Artifact[] = [];
     for (const [i, variant] of variants.entries()) {
       const size = variantSize(variant, ctx.workflow.settings);
-      const suffix = variants.length > 1 ? `-${variant.replace(":", "x")}` : "";
-      const out = path.join(ctx.outDir, `${base}${suffix}.${CODECS[p.codec].ext}`);
+      const out = path.join(ctx.outDir, names[i]);
       ctx.log(
         "info",
         `Exporting ${variant} (${size.width}×${size.height}) as ${path.basename(out)}`,
@@ -206,12 +210,12 @@ export const renderExecutor = defineExecutor(renderNode, async (ctx, _inputs, p)
 
 export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _inputs, p) => {
   const spec = specFor(ctx);
-  const base = safeName(p.fileName, { fallback: "output" });
+  const names = stillFileNames(exportBaseName(p.fileName), p.presets, p.format);
   const artifacts = await withRenderServer(ctx, async ({ serveUrl, projectBase }) => {
     const made: Artifact[] = [];
     for (const [i, preset] of p.presets.entries()) {
       const size = STILL_PRESETS[preset];
-      const out = path.join(ctx.outDir, `${base}-${preset}.${p.format === "jpeg" ? "jpg" : "png"}`);
+      const out = path.join(ctx.outDir, names[i]);
       ctx.progress(lerp(...RENDER_STAGE, i / p.presets.length), `Still ${preset}`);
       await renderFrame({
         env: ctx.env,

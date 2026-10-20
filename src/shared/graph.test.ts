@@ -83,6 +83,19 @@ describe("graph", () => {
     expect(problems.map((i) => i.nodeId)).toEqual(["gone"]);
   });
 
+  it("stops two exports from saving the same file", () => {
+    const g = new GraphBuilder();
+    g.node("one", "output.render", 0, 0, { fileName: "film" });
+    g.node("two", "output.render", 1, 0, { fileName: "film" });
+    g.node("wide", "output.render", 2, 0, { fileName: "film", variants: ["9:16"] });
+    g.node("other", "output.render", 3, 0, { fileName: "teaser" });
+    const clashes = validateWorkflow(build(g)).filter((i) => i.message.includes("also saves"));
+    expect(clashes.map((i) => [i.nodeId, i.message])).toEqual([
+      ["two", "“Export video” also saves “film.mp4”. Give one of them another file name."],
+      ["wide", "“Export video” also saves “film.mp4”. Give one of them another file name."],
+    ]);
+  });
+
   it("names a variable the project doesn't have", () => {
     const g = new GraphBuilder();
     g.node("session", "browser.session", 0, 0);

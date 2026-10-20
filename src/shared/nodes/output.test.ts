@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard, nodeResult, workflowNode } from "../test-fixtures";
-import { exportReframe, variantCanvas, variantSize } from "./output";
+import {
+  exportReframe,
+  renderNode,
+  stillOutputNode,
+  variantCanvas,
+  variantSize,
+  videoFileNames,
+} from "./output";
 
 describe("variantSize", () => {
   it("keeps the long edge and even dimensions", () => {
@@ -69,5 +76,17 @@ describe("Export as code card", () => {
   it("shows the folder the code is written to", () => {
     expect(nodeCard("output.exportProject", { folderName: ".." })[0].text).toBe("output");
     expect(nodeCard("output.exportProject", { folderName: "My Code" })[0].text).toBe("my-code");
+  });
+});
+
+describe("export file names", () => {
+  it("keeps the first shape's name the same however many shapes are added", () => {
+    expect(videoFileNames("demo", "h264", ["16:9"])).toEqual(["demo.mp4"]);
+    expect(videoFileNames("demo", "h264", ["16:9", "9:16"])).toEqual(["demo.mp4", "demo-9x16.mp4"]);
+  });
+
+  it("refuses the same shape or size twice", () => {
+    expect(renderNode.params.safeParse({ variants: ["16:9", "16:9"] }).success).toBe(false);
+    expect(stillOutputNode.params.safeParse({ presets: ["og", "og"] }).success).toBe(false);
   });
 });

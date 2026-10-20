@@ -3,6 +3,13 @@ import { byCodeUnit, findById } from "./lists";
 import { ACTION_NODE_TYPES, navigateNode, sessionNode, setStateNode } from "./nodes/browser";
 import { loginOnceNode } from "./nodes/capture";
 import type { PortSpec } from "./nodes/define";
+import {
+  exportBaseName,
+  renderNode,
+  stillFileNames,
+  stillOutputNode,
+  videoFileNames,
+} from "./nodes/output";
 import { parseParams } from "./nodes/params";
 import { canConnect, portLabel, SESSION_PORT } from "./nodes/ports";
 import { getNodeDef, isOutputType, nodeName } from "./nodes/registry";
@@ -319,6 +326,41 @@ const anchorIssues = (wf: Workflow): GraphIssue[] => {
     }));
 };
 
+function exportFiles(node: WorkflowNode, vars: Record<string, string>): string[] {
+  const params = interpolate(node.params, vars);
+  if (node.type === renderNode.type) {
+    const p = renderNode.params.safeParse(params);
+    return p.success
+      ? videoFileNames(exportBaseName(p.data.fileName), p.data.codec, p.data.variants)
+      : [];
+  }
+  if (node.type === stillOutputNode.type) {
+    const p = stillOutputNode.params.safeParse(params);
+    return p.success
+      ? stillFileNames(exportBaseName(p.data.fileName), p.data.presets, p.data.format)
+      : [];
+  }
+  return [];
+}
+
+function exportClashes(wf: Workflow): GraphIssue[] {
+  const vars = workflowVars(wf);
+  const writer = new Map<string, WorkflowNode>();
+  const issues: GraphIssue[] = [];
+  for (const node of wf.nodes.filter((n) => !n.disabled))
+    for (const file of exportFiles(node, vars)) {
+      const first = writer.get(file);
+      if (!first) writer.set(file, node);
+      else if (first.id !== node.id)
+        issues.push({
+          level: "error",
+          nodeId: node.id,
+          message: `“${nodeName(first)}” also saves “${file}”. Give one of them another file name.`,
+        });
+    }
+  return issues;
+}
+
 const runsBeforeFirstPage = (wf: Workflow, nodeId: string): boolean => {
   const walk = walkSessionChain(wf, nodeId);
   return walk.ok && !walk.chain.some((n) => n.type === navigateNode.type);
@@ -346,4 +388,5 @@ export const validateWorkflow = (wf: Workflow): GraphIssue[] => [
   ...cycleIssues(wf),
   ...reloadIssues(wf),
   ...anchorIssues(wf),
+  ...exportClashes(wf),
 ];

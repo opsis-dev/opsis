@@ -39,7 +39,38 @@ const gl = () =>
 
 const FORMATS = keysOf(FORMAT_NAMES);
 
+export const EXPORT_FOLDER_FALLBACK = "output";
+
 const VIDEO_CODECS = FORMATS.filter((f) => f !== "gif");
+
+export const CODEC_EXTENSIONS: Record<(typeof FORMATS)[number], string> = {
+  h264: "mp4",
+  h265: "mp4",
+  vp8: "webm",
+  vp9: "webm",
+  prores: "mov",
+  gif: "gif",
+};
+
+const eachOnce = <T>(list: readonly T[]) => new Set(list).size === list.length;
+
+export const videoFileNames = (
+  base: string,
+  codec: (typeof FORMATS)[number],
+  variants: readonly string[],
+): string[] =>
+  variants.map(
+    (v, i) => `${base}${i === 0 ? "" : `-${v.replace(":", "x")}`}.${CODEC_EXTENSIONS[codec]}`,
+  );
+
+export const stillFileNames = (
+  base: string,
+  presets: readonly string[],
+  format: "png" | "jpeg",
+): string[] => presets.map((preset) => `${base}-${preset}.${format === "jpeg" ? "jpg" : "png"}`);
+
+export const exportBaseName = (fileName: string): string =>
+  safeName(fileName, { fallback: EXPORT_FOLDER_FALLBACK });
 
 const fileBytes = (artifacts?: Artifact[]) =>
   (artifacts ?? []).reduce((sum, a) => sum + (a.bytes ?? 0), 0);
@@ -139,6 +170,7 @@ export const renderNode = defineNode({
     variants: z
       .array(z.enum(VARIANTS))
       .min(1)
+      .refine(eachOnce, "Pick each shape once")
       .default(["16:9"])
       .meta({ description: "Shapes", widget: "multiselect" }),
     reframe: choice(REFRAMES, "follow", "Other shapes", {
@@ -192,6 +224,7 @@ export const stillOutputNode = defineNode({
     presets: z
       .array(z.enum(keysOf(STILL_PRESETS)))
       .min(1)
+      .refine(eachOnce, "Pick each size once")
       .default(["og"])
       .meta({ description: "Sizes", widget: "multiselect", labels: STILL_NAMES }),
     format: choice(["png", "jpeg"], "png", "Format", { png: "PNG", jpeg: "JPEG" }),
@@ -202,8 +235,6 @@ export const stillOutputNode = defineNode({
     ...passTimeline(inputs, settings),
   }),
 });
-
-export const EXPORT_FOLDER_FALLBACK = "output";
 
 export const exportProjectNode = defineNode({
   ...base,
