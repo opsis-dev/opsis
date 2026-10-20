@@ -1,3 +1,4 @@
+import { CANCELLED } from "./errors";
 import { uniqueBy } from "./lists";
 import { isOutputType } from "./nodes/registry";
 import type { NodeRunStatus, RunEvent } from "./schema/events";
@@ -79,6 +80,8 @@ export function applyRunEvent<S extends RunProgress>(state: S, e: RunEvent): S {
       };
     }
     case "node:error":
+      if (e.message === CANCELLED)
+        return { ...state, statuses: without(state.statuses, [e.nodeId]) };
       return {
         ...state,
         statuses: { ...state.statuses, [e.nodeId]: "error" },

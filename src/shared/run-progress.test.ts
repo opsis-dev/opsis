@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CANCELLED } from "./errors";
 import {
   applyRunEvent,
   emptyRunProgress,
@@ -131,5 +132,24 @@ describe("an earlier failure", () => {
       cached: false,
     });
     expect(done.errors).toEqual({});
+  });
+});
+
+describe("a node cut off by Stop", () => {
+  it("goes back to no status and keeps no error", () => {
+    const running = applyRunEvent(emptyRunProgress("r"), {
+      type: "node:start",
+      runId: "r",
+      nodeId: "rec",
+      at: 0,
+    });
+    const stopped = applyRunEvent(running, {
+      type: "node:error",
+      runId: "r",
+      nodeId: "rec",
+      message: CANCELLED,
+    });
+    expect(stopped.statuses.rec).toBeUndefined();
+    expect(stopped.errors).toEqual({});
   });
 });

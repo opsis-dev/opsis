@@ -464,7 +464,7 @@ class RunState {
       stack: error instanceof Error ? error.stack : undefined,
       traceId,
     });
-    this.failures[id] = { message, at: Date.now(), traceId };
+    if (!deps.signal.aborted) this.failures[id] = { message, at: Date.now(), traceId };
   }
 }
 
