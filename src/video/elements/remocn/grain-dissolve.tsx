@@ -71,7 +71,7 @@ const GrainDissolvePresentation: React.FC<
     scale: `${interpolate(p, [0.7, 1], [1.05, 1], {
       ...clampOpts,
       easing: Easing.out(Easing.cubic),
-    })})`,
+    })}`,
     filter: `blur(${interpolate(p, [0.7, 0.92], [10, 0], clampOpts)}px)`,
   };
 

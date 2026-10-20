@@ -1,0 +1,16 @@
+Fixes:
+- Drop a stray bracket from the incoming scene's scale, so its settle-in zoom plays.
+
+diff --git a/src/video/elements/remocn/grain-dissolve.tsx b/src/video/elements/remocn/grain-dissolve.tsx
+index ac9d535..ff011e5 100644
+--- a/src/video/elements/remocn/grain-dissolve.tsx
++++ b/src/video/elements/remocn/grain-dissolve.tsx
+@@ -71,7 +71,7 @@ const GrainDissolvePresentation: React.FC<
+     scale: `${interpolate(p, [0.7, 1], [1.05, 1], {
+       ...clampOpts,
+       easing: Easing.out(Easing.cubic),
+-    })})`,
++    })}`,
+     filter: `blur(${interpolate(p, [0.7, 0.92], [10, 0], clampOpts)}px)`,
+   };
+ 
