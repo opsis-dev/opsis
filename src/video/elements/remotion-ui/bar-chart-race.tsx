@@ -64,11 +64,10 @@ function valueAt(values: number[], time: number): number {
 /**
  * Ranked bars that overtake each other as the clock runs.
  *
- * Rank is computed as a *fractional* rank — each series counts how far above it
- * every other series sits, softened by a sigmoid — rather than an integer sort
- * position. An integer rank makes bars teleport a full row the instant two
- * values cross; the soft rank slides them past each other, which is the whole
- * point of the format.
+ * Rank is the sort position at each keyframe, eased between one keyframe and
+ * the next. An integer rank of the live values makes bars teleport a full row
+ * the instant two values cross; easing between keyframe orders slides them past
+ * each other, and every bar rests on a whole row once the clock stops.
  *
  * Distinct from `animated-bar-chart`, which reveals a single fixed ranking.
  */
@@ -116,9 +115,22 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
     (highest, entry) => (entry.present > 0 ? Math.max(highest, entry.current) : highest),
     0,
   ) || 1;
-  // The softening width is a share of the leader's value, so the crossover
-  // reads the same whether the chart counts in tens or in millions.
-  const softness = leader * 0.022;
+
+  const ranksAt = (step: number) => {
+    const live = series
+      .map((entry, index) => ({ index, value: entry.values[step], live: step < entry.values.length }))
+      .filter((entry) => entry.live)
+      .sort((a, b) => b.value - a.value || a.index - b.index);
+    return series.map((_, index) => {
+      const place = live.findIndex((entry) => entry.index === index);
+      return place === -1 ? live.length : place;
+    });
+  };
+  const lowerStep = Math.floor(time);
+  const lowerRanks = ranksAt(lowerStep);
+  const upperRanks = ranksAt(Math.min(lastStep, lowerStep + 1));
+  const blend = time - lowerStep;
+  const eased = blend * blend * (3 - 2 * blend);
 
   const exit =
     exitAtInFrames === undefined
@@ -143,13 +155,7 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
       }}
     >
       {current.map((entry, index) => {
-        const rank = current.reduce((sum, other) => {
-          if (other === entry) return sum;
-          return (
-            sum +
-            other.present / (1 + Math.exp((entry.current - other.current) / softness))
-          );
-        }, 0);
+        const rank = lowerRanks[index] + (upperRanks[index] - lowerRanks[index]) * eased;
 
         // Rows past the visible window fade rather than clip, so a series
         // dropping off the board reads as losing rather than as a render bug.
