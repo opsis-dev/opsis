@@ -3,6 +3,7 @@ import path from "node:path";
 import { writeJson } from "../../engine/json";
 import { projectRef } from "../../shared/asset-ref";
 import { formatPreciseDuration, singleQuoted } from "../../shared/format";
+import { formatDuration } from "../../shared/format";
 import { kindFromPath } from "../../shared/mime";
 import { loudnormFilter } from "../../shared/mix/graph";
 import {
@@ -118,6 +119,13 @@ async function transcodeMedia(
 }
 
 const MP4_PICTURES: ReadonlySet<string> = new Set(["h264", "hevc", "av1", "vp9", "mpeg4"]);
+
+const LAST_FRAME_MARGIN_MS = 100;
+
+export function thumbnailTime(atMs: number, source: Pick<ProbeResult, "durationMs">): number {
+  if (source.durationMs <= LAST_FRAME_MARGIN_MS) return 0;
+  return Math.min(atMs, source.durationMs - LAST_FRAME_MARGIN_MS);
+}
 
 const extOf = (src: string) => path.extname(src).toLowerCase() || ".mp4";
 
@@ -385,14 +393,19 @@ export const mediaExecutors: Executor[] = [
 
   defineExecutor(thumbnailNode, async (ctx, inputs, p) => {
     const input = requireMedia(inputs.media);
+    const src = refToPath(ctx, input.src);
+    const source = await ctx.ffmpeg.probe(src);
+    if (!source.video) throw new Error("This file has no picture to take a thumbnail from.");
+    const atMs = thumbnailTime(p.atMs, source);
+    if (atMs < p.atMs && input.kind !== "image")
+      ctx.log(
+        "warn",
+        `The file is only ${formatDuration(source.durationMs)} long, so the thumbnail is from ${formatDuration(atMs)}.`,
+      );
     const file = "thumbnail.png";
-    await ctx.ffmpeg.run(
-      frameGrabArgs(refToPath(ctx, input.src), path.join(ctx.dir, file), {
-        atMs: p.atMs,
-        width: p.width,
-      }),
-      { signal: ctx.signal },
-    );
+    await ctx.ffmpeg.run(frameGrabArgs(src, path.join(ctx.dir, file), { atMs, width: p.width }), {
+      signal: ctx.signal,
+    });
     const probe = await ctx.ffmpeg.probe(path.join(ctx.dir, file));
     return {
       outputs: {
