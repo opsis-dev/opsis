@@ -69,6 +69,7 @@ export const recordingPropsSchema = z.object({
   extraBeats: actionLogSchema.shape.actions,
   keystrokes: keystrokeLookSchema.optional(),
   annotations: z.array(annotationSpecSchema),
+  screen: z.boolean().optional(),
 });
 export type RecordingProps = z.infer<typeof recordingPropsSchema>;
 

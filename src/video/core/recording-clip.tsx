@@ -8,7 +8,7 @@ import { clamp } from "../../shared/math";
 import { pick } from "../../shared/objects";
 import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
-import { DemoClip, useClipTime } from "../camera/demo-clip";
+import { DemoClip, ScreenClip, useClipTime } from "../camera/demo-clip";
 import { KeycapHUD } from "../camera/keycap-hud";
 import { DesignWidthContext } from "../camera/lib/design-scale";
 import { faded, SHOT_STYLES } from "../camera/lib/style";
@@ -74,6 +74,17 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   );
 
   if (!src) return null;
+
+  if (props.screen)
+    return (
+      <ScreenClip
+        {...pick(props, CLIP_KEYS)}
+        src={src}
+        log={log}
+        motionBlur={false}
+        annotations={annotations}
+      />
+    );
 
   const layout = reframeLayout(
     props.log.viewport,

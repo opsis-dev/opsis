@@ -402,15 +402,18 @@ const deviceFrameNode = defineNode({
             p.addressBar ?? DEFAULT_ADDRESS_BAR,
           ),
         }));
-      const src = clip.recording?.src;
-      if (!src) return clip;
+      if (!clip.recording) return clip;
       const laptop = params.device === "laptop";
-      return itemClip(
+      return wrapClip(
+        patchRecordings(clip, (p) => ({ ...p, screen: true })),
         nodeId,
-        DEVICES[params.device].component,
-        { mode: "dark", screenSrc: src, ...(laptop ? { entrance: params.entrance } : {}) },
+        {
+          wrapper: {
+            component: DEVICES[params.device].component,
+            props: { mode: "dark", ...(laptop ? { entrance: params.entrance } : {}) },
+          },
+        },
         clip.durationInFrames,
-        { recording: clip.recording, audio: clip.audio },
       );
     }),
 });

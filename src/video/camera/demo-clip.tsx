@@ -189,6 +189,35 @@ const NarrowBleedClip: React.FC<{ clip: FootageClip & CameraClip }> = ({ clip })
   );
 };
 
+export const ScreenClip: React.FC<DemoClipProps> = (clip) => {
+  const shot = SHOT_STYLES[clip.style];
+  const zoom = shot.framing === "window" && shot.zoom;
+  const { z, style } = useCamera(clip, { chrome: false, fit: 1, zoom });
+  const timeS = useClipTime(clip.speed);
+  const { width, height } = clip.log.viewport;
+  const aspect = width / height;
+  return (
+    <AbsoluteFill style={{ overflow: "hidden", containerType: "size", backgroundColor: PAGE_BG }}>
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          width: `max(100cqw, calc(100cqh * ${aspect}))`,
+          height: `max(100cqh, calc(100cqw / ${aspect}))`,
+          transform: "translate(-50%, -50%)",
+        }}
+      >
+        <div style={style}>
+          <Footage src={clip.src} speed={clip.speed} fit="fill" />
+          <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
+          <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 export const DemoClip: React.FC<DemoClipProps> = (props) => {
   const shot = SHOT_STYLES[props.style];
   if (shot.framing !== "window")
