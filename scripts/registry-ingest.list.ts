@@ -975,6 +975,17 @@ const MANUAL_MENU = { autoplay: ["false"] };
 const WRITTEN_PRESETS = ["marker", "color", "underline", "strikethrough", "shimmer"];
 
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "comparison-bars": {
+    controls: {
+      seriesLabels: {
+        type: "strings",
+        default: ["Before", "After"],
+        description: "Series labels",
+        help: "Legend above the rows: the before bar, then the after bar.",
+        max: 2,
+      },
+    },
+  },
   "funnel-chart": {
     controls: {
       stages: {

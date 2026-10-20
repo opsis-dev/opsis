@@ -1859,7 +1859,7 @@ const defs: ElementMetaInput[] = [
       beforeColor: zColor().default("rgba(250,250,250,0.22)").meta({ description: "Before color", help: "Baseline bar. Muted on purpose: it is the thing being beaten." }),
       afterColor: zColor().default("#e8b86d").meta({ description: "After color", help: "New-value bar, and the colour of a rising delta." }),
       downColor: zColor().default("#f472b6").meta({ description: "Decrease color", help: "Delta colour when the change is a fall." }),
-      seriesLabels: z.array(z.string()).default(["Before","After"]).meta({ description: "Series labels", help: "Legend above the rows." }),
+      seriesLabels: z.array(z.string()).max(2).default(["Before","After"]).meta({ description: "Series labels", help: "Legend above the rows: the before bar, then the after bar." }),
       showDelta: z.boolean().default(true).meta({ description: "Show change", help: "Percentage-change chip at the end of the second bar." }),
       durationInFrames: z.number().min(1).max(300).default(30).meta({ description: "Animation length", step: 1, unit: "frames", help: "Length of one bar's growth.", advanced: true }),
       staggerInFrames: z.number().default(12).meta({ description: "Stagger", unit: "frames", help: "Frames between one row and the next.", advanced: true }),

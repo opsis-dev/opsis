@@ -1,5 +1,5 @@
 import { interpolate, useCurrentFrame } from "remotion";
-import { formatCompactNumber } from "@/video/lib/remotion-ui/chart-utils";
+import { formatCompactNumber, readDelta } from "@/video/lib/remotion-ui/chart-utils";
 import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
 
 export type ComparisonRowDatum = {
@@ -8,7 +8,7 @@ export type ComparisonRowDatum = {
   before: number;
   /** New value — the coloured bar. */
   after: number;
-  /** Overrides the computed percentage change. */
+  /** Overrides the computed percentage change. Needed when `before` is 0, which has none. */
   delta?: string;
 };
 
@@ -95,6 +95,9 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
   const barWidth = width - labelWidth;
   const barHeight = (rowHeight - 8) / 2;
   const chipSize = barHeight * 0.5;
+  const legend = [beforeColor, afterColor]
+    .map((swatch, index) => ({ swatch, text: seriesLabels?.[index] ?? "" }))
+    .filter((entry) => entry.text !== "");
 
   const exit =
     exitAtInFrames === undefined
@@ -114,7 +117,7 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
 
   return (
     <div style={{ width, display: "grid", gap }}>
-      {seriesLabels ? (
+      {legend.length > 0 ? (
         <div
           style={{
             display: "flex",
@@ -126,7 +129,7 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
             opacity: 1 - clamp01(exit / 0.7),
           }}
         >
-          {[beforeColor, afterColor].map((swatch, index) => (
+          {legend.map((entry, index) => (
             <span
               key={index}
               style={{ display: "flex", alignItems: "center", gap: 8 }}
@@ -136,10 +139,10 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
                   width: barHeight * 0.42,
                   height: barHeight * 0.42,
                   borderRadius: 4,
-                  background: swatch,
+                  background: entry.swatch,
                 }}
               />
-              {seriesLabels[index]}
+              {entry.text}
             </span>
           ))}
         </div>
@@ -155,7 +158,11 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
         const change =
           row.before === 0 ? 0 : ((row.after - row.before) / row.before) * 100;
         const delta =
-          row.delta ?? `${change >= 0 ? "+" : "−"}${Math.abs(Math.round(change))}%`;
+          row.delta ??
+          (row.before === 0
+            ? ""
+            : `${change >= 0 ? "+" : "−"}${Math.abs(Math.round(change))}%`);
+        const falls = row.delta ? readDelta(row.delta).direction === "down" : change < 0;
 
         return (
           <div
@@ -220,10 +227,10 @@ export const ComparisonBars: React.FC<ComparisonBarsProps> = ({
                   </span>
                 </div>
 
-                {showDelta ? (
+                {showDelta && delta ? (
                   <span
                     style={{
-                      color: change >= 0 ? afterColor : downColor,
+                      color: falls ? downColor : afterColor,
                       fontSize: chipSize,
                       fontWeight: 700,
                       fontVariantNumeric: "tabular-nums",
