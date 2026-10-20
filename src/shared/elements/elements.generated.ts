@@ -924,7 +924,7 @@ const defs: ElementMetaInput[] = [
       caption: z.string().default("first light").meta({ description: "Caption" }),
       captionAt: z.number().min(0).max(60).default(0).meta({ description: "Caption starts", step: 1 }),
       width: z.number().min(320).max(900).default(652).meta({ description: "Card width", step: 4 }),
-      captionSize: z.number().min(20).max(56).default(36).meta({ description: "Caption size", step: 1 }),
+      captionSize: z.number().min(12).max(56).optional().meta({ description: "Caption size", zeroLabel: "Fit", step: 1, unit: "px", help: "Leave empty to size the caption with the card." }),
       step: z.number().min(0.0333).max(0.2).default(0.1).meta({ description: "Time per pose", step: 0.01, unit: "s", framesAt: 30 }),
       frameColor: zColor().default("#fdfcf8").meta({ description: "Frame colour" }),
       captionColor: zColor().default("#26242c").meta({ description: "Caption colour" }),

@@ -1144,6 +1144,11 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
     controls: {
       frameColor: { type: "color", default: "#fdfcf8", description: "Frame colour" },
       captionColor: { type: "color", default: "#26242c", description: "Caption colour" },
+      captionSize: optionalNumber(
+        "Caption size",
+        { min: 12, max: 56, step: 1 },
+        { emptyLabel: "Fit", unit: "px", help: "Leave empty to size the caption with the card." },
+      ),
     },
   },
   "speed-lines": {

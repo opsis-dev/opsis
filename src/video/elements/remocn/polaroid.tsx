@@ -55,8 +55,11 @@ export function Polaroid({
 }: PolaroidProps) {
   const { pad, mediaWidth, mediaHeight, captionHeight, height } =
     polaroidGeometry(width);
-  const resolvedCaptionSize =
-    captionSize ?? BASE_CAPTION_SIZE * (width / BASE_WIDTH);
+  const resolvedCaptionSize = Math.min(
+    captionSize ?? BASE_CAPTION_SIZE * (width / BASE_WIDTH),
+    captionHeight * 0.62,
+    mediaWidth / Math.max(1, Array.from(caption ?? "").length * 0.52),
+  );
 
   return (
     <div
