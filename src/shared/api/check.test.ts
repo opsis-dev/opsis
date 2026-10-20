@@ -12,6 +12,20 @@ describe("checkWorkflow", () => {
     expect(result.workflow?.nodes.length).toBeGreaterThan(5);
   });
 
+  it("fails a project with a required input left empty", () => {
+    const wf = todo();
+    wf.edges = wf.edges.filter((e) => !(e.target === "render" && e.targetHandle === "timeline"));
+    const result = checkWorkflow(wf);
+    expect(result.ok).toBe(false);
+    expect(result.problems).toContainEqual(
+      expect.objectContaining({
+        level: "error",
+        nodeId: "render",
+        message: "Connect something to “Clip”",
+      }),
+    );
+  });
+
   it("reports format problems with a path", () => {
     const result = checkWorkflow({
       version: 1,

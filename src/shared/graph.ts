@@ -241,7 +241,7 @@ function portIssues(
     );
     const name = portLabel(spec, "in");
     if (edges.length === 0 && !spec.optional)
-      issues.push({ level: "warning", nodeId: node.id, message: `Connect something to “${name}”` });
+      issues.push({ level: "error", nodeId: node.id, message: `Connect something to “${name}”` });
     if (edges.length > 1 && !spec.many)
       issues.push({
         level: "error",
