@@ -11,6 +11,8 @@ type Timing = {
 
 export const AUTHORED_FPS = 30;
 
+const CUT_OFF_HOLD = AUTHORED_FPS / 2;
+
 const num = (value: unknown, fallback: number): number =>
   isNumber(value) && Number.isFinite(value) ? value : fallback;
 
@@ -387,11 +389,10 @@ export function animationLength(meta: ElementMeta, params: Settings, fps: number
     ...settingsInFrames(meta, { ...meta.defaultProps, ...params }),
     ...meta.fixedProps,
   };
-  const hold = Math.max(
-    0,
+  const designedHold =
     meta.defaultDurationInFrames -
-      endFrames(timing, defaults, AUTHORED_FPS) / num(defaults.speed, 1),
-  );
+    endFrames(timing, defaults, AUTHORED_FPS) / num(defaults.speed, 1);
+  const hold = designedHold < 0 ? CUT_OFF_HOLD : designedHold;
   const scaledHold = timing.unit === "frames" ? hold : (hold * fps) / AUTHORED_FPS;
   const speed = num(settings.speed, 1);
   if (speed <= 0) return 1;
