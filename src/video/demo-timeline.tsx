@@ -14,6 +14,7 @@ import { remapFrame } from "../shared/compile/remap";
 import { ERROR_COLOR, STAGE_COLOR } from "../shared/elements/colors";
 import { MAIN_FONT } from "../shared/fonts";
 import { percent } from "../shared/format";
+import { MIN_CROP } from "../shared/limits";
 import { clamp01 } from "../shared/math";
 import { duckGain, duckingSpans, type Span } from "../shared/mix/duck";
 import type { Rect } from "../shared/schema/actions";
@@ -52,7 +53,6 @@ import { PaintRule } from "./registry/framing";
 
 const PREMOUNT_FRAMES = 30;
 const PREMOUNTED = new Set(["core/group", "core/recording"]);
-const MIN_CROP = 0.05;
 
 export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
   <AssetProvider value={spec.assets ?? {}}>
@@ -209,18 +209,39 @@ const Group: React.FC<GroupProps> = ({
 
 type Wrap<P> = React.FC<P & { children: React.ReactNode }>;
 
-const CropBox: Wrap<{ crop: Rect }> = ({ crop, children }) => (
-  <AbsoluteFill style={{ overflow: "hidden" }}>
-    <AbsoluteFill
-      style={{
-        transformOrigin: "0 0",
-        transform: `scale(${cropScale(crop)}) translate(${percent(-crop.x)}, ${percent(-crop.y)})`,
-      }}
-    >
-      {children}
+const CropBox: Wrap<{ crop: Rect }> = ({ crop, children }) => {
+  const scale = cropScale(crop);
+  const w = crop.w * scale;
+  const h = crop.h * scale;
+  return (
+    <AbsoluteFill>
+      <div
+        style={{
+          position: "absolute",
+          overflow: "hidden",
+          left: percent((1 - w) / 2),
+          top: percent((1 - h) / 2),
+          width: percent(w),
+          height: percent(h),
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: percent(1 / w),
+            height: percent(1 / h),
+            transformOrigin: "0 0",
+            transform: `scale(${scale}) translate(${percent(-crop.x)}, ${percent(-crop.y)})`,
+          }}
+        >
+          {children}
+        </div>
+      </div>
     </AbsoluteFill>
-  </AbsoluteFill>
-);
+  );
+};
 
 const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children }) => {
   const base = useAssetBase();

@@ -12,7 +12,8 @@ import {
 import { remapDuration, remapFromSegments } from "../compile/remap";
 import type { FieldMeta } from "../elements/introspect";
 import { formatDuration, humanize, percentText, plural } from "../format";
-import { MIN_SPEED } from "../limits";
+import { MIN_CROP, MIN_SPEED } from "../limits";
+import { EPSILON } from "../math";
 import { pointRect, type Action } from "../schema/actions";
 import { asValue, type ClipValue } from "../schema/values";
 import { DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
@@ -39,6 +40,7 @@ import {
   fraction,
   more,
   ms,
+  num,
   rate,
   text,
   zoomFactor,
@@ -337,12 +339,23 @@ const cropNode = defineNode({
       `${percentText(p.w)} × ${percentText(p.h)} from ${percentText(p.x)}, ${percentText(p.y)}`,
     ),
   ],
-  params: z.object({
-    x: fraction(0.1, "Left"),
-    y: fraction(0.1, "Top"),
-    w: fraction(0.8, "Width"),
-    h: fraction(0.8, "Height"),
-  }),
+  params: z
+    .object({
+      x: fraction(0.1, "Left"),
+      y: fraction(0.1, "Top"),
+      w: num(0.8, "Width", { min: MIN_CROP, max: 1, step: 0.01 }),
+      h: num(0.8, "Height", { min: MIN_CROP, max: 1, step: 0.01 }),
+    })
+    .superRefine((p, ctx) => {
+      if (p.x + p.w > 1 + EPSILON)
+        ctx.addIssue({ code: "custom", message: "The area runs past the right edge", path: ["w"] });
+      if (p.y + p.h > 1 + EPSILON)
+        ctx.addIssue({
+          code: "custom",
+          message: "The area runs past the bottom edge",
+          path: ["h"],
+        });
+    }),
   compile: ({ nodeId, inputs, params }) =>
     withClip(inputs, (clip) => wrapClip(clip, nodeId, { crop: params })),
 });
