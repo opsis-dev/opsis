@@ -1011,7 +1011,14 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
     },
   },
   "gradient-scale-cut-text": { controls: { fontWeight: fontWeight(700) }, design: FULL_HD },
-  "scribble-circle": { omit: { release: "internal: how the stroke lifts off at the end" } },
+  "scribble-circle": {
+    design: FULL_HD,
+    controls: {
+      release: numberControl("Closing pressure", 1, { min: 0.05, max: 1, step: 0.05 }),
+    },
+  },
+  "ink-underline": { design: FULL_HD },
+  "ink-arrow": { design: FULL_HD },
   keystroke: {
     controls: {
       ...spotControls("Where", 0.5, 0.86),
@@ -1028,6 +1035,7 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
     },
   },
   confetti: {
+    design: FULL_HD,
     controls: {
       colors: colorsControl(1, 12),
       ...spotControls("Burst from", 0.5, 0.5, "origin"),

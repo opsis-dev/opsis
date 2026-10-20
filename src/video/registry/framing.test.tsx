@@ -142,7 +142,11 @@ describe("placedAt", () => {
     const view = onFrame(placedAt(Component), { x: 0.25, y: 0.5, width: 100, height: 40, ink: 1 });
     expect(last()).toEqual({ width: 100, height: 40, ink: 1 });
     const box = [...view.container.querySelectorAll<HTMLElement>("div[style*='left']")].at(-1);
-    expect([box?.style.left, box?.style.top]).toEqual(["200px", "230px"]);
+    expect([box?.style.left, box?.style.top, box?.style.translate]).toEqual([
+      "250px",
+      "250px",
+      "-50% -50%",
+    ]);
   });
 });
 

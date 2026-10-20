@@ -376,6 +376,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 120,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/scribble-circle",
@@ -397,9 +398,11 @@ const defs: ElementMetaInput[] = [
       y: z.number().min(0).max(1).default(0.5).meta({ description: "Around vertical", step: 0.01, hidden: true }),
       width: z.number().min(20).max(3840).default(420).meta({ description: "Width", step: 10, unit: "px" }),
       height: z.number().min(20).max(2160).default(220).meta({ description: "Height", step: 10, unit: "px" }),
+      release: z.number().min(0.05).max(1).default(1).meta({ description: "Closing pressure", step: 0.05 }),
     }),
     fixedProps: {},
     defaultDurationInFrames: 150,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/ink-arrow",
@@ -427,6 +430,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 150,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/keystroke",
@@ -469,6 +473,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 90,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/radial-burst",

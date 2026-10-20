@@ -74,11 +74,11 @@ export function fitScreen(Component: ElementComponent): ElementComponent {
 export function placedAt(Component: ElementComponent): ElementComponent {
   const Placed: ElementComponent = ({ x, y, ...props }) => {
     const { width, height } = useVideoConfig();
-    const left = numberOr(x, 0.5) * width - numberOr(props.width, 0) / 2;
-    const top = numberOr(y, 0.5) * height - numberOr(props.height, 0) / 2;
+    const left = numberOr(x, 0.5) * width;
+    const top = numberOr(y, 0.5) * height;
     return (
       <AbsoluteFill>
-        <div style={{ position: "absolute", left, top }}>
+        <div style={{ position: "absolute", left, top, translate: "-50% -50%" }}>
           <Component {...props} />
         </div>
       </AbsoluteFill>
