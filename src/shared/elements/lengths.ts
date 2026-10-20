@@ -250,6 +250,9 @@ const ELEMENT_TIMINGS: Partial<Record<string, Timing>> = {
   }),
   "remocn/agent-run": authored(agentRunEnd),
   "remocn/signup-flow": authored(() => 348),
+  "remocn/command-menu": authored((s) =>
+    s.autoplay === false ? 0 : 24 + characters(str(s.query)) * 2.5 + 8 + 18 + 6,
+  ),
   "remocn/release-teaser": seconds(() => RELEASE_TEASER_SECONDS),
   "remocn/launch-anything": seconds(() => LAUNCH_ANYTHING_SECONDS),
   "remocn/animated-bar-chart": authored(

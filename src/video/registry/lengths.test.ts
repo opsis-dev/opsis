@@ -6,6 +6,7 @@ import type { ElementMeta } from "../../shared/elements/types";
 import { getAgentRunDuration } from "../elements/remocn/agent-run";
 import { checkListDuration } from "../elements/remocn/check-list";
 import { getCodeMorphDuration } from "../elements/remocn/code-morph";
+import { commandMenuPlayEnd } from "../elements/remocn/command-menu";
 import { getKeystrokeDuration } from "../elements/remocn/keystroke";
 import { getSearchRevealDuration } from "../elements/remocn/search-reveal";
 import { wordPushLength } from "../elements/remocn/word-push";
@@ -139,6 +140,14 @@ describe("element lengths", () => {
     const expected = getAgentRunDuration(run(changed)) - getAgentRunDuration(run(usual));
     const actual = growth("remocn/agent-run", changed);
     expect(Math.abs(actual - expected)).toBeLessThanOrEqual(expected * 0.2);
+  });
+
+  it("grows a command menu by as much as its own play-through does", () => {
+    const query = "settings";
+    const usual = String(defaultsOf("remocn/command-menu").query);
+    expect(growth("remocn/command-menu", { query })).toBe(
+      Math.ceil(commandMenuPlayEnd(query) - commandMenuPlayEnd(usual)),
+    );
   });
 
   it("grows punch lines by as much as their own length does", () => {

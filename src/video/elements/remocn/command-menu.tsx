@@ -7,6 +7,8 @@ import {
   commandMenuItemStyle,
   commandMenuItemStyleContext,
 } from "@/video/elements/remocn/command-menu-item";
+import { Easing, interpolate } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   type RemocnTheme,
   revealedText,
@@ -32,7 +34,39 @@ export interface CommandMenuProps {
   pressedIndex?: number;
   itemStyles?: (CommandMenuItemStyle | undefined)[];
   theme?: Partial<RemocnTheme>;
+  autoplay?: boolean;
   className?: string;
+}
+
+const OPEN_AT = 6;
+const OPEN_FOR = 12;
+const TYPE_AT = 24;
+const FRAMES_PER_LETTER = 2.5;
+const HOVER_AFTER_TYPING = 8;
+const PRESS_AFTER_HOVER = 18;
+const PRESS_FOR = 6;
+
+export function commandMenuPlayEnd(query: string): number {
+  return (
+    TYPE_AT +
+    Array.from(query).length * FRAMES_PER_LETTER +
+    HOVER_AFTER_TYPING +
+    PRESS_AFTER_HOVER +
+    PRESS_FOR
+  );
+}
+
+function blendStyles(
+  a: CommandMenuStyle,
+  b: CommandMenuStyle,
+  t: number,
+): CommandMenuStyle {
+  return {
+    backdropOpacity: a.backdropOpacity + (b.backdropOpacity - a.backdropOpacity) * t,
+    panelOpacity: a.panelOpacity + (b.panelOpacity - a.panelOpacity) * t,
+    panelScale: a.panelScale + (b.panelScale - a.panelScale) * t,
+    panelTranslateY: a.panelTranslateY + (b.panelTranslateY - a.panelTranslateY) * t,
+  };
 }
 
 const PANEL_WIDTH = 440;
@@ -138,15 +172,33 @@ export function CommandMenu({
   pressedIndex = -1,
   itemStyles,
   theme: themeOverride,
+  autoplay = false,
   className,
 }: CommandMenuProps) {
+  const frame = useAuthoredFrame();
   const theme = useRemocnTheme(themeOverride, "light");
   const ctx = commandMenuStyleContext(theme);
-  const v = style ?? commandMenuStyle(state, ctx);
+  const opened = interpolate(frame, [OPEN_AT, OPEN_AT + OPEN_FOR], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
+  });
+  const typed = Math.max(0, Math.floor((frame - TYPE_AT) / FRAMES_PER_LETTER) + 1);
+  const shownCount = autoplay ? Math.min(typed, Array.from(query).length) : revealCount;
+  const v = autoplay
+    ? blendStyles(commandMenuStyle("closed", ctx), commandMenuStyle("opened", ctx), opened)
+    : (style ?? commandMenuStyle(state, ctx));
 
   const visibleQuery =
-    revealCount === undefined ? query : revealedText(query, revealCount);
-  const filtered = filterCommandItems(items, query, revealCount);
+    shownCount === undefined ? query : revealedText(query, shownCount);
+  const filtered = filterCommandItems(items, query, shownCount);
+  const typingEnd = TYPE_AT + Array.from(query).length * FRAMES_PER_LETTER;
+  const pick = items.indexOf(filtered[0]);
+  const hoverAt = typingEnd + HOVER_AFTER_TYPING;
+  const pressAt = hoverAt + PRESS_AFTER_HOVER;
+  const highlighted = autoplay ? (frame >= hoverAt ? pick : -1) : highlightedIndex;
+  const pressed = autoplay ? (frame >= pressAt && frame < pressAt + PRESS_FOR ? pick : -1) : pressedIndex;
+  const selected = autoplay ? (frame >= pressAt + PRESS_FOR ? pick : -1) : selectedIndex;
 
   return (
     <div
@@ -258,18 +310,14 @@ export function CommandMenu({
           ) : (
             filtered.map((item, i) => {
               const override = itemStyles?.[i];
+              const index = items.indexOf(item);
               return (
                 <CommandMenuItemRow
-                  key={item.label}
+                  key={index}
                   style={
                     override ??
                     commandMenuItemStyle(
-                      rowState(
-                        i,
-                        selectedIndex,
-                        highlightedIndex,
-                        pressedIndex,
-                      ),
+                      rowState(index, selected, highlighted, pressed),
                       ctx.itemCtx,
                     )
                   }

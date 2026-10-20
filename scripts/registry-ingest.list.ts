@@ -965,6 +965,8 @@ const DRIFT_TILES = [
   ["Mx", "Mix", "#f1ece2", "#8a5a2b", -692, -125, 41, -71, 214, 1.55],
 ] as const;
 
+const MANUAL_MENU = { autoplay: ["false"] };
+
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   "rgb-glitch-text": {
     controls: {
@@ -1405,12 +1407,46 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
           shortcut: { type: "text", optional: true, description: "Shortcut" },
         },
       },
-      pressedIndex: numberControl(
-        "Press item",
-        -1,
-        { min: -1, max: 20, step: 1 },
-        { help: "The item that gets pressed, counting from 0. -1 presses none." },
-      ),
+      autoplay: {
+        type: "boolean",
+        default: true,
+        description: "Play it out",
+        help: "Opens the menu, types the search, then picks the first match. Off shows one moment you set below.",
+      },
+      query: text("Search", "new"),
+      state: {
+        type: "enum",
+        options: ["opened", "closed"],
+        default: "opened",
+        description: "Menu",
+        labels: { opened: "Open", closed: "Closed" },
+        showIf: MANUAL_MENU,
+      },
+      revealCount: {
+        type: "number",
+        optional: true,
+        min: 0,
+        max: 200,
+        step: 1,
+        description: "Letters typed",
+        emptyLabel: "All",
+        showIf: MANUAL_MENU,
+      },
+      selectedIndex: {
+        ...numberControl("Selected item", -1, { min: -1, max: 20, step: 1 }),
+        help: "Counting from 0. -1 selects none.",
+        showIf: MANUAL_MENU,
+      },
+      highlightedIndex: {
+        ...numberControl("Hovered item", -1, { min: -1, max: 20, step: 1 }),
+        help: "Counting from 0. -1 hovers none.",
+        showIf: MANUAL_MENU,
+      },
+      pressedIndex: {
+        ...numberControl("Press item", -1, { min: -1, max: 20, step: 1 }),
+        help: "The item that gets pressed, counting from 0. -1 presses none.",
+        showIf: MANUAL_MENU,
+      },
     },
     omit: { itemStyles: "internal: per-item animation styles" },
   }),
