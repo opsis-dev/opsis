@@ -581,7 +581,7 @@ function Loyalty({ scene, t }: SceneProps) {
             borderRadius: 8,
             border: "1px solid #e0dce4",
             padding: 14,
-            boxShadow: `${side * 24}px 0 20px ${scene.accent}35`,
+            boxShadow: `${side * 24}px 0 20px color-mix(in srgb, ${scene.accent} 21%, transparent)`,
             transform: `rotate(${side * grow * 14}deg) translateX(${tween(age, 0, 0.4, side * 140, -70)}px)`,
             fontSize: 10,
           }}

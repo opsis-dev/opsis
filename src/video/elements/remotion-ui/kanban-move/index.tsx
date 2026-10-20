@@ -264,9 +264,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
                 background: palette.band,
                 border: `1px solid ${
                   incoming > 0.02
-                    ? `${accentColor}${Math.round(40 + incoming * 120)
-                        .toString(16)
-                        .padStart(2, "0")}`
+                    ? `color-mix(in srgb, ${accentColor} ${((40 + incoming * 120) / 2.55).toFixed(1)}%, transparent)`
                     : palette.border
                 }`,
                 boxShadow: incoming > 0.02
@@ -353,7 +351,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
                 zIndex: lift > 0.01 ? 20 : 1,
                 borderRadius: 11 * u,
                 background: palette.window,
-                border: `1px solid ${lift > 0.05 ? `${tint}66` : palette.border}`,
+                border: `1px solid ${lift > 0.05 ? `color-mix(in srgb, ${tint} 40%, transparent)` : palette.border}`,
                 boxShadow: `inset 0 1px 0 ${palette.highlight}, 0 ${
                   (4 + lift * 20) * u
                 }px ${(10 + lift * 34) * u}px ${palette.shadow}`,

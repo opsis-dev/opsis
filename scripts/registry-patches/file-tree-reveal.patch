@@ -2,10 +2,21 @@ Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 
 diff --git a/src/video/elements/remotion-ui/file-tree-reveal/index.tsx b/src/video/elements/remotion-ui/file-tree-reveal/index.tsx
-index 36269d9..aeb7e16 100644
+index 36269d9..3064989 100644
 --- a/src/video/elements/remotion-ui/file-tree-reveal/index.tsx
 +++ b/src/video/elements/remotion-ui/file-tree-reveal/index.tsx
-@@ -376,7 +376,7 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
+@@ -340,7 +340,9 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
+                   paddingLeft: 8 * u + row.depth * indent,
+                   paddingRight: 10 * u,
+                   borderRadius: 8 * u,
+-                  background: selected ? `${accentColor}${lit > 0.4 ? "1C" : "00"}` : "none",
++                  background: selected
++                    ? `color-mix(in srgb, ${accentColor} ${lit > 0.4 ? 11 : 0}%, transparent)`
++                    : "none",
+                   opacity: rowIn,
+                   overflow: "hidden",
+                 }}
+@@ -376,7 +378,7 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
                  {row.isFolder ? (
                    <FolderGlyph size={16 * u} color={palette.dim} />
                  ) : (

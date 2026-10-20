@@ -3,7 +3,7 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
 diff --git a/src/video/elements/remotion-ui/kanban-move/index.tsx b/src/video/elements/remotion-ui/kanban-move/index.tsx
-index ad3870d..857ca68 100644
+index ad3870d..c552676 100644
 --- a/src/video/elements/remotion-ui/kanban-move/index.tsx
 +++ b/src/video/elements/remotion-ui/kanban-move/index.tsx
 @@ -253,7 +253,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
@@ -15,7 +15,14 @@ index ad3870d..857ca68 100644
                style={{
                  position: "absolute",
                  left: columnX(columnIndex),
-@@ -270,7 +270,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+@@ -264,13 +264,11 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+                 background: palette.band,
+                 border: `1px solid ${
+                   incoming > 0.02
+-                    ? `${accentColor}${Math.round(40 + incoming * 120)
+-                        .toString(16)
+-                        .padStart(2, "0")}`
++                    ? `color-mix(in srgb, ${accentColor} ${((40 + incoming * 120) / 2.55).toFixed(1)}%, transparent)`
                      : palette.border
                  }`,
                  boxShadow: incoming > 0.02
@@ -24,7 +31,7 @@ index ad3870d..857ca68 100644
                    : "none",
                }}
              >
-@@ -342,7 +342,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+@@ -342,7 +340,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
  
            return (
              <div
@@ -33,3 +40,12 @@ index ad3870d..857ca68 100644
                style={{
                  position: "absolute",
                  left: x + 8 * u,
+@@ -353,7 +351,7 @@ export const KanbanMove: React.FC<KanbanMoveProps> = ({
+                 zIndex: lift > 0.01 ? 20 : 1,
+                 borderRadius: 11 * u,
+                 background: palette.window,
+-                border: `1px solid ${lift > 0.05 ? `${tint}66` : palette.border}`,
++                border: `1px solid ${lift > 0.05 ? `color-mix(in srgb, ${tint} 40%, transparent)` : palette.border}`,
+                 boxShadow: `inset 0 1px 0 ${palette.highlight}, 0 ${
+                   (4 + lift * 20) * u
+                 }px ${(10 + lift * 34) * u}px ${palette.shadow}`,

@@ -316,9 +316,9 @@ export const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({
                       width: `${Math.max(ratio, 0.015) * enter * 100}%`,
                       height: "100%",
                       borderRadius: barHeight / 2,
-                      background: `linear-gradient(90deg, ${fill}e6 0%, ${fill} 62%)`,
+                      background: `linear-gradient(90deg, color-mix(in srgb, ${fill} 90%, transparent) 0%, ${fill} 62%)`,
                       boxShadow: isHighlighted
-                        ? `0 0 ${scaleFont(28, width)}px ${fill}44`
+                        ? `0 0 ${scaleFont(28, width)}px color-mix(in srgb, ${fill} 27%, transparent)`
                         : undefined,
                     }}
                   />

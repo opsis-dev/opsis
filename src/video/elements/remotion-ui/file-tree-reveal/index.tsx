@@ -340,7 +340,9 @@ export const FileTreeReveal: React.FC<FileTreeRevealProps> = ({
                   paddingLeft: 8 * u + row.depth * indent,
                   paddingRight: 10 * u,
                   borderRadius: 8 * u,
-                  background: selected ? `${accentColor}${lit > 0.4 ? "1C" : "00"}` : "none",
+                  background: selected
+                    ? `color-mix(in srgb, ${accentColor} ${lit > 0.4 ? 11 : 0}%, transparent)`
+                    : "none",
                   opacity: rowIn,
                   overflow: "hidden",
                 }}

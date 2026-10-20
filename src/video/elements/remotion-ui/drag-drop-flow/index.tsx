@@ -345,9 +345,9 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
           inset: 0,
           background: `radial-gradient(ellipse 60% 55% at ${
             ((stage.x + dropCenter.x) / width) * 100
-          }% ${((stage.y + dropCenter.y) / height) * 100}%, ${accentColor}${
-            zoneArmed ? "22" : "10"
-          }, transparent 70%)`,
+          }% ${((stage.y + dropCenter.y) / height) * 100}%, color-mix(in srgb, ${accentColor} ${
+            zoneArmed ? 13 : 6
+          }%, transparent), transparent 70%)`,
         }}
       />
 
@@ -470,9 +470,9 @@ export const DragDropFlow: React.FC<DragDropFlowProps> = ({
               zoneArmed ? accentColor : palette.border
             }`,
             background: zoneArmed
-              ? `linear-gradient(180deg, ${accentColor}${
-                  released ? "0C" : "16"
-                }, transparent 72%)`
+              ? `linear-gradient(180deg, color-mix(in srgb, ${accentColor} ${
+                  released ? 5 : 9
+                }%, transparent), transparent 72%)`
               : palette.band,
             boxShadow: `0 0 ${
               52 * u * Math.max(armed, released ? 0.3 : 0)
