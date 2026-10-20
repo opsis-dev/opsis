@@ -134,6 +134,16 @@ describe("browser action settings", () => {
     expect(problem("")).toBe("Add points to the path");
   });
 
+  it("asks where to drop an element", () => {
+    expect(parseParams(dragNode.params, { target: "Card", mode: "element", to: "" })).toEqual({
+      ok: false,
+      problem: "Pick where to drop it",
+    });
+    expect(parseParams(dragNode.params, { target: "Card", mode: "element", to: "Done" }).ok).toBe(
+      true,
+    );
+  });
+
   it("asks for the option to choose", () => {
     expect(parseParams(selectNode.params, { target: "Plan", value: "" })).toEqual({
       ok: false,

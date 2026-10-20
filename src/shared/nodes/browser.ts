@@ -316,6 +316,8 @@ const dragParams = z
   .superRefine((p, ctx) => {
     const path = p.mode === "path" ? readPath(p.path) : null;
     if (path && !path.ok) ctx.addIssue({ code: "custom", message: path.problem, path: ["path"] });
+    if (p.mode === "element" && !p.to.trim())
+      ctx.addIssue({ code: "custom", message: "Pick where to drop it", path: ["to"] });
   });
 
 type DropParams = Pick<z.infer<typeof dragParams>, "mode" | "to" | "toRole" | "dx" | "dy" | "path">;
