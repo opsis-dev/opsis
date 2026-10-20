@@ -64,3 +64,18 @@ describe("sound from a connected file", () => {
     expect(text(image)).toBe("The connected file has no sound");
   });
 });
+
+describe("chosen sound and a connected file", () => {
+  it("says the connected file plays instead of the chosen sound", () => {
+    const tone = { type: "media", src: "project:tone.wav", kind: "audio", hasAudio: true } as const;
+    const [first] = nodeCard(
+      "audio.sfx",
+      { src: BUILTIN_SOUNDS[0].ref },
+      { connected: ["media"], inputMedia: { media: tone } },
+    );
+    expect(first).toMatchObject({
+      text: `Plays the connected file, not “${BUILTIN_SOUNDS[0].label}”`,
+      tone: "warn",
+    });
+  });
+});

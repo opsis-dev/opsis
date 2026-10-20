@@ -10,7 +10,16 @@ import { builtinSound } from "../sounds";
 import { hasKeys } from "../timeline/envelope";
 import { flattenSpec } from "../timeline/flatten";
 import { msToFrames, msToSignedFrames } from "../timeline/time";
-import { type CardContext, fileRow, missing, row, warnIf, type CardRow } from "./card";
+import {
+  type CardContext,
+  fileRow,
+  LABELLED_TEXT_MAX,
+  missing,
+  quote,
+  row,
+  warnIf,
+  type CardRow,
+} from "./card";
 import { defineNode, many, nodeBase, opt, port, withClip, type CompileOutputs } from "./define";
 import type { NodeIconName } from "./icon-name";
 import { mediaInput } from "./media";
@@ -75,10 +84,16 @@ function sourceRow(icon: NodeIconName, src: string, card: SourceCard, empty: str
   const media = card.inputMedia?.media;
   if (media && (media.kind === "image" || media.hasAudio === false))
     return missing(icon, "The connected file has no sound");
-  if (src) return fileRow(icon, src, builtinSound(src)?.label ?? baseName(src));
-  return card.connected.includes("media")
-    ? row(icon, "From the connected file")
-    : missing(icon, empty);
+  const chosen = src && (builtinSound(src)?.label ?? baseName(src));
+  if (card.connected.includes("media"))
+    return chosen
+      ? row(icon, `Plays the connected file, not ${quote(chosen, LABELLED_TEXT_MAX)}`, {
+          tone: "warn",
+          title:
+            "A connected file takes the place of the chosen sound. Disconnect it to use the sound.",
+        })
+      : row(icon, "From the connected file");
+  return chosen ? fileRow(icon, src, chosen) : missing(icon, empty);
 }
 
 type MusicTimingParams = {
