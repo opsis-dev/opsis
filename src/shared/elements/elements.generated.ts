@@ -1740,7 +1740,7 @@ const defs: ElementMetaInput[] = [
       to: z.enum(["circle","square","squircle","triangle","diamond","blob"]).default("squircle").meta({ description: "To", help: "Shape it has become once it covers the frame." }),
       originX: z.number().default(0.5).meta({ description: "Horizontal origin", step: 0.01, help: "Where the shape grows from, 0→1 of the frame width.", advanced: true }),
       originY: z.number().default(0.5).meta({ description: "Vertical origin", step: 0.01, help: "Where the shape grows from, 0→1 of the frame height.", advanced: true }),
-      overshoot: z.number().default(1.06).meta({ description: "Overshoot", step: 0.1, help: "Final size as a multiple of the frame diagonal. Below 1 leaves corners unrevealed.", advanced: true }),
+      overshoot: z.number().min(0.8).max(3).optional().meta({ description: "Overshoot", zeroLabel: "Fit the shape", step: 0.05, help: "Final size as a multiple of the frame diagonal. Leave empty to grow each shape until it covers the frame.", advanced: true }),
       warp: z.number().default(0).meta({ description: "Warp", help: "0 keeps the silhouette crisp.", advanced: true }),
     }),
     fixedProps: {},

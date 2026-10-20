@@ -975,6 +975,19 @@ const MANUAL_MENU = { autoplay: ["false"] };
 const WRITTEN_PRESETS = ["marker", "color", "underline", "strikethrough", "shimmer"];
 
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "transition-morph-shape": {
+    controls: {
+      overshoot: optionalNumber(
+        "Overshoot",
+        { min: 0.8, max: 3, step: 0.05 },
+        {
+          emptyLabel: "Fit the shape",
+          help: "Final size as a multiple of the frame diagonal. Leave empty to grow each shape until it covers the frame.",
+          advanced: true,
+        },
+      ),
+    },
+  },
   "announce-title": {
     controls: {
       symbolColors: {
