@@ -1014,6 +1014,7 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   "scribble-circle": { omit: { release: "internal: how the stroke lifts off at the end" } },
   keystroke: {
     controls: {
+      ...spotControls("Where", 0.5, 0.86),
       steps: {
         type: "rows",
         description: "Keys",
