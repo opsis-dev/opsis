@@ -3,7 +3,7 @@ import { soundLength } from "../audio";
 import { emptyClip } from "../compile/clip";
 import type { AudioItem } from "../schema/timeline";
 import { BUILTIN_SOUNDS } from "../sounds";
-import { compileClip, compileNode } from "../test-fixtures";
+import { compileClip, compileNode, nodeCard } from "../test-fixtures";
 
 const sfxItem = (params: Record<string, unknown>): AudioItem => {
   const audio = compileNode("audio.sfx", params).audio;
@@ -37,5 +37,30 @@ describe("Add sound", () => {
     expect(sounds(1000)).toBe(1);
     expect(sounds(3000)).toBe(0);
     expect(sounds(5000)).toBe(0);
+  });
+});
+
+describe("sound from a connected file", () => {
+  const silentVideo = {
+    type: "media",
+    src: "project:a.mp4",
+    kind: "video",
+    hasAudio: false,
+  } as const;
+  const image = { type: "media", src: "project:a.png", kind: "image" } as const;
+
+  it("adds no sound from a file that has none", () => {
+    for (const media of [silentVideo, image])
+      for (const type of ["audio.music", "audio.sfx"]) {
+        const audio = compileNode(type, {}, { media }).audio;
+        expect(audio?.type === "audio" ? audio.items : null).toEqual([]);
+      }
+  });
+
+  it("says so on the card", () => {
+    const text = (media: typeof silentVideo | typeof image) =>
+      nodeCard("audio.music", {}, { connected: ["media"], inputMedia: { media } })[0].text;
+    expect(text(silentVideo)).toBe("The connected file has no sound");
+    expect(text(image)).toBe("The connected file has no sound");
   });
 });

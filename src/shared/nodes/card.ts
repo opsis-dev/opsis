@@ -2,7 +2,7 @@ import { baseName } from "../asset-ref";
 import { formatDuration, percentText } from "../format";
 import { nonBlankString } from "../guards";
 import type { PickedRole } from "../interactive";
-import type { NodeResult } from "../schema/values";
+import type { MediaValue, NodeResult } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { framesToMs } from "../timeline/time";
 import type { NodeIconName } from "./icon-name";
@@ -25,6 +25,7 @@ export type CardContext<P> = {
   inputFrames?: Partial<Record<string, number>>;
   inputItems?: Partial<Record<string, number>>;
   inputTakes?: Partial<Record<string, InputTake>>;
+  inputMedia?: Partial<Record<string, Pick<MediaValue, "kind" | "hasAudio">>>;
 };
 
 export type InputTake = { durationMs: number; cursorTrack: boolean } | null;

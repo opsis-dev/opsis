@@ -10,7 +10,7 @@ import { builtinSound } from "../sounds";
 import { hasKeys } from "../timeline/envelope";
 import { flattenSpec } from "../timeline/flatten";
 import { msToFrames, msToSignedFrames } from "../timeline/time";
-import { fileRow, missing, row, warnIf, type CardRow } from "./card";
+import { type CardContext, fileRow, missing, row, warnIf, type CardRow } from "./card";
 import { defineNode, many, nodeBase, opt, port, withClip, type CompileOutputs } from "./define";
 import type { NodeIconName } from "./icon-name";
 import { mediaInput } from "./media";
@@ -32,8 +32,9 @@ const withSource = (
   build: (src: string, media: MediaValue | undefined) => CompileOutputs,
 ): CompileOutputs => {
   const media = mediaInput(input);
+  const silent = media && (media.kind === "image" || media.hasAudio === false);
   const src = media?.src ?? (path ? projectRef(path) : null);
-  return src ? build(src, media) : { audio: { type: "audio", items: [] } };
+  return src && !silent ? build(src, media) : { audio: { type: "audio", items: [] } };
 };
 
 type SoundParams = { volume: number; envelope: AudioEnvelope };
@@ -68,9 +69,16 @@ const framesIfSet = (durationMs: number, fps: number): number | undefined =>
 const offsetLabel = (offsetMs: number): string =>
   offsetMs ? ` ${signOf(offsetMs, true)}${formatDuration(Math.abs(offsetMs))}` : "";
 
-function sourceRow(icon: NodeIconName, src: string, connected: string[], empty: string): CardRow {
+type SourceCard = Pick<CardContext<unknown>, "connected" | "inputMedia">;
+
+function sourceRow(icon: NodeIconName, src: string, card: SourceCard, empty: string): CardRow {
+  const media = card.inputMedia?.media;
+  if (media && (media.kind === "image" || media.hasAudio === false))
+    return missing(icon, "The connected file has no sound");
   if (src) return fileRow(icon, src, builtinSound(src)?.label ?? baseName(src));
-  return connected.includes("media") ? row(icon, "From the connected file") : missing(icon, empty);
+  return card.connected.includes("media")
+    ? row(icon, "From the connected file")
+    : missing(icon, empty);
 }
 
 type MusicTimingParams = {
@@ -110,8 +118,8 @@ const musicNode = defineNode({
   type: "audio.music",
   title: "Music",
   description: "Background music under the video, with fades.",
-  card: ({ params: p, connected }) => [
-    sourceRow("music", p.src, connected, "Choose a song"),
+  card: ({ params: p, ...card }) => [
+    sourceRow("music", p.src, card, "Choose a song"),
     row("volume-2", percentText(p.volume)),
     p.loop && row("repeat", "Loops"),
     p.lengthMs > 0 && row("clock", `Plays for ${formatDuration(p.lengthMs)}`),
@@ -168,8 +176,8 @@ const sfxNode = defineNode({
   type: "audio.sfx",
   title: "Sound effect",
   description: "A sound at a set time.",
-  card: ({ params: p, connected }) => [
-    sourceRow("audio-lines", p.src, connected, "Choose a sound"),
+  card: ({ params: p, ...card }) => [
+    sourceRow("audio-lines", p.src, card, "Choose a sound"),
     p.atAction
       ? row("mouse-pointer-click", `On an action${offsetLabel(p.offsetMs)}`)
       : row("clock", `At ${formatDuration(p.atMs)}`),

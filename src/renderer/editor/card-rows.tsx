@@ -4,7 +4,7 @@ import { cn } from "@/renderer/lib/utils";
 import { inputTake, isClip, sceneItemCount } from "@/shared/compile/clip";
 import { errorMessage } from "@/shared/errors";
 import { uniqueKeys } from "@/shared/lists";
-import type { CardRow, InputTake } from "@/shared/nodes/card";
+import type { CardContext, CardRow, InputTake } from "@/shared/nodes/card";
 import { cardParams, cardRows, type NodeDef } from "@/shared/nodes/define";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { workflowVars } from "@/shared/vars";
@@ -34,19 +34,21 @@ function useCardInputs(node: WorkflowNode) {
   const clip = compiled?.values[node.id]?.clip;
   const clipFrames = isClip(clip) ? clip.durationInFrames : undefined;
   const connected = useMemo(() => incoming.map((e) => e.targetHandle), [incoming]);
-  const { inputFrames, inputItems, inputTakes } = useMemo(() => {
+  const { inputFrames, inputItems, inputTakes, inputMedia } = useMemo(() => {
     const frames: Partial<Record<string, number>> = {};
     const items: Partial<Record<string, number>> = {};
     const takes: Partial<Record<string, InputTake>> = {};
+    const media: NonNullable<CardContext<unknown>["inputMedia"]> = {};
     for (const e of incoming) {
       const v = compiled?.values[e.source]?.[e.sourceHandle];
+      if (v?.type === "media") media[e.targetHandle] = { kind: v.kind, hasAudio: v.hasAudio };
       if (!isClip(v)) continue;
       frames[e.targetHandle] = v.durationInFrames;
       items[e.targetHandle] = sceneItemCount(v);
       const take = inputTake(v);
       if (take !== undefined) takes[e.targetHandle] = take;
     }
-    return { inputFrames: frames, inputItems: items, inputTakes: takes };
+    return { inputFrames: frames, inputItems: items, inputTakes: takes, inputMedia: media };
   }, [incoming, compiled]);
   return useMemo(
     () => ({
@@ -60,6 +62,7 @@ function useCardInputs(node: WorkflowNode) {
         inputFrames,
         inputItems,
         inputTakes,
+        inputMedia,
       },
     }),
     [
@@ -73,6 +76,7 @@ function useCardInputs(node: WorkflowNode) {
       inputFrames,
       inputItems,
       inputTakes,
+      inputMedia,
     ],
   );
 }
