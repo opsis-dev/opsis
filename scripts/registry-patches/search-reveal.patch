@@ -1,11 +1,12 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Take the font as a prop following the project font, keep the field text at a readable minimum size, and show the newest letters when the search is longer than the field.
 
 diff --git a/src/video/elements/remocn/search-reveal.tsx b/src/video/elements/remocn/search-reveal.tsx
-index 2ec9339..006f912 100644
+index 2ec9339..fa0223e 100644
 --- a/src/video/elements/remocn/search-reveal.tsx
 +++ b/src/video/elements/remocn/search-reveal.tsx
-@@ -2,9 +2,8 @@ import {
+@@ -2,12 +2,12 @@ import {
    AbsoluteFill,
    Easing,
    interpolate,
@@ -16,7 +17,27 @@ index 2ec9339..006f912 100644
  
  export type SearchRevealProps = {
    text?: string;
-@@ -121,8 +120,8 @@ export function SearchReveal({
++  fontFamily?: string;
+   fieldWidth?: number;
+   fontSize?: number;
+   framesPerCharacter?: number;
+@@ -25,6 +25,7 @@ export type SearchRevealProps = {
+ };
+ 
+ export const searchRevealLength = 90;
++const MIN_FIELD_FONT = 16;
+ const finite = (value: number | undefined, fallback: number) =>
+   typeof value === "number" && Number.isFinite(value) ? value : fallback;
+ const clamp = (value: number, min: number, max: number) =>
+@@ -106,6 +107,7 @@ function Cross({ x, y, size = 9 }: { x: number; y: number; size?: number }) {
+ /** A video scene: expanding construction circles, a search pill, and typed copy. */
+ export function SearchReveal({
+   text = "remocn",
++  fontFamily = "var(--font-geist-sans), sans-serif",
+   fieldWidth = 464,
+   fontSize = 34,
+   framesPerCharacter = 4,
+@@ -121,8 +123,8 @@ export function SearchReveal({
    reducedMotion = false,
    className,
  }: SearchRevealProps) {
@@ -27,3 +48,40 @@ index 2ec9339..006f912 100644
    const state = getSearchRevealState((frame * 30) / fps, {
      text,
      fieldWidth,
+@@ -132,10 +134,15 @@ export function SearchReveal({
+     reducedMotion,
+   });
+   const scale = Math.min(width / 1280, height / 720);
+-  const fittedFont = Math.min(
+-    clamp(finite(fontSize, 34), 18, 54),
+-    (state.fieldWidth - 120) / Math.max(1, letters(text).length * 0.65),
++  const fittedFont = Math.max(
++    MIN_FIELD_FONT,
++    Math.min(
++      clamp(finite(fontSize, 34), 18, 54),
++      (state.fieldWidth - 120) / Math.max(1, letters(text).length * 0.65),
++    ),
+   );
++  const typedOverflows =
++    letters(state.text).length * 0.65 * fittedFont > state.fieldWidth - 120;
+   const markerWidth = showPanel ? state.panelWidth : state.fieldWidth;
+   const markerHeight = showPanel ? state.panelHeight : state.fieldHeight;
+ 
+@@ -312,7 +319,7 @@ export function SearchReveal({
+                 justifyContent: "center",
+                 overflow: "hidden",
+                 color,
+-                fontFamily: "Arial, Helvetica, sans-serif",
++                fontFamily,
+                 fontSize: fittedFont,
+                 fontWeight: 400,
+               }}
+@@ -321,7 +328,7 @@ export function SearchReveal({
+                 style={{
+                   display: "flex",
+                   alignItems: "center",
+-                  justifyContent: "center",
++                  justifyContent: typedOverflows ? "flex-end" : "center",
+                   maxWidth: state.fieldWidth - 116,
+                   overflow: "hidden",
+                   whiteSpace: "pre",

@@ -1126,6 +1126,7 @@ const defs: ElementMetaInput[] = [
       accentColor: zColor().default("#e8f99a").meta({ description: "Graphic accents" }),
       backgroundColor: zColor().default("#f5f1f5").meta({ description: "Background" }),
       reducedMotion: z.boolean().default(false).meta({ description: "Static final pose" }),
+      fontFamily: z.string().default("").meta({ description: "Font", widget: "font", help: "Project font follows the fonts set for the whole project." }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25 }),
     }),
     fixedProps: {},

@@ -7,6 +7,7 @@ import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock
 
 export type SearchRevealProps = {
   text?: string;
+  fontFamily?: string;
   fieldWidth?: number;
   fontSize?: number;
   framesPerCharacter?: number;
@@ -24,6 +25,7 @@ export type SearchRevealProps = {
 };
 
 export const searchRevealLength = 90;
+const MIN_FIELD_FONT = 16;
 const finite = (value: number | undefined, fallback: number) =>
   typeof value === "number" && Number.isFinite(value) ? value : fallback;
 const clamp = (value: number, min: number, max: number) =>
@@ -105,6 +107,7 @@ function Cross({ x, y, size = 9 }: { x: number; y: number; size?: number }) {
 /** A video scene: expanding construction circles, a search pill, and typed copy. */
 export function SearchReveal({
   text = "remocn",
+  fontFamily = "var(--font-geist-sans), sans-serif",
   fieldWidth = 464,
   fontSize = 34,
   framesPerCharacter = 4,
@@ -131,10 +134,15 @@ export function SearchReveal({
     reducedMotion,
   });
   const scale = Math.min(width / 1280, height / 720);
-  const fittedFont = Math.min(
-    clamp(finite(fontSize, 34), 18, 54),
-    (state.fieldWidth - 120) / Math.max(1, letters(text).length * 0.65),
+  const fittedFont = Math.max(
+    MIN_FIELD_FONT,
+    Math.min(
+      clamp(finite(fontSize, 34), 18, 54),
+      (state.fieldWidth - 120) / Math.max(1, letters(text).length * 0.65),
+    ),
   );
+  const typedOverflows =
+    letters(state.text).length * 0.65 * fittedFont > state.fieldWidth - 120;
   const markerWidth = showPanel ? state.panelWidth : state.fieldWidth;
   const markerHeight = showPanel ? state.panelHeight : state.fieldHeight;
 
@@ -311,7 +319,7 @@ export function SearchReveal({
                 justifyContent: "center",
                 overflow: "hidden",
                 color,
-                fontFamily: "Arial, Helvetica, sans-serif",
+                fontFamily,
                 fontSize: fittedFont,
                 fontWeight: 400,
               }}
@@ -320,7 +328,7 @@ export function SearchReveal({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
+                  justifyContent: typedOverflows ? "flex-end" : "center",
                   maxWidth: state.fieldWidth - 116,
                   overflow: "hidden",
                   whiteSpace: "pre",
