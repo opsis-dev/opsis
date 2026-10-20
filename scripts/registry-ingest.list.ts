@@ -638,6 +638,7 @@ const NEUTRAL_DEFAULTS: Partial<Record<string, Record<string, unknown>>> = {
     chips: "Record, Auto zoom, Captions, Export, Share",
   },
   "logo-assemble": {
+    background: "",
     brandName: "Acme",
     middleText: "Product demos, made simple",
     logoSrc: "app:placeholders/logo-mark.svg",
