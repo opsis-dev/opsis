@@ -47,7 +47,9 @@ export function Typewriter({
           color,
           letterSpacing: "-0.03em",
           fontFamily,
-          whiteSpace: "pre",
+          whiteSpace: "pre-wrap",
+          maxWidth: "90%",
+          textAlign: "center",
         }}
       >
         {tw.text}

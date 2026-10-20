@@ -996,7 +996,20 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
       },
     },
   },
-  "word-push": { controls: { fontWeight: fontWeight(400) } },
+  "word-push": { controls: { fontWeight: fontWeight(400) }, design: FULL_HD },
+  "kinetic-center-build": { design: FULL_HD },
+  "tracking-in": { design: FULL_HD },
+  "strikethrough-replace": { design: FULL_HD },
+  typewriter: {
+    controls: {
+      text: {
+        type: "text",
+        default: "console.log('hello, world')",
+        description: "Text",
+        widget: "textarea",
+      },
+    },
+  },
   "gradient-scale-cut-text": { controls: { fontWeight: fontWeight(700) }, design: FULL_HD },
   "scribble-circle": { omit: { release: "internal: how the stroke lifts off at the end" } },
   keystroke: {

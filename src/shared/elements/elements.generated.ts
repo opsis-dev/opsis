@@ -32,7 +32,7 @@ const defs: ElementMetaInput[] = [
     kind: "component",
     source: { registry: "Remocn", url: "https://remocn.dev/docs/components/typewriter", license: "MIT" },
     schema: z.object({
-      text: z.string().default("console.log('hello, world')").meta({ description: "Text" }),
+      text: z.string().default("console.log('hello, world')").meta({ description: "Text", widget: "textarea" }),
       cursor: z.boolean().default(true).meta({ description: "Show cursor" }),
       charsPerSecond: z.number().min(4).max(60).default(22).meta({ description: "Chars / sec", step: 1 }),
       fontSize: z.number().min(12).max(160).default(72).meta({ description: "Font size", step: 1 }),
@@ -147,6 +147,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 60,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/mask-reveal-up",
@@ -188,6 +189,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 90,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/word-push",
@@ -209,6 +211,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 90,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/rgb-glitch-text",
@@ -284,6 +287,7 @@ const defs: ElementMetaInput[] = [
     }),
     fixedProps: {},
     defaultDurationInFrames: 120,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/line-by-line-slide",

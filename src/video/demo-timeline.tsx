@@ -280,7 +280,9 @@ const DesignBox: Wrap<{ design?: Size; fill?: boolean }> = ({ design, fill, chil
   const { width, height } = useVideoConfig();
   if (!design || (width === design.width && height === design.height)) return <>{children}</>;
   const scale = Math.min(width / design.width, height / design.height);
-  const box = fill ? { width: width / scale, height: height / scale } : design;
+  const box = fill
+    ? { width: Math.ceil(width / scale), height: Math.ceil(height / scale) }
+    : design;
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
       <div
