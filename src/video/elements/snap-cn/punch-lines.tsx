@@ -6,9 +6,8 @@ import {
   delayRender,
   Easing,
   getRemotionEnvironment,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   Item,
   resolveFont,
@@ -403,8 +402,8 @@ export function PunchLines({
   speed = 1,
   className,
 }: PunchLinesProps) {
-  const frame = useCurrentFrame() * speed;
-  const { width, fps } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { width, fps } = useAuthoredConfig();
   const t = useSnapCnTheme(theme, mode);
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
   // A card is a full-bleed page, so it takes the page's own two colours rather

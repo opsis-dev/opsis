@@ -1,0 +1,29 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/snap-cn/logo-drift.tsx b/src/video/elements/snap-cn/logo-drift.tsx
+index b45559a..92e5920 100644
+--- a/src/video/elements/snap-cn/logo-drift.tsx
++++ b/src/video/elements/snap-cn/logo-drift.tsx
+@@ -4,9 +4,8 @@ import {
+   Easing,
+   getRemotionEnvironment,
+   interpolate,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ import {
+   Item,
+   mixOklch,
+@@ -414,8 +413,8 @@ export function LogoDrift({
+   fontFamily,
+   speed = 1,
+ }: LogoDriftProps) {
+-  const frame = useCurrentFrame();
+-  const { width, height, fps } = useVideoConfig();
++  const frame = useAuthoredFrame();
++  const { width, height, fps } = useAuthoredConfig();
+   const t = useSnapCnTheme(theme, mode);
+   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
+   const accent = accentColor ?? t.primary;

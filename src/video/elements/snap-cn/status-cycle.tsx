@@ -8,9 +8,8 @@ import {
   getRemotionEnvironment,
   interpolate,
   spring,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   Item,
   mixOklch,
@@ -376,8 +375,8 @@ export function StatusCycle({
   theme,
   mode,
 }: StatusCycleProps) {
-  const frame = useCurrentFrame() * speed - startAt;
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed - startAt;
+  const { fps, width, height } = useAuthoredConfig();
   const t = useSnapCnTheme(theme, mode);
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
 

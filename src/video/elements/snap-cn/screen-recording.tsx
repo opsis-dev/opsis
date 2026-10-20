@@ -7,9 +7,9 @@ import {
   interpolate,
   OffthreadVideo,
   staticFile,
-  useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import { type SnapCnTheme, useSnapCnTheme } from "@/video/lib/snap-cn-ui";
 
 export type ScreenRecordingFit = "cover" | "contain";
@@ -455,7 +455,7 @@ export function ScreenRecording({
   speed = 1,
   className,
 }: ScreenRecordingProps) {
-  const frame = useCurrentFrame() * speed;
+  const frame = useAuthoredFrame() * speed;
   const t = useSnapCnTheme(theme, mode);
   const { width, height } = useVideoConfig();
   const isRendering = getRemotionEnvironment().isRendering;

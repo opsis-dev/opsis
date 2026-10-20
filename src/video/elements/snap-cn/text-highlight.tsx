@@ -6,9 +6,8 @@ import {
   interpolateColors,
   spring,
   staticFile,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   parseColor,
   resolveFont,
@@ -401,8 +400,8 @@ export function TextHighlight({
   speed = 1,
   className,
 }: TextHighlightProps) {
-  const frame = useCurrentFrame() * speed;
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { fps, width, height } = useAuthoredConfig();
   const t = useSnapCnTheme(theme, mode);
   const face =
     resolveFont(fontFamily ?? t.fontFamily) ??

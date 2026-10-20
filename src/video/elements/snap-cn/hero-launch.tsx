@@ -9,9 +9,8 @@ import {
   interpolate,
   OffthreadVideo,
   staticFile,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   Item,
   mixOklch,
@@ -170,8 +169,8 @@ export function HeroLaunch({
   mode,
   fontFamily,
 }: HeroLaunchProps) {
-  const frame = useCurrentFrame();
-  const { width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height } = useAuthoredConfig();
   const t = useSnapCnTheme(theme, mode ?? "dark");
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
   const s = height / 720;

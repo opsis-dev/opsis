@@ -1,0 +1,36 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/snap-cn/laptop-frame.tsx b/src/video/elements/snap-cn/laptop-frame.tsx
+index a727915..78fb14c 100644
+--- a/src/video/elements/snap-cn/laptop-frame.tsx
++++ b/src/video/elements/snap-cn/laptop-frame.tsx
+@@ -6,9 +6,8 @@ import {
+   interpolate,
+   OffthreadVideo,
+   staticFile,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ import {
+   mixOklch,
+   resolveFont,
+@@ -716,7 +715,7 @@ export function LaptopFrame({
+   speed = 1,
+   className,
+ }: LaptopFrameProps) {
+-  const frame = useCurrentFrame() * speed;
++  const frame = useAuthoredFrame() * speed;
+   // The screen shows an app, so it follows the app theme. The lid, the notch
+   // and the drop shadow are a physical object photographed on a desk: they take
+   // the dark end of the system whatever mode the screen is in.
+@@ -726,7 +725,7 @@ export function LaptopFrame({
+   const lid = bezelColor ?? mixOklch(shell.background, shell.foreground, 0.09);
+   const glass = screenColor ?? t.card;
+   const drop = shadow ?? `0 40px 80px ${withAlpha(shell.background, 0.45)}`;
+-  const { fps, width, height } = useVideoConfig();
++  const { fps, width, height } = useAuthoredConfig();
+   const isRendering = getRemotionEnvironment().isRendering;
+ 
+   const pose = entrancePose(frame, entrance);

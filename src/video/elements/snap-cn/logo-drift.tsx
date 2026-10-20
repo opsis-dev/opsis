@@ -4,9 +4,8 @@ import {
   Easing,
   getRemotionEnvironment,
   interpolate,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   Item,
   mixOklch,
@@ -414,8 +413,8 @@ export function LogoDrift({
   fontFamily,
   speed = 1,
 }: LogoDriftProps) {
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height, fps } = useAuthoredConfig();
   const t = useSnapCnTheme(theme, mode);
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
   const accent = accentColor ?? t.primary;

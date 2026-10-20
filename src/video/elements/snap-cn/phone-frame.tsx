@@ -6,9 +6,8 @@ import {
   interpolate,
   OffthreadVideo,
   staticFile,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   resolveFont,
   type SnapCnTheme,
@@ -971,8 +970,8 @@ export function PhoneFrame({
   speed = 1,
   className,
 }: PhoneFrameProps) {
-  const frame = useCurrentFrame() * speed;
-  const { fps, durationInFrames } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { fps, durationInFrames } = useAuthoredConfig();
   // The screen carries the app, so it follows the app theme. The body and the
   // Dynamic Island are a physical object: they take the dark end of the system
   // whatever mode the screen is in.

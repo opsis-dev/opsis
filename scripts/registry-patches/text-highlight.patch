@@ -1,0 +1,29 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/snap-cn/text-highlight.tsx b/src/video/elements/snap-cn/text-highlight.tsx
+index 2838e7e..d77258f 100644
+--- a/src/video/elements/snap-cn/text-highlight.tsx
++++ b/src/video/elements/snap-cn/text-highlight.tsx
+@@ -6,9 +6,8 @@ import {
+   interpolateColors,
+   spring,
+   staticFile,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ import {
+   parseColor,
+   resolveFont,
+@@ -401,8 +400,8 @@ export function TextHighlight({
+   speed = 1,
+   className,
+ }: TextHighlightProps) {
+-  const frame = useCurrentFrame() * speed;
+-  const { fps, width, height } = useVideoConfig();
++  const frame = useAuthoredFrame() * speed;
++  const { fps, width, height } = useAuthoredConfig();
+   const t = useSnapCnTheme(theme, mode);
+   const face =
+     resolveFont(fontFamily ?? t.fontFamily) ??

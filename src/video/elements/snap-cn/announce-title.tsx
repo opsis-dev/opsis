@@ -6,9 +6,8 @@ import {
   continueRender,
   delayRender,
   getRemotionEnvironment,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   resolveFont,
   SnapCnUIProvider,
@@ -1120,8 +1119,8 @@ export function AnnounceTitle({
   speed = 1,
 }: AnnounceTitleProps) {
   const face = resolveFont(fontFamily) ?? SANS;
-  const frame = useCurrentFrame() * speed;
-  const { width, height } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { width, height } = useAuthoredConfig();
 
   const symbol: SymbolStyle = {
     path: symbolPath,

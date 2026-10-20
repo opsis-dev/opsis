@@ -4,9 +4,8 @@ import {
   Img,
   interpolate,
   staticFile,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   Item,
   mixOklch,
@@ -208,8 +207,8 @@ export function LogoAssemble({
   mode,
   fontFamily,
 }: LogoAssembleProps) {
-  const frame = useCurrentFrame() * speed;
-  const { width, height } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { width, height } = useAuthoredConfig();
   const t = useSnapCnTheme(theme, mode ?? "dark");
   const face = resolveFont(fontFamily ?? t.fontFamily) ?? FONT_FAMILY;
   const stage = background ?? t.background;

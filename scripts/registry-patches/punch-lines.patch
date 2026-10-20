@@ -1,0 +1,29 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/snap-cn/punch-lines.tsx b/src/video/elements/snap-cn/punch-lines.tsx
+index b32d7e8..5ca70d0 100644
+--- a/src/video/elements/snap-cn/punch-lines.tsx
++++ b/src/video/elements/snap-cn/punch-lines.tsx
+@@ -6,9 +6,8 @@ import {
+   delayRender,
+   Easing,
+   getRemotionEnvironment,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ import {
+   Item,
+   resolveFont,
+@@ -403,8 +402,8 @@ export function PunchLines({
+   speed = 1,
+   className,
+ }: PunchLinesProps) {
+-  const frame = useCurrentFrame() * speed;
+-  const { width, fps } = useVideoConfig();
++  const frame = useAuthoredFrame() * speed;
++  const { width, fps } = useAuthoredConfig();
+   const t = useSnapCnTheme(theme, mode);
+   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
+   // A card is a full-bleed page, so it takes the page's own two colours rather

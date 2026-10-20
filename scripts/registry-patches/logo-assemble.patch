@@ -1,0 +1,29 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/snap-cn/logo-assemble.tsx b/src/video/elements/snap-cn/logo-assemble.tsx
+index 027a7f4..61e3eb0 100644
+--- a/src/video/elements/snap-cn/logo-assemble.tsx
++++ b/src/video/elements/snap-cn/logo-assemble.tsx
+@@ -4,9 +4,8 @@ import {
+   Img,
+   interpolate,
+   staticFile,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ import {
+   Item,
+   mixOklch,
+@@ -208,8 +207,8 @@ export function LogoAssemble({
+   mode,
+   fontFamily,
+ }: LogoAssembleProps) {
+-  const frame = useCurrentFrame() * speed;
+-  const { width, height } = useVideoConfig();
++  const frame = useAuthoredFrame() * speed;
++  const { width, height } = useAuthoredConfig();
+   const t = useSnapCnTheme(theme, mode ?? "dark");
+   const face = resolveFont(fontFamily ?? t.fontFamily) ?? FONT_FAMILY;
+   const stage = background ?? t.background;

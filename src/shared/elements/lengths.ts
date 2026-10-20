@@ -3,9 +3,12 @@ import type { ElementMeta } from "./types";
 
 type Settings = Record<string, unknown>;
 
-type Timing = { unit: "frames" | "seconds"; end: (s: Settings, fps: number) => number };
+type Timing = {
+  unit: "frames" | "authored" | "seconds";
+  end: (s: Settings, fps: number) => number;
+};
 
-const AUTHORED_FPS = 30;
+export const AUTHORED_FPS = 30;
 
 const num = (value: unknown, fallback: number): number =>
   isNumber(value) && Number.isFinite(value) ? value : fallback;
@@ -33,6 +36,8 @@ const commaList = (text: string): string[] =>
 const frames = (end: Timing["end"]): Timing => ({ unit: "frames", end });
 
 const seconds = (end: (s: Settings) => number): Timing => ({ unit: "seconds", end });
+
+const authored = (end: (s: Settings) => number): Timing => ({ unit: "authored", end });
 
 function wordPushEnd(text: string, wordGap: number, accel: number): number {
   const count = words(text);
@@ -326,14 +331,14 @@ const ELEMENT_TIMINGS: Partial<Record<string, Timing>> = {
       Math.max(1, list(s.commits).length - 1) * num(s.stepSeconds, 0.36),
   ),
   "remotion-ui/notification-stack": seconds(notificationEnd),
-  "snapcn/punch-lines": frames(punchLinesEnd),
-  "snapcn/status-cycle": frames(
+  "snapcn/punch-lines": authored(punchLinesEnd),
+  "snapcn/status-cycle": authored(
     (s) =>
       num(s.startAt, 0) +
       num(s.introFrames, 24) +
       lastIndex(commaList(str(s.statuses)).length) * num(s.statusHold, 30),
   ),
-  "snapcn/text-highlight": frames(
+  "snapcn/text-highlight": authored(
     (s) =>
       num(s.startAt, 6) +
       num(s.drawDuration, 14) +
@@ -341,6 +346,12 @@ const ELEMENT_TIMINGS: Partial<Record<string, Timing>> = {
       num(s.rushDuration, 24),
   ),
   "snapcn/logo-drift": seconds((s) => num(s.exitAt, 3.13) + num(s.exitDuration, 0)),
+  "snapcn/laptop-frame": authored(() => 0),
+  "snapcn/phone-frame": authored(() => 0),
+  "snapcn/screen-recording": authored(() => 0),
+  "snapcn/announce-title": authored(() => 0),
+  "snapcn/logo-assemble": authored(() => 0),
+  "snapcn/hero-launch": authored(() => 0),
 };
 
 export const fitsItsAnimation = (meta: ElementMeta): boolean =>
@@ -348,7 +359,8 @@ export const fitsItsAnimation = (meta: ElementMeta): boolean =>
 
 function endFrames(timing: Timing, settings: Settings, fps: number): number {
   const end = timing.end(settings, fps);
-  return timing.unit === "seconds" ? end * fps : end;
+  if (timing.unit === "seconds") return end * fps;
+  return timing.unit === "authored" ? (end * fps) / AUTHORED_FPS : end;
 }
 
 export function animationLength(meta: ElementMeta, params: Settings, fps: number): number {
@@ -361,7 +373,7 @@ export function animationLength(meta: ElementMeta, params: Settings, fps: number
     meta.defaultDurationInFrames -
       endFrames(timing, defaults, AUTHORED_FPS) / num(defaults.speed, 1),
   );
-  const scaledHold = timing.unit === "seconds" ? (hold * fps) / AUTHORED_FPS : hold;
+  const scaledHold = timing.unit === "frames" ? hold : (hold * fps) / AUTHORED_FPS;
   const speed = num(settings.speed, 1);
   if (speed <= 0) return 1;
   return Math.max(1, Math.ceil(endFrames(timing, settings, fps) / speed + scaledHold));

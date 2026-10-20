@@ -1,0 +1,29 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/snap-cn/status-cycle.tsx b/src/video/elements/snap-cn/status-cycle.tsx
+index 60f2d04..bcbda9b 100644
+--- a/src/video/elements/snap-cn/status-cycle.tsx
++++ b/src/video/elements/snap-cn/status-cycle.tsx
+@@ -8,9 +8,8 @@ import {
+   getRemotionEnvironment,
+   interpolate,
+   spring,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ import {
+   Item,
+   mixOklch,
+@@ -376,8 +375,8 @@ export function StatusCycle({
+   theme,
+   mode,
+ }: StatusCycleProps) {
+-  const frame = useCurrentFrame() * speed - startAt;
+-  const { fps, width, height } = useVideoConfig();
++  const frame = useAuthoredFrame() * speed - startAt;
++  const { fps, width, height } = useAuthoredConfig();
+   const t = useSnapCnTheme(theme, mode);
+   const face = resolveFont(fontFamily ?? t.fontFamily) ?? SANS;
+ 
