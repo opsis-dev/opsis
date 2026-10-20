@@ -46,6 +46,7 @@ import {
   type ExecutorInputs,
   type NodeResults,
 } from "./context";
+import { fileStamps } from "./file-stamps";
 import { decorateArtifacts } from "./posters";
 
 type RunDeps = {
@@ -137,6 +138,7 @@ function hashNodes(
   workflow: Workflow,
   order: readonly WorkflowNode[],
   vars: Record<string, string>,
+  projectDir: string,
 ): Map<string, string> {
   const hashes = new Map<string, string>();
   for (const node of order) {
@@ -145,6 +147,7 @@ function hashNodes(
       .map((e): [string, string] => [e.targetHandle, `${hashes.get(e.source)}:${e.sourceHandle}`]);
     const def = getNodeDef(node.type);
     const params = interpolatedParams(def, node.params, vars);
+    const files = fileStamps(projectDir, params);
     const keyed =
       def?.phase === "render"
         ? {
@@ -152,8 +155,11 @@ function hashNodes(
             settings: workflow.settings,
             mix: workflow.mix ?? null,
             picture: PICTURE_VERSION,
+            files,
           }
-        : params;
+        : Object.keys(files).length
+          ? { params, files }
+          : params;
     hashes.set(node.id, nodeHash(node.type, keyed, upstream));
   }
   return hashes;
@@ -551,7 +557,7 @@ export async function runWorkflow(runId: string, req: RunRequest, deps: RunDeps)
 
   deps.emit({ type: "run:start", runId, nodeIds: toRun.map((j) => j.node.id), at: Date.now() });
 
-  const hashes = hashNodes(workflow, plan.order, vars);
+  const hashes = hashNodes(workflow, plan.order, vars, projectDir);
   const previous: LastRun = (await readLastRun(projectDir)) ?? { updatedAt: 0, nodes: {} };
   const state = new RunState(run, known, forcedNodes(req));
   for (const [id, r] of Object.entries(previous.nodes))
