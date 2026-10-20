@@ -74,7 +74,9 @@ function mediaSound(media: MediaValue, nodeId: string, fps: number): CompileValu
 function bypass(def: NodeDef, inputs: PortValues): PortValues {
   const out: PortValues = {};
   for (const [portId, spec] of Object.entries(def.outputs)) {
-    const match = Object.values(inputs).find((v) => v?.type === spec.type);
+    const match = Object.keys(def.inputs)
+      .map((input) => inputs[input])
+      .find((v) => v?.type === spec.type);
     if (match) out[portId] = match;
   }
   return out;

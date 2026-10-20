@@ -338,3 +338,19 @@ describe("a file connected to a sound input", () => {
     ]);
   });
 });
+
+describe("a skipped node", () => {
+  it("passes on its first input in port order, whatever order it was connected in", () => {
+    const g = new GraphBuilder();
+    g.node("red", "fx.core.solid", 0, 0, { color: "#ff0000" });
+    g.node("blue", "fx.core.solid", 0, 1, { color: "#0000ff" });
+    g.node("seq", "timeline.sequence", 1, 0);
+    g.link("blue", "seq", "clip", "in2");
+    g.link("red", "seq", "clip", "in1");
+    const wf = g.build({ id: "x", name: "x" });
+    must(findById(wf.nodes, "seq"), "seq").disabled = true;
+    const clip = compileWorkflow(wf).values.seq?.clip;
+    const color = clip?.type === "clip" ? clip.tracks[0].items[0].props.color : null;
+    expect(color).toBe("#ff0000");
+  });
+});
