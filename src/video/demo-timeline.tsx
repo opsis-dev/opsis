@@ -146,7 +146,7 @@ const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
   const element = useResolvedElement(item.component, getComponent);
   if (element?.status === "unknown") return <MissingElement name={item.component} />;
   return element?.status === "ready" ? (
-    <DesignBox design={item.design}>
+    <DesignBox design={item.design} fill>
       {createElement(element.impl, resolveProps(item.props, base))}
     </DesignBox>
   ) : null;
@@ -276,22 +276,23 @@ const Wrapped: Wrap<{ wrapper?: GroupProps["wrapper"] }> = ({ wrapper, children 
   );
 };
 
-const DesignBox: Wrap<{ design?: Size }> = ({ design, children }) => {
+const DesignBox: Wrap<{ design?: Size; fill?: boolean }> = ({ design, fill, children }) => {
   const { width, height } = useVideoConfig();
   if (!design || (width === design.width && height === design.height)) return <>{children}</>;
   const scale = Math.min(width / design.width, height / design.height);
+  const box = fill ? { width: width / scale, height: height / scale } : design;
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
       <div
         style={{
           position: "relative",
           flexShrink: 0,
-          width: design.width,
-          height: design.height,
+          width: box.width,
+          height: box.height,
           transform: `scale(${scale})`,
         }}
       >
-        <Sequence layout="none" width={design.width} height={design.height}>
+        <Sequence layout="none" width={box.width} height={box.height}>
           {children}
         </Sequence>
       </div>

@@ -242,10 +242,12 @@ const defs: ElementMetaInput[] = [
       ghostColor: zColor().default("#170b0a").meta({ description: "Unrevealed text color" }),
       backgroundColor: zColor().default("#000000").meta({ description: "Background color" }),
       fontWeight: z.enum(["400","500","600","700"]).default("700").meta({ description: "Font weight" }),
+      fontFamily: z.string().default("").meta({ description: "Font", widget: "font", help: "Project font follows the fonts set for the whole project." }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25 }),
     }),
     fixedProps: {},
     defaultDurationInFrames: 36,
+    design: {"width":1920,"height":1080},
   },
   {
     key: "remocn/strikethrough-replace",

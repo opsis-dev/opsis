@@ -2,6 +2,7 @@ import { Easing, interpolate } from "remotion";
 import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface GradientScaleCutTextProps {
+  fontFamily?: string;
   text?: string;
   giantFontSize?: number;
   compactFontSize?: number;
@@ -29,7 +30,7 @@ const GIANT_X_CORRECTION = -48;
 const COMPACT_Y = 5;
 const COMPACT_X_SCALE = 0.87;
 const COMPACT_START_X_CORRECTION = 28;
-const FONT_FAMILY = "Arial, Helvetica, sans-serif";
+const FONT_FAMILY = "var(--font-geist-sans), sans-serif";
 const clamp = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
@@ -37,6 +38,7 @@ const clamp = {
 
 interface TextLayerProps {
   text: string;
+  fontFamily: string;
   fontSize: number;
   fontWeight: number;
   gradientStart: string;
@@ -47,6 +49,7 @@ interface TextLayerProps {
 
 function TextLayer({
   text,
+  fontFamily,
   fontSize,
   fontWeight,
   gradientStart,
@@ -56,7 +59,7 @@ function TextLayer({
 }: TextLayerProps) {
   const textStyle = {
     display: "block",
-    fontFamily: FONT_FAMILY,
+    fontFamily,
     fontSize,
     fontWeight,
     letterSpacing: 0,
@@ -91,6 +94,7 @@ function TextLayer({
 
 export function GradientScaleCutText({
   text = "Introducing",
+  fontFamily = FONT_FAMILY,
   giantFontSize = 520,
   compactFontSize = 132,
   fontWeight = 700,
@@ -177,6 +181,7 @@ export function GradientScaleCutText({
           }}
         >
           <TextLayer
+            fontFamily={fontFamily}
             text={text}
             fontSize={safeGiantFontSize}
             fontWeight={fontWeight}
@@ -199,6 +204,7 @@ export function GradientScaleCutText({
           }}
         >
           <TextLayer
+            fontFamily={fontFamily}
             text={text}
             fontSize={safeCompactFontSize}
             fontWeight={fontWeight}

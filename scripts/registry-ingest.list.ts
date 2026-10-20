@@ -990,7 +990,7 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
     },
   },
   "word-push": { controls: { fontWeight: fontWeight(400) } },
-  "gradient-scale-cut-text": { controls: { fontWeight: fontWeight(700) } },
+  "gradient-scale-cut-text": { controls: { fontWeight: fontWeight(700) }, design: FULL_HD },
   "scribble-circle": { omit: { release: "internal: how the stroke lifts off at the end" } },
   keystroke: {
     controls: {
