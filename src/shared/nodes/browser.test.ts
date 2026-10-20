@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard } from "../test-fixtures";
 import { PAUSE_MARK } from "../vars";
-import { assertNode, dragNode, selectNode, typeNode, uploadNode, waitNode } from "./browser";
+import {
+  assertNode,
+  dragNode,
+  mockRouteNode,
+  selectNode,
+  typeNode,
+  uploadNode,
+  waitNode,
+} from "./browser";
 import { parseParams } from "./params";
 
 describe("browser action cards", () => {
@@ -57,6 +65,18 @@ describe("browser action cards", () => {
       nodeCard("browser.hover", { target: "Menu", hoverMs, after: 0 }).map((r) => r.text);
     expect(texts(600)).toEqual(["“Menu”", "Hover 0.6 s"]);
     expect(texts(0)).toEqual(["“Menu”", "Passes over it"]);
+  });
+
+  it("asks for the address a faked response answers", () => {
+    expect(nodeCard("browser.mockRoute", { url: " " })[0]).toMatchObject({
+      text: "Add an address pattern",
+      tone: "warn",
+    });
+    expect(parseParams(mockRouteNode.params, { url: "" })).toEqual({
+      ok: false,
+      problem: "Add an address pattern",
+    });
+    expect(parseParams(mockRouteNode.params, {}).ok).toBe(true);
   });
 
   it("asks for a script on an empty Run page script", () => {

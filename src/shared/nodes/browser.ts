@@ -529,9 +529,11 @@ export const mockRouteNode = defineNode({
   type: "browser.mockRoute",
   title: "Fake a response",
   description:
-    "Makes the site show fixed data for matching requests, so every take looks the same.",
+    "Makes the site show fixed data for matching requests made after it, so every take looks the same. Put it before Go to page to cover the first load.",
   params: z.object({
-    url: more(text("**/api/**", "Address pattern"), { help: "Use * as a wildcard." }),
+    url: more(requiredText("Address pattern", "Add an address pattern", "**/api/**"), {
+      help: "Use * as a wildcard.",
+    }),
     status: int(200, "Status code", { min: 100, max: 599 }),
     contentType: text("application/json", "Type"),
     body: text('{"ok":true}', "Response", "code"),
@@ -539,7 +541,9 @@ export const mockRouteNode = defineNode({
   card: ({ params: p }) => {
     const subtype = mimeSubtype(p.contentType).toUpperCase();
     return [
-      row("server", truncate(p.url, CODE_TEXT_MAX), { title: p.url }),
+      p.url.trim()
+        ? row("server", truncate(p.url, CODE_TEXT_MAX), { title: p.url })
+        : missing("server", "Add an address pattern"),
       row("reply", subtype ? `${p.status} ${subtype}` : String(p.status)),
     ];
   },

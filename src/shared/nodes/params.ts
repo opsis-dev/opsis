@@ -67,11 +67,11 @@ export const text = (def: string, description: string, widget?: "textarea" | "co
     .default(def)
     .meta({ description, ...(widget ? { widget } : {}) });
 
-export const requiredText = (description: string, missing: string) =>
+export const requiredText = (description: string, missing: string, def = "") =>
   z
     .string()
     .refine((t) => t.replaceAll(PAUSE_MARK, "").trim() !== "", missing)
-    .default("")
+    .default(def)
     .meta({ description });
 
 export const asset = (description: string, accept = "*/*") =>
