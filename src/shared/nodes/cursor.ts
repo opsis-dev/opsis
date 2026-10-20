@@ -12,7 +12,18 @@ import { fontProp } from "../fonts";
 import { joinParts, LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
 import { defineNode, modifierBase, withClip, type NodeCategory, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";
-import { bool, choiceOf, colorOr, colorSetting, int, more, ms, num, text } from "./params";
+import {
+  bool,
+  choiceOf,
+  colorOr,
+  colorSetting,
+  int,
+  more,
+  ms,
+  num,
+  requiredText,
+  text,
+} from "./params";
 
 const base = modifierBase("Cursor");
 
@@ -161,15 +172,19 @@ export function annotationNode({
     card: ({ params: p }) => [
       row(
         icon,
-        p.match.trim() ? `On actions named ${quote(p.match, LABELLED_TEXT_MAX)}` : "On every click",
+        p.match.trim()
+          ? `On actions named ${quote(p.match, LABELLED_TEXT_MAX)}`
+          : "On every action",
       ),
       p.text.trim() && row("type", quote(p.text)),
     ],
     params: z.object({
       match: more(text("", "Show on actions named"), {
-        help: "Leave empty to show on every click. Matches part of an action's name.",
+        help: "Leave empty to show on every click, typing, hover and drag. Matches part of an action's name.",
       }),
-      text: text(defaults.text ?? "", "Text"),
+      text: label
+        ? requiredText("Text", "Add the text to show", defaults.text)
+        : more(text("", "Text"), { hidden: true }),
       color: colorSetting(defaults.color, "Colour"),
       padding: int(10, "Space around", { min: 0, max: 80, unit: "px" }),
       leadMs: ms(250, "Appear early by", 5000),
