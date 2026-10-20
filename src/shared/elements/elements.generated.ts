@@ -2220,7 +2220,7 @@ const defs: ElementMetaInput[] = [
       startAtSeconds: z.number().default(0.34).meta({ description: "Start at (seconds)", step: 0.01, help: "Second the first commit lands.", advanced: true }),
       stepSeconds: z.number().min(0.05).max(10).default(0.36).meta({ description: "Step (seconds)", step: 0.01, help: "Seconds between commits. Each edge draws over this same gap.", advanced: true }),
       accentColor: zColor().default("#E8B86D").meta({ description: "Accent color", help: "Trunk colour, and the branch ref chip." }),
-      laneColors: z.array(zColor()).min(1).default(["#E8B86D","#7DD3E8","#C99BE8","#9BD4A0"]).meta({ description: "Branch colors", help: "Colours for branch lanes 1 and up." }),
+      laneColors: z.array(zColor()).min(1).default(["#7DD3E8","#C99BE8","#9BD4A0","#E8B86D"]).meta({ description: "Branch colors", help: "Colours for branch lanes 1 and up." }),
       theme: z.enum(["dark","light"]).default("dark").meta({ description: "Theme", help: "Surface palette." }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25, help: "Animation speed multiplier." }),
       backgroundColor: z.string().default("").meta({ description: "Background", widget: "color", zeroLabel: "Theme", help: "Leave empty to follow the theme." }),

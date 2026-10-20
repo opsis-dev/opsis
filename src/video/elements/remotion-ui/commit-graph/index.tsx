@@ -84,7 +84,7 @@ const clamp = {
   extrapolateRight: "clamp",
 } as const;
 
-const DEFAULT_LANE_COLORS = ["#E8B86D", "#7DD3E8", "#C99BE8", "#9BD4A0"];
+const DEFAULT_LANE_COLORS = ["#7DD3E8", "#C99BE8", "#9BD4A0", "#E8B86D"];
 
 /**
  * A branch graph that draws itself: every edge grows from its parent toward the
@@ -98,7 +98,7 @@ const DEFAULT_LANE_COLORS = ["#E8B86D", "#7DD3E8", "#C99BE8", "#9BD4A0"];
  * same apparent speed.
  */
 export const CommitGraph: React.FC<CommitGraphProps> = ({
-  commits = DEFAULT_COMMITS,
+  commits: commitsProp = DEFAULT_COMMITS,
   windowTitle = "git log --graph --oneline",
   startAtSeconds = 0.34,
   stepSeconds = 0.36,
@@ -125,9 +125,25 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
   // shrinking it grows the layout into the margin it was leaving empty and
   // lifts every tier of type with it, instead of hand-tuning font sizes against
   // a layout that stays too small.
-  const u = portrait
+  const designU = portrait
     ? Math.min(width / 496, height / 896)
     : Math.min(width / 1024, height / 576);
+
+  const commits = commitsProp.map((commit, index) => {
+    const earlier = (ref: number | undefined) =>
+      ref !== undefined && Number.isInteger(ref) && ref >= 0 && ref < index ? ref : undefined;
+    return {
+      ...commit,
+      lane: Math.max(0, Math.round(commit.lane ?? 0)),
+      parent: earlier(commit.parent),
+      mergeFrom: earlier(commit.mergeFrom),
+    };
+  });
+  const u = Math.min(
+    designU,
+    (height - safe.paddingTop - safe.paddingBottom) /
+      ((windowTitle ? 40 : 0) + 20 + 48 * commits.length),
+  );
 
   const windowIn = spring({
     frame: frame - at(T.window),
@@ -155,7 +171,7 @@ export const CommitGraph: React.FC<CommitGraphProps> = ({
   const dotR = 6.5 * u;
 
   const laneColor = (lane: number) =>
-    lane === 0 ? accentColor : laneColors[lane % laneColors.length];
+    lane === 0 ? accentColor : laneColors[(lane - 1) % laneColors.length];
 
   const rowY = (index: number) => index * rowH + rowH / 2;
   const laneX = (lane: number) => gutterX + lane * laneW;
