@@ -159,7 +159,8 @@ export function runTargets(wf: Workflow): string[] {
     !!n && !n.disabled && !isStructural(n) && !!getNodeDef(n.type)?.executes;
   const byId = nodesById(wf.nodes);
   const outputs = wf.nodes.filter((n) => executes(n) && isOutputType(n.type));
-  if (!outputs.length) return wf.nodes.filter(executes).map((n) => n.id);
+  if (!outputs.length)
+    return wf.nodes.filter((n) => executes(n) && n.type !== loginOnceNode.type).map((n) => n.id);
   const targets = new Set(outputs.map((n) => n.id));
   for (const out of outputs)
     for (const id of downstreamOf(wf, out.id)) if (executes(byId.get(id))) targets.add(id);

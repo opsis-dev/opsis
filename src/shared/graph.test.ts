@@ -173,4 +173,14 @@ describe("graph", () => {
     g.node("b", "media.faststart", 1, 0);
     expect(runTargets(build(g)).toSorted()).toEqual(["a", "b"]);
   });
+
+  it("leaves Sign in once to the takes that need it when there is no export", () => {
+    const g = new GraphBuilder();
+    g.node("login", "capture.loginOnce", 0, 0, { secretName: "admin" });
+    g.node("session", "browser.session", 0, 1, { storageState: "admin" });
+    g.node("go", "browser.navigate", 1, 1, { url: "https://example.com" });
+    g.node("rec", "capture.record", 2, 1);
+    g.chain(["session", "go", "rec"]);
+    expect(runTargets(build(g))).toEqual(["rec"]);
+  });
 });
