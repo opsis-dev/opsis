@@ -30,10 +30,14 @@ export function signedText(
 const SECONDS_PER_MINUTE = 60;
 const ONE_DECIMAL_FROM_SECONDS = 10;
 
+const SECONDS_PER_HOUR = 3600;
+
 function minutesAndSeconds(seconds: number): string {
-  const m = Math.floor(seconds / SECONDS_PER_MINUTE);
-  const rest = round3(seconds - m * SECONDS_PER_MINUTE);
-  return rest ? `${m} min ${rest} s` : `${m} min`;
+  const h = Math.floor(seconds / SECONDS_PER_HOUR);
+  const m = Math.floor((seconds - h * SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
+  const rest = round3(seconds - h * SECONDS_PER_HOUR - m * SECONDS_PER_MINUTE);
+  if (!h) return rest ? `${m} min ${rest} s` : `${m} min`;
+  return [`${h} h`, m ? `${m} min` : "", rest ? `${rest} s` : ""].filter(Boolean).join(" ");
 }
 
 export function formatDuration(ms: number): string {

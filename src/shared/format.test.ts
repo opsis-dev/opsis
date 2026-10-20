@@ -36,6 +36,9 @@ describe("formatDuration", () => {
     expect(formatDuration(14_520)).toBe("14.5 s");
     expect(formatDuration(65_000)).toBe("1 min 5 s");
     expect(formatDuration(119_600)).toBe("2 min");
+    expect(formatDuration(36_000_000)).toBe("10 h");
+    expect(formatDuration(5_400_000)).toBe("1 h 30 min");
+    expect(formatDuration(3_605_000)).toBe("1 h 5 s");
   });
 
   it("keeps milliseconds in precise durations", () => {
