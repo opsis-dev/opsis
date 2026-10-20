@@ -1,0 +1,26 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/agent-run.tsx b/src/video/elements/remocn/agent-run.tsx
+index 93e0d12..874990f 100644
+--- a/src/video/elements/remocn/agent-run.tsx
++++ b/src/video/elements/remocn/agent-run.tsx
+@@ -1,5 +1,6 @@
+ import { type CSSProperties, useMemo } from "react";
+-import { Easing, random, useCurrentFrame, useVideoConfig } from "remotion";
++import { Easing, random } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ 
+ export type AgentRunTheme = "light" | "dark";
+ 
+@@ -2558,8 +2559,8 @@ export function AgentRun({
+   speed = agentRunDefaults.speed,
+   className,
+ }: AgentRunProps) {
+-  const frame = useCurrentFrame();
+-  const { width, height, fps } = useVideoConfig();
++  const frame = useAuthoredFrame();
++  const { width, height, fps } = useAuthoredConfig();
+   const model = useMemo(
+     () => getAgentRunModel(run, { seed, compression, width, height }),
+     [run, seed, compression, width, height],

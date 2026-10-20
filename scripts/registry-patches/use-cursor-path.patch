@@ -1,0 +1,22 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/use-cursor-path.ts b/src/video/elements/remocn/use-cursor-path.ts
+index 03e3b61..4052c86 100644
+--- a/src/video/elements/remocn/use-cursor-path.ts
++++ b/src/video/elements/remocn/use-cursor-path.ts
+@@ -1,4 +1,4 @@
+-import { useCurrentFrame } from "remotion";
++import { useAuthoredFrame } from "@/video/core/authored-clock";
+ import type { CursorStyle } from "@/video/elements/remocn/cursor";
+ import { clamp01, type EasingName, easings } from "@/video/lib/remocn-ui";
+ 
+@@ -55,7 +55,7 @@ export function useCursorPath(
+   waypoints: CursorWaypoint[],
+   opts: CursorPathOptions = {},
+ ): CursorStyle {
+-  const raw = useCurrentFrame();
++  const raw = useAuthoredFrame();
+   return cursorPathAt(waypoints, raw, opts);
+ }
+ 

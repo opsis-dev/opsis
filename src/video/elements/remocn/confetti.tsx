@@ -1,9 +1,8 @@
 import {
   AbsoluteFill,
   interpolate,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface ConfettiProps {
   /** Number of confetti pieces. */
@@ -115,8 +114,8 @@ export function Confetti({
   size = 13,
   seed = 1,
 }: ConfettiProps) {
-  const frame = useCurrentFrame();
-  const { width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height } = useAuthoredConfig();
 
   const tt = frame - startFrame;
   if (tt < 0 || tt > lifetime) return null;

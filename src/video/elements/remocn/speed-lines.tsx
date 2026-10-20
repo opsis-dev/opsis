@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { random, useCurrentFrame, useVideoConfig } from "remotion";
+import { random } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export type SpeedLinesMode = "trail" | "focus";
 
@@ -546,8 +547,8 @@ export function SpeedLines({
   children,
   className,
 }: SpeedLinesProps) {
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height, fps } = useAuthoredConfig();
   const state = getSpeedLinesState(frame, {
     mode,
     from,

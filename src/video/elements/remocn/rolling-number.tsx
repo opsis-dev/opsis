@@ -4,9 +4,8 @@ import {
   AbsoluteFill,
   Easing,
   interpolate,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 const { fontFamily: MONO_FAMILY } = loadMono();
 
@@ -119,8 +118,8 @@ export function RollingNumber({
   color = "#171717",
   speed = 1,
 }: RollingNumberProps) {
-  const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { durationInFrames } = useAuthoredConfig();
 
   const start = Math.max(0, Math.round(from));
   const end = Math.max(0, Math.round(to));

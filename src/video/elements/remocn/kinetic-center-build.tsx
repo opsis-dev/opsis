@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Easing, interpolate, useCurrentFrame } from "remotion";
+import { Easing, interpolate } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface KineticCenterBuildProps {
   text: string;
@@ -40,7 +41,7 @@ export function KineticCenterBuild({
   speed = 1,
   className,
 }: KineticCenterBuildProps) {
-  const frame = useCurrentFrame() * speed;
+  const frame = useAuthoredFrame() * speed;
 
   const words = useMemo(() => text.split(" "), [text]);
   const widths = useMemo(

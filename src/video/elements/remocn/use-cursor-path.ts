@@ -1,4 +1,4 @@
-import { useCurrentFrame } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import type { CursorStyle } from "@/video/elements/remocn/cursor";
 import { clamp01, type EasingName, easings } from "@/video/lib/remocn-ui";
 
@@ -55,7 +55,7 @@ export function useCursorPath(
   waypoints: CursorWaypoint[],
   opts: CursorPathOptions = {},
 ): CursorStyle {
-  const raw = useCurrentFrame();
+  const raw = useAuthoredFrame();
   return cursorPathAt(waypoints, raw, opts);
 }
 

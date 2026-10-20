@@ -3,9 +3,8 @@ import { useCallback, useState } from "react";
 import {
   continueRender,
   delayRender,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 const NEUTRAL_COLORS = ["#c8c8d0"];
 
@@ -22,8 +21,8 @@ export function ShaderSmokeRing({
   className,
   ...rest
 }: ShaderSmokeRingProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps, width, height } = useAuthoredConfig();
 
   const [handle] = useState(() => delayRender("shader-smoke-ring"));
   const gate = useCallback(

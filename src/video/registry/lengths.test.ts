@@ -136,11 +136,13 @@ describe("element lengths", () => {
   });
 
   it("keeps elements made for 30 frames a second as long in seconds at 60", () => {
-    const lengths = ["snapcn/status-cycle", "snapcn/laptop-frame"].map((key) => {
-      const element = meta(key);
-      return animationLength(element, element.defaultProps, 60) / element.defaultDurationInFrames;
-    });
-    expect(lengths).toEqual([2, 2]);
+    const lengths = ["snapcn/status-cycle", "snapcn/laptop-frame", "remocn/soft-blur-in"].map(
+      (key) => {
+        const element = meta(key);
+        return animationLength(element, element.defaultProps, 60) / element.defaultDurationInFrames;
+      },
+    );
+    expect(lengths).toEqual([2, 2, 2]);
   });
 
   it("plays faster at a higher speed", () => {

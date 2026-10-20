@@ -1,4 +1,4 @@
-import { useCurrentFrame } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   BrushGrain,
   type BrushPoint,
@@ -145,7 +145,7 @@ export function InkArrow({
   seed = "arrow",
   step = DEFAULT_STEP,
 }: InkArrowProps) {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const progress = steppedRamp(frame, delay, delay + drawDur, { step });
   const { c1, c2 } = inkArrowControls(from, to, curvature, seed);
   const headReach = inkArrowHeadReach(headSize, strokeWidth);

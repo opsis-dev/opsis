@@ -1,4 +1,5 @@
-import { Easing, interpolate, useCurrentFrame } from "remotion";
+import { Easing, interpolate } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface WordPushProps {
   text: string;
@@ -47,7 +48,7 @@ export function WordPush({
   speed = 1,
   className,
 }: WordPushProps) {
-  const frame = useCurrentFrame() * speed;
+  const frame = useAuthoredFrame() * speed;
 
   const words = text.trim().split(/\s+/).filter(Boolean);
 

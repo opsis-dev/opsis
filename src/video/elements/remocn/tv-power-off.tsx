@@ -1,5 +1,6 @@
 import type React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
@@ -167,7 +168,7 @@ const shader = makeFilterShader<TvPowerOffProps>(
 const TvPowerOffFallback: React.FC<TvPowerOffProps & CanvasFilterProps> = (
   props,
 ) => {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const {
     children,
     gain = DEFAULTS.gain,

@@ -1,4 +1,4 @@
-import { useCurrentFrame } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   BrushGrain,
   type BrushPoint,
@@ -52,7 +52,7 @@ export function InkUnderline({
   seed = "ink",
   step = DEFAULT_STEP,
 }: InkUnderlineProps) {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const progress = steppedRamp(frame, delay, delay + durationSteps * step, {
     step,
   });

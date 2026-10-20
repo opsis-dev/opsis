@@ -1,9 +1,8 @@
 import {
   interpolate,
   interpolateColors,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface InlineHighlightProps {
   before: string;
@@ -28,8 +27,8 @@ export function InlineHighlight({
   speed = 1,
   className,
 }: InlineHighlightProps) {
-  const frame = useCurrentFrame() * speed;
-  const { durationInFrames } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { durationInFrames } = useAuthoredConfig();
 
   const progress = interpolate(
     frame,

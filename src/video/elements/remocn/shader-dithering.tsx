@@ -3,9 +3,8 @@ import { useCallback, useState } from "react";
 import {
   continueRender,
   delayRender,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface ShaderDitheringProps
   extends Omit<DitheringProps, "frame" | "ref"> {}
@@ -20,8 +19,8 @@ export function ShaderDithering({
   className,
   ...rest
 }: ShaderDitheringProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps, width, height } = useAuthoredConfig();
 
   const [handle] = useState(() => delayRender("shader-dithering"));
   const gate = useCallback(

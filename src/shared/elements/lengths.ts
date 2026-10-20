@@ -50,14 +50,14 @@ function wordPushEnd(text: string, wordGap: number, accel: number): number {
 const KEYSTROKE_HOLD = 8;
 const KEYSTROKE_EXIT = 8;
 
-function keystrokeEnd(s: Settings, fps: number): number {
+function keystrokeEnd(s: Settings): number {
   const linger = num(s.linger, 30);
   const ends = list(s.steps).flatMap((step) => {
     const at = field(step, "at");
     if (!isNumber(at) || !Number.isFinite(at) || !str(field(step, "keys")).trim()) return [];
     return [at + num(field(step, "hold"), KEYSTROKE_HOLD) + linger + KEYSTROKE_EXIT];
   });
-  return (Math.max(0, ...ends) * fps) / AUTHORED_FPS;
+  return Math.max(0, ...ends);
 }
 
 const TERMINAL_START = 10;
@@ -205,45 +205,47 @@ function punchLinesEnd(s: Settings): number {
 }
 
 const ELEMENT_TIMINGS: Partial<Record<string, Timing>> = {
-  "remocn/soft-blur-in": frames((s) => lastIndex(characters(str(s.text))) + 27),
-  "remocn/typewriter": frames(
-    (s, fps) => (characters(str(s.text)) / Math.max(0.1, num(s.charsPerSecond, 22))) * fps,
+  "remocn/soft-blur-in": authored((s) => lastIndex(characters(str(s.text))) + 27),
+  "remocn/typewriter": authored(
+    (s) => (characters(str(s.text)) / Math.max(0.1, num(s.charsPerSecond, 22))) * AUTHORED_FPS,
   ),
-  "remocn/matrix-decode": frames((s) => num(s.revealDuration, 60)),
-  "remocn/slot-machine-roll": frames(
+  "remocn/matrix-decode": authored((s) => num(s.revealDuration, 60)),
+  "remocn/slot-machine-roll": authored(
     (s) => lastIndex(Math.max(str(s.from).length, str(s.to).length)) * 4,
   ),
-  "remocn/staggered-fade-up": frames(
+  "remocn/staggered-fade-up": authored(
     (s) => lastIndex(str(s.text).split(" ").length) * num(s.staggerDelay, 4) + 12,
   ),
-  "remocn/kinetic-center-build": frames((s) => 10 + lastIndex(str(s.text).split(" ").length) * 13),
-  "remocn/mask-reveal-up": frames((s) => lastIndex(lines(str(s.text))) * 5),
-  "remocn/line-by-line-slide": frames((s) => lastIndex(lines(str(s.text))) * 6),
-  "remocn/word-push": frames((s) =>
+  "remocn/kinetic-center-build": authored(
+    (s) => 10 + lastIndex(str(s.text).split(" ").length) * 13,
+  ),
+  "remocn/mask-reveal-up": authored((s) => lastIndex(lines(str(s.text))) * 5),
+  "remocn/line-by-line-slide": authored((s) => lastIndex(lines(str(s.text))) * 6),
+  "remocn/word-push": authored((s) =>
     wordPushEnd(str(s.text), num(s.wordGap, 10), num(s.accel, 0.8)),
   ),
-  "remocn/rgb-glitch-text": frames((s) => num(s.glitchAt, 20) + num(s.glitchDuration, 8)),
-  "remocn/tracking-in": frames(() => 0),
-  "remocn/marker-highlight": frames(() => 0),
-  "remocn/radial-burst": frames(() => 0),
-  "remocn/ink-underline": frames((s) => num(s.durationSteps, 5) * num(s.step, 3)),
-  "remocn/scribble-circle": frames((s) => num(s.durationSteps, 10) * num(s.step, 3)),
-  "remocn/ink-arrow": frames((s) => num(s.drawDur, 36) + num(s.headDur, num(s.step, 3) * 4)),
-  "remocn/confetti": frames((s) => num(s.lifetime, 90)),
-  "remocn/keystroke": frames(keystrokeEnd),
-  "remocn/terminal-simulator": frames(terminalEnd),
-  "remocn/glass-code-block": frames(
+  "remocn/rgb-glitch-text": authored((s) => num(s.glitchAt, 20) + num(s.glitchDuration, 8)),
+  "remocn/tracking-in": authored(() => 0),
+  "remocn/marker-highlight": authored(() => 0),
+  "remocn/radial-burst": authored(() => 0),
+  "remocn/ink-underline": authored((s) => num(s.durationSteps, 5) * num(s.step, 3)),
+  "remocn/scribble-circle": authored((s) => num(s.durationSteps, 10) * num(s.step, 3)),
+  "remocn/ink-arrow": authored((s) => num(s.drawDur, 36) + num(s.headDur, num(s.step, 3) * 4)),
+  "remocn/confetti": authored((s) => num(s.lifetime, 90)),
+  "remocn/keystroke": authored(keystrokeEnd),
+  "remocn/terminal-simulator": authored(terminalEnd),
+  "remocn/glass-code-block": authored(
     (s) => lastIndex(lines(str(s.code))) * num(s.staggerFrames, 4) + 8,
   ),
-  "remocn/code-morph": frames(codeMorphEnd),
-  "remocn/logo-enter": frames((s) => lastIndex(list(s.logos).length) * num(s.stagger, 7)),
-  "remocn/check-list": frames(checkListEnd),
-  "remocn/search-reveal": frames((s) => {
+  "remocn/code-morph": authored(codeMorphEnd),
+  "remocn/logo-enter": authored((s) => lastIndex(list(s.logos).length) * num(s.stagger, 7)),
+  "remocn/check-list": authored(checkListEnd),
+  "remocn/search-reveal": authored((s) => {
     const step = Math.min(12, Math.max(1, num(s.framesPerCharacter, 4)));
     return Math.max(90, 54 + characters(str(s.text)) * step + 10);
   }),
-  "remocn/agent-run": frames(agentRunEnd),
-  "remocn/animated-bar-chart": frames(
+  "remocn/agent-run": authored(agentRunEnd),
+  "remocn/animated-bar-chart": authored(
     (s) => lastIndex(list(s.bars).length) * num(s.staggerFrames, 6),
   ),
   "remotion-ui/metric-ticker": frames(
@@ -354,8 +356,24 @@ const ELEMENT_TIMINGS: Partial<Record<string, Timing>> = {
   "snapcn/hero-launch": authored(() => 0),
 };
 
-export const fitsItsAnimation = (meta: ElementMeta): boolean =>
-  ELEMENT_TIMINGS[meta.key] !== undefined;
+const OWN_CLOCK = /^(remocn|snapcn)\//;
+
+const SCENE_TEMPLATES: ReadonlySet<string> = new Set([
+  "remocn/release-teaser",
+  "remocn/launch-anything",
+]);
+
+const KEEPS_ITS_LENGTH = authored(() => 0);
+
+function timingOf(meta: ElementMeta): Timing | undefined {
+  const timing = ELEMENT_TIMINGS[meta.key];
+  if (timing) return timing;
+  const ownClock =
+    meta.kind === "component" && OWN_CLOCK.test(meta.key) && !SCENE_TEMPLATES.has(meta.key);
+  return ownClock ? KEEPS_ITS_LENGTH : undefined;
+}
+
+export const fitsItsAnimation = (meta: ElementMeta): boolean => timingOf(meta) !== undefined;
 
 function endFrames(timing: Timing, settings: Settings, fps: number): number {
   const end = timing.end(settings, fps);
@@ -364,7 +382,7 @@ function endFrames(timing: Timing, settings: Settings, fps: number): number {
 }
 
 export function animationLength(meta: ElementMeta, params: Settings, fps: number): number {
-  const timing = ELEMENT_TIMINGS[meta.key];
+  const timing = timingOf(meta);
   if (!timing) return meta.defaultDurationInFrames;
   const defaults = { ...meta.defaultProps, ...meta.fixedProps };
   const settings = { ...defaults, ...meta.fixedProps, ...params };

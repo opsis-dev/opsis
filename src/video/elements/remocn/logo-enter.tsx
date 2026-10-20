@@ -3,9 +3,8 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface Logo {
   mark: ReactNode;
@@ -86,8 +85,8 @@ export function LogoEnter({
   stagger = 7,
   speed = 1,
 }: LogoEnterProps) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps } = useAuthoredConfig();
   const isVertical = orientation === "vertical";
 
   return (

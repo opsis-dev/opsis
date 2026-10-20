@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Easing, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export type CodeMorphTheme = "dark" | "light";
 
@@ -1208,8 +1209,8 @@ export function CodeMorph({
   speed = codeMorphDefaults.speed,
   className,
 }: CodeMorphProps) {
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height, fps } = useAuthoredConfig();
   const layout = useMemo(() => {
     const shape = { steps, fontSize, lineNumbers, filename, windowDots };
     return getCodeMorphLayout({ ...shape, width, height });

@@ -1,0 +1,23 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/gradient-scale-cut-text.tsx b/src/video/elements/remocn/gradient-scale-cut-text.tsx
+index 53b5a56..cfbc603 100644
+--- a/src/video/elements/remocn/gradient-scale-cut-text.tsx
++++ b/src/video/elements/remocn/gradient-scale-cut-text.tsx
+@@ -1,4 +1,5 @@
+-import { Easing, interpolate, useCurrentFrame } from "remotion";
++import { Easing, interpolate } from "remotion";
++import { useAuthoredFrame } from "@/video/core/authored-clock";
+ 
+ export interface GradientScaleCutTextProps {
+   text?: string;
+@@ -106,7 +107,7 @@ export function GradientScaleCutText({
+   speed = 1,
+   className,
+ }: GradientScaleCutTextProps) {
+-  const frame = useCurrentFrame() * Math.max(speed, 0);
++  const frame = useAuthoredFrame() * Math.max(speed, 0);
+   const safeCutFrame = Math.max(cutFrame, 1);
+   const safeGiantFontSize = Math.max(giantFontSize, 1);
+   const safeCompactFontSize = Math.max(compactFontSize, 1);

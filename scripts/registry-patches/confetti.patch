@@ -1,0 +1,29 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/confetti.tsx b/src/video/elements/remocn/confetti.tsx
+index 48e5b75..853bca7 100644
+--- a/src/video/elements/remocn/confetti.tsx
++++ b/src/video/elements/remocn/confetti.tsx
+@@ -1,9 +1,8 @@
+ import {
+   AbsoluteFill,
+   interpolate,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ 
+ export interface ConfettiProps {
+   /** Number of confetti pieces. */
+@@ -115,8 +114,8 @@ export function Confetti({
+   size = 13,
+   seed = 1,
+ }: ConfettiProps) {
+-  const frame = useCurrentFrame();
+-  const { width, height } = useVideoConfig();
++  const frame = useAuthoredFrame();
++  const { width, height } = useAuthoredConfig();
+ 
+   const tt = frame - startFrame;
+   if (tt < 0 || tt > lifetime) return null;

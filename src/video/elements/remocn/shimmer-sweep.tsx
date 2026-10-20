@@ -1,4 +1,5 @@
-import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { interpolate } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface ShimmerSweepProps {
   text: string;
@@ -19,8 +20,8 @@ export function ShimmerSweep({
   speed = 1,
   className,
 }: ShimmerSweepProps) {
-  const frame = useCurrentFrame() * speed;
-  const { durationInFrames } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { durationInFrames } = useAuthoredConfig();
 
   const position = interpolate(
     frame,

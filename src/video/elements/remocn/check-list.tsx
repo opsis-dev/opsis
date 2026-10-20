@@ -1,4 +1,4 @@
-import { useCurrentFrame } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import { Handwrite, handwriteDuration } from "@/video/elements/remocn/handwrite";
 import { DEFAULT_STEP, hashRange, steppedRamp } from "@/video/lib/remocn/stop-motion";
 
@@ -225,7 +225,7 @@ export function CheckList({
   seed = "checklist",
   step = DEFAULT_STEP,
 }: CheckListProps) {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const entries = normalizeCheckListItems(items);
   const schedule = checkListSchedule(entries, {
     delay,

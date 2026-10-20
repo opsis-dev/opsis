@@ -1,4 +1,5 @@
-import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { spring } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface SlotMachineRollProps {
   from?: string;
@@ -19,8 +20,8 @@ export function SlotMachineRoll({
   speed = 1,
   className,
 }: SlotMachineRollProps) {
-  const frame = useCurrentFrame() * speed;
-  const { fps } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { fps } = useAuthoredConfig();
 
   const len = Math.max(from.length, to.length);
   const paddedFrom = from.padStart(len, " ");

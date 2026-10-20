@@ -3,9 +3,8 @@ import { useCallback, useState } from "react";
 import {
   continueRender,
   delayRender,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 const NEUTRAL_COLORS = ["#52527a", "#3a3a5c", "#232338"];
 
@@ -21,8 +20,8 @@ export function ShaderSwirl({
   className,
   ...rest
 }: ShaderSwirlProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps, width, height } = useAuthoredConfig();
 
   const [handle] = useState(() => delayRender("shader-swirl"));
   const gate = useCallback(

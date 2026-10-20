@@ -1,4 +1,5 @@
-import { Easing, interpolate, useCurrentFrame } from "remotion";
+import { Easing, interpolate } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface SoftBlurInProps {
   text: string;
@@ -19,7 +20,7 @@ export function SoftBlurIn({
   speed = 1,
   className,
 }: SoftBlurInProps) {
-  const frame = useCurrentFrame() * speed;
+  const frame = useAuthoredFrame() * speed;
 
   const chars = Array.from(text);
   const charDurationFrames = 27;

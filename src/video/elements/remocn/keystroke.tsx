@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Easing, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export type KeystrokePlatform = "mac" | "windows";
 export type KeystrokeTheme = "light" | "dark";
@@ -921,8 +922,8 @@ export function Keystroke({
   speed = keystrokeDefaults.speed,
   className,
 }: KeystrokeProps) {
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height, fps } = useAuthoredConfig();
   const timeline = useMemo(
     () => getKeystrokeTimeline({ steps, platform, linger, fps }),
     [steps, platform, linger, fps],

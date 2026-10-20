@@ -1,5 +1,6 @@
 import type React from "react";
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { AbsoluteFill } from "remotion";
+import { useAuthoredConfig } from "@/video/core/authored-clock";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
@@ -126,7 +127,7 @@ const PixelateRegionCanvas = makeCanvasFilter<NormalizedProps>({
 export const PixelateRegion: React.FC<
   PixelateRegionProps & CanvasFilterProps
 > = ({ regions, cellSize = DEFAULTS.cellSize, children }) => {
-  const { width, height } = useVideoConfig();
+  const { width, height } = useAuthoredConfig();
 
   if (regions.length > MAX_REGIONS) {
     throw new Error(

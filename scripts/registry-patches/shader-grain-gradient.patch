@@ -1,0 +1,29 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/shader-grain-gradient.tsx b/src/video/elements/remocn/shader-grain-gradient.tsx
+index dcd3e98..dad59be 100644
+--- a/src/video/elements/remocn/shader-grain-gradient.tsx
++++ b/src/video/elements/remocn/shader-grain-gradient.tsx
+@@ -6,9 +6,8 @@ import { useCallback, useState } from "react";
+ import {
+   continueRender,
+   delayRender,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ 
+ const NEUTRAL_COLORS = ["#3a3a52", "#4a4a68", "#5a5a7e"];
+ 
+@@ -25,8 +24,8 @@ export function ShaderGrainGradient({
+   className,
+   ...rest
+ }: ShaderGrainGradientProps) {
+-  const frame = useCurrentFrame();
+-  const { fps, width, height } = useVideoConfig();
++  const frame = useAuthoredFrame();
++  const { fps, width, height } = useAuthoredConfig();
+ 
+   const [handle] = useState(() => delayRender("shader-grain-gradient"));
+   const gate = useCallback(

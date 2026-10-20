@@ -6,9 +6,8 @@ import { useCallback, useState } from "react";
 import {
   continueRender,
   delayRender,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 const NEUTRAL_COLORS = ["#3a3a52", "#4a4a68", "#5a5a7e"];
 
@@ -25,8 +24,8 @@ export function ShaderGrainGradient({
   className,
   ...rest
 }: ShaderGrainGradientProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps, width, height } = useAuthoredConfig();
 
   const [handle] = useState(() => delayRender("shader-grain-gradient"));
   const gate = useCallback(

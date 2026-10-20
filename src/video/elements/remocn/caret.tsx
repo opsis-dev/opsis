@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface CaretProps {
   color?: string;
@@ -38,8 +38,8 @@ export function Caret({
   className,
   style,
 }: CaretProps) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps } = useAuthoredConfig();
 
   const resolvedOpacity =
     opacity !== undefined

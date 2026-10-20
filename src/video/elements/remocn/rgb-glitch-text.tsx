@@ -1,4 +1,5 @@
-import { random, useCurrentFrame } from "remotion";
+import { random } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface RGBGlitchTextProps {
   text: string;
@@ -25,7 +26,7 @@ export function RGBGlitchText({
   speed = 1,
   className,
 }: RGBGlitchTextProps) {
-  const frame = useCurrentFrame() * speed;
+  const frame = useAuthoredFrame() * speed;
 
   const isGlitching = frame >= glitchAt && frame < glitchAt + glitchDuration;
 

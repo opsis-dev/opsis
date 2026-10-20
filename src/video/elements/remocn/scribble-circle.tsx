@@ -1,4 +1,4 @@
-import { useCurrentFrame } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   BrushGrain,
   type BrushPoint,
@@ -125,7 +125,7 @@ export function ScribbleCircle({
   seed = "scribble",
   step = DEFAULT_STEP,
 }: ScribbleCircleProps) {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const progress = scribbleCircleProgress(frame, {
     delay,
     durationSteps,

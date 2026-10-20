@@ -3,9 +3,8 @@ import { useCallback, useState } from "react";
 import {
   continueRender,
   delayRender,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 const NEUTRAL_COLORS = ["#5a5a7e", "#8a8a95", "#ffffff", "#3a3a5c"];
 
@@ -23,8 +22,8 @@ export function ShaderGodRays({
   className,
   ...rest
 }: ShaderGodRaysProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps, width, height } = useAuthoredConfig();
 
   const [handle] = useState(() => delayRender("shader-god-rays"));
   const gate = useCallback(

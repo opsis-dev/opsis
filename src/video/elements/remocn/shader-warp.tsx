@@ -3,9 +3,8 @@ import { useCallback, useState } from "react";
 import {
   continueRender,
   delayRender,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 const NEUTRAL_COLORS = ["#12121a", "#3a3a5c", "#12121a", "#52527a"];
 
@@ -21,8 +20,8 @@ export function ShaderWarp({
   className,
   ...rest
 }: ShaderWarpProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps, width, height } = useAuthoredConfig();
 
   const [handle] = useState(() => delayRender("shader-warp"));
   const gate = useCallback(

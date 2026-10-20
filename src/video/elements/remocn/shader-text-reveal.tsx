@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
-import { useCurrentFrame, useDelayRender, useVideoConfig } from "remotion";
+import { useDelayRender } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export type ShaderTextRevealProps = {
   /** Words appear one at a time. Separate phrases with newlines to keep them together. */
@@ -487,8 +488,8 @@ export function ShaderTextReveal({
   wordDuration = 30,
   intensity = 1,
 }: ShaderTextRevealProps) {
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height, fps } = useAuthoredConfig();
   const { delayRender, continueRender, cancelRender } = useDelayRender();
   const canvas = useRef<HTMLCanvasElement>(null);
   const resources = useRef<{

@@ -1,0 +1,29 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/shader-smoke-ring.tsx b/src/video/elements/remocn/shader-smoke-ring.tsx
+index 699f692..7de7060 100644
+--- a/src/video/elements/remocn/shader-smoke-ring.tsx
++++ b/src/video/elements/remocn/shader-smoke-ring.tsx
+@@ -3,9 +3,8 @@ import { useCallback, useState } from "react";
+ import {
+   continueRender,
+   delayRender,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ 
+ const NEUTRAL_COLORS = ["#c8c8d0"];
+ 
+@@ -22,8 +21,8 @@ export function ShaderSmokeRing({
+   className,
+   ...rest
+ }: ShaderSmokeRingProps) {
+-  const frame = useCurrentFrame();
+-  const { fps, width, height } = useVideoConfig();
++  const frame = useAuthoredFrame();
++  const { fps, width, height } = useAuthoredConfig();
+ 
+   const [handle] = useState(() => delayRender("shader-smoke-ring"));
+   const gate = useCallback(

@@ -1,0 +1,48 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/terminal-simulator.tsx b/src/video/elements/remocn/terminal-simulator.tsx
+index 5161613..d78972b 100644
+--- a/src/video/elements/remocn/terminal-simulator.tsx
++++ b/src/video/elements/remocn/terminal-simulator.tsx
+@@ -1,9 +1,8 @@
+ import {
+   interpolate,
+   Sequence,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "@/video/core/authored-clock";
+ 
+ export type TerminalLineType = "command" | "log" | "success" | "error";
+ 
+@@ -75,8 +74,9 @@ export function TerminalSimulator({
+   speed = 1,
+   className,
+ }: TerminalSimulatorProps) {
+-  const frame = useCurrentFrame() * speed;
+-  const { fps } = useVideoConfig();
++  const frame = useAuthoredFrame() * speed;
++  const { fps } = useAuthoredConfig();
++  const realFrames = useRealFrames();
+ 
+   const lineHeight = Math.round(fontSize * 1.6);
+   const visibleLines = 8;
+@@ -182,7 +182,7 @@ export function TerminalSimulator({
+             {lines.map((line, index) => (
+               <Sequence
+                 key={index}
+-                from={Math.round(starts[index] / speed)}
++                from={Math.round(realFrames(starts[index] / speed))}
+                 layout="none"
+               >
+                 <TerminalLineRow
+@@ -237,7 +237,7 @@ function TerminalLineRow({
+   fps: number;
+   speed: number;
+ }) {
+-  const localFrame = useCurrentFrame() * speed;
++  const localFrame = useAuthoredFrame() * speed;
+   const totalChars = line.text.length;
+ 
+   // Chunked reveal: Math.floor of an interpolated count, then snapped to the

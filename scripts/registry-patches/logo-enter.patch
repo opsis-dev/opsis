@@ -1,0 +1,29 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/logo-enter.tsx b/src/video/elements/remocn/logo-enter.tsx
+index 72917dd..5570299 100644
+--- a/src/video/elements/remocn/logo-enter.tsx
++++ b/src/video/elements/remocn/logo-enter.tsx
+@@ -3,9 +3,8 @@ import {
+   AbsoluteFill,
+   interpolate,
+   spring,
+-  useCurrentFrame,
+-  useVideoConfig,
+ } from "remotion";
++import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
+ 
+ export interface Logo {
+   mark: ReactNode;
+@@ -86,8 +85,8 @@ export function LogoEnter({
+   stagger = 7,
+   speed = 1,
+ }: LogoEnterProps) {
+-  const frame = useCurrentFrame();
+-  const { fps } = useVideoConfig();
++  const frame = useAuthoredFrame();
++  const { fps } = useAuthoredConfig();
+   const isVertical = orientation === "vertical";
+ 
+   return (

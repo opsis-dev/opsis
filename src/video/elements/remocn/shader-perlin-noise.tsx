@@ -6,9 +6,8 @@ import { useCallback, useState } from "react";
 import {
   continueRender,
   delayRender,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface ShaderPerlinNoiseProps
   extends Omit<PerlinNoiseProps, "frame" | "ref"> {}
@@ -22,8 +21,8 @@ export function ShaderPerlinNoise({
   className,
   ...rest
 }: ShaderPerlinNoiseProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps, width, height } = useAuthoredConfig();
 
   const [handle] = useState(() => delayRender("shader-perlin-noise"));
   const gate = useCallback(

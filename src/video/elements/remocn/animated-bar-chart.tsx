@@ -1,4 +1,5 @@
-import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { spring } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface AnimatedBarChartProps {
   data?: number[];
@@ -23,8 +24,8 @@ export function AnimatedBarChart({
   speed = 1,
   className,
 }: AnimatedBarChartProps) {
-  const frame = useCurrentFrame() * speed;
-  const { fps } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { fps } = useAuthoredConfig();
 
   const padding = 60;
   const labelSpace = labels ? 40 : 0;

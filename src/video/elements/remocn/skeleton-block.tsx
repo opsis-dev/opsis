@@ -1,4 +1,4 @@
-import { useCurrentFrame } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import { mixOklch, useRemocnTheme } from "@/video/lib/remocn-ui";
 
 export interface SkeletonBlockProps {
@@ -28,7 +28,7 @@ export function SkeletonBlock({
   const base = baseColor ?? theme.muted;
   const highlight = highlightColor ?? mixOklch(base, theme.foreground, 0.13);
 
-  const frame = useCurrentFrame() * speed;
+  const frame = useAuthoredFrame() * speed;
   const progress = (frame % SWEEP_FRAMES) / SWEEP_FRAMES;
   const positionX = 100 - progress * 200;
 

@@ -1,5 +1,6 @@
 import { type CSSProperties, useMemo } from "react";
-import { Easing, random, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing, random } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export type AgentRunTheme = "light" | "dark";
 
@@ -2558,8 +2559,8 @@ export function AgentRun({
   speed = agentRunDefaults.speed,
   className,
 }: AgentRunProps) {
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height, fps } = useAuthoredConfig();
   const model = useMemo(
     () => getAgentRunModel(run, { seed, compression, width, height }),
     [run, seed, compression, width, height],

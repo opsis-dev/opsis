@@ -6,9 +6,8 @@ import { useCallback, useState } from "react";
 import {
   continueRender,
   delayRender,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 const NEUTRAL_COLORS = ["#12121a", "#232338", "#3a3a5c", "#52527a"];
 
@@ -23,8 +22,8 @@ export function ShaderMeshGradient({
   className,
   ...rest
 }: ShaderMeshGradientProps) {
-  const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { fps, width, height } = useAuthoredConfig();
 
   const [handle] = useState(() => delayRender("shader-mesh-gradient"));
   const gate = useCallback(

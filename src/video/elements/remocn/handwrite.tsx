@@ -1,5 +1,5 @@
 import { loadFont } from "@remotion/google-fonts/Caveat";
-import { useCurrentFrame } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import { DEFAULT_STEP, hashRange, qf, qstep } from "@/video/lib/remocn/stop-motion";
 
 const { fontFamily: HAND_FAMILY } = loadFont("normal", {
@@ -30,7 +30,7 @@ export function Handwrite({
   fontFamily = HAND_FAMILY,
   step = DEFAULT_STEP,
 }: HandwriteProps) {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const steps = Math.max(0, qstep(Math.max(0, qf(frame, step) - delay), step));
   const shown = Math.floor(steps * perStep);
   const chars = Array.from(text);

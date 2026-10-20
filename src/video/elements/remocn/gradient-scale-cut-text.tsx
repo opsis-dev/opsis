@@ -1,4 +1,5 @@
-import { Easing, interpolate, useCurrentFrame } from "remotion";
+import { Easing, interpolate } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface GradientScaleCutTextProps {
   text?: string;
@@ -106,7 +107,7 @@ export function GradientScaleCutText({
   speed = 1,
   className,
 }: GradientScaleCutTextProps) {
-  const frame = useCurrentFrame() * Math.max(speed, 0);
+  const frame = useAuthoredFrame() * Math.max(speed, 0);
   const safeCutFrame = Math.max(cutFrame, 1);
   const safeGiantFontSize = Math.max(giantFontSize, 1);
   const safeCompactFontSize = Math.max(compactFontSize, 1);

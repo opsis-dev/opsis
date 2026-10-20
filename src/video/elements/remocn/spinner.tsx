@@ -1,4 +1,4 @@
-import { useCurrentFrame } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface SpinnerProps {
   size?: number;
@@ -15,7 +15,7 @@ export function Spinner({
   strokeWidth = 2.5,
   className,
 }: SpinnerProps) {
-  const rotation = useCurrentFrame() * speed * 6;
+  const rotation = useAuthoredFrame() * speed * 6;
 
   return (
     <svg

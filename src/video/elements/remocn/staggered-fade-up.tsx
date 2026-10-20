@@ -1,4 +1,5 @@
-import { interpolate, useCurrentFrame } from "remotion";
+import { interpolate } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface StaggeredFadeUpProps {
   text: string;
@@ -21,7 +22,7 @@ export function StaggeredFadeUp({
   speed = 1,
   className,
 }: StaggeredFadeUpProps) {
-  const frame = useCurrentFrame() * speed;
+  const frame = useAuthoredFrame() * speed;
 
   const words = text.split(" ");
 

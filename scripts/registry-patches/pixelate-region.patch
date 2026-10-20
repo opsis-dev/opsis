@@ -1,0 +1,24 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/pixelate-region.tsx b/src/video/elements/remocn/pixelate-region.tsx
+index 3065b4e..4d762f4 100644
+--- a/src/video/elements/remocn/pixelate-region.tsx
++++ b/src/video/elements/remocn/pixelate-region.tsx
+@@ -1,5 +1,6 @@
+ import type React from "react";
+-import { AbsoluteFill, useVideoConfig } from "remotion";
++import { AbsoluteFill } from "remotion";
++import { useAuthoredConfig } from "@/video/core/authored-clock";
+ import {
+   type CanvasFilterProps,
+   makeCanvasFilter,
+@@ -126,7 +127,7 @@ const PixelateRegionCanvas = makeCanvasFilter<NormalizedProps>({
+ export const PixelateRegion: React.FC<
+   PixelateRegionProps & CanvasFilterProps
+ > = ({ regions, cellSize = DEFAULTS.cellSize, children }) => {
+-  const { width, height } = useVideoConfig();
++  const { width, height } = useAuthoredConfig();
+ 
+   if (regions.length > MAX_REGIONS) {
+     throw new Error(

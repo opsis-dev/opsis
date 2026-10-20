@@ -2,9 +2,8 @@ import {
   AbsoluteFill,
   Easing,
   interpolate,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export type SearchRevealProps = {
   text?: string;
@@ -121,8 +120,8 @@ export function SearchReveal({
   reducedMotion = false,
   className,
 }: SearchRevealProps) {
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height, fps } = useAuthoredConfig();
   const state = getSearchRevealState((frame * 30) / fps, {
     text,
     fieldWidth,

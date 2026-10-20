@@ -2,9 +2,8 @@ import {
   Easing,
   interpolateColors,
   spring,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface RadialBurstProps {
   /** Number of rounded segments, from 4 to 16. */
@@ -271,8 +270,8 @@ export function RadialBurst({
   loop = false,
   className,
 }: RadialBurstProps) {
-  const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const { width, height, fps } = useAuthoredConfig();
   const time = frame * (30 / fps) * Math.max(0, finite(speed, 1));
   const options = {
     segments,

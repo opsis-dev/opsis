@@ -1,1 +1,1 @@
-export const PICTURE_VERSION = "opsis-picture/10";
+export const PICTURE_VERSION = "opsis-picture/11";

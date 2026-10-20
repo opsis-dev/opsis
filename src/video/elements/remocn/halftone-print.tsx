@@ -1,5 +1,6 @@
 import type React from "react";
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { AbsoluteFill } from "remotion";
+import { useAuthoredConfig } from "@/video/core/authored-clock";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
@@ -125,7 +126,7 @@ export const HalftonePrint: React.FC<
   paperTint = DEFAULTS.paperTint,
   children,
 }) => {
-  const { height } = useVideoConfig();
+  const { height } = useAuthoredConfig();
 
   return (
     <HalftonePrintCanvas

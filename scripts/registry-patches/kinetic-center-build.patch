@@ -1,0 +1,24 @@
+Fixes:
+- Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+
+diff --git a/src/video/elements/remocn/kinetic-center-build.tsx b/src/video/elements/remocn/kinetic-center-build.tsx
+index e0b4c2c..b2bb73c 100644
+--- a/src/video/elements/remocn/kinetic-center-build.tsx
++++ b/src/video/elements/remocn/kinetic-center-build.tsx
+@@ -1,5 +1,6 @@
+ import { useMemo } from "react";
+-import { Easing, interpolate, useCurrentFrame } from "remotion";
++import { Easing, interpolate } from "remotion";
++import { useAuthoredFrame } from "@/video/core/authored-clock";
+ 
+ export interface KineticCenterBuildProps {
+   text: string;
+@@ -40,7 +41,7 @@ export function KineticCenterBuild({
+   speed = 1,
+   className,
+ }: KineticCenterBuildProps) {
+-  const frame = useCurrentFrame() * speed;
++  const frame = useAuthoredFrame() * speed;
+ 
+   const words = useMemo(() => text.split(" "), [text]);
+   const widths = useMemo(

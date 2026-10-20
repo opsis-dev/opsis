@@ -1,4 +1,5 @@
-import { random, useCurrentFrame, useVideoConfig } from "remotion";
+import { random } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface MatrixDecodeProps {
   text: string;
@@ -21,9 +22,9 @@ export function MatrixDecode({
   speed = 1,
   className,
 }: MatrixDecodeProps) {
-  const frame = useCurrentFrame() * speed;
+  const frame = useAuthoredFrame() * speed;
   // useVideoConfig kept for consistency with sibling primitives
-  useVideoConfig();
+  useAuthoredConfig();
 
   let output = "";
   for (let i = 0; i < text.length; i++) {

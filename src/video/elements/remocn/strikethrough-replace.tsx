@@ -1,4 +1,5 @@
-import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { interpolate } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface StrikethroughReplaceProps {
   from: string;
@@ -21,8 +22,8 @@ export function StrikethroughReplace({
   speed = 1,
   className,
 }: StrikethroughReplaceProps) {
-  const frame = useCurrentFrame() * speed;
-  const { durationInFrames } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { durationInFrames } = useAuthoredConfig();
 
   // Phases:
   // 0 .. 40% -> draw strikethrough across `from`

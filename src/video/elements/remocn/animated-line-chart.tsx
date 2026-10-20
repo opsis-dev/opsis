@@ -1,4 +1,5 @@
-import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { spring } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface AnimatedLineChartProps {
   data?: number[];
@@ -23,8 +24,8 @@ export function AnimatedLineChart({
   speed = 1,
   className,
 }: AnimatedLineChartProps) {
-  const frame = useCurrentFrame() * speed;
-  const { fps, durationInFrames } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { fps, durationInFrames } = useAuthoredConfig();
 
   const padding = 60;
   const innerWidth = width - padding * 2;

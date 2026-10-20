@@ -15,3 +15,8 @@ export function useAuthoredConfig(): ReturnType<typeof useVideoConfig> {
     durationInFrames: (config.durationInFrames * AUTHORED_FPS) / config.fps,
   };
 }
+
+export function useRealFrames(): (authored: number) => number {
+  const { fps } = useVideoConfig();
+  return (authored) => (authored * fps) / AUTHORED_FPS;
+}

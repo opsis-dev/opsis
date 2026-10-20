@@ -2,9 +2,8 @@ import {
   interpolate,
   interpolateColors,
   spring,
-  useCurrentFrame,
-  useVideoConfig,
 } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface MarkerHighlightProps {
   before?: string;
@@ -31,8 +30,8 @@ export function MarkerHighlight({
   speed = 1,
   className,
 }: MarkerHighlightProps) {
-  const frame = useCurrentFrame() * speed;
-  const { fps } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { fps } = useAuthoredConfig();
 
   const markerScale = spring({
     frame: frame - 15,

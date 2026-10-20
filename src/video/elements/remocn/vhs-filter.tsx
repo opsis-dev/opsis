@@ -1,5 +1,6 @@
 import type React from "react";
-import { AbsoluteFill, random, useCurrentFrame } from "remotion";
+import { AbsoluteFill, random } from "remotion";
+import { useAuthoredFrame } from "@/video/core/authored-clock";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
@@ -133,7 +134,7 @@ const VhsFilterFallback: React.FC<VhsFilterProps & CanvasFilterProps> = ({
   noise = DEFAULTS.noise,
   intensity = DEFAULTS.intensity,
 }) => {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const shift =
     (random(`vhs-wobble-${frame}`) - 0.5) * 3.4 * wobble * intensity;
   const flicker =

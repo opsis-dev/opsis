@@ -1,4 +1,5 @@
-import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { interpolate, spring } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface TrackingInProps {
   text: string;
@@ -21,8 +22,8 @@ export function TrackingIn({
   speed = 1,
   className,
 }: TrackingInProps) {
-  const frame = useCurrentFrame() * speed;
-  const { fps } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { fps } = useAuthoredConfig();
 
   const t = spring({
     frame,

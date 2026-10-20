@@ -1,4 +1,5 @@
-import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing, interpolate } from "remotion";
+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface LineByLineSlideProps {
   text: string;
@@ -19,8 +20,8 @@ export function LineByLineSlide({
   speed = 1,
   className,
 }: LineByLineSlideProps) {
-  const frame = useCurrentFrame() * speed;
-  const { durationInFrames } = useVideoConfig();
+  const frame = useAuthoredFrame() * speed;
+  const { durationInFrames } = useAuthoredConfig();
 
   const lines = text.split("\n");
 

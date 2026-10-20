@@ -1,4 +1,5 @@
-import { interpolate, Sequence, useCurrentFrame } from "remotion";
+import { interpolate, Sequence } from "remotion";
+import { useAuthoredFrame, useRealFrames } from "@/video/core/authored-clock";
 
 export interface GlassCodeBlockProps {
   code?: string;
@@ -21,7 +22,7 @@ const DEFAULT_CODE = `import { motion } from "remotion";
 
 // Generate a hero scene
 export function Hero() {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const opacity = frame / 30;
   return <h1 style={{ opacity }}>Hello</h1>;
 }`;
@@ -105,6 +106,7 @@ export function GlassCodeBlock({
   speed = 1,
   className,
 }: GlassCodeBlockProps) {
+  const realFrames = useRealFrames();
   const lines = code.split("\n");
 
   return (
@@ -194,7 +196,7 @@ export function GlassCodeBlock({
             {lines.map((line, i) => (
               <Sequence
                 key={i}
-                from={Math.round((i * staggerFrames) / speed)}
+                from={Math.round(realFrames((i * staggerFrames) / speed))}
                 layout="none"
               >
                 <CodeLine line={line} index={i} fontSize={fontSize} />
@@ -230,7 +232,7 @@ function CodeLine({
   index: number;
   fontSize: number;
 }) {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const opacity = interpolate(frame, [0, 8], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -273,7 +275,7 @@ function CodeLine({
 function BackdropAura() {
   // Slow, low-amplitude blob behind the glass so the backdrop blur has
   // perceptible content to refract.
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const t = frame / 60;
   const x = 50 + Math.sin(t) * 20;
   const y = 50 + Math.cos(t * 0.7) * 15;
