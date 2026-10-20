@@ -972,6 +972,15 @@ const DRIFT_TILES = [
 const MANUAL_MENU = { autoplay: ["false"] };
 
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "announce-title": {
+    controls: {
+      symbolColors: {
+        ...colorsControl(0, 8, "Leave empty for the built-in colours."),
+        default: [],
+        description: "Symbol colours",
+      },
+    },
+  },
   "rolling-number": {
     design: FULL_HD,
     controls: {
@@ -1555,6 +1564,11 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   }),
   "status-cycle": snapTheme("dark", {
     controls: {
+      chipFills: {
+        ...colorsControl(0, 8, "Leave empty for the theme's chip colours."),
+        default: [],
+        description: "Chip fills",
+      },
       fontWeight: fontWeight(400),
       chipFontWeight: { ...fontWeight(400), description: "Chip font weight" },
       pillRadius: optionalNumber(
