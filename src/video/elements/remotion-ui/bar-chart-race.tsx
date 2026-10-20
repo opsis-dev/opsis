@@ -4,7 +4,7 @@ import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
 
 export type RaceSeries = {
   label: string;
-  /** One value per keyframe. Every series must be the same length. */
+  /** One value per keyframe. A series with fewer values leaves the board after its last one. */
   values: number[];
   color?: string;
 };
@@ -23,6 +23,8 @@ export type BarChartRaceProps = {
   gap?: number;
   colors?: string[];
   inkColor?: string;
+  /** Ink for the figure printed inside each bar. */
+  barInkColor?: string;
   labelColor?: string;
   /** Width reserved for the row labels, left of the bars. */
   labelWidth?: number;
@@ -80,6 +82,7 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
   gap = 14,
   colors = DEFAULT_COLORS,
   inkColor = "#fafafa",
+  barInkColor = "#0b0b10",
   labelColor = "rgba(250,250,250,0.55)",
   labelWidth = 200,
   showStepLabel = true,
@@ -99,17 +102,18 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
   const lastStep = Math.max(0, stepCount - 1);
   const time = Math.min(
     lastStep,
-    Math.max(0, (frame - delayInFrames) / framesPerStep),
+    Math.max(0, (frame - delayInFrames) / Math.max(1, framesPerStep)),
   );
 
   const current = series.map((entry, index) => ({
     ...entry,
     current: valueAt(entry.values, time),
+    present: clamp01(entry.values.length - time),
     color: entry.color ?? colors[index % colors.length],
   }));
 
   const leader = current.reduce(
-    (highest, entry) => Math.max(highest, entry.current),
+    (highest, entry) => (entry.present > 0 ? Math.max(highest, entry.current) : highest),
     0,
   ) || 1;
   // The softening width is a share of the leader's value, so the crossover
@@ -141,12 +145,15 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
       {current.map((entry, index) => {
         const rank = current.reduce((sum, other) => {
           if (other === entry) return sum;
-          return sum + 1 / (1 + Math.exp((entry.current - other.current) / softness));
+          return (
+            sum +
+            other.present / (1 + Math.exp((entry.current - other.current) / softness))
+          );
         }, 0);
 
         // Rows past the visible window fade rather than clip, so a series
         // dropping off the board reads as losing rather than as a render bug.
-        const visibility = clamp01(visibleRows - rank);
+        const visibility = clamp01(visibleRows - rank) * entry.present;
         if (visibility <= 0) return null;
 
         return (
@@ -198,7 +205,7 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({
             >
               <span
                 style={{
-                  color: "#0b0b10",
+                  color: barInkColor,
                   fontSize: rowHeight * 0.3,
                   fontWeight: 700,
                   fontVariantNumeric: "tabular-nums",

@@ -1881,8 +1881,8 @@ const defs: ElementMetaInput[] = [
     schema: z.object({
       series: z.array(z.object({ label: z.string().default("Partners").meta({ description: "Label" }), values: z.array(z.number()).default([]).meta({ description: "Values" }), color: z.string().optional().meta({ description: "Color", widget: "color", zeroLabel: "None" }) })).default([{"label":"Mobile","values":[42,58,66,72,78,84]},{"label":"Web","values":[18,34,57,76,92,108]},{"label":"Desktop","values":[30,40,47,52,57,61]},{"label":"API","values":[12,22,36,50,63,79]},{"label":"Email","values":[24,28,31,35,38,42]},{"label":"Partners","values":[8,12,17,21,26,30]}]).meta({ description: "Series" }),
       steps: z.array(z.string()).default(["Q1","Q2","Q3","Q4","Q5","Q6"]).meta({ description: "Steps", help: "Keyframe captions, e.g. years. Shown as the running clock." }),
-      framesPerStep: z.number().default(18).meta({ description: "Time per step", unit: "frames", help: "Frames spent travelling between two keyframes.", advanced: true }),
-      visibleRows: z.number().default(6).meta({ description: "Visible rows", help: "How many rows stay on the board. Below that, series fade out.", advanced: true }),
+      framesPerStep: z.number().min(1).max(300).default(18).meta({ description: "Time per step", step: 1, unit: "frames", help: "Frames spent travelling between two keyframes.", advanced: true }),
+      visibleRows: z.number().min(1).max(20).default(6).meta({ description: "Visible rows", step: 1, help: "How many rows stay on the board. Below that, series fade out.", advanced: true }),
       width: z.number().default(1200).meta({ description: "Width", help: "Overall width, label column included." }),
       rowHeight: z.number().default(76).meta({ description: "Row height", help: "Bar height. Type scales off it.", advanced: true }),
       gap: z.number().default(14).meta({ description: "Gap", help: "Space between rows.", advanced: true }),
@@ -1890,6 +1890,7 @@ const defs: ElementMetaInput[] = [
       showStepLabel: z.boolean().default(true).meta({ description: "Show step label", help: "Large step caption in the bottom-right corner." }),
       colors: z.array(zColor()).min(1).default(["#e8b86d","#2dd4bf","#f472b6","#8b8bf5","#f59e0b","#5eead4"]).meta({ description: "Colors" }),
       inkColor: zColor().default("#fafafa").meta({ description: "Text color" }),
+      barInkColor: zColor().default("#0b0b10").meta({ description: "Bar text color" }),
       labelColor: zColor().default("rgba(250,250,250,0.55)").meta({ description: "Label color" }),
     }),
     fixedProps: {},

@@ -975,6 +975,22 @@ const MANUAL_MENU = { autoplay: ["false"] };
 const WRITTEN_PRESETS = ["marker", "color", "underline", "strikethrough", "shimmer"];
 
 const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
+  "bar-chart-race": {
+    controls: {
+      framesPerStep: numberControl(
+        "Time per step",
+        18,
+        { min: 1, max: 300, step: 1 },
+        { unit: "frames", help: "Frames spent travelling between two keyframes.", advanced: true },
+      ),
+      visibleRows: numberControl(
+        "Visible rows",
+        6,
+        { min: 1, max: 20, step: 1 },
+        { help: "How many rows stay on the board. Below that, series fade out.", advanced: true },
+      ),
+    },
+  },
   "comparison-bars": {
     controls: {
       seriesLabels: {
