@@ -26,7 +26,7 @@ import {
   type NodePhase,
 } from "../../shared/nodes/define";
 import { getNodeDef, isOutputType, nodeName } from "../../shared/nodes/registry";
-import { mapValues } from "../../shared/objects";
+import { mapValues, pick } from "../../shared/objects";
 import { failureMessage } from "../../shared/run-progress";
 import { runFailed, type LogLevel, type RunEvent } from "../../shared/schema/events";
 import type { LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
@@ -158,9 +158,11 @@ function hashNodes(
             vars,
             files,
           }
-        : Object.keys(files).length
-          ? { params, files }
-          : params;
+        : def?.usesProjectSize
+          ? { params, files, size: pick(workflow.settings, ["width", "height", "fps"]) }
+          : Object.keys(files).length
+            ? { params, files }
+            : params;
     hashes.set(node.id, nodeHash(node.type, keyed, upstream));
   }
   return hashes;

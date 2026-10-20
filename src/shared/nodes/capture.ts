@@ -102,6 +102,7 @@ export const stillNode = defineNode({
   ...base,
   type: "capture.still",
   title: "Screenshot",
+  usesProjectSize: true,
   description:
     "Plays the connected actions, then takes a sharp screenshot of the page or one element.",
   inputs: { session: port("session", "Previous") },

@@ -76,6 +76,7 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
   action?: boolean;
   executes?: boolean;
   volatile?: boolean;
+  usesProjectSize?: boolean;
   mutates?(params: z.infer<S>): string | undefined;
   element?: string;
   hidden?: boolean;

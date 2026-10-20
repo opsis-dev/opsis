@@ -236,6 +236,7 @@ const CONCAT_INPUTS = {
 export const concatNode = op({
   type: "media.concat",
   title: "Join files",
+  usesProjectSize: true,
   description: "Joins files end to end. Fast when they match, otherwise converts them." + NEW_FILE,
   inputs: CONCAT_INPUTS,
   outputs: { media: port("media", "File") },
@@ -256,6 +257,7 @@ export const mediaSpeedNode = op({
   ...one,
   type: "media.speed",
   title: "Change speed",
+  usesProjectSize: true,
   description: "Speeds a file up or slows it down." + NEW_FILE,
   card: ({ params: p }) => [
     row("gauge", `${p.rate}×`),
@@ -270,6 +272,7 @@ export const mediaSpeedNode = op({
 export const reverseNode = op({
   ...one,
   type: "media.reverse",
+  usesProjectSize: true,
   title: "Reverse",
   description: "Plays a file backwards." + NEW_FILE,
   card: ({ result }) => [lengthRow(result)],
