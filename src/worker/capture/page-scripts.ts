@@ -20,7 +20,19 @@ export const CHAT_WIDGET_SELECTORS = [
 ];
 
 export const hidingCss = (selectors: readonly string[]): string =>
-  `${selectors.join(",\n")} { display: none !important; visibility: hidden !important; }`;
+  selectors
+    .map((selector) => `${selector} { display: none !important; visibility: hidden !important; }`)
+    .join("\n");
+
+export const invalidSelectors = (selectors: readonly string[]): string[] =>
+  selectors.filter((selector) => {
+    try {
+      document.createDocumentFragment().querySelector(selector);
+      return false;
+    } catch {
+      return true;
+    }
+  });
 
 export function addStyles(css: string): void {
   const style = document.createElement("style");

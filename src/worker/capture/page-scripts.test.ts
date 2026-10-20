@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { addStyles, beforeFirstLoad } from "./page-scripts";
+import { addStyles, beforeFirstLoad, hidingCss } from "./page-scripts";
 
 describe("page scripts before the first page", () => {
   it("run once per site, before the page's own code", () => {
@@ -17,6 +17,13 @@ describe("page scripts before the first page", () => {
 });
 
 describe("hiding clutter", () => {
+  it("gives each selector its own rule, so one bad selector hides nothing less", () => {
+    expect(hidingCss([".cookie-banner", "div["]).split("\n")).toEqual([
+      ".cookie-banner { display: none !important; visibility: hidden !important; }",
+      "div[ { display: none !important; visibility: hidden !important; }",
+    ]);
+  });
+
   afterEach(() => vi.unstubAllGlobals());
 
   const fakeDocument = (root: object | null) => {

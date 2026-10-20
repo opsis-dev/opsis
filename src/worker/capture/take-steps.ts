@@ -40,6 +40,7 @@ import {
   CHAT_WIDGET_SELECTORS,
   COOKIE_BANNER_SELECTORS,
   hidingCss,
+  invalidSelectors,
   runUserScript,
 } from "./page-scripts";
 import type { CursorDriver } from "./recorder";
@@ -278,6 +279,14 @@ const STEPS = new Map<string, StepSpec>([
         ...nonBlankLines(p.selectors),
       ];
       if (!selectors.length) return;
+      const invalid = await take.page
+        .evaluate(invalidSelectors, nonBlankLines(p.selectors))
+        .catch(() => []);
+      if (invalid.length)
+        take.opts.log(
+          "warn",
+          `Can't hide ${invalid.map((s) => `“${s}”`).join(", ")}: not a CSS selector. The rest are hidden.`,
+        );
       const css = hidingCss(selectors);
       await take.session.context.addInitScript(addStyles, css);
       await take.page
