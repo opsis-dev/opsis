@@ -1,11 +1,13 @@
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { parsePatch } from "diff";
 import { describe, expect, it } from "vitest";
 import type { CuratedElement } from "../registry-ingest.list";
 import { zodFor } from "./registry-codegen";
 import { inferColumns, isColorList, rowTypeName } from "./registry-columns";
 import { namesLibrary, themeFallbacks } from "./registry-controls";
+import { hasReason, patchSource } from "./registry-patches";
 import { componentProps, hiddenDefaultTexts, hiddenPropProblems } from "./registry-props";
 import { bindingDefaults } from "./ts-literal";
 
@@ -189,5 +191,35 @@ describe("default checks", () => {
     expect(isColorList("laneColors", ["#fff", "rgba(0,0,0,0.5)"])).toBe(true);
     expect(isColorList("colors", ["#fff", "not a colour"])).toBe(false);
     expect(isColorList("labels", ["#fff"])).toBe(false);
+  });
+});
+
+describe("element patches", () => {
+  const [patch] = parsePatch(`--- a/x.tsx
++++ b/x.tsx
+@@ -1,3 +1,3 @@
+ a
+-scale(1.05))
++scale(1.05)
+ c
+`);
+
+  it("applies a patch that fits", () => {
+    expect(patchSource("a\nscale(1.05))\nc\n", patch, "p")).toEqual({
+      text: "a\nscale(1.05)\nc\n",
+    });
+  });
+
+  it("leaves an applied patch alone, so the ingest can run again", () => {
+    expect(patchSource("a\nscale(1.05)\nc\n", patch, "p")).toEqual({ text: "a\nscale(1.05)\nc\n" });
+  });
+
+  it("fails when the element changed upstream", () => {
+    expect(patchSource("a\nscale(2)\nc\n", patch, "p").problem).toMatch(/no longer fits/);
+  });
+
+  it("needs each patch file to start with why it is needed", () => {
+    expect(hasReason("The scale had a stray bracket.\n\ndiff --git a/x b/x\n")).toBe(true);
+    expect(hasReason("diff --git a/x b/x\n")).toBe(false);
   });
 });

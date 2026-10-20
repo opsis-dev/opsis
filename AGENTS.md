@@ -26,6 +26,8 @@ rg -n '^\s*//|/\*|\*/' --glob '*.{ts,tsx,mts,css}' src scripts *.config.ts -g '!
 | `src/renderer/editor/node-glyphs.generated.ts`                                                  | `lucide` and `@tabler/icons` (dev packages), for the glyphs `NODE_LOOKS` names | `bun run glyphs:bundle`                                                                           |
 | `src/main/db/schema.generated.sql`                                                              | `drizzle-kit export` of `src/main/db/schema.ts`                                | `bun run db:schema`                                                                               |
 
+Fixes to installed registry elements are unified diffs in `scripts/registry-patches/<element>.patch`: edit the installed file, save `git diff` of it, and put a line before the diff saying why. The ingest applies every patch after installing (`applyPatches`, with the `diff` package), leaves an applied one alone and fails when one no longer fits the element.
+
 **Dependencies go through the package manager.** `bun add`, `bun add -d`, `bun remove` only; never edit dependency blocks by hand. Always the latest release, except:
 
 - every `remotion` / `@remotion/*` package is pinned to the same exact version (`bun add --exact`); mismatches break silently;

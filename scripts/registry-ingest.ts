@@ -25,6 +25,7 @@ import {
   type PropDoc,
 } from "./lib/registry-controls";
 import { install, moveInstalled, rewriteImports } from "./lib/registry-install";
+import { applyPatches } from "./lib/registry-patches";
 import { hiddenPropProblems } from "./lib/registry-props";
 import { ROOT, SRC_DIR, VIDEO_DIR } from "./lib/tool-config";
 import { literalOf, scratchFile } from "./lib/ts-literal";
@@ -297,4 +298,9 @@ if (!skipAdd) {
   moveInstalled();
   rewriteImports();
 }
+const patchProblems = applyPatches();
 await generate();
+if (patchProblems.length) {
+  console.warn(`\n${patchProblems.length} patch problem(s):\n  ${patchProblems.join("\n  ")}`);
+  process.exitCode = 1;
+}
