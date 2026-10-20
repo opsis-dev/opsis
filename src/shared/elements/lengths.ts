@@ -358,17 +358,12 @@ const ELEMENT_TIMINGS: Partial<Record<string, Timing>> = {
       num(s.rushDuration, 24),
   ),
   "snapcn/logo-drift": seconds((s) => num(s.exitAt, 3.13) + num(s.exitDuration, 0)),
-  "snapcn/laptop-frame": authored(() => 0),
-  "snapcn/phone-frame": authored(() => 0),
   "snapcn/screen-recording": authored((s) =>
     Math.max(
       0,
       ...list(s.camera).map((move) => num(field(move, "at"), 0) + num(field(move, "duration"), 25)),
     ),
   ),
-  "snapcn/announce-title": authored(() => 0),
-  "snapcn/logo-assemble": authored(() => 0),
-  "snapcn/hero-launch": authored(() => 0),
 };
 
 const OWN_CLOCK = /^(remocn|snapcn)\//;

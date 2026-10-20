@@ -1,8 +1,9 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
+- Time the showcase pose against the clip length times the speed, so it completes at any speed.
 
 diff --git a/src/video/elements/snap-cn/phone-frame.tsx b/src/video/elements/snap-cn/phone-frame.tsx
-index 96267b1..16e8bfa 100644
+index 96267b1..777fd40 100644
 --- a/src/video/elements/snap-cn/phone-frame.tsx
 +++ b/src/video/elements/snap-cn/phone-frame.tsx
 @@ -6,9 +6,8 @@ import {
@@ -16,14 +17,15 @@ index 96267b1..16e8bfa 100644
  import {
    resolveFont,
    type SnapCnTheme,
-@@ -971,8 +970,8 @@ export function PhoneFrame({
+@@ -971,8 +970,9 @@ export function PhoneFrame({
    speed = 1,
    className,
  }: PhoneFrameProps) {
 -  const frame = useCurrentFrame() * speed;
 -  const { fps, durationInFrames } = useVideoConfig();
 +  const frame = useAuthoredFrame() * speed;
-+  const { fps, durationInFrames } = useAuthoredConfig();
++  const { fps, durationInFrames: clipFrames } = useAuthoredConfig();
++  const durationInFrames = clipFrames * speed;
    // The screen carries the app, so it follows the app theme. The body and the
    // Dynamic Island are a physical object: they take the dark end of the system
    // whatever mode the screen is in.

@@ -971,7 +971,8 @@ export function PhoneFrame({
   className,
 }: PhoneFrameProps) {
   const frame = useAuthoredFrame() * speed;
-  const { fps, durationInFrames } = useAuthoredConfig();
+  const { fps, durationInFrames: clipFrames } = useAuthoredConfig();
+  const durationInFrames = clipFrames * speed;
   // The screen carries the app, so it follows the app theme. The body and the
   // Dynamic Island are a physical object: they take the dark end of the system
   // whatever mode the screen is in.
