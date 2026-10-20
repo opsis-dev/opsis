@@ -271,6 +271,8 @@ function rangeWording(
 ): string {
   const low = issue.code === "too_small";
   const bound = low ? issue.minimum : issue.maximum;
+  if (issue.origin === "array")
+    return `${low ? "needs at least" : "takes at most"} ${Number(bound)}`;
   const limit = issue.origin === "number" ? limitText(Number(bound), unit) : null;
   if (limit === null) {
     if (issue.origin === "number" && unit === "frames") return low ? "is too short" : "is too long";

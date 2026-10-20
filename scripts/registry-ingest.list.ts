@@ -1357,6 +1357,7 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
     controls: {
       data: {
         type: "numbers",
+        min: 2,
         description: "Values",
         help: "Paste a column from a spreadsheet to fill the list.",
       },

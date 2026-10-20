@@ -1183,7 +1183,7 @@ const defs: ElementMetaInput[] = [
       strokeWidth: z.number().min(1).max(16).default(4).meta({ description: "Stroke width", step: 1 }),
       gridColor: zColor().default("#27272a").meta({ description: "Grid color" }),
       showDot: z.boolean().default(true).meta({ description: "Show leading dot" }),
-      data: z.array(z.number()).default([12,19,8,15,22,18,28,25,32]).meta({ description: "Values", help: "Paste a column from a spreadsheet to fill the list." }),
+      data: z.array(z.number()).min(2).default([12,19,8,15,22,18,28,25,32]).meta({ description: "Values", help: "Paste a column from a spreadsheet to fill the list." }),
       width: z.number().min(200).max(3840).default(1000).meta({ description: "Width", step: 10, advanced: true }),
       height: z.number().min(100).max(2160).default(500).meta({ description: "Height", step: 10, advanced: true }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25 }),

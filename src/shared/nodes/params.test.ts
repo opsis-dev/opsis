@@ -54,6 +54,15 @@ describe("parseParams", () => {
     expect(wrong({ lengthInFrames: 0 })).toBe("Length is too short");
     expect(wrong({ zoom: 5 })).toBe("Zoom must be at most 4×");
     expect(wrong({ gap: 0 })).toBe("Gap must be more than 0 px");
+    const list = z.object({
+      values: z.array(z.number()).min(2).max(3).meta({ description: "Values" }),
+    });
+    const listProblem = (values: number[]) => {
+      const parsed = parseParams(list, { values });
+      return parsed.ok ? null : parsed.problem;
+    };
+    expect(listProblem([1])).toBe("Values needs at least 2");
+    expect(listProblem([1, 2, 3, 4])).toBe("Values takes at most 3");
   });
 
   it("says a number setting can't hold a variable", () => {
