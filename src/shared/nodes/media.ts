@@ -204,16 +204,23 @@ const SCALE_MODES = {
   stretch: { label: "Stretch", row: "Stretch" },
 };
 
+const MAX_FILE_MS = 36_000_000;
+
 export const mediaTrimNode = op({
   ...one,
   type: "media.trim",
   title: "Trim file",
   description: "Cuts a file down to a start and end." + NEW_FILE,
   card: ({ params: p, result }) => [rangeRow(p.startMs, p.endMs || null), lengthRow(result)],
-  params: z.object({
-    startMs: ms(0, "Start"),
-    endMs: more(ms(0, "End", 36_000_000), { zeroLabel: "To the end" }),
-  }),
+  params: z
+    .object({
+      startMs: ms(0, "Start", MAX_FILE_MS),
+      endMs: more(ms(0, "End", MAX_FILE_MS), { zeroLabel: "To the end" }),
+    })
+    .superRefine((p, ctx) => {
+      if (p.endMs && p.endMs <= p.startMs)
+        ctx.addIssue({ code: "custom", message: "End must come after Start", path: ["endMs"] });
+    }),
 });
 
 const CONCAT_INPUTS = {
