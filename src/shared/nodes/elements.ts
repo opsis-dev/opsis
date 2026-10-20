@@ -20,6 +20,7 @@ import {
   widgetKeys,
   type FieldMeta,
 } from "../elements/introspect";
+import { animationLength, fitsItsAnimation } from "../elements/lengths";
 import { isThemeValue, themeColors } from "../elements/theme";
 import type { ElementCategory, ElementMeta } from "../elements/types";
 import { fontProp } from "../fonts";
@@ -140,16 +141,17 @@ function elementCard(
   if (file) rows.push(fileRow("file", file));
   const look = lookRow(meta, params);
   if (look) rows.push(look);
-  rows.push(durationRow(meta, params.clipDuration, fps));
+  rows.push(durationRow(meta, params, fps));
   return rows;
 }
 
-function durationRow(meta: ElementMeta, duration: number, fps: number): CardRow {
-  const usual = meta.defaultDurationInFrames;
+function durationRow(meta: ElementMeta, params: ElementParams, fps: number): CardRow {
+  const duration = params.clipDuration;
   if (meta.kind === "wrapper")
     return duration
       ? row("clock", frameSecs(duration, fps))
       : row("clock", "Matches the clip", { tone: "muted" });
+  const usual = animationLength(meta, params, fps);
   if (duration > 0 && duration < SHORT_ELEMENT_RATIO * usual)
     return row("clock", `${frameSecs(duration, fps)} · usually ${frameSecs(usual, fps)}`, {
       tone: "warn",
@@ -226,11 +228,12 @@ function compileElement(
   nodeId: string,
   { clipDuration, envelope, ...params }: ElementParams,
   input: ClipValue | undefined,
+  fps: number,
 ): ClipValue {
   const props = elementProps(meta, params);
   const handles: EditHandles = { trimEnd: { nodeId, param: "clipDuration", unit: "frames" } };
   if (meta.kind !== "wrapper" || !input) {
-    const frames = clipDuration || meta.defaultDurationInFrames;
+    const frames = clipDuration || animationLength(meta, params, fps);
     const audio = elementSounds(meta, nodeId, props, frames);
     return itemClip(nodeId, meta.key, props, frames, { handles, envelope, audio });
   }
@@ -245,6 +248,7 @@ function compileElement(
 
 function elementNode(meta: ElementMeta): NodeDef {
   const wrapper = meta.kind === "wrapper";
+  const fits = fitsItsAnimation(meta);
   const titles = titleKeys(meta.schema);
   return defineNode({
     ...fromElement(meta),
@@ -256,16 +260,23 @@ function elementNode(meta: ElementMeta): NodeDef {
     outputs: { clip: port("clip", "Clip") },
     params: z.object({
       ...meta.schema.shape,
-      clipDuration: int(wrapper ? 0 : meta.defaultDurationInFrames, "Length", {
-        min: wrapper ? 0 : 1,
+      clipDuration: int(wrapper || fits ? 0 : meta.defaultDurationInFrames, "Length", {
+        min: wrapper || fits ? 0 : 1,
         max: MAX_FRAMES,
         unit: "frames",
         ...(wrapper ? { zeroLabel: "Match the clip" } : {}),
+        ...(fits ? { zeroLabel: "Fit the animation" } : {}),
       }),
       envelope: visualEnvelope(),
     }),
-    compile: ({ nodeId, params, inputs }) => ({
-      clip: compileElement(meta, nodeId, params, wrapper ? clipInput(inputs) : undefined),
+    compile: ({ nodeId, params, inputs, settings }) => ({
+      clip: compileElement(
+        meta,
+        nodeId,
+        params,
+        wrapper ? clipInput(inputs) : undefined,
+        settings.fps,
+      ),
     }),
   });
 }
