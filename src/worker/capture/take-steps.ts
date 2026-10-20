@@ -30,6 +30,7 @@ import type { Action } from "../../shared/schema/actions";
 import type { WorkflowNode } from "../../shared/schema/workflow";
 import { nonBlankLines } from "../../shared/text-input";
 import { PAUSE_MARK } from "../../shared/vars";
+import { wallTimeIn } from "../../shared/wall-time";
 import { warnFailed } from "../engine/context";
 import { parsePath } from "./drag-path";
 import { landedOnSignIn } from "./driver-helpers";
@@ -261,7 +262,8 @@ const STEPS = new Map<string, StepSpec>([
   step(
     freezeClockNode,
     async (take, p) => {
-      const time = new Date(p.time);
+      const zone = await take.page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
+      const time = wallTimeIn(p.time, zone);
       if (p.mode === "fixed") await take.page.clock.setFixedTime(time);
       else {
         await take.page.clock.install({ time });

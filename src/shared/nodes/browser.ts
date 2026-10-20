@@ -6,6 +6,7 @@ import { mimeSubtype } from "../mime";
 import { DEFAULT_VIEWPORT } from "../schema/workflow";
 import { nonBlankLines } from "../text-input";
 import { PAUSE_MARK, SITE_ADDRESS } from "../vars";
+import { isWallTime } from "../wall-time";
 import {
   CODE_TEXT_MAX,
   elementRow,
@@ -536,7 +537,15 @@ export const freezeClockNode = defineNode({
   description:
     'Pins the date and time the page sees, so clocks and "x minutes ago" never change between takes.',
   params: z.object({
-    time: more(text("2026-10-01T09:41:00", "Date and time"), { widget: "datetime" }),
+    time: z
+      .string()
+      .refine(isWallTime, "Pick a date and time")
+      .default("2026-10-01T09:41:00")
+      .meta({
+        description: "Date and time",
+        help: "As a clock in the browser's time zone shows it.",
+        widget: "datetime",
+      }),
     mode: choiceOf(CLOCK_MODES, "fixed", "Clock"),
   }),
   card: ({ params: p }) => [row("clock", `${formatWhen(p.time)} · ${CLOCK_MODES[p.mode]}`)],
