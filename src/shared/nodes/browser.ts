@@ -345,25 +345,30 @@ export const scrollNode = defineNode({
   type: "browser.scroll",
   title: "Scroll",
   description: "Scrolls to an element or by a distance.",
-  params: z.object({
-    mode: choice(["element", "by"], "element", "Scroll to", {
-      element: "An element",
-      by: "A distance",
+  params: z
+    .object({
+      mode: choice(["element", "by"], "element", "Scroll to", {
+        element: "An element",
+        by: "A distance",
+      }),
+      target: more(optionalTarget("Element"), { showIf: { mode: ["element"] } }),
+      targetRole: pickedRole(),
+      deltaY: int(600, "Distance", {
+        min: -20_000,
+        max: 20_000,
+        help: "Negative scrolls up.",
+        step: 50,
+        unit: "px",
+        showIf: { mode: ["by"] },
+      }),
+      smooth: bool(true, "Smooth"),
+      durationMs: ms(900, "Scroll time", 10_000),
+      ...pauseAfter,
+    })
+    .superRefine((p, ctx) => {
+      if (p.mode === "element" && !p.target.trim())
+        ctx.addIssue({ code: "custom", message: "Pick an element", path: ["target"] });
     }),
-    target: more(optionalTarget("Element"), { showIf: { mode: ["element"] } }),
-    targetRole: pickedRole(),
-    deltaY: int(600, "Distance", {
-      min: -20_000,
-      max: 20_000,
-      help: "Negative scrolls up.",
-      step: 50,
-      unit: "px",
-      showIf: { mode: ["by"] },
-    }),
-    smooth: bool(true, "Smooth"),
-    durationMs: ms(900, "Scroll time", 10_000),
-    ...pauseAfter,
-  }),
   card: ({ params: p }) => [
     p.mode === "element"
       ? elementRow("scroll", p.target, p.targetRole)

@@ -175,7 +175,7 @@ describe("every browser action", () => {
       "browser.type": "Element is missing",
       "browser.hover": "Element is missing",
       "browser.drag": "Element to drag is missing",
-      "browser.scroll": null,
+      "browser.scroll": "Pick an element",
       "browser.select": "Element is missing",
       "browser.upload": "File field is missing",
       "browser.press": null,
@@ -189,6 +189,12 @@ describe("every browser action", () => {
       "browser.chapter": null,
       "browser.overlayHtml": null,
     });
+  });
+
+  it("asks where to scroll to in element mode", () => {
+    expect(firstProblem("browser.scroll", { mode: "element", target: "" })).toBe("Pick an element");
+    expect(firstProblem("browser.scroll", { mode: "element", target: "Pricing" })).toBeNull();
+    expect(firstProblem("browser.scroll", { mode: "by", target: "" })).toBeNull();
   });
 
   it("keeps numbers inside their limits", () => {
