@@ -1,6 +1,6 @@
 import type { TransitionPresentation } from "@remotion/transitions";
 import { useMemo } from "react";
-import { AbsoluteFill, Easing, interpolate } from "remotion";
+import { AbsoluteFill, Easing, interpolate, useVideoConfig } from "remotion";
 import {
   resolveTransitionTiming,
   transitionPhase,
@@ -70,6 +70,7 @@ function buildGridMask(
   order: GridPixelateOrder,
   shape: GridPixelateShape,
   stagger: number,
+  aspect = 1,
 ): string {
   const cellW = 100 / cols;
   const cellH = 100 / rows;
@@ -94,9 +95,9 @@ function buildGridMask(
         // of expanding points rather than a grid of fading squares.
         // Grows to the cell's half-diagonal, so the dots close into a solid
         // field on the last frames instead of popping from dots to full frame.
-        const r = (Math.hypot(cellW, cellH) / 2) * opacity;
+        const r = (Math.hypot(cellW * aspect, cellH) / 2) * opacity;
         cells.push(
-          `<circle cx="${(col + 0.5) * cellW}" cy="${(row + 0.5) * cellH}" r="${r.toFixed(3)}" fill="white" fill-opacity="${alpha}"/>`,
+          `<ellipse cx="${(col + 0.5) * cellW}" cy="${(row + 0.5) * cellH}" rx="${(r / aspect).toFixed(3)}" ry="${r.toFixed(3)}" fill="white" fill-opacity="${alpha}"/>`,
         );
         continue;
       }
@@ -131,6 +132,8 @@ const GridPixelateWipePresentation: React.FC<
     lead: 1,
   });
   const filled = 1 - phase.displace;
+  const { width, height } = useVideoConfig();
+  const shapedRows = Math.max(1, Math.round((rows * (height / width) * 16) / 9));
 
   const style = useMemo(() => {
     // Only the arriving scene is masked. Masking the outgoing one as well
@@ -146,7 +149,7 @@ const GridPixelateWipePresentation: React.FC<
 
     // Built once and handed to both mask properties — the previous version
     // called this twice per frame for identical output.
-    const mask = buildGridMask(filled, cols, rows, order, shape, stagger);
+    const mask = buildGridMask(filled, cols, shapedRows, order, shape, stagger, width / height);
 
     return {
       WebkitMaskImage: mask,
@@ -156,7 +159,7 @@ const GridPixelateWipePresentation: React.FC<
       WebkitMaskRepeat: "no-repeat",
       maskRepeat: "no-repeat",
     };
-  }, [cols, filled, order, phase.isEntering, rows, shape, stagger]);
+  }, [cols, filled, order, phase.isEntering, shapedRows, shape, stagger, width, height]);
 
   return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
 };
