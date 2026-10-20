@@ -1163,7 +1163,7 @@ const defs: ElementMetaInput[] = [
       barColor: zColor().default("#0ea5e9").meta({ description: "Bar color" }),
       gap: z.number().min(0).max(80).default(16).meta({ description: "Gap", step: 2 }),
       staggerFrames: z.number().min(0).max(1).default(0.2).meta({ description: "Stagger", step: 0.01, unit: "s", framesAt: 30 }),
-      bars: z.array(z.object({ label: z.string().default("").meta({ description: "Label" }), value: z.number().min(0).max(1000000).default(50).meta({ description: "Value", step: 1 }) })).default([{"label":"","value":35},{"label":"","value":60},{"label":"","value":45},{"label":"","value":80},{"label":"","value":55},{"label":"","value":70},{"label":"","value":90},{"label":"","value":65}]).meta({ description: "Bars", help: "Leave every label empty to draw the bars without labels." }),
+      bars: z.array(z.object({ label: z.string().default("").meta({ description: "Label" }), value: z.number().min(0).max(1000000).default(50).meta({ description: "Value", step: 1 }) })).min(1).max(60).default([{"label":"","value":35},{"label":"","value":60},{"label":"","value":45},{"label":"","value":80},{"label":"","value":55},{"label":"","value":70},{"label":"","value":90},{"label":"","value":65}]).meta({ description: "Bars", help: "Leave every label empty to draw the bars without labels." }),
       width: z.number().min(200).max(3840).default(1000).meta({ description: "Width", step: 10, advanced: true }),
       height: z.number().min(100).max(2160).default(500).meta({ description: "Height", step: 10, advanced: true }),
       speed: z.number().min(0.25).max(4).default(1).meta({ description: "Speed", step: 0.25 }),

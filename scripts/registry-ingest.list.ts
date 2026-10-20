@@ -1340,6 +1340,8 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
     controls: {
       bars: {
         type: "rows",
+        min: 1,
+        max: 60,
         description: "Bars",
         help: "Leave every label empty to draw the bars without labels.",
         default: [35, 60, 45, 80, 55, 70, 90, 65].map((value) => ({ label: "", value })),
