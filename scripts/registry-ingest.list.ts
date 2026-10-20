@@ -544,6 +544,25 @@ const REMOTION_UI: CuratedElement[] = [
     center: true,
     omit: { durationInFrames: "timing: the clip length sets it" },
     defaults: { text: "Signed by hand", penColor: "#e8b86d" },
+    controls: {
+      fontSize: {
+        type: "number",
+        optional: true,
+        min: 12,
+        max: 600,
+        step: 1,
+        description: "Font size",
+        emptyLabel: "Auto",
+        unit: "px",
+        help: "Leave empty to size the text to the frame.",
+      },
+      fontWeight: {
+        type: "enum",
+        options: ["400", "500", "600", "700"],
+        default: "600",
+        description: "Font weight",
+      },
+    },
   }),
   ...remotionui("text", ["neon-flicker-text"], {
     title: "Neon sign",
@@ -551,6 +570,23 @@ const REMOTION_UI: CuratedElement[] = [
     omit: { durationInFrames: "timing: the clip length sets it" },
     defaults: { text: "Open all night" },
     controls: {
+      fontSize: {
+        type: "number",
+        optional: true,
+        min: 12,
+        max: 600,
+        step: 1,
+        description: "Font size",
+        emptyLabel: "Auto",
+        unit: "px",
+        help: "Leave empty to size the text to the frame.",
+      },
+      fontWeight: {
+        type: "enum",
+        options: ["400", "500", "600", "700"],
+        default: "600",
+        description: "Font weight",
+      },
       offColor: {
         type: "color",
         default: "",
