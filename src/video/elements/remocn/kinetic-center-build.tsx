@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Easing, interpolate } from "remotion";
+import { MAIN_FONT } from "@/shared/fonts";
 import { useAuthoredFrame } from "@/video/core/authored-clock";
 
 export interface KineticCenterBuildProps {
@@ -15,8 +16,7 @@ export interface KineticCenterBuildProps {
 const FONT_FAMILY =
   "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif";
 
-const MEASURE_FONT =
-  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+const LETTER_SPACING_EM = -0.03;
 
 function measureWidths(
   words: string[],
@@ -28,7 +28,8 @@ function measureWidths(
   }
   const ctx = document.createElement("canvas").getContext("2d");
   if (!ctx) return words.map((w) => w.length * fontSize * 0.55);
-  ctx.font = `${fontWeight} ${fontSize}px ${MEASURE_FONT}`;
+  ctx.font = `${fontWeight} ${fontSize}px ${MAIN_FONT}`;
+  ctx.letterSpacing = `${LETTER_SPACING_EM * fontSize}px`;
   return words.map((w) => ctx.measureText(w).width);
 }
 
@@ -95,7 +96,7 @@ export function KineticCenterBuild({
           fontSize,
           fontWeight,
           color,
-          letterSpacing: "-0.03em",
+          letterSpacing: `${LETTER_SPACING_EM}em`,
           fontFamily: FONT_FAMILY,
           whiteSpace: "nowrap",
         }}
