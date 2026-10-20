@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { nodeCard } from "../test-fixtures";
 import { assertNode, waitNode } from "./browser";
+import { parseParams } from "./params";
 
 describe("browser action cards", () => {
   it("shows what the Type text node does", () => {
@@ -50,7 +51,14 @@ describe("browser action settings", () => {
   it("never gives up after 0 s, which would wait forever", () => {
     for (const node of [waitNode, assertNode]) {
       expect(node.params.safeParse({ timeoutMs: 0 }).success).toBe(false);
-      expect(node.params.safeParse({ timeoutMs: 500 }).success).toBe(true);
+      expect(node.params.safeParse({ text: "Saved", timeoutMs: 500 }).success).toBe(true);
     }
+  });
+
+  it("refuses to check for blank text, which every page contains", () => {
+    expect(parseParams(assertNode.params, { text: " " })).toEqual({
+      ok: false,
+      problem: "Add the text to look for",
+    });
   });
 });

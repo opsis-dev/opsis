@@ -454,7 +454,11 @@ export const assertNode = defineNode({
   description:
     "Stops the recording early if some text is not on the page, so you don't export a broken take.",
   params: z.object({
-    text: text("", "Text"),
+    text: z
+      .string()
+      .refine((t) => t.trim() !== "", "Add the text to look for")
+      .default("")
+      .meta({ description: "Text" }),
     target: optionalTarget("Only inside (optional)"),
     targetRole: pickedRole(),
     timeoutMs: giveUpAfter(10_000),
