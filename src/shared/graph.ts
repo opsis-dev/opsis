@@ -234,8 +234,11 @@ function portIssues(
   inputs: Record<string, PortSpec>,
 ): GraphIssue[] {
   const issues: GraphIssue[] = [];
+  const byId = nodesById(wf.nodes);
   for (const [portId, spec] of Object.entries(inputs)) {
-    const edges = wf.edges.filter((e) => e.target === node.id && e.targetHandle === portId);
+    const edges = wf.edges.filter(
+      (e) => e.target === node.id && e.targetHandle === portId && !edgeFault(e, byId),
+    );
     const name = portLabel(spec, "in");
     if (edges.length === 0 && !spec.optional)
       issues.push({ level: "warning", nodeId: node.id, message: `Connect something to “${name}”` });

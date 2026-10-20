@@ -83,6 +83,25 @@ describe("graph", () => {
     expect(problems.map((i) => i.nodeId)).toEqual(["gone"]);
   });
 
+  it("ignores a connection from a deleted node when counting a node's connections", () => {
+    const g = new GraphBuilder();
+    g.node("rec", "capture.record", 0, 0);
+    const wf = build(g);
+    wf.edges.push({
+      id: "e",
+      source: "gone",
+      sourceHandle: "session",
+      target: "rec",
+      targetHandle: "session",
+    });
+    const messages = validateWorkflow(wf)
+      .filter((i) => i.nodeId === "rec" || i.edgeId === "e")
+      .map((i) => i.message);
+    expect(messages).toContain("Connect something to “Previous”");
+    expect(messages).toContain("A connection points at a deleted node");
+    expect(messages.some((m) => m.includes("only take one connection"))).toBe(false);
+  });
+
   it("stops two Sign in once nodes from saving the same sign-in", () => {
     const g = new GraphBuilder();
     g.node("a", "capture.loginOnce", 0, 0, { url: "https://x.test/login", secretName: "acct" });
