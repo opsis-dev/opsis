@@ -2,7 +2,7 @@ import { baseName } from "../asset-ref";
 import { formatDuration, percentText } from "../format";
 import { nonBlankString } from "../guards";
 import type { PickedRole } from "../interactive";
-import type { MediaValue, NodeResult } from "../schema/values";
+import type { MediaValue, NodeResult, StyleEntry } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { framesToMs } from "../timeline/time";
 import type { NodeIconName } from "./icon-name";
@@ -29,6 +29,7 @@ export type CardContext<P> = {
   inputCaptionsMs?: Partial<Record<string, number>>;
   inputSteps?: Partial<Record<string, string[]>>;
   inputStyle?: Partial<Record<string, string[]>>;
+  inputGrade?: Partial<Record<string, StyleEntry[]>>;
 };
 
 export type InputTake = { durationMs: number; cursorTrack: boolean } | null;

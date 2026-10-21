@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { editedFile, ffmpegSeconds, hasSoundTrack } from "./codecs";
+import { editedFile, ffmpegSeconds, gradeSoundArgs, gradeVideoArgs, hasSoundTrack } from "./codecs";
 
 describe("codecs", () => {
   it("knows which formats carry sound", () => {
@@ -30,5 +30,33 @@ describe("editedFile", () => {
 
   it("has nothing to make from a still image", () => {
     expect(editedFile(".png", { video: false, audio: false })).toBeNull();
+  });
+});
+
+describe("graded file arguments", () => {
+  it("leaves out the even-size crop, which the filter chain does itself", () => {
+    expect(gradeVideoArgs("h264", 18, "medium")).not.toContain("-vf");
+    expect(gradeVideoArgs("h264", 18, "medium")).toContain("libx264");
+    expect(gradeVideoArgs("h265", 20, "slow")).not.toContain("-vf");
+  });
+
+  it("writes every picture format with the pixel format it needs", () => {
+    const pixel = (codec: Parameters<typeof gradeVideoArgs>[0]) => {
+      const args = gradeVideoArgs(codec, 18, "medium");
+      return args[args.indexOf("-pix_fmt") + 1];
+    };
+    expect(pixel("h264")).toBe("yuv420p");
+    expect(pixel("h265")).toBe("yuv420p");
+    expect(pixel("vp9")).toBe("yuv420p");
+    expect(pixel("prores")).toBe("yuv422p10le");
+  });
+
+  it("copies sound the container can hold, and converts the rest", () => {
+    expect(gradeSoundArgs("h264", "aac")).toEqual(["-c:a", "copy"]);
+    expect(gradeSoundArgs("h264", "pcm_s16le")).toContain("aac");
+    expect(gradeSoundArgs("prores", "pcm_s16le")).toEqual(["-c:a", "copy"]);
+    expect(gradeSoundArgs("vp9", "opus")).toEqual(["-c:a", "copy"]);
+    expect(gradeSoundArgs("vp9", "aac")).toContain("libopus");
+    expect(gradeSoundArgs("h264", undefined)).toEqual([]);
   });
 });

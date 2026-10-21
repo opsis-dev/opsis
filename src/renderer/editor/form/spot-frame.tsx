@@ -17,7 +17,13 @@ export function SpotFrame({
       className={cn("bg-muted relative w-full overflow-hidden rounded-md border", className)}
       style={{ aspectRatio: String(ctx.aspect), ...style }}
     >
-      {bg ? (
+      {bg?.still ? (
+        <img
+          src={bg.src}
+          alt=""
+          className="pointer-events-none absolute inset-0 size-full object-cover"
+        />
+      ) : bg ? (
         <video
           src={`${bg.src}#t=${(timeMs ?? bg.timeMs) / 1000}`}
           muted

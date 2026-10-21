@@ -1,7 +1,12 @@
 import type { FieldMeta } from "@/shared/elements/introspect";
 import type { VarInfo } from "../var-text";
 
-export type SpotBackground = { src: string; timeMs: number; durationMs: number } | null;
+export type SpotBackground = {
+  src: string;
+  timeMs: number;
+  durationMs: number;
+  still?: boolean;
+} | null;
 
 export type FormContext = {
   nodeId: string;

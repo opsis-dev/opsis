@@ -6,6 +6,7 @@ import { errorMessage } from "@/shared/errors";
 import { uniqueKeys } from "@/shared/lists";
 import type { CardContext, CardRow, InputTake } from "@/shared/nodes/card";
 import { cardParams, cardRows, type NodeDef } from "@/shared/nodes/define";
+import type { StyleEntry } from "@/shared/schema/values";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { workflowVars } from "@/shared/vars";
 import { useRunStore } from "../store/run";
@@ -42,12 +43,14 @@ function useCardInputs(node: WorkflowNode) {
     const captions: Partial<Record<string, number>> = {};
     const steps: Partial<Record<string, string[]>> = {};
     const style: Partial<Record<string, string[]>> = {};
+    const grade: Partial<Record<string, StyleEntry[]>> = {};
     for (const e of incoming) {
       const v = compiled?.values[e.source]?.[e.sourceHandle];
       if (v?.type === "media") media[e.targetHandle] = { kind: v.kind, hasAudio: v.hasAudio };
       if (v?.type === "captions") captions[e.targetHandle] = v.captions.at(-1)?.endMs ?? 0;
       if (v?.type === "browser-session") steps[e.targetHandle] = v.steps.map((s) => s.type);
       if (v?.type === "recording-style") style[e.targetHandle] = v.entries.map((s) => s.type);
+      if (v?.type === "grade") grade[e.targetHandle] = v.entries;
       if (v?.type === "recording") {
         const take = recordingTake(v);
         if (take !== undefined) takes[e.targetHandle] = take;
@@ -66,6 +69,7 @@ function useCardInputs(node: WorkflowNode) {
       inputCaptionsMs: captions,
       inputSteps: steps,
       inputStyle: style,
+      inputGrade: grade,
     };
   }, [incoming, compiled]);
   return useMemo(

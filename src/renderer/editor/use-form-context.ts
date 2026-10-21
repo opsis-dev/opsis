@@ -4,11 +4,12 @@ import { attempt } from "@/renderer/lib/toast";
 import { projectSwatches } from "@/shared/color";
 import type { CompileResult } from "@/shared/compile/compile";
 import { hasWidget, targetRoleKey } from "@/shared/elements/introspect";
-import { sessionInto, upstreamOf } from "@/shared/graph";
+import { downstreamOf, sessionInto, upstreamOf } from "@/shared/graph";
 import { ACTION_NODE_TYPES, navigateNode, openBrowserNode } from "@/shared/nodes/browser";
 import { connectedPorts } from "@/shared/nodes/card";
 import type { NodeDef } from "@/shared/nodes/define";
-import { IN_PORTS, SESSION_PORT } from "@/shared/nodes/ports";
+import { applyGradeNode } from "@/shared/nodes/media";
+import { convertInput, IN_PORTS, SESSION_PORT } from "@/shared/nodes/ports";
 import { nodeName } from "@/shared/nodes/registry";
 import { asValue, type BrowserSessionValue, type NodeResult } from "@/shared/schema/values";
 import type { Workflow } from "@/shared/schema/workflow";
@@ -42,6 +43,23 @@ function spotBackground(
     const rec = results[id]?.outputs.recording;
     if (rec?.type === "recording" && rec.src)
       return { src: fileUrl(rec.src), timeMs: 0, durationMs: rec.durationMs };
+  }
+  return null;
+}
+
+function gradedFile(wf: Workflow, nodeId: string, values: CompileResult["values"]): SpotBackground {
+  const later = downstreamOf(wf, nodeId);
+  for (const apply of wf.nodes.filter((n) => n.type === applyGradeNode.type && later.has(n.id))) {
+    const edge = wf.edges.find((e) => e.target === apply.id && e.targetHandle === "media");
+    const value = edge && values[edge.source]?.[edge.sourceHandle];
+    const media = asValue(convertInput(value, applyGradeNode.inputs.media), "media");
+    if (media?.src && media.kind !== "audio")
+      return {
+        src: fileUrl(media.src),
+        timeMs: 0,
+        durationMs: media.durationMs ?? 0,
+        ...(media.kind === "image" ? { still: true } : {}),
+      };
   }
   return null;
 }
@@ -142,7 +160,8 @@ function formContext({
     .filter((e) => e.target === nodeId)
     .map((e) => e.targetHandle);
   const layerCount = connectedPorts(IN_PORTS, connectedInputs).length;
-  const needsBackground = def.category === "Camera" || hasWidget(def.params, "boxes");
+  const needsBackground =
+    def.category === "Camera" || def.category === "Grade" || hasWidget(def.params, "boxes");
   return {
     nodeId,
     projectDir,
@@ -153,7 +172,11 @@ function formContext({
     actions: workflow.nodes
       .filter((n) => ACTION_NODE_TYPES.has(n.type))
       .map((n) => ({ id: n.id, label: nodeName(n) })),
-    spotBackground: needsBackground ? spotBackground(workflow, nodeId, results) : null,
+    spotBackground: needsBackground
+      ? def.category === "Grade"
+        ? gradedFile(workflow, nodeId, values)
+        : spotBackground(workflow, nodeId, results)
+      : null,
     pickTarget: (key) => void pickTarget(workflow, values, nodeId, key),
     chooseAsset: (apply) => void chooseAsset(projectDir, apply),
     swatches: projectSwatches(workflow.nodes.map((n) => n.params)),

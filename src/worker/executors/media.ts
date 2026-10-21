@@ -1,12 +1,16 @@
+import { existsSync } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { writeJson } from "../../engine/json";
 import { projectRef } from "../../shared/asset-ref";
 import { formatPreciseDuration, singleQuoted } from "../../shared/format";
 import { formatDuration } from "../../shared/format";
+import { findById } from "../../shared/lists";
 import { kindFromPath } from "../../shared/mime";
 import { loudnormFilter } from "../../shared/mix/graph";
+import { gradeNeedsVideo, lookFileNode } from "../../shared/nodes/grade";
 import {
+  applyGradeNode,
   concatNode,
   convertNode,
   extractAudioNode,
@@ -21,7 +25,8 @@ import {
   scalePadNode,
   thumbnailNode,
 } from "../../shared/nodes/media";
-import type { MediaValue } from "../../shared/schema/values";
+import { nodeName } from "../../shared/nodes/registry";
+import { asValue, type MediaValue } from "../../shared/schema/values";
 import { DEFAULT_STILL_MS } from "../../shared/schema/workflow";
 import {
   defineExecutor,
@@ -42,10 +47,13 @@ import {
   FASTSTART,
   ffmpegSeconds,
   frameGrabArgs,
+  gradeSoundArgs,
+  gradeVideoArgs,
   PCM_16,
 } from "../media/codecs";
 import { canStreamCopy, type ProbeResult } from "../media/ffmpeg";
 import { fitFilter, gifFilter, joinFilter, speedArgs } from "../media/filters";
+import { gradeFilters } from "../media/grade";
 import {
   frameBytes,
   joinReversedArgs,
@@ -345,6 +353,55 @@ export const mediaExecutors: Executor[] = [
       file: `converted.${CODECS[p.codec].ext}`,
       label: p.codec,
       args: (i, o) => ["-i", i, ...convertArgs(p.codec, p.crf, p.preset), o],
+    });
+  }),
+
+  defineExecutor(applyGradeNode, async (ctx, inputs, p) => {
+    const input = requireMedia(inputs.media);
+    const entries = asValue(inputs.grade, "grade")?.entries;
+    if (!entries) throw new Error("Connect a grade.");
+    for (const entry of entries) {
+      if (entry.type !== lookFileNode.type) continue;
+      const look = lookFileNode.params.parse(entry.params);
+      if (look.strength === 0) continue;
+      const name = nodeName(findById(ctx.workflow.nodes, entry.nodeId) ?? { type: entry.type });
+      if (!look.file) throw new Error(`Choose a look file for “${name}”.`);
+      if (!existsSync(refToPath(ctx, projectRef(look.file))))
+        throw new Error(`The look file for “${name}” isn't in the project.`);
+    }
+    const src = refToPath(ctx, input.src);
+    const probe = await ctx.ffmpeg.probe(src);
+    if (!probe.video) throw new Error("This file has no picture to grade.");
+    const still = input.kind === "image";
+    const { chain, extraInputs } = gradeFilters(
+      entries,
+      { width: probe.video.width, height: probe.video.height, still },
+      (file) => refToPath(ctx, projectRef(file)),
+    );
+    if (still && gradeNeedsVideo(entries))
+      ctx.log("warn", "Motion trails and film grain are left out of a still image.");
+    const file = still ? "graded.png" : `graded.${CODECS[p.codec].ext}`;
+    return transcodeMedia(ctx, input, {
+      file,
+      label: "Graded file",
+      args: (i, o) => [
+        "-i",
+        i,
+        ...extraInputs.flatMap((f) => ["-i", f]),
+        "-filter_complex",
+        chain,
+        "-map",
+        "[out]",
+        ...(still
+          ? ["-frames:v", "1"]
+          : [
+              ...(probe.audio ? ["-map", "0:a?"] : []),
+              ...gradeVideoArgs(p.codec, p.crf, p.preset),
+              ...gradeSoundArgs(p.codec, probe.audio?.codec),
+              ...(CODECS[p.codec].faststart ? FASTSTART : []),
+            ]),
+        o,
+      ],
     });
   }),
 

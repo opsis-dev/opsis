@@ -11,6 +11,8 @@ export type ColorFormat = (typeof COLOR_FORMATS)[number];
 
 const toHsv = converter("hsv");
 const toOklch = converter("oklch");
+const toRgb = converter("rgb");
+const toHsl = converter("hsl");
 
 export function parseColor(value: string): Hsva | null {
   const text = value.trim();
@@ -88,4 +90,24 @@ export function projectSwatches(params: readonly unknown[]): string[] {
     counts.set(color, (counts.get(color) ?? 0) + 1);
   const byUse = [...counts].toSorted((a, b) => b[1] - a[1]).map(([color]) => color);
   return uniqueBy(byUse, colorKey).slice(0, MAX_SWATCHES);
+}
+
+export type Rgb = { r: number; g: number; b: number };
+
+export function rgbOf(value: string): Rgb | null {
+  const text = value.trim();
+  if (!text || text.startsWith("var(")) return null;
+  const parsed = parse(text);
+  if (!parsed) return null;
+  const { r, g, b } = toRgb(parsed);
+  return { r: clamp(r, 0, 1), g: clamp(g, 0, 1), b: clamp(b, 0, 1) };
+}
+
+export function hueAndSaturationOf(value: string): { hue: number; saturation: number } | null {
+  const text = value.trim();
+  if (!text || text.startsWith("var(")) return null;
+  const parsed = parse(text);
+  if (!parsed) return null;
+  const { h, s } = toHsl(parsed);
+  return { hue: Number.isFinite(h) ? (h ?? 0) : 0, saturation: clamp(s, 0, 1) };
 }

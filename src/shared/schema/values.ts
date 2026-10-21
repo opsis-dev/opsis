@@ -87,10 +87,17 @@ const recordingStyleValueSchema = z.object({
 });
 export type RecordingStyleValue = z.infer<typeof recordingStyleValueSchema>;
 
+const gradeValueSchema = z.object({
+  type: z.literal("grade"),
+  entries: z.array(styleEntrySchema),
+});
+export type GradeValue = z.infer<typeof gradeValueSchema>;
+
 const compileValueSchema = z.discriminatedUnion("type", [
   browserSessionValueSchema,
   recordingValueSchema,
   recordingStyleValueSchema,
+  gradeValueSchema,
   imageValueSchema,
   mediaValueSchema,
   fileInfoValueSchema,

@@ -13,8 +13,17 @@ import {
 } from "../schema/values";
 import { DEFAULT_STILL_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
 import { msToFrames } from "../timeline/time";
-import { connectedPorts, fileRow, missing, rangeRow, row, type CardRow } from "./card";
-import { defineNode, nodeBase, opt, port, type CompileInputs, type NodeDef } from "./define";
+import { connectedPorts, fileRow, missing, rangeRow, row, truncate, type CardRow } from "./card";
+import {
+  defineNode,
+  GRADE_PORT,
+  nodeBase,
+  opt,
+  port,
+  type CompileInputs,
+  type NodeDef,
+} from "./define";
+import { gradeChangesNothing, gradeNeedsVideo, gradeStepTitle } from "./grade";
 import type { NodeIconName } from "./icon-name";
 import {
   asset,
@@ -108,7 +117,13 @@ function mediaToClip(
       envelope,
       ...(still ? { handles: still.handles } : {}),
     });
-  return itemClip(nodeId, "core/video", { src: media.src, fit, muted }, frames, { envelope });
+  return itemClip(
+    nodeId,
+    "core/video",
+    { src: media.src, fit, muted: muted || media.hasAudio === false },
+    frames,
+    { envelope },
+  );
 }
 
 const op = <S extends z.ZodObject>(def: Omit<NodeDef<S>, "category" | "phase" | "executes">) =>
@@ -308,6 +323,53 @@ export const convertNode = op({
   }),
 });
 
+export const applyGradeNode = op({
+  type: "media.applyGrade",
+  title: "Apply grade",
+  description:
+    "Applies a colour grade to a whole video or image file: everything in the picture, window and backdrop included." +
+    NEW_FILE,
+  inputs: { media: port("media", "File"), [GRADE_PORT]: port("grade", "Grade") },
+  outputs: { media: port("media", "File") },
+  card: ({ params: p, inputGrade, inputMedia, result }) => {
+    const entries = inputGrade?.[GRADE_PORT];
+    const image = inputMedia?.media?.kind === "image";
+    const titles = [...new Set((entries ?? []).map((e) => gradeStepTitle(e.type)))];
+    return [
+      entries?.length
+        ? row("palette", truncate(`${plural(entries.length, "step")}: ${titles.join(", ")}`))
+        : missing("palette", "Connect a grade"),
+      entries?.length &&
+        gradeChangesNothing(entries) &&
+        missing("triangle-alert", "The grade changes nothing"),
+      image
+        ? row("image", "PNG")
+        : row(
+            "file-video",
+            [
+              FORMAT_NAMES[p.codec],
+              QUALITY_FORMATS.includes(p.codec) && `${qualityName(p.crf)} quality`,
+              p.codec === "prores" && "no Preview",
+              p.codec === "h265" && "may not preview",
+            ]
+              .filter(Boolean)
+              .join(" · "),
+          ),
+      image && entries && gradeNeedsVideo(entries)
+        ? missing("triangle-alert", "Trails and film grain need a video")
+        : lengthRow(result),
+    ];
+  },
+  params: z.object({
+    codec: choiceFrom(FORMAT_NAMES, CONVERT_FORMATS, "h264", "Format"),
+    crf: more(quality(18), { showIf: { codec: [...QUALITY_FORMATS] } }),
+    preset: more(choiceOf(PRESET_LABELS, "medium", "Speed vs file size"), {
+      advanced: true,
+      showIf: { codec: [...PRESET_FORMATS] },
+    }),
+  }),
+});
+
 export const gifNode = op({
   ...one,
   type: "media.gif",
@@ -408,6 +470,7 @@ export const mediaNodes: NodeDef[] = [
   reverseNode,
   scalePadNode,
   convertNode,
+  applyGradeNode,
   gifNode,
   extractAudioNode,
   loudnormNode,

@@ -9,6 +9,7 @@ import { cursorNodes } from "./cursor";
 import type { NodeDef } from "./define";
 import { effectNodes } from "./effects";
 import { elementNodes } from "./elements";
+import { gradeNodes } from "./grade";
 import { mediaNodes } from "./media";
 import { outputNodes } from "./output";
 import { textNodes } from "./text";
@@ -23,6 +24,7 @@ export const NODE_DEFS: NodeDef[] = [
   ...cursorNodes,
   ...textNodes,
   ...effectNodes,
+  ...gradeNodes,
   ...elementNodes,
   ...transitionNodes,
   ...audioNodes,

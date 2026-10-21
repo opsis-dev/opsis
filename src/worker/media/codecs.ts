@@ -110,6 +110,35 @@ export function convertArgs(codec: ConvertParams["codec"], crf: number, preset: 
   return [...video(crf, preset), ...(faststart ? FASTSTART : []), ...audio];
 }
 
+export function gradeVideoArgs(
+  codec: ConvertParams["codec"],
+  crf: number,
+  preset: Preset,
+): string[] {
+  const args = CODECS[codec].video(crf, preset);
+  const at = args.indexOf("-vf");
+  const plain = at === -1 ? args : args.toSpliced(at, 2);
+  return codec === "vp9" ? [...plain, "-pix_fmt", "yuv420p"] : plain;
+}
+
+const MP4_SOUNDS: ReadonlySet<string> = new Set([
+  "aac",
+  "mp3",
+  "ac3",
+  "eac3",
+  "opus",
+  "flac",
+  "alac",
+]);
+const WEBM_SOUNDS: ReadonlySet<string> = new Set(["opus", "vorbis"]);
+
+export function gradeSoundArgs(codec: ConvertParams["codec"], sound: string | undefined): string[] {
+  if (!sound) return [];
+  const { audio, ext } = CODECS[codec];
+  const keeps = ext === "webm" ? WEBM_SOUNDS.has(sound) : ext === "mov" || MP4_SOUNDS.has(sound);
+  return keeps ? ["-c:a", "copy"] : audio;
+}
+
 export const AUDIO_FORMATS: Record<AudioFormat, string[]> = {
   m4a: [...AAC, "-b:a", "192k"],
   mp3: ["-c:a", "libmp3lame", "-q:a", "2"],

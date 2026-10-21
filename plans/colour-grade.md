@@ -2,7 +2,7 @@
 
 A second way to change how a finished video looks, for when Picture look isn't enough. Small grade nodes build a list of grading steps; one **Apply grade** node runs the whole list over a video or image file in a single FFmpeg pass and writes a new file.
 
-Status: plan only. Nothing here is built yet.
+Status: built. See **As built** at the end for what changed from this plan and what did not.
 
 ## Why
 
@@ -185,3 +185,53 @@ A pure module `src/worker/media/grade.ts`:
 - **Colour space.** Most filters run in YUV; `grayworld` needs planar float RGB, so it converts and back. Each conversion is lossless in float but adds time; only White balance pays it.
 - **Speed.** One pass is usually several times faster than real time at 1080p; `lenscorrection` and `gblur` with a large sigma are the slow ones. Measure a 1-minute 1080p film with every node on and report it.
 - **Re-encoding.** The input is usually an already encoded export, so Apply grade is a second encode. At the default quality the loss is hard to see; ProRes keeps it lowest but doesn't preview.
+
+## As built
+
+Built as written, except for the points below.
+
+### What changed
+
+- **Tint.** `colorize=…:lightness=0` gives plain grey (no tint), so Tint writes `colorize=hue=H:saturation=S:lightness=0.5:mix=1` and Strength is the split and blend used by Look file, not `mix=S`.
+- **Look image.** No `-loop 1`: `haldclut=repeatlast=1` alone holds the single frame and the output ends with the video. With `-loop 1` the second input would never end.
+- **Sound.** Copied untouched only when the output container can hold its codec (`gradeSoundArgs`): AAC and similar into MP4, anything into ProRes, Opus or Vorbis into WebM. Otherwise it is encoded with the format's usual sound settings, so AAC into WebM becomes Opus. `-map 0:a?` is left out for a file with no sound.
+- **Image input.** The format and quality settings stay visible, because `showIfFile` watches a setting, not a connected input. The card says PNG instead. White balance on an image ends in `rgb24`, not `yuv420p`.
+- **Colour fringing.** The shift is at least 1 px for any non-zero setting, so a small value never rounds to nothing.
+- **Card warnings.** Image input says "Trails and film grain need a video" (the plan named only trails). A look file that has gone missing from the project fails the run with the plan's message but has no card warning; only an empty setting shows one.
+- **Tone colours.** A tone colour whose channels are all equal (a grey) has no offsets, so it counts as no change and writes no `colorbalance`.
+- **Cards.** ProRes says "no Preview" on the Apply grade card (Convert's card does not, despite what the plan said). HEVC says "may not preview": the app's browser has no software HEVC decoder on Linux, so the Preview needs a GPU decode path, while exports with an HEVC file work.
+- **Use as clip.** It now mutes a video whose file has no sound. Before, any silent file made the mixer fail with "The sound couldn't be mixed". Not in this plan, found by check 6.
+- **Preview of spot.** Texture's dark-edges picker shows a frame of the file that reaches Apply grade (a video frame or the image); `SpotBackground` gained `still`.
+- **Tests.** Apply grade's card tests are in `src/shared/nodes/grade.test.ts`, not `media.test.ts`; the executor has its own tests in `src/worker/executors/media.test.ts`.
+
+### What did not change
+
+- Port type, value, category, base (`gradeModifier`), the six nodes with the settings, ranges and filter mappings in the tables (warmth, bulge, vignette, grain, sharpen and soften factors as written), Apply grade's settings, executor steps and cache behaviour, the filter chain module and its tests, and the AGENTS.md and Picture look description edits.
+- Warmth maps a warmer setting to a lower colour temperature, checked on a grey picture (3000 K is amber).
+- Lens bulge `k1 = bulge · 0.5`: positive bulges out, negative pinches in, checked on a test picture.
+
+### Checks
+
+1. Unit tests, type check, lint, format and the full suite pass; the no-comments check reports nothing from the new code.
+2. In the app, on a recorded take with a white backdrop: each grade node alone at a strong setting and one chain of three changed the backdrop, window frame, page and cursor. Frames were compared with FFmpeg on the graded files, not exported through Use as clip → Export images. The chain went through Use as clip and a full export.
+3. A `.cube` at full strength and a look image at 50% both work; a path with spaces, a colon, quotes, commas and brackets works.
+4. An image input gave a PNG; a video with sound (AAC into MP4) kept a byte-identical sound stream.
+5. Changing one grade node re-ran only its Apply grade; a second run with no change ran nothing.
+6. MP4 and WebM play in the Preview. HEVC does not on the test machine (Linux, no software decoder), but exporting a film with an HEVC file works. ProRes was not tried in the Preview.
+
+### Speed
+
+Measured on 60 s of 1080p film, H.264 at default quality, 20 cores, one pass:
+
+| Step                            | Real time     |
+| ------------------------------- | ------------- |
+| Plain copy, nothing graded      | 8.8×          |
+| Colour and light (all settings) | 1.6×          |
+| Look file, 50%                  | 2.9×          |
+| Black and white and tint        | 7.7×          |
+| Texture (all settings)          | 0.74×         |
+| Lens (all settings)             | 3.1×          |
+| Auto fix (all settings)         | 1.2×          |
+| All six together                | 0.30× (200 s) |
+
+"Several times faster than real time" holds only for light grades. The slow ones are Texture and Auto fix, then the colour filters that work in float (exposure, warmth, vibrance: 2.6× against 7.4× for the rest). Not looked into: which Texture setting costs most.

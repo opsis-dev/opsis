@@ -22,6 +22,7 @@ export const NODE_CATEGORIES = [
   "Transitions",
   "Backgrounds",
   "Effects",
+  "Grade",
   "Elements",
   "Audio",
   "Timeline",
@@ -41,6 +42,7 @@ export const CATEGORY_LABELS: Record<NodeCategory, string> = {
   Transitions: "Transitions",
   Backgrounds: "Backgrounds",
   Effects: "Effects",
+  Grade: "Colour grade",
   Elements: "Graphics",
   Audio: "Sound",
   Timeline: "Timeline",
@@ -160,6 +162,8 @@ export const RECORDING_PORT = "recording";
 
 export const STYLE_PORT = "style";
 
+export const GRADE_PORT = "grade";
+
 const clipModifier = {
   inputs: { [CLIP_PORT]: port("clip", "Clip") },
   outputs: { [CLIP_PORT]: port("clip", "Clip") },
@@ -190,6 +194,13 @@ const appendStyle = (ctx: EntryContext): CompileOutputs => {
   };
 };
 
+const appendGrade = (ctx: EntryContext): CompileOutputs => {
+  const grade = asValue(ctx.inputs[GRADE_PORT], "grade");
+  return {
+    [GRADE_PORT]: { type: "grade", entries: [...(grade?.entries ?? []), entryOf(ctx)] },
+  };
+};
+
 const appendTakeStyle = (ctx: EntryContext): CompileOutputs => {
   const recording = asValue(ctx.inputs[RECORDING_PORT], "recording");
   return recording
@@ -202,6 +213,13 @@ export const styleModifier = <C extends NodeCategory>(category: C) => ({
   inputs: { [STYLE_PORT]: opt("recording-style", "Style") },
   outputs: { [STYLE_PORT]: port("recording-style", "Style") },
   compile: appendStyle,
+});
+
+export const gradeModifier = <C extends NodeCategory>(category: C) => ({
+  ...nodeBase(category, "compile"),
+  inputs: { [GRADE_PORT]: opt("grade", "Grade") },
+  outputs: { [GRADE_PORT]: port("grade", "Grade") },
+  compile: appendGrade,
 });
 
 export const recordingModifier = <C extends NodeCategory>(category: C) => ({

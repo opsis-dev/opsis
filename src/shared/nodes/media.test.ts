@@ -21,6 +21,17 @@ describe("media clips", () => {
     );
   });
 
+  it("mutes a video that has no sound, so the mixer never looks for it", () => {
+    const silent: MediaValue = { ...media("video", "project:out/film.mp4"), hasAudio: false };
+    const loud: MediaValue = { ...silent, hasAudio: true };
+    expect(itemOf("media.toClip", { muted: false }, { media: silent }).item.props).toMatchObject({
+      muted: true,
+    });
+    expect(itemOf("media.toClip", { muted: false }, { media: loud }).item.props).toMatchObject({
+      muted: false,
+    });
+  });
+
   it("gives an image the same default length in both nodes", () => {
     const image = { media: media("image", "project:assets/shot.png") };
     expect(itemOf("media.toClip", {}, image).frames).toBe(

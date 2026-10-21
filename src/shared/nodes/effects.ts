@@ -96,7 +96,7 @@ const NEUTRAL_LOOK = {
   grain: 0,
 } satisfies Required<PictureLook>;
 
-const LOOK_PRESETS: Array<{ label: string; values: Required<PictureLook> }> = [
+export const LOOK_PRESETS: Array<{ label: string; values: Required<PictureLook> }> = [
   { label: "Natural", values: NEUTRAL_LOOK },
   { label: "Warm", values: { ...NEUTRAL_LOOK, warmth: 0.35, saturation: 1.1, vignette: 0.2 } },
   { label: "Cool", values: { ...NEUTRAL_LOOK, warmth: -0.3, contrast: 1.05 } },
@@ -134,7 +134,7 @@ export const pictureLookNode = defineNode({
   type: "effect.look",
   title: "Picture look",
   description:
-    "Gives recordings, videos and images a look: colour, brightness, a dark vignette and film grain.",
+    "Gives recordings, videos and images a look: colour, brightness, a dark vignette and film grain. To grade a recording's whole picture, window and backdrop included, use Apply grade on an exported file.",
   card: ({ params: p }) => {
     const preset = LOOK_PRESETS.find((l) =>
       Object.entries(l.values).every(([k, v]) => p[k as keyof PictureLook] === v),
