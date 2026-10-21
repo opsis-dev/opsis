@@ -69,6 +69,7 @@ const errors = {
   "400": json(ref("Error"), "The request isn't valid"),
   "404": json(ref("Error"), "Not found"),
   "409": json(ref("Error"), "No project is open, or a run is already going"),
+  "422": json(ref("Error"), "The project file can't be read"),
 };
 
 const projectRead = json(ref("Project"));
@@ -127,7 +128,12 @@ const PATHS: Record<string, PathItem> = {
     post: {
       summary: "Open a project folder in the editor",
       requestBody: body(jsonSchemaOf(openBody)),
-      responses: { "200": projectRead, "400": errors["400"], "404": errors["404"] },
+      responses: {
+        "200": projectRead,
+        "400": errors["400"],
+        "404": errors["404"],
+        "422": errors["422"],
+      },
     },
   },
   "/project": {

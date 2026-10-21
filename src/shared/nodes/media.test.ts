@@ -67,10 +67,16 @@ describe("Media file settings", () => {
 });
 
 describe("Convert card", () => {
+  const texts = (codec: string) => nodeCard("media.convert", { codec }).map((r) => r.text);
+
   it("shows quality only for formats that use it", () => {
-    const texts = (codec: string) => nodeCard("media.convert", { codec }).map((r) => r.text);
-    expect(texts("h264")).toEqual(["MP4", "High quality"]);
-    expect(texts("prores")).toEqual(["ProRes"]);
+    expect(texts("h264")).toEqual(["MP4 · High quality"]);
+    expect(texts("vp9")).toEqual(["WebM · High quality"]);
+  });
+
+  it("says which formats the Preview can't play, as Apply grade does", () => {
+    expect(texts("prores")).toEqual(["ProRes · no Preview"]);
+    expect(texts("h265")).toEqual(["MP4 (HEVC) · High quality · may not preview"]);
   });
 });
 

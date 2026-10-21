@@ -165,3 +165,88 @@ describe("Apply grade executor", () => {
     expect(still).not.toContain("-c:v");
   });
 });
+
+describe("file nodes on a sound file", () => {
+  const ran: string[][] = [];
+  const soundProbe = {
+    durationMs: 4000,
+    format: "wav",
+    audio: { codec: "pcm_s16le", sampleRate: 48000, channels: 2 },
+    raw: {},
+  };
+
+  const contextFor = (type: string, params: Record<string, unknown>) =>
+    ({
+      projectDir: "/p",
+      env: { isPackaged: false, appRoot: "/p", resourcesPath: "/p" },
+      dir: "/p/.opsis/cache/h",
+      relDir: ".opsis/cache/h",
+      node: workflowNode(type, params, "n"),
+      workflow: { nodes: [], settings: { fps: 30 } },
+      vars: {},
+      signal: new AbortController().signal,
+      log: () => {},
+      progress: () => {},
+      ffmpeg: {
+        probe: async () => soundProbe,
+        run: async (args: string[]) => void ran.push(args),
+      },
+    }) as unknown as ExecutorContext;
+
+  const sound = {
+    type: "media" as const,
+    kind: "audio" as const,
+    src: "project:assets/voice.wav",
+    durationMs: 4000,
+  };
+
+  const run = async (type: string, params: Record<string, unknown> = {}) => {
+    ran.length = 0;
+    const executor = must(getExecutor(type), type);
+    const result = await executor.run(contextFor(type, { ...defaultParams(type), ...params }), {
+      media: sound,
+    });
+    return { args: must(ran[0], "ffmpeg args"), result };
+  };
+
+  it("changes the speed into a file of the same sound format", async () => {
+    const { args, result } = await run("media.speed", { rate: 2 });
+    expect(args).toEqual([
+      "-i",
+      "/p/assets/voice.wav",
+      "-af",
+      "atempo=2.0000",
+      "-vn",
+      "-c:a",
+      "pcm_s16le",
+      "/p/.opsis/cache/h/speed.wav",
+    ]);
+    expect(result.artifacts?.[0]).toMatchObject({ kind: "audio" });
+  });
+
+  it("says a sound file without its sound leaves nothing", async () => {
+    await expect(run("media.speed", { keepAudio: false })).rejects.toThrow(
+      "This file is only sound, so turning off Keep the sound leaves nothing.",
+    );
+  });
+
+  it("reverses into a file of the same sound format", async () => {
+    const { args } = await run("media.reverse");
+    expect(args).toEqual([
+      "-i",
+      "/p/assets/voice.wav",
+      "-af",
+      "areverse",
+      "-vn",
+      "-c:a",
+      "pcm_s16le",
+      "/p/.opsis/cache/h/reversed.wav",
+    ]);
+  });
+
+  it("refuses to resize a sound file", async () => {
+    await expect(run("media.scalePad")).rejects.toThrow(
+      "Resize works on video and images, and this file is only sound.",
+    );
+  });
+});

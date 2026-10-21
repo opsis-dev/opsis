@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { downloadOnlineFont, fontCatalog } from "./fonts-online";
 
+vi.mock("electron", () => ({ app: { getPath: () => "" } }));
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });

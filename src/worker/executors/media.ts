@@ -50,9 +50,10 @@ import {
   gradeSoundArgs,
   gradeVideoArgs,
   PCM_16,
+  soundFile,
 } from "../media/codecs";
 import { canStreamCopy, type ProbeResult } from "../media/ffmpeg";
-import { fitFilter, gifFilter, joinFilter, speedArgs } from "../media/filters";
+import { fitFilter, gifFilter, joinFilter, speedArgs, speedSoundArgs } from "../media/filters";
 import { gradeFilters } from "../media/grade";
 import {
   frameBytes,
@@ -62,7 +63,7 @@ import {
   reverseArgs,
   reversedPartsList,
   reversePieces,
-  WHOLE_FILE,
+  reverseSoundArgs,
   type ReversePiece,
 } from "../media/reverse";
 import {
@@ -136,6 +137,11 @@ export function thumbnailTime(atMs: number, source: Pick<ProbeResult, "durationM
 }
 
 const extOf = (src: string) => path.extname(src).toLowerCase() || ".mp4";
+
+function soundOnlyFile(probe: ProbeResult, src: string, node: string) {
+  if (!probe.audio) throw new Error(`${node} works on video and sound, and this file has neither.`);
+  return soundFile(extOf(src));
+}
 
 const concatList = (paths: readonly string[]) =>
   paths.map((f) => `file ${singleQuoted(f)}`).join("\n");
@@ -287,12 +293,25 @@ export const mediaExecutors: Executor[] = [
   defineExecutor(mediaSpeedNode, async (ctx, inputs, p) => {
     const input = requireMedia(inputs.media);
     const probe = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
-    const fps = probe.video?.fps || ctx.workflow.settings.fps;
+    const label = `Speed ${p.rate}×`;
+    const durationMs = input.durationMs ? input.durationMs / p.rate : undefined;
+    if (!probe.video) {
+      const out = soundOnlyFile(probe, input.src, "Change speed");
+      if (!p.keepAudio)
+        throw new Error("This file is only sound, so turning off Keep the sound leaves nothing.");
+      return transcodeMedia(ctx, input, {
+        file: `speed${out.ext}`,
+        label,
+        durationMs,
+        args: (i, o) => speedSoundArgs(i, o, { rate: p.rate, codecs: out.codecs }),
+      });
+    }
+    const fps = probe.video.fps || ctx.workflow.settings.fps;
     const sound = p.keepAudio && (await mediaHasSound(ctx, input));
     return transcodeMedia(ctx, input, {
       file: "speed.mp4",
-      label: `Speed ${p.rate}×`,
-      durationMs: input.durationMs ? input.durationMs / p.rate : undefined,
+      label,
+      durationMs,
       args: (i, o) => speedArgs(i, o, { rate: p.rate, fps, sound }),
     });
   }),
@@ -300,18 +319,24 @@ export const mediaExecutors: Executor[] = [
   defineExecutor(reverseNode, async (ctx, inputs) => {
     const input = requireMedia(inputs.media);
     const src = refToPath(ctx, input.src);
-    const sound = await mediaHasSound(ctx, input);
     const probe = await ctx.ffmpeg.probe(src);
-    const pieces = probe.video
-      ? reversePieces({
-          durationMs: probe.durationMs,
-          fps: probe.video.fps || ctx.workflow.settings.fps,
-          frameBytes: frameBytes(probe.video),
-          budgetBytes: REVERSE_BUDGET_BYTES,
-        })
-      : [WHOLE_FILE];
-    const file = "reversed.mp4";
     const label = "Reversed";
+    if (!probe.video) {
+      const out = soundOnlyFile(probe, input.src, "Reverse");
+      return transcodeMedia(ctx, input, {
+        file: `reversed${out.ext}`,
+        label,
+        args: (i, o) => reverseSoundArgs(i, o, out.codecs),
+      });
+    }
+    const sound = await mediaHasSound(ctx, input);
+    const pieces = reversePieces({
+      durationMs: probe.durationMs,
+      fps: probe.video.fps || ctx.workflow.settings.fps,
+      frameBytes: frameBytes(probe.video),
+      budgetBytes: REVERSE_BUDGET_BYTES,
+    });
+    const file = "reversed.mp4";
     if (pieces.length === 1) {
       return transcodeMedia(ctx, input, {
         file,
@@ -330,6 +355,9 @@ export const mediaExecutors: Executor[] = [
 
   defineExecutor(scalePadNode, async (ctx, inputs, p) => {
     const input = requireMedia(inputs.media);
+    const probe = await ctx.ffmpeg.probe(refToPath(ctx, input.src));
+    if (!probe.video)
+      throw new Error("Resize works on video and images, and this file is only sound.");
     const image = input.kind === "image";
     return transcodeMedia(ctx, input, {
       file: image ? "scaled.png" : "scaled.mp4",

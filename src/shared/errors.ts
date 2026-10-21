@@ -1,6 +1,10 @@
 export const errorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
+const REMOTE_PREFIX = /^Error invoking remote method '[^']*': (?:[A-Za-z]*Error: )?/;
+
+export const withoutRemotePrefix = (message: string): string => message.replace(REMOTE_PREFIX, "");
+
 export const errorCode = (error: unknown): string | undefined =>
   error instanceof Error && "code" in error && typeof error.code === "string"
     ? error.code

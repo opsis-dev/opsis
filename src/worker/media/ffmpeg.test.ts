@@ -56,6 +56,24 @@ describe("parseProbe", () => {
     expect(probe.durationMs).toBe(0);
     expect(probe.video?.fps).toBe(0);
   });
+
+  it("reads a sound file's cover art as no picture", () => {
+    const probe = parseProbe({
+      format: { duration: "3.000000", format_name: "mp3" },
+      streams: [
+        { codec_type: "audio", codec_name: "mp3", sample_rate: "44100", channels: 2 },
+        {
+          codec_type: "video",
+          codec_name: "mjpeg",
+          width: 600,
+          height: 600,
+          disposition: { attached_pic: 1 },
+        },
+      ],
+    });
+    expect(probe.video).toBeUndefined();
+    expect(probe.audio?.codec).toBe("mp3");
+  });
 });
 
 describe("canStreamCopy", () => {

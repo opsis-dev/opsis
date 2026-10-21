@@ -9,6 +9,7 @@ import {
 import { useEditorSync } from "../app/sync";
 import { useEnvironment } from "../store/environment";
 import { useMedia } from "../store/media";
+import { useProjectFiles } from "../store/project-files";
 import { useStillsStore } from "../store/stills";
 import { useWorkflowStore } from "../store/workflow";
 import { useApiBridge } from "./api-bridge";
@@ -48,7 +49,13 @@ function useEditorSetup(projectDir: string): void {
     void useStillsStore.getState().load(projectDir);
     void useEnvironment.getState().refresh();
     useMedia.getState().reset(projectDir);
+    useProjectFiles.getState().forget();
   }, [projectDir]);
+  useEffect(() => {
+    const checkAgain = () => void useProjectFiles.getState().checkAgain();
+    window.addEventListener("focus", checkAgain);
+    return () => window.removeEventListener("focus", checkAgain);
+  }, []);
   useEditorSync();
   useEffect(() => () => void window.opsis.closePanelWindows(), []);
 }

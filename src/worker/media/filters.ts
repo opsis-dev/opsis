@@ -88,3 +88,9 @@ export function speedArgs(
     outPath,
   ];
 }
+
+export const speedSoundArgs = (
+  inPath: string,
+  outPath: string,
+  opts: { rate: number; codecs: readonly string[] },
+): string[] => ["-i", inPath, "-af", atempoChain(opts.rate), ...opts.codecs, outPath];

@@ -9,7 +9,7 @@ import {
 import { NO_PROJECT } from "@/shared/errors";
 import { whenReady } from "@/shared/timing";
 import { useWorkflowStore } from "../store/workflow";
-import { openEditor } from "./open-project";
+import { openEditor, useOpenFailure } from "./open-project";
 
 type Handler = (request: ApiEditorRequest) => Promise<ApiEditorReply>;
 
@@ -27,17 +27,28 @@ function editorWithProject(dir: string): Handler | null {
   return projectDir === dir && workflow ? useEditorApi.getState().handler : null;
 }
 
+type Opened = { handler: Handler } | { error: string };
+
+function openedEditor(dir: string): Opened | null {
+  const failure = useOpenFailure.getState();
+  if (failure?.dir === dir) return { error: failure.error };
+  const handler = editorWithProject(dir);
+  return handler ? { handler } : null;
+}
+
 function onEditorChange(onChange: () => void): () => void {
   const offWorkflow = useWorkflowStore.subscribe(onChange);
   const offEditor = useEditorApi.subscribe(onChange);
+  const offFailure = useOpenFailure.subscribe(onChange);
   return () => {
     offWorkflow();
     offEditor();
+    offFailure();
   };
 }
 
-const waitForEditor = (dir: string): Promise<Handler | null> =>
-  whenReady(() => editorWithProject(dir), onEditorChange, API_OPEN_TIMEOUT_MS);
+const waitForEditor = (dir: string): Promise<Opened | null> =>
+  whenReady(() => openedEditor(dir), onEditorChange, API_OPEN_TIMEOUT_MS);
 
 export function useApiHost(): void {
   const navigate = useNavigate();
@@ -45,11 +56,13 @@ export function useApiHost(): void {
     () =>
       window.opsis.onApiRequest(async (request) => {
         if (request.op === "open") {
+          useOpenFailure.setState(null, true);
           openEditor(navigate, request.dir);
-          const handler = await waitForEditor(request.dir);
-          if (!handler)
-            return { ok: false, status: 504, error: "The project didn't open in time." };
-          return handler({ op: "read" });
+          const opened = await waitForEditor(request.dir);
+          if (!opened) return { ok: false, status: 504, error: "The project didn't open in time." };
+          if ("error" in opened)
+            return { ok: false, status: 422, error: `Couldn't open the project. ${opened.error}` };
+          return opened.handler({ op: "read" });
         }
         const handler = useEditorApi.getState().handler;
         if (!handler) return { ok: false, status: 409, error: NO_PROJECT };

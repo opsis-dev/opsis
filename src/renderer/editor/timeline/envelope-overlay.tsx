@@ -48,7 +48,11 @@ function useKeyframeAdder(
   };
 }
 
-type EnvelopeMapping = { toX: (local: number) => number; toLocal: (abs: number) => number };
+type EnvelopeMapping = {
+  toX: (local: number) => number;
+  toLocal: (abs: number) => number;
+  scale?: number;
+};
 
 export type BarEnvelope = EnvelopeMapping & {
   target: EnvelopeTarget | null;
@@ -78,12 +82,12 @@ export function EnvelopeOverlay({
   startKey: (e: React.PointerEvent, key: KeyStart) => void;
 }) {
   const isDouble = useDoublePress();
-  const { target, toX, toLocal } = envelope;
+  const { target, toX, toLocal, scale = 1 } = envelope;
   if (!target) return null;
   const { nodeId, prop, keys } = target;
   const { rest } = ENVELOPE_INFO[prop];
   const label = ENVELOPE_LABELS[prop];
-  const y = (v: number) => envelopeY(prop, v, height);
+  const y = (v: number) => envelopeY(prop, v * scale, height);
   const ids = uniqueKeys(keys.map((k) => String(k.frame)));
   const remove = (index: number) =>
     setEnvelopeKeys(
@@ -114,7 +118,7 @@ export function EnvelopeOverlay({
               remove(index);
               return;
             }
-            startKey(e, { nodeId, prop, keys, index, toLocal, height });
+            startKey(e, { nodeId, prop, keys, index, toLocal, height, scale });
           }}
         >
           <title>

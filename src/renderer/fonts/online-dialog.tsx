@@ -54,6 +54,12 @@ function CatalogStatus({ catalog, onRetry }: { catalog: Catalog; onRetry: () => 
   return null;
 }
 
+function catalogDescription(catalog: Catalog): string {
+  if (catalog.status === "ready")
+    return `${catalog.entries.length} free fonts you can use in your videos.`;
+  return catalog.status === "error" ? "The font list didn't load." : "Loading the font list…";
+}
+
 function DownloadIcon({ busy, added }: { busy: boolean; added: boolean }) {
   if (busy) return <Spinner data-icon="inline-start" />;
   return added ? null : <Download data-icon="inline-start" />;
@@ -130,11 +136,7 @@ export function OnlineDialog({
     <SearchListDialog
       onClose={onClose}
       title="Get fonts online"
-      description={
-        entries
-          ? `${entries.length} free fonts you can use in your videos.`
-          : "Loading the font list…"
-      }
+      description={catalogDescription(catalog)}
       placeholder="Search by name or style (serif, monospace…)"
       query={query}
       onQuery={setQuery}

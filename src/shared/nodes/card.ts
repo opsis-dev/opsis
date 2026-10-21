@@ -30,6 +30,7 @@ export type CardContext<P> = {
   inputSteps?: Partial<Record<string, string[]>>;
   inputStyle?: Partial<Record<string, string[]>>;
   inputGrade?: Partial<Record<string, StyleEntry[]>>;
+  missingFiles?: readonly string[];
 };
 
 export type InputTake = { durationMs: number; cursorTrack: boolean } | null;

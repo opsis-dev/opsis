@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { baseName } from "../asset-ref";
 import { rgbOf } from "../color";
 import { percentText, plural } from "../format";
 import { clamp, round3 } from "../math";
@@ -145,13 +146,19 @@ const lookFileParams = z.object({
   strength: num(1, "Strength", { min: 0, max: 1, step: 0.05 }),
 });
 
+function lookFileRow(file: string, missingFiles: readonly string[] = []): CardRow {
+  if (!file) return missing("file", "Choose a look file");
+  if (missingFiles.includes(file)) return missing("file", `${baseName(file)} isn't in the project`);
+  return fileRow("file", file);
+}
+
 export const lookFileNode = gradeStep(
   {
     type: "grade.lookFile",
     title: "Look file",
     description: "Applies a colour look saved from another video editor. Used by Apply grade.",
-    card: ({ params: p }) => [
-      p.file ? fileRow("file", p.file) : missing("file", "Choose a look file"),
+    card: ({ params: p, missingFiles }) => [
+      lookFileRow(p.file, missingFiles),
       p.strength < 1 && row("sparkles", `${percentText(p.strength)} strength`),
     ],
     params: lookFileParams,

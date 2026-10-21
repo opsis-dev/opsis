@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from "electron";
 import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
-import { errorMessage } from "../shared/errors";
+import { errorMessage, withoutRemotePrefix } from "../shared/errors";
 import { INVOKE, IPC, type OpsisApi } from "../shared/ipc";
 import { listenerSet } from "../shared/listener-set";
 import { isLiveMessage, type LiveMessage } from "../shared/live";
@@ -29,7 +29,9 @@ const invokers = mapValues(
   INVOKE,
   (channel) =>
     (...args: unknown[]) =>
-      ipcRenderer.invoke(channel, ...args),
+      ipcRenderer.invoke(channel, ...args).catch((error: unknown) => {
+        throw error instanceof Error ? new Error(withoutRemotePrefix(error.message)) : error;
+      }),
 );
 
 const answerApiRequest = (

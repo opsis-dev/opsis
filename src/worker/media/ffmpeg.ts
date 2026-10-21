@@ -147,7 +147,12 @@ const rawStreamSchema = z.object({
   sample_rate: z.string().optional(),
   channels: z.number().optional(),
   duration: z.string().optional(),
+  disposition: z.object({ attached_pic: z.number().optional() }).optional(),
 });
+
+type RawStream = z.infer<typeof rawStreamSchema>;
+
+const isPicture = (s: RawStream) => s.codec_type === "video" && s.disposition?.attached_pic !== 1;
 
 const rawProbeSchema = z.object({
   format: z
@@ -161,7 +166,7 @@ export function parseProbe(json: unknown): ProbeResult {
   if (!parsed.success) throw new ToolError(`ffprobe: unexpected output: ${parsed.error.message}`);
   const raw = parsed.data;
   const streams = raw.streams ?? [];
-  const v = streams.find((s) => s.codec_type === "video");
+  const v = streams.find(isPicture);
   const a = streams.find((s) => s.codec_type === "audio");
   const rate = (r?: string) => {
     if (!r) return 0;

@@ -26,6 +26,14 @@ export const AUDIO_MIME: Readonly<Record<string, string>> = {
   wav: "audio/wav",
   ogg: "audio/ogg",
   flac: "audio/flac",
+  opus: "audio/ogg",
+  oga: "audio/ogg",
+  weba: "audio/webm",
+  aif: "audio/aiff",
+  aiff: "audio/aiff",
+  caf: "audio/x-caf",
+  wma: "audio/x-ms-wma",
+  mka: "audio/x-matroska",
 };
 
 export const AUDIO_EXTENSIONS: ReadonlySet<string> = new Set(Object.keys(AUDIO_MIME));

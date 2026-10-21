@@ -99,6 +99,12 @@ export const reverseArgs = (
   outPath,
 ];
 
+export const reverseSoundArgs = (
+  inPath: string,
+  outPath: string,
+  codecs: readonly string[],
+): string[] => ["-i", inPath, "-af", "areverse", ...codecs, outPath];
+
 type ReversedPart = { file: string; lengthMs: number };
 
 export const reversedPartsList = (parts: readonly ReversedPart[]): string =>

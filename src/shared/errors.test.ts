@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { onAbort } from "./errors";
+import { onAbort, withoutRemotePrefix } from "./errors";
 
 describe("onAbort", () => {
   it("runs once on abort and not after it is stopped", () => {
@@ -19,5 +19,17 @@ describe("onAbort", () => {
 
   it("does nothing without a signal", () => {
     expect(() => onAbort(undefined, () => undefined)()).not.toThrow();
+  });
+});
+
+describe("withoutRemotePrefix", () => {
+  it("leaves the main process's own message", () => {
+    expect(
+      withoutRemotePrefix(
+        "Error invoking remote method 'opsis:fonts:catalog': Error: Couldn't load the font list.",
+      ),
+    ).toBe("Couldn't load the font list.");
+    expect(withoutRemotePrefix("Error invoking remote method 'x': TypeError: bad")).toBe("bad");
+    expect(withoutRemotePrefix("Plain message.")).toBe("Plain message.");
   });
 });

@@ -176,18 +176,23 @@ const SOUND_FILES: Record<string, readonly string[]> = {
   ".m4a": AUDIO_FORMATS.m4a,
 };
 
+type EditedFile = { ext: string; codecs: string[] };
+
+export function soundFile(ext: string): EditedFile {
+  const sound = SOUND_FILES[ext];
+  return sound
+    ? { ext, codecs: ["-vn", ...sound] }
+    : { ext: ".m4a", codecs: ["-vn", ...AUDIO_FORMATS.m4a] };
+}
+
 export function editedFile(
   ext: string,
   streams: { video: boolean; audio: boolean },
-): { ext: string; codecs: string[] } | null {
+): EditedFile | null {
   if (streams.video)
     return {
       ext: ".mp4",
       codecs: ["-vf", EVEN_FRAME, ...EDIT_VIDEO, ...(streams.audio ? EDIT_AUDIO : ["-an"])],
     };
-  if (!streams.audio) return null;
-  const sound = SOUND_FILES[ext];
-  return sound
-    ? { ext, codecs: ["-vn", ...sound] }
-    : { ext: ".m4a", codecs: ["-vn", ...AUDIO_FORMATS.m4a] };
+  return streams.audio ? soundFile(ext) : null;
 }

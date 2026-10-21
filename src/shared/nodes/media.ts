@@ -65,6 +65,19 @@ const FITS = { cover: "Fill the frame", contain: "Show all" };
 type Fit = keyof typeof FITS;
 const MEDIA_MS = 5000;
 
+const formatRow = (p: { codec: (typeof CONVERT_FORMATS)[number]; crf: number }): CardRow =>
+  row(
+    "file-video",
+    [
+      FORMAT_NAMES[p.codec],
+      QUALITY_FORMATS.includes(p.codec) && `${qualityName(p.crf)} quality`,
+      p.codec === "prores" && "no Preview",
+      p.codec === "h265" && "may not preview",
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  );
+
 const lengthRow = (
   result: NodeResult | undefined,
   icon: NodeIconName = "clock",
@@ -309,10 +322,7 @@ export const convertNode = op({
   type: "media.convert",
   title: "Convert",
   description: "Saves a file in another format or quality." + NEW_FILE,
-  card: ({ params: p }) => [
-    row("file-video", FORMAT_NAMES[p.codec]),
-    QUALITY_FORMATS.includes(p.codec) && row("sparkles", `${qualityName(p.crf)} quality`),
-  ],
+  card: ({ params: p }) => [formatRow(p)],
   params: z.object({
     codec: choiceFrom(FORMAT_NAMES, CONVERT_FORMATS, "h264", "Format"),
     crf: more(quality(18), { showIf: { codec: [...QUALITY_FORMATS] } }),
@@ -342,19 +352,7 @@ export const applyGradeNode = op({
       entries?.length &&
         gradeChangesNothing(entries) &&
         missing("triangle-alert", "The grade changes nothing"),
-      image
-        ? row("image", "PNG")
-        : row(
-            "file-video",
-            [
-              FORMAT_NAMES[p.codec],
-              QUALITY_FORMATS.includes(p.codec) && `${qualityName(p.crf)} quality`,
-              p.codec === "prores" && "no Preview",
-              p.codec === "h265" && "may not preview",
-            ]
-              .filter(Boolean)
-              .join(" · "),
-          ),
+      image ? row("image", "PNG") : formatRow(p),
       image && entries && gradeNeedsVideo(entries)
         ? missing("triangle-alert", "Trails and film grain need a video")
         : lengthRow(result),

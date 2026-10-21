@@ -127,6 +127,15 @@ describe("grade cards", () => {
     ]);
   });
 
+  it("warns when the look file has gone from the project", () => {
+    const file = "assets/looks/warm.cube";
+    expect(nodeCard("grade.lookFile", { file }, { missingFiles: [file] })[0]).toMatchObject({
+      text: "warm.cube isn't in the project",
+      tone: "warn",
+    });
+    expect(nodeCard("grade.lookFile", { file }, { missingFiles: [] })[0].tone).toBeUndefined();
+  });
+
   it("names the kind of black and white, with a swatch for a tint", () => {
     expect(texts("grade.mono")).toEqual(["Black and white"]);
     expect(nodeCard("grade.mono", { kind: "tint", tint: "#ff0000" })[0]).toMatchObject({

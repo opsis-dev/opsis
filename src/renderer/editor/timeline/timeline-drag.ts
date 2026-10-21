@@ -79,6 +79,7 @@ export type KeyDrag = {
   x0: number;
   y0: number;
   height: number;
+  scale: number;
   started: boolean;
 };
 

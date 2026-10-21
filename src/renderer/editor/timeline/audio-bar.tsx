@@ -56,6 +56,7 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
   const envelope = useBarEnvelope(ctx, nodeId, audioEnvelope, {
     toX: (local) => local * ppf,
     toLocal: (abs) => abs - bar.from,
+    scale: audioEnvelope === "volume" ? bar.volume : 1,
   });
   const showLine = audioEnvelope === "volume" && !envelope.target?.keys.length;
   const lineY = showLine ? envelopeY("volume", bar.volume, HEIGHT) : null;

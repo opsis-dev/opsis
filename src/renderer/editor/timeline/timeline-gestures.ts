@@ -121,7 +121,7 @@ export function keyGesture(env: GestureEnv, e: React.PointerEvent, key: KeyStart
       if (!startEditOnceMoved(d, distance)) return;
       const { min, max } = ENVELOPE_INFO[d.prop];
       const frame = wholeFrames(d.toLocal(env.xToFrame(ev.clientX)));
-      const dragged = envelopeShift(d.prop, ev.clientY - d.y0, d.height);
+      const dragged = envelopeShift(d.prop, ev.clientY - d.y0, d.height) / (d.scale || 1);
       const value = round3(clamp(d.keys[d.index].value - dragged, min, max));
       setEnvelopeKeys(
         d.nodeId,

@@ -1,14 +1,16 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/renderer/lib/utils";
 import { inputTake, isClip, recordingTake, sceneItemCount } from "@/shared/compile/clip";
 import { errorMessage } from "@/shared/errors";
 import { uniqueKeys } from "@/shared/lists";
+import { namedProjectFiles } from "@/shared/named-files";
 import type { CardContext, CardRow, InputTake } from "@/shared/nodes/card";
 import { cardParams, cardRows, type NodeDef } from "@/shared/nodes/define";
 import type { StyleEntry } from "@/shared/schema/values";
 import type { WorkflowNode } from "@/shared/schema/workflow";
 import { workflowVars } from "@/shared/vars";
+import { useProjectFiles } from "../store/project-files";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
@@ -88,23 +90,46 @@ function useCardInputs(node: WorkflowNode) {
   );
 }
 
+const NO_FILES: string[] = [];
+
+function useMissingFiles(params: unknown): string[] {
+  const refs = useMemo(() => namedProjectFiles(params), [params]);
+  const check = useProjectFiles((s) => s.check);
+  useEffect(() => {
+    if (refs.length) void check(refs);
+  }, [refs, check]);
+  const missing = useProjectFiles(useShallow((s) => refs.filter((ref) => s.gone[ref])));
+  return missing.length ? missing : NO_FILES;
+}
+
+const summaryFailed = (error: unknown): CardRow[] => [
+  {
+    icon: "triangle-alert",
+    text: "Couldn't show this node's summary",
+    title: errorMessage(error),
+    tone: "warn",
+  },
+];
+
 export function useCardRows(node: WorkflowNode, def: NodeDef): CardRow[] {
   const { vars, context } = useCardInputs(node);
+  const shown = useMemo(() => {
+    try {
+      return { params: cardParams(def, node.params, vars) };
+    } catch (error) {
+      return { error };
+    }
+  }, [def, node.params, vars]);
+  const missingFiles = useMissingFiles(shown.params);
   return useMemo(() => {
     if (!def.card) return [];
+    if (!shown.params) return summaryFailed(shown.error);
     try {
-      return cardRows(def, { ...context, params: cardParams(def, node.params, vars) });
+      return cardRows(def, { ...context, missingFiles, params: shown.params });
     } catch (error) {
-      return [
-        {
-          icon: "triangle-alert",
-          text: "Couldn't show this node's summary",
-          title: errorMessage(error),
-          tone: "warn",
-        },
-      ];
+      return summaryFailed(error);
     }
-  }, [def, node.params, vars, context]);
+  }, [def, shown, missingFiles, context]);
 }
 
 const MAX_SWATCHES = 8;

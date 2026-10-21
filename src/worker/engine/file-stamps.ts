@@ -3,13 +3,11 @@ import path from "node:path";
 import { isInside } from "../../engine/project-paths";
 import { secretFile } from "../../engine/secret-paths";
 import { projectRelPath } from "../../shared/asset-ref";
-import { stringsIn } from "../../shared/vars";
-
-const FILE_NAME = /\.[a-z0-9]{2,5}$/i;
+import { namedFiles } from "../../shared/named-files";
 
 export function fileStamps(projectDir: string, params: unknown): Record<string, string> {
   const stamps: Record<string, string> = {};
-  for (const value of stringsIn(params, (text) => FILE_NAME.test(text.trim()))) {
+  for (const value of namedFiles(params)) {
     const rel = projectRelPath(value.trim());
     const file = rel === null ? null : path.join(projectDir, rel);
     const stat =
