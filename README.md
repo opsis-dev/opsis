@@ -102,7 +102,6 @@ Each has a plan in [`plans/`](./plans):
 - Voiceover and captions from speech ([voice-and-captions](./plans/voice-and-captions.md)).
 - AI assist: a flow from a sentence, chapter names, headline variants, picker suggestions ([ai-assist](./plans/ai-assist.md)).
 - Ported web motion components, Rive animations and element thumbnails ([motion-library](./plans/motion-library.md)).
-- A colour grade for finished files: grade steps passed forward as a list and applied in one pass ([colour-grade](./plans/colour-grade.md)).
 - Windows and macOS builds (never built or run yet), their icons, code signing, updates and node packs ([shipping](./plans/shipping.md)).
 
 ## Licences
