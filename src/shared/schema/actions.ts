@@ -115,7 +115,12 @@ const actionSchema = z.object({
 });
 export type Action = z.infer<typeof actionSchema>;
 
-const cursorSampleSchema = z.object({ t: z.number(), x: z.number(), y: z.number() });
+const cursorSampleSchema = z.object({
+  t: z.number(),
+  x: z.number(),
+  y: z.number(),
+  c: z.string().optional(),
+});
 
 export const actionLogSchema = z.object({
   viewport: viewportSchema,

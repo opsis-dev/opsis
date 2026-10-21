@@ -1,7 +1,7 @@
 import { Video } from "@remotion/media";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, type EffectDescriptor } from "remotion";
 import type { CursorLook, RecordingProps, RippleLook } from "../../shared/compile/recording";
 import { percent } from "../../shared/format";
 import type { FrameTheme, WindowStyle } from "../../shared/window-styles";
@@ -40,6 +40,7 @@ type DemoClipProps = {
   frameTheme?: FrameTheme;
   addressBar?: boolean;
   address?: string;
+  effects?: EffectDescriptor<unknown>[];
 };
 
 const FILL = { width: "100%", height: "100%" } as const;
@@ -59,12 +60,22 @@ export const useClipTime = (speed: number): number => {
   return logTimeS(frame, fps, speed);
 };
 
-const Footage: React.FC<{ src: string; speed: number; fit: "cover" | "fill"; muted?: boolean }> = ({
-  src,
-  speed,
-  fit,
-  muted,
-}) => <Video src={src} playbackRate={speed} objectFit={fit} muted={muted} style={FILL} />;
+const Footage: React.FC<{
+  src: string;
+  speed: number;
+  fit: "cover" | "fill";
+  muted?: boolean;
+  effects?: EffectDescriptor<unknown>[];
+}> = ({ src, speed, fit, muted, effects = [] }) => (
+  <Video
+    src={src}
+    playbackRate={speed}
+    objectFit={fit}
+    muted={muted}
+    effects={effects}
+    style={FILL}
+  />
+);
 
 const cameraTransform = (z: ZoomState) =>
   `translate(${percent(z.translateX)}, ${percent(z.translateY)}) scale(${z.scale})`;
@@ -117,7 +128,7 @@ const ShadowGroup: React.FC<{ clip: CameraClip; shot: WindowShot; light: boolean
   );
 };
 
-type FootageClip = Pick<DemoClipProps, "src" | "speed" | "annotations"> & CursorOptions;
+type FootageClip = Pick<DemoClipProps, "src" | "speed" | "annotations" | "effects"> & CursorOptions;
 
 const Marks: React.FC<{ clip: FootageClip; timeS: number; cameraScale: number }> = ({
   clip,
@@ -147,7 +158,7 @@ const WindowGroup: React.FC<{ clip: DemoClipProps; shot: WindowShot }> = ({ clip
           theme={clip.frameTheme}
           addressBar={clip.addressBar}
         >
-          <Footage src={clip.src} speed={clip.speed} fit="fill" />
+          <Footage src={clip.src} speed={clip.speed} fit="fill" effects={clip.effects} />
           <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
           <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
         </WindowFrame>
@@ -160,7 +171,7 @@ const FullBleedClip: React.FC<{ clip: FootageClip }> = ({ clip }) => {
   const timeS = useClipTime(clip.speed);
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: PAGE_BG }}>
-      <Footage src={clip.src} speed={clip.speed} fit="cover" />
+      <Footage src={clip.src} speed={clip.speed} fit="cover" effects={clip.effects} />
       <Marks clip={clip} timeS={timeS} cameraScale={1} />
       <Cursor clip={clip} timeS={timeS} cameraScale={1} />
     </AbsoluteFill>
@@ -177,11 +188,11 @@ const NarrowBleedClip: React.FC<{ clip: FootageClip & CameraClip }> = ({ clip })
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: BLEED_BG }}>
       <AbsoluteFill style={BLEED_BLUR}>
-        <Footage src={clip.src} speed={clip.speed} fit="cover" muted />
+        <Footage src={clip.src} speed={clip.speed} fit="cover" muted effects={clip.effects} />
       </AbsoluteFill>
       <Stage>
         <div style={{ ...style, boxShadow: BLEED_SHADOW }}>
-          <Footage src={clip.src} speed={clip.speed} fit="fill" muted />
+          <Footage src={clip.src} speed={clip.speed} fit="fill" muted effects={clip.effects} />
           <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
           <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
         </div>
@@ -210,7 +221,7 @@ export const ScreenClip: React.FC<DemoClipProps> = (clip) => {
         }}
       >
         <div style={style}>
-          <Footage src={clip.src} speed={clip.speed} fit="fill" />
+          <Footage src={clip.src} speed={clip.speed} fit="fill" effects={clip.effects} />
           <Marks clip={clip} timeS={timeS} cameraScale={z.scale} />
           <Cursor clip={clip} timeS={timeS} cameraScale={z.scale} />
         </div>

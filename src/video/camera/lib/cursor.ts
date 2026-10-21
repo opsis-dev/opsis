@@ -1,4 +1,4 @@
-import { clamp01, lerp, sampleKeyed } from "../../../shared/math";
+import { clamp01, lerp, partitionPoint, sampleKeyed } from "../../../shared/math";
 import { lerpPoint, type Point } from "../../../shared/schema/actions";
 import type { ClickEvent, CursorSample } from "./click-log";
 
@@ -6,6 +6,7 @@ const CLICK_SQUASH = 0.9;
 const CLICK_SQUASH_S = 0.12;
 const CURSOR_FADE_S = 0.18;
 const RIPPLE_S = 0.35;
+export const ARROW_SHAPE = "default";
 
 type CursorState = {
   x: number;
@@ -13,6 +14,7 @@ type CursorState = {
   squash: number;
   ripple: number | null;
   opacity: number;
+  shape: string;
 };
 
 function cursorOpacity(clicks: ClickEvent[], tS: number): number {
@@ -37,6 +39,14 @@ const trackPointAt = (track: CursorSample[], tS: number): Point | undefined =>
     (s) => ({ x: s.x, y: s.y }),
     lerpPoint,
   );
+
+function shapeAt(track: CursorSample[], tS: number): string {
+  for (let i = partitionPoint(track, (s) => s.t <= tS * 1000) - 1; i >= 0; i--) {
+    const shape = track[i].c;
+    if (shape !== undefined) return shape;
+  }
+  return ARROW_SHAPE;
+}
 
 function squashAfter(releasedS: number): number {
   if (releasedS <= 0) return CLICK_SQUASH;
@@ -72,5 +82,6 @@ export function cursorAt(
     squash,
     ripple,
     opacity: cursorOpacity(clicks, tS),
+    shape: shapeAt(track, tS),
   };
 }

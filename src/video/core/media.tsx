@@ -1,7 +1,8 @@
 import { Video } from "@remotion/media";
-import React from "react";
+import React, { useMemo } from "react";
 import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { DEFAULT_BACKDROP } from "../../shared/backdrops";
+import type { PictureLook } from "../../shared/compile/recording";
 import { msToFrames } from "../../shared/timeline/time";
 import { isLightBackdrop } from "../camera/lib/backdrop";
 import { WINDOW_FIT } from "../camera/lib/style";
@@ -9,6 +10,7 @@ import { RimLight } from "../camera/stage";
 import { WindowFrame } from "../camera/window-frame";
 import { zoomOver } from "./anim";
 import { Backdrop, Backgrounded } from "./backgrounds";
+import { lookEffects } from "./picture-look";
 import { stillLayout, type Box, type Shot, type StillLook } from "./still-layout";
 
 type Fit = "contain" | "cover" | "fill";
@@ -20,15 +22,18 @@ export const ImageElement: React.FC<{
   fit?: Fit;
   background?: string;
   kenBurns?: boolean;
-}> = ({ src, fit = "contain", background, kenBurns }) => {
+  look?: PictureLook;
+}> = ({ src, fit = "contain", background, kenBurns, look }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
+  const effects = useMemo(() => lookEffects(look, frame), [look, frame]);
   if (!src) return null;
   const scale = kenBurns ? zoomOver(frame, durationInFrames, KEN_BURNS_SCALE) : 1;
   return (
     <Backgrounded background={background}>
       <Img
         src={src}
+        effects={effects}
         style={{ width: "100%", height: "100%", objectFit: fit, transform: `scale(${scale})` }}
       />
     </Backgrounded>
@@ -43,6 +48,7 @@ export const VideoElement: React.FC<{
   volume?: number;
   playbackRate?: number;
   trimBeforeMs?: number;
+  look?: PictureLook;
 }> = ({
   src,
   fit = "cover",
@@ -51,8 +57,11 @@ export const VideoElement: React.FC<{
   volume = 1,
   playbackRate = 1,
   trimBeforeMs = 0,
+  look,
 }) => {
   const { fps } = useVideoConfig();
+  const frame = useCurrentFrame();
+  const effects = useMemo(() => lookEffects(look, frame), [look, frame]);
   if (!src) return null;
   return (
     <AbsoluteFill>
@@ -64,6 +73,7 @@ export const VideoElement: React.FC<{
         playbackRate={playbackRate}
         trimBefore={trimBeforeMs ? msToFrames(trimBeforeMs, fps, 0) : undefined}
         objectFit={fit}
+        effects={effects}
         style={{ width: "100%", height: "100%" }}
       />
     </AbsoluteFill>

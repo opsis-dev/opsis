@@ -318,6 +318,45 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## 3D, letter outlines and hand-drawn marks — the three, @react-three/fiber, @remotion/three, fontkit, woff2-encoder, @remotion/rough-notation and roughjs packages
+
+Draw the 3D elements (3D logo, card, text, model, screen and floating shapes), read font files for 3D text, and draw the hand-drawn marks of Highlight box and Title card. Installed from npm and bundled into the video code that loads only when one of these is used. All are under the MIT License:
+
+- three.js: Copyright © 2010-2026 three.js authors, https://threejs.org
+- React Three Fiber (@react-three/fiber): by Paul Henschel, https://github.com/pmndrs/react-three-fiber (the package ships no licence file; its package.json names MIT)
+- @remotion/three: by Björn Zeutzheim, https://www.remotion.dev/docs/three (the package ships no licence file; its package.json names MIT)
+- fontkit and brotli: by Devon Govett, https://github.com/foliojs/fontkit (the packages ship no licence file; their package.json names MIT)
+- woff2-encoder: Copyright (c) 2023-PRESENT Kyedo, https://github.com/itskyedo/woff2-encoder, a WebAssembly build of Google's woff2 decoder
+- @remotion/rough-notation: by Jonny Burger, https://www.remotion.dev/docs/rough-notation (the package ships no licence file; its package.json names MIT)
+- Rough.js (roughjs): Copyright (c) 2019 Preet Shihn, https://roughjs.com
+- meshoptimizer decoder (three/addons/libs/meshopt_decoder.module.js): Copyright (C) 2016-2026 Arseny Kapoulkine, https://github.com/zeux/meshoptimizer
+
+```
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## Draco decoder — public/three/draco
+
+Google's Draco 3D mesh decoder, copied from three.js (`three/examples/jsm/libs/draco/gltf`) by `bun run three:decoders`, so 3D models with compressed meshes open offline. By Google, https://github.com/google/draco. Licensed under the Apache License, Version 2.0, the same licence as Opsis; its full text is in `LICENSE`.
+
 ## Drizzle ORM — the drizzle-orm package
 
 Reads and writes the app's saved state (settings, recent projects, window positions, the font library and each project's view). Installed from npm and bundled into the app. By Drizzle Team, https://github.com/drizzle-team/drizzle-orm

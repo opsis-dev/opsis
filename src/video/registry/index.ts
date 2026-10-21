@@ -1,6 +1,7 @@
 import type React from "react";
 import type { RecordingProps } from "../../shared/compile/recording";
 import type { CoreElementProps } from "../../shared/elements/core";
+import { isKeyOf } from "../../shared/guards";
 import type { CaptionsValue } from "../../shared/schema/values";
 import {
   Backdrop,
@@ -43,7 +44,18 @@ type CoreProps = CoreElementProps & {
   "core/mosaic": { children?: React.ReactNode };
 };
 
-const CORE_ELEMENTS: { [K in keyof CoreProps]: React.FC<CoreProps[K]> } = {
+const LAZY_CORE_ELEMENTS = {
+  "core/logo-3d": () => import("../three/logo-3d").then((m) => component(m.Logo3D)),
+  "core/card-3d": () => import("../three/card-3d").then((m) => component(m.Card3D)),
+  "core/shapes-3d": () => import("../three/shapes-3d").then((m) => component(m.Shapes3D)),
+  "core/text-3d": () => import("../three/text-3d").then((m) => component(m.Text3D)),
+  "core/model-3d": () => import("../three/model-3d").then((m) => component(m.Model3D)),
+  "core/screen-3d": () => import("../three/screen-3d").then((m) => component(m.Screen3D)),
+} satisfies Record<string, () => Promise<ElementImpl>>;
+
+type EagerCoreKey = Exclude<keyof CoreProps, keyof typeof LAZY_CORE_ELEMENTS>;
+
+const CORE_ELEMENTS: { [K in EagerCoreKey]: React.FC<CoreProps[K]> } = {
   "core/recording": RecordingClip,
   "core/placeholder": Placeholder,
   "core/still": StillElement,
@@ -73,17 +85,23 @@ const core = new Map(
 const loaded = new Map<string, ElementImpl>();
 const loading = new Map<string, Promise<ElementImpl | undefined>>();
 
-const isGenerated = (key: string) => Object.hasOwn(generatedElementLoaders, key);
+const lazyLoaderOf = (key: string): (() => Promise<ElementImpl>) | undefined => {
+  if (Object.hasOwn(generatedElementLoaders, key)) return generatedElementLoaders[key];
+  return isKeyOf(LAZY_CORE_ELEMENTS, key) ? LAZY_CORE_ELEMENTS[key] : undefined;
+};
+
+const isLazy = (key: string) => lazyLoaderOf(key) !== undefined;
 
 const isCore = (key: string) => core.has(key) || Object.hasOwn(coreTransitions, key);
 
 function loadElement(key: string): Promise<ElementImpl | undefined> {
   const hit = loaded.get(key);
   if (hit) return Promise.resolve(hit);
-  if (!isGenerated(key)) return Promise.resolve(undefined);
+  const loader = lazyLoaderOf(key);
+  if (!loader) return Promise.resolve(undefined);
   let pending = loading.get(key);
   if (!pending) {
-    pending = generatedElementLoaders[key]().then((impl) => {
+    pending = loader().then((impl) => {
       loaded.set(key, impl);
       return impl;
     });
@@ -93,7 +111,7 @@ function loadElement(key: string): Promise<ElementImpl | undefined> {
 }
 
 const needsLoad = (key: string | undefined): key is string =>
-  !!key && !isCore(key) && !loaded.has(key) && isGenerated(key);
+  !!key && !isCore(key) && !loaded.has(key) && isLazy(key);
 
 export function useElement(key: string | undefined): void {
   useHeldLoad(`Loading ${key}`, needsLoad(key) ? key : null, loadElement);
@@ -119,7 +137,7 @@ export function getPresentation(
   return impl && isPresentation(impl) ? impl.create(params, size) : null;
 }
 
-const isKnownElement = (key: string) => isCore(key) || isGenerated(key);
+const isKnownElement = (key: string) => isCore(key) || isLazy(key);
 
 type ResolvedElement<T> =
   | { status: "unknown" }

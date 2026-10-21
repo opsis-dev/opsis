@@ -29,7 +29,13 @@ import { plural } from "../format";
 import { parseGradient } from "../gradient";
 import { isNumber, isRecord, isString, nonBlankString } from "../guards";
 import { MAX_FRAMES } from "../limits";
-import type { AudioItem, EditHandles, VisualEnvelope } from "../schema/timeline";
+import {
+  cameraPathSchema,
+  type AudioItem,
+  type CameraPath,
+  type EditHandles,
+  type VisualEnvelope,
+} from "../schema/timeline";
 import type { ClipValue } from "../schema/values";
 import {
   connectedPorts,
@@ -231,6 +237,13 @@ function elementSounds(
   });
 }
 
+function activeCamera(params: Record<string, unknown>): CameraPath | undefined {
+  const parsed = cameraPathSchema.safeParse(params.camera);
+  if (!parsed.success || !parsed.data.keys.length) return undefined;
+  const preset = params.motion ?? params.move;
+  return preset === undefined || preset === "keyframes" ? parsed.data : undefined;
+}
+
 function compileElement(
   meta: ElementMeta,
   nodeId: string,
@@ -247,6 +260,7 @@ function compileElement(
       handles,
       envelope,
       audio,
+      camera: activeCamera(params),
       design: meta.design,
     });
   }
@@ -256,7 +270,7 @@ function compileElement(
     { wrapper: { component: meta.key, props }, ...(meta.design ? { design: meta.design } : {}) },
     clipDuration || input.durationInFrames,
   );
-  return withHandles(wrapped, handles, envelope);
+  return withHandles(wrapped, handles, envelope, activeCamera(params));
 }
 
 function elementNode(meta: ElementMeta): NodeDef {

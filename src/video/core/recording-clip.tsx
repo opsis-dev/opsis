@@ -1,6 +1,10 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import type { KeystrokeLook, RecordingProps } from "../../shared/compile/recording";
+import {
+  PREVIEW_FILE_WIDTH,
+  type KeystrokeLook,
+  type RecordingProps,
+} from "../../shared/compile/recording";
 import { STAGE_COLOR } from "../../shared/elements/colors";
 import { CODE_FONT } from "../../shared/fonts";
 import { displayAddress } from "../../shared/format";
@@ -10,6 +14,7 @@ import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
 import { DemoClip, ScreenClip, useClipTime } from "../camera/demo-clip";
 import { KeycapHUD } from "../camera/keycap-hud";
+import { blurEffects } from "../camera/lib/blur-areas";
 import { DesignWidthContext } from "../camera/lib/design-scale";
 import { faded, SHOT_STYLES } from "../camera/lib/style";
 import { poseAt } from "../camera/lib/zoom";
@@ -22,6 +27,7 @@ import {
   verticalInsets,
   type Reframe,
 } from "./frame";
+import { lookEffects } from "./picture-look";
 import type { Size } from "./still-layout";
 
 const TYPED_FADE_IN_S = 0.15;
@@ -57,7 +63,8 @@ const CLIP_KEYS = [
 
 export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const fast = useQuality() === "fast";
-  const src = useAsset(fast && props.proxySrc ? props.proxySrc : props.src);
+  const proxy = fast && !!props.proxySrc;
+  const src = useAsset(proxy && props.proxySrc ? props.proxySrc : props.src);
   const { width, height, fps } = useVideoConfig();
   const frame = useCurrentFrame();
   const reframe = useReframe();
@@ -71,6 +78,15 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     () => resolveAnnotations(props.log, props.annotations),
     [props.log, props.annotations],
   );
+  const fileWidth = proxy ? PREVIEW_FILE_WIDTH : props.log.viewport.width;
+  const timeMs = timeS * 1000;
+  const effects = useMemo(
+    () => [
+      ...blurEffects(props.blurAreas ?? [], timeMs, fileWidth),
+      ...lookEffects(props.look, frame),
+    ],
+    [props.blurAreas, props.look, timeMs, fileWidth, frame],
+  );
 
   if (!src) return null;
 
@@ -82,6 +98,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
         log={log}
         motionBlur={false}
         annotations={annotations}
+        effects={effects}
       />
     );
 
@@ -103,6 +120,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
       motionBlur={props.motionBlur && !fast}
       tuning={narrow ? { ...props.tuning, narrow } : props.tuning}
       annotations={annotations}
+      effects={effects}
     />
   );
 

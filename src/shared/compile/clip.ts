@@ -8,6 +8,7 @@ import {
   elementRefSchema,
   timelineTrackSchema,
   type AudioItem,
+  type CameraPath,
   type EditHandles,
   type Keyframe,
   type TimelineItem,
@@ -112,6 +113,7 @@ export type ItemExtra = {
   audio?: AudioItem[];
   handles?: EditHandles;
   envelope?: VisualEnvelope;
+  camera?: CameraPath;
   design?: Viewport & { exact?: boolean };
 };
 
@@ -132,6 +134,7 @@ export function itemClip<C extends string>(
     nodeId,
     ...(extra.handles ? { handles: extra.handles } : {}),
     ...(hasKeys(extra.envelope) ? { envelope: extra.envelope } : {}),
+    ...(extra.camera?.keys.length ? { camera: extra.camera } : {}),
     ...(extra.design ? { design: extra.design } : {}),
   };
   return makeClip({
@@ -251,6 +254,7 @@ export function withHandles(
   clip: ClipValue,
   handles: EditHandles,
   envelope?: VisualEnvelope,
+  camera?: CameraPath,
 ): ClipValue {
   if (clip.tracks.length !== 1 || clip.tracks[0].items.length !== 1) return clip;
   const [track] = clip.tracks;
@@ -259,6 +263,7 @@ export function withHandles(
     ...item,
     handles: { ...item.handles, ...handles },
     ...(hasKeys(envelope) ? { envelope } : {}),
+    ...(camera?.keys.length ? { camera } : {}),
   };
   return { ...clip, tracks: [{ ...track, items: [patched] }] };
 }

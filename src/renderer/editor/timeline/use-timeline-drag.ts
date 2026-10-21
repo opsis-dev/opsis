@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { usePointerSession } from "@/renderer/lib/use-pointer-drag";
 import type { Marker } from "@/shared/schema/workflow";
-import type { AudioBar } from "@/shared/timeline/flatten";
+import type { AudioBar, CameraKeyMark } from "@/shared/timeline/flatten";
 import { snapFrame } from "@/shared/timeline/snap";
 import { usePlayback } from "../../store/playback";
 import { snapTargetsFor, type EditTarget, type KeyStart, type MarqueeBox } from "./timeline-drag";
 import {
+  cameraKeyGesture,
   editGesture,
   keyGesture,
   markerGesture,
@@ -114,6 +115,12 @@ export function useTimelineDrag(opts: DragOptions) {
     begin(e, keyGesture(env, e, key));
   };
 
+  const startCameraKey = (e: React.PointerEvent, mark: CameraKeyMark) => {
+    e.stopPropagation();
+    if (e.button !== 0) return;
+    begin(e, cameraKeyGesture(env, e, mark));
+  };
+
   const startMarker = (e: React.PointerEvent, marker: Marker) =>
     begin(e, markerGesture(env, e, marker));
 
@@ -141,6 +148,7 @@ export function useTimelineDrag(opts: DragOptions) {
     startEdit,
     startVolume,
     startKey,
+    startCameraKey,
     startMarker,
     onRulerDown,
     onEmptyDown,

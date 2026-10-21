@@ -21,6 +21,7 @@ export type CursorSample = {
   t: number;
   x: number;
   y: number;
+  c?: string;
 };
 
 export type KeyEvent = {

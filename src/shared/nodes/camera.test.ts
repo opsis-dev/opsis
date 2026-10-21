@@ -122,6 +122,9 @@ describe("Zoom here, Pan and Follow cursor", () => {
     expect(card(false, ["camera.followCursor"])).toContain(warning);
     expect(card(true, ["camera.followCursor"])).not.toContain(warning);
     expect(card(false, ["camera.backdrop"])).not.toContain(warning);
+    const filmed = "The take films its own cursor";
+    expect(card(false, ["cursor.style"])).toContain(filmed);
+    expect(card(true, ["cursor.style"])).not.toContain(filmed);
   });
 
   it("never holds, pans or re-aims for no time at all", () => {

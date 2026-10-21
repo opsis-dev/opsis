@@ -31,6 +31,38 @@ const noAnimateClass: Rule = {
 const isIdentifier = (node: MaybeNode, name?: string): boolean =>
   node?.type === "Identifier" && (name === undefined || node.name === name);
 
+const THREE_CLOCKS = new Set(["Clock", "Timer"]);
+const THREE_CLOCK_MESSAGE =
+  "Three.js clocks and animation loops run on the wall clock and do not render in Remotion. Derive the scene from useCurrentFrame() instead.";
+
+const clockName = (node: MaybeNode): string | null => {
+  if (node?.type === "Identifier") return node.name;
+  if (node?.type === "MemberExpression" && !node.computed && node.property.type === "Identifier")
+    return node.property.name;
+  return null;
+};
+
+const noThreeClock: Rule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description: "Disallow Three.js clocks and animation loops inside Remotion compositions",
+    },
+  },
+  create(context) {
+    return {
+      NewExpression(node) {
+        const name = clockName(node.callee);
+        if (name && THREE_CLOCKS.has(name)) context.report({ node, message: THREE_CLOCK_MESSAGE });
+      },
+      CallExpression(node) {
+        if (clockName(node.callee) === "setAnimationLoop")
+          context.report({ node, message: THREE_CLOCK_MESSAGE });
+      },
+    };
+  },
+};
+
 const isMember = (node: MaybeNode, property: string): node is StaticMember =>
   node?.type === "MemberExpression" && !node.computed && isIdentifier(node.property, property);
 
@@ -164,6 +196,7 @@ export default {
   meta: { name: "opsis" },
   rules: {
     "no-animate-class": noAnimateClass,
+    "no-three-clock": noThreeClock,
     "use-find-by-id": useFindById,
     "use-on-abort": useOnAbort,
     "use-parse-json-with": useParseJsonWith,

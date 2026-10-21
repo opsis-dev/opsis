@@ -1,11 +1,12 @@
 import React from "react";
 import { Easing, interpolate } from "remotion";
-import type { AnnotationKind } from "../../shared/compile/recording";
+import type { AnnotationKind, HandDrawnLook } from "../../shared/compile/recording";
 import { TEXT_COLOR } from "../../shared/elements/colors";
 import { MAIN_FONT } from "../../shared/fonts";
 import { percent } from "../../shared/format";
 import { rectCenter, type Viewport } from "../../shared/schema/actions";
-import { fadeWindow, isFadedOut } from "../core/anim";
+import { drawOn, fadeWindow, isFadedOut } from "../core/anim";
+import { HandDrawnMark } from "../core/hand-drawn";
 import type { Annotation } from "./action-log";
 import { useDesignScale } from "./lib/design-scale";
 import { faded } from "./lib/style";
@@ -20,6 +21,7 @@ const FADE = {
 const POP_SCALE = 1.2;
 const SPOTLIGHT = { radius: 12, dimSpread: 9999 } as const;
 const HIGHLIGHT = { radius: 10, border: 3, fill: "12%", growFrom: 0.96 } as const;
+const MARKER = { opacity: 0.5, blend: "multiply" } as const;
 const TOOLTIP = {
   rise: 8,
   fontSize: 18,
@@ -52,6 +54,7 @@ type MarkProps = {
   designScale: number;
   counter: number;
   viewport: Viewport;
+  timeS: number;
 };
 
 const boxOf = ({ annotation, viewport }: MarkProps) => ({
@@ -73,8 +76,46 @@ const Spotlight: React.FC<MarkProps> = (props) => (
   />
 );
 
+const percentOf = (fraction: number) => fraction * 100;
+
+const SketchedHighlight: React.FC<MarkProps & { look: HandDrawnLook }> = ({ look, ...props }) => {
+  const { annotation, opacity, designScale: k, counter, viewport, timeS } = props;
+  const { left, top } = boxOf(props);
+  const marker = look === "marker";
+  const padded = (size: number, of: number) => (size + annotation.padding * 2) / of;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left,
+        top,
+        opacity: marker ? opacity * MARKER.opacity : opacity,
+        mixBlendMode: marker ? MARKER.blend : undefined,
+      }}
+    >
+      <HandDrawnMark
+        look={look}
+        progress={drawOn(timeS, annotation.fromS)}
+        color={annotation.color}
+        strokeWidth={HIGHLIGHT.border * k * counter}
+        seed={annotation.seed}
+        roughness={annotation.roughness}
+      >
+        <div
+          style={{
+            width: `${percentOf(padded(annotation.rect.w, viewport.width))}cqw`,
+            height: `${percentOf(padded(annotation.rect.h, viewport.height))}cqh`,
+          }}
+        />
+      </HandDrawnMark>
+    </div>
+  );
+};
+
 const Highlight: React.FC<MarkProps> = (props) => {
   const { annotation, opacity, designScale: k, counter } = props;
+  const { look } = annotation;
+  if (look !== "clean") return <SketchedHighlight {...props} look={look} />;
   return (
     <div
       style={{
@@ -207,7 +248,7 @@ export const Annotations: React.FC<{
   const counter = 1 / Math.max(1, cameraScale);
 
   return (
-    <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", containerType: "size" }}>
       {annotations.map((annotation) => {
         const opacity = fadeWindow(timeS, annotation.fromS, annotation.toS, FADE);
         if (isFadedOut(opacity)) return null;
@@ -220,6 +261,7 @@ export const Annotations: React.FC<{
             designScale={k}
             counter={counter}
             viewport={viewport}
+            timeS={timeS}
           />
         );
       })}

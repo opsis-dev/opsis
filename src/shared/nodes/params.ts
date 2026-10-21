@@ -5,7 +5,7 @@ import { formatDuration, humanize, signOf, signedText } from "../format";
 import { isKeyOf } from "../guards";
 import { MAX_FRAMES, MAX_SPEED, MAX_VOLUME } from "../limits";
 import type { MinMax } from "../math";
-import { audioEnvelopeSchema, visualEnvelopeSchema } from "../schema/timeline";
+import { audioEnvelopeSchema, cameraPathSchema, visualEnvelopeSchema } from "../schema/timeline";
 import { PAUSE_MARK, tokenize } from "../vars";
 
 export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
@@ -227,6 +227,14 @@ export const visualEnvelope = () =>
     description: "Keyframes",
     help: "Change opacity, position and size over time. Edit them here or on the timeline.",
     widget: "envelope",
+  });
+
+export const cameraPath = (showIf?: FieldMeta["showIf"]) =>
+  cameraPathSchema.default({ keys: [] }).meta({
+    description: "Camera keyframes",
+    help: "Turn, raise and move the camera at chosen moments. Add a key at the playhead, then set it. Drag keys on the timeline to move them.",
+    widget: "camera",
+    ...(showIf ? { showIf } : {}),
   });
 
 export const audioEnvelope = () =>

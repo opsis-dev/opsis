@@ -40,6 +40,22 @@ export const AUDIO_ENVELOPES = audioEnvelopeSchema.keyof().options;
 export type AudioEnvelopeKey = keyof AudioEnvelope;
 
 export type EnvelopeKey = VisualEnvelopeKey | AudioEnvelopeKey;
+export const cameraKeySchema = z.object({
+  frame: z.number().int().nonnegative(),
+  yaw: z.number().min(-180).max(180).default(0),
+  pitch: z.number().min(-89).max(89).default(0),
+  distance: z.number().min(0.3).max(4).default(1),
+  height: z.number().min(-2).max(2).default(0),
+  ease: z.enum(EASES).default("in-out"),
+});
+export type CameraKey = z.infer<typeof cameraKeySchema>;
+
+export const cameraPathSchema = z.object({ keys: z.array(cameraKeySchema).default([]) });
+export type CameraPath = z.infer<typeof cameraPathSchema>;
+
+export const isCameraPath = (value: unknown): value is CameraPath =>
+  cameraPathSchema.safeParse(value).success && isRecord(value) && Array.isArray(value.keys);
+
 export const envelopeSchema = visualEnvelopeSchema.extend(audioEnvelopeSchema.shape);
 export type Envelope = z.infer<typeof envelopeSchema>;
 
@@ -105,6 +121,7 @@ const timelineItemSchema = elementRefSchema.extend({
   handles: editHandlesSchema.optional(),
   slot: slotSchema.optional(),
   envelope: visualEnvelopeSchema.optional(),
+  camera: cameraPathSchema.optional(),
   design: viewportSchema.extend({ exact: z.boolean().optional() }).optional(),
 });
 

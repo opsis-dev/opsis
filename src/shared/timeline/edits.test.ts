@@ -9,6 +9,7 @@ import { buildFilm, flatFilm, must, TITLE } from "../test-fixtures";
 import {
   moveAudio,
   moveBar,
+  moveCameraKeyMark,
   removalFor,
   rollCut,
   setAudioVolume,
@@ -451,5 +452,57 @@ describe("owned handles", () => {
     const staleBar: VideoBar = { ...bar, chain: bar.chain.map((l) => (l === owner ? stale : l)) };
     const moved = applied(moveBar(ctxFor(wf), staleBar, DELTA));
     expect(moved.nodes.filter((n) => n.type === "timeline.delay")).toHaveLength(1);
+  });
+});
+
+describe("camera keys on the timeline", () => {
+  const keys = [
+    { frame: 0, yaw: -30, pitch: 0, distance: 1.5, height: 0, ease: "in-out" as const },
+    { frame: 60, yaw: 0, pitch: 0, distance: 1, height: 0, ease: "in-out" as const },
+  ];
+  const film = (type: string, preset: Record<string, unknown>) =>
+    buildFilm((g) => {
+      g.node("intro", TITLE, 0, 0, { title: "Hi", clipDuration: 30 });
+      g.node("three", type, 0, 1, { ...preset, camera: { keys }, clipDuration: 90 });
+      g.node("seq", "timeline.sequence", 2, 0, { transition: "none" });
+      g.link("intro", "seq", "clip", "in1").link("three", "seq", "clip", "in2");
+      return "seq";
+    });
+
+  it("shows the keys of a keyframed 3D element where they play", () => {
+    const flat = flatFilm(film("fx.core.logo-3d", { motion: "keyframes" }));
+    expect(flat.cameraKeys.map((m) => [m.nodeId, m.index, Math.round(m.frame)])).toEqual([
+      ["three", 0, 30],
+      ["three", 1, 90],
+    ]);
+  });
+
+  it("shows no keys while a preset move drives the camera", () => {
+    expect(flatFilm(film("fx.core.logo-3d", { motion: "spin" })).cameraKeys).toEqual([]);
+  });
+
+  it("moves a key by the drag and lands where it was dropped", () => {
+    const wf = film("fx.core.logo-3d", { motion: "keyframes" });
+    const [, last] = flatFilm(wf).cameraKeys;
+    const moved = flatFilm(applied(moveCameraKeyMark(ctxFor(wf), must(last, "key"), -15)));
+    expect(moved.cameraKeys.map((m) => Math.round(m.frame))).toEqual([30, 75]);
+  });
+
+  it("shows and moves the keys of a 3D screen around a clip", () => {
+    const wf = buildFilm((g) => {
+      g.node("intro", TITLE, 0, 0, { title: "Hi", clipDuration: 90 });
+      g.node("screen", "fx.core.screen-3d", 1, 0, { move: "keyframes", camera: { keys } });
+      g.link("intro", "screen");
+      return "screen";
+    });
+    const flat = flatFilm(wf);
+    expect(flat.cameraKeys.map((m) => [m.nodeId, Math.round(m.frame)])).toEqual([
+      ["screen", 0],
+      ["screen", 60],
+    ]);
+    const moved = flatFilm(
+      applied(moveCameraKeyMark(ctxFor(wf), must(flat.cameraKeys[0], "key"), 20)),
+    );
+    expect(moved.cameraKeys.map((m) => Math.round(m.frame))).toEqual([20, 60]);
   });
 });

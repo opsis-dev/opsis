@@ -34,6 +34,7 @@ import { kindFromPath } from "@/shared/mime";
 import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/shared/nodes/params";
 import { transitionTitle } from "@/shared/nodes/transitions";
 import { BoxesField } from "./form/boxes-field";
+import { CameraField } from "./form/camera-field";
 import { ColorField } from "./form/color-field";
 import { EnumField } from "./form/enum-field";
 import { EnvelopeField } from "./form/envelope-field";
@@ -233,6 +234,8 @@ function plainBody(field: TypedField, props: ParamFieldProps<unknown>): ReactNod
       return <ColorField {...props} value={field.value} />;
     case "boxes":
       return <BoxesField {...props} value={field.value} />;
+    case "camera":
+      return <CameraField {...props} value={field.value} />;
     case "envelope":
       return <EnvelopeField {...props} value={field.value} tracks={field.tracks} />;
     case "boolean":

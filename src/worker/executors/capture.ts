@@ -4,6 +4,7 @@ import path from "node:path";
 import type { Locator, Page } from "playwright-core";
 import { writeJson } from "../../engine/json";
 import { requireHeadlessShell } from "../../engine/paths";
+import { PREVIEW_FILE_WIDTH } from "../../shared/compile/recording";
 import { errorMessage } from "../../shared/errors";
 import { formatDuration, plural } from "../../shared/format";
 import { openBrowserParams, signInNode } from "../../shared/nodes/browser";
@@ -137,7 +138,6 @@ async function runTakeWithTrace<R>(
   return { result, traceId: await finalizeTrace(ctx, trace, encoder, true) };
 }
 
-const PREVIEW_WIDTH = 960;
 const PREVIEW_CRF = 26;
 const PREVIEW_KEYFRAMES_PER_SECOND = 2;
 
@@ -153,7 +153,7 @@ async function makePreviewCopy(
         mp4,
         "-an",
         "-vf",
-        `scale=${PREVIEW_WIDTH}:-2`,
+        `scale=${PREVIEW_FILE_WIDTH}:-2`,
         ...h264Args({
           crf: PREVIEW_CRF,
           preset: "veryfast",

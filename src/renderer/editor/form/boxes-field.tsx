@@ -1,14 +1,18 @@
 import { X } from "lucide-react";
 import { FieldDescription } from "@/renderer/components/ui/field";
 import { cn } from "@/renderer/lib/utils";
-import { percent } from "@/shared/format";
+import { formatDuration, percent } from "@/shared/format";
+import { numberOr } from "@/shared/math";
 import type { Bounds } from "@/shared/schema/actions";
+import { SingleSlider } from "../../app/single-slider";
+import { useWorkflowStore } from "../../store/workflow";
 import { FieldShell } from "./field-shell";
 import { SpotFrame } from "./spot-frame";
-import type { FieldProps } from "./types";
+import type { FormContext, ParamFieldProps } from "./types";
 import { boxHandle, useBoxDrag } from "./use-box-drag";
 
 const MAX_BOXES = 8;
+const FRAME_STEP_MS = 100;
 
 const boxStyle = (b: Bounds) => ({
   left: percent(b.x),
@@ -45,15 +49,57 @@ function BoxOverlay({
   );
 }
 
-export function BoxesField({ label, value: boxes, onChange, ctx, meta }: FieldProps<Bounds[]>) {
+function FrameSlider({
+  ctx,
+  timeMs,
+  onChange,
+}: {
+  ctx: FormContext;
+  timeMs: number;
+  onChange: (timeMs: number) => void;
+}) {
+  const store = useWorkflowStore.getState;
+  const durationMs = ctx.spotBackground?.durationMs ?? 0;
+  if (durationMs <= 0) return null;
+  return (
+    <div className="flex items-center gap-3">
+      <SingleSlider
+        aria-label="Frame to draw on"
+        min={0}
+        max={durationMs}
+        step={FRAME_STEP_MS}
+        value={Math.min(timeMs, durationMs)}
+        onChange={onChange}
+        onPointerDown={() => store().beginGesture()}
+        onValueCommitted={() => store().endGesture()}
+      />
+      <span className="text-muted-foreground w-12 shrink-0 text-right text-xs tabular-nums">
+        {formatDuration(Math.min(timeMs, durationMs))}
+      </span>
+    </div>
+  );
+}
+
+export function BoxesField({
+  label,
+  value: boxes,
+  onChange,
+  ctx,
+  meta,
+  all,
+  onPatch,
+}: ParamFieldProps<Bounds[]>) {
   const full = boxes.length >= MAX_BOXES;
   const { area, draft, shown, frame } = useBoxDrag(boxes, onChange, !full);
+  const { timeKey } = meta;
+  const timeMs = timeKey ? numberOr(all[timeKey], 0) : undefined;
 
   return (
     <FieldShell label={label} meta={meta}>
       <SpotFrame
         ref={area}
         ctx={ctx}
+        timeMs={timeMs}
         className={cn("touch-none select-none", full ? "cursor-default" : "cursor-crosshair")}
         {...frame}
       >
@@ -72,6 +118,9 @@ export function BoxesField({ label, value: boxes, onChange, ctx, meta }: FieldPr
           />
         ) : null}
       </SpotFrame>
+      {timeKey && timeMs !== undefined ? (
+        <FrameSlider ctx={ctx} timeMs={timeMs} onChange={(next) => onPatch({ [timeKey]: next })} />
+      ) : null}
       <FieldDescription>
         {full
           ? `Up to ${MAX_BOXES} areas. Remove one to add another.`

@@ -96,6 +96,31 @@ function SpeedCorner() {
   );
 }
 
+const CAMERA_KEY_PX = 9;
+
+function CameraKeys({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
+  const ppf = ctx.viewport.pxPerFrame;
+  const owners = new Set([bar.itemId, ...bar.chain.map((l) => l.itemId)]);
+  const marks = ctx.flat.cameraKeys.filter(
+    (m) => owners.has(m.itemId) && m.frame >= bar.from && m.frame <= bar.to,
+  );
+  return marks.map((m) => (
+    <button
+      key={m.key}
+      type="button"
+      aria-label="Camera key"
+      title="Camera key. Drag to move it; select the node to set it."
+      className="bg-keyframe border-background absolute bottom-1 z-10 rotate-45 cursor-ew-resize rounded-[2px] border"
+      style={{
+        left: (m.frame - bar.from) * ppf - CAMERA_KEY_PX / 2,
+        width: CAMERA_KEY_PX,
+        height: CAMERA_KEY_PX,
+      }}
+      onPointerDown={(e) => ctx.drag.startCameraKey(e, m)}
+    />
+  ));
+}
+
 export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
   const { tool, drag } = ctx;
   const ppf = ctx.viewport.pxPerFrame;
@@ -130,7 +155,12 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
       cursorAt={TOOL_CURSOR[tool] ? undefined : (e) => (hitEdge(e, box.width) ? "ew-resize" : "")}
       onPress={onPress}
       envelope={envelope}
-      above={<SpeedCorner />}
+      above={
+        <>
+          <SpeedCorner />
+          <CameraKeys bar={bar} ctx={ctx} />
+        </>
+      }
     >
       <FilmstripCanvas bar={bar} box={box} height={HEIGHT} view={ctx.viewport} fps={ctx.flat.fps} />
       <BarLabel className="block py-0.5 leading-tight">

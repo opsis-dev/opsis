@@ -187,3 +187,17 @@ export function installCursor(look: CursorLook): void {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
   else mount();
 }
+
+export function cursorUnder({ x, y }: { x: number; y: number }): {
+  cursor: string;
+  editable: boolean;
+} {
+  const textInputs = ["text", "search", "email", "url", "tel", "password", "number"];
+  const el = document.elementFromPoint(x, y);
+  if (!el) return { cursor: "default", editable: false };
+  const editable =
+    el instanceof HTMLTextAreaElement ||
+    (el instanceof HTMLInputElement && textInputs.includes(el.type)) ||
+    (el instanceof HTMLElement && el.isContentEditable);
+  return { cursor: getComputedStyle(el).cursor, editable };
+}

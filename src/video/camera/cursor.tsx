@@ -1,6 +1,9 @@
+import { resolveCursor } from "@remotion/mac-cursors";
 import React from "react";
+import { Img } from "remotion";
 import {
   DEFAULT_CURSOR_LOOK,
+  type ArrowCursorLook,
   type CursorLook,
   type RippleLook,
 } from "../../shared/compile/recording";
@@ -26,6 +29,8 @@ const RIPPLE_GROWTH = 1.05;
 const RIPPLE_OPACITY = 0.85;
 const ARROW_PATH = "M1 1 L1 23 L6.5 17.8 L10.2 26.6 L13.7 25 L9.95 16.5 L17 16.3 Z";
 const ARROW_STROKE = 1.85;
+const MAC_CURSOR_PX = 64;
+const MAC_ARTWORK_PX = 32;
 
 const Ripple: React.FC<{ progress: number; k: number; look: RippleLook }> = ({
   progress,
@@ -53,7 +58,11 @@ const Ripple: React.FC<{ progress: number; k: number; look: RippleLook }> = ({
   );
 };
 
-const Arrow: React.FC<{ squash: number; k: number; look: CursorLook }> = ({ squash, k, look }) => {
+const Arrow: React.FC<{ squash: number; k: number; look: ArrowCursorLook }> = ({
+  squash,
+  k,
+  look,
+}) => {
   const width = ARROW_W * k;
   const height = ARROW_H * k;
   return (
@@ -80,6 +89,35 @@ const Arrow: React.FC<{ squash: number; k: number; look: CursorLook }> = ({ squa
         paintOrder="stroke"
       />
     </svg>
+  );
+};
+
+const MacCursor: React.FC<{ shape: string; squash: number; k: number }> = ({
+  shape,
+  squash,
+  k,
+}) => {
+  const resolved = resolveCursor(shape);
+  if (!resolved) return null;
+  const size = MAC_CURSOR_PX * k;
+  const { x, y } = resolved.hotspot;
+  const scale = size / (resolved.width ?? MAC_ARTWORK_PX);
+  return (
+    <Img
+      src={resolved.src}
+      width={size}
+      height={size}
+      style={{
+        position: "absolute",
+        left: -x * scale,
+        top: -y * scale,
+        width: size,
+        height: size,
+        maxWidth: "none",
+        transform: `scale(${squash})`,
+        transformOrigin: `${x * scale}px ${y * scale}px`,
+      }}
+    />
   );
 };
 
@@ -121,7 +159,11 @@ export const Cursor: React.FC<{ clip: CursorOptions; timeS: number; cameraScale:
       {ripple && state.ripple !== null ? (
         <Ripple progress={state.ripple} k={k} look={ripple} />
       ) : null}
-      <Arrow squash={state.squash} k={k} look={cursorLook} />
+      {cursorLook.shape === "mac" ? (
+        <MacCursor shape={state.shape} squash={state.squash} k={k} />
+      ) : (
+        <Arrow squash={state.squash} k={k} look={cursorLook} />
+      )}
     </div>
   );
 };

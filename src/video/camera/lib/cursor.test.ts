@@ -101,3 +101,30 @@ describe("cursor opacity", () => {
     expect(cursorOpacity(clicks, 0.5)).toBe(1);
   });
 });
+
+describe("cursor shape", () => {
+  const shaped: CursorSample[] = [
+    { t: 0, x: 100, y: 100 },
+    { t: 400, x: 300, y: 200, c: "pointer" },
+    { t: 500, x: 300, y: 200 },
+    { t: 600, x: 300, y: 200, c: "default" },
+    { t: 1000, x: 500, y: 400, c: "text" },
+  ];
+  const shapeAt = (tS: number) => cursorAt(shaped, [], tS)?.shape;
+
+  it("shows the arrow until the page asks for another cursor", () => {
+    expect(shapeAt(0)).toBe("default");
+    expect(shapeAt(0.399)).toBe("default");
+  });
+
+  it("keeps the latest shape until the next change", () => {
+    expect(shapeAt(0.4)).toBe("pointer");
+    expect(shapeAt(0.55)).toBe("pointer");
+    expect(shapeAt(0.7)).toBe("default");
+    expect(shapeAt(5)).toBe("text");
+  });
+
+  it("shows the arrow for takes recorded without shapes", () => {
+    expect(cursorAt(track, [], 0.5)?.shape).toBe("default");
+  });
+});

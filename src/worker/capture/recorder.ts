@@ -11,7 +11,9 @@ import {
   type Viewport,
 } from "../../shared/schema/actions";
 import { cameraEase } from "../../video/camera/lib/camera";
+import type { CursorSample } from "../../video/camera/lib/click-log";
 import { designScaleFor } from "../../video/camera/lib/design-width";
+import { cursorKeyword, DEFAULT_CURSOR } from "./cursor-keyword";
 import {
   boundsOf,
   bulgedCurve,
@@ -32,6 +34,7 @@ import {
   type TakeClick,
   type TakeSink,
 } from "./flow-types";
+import { cursorUnder } from "./page-scripts";
 
 const DEFAULT_PAUSE_MS = 700;
 const SAMPLE_MS = 8;
@@ -134,11 +137,13 @@ export class CursorDriver {
   private readonly designScale: number;
   private last: Point;
   private lastDepartMs = 0;
+  private shown = DEFAULT_CURSOR;
 
   constructor(
     private readonly page: Page,
     private readonly elapsed: () => number,
     private readonly sink: TakeSink,
+    private readonly readsShapes = false,
   ) {
     this.viewport = page.viewportSize();
     this.designScale = viewportScale(this.viewport);
@@ -200,8 +205,19 @@ export class CursorDriver {
     });
   }
 
-  private mark(x: number, y: number) {
-    this.sink.cursor({ t: this.elapsed(), x: Math.round(x), y: Math.round(y) });
+  private mark(x: number, y: number, shape?: string) {
+    const sample: CursorSample = { t: this.elapsed(), x: Math.round(x), y: Math.round(y) };
+    if (shape !== undefined && shape !== this.shown) {
+      sample.c = shape;
+      this.shown = shape;
+    }
+    this.sink.cursor(sample);
+  }
+
+  private async readShape() {
+    if (!this.readsShapes) return;
+    const under = await this.page.evaluate(cursorUnder, this.last).catch(() => null);
+    if (under) this.mark(this.last.x, this.last.y, cursorKeyword(under));
   }
 
   private park(x: number, y: number) {
@@ -225,6 +241,7 @@ export class CursorDriver {
     const dist = distance(this.last, { x, y });
     this.lastDepartMs = this.elapsed();
     if (dist >= GLIDE_MIN_PX * designScale) {
+      if (this.readsShapes) this.mark(this.last.x, this.last.y, DEFAULT_CURSOR);
       const glide = glidePlan(this.last, { x, y }, designScale, this.viewport, travelMs);
       await this.walk(this.elapsed(), glide.durationMs, glide.at);
       if (glide.overshooting) {
@@ -233,6 +250,7 @@ export class CursorDriver {
       }
     }
     this.park(x, y);
+    await this.readShape();
     if (settleMs > 0) await this.pause(settleMs);
   }
 
@@ -276,7 +294,9 @@ export class CursorDriver {
     await this.page.mouse.down();
     await this.pause(CLICK_HOLD_MS);
     await this.page.mouse.up();
-    return this.logEvent(aim, label, opts, { tDownMs, ...extra });
+    const event = this.logEvent(aim, label, opts, { tDownMs, ...extra });
+    await this.readShape();
+    return event;
   }
 
   private async dragPlan(

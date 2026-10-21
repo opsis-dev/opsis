@@ -15,6 +15,7 @@ import type {
 } from "../schema/timeline";
 import { actionLabel } from "./action-labels";
 import { audioBars } from "./audio-bars";
+import { sortedCameraKeys } from "./camera-path";
 import { overlaps, packAudio, packLanes } from "./lanes";
 import { thumbnailOf } from "./thumbnails";
 import { recordingMsToFrames } from "./time";
@@ -104,6 +105,14 @@ type ActionMark = {
   barKey: string;
 };
 
+export type CameraKeyMark = {
+  key: string;
+  itemId: string;
+  nodeId: string;
+  index: number;
+  frame: number;
+};
+
 export type FlatTimeline = {
   fps: number;
   durationInFrames: number;
@@ -113,6 +122,7 @@ export type FlatTimeline = {
   audioLanes: number;
   transitions: TransitionMark[];
   marks: ActionMark[];
+  cameraKeys: CameraKeyMark[];
 };
 
 const MAX_LOOPS = MAX_REPEATS;
@@ -332,7 +342,19 @@ type Collected = {
   bars: VideoBar[];
   transitions: TransitionMark[];
   marks: ActionMark[];
+  cameraKeys: CameraKeyMark[];
 };
+
+function cameraKeyMarks(p: Placed): CameraKeyMark[] {
+  const { item, from, to, key } = p;
+  if (!item.nodeId || !item.camera) return [];
+  const { nodeId } = item;
+  return sortedCameraKeys(item.camera).flatMap((k, index) => {
+    const frame = p.walk.inst.toAbs(item.from + k.frame, "start");
+    if (frame < from - EPSILON || frame > to + EPSILON) return [];
+    return [{ key: `${key}:camera:${index}`, itemId: item.id, nodeId, index, frame }];
+  });
+}
 
 function visitTracks(acc: Collected, tracks: TimelineTrack[], walk: Walk): void {
   tracks.forEach((track, ti) => {
@@ -351,6 +373,7 @@ function visitItem(acc: Collected, p: Placed, previousLength: number): void {
   const link = makeLink(p);
   const mark = transitionMark(p, previousLength);
   if (mark) acc.transitions.push(mark);
+  acc.cameraKeys.push(...cameraKeyMarks(p));
   const group = groupOf(p.item);
   if (group) {
     visitGroup(acc, p, group, link);
@@ -388,7 +411,7 @@ function placeTransitions(transitions: TransitionMark[], bars: VideoBar[]): Tran
 export function flattenSpec(
   spec: Pick<TimelineSpec, "tracks" | "audio" | "durationInFrames" | "fps">,
 ): FlatTimeline {
-  const acc: Collected = { fps: spec.fps, bars: [], transitions: [], marks: [] };
+  const acc: Collected = { fps: spec.fps, bars: [], transitions: [], marks: [], cameraKeys: [] };
   const root: Instance = { toAbs: (c) => c, lo: 0, hi: spec.durationInFrames };
   visitTracks(acc, spec.tracks, { inst: root, path: "", chain: [], loop: 0, timing: "plain" });
   const { bars, lanes } = packLanes(acc.bars);
@@ -402,6 +425,7 @@ export function flattenSpec(
     audioLanes,
     transitions: placeTransitions(acc.transitions, bars),
     marks: acc.marks.toSorted((x, y) => x.frame - y.frame),
+    cameraKeys: acc.cameraKeys,
   };
 }
 

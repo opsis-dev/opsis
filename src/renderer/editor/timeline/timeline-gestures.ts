@@ -2,8 +2,8 @@ import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/renderer/lib
 import { randomId } from "@/shared/ids";
 import { clamp, round3 } from "@/shared/math";
 import type { Marker, Workflow } from "@/shared/schema/workflow";
-import { setAudioVolume } from "@/shared/timeline/edits";
-import type { AudioBar, FlatTimeline } from "@/shared/timeline/flatten";
+import { moveCameraKeyMark, setAudioVolume } from "@/shared/timeline/edits";
+import type { AudioBar, CameraKeyMark, FlatTimeline } from "@/shared/timeline/flatten";
 import { snapFrame, type SnapTarget } from "@/shared/timeline/snap";
 import { clampFrame, framesToMs, wholeFrames } from "@/shared/timeline/time";
 import { usePlayback } from "../../store/playback";
@@ -131,6 +131,24 @@ export function keyGesture(env: GestureEnv, e: React.PointerEvent, key: KeyStart
     },
     finish: () => {
       if (!endEdit(d)) selectNodes([d.nodeId], false, env.sourceNodeId);
+    },
+  };
+}
+
+export function cameraKeyGesture(
+  env: GestureEnv,
+  e: React.PointerEvent,
+  mark: CameraKeyMark,
+): ActiveDrag {
+  const d = { x0: e.clientX, base: env.workflow, salt: randomId(), started: false };
+  return {
+    move: (ev) => {
+      if (!startEditOnceMoved(d, Math.abs(ev.clientX - d.x0))) return;
+      const ctx = editContext(d.base, env.flat.fps, env.sourceNodeId, d.salt);
+      applyEdit(moveCameraKeyMark(ctx, mark, Math.round((ev.clientX - d.x0) / env.ppf)));
+    },
+    finish: () => {
+      if (!endEdit(d)) selectNodes([mark.nodeId], false, env.sourceNodeId);
     },
   };
 }

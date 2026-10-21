@@ -155,7 +155,12 @@ export class TakeRun implements TakeSink {
     this.actions.splice(0, this.actions.length, ...this.actions.map(atTakeStart));
     this.t0 = Date.now();
     this.recording?.encoder.setOrigin(this.t0);
-    this.cursorDriver = new CursorDriver(this.page, this.elapsed, this);
+    this.cursorDriver = new CursorDriver(
+      this.page,
+      this.elapsed,
+      this,
+      this.recording?.record.cursor === "synthetic",
+    );
   }
 
   async run(node: SessionStep) {

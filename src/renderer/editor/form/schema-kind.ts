@@ -5,8 +5,10 @@ import { isBoolean, isNumber, isRecord, isString, isStringOrNumber } from "@/sha
 import type { MinMax } from "@/shared/math";
 import { isBoundsList, type Bounds } from "@/shared/schema/actions";
 import {
+  isCameraPath,
   isEnvelope,
   isEnvelopeKey,
+  type CameraPath,
   type Envelope,
   type EnvelopeKey,
 } from "@/shared/schema/timeline";
@@ -33,6 +35,7 @@ type FieldKind =
   | { kind: "gradient" }
   | { kind: "theme" }
   | { kind: "boxes" }
+  | { kind: "camera" }
   | { kind: "envelope"; tracks: EnvelopeKey[] };
 
 type FieldValue = {
@@ -43,6 +46,7 @@ type FieldValue = {
   numberList: number[];
   colorList: string[];
   boxes: Bounds[];
+  camera: CameraPath;
   envelope: Envelope;
   boolean: boolean;
   number: number;
@@ -123,6 +127,7 @@ export function typedField(schema: z.ZodType, value: unknown): TypedField | null
   if (widget === "gradient") return typed({ kind: "gradient" }, value ?? "", isString);
   if (widget === "theme") return typed({ kind: "theme" }, value ?? undefined, isThemeValue);
   if (widget === "boxes") return typed({ kind: "boxes" }, value ?? [], isBoundsList);
+  if (widget === "camera") return typed({ kind: "camera" }, value ?? { keys: [] }, isCameraPath);
   if (widget === "envelope")
     return typed({ kind: "envelope", tracks: envelopeTracks(schema) }, value ?? {}, isEnvelope);
   const kind = schemaKind(schema);

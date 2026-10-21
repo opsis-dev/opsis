@@ -1,4 +1,4 @@
-import { useEffectEvent, useLayoutEffect, useState } from "react";
+import { useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import { cancelRender, continueRender, delayRender } from "remotion";
 
 export function holdRender(label: string): () => void {
@@ -20,21 +20,25 @@ export function useHeldLoad<T>(
 ): Loaded<T> | null {
   const [loaded, setLoaded] = useState<Loaded<T> | null>(null);
   const start = useEffectEvent(load);
+  const held = useRef<{ key: string; release: () => void } | null>(null);
   useLayoutEffect(() => {
     if (key === null) return;
     const release = holdRender(label);
+    held.current = { key, release };
     let alive = true;
     start(key)
       .then((value) => {
-        if (!alive) return;
-        setLoaded({ key, value });
-        release();
+        if (alive) setLoaded({ key, value });
       })
       .catch((error: unknown) => cancelRender(error));
     return () => {
       alive = false;
+      held.current = null;
       release();
     };
   }, [key, label]);
+  useLayoutEffect(() => {
+    if (loaded && held.current?.key === loaded.key) held.current.release();
+  }, [loaded]);
   return loaded;
 }

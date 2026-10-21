@@ -12,7 +12,7 @@ export const isFadedOut = (opacity: number): boolean => opacity <= FADED_OUT_OPA
 export type Entrance = "rise" | "fade" | "blur" | "scale" | "none";
 
 const ENTRANCE_SPRING = { damping: 200, mass: 0.8 };
-const ENTRANCE_FADE_FRAMES = 14;
+export const ENTRANCE_FADE_FRAMES = 14;
 const RISE_PX = 40;
 const BLUR_PX = 18;
 const SCALE_FROM = 0.86;
@@ -58,6 +58,14 @@ export function fadeWindow(
       : 1;
   return Math.min(fadeIn, fadeOut);
 }
+
+const DRAW_ON_S = 0.45;
+
+export const drawOn = (t: number, fromT: number, length = DRAW_ON_S): number =>
+  interpolate(t, [fromT, fromT + length], [0, 1], {
+    ...CLAMPED,
+    easing: Easing.inOut(Easing.cubic),
+  });
 
 export const zoomOver = (frame: number, frames: number, to: number): number =>
   interpolate(frame, [0, frames], [1, to], CLAMP_RIGHT);

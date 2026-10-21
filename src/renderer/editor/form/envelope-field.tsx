@@ -168,7 +168,7 @@ function KeyframeRow({
   );
 }
 
-function EaseSelect({ ease, onChange }: { ease: Ease; onChange: (ease: Ease) => void }) {
+export function EaseSelect({ ease, onChange }: { ease: Ease; onChange: (ease: Ease) => void }) {
   return (
     <ChoiceSelect
       groups={[EASE_ITEMS]}

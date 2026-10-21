@@ -9,11 +9,12 @@ import { IN_PORTS, inPortIndex, nextInPort } from "../nodes/ports";
 import { getNodeDef, defaultParams, nodeNameById } from "../nodes/registry";
 import { cutSchema } from "../nodes/timeline";
 import { NO_TRANSITION } from "../nodes/transitions";
-import type { EditHandleKind, ParamRef } from "../schema/timeline";
+import { cameraPathSchema, type EditHandleKind, type ParamRef } from "../schema/timeline";
 import type { EdgeEnds, PortType, Workflow, WorkflowEdge, WorkflowNode } from "../schema/workflow";
 import { formatNumberList, parseNumberList } from "../text-input";
 import { absPosition, mapNode, patchNodeParams, removeNodes } from "../workflow-edits";
-import type { AudioBar, ChainLink, VideoBar } from "./flatten";
+import { moveCameraKey, sortedCameraKeys } from "./camera-path";
+import type { AudioBar, CameraKeyMark, ChainLink, VideoBar } from "./flatten";
 import { findHandle, slotIndex, slotLink } from "./handles";
 import { framesToMs, msToFrames, wholeFrames } from "./time";
 
@@ -660,4 +661,20 @@ export function applyRemoval(wf: Workflow, removal: Removal): Workflow {
   const without = removeNodes(wf, removal.nodeIds);
   const edges = new Set(removal.edgeIds);
   return { ...without, edges: without.edges.filter((e) => !edges.has(e.id)) };
+}
+
+export function moveCameraKeyMark(
+  ctx: EditContext,
+  mark: CameraKeyMark,
+  delta: number,
+): EditResult {
+  if (noMove(delta)) return { ok: true, workflow: ctx.workflow };
+  const node = findById(ctx.workflow.nodes, mark.nodeId);
+  const path = cameraPathSchema.safeParse(node?.params.camera);
+  if (!node || !path.success)
+    return fail("This node's camera keys can't be read. Check them in the Inspector.");
+  const key = sortedCameraKeys(path.data)[mark.index];
+  if (!key) return fail("That camera key is gone.");
+  const camera = moveCameraKey(path.data, mark.index, key.frame + delta);
+  return { ok: true, workflow: patchNodeParams(ctx.workflow, mark.nodeId, { camera }) };
 }

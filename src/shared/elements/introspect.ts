@@ -8,6 +8,7 @@ export const FIELD_WIDGETS = [
   "asset",
   "backdrop",
   "boxes",
+  "camera",
   "code",
   "color",
   "datetime",

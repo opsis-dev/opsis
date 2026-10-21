@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-const DIRS = ["core", "camera"];
+const DIRS = ["core", "camera", "three"];
 
 const COLOR_LITERAL = /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)|oklch\([^)]*\)/g;
 
@@ -53,6 +53,15 @@ const ALLOWED: Record<string, Record<string, string>> = {
     "rgba(255,255,255,0.18)": "empty clip border, never in a finished film",
   },
   "core/recording-clip.tsx": { "rgba(0,0,0,0.35)": "typed text chip shadow" },
+  "three/devices.tsx": { "#0a0a0c": "3D device bezel and screen glass" },
+  "three/screen-3d.tsx": {
+    "rgba(255,255,255,${GLARE.strongest})": "3D screen glare",
+    "rgba(255,255,255,0)": "3D screen glare fading out",
+  },
+  "three/card-3d.tsx": {
+    "rgba(0,0,0,0.55)": "3D card's soft shadow",
+    "rgba(0,0,0,0)": "3D card's soft shadow fading out",
+  },
 };
 
 const root = import.meta.dirname;

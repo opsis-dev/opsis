@@ -39,7 +39,7 @@ import {
   type WindowStyle,
 } from "../window-styles";
 import { missing, mutedIf, row, toggleRow, type CardRow, type InputTake } from "./card";
-import { cursorStyles } from "./cursor";
+import { CURSOR_STYLE_TYPE, cursorStyles } from "./cursor";
 import {
   CLIP_PORT,
   defineNode,
@@ -53,6 +53,7 @@ import {
   styleModifier,
   withClip,
 } from "./define";
+import { effectStyles } from "./effects";
 import type { NodeIconName } from "./icon-name";
 import {
   asset,
@@ -160,6 +161,13 @@ const autoZoomNode = defineNode({
       row("triangle-alert", "The take has no cursor to follow", {
         tone: "warn",
         title: "Set Cursor to Smooth on the Record take node.",
+      }),
+    inputTakes?.[RECORDING_PORT]?.cursorTrack === false &&
+      inputStyle?.[STYLE_PORT]?.includes(CURSOR_STYLE_TYPE) &&
+      row("triangle-alert", "The take films its own cursor", {
+        tone: "warn",
+        title:
+          "The Cursor node's look, size and colours apply only to a drawn cursor. Set Cursor to Smooth on the Record take node.",
       }),
     p.zoom ? row("zoom-in", `Up to ${p.maxScale}×`) : row("zoom-out", "No zoom", { tone: "muted" }),
     p.zoom && row("hourglass", `Hold ${formatDuration(p.hold)}`),
@@ -554,7 +562,12 @@ const cameraStyles: StyleSteps = [
   }),
 ];
 
-const STYLE_TABLE: StyleTable = new Map([...cursorStyles, ...textStyles, ...cameraStyles]);
+const STYLE_TABLE: StyleTable = new Map([
+  ...cursorStyles,
+  ...textStyles,
+  ...cameraStyles,
+  ...effectStyles,
+]);
 
 const applyStyleNode = defineNode({
   ...base,

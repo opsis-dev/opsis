@@ -2,7 +2,7 @@ import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
 import { MAX_VOLUME } from "../limits";
-import { asset, bool, choice, more, text } from "../nodes/params";
+import { asset, bool, cameraPath, choice, choiceFrom, more, text } from "../nodes/params";
 import {
   ACCENT_COLOR,
   CALLOUT_COLOR,
@@ -12,6 +12,8 @@ import {
   PANEL_COLOR,
   TEXT_COLOR,
 } from "./colors";
+import { DEVICE_LABELS, DEVICES, SCREEN_MOVE_LABELS, SCREEN_MOVES } from "./screen-3d";
+import { LIGHTING_LABELS, LIGHTINGS, MOTION_LABELS, MOTIONS } from "./three";
 import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
 
 const source = {
@@ -35,7 +37,15 @@ const background = (description = "Background") =>
 const direction = <const T extends readonly [string, ...string[]]>(values: T, def: T[number]) =>
   choice(values, def, "Direction");
 
+const motion = (def: (typeof MOTIONS)[number]) => choice(MOTIONS, def, "Motion", MOTION_LABELS);
+const motionSpeed = () => num(1, 0.25, 3, "Speed", 0.05);
+const lighting = (def: (typeof LIGHTINGS)[number] = "studio") =>
+  choice(LIGHTINGS, def, "Lighting", LIGHTING_LABELS);
+const optionalColor = (description: string, zeroLabel: string) =>
+  z.string().default("").meta({ description, widget: "color", zeroLabel });
+
 const ENTRANCES = ["rise", "fade", "blur", "scale", "none"] as const;
+const TITLE_MARKS = ["underline", "circle", "box", "marker", "crossed-off"] as const;
 const DIRECTIONS = ["from-left", "from-right", "from-top", "from-bottom"] as const;
 
 export const CAPTIONS_ELEMENT = "core/captions";
@@ -66,6 +76,17 @@ const components = {
       eyebrow: text("", "Eyebrow"),
       title: text("Sign up in 10 seconds", "Title"),
       subtitle: text("", "Subtitle"),
+      mark: more(text("", "Mark a word"), {
+        help: "Words from the title to draw a hand-drawn mark on, after the title comes in. Leave empty for none.",
+      }),
+      markLook: choice(TITLE_MARKS, "underline", "Mark", {
+        underline: "Underline",
+        circle: "Circle",
+        box: "Box",
+        marker: "Marker",
+        "crossed-off": "Crossed out",
+      }),
+      markColor: color(HIGHLIGHT_COLOR, "Mark colour"),
       align: choice(["center", "left"], "center", "Alignment"),
       entrance: choice(ENTRANCES, "rise", "Entrance"),
       color: color(TEXT_COLOR, "Text colour"),
@@ -169,8 +190,10 @@ const components = {
         .meta({
           description: "Areas to cover",
           widget: "boxes",
-          help: "Drag on the picture to add an area. The areas stay in place on screen; they don't follow the camera.",
+          timeKey: "frameMs",
+          help: "Drag on the picture to add an area. The areas stay in place on screen; they don't follow the camera. To hide something on a recording while the camera moves, use Blur areas on the recording instead.",
         }),
+      frameMs: more(num(0, 0, 3_600_000, "Frame to draw on"), { unit: "ms", hidden: true }),
       blockSize: num(24, 6, 72, "Block size", 2),
     }),
     defaultDurationInFrames: 90,
@@ -282,6 +305,140 @@ const components = {
     category: "overlay",
     schema: z.object({ seed: num(3, 0, 100, "Seed"), hueShift: num(0, 0, 360, "Hue shift") }),
     defaultDurationInFrames: 45,
+  },
+  "core/logo-3d": {
+    title: "3D logo",
+    description: "Your logo in 3D, spinning, tilting in or floating, with studio lighting.",
+    category: "scene",
+    schema: z.object({
+      src: more(asset("Logo file", ".svg,.png,.jpg,.jpeg,.webp"), {
+        zeroLabel: "Sample logo",
+        help: "A drawn logo is given depth; a picture of a logo goes on a card.",
+      }),
+      depth: num(0.25, 0.05, 1, "Depth", 0.05),
+      color: optionalColor("Colour", "The logo's own colours"),
+      metalness: num(0.3, 0, 1, "Metal", 0.05),
+      motion: motion("spin"),
+      camera: cameraPath({ motion: ["keyframes"] }),
+      speed: motionSpeed(),
+      lighting: lighting(),
+      background: background(),
+    }),
+    defaultDurationInFrames: 150,
+  },
+  "core/card-3d": {
+    title: "3D card",
+    description: "An image on a card with rounded corners and a soft shadow that tilts into place.",
+    category: "scene",
+    schema: z.object({
+      src: more(asset("Image", "image/*"), { zeroLabel: "Sample screen" }),
+      cornerRadius: num(0.04, 0, 0.2, "Rounded corners", 0.01),
+      depth: num(0.04, 0.01, 0.3, "Thickness", 0.01),
+      tilt: more(num(40, 0, 80, "Tilt", 1), {
+        unit: "°",
+        help: "How far the card is turned before it settles.",
+      }),
+      motion: motion("tilt-in"),
+      camera: cameraPath({ motion: ["keyframes"] }),
+      speed: motionSpeed(),
+      lighting: lighting("soft"),
+      background: background(),
+    }),
+    defaultDurationInFrames: 120,
+  },
+  "core/text-3d": {
+    title: "3D text",
+    description: "Words in solid 3D letters with rounded edges, in any project font.",
+    category: "text",
+    schema: z.object({
+      text: text("Ship faster", "Text", "textarea"),
+      fontFamily: more(font(), { help: "Empty uses the project's heading font." }),
+      fontWeight: weight(800),
+      italic: bool(false, "Italic"),
+      depth: num(0.35, 0.05, 1, "Depth", 0.05),
+      bevel: num(0.4, 0, 1, "Rounded edges", 0.05),
+      color: color(TEXT_COLOR, "Colour"),
+      metalness: num(0.2, 0, 1, "Metal", 0.05),
+      align: choice(["center", "left", "right"], "center", "Alignment"),
+      lineWidth: more(num(16, 4, 60, "Line length"), {
+        unit: "letters",
+        help: "Long text wraps onto a new line after about this many letters.",
+      }),
+      motion: motion("tilt-in"),
+      camera: cameraPath({ motion: ["keyframes"] }),
+      speed: motionSpeed(),
+      lighting: lighting(),
+      background: background(),
+    }),
+    defaultDurationInFrames: 120,
+  },
+  "core/model-3d": {
+    title: "3D model",
+    description:
+      "A 3D model from your project on a turntable, with studio lighting and its own animation.",
+    category: "scene",
+    schema: z.object({
+      src: more(asset("Model", ".glb,.gltf"), {
+        help: "A 3D model file. A model saved as several files keeps them next to it.",
+      }),
+      motion: choiceFrom(
+        { ...MOTION_LABELS, spin: "Turntable" },
+        ["spin", "orbit", "swing", "float", "still", "keyframes"],
+        "spin",
+        "Motion",
+      ),
+      camera: cameraPath({ motion: ["keyframes"] }),
+      speed: motionSpeed(),
+      animation: more(text("", "Animation"), {
+        help: "The name of the model's own animation to play. Leave empty for the first one.",
+      }),
+      animationSpeed: num(1, 0.1, 4, "Animation speed", 0.05),
+      loop: bool(true, "Loop the animation"),
+      zoom: num(1, 0.3, 3, "Zoom", 0.05),
+      lighting: lighting(),
+      shadow: bool(true, "Floor shadow"),
+      background: background(),
+    }),
+    defaultDurationInFrames: 150,
+  },
+  "core/screen-3d": {
+    title: "3D screen",
+    description:
+      "Shows a clip on a laptop, monitor, phone or floating screen in 3D, with a camera move.",
+    category: "device",
+    kind: "wrapper",
+    schema: z.object({
+      device: choice(DEVICES, "laptop", "Device", DEVICE_LABELS),
+      deviceColor: color("#c9ced6", "Device colour"),
+      move: choice(SCREEN_MOVES, "push-in", "Camera move", SCREEN_MOVE_LABELS),
+      camera: cameraPath({ move: ["keyframes"] }),
+      endFaceOn: more(bool(true, "End facing the camera"), {
+        help: "The move ends with the screen filling the frame, so it cuts cleanly to the same clip without the device.",
+      }),
+      lighting: lighting(),
+      background: color("#0b0b10", "Background"),
+    }),
+    defaultDurationInFrames: 150,
+  },
+  "core/shapes-3d": {
+    title: "Floating shapes",
+    description: "Soft 3D spheres, rings and rounded boxes drifting slowly.",
+    category: "background",
+    schema: z.object({
+      count: num(14, 3, 40, "Shapes"),
+      palette: z
+        .array(zColor())
+        .min(1)
+        .max(8)
+        .default(["#6366f1", "#a78bfa", "#f472b6", "#38bdf8"])
+        .meta({ description: "Colours" }),
+      seed: num(1, 1, 100, "Arrangement"),
+      speed: num(1, 0, 3, "Speed", 0.05),
+      camera: cameraPath(),
+      lighting: lighting(),
+      background: color("#0b1020", "Background"),
+    }),
+    defaultDurationInFrames: 150,
   },
 } satisfies Record<string, CoreComponent>;
 

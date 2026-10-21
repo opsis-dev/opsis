@@ -57,11 +57,19 @@ export default defineConfig({
                   "src/shared and src/video must stay runtime-neutral (AGENTS.md, Runtime boundaries).",
               },
             ],
-            paths: WALL_CLOCK_LIBS.map((name) => ({
-              name,
-              message:
-                "Animations in src/video must be a pure function of useCurrentFrame() (AGENTS.md).",
-            })),
+            paths: [
+              ...WALL_CLOCK_LIBS.map((name) => ({
+                name,
+                message:
+                  "Animations in src/video must be a pure function of useCurrentFrame() (AGENTS.md).",
+              })),
+              {
+                name: "@react-three/fiber",
+                importNames: ["useFrame"],
+                message:
+                  "useFrame runs on the wall clock. Derive the scene from useCurrentFrame() instead (AGENTS.md).",
+              },
+            ],
           },
         ],
       },
@@ -70,6 +78,7 @@ export default defineConfig({
       files: ["src/video/**/*.ts", "src/video/**/*.tsx"],
       rules: {
         "opsis/no-animate-class": "error",
+        "opsis/no-three-clock": "error",
       },
     },
     {

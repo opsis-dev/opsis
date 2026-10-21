@@ -94,3 +94,26 @@ export function applyProjectFonts(
   const names = new Set([...Object.keys(ROLE_ALIASES), ...registered.keys(), ...used]);
   return Promise.all([...names].map((name) => ensureFont(name, ctx))).then(() => undefined);
 }
+
+export type FontFile = { url: string; italic: boolean };
+
+const weightRange = (weight: string): [number, number] => {
+  const [low = 400, high = low] = weight.split(/\s+/).map(Number).filter(Number.isFinite);
+  return [low, high];
+};
+
+const weightDistance = (weight: string, wanted: number): number => {
+  const [low, high] = weightRange(weight);
+  return wanted < low ? low - wanted : wanted > high ? wanted - high : 0;
+};
+
+export function fontFileFor(name: string, weight: number, italic: boolean): FontFile | null {
+  const def = targetFor(name, current);
+  if (!def?.faces.length) return null;
+  const styled = def.faces.filter((f) => (f.style === "italic") === italic);
+  const faces = styled.length ? styled : def.faces;
+  const face = faces.toSorted(
+    (a, b) => weightDistance(a.weight, weight) - weightDistance(b.weight, weight),
+  )[0];
+  return face ? { url: current.resolve(face.file), italic: face.style === "italic" } : null;
+}

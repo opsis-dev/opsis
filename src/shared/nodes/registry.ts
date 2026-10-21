@@ -7,6 +7,7 @@ import { cameraNodes } from "./camera";
 import { captureNodes } from "./capture";
 import { cursorNodes } from "./cursor";
 import type { NodeDef } from "./define";
+import { effectNodes } from "./effects";
 import { elementNodes } from "./elements";
 import { mediaNodes } from "./media";
 import { outputNodes } from "./output";
@@ -21,6 +22,7 @@ export const NODE_DEFS: NodeDef[] = [
   ...cameraNodes,
   ...cursorNodes,
   ...textNodes,
+  ...effectNodes,
   ...elementNodes,
   ...transitionNodes,
   ...audioNodes,

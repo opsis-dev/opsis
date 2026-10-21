@@ -2,12 +2,16 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import type { CoreElementProps } from "../../shared/elements/core";
 import { fontOr } from "../../shared/fonts";
-import { entranceStyle, exitOpacity, type Entrance } from "./anim";
+import { faded } from "../camera/lib/style";
+import { drawOn, ENTRANCE_FADE_FRAMES, entranceStyle, exitOpacity, type Entrance } from "./anim";
 import { Backgrounded } from "./backgrounds";
+import { HandDrawnMark, type MarkLook } from "./hand-drawn";
 
 const TITLE = { padding: "0 9%", gapEm: 0.22 } as const;
 
 type LineLook = { sizeEm: number; delay: number; style: React.CSSProperties };
+
+const MARK = { strokeEm: 0.045, markerShare: "55%", seed: 1 } as const;
 
 const LINES = {
   eyebrow: {
@@ -29,10 +33,50 @@ const LINES = {
 
 type TitleLineProps = {
   look: LineLook;
-  text: string;
+  text: React.ReactNode;
   color: string;
   fontSize: number;
   entrance: Entrance;
+};
+
+export function splitMark(text: string, mark: string): [string, string, string] | null {
+  const wanted = mark.trim();
+  if (!wanted) return null;
+  const at = text.toLowerCase().indexOf(wanted.toLowerCase());
+  if (at < 0) return null;
+  return [text.slice(0, at), text.slice(at, at + wanted.length), text.slice(at + wanted.length)];
+}
+
+type MarkedTextProps = {
+  text: string;
+  mark: string;
+  look: MarkLook;
+  color: string;
+  fontSize: number;
+  delay: number;
+};
+
+const MarkedText: React.FC<MarkedTextProps> = ({ text, mark, look, color, fontSize, delay }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const parts = splitMark(text, mark);
+  if (!parts) return text;
+  const [before, marked, after] = parts;
+  return (
+    <>
+      {before}
+      <HandDrawnMark
+        look={look}
+        progress={drawOn(frame / fps, (delay + ENTRANCE_FADE_FRAMES) / fps)}
+        color={look === "marker" ? faded(color, MARK.markerShare) : color}
+        strokeWidth={fontSize * MARK.strokeEm}
+        seed={MARK.seed}
+      >
+        {marked}
+      </HandDrawnMark>
+      {after}
+    </>
+  );
 };
 
 const TitleLine: React.FC<TitleLineProps> = ({ look, text, color, fontSize, entrance }) => {
@@ -56,6 +100,9 @@ export const Title: React.FC<CoreElementProps["core/title"]> = ({
   eyebrow,
   title,
   subtitle,
+  mark,
+  markLook,
+  markColor,
   align,
   entrance,
   color,
@@ -88,7 +135,16 @@ export const Title: React.FC<CoreElementProps["core/title"]> = ({
         ) : null}
         <TitleLine
           look={{ ...LINES.title, style: { ...LINES.title.style, fontWeight } }}
-          text={title}
+          text={
+            <MarkedText
+              text={title}
+              mark={mark}
+              look={markLook}
+              color={markColor}
+              fontSize={fontSize}
+              delay={LINES.title.delay}
+            />
+          }
           color={color}
           {...line}
         />

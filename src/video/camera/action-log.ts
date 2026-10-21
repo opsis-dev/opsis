@@ -2,6 +2,7 @@ import {
   POINTER_KINDS,
   type AnnotationKind,
   type AnnotationSpec,
+  type HighlightLook,
 } from "../../shared/compile/recording";
 import {
   pointRect,
@@ -25,8 +26,13 @@ export type Annotation = {
   text: string;
   color: string;
   padding: number;
+  look: HighlightLook;
+  roughness: number;
+  seed: number;
   label: Pick<AnnotationSpec, "textColor" | "fontSize" | "font">;
 };
+
+const DEFAULT_ROUGHNESS = 1;
 
 export const TYPED_LINGER_S = 0.6;
 const TYPED_FALLBACK_MS = 1000;
@@ -114,6 +120,9 @@ export function resolveAnnotations(log: ActionLog, specs: AnnotationSpec[]): Ann
         text: spec.text,
         color: spec.color,
         padding: spec.padding,
+        look: spec.look ?? "clean",
+        roughness: spec.roughness ?? DEFAULT_ROUGHNESS,
+        seed: out.length + 1,
         label: { textColor: spec.textColor, fontSize: spec.fontSize, font: spec.font },
       });
     }

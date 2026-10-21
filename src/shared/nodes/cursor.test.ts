@@ -21,6 +21,16 @@ describe("cursor colours", () => {
     );
   });
 
+  it("draws the Mac cursor without colours of its own", () => {
+    expect(propsAfter("cursor.style", { look: "mac", color: "#ff0000" }).cursorLook).toEqual({
+      shape: "mac",
+    });
+    expect(nodeCard("cursor.style", { look: "mac", size: 1.5 })[0]).toMatchObject({
+      text: "Mac · 1.5×",
+    });
+    expect(nodeCard("cursor.style", { look: "mac" })[0]).not.toHaveProperty("swatches");
+  });
+
   it("refuses text that isn't a colour", () => {
     const def = getNodeDef("cursor.style");
     expect(def && parseParams(def.params, { color: "not a colour" })).toEqual({

@@ -40,7 +40,8 @@ function spotBackground(
 ): SpotBackground {
   for (const id of upstreamOf(wf, nodeId)) {
     const rec = results[id]?.outputs.recording;
-    if (rec?.type === "recording" && rec.src) return { src: fileUrl(rec.src), timeMs: 0 };
+    if (rec?.type === "recording" && rec.src)
+      return { src: fileUrl(rec.src), timeMs: 0, durationMs: rec.durationMs };
   }
   return null;
 }
@@ -143,6 +144,7 @@ function formContext({
   const layerCount = connectedPorts(IN_PORTS, connectedInputs).length;
   const needsBackground = def.category === "Camera" || hasWidget(def.params, "boxes");
   return {
+    nodeId,
     projectDir,
     fps: workflow.settings.fps,
     aspect: workflow.settings.width / workflow.settings.height,

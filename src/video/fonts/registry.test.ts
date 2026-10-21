@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FontFamilyDef } from "../../shared/fonts/types";
-import { registerFaces, unregisterFaces } from "./registry";
+import { DEFAULT_PROJECT_FONTS } from "../../shared/fonts/types";
+import { applyProjectFonts, fontFileFor, registerFaces, unregisterFaces } from "./registry";
 
 class UnreadableFace {
   load(): Promise<never> {
@@ -34,5 +35,52 @@ describe("registering font faces", () => {
     const changed = { ...broken, faces: [{ ...broken.faces[0], weight: "700" }] };
     await registerFaces("df-test", changed, (ref) => ref, warn);
     expect(warnings).toEqual(["Broken Sans", "Broken Sans"]);
+  });
+});
+
+describe("finding a font's file for 3D text", () => {
+  const face = (file: string, weight: string, style: "normal" | "italic") => ({
+    file: `project:assets/fonts/serif/${file}`,
+    weight,
+    style,
+    format: "woff2" as const,
+  });
+  const serif: FontFamilyDef = {
+    id: "test-serif",
+    family: "Test Serif",
+    category: "serif",
+    source: "file",
+    faces: [
+      face("regular.woff2", "400", "normal"),
+      face("bold.woff2", "700", "normal"),
+      face("italic.woff2", "400", "italic"),
+    ],
+  };
+
+  it("picks the face nearest the weight, in the asked style when the family has it", async () => {
+    await applyProjectFonts(
+      { ...DEFAULT_PROJECT_FONTS, heading: "Test Serif", families: [serif] },
+      (ref) => ref.replace("project:", "/p/"),
+      [],
+    );
+    expect(fontFileFor("Test Serif", 800, false)).toEqual({
+      url: "/p/assets/fonts/serif/bold.woff2",
+      italic: false,
+    });
+    expect(fontFileFor("Test Serif", 300, false)?.url).toBe("/p/assets/fonts/serif/regular.woff2");
+    expect(fontFileFor("Test Serif", 700, true)).toEqual({
+      url: "/p/assets/fonts/serif/italic.woff2",
+      italic: true,
+    });
+    expect(fontFileFor("df-heading", 700, false)?.url).toBe("/p/assets/fonts/serif/bold.woff2");
+  });
+
+  it("finds a bundled variable font and nothing for an unknown one", async () => {
+    await applyProjectFonts(DEFAULT_PROJECT_FONTS, (ref) => ref, []);
+    expect(fontFileFor("Outfit", 700, true)).toEqual({
+      url: "app:fonts/bundled/outfit/outfit-latin-wght-normal.woff2",
+      italic: false,
+    });
+    expect(fontFileFor("No Such Font", 400, false)).toBeNull();
   });
 });
