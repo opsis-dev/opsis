@@ -11,8 +11,9 @@ Built with [Electron](https://www.electronjs.org), [xyflow](https://reactflow.de
 ## What it does
 
 - **Record:** 18 browser actions (go to page, click, type, hover, drag onto an element, by a distance or along a path, scroll, choose option, upload file, press keys, wait, check text, fake a response, freeze time, hide clutter, page scripts, chapters, HTML overlays…), a Sign in step that saves the login once and reuses it in every take, a Start recording step so setup runs off camera, a live view of the recording browser, and a replay with a step-by-step trace of every take.
-- **Camera and cursor:** auto zoom on clicks, manual zooms, pans, follow the cursor, speed up quiet parts, speed ramps, crop, laptop and phone frames, macOS, Windows and Linux window frames (light or dark, with the page address), studio backdrops, motion blur; cursor styles, click ripples, keystroke chips, spotlights and highlight boxes. Cursor, marks, backdrop and frame settings form a style that one take or several share.
-- **Graphics:** 132 elements — 23 built in, 109 curated from the [Remocn](https://remocn.dev), [snapcn](https://snapcn.dev) and [RemotionUI](https://remotionui.com) registries (text effects, overlays, charts, UI scenes, device mockups, backgrounds, effects), plus Lottie animations (`.json` and `.lottie`) and a mosaic effect for hiding private details.
+- **Camera and cursor:** auto zoom on clicks, manual zooms, pans, follow the cursor, speed up quiet parts, speed ramps, crop, laptop and phone frames, macOS, Windows and Linux window frames (light or dark, with the page address), studio backdrops, motion blur; cursor styles (a simple arrow, or a Mac cursor that turns into a hand over links and a text cursor over fields), click ripples, keystroke chips, spotlights and highlight boxes, clean or hand-drawn; blurred areas that hide private details and stay on the page while the camera moves. Cursor, marks, backdrop and frame settings form a style that one take or several share.
+- **Graphics:** 138 elements — 29 built in, 109 curated from the [Remocn](https://remocn.dev), [snapcn](https://snapcn.dev) and [RemotionUI](https://remotionui.com) registries (text effects, overlays, charts, UI scenes, device mockups, backgrounds, effects), plus Lottie animations (`.json` and `.lottie`), a mosaic effect for hiding private details, title cards with a hand-drawn mark on chosen words, and a picture look (colour, dark edges, film grain).
+- **3D:** a 3D logo, card and text in any project font, 3D models from your project with their own animations, a clip shown on a 3D laptop, monitor, phone or floating screen that ends facing the camera, and floating shapes as a background; camera keyframes set in the Inspector and dragged on the timeline.
 - **Transitions:** 25 (6 standard, 14 Remocn, 5 RemotionUI) plus a light-leak cut. A Sequence can use a different transition, length and hold before any of its clips.
 - **Text and fonts:** 16 bundled font families; a font library you fill from font files or ZIPs, fonts installed on your computer, or free fonts downloaded online (only when you ask). Projects set fonts for text, headings and code, and copy the fonts they use so they open anywhere.
 - **Audio:** music with fades and ducking under sound effects, sound effects (7 built-in CC0 sounds or your own files) at a time or on a browser action, any number of sounds under a clip, captions timed from a script.
@@ -100,7 +101,8 @@ Each has a plan in [`plans/`](./plans):
 
 - Voiceover and captions from speech ([voice-and-captions](./plans/voice-and-captions.md)).
 - AI assist: a flow from a sentence, chapter names, headline variants, picker suggestions ([ai-assist](./plans/ai-assist.md)).
-- Ported web motion components, Rive animations and element thumbnails ([motion-library](./plans/motion-library.md)) and more Remotion libraries ([remotion-extras](./plans/remotion-extras.md)).
+- Ported web motion components, Rive animations and element thumbnails ([motion-library](./plans/motion-library.md)).
+- A colour grade for finished files: grade steps passed forward as a list and applied in one pass ([colour-grade](./plans/colour-grade.md)).
 - Windows and macOS builds (never built or run yet), their icons, code signing, updates and node packs ([shipping](./plans/shipping.md)).
 
 ## Licences

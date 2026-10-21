@@ -13,7 +13,7 @@ Status: plan only. Nothing here is built yet.
 
 ## Conventions
 
-The conventions in `plans/remotion-extras.md` (**Conventions**: versions, where code goes, behaviour, user-facing copy, licences) apply here unchanged; `AGENTS.md` wins when they disagree. In short:
+These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins:
 
 - Every `remotion` / `@remotion/*` package stays at exact `4.0.536` (`bun add --exact`). Other packages through `bun add` / `bun add -d`, latest release. Never edit dependency blocks by hand.
 - Never hand-edit `src/video/elements/**`, `src/video/lib/**`, `src/video/hooks/**` or any `*.generated.ts`. Ported code is Opsis's own code and never goes there.
@@ -30,14 +30,14 @@ The conventions in `plans/remotion-extras.md` (**Conventions**: versions, where 
 
 ## Summary
 
-| Feature                      | What users get                                                                                                    | Licence                                | Status            |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------- |
-| Ported web motion components | 18 new elements: text effects, highlight frames, integration diagrams, a status pill, backgrounds, animated icons | MIT (+ ISC for icon shapes)            | not built         |
-| Liquid contours background   | A flowing two-colour contour background                                                                           | Remotion licence (`@remotion/effects`) | not built         |
-| Crossed-off marker           | A hand-drawn cross over a word or a part of the page                                                              | MIT (`@remotion/rough-notation`)       | covered elsewhere |
-| Rive animations              | Play `.riv` files from the project, offline                                                                       | MIT (Rive runtime), Remotion licence   | not built         |
-| Element thumbnails           | A picture (and on hover, a live preview) of every element in the node list                                        | Opsis's own                            | not built         |
-| Visual check in CI           | Every element rendered and compared on each change, so a registry update can't silently break one                 | Opsis's own                            | not built         |
+| Feature                      | What users get                                                                                                    | Licence                                | Status          |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------- |
+| Ported web motion components | 18 new elements: text effects, highlight frames, integration diagrams, a status pill, backgrounds, animated icons | MIT (+ ISC for icon shapes)            | not built       |
+| Liquid contours background   | A flowing two-colour contour background                                                                           | Remotion licence (`@remotion/effects`) | not built       |
+| Crossed-off marker           | A hand-drawn cross over a word or a part of the page                                                              | MIT (`@remotion/rough-notation`)       | partly in place |
+| Rive animations              | Play `.riv` files from the project, offline                                                                       | MIT (Rive runtime), Remotion licence   | not built       |
+| Element thumbnails           | A picture (and on hover, a live preview) of every element in the node list                                        | Opsis's own                            | not built       |
+| Visual check in CI           | Every element rendered and compared on each change, so a registry update can't silently break one                 | Opsis's own                            | not built       |
 
 ## Ported web motion components
 
@@ -68,7 +68,7 @@ For users, 18 elements that product demos use often and that Opsis doesn't have 
 | 17  | Assistant orb         | SmoothUI `siri-orb`                                                                                                                                                                                                                                     | `background` | Rotating conic gradients through CSS animation. Angles from the frame.                                                                                                                                      |
 | 18  | Animated icon         | lucide-animated (about 20 icons: `check`, `bell`, `sparkles`, `rocket`, `send`, `download`, `upload`, `search`, `settings`, `heart`, `zap`, `lock`, `clock`, `refresh-cw`, `cloud-upload`, `bot`, `party-popper`, `arrow-right`, `copy`, `trending-up`) | `overlay`    | Motion `variants` started on hover (`useAnimation`). One element with an `icon` choice; each icon's variant keyframes become a table of `interpolate` ranges played once at the element's start, or looped. |
 
-Left out on purpose because Opsis already has them: number tickers (Rolling Number, Slot Machine Roll), text scramble (Matrix Decode), shimmer text (Shimmer Sweep), typewriters, blur-in text (Soft Blur In), notification lists (Notification stack), terminals, device mockups, file trees, confetti, particles, gauges, hand-drawn highlights (Marker Highlight, Ink Underline, Scribble Circle, and `@remotion/rough-notation` in `plans/remotion-extras.md`). SmoothUI's `soft-blur-in`, `shimmer-sweep`, `mask-reveal-up`, `line-by-line-slide` and `kinetic-center-build` share names with Remocn elements already ingested; skip them. Hover-, scroll- and pointer-driven components (Magic UI `magic-card`, `lens`, `dock`, `smooth-cursor`, `scroll-progress`, Motion Primitives `magnetic`, `tilt`) have no meaning in a video.
+Left out on purpose because Opsis already has them: number tickers (Rolling Number, Slot Machine Roll), text scramble (Matrix Decode), shimmer text (Shimmer Sweep), typewriters, blur-in text (Soft Blur In), notification lists (Notification stack), terminals, device mockups, file trees, confetti, particles, gauges, hand-drawn highlights (Marker Highlight, Ink Underline, Scribble Circle, and the hand-drawn looks of Highlight box and Title card, built on `@remotion/rough-notation`). SmoothUI's `soft-blur-in`, `shimmer-sweep`, `mask-reveal-up`, `line-by-line-slide` and `kinetic-center-build` share names with Remocn elements already ingested; skip them. Hover-, scroll- and pointer-driven components (Magic UI `magic-card`, `lens`, `dock`, `smooth-cursor`, `scroll-progress`, Motion Primitives `magnetic`, `tilt`) have no meaning in a video.
 
 ### Fit with Opsis
 
@@ -76,15 +76,15 @@ Already in place:
 
 - `ElementMeta` (`src/shared/elements/types.ts`) already has `source: { registry, url, license }`; registry elements fill it (`registry: "Remocn"`, `url: "https://remocn.dev/docs/components/…"`, `license: "MIT"` in `elements.generated.ts`), core ones use `registry: "Opsis"`.
 - `ELEMENTS` (`src/shared/elements/index.ts`) concatenates `coreElementMeta` and `generatedElementMeta`; `elementNode()` (`src/shared/nodes/elements.ts`) makes a node for every entry, with its card, length handle and envelope. A third list is all a port needs on the metadata side.
-- Lazy loading: `loadElement`, `useElements` and `isKnownElement` in `src/video/registry/index.ts` load registry modules through `generatedElementLoaders` (`components.generated.ts`) under `delayRender`.
+- Lazy loading: `loadElement`, `useElement` and `isKnownElement` in `src/video/registry/index.ts` find a module through `lazyLoaderOf`, which looks in `generatedElementLoaders` (`components.generated.ts`) and `LAZY_CORE_ELEMENTS` (the 3D elements), and load it under `delayRender`.
 - Framing helpers in `src/video/registry/framing.tsx`: `centered`, `fitScreen`, `placedAt` (spot placement for the `spot` widget), `pointsFromSpots`, `painted`, `playsAtEnd`.
-- Guardrails already cover any new folder in `src/video`: `no-restricted-imports` bans `framer-motion`, `motion`, `motion/react`, `motion/react-client`, `gsap` and `opsis/no-animate-class` bans Tailwind `animate-*` (`oxlint.config.ts`, `scripts/oxlint-plugin-opsis.ts`). Ported folders are not in `ignorePatterns`, so they are linted.
+- Guardrails already cover any new folder in `src/video`: `no-restricted-imports` bans `framer-motion`, `motion`, `motion/react`, `motion/react-client`, `gsap` and `useFrame` from `@react-three/fiber`, `opsis/no-animate-class` bans Tailwind `animate-*` and `opsis/no-three-clock` bans three.js clocks and animation loops (`oxlint.config.ts`, `scripts/oxlint-plugin-opsis.ts`). Ported folders are not in `ignorePatterns`, so they are linted.
 - Fonts: the `font()` param in `core.ts` and `fontStack` turn a family into a CSS stack; `df-main`, `df-heading`, `df-code` follow the project fonts (`src/video/fonts/registry.ts`).
 - Placeholder images in `public/placeholders` (`logo-mark.svg`, `screen-wide.svg`, `screen-tall.svg`) for logo and image defaults.
 
 Missing:
 
-- A home for ported code and a third loader map.
+- A home for ported code and its loader map.
 - Any `THIRD_PARTY_NOTICES.md` entry for Magic UI, Motion Primitives, Cult UI, SmoothUI, lucide-animated or Lucide.
 - A written porting recipe (below), so every port is done the same way.
 
@@ -94,7 +94,7 @@ Missing:
    - Components: `src/video/ported/<source>/<name>.tsx`, with `<source>` one of `magicui`, `motion-primitives`, `cult-ui`, `smoothui`, `lucide-animated`. Each source folder holds its `LICENSE.<source>` file (the upstream licence text, as `src/video/camera/LICENSE.programatic-demo` does), since source files can't carry a licence header comment.
    - Metadata: `src/shared/elements/ported.ts` exporting `portedElementMeta`, written with `defineElementMeta` like `core.ts`. Keys are `<source>/<name>` (node type `fx.<source>.<name>` through `elementNodeType`). `source` is `{ registry: "Magic UI", url: "<the component's docs page>", license: "MIT" }`.
    - `ELEMENTS` becomes `[...coreElementMeta, ...portedElementMeta, ...generatedElementMeta]`.
-   - Loaders: `src/video/registry/ported.ts` exporting `portedElementLoaders: Record<string, () => Promise<ElementImpl>>` (dynamic `import()` plus the framing helper, the same shape as `generatedElementLoaders`). `loadElement`, `useElements` and `isKnownElement` look in both maps. `registry:ingest` never touches either file.
+   - Loaders: `src/video/registry/ported.ts` exporting `portedElementLoaders: Record<string, () => Promise<ElementImpl>>` (dynamic `import()` plus the framing helper, the same shape as `generatedElementLoaders`). `lazyLoaderOf` looks in it too. `registry:ingest` never touches either file.
 2. **Porting recipe** (one checklist per port, in the PR description):
    - Copy the upstream file once into the target folder, then rewrite it. Delete `"use client"`, `cn()` imports from the web app and every comment.
    - `motion.div` with `initial` / `animate` / `transition` → a plain element whose style comes from `interpolate(frame, [start, end], [from, to], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing })` or `spring({ frame, fps, config })`. Keyframe arrays (`rotate: [0, -10, 10, -10, 0]`) → `interpolate` with as many input points, spread over the original `duration` in frames. Motion `ease` names map to `Easing.bezier` with the same control points.
@@ -157,21 +157,19 @@ A flowing background of alternating bands in two colours, like the Remotion Elem
 Already in place:
 
 - The Remotion Elements page is example source, not a registry: it gives no install command and no package (checked 2026-10-16). The example is a few lines around `liquidContours()` from `@remotion/effects/liquid-contours`, applied to Remotion's `<Solid>` through its `effects` prop, with `phase` interpolated from the frame.
-- `@remotion/effects@4.0.536` is in `node_modules` (through `@remotion/light-leaks`), exports `./liquid-contours`, and its params are `firstColor`, `secondColor`, `spacing` (2–300), `scale` (20–1000), `complexity` (0–1), `smoothness` (0–1), `seed`, `offsetX`, `offsetY`, `phase` (from `dist/liquid-contours.d.ts`). It draws with a WebGL2 shader and fetches nothing.
+- `@remotion/effects@4.0.536` is a direct dependency (Blur areas and Picture look use it), exports `./liquid-contours`, and its params are `firstColor`, `secondColor`, `spacing` (2–300), `scale` (20–1000), `complexity` (0–1), `smoothness` (0–1), `seed`, `offsetX`, `offsetY`, `phase` (from `dist/liquid-contours.d.ts`). It draws with a WebGL2 shader and fetches nothing.
 - `remotion@4.0.536`'s `<Solid>` accepts `effects`.
 - Background elements live in `src/video/core/backgrounds.tsx`; keys in `core.ts` and `src/video/registry/index.ts`.
 
 Missing:
 
-- `@remotion/effects` isn't a direct dependency; the **@remotion/effects** section of `plans/remotion-extras.md` adds it. Whichever is built first runs `bun add --exact @remotion/effects@4.0.536`.
 - No core element uses Remotion's `<Solid>`; `backgrounds.tsx` exports its own `Solid`, so import Remotion's under another name.
 
 ### Work
 
-1. **Dependency** (if not already added): `bun add --exact @remotion/effects@4.0.536`.
-2. **Element.** `core/liquid-contours` in `core.ts` (`category: "background"`, `defaultDurationInFrames: 150`): `firstColor`, `secondColor`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much `phase` moves over the element, default 1). Component `LiquidContours` in `backgrounds.tsx` draws `<Solid color={secondColor} effects={[liquidContours({ …, phase: 3.23 + flow * frame / durationInFrames })]} />`, sizes scaled from 1920×1080. Load lazily: put it in the ported/lazy loader map (Work item 1 of the previous section) rather than the eager `core` map, so projects without it never load the effects package.
-3. **Copy.** "Liquid contours", "A flowing background of two-colour bands."
-4. **Check.** Card still (`gl: "angle"`), export with the default renderer and with software drawing (**Draw with**, `src/shared/nodes/output.ts`), 9:16.
+1. **Element.** `core/liquid-contours` in `core.ts` (`category: "background"`, `defaultDurationInFrames: 150`): `firstColor`, `secondColor`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much `phase` moves over the element, default 1). Component `LiquidContours` in `backgrounds.tsx` draws `<Solid color={secondColor} effects={[liquidContours({ …, phase: 3.23 + flow * frame / durationInFrames })]} />`, sizes scaled from 1920×1080. Load lazily: put it in `LAZY_CORE_ELEMENTS` (`src/video/registry/index.ts`) rather than the eager `core` map, so projects without it never load the effects package.
+2. **Copy.** "Liquid contours", "A flowing background of two-colour bands."
+3. **Check.** Card still (`gl: "angle"`), export with the default renderer and with software drawing (**Draw with**, `src/shared/nodes/output.ts`), 9:16.
 
 ### Licence
 
@@ -195,17 +193,17 @@ A hand-drawn cross over a word (a title word, an old price) or over a part of th
 
 ### Fit with Opsis
 
-- `plans/remotion-extras.md`, section **@remotion/rough-notation**, already builds this: Work item 5 gives Title card a `markLook` with "Crossed out". Don't add a separate element here.
+- Title card already has it: its `markLook` setting includes "Crossed out" (`src/video/core/title.tsx`, drawn by `HandDrawnMark` in `src/video/core/hand-drawn.tsx`). Don't add a separate element here.
 - Close existing elements: Strikethrough Replace (Remocn) and Text Highlight (RemotionUI, includes a strikethrough).
-- One gap in that plan: its Highlight box looks are Clean, Hand-drawn box, Circle, Underline and Marker. Add "Crossed out" (`<CrossedOff>`) and "Struck through" (`<StrikeThrough>`) to that list when it is built, for crossing out part of the page.
+- One gap: Highlight box's looks are Clean, Hand-drawn box, Circle, Underline and Marker (`HIGHLIGHT_LOOKS`, `src/shared/compile/recording.ts`). Add "Crossed out" (`<CrossedOff>`) and "Struck through" (`<StrikeThrough>`) to them, for crossing out part of the page.
 
 ### Work
 
-1. When the rough-notation section is built, add the two looks above to its Work items 2–4. Nothing else.
+1. Add `"crossed-off"` and `"strike-through"` to `HAND_DRAWN_LOOKS` (`src/shared/compile/recording.ts`), their labels to `HIGHLIGHT_LOOK_LABELS` (`src/shared/nodes/cursor.ts`), and the two components to `HandDrawnMark` (`src/video/core/hand-drawn.tsx`, which already draws `<CrossedOff>` for Title card). Nothing else.
 
 ### Licence
 
-MIT (`@remotion/rough-notation`, `roughjs`), entries made by that plan.
+MIT (`@remotion/rough-notation`, `roughjs`), already listed in `THIRD_PARTY_NOTICES.md`.
 
 ### Risks
 

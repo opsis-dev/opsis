@@ -173,7 +173,7 @@ A pure module `src/worker/media/grade.ts`:
 ## Checks
 
 1. Unit tests above, then the full suite, type check, lint, format, no-comments check.
-2. In the app, on the browser take with a plain white backdrop used for the Picture look stills (`~/.cache/opsis-remotion-extras/check`): Export video → Apply grade with each grade node alone at a strong setting, plus one chain of three nodes, then Export images from Use as clip of each result. Each still must show the change over the whole picture: backdrop, window frame, page, cursor and marks.
+2. In the app, on a recorded browser take with a plain white backdrop (a Backdrop node set to a white colour, so changes outside the window show): Export video → Apply grade with each grade node alone at a strong setting, plus one chain of three nodes, then Export images from Use as clip of each result. Each still must show the change over the whole picture: backdrop, window frame, page, cursor and marks.
 3. A `.cube` look file and a look image, at strength 1 and 0.5.
 4. An image input (PNG out) and a video with sound (the sound must come through untouched; compare with `ffprobe`).
 5. Changing one grade node runs only Apply grade again; changing nothing runs nothing.
