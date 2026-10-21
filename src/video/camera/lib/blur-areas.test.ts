@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { BlurArea } from "../../../shared/compile/recording";
+import type { BlurArea } from "../../../shared/schema/recording";
 import { blurParams } from "./blur-areas";
 
 const area = (extra: Partial<BlurArea> = {}): BlurArea => ({

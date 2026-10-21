@@ -4,7 +4,7 @@ import type { CardContext, CardRow } from "./nodes/card";
 import { cardRows, type CompileInputs, type CompileOutputs } from "./nodes/define";
 import { defaultParams, getNodeDef } from "./nodes/registry";
 import type { Action, ActionLog } from "./schema/actions";
-import type { TimelineItem, TimelineSpec } from "./schema/timeline";
+import type { ElementItem, TimelineItem, TimelineSpec } from "./schema/timeline";
 import type {
   ClipValue,
   NodeResult,
@@ -114,6 +114,11 @@ export function buildFilm(fn: (g: GraphBuilder) => string): Workflow {
 export function must<T>(value: T | null | undefined, what: string): T {
   if (value === null || value === undefined) throw new Error(`no ${what}`);
   return value;
+}
+
+export function elementOf(item: TimelineItem | undefined): ElementItem {
+  if (item?.kind !== "element") throw new Error(`no element, found ${item?.kind ?? "nothing"}`);
+  return item;
 }
 
 export const filmSpec = (wf: Workflow): TimelineSpec =>

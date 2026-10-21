@@ -140,6 +140,7 @@ export function applyMixLevels(
     };
   });
   const tracks = mapItems(spec.tracks, (item) => {
+    if (item.kind !== "element") return item;
     const id = soundNodeId(item);
     if (!id) return item;
     const gain = channelGain(mix, audible, id, "clip");
@@ -157,7 +158,9 @@ export function withMasterStem(
   master: { src: string; hash: string },
 ): TimelineSpec {
   const tracks = mapItems(spec.tracks, (item) =>
-    itemHasSound(item) ? { ...item, props: { ...item.props, muted: true } } : item,
+    item.kind === "element" && itemHasSound(item)
+      ? { ...item, props: { ...item.props, muted: true } }
+      : item,
   );
   return { ...spec, tracks, audio: [], mix: master };
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { emptyClip, groupOf } from "../compile/clip";
 import { ELEMENTS } from "../elements";
 import { fieldMeta } from "../elements/introspect";
-import { compileClip, must, nodeCard } from "../test-fixtures";
+import { compileClip, elementOf, must, nodeCard } from "../test-fixtures";
 import { getNodeDef } from "./registry";
 
 const SPRING_SETTLE = "fx.remocn.spring-settle";
@@ -38,7 +38,7 @@ describe("Spring settle", () => {
 });
 
 const firstItem = (type: string, params: Record<string, unknown>) =>
-  must(compileClip(type, params).tracks[0]?.items[0], `${type} item`);
+  elementOf(compileClip(type, params).tracks[0]?.items[0]);
 
 describe("element settings", () => {
   it("makes files inside rows project files", () => {

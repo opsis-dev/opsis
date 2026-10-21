@@ -1,4 +1,4 @@
-import type { RecordingProps } from "../../../shared/compile/recording";
+import type { RecordingProps } from "../../../shared/schema/recording";
 
 export const WINDOW_FIT = 0.86;
 export const WINDOW_RADIUS = 14;

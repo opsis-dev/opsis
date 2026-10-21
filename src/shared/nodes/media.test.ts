@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MediaValue } from "../schema/values";
-import { compileClip, nodeCard } from "../test-fixtures";
+import { compileClip, elementOf, nodeCard } from "../test-fixtures";
 import { parseNodeParams } from "./define";
 import { importMediaNode, mediaTrimNode } from "./media";
 import { parseParams } from "./params";
@@ -9,7 +9,7 @@ const media = (kind: MediaValue["kind"], src: string): MediaValue => ({ type: "m
 
 const itemOf = (type: string, params: Record<string, unknown>, inputs = {}) => {
   const clip = compileClip(type, params, inputs);
-  return { item: clip.tracks[0].items[0], frames: clip.durationInFrames };
+  return { item: elementOf(clip.tracks[0].items[0]), frames: clip.durationInFrames };
 };
 
 describe("media clips", () => {

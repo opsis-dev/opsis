@@ -1,17 +1,15 @@
 import { z } from "zod";
+import { DEFAULT_CURSOR_LOOK, DEFAULT_KEYCAP, DEFAULT_RIPPLE } from "../compile/recording";
+import { styleStep, type StyleSteps } from "../compile/style";
+import { fontProp } from "../fonts";
 import {
-  DEFAULT_CURSOR_LOOK,
-  DEFAULT_KEYCAP,
-  DEFAULT_RIPPLE,
   HAND_DRAWN_LOOKS,
   type AnnotationKind,
   type AnnotationSpec,
   type CursorLook,
   type HighlightLook,
   type KeystrokePosition,
-} from "../compile/recording";
-import { styleStep, type StyleSteps } from "../compile/style";
-import { fontProp } from "../fonts";
+} from "../schema/recording";
 import { joinParts, LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
 import { defineNode, styleModifier, type NodeCategory, type NodeDef } from "./define";
 import type { NodeIconName } from "./icon-name";

@@ -1,15 +1,12 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import {
-  PREVIEW_FILE_WIDTH,
-  type KeystrokeLook,
-  type RecordingProps,
-} from "../../shared/compile/recording";
+import { PREVIEW_FILE_WIDTH } from "../../shared/compile/recording";
 import { STAGE_COLOR } from "../../shared/elements/colors";
 import { CODE_FONT } from "../../shared/fonts";
 import { displayAddress } from "../../shared/format";
 import { clamp } from "../../shared/math";
 import { pick } from "../../shared/objects";
+import type { KeystrokeLook, RecordingProps } from "../../shared/schema/recording";
 import { useAsset, useQuality, useReframe } from "../assets";
 import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
 import { DemoClip, ScreenClip, useClipTime } from "../camera/demo-clip";
@@ -65,6 +62,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const fast = useQuality() === "fast";
   const proxy = fast && !!props.proxySrc;
   const src = useAsset(proxy && props.proxySrc ? props.proxySrc : props.src);
+  const backdrop = useAsset(props.backdrop) ?? props.backdrop;
   const { width, height, fps } = useVideoConfig();
   const frame = useCurrentFrame();
   const reframe = useReframe();
@@ -94,6 +92,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
     return (
       <ScreenClip
         {...pick(props, CLIP_KEYS)}
+        backdrop={backdrop}
         src={src}
         log={log}
         motionBlur={false}
@@ -113,6 +112,7 @@ export const RecordingClip: React.FC<RecordingProps> = (props) => {
   const clip = (
     <DemoClip
       {...pick(props, CLIP_KEYS)}
+      backdrop={backdrop}
       box={contain?.box}
       src={src}
       log={log}

@@ -1,13 +1,18 @@
-import { groupOf, itemHasSound, recordingOf, type GroupProps } from "../compile/clip";
-import { recordingSpeed, type RecordingProps } from "../compile/recording";
-import { inverseRemap, remapFrame, type Remap, type RemapSide } from "../compile/remap";
+import { itemHasSound } from "../compile/clip";
+import { recordingSpeed } from "../compile/recording";
+import { inverseRemap, remapFrame, type RemapSide } from "../compile/remap";
 import { MAX_REPEATS } from "../limits";
 import { clamp, EPSILON } from "../math";
 import type { ChannelKind } from "../mix/types";
 import type { Action } from "../schema/actions";
+import type { RecordingProps } from "../schema/recording";
 import type {
   AudioItem,
   EditHandles,
+  ElementItem,
+  GroupProps,
+  RecordingItem,
+  Remap,
   Slot,
   TimelineItem,
   TimelineSpec,
@@ -47,7 +52,6 @@ export type VideoBar = {
   key: string;
   itemId: string;
   nodeId: string;
-  component: string;
   props: Record<string, unknown>;
   thumbnail: BarThumbnail | null;
   from: number;
@@ -62,7 +66,7 @@ export type VideoBar = {
   localAt: (abs: number) => number;
   hasSound: boolean;
   sound: SoundWindow | null;
-};
+} & ({ kind: "recording" } | { kind: "element"; component: string });
 
 type SoundWindow = { from: number; to: number; contentStart: number };
 
@@ -287,8 +291,13 @@ function transitionMark(p: Placed, previousLength: number): TransitionMark | nul
   };
 }
 
-function leafBar(p: Placed, link: ChainLink, order: number): VideoBar {
-  const { item, walk, from, to } = p;
+function leafBar(
+  p: Placed,
+  item: RecordingItem | ElementItem,
+  link: ChainLink,
+  order: number,
+): VideoBar {
+  const { walk, from, to } = p;
   const startContent = from > p.absStart + EPSILON ? contentAt(p, from) : item.from;
   const endContent = to < p.absEnd - EPSILON ? contentAt(p, to) : p.contentEnd;
   const hasSound = itemHasSound(item);
@@ -297,7 +306,9 @@ function leafBar(p: Placed, link: ChainLink, order: number): VideoBar {
     key: p.key,
     itemId: item.id,
     nodeId: item.nodeId ?? walk.chain.find((l) => l.nodeId)?.nodeId ?? item.id,
-    component: item.component,
+    ...(item.kind === "element"
+      ? { kind: item.kind, component: item.component }
+      : { kind: item.kind }),
     props: item.props,
     thumbnail: thumbnailOf(item),
     from,
@@ -374,14 +385,13 @@ function visitItem(acc: Collected, p: Placed, previousLength: number): void {
   const mark = transitionMark(p, previousLength);
   if (mark) acc.transitions.push(mark);
   acc.cameraKeys.push(...cameraKeyMarks(p));
-  const group = groupOf(p.item);
-  if (group) {
-    visitGroup(acc, p, group, link);
+  const { item } = p;
+  if (item.kind === "group") {
+    visitGroup(acc, p, item.props, link);
     return;
   }
-  acc.bars.push(leafBar(p, link, acc.bars.length));
-  const recording = recordingOf(p.item);
-  if (recording) acc.marks.push(...recordingMarks(p, recording, acc.fps));
+  acc.bars.push(leafBar(p, item, link, acc.bars.length));
+  if (item.kind === "recording") acc.marks.push(...recordingMarks(p, item.props, acc.fps));
 }
 
 function visitGroup(acc: Collected, p: Placed, group: GroupProps, link: ChainLink): void {

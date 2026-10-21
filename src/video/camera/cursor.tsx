@@ -1,13 +1,9 @@
 import { resolveCursor } from "@remotion/mac-cursors";
 import React from "react";
 import { Img } from "remotion";
-import {
-  DEFAULT_CURSOR_LOOK,
-  type ArrowCursorLook,
-  type CursorLook,
-  type RippleLook,
-} from "../../shared/compile/recording";
+import { DEFAULT_CURSOR_LOOK } from "../../shared/compile/recording";
 import { percent } from "../../shared/format";
+import type { ArrowCursorLook, CursorLook, RippleLook } from "../../shared/schema/recording";
 import { isFadedOut } from "../core/anim";
 import type { ClickLog } from "./lib/click-log";
 import { cursorAt } from "./lib/cursor";

@@ -1,6 +1,6 @@
 import { Box, Circle, CrossedOff, Highlight, Underline } from "@remotion/rough-notation";
 import React from "react";
-import type { HandDrawnLook } from "../../shared/compile/recording";
+import type { HandDrawnLook } from "../../shared/schema/recording";
 
 export type MarkLook = HandDrawnLook | "crossed-off";
 

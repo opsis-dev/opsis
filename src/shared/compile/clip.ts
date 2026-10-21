@@ -3,44 +3,31 @@ import { findById } from "../lists";
 import { clamp } from "../math";
 import { parseOncePer } from "../memo";
 import type { InputTake } from "../nodes/card";
-import { rectSchema, type Viewport, viewportSchema } from "../schema/actions";
-import {
-  elementRefSchema,
-  timelineTrackSchema,
-  type AudioItem,
-  type CameraPath,
-  type EditHandles,
-  type Keyframe,
-  type TimelineItem,
-  type TimelineSpec,
-  type TimelineTrack,
-  type TransitionRef,
-  type VisualEnvelope,
+import type { Viewport } from "../schema/actions";
+import type { RecordingProps } from "../schema/recording";
+import type {
+  AudioItem,
+  CameraPath,
+  EditHandles,
+  ElementItem,
+  GroupItem,
+  GroupProps,
+  ItemBase,
+  Keyframe,
+  RecordingItem,
+  Remap,
+  SequencerProps,
+  TimelineItem,
+  TimelineSpec,
+  TimelineTrack,
+  TransitionRef,
+  VisualEnvelope,
 } from "../schema/timeline";
 import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
 import { THEME_BACKGROUNDS, type WorkflowSettings } from "../schema/workflow";
 import { hasKeys } from "../timeline/envelope";
 import { atLeastOneFrame } from "../timeline/time";
-import { recordingPropsSchema, type RecordingProps } from "./recording";
-import { inverseRemap, remapSchema, type Remap } from "./remap";
-
-const sequencerPropsSchema = elementRefSchema.extend({
-  backgrounds: z.array(z.string().nullable()),
-});
-export type SequencerProps = z.infer<typeof sequencerPropsSchema>;
-
-const groupPropsSchema = z.object({
-  tracks: z.array(timelineTrackSchema),
-  startFrom: z.number().optional(),
-  remap: remapSchema.optional(),
-  loopEvery: z.number().optional(),
-  crop: rectSchema.optional(),
-  wrapper: elementRefSchema.optional(),
-  background: z.string().optional(),
-  design: viewportSchema.optional(),
-  sequencer: sequencerPropsSchema.optional(),
-});
-export type GroupProps = z.infer<typeof groupPropsSchema>;
+import { inverseRemap } from "./remap";
 
 const videoPropsSchema = z.object({
   src: z.string(),
@@ -53,36 +40,28 @@ export type VideoProps = z.infer<typeof videoPropsSchema>;
 
 type PlaceholderProps = { title: string; subtitle: string };
 
-type BuiltInProps = {
-  "core/group": GroupProps;
-  "core/recording": RecordingProps;
-  "core/placeholder": PlaceholderProps;
-};
+type KnownElementProps = { "core/placeholder": PlaceholderProps };
 
-type PropsFor<C extends string> = C extends keyof BuiltInProps
-  ? BuiltInProps[C]
+type ElementPropsFor<C extends string> = C extends keyof KnownElementProps
+  ? KnownElementProps[C]
   : Record<string, unknown>;
 
-const readGroup = parseOncePer(groupPropsSchema);
-
-const readRecording = parseOncePer(recordingPropsSchema);
-
 export const groupOf = (item: TimelineItem): GroupProps | null =>
-  item.component === "core/group" ? readGroup(item.props) : null;
+  item.kind === "group" ? item.props : null;
 
 export const recordingOf = (item: TimelineItem): RecordingProps | null =>
-  item.component === "core/recording" ? readRecording(item.props) : null;
+  item.kind === "recording" ? item.props : null;
 
 const readVideo = parseOncePer(videoPropsSchema);
 
-export const videoOf = (item: Pick<TimelineItem, "component" | "props">): VideoProps | null =>
-  item.component === "core/video" ? readVideo(item.props) : null;
+type ItemLike = { kind: "group" | "recording" } | Pick<ElementItem, "kind" | "component" | "props">;
 
-type ItemPlacement = Omit<TimelineItem, "component" | "props">;
+export const videoOf = (item: ItemLike): VideoProps | null =>
+  item.kind === "element" && item.component === "core/video" ? readVideo(item.props) : null;
 
-export const groupItem = (placement: ItemPlacement, props: GroupProps): TimelineItem => ({
+export const groupItem = (placement: ItemBase, props: GroupProps): GroupItem => ({
   ...placement,
-  component: "core/group",
+  kind: "group",
   props,
 });
 
@@ -117,20 +96,39 @@ export type ItemExtra = {
   design?: Viewport & { exact?: boolean };
 };
 
+type ItemContent =
+  | Pick<RecordingItem, "kind" | "props">
+  | Pick<ElementItem, "kind" | "component" | "props">;
+
 export function itemClip<C extends string>(
   nodeId: string,
   component: C,
-  props: PropsFor<C>,
+  props: ElementPropsFor<C>,
   durationInFrames: number,
   extra: ItemExtra = {},
+): ClipValue {
+  return contentClip(nodeId, { kind: "element", component, props }, durationInFrames, extra);
+}
+
+export const recordingClip = (
+  nodeId: string,
+  props: RecordingProps,
+  durationInFrames: number,
+  extra: ItemExtra = {},
+): ClipValue => contentClip(nodeId, { kind: "recording", props }, durationInFrames, extra);
+
+function contentClip(
+  nodeId: string,
+  content: ItemContent,
+  durationInFrames: number,
+  extra: ItemExtra,
 ): ClipValue {
   const duration = atLeastOneFrame(durationInFrames);
   const item: TimelineItem = {
     id: `${nodeId}:i`,
     from: 0,
     durationInFrames: duration,
-    component,
-    props,
+    ...content,
     nodeId,
     ...(extra.handles ? { handles: extra.handles } : {}),
     ...(hasKeys(extra.envelope) ? { envelope: extra.envelope } : {}),
@@ -297,14 +295,10 @@ function resolveEnters(
 
 const REMAP_START: Remap = [[0, 0]];
 
-function holdLastFrame(item: TimelineItem, clipFrames: number, frames: number): TimelineItem {
+function holdLastFrame(item: GroupItem, clipFrames: number, frames: number): GroupItem {
   const last = clipFrames - 1;
   const end = item.durationInFrames - 1;
-  const remap: Remap = [
-    ...(groupOf(item)?.remap ?? REMAP_START),
-    [end, last],
-    [end + frames, last],
-  ];
+  const remap: Remap = [...(item.props.remap ?? REMAP_START), [end, last], [end + frames, last]];
   return {
     ...item,
     durationInFrames: item.durationInFrames + frames,
@@ -317,8 +311,8 @@ function placeClip(
   clip: ClipValue,
   at: { from: number; lead: number },
   enter: TransitionRef | undefined,
-  slot: TimelineItem["slot"],
-): TimelineItem {
+  slot: ItemBase["slot"],
+): GroupItem {
   const { from, lead } = at;
   const remap: Remap = [
     [0, 0],
@@ -330,7 +324,7 @@ function placeClip(
   );
 }
 
-function withExit(item: TimelineItem, clip: ClipValue, exit: TransitionRef | undefined) {
+function withExit(item: GroupItem, clip: ClipValue, exit: TransitionRef | undefined) {
   if (!exit) return item;
   const before = exit.hold
     ? holdLastFrame(item, clip.durationInFrames, exit.durationInFrames)
@@ -524,9 +518,8 @@ export function mapItems(
     ...t,
     items: t.items.map((item) => {
       const mapped = fn(item);
-      const group = groupOf(mapped);
-      return group
-        ? { ...mapped, props: { ...group, tracks: mapItems(group.tracks, fn) } }
+      return mapped.kind === "group"
+        ? groupItem(mapped, { ...mapped.props, tracks: mapItems(mapped.props.tracks, fn) })
         : mapped;
     }),
   }));
@@ -536,8 +529,7 @@ export function walkItems(tracks: TimelineTrack[], visit: (item: TimelineItem) =
   for (const track of tracks)
     for (const item of track.items) {
       visit(item);
-      const group = groupOf(item);
-      if (group) walkItems(group.tracks, visit);
+      if (item.kind === "group") walkItems(item.props.tracks, visit);
     }
 }
 
@@ -547,10 +539,9 @@ export function patchRecordings(
 ): ClipValue {
   return {
     ...clip,
-    tracks: mapItems(clip.tracks, (item) => {
-      const props = recordingOf(item);
-      return props ? { ...item, props: patch(props) } : item;
-    }),
+    tracks: mapItems(clip.tracks, (item) =>
+      item.kind === "recording" ? { ...item, props: patch(item.props) } : item,
+    ),
   };
 }
 
@@ -583,7 +574,7 @@ export function inputTake(clip: ClipValue): InputTake | undefined {
   if (take) return take;
   let placeholder = false;
   walkItems(clip.tracks, (item) => {
-    if (item.component === "core/placeholder") placeholder = true;
+    if (item.kind === "element" && item.component === "core/placeholder") placeholder = true;
   });
   return placeholder ? undefined : null;
 }

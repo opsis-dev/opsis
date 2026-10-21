@@ -2,14 +2,18 @@ import { z } from "zod";
 import { baseName } from "../asset-ref";
 import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
 import { parseColor } from "../color";
-import { clipFrameOfRecording, itemClip, patchRecordings, wrapClip } from "../compile/clip";
 import {
-  CAMERA_STYLES,
+  clipFrameOfRecording,
+  itemClip,
+  patchRecordings,
+  recordingClip,
+  wrapClip,
+} from "../compile/clip";
+import {
   defaultRecordingProps,
   followCursorBeats,
   idleSpans,
   recordingSpeed,
-  type RecordingProps,
 } from "../compile/recording";
 import { remapDuration, remapFromSegments } from "../compile/remap";
 import {
@@ -24,6 +28,7 @@ import { formatDuration, humanize, percentText, plural } from "../format";
 import { MIN_CROP, MIN_SPEED } from "../limits";
 import { EPSILON } from "../math";
 import { pointRect, type Action } from "../schema/actions";
+import { CAMERA_STYLES, type RecordingProps } from "../schema/recording";
 import { asValue, type ClipValue } from "../schema/values";
 import { DEFAULT_TAKE_MS } from "../schema/workflow";
 import { msToFrames, recordingMsToFrames, wholeFrames } from "../timeline/time";
@@ -230,7 +235,7 @@ const autoZoomNode = defineNode({
       backdrop: params.backdrop,
     };
     const props = restyleWith(STYLE_TABLE, own, entries);
-    const clip = itemClip(nodeId, "core/recording", props, frames, { recording: rec });
+    const clip = recordingClip(nodeId, props, frames, { recording: rec });
     return { clip: retimeWith(STYLE_TABLE, clip, entries, settings.fps) };
   },
 });

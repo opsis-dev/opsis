@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compileNode, nodeCard, nodeResult, recordResult } from "../test-fixtures";
+import { compileNode, elementOf, nodeCard, nodeResult, recordResult } from "../test-fixtures";
 import { signInNode } from "./browser";
 import { stillNode } from "./capture";
 import { parseNodeParams } from "./define";
@@ -114,7 +114,11 @@ describe("Screenshot clip", () => {
     );
     const clip = out.clip;
     if (clip?.type !== "clip") throw new Error("no clip");
-    return { image: out.image, item: clip.tracks[0].items[0], frames: clip.durationInFrames };
+    return {
+      image: out.image,
+      item: elementOf(clip.tracks[0].items[0]),
+      frames: clip.durationInFrames,
+    };
   };
 
   it("shows a placeholder until the screenshot is taken", () => {

@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
-import type { KeystrokeLook } from "../../shared/compile/recording";
+import type { KeystrokeLook } from "../../shared/schema/recording";
 import { useOverlayFrame } from "../core/frame";
 import type { KeyEvent } from "./lib/click-log";
 import { useDesignScale } from "./lib/design-scale";

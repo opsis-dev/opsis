@@ -23,6 +23,7 @@ const videoItem = (
 ): TimelineItem => ({
   id,
   ...place,
+  kind: "element",
   component: "core/video",
   props: { src: `project:${id}.mp4`, muted },
   nodeId: id,

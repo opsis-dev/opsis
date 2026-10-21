@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { itemClip, recordingProps } from "../compile/clip";
-import { compileClip, itemsOf, nodeCard, zoomed } from "../test-fixtures";
+import { compileClip, elementOf, itemsOf, nodeCard, zoomed } from "../test-fixtures";
 import { parseParams } from "./params";
 import { getNodeDef } from "./registry";
 
@@ -62,7 +62,7 @@ describe("picture look", () => {
     const [rec] = recordingProps(compileClip("effect.look", look, { clip: zoomed() }));
     expect(rec.look).toEqual(look);
     for (const clip of [video, image]) {
-      const [item] = itemsOf(compileClip("effect.look", look, { clip }));
+      const item = elementOf(itemsOf(compileClip("effect.look", look, { clip }))[0]);
       expect(item.props.look).toEqual(look);
     }
   });

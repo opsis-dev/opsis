@@ -2,7 +2,7 @@ import { Video } from "@remotion/media";
 import React, { useMemo } from "react";
 import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
 import { DEFAULT_BACKDROP } from "../../shared/backdrops";
-import type { PictureLook } from "../../shared/compile/recording";
+import type { PictureLook } from "../../shared/schema/recording";
 import { msToFrames } from "../../shared/timeline/time";
 import { isLightBackdrop } from "../camera/lib/backdrop";
 import { WINDOW_FIT } from "../camera/lib/style";

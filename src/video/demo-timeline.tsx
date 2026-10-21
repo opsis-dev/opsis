@@ -9,7 +9,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { groupOf, type GroupProps, type SequencerProps } from "../shared/compile/clip";
+import { groupOf } from "../shared/compile/clip";
 import { remapFrame } from "../shared/compile/remap";
 import { ERROR_COLOR, STAGE_COLOR } from "../shared/elements/colors";
 import { CODE_FONT, MAIN_FONT } from "../shared/fonts";
@@ -20,6 +20,9 @@ import { duckGain, duckingSpans, type Span } from "../shared/mix/duck";
 import type { Rect } from "../shared/schema/actions";
 import type {
   AudioItem,
+  ElementItem,
+  GroupProps,
+  SequencerProps,
   TimelineItem,
   TimelineSpec,
   TimelineTrack,
@@ -39,6 +42,7 @@ import {
   useAssetBase,
 } from "./assets";
 import { CLAMP_RIGHT, fadeWindow } from "./core/anim";
+import { RecordingClip } from "./core/recording-clip";
 import type { Size } from "./core/still-layout";
 import { CutBoardProvider, useCutBoard } from "./core/transition-cuts";
 import { FontProvider } from "./fonts/font-provider";
@@ -58,7 +62,6 @@ const ELEMENT_FONTS: React.CSSProperties &
 };
 
 const PREMOUNT_FRAMES = 30;
-const PREMOUNTED = new Set(["core/group", "core/recording"]);
 
 export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
   <AssetProvider value={spec.assets ?? {}}>
@@ -91,8 +94,8 @@ const Tracks: React.FC<{ tracks: TimelineTrack[] }> = ({ tracks }) => (
             key={item.id}
             from={item.from}
             durationInFrames={item.durationInFrames}
-            name={item.component}
-            premountFor={PREMOUNTED.has(item.component) ? PREMOUNT_FRAMES : undefined}
+            name={item.kind === "element" ? item.component : item.kind}
+            premountFor={item.kind === "element" ? undefined : PREMOUNT_FRAMES}
           >
             <TransitionWrap item={item}>
               {item.envelope ? (
@@ -138,11 +141,12 @@ const MasterStem: React.FC<{ src: string }> = ({ src }) => {
 };
 
 const ItemContent: React.FC<{ item: TimelineItem }> = ({ item }) => {
-  const group = groupOf(item);
-  return group ? <Group {...group} /> : <ElementItem item={item} />;
+  if (item.kind === "group") return <Group {...item.props} />;
+  if (item.kind === "recording") return <RecordingClip {...item.props} />;
+  return <Element item={item} />;
 };
 
-const ElementItem: React.FC<{ item: TimelineItem }> = ({ item }) => {
+const Element: React.FC<{ item: ElementItem }> = ({ item }) => {
   const base = useAssetBase();
   const element = useResolvedElement(item.component, getComponent);
   if (element?.status === "unknown") return <MissingElement name={item.component} />;

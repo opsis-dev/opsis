@@ -1,15 +1,14 @@
 import { isProjectRef } from "../asset-ref";
-import { recordingOf, videoOf } from "../compile/clip";
+import { videoOf } from "../compile/clip";
 import { recordingSpeed } from "../compile/recording";
 import { isString } from "../guards";
-import type { TimelineItem } from "../schema/timeline";
+import type { ElementItem, RecordingItem } from "../schema/timeline";
 import type { BarThumbnail } from "./flatten";
 
-export function thumbnailOf(item: TimelineItem): BarThumbnail | null {
-  const recording = recordingOf(item);
-  if (recording) {
-    const src = recording.proxySrc || recording.src;
-    return src ? { kind: "filmstrip", src, speed: recordingSpeed(recording), trimMs: 0 } : null;
+export function thumbnailOf(item: RecordingItem | ElementItem): BarThumbnail | null {
+  if (item.kind === "recording") {
+    const src = item.props.proxySrc || item.props.src;
+    return src ? { kind: "filmstrip", src, speed: recordingSpeed(item.props), trimMs: 0 } : null;
   }
   const video = videoOf(item);
   if (video)

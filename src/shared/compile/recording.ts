@@ -1,62 +1,6 @@
-import { z } from "zod";
 import { DEFAULT_BACKDROP } from "../backdrops";
-import { actionLogSchema, type Action, type ActionLog } from "../schema/actions";
-import { FRAME_THEMES, WINDOW_STYLES } from "../window-styles";
-
-export const CAMERA_STYLES = ["classic", "proof", "ledger", "stage"] as const;
-
-const ANNOTATION_KINDS = ["highlight", "spotlight", "tooltip", "callout"] as const;
-export type AnnotationKind = (typeof ANNOTATION_KINDS)[number];
-
-export const HAND_DRAWN_LOOKS = ["box", "circle", "underline", "marker"] as const;
-export type HandDrawnLook = (typeof HAND_DRAWN_LOOKS)[number];
-export const HIGHLIGHT_LOOKS = ["clean", ...HAND_DRAWN_LOOKS] as const;
-export type HighlightLook = (typeof HIGHLIGHT_LOOKS)[number];
-
-const annotationSpecSchema = z.object({
-  kind: z.enum(ANNOTATION_KINDS),
-  look: z.enum(HIGHLIGHT_LOOKS).optional(),
-  roughness: z.number().optional(),
-  match: z.string(),
-  text: z.string(),
-  color: z.string(),
-  padding: z.number(),
-  leadMs: z.number(),
-  holdMs: z.number(),
-  textColor: z.string().optional(),
-  fontSize: z.number().optional(),
-  font: z.string().optional(),
-});
-export type AnnotationSpec = z.infer<typeof annotationSpecSchema>;
-
-const KEYSTROKE_POSITIONS = ["bottom", "top"] as const;
-export type KeystrokePosition = (typeof KEYSTROKE_POSITIONS)[number];
-
-const arrowCursorLookSchema = z.object({
-  shape: z.literal("arrow"),
-  fill: z.string(),
-  edge: z.string(),
-});
-export type ArrowCursorLook = z.infer<typeof arrowCursorLookSchema>;
-
-const cursorLookSchema = z.discriminatedUnion("shape", [
-  arrowCursorLookSchema,
-  z.object({ shape: z.literal("mac") }),
-]);
-export type CursorLook = z.infer<typeof cursorLookSchema>;
-
-const rippleLookSchema = z.object({ color: z.string(), size: z.number(), width: z.number() });
-export type RippleLook = z.infer<typeof rippleLookSchema>;
-
-const keystrokeLookSchema = z.object({
-  position: z.enum(KEYSTROKE_POSITIONS),
-  typed: z.boolean(),
-  chords: z.boolean(),
-  keycap: z.string(),
-  ink: z.string(),
-  size: z.number(),
-});
-export type KeystrokeLook = z.infer<typeof keystrokeLookSchema>;
+import type { Action, ActionLog } from "../schema/actions";
+import type { ArrowCursorLook, RecordingProps, RippleLook } from "../schema/recording";
 
 export const DEFAULT_CURSOR_LOOK: ArrowCursorLook = {
   shape: "arrow",
@@ -68,59 +12,7 @@ export const DEFAULT_RIPPLE: RippleLook = { color: "#0f172a", size: 1, width: 2 
 
 export const DEFAULT_KEYCAP = { keycap: "#0a0a0a", ink: "#ffffff" } as const;
 
-const blurAreaSchema = z.object({
-  x: z.number(),
-  y: z.number(),
-  width: z.number(),
-  height: z.number(),
-  strength: z.number(),
-  softness: z.number(),
-  roundness: z.number(),
-  fromMs: z.number().optional(),
-  untilMs: z.number().optional(),
-});
-export type BlurArea = z.infer<typeof blurAreaSchema>;
-
-export const pictureLookSchema = z.object({
-  brightness: z.number().optional(),
-  contrast: z.number().optional(),
-  saturation: z.number().optional(),
-  warmth: z.number().optional(),
-  vignette: z.number().optional(),
-  grain: z.number().optional(),
-});
-export type PictureLook = z.infer<typeof pictureLookSchema>;
-
 export const PREVIEW_FILE_WIDTH = 960;
-
-export const recordingPropsSchema = z.object({
-  src: z.string(),
-  proxySrc: z.string().optional(),
-  log: actionLogSchema,
-  name: z.string(),
-  speed: z.number(),
-  zoom: z.boolean(),
-  tuning: z.object({ sMax: z.number().optional(), holdMinS: z.number().optional() }),
-  motionBlur: z.boolean(),
-  style: z.enum(CAMERA_STYLES),
-  chrome: z.boolean(),
-  windowStyle: z.enum(WINDOW_STYLES).optional(),
-  frameTheme: z.enum(FRAME_THEMES).optional(),
-  addressBar: z.boolean().optional(),
-  backdrop: z.string(),
-  backdropChosen: z.boolean().optional(),
-  cursor: z.boolean(),
-  cursorScale: z.number(),
-  cursorLook: cursorLookSchema,
-  ripple: rippleLookSchema.nullable(),
-  extraBeats: actionLogSchema.shape.actions,
-  keystrokes: keystrokeLookSchema.optional(),
-  annotations: z.array(annotationSpecSchema),
-  blurAreas: z.array(blurAreaSchema).optional(),
-  look: pictureLookSchema.optional(),
-  screen: z.boolean().optional(),
-});
-export type RecordingProps = z.infer<typeof recordingPropsSchema>;
 
 export const recordingSpeed = (props: Pick<RecordingProps, "speed">): number => props.speed || 1;
 

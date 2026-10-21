@@ -2,7 +2,7 @@ import { colorCorrection } from "@remotion/effects/color-correction";
 import { noise } from "@remotion/effects/noise";
 import { vignette } from "@remotion/effects/vignette";
 import type { EffectDescriptor } from "remotion";
-import type { PictureLook } from "../../shared/compile/recording";
+import type { PictureLook } from "../../shared/schema/recording";
 
 const GRAIN_AMOUNT = 0.3;
 const BRIGHTNESS_STOPS = 1;

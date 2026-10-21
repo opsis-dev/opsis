@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import type { NodeDef } from "../nodes/define";
+import type { RecordingProps } from "../schema/recording";
 import type { ClipValue, StyleEntry } from "../schema/values";
-import type { RecordingProps } from "./recording";
 
 type Retiming = { nodeId: string; fps: number };
 

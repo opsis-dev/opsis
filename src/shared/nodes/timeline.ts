@@ -8,11 +8,11 @@ import {
   stackClips,
   withHandles,
   wrapClip,
-  type GroupProps,
 } from "../compile/clip";
 import { speedRemap } from "../compile/remap";
 import { formatDuration, plural } from "../format";
 import { MAX_FRAMES, MAX_REPEATS, MIN_SPEED } from "../limits";
+import type { GroupProps } from "../schema/timeline";
 import { asValue, type ClipValue } from "../schema/values";
 import type { WorkflowSettings } from "../schema/workflow";
 import { parseNumberList } from "../text-input";

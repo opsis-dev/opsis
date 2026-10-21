@@ -6,6 +6,7 @@ import type { Workflow } from "../schema/workflow";
 import { getTemplate } from "../templates";
 import { GraphBuilder } from "../templates/build";
 import {
+  elementOf,
   itemsOf,
   makeLog,
   must,
@@ -66,7 +67,7 @@ describe("compileWorkflow — sample project", () => {
     const spec = out.specs.render;
     expect(spec).toBeDefined();
     expect(spec.width).toBe(1920);
-    const components = itemsOf(spec).map((i) => i.component);
+    const components = itemsOf(spec).map((i) => (i.kind === "element" ? i.component : i.kind));
     expect(components).toContain("core/placeholder");
     expect(components).toContain("remocn/soft-blur-in");
     expect(components).toContain("remocn/shader-mesh-gradient");
@@ -94,7 +95,7 @@ describe("compileWorkflow — sample project", () => {
     const out = compileWorkflow(wf, { results: { record: recordResult(log) } });
     const flat = flattenSpec(out.specs.render);
     const bar = must(
-      flat.bars.find((b) => b.component === "core/recording"),
+      flat.bars.find((b) => b.kind === "recording"),
       "recording bar",
     );
     const marks = flat.marks.filter((m) => m.barKey === bar.key);
@@ -131,7 +132,9 @@ describe("compileWorkflow — sample project", () => {
   it("interpolates {{VARIABLES}} into params", () => {
     const wf = todoMvc();
     const spec = compileWorkflow(wf).specs.render;
-    const outro = itemsOf(spec).find((i) => i.component === "core/title");
+    const outro = itemsOf(spec)
+      .filter((i) => i.kind === "element")
+      .find((i) => i.component === "core/title");
     expect(outro?.props.subtitle).toBe("https://demo.playwright.dev/todomvc");
   });
 });
@@ -396,7 +399,7 @@ describe("a skipped node", () => {
     const wf = g.build({ id: "x", name: "x" });
     must(findById(wf.nodes, "seq"), "seq").disabled = true;
     const clip = compileWorkflow(wf).values.seq?.clip;
-    const color = clip?.type === "clip" ? clip.tracks[0].items[0].props.color : null;
+    const color = clip?.type === "clip" ? elementOf(clip.tracks[0].items[0]).props.color : null;
     expect(color).toBe("#ff0000");
   });
 });

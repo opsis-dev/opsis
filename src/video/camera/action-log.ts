@@ -1,9 +1,4 @@
-import {
-  POINTER_KINDS,
-  type AnnotationKind,
-  type AnnotationSpec,
-  type HighlightLook,
-} from "../../shared/compile/recording";
+import { POINTER_KINDS } from "../../shared/compile/recording";
 import {
   pointRect,
   rectCenter,
@@ -14,6 +9,7 @@ import {
   type Rect,
   type Viewport,
 } from "../../shared/schema/actions";
+import type { AnnotationKind, AnnotationSpec, HighlightLook } from "../../shared/schema/recording";
 import type { ClickEvent, ClickLog, KeyEvent } from "./lib/click-log";
 import { designScaleFor } from "./lib/design-width";
 

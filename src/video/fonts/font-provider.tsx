@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { groupOf, walkItems } from "../../shared/compile/clip";
+import { walkItems } from "../../shared/compile/clip";
 import { firstFamily } from "../../shared/fonts";
 import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "../../shared/fonts/types";
 import { nonBlankString } from "../../shared/guards";
@@ -15,8 +15,8 @@ export function usedFontNames(tracks: TimelineTrack[]): string[] {
     if (name) out.add(firstFamily(name));
   };
   walkItems(tracks, (item) => {
-    add(item.props.fontFamily);
-    add(groupOf(item)?.wrapper?.props.fontFamily);
+    if (item.kind === "element") add(item.props.fontFamily);
+    if (item.kind === "group") add(item.props.wrapper?.props.fontFamily);
   });
   return [...out].toSorted();
 }

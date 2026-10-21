@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { inverseRemap, remapDuration, remapFrame, remapFromSegments, type Remap } from "./remap";
+import type { Remap } from "../schema/timeline";
+import { inverseRemap, remapDuration, remapFrame, remapFromSegments } from "./remap";
 
 describe("remaps", () => {
   it("maps output frames to inner frames piecewise-linearly", () => {

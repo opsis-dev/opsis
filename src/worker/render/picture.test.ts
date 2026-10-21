@@ -15,6 +15,7 @@ const spec: TimelineSpec = {
           id: "i",
           from: 0,
           durationInFrames: 300,
+          kind: "element",
           component: "core/title",
           props: { title: "Hi" },
         },

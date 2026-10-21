@@ -21,7 +21,7 @@ describe("timeline node lengths", () => {
 
   it("rounds a trim start to whole frames, down to none for less than half a frame", () => {
     const startFrom = (startMs: number) =>
-      compileOver("timeline.trim", { startMs }).tracks[0].items[0].props.startFrom;
+      groupOf(compileOver("timeline.trim", { startMs }).tracks[0].items[0])?.startFrom;
     expect(startFrom(10)).toBe(0);
     expect(startFrom(1000)).toBe(30);
   });

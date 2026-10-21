@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { projectFontsSchema } from "../fonts/types";
 import { isKeyOf, isRecord } from "../guards";
-import { viewportSchema } from "./actions";
+import { rectSchema, viewportSchema } from "./actions";
+import { recordingPropsSchema } from "./recording";
 import { DEFAULT_WORKFLOW_SETTINGS } from "./workflow";
 
 export const transitionRefSchema = z.object({
@@ -111,7 +112,30 @@ export const elementRefSchema = z.object({
   props: z.custom<Record<string, unknown>>(isRecord),
 });
 
-const timelineItemSchema = elementRefSchema.extend({
+const remapSchema = z.array(z.tuple([z.number(), z.number()]));
+export type Remap = z.infer<typeof remapSchema>;
+
+const sequencerPropsSchema = elementRefSchema.extend({
+  backgrounds: z.array(z.string().nullable()),
+});
+export type SequencerProps = z.infer<typeof sequencerPropsSchema>;
+
+const groupPropsSchema = z.object({
+  get tracks(): z.ZodArray<typeof timelineTrackSchema> {
+    return z.array(timelineTrackSchema);
+  },
+  startFrom: z.number().optional(),
+  remap: remapSchema.optional(),
+  loopEvery: z.number().optional(),
+  crop: rectSchema.optional(),
+  wrapper: elementRefSchema.optional(),
+  background: z.string().optional(),
+  design: viewportSchema.optional(),
+  sequencer: sequencerPropsSchema.optional(),
+});
+export type GroupProps = z.infer<typeof groupPropsSchema>;
+
+const itemBaseSchema = z.object({
   id: z.string(),
   from: z.number().int(),
   durationInFrames: z.number().int().positive(),
@@ -124,6 +148,31 @@ const timelineItemSchema = elementRefSchema.extend({
   camera: cameraPathSchema.optional(),
   design: viewportSchema.extend({ exact: z.boolean().optional() }).optional(),
 });
+export type ItemBase = z.infer<typeof itemBaseSchema>;
+
+const groupItemSchema = itemBaseSchema.extend({
+  kind: z.literal("group"),
+  props: groupPropsSchema,
+});
+export type GroupItem = z.infer<typeof groupItemSchema>;
+
+const recordingItemSchema = itemBaseSchema.extend({
+  kind: z.literal("recording"),
+  props: recordingPropsSchema,
+});
+export type RecordingItem = z.infer<typeof recordingItemSchema>;
+
+const elementItemSchema = itemBaseSchema.extend({
+  kind: z.literal("element"),
+  ...elementRefSchema.shape,
+});
+export type ElementItem = z.infer<typeof elementItemSchema>;
+
+const timelineItemSchema = z.discriminatedUnion("kind", [
+  groupItemSchema,
+  recordingItemSchema,
+  elementItemSchema,
+]);
 
 export type TimelineItem = z.infer<typeof timelineItemSchema>;
 

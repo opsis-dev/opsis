@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { mapItems, recordingOf } from "../compile/clip";
-import type { BlurArea, PictureLook } from "../compile/recording";
+import { mapItems } from "../compile/clip";
 import { styleStep, type StyleSteps } from "../compile/style";
 import { formatDuration, percentText, plural } from "../format";
+import type { BlurArea, PictureLook } from "../schema/recording";
 import type { ClipValue } from "../schema/values";
 import { missing, row, type CardRow, type InputTake } from "./card";
 import { defineNode, modifierBase, RECORDING_PORT, recordingModifier, withClip } from "./define";
@@ -120,9 +120,8 @@ function withLook(clip: ClipValue, look: PictureLook): ClipValue {
   return {
     ...clip,
     tracks: mapItems(clip.tracks, (item) => {
-      const recording = recordingOf(item);
-      if (recording) return { ...item, props: { ...recording, look } };
-      return LOOK_COMPONENTS.has(item.component)
+      if (item.kind === "recording") return { ...item, props: { ...item.props, look } };
+      return item.kind === "element" && LOOK_COMPONENTS.has(item.component)
         ? { ...item, props: { ...item.props, look } }
         : item;
     }),

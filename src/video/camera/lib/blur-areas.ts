@@ -1,7 +1,7 @@
 import { regionBlur, type RegionBlurParams } from "@remotion/effects/region-blur";
 import type { EffectDescriptor } from "remotion";
-import type { BlurArea } from "../../../shared/compile/recording";
 import { clamp01 } from "../../../shared/math";
+import type { BlurArea } from "../../../shared/schema/recording";
 
 const EASE_MS = 200;
 

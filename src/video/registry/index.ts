@@ -1,5 +1,4 @@
 import type React from "react";
-import type { RecordingProps } from "../../shared/compile/recording";
 import type { CoreElementProps } from "../../shared/elements/core";
 import { isKeyOf } from "../../shared/guards";
 import type { CaptionsValue } from "../../shared/schema/values";
@@ -21,7 +20,6 @@ import { LowerThird } from "../core/lower-third";
 import { ImageElement, StillElement, VideoElement, VideoLoop } from "../core/media";
 import { Mosaic } from "../core/mosaic";
 import { Placeholder } from "../core/placeholder";
-import { RecordingClip } from "../core/recording-clip";
 import type { Shot, Size, StillLook } from "../core/still-layout";
 import { Title } from "../core/title";
 import { coreTransitions } from "../core/transitions";
@@ -37,7 +35,6 @@ import {
 } from "./types";
 
 type CoreProps = CoreElementProps & {
-  "core/recording": RecordingProps;
   "core/placeholder": { title: string; subtitle: string };
   "core/still": { src: string; look: StillLook; backdrop: string; shot?: Shot };
   "core/captions": { captions: CaptionsValue["captions"] };
@@ -56,7 +53,6 @@ const LAZY_CORE_ELEMENTS = {
 type EagerCoreKey = Exclude<keyof CoreProps, keyof typeof LAZY_CORE_ELEMENTS>;
 
 const CORE_ELEMENTS: { [K in EagerCoreKey]: React.FC<CoreProps[K]> } = {
-  "core/recording": RecordingClip,
   "core/placeholder": Placeholder,
   "core/still": StillElement,
   "core/title": Title,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
-import type { AudioItem, TransitionRef } from "../schema/timeline";
+import type { AudioItem, Remap, TransitionRef } from "../schema/timeline";
 import { must } from "../test-fixtures";
 import { flattenSpec, nodeSpans } from "../timeline/flatten";
 import {
@@ -10,6 +10,7 @@ import {
   groupOf,
   itemClip,
   markLayers,
+  recordingClip,
   recordingOf,
   sceneItemCount,
   sceneSequence,
@@ -19,7 +20,7 @@ import {
   wrapSounds,
 } from "./clip";
 import { defaultRecordingProps } from "./recording";
-import { remapFrame, type Remap } from "./remap";
+import { remapFrame } from "./remap";
 
 const popSound = (id: string) => ({
   id: `${id}:a`,
@@ -235,7 +236,7 @@ describe("sceneSequence", () => {
   });
 });
 
-describe("built-in item props", () => {
+describe("built-in items", () => {
   const log = {
     viewport: { width: 1280, height: 720 },
     dpr: 1,
@@ -245,35 +246,38 @@ describe("built-in item props", () => {
   };
   const recording = () =>
     must(
-      itemClip(
+      recordingClip(
         "rec",
-        "core/recording",
         { ...defaultRecordingProps(), src: "project:take.mp4", name: "Take", log },
         30,
       ).tracks[0].items[0],
       "recording item",
     );
 
-  it("reads a recording's and a group's props whole, once per props object", () => {
+  it("reads a recording's and a group's props by their kind", () => {
     const item = recording();
-    const read = recordingOf(item);
-    expect(read).toEqual(item.props);
-    expect(recordingOf(item)).toBe(read);
+    expect(item.kind).toBe("recording");
+    expect(recordingOf(item)).toBe(item.props);
     const group = groupItem(
       { id: "g", from: 0, durationInFrames: 30 },
       { tracks: [{ id: "t", items: [item] }], remap: [[0, 0]], crop: { x: 0, y: 0, w: 1, h: 1 } },
     );
-    expect(groupOf(group)).toEqual(group.props);
+    expect(groupOf(group)).toBe(group.props);
+    expect(groupOf(item)).toBeNull();
+    expect(recordingOf(group)).toBeNull();
   });
 
-  it("refuses props that don't fit the component", () => {
-    const item = recording();
-    expect(recordingOf({ ...item, props: { ...item.props, log: { actions: [] } } })).toBeNull();
-    expect(recordingOf({ ...item, props: { ...item.props, style: "fancy" } })).toBeNull();
-    expect(
-      groupOf({ ...item, component: "core/group", props: { tracks: [], remap: "fast" } }),
-    ).toBeNull();
-    expect(groupOf(item)).toBeNull();
+  it("compiles every built-in item to its kind", () => {
+    const placeholder = itemClip("p", "core/placeholder", { title: "T", subtitle: "S" }, 30);
+    const kinds = sequenceClips("s", [placeholder, wrapClip(placeholder, "w")]).tracks.flatMap(
+      (t) => t.items.map((i) => i.kind),
+    );
+    expect(kinds).toEqual(["group", "group"]);
+    expect(placeholder.tracks[0].items[0]).toMatchObject({
+      kind: "element",
+      component: "core/placeholder",
+    });
+    expect(recording().kind).toBe("recording");
   });
 });
 

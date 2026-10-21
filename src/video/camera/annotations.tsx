@@ -1,10 +1,10 @@
 import React from "react";
 import { Easing, interpolate } from "remotion";
-import type { AnnotationKind, HandDrawnLook } from "../../shared/compile/recording";
 import { TEXT_COLOR } from "../../shared/elements/colors";
 import { MAIN_FONT } from "../../shared/fonts";
 import { percent } from "../../shared/format";
 import { rectCenter, type Viewport } from "../../shared/schema/actions";
+import type { AnnotationKind, HandDrawnLook } from "../../shared/schema/recording";
 import { drawOn, fadeWindow, isFadedOut } from "../core/anim";
 import { HandDrawnMark } from "../core/hand-drawn";
 import type { Annotation } from "./action-log";
