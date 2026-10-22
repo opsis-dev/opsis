@@ -7,8 +7,8 @@ import { SECRET_EXT, secretFile, secretsDir } from "../engine/secret-paths";
 
 const fileFor = secretFile;
 
-function requireEncryption(): void {
-  if (!safeStorage.isEncryptionAvailable())
+async function requireEncryption(): Promise<void> {
+  if (!(await safeStorage.isAsyncEncryptionAvailable()))
     throw new Error(
       "This computer has no secure storage available, so saved sign-ins can't be used.",
     );
@@ -22,9 +22,9 @@ export async function ensureSecretsDir(projectDir: string): Promise<void> {
 }
 
 export async function writeSecret(projectDir: string, name: string, value: string): Promise<void> {
-  requireEncryption();
+  await requireEncryption();
   await ensureSecretsDir(projectDir);
-  await writeFile(fileFor(projectDir, name), safeStorage.encryptString(value));
+  await writeFile(fileFor(projectDir, name), await safeStorage.encryptStringAsync(value));
 }
 
 export async function listSecrets(projectDir: string): Promise<string[]> {
@@ -38,6 +38,8 @@ export async function listSecrets(projectDir: string): Promise<string[]> {
 export async function readSecret(projectDir: string, name: string): Promise<string | null> {
   const encrypted = await readBytesIfPresent(fileFor(projectDir, name));
   if (encrypted === null) return null;
-  requireEncryption();
-  return safeStorage.decryptString(encrypted);
+  await requireEncryption();
+  const { result, shouldReEncrypt } = await safeStorage.decryptStringAsync(encrypted);
+  if (shouldReEncrypt) await writeSecret(projectDir, name, result);
+  return result;
 }
