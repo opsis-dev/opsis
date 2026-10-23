@@ -2,10 +2,11 @@ import { Thumbnail } from "@remotion/player";
 import { useStore as useFlowStore } from "@xyflow/react";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useSettledAfterKeyChange } from "@/renderer/lib/use-settled-after-key-change";
-import { PROJECT_FILE_BASE, projectRef } from "@/shared/asset-ref";
+import { PROJECT_FILE_BASE, projectRef, type FileVersions } from "@/shared/asset-ref";
 import { clipToSpec, isClip } from "@/shared/compile/clip";
 import { errorMessage } from "@/shared/errors";
 import { stableJson } from "@/shared/hash";
+import { projectRefsIn } from "@/shared/named-files";
 import { showsClipStill, type NodeDef } from "@/shared/nodes/define";
 import { PROJECT_DIRS } from "@/shared/project-dirs";
 import type { TimelineSpec } from "@/shared/schema/timeline";
@@ -14,6 +15,7 @@ import type { WorkflowSettings } from "@/shared/schema/workflow";
 import { atLeastOneFrame, clampFrame } from "@/shared/timeline/time";
 import { DemoTimeline } from "@/video/demo-timeline";
 import { useEnvironment } from "../store/environment";
+import { useProjectFiles, versionsOf } from "../store/project-files";
 import { useRunStore } from "../store/run";
 import { useStillsStore } from "../store/stills";
 import { useUiStore } from "../store/ui";
@@ -28,7 +30,12 @@ const VIDEO_ASPECT = 16 / 9;
 const SETTLE_MS = 400;
 const OBSERVE_MARGIN = "120px";
 
-type SettledClip = { key: string; clip: ClipValue; settings: WorkflowSettings };
+type SettledClip = {
+  key: string;
+  clip: ClipValue;
+  settings: WorkflowSettings;
+  versions: FileVersions;
+};
 
 const fastSpec = ({ clip, settings }: SettledClip): TimelineSpec => ({
   ...clipToSpec(clip, settings),
@@ -49,8 +56,13 @@ function posterOf(result: NodeResult | undefined): string | null {
 function useSettledClip(nodeId: string): SettledClip | null {
   const { result: compiled } = useCompiledContext();
   const settings = useWorkflowStore((s) => requireWorkflow(s).settings);
+  const allVersions = useProjectFiles((s) => s.versions);
   const clip = compiled?.values[nodeId]?.clip;
-  const current = isClip(clip) ? { key: stableJson([clip, settings]), clip, settings } : null;
+  const current = useMemo(() => {
+    if (!isClip(clip)) return null;
+    const versions = versionsOf(projectRefsIn([clip, settings]), allVersions);
+    return { key: stableJson([clip, settings, versions]), clip, settings, versions };
+  }, [clip, settings, allVersions]);
   return useSettledAfterKeyChange(current, current?.key ?? "", SETTLE_MS);
 }
 
@@ -76,7 +88,13 @@ function FallbackThumbnail({ nodeId }: { nodeId: string }) {
   const settled = useSettledClip(nodeId);
   const holding = useThumbSlot(nodeId, visible && zoom >= LIVE_THUMB_MIN_ZOOM && !!settled);
   const spec = useMemo(
-    () => (settled ? { ...fastSpec(settled), assets: { projectBase: PROJECT_FILE_BASE } } : null),
+    () =>
+      settled
+        ? {
+            ...fastSpec(settled),
+            assets: { projectBase: PROJECT_FILE_BASE, versions: settled.versions },
+          }
+        : null,
     [settled],
   );
 

@@ -6,11 +6,13 @@ import {
   isAssetRef,
   joinUrl,
   refTarget,
+  versionedUrl,
+  type FileVersions,
 } from "../shared/asset-ref";
 import type { ElementProps } from "../shared/elements/types";
 import type { PreviewQuality, ReframeMode } from "../shared/schema/timeline";
 
-type AssetBase = { projectBase?: string };
+export type AssetBase = { projectBase?: string; versions?: FileVersions };
 
 const AssetContext = createContext<AssetBase>({});
 
@@ -23,7 +25,11 @@ export function resolveAssetRef(ref: string, base: AssetBase): string {
   if (target.kind === "app") return staticFile(target.rel);
   if (target.kind !== "project") return ref;
   if (base.projectBase === STATIC_PROJECT_BASE) return staticFile(`project/${target.rel}`);
-  return joinUrl(base.projectBase ?? PROJECT_FILE_BASE, target.rel);
+  return versionedUrl(
+    joinUrl(base.projectBase ?? PROJECT_FILE_BASE, target.rel),
+    ref,
+    base.versions,
+  );
 }
 
 const MAX_PROP_DEPTH = 3;

@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { baseName, extensionOf, joinUrl, projectRef, projectRelPath, refTarget } from "./asset-ref";
+import {
+  baseName,
+  extensionOf,
+  fileVersionKey,
+  joinUrl,
+  projectRef,
+  projectRelPath,
+  refTarget,
+  versionedUrl,
+} from "./asset-ref";
 
 describe("asset refs", () => {
   it("joins a base and an encoded path, with or without the base's slash", () => {
@@ -47,5 +56,27 @@ describe("extensionOf", () => {
     expect(extensionOf("README")).toBe("");
     expect(extensionOf("dir.v2/clip")).toBe("");
     expect(extensionOf(".gitignore")).toBe("");
+  });
+});
+
+describe("file versions", () => {
+  it("keys a project file the same however its path is written", () => {
+    expect(fileVersionKey("project:assets/./a.png")).toBe("assets/a.png");
+    expect(fileVersionKey("project:/assets//a.png")).toBe("assets/a.png");
+    expect(fileVersionKey("assets\\a.png")).toBe("assets/a.png");
+    expect(fileVersionKey("app:backdrops/a.png")).toBeNull();
+  });
+
+  it("adds a changed file's version to its address", () => {
+    const versions = { "assets/a.png": "12:3.5" };
+    expect(
+      versionedUrl("opsis-file://project/assets/a.png", "project:assets/a.png", versions),
+    ).toBe("opsis-file://project/assets/a.png?v=12%3A3.5");
+    expect(versionedUrl("opsis-file://project/b.png", "project:b.png", versions)).toBe(
+      "opsis-file://project/b.png",
+    );
+    expect(versionedUrl("opsis-file://project/assets/a.png", "project:assets/a.png")).toBe(
+      "opsis-file://project/assets/a.png",
+    );
   });
 });

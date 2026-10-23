@@ -13,6 +13,7 @@ import { nonBlankString, parseJsonWith } from "../shared/guards";
 import type {
   OpenProject,
   ProjectFileChange,
+  ProjectFilesChange,
   ProjectLocations,
   RecentProject,
   SaveResult,
@@ -26,6 +27,7 @@ import { debounce } from "../shared/timing";
 import { db } from "./db";
 import { projects } from "./db/schema";
 import { openDialog } from "./dialogs";
+import { watchLoadedFiles, type LoadedFilesWatch } from "./loaded-files-watch";
 import { ensureSecretsDir } from "./secrets";
 import { patchSettings, readSettings } from "./settings";
 import { forgetViewState, readViewState } from "./view-state";
@@ -176,17 +178,29 @@ const logWatchError = (dir: string, error: unknown) =>
 const WATCH_DEBOUNCE_MS = 150;
 
 let watcher: FSWatcher | null = null;
+let loadedFiles: LoadedFilesWatch | null = null;
+let loadedRefs: { dir: string; refs: readonly string[] } | null = null;
 let watchedDir: string | null = null;
+
+export function watchProjectFiles(dir: string, refs: readonly string[]): void {
+  loadedRefs = { dir, refs };
+  if (dir === watchedDir) loadedFiles?.follow(refs);
+}
 
 export function watchProject(
   dir: string | null,
   notify: (change: ProjectFileChange) => void,
+  notifyFiles: (change: ProjectFilesChange) => void,
 ): void {
   if (dir === watchedDir) return;
   watcher?.close();
   watcher = null;
+  loadedFiles?.close();
+  loadedFiles = null;
   watchedDir = dir;
   if (!dir) return;
+  loadedFiles = watchLoadedFiles(dir, notifyFiles);
+  if (loadedRefs?.dir === dir) loadedFiles.follow(loadedRefs.refs);
   let announced = written.get(dir) ?? null;
   const check = async () => {
     const current = await readProjectFile(dir);

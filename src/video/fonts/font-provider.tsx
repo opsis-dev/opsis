@@ -4,7 +4,7 @@ import { firstFamily } from "../../shared/fonts";
 import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "../../shared/fonts/types";
 import { nonBlankString } from "../../shared/guards";
 import type { TimelineTrack } from "../../shared/schema/timeline";
-import { resolveAssetRef, useAssetBase } from "../assets";
+import { resolveAssetRef, useAssetBase, type AssetBase } from "../assets";
 import { useHeldLoad } from "../core/loading";
 import { applyProjectFonts } from "./registry";
 
@@ -21,9 +21,9 @@ export function usedFontNames(tracks: TimelineTrack[]): string[] {
   return [...out].toSorted();
 }
 
-function useFontsReady(fonts: ProjectFonts, used: string[], projectBase?: string): boolean {
-  const loaded = useHeldLoad("Loading fonts", JSON.stringify({ fonts, used, projectBase }), () =>
-    applyProjectFonts(fonts, (ref) => resolveAssetRef(ref, { projectBase }), used),
+function useFontsReady(fonts: ProjectFonts, used: string[], base: AssetBase): boolean {
+  const loaded = useHeldLoad("Loading fonts", JSON.stringify({ fonts, used, base }), () =>
+    applyProjectFonts(fonts, (ref) => resolveAssetRef(ref, base), used),
   );
   return loaded !== null;
 }
@@ -33,8 +33,8 @@ export const FontProvider: React.FC<{
   tracks: TimelineTrack[];
   children: React.ReactNode;
 }> = ({ fonts, tracks, children }) => {
-  const { projectBase } = useAssetBase();
+  const base = useAssetBase();
   const used = useMemo(() => usedFontNames(tracks), [tracks]);
-  const ready = useFontsReady(fonts ?? DEFAULT_PROJECT_FONTS, used, projectBase);
+  const ready = useFontsReady(fonts ?? DEFAULT_PROJECT_FONTS, used, base);
   return ready ? <>{children}</> : null;
 };

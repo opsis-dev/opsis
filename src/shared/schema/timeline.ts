@@ -230,7 +230,12 @@ export const timelineSpecSchema = z.object({
   background: z.string().optional(),
   tracks: z.array(timelineTrackSchema),
   audio: z.array(audioItemSchema).default([]),
-  assets: z.object({ projectBase: z.string().optional() }).optional(),
+  assets: z
+    .object({
+      projectBase: z.string().optional(),
+      versions: z.record(z.string(), z.string()).optional(),
+    })
+    .optional(),
   reframe: z.enum(REFRAMES).optional(),
   quality: z.enum(PREVIEW_QUALITIES).optional(),
   fonts: projectFontsSchema.optional(),

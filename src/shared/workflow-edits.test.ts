@@ -14,6 +14,7 @@ import {
   pasteNodes,
   removeNodes,
   renameWorkflowVariable,
+  setFontRole,
   ungroup,
 } from "./workflow-edits";
 
@@ -170,5 +171,18 @@ describe("workflow edits", () => {
     expect(twice.settings.fonts.families.filter((f) => f.family === "Inter")).toEqual([
       font("two"),
     ]);
+  });
+
+  it("keeps a font copied into the project when a role then picks it", () => {
+    const def: FontFamilyDef = {
+      id: "lora",
+      family: "Lora",
+      category: "serif",
+      source: "file",
+      faces: [],
+    };
+    const picked = setFontRole(addProjectFont(sounds(), def), "heading", "Lora");
+    expect(picked.settings.fonts.heading).toBe("Lora");
+    expect(picked.settings.fonts.families).toContainEqual(def);
   });
 });

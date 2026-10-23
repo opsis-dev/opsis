@@ -7,7 +7,7 @@ import { lruCache } from "@/shared/memo";
 import type { AudioBar, BarThumbnail, VideoBar } from "@/shared/timeline/flatten";
 import { framesToRecordingMs, msToSeconds } from "@/shared/timeline/time";
 import { loadedFilmstrip, loadedWaveform, useMedia } from "../../store/media";
-import { fileUrl } from "../file-url";
+import { useFileUrl } from "../../store/project-files";
 import { OFFSCREEN_PX, type BarBox, type Viewport } from "./timeline-layout";
 
 const END_EPSILON = 0.001;
@@ -27,33 +27,34 @@ function visiblePart(barLeft: number, barWidth: number, view: Viewport): Visible
 
 const images = lruCache<HTMLImageElement>(CACHED_IMAGES);
 
-function newImage(ref: string): HTMLImageElement {
+function newImage(url: string): HTMLImageElement {
   const img = new Image();
-  img.src = fileUrl(ref);
+  img.src = url;
   return img;
 }
 
 const isLoaded = (img: HTMLImageElement): boolean => img.complete && img.naturalWidth > 0;
 
-const cachedImage = (ref: string): HTMLImageElement => images.use(ref, () => newImage(ref));
+const cachedImage = (url: string): HTMLImageElement => images.use(url, () => newImage(url));
 
-function loadedImage(ref: string | null): HTMLImageElement | null {
-  if (!ref) return null;
-  const img = cachedImage(ref);
+function loadedImage(url: string | null): HTMLImageElement | null {
+  if (!url) return null;
+  const img = cachedImage(url);
   return isLoaded(img) ? img : null;
 }
 
 function useImage(ref: string | null): HTMLImageElement | null {
+  const url = useFileUrl(ref);
   const subscribe = useCallback(
     (onLoad: () => void) => {
-      if (!ref) return () => undefined;
-      const img = cachedImage(ref);
+      if (!url) return () => undefined;
+      const img = cachedImage(url);
       img.addEventListener("load", onLoad);
       return () => img.removeEventListener("load", onLoad);
     },
-    [ref],
+    [url],
   );
-  return useSyncExternalStore(subscribe, () => loadedImage(ref));
+  return useSyncExternalStore(subscribe, () => loadedImage(url));
 }
 
 function prepare(canvas: HTMLCanvasElement, width: number, height: number) {

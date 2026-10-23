@@ -26,9 +26,11 @@ import { SidePanel } from "./side-panel";
 import { TopBar } from "./top-bar";
 import { useAutosave } from "./use-autosave";
 import { CompiledContext, useCompiled } from "./use-compiled";
+import { useFileChanges } from "./use-file-changes";
 import { useForgetStaleErrors } from "./use-forget-stale-errors";
 import { useMenuCommands } from "./use-menu-commands";
 import { useProjectFileWatch } from "./use-project-file-watch";
+import { useWatchLoadedFiles } from "./use-watch-loaded-files";
 
 function InspectorPanel() {
   const open = usePanels((s) => s.open.right);
@@ -41,6 +43,7 @@ function useEditorSetup(projectDir: string): void {
   useForgetStaleErrors();
   useMenuCommands();
   useProjectFileWatch(projectDir);
+  useFileChanges();
   useApiBridge();
   useEffect(() => {
     if (name) window.opsis.setTitle(`${name} — Opsis`);
@@ -73,6 +76,7 @@ export function Editor({ projectDir }: { projectDir: string }) {
     panelIds: ["canvas", "bottom"],
   });
   useEditorSetup(projectDir);
+  useWatchLoadedFiles(projectDir, compiled.result);
 
   return (
     <ReactFlowProvider>

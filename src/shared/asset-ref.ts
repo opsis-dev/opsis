@@ -53,6 +53,24 @@ export function projectRelPath(ref: string): string | null {
   return target.kind === "project" ? target.rel : null;
 }
 
+export function fileVersionKey(ref: string): string | null {
+  const rel = projectRelPath(ref.trim());
+  return rel === null
+    ? null
+    : rel
+        .split(/[\\/]/)
+        .filter((part) => part && part !== ".")
+        .join("/");
+}
+
+export type FileVersions = Record<string, string>;
+
+export function versionedUrl(url: string, ref: string, versions?: FileVersions): string {
+  const key = versions && fileVersionKey(ref);
+  const version = key ? versions[key] : undefined;
+  return version ? `${url}?v=${encodeURIComponent(version)}` : url;
+}
+
 export function staysInProject(ref: string): boolean {
   const rel = projectRelPath(ref);
   return rel !== null && !rel.split(/[\\/]/).includes("..");

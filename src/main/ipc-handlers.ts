@@ -45,6 +45,7 @@ import {
   projectLocations,
   saveWorkflowFile,
   watchProject,
+  watchProjectFiles,
 } from "./projects";
 import { activeRun, cancelRun, startRun } from "./run-host";
 import { reportRunEvent, runProgressFor } from "./run-reporter";
@@ -121,9 +122,12 @@ const HANDLERS: { [K in InvokeName]: Handler<K> } = {
   saveWorkflow: saveWorkflowFile,
   projectLocations,
   watchProject: (dir) =>
-    watchProject(dir, (change) =>
-      getMainWindow()?.webContents.send(IPC.projectFileChanged, change),
+    watchProject(
+      dir,
+      (change) => getMainWindow()?.webContents.send(IPC.projectFileChanged, change),
+      (change) => broadcast(IPC.projectFilesChanged, change),
     ),
+  watchProjectFiles,
   readLastRun,
   revealInFolder,
   runWorkflow: startWorkflowRun,

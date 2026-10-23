@@ -3,6 +3,7 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import { pruneDir } from "../engine/dir";
+import { refStamps } from "../engine/file-stamps";
 import { sha256Hex } from "../engine/hash";
 import { readJson, writeJson } from "../engine/json";
 import { logError } from "../engine/log";
@@ -10,6 +11,7 @@ import { engineStatus } from "../engine/paths";
 import { PICTURE_VERSION } from "../engine/picture-version";
 import { projectPaths } from "../engine/project-paths";
 import { IPC, type StillRequest, type StillResult } from "../shared/ipc";
+import { projectRefsIn } from "../shared/named-files";
 import { oneAtATime } from "../shared/timing";
 import { createQueuedWorker } from "./lazy-worker";
 import { isRunning } from "./run-host";
@@ -84,7 +86,8 @@ async function recordStill(projectDir: string, nodeId: string, hash: string): Pr
 }
 
 export async function requestStill(request: StillRequest): Promise<StillResult> {
-  const hash = sha256Hex(`${PICTURE_VERSION}:${request.key}`, 24);
+  const stamps = JSON.stringify(refStamps(request.projectDir, projectRefsIn(request.spec)));
+  const hash = sha256Hex(`${PICTURE_VERSION}:${request.key}:${stamps}`, 24);
   if (existsSync(stillPath(request.projectDir, hash))) {
     await recordStill(request.projectDir, request.nodeId, hash);
     return { hash, ready: true };

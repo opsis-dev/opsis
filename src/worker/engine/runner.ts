@@ -1,6 +1,7 @@
 import { mkdir, rmdir } from "node:fs/promises";
 import path from "node:path";
 import pLimit, { type LimitFunction } from "p-limit";
+import { fileStamps, signInStamp } from "../../engine/file-stamps";
 import { readLastRun, writeLastRun } from "../../engine/last-run";
 import { logWarning } from "../../engine/log";
 import { enginePaths, type EnginePaths } from "../../engine/paths";
@@ -39,7 +40,6 @@ import {
   type ExecutorInputs,
   type NodeResults,
 } from "./context";
-import { fileStamps, signInStamp } from "./file-stamps";
 import { decorateArtifacts } from "./posters";
 
 type RunDeps = {

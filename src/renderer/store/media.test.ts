@@ -8,6 +8,8 @@ vi.stubGlobal("window", { opsis: { analyze: failingAnalyze } });
 
 afterEach(() => vi.useRealTimers());
 
+const WAVE = { src: "", durationMs: 1000, levels: [], beats: [], bpm: 0 };
+
 describe("media requests", () => {
   it("marks a waveform as failed when the request itself fails", async () => {
     useMedia.getState().reset("/project");
@@ -30,5 +32,20 @@ describe("media requests", () => {
       key: plan.key,
       error: "worker gone",
     });
+  });
+
+  it("loads a changed file's waveform again and keeps the old one meanwhile", async () => {
+    useMedia.getState().reset("/project");
+    useMedia.setState({
+      analyses: { waveform: { "project:assets/a.wav": WAVE, "b.wav": WAVE }, filmstrip: {} },
+    });
+    failingAnalyze.mockClear();
+    useMedia.getState().reloadChanged(["assets/a.wav"]);
+    expect(failingAnalyze).toHaveBeenCalledOnce();
+    expect(useMedia.getState().analyses.waveform["project:assets/a.wav"]).toBe(WAVE);
+    await vi.waitFor(() =>
+      expect(useMedia.getState().analyses.waveform["project:assets/a.wav"]).toBe("error"),
+    );
+    expect(useMedia.getState().analyses.waveform["b.wav"]).toBe(WAVE);
   });
 });

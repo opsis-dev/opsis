@@ -189,9 +189,7 @@ function BackgroundField({ background, theme }: Pick<WorkflowSettings, "backgrou
 }
 
 function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
-  const setSettings = useWorkflowStore((s) => s.setSettings);
-  const pick = (role: FontRole, family: string) =>
-    setSettings({ fonts: { ...fonts, [role]: family } });
+  const setFontRole = useWorkflowStore((s) => s.setFontRole);
   return (
     <FieldSet>
       <FieldLegend variant="label">Fonts</FieldLegend>
@@ -206,7 +204,7 @@ function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
               id={`wf-font-${role}`}
               value={fonts[role]}
               emptyLabel={empty}
-              onChange={(family) => pick(role, family)}
+              onChange={(family) => setFontRole(role, family)}
             />
           </Field>
         ))}

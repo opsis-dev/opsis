@@ -2,6 +2,7 @@ import { temporal } from "zundo";
 import { create } from "zustand";
 import { createForwarder } from "@/renderer/lib/forwarder";
 import { platform } from "@/renderer/lib/platform";
+import type { FontRole } from "@/shared/fonts";
 import type { FontFamilyDef } from "@/shared/fonts/types";
 import { nodeIdFor, randomId } from "@/shared/ids";
 import { defaultMix, type Mix } from "@/shared/mix/types";
@@ -44,6 +45,7 @@ type Actions = {
   removeEdges: (ids: string[]) => void;
   setSettings: (patch: Partial<WorkflowSettings>) => void;
   addProjectFont: (def: FontFamilyDef) => void;
+  setFontRole: (role: FontRole, family: string) => void;
   setVariables: (vars: Record<string, string>) => void;
   renameVariable: (from: string, to: string) => void;
   rename: (name: string) => void;
@@ -222,6 +224,7 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
       setSettings: (patch) =>
         get().update((wf) => ({ ...wf, settings: { ...wf.settings, ...patch } })),
       addProjectFont: (def) => get().update((wf) => edits.addProjectFont(wf, def)),
+      setFontRole: (role, family) => get().update((wf) => edits.setFontRole(wf, role, family)),
       setVariables: (variables) => get().update((wf) => ({ ...wf, variables })),
       renameVariable: (from, to) =>
         get().update((wf) => edits.renameWorkflowVariable(wf, from, to)),

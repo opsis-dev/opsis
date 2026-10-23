@@ -48,6 +48,7 @@ const api: OpsisApi = {
   platform: process.platform,
   pathForFile: (file) => webUtils.getPathForFile(file),
   onProjectFileChanged: (listener) => subscribe(IPC.projectFileChanged, listener),
+  onProjectFilesChanged: (listener) => subscribe(IPC.projectFilesChanged, listener),
   onRunEvent: (listener) => subscribe(IPC.runEvent, listener),
   onEngineInstall: (listener) => subscribe(IPC.engineEvent, listener),
   onSettingsChanged: (listener) => subscribe(IPC.settingsChanged, listener),

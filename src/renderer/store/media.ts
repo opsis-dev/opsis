@@ -7,6 +7,7 @@ import type {
   Filmstrip,
   Waveform,
 } from "@/shared/analysis";
+import { fileVersionKey } from "@/shared/asset-ref";
 import { errorMessage } from "@/shared/errors";
 import { keepLast } from "@/shared/lists";
 import type { MixPlan } from "@/shared/mix/plan";
@@ -40,7 +41,10 @@ type MediaState = {
   waveform: (src: string) => void;
   filmstrip: (src: string) => void;
   requestMix: (source: string, plan: MixPlan) => void;
+  reloadChanged: (keys: readonly string[]) => void;
 };
+
+const MEDIA_KINDS: readonly MediaKind[] = ["waveform", "filmstrip"];
 
 const MAX_MIXES = 8;
 const MIX_DEBOUNCE_MS = 250;
@@ -145,6 +149,15 @@ export const useMedia = create<MediaState>()((set, get) => ({
     set({ mix: { ...mix, status: { kind: "pending", key: plan.key } } });
     mixSoon(projectDir, source, plan);
   },
+
+  reloadChanged: (keys) => {
+    const changed = new Set(keys);
+    const isChanged = (src: string) => changed.has(fileVersionKey(src) ?? "");
+    for (const kind of MEDIA_KINDS) {
+      for (const src of Object.keys(get().analyses[kind]).filter(isChanged))
+        loadAnalysis(kind, src, true);
+    }
+  },
 }));
 
 const MEDIA_VALUE: { [K in MediaKind]: (r: AnalysisResult) => MediaOf[K] | undefined } = {
@@ -152,14 +165,14 @@ const MEDIA_VALUE: { [K in MediaKind]: (r: AnalysisResult) => MediaOf[K] | undef
   filmstrip: (r) => (r.kind === "filmstrip" ? r.filmstrip : undefined),
 };
 
-function loadAnalysis<K extends MediaKind>(kind: K, src: string): void {
+function loadAnalysis<K extends MediaKind>(kind: K, src: string, again = false): void {
   const { projectDir, unavailable, analyses } = useMedia.getState();
-  if (!projectDir || analyses[kind][src] || unavailable) return;
+  if (!projectDir || unavailable || (analyses[kind][src] && !again)) return;
   const put = (entry: Entry<MediaOf[K]>) =>
     useMedia.setState((s) => ({
       analyses: { ...s.analyses, [kind]: { ...s.analyses[kind], [src]: entry } },
     }));
-  put("loading");
+  if (!again) put("loading");
   const request: Extract<AnalysisRequest, { kind: MediaKind }> = { kind, projectDir, src };
   void analyze(request).then((r) => {
     if (useMedia.getState().projectDir !== projectDir) return;

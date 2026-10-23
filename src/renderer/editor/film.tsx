@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
+import type { FileVersions } from "@/shared/asset-ref";
+import { lookupKey } from "@/shared/hash";
 import { applyMixLevels, resolveMix, withMasterStem } from "@/shared/mix/levels";
 import { buildMixPlan, hasSound, type MixPlan } from "@/shared/mix/plan";
 import type { MixResult } from "@/shared/mix/result";
@@ -6,6 +8,7 @@ import type { Mix } from "@/shared/mix/types";
 import type { TimelineSpec } from "@/shared/schema/timeline";
 import { flattenSpec, type FlatTimeline } from "@/shared/timeline/flatten";
 import { mixFailure, useMedia } from "../store/media";
+import { useProjectFiles, versionsOf } from "../store/project-files";
 import { useWorkflowStore } from "../store/workflow";
 import { useCompiledContext } from "./use-compiled";
 
@@ -37,6 +40,12 @@ const EMPTY: Film = {
 
 const FILM_SOURCE = "film";
 
+function keyedByFiles(plan: MixPlan, versions: FileVersions): MixPlan {
+  const sounds = plan.channels.flatMap((c) => c.sounds.map((s) => s.src));
+  const files = versionsOf(sounds, versions);
+  return Object.keys(files).length ? { ...plan, key: lookupKey([plan.key, files]) } : plan;
+}
+
 type MixState = { result: MixResult | null; mixing: boolean; failedKey: string | null };
 
 function useMixResult(sounding: MixPlan | null, source: string): MixState {
@@ -59,9 +68,10 @@ function useFilmState(): Film {
   const mix = useMemo(() => resolveMix(storedMix), [storedMix]);
   const spec = preview?.spec ?? null;
   const flat = useMemo(() => (spec ? flattenSpec(spec) : null), [spec]);
+  const versions = useProjectFiles((s) => s.versions);
   const plan = useMemo(
-    () => (spec && flat ? buildMixPlan(spec, mix, flat) : null),
-    [spec, flat, mix],
+    () => (spec && flat ? keyedByFiles(buildMixPlan(spec, mix, flat), versions) : null),
+    [spec, flat, mix, versions],
   );
   const sounding = plan !== null && hasSound(plan) ? plan : null;
   const { result, mixing, failedKey } = useMixResult(

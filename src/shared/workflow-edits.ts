@@ -1,4 +1,4 @@
-import { sameFamily } from "./fonts";
+import { sameFamily, type FontRole } from "./fonts";
 import type { FontFamilyDef } from "./fonts/types";
 import { isGroupNode } from "./graph";
 import { nonBlankString } from "./guards";
@@ -160,6 +160,11 @@ export const addProjectFont = (wf: Workflow, def: FontFamilyDef): Workflow => ({
       ],
     },
   },
+});
+
+export const setFontRole = (wf: Workflow, role: FontRole, family: string): Workflow => ({
+  ...wf,
+  settings: { ...wf.settings, fonts: { ...wf.settings.fonts, [role]: family } },
 });
 
 export function renameWorkflowVariable(wf: Workflow, from: string, to: string): Workflow {

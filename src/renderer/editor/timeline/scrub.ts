@@ -1,7 +1,7 @@
 import { errorMessage } from "@/shared/errors";
 import { clamp } from "@/shared/math";
 import { lruCache } from "@/shared/memo";
-import { fileUrl } from "../file-url";
+import { currentFileUrl } from "../../store/project-files";
 
 const CACHED_SOURCES = 3;
 const MIN_INTERVAL_MS = 45;
@@ -14,13 +14,13 @@ let context: AudioContext | null = null;
 let lastScrubAt = 0;
 let current: AudioBufferSourceNode | null = null;
 
-function decode(ctx: AudioContext, src: string): Promise<AudioBuffer | null> {
-  return fetch(fileUrl(src))
+function decode(ctx: AudioContext, url: string): Promise<AudioBuffer | null> {
+  return fetch(url)
     .then((r) => r.arrayBuffer())
     .then((data) => ctx.decodeAudioData(data))
     .catch((error: unknown) => {
-      buffers.delete(src);
-      console.warn(`Scrub sound unavailable for ${src}: ${errorMessage(error)}`);
+      buffers.delete(url);
+      console.warn(`Scrub sound unavailable for ${url}: ${errorMessage(error)}`);
       return null;
     });
 }
@@ -30,8 +30,10 @@ function audioContext(): AudioContext {
   return context;
 }
 
-const load = (src: string): Promise<AudioBuffer | null> =>
-  buffers.use(src, () => decode(audioContext(), src));
+function load(src: string): Promise<AudioBuffer | null> {
+  const url = currentFileUrl(src);
+  return buffers.use(url, () => decode(audioContext(), url));
+}
 
 export function preloadScrub(src: string | null): void {
   if (src) void load(src);

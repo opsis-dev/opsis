@@ -18,6 +18,7 @@ import {
   type PlaybackCommand,
   type PlaybackSnapshot,
 } from "../store/playback";
+import { useProjectFiles } from "../store/project-files";
 import { runSnapshot, useRunStore, type RunSnapshot } from "../store/run";
 import { selection, useUiStore, type Selection } from "../store/ui";
 import { syncedView, useViewOptions, type SyncedView } from "../store/view-options";
@@ -259,6 +260,7 @@ function applyState(m: MessageOf["state"], applying: Flag): void {
   if (useWorkflowStore.getState().projectDir !== m.projectDir) {
     loadViewState(m.projectDir, m.prefs);
     useMedia.getState().reset(m.projectDir);
+    useProjectFiles.getState().forget();
   }
   useWorkflowStore.getState().mirrorProject(m.projectDir, m.workflow);
   useRunStore.setState(m.run);

@@ -9,6 +9,7 @@ import { EMPTY_SPEC, type TimelineSpec } from "@/shared/schema/timeline";
 import { atLeastOneFrame, playRange } from "@/shared/timeline/time";
 import { EmptyPanel } from "../app/empty-panel";
 import { usePlayback } from "../store/playback";
+import { useProjectFiles } from "../store/project-files";
 import { useStillsStore } from "../store/stills";
 import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
@@ -34,9 +35,11 @@ function usePreviewSpec(): TimelineSpec | null {
   const workflow = useWorkflowStore((s) => s.workflow);
   const quality = useViewOptions((s) => s.previewQuality);
   const shape = useViewOptions((s) => s.previewShape);
+  const versions = useProjectFiles((s) => s.versions);
   return useMemo(() => {
     if (!film.audible || !workflow) return null;
-    const base = { ...film.audible, assets: { projectBase: PROJECT_FILE_BASE }, quality };
+    const assets = { projectBase: PROJECT_FILE_BASE, versions };
+    const base = { ...film.audible, assets, quality };
     return shape === "project"
       ? base
       : {
@@ -44,7 +47,7 @@ function usePreviewSpec(): TimelineSpec | null {
           ...variantSize(shape, workflow.settings),
           reframe: exportReframe(workflow.nodes),
         };
-  }, [film.audible, quality, shape, workflow]);
+  }, [film.audible, quality, shape, workflow, versions]);
 }
 
 export function PreviewDock() {

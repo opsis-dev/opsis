@@ -7,6 +7,7 @@ import { isEditorSender } from "./window-registry";
 
 const SHOWN_WITHIN_MS = 2000;
 const FLUSH_WITHIN_MS = 3000;
+const UNLOAD_WITHIN_MS = 3000;
 
 type CloseQuestion = { shown: () => void; decide: (decision: CloseDecision) => void };
 
@@ -83,6 +84,18 @@ async function confirmClose(win: BrowserWindow): Promise<boolean> {
   return true;
 }
 
+function closeEvenIfPageDies(win: BrowserWindow): void {
+  const force = () => {
+    clearTimeout(unanswered);
+    if (win.isDestroyed()) return;
+    win.destroy();
+    if (quitting) app.quit();
+  };
+  const unanswered = setTimeout(force, UNLOAD_WITHIN_MS);
+  win.once("closed", () => clearTimeout(unanswered));
+  win.webContents.once("render-process-gone", force);
+}
+
 export function guardClose(win: BrowserWindow): void {
   let asking = false;
   win.on("close", (event) => {
@@ -97,6 +110,7 @@ export function guardClose(win: BrowserWindow): void {
           return;
         }
         allowClose = true;
+        closeEvenIfPageDies(win);
         if (quitting) app.quit();
         else win.close();
       })

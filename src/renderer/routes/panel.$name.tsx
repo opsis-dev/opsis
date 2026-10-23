@@ -11,6 +11,7 @@ import { DockContent } from "../editor/dock";
 import { FilmProvider } from "../editor/film";
 import { isDockPanel } from "../editor/panels";
 import { CompiledContext, useCompiled } from "../editor/use-compiled";
+import { useFileChanges } from "../editor/use-file-changes";
 import { useWorkflowStore } from "../store/workflow";
 
 const close = () => void window.opsis.windowRole("close");
@@ -37,6 +38,7 @@ function PanelRoute() {
   const { name: panel } = Route.useParams();
   const projectName = useWorkflowStore((s) => s.workflow?.name ?? null);
   usePanelSync(panel, close);
+  useFileChanges();
 
   useEffect(() => {
     if (projectName !== null)

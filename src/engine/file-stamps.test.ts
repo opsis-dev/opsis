@@ -1,8 +1,8 @@
 import { mkdir, utimes, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { tempDirs } from "../../engine/test-temp-dirs";
 import { fileStamps, signInStamp } from "./file-stamps";
+import { tempDirs } from "./test-temp-dirs";
 
 const newDir = tempDirs("opsis-stamps-");
 

@@ -1,5 +1,6 @@
 import type { AnalysisKind, AnalysisRequest, AnalysisResultFor } from "./analysis";
 import type { ApiEditorReply, ApiEditorRequest } from "./api/types";
+import type { FileVersions } from "./asset-ref";
 import type { EngineInstallEvent, EngineStatus } from "./engine";
 import type { PlannedFamily } from "./fonts/plan";
 import type { CatalogCategory, FontFamilyDef } from "./fonts/types";
@@ -32,6 +33,8 @@ export type SaveResult =
   | { ok: false; version: string; workflow: Workflow | null };
 
 export type ProjectFileChange = { dir: string; workflow: Workflow | null; version: string };
+
+export type ProjectFilesChange = { dir: string; files: FileVersions };
 
 export type ProjectLocations = { defaultDir: string; suggestedDir: string };
 
@@ -156,7 +159,9 @@ export interface OpsisApi {
   projectLocations(): Promise<ProjectLocations>;
   chooseFolder(opts: { title: string; defaultPath?: string }): Promise<string | null>;
   watchProject(dir: string | null): Promise<void>;
+  watchProjectFiles(dir: string, refs: readonly string[]): Promise<void>;
   onProjectFileChanged(listener: (change: ProjectFileChange) => void): () => void;
+  onProjectFilesChanged(listener: (change: ProjectFilesChange) => void): () => void;
   readLastRun(dir: string): Promise<LastRun | null>;
   importAssets(dir: string, paths?: string[]): Promise<string[]>;
   pathForFile(file: File): string;
@@ -232,6 +237,7 @@ export const INVOKE = {
   projectLocations: "opsis:projects:locations",
   chooseFolder: "opsis:projects:choose-folder",
   watchProject: "opsis:projects:watch",
+  watchProjectFiles: "opsis:projects:watch-files",
   readLastRun: "opsis:projects:last-run",
   importAssets: "opsis:projects:import-assets",
   revealInFolder: "opsis:shell:reveal",
@@ -290,6 +296,7 @@ export const IPC = {
   closeDecision: "opsis:exit:decision",
   closeShown: "opsis:exit:shown",
   projectFileChanged: "opsis:projects:file-changed",
+  projectFilesChanged: "opsis:projects:files-changed",
   settingsChanged: "opsis:settings:changed",
   viewPrefChanged: "opsis:view:changed",
   settingsPage: "opsis:settings:page",
@@ -305,6 +312,7 @@ export type BroadcastPayloads = {
   [IPC.settingsChanged]: AppSettings;
   [IPC.viewPrefChanged]: ViewPrefChange;
   [IPC.apiStatusChanged]: ApiServerStatus;
+  [IPC.projectFilesChanged]: ProjectFilesChange;
 };
 
 declare global {
