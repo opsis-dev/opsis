@@ -1,16 +1,16 @@
 Fixes:
 - Every colour was fixed and the scenes had fixed lengths summing to 420 frames, so a shorter clip cut the last scenes off; the story takes a theme, background and accents, and its scenes scale to fill the clip.
 
-diff --git a/src/video/elements/remotion-ui/data-story/index.tsx b/src/video/elements/remotion-ui/data-story/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/data-story/index.tsx b/packages/video/src/elements/remotion-ui/data-story/index.tsx
 index 4a5dcce..2d7988d 100644
---- a/src/video/elements/remotion-ui/data-story/index.tsx
-+++ b/src/video/elements/remotion-ui/data-story/index.tsx
+--- a/packages/video/src/elements/remotion-ui/data-story/index.tsx
++++ b/packages/video/src/elements/remotion-ui/data-story/index.tsx
 @@ -1,4 +1,4 @@
 -import { AbsoluteFill } from "remotion";
 +import { AbsoluteFill, useVideoConfig } from "remotion";
  import { TransitionSeries } from "@remotion/transitions";
- import { transitionFade } from "@/video/elements/remotion-ui/transition-fade";
- import { DURATION } from "@/video/lib/remotion-ui/motion-tokens";
+ import { transitionFade } from "../transition-fade";
+ import { DURATION } from "../../../lib/remotion-ui/motion-tokens";
 @@ -43,6 +43,30 @@ const SCENE_DURATIONS = {
  
  const FADE = transitionFade({ durationInFrames: DURATION.fast });

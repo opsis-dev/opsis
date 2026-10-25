@@ -1,7 +1,7 @@
 import { rm } from "node:fs/promises";
+import { must } from "@opsis/core/test-fixtures";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { tempDirs } from "../engine/test-temp-dirs";
-import { must } from "../shared/test-fixtures";
 import { closeDatabase, db, IN_MEMORY, openDatabase } from "./db";
 import { projects } from "./db/schema";
 import { createProjectDir, listRecent, openProjectDir } from "./projects";

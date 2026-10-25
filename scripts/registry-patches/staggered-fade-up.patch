@@ -2,14 +2,14 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/staggered-fade-up.tsx b/src/video/elements/remocn/staggered-fade-up.tsx
+diff --git a/packages/video/src/elements/remocn/staggered-fade-up.tsx b/packages/video/src/elements/remocn/staggered-fade-up.tsx
 index ca02a4e..e54cac2 100644
---- a/src/video/elements/remocn/staggered-fade-up.tsx
-+++ b/src/video/elements/remocn/staggered-fade-up.tsx
+--- a/packages/video/src/elements/remocn/staggered-fade-up.tsx
++++ b/packages/video/src/elements/remocn/staggered-fade-up.tsx
 @@ -1,6 +1,8 @@
 -import { interpolate, useCurrentFrame } from "remotion";
 +import { interpolate } from "remotion";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredFrame } from "../../core/authored-clock";
  
  export interface StaggeredFadeUpProps {
 +  fontFamily?: string;

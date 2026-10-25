@@ -3,10 +3,10 @@ Fixes:
 - Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/inline-highlight.tsx b/src/video/elements/remocn/inline-highlight.tsx
+diff --git a/packages/video/src/elements/remocn/inline-highlight.tsx b/packages/video/src/elements/remocn/inline-highlight.tsx
 index d74be90..05bddeb 100644
---- a/src/video/elements/remocn/inline-highlight.tsx
-+++ b/src/video/elements/remocn/inline-highlight.tsx
+--- a/packages/video/src/elements/remocn/inline-highlight.tsx
++++ b/packages/video/src/elements/remocn/inline-highlight.tsx
 @@ -1,11 +1,11 @@
  import {
    interpolate,
@@ -14,7 +14,7 @@ index d74be90..05bddeb 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface InlineHighlightProps {
 +  fontFamily?: string;

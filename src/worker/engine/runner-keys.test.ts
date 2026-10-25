@@ -1,11 +1,11 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { findById } from "@opsis/core/lists";
+import { GraphBuilder } from "@opsis/core/templates/build";
+import { must } from "@opsis/core/test-fixtures";
 import { describe, expect, it } from "vitest";
 import { secretFile } from "../../engine/secret-paths";
 import { tempDirs } from "../../engine/test-temp-dirs";
-import { findById } from "../../shared/lists";
-import { GraphBuilder } from "../../shared/templates/build";
-import { must } from "../../shared/test-fixtures";
 import { hashNodes } from "./runner";
 
 describe("cache keys of skipped nodes", () => {

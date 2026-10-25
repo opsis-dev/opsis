@@ -1,5 +1,5 @@
+import type { BroadcastPayloads } from "@opsis/core/ipc";
 import type { BrowserWindow } from "electron";
-import type { BroadcastPayloads } from "../shared/ipc";
 import { guardClose } from "./exit";
 import { closePanelWindows, isPanelSender, panelWindows } from "./panel-windows";
 import { rememberProjectWindow } from "./project-window";

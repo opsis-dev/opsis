@@ -1,24 +1,24 @@
 import { existsSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { isProjectRef, projectRelPath, STATIC_PROJECT_BASE } from "@opsis/core/asset-ref";
+import { walkItems } from "@opsis/core/compile/clip";
+import { EXPORT_FOLDER_FALLBACK, exportProjectNode } from "@opsis/core/nodes/output";
+import { safeName } from "@opsis/core/safe-name";
+import type { TimelineSpec } from "@opsis/core/schema/timeline";
+import { stringsIn } from "@opsis/core/vars";
+import {
+  DEPENDENCY_MANIFESTS,
+  EXPORTED_PACKAGES,
+  EXPORTED_SOURCES,
+  VIDEO_SOURCE,
+} from "@opsis/sidecar/source-layout";
 import { z } from "zod";
 import { readJson, writeJson } from "../../engine/json";
 import { toPosixRel, toProjectRef } from "../../engine/project-paths";
-import { isProjectRef, projectRelPath, STATIC_PROJECT_BASE } from "../../shared/asset-ref";
-import { walkItems } from "../../shared/compile/clip";
-import { EXPORT_FOLDER_FALLBACK, exportProjectNode } from "../../shared/nodes/output";
-import { safeName } from "../../shared/safe-name";
-import type { TimelineSpec } from "../../shared/schema/timeline";
-import { stringsIn } from "../../shared/vars";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
-import {
-  SOURCE_ALIAS,
-  SOURCE_DIR,
-  WEBPACK_OVERRIDE_DIR,
-  WEBPACK_OVERRIDE_FILES,
-} from "../render/source-alias";
 import { mixed, specFor, type Stage } from "./film-spec";
-import { exportSourceRoot, exportUtilsFile, publicDir } from "./util";
+import { exportedSource, publicDir } from "./util";
 
 const EXPORT_MIX_STAGE: Stage = [0, 0.3];
 
@@ -37,8 +37,8 @@ const SOURCE_FILE = /\.(ts|tsx|mts|css)$/;
 
 const IMPORT_SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|@import\s+)["']([^"'\n]+)["']/g;
 
-const appPackageSchema = z.object({
-  dependencies: z.record(z.string(), z.string()),
+const manifestSchema = z.object({
+  dependencies: z.record(z.string(), z.string()).optional(),
   devDependencies: z.record(z.string(), z.string()).optional(),
 });
 
@@ -52,7 +52,7 @@ registerRoot(ExportRoot);
 const EXPORT_ROOT_TSX = `import { Composition } from "remotion";
 import { DemoTimeline } from "./video/demo-timeline";
 import timeline from "./timeline.json";
-import { timelineSpecSchema } from "./shared/schema/timeline";
+import { timelineSpecSchema } from "./core/schema/timeline";
 
 const spec = timelineSpecSchema.parse(timeline);
 
@@ -71,10 +71,19 @@ export const ExportRoot = () => (
 
 const CANT_EXPORT_CODE = "This copy of Opsis can't export code.";
 
-const REMOTION_CONFIG_TS = `import { Config } from "@remotion/cli/config";
-import { makeWebpackOverride } from "./${[SOURCE_DIR, ...WEBPACK_OVERRIDE_DIR, "webpack-override"].join("/")}";
+const EXPORTED_PACKAGE_DIRS = Object.entries(EXPORTED_PACKAGES);
 
-Config.overrideWebpackConfig(makeWebpackOverride(process.cwd()));
+const REMOTION_CONFIG_TS = `import path from "node:path";
+import { Config } from "@remotion/cli/config";
+import { makeWebpackOverride } from "./src/sidecar/webpack-override";
+
+const src = path.join(process.cwd(), "src");
+
+Config.overrideWebpackConfig(
+  makeWebpackOverride(path.join(src, "video"), {
+${EXPORTED_PACKAGE_DIRS.map(([name, dir]) => `    "${name}": path.join(src, "${dir}"),`).join("\n")}
+  }),
+);
 `;
 
 const TSCONFIG = {
@@ -87,7 +96,9 @@ const TSCONFIG = {
     skipLibCheck: true,
     resolveJsonModule: true,
     noEmit: true,
-    paths: { [`${SOURCE_ALIAS}/*`]: [`./${SOURCE_DIR}/*`] },
+    paths: Object.fromEntries(
+      EXPORTED_PACKAGE_DIRS.map(([name, dir]) => [`${name}/*`, [`./src/${dir}/*`]]),
+    ),
   },
   include: ["src"],
 };
@@ -105,35 +116,19 @@ bun run studio
 const isRemotion = (name: string) => name === "remotion" || name.startsWith("@remotion/");
 
 function packageOf(specifier: string): string | null {
-  if (/^(\.|\/|@\/|node:)/.test(specifier)) return null;
+  if (/^(\.|\/|@\/|@opsis\/|node:)/.test(specifier)) return null;
   const parts = specifier.split("/");
   return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
 }
 
-function sourceDirs(ctx: ExecutorContext) {
-  const root = exportSourceRoot(ctx.env);
-  return {
-    video: path.join(root, "video"),
-    shared: path.join(root, "shared"),
-    utils: exportUtilsFile(ctx.env),
-    public: publicDir(ctx.env),
-    webpack: path.join(root, ...WEBPACK_OVERRIDE_DIR),
-  };
-}
-
 async function copySources(ctx: ExecutorContext, dir: string) {
-  const src = sourceDirs(ctx);
-  if (!existsSync(src.video)) throw new Error(CANT_EXPORT_CODE);
-  await mkdir(path.join(dir, "src", "renderer", "lib"), { recursive: true });
-  await cp(src.video, path.join(dir, "src", "video"), { recursive: true });
-  await cp(src.shared, path.join(dir, "src", "shared"), { recursive: true });
-  await cp(src.utils, path.join(dir, "src", "renderer", "lib", "utils.ts"));
-  await cp(src.public, path.join(dir, "public"), { recursive: true });
-  for (const file of WEBPACK_OVERRIDE_FILES)
-    await cp(
-      path.join(src.webpack, file),
-      path.join(dir, SOURCE_DIR, ...WEBPACK_OVERRIDE_DIR, file),
-    );
+  if (!existsSync(exportedSource(ctx.env, { from: VIDEO_SOURCE, to: "video" })))
+    throw new Error(CANT_EXPORT_CODE);
+  for (const source of EXPORTED_SOURCES)
+    await cp(exportedSource(ctx.env, source), path.join(dir, "src", source.to), {
+      recursive: true,
+    });
+  await cp(publicDir(ctx.env), path.join(dir, "public"), { recursive: true });
 }
 
 async function importedPackages(srcDir: string): Promise<Set<string>> {
@@ -170,16 +165,23 @@ function checkProjectFiles(ctx: ExecutorContext, spec: TimelineSpec) {
 }
 
 async function packageJsonFor(ctx: ExecutorContext, name: string, dir: string) {
-  const appPkg = await readJson(path.join(ctx.env.appRoot, "package.json"), appPackageSchema);
-  if (!appPkg) throw new Error(CANT_EXPORT_CODE);
+  const manifests = await Promise.all(
+    DEPENDENCY_MANIFESTS.map((source) => readJson(exportedSource(ctx.env, source), manifestSchema)),
+  );
+  if (manifests.some((manifest) => !manifest)) throw new Error(CANT_EXPORT_CODE);
+  const published = (deps: Record<string, string> = {}) =>
+    Object.entries(deps).filter(([, version]) => !version.startsWith("workspace:"));
+  const dependencies = Object.fromEntries(
+    manifests.flatMap((manifest) => published(manifest?.dependencies)),
+  );
   const versions: Partial<Record<string, string>> = {
-    ...appPkg.devDependencies,
-    ...appPkg.dependencies,
+    ...Object.fromEntries(manifests.flatMap((manifest) => published(manifest?.devDependencies))),
+    ...dependencies,
   };
   const pick = (names: string[]) =>
     Object.fromEntries(names.flatMap((n) => (versions[n] ? [[n, versions[n]]] : [])));
   const imported = await importedPackages(path.join(dir, "src"));
-  const runtime = Object.keys(appPkg.dependencies).filter(
+  const runtime = Object.keys(dependencies).filter(
     (n) =>
       isRemotion(n) ||
       EXPORT_PEERS.includes(n) ||

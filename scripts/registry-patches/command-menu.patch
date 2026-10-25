@@ -1,16 +1,16 @@
 Fixes:
 - Play the menu out on its own when autoplay is on: open, type the search, then hover, press and select the first match; and key rows and count picked items by their place in the full list.
 
-diff --git a/src/video/elements/remocn/command-menu.tsx b/src/video/elements/remocn/command-menu.tsx
+diff --git a/packages/video/src/elements/remocn/command-menu.tsx b/packages/video/src/elements/remocn/command-menu.tsx
 index 7c83223..873b06f 100644
---- a/src/video/elements/remocn/command-menu.tsx
-+++ b/src/video/elements/remocn/command-menu.tsx
+--- a/packages/video/src/elements/remocn/command-menu.tsx
++++ b/packages/video/src/elements/remocn/command-menu.tsx
 @@ -7,6 +7,8 @@ import {
    commandMenuItemStyle,
    commandMenuItemStyleContext,
- } from "@/video/elements/remocn/command-menu-item";
+ } from "./command-menu-item";
 +import { Easing, interpolate } from "remotion";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredFrame } from "../../core/authored-clock";
  import {
    type RemocnTheme,
    revealedText,

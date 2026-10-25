@@ -1,5 +1,5 @@
+import type { TimelineSpec } from "@opsis/core/schema/timeline";
 import { describe, expect, it } from "vitest";
-import type { TimelineSpec } from "../../shared/schema/timeline";
 import { finishArgs, muxArgs, pictureKey } from "./picture";
 
 const spec: TimelineSpec = {

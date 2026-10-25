@@ -1,15 +1,15 @@
 import { existsSync } from "node:fs";
 import { mkdir, utimes } from "node:fs/promises";
 import path from "node:path";
+import type { TimelineSpec } from "@opsis/core/schema/timeline";
+import type { GlRenderer } from "@opsis/sidecar/render";
 import { writeViaTemp } from "../../engine/atomic";
 import { pruneDir } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
 import { PICTURE_VERSION } from "../../engine/picture-version";
 import { projectPaths } from "../../engine/project-paths";
-import type { TimelineSpec } from "../../shared/schema/timeline";
 import { ENGINE_VERSION } from "../engine/cache";
 import { CODECS, FASTSTART, type RenderCodec, type SoundCodec } from "../media/codecs";
-import type { GlRenderer } from "./render";
 
 const KEEP_PICTURES = 12;
 

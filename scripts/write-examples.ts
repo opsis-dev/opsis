@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { workflowSchema } from "@opsis/core/schema/workflow";
+import { TEMPLATES } from "@opsis/core/templates";
 import { writeJson } from "../src/engine/json";
-import { workflowSchema } from "../src/shared/schema/workflow";
-import { TEMPLATES } from "../src/shared/templates";
 import { ROOT } from "./lib/tool-config";
 
 for (const t of TEMPLATES.filter((x) => x.id !== "blank")) {

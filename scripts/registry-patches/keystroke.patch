@@ -2,15 +2,15 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Size the keys by the frame's short side, so a chord fits in portrait and square frames.
 
-diff --git a/src/video/elements/remocn/keystroke.tsx b/src/video/elements/remocn/keystroke.tsx
+diff --git a/packages/video/src/elements/remocn/keystroke.tsx b/packages/video/src/elements/remocn/keystroke.tsx
 index 5125811..5bfd53f 100644
---- a/src/video/elements/remocn/keystroke.tsx
-+++ b/src/video/elements/remocn/keystroke.tsx
+--- a/packages/video/src/elements/remocn/keystroke.tsx
++++ b/packages/video/src/elements/remocn/keystroke.tsx
 @@ -1,5 +1,6 @@
  import { useMemo } from "react";
 -import { Easing, useCurrentFrame, useVideoConfig } from "remotion";
 +import { Easing } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export type KeystrokePlatform = "mac" | "windows";
  export type KeystrokeTheme = "light" | "dark";

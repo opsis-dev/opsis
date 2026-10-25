@@ -1,6 +1,6 @@
+import { debounce } from "@opsis/core/timing";
 import { eq } from "drizzle-orm";
 import type { BrowserWindow, Rectangle } from "electron";
-import { debounce } from "../shared/timing";
 import { db } from "./db";
 import { windowBounds } from "./db/schema";
 import { raiseWindow } from "./raise-window";

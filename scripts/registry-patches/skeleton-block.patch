@@ -1,14 +1,14 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/skeleton-block.tsx b/src/video/elements/remocn/skeleton-block.tsx
+diff --git a/packages/video/src/elements/remocn/skeleton-block.tsx b/packages/video/src/elements/remocn/skeleton-block.tsx
 index be768bc..16cd393 100644
---- a/src/video/elements/remocn/skeleton-block.tsx
-+++ b/src/video/elements/remocn/skeleton-block.tsx
+--- a/packages/video/src/elements/remocn/skeleton-block.tsx
++++ b/packages/video/src/elements/remocn/skeleton-block.tsx
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame } from "remotion";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
- import { mixOklch, useRemocnTheme } from "@/video/lib/remocn-ui";
++import { useAuthoredFrame } from "../../core/authored-clock";
+ import { mixOklch, useRemocnTheme } from "../../lib/remocn-ui";
  
  export interface SkeletonBlockProps {
 @@ -28,7 +28,7 @@ export function SkeletonBlock({

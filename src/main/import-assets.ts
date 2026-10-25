@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs";
 import { copyFile, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { firstFree } from "@opsis/core/lists";
+import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, VIDEO_MIME } from "@opsis/core/mime";
 import type { BrowserWindow } from "electron";
 import { isInside, toPosixRel } from "../engine/project-paths";
-import { firstFree } from "../shared/lists";
-import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, VIDEO_MIME } from "../shared/mime";
 import { openDialog } from "./dialogs";
 import { glbJson, MODEL_EXTENSIONS, modelFiles } from "./model-files";
 

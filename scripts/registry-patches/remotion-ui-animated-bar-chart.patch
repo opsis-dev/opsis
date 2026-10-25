@@ -2,10 +2,10 @@ Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - The bar chart had only dark colours, so the data story it is part of could not go light; it now takes a dark or light theme.
 
-diff --git a/src/video/elements/remotion-ui/animated-bar-chart/index.tsx b/src/video/elements/remotion-ui/animated-bar-chart/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/animated-bar-chart/index.tsx b/packages/video/src/elements/remotion-ui/animated-bar-chart/index.tsx
 index 76471ea..44161b6 100644
---- a/src/video/elements/remotion-ui/animated-bar-chart/index.tsx
-+++ b/src/video/elements/remotion-ui/animated-bar-chart/index.tsx
+--- a/packages/video/src/elements/remotion-ui/animated-bar-chart/index.tsx
++++ b/packages/video/src/elements/remotion-ui/animated-bar-chart/index.tsx
 @@ -33,6 +33,8 @@ export type AnimatedBarChartProps = {
    barColor?: string;
    accentColor?: string;

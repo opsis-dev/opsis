@@ -2,18 +2,18 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 - The legend never showed a segment's change, so the Delta column did nothing; it now follows the share, coloured by direction.
 
-diff --git a/src/video/elements/remotion-ui/donut-chart.tsx b/src/video/elements/remotion-ui/donut-chart.tsx
+diff --git a/packages/video/src/elements/remotion-ui/donut-chart.tsx b/packages/video/src/elements/remotion-ui/donut-chart.tsx
 index f068605..06bba38 100644
---- a/src/video/elements/remotion-ui/donut-chart.tsx
-+++ b/src/video/elements/remotion-ui/donut-chart.tsx
+--- a/packages/video/src/elements/remotion-ui/donut-chart.tsx
++++ b/packages/video/src/elements/remotion-ui/donut-chart.tsx
 @@ -1,6 +1,7 @@
  import { interpolate, useCurrentFrame } from "remotion";
  import {
    formatCompactNumber,
 +  readDelta,
    type ChartDatum,
- } from "@/video/lib/remotion-ui/chart-utils";
- import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
+ } from "../../lib/remotion-ui/chart-utils";
+ import { EASING } from "../../lib/remotion-ui/motion-tokens";
 @@ -24,6 +25,10 @@ export type DonutChartProps = {
    trackColor?: string;
    labelColor?: string;

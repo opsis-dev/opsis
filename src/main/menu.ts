@@ -1,5 +1,5 @@
+import { appMenu } from "@opsis/core/menu";
 import { app, Menu, type MenuItemConstructorOptions } from "electron";
-import { appMenu } from "../shared/menu";
 import { sendMenuCommand } from "./window-registry";
 
 export function buildMenu(): void {

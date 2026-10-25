@@ -1,5 +1,5 @@
 import path from "node:path";
-import { secretFileName } from "../shared/secrets";
+import { secretFileName } from "@opsis/core/secrets";
 
 export const SECRETS_DIR = "secrets";
 

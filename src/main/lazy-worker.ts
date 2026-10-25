@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { pendingReplies } from "@opsis/core/pending-replies";
+import type { MainToWorker, WorkerEnv, WorkerToMain } from "@opsis/core/worker-protocol";
 import type { MessagePortMain, UtilityProcess } from "electron";
-import { pendingReplies } from "../shared/pending-replies";
-import type { MainToWorker, WorkerEnv, WorkerToMain } from "../shared/worker-protocol";
 import type { WorkerKind } from "./worker-temp";
 import { onWorkerMessage, spawnWorker, workerEnv } from "./workers";
 

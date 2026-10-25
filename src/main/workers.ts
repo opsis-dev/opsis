@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { isWorkerToMain, type WorkerEnv, type WorkerToMain } from "@opsis/core/worker-protocol";
 import {
   app,
   MessageChannelMain,
@@ -8,7 +9,6 @@ import {
   type UtilityProcess,
 } from "electron";
 import { resolveEngineDir } from "../engine/paths";
-import { isWorkerToMain, type WorkerEnv, type WorkerToMain } from "../shared/worker-protocol";
 import { readSettings } from "./settings";
 import {
   makeWorkerTemp,

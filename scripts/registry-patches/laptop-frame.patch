@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - In portrait, zoom until the screen fits the frame's width instead of covering its height, so the whole screen stays in view.
 
-diff --git a/src/video/elements/snap-cn/laptop-frame.tsx b/src/video/elements/snap-cn/laptop-frame.tsx
+diff --git a/packages/video/src/elements/snap-cn/laptop-frame.tsx b/packages/video/src/elements/snap-cn/laptop-frame.tsx
 index a727915..50b6f33 100644
---- a/src/video/elements/snap-cn/laptop-frame.tsx
-+++ b/src/video/elements/snap-cn/laptop-frame.tsx
+--- a/packages/video/src/elements/snap-cn/laptop-frame.tsx
++++ b/packages/video/src/elements/snap-cn/laptop-frame.tsx
 @@ -6,9 +6,8 @@ import {
    interpolate,
    OffthreadVideo,
@@ -13,7 +13,7 @@ index a727915..50b6f33 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  import {
    mixOklch,
    resolveFont,

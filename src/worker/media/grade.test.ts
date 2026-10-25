@@ -1,5 +1,5 @@
+import { defaultParams } from "@opsis/core/nodes/registry";
 import { describe, expect, it } from "vitest";
-import { defaultParams } from "../../shared/nodes/registry";
 import { filterPath, gradeFilters, lookKindOf, type GradeSize } from "./grade";
 
 const video: GradeSize = { width: 1920, height: 1080, still: false };

@@ -2,14 +2,14 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/tracking-in.tsx b/src/video/elements/remocn/tracking-in.tsx
+diff --git a/packages/video/src/elements/remocn/tracking-in.tsx b/packages/video/src/elements/remocn/tracking-in.tsx
 index e31e8b0..be28d5f 100644
---- a/src/video/elements/remocn/tracking-in.tsx
-+++ b/src/video/elements/remocn/tracking-in.tsx
+--- a/packages/video/src/elements/remocn/tracking-in.tsx
++++ b/packages/video/src/elements/remocn/tracking-in.tsx
 @@ -1,6 +1,8 @@
 -import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 +import { interpolate, spring } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface TrackingInProps {
 +  fontFamily?: string;

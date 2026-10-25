@@ -1,10 +1,10 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/shader-swirl.tsx b/src/video/elements/remocn/shader-swirl.tsx
+diff --git a/packages/video/src/elements/remocn/shader-swirl.tsx b/packages/video/src/elements/remocn/shader-swirl.tsx
 index eece186..fde5eaf 100644
---- a/src/video/elements/remocn/shader-swirl.tsx
-+++ b/src/video/elements/remocn/shader-swirl.tsx
+--- a/packages/video/src/elements/remocn/shader-swirl.tsx
++++ b/packages/video/src/elements/remocn/shader-swirl.tsx
 @@ -3,9 +3,8 @@ import { useCallback, useState } from "react";
  import {
    continueRender,
@@ -12,7 +12,7 @@ index eece186..fde5eaf 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  const NEUTRAL_COLORS = ["#52527a", "#3a3a5c", "#232338"];
  

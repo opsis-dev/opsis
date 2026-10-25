@@ -1,10 +1,10 @@
+import type { ApiEditorReply, ApiEditorRequest } from "@opsis/core/api/types";
+import { errorMessage, withoutRemotePrefix } from "@opsis/core/errors";
+import { INVOKE, IPC, type OpsisApi } from "@opsis/core/ipc";
+import { listenerSet } from "@opsis/core/listener-set";
+import { isLiveMessage, type LiveMessage } from "@opsis/core/live";
+import { mapValues } from "@opsis/core/objects";
 import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from "electron";
-import type { ApiEditorReply, ApiEditorRequest } from "../shared/api/types";
-import { errorMessage, withoutRemotePrefix } from "../shared/errors";
-import { INVOKE, IPC, type OpsisApi } from "../shared/ipc";
-import { listenerSet } from "../shared/listener-set";
-import { isLiveMessage, type LiveMessage } from "../shared/live";
-import { mapValues } from "../shared/objects";
 
 function subscribe<A extends unknown[]>(
   channel: string,

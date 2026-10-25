@@ -1,11 +1,11 @@
 import { existsSync, watch, type FSWatcher } from "node:fs";
 import path from "node:path";
+import { fileVersionKey, staysInProject } from "@opsis/core/asset-ref";
+import type { ProjectFilesChange } from "@opsis/core/ipc";
+import { PROJECT_DIRS } from "@opsis/core/project-dirs";
+import { debounce } from "@opsis/core/timing";
 import { fileStamp } from "../engine/file-stamps";
 import { logError } from "../engine/log";
-import { fileVersionKey, staysInProject } from "../shared/asset-ref";
-import type { ProjectFilesChange } from "../shared/ipc";
-import { PROJECT_DIRS } from "../shared/project-dirs";
-import { debounce } from "../shared/timing";
 
 export const MISSING_FILE = "missing";
 

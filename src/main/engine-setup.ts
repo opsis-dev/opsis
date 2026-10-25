@@ -1,9 +1,9 @@
 import { existsSync } from "node:fs";
+import type { EngineInstallEvent } from "@opsis/core/engine";
+import type { EnvStatus } from "@opsis/core/ipc";
+import type { MainToWorker } from "@opsis/core/worker-protocol";
 import { app } from "electron";
 import { bundledEngineDir, engineStatus } from "../engine/paths";
-import type { EngineInstallEvent } from "../shared/engine";
-import type { EnvStatus } from "../shared/ipc";
-import type { MainToWorker } from "../shared/worker-protocol";
 import { completeLicences } from "./licences";
 import { engineDir, onWorkerMessage, spawnWorker, workerEnv } from "./workers";
 

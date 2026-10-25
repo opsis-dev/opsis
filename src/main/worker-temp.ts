@@ -1,6 +1,6 @@
 import { mkdirSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
-import { errorCode } from "../shared/errors";
+import { errorCode } from "@opsis/core/errors";
 
 export type WorkerKind = "run" | "analysis" | "setup";
 

@@ -1,9 +1,9 @@
+import { errorMessage } from "@opsis/core/errors";
+import { openBrowserNode, openBrowserParams } from "@opsis/core/nodes/browser";
+import { nodeName } from "@opsis/core/nodes/registry";
+import type { ActionLog } from "@opsis/core/schema/actions";
+import type { SessionStep } from "@opsis/core/schema/values";
 import type { Page } from "playwright-core";
-import { errorMessage } from "../../shared/errors";
-import { openBrowserNode, openBrowserParams } from "../../shared/nodes/browser";
-import { nodeName } from "../../shared/nodes/registry";
-import type { ActionLog } from "../../shared/schema/actions";
-import type { SessionStep } from "../../shared/schema/values";
 import { TRACE_NOT_SAVED, warnFailed } from "../engine/context";
 import { CURSOR_LOOK, installCursor } from "./page-scripts";
 import { SelectorError } from "./selectors";

@@ -4,10 +4,10 @@ Fixes:
 - A time per step of zero divided by zero, a series with fewer values froze at its last one, and the figure inside the bars was always near-black; the step is at least one frame, a series that runs out fades off the board, and the figure takes a colour setting.
 - A time per step of zero divided by zero, a series with fewer values froze at its last one, the figure inside the bars was always near-black, and the soft rank never settled, so close values overlapped on the final standings; the step is at least one frame, a series that runs out fades off the board, the figure takes a colour setting, and rank eases between each keyframe's order.
 
-diff --git a/src/video/elements/remotion-ui/bar-chart-race.tsx b/src/video/elements/remotion-ui/bar-chart-race.tsx
+diff --git a/packages/video/src/elements/remotion-ui/bar-chart-race.tsx b/packages/video/src/elements/remotion-ui/bar-chart-race.tsx
 index e45e424..87ad600 100644
---- a/src/video/elements/remotion-ui/bar-chart-race.tsx
-+++ b/src/video/elements/remotion-ui/bar-chart-race.tsx
+--- a/packages/video/src/elements/remotion-ui/bar-chart-race.tsx
++++ b/packages/video/src/elements/remotion-ui/bar-chart-race.tsx
 @@ -4,7 +4,7 @@ import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
  
  export type RaceSeries = {

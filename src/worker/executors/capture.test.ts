@@ -1,14 +1,14 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { compileWorkflow } from "@opsis/core/compile/compile";
+import { findById } from "@opsis/core/lists";
+import { DEFAULT_SETTINGS } from "@opsis/core/settings";
+import { GraphBuilder } from "@opsis/core/templates/build";
+import { must } from "@opsis/core/test-fixtures";
+import type { LoginRequest } from "@opsis/core/worker-protocol";
 import { describe, expect, it, vi } from "vitest";
 import { enginePaths } from "../../engine/paths";
 import { tempDirs } from "../../engine/test-temp-dirs";
-import { compileWorkflow } from "../../shared/compile/compile";
-import { findById } from "../../shared/lists";
-import { DEFAULT_SETTINGS } from "../../shared/settings";
-import { GraphBuilder } from "../../shared/templates/build";
-import { must } from "../../shared/test-fixtures";
-import type { LoginRequest } from "../../shared/worker-protocol";
 import { TracedError, type ExecutorContext } from "../engine/context";
 import { signInExecutor, stillExecutor } from "./capture";
 

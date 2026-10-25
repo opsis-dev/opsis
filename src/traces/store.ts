@@ -2,18 +2,18 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { constants, zstdCompressSync, zstdDecompressSync } from "node:zlib";
+import { projectRef } from "@opsis/core/asset-ref";
+import { parseJsonWith } from "@opsis/core/guards";
+import { PROJECT_DIRS } from "@opsis/core/project-dirs";
+import { safeName } from "@opsis/core/safe-name";
+import type { AppSettings } from "@opsis/core/settings";
+import type { TraceHeader, TraceModel } from "@opsis/core/trace";
 import { unzipSync } from "fflate";
 import { z } from "zod";
 import { pruneDir } from "../engine/dir";
 import { sha256Hex } from "../engine/hash";
 import { atomicWrite, readBytesIfPresent, readDirIfPresent } from "../engine/json";
 import { projectPaths } from "../engine/project-paths";
-import { projectRef } from "../shared/asset-ref";
-import { parseJsonWith } from "../shared/guards";
-import { PROJECT_DIRS } from "../shared/project-dirs";
-import { safeName } from "../shared/safe-name";
-import type { AppSettings } from "../shared/settings";
-import type { TraceHeader, TraceModel } from "../shared/trace";
 import { parseTrace, traceTextPart, type TraceTextPart } from "./model";
 
 const traceEntrySchema = z.object({

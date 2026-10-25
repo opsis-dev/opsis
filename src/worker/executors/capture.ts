@@ -1,30 +1,30 @@
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Locator, Page } from "playwright-core";
-import { writeJson } from "../../engine/json";
-import { requireHeadlessShell } from "../../engine/paths";
-import { PREVIEW_FILE_WIDTH } from "../../shared/compile/recording";
-import { errorMessage } from "../../shared/errors";
-import { formatDuration, plural } from "../../shared/format";
-import { openBrowserParams, signInNode } from "../../shared/nodes/browser";
-import { recordNode, stillNode } from "../../shared/nodes/capture";
-import type { NodeParams } from "../../shared/nodes/define";
-import { SESSION_PORT } from "../../shared/nodes/ports";
-import { nodeName } from "../../shared/nodes/registry";
-import { asValue, type BrowserSessionValue, type RecordingValue } from "../../shared/schema/values";
-import { secretName } from "../../shared/secrets";
-import { atLeastOneFrame } from "../../shared/timeline/time";
-import { addRecordingFrames } from "../../traces/inject";
-import { applyRetention, ingestTrace } from "../../traces/store";
-import { WINDOW_FIT } from "../../video/camera/lib/style";
+import { PREVIEW_FILE_WIDTH } from "@opsis/core/compile/recording";
+import { errorMessage } from "@opsis/core/errors";
+import { formatDuration, plural } from "@opsis/core/format";
+import { openBrowserParams, signInNode } from "@opsis/core/nodes/browser";
+import { recordNode, stillNode } from "@opsis/core/nodes/capture";
+import type { NodeParams } from "@opsis/core/nodes/define";
+import { SESSION_PORT } from "@opsis/core/nodes/ports";
+import { nodeName } from "@opsis/core/nodes/registry";
+import { asValue, type BrowserSessionValue, type RecordingValue } from "@opsis/core/schema/values";
+import { secretName } from "@opsis/core/secrets";
+import { atLeastOneFrame } from "@opsis/core/timeline/time";
 import {
   captureCanvas,
   captureScale,
   paddedRegion,
   tallestShot,
+  WINDOW_FIT,
   type Box,
-} from "../../video/core/still-layout";
+} from "@opsis/video/capture";
+import type { Locator, Page } from "playwright-core";
+import { writeJson } from "../../engine/json";
+import { requireHeadlessShell } from "../../engine/paths";
+import { addRecordingFrames } from "../../traces/inject";
+import { applyRetention, ingestTrace } from "../../traces/store";
 import { recordTake, stillTake } from "../capture/driver";
 import { FrameEncoder } from "../capture/encoder";
 import { elementOf } from "../capture/flow-types";

@@ -1,10 +1,10 @@
 Fixes:
 - Take whether to split the colours as a prop, so a heavy scene can be drawn a third as often.
 
-diff --git a/src/video/elements/remocn/lens-zoom.tsx b/src/video/elements/remocn/lens-zoom.tsx
+diff --git a/packages/video/src/elements/remocn/lens-zoom.tsx b/packages/video/src/elements/remocn/lens-zoom.tsx
 index 10901c9..090cbb8 100644
---- a/src/video/elements/remocn/lens-zoom.tsx
-+++ b/src/video/elements/remocn/lens-zoom.tsx
+--- a/packages/video/src/elements/remocn/lens-zoom.tsx
++++ b/packages/video/src/elements/remocn/lens-zoom.tsx
 @@ -44,6 +44,7 @@ export type LensZoomProps = {
    redScale?: number;
    greenScale?: number;

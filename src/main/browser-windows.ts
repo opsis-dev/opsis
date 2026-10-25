@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
+import { onAbort } from "@opsis/core/errors";
+import { parseJsonWith } from "@opsis/core/guards";
+import { PICKED_BY, type PickRequest, type PickResult } from "@opsis/core/ipc";
+import type { LoginRequest } from "@opsis/core/worker-protocol";
 import { BrowserWindow, session as electronSession } from "electron";
 import { z } from "zod";
 import { logError } from "../engine/log";
-import { onAbort } from "../shared/errors";
-import { parseJsonWith } from "../shared/guards";
-import { PICKED_BY, type PickRequest, type PickResult } from "../shared/ipc";
-import type { LoginRequest } from "../shared/worker-protocol";
 import { storageState, type LocalStorageByOrigin } from "./login-state";
 import { pickerScript } from "./picker-script";
 

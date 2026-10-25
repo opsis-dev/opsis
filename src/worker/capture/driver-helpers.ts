@@ -1,8 +1,8 @@
 import { stripVTControlCharacters } from "node:util";
-import { errorMessage } from "../../shared/errors";
-import { formatDuration } from "../../shared/format";
-import { nonBlankString } from "../../shared/guards";
-import type { SessionStep } from "../../shared/schema/values";
+import { errorMessage } from "@opsis/core/errors";
+import { formatDuration } from "@opsis/core/format";
+import { nonBlankString } from "@opsis/core/guards";
+import type { SessionStep } from "@opsis/core/schema/values";
 import { CSS_PREFIX } from "./flow-types";
 
 export const withoutCallName = (text: string): string =>

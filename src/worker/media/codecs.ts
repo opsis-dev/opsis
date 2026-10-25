@@ -1,7 +1,7 @@
-import { isKeyOf } from "../../shared/guards";
-import type { NodeParams } from "../../shared/nodes/define";
-import type { convertNode, extractAudioNode } from "../../shared/nodes/media";
-import type { renderNode } from "../../shared/nodes/output";
+import { isKeyOf } from "@opsis/core/guards";
+import type { NodeParams } from "@opsis/core/nodes/define";
+import type { convertNode, extractAudioNode } from "@opsis/core/nodes/media";
+import type { renderNode } from "@opsis/core/nodes/output";
 
 export type RenderCodec = NodeParams<typeof renderNode>["codec"];
 

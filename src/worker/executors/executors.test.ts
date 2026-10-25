@@ -1,5 +1,5 @@
+import { NODE_DEFS } from "@opsis/core/nodes/registry";
 import { describe, expect, it } from "vitest";
-import { NODE_DEFS } from "../../shared/nodes/registry";
 import { EXECUTORS, executorTable, getExecutor } from "./index";
 
 describe("executors", () => {

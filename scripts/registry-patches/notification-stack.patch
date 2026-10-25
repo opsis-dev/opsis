@@ -1,10 +1,10 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 
-diff --git a/src/video/elements/remotion-ui/notification-stack/index.tsx b/src/video/elements/remotion-ui/notification-stack/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/notification-stack/index.tsx b/packages/video/src/elements/remotion-ui/notification-stack/index.tsx
 index 8754de3..875584f 100644
---- a/src/video/elements/remotion-ui/notification-stack/index.tsx
-+++ b/src/video/elements/remotion-ui/notification-stack/index.tsx
+--- a/packages/video/src/elements/remotion-ui/notification-stack/index.tsx
++++ b/packages/video/src/elements/remotion-ui/notification-stack/index.tsx
 @@ -276,8 +276,8 @@ export const NotificationStack: React.FC<NotificationStackProps> = ({
                      width: 32 * u,
                      height: 32 * u,

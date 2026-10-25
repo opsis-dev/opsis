@@ -2,15 +2,9 @@ import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
-import { z } from "zod";
-import { writeViaTemp } from "../../engine/atomic";
-import { fileIdentity, pruneDir } from "../../engine/dir";
-import { versionedHash } from "../../engine/hash";
-import { atomicWrite, readJson } from "../../engine/json";
-import { projectPaths, toProjectRef } from "../../engine/project-paths";
-import { CancelledError, errorMessage } from "../../shared/errors";
-import { EPSILON, round1 } from "../../shared/math";
-import { shareInFlight } from "../../shared/memo";
+import { CancelledError, errorMessage } from "@opsis/core/errors";
+import { EPSILON, round1 } from "@opsis/core/math";
+import { shareInFlight } from "@opsis/core/memo";
 import {
   busJob,
   channelJob,
@@ -20,16 +14,22 @@ import {
   measureArgs,
   parseLoudnorm,
   type Job,
-} from "../../shared/mix/graph";
-import { channelIdentity, hasSound, type MixPlan } from "../../shared/mix/plan";
+} from "@opsis/core/mix/graph";
+import { channelIdentity, hasSound, type MixPlan } from "@opsis/core/mix/plan";
 import {
   loudnessSchema,
   stemLevelsSchema,
   type Loudness,
   type MixResult,
   type StemLevels,
-} from "../../shared/mix/result";
-import { SILENCE_DB } from "../../shared/mix/types";
+} from "@opsis/core/mix/result";
+import { SILENCE_DB } from "@opsis/core/mix/types";
+import { z } from "zod";
+import { writeViaTemp } from "../../engine/atomic";
+import { fileIdentity, pruneDir } from "../../engine/dir";
+import { versionedHash } from "../../engine/hash";
+import { atomicWrite, readJson } from "../../engine/json";
+import { projectPaths, toProjectRef } from "../../engine/project-paths";
 import type { MediaDeps } from "../media/analysis";
 import { ToolError } from "../media/ffmpeg";
 import { frameLevels, parseWav } from "./wav";

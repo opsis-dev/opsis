@@ -3,22 +3,22 @@ Fixes:
 - The window was 940 wide with no limit on rows, so long lines were cut off and about 18 or more rows ran off the frame; the window grows to the longest line and shrinks to fit both its width and its rows.
 - Before and After split on newlines only, so pasted Windows line endings left a stray character on every line; they now split on either ending.
 
-diff --git a/src/video/elements/remotion-ui/code-diff-wipe/index.tsx b/src/video/elements/remotion-ui/code-diff-wipe/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/code-diff-wipe/index.tsx b/packages/video/src/elements/remotion-ui/code-diff-wipe/index.tsx
 index e5caac2..5fbcec2 100644
---- a/src/video/elements/remotion-ui/code-diff-wipe/index.tsx
-+++ b/src/video/elements/remotion-ui/code-diff-wipe/index.tsx
+--- a/packages/video/src/elements/remotion-ui/code-diff-wipe/index.tsx
++++ b/packages/video/src/elements/remotion-ui/code-diff-wipe/index.tsx
 @@ -6,7 +6,12 @@ import {
    useVideoConfig,
  } from "remotion";
- import { stageScale } from "@/video/lib/remotion-ui/ai-composer-utils";
--import { CODE_THEMES, CodeLine, tokenizeCode } from "@/video/lib/remotion-ui/code-syntax";
+ import { stageScale } from "../../../lib/remotion-ui/ai-composer-utils";
+-import { CODE_THEMES, CodeLine, tokenizeCode } from "../../../lib/remotion-ui/code-syntax";
 +import {
 +  CODE_THEMES,
 +  CodeLine,
 +  MONO_ADVANCE,
 +  tokenizeCode,
-+} from "@/video/lib/remotion-ui/code-syntax";
- import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
++} from "../../../lib/remotion-ui/code-syntax";
+ import { EASING } from "../../../lib/remotion-ui/motion-tokens";
  
  const { fontFamily } = loadFont("normal", {
 @@ -164,10 +169,17 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({

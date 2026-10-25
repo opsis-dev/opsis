@@ -1,13 +1,13 @@
-import { logError } from "../engine/log";
-import { listenerSet } from "../shared/listener-set";
-import { keysOf } from "../shared/nodes/params";
+import { listenerSet } from "@opsis/core/listener-set";
+import { keysOf } from "@opsis/core/nodes/params";
 import {
   appSettingsSchema,
   DEFAULT_SETTINGS,
   mergeSettings,
   type AppSettings,
   type SettingsPatch,
-} from "../shared/settings";
+} from "@opsis/core/settings";
+import { logError } from "../engine/log";
 import { db } from "./db";
 import { settings as settingsTable } from "./db/schema";
 

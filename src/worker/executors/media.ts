@@ -1,14 +1,13 @@
 import { existsSync } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { writeJson } from "../../engine/json";
-import { projectRef } from "../../shared/asset-ref";
-import { formatPreciseDuration, singleQuoted } from "../../shared/format";
-import { formatDuration } from "../../shared/format";
-import { findById } from "../../shared/lists";
-import { kindFromPath } from "../../shared/mime";
-import { loudnormFilter } from "../../shared/mix/graph";
-import { gradeNeedsVideo, lookFileNode } from "../../shared/nodes/grade";
+import { projectRef } from "@opsis/core/asset-ref";
+import { formatPreciseDuration, singleQuoted } from "@opsis/core/format";
+import { formatDuration } from "@opsis/core/format";
+import { findById } from "@opsis/core/lists";
+import { kindFromPath } from "@opsis/core/mime";
+import { loudnormFilter } from "@opsis/core/mix/graph";
+import { gradeNeedsVideo, lookFileNode } from "@opsis/core/nodes/grade";
 import {
   applyGradeNode,
   concatNode,
@@ -24,10 +23,11 @@ import {
   reverseNode,
   scalePadNode,
   thumbnailNode,
-} from "../../shared/nodes/media";
-import { nodeName } from "../../shared/nodes/registry";
-import { asValue, type MediaValue } from "../../shared/schema/values";
-import { DEFAULT_STILL_MS } from "../../shared/schema/workflow";
+} from "@opsis/core/nodes/media";
+import { nodeName } from "@opsis/core/nodes/registry";
+import { asValue, type MediaValue } from "@opsis/core/schema/values";
+import { DEFAULT_STILL_MS } from "@opsis/core/schema/workflow";
+import { writeJson } from "../../engine/json";
 import {
   defineExecutor,
   type Executor,

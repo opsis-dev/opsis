@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Never load sample images or a logo from the internet: with none set, draw no ring cards or logo, and skip empty entries.
 
-diff --git a/src/video/elements/snap-cn/logo-assemble.tsx b/src/video/elements/snap-cn/logo-assemble.tsx
+diff --git a/packages/video/src/elements/snap-cn/logo-assemble.tsx b/packages/video/src/elements/snap-cn/logo-assemble.tsx
 index 027a7f4..a5fe1f4 100644
---- a/src/video/elements/snap-cn/logo-assemble.tsx
-+++ b/src/video/elements/snap-cn/logo-assemble.tsx
+--- a/packages/video/src/elements/snap-cn/logo-assemble.tsx
++++ b/packages/video/src/elements/snap-cn/logo-assemble.tsx
 @@ -4,9 +4,8 @@ import {
    Img,
    interpolate,
@@ -13,7 +13,7 @@ index 027a7f4..a5fe1f4 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  import {
    Item,
    mixOklch,

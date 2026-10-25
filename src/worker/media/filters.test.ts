@@ -1,5 +1,5 @@
+import { atempoChain } from "@opsis/core/mix/tempo";
 import { describe, expect, it } from "vitest";
-import { atempoChain } from "../../shared/mix/tempo";
 import { ffmpegColor, fitFilter, gifFilter, joinFilter, speedArgs } from "./filters";
 
 describe("atempoChain", () => {

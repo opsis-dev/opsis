@@ -1,9 +1,9 @@
 import { chmod, mkdir, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import { createGunzip } from "node:zlib";
+import type { EngineInstallUpdate } from "@opsis/core/engine";
+import { formatBytes } from "@opsis/core/format";
 import { ensureBrowser } from "@remotion/renderer";
-import type { EngineInstallUpdate } from "../shared/engine";
-import { formatBytes } from "../shared/format";
 import { downloadTo } from "./download";
 import { writeJson } from "./json";
 import { enginePaths, FFMPEG_RELEASE_URL } from "./paths";

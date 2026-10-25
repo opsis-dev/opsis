@@ -1,8 +1,8 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import type { ProjectFilesChange } from "@opsis/core/ipc";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { tempDirs } from "../engine/test-temp-dirs";
-import type { ProjectFilesChange } from "../shared/ipc";
 import { MISSING_FILE, watchLoadedFiles, type LoadedFilesWatch } from "./loaded-files-watch";
 
 vi.mock("electron", () => ({ app: { getPath: () => "" } }));

@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Wrap a long headline within the stage instead of clipping it.
 
-diff --git a/src/video/elements/snap-cn/logo-drift.tsx b/src/video/elements/snap-cn/logo-drift.tsx
+diff --git a/packages/video/src/elements/snap-cn/logo-drift.tsx b/packages/video/src/elements/snap-cn/logo-drift.tsx
 index b45559a..41e539c 100644
---- a/src/video/elements/snap-cn/logo-drift.tsx
-+++ b/src/video/elements/snap-cn/logo-drift.tsx
+--- a/packages/video/src/elements/snap-cn/logo-drift.tsx
++++ b/packages/video/src/elements/snap-cn/logo-drift.tsx
 @@ -4,9 +4,8 @@ import {
    Easing,
    getRemotionEnvironment,
@@ -13,7 +13,7 @@ index b45559a..41e539c 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  import {
    Item,
    mixOklch,

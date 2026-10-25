@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Draw a background that follows the theme, so the text reads in light and dark mode.
 
-diff --git a/src/video/elements/snap-cn/text-highlight.tsx b/src/video/elements/snap-cn/text-highlight.tsx
+diff --git a/packages/video/src/elements/snap-cn/text-highlight.tsx b/packages/video/src/elements/snap-cn/text-highlight.tsx
 index 2838e7e..fa570d4 100644
---- a/src/video/elements/snap-cn/text-highlight.tsx
-+++ b/src/video/elements/snap-cn/text-highlight.tsx
+--- a/packages/video/src/elements/snap-cn/text-highlight.tsx
++++ b/packages/video/src/elements/snap-cn/text-highlight.tsx
 @@ -6,9 +6,8 @@ import {
    interpolateColors,
    spring,
@@ -13,7 +13,7 @@ index 2838e7e..fa570d4 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  import {
    parseColor,
    resolveFont,

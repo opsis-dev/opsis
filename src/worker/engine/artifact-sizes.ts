@@ -1,6 +1,6 @@
 import { stat } from "node:fs/promises";
 import path from "node:path";
-import { artifactName, type Artifact } from "../../shared/schema/values";
+import { artifactName, type Artifact } from "@opsis/core/schema/values";
 import { warnFailed } from "./context";
 
 export async function withSizes(

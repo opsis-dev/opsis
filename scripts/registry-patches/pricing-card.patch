@@ -3,10 +3,10 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 - The rolled price was rounded to a whole number, so 19.99 showed as 20; it now keeps the price's own decimals, up to two.
 
-diff --git a/src/video/elements/remotion-ui/pricing-card/index.tsx b/src/video/elements/remotion-ui/pricing-card/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/pricing-card/index.tsx b/packages/video/src/elements/remotion-ui/pricing-card/index.tsx
 index c07918e..a8a9112 100644
---- a/src/video/elements/remotion-ui/pricing-card/index.tsx
-+++ b/src/video/elements/remotion-ui/pricing-card/index.tsx
+--- a/packages/video/src/elements/remotion-ui/pricing-card/index.tsx
++++ b/packages/video/src/elements/remotion-ui/pricing-card/index.tsx
 @@ -139,7 +139,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
    const headIn = ease(T.head, T.head + T.headFor);
  

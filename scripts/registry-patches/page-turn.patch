@@ -1,10 +1,10 @@
 Fixes:
 - Lift the page far enough to clear every corner it turns through, so a steep angle never leaves a wedge of the old page on screen.
 
-diff --git a/src/video/elements/remocn/page-turn.tsx b/src/video/elements/remocn/page-turn.tsx
+diff --git a/packages/video/src/elements/remocn/page-turn.tsx b/packages/video/src/elements/remocn/page-turn.tsx
 index 454ee3d..6ed63b7 100644
---- a/src/video/elements/remocn/page-turn.tsx
-+++ b/src/video/elements/remocn/page-turn.tsx
+--- a/packages/video/src/elements/remocn/page-turn.tsx
++++ b/packages/video/src/elements/remocn/page-turn.tsx
 @@ -7,6 +7,30 @@ import { AbsoluteFill, useVideoConfig } from "remotion";
  
  const LIFT_RATIO = 1.28;

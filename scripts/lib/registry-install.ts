@@ -10,15 +10,15 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { isKeyOf } from "../../src/shared/guards";
+import { isKeyOf } from "@opsis/core/guards";
 import type { CuratedElement } from "../registry-ingest.list";
-import { ROOT, SRC_DIR, VIDEO_DIR } from "./tool-config";
+import { VIDEO_DIR, VIDEO_PACKAGE_DIR } from "./tool-config";
 import { walkFiles } from "./walk";
 
 export function install(items: CuratedElement[]): void {
   const names = items.map((i) => `@${i.registry}/${i.name}`);
   execSync(`yes n | bunx --bun shadcn@latest add ${names.join(" ")}`, {
-    cwd: ROOT,
+    cwd: VIDEO_PACKAGE_DIR,
     stdio: "inherit",
     shell: "/bin/bash",
   });
@@ -54,7 +54,8 @@ const REMOTION_UI_SPEC = new RegExp(
 
 export function moveInstalled(): void {
   for (const [from, to] of MOVES) {
-    const fromDir = path.join(SRC_DIR, from);
+    if (from === to) continue;
+    const fromDir = path.join(VIDEO_DIR, from);
     if (!existsSync(fromDir)) continue;
     for (const ns of readdirSync(fromDir)) {
       const src = path.join(fromDir, ns);
@@ -67,15 +68,15 @@ export function moveInstalled(): void {
   }
 
   for (const [from, kind] of Object.entries(REMOTION_UI_FOLDERS)) {
-    const fromDir = path.join(SRC_DIR, from);
+    const fromDir = path.join(VIDEO_DIR, from);
     if (existsSync(fromDir)) moveTree(fromDir, path.join(VIDEO_DIR, kind, "remotion-ui"));
   }
   for (const dir of ["remotion", "compositions"]) {
-    if (!existsSync(path.join(SRC_DIR, dir))) continue;
-    const left = walkFiles(path.join(SRC_DIR, dir));
+    if (!existsSync(path.join(VIDEO_DIR, dir))) continue;
+    const left = walkFiles(path.join(VIDEO_DIR, dir));
     if (left.length)
       throw new Error(`Unexpected files left after relocating:\n  ${left.join("\n  ")}`);
-    rmSync(path.join(SRC_DIR, dir), { recursive: true, force: true });
+    rmSync(path.join(VIDEO_DIR, dir), { recursive: true, force: true });
   }
 }
 
@@ -87,23 +88,28 @@ function installedNamespaces(): Namespaces {
   return { elements: nsDirs("elements"), lib: nsDirs("lib"), hooks: nsDirs("hooks") };
 }
 
-function rewriteSpec(spec: string, ns: Namespaces): string {
-  if (spec.startsWith("@/components/ui/"))
-    return spec.replace("@/components/ui/", "@/renderer/components/ui/");
+function videoTarget(spec: string, ns: Namespaces): string | null {
   const [, folder = "", item, tail = ""] = REMOTION_UI_SPEC.exec(spec) ?? [];
   if (isRemotionUiFolder(folder))
-    return `@/video/${REMOTION_UI_FOLDERS[folder]}/remotion-ui/${item}${tail}`;
-  const m = /^@\/(?:renderer\/|video\/)?(components|elements|lib|hooks)\/([^/]+)(\/.*)?$/.exec(
-    spec,
-  );
-  if (!m) return spec;
+    return `${REMOTION_UI_FOLDERS[folder]}/remotion-ui/${item}${tail}`;
+  const m = /^@\/(?:video\/)?(components|elements|lib|hooks)\/([^/]+)(\/.*)?$/.exec(spec);
+  if (!m) return null;
   const [, kind, name, rest = ""] = m;
   if ((kind === "components" || kind === "elements") && ns.elements.has(name))
-    return `@/video/elements/${name}${rest}`;
-  if (kind === "lib" && ns.lib.has(name)) return `@/video/lib/${name}${rest}`;
-  if (kind === "lib" && name === "utils") return "@/renderer/lib/utils";
-  if (kind === "hooks" && ns.hooks.has(name)) return `@/video/hooks/${name}${rest}`;
-  return spec;
+    return `elements/${name}${rest}`;
+  if (kind === "lib" && ns.lib.has(name)) return `lib/${name}${rest}`;
+  if (kind === "hooks" && ns.hooks.has(name)) return `hooks/${name}${rest}`;
+  return null;
+}
+
+function rewriteSpec(spec: string, file: string, ns: Namespaces): string {
+  const target = videoTarget(spec, ns);
+  if (!target) return spec;
+  const rel = path
+    .relative(path.dirname(file), path.join(VIDEO_DIR, target))
+    .split(path.sep)
+    .join("/");
+  return rel.startsWith(".") ? rel : `./${rel}`;
 }
 
 export function rewriteImports(): void {
@@ -115,7 +121,8 @@ export function rewriteImports(): void {
       .replace(/^"use client";\s*\n/m, "")
       .replace(
         /(from\s+|import\s*\(\s*|import\s+)(["'])(@\/[^"']+)\2/g,
-        (_all, lead: string, q: string, spec: string) => `${lead}${q}${rewriteSpec(spec, ns)}${q}`,
+        (_all, lead: string, q: string, spec: string) =>
+          `${lead}${q}${rewriteSpec(spec, file, ns)}${q}`,
       );
     if (after !== before) writeFileSync(file, after);
   }

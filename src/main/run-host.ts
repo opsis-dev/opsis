@@ -1,8 +1,8 @@
+import { CANCELLED, errorMessage } from "@opsis/core/errors";
+import type { RunRequest } from "@opsis/core/ipc";
+import type { RunEvent } from "@opsis/core/schema/events";
+import type { MainToWorker, WorkerReply, WorkerToMain } from "@opsis/core/worker-protocol";
 import type { MessagePortMain, UtilityProcess } from "electron";
-import { CANCELLED, errorMessage } from "../shared/errors";
-import type { RunRequest } from "../shared/ipc";
-import type { RunEvent } from "../shared/schema/events";
-import type { MainToWorker, WorkerReply, WorkerToMain } from "../shared/worker-protocol";
 import { loginInWindow } from "./browser-windows";
 import { readSecret, writeSecret } from "./secrets";
 import { getMainWindow } from "./window-registry";

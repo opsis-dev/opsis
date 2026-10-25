@@ -1,24 +1,24 @@
 import { mkdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { userEngineDir } from "../src/engine/paths";
-import { makeWorkerTemp, removeWorkerTemp, tempEnv } from "../src/main/worker-temp";
-import { emptyClip, itemClip, clipToSpec } from "../src/shared/compile/clip";
-import { ELEMENTS, elementNodeType } from "../src/shared/elements";
-import type { ElementMeta } from "../src/shared/elements/types";
-import { errorMessage } from "../src/shared/errors";
-import type { ClipValue } from "../src/shared/schema/values";
-import { DEFAULT_WORKFLOW_SETTINGS } from "../src/shared/schema/workflow";
-import { appSettingsSchema } from "../src/shared/settings";
-import { compileClip } from "../src/shared/test-fixtures";
-import type { WorkerEnv } from "../src/shared/worker-protocol";
-import { startAssetServer } from "../src/worker/render/asset-server";
+import { emptyClip, itemClip, clipToSpec } from "@opsis/core/compile/clip";
+import { ELEMENTS, elementNodeType } from "@opsis/core/elements";
+import type { ElementMeta } from "@opsis/core/elements/types";
+import { errorMessage } from "@opsis/core/errors";
+import type { ClipValue } from "@opsis/core/schema/values";
+import { DEFAULT_WORKFLOW_SETTINGS } from "@opsis/core/schema/workflow";
+import { appSettingsSchema } from "@opsis/core/settings";
+import { compileClip } from "@opsis/core/test-fixtures";
+import type { WorkerEnv } from "@opsis/core/worker-protocol";
 import {
   getServeUrl,
   openRenderBrowser,
   renderFrame,
   type GlRenderer,
-} from "../src/worker/render/render";
+} from "@opsis/sidecar/render";
+import { enginePaths, requireHeadlessShell, userEngineDir } from "../src/engine/paths";
+import { makeWorkerTemp, removeWorkerTemp, tempEnv } from "../src/main/worker-temp";
+import { startAssetServer } from "../src/worker/render/asset-server";
 import { devUserData } from "./lib/app-data";
 import { ROOT } from "./lib/tool-config";
 
@@ -58,7 +58,8 @@ const temp = makeWorkerTemp(path.join(OUT, "tmp"), String(process.pid));
 Object.assign(process.env, tempEnv(temp));
 const serveUrl = await getServeUrl(env);
 const server = await startAssetServer(PROJECT);
-const browser = await openRenderBrowser(env, GL);
+const browserExecutable = requireHeadlessShell(enginePaths(env.engineDir));
+const browser = await openRenderBrowser(browserExecutable, GL);
 const failures: string[] = [];
 const elements = ELEMENTS.filter(
   (m) => !m.key.startsWith("core/") && (!only || m.key.includes(only)),
@@ -74,6 +75,7 @@ for (const meta of elements) {
     const spec = clipToSpec(clip, DEFAULT_WORKFLOW_SETTINGS);
     await renderFrame({
       env,
+      browserExecutable,
       serveUrl,
       spec: { ...spec, assets: { projectBase: server.url } },
       frame: Math.floor((clip.durationInFrames - 1) * at),

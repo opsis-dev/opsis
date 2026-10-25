@@ -1,10 +1,10 @@
 Fixes:
 - Draw nothing for an empty scene list and accept a zero fade-in, instead of failing the render.
 
-diff --git a/src/video/elements/remocn/spring-settle.tsx b/src/video/elements/remocn/spring-settle.tsx
+diff --git a/packages/video/src/elements/remocn/spring-settle.tsx b/packages/video/src/elements/remocn/spring-settle.tsx
 index d4722d9..3749acd 100644
---- a/src/video/elements/remocn/spring-settle.tsx
-+++ b/src/video/elements/remocn/spring-settle.tsx
+--- a/packages/video/src/elements/remocn/spring-settle.tsx
++++ b/packages/video/src/elements/remocn/spring-settle.tsx
 @@ -189,7 +189,7 @@ export function SpringSettleItem({
      },
    });

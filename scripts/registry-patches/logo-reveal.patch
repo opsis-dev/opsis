@@ -1,10 +1,10 @@
 Fixes:
 - The glow was always amber and the wordmark and tagline always near-white, so a light background hid the copy; the glow follows the line colour and the copy takes a text colour.
 
-diff --git a/src/video/elements/remotion-ui/logo-reveal/index.tsx b/src/video/elements/remotion-ui/logo-reveal/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/logo-reveal/index.tsx b/packages/video/src/elements/remotion-ui/logo-reveal/index.tsx
 index 0416aee..76691c0 100644
---- a/src/video/elements/remotion-ui/logo-reveal/index.tsx
-+++ b/src/video/elements/remotion-ui/logo-reveal/index.tsx
+--- a/packages/video/src/elements/remotion-ui/logo-reveal/index.tsx
++++ b/packages/video/src/elements/remotion-ui/logo-reveal/index.tsx
 @@ -24,6 +24,8 @@ export type LogoRevealProps = {
    /** Fill flooded into the mark once the stroke closes. */
    fill?: string;

@@ -1,5 +1,5 @@
-import { INTERACTIVE_SELECTOR, type PickedRole } from "../shared/interactive";
-import type { PickResult } from "../shared/ipc";
+import { INTERACTIVE_SELECTOR, type PickedRole } from "@opsis/core/interactive";
+import type { PickResult } from "@opsis/core/ipc";
 
 type Box = { left: number; top: number; width: number; height: number };
 type Point = { left: number; top: number };

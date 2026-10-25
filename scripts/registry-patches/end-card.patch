@@ -2,10 +2,10 @@ Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 
-diff --git a/src/video/elements/remotion-ui/end-card/index.tsx b/src/video/elements/remotion-ui/end-card/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/end-card/index.tsx b/packages/video/src/elements/remotion-ui/end-card/index.tsx
 index 074ea9a..fdb3b65 100644
---- a/src/video/elements/remotion-ui/end-card/index.tsx
-+++ b/src/video/elements/remotion-ui/end-card/index.tsx
+--- a/packages/video/src/elements/remotion-ui/end-card/index.tsx
++++ b/packages/video/src/elements/remotion-ui/end-card/index.tsx
 @@ -156,7 +156,7 @@ export const EndCard: React.FC<EndCardProps> = ({
          style={{
            position: "absolute",

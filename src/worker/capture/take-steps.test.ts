@@ -1,7 +1,7 @@
+import { defaultParams } from "@opsis/core/nodes/registry";
+import type { SessionStep } from "@opsis/core/schema/values";
+import { workflowNode } from "@opsis/core/test-fixtures";
 import { describe, expect, it, vi } from "vitest";
-import { defaultParams } from "../../shared/nodes/registry";
-import type { SessionStep } from "../../shared/schema/values";
-import { workflowNode } from "../../shared/test-fixtures";
 import { restoreLocalStorage } from "./page-scripts";
 import { atTakeStart, type TakeRun } from "./take-run";
 import { clickKindOf, runStep, videoStart } from "./take-steps";

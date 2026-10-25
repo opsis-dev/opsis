@@ -1,7 +1,7 @@
 import path from "node:path";
+import { must } from "@opsis/core/test-fixtures";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { tempDirs } from "../engine/test-temp-dirs";
-import { must } from "../shared/test-fixtures";
 import { closeDatabase, db, IN_MEMORY, openDatabase } from "./db";
 import { fonts } from "./db/schema";
 import {

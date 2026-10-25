@@ -1,8 +1,8 @@
 import { cp, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { nodeResult } from "@opsis/core/test-fixtures";
 import { describe, expect, it } from "vitest";
 import { tempDirs } from "../../engine/test-temp-dirs";
-import { nodeResult } from "../../shared/test-fixtures";
 import { nodeHash, readCached, stampArtifacts, writeCached } from "./cache";
 
 describe("nodeHash", () => {

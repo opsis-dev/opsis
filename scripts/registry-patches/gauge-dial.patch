@@ -1,10 +1,10 @@
 Fixes:
 - A single tick divided by zero, a sweep of 360 degrees drew an arc from a point to itself, and the readout rounded the clamped value; ticks now spread over the sweep, the arc draws in two halves and the readout counts to the value at its own precision.
 
-diff --git a/src/video/elements/remotion-ui/gauge-dial.tsx b/src/video/elements/remotion-ui/gauge-dial.tsx
+diff --git a/packages/video/src/elements/remotion-ui/gauge-dial.tsx b/packages/video/src/elements/remotion-ui/gauge-dial.tsx
 index 3f2c908..9a92732 100644
---- a/src/video/elements/remotion-ui/gauge-dial.tsx
-+++ b/src/video/elements/remotion-ui/gauge-dial.tsx
+--- a/packages/video/src/elements/remotion-ui/gauge-dial.tsx
++++ b/packages/video/src/elements/remotion-ui/gauge-dial.tsx
 @@ -22,7 +22,7 @@ export type GaugeDialProps = {
    unit?: string;
    /** Tick marks around the arc. `0` hides them. */

@@ -1,7 +1,7 @@
+import { must } from "@opsis/core/test-fixtures";
 import type { BrowserWindow } from "electron";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { tempDirs } from "../engine/test-temp-dirs";
-import { must } from "../shared/test-fixtures";
 import { closeDatabase, IN_MEMORY, openDatabase } from "./db";
 import { applyProjectWindow, rememberProjectWindow, shownProjectDir } from "./project-window";
 import { createProjectDir } from "./projects";

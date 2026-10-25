@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Shrink the row of logos to fit the frame when many or large logos would run off it.
 
-diff --git a/src/video/elements/remocn/logo-enter.tsx b/src/video/elements/remocn/logo-enter.tsx
+diff --git a/packages/video/src/elements/remocn/logo-enter.tsx b/packages/video/src/elements/remocn/logo-enter.tsx
 index 72917dd..5cb5fce 100644
---- a/src/video/elements/remocn/logo-enter.tsx
-+++ b/src/video/elements/remocn/logo-enter.tsx
+--- a/packages/video/src/elements/remocn/logo-enter.tsx
++++ b/packages/video/src/elements/remocn/logo-enter.tsx
 @@ -3,9 +3,8 @@ import {
    AbsoluteFill,
    interpolate,
@@ -13,7 +13,7 @@ index 72917dd..5cb5fce 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface Logo {
    mark: ReactNode;

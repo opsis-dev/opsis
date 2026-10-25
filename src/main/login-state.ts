@@ -1,5 +1,5 @@
+import type { StorageState } from "@opsis/core/schema/storage-state";
 import type { Cookie } from "electron";
-import type { StorageState } from "../shared/schema/storage-state";
 
 export type LocalStorageByOrigin = Map<string, Array<{ name: string; value: string }>>;
 

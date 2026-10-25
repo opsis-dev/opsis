@@ -1,13 +1,13 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/spinner.tsx b/src/video/elements/remocn/spinner.tsx
+diff --git a/packages/video/src/elements/remocn/spinner.tsx b/packages/video/src/elements/remocn/spinner.tsx
 index f3f8867..81cc541 100644
---- a/src/video/elements/remocn/spinner.tsx
-+++ b/src/video/elements/remocn/spinner.tsx
+--- a/packages/video/src/elements/remocn/spinner.tsx
++++ b/packages/video/src/elements/remocn/spinner.tsx
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame } from "remotion";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredFrame } from "../../core/authored-clock";
  
  export interface SpinnerProps {
    size?: number;

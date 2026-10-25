@@ -1,6 +1,5 @@
-import { z } from "zod";
-import { formatPreciseDuration, humanize } from "../shared/format";
-import { isOneOf, isRecord, isString, tryParseJson } from "../shared/guards";
+import { formatPreciseDuration, humanize } from "@opsis/core/format";
+import { isOneOf, isRecord, isString, tryParseJson } from "@opsis/core/guards";
 import {
   CONSOLE_LEVELS,
   type TraceAction,
@@ -10,7 +9,8 @@ import {
   type TraceModel,
   type TraceHeader,
   type TraceRequest,
-} from "../shared/trace";
+} from "@opsis/core/trace";
+import { z } from "zod";
 
 type Json = Record<string, unknown>;
 

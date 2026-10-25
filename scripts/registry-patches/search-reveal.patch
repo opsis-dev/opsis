@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Take the font as a prop following the project font, keep the field text at a readable minimum size, and show the newest letters when the search is longer than the field.
 
-diff --git a/src/video/elements/remocn/search-reveal.tsx b/src/video/elements/remocn/search-reveal.tsx
+diff --git a/packages/video/src/elements/remocn/search-reveal.tsx b/packages/video/src/elements/remocn/search-reveal.tsx
 index 2ec9339..fa0223e 100644
---- a/src/video/elements/remocn/search-reveal.tsx
-+++ b/src/video/elements/remocn/search-reveal.tsx
+--- a/packages/video/src/elements/remocn/search-reveal.tsx
++++ b/packages/video/src/elements/remocn/search-reveal.tsx
 @@ -2,12 +2,12 @@ import {
    AbsoluteFill,
    Easing,
@@ -13,7 +13,7 @@ index 2ec9339..fa0223e 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export type SearchRevealProps = {
    text?: string;

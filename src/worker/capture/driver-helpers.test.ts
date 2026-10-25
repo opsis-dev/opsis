@@ -1,5 +1,5 @@
+import { workflowNode } from "@opsis/core/test-fixtures";
 import { describe, expect, it } from "vitest";
-import { workflowNode } from "../../shared/test-fixtures";
 import { landedOnSignIn, plainError, traceGroupTitle } from "./driver-helpers";
 
 describe("traceGroupTitle", () => {

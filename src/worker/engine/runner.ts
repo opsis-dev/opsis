@@ -1,5 +1,26 @@
 import { mkdir, rmdir } from "node:fs/promises";
 import path from "node:path";
+import { workflowProblems } from "@opsis/core/api/check";
+import { compileWorkflow, gatherInputs, type CompileResult } from "@opsis/core/compile/compile";
+import { CANCELLED, errorMessage } from "@opsis/core/errors";
+import { downstreamOf, isStructural, runTargets, topoSort, upstreamOf } from "@opsis/core/graph";
+import type { RunRequest } from "@opsis/core/ipc";
+import type { LiveMessage } from "@opsis/core/live";
+import {
+  interpolatedParams,
+  parseNodeParams,
+  type NodeDef,
+  type NodePhase,
+} from "@opsis/core/nodes/define";
+import { getNodeDef, isOutputType, nodeName } from "@opsis/core/nodes/registry";
+import { mapValues, pick } from "@opsis/core/objects";
+import { failureMessage } from "@opsis/core/run-progress";
+import { runFailed, type LogLevel, type RunEvent } from "@opsis/core/schema/events";
+import type { LastRun, NodeFailure, NodeResult } from "@opsis/core/schema/values";
+import type { Workflow, WorkflowNode } from "@opsis/core/schema/workflow";
+import { secretName } from "@opsis/core/secrets";
+import { workflowVars } from "@opsis/core/vars";
+import type { LoginRequest, WorkerEnv } from "@opsis/core/worker-protocol";
 import pLimit, { type LimitFunction } from "p-limit";
 import { fileStamps, signInStamp } from "../../engine/file-stamps";
 import { readLastRun, writeLastRun } from "../../engine/last-run";
@@ -7,27 +28,6 @@ import { logWarning } from "../../engine/log";
 import { enginePaths, type EnginePaths } from "../../engine/paths";
 import { PICTURE_VERSION } from "../../engine/picture-version";
 import { projectPaths, toPosixRel } from "../../engine/project-paths";
-import { workflowProblems } from "../../shared/api/check";
-import { compileWorkflow, gatherInputs, type CompileResult } from "../../shared/compile/compile";
-import { CANCELLED, errorMessage } from "../../shared/errors";
-import { downstreamOf, isStructural, runTargets, topoSort, upstreamOf } from "../../shared/graph";
-import type { RunRequest } from "../../shared/ipc";
-import type { LiveMessage } from "../../shared/live";
-import {
-  interpolatedParams,
-  parseNodeParams,
-  type NodeDef,
-  type NodePhase,
-} from "../../shared/nodes/define";
-import { getNodeDef, isOutputType, nodeName } from "../../shared/nodes/registry";
-import { mapValues, pick } from "../../shared/objects";
-import { failureMessage } from "../../shared/run-progress";
-import { runFailed, type LogLevel, type RunEvent } from "../../shared/schema/events";
-import type { LastRun, NodeFailure, NodeResult } from "../../shared/schema/values";
-import type { Workflow, WorkflowNode } from "../../shared/schema/workflow";
-import { secretName } from "../../shared/secrets";
-import { workflowVars } from "../../shared/vars";
-import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/take-run";
 import { getExecutor } from "../executors";
 import { createFfmpegTools, ToolError, type FfmpegTools } from "../media/ffmpeg";

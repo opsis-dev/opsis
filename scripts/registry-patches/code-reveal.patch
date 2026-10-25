@@ -2,10 +2,10 @@ Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - The window was 940 wide and lines did not wrap, so a line over about 68 characters was cut off, and pasted Windows line endings left a stray character on every line; the window grows to the longest line and shrinks to fit the frame, and lines split on either ending.
 
-diff --git a/src/video/elements/remotion-ui/code-reveal/index.tsx b/src/video/elements/remotion-ui/code-reveal/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/code-reveal/index.tsx b/packages/video/src/elements/remotion-ui/code-reveal/index.tsx
 index ee13e2b..d0f28a5 100644
---- a/src/video/elements/remotion-ui/code-reveal/index.tsx
-+++ b/src/video/elements/remotion-ui/code-reveal/index.tsx
+--- a/packages/video/src/elements/remotion-ui/code-reveal/index.tsx
++++ b/packages/video/src/elements/remotion-ui/code-reveal/index.tsx
 @@ -102,7 +102,17 @@ export const CodeReveal: React.FC<CodeRevealProps> = ({
      extrapolateRight: "clamp" as const,
    };

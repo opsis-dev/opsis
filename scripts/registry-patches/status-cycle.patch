@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Measure the type again whenever the words, sizes, font or weights change, so an edit never draws with stale widths.
 
-diff --git a/src/video/elements/snap-cn/status-cycle.tsx b/src/video/elements/snap-cn/status-cycle.tsx
+diff --git a/packages/video/src/elements/snap-cn/status-cycle.tsx b/packages/video/src/elements/snap-cn/status-cycle.tsx
 index 60f2d04..4fc686e 100644
---- a/src/video/elements/snap-cn/status-cycle.tsx
-+++ b/src/video/elements/snap-cn/status-cycle.tsx
+--- a/packages/video/src/elements/snap-cn/status-cycle.tsx
++++ b/packages/video/src/elements/snap-cn/status-cycle.tsx
 @@ -8,9 +8,8 @@ import {
    getRemotionEnvironment,
    interpolate,
@@ -13,7 +13,7 @@ index 60f2d04..4fc686e 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  import {
    Item,
    mixOklch,

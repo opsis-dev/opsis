@@ -1,5 +1,5 @@
+import { DEFAULT_SETTINGS } from "@opsis/core/settings";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_SETTINGS } from "../shared/settings";
 import { closeDatabase, db, IN_MEMORY, openDatabase } from "./db";
 import { settings } from "./db/schema";
 import { onSettingsChange, patchSettings, readSettings } from "./settings";

@@ -3,10 +3,10 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 - Ink, labels and cards were always light-on-dark, so a light background hid the text; a dark or light theme now picks them, and the background and accent follow it unless set.
 
-diff --git a/src/video/elements/remotion-ui/metric-ticker/index.tsx b/src/video/elements/remotion-ui/metric-ticker/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/metric-ticker/index.tsx b/packages/video/src/elements/remotion-ui/metric-ticker/index.tsx
 index ad2c5e6..e2f42bd 100644
---- a/src/video/elements/remotion-ui/metric-ticker/index.tsx
-+++ b/src/video/elements/remotion-ui/metric-ticker/index.tsx
+--- a/packages/video/src/elements/remotion-ui/metric-ticker/index.tsx
++++ b/packages/video/src/elements/remotion-ui/metric-ticker/index.tsx
 @@ -42,6 +42,8 @@ export type MetricTickerProps = {
    maxCards?: number;
    backgroundColor?: string;

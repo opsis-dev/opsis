@@ -3,14 +3,14 @@ Fixes:
 - Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/mask-reveal-up.tsx b/src/video/elements/remocn/mask-reveal-up.tsx
+diff --git a/packages/video/src/elements/remocn/mask-reveal-up.tsx b/packages/video/src/elements/remocn/mask-reveal-up.tsx
 index 6ee09df..1284517 100644
---- a/src/video/elements/remocn/mask-reveal-up.tsx
-+++ b/src/video/elements/remocn/mask-reveal-up.tsx
+--- a/packages/video/src/elements/remocn/mask-reveal-up.tsx
++++ b/packages/video/src/elements/remocn/mask-reveal-up.tsx
 @@ -1,6 +1,8 @@
 -import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 +import { Easing, interpolate } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface MaskRevealUpProps {
 +  fontFamily?: string;

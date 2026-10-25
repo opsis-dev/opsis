@@ -1,9 +1,7 @@
 import path from "node:path";
-import type { z } from "zod";
-import { isInside } from "../../engine/project-paths";
-import { projectRelPath } from "../../shared/asset-ref";
-import { pressedChord } from "../../shared/chord";
-import { parseJsonWith } from "../../shared/guards";
+import { projectRelPath } from "@opsis/core/asset-ref";
+import { pressedChord } from "@opsis/core/chord";
+import { parseJsonWith } from "@opsis/core/guards";
 import {
   assertNode,
   chapterNode,
@@ -25,16 +23,18 @@ import {
   typeNode,
   uploadNode,
   waitNode,
-} from "../../shared/nodes/browser";
-import type { NodeDef, NodeParams } from "../../shared/nodes/define";
-import { customLabel, nodeName } from "../../shared/nodes/registry";
-import type { Action } from "../../shared/schema/actions";
-import { storageStateSchema } from "../../shared/schema/storage-state";
-import type { SessionStep } from "../../shared/schema/values";
-import { secretName } from "../../shared/secrets";
-import { nonBlankLines } from "../../shared/text-input";
-import { PAUSE_MARK } from "../../shared/vars";
-import { wallTimeIn } from "../../shared/wall-time";
+} from "@opsis/core/nodes/browser";
+import type { NodeDef, NodeParams } from "@opsis/core/nodes/define";
+import { customLabel, nodeName } from "@opsis/core/nodes/registry";
+import type { Action } from "@opsis/core/schema/actions";
+import { storageStateSchema } from "@opsis/core/schema/storage-state";
+import type { SessionStep } from "@opsis/core/schema/values";
+import { secretName } from "@opsis/core/secrets";
+import { nonBlankLines } from "@opsis/core/text-input";
+import { PAUSE_MARK } from "@opsis/core/vars";
+import { wallTimeIn } from "@opsis/core/wall-time";
+import type { z } from "zod";
+import { isInside } from "../../engine/project-paths";
 import { warnFailed } from "../engine/context";
 import { parsePath } from "./drag-path";
 import { landedOnSignIn } from "./driver-helpers";

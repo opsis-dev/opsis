@@ -1,7 +1,7 @@
 import path from "node:path";
-import { projectRef } from "../shared/asset-ref";
-import { mapValues } from "../shared/objects";
-import { PROJECT_DIRS } from "../shared/project-dirs";
+import { projectRef } from "@opsis/core/asset-ref";
+import { mapValues } from "@opsis/core/objects";
+import { PROJECT_DIRS } from "@opsis/core/project-dirs";
 
 export const projectPaths = (projectDir: string) =>
   mapValues(PROJECT_DIRS, (rel) => path.join(projectDir, rel));

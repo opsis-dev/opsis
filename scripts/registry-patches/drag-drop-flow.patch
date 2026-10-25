@@ -2,10 +2,10 @@ Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - The upload label was fixed copy and only the first three files were listed, so a third sibling or more vanished without a word; the label is a setting, every file is listed and the layout shrinks to fit the list.
 
-diff --git a/src/video/elements/remotion-ui/drag-drop-flow/index.tsx b/src/video/elements/remotion-ui/drag-drop-flow/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/drag-drop-flow/index.tsx b/packages/video/src/elements/remotion-ui/drag-drop-flow/index.tsx
 index 46f5680..e7d17bc 100644
---- a/src/video/elements/remotion-ui/drag-drop-flow/index.tsx
-+++ b/src/video/elements/remotion-ui/drag-drop-flow/index.tsx
+--- a/packages/video/src/elements/remotion-ui/drag-drop-flow/index.tsx
++++ b/packages/video/src/elements/remotion-ui/drag-drop-flow/index.tsx
 @@ -25,6 +25,8 @@ export type DragDropFlowProps = {
    hint?: string;
    /** Prompt while the file is held over the zone. */

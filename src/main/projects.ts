@@ -1,15 +1,8 @@
 import { existsSync, watch, type FSWatcher } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { desc } from "drizzle-orm";
-import { app, type BrowserWindow, type OpenDialogOptions } from "electron";
-import { sha256Hex } from "../engine/hash";
-import { atomicWrite, readTextIfPresent } from "../engine/json";
-import { readLastRun } from "../engine/last-run";
-import { logError } from "../engine/log";
-import { projectPaths } from "../engine/project-paths";
-import { firstIssueText } from "../shared/api/issue-text";
-import { nonBlankString, parseJsonWith } from "../shared/guards";
+import { firstIssueText } from "@opsis/core/api/issue-text";
+import { nonBlankString, parseJsonWith } from "@opsis/core/guards";
 import type {
   OpenProject,
   ProjectFileChange,
@@ -17,13 +10,20 @@ import type {
   ProjectLocations,
   RecentProject,
   SaveResult,
-} from "../shared/ipc";
-import { PROJECT_DIRS } from "../shared/project-dirs";
-import { expandHome, projectFolderName } from "../shared/project-folder";
-import { WORKFLOW_FILE, workflowSchema, type Workflow } from "../shared/schema/workflow";
-import { PROJECTS_FOLDER_NAME } from "../shared/settings";
-import { getTemplate } from "../shared/templates";
-import { debounce } from "../shared/timing";
+} from "@opsis/core/ipc";
+import { PROJECT_DIRS } from "@opsis/core/project-dirs";
+import { expandHome, projectFolderName } from "@opsis/core/project-folder";
+import { WORKFLOW_FILE, workflowSchema, type Workflow } from "@opsis/core/schema/workflow";
+import { PROJECTS_FOLDER_NAME } from "@opsis/core/settings";
+import { getTemplate } from "@opsis/core/templates";
+import { debounce } from "@opsis/core/timing";
+import { desc } from "drizzle-orm";
+import { app, type BrowserWindow, type OpenDialogOptions } from "electron";
+import { sha256Hex } from "../engine/hash";
+import { atomicWrite, readTextIfPresent } from "../engine/json";
+import { readLastRun } from "../engine/last-run";
+import { logError } from "../engine/log";
+import { projectPaths } from "../engine/project-paths";
 import { db } from "./db";
 import { projects } from "./db/schema";
 import { openDialog } from "./dialogs";

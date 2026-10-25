@@ -10,6 +10,10 @@ import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
+import { percentText } from "@opsis/core/format";
+import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "@opsis/sidecar/bundle";
+import { getCompositorPackage } from "@opsis/sidecar/compositor-package";
+import { DEPENDENCY_MANIFESTS, EXPORTED_SOURCES } from "@opsis/sidecar/source-layout";
 import { MakerAppImage } from "@reforged/maker-appimage";
 import { writeChromiumCredits } from "./src/engine/chromium-credits";
 import { installFfmpeg, installHeadlessShell, type InstallProgress } from "./src/engine/install";
@@ -19,10 +23,6 @@ import {
   ENGINE_LICENCES_FOLDER,
   engineStatus,
 } from "./src/engine/paths";
-import { percentText } from "./src/shared/format";
-import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./src/worker/render/bundle";
-import { getCompositorPackage } from "./src/worker/render/compositor-package";
-import { WEBPACK_OVERRIDE_DIR, WEBPACK_OVERRIDE_FILES } from "./src/worker/render/source-alias";
 
 const require = createRequire(import.meta.url);
 const ROOT = import.meta.dirname;
@@ -99,21 +99,16 @@ async function stageEngineLicences(): Promise<void> {
   await copyFile(CHROMIUM_CREDITS, path.join(ENGINE_LICENCES_DIR, CHROMIUM_CREDITS_FILE));
 }
 
-const EXPORT_SOURCES: Array<[from: string[], to: string]> = [
-  [["src", "video"], "video"],
-  [["src", "shared"], "shared"],
-  [["src", "renderer", "lib", "utils.ts"], "utils.ts"],
-  [["public"], "public"],
-  ...WEBPACK_OVERRIDE_FILES.map((file): [string[], string] => [
-    ["src", ...WEBPACK_OVERRIDE_DIR, file],
-    path.join(...WEBPACK_OVERRIDE_DIR, file),
-  ]),
+const EXPORT_SOURCES = [
+  ...EXPORTED_SOURCES,
+  ...DEPENDENCY_MANIFESTS,
+  { from: ["public"], to: "public" },
 ];
 
 async function stageExportSource(): Promise<void> {
   await rm(EXPORT_SRC_DIR, { recursive: true, force: true });
   await mkdir(EXPORT_SRC_DIR, { recursive: true });
-  for (const [from, to] of EXPORT_SOURCES)
+  for (const { from, to } of EXPORT_SOURCES)
     await cp(path.join(ROOT, ...from), path.join(EXPORT_SRC_DIR, to), { recursive: true });
 }
 

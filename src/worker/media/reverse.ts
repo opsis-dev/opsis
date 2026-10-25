@@ -1,4 +1,4 @@
-import { singleQuoted } from "../../shared/format";
+import { singleQuoted } from "@opsis/core/format";
 import { EDIT_AUDIO, EDIT_VIDEO, ffmpegSeconds, withEvenFrame } from "./codecs";
 
 export const REVERSE_BUDGET_BYTES = 512 * 1024 ** 2;

@@ -1,13 +1,13 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/scribble-circle.tsx b/src/video/elements/remocn/scribble-circle.tsx
+diff --git a/packages/video/src/elements/remocn/scribble-circle.tsx b/packages/video/src/elements/remocn/scribble-circle.tsx
 index 1bfc67f..cebb52a 100644
---- a/src/video/elements/remocn/scribble-circle.tsx
-+++ b/src/video/elements/remocn/scribble-circle.tsx
+--- a/packages/video/src/elements/remocn/scribble-circle.tsx
++++ b/packages/video/src/elements/remocn/scribble-circle.tsx
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame } from "remotion";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredFrame } from "../../core/authored-clock";
  import {
    BrushGrain,
    type BrushPoint,

@@ -1,8 +1,8 @@
-import { formatColor, parseColor } from "../../shared/color";
-import { round3 } from "../../shared/math";
-import { atempoChain } from "../../shared/mix/tempo";
-import type { NodeParams } from "../../shared/nodes/define";
-import type { gifNode, scalePadNode } from "../../shared/nodes/media";
+import { formatColor, parseColor } from "@opsis/core/color";
+import { round3 } from "@opsis/core/math";
+import { atempoChain } from "@opsis/core/mix/tempo";
+import type { NodeParams } from "@opsis/core/nodes/define";
+import type { gifNode, scalePadNode } from "@opsis/core/nodes/media";
 import { EDIT_VIDEO, evenDown, withEvenFrame } from "./codecs";
 
 export function ffmpegColor(color: string): string {

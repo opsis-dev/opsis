@@ -3,10 +3,10 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 - A parent or merge pointing at a missing or later commit crashed, lane 1 took the second branch colour, a negative lane had no colour, and ten or more commits ran off the frame; such links fall back to the previous commit or are dropped, lanes start at 0 with lane 1 taking the first branch colour, and the window shrinks to fit its commits.
 
-diff --git a/src/video/elements/remotion-ui/commit-graph/index.tsx b/src/video/elements/remotion-ui/commit-graph/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/commit-graph/index.tsx b/packages/video/src/elements/remotion-ui/commit-graph/index.tsx
 index 90457e6..aca7c7b 100644
---- a/src/video/elements/remotion-ui/commit-graph/index.tsx
-+++ b/src/video/elements/remotion-ui/commit-graph/index.tsx
+--- a/packages/video/src/elements/remotion-ui/commit-graph/index.tsx
++++ b/packages/video/src/elements/remotion-ui/commit-graph/index.tsx
 @@ -84,7 +84,7 @@ const clamp = {
    extrapolateRight: "clamp",
  } as const;

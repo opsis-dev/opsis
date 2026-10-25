@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { parseColor } from "@opsis/core/color";
+import type { FieldMeta } from "@opsis/core/elements/introspect";
+import { humanize } from "@opsis/core/format";
+import { isNumber, isRecord, isString, tryParseJson } from "@opsis/core/guards";
+import type { StepRange } from "@opsis/core/math";
+import { stringsIn } from "@opsis/core/vars";
 import { Node, type ObjectLiteralExpression } from "ts-morph";
 import { z } from "zod";
-import { parseColor } from "../../src/shared/color";
-import type { FieldMeta } from "../../src/shared/elements/introspect";
-import { humanize } from "../../src/shared/format";
-import { isNumber, isRecord, isString, tryParseJson } from "../../src/shared/guards";
-import type { StepRange } from "../../src/shared/math";
-import { stringsIn } from "../../src/shared/vars";
 import {
   CONTROL_TYPES,
   FONT_WEIGHTS,

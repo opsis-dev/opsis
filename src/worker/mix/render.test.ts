@@ -1,5 +1,5 @@
+import { CancelledError } from "@opsis/core/errors";
 import { describe, expect, it } from "vitest";
-import { CancelledError } from "../../shared/errors";
 import { ToolError } from "../media/ffmpeg";
 import { friendlyMixError, parseEbur128, parseFrameLines, parseSummary, toFrames } from "./render";
 

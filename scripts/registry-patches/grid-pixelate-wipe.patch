@@ -1,10 +1,10 @@
 Fixes:
 - Shape the grid to the frame and draw round dots, so cells stay square-ish and dots stay circles in portrait and square frames.
 
-diff --git a/src/video/elements/remotion-ui/grid-pixelate-wipe.tsx b/src/video/elements/remotion-ui/grid-pixelate-wipe.tsx
+diff --git a/packages/video/src/elements/remotion-ui/grid-pixelate-wipe.tsx b/packages/video/src/elements/remotion-ui/grid-pixelate-wipe.tsx
 index eb71228..e5199f1 100644
---- a/src/video/elements/remotion-ui/grid-pixelate-wipe.tsx
-+++ b/src/video/elements/remotion-ui/grid-pixelate-wipe.tsx
+--- a/packages/video/src/elements/remotion-ui/grid-pixelate-wipe.tsx
++++ b/packages/video/src/elements/remotion-ui/grid-pixelate-wipe.tsx
 @@ -1,6 +1,6 @@
  import type { TransitionPresentation } from "@remotion/transitions";
  import { useMemo } from "react";

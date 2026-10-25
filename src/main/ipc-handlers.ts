@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { INVOKE, IPC, type OpsisApi, type InvokeName, type RunRequest } from "@opsis/core/ipc";
+import { findById } from "@opsis/core/lists";
+import type { MenuCommand } from "@opsis/core/menu";
+import { keysOf } from "@opsis/core/nodes/params";
 import { BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from "electron";
 import { readLastRun } from "../engine/last-run";
-import { INVOKE, IPC, type OpsisApi, type InvokeName, type RunRequest } from "../shared/ipc";
-import { findById } from "../shared/lists";
-import type { MenuCommand } from "../shared/menu";
-import { keysOf } from "../shared/nodes/params";
 import { readTrace } from "../traces/store";
 import { analyze } from "./analysis";
 import { getApiStatus } from "./api";

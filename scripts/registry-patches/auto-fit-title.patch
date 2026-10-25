@@ -1,10 +1,10 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 
-diff --git a/src/video/elements/remotion-ui/auto-fit-title/index.tsx b/src/video/elements/remotion-ui/auto-fit-title/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/auto-fit-title/index.tsx b/packages/video/src/elements/remotion-ui/auto-fit-title/index.tsx
 index 32dfd1c..27b01e0 100644
---- a/src/video/elements/remotion-ui/auto-fit-title/index.tsx
-+++ b/src/video/elements/remotion-ui/auto-fit-title/index.tsx
+--- a/packages/video/src/elements/remotion-ui/auto-fit-title/index.tsx
++++ b/packages/video/src/elements/remotion-ui/auto-fit-title/index.tsx
 @@ -118,7 +118,7 @@ export const AutoFitTitle: React.FC<AutoFitTitleProps> = ({
          style={{
            position: "absolute",

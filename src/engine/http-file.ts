@@ -1,8 +1,8 @@
 import { createReadStream, type ReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
-import { withoutLeadingSlashes } from "../shared/asset-ref";
-import { AUDIO_MIME, IMAGE_MIME, VIDEO_MIME } from "../shared/mime";
+import { withoutLeadingSlashes } from "@opsis/core/asset-ref";
+import { AUDIO_MIME, IMAGE_MIME, VIDEO_MIME } from "@opsis/core/mime";
 import { nullIfMissing } from "./json";
 import { isInside } from "./project-paths";
 

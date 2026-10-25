@@ -3,10 +3,10 @@ Fixes:
 - The backdrop's own dark gradient covered the Background colour; the gradient is now made from that colour.
 - The title, subtitle and small heading were always near-white, so a light background hid them; they now take a text colour.
 
-diff --git a/src/video/elements/remotion-ui/device-mockup-zoom/index.tsx b/src/video/elements/remotion-ui/device-mockup-zoom/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/device-mockup-zoom/index.tsx b/packages/video/src/elements/remotion-ui/device-mockup-zoom/index.tsx
 index efb3900..11f80c3 100644
---- a/src/video/elements/remotion-ui/device-mockup-zoom/index.tsx
-+++ b/src/video/elements/remotion-ui/device-mockup-zoom/index.tsx
+--- a/packages/video/src/elements/remotion-ui/device-mockup-zoom/index.tsx
++++ b/packages/video/src/elements/remotion-ui/device-mockup-zoom/index.tsx
 @@ -25,6 +25,8 @@ export type DeviceMockupZoomProps = {
    device?: "phone" | "browser" | "laptop";
    backgroundColor?: string;

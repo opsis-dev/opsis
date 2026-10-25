@@ -1,17 +1,17 @@
 import { randomUUID } from "node:crypto";
-import type { MessagePortMain } from "electron";
-import { installEngine } from "../engine/install";
-import { CANCELLED, errorMessage } from "../shared/errors";
-import type { LiveMessage } from "../shared/live";
-import { pendingReplies } from "../shared/pending-replies";
-import { runFailed } from "../shared/schema/events";
+import { CANCELLED, errorMessage } from "@opsis/core/errors";
+import type { LiveMessage } from "@opsis/core/live";
+import { pendingReplies } from "@opsis/core/pending-replies";
+import { runFailed } from "@opsis/core/schema/events";
 import {
   isMainToWorker,
   type LoginRequest,
   type MainMessage,
   type MainToWorker,
   type WorkerToMain,
-} from "../shared/worker-protocol";
+} from "@opsis/core/worker-protocol";
+import type { MessagePortMain } from "electron";
+import { installEngine } from "../engine/install";
 import type { ExecutorContext } from "./engine/context";
 import { runWorkflow } from "./engine/runner";
 import { runAnalysis } from "./media/run-analysis";

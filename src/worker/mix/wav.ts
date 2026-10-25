@@ -1,5 +1,5 @@
-import { EPSILON, forEachWindow, round1 } from "../../shared/math";
-import { SILENCE_DB } from "../../shared/mix/types";
+import { EPSILON, forEachWindow, round1 } from "@opsis/core/math";
+import { SILENCE_DB } from "@opsis/core/mix/types";
 
 const WAVE_FORMAT_EXTENSIBLE = 0xfffe;
 const FLOAT_FORMAT = 3;

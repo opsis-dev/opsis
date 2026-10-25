@@ -3,14 +3,14 @@ Fixes:
 - Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/strikethrough-replace.tsx b/src/video/elements/remocn/strikethrough-replace.tsx
+diff --git a/packages/video/src/elements/remocn/strikethrough-replace.tsx b/packages/video/src/elements/remocn/strikethrough-replace.tsx
 index 3dc83d9..d814ae4 100644
---- a/src/video/elements/remocn/strikethrough-replace.tsx
-+++ b/src/video/elements/remocn/strikethrough-replace.tsx
+--- a/packages/video/src/elements/remocn/strikethrough-replace.tsx
++++ b/packages/video/src/elements/remocn/strikethrough-replace.tsx
 @@ -1,6 +1,8 @@
 -import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 +import { interpolate } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface StrikethroughReplaceProps {
 +  fontFamily?: string;

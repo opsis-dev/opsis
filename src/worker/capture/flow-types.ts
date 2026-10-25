@@ -1,6 +1,6 @@
+import type { Point } from "@opsis/core/schema/actions";
+import type { ClickEvent, CursorSample, KeyEvent } from "@opsis/video/capture";
 import type { Locator } from "playwright-core";
-import type { Point } from "../../shared/schema/actions";
-import type { ClickEvent, CursorSample, KeyEvent } from "../../video/camera/lib/click-log";
 
 export type TakeClick = ClickEvent & { selector?: string; text?: string };
 

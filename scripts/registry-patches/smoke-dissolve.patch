@@ -1,10 +1,10 @@
 Fixes:
 - Stretch the progress so the last frame reaches the end, so the incoming scene lands at full size instead of popping in after.
 
-diff --git a/src/video/elements/remocn/smoke-dissolve.tsx b/src/video/elements/remocn/smoke-dissolve.tsx
+diff --git a/packages/video/src/elements/remocn/smoke-dissolve.tsx b/packages/video/src/elements/remocn/smoke-dissolve.tsx
 index 80973ea..b614c4a 100644
---- a/src/video/elements/remocn/smoke-dissolve.tsx
-+++ b/src/video/elements/remocn/smoke-dissolve.tsx
+--- a/packages/video/src/elements/remocn/smoke-dissolve.tsx
++++ b/packages/video/src/elements/remocn/smoke-dissolve.tsx
 @@ -25,6 +25,7 @@ const SmokeDissolvePresentation: React.FC<
    children,
    presentationProgress,

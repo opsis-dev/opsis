@@ -1,8 +1,8 @@
+import { onAbort } from "@opsis/core/errors";
+import type { openBrowserNode } from "@opsis/core/nodes/browser";
+import type { NodeParams } from "@opsis/core/nodes/define";
+import type { Viewport } from "@opsis/core/schema/actions";
 import type { BrowserContext } from "playwright-core";
-import { onAbort } from "../../shared/errors";
-import type { openBrowserNode } from "../../shared/nodes/browser";
-import type { NodeParams } from "../../shared/nodes/define";
-import type { Viewport } from "../../shared/schema/actions";
 import { fitPageToScale, scaledViewport } from "./capture-scale";
 
 type BrowserParams = NodeParams<typeof openBrowserNode>;

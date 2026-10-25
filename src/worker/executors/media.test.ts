@@ -1,9 +1,9 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { defaultParams, getNodeDef } from "@opsis/core/nodes/registry";
+import { must, workflowNode } from "@opsis/core/test-fixtures";
 import { describe, expect, it } from "vitest";
-import { defaultParams, getNodeDef } from "../../shared/nodes/registry";
-import { must, workflowNode } from "../../shared/test-fixtures";
 import type { ExecutorContext } from "../engine/context";
 import { getExecutor } from "./index";
 import { thumbnailTime } from "./media";

@@ -1,5 +1,4 @@
-import type { Page } from "playwright-core";
-import { clamp01 } from "../../shared/math";
+import { clamp01 } from "@opsis/core/math";
 import {
   distance,
   lerpPoint,
@@ -9,10 +8,9 @@ import {
   type Point,
   type Rect,
   type Viewport,
-} from "../../shared/schema/actions";
-import { cameraEase } from "../../video/camera/lib/camera";
-import type { CursorSample } from "../../video/camera/lib/click-log";
-import { designScaleFor } from "../../video/camera/lib/design-width";
+} from "@opsis/core/schema/actions";
+import { cameraEase, designScaleFor, type CursorSample } from "@opsis/video/capture";
+import type { Page } from "playwright-core";
 import { cursorKeyword, DEFAULT_CURSOR } from "./cursor-keyword";
 import {
   boundsOf,

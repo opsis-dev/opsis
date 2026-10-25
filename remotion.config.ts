@@ -1,7 +1,9 @@
+import path from "node:path";
+import { VIDEO_SOURCE } from "@opsis/sidecar/source-layout";
+import { makeWebpackOverride } from "@opsis/sidecar/webpack-override";
 import { Config } from "@remotion/cli/config";
-import { makeWebpackOverride } from "./src/worker/render/webpack-override";
 
 Config.setVideoImageFormat("jpeg");
 Config.setOverwriteOutput(true);
 Config.setChromiumOpenGlRenderer("angle");
-Config.overrideWebpackConfig(makeWebpackOverride(process.cwd()));
+Config.overrideWebpackConfig(makeWebpackOverride(path.join(process.cwd(), ...VIDEO_SOURCE)));

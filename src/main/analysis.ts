@@ -1,7 +1,7 @@
+import type { AnalysisRequest, AnalysisResult } from "@opsis/core/analysis";
+import { ENGINE_MISSING_MESSAGE } from "@opsis/core/engine";
+import { errorMessage } from "@opsis/core/errors";
 import { engineStatus } from "../engine/paths";
-import type { AnalysisRequest, AnalysisResult } from "../shared/analysis";
-import { ENGINE_MISSING_MESSAGE } from "../shared/engine";
-import { errorMessage } from "../shared/errors";
 import { createQueuedWorker } from "./lazy-worker";
 import { engineDir } from "./workers";
 

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { ENGINE_MISSING_MESSAGE, type EngineStatus } from "../shared/engine";
+import { ENGINE_MISSING_MESSAGE, type EngineStatus } from "@opsis/core/engine";
 
 const FFMPEG_RELEASE = "b6.1.1";
 export const FFMPEG_RELEASE_URL = `https://github.com/eugeneware/ffmpeg-static/releases/download/${FFMPEG_RELEASE}`;

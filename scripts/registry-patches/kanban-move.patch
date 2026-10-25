@@ -3,10 +3,10 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 - Columns held three cards, so a fourth spilled out; a card with a destination but no time never moved yet still took a slot there; and with fewer columns a card could sit off the board; columns now grow to their fullest moment and the board shrinks to fit, only a card with both a destination and a time moves, and every card is kept on the board.
 
-diff --git a/src/video/elements/remotion-ui/kanban-move/index.tsx b/src/video/elements/remotion-ui/kanban-move/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/kanban-move/index.tsx b/packages/video/src/elements/remotion-ui/kanban-move/index.tsx
 index ad3870d..6a39973 100644
---- a/src/video/elements/remotion-ui/kanban-move/index.tsx
-+++ b/src/video/elements/remotion-ui/kanban-move/index.tsx
+--- a/packages/video/src/elements/remotion-ui/kanban-move/index.tsx
++++ b/packages/video/src/elements/remotion-ui/kanban-move/index.tsx
 @@ -103,7 +103,7 @@ const clamp = {
   */
  export const KanbanMove: React.FC<KanbanMoveProps> = ({

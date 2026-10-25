@@ -3,10 +3,10 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 - Zero columns divided by zero, long names ran past their tile, and a logo could only be a name; columns are at least one, long names end in an ellipsis, and a logo row can carry an image.
 
-diff --git a/src/video/elements/remotion-ui/logo-wall/index.tsx b/src/video/elements/remotion-ui/logo-wall/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/logo-wall/index.tsx b/packages/video/src/elements/remotion-ui/logo-wall/index.tsx
 index a5eccf7..6e8b4a9 100644
---- a/src/video/elements/remotion-ui/logo-wall/index.tsx
-+++ b/src/video/elements/remotion-ui/logo-wall/index.tsx
+--- a/packages/video/src/elements/remotion-ui/logo-wall/index.tsx
++++ b/packages/video/src/elements/remotion-ui/logo-wall/index.tsx
 @@ -1,6 +1,7 @@
  import { loadFont } from "@remotion/google-fonts/Inter";
  import {

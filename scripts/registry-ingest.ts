@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { errorMessage } from "@opsis/core/errors";
+import { pascalCase } from "@opsis/core/format";
+import { isNumber, isRecord } from "@opsis/core/guards";
 import { z } from "zod";
 import { fetchOk } from "../src/engine/download";
-import { errorMessage } from "../src/shared/errors";
-import { pascalCase } from "../src/shared/format";
-import { isNumber, isRecord } from "../src/shared/guards";
 import {
   renderLoaderEntry,
   renderLoaders,
@@ -27,7 +27,7 @@ import {
 import { install, moveInstalled, rewriteImports } from "./lib/registry-install";
 import { applyPatches } from "./lib/registry-patches";
 import { hiddenPropProblems } from "./lib/registry-props";
-import { ROOT, SRC_DIR, VIDEO_DIR } from "./lib/tool-config";
+import { CORE_DIR, ROOT, VIDEO_DIR } from "./lib/tool-config";
 import { literalOf, scratchFile } from "./lib/ts-literal";
 import {
   CURATED,
@@ -37,7 +37,7 @@ import {
   type CuratedElement,
 } from "./registry-ingest.list";
 
-const OUT_META = path.join(SRC_DIR, "shared", "elements", "elements.generated.ts");
+const OUT_META = path.join(CORE_DIR, "elements", "elements.generated.ts");
 const OUT_COMPONENTS = path.join(VIDEO_DIR, "registry", "components.generated.ts");
 const skipAdd = process.argv.includes("--no-add");
 const onlyIndex = process.argv.indexOf("--only");

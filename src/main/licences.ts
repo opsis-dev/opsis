@@ -1,11 +1,11 @@
 import { stat } from "node:fs/promises";
 import path from "node:path";
+import type { LicenceEntry } from "@opsis/core/ipc";
 import { app, shell } from "electron";
 import { nullIfMissing, readTextIfPresent } from "../engine/json";
 import { completeEngineLicences, shippedCreditsCandidates } from "../engine/licences";
 import { logError, logWarning } from "../engine/log";
 import { CHROMIUM_CREDITS_FILE } from "../engine/paths";
-import type { LicenceEntry } from "../shared/ipc";
 import { engineDir } from "./workers";
 
 const resourceDir = () => (app.isPackaged ? process.resourcesPath : app.getAppPath());

@@ -6,7 +6,10 @@ import { CANVAS_BACKGROUND } from "./canvas-color";
 
 describe("window background", () => {
   it("matches the canvas colour token, so no other colour shows while the page loads", () => {
-    const css = readFileSync(path.resolve(import.meta.dirname, "../renderer/index.css"), "utf8");
+    const css = readFileSync(
+      path.resolve(import.meta.dirname, "../../packages/ui/src/index.css"),
+      "utf8",
+    );
     const root = css.slice(css.indexOf(":root {"));
     const [, token] = /--background: (oklch\([^)]*\))/.exec(root) ?? [];
     expect(token).toBeDefined();

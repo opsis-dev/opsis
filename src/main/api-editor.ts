@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { ipcMain, type WebContents } from "electron";
 import {
   API_EDITOR_TIMEOUT_MS,
   apiFailure,
@@ -10,13 +9,14 @@ import {
   type ApiEditorRequest,
   type ApiProjectState,
   type ApiReply,
-} from "../shared/api/types";
-import { NO_PROJECT } from "../shared/errors";
-import { IPC } from "../shared/ipc";
-import { listenerSet } from "../shared/listener-set";
-import { pendingReplies } from "../shared/pending-replies";
-import type { RunEvent } from "../shared/schema/events";
-import { whenReady } from "../shared/timing";
+} from "@opsis/core/api/types";
+import { NO_PROJECT } from "@opsis/core/errors";
+import { IPC } from "@opsis/core/ipc";
+import { listenerSet } from "@opsis/core/listener-set";
+import { pendingReplies } from "@opsis/core/pending-replies";
+import type { RunEvent } from "@opsis/core/schema/events";
+import { whenReady } from "@opsis/core/timing";
+import { ipcMain, type WebContents } from "electron";
 import { getMainWindow, isEditorSender, liveWindow } from "./window-registry";
 
 const EDITOR_TIMEOUT = {

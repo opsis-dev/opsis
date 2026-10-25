@@ -1,7 +1,7 @@
-import { lerp } from "../../shared/math";
-import { applyMixLevels, withMasterStem } from "../../shared/mix/levels";
-import { buildMixPlan } from "../../shared/mix/plan";
-import type { TimelineSpec } from "../../shared/schema/timeline";
+import { lerp } from "@opsis/core/math";
+import { applyMixLevels, withMasterStem } from "@opsis/core/mix/levels";
+import { buildMixPlan } from "@opsis/core/mix/plan";
+import type { TimelineSpec } from "@opsis/core/schema/timeline";
 import type { ExecutorContext } from "../engine/context";
 import { renderMix } from "../mix/render";
 import { refToPath } from "./util";

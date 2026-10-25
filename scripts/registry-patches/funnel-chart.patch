@@ -2,10 +2,10 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 - Leave out the drop-off for a stage of zero and never draw a negative band, so the chart shows no Infinity or NaN.
 
-diff --git a/src/video/elements/remotion-ui/funnel-chart.tsx b/src/video/elements/remotion-ui/funnel-chart.tsx
+diff --git a/packages/video/src/elements/remotion-ui/funnel-chart.tsx b/packages/video/src/elements/remotion-ui/funnel-chart.tsx
 index cc0beff..ee1525f 100644
---- a/src/video/elements/remotion-ui/funnel-chart.tsx
-+++ b/src/video/elements/remotion-ui/funnel-chart.tsx
+--- a/packages/video/src/elements/remotion-ui/funnel-chart.tsx
++++ b/packages/video/src/elements/remotion-ui/funnel-chart.tsx
 @@ -103,7 +103,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
            easing: EASING.exit,
          });

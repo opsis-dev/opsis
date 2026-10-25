@@ -3,16 +3,16 @@ Fixes:
 - Size each column to its widest glyph in the drawn font and keep a padding space one line tall, so wide letters are not clipped and a longer new value rolls into every column.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/slot-machine-roll.tsx b/src/video/elements/remocn/slot-machine-roll.tsx
+diff --git a/packages/video/src/elements/remocn/slot-machine-roll.tsx b/packages/video/src/elements/remocn/slot-machine-roll.tsx
 index 985f0be..0702662 100644
---- a/src/video/elements/remocn/slot-machine-roll.tsx
-+++ b/src/video/elements/remocn/slot-machine-roll.tsx
+--- a/packages/video/src/elements/remocn/slot-machine-roll.tsx
++++ b/packages/video/src/elements/remocn/slot-machine-roll.tsx
 @@ -1,6 +1,31 @@
 -import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 +import { useMemo } from "react";
 +import { spring } from "remotion";
-+import { MAIN_FONT } from "@/shared/fonts";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { MAIN_FONT } from "@opsis/core/fonts";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
 +
 +const COLUMN_EM = 0.7;
 +const LETTER_SPACING_EM = -0.03;

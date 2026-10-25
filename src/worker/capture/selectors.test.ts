@@ -1,6 +1,6 @@
+import { CancelledError } from "@opsis/core/errors";
 import type { Locator } from "playwright-core";
 import { describe, expect, it } from "vitest";
-import { CancelledError } from "../../shared/errors";
 import { resolveTarget, SelectorError } from "./selectors";
 
 type FakePage = Parameters<typeof resolveTarget>[0];

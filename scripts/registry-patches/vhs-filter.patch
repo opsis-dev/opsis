@@ -1,15 +1,15 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/vhs-filter.tsx b/src/video/elements/remocn/vhs-filter.tsx
+diff --git a/packages/video/src/elements/remocn/vhs-filter.tsx b/packages/video/src/elements/remocn/vhs-filter.tsx
 index da665bb..2d348dc 100644
---- a/src/video/elements/remocn/vhs-filter.tsx
-+++ b/src/video/elements/remocn/vhs-filter.tsx
+--- a/packages/video/src/elements/remocn/vhs-filter.tsx
++++ b/packages/video/src/elements/remocn/vhs-filter.tsx
 @@ -1,5 +1,6 @@
  import type React from "react";
 -import { AbsoluteFill, random, useCurrentFrame } from "remotion";
 +import { AbsoluteFill, random } from "remotion";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredFrame } from "../../core/authored-clock";
  import {
    type CanvasFilterProps,
    makeCanvasFilter,

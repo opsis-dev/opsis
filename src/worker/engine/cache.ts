@@ -1,9 +1,9 @@
 import { mkdir, stat } from "node:fs/promises";
 import path from "node:path";
+import { byCodeUnit } from "@opsis/core/lists";
+import { nodeResultSchema, type NodeResult } from "@opsis/core/schema/values";
 import { versionedHash } from "../../engine/hash";
 import { nullIfMissing, readJson, writeJson } from "../../engine/json";
-import { byCodeUnit } from "../../shared/lists";
-import { nodeResultSchema, type NodeResult } from "../../shared/schema/values";
 
 export const ENGINE_VERSION = "opsis-engine/1";
 

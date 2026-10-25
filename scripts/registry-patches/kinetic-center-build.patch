@@ -3,16 +3,16 @@ Fixes:
 - Measure words in the font and letter spacing they are drawn in, so the words land evenly spaced and centred.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/kinetic-center-build.tsx b/src/video/elements/remocn/kinetic-center-build.tsx
+diff --git a/packages/video/src/elements/remocn/kinetic-center-build.tsx b/packages/video/src/elements/remocn/kinetic-center-build.tsx
 index e0b4c2c..1e0b300 100644
---- a/src/video/elements/remocn/kinetic-center-build.tsx
-+++ b/src/video/elements/remocn/kinetic-center-build.tsx
+--- a/packages/video/src/elements/remocn/kinetic-center-build.tsx
++++ b/packages/video/src/elements/remocn/kinetic-center-build.tsx
 @@ -1,7 +1,10 @@
  import { useMemo } from "react";
 -import { Easing, interpolate, useCurrentFrame } from "remotion";
 +import { Easing, interpolate } from "remotion";
-+import { MAIN_FONT } from "@/shared/fonts";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
++import { MAIN_FONT } from "@opsis/core/fonts";
++import { useAuthoredFrame } from "../../core/authored-clock";
  
  export interface KineticCenterBuildProps {
 +  fontFamily?: string;

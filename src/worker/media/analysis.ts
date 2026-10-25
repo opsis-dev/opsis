@@ -1,20 +1,20 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
-import type { z } from "zod";
-import { writeViaTemp } from "../../engine/atomic";
-import { fileIdentity } from "../../engine/dir";
-import { versionedHash } from "../../engine/hash";
-import { atomicWrite, readJson } from "../../engine/json";
-import { isInside, projectPaths, toProjectRef } from "../../engine/project-paths";
 import {
   filmstripSchema,
   waveformSchema,
   type Filmstrip,
   type Waveform,
   type WaveformLevel,
-} from "../../shared/analysis";
-import { EPSILON, evenPx, forEachWindow, round3, sum } from "../../shared/math";
+} from "@opsis/core/analysis";
+import { EPSILON, evenPx, forEachWindow, round3, sum } from "@opsis/core/math";
+import type { z } from "zod";
+import { writeViaTemp } from "../../engine/atomic";
+import { fileIdentity } from "../../engine/dir";
+import { versionedHash } from "../../engine/hash";
+import { atomicWrite, readJson } from "../../engine/json";
+import { isInside, projectPaths, toProjectRef } from "../../engine/project-paths";
 import type { FfmpegTools } from "./ffmpeg";
 
 export type MediaDeps = {

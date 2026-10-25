@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/marker-highlight.tsx b/src/video/elements/remocn/marker-highlight.tsx
+diff --git a/packages/video/src/elements/remocn/marker-highlight.tsx b/packages/video/src/elements/remocn/marker-highlight.tsx
 index a3e3d00..efb6c34 100644
---- a/src/video/elements/remocn/marker-highlight.tsx
-+++ b/src/video/elements/remocn/marker-highlight.tsx
+--- a/packages/video/src/elements/remocn/marker-highlight.tsx
++++ b/packages/video/src/elements/remocn/marker-highlight.tsx
 @@ -2,11 +2,11 @@ import {
    interpolate,
    interpolateColors,
@@ -13,7 +13,7 @@ index a3e3d00..efb6c34 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface MarkerHighlightProps {
 +  fontFamily?: string;

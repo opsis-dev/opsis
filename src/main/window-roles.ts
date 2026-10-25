@@ -1,6 +1,6 @@
+import { clamp } from "@opsis/core/math";
+import type { WindowRole } from "@opsis/core/menu";
 import { app, type BrowserWindow } from "electron";
-import { clamp } from "../shared/math";
-import type { WindowRole } from "../shared/menu";
 
 const ZOOM_STEP = 0.5;
 const ZOOM_LIMIT = 5;

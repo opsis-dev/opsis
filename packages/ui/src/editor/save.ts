@@ -1,0 +1,47 @@
+import { normalizeWorkflow } from "@opsis/core/schema/workflow";
+import { reportError } from "@/lib/toast";
+import { useWorkflowStore } from "../store/workflow";
+import { useDiskChange, type DiskChange } from "./disk-change-store";
+
+export const VERSION_UNCHOSEN =
+  "The project file changed on disk. Choose which version to keep first.";
+
+let saving: Promise<boolean> = Promise.resolve(true);
+
+export const previousSave = (): Promise<boolean> => saving.catch(() => false);
+
+export function save(): Promise<boolean> {
+  saving = previousSave().then(async () => {
+    const { projectDir, workflow, revision, fileVersion } = useWorkflowStore.getState();
+    if (!projectDir || !workflow) return true;
+    if (useDiskChange.getState().change) return false;
+    const result = await window.opsis.saveWorkflow(projectDir, workflow, fileVersion);
+    if (!result.ok) {
+      useDiskChange.getState().show({ workflow: result.workflow, version: result.version });
+      return false;
+    }
+    useWorkflowStore.getState().markSaved(revision, result.version);
+    return true;
+  });
+  return saving;
+}
+
+export const saveWithToast = (): Promise<boolean> =>
+  save().catch((e: unknown) => {
+    reportError("Save failed", e);
+    return false;
+  });
+
+export function loadFromDisk({ workflow, version }: DiskChange): void {
+  if (!workflow) return;
+  useWorkflowStore.getState().update(() => normalizeWorkflow(workflow));
+  const { revision, markSaved } = useWorkflowStore.getState();
+  markSaved(revision, version);
+  useDiskChange.getState().clear();
+}
+
+export function keepMine(change: DiskChange): Promise<boolean> {
+  useWorkflowStore.getState().setFileVersion(change.version);
+  useDiskChange.getState().clear();
+  return save();
+}

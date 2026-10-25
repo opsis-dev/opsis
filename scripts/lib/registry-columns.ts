@@ -1,9 +1,9 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { parseColor } from "@opsis/core/color";
+import { humanize } from "@opsis/core/format";
+import { isNumber, isRecord, isString } from "@opsis/core/guards";
 import { Node, type SourceFile, type TypeNode } from "ts-morph";
-import { parseColor } from "../../src/shared/color";
-import { humanize } from "../../src/shared/format";
-import { isNumber, isRecord, isString } from "../../src/shared/guards";
 import type { ControlSpec } from "../registry-ingest.list";
 import { VIDEO_DIR } from "./tool-config";
 import { scratchFile } from "./ts-literal";

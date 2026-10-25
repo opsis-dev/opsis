@@ -1,5 +1,5 @@
-import { evenPx } from "../../shared/math";
-import type { Size } from "../../video/core/still-layout";
+import { evenPx } from "@opsis/core/math";
+import type { Size } from "@opsis/video/capture";
 
 type PageScale = Size & { scale: number };
 

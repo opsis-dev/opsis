@@ -1,10 +1,10 @@
 Fixes:
 - Keep the caption inside its strip: cap its size to the strip's height and to one line across the photo.
 
-diff --git a/src/video/elements/remocn/polaroid.tsx b/src/video/elements/remocn/polaroid.tsx
+diff --git a/packages/video/src/elements/remocn/polaroid.tsx b/packages/video/src/elements/remocn/polaroid.tsx
 index 40bdad8..5a4a0f1 100644
---- a/src/video/elements/remocn/polaroid.tsx
-+++ b/src/video/elements/remocn/polaroid.tsx
+--- a/packages/video/src/elements/remocn/polaroid.tsx
++++ b/packages/video/src/elements/remocn/polaroid.tsx
 @@ -55,8 +55,11 @@ export function Polaroid({
  }: PolaroidProps) {
    const { pad, mediaWidth, mediaHeight, captionHeight, height } =

@@ -1,5 +1,5 @@
+import { IPC, type CloseDecision, type CloseRequest } from "@opsis/core/ipc";
 import { app, ipcMain, type BrowserWindow } from "electron";
-import { IPC, type CloseDecision, type CloseRequest } from "../shared/ipc";
 import { raiseWindow } from "./raise-window";
 import { cancelRun, isRunning } from "./run-host";
 import { patchSettings, readSettings } from "./settings";

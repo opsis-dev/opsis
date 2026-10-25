@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Time the showcase pose against the clip length times the speed, so it completes at any speed.
 
-diff --git a/src/video/elements/snap-cn/phone-frame.tsx b/src/video/elements/snap-cn/phone-frame.tsx
+diff --git a/packages/video/src/elements/snap-cn/phone-frame.tsx b/packages/video/src/elements/snap-cn/phone-frame.tsx
 index 96267b1..777fd40 100644
---- a/src/video/elements/snap-cn/phone-frame.tsx
-+++ b/src/video/elements/snap-cn/phone-frame.tsx
+--- a/packages/video/src/elements/snap-cn/phone-frame.tsx
++++ b/packages/video/src/elements/snap-cn/phone-frame.tsx
 @@ -6,9 +6,8 @@ import {
    interpolate,
    OffthreadVideo,
@@ -13,7 +13,7 @@ index 96267b1..777fd40 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  import {
    resolveFont,
    type SnapCnTheme,

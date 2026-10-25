@@ -1,10 +1,10 @@
 Fixes:
 - Keep the scene at the same place in the tree at every separation, so a video or image never remounts mid-transition.
 
-diff --git a/src/video/elements/remotion-ui/chromatic-aberration-wipe.tsx b/src/video/elements/remotion-ui/chromatic-aberration-wipe.tsx
+diff --git a/packages/video/src/elements/remotion-ui/chromatic-aberration-wipe.tsx b/packages/video/src/elements/remotion-ui/chromatic-aberration-wipe.tsx
 index 914814c..b4231ba 100644
---- a/src/video/elements/remotion-ui/chromatic-aberration-wipe.tsx
-+++ b/src/video/elements/remotion-ui/chromatic-aberration-wipe.tsx
+--- a/packages/video/src/elements/remotion-ui/chromatic-aberration-wipe.tsx
++++ b/packages/video/src/elements/remotion-ui/chromatic-aberration-wipe.tsx
 @@ -88,13 +88,8 @@ const ChromaticPresentation: React.FC<
  
    // Under ~0.1px the three copies are indistinguishable from the original and

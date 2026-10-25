@@ -2,21 +2,21 @@ Fixes:
 - Read the colour through the shared colour parser, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours tint the effect instead of turning white.
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/tv-power-off.tsx b/src/video/elements/remocn/tv-power-off.tsx
+diff --git a/packages/video/src/elements/remocn/tv-power-off.tsx b/packages/video/src/elements/remocn/tv-power-off.tsx
 index e141fe0..fc96fef 100644
---- a/src/video/elements/remocn/tv-power-off.tsx
-+++ b/src/video/elements/remocn/tv-power-off.tsx
+--- a/packages/video/src/elements/remocn/tv-power-off.tsx
++++ b/packages/video/src/elements/remocn/tv-power-off.tsx
 @@ -1,10 +1,12 @@
  import type React from "react";
 -import { AbsoluteFill, useCurrentFrame } from "remotion";
 +import { AbsoluteFill } from "remotion";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredFrame } from "../../core/authored-clock";
  import {
    type CanvasFilterProps,
    makeCanvasFilter,
    makeFilterShader,
- } from "@/video/lib/remocn/canvas-presentation";
-+import { parseColor } from "@/video/lib/remocn-ui/color";
+ } from "../../lib/remocn/canvas-presentation";
++import { parseColor } from "../../lib/remocn-ui/color";
  
  export type TvPowerOffProps = {
    durationInFrames?: number;

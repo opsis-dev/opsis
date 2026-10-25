@@ -1,25 +1,31 @@
 import { randomUUID } from "node:crypto";
 import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { eq } from "drizzle-orm";
-import { app, type BrowserWindow } from "electron";
-import { unzipSync } from "fflate";
-import { create, type Font } from "fontkit";
-import { logWarning } from "../engine/log";
-import { baseName, extensionOf, libraryRef, libraryRelPath, projectRef } from "../shared/asset-ref";
-import { fontSlug, sameFamily } from "../shared/fonts";
+import {
+  baseName,
+  extensionOf,
+  libraryRef,
+  libraryRelPath,
+  projectRef,
+} from "@opsis/core/asset-ref";
+import { fontSlug, sameFamily } from "@opsis/core/fonts";
 import {
   familyNameFrom,
   planFontFiles,
   type FontCandidate,
   type PlannedFamily,
-} from "../shared/fonts/plan";
-import { fontFamilySchema, type FontFaceDef, type FontFamilyDef } from "../shared/fonts/types";
-import { parseJsonWith } from "../shared/guards";
-import type { FontInstalledFace, InspectedFonts } from "../shared/ipc";
-import { firstFree } from "../shared/lists";
-import { safeName } from "../shared/safe-name";
-import { oneAtATime } from "../shared/timing";
+} from "@opsis/core/fonts/plan";
+import { fontFamilySchema, type FontFaceDef, type FontFamilyDef } from "@opsis/core/fonts/types";
+import { parseJsonWith } from "@opsis/core/guards";
+import type { FontInstalledFace, InspectedFonts } from "@opsis/core/ipc";
+import { firstFree } from "@opsis/core/lists";
+import { safeName } from "@opsis/core/safe-name";
+import { oneAtATime } from "@opsis/core/timing";
+import { eq } from "drizzle-orm";
+import { app, type BrowserWindow } from "electron";
+import { unzipSync } from "fflate";
+import { create, type Font } from "fontkit";
+import { logWarning } from "../engine/log";
 import { db } from "./db";
 import { fonts } from "./db/schema";
 import { openDialog } from "./dialogs";

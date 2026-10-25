@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Mount the shader with the blob shape's clamp arguments in order: clamp(0., 1., length(…)) has its bounds swapped, which graphics cards read as min(1., length(…)) but software drawing reads as 1, so the blobs vanished under Software drawing.
 
-diff --git a/src/video/elements/remocn/shader-grain-gradient.tsx b/src/video/elements/remocn/shader-grain-gradient.tsx
+diff --git a/packages/video/src/elements/remocn/shader-grain-gradient.tsx b/packages/video/src/elements/remocn/shader-grain-gradient.tsx
 index dcd3e98..250248b 100644
---- a/src/video/elements/remocn/shader-grain-gradient.tsx
-+++ b/src/video/elements/remocn/shader-grain-gradient.tsx
+--- a/packages/video/src/elements/remocn/shader-grain-gradient.tsx
++++ b/packages/video/src/elements/remocn/shader-grain-gradient.tsx
 @@ -1,17 +1,29 @@
  import {
 -  GrainGradient,
@@ -27,7 +27,7 @@ index dcd3e98..250248b 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  const NEUTRAL_COLORS = ["#3a3a52", "#4a4a68", "#5a5a7e"];
  

@@ -1,10 +1,10 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
 import type { Readable, Writable } from "node:stream";
+import { CancelledError, onAbort, throwIfCancelled } from "@opsis/core/errors";
+import { clamp01 } from "@opsis/core/math";
 import { z } from "zod";
 import { engineStatus, requireEngineFile } from "../../engine/paths";
-import { CancelledError, onAbort, throwIfCancelled } from "../../shared/errors";
-import { clamp01 } from "../../shared/math";
 
 export type FfmpegTools = {
   run: (args: string[], opts?: RunOptions) => Promise<void>;

@@ -1,10 +1,10 @@
 Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 
-diff --git a/src/video/elements/remotion-ui/caption-bumper/index.tsx b/src/video/elements/remotion-ui/caption-bumper/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/caption-bumper/index.tsx b/packages/video/src/elements/remotion-ui/caption-bumper/index.tsx
 index 92b2171..ea8e7fb 100644
---- a/src/video/elements/remotion-ui/caption-bumper/index.tsx
-+++ b/src/video/elements/remotion-ui/caption-bumper/index.tsx
+--- a/packages/video/src/elements/remotion-ui/caption-bumper/index.tsx
++++ b/packages/video/src/elements/remotion-ui/caption-bumper/index.tsx
 @@ -137,7 +137,7 @@ export const CaptionBumper: React.FC<CaptionBumperProps> = ({
          style={{
            position: "absolute",

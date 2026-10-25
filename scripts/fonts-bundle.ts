@@ -8,20 +8,20 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { z } from "zod";
+import { FONT_CATEGORIES, type FontFamilyDef } from "@opsis/core/fonts/types";
 import {
   googleFontModuleFile,
   googleImportName,
   GOOGLE_SHIM_SEGMENTS,
-} from "../src/shared/fonts/google-font-imports";
-import { FONT_CATEGORIES, type FontFamilyDef } from "../src/shared/fonts/types";
+} from "@opsis/video/fonts/google-font-imports";
+import { z } from "zod";
 import { readJsonWith } from "./lib/read-json";
-import { ROOT } from "./lib/tool-config";
+import { CORE_DIR, ROOT, VIDEO_DIR } from "./lib/tool-config";
 import { walkFiles } from "./lib/walk";
 
 const OUT = path.join(ROOT, "public", "fonts", "bundled");
-const META_OUT = path.join(ROOT, "src", "shared", "fonts", "bundled.generated.ts");
-const SHIM_DIR = path.join(ROOT, ...GOOGLE_SHIM_SEGMENTS);
+const META_OUT = path.join(CORE_DIR, "fonts", "bundled.generated.ts");
+const SHIM_DIR = path.join(VIDEO_DIR, ...GOOGLE_SHIM_SEGMENTS);
 
 type BundledFont = { pkg: string; googleFamily?: string };
 
@@ -100,7 +100,7 @@ function copyFontFiles({ pkg }: BundledFont): FontFamilyDef {
 
 function checkImports(): void {
   const used = new Set<string>();
-  for (const file of walkFiles(path.join(ROOT, "src", "video"))) {
+  for (const file of walkFiles(VIDEO_DIR)) {
     if (!/\.tsx?$/.test(file) || file.startsWith(SHIM_DIR)) continue;
     for (const m of readFileSync(file, "utf8").matchAll(/@remotion\/google-fonts\/([A-Za-z]+)/g))
       used.add(m[1]);

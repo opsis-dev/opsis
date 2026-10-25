@@ -1,7 +1,7 @@
+import type { ViewPrefs } from "@opsis/core/ipc";
+import { debounce } from "@opsis/core/timing";
 import type { BrowserWindow } from "electron";
 import { z } from "zod";
-import type { ViewPrefs } from "../shared/ipc";
-import { debounce } from "../shared/timing";
 import { writeViewState } from "./view-state";
 import { SAVE_BOUNDS_AFTER_MS, visibleBounds } from "./window-placement";
 

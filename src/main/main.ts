@@ -1,6 +1,6 @@
+import { IPC } from "@opsis/core/ipc";
 import { app, BrowserWindow } from "electron";
 import started from "electron-squirrel-startup";
-import { IPC } from "../shared/ipc";
 import { stopAnalysis } from "./analysis";
 import { followApiSetting, stopApi } from "./api";
 import { registerApiEditorIpc } from "./api-editor";

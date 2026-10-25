@@ -2,10 +2,10 @@ Fixes:
 - Write colours with transparency through color-mix instead of appending a hex alpha, so rgb(), hsl(), oklch() and 3- or 8-digit hex colours keep their tints.
 - The change chip could not be removed once the card had a change; a switch now hides it.
 
-diff --git a/src/video/elements/remotion-ui/stat-card/index.tsx b/src/video/elements/remotion-ui/stat-card/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/stat-card/index.tsx b/packages/video/src/elements/remotion-ui/stat-card/index.tsx
 index d257987..57952fd 100644
---- a/src/video/elements/remotion-ui/stat-card/index.tsx
-+++ b/src/video/elements/remotion-ui/stat-card/index.tsx
+--- a/packages/video/src/elements/remotion-ui/stat-card/index.tsx
++++ b/packages/video/src/elements/remotion-ui/stat-card/index.tsx
 @@ -27,6 +27,8 @@ export type StatCardProps = {
    label?: string;
    /** Line under the label — the source, the window, the cohort. */

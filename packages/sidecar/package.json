@@ -1,0 +1,24 @@
+{
+  "name": "@opsis/sidecar",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint -c oxlint.config.ts",
+    "lint:fix": "oxlint -c oxlint.config.ts --fix",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@opsis/core": "workspace:*",
+    "@opsis/video": "workspace:*",
+    "@remotion/bundler": "4.0.537",
+    "@remotion/renderer": "4.0.537",
+    "@remotion/tailwind-v4": "4.0.537",
+    "zod": "^4.6.7"
+  }
+}

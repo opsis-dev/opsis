@@ -1,10 +1,10 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/snap-cn/screen-recording.tsx b/src/video/elements/snap-cn/screen-recording.tsx
+diff --git a/packages/video/src/elements/snap-cn/screen-recording.tsx b/packages/video/src/elements/snap-cn/screen-recording.tsx
 index 71bbb8e..6b0d13f 100644
---- a/src/video/elements/snap-cn/screen-recording.tsx
-+++ b/src/video/elements/snap-cn/screen-recording.tsx
+--- a/packages/video/src/elements/snap-cn/screen-recording.tsx
++++ b/packages/video/src/elements/snap-cn/screen-recording.tsx
 @@ -7,9 +7,9 @@ import {
    interpolate,
    OffthreadVideo,
@@ -12,8 +12,8 @@ index 71bbb8e..6b0d13f 100644
 -  useCurrentFrame,
    useVideoConfig,
  } from "remotion";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
- import { type SnapCnTheme, useSnapCnTheme } from "@/video/lib/snap-cn-ui";
++import { useAuthoredFrame } from "../../core/authored-clock";
+ import { type SnapCnTheme, useSnapCnTheme } from "../../lib/snap-cn-ui";
  
  export type ScreenRecordingFit = "cover" | "contain";
 @@ -455,7 +455,7 @@ export function ScreenRecording({

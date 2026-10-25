@@ -1,15 +1,15 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/code-morph.tsx b/src/video/elements/remocn/code-morph.tsx
+diff --git a/packages/video/src/elements/remocn/code-morph.tsx b/packages/video/src/elements/remocn/code-morph.tsx
 index e1e0aca..28c811b 100644
---- a/src/video/elements/remocn/code-morph.tsx
-+++ b/src/video/elements/remocn/code-morph.tsx
+--- a/packages/video/src/elements/remocn/code-morph.tsx
++++ b/packages/video/src/elements/remocn/code-morph.tsx
 @@ -1,5 +1,6 @@
  import { useMemo } from "react";
 -import { Easing, useCurrentFrame, useVideoConfig } from "remotion";
 +import { Easing } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export type CodeMorphTheme = "dark" | "light";
  

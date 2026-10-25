@@ -1,13 +1,13 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/lib/remocn-ui/timeline.ts b/src/video/lib/remocn-ui/timeline.ts
+diff --git a/packages/video/src/lib/remocn-ui/timeline.ts b/packages/video/src/lib/remocn-ui/timeline.ts
 index f815976..c7a5022 100644
---- a/src/video/lib/remocn-ui/timeline.ts
-+++ b/src/video/lib/remocn-ui/timeline.ts
+--- a/packages/video/src/lib/remocn-ui/timeline.ts
++++ b/packages/video/src/lib/remocn-ui/timeline.ts
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame, useVideoConfig } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  import type { Step } from "./types";
  
  export function framesFor(

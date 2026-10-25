@@ -3,14 +3,14 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 
-diff --git a/src/video/elements/remocn/animated-line-chart.tsx b/src/video/elements/remocn/animated-line-chart.tsx
+diff --git a/packages/video/src/elements/remocn/animated-line-chart.tsx b/packages/video/src/elements/remocn/animated-line-chart.tsx
 index 99461bf..8394b15 100644
---- a/src/video/elements/remocn/animated-line-chart.tsx
-+++ b/src/video/elements/remocn/animated-line-chart.tsx
+--- a/packages/video/src/elements/remocn/animated-line-chart.tsx
++++ b/packages/video/src/elements/remocn/animated-line-chart.tsx
 @@ -1,4 +1,5 @@
 -import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 +import { spring } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface AnimatedLineChartProps {
    data?: number[];

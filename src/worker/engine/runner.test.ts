@@ -1,12 +1,12 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import type { RunEvent } from "@opsis/core/schema/events";
+import type { Workflow } from "@opsis/core/schema/workflow";
+import { DEFAULT_SETTINGS } from "@opsis/core/settings";
+import { GraphBuilder } from "@opsis/core/templates/build";
 import { describe, expect, it, vi } from "vitest";
 import { secretFile } from "../../engine/secret-paths";
 import { tempDirs } from "../../engine/test-temp-dirs";
-import type { RunEvent } from "../../shared/schema/events";
-import type { Workflow } from "../../shared/schema/workflow";
-import { DEFAULT_SETTINGS } from "../../shared/settings";
-import { GraphBuilder } from "../../shared/templates/build";
 import type { Executor } from "./context";
 import { runWorkflow } from "./runner";
 

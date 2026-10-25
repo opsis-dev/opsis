@@ -1,6 +1,6 @@
+import { applyRunEvent, emptyRunProgress, type RunProgress } from "@opsis/core/run-progress";
+import type { RunEvent } from "@opsis/core/schema/events";
 import { Notification } from "electron";
-import { applyRunEvent, emptyRunProgress, type RunProgress } from "../shared/run-progress";
-import type { RunEvent } from "../shared/schema/events";
 import { focusMainWindow, getMainWindow } from "./window-registry";
 
 type RunDone = Extract<RunEvent, { type: "run:done" }>;

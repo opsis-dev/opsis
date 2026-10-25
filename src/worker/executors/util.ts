@@ -1,22 +1,22 @@
 import path from "node:path";
-import { projectRef, refTarget } from "../../shared/asset-ref";
-import { asValue, type CompileValue, type MediaValue } from "../../shared/schema/values";
-import type { WorkerEnv } from "../../shared/worker-protocol";
+import { projectRef, refTarget } from "@opsis/core/asset-ref";
+import { asValue, type CompileValue, type MediaValue } from "@opsis/core/schema/values";
+import type { WorkerEnv } from "@opsis/core/worker-protocol";
+import type { ExportedSource } from "@opsis/sidecar/source-layout";
 import type { ExecutorContext } from "../engine/context";
 import type { FfmpegTools } from "../media/ffmpeg";
 
 type SourceEnv = Pick<WorkerEnv, "isPackaged" | "appRoot" | "resourcesPath">;
 
-export const exportSourceRoot = (env: SourceEnv): string =>
-  env.isPackaged ? path.join(env.resourcesPath, "export-src") : path.join(env.appRoot, "src");
+const exportSourceRoot = (env: SourceEnv): string => path.join(env.resourcesPath, "export-src");
+
+export const exportedSource = (env: SourceEnv, source: ExportedSource): string =>
+  env.isPackaged
+    ? path.join(exportSourceRoot(env), source.to)
+    : path.join(env.appRoot, ...source.from);
 
 export const publicDir = (env: SourceEnv): string =>
   env.isPackaged ? path.join(exportSourceRoot(env), "public") : path.join(env.appRoot, "public");
-
-export const exportUtilsFile = (env: SourceEnv): string =>
-  env.isPackaged
-    ? path.join(exportSourceRoot(env), "utils.ts")
-    : path.join(exportSourceRoot(env), "renderer", "lib", "utils.ts");
 
 export type LinkedMedia = MediaValue & { src: string };
 

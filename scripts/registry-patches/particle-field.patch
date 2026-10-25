@@ -1,10 +1,10 @@
 Fixes:
 - Particle size and blur were fixed pixels, so the field looked coarse in small frames and fine at 4K; they are now set for a frame 1920 wide and scale with it.
 
-diff --git a/src/video/elements/remotion-ui/particle-field.tsx b/src/video/elements/remotion-ui/particle-field.tsx
+diff --git a/packages/video/src/elements/remotion-ui/particle-field.tsx b/packages/video/src/elements/remotion-ui/particle-field.tsx
 index 1359b85..8d8f260 100644
---- a/src/video/elements/remotion-ui/particle-field.tsx
-+++ b/src/video/elements/remotion-ui/particle-field.tsx
+--- a/packages/video/src/elements/remotion-ui/particle-field.tsx
++++ b/packages/video/src/elements/remotion-ui/particle-field.tsx
 @@ -12,11 +12,11 @@ export type ParticleFieldProps = {
    angle?: number;
    /** Traverse speed. 1 crosses the frame in about eight seconds. */

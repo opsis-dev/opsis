@@ -1,7 +1,7 @@
 import path from "node:path";
+import { IPC, type WindowState } from "@opsis/core/ipc";
+import type { MenuCommand } from "@opsis/core/menu";
 import { app, BrowserWindow, shell } from "electron";
-import { IPC, type WindowState } from "../shared/ipc";
-import type { MenuCommand } from "../shared/menu";
 import { CANVAS_BACKGROUND } from "./canvas-color";
 import { APP_SCHEME } from "./protocol";
 import { raiseWindow } from "./raise-window";

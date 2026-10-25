@@ -1,7 +1,7 @@
 import { Readable } from "node:stream";
+import { FILE_SCHEME } from "@opsis/core/asset-ref";
 import { protocol } from "electron";
 import { fileReply, resolveInside } from "../engine/http-file";
-import { FILE_SCHEME } from "../shared/asset-ref";
 
 export const APP_SCHEME = "opsis-app";
 

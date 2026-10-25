@@ -1,10 +1,10 @@
 Fixes:
 - The letters were never asked to exit, so Flicker on exit did nothing, and the unlit tube stayed pink whatever the glow; the sign now leaves at the end of its clip and the unlit tube is a faint copy of the glow unless set.
 
-diff --git a/src/video/elements/remotion-ui/neon-flicker-text.tsx b/src/video/elements/remotion-ui/neon-flicker-text.tsx
+diff --git a/packages/video/src/elements/remotion-ui/neon-flicker-text.tsx b/packages/video/src/elements/remotion-ui/neon-flicker-text.tsx
 index 1ba91df..9c6ca61 100644
---- a/src/video/elements/remotion-ui/neon-flicker-text.tsx
-+++ b/src/video/elements/remotion-ui/neon-flicker-text.tsx
+--- a/packages/video/src/elements/remotion-ui/neon-flicker-text.tsx
++++ b/packages/video/src/elements/remotion-ui/neon-flicker-text.tsx
 @@ -13,7 +13,7 @@ export type NeonFlickerTextProps = Omit<
    glowColor?: string;
    /** Halo radius in px at full brightness. */

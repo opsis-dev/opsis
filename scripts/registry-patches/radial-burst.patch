@@ -1,10 +1,10 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/radial-burst.tsx b/src/video/elements/remocn/radial-burst.tsx
+diff --git a/packages/video/src/elements/remocn/radial-burst.tsx b/packages/video/src/elements/remocn/radial-burst.tsx
 index b535116..63add8c 100644
---- a/src/video/elements/remocn/radial-burst.tsx
-+++ b/src/video/elements/remocn/radial-burst.tsx
+--- a/packages/video/src/elements/remocn/radial-burst.tsx
++++ b/packages/video/src/elements/remocn/radial-burst.tsx
 @@ -2,9 +2,8 @@ import {
    Easing,
    interpolateColors,
@@ -12,7 +12,7 @@ index b535116..63add8c 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface RadialBurstProps {
    /** Number of rounded segments, from 4 to 16. */

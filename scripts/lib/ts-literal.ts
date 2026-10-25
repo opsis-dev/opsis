@@ -1,5 +1,5 @@
+import { isRecord } from "@opsis/core/guards";
 import { Node, Project, SyntaxKind, type SourceFile } from "ts-morph";
-import { isRecord } from "../../src/shared/guards";
 
 const project = new Project({ useInMemoryFileSystem: true });
 let scratchFiles = 0;

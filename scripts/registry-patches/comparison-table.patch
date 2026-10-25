@@ -3,10 +3,10 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 - No columns divided by zero, a row with more or fewer cells than columns drew past the table or left gaps, and ten or more rows ran off the frame; the table now draws one cell per column, empty where a row has none, and shrinks to fit its rows.
 
-diff --git a/src/video/elements/remotion-ui/comparison-table/index.tsx b/src/video/elements/remotion-ui/comparison-table/index.tsx
+diff --git a/packages/video/src/elements/remotion-ui/comparison-table/index.tsx b/packages/video/src/elements/remotion-ui/comparison-table/index.tsx
 index 577e469..0bebc73 100644
---- a/src/video/elements/remotion-ui/comparison-table/index.tsx
-+++ b/src/video/elements/remotion-ui/comparison-table/index.tsx
+--- a/packages/video/src/elements/remotion-ui/comparison-table/index.tsx
++++ b/packages/video/src/elements/remotion-ui/comparison-table/index.tsx
 @@ -151,9 +151,14 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
    // shrinking it grows the layout into the margin it was leaving empty and
    // lifts every tier of type with it, instead of hand-tuning font sizes against

@@ -1,4 +1,4 @@
-import { errorMessage } from "../shared/errors";
+import { errorMessage } from "@opsis/core/errors";
 
 export function logWarning(scope: string, message: string): void {
   process.stderr.write(`[${scope}] ${message}\n`);

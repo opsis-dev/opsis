@@ -1,10 +1,10 @@
 Fixes:
 - Size the phosphor mask to the frame instead of device pixels and correct the tube curvature for the frame's shape, so the look holds at any size and shape.
 
-diff --git a/src/video/elements/remocn/crt-screen.tsx b/src/video/elements/remocn/crt-screen.tsx
+diff --git a/packages/video/src/elements/remocn/crt-screen.tsx b/packages/video/src/elements/remocn/crt-screen.tsx
 index 3aca407..ea03ae3 100644
---- a/src/video/elements/remocn/crt-screen.tsx
-+++ b/src/video/elements/remocn/crt-screen.tsx
+--- a/packages/video/src/elements/remocn/crt-screen.tsx
++++ b/packages/video/src/elements/remocn/crt-screen.tsx
 @@ -29,18 +29,21 @@ uniform float u_curvature;
  uniform float u_scanlines;
  uniform float u_mask_scale;

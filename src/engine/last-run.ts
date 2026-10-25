@@ -1,5 +1,5 @@
 import { mkdir } from "node:fs/promises";
-import { lastRunSchema, type LastRun } from "../shared/schema/values";
+import { lastRunSchema, type LastRun } from "@opsis/core/schema/values";
 import { readJson, writeJson } from "./json";
 import { projectPaths } from "./project-paths";
 

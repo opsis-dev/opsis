@@ -1,0 +1,56 @@
+{
+  "name": "@opsis/video",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    "./spec": "./src/spec.ts",
+    "./root": "./src/index.ts",
+    "./player": "./src/player.ts",
+    "./capture": "./src/capture.ts",
+    "./composition-id": "./src/composition-id.ts",
+    "./fonts/google-font-imports": "./src/fonts/google-font-imports.ts",
+    "./registry/framing": "./src/registry/framing.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint -c oxlint.config.ts",
+    "lint:fix": "oxlint -c oxlint.config.ts --fix",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "@opsis/core": "workspace:*",
+    "@paper-design/shaders": "^0.0.82",
+    "@paper-design/shaders-react": "^0.0.82",
+    "@react-three/fiber": "^9.8.2",
+    "@remotion/effects": "4.0.537",
+    "@remotion/google-fonts": "4.0.537",
+    "@remotion/layout-utils": "4.0.537",
+    "@remotion/light-leaks": "4.0.537",
+    "@remotion/lottie": "4.0.537",
+    "@remotion/mac-cursors": "4.0.537",
+    "@remotion/media": "4.0.537",
+    "@remotion/motion-blur": "4.0.537",
+    "@remotion/noise": "4.0.537",
+    "@remotion/paths": "4.0.537",
+    "@remotion/rough-notation": "4.0.537",
+    "@remotion/shapes": "4.0.537",
+    "@remotion/three": "4.0.537",
+    "@remotion/transitions": "4.0.537",
+    "culori": "^4.0.2",
+    "fflate": "^0.8.3",
+    "fontkit": "^2.0.4",
+    "react": "^19.3.1",
+    "remotion": "4.0.537",
+    "three": "^0.186.1",
+    "woff2-encoder": "^2.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@remotion/player": "4.0.537"
+  }
+}

@@ -1,10 +1,8 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { writeViaTemp } from "../../engine/atomic";
-import { toPosixRel } from "../../engine/project-paths";
-import { projectRef } from "../../shared/asset-ref";
-import { lerp } from "../../shared/math";
-import type { NodeParams } from "../../shared/nodes/define";
+import { projectRef } from "@opsis/core/asset-ref";
+import { lerp } from "@opsis/core/math";
+import type { NodeParams } from "@opsis/core/nodes/define";
 import {
   exportBaseName,
   renderNode,
@@ -14,22 +12,25 @@ import {
   videoFileNames,
   variantSize,
   type Variant,
-} from "../../shared/nodes/output";
-import type { TimelineSpec } from "../../shared/schema/timeline";
-import type { Artifact, MediaValue } from "../../shared/schema/values";
+} from "@opsis/core/nodes/output";
+import type { TimelineSpec } from "@opsis/core/schema/timeline";
+import type { Artifact, MediaValue } from "@opsis/core/schema/values";
 import {
   chapterList,
   chapterMetadata,
   filmChapters,
   MIN_LISTED_CHAPTERS,
   type FilmChapter,
-} from "../../shared/timeline/chapters";
-import { framesToMs, msToFrames } from "../../shared/timeline/time";
+} from "@opsis/core/timeline/chapters";
+import { framesToMs, msToFrames } from "@opsis/core/timeline/time";
+import { getServeUrl, renderFrame, renderTimeline } from "@opsis/sidecar/render";
+import { writeViaTemp } from "../../engine/atomic";
+import { enginePaths, requireHeadlessShell } from "../../engine/paths";
+import { toPosixRel } from "../../engine/project-paths";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
 import { CODECS, hasSoundTrack, kindOfCodec } from "../media/codecs";
 import { startAssetServer } from "../render/asset-server";
 import { cachedPicture, finishArgs, muxArgs, pictureKey } from "../render/picture";
-import { getServeUrl, renderFrame, renderTimeline } from "../render/render";
 import { mixed, specFor, type Stage } from "./film-spec";
 import { refToPath } from "./util";
 
@@ -46,6 +47,9 @@ function firstArtifact(artifacts: Artifact[]): Artifact {
 }
 
 type RenderServer = { serveUrl: string; projectBase: string };
+
+const headlessShell = (ctx: ExecutorContext): string =>
+  requireHeadlessShell(enginePaths(ctx.env.engineDir));
 
 async function withRenderServer<T>(
   ctx: ExecutorContext,
@@ -78,11 +82,12 @@ const renderTo = (
 ) =>
   renderTimeline({
     env: ctx.env,
+    browserExecutable: headlessShell(ctx),
     serveUrl,
     spec,
     output,
     codec: p.codec,
-    crf: p.crf,
+    crf: CODECS[p.codec].crf ? p.crf : undefined,
     scale: p.scale,
     gl: p.gl,
     muted,
@@ -223,6 +228,7 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
       ctx.progress(lerp(...RENDER_STAGE, i / p.presets.length), `Still ${preset}`);
       await renderFrame({
         env: ctx.env,
+        browserExecutable: headlessShell(ctx),
         serveUrl,
         spec: { ...spec, ...size, reframe: "follow", assets: { projectBase } },
         frame: msToFrames(p.atMs, spec.fps, 0),

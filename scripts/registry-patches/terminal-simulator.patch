@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Fit as many lines as the window holds at the chosen size, hide lines scrolled into the padding, and pick dark line colours on a light background.
 
-diff --git a/src/video/elements/remocn/terminal-simulator.tsx b/src/video/elements/remocn/terminal-simulator.tsx
+diff --git a/packages/video/src/elements/remocn/terminal-simulator.tsx b/packages/video/src/elements/remocn/terminal-simulator.tsx
 index 5161613..2388ac2 100644
---- a/src/video/elements/remocn/terminal-simulator.tsx
-+++ b/src/video/elements/remocn/terminal-simulator.tsx
+--- a/packages/video/src/elements/remocn/terminal-simulator.tsx
++++ b/packages/video/src/elements/remocn/terminal-simulator.tsx
 @@ -1,9 +1,9 @@
  import {
    interpolate,
@@ -13,8 +13,8 @@ index 5161613..2388ac2 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "@/video/core/authored-clock";
-+import { parseColor } from "@/video/lib/remocn-ui/color";
++import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "../../core/authored-clock";
++import { parseColor } from "../../lib/remocn-ui/color";
  
  export type TerminalLineType = "command" | "log" | "success" | "error";
  

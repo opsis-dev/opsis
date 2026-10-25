@@ -1,5 +1,5 @@
+import { DOCK_TITLES, IPC, type DockPanelName } from "@opsis/core/ipc";
 import type { BrowserWindow } from "electron";
-import { DOCK_TITLES, IPC, type DockPanelName } from "../shared/ipc";
 import { raiseWindow } from "./raise-window";
 import { openRememberedWindow } from "./window-bounds";
 import { getMainWindow, liveWindow } from "./window-registry";

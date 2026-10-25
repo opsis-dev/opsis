@@ -1,10 +1,10 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/shader-perlin-noise.tsx b/src/video/elements/remocn/shader-perlin-noise.tsx
+diff --git a/packages/video/src/elements/remocn/shader-perlin-noise.tsx b/packages/video/src/elements/remocn/shader-perlin-noise.tsx
 index 0408a39..c06b817 100644
---- a/src/video/elements/remocn/shader-perlin-noise.tsx
-+++ b/src/video/elements/remocn/shader-perlin-noise.tsx
+--- a/packages/video/src/elements/remocn/shader-perlin-noise.tsx
++++ b/packages/video/src/elements/remocn/shader-perlin-noise.tsx
 @@ -6,9 +6,8 @@ import { useCallback, useState } from "react";
  import {
    continueRender,
@@ -12,7 +12,7 @@ index 0408a39..c06b817 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface ShaderPerlinNoiseProps
    extends Omit<PerlinNoiseProps, "frame" | "ref"> {}

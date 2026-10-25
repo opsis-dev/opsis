@@ -3,10 +3,10 @@ Fixes:
 - Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 - Fit the digits to the frame's width, so long numbers never run off the sides.
 
-diff --git a/src/video/elements/remocn/rolling-number.tsx b/src/video/elements/remocn/rolling-number.tsx
+diff --git a/packages/video/src/elements/remocn/rolling-number.tsx b/packages/video/src/elements/remocn/rolling-number.tsx
 index 3a3cdd0..dc26951 100644
---- a/src/video/elements/remocn/rolling-number.tsx
-+++ b/src/video/elements/remocn/rolling-number.tsx
+--- a/packages/video/src/elements/remocn/rolling-number.tsx
++++ b/packages/video/src/elements/remocn/rolling-number.tsx
 @@ -4,9 +4,8 @@ import {
    AbsoluteFill,
    Easing,
@@ -14,7 +14,7 @@ index 3a3cdd0..dc26951 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  const { fontFamily: MONO_FAMILY } = loadMono();
  

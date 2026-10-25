@@ -1,5 +1,5 @@
-import { isNonEmpty } from "../../shared/lists";
-import { clamp, EPSILON, sum } from "../../shared/math";
+import { isNonEmpty } from "@opsis/core/lists";
+import { clamp, EPSILON, sum } from "@opsis/core/math";
 import {
   distance,
   lerpPoint,
@@ -7,7 +7,7 @@ import {
   type Point,
   type Rect,
   type Viewport,
-} from "../../shared/schema/actions";
+} from "@opsis/core/schema/actions";
 
 const GLIDE_PX_PER_MS = 0.55;
 const GLIDE_MIN_MS = 450;

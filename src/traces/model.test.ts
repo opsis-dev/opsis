@@ -1,5 +1,5 @@
+import { frameAt } from "@opsis/core/trace";
 import { describe, expect, it } from "vitest";
-import { frameAt } from "../shared/trace";
 import { parseTrace, traceTextPart } from "./model";
 import { FRAME, LATER, ndjson } from "./test-fixtures";
 

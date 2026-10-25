@@ -1,7 +1,7 @@
 import { statSync } from "node:fs";
 import path from "node:path";
-import { projectRelPath } from "../shared/asset-ref";
-import { namedFiles } from "../shared/named-files";
+import { projectRelPath } from "@opsis/core/asset-ref";
+import { namedFiles } from "@opsis/core/named-files";
 import { isInside } from "./project-paths";
 import { secretFile } from "./secret-paths";
 

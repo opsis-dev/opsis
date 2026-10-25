@@ -1,6 +1,6 @@
 import path from "node:path";
-import { hueAndSaturationOf } from "../../shared/color";
-import { round3 } from "../../shared/math";
+import { hueAndSaturationOf } from "@opsis/core/color";
+import { round3 } from "@opsis/core/math";
 import {
   autoFixNode,
   colourNode,
@@ -10,9 +10,9 @@ import {
   monoNode,
   textureNode,
   toneOffsets,
-} from "../../shared/nodes/grade";
-import { colorOr } from "../../shared/nodes/params";
-import type { StyleEntry } from "../../shared/schema/values";
+} from "@opsis/core/nodes/grade";
+import { colorOr } from "@opsis/core/nodes/params";
+import type { StyleEntry } from "@opsis/core/schema/values";
 
 export type GradeSize = { width: number; height: number; still: boolean };
 

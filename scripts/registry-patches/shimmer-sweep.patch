@@ -3,14 +3,14 @@ Fixes:
 - Time the phases against the clip length times the speed, the clock the frame runs on, so every phase plays at any speed.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/shimmer-sweep.tsx b/src/video/elements/remocn/shimmer-sweep.tsx
+diff --git a/packages/video/src/elements/remocn/shimmer-sweep.tsx b/packages/video/src/elements/remocn/shimmer-sweep.tsx
 index b7b5039..e928c06 100644
---- a/src/video/elements/remocn/shimmer-sweep.tsx
-+++ b/src/video/elements/remocn/shimmer-sweep.tsx
+--- a/packages/video/src/elements/remocn/shimmer-sweep.tsx
++++ b/packages/video/src/elements/remocn/shimmer-sweep.tsx
 @@ -1,6 +1,8 @@
 -import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 +import { interpolate } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface ShimmerSweepProps {
 +  fontFamily?: string;

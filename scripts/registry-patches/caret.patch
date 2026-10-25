@@ -1,14 +1,14 @@
 Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 
-diff --git a/src/video/elements/remocn/caret.tsx b/src/video/elements/remocn/caret.tsx
+diff --git a/packages/video/src/elements/remocn/caret.tsx b/packages/video/src/elements/remocn/caret.tsx
 index 2103f7b..6e8a938 100644
---- a/src/video/elements/remocn/caret.tsx
-+++ b/src/video/elements/remocn/caret.tsx
+--- a/packages/video/src/elements/remocn/caret.tsx
++++ b/packages/video/src/elements/remocn/caret.tsx
 @@ -1,5 +1,5 @@
  import type { CSSProperties } from "react";
 -import { useCurrentFrame, useVideoConfig } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface CaretProps {
    color?: string;

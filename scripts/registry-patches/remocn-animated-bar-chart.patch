@@ -4,14 +4,14 @@ Fixes:
 - Treat an all-zero chart as zero-height bars and shrink the gap when many bars would not fit, so bars never get a NaN height or a negative width.
 - Take the baseline and label colours as props and shrink a long label to fit its bar.
 
-diff --git a/src/video/elements/remocn/animated-bar-chart.tsx b/src/video/elements/remocn/animated-bar-chart.tsx
+diff --git a/packages/video/src/elements/remocn/animated-bar-chart.tsx b/packages/video/src/elements/remocn/animated-bar-chart.tsx
 index 9884a8e..a1ca5f9 100644
---- a/src/video/elements/remocn/animated-bar-chart.tsx
-+++ b/src/video/elements/remocn/animated-bar-chart.tsx
+--- a/packages/video/src/elements/remocn/animated-bar-chart.tsx
++++ b/packages/video/src/elements/remocn/animated-bar-chart.tsx
 @@ -1,4 +1,5 @@
 -import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 +import { spring } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  
  export interface AnimatedBarChartProps {
    data?: number[];

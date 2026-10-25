@@ -1,5 +1,5 @@
+import { IPC, type SettingsPage } from "@opsis/core/ipc";
 import type { BrowserWindow } from "electron";
-import { IPC, type SettingsPage } from "../shared/ipc";
 import { openRememberedWindow } from "./window-bounds";
 import { liveWindow } from "./window-registry";
 

@@ -3,14 +3,14 @@ Fixes:
 - Take the three glitch colours and how they blend as props, so the glitch can be coloured and shows on dark backgrounds.
 - Take the font as a prop, following the project's main font by default.
 
-diff --git a/src/video/elements/remocn/rgb-glitch-text.tsx b/src/video/elements/remocn/rgb-glitch-text.tsx
+diff --git a/packages/video/src/elements/remocn/rgb-glitch-text.tsx b/packages/video/src/elements/remocn/rgb-glitch-text.tsx
 index f7f7295..4b2c536 100644
---- a/src/video/elements/remocn/rgb-glitch-text.tsx
-+++ b/src/video/elements/remocn/rgb-glitch-text.tsx
+--- a/packages/video/src/elements/remocn/rgb-glitch-text.tsx
++++ b/packages/video/src/elements/remocn/rgb-glitch-text.tsx
 @@ -1,6 +1,8 @@
 -import { random, useCurrentFrame } from "remotion";
 +import { random } from "remotion";
-+import { useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredFrame } from "../../core/authored-clock";
  
  export interface RGBGlitchTextProps {
 +  fontFamily?: string;

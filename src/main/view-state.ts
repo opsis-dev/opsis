@@ -1,5 +1,5 @@
+import type { ViewPrefs } from "@opsis/core/ipc";
 import { eq } from "drizzle-orm";
-import type { ViewPrefs } from "../shared/ipc";
 import { db } from "./db";
 import { projects, viewState } from "./db/schema";
 

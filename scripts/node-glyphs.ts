@@ -1,12 +1,12 @@
 import { existsSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { usedGlyphs, type NodeGlyph } from "@opsis/ui/nodes/looks";
 import { z } from "zod";
-import { usedGlyphs, type NodeGlyph } from "../src/shared/nodes/looks";
 import { readJsonWith } from "./lib/read-json";
-import { ROOT } from "./lib/tool-config";
+import { ROOT, UI_DIR } from "./lib/tool-config";
 
-const OUT = path.join(ROOT, "src", "renderer", "editor", "node-glyphs.generated.ts");
+const OUT = path.join(UI_DIR, "editor", "node-glyphs.generated.ts");
 const LUCIDE_ICONS = path.join(ROOT, "node_modules", "lucide", "dist", "esm", "icons");
 const TABLER_NODES = path.join(
   ROOT,

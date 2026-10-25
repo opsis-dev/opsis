@@ -1,8 +1,6 @@
 import { existsSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
-import { app } from "electron";
-import type { z } from "zod";
 import {
   addEdgeBody,
   addNodeBody,
@@ -11,21 +9,23 @@ import {
   runBody,
   updateNodeBody,
   variablesBody,
-} from "../shared/api/bodies";
-import { catalogEntry, nodeCatalog } from "../shared/api/catalog";
-import { checkWorkflow } from "../shared/api/check";
-import { firstIssueText } from "../shared/api/issue-text";
-import { openApiDocument } from "../shared/api/openapi";
+} from "@opsis/core/api/bodies";
+import { catalogEntry, nodeCatalog } from "@opsis/core/api/catalog";
+import { checkWorkflow } from "@opsis/core/api/check";
+import { firstIssueText } from "@opsis/core/api/issue-text";
+import { openApiDocument } from "@opsis/core/api/openapi";
 import {
   apiFailure,
   apiOk,
   type ApiProjectState,
   type ApiReply,
   type ApiRunState,
-} from "../shared/api/types";
-import { errorMessage } from "../shared/errors";
-import { tryParseJson } from "../shared/guards";
-import { WORKFLOW_FILE } from "../shared/schema/workflow";
+} from "@opsis/core/api/types";
+import { errorMessage } from "@opsis/core/errors";
+import { tryParseJson } from "@opsis/core/guards";
+import { WORKFLOW_FILE } from "@opsis/core/schema/workflow";
+import { app } from "electron";
+import type { z } from "zod";
 import { askEditor, followRunEvents, readEditorProject } from "./api-editor";
 
 const MAX_BODY = 20 * 1024 * 1024;

@@ -2,10 +2,10 @@ Fixes:
 - Count time on a clock of 30 frames a second, the rate it was made for, so a 60 fps project plays it at the same speed.
 - Measure the lines again when the size or spacing changes, so the fit never uses stale widths.
 
-diff --git a/src/video/elements/snap-cn/punch-lines.tsx b/src/video/elements/snap-cn/punch-lines.tsx
+diff --git a/packages/video/src/elements/snap-cn/punch-lines.tsx b/packages/video/src/elements/snap-cn/punch-lines.tsx
 index b32d7e8..7dd7f73 100644
---- a/src/video/elements/snap-cn/punch-lines.tsx
-+++ b/src/video/elements/snap-cn/punch-lines.tsx
+--- a/packages/video/src/elements/snap-cn/punch-lines.tsx
++++ b/packages/video/src/elements/snap-cn/punch-lines.tsx
 @@ -6,9 +6,8 @@ import {
    delayRender,
    Easing,
@@ -13,7 +13,7 @@ index b32d7e8..7dd7f73 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "@/video/core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
  import {
    Item,
    resolveFont,

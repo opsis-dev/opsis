@@ -2,15 +2,15 @@ Fixes:
 - Key repeated rows by their place in the list, so two rows with the same text both draw and keep their own state.
 - A row with no before value printed +0%, and a legend with fewer than two names drew empty swatches; the chip now needs a change it can compute or one written in the row, and the legend shows only named series.
 
-diff --git a/src/video/elements/remotion-ui/comparison-bars.tsx b/src/video/elements/remotion-ui/comparison-bars.tsx
+diff --git a/packages/video/src/elements/remotion-ui/comparison-bars.tsx b/packages/video/src/elements/remotion-ui/comparison-bars.tsx
 index f814ecf..8e3a2aa 100644
---- a/src/video/elements/remotion-ui/comparison-bars.tsx
-+++ b/src/video/elements/remotion-ui/comparison-bars.tsx
+--- a/packages/video/src/elements/remotion-ui/comparison-bars.tsx
++++ b/packages/video/src/elements/remotion-ui/comparison-bars.tsx
 @@ -1,5 +1,5 @@
  import { interpolate, useCurrentFrame } from "remotion";
--import { formatCompactNumber } from "@/video/lib/remotion-ui/chart-utils";
-+import { formatCompactNumber, readDelta } from "@/video/lib/remotion-ui/chart-utils";
- import { EASING } from "@/video/lib/remotion-ui/motion-tokens";
+-import { formatCompactNumber } from "../../lib/remotion-ui/chart-utils";
++import { formatCompactNumber, readDelta } from "../../lib/remotion-ui/chart-utils";
+ import { EASING } from "../../lib/remotion-ui/motion-tokens";
  
  export type ComparisonRowDatum = {
 @@ -8,7 +8,7 @@ export type ComparisonRowDatum = {

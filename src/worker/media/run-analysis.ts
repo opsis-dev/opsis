@@ -1,6 +1,6 @@
-import type { AnalysisRequest, AnalysisResult } from "../../shared/analysis";
-import { errorMessage } from "../../shared/errors";
-import type { WorkerEnv } from "../../shared/worker-protocol";
+import type { AnalysisRequest, AnalysisResult } from "@opsis/core/analysis";
+import { errorMessage } from "@opsis/core/errors";
+import type { WorkerEnv } from "@opsis/core/worker-protocol";
 import { refToPath } from "../executors/util";
 import { renderMix } from "../mix/render";
 import { analyzeFilmstrip, analyzeWaveform } from "./analysis";

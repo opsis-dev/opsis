@@ -1,7 +1,7 @@
+import { errorMessage, throwIfCancelled } from "@opsis/core/errors";
+import { INTERACTIVE_SELECTOR } from "@opsis/core/interactive";
+import { parsePoint } from "@opsis/core/schema/actions";
 import type { Locator, Page } from "playwright-core";
-import { errorMessage, throwIfCancelled } from "../../shared/errors";
-import { INTERACTIVE_SELECTOR } from "../../shared/interactive";
-import { parsePoint } from "../../shared/schema/actions";
 import { withoutCallName } from "./driver-helpers";
 import { CSS_PREFIX, type Target } from "./flow-types";
 

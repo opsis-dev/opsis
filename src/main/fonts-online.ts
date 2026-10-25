@@ -1,8 +1,8 @@
+import { CATALOG_CATEGORIES, FONT_CATEGORIES, type FontFamilyDef } from "@opsis/core/fonts/types";
+import { parseJsonWith } from "@opsis/core/guards";
+import type { FontCatalogEntry } from "@opsis/core/ipc";
 import { z } from "zod";
 import { logError } from "../engine/log";
-import { CATALOG_CATEGORIES, FONT_CATEGORIES, type FontFamilyDef } from "../shared/fonts/types";
-import { parseJsonWith } from "../shared/guards";
-import type { FontCatalogEntry } from "../shared/ipc";
 import { addFamilies, guessCategory, type FontBytes, type NewFamily } from "./fonts";
 
 const API = "https://api.fontsource.org/v1";

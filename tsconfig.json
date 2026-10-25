@@ -1,26 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "preserve",
-    "moduleResolution": "bundler",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "jsx": "react-jsx",
-    "types": ["node", "vite/client"],
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "allowImportingTsExtensions": true
-  },
+  "extends": "./tsconfig.base.json",
   "include": ["src", "scripts", "*.ts"],
   "exclude": ["node_modules", ".vite", "out", "remotion-bundle"]
 }
