@@ -362,6 +362,40 @@ impl Ffmpeg {
         Self::settle(child, "ffmpeg", opts, &mut |line| progress_in(line, &opts)).await
     }
 
+    pub fn pipe(
+        &self,
+        args: &[String],
+        cancel: Option<CancellationToken>,
+    ) -> Result<FramePipe, ToolError> {
+        let quiet = RunOptions::default();
+        let mut command = self.command(
+            &self.ffmpeg,
+            &Self::ffmpeg_args(args, &quiet),
+            cancel.as_ref(),
+        )?;
+        command.stdin(Stdio::piped());
+        let mut child = Self::spawn(command, "ffmpeg")?;
+        let stdin = child.stdin.take().ok_or_else(|| ToolError::Failed {
+            output: "ffmpeg: no input pipe".to_owned(),
+        })?;
+        let draining = tokio::spawn(async move {
+            let opts = RunOptions {
+                cancel: cancel.as_ref(),
+                ..RunOptions::default()
+            };
+            Self::settle(child, "ffmpeg", opts, &mut |_| {}).await
+        });
+        let done = Box::pin(async move {
+            draining.await.map_err(|e| ToolError::Failed {
+                output: format!("ffmpeg: {e}"),
+            })?
+        });
+        Ok(FramePipe {
+            stdin: Box::pin(stdin),
+            done,
+        })
+    }
+
     pub async fn probe(&self, file: &Path) -> Result<ProbeResult, ToolError> {
         let args = [
             "-v",
@@ -393,9 +427,19 @@ impl Ffmpeg {
 
 pub type ToolFuture<'a, T> = BoxFuture<'a, Result<T, ToolError>>;
 
+pub struct FramePipe {
+    pub stdin: std::pin::Pin<Box<dyn tokio::io::AsyncWrite + Send>>,
+    pub done: ToolFuture<'static, ()>,
+}
+
 pub trait MediaTools: Send + Sync {
     fn run<'a>(&'a self, args: &'a [String], opts: RunOptions<'a>) -> ToolFuture<'a, ()>;
     fn probe<'a>(&'a self, file: &'a Path) -> ToolFuture<'a, ProbeResult>;
+    fn pipe(
+        &self,
+        args: &[String],
+        cancel: Option<CancellationToken>,
+    ) -> Result<FramePipe, ToolError>;
 }
 
 impl MediaTools for Ffmpeg {
@@ -405,5 +449,13 @@ impl MediaTools for Ffmpeg {
 
     fn probe<'a>(&'a self, file: &'a Path) -> ToolFuture<'a, ProbeResult> {
         Box::pin(Ffmpeg::probe(self, file))
+    }
+
+    fn pipe(
+        &self,
+        args: &[String],
+        cancel: Option<CancellationToken>,
+    ) -> Result<FramePipe, ToolError> {
+        Ffmpeg::pipe(self, args, cancel)
     }
 }

@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use opsis_capture::executors::{CaptureDeps, Login, LoginRequest, SignInStore, capture_executors};
 use opsis_compile::registry::{node_def, registry};
 use opsis_engine::paths::{ShellPlatform, engine_paths};
 use opsis_media::executors::{Tools, media_executors};
@@ -8,9 +9,26 @@ use opsis_media::ffmpeg::Ffmpeg;
 use opsis_render::executors::{RenderEngine, output_executors};
 use opsis_render::export_project::ExportSources;
 use opsis_render::sidecar::{Sidecar, SidecarCommand};
-use opsis_runner::context::{ExecutorFn, Executors};
+use opsis_runner::context::{BoxFuture, ExecError, ExecutorFn, Executors};
+use tokio_util::sync::CancellationToken;
 
-const CAPTURE_IN_PHASE_5: [&str; 3] = ["browser.signIn", "capture.record", "capture.still"];
+struct NoSignIns;
+
+impl SignInStore for NoSignIns {
+    fn read(&self, _: &std::path::Path, _: &str) -> Result<Option<String>, String> {
+        Ok(None)
+    }
+
+    fn write(&self, _: &std::path::Path, _: &str, _: &str) -> Result<(), String> {
+        Ok(())
+    }
+}
+
+impl Login for NoSignIns {
+    fn login(&self, _: LoginRequest, _: CancellationToken) -> BoxFuture<Result<String, ExecError>> {
+        Box::pin(async { Err(ExecError::new("No sign-in window in tests.")) })
+    }
+}
 
 fn all_executors() -> Vec<(&'static str, ExecutorFn)> {
     let tools: Tools = Arc::new(Ffmpeg::new(&engine_paths(
@@ -33,22 +51,28 @@ fn all_executors() -> Vec<(&'static str, ExecutorFn)> {
             packaged: false,
         },
     });
+    let capture = Arc::new(CaptureDeps {
+        tools: Arc::clone(&tools),
+        sign_ins: Arc::new(NoSignIns),
+        login: Arc::new(NoSignIns),
+        live: None,
+    });
     let mut all = media_executors(&tools);
     all.extend(output_executors(&engine));
+    all.extend(capture_executors(&capture));
     all
 }
 
 #[test]
-fn exist_for_every_node_that_executes_but_capture() {
+fn exist_for_every_node_that_executes() {
     let executors = all_executors();
-    let mut missing: Vec<&str> = registry()
+    let missing: Vec<&str> = registry()
         .all()
         .iter()
         .filter(|d| d.executes && !executors.iter().any(|(kind, _)| *kind == d.kind))
         .map(|d| &*d.kind)
         .collect();
-    missing.sort_unstable();
-    assert_eq!(missing, CAPTURE_IN_PHASE_5);
+    assert!(missing.is_empty(), "{missing:?}");
 }
 
 #[test]

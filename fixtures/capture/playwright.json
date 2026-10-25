@@ -1,0 +1,2984 @@
+{
+ "keyMap": [
+  {
+   "name": "Escape",
+   "description": {
+    "key": "Escape",
+    "keyCode": 27,
+    "keyCodeWithoutLocation": 27,
+    "code": "Escape",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F1",
+   "description": {
+    "key": "F1",
+    "keyCode": 112,
+    "keyCodeWithoutLocation": 112,
+    "code": "F1",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F2",
+   "description": {
+    "key": "F2",
+    "keyCode": 113,
+    "keyCodeWithoutLocation": 113,
+    "code": "F2",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F3",
+   "description": {
+    "key": "F3",
+    "keyCode": 114,
+    "keyCodeWithoutLocation": 114,
+    "code": "F3",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F4",
+   "description": {
+    "key": "F4",
+    "keyCode": 115,
+    "keyCodeWithoutLocation": 115,
+    "code": "F4",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F5",
+   "description": {
+    "key": "F5",
+    "keyCode": 116,
+    "keyCodeWithoutLocation": 116,
+    "code": "F5",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F6",
+   "description": {
+    "key": "F6",
+    "keyCode": 117,
+    "keyCodeWithoutLocation": 117,
+    "code": "F6",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F7",
+   "description": {
+    "key": "F7",
+    "keyCode": 118,
+    "keyCodeWithoutLocation": 118,
+    "code": "F7",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F8",
+   "description": {
+    "key": "F8",
+    "keyCode": 119,
+    "keyCodeWithoutLocation": 119,
+    "code": "F8",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F9",
+   "description": {
+    "key": "F9",
+    "keyCode": 120,
+    "keyCodeWithoutLocation": 120,
+    "code": "F9",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F10",
+   "description": {
+    "key": "F10",
+    "keyCode": 121,
+    "keyCodeWithoutLocation": 121,
+    "code": "F10",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F11",
+   "description": {
+    "key": "F11",
+    "keyCode": 122,
+    "keyCodeWithoutLocation": 122,
+    "code": "F11",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "F12",
+   "description": {
+    "key": "F12",
+    "keyCode": 123,
+    "keyCodeWithoutLocation": 123,
+    "code": "F12",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "Backquote",
+   "description": {
+    "key": "`",
+    "keyCode": 192,
+    "keyCodeWithoutLocation": 192,
+    "code": "Backquote",
+    "text": "`",
+    "location": 0,
+    "shifted": {
+     "key": "~",
+     "keyCode": 192,
+     "keyCodeWithoutLocation": 192,
+     "code": "Backquote",
+     "text": "~",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "`",
+   "description": {
+    "key": "`",
+    "keyCode": 192,
+    "keyCodeWithoutLocation": 192,
+    "code": "Backquote",
+    "text": "`",
+    "location": 0
+   }
+  },
+  {
+   "name": "~",
+   "description": {
+    "key": "~",
+    "keyCode": 192,
+    "keyCodeWithoutLocation": 192,
+    "code": "Backquote",
+    "text": "~",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit1",
+   "description": {
+    "key": "1",
+    "keyCode": 49,
+    "keyCodeWithoutLocation": 49,
+    "code": "Digit1",
+    "text": "1",
+    "location": 0,
+    "shifted": {
+     "key": "!",
+     "keyCode": 49,
+     "keyCodeWithoutLocation": 49,
+     "code": "Digit1",
+     "text": "!",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "1",
+   "description": {
+    "key": "1",
+    "keyCode": 49,
+    "keyCodeWithoutLocation": 49,
+    "code": "Digit1",
+    "text": "1",
+    "location": 0
+   }
+  },
+  {
+   "name": "!",
+   "description": {
+    "key": "!",
+    "keyCode": 49,
+    "keyCodeWithoutLocation": 49,
+    "code": "Digit1",
+    "text": "!",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit2",
+   "description": {
+    "key": "2",
+    "keyCode": 50,
+    "keyCodeWithoutLocation": 50,
+    "code": "Digit2",
+    "text": "2",
+    "location": 0,
+    "shifted": {
+     "key": "@",
+     "keyCode": 50,
+     "keyCodeWithoutLocation": 50,
+     "code": "Digit2",
+     "text": "@",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "2",
+   "description": {
+    "key": "2",
+    "keyCode": 50,
+    "keyCodeWithoutLocation": 50,
+    "code": "Digit2",
+    "text": "2",
+    "location": 0
+   }
+  },
+  {
+   "name": "@",
+   "description": {
+    "key": "@",
+    "keyCode": 50,
+    "keyCodeWithoutLocation": 50,
+    "code": "Digit2",
+    "text": "@",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit3",
+   "description": {
+    "key": "3",
+    "keyCode": 51,
+    "keyCodeWithoutLocation": 51,
+    "code": "Digit3",
+    "text": "3",
+    "location": 0,
+    "shifted": {
+     "key": "#",
+     "keyCode": 51,
+     "keyCodeWithoutLocation": 51,
+     "code": "Digit3",
+     "text": "#",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "3",
+   "description": {
+    "key": "3",
+    "keyCode": 51,
+    "keyCodeWithoutLocation": 51,
+    "code": "Digit3",
+    "text": "3",
+    "location": 0
+   }
+  },
+  {
+   "name": "#",
+   "description": {
+    "key": "#",
+    "keyCode": 51,
+    "keyCodeWithoutLocation": 51,
+    "code": "Digit3",
+    "text": "#",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit4",
+   "description": {
+    "key": "4",
+    "keyCode": 52,
+    "keyCodeWithoutLocation": 52,
+    "code": "Digit4",
+    "text": "4",
+    "location": 0,
+    "shifted": {
+     "key": "$",
+     "keyCode": 52,
+     "keyCodeWithoutLocation": 52,
+     "code": "Digit4",
+     "text": "$",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "4",
+   "description": {
+    "key": "4",
+    "keyCode": 52,
+    "keyCodeWithoutLocation": 52,
+    "code": "Digit4",
+    "text": "4",
+    "location": 0
+   }
+  },
+  {
+   "name": "$",
+   "description": {
+    "key": "$",
+    "keyCode": 52,
+    "keyCodeWithoutLocation": 52,
+    "code": "Digit4",
+    "text": "$",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit5",
+   "description": {
+    "key": "5",
+    "keyCode": 53,
+    "keyCodeWithoutLocation": 53,
+    "code": "Digit5",
+    "text": "5",
+    "location": 0,
+    "shifted": {
+     "key": "%",
+     "keyCode": 53,
+     "keyCodeWithoutLocation": 53,
+     "code": "Digit5",
+     "text": "%",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "5",
+   "description": {
+    "key": "5",
+    "keyCode": 53,
+    "keyCodeWithoutLocation": 53,
+    "code": "Digit5",
+    "text": "5",
+    "location": 0
+   }
+  },
+  {
+   "name": "%",
+   "description": {
+    "key": "%",
+    "keyCode": 53,
+    "keyCodeWithoutLocation": 53,
+    "code": "Digit5",
+    "text": "%",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit6",
+   "description": {
+    "key": "6",
+    "keyCode": 54,
+    "keyCodeWithoutLocation": 54,
+    "code": "Digit6",
+    "text": "6",
+    "location": 0,
+    "shifted": {
+     "key": "^",
+     "keyCode": 54,
+     "keyCodeWithoutLocation": 54,
+     "code": "Digit6",
+     "text": "^",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "6",
+   "description": {
+    "key": "6",
+    "keyCode": 54,
+    "keyCodeWithoutLocation": 54,
+    "code": "Digit6",
+    "text": "6",
+    "location": 0
+   }
+  },
+  {
+   "name": "^",
+   "description": {
+    "key": "^",
+    "keyCode": 54,
+    "keyCodeWithoutLocation": 54,
+    "code": "Digit6",
+    "text": "^",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit7",
+   "description": {
+    "key": "7",
+    "keyCode": 55,
+    "keyCodeWithoutLocation": 55,
+    "code": "Digit7",
+    "text": "7",
+    "location": 0,
+    "shifted": {
+     "key": "&",
+     "keyCode": 55,
+     "keyCodeWithoutLocation": 55,
+     "code": "Digit7",
+     "text": "&",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "7",
+   "description": {
+    "key": "7",
+    "keyCode": 55,
+    "keyCodeWithoutLocation": 55,
+    "code": "Digit7",
+    "text": "7",
+    "location": 0
+   }
+  },
+  {
+   "name": "&",
+   "description": {
+    "key": "&",
+    "keyCode": 55,
+    "keyCodeWithoutLocation": 55,
+    "code": "Digit7",
+    "text": "&",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit8",
+   "description": {
+    "key": "8",
+    "keyCode": 56,
+    "keyCodeWithoutLocation": 56,
+    "code": "Digit8",
+    "text": "8",
+    "location": 0,
+    "shifted": {
+     "key": "*",
+     "keyCode": 56,
+     "keyCodeWithoutLocation": 56,
+     "code": "Digit8",
+     "text": "*",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "8",
+   "description": {
+    "key": "8",
+    "keyCode": 56,
+    "keyCodeWithoutLocation": 56,
+    "code": "Digit8",
+    "text": "8",
+    "location": 0
+   }
+  },
+  {
+   "name": "*",
+   "description": {
+    "key": "*",
+    "keyCode": 56,
+    "keyCodeWithoutLocation": 56,
+    "code": "Digit8",
+    "text": "*",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit9",
+   "description": {
+    "key": "9",
+    "keyCode": 57,
+    "keyCodeWithoutLocation": 57,
+    "code": "Digit9",
+    "text": "9",
+    "location": 0,
+    "shifted": {
+     "key": "(",
+     "keyCode": 57,
+     "keyCodeWithoutLocation": 57,
+     "code": "Digit9",
+     "text": "(",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "9",
+   "description": {
+    "key": "9",
+    "keyCode": 57,
+    "keyCodeWithoutLocation": 57,
+    "code": "Digit9",
+    "text": "9",
+    "location": 0
+   }
+  },
+  {
+   "name": "(",
+   "description": {
+    "key": "(",
+    "keyCode": 57,
+    "keyCodeWithoutLocation": 57,
+    "code": "Digit9",
+    "text": "(",
+    "location": 0
+   }
+  },
+  {
+   "name": "Digit0",
+   "description": {
+    "key": "0",
+    "keyCode": 48,
+    "keyCodeWithoutLocation": 48,
+    "code": "Digit0",
+    "text": "0",
+    "location": 0,
+    "shifted": {
+     "key": ")",
+     "keyCode": 48,
+     "keyCodeWithoutLocation": 48,
+     "code": "Digit0",
+     "text": ")",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "0",
+   "description": {
+    "key": "0",
+    "keyCode": 48,
+    "keyCodeWithoutLocation": 48,
+    "code": "Digit0",
+    "text": "0",
+    "location": 0
+   }
+  },
+  {
+   "name": ")",
+   "description": {
+    "key": ")",
+    "keyCode": 48,
+    "keyCodeWithoutLocation": 48,
+    "code": "Digit0",
+    "text": ")",
+    "location": 0
+   }
+  },
+  {
+   "name": "Minus",
+   "description": {
+    "key": "-",
+    "keyCode": 189,
+    "keyCodeWithoutLocation": 189,
+    "code": "Minus",
+    "text": "-",
+    "location": 0,
+    "shifted": {
+     "key": "_",
+     "keyCode": 189,
+     "keyCodeWithoutLocation": 189,
+     "code": "Minus",
+     "text": "_",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "-",
+   "description": {
+    "key": "-",
+    "keyCode": 189,
+    "keyCodeWithoutLocation": 189,
+    "code": "Minus",
+    "text": "-",
+    "location": 0
+   }
+  },
+  {
+   "name": "_",
+   "description": {
+    "key": "_",
+    "keyCode": 189,
+    "keyCodeWithoutLocation": 189,
+    "code": "Minus",
+    "text": "_",
+    "location": 0
+   }
+  },
+  {
+   "name": "Equal",
+   "description": {
+    "key": "=",
+    "keyCode": 187,
+    "keyCodeWithoutLocation": 187,
+    "code": "Equal",
+    "text": "=",
+    "location": 0,
+    "shifted": {
+     "key": "+",
+     "keyCode": 187,
+     "keyCodeWithoutLocation": 187,
+     "code": "Equal",
+     "text": "+",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "=",
+   "description": {
+    "key": "=",
+    "keyCode": 187,
+    "keyCodeWithoutLocation": 187,
+    "code": "Equal",
+    "text": "=",
+    "location": 0
+   }
+  },
+  {
+   "name": "+",
+   "description": {
+    "key": "+",
+    "keyCode": 187,
+    "keyCodeWithoutLocation": 187,
+    "code": "Equal",
+    "text": "+",
+    "location": 0
+   }
+  },
+  {
+   "name": "Backslash",
+   "description": {
+    "key": "\\",
+    "keyCode": 220,
+    "keyCodeWithoutLocation": 220,
+    "code": "Backslash",
+    "text": "\\",
+    "location": 0,
+    "shifted": {
+     "key": "|",
+     "keyCode": 220,
+     "keyCodeWithoutLocation": 220,
+     "code": "Backslash",
+     "text": "|",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "\\",
+   "description": {
+    "key": "\\",
+    "keyCode": 220,
+    "keyCodeWithoutLocation": 220,
+    "code": "Backslash",
+    "text": "\\",
+    "location": 0
+   }
+  },
+  {
+   "name": "|",
+   "description": {
+    "key": "|",
+    "keyCode": 220,
+    "keyCodeWithoutLocation": 220,
+    "code": "Backslash",
+    "text": "|",
+    "location": 0
+   }
+  },
+  {
+   "name": "Backspace",
+   "description": {
+    "key": "Backspace",
+    "keyCode": 8,
+    "keyCodeWithoutLocation": 8,
+    "code": "Backspace",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "Tab",
+   "description": {
+    "key": "Tab",
+    "keyCode": 9,
+    "keyCodeWithoutLocation": 9,
+    "code": "Tab",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyQ",
+   "description": {
+    "key": "q",
+    "keyCode": 81,
+    "keyCodeWithoutLocation": 81,
+    "code": "KeyQ",
+    "text": "q",
+    "location": 0,
+    "shifted": {
+     "key": "Q",
+     "keyCode": 81,
+     "keyCodeWithoutLocation": 81,
+     "code": "KeyQ",
+     "text": "Q",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "q",
+   "description": {
+    "key": "q",
+    "keyCode": 81,
+    "keyCodeWithoutLocation": 81,
+    "code": "KeyQ",
+    "text": "q",
+    "location": 0
+   }
+  },
+  {
+   "name": "Q",
+   "description": {
+    "key": "Q",
+    "keyCode": 81,
+    "keyCodeWithoutLocation": 81,
+    "code": "KeyQ",
+    "text": "Q",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyW",
+   "description": {
+    "key": "w",
+    "keyCode": 87,
+    "keyCodeWithoutLocation": 87,
+    "code": "KeyW",
+    "text": "w",
+    "location": 0,
+    "shifted": {
+     "key": "W",
+     "keyCode": 87,
+     "keyCodeWithoutLocation": 87,
+     "code": "KeyW",
+     "text": "W",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "w",
+   "description": {
+    "key": "w",
+    "keyCode": 87,
+    "keyCodeWithoutLocation": 87,
+    "code": "KeyW",
+    "text": "w",
+    "location": 0
+   }
+  },
+  {
+   "name": "W",
+   "description": {
+    "key": "W",
+    "keyCode": 87,
+    "keyCodeWithoutLocation": 87,
+    "code": "KeyW",
+    "text": "W",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyE",
+   "description": {
+    "key": "e",
+    "keyCode": 69,
+    "keyCodeWithoutLocation": 69,
+    "code": "KeyE",
+    "text": "e",
+    "location": 0,
+    "shifted": {
+     "key": "E",
+     "keyCode": 69,
+     "keyCodeWithoutLocation": 69,
+     "code": "KeyE",
+     "text": "E",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "e",
+   "description": {
+    "key": "e",
+    "keyCode": 69,
+    "keyCodeWithoutLocation": 69,
+    "code": "KeyE",
+    "text": "e",
+    "location": 0
+   }
+  },
+  {
+   "name": "E",
+   "description": {
+    "key": "E",
+    "keyCode": 69,
+    "keyCodeWithoutLocation": 69,
+    "code": "KeyE",
+    "text": "E",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyR",
+   "description": {
+    "key": "r",
+    "keyCode": 82,
+    "keyCodeWithoutLocation": 82,
+    "code": "KeyR",
+    "text": "r",
+    "location": 0,
+    "shifted": {
+     "key": "R",
+     "keyCode": 82,
+     "keyCodeWithoutLocation": 82,
+     "code": "KeyR",
+     "text": "R",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "r",
+   "description": {
+    "key": "r",
+    "keyCode": 82,
+    "keyCodeWithoutLocation": 82,
+    "code": "KeyR",
+    "text": "r",
+    "location": 0
+   }
+  },
+  {
+   "name": "R",
+   "description": {
+    "key": "R",
+    "keyCode": 82,
+    "keyCodeWithoutLocation": 82,
+    "code": "KeyR",
+    "text": "R",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyT",
+   "description": {
+    "key": "t",
+    "keyCode": 84,
+    "keyCodeWithoutLocation": 84,
+    "code": "KeyT",
+    "text": "t",
+    "location": 0,
+    "shifted": {
+     "key": "T",
+     "keyCode": 84,
+     "keyCodeWithoutLocation": 84,
+     "code": "KeyT",
+     "text": "T",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "t",
+   "description": {
+    "key": "t",
+    "keyCode": 84,
+    "keyCodeWithoutLocation": 84,
+    "code": "KeyT",
+    "text": "t",
+    "location": 0
+   }
+  },
+  {
+   "name": "T",
+   "description": {
+    "key": "T",
+    "keyCode": 84,
+    "keyCodeWithoutLocation": 84,
+    "code": "KeyT",
+    "text": "T",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyY",
+   "description": {
+    "key": "y",
+    "keyCode": 89,
+    "keyCodeWithoutLocation": 89,
+    "code": "KeyY",
+    "text": "y",
+    "location": 0,
+    "shifted": {
+     "key": "Y",
+     "keyCode": 89,
+     "keyCodeWithoutLocation": 89,
+     "code": "KeyY",
+     "text": "Y",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "y",
+   "description": {
+    "key": "y",
+    "keyCode": 89,
+    "keyCodeWithoutLocation": 89,
+    "code": "KeyY",
+    "text": "y",
+    "location": 0
+   }
+  },
+  {
+   "name": "Y",
+   "description": {
+    "key": "Y",
+    "keyCode": 89,
+    "keyCodeWithoutLocation": 89,
+    "code": "KeyY",
+    "text": "Y",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyU",
+   "description": {
+    "key": "u",
+    "keyCode": 85,
+    "keyCodeWithoutLocation": 85,
+    "code": "KeyU",
+    "text": "u",
+    "location": 0,
+    "shifted": {
+     "key": "U",
+     "keyCode": 85,
+     "keyCodeWithoutLocation": 85,
+     "code": "KeyU",
+     "text": "U",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "u",
+   "description": {
+    "key": "u",
+    "keyCode": 85,
+    "keyCodeWithoutLocation": 85,
+    "code": "KeyU",
+    "text": "u",
+    "location": 0
+   }
+  },
+  {
+   "name": "U",
+   "description": {
+    "key": "U",
+    "keyCode": 85,
+    "keyCodeWithoutLocation": 85,
+    "code": "KeyU",
+    "text": "U",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyI",
+   "description": {
+    "key": "i",
+    "keyCode": 73,
+    "keyCodeWithoutLocation": 73,
+    "code": "KeyI",
+    "text": "i",
+    "location": 0,
+    "shifted": {
+     "key": "I",
+     "keyCode": 73,
+     "keyCodeWithoutLocation": 73,
+     "code": "KeyI",
+     "text": "I",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "i",
+   "description": {
+    "key": "i",
+    "keyCode": 73,
+    "keyCodeWithoutLocation": 73,
+    "code": "KeyI",
+    "text": "i",
+    "location": 0
+   }
+  },
+  {
+   "name": "I",
+   "description": {
+    "key": "I",
+    "keyCode": 73,
+    "keyCodeWithoutLocation": 73,
+    "code": "KeyI",
+    "text": "I",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyO",
+   "description": {
+    "key": "o",
+    "keyCode": 79,
+    "keyCodeWithoutLocation": 79,
+    "code": "KeyO",
+    "text": "o",
+    "location": 0,
+    "shifted": {
+     "key": "O",
+     "keyCode": 79,
+     "keyCodeWithoutLocation": 79,
+     "code": "KeyO",
+     "text": "O",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "o",
+   "description": {
+    "key": "o",
+    "keyCode": 79,
+    "keyCodeWithoutLocation": 79,
+    "code": "KeyO",
+    "text": "o",
+    "location": 0
+   }
+  },
+  {
+   "name": "O",
+   "description": {
+    "key": "O",
+    "keyCode": 79,
+    "keyCodeWithoutLocation": 79,
+    "code": "KeyO",
+    "text": "O",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyP",
+   "description": {
+    "key": "p",
+    "keyCode": 80,
+    "keyCodeWithoutLocation": 80,
+    "code": "KeyP",
+    "text": "p",
+    "location": 0,
+    "shifted": {
+     "key": "P",
+     "keyCode": 80,
+     "keyCodeWithoutLocation": 80,
+     "code": "KeyP",
+     "text": "P",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "p",
+   "description": {
+    "key": "p",
+    "keyCode": 80,
+    "keyCodeWithoutLocation": 80,
+    "code": "KeyP",
+    "text": "p",
+    "location": 0
+   }
+  },
+  {
+   "name": "P",
+   "description": {
+    "key": "P",
+    "keyCode": 80,
+    "keyCodeWithoutLocation": 80,
+    "code": "KeyP",
+    "text": "P",
+    "location": 0
+   }
+  },
+  {
+   "name": "BracketLeft",
+   "description": {
+    "key": "[",
+    "keyCode": 219,
+    "keyCodeWithoutLocation": 219,
+    "code": "BracketLeft",
+    "text": "[",
+    "location": 0,
+    "shifted": {
+     "key": "{",
+     "keyCode": 219,
+     "keyCodeWithoutLocation": 219,
+     "code": "BracketLeft",
+     "text": "{",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "[",
+   "description": {
+    "key": "[",
+    "keyCode": 219,
+    "keyCodeWithoutLocation": 219,
+    "code": "BracketLeft",
+    "text": "[",
+    "location": 0
+   }
+  },
+  {
+   "name": "{",
+   "description": {
+    "key": "{",
+    "keyCode": 219,
+    "keyCodeWithoutLocation": 219,
+    "code": "BracketLeft",
+    "text": "{",
+    "location": 0
+   }
+  },
+  {
+   "name": "BracketRight",
+   "description": {
+    "key": "]",
+    "keyCode": 221,
+    "keyCodeWithoutLocation": 221,
+    "code": "BracketRight",
+    "text": "]",
+    "location": 0,
+    "shifted": {
+     "key": "}",
+     "keyCode": 221,
+     "keyCodeWithoutLocation": 221,
+     "code": "BracketRight",
+     "text": "}",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "]",
+   "description": {
+    "key": "]",
+    "keyCode": 221,
+    "keyCodeWithoutLocation": 221,
+    "code": "BracketRight",
+    "text": "]",
+    "location": 0
+   }
+  },
+  {
+   "name": "}",
+   "description": {
+    "key": "}",
+    "keyCode": 221,
+    "keyCodeWithoutLocation": 221,
+    "code": "BracketRight",
+    "text": "}",
+    "location": 0
+   }
+  },
+  {
+   "name": "CapsLock",
+   "description": {
+    "key": "CapsLock",
+    "keyCode": 20,
+    "keyCodeWithoutLocation": 20,
+    "code": "CapsLock",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyA",
+   "description": {
+    "key": "a",
+    "keyCode": 65,
+    "keyCodeWithoutLocation": 65,
+    "code": "KeyA",
+    "text": "a",
+    "location": 0,
+    "shifted": {
+     "key": "A",
+     "keyCode": 65,
+     "keyCodeWithoutLocation": 65,
+     "code": "KeyA",
+     "text": "A",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "a",
+   "description": {
+    "key": "a",
+    "keyCode": 65,
+    "keyCodeWithoutLocation": 65,
+    "code": "KeyA",
+    "text": "a",
+    "location": 0
+   }
+  },
+  {
+   "name": "A",
+   "description": {
+    "key": "A",
+    "keyCode": 65,
+    "keyCodeWithoutLocation": 65,
+    "code": "KeyA",
+    "text": "A",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyS",
+   "description": {
+    "key": "s",
+    "keyCode": 83,
+    "keyCodeWithoutLocation": 83,
+    "code": "KeyS",
+    "text": "s",
+    "location": 0,
+    "shifted": {
+     "key": "S",
+     "keyCode": 83,
+     "keyCodeWithoutLocation": 83,
+     "code": "KeyS",
+     "text": "S",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "s",
+   "description": {
+    "key": "s",
+    "keyCode": 83,
+    "keyCodeWithoutLocation": 83,
+    "code": "KeyS",
+    "text": "s",
+    "location": 0
+   }
+  },
+  {
+   "name": "S",
+   "description": {
+    "key": "S",
+    "keyCode": 83,
+    "keyCodeWithoutLocation": 83,
+    "code": "KeyS",
+    "text": "S",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyD",
+   "description": {
+    "key": "d",
+    "keyCode": 68,
+    "keyCodeWithoutLocation": 68,
+    "code": "KeyD",
+    "text": "d",
+    "location": 0,
+    "shifted": {
+     "key": "D",
+     "keyCode": 68,
+     "keyCodeWithoutLocation": 68,
+     "code": "KeyD",
+     "text": "D",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "d",
+   "description": {
+    "key": "d",
+    "keyCode": 68,
+    "keyCodeWithoutLocation": 68,
+    "code": "KeyD",
+    "text": "d",
+    "location": 0
+   }
+  },
+  {
+   "name": "D",
+   "description": {
+    "key": "D",
+    "keyCode": 68,
+    "keyCodeWithoutLocation": 68,
+    "code": "KeyD",
+    "text": "D",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyF",
+   "description": {
+    "key": "f",
+    "keyCode": 70,
+    "keyCodeWithoutLocation": 70,
+    "code": "KeyF",
+    "text": "f",
+    "location": 0,
+    "shifted": {
+     "key": "F",
+     "keyCode": 70,
+     "keyCodeWithoutLocation": 70,
+     "code": "KeyF",
+     "text": "F",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "f",
+   "description": {
+    "key": "f",
+    "keyCode": 70,
+    "keyCodeWithoutLocation": 70,
+    "code": "KeyF",
+    "text": "f",
+    "location": 0
+   }
+  },
+  {
+   "name": "F",
+   "description": {
+    "key": "F",
+    "keyCode": 70,
+    "keyCodeWithoutLocation": 70,
+    "code": "KeyF",
+    "text": "F",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyG",
+   "description": {
+    "key": "g",
+    "keyCode": 71,
+    "keyCodeWithoutLocation": 71,
+    "code": "KeyG",
+    "text": "g",
+    "location": 0,
+    "shifted": {
+     "key": "G",
+     "keyCode": 71,
+     "keyCodeWithoutLocation": 71,
+     "code": "KeyG",
+     "text": "G",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "g",
+   "description": {
+    "key": "g",
+    "keyCode": 71,
+    "keyCodeWithoutLocation": 71,
+    "code": "KeyG",
+    "text": "g",
+    "location": 0
+   }
+  },
+  {
+   "name": "G",
+   "description": {
+    "key": "G",
+    "keyCode": 71,
+    "keyCodeWithoutLocation": 71,
+    "code": "KeyG",
+    "text": "G",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyH",
+   "description": {
+    "key": "h",
+    "keyCode": 72,
+    "keyCodeWithoutLocation": 72,
+    "code": "KeyH",
+    "text": "h",
+    "location": 0,
+    "shifted": {
+     "key": "H",
+     "keyCode": 72,
+     "keyCodeWithoutLocation": 72,
+     "code": "KeyH",
+     "text": "H",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "h",
+   "description": {
+    "key": "h",
+    "keyCode": 72,
+    "keyCodeWithoutLocation": 72,
+    "code": "KeyH",
+    "text": "h",
+    "location": 0
+   }
+  },
+  {
+   "name": "H",
+   "description": {
+    "key": "H",
+    "keyCode": 72,
+    "keyCodeWithoutLocation": 72,
+    "code": "KeyH",
+    "text": "H",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyJ",
+   "description": {
+    "key": "j",
+    "keyCode": 74,
+    "keyCodeWithoutLocation": 74,
+    "code": "KeyJ",
+    "text": "j",
+    "location": 0,
+    "shifted": {
+     "key": "J",
+     "keyCode": 74,
+     "keyCodeWithoutLocation": 74,
+     "code": "KeyJ",
+     "text": "J",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "j",
+   "description": {
+    "key": "j",
+    "keyCode": 74,
+    "keyCodeWithoutLocation": 74,
+    "code": "KeyJ",
+    "text": "j",
+    "location": 0
+   }
+  },
+  {
+   "name": "J",
+   "description": {
+    "key": "J",
+    "keyCode": 74,
+    "keyCodeWithoutLocation": 74,
+    "code": "KeyJ",
+    "text": "J",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyK",
+   "description": {
+    "key": "k",
+    "keyCode": 75,
+    "keyCodeWithoutLocation": 75,
+    "code": "KeyK",
+    "text": "k",
+    "location": 0,
+    "shifted": {
+     "key": "K",
+     "keyCode": 75,
+     "keyCodeWithoutLocation": 75,
+     "code": "KeyK",
+     "text": "K",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "k",
+   "description": {
+    "key": "k",
+    "keyCode": 75,
+    "keyCodeWithoutLocation": 75,
+    "code": "KeyK",
+    "text": "k",
+    "location": 0
+   }
+  },
+  {
+   "name": "K",
+   "description": {
+    "key": "K",
+    "keyCode": 75,
+    "keyCodeWithoutLocation": 75,
+    "code": "KeyK",
+    "text": "K",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyL",
+   "description": {
+    "key": "l",
+    "keyCode": 76,
+    "keyCodeWithoutLocation": 76,
+    "code": "KeyL",
+    "text": "l",
+    "location": 0,
+    "shifted": {
+     "key": "L",
+     "keyCode": 76,
+     "keyCodeWithoutLocation": 76,
+     "code": "KeyL",
+     "text": "L",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "l",
+   "description": {
+    "key": "l",
+    "keyCode": 76,
+    "keyCodeWithoutLocation": 76,
+    "code": "KeyL",
+    "text": "l",
+    "location": 0
+   }
+  },
+  {
+   "name": "L",
+   "description": {
+    "key": "L",
+    "keyCode": 76,
+    "keyCodeWithoutLocation": 76,
+    "code": "KeyL",
+    "text": "L",
+    "location": 0
+   }
+  },
+  {
+   "name": "Semicolon",
+   "description": {
+    "key": ";",
+    "keyCode": 186,
+    "keyCodeWithoutLocation": 186,
+    "code": "Semicolon",
+    "text": ";",
+    "location": 0,
+    "shifted": {
+     "key": ":",
+     "keyCode": 186,
+     "keyCodeWithoutLocation": 186,
+     "code": "Semicolon",
+     "text": ":",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": ";",
+   "description": {
+    "key": ";",
+    "keyCode": 186,
+    "keyCodeWithoutLocation": 186,
+    "code": "Semicolon",
+    "text": ";",
+    "location": 0
+   }
+  },
+  {
+   "name": ":",
+   "description": {
+    "key": ":",
+    "keyCode": 186,
+    "keyCodeWithoutLocation": 186,
+    "code": "Semicolon",
+    "text": ":",
+    "location": 0
+   }
+  },
+  {
+   "name": "Quote",
+   "description": {
+    "key": "'",
+    "keyCode": 222,
+    "keyCodeWithoutLocation": 222,
+    "code": "Quote",
+    "text": "'",
+    "location": 0,
+    "shifted": {
+     "key": "\"",
+     "keyCode": 222,
+     "keyCodeWithoutLocation": 222,
+     "code": "Quote",
+     "text": "\"",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "'",
+   "description": {
+    "key": "'",
+    "keyCode": 222,
+    "keyCodeWithoutLocation": 222,
+    "code": "Quote",
+    "text": "'",
+    "location": 0
+   }
+  },
+  {
+   "name": "\"",
+   "description": {
+    "key": "\"",
+    "keyCode": 222,
+    "keyCodeWithoutLocation": 222,
+    "code": "Quote",
+    "text": "\"",
+    "location": 0
+   }
+  },
+  {
+   "name": "Enter",
+   "description": {
+    "key": "Enter",
+    "keyCode": 13,
+    "keyCodeWithoutLocation": 13,
+    "code": "Enter",
+    "text": "\r",
+    "location": 0
+   }
+  },
+  {
+   "name": "\n",
+   "description": {
+    "key": "Enter",
+    "keyCode": 13,
+    "keyCodeWithoutLocation": 13,
+    "code": "Enter",
+    "text": "\r",
+    "location": 0
+   }
+  },
+  {
+   "name": "\r",
+   "description": {
+    "key": "Enter",
+    "keyCode": 13,
+    "keyCodeWithoutLocation": 13,
+    "code": "Enter",
+    "text": "\r",
+    "location": 0
+   }
+  },
+  {
+   "name": "ShiftLeft",
+   "description": {
+    "key": "Shift",
+    "keyCode": 160,
+    "keyCodeWithoutLocation": 16,
+    "code": "ShiftLeft",
+    "text": "",
+    "location": 1
+   }
+  },
+  {
+   "name": "Shift",
+   "description": {
+    "key": "Shift",
+    "keyCode": 160,
+    "keyCodeWithoutLocation": 16,
+    "code": "ShiftLeft",
+    "text": "",
+    "location": 1
+   }
+  },
+  {
+   "name": "KeyZ",
+   "description": {
+    "key": "z",
+    "keyCode": 90,
+    "keyCodeWithoutLocation": 90,
+    "code": "KeyZ",
+    "text": "z",
+    "location": 0,
+    "shifted": {
+     "key": "Z",
+     "keyCode": 90,
+     "keyCodeWithoutLocation": 90,
+     "code": "KeyZ",
+     "text": "Z",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "z",
+   "description": {
+    "key": "z",
+    "keyCode": 90,
+    "keyCodeWithoutLocation": 90,
+    "code": "KeyZ",
+    "text": "z",
+    "location": 0
+   }
+  },
+  {
+   "name": "Z",
+   "description": {
+    "key": "Z",
+    "keyCode": 90,
+    "keyCodeWithoutLocation": 90,
+    "code": "KeyZ",
+    "text": "Z",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyX",
+   "description": {
+    "key": "x",
+    "keyCode": 88,
+    "keyCodeWithoutLocation": 88,
+    "code": "KeyX",
+    "text": "x",
+    "location": 0,
+    "shifted": {
+     "key": "X",
+     "keyCode": 88,
+     "keyCodeWithoutLocation": 88,
+     "code": "KeyX",
+     "text": "X",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "x",
+   "description": {
+    "key": "x",
+    "keyCode": 88,
+    "keyCodeWithoutLocation": 88,
+    "code": "KeyX",
+    "text": "x",
+    "location": 0
+   }
+  },
+  {
+   "name": "X",
+   "description": {
+    "key": "X",
+    "keyCode": 88,
+    "keyCodeWithoutLocation": 88,
+    "code": "KeyX",
+    "text": "X",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyC",
+   "description": {
+    "key": "c",
+    "keyCode": 67,
+    "keyCodeWithoutLocation": 67,
+    "code": "KeyC",
+    "text": "c",
+    "location": 0,
+    "shifted": {
+     "key": "C",
+     "keyCode": 67,
+     "keyCodeWithoutLocation": 67,
+     "code": "KeyC",
+     "text": "C",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "c",
+   "description": {
+    "key": "c",
+    "keyCode": 67,
+    "keyCodeWithoutLocation": 67,
+    "code": "KeyC",
+    "text": "c",
+    "location": 0
+   }
+  },
+  {
+   "name": "C",
+   "description": {
+    "key": "C",
+    "keyCode": 67,
+    "keyCodeWithoutLocation": 67,
+    "code": "KeyC",
+    "text": "C",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyV",
+   "description": {
+    "key": "v",
+    "keyCode": 86,
+    "keyCodeWithoutLocation": 86,
+    "code": "KeyV",
+    "text": "v",
+    "location": 0,
+    "shifted": {
+     "key": "V",
+     "keyCode": 86,
+     "keyCodeWithoutLocation": 86,
+     "code": "KeyV",
+     "text": "V",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "v",
+   "description": {
+    "key": "v",
+    "keyCode": 86,
+    "keyCodeWithoutLocation": 86,
+    "code": "KeyV",
+    "text": "v",
+    "location": 0
+   }
+  },
+  {
+   "name": "V",
+   "description": {
+    "key": "V",
+    "keyCode": 86,
+    "keyCodeWithoutLocation": 86,
+    "code": "KeyV",
+    "text": "V",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyB",
+   "description": {
+    "key": "b",
+    "keyCode": 66,
+    "keyCodeWithoutLocation": 66,
+    "code": "KeyB",
+    "text": "b",
+    "location": 0,
+    "shifted": {
+     "key": "B",
+     "keyCode": 66,
+     "keyCodeWithoutLocation": 66,
+     "code": "KeyB",
+     "text": "B",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "b",
+   "description": {
+    "key": "b",
+    "keyCode": 66,
+    "keyCodeWithoutLocation": 66,
+    "code": "KeyB",
+    "text": "b",
+    "location": 0
+   }
+  },
+  {
+   "name": "B",
+   "description": {
+    "key": "B",
+    "keyCode": 66,
+    "keyCodeWithoutLocation": 66,
+    "code": "KeyB",
+    "text": "B",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyN",
+   "description": {
+    "key": "n",
+    "keyCode": 78,
+    "keyCodeWithoutLocation": 78,
+    "code": "KeyN",
+    "text": "n",
+    "location": 0,
+    "shifted": {
+     "key": "N",
+     "keyCode": 78,
+     "keyCodeWithoutLocation": 78,
+     "code": "KeyN",
+     "text": "N",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "n",
+   "description": {
+    "key": "n",
+    "keyCode": 78,
+    "keyCodeWithoutLocation": 78,
+    "code": "KeyN",
+    "text": "n",
+    "location": 0
+   }
+  },
+  {
+   "name": "N",
+   "description": {
+    "key": "N",
+    "keyCode": 78,
+    "keyCodeWithoutLocation": 78,
+    "code": "KeyN",
+    "text": "N",
+    "location": 0
+   }
+  },
+  {
+   "name": "KeyM",
+   "description": {
+    "key": "m",
+    "keyCode": 77,
+    "keyCodeWithoutLocation": 77,
+    "code": "KeyM",
+    "text": "m",
+    "location": 0,
+    "shifted": {
+     "key": "M",
+     "keyCode": 77,
+     "keyCodeWithoutLocation": 77,
+     "code": "KeyM",
+     "text": "M",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "m",
+   "description": {
+    "key": "m",
+    "keyCode": 77,
+    "keyCodeWithoutLocation": 77,
+    "code": "KeyM",
+    "text": "m",
+    "location": 0
+   }
+  },
+  {
+   "name": "M",
+   "description": {
+    "key": "M",
+    "keyCode": 77,
+    "keyCodeWithoutLocation": 77,
+    "code": "KeyM",
+    "text": "M",
+    "location": 0
+   }
+  },
+  {
+   "name": "Comma",
+   "description": {
+    "key": ",",
+    "keyCode": 188,
+    "keyCodeWithoutLocation": 188,
+    "code": "Comma",
+    "text": ",",
+    "location": 0,
+    "shifted": {
+     "key": "<",
+     "keyCode": 188,
+     "keyCodeWithoutLocation": 188,
+     "code": "Comma",
+     "text": "<",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": ",",
+   "description": {
+    "key": ",",
+    "keyCode": 188,
+    "keyCodeWithoutLocation": 188,
+    "code": "Comma",
+    "text": ",",
+    "location": 0
+   }
+  },
+  {
+   "name": "<",
+   "description": {
+    "key": "<",
+    "keyCode": 188,
+    "keyCodeWithoutLocation": 188,
+    "code": "Comma",
+    "text": "<",
+    "location": 0
+   }
+  },
+  {
+   "name": "Period",
+   "description": {
+    "key": ".",
+    "keyCode": 190,
+    "keyCodeWithoutLocation": 190,
+    "code": "Period",
+    "text": ".",
+    "location": 0,
+    "shifted": {
+     "key": ">",
+     "keyCode": 190,
+     "keyCodeWithoutLocation": 190,
+     "code": "Period",
+     "text": ">",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": ".",
+   "description": {
+    "key": ".",
+    "keyCode": 190,
+    "keyCodeWithoutLocation": 190,
+    "code": "Period",
+    "text": ".",
+    "location": 0
+   }
+  },
+  {
+   "name": ">",
+   "description": {
+    "key": ">",
+    "keyCode": 190,
+    "keyCodeWithoutLocation": 190,
+    "code": "Period",
+    "text": ">",
+    "location": 0
+   }
+  },
+  {
+   "name": "Slash",
+   "description": {
+    "key": "/",
+    "keyCode": 191,
+    "keyCodeWithoutLocation": 191,
+    "code": "Slash",
+    "text": "/",
+    "location": 0,
+    "shifted": {
+     "key": "?",
+     "keyCode": 191,
+     "keyCodeWithoutLocation": 191,
+     "code": "Slash",
+     "text": "?",
+     "location": 0
+    }
+   }
+  },
+  {
+   "name": "/",
+   "description": {
+    "key": "/",
+    "keyCode": 191,
+    "keyCodeWithoutLocation": 191,
+    "code": "Slash",
+    "text": "/",
+    "location": 0
+   }
+  },
+  {
+   "name": "?",
+   "description": {
+    "key": "?",
+    "keyCode": 191,
+    "keyCodeWithoutLocation": 191,
+    "code": "Slash",
+    "text": "?",
+    "location": 0
+   }
+  },
+  {
+   "name": "ShiftRight",
+   "description": {
+    "key": "Shift",
+    "keyCode": 161,
+    "keyCodeWithoutLocation": 16,
+    "code": "ShiftRight",
+    "text": "",
+    "location": 2
+   }
+  },
+  {
+   "name": "ControlLeft",
+   "description": {
+    "key": "Control",
+    "keyCode": 162,
+    "keyCodeWithoutLocation": 17,
+    "code": "ControlLeft",
+    "text": "",
+    "location": 1
+   }
+  },
+  {
+   "name": "Control",
+   "description": {
+    "key": "Control",
+    "keyCode": 162,
+    "keyCodeWithoutLocation": 17,
+    "code": "ControlLeft",
+    "text": "",
+    "location": 1
+   }
+  },
+  {
+   "name": "MetaLeft",
+   "description": {
+    "key": "Meta",
+    "keyCode": 91,
+    "keyCodeWithoutLocation": 91,
+    "code": "MetaLeft",
+    "text": "",
+    "location": 1
+   }
+  },
+  {
+   "name": "Meta",
+   "description": {
+    "key": "Meta",
+    "keyCode": 91,
+    "keyCodeWithoutLocation": 91,
+    "code": "MetaLeft",
+    "text": "",
+    "location": 1
+   }
+  },
+  {
+   "name": "AltLeft",
+   "description": {
+    "key": "Alt",
+    "keyCode": 164,
+    "keyCodeWithoutLocation": 18,
+    "code": "AltLeft",
+    "text": "",
+    "location": 1
+   }
+  },
+  {
+   "name": "Alt",
+   "description": {
+    "key": "Alt",
+    "keyCode": 164,
+    "keyCodeWithoutLocation": 18,
+    "code": "AltLeft",
+    "text": "",
+    "location": 1
+   }
+  },
+  {
+   "name": "Space",
+   "description": {
+    "key": " ",
+    "keyCode": 32,
+    "keyCodeWithoutLocation": 32,
+    "code": "Space",
+    "text": " ",
+    "location": 0
+   }
+  },
+  {
+   "name": " ",
+   "description": {
+    "key": " ",
+    "keyCode": 32,
+    "keyCodeWithoutLocation": 32,
+    "code": "Space",
+    "text": " ",
+    "location": 0
+   }
+  },
+  {
+   "name": "AltRight",
+   "description": {
+    "key": "Alt",
+    "keyCode": 165,
+    "keyCodeWithoutLocation": 18,
+    "code": "AltRight",
+    "text": "",
+    "location": 2
+   }
+  },
+  {
+   "name": "AltGraph",
+   "description": {
+    "key": "AltGraph",
+    "keyCode": 225,
+    "keyCodeWithoutLocation": 225,
+    "code": "AltGraph",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "MetaRight",
+   "description": {
+    "key": "Meta",
+    "keyCode": 92,
+    "keyCodeWithoutLocation": 92,
+    "code": "MetaRight",
+    "text": "",
+    "location": 2
+   }
+  },
+  {
+   "name": "ContextMenu",
+   "description": {
+    "key": "ContextMenu",
+    "keyCode": 93,
+    "keyCodeWithoutLocation": 93,
+    "code": "ContextMenu",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "ControlRight",
+   "description": {
+    "key": "Control",
+    "keyCode": 163,
+    "keyCodeWithoutLocation": 17,
+    "code": "ControlRight",
+    "text": "",
+    "location": 2
+   }
+  },
+  {
+   "name": "PrintScreen",
+   "description": {
+    "key": "PrintScreen",
+    "keyCode": 44,
+    "keyCodeWithoutLocation": 44,
+    "code": "PrintScreen",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "ScrollLock",
+   "description": {
+    "key": "ScrollLock",
+    "keyCode": 145,
+    "keyCodeWithoutLocation": 145,
+    "code": "ScrollLock",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "Pause",
+   "description": {
+    "key": "Pause",
+    "keyCode": 19,
+    "keyCodeWithoutLocation": 19,
+    "code": "Pause",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "PageUp",
+   "description": {
+    "key": "PageUp",
+    "keyCode": 33,
+    "keyCodeWithoutLocation": 33,
+    "code": "PageUp",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "PageDown",
+   "description": {
+    "key": "PageDown",
+    "keyCode": 34,
+    "keyCodeWithoutLocation": 34,
+    "code": "PageDown",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "Insert",
+   "description": {
+    "key": "Insert",
+    "keyCode": 45,
+    "keyCodeWithoutLocation": 45,
+    "code": "Insert",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "Delete",
+   "description": {
+    "key": "Delete",
+    "keyCode": 46,
+    "keyCodeWithoutLocation": 46,
+    "code": "Delete",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "Home",
+   "description": {
+    "key": "Home",
+    "keyCode": 36,
+    "keyCodeWithoutLocation": 36,
+    "code": "Home",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "End",
+   "description": {
+    "key": "End",
+    "keyCode": 35,
+    "keyCodeWithoutLocation": 35,
+    "code": "End",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "ArrowLeft",
+   "description": {
+    "key": "ArrowLeft",
+    "keyCode": 37,
+    "keyCodeWithoutLocation": 37,
+    "code": "ArrowLeft",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "ArrowUp",
+   "description": {
+    "key": "ArrowUp",
+    "keyCode": 38,
+    "keyCodeWithoutLocation": 38,
+    "code": "ArrowUp",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "ArrowRight",
+   "description": {
+    "key": "ArrowRight",
+    "keyCode": 39,
+    "keyCodeWithoutLocation": 39,
+    "code": "ArrowRight",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "ArrowDown",
+   "description": {
+    "key": "ArrowDown",
+    "keyCode": 40,
+    "keyCodeWithoutLocation": 40,
+    "code": "ArrowDown",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "AudioVolumeMute",
+   "description": {
+    "key": "AudioVolumeMute",
+    "keyCode": 173,
+    "keyCodeWithoutLocation": 173,
+    "code": "AudioVolumeMute",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "AudioVolumeDown",
+   "description": {
+    "key": "AudioVolumeDown",
+    "keyCode": 174,
+    "keyCodeWithoutLocation": 174,
+    "code": "AudioVolumeDown",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "AudioVolumeUp",
+   "description": {
+    "key": "AudioVolumeUp",
+    "keyCode": 175,
+    "keyCodeWithoutLocation": 175,
+    "code": "AudioVolumeUp",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "MediaTrackNext",
+   "description": {
+    "key": "MediaTrackNext",
+    "keyCode": 176,
+    "keyCodeWithoutLocation": 176,
+    "code": "MediaTrackNext",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "MediaTrackPrevious",
+   "description": {
+    "key": "MediaTrackPrevious",
+    "keyCode": 177,
+    "keyCodeWithoutLocation": 177,
+    "code": "MediaTrackPrevious",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "MediaPlayPause",
+   "description": {
+    "key": "MediaPlayPause",
+    "keyCode": 179,
+    "keyCodeWithoutLocation": 179,
+    "code": "MediaPlayPause",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "NumLock",
+   "description": {
+    "key": "NumLock",
+    "keyCode": 144,
+    "keyCodeWithoutLocation": 144,
+    "code": "NumLock",
+    "text": "",
+    "location": 0
+   }
+  },
+  {
+   "name": "NumpadDivide",
+   "description": {
+    "key": "/",
+    "keyCode": 111,
+    "keyCodeWithoutLocation": 111,
+    "code": "NumpadDivide",
+    "text": "/",
+    "location": 3
+   }
+  },
+  {
+   "name": "NumpadMultiply",
+   "description": {
+    "key": "*",
+    "keyCode": 106,
+    "keyCodeWithoutLocation": 106,
+    "code": "NumpadMultiply",
+    "text": "*",
+    "location": 3
+   }
+  },
+  {
+   "name": "NumpadSubtract",
+   "description": {
+    "key": "-",
+    "keyCode": 109,
+    "keyCodeWithoutLocation": 109,
+    "code": "NumpadSubtract",
+    "text": "-",
+    "location": 3
+   }
+  },
+  {
+   "name": "Numpad7",
+   "description": {
+    "key": "Home",
+    "keyCode": 36,
+    "keyCodeWithoutLocation": 36,
+    "code": "Numpad7",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "7",
+     "keyCode": 103,
+     "keyCodeWithoutLocation": 103,
+     "code": "Numpad7",
+     "text": "7",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "Numpad8",
+   "description": {
+    "key": "ArrowUp",
+    "keyCode": 38,
+    "keyCodeWithoutLocation": 38,
+    "code": "Numpad8",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "8",
+     "keyCode": 104,
+     "keyCodeWithoutLocation": 104,
+     "code": "Numpad8",
+     "text": "8",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "Numpad9",
+   "description": {
+    "key": "PageUp",
+    "keyCode": 33,
+    "keyCodeWithoutLocation": 33,
+    "code": "Numpad9",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "9",
+     "keyCode": 105,
+     "keyCodeWithoutLocation": 105,
+     "code": "Numpad9",
+     "text": "9",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "Numpad4",
+   "description": {
+    "key": "ArrowLeft",
+    "keyCode": 37,
+    "keyCodeWithoutLocation": 37,
+    "code": "Numpad4",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "4",
+     "keyCode": 100,
+     "keyCodeWithoutLocation": 100,
+     "code": "Numpad4",
+     "text": "4",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "Numpad5",
+   "description": {
+    "key": "Clear",
+    "keyCode": 12,
+    "keyCodeWithoutLocation": 12,
+    "code": "Numpad5",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "5",
+     "keyCode": 101,
+     "keyCodeWithoutLocation": 101,
+     "code": "Numpad5",
+     "text": "5",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "Numpad6",
+   "description": {
+    "key": "ArrowRight",
+    "keyCode": 39,
+    "keyCodeWithoutLocation": 39,
+    "code": "Numpad6",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "6",
+     "keyCode": 102,
+     "keyCodeWithoutLocation": 102,
+     "code": "Numpad6",
+     "text": "6",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "NumpadAdd",
+   "description": {
+    "key": "+",
+    "keyCode": 107,
+    "keyCodeWithoutLocation": 107,
+    "code": "NumpadAdd",
+    "text": "+",
+    "location": 3
+   }
+  },
+  {
+   "name": "Numpad1",
+   "description": {
+    "key": "End",
+    "keyCode": 35,
+    "keyCodeWithoutLocation": 35,
+    "code": "Numpad1",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "1",
+     "keyCode": 97,
+     "keyCodeWithoutLocation": 97,
+     "code": "Numpad1",
+     "text": "1",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "Numpad2",
+   "description": {
+    "key": "ArrowDown",
+    "keyCode": 40,
+    "keyCodeWithoutLocation": 40,
+    "code": "Numpad2",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "2",
+     "keyCode": 98,
+     "keyCodeWithoutLocation": 98,
+     "code": "Numpad2",
+     "text": "2",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "Numpad3",
+   "description": {
+    "key": "PageDown",
+    "keyCode": 34,
+    "keyCodeWithoutLocation": 34,
+    "code": "Numpad3",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "3",
+     "keyCode": 99,
+     "keyCodeWithoutLocation": 99,
+     "code": "Numpad3",
+     "text": "3",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "Numpad0",
+   "description": {
+    "key": "Insert",
+    "keyCode": 45,
+    "keyCodeWithoutLocation": 45,
+    "code": "Numpad0",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": "0",
+     "keyCode": 96,
+     "keyCodeWithoutLocation": 96,
+     "code": "Numpad0",
+     "text": "0",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "NumpadDecimal",
+   "description": {
+    "key": "Delete",
+    "keyCode": 46,
+    "keyCodeWithoutLocation": 46,
+    "code": "NumpadDecimal",
+    "text": "",
+    "location": 3,
+    "shifted": {
+     "key": ".",
+     "keyCode": 110,
+     "keyCodeWithoutLocation": 110,
+     "code": "NumpadDecimal",
+     "text": ".",
+     "location": 3
+    }
+   }
+  },
+  {
+   "name": "NumpadEnter",
+   "description": {
+    "key": "Enter",
+    "keyCode": 13,
+    "keyCodeWithoutLocation": 13,
+    "code": "NumpadEnter",
+    "text": "\r",
+    "location": 3
+   }
+  }
+ ],
+ "selectors": [
+  {
+   "name": "What needs to be done?",
+   "roles": [
+    "internal:role=button[name=/^What needs to be done\\?$/i]",
+    "internal:role=link[name=/^What needs to be done\\?$/i]",
+    "internal:role=textbox[name=/^What needs to be done\\?$/i]",
+    "internal:role=combobox[name=/^What needs to be done\\?$/i]",
+    "internal:role=option[name=/^What needs to be done\\?$/i]",
+    "internal:role=tab[name=/^What needs to be done\\?$/i]"
+   ],
+   "label": "internal:label=/^What needs to be done\\?$/i",
+   "placeholder": "internal:attr=[placeholder=/What needs to be done\\?/i]",
+   "testId": "internal:testid=[data-testid=\"What needs to be done?\"s]",
+   "text": "internal:text=/What needs to be done\\?/i",
+   "hasText": "/What needs to be done\\?/i",
+   "exactText": "internal:text=\"What needs to be done?\"s",
+   "looseText": "internal:text=\"What needs to be done?\"i"
+  },
+  {
+   "name": "Toggle Todo",
+   "roles": [
+    "internal:role=button[name=/^Toggle Todo$/i]",
+    "internal:role=link[name=/^Toggle Todo$/i]",
+    "internal:role=textbox[name=/^Toggle Todo$/i]",
+    "internal:role=combobox[name=/^Toggle Todo$/i]",
+    "internal:role=option[name=/^Toggle Todo$/i]",
+    "internal:role=tab[name=/^Toggle Todo$/i]"
+   ],
+   "label": "internal:label=/^Toggle Todo$/i",
+   "placeholder": "internal:attr=[placeholder=/Toggle Todo/i]",
+   "testId": "internal:testid=[data-testid=\"Toggle Todo\"s]",
+   "text": "internal:text=/Toggle Todo/i",
+   "hasText": "/Toggle Todo/i",
+   "exactText": "internal:text=\"Toggle Todo\"s",
+   "looseText": "internal:text=\"Toggle Todo\"i"
+  },
+  {
+   "name": "Save (draft) [2]",
+   "roles": [
+    "internal:role=button[name=/^Save \\(draft\\) \\[2\\]$/i]",
+    "internal:role=link[name=/^Save \\(draft\\) \\[2\\]$/i]",
+    "internal:role=textbox[name=/^Save \\(draft\\) \\[2\\]$/i]",
+    "internal:role=combobox[name=/^Save \\(draft\\) \\[2\\]$/i]",
+    "internal:role=option[name=/^Save \\(draft\\) \\[2\\]$/i]",
+    "internal:role=tab[name=/^Save \\(draft\\) \\[2\\]$/i]"
+   ],
+   "label": "internal:label=/^Save \\(draft\\) \\[2\\]$/i",
+   "placeholder": "internal:attr=[placeholder=/Save \\(draft\\) \\[2\\]/i]",
+   "testId": "internal:testid=[data-testid=\"Save (draft) [2]\"s]",
+   "text": "internal:text=/Save \\(draft\\) \\[2\\]/i",
+   "hasText": "/Save \\(draft\\) \\[2\\]/i",
+   "exactText": "internal:text=\"Save (draft) [2]\"s",
+   "looseText": "internal:text=\"Save (draft) [2]\"i"
+  },
+  {
+   "name": "a\"b\\c",
+   "roles": [
+    "internal:role=button[name=/^a\\\"b\\\\c$/i]",
+    "internal:role=link[name=/^a\\\"b\\\\c$/i]",
+    "internal:role=textbox[name=/^a\\\"b\\\\c$/i]",
+    "internal:role=combobox[name=/^a\\\"b\\\\c$/i]",
+    "internal:role=option[name=/^a\\\"b\\\\c$/i]",
+    "internal:role=tab[name=/^a\\\"b\\\\c$/i]"
+   ],
+   "label": "internal:label=/^a\\\"b\\\\c$/i",
+   "placeholder": "internal:attr=[placeholder=/a\\\"b\\\\c/i]",
+   "testId": "internal:testid=[data-testid=\"a\\\"b\\\\c\"s]",
+   "text": "internal:text=/a\\\"b\\\\c/i",
+   "hasText": "/a\\\"b\\\\c/i",
+   "exactText": "internal:text=\"a\\\"b\\\\c\"s",
+   "looseText": "internal:text=\"a\\\"b\\\\c\"i"
+  },
+  {
+   "name": "Ünïcode ✓",
+   "roles": [
+    "internal:role=button[name=/^Ünïcode ✓$/i]",
+    "internal:role=link[name=/^Ünïcode ✓$/i]",
+    "internal:role=textbox[name=/^Ünïcode ✓$/i]",
+    "internal:role=combobox[name=/^Ünïcode ✓$/i]",
+    "internal:role=option[name=/^Ünïcode ✓$/i]",
+    "internal:role=tab[name=/^Ünïcode ✓$/i]"
+   ],
+   "label": "internal:label=/^Ünïcode ✓$/i",
+   "placeholder": "internal:attr=[placeholder=/Ünïcode ✓/i]",
+   "testId": "internal:testid=[data-testid=\"Ünïcode ✓\"s]",
+   "text": "internal:text=/Ünïcode ✓/i",
+   "hasText": "/Ünïcode ✓/i",
+   "exactText": "internal:text=\"Ünïcode ✓\"s",
+   "looseText": "internal:text=\"Ünïcode ✓\"i"
+  },
+  {
+   "name": "a/b >> c",
+   "roles": [
+    "internal:role=button[name=/^a\\/b \\>\\> c$/i]",
+    "internal:role=link[name=/^a\\/b \\>\\> c$/i]",
+    "internal:role=textbox[name=/^a\\/b \\>\\> c$/i]",
+    "internal:role=combobox[name=/^a\\/b \\>\\> c$/i]",
+    "internal:role=option[name=/^a\\/b \\>\\> c$/i]",
+    "internal:role=tab[name=/^a\\/b \\>\\> c$/i]"
+   ],
+   "label": "internal:label=/^a\\/b \\>\\> c$/i",
+   "placeholder": "internal:attr=[placeholder=/a\\/b \\>\\> c/i]",
+   "testId": "internal:testid=[data-testid=\"a/b >> c\"s]",
+   "text": "internal:text=/a\\/b \\>\\> c/i",
+   "hasText": "/a\\/b \\>\\> c/i",
+   "exactText": "internal:text=\"a/b >> c\"s",
+   "looseText": "internal:text=\"a/b >> c\"i"
+  },
+  {
+   "name": "it's `x`",
+   "roles": [
+    "internal:role=button[name=/^it\\'s \\`x\\`$/i]",
+    "internal:role=link[name=/^it\\'s \\`x\\`$/i]",
+    "internal:role=textbox[name=/^it\\'s \\`x\\`$/i]",
+    "internal:role=combobox[name=/^it\\'s \\`x\\`$/i]",
+    "internal:role=option[name=/^it\\'s \\`x\\`$/i]",
+    "internal:role=tab[name=/^it\\'s \\`x\\`$/i]"
+   ],
+   "label": "internal:label=/^it\\'s \\`x\\`$/i",
+   "placeholder": "internal:attr=[placeholder=/it\\'s \\`x\\`/i]",
+   "testId": "internal:testid=[data-testid=\"it's `x`\"s]",
+   "text": "internal:text=/it\\'s \\`x\\`/i",
+   "hasText": "/it\\'s \\`x\\`/i",
+   "exactText": "internal:text=\"it's `x`\"s",
+   "looseText": "internal:text=\"it's `x`\"i"
+  }
+ ],
+ "globs": [
+  {
+   "glob": "**/done*",
+   "url": "https://a.test/x/done1",
+   "pattern": "^(.*/)done([^/]*)$",
+   "matches": true
+  },
+  {
+   "glob": "**/done*",
+   "url": "https://a.test/x/notdone/y",
+   "pattern": "^(.*/)done([^/]*)$",
+   "matches": false
+  },
+  {
+   "glob": "*/dashboard*",
+   "url": "https://app.test/dashboard",
+   "pattern": "^([^/]*)/dashboard([^/]*)$",
+   "matches": false
+  },
+  {
+   "glob": "https://a.test/*",
+   "url": "https://a.test/b",
+   "pattern": "^https://a\\.test/([^/]*)$",
+   "matches": true
+  },
+  {
+   "glob": "https://a.test/*",
+   "url": "https://a.test/b/c",
+   "pattern": "^https://a\\.test/([^/]*)$",
+   "matches": false
+  },
+  {
+   "glob": "**/api/**",
+   "url": "https://a.test/api/v1/items?x=1",
+   "pattern": "^(.*/)api/(.*)$",
+   "matches": true
+  },
+  {
+   "glob": "**/*.{png,jpg}",
+   "url": "https://a.test/i/x.jpg",
+   "pattern": "^(.*/)([^/]*)\\.(png|jpg)$",
+   "matches": true
+  },
+  {
+   "glob": "https://a.test/?a=1",
+   "url": "https://a.test/?a=1",
+   "pattern": "^https://a\\.test/\\?a=1$",
+   "matches": true
+  },
+  {
+   "glob": "http://localhost:3000/[id]",
+   "url": "http://localhost:3000/[id]",
+   "pattern": "^http://localhost:3000/\\[id\\]$",
+   "matches": true
+  }
+ ]
+}

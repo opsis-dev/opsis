@@ -51,6 +51,7 @@
     "engine:downloads": "tsx scripts/engine-downloads.ts",
     "examples": "tsx scripts/write-examples.ts",
     "fixtures": "tsx scripts/parity-fixtures.ts",
+    "playwright:scripts": "tsx scripts/playwright-scripts.ts",
     "types:export": "cargo run -q -p opsis-compile --bin export-types && cargo run -q -p opsis-render --bin export-protocol",
     "elements:render": "tsx scripts/render-elements.ts",
     "glyphs:bundle": "tsx scripts/node-glyphs.ts",

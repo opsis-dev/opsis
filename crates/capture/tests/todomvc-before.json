@@ -1,0 +1,146 @@
+{
+  "actions": [
+    {
+      "id": "open:nav",
+      "kind": "navigate",
+      "label": "https://demo.playwright.dev/todomvc/#/",
+      "nodeId": "open"
+    },
+    {
+      "id": "todo1:1",
+      "kind": "type",
+      "point": {
+        "x": 960,
+        "y": 207
+      },
+      "rect": {
+        "x": 685,
+        "y": 175,
+        "w": 550,
+        "h": 66
+      },
+      "cluster": "add",
+      "label": "New todo",
+      "selectorUsed": "role=textbox name=\"What needs to be done?\"",
+      "text": "Record a real product flow",
+      "nodeId": "todo1"
+    },
+    {
+      "id": "todo1:k2",
+      "kind": "key",
+      "text": "Enter",
+      "label": "Enter",
+      "nodeId": "todo1"
+    },
+    {
+      "id": "todo2:3",
+      "kind": "type",
+      "point": {
+        "x": 960,
+        "y": 207
+      },
+      "rect": {
+        "x": 685,
+        "y": 175,
+        "w": 550,
+        "h": 66
+      },
+      "cluster": "add",
+      "label": "New todo",
+      "selectorUsed": "role=textbox name=\"What needs to be done?\"",
+      "text": "Auto-zoom on every click",
+      "nodeId": "todo2"
+    },
+    {
+      "id": "todo2:k4",
+      "kind": "key",
+      "text": "Enter",
+      "label": "Enter",
+      "nodeId": "todo2"
+    },
+    {
+      "id": "todo3:5",
+      "kind": "type",
+      "point": {
+        "x": 960,
+        "y": 207
+      },
+      "rect": {
+        "x": 685,
+        "y": 175,
+        "w": 550,
+        "h": 66
+      },
+      "cluster": "add",
+      "label": "New todo",
+      "selectorUsed": "role=textbox name=\"What needs to be done?\"",
+      "text": "Render 16:9 and 9:16",
+      "nodeId": "todo3"
+    },
+    {
+      "id": "todo3:k6",
+      "kind": "key",
+      "text": "Enter",
+      "label": "Enter",
+      "nodeId": "todo3"
+    },
+    {
+      "id": "complete:7",
+      "kind": "click",
+      "point": {
+        "x": 705,
+        "y": 271
+      },
+      "rect": {
+        "x": 661,
+        "y": 227,
+        "w": 88,
+        "h": 72
+      },
+      "cluster": "done",
+      "label": "Complete",
+      "selectorUsed": "label=\"Toggle Todo\"",
+      "nodeId": "complete"
+    },
+    {
+      "id": "filter:8",
+      "kind": "click",
+      "point": {
+        "x": 1013,
+        "y": 440
+      },
+      "rect": {
+        "x": 947,
+        "y": 396,
+        "w": 132,
+        "h": 72
+      },
+      "cluster": "filter",
+      "label": "Completed filter",
+      "selectorUsed": "role=link name=\"Completed\"",
+      "nodeId": "filter"
+    }
+  ],
+  "takes": [
+    {
+      "durationMs": 14666.666666666668,
+      "frames": 440,
+      "cursorSamples": 116,
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "dpr": 2
+    },
+    {
+      "durationMs": 14800,
+      "frames": 444,
+      "cursorSamples": 102,
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "dpr": 2
+    }
+  ]
+}

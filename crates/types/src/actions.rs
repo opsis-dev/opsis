@@ -37,6 +37,39 @@ pub struct Bounds {
     pub height: f64,
 }
 
+impl Point {
+    pub fn distance(self, other: Point) -> f64 {
+        (other.x - self.x).hypot(other.y - self.y)
+    }
+
+    pub fn lerp(self, to: Point, t: f64) -> Point {
+        Point {
+            x: self.x + (to.x - self.x) * t,
+            y: self.y + (to.y - self.y) * t,
+        }
+    }
+}
+
+impl Rect {
+    pub fn center(self) -> Point {
+        Point {
+            x: self.x + self.w / 2.0,
+            y: self.y + self.h / 2.0,
+        }
+    }
+}
+
+impl From<Bounds> for Rect {
+    fn from(b: Bounds) -> Self {
+        Rect {
+            x: b.x,
+            y: b.y,
+            w: b.width,
+            h: b.height,
+        }
+    }
+}
+
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type, schemars::JsonSchema,
 )]

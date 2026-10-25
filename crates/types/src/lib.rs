@@ -5,6 +5,7 @@ pub mod engine;
 pub mod events;
 pub mod fonts;
 pub mod json;
+pub mod live;
 pub mod mix;
 pub mod project;
 pub mod recording;

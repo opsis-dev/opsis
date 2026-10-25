@@ -23,6 +23,7 @@ export const IGNORED_PATHS = [
   "crates/project/src/templates.generated.json",
   "crates/engine/src/downloads.generated.json",
   "crates/render/src/source-layout.generated.json",
+  "crates/capture/src/playwright/*.generated.*",
   "apps/ui/src/generated/bindings.ts",
   "apps/sidecar/src/generated/protocol.ts",
   "out/**",

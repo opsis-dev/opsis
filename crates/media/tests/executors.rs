@@ -6,7 +6,9 @@ use opsis_compile::vars::Vars;
 use opsis_media::executors::{
     LinkedMedia, Tools, media_executors, media_has_sound, thumbnail_time,
 };
-use opsis_media::ffmpeg::{AudioInfo, MediaTools, ProbeResult, RunOptions, ToolFuture, VideoInfo};
+use opsis_media::ffmpeg::{
+    AudioInfo, FramePipe, MediaTools, ProbeResult, RunOptions, ToolError, ToolFuture, VideoInfo,
+};
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorOutput, ResultStore, RunEnv};
 use opsis_types::settings::AppSettings;
 use opsis_types::values::{ArtifactKind, PortValues};
@@ -29,6 +31,14 @@ impl MediaTools for FakeTools {
     fn probe<'a>(&'a self, _: &'a Path) -> ToolFuture<'a, ProbeResult> {
         let probe = self.probe.clone();
         Box::pin(async move { Ok(probe) })
+    }
+
+    fn pipe(&self, args: &[String], _: Option<CancellationToken>) -> Result<FramePipe, ToolError> {
+        self.ran.lock().unwrap().push(args.to_vec());
+        Ok(FramePipe {
+            stdin: Box::pin(tokio::io::sink()),
+            done: Box::pin(async { Ok(()) }),
+        })
     }
 }
 

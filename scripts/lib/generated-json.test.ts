@@ -5,6 +5,7 @@ import { BUNDLED_FONTS } from "@opsis/core/fonts/bundled.generated";
 import { describe, expect, it } from "vitest";
 import { FIXTURES_DIR, fixtureText, parityFixtures } from "../parity-fixtures";
 import { ELEMENTS_JSON, elementsJsonText } from "./element-json";
+import { PLAYWRIGHT_DIR, playwrightFiles } from "./playwright-scripts";
 import { SOURCE_LAYOUT_JSON, sourceLayoutJsonText } from "./source-layout-json";
 import { TEMPLATES_JSON, templatesJsonText } from "./template-json";
 import { ROOT } from "./tool-config";
@@ -27,6 +28,11 @@ describe("files Rust reads", () => {
 
   it("hold the project templates", () => {
     expect(read(TEMPLATES_JSON)).toBe(templatesJsonText());
+  });
+
+  it("hold the page scripts and tables taken from the installed Playwright", () => {
+    for (const [name, text] of Object.entries(playwrightFiles()))
+      expect({ name, text: read(path.join(PLAYWRIGHT_DIR, name)) }).toEqual({ name, text });
   });
 
   it("hold the parity fixtures the TS compile writes today", () => {

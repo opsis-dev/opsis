@@ -37,9 +37,34 @@ Missing:
 10. **User agent.** The shell reports `HeadlessChrome`; set a normal Chrome user agent and client hints with `Emulation.setUserAgentOverride` for sign-in and the picker.
 11. **Measure first (a spike before the rest).** On Linux, Windows and macOS: frames per second at 960 px and 1080p with JPEG quality 70 and 85, input-to-frame latency, seek-to-frame time on a recording and on a shader element, CPU use, and audio drift over a 2-minute film. Record the numbers here; choose the default size and quality from them.
 
+## Phase 5 as built
+
+- **`opsis-stream`.** `StreamView` is a headless-shell tab streamed to a `ViewSink` (frames and events) that a host attaches; a frame sent before that is kept for the host. It takes `ViewInput` (mouse, wheel, keys with their codes, text, composition) as `Input.dispatch*`, resizes with `Emulation.setDeviceMetricsOverride`, navigates, goes back and forward, reloads, shows popups as tabs (`ViewEvent::Tabs`), reports dialogs and file choosers and answers them, and gives the page a normal Chrome user agent with Chromium brands. `ViewHost` is what phase 6 implements with a window and a `Channel`.
+- **Sign-in and picker.** `sign_in` follows `loginInWindow`: it finishes on an address change, a selector or the view closing, and saves the cookies (`Network.getAllCookies`) and each origin's local storage as today's storage state; `StreamLogin` is the `Login` the capture executor calls. `pick` injects the picker script (`crates/stream/src/picker.js`, `src/main/picker-script.ts` as plain JavaScript) and gets the result through the `opsisPick` binding instead of the console.
+- **Preview page.** `apps/preview` is the Remotion Player with `DemoTimeline`, muted, controlled through `window.opsisPreview` (`load`, `play`, `pause`, `seek`, `rate`) and reporting through the `opsisFrame` and `opsisState` bindings. `Preview` serves its build and `public/` from one local server and the project from another, and takes a sharp still with `Page.captureScreenshot`. Sound (step 5) and the editor's controls (step 6) come with phase 6.
+- **Fixed on the way.** `apps/ui/src/index.css` pointed Tailwind at `apps/video/src`, which doesn't exist, since phase 1.5; it now points at `packages/video/src`, so the classes video elements use are generated in the editor again.
+- **Checks.** On the engine: a click and a Shift-click in the view pick an element and a spot; sign-in finishes on an address change and on a selector with the cookie and local storage; a popup opens as a second tab; the TodoMVC film loads, seeks, plays and gives a 960 × 540 still (`crates/stream/tests`, ignored by default).
+
+## Measurements (step 11)
+
+Linux only (Intel Core i7-12700H, 20 threads, software WebGL as in renders); Windows and macOS are still to measure. The TodoMVC film in Fast quality, `crates/stream/tests/measure.rs`, 2026-10-26:
+
+| Stream                  | Frames a second while playing | Size a frame | Browser CPU     |
+| ----------------------- | ----------------------------- | ------------ | --------------- |
+| 960 × 540, quality 70   | 25.2                          | 15 KB        | 16% of one core |
+| 960 × 540, quality 85   | 23.2                          | 20 KB        | 18%             |
+| 1920 × 1080, quality 70 | 13.4                          | 38 KB        | 34%             |
+| 1920 × 1080, quality 85 | 15.8                          | 49 KB        | 36%             |
+
+- The film plays at its own 30 frames a second in every case; the stream delivers fewer, since the screencast sends a frame only after the last one is acknowledged.
+- Input to the next frame: 14 ms (p90 20 ms) at 960 × 540, 35 ms (p90 43 ms) at 1920 × 1080.
+- Seek to a recording frame: reported in 1–2 ms, on screen in 77 ms at either size. Seek to a shader frame: 191 ms to report and 213 ms on screen at 960 × 540, 437 and 484 ms at 1920 × 1080.
+- Clock over 2 minutes (8 plays): the Player starts at once, falls 0.87 s behind wall time during the 2.5 s shader intro (it waits for slow frames instead of skipping them) and keeps time after it. The paper shader draws a 3840 × 2160 canvas whatever the view's size. The webview's sound (step 5) would have to jump to follow the reported frame through such parts.
+- Not measured here: Windows and macOS, and sound drift with the webview's `<audio>`, which needs phase 6.
+
 ## Decisions for the user
 
-- **Preview resolution.** Stream at the view's size (sharper, more CPU) or at a fixed 960 px in Fast mode; decide after the measurements in step 11.
+- **Preview resolution (decided 2026-10-26).** A fixed 960 px in Fast mode: 25 frames a second against 13–16 at the view's 1080p, and shader seeks under half the time (step 11). Exact mode and paused stills stay sharp at the view's size.
 
 ## Risks
 

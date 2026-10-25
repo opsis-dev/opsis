@@ -33,6 +33,7 @@ tokio-util = "0.7.20"
 walkdir = "2.5.0"
 
 [dev-dependencies]
+opsis-capture = { path = "../capture" }
 pretty_assertions = "1.4.1"
 tempfile = "3.27.0"
 tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros"] }

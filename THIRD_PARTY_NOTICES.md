@@ -82,7 +82,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## programatic-demo — packages/video/src/camera, src/worker/capture, public/backdrops
+## programatic-demo — packages/video/src/camera, src/worker/capture, crates/capture, public/backdrops
 
 ```
 MIT License
@@ -380,3 +380,15 @@ Public domain (Creative Commons 0, https://creativecommons.org/publicdomain/zero
 ## Bundled fonts — public/fonts/bundled
 
 SIL Open Font License 1.1, taken from the Fontsource packages. Each family's licence text is next to its files in `public/fonts/bundled/<family>/LICENSE`: Inter, Geist, Geist Mono, JetBrains Mono, Manrope, DM Sans, Space Grotesk, Outfit, Montserrat, Plus Jakarta Sans, IBM Plex Sans, Playfair Display, Fraunces, Caveat, Google Sans Flex, Instrument Serif.
+
+## Playwright — crates/capture/src/playwright, crates/capture/src/{browser,input,keyboard,locators,overlays,url_match}.rs
+
+The page script, the fake clock and the keyboard and launch tables are taken from `playwright-core`; the input, keyboard, selector, overlay and address-matching code follows Playwright's. Licensed under the Apache License, Version 2.0 (`LICENSE`).
+
+```
+Playwright
+Copyright (c) Microsoft Corporation
+
+This software contains code derived from the Puppeteer project (https://github.com/puppeteer/puppeteer),
+available under the Apache 2.0 license (https://github.com/puppeteer/puppeteer/blob/master/LICENSE).
+```

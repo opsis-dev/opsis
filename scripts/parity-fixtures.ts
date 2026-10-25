@@ -35,6 +35,7 @@ import { filmChapters } from "@opsis/core/timeline/chapters";
 import { flattenSpec } from "@opsis/core/timeline/flatten";
 import { workflowVars } from "@opsis/core/vars";
 import type { z } from "zod";
+import { captureFixtures } from "./lib/capture-fixtures";
 import { mediaFixtures } from "./lib/media-fixtures";
 import { writeSourceLayoutJson } from "./lib/source-layout-json";
 import { ROOT } from "./lib/tool-config";
@@ -752,7 +753,7 @@ export function parityFixtures(): Record<string, unknown> {
   const extra: Array<[string, Workflow]> = todomvc ? [["sound", soundWorkflow(todomvc[1])]] : [];
   const workflows = [...exampleWorkflows(), ...templateWorkflows(), ...extra];
   for (const [name, wf] of workflows) files[`compile/workflows/${name}.json`] = workflowFixture(wf);
-  return { ...files, ...mediaFixtures(workflows) };
+  return { ...files, ...mediaFixtures(workflows), ...captureFixtures() };
 }
 
 export const fixtureText = (value: unknown): string => `${JSON.stringify(value, null, 1)}\n`;

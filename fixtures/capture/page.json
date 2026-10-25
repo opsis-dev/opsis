@@ -1,0 +1,100 @@
+{
+ "cursors": [
+  {
+   "under": {
+    "cursor": "url(https://x.test/a.png) 4 4, pointer",
+    "editable": false
+   },
+   "keyword": "pointer"
+  },
+  {
+   "under": {
+    "cursor": "auto",
+    "editable": true
+   },
+   "keyword": "text"
+  },
+  {
+   "under": {
+    "cursor": "auto",
+    "editable": false
+   },
+   "keyword": "default"
+  },
+  {
+   "under": {
+    "cursor": "url(a.cur), url('b.png') 1 2, ",
+    "editable": false
+   },
+   "keyword": "default"
+  },
+  {
+   "under": {
+    "cursor": "Grab",
+    "editable": false
+   },
+   "keyword": "grab"
+  },
+  {
+   "under": {
+    "cursor": "-webkit-grab",
+    "editable": false
+   },
+   "keyword": "default"
+  },
+  {
+   "under": {
+    "cursor": "x y",
+    "editable": false
+   },
+   "keyword": "default"
+  }
+ ],
+ "chords": [
+  {
+   "chord": "Ctrl+Shift+K",
+   "pressed": "Ctrl+Shift+K"
+  },
+  {
+   "chord": "cmd+a",
+   "pressed": "cmd+a"
+  },
+  {
+   "chord": "Enter",
+   "pressed": "Enter"
+  },
+  {
+   "chord": "Shift+Tab",
+   "pressed": "Shift+Tab"
+  },
+  {
+   "chord": "alt+ArrowDown",
+   "pressed": "alt+ArrowDown"
+  },
+  {
+   "chord": "Mod+S",
+   "pressed": "Mod+S"
+  },
+  {
+   "chord": "a",
+   "pressed": "a"
+  }
+ ],
+ "hiding": [
+  {
+   "selectors": [
+    "#a",
+    ".b c",
+    "[id*='x' i]"
+   ],
+   "css": "#a { display: none !important; visibility: hidden !important; }\n.b c { display: none !important; visibility: hidden !important; }\n[id*='x' i] { display: none !important; visibility: hidden !important; }"
+  }
+ ],
+ "scripts": [
+  {
+   "id": "n1",
+   "script": "localStorage.setItem('a', '1');",
+   "text": "(() => {\ntry {\n  if (sessionStorage.getItem(\"opsis-script:n1\")) return;\n  sessionStorage.setItem(\"opsis-script:n1\", \"1\");\n} catch {\n  return;\n}\nlocalStorage.setItem('a', '1');\n})()"
+  }
+ ]
+}
