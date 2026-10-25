@@ -325,6 +325,50 @@ Opsis's own code.
 
 - Opsis source: `durationFitNode`, `fitRow` (`src/shared/nodes/timeline.ts`), `addAudioNode`, `anchorSounds` (`src/shared/nodes/audio.ts`), `canConnect` (`src/shared/nodes/ports.ts`) (checked 2026-10-16)
 
+## Rust
+
+How this plan is built if it lands after the move to Tauri (`plans/tauri-rewrite/`), where executors, downloads, keys and online requests are Rust. Node definitions, compile, word timing and cards are Rust too (`plans/tauri-rewrite/compile-in-rust.md`). Crate facts checked on crates.io and docs.rs on 2026-10-25.
+
+**Downloads and the catalogue.** `reqwest` 0.13.5 streams downloads with progress over a Tauri channel; `sha2` checks hashes; `tar` 0.4.46 and `bzip2` 0.6.1 unpack (`bzip2`'s default backend is `libbz2-rs-sys`; the C libbzip2 is opt-in), replacing `tar-stream` and `seek-bzip`. The catalogue is Rust data exported to the UI as generated types. Service keys live in the OS keyring through `keyring` 4.2.0 (`plans/tauri-rewrite/desktop-shell.md`), replacing the `secrets` table and `encryptedText()`.
+
+**One ONNX Runtime (decided).** Every on-device model runs through `ort` 2.0.0-rc.15 (MIT OR Apache-2.0, wrapping ONNX Runtime 1.31), with one ONNX Runtime build per platform. Either link it statically from ort's prebuilt binaries (`download-binaries`, the default, fetched at build time from pyke's CDN), or ship one shared library with the app and load it with `load-dynamic`, which ort's docs recommend. Nothing else may carry its own inference runtime:
+
+- **sherpa-onnx is out.** The static libraries its Rust crate links (`sherpa-onnx-sys` 2.0.0, list in its `build.rs`) include `onnxruntime`, next to `kaldi-native-fbank-core`, `kaldi-decoder-core`, the FST libraries, `ssentencepiece_core` and `utf8proc`. The program archive this plan pins carries its own too: `sherpa-onnx-v1.13.8-linux-x64-shared.tar.bz2` ships `lib/libonnxruntime.so` next to `bin/sherpa-onnx-offline` and `bin/sherpa-onnx-offline-tts`. Either way that's a second ONNX Runtime beside `ort`, so the speech program in **Speech downloads** above isn't downloaded.
+- **whisper.cpp is out.** `whisper-rs` 0.16.0 builds whisper.cpp's own inference engine (ggml).
+
+What sherpa-onnx did that `ort` alone doesn't, and what does it instead:
+
+| Job                         | In sherpa-onnx                           | With `ort` only                                                                                                                                                                                                                                                                                                                     |
+| --------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Audio features for Parakeet | `kaldi-native-fbank` (C++)               | `nemo128.onnx`: NeMo's 128-band log-mel preprocessing (512-point STFT, 400-sample window, 160-sample hop, Slaney mel filter bank, per-feature normalisation) written as an ONNX graph by onnx-asr (MIT); it runs in the same `ort`                                                                                                  |
+| Parakeet decoding           | its transducer decoder                   | our TDT greedy loop: `encoder-model.int8.onnx` once per piece, then `decoder_joint-model.int8.onnx` per step, taking a token and a duration (frames to skip) until the audio ends. onnx-asr's Python implementation is the reference                                                                                                |
+| Tokens to words and times   | its JSON output (`tokens`, `timestamps`) | `vocab.txt` pieces (`▁` starts a word) and each token's encoder frame (16 kHz audio, 160-sample hop, subsampling factor 8 from `config.json`: 80 ms per frame), fed to `tokensToCaptions`                                                                                                                                           |
+| Kokoro: text to model input | espeak-ng phonemes and its token table   | `misaki-rs` 0.6.0 (MIT; grapheme-to-phoneme made for Kokoro, US and British English) with `default-features = false` so espeak isn't linked; phoneme ids from the model's `tokenizer.json`; `input_ids` padded with 0 (at most 510 tokens per call); `style` = the voice file's vector at index `len(tokens)` (256 values); `speed` |
+| Kitten                      | espeak-ng phonemes                       | not available: Kitten's ONNX path phonemizes with espeak through `phonemizer` (`kittenml/kittentts_legacy` in KittenTTS), which is GPL code in the app                                                                                                                                                                              |
+
+The models come from Hugging Face instead of sherpa-onnx's archives:
+
+- `istupakov/parakeet-tdt-0.6b-v2-onnx` (English) and `istupakov/parakeet-tdt-0.6b-v3-onnx` (25 European languages), CC-BY-4.0. Each has `encoder-model.int8.onnx`, `decoder_joint-model.int8.onnx`, `nemo128.onnx`, `vocab.txt` and `config.json`.
+- `onnx-community/Kokoro-82M-v1.0-ONNX`, Apache-2.0: `onnx/model_*.onnx` in several precisions, `tokenizer.json`, and one `voices/<name>.bin` per voice.
+
+Pin each download by commit and SHA-256 in the catalogue, as the plan already does for archives.
+
+Consequences for the voices:
+
+- "Natural voices" are Kokoro's English voices, with no GPL part anywhere.
+- "Small voices" (Kitten) and Kokoro's other languages need espeak-ng. Either leave them out of the first version, or add espeak-ng later as a separate program that only turns text into phonemes. A phonemizer isn't a second inference runtime, and the GPL boundary stays a process boundary.
+- Unknown English words without the espeak fallback are spelled letter by letter (`misaki-rs`). Names and product terms go through **Fix words**-style replacements before speaking, added to the text tidy-up (`src/shared/speech/tidy.ts` in this plan, Rust after the move).
+
+Test the port against onnx-asr: transcribe the same files with onnx-asr in Python and with the Rust loop, and compare the tokens and frame indices exactly.
+
+**Online services.**
+
+- OpenAI and Compatible service: `async-openai` 0.42.2 (MIT). Its base URL is configurable (`OpenAIConfig`, or `OPENAI_BASE_URL`), and its `audio` feature covers the audio API ("Audio, Audio Streaming" in its feature list). Its docs don't say whether transcription requests carry `timestamp_granularities[]=word`; if its request type lacks it, send that one request with plain `reqwest` multipart, as for servers that differ.
+- ElevenLabs and OpenRouter: plain `reqwest`.
+- `@remotion/captions`, `@remotion/elevenlabs` and `@remotion/openai-whisper` aren't needed. Their two converters, `serializeSrt` and the ElevenLabs alignment→words function become small tested Rust functions in the executor.
+
+**Word timing and the Voice bus.** `tokensToCaptions`, the estimate and the text tidy-up are Rust functions next to the node definitions. The Voice role, bus and ducking keys are changes to the Rust mix plan. Their tests move with them.
+
 ## Decided
 
 - **Which voices ship** is settled by listening, not by a choice now: Work step 2 of the Voiceover section compares the int8 and full-precision Kokoro packs by ear before the catalogue is final.

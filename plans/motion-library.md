@@ -353,6 +353,20 @@ No new packages.
 - `.github/workflows/build.yml`, `src/engine/install.ts` (read 2026-10-16)
 - [FFmpeg filters: ssim](https://ffmpeg.org/ffmpeg-filters.html#ssim) (checked 2026-10-16)
 
+## Rust
+
+How this plan is built if it lands after the move to Tauri (`plans/tauri-rewrite/`). There, element metadata and node definitions are Rust, there is no Remotion Player in the webview, and Remotion renders run in a Bun sidecar.
+
+**Elements stay TS.** Ported components, Liquid contours, the crossed-off looks and the Rive element are video code in `packages/video` and are unchanged by the move. The porting recipe and the frame-purity rules hold as written.
+
+**Metadata moves.** Element metadata becomes Rust data with `schemars` field keywords (`plans/tauri-rewrite/types-and-contracts.md`), so `portedElementMeta` is a Rust module next to the core elements instead of `src/shared/elements/ported.ts`. The loaders (`portedElementLoaders`) stay TS in `packages/video`.
+
+**Rive hosting.** The `'wasm-unsafe-eval'` CSP change moves to the Tauri config (`app.security.csp`). The `.wasm` and `.riv` MIME types go into Rust's asset server. `riv` joins Rust's asset import.
+
+**Element thumbnails.** The stills are rendered at development time by a script through the sidecar's `render.still` (or `renderFrame` under Bun), as before. The live hover preview can't mount a `<Player>`, because the webview has none. The hover card shows the still only; a streamed preview for a hover card isn't worth a headless shell tab.
+
+**Visual check in CI.** Unchanged: the script renders through the sidecar and compares with FFmpeg's `ssim` filter.
+
 ## Decided
 
 - **First batch (decided):** the 18 ports and the four-element first batch as listed.

@@ -409,3 +409,31 @@ Build it in four phases, each checked before the next:
 ### Sources
 
 - Repo files named above (checked 2026-10-16). No external sources; this section is a design from an earlier discussion.
+
+## Rust
+
+How this plan is built if it lands after the move to Tauri (`plans/tauri-rewrite/`, with the build details in `plans/tauri-rewrite/packaging.md`). Tauri facts checked on v2.tauri.app and docs.rs on 2026-10-25.
+
+1. **Windows and macOS builds.**
+   - Forge's makers become Tauri's bundler: NSIS `-setup.exe` (per-user into `%LOCALAPPDATA%` by default) on Windows, and an app bundle in a zip on macOS. Linux ships deb and rpm only; the AppImage and its launcher are dropped.
+   - The runner checks through the Local API stay as written.
+   - The named-pipe question in Work step 7 is settled in Rust: tokio's `ServerOptions::create_with_security_attributes_raw` creates the pipe with a security descriptor for the current user only (`plans/tauri-rewrite/local-api.md`). Verify it with the second-user check.
+   - `setAppUserModelId` and Squirrel's first-run handling go with Squirrel.
+2. **App icons.** `tauri icon` takes a square PNG or SVG and writes `icon.icns`, `icon.ico` and the PNGs, replacing the hand-written ICO/ICNS packing. Feed it the 1024 px PNG from `brand:icons`, rendered by the recording browser, because `AGENTS.md` records that other renderers draw the gradients wrong.
+3. **Code signing.**
+   - macOS: `bundle.macOS.signingIdentity`, `hardenedRuntime` and `entitlements`, with `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD` and `APPLE_SIGNING_IDENTITY` for signing, and `APPLE_API_ISSUER`, `APPLE_API_KEY` and `APPLE_API_KEY_PATH` for notarization. Check every bundled executable (sidecar, compositor, headless shell, FFmpeg) with `codesign -dv` in CI.
+   - Windows: `bundle.windows.certificateThumbprint`, `digestAlgorithm` and `timestampUrl` for a certificate in the store, or `signCommand` for any tool. Tauri's guide shows Azure Artifact Signing through `signCommand` with `artifact-signing-cli`.
+   - The signing choices and costs in section 3 are unchanged.
+4. **Updating the app.** `tauri-plugin-updater` 2.14.0 replaces `autoUpdater` and Squirrel.
+   - `check()` only reports an update; `download()` and `install()` are separate calls, which fits the two asked-for steps.
+   - Updates are signed with Tauri's key pair (`TAURI_SIGNING_PRIVATE_KEY`; signing can't be turned off), on top of code signing.
+   - The feed is a static JSON file per edition on GitHub Releases (`version`, `notes`, `pub_date`, `platforms.<os-arch>.url` and `signature`).
+   - On Linux the updater handles AppImage only, so deb and rpm users get the release-page link already decided for the deb.
+   - A full-edition update still downloads the engine again, so the open decision in section 4 stands.
+5. **FFmpeg licence.** Unchanged. FFmpeg is out of scope for the move, and Remotion's compositor still ships its GPL FFmpeg inside the sidecar's package.
+6. **Release test pass.** Playwright's `_electron` and the fuses that blocked it go. `tauri-driver` drives Windows and Linux builds; WebdriverIO with `@wdio/tauri-service` covers macOS through its embedded WebDriver server. The smoke suite runs against the built app, so the "development build only" workaround goes.
+7. **Node packs.**
+   - Node definitions and compile are Rust after the move, so a pack can no longer ship a TS `compile()` or executor.
+   - Packs carry their settings as JSON Schema. For compile and executors there are two candidates: WebAssembly modules run by the app, or separate programs speaking the sidecar's JSON-lines protocol.
+   - Pack video components still load into the video bundle as described.
+   - Decide when phase 3 of the packs starts.
