@@ -1,0 +1,3735 @@
+{
+ "workflow": {
+  "version": 1,
+  "id": "example_feature_launch",
+  "name": "Feature launch",
+  "settings": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "theme": "dark",
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "variables": {
+   "Site address": "https://example.com",
+   "Product name": "Acme"
+  },
+  "nodes": [
+   {
+    "id": "session",
+    "type": "browser.open",
+    "position": {
+     "x": 0,
+     "y": 0
+    },
+    "params": {
+     "viewportWidth": 1920,
+     "viewportHeight": 1080,
+     "dpr": 2,
+     "mobile": false,
+     "userAgent": "",
+     "locale": "en-US",
+     "timezone": "",
+     "colorScheme": "light",
+     "captureScale": 1
+    }
+   },
+   {
+    "id": "open",
+    "type": "browser.navigate",
+    "position": {
+     "x": 300,
+     "y": 0
+    },
+    "params": {
+     "url": "{{Site address}}",
+     "waitUntil": "load",
+     "after": 700
+    }
+   },
+   {
+    "id": "start",
+    "type": "browser.startRecording",
+    "position": {
+     "x": 600,
+     "y": 0
+    },
+    "params": {}
+   },
+   {
+    "id": "cta",
+    "type": "browser.click",
+    "position": {
+     "x": 900,
+     "y": 0
+    },
+    "params": {
+     "after": 1500,
+     "cluster": "",
+     "zoom": true,
+     "frame": "",
+     "zoomScale": 0,
+     "travelMs": 0,
+     "hoverMs": 220,
+     "target": "Get started"
+    },
+    "label": "Get started"
+   },
+   {
+    "id": "record",
+    "type": "capture.record",
+    "position": {
+     "x": 1200,
+     "y": 0
+    },
+    "params": {
+     "fps": 30,
+     "quality": 90,
+     "establishMs": 700,
+     "endTailMs": 2500,
+     "cursor": "synthetic",
+     "showActions": false,
+     "mutates": ""
+    }
+   },
+   {
+    "id": "camera",
+    "type": "camera.autoZoom",
+    "position": {
+     "x": 1200,
+     "y": 356
+    },
+    "params": {
+     "zoom": true,
+     "maxScale": 1.74,
+     "hold": 1300,
+     "speed": 1.25,
+     "style": "classic",
+     "backdrop": "glaze",
+     "frame": "none",
+     "frameTheme": "light",
+     "addressBar": true,
+     "motionBlur": true
+    }
+   },
+   {
+    "id": "spotlight",
+    "type": "cursor.spotlight",
+    "position": {
+     "x": 900,
+     "y": 200
+    },
+    "params": {
+     "match": "Get started",
+     "text": "",
+     "color": "rgba(0,0,0,0.55)",
+     "padding": 10,
+     "leadMs": 250,
+     "holdMs": 1400
+    }
+   },
+   {
+    "id": "headline",
+    "type": "fx.core.kinetic-headline",
+    "position": {
+     "x": 300,
+     "y": 340
+    },
+    "params": {
+     "text": "Introducing *{{Product name}}*",
+     "color": "#fafafa",
+     "emphasisColor": "#facc15",
+     "background": "#09090b",
+     "fontSize": 104,
+     "wordStagger": 4,
+     "fontFamily": "",
+     "clipDuration": 90,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "outro",
+    "type": "fx.core.title",
+    "position": {
+     "x": 600,
+     "y": 510
+    },
+    "params": {
+     "eyebrow": "",
+     "title": "Try {{Product name}} today",
+     "subtitle": "{{Site address}}",
+     "align": "center",
+     "entrance": "rise",
+     "color": "#fafafa",
+     "accent": "#a78bfa",
+     "background": "transparent",
+     "fontSize": 112,
+     "fontWeight": 760,
+     "fontFamily": "",
+     "clipDuration": 75,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "sequence",
+    "type": "timeline.sequence",
+    "position": {
+     "x": 1200,
+     "y": 734
+    },
+    "params": {
+     "transition": "remocn/zoom-blur",
+     "transitionDuration": 15,
+     "keepWhole": false,
+     "cuts": []
+    }
+   },
+   {
+    "id": "render",
+    "type": "output.render",
+    "position": {
+     "x": 1500,
+     "y": 340
+    },
+    "params": {
+     "fileName": "{{Project name}}",
+     "codec": "h264",
+     "crf": 18,
+     "variants": [
+      "16:9"
+     ],
+     "reframe": "follow",
+     "scale": 1,
+     "chapters": true,
+     "chapterList": false,
+     "gl": "angle"
+    }
+   }
+  ],
+  "edges": [
+   {
+    "id": "session.session->open.session",
+    "source": "session",
+    "sourceHandle": "session",
+    "target": "open",
+    "targetHandle": "session"
+   },
+   {
+    "id": "open.session->start.session",
+    "source": "open",
+    "sourceHandle": "session",
+    "target": "start",
+    "targetHandle": "session"
+   },
+   {
+    "id": "start.session->cta.session",
+    "source": "start",
+    "sourceHandle": "session",
+    "target": "cta",
+    "targetHandle": "session"
+   },
+   {
+    "id": "cta.session->record.session",
+    "source": "cta",
+    "sourceHandle": "session",
+    "target": "record",
+    "targetHandle": "session"
+   },
+   {
+    "id": "record.recording->camera.recording",
+    "source": "record",
+    "sourceHandle": "recording",
+    "target": "camera",
+    "targetHandle": "recording"
+   },
+   {
+    "id": "spotlight.style->camera.style",
+    "source": "spotlight",
+    "sourceHandle": "style",
+    "target": "camera",
+    "targetHandle": "style"
+   },
+   {
+    "id": "headline.clip->sequence.in1",
+    "source": "headline",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in1"
+   },
+   {
+    "id": "camera.clip->sequence.in2",
+    "source": "camera",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in2"
+   },
+   {
+    "id": "outro.clip->sequence.in3",
+    "source": "outro",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in3"
+   },
+   {
+    "id": "sequence.clip->render.clip",
+    "source": "sequence",
+    "sourceHandle": "clip",
+    "target": "render",
+    "targetHandle": "clip"
+   }
+  ],
+  "markers": []
+ },
+ "compile": {
+  "values": {
+   "session": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": []
+    }
+   },
+   "open": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.com",
+        "waitUntil": "load",
+        "after": 700
+       }
+      }
+     ]
+    }
+   },
+   "headline": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 90,
+     "tracks": [
+      {
+       "id": "headline:t",
+       "items": [
+        {
+         "id": "headline:i",
+         "from": 0,
+         "durationInFrames": 90,
+         "kind": "element",
+         "component": "core/kinetic-headline",
+         "props": {
+          "text": "Introducing *Acme*",
+          "color": "#fafafa",
+          "emphasisColor": "#facc15",
+          "background": "#09090b",
+          "fontSize": 104,
+          "wordStagger": 4
+         },
+         "nodeId": "headline",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "headline",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "start": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.com",
+        "waitUntil": "load",
+        "after": 700
+       }
+      },
+      {
+       "id": "start",
+       "type": "browser.startRecording",
+       "params": {}
+      }
+     ]
+    }
+   },
+   "outro": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 75,
+     "tracks": [
+      {
+       "id": "outro:t",
+       "items": [
+        {
+         "id": "outro:i",
+         "from": 0,
+         "durationInFrames": 75,
+         "kind": "element",
+         "component": "core/title",
+         "props": {
+          "eyebrow": "",
+          "title": "Try Acme today",
+          "subtitle": "https://example.com",
+          "mark": "",
+          "markLook": "underline",
+          "markColor": "#facc15",
+          "align": "center",
+          "entrance": "rise",
+          "color": "#fafafa",
+          "accent": "#a78bfa",
+          "background": "transparent",
+          "fontSize": 112,
+          "fontWeight": 760
+         },
+         "nodeId": "outro",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "outro",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "cta": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.com",
+        "waitUntil": "load",
+        "after": 700
+       }
+      },
+      {
+       "id": "start",
+       "type": "browser.startRecording",
+       "params": {}
+      },
+      {
+       "id": "cta",
+       "type": "browser.click",
+       "label": "Get started",
+       "params": {
+        "target": "Get started",
+        "after": 1500,
+        "cluster": "",
+        "zoom": true,
+        "frame": "",
+        "zoomScale": 0,
+        "travelMs": 0,
+        "hoverMs": 220
+       }
+      }
+     ]
+    }
+   },
+   "spotlight": {
+    "style": {
+     "type": "recording-style",
+     "entries": [
+      {
+       "nodeId": "spotlight",
+       "type": "cursor.spotlight",
+       "params": {
+        "match": "Get started",
+        "text": "",
+        "color": "rgba(0,0,0,0.55)",
+        "padding": 10,
+        "leadMs": 250,
+        "holdMs": 1400,
+        "look": "clean",
+        "roughness": 1
+       }
+      }
+     ]
+    }
+   },
+   "record": {
+    "recording": {
+     "type": "recording",
+     "src": null,
+     "log": null,
+     "durationMs": 6000,
+     "viewport": {
+      "width": 1920,
+      "height": 1080
+     },
+     "nodeId": "record",
+     "style": []
+    }
+   },
+   "camera": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 144,
+     "tracks": [
+      {
+       "id": "camera:t",
+       "items": [
+        {
+         "id": "camera:i",
+         "from": 0,
+         "durationInFrames": 144,
+         "kind": "element",
+         "component": "core/placeholder",
+         "props": {
+          "title": "Not recorded yet",
+          "subtitle": "Run to record the take. The camera moves appear here afterwards."
+         },
+         "nodeId": "camera"
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "sequence": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 279,
+     "tracks": [
+      {
+       "id": "sequence:seq",
+       "items": [
+        {
+         "id": "sequence:s0",
+         "from": 0,
+         "durationInFrames": 90,
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "headline:t",
+            "items": [
+             {
+              "id": "headline:i",
+              "from": 0,
+              "durationInFrames": 90,
+              "kind": "element",
+              "component": "core/kinetic-headline",
+              "props": {
+               "text": "Introducing *Acme*",
+               "color": "#fafafa",
+               "emphasisColor": "#facc15",
+               "background": "#09090b",
+               "fontSize": 104,
+               "wordStagger": 4
+              },
+              "nodeId": "headline",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "headline",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "remocn/zoom-blur",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s1",
+         "from": 75,
+         "durationInFrames": 144,
+         "enter": {
+          "kind": "remocn/zoom-blur",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "camera:t",
+            "items": [
+             {
+              "id": "camera:i",
+              "from": 0,
+              "durationInFrames": 144,
+              "kind": "element",
+              "component": "core/placeholder",
+              "props": {
+               "title": "Not recorded yet",
+               "subtitle": "Run to record the take. The camera moves appear here afterwards."
+              },
+              "nodeId": "camera"
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "remocn/zoom-blur",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s2",
+         "from": 204,
+         "durationInFrames": 75,
+         "enter": {
+          "kind": "remocn/zoom-blur",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "outro:t",
+            "items": [
+             {
+              "id": "outro:i",
+              "from": 0,
+              "durationInFrames": 75,
+              "kind": "element",
+              "component": "core/title",
+              "props": {
+               "eyebrow": "",
+               "title": "Try Acme today",
+               "subtitle": "https://example.com",
+               "mark": "",
+               "markLook": "underline",
+               "markColor": "#facc15",
+               "align": "center",
+               "entrance": "rise",
+               "color": "#fafafa",
+               "accent": "#a78bfa",
+               "background": "transparent",
+               "fontSize": 112,
+               "fontWeight": 760
+              },
+              "nodeId": "outro",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "outro",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "render": {}
+  },
+  "errors": {},
+  "specs": {
+   "render": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 279,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "sequence:seq",
+      "items": [
+       {
+        "id": "sequence:s0",
+        "from": 0,
+        "durationInFrames": 90,
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "headline:t",
+           "items": [
+            {
+             "id": "headline:i",
+             "from": 0,
+             "durationInFrames": 90,
+             "kind": "element",
+             "component": "core/kinetic-headline",
+             "props": {
+              "text": "Introducing *Acme*",
+              "color": "#fafafa",
+              "emphasisColor": "#facc15",
+              "background": "#09090b",
+              "fontSize": 104,
+              "wordStagger": 4
+             },
+             "nodeId": "headline",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "headline",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "remocn/zoom-blur",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s1",
+        "from": 75,
+        "durationInFrames": 144,
+        "enter": {
+         "kind": "remocn/zoom-blur",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "camera:t",
+           "items": [
+            {
+             "id": "camera:i",
+             "from": 0,
+             "durationInFrames": 144,
+             "kind": "element",
+             "component": "core/placeholder",
+             "props": {
+              "title": "Not recorded yet",
+              "subtitle": "Run to record the take. The camera moves appear here afterwards."
+             },
+             "nodeId": "camera"
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "remocn/zoom-blur",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s2",
+        "from": 204,
+        "durationInFrames": 75,
+        "enter": {
+         "kind": "remocn/zoom-blur",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "outro:t",
+           "items": [
+            {
+             "id": "outro:i",
+             "from": 0,
+             "durationInFrames": 75,
+             "kind": "element",
+             "component": "core/title",
+             "props": {
+              "eyebrow": "",
+              "title": "Try Acme today",
+              "subtitle": "https://example.com",
+              "mark": "",
+              "markLook": "underline",
+              "markColor": "#facc15",
+              "align": "center",
+              "entrance": "rise",
+              "color": "#fafafa",
+              "accent": "#a78bfa",
+              "background": "transparent",
+              "fontSize": 112,
+              "fontWeight": 760
+             },
+             "nodeId": "outro",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "outro",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             }
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   }
+  },
+  "order": [
+   "session",
+   "open",
+   "headline",
+   "start",
+   "outro",
+   "cta",
+   "spotlight",
+   "record",
+   "camera",
+   "sequence",
+   "render"
+  ]
+ },
+ "problems": [],
+ "cards": {
+  "session": {
+   "rows": [
+    {
+     "icon": "monitor",
+     "text": "1920 × 1080"
+    }
+   ]
+  },
+  "open": {
+   "rows": [
+    {
+     "icon": "link",
+     "text": "example.com",
+     "title": "https://example.com"
+    },
+    {
+     "icon": "timer",
+     "text": "Pause 0.7 s"
+    }
+   ]
+  },
+  "start": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "Video starts here"
+    }
+   ]
+  },
+  "cta": {
+   "rows": [
+    {
+     "icon": "mouse-pointer-click",
+     "text": "“Get started”",
+     "title": "Get started"
+    },
+    {
+     "icon": "timer",
+     "text": "Pause 1.5 s"
+    }
+   ]
+  },
+  "record": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "30 fps"
+    },
+    {
+     "icon": "mouse-pointer",
+     "text": "Smooth cursor"
+    }
+   ]
+  },
+  "camera": {
+   "rows": [
+    {
+     "icon": "zoom-in",
+     "text": "Up to 1.74×"
+    },
+    {
+     "icon": "hourglass",
+     "text": "Hold 1.3 s"
+    },
+    {
+     "icon": "image",
+     "text": "Glaze backdrop"
+    },
+    {
+     "icon": "gauge",
+     "text": "1.25× speed"
+    }
+   ]
+  },
+  "spotlight": {
+   "rows": [
+    {
+     "icon": "flashlight",
+     "text": "On actions named “Get started”"
+    }
+   ]
+  },
+  "headline": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“Introducing *Acme*”"
+    },
+    {
+     "icon": "clock",
+     "text": "3 s"
+    }
+   ]
+  },
+  "outro": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“Try Acme today”"
+    },
+    {
+     "icon": "clock",
+     "text": "2.5 s"
+    }
+   ]
+  },
+  "sequence": {
+   "rows": [
+    {
+     "icon": "list-video",
+     "text": "3 clips · 9.3 s"
+    },
+    {
+     "icon": "arrow-right-left",
+     "text": "Zoom blur · 0.5 s"
+    }
+   ]
+  },
+  "render": {
+   "rows": [
+    {
+     "icon": "ratio",
+     "text": "16:9"
+    },
+    {
+     "icon": "film",
+     "text": "MP4 · 1080p · 30 fps"
+    }
+   ]
+  }
+ },
+ "preview": {
+  "spec": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 279,
+   "background": "#09090b",
+   "tracks": [
+    {
+     "id": "sequence:seq",
+     "items": [
+      {
+       "id": "sequence:s0",
+       "from": 0,
+       "durationInFrames": 90,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in1"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "headline:t",
+          "items": [
+           {
+            "id": "headline:i",
+            "from": 0,
+            "durationInFrames": 90,
+            "kind": "element",
+            "component": "core/kinetic-headline",
+            "props": {
+             "text": "Introducing *Acme*",
+             "color": "#fafafa",
+             "emphasisColor": "#facc15",
+             "background": "#09090b",
+             "fontSize": 104,
+             "wordStagger": 4
+            },
+            "nodeId": "headline",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "headline",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            }
+           }
+          ]
+         }
+        ]
+       },
+       "exit": {
+        "kind": "remocn/zoom-blur",
+        "durationInFrames": 15
+       }
+      },
+      {
+       "id": "sequence:s1",
+       "from": 75,
+       "durationInFrames": 144,
+       "enter": {
+        "kind": "remocn/zoom-blur",
+        "durationInFrames": 15
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in2"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "camera:t",
+          "items": [
+           {
+            "id": "camera:i",
+            "from": 0,
+            "durationInFrames": 144,
+            "kind": "element",
+            "component": "core/placeholder",
+            "props": {
+             "title": "Not recorded yet",
+             "subtitle": "Run to record the take. The camera moves appear here afterwards."
+            },
+            "nodeId": "camera"
+           }
+          ]
+         }
+        ]
+       },
+       "exit": {
+        "kind": "remocn/zoom-blur",
+        "durationInFrames": 15
+       }
+      },
+      {
+       "id": "sequence:s2",
+       "from": 204,
+       "durationInFrames": 75,
+       "enter": {
+        "kind": "remocn/zoom-blur",
+        "durationInFrames": 15
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in3"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "outro:t",
+          "items": [
+           {
+            "id": "outro:i",
+            "from": 0,
+            "durationInFrames": 75,
+            "kind": "element",
+            "component": "core/title",
+            "props": {
+             "eyebrow": "",
+             "title": "Try Acme today",
+             "subtitle": "https://example.com",
+             "mark": "",
+             "markLook": "underline",
+             "markColor": "#facc15",
+             "align": "center",
+             "entrance": "rise",
+             "color": "#fafafa",
+             "accent": "#a78bfa",
+             "background": "transparent",
+             "fontSize": 112,
+             "fontWeight": 760
+            },
+            "nodeId": "outro",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "outro",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            }
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "audio": [],
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "spans": {
+   "headline": {
+    "from": 0,
+    "to": 90
+   },
+   "camera": {
+    "from": 75,
+    "to": 219
+   },
+   "outro": {
+    "from": 204,
+    "to": 279
+   }
+  },
+  "sourceNodeId": "render"
+ },
+ "timelines": {
+  "render": {
+   "flat": {
+    "fps": 30,
+    "durationInFrames": 279,
+    "bars": [
+     {
+      "type": "video",
+      "key": "/0:sequence:s0/0:headline:i",
+      "itemId": "headline:i",
+      "nodeId": "headline",
+      "kind": "element",
+      "component": "core/kinetic-headline",
+      "props": {
+       "text": "Introducing *Acme*",
+       "color": "#fafafa",
+       "emphasisColor": "#facc15",
+       "background": "#09090b",
+       "fontSize": 104,
+       "wordStagger": 4
+      },
+      "thumbnail": null,
+      "from": 0,
+      "to": 90,
+      "lane": 0,
+      "order": 0,
+      "chain": [
+       {
+        "itemId": "headline:i",
+        "nodeId": "headline",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "headline",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 90,
+        "from": 0,
+        "to": 90
+       },
+       {
+        "itemId": "sequence:s0",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 90,
+        "from": 0,
+        "to": 90
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 90,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s1/0:camera:i",
+      "itemId": "camera:i",
+      "nodeId": "camera",
+      "kind": "element",
+      "component": "core/placeholder",
+      "props": {
+       "title": "Not recorded yet",
+       "subtitle": "Run to record the take. The camera moves appear here afterwards."
+      },
+      "thumbnail": null,
+      "from": 75,
+      "to": 219,
+      "lane": 1,
+      "order": 1,
+      "chain": [
+       {
+        "itemId": "camera:i",
+        "nodeId": "camera",
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 75,
+        "to": 219
+       },
+       {
+        "itemId": "sequence:s1",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 75,
+        "to": 219
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 144,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s2/0:outro:i",
+      "itemId": "outro:i",
+      "nodeId": "outro",
+      "kind": "element",
+      "component": "core/title",
+      "props": {
+       "eyebrow": "",
+       "title": "Try Acme today",
+       "subtitle": "https://example.com",
+       "mark": "",
+       "markLook": "underline",
+       "markColor": "#facc15",
+       "align": "center",
+       "entrance": "rise",
+       "color": "#fafafa",
+       "accent": "#a78bfa",
+       "background": "transparent",
+       "fontSize": 112,
+       "fontWeight": 760
+      },
+      "thumbnail": null,
+      "from": 204,
+      "to": 279,
+      "lane": 0,
+      "order": 2,
+      "chain": [
+       {
+        "itemId": "outro:i",
+        "nodeId": "outro",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "outro",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 75,
+        "from": 204,
+        "to": 279
+       },
+       {
+        "itemId": "sequence:s2",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 75,
+        "from": 204,
+        "to": 279
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 75,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     }
+    ],
+    "lanes": 2,
+    "audio": [],
+    "audioLanes": 0,
+    "transitions": [
+     {
+      "key": "/0:sequence:s1:enter",
+      "itemKey": "/0:sequence:s1",
+      "lanes": [
+       0,
+       1
+      ],
+      "from": 75,
+      "to": 90,
+      "kind": "remocn/zoom-blur",
+      "covers": 0.16666666666666666,
+      "slot": {
+       "nodeId": "sequence",
+       "port": "in2"
+      }
+     },
+     {
+      "key": "/0:sequence:s2:enter",
+      "itemKey": "/0:sequence:s2",
+      "lanes": [
+       0,
+       1
+      ],
+      "from": 204,
+      "to": 219,
+      "kind": "remocn/zoom-blur",
+      "covers": 0.2,
+      "slot": {
+       "nodeId": "sequence",
+       "port": "in3"
+      }
+     }
+    ],
+    "marks": [],
+    "cameraKeys": []
+   },
+   "chapters": [],
+   "mix": {
+    "fps": 30,
+    "durationInFrames": 279,
+    "channels": [],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": 0,
+     "eq": {
+      "on": false,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 120,
+        "gain": 0,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "peak",
+        "freq": 2500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "highshelf",
+        "freq": 8000,
+        "gain": 0,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12,
+      "ratio": 2,
+      "attack": 20,
+      "release": 250,
+      "makeup": 0
+     },
+     "limiter": {
+      "on": false,
+      "ceiling": -1
+     },
+     "loudness": "off"
+    },
+    "key": "81a1a0ff40af722d"
+   }
+  }
+ },
+ "run": {
+  "results": {
+   "record": {
+    "hash": "hash-record",
+    "outputs": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 4100,
+       "actions": [
+        {
+         "id": "open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "open"
+        },
+        {
+         "id": "cta:click",
+         "kind": "click",
+         "t": 2400,
+         "tEnd": 2800,
+         "point": {
+          "x": 546,
+          "y": 344
+         },
+         "rect": {
+          "x": 486,
+          "y": 324,
+          "w": 120,
+          "h": 40
+         },
+         "label": "Get started",
+         "nodeId": "cta"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 4100,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "record",
+      "style": []
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   },
+   "render": {
+    "hash": "hash-render",
+    "outputs": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   }
+  },
+  "compile": {
+   "values": {
+    "session": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": []
+     }
+    },
+    "open": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.com",
+         "waitUntil": "load",
+         "after": 700
+        }
+       }
+      ]
+     }
+    },
+    "headline": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 90,
+      "tracks": [
+       {
+        "id": "headline:t",
+        "items": [
+         {
+          "id": "headline:i",
+          "from": 0,
+          "durationInFrames": 90,
+          "kind": "element",
+          "component": "core/kinetic-headline",
+          "props": {
+           "text": "Introducing *Acme*",
+           "color": "#fafafa",
+           "emphasisColor": "#facc15",
+           "background": "#09090b",
+           "fontSize": 104,
+           "wordStagger": 4
+          },
+          "nodeId": "headline",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "headline",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "start": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.com",
+         "waitUntil": "load",
+         "after": 700
+        }
+       },
+       {
+        "id": "start",
+        "type": "browser.startRecording",
+        "params": {}
+       }
+      ]
+     }
+    },
+    "outro": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 75,
+      "tracks": [
+       {
+        "id": "outro:t",
+        "items": [
+         {
+          "id": "outro:i",
+          "from": 0,
+          "durationInFrames": 75,
+          "kind": "element",
+          "component": "core/title",
+          "props": {
+           "eyebrow": "",
+           "title": "Try Acme today",
+           "subtitle": "https://example.com",
+           "mark": "",
+           "markLook": "underline",
+           "markColor": "#facc15",
+           "align": "center",
+           "entrance": "rise",
+           "color": "#fafafa",
+           "accent": "#a78bfa",
+           "background": "transparent",
+           "fontSize": 112,
+           "fontWeight": 760
+          },
+          "nodeId": "outro",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "outro",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "cta": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.com",
+         "waitUntil": "load",
+         "after": 700
+        }
+       },
+       {
+        "id": "start",
+        "type": "browser.startRecording",
+        "params": {}
+       },
+       {
+        "id": "cta",
+        "type": "browser.click",
+        "label": "Get started",
+        "params": {
+         "target": "Get started",
+         "after": 1500,
+         "cluster": "",
+         "zoom": true,
+         "frame": "",
+         "zoomScale": 0,
+         "travelMs": 0,
+         "hoverMs": 220
+        }
+       }
+      ]
+     }
+    },
+    "spotlight": {
+     "style": {
+      "type": "recording-style",
+      "entries": [
+       {
+        "nodeId": "spotlight",
+        "type": "cursor.spotlight",
+        "params": {
+         "match": "Get started",
+         "text": "",
+         "color": "rgba(0,0,0,0.55)",
+         "padding": 10,
+         "leadMs": 250,
+         "holdMs": 1400,
+         "look": "clean",
+         "roughness": 1
+        }
+       }
+      ]
+     }
+    },
+    "record": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 4100,
+       "actions": [
+        {
+         "id": "open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "open"
+        },
+        {
+         "id": "cta:click",
+         "kind": "click",
+         "t": 2400,
+         "tEnd": 2800,
+         "point": {
+          "x": 546,
+          "y": 344
+         },
+         "rect": {
+          "x": 486,
+          "y": 324,
+          "w": 120,
+          "h": 40
+         },
+         "label": "Get started",
+         "nodeId": "cta"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 4100,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "record",
+      "style": []
+     }
+    },
+    "camera": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 98,
+      "tracks": [
+       {
+        "id": "camera:t",
+        "items": [
+         {
+          "id": "camera:i",
+          "from": 0,
+          "durationInFrames": 98,
+          "kind": "recording",
+          "props": {
+           "speed": 1.25,
+           "zoom": true,
+           "tuning": {
+            "sMax": 1.74,
+            "holdMinS": 1.3
+           },
+           "motionBlur": true,
+           "style": "classic",
+           "chrome": false,
+           "backdrop": "glaze",
+           "cursor": true,
+           "cursorScale": 1,
+           "cursorLook": {
+            "shape": "arrow",
+            "fill": "#111418",
+            "edge": "#ffffff"
+           },
+           "ripple": {
+            "color": "#0f172a",
+            "size": 1,
+            "width": 2
+           },
+           "extraBeats": [],
+           "annotations": [
+            {
+             "kind": "spotlight",
+             "match": "Get started",
+             "text": "",
+             "color": "rgba(0,0,0,0.55)",
+             "padding": 10,
+             "leadMs": 250,
+             "holdMs": 1400,
+             "look": "clean",
+             "roughness": 1
+            }
+           ],
+           "src": "project:.opsis/cache/record/recording.mp4",
+           "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+           "log": {
+            "viewport": {
+             "width": 1920,
+             "height": 1080
+            },
+            "dpr": 1,
+            "t0": 0,
+            "durationMs": 4100,
+            "actions": [
+             {
+              "id": "open:navigate",
+              "kind": "navigate",
+              "t": 600,
+              "tEnd": 1000,
+              "point": {
+               "x": 200,
+               "y": 150
+              },
+              "rect": {
+               "x": 140,
+               "y": 130,
+               "w": 120,
+               "h": 40
+              },
+              "label": "browser.navigate",
+              "nodeId": "open"
+             },
+             {
+              "id": "cta:click",
+              "kind": "click",
+              "t": 2400,
+              "tEnd": 2800,
+              "point": {
+               "x": 546,
+               "y": 344
+              },
+              "rect": {
+               "x": 486,
+               "y": 324,
+               "w": 120,
+               "h": 40
+              },
+              "label": "Get started",
+              "nodeId": "cta"
+             }
+            ],
+            "cursorTrack": [
+             {
+              "t": 0,
+              "x": 960,
+              "y": 540
+             }
+            ]
+           },
+           "name": "record"
+          },
+          "nodeId": "camera"
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 4100,
+        "actions": [
+         {
+          "id": "open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "open"
+         },
+         {
+          "id": "cta:click",
+          "kind": "click",
+          "t": 2400,
+          "tEnd": 2800,
+          "point": {
+           "x": 546,
+           "y": 344
+          },
+          "rect": {
+           "x": 486,
+           "y": 324,
+           "w": 120,
+           "h": 40
+          },
+          "label": "Get started",
+          "nodeId": "cta"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 4100,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "record",
+       "style": []
+      }
+     }
+    },
+    "sequence": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 233,
+      "tracks": [
+       {
+        "id": "sequence:seq",
+        "items": [
+         {
+          "id": "sequence:s0",
+          "from": 0,
+          "durationInFrames": 90,
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in1"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "headline:t",
+             "items": [
+              {
+               "id": "headline:i",
+               "from": 0,
+               "durationInFrames": 90,
+               "kind": "element",
+               "component": "core/kinetic-headline",
+               "props": {
+                "text": "Introducing *Acme*",
+                "color": "#fafafa",
+                "emphasisColor": "#facc15",
+                "background": "#09090b",
+                "fontSize": 104,
+                "wordStagger": 4
+               },
+               "nodeId": "headline",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "headline",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               }
+              }
+             ]
+            }
+           ]
+          },
+          "exit": {
+           "kind": "remocn/zoom-blur",
+           "durationInFrames": 15
+          }
+         },
+         {
+          "id": "sequence:s1",
+          "from": 75,
+          "durationInFrames": 98,
+          "enter": {
+           "kind": "remocn/zoom-blur",
+           "durationInFrames": 15
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in2"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "camera:t",
+             "items": [
+              {
+               "id": "camera:i",
+               "from": 0,
+               "durationInFrames": 98,
+               "kind": "recording",
+               "props": {
+                "speed": 1.25,
+                "zoom": true,
+                "tuning": {
+                 "sMax": 1.74,
+                 "holdMinS": 1.3
+                },
+                "motionBlur": true,
+                "style": "classic",
+                "chrome": false,
+                "backdrop": "glaze",
+                "cursor": true,
+                "cursorScale": 1,
+                "cursorLook": {
+                 "shape": "arrow",
+                 "fill": "#111418",
+                 "edge": "#ffffff"
+                },
+                "ripple": {
+                 "color": "#0f172a",
+                 "size": 1,
+                 "width": 2
+                },
+                "extraBeats": [],
+                "annotations": [
+                 {
+                  "kind": "spotlight",
+                  "match": "Get started",
+                  "text": "",
+                  "color": "rgba(0,0,0,0.55)",
+                  "padding": 10,
+                  "leadMs": 250,
+                  "holdMs": 1400,
+                  "look": "clean",
+                  "roughness": 1
+                 }
+                ],
+                "src": "project:.opsis/cache/record/recording.mp4",
+                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+                "log": {
+                 "viewport": {
+                  "width": 1920,
+                  "height": 1080
+                 },
+                 "dpr": 1,
+                 "t0": 0,
+                 "durationMs": 4100,
+                 "actions": [
+                  {
+                   "id": "open:navigate",
+                   "kind": "navigate",
+                   "t": 600,
+                   "tEnd": 1000,
+                   "point": {
+                    "x": 200,
+                    "y": 150
+                   },
+                   "rect": {
+                    "x": 140,
+                    "y": 130,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.navigate",
+                   "nodeId": "open"
+                  },
+                  {
+                   "id": "cta:click",
+                   "kind": "click",
+                   "t": 2400,
+                   "tEnd": 2800,
+                   "point": {
+                    "x": 546,
+                    "y": 344
+                   },
+                   "rect": {
+                    "x": 486,
+                    "y": 324,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "Get started",
+                   "nodeId": "cta"
+                  }
+                 ],
+                 "cursorTrack": [
+                  {
+                   "t": 0,
+                   "x": 960,
+                   "y": 540
+                  }
+                 ]
+                },
+                "name": "record"
+               },
+               "nodeId": "camera"
+              }
+             ]
+            }
+           ]
+          },
+          "exit": {
+           "kind": "remocn/zoom-blur",
+           "durationInFrames": 15
+          }
+         },
+         {
+          "id": "sequence:s2",
+          "from": 158,
+          "durationInFrames": 75,
+          "enter": {
+           "kind": "remocn/zoom-blur",
+           "durationInFrames": 15
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in3"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "outro:t",
+             "items": [
+              {
+               "id": "outro:i",
+               "from": 0,
+               "durationInFrames": 75,
+               "kind": "element",
+               "component": "core/title",
+               "props": {
+                "eyebrow": "",
+                "title": "Try Acme today",
+                "subtitle": "https://example.com",
+                "mark": "",
+                "markLook": "underline",
+                "markColor": "#facc15",
+                "align": "center",
+                "entrance": "rise",
+                "color": "#fafafa",
+                "accent": "#a78bfa",
+                "background": "transparent",
+                "fontSize": 112,
+                "fontWeight": 760
+               },
+               "nodeId": "outro",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "outro",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 4100,
+        "actions": [
+         {
+          "id": "open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "open"
+         },
+         {
+          "id": "cta:click",
+          "kind": "click",
+          "t": 2400,
+          "tEnd": 2800,
+          "point": {
+           "x": 546,
+           "y": 344
+          },
+          "rect": {
+           "x": 486,
+           "y": 324,
+           "w": 120,
+           "h": 40
+          },
+          "label": "Get started",
+          "nodeId": "cta"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 4100,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "record",
+       "style": []
+      }
+     }
+    },
+    "render": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    }
+   },
+   "errors": {},
+   "specs": {
+    "render": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "durationInFrames": 233,
+     "background": "#09090b",
+     "tracks": [
+      {
+       "id": "sequence:seq",
+       "items": [
+        {
+         "id": "sequence:s0",
+         "from": 0,
+         "durationInFrames": 90,
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "headline:t",
+            "items": [
+             {
+              "id": "headline:i",
+              "from": 0,
+              "durationInFrames": 90,
+              "kind": "element",
+              "component": "core/kinetic-headline",
+              "props": {
+               "text": "Introducing *Acme*",
+               "color": "#fafafa",
+               "emphasisColor": "#facc15",
+               "background": "#09090b",
+               "fontSize": 104,
+               "wordStagger": 4
+              },
+              "nodeId": "headline",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "headline",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "remocn/zoom-blur",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s1",
+         "from": 75,
+         "durationInFrames": 98,
+         "enter": {
+          "kind": "remocn/zoom-blur",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "camera:t",
+            "items": [
+             {
+              "id": "camera:i",
+              "from": 0,
+              "durationInFrames": 98,
+              "kind": "recording",
+              "props": {
+               "speed": 1.25,
+               "zoom": true,
+               "tuning": {
+                "sMax": 1.74,
+                "holdMinS": 1.3
+               },
+               "motionBlur": true,
+               "style": "classic",
+               "chrome": false,
+               "backdrop": "glaze",
+               "cursor": true,
+               "cursorScale": 1,
+               "cursorLook": {
+                "shape": "arrow",
+                "fill": "#111418",
+                "edge": "#ffffff"
+               },
+               "ripple": {
+                "color": "#0f172a",
+                "size": 1,
+                "width": 2
+               },
+               "extraBeats": [],
+               "annotations": [
+                {
+                 "kind": "spotlight",
+                 "match": "Get started",
+                 "text": "",
+                 "color": "rgba(0,0,0,0.55)",
+                 "padding": 10,
+                 "leadMs": 250,
+                 "holdMs": 1400,
+                 "look": "clean",
+                 "roughness": 1
+                }
+               ],
+               "src": "project:.opsis/cache/record/recording.mp4",
+               "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+               "log": {
+                "viewport": {
+                 "width": 1920,
+                 "height": 1080
+                },
+                "dpr": 1,
+                "t0": 0,
+                "durationMs": 4100,
+                "actions": [
+                 {
+                  "id": "open:navigate",
+                  "kind": "navigate",
+                  "t": 600,
+                  "tEnd": 1000,
+                  "point": {
+                   "x": 200,
+                   "y": 150
+                  },
+                  "rect": {
+                   "x": 140,
+                   "y": 130,
+                   "w": 120,
+                   "h": 40
+                  },
+                  "label": "browser.navigate",
+                  "nodeId": "open"
+                 },
+                 {
+                  "id": "cta:click",
+                  "kind": "click",
+                  "t": 2400,
+                  "tEnd": 2800,
+                  "point": {
+                   "x": 546,
+                   "y": 344
+                  },
+                  "rect": {
+                   "x": 486,
+                   "y": 324,
+                   "w": 120,
+                   "h": 40
+                  },
+                  "label": "Get started",
+                  "nodeId": "cta"
+                 }
+                ],
+                "cursorTrack": [
+                 {
+                  "t": 0,
+                  "x": 960,
+                  "y": 540
+                 }
+                ]
+               },
+               "name": "record"
+              },
+              "nodeId": "camera"
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "remocn/zoom-blur",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s2",
+         "from": 158,
+         "durationInFrames": 75,
+         "enter": {
+          "kind": "remocn/zoom-blur",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "outro:t",
+            "items": [
+             {
+              "id": "outro:i",
+              "from": 0,
+              "durationInFrames": 75,
+              "kind": "element",
+              "component": "core/title",
+              "props": {
+               "eyebrow": "",
+               "title": "Try Acme today",
+               "subtitle": "https://example.com",
+               "mark": "",
+               "markLook": "underline",
+               "markColor": "#facc15",
+               "align": "center",
+               "entrance": "rise",
+               "color": "#fafafa",
+               "accent": "#a78bfa",
+               "background": "transparent",
+               "fontSize": 112,
+               "fontWeight": 760
+              },
+              "nodeId": "outro",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "outro",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": [],
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    }
+   },
+   "order": [
+    "session",
+    "open",
+    "headline",
+    "start",
+    "outro",
+    "cta",
+    "spotlight",
+    "record",
+    "camera",
+    "sequence",
+    "render"
+   ]
+  },
+  "problems": [],
+  "cards": {
+   "session": {
+    "rows": [
+     {
+      "icon": "monitor",
+      "text": "1920 × 1080"
+     }
+    ]
+   },
+   "open": {
+    "rows": [
+     {
+      "icon": "link",
+      "text": "example.com",
+      "title": "https://example.com"
+     },
+     {
+      "icon": "timer",
+      "text": "Pause 0.7 s"
+     }
+    ]
+   },
+   "start": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "Video starts here"
+     }
+    ]
+   },
+   "cta": {
+    "rows": [
+     {
+      "icon": "mouse-pointer-click",
+      "text": "“Get started”",
+      "title": "Get started"
+     },
+     {
+      "icon": "timer",
+      "text": "Pause 1.5 s"
+     }
+    ]
+   },
+   "record": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "30 fps"
+     },
+     {
+      "icon": "mouse-pointer",
+      "text": "Smooth cursor"
+     },
+     {
+      "icon": "clock",
+      "text": "4.1 s · 2 actions"
+     }
+    ]
+   },
+   "camera": {
+    "rows": [
+     {
+      "icon": "zoom-in",
+      "text": "Up to 1.74×"
+     },
+     {
+      "icon": "hourglass",
+      "text": "Hold 1.3 s"
+     },
+     {
+      "icon": "image",
+      "text": "Glaze backdrop"
+     },
+     {
+      "icon": "gauge",
+      "text": "1.25× speed"
+     }
+    ]
+   },
+   "spotlight": {
+    "rows": [
+     {
+      "icon": "flashlight",
+      "text": "On actions named “Get started”"
+     }
+    ]
+   },
+   "headline": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“Introducing *Acme*”"
+     },
+     {
+      "icon": "clock",
+      "text": "3 s"
+     }
+    ]
+   },
+   "outro": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“Try Acme today”"
+     },
+     {
+      "icon": "clock",
+      "text": "2.5 s"
+     }
+    ]
+   },
+   "sequence": {
+    "rows": [
+     {
+      "icon": "list-video",
+      "text": "3 clips · 7.77 s"
+     },
+     {
+      "icon": "arrow-right-left",
+      "text": "Zoom blur · 0.5 s"
+     }
+    ]
+   },
+   "render": {
+    "rows": [
+     {
+      "icon": "ratio",
+      "text": "16:9"
+     },
+     {
+      "icon": "film",
+      "text": "MP4 · 1080p · 30 fps"
+     },
+     {
+      "icon": "clock",
+      "text": "4 s"
+     }
+    ]
+   }
+  },
+  "preview": {
+   "spec": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 233,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "sequence:seq",
+      "items": [
+       {
+        "id": "sequence:s0",
+        "from": 0,
+        "durationInFrames": 90,
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "headline:t",
+           "items": [
+            {
+             "id": "headline:i",
+             "from": 0,
+             "durationInFrames": 90,
+             "kind": "element",
+             "component": "core/kinetic-headline",
+             "props": {
+              "text": "Introducing *Acme*",
+              "color": "#fafafa",
+              "emphasisColor": "#facc15",
+              "background": "#09090b",
+              "fontSize": 104,
+              "wordStagger": 4
+             },
+             "nodeId": "headline",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "headline",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "remocn/zoom-blur",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s1",
+        "from": 75,
+        "durationInFrames": 98,
+        "enter": {
+         "kind": "remocn/zoom-blur",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "camera:t",
+           "items": [
+            {
+             "id": "camera:i",
+             "from": 0,
+             "durationInFrames": 98,
+             "kind": "recording",
+             "props": {
+              "speed": 1.25,
+              "zoom": true,
+              "tuning": {
+               "sMax": 1.74,
+               "holdMinS": 1.3
+              },
+              "motionBlur": true,
+              "style": "classic",
+              "chrome": false,
+              "backdrop": "glaze",
+              "cursor": true,
+              "cursorScale": 1,
+              "cursorLook": {
+               "shape": "arrow",
+               "fill": "#111418",
+               "edge": "#ffffff"
+              },
+              "ripple": {
+               "color": "#0f172a",
+               "size": 1,
+               "width": 2
+              },
+              "extraBeats": [],
+              "annotations": [
+               {
+                "kind": "spotlight",
+                "match": "Get started",
+                "text": "",
+                "color": "rgba(0,0,0,0.55)",
+                "padding": 10,
+                "leadMs": 250,
+                "holdMs": 1400,
+                "look": "clean",
+                "roughness": 1
+               }
+              ],
+              "src": "project:.opsis/cache/record/recording.mp4",
+              "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+              "log": {
+               "viewport": {
+                "width": 1920,
+                "height": 1080
+               },
+               "dpr": 1,
+               "t0": 0,
+               "durationMs": 4100,
+               "actions": [
+                {
+                 "id": "open:navigate",
+                 "kind": "navigate",
+                 "t": 600,
+                 "tEnd": 1000,
+                 "point": {
+                  "x": 200,
+                  "y": 150
+                 },
+                 "rect": {
+                  "x": 140,
+                  "y": 130,
+                  "w": 120,
+                  "h": 40
+                 },
+                 "label": "browser.navigate",
+                 "nodeId": "open"
+                },
+                {
+                 "id": "cta:click",
+                 "kind": "click",
+                 "t": 2400,
+                 "tEnd": 2800,
+                 "point": {
+                  "x": 546,
+                  "y": 344
+                 },
+                 "rect": {
+                  "x": 486,
+                  "y": 324,
+                  "w": 120,
+                  "h": 40
+                 },
+                 "label": "Get started",
+                 "nodeId": "cta"
+                }
+               ],
+               "cursorTrack": [
+                {
+                 "t": 0,
+                 "x": 960,
+                 "y": 540
+                }
+               ]
+              },
+              "name": "record"
+             },
+             "nodeId": "camera"
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "remocn/zoom-blur",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s2",
+        "from": 158,
+        "durationInFrames": 75,
+        "enter": {
+         "kind": "remocn/zoom-blur",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "outro:t",
+           "items": [
+            {
+             "id": "outro:i",
+             "from": 0,
+             "durationInFrames": 75,
+             "kind": "element",
+             "component": "core/title",
+             "props": {
+              "eyebrow": "",
+              "title": "Try Acme today",
+              "subtitle": "https://example.com",
+              "mark": "",
+              "markLook": "underline",
+              "markColor": "#facc15",
+              "align": "center",
+              "entrance": "rise",
+              "color": "#fafafa",
+              "accent": "#a78bfa",
+              "background": "transparent",
+              "fontSize": 112,
+              "fontWeight": 760
+             },
+             "nodeId": "outro",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "outro",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             }
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   },
+   "spans": {
+    "headline": {
+     "from": 0,
+     "to": 90
+    },
+    "camera": {
+     "from": 75,
+     "to": 173
+    },
+    "outro": {
+     "from": 158,
+     "to": 233
+    }
+   },
+   "sourceNodeId": "render"
+  },
+  "timelines": {
+   "render": {
+    "flat": {
+     "fps": 30,
+     "durationInFrames": 233,
+     "bars": [
+      {
+       "type": "video",
+       "key": "/0:sequence:s0/0:headline:i",
+       "itemId": "headline:i",
+       "nodeId": "headline",
+       "kind": "element",
+       "component": "core/kinetic-headline",
+       "props": {
+        "text": "Introducing *Acme*",
+        "color": "#fafafa",
+        "emphasisColor": "#facc15",
+        "background": "#09090b",
+        "fontSize": 104,
+        "wordStagger": 4
+       },
+       "thumbnail": null,
+       "from": 0,
+       "to": 90,
+       "lane": 0,
+       "order": 0,
+       "chain": [
+        {
+         "itemId": "headline:i",
+         "nodeId": "headline",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "headline",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 90,
+         "from": 0,
+         "to": 90
+        },
+        {
+         "itemId": "sequence:s0",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 90,
+         "from": 0,
+         "to": 90
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 90,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s1/0:camera:i",
+       "itemId": "camera:i",
+       "nodeId": "camera",
+       "kind": "recording",
+       "props": {
+        "speed": 1.25,
+        "zoom": true,
+        "tuning": {
+         "sMax": 1.74,
+         "holdMinS": 1.3
+        },
+        "motionBlur": true,
+        "style": "classic",
+        "chrome": false,
+        "backdrop": "glaze",
+        "cursor": true,
+        "cursorScale": 1,
+        "cursorLook": {
+         "shape": "arrow",
+         "fill": "#111418",
+         "edge": "#ffffff"
+        },
+        "ripple": {
+         "color": "#0f172a",
+         "size": 1,
+         "width": 2
+        },
+        "extraBeats": [],
+        "annotations": [
+         {
+          "kind": "spotlight",
+          "match": "Get started",
+          "text": "",
+          "color": "rgba(0,0,0,0.55)",
+          "padding": 10,
+          "leadMs": 250,
+          "holdMs": 1400,
+          "look": "clean",
+          "roughness": 1
+         }
+        ],
+        "src": "project:.opsis/cache/record/recording.mp4",
+        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+        "log": {
+         "viewport": {
+          "width": 1920,
+          "height": 1080
+         },
+         "dpr": 1,
+         "t0": 0,
+         "durationMs": 4100,
+         "actions": [
+          {
+           "id": "open:navigate",
+           "kind": "navigate",
+           "t": 600,
+           "tEnd": 1000,
+           "point": {
+            "x": 200,
+            "y": 150
+           },
+           "rect": {
+            "x": 140,
+            "y": 130,
+            "w": 120,
+            "h": 40
+           },
+           "label": "browser.navigate",
+           "nodeId": "open"
+          },
+          {
+           "id": "cta:click",
+           "kind": "click",
+           "t": 2400,
+           "tEnd": 2800,
+           "point": {
+            "x": 546,
+            "y": 344
+           },
+           "rect": {
+            "x": 486,
+            "y": 324,
+            "w": 120,
+            "h": 40
+           },
+           "label": "Get started",
+           "nodeId": "cta"
+          }
+         ],
+         "cursorTrack": [
+          {
+           "t": 0,
+           "x": 960,
+           "y": 540
+          }
+         ]
+        },
+        "name": "record"
+       },
+       "thumbnail": {
+        "kind": "filmstrip",
+        "src": "project:.opsis/cache/record/recording.preview.mp4",
+        "speed": 1.25,
+        "trimMs": 0
+       },
+       "from": 75,
+       "to": 173,
+       "lane": 1,
+       "order": 1,
+       "chain": [
+        {
+         "itemId": "camera:i",
+         "nodeId": "camera",
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 98,
+         "from": 75,
+         "to": 173
+        },
+        {
+         "itemId": "sequence:s1",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 98,
+         "from": 75,
+         "to": 173
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 98,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s2/0:outro:i",
+       "itemId": "outro:i",
+       "nodeId": "outro",
+       "kind": "element",
+       "component": "core/title",
+       "props": {
+        "eyebrow": "",
+        "title": "Try Acme today",
+        "subtitle": "https://example.com",
+        "mark": "",
+        "markLook": "underline",
+        "markColor": "#facc15",
+        "align": "center",
+        "entrance": "rise",
+        "color": "#fafafa",
+        "accent": "#a78bfa",
+        "background": "transparent",
+        "fontSize": 112,
+        "fontWeight": 760
+       },
+       "thumbnail": null,
+       "from": 158,
+       "to": 233,
+       "lane": 0,
+       "order": 2,
+       "chain": [
+        {
+         "itemId": "outro:i",
+         "nodeId": "outro",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "outro",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 75,
+         "from": 158,
+         "to": 233
+        },
+        {
+         "itemId": "sequence:s2",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 75,
+         "from": 158,
+         "to": 233
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 75,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      }
+     ],
+     "lanes": 2,
+     "audio": [],
+     "audioLanes": 0,
+     "transitions": [
+      {
+       "key": "/0:sequence:s1:enter",
+       "itemKey": "/0:sequence:s1",
+       "lanes": [
+        0,
+        1
+       ],
+       "from": 75,
+       "to": 90,
+       "kind": "remocn/zoom-blur",
+       "covers": 0.16666666666666666,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in2"
+       }
+      },
+      {
+       "key": "/0:sequence:s2:enter",
+       "itemKey": "/0:sequence:s2",
+       "lanes": [
+        0,
+        1
+       ],
+       "from": 158,
+       "to": 173,
+       "kind": "remocn/zoom-blur",
+       "covers": 0.2,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in3"
+       }
+      }
+     ],
+     "marks": [
+      {
+       "key": "/0:sequence:s1/0:camera:i:open:navigate",
+       "frame": 89.4,
+       "kind": "navigate",
+       "label": "Go to browser.navigate",
+       "nodeId": "open",
+       "barKey": "/0:sequence:s1/0:camera:i"
+      },
+      {
+       "key": "/0:sequence:s1/0:camera:i:cta:click",
+       "frame": 132.6,
+       "kind": "click",
+       "label": "Click Get started",
+       "nodeId": "cta",
+       "barKey": "/0:sequence:s1/0:camera:i"
+      }
+     ],
+     "cameraKeys": []
+    },
+    "chapters": [],
+    "mix": {
+     "fps": 30,
+     "durationInFrames": 233,
+     "channels": [],
+     "buses": [
+      {
+       "id": "music",
+       "name": "Music",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "effects",
+       "name": "Effects",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "clips",
+       "name": "Clips",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      }
+     ],
+     "master": {
+      "fader": 0,
+      "eq": {
+       "on": false,
+       "bands": [
+        {
+         "type": "lowshelf",
+         "freq": 120,
+         "gain": 0,
+         "q": 0.7
+        },
+        {
+         "type": "peak",
+         "freq": 500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "peak",
+         "freq": 2500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "highshelf",
+         "freq": 8000,
+         "gain": 0,
+         "q": 0.7
+        }
+       ]
+      },
+      "comp": {
+       "on": false,
+       "threshold": -12,
+       "ratio": 2,
+       "attack": 20,
+       "release": 250,
+       "makeup": 0
+      },
+      "limiter": {
+       "on": false,
+       "ceiling": -1
+      },
+      "loudness": "off"
+     },
+     "key": "743ac29521b652f5"
+    }
+   }
+  }
+ }
+}

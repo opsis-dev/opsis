@@ -1,0 +1,1180 @@
+{
+ "workflows": {
+  "unknownType": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "x",
+      "type": "nope.nothing",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "x",
+     "message": "This node type isn't available"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "x",
+     "message": "This node type isn't available"
+    }
+   ],
+   "runTargets": []
+  },
+  "sharedId": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 100,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "a",
+     "message": "Two nodes share this id"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "a",
+     "message": "Two nodes share this id"
+    }
+   ],
+   "runTargets": []
+  },
+  "badSetting": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {
+       "viewportWidth": 100
+      }
+     }
+    ],
+    "edges": [],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "a",
+     "message": "Window width must be at least 320 px"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "a",
+     "message": "Window width must be at least 320 px"
+    }
+   ],
+   "runTargets": []
+  },
+  "numberVariable": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {
+     "Sharpness": "2"
+    },
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {
+       "dpr": "{{Sharpness}}"
+      }
+     }
+    ],
+    "edges": [],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "a",
+     "message": "Screenshot sharpness takes a number. Variables work only in text settings"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "a",
+     "message": "Screenshot sharpness takes a number. Variables work only in text settings"
+    }
+   ],
+   "runTargets": []
+  },
+  "unknownVariable": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {
+       "userAgent": "{{Agent}}"
+      }
+     }
+    ],
+    "edges": [],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "a",
+     "message": "“Agent” isn't one of the project's variables. Add it under Variables in the project settings, or change this setting."
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "a",
+     "message": "“Agent” isn't one of the project's variables. Add it under Variables in the project settings, or change this setting."
+    }
+   ],
+   "runTargets": []
+  },
+  "missingInput": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "r",
+      "type": "capture.record",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "r",
+     "message": "Connect something to “Browser”"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "r",
+     "message": "Connect something to “Browser”"
+    }
+   ],
+   "runTargets": [
+    "r"
+   ]
+  },
+  "doubleInput": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "b",
+      "type": "browser.open",
+      "position": {
+       "x": 100,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "r",
+      "type": "capture.record",
+      "position": {
+       "x": 200,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [
+     {
+      "id": "e0",
+      "source": "a",
+      "sourceHandle": "session",
+      "target": "r",
+      "targetHandle": "session"
+     },
+     {
+      "id": "e1",
+      "source": "b",
+      "sourceHandle": "session",
+      "target": "r",
+      "targetHandle": "session"
+     }
+    ],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "r",
+     "message": "“Browser” can only take one connection"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "r",
+     "message": "“Browser” can only take one connection"
+    }
+   ],
+   "runTargets": [
+    "r"
+   ]
+  },
+  "deletedNode": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "r",
+      "type": "capture.record",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [
+     {
+      "id": "e0",
+      "source": "gone",
+      "sourceHandle": "session",
+      "target": "r",
+      "targetHandle": "session"
+     }
+    ],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "r",
+     "message": "Connect something to “Browser”"
+    },
+    {
+     "level": "error",
+     "edgeId": "e0",
+     "message": "A connection points at a deleted node"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "r",
+     "message": "Connect something to “Browser”"
+    },
+    {
+     "level": "error",
+     "edgeId": "e0",
+     "message": "A connection points at a deleted node"
+    }
+   ],
+   "runTargets": [
+    "r"
+   ]
+  },
+  "missingPort": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "r",
+      "type": "capture.record",
+      "position": {
+       "x": 100,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [
+     {
+      "id": "e0",
+      "source": "a",
+      "sourceHandle": "nope",
+      "target": "r",
+      "targetHandle": "session"
+     }
+    ],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "r",
+     "message": "Connect something to “Browser”"
+    },
+    {
+     "level": "error",
+     "edgeId": "e0",
+     "nodeId": "r",
+     "message": "A connection uses a point that no longer exists"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "r",
+     "message": "Connect something to “Browser”"
+    },
+    {
+     "level": "error",
+     "edgeId": "e0",
+     "nodeId": "r",
+     "message": "A connection uses a point that no longer exists"
+    }
+   ],
+   "runTargets": [
+    "r"
+   ]
+  },
+  "wrongType": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "z",
+      "type": "camera.autoZoom",
+      "position": {
+       "x": 100,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [
+     {
+      "id": "e0",
+      "source": "a",
+      "sourceHandle": "session",
+      "target": "z",
+      "targetHandle": "recording"
+     }
+    ],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "z",
+     "message": "Connect something to “Recording”"
+    },
+    {
+     "level": "error",
+     "edgeId": "e0",
+     "nodeId": "z",
+     "message": "A browser session can't connect to a recording input"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "z",
+     "message": "Connect something to “Recording”"
+    },
+    {
+     "level": "error",
+     "edgeId": "e0",
+     "nodeId": "z",
+     "message": "A browser session can't connect to a recording input"
+    }
+   ],
+   "runTargets": []
+  },
+  "loop": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "d1",
+      "type": "timeline.delay",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "d2",
+      "type": "timeline.delay",
+      "position": {
+       "x": 100,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [
+     {
+      "id": "e0",
+      "source": "d1",
+      "sourceHandle": "clip",
+      "target": "d2",
+      "targetHandle": "clip"
+     },
+     {
+      "id": "e1",
+      "source": "d2",
+      "sourceHandle": "clip",
+      "target": "d1",
+      "targetHandle": "clip"
+     }
+    ],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "d1",
+     "message": "This node loops back into itself"
+    },
+    {
+     "level": "error",
+     "nodeId": "d2",
+     "message": "This node loops back into itself"
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "d1",
+     "message": "This node loops back into itself"
+    },
+    {
+     "level": "error",
+     "nodeId": "d2",
+     "message": "This node loops back into itself"
+    }
+   ],
+   "runTargets": []
+  },
+  "reloadFirst": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "s",
+      "type": "browser.setState",
+      "position": {
+       "x": 100,
+       "y": 0
+      },
+      "params": {
+       "reload": true
+      }
+     },
+     {
+      "id": "r",
+      "type": "capture.record",
+      "position": {
+       "x": 200,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [
+     {
+      "id": "e0",
+      "source": "a",
+      "sourceHandle": "session",
+      "target": "s",
+      "targetHandle": "session"
+     },
+     {
+      "id": "e1",
+      "source": "s",
+      "sourceHandle": "session",
+      "target": "r",
+      "targetHandle": "session"
+     }
+    ],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "warning",
+     "nodeId": "s",
+     "message": "Before Go to page the script runs as the site first opens, so there's nothing to reload. Turn off Reload, or move this after Go to page."
+    }
+   ],
+   "checked": [
+    {
+     "level": "warning",
+     "nodeId": "s",
+     "message": "Before Go to page the script runs as the site first opens, so there's nothing to reload. Turn off Reload, or move this after Go to page."
+    }
+   ],
+   "runTargets": [
+    "r"
+   ]
+  },
+  "goneAction": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "fx",
+      "type": "audio.sfx",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {
+       "atAction": "missing",
+       "src": "app:sfx/whoosh.wav"
+      }
+     }
+    ],
+    "edges": [],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "fx",
+     "message": "The action this sound plays on is gone. Pick another, or play it at a time."
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "fx",
+     "message": "The action this sound plays on is gone. Pick another, or play it at a time."
+    }
+   ],
+   "runTargets": []
+  },
+  "exportClash": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "r",
+      "type": "capture.record",
+      "position": {
+       "x": 100,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "z",
+      "type": "camera.autoZoom",
+      "position": {
+       "x": 200,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "v1",
+      "type": "output.render",
+      "position": {
+       "x": 300,
+       "y": 0
+      },
+      "params": {
+       "fileName": "film"
+      }
+     },
+     {
+      "id": "v2",
+      "type": "output.render",
+      "position": {
+       "x": 400,
+       "y": 0
+      },
+      "params": {
+       "fileName": "film"
+      }
+     }
+    ],
+    "edges": [
+     {
+      "id": "e0",
+      "source": "a",
+      "sourceHandle": "session",
+      "target": "r",
+      "targetHandle": "session"
+     },
+     {
+      "id": "e1",
+      "source": "r",
+      "sourceHandle": "recording",
+      "target": "z",
+      "targetHandle": "recording"
+     },
+     {
+      "id": "e2",
+      "source": "z",
+      "sourceHandle": "clip",
+      "target": "v1",
+      "targetHandle": "clip"
+     },
+     {
+      "id": "e3",
+      "source": "z",
+      "sourceHandle": "clip",
+      "target": "v2",
+      "targetHandle": "clip"
+     }
+    ],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "v2",
+     "message": "“Export video” also saves “film.mp4”. Give one of them another file name."
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "v2",
+     "message": "“Export video” also saves “film.mp4”. Give one of them another file name."
+    }
+   ],
+   "runTargets": [
+    "v1",
+    "v2"
+   ]
+  },
+  "signInClash": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "s1",
+      "type": "browser.signIn",
+      "position": {
+       "x": 100,
+       "y": 0
+      },
+      "params": {}
+     },
+     {
+      "id": "s2",
+      "type": "browser.signIn",
+      "position": {
+       "x": 200,
+       "y": 0
+      },
+      "params": {},
+      "label": "Second"
+     }
+    ],
+    "edges": [
+     {
+      "id": "e0",
+      "source": "a",
+      "sourceHandle": "session",
+      "target": "s1",
+      "targetHandle": "session"
+     },
+     {
+      "id": "e1",
+      "source": "s1",
+      "sourceHandle": "session",
+      "target": "s2",
+      "targetHandle": "session"
+     }
+    ],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "error",
+     "nodeId": "s2",
+     "message": "“Sign in” also saves the sign-in “default”. Give one of them another name."
+    }
+   ],
+   "checked": [
+    {
+     "level": "error",
+     "nodeId": "s2",
+     "message": "“Sign in” also saves the sign-in “default”. Give one of them another name."
+    }
+   ],
+   "runTargets": [
+    "s1",
+    "s2"
+   ]
+  },
+  "skippedSource": {
+   "workflow": {
+    "version": 1,
+    "id": "problems",
+    "name": "Problems",
+    "settings": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "theme": "dark",
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    },
+    "variables": {},
+    "nodes": [
+     {
+      "id": "a",
+      "type": "browser.open",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "params": {},
+      "disabled": true
+     },
+     {
+      "id": "r",
+      "type": "capture.record",
+      "position": {
+       "x": 100,
+       "y": 0
+      },
+      "params": {}
+     }
+    ],
+    "edges": [
+     {
+      "id": "e0",
+      "source": "a",
+      "sourceHandle": "session",
+      "target": "r",
+      "targetHandle": "session"
+     }
+    ],
+    "markers": []
+   },
+   "problems": [
+    {
+     "level": "warning",
+     "nodeId": "r",
+     "message": "“Open browser” is skipped and has nothing to pass on, so this gets nothing from it."
+    }
+   ],
+   "checked": [
+    {
+     "level": "warning",
+     "nodeId": "r",
+     "message": "“Open browser” is skipped and has nothing to pass on, so this gets nothing from it."
+    }
+   ],
+   "runTargets": [
+    "r"
+   ]
+  }
+ },
+ "connections": [
+  {
+   "ends": {
+    "source": "a",
+    "sourceHandle": "session",
+    "target": "r",
+    "targetHandle": "session"
+   },
+   "problem": null
+  },
+  {
+   "ends": {
+    "source": "gone",
+    "sourceHandle": "session",
+    "target": "r",
+    "targetHandle": "session"
+   },
+   "problem": {
+    "notFound": true,
+    "message": "There's no node “gone”."
+   }
+  },
+  {
+   "ends": {
+    "source": "a",
+    "sourceHandle": "session",
+    "target": "a",
+    "targetHandle": "session"
+   },
+   "problem": {
+    "notFound": false,
+    "message": "A node can't connect to itself."
+   }
+  },
+  {
+   "ends": {
+    "source": "a",
+    "sourceHandle": "nope",
+    "target": "r",
+    "targetHandle": "session"
+   },
+   "problem": {
+    "notFound": false,
+    "message": "“a” has no output “nope”. Its outputs: session."
+   }
+  },
+  {
+   "ends": {
+    "source": "a",
+    "sourceHandle": "session",
+    "target": "r",
+    "targetHandle": "nope"
+   },
+   "problem": {
+    "notFound": false,
+    "message": "“r” has no input “nope”. Its inputs: session."
+   }
+  },
+  {
+   "ends": {
+    "source": "a",
+    "sourceHandle": "session",
+    "target": "z",
+    "targetHandle": "recording"
+   },
+   "problem": {
+    "notFound": false,
+    "message": "A browser session can't connect to a recording input."
+   }
+  }
+ ]
+}

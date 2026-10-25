@@ -1,0 +1,3439 @@
+{
+ "workflow": {
+  "version": 1,
+  "id": "template-social-teaser",
+  "name": "Social teaser (9:16)",
+  "settings": {
+   "width": 1080,
+   "height": 1920,
+   "fps": 30,
+   "theme": "dark",
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "variables": {
+   "Site address": "https://demo.playwright.dev/todomvc"
+  },
+  "nodes": [
+   {
+    "id": "session",
+    "type": "browser.open",
+    "position": {
+     "x": 0,
+     "y": 0
+    },
+    "params": {
+     "viewportWidth": 1440,
+     "viewportHeight": 900,
+     "dpr": 2,
+     "mobile": false,
+     "userAgent": "",
+     "locale": "en-US",
+     "timezone": "",
+     "colorScheme": "light",
+     "captureScale": 1
+    }
+   },
+   {
+    "id": "open",
+    "type": "browser.navigate",
+    "position": {
+     "x": 300,
+     "y": 0
+    },
+    "params": {
+     "url": "{{Site address}}",
+     "waitUntil": "load",
+     "after": 700
+    }
+   },
+   {
+    "id": "start",
+    "type": "browser.startRecording",
+    "position": {
+     "x": 600,
+     "y": 0
+    },
+    "params": {}
+   },
+   {
+    "id": "type",
+    "type": "browser.type",
+    "position": {
+     "x": 900,
+     "y": 0
+    },
+    "params": {
+     "text": "Ship the teaser",
+     "chunkPauseMs": 0,
+     "pressEnter": true,
+     "after": 1500,
+     "cluster": "",
+     "zoom": true,
+     "frame": "",
+     "target": "What needs to be done?"
+    }
+   },
+   {
+    "id": "record",
+    "type": "capture.record",
+    "position": {
+     "x": 1200,
+     "y": 0
+    },
+    "params": {
+     "fps": 30,
+     "quality": 90,
+     "establishMs": 700,
+     "endTailMs": 2500,
+     "cursor": "synthetic",
+     "showActions": false,
+     "mutates": ""
+    }
+   },
+   {
+    "id": "camera",
+    "type": "camera.autoZoom",
+    "position": {
+     "x": 1200,
+     "y": 200
+    },
+    "params": {
+     "zoom": true,
+     "maxScale": 1.74,
+     "hold": 1300,
+     "speed": 1.5,
+     "style": "classic",
+     "backdrop": "glaze",
+     "frame": "none",
+     "frameTheme": "light",
+     "addressBar": true,
+     "motionBlur": true
+    }
+   },
+   {
+    "id": "hook",
+    "type": "fx.remocn.kinetic-center-build",
+    "position": {
+     "x": 300,
+     "y": 340
+    },
+    "params": {
+     "text": "Words push left.",
+     "entryOffset": 88,
+     "fontSize": 72,
+     "color": "#171717",
+     "fontWeight": "600",
+     "background": "white",
+     "fontFamily": "",
+     "speed": 1,
+     "clipDuration": 60,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "sequence",
+    "type": "timeline.sequence",
+    "position": {
+     "x": 1200,
+     "y": 422
+    },
+    "params": {
+     "transition": "remocn/push-through",
+     "transitionDuration": 15,
+     "keepWhole": false,
+     "cuts": []
+    }
+   },
+   {
+    "id": "music",
+    "type": "audio.music",
+    "position": {
+     "x": 1200,
+     "y": 732
+    },
+    "params": {
+     "src": "",
+     "volume": 0.4,
+     "loop": true,
+     "startMs": 0,
+     "trimMs": 0,
+     "lengthMs": 0,
+     "fadeInMs": 800,
+     "fadeOutMs": 1500,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "mix",
+    "type": "audio.mix",
+    "position": {
+     "x": 1500,
+     "y": 340
+    },
+    "params": {}
+   },
+   {
+    "id": "render",
+    "type": "output.render",
+    "position": {
+     "x": 1800,
+     "y": 340
+    },
+    "params": {
+     "fileName": "{{Project name}}",
+     "codec": "h264",
+     "crf": 18,
+     "variants": [
+      "9:16"
+     ],
+     "reframe": "follow",
+     "scale": 1,
+     "chapters": true,
+     "chapterList": false,
+     "gl": "angle"
+    }
+   }
+  ],
+  "edges": [
+   {
+    "id": "session.session->open.session",
+    "source": "session",
+    "sourceHandle": "session",
+    "target": "open",
+    "targetHandle": "session"
+   },
+   {
+    "id": "open.session->start.session",
+    "source": "open",
+    "sourceHandle": "session",
+    "target": "start",
+    "targetHandle": "session"
+   },
+   {
+    "id": "start.session->type.session",
+    "source": "start",
+    "sourceHandle": "session",
+    "target": "type",
+    "targetHandle": "session"
+   },
+   {
+    "id": "type.session->record.session",
+    "source": "type",
+    "sourceHandle": "session",
+    "target": "record",
+    "targetHandle": "session"
+   },
+   {
+    "id": "record.recording->camera.recording",
+    "source": "record",
+    "sourceHandle": "recording",
+    "target": "camera",
+    "targetHandle": "recording"
+   },
+   {
+    "id": "hook.clip->sequence.in1",
+    "source": "hook",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in1"
+   },
+   {
+    "id": "camera.clip->sequence.in2",
+    "source": "camera",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in2"
+   },
+   {
+    "id": "sequence.clip->mix.clip",
+    "source": "sequence",
+    "sourceHandle": "clip",
+    "target": "mix",
+    "targetHandle": "clip"
+   },
+   {
+    "id": "music.audio->mix.sounds",
+    "source": "music",
+    "sourceHandle": "audio",
+    "target": "mix",
+    "targetHandle": "sounds"
+   },
+   {
+    "id": "mix.clip->render.clip",
+    "source": "mix",
+    "sourceHandle": "clip",
+    "target": "render",
+    "targetHandle": "clip"
+   }
+  ],
+  "markers": []
+ },
+ "compile": {
+  "values": {
+   "session": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1440,
+       "viewportHeight": 900,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": []
+    }
+   },
+   "open": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1440,
+       "viewportHeight": 900,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700
+       }
+      }
+     ]
+    }
+   },
+   "hook": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 60,
+     "tracks": [
+      {
+       "id": "hook:t",
+       "items": [
+        {
+         "id": "hook:i",
+         "from": 0,
+         "durationInFrames": 60,
+         "kind": "element",
+         "component": "remocn/kinetic-center-build",
+         "props": {
+          "text": "Words push left.",
+          "entryOffset": 88,
+          "fontSize": 72,
+          "color": "#171717",
+          "fontWeight": "600",
+          "background": "white",
+          "speed": 1
+         },
+         "nodeId": "hook",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "hook",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "design": {
+          "width": 1920,
+          "height": 1080
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "start": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1440,
+       "viewportHeight": 900,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700
+       }
+      },
+      {
+       "id": "start",
+       "type": "browser.startRecording",
+       "params": {}
+      }
+     ]
+    }
+   },
+   "type": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1440,
+       "viewportHeight": 900,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700
+       }
+      },
+      {
+       "id": "start",
+       "type": "browser.startRecording",
+       "params": {}
+      },
+      {
+       "id": "type",
+       "type": "browser.type",
+       "params": {
+        "target": "What needs to be done?",
+        "text": "Ship the teaser",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 1500,
+        "cluster": "",
+        "zoom": true,
+        "frame": ""
+       }
+      }
+     ]
+    }
+   },
+   "record": {
+    "recording": {
+     "type": "recording",
+     "src": null,
+     "log": null,
+     "durationMs": 6000,
+     "viewport": {
+      "width": 1920,
+      "height": 1080
+     },
+     "nodeId": "record",
+     "style": []
+    }
+   },
+   "camera": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 120,
+     "tracks": [
+      {
+       "id": "camera:t",
+       "items": [
+        {
+         "id": "camera:i",
+         "from": 0,
+         "durationInFrames": 120,
+         "kind": "element",
+         "component": "core/placeholder",
+         "props": {
+          "title": "Not recorded yet",
+          "subtitle": "Run to record the take. The camera moves appear here afterwards."
+         },
+         "nodeId": "camera"
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "sequence": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 165,
+     "tracks": [
+      {
+       "id": "sequence:seq",
+       "items": [
+        {
+         "id": "sequence:s0",
+         "from": 0,
+         "durationInFrames": 60,
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "hook:t",
+            "items": [
+             {
+              "id": "hook:i",
+              "from": 0,
+              "durationInFrames": 60,
+              "kind": "element",
+              "component": "remocn/kinetic-center-build",
+              "props": {
+               "text": "Words push left.",
+               "entryOffset": 88,
+               "fontSize": 72,
+               "color": "#171717",
+               "fontWeight": "600",
+               "background": "white",
+               "speed": 1
+              },
+              "nodeId": "hook",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "hook",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "design": {
+               "width": 1920,
+               "height": 1080
+              }
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "remocn/push-through",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s1",
+         "from": 45,
+         "durationInFrames": 120,
+         "enter": {
+          "kind": "remocn/push-through",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "camera:t",
+            "items": [
+             {
+              "id": "camera:i",
+              "from": 0,
+              "durationInFrames": 120,
+              "kind": "element",
+              "component": "core/placeholder",
+              "props": {
+               "title": "Not recorded yet",
+               "subtitle": "Run to record the take. The camera moves appear here afterwards."
+              },
+              "nodeId": "camera"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "music": {
+    "audio": {
+     "type": "audio",
+     "items": []
+    }
+   },
+   "mix": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 165,
+     "tracks": [
+      {
+       "id": "sequence:seq",
+       "items": [
+        {
+         "id": "sequence:s0",
+         "from": 0,
+         "durationInFrames": 60,
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "hook:t",
+            "items": [
+             {
+              "id": "hook:i",
+              "from": 0,
+              "durationInFrames": 60,
+              "kind": "element",
+              "component": "remocn/kinetic-center-build",
+              "props": {
+               "text": "Words push left.",
+               "entryOffset": 88,
+               "fontSize": 72,
+               "color": "#171717",
+               "fontWeight": "600",
+               "background": "white",
+               "speed": 1
+              },
+              "nodeId": "hook",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "hook",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "design": {
+               "width": 1920,
+               "height": 1080
+              }
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "remocn/push-through",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s1",
+         "from": 45,
+         "durationInFrames": 120,
+         "enter": {
+          "kind": "remocn/push-through",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "camera:t",
+            "items": [
+             {
+              "id": "camera:i",
+              "from": 0,
+              "durationInFrames": 120,
+              "kind": "element",
+              "component": "core/placeholder",
+              "props": {
+               "title": "Not recorded yet",
+               "subtitle": "Run to record the take. The camera moves appear here afterwards."
+              },
+              "nodeId": "camera"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "render": {}
+  },
+  "errors": {},
+  "specs": {
+   "render": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "durationInFrames": 165,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "sequence:seq",
+      "items": [
+       {
+        "id": "sequence:s0",
+        "from": 0,
+        "durationInFrames": 60,
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "hook:t",
+           "items": [
+            {
+             "id": "hook:i",
+             "from": 0,
+             "durationInFrames": 60,
+             "kind": "element",
+             "component": "remocn/kinetic-center-build",
+             "props": {
+              "text": "Words push left.",
+              "entryOffset": 88,
+              "fontSize": 72,
+              "color": "#171717",
+              "fontWeight": "600",
+              "background": "white",
+              "speed": 1
+             },
+             "nodeId": "hook",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "hook",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "design": {
+              "width": 1920,
+              "height": 1080
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "remocn/push-through",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s1",
+        "from": 45,
+        "durationInFrames": 120,
+        "enter": {
+         "kind": "remocn/push-through",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "camera:t",
+           "items": [
+            {
+             "id": "camera:i",
+             "from": 0,
+             "durationInFrames": 120,
+             "kind": "element",
+             "component": "core/placeholder",
+             "props": {
+              "title": "Not recorded yet",
+              "subtitle": "Run to record the take. The camera moves appear here afterwards."
+             },
+             "nodeId": "camera"
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   }
+  },
+  "order": [
+   "session",
+   "open",
+   "hook",
+   "start",
+   "type",
+   "record",
+   "camera",
+   "sequence",
+   "music",
+   "mix",
+   "render"
+  ]
+ },
+ "problems": [],
+ "cards": {
+  "session": {
+   "rows": [
+    {
+     "icon": "monitor",
+     "text": "1440 × 900"
+    }
+   ]
+  },
+  "open": {
+   "rows": [
+    {
+     "icon": "link",
+     "text": "demo.playwright.dev/todomvc",
+     "title": "https://demo.playwright.dev/todomvc"
+    },
+    {
+     "icon": "timer",
+     "text": "Pause 0.7 s"
+    }
+   ]
+  },
+  "start": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "Video starts here"
+    }
+   ]
+  },
+  "type": {
+   "rows": [
+    {
+     "icon": "crosshair",
+     "text": "“What needs to be done?”",
+     "title": "What needs to be done?"
+    },
+    {
+     "icon": "keyboard",
+     "text": "“Ship the teaser”, then Enter",
+     "title": "Ship the teaser"
+    },
+    {
+     "icon": "timer",
+     "text": "Pause 1.5 s"
+    }
+   ]
+  },
+  "record": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "30 fps"
+    },
+    {
+     "icon": "mouse-pointer",
+     "text": "Smooth cursor"
+    }
+   ]
+  },
+  "camera": {
+   "rows": [
+    {
+     "icon": "zoom-in",
+     "text": "Up to 1.74×"
+    },
+    {
+     "icon": "hourglass",
+     "text": "Hold 1.3 s"
+    },
+    {
+     "icon": "image",
+     "text": "Glaze backdrop"
+    },
+    {
+     "icon": "gauge",
+     "text": "1.5× speed"
+    }
+   ]
+  },
+  "hook": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“Words push left.”"
+    },
+    {
+     "icon": "clock",
+     "text": "2 s"
+    }
+   ]
+  },
+  "sequence": {
+   "rows": [
+    {
+     "icon": "list-video",
+     "text": "2 clips · 5.5 s"
+    },
+    {
+     "icon": "arrow-right-left",
+     "text": "Push through · 0.5 s"
+    }
+   ]
+  },
+  "music": {
+   "rows": [
+    {
+     "icon": "music",
+     "text": "Choose a song",
+     "tone": "warn"
+    },
+    {
+     "icon": "volume-2",
+     "text": "40%"
+    },
+    {
+     "icon": "repeat",
+     "text": "Loops"
+    }
+   ]
+  },
+  "mix": {
+   "rows": [
+    {
+     "icon": "volume-2",
+     "text": "1 sound"
+    }
+   ]
+  },
+  "render": {
+   "rows": [
+    {
+     "icon": "ratio",
+     "text": "9:16"
+    },
+    {
+     "icon": "film",
+     "text": "MP4 · 1080p · 30 fps"
+    }
+   ]
+  }
+ },
+ "preview": {
+  "spec": {
+   "width": 1080,
+   "height": 1920,
+   "fps": 30,
+   "durationInFrames": 165,
+   "background": "#09090b",
+   "tracks": [
+    {
+     "id": "sequence:seq",
+     "items": [
+      {
+       "id": "sequence:s0",
+       "from": 0,
+       "durationInFrames": 60,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in1"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "hook:t",
+          "items": [
+           {
+            "id": "hook:i",
+            "from": 0,
+            "durationInFrames": 60,
+            "kind": "element",
+            "component": "remocn/kinetic-center-build",
+            "props": {
+             "text": "Words push left.",
+             "entryOffset": 88,
+             "fontSize": 72,
+             "color": "#171717",
+             "fontWeight": "600",
+             "background": "white",
+             "speed": 1
+            },
+            "nodeId": "hook",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "hook",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            },
+            "design": {
+             "width": 1920,
+             "height": 1080
+            }
+           }
+          ]
+         }
+        ]
+       },
+       "exit": {
+        "kind": "remocn/push-through",
+        "durationInFrames": 15
+       }
+      },
+      {
+       "id": "sequence:s1",
+       "from": 45,
+       "durationInFrames": 120,
+       "enter": {
+        "kind": "remocn/push-through",
+        "durationInFrames": 15
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in2"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "camera:t",
+          "items": [
+           {
+            "id": "camera:i",
+            "from": 0,
+            "durationInFrames": 120,
+            "kind": "element",
+            "component": "core/placeholder",
+            "props": {
+             "title": "Not recorded yet",
+             "subtitle": "Run to record the take. The camera moves appear here afterwards."
+            },
+            "nodeId": "camera"
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "audio": [],
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "spans": {
+   "hook": {
+    "from": 0,
+    "to": 60
+   },
+   "camera": {
+    "from": 45,
+    "to": 165
+   }
+  },
+  "sourceNodeId": "render"
+ },
+ "timelines": {
+  "render": {
+   "flat": {
+    "fps": 30,
+    "durationInFrames": 165,
+    "bars": [
+     {
+      "type": "video",
+      "key": "/0:sequence:s0/0:hook:i",
+      "itemId": "hook:i",
+      "nodeId": "hook",
+      "kind": "element",
+      "component": "remocn/kinetic-center-build",
+      "props": {
+       "text": "Words push left.",
+       "entryOffset": 88,
+       "fontSize": 72,
+       "color": "#171717",
+       "fontWeight": "600",
+       "background": "white",
+       "speed": 1
+      },
+      "thumbnail": null,
+      "from": 0,
+      "to": 60,
+      "lane": 0,
+      "order": 0,
+      "chain": [
+       {
+        "itemId": "hook:i",
+        "nodeId": "hook",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "hook",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 60,
+        "from": 0,
+        "to": 60
+       },
+       {
+        "itemId": "sequence:s0",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 60,
+        "from": 0,
+        "to": 60
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 60,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s1/0:camera:i",
+      "itemId": "camera:i",
+      "nodeId": "camera",
+      "kind": "element",
+      "component": "core/placeholder",
+      "props": {
+       "title": "Not recorded yet",
+       "subtitle": "Run to record the take. The camera moves appear here afterwards."
+      },
+      "thumbnail": null,
+      "from": 45,
+      "to": 165,
+      "lane": 1,
+      "order": 1,
+      "chain": [
+       {
+        "itemId": "camera:i",
+        "nodeId": "camera",
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 45,
+        "to": 165
+       },
+       {
+        "itemId": "sequence:s1",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 45,
+        "to": 165
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 120,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     }
+    ],
+    "lanes": 2,
+    "audio": [],
+    "audioLanes": 0,
+    "transitions": [
+     {
+      "key": "/0:sequence:s1:enter",
+      "itemKey": "/0:sequence:s1",
+      "lanes": [
+       0,
+       1
+      ],
+      "from": 45,
+      "to": 60,
+      "kind": "remocn/push-through",
+      "covers": 0.25,
+      "slot": {
+       "nodeId": "sequence",
+       "port": "in2"
+      }
+     }
+    ],
+    "marks": [],
+    "cameraKeys": []
+   },
+   "chapters": [],
+   "mix": {
+    "fps": 30,
+    "durationInFrames": 165,
+    "channels": [],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": 0,
+     "eq": {
+      "on": false,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 120,
+        "gain": 0,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "peak",
+        "freq": 2500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "highshelf",
+        "freq": 8000,
+        "gain": 0,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12,
+      "ratio": 2,
+      "attack": 20,
+      "release": 250,
+      "makeup": 0
+     },
+     "limiter": {
+      "on": false,
+      "ceiling": -1
+     },
+     "loudness": "off"
+    },
+    "key": "d22403eb16aa55a6"
+   }
+  }
+ },
+ "run": {
+  "results": {
+   "record": {
+    "hash": "hash-record",
+    "outputs": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 4100,
+       "actions": [
+        {
+         "id": "open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "open"
+        },
+        {
+         "id": "type:type",
+         "kind": "type",
+         "t": 2400,
+         "tEnd": 2800,
+         "point": {
+          "x": 546,
+          "y": 344
+         },
+         "rect": {
+          "x": 486,
+          "y": 324,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.type",
+         "nodeId": "type"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 4100,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "record",
+      "style": []
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   },
+   "render": {
+    "hash": "hash-render",
+    "outputs": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   }
+  },
+  "compile": {
+   "values": {
+    "session": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1440,
+        "viewportHeight": 900,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": []
+     }
+    },
+    "open": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1440,
+        "viewportHeight": 900,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700
+        }
+       }
+      ]
+     }
+    },
+    "hook": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 60,
+      "tracks": [
+       {
+        "id": "hook:t",
+        "items": [
+         {
+          "id": "hook:i",
+          "from": 0,
+          "durationInFrames": 60,
+          "kind": "element",
+          "component": "remocn/kinetic-center-build",
+          "props": {
+           "text": "Words push left.",
+           "entryOffset": 88,
+           "fontSize": 72,
+           "color": "#171717",
+           "fontWeight": "600",
+           "background": "white",
+           "speed": 1
+          },
+          "nodeId": "hook",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "hook",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
+          "design": {
+           "width": 1920,
+           "height": 1080
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "start": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1440,
+        "viewportHeight": 900,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700
+        }
+       },
+       {
+        "id": "start",
+        "type": "browser.startRecording",
+        "params": {}
+       }
+      ]
+     }
+    },
+    "type": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1440,
+        "viewportHeight": 900,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700
+        }
+       },
+       {
+        "id": "start",
+        "type": "browser.startRecording",
+        "params": {}
+       },
+       {
+        "id": "type",
+        "type": "browser.type",
+        "params": {
+         "target": "What needs to be done?",
+         "text": "Ship the teaser",
+         "chunkPauseMs": 0,
+         "pressEnter": true,
+         "after": 1500,
+         "cluster": "",
+         "zoom": true,
+         "frame": ""
+        }
+       }
+      ]
+     }
+    },
+    "record": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 4100,
+       "actions": [
+        {
+         "id": "open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "open"
+        },
+        {
+         "id": "type:type",
+         "kind": "type",
+         "t": 2400,
+         "tEnd": 2800,
+         "point": {
+          "x": 546,
+          "y": 344
+         },
+         "rect": {
+          "x": 486,
+          "y": 324,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.type",
+         "nodeId": "type"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 4100,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "record",
+      "style": []
+     }
+    },
+    "camera": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 82,
+      "tracks": [
+       {
+        "id": "camera:t",
+        "items": [
+         {
+          "id": "camera:i",
+          "from": 0,
+          "durationInFrames": 82,
+          "kind": "recording",
+          "props": {
+           "speed": 1.5,
+           "zoom": true,
+           "tuning": {
+            "sMax": 1.74,
+            "holdMinS": 1.3
+           },
+           "motionBlur": true,
+           "style": "classic",
+           "chrome": false,
+           "backdrop": "glaze",
+           "cursor": true,
+           "cursorScale": 1,
+           "cursorLook": {
+            "shape": "arrow",
+            "fill": "#111418",
+            "edge": "#ffffff"
+           },
+           "ripple": {
+            "color": "#0f172a",
+            "size": 1,
+            "width": 2
+           },
+           "extraBeats": [],
+           "annotations": [],
+           "src": "project:.opsis/cache/record/recording.mp4",
+           "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+           "log": {
+            "viewport": {
+             "width": 1920,
+             "height": 1080
+            },
+            "dpr": 1,
+            "t0": 0,
+            "durationMs": 4100,
+            "actions": [
+             {
+              "id": "open:navigate",
+              "kind": "navigate",
+              "t": 600,
+              "tEnd": 1000,
+              "point": {
+               "x": 200,
+               "y": 150
+              },
+              "rect": {
+               "x": 140,
+               "y": 130,
+               "w": 120,
+               "h": 40
+              },
+              "label": "browser.navigate",
+              "nodeId": "open"
+             },
+             {
+              "id": "type:type",
+              "kind": "type",
+              "t": 2400,
+              "tEnd": 2800,
+              "point": {
+               "x": 546,
+               "y": 344
+              },
+              "rect": {
+               "x": 486,
+               "y": 324,
+               "w": 120,
+               "h": 40
+              },
+              "label": "browser.type",
+              "nodeId": "type"
+             }
+            ],
+            "cursorTrack": [
+             {
+              "t": 0,
+              "x": 960,
+              "y": 540
+             }
+            ]
+           },
+           "name": "record"
+          },
+          "nodeId": "camera"
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 4100,
+        "actions": [
+         {
+          "id": "open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "open"
+         },
+         {
+          "id": "type:type",
+          "kind": "type",
+          "t": 2400,
+          "tEnd": 2800,
+          "point": {
+           "x": 546,
+           "y": 344
+          },
+          "rect": {
+           "x": 486,
+           "y": 324,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.type",
+          "nodeId": "type"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 4100,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "record",
+       "style": []
+      }
+     }
+    },
+    "sequence": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 127,
+      "tracks": [
+       {
+        "id": "sequence:seq",
+        "items": [
+         {
+          "id": "sequence:s0",
+          "from": 0,
+          "durationInFrames": 60,
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in1"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "hook:t",
+             "items": [
+              {
+               "id": "hook:i",
+               "from": 0,
+               "durationInFrames": 60,
+               "kind": "element",
+               "component": "remocn/kinetic-center-build",
+               "props": {
+                "text": "Words push left.",
+                "entryOffset": 88,
+                "fontSize": 72,
+                "color": "#171717",
+                "fontWeight": "600",
+                "background": "white",
+                "speed": 1
+               },
+               "nodeId": "hook",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "hook",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "design": {
+                "width": 1920,
+                "height": 1080
+               }
+              }
+             ]
+            }
+           ]
+          },
+          "exit": {
+           "kind": "remocn/push-through",
+           "durationInFrames": 15
+          }
+         },
+         {
+          "id": "sequence:s1",
+          "from": 45,
+          "durationInFrames": 82,
+          "enter": {
+           "kind": "remocn/push-through",
+           "durationInFrames": 15
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in2"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "camera:t",
+             "items": [
+              {
+               "id": "camera:i",
+               "from": 0,
+               "durationInFrames": 82,
+               "kind": "recording",
+               "props": {
+                "speed": 1.5,
+                "zoom": true,
+                "tuning": {
+                 "sMax": 1.74,
+                 "holdMinS": 1.3
+                },
+                "motionBlur": true,
+                "style": "classic",
+                "chrome": false,
+                "backdrop": "glaze",
+                "cursor": true,
+                "cursorScale": 1,
+                "cursorLook": {
+                 "shape": "arrow",
+                 "fill": "#111418",
+                 "edge": "#ffffff"
+                },
+                "ripple": {
+                 "color": "#0f172a",
+                 "size": 1,
+                 "width": 2
+                },
+                "extraBeats": [],
+                "annotations": [],
+                "src": "project:.opsis/cache/record/recording.mp4",
+                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+                "log": {
+                 "viewport": {
+                  "width": 1920,
+                  "height": 1080
+                 },
+                 "dpr": 1,
+                 "t0": 0,
+                 "durationMs": 4100,
+                 "actions": [
+                  {
+                   "id": "open:navigate",
+                   "kind": "navigate",
+                   "t": 600,
+                   "tEnd": 1000,
+                   "point": {
+                    "x": 200,
+                    "y": 150
+                   },
+                   "rect": {
+                    "x": 140,
+                    "y": 130,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.navigate",
+                   "nodeId": "open"
+                  },
+                  {
+                   "id": "type:type",
+                   "kind": "type",
+                   "t": 2400,
+                   "tEnd": 2800,
+                   "point": {
+                    "x": 546,
+                    "y": 344
+                   },
+                   "rect": {
+                    "x": 486,
+                    "y": 324,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.type",
+                   "nodeId": "type"
+                  }
+                 ],
+                 "cursorTrack": [
+                  {
+                   "t": 0,
+                   "x": 960,
+                   "y": 540
+                  }
+                 ]
+                },
+                "name": "record"
+               },
+               "nodeId": "camera"
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 4100,
+        "actions": [
+         {
+          "id": "open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "open"
+         },
+         {
+          "id": "type:type",
+          "kind": "type",
+          "t": 2400,
+          "tEnd": 2800,
+          "point": {
+           "x": 546,
+           "y": 344
+          },
+          "rect": {
+           "x": 486,
+           "y": 324,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.type",
+          "nodeId": "type"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 4100,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "record",
+       "style": []
+      }
+     }
+    },
+    "music": {
+     "audio": {
+      "type": "audio",
+      "items": []
+     }
+    },
+    "mix": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 127,
+      "tracks": [
+       {
+        "id": "sequence:seq",
+        "items": [
+         {
+          "id": "sequence:s0",
+          "from": 0,
+          "durationInFrames": 60,
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in1"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "hook:t",
+             "items": [
+              {
+               "id": "hook:i",
+               "from": 0,
+               "durationInFrames": 60,
+               "kind": "element",
+               "component": "remocn/kinetic-center-build",
+               "props": {
+                "text": "Words push left.",
+                "entryOffset": 88,
+                "fontSize": 72,
+                "color": "#171717",
+                "fontWeight": "600",
+                "background": "white",
+                "speed": 1
+               },
+               "nodeId": "hook",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "hook",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "design": {
+                "width": 1920,
+                "height": 1080
+               }
+              }
+             ]
+            }
+           ]
+          },
+          "exit": {
+           "kind": "remocn/push-through",
+           "durationInFrames": 15
+          }
+         },
+         {
+          "id": "sequence:s1",
+          "from": 45,
+          "durationInFrames": 82,
+          "enter": {
+           "kind": "remocn/push-through",
+           "durationInFrames": 15
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in2"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "camera:t",
+             "items": [
+              {
+               "id": "camera:i",
+               "from": 0,
+               "durationInFrames": 82,
+               "kind": "recording",
+               "props": {
+                "speed": 1.5,
+                "zoom": true,
+                "tuning": {
+                 "sMax": 1.74,
+                 "holdMinS": 1.3
+                },
+                "motionBlur": true,
+                "style": "classic",
+                "chrome": false,
+                "backdrop": "glaze",
+                "cursor": true,
+                "cursorScale": 1,
+                "cursorLook": {
+                 "shape": "arrow",
+                 "fill": "#111418",
+                 "edge": "#ffffff"
+                },
+                "ripple": {
+                 "color": "#0f172a",
+                 "size": 1,
+                 "width": 2
+                },
+                "extraBeats": [],
+                "annotations": [],
+                "src": "project:.opsis/cache/record/recording.mp4",
+                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+                "log": {
+                 "viewport": {
+                  "width": 1920,
+                  "height": 1080
+                 },
+                 "dpr": 1,
+                 "t0": 0,
+                 "durationMs": 4100,
+                 "actions": [
+                  {
+                   "id": "open:navigate",
+                   "kind": "navigate",
+                   "t": 600,
+                   "tEnd": 1000,
+                   "point": {
+                    "x": 200,
+                    "y": 150
+                   },
+                   "rect": {
+                    "x": 140,
+                    "y": 130,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.navigate",
+                   "nodeId": "open"
+                  },
+                  {
+                   "id": "type:type",
+                   "kind": "type",
+                   "t": 2400,
+                   "tEnd": 2800,
+                   "point": {
+                    "x": 546,
+                    "y": 344
+                   },
+                   "rect": {
+                    "x": 486,
+                    "y": 324,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.type",
+                   "nodeId": "type"
+                  }
+                 ],
+                 "cursorTrack": [
+                  {
+                   "t": 0,
+                   "x": 960,
+                   "y": 540
+                  }
+                 ]
+                },
+                "name": "record"
+               },
+               "nodeId": "camera"
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 4100,
+        "actions": [
+         {
+          "id": "open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "open"
+         },
+         {
+          "id": "type:type",
+          "kind": "type",
+          "t": 2400,
+          "tEnd": 2800,
+          "point": {
+           "x": 546,
+           "y": 344
+          },
+          "rect": {
+           "x": 486,
+           "y": 324,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.type",
+          "nodeId": "type"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 4100,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "record",
+       "style": []
+      }
+     }
+    },
+    "render": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    }
+   },
+   "errors": {},
+   "specs": {
+    "render": {
+     "width": 1080,
+     "height": 1920,
+     "fps": 30,
+     "durationInFrames": 127,
+     "background": "#09090b",
+     "tracks": [
+      {
+       "id": "sequence:seq",
+       "items": [
+        {
+         "id": "sequence:s0",
+         "from": 0,
+         "durationInFrames": 60,
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "hook:t",
+            "items": [
+             {
+              "id": "hook:i",
+              "from": 0,
+              "durationInFrames": 60,
+              "kind": "element",
+              "component": "remocn/kinetic-center-build",
+              "props": {
+               "text": "Words push left.",
+               "entryOffset": 88,
+               "fontSize": 72,
+               "color": "#171717",
+               "fontWeight": "600",
+               "background": "white",
+               "speed": 1
+              },
+              "nodeId": "hook",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "hook",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "design": {
+               "width": 1920,
+               "height": 1080
+              }
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "remocn/push-through",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s1",
+         "from": 45,
+         "durationInFrames": 82,
+         "enter": {
+          "kind": "remocn/push-through",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "camera:t",
+            "items": [
+             {
+              "id": "camera:i",
+              "from": 0,
+              "durationInFrames": 82,
+              "kind": "recording",
+              "props": {
+               "speed": 1.5,
+               "zoom": true,
+               "tuning": {
+                "sMax": 1.74,
+                "holdMinS": 1.3
+               },
+               "motionBlur": true,
+               "style": "classic",
+               "chrome": false,
+               "backdrop": "glaze",
+               "cursor": true,
+               "cursorScale": 1,
+               "cursorLook": {
+                "shape": "arrow",
+                "fill": "#111418",
+                "edge": "#ffffff"
+               },
+               "ripple": {
+                "color": "#0f172a",
+                "size": 1,
+                "width": 2
+               },
+               "extraBeats": [],
+               "annotations": [],
+               "src": "project:.opsis/cache/record/recording.mp4",
+               "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+               "log": {
+                "viewport": {
+                 "width": 1920,
+                 "height": 1080
+                },
+                "dpr": 1,
+                "t0": 0,
+                "durationMs": 4100,
+                "actions": [
+                 {
+                  "id": "open:navigate",
+                  "kind": "navigate",
+                  "t": 600,
+                  "tEnd": 1000,
+                  "point": {
+                   "x": 200,
+                   "y": 150
+                  },
+                  "rect": {
+                   "x": 140,
+                   "y": 130,
+                   "w": 120,
+                   "h": 40
+                  },
+                  "label": "browser.navigate",
+                  "nodeId": "open"
+                 },
+                 {
+                  "id": "type:type",
+                  "kind": "type",
+                  "t": 2400,
+                  "tEnd": 2800,
+                  "point": {
+                   "x": 546,
+                   "y": 344
+                  },
+                  "rect": {
+                   "x": 486,
+                   "y": 324,
+                   "w": 120,
+                   "h": 40
+                  },
+                  "label": "browser.type",
+                  "nodeId": "type"
+                 }
+                ],
+                "cursorTrack": [
+                 {
+                  "t": 0,
+                  "x": 960,
+                  "y": 540
+                 }
+                ]
+               },
+               "name": "record"
+              },
+              "nodeId": "camera"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": [],
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    }
+   },
+   "order": [
+    "session",
+    "open",
+    "hook",
+    "start",
+    "type",
+    "record",
+    "camera",
+    "sequence",
+    "music",
+    "mix",
+    "render"
+   ]
+  },
+  "problems": [],
+  "cards": {
+   "session": {
+    "rows": [
+     {
+      "icon": "monitor",
+      "text": "1440 × 900"
+     }
+    ]
+   },
+   "open": {
+    "rows": [
+     {
+      "icon": "link",
+      "text": "demo.playwright.dev/todomvc",
+      "title": "https://demo.playwright.dev/todomvc"
+     },
+     {
+      "icon": "timer",
+      "text": "Pause 0.7 s"
+     }
+    ]
+   },
+   "start": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "Video starts here"
+     }
+    ]
+   },
+   "type": {
+    "rows": [
+     {
+      "icon": "crosshair",
+      "text": "“What needs to be done?”",
+      "title": "What needs to be done?"
+     },
+     {
+      "icon": "keyboard",
+      "text": "“Ship the teaser”, then Enter",
+      "title": "Ship the teaser"
+     },
+     {
+      "icon": "timer",
+      "text": "Pause 1.5 s"
+     }
+    ]
+   },
+   "record": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "30 fps"
+     },
+     {
+      "icon": "mouse-pointer",
+      "text": "Smooth cursor"
+     },
+     {
+      "icon": "clock",
+      "text": "4.1 s · 2 actions"
+     }
+    ]
+   },
+   "camera": {
+    "rows": [
+     {
+      "icon": "zoom-in",
+      "text": "Up to 1.74×"
+     },
+     {
+      "icon": "hourglass",
+      "text": "Hold 1.3 s"
+     },
+     {
+      "icon": "image",
+      "text": "Glaze backdrop"
+     },
+     {
+      "icon": "gauge",
+      "text": "1.5× speed"
+     }
+    ]
+   },
+   "hook": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“Words push left.”"
+     },
+     {
+      "icon": "clock",
+      "text": "2 s"
+     }
+    ]
+   },
+   "sequence": {
+    "rows": [
+     {
+      "icon": "list-video",
+      "text": "2 clips · 4.23 s"
+     },
+     {
+      "icon": "arrow-right-left",
+      "text": "Push through · 0.5 s"
+     }
+    ]
+   },
+   "music": {
+    "rows": [
+     {
+      "icon": "music",
+      "text": "Choose a song",
+      "tone": "warn"
+     },
+     {
+      "icon": "volume-2",
+      "text": "40%"
+     },
+     {
+      "icon": "repeat",
+      "text": "Loops"
+     }
+    ]
+   },
+   "mix": {
+    "rows": [
+     {
+      "icon": "volume-2",
+      "text": "1 sound"
+     }
+    ]
+   },
+   "render": {
+    "rows": [
+     {
+      "icon": "ratio",
+      "text": "9:16"
+     },
+     {
+      "icon": "film",
+      "text": "MP4 · 1080p · 30 fps"
+     },
+     {
+      "icon": "clock",
+      "text": "4 s"
+     }
+    ]
+   }
+  },
+  "preview": {
+   "spec": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "durationInFrames": 127,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "sequence:seq",
+      "items": [
+       {
+        "id": "sequence:s0",
+        "from": 0,
+        "durationInFrames": 60,
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "hook:t",
+           "items": [
+            {
+             "id": "hook:i",
+             "from": 0,
+             "durationInFrames": 60,
+             "kind": "element",
+             "component": "remocn/kinetic-center-build",
+             "props": {
+              "text": "Words push left.",
+              "entryOffset": 88,
+              "fontSize": 72,
+              "color": "#171717",
+              "fontWeight": "600",
+              "background": "white",
+              "speed": 1
+             },
+             "nodeId": "hook",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "hook",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             },
+             "design": {
+              "width": 1920,
+              "height": 1080
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "remocn/push-through",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s1",
+        "from": 45,
+        "durationInFrames": 82,
+        "enter": {
+         "kind": "remocn/push-through",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "camera:t",
+           "items": [
+            {
+             "id": "camera:i",
+             "from": 0,
+             "durationInFrames": 82,
+             "kind": "recording",
+             "props": {
+              "speed": 1.5,
+              "zoom": true,
+              "tuning": {
+               "sMax": 1.74,
+               "holdMinS": 1.3
+              },
+              "motionBlur": true,
+              "style": "classic",
+              "chrome": false,
+              "backdrop": "glaze",
+              "cursor": true,
+              "cursorScale": 1,
+              "cursorLook": {
+               "shape": "arrow",
+               "fill": "#111418",
+               "edge": "#ffffff"
+              },
+              "ripple": {
+               "color": "#0f172a",
+               "size": 1,
+               "width": 2
+              },
+              "extraBeats": [],
+              "annotations": [],
+              "src": "project:.opsis/cache/record/recording.mp4",
+              "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+              "log": {
+               "viewport": {
+                "width": 1920,
+                "height": 1080
+               },
+               "dpr": 1,
+               "t0": 0,
+               "durationMs": 4100,
+               "actions": [
+                {
+                 "id": "open:navigate",
+                 "kind": "navigate",
+                 "t": 600,
+                 "tEnd": 1000,
+                 "point": {
+                  "x": 200,
+                  "y": 150
+                 },
+                 "rect": {
+                  "x": 140,
+                  "y": 130,
+                  "w": 120,
+                  "h": 40
+                 },
+                 "label": "browser.navigate",
+                 "nodeId": "open"
+                },
+                {
+                 "id": "type:type",
+                 "kind": "type",
+                 "t": 2400,
+                 "tEnd": 2800,
+                 "point": {
+                  "x": 546,
+                  "y": 344
+                 },
+                 "rect": {
+                  "x": 486,
+                  "y": 324,
+                  "w": 120,
+                  "h": 40
+                 },
+                 "label": "browser.type",
+                 "nodeId": "type"
+                }
+               ],
+               "cursorTrack": [
+                {
+                 "t": 0,
+                 "x": 960,
+                 "y": 540
+                }
+               ]
+              },
+              "name": "record"
+             },
+             "nodeId": "camera"
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   },
+   "spans": {
+    "hook": {
+     "from": 0,
+     "to": 60
+    },
+    "camera": {
+     "from": 45,
+     "to": 127
+    }
+   },
+   "sourceNodeId": "render"
+  },
+  "timelines": {
+   "render": {
+    "flat": {
+     "fps": 30,
+     "durationInFrames": 127,
+     "bars": [
+      {
+       "type": "video",
+       "key": "/0:sequence:s0/0:hook:i",
+       "itemId": "hook:i",
+       "nodeId": "hook",
+       "kind": "element",
+       "component": "remocn/kinetic-center-build",
+       "props": {
+        "text": "Words push left.",
+        "entryOffset": 88,
+        "fontSize": 72,
+        "color": "#171717",
+        "fontWeight": "600",
+        "background": "white",
+        "speed": 1
+       },
+       "thumbnail": null,
+       "from": 0,
+       "to": 60,
+       "lane": 0,
+       "order": 0,
+       "chain": [
+        {
+         "itemId": "hook:i",
+         "nodeId": "hook",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "hook",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 60,
+         "from": 0,
+         "to": 60
+        },
+        {
+         "itemId": "sequence:s0",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 60,
+         "from": 0,
+         "to": 60
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 60,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s1/0:camera:i",
+       "itemId": "camera:i",
+       "nodeId": "camera",
+       "kind": "recording",
+       "props": {
+        "speed": 1.5,
+        "zoom": true,
+        "tuning": {
+         "sMax": 1.74,
+         "holdMinS": 1.3
+        },
+        "motionBlur": true,
+        "style": "classic",
+        "chrome": false,
+        "backdrop": "glaze",
+        "cursor": true,
+        "cursorScale": 1,
+        "cursorLook": {
+         "shape": "arrow",
+         "fill": "#111418",
+         "edge": "#ffffff"
+        },
+        "ripple": {
+         "color": "#0f172a",
+         "size": 1,
+         "width": 2
+        },
+        "extraBeats": [],
+        "annotations": [],
+        "src": "project:.opsis/cache/record/recording.mp4",
+        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+        "log": {
+         "viewport": {
+          "width": 1920,
+          "height": 1080
+         },
+         "dpr": 1,
+         "t0": 0,
+         "durationMs": 4100,
+         "actions": [
+          {
+           "id": "open:navigate",
+           "kind": "navigate",
+           "t": 600,
+           "tEnd": 1000,
+           "point": {
+            "x": 200,
+            "y": 150
+           },
+           "rect": {
+            "x": 140,
+            "y": 130,
+            "w": 120,
+            "h": 40
+           },
+           "label": "browser.navigate",
+           "nodeId": "open"
+          },
+          {
+           "id": "type:type",
+           "kind": "type",
+           "t": 2400,
+           "tEnd": 2800,
+           "point": {
+            "x": 546,
+            "y": 344
+           },
+           "rect": {
+            "x": 486,
+            "y": 324,
+            "w": 120,
+            "h": 40
+           },
+           "label": "browser.type",
+           "nodeId": "type"
+          }
+         ],
+         "cursorTrack": [
+          {
+           "t": 0,
+           "x": 960,
+           "y": 540
+          }
+         ]
+        },
+        "name": "record"
+       },
+       "thumbnail": {
+        "kind": "filmstrip",
+        "src": "project:.opsis/cache/record/recording.preview.mp4",
+        "speed": 1.5,
+        "trimMs": 0
+       },
+       "from": 45,
+       "to": 127,
+       "lane": 1,
+       "order": 1,
+       "chain": [
+        {
+         "itemId": "camera:i",
+         "nodeId": "camera",
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 82,
+         "from": 45,
+         "to": 127
+        },
+        {
+         "itemId": "sequence:s1",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 82,
+         "from": 45,
+         "to": 127
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 82,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      }
+     ],
+     "lanes": 2,
+     "audio": [],
+     "audioLanes": 0,
+     "transitions": [
+      {
+       "key": "/0:sequence:s1:enter",
+       "itemKey": "/0:sequence:s1",
+       "lanes": [
+        0,
+        1
+       ],
+       "from": 45,
+       "to": 60,
+       "kind": "remocn/push-through",
+       "covers": 0.25,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in2"
+       }
+      }
+     ],
+     "marks": [
+      {
+       "key": "/0:sequence:s1/0:camera:i:open:navigate",
+       "frame": 57,
+       "kind": "navigate",
+       "label": "Go to browser.navigate",
+       "nodeId": "open",
+       "barKey": "/0:sequence:s1/0:camera:i"
+      },
+      {
+       "key": "/0:sequence:s1/0:camera:i:type:type",
+       "frame": 93,
+       "kind": "type",
+       "label": "Type browser.type",
+       "nodeId": "type",
+       "barKey": "/0:sequence:s1/0:camera:i"
+      }
+     ],
+     "cameraKeys": []
+    },
+    "chapters": [],
+    "mix": {
+     "fps": 30,
+     "durationInFrames": 127,
+     "channels": [],
+     "buses": [
+      {
+       "id": "music",
+       "name": "Music",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "effects",
+       "name": "Effects",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "clips",
+       "name": "Clips",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      }
+     ],
+     "master": {
+      "fader": 0,
+      "eq": {
+       "on": false,
+       "bands": [
+        {
+         "type": "lowshelf",
+         "freq": 120,
+         "gain": 0,
+         "q": 0.7
+        },
+        {
+         "type": "peak",
+         "freq": 500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "peak",
+         "freq": 2500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "highshelf",
+         "freq": 8000,
+         "gain": 0,
+         "q": 0.7
+        }
+       ]
+      },
+      "comp": {
+       "on": false,
+       "threshold": -12,
+       "ratio": 2,
+       "attack": 20,
+       "release": 250,
+       "makeup": 0
+      },
+      "limiter": {
+       "on": false,
+       "ceiling": -1
+      },
+      "loudness": "off"
+     },
+     "key": "2a7e6e1ecbff34e6"
+    }
+   }
+  }
+ }
+}

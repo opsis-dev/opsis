@@ -1,0 +1,5249 @@
+{
+ "workflow": {
+  "version": 1,
+  "id": "template-changelog",
+  "name": "Changelog clip",
+  "settings": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "theme": "dark",
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "variables": {
+   "Product name": "Acme",
+   "Version": "v2.4"
+  },
+  "nodes": [
+   {
+    "id": "title",
+    "type": "fx.core.title",
+    "position": {
+     "x": 0,
+     "y": 0
+    },
+    "params": {
+     "eyebrow": "Changelog",
+     "title": "What's new in {{Version}}",
+     "subtitle": "",
+     "mark": "",
+     "markLook": "underline",
+     "markColor": "#facc15",
+     "align": "center",
+     "entrance": "rise",
+     "color": "#fafafa",
+     "accent": "#a78bfa",
+     "background": "transparent",
+     "fontSize": 112,
+     "fontWeight": 760,
+     "fontFamily": "",
+     "clipDuration": 75,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "terminal",
+    "type": "fx.remocn.terminal-simulator",
+    "position": {
+     "x": 0,
+     "y": 200
+    },
+    "params": {
+     "prompt": "$",
+     "title": "~/projects/acme",
+     "background": "#0a0a0a",
+     "chromeColor": "#1a1a1a",
+     "fontSize": 18,
+     "charsPerFrame": 1,
+     "chunkSize": 1,
+     "lines": [
+      {
+       "text": "deploy --production",
+       "type": "command",
+       "delay": 0
+      },
+      {
+       "text": "Running tests...",
+       "type": "log",
+       "delay": 0.2
+      },
+      {
+       "text": "128 tests passed",
+       "type": "success",
+       "delay": 0.3333
+      },
+      {
+       "text": "Building the image...",
+       "type": "log",
+       "delay": 0.2667
+      },
+      {
+       "text": "Image ready in 41s",
+       "type": "success",
+       "delay": 0.3333
+      },
+      {
+       "text": "Rolling out to everyone...",
+       "type": "log",
+       "delay": 0.2667
+      },
+      {
+       "text": "Live in production",
+       "type": "success",
+       "delay": 0.4
+      }
+     ],
+     "speed": 1,
+     "clipDuration": 150,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "chart",
+    "type": "fx.remocn.animated-bar-chart",
+    "position": {
+     "x": 0,
+     "y": 400
+    },
+    "params": {
+     "barColor": "#0ea5e9",
+     "gap": 16,
+     "staggerFrames": 0.2,
+     "bars": [
+      {
+       "label": "",
+       "value": 35
+      },
+      {
+       "label": "",
+       "value": 60
+      },
+      {
+       "label": "",
+       "value": 45
+      },
+      {
+       "label": "",
+       "value": 80
+      },
+      {
+       "label": "",
+       "value": 55
+      },
+      {
+       "label": "",
+       "value": 70
+      },
+      {
+       "label": "",
+       "value": 90
+      },
+      {
+       "label": "",
+       "value": 65
+      }
+     ],
+     "width": 1000,
+     "height": 500,
+     "baselineColor": "#27272a",
+     "labelColor": "#a1a1aa",
+     "speed": 1,
+     "clipDuration": 120,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "credit",
+    "type": "fx.core.lower-third",
+    "position": {
+     "x": 300,
+     "y": 540
+    },
+    "params": {
+     "title": "{{Product name}} {{Version}}",
+     "subtitle": "Out now",
+     "position": "bottom-left",
+     "accent": "#a78bfa",
+     "color": "#fafafa",
+     "panel": "rgba(10,10,12,0.72)",
+     "fontFamily": "",
+     "clipDuration": 120,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "bg",
+    "type": "fx.core.gradient",
+    "position": {
+     "x": 300,
+     "y": 340
+    },
+    "params": {
+     "from": "#1e1b4b",
+     "to": "#0f172a",
+     "angle": 135,
+     "grain": 0.08,
+     "clipDuration": 90,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "chart-scene",
+    "type": "timeline.stack",
+    "position": {
+     "x": 600,
+     "y": 340
+    },
+    "params": {
+     "duration": "last",
+     "offsetsMs": "",
+     "keepLayout": false
+    }
+   },
+   {
+    "id": "sequence",
+    "type": "timeline.sequence",
+    "position": {
+     "x": 900,
+     "y": 170
+    },
+    "params": {
+     "transition": "core/slide",
+     "transitionDuration": 15,
+     "keepWhole": false,
+     "cuts": []
+    }
+   },
+   {
+    "id": "render",
+    "type": "output.render",
+    "position": {
+     "x": 1200,
+     "y": 170
+    },
+    "params": {
+     "fileName": "{{Project name}}",
+     "codec": "h264",
+     "crf": 18,
+     "variants": [
+      "16:9",
+      "1:1"
+     ],
+     "reframe": "follow",
+     "scale": 1,
+     "chapters": true,
+     "chapterList": false,
+     "gl": "angle"
+    }
+   }
+  ],
+  "edges": [
+   {
+    "id": "bg.clip->chart-scene.in1",
+    "source": "bg",
+    "sourceHandle": "clip",
+    "target": "chart-scene",
+    "targetHandle": "in1"
+   },
+   {
+    "id": "chart.clip->chart-scene.in2",
+    "source": "chart",
+    "sourceHandle": "clip",
+    "target": "chart-scene",
+    "targetHandle": "in2"
+   },
+   {
+    "id": "credit.clip->chart-scene.in3",
+    "source": "credit",
+    "sourceHandle": "clip",
+    "target": "chart-scene",
+    "targetHandle": "in3"
+   },
+   {
+    "id": "title.clip->sequence.in1",
+    "source": "title",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in1"
+   },
+   {
+    "id": "terminal.clip->sequence.in2",
+    "source": "terminal",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in2"
+   },
+   {
+    "id": "chart-scene.clip->sequence.in3",
+    "source": "chart-scene",
+    "sourceHandle": "clip",
+    "target": "sequence",
+    "targetHandle": "in3"
+   },
+   {
+    "id": "sequence.clip->render.clip",
+    "source": "sequence",
+    "sourceHandle": "clip",
+    "target": "render",
+    "targetHandle": "clip"
+   }
+  ],
+  "markers": []
+ },
+ "compile": {
+  "values": {
+   "title": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 75,
+     "tracks": [
+      {
+       "id": "title:t",
+       "items": [
+        {
+         "id": "title:i",
+         "from": 0,
+         "durationInFrames": 75,
+         "kind": "element",
+         "component": "core/title",
+         "props": {
+          "eyebrow": "Changelog",
+          "title": "What's new in v2.4",
+          "subtitle": "",
+          "mark": "",
+          "markLook": "underline",
+          "markColor": "#facc15",
+          "align": "center",
+          "entrance": "rise",
+          "color": "#fafafa",
+          "accent": "#a78bfa",
+          "background": "transparent",
+          "fontSize": 112,
+          "fontWeight": 760
+         },
+         "nodeId": "title",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "title",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "terminal": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 150,
+     "tracks": [
+      {
+       "id": "terminal:t",
+       "items": [
+        {
+         "id": "terminal:i",
+         "from": 0,
+         "durationInFrames": 150,
+         "kind": "element",
+         "component": "remocn/terminal-simulator",
+         "props": {
+          "prompt": "$",
+          "title": "~/projects/acme",
+          "background": "#0a0a0a",
+          "chromeColor": "#1a1a1a",
+          "fontSize": 18,
+          "charsPerFrame": 1,
+          "chunkSize": 1,
+          "lines": [
+           {
+            "text": "deploy --production",
+            "type": "command",
+            "delay": 0
+           },
+           {
+            "text": "Running tests...",
+            "type": "log",
+            "delay": 6
+           },
+           {
+            "text": "128 tests passed",
+            "type": "success",
+            "delay": 10
+           },
+           {
+            "text": "Building the image...",
+            "type": "log",
+            "delay": 8
+           },
+           {
+            "text": "Image ready in 41s",
+            "type": "success",
+            "delay": 10
+           },
+           {
+            "text": "Rolling out to everyone...",
+            "type": "log",
+            "delay": 8
+           },
+           {
+            "text": "Live in production",
+            "type": "success",
+            "delay": 12
+           }
+          ],
+          "speed": 1
+         },
+         "nodeId": "terminal",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "terminal",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "chart": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 120,
+     "tracks": [
+      {
+       "id": "chart:t",
+       "items": [
+        {
+         "id": "chart:i",
+         "from": 0,
+         "durationInFrames": 120,
+         "kind": "element",
+         "component": "remocn/animated-bar-chart",
+         "props": {
+          "barColor": "#0ea5e9",
+          "gap": 16,
+          "staggerFrames": 6,
+          "bars": [
+           {
+            "label": "",
+            "value": 35
+           },
+           {
+            "label": "",
+            "value": 60
+           },
+           {
+            "label": "",
+            "value": 45
+           },
+           {
+            "label": "",
+            "value": 80
+           },
+           {
+            "label": "",
+            "value": 55
+           },
+           {
+            "label": "",
+            "value": 70
+           },
+           {
+            "label": "",
+            "value": 90
+           },
+           {
+            "label": "",
+            "value": 65
+           }
+          ],
+          "width": 1000,
+          "height": 500,
+          "baselineColor": "#27272a",
+          "labelColor": "#a1a1aa",
+          "speed": 1
+         },
+         "nodeId": "chart",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "chart",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "design": {
+          "width": 1920,
+          "height": 1080
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "bg": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 90,
+     "tracks": [
+      {
+       "id": "bg:t",
+       "items": [
+        {
+         "id": "bg:i",
+         "from": 0,
+         "durationInFrames": 90,
+         "kind": "element",
+         "component": "core/gradient",
+         "props": {
+          "from": "#1e1b4b",
+          "to": "#0f172a",
+          "angle": 135,
+          "grain": 0.08
+         },
+         "nodeId": "bg",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "bg",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "credit": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 120,
+     "tracks": [
+      {
+       "id": "credit:t",
+       "items": [
+        {
+         "id": "credit:i",
+         "from": 0,
+         "durationInFrames": 120,
+         "kind": "element",
+         "component": "core/lower-third",
+         "props": {
+          "title": "Acme v2.4",
+          "subtitle": "Out now",
+          "position": "bottom-left",
+          "accent": "#a78bfa",
+          "color": "#fafafa",
+          "panel": "rgba(10,10,12,0.72)"
+         },
+         "nodeId": "credit",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "credit",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "chart-scene": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 120,
+     "tracks": [
+      {
+       "id": "chart-scene:l0",
+       "items": [
+        {
+         "id": "chart-scene:l0:g",
+         "from": 0,
+         "durationInFrames": 90,
+         "handles": {
+          "move": {
+           "nodeId": "chart-scene",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 0
+          }
+         },
+         "slot": {
+          "nodeId": "chart-scene",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "bg:t",
+            "items": [
+             {
+              "id": "bg:i",
+              "from": 0,
+              "durationInFrames": 90,
+              "kind": "element",
+              "component": "core/gradient",
+              "props": {
+               "from": "#1e1b4b",
+               "to": "#0f172a",
+               "angle": 135,
+               "grain": 0.08
+              },
+              "nodeId": "bg",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "bg",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ],
+       "layer": true
+      },
+      {
+       "id": "chart-scene:l1",
+       "items": [
+        {
+         "id": "chart-scene:l1:g",
+         "from": 0,
+         "durationInFrames": 120,
+         "handles": {
+          "move": {
+           "nodeId": "chart-scene",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 1
+          }
+         },
+         "slot": {
+          "nodeId": "chart-scene",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "chart:t",
+            "items": [
+             {
+              "id": "chart:i",
+              "from": 0,
+              "durationInFrames": 120,
+              "kind": "element",
+              "component": "remocn/animated-bar-chart",
+              "props": {
+               "barColor": "#0ea5e9",
+               "gap": 16,
+               "staggerFrames": 6,
+               "bars": [
+                {
+                 "label": "",
+                 "value": 35
+                },
+                {
+                 "label": "",
+                 "value": 60
+                },
+                {
+                 "label": "",
+                 "value": 45
+                },
+                {
+                 "label": "",
+                 "value": 80
+                },
+                {
+                 "label": "",
+                 "value": 55
+                },
+                {
+                 "label": "",
+                 "value": 70
+                },
+                {
+                 "label": "",
+                 "value": 90
+                },
+                {
+                 "label": "",
+                 "value": 65
+                }
+               ],
+               "width": 1000,
+               "height": 500,
+               "baselineColor": "#27272a",
+               "labelColor": "#a1a1aa",
+               "speed": 1
+              },
+              "nodeId": "chart",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "chart",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              },
+              "design": {
+               "width": 1920,
+               "height": 1080
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ],
+       "layer": true
+      },
+      {
+       "id": "chart-scene:l2",
+       "items": [
+        {
+         "id": "chart-scene:l2:g",
+         "from": 0,
+         "durationInFrames": 120,
+         "handles": {
+          "move": {
+           "nodeId": "chart-scene",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 2
+          }
+         },
+         "slot": {
+          "nodeId": "chart-scene",
+          "port": "in3"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "credit:t",
+            "items": [
+             {
+              "id": "credit:i",
+              "from": 0,
+              "durationInFrames": 120,
+              "kind": "element",
+              "component": "core/lower-third",
+              "props": {
+               "title": "Acme v2.4",
+               "subtitle": "Out now",
+               "position": "bottom-left",
+               "accent": "#a78bfa",
+               "color": "#fafafa",
+               "panel": "rgba(10,10,12,0.72)"
+              },
+              "nodeId": "credit",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "credit",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ],
+       "layer": true
+      }
+     ],
+     "audio": []
+    }
+   },
+   "sequence": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 315,
+     "tracks": [
+      {
+       "id": "sequence:seq",
+       "items": [
+        {
+         "id": "sequence:s0",
+         "from": 0,
+         "durationInFrames": 75,
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "title:t",
+            "items": [
+             {
+              "id": "title:i",
+              "from": 0,
+              "durationInFrames": 75,
+              "kind": "element",
+              "component": "core/title",
+              "props": {
+               "eyebrow": "Changelog",
+               "title": "What's new in v2.4",
+               "subtitle": "",
+               "mark": "",
+               "markLook": "underline",
+               "markColor": "#facc15",
+               "align": "center",
+               "entrance": "rise",
+               "color": "#fafafa",
+               "accent": "#a78bfa",
+               "background": "transparent",
+               "fontSize": 112,
+               "fontWeight": 760
+              },
+              "nodeId": "title",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "title",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "core/slide",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s1",
+         "from": 60,
+         "durationInFrames": 150,
+         "enter": {
+          "kind": "core/slide",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "terminal:t",
+            "items": [
+             {
+              "id": "terminal:i",
+              "from": 0,
+              "durationInFrames": 150,
+              "kind": "element",
+              "component": "remocn/terminal-simulator",
+              "props": {
+               "prompt": "$",
+               "title": "~/projects/acme",
+               "background": "#0a0a0a",
+               "chromeColor": "#1a1a1a",
+               "fontSize": 18,
+               "charsPerFrame": 1,
+               "chunkSize": 1,
+               "lines": [
+                {
+                 "text": "deploy --production",
+                 "type": "command",
+                 "delay": 0
+                },
+                {
+                 "text": "Running tests...",
+                 "type": "log",
+                 "delay": 6
+                },
+                {
+                 "text": "128 tests passed",
+                 "type": "success",
+                 "delay": 10
+                },
+                {
+                 "text": "Building the image...",
+                 "type": "log",
+                 "delay": 8
+                },
+                {
+                 "text": "Image ready in 41s",
+                 "type": "success",
+                 "delay": 10
+                },
+                {
+                 "text": "Rolling out to everyone...",
+                 "type": "log",
+                 "delay": 8
+                },
+                {
+                 "text": "Live in production",
+                 "type": "success",
+                 "delay": 12
+                }
+               ],
+               "speed": 1
+              },
+              "nodeId": "terminal",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "terminal",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "core/slide",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s2",
+         "from": 195,
+         "durationInFrames": 120,
+         "enter": {
+          "kind": "core/slide",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "chart-scene:l0",
+            "items": [
+             {
+              "id": "chart-scene:l0:g",
+              "from": 0,
+              "durationInFrames": 90,
+              "handles": {
+               "move": {
+                "nodeId": "chart-scene",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 0
+               }
+              },
+              "slot": {
+               "nodeId": "chart-scene",
+               "port": "in1"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "bg:t",
+                 "items": [
+                  {
+                   "id": "bg:i",
+                   "from": 0,
+                   "durationInFrames": 90,
+                   "kind": "element",
+                   "component": "core/gradient",
+                   "props": {
+                    "from": "#1e1b4b",
+                    "to": "#0f172a",
+                    "angle": 135,
+                    "grain": 0.08
+                   },
+                   "nodeId": "bg",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "bg",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           },
+           {
+            "id": "chart-scene:l1",
+            "items": [
+             {
+              "id": "chart-scene:l1:g",
+              "from": 0,
+              "durationInFrames": 120,
+              "handles": {
+               "move": {
+                "nodeId": "chart-scene",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 1
+               }
+              },
+              "slot": {
+               "nodeId": "chart-scene",
+               "port": "in2"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "chart:t",
+                 "items": [
+                  {
+                   "id": "chart:i",
+                   "from": 0,
+                   "durationInFrames": 120,
+                   "kind": "element",
+                   "component": "remocn/animated-bar-chart",
+                   "props": {
+                    "barColor": "#0ea5e9",
+                    "gap": 16,
+                    "staggerFrames": 6,
+                    "bars": [
+                     {
+                      "label": "",
+                      "value": 35
+                     },
+                     {
+                      "label": "",
+                      "value": 60
+                     },
+                     {
+                      "label": "",
+                      "value": 45
+                     },
+                     {
+                      "label": "",
+                      "value": 80
+                     },
+                     {
+                      "label": "",
+                      "value": 55
+                     },
+                     {
+                      "label": "",
+                      "value": 70
+                     },
+                     {
+                      "label": "",
+                      "value": 90
+                     },
+                     {
+                      "label": "",
+                      "value": 65
+                     }
+                    ],
+                    "width": 1000,
+                    "height": 500,
+                    "baselineColor": "#27272a",
+                    "labelColor": "#a1a1aa",
+                    "speed": 1
+                   },
+                   "nodeId": "chart",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "chart",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
+                   "design": {
+                    "width": 1920,
+                    "height": 1080
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           },
+           {
+            "id": "chart-scene:l2",
+            "items": [
+             {
+              "id": "chart-scene:l2:g",
+              "from": 0,
+              "durationInFrames": 120,
+              "handles": {
+               "move": {
+                "nodeId": "chart-scene",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 2
+               }
+              },
+              "slot": {
+               "nodeId": "chart-scene",
+               "port": "in3"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "credit:t",
+                 "items": [
+                  {
+                   "id": "credit:i",
+                   "from": 0,
+                   "durationInFrames": 120,
+                   "kind": "element",
+                   "component": "core/lower-third",
+                   "props": {
+                    "title": "Acme v2.4",
+                    "subtitle": "Out now",
+                    "position": "bottom-left",
+                    "accent": "#a78bfa",
+                    "color": "#fafafa",
+                    "panel": "rgba(10,10,12,0.72)"
+                   },
+                   "nodeId": "credit",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "credit",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "render": {}
+  },
+  "errors": {},
+  "specs": {
+   "render": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 315,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "sequence:seq",
+      "items": [
+       {
+        "id": "sequence:s0",
+        "from": 0,
+        "durationInFrames": 75,
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "title:t",
+           "items": [
+            {
+             "id": "title:i",
+             "from": 0,
+             "durationInFrames": 75,
+             "kind": "element",
+             "component": "core/title",
+             "props": {
+              "eyebrow": "Changelog",
+              "title": "What's new in v2.4",
+              "subtitle": "",
+              "mark": "",
+              "markLook": "underline",
+              "markColor": "#facc15",
+              "align": "center",
+              "entrance": "rise",
+              "color": "#fafafa",
+              "accent": "#a78bfa",
+              "background": "transparent",
+              "fontSize": 112,
+              "fontWeight": 760
+             },
+             "nodeId": "title",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "title",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "core/slide",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s1",
+        "from": 60,
+        "durationInFrames": 150,
+        "enter": {
+         "kind": "core/slide",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "terminal:t",
+           "items": [
+            {
+             "id": "terminal:i",
+             "from": 0,
+             "durationInFrames": 150,
+             "kind": "element",
+             "component": "remocn/terminal-simulator",
+             "props": {
+              "prompt": "$",
+              "title": "~/projects/acme",
+              "background": "#0a0a0a",
+              "chromeColor": "#1a1a1a",
+              "fontSize": 18,
+              "charsPerFrame": 1,
+              "chunkSize": 1,
+              "lines": [
+               {
+                "text": "deploy --production",
+                "type": "command",
+                "delay": 0
+               },
+               {
+                "text": "Running tests...",
+                "type": "log",
+                "delay": 6
+               },
+               {
+                "text": "128 tests passed",
+                "type": "success",
+                "delay": 10
+               },
+               {
+                "text": "Building the image...",
+                "type": "log",
+                "delay": 8
+               },
+               {
+                "text": "Image ready in 41s",
+                "type": "success",
+                "delay": 10
+               },
+               {
+                "text": "Rolling out to everyone...",
+                "type": "log",
+                "delay": 8
+               },
+               {
+                "text": "Live in production",
+                "type": "success",
+                "delay": 12
+               }
+              ],
+              "speed": 1
+             },
+             "nodeId": "terminal",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "terminal",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "core/slide",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s2",
+        "from": 195,
+        "durationInFrames": 120,
+        "enter": {
+         "kind": "core/slide",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "chart-scene:l0",
+           "items": [
+            {
+             "id": "chart-scene:l0:g",
+             "from": 0,
+             "durationInFrames": 90,
+             "handles": {
+              "move": {
+               "nodeId": "chart-scene",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 0
+              }
+             },
+             "slot": {
+              "nodeId": "chart-scene",
+              "port": "in1"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "bg:t",
+                "items": [
+                 {
+                  "id": "bg:i",
+                  "from": 0,
+                  "durationInFrames": 90,
+                  "kind": "element",
+                  "component": "core/gradient",
+                  "props": {
+                   "from": "#1e1b4b",
+                   "to": "#0f172a",
+                   "angle": 135,
+                   "grain": 0.08
+                  },
+                  "nodeId": "bg",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "bg",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          },
+          {
+           "id": "chart-scene:l1",
+           "items": [
+            {
+             "id": "chart-scene:l1:g",
+             "from": 0,
+             "durationInFrames": 120,
+             "handles": {
+              "move": {
+               "nodeId": "chart-scene",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 1
+              }
+             },
+             "slot": {
+              "nodeId": "chart-scene",
+              "port": "in2"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "chart:t",
+                "items": [
+                 {
+                  "id": "chart:i",
+                  "from": 0,
+                  "durationInFrames": 120,
+                  "kind": "element",
+                  "component": "remocn/animated-bar-chart",
+                  "props": {
+                   "barColor": "#0ea5e9",
+                   "gap": 16,
+                   "staggerFrames": 6,
+                   "bars": [
+                    {
+                     "label": "",
+                     "value": 35
+                    },
+                    {
+                     "label": "",
+                     "value": 60
+                    },
+                    {
+                     "label": "",
+                     "value": 45
+                    },
+                    {
+                     "label": "",
+                     "value": 80
+                    },
+                    {
+                     "label": "",
+                     "value": 55
+                    },
+                    {
+                     "label": "",
+                     "value": 70
+                    },
+                    {
+                     "label": "",
+                     "value": 90
+                    },
+                    {
+                     "label": "",
+                     "value": 65
+                    }
+                   ],
+                   "width": 1000,
+                   "height": 500,
+                   "baselineColor": "#27272a",
+                   "labelColor": "#a1a1aa",
+                   "speed": 1
+                  },
+                  "nodeId": "chart",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "chart",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
+                  "design": {
+                   "width": 1920,
+                   "height": 1080
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          },
+          {
+           "id": "chart-scene:l2",
+           "items": [
+            {
+             "id": "chart-scene:l2:g",
+             "from": 0,
+             "durationInFrames": 120,
+             "handles": {
+              "move": {
+               "nodeId": "chart-scene",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 2
+              }
+             },
+             "slot": {
+              "nodeId": "chart-scene",
+              "port": "in3"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "credit:t",
+                "items": [
+                 {
+                  "id": "credit:i",
+                  "from": 0,
+                  "durationInFrames": 120,
+                  "kind": "element",
+                  "component": "core/lower-third",
+                  "props": {
+                   "title": "Acme v2.4",
+                   "subtitle": "Out now",
+                   "position": "bottom-left",
+                   "accent": "#a78bfa",
+                   "color": "#fafafa",
+                   "panel": "rgba(10,10,12,0.72)"
+                  },
+                  "nodeId": "credit",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "credit",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   }
+  },
+  "order": [
+   "title",
+   "terminal",
+   "chart",
+   "bg",
+   "credit",
+   "chart-scene",
+   "sequence",
+   "render"
+  ]
+ },
+ "problems": [],
+ "cards": {
+  "title": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“What's new in v2.4”"
+    },
+    {
+     "icon": "clock",
+     "text": "2.5 s"
+    }
+   ]
+  },
+  "terminal": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“~/projects/acme”"
+    },
+    {
+     "icon": "clock",
+     "text": "5 s · usually 8.9 s",
+     "tone": "warn",
+     "title": "Shorter than this element usually runs, so its animation may be cut off."
+    }
+   ]
+  },
+  "chart": {
+   "rows": [
+    {
+     "icon": "clock",
+     "text": "4 s"
+    }
+   ]
+  },
+  "credit": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“Acme v2.4”"
+    },
+    {
+     "icon": "clock",
+     "text": "4 s"
+    }
+   ]
+  },
+  "bg": {
+   "rows": [
+    {
+     "icon": "clock",
+     "text": "3 s"
+    }
+   ]
+  },
+  "chart-scene": {
+   "rows": [
+    {
+     "icon": "layers",
+     "text": "3 layers"
+    },
+    {
+     "icon": "clock",
+     "text": "Length follows the front layer"
+    },
+    {
+     "icon": "timer",
+     "text": "4 s"
+    }
+   ]
+  },
+  "sequence": {
+   "rows": [
+    {
+     "icon": "list-video",
+     "text": "3 clips · 10.5 s"
+    },
+    {
+     "icon": "arrow-right-left",
+     "text": "Slide · 0.5 s"
+    }
+   ]
+  },
+  "render": {
+   "rows": [
+    {
+     "icon": "ratio",
+     "text": "16:9 + 1:1"
+    },
+    {
+     "icon": "film",
+     "text": "MP4 · 1080p / 1920p · 30 fps"
+    }
+   ]
+  }
+ },
+ "preview": {
+  "spec": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 315,
+   "background": "#09090b",
+   "tracks": [
+    {
+     "id": "sequence:seq",
+     "items": [
+      {
+       "id": "sequence:s0",
+       "from": 0,
+       "durationInFrames": 75,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in1"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "title:t",
+          "items": [
+           {
+            "id": "title:i",
+            "from": 0,
+            "durationInFrames": 75,
+            "kind": "element",
+            "component": "core/title",
+            "props": {
+             "eyebrow": "Changelog",
+             "title": "What's new in v2.4",
+             "subtitle": "",
+             "mark": "",
+             "markLook": "underline",
+             "markColor": "#facc15",
+             "align": "center",
+             "entrance": "rise",
+             "color": "#fafafa",
+             "accent": "#a78bfa",
+             "background": "transparent",
+             "fontSize": 112,
+             "fontWeight": 760
+            },
+            "nodeId": "title",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "title",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            }
+           }
+          ]
+         }
+        ]
+       },
+       "exit": {
+        "kind": "core/slide",
+        "durationInFrames": 15
+       }
+      },
+      {
+       "id": "sequence:s1",
+       "from": 60,
+       "durationInFrames": 150,
+       "enter": {
+        "kind": "core/slide",
+        "durationInFrames": 15
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in2"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "terminal:t",
+          "items": [
+           {
+            "id": "terminal:i",
+            "from": 0,
+            "durationInFrames": 150,
+            "kind": "element",
+            "component": "remocn/terminal-simulator",
+            "props": {
+             "prompt": "$",
+             "title": "~/projects/acme",
+             "background": "#0a0a0a",
+             "chromeColor": "#1a1a1a",
+             "fontSize": 18,
+             "charsPerFrame": 1,
+             "chunkSize": 1,
+             "lines": [
+              {
+               "text": "deploy --production",
+               "type": "command",
+               "delay": 0
+              },
+              {
+               "text": "Running tests...",
+               "type": "log",
+               "delay": 6
+              },
+              {
+               "text": "128 tests passed",
+               "type": "success",
+               "delay": 10
+              },
+              {
+               "text": "Building the image...",
+               "type": "log",
+               "delay": 8
+              },
+              {
+               "text": "Image ready in 41s",
+               "type": "success",
+               "delay": 10
+              },
+              {
+               "text": "Rolling out to everyone...",
+               "type": "log",
+               "delay": 8
+              },
+              {
+               "text": "Live in production",
+               "type": "success",
+               "delay": 12
+              }
+             ],
+             "speed": 1
+            },
+            "nodeId": "terminal",
+            "handles": {
+             "trimEnd": {
+              "nodeId": "terminal",
+              "param": "clipDuration",
+              "unit": "frames"
+             }
+            }
+           }
+          ]
+         }
+        ]
+       },
+       "exit": {
+        "kind": "core/slide",
+        "durationInFrames": 15
+       }
+      },
+      {
+       "id": "sequence:s2",
+       "from": 195,
+       "durationInFrames": 120,
+       "enter": {
+        "kind": "core/slide",
+        "durationInFrames": 15
+       },
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in3"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "chart-scene:l0",
+          "items": [
+           {
+            "id": "chart-scene:l0:g",
+            "from": 0,
+            "durationInFrames": 90,
+            "handles": {
+             "move": {
+              "nodeId": "chart-scene",
+              "param": "offsetsMs",
+              "unit": "ms",
+              "index": 0
+             }
+            },
+            "slot": {
+             "nodeId": "chart-scene",
+             "port": "in1"
+            },
+            "kind": "group",
+            "props": {
+             "tracks": [
+              {
+               "id": "bg:t",
+               "items": [
+                {
+                 "id": "bg:i",
+                 "from": 0,
+                 "durationInFrames": 90,
+                 "kind": "element",
+                 "component": "core/gradient",
+                 "props": {
+                  "from": "#1e1b4b",
+                  "to": "#0f172a",
+                  "angle": 135,
+                  "grain": 0.08
+                 },
+                 "nodeId": "bg",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "bg",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           }
+          ],
+          "layer": true
+         },
+         {
+          "id": "chart-scene:l1",
+          "items": [
+           {
+            "id": "chart-scene:l1:g",
+            "from": 0,
+            "durationInFrames": 120,
+            "handles": {
+             "move": {
+              "nodeId": "chart-scene",
+              "param": "offsetsMs",
+              "unit": "ms",
+              "index": 1
+             }
+            },
+            "slot": {
+             "nodeId": "chart-scene",
+             "port": "in2"
+            },
+            "kind": "group",
+            "props": {
+             "tracks": [
+              {
+               "id": "chart:t",
+               "items": [
+                {
+                 "id": "chart:i",
+                 "from": 0,
+                 "durationInFrames": 120,
+                 "kind": "element",
+                 "component": "remocn/animated-bar-chart",
+                 "props": {
+                  "barColor": "#0ea5e9",
+                  "gap": 16,
+                  "staggerFrames": 6,
+                  "bars": [
+                   {
+                    "label": "",
+                    "value": 35
+                   },
+                   {
+                    "label": "",
+                    "value": 60
+                   },
+                   {
+                    "label": "",
+                    "value": 45
+                   },
+                   {
+                    "label": "",
+                    "value": 80
+                   },
+                   {
+                    "label": "",
+                    "value": 55
+                   },
+                   {
+                    "label": "",
+                    "value": 70
+                   },
+                   {
+                    "label": "",
+                    "value": 90
+                   },
+                   {
+                    "label": "",
+                    "value": 65
+                   }
+                  ],
+                  "width": 1000,
+                  "height": 500,
+                  "baselineColor": "#27272a",
+                  "labelColor": "#a1a1aa",
+                  "speed": 1
+                 },
+                 "nodeId": "chart",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "chart",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 },
+                 "design": {
+                  "width": 1920,
+                  "height": 1080
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           }
+          ],
+          "layer": true
+         },
+         {
+          "id": "chart-scene:l2",
+          "items": [
+           {
+            "id": "chart-scene:l2:g",
+            "from": 0,
+            "durationInFrames": 120,
+            "handles": {
+             "move": {
+              "nodeId": "chart-scene",
+              "param": "offsetsMs",
+              "unit": "ms",
+              "index": 2
+             }
+            },
+            "slot": {
+             "nodeId": "chart-scene",
+             "port": "in3"
+            },
+            "kind": "group",
+            "props": {
+             "tracks": [
+              {
+               "id": "credit:t",
+               "items": [
+                {
+                 "id": "credit:i",
+                 "from": 0,
+                 "durationInFrames": 120,
+                 "kind": "element",
+                 "component": "core/lower-third",
+                 "props": {
+                  "title": "Acme v2.4",
+                  "subtitle": "Out now",
+                  "position": "bottom-left",
+                  "accent": "#a78bfa",
+                  "color": "#fafafa",
+                  "panel": "rgba(10,10,12,0.72)"
+                 },
+                 "nodeId": "credit",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "credit",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           }
+          ],
+          "layer": true
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "audio": [],
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "spans": {
+   "title": {
+    "from": 0,
+    "to": 75
+   },
+   "terminal": {
+    "from": 60,
+    "to": 210
+   },
+   "bg": {
+    "from": 195,
+    "to": 285
+   },
+   "chart": {
+    "from": 195,
+    "to": 315
+   },
+   "credit": {
+    "from": 195,
+    "to": 315
+   }
+  },
+  "sourceNodeId": "render"
+ },
+ "timelines": {
+  "render": {
+   "flat": {
+    "fps": 30,
+    "durationInFrames": 315,
+    "bars": [
+     {
+      "type": "video",
+      "key": "/0:sequence:s0/0:title:i",
+      "itemId": "title:i",
+      "nodeId": "title",
+      "kind": "element",
+      "component": "core/title",
+      "props": {
+       "eyebrow": "Changelog",
+       "title": "What's new in v2.4",
+       "subtitle": "",
+       "mark": "",
+       "markLook": "underline",
+       "markColor": "#facc15",
+       "align": "center",
+       "entrance": "rise",
+       "color": "#fafafa",
+       "accent": "#a78bfa",
+       "background": "transparent",
+       "fontSize": 112,
+       "fontWeight": 760
+      },
+      "thumbnail": null,
+      "from": 0,
+      "to": 75,
+      "lane": 0,
+      "order": 0,
+      "chain": [
+       {
+        "itemId": "title:i",
+        "nodeId": "title",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "title",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 75,
+        "from": 0,
+        "to": 75
+       },
+       {
+        "itemId": "sequence:s0",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 75,
+        "from": 0,
+        "to": 75
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 75,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s1/0:terminal:i",
+      "itemId": "terminal:i",
+      "nodeId": "terminal",
+      "kind": "element",
+      "component": "remocn/terminal-simulator",
+      "props": {
+       "prompt": "$",
+       "title": "~/projects/acme",
+       "background": "#0a0a0a",
+       "chromeColor": "#1a1a1a",
+       "fontSize": 18,
+       "charsPerFrame": 1,
+       "chunkSize": 1,
+       "lines": [
+        {
+         "text": "deploy --production",
+         "type": "command",
+         "delay": 0
+        },
+        {
+         "text": "Running tests...",
+         "type": "log",
+         "delay": 6
+        },
+        {
+         "text": "128 tests passed",
+         "type": "success",
+         "delay": 10
+        },
+        {
+         "text": "Building the image...",
+         "type": "log",
+         "delay": 8
+        },
+        {
+         "text": "Image ready in 41s",
+         "type": "success",
+         "delay": 10
+        },
+        {
+         "text": "Rolling out to everyone...",
+         "type": "log",
+         "delay": 8
+        },
+        {
+         "text": "Live in production",
+         "type": "success",
+         "delay": 12
+        }
+       ],
+       "speed": 1
+      },
+      "thumbnail": null,
+      "from": 60,
+      "to": 210,
+      "lane": 1,
+      "order": 1,
+      "chain": [
+       {
+        "itemId": "terminal:i",
+        "nodeId": "terminal",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "terminal",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 150,
+        "from": 60,
+        "to": 210
+       },
+       {
+        "itemId": "sequence:s1",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 150,
+        "from": 60,
+        "to": 210
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 150,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s2/0:chart-scene:l0:g/0:bg:i",
+      "itemId": "bg:i",
+      "nodeId": "bg",
+      "kind": "element",
+      "component": "core/gradient",
+      "props": {
+       "from": "#1e1b4b",
+       "to": "#0f172a",
+       "angle": 135,
+       "grain": 0.08
+      },
+      "thumbnail": null,
+      "from": 195,
+      "to": 285,
+      "lane": 0,
+      "order": 2,
+      "chain": [
+       {
+        "itemId": "bg:i",
+        "nodeId": "bg",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "bg",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 90,
+        "from": 195,
+        "to": 285
+       },
+       {
+        "itemId": "chart-scene:l0:g",
+        "handles": {
+         "move": {
+          "nodeId": "chart-scene",
+          "param": "offsetsMs",
+          "unit": "ms",
+          "index": 0
+         }
+        },
+        "slot": {
+         "nodeId": "chart-scene",
+         "port": "in1"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 90,
+        "from": 195,
+        "to": 285
+       },
+       {
+        "itemId": "sequence:s2",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 195,
+        "to": 315
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 90,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s2/1:chart-scene:l1:g/0:chart:i",
+      "itemId": "chart:i",
+      "nodeId": "chart",
+      "kind": "element",
+      "component": "remocn/animated-bar-chart",
+      "props": {
+       "barColor": "#0ea5e9",
+       "gap": 16,
+       "staggerFrames": 6,
+       "bars": [
+        {
+         "label": "",
+         "value": 35
+        },
+        {
+         "label": "",
+         "value": 60
+        },
+        {
+         "label": "",
+         "value": 45
+        },
+        {
+         "label": "",
+         "value": 80
+        },
+        {
+         "label": "",
+         "value": 55
+        },
+        {
+         "label": "",
+         "value": 70
+        },
+        {
+         "label": "",
+         "value": 90
+        },
+        {
+         "label": "",
+         "value": 65
+        }
+       ],
+       "width": 1000,
+       "height": 500,
+       "baselineColor": "#27272a",
+       "labelColor": "#a1a1aa",
+       "speed": 1
+      },
+      "thumbnail": null,
+      "from": 195,
+      "to": 315,
+      "lane": 2,
+      "order": 3,
+      "chain": [
+       {
+        "itemId": "chart:i",
+        "nodeId": "chart",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "chart",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 195,
+        "to": 315
+       },
+       {
+        "itemId": "chart-scene:l1:g",
+        "handles": {
+         "move": {
+          "nodeId": "chart-scene",
+          "param": "offsetsMs",
+          "unit": "ms",
+          "index": 1
+         }
+        },
+        "slot": {
+         "nodeId": "chart-scene",
+         "port": "in2"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 195,
+        "to": 315
+       },
+       {
+        "itemId": "sequence:s2",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 195,
+        "to": 315
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 120,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:sequence:s2/2:chart-scene:l2:g/0:credit:i",
+      "itemId": "credit:i",
+      "nodeId": "credit",
+      "kind": "element",
+      "component": "core/lower-third",
+      "props": {
+       "title": "Acme v2.4",
+       "subtitle": "Out now",
+       "position": "bottom-left",
+       "accent": "#a78bfa",
+       "color": "#fafafa",
+       "panel": "rgba(10,10,12,0.72)"
+      },
+      "thumbnail": null,
+      "from": 195,
+      "to": 315,
+      "lane": 3,
+      "order": 4,
+      "chain": [
+       {
+        "itemId": "credit:i",
+        "nodeId": "credit",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "credit",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 195,
+        "to": 315
+       },
+       {
+        "itemId": "chart-scene:l2:g",
+        "handles": {
+         "move": {
+          "nodeId": "chart-scene",
+          "param": "offsetsMs",
+          "unit": "ms",
+          "index": 2
+         }
+        },
+        "slot": {
+         "nodeId": "chart-scene",
+         "port": "in3"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 195,
+        "to": 315
+       },
+       {
+        "itemId": "sequence:s2",
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 195,
+        "to": 315
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 120,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     }
+    ],
+    "lanes": 4,
+    "audio": [],
+    "audioLanes": 0,
+    "transitions": [
+     {
+      "key": "/0:sequence:s1:enter",
+      "itemKey": "/0:sequence:s1",
+      "lanes": [
+       0,
+       1
+      ],
+      "from": 60,
+      "to": 75,
+      "kind": "core/slide",
+      "covers": 0.2,
+      "slot": {
+       "nodeId": "sequence",
+       "port": "in2"
+      }
+     },
+     {
+      "key": "/0:sequence:s2:enter",
+      "itemKey": "/0:sequence:s2",
+      "lanes": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "from": 195,
+      "to": 210,
+      "kind": "core/slide",
+      "covers": 0.125,
+      "slot": {
+       "nodeId": "sequence",
+       "port": "in3"
+      }
+     }
+    ],
+    "marks": [],
+    "cameraKeys": []
+   },
+   "chapters": [],
+   "mix": {
+    "fps": 30,
+    "durationInFrames": 315,
+    "channels": [],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": 0,
+     "eq": {
+      "on": false,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 120,
+        "gain": 0,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "peak",
+        "freq": 2500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "highshelf",
+        "freq": 8000,
+        "gain": 0,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12,
+      "ratio": 2,
+      "attack": 20,
+      "release": 250,
+      "makeup": 0
+     },
+     "limiter": {
+      "on": false,
+      "ceiling": -1
+     },
+     "loudness": "off"
+    },
+    "key": "4f2cff50abd11199"
+   }
+  }
+ },
+ "run": {
+  "results": {
+   "render": {
+    "hash": "hash-render",
+    "outputs": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   }
+  },
+  "compile": {
+   "values": {
+    "title": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 75,
+      "tracks": [
+       {
+        "id": "title:t",
+        "items": [
+         {
+          "id": "title:i",
+          "from": 0,
+          "durationInFrames": 75,
+          "kind": "element",
+          "component": "core/title",
+          "props": {
+           "eyebrow": "Changelog",
+           "title": "What's new in v2.4",
+           "subtitle": "",
+           "mark": "",
+           "markLook": "underline",
+           "markColor": "#facc15",
+           "align": "center",
+           "entrance": "rise",
+           "color": "#fafafa",
+           "accent": "#a78bfa",
+           "background": "transparent",
+           "fontSize": 112,
+           "fontWeight": 760
+          },
+          "nodeId": "title",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "title",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "terminal": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 150,
+      "tracks": [
+       {
+        "id": "terminal:t",
+        "items": [
+         {
+          "id": "terminal:i",
+          "from": 0,
+          "durationInFrames": 150,
+          "kind": "element",
+          "component": "remocn/terminal-simulator",
+          "props": {
+           "prompt": "$",
+           "title": "~/projects/acme",
+           "background": "#0a0a0a",
+           "chromeColor": "#1a1a1a",
+           "fontSize": 18,
+           "charsPerFrame": 1,
+           "chunkSize": 1,
+           "lines": [
+            {
+             "text": "deploy --production",
+             "type": "command",
+             "delay": 0
+            },
+            {
+             "text": "Running tests...",
+             "type": "log",
+             "delay": 6
+            },
+            {
+             "text": "128 tests passed",
+             "type": "success",
+             "delay": 10
+            },
+            {
+             "text": "Building the image...",
+             "type": "log",
+             "delay": 8
+            },
+            {
+             "text": "Image ready in 41s",
+             "type": "success",
+             "delay": 10
+            },
+            {
+             "text": "Rolling out to everyone...",
+             "type": "log",
+             "delay": 8
+            },
+            {
+             "text": "Live in production",
+             "type": "success",
+             "delay": 12
+            }
+           ],
+           "speed": 1
+          },
+          "nodeId": "terminal",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "terminal",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "chart": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 120,
+      "tracks": [
+       {
+        "id": "chart:t",
+        "items": [
+         {
+          "id": "chart:i",
+          "from": 0,
+          "durationInFrames": 120,
+          "kind": "element",
+          "component": "remocn/animated-bar-chart",
+          "props": {
+           "barColor": "#0ea5e9",
+           "gap": 16,
+           "staggerFrames": 6,
+           "bars": [
+            {
+             "label": "",
+             "value": 35
+            },
+            {
+             "label": "",
+             "value": 60
+            },
+            {
+             "label": "",
+             "value": 45
+            },
+            {
+             "label": "",
+             "value": 80
+            },
+            {
+             "label": "",
+             "value": 55
+            },
+            {
+             "label": "",
+             "value": 70
+            },
+            {
+             "label": "",
+             "value": 90
+            },
+            {
+             "label": "",
+             "value": 65
+            }
+           ],
+           "width": 1000,
+           "height": 500,
+           "baselineColor": "#27272a",
+           "labelColor": "#a1a1aa",
+           "speed": 1
+          },
+          "nodeId": "chart",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "chart",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          },
+          "design": {
+           "width": 1920,
+           "height": 1080
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "bg": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 90,
+      "tracks": [
+       {
+        "id": "bg:t",
+        "items": [
+         {
+          "id": "bg:i",
+          "from": 0,
+          "durationInFrames": 90,
+          "kind": "element",
+          "component": "core/gradient",
+          "props": {
+           "from": "#1e1b4b",
+           "to": "#0f172a",
+           "angle": 135,
+           "grain": 0.08
+          },
+          "nodeId": "bg",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "bg",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "credit": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 120,
+      "tracks": [
+       {
+        "id": "credit:t",
+        "items": [
+         {
+          "id": "credit:i",
+          "from": 0,
+          "durationInFrames": 120,
+          "kind": "element",
+          "component": "core/lower-third",
+          "props": {
+           "title": "Acme v2.4",
+           "subtitle": "Out now",
+           "position": "bottom-left",
+           "accent": "#a78bfa",
+           "color": "#fafafa",
+           "panel": "rgba(10,10,12,0.72)"
+          },
+          "nodeId": "credit",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "credit",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "chart-scene": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 120,
+      "tracks": [
+       {
+        "id": "chart-scene:l0",
+        "items": [
+         {
+          "id": "chart-scene:l0:g",
+          "from": 0,
+          "durationInFrames": 90,
+          "handles": {
+           "move": {
+            "nodeId": "chart-scene",
+            "param": "offsetsMs",
+            "unit": "ms",
+            "index": 0
+           }
+          },
+          "slot": {
+           "nodeId": "chart-scene",
+           "port": "in1"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "bg:t",
+             "items": [
+              {
+               "id": "bg:i",
+               "from": 0,
+               "durationInFrames": 90,
+               "kind": "element",
+               "component": "core/gradient",
+               "props": {
+                "from": "#1e1b4b",
+                "to": "#0f172a",
+                "angle": 135,
+                "grain": 0.08
+               },
+               "nodeId": "bg",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "bg",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ],
+        "layer": true
+       },
+       {
+        "id": "chart-scene:l1",
+        "items": [
+         {
+          "id": "chart-scene:l1:g",
+          "from": 0,
+          "durationInFrames": 120,
+          "handles": {
+           "move": {
+            "nodeId": "chart-scene",
+            "param": "offsetsMs",
+            "unit": "ms",
+            "index": 1
+           }
+          },
+          "slot": {
+           "nodeId": "chart-scene",
+           "port": "in2"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "chart:t",
+             "items": [
+              {
+               "id": "chart:i",
+               "from": 0,
+               "durationInFrames": 120,
+               "kind": "element",
+               "component": "remocn/animated-bar-chart",
+               "props": {
+                "barColor": "#0ea5e9",
+                "gap": 16,
+                "staggerFrames": 6,
+                "bars": [
+                 {
+                  "label": "",
+                  "value": 35
+                 },
+                 {
+                  "label": "",
+                  "value": 60
+                 },
+                 {
+                  "label": "",
+                  "value": 45
+                 },
+                 {
+                  "label": "",
+                  "value": 80
+                 },
+                 {
+                  "label": "",
+                  "value": 55
+                 },
+                 {
+                  "label": "",
+                  "value": 70
+                 },
+                 {
+                  "label": "",
+                  "value": 90
+                 },
+                 {
+                  "label": "",
+                  "value": 65
+                 }
+                ],
+                "width": 1000,
+                "height": 500,
+                "baselineColor": "#27272a",
+                "labelColor": "#a1a1aa",
+                "speed": 1
+               },
+               "nodeId": "chart",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "chart",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               },
+               "design": {
+                "width": 1920,
+                "height": 1080
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ],
+        "layer": true
+       },
+       {
+        "id": "chart-scene:l2",
+        "items": [
+         {
+          "id": "chart-scene:l2:g",
+          "from": 0,
+          "durationInFrames": 120,
+          "handles": {
+           "move": {
+            "nodeId": "chart-scene",
+            "param": "offsetsMs",
+            "unit": "ms",
+            "index": 2
+           }
+          },
+          "slot": {
+           "nodeId": "chart-scene",
+           "port": "in3"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "credit:t",
+             "items": [
+              {
+               "id": "credit:i",
+               "from": 0,
+               "durationInFrames": 120,
+               "kind": "element",
+               "component": "core/lower-third",
+               "props": {
+                "title": "Acme v2.4",
+                "subtitle": "Out now",
+                "position": "bottom-left",
+                "accent": "#a78bfa",
+                "color": "#fafafa",
+                "panel": "rgba(10,10,12,0.72)"
+               },
+               "nodeId": "credit",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "credit",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ],
+        "layer": true
+       }
+      ],
+      "audio": []
+     }
+    },
+    "sequence": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 315,
+      "tracks": [
+       {
+        "id": "sequence:seq",
+        "items": [
+         {
+          "id": "sequence:s0",
+          "from": 0,
+          "durationInFrames": 75,
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in1"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "title:t",
+             "items": [
+              {
+               "id": "title:i",
+               "from": 0,
+               "durationInFrames": 75,
+               "kind": "element",
+               "component": "core/title",
+               "props": {
+                "eyebrow": "Changelog",
+                "title": "What's new in v2.4",
+                "subtitle": "",
+                "mark": "",
+                "markLook": "underline",
+                "markColor": "#facc15",
+                "align": "center",
+                "entrance": "rise",
+                "color": "#fafafa",
+                "accent": "#a78bfa",
+                "background": "transparent",
+                "fontSize": 112,
+                "fontWeight": 760
+               },
+               "nodeId": "title",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "title",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               }
+              }
+             ]
+            }
+           ]
+          },
+          "exit": {
+           "kind": "core/slide",
+           "durationInFrames": 15
+          }
+         },
+         {
+          "id": "sequence:s1",
+          "from": 60,
+          "durationInFrames": 150,
+          "enter": {
+           "kind": "core/slide",
+           "durationInFrames": 15
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in2"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "terminal:t",
+             "items": [
+              {
+               "id": "terminal:i",
+               "from": 0,
+               "durationInFrames": 150,
+               "kind": "element",
+               "component": "remocn/terminal-simulator",
+               "props": {
+                "prompt": "$",
+                "title": "~/projects/acme",
+                "background": "#0a0a0a",
+                "chromeColor": "#1a1a1a",
+                "fontSize": 18,
+                "charsPerFrame": 1,
+                "chunkSize": 1,
+                "lines": [
+                 {
+                  "text": "deploy --production",
+                  "type": "command",
+                  "delay": 0
+                 },
+                 {
+                  "text": "Running tests...",
+                  "type": "log",
+                  "delay": 6
+                 },
+                 {
+                  "text": "128 tests passed",
+                  "type": "success",
+                  "delay": 10
+                 },
+                 {
+                  "text": "Building the image...",
+                  "type": "log",
+                  "delay": 8
+                 },
+                 {
+                  "text": "Image ready in 41s",
+                  "type": "success",
+                  "delay": 10
+                 },
+                 {
+                  "text": "Rolling out to everyone...",
+                  "type": "log",
+                  "delay": 8
+                 },
+                 {
+                  "text": "Live in production",
+                  "type": "success",
+                  "delay": 12
+                 }
+                ],
+                "speed": 1
+               },
+               "nodeId": "terminal",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "terminal",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               }
+              }
+             ]
+            }
+           ]
+          },
+          "exit": {
+           "kind": "core/slide",
+           "durationInFrames": 15
+          }
+         },
+         {
+          "id": "sequence:s2",
+          "from": 195,
+          "durationInFrames": 120,
+          "enter": {
+           "kind": "core/slide",
+           "durationInFrames": 15
+          },
+          "slot": {
+           "nodeId": "sequence",
+           "port": "in3"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "chart-scene:l0",
+             "items": [
+              {
+               "id": "chart-scene:l0:g",
+               "from": 0,
+               "durationInFrames": 90,
+               "handles": {
+                "move": {
+                 "nodeId": "chart-scene",
+                 "param": "offsetsMs",
+                 "unit": "ms",
+                 "index": 0
+                }
+               },
+               "slot": {
+                "nodeId": "chart-scene",
+                "port": "in1"
+               },
+               "kind": "group",
+               "props": {
+                "tracks": [
+                 {
+                  "id": "bg:t",
+                  "items": [
+                   {
+                    "id": "bg:i",
+                    "from": 0,
+                    "durationInFrames": 90,
+                    "kind": "element",
+                    "component": "core/gradient",
+                    "props": {
+                     "from": "#1e1b4b",
+                     "to": "#0f172a",
+                     "angle": 135,
+                     "grain": 0.08
+                    },
+                    "nodeId": "bg",
+                    "handles": {
+                     "trimEnd": {
+                      "nodeId": "bg",
+                      "param": "clipDuration",
+                      "unit": "frames"
+                     }
+                    }
+                   }
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             "layer": true
+            },
+            {
+             "id": "chart-scene:l1",
+             "items": [
+              {
+               "id": "chart-scene:l1:g",
+               "from": 0,
+               "durationInFrames": 120,
+               "handles": {
+                "move": {
+                 "nodeId": "chart-scene",
+                 "param": "offsetsMs",
+                 "unit": "ms",
+                 "index": 1
+                }
+               },
+               "slot": {
+                "nodeId": "chart-scene",
+                "port": "in2"
+               },
+               "kind": "group",
+               "props": {
+                "tracks": [
+                 {
+                  "id": "chart:t",
+                  "items": [
+                   {
+                    "id": "chart:i",
+                    "from": 0,
+                    "durationInFrames": 120,
+                    "kind": "element",
+                    "component": "remocn/animated-bar-chart",
+                    "props": {
+                     "barColor": "#0ea5e9",
+                     "gap": 16,
+                     "staggerFrames": 6,
+                     "bars": [
+                      {
+                       "label": "",
+                       "value": 35
+                      },
+                      {
+                       "label": "",
+                       "value": 60
+                      },
+                      {
+                       "label": "",
+                       "value": 45
+                      },
+                      {
+                       "label": "",
+                       "value": 80
+                      },
+                      {
+                       "label": "",
+                       "value": 55
+                      },
+                      {
+                       "label": "",
+                       "value": 70
+                      },
+                      {
+                       "label": "",
+                       "value": 90
+                      },
+                      {
+                       "label": "",
+                       "value": 65
+                      }
+                     ],
+                     "width": 1000,
+                     "height": 500,
+                     "baselineColor": "#27272a",
+                     "labelColor": "#a1a1aa",
+                     "speed": 1
+                    },
+                    "nodeId": "chart",
+                    "handles": {
+                     "trimEnd": {
+                      "nodeId": "chart",
+                      "param": "clipDuration",
+                      "unit": "frames"
+                     }
+                    },
+                    "design": {
+                     "width": 1920,
+                     "height": 1080
+                    }
+                   }
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             "layer": true
+            },
+            {
+             "id": "chart-scene:l2",
+             "items": [
+              {
+               "id": "chart-scene:l2:g",
+               "from": 0,
+               "durationInFrames": 120,
+               "handles": {
+                "move": {
+                 "nodeId": "chart-scene",
+                 "param": "offsetsMs",
+                 "unit": "ms",
+                 "index": 2
+                }
+               },
+               "slot": {
+                "nodeId": "chart-scene",
+                "port": "in3"
+               },
+               "kind": "group",
+               "props": {
+                "tracks": [
+                 {
+                  "id": "credit:t",
+                  "items": [
+                   {
+                    "id": "credit:i",
+                    "from": 0,
+                    "durationInFrames": 120,
+                    "kind": "element",
+                    "component": "core/lower-third",
+                    "props": {
+                     "title": "Acme v2.4",
+                     "subtitle": "Out now",
+                     "position": "bottom-left",
+                     "accent": "#a78bfa",
+                     "color": "#fafafa",
+                     "panel": "rgba(10,10,12,0.72)"
+                    },
+                    "nodeId": "credit",
+                    "handles": {
+                     "trimEnd": {
+                      "nodeId": "credit",
+                      "param": "clipDuration",
+                      "unit": "frames"
+                     }
+                    }
+                   }
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             "layer": true
+            }
+           ]
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "render": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    }
+   },
+   "errors": {},
+   "specs": {
+    "render": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "durationInFrames": 315,
+     "background": "#09090b",
+     "tracks": [
+      {
+       "id": "sequence:seq",
+       "items": [
+        {
+         "id": "sequence:s0",
+         "from": 0,
+         "durationInFrames": 75,
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "title:t",
+            "items": [
+             {
+              "id": "title:i",
+              "from": 0,
+              "durationInFrames": 75,
+              "kind": "element",
+              "component": "core/title",
+              "props": {
+               "eyebrow": "Changelog",
+               "title": "What's new in v2.4",
+               "subtitle": "",
+               "mark": "",
+               "markLook": "underline",
+               "markColor": "#facc15",
+               "align": "center",
+               "entrance": "rise",
+               "color": "#fafafa",
+               "accent": "#a78bfa",
+               "background": "transparent",
+               "fontSize": 112,
+               "fontWeight": 760
+              },
+              "nodeId": "title",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "title",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "core/slide",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s1",
+         "from": 60,
+         "durationInFrames": 150,
+         "enter": {
+          "kind": "core/slide",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "terminal:t",
+            "items": [
+             {
+              "id": "terminal:i",
+              "from": 0,
+              "durationInFrames": 150,
+              "kind": "element",
+              "component": "remocn/terminal-simulator",
+              "props": {
+               "prompt": "$",
+               "title": "~/projects/acme",
+               "background": "#0a0a0a",
+               "chromeColor": "#1a1a1a",
+               "fontSize": 18,
+               "charsPerFrame": 1,
+               "chunkSize": 1,
+               "lines": [
+                {
+                 "text": "deploy --production",
+                 "type": "command",
+                 "delay": 0
+                },
+                {
+                 "text": "Running tests...",
+                 "type": "log",
+                 "delay": 6
+                },
+                {
+                 "text": "128 tests passed",
+                 "type": "success",
+                 "delay": 10
+                },
+                {
+                 "text": "Building the image...",
+                 "type": "log",
+                 "delay": 8
+                },
+                {
+                 "text": "Image ready in 41s",
+                 "type": "success",
+                 "delay": 10
+                },
+                {
+                 "text": "Rolling out to everyone...",
+                 "type": "log",
+                 "delay": 8
+                },
+                {
+                 "text": "Live in production",
+                 "type": "success",
+                 "delay": 12
+                }
+               ],
+               "speed": 1
+              },
+              "nodeId": "terminal",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "terminal",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         },
+         "exit": {
+          "kind": "core/slide",
+          "durationInFrames": 15
+         }
+        },
+        {
+         "id": "sequence:s2",
+         "from": 195,
+         "durationInFrames": 120,
+         "enter": {
+          "kind": "core/slide",
+          "durationInFrames": 15
+         },
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "chart-scene:l0",
+            "items": [
+             {
+              "id": "chart-scene:l0:g",
+              "from": 0,
+              "durationInFrames": 90,
+              "handles": {
+               "move": {
+                "nodeId": "chart-scene",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 0
+               }
+              },
+              "slot": {
+               "nodeId": "chart-scene",
+               "port": "in1"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "bg:t",
+                 "items": [
+                  {
+                   "id": "bg:i",
+                   "from": 0,
+                   "durationInFrames": 90,
+                   "kind": "element",
+                   "component": "core/gradient",
+                   "props": {
+                    "from": "#1e1b4b",
+                    "to": "#0f172a",
+                    "angle": 135,
+                    "grain": 0.08
+                   },
+                   "nodeId": "bg",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "bg",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           },
+           {
+            "id": "chart-scene:l1",
+            "items": [
+             {
+              "id": "chart-scene:l1:g",
+              "from": 0,
+              "durationInFrames": 120,
+              "handles": {
+               "move": {
+                "nodeId": "chart-scene",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 1
+               }
+              },
+              "slot": {
+               "nodeId": "chart-scene",
+               "port": "in2"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "chart:t",
+                 "items": [
+                  {
+                   "id": "chart:i",
+                   "from": 0,
+                   "durationInFrames": 120,
+                   "kind": "element",
+                   "component": "remocn/animated-bar-chart",
+                   "props": {
+                    "barColor": "#0ea5e9",
+                    "gap": 16,
+                    "staggerFrames": 6,
+                    "bars": [
+                     {
+                      "label": "",
+                      "value": 35
+                     },
+                     {
+                      "label": "",
+                      "value": 60
+                     },
+                     {
+                      "label": "",
+                      "value": 45
+                     },
+                     {
+                      "label": "",
+                      "value": 80
+                     },
+                     {
+                      "label": "",
+                      "value": 55
+                     },
+                     {
+                      "label": "",
+                      "value": 70
+                     },
+                     {
+                      "label": "",
+                      "value": 90
+                     },
+                     {
+                      "label": "",
+                      "value": 65
+                     }
+                    ],
+                    "width": 1000,
+                    "height": 500,
+                    "baselineColor": "#27272a",
+                    "labelColor": "#a1a1aa",
+                    "speed": 1
+                   },
+                   "nodeId": "chart",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "chart",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   },
+                   "design": {
+                    "width": 1920,
+                    "height": 1080
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           },
+           {
+            "id": "chart-scene:l2",
+            "items": [
+             {
+              "id": "chart-scene:l2:g",
+              "from": 0,
+              "durationInFrames": 120,
+              "handles": {
+               "move": {
+                "nodeId": "chart-scene",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 2
+               }
+              },
+              "slot": {
+               "nodeId": "chart-scene",
+               "port": "in3"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "credit:t",
+                 "items": [
+                  {
+                   "id": "credit:i",
+                   "from": 0,
+                   "durationInFrames": 120,
+                   "kind": "element",
+                   "component": "core/lower-third",
+                   "props": {
+                    "title": "Acme v2.4",
+                    "subtitle": "Out now",
+                    "position": "bottom-left",
+                    "accent": "#a78bfa",
+                    "color": "#fafafa",
+                    "panel": "rgba(10,10,12,0.72)"
+                   },
+                   "nodeId": "credit",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "credit",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": [],
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    }
+   },
+   "order": [
+    "title",
+    "terminal",
+    "chart",
+    "bg",
+    "credit",
+    "chart-scene",
+    "sequence",
+    "render"
+   ]
+  },
+  "problems": [],
+  "cards": {
+   "title": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“What's new in v2.4”"
+     },
+     {
+      "icon": "clock",
+      "text": "2.5 s"
+     }
+    ]
+   },
+   "terminal": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“~/projects/acme”"
+     },
+     {
+      "icon": "clock",
+      "text": "5 s · usually 8.9 s",
+      "tone": "warn",
+      "title": "Shorter than this element usually runs, so its animation may be cut off."
+     }
+    ]
+   },
+   "chart": {
+    "rows": [
+     {
+      "icon": "clock",
+      "text": "4 s"
+     }
+    ]
+   },
+   "credit": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“Acme v2.4”"
+     },
+     {
+      "icon": "clock",
+      "text": "4 s"
+     }
+    ]
+   },
+   "bg": {
+    "rows": [
+     {
+      "icon": "clock",
+      "text": "3 s"
+     }
+    ]
+   },
+   "chart-scene": {
+    "rows": [
+     {
+      "icon": "layers",
+      "text": "3 layers"
+     },
+     {
+      "icon": "clock",
+      "text": "Length follows the front layer"
+     },
+     {
+      "icon": "timer",
+      "text": "4 s"
+     }
+    ]
+   },
+   "sequence": {
+    "rows": [
+     {
+      "icon": "list-video",
+      "text": "3 clips · 10.5 s"
+     },
+     {
+      "icon": "arrow-right-left",
+      "text": "Slide · 0.5 s"
+     }
+    ]
+   },
+   "render": {
+    "rows": [
+     {
+      "icon": "ratio",
+      "text": "16:9 + 1:1"
+     },
+     {
+      "icon": "film",
+      "text": "MP4 · 1080p / 1920p · 30 fps"
+     },
+     {
+      "icon": "clock",
+      "text": "4 s"
+     }
+    ]
+   }
+  },
+  "preview": {
+   "spec": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 315,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "sequence:seq",
+      "items": [
+       {
+        "id": "sequence:s0",
+        "from": 0,
+        "durationInFrames": 75,
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in1"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "title:t",
+           "items": [
+            {
+             "id": "title:i",
+             "from": 0,
+             "durationInFrames": 75,
+             "kind": "element",
+             "component": "core/title",
+             "props": {
+              "eyebrow": "Changelog",
+              "title": "What's new in v2.4",
+              "subtitle": "",
+              "mark": "",
+              "markLook": "underline",
+              "markColor": "#facc15",
+              "align": "center",
+              "entrance": "rise",
+              "color": "#fafafa",
+              "accent": "#a78bfa",
+              "background": "transparent",
+              "fontSize": 112,
+              "fontWeight": 760
+             },
+             "nodeId": "title",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "title",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "core/slide",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s1",
+        "from": 60,
+        "durationInFrames": 150,
+        "enter": {
+         "kind": "core/slide",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in2"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "terminal:t",
+           "items": [
+            {
+             "id": "terminal:i",
+             "from": 0,
+             "durationInFrames": 150,
+             "kind": "element",
+             "component": "remocn/terminal-simulator",
+             "props": {
+              "prompt": "$",
+              "title": "~/projects/acme",
+              "background": "#0a0a0a",
+              "chromeColor": "#1a1a1a",
+              "fontSize": 18,
+              "charsPerFrame": 1,
+              "chunkSize": 1,
+              "lines": [
+               {
+                "text": "deploy --production",
+                "type": "command",
+                "delay": 0
+               },
+               {
+                "text": "Running tests...",
+                "type": "log",
+                "delay": 6
+               },
+               {
+                "text": "128 tests passed",
+                "type": "success",
+                "delay": 10
+               },
+               {
+                "text": "Building the image...",
+                "type": "log",
+                "delay": 8
+               },
+               {
+                "text": "Image ready in 41s",
+                "type": "success",
+                "delay": 10
+               },
+               {
+                "text": "Rolling out to everyone...",
+                "type": "log",
+                "delay": 8
+               },
+               {
+                "text": "Live in production",
+                "type": "success",
+                "delay": 12
+               }
+              ],
+              "speed": 1
+             },
+             "nodeId": "terminal",
+             "handles": {
+              "trimEnd": {
+               "nodeId": "terminal",
+               "param": "clipDuration",
+               "unit": "frames"
+              }
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "exit": {
+         "kind": "core/slide",
+         "durationInFrames": 15
+        }
+       },
+       {
+        "id": "sequence:s2",
+        "from": 195,
+        "durationInFrames": 120,
+        "enter": {
+         "kind": "core/slide",
+         "durationInFrames": 15
+        },
+        "slot": {
+         "nodeId": "sequence",
+         "port": "in3"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "chart-scene:l0",
+           "items": [
+            {
+             "id": "chart-scene:l0:g",
+             "from": 0,
+             "durationInFrames": 90,
+             "handles": {
+              "move": {
+               "nodeId": "chart-scene",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 0
+              }
+             },
+             "slot": {
+              "nodeId": "chart-scene",
+              "port": "in1"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "bg:t",
+                "items": [
+                 {
+                  "id": "bg:i",
+                  "from": 0,
+                  "durationInFrames": 90,
+                  "kind": "element",
+                  "component": "core/gradient",
+                  "props": {
+                   "from": "#1e1b4b",
+                   "to": "#0f172a",
+                   "angle": 135,
+                   "grain": 0.08
+                  },
+                  "nodeId": "bg",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "bg",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          },
+          {
+           "id": "chart-scene:l1",
+           "items": [
+            {
+             "id": "chart-scene:l1:g",
+             "from": 0,
+             "durationInFrames": 120,
+             "handles": {
+              "move": {
+               "nodeId": "chart-scene",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 1
+              }
+             },
+             "slot": {
+              "nodeId": "chart-scene",
+              "port": "in2"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "chart:t",
+                "items": [
+                 {
+                  "id": "chart:i",
+                  "from": 0,
+                  "durationInFrames": 120,
+                  "kind": "element",
+                  "component": "remocn/animated-bar-chart",
+                  "props": {
+                   "barColor": "#0ea5e9",
+                   "gap": 16,
+                   "staggerFrames": 6,
+                   "bars": [
+                    {
+                     "label": "",
+                     "value": 35
+                    },
+                    {
+                     "label": "",
+                     "value": 60
+                    },
+                    {
+                     "label": "",
+                     "value": 45
+                    },
+                    {
+                     "label": "",
+                     "value": 80
+                    },
+                    {
+                     "label": "",
+                     "value": 55
+                    },
+                    {
+                     "label": "",
+                     "value": 70
+                    },
+                    {
+                     "label": "",
+                     "value": 90
+                    },
+                    {
+                     "label": "",
+                     "value": 65
+                    }
+                   ],
+                   "width": 1000,
+                   "height": 500,
+                   "baselineColor": "#27272a",
+                   "labelColor": "#a1a1aa",
+                   "speed": 1
+                  },
+                  "nodeId": "chart",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "chart",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  },
+                  "design": {
+                   "width": 1920,
+                   "height": 1080
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          },
+          {
+           "id": "chart-scene:l2",
+           "items": [
+            {
+             "id": "chart-scene:l2:g",
+             "from": 0,
+             "durationInFrames": 120,
+             "handles": {
+              "move": {
+               "nodeId": "chart-scene",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 2
+              }
+             },
+             "slot": {
+              "nodeId": "chart-scene",
+              "port": "in3"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "credit:t",
+                "items": [
+                 {
+                  "id": "credit:i",
+                  "from": 0,
+                  "durationInFrames": 120,
+                  "kind": "element",
+                  "component": "core/lower-third",
+                  "props": {
+                   "title": "Acme v2.4",
+                   "subtitle": "Out now",
+                   "position": "bottom-left",
+                   "accent": "#a78bfa",
+                   "color": "#fafafa",
+                   "panel": "rgba(10,10,12,0.72)"
+                  },
+                  "nodeId": "credit",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "credit",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   },
+   "spans": {
+    "title": {
+     "from": 0,
+     "to": 75
+    },
+    "terminal": {
+     "from": 60,
+     "to": 210
+    },
+    "bg": {
+     "from": 195,
+     "to": 285
+    },
+    "chart": {
+     "from": 195,
+     "to": 315
+    },
+    "credit": {
+     "from": 195,
+     "to": 315
+    }
+   },
+   "sourceNodeId": "render"
+  },
+  "timelines": {
+   "render": {
+    "flat": {
+     "fps": 30,
+     "durationInFrames": 315,
+     "bars": [
+      {
+       "type": "video",
+       "key": "/0:sequence:s0/0:title:i",
+       "itemId": "title:i",
+       "nodeId": "title",
+       "kind": "element",
+       "component": "core/title",
+       "props": {
+        "eyebrow": "Changelog",
+        "title": "What's new in v2.4",
+        "subtitle": "",
+        "mark": "",
+        "markLook": "underline",
+        "markColor": "#facc15",
+        "align": "center",
+        "entrance": "rise",
+        "color": "#fafafa",
+        "accent": "#a78bfa",
+        "background": "transparent",
+        "fontSize": 112,
+        "fontWeight": 760
+       },
+       "thumbnail": null,
+       "from": 0,
+       "to": 75,
+       "lane": 0,
+       "order": 0,
+       "chain": [
+        {
+         "itemId": "title:i",
+         "nodeId": "title",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "title",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 75,
+         "from": 0,
+         "to": 75
+        },
+        {
+         "itemId": "sequence:s0",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in1"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 75,
+         "from": 0,
+         "to": 75
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 75,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s1/0:terminal:i",
+       "itemId": "terminal:i",
+       "nodeId": "terminal",
+       "kind": "element",
+       "component": "remocn/terminal-simulator",
+       "props": {
+        "prompt": "$",
+        "title": "~/projects/acme",
+        "background": "#0a0a0a",
+        "chromeColor": "#1a1a1a",
+        "fontSize": 18,
+        "charsPerFrame": 1,
+        "chunkSize": 1,
+        "lines": [
+         {
+          "text": "deploy --production",
+          "type": "command",
+          "delay": 0
+         },
+         {
+          "text": "Running tests...",
+          "type": "log",
+          "delay": 6
+         },
+         {
+          "text": "128 tests passed",
+          "type": "success",
+          "delay": 10
+         },
+         {
+          "text": "Building the image...",
+          "type": "log",
+          "delay": 8
+         },
+         {
+          "text": "Image ready in 41s",
+          "type": "success",
+          "delay": 10
+         },
+         {
+          "text": "Rolling out to everyone...",
+          "type": "log",
+          "delay": 8
+         },
+         {
+          "text": "Live in production",
+          "type": "success",
+          "delay": 12
+         }
+        ],
+        "speed": 1
+       },
+       "thumbnail": null,
+       "from": 60,
+       "to": 210,
+       "lane": 1,
+       "order": 1,
+       "chain": [
+        {
+         "itemId": "terminal:i",
+         "nodeId": "terminal",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "terminal",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 150,
+         "from": 60,
+         "to": 210
+        },
+        {
+         "itemId": "sequence:s1",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in2"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 150,
+         "from": 60,
+         "to": 210
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 150,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s2/0:chart-scene:l0:g/0:bg:i",
+       "itemId": "bg:i",
+       "nodeId": "bg",
+       "kind": "element",
+       "component": "core/gradient",
+       "props": {
+        "from": "#1e1b4b",
+        "to": "#0f172a",
+        "angle": 135,
+        "grain": 0.08
+       },
+       "thumbnail": null,
+       "from": 195,
+       "to": 285,
+       "lane": 0,
+       "order": 2,
+       "chain": [
+        {
+         "itemId": "bg:i",
+         "nodeId": "bg",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "bg",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 90,
+         "from": 195,
+         "to": 285
+        },
+        {
+         "itemId": "chart-scene:l0:g",
+         "handles": {
+          "move": {
+           "nodeId": "chart-scene",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 0
+          }
+         },
+         "slot": {
+          "nodeId": "chart-scene",
+          "port": "in1"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 90,
+         "from": 195,
+         "to": 285
+        },
+        {
+         "itemId": "sequence:s2",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 120,
+         "from": 195,
+         "to": 315
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 90,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s2/1:chart-scene:l1:g/0:chart:i",
+       "itemId": "chart:i",
+       "nodeId": "chart",
+       "kind": "element",
+       "component": "remocn/animated-bar-chart",
+       "props": {
+        "barColor": "#0ea5e9",
+        "gap": 16,
+        "staggerFrames": 6,
+        "bars": [
+         {
+          "label": "",
+          "value": 35
+         },
+         {
+          "label": "",
+          "value": 60
+         },
+         {
+          "label": "",
+          "value": 45
+         },
+         {
+          "label": "",
+          "value": 80
+         },
+         {
+          "label": "",
+          "value": 55
+         },
+         {
+          "label": "",
+          "value": 70
+         },
+         {
+          "label": "",
+          "value": 90
+         },
+         {
+          "label": "",
+          "value": 65
+         }
+        ],
+        "width": 1000,
+        "height": 500,
+        "baselineColor": "#27272a",
+        "labelColor": "#a1a1aa",
+        "speed": 1
+       },
+       "thumbnail": null,
+       "from": 195,
+       "to": 315,
+       "lane": 2,
+       "order": 3,
+       "chain": [
+        {
+         "itemId": "chart:i",
+         "nodeId": "chart",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "chart",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 120,
+         "from": 195,
+         "to": 315
+        },
+        {
+         "itemId": "chart-scene:l1:g",
+         "handles": {
+          "move": {
+           "nodeId": "chart-scene",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 1
+          }
+         },
+         "slot": {
+          "nodeId": "chart-scene",
+          "port": "in2"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 120,
+         "from": 195,
+         "to": 315
+        },
+        {
+         "itemId": "sequence:s2",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 120,
+         "from": 195,
+         "to": 315
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 120,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:sequence:s2/2:chart-scene:l2:g/0:credit:i",
+       "itemId": "credit:i",
+       "nodeId": "credit",
+       "kind": "element",
+       "component": "core/lower-third",
+       "props": {
+        "title": "Acme v2.4",
+        "subtitle": "Out now",
+        "position": "bottom-left",
+        "accent": "#a78bfa",
+        "color": "#fafafa",
+        "panel": "rgba(10,10,12,0.72)"
+       },
+       "thumbnail": null,
+       "from": 195,
+       "to": 315,
+       "lane": 3,
+       "order": 4,
+       "chain": [
+        {
+         "itemId": "credit:i",
+         "nodeId": "credit",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "credit",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 120,
+         "from": 195,
+         "to": 315
+        },
+        {
+         "itemId": "chart-scene:l2:g",
+         "handles": {
+          "move": {
+           "nodeId": "chart-scene",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 2
+          }
+         },
+         "slot": {
+          "nodeId": "chart-scene",
+          "port": "in3"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 120,
+         "from": 195,
+         "to": 315
+        },
+        {
+         "itemId": "sequence:s2",
+         "slot": {
+          "nodeId": "sequence",
+          "port": "in3"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 120,
+         "from": 195,
+         "to": 315
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 120,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      }
+     ],
+     "lanes": 4,
+     "audio": [],
+     "audioLanes": 0,
+     "transitions": [
+      {
+       "key": "/0:sequence:s1:enter",
+       "itemKey": "/0:sequence:s1",
+       "lanes": [
+        0,
+        1
+       ],
+       "from": 60,
+       "to": 75,
+       "kind": "core/slide",
+       "covers": 0.2,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in2"
+       }
+      },
+      {
+       "key": "/0:sequence:s2:enter",
+       "itemKey": "/0:sequence:s2",
+       "lanes": [
+        0,
+        1,
+        2,
+        3
+       ],
+       "from": 195,
+       "to": 210,
+       "kind": "core/slide",
+       "covers": 0.125,
+       "slot": {
+        "nodeId": "sequence",
+        "port": "in3"
+       }
+      }
+     ],
+     "marks": [],
+     "cameraKeys": []
+    },
+    "chapters": [],
+    "mix": {
+     "fps": 30,
+     "durationInFrames": 315,
+     "channels": [],
+     "buses": [
+      {
+       "id": "music",
+       "name": "Music",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "effects",
+       "name": "Effects",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "clips",
+       "name": "Clips",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      }
+     ],
+     "master": {
+      "fader": 0,
+      "eq": {
+       "on": false,
+       "bands": [
+        {
+         "type": "lowshelf",
+         "freq": 120,
+         "gain": 0,
+         "q": 0.7
+        },
+        {
+         "type": "peak",
+         "freq": 500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "peak",
+         "freq": 2500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "highshelf",
+         "freq": 8000,
+         "gain": 0,
+         "q": 0.7
+        }
+       ]
+      },
+      "comp": {
+       "on": false,
+       "threshold": -12,
+       "ratio": 2,
+       "attack": 20,
+       "release": 250,
+       "makeup": 0
+      },
+      "limiter": {
+       "on": false,
+       "ceiling": -1
+      },
+      "loudness": "off"
+     },
+     "key": "4f2cff50abd11199"
+    }
+   }
+  }
+ }
+}

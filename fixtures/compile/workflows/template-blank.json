@@ -1,0 +1,76 @@
+{
+ "workflow": {
+  "version": 1,
+  "id": "template-blank",
+  "name": "Blank",
+  "settings": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "theme": "dark",
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "variables": {},
+  "nodes": [
+   {
+    "id": "note",
+    "type": "core.note",
+    "position": {
+     "x": 0,
+     "y": 0
+    },
+    "params": {
+     "text": "Drag nodes in from the list on the left, or press Ctrl+K."
+    }
+   }
+  ],
+  "edges": [],
+  "markers": []
+ },
+ "compile": {
+  "values": {},
+  "errors": {},
+  "specs": {},
+  "order": []
+ },
+ "problems": [],
+ "cards": {
+  "note": {
+   "rows": [
+    {
+     "icon": "sticky-note",
+     "text": "Drag nodes in from the list on the left, …"
+    }
+   ]
+  }
+ },
+ "preview": null,
+ "timelines": {},
+ "run": {
+  "results": {},
+  "compile": {
+   "values": {},
+   "errors": {},
+   "specs": {},
+   "order": []
+  },
+  "problems": [],
+  "cards": {
+   "note": {
+    "rows": [
+     {
+      "icon": "sticky-note",
+      "text": "Drag nodes in from the list on the left, …"
+     }
+    ]
+   }
+  },
+  "preview": null,
+  "timelines": {}
+ }
+}

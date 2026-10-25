@@ -153,3 +153,5 @@ remotion-bundle/
 .opsis/
 examples/**/secrets/
 .turbo/
+
+/target/

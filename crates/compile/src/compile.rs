@@ -1,0 +1,202 @@
+use indexmap::IndexMap;
+use opsis_types::timeline::TimelineSpec;
+use opsis_types::values::{AudioValue, CompileValue, NodeResult, PortValues};
+use opsis_types::workflow::{Workflow, WorkflowEdge, WorkflowSettings};
+use serde::{Deserialize, Serialize};
+
+use crate::clip::{clip_of, clip_to_spec};
+use crate::graph::topo_sort;
+use crate::node::{CLIP_PORT, Ctx, NodeDef};
+use crate::params::Values;
+use crate::ports::convert_input;
+use crate::registry::{is_output_type, node_def};
+use crate::vars::{Vars, interpolate_map, workflow_vars};
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct CompileResult {
+    pub values: IndexMap<String, PortValues>,
+    pub errors: IndexMap<String, String>,
+    pub specs: IndexMap<String, TimelineSpec>,
+    pub order: Vec<String>,
+}
+
+pub const UNKNOWN_TYPE: &str = "This node type isn't available";
+
+fn merge_values(prev: &CompileValue, next: CompileValue) -> CompileValue {
+    match (prev, next) {
+        (CompileValue::Audio(a), CompileValue::Audio(b)) => CompileValue::Audio(AudioValue {
+            items: a.items.iter().cloned().chain(b.items).collect(),
+            ..a.clone()
+        }),
+        (_, next) => next,
+    }
+}
+
+pub fn gather_inputs<'a>(
+    wf: &Workflow,
+    def: &NodeDef,
+    id: &str,
+    value_of: impl Fn(&WorkflowEdge) -> Option<&'a CompileValue>,
+) -> PortValues {
+    let mut inputs = PortValues::new();
+    for e in wf.edges.iter().filter(|e| e.target == id) {
+        let spec = def.input(&e.target_handle);
+        let Some(value) = convert_input(value_of(e), spec) else {
+            continue;
+        };
+        let merged = match inputs.get(&e.target_handle) {
+            Some(prev) if spec.is_some_and(|s| s.many) => merge_values(prev, value),
+            _ => value,
+        };
+        inputs.insert(e.target_handle.clone(), merged);
+    }
+    inputs
+}
+
+fn bypass(def: &NodeDef, inputs: &PortValues) -> PortValues {
+    def.outputs
+        .iter()
+        .filter_map(|(port, spec)| {
+            def.inputs
+                .iter()
+                .filter_map(|(input, _)| inputs.get(*input))
+                .find(|v| v.port_type() == spec.kind)
+                .map(|v| ((*port).to_owned(), v.clone()))
+        })
+        .collect()
+}
+
+pub fn interpolated_params(def: Option<&NodeDef>, params: &Values, vars: &Vars) -> Values {
+    match def {
+        Some(def) => interpolate_map(&def.params.with_defaults(params), vars),
+        None => interpolate_map(params, vars),
+    }
+}
+
+struct RunContext<'a> {
+    vars: &'a Vars,
+    result: Option<&'a NodeResult>,
+}
+
+fn run_compile(
+    wf: &Workflow,
+    node: &opsis_types::workflow::WorkflowNode,
+    def: &NodeDef,
+    inputs: &PortValues,
+    run: RunContext<'_>,
+) -> Result<PortValues, String> {
+    let values = def.parse(
+        &interpolated_params(Some(def), &node.params, run.vars),
+        Some(&node.params),
+    )?;
+    let ctx = Ctx {
+        node_id: &node.id,
+        kind: &node.kind,
+        label: node.label.as_deref(),
+        params: (),
+        values: &values,
+        inputs,
+        settings: &wf.settings,
+        result: run.result,
+        vars: run.vars,
+        workflow: wf,
+    };
+    Ok(match def.run_compile(&ctx)? {
+        Some(out) => out,
+        None => run.result.map(|r| r.outputs.clone()).unwrap_or_default(),
+    })
+}
+
+pub fn compile_workflow(
+    wf: &Workflow,
+    results: Option<&IndexMap<String, NodeResult>>,
+) -> CompileResult {
+    let sorted = topo_sort(wf).sorted;
+    let vars = workflow_vars(&wf.name, &wf.variables);
+    let mut out = CompileResult {
+        order: sorted.iter().map(|n| n.id.clone()).collect(),
+        ..CompileResult::default()
+    };
+    for node in sorted {
+        let id = &node.id;
+        let Some(def) = node_def(&node.kind) else {
+            out.errors.insert(id.clone(), UNKNOWN_TYPE.to_owned());
+            continue;
+        };
+        let inputs = gather_inputs(wf, def, id, |e| {
+            out.values
+                .get(&e.source)
+                .and_then(|v| v.get(&e.source_handle))
+        });
+        if node.is_disabled() {
+            out.values.insert(id.clone(), bypass(def, &inputs));
+            continue;
+        }
+        let run = RunContext {
+            vars: &vars,
+            result: results.and_then(|r| r.get(id)),
+        };
+        match run_compile(wf, node, def, &inputs, run) {
+            Ok(values) => {
+                out.values.insert(id.clone(), values);
+                if let Some(clip) =
+                    clip_of(inputs.get(CLIP_PORT)).filter(|_| is_output_type(&node.kind))
+                {
+                    out.specs
+                        .insert(id.clone(), clip_to_spec(clip, &wf.settings));
+                }
+            }
+            Err(error) => {
+                out.values.insert(id.clone(), PortValues::new());
+                out.errors.insert(id.clone(), error);
+            }
+        }
+    }
+    out
+}
+
+pub fn pick_spec(
+    settings: &WorkflowSettings,
+    result: &CompileResult,
+    id: &str,
+) -> Option<TimelineSpec> {
+    let out = result.values.get(id)?;
+    if let Some(spec) = result.specs.get(id) {
+        return Some(spec.clone());
+    }
+    out.values()
+        .find_map(CompileValue::as_clip)
+        .map(|clip| clip_to_spec(clip, settings))
+}
+
+#[derive(Debug, Clone, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct PreviewTarget {
+    pub spec: TimelineSpec,
+    pub spans: IndexMap<String, crate::timeline::flatten::FrameRange>,
+    pub source_node_id: String,
+}
+
+pub fn preview_spec(
+    settings: &WorkflowSettings,
+    result: &CompileResult,
+    selected: Option<&str>,
+) -> Option<PreviewTarget> {
+    let candidates = selected
+        .into_iter()
+        .map(str::to_owned)
+        .chain(result.specs.keys().cloned())
+        .chain(result.order.iter().rev().cloned());
+    for id in candidates {
+        if let Some(spec) = pick_spec(settings, result, &id) {
+            let spans = crate::timeline::flatten::node_spans(&spec);
+            return Some(PreviewTarget {
+                spec,
+                spans,
+                source_node_id: id,
+            });
+        }
+    }
+    None
+}

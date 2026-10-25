@@ -1,0 +1,9 @@
+[
+  { "id": "whoosh", "label": "Whoosh", "durationMs": 150 },
+  { "id": "whip", "label": "Whip", "durationMs": 170 },
+  { "id": "mouse-click", "label": "Mouse click", "durationMs": 400 },
+  { "id": "switch", "label": "Switch", "durationMs": 330 },
+  { "id": "page-turn", "label": "Page turn", "durationMs": 400 },
+  { "id": "shutter-modern", "label": "Camera shutter", "durationMs": 490 },
+  { "id": "shutter-old", "label": "Old camera shutter", "durationMs": 310 }
+]

@@ -21,6 +21,14 @@ import { walkFiles } from "./lib/walk";
 
 const OUT = path.join(ROOT, "public", "fonts", "bundled");
 const META_OUT = path.join(CORE_DIR, "fonts", "bundled.generated.ts");
+const RUST_META_OUT = path.join(
+  ROOT,
+  "crates",
+  "compile",
+  "src",
+  "fonts",
+  "bundled.generated.json",
+);
 const SHIM_DIR = path.join(VIDEO_DIR, ...GOOGLE_SHIM_SEGMENTS);
 
 type BundledFont = { pkg: string; googleFamily?: string };
@@ -127,6 +135,8 @@ function writeBundle(): void {
       "",
     ].join("\n"),
   );
+  mkdirSync(path.dirname(RUST_META_OUT), { recursive: true });
+  writeFileSync(RUST_META_OUT, `${JSON.stringify(defs, null, 2)}\n`);
 }
 
 function writeShims(): void {

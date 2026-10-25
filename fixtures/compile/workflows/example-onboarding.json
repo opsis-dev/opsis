@@ -1,0 +1,4562 @@
+{
+ "workflow": {
+  "version": 1,
+  "id": "example_onboarding",
+  "name": "Onboarding walkthrough",
+  "settings": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "theme": "dark",
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "variables": {
+   "Site address": "https://demo.playwright.dev/todomvc"
+  },
+  "nodes": [
+   {
+    "id": "session",
+    "type": "browser.open",
+    "position": {
+     "x": 0,
+     "y": 0
+    },
+    "params": {
+     "viewportWidth": 1920,
+     "viewportHeight": 1080,
+     "dpr": 2,
+     "mobile": false,
+     "userAgent": "",
+     "locale": "en-US",
+     "timezone": "",
+     "colorScheme": "light",
+     "captureScale": 1
+    }
+   },
+   {
+    "id": "open",
+    "type": "browser.navigate",
+    "position": {
+     "x": 300,
+     "y": 0
+    },
+    "params": {
+     "url": "{{Site address}}",
+     "waitUntil": "load",
+     "after": 700
+    }
+   },
+   {
+    "id": "start",
+    "type": "browser.startRecording",
+    "position": {
+     "x": 600,
+     "y": 0
+    },
+    "params": {}
+   },
+   {
+    "id": "chapter1",
+    "type": "browser.chapter",
+    "position": {
+     "x": 900,
+     "y": 0
+    },
+    "params": {
+     "title": "Create your first item",
+     "description": "",
+     "showInVideo": false,
+     "durationMs": 2000
+    }
+   },
+   {
+    "id": "type",
+    "type": "browser.type",
+    "position": {
+     "x": 1200,
+     "y": 0
+    },
+    "params": {
+     "text": "Invite the team",
+     "chunkPauseMs": 0,
+     "pressEnter": true,
+     "after": 600,
+     "cluster": "",
+     "zoom": true,
+     "frame": "",
+     "target": "What needs to be done?"
+    },
+    "label": "New item"
+   },
+   {
+    "id": "chapter2",
+    "type": "browser.chapter",
+    "position": {
+     "x": 1500,
+     "y": 0
+    },
+    "params": {
+     "title": "Mark it done",
+     "description": "",
+     "showInVideo": false,
+     "durationMs": 2000
+    }
+   },
+   {
+    "id": "done",
+    "type": "browser.click",
+    "position": {
+     "x": 1800,
+     "y": 0
+    },
+    "params": {
+     "after": 1400,
+     "cluster": "",
+     "zoom": true,
+     "frame": "",
+     "zoomScale": 0,
+     "travelMs": 0,
+     "hoverMs": 220,
+     "target": "css=.todo-list li:nth-child(1) .toggle"
+    },
+    "label": "Done"
+   },
+   {
+    "id": "record",
+    "type": "capture.record",
+    "position": {
+     "x": 2100,
+     "y": 0
+    },
+    "params": {
+     "fps": 30,
+     "quality": 90,
+     "establishMs": 700,
+     "endTailMs": 2500,
+     "cursor": "synthetic",
+     "showActions": false,
+     "mutates": ""
+    }
+   },
+   {
+    "id": "camera",
+    "type": "camera.autoZoom",
+    "position": {
+     "x": 2100,
+     "y": 356
+    },
+    "params": {
+     "zoom": true,
+     "maxScale": 1.74,
+     "hold": 1300,
+     "speed": 1.25,
+     "style": "classic",
+     "backdrop": "glaze",
+     "frame": "none",
+     "frameTheme": "light",
+     "addressBar": true,
+     "motionBlur": true
+    }
+   },
+   {
+    "id": "highlight",
+    "type": "cursor.highlightBox",
+    "position": {
+     "x": 1500,
+     "y": 200
+    },
+    "params": {
+     "match": "",
+     "text": "",
+     "color": "#a78bfa",
+     "padding": 10,
+     "leadMs": 250,
+     "holdMs": 1400
+    }
+   },
+   {
+    "id": "tooltip",
+    "type": "text.tooltip",
+    "position": {
+     "x": 1800,
+     "y": 200
+    },
+    "params": {
+     "match": "Done",
+     "text": "Tick it off",
+     "color": "#18181b",
+     "padding": 10,
+     "leadMs": 250,
+     "holdMs": 1400,
+     "textColor": "#fafafa",
+     "fontSize": 18,
+     "font": ""
+    }
+   },
+   {
+    "id": "script",
+    "type": "text.captionsFromText",
+    "position": {
+     "x": 1200,
+     "y": 510
+    },
+    "params": {
+     "script": "Create an item. Then tick it off. That's it.",
+     "wordsPerMinute": 165,
+     "startMs": 1500,
+     "linePauseMs": 350
+    }
+   },
+   {
+    "id": "captions",
+    "type": "text.captions",
+    "position": {
+     "x": 2100,
+     "y": 734
+    },
+    "params": {
+     "style": "word-by-word",
+     "position": "bottom",
+     "fontSize": 56,
+     "color": "#ffffff",
+     "highlightColor": "#facc15",
+     "panel": "rgba(0,0,0,0.35)",
+     "fontWeight": 800,
+     "fontFamily": ""
+    }
+   },
+   {
+    "id": "render",
+    "type": "output.render",
+    "position": {
+     "x": 2400,
+     "y": 510
+    },
+    "params": {
+     "fileName": "{{Project name}}",
+     "codec": "h264",
+     "crf": 18,
+     "variants": [
+      "16:9"
+     ],
+     "reframe": "follow",
+     "scale": 1,
+     "chapters": true,
+     "chapterList": false,
+     "gl": "angle"
+    }
+   }
+  ],
+  "edges": [
+   {
+    "id": "session.session->open.session",
+    "source": "session",
+    "sourceHandle": "session",
+    "target": "open",
+    "targetHandle": "session"
+   },
+   {
+    "id": "open.session->start.session",
+    "source": "open",
+    "sourceHandle": "session",
+    "target": "start",
+    "targetHandle": "session"
+   },
+   {
+    "id": "start.session->chapter1.session",
+    "source": "start",
+    "sourceHandle": "session",
+    "target": "chapter1",
+    "targetHandle": "session"
+   },
+   {
+    "id": "chapter1.session->type.session",
+    "source": "chapter1",
+    "sourceHandle": "session",
+    "target": "type",
+    "targetHandle": "session"
+   },
+   {
+    "id": "type.session->chapter2.session",
+    "source": "type",
+    "sourceHandle": "session",
+    "target": "chapter2",
+    "targetHandle": "session"
+   },
+   {
+    "id": "chapter2.session->done.session",
+    "source": "chapter2",
+    "sourceHandle": "session",
+    "target": "done",
+    "targetHandle": "session"
+   },
+   {
+    "id": "done.session->record.session",
+    "source": "done",
+    "sourceHandle": "session",
+    "target": "record",
+    "targetHandle": "session"
+   },
+   {
+    "id": "record.recording->camera.recording",
+    "source": "record",
+    "sourceHandle": "recording",
+    "target": "camera",
+    "targetHandle": "recording"
+   },
+   {
+    "id": "highlight.style->tooltip.style",
+    "source": "highlight",
+    "sourceHandle": "style",
+    "target": "tooltip",
+    "targetHandle": "style"
+   },
+   {
+    "id": "tooltip.style->camera.style",
+    "source": "tooltip",
+    "sourceHandle": "style",
+    "target": "camera",
+    "targetHandle": "style"
+   },
+   {
+    "id": "script.captions->captions.captions",
+    "source": "script",
+    "sourceHandle": "captions",
+    "target": "captions",
+    "targetHandle": "captions"
+   },
+   {
+    "id": "camera.clip->captions.clip",
+    "source": "camera",
+    "sourceHandle": "clip",
+    "target": "captions",
+    "targetHandle": "clip"
+   },
+   {
+    "id": "captions.clip->render.clip",
+    "source": "captions",
+    "sourceHandle": "clip",
+    "target": "render",
+    "targetHandle": "clip"
+   }
+  ],
+  "markers": []
+ },
+ "compile": {
+  "values": {
+   "session": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": []
+    }
+   },
+   "open": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700
+       }
+      }
+     ]
+    }
+   },
+   "start": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700
+       }
+      },
+      {
+       "id": "start",
+       "type": "browser.startRecording",
+       "params": {}
+      }
+     ]
+    }
+   },
+   "chapter1": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700
+       }
+      },
+      {
+       "id": "start",
+       "type": "browser.startRecording",
+       "params": {}
+      },
+      {
+       "id": "chapter1",
+       "type": "browser.chapter",
+       "params": {
+        "title": "Create your first item",
+        "description": "",
+        "showInVideo": false,
+        "durationMs": 2000
+       }
+      }
+     ]
+    }
+   },
+   "type": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700
+       }
+      },
+      {
+       "id": "start",
+       "type": "browser.startRecording",
+       "params": {}
+      },
+      {
+       "id": "chapter1",
+       "type": "browser.chapter",
+       "params": {
+        "title": "Create your first item",
+        "description": "",
+        "showInVideo": false,
+        "durationMs": 2000
+       }
+      },
+      {
+       "id": "type",
+       "type": "browser.type",
+       "label": "New item",
+       "params": {
+        "target": "What needs to be done?",
+        "text": "Invite the team",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 600,
+        "cluster": "",
+        "zoom": true,
+        "frame": ""
+       }
+      }
+     ]
+    }
+   },
+   "script": {
+    "captions": {
+     "type": "captions",
+     "captions": [
+      {
+       "text": "Create",
+       "startMs": 1500,
+       "endMs": 1863.6363636363635
+      },
+      {
+       "text": "an",
+       "startMs": 1863.6363636363635,
+       "endMs": 2227.272727272727
+      },
+      {
+       "text": "item.",
+       "startMs": 2227.272727272727,
+       "endMs": 2590.9090909090905
+      },
+      {
+       "text": "Then",
+       "startMs": 2940.9090909090905,
+       "endMs": 3304.545454545454
+      },
+      {
+       "text": "tick",
+       "startMs": 3304.545454545454,
+       "endMs": 3668.1818181818176
+      },
+      {
+       "text": "it",
+       "startMs": 3668.1818181818176,
+       "endMs": 4031.818181818181
+      },
+      {
+       "text": "off.",
+       "startMs": 4031.818181818181,
+       "endMs": 4395.454545454545
+      },
+      {
+       "text": "That's",
+       "startMs": 4745.454545454545,
+       "endMs": 5109.090909090909
+      },
+      {
+       "text": "it.",
+       "startMs": 5109.090909090909,
+       "endMs": 5472.727272727273
+      }
+     ]
+    }
+   },
+   "chapter2": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700
+       }
+      },
+      {
+       "id": "start",
+       "type": "browser.startRecording",
+       "params": {}
+      },
+      {
+       "id": "chapter1",
+       "type": "browser.chapter",
+       "params": {
+        "title": "Create your first item",
+        "description": "",
+        "showInVideo": false,
+        "durationMs": 2000
+       }
+      },
+      {
+       "id": "type",
+       "type": "browser.type",
+       "label": "New item",
+       "params": {
+        "target": "What needs to be done?",
+        "text": "Invite the team",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 600,
+        "cluster": "",
+        "zoom": true,
+        "frame": ""
+       }
+      },
+      {
+       "id": "chapter2",
+       "type": "browser.chapter",
+       "params": {
+        "title": "Mark it done",
+        "description": "",
+        "showInVideo": false,
+        "durationMs": 2000
+       }
+      }
+     ]
+    }
+   },
+   "highlight": {
+    "style": {
+     "type": "recording-style",
+     "entries": [
+      {
+       "nodeId": "highlight",
+       "type": "cursor.highlightBox",
+       "params": {
+        "match": "",
+        "text": "",
+        "color": "#a78bfa",
+        "padding": 10,
+        "leadMs": 250,
+        "holdMs": 1400,
+        "look": "clean",
+        "roughness": 1
+       }
+      }
+     ]
+    }
+   },
+   "done": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://demo.playwright.dev/todomvc",
+        "waitUntil": "load",
+        "after": 700
+       }
+      },
+      {
+       "id": "start",
+       "type": "browser.startRecording",
+       "params": {}
+      },
+      {
+       "id": "chapter1",
+       "type": "browser.chapter",
+       "params": {
+        "title": "Create your first item",
+        "description": "",
+        "showInVideo": false,
+        "durationMs": 2000
+       }
+      },
+      {
+       "id": "type",
+       "type": "browser.type",
+       "label": "New item",
+       "params": {
+        "target": "What needs to be done?",
+        "text": "Invite the team",
+        "chunkPauseMs": 0,
+        "pressEnter": true,
+        "after": 600,
+        "cluster": "",
+        "zoom": true,
+        "frame": ""
+       }
+      },
+      {
+       "id": "chapter2",
+       "type": "browser.chapter",
+       "params": {
+        "title": "Mark it done",
+        "description": "",
+        "showInVideo": false,
+        "durationMs": 2000
+       }
+      },
+      {
+       "id": "done",
+       "type": "browser.click",
+       "label": "Done",
+       "params": {
+        "target": "css=.todo-list li:nth-child(1) .toggle",
+        "after": 1400,
+        "cluster": "",
+        "zoom": true,
+        "frame": "",
+        "zoomScale": 0,
+        "travelMs": 0,
+        "hoverMs": 220
+       }
+      }
+     ]
+    }
+   },
+   "tooltip": {
+    "style": {
+     "type": "recording-style",
+     "entries": [
+      {
+       "nodeId": "highlight",
+       "type": "cursor.highlightBox",
+       "params": {
+        "match": "",
+        "text": "",
+        "color": "#a78bfa",
+        "padding": 10,
+        "leadMs": 250,
+        "holdMs": 1400,
+        "look": "clean",
+        "roughness": 1
+       }
+      },
+      {
+       "nodeId": "tooltip",
+       "type": "text.tooltip",
+       "params": {
+        "match": "Done",
+        "text": "Tick it off",
+        "color": "#18181b",
+        "padding": 10,
+        "leadMs": 250,
+        "holdMs": 1400,
+        "textColor": "#fafafa",
+        "fontSize": 18,
+        "font": "",
+        "look": "clean",
+        "roughness": 1
+       }
+      }
+     ]
+    }
+   },
+   "record": {
+    "recording": {
+     "type": "recording",
+     "src": null,
+     "log": null,
+     "durationMs": 6000,
+     "viewport": {
+      "width": 1920,
+      "height": 1080
+     },
+     "nodeId": "record",
+     "style": []
+    }
+   },
+   "camera": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 144,
+     "tracks": [
+      {
+       "id": "camera:t",
+       "items": [
+        {
+         "id": "camera:i",
+         "from": 0,
+         "durationInFrames": 144,
+         "kind": "element",
+         "component": "core/placeholder",
+         "props": {
+          "title": "Not recorded yet",
+          "subtitle": "Run to record the take. The camera moves appear here afterwards."
+         },
+         "nodeId": "camera"
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "captions": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 144,
+     "tracks": [
+      {
+       "id": "captions:l0",
+       "items": [
+        {
+         "id": "captions:l0:g",
+         "from": 0,
+         "durationInFrames": 144,
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "camera:t",
+            "items": [
+             {
+              "id": "camera:i",
+              "from": 0,
+              "durationInFrames": 144,
+              "kind": "element",
+              "component": "core/placeholder",
+              "props": {
+               "title": "Not recorded yet",
+               "subtitle": "Run to record the take. The camera moves appear here afterwards."
+              },
+              "nodeId": "camera"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": "captions:l1",
+       "items": [
+        {
+         "id": "captions:l1:g",
+         "from": 0,
+         "durationInFrames": 179,
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "captions:t",
+            "items": [
+             {
+              "id": "captions:i",
+              "from": 0,
+              "durationInFrames": 179,
+              "kind": "element",
+              "component": "core/captions",
+              "props": {
+               "style": "word-by-word",
+               "position": "bottom",
+               "fontSize": 56,
+               "color": "#ffffff",
+               "highlightColor": "#facc15",
+               "panel": "rgba(0,0,0,0.35)",
+               "fontWeight": 800,
+               "captions": [
+                {
+                 "text": "Create",
+                 "startMs": 1500,
+                 "endMs": 1863.6363636363635
+                },
+                {
+                 "text": "an",
+                 "startMs": 1863.6363636363635,
+                 "endMs": 2227.272727272727
+                },
+                {
+                 "text": "item.",
+                 "startMs": 2227.272727272727,
+                 "endMs": 2590.9090909090905
+                },
+                {
+                 "text": "Then",
+                 "startMs": 2940.9090909090905,
+                 "endMs": 3304.545454545454
+                },
+                {
+                 "text": "tick",
+                 "startMs": 3304.545454545454,
+                 "endMs": 3668.1818181818176
+                },
+                {
+                 "text": "it",
+                 "startMs": 3668.1818181818176,
+                 "endMs": 4031.818181818181
+                },
+                {
+                 "text": "off.",
+                 "startMs": 4031.818181818181,
+                 "endMs": 4395.454545454545
+                },
+                {
+                 "text": "That's",
+                 "startMs": 4745.454545454545,
+                 "endMs": 5109.090909090909
+                },
+                {
+                 "text": "it.",
+                 "startMs": 5109.090909090909,
+                 "endMs": 5472.727272727273
+                }
+               ]
+              },
+              "nodeId": "captions"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "render": {}
+  },
+  "errors": {},
+  "specs": {
+   "render": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 144,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "captions:l0",
+      "items": [
+       {
+        "id": "captions:l0:g",
+        "from": 0,
+        "durationInFrames": 144,
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "camera:t",
+           "items": [
+            {
+             "id": "camera:i",
+             "from": 0,
+             "durationInFrames": 144,
+             "kind": "element",
+             "component": "core/placeholder",
+             "props": {
+              "title": "Not recorded yet",
+              "subtitle": "Run to record the take. The camera moves appear here afterwards."
+             },
+             "nodeId": "camera"
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "id": "captions:l1",
+      "items": [
+       {
+        "id": "captions:l1:g",
+        "from": 0,
+        "durationInFrames": 179,
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "captions:t",
+           "items": [
+            {
+             "id": "captions:i",
+             "from": 0,
+             "durationInFrames": 179,
+             "kind": "element",
+             "component": "core/captions",
+             "props": {
+              "style": "word-by-word",
+              "position": "bottom",
+              "fontSize": 56,
+              "color": "#ffffff",
+              "highlightColor": "#facc15",
+              "panel": "rgba(0,0,0,0.35)",
+              "fontWeight": 800,
+              "captions": [
+               {
+                "text": "Create",
+                "startMs": 1500,
+                "endMs": 1863.6363636363635
+               },
+               {
+                "text": "an",
+                "startMs": 1863.6363636363635,
+                "endMs": 2227.272727272727
+               },
+               {
+                "text": "item.",
+                "startMs": 2227.272727272727,
+                "endMs": 2590.9090909090905
+               },
+               {
+                "text": "Then",
+                "startMs": 2940.9090909090905,
+                "endMs": 3304.545454545454
+               },
+               {
+                "text": "tick",
+                "startMs": 3304.545454545454,
+                "endMs": 3668.1818181818176
+               },
+               {
+                "text": "it",
+                "startMs": 3668.1818181818176,
+                "endMs": 4031.818181818181
+               },
+               {
+                "text": "off.",
+                "startMs": 4031.818181818181,
+                "endMs": 4395.454545454545
+               },
+               {
+                "text": "That's",
+                "startMs": 4745.454545454545,
+                "endMs": 5109.090909090909
+               },
+               {
+                "text": "it.",
+                "startMs": 5109.090909090909,
+                "endMs": 5472.727272727273
+               }
+              ]
+             },
+             "nodeId": "captions"
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   }
+  },
+  "order": [
+   "session",
+   "open",
+   "start",
+   "chapter1",
+   "type",
+   "script",
+   "chapter2",
+   "highlight",
+   "done",
+   "tooltip",
+   "record",
+   "camera",
+   "captions",
+   "render"
+  ]
+ },
+ "problems": [],
+ "cards": {
+  "session": {
+   "rows": [
+    {
+     "icon": "monitor",
+     "text": "1920 × 1080"
+    }
+   ]
+  },
+  "open": {
+   "rows": [
+    {
+     "icon": "link",
+     "text": "demo.playwright.dev/todomvc",
+     "title": "https://demo.playwright.dev/todomvc"
+    },
+    {
+     "icon": "timer",
+     "text": "Pause 0.7 s"
+    }
+   ]
+  },
+  "start": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "Video starts here"
+    }
+   ]
+  },
+  "chapter1": {
+   "rows": [
+    {
+     "icon": "bookmark",
+     "text": "“Create your first item”"
+    }
+   ]
+  },
+  "type": {
+   "rows": [
+    {
+     "icon": "crosshair",
+     "text": "“What needs to be done?”",
+     "title": "What needs to be done?"
+    },
+    {
+     "icon": "keyboard",
+     "text": "“Invite the team”, then Enter",
+     "title": "Invite the team"
+    },
+    {
+     "icon": "timer",
+     "text": "Pause 0.6 s"
+    }
+   ]
+  },
+  "chapter2": {
+   "rows": [
+    {
+     "icon": "bookmark",
+     "text": "“Mark it done”"
+    }
+   ]
+  },
+  "done": {
+   "rows": [
+    {
+     "icon": "mouse-pointer-click",
+     "text": "Custom element",
+     "title": "css=.todo-list li:nth-child(1) .toggle"
+    },
+    {
+     "icon": "timer",
+     "text": "Pause 1.4 s"
+    }
+   ]
+  },
+  "record": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "30 fps"
+    },
+    {
+     "icon": "mouse-pointer",
+     "text": "Smooth cursor"
+    }
+   ]
+  },
+  "camera": {
+   "rows": [
+    {
+     "icon": "zoom-in",
+     "text": "Up to 1.74×"
+    },
+    {
+     "icon": "hourglass",
+     "text": "Hold 1.3 s"
+    },
+    {
+     "icon": "image",
+     "text": "Glaze backdrop"
+    },
+    {
+     "icon": "gauge",
+     "text": "1.25× speed"
+    }
+   ]
+  },
+  "highlight": {
+   "rows": [
+    {
+     "icon": "square-dashed",
+     "text": "On every action"
+    }
+   ]
+  },
+  "tooltip": {
+   "rows": [
+    {
+     "icon": "message-square",
+     "text": "On actions named “Done”"
+    },
+    {
+     "icon": "type",
+     "text": "“Tick it off”"
+    }
+   ]
+  },
+  "script": {
+   "rows": [
+    {
+     "icon": "captions",
+     "text": "“Create an item. Then tick it off. That'…”"
+    },
+    {
+     "icon": "gauge",
+     "text": "165 words/min"
+    }
+   ]
+  },
+  "captions": {
+   "rows": [
+    {
+     "icon": "captions",
+     "text": "Word by word · Bottom"
+    },
+    {
+     "icon": "triangle-alert",
+     "text": "Runs 0.67 s past the clip, which cuts it off",
+     "tone": "warn"
+    }
+   ]
+  },
+  "render": {
+   "rows": [
+    {
+     "icon": "ratio",
+     "text": "16:9"
+    },
+    {
+     "icon": "film",
+     "text": "MP4 · 1080p · 30 fps"
+    }
+   ]
+  }
+ },
+ "preview": {
+  "spec": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 144,
+   "background": "#09090b",
+   "tracks": [
+    {
+     "id": "captions:l0",
+     "items": [
+      {
+       "id": "captions:l0:g",
+       "from": 0,
+       "durationInFrames": 144,
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "camera:t",
+          "items": [
+           {
+            "id": "camera:i",
+            "from": 0,
+            "durationInFrames": 144,
+            "kind": "element",
+            "component": "core/placeholder",
+            "props": {
+             "title": "Not recorded yet",
+             "subtitle": "Run to record the take. The camera moves appear here afterwards."
+            },
+            "nodeId": "camera"
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "id": "captions:l1",
+     "items": [
+      {
+       "id": "captions:l1:g",
+       "from": 0,
+       "durationInFrames": 179,
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "captions:t",
+          "items": [
+           {
+            "id": "captions:i",
+            "from": 0,
+            "durationInFrames": 179,
+            "kind": "element",
+            "component": "core/captions",
+            "props": {
+             "style": "word-by-word",
+             "position": "bottom",
+             "fontSize": 56,
+             "color": "#ffffff",
+             "highlightColor": "#facc15",
+             "panel": "rgba(0,0,0,0.35)",
+             "fontWeight": 800,
+             "captions": [
+              {
+               "text": "Create",
+               "startMs": 1500,
+               "endMs": 1863.6363636363635
+              },
+              {
+               "text": "an",
+               "startMs": 1863.6363636363635,
+               "endMs": 2227.272727272727
+              },
+              {
+               "text": "item.",
+               "startMs": 2227.272727272727,
+               "endMs": 2590.9090909090905
+              },
+              {
+               "text": "Then",
+               "startMs": 2940.9090909090905,
+               "endMs": 3304.545454545454
+              },
+              {
+               "text": "tick",
+               "startMs": 3304.545454545454,
+               "endMs": 3668.1818181818176
+              },
+              {
+               "text": "it",
+               "startMs": 3668.1818181818176,
+               "endMs": 4031.818181818181
+              },
+              {
+               "text": "off.",
+               "startMs": 4031.818181818181,
+               "endMs": 4395.454545454545
+              },
+              {
+               "text": "That's",
+               "startMs": 4745.454545454545,
+               "endMs": 5109.090909090909
+              },
+              {
+               "text": "it.",
+               "startMs": 5109.090909090909,
+               "endMs": 5472.727272727273
+              }
+             ]
+            },
+            "nodeId": "captions"
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "audio": [],
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "spans": {
+   "camera": {
+    "from": 0,
+    "to": 144
+   },
+   "captions": {
+    "from": 0,
+    "to": 144
+   }
+  },
+  "sourceNodeId": "render"
+ },
+ "timelines": {
+  "render": {
+   "flat": {
+    "fps": 30,
+    "durationInFrames": 144,
+    "bars": [
+     {
+      "type": "video",
+      "key": "/0:captions:l0:g/0:camera:i",
+      "itemId": "camera:i",
+      "nodeId": "camera",
+      "kind": "element",
+      "component": "core/placeholder",
+      "props": {
+       "title": "Not recorded yet",
+       "subtitle": "Run to record the take. The camera moves appear here afterwards."
+      },
+      "thumbnail": null,
+      "from": 0,
+      "to": 144,
+      "lane": 0,
+      "order": 0,
+      "chain": [
+       {
+        "itemId": "camera:i",
+        "nodeId": "camera",
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 0,
+        "to": 144
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 144,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/1:captions:l1:g/0:captions:i",
+      "itemId": "captions:i",
+      "nodeId": "captions",
+      "kind": "element",
+      "component": "core/captions",
+      "props": {
+       "style": "word-by-word",
+       "position": "bottom",
+       "fontSize": 56,
+       "color": "#ffffff",
+       "highlightColor": "#facc15",
+       "panel": "rgba(0,0,0,0.35)",
+       "fontWeight": 800,
+       "captions": [
+        {
+         "text": "Create",
+         "startMs": 1500,
+         "endMs": 1863.6363636363635
+        },
+        {
+         "text": "an",
+         "startMs": 1863.6363636363635,
+         "endMs": 2227.272727272727
+        },
+        {
+         "text": "item.",
+         "startMs": 2227.272727272727,
+         "endMs": 2590.9090909090905
+        },
+        {
+         "text": "Then",
+         "startMs": 2940.9090909090905,
+         "endMs": 3304.545454545454
+        },
+        {
+         "text": "tick",
+         "startMs": 3304.545454545454,
+         "endMs": 3668.1818181818176
+        },
+        {
+         "text": "it",
+         "startMs": 3668.1818181818176,
+         "endMs": 4031.818181818181
+        },
+        {
+         "text": "off.",
+         "startMs": 4031.818181818181,
+         "endMs": 4395.454545454545
+        },
+        {
+         "text": "That's",
+         "startMs": 4745.454545454545,
+         "endMs": 5109.090909090909
+        },
+        {
+         "text": "it.",
+         "startMs": 5109.090909090909,
+         "endMs": 5472.727272727273
+        }
+       ]
+      },
+      "thumbnail": null,
+      "from": 0,
+      "to": 144,
+      "lane": 1,
+      "order": 1,
+      "chain": [
+       {
+        "itemId": "captions:i",
+        "nodeId": "captions",
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 143.99999710917473,
+        "from": 0,
+        "to": 144
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 143.99999710917473,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     }
+    ],
+    "lanes": 2,
+    "audio": [],
+    "audioLanes": 0,
+    "transitions": [],
+    "marks": [],
+    "cameraKeys": []
+   },
+   "chapters": [],
+   "mix": {
+    "fps": 30,
+    "durationInFrames": 144,
+    "channels": [],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": 0,
+     "eq": {
+      "on": false,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 120,
+        "gain": 0,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "peak",
+        "freq": 2500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "highshelf",
+        "freq": 8000,
+        "gain": 0,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12,
+      "ratio": 2,
+      "attack": 20,
+      "release": 250,
+      "makeup": 0
+     },
+     "limiter": {
+      "on": false,
+      "ceiling": -1
+     },
+     "loudness": "off"
+    },
+    "key": "98ff917026c6b314"
+   }
+  }
+ },
+ "run": {
+  "results": {
+   "record": {
+    "hash": "hash-record",
+    "outputs": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 6800,
+       "actions": [
+        {
+         "id": "open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "open"
+        },
+        {
+         "id": "chapter1:chapter",
+         "kind": "chapter",
+         "t": 2400,
+         "tEnd": 2800,
+         "point": {
+          "x": 546,
+          "y": 344
+         },
+         "rect": {
+          "x": 486,
+          "y": 324,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.chapter",
+         "nodeId": "chapter1"
+        },
+        {
+         "id": "type:type",
+         "kind": "type",
+         "t": 3300,
+         "tEnd": 3700,
+         "point": {
+          "x": 719,
+          "y": 441
+         },
+         "rect": {
+          "x": 659,
+          "y": 421,
+          "w": 120,
+          "h": 40
+         },
+         "label": "New item",
+         "nodeId": "type"
+        },
+        {
+         "id": "chapter2:chapter",
+         "kind": "chapter",
+         "t": 4200,
+         "tEnd": 4600,
+         "point": {
+          "x": 892,
+          "y": 538
+         },
+         "rect": {
+          "x": 832,
+          "y": 518,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.chapter",
+         "nodeId": "chapter2"
+        },
+        {
+         "id": "done:click",
+         "kind": "click",
+         "t": 5100,
+         "tEnd": 5500,
+         "point": {
+          "x": 1065,
+          "y": 635
+         },
+         "rect": {
+          "x": 1005,
+          "y": 615,
+          "w": 120,
+          "h": 40
+         },
+         "label": "Done",
+         "nodeId": "done"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 6800,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "record",
+      "style": []
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   },
+   "render": {
+    "hash": "hash-render",
+    "outputs": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   }
+  },
+  "compile": {
+   "values": {
+    "session": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": []
+     }
+    },
+    "open": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700
+        }
+       }
+      ]
+     }
+    },
+    "start": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700
+        }
+       },
+       {
+        "id": "start",
+        "type": "browser.startRecording",
+        "params": {}
+       }
+      ]
+     }
+    },
+    "chapter1": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700
+        }
+       },
+       {
+        "id": "start",
+        "type": "browser.startRecording",
+        "params": {}
+       },
+       {
+        "id": "chapter1",
+        "type": "browser.chapter",
+        "params": {
+         "title": "Create your first item",
+         "description": "",
+         "showInVideo": false,
+         "durationMs": 2000
+        }
+       }
+      ]
+     }
+    },
+    "type": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700
+        }
+       },
+       {
+        "id": "start",
+        "type": "browser.startRecording",
+        "params": {}
+       },
+       {
+        "id": "chapter1",
+        "type": "browser.chapter",
+        "params": {
+         "title": "Create your first item",
+         "description": "",
+         "showInVideo": false,
+         "durationMs": 2000
+        }
+       },
+       {
+        "id": "type",
+        "type": "browser.type",
+        "label": "New item",
+        "params": {
+         "target": "What needs to be done?",
+         "text": "Invite the team",
+         "chunkPauseMs": 0,
+         "pressEnter": true,
+         "after": 600,
+         "cluster": "",
+         "zoom": true,
+         "frame": ""
+        }
+       }
+      ]
+     }
+    },
+    "script": {
+     "captions": {
+      "type": "captions",
+      "captions": [
+       {
+        "text": "Create",
+        "startMs": 1500,
+        "endMs": 1863.6363636363635
+       },
+       {
+        "text": "an",
+        "startMs": 1863.6363636363635,
+        "endMs": 2227.272727272727
+       },
+       {
+        "text": "item.",
+        "startMs": 2227.272727272727,
+        "endMs": 2590.9090909090905
+       },
+       {
+        "text": "Then",
+        "startMs": 2940.9090909090905,
+        "endMs": 3304.545454545454
+       },
+       {
+        "text": "tick",
+        "startMs": 3304.545454545454,
+        "endMs": 3668.1818181818176
+       },
+       {
+        "text": "it",
+        "startMs": 3668.1818181818176,
+        "endMs": 4031.818181818181
+       },
+       {
+        "text": "off.",
+        "startMs": 4031.818181818181,
+        "endMs": 4395.454545454545
+       },
+       {
+        "text": "That's",
+        "startMs": 4745.454545454545,
+        "endMs": 5109.090909090909
+       },
+       {
+        "text": "it.",
+        "startMs": 5109.090909090909,
+        "endMs": 5472.727272727273
+       }
+      ]
+     }
+    },
+    "chapter2": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700
+        }
+       },
+       {
+        "id": "start",
+        "type": "browser.startRecording",
+        "params": {}
+       },
+       {
+        "id": "chapter1",
+        "type": "browser.chapter",
+        "params": {
+         "title": "Create your first item",
+         "description": "",
+         "showInVideo": false,
+         "durationMs": 2000
+        }
+       },
+       {
+        "id": "type",
+        "type": "browser.type",
+        "label": "New item",
+        "params": {
+         "target": "What needs to be done?",
+         "text": "Invite the team",
+         "chunkPauseMs": 0,
+         "pressEnter": true,
+         "after": 600,
+         "cluster": "",
+         "zoom": true,
+         "frame": ""
+        }
+       },
+       {
+        "id": "chapter2",
+        "type": "browser.chapter",
+        "params": {
+         "title": "Mark it done",
+         "description": "",
+         "showInVideo": false,
+         "durationMs": 2000
+        }
+       }
+      ]
+     }
+    },
+    "highlight": {
+     "style": {
+      "type": "recording-style",
+      "entries": [
+       {
+        "nodeId": "highlight",
+        "type": "cursor.highlightBox",
+        "params": {
+         "match": "",
+         "text": "",
+         "color": "#a78bfa",
+         "padding": 10,
+         "leadMs": 250,
+         "holdMs": 1400,
+         "look": "clean",
+         "roughness": 1
+        }
+       }
+      ]
+     }
+    },
+    "done": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://demo.playwright.dev/todomvc",
+         "waitUntil": "load",
+         "after": 700
+        }
+       },
+       {
+        "id": "start",
+        "type": "browser.startRecording",
+        "params": {}
+       },
+       {
+        "id": "chapter1",
+        "type": "browser.chapter",
+        "params": {
+         "title": "Create your first item",
+         "description": "",
+         "showInVideo": false,
+         "durationMs": 2000
+        }
+       },
+       {
+        "id": "type",
+        "type": "browser.type",
+        "label": "New item",
+        "params": {
+         "target": "What needs to be done?",
+         "text": "Invite the team",
+         "chunkPauseMs": 0,
+         "pressEnter": true,
+         "after": 600,
+         "cluster": "",
+         "zoom": true,
+         "frame": ""
+        }
+       },
+       {
+        "id": "chapter2",
+        "type": "browser.chapter",
+        "params": {
+         "title": "Mark it done",
+         "description": "",
+         "showInVideo": false,
+         "durationMs": 2000
+        }
+       },
+       {
+        "id": "done",
+        "type": "browser.click",
+        "label": "Done",
+        "params": {
+         "target": "css=.todo-list li:nth-child(1) .toggle",
+         "after": 1400,
+         "cluster": "",
+         "zoom": true,
+         "frame": "",
+         "zoomScale": 0,
+         "travelMs": 0,
+         "hoverMs": 220
+        }
+       }
+      ]
+     }
+    },
+    "tooltip": {
+     "style": {
+      "type": "recording-style",
+      "entries": [
+       {
+        "nodeId": "highlight",
+        "type": "cursor.highlightBox",
+        "params": {
+         "match": "",
+         "text": "",
+         "color": "#a78bfa",
+         "padding": 10,
+         "leadMs": 250,
+         "holdMs": 1400,
+         "look": "clean",
+         "roughness": 1
+        }
+       },
+       {
+        "nodeId": "tooltip",
+        "type": "text.tooltip",
+        "params": {
+         "match": "Done",
+         "text": "Tick it off",
+         "color": "#18181b",
+         "padding": 10,
+         "leadMs": 250,
+         "holdMs": 1400,
+         "textColor": "#fafafa",
+         "fontSize": 18,
+         "font": "",
+         "look": "clean",
+         "roughness": 1
+        }
+       }
+      ]
+     }
+    },
+    "record": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 6800,
+       "actions": [
+        {
+         "id": "open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "open"
+        },
+        {
+         "id": "chapter1:chapter",
+         "kind": "chapter",
+         "t": 2400,
+         "tEnd": 2800,
+         "point": {
+          "x": 546,
+          "y": 344
+         },
+         "rect": {
+          "x": 486,
+          "y": 324,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.chapter",
+         "nodeId": "chapter1"
+        },
+        {
+         "id": "type:type",
+         "kind": "type",
+         "t": 3300,
+         "tEnd": 3700,
+         "point": {
+          "x": 719,
+          "y": 441
+         },
+         "rect": {
+          "x": 659,
+          "y": 421,
+          "w": 120,
+          "h": 40
+         },
+         "label": "New item",
+         "nodeId": "type"
+        },
+        {
+         "id": "chapter2:chapter",
+         "kind": "chapter",
+         "t": 4200,
+         "tEnd": 4600,
+         "point": {
+          "x": 892,
+          "y": 538
+         },
+         "rect": {
+          "x": 832,
+          "y": 518,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.chapter",
+         "nodeId": "chapter2"
+        },
+        {
+         "id": "done:click",
+         "kind": "click",
+         "t": 5100,
+         "tEnd": 5500,
+         "point": {
+          "x": 1065,
+          "y": 635
+         },
+         "rect": {
+          "x": 1005,
+          "y": 615,
+          "w": 120,
+          "h": 40
+         },
+         "label": "Done",
+         "nodeId": "done"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 6800,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "record",
+      "style": []
+     }
+    },
+    "camera": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 163,
+      "tracks": [
+       {
+        "id": "camera:t",
+        "items": [
+         {
+          "id": "camera:i",
+          "from": 0,
+          "durationInFrames": 163,
+          "kind": "recording",
+          "props": {
+           "speed": 1.25,
+           "zoom": true,
+           "tuning": {
+            "sMax": 1.74,
+            "holdMinS": 1.3
+           },
+           "motionBlur": true,
+           "style": "classic",
+           "chrome": false,
+           "backdrop": "glaze",
+           "cursor": true,
+           "cursorScale": 1,
+           "cursorLook": {
+            "shape": "arrow",
+            "fill": "#111418",
+            "edge": "#ffffff"
+           },
+           "ripple": {
+            "color": "#0f172a",
+            "size": 1,
+            "width": 2
+           },
+           "extraBeats": [],
+           "annotations": [
+            {
+             "kind": "highlight",
+             "match": "",
+             "text": "",
+             "color": "#a78bfa",
+             "padding": 10,
+             "leadMs": 250,
+             "holdMs": 1400,
+             "look": "clean",
+             "roughness": 1
+            },
+            {
+             "kind": "tooltip",
+             "match": "Done",
+             "text": "Tick it off",
+             "color": "#18181b",
+             "padding": 10,
+             "leadMs": 250,
+             "holdMs": 1400,
+             "textColor": "#fafafa",
+             "fontSize": 18,
+             "look": "clean",
+             "roughness": 1
+            }
+           ],
+           "src": "project:.opsis/cache/record/recording.mp4",
+           "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+           "log": {
+            "viewport": {
+             "width": 1920,
+             "height": 1080
+            },
+            "dpr": 1,
+            "t0": 0,
+            "durationMs": 6800,
+            "actions": [
+             {
+              "id": "open:navigate",
+              "kind": "navigate",
+              "t": 600,
+              "tEnd": 1000,
+              "point": {
+               "x": 200,
+               "y": 150
+              },
+              "rect": {
+               "x": 140,
+               "y": 130,
+               "w": 120,
+               "h": 40
+              },
+              "label": "browser.navigate",
+              "nodeId": "open"
+             },
+             {
+              "id": "chapter1:chapter",
+              "kind": "chapter",
+              "t": 2400,
+              "tEnd": 2800,
+              "point": {
+               "x": 546,
+               "y": 344
+              },
+              "rect": {
+               "x": 486,
+               "y": 324,
+               "w": 120,
+               "h": 40
+              },
+              "label": "browser.chapter",
+              "nodeId": "chapter1"
+             },
+             {
+              "id": "type:type",
+              "kind": "type",
+              "t": 3300,
+              "tEnd": 3700,
+              "point": {
+               "x": 719,
+               "y": 441
+              },
+              "rect": {
+               "x": 659,
+               "y": 421,
+               "w": 120,
+               "h": 40
+              },
+              "label": "New item",
+              "nodeId": "type"
+             },
+             {
+              "id": "chapter2:chapter",
+              "kind": "chapter",
+              "t": 4200,
+              "tEnd": 4600,
+              "point": {
+               "x": 892,
+               "y": 538
+              },
+              "rect": {
+               "x": 832,
+               "y": 518,
+               "w": 120,
+               "h": 40
+              },
+              "label": "browser.chapter",
+              "nodeId": "chapter2"
+             },
+             {
+              "id": "done:click",
+              "kind": "click",
+              "t": 5100,
+              "tEnd": 5500,
+              "point": {
+               "x": 1065,
+               "y": 635
+              },
+              "rect": {
+               "x": 1005,
+               "y": 615,
+               "w": 120,
+               "h": 40
+              },
+              "label": "Done",
+              "nodeId": "done"
+             }
+            ],
+            "cursorTrack": [
+             {
+              "t": 0,
+              "x": 960,
+              "y": 540
+             }
+            ]
+           },
+           "name": "record"
+          },
+          "nodeId": "camera"
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 6800,
+        "actions": [
+         {
+          "id": "open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "open"
+         },
+         {
+          "id": "chapter1:chapter",
+          "kind": "chapter",
+          "t": 2400,
+          "tEnd": 2800,
+          "point": {
+           "x": 546,
+           "y": 344
+          },
+          "rect": {
+           "x": 486,
+           "y": 324,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.chapter",
+          "nodeId": "chapter1"
+         },
+         {
+          "id": "type:type",
+          "kind": "type",
+          "t": 3300,
+          "tEnd": 3700,
+          "point": {
+           "x": 719,
+           "y": 441
+          },
+          "rect": {
+           "x": 659,
+           "y": 421,
+           "w": 120,
+           "h": 40
+          },
+          "label": "New item",
+          "nodeId": "type"
+         },
+         {
+          "id": "chapter2:chapter",
+          "kind": "chapter",
+          "t": 4200,
+          "tEnd": 4600,
+          "point": {
+           "x": 892,
+           "y": 538
+          },
+          "rect": {
+           "x": 832,
+           "y": 518,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.chapter",
+          "nodeId": "chapter2"
+         },
+         {
+          "id": "done:click",
+          "kind": "click",
+          "t": 5100,
+          "tEnd": 5500,
+          "point": {
+           "x": 1065,
+           "y": 635
+          },
+          "rect": {
+           "x": 1005,
+           "y": 615,
+           "w": 120,
+           "h": 40
+          },
+          "label": "Done",
+          "nodeId": "done"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 6800,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "record",
+       "style": []
+      }
+     }
+    },
+    "captions": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 163,
+      "tracks": [
+       {
+        "id": "captions:l0",
+        "items": [
+         {
+          "id": "captions:l0:g",
+          "from": 0,
+          "durationInFrames": 163,
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "camera:t",
+             "items": [
+              {
+               "id": "camera:i",
+               "from": 0,
+               "durationInFrames": 163,
+               "kind": "recording",
+               "props": {
+                "speed": 1.25,
+                "zoom": true,
+                "tuning": {
+                 "sMax": 1.74,
+                 "holdMinS": 1.3
+                },
+                "motionBlur": true,
+                "style": "classic",
+                "chrome": false,
+                "backdrop": "glaze",
+                "cursor": true,
+                "cursorScale": 1,
+                "cursorLook": {
+                 "shape": "arrow",
+                 "fill": "#111418",
+                 "edge": "#ffffff"
+                },
+                "ripple": {
+                 "color": "#0f172a",
+                 "size": 1,
+                 "width": 2
+                },
+                "extraBeats": [],
+                "annotations": [
+                 {
+                  "kind": "highlight",
+                  "match": "",
+                  "text": "",
+                  "color": "#a78bfa",
+                  "padding": 10,
+                  "leadMs": 250,
+                  "holdMs": 1400,
+                  "look": "clean",
+                  "roughness": 1
+                 },
+                 {
+                  "kind": "tooltip",
+                  "match": "Done",
+                  "text": "Tick it off",
+                  "color": "#18181b",
+                  "padding": 10,
+                  "leadMs": 250,
+                  "holdMs": 1400,
+                  "textColor": "#fafafa",
+                  "fontSize": 18,
+                  "look": "clean",
+                  "roughness": 1
+                 }
+                ],
+                "src": "project:.opsis/cache/record/recording.mp4",
+                "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+                "log": {
+                 "viewport": {
+                  "width": 1920,
+                  "height": 1080
+                 },
+                 "dpr": 1,
+                 "t0": 0,
+                 "durationMs": 6800,
+                 "actions": [
+                  {
+                   "id": "open:navigate",
+                   "kind": "navigate",
+                   "t": 600,
+                   "tEnd": 1000,
+                   "point": {
+                    "x": 200,
+                    "y": 150
+                   },
+                   "rect": {
+                    "x": 140,
+                    "y": 130,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.navigate",
+                   "nodeId": "open"
+                  },
+                  {
+                   "id": "chapter1:chapter",
+                   "kind": "chapter",
+                   "t": 2400,
+                   "tEnd": 2800,
+                   "point": {
+                    "x": 546,
+                    "y": 344
+                   },
+                   "rect": {
+                    "x": 486,
+                    "y": 324,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.chapter",
+                   "nodeId": "chapter1"
+                  },
+                  {
+                   "id": "type:type",
+                   "kind": "type",
+                   "t": 3300,
+                   "tEnd": 3700,
+                   "point": {
+                    "x": 719,
+                    "y": 441
+                   },
+                   "rect": {
+                    "x": 659,
+                    "y": 421,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "New item",
+                   "nodeId": "type"
+                  },
+                  {
+                   "id": "chapter2:chapter",
+                   "kind": "chapter",
+                   "t": 4200,
+                   "tEnd": 4600,
+                   "point": {
+                    "x": 892,
+                    "y": 538
+                   },
+                   "rect": {
+                    "x": 832,
+                    "y": 518,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.chapter",
+                   "nodeId": "chapter2"
+                  },
+                  {
+                   "id": "done:click",
+                   "kind": "click",
+                   "t": 5100,
+                   "tEnd": 5500,
+                   "point": {
+                    "x": 1065,
+                    "y": 635
+                   },
+                   "rect": {
+                    "x": 1005,
+                    "y": 615,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "Done",
+                   "nodeId": "done"
+                  }
+                 ],
+                 "cursorTrack": [
+                  {
+                   "t": 0,
+                   "x": 960,
+                   "y": 540
+                  }
+                 ]
+                },
+                "name": "record"
+               },
+               "nodeId": "camera"
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ]
+       },
+       {
+        "id": "captions:l1",
+        "items": [
+         {
+          "id": "captions:l1:g",
+          "from": 0,
+          "durationInFrames": 179,
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "captions:t",
+             "items": [
+              {
+               "id": "captions:i",
+               "from": 0,
+               "durationInFrames": 179,
+               "kind": "element",
+               "component": "core/captions",
+               "props": {
+                "style": "word-by-word",
+                "position": "bottom",
+                "fontSize": 56,
+                "color": "#ffffff",
+                "highlightColor": "#facc15",
+                "panel": "rgba(0,0,0,0.35)",
+                "fontWeight": 800,
+                "captions": [
+                 {
+                  "text": "Create",
+                  "startMs": 1500,
+                  "endMs": 1863.6363636363635
+                 },
+                 {
+                  "text": "an",
+                  "startMs": 1863.6363636363635,
+                  "endMs": 2227.272727272727
+                 },
+                 {
+                  "text": "item.",
+                  "startMs": 2227.272727272727,
+                  "endMs": 2590.9090909090905
+                 },
+                 {
+                  "text": "Then",
+                  "startMs": 2940.9090909090905,
+                  "endMs": 3304.545454545454
+                 },
+                 {
+                  "text": "tick",
+                  "startMs": 3304.545454545454,
+                  "endMs": 3668.1818181818176
+                 },
+                 {
+                  "text": "it",
+                  "startMs": 3668.1818181818176,
+                  "endMs": 4031.818181818181
+                 },
+                 {
+                  "text": "off.",
+                  "startMs": 4031.818181818181,
+                  "endMs": 4395.454545454545
+                 },
+                 {
+                  "text": "That's",
+                  "startMs": 4745.454545454545,
+                  "endMs": 5109.090909090909
+                 },
+                 {
+                  "text": "it.",
+                  "startMs": 5109.090909090909,
+                  "endMs": 5472.727272727273
+                 }
+                ]
+               },
+               "nodeId": "captions"
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 6800,
+        "actions": [
+         {
+          "id": "open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "open"
+         },
+         {
+          "id": "chapter1:chapter",
+          "kind": "chapter",
+          "t": 2400,
+          "tEnd": 2800,
+          "point": {
+           "x": 546,
+           "y": 344
+          },
+          "rect": {
+           "x": 486,
+           "y": 324,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.chapter",
+          "nodeId": "chapter1"
+         },
+         {
+          "id": "type:type",
+          "kind": "type",
+          "t": 3300,
+          "tEnd": 3700,
+          "point": {
+           "x": 719,
+           "y": 441
+          },
+          "rect": {
+           "x": 659,
+           "y": 421,
+           "w": 120,
+           "h": 40
+          },
+          "label": "New item",
+          "nodeId": "type"
+         },
+         {
+          "id": "chapter2:chapter",
+          "kind": "chapter",
+          "t": 4200,
+          "tEnd": 4600,
+          "point": {
+           "x": 892,
+           "y": 538
+          },
+          "rect": {
+           "x": 832,
+           "y": 518,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.chapter",
+          "nodeId": "chapter2"
+         },
+         {
+          "id": "done:click",
+          "kind": "click",
+          "t": 5100,
+          "tEnd": 5500,
+          "point": {
+           "x": 1065,
+           "y": 635
+          },
+          "rect": {
+           "x": 1005,
+           "y": 615,
+           "w": 120,
+           "h": 40
+          },
+          "label": "Done",
+          "nodeId": "done"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 6800,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "record",
+       "style": []
+      }
+     }
+    },
+    "render": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    }
+   },
+   "errors": {},
+   "specs": {
+    "render": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "durationInFrames": 163,
+     "background": "#09090b",
+     "tracks": [
+      {
+       "id": "captions:l0",
+       "items": [
+        {
+         "id": "captions:l0:g",
+         "from": 0,
+         "durationInFrames": 163,
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "camera:t",
+            "items": [
+             {
+              "id": "camera:i",
+              "from": 0,
+              "durationInFrames": 163,
+              "kind": "recording",
+              "props": {
+               "speed": 1.25,
+               "zoom": true,
+               "tuning": {
+                "sMax": 1.74,
+                "holdMinS": 1.3
+               },
+               "motionBlur": true,
+               "style": "classic",
+               "chrome": false,
+               "backdrop": "glaze",
+               "cursor": true,
+               "cursorScale": 1,
+               "cursorLook": {
+                "shape": "arrow",
+                "fill": "#111418",
+                "edge": "#ffffff"
+               },
+               "ripple": {
+                "color": "#0f172a",
+                "size": 1,
+                "width": 2
+               },
+               "extraBeats": [],
+               "annotations": [
+                {
+                 "kind": "highlight",
+                 "match": "",
+                 "text": "",
+                 "color": "#a78bfa",
+                 "padding": 10,
+                 "leadMs": 250,
+                 "holdMs": 1400,
+                 "look": "clean",
+                 "roughness": 1
+                },
+                {
+                 "kind": "tooltip",
+                 "match": "Done",
+                 "text": "Tick it off",
+                 "color": "#18181b",
+                 "padding": 10,
+                 "leadMs": 250,
+                 "holdMs": 1400,
+                 "textColor": "#fafafa",
+                 "fontSize": 18,
+                 "look": "clean",
+                 "roughness": 1
+                }
+               ],
+               "src": "project:.opsis/cache/record/recording.mp4",
+               "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+               "log": {
+                "viewport": {
+                 "width": 1920,
+                 "height": 1080
+                },
+                "dpr": 1,
+                "t0": 0,
+                "durationMs": 6800,
+                "actions": [
+                 {
+                  "id": "open:navigate",
+                  "kind": "navigate",
+                  "t": 600,
+                  "tEnd": 1000,
+                  "point": {
+                   "x": 200,
+                   "y": 150
+                  },
+                  "rect": {
+                   "x": 140,
+                   "y": 130,
+                   "w": 120,
+                   "h": 40
+                  },
+                  "label": "browser.navigate",
+                  "nodeId": "open"
+                 },
+                 {
+                  "id": "chapter1:chapter",
+                  "kind": "chapter",
+                  "t": 2400,
+                  "tEnd": 2800,
+                  "point": {
+                   "x": 546,
+                   "y": 344
+                  },
+                  "rect": {
+                   "x": 486,
+                   "y": 324,
+                   "w": 120,
+                   "h": 40
+                  },
+                  "label": "browser.chapter",
+                  "nodeId": "chapter1"
+                 },
+                 {
+                  "id": "type:type",
+                  "kind": "type",
+                  "t": 3300,
+                  "tEnd": 3700,
+                  "point": {
+                   "x": 719,
+                   "y": 441
+                  },
+                  "rect": {
+                   "x": 659,
+                   "y": 421,
+                   "w": 120,
+                   "h": 40
+                  },
+                  "label": "New item",
+                  "nodeId": "type"
+                 },
+                 {
+                  "id": "chapter2:chapter",
+                  "kind": "chapter",
+                  "t": 4200,
+                  "tEnd": 4600,
+                  "point": {
+                   "x": 892,
+                   "y": 538
+                  },
+                  "rect": {
+                   "x": 832,
+                   "y": 518,
+                   "w": 120,
+                   "h": 40
+                  },
+                  "label": "browser.chapter",
+                  "nodeId": "chapter2"
+                 },
+                 {
+                  "id": "done:click",
+                  "kind": "click",
+                  "t": 5100,
+                  "tEnd": 5500,
+                  "point": {
+                   "x": 1065,
+                   "y": 635
+                  },
+                  "rect": {
+                   "x": 1005,
+                   "y": 615,
+                   "w": 120,
+                   "h": 40
+                  },
+                  "label": "Done",
+                  "nodeId": "done"
+                 }
+                ],
+                "cursorTrack": [
+                 {
+                  "t": 0,
+                  "x": 960,
+                  "y": 540
+                 }
+                ]
+               },
+               "name": "record"
+              },
+              "nodeId": "camera"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "id": "captions:l1",
+       "items": [
+        {
+         "id": "captions:l1:g",
+         "from": 0,
+         "durationInFrames": 179,
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "captions:t",
+            "items": [
+             {
+              "id": "captions:i",
+              "from": 0,
+              "durationInFrames": 179,
+              "kind": "element",
+              "component": "core/captions",
+              "props": {
+               "style": "word-by-word",
+               "position": "bottom",
+               "fontSize": 56,
+               "color": "#ffffff",
+               "highlightColor": "#facc15",
+               "panel": "rgba(0,0,0,0.35)",
+               "fontWeight": 800,
+               "captions": [
+                {
+                 "text": "Create",
+                 "startMs": 1500,
+                 "endMs": 1863.6363636363635
+                },
+                {
+                 "text": "an",
+                 "startMs": 1863.6363636363635,
+                 "endMs": 2227.272727272727
+                },
+                {
+                 "text": "item.",
+                 "startMs": 2227.272727272727,
+                 "endMs": 2590.9090909090905
+                },
+                {
+                 "text": "Then",
+                 "startMs": 2940.9090909090905,
+                 "endMs": 3304.545454545454
+                },
+                {
+                 "text": "tick",
+                 "startMs": 3304.545454545454,
+                 "endMs": 3668.1818181818176
+                },
+                {
+                 "text": "it",
+                 "startMs": 3668.1818181818176,
+                 "endMs": 4031.818181818181
+                },
+                {
+                 "text": "off.",
+                 "startMs": 4031.818181818181,
+                 "endMs": 4395.454545454545
+                },
+                {
+                 "text": "That's",
+                 "startMs": 4745.454545454545,
+                 "endMs": 5109.090909090909
+                },
+                {
+                 "text": "it.",
+                 "startMs": 5109.090909090909,
+                 "endMs": 5472.727272727273
+                }
+               ]
+              },
+              "nodeId": "captions"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": [],
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    }
+   },
+   "order": [
+    "session",
+    "open",
+    "start",
+    "chapter1",
+    "type",
+    "script",
+    "chapter2",
+    "highlight",
+    "done",
+    "tooltip",
+    "record",
+    "camera",
+    "captions",
+    "render"
+   ]
+  },
+  "problems": [],
+  "cards": {
+   "session": {
+    "rows": [
+     {
+      "icon": "monitor",
+      "text": "1920 × 1080"
+     }
+    ]
+   },
+   "open": {
+    "rows": [
+     {
+      "icon": "link",
+      "text": "demo.playwright.dev/todomvc",
+      "title": "https://demo.playwright.dev/todomvc"
+     },
+     {
+      "icon": "timer",
+      "text": "Pause 0.7 s"
+     }
+    ]
+   },
+   "start": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "Video starts here"
+     }
+    ]
+   },
+   "chapter1": {
+    "rows": [
+     {
+      "icon": "bookmark",
+      "text": "“Create your first item”"
+     }
+    ]
+   },
+   "type": {
+    "rows": [
+     {
+      "icon": "crosshair",
+      "text": "“What needs to be done?”",
+      "title": "What needs to be done?"
+     },
+     {
+      "icon": "keyboard",
+      "text": "“Invite the team”, then Enter",
+      "title": "Invite the team"
+     },
+     {
+      "icon": "timer",
+      "text": "Pause 0.6 s"
+     }
+    ]
+   },
+   "chapter2": {
+    "rows": [
+     {
+      "icon": "bookmark",
+      "text": "“Mark it done”"
+     }
+    ]
+   },
+   "done": {
+    "rows": [
+     {
+      "icon": "mouse-pointer-click",
+      "text": "Custom element",
+      "title": "css=.todo-list li:nth-child(1) .toggle"
+     },
+     {
+      "icon": "timer",
+      "text": "Pause 1.4 s"
+     }
+    ]
+   },
+   "record": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "30 fps"
+     },
+     {
+      "icon": "mouse-pointer",
+      "text": "Smooth cursor"
+     },
+     {
+      "icon": "clock",
+      "text": "6.8 s · 5 actions"
+     }
+    ]
+   },
+   "camera": {
+    "rows": [
+     {
+      "icon": "zoom-in",
+      "text": "Up to 1.74×"
+     },
+     {
+      "icon": "hourglass",
+      "text": "Hold 1.3 s"
+     },
+     {
+      "icon": "image",
+      "text": "Glaze backdrop"
+     },
+     {
+      "icon": "gauge",
+      "text": "1.25× speed"
+     }
+    ]
+   },
+   "highlight": {
+    "rows": [
+     {
+      "icon": "square-dashed",
+      "text": "On every action"
+     }
+    ]
+   },
+   "tooltip": {
+    "rows": [
+     {
+      "icon": "message-square",
+      "text": "On actions named “Done”"
+     },
+     {
+      "icon": "type",
+      "text": "“Tick it off”"
+     }
+    ]
+   },
+   "script": {
+    "rows": [
+     {
+      "icon": "captions",
+      "text": "“Create an item. Then tick it off. That'…”"
+     },
+     {
+      "icon": "gauge",
+      "text": "165 words/min"
+     }
+    ]
+   },
+   "captions": {
+    "rows": [
+     {
+      "icon": "captions",
+      "text": "Word by word · Bottom"
+     },
+     {
+      "icon": "triangle-alert",
+      "text": "Runs 0.04 s past the clip, which cuts it off",
+      "tone": "warn"
+     }
+    ]
+   },
+   "render": {
+    "rows": [
+     {
+      "icon": "ratio",
+      "text": "16:9"
+     },
+     {
+      "icon": "film",
+      "text": "MP4 · 1080p · 30 fps"
+     },
+     {
+      "icon": "clock",
+      "text": "4 s"
+     }
+    ]
+   }
+  },
+  "preview": {
+   "spec": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 163,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "captions:l0",
+      "items": [
+       {
+        "id": "captions:l0:g",
+        "from": 0,
+        "durationInFrames": 163,
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "camera:t",
+           "items": [
+            {
+             "id": "camera:i",
+             "from": 0,
+             "durationInFrames": 163,
+             "kind": "recording",
+             "props": {
+              "speed": 1.25,
+              "zoom": true,
+              "tuning": {
+               "sMax": 1.74,
+               "holdMinS": 1.3
+              },
+              "motionBlur": true,
+              "style": "classic",
+              "chrome": false,
+              "backdrop": "glaze",
+              "cursor": true,
+              "cursorScale": 1,
+              "cursorLook": {
+               "shape": "arrow",
+               "fill": "#111418",
+               "edge": "#ffffff"
+              },
+              "ripple": {
+               "color": "#0f172a",
+               "size": 1,
+               "width": 2
+              },
+              "extraBeats": [],
+              "annotations": [
+               {
+                "kind": "highlight",
+                "match": "",
+                "text": "",
+                "color": "#a78bfa",
+                "padding": 10,
+                "leadMs": 250,
+                "holdMs": 1400,
+                "look": "clean",
+                "roughness": 1
+               },
+               {
+                "kind": "tooltip",
+                "match": "Done",
+                "text": "Tick it off",
+                "color": "#18181b",
+                "padding": 10,
+                "leadMs": 250,
+                "holdMs": 1400,
+                "textColor": "#fafafa",
+                "fontSize": 18,
+                "look": "clean",
+                "roughness": 1
+               }
+              ],
+              "src": "project:.opsis/cache/record/recording.mp4",
+              "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+              "log": {
+               "viewport": {
+                "width": 1920,
+                "height": 1080
+               },
+               "dpr": 1,
+               "t0": 0,
+               "durationMs": 6800,
+               "actions": [
+                {
+                 "id": "open:navigate",
+                 "kind": "navigate",
+                 "t": 600,
+                 "tEnd": 1000,
+                 "point": {
+                  "x": 200,
+                  "y": 150
+                 },
+                 "rect": {
+                  "x": 140,
+                  "y": 130,
+                  "w": 120,
+                  "h": 40
+                 },
+                 "label": "browser.navigate",
+                 "nodeId": "open"
+                },
+                {
+                 "id": "chapter1:chapter",
+                 "kind": "chapter",
+                 "t": 2400,
+                 "tEnd": 2800,
+                 "point": {
+                  "x": 546,
+                  "y": 344
+                 },
+                 "rect": {
+                  "x": 486,
+                  "y": 324,
+                  "w": 120,
+                  "h": 40
+                 },
+                 "label": "browser.chapter",
+                 "nodeId": "chapter1"
+                },
+                {
+                 "id": "type:type",
+                 "kind": "type",
+                 "t": 3300,
+                 "tEnd": 3700,
+                 "point": {
+                  "x": 719,
+                  "y": 441
+                 },
+                 "rect": {
+                  "x": 659,
+                  "y": 421,
+                  "w": 120,
+                  "h": 40
+                 },
+                 "label": "New item",
+                 "nodeId": "type"
+                },
+                {
+                 "id": "chapter2:chapter",
+                 "kind": "chapter",
+                 "t": 4200,
+                 "tEnd": 4600,
+                 "point": {
+                  "x": 892,
+                  "y": 538
+                 },
+                 "rect": {
+                  "x": 832,
+                  "y": 518,
+                  "w": 120,
+                  "h": 40
+                 },
+                 "label": "browser.chapter",
+                 "nodeId": "chapter2"
+                },
+                {
+                 "id": "done:click",
+                 "kind": "click",
+                 "t": 5100,
+                 "tEnd": 5500,
+                 "point": {
+                  "x": 1065,
+                  "y": 635
+                 },
+                 "rect": {
+                  "x": 1005,
+                  "y": 615,
+                  "w": 120,
+                  "h": 40
+                 },
+                 "label": "Done",
+                 "nodeId": "done"
+                }
+               ],
+               "cursorTrack": [
+                {
+                 "t": 0,
+                 "x": 960,
+                 "y": 540
+                }
+               ]
+              },
+              "name": "record"
+             },
+             "nodeId": "camera"
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "id": "captions:l1",
+      "items": [
+       {
+        "id": "captions:l1:g",
+        "from": 0,
+        "durationInFrames": 179,
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "captions:t",
+           "items": [
+            {
+             "id": "captions:i",
+             "from": 0,
+             "durationInFrames": 179,
+             "kind": "element",
+             "component": "core/captions",
+             "props": {
+              "style": "word-by-word",
+              "position": "bottom",
+              "fontSize": 56,
+              "color": "#ffffff",
+              "highlightColor": "#facc15",
+              "panel": "rgba(0,0,0,0.35)",
+              "fontWeight": 800,
+              "captions": [
+               {
+                "text": "Create",
+                "startMs": 1500,
+                "endMs": 1863.6363636363635
+               },
+               {
+                "text": "an",
+                "startMs": 1863.6363636363635,
+                "endMs": 2227.272727272727
+               },
+               {
+                "text": "item.",
+                "startMs": 2227.272727272727,
+                "endMs": 2590.9090909090905
+               },
+               {
+                "text": "Then",
+                "startMs": 2940.9090909090905,
+                "endMs": 3304.545454545454
+               },
+               {
+                "text": "tick",
+                "startMs": 3304.545454545454,
+                "endMs": 3668.1818181818176
+               },
+               {
+                "text": "it",
+                "startMs": 3668.1818181818176,
+                "endMs": 4031.818181818181
+               },
+               {
+                "text": "off.",
+                "startMs": 4031.818181818181,
+                "endMs": 4395.454545454545
+               },
+               {
+                "text": "That's",
+                "startMs": 4745.454545454545,
+                "endMs": 5109.090909090909
+               },
+               {
+                "text": "it.",
+                "startMs": 5109.090909090909,
+                "endMs": 5472.727272727273
+               }
+              ]
+             },
+             "nodeId": "captions"
+            }
+           ]
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   },
+   "spans": {
+    "camera": {
+     "from": 0,
+     "to": 163
+    },
+    "captions": {
+     "from": 0,
+     "to": 163
+    }
+   },
+   "sourceNodeId": "render"
+  },
+  "timelines": {
+   "render": {
+    "flat": {
+     "fps": 30,
+     "durationInFrames": 163,
+     "bars": [
+      {
+       "type": "video",
+       "key": "/0:captions:l0:g/0:camera:i",
+       "itemId": "camera:i",
+       "nodeId": "camera",
+       "kind": "recording",
+       "props": {
+        "speed": 1.25,
+        "zoom": true,
+        "tuning": {
+         "sMax": 1.74,
+         "holdMinS": 1.3
+        },
+        "motionBlur": true,
+        "style": "classic",
+        "chrome": false,
+        "backdrop": "glaze",
+        "cursor": true,
+        "cursorScale": 1,
+        "cursorLook": {
+         "shape": "arrow",
+         "fill": "#111418",
+         "edge": "#ffffff"
+        },
+        "ripple": {
+         "color": "#0f172a",
+         "size": 1,
+         "width": 2
+        },
+        "extraBeats": [],
+        "annotations": [
+         {
+          "kind": "highlight",
+          "match": "",
+          "text": "",
+          "color": "#a78bfa",
+          "padding": 10,
+          "leadMs": 250,
+          "holdMs": 1400,
+          "look": "clean",
+          "roughness": 1
+         },
+         {
+          "kind": "tooltip",
+          "match": "Done",
+          "text": "Tick it off",
+          "color": "#18181b",
+          "padding": 10,
+          "leadMs": 250,
+          "holdMs": 1400,
+          "textColor": "#fafafa",
+          "fontSize": 18,
+          "look": "clean",
+          "roughness": 1
+         }
+        ],
+        "src": "project:.opsis/cache/record/recording.mp4",
+        "proxySrc": "project:.opsis/cache/record/recording.preview.mp4",
+        "log": {
+         "viewport": {
+          "width": 1920,
+          "height": 1080
+         },
+         "dpr": 1,
+         "t0": 0,
+         "durationMs": 6800,
+         "actions": [
+          {
+           "id": "open:navigate",
+           "kind": "navigate",
+           "t": 600,
+           "tEnd": 1000,
+           "point": {
+            "x": 200,
+            "y": 150
+           },
+           "rect": {
+            "x": 140,
+            "y": 130,
+            "w": 120,
+            "h": 40
+           },
+           "label": "browser.navigate",
+           "nodeId": "open"
+          },
+          {
+           "id": "chapter1:chapter",
+           "kind": "chapter",
+           "t": 2400,
+           "tEnd": 2800,
+           "point": {
+            "x": 546,
+            "y": 344
+           },
+           "rect": {
+            "x": 486,
+            "y": 324,
+            "w": 120,
+            "h": 40
+           },
+           "label": "browser.chapter",
+           "nodeId": "chapter1"
+          },
+          {
+           "id": "type:type",
+           "kind": "type",
+           "t": 3300,
+           "tEnd": 3700,
+           "point": {
+            "x": 719,
+            "y": 441
+           },
+           "rect": {
+            "x": 659,
+            "y": 421,
+            "w": 120,
+            "h": 40
+           },
+           "label": "New item",
+           "nodeId": "type"
+          },
+          {
+           "id": "chapter2:chapter",
+           "kind": "chapter",
+           "t": 4200,
+           "tEnd": 4600,
+           "point": {
+            "x": 892,
+            "y": 538
+           },
+           "rect": {
+            "x": 832,
+            "y": 518,
+            "w": 120,
+            "h": 40
+           },
+           "label": "browser.chapter",
+           "nodeId": "chapter2"
+          },
+          {
+           "id": "done:click",
+           "kind": "click",
+           "t": 5100,
+           "tEnd": 5500,
+           "point": {
+            "x": 1065,
+            "y": 635
+           },
+           "rect": {
+            "x": 1005,
+            "y": 615,
+            "w": 120,
+            "h": 40
+           },
+           "label": "Done",
+           "nodeId": "done"
+          }
+         ],
+         "cursorTrack": [
+          {
+           "t": 0,
+           "x": 960,
+           "y": 540
+          }
+         ]
+        },
+        "name": "record"
+       },
+       "thumbnail": {
+        "kind": "filmstrip",
+        "src": "project:.opsis/cache/record/recording.preview.mp4",
+        "speed": 1.25,
+        "trimMs": 0
+       },
+       "from": 0,
+       "to": 163,
+       "lane": 0,
+       "order": 0,
+       "chain": [
+        {
+         "itemId": "camera:i",
+         "nodeId": "camera",
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 163,
+         "from": 0,
+         "to": 163
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 163,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/1:captions:l1:g/0:captions:i",
+       "itemId": "captions:i",
+       "nodeId": "captions",
+       "kind": "element",
+       "component": "core/captions",
+       "props": {
+        "style": "word-by-word",
+        "position": "bottom",
+        "fontSize": 56,
+        "color": "#ffffff",
+        "highlightColor": "#facc15",
+        "panel": "rgba(0,0,0,0.35)",
+        "fontWeight": 800,
+        "captions": [
+         {
+          "text": "Create",
+          "startMs": 1500,
+          "endMs": 1863.6363636363635
+         },
+         {
+          "text": "an",
+          "startMs": 1863.6363636363635,
+          "endMs": 2227.272727272727
+         },
+         {
+          "text": "item.",
+          "startMs": 2227.272727272727,
+          "endMs": 2590.9090909090905
+         },
+         {
+          "text": "Then",
+          "startMs": 2940.9090909090905,
+          "endMs": 3304.545454545454
+         },
+         {
+          "text": "tick",
+          "startMs": 3304.545454545454,
+          "endMs": 3668.1818181818176
+         },
+         {
+          "text": "it",
+          "startMs": 3668.1818181818176,
+          "endMs": 4031.818181818181
+         },
+         {
+          "text": "off.",
+          "startMs": 4031.818181818181,
+          "endMs": 4395.454545454545
+         },
+         {
+          "text": "That's",
+          "startMs": 4745.454545454545,
+          "endMs": 5109.090909090909
+         },
+         {
+          "text": "it.",
+          "startMs": 5109.090909090909,
+          "endMs": 5472.727272727273
+         }
+        ]
+       },
+       "thumbnail": null,
+       "from": 0,
+       "to": 163,
+       "lane": 1,
+       "order": 1,
+       "chain": [
+        {
+         "itemId": "captions:i",
+         "nodeId": "captions",
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 162.99999913573265,
+         "from": 0,
+         "to": 163
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 162.99999913573265,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      }
+     ],
+     "lanes": 2,
+     "audio": [],
+     "audioLanes": 0,
+     "transitions": [],
+     "marks": [
+      {
+       "key": "/0:captions:l0:g/0:camera:i:open:navigate",
+       "frame": 14.399999999999999,
+       "kind": "navigate",
+       "label": "Go to browser.navigate",
+       "nodeId": "open",
+       "barKey": "/0:captions:l0:g/0:camera:i"
+      },
+      {
+       "key": "/0:captions:l0:g/0:camera:i:chapter1:chapter",
+       "frame": 57.599999999999994,
+       "kind": "chapter",
+       "label": "browser.chapter",
+       "nodeId": "chapter1",
+       "barKey": "/0:captions:l0:g/0:camera:i"
+      },
+      {
+       "key": "/0:captions:l0:g/0:camera:i:type:type",
+       "frame": 79.19999999999999,
+       "kind": "type",
+       "label": "Type New item",
+       "nodeId": "type",
+       "barKey": "/0:captions:l0:g/0:camera:i"
+      },
+      {
+       "key": "/0:captions:l0:g/0:camera:i:chapter2:chapter",
+       "frame": 100.80000000000001,
+       "kind": "chapter",
+       "label": "browser.chapter",
+       "nodeId": "chapter2",
+       "barKey": "/0:captions:l0:g/0:camera:i"
+      },
+      {
+       "key": "/0:captions:l0:g/0:camera:i:done:click",
+       "frame": 122.4,
+       "kind": "click",
+       "label": "Click Done",
+       "nodeId": "done",
+       "barKey": "/0:captions:l0:g/0:camera:i"
+      }
+     ],
+     "cameraKeys": []
+    },
+    "chapters": [
+     {
+      "title": "browser.chapter",
+      "startMs": 0,
+      "endMs": 5433
+     }
+    ],
+    "mix": {
+     "fps": 30,
+     "durationInFrames": 163,
+     "channels": [],
+     "buses": [
+      {
+       "id": "music",
+       "name": "Music",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "effects",
+       "name": "Effects",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "clips",
+       "name": "Clips",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      }
+     ],
+     "master": {
+      "fader": 0,
+      "eq": {
+       "on": false,
+       "bands": [
+        {
+         "type": "lowshelf",
+         "freq": 120,
+         "gain": 0,
+         "q": 0.7
+        },
+        {
+         "type": "peak",
+         "freq": 500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "peak",
+         "freq": 2500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "highshelf",
+         "freq": 8000,
+         "gain": 0,
+         "q": 0.7
+        }
+       ]
+      },
+      "comp": {
+       "on": false,
+       "threshold": -12,
+       "ratio": 2,
+       "attack": 20,
+       "release": 250,
+       "makeup": 0
+      },
+      "limiter": {
+       "on": false,
+       "ceiling": -1
+      },
+      "loudness": "off"
+     },
+     "key": "01155e19525fc1bc"
+    }
+   }
+  }
+ }
+}

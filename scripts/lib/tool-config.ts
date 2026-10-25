@@ -16,6 +16,11 @@ export const VIDEO_DIR = path.join(VIDEO_PACKAGE_DIR, "src");
 
 export const IGNORED_PATHS = [
   ".vite/**",
+  "target/**",
+  "fixtures/**",
+  "crates/compile/src/elements/registry.generated.json",
+  "crates/compile/src/fonts/bundled.generated.json",
+  "apps/ui/src/generated/bindings.ts",
   "out/**",
   "remotion-bundle/**",
   "resources/**",

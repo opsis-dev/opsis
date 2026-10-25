@@ -1,0 +1,30 @@
+[package]
+name = "opsis-compile"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+csscolorparser = "0.9.0"
+heck = "0.5.0"
+icu_segmenter = "2.4.0"
+indexmap = { version = "2.14.2", features = ["serde"] }
+jiff = "0.2.38"
+jsonschema = "0.60.1"
+language-tags = "0.3.2"
+num-format = "0.4.4"
+opsis-types = { version = "0.1.0", path = "../types" }
+percent-encoding = "2.3.2"
+regex = "1.13.1"
+schemars = { version = "1.2.3", features = ["indexmap2"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.154", features = ["preserve_order"] }
+serde_path_to_error = "0.1.20"
+slug = "0.1.6"
+smart-default = "0.7.1"
+specta = { version = "2.0.0-rc.27", features = ["derive", "indexmap", "serde_json"] }
+specta-serde = "0.0.14"
+specta-typescript = "0.0.14"
+url = "2.5.8"
+xxhash-rust = { version = "0.8.19", features = ["xxh3"] }

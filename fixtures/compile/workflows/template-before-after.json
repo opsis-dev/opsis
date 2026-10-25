@@ -1,0 +1,5798 @@
+{
+ "workflow": {
+  "version": 1,
+  "id": "template-before-after",
+  "name": "Before / after",
+  "settings": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "theme": "dark",
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "variables": {
+   "Before address": "https://example.com",
+   "After address": "https://example.org"
+  },
+  "nodes": [
+   {
+    "id": "before-session",
+    "type": "browser.open",
+    "position": {
+     "x": 0,
+     "y": 0
+    },
+    "params": {
+     "viewportWidth": 1920,
+     "viewportHeight": 1080,
+     "dpr": 2,
+     "mobile": false,
+     "userAgent": "",
+     "locale": "en-US",
+     "timezone": "",
+     "colorScheme": "light",
+     "captureScale": 1
+    }
+   },
+   {
+    "id": "before-open",
+    "type": "browser.navigate",
+    "position": {
+     "x": 300,
+     "y": 0
+    },
+    "params": {
+     "url": "{{Before address}}",
+     "waitUntil": "load",
+     "after": 2500
+    }
+   },
+   {
+    "id": "before-start",
+    "type": "browser.startRecording",
+    "position": {
+     "x": 600,
+     "y": 0
+    },
+    "params": {}
+   },
+   {
+    "id": "before-record",
+    "type": "capture.record",
+    "position": {
+     "x": 900,
+     "y": 0
+    },
+    "params": {
+     "fps": 30,
+     "quality": 90,
+     "establishMs": 700,
+     "endTailMs": 2500,
+     "cursor": "synthetic",
+     "showActions": false,
+     "mutates": ""
+    }
+   },
+   {
+    "id": "before-camera",
+    "type": "camera.autoZoom",
+    "position": {
+     "x": 900,
+     "y": 200
+    },
+    "params": {
+     "zoom": false,
+     "maxScale": 1.74,
+     "hold": 1300,
+     "speed": 1.25,
+     "style": "classic",
+     "backdrop": "glaze",
+     "frame": "none",
+     "frameTheme": "light",
+     "addressBar": true,
+     "motionBlur": true
+    }
+   },
+   {
+    "id": "before-label",
+    "type": "fx.core.lower-third",
+    "position": {
+     "x": 900,
+     "y": 422
+    },
+    "params": {
+     "title": "Before",
+     "subtitle": "{{Before address}}",
+     "position": "bottom-left",
+     "accent": "#a78bfa",
+     "color": "#fafafa",
+     "panel": "rgba(10,10,12,0.72)",
+     "fontFamily": "",
+     "clipDuration": 120,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "before-stack",
+    "type": "timeline.stack",
+    "position": {
+     "x": 1200,
+     "y": 0
+    },
+    "params": {
+     "duration": "first",
+     "offsetsMs": "",
+     "keepLayout": false
+    }
+   },
+   {
+    "id": "after-session",
+    "type": "browser.open",
+    "position": {
+     "x": 0,
+     "y": 850
+    },
+    "params": {
+     "viewportWidth": 1920,
+     "viewportHeight": 1080,
+     "dpr": 2,
+     "mobile": false,
+     "userAgent": "",
+     "locale": "en-US",
+     "timezone": "",
+     "colorScheme": "light",
+     "captureScale": 1
+    }
+   },
+   {
+    "id": "after-open",
+    "type": "browser.navigate",
+    "position": {
+     "x": 300,
+     "y": 850
+    },
+    "params": {
+     "url": "{{After address}}",
+     "waitUntil": "load",
+     "after": 2500
+    }
+   },
+   {
+    "id": "after-start",
+    "type": "browser.startRecording",
+    "position": {
+     "x": 600,
+     "y": 850
+    },
+    "params": {}
+   },
+   {
+    "id": "after-record",
+    "type": "capture.record",
+    "position": {
+     "x": 900,
+     "y": 850
+    },
+    "params": {
+     "fps": 30,
+     "quality": 90,
+     "establishMs": 700,
+     "endTailMs": 2500,
+     "cursor": "synthetic",
+     "showActions": false,
+     "mutates": ""
+    }
+   },
+   {
+    "id": "after-camera",
+    "type": "camera.autoZoom",
+    "position": {
+     "x": 900,
+     "y": 1050
+    },
+    "params": {
+     "zoom": false,
+     "maxScale": 1.74,
+     "hold": 1300,
+     "speed": 1.25,
+     "style": "classic",
+     "backdrop": "glaze",
+     "frame": "none",
+     "frameTheme": "light",
+     "addressBar": true,
+     "motionBlur": true
+    }
+   },
+   {
+    "id": "after-label",
+    "type": "fx.core.lower-third",
+    "position": {
+     "x": 900,
+     "y": 1272
+    },
+    "params": {
+     "title": "After",
+     "subtitle": "{{After address}}",
+     "position": "bottom-left",
+     "accent": "#a78bfa",
+     "color": "#fafafa",
+     "panel": "rgba(10,10,12,0.72)",
+     "fontFamily": "",
+     "clipDuration": 120,
+     "envelope": {}
+    }
+   },
+   {
+    "id": "after-stack",
+    "type": "timeline.stack",
+    "position": {
+     "x": 1200,
+     "y": 850
+    },
+    "params": {
+     "duration": "first",
+     "offsetsMs": "",
+     "keepLayout": false
+    }
+   },
+   {
+    "id": "wipe",
+    "type": "transition.core.wipe",
+    "position": {
+     "x": 1500,
+     "y": 510
+    },
+    "params": {
+     "direction": "from-left",
+     "durationInFrames": 24,
+     "keepWhole": false
+    }
+   },
+   {
+    "id": "render",
+    "type": "output.render",
+    "position": {
+     "x": 1800,
+     "y": 510
+    },
+    "params": {
+     "fileName": "{{Project name}}",
+     "codec": "h264",
+     "crf": 18,
+     "variants": [
+      "16:9"
+     ],
+     "reframe": "follow",
+     "scale": 1,
+     "chapters": true,
+     "chapterList": false,
+     "gl": "angle"
+    }
+   }
+  ],
+  "edges": [
+   {
+    "id": "before-session.session->before-open.session",
+    "source": "before-session",
+    "sourceHandle": "session",
+    "target": "before-open",
+    "targetHandle": "session"
+   },
+   {
+    "id": "before-open.session->before-start.session",
+    "source": "before-open",
+    "sourceHandle": "session",
+    "target": "before-start",
+    "targetHandle": "session"
+   },
+   {
+    "id": "before-start.session->before-record.session",
+    "source": "before-start",
+    "sourceHandle": "session",
+    "target": "before-record",
+    "targetHandle": "session"
+   },
+   {
+    "id": "before-record.recording->before-camera.recording",
+    "source": "before-record",
+    "sourceHandle": "recording",
+    "target": "before-camera",
+    "targetHandle": "recording"
+   },
+   {
+    "id": "before-camera.clip->before-stack.in1",
+    "source": "before-camera",
+    "sourceHandle": "clip",
+    "target": "before-stack",
+    "targetHandle": "in1"
+   },
+   {
+    "id": "before-label.clip->before-stack.in2",
+    "source": "before-label",
+    "sourceHandle": "clip",
+    "target": "before-stack",
+    "targetHandle": "in2"
+   },
+   {
+    "id": "after-session.session->after-open.session",
+    "source": "after-session",
+    "sourceHandle": "session",
+    "target": "after-open",
+    "targetHandle": "session"
+   },
+   {
+    "id": "after-open.session->after-start.session",
+    "source": "after-open",
+    "sourceHandle": "session",
+    "target": "after-start",
+    "targetHandle": "session"
+   },
+   {
+    "id": "after-start.session->after-record.session",
+    "source": "after-start",
+    "sourceHandle": "session",
+    "target": "after-record",
+    "targetHandle": "session"
+   },
+   {
+    "id": "after-record.recording->after-camera.recording",
+    "source": "after-record",
+    "sourceHandle": "recording",
+    "target": "after-camera",
+    "targetHandle": "recording"
+   },
+   {
+    "id": "after-camera.clip->after-stack.in1",
+    "source": "after-camera",
+    "sourceHandle": "clip",
+    "target": "after-stack",
+    "targetHandle": "in1"
+   },
+   {
+    "id": "after-label.clip->after-stack.in2",
+    "source": "after-label",
+    "sourceHandle": "clip",
+    "target": "after-stack",
+    "targetHandle": "in2"
+   },
+   {
+    "id": "before-stack.clip->wipe.a",
+    "source": "before-stack",
+    "sourceHandle": "clip",
+    "target": "wipe",
+    "targetHandle": "a"
+   },
+   {
+    "id": "after-stack.clip->wipe.b",
+    "source": "after-stack",
+    "sourceHandle": "clip",
+    "target": "wipe",
+    "targetHandle": "b"
+   },
+   {
+    "id": "wipe.clip->render.clip",
+    "source": "wipe",
+    "sourceHandle": "clip",
+    "target": "render",
+    "targetHandle": "clip"
+   }
+  ],
+  "markers": []
+ },
+ "compile": {
+  "values": {
+   "before-session": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "before-session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": []
+    }
+   },
+   "after-session": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "after-session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": []
+    }
+   },
+   "before-open": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "before-session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "before-open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.com",
+        "waitUntil": "load",
+        "after": 2500
+       }
+      }
+     ]
+    }
+   },
+   "after-open": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "after-session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "after-open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.org",
+        "waitUntil": "load",
+        "after": 2500
+       }
+      }
+     ]
+    }
+   },
+   "before-start": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "before-session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "before-open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.com",
+        "waitUntil": "load",
+        "after": 2500
+       }
+      },
+      {
+       "id": "before-start",
+       "type": "browser.startRecording",
+       "params": {}
+      }
+     ]
+    }
+   },
+   "after-start": {
+    "session": {
+     "type": "browser-session",
+     "browser": {
+      "nodeId": "after-session",
+      "params": {
+       "viewportWidth": 1920,
+       "viewportHeight": 1080,
+       "dpr": 2,
+       "mobile": false,
+       "userAgent": "",
+       "locale": "en-US",
+       "timezone": "",
+       "colorScheme": "light",
+       "captureScale": 1
+      }
+     },
+     "steps": [
+      {
+       "id": "after-open",
+       "type": "browser.navigate",
+       "params": {
+        "url": "https://example.org",
+        "waitUntil": "load",
+        "after": 2500
+       }
+      },
+      {
+       "id": "after-start",
+       "type": "browser.startRecording",
+       "params": {}
+      }
+     ]
+    }
+   },
+   "before-record": {
+    "recording": {
+     "type": "recording",
+     "src": null,
+     "log": null,
+     "durationMs": 6000,
+     "viewport": {
+      "width": 1920,
+      "height": 1080
+     },
+     "nodeId": "before-record",
+     "style": []
+    }
+   },
+   "before-camera": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 144,
+     "tracks": [
+      {
+       "id": "before-camera:t",
+       "items": [
+        {
+         "id": "before-camera:i",
+         "from": 0,
+         "durationInFrames": 144,
+         "kind": "element",
+         "component": "core/placeholder",
+         "props": {
+          "title": "Not recorded yet",
+          "subtitle": "Run to record the take. The camera moves appear here afterwards."
+         },
+         "nodeId": "before-camera"
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "before-label": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 120,
+     "tracks": [
+      {
+       "id": "before-label:t",
+       "items": [
+        {
+         "id": "before-label:i",
+         "from": 0,
+         "durationInFrames": 120,
+         "kind": "element",
+         "component": "core/lower-third",
+         "props": {
+          "title": "Before",
+          "subtitle": "https://example.com",
+          "position": "bottom-left",
+          "accent": "#a78bfa",
+          "color": "#fafafa",
+          "panel": "rgba(10,10,12,0.72)"
+         },
+         "nodeId": "before-label",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "before-label",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "after-record": {
+    "recording": {
+     "type": "recording",
+     "src": null,
+     "log": null,
+     "durationMs": 6000,
+     "viewport": {
+      "width": 1920,
+      "height": 1080
+     },
+     "nodeId": "after-record",
+     "style": []
+    }
+   },
+   "after-camera": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 144,
+     "tracks": [
+      {
+       "id": "after-camera:t",
+       "items": [
+        {
+         "id": "after-camera:i",
+         "from": 0,
+         "durationInFrames": 144,
+         "kind": "element",
+         "component": "core/placeholder",
+         "props": {
+          "title": "Not recorded yet",
+          "subtitle": "Run to record the take. The camera moves appear here afterwards."
+         },
+         "nodeId": "after-camera"
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "after-label": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 120,
+     "tracks": [
+      {
+       "id": "after-label:t",
+       "items": [
+        {
+         "id": "after-label:i",
+         "from": 0,
+         "durationInFrames": 120,
+         "kind": "element",
+         "component": "core/lower-third",
+         "props": {
+          "title": "After",
+          "subtitle": "https://example.org",
+          "position": "bottom-left",
+          "accent": "#a78bfa",
+          "color": "#fafafa",
+          "panel": "rgba(10,10,12,0.72)"
+         },
+         "nodeId": "after-label",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "after-label",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "before-stack": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 144,
+     "tracks": [
+      {
+       "id": "before-stack:l0",
+       "items": [
+        {
+         "id": "before-stack:l0:g",
+         "from": 0,
+         "durationInFrames": 144,
+         "handles": {
+          "move": {
+           "nodeId": "before-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 0
+          }
+         },
+         "slot": {
+          "nodeId": "before-stack",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "before-camera:t",
+            "items": [
+             {
+              "id": "before-camera:i",
+              "from": 0,
+              "durationInFrames": 144,
+              "kind": "element",
+              "component": "core/placeholder",
+              "props": {
+               "title": "Not recorded yet",
+               "subtitle": "Run to record the take. The camera moves appear here afterwards."
+              },
+              "nodeId": "before-camera"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ],
+       "layer": true
+      },
+      {
+       "id": "before-stack:l1",
+       "items": [
+        {
+         "id": "before-stack:l1:g",
+         "from": 0,
+         "durationInFrames": 120,
+         "handles": {
+          "move": {
+           "nodeId": "before-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 1
+          }
+         },
+         "slot": {
+          "nodeId": "before-stack",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "before-label:t",
+            "items": [
+             {
+              "id": "before-label:i",
+              "from": 0,
+              "durationInFrames": 120,
+              "kind": "element",
+              "component": "core/lower-third",
+              "props": {
+               "title": "Before",
+               "subtitle": "https://example.com",
+               "position": "bottom-left",
+               "accent": "#a78bfa",
+               "color": "#fafafa",
+               "panel": "rgba(10,10,12,0.72)"
+              },
+              "nodeId": "before-label",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "before-label",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ],
+       "layer": true
+      }
+     ],
+     "audio": []
+    }
+   },
+   "after-stack": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 144,
+     "tracks": [
+      {
+       "id": "after-stack:l0",
+       "items": [
+        {
+         "id": "after-stack:l0:g",
+         "from": 0,
+         "durationInFrames": 144,
+         "handles": {
+          "move": {
+           "nodeId": "after-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 0
+          }
+         },
+         "slot": {
+          "nodeId": "after-stack",
+          "port": "in1"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "after-camera:t",
+            "items": [
+             {
+              "id": "after-camera:i",
+              "from": 0,
+              "durationInFrames": 144,
+              "kind": "element",
+              "component": "core/placeholder",
+              "props": {
+               "title": "Not recorded yet",
+               "subtitle": "Run to record the take. The camera moves appear here afterwards."
+              },
+              "nodeId": "after-camera"
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ],
+       "layer": true
+      },
+      {
+       "id": "after-stack:l1",
+       "items": [
+        {
+         "id": "after-stack:l1:g",
+         "from": 0,
+         "durationInFrames": 120,
+         "handles": {
+          "move": {
+           "nodeId": "after-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 1
+          }
+         },
+         "slot": {
+          "nodeId": "after-stack",
+          "port": "in2"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "after-label:t",
+            "items": [
+             {
+              "id": "after-label:i",
+              "from": 0,
+              "durationInFrames": 120,
+              "kind": "element",
+              "component": "core/lower-third",
+              "props": {
+               "title": "After",
+               "subtitle": "https://example.org",
+               "position": "bottom-left",
+               "accent": "#a78bfa",
+               "color": "#fafafa",
+               "panel": "rgba(10,10,12,0.72)"
+              },
+              "nodeId": "after-label",
+              "handles": {
+               "trimEnd": {
+                "nodeId": "after-label",
+                "param": "clipDuration",
+                "unit": "frames"
+               }
+              }
+             }
+            ]
+           }
+          ]
+         }
+        }
+       ],
+       "layer": true
+      }
+     ],
+     "audio": []
+    }
+   },
+   "wipe": {
+    "clip": {
+     "type": "clip",
+     "durationInFrames": 264,
+     "tracks": [
+      {
+       "id": "wipe:seq",
+       "items": [
+        {
+         "id": "wipe:s0",
+         "from": 0,
+         "durationInFrames": 144,
+         "slot": {
+          "nodeId": "wipe",
+          "port": "a"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "before-stack:l0",
+            "items": [
+             {
+              "id": "before-stack:l0:g",
+              "from": 0,
+              "durationInFrames": 144,
+              "handles": {
+               "move": {
+                "nodeId": "before-stack",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 0
+               }
+              },
+              "slot": {
+               "nodeId": "before-stack",
+               "port": "in1"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "before-camera:t",
+                 "items": [
+                  {
+                   "id": "before-camera:i",
+                   "from": 0,
+                   "durationInFrames": 144,
+                   "kind": "element",
+                   "component": "core/placeholder",
+                   "props": {
+                    "title": "Not recorded yet",
+                    "subtitle": "Run to record the take. The camera moves appear here afterwards."
+                   },
+                   "nodeId": "before-camera"
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           },
+           {
+            "id": "before-stack:l1",
+            "items": [
+             {
+              "id": "before-stack:l1:g",
+              "from": 0,
+              "durationInFrames": 120,
+              "handles": {
+               "move": {
+                "nodeId": "before-stack",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 1
+               }
+              },
+              "slot": {
+               "nodeId": "before-stack",
+               "port": "in2"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "before-label:t",
+                 "items": [
+                  {
+                   "id": "before-label:i",
+                   "from": 0,
+                   "durationInFrames": 120,
+                   "kind": "element",
+                   "component": "core/lower-third",
+                   "props": {
+                    "title": "Before",
+                    "subtitle": "https://example.com",
+                    "position": "bottom-left",
+                    "accent": "#a78bfa",
+                    "color": "#fafafa",
+                    "panel": "rgba(10,10,12,0.72)"
+                   },
+                   "nodeId": "before-label",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "before-label",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           }
+          ]
+         },
+         "exit": {
+          "kind": "core/wipe",
+          "durationInFrames": 24,
+          "params": {
+           "direction": "from-left"
+          }
+         }
+        },
+        {
+         "id": "wipe:s1",
+         "from": 120,
+         "durationInFrames": 144,
+         "enter": {
+          "kind": "core/wipe",
+          "durationInFrames": 24,
+          "params": {
+           "direction": "from-left"
+          }
+         },
+         "slot": {
+          "nodeId": "wipe",
+          "port": "b"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "after-stack:l0",
+            "items": [
+             {
+              "id": "after-stack:l0:g",
+              "from": 0,
+              "durationInFrames": 144,
+              "handles": {
+               "move": {
+                "nodeId": "after-stack",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 0
+               }
+              },
+              "slot": {
+               "nodeId": "after-stack",
+               "port": "in1"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "after-camera:t",
+                 "items": [
+                  {
+                   "id": "after-camera:i",
+                   "from": 0,
+                   "durationInFrames": 144,
+                   "kind": "element",
+                   "component": "core/placeholder",
+                   "props": {
+                    "title": "Not recorded yet",
+                    "subtitle": "Run to record the take. The camera moves appear here afterwards."
+                   },
+                   "nodeId": "after-camera"
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           },
+           {
+            "id": "after-stack:l1",
+            "items": [
+             {
+              "id": "after-stack:l1:g",
+              "from": 0,
+              "durationInFrames": 120,
+              "handles": {
+               "move": {
+                "nodeId": "after-stack",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 1
+               }
+              },
+              "slot": {
+               "nodeId": "after-stack",
+               "port": "in2"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "after-label:t",
+                 "items": [
+                  {
+                   "id": "after-label:i",
+                   "from": 0,
+                   "durationInFrames": 120,
+                   "kind": "element",
+                   "component": "core/lower-third",
+                   "props": {
+                    "title": "After",
+                    "subtitle": "https://example.org",
+                    "position": "bottom-left",
+                    "accent": "#a78bfa",
+                    "color": "#fafafa",
+                    "panel": "rgba(10,10,12,0.72)"
+                   },
+                   "nodeId": "after-label",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "after-label",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": []
+    }
+   },
+   "render": {}
+  },
+  "errors": {},
+  "specs": {
+   "render": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 264,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "wipe:seq",
+      "items": [
+       {
+        "id": "wipe:s0",
+        "from": 0,
+        "durationInFrames": 144,
+        "slot": {
+         "nodeId": "wipe",
+         "port": "a"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "before-stack:l0",
+           "items": [
+            {
+             "id": "before-stack:l0:g",
+             "from": 0,
+             "durationInFrames": 144,
+             "handles": {
+              "move": {
+               "nodeId": "before-stack",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 0
+              }
+             },
+             "slot": {
+              "nodeId": "before-stack",
+              "port": "in1"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "before-camera:t",
+                "items": [
+                 {
+                  "id": "before-camera:i",
+                  "from": 0,
+                  "durationInFrames": 144,
+                  "kind": "element",
+                  "component": "core/placeholder",
+                  "props": {
+                   "title": "Not recorded yet",
+                   "subtitle": "Run to record the take. The camera moves appear here afterwards."
+                  },
+                  "nodeId": "before-camera"
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          },
+          {
+           "id": "before-stack:l1",
+           "items": [
+            {
+             "id": "before-stack:l1:g",
+             "from": 0,
+             "durationInFrames": 120,
+             "handles": {
+              "move": {
+               "nodeId": "before-stack",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 1
+              }
+             },
+             "slot": {
+              "nodeId": "before-stack",
+              "port": "in2"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "before-label:t",
+                "items": [
+                 {
+                  "id": "before-label:i",
+                  "from": 0,
+                  "durationInFrames": 120,
+                  "kind": "element",
+                  "component": "core/lower-third",
+                  "props": {
+                   "title": "Before",
+                   "subtitle": "https://example.com",
+                   "position": "bottom-left",
+                   "accent": "#a78bfa",
+                   "color": "#fafafa",
+                   "panel": "rgba(10,10,12,0.72)"
+                  },
+                  "nodeId": "before-label",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "before-label",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          }
+         ]
+        },
+        "exit": {
+         "kind": "core/wipe",
+         "durationInFrames": 24,
+         "params": {
+          "direction": "from-left"
+         }
+        }
+       },
+       {
+        "id": "wipe:s1",
+        "from": 120,
+        "durationInFrames": 144,
+        "enter": {
+         "kind": "core/wipe",
+         "durationInFrames": 24,
+         "params": {
+          "direction": "from-left"
+         }
+        },
+        "slot": {
+         "nodeId": "wipe",
+         "port": "b"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "after-stack:l0",
+           "items": [
+            {
+             "id": "after-stack:l0:g",
+             "from": 0,
+             "durationInFrames": 144,
+             "handles": {
+              "move": {
+               "nodeId": "after-stack",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 0
+              }
+             },
+             "slot": {
+              "nodeId": "after-stack",
+              "port": "in1"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "after-camera:t",
+                "items": [
+                 {
+                  "id": "after-camera:i",
+                  "from": 0,
+                  "durationInFrames": 144,
+                  "kind": "element",
+                  "component": "core/placeholder",
+                  "props": {
+                   "title": "Not recorded yet",
+                   "subtitle": "Run to record the take. The camera moves appear here afterwards."
+                  },
+                  "nodeId": "after-camera"
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          },
+          {
+           "id": "after-stack:l1",
+           "items": [
+            {
+             "id": "after-stack:l1:g",
+             "from": 0,
+             "durationInFrames": 120,
+             "handles": {
+              "move": {
+               "nodeId": "after-stack",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 1
+              }
+             },
+             "slot": {
+              "nodeId": "after-stack",
+              "port": "in2"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "after-label:t",
+                "items": [
+                 {
+                  "id": "after-label:i",
+                  "from": 0,
+                  "durationInFrames": 120,
+                  "kind": "element",
+                  "component": "core/lower-third",
+                  "props": {
+                   "title": "After",
+                   "subtitle": "https://example.org",
+                   "position": "bottom-left",
+                   "accent": "#a78bfa",
+                   "color": "#fafafa",
+                   "panel": "rgba(10,10,12,0.72)"
+                  },
+                  "nodeId": "after-label",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "after-label",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   }
+  },
+  "order": [
+   "before-session",
+   "after-session",
+   "before-open",
+   "after-open",
+   "before-start",
+   "after-start",
+   "before-record",
+   "before-camera",
+   "before-label",
+   "after-record",
+   "after-camera",
+   "after-label",
+   "before-stack",
+   "after-stack",
+   "wipe",
+   "render"
+  ]
+ },
+ "problems": [],
+ "cards": {
+  "before-session": {
+   "rows": [
+    {
+     "icon": "monitor",
+     "text": "1920 × 1080"
+    }
+   ]
+  },
+  "before-open": {
+   "rows": [
+    {
+     "icon": "link",
+     "text": "example.com",
+     "title": "https://example.com"
+    },
+    {
+     "icon": "timer",
+     "text": "Pause 2.5 s"
+    }
+   ]
+  },
+  "before-start": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "Video starts here"
+    }
+   ]
+  },
+  "before-record": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "30 fps"
+    },
+    {
+     "icon": "mouse-pointer",
+     "text": "Smooth cursor"
+    }
+   ]
+  },
+  "before-camera": {
+   "rows": [
+    {
+     "icon": "zoom-out",
+     "text": "No zoom",
+     "tone": "muted"
+    },
+    {
+     "icon": "image",
+     "text": "Glaze backdrop"
+    },
+    {
+     "icon": "gauge",
+     "text": "1.25× speed"
+    }
+   ]
+  },
+  "before-label": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“Before”"
+    },
+    {
+     "icon": "clock",
+     "text": "4 s"
+    }
+   ]
+  },
+  "before-stack": {
+   "rows": [
+    {
+     "icon": "layers",
+     "text": "2 layers"
+    },
+    {
+     "icon": "clock",
+     "text": "Length follows Layer 1"
+    },
+    {
+     "icon": "timer",
+     "text": "4.8 s"
+    }
+   ]
+  },
+  "after-session": {
+   "rows": [
+    {
+     "icon": "monitor",
+     "text": "1920 × 1080"
+    }
+   ]
+  },
+  "after-open": {
+   "rows": [
+    {
+     "icon": "link",
+     "text": "example.org",
+     "title": "https://example.org"
+    },
+    {
+     "icon": "timer",
+     "text": "Pause 2.5 s"
+    }
+   ]
+  },
+  "after-start": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "Video starts here"
+    }
+   ]
+  },
+  "after-record": {
+   "rows": [
+    {
+     "icon": "video",
+     "text": "30 fps"
+    },
+    {
+     "icon": "mouse-pointer",
+     "text": "Smooth cursor"
+    }
+   ]
+  },
+  "after-camera": {
+   "rows": [
+    {
+     "icon": "zoom-out",
+     "text": "No zoom",
+     "tone": "muted"
+    },
+    {
+     "icon": "image",
+     "text": "Glaze backdrop"
+    },
+    {
+     "icon": "gauge",
+     "text": "1.25× speed"
+    }
+   ]
+  },
+  "after-label": {
+   "rows": [
+    {
+     "icon": "type",
+     "text": "“After”"
+    },
+    {
+     "icon": "clock",
+     "text": "4 s"
+    }
+   ]
+  },
+  "after-stack": {
+   "rows": [
+    {
+     "icon": "layers",
+     "text": "2 layers"
+    },
+    {
+     "icon": "clock",
+     "text": "Length follows Layer 1"
+    },
+    {
+     "icon": "timer",
+     "text": "4.8 s"
+    }
+   ]
+  },
+  "wipe": {
+   "rows": [
+    {
+     "icon": "arrow-right-left",
+     "text": "0.8 s"
+    }
+   ]
+  },
+  "render": {
+   "rows": [
+    {
+     "icon": "ratio",
+     "text": "16:9"
+    },
+    {
+     "icon": "film",
+     "text": "MP4 · 1080p · 30 fps"
+    }
+   ]
+  }
+ },
+ "preview": {
+  "spec": {
+   "width": 1920,
+   "height": 1080,
+   "fps": 30,
+   "durationInFrames": 264,
+   "background": "#09090b",
+   "tracks": [
+    {
+     "id": "wipe:seq",
+     "items": [
+      {
+       "id": "wipe:s0",
+       "from": 0,
+       "durationInFrames": 144,
+       "slot": {
+        "nodeId": "wipe",
+        "port": "a"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "before-stack:l0",
+          "items": [
+           {
+            "id": "before-stack:l0:g",
+            "from": 0,
+            "durationInFrames": 144,
+            "handles": {
+             "move": {
+              "nodeId": "before-stack",
+              "param": "offsetsMs",
+              "unit": "ms",
+              "index": 0
+             }
+            },
+            "slot": {
+             "nodeId": "before-stack",
+             "port": "in1"
+            },
+            "kind": "group",
+            "props": {
+             "tracks": [
+              {
+               "id": "before-camera:t",
+               "items": [
+                {
+                 "id": "before-camera:i",
+                 "from": 0,
+                 "durationInFrames": 144,
+                 "kind": "element",
+                 "component": "core/placeholder",
+                 "props": {
+                  "title": "Not recorded yet",
+                  "subtitle": "Run to record the take. The camera moves appear here afterwards."
+                 },
+                 "nodeId": "before-camera"
+                }
+               ]
+              }
+             ]
+            }
+           }
+          ],
+          "layer": true
+         },
+         {
+          "id": "before-stack:l1",
+          "items": [
+           {
+            "id": "before-stack:l1:g",
+            "from": 0,
+            "durationInFrames": 120,
+            "handles": {
+             "move": {
+              "nodeId": "before-stack",
+              "param": "offsetsMs",
+              "unit": "ms",
+              "index": 1
+             }
+            },
+            "slot": {
+             "nodeId": "before-stack",
+             "port": "in2"
+            },
+            "kind": "group",
+            "props": {
+             "tracks": [
+              {
+               "id": "before-label:t",
+               "items": [
+                {
+                 "id": "before-label:i",
+                 "from": 0,
+                 "durationInFrames": 120,
+                 "kind": "element",
+                 "component": "core/lower-third",
+                 "props": {
+                  "title": "Before",
+                  "subtitle": "https://example.com",
+                  "position": "bottom-left",
+                  "accent": "#a78bfa",
+                  "color": "#fafafa",
+                  "panel": "rgba(10,10,12,0.72)"
+                 },
+                 "nodeId": "before-label",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "before-label",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           }
+          ],
+          "layer": true
+         }
+        ]
+       },
+       "exit": {
+        "kind": "core/wipe",
+        "durationInFrames": 24,
+        "params": {
+         "direction": "from-left"
+        }
+       }
+      },
+      {
+       "id": "wipe:s1",
+       "from": 120,
+       "durationInFrames": 144,
+       "enter": {
+        "kind": "core/wipe",
+        "durationInFrames": 24,
+        "params": {
+         "direction": "from-left"
+        }
+       },
+       "slot": {
+        "nodeId": "wipe",
+        "port": "b"
+       },
+       "kind": "group",
+       "props": {
+        "tracks": [
+         {
+          "id": "after-stack:l0",
+          "items": [
+           {
+            "id": "after-stack:l0:g",
+            "from": 0,
+            "durationInFrames": 144,
+            "handles": {
+             "move": {
+              "nodeId": "after-stack",
+              "param": "offsetsMs",
+              "unit": "ms",
+              "index": 0
+             }
+            },
+            "slot": {
+             "nodeId": "after-stack",
+             "port": "in1"
+            },
+            "kind": "group",
+            "props": {
+             "tracks": [
+              {
+               "id": "after-camera:t",
+               "items": [
+                {
+                 "id": "after-camera:i",
+                 "from": 0,
+                 "durationInFrames": 144,
+                 "kind": "element",
+                 "component": "core/placeholder",
+                 "props": {
+                  "title": "Not recorded yet",
+                  "subtitle": "Run to record the take. The camera moves appear here afterwards."
+                 },
+                 "nodeId": "after-camera"
+                }
+               ]
+              }
+             ]
+            }
+           }
+          ],
+          "layer": true
+         },
+         {
+          "id": "after-stack:l1",
+          "items": [
+           {
+            "id": "after-stack:l1:g",
+            "from": 0,
+            "durationInFrames": 120,
+            "handles": {
+             "move": {
+              "nodeId": "after-stack",
+              "param": "offsetsMs",
+              "unit": "ms",
+              "index": 1
+             }
+            },
+            "slot": {
+             "nodeId": "after-stack",
+             "port": "in2"
+            },
+            "kind": "group",
+            "props": {
+             "tracks": [
+              {
+               "id": "after-label:t",
+               "items": [
+                {
+                 "id": "after-label:i",
+                 "from": 0,
+                 "durationInFrames": 120,
+                 "kind": "element",
+                 "component": "core/lower-third",
+                 "props": {
+                  "title": "After",
+                  "subtitle": "https://example.org",
+                  "position": "bottom-left",
+                  "accent": "#a78bfa",
+                  "color": "#fafafa",
+                  "panel": "rgba(10,10,12,0.72)"
+                 },
+                 "nodeId": "after-label",
+                 "handles": {
+                  "trimEnd": {
+                   "nodeId": "after-label",
+                   "param": "clipDuration",
+                   "unit": "frames"
+                  }
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           }
+          ],
+          "layer": true
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "audio": [],
+   "fonts": {
+    "main": "Inter",
+    "heading": "",
+    "code": "JetBrains Mono",
+    "families": []
+   }
+  },
+  "spans": {
+   "before-camera": {
+    "from": 0,
+    "to": 144
+   },
+   "before-label": {
+    "from": 0,
+    "to": 120
+   },
+   "after-camera": {
+    "from": 120,
+    "to": 264
+   },
+   "after-label": {
+    "from": 120,
+    "to": 240
+   }
+  },
+  "sourceNodeId": "render"
+ },
+ "timelines": {
+  "render": {
+   "flat": {
+    "fps": 30,
+    "durationInFrames": 264,
+    "bars": [
+     {
+      "type": "video",
+      "key": "/0:wipe:s0/0:before-stack:l0:g/0:before-camera:i",
+      "itemId": "before-camera:i",
+      "nodeId": "before-camera",
+      "kind": "element",
+      "component": "core/placeholder",
+      "props": {
+       "title": "Not recorded yet",
+       "subtitle": "Run to record the take. The camera moves appear here afterwards."
+      },
+      "thumbnail": null,
+      "from": 0,
+      "to": 144,
+      "lane": 0,
+      "order": 0,
+      "chain": [
+       {
+        "itemId": "before-camera:i",
+        "nodeId": "before-camera",
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 0,
+        "to": 144
+       },
+       {
+        "itemId": "before-stack:l0:g",
+        "handles": {
+         "move": {
+          "nodeId": "before-stack",
+          "param": "offsetsMs",
+          "unit": "ms",
+          "index": 0
+         }
+        },
+        "slot": {
+         "nodeId": "before-stack",
+         "port": "in1"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 0,
+        "to": 144
+       },
+       {
+        "itemId": "wipe:s0",
+        "slot": {
+         "nodeId": "wipe",
+         "port": "a"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 0,
+        "to": 144
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 144,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:wipe:s0/1:before-stack:l1:g/0:before-label:i",
+      "itemId": "before-label:i",
+      "nodeId": "before-label",
+      "kind": "element",
+      "component": "core/lower-third",
+      "props": {
+       "title": "Before",
+       "subtitle": "https://example.com",
+       "position": "bottom-left",
+       "accent": "#a78bfa",
+       "color": "#fafafa",
+       "panel": "rgba(10,10,12,0.72)"
+      },
+      "thumbnail": null,
+      "from": 0,
+      "to": 120,
+      "lane": 1,
+      "order": 1,
+      "chain": [
+       {
+        "itemId": "before-label:i",
+        "nodeId": "before-label",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "before-label",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 0,
+        "to": 120
+       },
+       {
+        "itemId": "before-stack:l1:g",
+        "handles": {
+         "move": {
+          "nodeId": "before-stack",
+          "param": "offsetsMs",
+          "unit": "ms",
+          "index": 1
+         }
+        },
+        "slot": {
+         "nodeId": "before-stack",
+         "port": "in2"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 0,
+        "to": 120
+       },
+       {
+        "itemId": "wipe:s0",
+        "slot": {
+         "nodeId": "wipe",
+         "port": "a"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 0,
+        "to": 144
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 120,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:wipe:s1/0:after-stack:l0:g/0:after-camera:i",
+      "itemId": "after-camera:i",
+      "nodeId": "after-camera",
+      "kind": "element",
+      "component": "core/placeholder",
+      "props": {
+       "title": "Not recorded yet",
+       "subtitle": "Run to record the take. The camera moves appear here afterwards."
+      },
+      "thumbnail": null,
+      "from": 120,
+      "to": 264,
+      "lane": 1,
+      "order": 2,
+      "chain": [
+       {
+        "itemId": "after-camera:i",
+        "nodeId": "after-camera",
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 120,
+        "to": 264
+       },
+       {
+        "itemId": "after-stack:l0:g",
+        "handles": {
+         "move": {
+          "nodeId": "after-stack",
+          "param": "offsetsMs",
+          "unit": "ms",
+          "index": 0
+         }
+        },
+        "slot": {
+         "nodeId": "after-stack",
+         "port": "in1"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 120,
+        "to": 264
+       },
+       {
+        "itemId": "wipe:s1",
+        "slot": {
+         "nodeId": "wipe",
+         "port": "b"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 120,
+        "to": 264
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 144,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     },
+     {
+      "type": "video",
+      "key": "/0:wipe:s1/1:after-stack:l1:g/0:after-label:i",
+      "itemId": "after-label:i",
+      "nodeId": "after-label",
+      "kind": "element",
+      "component": "core/lower-third",
+      "props": {
+       "title": "After",
+       "subtitle": "https://example.org",
+       "position": "bottom-left",
+       "accent": "#a78bfa",
+       "color": "#fafafa",
+       "panel": "rgba(10,10,12,0.72)"
+      },
+      "thumbnail": null,
+      "from": 120,
+      "to": 240,
+      "lane": 2,
+      "order": 3,
+      "chain": [
+       {
+        "itemId": "after-label:i",
+        "nodeId": "after-label",
+        "handles": {
+         "trimEnd": {
+          "nodeId": "after-label",
+          "param": "clipDuration",
+          "unit": "frames"
+         }
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 120,
+        "to": 240
+       },
+       {
+        "itemId": "after-stack:l1:g",
+        "handles": {
+         "move": {
+          "nodeId": "after-stack",
+          "param": "offsetsMs",
+          "unit": "ms",
+          "index": 1
+         }
+        },
+        "slot": {
+         "nodeId": "after-stack",
+         "port": "in2"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 120,
+        "from": 120,
+        "to": 240
+       },
+       {
+        "itemId": "wipe:s1",
+        "slot": {
+         "nodeId": "wipe",
+         "port": "b"
+        },
+        "rate": 1,
+        "rateEnd": 1,
+        "end": 144,
+        "from": 120,
+        "to": 264
+       }
+      ],
+      "rate": 1,
+      "contentStart": 0,
+      "contentEnd": 120,
+      "loop": 0,
+      "hasSound": false,
+      "sound": null
+     }
+    ],
+    "lanes": 3,
+    "audio": [],
+    "audioLanes": 0,
+    "transitions": [
+     {
+      "key": "/0:wipe:s1:enter",
+      "itemKey": "/0:wipe:s1",
+      "lanes": [
+       0,
+       1,
+       2
+      ],
+      "from": 120,
+      "to": 144,
+      "kind": "core/wipe",
+      "covers": 0.16666666666666666,
+      "slot": {
+       "nodeId": "wipe",
+       "port": "b"
+      }
+     }
+    ],
+    "marks": [],
+    "cameraKeys": []
+   },
+   "chapters": [],
+   "mix": {
+    "fps": 30,
+    "durationInFrames": 264,
+    "channels": [],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": 0,
+     "eq": {
+      "on": false,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 120,
+        "gain": 0,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "peak",
+        "freq": 2500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "highshelf",
+        "freq": 8000,
+        "gain": 0,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12,
+      "ratio": 2,
+      "attack": 20,
+      "release": 250,
+      "makeup": 0
+     },
+     "limiter": {
+      "on": false,
+      "ceiling": -1
+     },
+     "loudness": "off"
+    },
+    "key": "be7449c98fe13a9d"
+   }
+  }
+ },
+ "run": {
+  "results": {
+   "before-record": {
+    "hash": "hash-before-record",
+    "outputs": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/before-record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 3200,
+       "actions": [
+        {
+         "id": "before-open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "before-open"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 3200,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "before-record",
+      "style": []
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   },
+   "after-record": {
+    "hash": "hash-after-record",
+    "outputs": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/after-record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 3200,
+       "actions": [
+        {
+         "id": "after-open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "after-open"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 3200,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "after-record",
+      "style": []
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   },
+   "render": {
+    "hash": "hash-render",
+    "outputs": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    },
+    "artifacts": [],
+    "finishedAt": 1,
+    "durationMs": 2
+   }
+  },
+  "compile": {
+   "values": {
+    "before-session": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "before-session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": []
+     }
+    },
+    "after-session": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "after-session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": []
+     }
+    },
+    "before-open": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "before-session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "before-open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.com",
+         "waitUntil": "load",
+         "after": 2500
+        }
+       }
+      ]
+     }
+    },
+    "after-open": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "after-session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "after-open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.org",
+         "waitUntil": "load",
+         "after": 2500
+        }
+       }
+      ]
+     }
+    },
+    "before-start": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "before-session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "before-open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.com",
+         "waitUntil": "load",
+         "after": 2500
+        }
+       },
+       {
+        "id": "before-start",
+        "type": "browser.startRecording",
+        "params": {}
+       }
+      ]
+     }
+    },
+    "after-start": {
+     "session": {
+      "type": "browser-session",
+      "browser": {
+       "nodeId": "after-session",
+       "params": {
+        "viewportWidth": 1920,
+        "viewportHeight": 1080,
+        "dpr": 2,
+        "mobile": false,
+        "userAgent": "",
+        "locale": "en-US",
+        "timezone": "",
+        "colorScheme": "light",
+        "captureScale": 1
+       }
+      },
+      "steps": [
+       {
+        "id": "after-open",
+        "type": "browser.navigate",
+        "params": {
+         "url": "https://example.org",
+         "waitUntil": "load",
+         "after": 2500
+        }
+       },
+       {
+        "id": "after-start",
+        "type": "browser.startRecording",
+        "params": {}
+       }
+      ]
+     }
+    },
+    "before-record": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/before-record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 3200,
+       "actions": [
+        {
+         "id": "before-open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "before-open"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 3200,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "before-record",
+      "style": []
+     }
+    },
+    "before-camera": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 77,
+      "tracks": [
+       {
+        "id": "before-camera:t",
+        "items": [
+         {
+          "id": "before-camera:i",
+          "from": 0,
+          "durationInFrames": 77,
+          "kind": "recording",
+          "props": {
+           "speed": 1.25,
+           "zoom": false,
+           "tuning": {
+            "sMax": 1.74,
+            "holdMinS": 1.3
+           },
+           "motionBlur": true,
+           "style": "classic",
+           "chrome": false,
+           "backdrop": "glaze",
+           "cursor": true,
+           "cursorScale": 1,
+           "cursorLook": {
+            "shape": "arrow",
+            "fill": "#111418",
+            "edge": "#ffffff"
+           },
+           "ripple": {
+            "color": "#0f172a",
+            "size": 1,
+            "width": 2
+           },
+           "extraBeats": [],
+           "annotations": [],
+           "src": "project:.opsis/cache/before-record/recording.mp4",
+           "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+           "log": {
+            "viewport": {
+             "width": 1920,
+             "height": 1080
+            },
+            "dpr": 1,
+            "t0": 0,
+            "durationMs": 3200,
+            "actions": [
+             {
+              "id": "before-open:navigate",
+              "kind": "navigate",
+              "t": 600,
+              "tEnd": 1000,
+              "point": {
+               "x": 200,
+               "y": 150
+              },
+              "rect": {
+               "x": 140,
+               "y": 130,
+               "w": 120,
+               "h": 40
+              },
+              "label": "browser.navigate",
+              "nodeId": "before-open"
+             }
+            ],
+            "cursorTrack": [
+             {
+              "t": 0,
+              "x": 960,
+              "y": 540
+             }
+            ]
+           },
+           "name": "before-record"
+          },
+          "nodeId": "before-camera"
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/before-record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 3200,
+        "actions": [
+         {
+          "id": "before-open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "before-open"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 3200,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "before-record",
+       "style": []
+      }
+     }
+    },
+    "before-label": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 120,
+      "tracks": [
+       {
+        "id": "before-label:t",
+        "items": [
+         {
+          "id": "before-label:i",
+          "from": 0,
+          "durationInFrames": 120,
+          "kind": "element",
+          "component": "core/lower-third",
+          "props": {
+           "title": "Before",
+           "subtitle": "https://example.com",
+           "position": "bottom-left",
+           "accent": "#a78bfa",
+           "color": "#fafafa",
+           "panel": "rgba(10,10,12,0.72)"
+          },
+          "nodeId": "before-label",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "before-label",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "after-record": {
+     "recording": {
+      "type": "recording",
+      "src": "project:.opsis/cache/after-record/recording.mp4",
+      "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+      "log": {
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "dpr": 1,
+       "t0": 0,
+       "durationMs": 3200,
+       "actions": [
+        {
+         "id": "after-open:navigate",
+         "kind": "navigate",
+         "t": 600,
+         "tEnd": 1000,
+         "point": {
+          "x": 200,
+          "y": 150
+         },
+         "rect": {
+          "x": 140,
+          "y": 130,
+          "w": 120,
+          "h": 40
+         },
+         "label": "browser.navigate",
+         "nodeId": "after-open"
+        }
+       ],
+       "cursorTrack": [
+        {
+         "t": 0,
+         "x": 960,
+         "y": 540
+        }
+       ]
+      },
+      "durationMs": 3200,
+      "viewport": {
+       "width": 1920,
+       "height": 1080
+      },
+      "nodeId": "after-record",
+      "style": []
+     }
+    },
+    "after-camera": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 77,
+      "tracks": [
+       {
+        "id": "after-camera:t",
+        "items": [
+         {
+          "id": "after-camera:i",
+          "from": 0,
+          "durationInFrames": 77,
+          "kind": "recording",
+          "props": {
+           "speed": 1.25,
+           "zoom": false,
+           "tuning": {
+            "sMax": 1.74,
+            "holdMinS": 1.3
+           },
+           "motionBlur": true,
+           "style": "classic",
+           "chrome": false,
+           "backdrop": "glaze",
+           "cursor": true,
+           "cursorScale": 1,
+           "cursorLook": {
+            "shape": "arrow",
+            "fill": "#111418",
+            "edge": "#ffffff"
+           },
+           "ripple": {
+            "color": "#0f172a",
+            "size": 1,
+            "width": 2
+           },
+           "extraBeats": [],
+           "annotations": [],
+           "src": "project:.opsis/cache/after-record/recording.mp4",
+           "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+           "log": {
+            "viewport": {
+             "width": 1920,
+             "height": 1080
+            },
+            "dpr": 1,
+            "t0": 0,
+            "durationMs": 3200,
+            "actions": [
+             {
+              "id": "after-open:navigate",
+              "kind": "navigate",
+              "t": 600,
+              "tEnd": 1000,
+              "point": {
+               "x": 200,
+               "y": 150
+              },
+              "rect": {
+               "x": 140,
+               "y": 130,
+               "w": 120,
+               "h": 40
+              },
+              "label": "browser.navigate",
+              "nodeId": "after-open"
+             }
+            ],
+            "cursorTrack": [
+             {
+              "t": 0,
+              "x": 960,
+              "y": 540
+             }
+            ]
+           },
+           "name": "after-record"
+          },
+          "nodeId": "after-camera"
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/after-record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 3200,
+        "actions": [
+         {
+          "id": "after-open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "after-open"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 3200,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "after-record",
+       "style": []
+      }
+     }
+    },
+    "after-label": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 120,
+      "tracks": [
+       {
+        "id": "after-label:t",
+        "items": [
+         {
+          "id": "after-label:i",
+          "from": 0,
+          "durationInFrames": 120,
+          "kind": "element",
+          "component": "core/lower-third",
+          "props": {
+           "title": "After",
+           "subtitle": "https://example.org",
+           "position": "bottom-left",
+           "accent": "#a78bfa",
+           "color": "#fafafa",
+           "panel": "rgba(10,10,12,0.72)"
+          },
+          "nodeId": "after-label",
+          "handles": {
+           "trimEnd": {
+            "nodeId": "after-label",
+            "param": "clipDuration",
+            "unit": "frames"
+           }
+          }
+         }
+        ]
+       }
+      ],
+      "audio": []
+     }
+    },
+    "before-stack": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 77,
+      "tracks": [
+       {
+        "id": "before-stack:l0",
+        "items": [
+         {
+          "id": "before-stack:l0:g",
+          "from": 0,
+          "durationInFrames": 77,
+          "handles": {
+           "move": {
+            "nodeId": "before-stack",
+            "param": "offsetsMs",
+            "unit": "ms",
+            "index": 0
+           }
+          },
+          "slot": {
+           "nodeId": "before-stack",
+           "port": "in1"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "before-camera:t",
+             "items": [
+              {
+               "id": "before-camera:i",
+               "from": 0,
+               "durationInFrames": 77,
+               "kind": "recording",
+               "props": {
+                "speed": 1.25,
+                "zoom": false,
+                "tuning": {
+                 "sMax": 1.74,
+                 "holdMinS": 1.3
+                },
+                "motionBlur": true,
+                "style": "classic",
+                "chrome": false,
+                "backdrop": "glaze",
+                "cursor": true,
+                "cursorScale": 1,
+                "cursorLook": {
+                 "shape": "arrow",
+                 "fill": "#111418",
+                 "edge": "#ffffff"
+                },
+                "ripple": {
+                 "color": "#0f172a",
+                 "size": 1,
+                 "width": 2
+                },
+                "extraBeats": [],
+                "annotations": [],
+                "src": "project:.opsis/cache/before-record/recording.mp4",
+                "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+                "log": {
+                 "viewport": {
+                  "width": 1920,
+                  "height": 1080
+                 },
+                 "dpr": 1,
+                 "t0": 0,
+                 "durationMs": 3200,
+                 "actions": [
+                  {
+                   "id": "before-open:navigate",
+                   "kind": "navigate",
+                   "t": 600,
+                   "tEnd": 1000,
+                   "point": {
+                    "x": 200,
+                    "y": 150
+                   },
+                   "rect": {
+                    "x": 140,
+                    "y": 130,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.navigate",
+                   "nodeId": "before-open"
+                  }
+                 ],
+                 "cursorTrack": [
+                  {
+                   "t": 0,
+                   "x": 960,
+                   "y": 540
+                  }
+                 ]
+                },
+                "name": "before-record"
+               },
+               "nodeId": "before-camera"
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ],
+        "layer": true
+       },
+       {
+        "id": "before-stack:l1",
+        "items": [
+         {
+          "id": "before-stack:l1:g",
+          "from": 0,
+          "durationInFrames": 120,
+          "handles": {
+           "move": {
+            "nodeId": "before-stack",
+            "param": "offsetsMs",
+            "unit": "ms",
+            "index": 1
+           }
+          },
+          "slot": {
+           "nodeId": "before-stack",
+           "port": "in2"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "before-label:t",
+             "items": [
+              {
+               "id": "before-label:i",
+               "from": 0,
+               "durationInFrames": 120,
+               "kind": "element",
+               "component": "core/lower-third",
+               "props": {
+                "title": "Before",
+                "subtitle": "https://example.com",
+                "position": "bottom-left",
+                "accent": "#a78bfa",
+                "color": "#fafafa",
+                "panel": "rgba(10,10,12,0.72)"
+               },
+               "nodeId": "before-label",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "before-label",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ],
+        "layer": true
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/before-record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 3200,
+        "actions": [
+         {
+          "id": "before-open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "before-open"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 3200,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "before-record",
+       "style": []
+      }
+     }
+    },
+    "after-stack": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 77,
+      "tracks": [
+       {
+        "id": "after-stack:l0",
+        "items": [
+         {
+          "id": "after-stack:l0:g",
+          "from": 0,
+          "durationInFrames": 77,
+          "handles": {
+           "move": {
+            "nodeId": "after-stack",
+            "param": "offsetsMs",
+            "unit": "ms",
+            "index": 0
+           }
+          },
+          "slot": {
+           "nodeId": "after-stack",
+           "port": "in1"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "after-camera:t",
+             "items": [
+              {
+               "id": "after-camera:i",
+               "from": 0,
+               "durationInFrames": 77,
+               "kind": "recording",
+               "props": {
+                "speed": 1.25,
+                "zoom": false,
+                "tuning": {
+                 "sMax": 1.74,
+                 "holdMinS": 1.3
+                },
+                "motionBlur": true,
+                "style": "classic",
+                "chrome": false,
+                "backdrop": "glaze",
+                "cursor": true,
+                "cursorScale": 1,
+                "cursorLook": {
+                 "shape": "arrow",
+                 "fill": "#111418",
+                 "edge": "#ffffff"
+                },
+                "ripple": {
+                 "color": "#0f172a",
+                 "size": 1,
+                 "width": 2
+                },
+                "extraBeats": [],
+                "annotations": [],
+                "src": "project:.opsis/cache/after-record/recording.mp4",
+                "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+                "log": {
+                 "viewport": {
+                  "width": 1920,
+                  "height": 1080
+                 },
+                 "dpr": 1,
+                 "t0": 0,
+                 "durationMs": 3200,
+                 "actions": [
+                  {
+                   "id": "after-open:navigate",
+                   "kind": "navigate",
+                   "t": 600,
+                   "tEnd": 1000,
+                   "point": {
+                    "x": 200,
+                    "y": 150
+                   },
+                   "rect": {
+                    "x": 140,
+                    "y": 130,
+                    "w": 120,
+                    "h": 40
+                   },
+                   "label": "browser.navigate",
+                   "nodeId": "after-open"
+                  }
+                 ],
+                 "cursorTrack": [
+                  {
+                   "t": 0,
+                   "x": 960,
+                   "y": 540
+                  }
+                 ]
+                },
+                "name": "after-record"
+               },
+               "nodeId": "after-camera"
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ],
+        "layer": true
+       },
+       {
+        "id": "after-stack:l1",
+        "items": [
+         {
+          "id": "after-stack:l1:g",
+          "from": 0,
+          "durationInFrames": 120,
+          "handles": {
+           "move": {
+            "nodeId": "after-stack",
+            "param": "offsetsMs",
+            "unit": "ms",
+            "index": 1
+           }
+          },
+          "slot": {
+           "nodeId": "after-stack",
+           "port": "in2"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "after-label:t",
+             "items": [
+              {
+               "id": "after-label:i",
+               "from": 0,
+               "durationInFrames": 120,
+               "kind": "element",
+               "component": "core/lower-third",
+               "props": {
+                "title": "After",
+                "subtitle": "https://example.org",
+                "position": "bottom-left",
+                "accent": "#a78bfa",
+                "color": "#fafafa",
+                "panel": "rgba(10,10,12,0.72)"
+               },
+               "nodeId": "after-label",
+               "handles": {
+                "trimEnd": {
+                 "nodeId": "after-label",
+                 "param": "clipDuration",
+                 "unit": "frames"
+                }
+               }
+              }
+             ]
+            }
+           ]
+          }
+         }
+        ],
+        "layer": true
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/after-record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 3200,
+        "actions": [
+         {
+          "id": "after-open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "after-open"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 3200,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "after-record",
+       "style": []
+      }
+     }
+    },
+    "wipe": {
+     "clip": {
+      "type": "clip",
+      "durationInFrames": 130,
+      "tracks": [
+       {
+        "id": "wipe:seq",
+        "items": [
+         {
+          "id": "wipe:s0",
+          "from": 0,
+          "durationInFrames": 77,
+          "slot": {
+           "nodeId": "wipe",
+           "port": "a"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "before-stack:l0",
+             "items": [
+              {
+               "id": "before-stack:l0:g",
+               "from": 0,
+               "durationInFrames": 77,
+               "handles": {
+                "move": {
+                 "nodeId": "before-stack",
+                 "param": "offsetsMs",
+                 "unit": "ms",
+                 "index": 0
+                }
+               },
+               "slot": {
+                "nodeId": "before-stack",
+                "port": "in1"
+               },
+               "kind": "group",
+               "props": {
+                "tracks": [
+                 {
+                  "id": "before-camera:t",
+                  "items": [
+                   {
+                    "id": "before-camera:i",
+                    "from": 0,
+                    "durationInFrames": 77,
+                    "kind": "recording",
+                    "props": {
+                     "speed": 1.25,
+                     "zoom": false,
+                     "tuning": {
+                      "sMax": 1.74,
+                      "holdMinS": 1.3
+                     },
+                     "motionBlur": true,
+                     "style": "classic",
+                     "chrome": false,
+                     "backdrop": "glaze",
+                     "cursor": true,
+                     "cursorScale": 1,
+                     "cursorLook": {
+                      "shape": "arrow",
+                      "fill": "#111418",
+                      "edge": "#ffffff"
+                     },
+                     "ripple": {
+                      "color": "#0f172a",
+                      "size": 1,
+                      "width": 2
+                     },
+                     "extraBeats": [],
+                     "annotations": [],
+                     "src": "project:.opsis/cache/before-record/recording.mp4",
+                     "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+                     "log": {
+                      "viewport": {
+                       "width": 1920,
+                       "height": 1080
+                      },
+                      "dpr": 1,
+                      "t0": 0,
+                      "durationMs": 3200,
+                      "actions": [
+                       {
+                        "id": "before-open:navigate",
+                        "kind": "navigate",
+                        "t": 600,
+                        "tEnd": 1000,
+                        "point": {
+                         "x": 200,
+                         "y": 150
+                        },
+                        "rect": {
+                         "x": 140,
+                         "y": 130,
+                         "w": 120,
+                         "h": 40
+                        },
+                        "label": "browser.navigate",
+                        "nodeId": "before-open"
+                       }
+                      ],
+                      "cursorTrack": [
+                       {
+                        "t": 0,
+                        "x": 960,
+                        "y": 540
+                       }
+                      ]
+                     },
+                     "name": "before-record"
+                    },
+                    "nodeId": "before-camera"
+                   }
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             "layer": true
+            },
+            {
+             "id": "before-stack:l1",
+             "items": [
+              {
+               "id": "before-stack:l1:g",
+               "from": 0,
+               "durationInFrames": 120,
+               "handles": {
+                "move": {
+                 "nodeId": "before-stack",
+                 "param": "offsetsMs",
+                 "unit": "ms",
+                 "index": 1
+                }
+               },
+               "slot": {
+                "nodeId": "before-stack",
+                "port": "in2"
+               },
+               "kind": "group",
+               "props": {
+                "tracks": [
+                 {
+                  "id": "before-label:t",
+                  "items": [
+                   {
+                    "id": "before-label:i",
+                    "from": 0,
+                    "durationInFrames": 120,
+                    "kind": "element",
+                    "component": "core/lower-third",
+                    "props": {
+                     "title": "Before",
+                     "subtitle": "https://example.com",
+                     "position": "bottom-left",
+                     "accent": "#a78bfa",
+                     "color": "#fafafa",
+                     "panel": "rgba(10,10,12,0.72)"
+                    },
+                    "nodeId": "before-label",
+                    "handles": {
+                     "trimEnd": {
+                      "nodeId": "before-label",
+                      "param": "clipDuration",
+                      "unit": "frames"
+                     }
+                    }
+                   }
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             "layer": true
+            }
+           ]
+          },
+          "exit": {
+           "kind": "core/wipe",
+           "durationInFrames": 24,
+           "params": {
+            "direction": "from-left"
+           }
+          }
+         },
+         {
+          "id": "wipe:s1",
+          "from": 53,
+          "durationInFrames": 77,
+          "enter": {
+           "kind": "core/wipe",
+           "durationInFrames": 24,
+           "params": {
+            "direction": "from-left"
+           }
+          },
+          "slot": {
+           "nodeId": "wipe",
+           "port": "b"
+          },
+          "kind": "group",
+          "props": {
+           "tracks": [
+            {
+             "id": "after-stack:l0",
+             "items": [
+              {
+               "id": "after-stack:l0:g",
+               "from": 0,
+               "durationInFrames": 77,
+               "handles": {
+                "move": {
+                 "nodeId": "after-stack",
+                 "param": "offsetsMs",
+                 "unit": "ms",
+                 "index": 0
+                }
+               },
+               "slot": {
+                "nodeId": "after-stack",
+                "port": "in1"
+               },
+               "kind": "group",
+               "props": {
+                "tracks": [
+                 {
+                  "id": "after-camera:t",
+                  "items": [
+                   {
+                    "id": "after-camera:i",
+                    "from": 0,
+                    "durationInFrames": 77,
+                    "kind": "recording",
+                    "props": {
+                     "speed": 1.25,
+                     "zoom": false,
+                     "tuning": {
+                      "sMax": 1.74,
+                      "holdMinS": 1.3
+                     },
+                     "motionBlur": true,
+                     "style": "classic",
+                     "chrome": false,
+                     "backdrop": "glaze",
+                     "cursor": true,
+                     "cursorScale": 1,
+                     "cursorLook": {
+                      "shape": "arrow",
+                      "fill": "#111418",
+                      "edge": "#ffffff"
+                     },
+                     "ripple": {
+                      "color": "#0f172a",
+                      "size": 1,
+                      "width": 2
+                     },
+                     "extraBeats": [],
+                     "annotations": [],
+                     "src": "project:.opsis/cache/after-record/recording.mp4",
+                     "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+                     "log": {
+                      "viewport": {
+                       "width": 1920,
+                       "height": 1080
+                      },
+                      "dpr": 1,
+                      "t0": 0,
+                      "durationMs": 3200,
+                      "actions": [
+                       {
+                        "id": "after-open:navigate",
+                        "kind": "navigate",
+                        "t": 600,
+                        "tEnd": 1000,
+                        "point": {
+                         "x": 200,
+                         "y": 150
+                        },
+                        "rect": {
+                         "x": 140,
+                         "y": 130,
+                         "w": 120,
+                         "h": 40
+                        },
+                        "label": "browser.navigate",
+                        "nodeId": "after-open"
+                       }
+                      ],
+                      "cursorTrack": [
+                       {
+                        "t": 0,
+                        "x": 960,
+                        "y": 540
+                       }
+                      ]
+                     },
+                     "name": "after-record"
+                    },
+                    "nodeId": "after-camera"
+                   }
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             "layer": true
+            },
+            {
+             "id": "after-stack:l1",
+             "items": [
+              {
+               "id": "after-stack:l1:g",
+               "from": 0,
+               "durationInFrames": 120,
+               "handles": {
+                "move": {
+                 "nodeId": "after-stack",
+                 "param": "offsetsMs",
+                 "unit": "ms",
+                 "index": 1
+                }
+               },
+               "slot": {
+                "nodeId": "after-stack",
+                "port": "in2"
+               },
+               "kind": "group",
+               "props": {
+                "tracks": [
+                 {
+                  "id": "after-label:t",
+                  "items": [
+                   {
+                    "id": "after-label:i",
+                    "from": 0,
+                    "durationInFrames": 120,
+                    "kind": "element",
+                    "component": "core/lower-third",
+                    "props": {
+                     "title": "After",
+                     "subtitle": "https://example.org",
+                     "position": "bottom-left",
+                     "accent": "#a78bfa",
+                     "color": "#fafafa",
+                     "panel": "rgba(10,10,12,0.72)"
+                    },
+                    "nodeId": "after-label",
+                    "handles": {
+                     "trimEnd": {
+                      "nodeId": "after-label",
+                      "param": "clipDuration",
+                      "unit": "frames"
+                     }
+                    }
+                   }
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             "layer": true
+            }
+           ]
+          }
+         }
+        ]
+       }
+      ],
+      "audio": [],
+      "recording": {
+       "type": "recording",
+       "src": "project:.opsis/cache/before-record/recording.mp4",
+       "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+       "log": {
+        "viewport": {
+         "width": 1920,
+         "height": 1080
+        },
+        "dpr": 1,
+        "t0": 0,
+        "durationMs": 3200,
+        "actions": [
+         {
+          "id": "before-open:navigate",
+          "kind": "navigate",
+          "t": 600,
+          "tEnd": 1000,
+          "point": {
+           "x": 200,
+           "y": 150
+          },
+          "rect": {
+           "x": 140,
+           "y": 130,
+           "w": 120,
+           "h": 40
+          },
+          "label": "browser.navigate",
+          "nodeId": "before-open"
+         }
+        ],
+        "cursorTrack": [
+         {
+          "t": 0,
+          "x": 960,
+          "y": 540
+         }
+        ]
+       },
+       "durationMs": 3200,
+       "viewport": {
+        "width": 1920,
+        "height": 1080
+       },
+       "nodeId": "before-record",
+       "style": []
+      }
+     }
+    },
+    "render": {
+     "media": {
+      "type": "media",
+      "src": "project:.opsis/out/render.mp4",
+      "kind": "video",
+      "durationMs": 4000,
+      "width": 1920,
+      "height": 1080,
+      "hasAudio": true
+     }
+    }
+   },
+   "errors": {},
+   "specs": {
+    "render": {
+     "width": 1920,
+     "height": 1080,
+     "fps": 30,
+     "durationInFrames": 130,
+     "background": "#09090b",
+     "tracks": [
+      {
+       "id": "wipe:seq",
+       "items": [
+        {
+         "id": "wipe:s0",
+         "from": 0,
+         "durationInFrames": 77,
+         "slot": {
+          "nodeId": "wipe",
+          "port": "a"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "before-stack:l0",
+            "items": [
+             {
+              "id": "before-stack:l0:g",
+              "from": 0,
+              "durationInFrames": 77,
+              "handles": {
+               "move": {
+                "nodeId": "before-stack",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 0
+               }
+              },
+              "slot": {
+               "nodeId": "before-stack",
+               "port": "in1"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "before-camera:t",
+                 "items": [
+                  {
+                   "id": "before-camera:i",
+                   "from": 0,
+                   "durationInFrames": 77,
+                   "kind": "recording",
+                   "props": {
+                    "speed": 1.25,
+                    "zoom": false,
+                    "tuning": {
+                     "sMax": 1.74,
+                     "holdMinS": 1.3
+                    },
+                    "motionBlur": true,
+                    "style": "classic",
+                    "chrome": false,
+                    "backdrop": "glaze",
+                    "cursor": true,
+                    "cursorScale": 1,
+                    "cursorLook": {
+                     "shape": "arrow",
+                     "fill": "#111418",
+                     "edge": "#ffffff"
+                    },
+                    "ripple": {
+                     "color": "#0f172a",
+                     "size": 1,
+                     "width": 2
+                    },
+                    "extraBeats": [],
+                    "annotations": [],
+                    "src": "project:.opsis/cache/before-record/recording.mp4",
+                    "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+                    "log": {
+                     "viewport": {
+                      "width": 1920,
+                      "height": 1080
+                     },
+                     "dpr": 1,
+                     "t0": 0,
+                     "durationMs": 3200,
+                     "actions": [
+                      {
+                       "id": "before-open:navigate",
+                       "kind": "navigate",
+                       "t": 600,
+                       "tEnd": 1000,
+                       "point": {
+                        "x": 200,
+                        "y": 150
+                       },
+                       "rect": {
+                        "x": 140,
+                        "y": 130,
+                        "w": 120,
+                        "h": 40
+                       },
+                       "label": "browser.navigate",
+                       "nodeId": "before-open"
+                      }
+                     ],
+                     "cursorTrack": [
+                      {
+                       "t": 0,
+                       "x": 960,
+                       "y": 540
+                      }
+                     ]
+                    },
+                    "name": "before-record"
+                   },
+                   "nodeId": "before-camera"
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           },
+           {
+            "id": "before-stack:l1",
+            "items": [
+             {
+              "id": "before-stack:l1:g",
+              "from": 0,
+              "durationInFrames": 120,
+              "handles": {
+               "move": {
+                "nodeId": "before-stack",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 1
+               }
+              },
+              "slot": {
+               "nodeId": "before-stack",
+               "port": "in2"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "before-label:t",
+                 "items": [
+                  {
+                   "id": "before-label:i",
+                   "from": 0,
+                   "durationInFrames": 120,
+                   "kind": "element",
+                   "component": "core/lower-third",
+                   "props": {
+                    "title": "Before",
+                    "subtitle": "https://example.com",
+                    "position": "bottom-left",
+                    "accent": "#a78bfa",
+                    "color": "#fafafa",
+                    "panel": "rgba(10,10,12,0.72)"
+                   },
+                   "nodeId": "before-label",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "before-label",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           }
+          ]
+         },
+         "exit": {
+          "kind": "core/wipe",
+          "durationInFrames": 24,
+          "params": {
+           "direction": "from-left"
+          }
+         }
+        },
+        {
+         "id": "wipe:s1",
+         "from": 53,
+         "durationInFrames": 77,
+         "enter": {
+          "kind": "core/wipe",
+          "durationInFrames": 24,
+          "params": {
+           "direction": "from-left"
+          }
+         },
+         "slot": {
+          "nodeId": "wipe",
+          "port": "b"
+         },
+         "kind": "group",
+         "props": {
+          "tracks": [
+           {
+            "id": "after-stack:l0",
+            "items": [
+             {
+              "id": "after-stack:l0:g",
+              "from": 0,
+              "durationInFrames": 77,
+              "handles": {
+               "move": {
+                "nodeId": "after-stack",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 0
+               }
+              },
+              "slot": {
+               "nodeId": "after-stack",
+               "port": "in1"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "after-camera:t",
+                 "items": [
+                  {
+                   "id": "after-camera:i",
+                   "from": 0,
+                   "durationInFrames": 77,
+                   "kind": "recording",
+                   "props": {
+                    "speed": 1.25,
+                    "zoom": false,
+                    "tuning": {
+                     "sMax": 1.74,
+                     "holdMinS": 1.3
+                    },
+                    "motionBlur": true,
+                    "style": "classic",
+                    "chrome": false,
+                    "backdrop": "glaze",
+                    "cursor": true,
+                    "cursorScale": 1,
+                    "cursorLook": {
+                     "shape": "arrow",
+                     "fill": "#111418",
+                     "edge": "#ffffff"
+                    },
+                    "ripple": {
+                     "color": "#0f172a",
+                     "size": 1,
+                     "width": 2
+                    },
+                    "extraBeats": [],
+                    "annotations": [],
+                    "src": "project:.opsis/cache/after-record/recording.mp4",
+                    "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+                    "log": {
+                     "viewport": {
+                      "width": 1920,
+                      "height": 1080
+                     },
+                     "dpr": 1,
+                     "t0": 0,
+                     "durationMs": 3200,
+                     "actions": [
+                      {
+                       "id": "after-open:navigate",
+                       "kind": "navigate",
+                       "t": 600,
+                       "tEnd": 1000,
+                       "point": {
+                        "x": 200,
+                        "y": 150
+                       },
+                       "rect": {
+                        "x": 140,
+                        "y": 130,
+                        "w": 120,
+                        "h": 40
+                       },
+                       "label": "browser.navigate",
+                       "nodeId": "after-open"
+                      }
+                     ],
+                     "cursorTrack": [
+                      {
+                       "t": 0,
+                       "x": 960,
+                       "y": 540
+                      }
+                     ]
+                    },
+                    "name": "after-record"
+                   },
+                   "nodeId": "after-camera"
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           },
+           {
+            "id": "after-stack:l1",
+            "items": [
+             {
+              "id": "after-stack:l1:g",
+              "from": 0,
+              "durationInFrames": 120,
+              "handles": {
+               "move": {
+                "nodeId": "after-stack",
+                "param": "offsetsMs",
+                "unit": "ms",
+                "index": 1
+               }
+              },
+              "slot": {
+               "nodeId": "after-stack",
+               "port": "in2"
+              },
+              "kind": "group",
+              "props": {
+               "tracks": [
+                {
+                 "id": "after-label:t",
+                 "items": [
+                  {
+                   "id": "after-label:i",
+                   "from": 0,
+                   "durationInFrames": 120,
+                   "kind": "element",
+                   "component": "core/lower-third",
+                   "props": {
+                    "title": "After",
+                    "subtitle": "https://example.org",
+                    "position": "bottom-left",
+                    "accent": "#a78bfa",
+                    "color": "#fafafa",
+                    "panel": "rgba(10,10,12,0.72)"
+                   },
+                   "nodeId": "after-label",
+                   "handles": {
+                    "trimEnd": {
+                     "nodeId": "after-label",
+                     "param": "clipDuration",
+                     "unit": "frames"
+                    }
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            "layer": true
+           }
+          ]
+         }
+        }
+       ]
+      }
+     ],
+     "audio": [],
+     "fonts": {
+      "main": "Inter",
+      "heading": "",
+      "code": "JetBrains Mono",
+      "families": []
+     }
+    }
+   },
+   "order": [
+    "before-session",
+    "after-session",
+    "before-open",
+    "after-open",
+    "before-start",
+    "after-start",
+    "before-record",
+    "before-camera",
+    "before-label",
+    "after-record",
+    "after-camera",
+    "after-label",
+    "before-stack",
+    "after-stack",
+    "wipe",
+    "render"
+   ]
+  },
+  "problems": [],
+  "cards": {
+   "before-session": {
+    "rows": [
+     {
+      "icon": "monitor",
+      "text": "1920 × 1080"
+     }
+    ]
+   },
+   "before-open": {
+    "rows": [
+     {
+      "icon": "link",
+      "text": "example.com",
+      "title": "https://example.com"
+     },
+     {
+      "icon": "timer",
+      "text": "Pause 2.5 s"
+     }
+    ]
+   },
+   "before-start": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "Video starts here"
+     }
+    ]
+   },
+   "before-record": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "30 fps"
+     },
+     {
+      "icon": "mouse-pointer",
+      "text": "Smooth cursor"
+     },
+     {
+      "icon": "clock",
+      "text": "3.2 s · 1 action"
+     }
+    ]
+   },
+   "before-camera": {
+    "rows": [
+     {
+      "icon": "zoom-out",
+      "text": "No zoom",
+      "tone": "muted"
+     },
+     {
+      "icon": "image",
+      "text": "Glaze backdrop"
+     },
+     {
+      "icon": "gauge",
+      "text": "1.25× speed"
+     }
+    ]
+   },
+   "before-label": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“Before”"
+     },
+     {
+      "icon": "clock",
+      "text": "4 s"
+     }
+    ]
+   },
+   "before-stack": {
+    "rows": [
+     {
+      "icon": "layers",
+      "text": "2 layers"
+     },
+     {
+      "icon": "clock",
+      "text": "Length follows Layer 1"
+     },
+     {
+      "icon": "timer",
+      "text": "2.57 s"
+     }
+    ]
+   },
+   "after-session": {
+    "rows": [
+     {
+      "icon": "monitor",
+      "text": "1920 × 1080"
+     }
+    ]
+   },
+   "after-open": {
+    "rows": [
+     {
+      "icon": "link",
+      "text": "example.org",
+      "title": "https://example.org"
+     },
+     {
+      "icon": "timer",
+      "text": "Pause 2.5 s"
+     }
+    ]
+   },
+   "after-start": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "Video starts here"
+     }
+    ]
+   },
+   "after-record": {
+    "rows": [
+     {
+      "icon": "video",
+      "text": "30 fps"
+     },
+     {
+      "icon": "mouse-pointer",
+      "text": "Smooth cursor"
+     },
+     {
+      "icon": "clock",
+      "text": "3.2 s · 1 action"
+     }
+    ]
+   },
+   "after-camera": {
+    "rows": [
+     {
+      "icon": "zoom-out",
+      "text": "No zoom",
+      "tone": "muted"
+     },
+     {
+      "icon": "image",
+      "text": "Glaze backdrop"
+     },
+     {
+      "icon": "gauge",
+      "text": "1.25× speed"
+     }
+    ]
+   },
+   "after-label": {
+    "rows": [
+     {
+      "icon": "type",
+      "text": "“After”"
+     },
+     {
+      "icon": "clock",
+      "text": "4 s"
+     }
+    ]
+   },
+   "after-stack": {
+    "rows": [
+     {
+      "icon": "layers",
+      "text": "2 layers"
+     },
+     {
+      "icon": "clock",
+      "text": "Length follows Layer 1"
+     },
+     {
+      "icon": "timer",
+      "text": "2.57 s"
+     }
+    ]
+   },
+   "wipe": {
+    "rows": [
+     {
+      "icon": "arrow-right-left",
+      "text": "0.8 s"
+     }
+    ]
+   },
+   "render": {
+    "rows": [
+     {
+      "icon": "ratio",
+      "text": "16:9"
+     },
+     {
+      "icon": "film",
+      "text": "MP4 · 1080p · 30 fps"
+     },
+     {
+      "icon": "clock",
+      "text": "4 s"
+     }
+    ]
+   }
+  },
+  "preview": {
+   "spec": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "durationInFrames": 130,
+    "background": "#09090b",
+    "tracks": [
+     {
+      "id": "wipe:seq",
+      "items": [
+       {
+        "id": "wipe:s0",
+        "from": 0,
+        "durationInFrames": 77,
+        "slot": {
+         "nodeId": "wipe",
+         "port": "a"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "before-stack:l0",
+           "items": [
+            {
+             "id": "before-stack:l0:g",
+             "from": 0,
+             "durationInFrames": 77,
+             "handles": {
+              "move": {
+               "nodeId": "before-stack",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 0
+              }
+             },
+             "slot": {
+              "nodeId": "before-stack",
+              "port": "in1"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "before-camera:t",
+                "items": [
+                 {
+                  "id": "before-camera:i",
+                  "from": 0,
+                  "durationInFrames": 77,
+                  "kind": "recording",
+                  "props": {
+                   "speed": 1.25,
+                   "zoom": false,
+                   "tuning": {
+                    "sMax": 1.74,
+                    "holdMinS": 1.3
+                   },
+                   "motionBlur": true,
+                   "style": "classic",
+                   "chrome": false,
+                   "backdrop": "glaze",
+                   "cursor": true,
+                   "cursorScale": 1,
+                   "cursorLook": {
+                    "shape": "arrow",
+                    "fill": "#111418",
+                    "edge": "#ffffff"
+                   },
+                   "ripple": {
+                    "color": "#0f172a",
+                    "size": 1,
+                    "width": 2
+                   },
+                   "extraBeats": [],
+                   "annotations": [],
+                   "src": "project:.opsis/cache/before-record/recording.mp4",
+                   "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+                   "log": {
+                    "viewport": {
+                     "width": 1920,
+                     "height": 1080
+                    },
+                    "dpr": 1,
+                    "t0": 0,
+                    "durationMs": 3200,
+                    "actions": [
+                     {
+                      "id": "before-open:navigate",
+                      "kind": "navigate",
+                      "t": 600,
+                      "tEnd": 1000,
+                      "point": {
+                       "x": 200,
+                       "y": 150
+                      },
+                      "rect": {
+                       "x": 140,
+                       "y": 130,
+                       "w": 120,
+                       "h": 40
+                      },
+                      "label": "browser.navigate",
+                      "nodeId": "before-open"
+                     }
+                    ],
+                    "cursorTrack": [
+                     {
+                      "t": 0,
+                      "x": 960,
+                      "y": 540
+                     }
+                    ]
+                   },
+                   "name": "before-record"
+                  },
+                  "nodeId": "before-camera"
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          },
+          {
+           "id": "before-stack:l1",
+           "items": [
+            {
+             "id": "before-stack:l1:g",
+             "from": 0,
+             "durationInFrames": 120,
+             "handles": {
+              "move": {
+               "nodeId": "before-stack",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 1
+              }
+             },
+             "slot": {
+              "nodeId": "before-stack",
+              "port": "in2"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "before-label:t",
+                "items": [
+                 {
+                  "id": "before-label:i",
+                  "from": 0,
+                  "durationInFrames": 120,
+                  "kind": "element",
+                  "component": "core/lower-third",
+                  "props": {
+                   "title": "Before",
+                   "subtitle": "https://example.com",
+                   "position": "bottom-left",
+                   "accent": "#a78bfa",
+                   "color": "#fafafa",
+                   "panel": "rgba(10,10,12,0.72)"
+                  },
+                  "nodeId": "before-label",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "before-label",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          }
+         ]
+        },
+        "exit": {
+         "kind": "core/wipe",
+         "durationInFrames": 24,
+         "params": {
+          "direction": "from-left"
+         }
+        }
+       },
+       {
+        "id": "wipe:s1",
+        "from": 53,
+        "durationInFrames": 77,
+        "enter": {
+         "kind": "core/wipe",
+         "durationInFrames": 24,
+         "params": {
+          "direction": "from-left"
+         }
+        },
+        "slot": {
+         "nodeId": "wipe",
+         "port": "b"
+        },
+        "kind": "group",
+        "props": {
+         "tracks": [
+          {
+           "id": "after-stack:l0",
+           "items": [
+            {
+             "id": "after-stack:l0:g",
+             "from": 0,
+             "durationInFrames": 77,
+             "handles": {
+              "move": {
+               "nodeId": "after-stack",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 0
+              }
+             },
+             "slot": {
+              "nodeId": "after-stack",
+              "port": "in1"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "after-camera:t",
+                "items": [
+                 {
+                  "id": "after-camera:i",
+                  "from": 0,
+                  "durationInFrames": 77,
+                  "kind": "recording",
+                  "props": {
+                   "speed": 1.25,
+                   "zoom": false,
+                   "tuning": {
+                    "sMax": 1.74,
+                    "holdMinS": 1.3
+                   },
+                   "motionBlur": true,
+                   "style": "classic",
+                   "chrome": false,
+                   "backdrop": "glaze",
+                   "cursor": true,
+                   "cursorScale": 1,
+                   "cursorLook": {
+                    "shape": "arrow",
+                    "fill": "#111418",
+                    "edge": "#ffffff"
+                   },
+                   "ripple": {
+                    "color": "#0f172a",
+                    "size": 1,
+                    "width": 2
+                   },
+                   "extraBeats": [],
+                   "annotations": [],
+                   "src": "project:.opsis/cache/after-record/recording.mp4",
+                   "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+                   "log": {
+                    "viewport": {
+                     "width": 1920,
+                     "height": 1080
+                    },
+                    "dpr": 1,
+                    "t0": 0,
+                    "durationMs": 3200,
+                    "actions": [
+                     {
+                      "id": "after-open:navigate",
+                      "kind": "navigate",
+                      "t": 600,
+                      "tEnd": 1000,
+                      "point": {
+                       "x": 200,
+                       "y": 150
+                      },
+                      "rect": {
+                       "x": 140,
+                       "y": 130,
+                       "w": 120,
+                       "h": 40
+                      },
+                      "label": "browser.navigate",
+                      "nodeId": "after-open"
+                     }
+                    ],
+                    "cursorTrack": [
+                     {
+                      "t": 0,
+                      "x": 960,
+                      "y": 540
+                     }
+                    ]
+                   },
+                   "name": "after-record"
+                  },
+                  "nodeId": "after-camera"
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          },
+          {
+           "id": "after-stack:l1",
+           "items": [
+            {
+             "id": "after-stack:l1:g",
+             "from": 0,
+             "durationInFrames": 120,
+             "handles": {
+              "move": {
+               "nodeId": "after-stack",
+               "param": "offsetsMs",
+               "unit": "ms",
+               "index": 1
+              }
+             },
+             "slot": {
+              "nodeId": "after-stack",
+              "port": "in2"
+             },
+             "kind": "group",
+             "props": {
+              "tracks": [
+               {
+                "id": "after-label:t",
+                "items": [
+                 {
+                  "id": "after-label:i",
+                  "from": 0,
+                  "durationInFrames": 120,
+                  "kind": "element",
+                  "component": "core/lower-third",
+                  "props": {
+                   "title": "After",
+                   "subtitle": "https://example.org",
+                   "position": "bottom-left",
+                   "accent": "#a78bfa",
+                   "color": "#fafafa",
+                   "panel": "rgba(10,10,12,0.72)"
+                  },
+                  "nodeId": "after-label",
+                  "handles": {
+                   "trimEnd": {
+                    "nodeId": "after-label",
+                    "param": "clipDuration",
+                    "unit": "frames"
+                   }
+                  }
+                 }
+                ]
+               }
+              ]
+             }
+            }
+           ],
+           "layer": true
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "audio": [],
+    "fonts": {
+     "main": "Inter",
+     "heading": "",
+     "code": "JetBrains Mono",
+     "families": []
+    }
+   },
+   "spans": {
+    "before-camera": {
+     "from": 0,
+     "to": 77
+    },
+    "before-label": {
+     "from": 0,
+     "to": 77
+    },
+    "after-camera": {
+     "from": 53,
+     "to": 130
+    },
+    "after-label": {
+     "from": 53,
+     "to": 130
+    }
+   },
+   "sourceNodeId": "render"
+  },
+  "timelines": {
+   "render": {
+    "flat": {
+     "fps": 30,
+     "durationInFrames": 130,
+     "bars": [
+      {
+       "type": "video",
+       "key": "/0:wipe:s0/0:before-stack:l0:g/0:before-camera:i",
+       "itemId": "before-camera:i",
+       "nodeId": "before-camera",
+       "kind": "recording",
+       "props": {
+        "speed": 1.25,
+        "zoom": false,
+        "tuning": {
+         "sMax": 1.74,
+         "holdMinS": 1.3
+        },
+        "motionBlur": true,
+        "style": "classic",
+        "chrome": false,
+        "backdrop": "glaze",
+        "cursor": true,
+        "cursorScale": 1,
+        "cursorLook": {
+         "shape": "arrow",
+         "fill": "#111418",
+         "edge": "#ffffff"
+        },
+        "ripple": {
+         "color": "#0f172a",
+         "size": 1,
+         "width": 2
+        },
+        "extraBeats": [],
+        "annotations": [],
+        "src": "project:.opsis/cache/before-record/recording.mp4",
+        "proxySrc": "project:.opsis/cache/before-record/recording.preview.mp4",
+        "log": {
+         "viewport": {
+          "width": 1920,
+          "height": 1080
+         },
+         "dpr": 1,
+         "t0": 0,
+         "durationMs": 3200,
+         "actions": [
+          {
+           "id": "before-open:navigate",
+           "kind": "navigate",
+           "t": 600,
+           "tEnd": 1000,
+           "point": {
+            "x": 200,
+            "y": 150
+           },
+           "rect": {
+            "x": 140,
+            "y": 130,
+            "w": 120,
+            "h": 40
+           },
+           "label": "browser.navigate",
+           "nodeId": "before-open"
+          }
+         ],
+         "cursorTrack": [
+          {
+           "t": 0,
+           "x": 960,
+           "y": 540
+          }
+         ]
+        },
+        "name": "before-record"
+       },
+       "thumbnail": {
+        "kind": "filmstrip",
+        "src": "project:.opsis/cache/before-record/recording.preview.mp4",
+        "speed": 1.25,
+        "trimMs": 0
+       },
+       "from": 0,
+       "to": 77,
+       "lane": 0,
+       "order": 0,
+       "chain": [
+        {
+         "itemId": "before-camera:i",
+         "nodeId": "before-camera",
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77,
+         "from": 0,
+         "to": 77
+        },
+        {
+         "itemId": "before-stack:l0:g",
+         "handles": {
+          "move": {
+           "nodeId": "before-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 0
+          }
+         },
+         "slot": {
+          "nodeId": "before-stack",
+          "port": "in1"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77,
+         "from": 0,
+         "to": 77
+        },
+        {
+         "itemId": "wipe:s0",
+         "slot": {
+          "nodeId": "wipe",
+          "port": "a"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77,
+         "from": 0,
+         "to": 77
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 77,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:wipe:s0/1:before-stack:l1:g/0:before-label:i",
+       "itemId": "before-label:i",
+       "nodeId": "before-label",
+       "kind": "element",
+       "component": "core/lower-third",
+       "props": {
+        "title": "Before",
+        "subtitle": "https://example.com",
+        "position": "bottom-left",
+        "accent": "#a78bfa",
+        "color": "#fafafa",
+        "panel": "rgba(10,10,12,0.72)"
+       },
+       "thumbnail": null,
+       "from": 0,
+       "to": 77,
+       "lane": 1,
+       "order": 1,
+       "chain": [
+        {
+         "itemId": "before-label:i",
+         "nodeId": "before-label",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "before-label",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77.00000166893005,
+         "from": 0,
+         "to": 77
+        },
+        {
+         "itemId": "before-stack:l1:g",
+         "handles": {
+          "move": {
+           "nodeId": "before-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 1
+          }
+         },
+         "slot": {
+          "nodeId": "before-stack",
+          "port": "in2"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77.00000166893005,
+         "from": 0,
+         "to": 77
+        },
+        {
+         "itemId": "wipe:s0",
+         "slot": {
+          "nodeId": "wipe",
+          "port": "a"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77,
+         "from": 0,
+         "to": 77
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 77.00000166893005,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:wipe:s1/0:after-stack:l0:g/0:after-camera:i",
+       "itemId": "after-camera:i",
+       "nodeId": "after-camera",
+       "kind": "recording",
+       "props": {
+        "speed": 1.25,
+        "zoom": false,
+        "tuning": {
+         "sMax": 1.74,
+         "holdMinS": 1.3
+        },
+        "motionBlur": true,
+        "style": "classic",
+        "chrome": false,
+        "backdrop": "glaze",
+        "cursor": true,
+        "cursorScale": 1,
+        "cursorLook": {
+         "shape": "arrow",
+         "fill": "#111418",
+         "edge": "#ffffff"
+        },
+        "ripple": {
+         "color": "#0f172a",
+         "size": 1,
+         "width": 2
+        },
+        "extraBeats": [],
+        "annotations": [],
+        "src": "project:.opsis/cache/after-record/recording.mp4",
+        "proxySrc": "project:.opsis/cache/after-record/recording.preview.mp4",
+        "log": {
+         "viewport": {
+          "width": 1920,
+          "height": 1080
+         },
+         "dpr": 1,
+         "t0": 0,
+         "durationMs": 3200,
+         "actions": [
+          {
+           "id": "after-open:navigate",
+           "kind": "navigate",
+           "t": 600,
+           "tEnd": 1000,
+           "point": {
+            "x": 200,
+            "y": 150
+           },
+           "rect": {
+            "x": 140,
+            "y": 130,
+            "w": 120,
+            "h": 40
+           },
+           "label": "browser.navigate",
+           "nodeId": "after-open"
+          }
+         ],
+         "cursorTrack": [
+          {
+           "t": 0,
+           "x": 960,
+           "y": 540
+          }
+         ]
+        },
+        "name": "after-record"
+       },
+       "thumbnail": {
+        "kind": "filmstrip",
+        "src": "project:.opsis/cache/after-record/recording.preview.mp4",
+        "speed": 1.25,
+        "trimMs": 0
+       },
+       "from": 53,
+       "to": 130,
+       "lane": 2,
+       "order": 2,
+       "chain": [
+        {
+         "itemId": "after-camera:i",
+         "nodeId": "after-camera",
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77,
+         "from": 53,
+         "to": 130
+        },
+        {
+         "itemId": "after-stack:l0:g",
+         "handles": {
+          "move": {
+           "nodeId": "after-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 0
+          }
+         },
+         "slot": {
+          "nodeId": "after-stack",
+          "port": "in1"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77,
+         "from": 53,
+         "to": 130
+        },
+        {
+         "itemId": "wipe:s1",
+         "slot": {
+          "nodeId": "wipe",
+          "port": "b"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77,
+         "from": 53,
+         "to": 130
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 77,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      },
+      {
+       "type": "video",
+       "key": "/0:wipe:s1/1:after-stack:l1:g/0:after-label:i",
+       "itemId": "after-label:i",
+       "nodeId": "after-label",
+       "kind": "element",
+       "component": "core/lower-third",
+       "props": {
+        "title": "After",
+        "subtitle": "https://example.org",
+        "position": "bottom-left",
+        "accent": "#a78bfa",
+        "color": "#fafafa",
+        "panel": "rgba(10,10,12,0.72)"
+       },
+       "thumbnail": null,
+       "from": 53,
+       "to": 130,
+       "lane": 3,
+       "order": 3,
+       "chain": [
+        {
+         "itemId": "after-label:i",
+         "nodeId": "after-label",
+         "handles": {
+          "trimEnd": {
+           "nodeId": "after-label",
+           "param": "clipDuration",
+           "unit": "frames"
+          }
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77.00000166893005,
+         "from": 53,
+         "to": 130
+        },
+        {
+         "itemId": "after-stack:l1:g",
+         "handles": {
+          "move": {
+           "nodeId": "after-stack",
+           "param": "offsetsMs",
+           "unit": "ms",
+           "index": 1
+          }
+         },
+         "slot": {
+          "nodeId": "after-stack",
+          "port": "in2"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77.00000166893005,
+         "from": 53,
+         "to": 130
+        },
+        {
+         "itemId": "wipe:s1",
+         "slot": {
+          "nodeId": "wipe",
+          "port": "b"
+         },
+         "rate": 1,
+         "rateEnd": 1,
+         "end": 77,
+         "from": 53,
+         "to": 130
+        }
+       ],
+       "rate": 1,
+       "contentStart": 0,
+       "contentEnd": 77.00000166893005,
+       "loop": 0,
+       "hasSound": false,
+       "sound": null
+      }
+     ],
+     "lanes": 4,
+     "audio": [],
+     "audioLanes": 0,
+     "transitions": [
+      {
+       "key": "/0:wipe:s1:enter",
+       "itemKey": "/0:wipe:s1",
+       "lanes": [
+        0,
+        1,
+        2,
+        3
+       ],
+       "from": 53,
+       "to": 77,
+       "kind": "core/wipe",
+       "covers": 0.3116883116883117,
+       "slot": {
+        "nodeId": "wipe",
+        "port": "b"
+       }
+      }
+     ],
+     "marks": [
+      {
+       "key": "/0:wipe:s0/0:before-stack:l0:g/0:before-camera:i:before-open:navigate",
+       "frame": 14.399999999999999,
+       "kind": "navigate",
+       "label": "Go to browser.navigate",
+       "nodeId": "before-open",
+       "barKey": "/0:wipe:s0/0:before-stack:l0:g/0:before-camera:i"
+      },
+      {
+       "key": "/0:wipe:s1/0:after-stack:l0:g/0:after-camera:i:after-open:navigate",
+       "frame": 67.4,
+       "kind": "navigate",
+       "label": "Go to browser.navigate",
+       "nodeId": "after-open",
+       "barKey": "/0:wipe:s1/0:after-stack:l0:g/0:after-camera:i"
+      }
+     ],
+     "cameraKeys": []
+    },
+    "chapters": [],
+    "mix": {
+     "fps": 30,
+     "durationInFrames": 130,
+     "channels": [],
+     "buses": [
+      {
+       "id": "music",
+       "name": "Music",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "effects",
+       "name": "Effects",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      },
+      {
+       "id": "clips",
+       "name": "Clips",
+       "processing": {
+        "highpass": {
+         "on": false,
+         "freq": 80
+        },
+        "eq": {
+         "on": false,
+         "bands": [
+          {
+           "type": "lowshelf",
+           "freq": 120,
+           "gain": 0,
+           "q": 0.7
+          },
+          {
+           "type": "peak",
+           "freq": 500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "peak",
+           "freq": 2500,
+           "gain": 0,
+           "q": 1
+          },
+          {
+           "type": "highshelf",
+           "freq": 8000,
+           "gain": 0,
+           "q": 0.7
+          }
+         ]
+        },
+        "comp": {
+         "on": false,
+         "threshold": -18,
+         "ratio": 3,
+         "attack": 10,
+         "release": 150,
+         "makeup": 0
+        }
+       },
+       "fader": 0,
+       "channels": [],
+       "duck": null
+      }
+     ],
+     "master": {
+      "fader": 0,
+      "eq": {
+       "on": false,
+       "bands": [
+        {
+         "type": "lowshelf",
+         "freq": 120,
+         "gain": 0,
+         "q": 0.7
+        },
+        {
+         "type": "peak",
+         "freq": 500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "peak",
+         "freq": 2500,
+         "gain": 0,
+         "q": 1
+        },
+        {
+         "type": "highshelf",
+         "freq": 8000,
+         "gain": 0,
+         "q": 0.7
+        }
+       ]
+      },
+      "comp": {
+       "on": false,
+       "threshold": -12,
+       "ratio": 2,
+       "attack": 20,
+       "release": 250,
+       "makeup": 0
+      },
+      "limiter": {
+       "on": false,
+       "ceiling": -1
+      },
+      "loudness": "off"
+     },
+     "key": "879543568b49b78b"
+    }
+   }
+  }
+ }
+}

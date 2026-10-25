@@ -1,0 +1,854 @@
+use opsis_types::cards::{CardRow, Icon, Tone};
+use opsis_types::timeline::{
+    EditHandles, GroupProps, ItemBase, LinkedParam, ParamRef, ParamUnit, TimelineTrack,
+    TransitionRef,
+};
+use opsis_types::values::{ClipValue, CompileValue};
+use opsis_types::workflow::{PortType, WorkflowSettings};
+use schemars::{JsonSchema, Schema};
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use smart_default::SmartDefault;
+
+use crate::card::{
+    Cover, TAG_TEXT_MAX, cover, cover_row, frame_secs, quote, range_row, transition_length_text,
+};
+use crate::clip::{
+    EMPTY_CLIP_FRAMES, SequenceSlots, empty_clip, group_item, mark_layers, sequence_clips,
+    stack_clips, with_handles, wrap_clip,
+};
+use crate::limits::{MAX_FRAMES, MAX_REPEATS};
+use crate::node::{
+    CLIP_PORT, CardCtx, Category, Ctx, Inputs, NodeDef, Outputs, Phase, RowExt, missing, opt,
+    outputs, port, row, with_clip,
+};
+use crate::nodes::transitions::{
+    NO_TRANSITION, transition_kinds, transition_ref, transition_title,
+};
+use crate::params::Params;
+use crate::ports::{IN_PORTS, clip_label, clip_ports, connected_clips, layer_label};
+use crate::remap::{Remap, speed_remap};
+use crate::text::{format_duration, number, parse_number_text, plural};
+use crate::time::{at_least_one_frame, frames_to_ms, ms_to_frames, ms_to_frames_from};
+use crate::vars::Vars;
+
+const SLOW_PREVIEW_RATE: f64 = 4.0;
+
+fn param_ref(node_id: &str, param: &str, unit: ParamUnit) -> ParamRef {
+    ParamRef {
+        node_id: node_id.to_owned(),
+        param: param.to_owned(),
+        unit,
+        scale: None,
+        index: None,
+        linked: None,
+    }
+}
+
+fn with_connected_clips(
+    inputs: &Inputs,
+    build: impl FnOnce(Vec<ClipValue>, Vec<String>) -> ClipValue,
+) -> Outputs {
+    let connected = connected_clips(inputs);
+    let clip = if connected.is_empty() {
+        empty_clip(EMPTY_CLIP_FRAMES)
+    } else {
+        let ports = connected.iter().map(|(p, _)| (*p).to_owned()).collect();
+        build(
+            connected.into_iter().map(|(_, c)| c.clone()).collect(),
+            ports,
+        )
+    };
+    outputs([(CLIP_PORT, CompileValue::Clip(clip))])
+}
+
+fn transition_choices(schema: &mut Schema) {
+    let kinds = transition_kinds();
+    let cut_kinds: Vec<&String> = kinds.iter().filter(|k| *k != NO_TRANSITION).collect();
+    if let Some(properties) = schema.get_mut("properties").and_then(Value::as_object_mut) {
+        if let Some(transition) = properties.get_mut("transition") {
+            transition["enum"] = json!(kinds);
+        }
+        if let Some(keep_whole) = properties.get_mut("keepWhole") {
+            keep_whole["x-show-if"] = json!({ "transition": cut_kinds });
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum CutSlot {
+    In2,
+    In3,
+    In4,
+    In5,
+    In6,
+}
+
+impl CutSlot {
+    fn port(self) -> &'static str {
+        match self {
+            Self::In2 => "in2",
+            Self::In3 => "in3",
+            Self::In4 => "in4",
+            Self::In5 => "in5",
+            Self::In6 => "in6",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+#[schemars(transform = transition_choices)]
+pub struct Cut {
+    #[default(CutSlot::In2)]
+    #[schemars(
+        description = "Before",
+        extend("x-labels" = { "in2": "Clip 2", "in3": "Clip 3", "in4": "Clip 4", "in5": "Clip 5", "in6": "Clip 6" })
+    )]
+    pub before: CutSlot,
+    #[default = "core/fade"]
+    #[schemars(description = "Transition", extend("x-widget" = "transition"))]
+    pub transition: String,
+    #[default = 15]
+    #[schemars(description = "Length", range(min = 1, max = 108000), extend("x-step" = 1, "x-unit" = "frames"))]
+    pub transition_duration: i64,
+    #[schemars(
+        description = "Keep both clips whole",
+        extend("x-help" = "The transition plays over a still of the two clips' last and first frames.")
+    )]
+    pub keep_whole: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+#[schemars(transform = transition_choices)]
+pub struct Sequence {
+    #[default = "core/fade"]
+    #[schemars(description = "Transition", extend("x-widget" = "transition"))]
+    pub transition: String,
+    #[default = 15]
+    #[schemars(description = "Transition length", range(min = 1, max = 108000), extend("x-step" = 1, "x-unit" = "frames"))]
+    pub transition_duration: i64,
+    #[schemars(
+        description = "Keep every clip whole",
+        extend(
+            "x-help" = "The transition plays over a still of the last and first frames, so no clip loses screen time. The sequence gets longer by each transition."
+        )
+    )]
+    pub keep_whole: bool,
+    #[schemars(
+        description = "Different transitions",
+        extend("x-help" = "Use another transition before some clips. The others use the transition above.")
+    )]
+    pub cuts: Vec<Cut>,
+}
+
+impl Params for Sequence {}
+
+struct CutPlan {
+    transition: String,
+    transition_duration: f64,
+    keep_whole: bool,
+    before: String,
+    after: String,
+    own: bool,
+}
+
+fn cuts_for(p: &Sequence, ports: &[String]) -> Vec<CutPlan> {
+    ports
+        .iter()
+        .enumerate()
+        .skip(1)
+        .map(|(i, handle)| {
+            let own = p.cuts.iter().rev().find(|c| c.before.port() == handle);
+            let (transition, duration, keep_whole) = match own {
+                Some(c) => (c.transition.clone(), c.transition_duration, c.keep_whole),
+                None => (p.transition.clone(), p.transition_duration, p.keep_whole),
+            };
+            CutPlan {
+                transition,
+                transition_duration: duration as f64,
+                keep_whole,
+                before: handle.clone(),
+                after: ports[i - 1].clone(),
+                own: own.is_some(),
+            }
+        })
+        .collect()
+}
+
+fn worst_cover(
+    cuts: &[CutPlan],
+    frames: &indexmap::IndexMap<String, f64>,
+    fps: f64,
+) -> Option<CardRow> {
+    let worst = cuts
+        .iter()
+        .filter(|c| c.transition != NO_TRANSITION && !c.keep_whole)
+        .filter_map(|c| {
+            cover(
+                c.transition_duration,
+                &[
+                    frames.get(&c.after).copied(),
+                    frames.get(&c.before).copied(),
+                ],
+            )
+        })
+        .fold(None::<Cover>, |w, c| match w {
+            Some(w) if c.ratio <= w.ratio => Some(w),
+            _ => Some(c),
+        });
+    cover_row(worst, fps)
+}
+
+fn connected_ports(ctx_connected: &[String]) -> Vec<String> {
+    IN_PORTS
+        .iter()
+        .filter(|p| ctx_connected.iter().any(|c| c == *p))
+        .map(|p| (*p).to_owned())
+        .collect()
+}
+
+fn sequence() -> NodeDef {
+    NodeDef::of::<Sequence>(
+        "timeline.sequence",
+        "Sequence",
+        Category::Timeline,
+        Phase::Compile,
+    )
+    .describe("Plays clips one after another, with a transition between each.")
+    .inputs(clip_ports(clip_label))
+    .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
+    .card(|ctx: &CardCtx<'_, Sequence>| {
+        let p = &ctx.params;
+        let fps = ctx.fps();
+        let ports = connected_ports(&ctx.inputs.connected);
+        let cuts = cuts_for(p, &ports);
+        let own = cuts.iter().filter(|c| c.own).count();
+        let length = ctx
+            .inputs
+            .clip_frames
+            .filter(|f| *f != 0.0)
+            .map(|f| format!(" · {}", frame_secs(f, fps)))
+            .unwrap_or_default();
+        vec![
+            Some(
+                row(
+                    Icon::ListVideo,
+                    format!("{}{length}", plural(ports.len() as f64, "clip")),
+                )
+                .warn_if(ports.is_empty()),
+            ),
+            (p.transition != NO_TRANSITION).then(|| {
+                row(
+                    Icon::ArrowRightLeft,
+                    format!(
+                        "{} · {}",
+                        transition_title(&p.transition),
+                        transition_length_text(p.transition_duration as f64, fps, p.keep_whole)
+                    ),
+                )
+            }),
+            (own > 0).then(|| {
+                row(
+                    Icon::ArrowRightLeft,
+                    format!(
+                        "{} {} own transition",
+                        plural(own as f64, "cut"),
+                        if own == 1 { "uses its" } else { "use their" }
+                    ),
+                )
+            }),
+            worst_cover(&cuts, &ctx.inputs.frames, fps),
+        ]
+    })
+    .compiles(|ctx: &Ctx<'_, Sequence>| {
+        with_connected_clips(ctx.inputs, |clips, ports| {
+            let cuts = cuts_for(&ctx.params, &ports);
+            let transitions: Vec<Option<TransitionRef>> = (0..clips.len())
+                .map(|i| {
+                    let cut = if i > 0 { cuts.get(i - 1) } else { None }?;
+                    (cut.transition != NO_TRANSITION).then(|| {
+                        transition_ref(
+                            &cut.transition,
+                            cut.transition_duration,
+                            cut.keep_whole,
+                            None,
+                        )
+                    })
+                })
+                .collect();
+            sequence_clips(
+                ctx.node_id,
+                &clips,
+                &transitions,
+                SequenceSlots {
+                    ports: Some(&ports),
+                    slot_node: None,
+                },
+            )
+        })
+    })
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum LengthSource {
+    Longest,
+    First,
+    Last,
+}
+
+impl LengthSource {
+    fn row(self) -> &'static str {
+        match self {
+            Self::Longest => "Length follows the longest",
+            Self::First => "Length follows Layer 1",
+            Self::Last => "Length follows the front layer",
+        }
+    }
+
+    fn pick(self, clips: &[ClipValue]) -> Option<&ClipValue> {
+        match self {
+            Self::Longest => None,
+            Self::First => clips.first(),
+            Self::Last => clips.last(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Layers {
+    #[default(LengthSource::Longest)]
+    #[schemars(description = "Length follows", extend("x-labels" = { "longest": "Longest", "first": "Layer 1", "last": "Front layer" }))]
+    pub duration: LengthSource,
+    #[schemars(description = "Start each layer at", extend("x-widget" = "offsets"))]
+    pub offsets_ms: String,
+    #[schemars(
+        description = "Keep this layout in other shapes",
+        extend(
+            "x-help" = "In 9:16, 1:1 and 4:5 the layers stay arranged as they are here, scaled to fit, so marks drawn over a picture stay on it."
+        )
+    )]
+    pub keep_layout: bool,
+}
+
+impl Params for Layers {}
+
+pub fn parse_number_list(text: &str) -> Vec<f64> {
+    text.split(',')
+        .map(|part| parse_number_text(part).unwrap_or(0.0))
+        .collect()
+}
+
+fn keep_layout(node_id: &str, clip: ClipValue, settings: &WorkflowSettings) -> ClipValue {
+    let group = group_item(
+        ItemBase::new(format!("{node_id}:design:g"), 0.0, clip.duration_in_frames),
+        GroupProps {
+            tracks: clip.tracks.clone(),
+            design: Some(opsis_types::actions::Viewport {
+                width: settings.width,
+                height: settings.height,
+            }),
+            ..GroupProps::default()
+        },
+    );
+    ClipValue {
+        tracks: vec![TimelineTrack {
+            id: format!("{node_id}:design"),
+            items: vec![group],
+            layer: None,
+        }],
+        ..clip
+    }
+}
+
+fn layers() -> NodeDef {
+    NodeDef::of::<Layers>(
+        "timeline.stack",
+        "Layers",
+        Category::Timeline,
+        Phase::Compile,
+    )
+    .describe("Stacks clips on top of each other: Layer 1 at the back, the last at the front.")
+    .inputs(clip_ports(layer_label))
+    .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
+    .card(|ctx: &CardCtx<'_, Layers>| {
+        let layers = connected_ports(&ctx.inputs.connected).len();
+        vec![
+            Some(row(Icon::Layers, plural(layers as f64, "layer")).warn_if(layers == 0)),
+            Some(row(Icon::Clock, ctx.params.duration.row())),
+            ctx.inputs
+                .clip_frames
+                .filter(|f| *f != 0.0)
+                .map(|f| row(Icon::Timer, frame_secs(f, ctx.fps()))),
+        ]
+    })
+    .compiles(|ctx: &Ctx<'_, Layers>| {
+        let p = &ctx.params;
+        with_connected_clips(ctx.inputs, |clips, ports| {
+            let fps = ctx.settings.fps;
+            let offsets: Vec<f64> = parse_number_list(&p.offsets_ms)
+                .into_iter()
+                .map(|n| ms_to_frames_from(n, fps, 0.0))
+                .collect();
+            let node_id = ctx.node_id;
+            let move_for = |index: usize| {
+                Some(ParamRef {
+                    index: Some(index as f64),
+                    ..param_ref(node_id, "offsetsMs", ParamUnit::Ms)
+                })
+            };
+            let stacked = mark_layers(stack_clips(
+                node_id,
+                &clips,
+                &offsets,
+                Some(&ports),
+                Some(&move_for),
+            ));
+            let clip = match p.duration.pick(&clips) {
+                Some(pick) => ClipValue {
+                    duration_in_frames: pick.duration_in_frames,
+                    ..stacked
+                },
+                None => stacked,
+            };
+            if p.keep_layout {
+                keep_layout(node_id, clip, ctx.settings)
+            } else {
+                clip
+            }
+        })
+    })
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Trim {
+    #[schemars(description = "Start", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    pub start_ms: i64,
+    #[schemars(description = "Keep", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms", "x-zero-label" = "To the end"))]
+    pub duration_ms: i64,
+}
+
+impl Params for Trim {}
+
+fn trim() -> NodeDef {
+    NodeDef::clip_modifier::<Trim>("timeline.trim", "Trim", Category::Timeline)
+        .describe("Keeps only part of a clip.")
+        .card(|ctx: &CardCtx<'_, Trim>| {
+            let p = &ctx.params;
+            let clip_ms = ctx
+                .inputs
+                .frames
+                .get(CLIP_PORT)
+                .filter(|f| **f != 0.0)
+                .map(|f| frames_to_ms(*f, ctx.fps()));
+            let end = (p.duration_ms != 0).then(|| (p.start_ms + p.duration_ms) as f64);
+            vec![
+                Some(range_row(p.start_ms as f64, end)),
+                clip_ms
+                    .filter(|ms| *ms != 0.0 && end.unwrap_or(p.start_ms as f64) > *ms)
+                    .map(|ms| {
+                        row(
+                            Icon::TriangleAlert,
+                            format!("The clip ends at {}", format_duration(ms)),
+                        )
+                        .tone(Tone::Warn)
+                    }),
+            ]
+        })
+        .compile(|ctx: &Ctx<'_, Trim>| {
+            let p = &ctx.params;
+            let fps = ctx.settings.fps;
+            let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) else {
+                return Ok(Some(Outputs::new()));
+            };
+            let start = ms_to_frames_from(p.start_ms as f64, fps, 0.0);
+            if start >= clip.duration_in_frames {
+                return Err(format!(
+                    "Start is at or after the end of the clip, which is {} long.",
+                    format_duration(frames_to_ms(clip.duration_in_frames, fps))
+                ));
+            }
+            let rest = clip.duration_in_frames - start;
+            let duration = if p.duration_ms != 0 {
+                rest.min(ms_to_frames(p.duration_ms as f64, fps))
+            } else {
+                rest
+            };
+            let mut trim_start = param_ref(ctx.node_id, "startMs", ParamUnit::Ms);
+            trim_start.linked = Some(vec![LinkedParam {
+                param: "durationMs".into(),
+                sign: -1.0,
+                if_non_zero: Some(true),
+            }]);
+            let handles = EditHandles {
+                trim_start: Some(trim_start),
+                trim_end: Some(param_ref(ctx.node_id, "durationMs", ParamUnit::Ms)),
+                ..EditHandles::default()
+            };
+            let wrapped = wrap_clip(
+                clip,
+                ctx.node_id,
+                GroupProps {
+                    start_from: Some(start),
+                    ..GroupProps::default()
+                },
+                Some(duration),
+            );
+            Ok(Some(outputs([(
+                CLIP_PORT,
+                CompileValue::Clip(with_handles(wrapped, handles, None, None)),
+            )])))
+        })
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Repeat {
+    #[default = 2]
+    #[schemars(description = "Times", range(min = 1, max = MAX_REPEATS), extend("x-unit" = "×"))]
+    pub times: i64,
+}
+
+impl Params for Repeat {}
+
+fn repeat() -> NodeDef {
+    NodeDef::clip_modifier::<Repeat>("timeline.loop", "Repeat", Category::Timeline)
+        .describe("Plays a clip several times.")
+        .card(|ctx: &CardCtx<'_, Repeat>| {
+            vec![Some(row(Icon::Repeat, format!("{}×", ctx.params.times)))]
+        })
+        .compile(|ctx: &Ctx<'_, Repeat>| {
+            let p = &ctx.params;
+            let fps = ctx.settings.fps;
+            let Some(clip) = ctx.input(CLIP_PORT).and_then(CompileValue::as_clip) else {
+                return Ok(Some(Outputs::new()));
+            };
+            let total = clip.duration_in_frames * p.times as f64;
+            if total > MAX_FRAMES {
+                return Err(format!(
+                    "Repeated {} times the clip would run {}, longer than the {} a film can be.",
+                    p.times,
+                    format_duration(frames_to_ms(total, fps)),
+                    format_duration(frames_to_ms(MAX_FRAMES, fps))
+                ));
+            }
+            let props = GroupProps {
+                loop_every: Some(clip.duration_in_frames),
+                ..GroupProps::default()
+            };
+            Ok(Some(outputs([(
+                CLIP_PORT,
+                CompileValue::Clip(wrap_clip(clip, ctx.node_id, props, Some(total))),
+            )])))
+        })
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Delay {
+    #[default = 500]
+    #[schemars(description = "Delay", range(min = 0, max = 600000), extend("x-step" = 50, "x-unit" = "ms"))]
+    pub ms: i64,
+}
+
+impl Params for Delay {}
+
+fn delay() -> NodeDef {
+    NodeDef::clip_modifier::<Delay>("timeline.delay", "Delay", Category::Timeline)
+        .describe("Starts a clip later.")
+        .card(|ctx: &CardCtx<'_, Delay>| {
+            vec![Some(row(
+                Icon::Clock,
+                format!("+{}", format_duration(ctx.params.ms as f64)),
+            ))]
+        })
+        .compiles(|ctx: &Ctx<'_, Delay>| {
+            with_clip(ctx, |clip| {
+                let offset = ms_to_frames_from(ctx.params.ms as f64, ctx.settings.fps, 0.0);
+                let node_id = ctx.node_id;
+                let move_for = |_: usize| Some(param_ref(node_id, "ms", ParamUnit::Ms));
+                stack_clips(
+                    node_id,
+                    std::slice::from_ref(clip),
+                    &[offset],
+                    None,
+                    Some(&move_for),
+                )
+            })
+        })
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Speed {
+    #[default = 1.5]
+    #[schemars(description = "Speed", range(min = 0.1, max = 64), extend("x-step" = 0.05, "x-unit" = "×"))]
+    pub rate: f64,
+}
+
+impl Params for Speed {}
+
+fn speed() -> NodeDef {
+    NodeDef::clip_modifier::<Speed>("timeline.speed", "Speed", Category::Timeline)
+        .describe("Plays a clip faster or slower.")
+        .card(|ctx: &CardCtx<'_, Speed>| {
+            let rate = ctx.params.rate;
+            vec![
+                Some(row(Icon::Gauge, format!("{}×", number(rate)))),
+                (rate >= SLOW_PREVIEW_RATE).then(|| {
+                    row(
+                        Icon::Info,
+                        "Very fast: the Preview plays slowly. The export is smooth.",
+                    )
+                    .tone(Tone::Muted)
+                }),
+            ]
+        })
+        .compiles(|ctx: &Ctx<'_, Speed>| {
+            with_clip(ctx, |clip| {
+                let out = at_least_one_frame(clip.duration_in_frames / ctx.params.rate);
+                let props = GroupProps {
+                    remap: Some(speed_remap(clip.duration_in_frames, out)),
+                    ..GroupProps::default()
+                };
+                let handles = EditHandles {
+                    speed: Some(param_ref(ctx.node_id, "rate", ParamUnit::Rate)),
+                    ..EditHandles::default()
+                };
+                with_handles(
+                    wrap_clip(clip, ctx.node_id, props, Some(out)),
+                    handles,
+                    None,
+                    None,
+                )
+            })
+        })
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum FitMode {
+    Speed,
+    Hold,
+    Cut,
+}
+
+impl FitMode {
+    fn row(self) -> &'static str {
+        match self {
+            Self::Speed => "By speed",
+            Self::Hold => "By holding the end",
+            Self::Cut => "By cutting",
+        }
+    }
+
+    fn remap(self, length: f64, target: f64) -> Option<Remap> {
+        match self {
+            Self::Speed => Some(speed_remap(length, target)),
+            Self::Hold if target <= length => None,
+            Self::Hold if length <= 1.0 => Some(vec![(0.0, 0.0), (target, 0.0)]),
+            Self::Hold => Some(vec![
+                (0.0, 0.0),
+                (length - 1.0, length - 1.0),
+                (target, length - 1.0),
+            ]),
+            Self::Cut => None,
+        }
+    }
+
+    fn warning(self, input: f64, output: f64, fps: f64) -> Option<CardRow> {
+        match self {
+            Self::Speed => {
+                let speed = input / output;
+                ((speed - 1.0).abs() > 0.02).then(|| {
+                    row(Icon::FastForward, format!("Plays at {speed:.2}×"))
+                        .warn_if(!(0.67..=1.5).contains(&speed))
+                })
+            }
+            Self::Hold => None,
+            Self::Cut if input < output => Some(
+                row(
+                    Icon::TriangleAlert,
+                    format!(
+                        "Ends {} early, then shows nothing",
+                        frame_secs(output - input, fps)
+                    ),
+                )
+                .tone(Tone::Warn),
+            ),
+            Self::Cut if input > output => Some(
+                row(
+                    Icon::Scissors,
+                    format!("Cuts {} off the end", frame_secs(input - output, fps)),
+                )
+                .warn_if(input - output > fps / 2.0),
+            ),
+            Self::Cut => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct FitLength {
+    #[default = 10000]
+    #[schemars(
+        description = "Length",
+        range(min = 0, max = 600000),
+        extend("x-step" = 50, "x-unit" = "ms", "x-help" = "Ignored when a sound is connected.")
+    )]
+    pub target_ms: i64,
+    #[default(FitMode::Speed)]
+    #[schemars(description = "How", extend("x-labels" = { "speed": "Change speed", "hold": "Hold the end", "cut": "Cut" }))]
+    pub mode: FitMode,
+}
+
+impl Params for FitLength {}
+
+fn fit_length() -> NodeDef {
+    NodeDef::of::<FitLength>(
+        "timeline.durationFit",
+        "Fit length",
+        Category::Timeline,
+        Phase::Compile,
+    )
+    .describe(
+        "Makes a clip a set length, or as long as a sound, by speeding up, holding or cutting.",
+    )
+    .inputs(vec![
+        (CLIP_PORT, port(PortType::Clip, "Clip")),
+        ("audio", opt(PortType::Audio, "Fit to this sound")),
+    ])
+    .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
+    .card(|ctx: &CardCtx<'_, FitLength>| {
+        let p = &ctx.params;
+        let input = ctx
+            .inputs
+            .frames
+            .get(CLIP_PORT)
+            .copied()
+            .filter(|f| *f != 0.0);
+        let output = ctx.inputs.clip_frames.filter(|f| *f != 0.0);
+        vec![
+            Some(row(
+                Icon::Ruler,
+                if ctx.connected("audio") {
+                    "Fits the sound".to_owned()
+                } else {
+                    format_duration(p.target_ms as f64)
+                },
+            )),
+            Some(row(Icon::Settings2, p.mode.row())),
+            input
+                .zip(output)
+                .and_then(|(i, o)| p.mode.warning(i, o, ctx.fps())),
+        ]
+    })
+    .compiles(|ctx: &Ctx<'_, FitLength>| {
+        let p = &ctx.params;
+        with_clip(ctx, |clip| {
+            let sound = ctx
+                .input("audio")
+                .and_then(CompileValue::as_audio)
+                .and_then(|a| a.duration_in_frames)
+                .filter(|f| *f > 0.0);
+            let target = sound
+                .unwrap_or_else(|| ms_to_frames(p.target_ms as f64, ctx.settings.fps))
+                .max(1.0);
+            let props = GroupProps {
+                remap: p.mode.remap(clip.duration_in_frames, target),
+                ..GroupProps::default()
+            };
+            let fitted = wrap_clip(clip, ctx.node_id, props, Some(target));
+            match sound {
+                Some(_) => fitted,
+                None => with_handles(
+                    fitted,
+                    EditHandles {
+                        trim_end: Some(param_ref(ctx.node_id, "targetMs", ParamUnit::Ms)),
+                        ..EditHandles::default()
+                    },
+                    None,
+                    None,
+                ),
+            }
+        })
+    })
+}
+
+#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Branch {
+    #[default = "Version"]
+    #[schemars(description = "Variable", extend("x-widget" = "variable"))]
+    pub variable: String,
+    #[default = "A"]
+    #[schemars(
+        description = "Equals",
+        extend("x-help" = "Leave empty to use the first clip whenever the variable has a value.", "x-zero-label" = "Any value")
+    )]
+    pub equals: String,
+}
+
+impl Params for Branch {}
+
+pub fn branch_port(value: Option<&str>, equals: &str) -> &'static str {
+    let has = value.is_some_and(|v| !v.trim().is_empty());
+    if equals.is_empty() {
+        return if has { "a" } else { "b" };
+    }
+    if has && value.map(str::trim) == Some(equals.trim()) {
+        "a"
+    } else {
+        "b"
+    }
+}
+
+fn chosen(vars: &Vars, p: &Branch) -> &'static str {
+    branch_port(vars.get(p.variable.trim()).map(String::as_str), &p.equals)
+}
+
+fn branch() -> NodeDef {
+    NodeDef::of::<Branch>("timeline.branch", "Choose by variable", Category::Timeline, Phase::Compile)
+        .describe(
+            "Uses the first clip when a variable has a value, or the value you give, otherwise the second. Handy for A/B versions.",
+        )
+        .inputs(vec![("a", opt(PortType::Clip, "First")), ("b", opt(PortType::Clip, "Otherwise"))])
+        .outputs(vec![(CLIP_PORT, port(PortType::Clip, "Clip"))])
+        .card(|ctx: &CardCtx<'_, Branch>| {
+            let p = &ctx.params;
+            let variable = p.variable.trim();
+            vec![Some(if variable.is_empty() {
+                missing(Icon::GitBranch, "Choose a variable")
+            } else if p.equals.is_empty() {
+                row(Icon::GitBranch, format!("{variable} has a value"))
+            } else {
+                row(Icon::GitBranch, format!("{variable} = {}", quote(&p.equals, TAG_TEXT_MAX)))
+            })]
+        })
+        .compile(|ctx: &Ctx<'_, Branch>| {
+            let port = chosen(ctx.vars, &ctx.params);
+            match ctx.input(port) {
+                Some(clip) => Ok(Some(outputs([(CLIP_PORT, clip.clone())]))),
+                None => Err(format!("Connect a clip to “{}”.", if port == "a" { "First" } else { "Otherwise" })),
+            }
+        })
+}
+
+pub fn nodes() -> Vec<NodeDef> {
+    vec![
+        sequence(),
+        layers(),
+        trim(),
+        repeat(),
+        delay(),
+        speed(),
+        fit_length(),
+        branch(),
+    ]
+}

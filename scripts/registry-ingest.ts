@@ -5,6 +5,7 @@ import { pascalCase } from "@opsis/core/format";
 import { isNumber, isRecord } from "@opsis/core/guards";
 import { z } from "zod";
 import { fetchOk } from "../src/engine/download";
+import { writeElementsJson } from "./lib/element-json";
 import {
   renderLoaderEntry,
   renderLoaders,
@@ -282,6 +283,7 @@ async function generate(): Promise<void> {
     writeFileSync(file, text);
     console.log(`wrote ${path.relative(ROOT, file)}`);
   }
+  await writeElementsJson();
   console.log(`${ingested.length} elements`);
   if (problems.length) {
     console.warn(`\n${problems.length} problem(s):\n  ${problems.join("\n  ")}`);

@@ -1,0 +1,133 @@
+use std::sync::LazyLock;
+
+use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
+use regex::Regex;
+
+pub const FILE_SCHEME: &str = "opsis-file";
+pub const PROJECT_SCHEME: &str = "project:";
+pub const APP_SCHEME: &str = "app:";
+pub const LIBRARY_SCHEME: &str = "library:";
+pub const PROJECT_FILE_BASE: &str = "opsis-file://project/";
+pub const STATIC_PROJECT_BASE: &str = "static:";
+
+const EXTERNAL_SCHEMES: [&str; 5] = ["http:", "https:", "data:", "blob:", "opsis-file:"];
+
+const COMPONENT: &AsciiSet = &NON_ALPHANUMERIC
+    .remove(b'-')
+    .remove(b'_')
+    .remove(b'.')
+    .remove(b'!')
+    .remove(b'~')
+    .remove(b'*')
+    .remove(b'\'')
+    .remove(b'(')
+    .remove(b')');
+
+static ABSOLUTE_PATH: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^(/|[A-Za-z]:[\\/]|\\\\)").expect("pattern"));
+
+pub fn join_url(base: &str, rel: &str) -> String {
+    let encoded: Vec<String> = rel
+        .split('/')
+        .map(|p| utf8_percent_encode(p, COMPONENT).to_string())
+        .collect();
+    if base.ends_with('/') {
+        format!("{base}{}", encoded.join("/"))
+    } else {
+        format!("{base}/{}", encoded.join("/"))
+    }
+}
+
+pub fn is_project_ref(r: &str) -> bool {
+    r.starts_with(PROJECT_SCHEME)
+}
+
+pub fn is_asset_ref(value: &str) -> bool {
+    value.starts_with(PROJECT_SCHEME) || value.starts_with(APP_SCHEME)
+}
+
+pub fn is_external_ref(r: &str) -> bool {
+    EXTERNAL_SCHEMES.iter().any(|s| r.starts_with(s))
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RefTarget {
+    Project(String),
+    App(String),
+    External(String),
+    Absolute(String),
+}
+
+pub fn ref_target(r: &str) -> RefTarget {
+    if let Some(rest) = r.strip_prefix(PROJECT_SCHEME) {
+        return RefTarget::Project(rest.trim_start_matches('/').to_owned());
+    }
+    if let Some(rest) = r.strip_prefix(APP_SCHEME) {
+        return RefTarget::App(rest.to_owned());
+    }
+    if is_external_ref(r) {
+        return RefTarget::External(r.to_owned());
+    }
+    if ABSOLUTE_PATH.is_match(r) {
+        return RefTarget::Absolute(r.to_owned());
+    }
+    RefTarget::Project(r.to_owned())
+}
+
+pub fn project_rel_path(r: &str) -> Option<String> {
+    match ref_target(r) {
+        RefTarget::Project(rel) => Some(rel),
+        _ => None,
+    }
+}
+
+pub fn stays_in_project(r: &str) -> bool {
+    project_rel_path(r).is_some_and(|rel| !rel.split(['/', '\\']).any(|p| p == ".."))
+}
+
+pub fn extension_of(file: &str) -> String {
+    let name = file.rsplit('/').next().unwrap_or(file);
+    match name.rfind('.') {
+        Some(dot) if dot > 0 => name[dot + 1..].to_lowercase(),
+        _ => String::new(),
+    }
+}
+
+pub fn base_name(r: &str) -> String {
+    let trimmed = r.trim_end_matches('/');
+    match trimmed.rsplit('/').next() {
+        Some(last) if !last.is_empty() => last.to_owned(),
+        _ => r.to_owned(),
+    }
+}
+
+pub fn project_ref(path: &str) -> String {
+    if path.is_empty() || is_project_ref(path) || !matches!(ref_target(path), RefTarget::Project(_))
+    {
+        path.to_owned()
+    } else {
+        format!("{PROJECT_SCHEME}{path}")
+    }
+}
+
+pub fn mime_subtype(t: &str) -> &str {
+    t.rsplit('/').next().unwrap_or(t)
+}
+
+pub const IMAGE_EXTENSIONS: [&str; 6] = ["png", "jpg", "jpeg", "webp", "gif", "svg"];
+pub const AUDIO_EXTENSIONS: [&str; 14] = [
+    "mp3", "m4a", "aac", "wav", "ogg", "flac", "opus", "oga", "weba", "aif", "aiff", "caf", "wma",
+    "mka",
+];
+
+pub fn kind_from_path(path: &str) -> opsis_types::values::MediaKind {
+    use opsis_types::values::MediaKind;
+    let ext = extension_of(path);
+    if IMAGE_EXTENSIONS.contains(&ext.as_str()) {
+        MediaKind::Image
+    } else if AUDIO_EXTENSIONS.contains(&ext.as_str()) {
+        MediaKind::Audio
+    } else {
+        MediaKind::Video
+    }
+}
