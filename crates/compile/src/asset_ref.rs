@@ -85,6 +85,23 @@ pub fn stays_in_project(r: &str) -> bool {
     project_rel_path(r).is_some_and(|rel| !rel.split(['/', '\\']).any(|p| p == ".."))
 }
 
+pub fn file_version_key(r: &str) -> Option<String> {
+    let rel = project_rel_path(r.trim())?;
+    let parts: Vec<&str> = rel
+        .split(['/', '\\'])
+        .filter(|p| !p.is_empty() && *p != ".")
+        .collect();
+    Some(parts.join("/"))
+}
+
+pub fn library_ref(rel: &str) -> String {
+    format!("{LIBRARY_SCHEME}{rel}")
+}
+
+pub fn library_rel_path(r: &str) -> Option<&str> {
+    r.strip_prefix(LIBRARY_SCHEME)
+}
+
 pub fn extension_of(file: &str) -> String {
     let name = file.rsplit('/').next().unwrap_or(file);
     match name.rfind('.') {

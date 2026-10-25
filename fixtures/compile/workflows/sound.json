@@ -179,7 +179,7 @@
     "type": "camera.autoZoom",
     "position": {
      "x": 2400,
-     "y": 356
+     "y": 200
     },
     "params": {
      "zoom": true,
@@ -236,7 +236,7 @@
     "type": "fx.remocn.soft-blur-in",
     "position": {
      "x": 1200,
-     "y": 696
+     "y": 540
     },
     "params": {
      "text": "TodoMVC in 20 seconds",
@@ -269,12 +269,15 @@
     "type": "fx.core.title",
     "position": {
      "x": 1500,
-     "y": 806
+     "y": 680
     },
     "params": {
      "eyebrow": "Made with",
      "title": "Opsis",
      "subtitle": "{{Site address}}",
+     "mark": "",
+     "markLook": "underline",
+     "markColor": "#facc15",
      "align": "center",
      "entrance": "rise",
      "color": "#fafafa",
@@ -292,7 +295,7 @@
     "type": "timeline.sequence",
     "position": {
      "x": 2400,
-     "y": 734
+     "y": 422
     },
     "params": {
      "transition": "remocn/whip-pan",

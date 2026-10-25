@@ -3,6 +3,7 @@ import path from "node:path";
 import { workflowSchema } from "@opsis/core/schema/workflow";
 import { TEMPLATES } from "@opsis/core/templates";
 import { writeJson } from "../src/engine/json";
+import { writeTemplatesJson } from "./lib/template-json";
 import { ROOT } from "./lib/tool-config";
 
 for (const t of TEMPLATES.filter((x) => x.id !== "blank")) {
@@ -17,3 +18,5 @@ for (const t of TEMPLATES.filter((x) => x.id !== "blank")) {
   await writeFile(path.join(dir, ".gitignore"), ".opsis/\nsecrets/\n");
   console.log(`wrote examples/${t.id}/project.opsis.json (${wf.nodes.length} nodes)`);
 }
+
+writeTemplatesJson();

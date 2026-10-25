@@ -82,7 +82,7 @@
       "type": "camera.autoZoom",
       "position": {
         "x": 900,
-        "y": 356
+        "y": 200
       },
       "params": {
         "zoom": false,
@@ -102,7 +102,7 @@
       "type": "fx.core.lower-third",
       "position": {
         "x": 900,
-        "y": 734
+        "y": 422
       },
       "params": {
         "title": "Before",
@@ -175,7 +175,7 @@
       "type": "capture.record",
       "position": {
         "x": 900,
-        "y": 1090
+        "y": 850
       },
       "params": {
         "fps": 30,
@@ -192,7 +192,7 @@
       "type": "camera.autoZoom",
       "position": {
         "x": 900,
-        "y": 1446
+        "y": 1050
       },
       "params": {
         "zoom": false,
@@ -212,7 +212,7 @@
       "type": "fx.core.lower-third",
       "position": {
         "x": 900,
-        "y": 1824
+        "y": 1272
       },
       "params": {
         "title": "After",

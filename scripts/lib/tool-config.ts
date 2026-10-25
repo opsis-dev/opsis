@@ -20,6 +20,8 @@ export const IGNORED_PATHS = [
   "fixtures/**",
   "crates/compile/src/elements/registry.generated.json",
   "crates/compile/src/fonts/bundled.generated.json",
+  "crates/project/src/templates.generated.json",
+  "crates/engine/src/downloads.generated.json",
   "apps/ui/src/generated/bindings.ts",
   "out/**",
   "remotion-bundle/**",

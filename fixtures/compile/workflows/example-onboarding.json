@@ -148,7 +148,7 @@
     "type": "camera.autoZoom",
     "position": {
      "x": 2100,
-     "y": 356
+     "y": 200
     },
     "params": {
      "zoom": true,
@@ -176,7 +176,9 @@
      "color": "#a78bfa",
      "padding": 10,
      "leadMs": 250,
-     "holdMs": 1400
+     "holdMs": 1400,
+     "look": "clean",
+     "roughness": 1
     }
    },
    {
@@ -195,7 +197,9 @@
      "holdMs": 1400,
      "textColor": "#fafafa",
      "fontSize": 18,
-     "font": ""
+     "font": "",
+     "look": "clean",
+     "roughness": 1
     }
    },
    {
@@ -217,7 +221,7 @@
     "type": "text.captions",
     "position": {
      "x": 2100,
-     "y": 734
+     "y": 510
     },
     "params": {
      "style": "word-by-word",

@@ -99,7 +99,7 @@
       "type": "camera.autoZoom",
       "position": {
         "x": 1200,
-        "y": 356
+        "y": 200
       },
       "params": {
         "zoom": true,
@@ -139,7 +139,7 @@
       "type": "timeline.sequence",
       "position": {
         "x": 1200,
-        "y": 734
+        "y": 422
       },
       "params": {
         "transition": "remocn/push-through",
@@ -153,7 +153,7 @@
       "type": "audio.music",
       "position": {
         "x": 1200,
-        "y": 1200
+        "y": 732
       },
       "params": {
         "src": "",

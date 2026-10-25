@@ -21,7 +21,7 @@ use crate::node::{
 };
 use crate::params::Params;
 use crate::text::{
-    display_address, format_duration, format_when, non_blank_lines, plural, slug_name, truncate,
+    display_address, format_duration, format_when, non_blank_lines, plural, truncate,
 };
 use crate::vars::PAUSE_MARK;
 
@@ -792,16 +792,7 @@ pub fn read_path(text: &str) -> Result<Vec<Point>, String> {
     Ok(points)
 }
 
-pub fn secret_name(raw: &str) -> String {
-    match raw.trim() {
-        "" => "default".to_owned(),
-        name => name.to_owned(),
-    }
-}
-
-pub fn secret_file_name(raw: &str) -> String {
-    slug_name(&secret_name(raw), "default")
-}
+pub use opsis_types::secrets::{secret_file_name, secret_name};
 
 pub fn chord_keys(chord: &str) -> Vec<String> {
     let chars: Vec<char> = chord.chars().collect();

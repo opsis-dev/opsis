@@ -48,6 +48,7 @@
     "fonts:bundle": "tsx scripts/fonts-bundle.ts",
     "brand:icons": "tsx scripts/brand-icons.ts",
     "engine:licences": "tsx scripts/engine-licences.ts",
+    "engine:downloads": "tsx scripts/engine-downloads.ts",
     "examples": "tsx scripts/write-examples.ts",
     "fixtures": "tsx scripts/parity-fixtures.ts",
     "types:export": "cargo run -q -p opsis-compile --bin export-types",

@@ -31,6 +31,9 @@
      "eyebrow": "Changelog",
      "title": "What's new in {{Version}}",
      "subtitle": "",
+     "mark": "",
+     "markLook": "underline",
+     "markColor": "#facc15",
      "align": "center",
      "entrance": "rise",
      "color": "#fafafa",
@@ -48,7 +51,7 @@
     "type": "fx.remocn.terminal-simulator",
     "position": {
      "x": 0,
-     "y": 356
+     "y": 200
     },
     "params": {
      "prompt": "$",
@@ -105,7 +108,7 @@
     "type": "fx.remocn.animated-bar-chart",
     "position": {
      "x": 0,
-     "y": 712
+     "y": 400
     },
     "params": {
      "barColor": "#0ea5e9",
@@ -159,7 +162,7 @@
     "type": "fx.core.lower-third",
     "position": {
      "x": 300,
-     "y": 696
+     "y": 540
     },
     "params": {
      "title": "{{Product name}} {{Version}}",

@@ -102,7 +102,7 @@
     "type": "camera.autoZoom",
     "position": {
      "x": 1200,
-     "y": 356
+     "y": 200
     },
     "params": {
      "zoom": true,
@@ -130,7 +130,9 @@
      "color": "rgba(0,0,0,0.55)",
      "padding": 10,
      "leadMs": 250,
-     "holdMs": 1400
+     "holdMs": 1400,
+     "look": "clean",
+     "roughness": 1
     }
    },
    {
@@ -163,6 +165,9 @@
      "eyebrow": "",
      "title": "Try {{Product name}} today",
      "subtitle": "{{Site address}}",
+     "mark": "",
+     "markLook": "underline",
+     "markColor": "#facc15",
      "align": "center",
      "entrance": "rise",
      "color": "#fafafa",
@@ -180,7 +185,7 @@
     "type": "timeline.sequence",
     "position": {
      "x": 1200,
-     "y": 734
+     "y": 422
     },
     "params": {
      "transition": "remocn/zoom-blur",
