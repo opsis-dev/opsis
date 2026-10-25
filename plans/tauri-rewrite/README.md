@@ -2,7 +2,7 @@
 
 Opsis moves from Electron to Tauri. Rust owns the app: windows, the project, compile, runs, capture, the Local API and everything the worker does today. The editor stays React, running in the system webview. Remotion renders run in a Bun sidecar. One Chrome Headless Shell does capture, renders and the streamed views (preview, sign-in, element picker).
 
-Status: plan only. Nothing here is built yet. Measurements are from the tree at `df01ff0` (card stills already removed) on Linux x64, taken 2026-10-25.
+Status: phases 1 and 1.5 are done (branch `feat/tauri`, `b11b013` and `6181b36`); no Rust is built yet. Measurements are from the tree at `df01ff0` (card stills already removed) on Linux x64, taken 2026-10-25.
 
 ## How to read this plan
 
@@ -19,7 +19,10 @@ Status: plan only. Nothing here is built yet. Measurements are from the tree at 
 - **Rust and the sidecar talk over stdin/stdout (decided)**, one JSON message per line, with stdout reserved for messages (tested).
 - **Capture over CDP in Rust, no Playwright (decided)** (`capture-cdp.md`).
 - **One ONNX Runtime (decided).** All on-device models run through the `ort` crate with one ONNX Runtime build per platform. No sherpa-onnx (its static libraries carry their own ONNX Runtime) and no whisper.cpp (a second inference engine) (`plans/voice-and-captions.md`, **Rust**).
-- **Workspace (decided):** a Bun-workspace turborepo with `ui`, `video`, `sidecar` and the Rust crate. There is no `shared` package (`workspace.md`).
+- **Workspace (decided):** JS/TS apps in `apps/` (`ui`, the editor; `sidecar`), JS/TS packages in `packages/` (`video`, and `core` until the switch), and all Rust in `crates/`, as in `ctf-platform`: a Cargo workspace whose root `Cargo.toml` only lists `crates/*`, with `Cargo.lock` at the root. Bun workspaces are `apps/*` and `packages/*`; turbo runs both. There is no `shared` package (`workspace.md`).
+- **Crates by domain (decided).** The Tauri app is one crate among several, each owning one domain (`workspace.md`, **The crates**). Nothing Rust lives in `apps/`; there is no `src-tauri`.
+- **Rspack builds the video bundle (decided, phase 1.5).** Remotion's `bundle({ rspack: true })` with our `rspackOverride`; all 109 registry elements rendered byte-identically from webpack and Rspack bundles before the switch.
+- **No interim app (decided).** The Electron app isn't kept working while Rust is built. The TS code stays in the tree as the reference the Rust ports are tested against, and is deleted when the editor switches to the Tauri app (phase 6). Nothing is built only to bridge phases: no TS worker run as a child of Rust, no stop-gap sign-in or picker windows, no Local API routes forwarded to TS.
 - **Rust is the source of types (decided).** TS types are generated from Rust; JSON Schema for forms and the API comes from Rust (`types-and-contracts.md`).
 - **Linux ships deb and rpm only (decided).** No AppImage; anyone can build one from source (`packaging.md`).
 - **FFmpeg is unchanged (decided).** Same two ffmpeg-static programs, run the same way (see **Not in this plan**).
@@ -36,12 +39,12 @@ Status: plan only. Nothing here is built yet. Measurements are from the tree at 
         │ invoke / events /     │ stdin/stdout JSON lines  │ CDP (pipe)
         │ channels              │                          │
 ┌───────▼────────┐   ┌──────────▼─────────┐   ┌────────────▼───────────────────┐
-│ ui (webview)   │   │ sidecar (Bun)      │   │ Chrome Headless Shell          │
+│ apps/ui        │   │ apps/sidecar (Bun) │   │ Chrome Headless Shell          │
 │ React editor   │   │ renderMedia /      ├──►│ capture · render tabs ·        │
 │ store + undo   │   │ renderStill only   │   │ preview page · sign-in · picker│
 └────────────────┘   └────────────────────┘   └────────────────────────────────┘
-                      video bundle (Remotion, built at build time) is loaded by
-                      the shell for renders and for the streamed preview
+                      video bundle (packages/video, built by Rspack at build
+                      time) is loaded by the shell for renders and the preview
 FFmpeg / ffprobe: separate programs, started by Rust (and by Remotion's compositor)
 ```
 
@@ -50,7 +53,7 @@ FFmpeg / ffprobe: separate programs, started by Rust (and by Remotion's composit
 | File                      | Part                                                                                        |
 | ------------------------- | ------------------------------------------------------------------------------------------- |
 | `sizes.md`                | What ships today and after, measured                                                        |
-| `workspace.md`            | The turborepo packages, where every `src/shared` file goes, the build pipeline              |
+| `workspace.md`            | Apps, packages and crates, where every `src/shared` file goes, the build pipeline           |
 | `code-split.md`           | Line counts: converted, deleted, unchanged, changed, duplicated                             |
 | `types-and-contracts.md`  | Rust as the type source, generated TS and JSON Schema, the small logic kept on both sides   |
 | `compile-in-rust.md`      | What compile does, where it runs today, the Rust version, the Inspector from JSON Schema    |
@@ -69,15 +72,17 @@ The existing plans each gained a **Rust** section saying how they are built afte
 
 ## Phases
 
-Each phase is checked before the next starts. Line counts are from `code-split.md`.
+Each phase is checked before the next starts. Line counts are from `code-split.md`. Phases 2 to 5 build crates next to the TS code they replace and test them against it; the app keeps running on Electron only because nothing in those phases touches it, not because it has to. Phase 6 switches the editor to the Tauri app and deletes what Rust replaced.
 
-1. **Workspace split, still Electron.** Move code into `ui`, `video`, `sidecar` with no behaviour change; the remaining `shared` files are split by their consumers (`workspace.md`). Check: the app runs and every test passes.
-2. **Tauri shell and the main process in Rust.** Windows, IPC facade, app database, settings, keys, projects, file watching, exit, fonts, Local API transport (`desktop-shell.md`, `local-api.md`). About 2,800 lines of `src/main` become Rust. During this phase the old TS worker keeps running as a child process so runs still work; it is replaced in phase 4.
-3. **Compile in Rust.** Node definitions, compile, cards, flattener, catalogue, validation; the Inspector reads JSON Schema; TS types are generated (`compile-in-rust.md`, `types-and-contracts.md`). About 8,700 lines of `src/shared`.
-4. **Runner, executors and the sidecar.** The tokio runner, media, mix, traces; renders through the Bun sidecar (`runner-and-executors.md`, `sidecar.md`). About 7,300 lines.
-5. **Capture over CDP and streamed views.** Capture, sign-in, picker, preview (`capture-cdp.md`, `streamed-views.md`). Capture is about 1,800 converted lines plus what Playwright did for us.
-6. **Asset preparation and image nodes** (`asset-preparation.md`, `image-nodes.md`).
-7. **Packaging** (`packaging.md`), then `AGENTS.md` (`agents-md.md`).
+- **Phase 1: workspace split (done, `b11b013`).** Code moved into packages with no behaviour change; the remaining `shared` files split by their consumers (`workspace.md`).
+- **Phase 1.5: apps, imports, installs, Rspack (done, `6181b36`).** The editor and the sidecar became apps; own-file imports through `#core/`, `#video/`, `#sidecar/`; bun's isolated installs; Rspack for the video bundle (`workspace.md`, **Phase 1.5 as built**).
+- **Phase 2: types and compile** (`opsis-types`, `opsis-compile`). The types that cross a boundary with generated TS and JSON Schema; node definitions, settings, compile, cards, flattener, mix plan, catalogue and validation. About 8,700 lines of `packages/core`. Check: compile every example and template with both implementations and compare the JSON (`compile-in-rust.md`, `types-and-contracts.md`).
+- **Phase 3: app state, projects, fonts, engine, traces** (`opsis-store`, `opsis-project`, `opsis-fonts`, `opsis-engine`, `opsis-traces`). The database, settings, view state, keys and sealed sign-ins, project files and watching, asset and model import, the font library, the engine installer and paths, the trace store. Check: the ported `src/main`, `src/engine` and `src/traces` tests (`desktop-shell.md` steps 7–9, 11, 12; `runner-and-executors.md` step 7).
+- **Phase 4: runs, media and renders** (`opsis-runner`, `opsis-media`, `opsis-render`, `apps/sidecar` on Bun). The runner, cache keys and run events; the media and mix executors; the sidecar protocol, the asset server, the picture mux and export as code. About 7,300 lines. Check: FFmpeg argument strings and cache keys equal the TS ones; renders through the sidecar byte-identical to the Node renders (`runner-and-executors.md`, `sidecar.md`).
+- **Phase 5: capture and streamed views** (`opsis-capture`, `opsis-stream`). CDP client, sessions, selectors, actions, screencast encoder, sign-in steps; the stream transport and the view for preview, sign-in, picker and live frames. Check: the TodoMVC take's action log and frame count against a take from before the move (`capture-cdp.md`, `streamed-views.md`).
+- **Phase 6: the switch** (`opsis-desktop`, `opsis-api`). The Tauri app: windows, title bar, menus, IPC commands and channels, protocols, exit; the Local API in Rust; the editor on the `window.opsis` facade, the Inspector on JSON Schema, the preview, sign-in and picker as streamed views, pop-out windows over Rust events. Electron, Forge, `src/`, `packages/core` and every TS duplicate of a Rust port are deleted. Check: the examples open, run and export on Linux with the same output as before (`desktop-shell.md`, `local-api.md`).
+- **Phase 7: asset preparation and image nodes** (`opsis-prepare`, `opsis-image`; `asset-preparation.md`, `image-nodes.md`).
+- **Phase 8: packaging** (`packaging.md`), then `AGENTS.md` (`agents-md.md`). Until here there is no packaged build: Forge can't package the Tauri app, so phases 6 and 7 are checked in development.
 
 ## Conventions
 
@@ -94,7 +99,8 @@ These restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins un
 ## Checks when a phase is done
 
 - Rust and TS checks above, plus the no-comments check from `AGENTS.md` extended to `*.rs` (`rg -n '^\s*//|/\*|\*/' --glob '*.rs'`).
-- The examples in `examples/` open, run and export on Linux, with the same output as before the phase where output is meant to be unchanged (compare files byte for byte, as in the sidecar test in `sidecar.md`).
+- Phases 2 to 5: the crates' own tests, and the parity check named in the phase against the TS code still in the tree.
+- From phase 6: the examples in `examples/` open, run and export on Linux, with the same output as before where output is meant to be unchanged (compare files byte for byte, as in the sidecar test in `sidecar.md`). The 16:9 `changelog` export differs between two runs of the same code in its last 75 frames (the bar chart), so compare its 1:1 export, or fix that first.
 - Don't commit or push.
 
 ## Not in this plan

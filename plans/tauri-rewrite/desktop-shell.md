@@ -2,6 +2,8 @@
 
 What `src/main` and `src/preload` do today, on Tauri: windows, the title bar, menus, IPC, file protocols, the app database, keys, file watching, the exit flow, fonts and settings.
 
+Crates: `opsis-store`, `opsis-project` and `opsis-fonts` (phase 3, steps 7–9, 11 and 12) and `opsis-desktop` (phase 6, the rest).
+
 ## What it adds
 
 - The same app with no Electron: 286.8 MB of Electron leaves the package (`sizes.md`).
@@ -31,7 +33,7 @@ Missing:
 1. **App and windows.** Tauri 2.12.5 (current on crates.io, 2026-10-21). The main window, the Settings window (route `#/settings?page=…`) and pop-out panels (route `#/panel/<name>`) as `WebviewWindow`s with the same labels and saved bounds. Port the window registry, bounds and placement logic to Rust.
 2. **Title bar.** Windows and Linux: `decorations: false`, our `WindowControls` calling the Tauri window API (minimize, toggle maximize, close) instead of window roles, `WindowBorder` unchanged. macOS: `titleBarStyle: "Overlay"` with `trafficLightPosition` (both need `decorations: true`, per `WindowConfig`), `hiddenTitle: true`.
 3. **Menus.** Rust owns the menu (today's `appMenu()` data, 180 lines, ported): the native macOS menu with `tauri::menu`, and the same list sent to the UI for the in-app menu on Windows and Linux. Menu commands reach the editor as events, as `onMenuCommand` does now.
-4. **IPC.** Each of the 45 `INVOKE` calls becomes a `#[tauri::command]` typed through `tauri-specta`; each of the 15 subscriptions becomes an event or, for live frames and compile results, a `Channel`. A `window.opsis` facade in `packages/ui` implements today's `OpsisApi` over `invoke`/`listen`, so the 83 call sites in 49 renderer files keep working. Tauri capabilities limit which commands each window label may call, replacing `assertTrustedSender`.
+4. **IPC.** Each of the 45 `INVOKE` calls becomes a `#[tauri::command]` typed through `tauri-specta`; each of the 15 subscriptions becomes an event or, for live frames and compile results, a `Channel`. A `window.opsis` facade in `apps/ui` implements today's `OpsisApi` over `invoke`/`listen`, so the 83 call sites in 49 renderer files keep working. Tauri capabilities limit which commands each window label may call, replacing `assertTrustedSender`.
 5. **Pop-out windows.** `sync.ts` (301 lines) is replaced: pop-out windows send edits and gestures to the editor window through Rust events and receive the store snapshot the same way; the editor window still owns the store and undo.
 6. **Protocols and CSP.** The UI is served by Tauri from `frontendDist`. `opsis-file` is registered with `register_asynchronous_uri_scheme_protocol` (it reads files off the UI thread). The CSP moves to the Tauri config, which appends its own hashes and nonces at build time; list `opsis-file:` in `img-src`, `media-src`, `font-src` and `connect-src` (on Windows custom schemes are served from `http://<scheme>.localhost`, as the Tauri CSP example shows for `asset:`).
 7. **App database.** `rusqlite` 0.41.0 (MIT) with the bundled SQLite, WAL and foreign keys on. Keep `src/main/db/schema.ts` as the drizzle schema and `drizzle-kit export` as the generator of `schema.generated.sql`; Rust embeds that SQL and keeps today's rule (hash in `meta`, a database for another schema is replaced). Queries are hand-written SQL in Rust; the drizzle query builder leaves with Node.
@@ -54,7 +56,7 @@ Missing:
 
 ## Risks
 
-- **WebKitGTK and WKWebView differ from Chromium** for the editor UI itself: CSS, focus and pointer events in React Flow, the colour picker and drag-and-drop. Run the editor on all three engines early (phase 2) and list differences.
+- **WebKitGTK and WKWebView differ from Chromium** for the editor UI itself: CSS, focus and pointer events in React Flow, the colour picker and drag-and-drop. Run the editor on all three engines as soon as `opsis-desktop` opens a window (phase 6) and list differences.
 - **Linux keyrings.** Users without a Secret Service can't save keys, as today with `basic_text`.
 
 ## Sources

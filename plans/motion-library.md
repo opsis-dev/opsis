@@ -359,9 +359,9 @@ How this plan is built if it lands after the move to Tauri (`plans/tauri-rewrite
 
 **Elements stay TS.** Ported components, Liquid contours, the crossed-off looks and the Rive element are video code in `packages/video` and are unchanged by the move. The porting recipe and the frame-purity rules hold as written.
 
-**Metadata moves.** Element metadata becomes Rust data with `schemars` field keywords (`plans/tauri-rewrite/types-and-contracts.md`), so `portedElementMeta` is a Rust module next to the core elements instead of `src/shared/elements/ported.ts`. The loaders (`portedElementLoaders`) stay TS in `packages/video`.
+**Metadata moves.** Element metadata becomes Rust data with `schemars` field keywords (`plans/tauri-rewrite/types-and-contracts.md`), so `portedElementMeta` is a module in `opsis-compile` next to the core elements instead of `src/shared/elements/ported.ts`. The loaders (`portedElementLoaders`) stay TS in `packages/video`.
 
-**Rive hosting.** The `'wasm-unsafe-eval'` CSP change moves to the Tauri config (`app.security.csp`). The `.wasm` and `.riv` MIME types go into Rust's asset server. `riv` joins Rust's asset import.
+**Rive hosting.** The `'wasm-unsafe-eval'` CSP change moves to the Tauri config in `crates/desktop` (`app.security.csp`). The `.wasm` and `.riv` MIME types go into the asset server in `opsis-render`. `riv` joins the asset import in `opsis-project`.
 
 **Element thumbnails.** The stills are rendered at development time by a script through the sidecar's `render.still` (or `renderFrame` under Bun), as before. The live hover preview can't mount a `<Player>`, because the webview has none. The hover card shows the still only; a streamed preview for a hover card isn't worth a headless shell tab.
 

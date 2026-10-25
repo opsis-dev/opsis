@@ -2,6 +2,8 @@
 
 Work the video bundle does on every load today, done once in Rust and cached: 3D text typefaces, decoded 3D models, sized textures, simplified SVG logos, and the font library's font inspection. The bundle then fetches prepared files by address and stays free of Node code.
 
+Crate: `opsis-prepare` (phase 7).
+
 ## What it adds
 
 - `fontkit` (5.6 MB) and `woff2-encoder` (1.3 MB) leave the video bundle; the Draco decoder (`public/three`, 0.76 MB) leaves `public/`.

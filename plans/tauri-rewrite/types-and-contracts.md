@@ -2,6 +2,8 @@
 
 Rust is the one source of the shapes that cross a boundary: the project file, the spec, run results, run events, settings, IPC messages, sidecar messages and API bodies. TS gets generated types; forms and the Local API get JSON Schema generated from the same Rust types. Nothing is kept twice by hand except 1,134 lines of small logic, which shared fixtures keep in step.
 
+Crate: `opsis-types` (phase 2; the editor and the video bundle move to the generated types in phase 6).
+
 ## What it adds
 
 - No zod/Rust drift: a field added in Rust appears in the generated TS, and a type error shows where the UI or the video bundle must follow.
@@ -30,8 +32,8 @@ Missing:
 
 ## Work
 
-1. **Rust types.** Port the 1,710 lines listed as types in `workspace.md` to `serde` structs and enums in the `app` crate, with `#[serde(rename_all = "camelCase")]` and tagged enums matching today's JSON (the project file format does not change). Derive `specta::Type` and `schemars::JsonSchema` on each.
-2. **Generated TS.** A build step (`cargo run --bin export-types` or tauri-specta's builder at startup in debug) writes `packages/ui/src/generated/bindings.ts` and `packages/video/src/spec/generated.ts`. Generated files join the "never hand-edit" table in `AGENTS.md`; a test fails when they are stale, like `schema.generated.sql` today.
+1. **Rust types.** Port the 1,710 lines listed as types in `workspace.md` to `serde` structs and enums in `opsis-types`, with `#[serde(rename_all = "camelCase")]` and tagged enums matching today's JSON (the project file format does not change). Derive `specta::Type` and `schemars::JsonSchema` on each.
+2. **Generated TS.** A build step (`cargo run -p opsis-types --bin export-types`, or tauri-specta's builder at startup in debug once `opsis-desktop` exists) writes `apps/ui/src/generated/bindings.ts` and `packages/video/src/spec/generated.ts`. Generated files join the "never hand-edit" table in `AGENTS.md`; a test fails when they are stale, like `schema.generated.sql` today.
 3. **Field metadata.** Every `FieldMeta` key becomes an `x-` keyword through `schemars` `extend`: `x-widget`, `x-unit`, `x-labels`, `x-zero-label`, `x-presets`, `x-show-if`, `x-advanced`, `x-hidden`, `x-time-key`, `x-themes` and the rest, plus `x-framesAt` for the 30 fps settings. A Rust test checks every node's schema uses only widget names from `FIELD_WIDGETS`.
 4. **Where zod stays.** Nowhere for shared shapes. The UI may still use zod for its own local forms (for example the New project dialog) if useful; nothing crossing a boundary is parsed with zod.
 5. **Both-sides logic.** The 21 files (1,134 lines, `code-split.md` §5) stay TS where the UI or the video bundle runs them and get a Rust port. Their 613 lines of tests become JSON fixtures in `fixtures/` at the repo root (input and expected output per case) read by a vitest test and a Rust test, so both implementations are checked against the same cases.

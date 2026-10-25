@@ -2,6 +2,8 @@
 
 The Local API keeps its routes, addresses and rules, served by Rust. Everything that needs node definitions or compile (`/nodes`, `/validate`) is answered in-process; requests under `/project` still go to the editor window, which owns the store and undo.
 
+Crate: `opsis-api` (phase 6, after compile and the runner exist in Rust, so no route is forwarded to TS).
+
 ## What it adds
 
 - No Node in the API path, and `/validate` without a call to anything else.

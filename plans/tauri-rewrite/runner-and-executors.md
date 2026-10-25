@@ -2,6 +2,8 @@
 
 What the worker process does today, as tokio tasks inside the Tauri app: plan a run, key and cache results, run the 20 executors, render mix stems, store traces and report progress. Renders go to the sidecar (`sidecar.md`); capture is in `capture-cdp.md`.
 
+Crates: `opsis-runner`, `opsis-media` and `opsis-render` (phase 4), `opsis-traces` and the temp folders in `opsis-engine` (phase 3).
+
 ## What it adds
 
 - No worker process: no `utilityProcess`, MessagePorts, worker temp-folder bookkeeping in main, or a second copy of compile and results.

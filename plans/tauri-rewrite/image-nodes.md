@@ -2,6 +2,8 @@
 
 New nodes that edit still images in Rust with the `image` crate: resize, crop, rotate and flip, adjust, blur and sharpen, place one image on another, and change the format. They run as executors in the Rust runner and pass `image` values like the other nodes.
 
+Crate: `opsis-image` (phase 7).
+
 ## What it adds
 
 - Logos, screenshots and photos fixed inside the flow (cropped, sized, straightened, sharpened, watermarked) without an outside editor.

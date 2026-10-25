@@ -2,6 +2,8 @@
 
 A Bun process whose only job is Remotion: `selectComposition`, `renderMedia` and `renderStill` on the prebuilt bundle with the engine's headless shell. Rust starts it, sends render jobs as JSON lines on stdin, and reads replies on stdout.
 
+App and crate: `apps/sidecar` on Bun and its client in `opsis-render` (phase 4).
+
 ## What it adds
 
 - Remotion keeps working unchanged while everything around it moves to Rust.
@@ -12,7 +14,7 @@ A Bun process whose only job is Remotion: `selectComposition`, `renderMedia` and
 Already in place:
 
 - `src/worker/render/render.ts` (162 lines): `getServeUrl` (the prebuilt bundle in a packaged app), `compositionFor` (`selectComposition` with `inputProps`, `binariesDirectory`, `browserExecutable`, `chromiumOptions.gl`), `renderTimeline` (`renderMedia`, `concurrency: 1`), `renderFrame` (`renderStill`), `openRenderBrowser`, cancellation through `makeCancelSignal`, the licence key (`remotionLicenseKey`).
-- `bundle.ts`, `webpack-override.ts`, `source-alias.ts`: the build-time bundle; `compositor-package.ts`: the compositor package name per platform.
+- `bundle.ts`, `bundler-override.ts` (Rspack since phase 1.5), `source-layout.ts`: the build-time bundle and Export as code's sources; `compositor-package.ts`: the compositor package name per platform. They live in `apps/sidecar` since phase 1.5.
 
 ### Tested: Remotion under Bun (2026-10-25)
 
@@ -45,7 +47,7 @@ Missing:
 
 ## Work
 
-1. **Package.** `packages/sidecar` with `render.ts`, the bundle build files and the compositor lookup. Nothing from `packages/ui` or `packages/video` is imported at run time; `CODECS` stays in Rust, which sends the resolved `codec`, `crf`, `scale` and `muted`.
+1. **App.** `apps/sidecar` with `render.ts`, the bundle build files and the compositor lookup. Nothing from `apps/ui` or `packages/video` is imported at run time; `CODECS` stays in Rust, which sends the resolved `codec`, `crf`, `scale` and `muted`.
 2. **Messages.** One JSON object per line.
    - Requests from Rust: `{ id, method, params }` with `render.media` (`spec`, `output`, `codec`, `crf`, `scale`, `muted`, `gl`), `render.still` (`spec`, `frame`, `output`, `format`, `scale`, `jpegQuality`, `gl`), `cancel` (`target`), `ping`.
    - Replies: `{ id, result }` or `{ id, error: { message } }`; progress `{ method: "progress", params: { id, progress } }`.
@@ -58,7 +60,7 @@ Missing:
 
    Keep whichever renders the test set above byte-identically and is smaller.
 
-6. **Bundle.** Still built at build time by `@remotion/bundler` (webpack), as `packageAfterCopy` does today; it moves to a `video#build` turbo task. The headless shell loads it for renders and for the streamed preview (`streamed-views.md`).
+6. **Bundle.** Still built at build time by `@remotion/bundler`, with Rspack since phase 1.5, as `packageAfterCopy` does today; it moves to a `video#build` turbo task. The headless shell loads it for renders and for the streamed preview (`streamed-views.md`).
 7. **Assets.** The asset server that serves `project:` files to render tabs (`asset-server.ts`) moves to Rust, which also serves the preview page; the sidecar gets its address in each job.
 8. **AGENTS.md.** "Nothing ever runs under Bun's runtime" becomes "only the sidecar runs on Bun" (`agents-md.md`).
 9. **Tests.** The render test set above as an integration test in CI (needs the engine): outputs compared by hash against the Node baseline once, then against the previous run.

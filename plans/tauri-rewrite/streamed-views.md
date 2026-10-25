@@ -2,6 +2,8 @@
 
 The preview, sign-in and the element picker run in the headless shell and are shown in the editor as streamed pictures, with the user's mouse and keyboard sent back. Nothing about the video or the user's site runs in the system webview.
 
+Crate: `opsis-stream` (phase 5); the editor's view component lands with the switch in phase 6.
+
 ## What it adds
 
 - **Preview equals render, more strictly than today.** Today the preview runs in Electron's Chromium and exports in the headless shell, two different Chromium versions. Streamed, both are the same shell, with WebGL, canvas transitions and video decoding all Chromium's, on every OS.

@@ -2,6 +2,8 @@
 
 How the Tauri app is built and shipped: deb and rpm on Linux (no AppImage), NSIS on Windows, an app bundle on macOS, signing, updates, icons and end-to-end tests. This replaces Electron Forge; `plans/shipping.md` keeps the release process and gets a **Rust** section pointing here.
 
+Configuration in `crates/desktop` (`opsis-desktop`'s `tauri.conf.json`) and CI (phase 8).
+
 ## What it adds
 
 - Installers built by Tauri's bundler on every OS from one config.

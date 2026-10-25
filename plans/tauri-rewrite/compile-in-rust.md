@@ -2,6 +2,8 @@
 
 Node definitions, compile, cards, the timeline flattener, the catalogue and validation move to Rust. The editor sends its workflow and gets compiled values back; the runner and the Local API call the same code in the same process.
 
+Crate: `opsis-compile` (phase 2; steps 7 and 8, the IPC and the UI, land with the switch in phase 6).
+
 ## What it adds
 
 - One compile per change instead of one per window: today the editor and every pop-out panel window each compile on every keystroke.

@@ -44,19 +44,19 @@ How many lines move to Rust, what stays exactly as it is, what changes, and what
 
 ## 3. Unchanged
 
-| What                                                                                          | Lines         |
-| --------------------------------------------------------------------------------------------- | ------------- |
-| `src/video` vendored registry code (`elements/`, `lib/`, `hooks/`)                            | 45,692        |
-| `src/video` own code (51 files only change import paths)                                      | 7,040         |
-| Renderer: installed shadcn and React Flow components, generated route tree                    | 9,021         |
-| Renderer: own code with no change points                                                      | 10,778        |
-| Page scripts injected as they are: picker 219, capture 203                                    | 422           |
-| `src/shared` → `packages/ui`                                                                  | 1,773         |
-| `src/shared` → `packages/video`                                                               | 567           |
-| `src/shared` kept on both sides (TS copy)                                                     | 1,134         |
-| Sidecar: `render.ts`, bundle, webpack override, source alias, compositor lookup (small edits) | 271           |
-| drizzle schema (`src/main/db/schema.ts`; `drizzle-kit export` still writes the SQL Rust runs) | 47            |
-| `scripts/` (minus `start.ts` and the AppImage launcher)                                       | most of 4,909 |
+| What                                                                                           | Lines         |
+| ---------------------------------------------------------------------------------------------- | ------------- |
+| `src/video` vendored registry code (`elements/`, `lib/`, `hooks/`)                             | 45,692        |
+| `src/video` own code (51 files only change import paths)                                       | 7,040         |
+| Renderer: installed shadcn and React Flow components, generated route tree                     | 9,021         |
+| Renderer: own code with no change points                                                       | 10,778        |
+| Page scripts injected as they are: picker 219, capture 203                                     | 422           |
+| `src/shared` → `apps/ui`                                                                       | 1,773         |
+| `src/shared` → `packages/video`                                                                | 567           |
+| `src/shared` kept on both sides (TS copy)                                                      | 1,134         |
+| Sidecar: `render.ts`, bundle, bundler override, source layout, compositor lookup (small edits) | 271           |
+| drizzle schema (`src/main/db/schema.ts`; `drizzle-kit export` still writes the SQL Rust runs)  | 47            |
+| `scripts/` (minus `start.ts` and the AppImage launcher)                                        | most of 4,909 |
 
 ## 4. TS that changes
 
@@ -66,7 +66,7 @@ How many lines move to Rust, what stays exactly as it is, what changes, and what
   - 49 files make 83 `window.opsis` calls; one `window.opsis` facade over `invoke` keeps every call site;
   - window controls (`app-bar.tsx`), live frames (`live-view.tsx`), local fonts (`fonts/library.ts`);
   - the Inspector forms (`zod-form.tsx` 464, plus `introspect.ts` 163 rewritten) read JSON Schema.
-- **`packages/ui` files from `shared` that imported node definitions:** `timeline/edits.ts` (680), `workflow-edits.ts` (186), `named-files.ts`, `workflow-diff.ts` read node defaults from the catalogue instead.
+- **`apps/ui` files from `shared` that imported node definitions:** `timeline/edits.ts` (680), `workflow-edits.ts` (186), `named-files.ts`, `workflow-diff.ts` read node defaults from the catalogue instead.
 - **`packages/video`:** import paths in 51 files. The no-stem ducking fallback (`AudioLayers` in `demo-timeline.tsx`, `mix/duck.ts`) is no longer reached once every film plays its stem and can go.
 
 ## 5. Left on both sides

@@ -25,7 +25,7 @@ A measured basis for the size goal (from about 800–900 MB to about 600 MB) and
 
 | Part                                           | Size          | Note                                                                              |
 | ---------------------------------------------- | ------------- | --------------------------------------------------------------------------------- |
-| Tauri app (Rust binary + UI build + `public/`) | not built yet | UI build 5.1 MB and `public/` 7.0 MB today; measure the release binary in phase 2 |
+| Tauri app (Rust binary + UI build + `public/`) | not built yet | UI build 5.1 MB and `public/` 7.0 MB today; measure the release binary in phase 6 |
 | Bun 1.4.3                                      | 89.0 MB       | Node 26.12 would be 150.3 MB, 116.9 MB stripped                                   |
 | Remotion compositor                            | 27.3 MB       | unchanged, used by `renderMedia`                                                  |
 | `@remotion/renderer` and the sidecar's own JS  | about 3 MB    | `@remotion/renderer` is 3.0 MB                                                    |
@@ -37,7 +37,7 @@ Gone: Electron (286.8 MB) and `playwright-core` (13.7 MB). Added: Bun (89.0 MB) 
 
 ## Work
 
-1. **Measure each build.** Record the Tauri release binary, the deb, rpm, NSIS and macOS bundle sizes per platform in this file when phase 7 first runs in CI.
+1. **Measure each build.** Record the Tauri release binary, the deb, rpm, NSIS and macOS bundle sizes per platform in this file when phase 8 first runs in CI.
 2. **Sidecar as one file.** Measure `bun build --compile` of the sidecar (`sidecar.md`, Work step 5) against Bun plus a JS folder.
 
 ## Risks

@@ -301,9 +301,9 @@ How this plan is built if it lands after the move to Tauri (`plans/tauri-rewrite
 
 **Where code goes.**
 
-- `src/main/assist/` becomes an `assist` module in the Rust `app` crate.
-- The pure functions in `src/shared/assist/` sit next to the node definitions in Rust, because they create nodes and check them with `check_workflow`: the output schemas, prompt builders, `draftToWorkflow`, `chapterSpans` and `insertChapters`.
-- The dialogs stay in `packages/ui`.
+- `src/main/assist/` becomes its own crate, `opsis-assist` in `crates/assist` (`plans/tauri-rewrite/workspace.md`, **The crates**).
+- The pure functions in `src/shared/assist/` sit next to the node definitions in `opsis-compile`, because they create nodes and check them with `check_workflow`: the output schemas, prompt builders, `draftToWorkflow`, `chapterSpans` and `insertChapters`.
+- The dialogs stay in the editor, `apps/ui`.
 
 **Model client.**
 

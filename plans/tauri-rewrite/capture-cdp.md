@@ -2,6 +2,8 @@
 
 Record takes, screenshots and sign-in steps by driving the headless shell over the Chrome DevTools Protocol from Rust, with no Playwright.
 
+Crates: `opsis-capture` (phase 5) and the engine installer in `opsis-engine` (phase 3).
+
 ## What it adds
 
 - `playwright-core` (13.7 MB) and its Node dependency leave the app.
