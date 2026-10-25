@@ -2,7 +2,7 @@ import { mkdirSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { errorCode } from "../shared/errors";
 
-export type WorkerKind = "run" | "stills" | "analysis" | "setup";
+export type WorkerKind = "run" | "analysis" | "setup";
 
 const OWNER = /^(\d+)-/;
 

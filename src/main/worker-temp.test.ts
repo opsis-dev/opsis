@@ -19,7 +19,7 @@ describe("worker temp folders", () => {
   });
 
   it("makes and removes a worker's folder with everything in it", async () => {
-    const dir = makeWorkerTemp(await root(), workerTempName("stills", "abc"));
+    const dir = makeWorkerTemp(await root(), workerTempName("analysis", "abc"));
     mkdirSync(path.join(dir, "react-motion-render123", "frames"), { recursive: true });
     removeWorkerTemp(dir);
     expect(existsSync(dir)).toBe(false);

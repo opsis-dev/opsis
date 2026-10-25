@@ -15,7 +15,6 @@ import {
 import type { ExecutorContext } from "./engine/context";
 import { runWorkflow } from "./engine/runner";
 import { runAnalysis } from "./media/run-analysis";
-import { renderCardStill } from "./render/card-still";
 
 let control: MessagePortMain | null = null;
 let live: MessagePortMain | null = null;
@@ -89,11 +88,6 @@ async function installEngineFor(msg: MainMessage<"install-engine">) {
   finish();
 }
 
-async function cardStill(msg: MainMessage<"still">) {
-  const error = await errorOf(() => renderCardStill(msg, controller.signal));
-  send({ type: "still:done", id: msg.id, error });
-}
-
 async function handle(msg: MainToWorker): Promise<void> {
   switch (msg.type) {
     case "cancel":
@@ -112,8 +106,6 @@ async function handle(msg: MainToWorker): Promise<void> {
       return;
     case "run":
       return run(msg);
-    case "still":
-      return cardStill(msg);
     case "analysis":
       send({ type: "analysis:done", id: msg.id, result: await runAnalysis(msg.env, msg.request) });
       return;

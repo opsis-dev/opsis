@@ -31,6 +31,7 @@ import type { LoginRequest, WorkerEnv } from "../../shared/worker-protocol";
 import type { LiveSink } from "../capture/take-run";
 import { getExecutor } from "../executors";
 import { createFfmpegTools, ToolError, type FfmpegTools } from "../media/ffmpeg";
+import { withSizes } from "./artifact-sizes";
 import { nodeHash, readCached, stampArtifacts, writeCached } from "./cache";
 import {
   TracedError,
@@ -40,7 +41,6 @@ import {
   type ExecutorInputs,
   type NodeResults,
 } from "./context";
-import { decorateArtifacts } from "./posters";
 
 type RunDeps = {
   env: WorkerEnv;
@@ -412,12 +412,8 @@ class RunState {
       forced: this.forced.has(node.id),
     });
     const out = await executor.run(ctx, this.store.inputsFor(job));
-    const artifacts = await decorateArtifacts(
-      req.projectDir,
-      dir,
-      this.tools.ffmpeg,
-      out.artifacts ?? [],
-      (level, m) => log(level, m, node.id),
+    const artifacts = await withSizes(req.projectDir, out.artifacts ?? [], (level, m) =>
+      log(level, m, node.id),
     );
     return {
       hash,

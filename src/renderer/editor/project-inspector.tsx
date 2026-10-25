@@ -22,7 +22,6 @@ import { THEME_BACKGROUNDS, type Workflow, type WorkflowSettings } from "@/share
 import { FontPicker } from "../fonts/font-picker";
 import { useMedia } from "../store/media";
 import { useRunStore } from "../store/run";
-import { useStillsStore } from "../store/stills";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { InlineEdit } from "./inline-edit";
@@ -284,7 +283,6 @@ function SavedResults() {
       await window.opsis.clearCache(dir);
       useRunStore.getState().seed(null);
       useMedia.getState().reset(dir);
-      await useStillsStore.getState().load(dir);
       toast.success("Cleared. The next run records and exports everything again.");
     }, "Couldn't clear the saved results");
   return (

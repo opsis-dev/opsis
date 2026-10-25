@@ -21,7 +21,7 @@ Built with [Electron](https://www.electronjs.org), [xyflow](https://reactflow.de
 - **Export:** 16:9, 9:16, 1:1 and 4:5 in one go. Other shapes keep the whole window and zoom in closer on the action, with captions and lower thirds kept clear of the edges; the Preview can show any shape. Video files carry the film's chapters (from Chapter actions) for players that list them, with an optional chapter list to paste into a YouTube description. Also still images in social sizes, or a standalone Remotion project.
 - **Timeline:** the film as bars with filmstrips, waveforms, action marks, chapters, markers and music beats; move, trim, split, ripple, roll, slip, speed and keyframes, each written back to the nodes (or added as a named node) as one undo step; snapping, J/K/L, in and out points.
 - **Mixer:** a strip per sound with trim, low cut, 4-band EQ, compressor, pan, fader, mute and solo, grouped under its bus; buses with low cut, EQ, compressor, presets for the bus or every sound on it, and sidechain ducking that can ignore short sounds; a master with EQ, compressor, limiter and loudness targets (−14, −16, −23 LUFS); meters and loudness readouts; type exact values on any knob; Ctrl-click or Shift-click strip names to apply a preset, paste or reset to several sounds at once. Exports play exactly the rendered mix, and a mix change only adds the new sound to the already rendered picture.
-- **Editor:** 206 node types, 7 templates, undo/redo, groups, auto layout, card previews saved as stills, a preview that matches the export frame for frame. Preview, Timeline, Mixer and Run are tabs, and each can open in its own window. The canvas has a mouse mode and a touchpad mode (two fingers move, pinch zooms) and a minimap you can hide; the node list keeps its group titles in view.
+- **Editor:** 206 node types, 7 templates, undo/redo, groups, auto layout, a preview that matches the export frame for frame. Preview, Timeline, Mixer and Run are tabs, and each can open in its own window. The canvas has a mouse mode and a touchpad mode (two fingers move, pinch zooms) and a minimap you can hide; the node list keeps its group titles in view.
 - **Projects:** new projects go to `~/OpsisProjects` (changeable in Settings), and the New project dialog shows the folder it will create. If the project file changes on disk while it's open (a text editor, a script, version control), the editor loads it, or asks first when you have unsaved edits; it never saves over a change it hasn't seen.
 - **Settings:** its own window with pages for General, Projects, Engine, Recording, Fonts, Export licence, API, Licences (every licence Opsis and its fonts come with) and About.
 - **Local API (off by default):** scripts and AI agents on your computer can read, change and run the open project over plain HTTP on a local socket (a named pipe on Windows) that only your user account can open. The socket is `api.sock` in the app's data folder; set `OPSIS_API_SOCKET` to another full path (at most 100 bytes) if that path is too long. `GET /openapi.json` describes it; `GET /nodes/{type}` gives each node's ports and settings. Every request is one undo step in the editor.
@@ -70,7 +70,7 @@ The full edition bundles the engine and saves the recording browser's licence no
 ```
 Renderer (React 19 + shadcn/Base UI + xyflow)  ── preload (window.opsis) ──  Main (Electron)
    canvas · node list · inspector · <Player>                                     window · menus · protocols
-   live compile (graph → TimelineSpec)                                           projects · logins · fonts · stills
+   live compile (graph → TimelineSpec)                                           projects · logins · fonts
                                                                                       │ MessagePort
                                                           Worker (utilityProcess)
                                        engine: validate → topo-sort → sha256 cache → phase lanes → events
@@ -83,7 +83,7 @@ Renderer (React 19 + shadcn/Base UI + xyflow)  ── preload (window.opsis) ─
 
 ```
 src/
-├─ main/       Electron main: window, menus, IPC, protocols, projects, secrets, fonts, card stills, workers
+├─ main/       Electron main: window, menus, IPC, protocols, projects, secrets, fonts, workers
 ├─ preload/    typed window.opsis API
 ├─ engine/     engine paths, installer and licence notices (headless shell + FFmpeg)
 ├─ traces/     compressed, deduplicated Playwright trace store

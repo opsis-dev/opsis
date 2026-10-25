@@ -12,13 +12,21 @@ import { DEFAULT_WORKFLOW_SETTINGS } from "../src/shared/schema/workflow";
 import { appSettingsSchema } from "../src/shared/settings";
 import { compileClip } from "../src/shared/test-fixtures";
 import type { WorkerEnv } from "../src/shared/worker-protocol";
-import { renderCardStill } from "../src/worker/render/card-still";
+import { startAssetServer } from "../src/worker/render/asset-server";
+import {
+  getServeUrl,
+  openRenderBrowser,
+  renderFrame,
+  type GlRenderer,
+} from "../src/worker/render/render";
 import { devUserData } from "./lib/app-data";
 import { ROOT } from "./lib/tool-config";
 
 const OUT = path.join(os.homedir(), ".cache", "opsis-element-stills");
 const PROJECT = path.join(OUT, "project");
 const STILL_WIDTH = 480;
+const GL: GlRenderer = "angle";
+const JPEG_QUALITY = 82;
 const SOLID_FRAMES = 90;
 const only = process.argv[2];
 const at = Number(process.argv[3] ?? 0.5);
@@ -48,6 +56,9 @@ const env: WorkerEnv = {
 mkdirSync(PROJECT, { recursive: true });
 const temp = makeWorkerTemp(path.join(OUT, "tmp"), String(process.pid));
 Object.assign(process.env, tempEnv(temp));
+const serveUrl = await getServeUrl(env);
+const server = await startAssetServer(PROJECT);
+const browser = await openRenderBrowser(env, GL);
 const failures: string[] = [];
 const elements = ELEMENTS.filter(
   (m) => !m.key.startsWith("core/") && (!only || m.key.includes(only)),
@@ -61,19 +72,19 @@ for (const meta of elements) {
         : elementNodeType(meta.key);
     const clip = compileClip(type, {}, inputsFor(meta));
     const spec = clipToSpec(clip, DEFAULT_WORKFLOW_SETTINGS);
-    await renderCardStill(
-      {
-        type: "still",
-        env,
-        id: meta.key,
-        projectDir: PROJECT,
-        spec,
-        frame: Math.floor((clip.durationInFrames - 1) * at),
-        output,
-        width: STILL_WIDTH,
-      },
-      new AbortController().signal,
-    );
+    await renderFrame({
+      env,
+      serveUrl,
+      spec: { ...spec, assets: { projectBase: server.url } },
+      frame: Math.floor((clip.durationInFrames - 1) * at),
+      output,
+      format: "jpeg",
+      gl: GL,
+      signal: new AbortController().signal,
+      browser,
+      scale: Math.min(1, STILL_WIDTH / spec.width),
+      jpegQuality: JPEG_QUALITY,
+    });
     console.log(`ok   ${meta.key}`);
   } catch (error) {
     failures.push(`${meta.key}: ${errorMessage(error).slice(0, 2000)}`);
@@ -85,5 +96,7 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
 }
+await browser.close({ silent: true });
+await server.close();
 removeWorkerTemp(temp);
 process.exit();

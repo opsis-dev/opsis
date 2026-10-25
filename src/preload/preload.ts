@@ -78,7 +78,6 @@ const api: OpsisApi = {
         .catch((e: unknown) => console.error("The project couldn't be saved before closing.", e))
         .finally(() => ipcRenderer.send(IPC.saveFlushed));
     }),
-  onStillReady: (listener) => subscribe(IPC.stillReady, listener),
   onWindowState: (listener) => subscribe(IPC.windowState, listener),
   onSettingsPage: (listener) => subscribe(IPC.settingsPage, listener),
   setTitle: (title) => ipcRenderer.send(IPC.setTitle, title),

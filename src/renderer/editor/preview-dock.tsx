@@ -1,6 +1,6 @@
 import { Player, type PlayerRef } from "@remotion/player";
 import { Clapperboard } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { PROJECT_FILE_BASE } from "@/shared/asset-ref";
 import { findById } from "@/shared/lists";
 import { exportReframe, variantSize } from "@/shared/nodes/output";
@@ -10,7 +10,6 @@ import { atLeastOneFrame, playRange } from "@/shared/timeline/time";
 import { EmptyPanel } from "../app/empty-panel";
 import { usePlayback } from "../store/playback";
 import { useProjectFiles } from "../store/project-files";
-import { useStillsStore } from "../store/stills";
 import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { useFilm } from "./film";
@@ -60,10 +59,6 @@ export function PreviewDock() {
   const outPoint = usePlayback((s) => s.outPoint);
   const sourceNodeId = preview?.sourceNodeId ?? null;
   const source = useWorkflowStore((s) => findById(s.workflow?.nodes, sourceNodeId));
-
-  useEffect(() => {
-    if (sourceNodeId) useStillsStore.getState().want([sourceNodeId]);
-  }, [sourceNodeId]);
 
   const duration = atLeastOneFrame(spec?.durationInFrames ?? 1);
   useSeekToSelection(player, preview);

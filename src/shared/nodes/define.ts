@@ -98,15 +98,6 @@ export interface NodeDef<S extends z.ZodObject = z.ZodObject> {
 
 export type NodeParams<D extends NodeDef> = z.infer<D["params"]>;
 
-const hasNoCardPicture = (def: Pick<NodeDef, "category">): boolean =>
-  def.category === "Browser" || def.category === "Utility";
-
-export const showsClipStill = (def: Pick<NodeDef, "category" | "outputs">): boolean =>
-  !hasNoCardPicture(def) && CLIP_PORT in def.outputs;
-
-export const hasCardPicture = (def: NodeDef): boolean =>
-  showsClipStill(def) || (!hasNoCardPicture(def) && !!def.executes && def.phase !== "post");
-
 export const cardRows = <S extends z.ZodObject>(
   def: NodeDef<S>,
   ctx: CardContext<z.infer<S>>,

@@ -15,7 +15,6 @@ import { currentProjectDir } from "./projects";
 import { registerProtocolHandlers, registerSchemes } from "./protocol";
 import { cancelRun } from "./run-host";
 import { onSettingsChange } from "./settings";
-import { stopStills } from "./stills";
 import { getMainWindow, rendererDir } from "./window-registry";
 import { clearStaleWorkerTemps } from "./worker-temp";
 import { workerTempRoot } from "./workers";
@@ -56,7 +55,6 @@ app.on("before-quit", (event) => interceptQuit(event, getMainWindow()));
 app.on("will-quit", () => {
   cancelRun();
   stopAnalysis();
-  stopStills();
   void stopApi();
   closeDatabase();
 });

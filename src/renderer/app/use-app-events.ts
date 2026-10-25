@@ -1,10 +1,8 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { exportedClipNodes } from "@/shared/graph";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
-import { useStillsStore } from "../store/stills";
 import { useWorkflowStore } from "../store/workflow";
 import { onMenuCommand, projectActionOf, usePendingProjectAction } from "./menu-commands";
 
@@ -37,19 +35,7 @@ function useRunEvents(): void {
         useRunStore.getState().apply(e);
         if (e.type !== "run:done") return;
         void useSecretsStore.getState().refresh(useWorkflowStore.getState().projectDir);
-        const wf = useWorkflowStore.getState().workflow;
-        if (e.ok && wf) useStillsStore.getState().want(exportedClipNodes(wf));
       }),
-    [],
-  );
-}
-
-function useStillEvents(): void {
-  useEffect(
-    () =>
-      window.opsis.onStillReady((still) =>
-        useStillsStore.getState().ready(still.projectDir, still.nodeId, still.hash),
-      ),
     [],
   );
 }
@@ -61,6 +47,5 @@ function useLiveEvents(): void {
 export function useAppEvents(): void {
   useMenuNavigation();
   useRunEvents();
-  useStillEvents();
   useLiveEvents();
 }

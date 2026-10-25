@@ -112,7 +112,6 @@ const artifactSchema = z.object({
   kind: z.enum(["video", "image", "audio", "json", "file"]),
   path: z.string(),
   label: z.string().optional(),
-  poster: z.string().optional(),
   bytes: z.number().optional(),
   stamp: z.string().optional(),
 });

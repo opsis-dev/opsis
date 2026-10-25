@@ -134,7 +134,7 @@ The Commons Clause sources and Aceternity are left out because Opsis's repositor
 - **Measuring text.** Morphing letters needs letter positions in two words. Measure with a hidden copy in a `useLayoutEffect` after `FontProvider` has loaded the font (under `delayRender`); measuring before fonts load gives wrong positions only in the render.
 - **Paused CSS animations.** They are frame-exact in Chrome only while the element stays mounted; a remount restarts them at the delay. Prefer frame-computed styles; the escape hatch is for rare cases and must pass the scrub-backwards check.
 - **Upstream drift.** The ported files don't follow upstream changes (unlike registry elements). Record the upstream commit in the THIRD_PARTY entry so a later port can diff.
-- **Canvas size.** Canvas backgrounds must size their backing store from `useVideoConfig()` times the render scale, or card stills and 4K exports blur.
+- **Canvas size.** Canvas backgrounds must size their backing store from `useVideoConfig()` times the render scale, or scaled-down stills and 4K exports blur.
 
 ### Sources
 
@@ -169,7 +169,7 @@ Missing:
 
 1. **Element.** `core/liquid-contours` in `core.ts` (`category: "background"`, `defaultDurationInFrames: 150`): `firstColor`, `secondColor`, `spacing`, `scale`, `complexity`, `smoothness` (advanced), `seed` (min 1), `flow` (how much `phase` moves over the element, default 1). Component `LiquidContours` in `backgrounds.tsx` draws `<Solid color={secondColor} effects={[liquidContours({ …, phase: 3.23 + flow * frame / durationInFrames })]} />`, sizes scaled from 1920×1080. Load lazily: put it in `LAZY_CORE_ELEMENTS` (`src/video/registry/index.ts`) rather than the eager `core` map, so projects without it never load the effects package.
 2. **Copy.** "Liquid contours", "A flowing background of two-colour bands."
-3. **Check.** Card still (`gl: "angle"`), export with the default renderer and with software drawing (**Draw with**, `src/shared/nodes/output.ts`), 9:16.
+3. **Check.** Export a still and a video with the default renderer and with software drawing (**Draw with**, `src/shared/nodes/output.ts`), 9:16.
 
 ### Licence
 
@@ -250,7 +250,7 @@ Use Remotion's `<RemotionRiveCanvas>` and download nothing at run time: both bun
 7. **Licences.** `THIRD_PARTY_NOTICES.md`: `@rive-app/canvas-advanced` (MIT), including the bundled `rive.wasm`. `@remotion/rive` is under the Remotion licence, covered by the existing notice.
 8. **Check.**
    - With networking off: the element loads in the Preview and in an export, and the worker's request log shows no request to unpkg or Rive's servers.
-   - Frame stepping: a card still of the middle frame (a fresh page jumping straight to one frame) matches the same frame in the export; scrubbing backwards and jumping around in the Preview match the export too. If they don't, use the fallback below.
+   - Frame stepping: an exported still of the middle frame (a fresh page jumping straight to one frame) matches the same frame in the export; scrubbing backwards and jumping around in the Preview match the export too. If they don't, use the fallback below.
 
 ### Fallback: Opsis's own element
 
@@ -262,7 +262,7 @@ If stepping from the previous frame gives wrong pictures, write `src/video/core/
 
 ### Risks
 
-- **Stepping from the previous frame.** `<RemotionRiveCanvas>` advances by `frame - lastFrame`. Renders are sequential (`concurrency: 1`), but card stills render one frame of a fresh page and the Preview scrubs, so check both (Work step 8) before shipping.
+- **Stepping from the previous frame.** `<RemotionRiveCanvas>` advances by `frame - lastFrame`. Renders are sequential (`concurrency: 1`), but exported stills render one frame of a fresh page and the Preview scrubs, so check both (Work step 8) before shipping.
 - **Version drift.** The wrapper, the copied `rive.wasm` and `@remotion/rive`'s pinned runtime must stay the same version; the copy test and the exact pins catch drift on the next Remotion bump.
 - **CSP.** `'wasm-unsafe-eval'` is still a change to the editor's security policy; call it out in the change.
 
@@ -286,7 +286,6 @@ Already in place:
 - `ElementMeta.thumbnail?: string` exists in `src/shared/elements/types.ts` and is never read.
 - `renderFrame`, `openRenderBrowser` and `getServeUrl` (`src/worker/render/render.ts`) and `bundleRemotionProject` (`src/worker/render/bundle.ts`) render one frame of a spec; `itemClip` and `clipToSpec` (`src/shared/compile/clip.ts`) build a spec for one element.
 - `scripts/brand-icons.ts` already finds the recording browser for a dev script (`resources/engine` or `OPSIS_HEADLESS_SHELL`).
-- Node cards already play live with `<Thumbnail>` and `DemoTimeline` (`src/renderer/editor/node-still.tsx`).
 
 Missing:
 

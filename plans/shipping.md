@@ -75,7 +75,7 @@ Missing:
    - Setup.exe installs per user and starts the app; Start menu entry; uninstall from Settings → Apps removes it.
    - Frameless window: `WindowControls` minimize, maximize/restore (icon follows `windowState`), close through the exit dialog; `WindowBorder` shows only when not maximized; dragging the `AppBar` moves the window, double-click maximizes, Win+arrows snap; the in-app menu as a full menubar from 1280 px and as one Menu button below; Ctrl shortcuts.
    - Lite: Settings → Engine → Set up engine downloads and the Licences page lists the browser's licences. Full: the engine is found in `resources/engine` with no download.
-   - Record the "Sample: to-do app" template, export 16:9 and 9:16, card stills appear, Mixer stems render, Fonts from the computer and from a ZIP.
+   - Record the "Sample: to-do app" template, export 16:9 and 9:16, Mixer stems render, Fonts from the computer and from a ZIP.
    - File watching: edit `project.opsis.json` in Notepad and in VS Code (which replaces the file) while the project is open: with nothing unsaved the editor reloads it; with unsaved edits `DiskChangeDialog` asks. Save while another program has the file open (Windows can refuse `rename` with `EPERM`/`EBUSY`): the save must retry or report, never lose the edit.
    - Paths: a project under `C:\Users\<name>\Demo Projects\` with spaces; import media from another drive; a Concat/Join node over clips in folders with spaces and an apostrophe.
    - Local API: switch it on, then call `/status` from a Node script with `http.request({ socketPath: "\\\\.\\pipe\\opsis-api-<user>" })`. Then, signed in as a second standard user on the same PC, try the same pipe; it must refuse. Read the pipe's ACL (Sysinternals `accesschk \pipe\opsis-api-<user>`). Check a user name with a space and with non-English letters.
@@ -316,7 +316,7 @@ Missing:
 1. **Release checks,** on Linux by hand every release, and on Windows and macOS through the CI runners only (decided), noting results in the release's draft notes:
    - **Long takes:** a 10 and a 20 minute recording; memory of the worker and the editor, `FrameEncoder` output size, Timeline and Preview responsiveness, export time, trace size in `.opsis/traces`.
    - **Paths:** a project folder with spaces, with non-English letters (`Démo`, `デモ`), and on another drive (Windows); asset import from such folders; fonts copied into `assets/fonts/<id>/`.
-   - **Moving a project folder** while closed, and renaming it while open: recent projects, `watchProject`, cached results and stills still resolve (refs are relative), the Local API's `/open`.
+   - **Moving a project folder** while closed, and renaming it while open: recent projects, `watchProject`, cached results still resolve (refs are relative), the Local API's `/open`.
    - **Custom canvas sizes** beyond 16:9, 1:1, 4:5, 9:16: e.g. 21:9, 3:2, 1080×1080 at 60 fps, a very small and a 4K canvas; `variantSize` (`src/shared/nodes/output.ts`), overlays and `shapeInsets` (`src/video/core/frame.ts`).
    - **Broken font files:** a truncated `.ttf`, a ZIP with no fonts, a font that claims weights it lacks; the library import in `src/main/fonts.ts` must refuse with a plain message, never crash.
    - **Every template end to end:** Feature launch, Changelog clip, Onboarding walkthrough, Social teaser (9:16), Before / after: create, run, export, compare Preview and export.

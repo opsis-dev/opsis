@@ -36,7 +36,6 @@ import { CardRows, useCardRows } from "./card-rows";
 import { NodeBadge } from "./category-badge";
 import type { CanvasNode } from "./convert";
 import { GLYPH_HOST } from "./node-glyph";
-import { NodeThumbnail } from "./node-still";
 import { portTypeColor } from "./ports";
 import { useNodeProblems } from "./use-node-problems";
 
@@ -104,7 +103,6 @@ function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: Nod
         <BaseNodeContent className="gap-1.5 px-0 py-2">
           <NodePorts def={def} />
           <CardRows rows={rows} />
-          <NodeThumbnail nodeId={id} def={def} />
           {status === "running" ? <RunProgress id={id} /> : null}
         </BaseNodeContent>
         <NodeFooter error={errors[0]} warning={node.disabled ? undefined : warnings[0]} />

@@ -52,7 +52,6 @@ import { reportRunEvent, runProgressFor } from "./run-reporter";
 import { listSecrets } from "./secrets";
 import { patchSettings, readSettings } from "./settings";
 import { openSettingsWindow } from "./settings-window";
-import { listStills, requestStill } from "./stills";
 import { writeViewState } from "./view-state";
 import { focusMainWindow, getMainWindow, sendMenuCommand, windowState } from "./window-registry";
 import { runWindowRole } from "./window-roles";
@@ -157,8 +156,6 @@ const HANDLERS: { [K in InvokeName]: Handler<K> } = {
   downloadFont: (id) => track("A font is being downloaded.", downloadOnlineFont(id)),
   useFontInProject,
   clearCache,
-  requestStill,
-  listStills,
   analyze,
   openPanelWindow,
   focusPanelWindow,

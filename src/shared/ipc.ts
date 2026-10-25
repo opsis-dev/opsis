@@ -8,7 +8,6 @@ import type { LiveMessage } from "./live";
 import type { MenuCommand, WindowRole } from "./menu";
 import type { RunProgress } from "./run-progress";
 import type { RunEvent } from "./schema/events";
-import type { TimelineSpec } from "./schema/timeline";
 import type { LastRun } from "./schema/values";
 import type { Workflow } from "./schema/workflow";
 import type { AppSettings, SettingsPatch } from "./settings";
@@ -130,19 +129,6 @@ export type FontInstalledFace = {
   data: ArrayBuffer;
 };
 
-export type StillRequest = {
-  projectDir: string;
-  nodeId: string;
-  key: string;
-  spec: TimelineSpec;
-  frame: number;
-  priority: boolean;
-};
-
-export type StillResult = { hash: string; ready: boolean; unavailable?: boolean };
-
-type StillReady = { projectDir: string; nodeId: string; hash: string };
-
 export type WindowState = { maximized: boolean; fullscreen: boolean; focused: boolean };
 
 export interface OpsisApi {
@@ -198,8 +184,6 @@ export interface OpsisApi {
   setTitle(title: string): void;
   windowRole(role: WindowRole): Promise<void>;
   getWindowState(): Promise<WindowState>;
-  requestStill(request: StillRequest): Promise<StillResult>;
-  listStills(projectDir: string): Promise<Record<string, string>>;
   analyze<K extends AnalysisKind>(
     request: Extract<AnalysisRequest, { kind: K }>,
   ): Promise<AnalysisResultFor<K>>;
@@ -214,7 +198,6 @@ export interface OpsisApi {
   onConfirmClose(listener: (request: CloseRequest) => void): () => void;
   decideClose(decision: CloseDecision): void;
   closeShown(): void;
-  onStillReady(listener: (still: StillReady) => void): () => void;
   onWindowState(listener: (state: WindowState) => void): () => void;
   onSettingsPage(listener: (page: SettingsPage) => void): () => void;
   listFonts(): Promise<FontFamilyDef[]>;
@@ -268,8 +251,6 @@ export const INVOKE = {
   clearCache: "opsis:cache:clear",
   windowRole: "opsis:window:role",
   getWindowState: "opsis:window:get-state",
-  requestStill: "opsis:stills:request",
-  listStills: "opsis:stills:list",
   analyze: "opsis:analysis:run",
   openPanelWindow: "opsis:panels:open",
   focusPanelWindow: "opsis:panels:focus",
@@ -286,7 +267,6 @@ export const IPC = {
   livePort: "opsis:live:port",
   menu: "opsis:menu",
   setTitle: "opsis:window:title",
-  stillReady: "opsis:stills:ready",
   windowState: "opsis:window:state",
   panelWindows: "opsis:panels:changed",
   reportUnsaved: "opsis:exit:unsaved",

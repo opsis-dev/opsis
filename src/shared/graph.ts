@@ -94,19 +94,6 @@ export const upstreamOf = (wf: Workflow, nodeId: string): Set<string> => reach(w
 export const downstreamOf = (wf: Workflow, nodeId: string): Set<string> =>
   reach(wf, nodeId, "down");
 
-export function exportedClipNodes(wf: Workflow): string[] {
-  const byId = nodesById(wf.nodes);
-  const out = new Set<string>();
-  for (const node of wf.nodes) {
-    if (getNodeDef(node.type)?.phase !== "render") continue;
-    for (const id of upstreamOf(wf, node.id)) {
-      const upstream = byId.get(id);
-      if (upstream && "clip" in (getNodeDef(upstream.type)?.outputs ?? {})) out.add(id);
-    }
-  }
-  return [...out];
-}
-
 type ConnectionProblem = { notFound: boolean; message: string };
 
 export function portOf(
