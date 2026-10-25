@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { compileWorkflow } from "../compile/compile";
-import { validateWorkflow } from "../graph";
-import { normalizeWorkflow, workflowSchema, type Workflow } from "../schema/workflow";
-import type { ApiCheck, ApiProblem } from "./types";
+import type { ApiCheck, ApiProblem } from "#core/api/types";
+import { compileWorkflow } from "#core/compile/compile";
+import { validateWorkflow } from "#core/graph";
+import { normalizeWorkflow, workflowSchema, type Workflow } from "#core/schema/workflow";
 
 type CheckResult = ApiCheck & { workflow: Workflow | null };
 

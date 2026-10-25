@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { cardParams, defineNode, parseNodeParams } from "./define";
+import { cardParams, defineNode, parseNodeParams } from "#core/nodes/define";
 
 const exportNode = defineNode({
   type: "test.export",

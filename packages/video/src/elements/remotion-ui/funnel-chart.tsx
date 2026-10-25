@@ -1,6 +1,6 @@
 import { interpolate, useCurrentFrame } from "remotion";
-import { formatCompactNumber } from "../../lib/remotion-ui/chart-utils";
-import { EASING } from "../../lib/remotion-ui/motion-tokens";
+import { formatCompactNumber } from "#video/lib/remotion-ui/chart-utils.ts";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 export type FunnelStage = {
   label: string;

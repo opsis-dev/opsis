@@ -1,17 +1,17 @@
-import type { AnalysisKind, AnalysisRequest, AnalysisResultFor } from "./analysis";
-import type { ApiEditorReply, ApiEditorRequest } from "./api/types";
-import type { FileVersions } from "./asset-ref";
-import type { EngineInstallEvent, EngineStatus } from "./engine";
-import type { PlannedFamily } from "./fonts/plan";
-import type { CatalogCategory, FontFamilyDef } from "./fonts/types";
-import type { LiveMessage } from "./live";
-import type { MenuCommand, WindowRole } from "./menu";
-import type { RunProgress } from "./run-progress";
-import type { RunEvent } from "./schema/events";
-import type { LastRun } from "./schema/values";
-import type { Workflow } from "./schema/workflow";
-import type { AppSettings, SettingsPatch } from "./settings";
-import type { TraceModel } from "./trace";
+import type { AnalysisKind, AnalysisRequest, AnalysisResultFor } from "#core/analysis";
+import type { ApiEditorReply, ApiEditorRequest } from "#core/api/types";
+import type { FileVersions } from "#core/asset-ref";
+import type { EngineInstallEvent, EngineStatus } from "#core/engine";
+import type { PlannedFamily } from "#core/fonts/plan";
+import type { CatalogCategory, FontFamilyDef } from "#core/fonts/types";
+import type { LiveMessage } from "#core/live";
+import type { MenuCommand, WindowRole } from "#core/menu";
+import type { RunProgress } from "#core/run-progress";
+import type { RunEvent } from "#core/schema/events";
+import type { LastRun } from "#core/schema/values";
+import type { Workflow } from "#core/schema/workflow";
+import type { AppSettings, SettingsPatch } from "#core/settings";
+import type { TraceModel } from "#core/trace";
 
 export type RecentProject = { dir: string; name: string; openedAt: number };
 

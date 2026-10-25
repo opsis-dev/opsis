@@ -1,6 +1,6 @@
-import { coreElementMeta } from "./core";
-import { generatedElementMeta } from "./elements.generated";
-import type { ElementMeta } from "./types";
+import { coreElementMeta } from "#core/elements/core";
+import { generatedElementMeta } from "#core/elements/elements.generated";
+import type { ElementMeta } from "#core/elements/types";
 
 export const ELEMENTS: ElementMeta[] = [...coreElementMeta, ...generatedElementMeta];
 

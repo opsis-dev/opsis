@@ -1,7 +1,7 @@
 import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { LogoAssemble } from "../elements/snap-cn/logo-assemble";
+import { LogoAssemble } from "#video/elements/snap-cn/logo-assemble.tsx";
 
 it("never loads sample pictures from the internet when no images are set", () => {
   const Cleared = () => <LogoAssemble brandName="Acme" />;

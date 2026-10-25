@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { parseJsonWith } from "./guards";
+import { parseJsonWith } from "#core/guards";
 
 describe("parseJsonWith", () => {
   const schema = z.object({ a: z.number() });

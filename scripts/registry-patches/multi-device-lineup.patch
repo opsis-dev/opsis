@@ -12,7 +12,7 @@ index 2d6d048..b5cf567 100644
    interpolate,
 @@ -7,6 +8,8 @@ import {
  } from "remotion";
- import { EASING } from "../../lib/remotion-ui/motion-tokens";
+ import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
  
 +const { fontFamily } = loadFont("normal", { weights: ["500", "600"], subsets: ["latin"] });
 +

@@ -2,8 +2,8 @@ import {
   type ToastState,
   type ToastStyle,
   toastStyle,
-} from "./toast";
-import { easings, type Step, useStateTransition } from "../../lib/remocn-ui";
+} from "#video/elements/remocn/toast.tsx";
+import { easings, type Step, useStateTransition } from "#video/lib/remocn-ui/index.ts";
 
 export const DEFAULT_DURATION = 12;
 

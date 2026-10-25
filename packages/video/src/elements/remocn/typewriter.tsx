@@ -1,5 +1,5 @@
-import { Caret } from "./caret";
-import { useTypewriter } from "../../lib/remocn-ui";
+import { Caret } from "#video/elements/remocn/caret.tsx";
+import { useTypewriter } from "#video/lib/remocn-ui/index.ts";
 
 export interface TypewriterProps {
   fontFamily?: string;

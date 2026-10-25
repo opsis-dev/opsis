@@ -7,7 +7,7 @@ import { CANVAS_BACKGROUND } from "./canvas-color";
 describe("window background", () => {
   it("matches the canvas colour token, so no other colour shows while the page loads", () => {
     const css = readFileSync(
-      path.resolve(import.meta.dirname, "../../packages/ui/src/index.css"),
+      path.resolve(import.meta.dirname, "../../apps/ui/src/index.css"),
       "utf8",
     );
     const root = css.slice(css.indexOf(":root {"));

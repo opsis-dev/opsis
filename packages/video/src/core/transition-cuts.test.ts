@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createCutBoard } from "./transition-cuts";
+import { createCutBoard } from "#video/core/transition-cuts.tsx";
 
 const image = () => ({}) as OffscreenCanvas;
 

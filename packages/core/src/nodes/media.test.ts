@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { MediaValue } from "../schema/values";
-import { compileClip, elementOf, nodeCard } from "../test-fixtures";
-import { parseNodeParams } from "./define";
-import { importMediaNode, mediaTrimNode } from "./media";
-import { parseParams } from "./params";
+import { parseNodeParams } from "#core/nodes/define";
+import { importMediaNode, mediaTrimNode } from "#core/nodes/media";
+import { parseParams } from "#core/nodes/params";
+import type { MediaValue } from "#core/schema/values";
+import { compileClip, elementOf, nodeCard } from "#core/test-fixtures";
 
 const media = (kind: MediaValue["kind"], src: string): MediaValue => ({ type: "media", src, kind });
 

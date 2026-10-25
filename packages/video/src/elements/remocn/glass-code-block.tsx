@@ -1,5 +1,5 @@
 import { interpolate, Sequence } from "remotion";
-import { useAuthoredFrame, useRealFrames } from "../../core/authored-clock";
+import { useAuthoredFrame, useRealFrames } from "#video/core/authored-clock.ts";
 
 export interface GlassCodeBlockProps {
   code?: string;

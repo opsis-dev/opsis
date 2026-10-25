@@ -3,8 +3,8 @@ import {
   formatCompactNumber,
   readDelta,
   type ChartDatum,
-} from "../../lib/remotion-ui/chart-utils";
-import { EASING } from "../../lib/remotion-ui/motion-tokens";
+} from "#video/lib/remotion-ui/chart-utils.ts";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 export type DonutChartProps = {
   segments: ChartDatum[];

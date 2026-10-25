@@ -8,7 +8,7 @@ import {
   projectRelPath,
   refTarget,
   versionedUrl,
-} from "./asset-ref";
+} from "#core/asset-ref";
 
 describe("asset refs", () => {
   it("joins a base and an encoded path, with or without the base's slash", () => {

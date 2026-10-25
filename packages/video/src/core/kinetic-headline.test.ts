@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emphasisedWords } from "./kinetic-headline";
+import { emphasisedWords } from "#video/core/kinetic-headline.tsx";
 
 describe("emphasisedWords", () => {
   it("marks words wrapped in asterisks and drops the asterisks", () => {

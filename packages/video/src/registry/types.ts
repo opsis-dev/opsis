@@ -1,7 +1,7 @@
 import type { ElementProps } from "@opsis/core/elements/types";
 import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
-import type { Size } from "../core/still-layout";
+import type { Size } from "#video/core/still-layout.ts";
 
 export type ElementComponent = React.ComponentType<ElementProps & { children?: React.ReactNode }>;
 

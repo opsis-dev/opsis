@@ -1,7 +1,7 @@
 import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { useAuthoredConfig, useAuthoredFrame } from "./authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 const Clock = () => {
   const frame = useAuthoredFrame();

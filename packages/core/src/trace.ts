@@ -1,5 +1,5 @@
-import { partitionPoint } from "./math";
-import type { Bounds } from "./schema/actions";
+import { partitionPoint } from "#core/math";
+import type { Bounds } from "#core/schema/actions";
 
 export type TraceFrame = { src: string; time: number; width: number; height: number };
 

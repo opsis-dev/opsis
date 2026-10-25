@@ -4,7 +4,7 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
-import { ShaderSwirl } from "./shader-swirl";
+import { ShaderSwirl } from "#video/elements/remocn/shader-swirl.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,

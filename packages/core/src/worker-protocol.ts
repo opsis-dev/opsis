@@ -1,10 +1,10 @@
-import type { AnalysisRequest, AnalysisResult } from "./analysis";
-import type { EngineInstallEvent } from "./engine";
-import { hasTypeIn } from "./guards";
-import type { RunRequest } from "./ipc";
-import type { Viewport } from "./schema/actions";
-import type { RunEvent } from "./schema/events";
-import type { AppSettings } from "./settings";
+import type { AnalysisRequest, AnalysisResult } from "#core/analysis";
+import type { EngineInstallEvent } from "#core/engine";
+import { hasTypeIn } from "#core/guards";
+import type { RunRequest } from "#core/ipc";
+import type { Viewport } from "#core/schema/actions";
+import type { RunEvent } from "#core/schema/events";
+import type { AppSettings } from "#core/settings";
 
 export type WorkerEnv = {
   appRoot: string;

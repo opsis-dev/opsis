@@ -1,16 +1,22 @@
-import { edgeId, randomId } from "../ids";
-import { navigateNode, startRecordingNode, waitNode } from "../nodes/browser";
-import { CLIP_PORT, RECORDING_PORT, STYLE_PORT } from "../nodes/define";
-import { SESSION_PORT } from "../nodes/ports";
-import { defaultParams, getNodeDef } from "../nodes/registry";
-import { CARD_GAP, CARD_WIDTH, COLUMN_WIDTH, estimateCardHeight, ROW_HEIGHT } from "../nodes/size";
+import { edgeId, randomId } from "#core/ids";
+import { navigateNode, startRecordingNode, waitNode } from "#core/nodes/browser";
+import { CLIP_PORT, RECORDING_PORT, STYLE_PORT } from "#core/nodes/define";
+import { SESSION_PORT } from "#core/nodes/ports";
+import { defaultParams, getNodeDef } from "#core/nodes/registry";
+import {
+  CARD_GAP,
+  CARD_WIDTH,
+  COLUMN_WIDTH,
+  estimateCardHeight,
+  ROW_HEIGHT,
+} from "#core/nodes/size";
 import {
   DEFAULT_WORKFLOW_SETTINGS,
   type Workflow,
   type WorkflowEdge,
   type WorkflowNode,
   type WorkflowSettings,
-} from "../schema/workflow";
+} from "#core/schema/workflow";
 
 type Placed = { node: WorkflowNode; height: number };
 

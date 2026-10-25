@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Pose } from "./motion";
+import type { Pose } from "#video/three/motion.ts";
 import {
   facesCamera,
   quadMatrix,
@@ -7,7 +7,7 @@ import {
   screenQuad,
   type Point2,
   type ScreenView,
-} from "./project";
+} from "#video/three/project.ts";
 
 const W = 1920;
 const H = 1080;

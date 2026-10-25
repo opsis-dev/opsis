@@ -1,14 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { itemHasSound } from "../compile/clip";
-import { findById } from "../lists";
-import type { TimelineSpec } from "../schema/timeline";
-import type { Workflow } from "../schema/workflow";
-import { GraphBuilder } from "../templates/build";
-import { filmSpec, itemsOf, must, TITLE } from "../test-fixtures";
-import { busJob, channelJob, jobArgs, loudnessMeasureJob, masterJob, parseLoudnorm } from "./graph";
-import { applyMixLevels, withMasterStem } from "./levels";
-import { buildMixPlan, channelIdentity, type MixPlan, type SoundPlacement } from "./plan";
-import { DEFAULT_STRIP, dbToGain, defaultMix, type Bus, type Mix, type Strip } from "./types";
+import { itemHasSound } from "#core/compile/clip";
+import { findById } from "#core/lists";
+import {
+  busJob,
+  channelJob,
+  jobArgs,
+  loudnessMeasureJob,
+  masterJob,
+  parseLoudnorm,
+} from "#core/mix/graph";
+import { applyMixLevels, withMasterStem } from "#core/mix/levels";
+import { buildMixPlan, channelIdentity, type MixPlan, type SoundPlacement } from "#core/mix/plan";
+import {
+  DEFAULT_STRIP,
+  dbToGain,
+  defaultMix,
+  type Bus,
+  type Mix,
+  type Strip,
+} from "#core/mix/types";
+import type { TimelineSpec } from "#core/schema/timeline";
+import type { Workflow } from "#core/schema/workflow";
+import { GraphBuilder } from "#core/templates/build";
+import { filmSpec, itemsOf, must, TITLE } from "#core/test-fixtures";
 
 function project(mix?: Mix): { wf: Workflow; spec: TimelineSpec } {
   const g = new GraphBuilder();

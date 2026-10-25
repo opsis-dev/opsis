@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { emptyClip } from "../compile/clip";
-import { ELEMENTS } from "../elements";
-import { compileClip, nodeCard } from "../test-fixtures";
+import { emptyClip } from "#core/compile/clip";
+import { ELEMENTS } from "#core/elements";
+import { compileClip, nodeCard } from "#core/test-fixtures";
 
 const leakIn = (a: number, b: number, length: number) => {
   const film = compileClip(

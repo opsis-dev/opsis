@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { MinMax } from "../math";
-import { pick } from "../objects";
+import type { MinMax } from "#core/math";
+import { pick } from "#core/objects";
 
 export const SAMPLE_RATE = 48_000;
 

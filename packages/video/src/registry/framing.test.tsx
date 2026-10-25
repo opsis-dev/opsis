@@ -14,8 +14,8 @@ import {
   ticksFromWords,
   treeFrom,
   treeFromPaths,
-} from "./framing";
-import type { ElementComponent } from "./types";
+} from "#video/registry/framing.tsx";
+import type { ElementComponent } from "#video/registry/types.ts";
 
 function spy() {
   const seen: ElementProps[] = [];

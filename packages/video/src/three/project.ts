@@ -1,5 +1,5 @@
 import { Euler, Matrix4, Quaternion, Vector3 } from "three";
-import type { Pose } from "./motion";
+import type { Pose } from "#video/three/motion.ts";
 
 export type Point2 = { x: number; y: number };
 

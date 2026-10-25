@@ -1,10 +1,10 @@
-import { Caret } from "./caret";
+import { Caret } from "#video/elements/remocn/caret.tsx";
 import {
   mixOklch,
   type RemocnTheme,
   revealedText,
   useRemocnTheme,
-} from "../../lib/remocn-ui";
+} from "#video/lib/remocn-ui/index.ts";
 
 export type InputState =
   | "idle"

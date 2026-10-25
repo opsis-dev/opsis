@@ -1,7 +1,7 @@
-import { humanize } from "../format";
-import type { ClipValue, CompileValue, MediaValue } from "../schema/values";
-import { PORT_WORDS, type PortType } from "../schema/workflow";
-import { clipInput, opt, type CompileInputs, type PortSpec } from "./define";
+import { humanize } from "#core/format";
+import { clipInput, opt, type CompileInputs, type PortSpec } from "#core/nodes/define";
+import type { ClipValue, CompileValue, MediaValue } from "#core/schema/values";
+import { PORT_WORDS, type PortType } from "#core/schema/workflow";
 
 type Conversion = (value: CompileValue) => CompileValue | undefined;
 

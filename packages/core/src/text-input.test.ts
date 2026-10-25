@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatNumberList, nonBlankLines, parseNumberList, parseNumberText } from "./text-input";
+import {
+  formatNumberList,
+  nonBlankLines,
+  parseNumberList,
+  parseNumberText,
+} from "#core/text-input";
 
 describe("parseNumberText", () => {
   it("reads comma decimals and gives nothing for blank text", () => {

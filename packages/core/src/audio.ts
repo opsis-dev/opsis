@@ -1,5 +1,5 @@
-import type { ChannelKind } from "./mix/types";
-import type { AudioItem } from "./schema/timeline";
+import type { ChannelKind } from "#core/mix/types";
+import type { AudioItem } from "#core/schema/timeline";
 
 export const channelOf = (a: Pick<AudioItem, "channel" | "nodeId" | "id">): string =>
   a.channel ?? a.nodeId ?? a.id;

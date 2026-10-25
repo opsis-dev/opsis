@@ -1,21 +1,21 @@
-import { schemaDefaults } from "../elements/introspect";
-import { nonBlankString } from "../guards";
-import { findById } from "../lists";
-import { audioNodes } from "./audio";
-import { browserNodes } from "./browser";
-import { cameraNodes } from "./camera";
-import { captureNodes } from "./capture";
-import { cursorNodes } from "./cursor";
-import type { NodeDef } from "./define";
-import { effectNodes } from "./effects";
-import { elementNodes } from "./elements";
-import { gradeNodes } from "./grade";
-import { mediaNodes } from "./media";
-import { outputNodes } from "./output";
-import { textNodes } from "./text";
-import { timelineNodes } from "./timeline";
-import { transitionNodes } from "./transitions";
-import { utilityNodes } from "./utility";
+import { schemaDefaults } from "#core/elements/introspect";
+import { nonBlankString } from "#core/guards";
+import { findById } from "#core/lists";
+import { audioNodes } from "#core/nodes/audio";
+import { browserNodes } from "#core/nodes/browser";
+import { cameraNodes } from "#core/nodes/camera";
+import { captureNodes } from "#core/nodes/capture";
+import { cursorNodes } from "#core/nodes/cursor";
+import type { NodeDef } from "#core/nodes/define";
+import { effectNodes } from "#core/nodes/effects";
+import { elementNodes } from "#core/nodes/elements";
+import { gradeNodes } from "#core/nodes/grade";
+import { mediaNodes } from "#core/nodes/media";
+import { outputNodes } from "#core/nodes/output";
+import { textNodes } from "#core/nodes/text";
+import { timelineNodes } from "#core/nodes/timeline";
+import { transitionNodes } from "#core/nodes/transitions";
+import { utilityNodes } from "#core/nodes/utility";
 
 export const NODE_DEFS: NodeDef[] = [
   ...browserNodes,

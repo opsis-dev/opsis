@@ -4,7 +4,7 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { z } from "zod";
-import { useHeldLoad } from "../core/loading";
+import { useHeldLoad } from "#video/core/loading.ts";
 
 const GLB_MAGIC = 0x46546c67;
 const GLB_JSON_START = 20;

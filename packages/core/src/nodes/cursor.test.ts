@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { recordingProps } from "../compile/clip";
-import { DEFAULT_CURSOR_LOOK, DEFAULT_KEYCAP } from "../compile/recording";
-import { compileClip, nodeCard, zoomed, type StyleStepSpec } from "../test-fixtures";
-import { parseParams } from "./params";
-import { getNodeDef } from "./registry";
+import { recordingProps } from "#core/compile/clip";
+import { DEFAULT_CURSOR_LOOK, DEFAULT_KEYCAP } from "#core/compile/recording";
+import { parseParams } from "#core/nodes/params";
+import { getNodeDef } from "#core/nodes/registry";
+import { compileClip, nodeCard, zoomed, type StyleStepSpec } from "#core/test-fixtures";
 
 const propsAfter = (type: string, params: Record<string, unknown>) =>
   recordingProps(zoomed({ style: [[type, params]] }))[0];

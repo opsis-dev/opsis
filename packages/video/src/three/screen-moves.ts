@@ -2,7 +2,7 @@ import type { ScreenMove } from "@opsis/core/elements/screen-3d";
 import type { CameraPath } from "@opsis/core/schema/timeline";
 import { cameraAt } from "@opsis/core/timeline/camera-path";
 import { Easing, interpolate } from "remotion";
-import { viewPose, type Pose, type Vec3 } from "./motion";
+import { viewPose, type Pose, type Vec3 } from "#video/three/motion.ts";
 
 const MOVE_SHARE = 0.85;
 

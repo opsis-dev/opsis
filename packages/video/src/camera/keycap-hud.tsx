@@ -1,10 +1,10 @@
 import type { KeystrokeLook } from "@opsis/core/schema/recording";
 import React from "react";
 import { AbsoluteFill } from "remotion";
-import { useOverlayFrame } from "../core/frame";
-import type { KeyEvent } from "./lib/click-log";
-import { useDesignScale } from "./lib/design-scale";
-import { chordGlyphs, keycapAt, keycapEase } from "./lib/keycap";
+import type { KeyEvent } from "#video/camera/lib/click-log.ts";
+import { useDesignScale } from "#video/camera/lib/design-scale.ts";
+import { chordGlyphs, keycapAt, keycapEase } from "#video/camera/lib/keycap.ts";
+import { useOverlayFrame } from "#video/core/frame.ts";
 
 const KEYCAP = {
   height: 103,

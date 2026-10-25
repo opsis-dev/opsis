@@ -1,5 +1,4 @@
 import { stableJson } from "@opsis/core/hash";
-import { poseToCss, type CameraPose, type ZoomState } from "./camera";
 import {
   buildCameraTrack,
   cursorAim,
@@ -9,8 +8,9 @@ import {
   sampleTrack,
   type CameraTrack,
   type CameraTuning,
-} from "./camera-track";
-import type { ClickLog } from "./click-log";
+} from "#video/camera/lib/camera-track.ts";
+import { poseToCss, type CameraPose, type ZoomState } from "#video/camera/lib/camera.ts";
+import type { ClickLog } from "#video/camera/lib/click-log.ts";
 
 type TrackOptions = {
   speed?: number;

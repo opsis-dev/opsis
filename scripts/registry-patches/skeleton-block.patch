@@ -7,8 +7,8 @@ index be768bc..16cd393 100644
 +++ b/packages/video/src/elements/remocn/skeleton-block.tsx
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame } from "remotion";
-+import { useAuthoredFrame } from "../../core/authored-clock";
- import { mixOklch, useRemocnTheme } from "../../lib/remocn-ui";
++import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+ import { mixOklch, useRemocnTheme } from "#video/lib/remocn-ui/index.ts";
  
  export interface SkeletonBlockProps {
 @@ -28,7 +28,7 @@ export function SkeletonBlock({

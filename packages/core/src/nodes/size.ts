@@ -1,5 +1,5 @@
-import { MAX_CARD_ROWS } from "./card";
-import type { NodeDef } from "./define";
+import { MAX_CARD_ROWS } from "#core/nodes/card";
+import type { NodeDef } from "#core/nodes/define";
 
 export const CARD_WIDTH = 256;
 export const CARD_GAP = 32;

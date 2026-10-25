@@ -7,7 +7,7 @@ index f3f8867..81cc541 100644
 +++ b/packages/video/src/elements/remocn/spinner.tsx
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame } from "remotion";
-+import { useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  export interface SpinnerProps {
    size?: number;

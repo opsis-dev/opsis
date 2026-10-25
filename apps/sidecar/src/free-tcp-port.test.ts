@@ -1,6 +1,6 @@
 import { createServer } from "node:net";
 import { describe, expect, it } from "vitest";
-import { freeTcpPort } from "./free-tcp-port";
+import { freeTcpPort } from "#sidecar/free-tcp-port";
 
 describe("freeTcpPort", () => {
   it("returns a port that can be listened on again", async () => {

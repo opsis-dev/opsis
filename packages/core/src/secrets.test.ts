@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { secretFileName, secretName } from "./secrets";
+import { secretFileName, secretName } from "#core/secrets";
 
 describe("sign-in names", () => {
   it("trims and falls back to default", () => {

@@ -1,7 +1,7 @@
 import { converter, formatCss, formatHex, formatHex8, formatHsl, formatRgb, parse } from "culori";
-import { uniqueBy } from "./lists";
-import { clamp, roundTo } from "./math";
-import { stringsIn } from "./vars";
+import { uniqueBy } from "#core/lists";
+import { clamp, roundTo } from "#core/math";
+import { stringsIn } from "#core/vars";
 
 export type Hsva = { h: number; s: number; v: number; a: number };
 

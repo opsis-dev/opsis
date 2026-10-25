@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { spring } from "remotion";
 import { MAIN_FONT } from "@opsis/core/fonts";
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 const COLUMN_EM = 0.7;
 const LETTER_SPACING_EM = -0.03;

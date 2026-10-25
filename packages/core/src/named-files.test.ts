@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { namedFiles, namedProjectFiles, projectRefsIn } from "./named-files";
+import { namedFiles, namedProjectFiles, projectRefsIn } from "#core/named-files";
 
 describe("namedProjectFiles", () => {
   it("finds the project files a node's settings name, nested or not", () => {

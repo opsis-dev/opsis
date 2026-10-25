@@ -1,20 +1,20 @@
-import { compileWorkflow, type CompileResult } from "./compile/compile";
-import { nonBlankString } from "./guards";
-import { byCodeUnit, findById } from "./lists";
-import { ACTION_NODE_TYPES, navigateNode, setStateNode, signInNode } from "./nodes/browser";
-import type { PortSpec } from "./nodes/define";
+import { compileWorkflow, type CompileResult } from "#core/compile/compile";
+import { nonBlankString } from "#core/guards";
+import { byCodeUnit, findById } from "#core/lists";
+import { ACTION_NODE_TYPES, navigateNode, setStateNode, signInNode } from "#core/nodes/browser";
+import type { PortSpec } from "#core/nodes/define";
 import {
   exportBaseName,
   renderNode,
   stillFileNames,
   stillOutputNode,
   videoFileNames,
-} from "./nodes/output";
-import { parseParams } from "./nodes/params";
-import { canConnect, portLabel, SESSION_PORT } from "./nodes/ports";
-import { getNodeDef, isOutputType, nodeName } from "./nodes/registry";
-import { GROUP_TYPE, NOTE_TYPE } from "./nodes/utility";
-import { asValue, type BrowserSessionValue } from "./schema/values";
+} from "#core/nodes/output";
+import { parseParams } from "#core/nodes/params";
+import { canConnect, portLabel, SESSION_PORT } from "#core/nodes/ports";
+import { getNodeDef, isOutputType, nodeName } from "#core/nodes/registry";
+import { GROUP_TYPE, NOTE_TYPE } from "#core/nodes/utility";
+import { asValue, type BrowserSessionValue } from "#core/schema/values";
 import {
   PORT_WORDS,
   type EdgeEnds,
@@ -22,9 +22,9 @@ import {
   type Workflow,
   type WorkflowEdge,
   type WorkflowNode,
-} from "./schema/workflow";
-import { secretFileName, secretName } from "./secrets";
-import { interpolate, unknownVariables, workflowVars } from "./vars";
+} from "#core/schema/workflow";
+import { secretFileName, secretName } from "#core/secrets";
+import { interpolate, unknownVariables, workflowVars } from "#core/vars";
 
 export type GraphIssue = {
   level: "error" | "warning";

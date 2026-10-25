@@ -1,4 +1,4 @@
-import type { FontFamilyDef } from "./types";
+import type { FontFamilyDef } from "#core/fonts/types";
 
 export const BUNDLED_FONTS: FontFamilyDef[] = [
   {"id":"inter","family":"Inter","category":"sans-serif","source":"bundled","license":"OFL-1.1","licenseFile":"app:fonts/bundled/inter/LICENSE","faces":[{"file":"app:fonts/bundled/inter/inter-latin-wght-normal.woff2","weight":"100 900","style":"normal","format":"woff2"},{"file":"app:fonts/bundled/inter/inter-latin-wght-italic.woff2","weight":"100 900","style":"italic","format":"woff2"}]},

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { kindFromPath } from "./mime";
+import { kindFromPath } from "#core/mime";
 
 describe("kindFromPath", () => {
   it("reads every sound format as sound", () => {

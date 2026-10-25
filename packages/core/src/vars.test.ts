@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { interpolate, renameVariable, stringsIn, tokenize } from "./vars";
+import { interpolate, renameVariable, stringsIn, tokenize } from "#core/vars";
 
 describe("variables", () => {
   it("allows readable names with spaces", () => {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { THEME_MODES } from "./introspect";
+import { THEME_MODES } from "#core/elements/introspect";
 
 export const themeValueSchema = z.object({
   mode: z.enum(THEME_MODES),

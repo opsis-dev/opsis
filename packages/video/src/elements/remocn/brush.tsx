@@ -1,4 +1,4 @@
-import { hash01 } from "../../lib/remocn/stop-motion";
+import { hash01 } from "#video/lib/remocn/stop-motion.ts";
 
 const GRAIN_RATIO = 0.5;
 const GRAIN_FREQUENCY = 0.7;

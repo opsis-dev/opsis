@@ -1,12 +1,18 @@
 import { z } from "zod";
-import { mapItems } from "../compile/clip";
-import { styleStep, type StyleSteps } from "../compile/style";
-import { formatDuration, percentText, plural } from "../format";
-import type { BlurArea, PictureLook } from "../schema/recording";
-import type { ClipValue } from "../schema/values";
-import { missing, row, type CardRow, type InputTake } from "./card";
-import { defineNode, modifierBase, RECORDING_PORT, recordingModifier, withClip } from "./define";
-import { more, num } from "./params";
+import { mapItems } from "#core/compile/clip";
+import { styleStep, type StyleSteps } from "#core/compile/style";
+import { formatDuration, percentText, plural } from "#core/format";
+import { missing, row, type CardRow, type InputTake } from "#core/nodes/card";
+import {
+  defineNode,
+  modifierBase,
+  RECORDING_PORT,
+  recordingModifier,
+  withClip,
+} from "#core/nodes/define";
+import { more, num } from "#core/nodes/params";
+import type { BlurArea, PictureLook } from "#core/schema/recording";
+import type { ClipValue } from "#core/schema/values";
 
 const MAX_BLUR_OF_WIDTH = 0.04;
 const MAX_SOFTNESS_OF_WIDTH = 0.02;

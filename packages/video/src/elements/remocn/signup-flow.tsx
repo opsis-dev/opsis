@@ -1,21 +1,21 @@
-import { BlurIn } from "./blur-in";
-import { Button } from "./button";
-import { Cursor } from "./cursor";
+import { BlurIn } from "#video/elements/remocn/blur-in.tsx";
+import { Button } from "#video/elements/remocn/button.tsx";
+import { Cursor } from "#video/elements/remocn/cursor.tsx";
 import {
   Field,
   FieldControl,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "./field";
-import { Input } from "./input";
-import { Toast } from "./toast";
-import { useBlurInTransition } from "./use-blur-in-transition";
-import { useButtonTransition } from "./use-button-transition";
-import { useCursorPath } from "./use-cursor-path";
-import { useInputTransition } from "./use-input-transition";
-import { useToastTransition } from "./use-toast-transition";
-import { type RemocnTheme, useRemocnTheme } from "../../lib/remocn-ui";
+} from "#video/elements/remocn/field.tsx";
+import { Input } from "#video/elements/remocn/input.tsx";
+import { Toast } from "#video/elements/remocn/toast.tsx";
+import { useBlurInTransition } from "#video/elements/remocn/use-blur-in-transition.ts";
+import { useButtonTransition } from "#video/elements/remocn/use-button-transition.ts";
+import { useCursorPath } from "#video/elements/remocn/use-cursor-path.ts";
+import { useInputTransition } from "#video/elements/remocn/use-input-transition.ts";
+import { useToastTransition } from "#video/elements/remocn/use-toast-transition.ts";
+import { type RemocnTheme, useRemocnTheme } from "#video/lib/remocn-ui/index.ts";
 
 export interface SignupFlowProps {
   title?: string;

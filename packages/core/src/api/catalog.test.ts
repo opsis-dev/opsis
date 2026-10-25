@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { NODE_DEFS } from "../nodes/registry";
-import { catalogEntry, nodeCatalog } from "./catalog";
+import { catalogEntry, nodeCatalog } from "#core/api/catalog";
+import { NODE_DEFS } from "#core/nodes/registry";
 
 describe("node catalogue", () => {
   it("lists the visible node types without their settings", () => {

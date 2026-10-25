@@ -1,5 +1,5 @@
 import { Img, Sequence, useVideoConfig } from "remotion";
-import { ShaderTextReveal } from "../../../shader-text-reveal";
+import { ShaderTextReveal } from "#video/elements/remocn/shader-text-reveal.tsx";
 import type { SceneProps } from "../content";
 import { tween } from "../motion";
 import { Center, Title } from "../ui";

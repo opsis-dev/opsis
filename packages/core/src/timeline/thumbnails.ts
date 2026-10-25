@@ -1,9 +1,9 @@
-import { isProjectRef } from "../asset-ref";
-import { videoOf } from "../compile/clip";
-import { recordingSpeed } from "../compile/recording";
-import { isString } from "../guards";
-import type { ElementItem, RecordingItem } from "../schema/timeline";
-import type { BarThumbnail } from "./flatten";
+import { isProjectRef } from "#core/asset-ref";
+import { videoOf } from "#core/compile/clip";
+import { recordingSpeed } from "#core/compile/recording";
+import { isString } from "#core/guards";
+import type { ElementItem, RecordingItem } from "#core/schema/timeline";
+import type { BarThumbnail } from "#core/timeline/flatten";
 
 export function thumbnailOf(item: RecordingItem | ElementItem): BarThumbnail | null {
   if (item.kind === "recording") {

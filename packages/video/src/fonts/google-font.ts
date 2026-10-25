@@ -1,5 +1,5 @@
-import { googleImportName } from "./google-font-imports";
-import { ensureFontNow } from "./registry";
+import { googleImportName } from "#video/fonts/google-font-imports.ts";
+import { ensureFontNow } from "#video/fonts/registry.ts";
 
 type LoadFontResult = {
   fontFamily: string;

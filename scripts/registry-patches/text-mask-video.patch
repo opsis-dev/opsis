@@ -10,7 +10,7 @@ index 92c69c8..bc1e5fc 100644
  import type { CSSProperties } from "react";
  import { Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
 +import { kindFromPath } from "@opsis/core/mime";
- import { scaleFont } from "../../lib/remotion-ui/layout";
+ import { scaleFont } from "#video/lib/remotion-ui/layout.ts";
  import {
    useEnterExit,
 @@ -14,7 +15,7 @@ export type TextMaskVideoProps = EnterExitOptions & {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastRunSchema, nodeResultSchema } from "./values";
+import { lastRunSchema, nodeResultSchema } from "#core/schema/values";
 
 const result = (outputs: Record<string, unknown>) => ({
   hash: "h",

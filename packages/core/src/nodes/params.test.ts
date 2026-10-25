@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { fieldMeta } from "../elements/introspect";
+import { fieldMeta } from "#core/elements/introspect";
 import {
   choiceFrom,
   choiceOf,
@@ -10,7 +10,7 @@ import {
   qualityName,
   targetFields,
   text,
-} from "./params";
+} from "#core/nodes/params";
 
 const schema = z.object({
   name: z.string().meta({ description: "Name" }),

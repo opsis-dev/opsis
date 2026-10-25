@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sameShape, shapeInsets, zoomBoost } from "./frame";
+import { sameShape, shapeInsets, zoomBoost } from "#video/core/frame.ts";
 
 describe("other shapes", () => {
   it("adds margins only outside landscape, and more the narrower the frame", () => {

@@ -14,7 +14,7 @@ index 3a3cdd0..dc26951 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  const { fontFamily: MONO_FAMILY } = loadMono();
  

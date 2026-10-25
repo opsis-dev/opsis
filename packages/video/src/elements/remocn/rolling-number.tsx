@@ -5,7 +5,7 @@ import {
   Easing,
   interpolate,
 } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 const { fontFamily: MONO_FAMILY } = loadMono();
 

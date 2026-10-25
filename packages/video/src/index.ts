@@ -1,5 +1,5 @@
 import { registerRoot } from "remotion";
-import "./video.css";
-import { RemotionRoot } from "./root";
+import "#video/video.css";
+import { RemotionRoot } from "#video/root.tsx";
 
 registerRoot(RemotionRoot);

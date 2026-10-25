@@ -9,7 +9,7 @@ index 93e0d12..874990f 100644
  import { type CSSProperties, useMemo } from "react";
 -import { Easing, random, useCurrentFrame, useVideoConfig } from "remotion";
 +import { Easing, random } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  export type AgentRunTheme = "light" | "dark";
  

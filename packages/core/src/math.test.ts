@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evenPx, numberOr, round2, round3, sampleKeyed } from "./math";
+import { evenPx, numberOr, round2, round3, sampleKeyed } from "#core/math";
 
 describe("math", () => {
   it("rounds to three decimals", () => {

@@ -1,7 +1,12 @@
 import type { FontFamilyDef } from "@opsis/core/fonts/types";
 import { DEFAULT_PROJECT_FONTS } from "@opsis/core/fonts/types";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { applyProjectFonts, fontFileFor, registerFaces, unregisterFaces } from "./registry";
+import {
+  applyProjectFonts,
+  fontFileFor,
+  registerFaces,
+  unregisterFaces,
+} from "#video/fonts/registry.ts";
 
 class UnreadableFace {
   load(): Promise<never> {

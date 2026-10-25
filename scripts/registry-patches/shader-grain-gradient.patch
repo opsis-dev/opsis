@@ -27,7 +27,7 @@ index dcd3e98..250248b 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  const NEUTRAL_COLORS = ["#3a3a52", "#4a4a68", "#5a5a7e"];
  

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { onAbort, withoutRemotePrefix } from "./errors";
+import { onAbort, withoutRemotePrefix } from "#core/errors";
 
 describe("onAbort", () => {
   it("runs once on abort and not after it is stopped", () => {

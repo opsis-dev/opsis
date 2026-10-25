@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_STRIP, defaultMix } from "../mix/types";
-import { GraphBuilder } from "../templates/build";
-import { normalizeWorkflow } from "./workflow";
+import { DEFAULT_STRIP, defaultMix } from "#core/mix/types";
+import { normalizeWorkflow } from "#core/schema/workflow";
+import { GraphBuilder } from "#core/templates/build";
 
 describe("normalizeWorkflow", () => {
   it("prunes mixer channels of deleted nodes", () => {

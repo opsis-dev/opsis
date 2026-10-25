@@ -9,8 +9,8 @@ import {
   type BufferGeometry,
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
-import type { Vec3 } from "./motion";
-import { roundedRect } from "./shapes";
+import type { Vec3 } from "#video/three/motion.ts";
+import { roundedRect } from "#video/three/shapes.ts";
 
 const BEZEL_COLOR = "#0a0a0c";
 const BODY = { roughness: 0.35, metalness: 0.6 };

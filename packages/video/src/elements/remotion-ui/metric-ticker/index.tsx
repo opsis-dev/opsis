@@ -1,9 +1,9 @@
 import { loadFont } from "@remotion/google-fonts/Inter";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { LineChartDraw } from "../line-chart-draw";
-import { formatCompactNumber, readDelta } from "../../../lib/remotion-ui/chart-utils";
-import { getSafeAreaPadding, scaleFont } from "../../../lib/remotion-ui/layout";
-import { DURATION, EASING, STAGGER } from "../../../lib/remotion-ui/motion-tokens";
+import { LineChartDraw } from "#video/elements/remotion-ui/line-chart-draw.tsx";
+import { formatCompactNumber, readDelta } from "#video/lib/remotion-ui/chart-utils.ts";
+import { getSafeAreaPadding, scaleFont } from "#video/lib/remotion-ui/layout.ts";
+import { DURATION, EASING, STAGGER } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "500", "600", "700"],

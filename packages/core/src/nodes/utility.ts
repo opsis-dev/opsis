@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { missing, row, truncate } from "./card";
-import { defineNode } from "./define";
-import { more, text } from "./params";
+import { missing, row, truncate } from "#core/nodes/card";
+import { defineNode } from "#core/nodes/define";
+import { more, text } from "#core/nodes/params";
 
 export const GROUP_TYPE = "core.group";
 export const NOTE_TYPE = "core.note";

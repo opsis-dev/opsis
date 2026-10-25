@@ -1,4 +1,4 @@
-import type { EdgeEnds } from "./schema/workflow";
+import type { EdgeEnds } from "#core/schema/workflow";
 
 const ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const ID_LENGTH = 8;

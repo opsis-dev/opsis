@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { emptyClip } from "../compile/clip";
-import type { CaptionsValue } from "../schema/values";
-import { compileClip, must, nodeCard } from "../test-fixtures";
-import { parseParams } from "./params";
-import { getNodeDef } from "./registry";
-import { endsSentence, scriptToCaptions } from "./text";
+import { emptyClip } from "#core/compile/clip";
+import { parseParams } from "#core/nodes/params";
+import { getNodeDef } from "#core/nodes/registry";
+import { endsSentence, scriptToCaptions } from "#core/nodes/text";
+import type { CaptionsValue } from "#core/schema/values";
+import { compileClip, must, nodeCard } from "#core/test-fixtures";
 
 describe("scriptToCaptions", () => {
   it("times each word at the speaking pace and pauses after a sentence", () => {

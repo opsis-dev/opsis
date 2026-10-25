@@ -2,7 +2,7 @@ import {
   interpolate,
   interpolateColors,
 } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface InlineHighlightProps {
   fontFamily?: string;

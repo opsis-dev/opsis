@@ -9,7 +9,7 @@ index da665bb..2d348dc 100644
  import type React from "react";
 -import { AbsoluteFill, random, useCurrentFrame } from "remotion";
 +import { AbsoluteFill, random } from "remotion";
-+import { useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredFrame } from "#video/core/authored-clock.ts";
  import {
    type CanvasFilterProps,
    makeCanvasFilter,

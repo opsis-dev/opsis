@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isWallTime, wallTimeIn } from "./wall-time";
+import { isWallTime, wallTimeIn } from "#core/wall-time";
 
 describe("wall time in a time zone", () => {
   it("reads the time as a clock in that zone shows it", () => {

@@ -4,7 +4,7 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, interpolate } from "remotion";
-import { ShaderDithering } from "./shader-dithering";
+import { ShaderDithering } from "#video/elements/remocn/shader-dithering.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,

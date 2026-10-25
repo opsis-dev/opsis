@@ -4,7 +4,7 @@ import {
   resolveTransitionTiming,
   transitionPhase,
   type TransitionVariant,
-} from "../../lib/remotion-ui/transition-timing";
+} from "#video/lib/remotion-ui/transition-timing.ts";
 
 export type FadeProps = {
   /** Colour the cut passes through. Undefined crossfades the scenes directly. */

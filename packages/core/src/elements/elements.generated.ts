@@ -1,7 +1,7 @@
 import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
-import { themeValueSchema } from "./theme";
-import { defineElementMeta, type ElementMetaInput } from "./types";
+import { themeValueSchema } from "#core/elements/theme";
+import { defineElementMeta, type ElementMetaInput } from "#core/elements/types";
 
 const defs: ElementMetaInput[] = [
   {

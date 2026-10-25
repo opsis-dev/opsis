@@ -8,7 +8,7 @@ index 2103f7b..6e8a938 100644
 @@ -1,5 +1,5 @@
  import type { CSSProperties } from "react";
 -import { useCurrentFrame, useVideoConfig } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  export interface CaretProps {
    color?: string;

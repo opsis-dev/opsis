@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { compileWorkflow } from "../compile/compile";
-import { fieldMeta } from "../elements/introspect";
-import { findById } from "../lists";
-import { asValue, type GradeValue } from "../schema/values";
-import { GraphBuilder } from "../templates/build";
-import { compileNode, nodeCard, must } from "../test-fixtures";
-import { gradeChangesNothing, gradeNeedsVideo, gradeNodes, isNeutralEntry } from "./grade";
-import { canConnect } from "./ports";
-import { defaultParams, getNodeDef } from "./registry";
+import { compileWorkflow } from "#core/compile/compile";
+import { fieldMeta } from "#core/elements/introspect";
+import { findById } from "#core/lists";
+import {
+  gradeChangesNothing,
+  gradeNeedsVideo,
+  gradeNodes,
+  isNeutralEntry,
+} from "#core/nodes/grade";
+import { canConnect } from "#core/nodes/ports";
+import { defaultParams, getNodeDef } from "#core/nodes/registry";
+import { asValue, type GradeValue } from "#core/schema/values";
+import { GraphBuilder } from "#core/templates/build";
+import { compileNode, nodeCard, must } from "#core/test-fixtures";
 
 const entry = (type: string, params: Record<string, unknown> = {}) => ({
   nodeId: type,

@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { compileWorkflow } from "../compile/compile";
-import type { Action } from "../schema/actions";
-import { GraphBuilder } from "../templates/build";
-import { makeLog, recordedTake, recordResult, TITLE } from "../test-fixtures";
-import { chapterList, chapterMetadata, filmChapters, type FilmChapter } from "./chapters";
-import { framesToMs } from "./time";
+import { compileWorkflow } from "#core/compile/compile";
+import type { Action } from "#core/schema/actions";
+import { GraphBuilder } from "#core/templates/build";
+import { makeLog, recordedTake, recordResult, TITLE } from "#core/test-fixtures";
+import {
+  chapterList,
+  chapterMetadata,
+  filmChapters,
+  type FilmChapter,
+} from "#core/timeline/chapters";
+import { framesToMs } from "#core/timeline/time";
 
 const chapter = (id: string, t: number, label: string): Action => ({
   id,

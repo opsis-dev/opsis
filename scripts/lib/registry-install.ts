@@ -102,14 +102,14 @@ function videoTarget(spec: string, ns: Namespaces): string | null {
   return null;
 }
 
-function rewriteSpec(spec: string, file: string, ns: Namespaces): string {
+const SOURCE_FILES = [".tsx", ".ts", "/index.tsx", "/index.ts"];
+
+function rewriteSpec(spec: string, ns: Namespaces): string {
   const target = videoTarget(spec, ns);
   if (!target) return spec;
-  const rel = path
-    .relative(path.dirname(file), path.join(VIDEO_DIR, target))
-    .split(path.sep)
-    .join("/");
-  return rel.startsWith(".") ? rel : `./${rel}`;
+  const ending = SOURCE_FILES.find((e) => existsSync(path.join(VIDEO_DIR, target + e)));
+  if (ending === undefined) throw new Error(`${spec} points at ${target}, which isn't installed.`);
+  return `#video/${target}${ending}`;
 }
 
 export function rewriteImports(): void {
@@ -121,8 +121,7 @@ export function rewriteImports(): void {
       .replace(/^"use client";\s*\n/m, "")
       .replace(
         /(from\s+|import\s*\(\s*|import\s+)(["'])(@\/[^"']+)\2/g,
-        (_all, lead: string, q: string, spec: string) =>
-          `${lead}${q}${rewriteSpec(spec, file, ns)}${q}`,
+        (_all, lead: string, q: string, spec: string) => `${lead}${q}${rewriteSpec(spec, ns)}${q}`,
       );
     if (after !== before) writeFileSync(file, after);
   }

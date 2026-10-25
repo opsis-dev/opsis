@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { fieldMeta, unwrap } from "../elements/introspect";
-import { DEFAULT_WORKFLOW_SETTINGS as settings } from "../schema/workflow";
-import { makeLog, nodeResult, recordResult } from "../test-fixtures";
-import { elementRow, MAX_CARD_ROWS, sentence } from "./card";
-import { cardRows, type NodeDef } from "./define";
-import { defaultParams, NODE_DEFS } from "./registry";
+import { fieldMeta, unwrap } from "#core/elements/introspect";
+import { elementRow, MAX_CARD_ROWS, sentence } from "#core/nodes/card";
+import { cardRows, type NodeDef } from "#core/nodes/define";
+import { defaultParams, NODE_DEFS } from "#core/nodes/registry";
+import { DEFAULT_WORKFLOW_SETTINGS as settings } from "#core/schema/workflow";
+import { makeLog, nodeResult, recordResult } from "#core/test-fixtures";
 
 describe("card formatting", () => {
   it("describes elements in words", () => {

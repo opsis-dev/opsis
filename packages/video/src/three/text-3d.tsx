@@ -5,12 +5,12 @@ import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Box3, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { Font, type FontData } from "three/addons/loaders/FontLoader.js";
-import { useHeldLoad } from "../core/loading";
-import { fontFileFor } from "../fonts/registry";
-import { elementPose } from "./motion";
-import { FONT_UNREADABLE, loadOutlines, wrapLines } from "./outlines";
-import { fitToSize } from "./shapes";
-import { Posed, Stage3D } from "./stage";
+import { useHeldLoad } from "#video/core/loading.ts";
+import { fontFileFor } from "#video/fonts/registry.ts";
+import { elementPose } from "#video/three/motion.ts";
+import { FONT_UNREADABLE, loadOutlines, wrapLines } from "#video/three/outlines.ts";
+import { fitToSize } from "#video/three/shapes.ts";
+import { Posed, Stage3D } from "#video/three/stage.tsx";
 
 const HEADING_FONT = "df-heading";
 const TEXT_SIZE = 2.6;

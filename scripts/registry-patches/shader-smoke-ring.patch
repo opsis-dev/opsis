@@ -12,7 +12,7 @@ index 699f692..7de7060 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  const NEUTRAL_COLORS = ["#c8c8d0"];
  

@@ -7,15 +7,20 @@ import { pick } from "@opsis/core/objects";
 import type { KeystrokeLook, RecordingProps } from "@opsis/core/schema/recording";
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { useAsset, useQuality, useReframe } from "../assets";
-import { resolveAnnotations, toClickLog, TYPED_LINGER_S, typedBeats } from "../camera/action-log";
-import { DemoClip, ScreenClip, useClipTime } from "../camera/demo-clip";
-import { KeycapHUD } from "../camera/keycap-hud";
-import { blurEffects } from "../camera/lib/blur-areas";
-import { DesignWidthContext } from "../camera/lib/design-scale";
-import { faded, SHOT_STYLES } from "../camera/lib/style";
-import { poseAt } from "../camera/lib/zoom";
-import { CLAMPED, fadeWindow } from "./anim";
+import { useAsset, useQuality, useReframe } from "#video/assets.tsx";
+import {
+  resolveAnnotations,
+  toClickLog,
+  TYPED_LINGER_S,
+  typedBeats,
+} from "#video/camera/action-log.ts";
+import { DemoClip, ScreenClip, useClipTime } from "#video/camera/demo-clip.tsx";
+import { KeycapHUD } from "#video/camera/keycap-hud.tsx";
+import { blurEffects } from "#video/camera/lib/blur-areas.ts";
+import { DesignWidthContext } from "#video/camera/lib/design-scale.ts";
+import { faded, SHOT_STYLES } from "#video/camera/lib/style.ts";
+import { poseAt } from "#video/camera/lib/zoom.ts";
+import { CLAMPED, fadeWindow } from "#video/core/anim.ts";
 import {
   JUSTIFY_AT,
   overlayPadding,
@@ -23,9 +28,9 @@ import {
   useOverlayFrame,
   verticalInsets,
   type Reframe,
-} from "./frame";
-import { lookEffects } from "./picture-look";
-import type { Size } from "./still-layout";
+} from "#video/core/frame.ts";
+import { lookEffects } from "#video/core/picture-look.ts";
+import type { Size } from "#video/core/still-layout.ts";
 
 const TYPED_FADE_IN_S = 0.15;
 const TYPED_FADE_OUT_S = 0.2;

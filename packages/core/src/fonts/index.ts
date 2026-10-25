@@ -1,7 +1,7 @@
-import { nonBlankString } from "../guards";
-import { safeName } from "../safe-name";
-import { BUNDLED_FONTS } from "./bundled.generated";
-import type { FontFamilyDef, ProjectFonts } from "./types";
+import { BUNDLED_FONTS } from "#core/fonts/bundled.generated";
+import type { FontFamilyDef, ProjectFonts } from "#core/fonts/types";
+import { nonBlankString } from "#core/guards";
+import { safeName } from "#core/safe-name";
 
 const FONT_ROLES = ["main", "heading", "code"] as const;
 

@@ -7,13 +7,13 @@ import {
   Easing,
   getRemotionEnvironment,
 } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   Item,
   resolveFont,
   type SnapCnTheme,
   useSnapCnTheme,
-} from "../../lib/snap-cn-ui";
+} from "#video/lib/snap-cn-ui/index.ts";
 
 /**
  * A run of full-frame title cards that cut hard between beats.

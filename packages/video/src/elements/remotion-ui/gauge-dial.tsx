@@ -1,5 +1,5 @@
 import { interpolate, useCurrentFrame } from "remotion";
-import { EASING } from "../../lib/remotion-ui/motion-tokens";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 export type GaugeDialProps = {
   /** Target the needle sweeps to. */

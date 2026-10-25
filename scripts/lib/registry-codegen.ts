@@ -314,12 +314,7 @@ export function renderLoaderEntry({ item, key, file, exportName }: Resolved): {
   helpers: FramingHelper[];
 } {
   const { impl, helpers } = implOf(item, exportName);
-  const rel =
-    "../" +
-    path
-      .relative(VIDEO_DIR, file)
-      .replace(/\\/g, "/")
-      .replace(/(\/index)?\.tsx$/, "");
+  const rel = `#video/${path.relative(VIDEO_DIR, file).replace(/\\/g, "/")}`;
   return {
     loader: `  ${JSON.stringify(key)}: () => import(${JSON.stringify(rel)}).then((m) => ${impl}),`,
     helpers,
@@ -330,8 +325,8 @@ export const renderMeta = (entries: string[]): string =>
   [
     'import { zColor } from "@remotion/zod-types";',
     'import { z } from "zod";',
-    'import { themeValueSchema } from "./theme";',
-    'import { defineElementMeta, type ElementMetaInput } from "./types";',
+    'import { themeValueSchema } from "#core/elements/theme";',
+    'import { defineElementMeta, type ElementMetaInput } from "#core/elements/types";',
     "",
     "const defs: ElementMetaInput[] = [",
     ...entries,
@@ -343,8 +338,8 @@ export const renderMeta = (entries: string[]): string =>
 
 export const renderLoaders = (loaders: string[], helpers: Set<FramingHelper>): string =>
   [
-    `import { ${[...helpers].sort().join(", ")} } from "./framing";`,
-    'import type { ElementImpl } from "./types";',
+    `import { ${[...helpers].sort().join(", ")} } from "#video/registry/framing.tsx";`,
+    'import type { ElementImpl } from "#video/registry/types.ts";',
     "",
     "export const generatedElementLoaders: Record<string, () => Promise<ElementImpl>> = {",
     ...loaders,

@@ -1,13 +1,13 @@
-import { Button } from "./button";
-import { Input } from "./input";
-import { Skeleton } from "./skeleton";
-import { SkeletonBlock } from "./skeleton-block";
-import { Toast } from "./toast";
-import { useButtonTransition } from "./use-button-transition";
-import { useInputTransition } from "./use-input-transition";
-import { useSkeletonTransition } from "./use-skeleton-transition";
-import { useToastTransition } from "./use-toast-transition";
-import { type RemocnTheme, useRemocnTheme } from "../../lib/remocn-ui";
+import { Button } from "#video/elements/remocn/button.tsx";
+import { Input } from "#video/elements/remocn/input.tsx";
+import { Skeleton } from "#video/elements/remocn/skeleton.tsx";
+import { SkeletonBlock } from "#video/elements/remocn/skeleton-block.tsx";
+import { Toast } from "#video/elements/remocn/toast.tsx";
+import { useButtonTransition } from "#video/elements/remocn/use-button-transition.ts";
+import { useInputTransition } from "#video/elements/remocn/use-input-transition.ts";
+import { useSkeletonTransition } from "#video/elements/remocn/use-skeleton-transition.ts";
+import { useToastTransition } from "#video/elements/remocn/use-toast-transition.ts";
+import { type RemocnTheme, useRemocnTheme } from "#video/lib/remocn-ui/index.ts";
 
 export interface AiPromptFlowProps {
   prompt?: string;

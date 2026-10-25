@@ -1,6 +1,6 @@
-import { useAuthoredFrame } from "../../core/authored-clock";
-import type { CursorStyle } from "./cursor";
-import { clamp01, type EasingName, easings } from "../../lib/remocn-ui";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import type { CursorStyle } from "#video/elements/remocn/cursor.tsx";
+import { clamp01, type EasingName, easings } from "#video/lib/remocn-ui/index.ts";
 
 export interface CursorWaypoint {
   at: number;

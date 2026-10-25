@@ -4,7 +4,7 @@ import {
   type CanvasFilterProps,
   makeCanvasFilter,
   makeFilterShader,
-} from "../../lib/remocn/canvas-presentation";
+} from "#video/lib/remocn/canvas-presentation.tsx";
 
 export type CrtScreenProps = {
   curvature?: number;

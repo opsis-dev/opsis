@@ -1,6 +1,6 @@
 import { MOTIONS } from "@opsis/core/elements/three";
 import { describe, expect, it } from "vitest";
-import { boxDistance, fitDistance, poseAt, type MotionTime } from "./motion";
+import { boxDistance, fitDistance, poseAt, type MotionTime } from "#video/three/motion.ts";
 
 const at = (frame: number, extra: Partial<MotionTime> = {}): MotionTime => ({
   frame,

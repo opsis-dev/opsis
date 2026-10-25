@@ -9,8 +9,8 @@ import {
   staticFile,
   useVideoConfig,
 } from "remotion";
-import { useAuthoredFrame } from "../../core/authored-clock";
-import { type SnapCnTheme, useSnapCnTheme } from "../../lib/snap-cn-ui";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { type SnapCnTheme, useSnapCnTheme } from "#video/lib/snap-cn-ui/index.ts";
 
 export type ScreenRecordingFit = "cover" | "contain";
 export type ScreenRecordingEntrance = "fade" | "none";

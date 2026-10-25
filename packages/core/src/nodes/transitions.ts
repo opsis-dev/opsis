@@ -1,10 +1,8 @@
 import { z } from "zod";
-import { itemClip, sequenceClips, stackClips } from "../compile/clip";
-import { ELEMENTS, getElementMeta } from "../elements";
-import type { ElementMeta } from "../elements/types";
-import { clamp } from "../math";
-import type { TransitionRef } from "../schema/timeline";
-import type { ClipValue } from "../schema/values";
+import { itemClip, sequenceClips, stackClips } from "#core/compile/clip";
+import { ELEMENTS, getElementMeta } from "#core/elements";
+import type { ElementMeta } from "#core/elements/types";
+import { clamp } from "#core/math";
 import {
   cover,
   coverRow,
@@ -14,7 +12,7 @@ import {
   squeezedTooMuch,
   transitionLengthText,
   type CardRow,
-} from "./card";
+} from "#core/nodes/card";
 import {
   clipInput,
   defineNode,
@@ -23,8 +21,10 @@ import {
   type CompileInputs,
   type CompileOutputs,
   type NodeDef,
-} from "./define";
-import { bool, frames, int, more, num } from "./params";
+} from "#core/nodes/define";
+import { bool, frames, int, more, num } from "#core/nodes/params";
+import type { TransitionRef } from "#core/schema/timeline";
+import type { ClipValue } from "#core/schema/values";
 
 const PRESENTATIONS = ELEMENTS.filter((e) => e.kind === "presentation");
 export const NO_TRANSITION = "none";

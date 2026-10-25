@@ -119,7 +119,7 @@ function writeBundle(): void {
   writeFileSync(
     META_OUT,
     [
-      'import type { FontFamilyDef } from "./types";',
+      'import type { FontFamilyDef } from "#core/fonts/types";',
       "",
       "export const BUNDLED_FONTS: FontFamilyDef[] = [",
       ...defs.map((def) => `  ${JSON.stringify(def)},`),
@@ -135,7 +135,7 @@ function writeShims(): void {
   for (const [name, family] of GOOGLE_IMPORTS)
     writeFileSync(
       path.join(SHIM_DIR, googleFontModuleFile(name)),
-      `import { googleFont } from "../google-font";\n\nexport const { loadFont, getInfo } = googleFont(${JSON.stringify(family)});\n`,
+      `import { googleFont } from "#video/fonts/google-font.ts";\n\nexport const { loadFont, getInfo } = googleFont(${JSON.stringify(family)});\n`,
     );
 }
 

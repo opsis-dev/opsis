@@ -3,14 +3,14 @@ import {
   type CommandMenuStyle,
   commandMenuStyle,
   commandMenuStyleContext,
-} from "./command-menu";
+} from "#video/elements/remocn/command-menu.tsx";
 import {
   easings,
   type RemocnTheme,
   type Step,
   useRemocnTheme,
   useStateTransition,
-} from "../../lib/remocn-ui";
+} from "#video/lib/remocn-ui/index.ts";
 
 export const DEFAULT_DURATION = 12;
 

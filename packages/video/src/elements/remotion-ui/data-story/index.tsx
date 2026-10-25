@@ -1,14 +1,14 @@
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import { TransitionSeries } from "@remotion/transitions";
-import { transitionFade } from "../transition-fade";
-import { DURATION } from "../../../lib/remotion-ui/motion-tokens";
-import { AnimatedBarChart } from "../animated-bar-chart";
-import { AutoFitTitle } from "../auto-fit-title";
-import { CaptionBumper } from "../caption-bumper";
-import { EndCard } from "../end-card";
-import { MetricTicker, type MetricTickerItem } from "../metric-ticker";
-import { TimelineSteps, type TimelineStep } from "../timeline-steps";
-import type { ChartDatum } from "../../../lib/remotion-ui/chart-utils";
+import { transitionFade } from "#video/elements/remotion-ui/transition-fade.tsx";
+import { DURATION } from "#video/lib/remotion-ui/motion-tokens.ts";
+import { AnimatedBarChart } from "#video/elements/remotion-ui/animated-bar-chart/index.tsx";
+import { AutoFitTitle } from "#video/elements/remotion-ui/auto-fit-title/index.tsx";
+import { CaptionBumper } from "#video/elements/remotion-ui/caption-bumper/index.tsx";
+import { EndCard } from "#video/elements/remotion-ui/end-card/index.tsx";
+import { MetricTicker, type MetricTickerItem } from "#video/elements/remotion-ui/metric-ticker/index.tsx";
+import { TimelineSteps, type TimelineStep } from "#video/elements/remotion-ui/timeline-steps/index.tsx";
+import type { ChartDatum } from "#video/lib/remotion-ui/chart-utils.ts";
 
 const COLORS = {
   bg: "#080810",

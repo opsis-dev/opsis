@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { useDelayRender } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export type ShaderTextRevealProps = {
   /** Words appear one at a time. Separate phrases with newlines to keep them together. */

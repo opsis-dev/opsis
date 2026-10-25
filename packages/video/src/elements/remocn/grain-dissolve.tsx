@@ -7,7 +7,7 @@ import { AbsoluteFill, Easing, interpolate } from "remotion";
 import {
   ShaderGrainGradient,
   type ShaderGrainGradientProps,
-} from "./shader-grain-gradient";
+} from "#video/elements/remocn/shader-grain-gradient.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,

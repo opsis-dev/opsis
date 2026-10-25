@@ -5,15 +5,15 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { Caret, stageScale } from "../../../lib/remotion-ui/ai-composer-utils";
+import { Caret, stageScale } from "#video/lib/remotion-ui/ai-composer-utils.tsx";
 import {
   CODE_THEMES,
   CodeLine,
   lineLength,
   MONO_ADVANCE,
   tokenizeCode,
-} from "../../../lib/remotion-ui/code-syntax";
-import { EASING } from "../../../lib/remotion-ui/motion-tokens";
+} from "#video/lib/remotion-ui/code-syntax.tsx";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "500", "700"],
@@ -39,7 +39,7 @@ const WRITE_CPS = 55;
 /** Beat spent moving to the next line, in seconds. */
 const NEWLINE_PAUSE = 0.07;
 
-const DEFAULT_CODE = `import { CodeReveal } from ".";
+const DEFAULT_CODE = `import { CodeReveal } from "#video/elements/remotion-ui/code-reveal/index.tsx";
 
 export const Explainer = () => (
   <CodeReveal

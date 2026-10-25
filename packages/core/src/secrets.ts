@@ -1,5 +1,5 @@
-import { nonBlankString } from "./guards";
-import { safeName } from "./safe-name";
+import { nonBlankString } from "#core/guards";
+import { safeName } from "#core/safe-name";
 
 export const secretName = (raw: unknown): string => nonBlankString(raw) ?? "default";
 

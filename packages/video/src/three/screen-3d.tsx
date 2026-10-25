@@ -1,10 +1,16 @@
 import type { CoreElementProps } from "@opsis/core/elements/core";
 import React, { useMemo } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
-import { DeviceBody } from "./devices";
-import { facesCamera, quadMatrix, screenDistance, screenQuad, type Point2 } from "./project";
-import { screenPoseAt } from "./screen-moves";
-import { Posed, STAGE_FOV, Stage3D } from "./stage";
+import { DeviceBody } from "#video/three/devices.tsx";
+import {
+  facesCamera,
+  quadMatrix,
+  screenDistance,
+  screenQuad,
+  type Point2,
+} from "#video/three/project.ts";
+import { screenPoseAt } from "#video/three/screen-moves.ts";
+import { Posed, STAGE_FOV, Stage3D } from "#video/three/stage.tsx";
 
 const SCREEN_WIDTH = 2;
 const GLARE = { angle: 115, strongest: 0.16, travel: 120 };

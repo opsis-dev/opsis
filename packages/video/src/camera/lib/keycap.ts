@@ -1,7 +1,7 @@
 import { chordKeys } from "@opsis/core/chord";
 import { clamp01 } from "@opsis/core/math";
 import { Easing } from "remotion";
-import type { KeyEvent } from "./click-log";
+import type { KeyEvent } from "#video/camera/lib/click-log.ts";
 
 const KEYCAP_BEZIER = Easing.bezier(0.15, 0.9, 0.75, 0.95);
 

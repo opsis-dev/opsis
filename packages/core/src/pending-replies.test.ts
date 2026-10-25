@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { pendingReplies } from "./pending-replies";
+import { pendingReplies } from "#core/pending-replies";
 
 afterEach(() => {
   vi.useRealTimers();

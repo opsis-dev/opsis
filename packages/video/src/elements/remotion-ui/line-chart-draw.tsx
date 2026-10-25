@@ -10,9 +10,9 @@ import {
   niceDomain,
   plotPoints,
   type ChartPoint,
-} from "../../lib/remotion-ui/chart-utils";
-import { EASING } from "../../lib/remotion-ui/motion-tokens";
-import { getPathDrawStyles } from "../../lib/remotion-ui/path-utils";
+} from "#video/lib/remotion-ui/chart-utils.ts";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
+import { getPathDrawStyles } from "#video/lib/remotion-ui/path-utils.ts";
 
 export type LineChartDrawProps = {
   points: ChartPoint[];

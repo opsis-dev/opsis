@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { KeyEvent } from "./click-log";
-import { chordGlyphs, keycapAt, keycapEase } from "./keycap";
+import type { KeyEvent } from "#video/camera/lib/click-log.ts";
+import { chordGlyphs, keycapAt, keycapEase } from "#video/camera/lib/keycap.ts";
 
 describe("chordGlyphs", () => {
   it.each([

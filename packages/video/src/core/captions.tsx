@@ -4,7 +4,7 @@ import type { CaptionsValue } from "@opsis/core/schema/values";
 import { framesToMs, msToFrames } from "@opsis/core/timeline/time";
 import React, { useMemo } from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "./frame";
+import { JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "#video/core/frame.ts";
 
 const MAX_WORDS_PER_LINE = 6;
 const CAPTION_LINGER_MS = 250;

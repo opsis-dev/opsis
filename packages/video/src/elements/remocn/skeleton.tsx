@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { SkeletonBlock } from "./skeleton-block";
-import { type RemocnTheme, useRemocnTheme } from "../../lib/remocn-ui";
+import { SkeletonBlock } from "#video/elements/remocn/skeleton-block.tsx";
+import { type RemocnTheme, useRemocnTheme } from "#video/lib/remocn-ui/index.ts";
 
 export type SkeletonState = "loading" | "loaded";
 

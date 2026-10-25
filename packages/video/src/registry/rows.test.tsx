@@ -3,19 +3,19 @@ import type { ElementProps } from "@opsis/core/elements/types";
 import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { BarChartRace } from "../elements/remotion-ui/bar-chart-race";
-import { ChangelogEntry } from "../elements/remotion-ui/changelog-entry";
-import { CommitGraph } from "../elements/remotion-ui/commit-graph";
-import { ComparisonBars } from "../elements/remotion-ui/comparison-bars";
-import { ComparisonTable } from "../elements/remotion-ui/comparison-table";
-import { DonutChart } from "../elements/remotion-ui/donut-chart";
-import { EndCard } from "../elements/remotion-ui/end-card";
-import { FunnelChart } from "../elements/remotion-ui/funnel-chart";
-import { KanbanMove } from "../elements/remotion-ui/kanban-move";
-import { LogoWall } from "../elements/remotion-ui/logo-wall";
-import { MetricTicker } from "../elements/remotion-ui/metric-ticker";
-import { PricingCard } from "../elements/remotion-ui/pricing-card";
-import type { ElementComponent } from "./types";
+import { BarChartRace } from "#video/elements/remotion-ui/bar-chart-race.tsx";
+import { ChangelogEntry } from "#video/elements/remotion-ui/changelog-entry/index.tsx";
+import { CommitGraph } from "#video/elements/remotion-ui/commit-graph/index.tsx";
+import { ComparisonBars } from "#video/elements/remotion-ui/comparison-bars.tsx";
+import { ComparisonTable } from "#video/elements/remotion-ui/comparison-table/index.tsx";
+import { DonutChart } from "#video/elements/remotion-ui/donut-chart.tsx";
+import { EndCard } from "#video/elements/remotion-ui/end-card/index.tsx";
+import { FunnelChart } from "#video/elements/remotion-ui/funnel-chart.tsx";
+import { KanbanMove } from "#video/elements/remotion-ui/kanban-move/index.tsx";
+import { LogoWall } from "#video/elements/remotion-ui/logo-wall/index.tsx";
+import { MetricTicker } from "#video/elements/remotion-ui/metric-ticker/index.tsx";
+import { PricingCard } from "#video/elements/remotion-ui/pricing-card/index.tsx";
+import type { ElementComponent } from "#video/registry/types.ts";
 
 const ROW_ELEMENTS: [string, ElementComponent][] = [
   ["bar-chart-race", BarChartRace as ElementComponent],

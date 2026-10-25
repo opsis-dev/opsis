@@ -5,7 +5,7 @@ import {
   resolveTransitionTiming,
   transitionPhase,
   type TransitionVariant,
-} from "../../lib/remotion-ui/transition-timing";
+} from "#video/lib/remotion-ui/transition-timing.ts";
 
 export type GridPixelateOrder =
   | "from-left"

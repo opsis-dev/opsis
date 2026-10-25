@@ -4,8 +4,8 @@ import {
   type FontFamilyDef,
   type ProjectFonts,
 } from "@opsis/core/fonts/types";
-import { resolveAssetRef } from "../assets";
-import { holdRender } from "../core/loading";
+import { resolveAssetRef } from "#video/assets.tsx";
+import { holdRender } from "#video/core/loading.ts";
 
 type Resolve = (ref: string) => string;
 type FontContext = { fonts: ProjectFonts; resolve: Resolve };

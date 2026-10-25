@@ -3,7 +3,7 @@ import {
   type CommandMenuItemStyle,
   commandMenuItemStyle,
   commandMenuItemStyleContext,
-} from "./command-menu-item";
+} from "#video/elements/remocn/command-menu-item.tsx";
 import {
   easings,
   mixOklch,
@@ -11,7 +11,7 @@ import {
   type Step,
   useRemocnTheme,
   useStateTransition,
-} from "../../lib/remocn-ui";
+} from "#video/lib/remocn-ui/index.ts";
 
 export const DEFAULT_DURATION = 8;
 

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { ELEMENTS } from "../elements";
-import { CAPTIONS_ELEMENT } from "../elements/core";
-import { FIELD_WIDGETS, fieldMeta, targetRoleKey } from "../elements/introspect";
-import { defaultParams, NODE_DEFS } from "./registry";
+import { ELEMENTS } from "#core/elements";
+import { CAPTIONS_ELEMENT } from "#core/elements/core";
+import { FIELD_WIDGETS, fieldMeta, targetRoleKey } from "#core/elements/introspect";
+import { defaultParams, NODE_DEFS } from "#core/nodes/registry";
 
 const fieldsOf = (widget: string) =>
   NODE_DEFS.flatMap((def) =>

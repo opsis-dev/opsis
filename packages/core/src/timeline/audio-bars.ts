@@ -1,10 +1,10 @@
-import { audioKind, channelOf, soundLength } from "../audio";
-import { videoOf } from "../compile/clip";
-import { numberOr } from "../math";
-import { CHANNEL_KINDS, type ChannelKind } from "../mix/types";
-import type { AudioItem, TimelineSpec } from "../schema/timeline";
-import type { AudioBar, VideoBar } from "./flatten";
-import { msToExactFrames } from "./time";
+import { audioKind, channelOf, soundLength } from "#core/audio";
+import { videoOf } from "#core/compile/clip";
+import { numberOr } from "#core/math";
+import { CHANNEL_KINDS, type ChannelKind } from "#core/mix/types";
+import type { AudioItem, TimelineSpec } from "#core/schema/timeline";
+import type { AudioBar, VideoBar } from "#core/timeline/flatten";
+import { msToExactFrames } from "#core/timeline/time";
 
 const roleOrder = (role: ChannelKind): number => CHANNEL_KINDS.indexOf(role);
 

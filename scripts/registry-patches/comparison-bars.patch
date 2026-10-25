@@ -8,9 +8,9 @@ index f814ecf..8e3a2aa 100644
 +++ b/packages/video/src/elements/remotion-ui/comparison-bars.tsx
 @@ -1,5 +1,5 @@
  import { interpolate, useCurrentFrame } from "remotion";
--import { formatCompactNumber } from "../../lib/remotion-ui/chart-utils";
-+import { formatCompactNumber, readDelta } from "../../lib/remotion-ui/chart-utils";
- import { EASING } from "../../lib/remotion-ui/motion-tokens";
+-import { formatCompactNumber } from "#video/lib/remotion-ui/chart-utils.ts";
++import { formatCompactNumber, readDelta } from "#video/lib/remotion-ui/chart-utils.ts";
+ import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
  
  export type ComparisonRowDatum = {
 @@ -8,7 +8,7 @@ export type ComparisonRowDatum = {

@@ -7,9 +7,9 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { getSafeAreaPadding, scaleFont } from "../../../lib/remotion-ui/layout";
-import { DURATION, EASING, STAGGER } from "../../../lib/remotion-ui/motion-tokens";
-import { springSmooth } from "../../../lib/remotion-ui/springs";
+import { getSafeAreaPadding, scaleFont } from "#video/lib/remotion-ui/layout.ts";
+import { DURATION, EASING, STAGGER } from "#video/lib/remotion-ui/motion-tokens.ts";
+import { springSmooth } from "#video/lib/remotion-ui/springs.ts";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["500", "600", "700", "800"],

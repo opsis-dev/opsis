@@ -8,7 +8,7 @@ import {
   playRange,
   recordingMsToFrames,
   wholeFrames,
-} from "./time";
+} from "#core/timeline/time";
 
 describe("ms and frames", () => {
   it.each([

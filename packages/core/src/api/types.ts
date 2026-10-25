@@ -1,6 +1,4 @@
 import { z } from "zod";
-import type { GraphIssue } from "../graph";
-import { workflowSchema, type Workflow, type WorkflowSettings } from "../schema/workflow";
 import type {
   addEdgeBody,
   addNodeBody,
@@ -8,7 +6,9 @@ import type {
   runBody,
   updateNodeBody,
   variablesBody,
-} from "./bodies";
+} from "#core/api/bodies";
+import type { GraphIssue } from "#core/graph";
+import { workflowSchema, type Workflow, type WorkflowSettings } from "#core/schema/workflow";
 
 export const API_EDITOR_TIMEOUT_MS = 20_000;
 

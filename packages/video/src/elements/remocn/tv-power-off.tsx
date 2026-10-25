@@ -1,12 +1,12 @@
 import type React from "react";
 import { AbsoluteFill } from "remotion";
-import { useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
   makeFilterShader,
-} from "../../lib/remocn/canvas-presentation";
-import { parseColor } from "../../lib/remocn-ui/color";
+} from "#video/lib/remocn/canvas-presentation.tsx";
+import { parseColor } from "#video/lib/remocn-ui/color.ts";
 
 export type TvPowerOffProps = {
   durationInFrames?: number;

@@ -9,14 +9,14 @@ import {
   interpolate,
   spring,
 } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   Item,
   mixOklch,
   resolveFont,
   type SnapCnTheme,
   useSnapCnTheme,
-} from "../../lib/snap-cn-ui";
+} from "#video/lib/snap-cn-ui/index.ts";
 
 const { fontFamily: SANS } = loadInter("normal", {
   weights: ["400"],

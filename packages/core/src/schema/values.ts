@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { actionLogSchema, boundsSchema, viewportSchema } from "./actions";
-import { audioItemSchema, timelineTrackSchema } from "./timeline";
+import { actionLogSchema, boundsSchema, viewportSchema } from "#core/schema/actions";
+import { audioItemSchema, timelineTrackSchema } from "#core/schema/timeline";
 
 const assetRefSchema = z.string().nullable();
 

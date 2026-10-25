@@ -1,11 +1,11 @@
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { EASING } from "../../lib/remotion-ui/motion-tokens";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 import {
   clampProgress,
   fitViewBox,
   getPathDrawStyles,
   samplePath,
-} from "../../lib/remotion-ui/path-utils";
+} from "#video/lib/remotion-ui/path-utils.ts";
 
 export type PathDrawProps = {
   /** One path, or several drawn in order with `staggerInFrames` between them. */

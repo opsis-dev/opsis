@@ -12,7 +12,7 @@ index c5fdc4e..d2d2bbc 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  const NEUTRAL_COLORS = ["#5a5a7e", "#8a8a95", "#ffffff", "#3a3a5c"];
  

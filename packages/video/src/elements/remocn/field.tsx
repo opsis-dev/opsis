@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { type RemocnTheme, useRemocnTheme } from "../../lib/remocn-ui";
+import { type RemocnTheme, useRemocnTheme } from "#video/lib/remocn-ui/index.ts";
 
 export interface FieldGroupProps {
   children: ReactNode;

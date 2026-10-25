@@ -1,5 +1,5 @@
-import { EPSILON } from "../math";
-import type { AudioBar, FrameRange, VideoBar } from "./flatten";
+import { EPSILON } from "#core/math";
+import type { AudioBar, FrameRange, VideoBar } from "#core/timeline/flatten";
 
 export const overlaps = (a: FrameRange, b: FrameRange) =>
   a.from < b.to - EPSILON && b.from < a.to - EPSILON;

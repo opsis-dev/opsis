@@ -22,6 +22,7 @@
   "main": ".vite/build/main.cjs",
   "packageManager": "bun@1.4.3",
   "workspaces": [
+    "apps/*",
     "packages/*"
   ],
   "scripts": {
@@ -39,7 +40,7 @@
     "test": "turbo run test test:app",
     "test:app": "vitest run",
     "test:watch": "turbo watch test test:app",
-    "routes": "bun run --cwd packages/ui routes",
+    "routes": "bun run --cwd apps/ui routes",
     "studio": "remotion studio packages/video/src/index.ts",
     "registry:ingest": "tsx scripts/registry-ingest.ts",
     "fonts:bundle": "tsx scripts/fonts-bundle.ts",
@@ -67,6 +68,7 @@
     "@fontsource-variable/playfair-display": "^5.3.0",
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@fontsource-variable/space-grotesk": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
     "@opsis/core": "workspace:*",
     "@opsis/sidecar": "workspace:*",
     "@opsis/ui": "workspace:*",
@@ -103,7 +105,9 @@
     "@electron/fuses": "^2.1.3",
     "@oxlint/plugins": "^1.89.0",
     "@reforged/maker-appimage": "^6.0.0",
+    "@remotion/bundler": "4.0.537",
     "@remotion/cli": "4.0.537",
+    "@remotion/tailwind-v4": "4.0.537",
     "@tabler/icons": "^3.49.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/router-cli": "^1.167.44",

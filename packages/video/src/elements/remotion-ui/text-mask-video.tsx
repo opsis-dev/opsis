@@ -2,11 +2,11 @@ import { useId } from "react";
 import type { CSSProperties } from "react";
 import { Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
 import { kindFromPath } from "@opsis/core/mime";
-import { scaleFont } from "../../lib/remotion-ui/layout";
+import { scaleFont } from "#video/lib/remotion-ui/layout.ts";
 import {
   useEnterExit,
   type EnterExitOptions,
-} from "../../lib/remotion-ui/motion-primitive";
+} from "#video/lib/remotion-ui/motion-primitive.ts";
 
 export type TextMaskMedia = "video" | "image" | "gradient";
 

@@ -1,5 +1,5 @@
-import { isProjectRef, projectRelPath } from "./asset-ref";
-import { stringsIn } from "./vars";
+import { isProjectRef, projectRelPath } from "#core/asset-ref";
+import { stringsIn } from "#core/vars";
 
 const FILE_NAME = /\.[a-z0-9]{2,6}$/i;
 

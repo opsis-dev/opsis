@@ -1,4 +1,4 @@
-import { round1, round2, round3, roundTo } from "./math";
+import { round1, round2, round3, roundTo } from "#core/math";
 
 const UNITS = ["B", "KB", "MB", "GB"];
 

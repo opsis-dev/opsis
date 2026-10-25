@@ -11,6 +11,7 @@ import {
   DEPENDENCY_MANIFESTS,
   EXPORTED_PACKAGES,
   EXPORTED_SOURCES,
+  packageManifest,
   VIDEO_SOURCE,
 } from "@opsis/sidecar/source-layout";
 import { z } from "zod";
@@ -36,6 +37,20 @@ const EXPORT_DEV_DEPENDENCIES = [
 const SOURCE_FILE = /\.(ts|tsx|mts|css)$/;
 
 const IMPORT_SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(?\s*|@import\s+)["']([^"'\n]+)["']/g;
+
+const importsSchema = z.object({ imports: z.record(z.string(), z.string()).optional() });
+
+const PACKAGE_SOURCE_PREFIX = "./src/";
+
+const importsInCopy = (imports: Record<string, string>) =>
+  Object.fromEntries(
+    Object.entries(imports).map(([key, target]) => [
+      key,
+      target.startsWith(PACKAGE_SOURCE_PREFIX)
+        ? `./${target.slice(PACKAGE_SOURCE_PREFIX.length)}`
+        : target,
+    ]),
+  );
 
 const manifestSchema = z.object({
   dependencies: z.record(z.string(), z.string()).optional(),
@@ -75,12 +90,13 @@ const EXPORTED_PACKAGE_DIRS = Object.entries(EXPORTED_PACKAGES);
 
 const REMOTION_CONFIG_TS = `import path from "node:path";
 import { Config } from "@remotion/cli/config";
-import { makeWebpackOverride } from "./src/sidecar/webpack-override";
+import { makeBundlerOverride } from "./src/sidecar/bundler-override";
 
 const src = path.join(process.cwd(), "src");
 
-Config.overrideWebpackConfig(
-  makeWebpackOverride(path.join(src, "video"), {
+Config.setRspack(true);
+Config.overrideRspackConfig(
+  makeBundlerOverride(path.join(src, "video"), {
 ${EXPORTED_PACKAGE_DIRS.map(([name, dir]) => `    "${name}": path.join(src, "${dir}"),`).join("\n")}
   }),
 );
@@ -95,6 +111,7 @@ const TSCONFIG = {
     strict: true,
     skipLibCheck: true,
     resolveJsonModule: true,
+    allowImportingTsExtensions: true,
     noEmit: true,
     paths: Object.fromEntries(
       EXPORTED_PACKAGE_DIRS.map(([name, dir]) => [`${name}/*`, [`./src/${dir}/*`]]),
@@ -116,7 +133,7 @@ bun run studio
 const isRemotion = (name: string) => name === "remotion" || name.startsWith("@remotion/");
 
 function packageOf(specifier: string): string | null {
-  if (/^(\.|\/|@\/|@opsis\/|node:)/.test(specifier)) return null;
+  if (/^(\.|\/|#|@\/|@opsis\/|node:)/.test(specifier)) return null;
   const parts = specifier.split("/");
   return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
 }
@@ -129,6 +146,17 @@ async function copySources(ctx: ExecutorContext, dir: string) {
       recursive: true,
     });
   await cp(publicDir(ctx.env), path.join(dir, "public"), { recursive: true });
+  for (const folder of Object.values(EXPORTED_PACKAGES)) {
+    const manifest = await readJson(
+      exportedSource(ctx.env, packageManifest(folder)),
+      importsSchema,
+    );
+    if (manifest?.imports)
+      await writeJson(path.join(dir, "src", folder, "package.json"), {
+        type: "module",
+        imports: importsInCopy(manifest.imports),
+      });
+  }
 }
 
 async function importedPackages(srcDir: string): Promise<Set<string>> {

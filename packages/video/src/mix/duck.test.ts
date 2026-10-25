@@ -1,7 +1,7 @@
 import { groupItem } from "@opsis/core/compile/clip";
 import type { AudioItem, TimelineItem, TimelineSpec } from "@opsis/core/schema/timeline";
 import { describe, expect, it } from "vitest";
-import { duckGain, duckingSpans, type Span } from "./duck";
+import { duckGain, duckingSpans, type Span } from "#video/mix/duck.ts";
 
 const effect = (id: string, from: number, extra: Partial<AudioItem> = {}): AudioItem => ({
   id,

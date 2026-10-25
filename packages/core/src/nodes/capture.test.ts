@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { compileNode, elementOf, nodeCard, nodeResult, recordResult } from "../test-fixtures";
-import { signInNode } from "./browser";
-import { stillNode } from "./capture";
-import { parseNodeParams } from "./define";
-import { parseParams } from "./params";
+import { signInNode } from "#core/nodes/browser";
+import { stillNode } from "#core/nodes/capture";
+import { parseNodeParams } from "#core/nodes/define";
+import { parseParams } from "#core/nodes/params";
+import { compileNode, elementOf, nodeCard, nodeResult, recordResult } from "#core/test-fixtures";
 
 describe("capture cards", () => {
   it("adds the take's length and actions to Record take", () => {

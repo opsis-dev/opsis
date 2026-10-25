@@ -6,14 +6,14 @@ import {
   type CommandMenuItemStyleContext,
   commandMenuItemStyle,
   commandMenuItemStyleContext,
-} from "./command-menu-item";
+} from "#video/elements/remocn/command-menu-item.tsx";
 import { Easing, interpolate } from "remotion";
-import { useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   type RemocnTheme,
   revealedText,
   useRemocnTheme,
-} from "../../lib/remocn-ui";
+} from "#video/lib/remocn-ui/index.ts";
 
 export type CommandMenuState = "opened" | "closed";
 

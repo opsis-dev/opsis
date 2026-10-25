@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SETTINGS, mergeSettings } from "./settings";
+import { DEFAULT_SETTINGS, mergeSettings } from "#core/settings";
 
 describe("mergeSettings", () => {
   it("patches one section and keeps every other section", () => {

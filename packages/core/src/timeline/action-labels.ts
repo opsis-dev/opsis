@@ -1,5 +1,5 @@
-import { nonBlankString } from "../guards";
-import type { Action } from "../schema/actions";
+import { nonBlankString } from "#core/guards";
+import type { Action } from "#core/schema/actions";
 
 const naming =
   (verb: string, alone = verb) =>

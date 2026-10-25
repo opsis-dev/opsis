@@ -12,7 +12,7 @@ index 48e5b75..853bca7 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  export interface ConfettiProps {
    /** Number of confetti pieces. */

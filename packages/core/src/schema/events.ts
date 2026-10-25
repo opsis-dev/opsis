@@ -1,4 +1,4 @@
-import type { NodeResult } from "./values";
+import type { NodeResult } from "#core/schema/values";
 
 export type NodeRunStatus = "idle" | "queued" | "running" | "cached" | "done" | "error" | "skipped";
 

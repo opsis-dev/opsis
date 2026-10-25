@@ -1,5 +1,5 @@
-import { useAuthoredFrame } from "../../core/authored-clock";
-import { mixOklch, useRemocnTheme } from "../../lib/remocn-ui";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { mixOklch, useRemocnTheme } from "#video/lib/remocn-ui/index.ts";
 
 export interface SkeletonBlockProps {
   width?: number | string;

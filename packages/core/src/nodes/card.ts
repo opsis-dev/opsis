@@ -1,11 +1,11 @@
-import { baseName } from "../asset-ref";
-import { formatDuration, percentText } from "../format";
-import { nonBlankString } from "../guards";
-import type { PickedRole } from "../interactive";
-import type { MediaValue, NodeResult, StyleEntry } from "../schema/values";
-import type { WorkflowSettings } from "../schema/workflow";
-import { framesToMs } from "../timeline/time";
-import type { NodeIconName } from "./icon-name";
+import { baseName } from "#core/asset-ref";
+import { formatDuration, percentText } from "#core/format";
+import { nonBlankString } from "#core/guards";
+import type { PickedRole } from "#core/interactive";
+import type { NodeIconName } from "#core/nodes/icon-name";
+import type { MediaValue, NodeResult, StyleEntry } from "#core/schema/values";
+import type { WorkflowSettings } from "#core/schema/workflow";
+import { framesToMs } from "#core/timeline/time";
 
 export type CardRow = {
   icon: NodeIconName;

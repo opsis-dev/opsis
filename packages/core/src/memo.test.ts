@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keepLatest, lruCache, shareInFlight } from "./memo";
+import { keepLatest, lruCache, shareInFlight } from "#core/memo";
 
 describe("shareInFlight", () => {
   it("runs one job per key at a time and starts again once it settles", async () => {

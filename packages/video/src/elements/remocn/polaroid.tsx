@@ -1,6 +1,6 @@
 import type React from "react";
-import { Handwrite } from "./handwrite";
-import { DEFAULT_STEP } from "../../lib/remocn/stop-motion";
+import { Handwrite } from "#video/elements/remocn/handwrite.tsx";
+import { DEFAULT_STEP } from "#video/lib/remocn/stop-motion.ts";
 
 const BASE_WIDTH = 652;
 const BASE_PAD = 16;

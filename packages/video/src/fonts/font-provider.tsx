@@ -4,9 +4,9 @@ import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "@opsis/core/fonts/type
 import { nonBlankString } from "@opsis/core/guards";
 import type { TimelineTrack } from "@opsis/core/schema/timeline";
 import React, { useMemo } from "react";
-import { resolveAssetRef, useAssetBase, type AssetBase } from "../assets";
-import { useHeldLoad } from "../core/loading";
-import { applyProjectFonts } from "./registry";
+import { resolveAssetRef, useAssetBase, type AssetBase } from "#video/assets.tsx";
+import { useHeldLoad } from "#video/core/loading.ts";
+import { applyProjectFonts } from "#video/fonts/registry.ts";
 
 export function usedFontNames(tracks: TimelineTrack[]): string[] {
   const out = new Set<string>();

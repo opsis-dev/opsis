@@ -10,21 +10,21 @@ import {
   Paper,
   Solid,
   Starburst,
-} from "../core/backgrounds";
-import { Callout } from "../core/callout";
-import { Captions } from "../core/captions";
-import { KineticHeadline } from "../core/kinetic-headline";
-import { useHeldLoad } from "../core/loading";
-import { LottieElement } from "../core/lottie";
-import { LowerThird } from "../core/lower-third";
-import { ImageElement, StillElement, VideoElement, VideoLoop } from "../core/media";
-import { Mosaic } from "../core/mosaic";
-import { Placeholder } from "../core/placeholder";
-import type { Shot, Size, StillLook } from "../core/still-layout";
-import { Title } from "../core/title";
-import { coreTransitions } from "../core/transitions";
-import { generatedElementLoaders } from "./components.generated";
-import { component } from "./framing";
+} from "#video/core/backgrounds.tsx";
+import { Callout } from "#video/core/callout.tsx";
+import { Captions } from "#video/core/captions.tsx";
+import { KineticHeadline } from "#video/core/kinetic-headline.tsx";
+import { useHeldLoad } from "#video/core/loading.ts";
+import { LottieElement } from "#video/core/lottie.tsx";
+import { LowerThird } from "#video/core/lower-third.tsx";
+import { ImageElement, StillElement, VideoElement, VideoLoop } from "#video/core/media.tsx";
+import { Mosaic } from "#video/core/mosaic.tsx";
+import { Placeholder } from "#video/core/placeholder.tsx";
+import type { Shot, Size, StillLook } from "#video/core/still-layout.ts";
+import { Title } from "#video/core/title.tsx";
+import { coreTransitions } from "#video/core/transitions.ts";
+import { generatedElementLoaders } from "#video/registry/components.generated.ts";
+import { component } from "#video/registry/framing.tsx";
 import {
   isPresentation,
   isSequencer,
@@ -32,7 +32,7 @@ import {
   type ElementImpl,
   type Presentation,
   type SceneSequencer,
-} from "./types";
+} from "#video/registry/types.ts";
 
 type CoreProps = CoreElementProps & {
   "core/placeholder": { title: string; subtitle: string };
@@ -42,12 +42,12 @@ type CoreProps = CoreElementProps & {
 };
 
 const LAZY_CORE_ELEMENTS = {
-  "core/logo-3d": () => import("../three/logo-3d").then((m) => component(m.Logo3D)),
-  "core/card-3d": () => import("../three/card-3d").then((m) => component(m.Card3D)),
-  "core/shapes-3d": () => import("../three/shapes-3d").then((m) => component(m.Shapes3D)),
-  "core/text-3d": () => import("../three/text-3d").then((m) => component(m.Text3D)),
-  "core/model-3d": () => import("../three/model-3d").then((m) => component(m.Model3D)),
-  "core/screen-3d": () => import("../three/screen-3d").then((m) => component(m.Screen3D)),
+  "core/logo-3d": () => import("#video/three/logo-3d.tsx").then((m) => component(m.Logo3D)),
+  "core/card-3d": () => import("#video/three/card-3d.tsx").then((m) => component(m.Card3D)),
+  "core/shapes-3d": () => import("#video/three/shapes-3d.tsx").then((m) => component(m.Shapes3D)),
+  "core/text-3d": () => import("#video/three/text-3d.tsx").then((m) => component(m.Text3D)),
+  "core/model-3d": () => import("#video/three/model-3d.tsx").then((m) => component(m.Model3D)),
+  "core/screen-3d": () => import("#video/three/screen-3d.tsx").then((m) => component(m.Screen3D)),
 } satisfies Record<string, () => Promise<ElementImpl>>;
 
 type EagerCoreKey = Exclude<keyof CoreProps, keyof typeof LAZY_CORE_ELEMENTS>;

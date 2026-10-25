@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Easing, interpolate } from "remotion";
 import { MAIN_FONT } from "@opsis/core/fonts";
-import { useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface KineticCenterBuildProps {
   fontFamily?: string;

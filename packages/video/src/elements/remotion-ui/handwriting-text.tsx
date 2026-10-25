@@ -2,8 +2,8 @@ import { random } from "remotion";
 import {
   SplitTextChars,
   type SplitTextCharsProps,
-} from "./split-text-chars";
-import type { SplitUnitState } from "../../lib/remotion-ui/text-split";
+} from "#video/elements/remotion-ui/split-text-chars.tsx";
+import type { SplitUnitState } from "#video/lib/remotion-ui/text-split.ts";
 
 export type HandwritingTextProps = Omit<
   SplitTextCharsProps,

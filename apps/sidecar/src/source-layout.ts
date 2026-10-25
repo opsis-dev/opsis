@@ -6,17 +6,24 @@ export const EXPORTED_SOURCES: readonly ExportedSource[] = [
   { from: VIDEO_SOURCE, to: "video" },
   { from: ["packages", "core", "src"], to: "core" },
   {
-    from: ["packages", "sidecar", "src", "webpack-override.ts"],
-    to: "sidecar/webpack-override.ts",
+    from: ["apps", "sidecar", "src", "bundler-override.ts"],
+    to: "sidecar/bundler-override.ts",
   },
 ];
 
 export const EXPORTED_PACKAGES = { "@opsis/core": "core", "@opsis/video": "video" } as const;
 
+const manifest = (folder: "apps" | "packages", name: string): ExportedSource => ({
+  from: [folder, name, "package.json"],
+  to: `manifests/${name}.json`,
+});
+
+export const packageManifest = (name: string): ExportedSource => manifest("packages", name);
+
 export const DEPENDENCY_MANIFESTS: readonly ExportedSource[] = [
   { from: ["package.json"], to: "manifests/app.json" },
-  ...["core", "video", "ui", "sidecar"].map((name) => ({
-    from: ["packages", name, "package.json"],
-    to: `manifests/${name}.json`,
-  })),
+  packageManifest("core"),
+  packageManifest("video"),
+  manifest("apps", "ui"),
+  manifest("apps", "sidecar"),
 ];

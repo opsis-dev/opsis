@@ -1,8 +1,17 @@
 import { copyFileSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
-import { ROOT } from "./lib/tool-config";
+import { ROOT, VIDEO_PACKAGE_DIR } from "./lib/tool-config";
 
-const FROM = path.join(ROOT, "node_modules", "three", "examples", "jsm", "libs", "draco", "gltf");
+const FROM = path.join(
+  VIDEO_PACKAGE_DIR,
+  "node_modules",
+  "three",
+  "examples",
+  "jsm",
+  "libs",
+  "draco",
+  "gltf",
+);
 const TO = path.join(ROOT, "public", "three", "draco");
 
 rmSync(TO, { recursive: true, force: true });

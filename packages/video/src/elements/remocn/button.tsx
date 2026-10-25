@@ -1,5 +1,5 @@
-import { Spinner } from "./spinner";
-import { mixOklch, type RemocnTheme, useRemocnTheme } from "../../lib/remocn-ui";
+import { Spinner } from "#video/elements/remocn/spinner.tsx";
+import { mixOklch, type RemocnTheme, useRemocnTheme } from "#video/lib/remocn-ui/index.ts";
 
 export type ButtonState = "idle" | "hover" | "press" | "loading" | "success";
 

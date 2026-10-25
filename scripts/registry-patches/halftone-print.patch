@@ -10,13 +10,13 @@ index 65890e1..14a0874 100644
  import type React from "react";
 -import { AbsoluteFill, useVideoConfig } from "remotion";
 +import { AbsoluteFill } from "remotion";
-+import { useAuthoredConfig } from "../../core/authored-clock";
++import { useAuthoredConfig } from "#video/core/authored-clock.ts";
  import {
    type CanvasFilterProps,
    makeCanvasFilter,
    makeFilterShader,
- } from "../../lib/remocn/canvas-presentation";
-+import { parseColor } from "../../lib/remocn-ui/color";
+ } from "#video/lib/remocn/canvas-presentation.tsx";
++import { parseColor } from "#video/lib/remocn-ui/color.ts";
  
  export type HalftonePrintProps = {
    dotSize?: number;

@@ -5,11 +5,11 @@ import { rectCenter, type Viewport } from "@opsis/core/schema/actions";
 import type { AnnotationKind, HandDrawnLook } from "@opsis/core/schema/recording";
 import React from "react";
 import { Easing, interpolate } from "remotion";
-import { drawOn, fadeWindow, isFadedOut } from "../core/anim";
-import { HandDrawnMark } from "../core/hand-drawn";
-import type { Annotation } from "./action-log";
-import { useDesignScale } from "./lib/design-scale";
-import { faded } from "./lib/style";
+import type { Annotation } from "#video/camera/action-log.ts";
+import { useDesignScale } from "#video/camera/lib/design-scale.ts";
+import { faded } from "#video/camera/lib/style.ts";
+import { drawOn, fadeWindow, isFadedOut } from "#video/core/anim.ts";
+import { HandDrawnMark } from "#video/core/hand-drawn.tsx";
 
 const FADE = {
   in: 0.18,

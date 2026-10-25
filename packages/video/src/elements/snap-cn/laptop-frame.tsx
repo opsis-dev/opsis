@@ -7,14 +7,14 @@ import {
   OffthreadVideo,
   staticFile,
 } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   mixOklch,
   resolveFont,
   type SnapCnTheme,
   useSnapCnTheme,
   withAlpha,
-} from "../../lib/snap-cn-ui";
+} from "#video/lib/snap-cn-ui/index.ts";
 
 export type LaptopFrameEntrance = "rise" | "open" | "none";
 export type LaptopFrameFinale = "none" | "zoom-to-screen";

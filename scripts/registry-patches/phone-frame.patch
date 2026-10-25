@@ -13,7 +13,7 @@ index 96267b1..777fd40 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  import {
    resolveFont,
    type SnapCnTheme,

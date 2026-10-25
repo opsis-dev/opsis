@@ -1,8 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_PROJECT_FONTS } from "../fonts/types";
-import type { AudioItem, Remap, TransitionRef } from "../schema/timeline";
-import { must } from "../test-fixtures";
-import { flattenSpec, nodeSpans } from "../timeline/flatten";
 import {
   clipToSpec,
   emptyClip,
@@ -18,9 +14,13 @@ import {
   stackClips,
   wrapClip,
   wrapSounds,
-} from "./clip";
-import { defaultRecordingProps } from "./recording";
-import { remapFrame } from "./remap";
+} from "#core/compile/clip";
+import { defaultRecordingProps } from "#core/compile/recording";
+import { remapFrame } from "#core/compile/remap";
+import { DEFAULT_PROJECT_FONTS } from "#core/fonts/types";
+import type { AudioItem, Remap, TransitionRef } from "#core/schema/timeline";
+import { must } from "#core/test-fixtures";
+import { flattenSpec, nodeSpans } from "#core/timeline/flatten";
 
 const popSound = (id: string) => ({
   id: `${id}:a`,

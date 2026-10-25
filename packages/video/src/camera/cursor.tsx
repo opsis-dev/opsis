@@ -4,11 +4,11 @@ import type { ArrowCursorLook, CursorLook, RippleLook } from "@opsis/core/schema
 import { resolveCursor } from "@remotion/mac-cursors";
 import React from "react";
 import { Img } from "remotion";
-import { isFadedOut } from "../core/anim";
-import type { ClickLog } from "./lib/click-log";
-import { cursorAt } from "./lib/cursor";
-import { useDesignScale } from "./lib/design-scale";
-import { faded, ink } from "./lib/style";
+import type { ClickLog } from "#video/camera/lib/click-log.ts";
+import { cursorAt } from "#video/camera/lib/cursor.ts";
+import { useDesignScale } from "#video/camera/lib/design-scale.ts";
+import { faded, ink } from "#video/camera/lib/style.ts";
+import { isFadedOut } from "#video/core/anim.ts";
 
 const CURSOR_SCALE_EXP = 0.58;
 const HOT_X = 1;

@@ -9,10 +9,10 @@ import {
   PlaneGeometry,
   type Texture,
 } from "three";
-import { useTexture } from "./load";
-import { elementPose } from "./motion";
-import { faceGeometry, fittedSize, roundedRect } from "./shapes";
-import { Posed, Stage3D } from "./stage";
+import { useTexture } from "#video/three/load.ts";
+import { elementPose } from "#video/three/motion.ts";
+import { faceGeometry, fittedSize, roundedRect } from "#video/three/shapes.ts";
+import { Posed, Stage3D } from "#video/three/stage.tsx";
 
 const SAMPLE_SCREEN = "placeholders/screen-wide.svg";
 const CARD_SIZE = 2.2;

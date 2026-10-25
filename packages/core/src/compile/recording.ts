@@ -1,6 +1,6 @@
-import { DEFAULT_BACKDROP } from "../backdrops";
-import type { Action, ActionLog } from "../schema/actions";
-import type { ArrowCursorLook, RecordingProps, RippleLook } from "../schema/recording";
+import { DEFAULT_BACKDROP } from "#core/backdrops";
+import type { Action, ActionLog } from "#core/schema/actions";
+import type { ArrowCursorLook, RecordingProps, RippleLook } from "#core/schema/recording";
 
 export const DEFAULT_CURSOR_LOOK: ArrowCursorLook = {
   shape: "arrow",

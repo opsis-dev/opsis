@@ -17,9 +17,9 @@ import {
   type Codec,
   type HeadlessBrowser,
 } from "@remotion/renderer";
-import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "./bundle";
-import { getCompositorPackage } from "./compositor-package";
-import { freeTcpPort } from "./free-tcp-port";
+import { bundleRemotionProject, getPrebuiltRemotionBundlePath } from "#sidecar/bundle";
+import { getCompositorPackage } from "#sidecar/compositor-package";
+import { freeTcpPort } from "#sidecar/free-tcp-port";
 
 export type GlRenderer = NonNullable<ChromiumOptions["gl"]>;
 

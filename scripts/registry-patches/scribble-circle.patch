@@ -7,7 +7,7 @@ index 1bfc67f..cebb52a 100644
 +++ b/packages/video/src/elements/remocn/scribble-circle.tsx
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame } from "remotion";
-+import { useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredFrame } from "#video/core/authored-clock.ts";
  import {
    BrushGrain,
    type BrushPoint,

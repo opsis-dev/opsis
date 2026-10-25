@@ -4,8 +4,8 @@ import {
   type BlurInStyle,
   blurInStyle,
   blurInStyleContext,
-} from "./blur-in";
-import { easings, type Step, useStateTransition } from "../../lib/remocn-ui";
+} from "#video/elements/remocn/blur-in.tsx";
+import { easings, type Step, useStateTransition } from "#video/lib/remocn-ui/index.ts";
 
 export const DEFAULT_DURATION = 18;
 

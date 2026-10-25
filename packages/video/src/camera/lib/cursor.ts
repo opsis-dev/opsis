@@ -1,6 +1,6 @@
 import { clamp01, lerp, partitionPoint, sampleKeyed } from "@opsis/core/math";
 import { lerpPoint, type Point } from "@opsis/core/schema/actions";
-import type { ClickEvent, CursorSample } from "./click-log";
+import type { ClickEvent, CursorSample } from "#video/camera/lib/click-log.ts";
 
 const CLICK_SQUASH = 0.9;
 const CLICK_SQUASH_S = 0.12;

@@ -1,4 +1,4 @@
-import { useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface SpinnerProps {
   size?: number;

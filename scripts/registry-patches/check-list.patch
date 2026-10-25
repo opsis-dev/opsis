@@ -8,9 +8,9 @@ index 8022acc..bd2479f 100644
 +++ b/packages/video/src/elements/remocn/check-list.tsx
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame } from "remotion";
-+import { useAuthoredFrame } from "../../core/authored-clock";
- import { Handwrite, handwriteDuration } from "./handwrite";
- import { DEFAULT_STEP, hashRange, steppedRamp } from "../../lib/remocn/stop-motion";
++import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+ import { Handwrite, handwriteDuration } from "#video/elements/remocn/handwrite.tsx";
+ import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/remocn/stop-motion.ts";
  
 @@ -225,7 +225,7 @@ export function CheckList({
    seed = "checklist",

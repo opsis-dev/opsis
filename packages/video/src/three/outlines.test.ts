@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { atWeight, outlineOf, readFont, typefaceOf, wrapLines } from "./outlines";
+import { atWeight, outlineOf, readFont, typefaceOf, wrapLines } from "#video/three/outlines.ts";
 
 const bundled = (file: string) =>
   new Uint8Array(

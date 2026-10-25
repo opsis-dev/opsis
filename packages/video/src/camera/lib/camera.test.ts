@@ -7,7 +7,7 @@ import {
   poseToCss,
   poseTravelPx,
   posesNearlyEqual,
-} from "./camera";
+} from "#video/camera/lib/camera.ts";
 
 describe("cameraEase", () => {
   it("rises steadily from rest to the target and clamps outside the move", () => {

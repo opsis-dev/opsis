@@ -6,9 +6,9 @@ import {
   niceDomain,
   readDelta,
   type ChartDatum,
-} from "../../../lib/remotion-ui/chart-utils";
-import { getSafeAreaPadding, scaleFont } from "../../../lib/remotion-ui/layout";
-import { DURATION, EASING, STAGGER } from "../../../lib/remotion-ui/motion-tokens";
+} from "#video/lib/remotion-ui/chart-utils.ts";
+import { getSafeAreaPadding, scaleFont } from "#video/lib/remotion-ui/layout.ts";
+import { DURATION, EASING, STAGGER } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "500", "600", "700"],

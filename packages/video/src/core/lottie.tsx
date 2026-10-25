@@ -1,8 +1,8 @@
 import { Lottie, type LottieAnimationData } from "@remotion/lottie";
 import React from "react";
-import { Backgrounded } from "./backgrounds";
-import { readLottie } from "./dot-lottie";
-import { useHeldLoad } from "./loading";
+import { Backgrounded } from "#video/core/backgrounds.tsx";
+import { readLottie } from "#video/core/dot-lottie.ts";
+import { useHeldLoad } from "#video/core/loading.ts";
 
 type LottieFit = "contain" | "cover";
 

@@ -6,10 +6,19 @@ import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Img, Sequence, useVideoConfig } from "remotion";
-import type { Size } from "../core/still-layout";
-import { defaultDarkTheme, defaultLightTheme, RemocnUIProvider } from "../lib/remocn-ui/theme";
-import { SnapCnUIProvider } from "../lib/snap-cn-ui/theme";
-import type { ElementComponent, Presentation, PresentationFactory, SceneSequencer } from "./types";
+import type { Size } from "#video/core/still-layout.ts";
+import {
+  defaultDarkTheme,
+  defaultLightTheme,
+  RemocnUIProvider,
+} from "#video/lib/remocn-ui/theme.ts";
+import { SnapCnUIProvider } from "#video/lib/snap-cn-ui/theme.ts";
+import type {
+  ElementComponent,
+  Presentation,
+  PresentationFactory,
+  SceneSequencer,
+} from "#video/registry/types.ts";
 
 export const component = (element: React.FC<never>): ElementComponent =>
   element as ElementComponent;

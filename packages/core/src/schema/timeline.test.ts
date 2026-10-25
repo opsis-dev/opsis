@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defaultRecordingProps } from "../compile/recording";
-import { timelineSpecSchema } from "./timeline";
+import { defaultRecordingProps } from "#core/compile/recording";
+import { timelineSpecSchema } from "#core/schema/timeline";
 
 const log = {
   viewport: { width: 1280, height: 720 },

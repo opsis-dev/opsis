@@ -1,4 +1,4 @@
-import { extensionOf } from "./asset-ref";
+import { extensionOf } from "#core/asset-ref";
 
 export const VIDEO_MIME: Readonly<Record<string, string>> = {
   mp4: "video/mp4",

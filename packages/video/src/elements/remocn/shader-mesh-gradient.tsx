@@ -7,7 +7,7 @@ import {
   continueRender,
   delayRender,
 } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 const NEUTRAL_COLORS = ["#12121a", "#232338", "#3a3a5c", "#52527a"];
 

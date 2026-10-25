@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { FRAME_THEMES, WINDOW_STYLES } from "../window-styles";
-import { actionLogSchema } from "./actions";
+import { actionLogSchema } from "#core/schema/actions";
+import { FRAME_THEMES, WINDOW_STYLES } from "#core/window-styles";
 
 export const CAMERA_STYLES = ["classic", "proof", "ledger", "stage"] as const;
 

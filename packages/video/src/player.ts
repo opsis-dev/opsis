@@ -1,1 +1,1 @@
-export { DemoTimeline } from "./demo-timeline";
+export { DemoTimeline } from "#video/demo-timeline.tsx";

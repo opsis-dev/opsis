@@ -2,8 +2,8 @@ import {
   type SkeletonState,
   type SkeletonStyle,
   skeletonStyle,
-} from "./skeleton";
-import { easings, type Step, useStateTransition } from "../../lib/remocn-ui";
+} from "#video/elements/remocn/skeleton.tsx";
+import { easings, type Step, useStateTransition } from "#video/lib/remocn-ui/index.ts";
 
 export const DEFAULT_DURATION = 12;
 

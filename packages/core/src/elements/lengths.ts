@@ -1,6 +1,6 @@
-import { isNumber, isRecord, isString } from "../guards";
-import { settingsInFrames } from "./seconds";
-import type { ElementMeta } from "./types";
+import { settingsInFrames } from "#core/elements/seconds";
+import type { ElementMeta } from "#core/elements/types";
+import { isNumber, isRecord, isString } from "#core/guards";
 
 type Settings = Record<string, unknown>;
 

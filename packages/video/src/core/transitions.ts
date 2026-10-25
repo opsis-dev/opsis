@@ -6,9 +6,9 @@ import { flip } from "@remotion/transitions/flip";
 import { iris } from "@remotion/transitions/iris";
 import { slide } from "@remotion/transitions/slide";
 import { wipe } from "@remotion/transitions/wipe";
-import { presentation } from "../registry/framing";
-import type { PresentationFactory } from "../registry/types";
-import type { Size } from "./still-layout";
+import type { Size } from "#video/core/still-layout.ts";
+import { presentation } from "#video/registry/framing.tsx";
+import type { PresentationFactory } from "#video/registry/types.ts";
 
 const EDGES = ["from-left", "from-top", "from-right", "from-bottom"] as const;
 const CORNERS = [

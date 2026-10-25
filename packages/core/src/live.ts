@@ -1,6 +1,6 @@
-import { hasStringType } from "./guards";
-import type { Rect } from "./schema/actions";
-import type { NodeRunStatus } from "./schema/events";
+import { hasStringType } from "#core/guards";
+import type { Rect } from "#core/schema/actions";
+import type { NodeRunStatus } from "#core/schema/events";
 
 export type LiveStepStatus = Extract<NodeRunStatus, "running" | "done" | "error">;
 

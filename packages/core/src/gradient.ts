@@ -1,6 +1,6 @@
-import { parseColor } from "./color";
-import { percentText } from "./format";
-import { clamp } from "./math";
+import { parseColor } from "#core/color";
+import { percentText } from "#core/format";
+import { clamp } from "#core/math";
 
 export type GradientStop = { color: string; at: number };
 

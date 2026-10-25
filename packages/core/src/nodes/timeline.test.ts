@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { emptyClip, groupOf, sceneItemCount } from "../compile/clip";
-import { MAX_FRAMES } from "../limits";
-import type { ClipValue, CompileValue } from "../schema/values";
+import { emptyClip, groupOf, sceneItemCount } from "#core/compile/clip";
+import { MAX_FRAMES } from "#core/limits";
+import type { ClipValue, CompileValue } from "#core/schema/values";
 
 type AudioValue = Extract<CompileValue, { type: "audio" }>;
-import { compileClip, compileNode, nodeCard } from "../test-fixtures";
-import { branchPort } from "./timeline";
+import { branchPort } from "#core/nodes/timeline";
+import { compileClip, compileNode, nodeCard } from "#core/test-fixtures";
 
 const compileOver = (type: string, params: Record<string, unknown>): ClipValue =>
   compileClip(type, params, { clip: emptyClip(90) });

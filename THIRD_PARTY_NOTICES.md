@@ -124,11 +124,11 @@ The full edition bundles Google's Chrome Headless Shell from Chrome for Testing 
 
 Videos are rendered with Remotion (https://www.remotion.dev), which is not under an open-source licence: it is free for individuals, non-profits and for-profit organisations with up to 3 employees, and larger companies need a Remotion company licence (https://www.remotion.dev/license). Opsis passes the key entered in Settings → Video export licence, or the free licence when it is empty. Remotion packages are installed from npm and keep their own `LICENSE.md`.
 
-## React Flow UI — packages/ui/src/components/{base-node,labeled-handle,…}.tsx
+## React Flow UI — apps/ui/src/components/{base-node,labeled-handle,…}.tsx
 
 MIT, https://github.com/xyflow/xyflow
 
-## Lucide icons — packages/ui/src/editor/node-glyphs.generated.ts, and the lucide-react package
+## Lucide icons — apps/ui/src/editor/node-glyphs.generated.ts, and the lucide-react package
 
 Node icons copied from the `lucide` package by `bun run glyphs:bundle`, and the editor's other icons from `lucide-react`. Lucide is under the ISC licence; the icons it derives from Feather are also under Feather's MIT licence, both below. https://lucide.dev
 
@@ -178,7 +178,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Tabler Icons — packages/ui/src/editor/node-glyphs.generated.ts
+## Tabler Icons — apps/ui/src/editor/node-glyphs.generated.ts
 
 Node icons copied from the `@tabler/icons` package by `bun run glyphs:bundle`. https://tabler.io/icons
 
@@ -234,7 +234,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Dice UI Sortable and Media Player — packages/ui/src/components/ui/sortable.tsx, packages/ui/src/components/ui/media-player.tsx
+## Dice UI Sortable and Media Player — apps/ui/src/components/ui/sortable.tsx, apps/ui/src/components/ui/media-player.tsx
 
 The drag-to-reorder lists in the Inspector, and the player for videos and sounds in the Run panel and Replay. Installed from the Dice UI registry with the shadcn CLI. https://www.diceui.com
 

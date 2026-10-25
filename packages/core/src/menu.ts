@@ -1,4 +1,4 @@
-import type { KeyLike } from "./chord";
+import type { KeyLike } from "#core/chord";
 
 export type MenuCommand =
   | "project:new"

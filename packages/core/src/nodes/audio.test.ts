@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { soundLength } from "../audio";
-import { emptyClip } from "../compile/clip";
-import type { AudioItem } from "../schema/timeline";
-import { BUILTIN_SOUNDS } from "../sounds";
-import { compileClip, compileNode, nodeCard } from "../test-fixtures";
+import { soundLength } from "#core/audio";
+import { emptyClip } from "#core/compile/clip";
+import type { AudioItem } from "#core/schema/timeline";
+import { BUILTIN_SOUNDS } from "#core/sounds";
+import { compileClip, compileNode, nodeCard } from "#core/test-fixtures";
 
 const sfxItem = (params: Record<string, unknown>): AudioItem => {
   const audio = compileNode("audio.sfx", params).audio;

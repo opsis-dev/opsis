@@ -2,12 +2,12 @@ import type { TransitionPresentation } from "@remotion/transitions";
 import {
   displacementPresentation,
   type DisplacementPresentationProps,
-} from "../../lib/remotion-ui/displacement-presentation";
-import type { MorphShapeName } from "../../lib/remotion-ui/path-morph";
+} from "#video/lib/remotion-ui/displacement-presentation.tsx";
+import type { MorphShapeName } from "#video/lib/remotion-ui/path-morph.ts";
 import {
   resolveTransitionTiming,
   type TransitionVariant,
-} from "../../lib/remotion-ui/transition-timing";
+} from "#video/lib/remotion-ui/transition-timing.ts";
 
 /**
  * Shape-mask morph.

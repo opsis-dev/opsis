@@ -4,14 +4,14 @@ import { msToFrames } from "@opsis/core/timeline/time";
 import { Video } from "@remotion/media";
 import React, { useMemo } from "react";
 import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
-import { isLightBackdrop } from "../camera/lib/backdrop";
-import { WINDOW_FIT } from "../camera/lib/style";
-import { RimLight } from "../camera/stage";
-import { WindowFrame } from "../camera/window-frame";
-import { zoomOver } from "./anim";
-import { Backdrop, Backgrounded } from "./backgrounds";
-import { lookEffects } from "./picture-look";
-import { stillLayout, type Box, type Shot, type StillLook } from "./still-layout";
+import { isLightBackdrop } from "#video/camera/lib/backdrop.ts";
+import { WINDOW_FIT } from "#video/camera/lib/style.ts";
+import { RimLight } from "#video/camera/stage.tsx";
+import { WindowFrame } from "#video/camera/window-frame.tsx";
+import { zoomOver } from "#video/core/anim.ts";
+import { Backdrop, Backgrounded } from "#video/core/backgrounds.tsx";
+import { lookEffects } from "#video/core/picture-look.ts";
+import { stillLayout, type Box, type Shot, type StillLook } from "#video/core/still-layout.ts";
 
 type Fit = "contain" | "cover" | "fill";
 

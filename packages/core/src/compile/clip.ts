@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { findById } from "../lists";
-import { clamp } from "../math";
-import { parseOncePer } from "../memo";
-import type { InputTake } from "../nodes/card";
-import type { Viewport } from "../schema/actions";
-import type { RecordingProps } from "../schema/recording";
+import { inverseRemap } from "#core/compile/remap";
+import { findById } from "#core/lists";
+import { clamp } from "#core/math";
+import { parseOncePer } from "#core/memo";
+import type { InputTake } from "#core/nodes/card";
+import type { Viewport } from "#core/schema/actions";
+import type { RecordingProps } from "#core/schema/recording";
 import type {
   AudioItem,
   CameraPath,
@@ -22,12 +23,11 @@ import type {
   TimelineTrack,
   TransitionRef,
   VisualEnvelope,
-} from "../schema/timeline";
-import type { ClipValue, CompileValue, RecordingValue } from "../schema/values";
-import { THEME_BACKGROUNDS, type WorkflowSettings } from "../schema/workflow";
-import { hasKeys } from "../timeline/envelope";
-import { atLeastOneFrame } from "../timeline/time";
-import { inverseRemap } from "./remap";
+} from "#core/schema/timeline";
+import type { ClipValue, CompileValue, RecordingValue } from "#core/schema/values";
+import { THEME_BACKGROUNDS, type WorkflowSettings } from "#core/schema/workflow";
+import { hasKeys } from "#core/timeline/envelope";
+import { atLeastOneFrame } from "#core/timeline/time";
 
 const videoPropsSchema = z.object({
   src: z.string(),

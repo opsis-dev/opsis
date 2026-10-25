@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { safeName } from "./safe-name";
+import { safeName } from "#core/safe-name";
 
 describe("safeName", () => {
   it("replaces unsafe runs, trims edge dashes and falls back", () => {

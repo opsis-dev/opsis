@@ -1,6 +1,6 @@
-import { isRecord } from "./guards";
-import { mapValues } from "./objects";
-import { projectFolderName } from "./project-folder";
+import { isRecord } from "#core/guards";
+import { mapValues } from "#core/objects";
+import { projectFolderName } from "#core/project-folder";
 
 const VAR_SOURCE = String.raw`\{\{\s*([^{}]+?)\s*\}\}`;
 

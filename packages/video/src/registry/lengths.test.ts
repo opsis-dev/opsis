@@ -3,14 +3,14 @@ import { animationLength } from "@opsis/core/elements/lengths";
 import { settingsInFrames } from "@opsis/core/elements/seconds";
 import type { ElementMeta } from "@opsis/core/elements/types";
 import { describe, expect, it } from "vitest";
-import { getAgentRunDuration } from "../elements/remocn/agent-run";
-import { checkListDuration } from "../elements/remocn/check-list";
-import { getCodeMorphDuration } from "../elements/remocn/code-morph";
-import { commandMenuPlayEnd } from "../elements/remocn/command-menu";
-import { getKeystrokeDuration } from "../elements/remocn/keystroke";
-import { getSearchRevealDuration } from "../elements/remocn/search-reveal";
-import { wordPushLength } from "../elements/remocn/word-push";
-import { punchLinesDuration } from "../elements/snap-cn/punch-lines";
+import { getAgentRunDuration } from "#video/elements/remocn/agent-run.tsx";
+import { checkListDuration } from "#video/elements/remocn/check-list.tsx";
+import { getCodeMorphDuration } from "#video/elements/remocn/code-morph.tsx";
+import { commandMenuPlayEnd } from "#video/elements/remocn/command-menu.tsx";
+import { getKeystrokeDuration } from "#video/elements/remocn/keystroke.tsx";
+import { getSearchRevealDuration } from "#video/elements/remocn/search-reveal.tsx";
+import { wordPushLength } from "#video/elements/remocn/word-push.tsx";
+import { punchLinesDuration } from "#video/elements/snap-cn/punch-lines.tsx";
 
 type Settings = Record<string, unknown>;
 

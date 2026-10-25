@@ -1,5 +1,5 @@
 import { random } from "remotion";
-import { useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface RGBGlitchTextProps {
   fontFamily?: string;

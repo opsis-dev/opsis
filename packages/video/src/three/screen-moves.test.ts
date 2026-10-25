@@ -1,6 +1,6 @@
 import { SCREEN_MOVES } from "@opsis/core/elements/screen-3d";
 import { describe, expect, it } from "vitest";
-import { screenPoseAt } from "./screen-moves";
+import { screenPoseAt } from "#video/three/screen-moves.ts";
 
 const PRESETS = SCREEN_MOVES.filter((m) => m !== "keyframes");
 

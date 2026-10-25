@@ -1,9 +1,9 @@
 import { loadFont } from "@remotion/google-fonts/Inter";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { PathDraw } from "../path-draw";
-import { getSafeAreaPadding, scaleFont } from "../../../lib/remotion-ui/layout";
-import { DELAY, DURATION, EASING, STAGGER } from "../../../lib/remotion-ui/motion-tokens";
-import { springSmooth } from "../../../lib/remotion-ui/springs";
+import { PathDraw } from "#video/elements/remotion-ui/path-draw.tsx";
+import { getSafeAreaPadding, scaleFont } from "#video/lib/remotion-ui/layout.ts";
+import { DELAY, DURATION, EASING, STAGGER } from "#video/lib/remotion-ui/motion-tokens.ts";
+import { springSmooth } from "#video/lib/remotion-ui/springs.ts";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["500", "600"],

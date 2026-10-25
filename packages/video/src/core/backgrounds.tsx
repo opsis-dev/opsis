@@ -9,7 +9,7 @@ import {
   staticFile,
   useCurrentFrame,
 } from "remotion";
-import { backdropSource } from "../camera/lib/backdrop";
+import { backdropSource } from "#video/camera/lib/backdrop.ts";
 
 const visibleBackground = (background?: string): string | undefined =>
   background && background !== "transparent" ? background : undefined;

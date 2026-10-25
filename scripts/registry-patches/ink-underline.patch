@@ -7,7 +7,7 @@ index 5e190f8..da08597 100644
 +++ b/packages/video/src/elements/remocn/ink-underline.tsx
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame } from "remotion";
-+import { useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredFrame } from "#video/core/authored-clock.ts";
  import {
    BrushGrain,
    type BrushPoint,

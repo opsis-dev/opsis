@@ -5,8 +5,11 @@ import {
   groupOf,
   recordingProps,
   sequenceClips,
-} from "../compile/clip";
-import type { ClipValue } from "../schema/values";
+} from "#core/compile/clip";
+import type { InputTake } from "#core/nodes/card";
+import { parseParams } from "#core/nodes/params";
+import { getNodeDef } from "#core/nodes/registry";
+import type { ClipValue } from "#core/schema/values";
 import {
   compileClip,
   compileNode,
@@ -17,10 +20,7 @@ import {
   takeRecording,
   zoomed,
   type StyleStepSpec,
-} from "../test-fixtures";
-import type { InputTake } from "./card";
-import { parseParams } from "./params";
-import { getNodeDef } from "./registry";
+} from "#core/test-fixtures";
 
 const problem = (type: string, params: Record<string, unknown>) => {
   const parsed = parseParams(must(getNodeDef(type), type).params, params);

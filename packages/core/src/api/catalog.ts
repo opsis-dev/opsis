@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { CATEGORY_LABELS, type NodeDef, type PortSpec } from "../nodes/define";
-import { portLabel } from "../nodes/ports";
-import { getNodeDef, NODE_DEFS } from "../nodes/registry";
-import { jsonSchemaOf } from "./bodies";
+import { jsonSchemaOf } from "#core/api/bodies";
+import { CATEGORY_LABELS, type NodeDef, type PortSpec } from "#core/nodes/define";
+import { portLabel } from "#core/nodes/ports";
+import { getNodeDef, NODE_DEFS } from "#core/nodes/registry";
 
 export const catalogPortSchema = z.object({
   type: z.string(),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { drawOn, fadeWindow } from "./anim";
+import { drawOn, fadeWindow } from "#video/core/anim.ts";
 
 describe("fadeWindow", () => {
   it("ramps in and out over the window", () => {

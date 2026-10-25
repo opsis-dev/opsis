@@ -17,11 +17,11 @@ import {
   type Object3D,
 } from "three";
 import type { SVGResult } from "three/addons/loaders/SVGLoader.js";
-import { Card } from "./card-3d";
-import { isSvg, useSvg, useTexture } from "./load";
-import { elementPose } from "./motion";
-import { fitToSize } from "./shapes";
-import { Posed, Stage3D } from "./stage";
+import { Card } from "#video/three/card-3d.tsx";
+import { isSvg, useSvg, useTexture } from "#video/three/load.ts";
+import { elementPose } from "#video/three/motion.ts";
+import { fitToSize } from "#video/three/shapes.ts";
+import { Posed, Stage3D } from "#video/three/stage.tsx";
 
 const SAMPLE_LOGO = "placeholders/logo-mark.svg";
 const LOGO_SIZE = 2;

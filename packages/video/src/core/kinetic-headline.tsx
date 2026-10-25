@@ -9,8 +9,8 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { CLAMPED, exitOpacity } from "./anim";
-import { Backgrounded } from "./backgrounds";
+import { CLAMPED, exitOpacity } from "#video/core/anim.ts";
+import { Backgrounded } from "#video/core/backgrounds.tsx";
 
 const WORD_SPRING = { damping: 18, stiffness: 160 };
 const EMPHASIS_SWEEP_FRAMES = [8, 22];

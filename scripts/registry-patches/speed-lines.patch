@@ -9,7 +9,7 @@ index 5b1e6a0..9d21eea 100644
  import type { ReactNode } from "react";
 -import { random, useCurrentFrame, useVideoConfig } from "remotion";
 +import { random } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  export type SpeedLinesMode = "trail" | "focus";
  

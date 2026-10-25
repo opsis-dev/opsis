@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { pageTurnLift } from "../elements/remocn/page-turn";
+import { pageTurnLift } from "#video/elements/remocn/page-turn.tsx";
 
 const lowestAfterTurn = (width: number, height: number, angle: number) => {
   const theta = (angle * Math.PI) / 180;

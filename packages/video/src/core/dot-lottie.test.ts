@@ -1,6 +1,6 @@
 import { strToU8, zipSync } from "fflate";
 import { describe, expect, it } from "vitest";
-import { readLottie } from "./dot-lottie";
+import { readLottie } from "#video/core/dot-lottie.ts";
 
 const animation = {
   v: "5.7.0",

@@ -2,8 +2,8 @@ import {
   interpolate,
   Sequence,
 } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "../../core/authored-clock";
-import { parseColor } from "../../lib/remocn-ui/color";
+import { useAuthoredConfig, useAuthoredFrame, useRealFrames } from "#video/core/authored-clock.ts";
+import { parseColor } from "#video/lib/remocn-ui/color.ts";
 
 export type TerminalLineType = "command" | "log" | "success" | "error";
 

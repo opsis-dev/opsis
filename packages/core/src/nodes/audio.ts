@@ -1,15 +1,8 @@
 import { z } from "zod";
-import { baseName, projectRef } from "../asset-ref";
-import { clipToSpec } from "../compile/clip";
-import { ANY_VALUE } from "../elements/introspect";
-import { formatDuration, percentText, plural, signOf } from "../format";
-import type { AudioEnvelope, AudioItem, EditHandles } from "../schema/timeline";
-import { asValue, type ClipValue, type CompileValue, type MediaValue } from "../schema/values";
-import type { WorkflowSettings } from "../schema/workflow";
-import { builtinSound } from "../sounds";
-import { hasKeys } from "../timeline/envelope";
-import { flattenSpec } from "../timeline/flatten";
-import { msToFrames, msToSignedFrames } from "../timeline/time";
+import { baseName, projectRef } from "#core/asset-ref";
+import { clipToSpec } from "#core/compile/clip";
+import { ANY_VALUE } from "#core/elements/introspect";
+import { formatDuration, percentText, plural, signOf } from "#core/format";
 import {
   type CardContext,
   fileRow,
@@ -19,10 +12,25 @@ import {
   row,
   warnIf,
   type CardRow,
-} from "./card";
-import { defineNode, many, nodeBase, opt, port, withClip, type CompileOutputs } from "./define";
-import type { NodeIconName } from "./icon-name";
-import { asset, audioEnvelope, bool, int, more, ms, volume } from "./params";
+} from "#core/nodes/card";
+import {
+  defineNode,
+  many,
+  nodeBase,
+  opt,
+  port,
+  withClip,
+  type CompileOutputs,
+} from "#core/nodes/define";
+import type { NodeIconName } from "#core/nodes/icon-name";
+import { asset, audioEnvelope, bool, int, more, ms, volume } from "#core/nodes/params";
+import type { AudioEnvelope, AudioItem, EditHandles } from "#core/schema/timeline";
+import { asValue, type ClipValue, type CompileValue, type MediaValue } from "#core/schema/values";
+import type { WorkflowSettings } from "#core/schema/workflow";
+import { builtinSound } from "#core/sounds";
+import { hasKeys } from "#core/timeline/envelope";
+import { flattenSpec } from "#core/timeline/flatten";
+import { msToFrames, msToSignedFrames } from "#core/timeline/time";
 
 const base = nodeBase("Audio", "compile");
 

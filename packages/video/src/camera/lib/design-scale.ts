@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import { useVideoConfig } from "remotion";
-import { designScaleFor } from "./design-width";
+import { designScaleFor } from "#video/camera/lib/design-width.ts";
 
 export const DesignWidthContext = createContext<number | null>(null);
 

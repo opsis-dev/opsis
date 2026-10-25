@@ -1,6 +1,6 @@
 import type { BlurArea } from "@opsis/core/schema/recording";
 import { describe, expect, it } from "vitest";
-import { blurParams } from "./blur-areas";
+import { blurParams } from "#video/camera/lib/blur-areas.ts";
 
 const area = (extra: Partial<BlurArea> = {}): BlurArea => ({
   x: 0.1,

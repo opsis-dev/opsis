@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { DEFAULT_PROJECT_FONTS, projectFontsSchema } from "../fonts/types";
-import { mixSchema } from "../mix/types";
-import { viewportSchema } from "./actions";
+import { DEFAULT_PROJECT_FONTS, projectFontsSchema } from "#core/fonts/types";
+import { mixSchema } from "#core/mix/types";
+import { viewportSchema } from "#core/schema/actions";
 
 const PORT_TYPES = [
   "browser-session",

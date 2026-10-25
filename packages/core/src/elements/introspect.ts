@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isRecord } from "../guards";
+import { isRecord } from "#core/guards";
 
 type FieldPreset = { label: string; values: Record<string, unknown> };
 

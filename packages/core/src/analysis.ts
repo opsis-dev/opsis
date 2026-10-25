@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { MixPlan } from "./mix/plan";
-import type { MixResult } from "./mix/result";
+import type { MixPlan } from "#core/mix/plan";
+import type { MixResult } from "#core/mix/result";
 
 const numbers = z.array(z.number());
 

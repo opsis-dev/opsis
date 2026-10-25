@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { listenerSet } from "./listener-set";
-import { debounce, oneAtATime, whenReady } from "./timing";
+import { listenerSet } from "#core/listener-set";
+import { debounce, oneAtATime, whenReady } from "#core/timing";
 
 describe("debounce", () => {
   beforeEach(() => {

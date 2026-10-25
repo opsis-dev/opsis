@@ -1,14 +1,24 @@
 import { z } from "zod";
-import { baseName } from "../asset-ref";
-import { rgbOf } from "../color";
-import { percentText, plural } from "../format";
-import { clamp, round3 } from "../math";
-import type { StyleEntry } from "../schema/values";
-import { fileRow, missing, row, truncate, type CardRow } from "./card";
-import { defineNode, gradeModifier, type NodeDef } from "./define";
-import { LOOK_PRESETS } from "./effects";
-import type { NodeIconName } from "./icon-name";
-import { asset, bool, choiceOf, colorOr, colorSetting, fraction, int, more, num } from "./params";
+import { baseName } from "#core/asset-ref";
+import { rgbOf } from "#core/color";
+import { percentText, plural } from "#core/format";
+import { clamp, round3 } from "#core/math";
+import { fileRow, missing, row, truncate, type CardRow } from "#core/nodes/card";
+import { defineNode, gradeModifier, type NodeDef } from "#core/nodes/define";
+import { LOOK_PRESETS } from "#core/nodes/effects";
+import type { NodeIconName } from "#core/nodes/icon-name";
+import {
+  asset,
+  bool,
+  choiceOf,
+  colorOr,
+  colorSetting,
+  fraction,
+  int,
+  more,
+  num,
+} from "#core/nodes/params";
+import type { StyleEntry } from "#core/schema/values";
 
 type Change = [label: string, active: boolean];
 

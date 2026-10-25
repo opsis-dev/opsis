@@ -1,6 +1,6 @@
 import { loadFont } from "@remotion/google-fonts/Caveat";
-import { useAuthoredFrame } from "../../core/authored-clock";
-import { DEFAULT_STEP, hashRange, qf, qstep } from "../../lib/remocn/stop-motion";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
+import { DEFAULT_STEP, hashRange, qf, qstep } from "#video/lib/remocn/stop-motion.ts";
 
 const { fontFamily: HAND_FAMILY } = loadFont("normal", {
   subsets: ["latin"],

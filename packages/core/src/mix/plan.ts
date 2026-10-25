@@ -1,7 +1,4 @@
-import { lookupKey } from "../hash";
-import type { AudioEnvelope, TimelineSpec } from "../schema/timeline";
-import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
-import { atLeastOneFrame } from "../timeline/time";
+import { lookupKey } from "#core/hash";
 import {
   audibility,
   busOf,
@@ -11,7 +8,7 @@ import {
   stripOf,
   type Audibility,
   type ChannelInfo,
-} from "./levels";
+} from "#core/mix/levels";
 import {
   stripSettings,
   type Bus,
@@ -20,7 +17,10 @@ import {
   type Mix,
   type Strip,
   type StripSettings,
-} from "./types";
+} from "#core/mix/types";
+import type { AudioEnvelope, TimelineSpec } from "#core/schema/timeline";
+import { flattenSpec, type FlatTimeline } from "#core/timeline/flatten";
+import { atLeastOneFrame } from "#core/timeline/time";
 
 export type SoundPlacement = {
   src: string;

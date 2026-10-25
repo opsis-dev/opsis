@@ -6,8 +6,8 @@ import {
   type WindowStyle,
 } from "@opsis/core/window-styles";
 import React from "react";
-import { useDesignScale } from "./lib/design-scale";
-import { ink, WINDOW_RADIUS } from "./lib/style";
+import { useDesignScale } from "#video/camera/lib/design-scale.ts";
+import { ink, WINDOW_RADIUS } from "#video/camera/lib/style.ts";
 
 export const CHROME_H = 38;
 const PILL_RADIUS = 9999;

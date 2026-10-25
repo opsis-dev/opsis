@@ -12,8 +12,8 @@ index f068605..06bba38 100644
    formatCompactNumber,
 +  readDelta,
    type ChartDatum,
- } from "../../lib/remotion-ui/chart-utils";
- import { EASING } from "../../lib/remotion-ui/motion-tokens";
+ } from "#video/lib/remotion-ui/chart-utils.ts";
+ import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 @@ -24,6 +25,10 @@ export type DonutChartProps = {
    trackColor?: string;
    labelColor?: string;

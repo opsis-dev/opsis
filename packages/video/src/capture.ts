@@ -1,7 +1,7 @@
-export { cameraEase } from "./camera/lib/camera";
-export type { ClickEvent, CursorSample, KeyEvent } from "./camera/lib/click-log";
-export { designScaleFor } from "./camera/lib/design-width";
-export { WINDOW_FIT } from "./camera/lib/style";
+export { cameraEase } from "#video/camera/lib/camera.ts";
+export type { ClickEvent, CursorSample, KeyEvent } from "#video/camera/lib/click-log.ts";
+export { designScaleFor } from "#video/camera/lib/design-width.ts";
+export { WINDOW_FIT } from "#video/camera/lib/style.ts";
 export {
   captureCanvas,
   captureScale,
@@ -9,4 +9,4 @@ export {
   tallestShot,
   type Box,
   type Size,
-} from "./core/still-layout";
+} from "#video/core/still-layout.ts";

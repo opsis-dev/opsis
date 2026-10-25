@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { nodeCard, nodeResult, workflowNode } from "../test-fixtures";
 import {
   exportReframe,
   renderNode,
@@ -7,7 +6,8 @@ import {
   variantCanvas,
   variantSize,
   videoFileNames,
-} from "./output";
+} from "#core/nodes/output";
+import { nodeCard, nodeResult, workflowNode } from "#core/test-fixtures";
 
 describe("variantSize", () => {
   it("keeps the long edge and even dimensions", () => {

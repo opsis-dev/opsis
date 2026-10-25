@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { buildFilm, filmSpec, flatFilm, TITLE } from "../test-fixtures";
-import { nodeSpans } from "./flatten";
-import { findHandle } from "./handles";
+import { buildFilm, filmSpec, flatFilm, TITLE } from "#core/test-fixtures";
+import { nodeSpans } from "#core/timeline/flatten";
+import { findHandle } from "#core/timeline/handles";
 
 describe("flattening", () => {
   it("maps bars through speed and trims", () => {

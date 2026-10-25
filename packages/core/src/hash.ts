@@ -1,4 +1,4 @@
-import { byCodeUnit } from "./lists";
+import { byCodeUnit } from "#core/lists";
 
 const hasNoJson = (value: unknown) =>
   value === undefined || typeof value === "function" || typeof value === "symbol";

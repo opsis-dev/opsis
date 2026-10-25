@@ -39,21 +39,21 @@ import {
   resolveAssetRef,
   resolveProps,
   useAssetBase,
-} from "./assets";
-import { CLAMP_RIGHT, fadeWindow } from "./core/anim";
-import { RecordingClip } from "./core/recording-clip";
-import type { Size } from "./core/still-layout";
-import { CutBoardProvider, useCutBoard } from "./core/transition-cuts";
-import { FontProvider } from "./fonts/font-provider";
-import { duckGain, duckingSpans, type Span } from "./mix/duck";
+} from "#video/assets.tsx";
+import { CLAMP_RIGHT, fadeWindow } from "#video/core/anim.ts";
+import { RecordingClip } from "#video/core/recording-clip.tsx";
+import type { Size } from "#video/core/still-layout.ts";
+import { CutBoardProvider, useCutBoard } from "#video/core/transition-cuts.tsx";
+import { FontProvider } from "#video/fonts/font-provider.tsx";
+import { duckGain, duckingSpans, type Span } from "#video/mix/duck.ts";
+import { PaintRule } from "#video/registry/framing.tsx";
 import {
   getComponent,
   getPresentation,
   getSequencer,
   useElement,
   useResolvedElement,
-} from "./registry";
-import { PaintRule } from "./registry/framing";
+} from "#video/registry/index.ts";
 
 const ELEMENT_FONTS: React.CSSProperties &
   Record<"--font-geist-sans" | "--font-geist-mono", string> = {

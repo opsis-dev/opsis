@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { connectionProblem, runTargets, topoSort, validateWorkflow } from "./graph";
-import { findById } from "./lists";
-import type { Workflow } from "./schema/workflow";
-import { getTemplate } from "./templates";
-import { GraphBuilder } from "./templates/build";
-import { must } from "./test-fixtures";
+import { connectionProblem, runTargets, topoSort, validateWorkflow } from "#core/graph";
+import { findById } from "#core/lists";
+import type { Workflow } from "#core/schema/workflow";
+import { getTemplate } from "#core/templates";
+import { GraphBuilder } from "#core/templates/build";
+import { must } from "#core/test-fixtures";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 

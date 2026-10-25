@@ -9,8 +9,8 @@ index 4a5dcce..2d7988d 100644
 -import { AbsoluteFill } from "remotion";
 +import { AbsoluteFill, useVideoConfig } from "remotion";
  import { TransitionSeries } from "@remotion/transitions";
- import { transitionFade } from "../transition-fade";
- import { DURATION } from "../../../lib/remotion-ui/motion-tokens";
+ import { transitionFade } from "#video/elements/remotion-ui/transition-fade.tsx";
+ import { DURATION } from "#video/lib/remotion-ui/motion-tokens.ts";
 @@ -43,6 +43,30 @@ const SCENE_DURATIONS = {
  
  const FADE = transitionFade({ durationInFrames: DURATION.fast });

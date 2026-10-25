@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { modelExtensions } from "./load-model";
+import { modelExtensions } from "#video/three/load-model.ts";
 
 const encode = (json: object) => new TextEncoder().encode(JSON.stringify(json));
 

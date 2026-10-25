@@ -2,7 +2,7 @@ import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { useEffect } from "react";
 import { expect, it } from "vitest";
-import { chromaticAberrationWipe } from "../elements/remotion-ui/chromatic-aberration-wipe";
+import { chromaticAberrationWipe } from "#video/elements/remotion-ui/chromatic-aberration-wipe.tsx";
 
 it("keeps the scene mounted as the colour split opens", () => {
   const events: string[] = [];

@@ -14,9 +14,9 @@ import {
   posesNearlyEqual,
   poseTravelPx,
   type CameraPose,
-} from "./camera";
-import type { ClickEvent, ClickLog } from "./click-log";
-import { designScaleFor } from "./design-width";
+} from "#video/camera/lib/camera.ts";
+import type { ClickEvent, ClickLog } from "#video/camera/lib/click-log.ts";
+import { designScaleFor } from "#video/camera/lib/design-width.ts";
 
 export const S_MAX = 1.74;
 

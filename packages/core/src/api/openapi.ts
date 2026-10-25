@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { workflowSchema, workflowSettingsSchema } from "../schema/workflow";
 import {
   addEdgeBody,
   addNodeBody,
@@ -9,8 +8,8 @@ import {
   runBody,
   updateNodeBody,
   variablesBody,
-} from "./bodies";
-import { catalogNodeSchema, catalogPortSchema } from "./catalog";
+} from "#core/api/bodies";
+import { catalogNodeSchema, catalogPortSchema } from "#core/api/catalog";
 import {
   apiCheckSchema,
   apiEditedSchema,
@@ -19,9 +18,10 @@ import {
   apiProjectStateSchema,
   apiRunStateSchema,
   apiStatusSchema,
-} from "./types";
+} from "#core/api/types";
+import { workflowSchema, workflowSettingsSchema } from "#core/schema/workflow";
 
-const SCHEMAS = "#/components/schemas/";
+const SCHEMAS = "#core/components/schemas/";
 
 const components = z.registry<{ id: string }>();
 components.add(workflowSchema, { id: "Workflow" });

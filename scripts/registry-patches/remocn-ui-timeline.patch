@@ -7,7 +7,7 @@ index f815976..c7a5022 100644
 +++ b/packages/video/src/lib/remocn-ui/timeline.ts
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame, useVideoConfig } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  import type { Step } from "./types";
  
  export function framesFor(

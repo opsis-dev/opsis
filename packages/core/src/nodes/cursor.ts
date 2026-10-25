@@ -1,18 +1,10 @@
 import { z } from "zod";
-import { DEFAULT_CURSOR_LOOK, DEFAULT_KEYCAP, DEFAULT_RIPPLE } from "../compile/recording";
-import { styleStep, type StyleSteps } from "../compile/style";
-import { fontProp } from "../fonts";
-import {
-  HAND_DRAWN_LOOKS,
-  type AnnotationKind,
-  type AnnotationSpec,
-  type CursorLook,
-  type HighlightLook,
-  type KeystrokePosition,
-} from "../schema/recording";
-import { joinParts, LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "./card";
-import { defineNode, styleModifier, type NodeCategory, type NodeDef } from "./define";
-import type { NodeIconName } from "./icon-name";
+import { DEFAULT_CURSOR_LOOK, DEFAULT_KEYCAP, DEFAULT_RIPPLE } from "#core/compile/recording";
+import { styleStep, type StyleSteps } from "#core/compile/style";
+import { fontProp } from "#core/fonts";
+import { joinParts, LABELLED_TEXT_MAX, mutedIf, quote, row, toggleRow } from "#core/nodes/card";
+import { defineNode, styleModifier, type NodeCategory, type NodeDef } from "#core/nodes/define";
+import type { NodeIconName } from "#core/nodes/icon-name";
 import {
   bool,
   choiceOf,
@@ -24,7 +16,15 @@ import {
   num,
   requiredText,
   text,
-} from "./params";
+} from "#core/nodes/params";
+import {
+  HAND_DRAWN_LOOKS,
+  type AnnotationKind,
+  type AnnotationSpec,
+  type CursorLook,
+  type HighlightLook,
+  type KeystrokePosition,
+} from "#core/schema/recording";
 
 const base = styleModifier("Cursor");
 

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { formatGradient, insertStop, parseGradient, sortStops, splitTopLevel } from "./gradient";
+import {
+  formatGradient,
+  insertStop,
+  parseGradient,
+  sortStops,
+  splitTopLevel,
+} from "#core/gradient";
 
 describe("parseGradient", () => {
   it("reads an angle and stops with positions", () => {

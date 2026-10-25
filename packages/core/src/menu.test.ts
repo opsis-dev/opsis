@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { acceleratorLabel, appMenu, isPrimaryModifier, matchesAccelerator } from "./menu";
-import { keyEvent } from "./test-fixtures";
+import { acceleratorLabel, appMenu, isPrimaryModifier, matchesAccelerator } from "#core/menu";
+import { keyEvent } from "#core/test-fixtures";
 
 describe("app menu", () => {
   it("matches shortcuts per platform", () => {

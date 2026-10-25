@@ -1,13 +1,13 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useVideoConfig } from "remotion";
-import { scaleFont } from "../../lib/remotion-ui/layout";
+import { scaleFont } from "#video/lib/remotion-ui/layout.ts";
 import {
   useSplitText,
   type SplitMode,
   type SplitOrder,
   type SplitTimingOptions,
   type SplitUnitState,
-} from "../../lib/remotion-ui/text-split";
+} from "#video/lib/remotion-ui/text-split.ts";
 
 /**
  * Splits a string into characters, words or lines and staggers them in.

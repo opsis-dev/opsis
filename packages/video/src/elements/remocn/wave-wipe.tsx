@@ -4,7 +4,7 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
-import { ShaderGrainGradient } from "./shader-grain-gradient";
+import { ShaderGrainGradient } from "#video/elements/remocn/shader-grain-gradient.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,

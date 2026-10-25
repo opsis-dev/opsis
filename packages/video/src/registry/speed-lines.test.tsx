@@ -2,7 +2,7 @@ import { compileClip, must } from "@opsis/core/test-fixtures";
 import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
-import { SpeedLines } from "../elements/remocn/speed-lines";
+import { SpeedLines } from "#video/elements/remocn/speed-lines.tsx";
 
 const drawn = (mode: "trail" | "focus", frame: number) => {
   const Lines = () => <SpeedLines mode={mode}>{null}</SpeedLines>;

@@ -13,7 +13,7 @@ import {
   plural,
   signedText,
   singleQuoted,
-} from "./format";
+} from "#core/format";
 
 describe("formatBytes", () => {
   it("uses binary units with one decimal", () => {

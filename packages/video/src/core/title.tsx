@@ -2,10 +2,16 @@ import type { CoreElementProps } from "@opsis/core/elements/core";
 import { fontOr } from "@opsis/core/fonts";
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
-import { faded } from "../camera/lib/style";
-import { drawOn, ENTRANCE_FADE_FRAMES, entranceStyle, exitOpacity, type Entrance } from "./anim";
-import { Backgrounded } from "./backgrounds";
-import { HandDrawnMark, type MarkLook } from "./hand-drawn";
+import { faded } from "#video/camera/lib/style.ts";
+import {
+  drawOn,
+  ENTRANCE_FADE_FRAMES,
+  entranceStyle,
+  exitOpacity,
+  type Entrance,
+} from "#video/core/anim.ts";
+import { Backgrounded } from "#video/core/backgrounds.tsx";
+import { HandDrawnMark, type MarkLook } from "#video/core/hand-drawn.tsx";
 
 const TITLE = { padding: "0 9%", gapEm: 0.22 } as const;
 

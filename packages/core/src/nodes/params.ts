@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { parseColor } from "../color";
-import { fieldMeta, type FieldMeta } from "../elements/introspect";
-import { formatDuration, humanize, signOf, signedText } from "../format";
-import { isKeyOf } from "../guards";
-import { MAX_FRAMES, MAX_SPEED, MAX_VOLUME } from "../limits";
-import type { MinMax } from "../math";
-import { audioEnvelopeSchema, cameraPathSchema, visualEnvelopeSchema } from "../schema/timeline";
-import { PAUSE_MARK, tokenize } from "../vars";
+import { parseColor } from "#core/color";
+import { fieldMeta, type FieldMeta } from "#core/elements/introspect";
+import { formatDuration, humanize, signOf, signedText } from "#core/format";
+import { isKeyOf } from "#core/guards";
+import { MAX_FRAMES, MAX_SPEED, MAX_VOLUME } from "#core/limits";
+import type { MinMax } from "#core/math";
+import { audioEnvelopeSchema, cameraPathSchema, visualEnvelopeSchema } from "#core/schema/timeline";
+import { PAUSE_MARK, tokenize } from "#core/vars";
 
 export const more = <T extends z.ZodType>(schema: T, extra: FieldMeta): T =>
   schema.meta({ ...fieldMeta(schema), ...extra });

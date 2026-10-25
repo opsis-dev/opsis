@@ -1,4 +1,4 @@
-import { isString } from "./guards";
+import { isString } from "#core/guards";
 
 export const FILE_SCHEME = "opsis-file";
 

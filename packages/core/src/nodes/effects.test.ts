@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { itemClip, recordingProps } from "../compile/clip";
-import { compileClip, elementOf, itemsOf, nodeCard, zoomed } from "../test-fixtures";
-import { parseParams } from "./params";
-import { getNodeDef } from "./registry";
+import { itemClip, recordingProps } from "#core/compile/clip";
+import { parseParams } from "#core/nodes/params";
+import { getNodeDef } from "#core/nodes/registry";
+import { compileClip, elementOf, itemsOf, nodeCard, zoomed } from "#core/test-fixtures";
 
 const blurred = (params: Record<string, unknown>[]) =>
   recordingProps(zoomed({ own: params.map((p) => ["effect.blurAreas", p] as const) }))[0];

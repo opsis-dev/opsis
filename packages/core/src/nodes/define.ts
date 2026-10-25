@@ -1,17 +1,17 @@
 import type { z } from "zod";
-import { isClip } from "../compile/clip";
-import { schemaDefaults, withDefaults } from "../elements/introspect";
-import type { ElementMeta } from "../elements/types";
+import { isClip } from "#core/compile/clip";
+import { schemaDefaults, withDefaults } from "#core/elements/introspect";
+import type { ElementMeta } from "#core/elements/types";
+import { MAX_CARD_ROWS, sentence, type CardContext, type CardRow } from "#core/nodes/card";
 import {
   asValue,
   type ClipValue,
   type CompileValue,
   type NodeResult,
   type StyleEntry,
-} from "../schema/values";
-import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "../schema/workflow";
-import { interpolate, namesForUnknownVariables } from "../vars";
-import { MAX_CARD_ROWS, sentence, type CardContext, type CardRow } from "./card";
+} from "#core/schema/values";
+import type { PortType, Workflow, WorkflowNode, WorkflowSettings } from "#core/schema/workflow";
+import { interpolate, namesForUnknownVariables } from "#core/vars";
 
 export const NODE_CATEGORIES = [
   "Browser",

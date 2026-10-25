@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ClickEvent, CursorSample } from "./click-log";
-import { cursorAt } from "./cursor";
+import type { ClickEvent, CursorSample } from "#video/camera/lib/click-log.ts";
+import { cursorAt } from "#video/camera/lib/cursor.ts";
 
 const track: CursorSample[] = [
   { t: 0, x: 100, y: 100 },

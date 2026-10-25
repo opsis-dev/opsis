@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { lerp } from "../math";
+import { lerp } from "#core/math";
 
 export const rectSchema = z.object({ x: z.number(), y: z.number(), w: z.number(), h: z.number() });
 export type Rect = z.infer<typeof rectSchema>;

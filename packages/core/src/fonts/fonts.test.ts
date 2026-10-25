@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { findFamily, firstFamily, fontSlug, fontStack, roleFamilyName } from ".";
-import { BUNDLED_FONTS } from "./bundled.generated";
-import { familyNameFrom, planFontFiles, type FontCandidate } from "./plan";
-import { DEFAULT_PROJECT_FONTS, type FontFamilyDef } from "./types";
+import { findFamily, firstFamily, fontSlug, fontStack, roleFamilyName } from "#core/fonts";
+import { BUNDLED_FONTS } from "#core/fonts/bundled.generated";
+import { familyNameFrom, planFontFiles, type FontCandidate } from "#core/fonts/plan";
+import { DEFAULT_PROJECT_FONTS, type FontFamilyDef } from "#core/fonts/types";
 
 const custom: FontFamilyDef = {
   id: "acme-sans",

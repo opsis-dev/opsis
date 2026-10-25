@@ -1,6 +1,6 @@
-import { lerp, sampleKeyed } from "../math";
-import type { CameraKey, CameraPath } from "../schema/timeline";
-import { ease } from "./envelope";
+import { lerp, sampleKeyed } from "#core/math";
+import type { CameraKey, CameraPath } from "#core/schema/timeline";
+import { ease } from "#core/timeline/envelope";
 
 export type CameraView = Pick<CameraKey, "yaw" | "pitch" | "distance" | "height">;
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { projectRef } from "../asset-ref";
+import { projectRef } from "#core/asset-ref";
 import {
   EMPTY_CLIP_FRAMES,
   emptyClip,
@@ -7,9 +7,9 @@ import {
   sceneSequence,
   withHandles,
   wrapClip,
-} from "../compile/clip";
-import { ELEMENTS, elementNodeType } from "../elements";
-import { CAPTIONS_ELEMENT } from "../elements/core";
+} from "#core/compile/clip";
+import { ELEMENTS, elementNodeType } from "#core/elements";
+import { CAPTIONS_ELEMENT } from "#core/elements/core";
 import {
   assetKeys,
   fieldMeta,
@@ -19,24 +19,16 @@ import {
   unwrap,
   widgetKeys,
   type FieldMeta,
-} from "../elements/introspect";
-import { animationLength, fitsItsAnimation } from "../elements/lengths";
-import { framesFromSeconds } from "../elements/seconds";
-import { isThemeValue, themeColors } from "../elements/theme";
-import type { ElementCategory, ElementMeta } from "../elements/types";
-import { fontProp } from "../fonts";
-import { plural } from "../format";
-import { parseGradient } from "../gradient";
-import { isNumber, isRecord, isString, nonBlankString } from "../guards";
-import { MAX_FRAMES } from "../limits";
-import {
-  cameraPathSchema,
-  type AudioItem,
-  type CameraPath,
-  type EditHandles,
-  type VisualEnvelope,
-} from "../schema/timeline";
-import type { ClipValue } from "../schema/values";
+} from "#core/elements/introspect";
+import { animationLength, fitsItsAnimation } from "#core/elements/lengths";
+import { framesFromSeconds } from "#core/elements/seconds";
+import { isThemeValue, themeColors } from "#core/elements/theme";
+import type { ElementCategory, ElementMeta } from "#core/elements/types";
+import { fontProp } from "#core/fonts";
+import { plural } from "#core/format";
+import { parseGradient } from "#core/gradient";
+import { isNumber, isRecord, isString, nonBlankString } from "#core/guards";
+import { MAX_FRAMES } from "#core/limits";
 import {
   connectedPorts,
   fileRow,
@@ -46,7 +38,7 @@ import {
   warnIf,
   type CardContext,
   type CardRow,
-} from "./card";
+} from "#core/nodes/card";
 import {
   clipInput,
   defineNode,
@@ -57,9 +49,17 @@ import {
   type CompileInputs,
   type NodeCategory,
   type NodeDef,
-} from "./define";
-import { choice, int, more, text, visualEnvelope } from "./params";
-import { clipPorts, connectedClips, IN_PORTS, sceneLabel } from "./ports";
+} from "#core/nodes/define";
+import { choice, int, more, text, visualEnvelope } from "#core/nodes/params";
+import { clipPorts, connectedClips, IN_PORTS, sceneLabel } from "#core/nodes/ports";
+import {
+  cameraPathSchema,
+  type AudioItem,
+  type CameraPath,
+  type EditHandles,
+  type VisualEnvelope,
+} from "#core/schema/timeline";
+import type { ClipValue } from "#core/schema/values";
 
 const TEXT_KEYS = [
   "title",

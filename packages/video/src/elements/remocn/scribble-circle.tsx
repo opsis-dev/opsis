@@ -1,12 +1,12 @@
-import { useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   BrushGrain,
   type BrushPoint,
   brushFilterId,
   brushReach,
   brushRibbon,
-} from "./brush";
-import { DEFAULT_STEP, hashRange, steppedRamp } from "../../lib/remocn/stop-motion";
+} from "#video/elements/remocn/brush.tsx";
+import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/remocn/stop-motion.ts";
 
 const SAMPLES_PER_LAP = 48;
 const NOISE = 0.035;

@@ -10,15 +10,15 @@ index e5caac2..5fbcec2 100644
 @@ -6,7 +6,12 @@ import {
    useVideoConfig,
  } from "remotion";
- import { stageScale } from "../../../lib/remotion-ui/ai-composer-utils";
--import { CODE_THEMES, CodeLine, tokenizeCode } from "../../../lib/remotion-ui/code-syntax";
+ import { stageScale } from "#video/lib/remotion-ui/ai-composer-utils.tsx";
+-import { CODE_THEMES, CodeLine, tokenizeCode } from "#video/lib/remotion-ui/code-syntax.tsx";
 +import {
 +  CODE_THEMES,
 +  CodeLine,
 +  MONO_ADVANCE,
 +  tokenizeCode,
-+} from "../../../lib/remotion-ui/code-syntax";
- import { EASING } from "../../../lib/remotion-ui/motion-tokens";
++} from "#video/lib/remotion-ui/code-syntax.tsx";
+ import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
  
  const { fontFamily } = loadFont("normal", {
 @@ -164,10 +169,17 @@ export const CodeDiffWipe: React.FC<CodeDiffWipeProps> = ({

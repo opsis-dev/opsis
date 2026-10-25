@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expandHome, joinFolder, projectFolderName } from "./project-folder";
+import { expandHome, joinFolder, projectFolderName } from "#core/project-folder";
 
 describe("projectFolderName", () => {
   it("turns a project name into a lowercase folder name", () => {

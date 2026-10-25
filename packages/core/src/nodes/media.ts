@@ -1,19 +1,17 @@
 import { z } from "zod";
-import { projectRef } from "../asset-ref";
-import { itemClip } from "../compile/clip";
-import { formatDuration, plural } from "../format";
-import { kindFromPath } from "../mime";
-import type { EditHandles, VisualEnvelope } from "../schema/timeline";
+import { projectRef } from "#core/asset-ref";
+import { itemClip } from "#core/compile/clip";
+import { formatDuration, plural } from "#core/format";
+import { kindFromPath } from "#core/mime";
 import {
-  asValue,
-  outputOf,
-  type ClipValue,
-  type MediaValue,
-  type NodeResult,
-} from "../schema/values";
-import { DEFAULT_STILL_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
-import { msToFrames } from "../timeline/time";
-import { connectedPorts, fileRow, missing, rangeRow, row, truncate, type CardRow } from "./card";
+  connectedPorts,
+  fileRow,
+  missing,
+  rangeRow,
+  row,
+  truncate,
+  type CardRow,
+} from "#core/nodes/card";
 import {
   defineNode,
   GRADE_PORT,
@@ -22,9 +20,9 @@ import {
   port,
   type CompileInputs,
   type NodeDef,
-} from "./define";
-import { gradeChangesNothing, gradeNeedsVideo, gradeStepTitle } from "./grade";
-import type { NodeIconName } from "./icon-name";
+} from "#core/nodes/define";
+import { gradeChangesNothing, gradeNeedsVideo, gradeStepTitle } from "#core/nodes/grade";
+import type { NodeIconName } from "#core/nodes/icon-name";
 import {
   asset,
   bool,
@@ -43,7 +41,17 @@ import {
   qualityName,
   rate,
   visualEnvelope,
-} from "./params";
+} from "#core/nodes/params";
+import type { EditHandles, VisualEnvelope } from "#core/schema/timeline";
+import {
+  asValue,
+  outputOf,
+  type ClipValue,
+  type MediaValue,
+  type NodeResult,
+} from "#core/schema/values";
+import { DEFAULT_STILL_MS, DEFAULT_VIEWPORT } from "#core/schema/workflow";
+import { msToFrames } from "#core/timeline/time";
 
 const fileOp = { ...nodeBase("Media", "media"), executes: true };
 const one = {

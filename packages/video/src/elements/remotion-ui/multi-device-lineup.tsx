@@ -6,7 +6,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { EASING } from "../../lib/remotion-ui/motion-tokens";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 const { fontFamily } = loadFont("normal", { weights: ["500", "600"], subsets: ["latin"] });
 

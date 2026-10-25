@@ -1,7 +1,7 @@
-import { MIN_SPEED } from "../limits";
-import { isNonEmpty } from "../lists";
-import { lerp, round3, sampleKeyed } from "../math";
-import type { Remap } from "../schema/timeline";
+import { MIN_SPEED } from "#core/limits";
+import { isNonEmpty } from "#core/lists";
+import { lerp, round3, sampleKeyed } from "#core/math";
+import type { Remap } from "#core/schema/timeline";
 
 const lerpSegment = (
   [x0, y0]: readonly [number, number],

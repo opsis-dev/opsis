@@ -1,15 +1,15 @@
-import { errorMessage } from "../errors";
-import { topoSort } from "../graph";
-import { CLIP_PORT, interpolatedParams, type NodeDef } from "../nodes/define";
-import { parseParams } from "../nodes/params";
-import { convertInput } from "../nodes/ports";
-import { getNodeDef, isOutputType } from "../nodes/registry";
-import type { TimelineSpec } from "../schema/timeline";
-import type { CompileValue, NodeResult } from "../schema/values";
-import type { Workflow, WorkflowEdge, WorkflowNode, WorkflowSettings } from "../schema/workflow";
-import { nodeSpans, type FrameRange } from "../timeline/flatten";
-import { workflowVars } from "../vars";
-import { clipToSpec, isClip } from "./clip";
+import { clipToSpec, isClip } from "#core/compile/clip";
+import { errorMessage } from "#core/errors";
+import { topoSort } from "#core/graph";
+import { CLIP_PORT, interpolatedParams, type NodeDef } from "#core/nodes/define";
+import { parseParams } from "#core/nodes/params";
+import { convertInput } from "#core/nodes/ports";
+import { getNodeDef, isOutputType } from "#core/nodes/registry";
+import type { TimelineSpec } from "#core/schema/timeline";
+import type { CompileValue, NodeResult } from "#core/schema/values";
+import type { Workflow, WorkflowEdge, WorkflowNode, WorkflowSettings } from "#core/schema/workflow";
+import { nodeSpans, type FrameRange } from "#core/timeline/flatten";
+import { workflowVars } from "#core/vars";
 
 type CompileOptions = {
   results?: Partial<Record<string, NodeResult>>;

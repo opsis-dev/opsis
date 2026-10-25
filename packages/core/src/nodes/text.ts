@@ -1,16 +1,16 @@
 import { z } from "zod";
-import { EMPTY_CLIP_FRAMES, emptyClip, itemClip, stackClips } from "../compile/clip";
-import type { StyleSteps } from "../compile/style";
-import { TEXT_COLOR } from "../elements/colors";
-import { CAPTIONS_ELEMENT, captionsSchema } from "../elements/core";
-import { fontProp } from "../fonts";
-import { formatDuration, humanize } from "../format";
-import { asValue, type CaptionsValue } from "../schema/values";
-import { framesToMs, msToFrames } from "../timeline/time";
-import { quotedRow, row, truncate } from "./card";
-import { annotationNode } from "./cursor";
-import { clipInput, defineNode, nodeBase, opt, port } from "./define";
-import { int, more, ms, requiredText } from "./params";
+import { EMPTY_CLIP_FRAMES, emptyClip, itemClip, stackClips } from "#core/compile/clip";
+import type { StyleSteps } from "#core/compile/style";
+import { TEXT_COLOR } from "#core/elements/colors";
+import { CAPTIONS_ELEMENT, captionsSchema } from "#core/elements/core";
+import { fontProp } from "#core/fonts";
+import { formatDuration, humanize } from "#core/format";
+import { quotedRow, row, truncate } from "#core/nodes/card";
+import { annotationNode } from "#core/nodes/cursor";
+import { clipInput, defineNode, nodeBase, opt, port } from "#core/nodes/define";
+import { int, more, ms, requiredText } from "#core/nodes/params";
+import { asValue, type CaptionsValue } from "#core/schema/values";
+import { framesToMs, msToFrames } from "#core/timeline/time";
 
 const base = nodeBase("Text & overlays", "compile");
 

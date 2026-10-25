@@ -1,6 +1,6 @@
 import { interpolate, useCurrentFrame } from "remotion";
-import { formatCompactNumber, readDelta } from "../../lib/remotion-ui/chart-utils";
-import { EASING } from "../../lib/remotion-ui/motion-tokens";
+import { formatCompactNumber, readDelta } from "#video/lib/remotion-ui/chart-utils.ts";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 export type ComparisonRowDatum = {
   label: string;

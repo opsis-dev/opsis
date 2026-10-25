@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupCaptions } from "./captions";
+import { groupCaptions } from "#video/core/captions.tsx";
 
 const words = (text: string) =>
   text.split(" ").map((word, i) => ({ text: word, startMs: i * 100, endMs: i * 100 + 90 }));

@@ -1,9 +1,6 @@
-import { audioKind, channelOf } from "../audio";
-import { itemHasSound, mapItems, soundNodeId, videoOf, walkItems } from "../compile/clip";
-import { findById } from "../lists";
-import type { AudioItem, TimelineSpec } from "../schema/timeline";
-import { flattenSpec, type FlatTimeline } from "../timeline/flatten";
-import { msToExactFrames, msToFrames } from "../timeline/time";
+import { audioKind, channelOf } from "#core/audio";
+import { itemHasSound, mapItems, soundNodeId, videoOf, walkItems } from "#core/compile/clip";
+import { findById } from "#core/lists";
 import {
   DEFAULT_BUS_FOR,
   DEFAULT_STRIP,
@@ -13,7 +10,10 @@ import {
   type ChannelKind,
   type Mix,
   type Strip,
-} from "./types";
+} from "#core/mix/types";
+import type { AudioItem, TimelineSpec } from "#core/schema/timeline";
+import { flattenSpec, type FlatTimeline } from "#core/timeline/flatten";
+import { msToExactFrames, msToFrames } from "#core/timeline/time";
 
 export const resolveMix = (mix: Mix | undefined): Mix => mix ?? defaultMix();
 

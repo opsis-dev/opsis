@@ -4,8 +4,8 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 const TSCONFIG = path.join(import.meta.dirname, "..", "..", "tsconfig.json");
-const SCANNED = /\/packages\/(core|ui)\/src\/(?!.*\.test\.)/;
-const LISTS = /\/packages\/(core\/src\/nodes\/icon-name|ui\/src\/editor\/icons)\.ts$/;
+const SCANNED = /\/(packages\/core|apps\/ui)\/src\/(?!.*\.test\.)/;
+const LISTS = /\/(packages\/core\/src\/nodes\/icon-name|apps\/ui\/src\/editor\/icons)\.ts$/;
 const ICON_NAMES = new Set<string>(NODE_ICON_NAMES);
 
 function parsedConfig(): ts.ParsedCommandLine {

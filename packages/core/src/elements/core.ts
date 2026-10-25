@@ -1,8 +1,6 @@
 import { zColor } from "@remotion/zod-types";
 import { z } from "zod";
-import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
-import { MAX_VOLUME } from "../limits";
-import { asset, bool, cameraPath, choice, choiceFrom, more, text } from "../nodes/params";
+import { BACKDROPS, DEFAULT_BACKDROP } from "#core/backdrops";
 import {
   ACCENT_COLOR,
   CALLOUT_COLOR,
@@ -11,10 +9,12 @@ import {
   HIGHLIGHT_COLOR,
   PANEL_COLOR,
   TEXT_COLOR,
-} from "./colors";
-import { DEVICE_LABELS, DEVICES, SCREEN_MOVE_LABELS, SCREEN_MOVES } from "./screen-3d";
-import { LIGHTING_LABELS, LIGHTINGS, MOTION_LABELS, MOTIONS } from "./three";
-import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "./types";
+} from "#core/elements/colors";
+import { DEVICE_LABELS, DEVICES, SCREEN_MOVE_LABELS, SCREEN_MOVES } from "#core/elements/screen-3d";
+import { LIGHTING_LABELS, LIGHTINGS, MOTION_LABELS, MOTIONS } from "#core/elements/three";
+import { defineElementMeta, type ElementMeta, type ElementMetaInput } from "#core/elements/types";
+import { MAX_VOLUME } from "#core/limits";
+import { asset, bool, cameraPath, choice, choiceFrom, more, text } from "#core/nodes/params";
 
 const source = {
   registry: "Opsis",

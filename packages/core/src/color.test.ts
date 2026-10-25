@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatColor, formatOf, parseColor, projectSwatches, sameColor } from "./color";
+import { formatColor, formatOf, parseColor, projectSwatches, sameColor } from "#core/color";
 
 describe("parseColor", () => {
   it("keeps the alpha of rgba, hex8 and oklch values", () => {

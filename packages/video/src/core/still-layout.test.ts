@@ -7,7 +7,7 @@ import {
   tallestShot,
   type Box,
   type Shot,
-} from "./still-layout";
+} from "#video/core/still-layout.ts";
 
 const HD = { width: 1920, height: 1080 };
 

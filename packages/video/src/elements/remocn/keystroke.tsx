@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Easing } from "remotion";
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export type KeystrokePlatform = "mac" | "windows";
 export type KeystrokeTheme = "light" | "dark";

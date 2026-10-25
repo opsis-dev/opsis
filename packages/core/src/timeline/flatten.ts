@@ -1,11 +1,11 @@
-import { itemHasSound } from "../compile/clip";
-import { recordingSpeed } from "../compile/recording";
-import { inverseRemap, remapFrame, type RemapSide } from "../compile/remap";
-import { MAX_REPEATS } from "../limits";
-import { clamp, EPSILON } from "../math";
-import type { ChannelKind } from "../mix/types";
-import type { Action } from "../schema/actions";
-import type { RecordingProps } from "../schema/recording";
+import { itemHasSound } from "#core/compile/clip";
+import { recordingSpeed } from "#core/compile/recording";
+import { inverseRemap, remapFrame, type RemapSide } from "#core/compile/remap";
+import { MAX_REPEATS } from "#core/limits";
+import { clamp, EPSILON } from "#core/math";
+import type { ChannelKind } from "#core/mix/types";
+import type { Action } from "#core/schema/actions";
+import type { RecordingProps } from "#core/schema/recording";
 import type {
   AudioItem,
   EditHandles,
@@ -17,13 +17,13 @@ import type {
   TimelineItem,
   TimelineSpec,
   TimelineTrack,
-} from "../schema/timeline";
-import { actionLabel } from "./action-labels";
-import { audioBars } from "./audio-bars";
-import { sortedCameraKeys } from "./camera-path";
-import { overlaps, packAudio, packLanes } from "./lanes";
-import { thumbnailOf } from "./thumbnails";
-import { recordingMsToFrames } from "./time";
+} from "#core/schema/timeline";
+import { actionLabel } from "#core/timeline/action-labels";
+import { audioBars } from "#core/timeline/audio-bars";
+import { sortedCameraKeys } from "#core/timeline/camera-path";
+import { overlaps, packAudio, packLanes } from "#core/timeline/lanes";
+import { thumbnailOf } from "#core/timeline/thumbnails";
+import { recordingMsToFrames } from "#core/timeline/time";
 
 type Instance = {
   toAbs: (content: number, side: RemapSide) => number;

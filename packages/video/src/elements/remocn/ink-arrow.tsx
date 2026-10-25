@@ -1,4 +1,4 @@
-import { useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 import {
   BrushGrain,
   type BrushPoint,
@@ -7,8 +7,8 @@ import {
   brushRibbon,
   sampleCubic,
   sampleLine,
-} from "./brush";
-import { DEFAULT_STEP, hashRange, steppedRamp } from "../../lib/remocn/stop-motion";
+} from "#video/elements/remocn/brush.tsx";
+import { DEFAULT_STEP, hashRange, steppedRamp } from "#video/lib/remocn/stop-motion.ts";
 
 const HEAD_ANGLE = 0.72;
 const SHAFT_SAMPLES = 40;

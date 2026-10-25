@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { emptyClip, groupOf } from "../compile/clip";
-import { ELEMENTS } from "../elements";
-import { fieldMeta } from "../elements/introspect";
-import { compileClip, elementOf, must, nodeCard } from "../test-fixtures";
-import { getNodeDef } from "./registry";
+import { emptyClip, groupOf } from "#core/compile/clip";
+import { ELEMENTS } from "#core/elements";
+import { fieldMeta } from "#core/elements/introspect";
+import { getNodeDef } from "#core/nodes/registry";
+import { compileClip, elementOf, must, nodeCard } from "#core/test-fixtures";
 
 const SPRING_SETTLE = "fx.remocn.spring-settle";
 

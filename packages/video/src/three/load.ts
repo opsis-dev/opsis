@@ -1,6 +1,6 @@
 import { SRGBColorSpace, TextureLoader, type Texture } from "three";
 import { SVGLoader, type SVGResult } from "three/addons/loaders/SVGLoader.js";
-import { useHeldLoad } from "../core/loading";
+import { useHeldLoad } from "#video/core/loading.ts";
 
 export const isSvg = (src: string): boolean =>
   /\.svg(\?|#|$)/i.test(src) || src.startsWith("data:image/svg");

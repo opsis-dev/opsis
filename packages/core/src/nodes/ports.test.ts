@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { CompileValue } from "../schema/values";
-import { canConnect, convertInput, portLabel } from "./ports";
+import { canConnect, convertInput, portLabel } from "#core/nodes/ports";
+import type { CompileValue } from "#core/schema/values";
 
 const recording: CompileValue = {
   type: "recording",

@@ -1,5 +1,5 @@
-import type { EditHandleKind, Slot } from "../schema/timeline";
-import type { ChainLink, VideoBar } from "./flatten";
+import type { EditHandleKind, Slot } from "#core/schema/timeline";
+import type { ChainLink, VideoBar } from "#core/timeline/flatten";
 
 type SlotLink = ChainLink & { slot: Slot };
 

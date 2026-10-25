@@ -1,4 +1,4 @@
-import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
+import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 import type { Step } from "./types";
 
 export function framesFor(

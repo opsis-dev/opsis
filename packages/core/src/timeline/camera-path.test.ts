@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { CameraPath } from "../schema/timeline";
-import { cameraAt, cameraKeyAt, moveCameraKey } from "./camera-path";
+import type { CameraPath } from "#core/schema/timeline";
+import { cameraAt, cameraKeyAt, moveCameraKey } from "#core/timeline/camera-path";
 
 const path: CameraPath = {
   keys: [

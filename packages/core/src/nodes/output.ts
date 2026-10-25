@@ -1,15 +1,9 @@
 import { z } from "zod";
-import { formatDuration, formatBytes } from "../format";
-import { parseOrDefault } from "../guards";
-import { evenPx } from "../math";
-import { safeName } from "../safe-name";
-import { REFRAMES, type ReframeMode } from "../schema/timeline";
-import { outputOf, type Artifact } from "../schema/values";
-import type { WorkflowNode, WorkflowSettings } from "../schema/workflow";
-import { framesToMs } from "../timeline/time";
-import { PROJECT_NAME } from "../vars";
-import { row } from "./card";
-import { CLIP_PORT, defineNode, port } from "./define";
+import { formatDuration, formatBytes } from "#core/format";
+import { parseOrDefault } from "#core/guards";
+import { evenPx } from "#core/math";
+import { row } from "#core/nodes/card";
+import { CLIP_PORT, defineNode, port } from "#core/nodes/define";
 import {
   bool,
   choice,
@@ -21,7 +15,13 @@ import {
   num,
   quality,
   text,
-} from "./params";
+} from "#core/nodes/params";
+import { safeName } from "#core/safe-name";
+import { REFRAMES, type ReframeMode } from "#core/schema/timeline";
+import { outputOf, type Artifact } from "#core/schema/values";
+import type { WorkflowNode, WorkflowSettings } from "#core/schema/workflow";
+import { framesToMs } from "#core/timeline/time";
+import { PROJECT_NAME } from "#core/vars";
 
 const GL_LABELS = {
   angle: "Graphics card",

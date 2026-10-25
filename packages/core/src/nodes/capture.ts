@@ -1,14 +1,10 @@
 import { z } from "zod";
-import { DEFAULT_BACKDROP } from "../backdrops";
-import { itemClip, type ItemExtra } from "../compile/clip";
-import { formatDuration, plural } from "../format";
-import type { Bounds } from "../schema/actions";
-import { outputOf } from "../schema/values";
-import { DEFAULT_STILL_MS, DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "../schema/workflow";
-import { msToFrames } from "../timeline/time";
-import { sessionPort, startRecordingNode } from "./browser";
-import { elementRow, row } from "./card";
-import { defineNode, nodeBase, port } from "./define";
+import { DEFAULT_BACKDROP } from "#core/backdrops";
+import { itemClip, type ItemExtra } from "#core/compile/clip";
+import { formatDuration, plural } from "#core/format";
+import { sessionPort, startRecordingNode } from "#core/nodes/browser";
+import { elementRow, row } from "#core/nodes/card";
+import { defineNode, nodeBase, port } from "#core/nodes/define";
 import {
   bool,
   choice,
@@ -21,8 +17,12 @@ import {
   pickedRole,
   text,
   visualEnvelope,
-} from "./params";
-import { SESSION_PORT } from "./ports";
+} from "#core/nodes/params";
+import { SESSION_PORT } from "#core/nodes/ports";
+import type { Bounds } from "#core/schema/actions";
+import { outputOf } from "#core/schema/values";
+import { DEFAULT_STILL_MS, DEFAULT_TAKE_MS, DEFAULT_VIEWPORT } from "#core/schema/workflow";
+import { msToFrames } from "#core/timeline/time";
 
 const CURSORS = {
   synthetic: { label: "Smooth", row: "Smooth cursor" },

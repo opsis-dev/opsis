@@ -9,7 +9,7 @@ index e31e8b0..be28d5f 100644
 @@ -1,6 +1,8 @@
 -import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 +import { interpolate, spring } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  export interface TrackingInProps {
 +  fontFamily?: string;

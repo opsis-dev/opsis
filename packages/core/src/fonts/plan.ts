@@ -1,4 +1,4 @@
-import type { FontFaceDef } from "./types";
+import type { FontFaceDef } from "#core/fonts/types";
 
 export type FontCandidate = {
   name: string;

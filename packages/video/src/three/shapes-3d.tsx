@@ -5,8 +5,8 @@ import React, { useEffect, useMemo } from "react";
 import { random, useCurrentFrame, useVideoConfig } from "remotion";
 import { MeshStandardMaterial, SphereGeometry, TorusGeometry, type BufferGeometry } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
-import { viewPose } from "./motion";
-import { Posed, Stage3D } from "./stage";
+import { viewPose } from "#video/three/motion.ts";
+import { Posed, Stage3D } from "#video/three/stage.tsx";
 
 const FOV_HALF = (30 * Math.PI) / 360;
 const STAGE_DISTANCE = 1.15 / Math.sin(FOV_HALF);

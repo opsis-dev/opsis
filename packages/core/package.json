@@ -10,6 +10,12 @@
     "./templates": "./src/templates/index.ts",
     "./*": "./src/*.ts"
   },
+  "imports": {
+    "#core/elements": "./src/elements/index.ts",
+    "#core/fonts": "./src/fonts/index.ts",
+    "#core/templates": "./src/templates/index.ts",
+    "#core/*": "./src/*.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "oxlint -c oxlint.config.ts",

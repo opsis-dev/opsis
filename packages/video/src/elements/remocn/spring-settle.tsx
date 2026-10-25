@@ -8,7 +8,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { CLAMP, FADE, stagger } from "../../lib/remocn/scene-motion";
+import { CLAMP, FADE, stagger } from "#video/lib/remocn/scene-motion.ts";
 
 export type SpringSettleConfig = {
   sceneFrames: number;

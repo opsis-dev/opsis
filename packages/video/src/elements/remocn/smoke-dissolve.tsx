@@ -4,7 +4,7 @@ import type {
 } from "@remotion/transitions";
 import type React from "react";
 import { AbsoluteFill, Easing, interpolate } from "remotion";
-import { ShaderSmokeRing } from "./shader-smoke-ring";
+import { ShaderSmokeRing } from "#video/elements/remocn/shader-smoke-ring.tsx";
 
 const clampOpts = {
   extrapolateLeft: "clamp" as const,

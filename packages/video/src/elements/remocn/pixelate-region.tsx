@@ -1,11 +1,11 @@
 import type React from "react";
 import { AbsoluteFill } from "remotion";
-import { useAuthoredConfig } from "../../core/authored-clock";
+import { useAuthoredConfig } from "#video/core/authored-clock.ts";
 import {
   type CanvasFilterProps,
   makeCanvasFilter,
   makeFilterShader,
-} from "../../lib/remocn/canvas-presentation";
+} from "#video/lib/remocn/canvas-presentation.tsx";
 
 export type PixelateRect = {
   x: number;

@@ -1,16 +1,9 @@
 import { z } from "zod";
-import { staysInProject } from "../asset-ref";
-import { chordKeys } from "../chord";
-import { formatDuration, displayAddress, formatWhen, plural } from "../format";
-import { isLocale, isTimeZone } from "../locale";
-import { mimeSubtype } from "../mime";
-import { readPath } from "../schema/actions";
-import { asValue, type BrowserSessionValue } from "../schema/values";
-import { DEFAULT_VIEWPORT } from "../schema/workflow";
-import { secretFileName, secretName } from "../secrets";
-import { nonBlankLines } from "../text-input";
-import { PAUSE_MARK, SITE_ADDRESS } from "../vars";
-import { isWallTime } from "../wall-time";
+import { staysInProject } from "#core/asset-ref";
+import { chordKeys } from "#core/chord";
+import { formatDuration, displayAddress, formatWhen, plural } from "#core/format";
+import { isLocale, isTimeZone } from "#core/locale";
+import { mimeSubtype } from "#core/mime";
 import {
   CODE_TEXT_MAX,
   elementRow,
@@ -26,8 +19,14 @@ import {
   truncate,
   warnIf,
   type CardRow,
-} from "./card";
-import { defineNode, nodeBase, port, type CompileContext, type CompileOutputs } from "./define";
+} from "#core/nodes/card";
+import {
+  defineNode,
+  nodeBase,
+  port,
+  type CompileContext,
+  type CompileOutputs,
+} from "#core/nodes/define";
 import {
   beatFields,
   bool,
@@ -46,8 +45,15 @@ import {
   requiredText,
   targetFields,
   text,
-} from "./params";
-import { SESSION_PORT } from "./ports";
+} from "#core/nodes/params";
+import { SESSION_PORT } from "#core/nodes/ports";
+import { readPath } from "#core/schema/actions";
+import { asValue, type BrowserSessionValue } from "#core/schema/values";
+import { DEFAULT_VIEWPORT } from "#core/schema/workflow";
+import { secretFileName, secretName } from "#core/secrets";
+import { nonBlankLines } from "#core/text-input";
+import { PAUSE_MARK, SITE_ADDRESS } from "#core/vars";
+import { isWallTime } from "#core/wall-time";
 
 export const sessionPort = () => port("browser-session", "Browser");
 

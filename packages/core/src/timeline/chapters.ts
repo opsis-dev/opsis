@@ -1,6 +1,6 @@
-import type { TimelineSpec } from "../schema/timeline";
-import { flattenSpec } from "./flatten";
-import { chapterTime, framesToMs } from "./time";
+import type { TimelineSpec } from "#core/schema/timeline";
+import { flattenSpec } from "#core/timeline/flatten";
+import { chapterTime, framesToMs } from "#core/timeline/time";
 
 export type FilmChapter = { title: string; startMs: number; endMs: number };
 

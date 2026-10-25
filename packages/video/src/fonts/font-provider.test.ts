@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { usedFontNames } from "./font-provider";
+import { usedFontNames } from "#video/fonts/font-provider.tsx";
 
 describe("fonts used by a timeline", () => {
   it("collects per-node fonts from items, groups and wrappers", () => {

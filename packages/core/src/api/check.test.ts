@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { getTemplate } from "../templates";
-import { must } from "../test-fixtures";
-import { checkWorkflow } from "./check";
+import { checkWorkflow } from "#core/api/check";
+import { getTemplate } from "#core/templates";
+import { must } from "#core/test-fixtures";
 
 const todo = () => getTemplate("todomvc").build("Check");
 

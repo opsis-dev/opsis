@@ -8,15 +8,10 @@ import {
   stackClips,
   withHandles,
   wrapClip,
-} from "../compile/clip";
-import { speedRemap } from "../compile/remap";
-import { formatDuration, plural } from "../format";
-import { MAX_FRAMES, MAX_REPEATS, MIN_SPEED } from "../limits";
-import type { GroupProps } from "../schema/timeline";
-import { asValue, type ClipValue } from "../schema/values";
-import type { WorkflowSettings } from "../schema/workflow";
-import { parseNumberList } from "../text-input";
-import { atLeastOneFrame, framesToMs, msToFrames } from "../timeline/time";
+} from "#core/compile/clip";
+import { speedRemap } from "#core/compile/remap";
+import { formatDuration, plural } from "#core/format";
+import { MAX_FRAMES, MAX_REPEATS, MIN_SPEED } from "#core/limits";
 import {
   connectedPorts,
   cover,
@@ -31,7 +26,7 @@ import {
   warnIf,
   type CardRow,
   type Cover,
-} from "./card";
+} from "#core/nodes/card";
 import {
   defineNode,
   modifierBase,
@@ -41,16 +36,28 @@ import {
   withClip,
   type CompileInputs,
   type CompileOutputs,
-} from "./define";
-import { bool, choice, choiceOf, frames, int, more, ms, rate, text } from "./params";
-import { clipLabel, clipPorts, connectedClips, CUT_PORTS, IN_PORTS, layerLabel } from "./ports";
+} from "#core/nodes/define";
+import { bool, choice, choiceOf, frames, int, more, ms, rate, text } from "#core/nodes/params";
+import {
+  clipLabel,
+  clipPorts,
+  connectedClips,
+  CUT_PORTS,
+  IN_PORTS,
+  layerLabel,
+} from "#core/nodes/ports";
 import {
   DEFAULT_TRANSITION,
   NO_TRANSITION,
   TRANSITION_KINDS,
   transitionRef,
   transitionTitle,
-} from "./transitions";
+} from "#core/nodes/transitions";
+import type { GroupProps } from "#core/schema/timeline";
+import { asValue, type ClipValue } from "#core/schema/values";
+import type { WorkflowSettings } from "#core/schema/workflow";
+import { parseNumberList } from "#core/text-input";
+import { atLeastOneFrame, framesToMs, msToFrames } from "#core/timeline/time";
 
 const base = nodeBase("Timeline", "compile");
 

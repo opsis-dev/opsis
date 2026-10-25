@@ -1,50 +1,34 @@
 import { z } from "zod";
-import { baseName } from "../asset-ref";
-import { BACKDROPS, DEFAULT_BACKDROP } from "../backdrops";
-import { parseColor } from "../color";
+import { baseName } from "#core/asset-ref";
+import { BACKDROPS, DEFAULT_BACKDROP } from "#core/backdrops";
+import { parseColor } from "#core/color";
 import {
   clipFrameOfRecording,
   itemClip,
   patchRecordings,
   recordingClip,
   wrapClip,
-} from "../compile/clip";
+} from "#core/compile/clip";
 import {
   defaultRecordingProps,
   followCursorBeats,
   idleSpans,
   recordingSpeed,
-} from "../compile/recording";
-import { remapDuration, remapFromSegments } from "../compile/remap";
+} from "#core/compile/recording";
+import { remapDuration, remapFromSegments } from "#core/compile/remap";
 import {
   restyleWith,
   retimeWith,
   styleStep,
   type StyleSteps,
   type StyleTable,
-} from "../compile/style";
-import type { FieldMeta } from "../elements/introspect";
-import { formatDuration, humanize, percentText, plural } from "../format";
-import { MIN_CROP, MIN_SPEED } from "../limits";
-import { EPSILON } from "../math";
-import { pointRect, type Action } from "../schema/actions";
-import { CAMERA_STYLES, type RecordingProps } from "../schema/recording";
-import { asValue, type ClipValue } from "../schema/values";
-import { DEFAULT_TAKE_MS } from "../schema/workflow";
-import { msToFrames, recordingMsToFrames, wholeFrames } from "../timeline/time";
-import {
-  DEFAULT_ADDRESS_BAR,
-  DEFAULT_FRAME_THEME,
-  DEFAULT_WINDOW_STYLE,
-  FRAME_THEMES,
-  hostWindowStyle,
-  WINDOW_STYLE_LABELS,
-  WINDOW_STYLES,
-  type FrameTheme,
-  type WindowStyle,
-} from "../window-styles";
-import { missing, mutedIf, row, toggleRow, type CardRow, type InputTake } from "./card";
-import { CURSOR_STYLE_TYPE, cursorStyles } from "./cursor";
+} from "#core/compile/style";
+import type { FieldMeta } from "#core/elements/introspect";
+import { formatDuration, humanize, percentText, plural } from "#core/format";
+import { MIN_CROP, MIN_SPEED } from "#core/limits";
+import { EPSILON } from "#core/math";
+import { missing, mutedIf, row, toggleRow, type CardRow, type InputTake } from "#core/nodes/card";
+import { CURSOR_STYLE_TYPE, cursorStyles } from "#core/nodes/cursor";
 import {
   CLIP_PORT,
   defineNode,
@@ -57,9 +41,9 @@ import {
   STYLE_PORT,
   styleModifier,
   withClip,
-} from "./define";
-import { effectStyles } from "./effects";
-import type { NodeIconName } from "./icon-name";
+} from "#core/nodes/define";
+import { effectStyles } from "#core/nodes/effects";
+import type { NodeIconName } from "#core/nodes/icon-name";
 import {
   asset,
   bool,
@@ -73,8 +57,24 @@ import {
   rate,
   text,
   zoomFactor,
-} from "./params";
-import { textStyles } from "./text";
+} from "#core/nodes/params";
+import { textStyles } from "#core/nodes/text";
+import { pointRect, type Action } from "#core/schema/actions";
+import { CAMERA_STYLES, type RecordingProps } from "#core/schema/recording";
+import { asValue, type ClipValue } from "#core/schema/values";
+import { DEFAULT_TAKE_MS } from "#core/schema/workflow";
+import { msToFrames, recordingMsToFrames, wholeFrames } from "#core/timeline/time";
+import {
+  DEFAULT_ADDRESS_BAR,
+  DEFAULT_FRAME_THEME,
+  DEFAULT_WINDOW_STYLE,
+  FRAME_THEMES,
+  hostWindowStyle,
+  WINDOW_STYLE_LABELS,
+  WINDOW_STYLES,
+  type FrameTheme,
+  type WindowStyle,
+} from "#core/window-styles";
 
 const base = nodeBase("Camera", "compile");
 const modifier = modifierBase("Camera");

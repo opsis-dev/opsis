@@ -5,14 +5,14 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { stageScale } from "../../../lib/remotion-ui/ai-composer-utils";
+import { stageScale } from "#video/lib/remotion-ui/ai-composer-utils.tsx";
 import {
   CODE_THEMES,
   CodeLine,
   MONO_ADVANCE,
   tokenizeCode,
-} from "../../../lib/remotion-ui/code-syntax";
-import { EASING } from "../../../lib/remotion-ui/motion-tokens";
+} from "#video/lib/remotion-ui/code-syntax.tsx";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "500", "700"],

@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { projectFontsSchema } from "../fonts/types";
-import { isKeyOf, isRecord } from "../guards";
-import { rectSchema, viewportSchema } from "./actions";
-import { recordingPropsSchema } from "./recording";
-import { DEFAULT_WORKFLOW_SETTINGS } from "./workflow";
+import { projectFontsSchema } from "#core/fonts/types";
+import { isKeyOf, isRecord } from "#core/guards";
+import { rectSchema, viewportSchema } from "#core/schema/actions";
+import { recordingPropsSchema } from "#core/schema/recording";
+import { DEFAULT_WORKFLOW_SETTINGS } from "#core/schema/workflow";
 
 export const transitionRefSchema = z.object({
   kind: z.string(),

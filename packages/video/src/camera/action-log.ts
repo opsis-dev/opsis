@@ -10,8 +10,8 @@ import {
   type Viewport,
 } from "@opsis/core/schema/actions";
 import type { AnnotationKind, AnnotationSpec, HighlightLook } from "@opsis/core/schema/recording";
-import type { ClickEvent, ClickLog, KeyEvent } from "./lib/click-log";
-import { designScaleFor } from "./lib/design-width";
+import type { ClickEvent, ClickLog, KeyEvent } from "#video/camera/lib/click-log.ts";
+import { designScaleFor } from "#video/camera/lib/design-width.ts";
 
 export type Annotation = {
   id: string;

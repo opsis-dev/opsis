@@ -7,7 +7,7 @@ import { AbsoluteFill, random } from "remotion";
 import {
   makeCanvasPresentation,
   makeSceneShader,
-} from "../../lib/remocn/canvas-presentation";
+} from "#video/lib/remocn/canvas-presentation.tsx";
 
 export type GlitchCutProps = {
   intensity?: number;

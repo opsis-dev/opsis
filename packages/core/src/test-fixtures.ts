@@ -1,20 +1,20 @@
-import { walkItems } from "./compile/clip";
-import { compileWorkflow, previewSpec } from "./compile/compile";
-import type { CardContext, CardRow } from "./nodes/card";
-import { cardRows, type CompileInputs, type CompileOutputs } from "./nodes/define";
-import { defaultParams, getNodeDef } from "./nodes/registry";
-import type { Action, ActionLog } from "./schema/actions";
-import type { ElementItem, TimelineItem, TimelineSpec } from "./schema/timeline";
+import { walkItems } from "#core/compile/clip";
+import { compileWorkflow, previewSpec } from "#core/compile/compile";
+import type { CardContext, CardRow } from "#core/nodes/card";
+import { cardRows, type CompileInputs, type CompileOutputs } from "#core/nodes/define";
+import { defaultParams, getNodeDef } from "#core/nodes/registry";
+import type { Action, ActionLog } from "#core/schema/actions";
+import type { ElementItem, TimelineItem, TimelineSpec } from "#core/schema/timeline";
 import type {
   ClipValue,
   NodeResult,
   RecordingStyleValue,
   RecordingValue,
   StyleEntry,
-} from "./schema/values";
-import { DEFAULT_WORKFLOW_SETTINGS, type Workflow, type WorkflowNode } from "./schema/workflow";
-import { GraphBuilder, type TakeStep } from "./templates/build";
-import { flattenSpec, type FlatTimeline } from "./timeline/flatten";
+} from "#core/schema/values";
+import { DEFAULT_WORKFLOW_SETTINGS, type Workflow, type WorkflowNode } from "#core/schema/workflow";
+import { GraphBuilder, type TakeStep } from "#core/templates/build";
+import { flattenSpec, type FlatTimeline } from "#core/timeline/flatten";
 
 export const TITLE = "fx.core.title";
 

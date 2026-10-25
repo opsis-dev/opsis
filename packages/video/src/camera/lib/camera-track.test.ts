@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { BASE_POSE, posesNearlyEqual } from "./camera";
 import {
   buildCameraTrack,
   cursorAim,
@@ -9,10 +8,11 @@ import {
   S_MAX,
   sampleTrack,
   stickify,
-} from "./camera-track";
-import type { ClickEvent, ClickLog } from "./click-log";
-import { isInFrame } from "./test-fixtures";
-import { zoomAt } from "./zoom";
+} from "#video/camera/lib/camera-track.ts";
+import { BASE_POSE, posesNearlyEqual } from "#video/camera/lib/camera.ts";
+import type { ClickEvent, ClickLog } from "#video/camera/lib/click-log.ts";
+import { isInFrame } from "#video/camera/lib/test-fixtures.ts";
+import { zoomAt } from "#video/camera/lib/zoom.ts";
 
 const VP = { width: 1920, height: 1080 };
 

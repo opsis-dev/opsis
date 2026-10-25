@@ -6,9 +6,9 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { CODE_THEMES } from "../../../lib/remotion-ui/code-syntax";
-import { getSafeAreaPadding } from "../../../lib/remotion-ui/layout";
-import { EASING } from "../../../lib/remotion-ui/motion-tokens";
+import { CODE_THEMES } from "#video/lib/remotion-ui/code-syntax.tsx";
+import { getSafeAreaPadding } from "#video/lib/remotion-ui/layout.ts";
+import { EASING } from "#video/lib/remotion-ui/motion-tokens.ts";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "500", "600", "700"],

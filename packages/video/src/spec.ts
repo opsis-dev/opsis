@@ -1,3 +1,3 @@
-export { designScaleFor } from "./camera/lib/design-width";
-export { registerFaces, unregisterFaces } from "./fonts/registry";
-export { duckGain, duckingSpans } from "./mix/duck";
+export { designScaleFor } from "#video/camera/lib/design-width.ts";
+export { registerFaces, unregisterFaces } from "#video/fonts/registry.ts";
+export { duckGain, duckingSpans } from "#video/mix/duck.ts";

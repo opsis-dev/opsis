@@ -1,4 +1,4 @@
-import { safeName } from "./safe-name";
+import { safeName } from "#core/safe-name";
 
 export const projectFolderName = (name: string): string => safeName(name, { fallback: "demo" });
 

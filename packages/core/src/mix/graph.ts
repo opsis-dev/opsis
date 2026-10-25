@@ -1,12 +1,19 @@
 import { z } from "zod";
-import { parseJsonWith } from "../guards";
-import { clamp } from "../math";
-import type { Keyframe } from "../schema/timeline";
-import { samplePoints } from "../timeline/envelope";
-import { framesToMs } from "../timeline/time";
-import type { BusPlan, ChannelPlan, MixPlan, SoundPlacement } from "./plan";
-import { atempoChain } from "./tempo";
-import { LOUDNESS_TARGETS, SAMPLE_RATE, dbToGain, type Comp, type Eq, type Master } from "./types";
+import { parseJsonWith } from "#core/guards";
+import { clamp } from "#core/math";
+import type { BusPlan, ChannelPlan, MixPlan, SoundPlacement } from "#core/mix/plan";
+import { atempoChain } from "#core/mix/tempo";
+import {
+  LOUDNESS_TARGETS,
+  SAMPLE_RATE,
+  dbToGain,
+  type Comp,
+  type Eq,
+  type Master,
+} from "#core/mix/types";
+import type { Keyframe } from "#core/schema/timeline";
+import { samplePoints } from "#core/timeline/envelope";
+import { framesToMs } from "#core/timeline/time";
 
 const MIN_COMP_THRESHOLD = 0.000976563;
 const MAX_COMP_MAKEUP = 64;

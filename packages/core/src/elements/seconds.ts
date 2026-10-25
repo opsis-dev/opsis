@@ -1,7 +1,7 @@
-import { isNumber, isRecord, isString } from "../guards";
-import { roundTo } from "../math";
-import { type FieldMeta, mapLeaves } from "./introspect";
-import type { ElementMeta } from "./types";
+import { type FieldMeta, mapLeaves } from "#core/elements/introspect";
+import type { ElementMeta } from "#core/elements/types";
+import { isNumber, isRecord, isString } from "#core/guards";
+import { roundTo } from "#core/math";
 
 const toFrames = (seconds: number, rate: number): number => roundTo(seconds * rate, 2);
 

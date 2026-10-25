@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendCapped, firstFree, keepLast, uniqueKeys, withCurrent } from "./lists";
+import { appendCapped, firstFree, keepLast, uniqueKeys, withCurrent } from "#core/lists";
 
 describe("lists", () => {
   it("keeps the last items", () => {

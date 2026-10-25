@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { compileWorkflow } from "../compile/compile";
-import { findById } from "../lists";
-import { asValue } from "../schema/values";
-import type { Workflow } from "../schema/workflow";
-import { GraphBuilder } from "../templates/build";
-import { must, nodeCard } from "../test-fixtures";
-import { PAUSE_MARK } from "../vars";
+import { compileWorkflow } from "#core/compile/compile";
+import { findById } from "#core/lists";
 import {
   assertNode,
   browserNodes,
@@ -16,10 +11,15 @@ import {
   typeNode,
   uploadNode,
   waitNode,
-} from "./browser";
-import { parseNodeParams } from "./define";
-import { parseParams } from "./params";
-import { defaultParams, getNodeDef } from "./registry";
+} from "#core/nodes/browser";
+import { parseNodeParams } from "#core/nodes/define";
+import { parseParams } from "#core/nodes/params";
+import { defaultParams, getNodeDef } from "#core/nodes/registry";
+import { asValue } from "#core/schema/values";
+import type { Workflow } from "#core/schema/workflow";
+import { GraphBuilder } from "#core/templates/build";
+import { must, nodeCard } from "#core/test-fixtures";
+import { PAUSE_MARK } from "#core/vars";
 
 describe("browser action cards", () => {
   it("shows what the Type text node does", () => {

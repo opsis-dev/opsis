@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { addEdgeBody, addNodeBody } from "./bodies";
-import { firstIssueText } from "./issue-text";
+import { addEdgeBody, addNodeBody } from "#core/api/bodies";
+import { firstIssueText } from "#core/api/issue-text";
 
 describe("first issue text", () => {
   it("names the field the way the project check does", () => {

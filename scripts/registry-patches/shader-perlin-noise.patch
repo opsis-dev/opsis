@@ -12,7 +12,7 @@ index 0408a39..c06b817 100644
 -  useCurrentFrame,
 -  useVideoConfig,
  } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  export interface ShaderPerlinNoiseProps
    extends Omit<PerlinNoiseProps, "frame" | "ref"> {}

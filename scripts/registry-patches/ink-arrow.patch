@@ -7,7 +7,7 @@ index 558317a..bede999 100644
 +++ b/packages/video/src/elements/remocn/ink-arrow.tsx
 @@ -1,4 +1,4 @@
 -import { useCurrentFrame } from "remotion";
-+import { useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredFrame } from "#video/core/authored-clock.ts";
  import {
    BrushGrain,
    type BrushPoint,

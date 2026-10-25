@@ -10,7 +10,7 @@ index b7b5039..e928c06 100644
 @@ -1,6 +1,8 @@
 -import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 +import { interpolate } from "remotion";
-+import { useAuthoredConfig, useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  export interface ShimmerSweepProps {
 +  fontFamily?: string;

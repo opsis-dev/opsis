@@ -9,7 +9,7 @@ index 5749adc..05dff0e 100644
 @@ -1,6 +1,8 @@
 -import { Easing, interpolate, useCurrentFrame } from "remotion";
 +import { Easing, interpolate } from "remotion";
-+import { useAuthoredFrame } from "../../core/authored-clock";
++import { useAuthoredFrame } from "#video/core/authored-clock.ts";
  
  export interface SoftBlurInProps {
 +  fontFamily?: string;

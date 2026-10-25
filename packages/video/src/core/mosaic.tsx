@@ -1,7 +1,7 @@
 import React from "react";
 import { useVideoConfig } from "remotion";
-import { PixelateRegion } from "../elements/remocn/pixelate-region";
-import type { Box } from "./still-layout";
+import type { Box } from "#video/core/still-layout.ts";
+import { PixelateRegion } from "#video/elements/remocn/pixelate-region.tsx";
 
 const MAX_REGIONS = 8;
 

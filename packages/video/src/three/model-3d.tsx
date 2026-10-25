@@ -13,10 +13,10 @@ import {
 } from "three";
 import type { GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-import { GroundShadow } from "./card-3d";
-import { useModel } from "./load-model";
-import { elementPose } from "./motion";
-import { Posed, Stage3D } from "./stage";
+import { GroundShadow } from "#video/three/card-3d.tsx";
+import { useModel } from "#video/three/load-model.ts";
+import { elementPose } from "#video/three/motion.ts";
+import { Posed, Stage3D } from "#video/three/stage.tsx";
 
 const MODEL_SIZE = 2.2;
 const SEED = 1;

@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { CANCELLED } from "./errors";
+import { CANCELLED } from "#core/errors";
 import {
   applyRunEvent,
   emptyRunProgress,
   exportedArtifacts,
   failureMessage,
   resumeRunProgress,
-} from "./run-progress";
-import type { RunEvent } from "./schema/events";
-import { nodeResult } from "./test-fixtures";
+} from "#core/run-progress";
+import type { RunEvent } from "#core/schema/events";
+import { nodeResult } from "#core/test-fixtures";
 
 const result = (finishedAt: number, paths: string[] = []) =>
   nodeResult({ finishedAt, artifacts: paths.map((path) => ({ kind: "video", path })) });

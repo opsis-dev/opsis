@@ -1,10 +1,12 @@
 import { assert, describe, expect, it } from "vitest";
-import { connectionProblem } from "../graph";
-import { findById } from "../lists";
-import type { TimelineSpec } from "../schema/timeline";
-import type { Workflow } from "../schema/workflow";
-import { getTemplate } from "../templates";
-import { GraphBuilder } from "../templates/build";
+import { groupOf, isClip, recordingOf } from "#core/compile/clip";
+import { compileWorkflow, previewSpec } from "#core/compile/compile";
+import { connectionProblem } from "#core/graph";
+import { findById } from "#core/lists";
+import type { TimelineSpec } from "#core/schema/timeline";
+import type { Workflow } from "#core/schema/workflow";
+import { getTemplate } from "#core/templates";
+import { GraphBuilder } from "#core/templates/build";
 import {
   elementOf,
   itemsOf,
@@ -14,10 +16,8 @@ import {
   recordedTake,
   recordResult,
   TITLE,
-} from "../test-fixtures";
-import { flattenSpec } from "../timeline/flatten";
-import { groupOf, isClip, recordingOf } from "./clip";
-import { compileWorkflow, previewSpec } from "./compile";
+} from "#core/test-fixtures";
+import { flattenSpec } from "#core/timeline/flatten";
 
 const todoMvc = () => getTemplate("todomvc").build("TodoMVC demo");
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitMark } from "./title";
+import { splitMark } from "#video/core/title.tsx";
 
 describe("marked words in a title", () => {
   it("finds the words whatever their case and keeps the title's own spelling", () => {
