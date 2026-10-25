@@ -1,0 +1,25 @@
+[package]
+name = "opsis-runner"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+futures = "0.3.34"
+indexmap = "2.14.2"
+jiff = "0.2.38"
+log = "0.4.34"
+opsis-compile = { version = "0.1.0", path = "../compile" }
+opsis-engine = { version = "0.1.0", path = "../engine" }
+opsis-project = { version = "0.1.0", path = "../project" }
+opsis-types = { version = "0.1.0", path = "../types" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.154", features = ["preserve_order"] }
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["sync", "rt", "macros", "fs"] }
+tokio-util = "0.7.20"
+
+[dev-dependencies]
+tempfile = "3.27.0"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros"] }

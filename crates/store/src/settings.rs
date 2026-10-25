@@ -20,7 +20,11 @@ impl Database {
         let mut object = Map::new();
         for row in rows {
             let (section, value) = row?;
-            object.insert(section, serde_json::from_str(&value).unwrap_or(Value::Null));
+            let read = serde_json::from_str(&value).unwrap_or_else(|error| {
+                log::warn!("the {section} settings couldn't be read: {error}");
+                Value::Null
+            });
+            object.insert(section, read);
         }
         Ok(parsed(object).unwrap_or_else(|problem| {
             log::warn!("{problem}");

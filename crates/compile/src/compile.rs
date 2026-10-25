@@ -74,6 +74,17 @@ pub fn interpolated_params(def: Option<&NodeDef>, params: &Values, vars: &Vars) 
     }
 }
 
+pub fn parse_node_params(
+    def: &NodeDef,
+    node: &opsis_types::workflow::WorkflowNode,
+    vars: &Vars,
+) -> Result<Values, String> {
+    def.parse(
+        &interpolated_params(Some(def), &node.params, vars),
+        Some(&node.params),
+    )
+}
+
 struct RunContext<'a> {
     vars: &'a Vars,
     result: Option<&'a NodeResult>,

@@ -75,10 +75,14 @@ fn create_schema(mut conn: Connection) -> Result<Connection> {
     Ok(conn)
 }
 
-fn remove_files(file: &Path) {
+fn remove_files(file: &Path) -> std::io::Result<()> {
     for suffix in ["", "-wal", "-shm"] {
-        let _ = std::fs::remove_file(format!("{}{suffix}", file.display()));
+        match std::fs::remove_file(format!("{}{suffix}", file.display())) {
+            Err(error) if error.kind() != std::io::ErrorKind::NotFound => return Err(error),
+            _ => {}
+        }
     }
+    Ok(())
 }
 
 impl Database {
@@ -110,7 +114,7 @@ impl Database {
             file.display()
         );
         drop(conn);
-        remove_files(file);
+        remove_files(file)?;
         Ok(Self {
             conn: create_schema(connect(Some(file))?)?,
         })

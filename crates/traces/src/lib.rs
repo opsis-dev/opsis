@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use opsis_engine::files::{Prune, atomic_write, none_if_missing, prune_dir, read_dir_if_present};
 use opsis_engine::hash::sha256_hex;
+use opsis_engine::json::js_json;
 use opsis_types::actions::Viewport;
 use opsis_types::project::TRACES_DIR;
 use opsis_types::settings::{TraceRetention, TracesSection};
@@ -146,7 +147,9 @@ pub fn store_trace(
         errors: by_time(take.errors, |e| e.time),
         network: by_time(take.network, |r| r.start),
     };
-    let json = serde_json::to_vec(&manifest).map_err(std::io::Error::other)?;
+    let json = js_json(&manifest)
+        .map_err(std::io::Error::other)?
+        .into_bytes();
     std::fs::create_dir_all(runs_dir(&root))?;
     atomic_write(
         &manifest_path(&root, &header.id),

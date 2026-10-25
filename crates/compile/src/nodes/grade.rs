@@ -355,8 +355,12 @@ impl AutoFix {
     }
 }
 
-pub const LENS_TYPE: &str = "grade.lens";
+pub const COLOUR_TYPE: &str = "grade.colour";
+pub const LOOK_TYPE: &str = "grade.lookFile";
+pub const MONO_TYPE: &str = "grade.mono";
 pub const TEXTURE_TYPE: &str = "grade.texture";
+pub const LENS_TYPE: &str = "grade.lens";
+pub const AUTO_FIX_TYPE: &str = "grade.autoFix";
 
 fn look_file_row(file: &str, missing_files: &[String]) -> CardRow {
     if file.is_empty() {
@@ -378,7 +382,7 @@ fn step<P: Params>(kind: &'static str, title: &str, description: &str) -> NodeDe
 pub fn nodes() -> Vec<NodeDef> {
     vec![
         step::<Colour>(
-            "grade.colour",
+            COLOUR_TYPE,
             "Colour and light",
             "Changes brightness, contrast, colour, warmth and the colour of shadows and highlights. Used by Apply grade.",
         )
@@ -387,13 +391,13 @@ pub fn nodes() -> Vec<NodeDef> {
             vec![Some(changes_row(Icon::Sun, &p.changes())), (p.curve != ToneCurve::None).then(|| row(Icon::Spline, p.curve.label()))]
         })
         .neutral(|p: &Colour| active(&p.changes()).is_empty()),
-        step::<LookFile>("grade.lookFile", "Look file", "Applies a colour look saved from another video editor. Used by Apply grade.")
+        step::<LookFile>(LOOK_TYPE, "Look file", "Applies a colour look saved from another video editor. Used by Apply grade.")
             .card(|ctx: &CardCtx<'_, LookFile>| {
                 vec![Some(look_file_row(&ctx.params.file, &ctx.inputs.missing_files)), strength_row(ctx.params.strength)]
             })
             .neutral(|p: &LookFile| p.strength == 0.0),
         step::<Mono>(
-            "grade.mono",
+            MONO_TYPE,
             "Black and white and tint",
             "Turns the picture black and white, sepia or one tint of colour. Used by Apply grade.",
         )
@@ -419,7 +423,7 @@ pub fn nodes() -> Vec<NodeDef> {
         .card(|ctx: &CardCtx<'_, Lens>| vec![Some(changes_row(Icon::Scan, &ctx.params.changes()))])
         .neutral(|p: &Lens| active(&p.changes()).is_empty()),
         step::<AutoFix>(
-            "grade.autoFix",
+            AUTO_FIX_TYPE,
             "Auto fix",
             "Fixes a colour cast, stretches dull levels and smooths banding in skies. Used by Apply grade.",
         )

@@ -32,7 +32,7 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
     },
     ignorePatterns: own
       ? IGNORED_PATHS.filter((p) => p.startsWith(`${own}/`)).map((p) => p.slice(own.length + 1))
-      : [...IGNORED_PATHS, "packages/**"],
+      : [...IGNORED_PATHS, "packages/**", "apps/**"],
     rules: {
       "react/react-in-jsx-scope": "off",
       "react/exhaustive-deps": "warn",

@@ -7,7 +7,9 @@ use opsis_compile::asset_ref::{
     base_name, extension_of, library_ref, library_rel_path, project_ref,
 };
 use opsis_compile::fonts::same_family;
+use opsis_compile::text::slug_name;
 use opsis_engine::files::none_if_missing;
+use opsis_engine::json::js_json;
 use opsis_store::db::Database;
 use opsis_types::fonts::{
     FontCategory, FontFaceDef, FontFamilyDef, FontFormat, FontSource, FontStyle,
@@ -117,10 +119,7 @@ fn unique_id(base: &str, taken: &[String]) -> String {
 }
 
 pub fn font_slug(family: &str) -> String {
-    match slug::slugify(family) {
-        slug if slug.is_empty() => FONT_FALLBACK.to_owned(),
-        slug => slug,
-    }
+    slug_name(family, FONT_FALLBACK)
 }
 
 fn file_name_for(name: &str) -> String {
@@ -349,10 +348,7 @@ impl FontLibrary {
         let mut added = Vec::new();
         for fam in families {
             let def = self.write_family(&read_library(db)?, fam)?;
-            db.save_font_row(
-                &def.id,
-                &serde_json::to_string(&def).map_err(std::io::Error::other)?,
-            )?;
+            db.save_font_row(&def.id, &js_json(&def).map_err(std::io::Error::other)?)?;
             added.push(def);
         }
         Ok(added)

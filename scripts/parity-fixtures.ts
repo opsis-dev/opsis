@@ -19,6 +19,7 @@ import {
 } from "@opsis/core/nodes/define";
 import { parseParams } from "@opsis/core/nodes/params";
 import { defaultParams, getNodeDef, NODE_DEFS } from "@opsis/core/nodes/registry";
+import { estimateCardHeight } from "@opsis/core/nodes/size";
 import type { Action } from "@opsis/core/schema/actions";
 import type { CompileValue, NodeResult, StyleEntry } from "@opsis/core/schema/values";
 import {
@@ -34,10 +35,12 @@ import { filmChapters } from "@opsis/core/timeline/chapters";
 import { flattenSpec } from "@opsis/core/timeline/flatten";
 import { workflowVars } from "@opsis/core/vars";
 import type { z } from "zod";
+import { mediaFixtures } from "./lib/media-fixtures";
+import { writeSourceLayoutJson } from "./lib/source-layout-json";
 import { ROOT } from "./lib/tool-config";
 import { zodTree } from "./lib/zod-tree";
 
-export const FIXTURES_DIR = path.join(ROOT, "fixtures", "compile");
+export const FIXTURES_DIR = path.join(ROOT, "fixtures");
 
 const SECRET_NAMES = ["Main account"];
 
@@ -381,6 +384,7 @@ function nodeFixture(def: NodeDef) {
     element: def.element ?? null,
     hidden: !!def.hidden,
     cardHeight: def.cardHeight ?? null,
+    estimatedHeight: estimateCardHeight(def),
     compiles: !!def.compile,
     hasCard: !!def.card,
     defaults: defaultParams(def.type),
@@ -734,21 +738,25 @@ function connectionCases() {
 
 export function parityFixtures(): Record<string, unknown> {
   const files: Record<string, unknown> = {
-    "nodes.json": NODE_DEFS.map(nodeFixture),
-    "elements.json": ELEMENTS.map(elementFixture),
-    "catalog.json": {
+    "compile/nodes.json": NODE_DEFS.map(nodeFixture),
+    "compile/elements.json": ELEMENTS.map(elementFixture),
+    "compile/catalog.json": {
       list: nodeCatalog(),
       entries: NODE_DEFS.map((d) => catalogEntry(d.type)),
     },
-    "node-cases.json": NODE_DEFS.flatMap((d) => [nodeCase(d, false), nodeCase(d, true)]),
-    "param-cases.json": paramCases(),
-    "problem-cases.json": { workflows: problemCases(), connections: connectionCases() },
+    "compile/node-cases.json": NODE_DEFS.flatMap((d) => [nodeCase(d, false), nodeCase(d, true)]),
+    "compile/param-cases.json": paramCases(),
+    "compile/problem-cases.json": { workflows: problemCases(), connections: connectionCases() },
   };
   const todomvc = exampleWorkflows().find(([name]) => name === "example-todomvc");
   const extra: Array<[string, Workflow]> = todomvc ? [["sound", soundWorkflow(todomvc[1])]] : [];
-  for (const [name, wf] of [...exampleWorkflows(), ...templateWorkflows(), ...extra])
-    files[`workflows/${name}.json`] = workflowFixture(wf);
-  return files;
+  const workflows = [...exampleWorkflows(), ...templateWorkflows(), ...extra];
+  for (const [name, wf] of workflows) files[`compile/workflows/${name}.json`] = workflowFixture(wf);
+  files["project/saved.json"] = workflows.map(([name, wf]) => ({
+    name,
+    text: `${JSON.stringify(workflowSchema.parse(wf), null, 2)}\n`,
+  }));
+  return { ...files, ...mediaFixtures(workflows) };
 }
 
 export const fixtureText = (value: unknown): string => `${JSON.stringify(value, null, 1)}\n`;
@@ -761,4 +769,5 @@ if (process.argv[1] && import.meta.filename === path.resolve(process.argv[1])) {
     writeFileSync(file, fixtureText(value));
   }
   console.log(`wrote ${FIXTURES_DIR}`);
+  writeSourceLayoutJson();
 }

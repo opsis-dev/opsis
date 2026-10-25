@@ -42,6 +42,16 @@ pub fn opaque_hex(value: &str) -> Option<String> {
     )
 }
 
+pub fn css_hex(value: &str) -> Option<String> {
+    parsed(value).map(|c| c.to_css_hex().to_string())
+}
+
+pub fn hue_and_saturation(value: &str) -> Option<(f64, f64)> {
+    let [h, s, _, _] = parsed(value)?.to_hsla();
+    let hue = if h.is_finite() { f64::from(h) } else { 0.0 };
+    Some((hue, f64::from(s).clamp(0.0, 1.0)))
+}
+
 pub fn color_key(color: &str) -> String {
     parsed(color).map_or_else(|| color.trim().to_owned(), |c| c.to_css_hex().to_string())
 }

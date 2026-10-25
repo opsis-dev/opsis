@@ -1,0 +1,600 @@
+{
+ "nodeHashes": [
+  {
+   "type": "fx.core.title",
+   "params": {
+    "title": "Hi",
+    "fontSize": 100
+   },
+   "upstream": [
+    [
+     "clip",
+     "x:clip"
+    ]
+   ],
+   "hash": "04003abe23d5f0ebc97efbaf"
+  },
+  {
+   "type": "fx.core.title",
+   "params": {},
+   "upstream": [
+    [
+     "clip",
+     "x:clip"
+    ],
+    [
+     "audio",
+     "y:audio"
+    ]
+   ],
+   "hash": "4cdc01318261e0ee3022313b"
+  },
+  {
+   "type": "audio.mix",
+   "params": {},
+   "upstream": [
+    [
+     "sounds",
+     "b:audio"
+    ],
+    [
+     "sounds",
+     "a:audio"
+    ]
+   ],
+   "hash": "e6a331cb2257d50c7585aa97"
+  },
+  {
+   "type": "media.trim",
+   "params": {
+    "startMs": 1.5,
+    "label": "ü ✓ \u0000"
+   },
+   "upstream": [],
+   "hash": "032021b368e51b5b5bec0399"
+  },
+  {
+   "type": "media.trim",
+   "params": null,
+   "upstream": [],
+   "hash": "0c34e9906732f1dcd0dc9857"
+  }
+ ],
+ "workflows": [
+  {
+   "name": "example-before-after",
+   "hashes": {
+    "before-session": "480248eb49da34ff61f4af9e",
+    "after-session": "480248eb49da34ff61f4af9e",
+    "before-open": "86289b019677008cfdb5347c",
+    "after-open": "ed302e6dc64d6ee3f70b3590",
+    "before-start": "54e2f2bc0e0c848338aa9b37",
+    "after-start": "abec5345972b0048f8fa7ba3",
+    "before-record": "a27175825bdeb8a0b55dbdfc",
+    "before-camera": "d89e6478cc5439ca8913a80f",
+    "before-label": "1ccf0d59afab61690ddd951c",
+    "after-record": "05eb4c84bc76219fffe6ba84",
+    "after-camera": "ae088d1090364896a7448803",
+    "after-label": "df73413806edaf9e9f06d9b1",
+    "before-stack": "50427eb6d77e90ffd2fa239a",
+    "after-stack": "baf6b21fca58de986245b37d",
+    "wipe": "861da2eacdda47bbe331adb2",
+    "render": "ecd5b13846dcd7ad66896ac1"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "7c546d19c9306110688e8e58"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "20e503ee410f5b9bcc6a6f6d"
+    }
+   ]
+  },
+  {
+   "name": "example-changelog",
+   "hashes": {
+    "title": "6677ffdd834aeead53aa1d46",
+    "terminal": "e33e6dcef46fec773c582713",
+    "chart": "8811998bced0e758421079ae",
+    "bg": "65f9fe00e216fdb88780d8ea",
+    "credit": "8738ba7d7f036653e89bfcbc",
+    "chart-scene": "0191bd7504ee790b8a1563ea",
+    "sequence": "230c5991258ac482cbe08685",
+    "render": "8b7560a254e7a60f661df7d7"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "cd6a1acbbe77e26eb815002d"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "5ea174af15145626a5ddeaa2"
+    }
+   ]
+  },
+  {
+   "name": "example-feature-launch",
+   "hashes": {
+    "session": "480248eb49da34ff61f4af9e",
+    "open": "0a4358140a202b94f6e78e6d",
+    "headline": "0190a5486496dd19bd245571",
+    "start": "d21047cf23fc6eae235015fb",
+    "outro": "469a35a503ba38ba3c2ae7f8",
+    "cta": "4d3fc0e7580cf3b467ce873e",
+    "spotlight": "e36ca51a7437ec61aa3f88ba",
+    "record": "0d8597c945036d7255af2539",
+    "camera": "936b344ded1156195a75b848",
+    "sequence": "453e64327aa1afaeae8113c2",
+    "render": "f7b57816f0eed30ce9124a38"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "fe75911c97c91b736cbee64a"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "ee5de64924684d67c6825cfd"
+    }
+   ]
+  },
+  {
+   "name": "example-onboarding",
+   "hashes": {
+    "session": "480248eb49da34ff61f4af9e",
+    "open": "5bdc97bd8c66bef012b26a82",
+    "start": "9dbf1ece706da9c0e3651408",
+    "chapter1": "2bd47dd8f4fa22231b6384fe",
+    "type": "857340844c92f374d06da6c8",
+    "script": "3002141a9b0dc33a4af6b5c1",
+    "chapter2": "9b342023171d8cc25ae135ed",
+    "highlight": "d026a47872c01094ff2d3cc7",
+    "done": "52c517d786d5e6b61ee35971",
+    "tooltip": "c44d07a8b3ff533ef3ebd228",
+    "record": "89c9ee3e58b2921ec4ad4f3a",
+    "camera": "0ee010edd072adab9bd5c841",
+    "captions": "ee80e18c4f60cca872ca1cb6",
+    "render": "f62de68a2258a679f95676fa"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "8214ba64149894b0fe1ba6f6"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "d28b52f3b9ea6c7fcf46c5b3"
+    }
+   ]
+  },
+  {
+   "name": "example-social-teaser",
+   "hashes": {
+    "session": "96a5204e4fdd0264b285332c",
+    "open": "b14031fcf096005ca7a4fe54",
+    "hook": "a20235c066b2cd6d9bd4020c",
+    "start": "fd969dd42a12560f2bee1cf0",
+    "type": "0caef7ba3bcbd6666fc73c6e",
+    "record": "3da115ce8e48f2b7ea2b8c26",
+    "camera": "e823e4c9b51036e53581e5c3",
+    "sequence": "98f2b57648fea142f6cfb4bd",
+    "music": "51e516163869414178197543",
+    "mix": "d49bc8cc85b79662b00fe941",
+    "render": "c57c8a7b6fd793d4927908a7"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "c6f2a4e808da1b40398b6bed"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "779ee38397b7a6e4e7f7c372"
+    }
+   ]
+  },
+  {
+   "name": "example-todomvc",
+   "hashes": {
+    "session": "480248eb49da34ff61f4af9e",
+    "open": "4563fbbc94ea2aa439dfa2a1",
+    "start": "b1b4a64d7b9e4d4fea445481",
+    "todo1": "541897b3b507466509da63bc",
+    "todo2": "0bdf29f9d69710f1b7d52539",
+    "intro-bg": "0eede7bdc7ff8b7832662be8",
+    "intro-title": "8335302e66dc4fcd235a85b8",
+    "todo3": "20e2440e413c45e76d1a905a",
+    "intro": "61315e376a29436c2c3dd58b",
+    "outro": "7f80b153eb118225ba1f8f7e",
+    "complete": "ae7d08e137333575d8d53824",
+    "filter": "098223d4f83d7ae8ceb7f18f",
+    "chips": "9e7e446d4a333d81406abd19",
+    "record": "bde583c0d2813a72066272e2",
+    "camera": "919950233e89884d1f533a99",
+    "sequence": "9c461289907f57dc2af54146",
+    "render": "f77e79cba6b51114a67c630f"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "f4ed0e8b062205b79c702045"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "7fcf87e51ce8dd799fb600b9"
+    }
+   ]
+  },
+  {
+   "name": "template-blank",
+   "hashes": {},
+   "pictures": []
+  },
+  {
+   "name": "template-todomvc",
+   "hashes": {
+    "session": "480248eb49da34ff61f4af9e",
+    "open": "4563fbbc94ea2aa439dfa2a1",
+    "start": "b1b4a64d7b9e4d4fea445481",
+    "todo1": "541897b3b507466509da63bc",
+    "todo2": "0bdf29f9d69710f1b7d52539",
+    "intro-bg": "0eede7bdc7ff8b7832662be8",
+    "intro-title": "8335302e66dc4fcd235a85b8",
+    "todo3": "20e2440e413c45e76d1a905a",
+    "intro": "61315e376a29436c2c3dd58b",
+    "outro": "7f80b153eb118225ba1f8f7e",
+    "complete": "ae7d08e137333575d8d53824",
+    "filter": "098223d4f83d7ae8ceb7f18f",
+    "chips": "9e7e446d4a333d81406abd19",
+    "record": "bde583c0d2813a72066272e2",
+    "camera": "919950233e89884d1f533a99",
+    "sequence": "9c461289907f57dc2af54146",
+    "render": "f77e79cba6b51114a67c630f"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "f4ed0e8b062205b79c702045"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "7fcf87e51ce8dd799fb600b9"
+    }
+   ]
+  },
+  {
+   "name": "template-feature-launch",
+   "hashes": {
+    "session": "480248eb49da34ff61f4af9e",
+    "open": "0a4358140a202b94f6e78e6d",
+    "headline": "0190a5486496dd19bd245571",
+    "start": "d21047cf23fc6eae235015fb",
+    "outro": "469a35a503ba38ba3c2ae7f8",
+    "cta": "4d3fc0e7580cf3b467ce873e",
+    "spotlight": "e36ca51a7437ec61aa3f88ba",
+    "record": "0d8597c945036d7255af2539",
+    "camera": "936b344ded1156195a75b848",
+    "sequence": "453e64327aa1afaeae8113c2",
+    "render": "f7b57816f0eed30ce9124a38"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "fe75911c97c91b736cbee64a"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "ee5de64924684d67c6825cfd"
+    }
+   ]
+  },
+  {
+   "name": "template-changelog",
+   "hashes": {
+    "title": "6677ffdd834aeead53aa1d46",
+    "terminal": "e33e6dcef46fec773c582713",
+    "chart": "8811998bced0e758421079ae",
+    "bg": "65f9fe00e216fdb88780d8ea",
+    "credit": "8738ba7d7f036653e89bfcbc",
+    "chart-scene": "0191bd7504ee790b8a1563ea",
+    "sequence": "230c5991258ac482cbe08685",
+    "render": "8b7560a254e7a60f661df7d7"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "cd6a1acbbe77e26eb815002d"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "5ea174af15145626a5ddeaa2"
+    }
+   ]
+  },
+  {
+   "name": "template-onboarding",
+   "hashes": {
+    "session": "480248eb49da34ff61f4af9e",
+    "open": "5bdc97bd8c66bef012b26a82",
+    "start": "9dbf1ece706da9c0e3651408",
+    "chapter1": "2bd47dd8f4fa22231b6384fe",
+    "type": "857340844c92f374d06da6c8",
+    "script": "3002141a9b0dc33a4af6b5c1",
+    "chapter2": "9b342023171d8cc25ae135ed",
+    "highlight": "d026a47872c01094ff2d3cc7",
+    "done": "52c517d786d5e6b61ee35971",
+    "tooltip": "c44d07a8b3ff533ef3ebd228",
+    "record": "89c9ee3e58b2921ec4ad4f3a",
+    "camera": "0ee010edd072adab9bd5c841",
+    "captions": "ee80e18c4f60cca872ca1cb6",
+    "render": "f62de68a2258a679f95676fa"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "8214ba64149894b0fe1ba6f6"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "d28b52f3b9ea6c7fcf46c5b3"
+    }
+   ]
+  },
+  {
+   "name": "template-social-teaser",
+   "hashes": {
+    "session": "96a5204e4fdd0264b285332c",
+    "open": "b14031fcf096005ca7a4fe54",
+    "hook": "a20235c066b2cd6d9bd4020c",
+    "start": "fd969dd42a12560f2bee1cf0",
+    "type": "0caef7ba3bcbd6666fc73c6e",
+    "record": "3da115ce8e48f2b7ea2b8c26",
+    "camera": "e823e4c9b51036e53581e5c3",
+    "sequence": "98f2b57648fea142f6cfb4bd",
+    "music": "51e516163869414178197543",
+    "mix": "d49bc8cc85b79662b00fe941",
+    "render": "c57c8a7b6fd793d4927908a7"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "c6f2a4e808da1b40398b6bed"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "779ee38397b7a6e4e7f7c372"
+    }
+   ]
+  },
+  {
+   "name": "template-before-after",
+   "hashes": {
+    "before-session": "480248eb49da34ff61f4af9e",
+    "after-session": "480248eb49da34ff61f4af9e",
+    "before-open": "86289b019677008cfdb5347c",
+    "after-open": "ed302e6dc64d6ee3f70b3590",
+    "before-start": "54e2f2bc0e0c848338aa9b37",
+    "after-start": "abec5345972b0048f8fa7ba3",
+    "before-record": "a27175825bdeb8a0b55dbdfc",
+    "before-camera": "d89e6478cc5439ca8913a80f",
+    "before-label": "1ccf0d59afab61690ddd951c",
+    "after-record": "05eb4c84bc76219fffe6ba84",
+    "after-camera": "ae088d1090364896a7448803",
+    "after-label": "df73413806edaf9e9f06d9b1",
+    "before-stack": "50427eb6d77e90ffd2fa239a",
+    "after-stack": "baf6b21fca58de986245b37d",
+    "wipe": "861da2eacdda47bbe331adb2",
+    "render": "ecd5b13846dcd7ad66896ac1"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "7c546d19c9306110688e8e58"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "20e503ee410f5b9bcc6a6f6d"
+    }
+   ]
+  },
+  {
+   "name": "sound",
+   "hashes": {
+    "session": "480248eb49da34ff61f4af9e",
+    "talk": "59880484a36a3daf8b4428ab",
+    "talk-clip": "39a85fea3cd9021c43a4e0bd",
+    "open": "4563fbbc94ea2aa439dfa2a1",
+    "song": "cd9a8f492fd9d61f4b2a2817",
+    "whoosh": "ce0c05e4ed0f2d24020f6308",
+    "whip": "7b4f8c5831cee514fbd3a1c3",
+    "start": "b1b4a64d7b9e4d4fea445481",
+    "loop": "fa147466337f5b260d84472d",
+    "todo1": "541897b3b507466509da63bc",
+    "todo2": "0bdf29f9d69710f1b7d52539",
+    "intro-bg": "0eede7bdc7ff8b7832662be8",
+    "intro-title": "8335302e66dc4fcd235a85b8",
+    "todo3": "20e2440e413c45e76d1a905a",
+    "intro": "61315e376a29436c2c3dd58b",
+    "outro": "7f80b153eb118225ba1f8f7e",
+    "complete": "ae7d08e137333575d8d53824",
+    "filter": "098223d4f83d7ae8ceb7f18f",
+    "chips": "9e7e446d4a333d81406abd19",
+    "record": "bde583c0d2813a72066272e2",
+    "camera": "919950233e89884d1f533a99",
+    "sequence": "9c461289907f57dc2af54146",
+    "layers": "599c42483a33b63e46114f10",
+    "mix": "5ca4b6197d1183986c5117c7",
+    "render": "e674c23de32e96916105810f"
+   },
+   "pictures": [
+    {
+     "id": "render",
+     "opts": {
+      "codec": "h264",
+      "crf": 18,
+      "scale": 1,
+      "gl": "angle"
+     },
+     "key": "3dab85a8c2cc75dfaa13bae2"
+    },
+    {
+     "id": "render",
+     "opts": {
+      "codec": "prores",
+      "crf": 18,
+      "scale": 2,
+      "gl": "swangle"
+     },
+     "key": "b4002e5d4d110ce679bc50d7"
+    }
+   ]
+  }
+ ]
+}

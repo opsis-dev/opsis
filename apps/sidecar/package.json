@@ -17,7 +17,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@opsis/core": "workspace:*",
     "@opsis/video": "workspace:*",
     "@remotion/bundler": "4.0.537",
     "@remotion/renderer": "4.0.537",

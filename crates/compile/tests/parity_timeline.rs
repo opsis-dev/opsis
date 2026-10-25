@@ -30,7 +30,7 @@ fn flattened_specs_match() {
     let mut checked = 0;
     for (name, fixture) in workflow_fixtures() {
         let mix: Option<opsis_types::mix::Mix> =
-            serde_json::from_value(fixture["workflow"]["mix"].clone()).ok();
+            serde_json::from_value(fixture["workflow"]["mix"].clone()).unwrap();
         for side in [&fixture, &fixture["run"]] {
             for (id, spec) in side["compile"]["specs"].as_object().unwrap() {
                 let spec: TimelineSpec = serde_json::from_value(spec.clone()).unwrap();

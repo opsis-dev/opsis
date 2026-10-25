@@ -3,7 +3,7 @@ use std::path::Path;
 
 use opsis_compile::asset_ref::project_rel_path;
 use opsis_compile::cards::named_files;
-use opsis_engine::files::modified_ms;
+use opsis_engine::files::stamp_of;
 use opsis_types::secrets::secret_file;
 use serde_json::Value;
 
@@ -13,7 +13,7 @@ pub fn file_stamp(file: &Path) -> Option<String> {
     let meta = std::fs::metadata(file)
         .ok()
         .filter(std::fs::Metadata::is_file)?;
-    Some(format!("{}:{}", meta.len(), modified_ms(&meta)))
+    Some(stamp_of(&meta))
 }
 
 pub fn ref_stamps(project_dir: &Path, refs: &[String]) -> BTreeMap<String, String> {

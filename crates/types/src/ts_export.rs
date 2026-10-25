@@ -7,8 +7,6 @@ use crate::timeline::TimelineSpec;
 use crate::values::{CompileValue, LastRun};
 use crate::workflow::Workflow;
 
-pub const BINDINGS_FILE: &str = "apps/ui/src/generated/bindings.ts";
-
 fn tidy(text: &str) -> String {
     let optional_null = Regex::new(r"(\w\?: [^;,{}]+?) \| null(\s*[;,}])").expect("pattern");
     let lines: Vec<String> = text
@@ -81,9 +79,13 @@ pub fn boundary_types() -> Types {
         .register::<crate::cards::CardRow>()
 }
 
-pub fn render(types: &Types) -> String {
+pub fn render_plain(types: &Types) -> String {
     let ts = Typescript::default()
         .export(types, specta_serde::PhasesFormat)
         .expect("types export");
-    number_literals(&tidy(&serialize_side(&ts)))
+    tidy(&serialize_side(&ts))
+}
+
+pub fn render(types: &Types) -> String {
+    number_literals(&render_plain(types))
 }

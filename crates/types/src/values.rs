@@ -19,9 +19,13 @@ pub struct StyleEntry {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordingValue {
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[specta(type = Option<String>)]
     pub src: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub proxy_src: Option<String>,
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[specta(type = Option<ActionLog>)]
     pub log: Option<ActionLog>,
     pub duration_ms: f64,
     pub viewport: Viewport,
@@ -37,6 +41,8 @@ pub enum TaggedRecording {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct ImageValue {
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[specta(type = Option<String>)]
     pub src: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub width: Option<f64>,
@@ -61,6 +67,8 @@ pub enum MediaKind {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaValue {
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[specta(type = Option<String>)]
     pub src: Option<String>,
     pub kind: MediaKind,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -75,6 +83,8 @@ pub struct MediaValue {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
 pub struct SrcValue {
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[specta(type = Option<String>)]
     pub src: Option<String>,
 }
 

@@ -6,7 +6,7 @@ use opsis_compile::params::Values;
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
 use opsis_types::json::first_difference;
-use opsis_types::values::{CompileValue, NodeResult, PortValues};
+use opsis_types::values::{NodeResult, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Value, json};
 
@@ -247,7 +247,6 @@ fn node_cases_match() {
             problems.push(format!("{at} card{d}"));
         }
     }
-    let _ = CompileValue::as_clip;
     println!("{checked} node cases checked");
     assert!(
         problems.is_empty(),

@@ -666,8 +666,11 @@ impl FitMode {
             Self::Speed => {
                 let speed = input / output;
                 ((speed - 1.0).abs() > 0.02).then(|| {
-                    row(Icon::FastForward, format!("Plays at {speed:.2}×"))
-                        .warn_if(!(0.67..=1.5).contains(&speed))
+                    row(
+                        Icon::FastForward,
+                        format!("Plays at {}×", crate::text::to_fixed(speed, 2)),
+                    )
+                    .warn_if(!(0.67..=1.5).contains(&speed))
                 })
             }
             Self::Hold => None,

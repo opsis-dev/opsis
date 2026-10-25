@@ -1,7 +1,10 @@
 pub mod downloads;
 pub mod files;
 pub mod hash;
+pub mod http_files;
 pub mod install;
+pub mod json;
 pub mod licences;
 pub mod paths;
 pub mod temp;
+pub mod versions;

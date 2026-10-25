@@ -1,0 +1,100 @@
+{
+ "videoSource": [
+  "packages",
+  "video",
+  "src"
+ ],
+ "exportedSources": [
+  {
+   "from": [
+    "packages",
+    "video",
+    "src"
+   ],
+   "to": "video"
+  },
+  {
+   "from": [
+    "packages",
+    "core",
+    "src"
+   ],
+   "to": "core"
+  },
+  {
+   "from": [
+    "apps",
+    "sidecar",
+    "src",
+    "bundler-override.ts"
+   ],
+   "to": "sidecar/bundler-override.ts"
+  }
+ ],
+ "exportedPackages": [
+  {
+   "name": "@opsis/core",
+   "folder": "core",
+   "manifest": {
+    "from": [
+     "packages",
+     "core",
+     "package.json"
+    ],
+    "to": "manifests/core.json"
+   }
+  },
+  {
+   "name": "@opsis/video",
+   "folder": "video",
+   "manifest": {
+    "from": [
+     "packages",
+     "video",
+     "package.json"
+    ],
+    "to": "manifests/video.json"
+   }
+  }
+ ],
+ "dependencyManifests": [
+  {
+   "from": [
+    "package.json"
+   ],
+   "to": "manifests/app.json"
+  },
+  {
+   "from": [
+    "packages",
+    "core",
+    "package.json"
+   ],
+   "to": "manifests/core.json"
+  },
+  {
+   "from": [
+    "packages",
+    "video",
+    "package.json"
+   ],
+   "to": "manifests/video.json"
+  },
+  {
+   "from": [
+    "apps",
+    "ui",
+    "package.json"
+   ],
+   "to": "manifests/ui.json"
+  },
+  {
+   "from": [
+    "apps",
+    "sidecar",
+    "package.json"
+   ],
+   "to": "manifests/sidecar.json"
+  }
+ ]
+}

@@ -10,13 +10,15 @@ use crate::node::{CLIP_PORT, CardCtx, Category, Ctx, NodeDef, Outputs, Phase, Ro
 use crate::nodes::media::Codec;
 use crate::params::Params;
 use crate::text::{format_bytes, format_duration, slug_name};
-use crate::time::frames_to_ms;
+use crate::time::{even_px, frames_to_ms};
 
 pub const EXPORT_FOLDER_FALLBACK: &str = "output";
 pub const RENDER_TYPE: &str = "output.render";
 pub const STILL_TYPE: &str = "output.still";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Gl {
     Angle,
@@ -73,10 +75,6 @@ impl Variant {
 pub struct Size {
     pub width: f64,
     pub height: f64,
-}
-
-fn even_px(value: f64) -> f64 {
-    (value / 2.0).round() * 2.0
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -177,7 +175,9 @@ impl StillPreset {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum StillFormat {
     Png,

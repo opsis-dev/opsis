@@ -1,0 +1,3428 @@
+{
+ "plans": [
+  {
+   "name": "sound/render",
+   "plan": {
+    "fps": 30,
+    "durationInFrames": 258,
+    "channels": [
+     {
+      "id": "song",
+      "kind": "music",
+      "bus": "music",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": -6,
+       "pan": 0,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:music/song.mp3",
+        "at": 15,
+        "offset": 6,
+        "length": 243,
+        "loop": true,
+        "rate": 1,
+        "volume": 0.5,
+        "fadeIn": 12,
+        "fadeOut": 45
+       }
+      ],
+      "audible": true
+     },
+     {
+      "id": "whip",
+      "kind": "effect",
+      "bus": "music",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": 0,
+       "pan": 0,
+       "mute": false,
+       "solo": false,
+       "bus": "music"
+      },
+      "sounds": [
+       {
+        "src": "app:sfx/whip.wav",
+        "at": 30,
+        "offset": 0,
+        "length": 5,
+        "loop": false,
+        "rate": 1,
+        "volume": 1,
+        "fadeIn": 0,
+        "fadeOut": 0
+       }
+      ],
+      "audible": true
+     },
+     {
+      "id": "loop",
+      "kind": "music",
+      "bus": "music",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": 0,
+       "pan": 0,
+       "mute": true,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:music/bed.mp3",
+        "at": 0,
+        "offset": 0,
+        "length": 90,
+        "loop": true,
+        "rate": 1,
+        "volume": 0.3,
+        "fadeIn": 24,
+        "fadeOut": 45
+       }
+      ],
+      "audible": false
+     },
+     {
+      "id": "talk-clip",
+      "kind": "clip",
+      "bus": "clips",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": 0,
+       "pan": 0,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:clips/talk.mp4",
+        "at": 12,
+        "offset": 0,
+        "length": 150,
+        "loop": false,
+        "rate": 1,
+        "volume": 1,
+        "fadeIn": 0,
+        "fadeOut": 0
+       }
+      ],
+      "audible": true
+     }
+    ],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [
+       "song",
+       "whip"
+      ],
+      "duck": {
+       "keys": [
+        "talk-clip"
+       ],
+       "amount": 10,
+       "attack": 80,
+       "release": 400
+      }
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": -3,
+      "channels": [
+       "talk-clip"
+      ],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": 0,
+     "eq": {
+      "on": false,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 120,
+        "gain": 0,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "peak",
+        "freq": 2500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "highshelf",
+        "freq": 8000,
+        "gain": 0,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12,
+      "ratio": 2,
+      "attack": 20,
+      "release": 250,
+      "makeup": 0
+     },
+     "limiter": {
+      "on": false,
+      "ceiling": -1
+     },
+     "loudness": "off"
+    },
+    "key": "3f955ae0349bacac"
+   },
+   "jobs": {
+    "channels": [
+     {
+      "id": "song",
+      "job": {
+       "inputs": [
+        "/project/project:music/song.mp3"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.2,asetpts=PTS-STARTPTS,aloop=loop=-1:size=2147483647,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.4,afade=t=out:st=6.6:d=1.5,adelay=delays=500:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-6dB[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/project:music/song.mp3",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.2,asetpts=PTS-STARTPTS,aloop=loop=-1:size=2147483647,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.4,afade=t=out:st=6.6:d=1.5,adelay=delays=500:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-6dB[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     },
+     {
+      "id": "whip",
+      "job": {
+       "inputs": [
+        "/project/app:sfx/whip.wav"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=0.166667,asetpts=PTS-STARTPTS,adelay=delays=1000:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/app:sfx/whip.wav",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=0.166667,asetpts=PTS-STARTPTS,adelay=delays=1000:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     },
+     {
+      "id": "loop",
+      "job": {
+       "inputs": [
+        "/project/project:music/bed.mp3"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atrim=end=3,asetpts=PTS-STARTPTS,volume=0.3,afade=t=in:st=0:d=0.8,afade=t=out:st=1.5:d=1.5[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/project:music/bed.mp3",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atrim=end=3,asetpts=PTS-STARTPTS,volume=0.3,afade=t=in:st=0:d=0.8,afade=t=out:st=1.5:d=1.5[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     },
+     {
+      "id": "talk-clip",
+      "job": {
+       "inputs": [
+        "/project/project:clips/talk.mp4"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=5,asetpts=PTS-STARTPTS,adelay=delays=400:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/project:clips/talk.mp4",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=5,asetpts=PTS-STARTPTS,adelay=delays=400:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     }
+    ],
+    "buses": [
+     {
+      "id": "music",
+      "job": {
+       "inputs": [
+        "/stems/song.wav",
+        "/stems/whip.wav",
+        "/stems/talk-clip.wav"
+       ],
+       "filter": "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[main];[2:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=1.556:attack=80:release=400:makeup=1,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/song.wav",
+       "-i",
+       "/stems/whip.wav",
+       "-i",
+       "/stems/talk-clip.wav",
+       "-filter_complex",
+       "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[main];[2:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=1.556:attack=80:release=400:makeup=1,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     },
+     {
+      "id": "effects",
+      "job": {
+       "inputs": [],
+       "filter": "anullsrc=r=48000:cl=stereo,atrim=end=8.6[out]",
+       "output": "out"
+      },
+      "args": [
+       "-filter_complex",
+       "anullsrc=r=48000:cl=stereo,atrim=end=8.6[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     },
+     {
+      "id": "clips",
+      "job": {
+       "inputs": [
+        "/stems/talk-clip.wav"
+       ],
+       "filter": "[0:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-3dB[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/talk-clip.wav",
+       "-filter_complex",
+       "[0:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-3dB[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     }
+    ],
+    "master": [
+     {
+      "measured": null,
+      "job": {
+       "inputs": [
+        "/stems/music.wav",
+        "/stems/effects.wav",
+        "/stems/clips.wav"
+       ],
+       "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/music.wav",
+       "-i",
+       "/stems/effects.wav",
+       "-i",
+       "/stems/clips.wav",
+       "-filter_complex",
+       "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "9.6",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_s16le",
+       "/stems/master.wav"
+      ]
+     },
+     {
+      "measured": {
+       "input_i": "-19.52",
+       "input_tp": "-3.10",
+       "input_lra": "5.20",
+       "input_thresh": "-29.87",
+       "target_offset": "0.02"
+      },
+      "job": {
+       "inputs": [
+        "/stems/music.wav",
+        "/stems/effects.wav",
+        "/stems/clips.wav"
+       ],
+       "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/music.wav",
+       "-i",
+       "/stems/effects.wav",
+       "-i",
+       "/stems/clips.wav",
+       "-filter_complex",
+       "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "9.6",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_s16le",
+       "/stems/master.wav"
+      ]
+     }
+    ],
+    "measure": null
+   }
+  },
+  {
+   "name": "sound/render/shaped",
+   "plan": {
+    "fps": 30,
+    "durationInFrames": 258,
+    "channels": [
+     {
+      "id": "song",
+      "kind": "music",
+      "bus": "music",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": -6,
+       "pan": 0,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:music/song.mp3",
+        "at": 15,
+        "offset": 7,
+        "length": 243,
+        "loop": false,
+        "rate": 1.5,
+        "volume": 0.5,
+        "fadeIn": 400,
+        "fadeOut": 500,
+        "envelope": {
+         "volume": [
+          {
+           "frame": 0,
+           "value": 0,
+           "ease": "linear"
+          },
+          {
+           "frame": 30,
+           "value": 1,
+           "ease": "in-out"
+          },
+          {
+           "frame": 90,
+           "value": 1,
+           "ease": "linear"
+          },
+          {
+           "frame": 120,
+           "value": 0.25,
+           "ease": "out"
+          }
+         ],
+         "pan": [
+          {
+           "frame": 10,
+           "value": -1,
+           "ease": "linear"
+          },
+          {
+           "frame": 70,
+           "value": 0.6,
+           "ease": "linear"
+          }
+         ]
+        }
+       },
+       {
+        "src": "project:music/song.mp3",
+        "at": 0,
+        "offset": 6,
+        "length": 243,
+        "loop": true,
+        "rate": 0.3,
+        "volume": 1.25,
+        "fadeIn": 12,
+        "fadeOut": 45,
+        "envelope": {
+         "volume": [
+          {
+           "frame": 5,
+           "value": 0.5,
+           "ease": "linear"
+          }
+         ]
+        }
+       },
+       {
+        "src": "project:music/song.mp3",
+        "at": 3,
+        "offset": 0,
+        "length": 1,
+        "loop": true,
+        "rate": 3,
+        "volume": 0.5,
+        "fadeIn": 12,
+        "fadeOut": 45,
+        "envelope": {
+         "pan": [
+          {
+           "frame": 0,
+           "value": 0.5,
+           "ease": "linear"
+          }
+         ]
+        }
+       }
+      ],
+      "audible": true
+     },
+     {
+      "id": "whip",
+      "kind": "effect",
+      "bus": "music",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": 0,
+       "pan": 0,
+       "mute": false,
+       "solo": false,
+       "bus": "music"
+      },
+      "sounds": [
+       {
+        "src": "app:sfx/whip.wav",
+        "at": 30,
+        "offset": 0,
+        "length": 5,
+        "loop": false,
+        "rate": 1,
+        "volume": 1,
+        "fadeIn": 0,
+        "fadeOut": 0
+       }
+      ],
+      "audible": true
+     },
+     {
+      "id": "loop",
+      "kind": "music",
+      "bus": "music",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": 0,
+       "pan": 0,
+       "mute": true,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:music/bed.mp3",
+        "at": 0,
+        "offset": 0,
+        "length": 90,
+        "loop": true,
+        "rate": 1,
+        "volume": 0.3,
+        "fadeIn": 24,
+        "fadeOut": 45
+       }
+      ],
+      "audible": false
+     },
+     {
+      "id": "talk-clip",
+      "kind": "clip",
+      "bus": "clips",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": 0,
+       "pan": 0,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:clips/talk.mp4",
+        "at": 12,
+        "offset": 0,
+        "length": 150,
+        "loop": false,
+        "rate": 1,
+        "volume": 1,
+        "fadeIn": 0,
+        "fadeOut": 0
+       }
+      ],
+      "audible": true
+     }
+    ],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [
+       "song",
+       "whip"
+      ],
+      "duck": {
+       "keys": [
+        "talk-clip"
+       ],
+       "amount": 10,
+       "attack": 80,
+       "release": 400
+      }
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       }
+      },
+      "fader": -3,
+      "channels": [
+       "talk-clip"
+      ],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": 0,
+     "eq": {
+      "on": false,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 120,
+        "gain": 0,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "peak",
+        "freq": 2500,
+        "gain": 0,
+        "q": 1
+       },
+       {
+        "type": "highshelf",
+        "freq": 8000,
+        "gain": 0,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12,
+      "ratio": 2,
+      "attack": 20,
+      "release": 250,
+      "makeup": 0
+     },
+     "limiter": {
+      "on": false,
+      "ceiling": -1
+     },
+     "loudness": "off"
+    },
+    "key": "3f955ae0349bacac"
+   },
+   "jobs": {
+    "channels": [
+     {
+      "id": "song",
+      "job": {
+       "inputs": [
+        "/project/project:music/song.mp3",
+        "/project/project:music/song.mp3",
+        "/project/project:music/song.mp3"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.233333,asetpts=PTS-STARTPTS,atempo=1.5000,asetpts=PTS-STARTPTS,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=8.1,afade=t=out:st=0:d=8.1,volume=eval=frame:volume='if(lt(t,0),0,if(lt(t,1),0+(1)*(t-0)/1,if(lt(t,1.25),1,if(lt(t,1.5),1,if(lt(t,1.75),1,if(lt(t,2),1,if(lt(t,2.25),1,if(lt(t,2.5),1,if(lt(t,2.75),1,if(lt(t,3),1,if(lt(t,4),1+(-0.75)*(t-3)/1,0.25)))))))))))',channelsplit=channel_layout=stereo[s0l][s0r];[s0l]volume=eval=frame:volume='min(1,1-(if(lt(t,0.333333),-1,if(lt(t,2.333333),-1+(1.6)*(t-0.333333)/2,0.6))))'[s0L];[s0r]volume=eval=frame:volume='min(1,1+(if(lt(t,0.333333),-1,if(lt(t,2.333333),-1+(1.6)*(t-0.333333)/2,0.6))))'[s0R];[s0L][s0R]join=inputs=2:channel_layout=stereo,adelay=delays=500:all=1[s0];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.2,asetpts=PTS-STARTPTS,aloop=loop=-1:size=2147483647,atempo=0.5000,atempo=0.6000,asetpts=PTS-STARTPTS,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=1.25,afade=t=in:st=0:d=0.4,afade=t=out:st=6.6:d=1.5,volume=eval=frame:volume='0.5'[s1];[2:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atempo=2.0000,atempo=1.5000,asetpts=PTS-STARTPTS,atrim=end=0.033333,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.033333,afade=t=out:st=0:d=0.033333,channelsplit=channel_layout=stereo[s2l][s2r];[s2l]volume=eval=frame:volume='min(1,1-(0.5))'[s2L];[s2r]volume=eval=frame:volume='min(1,1+(0.5))'[s2R];[s2L][s2R]join=inputs=2:channel_layout=stereo,adelay=delays=100:all=1[s2];[s0][s1][s2]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-6dB[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/project:music/song.mp3",
+       "-i",
+       "/project/project:music/song.mp3",
+       "-i",
+       "/project/project:music/song.mp3",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.233333,asetpts=PTS-STARTPTS,atempo=1.5000,asetpts=PTS-STARTPTS,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=8.1,afade=t=out:st=0:d=8.1,volume=eval=frame:volume='if(lt(t,0),0,if(lt(t,1),0+(1)*(t-0)/1,if(lt(t,1.25),1,if(lt(t,1.5),1,if(lt(t,1.75),1,if(lt(t,2),1,if(lt(t,2.25),1,if(lt(t,2.5),1,if(lt(t,2.75),1,if(lt(t,3),1,if(lt(t,4),1+(-0.75)*(t-3)/1,0.25)))))))))))',channelsplit=channel_layout=stereo[s0l][s0r];[s0l]volume=eval=frame:volume='min(1,1-(if(lt(t,0.333333),-1,if(lt(t,2.333333),-1+(1.6)*(t-0.333333)/2,0.6))))'[s0L];[s0r]volume=eval=frame:volume='min(1,1+(if(lt(t,0.333333),-1,if(lt(t,2.333333),-1+(1.6)*(t-0.333333)/2,0.6))))'[s0R];[s0L][s0R]join=inputs=2:channel_layout=stereo,adelay=delays=500:all=1[s0];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.2,asetpts=PTS-STARTPTS,aloop=loop=-1:size=2147483647,atempo=0.5000,atempo=0.6000,asetpts=PTS-STARTPTS,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=1.25,afade=t=in:st=0:d=0.4,afade=t=out:st=6.6:d=1.5,volume=eval=frame:volume='0.5'[s1];[2:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atempo=2.0000,atempo=1.5000,asetpts=PTS-STARTPTS,atrim=end=0.033333,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.033333,afade=t=out:st=0:d=0.033333,channelsplit=channel_layout=stereo[s2l][s2r];[s2l]volume=eval=frame:volume='min(1,1-(0.5))'[s2L];[s2r]volume=eval=frame:volume='min(1,1+(0.5))'[s2R];[s2L][s2R]join=inputs=2:channel_layout=stereo,adelay=delays=100:all=1[s2];[s0][s1][s2]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-6dB[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     },
+     {
+      "id": "whip",
+      "job": {
+       "inputs": [
+        "/project/app:sfx/whip.wav"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=0.166667,asetpts=PTS-STARTPTS,adelay=delays=1000:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/app:sfx/whip.wav",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=0.166667,asetpts=PTS-STARTPTS,adelay=delays=1000:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     },
+     {
+      "id": "loop",
+      "job": {
+       "inputs": [
+        "/project/project:music/bed.mp3"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atrim=end=3,asetpts=PTS-STARTPTS,volume=0.3,afade=t=in:st=0:d=0.8,afade=t=out:st=1.5:d=1.5[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/project:music/bed.mp3",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atrim=end=3,asetpts=PTS-STARTPTS,volume=0.3,afade=t=in:st=0:d=0.8,afade=t=out:st=1.5:d=1.5[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     },
+     {
+      "id": "talk-clip",
+      "job": {
+       "inputs": [
+        "/project/project:clips/talk.mp4"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=5,asetpts=PTS-STARTPTS,adelay=delays=400:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/project:clips/talk.mp4",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=5,asetpts=PTS-STARTPTS,adelay=delays=400:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     }
+    ],
+    "buses": [
+     {
+      "id": "music",
+      "job": {
+       "inputs": [
+        "/stems/song.wav",
+        "/stems/whip.wav",
+        "/stems/talk-clip.wav"
+       ],
+       "filter": "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[main];[2:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=1.556:attack=80:release=400:makeup=1,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/song.wav",
+       "-i",
+       "/stems/whip.wav",
+       "-i",
+       "/stems/talk-clip.wav",
+       "-filter_complex",
+       "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[main];[2:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=1.556:attack=80:release=400:makeup=1,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     },
+     {
+      "id": "effects",
+      "job": {
+       "inputs": [],
+       "filter": "anullsrc=r=48000:cl=stereo,atrim=end=8.6[out]",
+       "output": "out"
+      },
+      "args": [
+       "-filter_complex",
+       "anullsrc=r=48000:cl=stereo,atrim=end=8.6[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     },
+     {
+      "id": "clips",
+      "job": {
+       "inputs": [
+        "/stems/talk-clip.wav"
+       ],
+       "filter": "[0:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-3dB[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/talk-clip.wav",
+       "-filter_complex",
+       "[0:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-3dB[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     }
+    ],
+    "master": [
+     {
+      "measured": null,
+      "job": {
+       "inputs": [
+        "/stems/music.wav",
+        "/stems/effects.wav",
+        "/stems/clips.wav"
+       ],
+       "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/music.wav",
+       "-i",
+       "/stems/effects.wav",
+       "-i",
+       "/stems/clips.wav",
+       "-filter_complex",
+       "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "9.6",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_s16le",
+       "/stems/master.wav"
+      ]
+     },
+     {
+      "measured": {
+       "input_i": "-19.52",
+       "input_tp": "-3.10",
+       "input_lra": "5.20",
+       "input_thresh": "-29.87",
+       "target_offset": "0.02"
+      },
+      "job": {
+       "inputs": [
+        "/stems/music.wav",
+        "/stems/effects.wav",
+        "/stems/clips.wav"
+       ],
+       "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/music.wav",
+       "-i",
+       "/stems/effects.wav",
+       "-i",
+       "/stems/clips.wav",
+       "-filter_complex",
+       "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "9.6",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_s16le",
+       "/stems/master.wav"
+      ]
+     }
+    ],
+    "measure": null
+   }
+  },
+  {
+   "name": "sound/render/edited",
+   "plan": {
+    "fps": 30,
+    "durationInFrames": 258,
+    "channels": [
+     {
+      "id": "song",
+      "kind": "music",
+      "bus": "music",
+      "strip": {
+       "trim": 3,
+       "highpass": {
+        "on": true,
+        "freq": 90
+       },
+       "eq": {
+        "on": true,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 150,
+          "gain": -2,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 350,
+          "gain": -2,
+          "q": 1.2
+         },
+         {
+          "type": "peak",
+          "freq": 3000,
+          "gain": 3,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 10000,
+          "gain": 2,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": true,
+        "threshold": -20,
+        "ratio": 3,
+        "attack": 8,
+        "release": 120,
+        "makeup": 3
+       },
+       "fader": -6,
+       "pan": -0.5,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:music/song.mp3",
+        "at": 15,
+        "offset": 6,
+        "length": 243,
+        "loop": true,
+        "rate": 1,
+        "volume": 0.5,
+        "fadeIn": 12,
+        "fadeOut": 45
+       }
+      ],
+      "audible": true
+     },
+     {
+      "id": "whip",
+      "kind": "effect",
+      "bus": "music",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": true,
+        "freq": 60
+       },
+       "eq": {
+        "on": true,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 100,
+          "gain": 2,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 600,
+          "gain": -2,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 4000,
+          "gain": 2,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 9000,
+          "gain": 1,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": true,
+        "threshold": -16,
+        "ratio": 4,
+        "attack": 3,
+        "release": 80,
+        "makeup": 2
+       },
+       "fader": 0,
+       "pan": 0.003,
+       "mute": false,
+       "solo": false,
+       "bus": "music"
+      },
+      "sounds": [
+       {
+        "src": "app:sfx/whip.wav",
+        "at": 30,
+        "offset": 0,
+        "length": 5,
+        "loop": false,
+        "rate": 1,
+        "volume": 1,
+        "fadeIn": 0,
+        "fadeOut": 0
+       }
+      ],
+      "audible": true
+     },
+     {
+      "id": "loop",
+      "kind": "music",
+      "bus": "music",
+      "strip": {
+       "trim": -2.5,
+       "highpass": {
+        "on": true,
+        "freq": 40
+       },
+       "eq": {
+        "on": true,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 400,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": -3,
+          "q": 1.4
+         },
+         {
+          "type": "highshelf",
+          "freq": 9000,
+          "gain": -1,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": true,
+        "threshold": -24,
+        "ratio": 2,
+        "attack": 30,
+        "release": 300,
+        "makeup": 0
+       },
+       "fader": -6,
+       "pan": 0.75,
+       "mute": true,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:music/bed.mp3",
+        "at": 0,
+        "offset": 0,
+        "length": 90,
+        "loop": true,
+        "rate": 1,
+        "volume": 0.3,
+        "fadeIn": 24,
+        "fadeOut": 45
+       }
+      ],
+      "audible": false
+     },
+     {
+      "id": "talk-clip",
+      "kind": "clip",
+      "bus": "clips",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": 0,
+       "pan": 0,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:clips/talk.mp4",
+        "at": 12,
+        "offset": 0,
+        "length": 150,
+        "loop": false,
+        "rate": 1,
+        "volume": 1,
+        "fadeIn": 0,
+        "fadeOut": 0
+       }
+      ],
+      "audible": true
+     }
+    ],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": true,
+        "freq": 120
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -20,
+        "ratio": 2.5,
+        "attack": 5,
+        "release": 100,
+        "makeup": 4
+       }
+      },
+      "fader": 0,
+      "channels": [
+       "song",
+       "whip"
+      ],
+      "duck": {
+       "keys": [
+        "talk-clip"
+       ],
+       "amount": 22.5,
+       "attack": 12.345,
+       "release": 678
+      }
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 120
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": true,
+        "threshold": -20,
+        "ratio": 2.5,
+        "attack": 5,
+        "release": 100,
+        "makeup": 4
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 120
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -20,
+        "ratio": 2.5,
+        "attack": 5,
+        "release": 100,
+        "makeup": 4
+       }
+      },
+      "fader": -3,
+      "channels": [
+       "talk-clip"
+      ],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": -1.5,
+     "eq": {
+      "on": true,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 150,
+        "gain": -2,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 350,
+        "gain": -2,
+        "q": 1.2
+       },
+       {
+        "type": "peak",
+        "freq": 3000,
+        "gain": 3,
+        "q": 1
+       },
+       {
+        "type": "highshelf",
+        "freq": 10000,
+        "gain": 2,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12,
+      "ratio": 2,
+      "attack": 20,
+      "release": 250,
+      "makeup": 0
+     },
+     "limiter": {
+      "on": true,
+      "ceiling": -1
+     },
+     "loudness": "web"
+    },
+    "key": "819cc122e2c7f964"
+   },
+   "jobs": {
+    "channels": [
+     {
+      "id": "song",
+      "job": {
+       "inputs": [
+        "/project/project:music/song.mp3"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.2,asetpts=PTS-STARTPTS,aloop=loop=-1:size=2147483647,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.4,afade=t=out:st=6.6:d=1.5,adelay=delays=500:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=3dB,highpass=f=90,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.1:ratio=3:attack=8:release=120:makeup=1.412538,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]pan=stereo|c0=1*c0|c1=0.5*c1,volume=-6dB[out]",
+       "output": "out",
+       "taps": {
+        "pre": "pre",
+        "post": "post"
+       }
+      },
+      "args": [
+       "-i",
+       "/project/project:music/song.mp3",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.2,asetpts=PTS-STARTPTS,aloop=loop=-1:size=2147483647,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.4,afade=t=out:st=6.6:d=1.5,adelay=delays=500:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=3dB,highpass=f=90,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.1:ratio=3:attack=8:release=120:makeup=1.412538,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]pan=stereo|c0=1*c0|c1=0.5*c1,volume=-6dB[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav",
+       "-map",
+       "[pre]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/pre.wav",
+       "-map",
+       "[post]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/post.wav"
+      ]
+     },
+     {
+      "id": "whip",
+      "job": {
+       "inputs": [
+        "/project/app:sfx/whip.wav"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=0.166667,asetpts=PTS-STARTPTS,adelay=delays=1000:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,highpass=f=60,lowshelf=f=100:t=q:w=0.7:g=2,equalizer=f=600:t=q:w=1:g=-2,equalizer=f=4000:t=q:w=1:g=2,highshelf=f=9000:t=q:w=0.7:g=1[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.158489:ratio=4:attack=3:release=80:makeup=1.258925,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]anull[out]",
+       "output": "out",
+       "taps": {
+        "pre": "pre",
+        "post": "post"
+       }
+      },
+      "args": [
+       "-i",
+       "/project/app:sfx/whip.wav",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=0.166667,asetpts=PTS-STARTPTS,adelay=delays=1000:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,highpass=f=60,lowshelf=f=100:t=q:w=0.7:g=2,equalizer=f=600:t=q:w=1:g=-2,equalizer=f=4000:t=q:w=1:g=2,highshelf=f=9000:t=q:w=0.7:g=1[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.158489:ratio=4:attack=3:release=80:makeup=1.258925,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]anull[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav",
+       "-map",
+       "[pre]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/pre.wav",
+       "-map",
+       "[post]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/post.wav"
+      ]
+     },
+     {
+      "id": "loop",
+      "job": {
+       "inputs": [
+        "/project/project:music/bed.mp3"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atrim=end=3,asetpts=PTS-STARTPTS,volume=0.3,afade=t=in:st=0:d=0.8,afade=t=out:st=1.5:d=1.5[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-2.5dB,highpass=f=40,equalizer=f=2500:t=q:w=1.4:g=-3,highshelf=f=9000:t=q:w=0.7:g=-1[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.063096:ratio=2:attack=30:release=300:makeup=1,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]pan=stereo|c0=0.25*c0|c1=1*c1,volume=-6dB[out]",
+       "output": "out",
+       "taps": {
+        "pre": "pre",
+        "post": "post"
+       }
+      },
+      "args": [
+       "-i",
+       "/project/project:music/bed.mp3",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atrim=end=3,asetpts=PTS-STARTPTS,volume=0.3,afade=t=in:st=0:d=0.8,afade=t=out:st=1.5:d=1.5[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-2.5dB,highpass=f=40,equalizer=f=2500:t=q:w=1.4:g=-3,highshelf=f=9000:t=q:w=0.7:g=-1[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.063096:ratio=2:attack=30:release=300:makeup=1,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]pan=stereo|c0=0.25*c0|c1=1*c1,volume=-6dB[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav",
+       "-map",
+       "[pre]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/pre.wav",
+       "-map",
+       "[post]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/post.wav"
+      ]
+     },
+     {
+      "id": "talk-clip",
+      "job": {
+       "inputs": [
+        "/project/project:clips/talk.mp4"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=5,asetpts=PTS-STARTPTS,adelay=delays=400:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/project:clips/talk.mp4",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=5,asetpts=PTS-STARTPTS,adelay=delays=400:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     }
+    ],
+    "buses": [
+     {
+      "id": "music",
+      "job": {
+       "inputs": [
+        "/stems/song.wav",
+        "/stems/whip.wav",
+        "/stems/talk-clip.wav"
+       ],
+       "filter": "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,highpass=f=120[main];[2:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=5.091:attack=12.35:release=678:makeup=1,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/song.wav",
+       "-i",
+       "/stems/whip.wav",
+       "-i",
+       "/stems/talk-clip.wav",
+       "-filter_complex",
+       "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,highpass=f=120[main];[2:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=5.091:attack=12.35:release=678:makeup=1,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     },
+     {
+      "id": "effects",
+      "job": {
+       "inputs": [],
+       "filter": "anullsrc=r=48000:cl=stereo,atrim=end=8.6[out]",
+       "output": "out"
+      },
+      "args": [
+       "-filter_complex",
+       "anullsrc=r=48000:cl=stereo,atrim=end=8.6[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     },
+     {
+      "id": "clips",
+      "job": {
+       "inputs": [
+        "/stems/talk-clip.wav"
+       ],
+       "filter": "[0:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-3dB[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/talk-clip.wav",
+       "-filter_complex",
+       "[0:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-3dB[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     }
+    ],
+    "master": [
+     {
+      "measured": null,
+      "job": {
+       "inputs": [
+        "/stems/music.wav",
+        "/stems/effects.wav",
+        "/stems/clips.wav"
+       ],
+       "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/music.wav",
+       "-i",
+       "/stems/effects.wav",
+       "-i",
+       "/stems/clips.wav",
+       "-filter_complex",
+       "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "9.6",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_s16le",
+       "/stems/master.wav"
+      ]
+     },
+     {
+      "measured": {
+       "input_i": "-19.52",
+       "input_tp": "-3.10",
+       "input_lra": "5.20",
+       "input_thresh": "-29.87",
+       "target_offset": "0.02"
+      },
+      "job": {
+       "inputs": [
+        "/stems/music.wav",
+        "/stems/effects.wav",
+        "/stems/clips.wav"
+       ],
+       "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:measured_I=-19.52:measured_TP=-3.10:measured_LRA=5.20:measured_thresh=-29.87:offset=0.02:linear=true:print_format=summary,aresample=48000,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/music.wav",
+       "-i",
+       "/stems/effects.wav",
+       "-i",
+       "/stems/clips.wav",
+       "-filter_complex",
+       "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:measured_I=-19.52:measured_TP=-3.10:measured_LRA=5.20:measured_thresh=-29.87:offset=0.02:linear=true:print_format=summary,aresample=48000,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "9.6",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_s16le",
+       "/stems/master.wav"
+      ]
+     }
+    ],
+    "measure": {
+     "job": {
+      "inputs": [
+       "/stems/music.wav",
+       "/stems/effects.wav",
+       "/stems/clips.wav"
+      ],
+      "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:print_format=json[out]",
+      "output": "out"
+     },
+     "args": [
+      "-i",
+      "/stems/music.wav",
+      "-i",
+      "/stems/effects.wav",
+      "-i",
+      "/stems/clips.wav",
+      "-filter_complex",
+      "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:print_format=json[out]",
+      "-map",
+      "[out]",
+      "-f",
+      "null",
+      "-"
+     ]
+    }
+   }
+  },
+  {
+   "name": "sound/render/edited/shaped",
+   "plan": {
+    "fps": 30,
+    "durationInFrames": 258,
+    "channels": [
+     {
+      "id": "song",
+      "kind": "music",
+      "bus": "music",
+      "strip": {
+       "trim": 3,
+       "highpass": {
+        "on": true,
+        "freq": 90
+       },
+       "eq": {
+        "on": true,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 150,
+          "gain": -2,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 350,
+          "gain": -2,
+          "q": 1.2
+         },
+         {
+          "type": "peak",
+          "freq": 3000,
+          "gain": 3,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 10000,
+          "gain": 2,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": true,
+        "threshold": -20,
+        "ratio": 3,
+        "attack": 8,
+        "release": 120,
+        "makeup": 3
+       },
+       "fader": -6,
+       "pan": -0.5,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:music/song.mp3",
+        "at": 15,
+        "offset": 7,
+        "length": 243,
+        "loop": false,
+        "rate": 1.5,
+        "volume": 0.5,
+        "fadeIn": 400,
+        "fadeOut": 500,
+        "envelope": {
+         "volume": [
+          {
+           "frame": 0,
+           "value": 0,
+           "ease": "linear"
+          },
+          {
+           "frame": 30,
+           "value": 1,
+           "ease": "in-out"
+          },
+          {
+           "frame": 90,
+           "value": 1,
+           "ease": "linear"
+          },
+          {
+           "frame": 120,
+           "value": 0.25,
+           "ease": "out"
+          }
+         ],
+         "pan": [
+          {
+           "frame": 10,
+           "value": -1,
+           "ease": "linear"
+          },
+          {
+           "frame": 70,
+           "value": 0.6,
+           "ease": "linear"
+          }
+         ]
+        }
+       },
+       {
+        "src": "project:music/song.mp3",
+        "at": 0,
+        "offset": 6,
+        "length": 243,
+        "loop": true,
+        "rate": 0.3,
+        "volume": 1.25,
+        "fadeIn": 12,
+        "fadeOut": 45,
+        "envelope": {
+         "volume": [
+          {
+           "frame": 5,
+           "value": 0.5,
+           "ease": "linear"
+          }
+         ]
+        }
+       },
+       {
+        "src": "project:music/song.mp3",
+        "at": 3,
+        "offset": 0,
+        "length": 1,
+        "loop": true,
+        "rate": 3,
+        "volume": 0.5,
+        "fadeIn": 12,
+        "fadeOut": 45,
+        "envelope": {
+         "pan": [
+          {
+           "frame": 0,
+           "value": 0.5,
+           "ease": "linear"
+          }
+         ]
+        }
+       }
+      ],
+      "audible": true
+     },
+     {
+      "id": "whip",
+      "kind": "effect",
+      "bus": "music",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": true,
+        "freq": 60
+       },
+       "eq": {
+        "on": true,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 100,
+          "gain": 2,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 600,
+          "gain": -2,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 4000,
+          "gain": 2,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 9000,
+          "gain": 1,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": true,
+        "threshold": -16,
+        "ratio": 4,
+        "attack": 3,
+        "release": 80,
+        "makeup": 2
+       },
+       "fader": 0,
+       "pan": 0.003,
+       "mute": false,
+       "solo": false,
+       "bus": "music"
+      },
+      "sounds": [
+       {
+        "src": "app:sfx/whip.wav",
+        "at": 30,
+        "offset": 0,
+        "length": 5,
+        "loop": false,
+        "rate": 1,
+        "volume": 1,
+        "fadeIn": 0,
+        "fadeOut": 0
+       }
+      ],
+      "audible": true
+     },
+     {
+      "id": "loop",
+      "kind": "music",
+      "bus": "music",
+      "strip": {
+       "trim": -2.5,
+       "highpass": {
+        "on": true,
+        "freq": 40
+       },
+       "eq": {
+        "on": true,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 400,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": -3,
+          "q": 1.4
+         },
+         {
+          "type": "highshelf",
+          "freq": 9000,
+          "gain": -1,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": true,
+        "threshold": -24,
+        "ratio": 2,
+        "attack": 30,
+        "release": 300,
+        "makeup": 0
+       },
+       "fader": -6,
+       "pan": 0.75,
+       "mute": true,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:music/bed.mp3",
+        "at": 0,
+        "offset": 0,
+        "length": 90,
+        "loop": true,
+        "rate": 1,
+        "volume": 0.3,
+        "fadeIn": 24,
+        "fadeOut": 45
+       }
+      ],
+      "audible": false
+     },
+     {
+      "id": "talk-clip",
+      "kind": "clip",
+      "bus": "clips",
+      "strip": {
+       "trim": 0,
+       "highpass": {
+        "on": false,
+        "freq": 80
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -18,
+        "ratio": 3,
+        "attack": 10,
+        "release": 150,
+        "makeup": 0
+       },
+       "fader": 0,
+       "pan": 0,
+       "mute": false,
+       "solo": false
+      },
+      "sounds": [
+       {
+        "src": "project:clips/talk.mp4",
+        "at": 12,
+        "offset": 0,
+        "length": 150,
+        "loop": false,
+        "rate": 1,
+        "volume": 1,
+        "fadeIn": 0,
+        "fadeOut": 0
+       }
+      ],
+      "audible": true
+     }
+    ],
+    "buses": [
+     {
+      "id": "music",
+      "name": "Music",
+      "processing": {
+       "highpass": {
+        "on": true,
+        "freq": 120
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -20,
+        "ratio": 2.5,
+        "attack": 5,
+        "release": 100,
+        "makeup": 4
+       }
+      },
+      "fader": 0,
+      "channels": [
+       "song",
+       "whip"
+      ],
+      "duck": {
+       "keys": [
+        "talk-clip"
+       ],
+       "amount": 22.5,
+       "attack": 12.345,
+       "release": 678
+      }
+     },
+     {
+      "id": "effects",
+      "name": "Effects",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 120
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": true,
+        "threshold": -20,
+        "ratio": 2.5,
+        "attack": 5,
+        "release": 100,
+        "makeup": 4
+       }
+      },
+      "fader": 0,
+      "channels": [],
+      "duck": null
+     },
+     {
+      "id": "clips",
+      "name": "Clips",
+      "processing": {
+       "highpass": {
+        "on": false,
+        "freq": 120
+       },
+       "eq": {
+        "on": false,
+        "bands": [
+         {
+          "type": "lowshelf",
+          "freq": 120,
+          "gain": 0,
+          "q": 0.7
+         },
+         {
+          "type": "peak",
+          "freq": 500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "peak",
+          "freq": 2500,
+          "gain": 0,
+          "q": 1
+         },
+         {
+          "type": "highshelf",
+          "freq": 8000,
+          "gain": 0,
+          "q": 0.7
+         }
+        ]
+       },
+       "comp": {
+        "on": false,
+        "threshold": -20,
+        "ratio": 2.5,
+        "attack": 5,
+        "release": 100,
+        "makeup": 4
+       }
+      },
+      "fader": -3,
+      "channels": [
+       "talk-clip"
+      ],
+      "duck": null
+     }
+    ],
+    "master": {
+     "fader": -1.5,
+     "eq": {
+      "on": true,
+      "bands": [
+       {
+        "type": "lowshelf",
+        "freq": 150,
+        "gain": -2,
+        "q": 0.7
+       },
+       {
+        "type": "peak",
+        "freq": 350,
+        "gain": -2,
+        "q": 1.2
+       },
+       {
+        "type": "peak",
+        "freq": 3000,
+        "gain": 3,
+        "q": 1
+       },
+       {
+        "type": "highshelf",
+        "freq": 10000,
+        "gain": 2,
+        "q": 0.7
+       }
+      ]
+     },
+     "comp": {
+      "on": false,
+      "threshold": -12,
+      "ratio": 2,
+      "attack": 20,
+      "release": 250,
+      "makeup": 0
+     },
+     "limiter": {
+      "on": true,
+      "ceiling": -1
+     },
+     "loudness": "web"
+    },
+    "key": "819cc122e2c7f964"
+   },
+   "jobs": {
+    "channels": [
+     {
+      "id": "song",
+      "job": {
+       "inputs": [
+        "/project/project:music/song.mp3",
+        "/project/project:music/song.mp3",
+        "/project/project:music/song.mp3"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.233333,asetpts=PTS-STARTPTS,atempo=1.5000,asetpts=PTS-STARTPTS,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=8.1,afade=t=out:st=0:d=8.1,volume=eval=frame:volume='if(lt(t,0),0,if(lt(t,1),0+(1)*(t-0)/1,if(lt(t,1.25),1,if(lt(t,1.5),1,if(lt(t,1.75),1,if(lt(t,2),1,if(lt(t,2.25),1,if(lt(t,2.5),1,if(lt(t,2.75),1,if(lt(t,3),1,if(lt(t,4),1+(-0.75)*(t-3)/1,0.25)))))))))))',channelsplit=channel_layout=stereo[s0l][s0r];[s0l]volume=eval=frame:volume='min(1,1-(if(lt(t,0.333333),-1,if(lt(t,2.333333),-1+(1.6)*(t-0.333333)/2,0.6))))'[s0L];[s0r]volume=eval=frame:volume='min(1,1+(if(lt(t,0.333333),-1,if(lt(t,2.333333),-1+(1.6)*(t-0.333333)/2,0.6))))'[s0R];[s0L][s0R]join=inputs=2:channel_layout=stereo,adelay=delays=500:all=1[s0];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.2,asetpts=PTS-STARTPTS,aloop=loop=-1:size=2147483647,atempo=0.5000,atempo=0.6000,asetpts=PTS-STARTPTS,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=1.25,afade=t=in:st=0:d=0.4,afade=t=out:st=6.6:d=1.5,volume=eval=frame:volume='0.5'[s1];[2:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atempo=2.0000,atempo=1.5000,asetpts=PTS-STARTPTS,atrim=end=0.033333,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.033333,afade=t=out:st=0:d=0.033333,channelsplit=channel_layout=stereo[s2l][s2r];[s2l]volume=eval=frame:volume='min(1,1-(0.5))'[s2L];[s2r]volume=eval=frame:volume='min(1,1+(0.5))'[s2R];[s2L][s2R]join=inputs=2:channel_layout=stereo,adelay=delays=100:all=1[s2];[s0][s1][s2]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=3dB,highpass=f=90,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.1:ratio=3:attack=8:release=120:makeup=1.412538,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]pan=stereo|c0=1*c0|c1=0.5*c1,volume=-6dB[out]",
+       "output": "out",
+       "taps": {
+        "pre": "pre",
+        "post": "post"
+       }
+      },
+      "args": [
+       "-i",
+       "/project/project:music/song.mp3",
+       "-i",
+       "/project/project:music/song.mp3",
+       "-i",
+       "/project/project:music/song.mp3",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.233333,asetpts=PTS-STARTPTS,atempo=1.5000,asetpts=PTS-STARTPTS,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=8.1,afade=t=out:st=0:d=8.1,volume=eval=frame:volume='if(lt(t,0),0,if(lt(t,1),0+(1)*(t-0)/1,if(lt(t,1.25),1,if(lt(t,1.5),1,if(lt(t,1.75),1,if(lt(t,2),1,if(lt(t,2.25),1,if(lt(t,2.5),1,if(lt(t,2.75),1,if(lt(t,3),1,if(lt(t,4),1+(-0.75)*(t-3)/1,0.25)))))))))))',channelsplit=channel_layout=stereo[s0l][s0r];[s0l]volume=eval=frame:volume='min(1,1-(if(lt(t,0.333333),-1,if(lt(t,2.333333),-1+(1.6)*(t-0.333333)/2,0.6))))'[s0L];[s0r]volume=eval=frame:volume='min(1,1+(if(lt(t,0.333333),-1,if(lt(t,2.333333),-1+(1.6)*(t-0.333333)/2,0.6))))'[s0R];[s0L][s0R]join=inputs=2:channel_layout=stereo,adelay=delays=500:all=1[s0];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=start=0.2,asetpts=PTS-STARTPTS,aloop=loop=-1:size=2147483647,atempo=0.5000,atempo=0.6000,asetpts=PTS-STARTPTS,atrim=end=8.1,asetpts=PTS-STARTPTS,volume=1.25,afade=t=in:st=0:d=0.4,afade=t=out:st=6.6:d=1.5,volume=eval=frame:volume='0.5'[s1];[2:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atempo=2.0000,atempo=1.5000,asetpts=PTS-STARTPTS,atrim=end=0.033333,asetpts=PTS-STARTPTS,volume=0.5,afade=t=in:st=0:d=0.033333,afade=t=out:st=0:d=0.033333,channelsplit=channel_layout=stereo[s2l][s2r];[s2l]volume=eval=frame:volume='min(1,1-(0.5))'[s2L];[s2r]volume=eval=frame:volume='min(1,1+(0.5))'[s2R];[s2L][s2R]join=inputs=2:channel_layout=stereo,adelay=delays=100:all=1[s2];[s0][s1][s2]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=3dB,highpass=f=90,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.1:ratio=3:attack=8:release=120:makeup=1.412538,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]pan=stereo|c0=1*c0|c1=0.5*c1,volume=-6dB[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav",
+       "-map",
+       "[pre]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/pre.wav",
+       "-map",
+       "[post]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/post.wav"
+      ]
+     },
+     {
+      "id": "whip",
+      "job": {
+       "inputs": [
+        "/project/app:sfx/whip.wav"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=0.166667,asetpts=PTS-STARTPTS,adelay=delays=1000:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,highpass=f=60,lowshelf=f=100:t=q:w=0.7:g=2,equalizer=f=600:t=q:w=1:g=-2,equalizer=f=4000:t=q:w=1:g=2,highshelf=f=9000:t=q:w=0.7:g=1[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.158489:ratio=4:attack=3:release=80:makeup=1.258925,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]anull[out]",
+       "output": "out",
+       "taps": {
+        "pre": "pre",
+        "post": "post"
+       }
+      },
+      "args": [
+       "-i",
+       "/project/app:sfx/whip.wav",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=0.166667,asetpts=PTS-STARTPTS,adelay=delays=1000:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,highpass=f=60,lowshelf=f=100:t=q:w=0.7:g=2,equalizer=f=600:t=q:w=1:g=-2,equalizer=f=4000:t=q:w=1:g=2,highshelf=f=9000:t=q:w=0.7:g=1[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.158489:ratio=4:attack=3:release=80:makeup=1.258925,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]anull[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav",
+       "-map",
+       "[pre]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/pre.wav",
+       "-map",
+       "[post]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/post.wav"
+      ]
+     },
+     {
+      "id": "loop",
+      "job": {
+       "inputs": [
+        "/project/project:music/bed.mp3"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atrim=end=3,asetpts=PTS-STARTPTS,volume=0.3,afade=t=in:st=0:d=0.8,afade=t=out:st=1.5:d=1.5[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-2.5dB,highpass=f=40,equalizer=f=2500:t=q:w=1.4:g=-3,highshelf=f=9000:t=q:w=0.7:g=-1[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.063096:ratio=2:attack=30:release=300:makeup=1,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]pan=stereo|c0=0.25*c0|c1=1*c1,volume=-6dB[out]",
+       "output": "out",
+       "taps": {
+        "pre": "pre",
+        "post": "post"
+       }
+      },
+      "args": [
+       "-i",
+       "/project/project:music/bed.mp3",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,aloop=loop=-1:size=2147483647,atrim=end=3,asetpts=PTS-STARTPTS,volume=0.3,afade=t=in:st=0:d=0.8,afade=t=out:st=1.5:d=1.5[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-2.5dB,highpass=f=40,equalizer=f=2500:t=q:w=1.4:g=-3,highshelf=f=9000:t=q:w=0.7:g=-1[sum];[sum]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[pre][c];[c]acompressor=threshold=0.063096:ratio=2:attack=30:release=300:makeup=1,aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[post][m];[m]pan=stereo|c0=0.25*c0|c1=1*c1,volume=-6dB[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav",
+       "-map",
+       "[pre]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/pre.wav",
+       "-map",
+       "[post]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/t/post.wav"
+      ]
+     },
+     {
+      "id": "talk-clip",
+      "job": {
+       "inputs": [
+        "/project/project:clips/talk.mp4"
+       ],
+       "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=5,asetpts=PTS-STARTPTS,adelay=delays=400:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/project/project:clips/talk.mp4",
+       "-filter_complex",
+       "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,atrim=end=5,asetpts=PTS-STARTPTS,adelay=delays=400:all=1[s0];[s0]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "10.5",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/out.wav"
+      ]
+     }
+    ],
+    "buses": [
+     {
+      "id": "music",
+      "job": {
+       "inputs": [
+        "/stems/song.wav",
+        "/stems/whip.wav",
+        "/stems/talk-clip.wav"
+       ],
+       "filter": "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,highpass=f=120[main];[2:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=5.091:attack=12.35:release=678:makeup=1,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/song.wav",
+       "-i",
+       "/stems/whip.wav",
+       "-i",
+       "/stems/talk-clip.wav",
+       "-filter_complex",
+       "[0:a][1:a]amix=inputs=2:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,highpass=f=120[main];[2:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[key];[main][key]sidechaincompress=threshold=0.01:ratio=5.091:attack=12.35:release=678:makeup=1,apad,atrim=end=8.6,asetpts=PTS-STARTPTS[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     },
+     {
+      "id": "effects",
+      "job": {
+       "inputs": [],
+       "filter": "anullsrc=r=48000:cl=stereo,atrim=end=8.6[out]",
+       "output": "out"
+      },
+      "args": [
+       "-filter_complex",
+       "anullsrc=r=48000:cl=stereo,atrim=end=8.6[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     },
+     {
+      "id": "clips",
+      "job": {
+       "inputs": [
+        "/stems/talk-clip.wav"
+       ],
+       "filter": "[0:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-3dB[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/talk-clip.wav",
+       "-filter_complex",
+       "[0:a]anull,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,volume=-3dB[out]",
+       "-map",
+       "[out]",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_f32le",
+       "/stems/bus.wav"
+      ]
+     }
+    ],
+    "master": [
+     {
+      "measured": null,
+      "job": {
+       "inputs": [
+        "/stems/music.wav",
+        "/stems/effects.wav",
+        "/stems/clips.wav"
+       ],
+       "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/music.wav",
+       "-i",
+       "/stems/effects.wav",
+       "-i",
+       "/stems/clips.wav",
+       "-filter_complex",
+       "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "9.6",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_s16le",
+       "/stems/master.wav"
+      ]
+     },
+     {
+      "measured": {
+       "input_i": "-19.52",
+       "input_tp": "-3.10",
+       "input_lra": "5.20",
+       "input_thresh": "-29.87",
+       "target_offset": "0.02"
+      },
+      "job": {
+       "inputs": [
+        "/stems/music.wav",
+        "/stems/effects.wav",
+        "/stems/clips.wav"
+       ],
+       "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:measured_I=-19.52:measured_TP=-3.10:measured_LRA=5.20:measured_thresh=-29.87:offset=0.02:linear=true:print_format=summary,aresample=48000,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
+       "output": "out"
+      },
+      "args": [
+       "-i",
+       "/stems/music.wav",
+       "-i",
+       "/stems/effects.wav",
+       "-i",
+       "/stems/clips.wav",
+       "-filter_complex",
+       "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:measured_I=-19.52:measured_TP=-3.10:measured_LRA=5.20:measured_thresh=-29.87:offset=0.02:linear=true:print_format=summary,aresample=48000,aresample=192000,alimiter=limit=0.891251:level=false,aresample=48000[out]",
+       "-map",
+       "[out]",
+       "-t",
+       "9.6",
+       "-ac",
+       "2",
+       "-ar",
+       "48000",
+       "-c:a",
+       "pcm_s16le",
+       "/stems/master.wav"
+      ]
+     }
+    ],
+    "measure": {
+     "job": {
+      "inputs": [
+       "/stems/music.wav",
+       "/stems/effects.wav",
+       "/stems/clips.wav"
+      ],
+      "filter": "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:print_format=json[out]",
+      "output": "out"
+     },
+     "args": [
+      "-i",
+      "/stems/music.wav",
+      "-i",
+      "/stems/effects.wav",
+      "-i",
+      "/stems/clips.wav",
+      "-filter_complex",
+      "[0:a][1:a][2:a]amix=inputs=3:normalize=0:duration=longest:dropout_transition=0,apad,atrim=end=8.6,asetpts=PTS-STARTPTS,lowshelf=f=150:t=q:w=0.7:g=-2,equalizer=f=350:t=q:w=1.2:g=-2,equalizer=f=3000:t=q:w=1:g=3,highshelf=f=10000:t=q:w=0.7:g=2,volume=-1.5dB,loudnorm=I=-14:TP=-1:LRA=11:print_format=json[out]",
+      "-map",
+      "[out]",
+      "-f",
+      "null",
+      "-"
+     ]
+    }
+   }
+  }
+ ],
+ "loudnorm": [
+  {
+   "stderr": "[Parsed_loudnorm_0 @ 0x1]\n{\n\t\"input_i\" : \"-19.52\",\n\t\"input_tp\" : \"-3.10\",\n\t\"input_lra\" : \"5.20\",\n\t\"input_thresh\" : \"-29.87\",\n\t\"output_i\" : \"-14.02\",\n\t\"output_tp\" : \"-1.00\",\n\t\"output_lra\" : \"4.90\",\n\t\"output_thresh\" : \"-24.35\",\n\t\"normalization_type\" : \"dynamic\",\n\t\"target_offset\" : \"0.02\"\n}",
+   "measured": {
+    "input_i": "-19.52",
+    "input_tp": "-3.10",
+    "input_lra": "5.20",
+    "input_thresh": "-29.87",
+    "target_offset": "0.02"
+   }
+  },
+  {
+   "stderr": "[Parsed_loudnorm_0 @ 0x1]\n{\n\t\"input_i\" : \"-inf\",\n\t\"input_tp\" : \"-3.10\",\n\t\"input_lra\" : \"5.20\",\n\t\"input_thresh\" : \"-29.87\",\n\t\"output_i\" : \"-14.02\",\n\t\"output_tp\" : \"-1.00\",\n\t\"output_lra\" : \"4.90\",\n\t\"output_thresh\" : \"-24.35\",\n\t\"normalization_type\" : \"dynamic\",\n\t\"target_offset\" : \"0.02\"\n}",
+   "measured": null
+  },
+  {
+   "stderr": "no json here",
+   "measured": null
+  },
+  {
+   "stderr": "{ \"input_i\": \"\", \"input_tp\": \"1\", \"input_lra\": \"1\", \"input_thresh\": \"1\", \"target_offset\": \"0\" }",
+   "measured": null
+  }
+ ],
+ "errors": [
+  {
+   "output": "ffmpeg exited with 254: [in#0 @ 0x1] Error opening input: No such file or directory\nError opening input file /home/me/project/assets/my song.mp3.\nError opening input files: No such file or directory",
+   "message": "The sound couldn't be mixed. Check that every sound file still opens."
+  },
+  {
+   "output": "ffmpeg exited with 254: Error opening input: No such file or directory\n/home/me/project/assets/song.mp3: No such file or directory",
+   "message": "The sound couldn't be mixed. Check that every sound file still opens."
+  },
+  {
+   "output": "bad",
+   "message": "The sound couldn't be mixed. Check that every sound file still opens."
+  }
+ ]
+}

@@ -1,0 +1,37 @@
+[package]
+name = "opsis-media"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+ebur128 = "0.1.10"
+futures = "0.3.34"
+hound = "3.5.1"
+indexmap = "2.14.2"
+log = "0.4.34"
+opsis-compile = { version = "0.1.0", path = "../compile" }
+opsis-engine = { version = "0.1.0", path = "../engine" }
+opsis-project = { version = "0.1.0", path = "../project" }
+opsis-runner = { version = "0.1.0", path = "../runner" }
+opsis-types = { version = "0.1.0", path = "../types" }
+regex = "1.13.1"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.154", features = ["preserve_order"] }
+tempfile = "3.27.0"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = [
+  "process",
+  "io-util",
+  "macros",
+  "rt",
+  "fs",
+  "time",
+  "sync",
+] }
+tokio-util = "0.7.20"
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros"] }

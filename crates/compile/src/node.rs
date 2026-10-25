@@ -285,7 +285,7 @@ impl std::fmt::Debug for NodeDef {
 }
 
 fn typed<P: DeserializeOwned>(values: &Values) -> Result<P, String> {
-    serde_json::from_value(serde_json::Value::Object(values.clone())).map_err(|e| e.to_string())
+    crate::params::typed_values(values)
 }
 
 fn retyped<'a, P>(ctx: &Ctx<'a, ()>, params: P) -> Ctx<'a, P> {
@@ -569,11 +569,15 @@ impl NodeDef {
         }
     }
 
-    pub fn rows(&self, ctx: &CardCtx<'_, ()>) -> Vec<CardRow> {
+    pub fn all_rows(&self, ctx: &CardCtx<'_, ()>) -> Vec<CardRow> {
         match &self.card {
-            Some(f) => f(ctx).into_iter().flatten().take(MAX_CARD_ROWS).collect(),
+            Some(f) => f(ctx).into_iter().flatten().collect(),
             None => Vec::new(),
         }
+    }
+
+    pub fn rows(&self, ctx: &CardCtx<'_, ()>) -> Vec<CardRow> {
+        self.all_rows(ctx).into_iter().take(MAX_CARD_ROWS).collect()
     }
 
     pub fn card_for(

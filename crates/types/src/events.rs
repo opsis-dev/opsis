@@ -99,3 +99,35 @@ pub enum RunEvent {
         at: f64,
     },
 }
+
+pub const CANCELLED: &str = "Cancelled";
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type)]
+pub struct NodeProgress {
+    pub value: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct RunProgress {
+    pub run_id: Option<String>,
+    pub statuses: indexmap::IndexMap<String, NodeRunStatus>,
+    pub progress: indexmap::IndexMap<String, NodeProgress>,
+    pub cached: indexmap::IndexMap<String, bool>,
+    pub errors: indexmap::IndexMap<String, String>,
+    pub traces: indexmap::IndexMap<String, String>,
+    pub results: indexmap::IndexMap<String, NodeResult>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct RunRequest {
+    pub project_dir: String,
+    pub workflow: crate::workflow::Workflow,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_node_ids: Option<Vec<String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from_node_id: Option<String>,
+}

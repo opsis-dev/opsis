@@ -334,8 +334,30 @@ impl ParamSchema {
     }
 
     pub fn typed<T: DeserializeOwned>(&self, values: &Values) -> Result<T, String> {
-        serde_json::from_value(Value::Object(values.clone())).map_err(|e| e.to_string())
+        typed_values(values)
     }
+}
+
+fn whole_numbers(value: Value) -> Value {
+    match value {
+        Value::Number(n) => match n.as_f64() {
+            Some(f) if n.is_f64() && f.fract() == 0.0 && f.abs() < 9.007_199_254_740_992e15 => {
+                Value::from(f as i64)
+            }
+            _ => Value::Number(n),
+        },
+        Value::Array(items) => Value::Array(items.into_iter().map(whole_numbers).collect()),
+        Value::Object(map) => Value::Object(
+            map.into_iter()
+                .map(|(k, v)| (k, whole_numbers(v)))
+                .collect(),
+        ),
+        other => other,
+    }
+}
+
+pub fn typed_values<T: DeserializeOwned>(values: &Values) -> Result<T, String> {
+    serde_json::from_value(whole_numbers(Value::Object(values.clone()))).map_err(|e| e.to_string())
 }
 
 fn object_branch(schema: &Value) -> &Value {

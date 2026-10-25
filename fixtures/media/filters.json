@@ -1,0 +1,559 @@
+{
+ "colours": [
+  {
+   "color": "black",
+   "out": "#000000"
+  },
+  {
+   "color": "white",
+   "out": "#ffffff"
+  },
+  {
+   "color": "",
+   "out": "black"
+  },
+  {
+   "color": "rgb(255, 0, 0)",
+   "out": "#ff0000"
+  },
+  {
+   "color": "rgb(1, 2, 3)",
+   "out": "#010203"
+  },
+  {
+   "color": "hsl(120, 100%, 50%)",
+   "out": "#00ff00"
+  },
+  {
+   "color": "oklch(0.628 0.258 29.2)",
+   "out": "#ff0000"
+  },
+  {
+   "color": "#00000080",
+   "out": "#00000080"
+  },
+  {
+   "color": "#abc",
+   "out": "#aabbcc"
+  },
+  {
+   "color": "transparent",
+   "out": "#00000000"
+  },
+  {
+   "color": "not a colour",
+   "out": "black"
+  },
+  {
+   "color": " #FF8800 ",
+   "out": "#ff8800"
+  }
+ ],
+ "fit": [
+  {
+   "p": {
+    "mode": "pad",
+    "width": 641,
+    "height": 360,
+    "background": "black"
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=decrease,pad=641:360:(ow-iw)/2:(oh-ih)/2:color=#000000,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "pad",
+    "width": 641,
+    "height": 360,
+    "background": "white"
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=decrease,pad=641:360:(ow-iw)/2:(oh-ih)/2:color=#ffffff,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "pad",
+    "width": 641,
+    "height": 360,
+    "background": ""
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=decrease,pad=641:360:(ow-iw)/2:(oh-ih)/2,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "pad",
+    "width": 641,
+    "height": 360,
+    "background": "rgb(255, 0, 0)"
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=decrease,pad=641:360:(ow-iw)/2:(oh-ih)/2:color=#ff0000,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "pad",
+    "width": 641,
+    "height": 360,
+    "background": "rgb(1, 2, 3)"
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=decrease,pad=641:360:(ow-iw)/2:(oh-ih)/2:color=#010203,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "crop",
+    "width": 641,
+    "height": 360,
+    "background": "black"
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=increase,crop=641:360,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "crop",
+    "width": 641,
+    "height": 360,
+    "background": "white"
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=increase,crop=641:360,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "crop",
+    "width": 641,
+    "height": 360,
+    "background": ""
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=increase,crop=641:360,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "crop",
+    "width": 641,
+    "height": 360,
+    "background": "rgb(255, 0, 0)"
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=increase,crop=641:360,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "crop",
+    "width": 641,
+    "height": 360,
+    "background": "rgb(1, 2, 3)"
+   },
+   "out": "scale=641:360:force_original_aspect_ratio=increase,crop=641:360,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "stretch",
+    "width": 641,
+    "height": 360,
+    "background": "black"
+   },
+   "out": "scale=641:360,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "stretch",
+    "width": 641,
+    "height": 360,
+    "background": "white"
+   },
+   "out": "scale=641:360,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "stretch",
+    "width": 641,
+    "height": 360,
+    "background": ""
+   },
+   "out": "scale=641:360,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "stretch",
+    "width": 641,
+    "height": 360,
+    "background": "rgb(255, 0, 0)"
+   },
+   "out": "scale=641:360,setsar=1"
+  },
+  {
+   "p": {
+    "mode": "stretch",
+    "width": 641,
+    "height": 360,
+    "background": "rgb(1, 2, 3)"
+   },
+   "out": "scale=641:360,setsar=1"
+  }
+ ],
+ "gif": [
+  {
+   "p": {
+    "fps": 15,
+    "width": 960,
+    "dither": "bayer"
+   },
+   "out": "fps=15,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[pal];[b][pal]paletteuse=dither=bayer"
+  },
+  {
+   "p": {
+    "fps": 10,
+    "width": 480,
+    "dither": "none"
+   },
+   "out": "fps=10,scale=480:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[pal];[b][pal]paletteuse=dither=none"
+  },
+  {
+   "p": {
+    "fps": 24,
+    "width": 1280,
+    "dither": "floyd_steinberg"
+   },
+   "out": "fps=24,scale=1280:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[pal];[b][pal]paletteuse=dither=floyd_steinberg"
+  }
+ ],
+ "join": [
+  {
+   "parts": [
+    {
+     "video": true,
+     "audio": true,
+     "durationMs": 2000
+    },
+    {
+     "video": true,
+     "audio": true,
+     "durationMs": 2000
+    }
+   ],
+   "to": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 60
+   },
+   "out": {
+    "filter": "[0:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=60,format=yuv420p[v0];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=60,format=yuv420p[v1];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]",
+    "video": true,
+    "audio": true
+   }
+  },
+  {
+   "parts": [
+    {
+     "video": true,
+     "audio": true,
+     "durationMs": 2000
+    },
+    {
+     "video": true,
+     "audio": false,
+     "durationMs": 1234
+    }
+   ],
+   "to": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 29.97003
+   },
+   "out": {
+    "filter": "[0:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=29.97,format=yuv420p[v0];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=29.97,format=yuv420p[v1];anullsrc=r=48000:cl=stereo,atrim=duration=1.234[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]",
+    "video": true,
+    "audio": true
+   }
+  },
+  {
+   "parts": [
+    {
+     "video": false,
+     "audio": true,
+     "durationMs": 1500
+    },
+    {
+     "video": true,
+     "audio": true,
+     "durationMs": 2000
+    }
+   ],
+   "to": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 60
+   },
+   "out": {
+    "filter": "color=c=black:s=1920x1080:r=60:d=1.5,format=yuv420p[v0];[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=60,format=yuv420p[v1];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a1];[v0][a0][v1][a1]concat=n=2:v=1:a=1[v][a]",
+    "video": true,
+    "audio": true
+   }
+  },
+  {
+   "parts": [
+    {
+     "video": false,
+     "audio": true,
+     "durationMs": 1000
+    },
+    {
+     "video": false,
+     "audio": true,
+     "durationMs": 1000
+    }
+   ],
+   "to": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+   },
+   "out": {
+    "filter": "[0:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a0];[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a1];[a0][a1]concat=n=2:v=0:a=1[a]",
+    "video": false,
+    "audio": true
+   }
+  },
+  {
+   "parts": [
+    {
+     "video": true,
+     "audio": false,
+     "durationMs": 1000
+    },
+    {
+     "video": true,
+     "audio": false,
+     "durationMs": 1000.5
+    },
+    {
+     "video": true,
+     "audio": false,
+     "durationMs": 3000
+    }
+   ],
+   "to": {
+    "width": 321,
+    "height": 241,
+    "fps": 30
+   },
+   "out": {
+    "filter": "[0:v]scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,format=yuv420p[v0];[1:v]scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,format=yuv420p[v1];[2:v]scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,format=yuv420p[v2];[v0][v1][v2]concat=n=3:v=1:a=0[v]",
+    "video": true,
+    "audio": false
+   }
+  }
+ ],
+ "speed": [
+  {
+   "opts": {
+    "rate": 64,
+    "fps": 29.97003,
+    "sound": false
+   },
+   "args": [
+    "-i",
+    "in.mp4",
+    "-vf",
+    "setpts=PTS/64,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+    "-r",
+    "29.97",
+    "-an",
+    "-c:v",
+    "libx264",
+    "-crf",
+    "18",
+    "-pix_fmt",
+    "yuv420p",
+    "out.mp4"
+   ]
+  },
+  {
+   "opts": {
+    "rate": 2,
+    "fps": 30,
+    "sound": true
+   },
+   "args": [
+    "-i",
+    "in.mp4",
+    "-vf",
+    "setpts=PTS/2,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+    "-r",
+    "30",
+    "-af",
+    "atempo=2.0000",
+    "-c:v",
+    "libx264",
+    "-crf",
+    "18",
+    "-pix_fmt",
+    "yuv420p",
+    "out.mp4"
+   ]
+  },
+  {
+   "opts": {
+    "rate": 0.25,
+    "fps": 60,
+    "sound": true
+   },
+   "args": [
+    "-i",
+    "in.mp4",
+    "-vf",
+    "setpts=PTS/0.25,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+    "-r",
+    "60",
+    "-af",
+    "atempo=0.5000,atempo=0.5000",
+    "-c:v",
+    "libx264",
+    "-crf",
+    "18",
+    "-pix_fmt",
+    "yuv420p",
+    "out.mp4"
+   ]
+  },
+  {
+   "opts": {
+    "rate": 1.03125,
+    "fps": 23.976,
+    "sound": true
+   },
+   "args": [
+    "-i",
+    "in.mp4",
+    "-vf",
+    "setpts=PTS/1.03125,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+    "-r",
+    "23.976",
+    "-af",
+    "atempo=1.0313",
+    "-c:v",
+    "libx264",
+    "-crf",
+    "18",
+    "-pix_fmt",
+    "yuv420p",
+    "out.mp4"
+   ]
+  }
+ ],
+ "speedSound": [
+  {
+   "rate": 0.25,
+   "args": [
+    "-i",
+    "in.mp3",
+    "-af",
+    "atempo=0.5000,atempo=0.5000",
+    "-vn",
+    "-c:a",
+    "aac",
+    "out.mp3"
+   ]
+  },
+  {
+   "rate": 1.5,
+   "args": [
+    "-i",
+    "in.mp3",
+    "-af",
+    "atempo=1.5000",
+    "-vn",
+    "-c:a",
+    "aac",
+    "out.mp3"
+   ]
+  },
+  {
+   "rate": 3,
+   "args": [
+    "-i",
+    "in.mp3",
+    "-af",
+    "atempo=2.0000,atempo=1.5000",
+    "-vn",
+    "-c:a",
+    "aac",
+    "out.mp3"
+   ]
+  },
+  {
+   "rate": 64,
+   "args": [
+    "-i",
+    "in.mp3",
+    "-af",
+    "atempo=2.0000,atempo=2.0000,atempo=2.0000,atempo=2.0000,atempo=2.0000,atempo=2.0000",
+    "-vn",
+    "-c:a",
+    "aac",
+    "out.mp3"
+   ]
+  }
+ ],
+ "atempo": [
+  {
+   "rate": 64,
+   "chain": "atempo=2.0000,atempo=2.0000,atempo=2.0000,atempo=2.0000,atempo=2.0000,atempo=2.0000"
+  },
+  {
+   "rate": 0.25,
+   "chain": "atempo=0.5000,atempo=0.5000"
+  },
+  {
+   "rate": 3,
+   "chain": "atempo=2.0000,atempo=1.5000"
+  },
+  {
+   "rate": 1,
+   "chain": "atempo=1.0000"
+  },
+  {
+   "rate": 1.5,
+   "chain": "atempo=1.5000"
+  },
+  {
+   "rate": 0.1,
+   "chain": "atempo=0.5000,atempo=0.5000,atempo=0.5000,atempo=0.8000"
+  },
+  {
+   "rate": 1.03125,
+   "chain": "atempo=1.0313"
+  },
+  {
+   "rate": 1.000049,
+   "chain": "atempo=1.0000"
+  },
+  {
+   "rate": 2.00005,
+   "chain": "atempo=2.0000,atempo=1.0000"
+  },
+  {
+   "rate": 0.3,
+   "chain": "atempo=0.5000,atempo=0.6000"
+  },
+  {
+   "rate": 7,
+   "chain": "atempo=2.0000,atempo=2.0000,atempo=1.7500"
+  }
+ ],
+ "loudnorm": [
+  {
+   "lufs": -14,
+   "truePeak": -1,
+   "range": 11,
+   "filter": "loudnorm=I=-14:TP=-1:LRA=11"
+  },
+  {
+   "lufs": -23,
+   "truePeak": -2,
+   "range": 7,
+   "filter": "loudnorm=I=-23:TP=-2:LRA=7"
+  },
+  {
+   "lufs": -16.5,
+   "truePeak": -1.5,
+   "range": 10,
+   "filter": "loudnorm=I=-16.5:TP=-1.5:LRA=10"
+  }
+ ]
+}

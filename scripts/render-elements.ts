@@ -10,22 +10,19 @@ import { DEFAULT_WORKFLOW_SETTINGS } from "@opsis/core/schema/workflow";
 import { appSettingsSchema } from "@opsis/core/settings";
 import { compileClip } from "@opsis/core/test-fixtures";
 import type { WorkerEnv } from "@opsis/core/worker-protocol";
-import {
-  getServeUrl,
-  openRenderBrowser,
-  renderFrame,
-  type GlRenderer,
-} from "@opsis/sidecar/render";
+import type { Gl } from "@opsis/sidecar/generated/protocol";
+import { openRenderBrowser, renderFrame } from "@opsis/sidecar/render";
 import { enginePaths, requireHeadlessShell, userEngineDir } from "../src/engine/paths";
 import { makeWorkerTemp, removeWorkerTemp, tempEnv } from "../src/main/worker-temp";
 import { startAssetServer } from "../src/worker/render/asset-server";
+import { getServeUrl, renderTarget } from "../src/worker/render/remotion";
 import { devUserData } from "./lib/app-data";
 import { ROOT } from "./lib/tool-config";
 
 const OUT = path.join(os.homedir(), ".cache", "opsis-element-stills");
 const PROJECT = path.join(OUT, "project");
 const STILL_WIDTH = 480;
-const GL: GlRenderer = "angle";
+const GL: Gl = "angle";
 const JPEG_QUALITY = 82;
 const SOLID_FRAMES = 90;
 const only = process.argv[2];
@@ -73,20 +70,17 @@ for (const meta of elements) {
         : elementNodeType(meta.key);
     const clip = compileClip(type, {}, inputsFor(meta));
     const spec = clipToSpec(clip, DEFAULT_WORKFLOW_SETTINGS);
-    await renderFrame({
-      env,
-      browserExecutable,
-      serveUrl,
-      spec: { ...spec, assets: { projectBase: server.url } },
-      frame: Math.floor((clip.durationInFrames - 1) * at),
-      output,
-      format: "jpeg",
-      gl: GL,
-      signal: new AbortController().signal,
-      browser,
-      scale: Math.min(1, STILL_WIDTH / spec.width),
-      jpegQuality: JPEG_QUALITY,
-    });
+    await renderFrame(
+      {
+        ...renderTarget(env, serveUrl, { ...spec, assets: { projectBase: server.url } }, GL),
+        frame: Math.floor((clip.durationInFrames - 1) * at),
+        output,
+        format: "jpeg",
+        scale: Math.min(1, STILL_WIDTH / spec.width),
+        jpegQuality: JPEG_QUALITY,
+      },
+      { signal: new AbortController().signal, browser },
+    );
     console.log(`ok   ${meta.key}`);
   } catch (error) {
     failures.push(`${meta.key}: ${errorMessage(error).slice(0, 2000)}`);

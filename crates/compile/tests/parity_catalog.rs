@@ -72,6 +72,7 @@ fn node_metadata_matches() {
             "element": def.element,
             "hidden": def.hidden,
             "cardHeight": def.card_height,
+            "estimatedHeight": opsis_compile::size::estimate_card_height(Some(def)),
             "compiles": def.has_compile(),
             "hasCard": def.has_card(),
             "defaults": def.defaults(),

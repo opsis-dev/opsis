@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, utimes } from "node:fs/promises";
 import path from "node:path";
 import type { TimelineSpec } from "@opsis/core/schema/timeline";
-import type { GlRenderer } from "@opsis/sidecar/render";
+import type { Gl } from "@opsis/sidecar/generated/protocol";
 import { writeViaTemp } from "../../engine/atomic";
 import { pruneDir } from "../../engine/dir";
 import { versionedHash } from "../../engine/hash";
@@ -13,7 +13,7 @@ import { CODECS, FASTSTART, type RenderCodec, type SoundCodec } from "../media/c
 
 const KEEP_PICTURES = 12;
 
-type PictureOptions = { codec: RenderCodec; crf: number; scale: number; gl: GlRenderer };
+type PictureOptions = { codec: RenderCodec; crf: number; scale: number; gl: Gl };
 
 export function pictureKey(spec: TimelineSpec, opts: PictureOptions, appVersion = ""): string {
   const picture = { ...spec, audio: undefined, mix: undefined, assets: undefined };

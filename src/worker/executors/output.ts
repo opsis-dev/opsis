@@ -23,14 +23,14 @@ import {
   type FilmChapter,
 } from "@opsis/core/timeline/chapters";
 import { framesToMs, msToFrames } from "@opsis/core/timeline/time";
-import { getServeUrl, renderFrame, renderTimeline } from "@opsis/sidecar/render";
+import { renderFrame, renderTimeline } from "@opsis/sidecar/render";
 import { writeViaTemp } from "../../engine/atomic";
-import { enginePaths, requireHeadlessShell } from "../../engine/paths";
 import { toPosixRel } from "../../engine/project-paths";
 import { defineExecutor, type ExecutorContext } from "../engine/context";
 import { CODECS, hasSoundTrack, kindOfCodec } from "../media/codecs";
 import { startAssetServer } from "../render/asset-server";
 import { cachedPicture, finishArgs, muxArgs, pictureKey } from "../render/picture";
+import { getServeUrl, renderTarget } from "../render/remotion";
 import { mixed, specFor, type Stage } from "./film-spec";
 import { refToPath } from "./util";
 
@@ -47,9 +47,6 @@ function firstArtifact(artifacts: Artifact[]): Artifact {
 }
 
 type RenderServer = { serveUrl: string; projectBase: string };
-
-const headlessShell = (ctx: ExecutorContext): string =>
-  requireHeadlessShell(enginePaths(ctx.env.engineDir));
 
 async function withRenderServer<T>(
   ctx: ExecutorContext,
@@ -80,20 +77,17 @@ const renderTo = (
   output: string,
   { muted }: { muted: boolean },
 ) =>
-  renderTimeline({
-    env: ctx.env,
-    browserExecutable: headlessShell(ctx),
-    serveUrl,
-    spec,
-    output,
-    codec: p.codec,
-    crf: CODECS[p.codec].crf ? p.crf : undefined,
-    scale: p.scale,
-    gl: p.gl,
-    muted,
-    signal: ctx.signal,
-    onProgress: progress,
-  });
+  renderTimeline(
+    {
+      ...renderTarget(ctx.env, serveUrl, spec, p.gl),
+      output,
+      codec: p.codec,
+      crf: CODECS[p.codec].crf ? p.crf : undefined,
+      scale: p.scale,
+      muted,
+    },
+    { signal: ctx.signal, onProgress: progress },
+  );
 
 async function pictureFor(job: VariantJob): Promise<string> {
   const { ctx, spec, p } = job;
@@ -226,17 +220,20 @@ export const stillOutputExecutor = defineExecutor(stillOutputNode, async (ctx, _
       const size = STILL_PRESETS[preset];
       const out = path.join(ctx.outDir, names[i]);
       ctx.progress(lerp(...RENDER_STAGE, i / p.presets.length), `Still ${preset}`);
-      await renderFrame({
-        env: ctx.env,
-        browserExecutable: headlessShell(ctx),
-        serveUrl,
-        spec: { ...spec, ...size, reframe: "follow", assets: { projectBase } },
-        frame: msToFrames(p.atMs, spec.fps, 0),
-        output: out,
-        format: p.format,
-        gl: p.gl,
-        signal: ctx.signal,
-      });
+      await renderFrame(
+        {
+          ...renderTarget(
+            ctx.env,
+            serveUrl,
+            { ...spec, ...size, reframe: "follow", assets: { projectBase } },
+            p.gl,
+          ),
+          frame: msToFrames(p.atMs, spec.fps, 0),
+          output: out,
+          format: p.format,
+        },
+        { signal: ctx.signal },
+      );
       made.push({ kind: "image", path: toPosixRel(ctx.projectDir, out), label: preset });
     }
     return made;

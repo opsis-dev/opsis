@@ -1,0 +1,2385 @@
+{
+ "chains": [
+  {
+   "entries": [],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]null[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]null[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0.1,
+      "contrast": 1.3,
+      "saturation": 1.4,
+      "gamma": 1.2,
+      "exposure": -0.5,
+      "warmth": 1,
+      "vibrance": 0.5,
+      "hue": 20,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "vintage"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]exposure=exposure=-0.5,eq=brightness=0.1:contrast=1.3:saturation=1.4:gamma=1.2,colortemperature=temperature=3000:mix=1,vibrance=intensity=0.5,hue=h=20,curves=preset=vintage,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0.1,
+      "contrast": 1.3,
+      "saturation": 1.4,
+      "gamma": 1.2,
+      "exposure": -0.5,
+      "warmth": 1,
+      "vibrance": 0.5,
+      "hue": 20,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "vintage"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]exposure=exposure=-0.5,eq=brightness=0.1:contrast=1.3:saturation=1.4:gamma=1.2,colortemperature=temperature=3000:mix=1,vibrance=intensity=0.5,hue=h=20,curves=preset=vintage[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0.1,
+      "contrast": 1.3,
+      "saturation": 1.4,
+      "gamma": 1.2,
+      "exposure": -0.5,
+      "warmth": 1,
+      "vibrance": 0.5,
+      "hue": 20,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "vintage"
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]exposure=exposure=-0.5,eq=brightness=0.1:contrast=1.3:saturation=1.4:gamma=1.2,colortemperature=temperature=3000:mix=1,vibrance=intensity=0.5,hue=h=20,curves=preset=vintage,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1.2,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]eq=contrast=1.2,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1.2,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]eq=contrast=1.2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1.2,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]eq=contrast=1.2,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": -1,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colortemperature=temperature=10000:mix=1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": -1,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]colortemperature=temperature=10000:mix=1[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": -1,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colortemperature=temperature=10000:mix=1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0.333,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colortemperature=temperature=5335:mix=1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0.333,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]colortemperature=temperature=5335:mix=1[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0.333,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colortemperature=temperature=5335:mix=1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#ff0000",
+      "shadowsAmount": 1,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#808080",
+      "highlightsAmount": 1,
+      "curve": "none"
+     }
+    },
+    {
+     "nodeId": "g2",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "",
+      "midtonesAmount": 1,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colorbalance=rs=0.667:gs=-0.333:bs=-0.333,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#ff0000",
+      "shadowsAmount": 1,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#808080",
+      "highlightsAmount": 1,
+      "curve": "none"
+     }
+    },
+    {
+     "nodeId": "g2",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "",
+      "midtonesAmount": 1,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]colorbalance=rs=0.667:gs=-0.333:bs=-0.333[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#ff0000",
+      "shadowsAmount": 1,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#808080",
+      "highlightsAmount": 1,
+      "curve": "none"
+     }
+    },
+    {
+     "nodeId": "g2",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "",
+      "midtonesAmount": 1,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colorbalance=rs=0.667:gs=-0.333:bs=-0.333,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3366cc",
+      "shadowsAmount": 0.5,
+      "midtones": "#0f0",
+      "midtonesAmount": 0,
+      "highlights": "orange",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colorbalance=rs=-0.133:gs=-0.033:bs=0.167,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3366cc",
+      "shadowsAmount": 0.5,
+      "midtones": "#0f0",
+      "midtonesAmount": 0,
+      "highlights": "orange",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]colorbalance=rs=-0.133:gs=-0.033:bs=0.167[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3366cc",
+      "shadowsAmount": 0.5,
+      "midtones": "#0f0",
+      "midtonesAmount": 0,
+      "highlights": "orange",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colorbalance=rs=-0.133:gs=-0.033:bs=0.167,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0,
+      "soften": 0,
+      "vignette": 0.5,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 0
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1.2,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]vignette=angle=0.785:x0=w*0.5:y0=h*0.5,eq=contrast=1.2,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0,
+      "soften": 0,
+      "vignette": 0.5,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 0
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1.2,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]vignette=angle=0.785:x0=w*0.5:y0=h*0.5,eq=contrast=1.2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0,
+      "soften": 0,
+      "vignette": 0.5,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 0
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1.2,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]vignette=angle=0.785:x0=w*0.5:y0=h*0.5,eq=contrast=1.2,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0.5,
+      "soften": 0.5,
+      "vignette": 0.5,
+      "vignetteX": 0.25,
+      "vignetteY": 0.75,
+      "grain": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]cas=strength=0.5,gblur=sigma=4,vignette=angle=0.785:x0=w*0.25:y0=h*0.75,noise=alls=20:allf=t+u,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0.5,
+      "soften": 0.5,
+      "vignette": 0.5,
+      "vignetteX": 0.25,
+      "vignetteY": 0.75,
+      "grain": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]cas=strength=0.5,gblur=sigma=4,vignette=angle=0.785:x0=w*0.25:y0=h*0.75[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0.5,
+      "soften": 0.5,
+      "vignette": 0.5,
+      "vignetteX": 0.25,
+      "vignetteY": 0.75,
+      "grain": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]cas=strength=0.5,gblur=sigma=2,vignette=angle=0.785:x0=w*0.25:y0=h*0.75,noise=alls=20:allf=t+u,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0,
+      "soften": 1,
+      "vignette": 0,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]gblur=sigma=8,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0,
+      "soften": 1,
+      "vignette": 0,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]gblur=sigma=8[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0,
+      "soften": 1,
+      "vignette": 0,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]gblur=sigma=4,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 1,
+      "bulge": 0,
+      "trails": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]rgbashift=rh=8:bh=-8,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 1,
+      "bulge": 0,
+      "trails": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]rgbashift=rh=8:bh=-8[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 1,
+      "bulge": 0,
+      "trails": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]rgbashift=rh=4:bh=-4,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 0.01,
+      "bulge": 0,
+      "trails": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]rgbashift=rh=1:bh=-1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 0.01,
+      "bulge": 0,
+      "trails": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]rgbashift=rh=1:bh=-1[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 0.01,
+      "bulge": 0,
+      "trails": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]rgbashift=rh=1:bh=-1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 0.5,
+      "bulge": -1,
+      "trails": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]rgbashift=rh=4:bh=-4,lenscorrection=k1=-0.5:k2=0:i=bilinear,lagfun=decay=0.74,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 0.5,
+      "bulge": -1,
+      "trails": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]rgbashift=rh=4:bh=-4,lenscorrection=k1=-0.5:k2=0:i=bilinear[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 0.5,
+      "bulge": -1,
+      "trails": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]rgbashift=rh=2:bh=-2,lenscorrection=k1=-0.5:k2=0:i=bilinear,lagfun=decay=0.74,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0,
+      "soften": 0,
+      "vignette": 0,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 1
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 0,
+      "bulge": 0,
+      "trails": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]noise=alls=40:allf=t+u,lagfun=decay=0.98,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0,
+      "soften": 0,
+      "vignette": 0,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 1
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 0,
+      "bulge": 0,
+      "trails": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]null[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0,
+      "soften": 0,
+      "vignette": 0,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 1
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.lens",
+     "params": {
+      "fringe": 0,
+      "bulge": 0,
+      "trails": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]noise=alls=40:allf=t+u,lagfun=decay=0.98,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "bw",
+      "tint": "#d8a15b",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]monochrome=cb=0:cr=0:size=1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "bw",
+      "tint": "#d8a15b",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]monochrome=cb=0:cr=0:size=1[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "bw",
+      "tint": "#d8a15b",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]monochrome=cb=0:cr=0:size=1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "sepia",
+      "tint": "#d8a15b",
+      "strength": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]split[g0][g1];[g1]colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131[g2];[g2][g0]blend=all_mode=normal:all_opacity=0.5[g3];[g3]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "sepia",
+      "tint": "#d8a15b",
+      "strength": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]split[g0][g1];[g1]colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131[g2];[g2][g0]blend=all_mode=normal:all_opacity=0.5[g3];[g3]null[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "sepia",
+      "tint": "#d8a15b",
+      "strength": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]split[g0][g1];[g1]colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131[g2];[g2][g0]blend=all_mode=normal:all_opacity=0.5[g3];[g3]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "tint",
+      "tint": "#3366ff",
+      "strength": 0.75
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]split[g0][g1];[g1]colorize=hue=225:saturation=1:lightness=0.5:mix=1[g2];[g2][g0]blend=all_mode=normal:all_opacity=0.75[g3];[g3]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "tint",
+      "tint": "#3366ff",
+      "strength": 0.75
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]split[g0][g1];[g1]colorize=hue=225:saturation=1:lightness=0.5:mix=1[g2];[g2][g0]blend=all_mode=normal:all_opacity=0.75[g3];[g3]null[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "tint",
+      "tint": "#3366ff",
+      "strength": 0.75
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]split[g0][g1];[g1]colorize=hue=225:saturation=1:lightness=0.5:mix=1[g2];[g2][g0]blend=all_mode=normal:all_opacity=0.75[g3];[g3]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "tint",
+      "tint": "",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colorize=hue=33.6:saturation=0.616:lightness=0.5:mix=1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "tint",
+      "tint": "",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]colorize=hue=33.6:saturation=0.616:lightness=0.5:mix=1[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "tint",
+      "tint": "",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]colorize=hue=33.6:saturation=0.616:lightness=0.5:mix=1,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "bw",
+      "tint": "#d8a15b",
+      "strength": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "bw",
+      "tint": "#d8a15b",
+      "strength": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]null[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.mono",
+     "params": {
+      "kind": "bw",
+      "tint": "#d8a15b",
+      "strength": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.autoFix",
+     "params": {
+      "whiteBalance": false,
+      "levels": false,
+      "levelsStrength": 0.5,
+      "levelsSmoothing": 24,
+      "deband": false
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.autoFix",
+     "params": {
+      "whiteBalance": false,
+      "levels": false,
+      "levelsStrength": 0.5,
+      "levelsSmoothing": 24,
+      "deband": false
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]null[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.autoFix",
+     "params": {
+      "whiteBalance": false,
+      "levels": false,
+      "levelsStrength": 0.5,
+      "levelsSmoothing": 24,
+      "deband": false
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.autoFix",
+     "params": {
+      "whiteBalance": true,
+      "levels": true,
+      "levelsStrength": 0.5,
+      "levelsSmoothing": 24,
+      "deband": true
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]format=gbrpf32le,grayworld,format=yuv420p,normalize=smoothing=24:independence=0:strength=0.5,deband,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.autoFix",
+     "params": {
+      "whiteBalance": true,
+      "levels": true,
+      "levelsStrength": 0.5,
+      "levelsSmoothing": 24,
+      "deband": true
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]format=gbrpf32le,grayworld,format=rgb24,normalize=smoothing=24:independence=0:strength=0.5,deband[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.autoFix",
+     "params": {
+      "whiteBalance": true,
+      "levels": true,
+      "levelsStrength": 0.5,
+      "levelsSmoothing": 24,
+      "deband": true
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]format=gbrpf32le,grayworld,format=yuv420p,normalize=smoothing=24:independence=0:strength=0.5,deband,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/film.cube",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]lut3d=file=/project/looks/film.cube:interp=tetrahedral,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/film.cube",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]lut3d=file=/project/looks/film.cube:interp=tetrahedral[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/film.cube",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]lut3d=file=/project/looks/film.cube:interp=tetrahedral,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/it's [a],b;c:d.3dl",
+      "strength": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]split[g0][g1];[g1]lut3d=file=/project/looks/it\\\\\\'s \\[a\\]\\,b\\;c\\\\:d.3dl:interp=tetrahedral[g2];[g2][g0]blend=all_mode=normal:all_opacity=0.5[g3];[g3]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/it's [a],b;c:d.3dl",
+      "strength": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]split[g0][g1];[g1]lut3d=file=/project/looks/it\\\\\\'s \\[a\\]\\,b\\;c\\\\:d.3dl:interp=tetrahedral[g2];[g2][g0]blend=all_mode=normal:all_opacity=0.5[g3];[g3]null[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/it's [a],b;c:d.3dl",
+      "strength": 0.5
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]split[g0][g1];[g1]lut3d=file=/project/looks/it\\\\\\'s \\[a\\]\\,b\\;c\\\\:d.3dl:interp=tetrahedral[g2];[g2][g0]blend=all_mode=normal:all_opacity=0.5[g3];[g3]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1.1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/hald.png",
+      "strength": 0.8
+     }
+    },
+    {
+     "nodeId": "g2",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/second.png",
+      "strength": 1
+     }
+    },
+    {
+     "nodeId": "g3",
+     "type": "grade.mono",
+     "params": {
+      "kind": "sepia",
+      "tint": "#d8a15b",
+      "strength": 0.3
+     }
+    },
+    {
+     "nodeId": "g4",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0.2,
+      "soften": 0,
+      "vignette": 0,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]eq=contrast=1.1[g0];[g0]split[g1][g2];[g2][1:v]haldclut=repeatlast=1[g3];[g3][g1]blend=all_mode=normal:all_opacity=0.8[g4];[g4][2:v]haldclut=repeatlast=1[g5];[g5]split[g6][g7];[g7]colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131[g8];[g8][g6]blend=all_mode=normal:all_opacity=0.3[g9];[g9]cas=strength=0.2,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": [
+     "/project/looks/hald.png",
+     "/project/looks/second.png"
+    ]
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1.1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/hald.png",
+      "strength": 0.8
+     }
+    },
+    {
+     "nodeId": "g2",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/second.png",
+      "strength": 1
+     }
+    },
+    {
+     "nodeId": "g3",
+     "type": "grade.mono",
+     "params": {
+      "kind": "sepia",
+      "tint": "#d8a15b",
+      "strength": 0.3
+     }
+    },
+    {
+     "nodeId": "g4",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0.2,
+      "soften": 0,
+      "vignette": 0,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]eq=contrast=1.1[g0];[g0]split[g1][g2];[g2][1:v]haldclut=repeatlast=1[g3];[g3][g1]blend=all_mode=normal:all_opacity=0.8[g4];[g4][2:v]haldclut=repeatlast=1[g5];[g5]split[g6][g7];[g7]colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131[g8];[g8][g6]blend=all_mode=normal:all_opacity=0.3[g9];[g9]cas=strength=0.2[out]",
+    "extraInputs": [
+     "/project/looks/hald.png",
+     "/project/looks/second.png"
+    ]
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.colour",
+     "params": {
+      "brightness": 0,
+      "contrast": 1.1,
+      "saturation": 1,
+      "gamma": 1,
+      "exposure": 0,
+      "warmth": 0,
+      "vibrance": 0,
+      "hue": 0,
+      "shadows": "#3b6ea5",
+      "shadowsAmount": 0,
+      "midtones": "#c9a27a",
+      "midtonesAmount": 0,
+      "highlights": "#ffd9a0",
+      "highlightsAmount": 0,
+      "curve": "none"
+     }
+    },
+    {
+     "nodeId": "g1",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/hald.png",
+      "strength": 0.8
+     }
+    },
+    {
+     "nodeId": "g2",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "looks/second.png",
+      "strength": 1
+     }
+    },
+    {
+     "nodeId": "g3",
+     "type": "grade.mono",
+     "params": {
+      "kind": "sepia",
+      "tint": "#d8a15b",
+      "strength": 0.3
+     }
+    },
+    {
+     "nodeId": "g4",
+     "type": "grade.texture",
+     "params": {
+      "sharpen": 0.2,
+      "soften": 0,
+      "vignette": 0,
+      "vignetteX": 0.5,
+      "vignetteY": 0.5,
+      "grain": 0
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]eq=contrast=1.1[g0];[g0]split[g1][g2];[g2][1:v]haldclut=repeatlast=1[g3];[g3][g1]blend=all_mode=normal:all_opacity=0.8[g4];[g4][2:v]haldclut=repeatlast=1[g5];[g5]split[g6][g7];[g7]colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131[g8];[g8][g6]blend=all_mode=normal:all_opacity=0.3[g9];[g9]cas=strength=0.2,scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": [
+     "/project/looks/hald.png",
+     "/project/looks/second.png"
+    ]
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 1920,
+    "height": 1080,
+    "still": true
+   },
+   "out": {
+    "chain": "[0:v]null[out]",
+    "extraInputs": []
+   }
+  },
+  {
+   "entries": [
+    {
+     "nodeId": "g0",
+     "type": "grade.lookFile",
+     "params": {
+      "file": "",
+      "strength": 1
+     }
+    }
+   ],
+   "size": {
+    "width": 960,
+    "height": 540,
+    "still": false
+   },
+   "out": {
+    "chain": "[0:v]scale=trunc(iw/2)*2:trunc(ih/2)*2[out]",
+    "extraInputs": []
+   }
+  }
+ ],
+ "lookKinds": [
+  {
+   "file": "a.cube",
+   "kind": "table"
+  },
+  {
+   "file": "a.3DL",
+   "kind": "table"
+  },
+  {
+   "file": "a.png",
+   "kind": "image"
+  },
+  {
+   "file": "a.jpg",
+   "kind": null
+  },
+  {
+   "file": "noext",
+   "kind": null
+  }
+ ],
+ "paths": [
+  {
+   "file": "/p/look.cube",
+   "out": "/p/look.cube"
+  },
+  {
+   "file": "C:\\looks\\it's [a],b;c:d.cube",
+   "out": "C\\\\:\\\\\\\\looks\\\\\\\\it\\\\\\'s \\[a\\]\\,b\\;c\\\\:d.cube"
+  }
+ ]
+}

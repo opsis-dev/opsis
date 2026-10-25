@@ -65,6 +65,14 @@ Missing:
 8. **AGENTS.md.** "Nothing ever runs under Bun's runtime" becomes "only the sidecar runs on Bun" (`agents-md.md`).
 9. **Tests.** The render test set above as an integration test in CI (needs the engine): outputs compared by hash against the Node baseline once, then against the previous run.
 
+## Phase 4 as built
+
+- **Messages.** `opsis-render`'s `protocol` module defines `SidecarRequest` (`render.media`, `render.still`, `cancel`, `ping`) and `SidecarMessage` (`{ id, result: null }`, `{ id, error: { message } }`, progress). `bun run types:export` writes them to `apps/sidecar/src/generated/protocol.ts`, and a test fails when that file is stale. Ids are 32-bit, since specta refuses 64-bit numbers in TS. A job carries everything the render needs: the serve URL, the browser, `binariesDirectory`, the licence key, the composition id (`COMPOSITION_ID`, checked against `packages/video/src/composition-id.ts`), the spec as opaque JSON and `gl`.
+- **App.** `apps/sidecar/src/main.ts` keeps stdout for messages (console output and `process.stdout.write` go to stderr), reads requests with `readline`, runs each job with its own `AbortController`, and when stdin closes cancels its jobs and exits. `render.ts` takes the protocol's jobs and imports nothing from other packages; `@opsis/core` is no longer a dependency. The Electron worker builds the same jobs in `src/worker/render/remotion.ts` (with `getServeUrl`, the licence key and the compositor folder).
+- **Client.** `Sidecar` starts the program on the first job, writes requests to its stdin, matches replies to waiting jobs by id, passes progress on, sends stderr lines to a log callback, sends `cancel` when a job's token fires and reports the job as cancelled, and fails the jobs in flight when the process ends; the next job starts a new process.
+- **Checks.** Through Rust and the Bun sidecar, the five stills and two videos of the test set above are byte-identical to the Node renders in `~/.cache/opsis-bun-test/node` (`crates/render/tests/renders.rs`, ignored by default because it needs the dev engine and that bundle), and a render cancelled after 1.5 s returns as cancelled within 4 s. A fake sidecar that exits checks the crash path.
+- **Not done here.** Shipping (step 5) and the bundle as a turbo task (step 6) come with packaging; in development the caller runs `bun run apps/sidecar/src/main.ts` and names the bundle.
+
 ## Risks
 
 - **Bun releases.** Pin the Bun version used to build the sidecar and rerun the byte-identical test on every bump.

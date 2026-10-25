@@ -1,0 +1,490 @@
+use std::f64::consts::PI;
+use std::path::Path;
+
+use opsis_compile::color::{color_or, hue_and_saturation};
+use opsis_compile::nodes::grade::{
+    AUTO_FIX_TYPE, AutoFix, COLOUR_TYPE, Colour, DEFAULT_TINT, LENS_TYPE, LOOK_TYPE, Lens,
+    LookFile, MONO_TYPE, Mono, MonoKind, TEXTURE_TYPE, Texture, ToneCurve, tone_offsets,
+};
+use opsis_compile::registry::node_def;
+use opsis_types::values::StyleEntry;
+use serde::de::DeserializeOwned;
+
+use crate::codecs::serde_name;
+use opsis_compile::text::{js_round, number, round_to};
+
+const DESIGN_WIDTH: f64 = 1920.0;
+const NEUTRAL_KELVIN: f64 = 6500.0;
+const KELVIN_SWING: f64 = 3500.0;
+const TINT_LIGHTNESS: &str = "0.5";
+const EVEN_SIZE: &str = "scale=trunc(iw/2)*2:trunc(ih/2)*2";
+const SEPIA: &str = "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131";
+
+#[derive(Debug, Clone, Copy, PartialEq, serde::Deserialize)]
+pub struct GradeSize {
+    pub width: f64,
+    pub height: f64,
+    pub still: bool,
+}
+
+pub type Resolve<'a, E> = &'a dyn Fn(&str) -> Result<String, E>;
+
+#[derive(Debug, thiserror::Error)]
+pub enum GradeError {
+    #[error("A look file ends in .cube, .3dl or .png.")]
+    LookKind,
+    #[error("\"{0}\" isn't a grade step.")]
+    NotAStep(String),
+    #[error("{0}")]
+    Settings(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GradeChain {
+    pub chain: String,
+    pub extra_inputs: Vec<String>,
+}
+
+#[derive(Default)]
+struct Piece {
+    filters: Vec<String>,
+    strength: Option<f64>,
+    look_image: Option<String>,
+}
+
+fn num(value: f64) -> String {
+    number(round_to(value, 3))
+}
+
+fn option_value(text: &str) -> String {
+    escaped(text, &['\\', '\'', ':'])
+}
+
+fn graph_text(text: &str) -> String {
+    escaped(text, &['\\', '\'', ',', ';', '[', ']'])
+}
+
+fn escaped(text: &str, special: &[char]) -> String {
+    let mut out = String::with_capacity(text.len());
+    for c in text.chars() {
+        if special.contains(&c) {
+            out.push('\\');
+        }
+        out.push(c);
+    }
+    out
+}
+
+pub fn filter_path(file: &str) -> String {
+    graph_text(&option_value(file))
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum LookKind {
+    Table,
+    Image,
+}
+
+pub fn look_kind_of(file: &str) -> Option<LookKind> {
+    let ext = Path::new(file)
+        .extension()
+        .map(|e| e.to_string_lossy().to_lowercase());
+    match ext.as_deref() {
+        Some("cube" | "3dl") => Some(LookKind::Table),
+        Some("png") => Some(LookKind::Image),
+        _ => None,
+    }
+}
+
+fn fade_of(strength: f64) -> Option<f64> {
+    (strength < 1.0).then_some(strength)
+}
+
+enum Opt {
+    Off,
+    On(String),
+}
+
+fn on(value: impl Into<String>) -> Opt {
+    Opt::On(value.into())
+}
+
+fn when(test: bool, value: impl Into<String>) -> Opt {
+    if test {
+        Opt::On(value.into())
+    } else {
+        Opt::Off
+    }
+}
+
+fn options(name: &str, values: Vec<(&str, Opt)>) -> Vec<String> {
+    let used: Vec<String> = values
+        .into_iter()
+        .filter_map(|(key, value)| match value {
+            Opt::On(v) => Some(format!("{key}={v}")),
+            Opt::Off => None,
+        })
+        .collect();
+    if used.is_empty() {
+        Vec::new()
+    } else {
+        vec![format!("{name}={}", used.join(":"))]
+    }
+}
+
+fn balance(tones: Option<[f64; 3]>, keys: [&'static str; 3]) -> Vec<(&'static str, Opt)> {
+    keys.into_iter()
+        .enumerate()
+        .map(|(i, key)| (key, tones.map_or(Opt::Off, |t| on(number(t[i])))))
+        .collect()
+}
+
+fn colour_filters(p: &Colour) -> Vec<String> {
+    let shadows = tone_offsets(&p.shadows, p.shadows_amount);
+    let midtones = tone_offsets(&p.midtones, p.midtones_amount);
+    let highlights = tone_offsets(&p.highlights, p.highlights_amount);
+    let mut tones = balance(shadows, ["rs", "gs", "bs"]);
+    tones.extend(balance(midtones, ["rm", "gm", "bm"]));
+    tones.extend(balance(highlights, ["rh", "gh", "bh"]));
+    [
+        options(
+            "exposure",
+            vec![("exposure", when(p.exposure != 0.0, num(p.exposure)))],
+        ),
+        options(
+            "eq",
+            vec![
+                ("brightness", when(p.brightness != 0.0, num(p.brightness))),
+                ("contrast", when(p.contrast != 1.0, num(p.contrast))),
+                ("saturation", when(p.saturation != 1.0, num(p.saturation))),
+                ("gamma", when(p.gamma != 1.0, num(p.gamma))),
+            ],
+        ),
+        options(
+            "colortemperature",
+            vec![
+                (
+                    "temperature",
+                    when(
+                        p.warmth != 0.0,
+                        number(js_round(NEUTRAL_KELVIN - p.warmth * KELVIN_SWING)),
+                    ),
+                ),
+                ("mix", when(p.warmth != 0.0, "1")),
+            ],
+        ),
+        options(
+            "vibrance",
+            vec![("intensity", when(p.vibrance != 0.0, num(p.vibrance)))],
+        ),
+        options("hue", vec![("h", when(p.hue != 0.0, num(p.hue)))]),
+        options("colorbalance", tones),
+        options(
+            "curves",
+            vec![(
+                "preset",
+                when(p.curve != ToneCurve::None, serde_name(&p.curve)),
+            )],
+        ),
+    ]
+    .concat()
+}
+
+fn mono_piece(p: &Mono) -> Option<Piece> {
+    if p.strength == 0.0 {
+        return None;
+    }
+    let filters = match p.kind {
+        MonoKind::Tint => {
+            let (hue, saturation) =
+                hue_and_saturation(&color_or(&p.tint, DEFAULT_TINT)).unwrap_or((0.0, 0.5));
+            options(
+                "colorize",
+                vec![
+                    ("hue", on(num(hue))),
+                    ("saturation", on(num(saturation))),
+                    ("lightness", on(TINT_LIGHTNESS)),
+                    ("mix", on("1")),
+                ],
+            )
+        }
+        MonoKind::Sepia => vec![SEPIA.to_owned()],
+        MonoKind::Bw => vec!["monochrome=cb=0:cr=0:size=1".to_owned()],
+    };
+    Some(Piece {
+        filters,
+        strength: fade_of(p.strength),
+        look_image: None,
+    })
+}
+
+fn texture_filters(p: &Texture, size: GradeSize) -> Vec<String> {
+    let mut filters = [
+        options(
+            "cas",
+            vec![("strength", when(p.sharpen > 0.0, num(p.sharpen)))],
+        ),
+        options(
+            "gblur",
+            vec![(
+                "sigma",
+                when(
+                    p.soften > 0.0,
+                    num(f64::max(0.01, p.soften * 8.0 * (size.width / DESIGN_WIDTH))),
+                ),
+            )],
+        ),
+        options(
+            "vignette",
+            vec![
+                ("angle", when(p.vignette > 0.0, num(p.vignette * PI / 2.0))),
+                (
+                    "x0",
+                    when(p.vignette > 0.0, format!("w*{}", num(p.vignette_x))),
+                ),
+                (
+                    "y0",
+                    when(p.vignette > 0.0, format!("h*{}", num(p.vignette_y))),
+                ),
+            ],
+        ),
+    ]
+    .concat();
+    if !size.still {
+        filters.extend(options(
+            "noise",
+            vec![
+                (
+                    "alls",
+                    when(
+                        p.grain > 0.0,
+                        number(f64::max(1.0, js_round(p.grain * 40.0))),
+                    ),
+                ),
+                ("allf", when(p.grain > 0.0, "t+u")),
+            ],
+        ));
+    }
+    filters
+}
+
+fn lens_filters(p: &Lens, size: GradeSize) -> Vec<String> {
+    let shift = f64::max(1.0, js_round(p.fringe * 8.0 * (size.width / DESIGN_WIDTH)));
+    let mut filters = [
+        options(
+            "rgbashift",
+            vec![
+                ("rh", when(p.fringe > 0.0, number(shift))),
+                ("bh", when(p.fringe > 0.0, number(-shift))),
+            ],
+        ),
+        options(
+            "lenscorrection",
+            vec![
+                ("k1", when(p.bulge != 0.0, num(p.bulge * 0.5))),
+                ("k2", when(p.bulge != 0.0, "0")),
+                ("i", when(p.bulge != 0.0, "bilinear")),
+            ],
+        ),
+    ]
+    .concat();
+    if !size.still {
+        filters.extend(options(
+            "lagfun",
+            vec![("decay", when(p.trails > 0.0, num(0.5 + p.trails * 0.48)))],
+        ));
+    }
+    filters
+}
+
+fn auto_fix_filters(p: &AutoFix, size: GradeSize) -> Vec<String> {
+    let mut filters = Vec::new();
+    if p.white_balance {
+        let back = if size.still { "rgb24" } else { "yuv420p" };
+        filters.extend([
+            "format=gbrpf32le".to_owned(),
+            "grayworld".to_owned(),
+            format!("format={back}"),
+        ]);
+    }
+    if p.levels && p.levels_strength > 0.0 {
+        filters.extend(options(
+            "normalize",
+            vec![
+                ("smoothing", on(p.levels_smoothing.to_string())),
+                ("independence", on("0")),
+                ("strength", on(num(p.levels_strength))),
+            ],
+        ));
+    }
+    if p.deband {
+        filters.push("deband".to_owned());
+    }
+    filters
+}
+
+fn look_piece<E: From<GradeError>>(
+    p: &LookFile,
+    resolve: Resolve<'_, E>,
+) -> Result<Option<Piece>, E> {
+    if p.file.is_empty() || p.strength == 0.0 {
+        return Ok(None);
+    }
+    let strength = fade_of(p.strength);
+    Ok(Some(
+        match look_kind_of(&p.file).ok_or(GradeError::LookKind)? {
+            LookKind::Image => Piece {
+                filters: Vec::new(),
+                look_image: Some(resolve(&p.file)?),
+                strength,
+            },
+            LookKind::Table => Piece {
+                filters: options(
+                    "lut3d",
+                    vec![
+                        ("file", on(filter_path(&resolve(&p.file)?))),
+                        ("interp", on("tetrahedral")),
+                    ],
+                ),
+                strength,
+                look_image: None,
+            },
+        },
+    ))
+}
+
+fn params<P: DeserializeOwned>(entry: &StyleEntry) -> Result<P, GradeError> {
+    let def = node_def(&entry.kind).ok_or_else(|| GradeError::NotAStep(entry.kind.clone()))?;
+    def.typed_params(&entry.params)
+        .map_err(GradeError::Settings)
+}
+
+fn filters_only(filters: Vec<String>) -> Option<Piece> {
+    Some(Piece {
+        filters,
+        ..Piece::default()
+    })
+}
+
+fn piece_of<E: From<GradeError>>(
+    entry: &StyleEntry,
+    size: GradeSize,
+    resolve: Resolve<'_, E>,
+) -> Result<Option<Piece>, E> {
+    Ok(match entry.kind.as_str() {
+        COLOUR_TYPE => filters_only(colour_filters(&params(entry)?)),
+        LOOK_TYPE => look_piece(&params(entry)?, resolve)?,
+        MONO_TYPE => mono_piece(&params(entry)?),
+        TEXTURE_TYPE => filters_only(texture_filters(&params(entry)?, size)),
+        LENS_TYPE => filters_only(lens_filters(&params(entry)?, size)),
+        AUTO_FIX_TYPE => filters_only(auto_fix_filters(&params(entry)?, size)),
+        other => return Err(GradeError::NotAStep(other.to_owned()).into()),
+    })
+}
+
+struct Chain {
+    statements: Vec<String>,
+    extra_inputs: Vec<String>,
+    current: String,
+    pending: Vec<String>,
+    labels: usize,
+}
+
+impl Chain {
+    fn label(&mut self) -> String {
+        self.labels += 1;
+        format!("g{}", self.labels - 1)
+    }
+
+    fn flush(&mut self) {
+        if self.pending.is_empty() {
+            return;
+        }
+        let out = self.label();
+        self.statements.push(format!(
+            "[{}]{}[{out}]",
+            self.current,
+            self.pending.join(",")
+        ));
+        self.current = out;
+        self.pending.clear();
+    }
+
+    fn add(&mut self, piece: Piece) {
+        if piece.strength.is_none() && piece.look_image.is_none() {
+            self.pending.extend(piece.filters);
+            return;
+        }
+        self.flush();
+        let mut branch = self.current.clone();
+        let mut original = String::new();
+        if piece.strength.is_some() {
+            original = self.label();
+            branch = self.label();
+            self.statements
+                .push(format!("[{}]split[{original}][{branch}]", self.current));
+        }
+        let graded = self.label();
+        if let Some(image) = piece.look_image {
+            self.extra_inputs.push(image);
+            self.statements.push(format!(
+                "[{branch}][{}:v]haldclut=repeatlast=1[{graded}]",
+                self.extra_inputs.len()
+            ));
+        } else {
+            self.statements
+                .push(format!("[{branch}]{}[{graded}]", piece.filters.join(",")));
+        }
+        match piece.strength {
+            None => self.current = graded,
+            Some(strength) => {
+                let out = self.label();
+                self.statements.push(format!(
+                    "[{graded}][{original}]blend=all_mode=normal:all_opacity={}[{out}]",
+                    num(strength)
+                ));
+                self.current = out;
+            }
+        }
+    }
+}
+
+pub fn grade_filters<E: From<GradeError>>(
+    entries: &[StyleEntry],
+    size: GradeSize,
+    resolve: Resolve<'_, E>,
+) -> Result<GradeChain, E> {
+    let mut chain = Chain {
+        statements: Vec::new(),
+        extra_inputs: Vec::new(),
+        current: "0:v".into(),
+        pending: Vec::new(),
+        labels: 0,
+    };
+    for entry in entries {
+        match piece_of(entry, size, resolve)? {
+            Some(piece) if !piece.filters.is_empty() || piece.look_image.is_some() => {
+                chain.add(piece)
+            }
+            _ => {}
+        }
+    }
+    let mut last = std::mem::take(&mut chain.pending);
+    if !size.still {
+        last.push(EVEN_SIZE.to_owned());
+    }
+    let tail = if last.is_empty() {
+        "null".to_owned()
+    } else {
+        last.join(",")
+    };
+    chain
+        .statements
+        .push(format!("[{}]{tail}[out]", chain.current));
+    Ok(GradeChain {
+        chain: chain.statements.join(";"),
+        extra_inputs: chain.extra_inputs,
+    })
+}

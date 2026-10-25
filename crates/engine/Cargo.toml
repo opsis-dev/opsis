@@ -6,6 +6,7 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+axum = "0.8.9"
 flate2 = "1.1.10"
 futures-util = "0.3.34"
 hex = "0.4.3"
@@ -20,8 +21,10 @@ sha2 = "0.11.1"
 sysinfo = "0.39.6"
 tempfile = "3.27.0"
 thiserror = "2.0.21"
-tokio = { version = "1.54.1", features = ["fs", "io-util", "rt", "macros"] }
+tokio = { version = "1.54.1", features = ["fs", "io-util", "rt", "macros", "net"] }
 tokio-util = "0.7.20"
+tower = { version = "0.5.3", features = ["util"] }
+tower-http = { version = "0.7.1", features = ["fs", "cors"] }
 zip = "9.1.0"
 
 [target.'cfg(all(target_os = "linux", target_env = "gnu"))'.dependencies]
@@ -29,3 +32,5 @@ libc = "0.2.191"
 
 [dev-dependencies]
 filetime = "0.2.29"
+http-body-util = "0.1.5"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros"] }

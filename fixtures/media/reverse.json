@@ -1,0 +1,6056 @@
+{
+ "frameBytes": [
+  {
+   "pixFmt": "yuv420p",
+   "bytes": 3114902
+  },
+  {
+   "pixFmt": "yuvj420p",
+   "bytes": 3114902
+  },
+  {
+   "pixFmt": "yuv420p10le",
+   "bytes": 6229803
+  },
+  {
+   "pixFmt": "nv12",
+   "bytes": 3114902
+  },
+  {
+   "pixFmt": "p010le",
+   "bytes": 6229803
+  },
+  {
+   "pixFmt": "yuv422p",
+   "bytes": 4153202
+  },
+  {
+   "pixFmt": "yuv422p10le",
+   "bytes": 8306404
+  },
+  {
+   "pixFmt": "yuyv422",
+   "bytes": 4153202
+  },
+  {
+   "pixFmt": "yuv444p",
+   "bytes": 6229803
+  },
+  {
+   "pixFmt": "yuv444p12le",
+   "bytes": 12459606
+  },
+  {
+   "pixFmt": "gbrp",
+   "bytes": 6229803
+  },
+  {
+   "pixFmt": "rgb24",
+   "bytes": 6229803
+  },
+  {
+   "pixFmt": "rgba",
+   "bytes": 8306404
+  },
+  {
+   "pixFmt": "bgr0",
+   "bytes": 8306404
+  },
+  {
+   "pixFmt": "rgb48le",
+   "bytes": 12459606
+  },
+  {
+   "pixFmt": "rgba64le",
+   "bytes": 16612808
+  },
+  {
+   "pixFmt": "gray",
+   "bytes": 2076601
+  },
+  {
+   "pixFmt": "gray16le",
+   "bytes": 4153202
+  },
+  {
+   "pixFmt": "pal8",
+   "bytes": 8306404
+  },
+  {
+   "pixFmt": "",
+   "bytes": 8306404
+  }
+ ],
+ "plans": [
+  {
+   "plan": {
+    "durationMs": 10000,
+    "fps": 30,
+    "frameBytes": 3110400,
+    "budgetBytes": 536870912
+   },
+   "pieces": [
+    {
+     "from": {
+      "pictureMs": 5717,
+      "soundMs": 5733
+     }
+    },
+    {
+     "to": {
+      "pictureMs": 5717,
+      "soundMs": 5733
+     }
+    }
+   ],
+   "lengths": [
+    4267,
+    5733
+   ],
+   "args": [
+    [
+     "-ss",
+     "5.717",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "5.717",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=5.717,reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=end=5.733,areverse",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=5.717,reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ]
+   ]
+  },
+  {
+   "plan": {
+    "durationMs": 60000,
+    "fps": 30,
+    "frameBytes": 12441600,
+    "budgetBytes": 536870912
+   },
+   "pieces": [
+    {
+     "from": {
+      "pictureMs": 58750,
+      "soundMs": 58767
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 57317,
+      "soundMs": 57333
+     },
+     "to": {
+      "pictureMs": 58750,
+      "soundMs": 58767
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 55883,
+      "soundMs": 55900
+     },
+     "to": {
+      "pictureMs": 57317,
+      "soundMs": 57333
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 54450,
+      "soundMs": 54467
+     },
+     "to": {
+      "pictureMs": 55883,
+      "soundMs": 55900
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 53017,
+      "soundMs": 53033
+     },
+     "to": {
+      "pictureMs": 54450,
+      "soundMs": 54467
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 51583,
+      "soundMs": 51600
+     },
+     "to": {
+      "pictureMs": 53017,
+      "soundMs": 53033
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 50150,
+      "soundMs": 50167
+     },
+     "to": {
+      "pictureMs": 51583,
+      "soundMs": 51600
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 48717,
+      "soundMs": 48733
+     },
+     "to": {
+      "pictureMs": 50150,
+      "soundMs": 50167
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 47283,
+      "soundMs": 47300
+     },
+     "to": {
+      "pictureMs": 48717,
+      "soundMs": 48733
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 45850,
+      "soundMs": 45867
+     },
+     "to": {
+      "pictureMs": 47283,
+      "soundMs": 47300
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 44417,
+      "soundMs": 44433
+     },
+     "to": {
+      "pictureMs": 45850,
+      "soundMs": 45867
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 42983,
+      "soundMs": 43000
+     },
+     "to": {
+      "pictureMs": 44417,
+      "soundMs": 44433
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 41550,
+      "soundMs": 41567
+     },
+     "to": {
+      "pictureMs": 42983,
+      "soundMs": 43000
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 40117,
+      "soundMs": 40133
+     },
+     "to": {
+      "pictureMs": 41550,
+      "soundMs": 41567
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 38683,
+      "soundMs": 38700
+     },
+     "to": {
+      "pictureMs": 40117,
+      "soundMs": 40133
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 37250,
+      "soundMs": 37267
+     },
+     "to": {
+      "pictureMs": 38683,
+      "soundMs": 38700
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 35817,
+      "soundMs": 35833
+     },
+     "to": {
+      "pictureMs": 37250,
+      "soundMs": 37267
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 34383,
+      "soundMs": 34400
+     },
+     "to": {
+      "pictureMs": 35817,
+      "soundMs": 35833
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 32950,
+      "soundMs": 32967
+     },
+     "to": {
+      "pictureMs": 34383,
+      "soundMs": 34400
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 31517,
+      "soundMs": 31533
+     },
+     "to": {
+      "pictureMs": 32950,
+      "soundMs": 32967
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 30083,
+      "soundMs": 30100
+     },
+     "to": {
+      "pictureMs": 31517,
+      "soundMs": 31533
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 28650,
+      "soundMs": 28667
+     },
+     "to": {
+      "pictureMs": 30083,
+      "soundMs": 30100
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 27217,
+      "soundMs": 27233
+     },
+     "to": {
+      "pictureMs": 28650,
+      "soundMs": 28667
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 25783,
+      "soundMs": 25800
+     },
+     "to": {
+      "pictureMs": 27217,
+      "soundMs": 27233
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 24350,
+      "soundMs": 24367
+     },
+     "to": {
+      "pictureMs": 25783,
+      "soundMs": 25800
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 22917,
+      "soundMs": 22933
+     },
+     "to": {
+      "pictureMs": 24350,
+      "soundMs": 24367
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 21483,
+      "soundMs": 21500
+     },
+     "to": {
+      "pictureMs": 22917,
+      "soundMs": 22933
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 20050,
+      "soundMs": 20067
+     },
+     "to": {
+      "pictureMs": 21483,
+      "soundMs": 21500
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 18617,
+      "soundMs": 18633
+     },
+     "to": {
+      "pictureMs": 20050,
+      "soundMs": 20067
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 17183,
+      "soundMs": 17200
+     },
+     "to": {
+      "pictureMs": 18617,
+      "soundMs": 18633
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 15750,
+      "soundMs": 15767
+     },
+     "to": {
+      "pictureMs": 17183,
+      "soundMs": 17200
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 14317,
+      "soundMs": 14333
+     },
+     "to": {
+      "pictureMs": 15750,
+      "soundMs": 15767
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 12883,
+      "soundMs": 12900
+     },
+     "to": {
+      "pictureMs": 14317,
+      "soundMs": 14333
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 11450,
+      "soundMs": 11467
+     },
+     "to": {
+      "pictureMs": 12883,
+      "soundMs": 12900
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 10017,
+      "soundMs": 10033
+     },
+     "to": {
+      "pictureMs": 11450,
+      "soundMs": 11467
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 8583,
+      "soundMs": 8600
+     },
+     "to": {
+      "pictureMs": 10017,
+      "soundMs": 10033
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 7150,
+      "soundMs": 7167
+     },
+     "to": {
+      "pictureMs": 8583,
+      "soundMs": 8600
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 5717,
+      "soundMs": 5733
+     },
+     "to": {
+      "pictureMs": 7150,
+      "soundMs": 7167
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 4283,
+      "soundMs": 4300
+     },
+     "to": {
+      "pictureMs": 5717,
+      "soundMs": 5733
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 2850,
+      "soundMs": 2867
+     },
+     "to": {
+      "pictureMs": 4283,
+      "soundMs": 4300
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 1417,
+      "soundMs": 1433
+     },
+     "to": {
+      "pictureMs": 2850,
+      "soundMs": 2867
+     }
+    },
+    {
+     "to": {
+      "pictureMs": 1417,
+      "soundMs": 1433
+     }
+    }
+   ],
+   "lengths": [
+    1233,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433,
+    1433,
+    1434,
+    1433
+   ],
+   "args": [
+    [
+     "-ss",
+     "58.750",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "58.750",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "57.317",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "57.317",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "55.883",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "55.883",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "54.450",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "54.450",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "53.017",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "53.017",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "51.583",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "51.583",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "50.150",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "50.150",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "48.717",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "48.717",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "47.283",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "47.283",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "45.850",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "45.850",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "44.417",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "44.417",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "42.983",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "42.983",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "41.550",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "41.550",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "40.117",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "40.117",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "38.683",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "38.683",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "37.250",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "37.250",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "35.817",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "35.817",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "34.383",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "34.383",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "32.950",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "32.950",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "31.517",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "31.517",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "30.083",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "30.083",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "28.650",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "28.650",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "27.217",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "27.217",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "25.783",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "25.783",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "24.350",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "24.350",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "22.917",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "22.917",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "21.483",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "21.483",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "20.050",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "20.050",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "18.617",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "18.617",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "17.183",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "17.183",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "15.750",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "15.750",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "14.317",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "14.317",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "12.883",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "12.883",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "11.450",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "11.450",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "10.017",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "10.017",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "8.583",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "8.583",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "7.150",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "7.150",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "5.717",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "5.717",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "4.283",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "4.283",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.434,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "2.850",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "2.850",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "1.417",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=1.450,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "1.417",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.433,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.417,reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=end=1.433,areverse",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=1.417,reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ]
+   ]
+  },
+  {
+   "plan": {
+    "durationMs": 12345,
+    "fps": 29.97,
+    "frameBytes": 6220800,
+    "budgetBytes": 104857600
+   },
+   "pieces": [
+    {
+     "from": {
+      "pictureMs": 12262,
+      "soundMs": 12279
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 11728,
+      "soundMs": 11745
+     },
+     "to": {
+      "pictureMs": 12262,
+      "soundMs": 12279
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 11195,
+      "soundMs": 11211
+     },
+     "to": {
+      "pictureMs": 11728,
+      "soundMs": 11745
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 10661,
+      "soundMs": 10677
+     },
+     "to": {
+      "pictureMs": 11195,
+      "soundMs": 11211
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 10127,
+      "soundMs": 10143
+     },
+     "to": {
+      "pictureMs": 10661,
+      "soundMs": 10677
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 9593,
+      "soundMs": 9610
+     },
+     "to": {
+      "pictureMs": 10127,
+      "soundMs": 10143
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 9059,
+      "soundMs": 9076
+     },
+     "to": {
+      "pictureMs": 9593,
+      "soundMs": 9610
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 8525,
+      "soundMs": 8542
+     },
+     "to": {
+      "pictureMs": 9059,
+      "soundMs": 9076
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 7991,
+      "soundMs": 8008
+     },
+     "to": {
+      "pictureMs": 8525,
+      "soundMs": 8542
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 7457,
+      "soundMs": 7474
+     },
+     "to": {
+      "pictureMs": 7991,
+      "soundMs": 8008
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 6924,
+      "soundMs": 6940
+     },
+     "to": {
+      "pictureMs": 7457,
+      "soundMs": 7474
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 6390,
+      "soundMs": 6406
+     },
+     "to": {
+      "pictureMs": 6924,
+      "soundMs": 6940
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 5856,
+      "soundMs": 5873
+     },
+     "to": {
+      "pictureMs": 6390,
+      "soundMs": 6406
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 5322,
+      "soundMs": 5339
+     },
+     "to": {
+      "pictureMs": 5856,
+      "soundMs": 5873
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 4788,
+      "soundMs": 4805
+     },
+     "to": {
+      "pictureMs": 5322,
+      "soundMs": 5339
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 4254,
+      "soundMs": 4271
+     },
+     "to": {
+      "pictureMs": 4788,
+      "soundMs": 4805
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 3720,
+      "soundMs": 3737
+     },
+     "to": {
+      "pictureMs": 4254,
+      "soundMs": 4271
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 3187,
+      "soundMs": 3203
+     },
+     "to": {
+      "pictureMs": 3720,
+      "soundMs": 3737
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 2653,
+      "soundMs": 2669
+     },
+     "to": {
+      "pictureMs": 3187,
+      "soundMs": 3203
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 2119,
+      "soundMs": 2135
+     },
+     "to": {
+      "pictureMs": 2653,
+      "soundMs": 2669
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 1585,
+      "soundMs": 1602
+     },
+     "to": {
+      "pictureMs": 2119,
+      "soundMs": 2135
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 1051,
+      "soundMs": 1068
+     },
+     "to": {
+      "pictureMs": 1585,
+      "soundMs": 1602
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 517,
+      "soundMs": 534
+     },
+     "to": {
+      "pictureMs": 1051,
+      "soundMs": 1068
+     }
+    },
+    {
+     "to": {
+      "pictureMs": 517,
+      "soundMs": 534
+     }
+    }
+   ],
+   "lengths": [
+    66,
+    534,
+    534,
+    534,
+    534,
+    533,
+    534,
+    534,
+    534,
+    534,
+    534,
+    534,
+    533,
+    534,
+    534,
+    534,
+    534,
+    534,
+    534,
+    534,
+    533,
+    534,
+    534,
+    534
+   ],
+   "args": [
+    [
+     "-ss",
+     "12.262",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "12.262",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "11.728",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "11.728",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "11.195",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.533,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "11.195",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.533,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "10.661",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "10.661",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "10.127",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "10.127",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "9.593",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "9.593",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "9.059",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "9.059",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "8.525",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "8.525",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "7.991",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "7.991",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "7.457",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "7.457",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "6.924",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.533,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "6.924",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.533,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "6.390",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "6.390",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "5.856",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "5.856",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "5.322",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "5.322",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "4.788",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "4.788",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "4.254",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "4.254",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "3.720",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "3.720",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "3.187",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.533,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "3.187",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.533,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "2.653",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "2.653",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "2.119",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.016:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "2.119",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "1.585",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.550,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "1.585",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "1.051",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "1.051",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.517",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.017:end=0.551,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.517",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.534,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.517,reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=end=0.534,areverse",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.517,reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ]
+   ]
+  },
+  {
+   "plan": {
+    "durationMs": 1000,
+    "fps": 60,
+    "frameBytes": 1000000000,
+    "budgetBytes": 536870912
+   },
+   "pieces": [
+    {
+     "from": {
+      "pictureMs": 975,
+      "soundMs": 983
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 958,
+      "soundMs": 967
+     },
+     "to": {
+      "pictureMs": 975,
+      "soundMs": 983
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 942,
+      "soundMs": 950
+     },
+     "to": {
+      "pictureMs": 958,
+      "soundMs": 967
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 925,
+      "soundMs": 933
+     },
+     "to": {
+      "pictureMs": 942,
+      "soundMs": 950
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 908,
+      "soundMs": 917
+     },
+     "to": {
+      "pictureMs": 925,
+      "soundMs": 933
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 892,
+      "soundMs": 900
+     },
+     "to": {
+      "pictureMs": 908,
+      "soundMs": 917
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 875,
+      "soundMs": 883
+     },
+     "to": {
+      "pictureMs": 892,
+      "soundMs": 900
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 858,
+      "soundMs": 867
+     },
+     "to": {
+      "pictureMs": 875,
+      "soundMs": 883
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 842,
+      "soundMs": 850
+     },
+     "to": {
+      "pictureMs": 858,
+      "soundMs": 867
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 825,
+      "soundMs": 833
+     },
+     "to": {
+      "pictureMs": 842,
+      "soundMs": 850
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 808,
+      "soundMs": 817
+     },
+     "to": {
+      "pictureMs": 825,
+      "soundMs": 833
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 792,
+      "soundMs": 800
+     },
+     "to": {
+      "pictureMs": 808,
+      "soundMs": 817
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 775,
+      "soundMs": 783
+     },
+     "to": {
+      "pictureMs": 792,
+      "soundMs": 800
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 758,
+      "soundMs": 767
+     },
+     "to": {
+      "pictureMs": 775,
+      "soundMs": 783
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 742,
+      "soundMs": 750
+     },
+     "to": {
+      "pictureMs": 758,
+      "soundMs": 767
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 725,
+      "soundMs": 733
+     },
+     "to": {
+      "pictureMs": 742,
+      "soundMs": 750
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 708,
+      "soundMs": 717
+     },
+     "to": {
+      "pictureMs": 725,
+      "soundMs": 733
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 692,
+      "soundMs": 700
+     },
+     "to": {
+      "pictureMs": 708,
+      "soundMs": 717
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 675,
+      "soundMs": 683
+     },
+     "to": {
+      "pictureMs": 692,
+      "soundMs": 700
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 658,
+      "soundMs": 667
+     },
+     "to": {
+      "pictureMs": 675,
+      "soundMs": 683
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 642,
+      "soundMs": 650
+     },
+     "to": {
+      "pictureMs": 658,
+      "soundMs": 667
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 625,
+      "soundMs": 633
+     },
+     "to": {
+      "pictureMs": 642,
+      "soundMs": 650
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 608,
+      "soundMs": 617
+     },
+     "to": {
+      "pictureMs": 625,
+      "soundMs": 633
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 592,
+      "soundMs": 600
+     },
+     "to": {
+      "pictureMs": 608,
+      "soundMs": 617
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 575,
+      "soundMs": 583
+     },
+     "to": {
+      "pictureMs": 592,
+      "soundMs": 600
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 558,
+      "soundMs": 567
+     },
+     "to": {
+      "pictureMs": 575,
+      "soundMs": 583
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 542,
+      "soundMs": 550
+     },
+     "to": {
+      "pictureMs": 558,
+      "soundMs": 567
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 525,
+      "soundMs": 533
+     },
+     "to": {
+      "pictureMs": 542,
+      "soundMs": 550
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 508,
+      "soundMs": 517
+     },
+     "to": {
+      "pictureMs": 525,
+      "soundMs": 533
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 492,
+      "soundMs": 500
+     },
+     "to": {
+      "pictureMs": 508,
+      "soundMs": 517
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 475,
+      "soundMs": 483
+     },
+     "to": {
+      "pictureMs": 492,
+      "soundMs": 500
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 458,
+      "soundMs": 467
+     },
+     "to": {
+      "pictureMs": 475,
+      "soundMs": 483
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 442,
+      "soundMs": 450
+     },
+     "to": {
+      "pictureMs": 458,
+      "soundMs": 467
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 425,
+      "soundMs": 433
+     },
+     "to": {
+      "pictureMs": 442,
+      "soundMs": 450
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 408,
+      "soundMs": 417
+     },
+     "to": {
+      "pictureMs": 425,
+      "soundMs": 433
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 392,
+      "soundMs": 400
+     },
+     "to": {
+      "pictureMs": 408,
+      "soundMs": 417
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 375,
+      "soundMs": 383
+     },
+     "to": {
+      "pictureMs": 392,
+      "soundMs": 400
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 358,
+      "soundMs": 367
+     },
+     "to": {
+      "pictureMs": 375,
+      "soundMs": 383
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 342,
+      "soundMs": 350
+     },
+     "to": {
+      "pictureMs": 358,
+      "soundMs": 367
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 325,
+      "soundMs": 333
+     },
+     "to": {
+      "pictureMs": 342,
+      "soundMs": 350
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 308,
+      "soundMs": 317
+     },
+     "to": {
+      "pictureMs": 325,
+      "soundMs": 333
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 292,
+      "soundMs": 300
+     },
+     "to": {
+      "pictureMs": 308,
+      "soundMs": 317
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 275,
+      "soundMs": 283
+     },
+     "to": {
+      "pictureMs": 292,
+      "soundMs": 300
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 258,
+      "soundMs": 267
+     },
+     "to": {
+      "pictureMs": 275,
+      "soundMs": 283
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 242,
+      "soundMs": 250
+     },
+     "to": {
+      "pictureMs": 258,
+      "soundMs": 267
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 225,
+      "soundMs": 233
+     },
+     "to": {
+      "pictureMs": 242,
+      "soundMs": 250
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 208,
+      "soundMs": 217
+     },
+     "to": {
+      "pictureMs": 225,
+      "soundMs": 233
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 192,
+      "soundMs": 200
+     },
+     "to": {
+      "pictureMs": 208,
+      "soundMs": 217
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 175,
+      "soundMs": 183
+     },
+     "to": {
+      "pictureMs": 192,
+      "soundMs": 200
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 158,
+      "soundMs": 167
+     },
+     "to": {
+      "pictureMs": 175,
+      "soundMs": 183
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 142,
+      "soundMs": 150
+     },
+     "to": {
+      "pictureMs": 158,
+      "soundMs": 167
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 125,
+      "soundMs": 133
+     },
+     "to": {
+      "pictureMs": 142,
+      "soundMs": 150
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 108,
+      "soundMs": 117
+     },
+     "to": {
+      "pictureMs": 125,
+      "soundMs": 133
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 92,
+      "soundMs": 100
+     },
+     "to": {
+      "pictureMs": 108,
+      "soundMs": 117
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 75,
+      "soundMs": 83
+     },
+     "to": {
+      "pictureMs": 92,
+      "soundMs": 100
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 58,
+      "soundMs": 67
+     },
+     "to": {
+      "pictureMs": 75,
+      "soundMs": 83
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 42,
+      "soundMs": 50
+     },
+     "to": {
+      "pictureMs": 58,
+      "soundMs": 67
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 25,
+      "soundMs": 33
+     },
+     "to": {
+      "pictureMs": 42,
+      "soundMs": 50
+     }
+    },
+    {
+     "from": {
+      "pictureMs": 8,
+      "soundMs": 17
+     },
+     "to": {
+      "pictureMs": 25,
+      "soundMs": 33
+     }
+    },
+    {
+     "to": {
+      "pictureMs": 8,
+      "soundMs": 17
+     }
+    }
+   ],
+   "lengths": [
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17,
+    17,
+    16,
+    17
+   ],
+   "args": [
+    [
+     "-ss",
+     "0.975",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.975",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.958",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.958",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.942",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.942",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.925",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.925",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.908",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.908",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.892",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.892",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.875",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.875",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.858",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.858",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.842",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.842",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.825",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.825",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.808",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.808",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.792",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.792",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.775",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.775",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.758",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.758",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.742",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.742",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.725",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.725",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.708",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.708",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.692",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.692",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.675",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.675",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.658",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.658",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.642",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.642",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.625",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.625",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.608",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.608",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.592",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.592",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.575",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.575",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.558",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.558",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.542",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.542",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.525",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.525",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.508",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.508",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.492",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.492",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.475",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.475",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.458",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.458",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.442",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.442",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.425",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.425",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.408",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.408",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.392",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.392",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.375",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.375",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.358",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.358",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.342",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.342",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.325",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.325",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.308",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.308",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.292",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.292",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.275",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.275",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.258",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.258",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.242",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.242",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.225",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.225",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.208",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.208",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.192",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.192",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.175",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.175",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.158",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.158",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.142",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.142",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.125",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.125",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.108",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.108",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.092",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.092",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.075",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.075",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.058",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.058",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.042",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.042",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.016,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.025",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.008:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.025",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.008",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=start=0.009:end=0.025,areverse,asetpts=PTS-STARTPTS",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-ss",
+     "0.008",
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.017,reverse,setpts=PTS-STARTPTS,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.008,reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-af",
+     "atrim=end=0.017,areverse",
+     "-c:a",
+     "pcm_s16le",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ],
+    [
+     "-i",
+     "in.mp4",
+     "-vf",
+     "trim=end=0.008,reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+     "-an",
+     "-c:v",
+     "libx264",
+     "-crf",
+     "18",
+     "-pix_fmt",
+     "yuv420p",
+     "out.mkv"
+    ]
+   ]
+  }
+ ],
+ "whole": [
+  [
+   "-i",
+   "in.mp4",
+   "-vf",
+   "reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+   "-af",
+   "areverse",
+   "-c:v",
+   "libx264",
+   "-crf",
+   "18",
+   "-pix_fmt",
+   "yuv420p",
+   "out.mp4"
+  ],
+  [
+   "-i",
+   "in.mp4",
+   "-vf",
+   "reverse,crop=trunc(iw/2)*2:trunc(ih/2)*2",
+   "-an",
+   "-c:v",
+   "libx264",
+   "-crf",
+   "18",
+   "-pix_fmt",
+   "yuv420p",
+   "out.mp4"
+  ]
+ ],
+ "sound": [
+  "-i",
+  "in.mp3",
+  "-af",
+  "areverse",
+  "-vn",
+  "-c:a",
+  "libmp3lame",
+  "-q:a",
+  "2",
+  "out.mp3"
+ ],
+ "list": "file '/tmp/part-0.mkv'\nduration 1.234\nfile '/tmp/it'\\''s part-1.mkv'\nduration 0.999",
+ "join": [
+  [
+   "-f",
+   "concat",
+   "-safe",
+   "0",
+   "-i",
+   "parts.txt",
+   "-map",
+   "0",
+   "-c:v",
+   "copy",
+   "-c:a",
+   "aac",
+   "out.mp4"
+  ],
+  [
+   "-f",
+   "concat",
+   "-safe",
+   "0",
+   "-i",
+   "parts.txt",
+   "-map",
+   "0",
+   "-c:v",
+   "copy",
+   "out.mp4"
+  ]
+ ]
+}

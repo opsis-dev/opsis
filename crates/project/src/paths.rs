@@ -1,12 +1,29 @@
 use std::path::{Path, PathBuf};
 
-use opsis_compile::asset_ref::project_ref;
+use opsis_compile::asset_ref::{RefTarget, project_ref, ref_target};
+use opsis_types::project::ProjectLocations;
 use opsis_types::project::{
     ANALYSIS_DIR, ASSETS_DIR, CACHE_DIR, LAST_RUN_FILE, META_DIR, MIX_DIR, MODELS_DIR, OUT_DIR,
     PICTURES_DIR, TRACES_DIR,
 };
+use opsis_types::settings::{PROJECTS_FOLDER_NAME, ProjectsSection};
 
-pub const DEFAULT_FOLDER_NAME: &str = "demo";
+pub fn project_locations(settings: &ProjectsSection, home: &Path) -> ProjectLocations {
+    let default_dir = match settings.default_dir.as_str() {
+        "" => home.join(PROJECTS_FOLDER_NAME),
+        dir => PathBuf::from(dir),
+    };
+    let last = Path::new(&settings.last_dir);
+    let suggested_dir = if !settings.last_dir.is_empty() && last.is_dir() {
+        last.to_path_buf()
+    } else {
+        default_dir.clone()
+    };
+    ProjectLocations {
+        default_dir: default_dir.to_string_lossy().into_owned(),
+        suggested_dir: suggested_dir.to_string_lossy().into_owned(),
+    }
+}
 
 pub struct ProjectPaths {
     pub meta: PathBuf,
@@ -36,13 +53,6 @@ pub fn project_paths(dir: &Path) -> ProjectPaths {
     }
 }
 
-pub fn project_folder_name(name: &str) -> String {
-    match slug::slugify(name) {
-        slug if slug.is_empty() => DEFAULT_FOLDER_NAME.to_owned(),
-        slug => slug,
-    }
-}
-
 fn lexical(path: &Path) -> PathBuf {
     path_clean::clean(std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf()))
 }
@@ -65,6 +75,23 @@ pub fn to_posix_rel(root: &Path, file: &Path) -> Option<String> {
 
 pub fn to_project_ref(root: &Path, file: &Path) -> Option<String> {
     to_posix_rel(root, file).map(|rel| project_ref(&rel))
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+#[error("Use a file on this computer, not a web address.")]
+pub struct WebAddress;
+
+pub fn ref_to_path(
+    project_dir: &Path,
+    public_dir: &Path,
+    reference: &str,
+) -> Result<PathBuf, WebAddress> {
+    match ref_target(reference) {
+        RefTarget::Project(rel) => Ok(project_dir.join(rel)),
+        RefTarget::App(rel) => Ok(public_dir.join(rel)),
+        RefTarget::Absolute(path) => Ok(PathBuf::from(path)),
+        RefTarget::External(_) => Err(WebAddress),
+    }
 }
 
 #[cfg(test)]
@@ -102,8 +129,34 @@ mod tests {
     }
 
     #[test]
-    fn names_the_folder_after_the_project() {
-        assert_eq!(project_folder_name("My Demo: v1.2"), "my-demo-v1-2");
-        assert_eq!(project_folder_name("  ...  "), DEFAULT_FOLDER_NAME);
+    fn suggests_the_last_folder_while_it_exists_and_otherwise_the_default() {
+        let home = tempfile::tempdir().unwrap();
+        let last = home.path().join("films");
+        let mut settings = ProjectsSection {
+            default_dir: String::new(),
+            last_dir: last.to_string_lossy().into_owned(),
+        };
+        let default = home
+            .path()
+            .join(PROJECTS_FOLDER_NAME)
+            .to_string_lossy()
+            .into_owned();
+        assert_eq!(
+            project_locations(&settings, home.path()).suggested_dir,
+            default
+        );
+        std::fs::create_dir(&last).unwrap();
+        assert_eq!(
+            project_locations(&settings, home.path()),
+            ProjectLocations {
+                default_dir: default,
+                suggested_dir: settings.last_dir.clone()
+            }
+        );
+        settings.default_dir = "/srv/opsis".into();
+        assert_eq!(
+            project_locations(&settings, home.path()).default_dir,
+            "/srv/opsis"
+        );
     }
 }

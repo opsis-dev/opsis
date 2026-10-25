@@ -361,24 +361,24 @@ pub enum LoudnessTarget {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Loudness {
+pub struct LoudnessGoal {
     pub lufs: f64,
     pub true_peak: f64,
 }
 
 impl LoudnessTarget {
-    pub fn target(self) -> Option<Loudness> {
+    pub fn target(self) -> Option<LoudnessGoal> {
         match self {
             Self::Off => None,
-            Self::Web => Some(Loudness {
+            Self::Web => Some(LoudnessGoal {
                 lufs: -14.0,
                 true_peak: -1.0,
             }),
-            Self::Podcast => Some(Loudness {
+            Self::Podcast => Some(LoudnessGoal {
                 lufs: -16.0,
                 true_peak: -1.0,
             }),
-            Self::Broadcast => Some(Loudness {
+            Self::Broadcast => Some(LoudnessGoal {
                 lufs: -23.0,
                 true_peak: -2.0,
             }),
@@ -495,10 +495,77 @@ impl ChannelKind {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+pub struct StripSettings {
+    pub trim: f64,
+    pub highpass: Highpass,
+    pub eq: Eq,
+    pub comp: Comp,
+    pub fader: f64,
+    pub pan: f64,
+}
+
+pub fn strip_settings(strip: &Strip) -> StripSettings {
+    StripSettings {
+        trim: strip.trim,
+        highpass: strip.highpass.clone(),
+        eq: strip.eq.clone(),
+        comp: strip.comp.clone(),
+        fader: strip.fader,
+        pan: strip.pan,
+    }
+}
+
 pub fn db_to_gain(db: f64) -> f64 {
     if db <= MIN_DB {
         0.0
     } else {
         10f64.powf(db / 20.0)
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+pub struct StemLevels {
+    pub fps: f64,
+    pub peak: Vec<f64>,
+    pub rms: Vec<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Loudness {
+    pub fps: f64,
+    pub momentary: Vec<f64>,
+    pub short_term: Vec<f64>,
+    pub integrated: Option<f64>,
+    pub range: Option<f64>,
+    pub true_peak: Option<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
+pub struct MasterStem {
+    pub src: String,
+    pub hash: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type)]
+pub struct MixLevels {
+    pub channels: IndexMap<String, StemLevels>,
+    pub buses: IndexMap<String, StemLevels>,
+    pub master: Option<StemLevels>,
+}
+
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type)]
+pub struct MixReduction {
+    pub channels: IndexMap<String, Vec<f64>>,
+    pub master: Option<Vec<f64>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+pub struct MixResult {
+    pub key: String,
+    pub master: Option<MasterStem>,
+    pub levels: MixLevels,
+    pub reduction: MixReduction,
+    pub loudness: Option<Loudness>,
 }

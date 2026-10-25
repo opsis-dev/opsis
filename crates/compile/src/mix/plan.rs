@@ -1,14 +1,16 @@
 use indexmap::IndexMap;
-use opsis_types::mix::{Bus, ChannelKind, Comp, Eq, Highpass, Master, Mix, Strip};
+use opsis_types::mix::{
+    Bus, ChannelKind, Comp, Eq, Highpass, Master, Mix, Strip, StripSettings, strip_settings,
+};
 use opsis_types::timeline::{AudioEnvelope, TimelineSpec};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::mix::levels::{ChannelInfo, audible, bus_of, channels_in, duck_keys_for, strip_of};
 use crate::time::at_least_one_frame;
 use crate::timeline::flatten::FlatTimeline;
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct SoundPlacement {
     pub src: String,
@@ -25,7 +27,7 @@ pub struct SoundPlacement {
     pub envelope: Option<AudioEnvelope>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ChannelPlan {
     pub id: String,
@@ -36,14 +38,14 @@ pub struct ChannelPlan {
     pub audible: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct BusProcessing {
     pub highpass: Highpass,
     pub eq: Eq,
     pub comp: Comp,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct BusDuck {
     pub keys: Vec<String>,
     pub amount: f64,
@@ -51,7 +53,7 @@ pub struct BusDuck {
     pub release: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct BusPlan {
     pub id: String,
     pub name: String,
@@ -61,7 +63,7 @@ pub struct BusPlan {
     pub duck: Option<BusDuck>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct MixPlan {
     pub fps: f64,
@@ -182,6 +184,24 @@ pub fn build_mix_plan(spec: &TimelineSpec, mix: Option<&Mix>, flat: &FlatTimelin
     }
     plan.key = lookup_key(&body);
     plan
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChannelIdentity<'a> {
+    pub fps: f64,
+    pub duration_in_frames: f64,
+    pub sounds: &'a [SoundPlacement],
+    pub strip: StripSettings,
+}
+
+pub fn channel_identity<'a>(plan: &MixPlan, channel: &'a ChannelPlan) -> ChannelIdentity<'a> {
+    ChannelIdentity {
+        fps: plan.fps,
+        duration_in_frames: plan.duration_in_frames,
+        sounds: &channel.sounds,
+        strip: strip_settings(&channel.strip),
+    }
 }
 
 pub fn has_sound(plan: &MixPlan) -> bool {

@@ -23,6 +23,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -313,6 +314,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -473,6 +475,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {},
@@ -515,6 +518,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -632,6 +636,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -894,6 +899,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -1129,6 +1135,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -1391,6 +1398,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -1935,6 +1943,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -2157,6 +2166,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -2313,6 +2323,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -2475,6 +2486,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -2568,6 +2580,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -2773,6 +2786,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -2897,6 +2911,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {},
@@ -2970,6 +2985,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -3043,6 +3059,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -3167,6 +3184,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -3255,6 +3273,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -3344,6 +3363,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -3467,6 +3487,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -3560,6 +3581,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -3798,6 +3820,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -4253,6 +4276,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -4551,6 +4575,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {},
@@ -4593,6 +4618,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -4787,6 +4813,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -5039,6 +5066,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -5143,6 +5171,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -5279,6 +5308,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -5443,6 +5473,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -5601,6 +5632,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -5696,6 +5728,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -5807,6 +5840,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -5981,6 +6015,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -6039,6 +6074,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -6202,6 +6238,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -6339,6 +6376,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -6505,6 +6543,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -6763,6 +6802,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -7021,6 +7061,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -7353,6 +7394,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -7655,6 +7697,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -7822,6 +7865,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -8044,6 +8088,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -8377,6 +8422,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -8665,6 +8711,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -9176,6 +9223,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -9264,6 +9312,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -9386,6 +9435,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -9595,6 +9645,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -9720,6 +9771,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -9867,6 +9919,7 @@
   "element": "core/title",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -10445,6 +10498,7 @@
   "element": "core/kinetic-headline",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -10891,6 +10945,7 @@
   "element": "core/lower-third",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -11325,6 +11380,7 @@
   "element": "core/callout",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -11776,6 +11832,7 @@
   "element": "core/image",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -12148,6 +12205,7 @@
   "element": "core/mosaic",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -12620,6 +12678,7 @@
   "element": "core/lottie",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -13028,6 +13087,7 @@
   "element": "core/video",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -13474,6 +13534,7 @@
   "element": "core/solid",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -13798,6 +13859,7 @@
   "element": "core/gradient",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -14199,6 +14261,7 @@
   "element": "core/noise",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -14600,6 +14663,7 @@
   "element": "core/starburst",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -15002,6 +15066,7 @@
   "element": "core/paper",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -15353,6 +15418,7 @@
   "element": "core/backdrop",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -15686,6 +15752,7 @@
   "element": "core/video-loop",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -16030,6 +16097,7 @@
   "element": "core/light-leak",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -16385,6 +16453,7 @@
   "element": "core/logo-3d",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -17035,6 +17104,7 @@
   "element": "core/card-3d",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -17697,6 +17767,7 @@
   "element": "core/text-3d",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -18483,6 +18554,7 @@
   "element": "core/model-3d",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -19165,6 +19237,7 @@
   "element": "core/screen-3d",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -19770,6 +19843,7 @@
   "element": "core/shapes-3d",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -20404,6 +20478,7 @@
   "element": "remocn/soft-blur-in",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -20884,6 +20959,7 @@
   "element": "remocn/typewriter",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -21402,6 +21478,7 @@
   "element": "remocn/shimmer-sweep",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -21878,6 +21955,7 @@
   "element": "remocn/matrix-decode",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -22376,6 +22454,7 @@
   "element": "remocn/slot-machine-roll",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -22843,6 +22922,7 @@
   "element": "remocn/staggered-fade-up",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -23352,6 +23432,7 @@
   "element": "remocn/kinetic-center-build",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -23832,6 +23913,7 @@
   "element": "remocn/mask-reveal-up",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -24313,6 +24395,7 @@
   "element": "remocn/tracking-in",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -24820,6 +24903,7 @@
   "element": "remocn/word-push",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -25327,6 +25411,7 @@
   "element": "remocn/rgb-glitch-text",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -25949,6 +26034,7 @@
   "element": "remocn/gradient-scale-cut-text",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -26638,6 +26724,7 @@
   "element": "remocn/strikethrough-replace",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -27128,6 +27215,7 @@
   "element": "remocn/line-by-line-slide",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -27609,6 +27697,7 @@
   "element": "remocn/marker-highlight",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -28136,6 +28225,7 @@
   "element": "remocn/inline-highlight",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -28640,6 +28730,7 @@
   "element": "remocn/ink-underline",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -29227,6 +29318,7 @@
   "element": "remocn/scribble-circle",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -29870,6 +29962,7 @@
   "element": "remocn/ink-arrow",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -30572,6 +30665,7 @@
   "element": "remocn/keystroke",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -31188,6 +31282,7 @@
   "element": "remocn/confetti",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -31756,6 +31851,7 @@
   "element": "remocn/radial-burst",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -32357,6 +32453,7 @@
   "element": "remocn/shader-mesh-gradient",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -32786,6 +32883,7 @@
   "element": "remocn/shader-grain-gradient",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -33263,6 +33361,7 @@
   "element": "remocn/shader-warp",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -33746,6 +33845,7 @@
   "element": "remocn/shader-swirl",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -34223,6 +34323,7 @@
   "element": "remocn/shader-god-rays",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -34725,6 +34826,7 @@
   "element": "remocn/shader-perlin-noise",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -35154,6 +35256,7 @@
   "element": "remocn/shader-dithering",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -35615,6 +35718,7 @@
   "element": "remocn/crt-screen",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -36033,6 +36137,7 @@
   "element": "remocn/vhs-filter",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -36451,6 +36556,7 @@
   "element": "remocn/halftone-print",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -36865,6 +36971,7 @@
   "element": "remocn/camera-lens",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -37310,6 +37417,7 @@
   "element": "remocn/polaroid",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -37791,6 +37899,7 @@
   "element": "remocn/tv-power-off",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -38197,6 +38306,7 @@
   "element": "remocn/speed-lines",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -38848,6 +38958,7 @@
   "element": "remocn/spring-settle",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 278,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -39457,6 +39568,7 @@
   "element": "remocn/terminal-simulator",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -40093,6 +40205,7 @@
   "element": "remocn/glass-code-block",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -40612,6 +40725,7 @@
   "element": "remocn/code-morph",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -41174,6 +41288,7 @@
   "element": "remocn/logo-enter",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -41724,6 +41839,7 @@
   "element": "remocn/check-list",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -42450,6 +42566,7 @@
   "element": "remocn/search-reveal",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -43072,6 +43189,7 @@
   "element": "remocn/agent-run",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -43748,6 +43866,7 @@
   "element": "remocn/animated-bar-chart",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -44393,6 +44512,7 @@
   "element": "remocn/animated-line-chart",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -44909,6 +45029,7 @@
   "element": "remocn/rolling-number",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -45366,6 +45487,7 @@
   "element": "remocn/signup-flow",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -45855,6 +45977,7 @@
   "element": "remocn/ai-prompt-flow",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -46314,6 +46437,7 @@
   "element": "remocn/command-menu",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -46993,6 +47117,7 @@
   "element": "remocn/release-teaser",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -47567,6 +47692,7 @@
   "element": "remocn/launch-anything",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -48549,6 +48675,7 @@
   "element": "snapcn/laptop-frame",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -49288,6 +49415,7 @@
   "element": "snapcn/phone-frame",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -49984,6 +50112,7 @@
   "element": "snapcn/screen-recording",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -50830,6 +50959,7 @@
   "element": "snapcn/announce-title",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -51506,6 +51636,7 @@
   "element": "snapcn/punch-lines",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -52625,6 +52756,7 @@
   "element": "snapcn/text-highlight",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -53608,6 +53740,7 @@
   "element": "snapcn/status-cycle",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -54561,6 +54694,7 @@
   "element": "snapcn/logo-assemble",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -55171,6 +55305,7 @@
   "element": "snapcn/logo-drift",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -56429,6 +56564,7 @@
   "element": "snapcn/hero-launch",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -56880,6 +57016,7 @@
   "element": "remotion-ui/stat-card",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -57467,6 +57604,7 @@
   "element": "remotion-ui/metric-ticker",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -58078,6 +58216,7 @@
   "element": "remotion-ui/funnel-chart",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -58760,6 +58899,7 @@
   "element": "remotion-ui/donut-chart",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -59446,6 +59586,7 @@
   "element": "remotion-ui/comparison-bars",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -60151,6 +60292,7 @@
   "element": "remotion-ui/bar-chart-race",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -60933,6 +61075,7 @@
   "element": "remotion-ui/gauge-dial",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -61520,6 +61663,7 @@
   "element": "remotion-ui/data-story",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -62424,6 +62568,7 @@
   "element": "remotion-ui/logo-reveal",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -62930,6 +63075,7 @@
   "element": "remotion-ui/pricing-card",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -63562,6 +63708,7 @@
   "element": "remotion-ui/comparison-table",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -64214,6 +64361,7 @@
   "element": "remotion-ui/changelog-entry",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -64817,6 +64965,7 @@
   "element": "remotion-ui/logo-wall",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -65480,6 +65629,7 @@
   "element": "remotion-ui/end-card",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -66012,6 +66162,7 @@
   "element": "remotion-ui/code-reveal",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -66502,6 +66653,7 @@
   "element": "remotion-ui/code-diff-wipe",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -66968,6 +67120,7 @@
   "element": "remotion-ui/kanban-move",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -67608,6 +67761,7 @@
   "element": "remotion-ui/file-tree-reveal",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -68079,6 +68233,7 @@
   "element": "remotion-ui/drag-drop-flow",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -68612,6 +68767,7 @@
   "element": "remotion-ui/commit-graph",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -69267,6 +69423,7 @@
   "element": "remotion-ui/notification-stack",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -69883,6 +70040,7 @@
   "element": "remotion-ui/device-mockup-zoom",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -70346,6 +70504,7 @@
   "element": "remotion-ui/multi-device-lineup",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -70807,6 +70966,7 @@
   "element": "remotion-ui/handwriting-text",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -71318,6 +71478,7 @@
   "element": "remotion-ui/neon-flicker-text",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -71882,6 +72043,7 @@
   "element": "remotion-ui/text-mask-video",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -72409,6 +72571,7 @@
   "element": "remotion-ui/aurora-bg",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -72970,6 +73133,7 @@
   "element": "remotion-ui/particle-field",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -73512,6 +73676,7 @@
   "element": "core/fade",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -73610,6 +73775,7 @@
   "element": "core/slide",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -73728,6 +73894,7 @@
   "element": "core/wipe",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -73850,6 +74017,7 @@
   "element": "core/flip",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -73968,6 +74136,7 @@
   "element": "core/clock-wipe",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -74066,6 +74235,7 @@
   "element": "core/iris",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -74164,6 +74334,7 @@
   "element": "remocn/whip-pan",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -74309,6 +74480,7 @@
   "element": "remocn/push-through",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -74461,6 +74633,7 @@
   "element": "remocn/zoom-blur",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -74613,6 +74786,7 @@
   "element": "remocn/focus-pull",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -74738,6 +74912,7 @@
   "element": "remocn/lens-zoom",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -74960,6 +75135,7 @@
   "element": "remocn/ripple-zoom",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -75263,6 +75439,7 @@
   "element": "remocn/wave-wipe",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -75565,6 +75742,7 @@
   "element": "remocn/smoke-dissolve",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -75777,6 +75955,7 @@
   "element": "remocn/glitch-cut",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -75983,6 +76162,7 @@
   "element": "remocn/page-turn",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -76135,6 +76315,7 @@
   "element": "remocn/grain-dissolve",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -76405,6 +76586,7 @@
   "element": "remocn/dither-dissolve",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -76600,6 +76782,7 @@
   "element": "remocn/swirl-dissolve",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -76847,6 +77030,7 @@
   "element": "remocn/particle-dissolve",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -77101,6 +77285,7 @@
   "element": "remotion-ui/grid-pixelate-wipe",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -77324,6 +77509,7 @@
   "element": "remotion-ui/frosted-glass-wipe",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -77499,6 +77685,7 @@
   "element": "remotion-ui/chromatic-aberration-wipe",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -77646,6 +77833,7 @@
   "element": "remotion-ui/transition-blinds",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -77827,6 +78015,7 @@
   "element": "remotion-ui/transition-morph-shape",
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -78049,6 +78238,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -78182,6 +78372,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -78572,6 +78763,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -78920,6 +79112,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {},
@@ -78997,6 +79190,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 278,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -79358,6 +79552,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 278,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -79456,6 +79651,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -79565,6 +79761,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -79640,6 +79837,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -79716,6 +79914,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -79795,6 +79994,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -79903,6 +80103,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -79977,6 +80178,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -80331,6 +80533,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -80645,6 +80848,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -80781,6 +80985,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 234,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -80840,6 +81045,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -80926,6 +81132,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {},
@@ -80968,6 +81175,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -81129,6 +81337,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -81279,6 +81488,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -81422,6 +81632,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -81568,6 +81779,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -81636,6 +81848,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -81764,6 +81977,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -81871,6 +82085,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {},
@@ -81920,6 +82135,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 190,
   "compiles": true,
   "hasCard": true,
   "defaults": {},
@@ -81962,6 +82178,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -82254,6 +82471,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -82442,6 +82660,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": null,
+  "estimatedHeight": 168,
   "compiles": true,
   "hasCard": true,
   "defaults": {
@@ -82484,6 +82703,7 @@
   "element": null,
   "hidden": true,
   "cardHeight": null,
+  "estimatedHeight": 66,
   "compiles": false,
   "hasCard": false,
   "defaults": {
@@ -82541,6 +82761,7 @@
   "element": null,
   "hidden": false,
   "cardHeight": 140,
+  "estimatedHeight": 140,
   "compiles": false,
   "hasCard": true,
   "defaults": {

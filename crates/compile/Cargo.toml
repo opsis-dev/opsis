@@ -17,6 +17,7 @@ num-format = "0.4.4"
 opsis-types = { version = "0.1.0", path = "../types" }
 percent-encoding = "2.3.2"
 regex = "1.13.1"
+ryu-js = "1.0.3"
 schemars = { version = "1.2.3", features = ["indexmap2"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.154", features = ["preserve_order"] }
@@ -28,3 +29,6 @@ specta-serde = "0.0.14"
 specta-typescript = "0.0.14"
 url = "2.5.8"
 xxhash-rust = { version = "0.8.19", features = ["xxh3"] }
+
+[dev-dependencies]
+regex = "1.13.1"

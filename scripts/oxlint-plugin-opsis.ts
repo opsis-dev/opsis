@@ -103,13 +103,13 @@ const comparesIdOf = (fn: MaybeNode): boolean => {
 
 const useFindById = callRule(
   "Find an item by id through findById",
-  "Use findById from src/shared/lists.ts.",
+  "Use findById from packages/core/src/lists.ts.",
   (call) => isMember(call.callee, "find") && comparesIdOf(call.arguments[0]),
 );
 
 const useOnAbort = callRule(
   "Listen for an abort through onAbort",
-  "Use onAbort from src/shared/errors.ts.",
+  "Use onAbort from packages/core/src/errors.ts.",
   (call) =>
     (isMember(call.callee, "addEventListener") || isMember(call.callee, "removeEventListener")) &&
     isLiteral(call.arguments[0], "abort"),
@@ -117,7 +117,7 @@ const useOnAbort = callRule(
 
 const useParseJsonWith = callRule(
   "Parse and check JSON through parseJsonWith",
-  "Use parseJsonWith from src/shared/guards.ts.",
+  "Use parseJsonWith from packages/core/src/guards.ts.",
   (call) => {
     const arg: MaybeNode = call.arguments[0];
     return (
@@ -165,7 +165,7 @@ const useTypeGuards: Rule = {
         const kind = equality.sides.find((side) => side.type === "Literal");
         const guard = kind?.type === "Literal" ? TYPE_GUARDS[String(kind.value)] : undefined;
         if (typed && guard)
-          context.report({ node, message: `Use ${guard} from src/shared/guards.ts.` });
+          context.report({ node, message: `Use ${guard} from packages/core/src/guards.ts.` });
       },
     };
   },
@@ -186,7 +186,7 @@ const usePercentText: Rule = {
             PERCENT_AFTER.test(quasis[i + 1].value.raw),
         );
         if (rounded)
-          context.report({ node, message: "Use percentText from src/shared/format.ts." });
+          context.report({ node, message: "Use percentText from packages/core/src/format.ts." });
       },
     };
   },

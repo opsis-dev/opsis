@@ -22,6 +22,7 @@ pub mod ports;
 pub mod recording;
 pub mod registry;
 pub mod remap;
+pub mod size;
 pub mod sounds;
 pub mod style;
 pub mod text;

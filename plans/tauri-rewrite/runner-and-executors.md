@@ -40,6 +40,25 @@ Missing:
 9. **Live frames.** Screencast frames for the editor PiP go from the capture task to the window over a `Channel`, throttled to the live fps setting.
 10. **Tests.** Port the worker tests (2,259 lines) and `src/engine` tests (333); `executors.test.ts`'s rule (every `executes: true` node has an executor) becomes a Rust test over the node registry.
 
+## Phase 4 as built
+
+Phase 4 (2026-10-25, branch `feat/tauri`) built steps 1, 2, 4, 5, 6 and 10 for the media and output executors. The capture executors and live frames (step 9) come with phase 5; the `Channel` that carries run events to the UI comes with phase 6.
+
+- **`opsis-runner`.** `run_workflow` plans, keys and schedules a run on tokio: shared futures in topological order, a semaphore per phase (capture 3, media 4, compile 8, render 1, post 2), one mutex per mutation key, keys worked out again after a node with `secret_params`, saved results checked by artifact stamp (folders too, as `stat` does), `last-run.json` merged. Run events go through `apply_run_event`; `exported_artifacts` lists the exports. Executors are `(node type, ExecutorFn)` pairs gathered into `Executors`, which refuses a second one for a type.
+- **`opsis-media`.** Every argument builder (codecs, filters, grade, reverse, mix graphs) and the `ffprobe` parsing. FFmpeg runs through the `MediaTools` trait; `Ffmpeg` uses `tokio::process` with `kill_on_drop`, `-progress pipe:1`, the stderr tail and a `CancellationToken`. The 14 media executors. Mix stems are content-hashed as before; levels stream each WAV in blocks with `hound` and loudness reads the master with `ebur128`, both on blocking threads. Waveform analysis (decoded by FFmpeg, levels and beats in Rust) and filmstrip analysis are cached by file identity as before; `Waveform`, `Filmstrip` and `WaveformLevel` are in `opsis-types`.
+- **`opsis-render`.** The sidecar protocol and client (`sidecar.md`), `picture_key` and the saved pictures, `mixed` (stems and master, or per-sound levels without a master), Export video, Export images and Export as code. The asset server is `opsis-engine`'s `FileServer`. Export as code finds its sources through `source-layout.generated.json`, written from `apps/sidecar/src/source-layout.ts`.
+- **Checks.**
+  - Cache keys: the node keys of every fixture workflow, and the picture keys of each of their specs with two sets of options, equal the TS ones.
+  - FFmpeg arguments, mix graphs, analysis and probe parsing equal the TS functions' output in `fixtures/media`.
+  - One project run by both runners, drawing with the same bundle (`crates/render/tests/run.rs` and the same workflow through the TS runner): import, trim, reverse, speed, thumbnail, probe, a colour grade, a join, and a Title with a sound effect exported as a video, a still and code. Both wrote the same 586 files under the same names in `.opsis`, byte-identical (media outputs, stems, the picture, the film, the still, the exported code) except the times in the result files and the differences below.
+  - Ported tests: `media.test.ts`, `util.test.ts`, `picture.test.ts`, `executors.test.ts` (the three capture executors are listed as missing until phase 5), `cache.test.ts`, `runner-keys.test.ts` and `runner.test.ts`.
+- **Accepted differences.**
+  - Loudness comes from the `ebur128` crate instead of FFmpeg's log. Integrated loudness and true peak were equal on both mixes measured (−22.1 LUFS and −1.8 dBTP; −26.2 LUFS and −1.9 dBTP); loudness range read 8.8 against FFmpeg's 9.8 on 8 s of material. The per-frame series differ: a momentary reading appears 100 ms earlier, because FFmpeg's log labels each 100 ms block with the time of the block after it; short-term is read from the partial window during the first 3 s, where FFmpeg reports nothing; silence reads −120 dB, where FFmpeg logs −120.7 for zeros and lower values for near silence.
+  - The exported `timeline.json` holds the same values in the Rust types' key order.
+  - There is no "Bundling compositions" stage: renders use a prebuilt bundle.
+- **Fixed in earlier phases' code.** JSON files were written with `1920.0` for whole numbers, so every Rust save would have rewritten a project file; a test now checks the saved text of every fixture workflow against the TS app's. File stamps rounded the modified time differently from Node's `mtimeMs`, so a key could differ from the TS one. An artifact folder (Export as code) got no stamp, so its saved result was never used. An unreadable `last-run.json` and a failed stem measurement were ignored silently. `ref_to_path` moved to `opsis-project`.
+- **Not done here.** The capture executors (phase 5); `AnalysisRequest` and `AnalysisResult` and the run `Channel`, with their commands (phase 6).
+
 ## Risks
 
 - **Argument parity.** Every FFmpeg argument list is tested by string today; port the expected strings with the tests so a refactor can't silently change an encode.

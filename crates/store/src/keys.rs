@@ -153,4 +153,29 @@ mod tests {
         keys.set_key("voice", "sk-test").unwrap();
         assert_eq!(keys.key("voice").unwrap().as_deref(), Some("sk-test"));
     }
+
+    #[test]
+    fn refuses_to_seal_without_secure_storage_or_a_keyring() {
+        for (error, expected) in [
+            (
+                KeyringError::NoStorageAccess(std::io::Error::other("locked").into()),
+                "no secure storage",
+            ),
+            (KeyringError::NoDefaultStore, "no keyring"),
+        ] {
+            let store = keyring_core::mock::Store::new().expect("mock store");
+            let keys = Keyring::new(store.clone());
+            let entry = keyring_core::api::CredentialStoreApi::build(
+                store.as_ref(),
+                SERVICE,
+                SIGN_IN_KEY,
+                None,
+            )
+            .unwrap();
+            let cred: &keyring_core::mock::Cred = entry.as_any().downcast_ref().unwrap();
+            cred.set_error(error);
+            let refused = keys.seal(b"state").unwrap_err().to_string();
+            assert!(refused.contains(expected), "{refused}");
+        }
+    }
 }

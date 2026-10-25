@@ -25,7 +25,9 @@ const MEDIA_PORT: &str = "media";
 const NEW_FILE: &str = " Makes a new file.";
 const MEDIA_MS: f64 = 5000.0;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Codec {
     H264,
@@ -468,7 +470,7 @@ pub struct JoinFiles {
 
 impl Params for JoinFiles {}
 
-const CONCAT_PORTS: [&str; 4] = ["in1", "in2", "in3", "in4"];
+pub const CONCAT_PORTS: [&str; 4] = ["in1", "in2", "in3", "in4"];
 
 fn join_files() -> NodeDef {
     NodeDef::of::<JoinFiles>("media.concat", "Join files", Category::Media, Phase::Media)

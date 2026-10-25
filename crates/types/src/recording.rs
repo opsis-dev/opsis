@@ -179,6 +179,8 @@ pub struct RecordingProps {
     pub cursor: bool,
     pub cursor_scale: f64,
     pub cursor_look: CursorLook,
+    #[serde(deserialize_with = "Option::deserialize")]
+    #[specta(type = Option<RippleLook>)]
     pub ripple: Option<RippleLook>,
     pub extra_beats: Vec<Action>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
