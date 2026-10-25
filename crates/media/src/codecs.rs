@@ -1,8 +1,6 @@
 use opsis_compile::nodes::media::{Codec, ConvertCodec, EncodePreset, SoundFormat};
 use serde::Serialize;
 
-use opsis_compile::text::{number, to_fixed};
-
 pub const FASTSTART: [&str; 2] = ["-movflags", "+faststart"];
 pub const EVEN_FRAME: &str = "crop=trunc(iw/2)*2:trunc(ih/2)*2";
 pub const AAC: [&str; 2] = ["-c:a", "aac"];
@@ -43,9 +41,9 @@ pub fn h264_args(opts: &H264<'_>) -> Vec<String> {
     if let Some(preset) = opts.preset.filter(|p| !p.is_empty()) {
         args.extend(strings(&["-preset", preset]));
     }
-    args.extend(["-crf".to_owned(), number(opts.crf)]);
+    args.extend(["-crf".to_owned(), opts.crf.to_string()]);
     if let Some(every) = opts.keyframe_every.filter(|k| *k != 0.0) {
-        args.extend(["-g".to_owned(), number(every)]);
+        args.extend(["-g".to_owned(), every.to_string()]);
     }
     args.extend(strings(&["-pix_fmt", "yuv420p"]));
     if opts.faststart {
@@ -88,7 +86,7 @@ pub fn codec_info(codec: Codec) -> CodecInfo {
 }
 
 pub fn codec_video(codec: Codec, crf: f64, preset: EncodePreset) -> Option<Vec<String>> {
-    let crf_text = number(crf);
+    let crf_text = crf.to_string();
     let preset_name = serde_name(&preset);
     Some(match codec {
         Codec::H264 => {
@@ -209,7 +207,7 @@ pub fn audio_format_for(ext: &str) -> SoundFormat {
 }
 
 pub fn ffmpeg_seconds(ms: f64) -> String {
-    to_fixed(ms / 1000.0, 3)
+    format!("{:.3}", ms / 1000.0)
 }
 
 #[derive(Default)]
@@ -231,12 +229,12 @@ pub fn frame_grab_args(input: &str, output: &str, grab: &FrameGrab) -> Vec<Strin
         "-vf".to_owned(),
         format!(
             "scale={}:{}",
-            number(grab.width),
+            grab.width.to_string(),
             if grab.even_height { -2 } else { -1 }
         ),
     ];
     if let Some(quality) = grab.jpeg_quality.filter(|q| *q != 0.0) {
-        args.extend(["-q:v".to_owned(), number(quality)]);
+        args.extend(["-q:v".to_owned(), quality.to_string()]);
     }
     args.push(output.to_owned());
     args

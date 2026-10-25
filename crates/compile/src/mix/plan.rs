@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use opsis_types::json::sorted_keys;
 use opsis_types::mix::{
     Bus, ChannelKind, Comp, Eq, Highpass, Master, Mix, Strip, StripSettings, strip_settings,
 };
@@ -132,21 +133,8 @@ fn bus_plans(
         .collect()
 }
 
-fn canonical(value: Value) -> Value {
-    match value {
-        Value::Object(map) => {
-            let mut entries: Vec<(String, Value)> =
-                map.into_iter().map(|(k, v)| (k, canonical(v))).collect();
-            entries.sort_by(|a, b| a.0.cmp(&b.0));
-            Value::Object(entries.into_iter().collect())
-        }
-        Value::Array(items) => Value::Array(items.into_iter().map(canonical).collect()),
-        other => other,
-    }
-}
-
 pub fn lookup_key(value: &impl Serialize) -> String {
-    let text = serde_json::to_string(&canonical(
+    let text = serde_json::to_string(&sorted_keys(
         serde_json::to_value(value).expect("value serializes"),
     ))
     .expect("json");

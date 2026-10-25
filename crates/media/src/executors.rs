@@ -10,9 +10,7 @@ use opsis_compile::nodes::media::{
     MakeGif, MediaFile, Resize, TrimFile,
 };
 use opsis_compile::registry::{node_def, node_name};
-use opsis_compile::text::{
-    format_duration, format_precise_duration, number, single_quoted, to_fixed,
-};
+use opsis_compile::text::{format_duration, format_precise_duration, single_quoted};
 use opsis_runner::context::{ExecError, ExecutorContext, ExecutorFn, ExecutorOutput, executor};
 use opsis_types::events::LogLevel;
 use opsis_types::values::{
@@ -238,15 +236,7 @@ fn concat_list(paths: &[String]) -> String {
 fn probe_summary(probe: &ProbeResult) -> String {
     let picture = probe.video.as_ref().map_or_else(
         || "no video".to_owned(),
-        |v| {
-            format!(
-                "{} {}×{} @ {}fps",
-                v.codec,
-                v.width,
-                v.height,
-                to_fixed(v.fps, 2)
-            )
-        },
+        |v| format!("{} {}×{} @ {:.2}fps", v.codec, v.width, v.height, v.fps),
     );
     let sound = probe.audio.as_ref().map_or_else(
         || "no audio".to_owned(),
@@ -467,7 +457,7 @@ async fn speed(
         .probe(&ctx.ref_to_path(&input.src)?)
         .await
         .map_err(tool_error)?;
-    let label = format!("Speed {}×", number(p.rate));
+    let label = format!("Speed {}×", p.rate);
     let duration_ms = input
         .value
         .duration_ms
@@ -909,7 +899,7 @@ async fn loudnorm(
             "-af".to_owned(),
             loudnorm_filter(p.integrated, p.true_peak, p.lra),
             "-ar".to_owned(),
-            number(audio.sample_rate),
+            audio.sample_rate.to_string(),
         ];
         match format {
             Some(f) => args.extend(audio_format_args(f)),

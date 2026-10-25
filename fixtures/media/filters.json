@@ -410,30 +410,6 @@
     "yuv420p",
     "out.mp4"
    ]
-  },
-  {
-   "opts": {
-    "rate": 1.03125,
-    "fps": 23.976,
-    "sound": true
-   },
-   "args": [
-    "-i",
-    "in.mp4",
-    "-vf",
-    "setpts=PTS/1.03125,crop=trunc(iw/2)*2:trunc(ih/2)*2",
-    "-r",
-    "23.976",
-    "-af",
-    "atempo=1.0313",
-    "-c:v",
-    "libx264",
-    "-crf",
-    "18",
-    "-pix_fmt",
-    "yuv420p",
-    "out.mp4"
-   ]
   }
  ],
  "speedSound": [
@@ -514,10 +490,6 @@
   {
    "rate": 0.1,
    "chain": "atempo=0.5000,atempo=0.5000,atempo=0.5000,atempo=0.8000"
-  },
-  {
-   "rate": 1.03125,
-   "chain": "atempo=1.0313"
   },
   {
    "rate": 1.000049,

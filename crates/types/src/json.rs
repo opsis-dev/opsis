@@ -6,6 +6,19 @@ fn whole(n: f64) -> Option<i64> {
     (n.fract() == 0.0 && n.abs() <= MAX_SAFE_INTEGER).then_some(n as i64)
 }
 
+pub fn sorted_keys(value: Value) -> Value {
+    match value {
+        Value::Object(map) => {
+            let mut entries: Vec<(String, Value)> =
+                map.into_iter().map(|(k, v)| (k, sorted_keys(v))).collect();
+            entries.sort_by(|a, b| a.0.cmp(&b.0));
+            Value::Object(entries.into_iter().collect())
+        }
+        Value::Array(items) => Value::Array(items.into_iter().map(sorted_keys).collect()),
+        other => other,
+    }
+}
+
 pub fn canonical(value: Value) -> Value {
     match value {
         Value::Number(n) => match n.as_f64().and_then(whole) {

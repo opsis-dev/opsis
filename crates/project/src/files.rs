@@ -4,7 +4,6 @@ use std::sync::{Arc, Mutex};
 
 use opsis_engine::files::{atomic_write, none_if_missing, read_text_if_present};
 use opsis_engine::hash::sha256_hex;
-use opsis_engine::json::js_json_pretty;
 use opsis_types::project::{META_DIR, SaveResult};
 use opsis_types::values::LastRun;
 use opsis_types::workflow::{WORKFLOW_FILE, Workflow};
@@ -75,7 +74,8 @@ pub fn parse_workflow_text(text: &str) -> Result<Workflow, String> {
 }
 
 pub fn workflow_text(workflow: &Workflow) -> String {
-    let text = js_json_pretty(&workflow.clone().normalized()).expect("workflows serialize");
+    let text =
+        serde_json::to_string_pretty(&workflow.clone().normalized()).expect("workflows serialize");
     format!("{text}\n")
 }
 

@@ -72,8 +72,8 @@ pub struct PieceBudget {
 
 fn cut_before(frame: f64, fps: f64) -> ReverseCut {
     ReverseCut {
-        picture_ms: opsis_compile::text::js_round((frame - 0.5) * 1000.0 / fps),
-        sound_ms: opsis_compile::text::js_round(frame * 1000.0 / fps),
+        picture_ms: ((frame - 0.5) * 1000.0 / fps).round(),
+        sound_ms: (frame * 1000.0 / fps).round(),
     }
 }
 

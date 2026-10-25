@@ -29,7 +29,7 @@ use crate::recording::{
 };
 use crate::remap::{RemapSegment, remap_duration, remap_from_segments};
 use crate::style::{restyle_with, retime_with};
-use crate::text::{format_duration, humanize, number, percent_text, plural};
+use crate::text::{format_duration, humanize, percent_text, plural};
 use crate::time::{EPSILON, ms_to_frames, recording_ms_to_frames, whole_frames};
 
 const FOCUS_LEAD_MS: f64 = 400.0;
@@ -533,13 +533,13 @@ fn auto_zoom() -> NodeDef {
                     )
                 }),
                 Some(if p.zoom {
-                    row(Icon::ZoomIn, format!("Up to {}×", number(p.max_scale)))
+                    row(Icon::ZoomIn, format!("Up to {}×", p.max_scale))
                 } else {
                     row(Icon::ZoomOut, "No zoom").tone(Tone::Muted)
                 }),
                 p.zoom.then(|| row(Icon::Hourglass, format!("Hold {}", format_duration(p.hold as f64)))),
                 (p.style == CameraStyle::Classic).then(|| row(Icon::Image, format!("{} backdrop", humanize(p.backdrop.id())))),
-                (p.speed != 1.0).then(|| row(Icon::Gauge, format!("{}× speed", number(p.speed)))),
+                (p.speed != 1.0).then(|| row(Icon::Gauge, format!("{}× speed", p.speed))),
             ]
         })
         .compile(|ctx: &Ctx<'_, AutoZoom>| {
@@ -636,11 +636,7 @@ fn manual_zoom() -> NodeDef {
             vec![
                 Some(row(
                     Icon::ZoomIn,
-                    format!(
-                        "{}× at {}",
-                        number(p.scale),
-                        format_duration(p.at_ms as f64)
-                    ),
+                    format!("{}× at {}", p.scale, format_duration(p.at_ms as f64)),
                 )),
                 Some(row(
                     Icon::Hourglass,
@@ -693,7 +689,7 @@ fn pan() -> NodeDef {
                         format_duration((p.at_ms + p.duration_ms) as f64)
                     ),
                 )),
-                Some(row(Icon::ZoomIn, format!("{}×", number(p.scale)))),
+                Some(row(Icon::ZoomIn, format!("{}×", p.scale))),
                 take_row(
                     ctx.inputs.takes.get(RECORDING_PORT).copied().flatten(),
                     p.at_ms,
@@ -736,7 +732,7 @@ fn follow_cursor() -> NodeDef {
                 Icon::LocateFixed,
                 format!(
                     "{}× · re-aim every {}",
-                    number(p.scale),
+                    p.scale,
                     format_duration(p.every_ms as f64)
                 ),
             ))]
@@ -767,7 +763,7 @@ fn idle_speedup() -> NodeDef {
             Icon::FastForward,
             format!(
                 "{}× when quiet over {}",
-                number(p.rate),
+                p.rate,
                 format_duration(p.threshold_ms as f64)
             ),
         ))]

@@ -6,7 +6,6 @@ use opsis_types::timeline::Keyframe;
 use serde::{Deserialize, Serialize};
 
 use crate::filters::{atempo_chain, loudnorm_filter};
-use opsis_compile::text::{js_round, number, to_fixed};
 
 const MIN_COMP_THRESHOLD: f64 = 0.000_976_563;
 const MAX_COMP_MAKEUP: f64 = 64.0;
@@ -82,7 +81,7 @@ impl PcmCodec {
 }
 
 pub fn num(n: f64, digits: usize) -> String {
-    let fixed = to_fixed(n, digits);
+    let fixed = format!("{:.*}", digits, n);
     let trimmed = if fixed.contains('.') {
         fixed.trim_end_matches('0').trim_end_matches('.')
     } else {
@@ -227,9 +226,9 @@ fn placement_steps(sound: &SoundPlacement, fps: f64) -> Vec<String> {
 
 fn sound_chain(sound: &SoundPlacement, input: usize, label: &str, fps: f64) -> String {
     let steps = placement_steps(sound, fps);
-    let delay = js_round(sound.at * 1000.0 / fps);
+    let delay = (sound.at * 1000.0 / fps).round();
     let after: Vec<String> = if delay > 0.0 {
-        vec![format!("adelay=delays={}:all=1", number(delay))]
+        vec![format!("adelay=delays={}:all=1", delay.to_string())]
     } else {
         Vec::new()
     };

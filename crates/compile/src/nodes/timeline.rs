@@ -28,7 +28,7 @@ use crate::nodes::transitions::{
 use crate::params::Params;
 use crate::ports::{IN_PORTS, clip_label, clip_ports, connected_clips, layer_label};
 use crate::remap::{Remap, speed_remap};
-use crate::text::{format_duration, number, parse_number_text, plural};
+use crate::text::{format_duration, parse_number_text, plural};
 use crate::time::{at_least_one_frame, frames_to_ms, ms_to_frames, ms_to_frames_from};
 use crate::vars::Vars;
 
@@ -599,7 +599,7 @@ fn speed() -> NodeDef {
         .card(|ctx: &CardCtx<'_, Speed>| {
             let rate = ctx.params.rate;
             vec![
-                Some(row(Icon::Gauge, format!("{}×", number(rate)))),
+                Some(row(Icon::Gauge, format!("{}×", rate))),
                 (rate >= SLOW_PREVIEW_RATE).then(|| {
                     row(
                         Icon::Info,
@@ -666,11 +666,8 @@ impl FitMode {
             Self::Speed => {
                 let speed = input / output;
                 ((speed - 1.0).abs() > 0.02).then(|| {
-                    row(
-                        Icon::FastForward,
-                        format!("Plays at {}×", crate::text::to_fixed(speed, 2)),
-                    )
-                    .warn_if(!(0.67..=1.5).contains(&speed))
+                    row(Icon::FastForward, format!("Plays at {speed:.2}×"))
+                        .warn_if(!(0.67..=1.5).contains(&speed))
                 })
             }
             Self::Hold => None,

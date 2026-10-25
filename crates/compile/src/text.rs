@@ -1,49 +1,12 @@
 pub const MINUS: &str = "\u{2212}";
 
-pub use opsis_types::js::js_round;
-
 pub fn round_to(value: f64, digits: i32) -> f64 {
     let scale = 10f64.powi(digits);
-    js_round(value * scale) / scale
-}
-
-pub fn number(value: f64) -> String {
-    if value == 0.0 {
-        return "0".to_owned();
-    }
-    ryu_js::Buffer::new().format(value).to_owned()
-}
-
-const TIE_CHECK_DIGITS: usize = 30;
-
-fn exact_tie(magnitude: f64, digits: usize) -> bool {
-    let text = format!("{magnitude:.prec$}", prec = digits + TIE_CHECK_DIGITS);
-    let fraction = text.split_once('.').map_or("", |(_, f)| f);
-    fraction.as_bytes().get(digits) == Some(&b'5')
-        && fraction[digits + 1..].bytes().all(|b| b == b'0')
-}
-
-pub fn to_fixed(value: f64, digits: usize) -> String {
-    if !value.is_finite() {
-        return number(value);
-    }
-    let magnitude = value.abs();
-    let rounded = if exact_tie(magnitude, digits) {
-        let scale = 10f64.powi(i32::try_from(digits).unwrap_or(i32::MAX));
-        let up = ((magnitude * scale).floor() + 1.0) / scale;
-        format!("{up:.digits$}")
-    } else {
-        format!("{magnitude:.digits$}")
-    };
-    if value < 0.0 {
-        format!("-{rounded}")
-    } else {
-        rounded
-    }
+    (value * scale).round() / scale
 }
 
 pub fn decimals(value: f64, digits: i32) -> String {
-    number(round_to(value, digits))
+    (round_to(value, digits)).to_string()
 }
 
 pub fn grouped(value: f64, max_digits: i32) -> String {
@@ -69,8 +32,8 @@ pub fn sign_of(value: f64, plus: bool) -> &'static str {
 pub fn signed_text(value: f64, digits: Option<i32>, plus: bool) -> String {
     let magnitude = value.abs();
     let text = match digits {
-        None => number(magnitude),
-        Some(d) => to_fixed(magnitude, usize::try_from(d).unwrap_or(0)),
+        None => magnitude.to_string(),
+        Some(d) => format!("{:.*}", usize::try_from(d).unwrap_or(0), magnitude),
     };
     if text.parse::<f64>().map(|n| n == 0.0).unwrap_or(false) {
         text
@@ -88,20 +51,20 @@ fn minutes_and_seconds(seconds: f64) -> String {
     let rest = round_to(seconds - h * SECONDS_PER_HOUR - m * SECONDS_PER_MINUTE, 3);
     if h == 0.0 {
         return if rest != 0.0 {
-            format!("{} min {} s", number(m), number(rest))
+            format!("{} min {} s", m, rest)
         } else {
-            format!("{} min", number(m))
+            format!("{} min", m)
         };
     }
     let parts = [
-        format!("{} h", number(h)),
+        format!("{} h", h),
         if m != 0.0 {
-            format!("{} min", number(m))
+            format!("{} min", m)
         } else {
             String::new()
         },
         if rest != 0.0 {
-            format!("{} s", number(rest))
+            format!("{} s", rest)
         } else {
             String::new()
         },
@@ -126,7 +89,7 @@ pub fn format_duration(ms: f64) -> String {
     } else {
         round_to(s, 2)
     };
-    format!("{} s", number(shown))
+    format!("{} s", shown)
 }
 
 pub fn format_precise_duration(ms: f64) -> String {
@@ -137,7 +100,7 @@ pub fn format_precise_duration(ms: f64) -> String {
     if s >= SECONDS_PER_MINUTE {
         minutes_and_seconds(s)
     } else {
-        format!("{} s", number(s))
+        format!("{} s", s)
     }
 }
 
@@ -146,11 +109,11 @@ pub fn plural(n: f64, word: &str) -> String {
 }
 
 pub fn plural_with(n: f64, word: &str, many: &str) -> String {
-    format!("{} {}", number(n), if n == 1.0 { word } else { many })
+    format!("{} {}", n, if n == 1.0 { word } else { many })
 }
 
 pub fn percent_text(fraction: f64, max: f64) -> String {
-    format!("{}%", number((fraction * 100.0).round().min(max)))
+    format!("{}%", ((fraction * 100.0).round().min(max)))
 }
 
 pub fn format_bytes(n: f64) -> String {
@@ -165,9 +128,9 @@ pub fn format_bytes(n: f64) -> String {
         unit += 1;
     }
     if unit == 0 {
-        format!("{} B", number(value.round()))
+        format!("{} B", value.round())
     } else {
-        format!("{} {}", to_fixed(value, 1), UNITS[unit])
+        format!("{value:.1} {}", UNITS[unit])
     }
 }
 
@@ -294,50 +257,4 @@ pub fn parse_number_text(text: &str) -> Option<f64> {
         return None;
     }
     normal.parse::<f64>().ok().filter(|n| n.is_finite())
-}
-
-#[cfg(test)]
-mod js_number_tests {
-    use super::*;
-
-    #[test]
-    fn rounds_halves_up_like_math_round() {
-        assert_eq!(
-            [
-                js_round(2.5),
-                js_round(-2.5),
-                js_round(-2.6),
-                js_round(0.49999999999999994)
-            ],
-            [3.0, -2.0, -3.0, 0.0]
-        );
-        assert_eq!(round_to(-0.0625, 3), -0.062);
-    }
-
-    #[test]
-    fn writes_fixed_digits_rounding_exact_ties_away_from_zero() {
-        assert_eq!(to_fixed(0.25, 1), "0.3");
-        assert_eq!(to_fixed(0.125, 2), "0.13");
-        assert_eq!(to_fixed(2.5, 0), "3");
-        assert_eq!(to_fixed(-2.5, 0), "-3");
-        assert_eq!(to_fixed(0.15, 1), "0.1");
-        assert_eq!(to_fixed(1.005, 2), "1.00");
-        assert_eq!(to_fixed(-0.0001, 2), "-0.00");
-        assert_eq!(to_fixed(1.03125, 4), "1.0313");
-        assert_eq!(to_fixed(0.0, 3), "0.000");
-    }
-
-    #[test]
-    fn writes_numbers_as_javascript_does() {
-        assert_eq!(
-            [
-                number(1.0),
-                number(0.1 + 0.2),
-                number(1e21),
-                number(-0.0),
-                number(1e-7)
-            ],
-            ["1", "0.30000000000000004", "1e+21", "0", "1e-7"]
-        );
-    }
 }

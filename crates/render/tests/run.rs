@@ -5,7 +5,6 @@ use std::sync::{Arc, Mutex};
 use opsis_engine::paths::{ShellPlatform, engine_paths};
 use opsis_media::executors::{Tools, media_executors};
 use opsis_media::ffmpeg::Ffmpeg;
-use opsis_project::files::workflow_text;
 use opsis_render::executors::{RenderEngine, output_executors};
 use opsis_render::export_project::ExportSources;
 use opsis_render::sidecar::{Sidecar, SidecarCommand};
@@ -13,7 +12,7 @@ use opsis_runner::context::{Executors, RunEnv};
 use opsis_runner::runner::{RunDeps, run_workflow};
 use opsis_types::events::{RunEvent, RunRequest};
 use opsis_types::settings::AppSettings;
-use opsis_types::workflow::{WORKFLOW_FILE, Workflow};
+use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 use tokio_util::sync::CancellationToken;
 
@@ -85,24 +84,8 @@ fn workflow() -> Workflow {
     .unwrap()
 }
 
-async fn clip_in(ffmpeg: &Path, base: &Path, project: &Path) {
-    let clip = base.join("clip.mp4");
-    if !clip.exists() {
-        make_clip(ffmpeg, &clip).await;
-    }
-    let file = project.join("assets/clip.mp4");
-    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
-    std::fs::copy(&clip, &file).unwrap();
-    let modified = std::fs::metadata(&clip).unwrap().modified().unwrap();
-    std::fs::File::options()
-        .write(true)
-        .open(&file)
-        .unwrap()
-        .set_modified(modified)
-        .unwrap();
-}
-
 async fn make_clip(ffmpeg: &Path, file: &Path) {
+    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
     let args = [
         "-y",
         "-f",
@@ -135,7 +118,7 @@ async fn make_clip(ffmpeg: &Path, file: &Path) {
 }
 
 #[tokio::test]
-#[ignore = "needs the dev engine and the video bundle in ~/.cache/opsis-bun-test"]
+#[ignore = "needs the dev engine and a video bundle named by OPSIS_VIDEO_BUNDLE"]
 async fn runs_media_nodes_and_exports_through_the_sidecar() {
     let engine_dir = home().join(".config/Opsis/engine");
     let paths = engine_paths(&engine_dir, ShellPlatform::current().unwrap());
@@ -146,8 +129,7 @@ async fn runs_media_nodes_and_exports_through_the_sidecar() {
         std::fs::remove_dir_all(&project).unwrap();
     }
     std::fs::create_dir_all(&temp).unwrap();
-    clip_in(&paths.ffmpeg, &base, &project).await;
-    std::fs::write(project.join(WORKFLOW_FILE), workflow_text(&workflow())).unwrap();
+    make_clip(&paths.ffmpeg, &project.join("assets/clip.mp4")).await;
     let tools: Tools = Arc::new(Ffmpeg::new(&paths).with_temp(&temp));
     let env_vars = ["TMPDIR", "TEMP", "TMP"]
         .map(|k| (OsString::from(k), temp.clone().into_os_string()))
@@ -166,12 +148,8 @@ async fn runs_media_nodes_and_exports_through_the_sidecar() {
             Arc::new(|line| eprintln!("sidecar: {line}")),
         )),
         tools: Arc::clone(&tools),
-        serve_url: std::env::var("OPSIS_VIDEO_BUNDLE").unwrap_or_else(|_| {
-            home()
-                .join(".cache/opsis-bun-test/bundle")
-                .to_string_lossy()
-                .into_owned()
-        }),
+        serve_url: std::env::var("OPSIS_VIDEO_BUNDLE")
+            .expect("OPSIS_VIDEO_BUNDLE names a video bundle"),
         binaries_directory: None,
         sources: ExportSources {
             root: repo(),

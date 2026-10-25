@@ -88,10 +88,7 @@ fn speed_row(length: f64, designed: f64, fps: f64) -> Option<CardRow> {
     Some(
         row(
             Icon::FastForward,
-            format!(
-                "{}× faster than designed",
-                crate::text::to_fixed(designed / length, 1)
-            ),
+            format!("{:.1}× faster than designed", designed / length),
         )
         .tone(Tone::Warn)
         .titled(format!(

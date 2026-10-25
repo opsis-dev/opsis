@@ -356,7 +356,7 @@ fn cursor_style() -> NodeDef {
         .card(|ctx: &CardCtx<'_, CursorStyle>| {
             let p = &ctx.params;
             let text = if p.visible {
-                format!("{} · {}×", p.look.label(), crate::text::number(p.size))
+                format!("{} · {}×", p.look.label(), p.size)
             } else {
                 "Hidden".to_owned()
             };
@@ -393,7 +393,7 @@ fn click_ripple() -> NodeDef {
             vec![
                 Some(toggle_row(Icon::CircleDot, p.enabled)),
                 p.enabled.then(|| {
-                    row(Icon::Palette, format!("{}×", crate::text::number(p.size)))
+                    row(Icon::Palette, format!("{}×", p.size))
                         .swatches(vec![color_or(&p.color, DEFAULT_RIPPLE_COLOR)])
                 }),
             ]

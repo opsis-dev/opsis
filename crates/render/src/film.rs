@@ -1,6 +1,5 @@
 use opsis_compile::mix::levels::{apply_mix_levels, with_master_stem};
 use opsis_compile::mix::plan::build_mix_plan;
-use opsis_compile::text::number;
 use opsis_compile::time::lerp;
 use opsis_compile::timeline::flatten::flatten_spec;
 use opsis_media::ffmpeg::MediaTools;
@@ -57,12 +56,9 @@ pub async fn mixed(
             .loudness
             .as_ref()
             .and_then(|l| l.true_peak)
-            .map(|p| format!(", peak {} dBTP", number(p)))
+            .map(|p| format!(", peak {} dBTP", p))
             .unwrap_or_default();
-        ctx.log(
-            LogLevel::Info,
-            format!("Sound: {} LUFS{peak}", number(lufs)),
-        );
+        ctx.log(LogLevel::Info, format!("Sound: {} LUFS{peak}", lufs));
     }
     Ok(with_master_stem(&spec, &master.src, &master.hash))
 }

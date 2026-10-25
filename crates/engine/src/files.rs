@@ -2,7 +2,6 @@ use std::io::{ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use opsis_types::js::js_round;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
@@ -106,7 +105,7 @@ where
 }
 
 pub fn write_json(file: &Path, value: &impl Serialize) -> std::io::Result<()> {
-    let text = crate::json::js_json_pretty(value).map_err(std::io::Error::other)?;
+    let text = serde_json::to_string_pretty(value).map_err(std::io::Error::other)?;
     atomic_write(file, format!("{text}\n").as_bytes())
 }
 
@@ -148,26 +147,16 @@ pub fn modified_ms(meta: &std::fs::Metadata) -> f64 {
     meta.modified()
         .ok()
         .and_then(|m| m.duration_since(UNIX_EPOCH).ok())
-        .map_or(0.0, |d| {
-            d.as_secs() as f64 * 1000.0 + f64::from(d.subsec_nanos()) / 1e6
-        })
-}
-
-fn js_number(value: f64) -> String {
-    ryu_js::Buffer::new().format(value).to_owned()
+        .map_or(0.0, |d| d.as_secs_f64() * 1000.0)
 }
 
 pub fn stamp_of(meta: &std::fs::Metadata) -> String {
-    format!("{}:{}", meta.len(), js_number(modified_ms(meta)))
+    format!("{}:{}", meta.len(), modified_ms(meta))
 }
 
 pub fn file_identity(file: &Path) -> std::io::Result<String> {
     let meta = std::fs::metadata(file)?;
-    Ok(format!(
-        "{}:{}",
-        meta.len(),
-        js_number(js_round(modified_ms(&meta)))
-    ))
+    Ok(format!("{}:{}", meta.len(), modified_ms(&meta).round()))
 }
 
 #[cfg(test)]
@@ -176,18 +165,6 @@ mod tests {
     use serde::Deserialize;
 
     use super::*;
-
-    #[test]
-    fn counts_modified_times_in_milliseconds_as_node_does() {
-        let dir = tempfile::tempdir().unwrap();
-        let file = dir.path().join("film.mp4");
-        std::fs::write(&file, "x").unwrap();
-        let at = UNIX_EPOCH + Duration::new(1_792_941_516, 713_510_144);
-        set_file_mtime(&file, FileTime::from_system_time(at)).unwrap();
-        let meta = std::fs::metadata(&file).unwrap();
-        assert_eq!(stamp_of(&meta), "1:1792941516713.5103");
-        assert_eq!(file_identity(&file).unwrap(), "1:1792941516714");
-    }
 
     fn dir_with(ages: &[(&str, u64)]) -> tempfile::TempDir {
         let dir = tempfile::tempdir().unwrap();

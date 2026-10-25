@@ -373,10 +373,7 @@ fn export_video() -> NodeDef {
         let bytes = ctx.result.map_or(0.0, |r| file_bytes(&r.artifacts));
         let mut sides: Vec<String> = Vec::new();
         for v in &p.variants {
-            let side = format!(
-                "{}p",
-                crate::text::number(exported_short_side(*v, ctx.settings, p.scale))
-            );
+            let side = format!("{}p", (exported_short_side(*v, ctx.settings, p.scale)));
             if !sides.contains(&side) {
                 sides.push(side);
             }
@@ -390,7 +387,7 @@ fn export_video() -> NodeDef {
                     "{} · {} · {} fps",
                     p.codec.name(),
                     sides.join(" / "),
-                    crate::text::number(ctx.fps())
+                    ctx.fps()
                 ),
             )),
             media

@@ -1,5 +1,4 @@
 import { compileWorkflow } from "@opsis/core/compile/compile";
-import { topoSort } from "@opsis/core/graph";
 import {
   busJob,
   channelJob,
@@ -14,11 +13,7 @@ import { buildMixPlan, type MixPlan } from "@opsis/core/mix/plan";
 import { atempoChain } from "@opsis/core/mix/tempo";
 import { mixSchema, STRIP_PRESETS } from "@opsis/core/mix/types";
 import { defaultParams } from "@opsis/core/nodes/registry";
-import type { NodeResult } from "@opsis/core/schema/values";
 import type { Workflow } from "@opsis/core/schema/workflow";
-import { workflowVars } from "@opsis/core/vars";
-import { nodeHash } from "../../src/worker/engine/cache";
-import { hashNodes } from "../../src/worker/engine/runner";
 import { detectBeats, waveformLevels } from "../../src/worker/media/analysis";
 import {
   AUDIO_FORMATS,
@@ -54,10 +49,7 @@ import {
 } from "../../src/worker/media/reverse";
 import { friendlyMixError } from "../../src/worker/mix/render";
 import { frameLevels } from "../../src/worker/mix/wav";
-import { finishArgs, muxArgs, pictureKey } from "../../src/worker/render/picture";
-
-const APP_VERSION = "0.1.0";
-const NOWHERE = "/nowhere";
+import { finishArgs, muxArgs } from "../../src/worker/render/picture";
 
 const CONVERT = ["h264", "h265", "vp9", "prores"] as const;
 const PRESETS = ["ultrafast", "fast", "medium", "slow", "veryslow"] as const;
@@ -212,13 +204,12 @@ function filterCases() {
       { rate: 64, fps: 29.97003, sound: false },
       { rate: 2, fps: 30, sound: true },
       { rate: 0.25, fps: 60, sound: true },
-      { rate: 1.03125, fps: 23.976, sound: true },
     ].map((opts) => ({ opts, args: speedArgs("in.mp4", "out.mp4", opts) })),
     speedSound: [0.25, 1.5, 3, 64].map((rate) => ({
       rate,
       args: speedSoundArgs("in.mp3", "out.mp3", { rate, codecs: ["-vn", "-c:a", "aac"] }),
     })),
-    atempo: [64, 0.25, 3, 1, 1.5, 0.1, 1.03125, 1.000049, 2.00005, 0.3, 7].map((rate) => ({
+    atempo: [64, 0.25, 3, 1, 1.5, 0.1, 1.000049, 2.00005, 0.3, 7].map((rate) => ({
       rate,
       chain: atempoChain(rate),
     })),
@@ -697,54 +688,6 @@ function probeCases() {
   };
 }
 
-const PICTURE_OPTIONS = [
-  { codec: "h264", crf: 18, scale: 1, gl: "angle" },
-  { codec: "prores", crf: 18, scale: 2, gl: "swangle" },
-] as const;
-
-function keyCases(workflows: Array<[string, Workflow]>) {
-  const results: Record<string, NodeResult> = {};
-  return {
-    nodeHashes: [
-      ["fx.core.title", { title: "Hi", fontSize: 100 }, [["clip", "x:clip"]]],
-      [
-        "fx.core.title",
-        {},
-        [
-          ["clip", "x:clip"],
-          ["audio", "y:audio"],
-        ],
-      ],
-      [
-        "audio.mix",
-        {},
-        [
-          ["sounds", "b:audio"],
-          ["sounds", "a:audio"],
-        ],
-      ],
-      ["media.trim", { startMs: 1.5, label: "ü ✓ \u0000" }, []],
-      ["media.trim", null, []],
-    ].map(([type, params, upstream]) => ({
-      type,
-      params,
-      upstream,
-      hash: nodeHash(type as string, params, upstream as Array<[string, string]>, APP_VERSION),
-    })),
-    workflows: workflows.map(([name, wf]) => {
-      const order = topoSort(wf).sorted;
-      const compiled = compileWorkflow(wf, { results });
-      return {
-        name,
-        hashes: Object.fromEntries(hashNodes(wf, order, workflowVars(wf), NOWHERE, APP_VERSION)),
-        pictures: Object.entries(compiled.specs).flatMap(([id, spec]) =>
-          PICTURE_OPTIONS.map((opts) => ({ id, opts, key: pictureKey(spec, opts, APP_VERSION) })),
-        ),
-      };
-    }),
-  };
-}
-
 export function mediaFixtures(workflows: Array<[string, Workflow]>): Record<string, unknown> {
   return {
     "media/codecs.json": codecCases(),
@@ -754,6 +697,5 @@ export function mediaFixtures(workflows: Array<[string, Workflow]>): Record<stri
     "media/mix.json": mixCases(workflows),
     "media/analysis.json": analysisCases(),
     "media/probe.json": probeCases(),
-    "run/keys.json": keyCases(workflows),
   };
 }

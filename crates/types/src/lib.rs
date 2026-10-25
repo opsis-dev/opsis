@@ -4,7 +4,6 @@ pub mod cards;
 pub mod engine;
 pub mod events;
 pub mod fonts;
-pub mod js;
 pub mod json;
 pub mod mix;
 pub mod project;

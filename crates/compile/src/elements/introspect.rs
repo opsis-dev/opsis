@@ -109,7 +109,7 @@ fn to_frames(seconds: f64, rate: f64) -> f64 {
 }
 
 fn number_text(n: f64) -> String {
-    crate::text::number(n)
+    n.to_string()
 }
 
 pub fn frames_from_seconds(field: &Value, value: &Value) -> Option<Value> {

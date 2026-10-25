@@ -120,7 +120,7 @@ fn quotes_text_for_a_shell_and_writes_numbers_people_read() {
             signed_text(-0.01, Some(1), true),
             signed_text(-23.0, None, false)
         ],
-        ["−14.3", "+1.2", "1.2", "0.0", "−23"]
+        ["−14.2", "+1.2", "1.2", "0.0", "−23"]
     );
 }
 

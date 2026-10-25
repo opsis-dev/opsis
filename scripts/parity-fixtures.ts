@@ -752,10 +752,6 @@ export function parityFixtures(): Record<string, unknown> {
   const extra: Array<[string, Workflow]> = todomvc ? [["sound", soundWorkflow(todomvc[1])]] : [];
   const workflows = [...exampleWorkflows(), ...templateWorkflows(), ...extra];
   for (const [name, wf] of workflows) files[`compile/workflows/${name}.json`] = workflowFixture(wf);
-  files["project/saved.json"] = workflows.map(([name, wf]) => ({
-    name,
-    text: `${JSON.stringify(workflowSchema.parse(wf), null, 2)}\n`,
-  }));
   return { ...files, ...mediaFixtures(workflows) };
 }
 

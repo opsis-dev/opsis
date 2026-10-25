@@ -11,7 +11,7 @@ use opsis_types::values::StyleEntry;
 use serde::de::DeserializeOwned;
 
 use crate::codecs::serde_name;
-use opsis_compile::text::{js_round, number, round_to};
+use opsis_compile::text::round_to;
 
 const DESIGN_WIDTH: f64 = 1920.0;
 const NEUTRAL_KELVIN: f64 = 6500.0;
@@ -54,7 +54,7 @@ struct Piece {
 }
 
 fn num(value: f64) -> String {
-    number(round_to(value, 3))
+    (round_to(value, 3)).to_string()
 }
 
 fn option_value(text: &str) -> String {
@@ -137,7 +137,7 @@ fn options(name: &str, values: Vec<(&str, Opt)>) -> Vec<String> {
 fn balance(tones: Option<[f64; 3]>, keys: [&'static str; 3]) -> Vec<(&'static str, Opt)> {
     keys.into_iter()
         .enumerate()
-        .map(|(i, key)| (key, tones.map_or(Opt::Off, |t| on(number(t[i])))))
+        .map(|(i, key)| (key, tones.map_or(Opt::Off, |t| on((t[i]).to_string()))))
         .collect()
 }
 
@@ -169,7 +169,7 @@ fn colour_filters(p: &Colour) -> Vec<String> {
                     "temperature",
                     when(
                         p.warmth != 0.0,
-                        number(js_round(NEUTRAL_KELVIN - p.warmth * KELVIN_SWING)),
+                        ((NEUTRAL_KELVIN - p.warmth * KELVIN_SWING).round()).to_string(),
                     ),
                 ),
                 ("mix", when(p.warmth != 0.0, "1")),
@@ -260,7 +260,7 @@ fn texture_filters(p: &Texture, size: GradeSize) -> Vec<String> {
                     "alls",
                     when(
                         p.grain > 0.0,
-                        number(f64::max(1.0, js_round(p.grain * 40.0))),
+                        (f64::max(1.0, (p.grain * 40.0).round())).to_string(),
                     ),
                 ),
                 ("allf", when(p.grain > 0.0, "t+u")),
@@ -271,13 +271,13 @@ fn texture_filters(p: &Texture, size: GradeSize) -> Vec<String> {
 }
 
 fn lens_filters(p: &Lens, size: GradeSize) -> Vec<String> {
-    let shift = f64::max(1.0, js_round(p.fringe * 8.0 * (size.width / DESIGN_WIDTH)));
+    let shift = f64::max(1.0, (p.fringe * 8.0 * (size.width / DESIGN_WIDTH)).round());
     let mut filters = [
         options(
             "rgbashift",
             vec![
-                ("rh", when(p.fringe > 0.0, number(shift))),
-                ("bh", when(p.fringe > 0.0, number(-shift))),
+                ("rh", when(p.fringe > 0.0, shift.to_string())),
+                ("bh", when(p.fringe > 0.0, (-shift).to_string())),
             ],
         ),
         options(

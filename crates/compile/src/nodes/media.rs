@@ -18,7 +18,7 @@ use crate::node::{
 };
 use crate::nodes::grade::{grade_changes_nothing, grade_needs_video, grade_step_title};
 use crate::params::Params;
-use crate::text::{format_duration, number, plural, signed_text};
+use crate::text::{format_duration, plural, signed_text};
 use crate::time::ms_to_frames;
 
 const MEDIA_PORT: &str = "media";
@@ -773,7 +773,7 @@ pub fn nodes() -> Vec<NodeDef> {
         .card(|ctx: &CardCtx<'_, ChangeSpeed>| {
             let p = &ctx.params;
             vec![
-                Some(row(Icon::Gauge, format!("{}×", number(p.rate)))),
+                Some(row(Icon::Gauge, format!("{}×", p.rate))),
                 Some(if p.keep_audio {
                     row(Icon::Volume2, "Keeps sound")
                 } else {

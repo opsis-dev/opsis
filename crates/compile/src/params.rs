@@ -422,7 +422,7 @@ fn top_key(location: &Location) -> Option<String> {
 fn choice_list(values: &[Value], unit: Option<&str>) -> String {
     let words: Vec<String> = values
         .iter()
-        .map(|v| v.as_f64().map(crate::text::number).unwrap_or_default())
+        .map(|v| v.as_f64().map(|n| n.to_string()).unwrap_or_default())
         .collect();
     let list = match words.split_last() {
         Some((last, [])) => last.clone(),

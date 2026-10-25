@@ -1,11 +1,10 @@
 use std::future::Future;
 use std::path::{Path, PathBuf};
 
-use opsis_compile::text::{js_round, number, round_to};
+use opsis_compile::text::round_to;
 use opsis_compile::time::{EPSILON, even_px};
 use opsis_engine::files::{atomic_write, file_identity, read_json, write_via_temp};
 use opsis_engine::hash::versioned_hash;
-use opsis_engine::json::js_json;
 use opsis_project::paths::{
     ProjectPaths, WebAddress, is_inside, project_paths, ref_to_path, to_project_ref,
 };
@@ -81,7 +80,7 @@ pub fn waveform_levels(samples: &[f32], rate: f64) -> Vec<WaveformLevel> {
 }
 
 fn onset_envelope(samples: &[f32], rate: f64) -> Vec<f32> {
-    let hop = js_round(rate / ONSETS_PER_SECOND) as usize;
+    let hop = (rate / ONSETS_PER_SECOND).round() as usize;
     let frames = samples.len() / hop;
     let energy: Vec<f32> = (0..frames)
         .map(|f| {
@@ -179,7 +178,7 @@ pub fn detect_beats(samples: &[f32], rate: f64) -> Beats {
     }
     Beats {
         beats,
-        bpm: Some(js_round(ONSETS_PER_MINUTE / period as f64)),
+        bpm: Some((ONSETS_PER_MINUTE / period as f64).round()),
     }
 }
 
@@ -280,7 +279,9 @@ where
     let value = make(id).await?;
     atomic_write(
         &saved,
-        js_json(&value).map_err(std::io::Error::other)?.as_bytes(),
+        serde_json::to_string(&value)
+            .map_err(std::io::Error::other)?
+            .as_bytes(),
     )?;
     Ok(value)
 }
@@ -300,7 +301,7 @@ async fn decode_waveform(raw: &Path) -> Result<SavedWaveform, AnalysisError> {
         let samples = float_samples(&bytes);
         let Beats { beats, bpm } = detect_beats(&samples, DECODE_RATE);
         SavedWaveform {
-            duration_ms: js_round(samples.len() as f64 / DECODE_RATE * 1000.0),
+            duration_ms: (samples.len() as f64 / DECODE_RATE * 1000.0).round(),
             levels: waveform_levels(&samples, DECODE_RATE),
             beats,
             bpm,
@@ -333,7 +334,7 @@ pub async fn analyze_waveform(
             let raw = dir.join(format!("{id}.waveform.{}.raw", std::process::id()));
             let input = file.to_string_lossy();
             let output = raw.to_string_lossy();
-            let rate = number(DECODE_RATE);
+            let rate = DECODE_RATE.to_string();
             let args = strings(&[
                 "-i",
                 &input,
@@ -388,10 +389,10 @@ pub async fn analyze_filmstrip(
             let image = image_of(&id);
             let filter = format!(
                 "fps=fps={}:start_time=0,scale={}:{},tile={}x1",
-                number(1000.0 / interval_ms),
-                number(tile_width),
-                number(TILE_HEIGHT),
-                number(count)
+                (1000.0 / interval_ms),
+                tile_width,
+                TILE_HEIGHT,
+                count
             );
             let input = file.to_string_lossy();
             write_via_temp(&image, |temp| async move {

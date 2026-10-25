@@ -5,7 +5,7 @@ pub fn lerp(from: f64, to: f64, t: f64) -> f64 {
 }
 
 pub fn even_px(value: f64) -> f64 {
-    crate::text::js_round(value / 2.0) * 2.0
+    (value / 2.0).round() * 2.0
 }
 
 pub fn clamp(value: f64, lo: f64, hi: f64) -> f64 {

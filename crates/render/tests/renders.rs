@@ -26,6 +26,12 @@ const STILLS: [&str; 5] = [
 ];
 const VIDEOS: [&str; 2] = ["core/kinetic-headline", "remocn/shader-grain-gradient"];
 
+fn from_env(name: &str) -> PathBuf {
+    std::env::var_os(name)
+        .map(PathBuf::from)
+        .unwrap_or_else(|| panic!("{name} isn't set"))
+}
+
 fn home() -> PathBuf {
     std::env::var_os("HOME").map(PathBuf::from).expect("HOME")
 }
@@ -116,7 +122,6 @@ impl Setup {
         let shell = find_headless_shell(&engine)
             .expect("the dev engine's headless shell")
             .to_path_buf();
-        let tests = cache.join("opsis-bun-test");
         let out = cache.join("opsis-render-test");
         let temp = out.join("tmp");
         std::fs::create_dir_all(&temp).unwrap();
@@ -135,8 +140,8 @@ impl Setup {
         Self {
             sidecar: Sidecar::new(command, Arc::new(|line| eprintln!("sidecar: {line}"))),
             shell,
-            bundle: existing(tests.join("bundle"), "the video bundle"),
-            baseline: existing(tests.join("node"), "the Node renders"),
+            bundle: existing(from_env("OPSIS_VIDEO_BUNDLE"), "the video bundle"),
+            baseline: existing(from_env("OPSIS_RENDER_BASELINE"), "the Node renders"),
             out,
         }
     }
@@ -176,7 +181,7 @@ fn file_name(key: &str, ext: &str) -> String {
 }
 
 #[tokio::test]
-#[ignore = "needs the dev engine, the video bundle and the Node renders in ~/.cache/opsis-bun-test"]
+#[ignore = "needs the dev engine, OPSIS_VIDEO_BUNDLE and the Node renders in OPSIS_RENDER_BASELINE"]
 async fn renders_through_the_sidecar_byte_identical_to_node() {
     let setup = Setup::new();
     let never = CancellationToken::new();
@@ -217,7 +222,7 @@ async fn renders_through_the_sidecar_byte_identical_to_node() {
 }
 
 #[tokio::test]
-#[ignore = "needs the dev engine and the video bundle in ~/.cache/opsis-bun-test"]
+#[ignore = "needs the dev engine and a video bundle named by OPSIS_VIDEO_BUNDLE"]
 async fn stops_a_render_soon_after_it_is_cancelled() {
     let setup = Setup::new();
     let cancel = CancellationToken::new();

@@ -15,10 +15,6 @@ use serde_json::{Map, Value, json};
 pub const ENGINE_VERSION: &str = "opsis-engine/1";
 const KEY_LENGTH: usize = 24;
 
-fn by_code_unit(a: &str, b: &str) -> std::cmp::Ordering {
-    a.encode_utf16().cmp(b.encode_utf16())
-}
-
 pub fn node_hash(
     kind: &str,
     params: &Value,
@@ -26,7 +22,7 @@ pub fn node_hash(
     app_version: &str,
 ) -> String {
     let mut ports: Vec<&(String, String)> = upstream.iter().collect();
-    ports.sort_by(|(pa, fa), (pb, fb)| by_code_unit(pa, pb).then_with(|| by_code_unit(fa, fb)));
+    ports.sort_unstable();
     let ports: Vec<[&str; 2]> = ports
         .into_iter()
         .map(|(p, f)| [p.as_str(), f.as_str()])

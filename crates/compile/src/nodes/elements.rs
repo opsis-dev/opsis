@@ -344,7 +344,7 @@ fn shown(field: &Value, params: &Values) -> bool {
         let current = match params.get(key) {
             None | Some(Value::Null) => String::new(),
             Some(Value::String(s)) => s.clone(),
-            Some(Value::Number(n)) => n.as_f64().map(crate::text::number).unwrap_or_default(),
+            Some(Value::Number(n)) => n.as_f64().map(|n| n.to_string()).unwrap_or_default(),
             Some(other) => other.to_string(),
         };
         allowed
@@ -573,7 +573,7 @@ fn sequencer_card(ctx: &CardCtx<'_, Values>) -> Vec<Option<CardRow>> {
             row(Icon::Clapperboard, plural(ports.len() as f64, "scene")).warn_if(ports.is_empty()),
         ),
         items.iter().any(|n| *n > 1.0).then(|| {
-            let shown: Vec<String> = items.iter().map(|n| crate::text::number(*n)).collect();
+            let shown: Vec<String> = items.iter().map(|n| (*n).to_string()).collect();
             row(
                 Icon::Layers,
                 format!("Items per scene: {}", shown.join(" · ")),

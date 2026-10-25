@@ -2,7 +2,7 @@ use opsis_compile::color::css_hex;
 use opsis_compile::nodes::media::{Dither, ScaleMode};
 
 use crate::codecs::{edit_video, even_down, serde_name, with_even_frame};
-use opsis_compile::text::{number, round_to, to_fixed};
+use opsis_compile::text::round_to;
 
 const JOIN_AUDIO: &str = "aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo";
 
@@ -12,7 +12,7 @@ pub fn ffmpeg_color(color: &str) -> String {
 
 fn pad_to(w: f64, h: f64, color: Option<&str>) -> String {
     let color = color.map(|c| format!(":color={c}")).unwrap_or_default();
-    let (w, h) = (number(w), number(h));
+    let (w, h) = (w.to_string(), h.to_string());
     format!(
         "scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2{color},setsar=1"
     )
@@ -25,18 +25,18 @@ pub fn fit_filter(mode: ScaleMode, width: f64, height: f64, background: &str) ->
             pad_to(width, height, color.as_deref())
         }
         ScaleMode::Crop => {
-            let (w, h) = (number(width), number(height));
+            let (w, h) = (width.to_string(), height.to_string());
             format!("scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1")
         }
-        ScaleMode::Stretch => format!("scale={}:{},setsar=1", number(width), number(height)),
+        ScaleMode::Stretch => format!("scale={}:{},setsar=1", width, height),
     }
 }
 
 pub fn gif_filter(fps: f64, width: f64, dither: Dither) -> String {
     format!(
         "fps={},scale={}:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[pal];[b][pal]paletteuse=dither={}",
-        number(fps),
-        number(width),
+        fps,
+        width,
         serde_name(&dither)
     )
 }
@@ -64,14 +64,14 @@ pub struct Join {
 }
 
 pub fn join_filter(parts: &[JoinPart], to: JoinSize) -> Join {
-    let rate = number(round_to(to.fps, 3));
+    let rate = (round_to(to.fps, 3)).to_string();
     let (width, height) = (even_down(to.width), even_down(to.height));
     let video = parts.iter().any(|p| p.video);
     let audio = parts.iter().any(|p| p.audio);
     let mut chains = Vec::new();
     let mut pads = String::new();
     for (i, p) in parts.iter().enumerate() {
-        let seconds = number(round_to(p.duration_ms / 1000.0, 3));
+        let seconds = (round_to(p.duration_ms / 1000.0, 3)).to_string();
         if video {
             chains.push(if p.video {
                 format!(
@@ -81,8 +81,7 @@ pub fn join_filter(parts: &[JoinPart], to: JoinSize) -> Join {
             } else {
                 format!(
                     "color=c=black:s={}x{}:r={rate}:d={seconds},format=yuv420p[v{i}]",
-                    number(width),
-                    number(height)
+                    width, height
                 )
             });
             pads.push_str(&format!("[v{i}]"));
@@ -128,7 +127,7 @@ pub fn atempo_chain(rate: f64) -> String {
     parts.push(r);
     parts
         .iter()
-        .map(|x| format!("atempo={}", to_fixed(*x, 4)))
+        .map(|x| format!("atempo={x:.4}"))
         .collect::<Vec<_>>()
         .join(",")
 }
@@ -138,9 +137,9 @@ pub fn speed_args(input: &str, output: &str, rate: f64, fps: f64, sound: bool) -
         "-i".to_owned(),
         input.to_owned(),
         "-vf".to_owned(),
-        with_even_frame(&format!("setpts=PTS/{}", number(rate))),
+        with_even_frame(&format!("setpts=PTS/{}", rate)),
         "-r".to_owned(),
-        number(round_to(fps, 3)),
+        (round_to(fps, 3)).to_string(),
     ];
     if sound {
         args.extend(["-af".to_owned(), atempo_chain(rate)]);
@@ -165,10 +164,5 @@ pub fn speed_sound_args(input: &str, output: &str, rate: f64, codecs: &[String])
 }
 
 pub fn loudnorm_filter(lufs: f64, true_peak: f64, range: f64) -> String {
-    format!(
-        "loudnorm=I={}:TP={}:LRA={}",
-        number(lufs),
-        number(true_peak),
-        number(range)
-    )
+    format!("loudnorm=I={}:TP={}:LRA={}", lufs, true_peak, range)
 }

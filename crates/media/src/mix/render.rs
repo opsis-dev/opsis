@@ -11,7 +11,6 @@ use opsis_engine::files::{
     Prune, atomic_write, file_identity, prune_dir, read_json, write_via_temp,
 };
 use opsis_engine::hash::versioned_hash;
-use opsis_engine::json::js_json;
 use opsis_types::mix::{Loudness, MasterStem, MixLevels, MixReduction, MixResult, StemLevels};
 use opsis_types::project::MIX_DIR;
 use regex::Regex;
@@ -228,7 +227,9 @@ async fn render_stem(deps: &MixDeps<'_>, plan: &MixPlan, stem: StemJob) -> Resul
     .await?;
     atomic_write(
         &meta_file,
-        js_json(&meta).expect("stem levels serialize").as_bytes(),
+        serde_json::to_string(&meta)
+            .expect("stem levels serialize")
+            .as_bytes(),
     )?;
     Ok(Stem {
         hash: stem.hash,
@@ -445,7 +446,9 @@ async fn loudness_of(
     let loudness = measured(move || wav_loudness(&stem, fps, frames)).await?;
     atomic_write(
         &file,
-        js_json(&loudness).expect("loudness serializes").as_bytes(),
+        serde_json::to_string(&loudness)
+            .expect("loudness serializes")
+            .as_bytes(),
     )?;
     Ok(loudness)
 }
@@ -456,7 +459,7 @@ fn remember(dir: &Path, hashes: Vec<String>) -> std::io::Result<()> {
     let mut next = vec![hashes.clone()];
     next.extend(recent.into_iter().filter(|h| *h != hashes));
     next.truncate(KEEP_PLANS);
-    atomic_write(&index, js_json(&next)?.as_bytes())?;
+    atomic_write(&index, serde_json::to_string(&next)?.as_bytes())?;
     let keep: HashSet<String> = next.into_iter().flatten().collect();
     let keeps =
         |name: &str| name == RECENT_FILE || keep.contains(name.split('.').next().unwrap_or(name));

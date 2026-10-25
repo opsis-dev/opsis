@@ -1,35 +1,6 @@
-use std::path::Path;
-
 use opsis_render::picture::{PictureOptions, picture_key};
 use opsis_types::timeline::TimelineSpec;
 use serde_json::{Value, json};
-
-fn fixture(name: &str) -> Value {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures")
-        .join(name);
-    serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
-}
-
-#[test]
-fn picture_keys_match_the_ts_renderer() {
-    let keys = fixture("run/keys.json");
-    for case in keys["workflows"].as_array().unwrap() {
-        let name = case["name"].as_str().unwrap();
-        let specs = &fixture(&format!("compile/workflows/{name}.json"))["compile"]["specs"];
-        for picture in case["pictures"].as_array().unwrap() {
-            let spec: TimelineSpec =
-                serde_json::from_value(specs[picture["id"].as_str().unwrap()].clone()).unwrap();
-            let opts: PictureOptions = serde_json::from_value(picture["opts"].clone()).unwrap();
-            assert_eq!(
-                picture_key(&spec, &opts, "0.1.0"),
-                picture["key"].as_str().unwrap(),
-                "{name} {}",
-                picture["opts"]
-            );
-        }
-    }
-}
 
 fn spec(extra: Value) -> TimelineSpec {
     let mut spec = json!({

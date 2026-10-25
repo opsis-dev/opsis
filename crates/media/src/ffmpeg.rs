@@ -11,8 +11,6 @@ use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 use tokio::process::{Child, Command};
 use tokio_util::sync::CancellationToken;
 
-use opsis_compile::text::js_round;
-
 const STDERR_LIMIT: usize = 200_000;
 const STDERR_KEEP: usize = 100_000;
 const STDERR_TAIL_LINES: usize = 6;
@@ -160,7 +158,7 @@ pub fn parse_probe(json: Value) -> Result<ProbeResult, ToolError> {
     let duration = duration_text.map_or(0.0, js_number);
     Ok(ProbeResult {
         duration_ms: if duration.is_finite() {
-            js_round(duration * 1000.0)
+            (duration * 1000.0).round()
         } else {
             0.0
         },
