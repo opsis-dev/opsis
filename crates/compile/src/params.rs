@@ -148,6 +148,38 @@ pub fn schema_of<T: JsonSchema>() -> Value {
     schema
 }
 
+fn object_defaults(schema: &Value) -> Option<Map<String, Value>> {
+    let properties = schema.get("properties")?.as_object()?;
+    let mut out = schema
+        .get("default")
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default();
+    for (key, field) in properties {
+        if let Some(default) = field.get("default").filter(|d| !d.is_null()) {
+            out.entry(key.clone()).or_insert_with(|| default.clone());
+        }
+    }
+    Some(out)
+}
+
+pub fn with_row_defaults(schema: &mut Value) {
+    match schema {
+        Value::Object(map) => {
+            for value in map.values_mut() {
+                with_row_defaults(value);
+            }
+            if let Some(items) = map.get_mut("items").and_then(Value::as_object_mut)
+                && let Some(row) = object_defaults(&Value::Object(items.clone()))
+            {
+                items.insert("default".to_owned(), Value::Object(row));
+            }
+        }
+        Value::Array(values) => values.iter_mut().for_each(with_row_defaults),
+        _ => {}
+    }
+}
+
 #[derive(Clone)]
 pub struct ParamSchema {
     schema: Arc<Value>,
@@ -164,7 +196,13 @@ impl std::fmt::Debug for ParamSchema {
 }
 
 impl ParamSchema {
-    pub fn new(schema: Value) -> Self {
+    pub fn new(mut schema: Value) -> Self {
+        with_row_defaults(&mut schema);
+        if let Some(defaults) = object_defaults(&schema)
+            && let Some(object) = schema.as_object_mut()
+        {
+            object.insert("default".to_owned(), Value::Object(defaults));
+        }
         let order = schema
             .get("properties")
             .and_then(Value::as_object)
@@ -497,4 +535,43 @@ pub fn whole_number(value: Option<&Value>) -> Option<u32> {
     value
         .and_then(Value::as_u64)
         .and_then(|n| u32::try_from(n).ok())
+}
+
+#[cfg(test)]
+mod row_defaults {
+    use serde_json::json;
+
+    use super::with_row_defaults;
+
+    #[test]
+    fn gives_each_list_of_objects_its_default_row() {
+        let mut schema = json!({
+            "type": "object",
+            "properties": {
+                "cuts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "default": { "before": "in3" },
+                        "properties": {
+                            "before": { "type": "string", "default": "in2" },
+                            "length": { "type": "integer", "default": 15 },
+                            "note": { "type": "string" },
+                        },
+                    },
+                },
+                "names": { "type": "array", "items": { "type": "string" } },
+            },
+        });
+        with_row_defaults(&mut schema);
+        assert_eq!(
+            schema["properties"]["cuts"]["items"]["default"],
+            json!({ "before": "in3", "length": 15 })
+        );
+        assert!(
+            schema["properties"]["names"]["items"]
+                .get("default")
+                .is_none()
+        );
+    }
 }

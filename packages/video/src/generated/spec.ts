@@ -222,6 +222,7 @@ export type Duck = {
 	level: number,
 	fadeFrames: number,
 	keys: string[],
+	spans: ([number, number])[],
 };
 
 export type Ease = "linear" | "in" | "out" | "in-out" | "hold";

@@ -20,7 +20,6 @@ export const commands = {
 	resolveDiskChange: (choice: DiskChoice) => typedError<boolean, CommandError>(__TAURI_INVOKE("resolve_disk_change", { choice })),
 	projectFolder: (parent: string, name: string) => typedError<string, CommandError>(__TAURI_INVOKE("project_folder", { parent, name })),
 	createProject: (name: string, template: string, dir: string | null) => typedError<OpenProject | null, CommandError>(__TAURI_INVOKE("create_project", { name, template, dir })),
-	watchProjectFiles: (dir: string, refs: string[]) => typedError<null, CommandError>(__TAURI_INVOKE("watch_project_files", { dir, refs })),
 	readLastRun: (dir: string) => typedError<LastRun | null, CommandError>(__TAURI_INVOKE("read_last_run", { dir })),
 	importAssets: (dir: string, paths: string[] | null) => typedError<string[], CommandError>(__TAURI_INVOKE("import_assets", { dir, paths })),
 	clearCache: (dir: string) => typedError<null, CommandError>(__TAURI_INVOKE("clear_cache", { dir })),
@@ -314,10 +313,9 @@ export type AudioValue = {
 	durationInFrames?: number,
 };
 
-export type BarClock = {
-	steps: ClockStep[],
-	itemFrom: number,
-	contentEnd: number,
+export type BandBounds = {
+	min: number,
+	max: number,
 };
 
 export type BarKind = "recording" | "element";
@@ -512,13 +510,6 @@ export type ClipValue = {
 	recording?: TaggedRecording,
 };
 
-export type ClockStep = {
-	from: number,
-	startFrom: number,
-	loopOffset: number,
-	remap: ([number, number])[] | null,
-};
-
 export type CloseDecision = {
 	close: boolean,
 	dontAsk: boolean,
@@ -530,6 +521,14 @@ export type CloseRequest = {
 };
 
 export type CommandError = string;
+
+export type CompRanges = {
+	threshold: NumberRange,
+	ratio: NumberRange,
+	attack: NumberRange,
+	release: NumberRange,
+	makeup: NumberRange,
+};
 
 export type Comp = {
 	on: boolean,
@@ -624,6 +623,14 @@ export type Duck = {
 	level: number,
 	fadeFrames: number,
 	keys: string[],
+	spans: ([number, number])[],
+};
+
+export type DuckRanges = {
+	amount: NumberRange,
+	attack: NumberRange,
+	release: NumberRange,
+	ignoreShorterMs: NumberRange,
 };
 
 export type DuckSettings = {
@@ -661,6 +668,8 @@ export type EditorCatalog = {
 	nodes: EditorNode[],
 	transitions: { [key in string]: string },
 	connects: PortLink[],
+	text: TextRules,
+	mixer: MixerBook,
 };
 
 export type EditorCompile = {
@@ -673,7 +682,9 @@ export type EditorCompile = {
 	levelled: TimelineSpec | null,
 	cards: { [key in string]: CardRow[] },
 	inspector: InspectorContext | null,
-	clocks: { [key in string]: BarClock },
+	localFrames: { [key in string]: LocalFrames },
+	mix: Mix,
+	solo: boolean,
 };
 
 export type EditorNode = {
@@ -761,6 +772,12 @@ export type EqBand = {
 	freq: number,
 	gain: number,
 	q: number,
+};
+
+export type EqBandBounds = {
+	freq: BandBounds,
+	gain: BandBounds,
+	q: BandBounds,
 };
 
 export type EqType = "lowshelf" | "peak" | "highshelf";
@@ -994,6 +1011,11 @@ export type LiveStep = {
 
 export type LiveStepStatus = "running" | "done" | "error";
 
+export type LocalFrames = {
+	first: number,
+	values: (number)[],
+};
+
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
 export type LogLine = {
@@ -1002,6 +1024,16 @@ export type LogLine = {
 	level: LogLevel,
 	nodeId?: string,
 	message: string,
+};
+
+export type LoudnessChoice = {
+	target: LoudnessTarget,
+	goal: LoudnessGoal | null,
+};
+
+export type LoudnessGoal = {
+	lufs: number,
+	truePeak: number,
 };
 
 export type LoudnessTarget = "off" | "web" | "podcast" | "broadcast";
@@ -1102,6 +1134,27 @@ export type Mix = {
 	master: Master,
 };
 
+export type MixerBook = {
+	sampleRate: number,
+	minDb: number,
+	silenceDb: number,
+	maxDb: number,
+	fader: NumberRange,
+	trim: NumberRange,
+	pan: NumberRange,
+	highpass: NumberRange,
+	limiterCeiling: NumberRange,
+	comp: CompRanges,
+	duck: DuckRanges,
+	eqBand: EqBandBounds,
+	eqTypes: EqType[],
+	defaultStrip: Strip,
+	defaultMaster: Master,
+	builtInBuses: string[],
+	loudness: LoudnessChoice[],
+	presets: StripPreset[],
+};
+
 export type MouseButton = "none" | "left" | "middle" | "right" | "back" | "forward";
 
 export type NodeFailure = {
@@ -1133,6 +1186,12 @@ export type NodeResult = {
 };
 
 export type NodeRunStatus = "idle" | "queued" | "running" | "cached" | "done" | "error" | "skipped";
+
+export type NumberRange = {
+	min: number,
+	max: number,
+	default: number,
+};
 
 export type OpenProject = {
 	dir: string,
@@ -1517,6 +1576,12 @@ export type StripPatch = {
 	bus?: string,
 };
 
+export type StripPreset = {
+	id: string,
+	label: string,
+	strip: StripPatch,
+};
+
 export type Strip = {
 	trim: number,
 	highpass: Highpass,
@@ -1549,6 +1614,11 @@ export type TemplateInfo = {
 	title: string,
 	description: string,
 	icon: Icon,
+};
+
+export type TextRules = {
+	variablePattern: string,
+	pauseMark: string,
 };
 
 export type Theme = "light" | "dark";

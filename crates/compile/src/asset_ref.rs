@@ -2,6 +2,9 @@ use std::sync::LazyLock;
 
 use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
 use regex::Regex;
+use serde_json::Value;
+
+use crate::vars::strings_in;
 
 pub const PROJECT_SCHEME: &str = "project:";
 pub const APP_SCHEME: &str = "app:";
@@ -225,5 +228,50 @@ impl PreparedRef {
             _ => return None,
         };
         Self::new(kind, &source)
+    }
+}
+
+fn watched_source(text: &str) -> Option<String> {
+    if is_project_ref(text) {
+        return Some(text.to_owned());
+    }
+    match PreparedRef::parse(text)?.source {
+        RefTarget::Project(rel) => Some(format!("{PROJECT_SCHEME}{rel}")),
+        _ => None,
+    }
+}
+
+pub fn project_refs_in(value: &Value) -> Vec<String> {
+    let mut texts = Vec::new();
+    strings_in(value, &|t| watched_source(t).is_some(), &mut texts);
+    let mut refs: Vec<String> = texts.into_iter().filter_map(watched_source).collect();
+    refs.sort();
+    refs.dedup();
+    refs
+}
+
+#[cfg(test)]
+mod watched {
+    use serde_json::json;
+
+    use super::project_refs_in;
+
+    #[test]
+    fn names_project_files_and_the_project_sources_of_prepared_files() {
+        let value = json!({
+            "a": "project:assets/clip.mp4",
+            "b": ["prepared:model/project/assets/robot.glb", "project:assets/clip.mp4"],
+            "c": "prepared:typeface/700/app/fonts/bundled/inter/inter-latin-wght-normal.woff2",
+            "d": "app:sfx/click.mp3",
+            "e": "prepared:svg/project/assets/logo.svg",
+        });
+        assert_eq!(
+            project_refs_in(&value),
+            [
+                "project:assets/clip.mp4",
+                "project:assets/logo.svg",
+                "project:assets/robot.glb"
+            ]
+        );
     }
 }

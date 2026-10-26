@@ -2,22 +2,25 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use indexmap::IndexMap;
+use opsis_compile::asset_ref::project_refs_in;
 use opsis_compile::cards::{CardSources, workflow_cards};
 use opsis_compile::catalog::{EditorCatalog, editor_bundle};
 use opsis_compile::compile::{CompileResult, PreviewTarget, compile_workflow, preview_spec};
 use opsis_compile::edits::timeline::Film;
 use opsis_compile::graph::{GraphIssue, validate_workflow};
 use opsis_compile::inspector::{InspectorContext, inspector_context};
-use opsis_compile::mix::levels::apply_mix_levels;
+use opsis_compile::mix::levels::{apply_mix_levels, solo_active};
 use opsis_compile::mix::plan::{MixPlan, build_mix_plan};
 use opsis_compile::node::Platform;
-use opsis_compile::timeline::flatten::{BarClock, FlatTimeline, flatten_spec};
+use opsis_compile::timeline::flatten::{FlatTimeline, LocalFrames, flatten_spec};
 use opsis_store::secrets::list_secrets;
 use opsis_types::cards::CardRow;
+use opsis_types::mix::Mix;
 use opsis_types::timeline::TimelineSpec;
 use opsis_types::values::NodeResult;
 use opsis_types::workflow::Workflow;
 use serde::Serialize;
+use serde_json::json;
 use specta::Type;
 use tauri::{AppHandle, Manager, State};
 use tauri_specta::Event;
@@ -38,7 +41,9 @@ pub struct EditorCompile {
     pub levelled: Option<TimelineSpec>,
     pub cards: IndexMap<String, Vec<CardRow>>,
     pub inspector: Option<InspectorContext>,
-    pub clocks: IndexMap<String, BarClock>,
+    pub local_frames: IndexMap<String, LocalFrames>,
+    pub mix: Mix,
+    pub solo: bool,
 }
 
 static COMPILES: AtomicU64 = AtomicU64::new(0);
@@ -91,12 +96,15 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
         .inspected
         .as_deref()
         .and_then(|id| inspector_context(workflow, &result, &input.results, id));
-    let clocks = flat
+    let local_frames = flat
         .iter()
         .flat_map(|f| f.bars.iter())
-        .map(|b| (b.key.clone(), b.clock()))
+        .map(|b| (b.key.clone(), b.local_frames()))
         .collect();
+    let mix = workflow.mix.clone().unwrap_or_default();
     EditorCompile {
+        solo: solo_active(&mix),
+        mix,
         seq,
         result,
         issues,
@@ -106,7 +114,7 @@ fn editor_compile(input: &CompileInput) -> EditorCompile {
         levelled,
         cards,
         inspector,
-        clocks,
+        local_frames,
     }
 }
 
@@ -144,6 +152,11 @@ pub fn request(app: &AppHandle) {
             let compiled = editor_compile(&input);
             emitter.state::<AppState>().editor().film = film_of(&compiled);
             emit(&emitter, &compiled);
+            let refs = project_refs_in(&json!([
+                compiled.result.values,
+                input.workflow.settings.fonts.families
+            ]));
+            crate::document::follow_loaded_files(&emitter, input.dir, refs);
         })
         .await;
         if let Err(error) = compiled {

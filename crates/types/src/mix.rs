@@ -2,12 +2,14 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
+use crate::edits::StripPatch;
+
 pub const SAMPLE_RATE: u32 = 48_000;
 pub const MIN_DB: f64 = -60.0;
 pub const SILENCE_DB: f64 = -120.0;
 pub const MAX_DB: f64 = 12.0;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Type)]
 pub struct NumberRange {
     pub min: f64,
     pub max: f64,
@@ -40,6 +42,7 @@ pub const LIMITER_CEILING_RANGE: NumberRange = NumberRange {
     default: -1.0,
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Type)]
 pub struct CompRanges {
     pub threshold: NumberRange,
     pub ratio: NumberRange,
@@ -76,6 +79,8 @@ pub const COMP_RANGES: CompRanges = CompRanges {
     },
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct DuckRanges {
     pub amount: NumberRange,
     pub attack: NumberRange,
@@ -360,7 +365,8 @@ pub enum LoudnessTarget {
     Broadcast,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct LoudnessGoal {
     pub lufs: f64,
     pub true_peak: f64,
@@ -564,4 +570,180 @@ pub struct MixResult {
     pub levels: MixLevels,
     pub reduction: MixReduction,
     pub loudness: Option<Loudness>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Type)]
+pub struct BandBounds {
+    pub min: f64,
+    pub max: f64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Type)]
+pub struct EqBandBounds {
+    pub freq: BandBounds,
+    pub gain: BandBounds,
+    pub q: BandBounds,
+}
+
+pub const EQ_BAND_BOUNDS: EqBandBounds = EqBandBounds {
+    freq: BandBounds {
+        min: 20.0,
+        max: 20_000.0,
+    },
+    gain: BandBounds {
+        min: -18.0,
+        max: 18.0,
+    },
+    q: BandBounds {
+        min: 0.1,
+        max: 10.0,
+    },
+};
+
+pub const LOUDNESS_TARGETS: [LoudnessTarget; 4] = [
+    LoudnessTarget::Off,
+    LoudnessTarget::Web,
+    LoudnessTarget::Podcast,
+    LoudnessTarget::Broadcast,
+];
+
+#[derive(Debug, Clone, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct LoudnessChoice {
+    pub target: LoudnessTarget,
+    pub goal: Option<LoudnessGoal>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Type)]
+pub struct StripPreset {
+    pub id: String,
+    pub label: String,
+    pub strip: StripPatch,
+}
+
+fn eq_on(bands: Vec<EqBand>) -> Eq {
+    Eq { on: true, bands }
+}
+
+fn comp_on(threshold: f64, ratio: f64, attack: f64, release: f64, makeup: f64) -> Comp {
+    Comp {
+        on: true,
+        threshold,
+        ratio,
+        attack,
+        release,
+        makeup,
+    }
+}
+
+fn highpass_on(freq: f64) -> Highpass {
+    Highpass { on: true, freq }
+}
+
+pub fn strip_presets() -> Vec<StripPreset> {
+    let preset = |id: &str, label: &str, strip: StripPatch| StripPreset {
+        id: id.to_owned(),
+        label: label.to_owned(),
+        strip,
+    };
+    vec![
+        preset(
+            "voice",
+            "Voice",
+            StripPatch {
+                highpass: Some(highpass_on(90.0)),
+                eq: Some(eq_on(eq_bands(
+                    [150.0, -2.0, 0.7],
+                    [350.0, -2.0, 1.2],
+                    [3000.0, 3.0, 1.0],
+                    [10_000.0, 2.0, 0.7],
+                ))),
+                comp: Some(comp_on(-20.0, 3.0, 8.0, 120.0, 3.0)),
+                ..StripPatch::default()
+            },
+        ),
+        preset(
+            "music-bed",
+            "Music bed",
+            StripPatch {
+                highpass: Some(highpass_on(40.0)),
+                eq: Some(eq_on(eq_bands(
+                    [120.0, 0.0, 0.7],
+                    [400.0, 0.0, 1.0],
+                    [2500.0, -3.0, 1.4],
+                    [9000.0, -1.0, 0.7],
+                ))),
+                comp: Some(comp_on(-24.0, 2.0, 30.0, 300.0, 0.0)),
+                fader: Some(-6.0),
+                ..StripPatch::default()
+            },
+        ),
+        preset(
+            "punchy-effects",
+            "Punchy effects",
+            StripPatch {
+                highpass: Some(highpass_on(60.0)),
+                eq: Some(eq_on(eq_bands(
+                    [100.0, 2.0, 0.7],
+                    [600.0, -2.0, 1.0],
+                    [4000.0, 2.0, 1.0],
+                    [9000.0, 1.0, 0.7],
+                ))),
+                comp: Some(comp_on(-16.0, 4.0, 3.0, 80.0, 2.0)),
+                ..StripPatch::default()
+            },
+        ),
+    ]
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct MixerBook {
+    pub sample_rate: u32,
+    pub min_db: f64,
+    pub silence_db: f64,
+    pub max_db: f64,
+    pub fader: NumberRange,
+    pub trim: NumberRange,
+    pub pan: NumberRange,
+    pub highpass: NumberRange,
+    pub limiter_ceiling: NumberRange,
+    pub comp: CompRanges,
+    pub duck: DuckRanges,
+    pub eq_band: EqBandBounds,
+    pub eq_types: Vec<EqType>,
+    pub default_strip: Strip,
+    pub default_master: Master,
+    pub built_in_buses: Vec<String>,
+    pub loudness: Vec<LoudnessChoice>,
+    pub presets: Vec<StripPreset>,
+}
+
+pub fn mixer_book() -> MixerBook {
+    MixerBook {
+        sample_rate: SAMPLE_RATE,
+        min_db: MIN_DB,
+        silence_db: SILENCE_DB,
+        max_db: MAX_DB,
+        fader: FADER_RANGE,
+        trim: TRIM_RANGE,
+        pan: PAN_RANGE,
+        highpass: HIGHPASS_RANGE,
+        limiter_ceiling: LIMITER_CEILING_RANGE,
+        comp: COMP_RANGES,
+        duck: DUCK_RANGES,
+        eq_band: EQ_BAND_BOUNDS,
+        eq_types: vec![EqType::Lowshelf, EqType::Peak, EqType::Highshelf],
+        default_strip: Strip::default(),
+        default_master: Master::default(),
+        built_in_buses: default_buses().into_iter().map(|b| b.id).collect(),
+        loudness: LOUDNESS_TARGETS
+            .iter()
+            .map(|t| LoudnessChoice {
+                target: *t,
+                goal: t.target(),
+            })
+            .collect(),
+        presets: strip_presets(),
+    }
 }

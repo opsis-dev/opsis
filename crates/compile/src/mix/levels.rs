@@ -3,7 +3,7 @@ use opsis_types::mix::{Bus, ChannelKind, Mix, Strip, db_to_gain};
 use opsis_types::timeline::{AudioItem, Duck, TimelineItem, TimelineSpec, TimelineTrack};
 use serde_json::Value;
 
-use crate::audio::{audio_kind, channel_of};
+use crate::audio::{audio_kind, channel_of, sound_length};
 use crate::clip::{map_items, sound_node_id, video_of, walk_items};
 use crate::time::{ms_to_exact_frames, ms_to_frames};
 use crate::timeline::flatten::FlatTimeline;
@@ -119,6 +119,46 @@ pub fn duck_keys_for(mix: &Mix, bus: &Bus, channels: &[ChannelInfo], fps: u32) -
         .collect()
 }
 
+fn merged(mut spans: Vec<(f64, f64)>) -> Vec<(f64, f64)> {
+    spans.retain(|(a, b)| b > a);
+    spans.sort_by(|x, y| x.0.total_cmp(&y.0));
+    let mut out: Vec<(f64, f64)> = Vec::new();
+    for (a, b) in spans {
+        match out.last_mut() {
+            Some(last) if a <= last.1 => last.1 = last.1.max(b),
+            _ => out.push((a, b)),
+        }
+    }
+    out
+}
+
+fn clip_sounds(flat: &FlatTimeline) -> impl Iterator<Item = (&str, f64, f64)> {
+    flat.audio
+        .iter()
+        .filter(|a| a.role == ChannelKind::Clip)
+        .map(|a| (a.channel.as_str(), a.from, a.to))
+}
+
+pub fn duck_spans<'a>(
+    spec: &TimelineSpec,
+    clips: impl IntoIterator<Item = (&'a str, f64, f64)>,
+    keys: &[String],
+) -> Vec<(f64, f64)> {
+    let sounds = spec
+        .audio
+        .iter()
+        .filter(|a| a.keep_music != Some(true) && keys.contains(&channel_of(a)))
+        .map(|a| {
+            let from = f64::from(a.from);
+            (from, from + sound_length(a, spec.duration_in_frames))
+        });
+    let clips = clips
+        .into_iter()
+        .filter(|(channel, _, _)| keys.iter().any(|k| k == channel))
+        .map(|(_, from, to)| (from, to));
+    merged(sounds.chain(clips).collect())
+}
+
 pub fn apply_mix_levels(
     spec: &TimelineSpec,
     mix: Option<&Mix>,
@@ -138,6 +178,7 @@ pub fn apply_mix_levels(
                     Duck {
                         level: db_to_gain(-bus.duck.amount),
                         fade_frames: ms_to_frames(bus.duck.attack, spec.fps),
+                        spans: duck_spans(spec, clip_sounds(flat), &keys),
                         keys,
                     },
                 )

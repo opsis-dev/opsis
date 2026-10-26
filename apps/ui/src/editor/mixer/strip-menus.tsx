@@ -1,4 +1,3 @@
-import { pick } from "@opsis/video/common/objects";
 import { Ellipsis } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,13 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BUS_SETTING_KEYS, stripSettings, STRIP_PRESETS, type StripSettings } from "@/core/mix";
+import { busSettings, stripSettings, type StripSettings } from "@/core/mix";
 import type { BusPatch, Strip, StripPatch } from "@/generated/bindings";
+import { mixerBook } from "@/store/catalog";
 import { useMixerState } from "./mixer-state";
 
 type Apply<T> = (patch: T) => void;
 
-const busPart = (settings: Partial<StripSettings>): BusPatch => pick(settings, BUS_SETTING_KEYS);
+const busPart = (settings: Partial<StripSettings>): BusPatch => busSettings(settings);
 
 function SettingsMenu({
   label,
@@ -44,9 +44,9 @@ function PresetItems({
   onApply,
 }: {
   disabled?: boolean;
-  onApply: (settings: Partial<StripSettings>) => void;
+  onApply: (settings: StripPatch) => void;
 }) {
-  return STRIP_PRESETS.map((p) => (
+  return mixerBook().presets.map((p) => (
     <DropdownMenuItem key={p.id} disabled={disabled} onClick={() => onApply(p.strip)}>
       {p.label}
     </DropdownMenuItem>

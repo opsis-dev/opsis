@@ -160,24 +160,6 @@ pub async fn create_project(
 
 #[tauri::command]
 #[specta::specta]
-pub fn watch_project_files(
-    state: State<'_, AppState>,
-    dir: String,
-    refs: Vec<String>,
-) -> CommandResult<()> {
-    let dir = PathBuf::from(dir);
-    let mut watching = state.watching.lock().expect("watching");
-    if watching.dir.as_ref() == Some(&dir)
-        && let Some(files) = watching.files.as_mut()
-    {
-        files.follow(&refs);
-    }
-    watching.refs = Some((dir, refs));
-    Ok(())
-}
-
-#[tauri::command]
-#[specta::specta]
 pub fn read_last_run(dir: String) -> CommandResult<Option<LastRun>> {
     Ok(read_project_last_run(Path::new(&dir))?)
 }

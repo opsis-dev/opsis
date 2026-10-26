@@ -1,6 +1,6 @@
 use opsis_compile::clip::{item_has_sound, walk_items};
 use opsis_compile::compile::compile_workflow;
-use opsis_compile::mix::levels::{apply_mix_levels, with_master_stem};
+use opsis_compile::mix::levels::{apply_mix_levels, duck_spans, with_master_stem};
 use opsis_compile::mix::plan::{MixPlan, build_mix_plan, channel_identity};
 use opsis_compile::timeline::flatten::flatten_spec;
 use opsis_types::mix::{Mix, Strip, db_to_gain};
@@ -8,7 +8,7 @@ use opsis_types::timeline::{AudioItem, TimelineItem, TimelineSpec};
 use opsis_types::workflow::Workflow;
 use serde_json::{Value, json};
 
-use crate::helpers::{Graph, TITLE, film_spec};
+use crate::helpers::{Graph, TITLE, film, film_spec};
 
 fn project(mix: Option<Mix>) -> (Workflow, TimelineSpec) {
     let mut g = Graph::default();
@@ -296,5 +296,77 @@ fn changes_the_plan_key_but_not_the_channel_stem_key_when_only_routing_changes()
             .unwrap()
             .channels
             .is_empty()
+    );
+}
+
+fn duck_spec(audio: Value) -> TimelineSpec {
+    let mut spec = serde_json::to_value(film_spec(&film(|g| {
+        g.node("t", TITLE, json!({ "clipDuration": 300 }))
+    })))
+    .unwrap();
+    spec["audio"] = audio;
+    spec["durationInFrames"] = json!(300);
+    serde_json::from_value(spec).unwrap()
+}
+
+fn effect(id: &str, from: i32, extra: Value) -> Value {
+    let mut item = json!({ "id": id, "src": "app:sfx/whoosh.wav", "from": from, "role": "effect", "lengthFrames": 10, "channel": id });
+    if let (Some(item), Value::Object(extra)) = (item.as_object_mut(), extra) {
+        item.extend(extra);
+    }
+    item
+}
+
+fn keys(ids: &[&str]) -> Vec<String> {
+    ids.iter().map(|id| (*id).to_owned()).collect()
+}
+
+#[test]
+fn merges_overlapping_duck_spans() {
+    let spec = duck_spec(json!([
+        effect("a", 20, json!({})),
+        effect("b", 0, json!({})),
+        effect("c", 5, json!({ "lengthFrames": 7 })),
+        effect("d", 30, json!({})),
+    ]));
+    assert_eq!(
+        duck_spans(&spec, [], &keys(&["a", "b", "c", "d"])),
+        [(0.0, 12.0), (20.0, 40.0)]
+    );
+}
+
+#[test]
+fn ducks_under_the_key_channels_but_not_other_or_keep_music_sounds() {
+    let spec = duck_spec(json!([
+        { "id": "m", "src": "song.mp3", "from": 0, "role": "music", "channel": "m" },
+        effect("a", 30, json!({})),
+        effect("b", 100, json!({ "keepMusic": true })),
+    ]));
+    assert_eq!(
+        duck_spans(&spec, [], &keys(&["a", "b", "v"])),
+        [(30.0, 40.0)]
+    );
+}
+
+#[test]
+fn ducks_effects_of_unknown_length_to_the_end_unless_placed_shorter() {
+    let open = duck_spec(
+        json!([{ "id": "a", "src": "x.wav", "from": 0, "role": "effect", "channel": "a" }]),
+    );
+    assert_eq!(duck_spans(&open, [], &keys(&["a"])), [(0.0, 300.0)]);
+    let placed = duck_spec(
+        json!([{ "id": "b", "src": "x.wav", "from": 100, "role": "effect", "channel": "b", "durationInFrames": 12 }]),
+    );
+    assert_eq!(duck_spans(&placed, [], &keys(&["b"])), [(100.0, 112.0)]);
+}
+
+#[test]
+fn ducks_under_the_clips_with_sound_on_a_key_channel() {
+    let spec = duck_spec(json!([effect("a", 0, json!({}))]));
+    let clips = [("v", 60.0, 150.0), ("q", 0.0, 20.0)];
+    assert_eq!(duck_spans(&spec, clips, &keys(&["v"])), [(60.0, 150.0)]);
+    assert_eq!(
+        duck_spans(&spec, clips, &keys(&["a", "v"])),
+        [(0.0, 10.0), (60.0, 150.0)]
     );
 }

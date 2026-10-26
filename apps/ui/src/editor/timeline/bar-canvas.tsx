@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "r
 import { barLocalAt } from "@/core/clock";
 import type {
   AudioBar,
-  BarClock,
+  LocalFrames,
   BarThumbnail,
   Filmstrip,
   VideoBar,
@@ -116,7 +116,7 @@ const sourceMs = (thumb: Filmed, local: number, fps: number): number =>
 
 type SpriteGeometry = {
   bar: VideoBar;
-  clock: BarClock | undefined;
+  frames: LocalFrames | undefined;
   thumb: Filmed;
   left: number;
   height: number;
@@ -135,7 +135,7 @@ function drawSprite(
   for (let x = tileStart(g.left, part.offset, tileW); x < part.offset + part.width; x += tileW) {
     const abs = (g.left + x + tileW / 2) / g.pxPerFrame;
     const at = clamp(abs, g.bar.from, g.bar.to - END_EPSILON);
-    const ms = sourceMs(g.thumb, barLocalAt(g.clock, g.bar, at), g.fps);
+    const ms = sourceMs(g.thumb, barLocalAt(g.frames, g.bar, at), g.fps);
     const index = clamp(Math.floor(ms / strip.intervalMs), 0, strip.count - 1);
     ctx.drawImage(
       img,
@@ -166,9 +166,9 @@ function drawStill(
 export function FilmstripCanvas({
   bar,
   fps,
-  clock,
+  frames,
   ...canvas
-}: MediaCanvasProps & { bar: VideoBar; fps: number; clock: BarClock | undefined }) {
+}: MediaCanvasProps & { bar: VideoBar; fps: number; frames: LocalFrames | undefined }) {
   const source = bar.thumbnail;
   const filmSrc = source?.kind === "filmstrip" ? source.src : null;
   const strip = useMedia(loadedFilmstrip(filmSrc));
@@ -182,7 +182,7 @@ export function FilmstripCanvas({
     if (source?.kind === "filmstrip" && strip && spriteImg) {
       const geometry = {
         bar,
-        clock,
+        frames,
         thumb: source,
         left: box.left,
         height,
@@ -193,7 +193,7 @@ export function FilmstripCanvas({
     }
     if (stillImg) return (ctx, part) => drawStill(ctx, part, stillImg, box.left, height);
     return null;
-  }, [source, strip, spriteImg, stillImg, bar, clock, box.left, height, view.pxPerFrame, fps]);
+  }, [source, strip, spriteImg, stillImg, bar, frames, box.left, height, view.pxPerFrame, fps]);
   return <MediaCanvas {...canvas} draw={draw} className="opacity-60" />;
 }
 

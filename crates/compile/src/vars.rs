@@ -6,8 +6,9 @@ use serde_json::{Map, Value};
 
 use crate::text::project_folder_name;
 
-static VAR: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"\{\{\s*([^{}]+?)\s*\}\}").expect("pattern"));
+pub const VAR_PATTERN: &str = r"\{\{\s*([^{}]+?)\s*\}\}";
+
+static VAR: LazyLock<Regex> = LazyLock::new(|| Regex::new(VAR_PATTERN).expect("pattern"));
 
 pub const PAUSE_MARK: char = '¦';
 pub const SITE_ADDRESS_VAR: &str = "Site address";

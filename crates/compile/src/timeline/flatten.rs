@@ -4,6 +4,7 @@ use std::sync::Arc;
 use indexmap::IndexMap;
 use opsis_types::actions::{Action, ActionKind};
 use opsis_types::mix::ChannelKind;
+use opsis_types::numbers::whole;
 use opsis_types::recording::RecordingProps;
 use opsis_types::timeline::{
     AudioItem, EditHandles, GroupProps, Slot, TimelineItem, TimelineSpec, TimelineTrack,
@@ -164,38 +165,26 @@ pub struct VideoBar {
 
 #[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct ClockStep {
-    pub from: f64,
-    pub start_from: f64,
-    pub loop_offset: f64,
-    pub remap: Option<Vec<(f64, f64)>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct BarClock {
-    pub steps: Vec<ClockStep>,
-    pub item_from: f64,
-    pub content_end: f64,
+pub struct LocalFrames {
+    pub first: f64,
+    pub values: Vec<f64>,
 }
 
 impl VideoBar {
-    pub fn clock(&self) -> BarClock {
-        BarClock {
-            steps: self
-                .clock
-                .inst
-                .steps
-                .iter()
-                .map(|s| ClockStep {
-                    from: s.from,
-                    start_from: s.start_from,
-                    loop_offset: s.loop_offset,
-                    remap: s.remap.as_deref().cloned(),
-                })
+    pub fn local_at(&self, abs: f64) -> f64 {
+        let clock = &self.clock;
+        bisect(&clock.inst, clock.item_from, clock.content_end, abs) - clock.item_from
+    }
+
+    pub fn local_frames(&self) -> LocalFrames {
+        let first = self.from.floor();
+        let last = self.to.ceil();
+        let count = whole((last - first).max(0.0)) + 1;
+        LocalFrames {
+            first,
+            values: (0..count)
+                .map(|i| self.local_at(first + f64::from(i)))
                 .collect(),
-            item_from: self.clock.item_from,
-            content_end: self.clock.content_end,
         }
     }
 }

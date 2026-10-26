@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use opsis_types::mix::{MixerBook, mixer_book};
 use opsis_types::workflow::PortType;
 use serde::Serialize;
 use serde_json::Value;
@@ -9,6 +10,7 @@ use crate::params::Values;
 use crate::ports::can_connect;
 use crate::registry::{node_def, registry};
 use crate::size::estimate_card_height;
+use crate::vars::{PAUSE_MARK, VAR_PATTERN};
 
 #[derive(Debug, Clone, PartialEq, Serialize, schemars::JsonSchema, specta::Type)]
 #[schemars(rename = "Port")]
@@ -158,10 +160,19 @@ pub struct PortLink {
 }
 
 #[derive(Debug, Clone, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct TextRules {
+    pub variable_pattern: String,
+    pub pause_mark: String,
+}
+
+#[derive(Debug, Clone, Serialize, specta::Type)]
 pub struct EditorCatalog {
     pub nodes: Vec<EditorNode>,
     pub transitions: IndexMap<String, String>,
     pub connects: Vec<PortLink>,
+    pub text: TextRules,
+    pub mixer: MixerBook,
 }
 
 pub fn editor_bundle(platform: Platform) -> EditorCatalog {
@@ -185,5 +196,10 @@ pub fn editor_bundle(platform: Platform) -> EditorCatalog {
         nodes: editor_catalog(platform),
         transitions,
         connects,
+        text: TextRules {
+            variable_pattern: VAR_PATTERN.to_owned(),
+            pause_mark: PAUSE_MARK.to_string(),
+        },
+        mixer: mixer_book(),
     }
 }

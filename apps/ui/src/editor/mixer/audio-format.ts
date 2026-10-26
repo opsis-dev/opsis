@@ -1,5 +1,5 @@
 import { MINUS, signedText } from "@opsis/video/common/format";
-import { MIN_DB, SILENCE_DB } from "@/core/mix";
+import { mixerBook } from "@/store/catalog";
 
 const WHOLE_MS_FROM = 100;
 const KILOHERTZ_FROM = 1000;
@@ -13,9 +13,9 @@ export const formatSignedDb = (v: number): string => signedText(v, { digits: 1, 
 export const formatReading = (v: number, floor = -Infinity, plus = false): string =>
   Number.isNaN(v) || v <= floor ? MINUS_INFINITY : signedText(v, { digits: 1, plus });
 
-export const formatDb = (v: number): string => formatReading(v, MIN_DB, true);
+export const formatDb = (v: number): string => formatReading(v, mixerBook().minDb, true);
 
-export const formatLevelDb = (v: number): string => formatReading(v, SILENCE_DB, true);
+export const formatLevelDb = (v: number): string => formatReading(v, mixerBook().silenceDb, true);
 
 export const formatHz = (v: number): string =>
   v >= KILOHERTZ_FROM

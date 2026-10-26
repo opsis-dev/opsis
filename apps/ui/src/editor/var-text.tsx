@@ -9,7 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PAUSE_MARK, tokenize, varToken, type TextToken } from "@/core/vars";
+import { pauseMark, tokenize, varToken, type TextToken } from "@/core/vars";
 import { cn } from "@/lib/utils";
 
 export type VarInfo = { name: string; value: string };
@@ -45,7 +45,7 @@ function serializeNode(n: Node, index: number): string {
   if (n.nodeType === Node.TEXT_NODE) return n.nodeValue ?? "";
   if (!(n instanceof HTMLElement)) return "";
   if (n.dataset.var !== undefined) return varToken(n.dataset.var);
-  if (n.dataset.pause !== undefined) return PAUSE_MARK;
+  if (n.dataset.pause !== undefined) return pauseMark();
   switch (n.tagName) {
     case "BR":
       return "\n";

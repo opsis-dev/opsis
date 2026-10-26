@@ -350,6 +350,7 @@ pub struct Duck {
     pub level: f64,
     pub fade_frames: u32,
     pub keys: Vec<String>,
+    pub spans: Vec<(f64, f64)>,
 }
 
 #[derive(

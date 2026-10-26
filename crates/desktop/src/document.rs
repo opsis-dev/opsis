@@ -269,6 +269,20 @@ pub async fn adopt(
     opened_project(&state, dir).await
 }
 
+pub fn follow_loaded_files(app: &AppHandle, dir: PathBuf, refs: Vec<String>) {
+    let state = app.state::<AppState>();
+    let mut watching = state.watching.lock().expect("watching");
+    if watching.refs.as_ref() == Some(&(dir.clone(), refs.clone())) {
+        return;
+    }
+    if watching.dir.as_ref() == Some(&dir)
+        && let Some(files) = watching.files.as_mut()
+    {
+        files.follow(&refs);
+    }
+    watching.refs = Some((dir, refs));
+}
+
 pub fn edit(app: &AppHandle, edit: WorkflowEdit) -> Result<Edited, DocumentError> {
     let edited = {
         let state = app.state::<AppState>();

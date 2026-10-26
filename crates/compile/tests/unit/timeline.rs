@@ -267,3 +267,28 @@ fn writes_chapter_lists_and_escaped_metadata() {
         .join("\n")
     );
 }
+
+#[test]
+fn gives_each_bar_its_local_frame_at_every_timeline_frame() {
+    let wf = film(|g| {
+        g.node("t", TITLE, json!({ "clipDuration": 120 }));
+        g.node(
+            "trim",
+            "timeline.trim",
+            json!({ "startMs": 1000, "durationMs": 0 }),
+        );
+        g.node("speed", "timeline.speed", json!({ "rate": 2 }));
+        g.link("t", "trim").link("trim", "speed");
+        "speed".into()
+    });
+    let bar = flat_film(&wf).bars.remove(0);
+    let frames = bar.local_frames();
+    assert_eq!(frames.first, 0.0);
+    for (i, local) in frames.values.iter().take(40).enumerate() {
+        let expected = 30.0 + 2.0 * f64::from(u32::try_from(i).unwrap());
+        assert!(
+            near(*local, expected, 0.01),
+            "frame {i}: {local} isn't {expected}"
+        );
+    }
+}

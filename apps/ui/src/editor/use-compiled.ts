@@ -4,8 +4,9 @@ import { attempt } from "@/lib/toast";
 import { singleSelected, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 
-export type Compiled = Omit<EditorCompile, "seq" | "result"> & {
+export type Compiled = Omit<EditorCompile, "seq" | "result" | "mix"> & {
   result: EditorCompile["result"] | null;
+  mix: EditorCompile["mix"] | null;
 };
 
 const EMPTY: Compiled = {
@@ -17,7 +18,9 @@ const EMPTY: Compiled = {
   levelled: null,
   cards: {},
   inspector: null,
-  clocks: {},
+  localFrames: {},
+  mix: null,
+  solo: false,
 };
 
 function useLatest(): [Compiled, (compiled: EditorCompile) => void] {

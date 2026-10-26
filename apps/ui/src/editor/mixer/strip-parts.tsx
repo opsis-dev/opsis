@@ -1,7 +1,8 @@
 import { Toggle } from "@/components/ui/toggle";
-import { HIGHPASS_RANGE, type BusSettings } from "@/core/mix";
+import type { BusSettings } from "@/core/mix";
 import type { Strip } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { mixerBook } from "@/store/catalog";
 import { WithTooltip } from "../with-tooltip";
 import { formatDb, formatHz } from "./audio-format";
 import { bindChange, bindEq, bindGain, bindHighpass, type PreviewTarget } from "./bindings";
@@ -132,7 +133,7 @@ export function HighpassKnob({ controls, target, updateHighpass }: StripBinding)
       label="Hz"
       size={24}
       value={controls.highpass.freq}
-      {...rangeProps(HIGHPASS_RANGE)}
+      {...rangeProps(mixerBook().highpass)}
       step={1}
       log
       format={formatHz}

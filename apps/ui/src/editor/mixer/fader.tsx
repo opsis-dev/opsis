@@ -1,7 +1,7 @@
 import { percent } from "@opsis/video/common/format";
-import { MAX_DB, MIN_DB } from "@/core/mix";
 import { fractionIn, onArrowKey } from "@/lib/dom";
 import { usePointerDrag } from "@/lib/use-pointer-drag";
+import { mixerBook } from "@/store/catalog";
 import { formatDb } from "./audio-format";
 import { commitOnce, type Gesture } from "./gesture";
 import { fractionToValue, snapValue, valueToFraction, type KnobRange } from "./knob-math";
@@ -9,12 +9,16 @@ import { fractionToValue, snapValue, valueToFraction, type KnobRange } from "./k
 const STEP_DB = 0.5;
 const BIG_STEP_DB = 6;
 
-const FADER_RANGE: KnobRange = { min: MIN_DB, max: MAX_DB, step: STEP_DB };
+const faderRange = (): KnobRange => ({
+  min: mixerBook().minDb,
+  max: mixerBook().maxDb,
+  step: STEP_DB,
+});
 
-const faderPosition = (value: number) => valueToFraction(FADER_RANGE, value);
+const faderPosition = (value: number) => valueToFraction(faderRange(), value);
 
 const valueAt = (el: HTMLElement, clientY: number): number =>
-  fractionToValue(FADER_RANGE, 1 - fractionIn(el.getBoundingClientRect(), 0, clientY).y);
+  fractionToValue(faderRange(), 1 - fractionIn(el.getBoundingClientRect(), 0, clientY).y);
 
 export function Fader({
   value,
@@ -38,8 +42,8 @@ export function Fader({
       role="slider"
       tabIndex={0}
       aria-label={label}
-      aria-valuemin={MIN_DB}
-      aria-valuemax={MAX_DB}
+      aria-valuemin={mixerBook().minDb}
+      aria-valuemax={mixerBook().maxDb}
       aria-valuenow={value}
       aria-valuetext={`${formatDb(value)} dB`}
       title={`${label}: ${formatDb(value)} dB. Double-click for 0 dB.`}
@@ -49,7 +53,7 @@ export function Fader({
       onKeyDown={(e) =>
         onArrowKey(e, (dir, big) => {
           const step = big ? BIG_STEP_DB : STEP_DB;
-          commitOnce(gesture, snapValue(FADER_RANGE, value + dir * step));
+          commitOnce(gesture, snapValue(faderRange(), value + dir * step));
         })
       }
     >

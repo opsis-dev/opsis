@@ -29,7 +29,6 @@ pub fn builder() -> Builder<tauri::Wry> {
             document::resolve_disk_change,
             projects::project_folder,
             projects::create_project,
-            projects::watch_project_files,
             projects::read_last_run,
             projects::import_assets,
             projects::clear_cache,

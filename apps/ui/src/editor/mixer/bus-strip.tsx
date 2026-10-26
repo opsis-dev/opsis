@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BUILT_IN_BUSES } from "@/core/mix";
 import type { Bus, BusPatch, Mix, MixResult } from "@/generated/bindings";
+import { mixerBook } from "@/store/catalog";
 import { workflowEdits } from "../../store/workflow";
 import { useRenaming } from "../inline-edit";
 import { bindChange, previewTarget } from "./bindings";
@@ -70,7 +70,7 @@ export function BusStrip({
     <StripShell className="bg-muted/30">
       <div className="flex w-full items-center gap-0.5">
         <BusName bus={bus} onRename={(name) => update({ name })} />
-        {!BUILT_IN_BUSES.has(bus.id) ? (
+        {!mixerBook().builtInBuses.includes(bus.id) ? (
           <Button
             variant="ghost"
             size="icon-xs"

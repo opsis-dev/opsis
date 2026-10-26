@@ -1,23 +1,22 @@
 import { useMemo } from "react";
-import { duckGain, duckingSpans } from "@/core/duck";
-import type { FlatTimeline, TimelineSpec } from "@/generated/bindings";
+import { duckGain } from "@/core/duck";
+import type { TimelineSpec } from "@/generated/bindings";
 import type { Gain } from "./bar-canvas";
 
 const NO_GAIN: Gain = () => 1;
 
-type DuckedFilm = { levelled: TimelineSpec | null; flat: FlatTimeline | null };
+type DuckedFilm = { levelled: TimelineSpec | null };
 
-export function useDuckGains({ levelled, flat }: DuckedFilm): (id: string) => Gain {
+export function useDuckGains({ levelled }: DuckedFilm): (id: string) => Gain {
   const gains = useMemo(() => {
     const out = new Map<string, Gain>();
-    if (!levelled || !flat) return out;
+    if (!levelled) return out;
     for (const a of levelled.audio) {
       if (!a.duck) continue;
-      const spans = duckingSpans(levelled, new Set(a.duck.keys), flat);
-      const { level, fadeFrames } = a.duck;
+      const { level, fadeFrames, spans } = a.duck;
       out.set(a.id, (abs) => duckGain(abs, spans, level, fadeFrames));
     }
     return out;
-  }, [levelled, flat]);
+  }, [levelled]);
   return (id) => gains.get(id) ?? NO_GAIN;
 }

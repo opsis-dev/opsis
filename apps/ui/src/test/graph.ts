@@ -1,7 +1,7 @@
 import { edgeId, randomId } from "@/core/ids";
 import { CLIP_PORT, COLUMN_WIDTH, ROW_HEIGHT } from "@/core/nodes";
 import type {
-  BarClock,
+  LocalFrames,
   FlatTimeline,
   NodeResult,
   TimelineSpec,
@@ -96,7 +96,7 @@ export function buildFilm(fn: (g: GraphBuilder) => string): Workflow {
 type Film = {
   spec: TimelineSpec | null;
   flat: FlatTimeline | null;
-  clocks: Record<string, BarClock>;
+  localFrames: Record<string, LocalFrames>;
 };
 
 export const film = (wf: Workflow): Film => editorData("film", JSON.stringify(wf)) as Film;

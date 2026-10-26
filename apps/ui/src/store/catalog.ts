@@ -8,6 +8,8 @@ import {
   type MenuSection,
   type PortType,
   type TemplateInfo,
+  type MixerBook,
+  type TextRules,
 } from "@/generated/bindings";
 
 type Params = Record<string, unknown>;
@@ -20,6 +22,8 @@ const loaded: {
   menu: MenuSection[];
   transitions: Record<string, string>;
   connects: Set<string>;
+  text: TextRules;
+  mixer: MixerBook | null;
   templates: TemplateInfo[];
 } = {
   nodes: [],
@@ -27,6 +31,8 @@ const loaded: {
   menu: [],
   transitions: {},
   connects: new Set(),
+  text: { variablePattern: "(?!)", pauseMark: "" },
+  mixer: null,
   templates: [],
 };
 
@@ -43,12 +49,21 @@ export async function loadCatalog(): Promise<void> {
 
 export function applyCatalog({ catalog, menu, templates }: CatalogData): void {
   loaded.templates = templates;
-  const { nodes, transitions, connects } = catalog;
+  const { nodes, transitions, connects, text, mixer } = catalog;
+  loaded.text = text;
+  loaded.mixer = mixer;
   loaded.nodes = nodes;
   loaded.transitions = transitions;
   loaded.connects = new Set(connects.map((link) => `${link.from}>${link.to}`));
   loaded.byType = new Map(nodes.map((n) => [n.type, n]));
   loaded.menu = menu;
+}
+
+export const textRules = (): TextRules => loaded.text;
+
+export function mixerBook(): MixerBook {
+  if (!loaded.mixer) throw new Error("The node catalogue hasn't loaded yet.");
+  return loaded.mixer;
 }
 
 export const NO_TRANSITION = "none";

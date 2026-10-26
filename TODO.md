@@ -10,13 +10,7 @@ What's left outside the release plan: the places in the codebase that don't read
 
 ### 8. Logic written twice, in TS and in Rust
 
-- graph walks: `apps/ui/src/core/graph.ts` and `crates/compile/src/graph.rs`;
-- bar clocks: `apps/ui/src/core/clock.ts` and `BarClock` in `crates/compile/src/timeline/flatten.rs`;
-- ducking spans: `apps/ui/src/core/duck.ts` and the mix plan;
-- variables: `apps/ui/src/core/vars.ts` and `crates/compile/src/vars.rs`;
 - asset refs and font faces: `packages/video/src/common/asset-ref.ts` and `fonts.ts`, and `crates/compile/src/asset_ref.rs`, `fonts`, `elements/prepared.rs`;
-- mixer ranges and defaults: `apps/ui/src/core/mix.ts`;
-- settings defaults: `schemaDefaults` in `apps/ui/src/core/schema.ts` and `NodeDef::defaults`.
 
 Keep one implementation in Rust and send the UI what it needs.
 

@@ -23,7 +23,6 @@ import { CompiledContext, useCompiled } from "./use-compiled";
 import { useFileChanges } from "./use-file-changes";
 import { useHandOverDrafts } from "./use-hand-over-drafts";
 import { useMenuCommands } from "./use-menu-commands";
-import { useWatchLoadedFiles } from "./use-watch-loaded-files";
 
 function InspectorPanel() {
   const open = usePanels((s) => s.open.right);
@@ -65,7 +64,6 @@ export function Editor({ projectDir }: { projectDir: string }) {
     panelIds: ["canvas", "bottom"],
   });
   useEditorSetup(projectDir);
-  useWatchLoadedFiles(projectDir, compiled.result);
 
   return (
     <ReactFlowProvider>

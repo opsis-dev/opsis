@@ -196,7 +196,7 @@ function useTimelineScene({ scroller, scroll, zoom, film, workflow, commands }: 
     drag,
     select,
     splitAt: commands.splitAt,
-    clocks: film.clocks,
+    localFrames: film.localFrames,
   };
   return { ...geometry, beats, gainFor, drag, select, ctx };
 }

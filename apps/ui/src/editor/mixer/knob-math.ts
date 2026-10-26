@@ -1,5 +1,5 @@
 import { clamp, clamp01, normalize, type StepRange } from "@opsis/video/common/math";
-import type { NumberRange } from "@/core/mix";
+import type { NumberRange } from "@/generated/bindings";
 
 export const SWEEP_DEG = 270;
 export const START_DEG = -SWEEP_DEG / 2;

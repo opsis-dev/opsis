@@ -135,7 +135,7 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
   const { title, wrappers } = barTitles(ctx.workflow, bar);
   const envelope = useBarEnvelope(ctx, bar.nodeId, videoEnvelope, {
     toX: (local) => ((local - bar.contentStart) / bar.rate) * ppf,
-    toLocal: (abs) => barLocalAt(ctx.clocks[bar.key], bar, abs),
+    toLocal: (abs) => barLocalAt(ctx.localFrames[bar.key], bar, abs),
   });
 
   const onPress = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -169,7 +169,7 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
     >
       <FilmstripCanvas
         bar={bar}
-        clock={ctx.clocks[bar.key]}
+        frames={ctx.localFrames[bar.key]}
         box={box}
         height={HEIGHT}
         view={ctx.viewport}

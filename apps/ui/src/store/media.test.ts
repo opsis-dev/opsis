@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_MASTER } from "@/core/mix";
 import type { MixPlan } from "@/generated/bindings";
+import { mixerBook } from "@/store/catalog";
 import { useMedia } from "./media";
 
 const failingAnalyze = vi.fn(() => Promise.reject(new Error("worker gone")));
@@ -29,7 +29,7 @@ describe("media requests", () => {
       durationInFrames: 30,
       channels: [],
       buses: [],
-      master: DEFAULT_MASTER,
+      master: mixerBook().defaultMaster,
       key: "silent",
     };
     useMedia.getState().requestMix("film", plan);

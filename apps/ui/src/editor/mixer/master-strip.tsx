@@ -3,12 +3,6 @@ import { Ellipsis } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  DEFAULT_MASTER,
-  LIMITER_CEILING_RANGE,
-  LOUDNESS_CHOICES,
-  LOUDNESS_TARGETS,
-} from "@/core/mix";
 import { loudnessName } from "@/core/nodes";
 import type {
   Loudness,
@@ -17,6 +11,7 @@ import type {
   MasterPatch,
   MixResult,
 } from "@/generated/bindings";
+import { mixerBook } from "@/store/catalog";
 import { usePlayback } from "../../store/playback";
 import { workflowEdits } from "../../store/workflow";
 import { OptionSelect } from "../option-select";
@@ -29,8 +24,11 @@ import { rangeProps } from "./knob-math";
 import { sampleAt } from "./meter-levels";
 import { FaderMeter } from "./strip-parts";
 
+const loudnessGoal = (target: LoudnessTarget) =>
+  mixerBook().loudness.find((c) => c.target === target)?.goal ?? null;
+
 function loudnessLabel(target: LoudnessTarget): string {
-  const aim = LOUDNESS_TARGETS[target];
+  const aim = loudnessGoal(target);
   return aim ? `${loudnessName(aim.lufs)} (${signedText(aim.lufs)})` : "Off";
 }
 
@@ -68,7 +66,7 @@ function LoudnessReadouts({
   target: LoudnessTarget;
 }) {
   const frame = usePlayback((s) => s.frame);
-  const aim = LOUDNESS_TARGETS[target];
+  const aim = loudnessGoal(target);
   return (
     <div className="flex w-full flex-col gap-0.5 border-t pt-1">
       <Readout
@@ -112,7 +110,7 @@ function LimiterRow({ limiter }: { limiter: Master["limiter"] }) {
         label="Ceiling"
         size={24}
         value={limiter.ceiling}
-        {...rangeProps(LIMITER_CEILING_RANGE)}
+        {...rangeProps(mixerBook().limiterCeiling)}
         step={0.1}
         format={formatDb}
         unit="dB"
@@ -130,7 +128,7 @@ function LoudnessSelect({ value }: { value: LoudnessTarget }) {
       <OptionSelect
         label="Loudness target"
         value={value}
-        options={LOUDNESS_CHOICES}
+        options={mixerBook().loudness.map((c) => c.target)}
         optionLabel={loudnessLabel}
         className="h-6 w-full px-1.5 text-[11px]"
         onChange={(loudness) => updateMaster({ loudness })}
@@ -151,7 +149,7 @@ export function MasterStrip({ master, result }: { master: Master; result: MixRes
             size="icon-xs"
             aria-label="Reset master"
             title="Reset master"
-            onClick={() => updateMaster(DEFAULT_MASTER)}
+            onClick={() => updateMaster(mixerBook().defaultMaster)}
           >
             <Ellipsis />
           </Button>

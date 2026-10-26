@@ -1,6 +1,6 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DEFAULT_EQ_BANDS, EQ_BAND_BOUNDS, EQ_TYPES } from "@/core/mix";
 import type { Eq, EqBand, EqType } from "@/generated/bindings";
+import { mixerBook } from "@/store/catalog";
 import { OptionSelect } from "../option-select";
 import { formatDb, formatHz } from "./audio-format";
 import type { EqGestures } from "./bindings";
@@ -19,7 +19,7 @@ const bandKnobs = (defaults: EqBand): Array<KnobSpec<"freq" | "gain" | "q">> => 
   {
     field: "freq",
     label: "Freq",
-    ...EQ_BAND_BOUNDS.freq,
+    ...mixerBook().eqBand.freq,
     step: 1,
     reset: defaults.freq,
     log: true,
@@ -29,7 +29,7 @@ const bandKnobs = (defaults: EqBand): Array<KnobSpec<"freq" | "gain" | "q">> => 
   {
     field: "gain",
     label: "Gain",
-    ...EQ_BAND_BOUNDS.gain,
+    ...mixerBook().eqBand.gain,
     step: 0.5,
     reset: defaults.gain,
     format: formatDb,
@@ -38,7 +38,7 @@ const bandKnobs = (defaults: EqBand): Array<KnobSpec<"freq" | "gain" | "q">> => 
   {
     field: "q",
     label: "Width",
-    ...EQ_BAND_BOUNDS.q,
+    ...mixerBook().eqBand.q,
     step: 0.05,
     reset: defaults.q,
     log: true,
@@ -62,7 +62,7 @@ function BandControls({
       <OptionSelect
         label="Band shape"
         value={band.type}
-        options={EQ_TYPES}
+        options={mixerBook().eqTypes}
         optionLabel={(t) => BAND_LABELS[t]}
         className="h-6 w-full px-1.5 text-[11px]"
         onChange={(type) => commitOnce(gesture, { type })}
@@ -119,7 +119,7 @@ export function EqPopover({
             <BandControls
               key={i}
               band={band}
-              defaults={DEFAULT_EQ_BANDS[i]}
+              defaults={mixerBook().defaultStrip.eq.bands[i]}
               disabled={!eq.on}
               gesture={bandGesture(i)}
             />

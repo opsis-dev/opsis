@@ -1,9 +1,8 @@
 import type { FileVersions } from "@opsis/video/common/asset-ref";
 import { lookupKey } from "@opsis/video/common/hash";
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
-import { resolveMix } from "@/core/mix";
 import type {
-  BarClock,
+  LocalFrames,
   FlatTimeline,
   Mix,
   MixPlan,
@@ -19,7 +18,8 @@ export type Film = {
   sourceNodeId: string | null;
   spec: TimelineSpec | null;
   flat: FlatTimeline | null;
-  mix: Mix;
+  mix: Mix | null;
+  solo: boolean;
   plan: MixPlan | null;
   result: MixResult | null;
   stale: boolean;
@@ -27,14 +27,15 @@ export type Film = {
   mixing: boolean;
   levelled: TimelineSpec | null;
   stem: string | null;
-  clocks: Partial<Record<string, BarClock>>;
+  localFrames: Partial<Record<string, LocalFrames>>;
 };
 
 const EMPTY: Film = {
   sourceNodeId: null,
   spec: null,
   flat: null,
-  mix: resolveMix(undefined),
+  mix: null,
+  solo: false,
   plan: null,
   result: null,
   stale: false,
@@ -42,7 +43,7 @@ const EMPTY: Film = {
   mixing: false,
   levelled: null,
   stem: null,
-  clocks: {},
+  localFrames: {},
 };
 
 const FILM_SOURCE = "film";
@@ -72,9 +73,7 @@ function useMixResult(sounding: MixPlan | null, source: string): MixState {
 }
 
 function useFilmState(): Film {
-  const { preview, flat, plan: planned, levelled, clocks } = useCompiledContext();
-  const storedMix = useWorkflowStore((s) => s.workflow?.mix);
-  const mix = useMemo(() => resolveMix(storedMix), [storedMix]);
+  const { preview, flat, plan: planned, levelled, localFrames, mix, solo } = useCompiledContext();
   const spec = preview?.spec ?? null;
   const versions = useProjectFiles((s) => s.versions);
   const plan = useMemo(
@@ -93,6 +92,7 @@ function useFilmState(): Film {
     spec,
     flat,
     mix,
+    solo,
     plan,
     result,
     stale: !!sounding && !current && failedKey !== sounding.key,
@@ -100,7 +100,7 @@ function useFilmState(): Film {
     mixing,
     levelled,
     stem: result?.master && sounding ? result.master.src : null,
-    clocks,
+    localFrames,
   };
 }
 

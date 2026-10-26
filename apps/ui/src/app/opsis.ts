@@ -180,8 +180,6 @@ export function createOpsis() {
     projectLocations: (): Promise<ProjectLocations> => unwrap(commands.projectLocations()),
     chooseFolder: (opts: { title: string; defaultPath?: string }): Promise<string | null> =>
       unwrap(commands.chooseFolder(opts.title, opts.defaultPath ?? null)),
-    watchProjectFiles: (dir: string, refs: readonly string[]) =>
-      unwrap(commands.watchProjectFiles(dir, [...refs])),
     onProjectFilesChanged: (listener: (change: ProjectFilesChange) => void) =>
       on(events.projectFilesChanged(here()), listener),
     readLastRun: (dir: string): Promise<LastRun | null> => unwrap(commands.readLastRun(dir)),

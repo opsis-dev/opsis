@@ -16,12 +16,12 @@ fn film() -> serde_json::Value {
     let compiled = compile_workflow(&workflow, None);
     let preview = preview_spec(&workflow.settings, &compiled, None);
     let flat = preview.as_ref().map(|p| flatten_spec(&p.spec));
-    let clocks: serde_json::Map<String, serde_json::Value> = flat
+    let local_frames: serde_json::Map<String, serde_json::Value> = flat
         .iter()
         .flat_map(|f| f.bars.iter())
-        .map(|b| (b.key.clone(), json!(b.clock())))
+        .map(|b| (b.key.clone(), json!(b.local_frames())))
         .collect();
-    json!({ "spec": preview.map(|p| p.spec), "flat": flat, "clocks": clocks })
+    json!({ "spec": preview.map(|p| p.spec), "flat": flat, "localFrames": local_frames })
 }
 
 fn main() {

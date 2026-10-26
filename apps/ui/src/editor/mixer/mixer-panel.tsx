@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { soloActive } from "@/core/mix";
 import { EmptyPanel } from "../../app/empty-panel";
 import { mixFailure, useMedia } from "../../store/media";
 import { toggleIds } from "../../store/ui";
@@ -50,7 +49,7 @@ function MixerToolbar({ film }: { film: Film }) {
   return (
     <div className="flex h-8 shrink-0 items-center gap-2 border-b px-2 text-xs">
       <MixStatus film={film} />
-      {soloActive(film.mix) ? <Badge variant="outline">Solo on</Badge> : null}
+      {film.solo ? <Badge variant="outline">Solo on</Badge> : null}
       <div className="flex-1" />
       <Button variant="ghost" size="sm" onClick={() => workflowEdits.mix({ op: "addBus" })}>
         <Plus data-icon="inline-start" />
@@ -66,7 +65,7 @@ export function MixerPanel() {
   const { collapsed, toggle } = useCollapsedBuses();
 
   const channels = film.plan?.channels ?? [];
-  if (!film.flat || channels.length === 0) {
+  if (!film.flat || !mix || channels.length === 0) {
     return (
       <EmptyPanel
         icon={SlidersVertical}

@@ -2,9 +2,9 @@ import type { ComponentProps } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { COMP_RANGES, DUCK_RANGES } from "@/core/mix";
-import type { Bus, Comp, DuckSettings } from "@/generated/bindings";
+import type { Bus, Comp, CompRanges, DuckRanges, DuckSettings } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { mixerBook } from "@/store/catalog";
 import { toggleIds } from "../../store/ui";
 import { formatDb, formatMs } from "./audio-format";
 import { commitOnce, mapGesture, type Gesture } from "./gesture";
@@ -14,13 +14,13 @@ import { ReductionReadout } from "./meter";
 import type { Reduction } from "./meter-levels";
 import { SwitchHeader } from "./switch-header";
 
-type CompField = keyof typeof COMP_RANGES;
+type CompField = keyof CompRanges;
 
-const COMP_KNOBS: Array<KnobSpec<CompField>> = [
+const compKnobs = (ranges = mixerBook().comp): Array<KnobSpec<CompField>> => [
   {
     field: "threshold",
     label: "Threshold",
-    ...rangeProps(COMP_RANGES.threshold),
+    ...rangeProps(ranges.threshold),
     step: 0.5,
     format: formatDb,
     unit: "dB",
@@ -28,7 +28,7 @@ const COMP_KNOBS: Array<KnobSpec<CompField>> = [
   {
     field: "ratio",
     label: "Ratio",
-    ...rangeProps(COMP_RANGES.ratio),
+    ...rangeProps(ranges.ratio),
     step: 0.1,
     log: true,
     format: (v) => `${v.toFixed(1)}:1`,
@@ -36,7 +36,7 @@ const COMP_KNOBS: Array<KnobSpec<CompField>> = [
   {
     field: "attack",
     label: "Attack",
-    ...rangeProps(COMP_RANGES.attack),
+    ...rangeProps(ranges.attack),
     step: 0.1,
     log: true,
     format: formatMs,
@@ -45,7 +45,7 @@ const COMP_KNOBS: Array<KnobSpec<CompField>> = [
   {
     field: "release",
     label: "Release",
-    ...rangeProps(COMP_RANGES.release),
+    ...rangeProps(ranges.release),
     step: 1,
     log: true,
     format: formatMs,
@@ -54,20 +54,20 @@ const COMP_KNOBS: Array<KnobSpec<CompField>> = [
   {
     field: "makeup",
     label: "Makeup",
-    ...rangeProps(COMP_RANGES.makeup),
+    ...rangeProps(ranges.makeup),
     step: 0.5,
     format: formatDb,
     unit: "dB",
   },
 ];
 
-type DuckField = keyof typeof DUCK_RANGES;
+type DuckField = keyof DuckRanges;
 
-const DUCK_KNOBS: Array<KnobSpec<DuckField>> = [
+const duckKnobs = (ranges = mixerBook().duck): Array<KnobSpec<DuckField>> => [
   {
     field: "amount",
     label: "Amount",
-    ...rangeProps(DUCK_RANGES.amount),
+    ...rangeProps(ranges.amount),
     step: 0.5,
     format: (v) => v.toFixed(1),
     unit: "dB",
@@ -75,7 +75,7 @@ const DUCK_KNOBS: Array<KnobSpec<DuckField>> = [
   {
     field: "attack",
     label: "Attack",
-    ...rangeProps(DUCK_RANGES.attack),
+    ...rangeProps(ranges.attack),
     step: 1,
     log: true,
     format: formatMs,
@@ -84,7 +84,7 @@ const DUCK_KNOBS: Array<KnobSpec<DuckField>> = [
   {
     field: "release",
     label: "Release",
-    ...rangeProps(DUCK_RANGES.release),
+    ...rangeProps(ranges.release),
     step: 1,
     log: true,
     format: formatMs,
@@ -93,7 +93,7 @@ const DUCK_KNOBS: Array<KnobSpec<DuckField>> = [
   {
     field: "ignoreShorterMs",
     label: "Ignore under",
-    ...rangeProps(DUCK_RANGES.ignoreShorterMs),
+    ...rangeProps(ranges.ignoreShorterMs),
     step: 50,
     format: (v) => (v ? formatMs(v) : "Off"),
     unit: "ms",
@@ -146,7 +146,7 @@ export function CompPopover({
         />
         <div className="grid grid-cols-5 gap-1">
           <Knobs
-            specs={COMP_KNOBS}
+            specs={compKnobs()}
             values={comp}
             disabled={!comp.on}
             gestureFor={(field) => mapGesture(gesture, (v: number) => ({ ...comp, [field]: v }))}
@@ -198,7 +198,7 @@ export function DuckPopover({
         </div>
         <div className="grid grid-cols-4 gap-1">
           <Knobs
-            specs={DUCK_KNOBS}
+            specs={duckKnobs()}
             values={duck}
             disabled={!duck.on}
             gestureFor={(field) => mapGesture(gesture, (v: number) => ({ ...duck, [field]: v }))}

@@ -1,6 +1,6 @@
 import { clamp } from "@opsis/video/common/math";
-import { SAMPLE_RATE } from "@/core/mix";
 import type { EqBand } from "@/generated/bindings";
+import { mixerBook } from "@/store/catalog";
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;
@@ -31,7 +31,7 @@ function shelf({ amp, cosW0, twoSqrtAmpAlpha }: ShelfTerms, side: "low" | "high"
 
 function coefficients(band: EqBand): Biquad {
   const amp = 10 ** (band.gain / 40);
-  const w0 = (2 * Math.PI * band.freq) / SAMPLE_RATE;
+  const w0 = (2 * Math.PI * band.freq) / mixerBook().sampleRate;
   const cosW0 = Math.cos(w0);
   const alpha = Math.sin(w0) / (2 * band.q);
   if (band.type === "peak")
@@ -50,7 +50,7 @@ function magnitude([x0, x1, x2]: Triple, w: number): number {
 }
 
 function biquadResponse({ b, a }: Biquad, freq: number): number {
-  const w = (2 * Math.PI * freq) / SAMPLE_RATE;
+  const w = (2 * Math.PI * freq) / mixerBook().sampleRate;
   return 20 * Math.log10(magnitude(b, w) / magnitude(a, w));
 }
 

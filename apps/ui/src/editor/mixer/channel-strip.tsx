@@ -1,9 +1,9 @@
 import { findById } from "@opsis/video/common/lists";
 import { AudioLines, Clapperboard, Music } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
-import { audibility, busOf, stripOf, PAN_RANGE, TRIM_RANGE } from "@/core/mix";
 import type { Bus, ChannelPlan, Mix, MixResult, Strip, StripPatch } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { mixerBook } from "@/store/catalog";
 import { nodeNameById } from "@/store/catalog";
 import { useUiStore } from "../../store/ui";
 import { useWorkflowStore, workflowEdits } from "../../store/workflow";
@@ -69,7 +69,7 @@ function ChannelKnobs({
         label="Trim"
         size={24}
         value={strip.trim}
-        {...rangeProps(TRIM_RANGE)}
+        {...rangeProps(mixerBook().trim)}
         step={0.5}
         format={formatDb}
         unit="dB"
@@ -80,7 +80,7 @@ function ChannelKnobs({
         label="Pan"
         size={24}
         value={strip.pan}
-        {...rangeProps(PAN_RANGE)}
+        {...rangeProps(mixerBook().pan)}
         step={0.01}
         format={formatPan}
         gesture={bindPan(target, strip.pan, (pan) => update({ pan }))}
@@ -102,7 +102,7 @@ export function ChannelStrip({
   result: MixResult | null;
   sourceNodeId: string | null;
 }) {
-  const strip = stripOf(mix, channel.id);
+  const strip = channel.strip;
   const levels = result?.levels.channels[channel.id];
   const reduction = result?.reduction.channels[channel.id];
   const Icon = KIND_ICON[channel.kind];
@@ -120,7 +120,7 @@ export function ChannelStrip({
   const name = useChannelName(channel.id);
   return (
     <StripShell
-      dim={!audibility(mix)(channel.id, channel.kind)}
+      dim={!channel.audible}
       className={cn(group.length > 1 && "ring-primary/60 ring-1 ring-inset")}
     >
       <button
@@ -137,7 +137,7 @@ export function ChannelStrip({
       </button>
       <div className="flex w-full items-center gap-0.5">
         <BusSelect
-          bus={busOf(mix, channel.id, channel.kind)}
+          bus={findById(mix.buses, channel.bus) ?? mix.buses[0]}
           buses={mix.buses}
           onChange={(bus) => update({ bus })}
         />

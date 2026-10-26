@@ -109,14 +109,8 @@ export const spotYKey = (spotXKey: string): string =>
 export const shapeEntries = (schema: JsonSchema): Array<[string, JsonSchema]> =>
   Object.entries(schema.properties ?? {});
 
-export function schemaDefaults(schema: JsonSchema): Record<string, unknown> {
-  const own = isRecord(schema.default) ? schema.default : {};
-  const out: Record<string, unknown> = { ...structuredClone(own) };
-  for (const [key, field] of shapeEntries(schema))
-    if (out[key] === undefined && field.default !== undefined && field.default !== null)
-      out[key] = structuredClone(field.default);
-  return out;
-}
+export const schemaDefaults = (schema: JsonSchema): Record<string, unknown> =>
+  isRecord(schema.default) ? structuredClone(schema.default) : {};
 
 export function withDefaults(
   schema: JsonSchema,
