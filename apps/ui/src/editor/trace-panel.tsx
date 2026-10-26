@@ -7,7 +7,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { errorMessage } from "@/core/errors";
 import { frameAt } from "@/core/trace";
-import type { TraceAction, TraceModel } from "@/generated/bindings";
+import { commands, type TraceAction, type TraceModel } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { LoadingPanel } from "../app/empty-panel";
 import { OptionToggle } from "../app/option-toggle";
@@ -26,7 +26,7 @@ function useTrace(projectDir: string, traceId: string) {
   const [state, setState] = useState<{ trace?: TraceModel; error?: string; id?: string }>({});
   useEffect(() => {
     let live = true;
-    window.opsis.readTrace(projectDir, traceId).then(
+    commands.readTrace(projectDir, traceId).then(
       (trace) => live && setState({ trace, id: traceId }),
       (e: unknown) => live && setState({ error: errorMessage(e), id: traceId }),
     );

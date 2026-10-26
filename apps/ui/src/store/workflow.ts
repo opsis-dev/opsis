@@ -1,20 +1,21 @@
 import { create } from "zustand";
-import type {
-  DocumentState,
-  EdgeEnds,
-  Edited,
-  FontFamilyDef,
-  FontRole,
-  MarkerEdit,
-  MixEdit,
-  NodePatch,
-  Removal,
-  Position,
-  SettingsPatch,
-  Workflow,
-  WorkflowEdge,
-  WorkflowEdit,
-  WorkflowNode,
+import {
+  commands,
+  type DocumentState,
+  type EdgeEnds,
+  type Edited,
+  type FontFamilyDef,
+  type FontRole,
+  type MarkerEdit,
+  type MixEdit,
+  type NodePatch,
+  type Removal,
+  type Position,
+  type SettingsPatch,
+  type Workflow,
+  type WorkflowEdge,
+  type WorkflowEdit,
+  type WorkflowNode,
 } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 import { cardSize } from "../editor/card-size";
@@ -56,8 +57,7 @@ export function showDocument(state: DocumentState): void {
   });
 }
 
-export const editWorkflow = (edit: WorkflowEdit): Promise<Edited> =>
-  window.opsis.editWorkflow(edit);
+export const editWorkflow = (edit: WorkflowEdit): Promise<Edited> => commands.editWorkflow(edit);
 
 const CHANGE_FAILED = "Couldn't make that change";
 
@@ -114,10 +114,10 @@ export const workflowEdits = {
   markers: async (edit: MarkerEdit): Promise<string | undefined> =>
     (await created({ op: "markers", edit }))[0],
   replace: (workflow: Workflow) => send({ op: "replace", workflow }),
-  undo: () => void window.opsis.undo(),
-  redo: () => void window.opsis.redo(),
-  beginGesture: () => window.opsis.beginGesture(),
-  endGesture: () => window.opsis.endGesture(),
+  undo: () => void commands.undo(),
+  redo: () => void commands.redo(),
+  beginGesture: () => void commands.beginGesture(),
+  endGesture: () => void commands.endGesture(),
 };
 
 useWorkflowStore.subscribe((s, prev) => {

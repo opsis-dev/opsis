@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { acceleratorLabel, matchesAccelerator, menuCommandEntry } from "@/core/menu";
-import type { MenuCommand, MenuEntry, WindowRole } from "@/generated/bindings";
+import { commands, type MenuCommand, type MenuEntry, type WindowRole } from "@/generated/bindings";
 import { isEditingElement } from "@/lib/dom";
 import { isMac, platform } from "@/lib/platform";
 import { appMenu } from "@/store/catalog";
@@ -24,7 +24,7 @@ export const menuItemId = (entry: MenuItem): MenuCommand | WindowRole =>
 
 export function runMenuItem(entry: MenuItem): void {
   if (entry.kind === "command") dispatchMenuCommand(entry.command);
-  else void window.opsis.windowRole(entry.role);
+  else void commands.windowRole(entry.role);
 }
 
 const NATIVE_WHILE_EDITING = new Set<MenuCommand | WindowRole>([

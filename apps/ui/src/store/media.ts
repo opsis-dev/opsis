@@ -2,13 +2,14 @@ import { keepLast } from "@opsis/video/common/lists";
 import { create } from "zustand";
 import { errorMessage } from "@/core/errors";
 import { debounce } from "@/core/timing";
-import type {
-  AnalysisRequest,
-  AnalysisResult,
-  Filmstrip,
-  MixPlan,
-  MixResult,
-  Waveform,
+import {
+  commands,
+  type AnalysisRequest,
+  type AnalysisResult,
+  type Filmstrip,
+  type MixPlan,
+  type MixResult,
+  type Waveform,
 } from "@/generated/bindings";
 import { useAudioPreview } from "./audio-preview";
 
@@ -122,9 +123,9 @@ function finishMix(
 function analyze<K extends AnalysisKind>(
   request: Extract<AnalysisRequest, { kind: K }>,
 ): Promise<AnalysisResultFor<K>> {
-  return window.opsis
-    .analyze<K>(request)
-    .catch((e: unknown): AnalysisResultFor<K> => ({ kind: "error", error: errorMessage(e) }));
+  return (commands.analyze(request) as Promise<AnalysisResultFor<K>>).catch(
+    (e: unknown): AnalysisResultFor<K> => ({ kind: "error", error: errorMessage(e) }),
+  );
 }
 
 const mixSoon = debounce((projectDir: string, source: string, plan: MixPlan) => {

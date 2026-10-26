@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import type { LogLine, RunProgress, RunState, RunView } from "@/generated/bindings";
+import {
+  commands,
+  type LogLine,
+  type RunProgress,
+  type RunState,
+  type RunView,
+} from "@/generated/bindings";
 
 type RunMirror = RunProgress & Omit<RunView, "progress"> & { logs: LogLine[] };
 
@@ -40,4 +46,4 @@ export const addLogLine = (line: LogLine): void =>
     line.id > (s.logs.at(-1)?.id ?? 0) ? { logs: [...s.logs, line].slice(-MAX_LOG_LINES) } : {},
   );
 
-export const clearLogs = (): void => window.opsis.clearRunLog();
+export const clearLogs = (): void => void commands.clearRunLog();

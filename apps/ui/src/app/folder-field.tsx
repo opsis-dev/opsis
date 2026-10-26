@@ -6,6 +6,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { commands } from "@/generated/bindings";
 
 export function FolderField({
   id,
@@ -23,10 +24,7 @@ export function FolderField({
   onCommit?: () => void;
 }) {
   async function browse() {
-    const picked = await window.opsis.chooseFolder({
-      title,
-      defaultPath: nonBlankString(value),
-    });
+    const picked = await commands.chooseFolder(title, nonBlankString(value) ?? null);
     if (picked) onPicked(picked);
   }
 

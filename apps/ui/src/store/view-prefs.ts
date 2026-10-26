@@ -1,4 +1,5 @@
-import type { ViewPrefChange } from "@/generated/bindings";
+import { on } from "@/app/tauri";
+import { commands, type Value, events, type ViewPrefChange } from "@/generated/bindings";
 
 export type ViewPrefs = Record<string, unknown>;
 
@@ -20,8 +21,8 @@ export function readPref<T>(name: string, fallback: T, valid: (v: unknown) => v 
 export function writePref(name: string, value: unknown): void {
   prefs = { ...prefs, [name]: value };
   if (project)
-    window.opsis
-      .setViewPref(project, name, value)
+    commands
+      .setViewPref(project, name, value as Value)
       .catch((error: unknown) => console.error("A view setting couldn't be saved.", error));
 }
 
@@ -30,5 +31,5 @@ function applyViewPref({ dir, key, value }: ViewPrefChange): void {
 }
 
 export function watchViewPrefs(): void {
-  window.opsis.onViewPrefChanged(applyViewPref);
+  on(events.viewPrefChanged, applyViewPref);
 }

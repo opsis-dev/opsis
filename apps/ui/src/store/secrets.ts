@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { commands } from "@/generated/bindings";
 import { loadOrReport } from "@/lib/toast";
 
 export const useSecretsStore = create<{
@@ -9,10 +10,7 @@ export const useSecretsStore = create<{
   refresh: async (dir) =>
     set({
       names: dir
-        ? await loadOrReport(
-            () => window.opsis.listSecrets(dir),
-            "Couldn't read the saved sign-ins",
-          )
+        ? await loadOrReport(() => commands.listSecrets(dir), "Couldn't read the saved sign-ins")
         : null,
     }),
 }));

@@ -1,10 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { asSchema, fieldMeta, shapeEntries } from "@/core/schema";
 import { catalogNodes } from "@/store/catalog";
 import { typedField } from "./form/schema-kind";
 import { widgetTakes } from "./schema-form";
-
-vi.hoisted(() => Object.assign(window, { opsis: { platform: "linux" } }));
 
 describe("Inspector widgets", () => {
   it("can draw every setting that names them", () => {

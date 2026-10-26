@@ -1,7 +1,8 @@
 import { PROJECT_DIRS } from "@/core/project-dirs";
+import { commands } from "@/generated/bindings";
 
 export const revealOutputs = (projectDir: string) =>
-  window.opsis.revealInFolder(projectDir, PROJECT_DIRS.out);
+  commands.revealInFolder(projectDir, PROJECT_DIRS.out);
 
 export const revealProjectFile = (projectDir: string, ref: string) =>
-  window.opsis.revealInFolder(projectDir, ref);
+  commands.revealInFolder(projectDir, ref);

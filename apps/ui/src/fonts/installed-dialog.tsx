@@ -1,7 +1,7 @@
 import { plural } from "@opsis/video/common/format";
 import { useMemo, useState, type ReactNode } from "react";
 import { Spinner } from "@/components/ui/spinner";
-import type { InspectedFonts, InstalledFamily } from "@/generated/bindings";
+import { commands, type InspectedFonts, type InstalledFamily } from "@/generated/bindings";
 import { useBusy } from "@/lib/use-busy";
 import { ListRow } from "../editor/list-row";
 import { FontSample } from "./font-sample";
@@ -34,7 +34,7 @@ export function InstalledDialog({
   const shown = families.filter(({ family }) => matchesQuery(query, family));
 
   const pick = (family: string) =>
-    run(family, async () => onPicked(await window.opsis.inspectInstalledFonts([family])));
+    run(family, async () => onPicked(await commands.inspectInstalledFonts([family])));
 
   return (
     <SearchListDialog

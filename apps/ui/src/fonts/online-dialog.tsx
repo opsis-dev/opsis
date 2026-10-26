@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { errorMessage } from "@/core/errors";
-import type { FontFamilyDef, FontCatalogEntry } from "@/generated/bindings";
+import { commands, type FontFamilyDef, type FontCatalogEntry } from "@/generated/bindings";
 import { useBusy } from "@/lib/use-busy";
 import { categoryLabel } from "./font-labels";
 import { FontRow } from "./font-row";
@@ -19,7 +19,7 @@ type Catalog =
 function useCatalog(): { catalog: Catalog; retry: () => void; reload: () => void } {
   const [catalog, setCatalog] = useState<Catalog>({ status: "loading" });
   const fetchCatalog = useCallback(() => {
-    window.opsis.fontCatalog().then(
+    commands.fontCatalog().then(
       (entries) => setCatalog({ status: "ready", entries }),
       (e: unknown) => setCatalog({ status: "error", error: errorMessage(e) }),
     );
@@ -122,7 +122,7 @@ export function OnlineDialog({
 
   const download = (entry: FontCatalogEntry) =>
     run(entry.id, async () => {
-      announceDownload(await window.opsis.downloadFont(entry.id));
+      announceDownload(await commands.downloadFont(entry.id));
       await onAdded();
       reload();
     });

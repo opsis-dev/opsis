@@ -12,7 +12,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { FontChoice, FontFamilyDef, InstalledFamily } from "@/generated/bindings";
+import {
+  commands,
+  type FontChoice,
+  type FontFamilyDef,
+  type InstalledFamily,
+} from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
 import { bundledFonts } from "@/store/catalog";
 import { SettingsCard } from "../app/settings/settings-card";
@@ -127,7 +132,7 @@ export function FontsPanel() {
 
   const addFiles = () =>
     attempt(async () => {
-      const fonts = await window.opsis.inspectFontFiles();
+      const fonts = await commands.inspectFontFiles(null);
       if (!fonts) return;
       if (!fonts.families.length) throw new Error("No fonts found in those files.");
       setDialog({ kind: "review", review: { fonts, installed: false } });
@@ -135,7 +140,7 @@ export function FontsPanel() {
 
   const openInstalled = () =>
     attempt(async () => {
-      setDialog({ kind: "installed", fonts: await window.opsis.installedFontFamilies() });
+      setDialog({ kind: "installed", fonts: await commands.installedFontFamilies() });
     });
 
   return (

@@ -1,10 +1,11 @@
 import { ChevronDown, ChevronUp, SquareArrowOutUpRight } from "lucide-react";
 import { useEffect } from "react";
+import { on } from "@/app/tauri";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DOCK_PANELS, DOCK_TITLES } from "@/core/shell";
-import type { DockPanelName } from "@/generated/bindings";
+import { commands, events, type DockPanelName } from "@/generated/bindings";
 import { whenOneOf } from "@/lib/one-of";
 import { commandShortcut } from "../app/menu-shortcuts";
 import { MixerPanel } from "./mixer/mixer-panel";
@@ -36,7 +37,7 @@ function markPopped(popped: readonly DockPanelName[]): void {
 
 function popOut(panel: DockPanelName): void {
   markPopped([...usePanels.getState().popped, panel]);
-  void window.opsis.openPanelWindow(panel);
+  void commands.openPanelWindow(panel);
 }
 
 function DockTab({ panel, popped }: { panel: DockPanelName; popped: boolean }) {
@@ -119,8 +120,8 @@ export function BottomDock() {
   const current: DockPanelName | null = docked.includes(active) ? active : (docked[0] ?? null);
 
   useEffect(() => {
-    void window.opsis.listPanelWindows().then(markPopped);
-    return window.opsis.onPanelWindows(markPopped);
+    void commands.listPanelWindows().then(markPopped);
+    return on(events.panelWindowsChanged, markPopped);
   }, []);
 
   return (

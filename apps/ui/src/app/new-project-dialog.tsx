@@ -11,7 +11,7 @@ import {
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import type { TemplateInfo } from "@/generated/bindings";
+import { commands, type TemplateInfo } from "@/generated/bindings";
 import { whenFirstOneOf } from "@/lib/one-of";
 import { useBusy } from "@/lib/use-busy";
 import { getTemplate, templates } from "@/store/catalog";
@@ -90,7 +90,7 @@ function useProjectFolder(parent: string, name: string): string {
   useEffect(() => {
     if (!parent) return;
     let current = true;
-    void window.opsis
+    void commands
       .projectFolder(parent, name)
       .then((path) => {
         if (current) setFolder({ for: `${parent}\n${name}`, path });
@@ -117,7 +117,7 @@ function useNewProject(initialTemplate: string, onCreated: (dir: string) => void
     run(
       "create",
       async () => {
-        const p = await window.opsis.createProject({ name, template, dir });
+        const p = await commands.createProject(name, template, dir);
         if (p) onCreated(p.dir);
       },
       "Couldn't create the project",

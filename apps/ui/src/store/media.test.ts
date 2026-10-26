@@ -1,11 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type * as Bindings from "@/generated/bindings";
 import type { MixPlan } from "@/generated/bindings";
 import { mixerBook } from "@/store/catalog";
 import { useMedia } from "./media";
 
-const failingAnalyze = vi.fn(() => Promise.reject(new Error("worker gone")));
+const failingAnalyze = vi.hoisted(() => vi.fn(() => Promise.reject(new Error("worker gone"))));
 
-vi.stubGlobal("window", { opsis: { analyze: failingAnalyze } });
+vi.mock("@/generated/bindings", async (original) => {
+  const bindings = await original<typeof Bindings>();
+  return { ...bindings, commands: { ...bindings.commands, analyze: failingAnalyze } };
+});
 
 afterEach(() => vi.useRealTimers());
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { FlatTimeline, Removal, VideoBar } from "@/generated/bindings";
+import { commands, type FlatTimeline, type Removal, type VideoBar } from "@/generated/bindings";
 import { selectedSet } from "../../store/ui";
 import {
   addMarkerAtPlayhead,
@@ -34,13 +34,13 @@ export function useTimelineCommands({
 
   const remove = async () => {
     if (hasSelectedMarker()) return removeSelectedMarker();
-    const next = await window.opsis.timelineRemoval([...selectedSet()]);
+    const next = await commands.timelineRemoval([...selectedSet()]);
     if (!next) return;
     if (next.nodeIds.length > 1) setRemoval(next);
     else removeNow(next, sourceNodeId);
   };
 
-  const commands: TimelineCommands = {
+  const timelineCommands: TimelineCommands = {
     split: () => splitAtPlayhead(selectedSet()),
     splitAt: (bar, frame) => commitEdit({ op: "splitBar", bar: bar.key, at: frame }),
     remove: () => void remove(),
@@ -50,7 +50,7 @@ export function useTimelineCommands({
   };
 
   return {
-    commands,
+    commands: timelineCommands,
     removal,
     confirmRemoval: (r: Removal) => removeNow(r, sourceNodeId),
     closeRemoval: () => setRemoval(null),

@@ -1,7 +1,12 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { targetRoleKey } from "@/core/schema";
-import type { InspectorContext, PickerTarget, Workflow } from "@/generated/bindings";
+import {
+  commands,
+  type InspectorContext,
+  type PickerTarget,
+  type Workflow,
+} from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
 import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { fileUrl } from "./file-url";
@@ -16,7 +21,7 @@ async function pickTarget(nodeId: string, picker: PickerTarget | undefined, key:
   }
   toast.info("A browser window opened. Click the element, or Shift-click a spot.");
   await attempt(async () => {
-    const picked = await window.opsis.pickElement({ url: picker.url, viewport: picker.viewport });
+    const picked = await commands.pickElement({ url: picker.url, viewport: picker.viewport });
     if (!picked) return;
     workflowEdits.updateParams(nodeId, {
       [key]: picked.target,
@@ -29,7 +34,7 @@ async function pickTarget(nodeId: string, picker: PickerTarget | undefined, key:
 async function chooseAsset(projectDir: string | null, apply: (path: string) => void) {
   if (!projectDir) return;
   await attempt(async () => {
-    const [path] = await window.opsis.importAssets(projectDir);
+    const [path] = await commands.importAssets(projectDir, null);
     if (path) apply(path);
   }, "Couldn't add the file");
 }

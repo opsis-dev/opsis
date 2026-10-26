@@ -2,8 +2,6 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { VarText } from "./var-text";
 
-vi.hoisted(() => Object.assign(window, { opsis: { platform: "linux" } }));
-
 describe("VarText", () => {
   afterEach(cleanup);
 

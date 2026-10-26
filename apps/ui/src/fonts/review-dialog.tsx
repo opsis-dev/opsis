@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
-import type { InspectedFonts } from "@/generated/bindings";
+import { commands, type InspectedFonts } from "@/generated/bindings";
 import { useBusy } from "@/lib/use-busy";
 import { FontDialog } from "./font-dialog";
 import { describeFaces } from "./font-labels";
@@ -33,19 +33,19 @@ export function ReviewDialog({
   const { isBusy, run } = useBusy();
 
   useEffect(() => {
-    const release = () => void window.opsis.releaseInspectedFonts(fonts.token);
+    const release = () => void commands.releaseInspectedFonts(fonts.token);
     window.addEventListener("pagehide", release);
     return () => window.removeEventListener("pagehide", release);
   }, [fonts.token]);
 
   const close = () => {
-    void window.opsis.releaseInspectedFonts(fonts.token);
+    void commands.releaseInspectedFonts(fonts.token);
     onClose();
   };
 
   const add = () =>
     run("add", async () => {
-      const added = await window.opsis.addInspectedFonts(fonts.token, chosen);
+      const added = await commands.addInspectedFonts(fonts.token, chosen);
       toast.success(
         added.length === 1 ? `Added ${added[0].family}` : `Added ${plural(added.length, "font")}`,
       );

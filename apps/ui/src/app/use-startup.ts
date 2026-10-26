@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { commands } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 import { loadedAppSettings } from "../store/app-settings";
 import { needsEngine, useEnvironment } from "../store/environment";
@@ -20,7 +21,7 @@ export function useStartup(): void {
         }
         if (!first) return;
         if (settings.app.onStart === "last-project") {
-          const [last] = await window.opsis.listRecentProjects();
+          const [last] = await commands.listRecentProjects();
           if (last) openEditor(router.navigate, last.dir);
         } else if (settings.app.onStart === "new-project") {
           dispatchMenuCommand("project:new");

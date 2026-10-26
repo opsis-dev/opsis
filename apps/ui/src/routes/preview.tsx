@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { commands } from "@/generated/bindings";
 import { AppBar } from "../app/app-bar";
 import { LoadingPanel } from "../app/empty-panel";
 import { onMenuCommand, PROJECT_SWITCH_COMMANDS } from "../app/menu-commands";
@@ -29,7 +30,7 @@ function PreviewRoute() {
   useFileChanges();
 
   useEffect(() => {
-    if (projectName !== null) window.opsis.setTitle(`Preview · ${projectName} — Opsis`);
+    if (projectName !== null) void commands.setTitle(`Preview · ${projectName} — Opsis`);
   }, [projectName]);
 
   useEffect(

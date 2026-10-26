@@ -1,6 +1,6 @@
 import { Copy, Minus, Square, X } from "lucide-react";
 import type { ReactNode } from "react";
-import type { WindowRole } from "@/generated/bindings";
+import { commands, type WindowRole } from "@/generated/bindings";
 import { isMac } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import { useWindowState } from "../store/window-state";
@@ -24,7 +24,7 @@ function WindowButton({
         "text-muted-foreground hover:text-foreground grid h-full w-12 place-items-center transition-colors",
         className,
       )}
-      onClick={() => void window.opsis.windowRole(role)}
+      onClick={() => void commands.windowRole(role)}
     >
       {children}
     </button>

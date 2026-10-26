@@ -3,7 +3,7 @@ import { PanelBottomClose } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { DOCK_TITLES } from "@/core/shell";
-import type { DockPanelName } from "@/generated/bindings";
+import { commands, type DockPanelName } from "@/generated/bindings";
 import { AppBar } from "../app/app-bar";
 import { LoadingPanel } from "../app/empty-panel";
 import { onMenuCommand, PROJECT_SWITCH_COMMANDS } from "../app/menu-commands";
@@ -15,7 +15,7 @@ import { CompiledContext, useCompiled } from "../editor/use-compiled";
 import { useFileChanges } from "../editor/use-file-changes";
 import { useWorkflowStore } from "../store/workflow";
 
-const close = () => void window.opsis.windowRole("close");
+const close = () => void commands.windowRole("close");
 
 function PanelBody({ panel }: { panel: DockPanelName }) {
   const compiled = useCompiled({ drive: false });
@@ -43,7 +43,7 @@ function PanelRoute() {
 
   useEffect(() => {
     if (projectName !== null)
-      window.opsis.setTitle(`${DOCK_TITLES[panel]} · ${projectName} — Opsis`);
+      void commands.setTitle(`${DOCK_TITLES[panel]} · ${projectName} — Opsis`);
   }, [panel, projectName]);
 
   useEffect(

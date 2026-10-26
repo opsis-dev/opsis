@@ -1,7 +1,13 @@
 import { framesToMs } from "@opsis/video/common/time";
 import { toast } from "sonner";
 import { errorMessage } from "@/core/errors";
-import type { Marker, Removal, TimelineEdit, TimelineReply } from "@/generated/bindings";
+import {
+  commands,
+  type Marker,
+  type Removal,
+  type TimelineEdit,
+  type TimelineReply,
+} from "@/generated/bindings";
 import { usePlayback } from "../../store/playback";
 import { toggleIds, useUiStore } from "../../store/ui";
 import { workflowEdits } from "../../store/workflow";
@@ -14,7 +20,7 @@ export function selectNodes(ids: string[], additive: boolean, sourceNodeId: stri
 }
 
 export const editTimeline = (edit: TimelineEdit): Promise<TimelineReply> =>
-  window.opsis.editTimeline(edit).catch((e: unknown) => ({ error: errorMessage(e) }));
+  commands.editTimeline(edit).catch((e: unknown) => ({ error: errorMessage(e) }));
 
 export function reportEdit(reply: TimelineReply): void {
   if (reply.error) toast.error(reply.error);

@@ -1,6 +1,7 @@
 import { create } from "zustand";
+import { on } from "@/app/tauri";
 import { DEFAULT_SETTINGS, mergeSettings, type SettingsPatch } from "@/core/settings";
-import type { ApiServerStatus, AppSettings } from "@/generated/bindings";
+import { commands, events, type ApiServerStatus, type AppSettings } from "@/generated/bindings";
 import { loadOrReport } from "@/lib/toast";
 
 type AppSettingsState = {
@@ -14,15 +15,12 @@ export const liveAutoOpen = () =>
   (useAppSettings.getState().settings ?? DEFAULT_SETTINGS).live.autoOpen;
 
 async function reloadSettings(): Promise<void> {
-  const settings = await loadOrReport(
-    () => window.opsis.getSettings(),
-    "Couldn't read the settings",
-  );
+  const settings = await loadOrReport(() => commands.getSettings(), "Couldn't read the settings");
   if (settings) useAppSettings.setState({ settings });
 }
 
 async function reloadApiStatus(): Promise<void> {
-  const api = await loadOrReport(() => window.opsis.apiStatus(), "Couldn't read the API status");
+  const api = await loadOrReport(() => commands.apiStatus(), "Couldn't read the API status");
   if (api) useAppSettings.setState({ api });
 }
 
@@ -45,14 +43,14 @@ export function watchAppSettings(): void {
   started = true;
   void reloadSettings();
   void reloadApiStatus();
-  window.opsis.onSettingsChanged((settings) => useAppSettings.setState({ settings }));
-  window.opsis.onApiStatus((api) => useAppSettings.setState({ api }));
+  on(events.settingsChanged, (settings) => useAppSettings.setState({ settings }));
+  on(events.apiStatusChanged, (api) => useAppSettings.setState({ api }));
 }
 
 export function patchAppSettings(patch: SettingsPatch): Promise<AppSettings> {
   const current = useAppSettings.getState().settings;
   if (current) useAppSettings.setState({ settings: mergeSettings(current, patch) });
-  return window.opsis.patchSettings(patch).catch((error: unknown) => {
+  return commands.patchSettings(patch).catch((error: unknown) => {
     void reloadSettings();
     throw error;
   });

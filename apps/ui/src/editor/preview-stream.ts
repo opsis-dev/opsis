@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import type { PreviewTarget, TimelineSpec, ViewSize } from "@/generated/bindings";
+import { on } from "@/app/tauri";
+import {
+  commands,
+  events,
+  type PreviewTarget,
+  type TimelineSpec,
+  type ViewSize,
+} from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
-import type { StreamFrame } from "../app/opsis";
+import { frameChannel, type StreamFrame } from "../app/tauri";
 import { singleSelected, useUiStore } from "../store/ui";
 import { useViewOptions } from "../store/view-options";
 import { usePreviewPlayback } from "./preview-playback";
@@ -41,15 +48,19 @@ function useOpenPreview(
     if (!projectDir || !canvas || !sized || !opening) return;
     let gone = false;
     void attempt(async () => {
-      await window.opsis.previewOpen(projectDir, opening, (frame) => {
-        if (!gone) void draw(canvas, frame);
-      });
+      await commands.previewOpen(
+        projectDir,
+        opening,
+        frameChannel((frame) => {
+          if (!gone) void draw(canvas, frame);
+        }),
+      );
       if (!gone) setOpen(true);
     }, "Couldn't start the preview");
     return () => {
       gone = true;
       setOpen(false);
-      void window.opsis.previewClose();
+      void commands.previewClose();
     };
   }, [projectDir, canvas, sized]);
   return open;
@@ -78,7 +89,7 @@ function useStageSize(stage: HTMLElement | null, spec: TimelineSpec | null, fast
 function useReported(): void {
   useEffect(
     () =>
-      window.opsis.onPreviewReported(({ frame, playing }) =>
+      on(events.previewReported, ({ frame, playing }) =>
         usePreviewPlayback.setState({ frame, playing }),
       ),
     [],
@@ -90,7 +101,7 @@ function useControls(open: boolean, durationInFrames: number): void {
     if (!open) return;
     usePreviewPlayback.setState({ open: true });
     const frame = usePreviewPlayback.getState().frame;
-    if (frame > 0) void window.opsis.previewSeek(Math.min(frame, durationInFrames - 1));
+    if (frame > 0) void commands.previewSeek(Math.min(frame, durationInFrames - 1));
     return () => usePreviewPlayback.setState({ open: false, playing: false });
   }, [open, durationInFrames]);
 }
@@ -125,10 +136,10 @@ export function useStreamedPreview({
     usePreviewPlayback.setState({ fps: spec?.fps ?? 30, durationInFrames });
   }, [spec?.fps, durationInFrames]);
   useEffect(() => {
-    if (open && spec) void window.opsis.previewLoad(spec);
+    if (open && spec) void commands.previewLoad(spec);
   }, [open, spec]);
   useEffect(() => {
-    if (open && size) void window.opsis.previewResize(size);
+    if (open && size) void commands.previewResize(size);
   }, [open, size]);
   useReported();
   useControls(open, durationInFrames);

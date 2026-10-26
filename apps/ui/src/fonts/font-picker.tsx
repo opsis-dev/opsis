@@ -11,7 +11,12 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { FontChoice, FontChoices, FontFamilyDef } from "@/generated/bindings";
+import {
+  commands,
+  type FontChoice,
+  type FontChoices,
+  type FontFamilyDef,
+} from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 import { useBusy } from "@/lib/use-busy";
 import { useWorkflowStore, workflowEdits } from "../store/workflow";
@@ -41,7 +46,7 @@ const NO_CHOICES: FontChoices = { project: [], builtIn: [], library: [] };
 const NO_FAMILIES: FontFamilyDef[] = [];
 
 const fetchChoices = (value: string, project: FontFamilyDef[], show: (c: FontChoices) => void) =>
-  window.opsis
+  commands
     .fontChoices(value, project)
     .then(show, (e: unknown) => reportError("Couldn't list the fonts", e));
 
@@ -61,7 +66,7 @@ function useFontChoices(value: string): [FontChoices, () => void] {
 async function copyIntoProject(def: FontFamilyDef): Promise<FontFamilyDef> {
   const projectDir = useWorkflowStore.getState().projectDir;
   if (!projectDir) throw new Error("Open a project to use this font.");
-  const copied = await window.opsis.useFontInProject(projectDir, def.id);
+  const copied = await commands.useFontInProject(projectDir, def.id);
   workflowEdits.addProjectFont(copied);
   return copied;
 }
@@ -146,7 +151,7 @@ export function FontPicker({
                 value="manage fonts"
                 onSelect={() => {
                   setOpen(false);
-                  void window.opsis.openSettings("fonts");
+                  void commands.openSettings("fonts");
                 }}
               >
                 <Settings2 />

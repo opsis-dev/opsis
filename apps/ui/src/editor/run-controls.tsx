@@ -1,6 +1,7 @@
 import { Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextShimmer } from "@/components/ui/text-shimmer";
+import { commands } from "@/generated/bindings";
 
 export function RunningLabel({ className }: { className?: string }) {
   return (
@@ -12,7 +13,7 @@ export function RunningLabel({ className }: { className?: string }) {
 
 export function StopRunButton({ size }: { size: "xs" | "sm" }) {
   return (
-    <Button size={size} variant="outline" onClick={() => void window.opsis.cancelRun()}>
+    <Button size={size} variant="outline" onClick={() => void commands.cancelRun()}>
       <Square data-icon="inline-start" />
       Stop
     </Button>

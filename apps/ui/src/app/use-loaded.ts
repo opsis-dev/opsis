@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useState } from "react";
+import { commands } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 
 export function useLoaded<T>(load: () => Promise<T>, failure: string, key = ""): T | null {
@@ -24,4 +25,4 @@ export function useLoaded<T>(load: () => Promise<T>, failure: string, key = ""):
 }
 
 export const useProjectLocations = (key = "") =>
-  useLoaded(() => window.opsis.projectLocations(), "Couldn't find the projects folder", key);
+  useLoaded(() => commands.projectLocations(), "Couldn't find the projects folder", key);

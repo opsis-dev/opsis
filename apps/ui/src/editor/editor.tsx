@@ -2,6 +2,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { useEffect } from "react";
 import { useDefaultLayout } from "react-resizable-panels";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { commands } from "@/generated/bindings";
 import { useEditorSync } from "../app/sync";
 import { useEnvironment } from "../store/environment";
 import { useMedia } from "../store/media";
@@ -35,7 +36,7 @@ function useEditorSetup(projectDir: string): void {
   useMenuCommands();
   useFileChanges();
   useEffect(() => {
-    if (name) window.opsis.setTitle(`${name} — Opsis`);
+    if (name) void commands.setTitle(`${name} — Opsis`);
   }, [name]);
   useEffect(() => {
     void useEnvironment.getState().refresh();
@@ -48,7 +49,7 @@ function useEditorSetup(projectDir: string): void {
     return () => window.removeEventListener("focus", checkAgain);
   }, []);
   useEditorSync();
-  useEffect(() => () => void window.opsis.closePanelWindows(), []);
+  useEffect(() => () => void commands.closePanelWindows(), []);
 }
 
 export function Editor({ projectDir }: { projectDir: string }) {

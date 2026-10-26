@@ -2,12 +2,19 @@ import { wholePercent } from "@opsis/video/common/format";
 import { useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, Download, FileSearch } from "lucide-react";
 import { useEffect, useState } from "react";
+import { on } from "@/app/tauri";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import { errorMessage } from "@/core/errors";
-import type { EngineInstallEvent, EngineTool, ToolStatus } from "@/generated/bindings";
+import {
+  commands,
+  events,
+  type EngineInstallEvent,
+  type EngineTool,
+  type ToolStatus,
+} from "@/generated/bindings";
 import { useEnvironment, useFreshEnvironment } from "../store/environment";
 import { PageBar } from "./app-bar";
 import { AnimatedPercent } from "./motion";
@@ -19,13 +26,13 @@ function useEngineInstall() {
   const [failure, setFailure] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => window.opsis.onEngineInstall(setEvent), []);
+  useEffect(() => on(events.engineInstallProgress, setEvent), []);
 
   async function install() {
     setBusy(true);
     setFailure(null);
     try {
-      await window.opsis.installEngine();
+      await commands.installEngine();
     } catch (e) {
       setFailure(errorMessage(e));
     } finally {
@@ -105,7 +112,7 @@ function ToolRow({
     setChoosing(true);
     setFailure(null);
     try {
-      await window.opsis.chooseEngineTool(tool);
+      await commands.chooseEngineTool(tool);
     } catch (e) {
       setFailure(errorMessage(e));
     } finally {

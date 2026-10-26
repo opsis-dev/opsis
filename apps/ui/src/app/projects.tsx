@@ -5,7 +5,7 @@ import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
-import type { RecentProject, MenuCommand } from "@/generated/bindings";
+import { commands, type RecentProject, type MenuCommand } from "@/generated/bindings";
 import { templates } from "@/store/catalog";
 import { NodeIcon } from "../editor/node-icon";
 import { needsEngine, useFreshEnvironment } from "../store/environment";
@@ -105,11 +105,7 @@ function EngineAlert() {
       <AlertTitle>Set up the recording engine</AlertTitle>
       <AlertDescription className="flex flex-col items-start gap-2">
         <span>Editing and preview work now. Recording and exporting need the engine.</span>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => void window.opsis.openSettings("engine")}
-        >
+        <Button size="sm" variant="outline" onClick={() => void commands.openSettings("engine")}>
           Open Settings
         </Button>
       </AlertDescription>
@@ -153,7 +149,7 @@ function useProjectActions() {
   const go = (dir: string) => openEditor(navigate, dir);
 
   async function open(dir?: string) {
-    const target = dir ?? (await window.opsis.pickProjectDir());
+    const target = dir ?? (await commands.pickProjectDir());
     if (target) go(target);
   }
 
@@ -181,14 +177,14 @@ function useProjectCommands(startNew: () => void, open: () => Promise<void>): vo
 
 export function Projects() {
   const recent = useLoaded(
-    () => window.opsis.listRecentProjects(),
+    () => commands.listRecentProjects(),
     "Couldn't read the recent projects",
   );
   const env = useFreshEnvironment();
   const { dialog, creating, setCreating, go, open, startNew } = useProjectActions();
   useProjectCommands(startNew, open);
 
-  useEffect(() => window.opsis.setTitle("Opsis"), []);
+  useEffect(() => void commands.setTitle("Opsis"), []);
 
   return (
     <div className="flex h-screen flex-col">

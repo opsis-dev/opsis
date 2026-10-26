@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { create } from "zustand";
-import type { EngineStatus, EnvStatus } from "@/generated/bindings";
+import { on } from "@/app/tauri";
+import { commands, events, type EngineStatus, type EnvStatus } from "@/generated/bindings";
 import { loadOrReport } from "@/lib/toast";
 
 type EnvironmentState = {
@@ -15,7 +16,7 @@ export const useEnvironment = create<EnvironmentState>()((set) => ({
   env: null,
   refresh: async () => {
     const env = await loadOrReport(
-      () => window.opsis.getEnvironment(),
+      () => commands.getEnvironment(),
       "Couldn't read the engine status",
     );
     if (env) set({ env });
@@ -27,7 +28,7 @@ export function useFreshEnvironment(): EnvStatus | null {
   const env = useEnvironment((s) => s.env);
   useEffect(() => {
     void useEnvironment.getState().refresh();
-    return window.opsis.onEngineChanged((engine) =>
+    return on(events.engineChanged, (engine) =>
       useEnvironment.setState((s) => (s.env ? { env: { ...s.env, engine } } : s)),
     );
   }, []);

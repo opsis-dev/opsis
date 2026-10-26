@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, type ReactNode } from "react";
+import { on } from "@/app/tauri";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sidebar,
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { SETTINGS_PAGES } from "@/core/shell";
-import type { SettingsPage, AppSettings } from "@/generated/bindings";
+import { commands, events, type SettingsPage, type AppSettings } from "@/generated/bindings";
 import { FontsPanel } from "../../fonts/fonts-panel";
 import { useAppSettings } from "../../store/app-settings";
 import { AppBar } from "../app-bar";
@@ -114,14 +115,14 @@ export function SettingsWindow() {
     [navigate],
   );
 
-  useEffect(() => window.opsis.setTitle("Settings — Opsis"), []);
+  useEffect(() => void commands.setTitle("Settings — Opsis"), []);
 
-  useEffect(() => window.opsis.onSettingsPage(showPage), [showPage]);
+  useEffect(() => on(events.settingsPageShown, showPage), [showPage]);
 
   useEffect(
     () =>
       onMenuCommand((command) => {
-        if (command !== "view:settings") window.opsis.sendMenuToEditor(command);
+        if (command !== "view:settings") void commands.sendMenuToEditor(command);
       }),
     [],
   );

@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { isGroupNode } from "@/core/nodes";
 import { artifactName } from "@/core/values";
-import type { Workflow, WorkflowNode } from "@/generated/bindings";
+import { commands, type Workflow, type WorkflowNode } from "@/generated/bindings";
 import type { EditorNode as NodeDef } from "@/generated/bindings";
 import { categoryLabel, customLabel, getNodeDef, nodeName } from "@/store/catalog";
 import { SwapFade } from "../app/motion";
@@ -235,7 +235,7 @@ function ArtifactList({ nodeId }: { nodeId: string }) {
           variant="link"
           size="sm"
           className="h-auto justify-start p-0"
-          onClick={() => void window.opsis.revealInFolder(projectDir, a.path)}
+          onClick={() => void commands.revealInFolder(projectDir, a.path)}
         >
           <ExternalLink data-icon="inline-start" />
           {artifactName(a)}

@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/menubar";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import type { MenuEntry } from "@/generated/bindings";
+import { commands, type MenuEntry } from "@/generated/bindings";
 import { isMac } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import logoUrl from "../../../../brand/logo.svg";
@@ -180,7 +180,7 @@ function ApiBadge() {
           <button
             type="button"
             className="ml-2 shrink-0"
-            onClick={() => void window.opsis.openSettings("api")}
+            onClick={() => void commands.openSettings("api")}
           />
         }
       >

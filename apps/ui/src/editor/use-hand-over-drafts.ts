@@ -1,19 +1,27 @@
 import { useEffect } from "react";
+import { on } from "@/app/tauri";
+import { commands, events } from "@/generated/bindings";
 import { commitHeldDrafts, useHeldDrafts } from "@/lib/use-commit-draft";
 import { saveWithToast } from "./save";
 
 export function useHandOverDrafts(): void {
   const drafts = useHeldDrafts();
   useEffect(() => {
-    window.opsis.reportDrafts(drafts);
+    void commands.reportDrafts(drafts);
   }, [drafts]);
   useEffect(() => {
-    const off = window.opsis.onFlushSave(async () => commitHeldDrafts());
+    const off = on(events.flushSave, () => {
+      try {
+        commitHeldDrafts();
+      } finally {
+        void commands.saveFlushed();
+      }
+    });
     return () => {
       off();
       commitHeldDrafts();
       void saveWithToast();
-      window.opsis.reportDrafts(false);
+      void commands.reportDrafts(false);
     };
   }, []);
 }

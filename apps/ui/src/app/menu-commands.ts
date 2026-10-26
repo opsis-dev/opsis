@@ -1,6 +1,7 @@
 import { create } from "zustand";
+import { on } from "@/app/tauri";
 import { listenerSet } from "@/core/listener-set";
-import type { MenuCommand } from "@/generated/bindings";
+import { events, type MenuCommand } from "@/generated/bindings";
 
 type Listener = (command: MenuCommand) => void;
 
@@ -34,7 +35,7 @@ export function dispatchMenuCommand(command: MenuCommand): void {
 export function onMenuCommand(listener: Listener): () => void {
   if (!followingMenu) {
     followingMenu = true;
-    window.opsis.onMenuCommand(dispatchMenuCommand);
+    on(events.menuCommandFired, dispatchMenuCommand);
   }
   return commands.add(listener);
 }

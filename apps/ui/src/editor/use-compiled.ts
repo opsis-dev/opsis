@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import type { EditorCompile } from "@/generated/bindings";
+import { on } from "@/app/tauri";
+import { commands, events, type EditorCompile } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
 import { singleSelected, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
@@ -39,15 +40,15 @@ export function useCompiled({ drive }: { drive: boolean }): Compiled {
   const selectedId = useUiStore((s) => s.pinnedSource ?? singleSelected(s.selectedIds));
   const inspectedId = useUiStore((s) => singleSelected(s.selectedIds));
   const [compiled, take] = useLatest();
-  useEffect(() => window.opsis.onCompiled(take), [take]);
+  useEffect(() => on(events.compiled, take), [take]);
   useEffect(() => {
     void attempt(async () => {
-      const latest = await window.opsis.latestCompile();
+      const latest = await commands.latestCompile();
       if (latest) take(latest);
     }, "Couldn't work out the film");
   }, [take]);
   useEffect(() => {
-    if (drive) window.opsis.setCompileFocus(selectedId, inspectedId);
+    if (drive) void commands.setCompileFocus(selectedId, inspectedId);
   }, [drive, selectedId, inspectedId]);
   return workflow ? compiled : EMPTY;
 }

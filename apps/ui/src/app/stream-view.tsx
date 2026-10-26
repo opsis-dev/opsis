@@ -2,9 +2,16 @@ import { ArrowLeft, ArrowRight, RotateCw } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { MouseButton, TabInfo, ViewEvent, ViewInput } from "@/generated/bindings";
+import {
+  events,
+  commands,
+  type MouseButton,
+  type TabInfo,
+  type ViewEvent,
+  type ViewInput,
+} from "@/generated/bindings";
 import { cn } from "@/lib/utils";
-import type { StreamFrame } from "./opsis";
+import { frameChannel, on, type StreamFrame } from "./tauri";
 
 const BUTTONS: MouseButton[] = ["left", "middle", "right", "back", "forward"];
 
@@ -41,10 +48,12 @@ function useViewEvents(id: string) {
   const [dialog, setDialog] = useState<Dialog | null>(null);
   useEffect(
     () =>
-      window.opsis.onViewEvent(id, (event) => {
+      on(events.viewEventFired, (fired) => {
+        if (fired.id !== id) return;
+        const { event } = fired;
         if (event.kind === "tabs") setTabs({ tabs: event.tabs, active: event.active });
         else if (event.kind === "dialog") setDialog(event);
-        else void window.opsis.viewChooseFiles(id);
+        else void commands.viewChooseFiles(id);
       }),
     [id],
   );
@@ -58,7 +67,7 @@ function AddressBar({ id, url }: { id: string; url: string }) {
       className="flex min-w-0 flex-1 items-center gap-1"
       onSubmit={(e) => {
         e.preventDefault();
-        if (typed) void window.opsis.viewNavigate(id, typed);
+        if (typed) void commands.viewNavigate(id, typed);
         setTyped(null);
       }}
     >
@@ -66,7 +75,7 @@ function AddressBar({ id, url }: { id: string; url: string }) {
         variant="ghost"
         size="icon-sm"
         aria-label="Back"
-        onClick={() => void window.opsis.viewGo(id, -1)}
+        onClick={() => void commands.viewGo(id, -1)}
       >
         <ArrowLeft />
       </Button>
@@ -74,7 +83,7 @@ function AddressBar({ id, url }: { id: string; url: string }) {
         variant="ghost"
         size="icon-sm"
         aria-label="Forward"
-        onClick={() => void window.opsis.viewGo(id, 1)}
+        onClick={() => void commands.viewGo(id, 1)}
       >
         <ArrowRight />
       </Button>
@@ -82,7 +91,7 @@ function AddressBar({ id, url }: { id: string; url: string }) {
         variant="ghost"
         size="icon-sm"
         aria-label="Reload"
-        onClick={() => void window.opsis.viewReload(id)}
+        onClick={() => void commands.viewReload(id)}
       >
         <RotateCw />
       </Button>
@@ -99,7 +108,7 @@ function AddressBar({ id, url }: { id: string; url: string }) {
 function DialogBar({ id, dialog, onDone }: { id: string; dialog: Dialog; onDone: () => void }) {
   const [prompt, setPrompt] = useState(dialog.defaultPrompt);
   const answer = (accept: boolean) => {
-    void window.opsis.viewAnswerDialog(id, accept, prompt);
+    void commands.viewAnswerDialog(id, accept, prompt);
     onDone();
   };
   return (
@@ -151,12 +160,15 @@ export function StreamView({ id }: { id: string }) {
   const page = useRef<PageSize>({ width: 1, height: 1 });
   const { tabs, dialog, closeDialog } = useViewEvents(id);
   useEffect(() => {
-    void window.opsis.attachView(id, (frame) => {
-      page.current = { width: frame.header.width, height: frame.header.height };
-      if (canvas.current) void draw(canvas.current, frame);
-    });
+    void commands.attachView(
+      id,
+      frameChannel((frame) => {
+        page.current = { width: frame.header.width, height: frame.header.height };
+        if (canvas.current) void draw(canvas.current, frame);
+      }),
+    );
   }, [id]);
-  const send = (input: ViewInput) => void window.opsis.viewInput(id, input);
+  const send = (input: ViewInput) => void commands.viewInput(id, input);
   const active = tabs.tabs[tabs.active];
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -171,7 +183,7 @@ export function StreamView({ id }: { id: string }) {
               size="sm"
               variant={i === tabs.active ? "secondary" : "ghost"}
               className="max-w-48 truncate"
-              onClick={() => void window.opsis.viewSwitchTab(id, tab.id)}
+              onClick={() => void commands.viewSwitchTab(id, tab.id)}
             >
               {tab.url}
             </Button>

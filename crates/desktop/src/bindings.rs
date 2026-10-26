@@ -1,6 +1,6 @@
 use opsis_compile::ts_export::ui_types;
 use opsis_types::ts_export::tidy_export;
-use tauri_specta::{Builder, collect_commands, collect_events};
+use tauri_specta::{Builder, ErrorHandlingMode, collect_commands, collect_events};
 
 use crate::{
     analysis, api, compile, document, engine, events, exit, file_server, fonts, page_log, projects,
@@ -143,6 +143,7 @@ pub fn builder() -> Builder<tauri::Wry> {
         ])
         .types(&ui_types())
         .dangerously_cast_bigints_to_number()
+        .error_handling(ErrorHandlingMode::Throw)
 }
 
 pub fn bindings() -> Result<String, String> {

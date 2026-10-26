@@ -1,5 +1,6 @@
 import { clampFrame } from "@opsis/video/common/time";
 import { create } from "zustand";
+import { commands } from "@/generated/bindings";
 
 type PreviewPlayback = {
   open: boolean;
@@ -21,12 +22,12 @@ export const usePreviewPlayback = create<PreviewPlayback>()((set, get) => ({
   seek: (frame) => {
     const at = clampFrame(frame, get().durationInFrames);
     set({ frame: at });
-    if (get().open) void window.opsis.previewSeek(at);
+    if (get().open) void commands.previewSeek(at);
   },
   play: () => {
-    if (get().open) void window.opsis.previewPlay();
+    if (get().open) void commands.previewPlay();
   },
   pause: () => {
-    if (get().open) void window.opsis.previewPause();
+    if (get().open) void commands.previewPause();
   },
 }));

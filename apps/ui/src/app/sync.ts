@@ -1,6 +1,14 @@
 import { useEffect } from "react";
 import { shallow } from "zustand/vanilla/shallow";
-import type { MenuCommand, Playhead, SharedView } from "@/generated/bindings";
+import { on } from "@/app/tauri";
+import { watchLive, windowLabel } from "@/app/tauri";
+import {
+  commands,
+  events,
+  type MenuCommand,
+  type Playhead,
+  type SharedView,
+} from "@/generated/bindings";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import { useMedia } from "../store/media";
@@ -49,7 +57,7 @@ const sharePlayhead = (applying: Flag): (() => void) =>
     const rangeMoved = next.inPoint !== last.inPoint || next.outPoint !== last.outPoint;
     if (!usePlayback.getState().hasPlayer && !rangeMoved) return;
     const { inPoint, outPoint, ...rest } = next;
-    window.opsis.sharePlayhead({
+    void commands.sharePlayhead({
       ...rest,
       ...(inPoint === null ? {} : { inPoint }),
       ...(outPoint === null ? {} : { outPoint }),
@@ -71,22 +79,22 @@ const showView = ({ previewQuality, previewShape }: SharedView): void =>
 function useSharedState(): void {
   useEffect(() => {
     const applying = { current: false };
-    const own = window.opsis.windowLabel;
+    const own = windowLabel();
     const offs = [
-      watchChanges(useUiStore, selection, applying, (next) => window.opsis.shareSelection(next)),
-      watchChanges(useViewOptions, syncedView, applying, (next) => window.opsis.shareView(next)),
+      watchChanges(useUiStore, selection, applying, (next) => void commands.shareSelection(next)),
+      watchChanges(useViewOptions, syncedView, applying, (next) => void commands.shareView(next)),
       sharePlayhead(applying),
-      window.opsis.onSelectionShared(({ from, selection: shared }) => {
+      on(events.selectionShared, ({ from, selection: shared }) => {
         if (from !== own) whileApplying(applying, () => useUiStore.setState(shared));
       }),
-      window.opsis.onViewShared(({ from, view }) => {
+      on(events.viewShared, ({ from, view }) => {
         if (from !== own) whileApplying(applying, () => showView(view));
       }),
-      window.opsis.onPlayheadShared(({ from, playhead }) => {
+      on(events.playheadShared, ({ from, playhead }) => {
         if (from !== own) whileApplying(applying, () => showPlayhead(playhead));
       }),
     ];
-    void window.opsis.sharedState().then((shared) =>
+    void commands.sharedState().then((shared) =>
       whileApplying(applying, () => {
         useUiStore.setState(shared.selection);
         if (shared.view) showView(shared.view);
@@ -100,7 +108,7 @@ function useSharedState(): void {
 }
 
 function useLiveFrames(): void {
-  useEffect(() => window.opsis.onLive((message) => useLiveStore.getState().apply(message)), []);
+  useEffect(() => watchLive((message) => useLiveStore.getState().apply(message)), []);
 }
 
 export function useEditorSync(): void {
@@ -108,10 +116,8 @@ export function useEditorSync(): void {
   useSharedState();
   useEffect(() => {
     const offs = [
-      window.opsis.onPlaybackCalled(runPlaybackCommand),
-      window.opsis.onReplayRequested(({ nodeId, tab }) =>
-        useUiStore.getState().setReplay(nodeId, tab),
-      ),
+      on(events.playbackCalled, runPlaybackCommand),
+      on(events.replayRequested, ({ nodeId, tab }) => useUiStore.getState().setReplay(nodeId, tab)),
     ];
     return () => {
       for (const off of offs) off();
@@ -124,7 +130,7 @@ function useProjectView(): void {
   useEffect(() => {
     if (!projectDir) return;
     let current = true;
-    void window.opsis.viewState(projectDir).then((prefs) => {
+    void commands.viewState(projectDir).then((prefs) => {
       if (!current) return;
       loadViewState(projectDir, prefs);
       useMedia.getState().reset(projectDir);
@@ -141,10 +147,10 @@ export function useWindowSync(): void {
   useSharedState();
   useProjectView();
   useEffect(() => {
-    forwardPlaybackTo((call) => window.opsis.controlPlayback(call));
+    forwardPlaybackTo((call) => void commands.controlPlayback(call));
     return () => forwardPlaybackTo(null);
   }, []);
 }
 
 export const forwardMenuCommand = (command: MenuCommand): void =>
-  window.opsis.sendMenuToEditor(command);
+  void commands.sendMenuToEditor(command);

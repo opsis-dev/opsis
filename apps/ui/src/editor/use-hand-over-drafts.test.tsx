@@ -3,28 +3,31 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { useDecimalInput } from "./form/decimal";
 import { useHandOverDrafts } from "./use-hand-over-drafts";
 
-const editor = vi.hoisted(() => {
-  const state: { reports: boolean[]; saves: number; flush: (() => Promise<void>) | null } = {
-    reports: [],
-    saves: 0,
-    flush: null,
-  };
-  Object.assign(window, {
-    opsis: {
-      platform: "linux",
-      reportDrafts: (held: boolean) => state.reports.push(held),
-      saveProject: () => {
-        state.saves += 1;
-        return Promise.resolve(true);
-      },
-      onFlushSave: (listener: () => Promise<void>) => {
-        state.flush = listener;
-        return () => undefined;
-      },
+const editor = vi.hoisted(() => ({
+  reports: [] as boolean[],
+  saves: 0,
+  flushed: 0,
+  flush: null as (() => void) | null,
+}));
+
+vi.mock("@/generated/bindings", () => ({
+  events: { flushSave: "flush-save" },
+  commands: {
+    reportDrafts: (held: boolean) => Promise.resolve(void editor.reports.push(held)),
+    saveFlushed: () => Promise.resolve(void (editor.flushed += 1)),
+    saveProject: () => {
+      editor.saves += 1;
+      return Promise.resolve(true);
     },
-  });
-  return state;
-});
+  },
+}));
+
+vi.mock("@/app/tauri", () => ({
+  on: (_event: unknown, listener: () => void) => {
+    editor.flush = listener;
+    return () => undefined;
+  },
+}));
 
 afterEach(cleanup);
 
@@ -42,10 +45,9 @@ describe("closing the window with a value still being typed", () => {
     fireEvent.change(view.getByLabelText("Seconds"), { target: { value: "2.5" } });
     expect(editor.reports.at(-1)).toBe(true);
     expect(applied).toEqual([]);
-    await act(async () => {
-      await editor.flush?.();
-    });
+    act(() => editor.flush?.());
     expect(applied).toEqual(["2.5"]);
+    expect(editor.flushed).toBe(1);
     expect(editor.reports.at(-1)).toBe(false);
     view.unmount();
     expect(editor.saves).toBe(1);

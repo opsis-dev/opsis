@@ -3,7 +3,7 @@ import { PanelBottom, PanelLeft, PanelRight, type LucideIcon } from "lucide-reac
 import type { LayoutStorage, PanelImperativeHandle } from "react-resizable-panels";
 import { create } from "zustand";
 import { DOCK_PANELS } from "@/core/shell";
-import type { DockPanelName, MenuCommand } from "@/generated/bindings";
+import { commands, type DockPanelName, type MenuCommand } from "@/generated/bindings";
 import { readPref, writePref } from "../store/view-prefs";
 
 export const PANEL_SIDES = ["left", "bottom", "right"] as const;
@@ -72,7 +72,7 @@ export function openPanel(side: PanelSide): void {
 
 export function showPanel(panel: DockPanelName): boolean {
   if (usePanels.getState().popped.includes(panel)) {
-    void window.opsis.focusPanelWindow(panel);
+    void commands.focusPanelWindow(panel);
     return false;
   }
   openPanel("bottom");

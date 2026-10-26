@@ -1,6 +1,8 @@
 import { useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { pathForFile } from "@/app/tauri";
+import { commands } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
 import { useUiStore } from "../store/ui";
 import { workflowEdits } from "../store/workflow";
@@ -26,9 +28,9 @@ export function useCanvasDrop(projectDir: string): (event: React.DragEvent) => P
       }
       const files = [...event.dataTransfer.files];
       if (!files.length) return;
-      const paths = files.map((f) => window.opsis.pathForFile(f)).filter(Boolean);
+      const paths = files.map(pathForFile).filter(Boolean);
       await attempt(async () => {
-        const assets = await window.opsis.importAssets(projectDir, paths);
+        const assets = await commands.importAssets(projectDir, paths);
         assets.forEach((asset, i) =>
           addAt(
             "media.import",

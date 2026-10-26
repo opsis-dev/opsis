@@ -4,10 +4,6 @@ What's left outside the release plan: the places in the codebase that don't read
 
 ## Written for Tauri and Rust
 
-### 5. The `window.opsis` facade
-
-`apps/ui/src/app/opsis.ts` (327 lines, `OpsisApi`, `createOpsis`) wraps every generated command and event in a preload-style object so call sites written for Electron keep working; 110 call sites use it. Call the generated `commands` and `events` from `@/generated/bindings` directly, with small typed helpers only where a channel or a frame decoder is involved.
-
 ### 10. Folder names from the old packages
 
 `apps/ui/src/core` echoes the removed `packages/core`. Name folders for what they hold once items 5–9 have emptied most of it.

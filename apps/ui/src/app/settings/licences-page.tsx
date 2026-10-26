@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Spinner } from "@/components/ui/spinner";
 import { errorMessage } from "@/core/errors";
-import type { FontFamilyDef, LicenceEntry } from "@/generated/bindings";
+import { commands, type FontFamilyDef, type LicenceEntry } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
 import { bundledFonts } from "@/store/catalog";
 import { fileUrl } from "../../editor/file-url";
@@ -65,7 +65,7 @@ function FileRow({ file, ...head }: RowProps & { file: string }) {
         size="sm"
         variant="outline"
         onClick={() =>
-          void attempt(() => window.opsis.openLicenceFile(file), "Couldn't open the licence file")
+          void attempt(() => commands.openLicenceFile(file), "Couldn't open the licence file")
         }
       >
         <ExternalLink data-icon="inline-start" />
@@ -110,7 +110,7 @@ function FontLicenceRows({ fonts }: { fonts: FontFamilyDef[] }) {
 }
 
 export function LicencesPage() {
-  const entries = useLoaded(() => window.opsis.listLicences(), "Couldn't list the licences");
+  const entries = useLoaded(() => commands.listLicences(), "Couldn't list the licences");
   const library = useFontLibrary((s) => s.library);
   useEffect(() => {
     void useFontLibrary.getState().refresh();

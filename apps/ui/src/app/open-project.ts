@@ -1,7 +1,7 @@
 import type { NavigateFn } from "@tanstack/react-router";
 import { useEffect, useEffectEvent, useState } from "react";
 import { z } from "zod";
-import type { OpenProject } from "@/generated/bindings";
+import { commands, type OpenProject } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
@@ -34,7 +34,7 @@ export function useOpenProject(dir: string, onFailed: () => void): "opening" | "
 
   useEffect(() => {
     let cancelled = false;
-    window.opsis
+    commands
       .openProject(dir)
       .then((p) => {
         if (cancelled) return;

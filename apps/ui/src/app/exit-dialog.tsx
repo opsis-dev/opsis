@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { on } from "@/app/tauri";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import type { CloseRequest } from "@/generated/bindings";
+import { commands, events, type CloseRequest } from "@/generated/bindings";
 
 export function ExitDialog() {
   const [request, setRequest] = useState<CloseRequest | null>(null);
@@ -19,8 +20,8 @@ export function ExitDialog() {
 
   useEffect(
     () =>
-      window.opsis.onConfirmClose((next) => {
-        window.opsis.closeShown();
+      on(events.confirmClose, (next) => {
+        void commands.closeShown();
         setDontAsk(false);
         setRequest(next);
       }),
@@ -28,7 +29,7 @@ export function ExitDialog() {
   );
 
   const answer = (close: boolean) => {
-    window.opsis.decideClose({ close, dontAsk: close && dontAsk });
+    void commands.decideClose({ close, dontAsk: close && dontAsk });
     setRequest(null);
   };
 

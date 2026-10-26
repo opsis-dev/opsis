@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { on } from "@/app/tauri";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,15 +11,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { DiskChoice } from "@/generated/bindings";
+import { commands, events, type DiskChoice } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
 
 type Asked = { readable: boolean };
 
 function useDiskChangeEvents(ask: (asked: Asked) => void): void {
   useEffect(() => {
-    const offAsked = window.opsis.onDiskChangeAsked(ask);
-    const offReloaded = window.opsis.onProjectReloaded(() =>
+    const offAsked = on(events.diskChangeAsked, ask);
+    const offReloaded = on(events.projectReloaded, () =>
       toast.info("The project file changed on disk, so the editor loaded it.", {
         description: "Undo brings back the previous version.",
       }),
@@ -36,7 +37,7 @@ export function DiskChangeDialog() {
   if (!asked) return null;
   const choose = (choice: DiskChoice) => {
     setAsked(null);
-    void attempt(() => window.opsis.resolveDiskChange(choice), "Couldn't save the project");
+    void attempt(() => commands.resolveDiskChange(choice), "Couldn't save the project");
   };
   return (
     <AlertDialog open>

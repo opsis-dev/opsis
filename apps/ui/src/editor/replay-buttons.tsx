@@ -1,5 +1,6 @@
 import { FileSearch, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { commands } from "@/generated/bindings";
 import { getNodeDef } from "@/store/catalog";
 import { useRunStore } from "../store/run";
 import { useWorkflowStore } from "../store/workflow";
@@ -23,7 +24,7 @@ export function ReplayButtons({
         <Button
           size={size}
           variant="outline"
-          onClick={() => window.opsis.showReplay(nodeId, "replay")}
+          onClick={() => void commands.showReplay(nodeId, "replay")}
         >
           <Film data-icon="inline-start" />
           Replay
@@ -33,7 +34,7 @@ export function ReplayButtons({
         <Button
           size={size}
           variant="outline"
-          onClick={() => window.opsis.showReplay(nodeId, "trace")}
+          onClick={() => void commands.showReplay(nodeId, "trace")}
         >
           <FileSearch data-icon="inline-start" />
           Trace

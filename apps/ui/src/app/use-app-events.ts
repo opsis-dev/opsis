@@ -1,5 +1,8 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { on } from "@/app/tauri";
+import { watchLive } from "@/app/tauri";
+import { commands, events } from "@/generated/bindings";
 import { useLiveStore } from "../store/live";
 import { useSecretsStore } from "../store/secrets";
 import { useWorkflowStore } from "../store/workflow";
@@ -16,7 +19,7 @@ function useMenuNavigation(): void {
         const path = router.state.location.pathname;
         if (isSecondaryWindow(path)) return;
         const action = projectActionOf(command);
-        if (command === "view:settings") void window.opsis.openSettings();
+        if (command === "view:settings") void commands.openSettings(null);
         else if (command === "view:projects") void router.navigate({ to: "/" });
         else if (action) {
           usePendingProjectAction.setState({ pending: action });
@@ -30,7 +33,7 @@ function useMenuNavigation(): void {
 function useRunEvents(): void {
   useEffect(
     () =>
-      window.opsis.onRunEvent((e) => {
+      on(events.runEventFired, (e) => {
         if (e.type === "run:done")
           void useSecretsStore.getState().refresh(useWorkflowStore.getState().projectDir);
       }),
@@ -39,7 +42,7 @@ function useRunEvents(): void {
 }
 
 function useLiveEvents(): void {
-  useEffect(() => window.opsis.onLive((message) => useLiveStore.getState().apply(message)), []);
+  useEffect(() => watchLive((message) => useLiveStore.getState().apply(message)), []);
 }
 
 export function useAppEvents(): void {

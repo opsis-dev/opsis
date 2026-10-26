@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import type { WindowState } from "@/generated/bindings";
+import { on } from "@/app/tauri";
+import { commands, events, type WindowState } from "@/generated/bindings";
 import { isMac } from "@/lib/platform";
 
 export const useWindowState = create<WindowState>()(() => ({
@@ -14,6 +15,6 @@ export function watchWindowState(): void {
   if (started || isMac) return;
   started = true;
   const apply = (state: WindowState) => useWindowState.setState(state);
-  void window.opsis.getWindowState().then(apply);
-  window.opsis.onWindowState(apply);
+  void commands.getWindowState().then(apply);
+  on(events.windowStateChanged, apply);
 }

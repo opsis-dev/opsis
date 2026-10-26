@@ -75,7 +75,7 @@ The app never includes the recording browser or our FFmpeg; users download them 
 
 ```
 Editor (React 19 + shadcn/Base UI + xyflow, in the system webview)
-   canvas · node list · inspector · timeline · mixer        ── commands and events (window.opsis) ──
+   canvas · node list · inspector · timeline · mixer        ── commands and events (bindings.ts) ──
                                                                                   │
 Tauri app (Rust): windows · menus · projects · app database · fonts · Local API
    compile (graph → TimelineSpec) · runner (topo-sort → sha256 cache → phases → events)
