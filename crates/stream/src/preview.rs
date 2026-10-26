@@ -230,16 +230,6 @@ impl Preview {
         self.call(&format!("seek({frame})")).await
     }
 
-    pub async fn rate(&self, rate: f64) -> Result<()> {
-        self.call(&format!("rate({rate})")).await
-    }
-
-    pub async fn range(&self, in_frame: Option<f64>, out_frame: Option<f64>) -> Result<()> {
-        let frame = |f: Option<f64>| f.map_or_else(|| "null".to_owned(), |f| f.to_string());
-        self.call(&format!("range({}, {})", frame(in_frame), frame(out_frame)))
-            .await
-    }
-
     pub async fn still(&self) -> Result<Vec<u8>> {
         let shot: Captured = self
             .view

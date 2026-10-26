@@ -93,14 +93,16 @@ fn editor_compile(editor: &Editor, workflow: &Workflow) -> EditorCompile {
     }
 }
 
-pub fn recompile(app: &AppHandle) {
+fn current_compile(app: &AppHandle) -> Option<EditorCompile> {
     let state = app.state::<AppState>();
-    let compiled = {
-        let editor = state.editor();
-        let Some(workflow) = editor.workflow.as_ref() else {
-            return;
-        };
-        editor_compile(&editor, workflow)
+    let editor = state.editor();
+    let workflow = editor.workflow.as_ref()?;
+    Some(editor_compile(&editor, workflow))
+}
+
+pub fn recompile(app: &AppHandle) {
+    let Some(compiled) = current_compile(app) else {
+        return;
     };
     if let Err(error) = serde_json::to_value(&compiled)
         .map_err(tauri::Error::from)
@@ -138,8 +140,8 @@ pub async fn compile(
 
 #[tauri::command]
 #[specta::specta]
-pub fn send_compiled(app: AppHandle) {
-    recompile(&app);
+pub fn latest_compile(app: AppHandle) -> Option<EditorCompile> {
+    current_compile(&app)
 }
 
 #[tauri::command]

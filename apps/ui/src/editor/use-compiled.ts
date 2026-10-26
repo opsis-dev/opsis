@@ -38,8 +38,11 @@ export function useCompiled({ drive }: { drive: boolean }): Compiled {
   const [compiled, take] = useLatest();
   useEffect(() => window.opsis.onCompiled(take), [take]);
   useEffect(() => {
-    if (!drive) void window.opsis.sendCompiled();
-  }, [drive]);
+    if (drive) return;
+    void window.opsis.latestCompile().then((latest) => {
+      if (latest) take(latest);
+    });
+  }, [drive, take]);
   useEffect(() => {
     if (!drive || !workflow) return;
     void attempt(

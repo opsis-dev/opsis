@@ -146,6 +146,7 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
   return (
     <BarFrame
       ctx={ctx}
+      span={bar}
       box={box}
       height={HEIGHT}
       nodeId={bar.nodeId}

@@ -1,9 +1,8 @@
 import type { DockPanelName, SettingsPage } from "@/generated/bindings";
 
-export const DOCK_PANELS: DockPanelName[] = ["preview", "timeline", "mixer", "run"];
+export const DOCK_PANELS: DockPanelName[] = ["timeline", "mixer", "run"];
 
 export const DOCK_TITLES: Record<DockPanelName, string> = {
-  preview: "Preview",
   timeline: "Timeline",
   mixer: "Mixer",
   run: "Run",

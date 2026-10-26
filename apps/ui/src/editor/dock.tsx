@@ -9,7 +9,6 @@ import { whenOneOf } from "@/lib/one-of";
 import { commandShortcut } from "../app/menu-shortcuts";
 import { MixerPanel } from "./mixer/mixer-panel";
 import { focusPanel, openPanel, showPanel, togglePanel, usePanels } from "./panels";
-import { PreviewDock } from "./preview-dock";
 import { RunPanel } from "./run-panel";
 import { TimelinePanel } from "./timeline/timeline-panel";
 import { TooltipButton, WithTooltip } from "./with-tooltip";
@@ -18,8 +17,6 @@ export const DOCK_TAB_BAR_PX = 36;
 
 export function DockContent({ panel }: { panel: DockPanelName }) {
   switch (panel) {
-    case "preview":
-      return <PreviewDock />;
     case "timeline":
       return <TimelinePanel />;
     case "mixer":
@@ -142,7 +139,6 @@ export function BottomDock() {
         <TabsContent
           key={panel}
           value={panel}
-          keepMounted={panel === "preview"}
           id={`panel-${panel}`}
           tabIndex={-1}
           className="min-h-0 flex-1 outline-none data-[hidden]:hidden"

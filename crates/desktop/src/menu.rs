@@ -77,7 +77,7 @@ pub fn app_menu(mac: bool) -> Vec<MenuSection> {
             vec![
                 command("Node list", MenuCommand::ViewToggleLeft, "CmdOrCtrl+B"),
                 command(
-                    "Preview, timeline, mixer and run",
+                    "Timeline, mixer and run",
                     MenuCommand::ViewToggleBottom,
                     "CmdOrCtrl+J",
                 ),
@@ -88,10 +88,11 @@ pub fn app_menu(mac: bool) -> Vec<MenuSection> {
                     "CmdOrCtrl+Shift+M",
                 ),
                 MenuEntry::Separator,
-                command("Preview", MenuCommand::ViewFocusPreview, "CmdOrCtrl+1"),
-                command("Timeline", MenuCommand::ViewFocusTimeline, "CmdOrCtrl+2"),
-                command("Mixer", MenuCommand::ViewFocusMixer, "CmdOrCtrl+3"),
-                command("Run", MenuCommand::ViewFocusRun, "CmdOrCtrl+4"),
+                command("Preview", MenuCommand::ViewPreview, "CmdOrCtrl+Alt+P"),
+                MenuEntry::Separator,
+                command("Timeline", MenuCommand::ViewFocusTimeline, "CmdOrCtrl+1"),
+                command("Mixer", MenuCommand::ViewFocusMixer, "CmdOrCtrl+2"),
+                command("Run", MenuCommand::ViewFocusRun, "CmdOrCtrl+3"),
                 MenuEntry::Separator,
                 role("Reload", WindowRole::Reload, "CmdOrCtrl+R"),
                 role(

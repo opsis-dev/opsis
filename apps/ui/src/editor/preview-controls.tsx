@@ -5,14 +5,14 @@ import { Kbd } from "@/components/ui/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { SingleSlider } from "../app/single-slider";
-import { usePlayback } from "../store/playback";
-import type { PreviewSound } from "./preview-stream";
+import { usePreviewPlayback } from "./preview-playback";
+import type { StemSound } from "./stem-player";
 import { useFormatTime } from "./timeline/timeline-state";
 
 type Fullscreen = { active: boolean; toggle: () => void };
 
-export function togglePlayback(sound: PreviewSound) {
-  const playback = usePlayback.getState();
+export function togglePlayback(sound: StemSound) {
+  const playback = usePreviewPlayback.getState();
   if (playback.playing) {
     playback.pause();
     return;
@@ -76,10 +76,10 @@ function ControlButton({
 }
 
 function SeekBar({ duration }: { duration: number }) {
-  const frame = usePlayback((s) => s.frame);
+  const frame = usePreviewPlayback((s) => s.frame);
   const resumeAfterScrub = useRef(false);
   const seek = (next: number) => {
-    const playback = usePlayback.getState();
+    const playback = usePreviewPlayback.getState();
     if (playback.playing && !resumeAfterScrub.current) {
       resumeAfterScrub.current = true;
       playback.pause();
@@ -89,7 +89,7 @@ function SeekBar({ duration }: { duration: number }) {
   const commit = () => {
     if (!resumeAfterScrub.current) return;
     resumeAfterScrub.current = false;
-    usePlayback.getState().play();
+    usePreviewPlayback.getState().play();
   };
   return (
     <div className="min-w-0 flex-1 px-1">
@@ -113,14 +113,14 @@ function PreviewControls({
   fullscreen,
   container,
 }: {
-  sound: PreviewSound;
+  sound: StemSound;
   fps: number;
   duration: number;
   fullscreen: Fullscreen;
   container: HTMLElement | undefined;
 }) {
-  const playing = usePlayback((s) => s.playing);
-  const frame = usePlayback((s) => s.frame);
+  const playing = usePreviewPlayback((s) => s.playing);
+  const frame = usePreviewPlayback((s) => s.frame);
   const timeAt = useFormatTime(fps);
   return (
     <div className="@container flex h-9 shrink-0 items-center gap-1.5">
@@ -172,7 +172,7 @@ export function PreviewStage({
   onStage,
   children,
 }: {
-  sound: PreviewSound;
+  sound: StemSound;
   fps: number;
   duration: number;
   onStage: (stage: HTMLDivElement | null) => void;

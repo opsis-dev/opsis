@@ -2,7 +2,7 @@ import { hasTypeIn } from "@opsis/video/common/guards";
 import { useEffect, useEffectEvent } from "react";
 import { shallow } from "zustand/vanilla/shallow";
 import { randomId } from "@/core/ids";
-import type { DockPanelName, MenuCommand, RunEvent, Workflow } from "@/generated/bindings";
+import type { MenuCommand, RunEvent, Workflow } from "@/generated/bindings";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import { useMedia } from "../store/media";
@@ -26,7 +26,7 @@ import { relayChannel } from "./relay-channel";
 const CHANNEL = "opsis-sync";
 
 type SyncMessage =
-  | { type: "hello"; panel: DockPanelName }
+  | { type: "hello" }
   | {
       type: "state";
       projectDir: string;
@@ -37,7 +37,6 @@ type SyncMessage =
       view: SyncedView;
       prefs: ViewPrefs;
       playback: PlaybackSnapshot;
-      host: boolean;
     }
   | { type: "workflow"; workflow: Workflow; ack: number }
   | { type: "run-event"; event: RunEvent }
@@ -195,7 +194,6 @@ function sendState(post: Post, ack: number): void {
     view: syncedView(),
     prefs: viewPrefs(),
     playback: playbackSnapshot(),
-    host: usePlayback.getState().hasPlayer,
   });
 }
 
@@ -257,7 +255,7 @@ function applyState(m: MessageOf["state"], applying: Flag): void {
   });
 }
 
-export function usePanelSync(panel: DockPanelName, onClosed: () => void): void {
+export function useWindowSync(onClosed: () => void): void {
   useLiveFrames();
   const closed = useEffectEvent(onClosed);
   useEffect(() => {
@@ -272,12 +270,12 @@ export function usePanelSync(panel: DockPanelName, onClosed: () => void): void {
       "editor-closed": () => closed(),
     });
     mirrorEditsTo((edit) => channel.post({ type: "edit", edit, seq: ++seq }));
-    channel.post({ type: "hello", panel });
+    channel.post({ type: "hello" });
     return () => {
       mirrorEditsTo(null);
       channel.close();
     };
-  }, [panel]);
+  }, []);
 }
 
 export function forwardMenuCommand(command: MenuCommand): void {

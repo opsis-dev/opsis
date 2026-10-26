@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   FolderOpen,
   LayoutGrid,
+  MonitorPlay,
   Play,
   Plus,
   Redo2,
@@ -84,6 +85,24 @@ function HistoryButtons() {
   );
 }
 
+function PreviewButton() {
+  return (
+    <WithTooltip
+      trigger={
+        <Button variant="ghost" size="sm" onClick={() => dispatchMenuCommand("view:preview")} />
+      }
+      tip={
+        <>
+          Open the preview in its own window <Kbd>{commandShortcut("view:preview")}</Kbd>
+        </>
+      }
+    >
+      <MonitorPlay data-icon="inline-start" />
+      Preview
+    </WithTooltip>
+  );
+}
+
 function RunControls() {
   const running = useRunStore((s) => s.running);
   if (!running)
@@ -150,6 +169,7 @@ export function TopBar({ projectDir }: { projectDir: string }) {
       >
         <Settings />
       </Button>
+      <PreviewButton />
       <RunControls />
     </AppBar>
   );

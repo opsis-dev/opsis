@@ -12,11 +12,7 @@ type PreviewApi = {
   play: () => void;
   pause: () => void;
   seek: (frame: number) => void;
-  rate: (rate: number) => void;
-  range: (inFrame: number | null, outFrame: number | null) => void;
 };
-
-type PlayRange = { inFrame: number | null; outFrame: number | null };
 
 declare global {
   interface Window {
@@ -31,8 +27,6 @@ const atLeastOneFrame = (frames: number) => Math.max(1, Math.round(frames));
 function Preview() {
   const [spec, setSpec] = useState<TimelineSpec | null>(null);
   const [player, setPlayer] = useState<PlayerRef | null>(null);
-  const [rate, setRate] = useState(1);
-  const [range, setRange] = useState<PlayRange>({ inFrame: null, outFrame: null });
 
   useEffect(() => {
     window.opsisPreview = {
@@ -40,8 +34,6 @@ function Preview() {
       play: () => player?.play(),
       pause: () => player?.pause(),
       seek: (frame) => player?.seekTo(frame),
-      rate: setRate,
-      range: (inFrame, outFrame) => setRange({ inFrame, outFrame }),
     };
     window.opsisState?.(player ? "ready" : "waiting");
   }, [player]);
@@ -77,9 +69,6 @@ function Preview() {
       fps={spec.fps}
       compositionWidth={spec.width}
       compositionHeight={spec.height}
-      playbackRate={rate}
-      inFrame={range.inFrame}
-      outFrame={range.outFrame}
       controls={false}
       loop
       clickToPlay

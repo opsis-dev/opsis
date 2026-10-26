@@ -36,7 +36,12 @@ let local: Player | null = null;
 const remote = createForwarder<PlaybackCommand>();
 
 export function registerPlayer(controller: Omit<Player, "rate"> | null): void {
-  local = controller && { ...controller, rate: (rate) => usePlayback.setState({ rate }) };
+  local = controller && {
+    seek: (frame) => controller.seek(frame),
+    play: () => controller.play(),
+    pause: () => controller.pause(),
+    rate: (rate) => usePlayback.setState({ rate }),
+  };
   usePlayback.setState({ hasPlayer: !!controller });
 }
 

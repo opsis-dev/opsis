@@ -29,7 +29,6 @@ import {
   type OpenProject,
   type PickRequest,
   type PickResult,
-  type PlayRange,
   type PreviewReported,
   type EditorRequest,
   type ProjectFileChange,
@@ -238,6 +237,7 @@ export function createOpsis() {
         Extract<AnalysisResult, { kind: K | "skipped" | "error" }>
       >,
     openPanelWindow: (panel: DockPanelName) => unwrap(commands.openPanelWindow(panel)),
+    openPreviewWindow: () => unwrap(commands.openPreviewWindow()),
     focusPanelWindow: (panel: DockPanelName) => commands.focusPanelWindow(panel),
     closePanelWindow: (panel: DockPanelName) => unwrap(commands.closePanelWindow(panel)),
     closePanelWindows: () => unwrap(commands.closePanelWindows()),
@@ -279,7 +279,7 @@ export function createOpsis() {
       selected: string | null,
       inspected: string | null,
     ): Promise<EditorCompile> => unwrap(commands.compile(workflow, selected, inspected)),
-    sendCompiled: () => commands.sendCompiled(),
+    latestCompile: () => commands.latestCompile(),
     onCompiled: (listener: (compiled: EditorCompile) => void) =>
       on(events.compiled(here()), listener),
     relay: (to: RelayTarget, message: unknown) => unwrap(commands.relay(to, message as Value)),
@@ -309,8 +309,6 @@ export function createOpsis() {
     previewPlay: () => unwrap(commands.previewPlay()),
     previewPause: () => unwrap(commands.previewPause()),
     previewSeek: (frame: number) => unwrap(commands.previewSeek(frame)),
-    previewRate: (rate: number) => unwrap(commands.previewRate(rate)),
-    previewRange: (range: PlayRange) => unwrap(commands.previewRange(range)),
     previewResize: (size: ViewSize) => unwrap(commands.previewResize(size)),
     previewClose: () => unwrap(commands.previewClose()),
     onPreviewReported: (listener: (reported: PreviewReported) => void) =>

@@ -38,7 +38,7 @@ describe("exports", function () {
   });
 
   it("plays the exported video in the Run panel", async () => {
-    await browser.keys(["Control", "4"]);
+    await browser.keys(["Control", "3"]);
     await $(`video[src$="${EXPORTED_VIDEO}"]`).waitForExist({ timeout: PANEL_MS });
     const played = await browser.executeAsync((name: string, done: (answer: string) => void) => {
       const element = document.querySelector<HTMLVideoElement>(`video[src$="${name}"]`);

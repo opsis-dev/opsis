@@ -11,8 +11,10 @@ import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { useFilm } from "./film";
 import { PreviewStage, togglePlayback } from "./preview-controls";
-import { usePreviewSound, useStreamedPreview } from "./preview-stream";
+import { usePreviewPlayback } from "./preview-playback";
+import { useStreamedPreview } from "./preview-stream";
 import { PreviewToolbar } from "./preview-toolbar";
+import { useStemSound } from "./stem-player";
 import { useCompiledContext } from "./use-compiled";
 
 function NothingToPreview() {
@@ -44,14 +46,14 @@ function usePreviewSpec(): TimelineSpec | null {
   }, [film.spec, quality, shape, workflow, versions]);
 }
 
-export function PreviewDock() {
+export function PreviewPlayer() {
   const { preview } = useCompiledContext();
   const film = useFilm();
   const spec = usePreviewSpec();
   const projectDir = useWorkflowStore((s) => s.projectDir);
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
-  const sound = usePreviewSound(film.stem);
+  const sound = useStemSound(usePreviewPlayback, film.stem);
   const sourceNodeId = preview?.sourceNodeId ?? null;
   const source = useWorkflowStore((s) => findById(s.workflow?.nodes, sourceNodeId));
   useStreamedPreview({ projectDir, preview, spec, stage, canvas });

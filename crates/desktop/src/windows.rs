@@ -18,6 +18,7 @@ use crate::state::AppState;
 
 pub const MAIN_WINDOW: &str = "main";
 pub const SETTINGS_WINDOW: &str = "settings";
+pub const PREVIEW_WINDOW: &str = "preview";
 const PANEL_PREFIX: &str = "panel-";
 const MAIN_WINDOW_KEY: &str = "mainWindow";
 const BACKGROUND: Color = Color(0x10, 0x10, 0x13, 0xff);
@@ -156,7 +157,6 @@ pub fn panel_label(panel: DockPanelName) -> String {
 
 fn panel_size(panel: DockPanelName) -> (f64, f64) {
     match panel {
-        DockPanelName::Preview => (960.0, 640.0),
         DockPanelName::Timeline => (1400.0, 460.0),
         DockPanelName::Mixer => (1100.0, 560.0),
         DockPanelName::Run => (760.0, 560.0),
@@ -307,6 +307,11 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
                 }
             } else if window.label().starts_with(PANEL_PREFIX) {
                 announce_panels(app);
+            } else if window.label() == PREVIEW_WINDOW {
+                let app = app.clone();
+                tauri::async_runtime::spawn(async move {
+                    app.state::<crate::views::Views>().close_preview().await;
+                });
             }
         }
         _ => {}
@@ -352,6 +357,20 @@ pub fn open_panel_window(app: AppHandle, panel: DockPanelName) -> CommandResult<
     if open_remembered(&app, &spec)?.is_some() {
         announce_panels(&app);
     }
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn open_preview_window(app: AppHandle) -> CommandResult<()> {
+    let spec = WindowSpec {
+        label: PREVIEW_WINDOW.to_owned(),
+        route: "/preview".to_owned(),
+        title: "Preview — Opsis".to_owned(),
+        size: (960.0, 640.0),
+        min: (420.0, 260.0),
+    };
+    open_remembered(&app, &spec)?;
     Ok(())
 }
 

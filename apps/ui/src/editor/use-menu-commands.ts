@@ -38,6 +38,7 @@ const MENU_ACTIONS: MenuActions = {
   "edit:layout": () => void tidyLayout(),
   "edit:add-node": () => useUiStore.getState().setPaletteOpen(true),
   "view:toggle-minimap": () => useViewOptions.getState().toggleMinimap(),
+  "view:preview": () => void window.opsis.openPreviewWindow(),
   ...actionsFor(PANEL_SIDES, (side) => PANEL_TOGGLES[side].command, togglePanel),
   ...actionsFor(DOCK_PANELS, (panel) => `view:focus-${panel}`, focusPanel),
 };

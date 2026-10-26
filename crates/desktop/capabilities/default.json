@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "What the editor, its panel windows and Settings may call",
-  "windows": ["main", "settings", "panel-*", "view-*"],
+  "description": "What the editor, its panel windows, the Preview and Settings may call",
+  "windows": ["main", "settings", "preview", "panel-*", "view-*"],
   "permissions": [
     "core:default",
     "core:window:allow-start-dragging",

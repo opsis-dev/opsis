@@ -38,15 +38,6 @@ pub struct PreviewReported {
     pub playing: bool,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type)]
-#[serde(rename_all = "camelCase")]
-pub struct PlayRange {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub in_frame: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub out_frame: Option<f64>,
-}
-
 struct Entry {
     view: Arc<StreamView>,
     closed: CancellationToken,
@@ -59,6 +50,12 @@ pub struct Views {
 }
 
 impl Views {
+    pub async fn close_preview(&self) {
+        if let Some((_, preview)) = self.preview.lock().await.take() {
+            preview.close().await;
+        }
+    }
+
     fn view(&self, id: &str) -> CommandResult<Arc<StreamView>> {
         self.open
             .lock()
@@ -382,21 +379,6 @@ pub async fn preview_seek(views: State<'_, Views>, frame: f64) -> CommandResult<
 
 #[tauri::command]
 #[specta::specta]
-pub async fn preview_rate(views: State<'_, Views>, rate: f64) -> CommandResult<()> {
-    with_preview(&views, async |p| p.rate(rate).await).await
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn preview_range(views: State<'_, Views>, range: PlayRange) -> CommandResult<()> {
-    with_preview(&views, async |p| {
-        p.range(range.in_frame, range.out_frame).await
-    })
-    .await
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn preview_resize(views: State<'_, Views>, size: ViewSize) -> CommandResult<()> {
     with_preview(&views, async |p| p.view().resize(size).await).await
 }
@@ -404,8 +386,6 @@ pub async fn preview_resize(views: State<'_, Views>, size: ViewSize) -> CommandR
 #[tauri::command]
 #[specta::specta]
 pub async fn preview_close(views: State<'_, Views>) -> CommandResult<()> {
-    if let Some((_, preview)) = views.preview.lock().await.take() {
-        preview.close().await;
-    }
+    views.close_preview().await;
     Ok(())
 }

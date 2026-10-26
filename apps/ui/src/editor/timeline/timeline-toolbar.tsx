@@ -1,5 +1,5 @@
 import { findById } from "@opsis/video/common/lists";
-import { Bookmark, Magnet, Scissors, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Bookmark, Magnet, Pause, Play, Scissors, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -159,6 +159,19 @@ function RangeBadge({ fps, duration }: { fps: number; duration: number }) {
   );
 }
 
+function PlayButton() {
+  const playing = usePlayback((s) => s.playing);
+  return (
+    <IconTip
+      label={playing ? "Pause" : "Play"}
+      shortcut="Space"
+      onClick={() => usePlayback.getState().toggle()}
+    >
+      {playing ? <Pause /> : <Play />}
+    </IconTip>
+  );
+}
+
 function Clock({ fps, duration }: { fps: number; duration: number }) {
   const frame = usePlayback((s) => s.frame);
   const timeAt = useFormatTime(fps);
@@ -239,6 +252,7 @@ export function TimelineToolbar({
       <div className="flex-1" />
       <SourceBadges workflow={workflow} sourceNodeId={sourceNodeId} />
       <RangeBadge fps={fps} duration={duration} />
+      <PlayButton />
       <Clock fps={fps} duration={duration} />
       <IconTip
         label="Zoom out"

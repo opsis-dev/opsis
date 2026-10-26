@@ -12,6 +12,9 @@ const WAIT_MS = 30_000;
 const PAGE = `<!doctype html><html><body style="margin:0;background:#fff"><button style="position:absolute;left:100px;top:100px;width:200px;height:60px;font-size:20px">Save draft</button></body></html>`;
 
 type Picking = { opsisPicked?: string };
+type Invoking = {
+  __TAURI_INTERNALS__: { invoke: (cmd: string, args: unknown) => Promise<unknown> };
+};
 
 describe("streamed views", function () {
   this.timeout(120_000);
@@ -28,10 +31,22 @@ describe("streamed views", function () {
 
   after(() => server.close());
 
-  it("streams an open project's preview into the Preview tab", async () => {
+  it("streams the preview into its own window and stops when it closes", async () => {
     const dir = path.join(PROJECTS, "changelog");
     expect((await api("POST", "/open", { dir })).status).toBe(200);
-    await browser.keys(["Control", "1"]);
+    const main = await browser.getWindowHandle();
+    const openTab = $('[role="tab"][aria-selected="true"]');
+    await openTab.waitForExist({ timeout: WAIT_MS });
+    await expect(openTab).toHaveText("Timeline");
+    expect(await $('canvas[aria-label="Preview"]').isExisting()).toBe(false);
+    await $("button=Preview").click();
+    await browser.waitUntil(async () => (await browser.getWindowHandles()).length > 1, {
+      timeout: WAIT_MS,
+      timeoutMsg: "the preview window didn't open",
+    });
+    const preview = (await browser.getWindowHandles()).find((h) => h !== main);
+    if (!preview) throw new Error("no preview window");
+    await browser.switchToWindow(preview);
     await $('canvas[aria-label="Preview"]').waitForExist({ timeout: WAIT_MS });
     await browser.waitUntil(
       () =>
@@ -41,6 +56,27 @@ describe("streamed views", function () {
               0) > 0,
         ),
       { timeout: WAIT_MS, timeoutMsg: "the preview drew no frame" },
+    );
+    await browser.switchToWindow(main);
+    await browser.execute(() => {
+      const page = window as unknown as Invoking;
+      void page.__TAURI_INTERNALS__.invoke("plugin:window|close", { label: "preview" });
+    });
+    await browser.waitUntil(async () => (await browser.getWindowHandles()).length === 1, {
+      timeout: WAIT_MS,
+      timeoutMsg: "the preview window didn't close",
+    });
+    await browser.waitUntil(
+      () =>
+        browser.execute(() =>
+          (window as unknown as Invoking).__TAURI_INTERNALS__
+            .invoke("preview_seek", { frame: 0 })
+            .then(
+              () => false,
+              () => true,
+            ),
+        ),
+      { timeout: WAIT_MS, timeoutMsg: "the preview kept streaming after its window closed" },
     );
   });
 

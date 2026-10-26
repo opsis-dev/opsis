@@ -38,18 +38,16 @@ pub enum SettingsPage {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum DockPanelName {
-    Preview,
     Timeline,
     Mixer,
     Run,
 }
 
 impl DockPanelName {
-    pub const ALL: [Self; 4] = [Self::Preview, Self::Timeline, Self::Mixer, Self::Run];
+    pub const ALL: [Self; 3] = [Self::Timeline, Self::Mixer, Self::Run];
 
     pub fn id(self) -> &'static str {
         match self {
-            Self::Preview => "preview",
             Self::Timeline => "timeline",
             Self::Mixer => "mixer",
             Self::Run => "run",
@@ -58,7 +56,6 @@ impl DockPanelName {
 
     pub fn title(self) -> &'static str {
         match self {
-            Self::Preview => "Preview",
             Self::Timeline => "Timeline",
             Self::Mixer => "Mixer",
             Self::Run => "Run",
@@ -102,8 +99,8 @@ pub enum MenuCommand {
     ViewToggleRight,
     #[serde(rename = "view:toggle-minimap")]
     ViewToggleMinimap,
-    #[serde(rename = "view:focus-preview")]
-    ViewFocusPreview,
+    #[serde(rename = "view:preview")]
+    ViewPreview,
     #[serde(rename = "view:focus-timeline")]
     ViewFocusTimeline,
     #[serde(rename = "view:focus-mixer")]

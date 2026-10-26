@@ -76,6 +76,7 @@ export function AudioBarView({ bar, ctx, gain }: { bar: AudioBar; ctx: BarContex
   return (
     <BarFrame
       ctx={ctx}
+      span={bar}
       box={box}
       height={HEIGHT}
       nodeId={nodeId}

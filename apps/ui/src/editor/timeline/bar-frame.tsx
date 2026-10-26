@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { VideoBar } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { usePlayback } from "../../store/playback";
 import type { BarContext } from "./bar-context";
 import { EnvelopeOverlay, type BarEnvelope } from "./envelope-overlay";
 import { BAR_INSET, type BarBox } from "./timeline-layout";
@@ -16,6 +17,7 @@ function selectOnPress(ctx: BarContext, nodeId: string, shift: boolean): void {
 
 export function BarFrame({
   ctx,
+  span,
   box,
   height,
   nodeId,
@@ -29,6 +31,7 @@ export function BarFrame({
   children,
 }: {
   ctx: BarContext;
+  span: { from: number; to: number };
   box: BarBox;
   height: number;
   nodeId?: string;
@@ -43,6 +46,7 @@ export function BarFrame({
 }) {
   const [hoverCursor, setHoverCursor] = useState("");
   const selected = !!nodeId && ctx.selected.has(nodeId);
+  const underPlayhead = usePlayback((s) => s.frame >= span.from && s.frame < span.to);
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!ctx.drag.beginPointer(e)) return;
     if (ctx.tool === "blade" && split) return bladeSplit(ctx, split, e.clientX, e.altKey);
@@ -54,6 +58,7 @@ export function BarFrame({
       className={cn(
         "absolute overflow-hidden rounded-md border border-foreground/10",
         className,
+        underPlayhead && "border-primary/80 brightness-125",
         selected && "ring-primary ring-2",
       )}
       style={{

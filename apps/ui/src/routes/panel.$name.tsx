@@ -7,7 +7,7 @@ import type { DockPanelName } from "@/generated/bindings";
 import { AppBar } from "../app/app-bar";
 import { LoadingPanel } from "../app/empty-panel";
 import { onMenuCommand, PROJECT_SWITCH_COMMANDS } from "../app/menu-commands";
-import { forwardMenuCommand, usePanelSync } from "../app/sync";
+import { forwardMenuCommand, useWindowSync } from "../app/sync";
 import { DockContent } from "../editor/dock";
 import { FilmProvider } from "../editor/film";
 import { isDockPanel } from "../editor/panels";
@@ -38,7 +38,7 @@ function PanelBody({ panel }: { panel: DockPanelName }) {
 function PanelRoute() {
   const { name: panel } = Route.useParams();
   const projectName = useWorkflowStore((s) => s.workflow?.name ?? null);
-  usePanelSync(panel, close);
+  useWindowSync(close);
   useFileChanges();
 
   useEffect(() => {

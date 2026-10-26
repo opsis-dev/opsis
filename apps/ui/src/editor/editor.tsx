@@ -18,6 +18,7 @@ import { Palette, QuickAdd } from "./palette";
 import { layoutStorage, usePanels } from "./panels";
 import { ReplayDialog } from "./replay-dialog";
 import { SidePanel } from "./side-panel";
+import { TimelineClock } from "./timeline/timeline-clock";
 import { TopBar } from "./top-bar";
 import { useAutosave } from "./use-autosave";
 import { CompiledContext, useCompiled } from "./use-compiled";
@@ -76,6 +77,7 @@ export function Editor({ projectDir }: { projectDir: string }) {
     <ReactFlowProvider>
       <CompiledContext.Provider value={compiled}>
         <FilmProvider>
+          <TimelineClock />
           <div className="flex h-screen flex-col">
             <TopBar projectDir={projectDir} />
             <ResizablePanelGroup

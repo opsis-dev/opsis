@@ -21,7 +21,7 @@ const handles: Partial<Record<PanelSide, PanelImperativeHandle | null>> = {};
 
 const focusTargets: Partial<Record<DockPanelName, HTMLElement | null>> = {};
 
-export const storedTab = (): DockPanelName => readPref("dockTab", "preview", isDockPanel);
+export const storedTab = (): DockPanelName => readPref("dockTab", "timeline", isDockPanel);
 
 export const usePanels = create<{
   open: Record<PanelSide, boolean>;

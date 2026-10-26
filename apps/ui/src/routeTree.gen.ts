@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EditorRouteImport } from './routes/editor'
+import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as PanelNameRouteImport } from './routes/panel.$name'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const EditorRoute = EditorRouteImport.update({
   id: '/editor',
   path: '/editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewRoute = PreviewRouteImport.update({
+  id: '/preview',
+  path: '/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -50,6 +56,7 @@ const ViewIdRoute = ViewIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
+  '/preview': typeof PreviewRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/panel/$name': typeof PanelNameRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
+  '/preview': typeof PreviewRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/panel/$name': typeof PanelNameRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
+  '/preview': typeof PreviewRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/panel/$name': typeof PanelNameRoute
@@ -75,13 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/editor' | '/settings' | '/setup' | '/panel/$name' | '/view/$id'
+    | '/'
+    | '/editor'
+    | '/preview'
+    | '/settings'
+    | '/setup'
+    | '/panel/$name'
+    | '/view/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/editor' | '/settings' | '/setup' | '/panel/$name' | '/view/$id'
+  to:
+    | '/'
+    | '/editor'
+    | '/preview'
+    | '/settings'
+    | '/setup'
+    | '/panel/$name'
+    | '/view/$id'
   id:
     | '__root__'
     | '/'
     | '/editor'
+    | '/preview'
     | '/settings'
     | '/setup'
     | '/panel/$name'
@@ -91,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EditorRoute: typeof EditorRoute
+  PreviewRoute: typeof PreviewRoute
   SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
   PanelNameRoute: typeof PanelNameRoute
@@ -111,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/editor'
       fullPath: '/editor'
       preLoaderRoute: typeof EditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preview': {
+      id: '/preview'
+      path: '/preview'
+      fullPath: '/preview'
+      preLoaderRoute: typeof PreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -147,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EditorRoute: EditorRoute,
+  PreviewRoute: PreviewRoute,
   SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,
   PanelNameRoute: PanelNameRoute,

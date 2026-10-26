@@ -30,6 +30,7 @@ export const commands = {
 	listSecrets: (dir: string) => typedError<string[], CommandError>(__TAURI_INVOKE("list_secrets", { dir })),
 	openSettings: (page: SettingsPage | null) => typedError<null, CommandError>(__TAURI_INVOKE("open_settings", { page })),
 	openPanelWindow: (panel: DockPanelName) => typedError<null, CommandError>(__TAURI_INVOKE("open_panel_window", { panel })),
+	openPreviewWindow: () => typedError<null, CommandError>(__TAURI_INVOKE("open_preview_window")),
 	focusPanelWindow: (panel: DockPanelName) => __TAURI_INVOKE<void>("focus_panel_window", { panel }),
 	closePanelWindow: (panel: DockPanelName) => typedError<null, CommandError>(__TAURI_INVOKE("close_panel_window", { panel })),
 	closePanelWindows: () => typedError<null, CommandError>(__TAURI_INVOKE("close_panel_windows")),
@@ -42,7 +43,7 @@ export const commands = {
 	decideClose: (decision: CloseDecision) => typedError<null, CommandError>(__TAURI_INVOKE("decide_close", { decision })),
 	saveFlushed: () => __TAURI_INVOKE<void>("save_flushed"),
 	compile: (workflow: Workflow, selected: string | null, inspected: string | null) => typedError<EditorCompile, CommandError>(__TAURI_INVOKE("compile", { workflow, selected, inspected })),
-	sendCompiled: () => __TAURI_INVOKE<void>("send_compiled"),
+	latestCompile: () => __TAURI_INVOKE<EditorCompile | null>("latest_compile"),
 	editorCatalog: () => __TAURI_INVOKE<EditorCatalog>("editor_catalog"),
 	fileRoot: () => __TAURI_INVOKE<string>("file_root"),
 	runWorkflow: (request: RunRequest) => typedError<StartedRun, CommandError>(__TAURI_INVOKE("run_workflow", { request })),
@@ -76,8 +77,6 @@ export const commands = {
 	previewPlay: () => typedError<null, CommandError>(__TAURI_INVOKE("preview_play")),
 	previewPause: () => typedError<null, CommandError>(__TAURI_INVOKE("preview_pause")),
 	previewSeek: (frame: number) => typedError<null, CommandError>(__TAURI_INVOKE("preview_seek", { frame })),
-	previewRate: (rate: number) => typedError<null, CommandError>(__TAURI_INVOKE("preview_rate", { rate })),
-	previewRange: (range: PlayRange) => typedError<null, CommandError>(__TAURI_INVOKE("preview_range", { range })),
 	previewResize: (size: ViewSize) => typedError<null, CommandError>(__TAURI_INVOKE("preview_resize", { size })),
 	previewClose: () => typedError<null, CommandError>(__TAURI_INVOKE("preview_close")),
 	relay: (to: RelayTarget, message: Value) => typedError<null, CommandError>(__TAURI_INVOKE("relay", { to, message })),
@@ -573,7 +572,7 @@ export type Design = {
 	exact?: boolean,
 };
 
-export type DockPanelName = "preview" | "timeline" | "mixer" | "run";
+export type DockPanelName = "timeline" | "mixer" | "run";
 
 export type Duck = {
 	level: number,
@@ -983,7 +982,7 @@ export type MediaValue = {
 	hasAudio?: boolean,
 };
 
-export type MenuCommand = "project:new" | "project:open" | "project:save" | "edit:undo" | "edit:redo" | "edit:group" | "edit:select-all" | "edit:layout" | "edit:add-node" | "run:start" | "run:cancel" | "view:settings" | "view:projects" | "view:toggle-left" | "view:toggle-bottom" | "view:toggle-right" | "view:toggle-minimap" | "view:focus-preview" | "view:focus-timeline" | "view:focus-mixer" | "view:focus-run";
+export type MenuCommand = "project:new" | "project:open" | "project:save" | "edit:undo" | "edit:redo" | "edit:group" | "edit:select-all" | "edit:layout" | "edit:add-node" | "run:start" | "run:cancel" | "view:settings" | "view:projects" | "view:toggle-left" | "view:toggle-bottom" | "view:toggle-right" | "view:toggle-minimap" | "view:preview" | "view:focus-timeline" | "view:focus-mixer" | "view:focus-run";
 
 export type MenuCommandFired = MenuCommand;
 
@@ -1120,11 +1119,6 @@ export type PlannedFamily<C = {
 }> = {
 	family: string,
 	faces: C[],
-};
-
-export type PlayRange = {
-	inFrame?: number,
-	outFrame?: number,
 };
 
 export type Point = {
