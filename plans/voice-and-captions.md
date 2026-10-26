@@ -1,130 +1,103 @@
 # Voice and captions
 
-What Opsis needs to speak a script and to caption speech: a Voiceover node that turns text into a voice on this computer (or, when the user turns it on, through an online service), captions from the speech in a file, a film that fits the voice's length, and a Settings page for the voices and speech models. This is milestone M4 ("Audio & captions") of the original spec, minus the parts that are already built (Captions from script, Show captions, the Mixer and its ducking).
+What Opsis needs to speak a script and to caption speech: a Voiceover node that turns text into a voice on this computer (or, when the user turns it on, through an online service), captions from the speech in a file, a film that fits the voice's length, and a Settings page for the voices and speech models. Captions from script, Show captions, the Mixer and its ducking are already built.
 
 Status: plan only. Nothing here is built yet.
 
 ## How to read this plan
 
-- Each section is one feature. The user picks which to build and when; the first section (downloads and Settings) comes before the others because they all use it.
-- Each feature section has the same parts: **What it adds**, **Fit with Opsis**, **Work**, **Licence**, **Risks**, **Sources**.
-- Sizes are download sizes of the pinned archives, read from the release listings on the date in **Sources**. Sizes on disk are measured during the work and written into the catalogue.
+- Each section is one feature. The user picks which to build and when; the first section (models, downloads and Settings) comes before the others because they all use it.
+- Each feature section has the same parts: **What it adds**, **Fit with Opsis** (In place / Missing), **Work**, **Licence**, **Risks**, **Sources**.
+- Sizes are download sizes read from the model listings on the date in **Sources**. Sizes on disk are measured during the work and written into the catalogue.
 
 ## Conventions
 
 These apply to every feature in this plan. They restate rules from `AGENTS.md`; when the two disagree, `AGENTS.md` wins.
 
-**Versions.**
-
-- Every `remotion` / `@remotion/*` package stays at exact `4.0.536`: `bun add --exact @remotion/<name>@4.0.536`. `@remotion/captions`, `@remotion/openai-whisper` and `@remotion/elevenlabs` are already in `node_modules` (through `@remotion/studio`) but Opsis imports them directly, so each becomes a direct dependency.
-- Other packages: the latest release, through `bun add` / `bun add -d`. Never edit dependency blocks by hand.
-- Downloaded programs and models are pinned like FFmpeg (`FFMPEG_RELEASE` in `src/engine/paths.ts`): a fixed release, a fixed URL per platform, and a SHA-256 checked after the download.
-
 **Where code goes.**
 
-- Node definitions in `src/shared/nodes/` (zod params with `.meta()`, `card()`, `compile()`); executors in `src/worker/executors/`, keyed by node type. Every node with `executes: true` has an executor (`executors.test.ts`).
-- Download and path code is Node-only and goes in `src/engine/`, next to `install.ts` and `paths.ts`. The catalogue of voices and models (ids, sizes, licences, URLs, hashes) is plain data the renderer also shows, so it goes in `src/shared/speech/`.
-- Speech never runs in `src/shared` or `src/video`: no `node:*`, no child processes, no calls to the speech program there.
+- `crates/voice` (`opsis-voice`): the model catalogue and downloads, the speech models, word timing and the online services. Its executors register with the runner like `opsis-media`'s; its nodes are definitions in `opsis-compile`; keys come from `opsis-store`.
+- Node definitions in `crates/compile/src/nodes/` (settings structs with `schemars` attributes, `card`, `compile`). Every node with `executes: true` has an executor (`crates/render/tests/executors.rs`).
+- Speech never runs in `packages/video` or the editor.
+
+**One inference runtime (decided).** Every model on this computer runs through `ort` (MIT OR Apache-2.0, ONNX Runtime). Nothing else may carry its own inference runtime: no sherpa-onnx (its crate links its own `onnxruntime`, and its program archives ship `libonnxruntime.so`), no whisper.cpp (`whisper-rs` builds ggml).
 
 **Behaviour.**
 
-- Nothing uses the internet unless the user asks. Every download sits behind a button, says what it gets and how big it is, asks first, and saves under `<userData>/speech`. Online voices and transcription are off until the user turns a service on in Settings and enters a key.
+- Nothing uses the internet unless the user asks. Every download sits behind a button, says what it gets and how big it is, asks first, and saves under `<data folder>/speech`. Online voices and transcription are off until the user turns a service on in Settings and enters a key.
 - Synthesis and transcription happen when a node runs, never at preview or render time. The preview and the export play the same saved files, so preview equals export.
-- Keys are encrypted with `safeStorage` through `src/main/secrets.ts`, never written to `settings.json`, never passed in `WorkerEnv`.
+- Keys live in the OS keyring (`Keyring::set_key`, `crates/store/src/keys.rs`), never in settings, never in a window.
 
 **User-facing copy.**
 
-- No library, model, tool or format names in node titles, descriptions, field labels, badges, toasts or errors: "Voice on this computer", "Online voice", "English", "European languages". Sentence case, durations in seconds, technical settings under `advanced`.
-- Decided naming exception, added to `AGENTS.md` when this is built: Settings → Voice and captions may name the online services (ElevenLabs, OpenAI, OpenRouter) in its service choices and key fields. Local voices and models show plain labels ("Natural voices", "Small voices", "English", "European languages"); each label has a small circled `?` whose hover card names the engine and model and gives size, languages and licence, for users who want the detail. Names appear nowhere else (nodes, cards, toasts, errors), and in Settings → Licences.
-- `src/shared/nodes/card.test.ts` checks every node's description and the banned words; add the new names (Kokoro, Kitten, Piper, Whisper, Parakeet, NeMo, ElevenLabs, OpenAI, OpenRouter, ONNX) to its banned list.
+- No library, model, tool or format names in node titles, descriptions, field labels, badges, toasts or errors: "Voice on this computer", "Online voice", "English", "European languages". Sentence case, durations in seconds, technical settings under `x-advanced`.
+- Decided naming exception, added to `AGENTS.md` when this is built: Settings → Voice and captions may name the online services (ElevenLabs, OpenAI, OpenRouter) in its service choices and key fields. Local voices and models show plain labels ("Natural voices", "English", "European languages"); each label has a small circled `?` whose hover card names the model and gives size, languages and licence. Names appear nowhere else (nodes, cards, toasts, errors), and in Settings → Licences.
+- `crates/compile/tests/unit/nodes_c.rs` checks every node's description and the banned words; add Kokoro, Parakeet, NeMo, ElevenLabs, OpenAI, OpenRouter and ONNX to its list.
 
-**Licences.**
-
-- MIT and Apache-2.0 packages and models get an entry in `THIRD_PARTY_NOTICES.md` (shown in Settings → Licences). Downloaded programs and voices get a licence entry in `sources()` (`src/main/licences.ts`) that appears once they're on disk, like FFmpeg's.
-- Never offer a voice whose licence hasn't been checked for commercial use, the same rule as built-in sounds.
+**Licences.** Downloaded models get a licence entry that appears once they're on disk, like the engine's (`LicenceSource`, `crates/engine/src/licences.rs`). Never offer a voice whose licence hasn't been checked for commercial use, the same rule as built-in sounds.
 
 **Checks when a feature is done.**
 
-- `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`.
-- The no-comments check from `AGENTS.md`.
+- `bun run typecheck`, `bun run lint:fix`, `bun run format:fix`, `bun run test`, and the no-comments check.
 - Try it in the app: download from Settings, run the node, play it in the Preview, change the Mixer.
 - Export a short film that uses it and compare with the Preview: preview must equal export.
-- Don't commit or push.
 
 ## Summary
 
-| Feature                            | What users get                                                                                                                                                                     | Licence                                                       | Size                                                          |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------- |
-| Speech downloads and Settings page | A Voice and captions page: voices and speech models with their sizes, download and remove buttons, online services with an encrypted key                                           | Apache-2.0 (speech program), GPL-3.0 (its pronunciation part) | Speech program 20–28 MB per platform, for voices and captions |
-| Voiceover node                     | A voice reading a script with variables, line by line, at a set speed; lines can start on browser actions; its own Voice bus that lowers the music; captions that follow the voice | Apache-2.0 voices (Kokoro, Kitten)                            | 31 MB (small voice), 132 MB (natural voices)                  |
-| Online voices and transcription    | The same nodes using ElevenLabs, OpenAI, OpenRouter or any compatible address, after the user turns it on and enters a key                                                         | Service terms; converter packages MIT                         | Nothing to download                                           |
-| Captions from speech               | Word-timed captions from the speech in a video or sound file, for Show captions, plus a subtitle file                                                                              | CC-BY-4.0 (transcription models)                              | 460 MB (English), 464 MB (25 European languages)              |
-| Fit length to the voiceover        | Fit length makes the film as long as the voice, plus a tail, by speeding up, holding or cutting                                                                                    | Opsis's own                                                   | None                                                          |
+| Feature                         | What users get                                                                                                                                                                     | Licence                          | Size                                                   |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------ |
+| Speech models and Settings page | A Voice and captions page: voices and speech models with their sizes, download and remove buttons, online services with a key in the keyring                                       | ONNX Runtime MIT                 | the runtime, measured in step 1                        |
+| Voiceover node                  | A voice reading a script with variables, line by line, at a set speed; lines can start on browser actions; its own Voice bus that lowers the music; captions that follow the voice | Apache-2.0 (Kokoro)              | about 107 MB (int8 model and the English voices)       |
+| Online voices and transcription | The same nodes using ElevenLabs, OpenAI, OpenRouter or any compatible address, after the user turns it on and enters a key                                                         | Service terms                    | Nothing to download                                    |
+| Captions from speech            | Word-timed captions from the speech in a video or sound file, for Show captions, plus a subtitle file                                                                              | CC-BY-4.0 (transcription models) | about 661 MB (English), 671 MB (25 European languages) |
+| Fit length to the voiceover     | Fit length holds a tail after the sound                                                                                                                                            | Opsis's own                      | None                                                   |
 
-## Speech downloads and the Voice and captions settings page
+## Speech models, downloads and the Voice and captions page
 
 ### What it adds
 
 A Settings page, **Voice and captions**, that lists everything speech needs and gets it only when asked:
 
-- **Voices on this computer**: each voice pack under a plain label ("Natural voices", "Small voices") with its languages, number of voices, download size and size on disk; Download, Remove, and Play a sample once downloaded. A circled `?` next to the label opens a hover card with the engine, model name, licence and languages.
-- **Captions on this computer**: two transcription models, "English" and "European languages" (25 languages), with their sizes, each with the same `?` card (NVIDIA Parakeet TDT 0.6B v2 and v3, CC-BY-4.0).
-- **Online services**: off by default. ElevenLabs, OpenAI and OpenRouter each get a switch, an encrypted key field and a Check key button; **Compatible service** takes an address, a voice model, a transcription model and an optional key, for any service or local speech server that speaks OpenAI's audio API.
+- **Voices on this computer**: "Natural voices" with its languages, number of voices, download size and size on disk; Download, Remove, and Play a sample once downloaded. A circled `?` opens a hover card with the model name, licence and languages.
+- **Captions on this computer**: "English" and "European languages" (25 languages), with their sizes and the same `?` card (NVIDIA Parakeet TDT 0.6B v2 and v3, CC-BY-4.0).
+- **Online services**: off by default. ElevenLabs, OpenAI and OpenRouter each get a switch, a key field and a Check key button; **Compatible service** takes an address, a voice model, a transcription model and an optional key, for any service or local speech server that speaks OpenAI's audio API.
 - The folder it all lives in, and the total space used.
-
-The first voice download also gets the speech program (shown in the same size line: "132 MB voice + 21 MB program"); the first model download also gets the same program if no voice was downloaded yet: one speech program speaks and transcribes.
 
 ### Fit with Opsis
 
-Already in place:
+In place:
 
-- The engine download pattern: `installFfmpeg` and `download()` in `src/engine/install.ts` stream with progress, write `.part` then rename; `megabytes()` formats sizes; `calmProgress()` throttles progress; the install runs in a worker (`case "install-engine"` in `src/worker/worker.ts`) started by `installEngine` in `src/main/workers.ts`, which relays `EngineInstallEvent`s to the renderer.
-- Ask-first downloads in the renderer: the font library's online fonts confirm with an `AlertDialog` before the first request (`onlineAllowed` in `src/renderer/fonts/fonts-panel.tsx`).
-- Settings pages: `PAGES` and `Page()` in `src/renderer/app/settings/settings-window.tsx`, `SettingsPage` in `src/shared/ipc.ts`, app settings in `appSettingsSchema` (`src/shared/settings.ts`) saved by `patchSettings` (`src/main/settings.ts`).
-- Project sign-ins: `writeSecret` / `readSecret` (`src/main/secrets.ts`) encrypt with `safeStorage` into the project's `secrets/` folder and refuse to save when `isEncryptionAvailable()` is false; the worker asks main for them with `secret:read` and `secret:write` (`src/main/workers.ts`, `src/shared/worker-protocol.ts`).
-- The app state database (`src/main/db/`, **App state is one database** in `AGENTS.md`) and its unused column type `encryptedText()` (`src/main/db/crypto.ts`): it seals a value with `safeStorage` (base64 in a text column), refuses to save without secure storage or when Linux's keyring is `basic_text`, and reports "This key can't be read on this computer. Enter it again." when a value won't decrypt.
-- Long main-process work is listed on exit through `track(label, promise)` (`src/main/exit.ts`).
-- Licence entries that appear once a file exists: `sources()` / `listLicences()` in `src/main/licences.ts`.
+- The engine installer (`crates/engine/src/install.rs`): `fetch_verified` streams a pinned download into a temporary file next to its destination, checks size and SHA-256, and honours cancellation; `CalmProgress` throttles progress; downloads are pinned as `Pinned { url, sha256, size }` (`crates/engine/src/downloads.rs`). Settings → Engine shows the install with progress events.
+- Ask-first downloads: the font library's "Go online to get fonts?" dialog (`apps/ui/src/fonts/fonts-panel.tsx`).
+- Settings pages: `SettingsPage` (`crates/types/src/shell.rs`) and `apps/ui/src/app/settings/`; app settings in `AppSettings` (`crates/types/src/settings.rs`), written one section at a time with `patch_settings`.
+- Keys: `Keyring::set_key` / `key` keep named secrets in the OS keyring and refuse when the platform has no secure store.
+- Long work is listed on exit through `AppState.tasks`.
+- Licence entries that appear once a file exists: `LicenceSource` and `list_licences` (`crates/engine/src/licences.rs`).
 
-Missing:
-
-- A speech folder, catalogue and installer. `download()` isn't exported, checks no hash, and only un-gzips; the speech program comes as `.tar.bz2`. `fflate` (already a dependency) does zip and gzip; tar and bzip2 need `tar-stream` and `seek-bzip` (both MIT).
-- App-wide secrets: no `secrets` table, and `secret:read` reads from the project's folder only.
-- A `"speech"` `SettingsPage` and its page component.
+Missing: the crate, the catalogue, the runtime, the page, the `speech` settings section, a key removal call.
 
 ### Work
 
-1. **Dependencies.** `bun add tar-stream seek-bzip`, `bun add -d @types/tar-stream`.
-2. **Catalogue.** `src/shared/speech/catalog.ts`: `SPEECH_TOOLS` (the speech program per platform: URL, SHA-256, download bytes, bytes on disk, licence), `VOICE_PACKS` (id, label, languages, voices with display names, URL, hash, sizes, licence id) and `TRANSCRIBE_MODELS` (`english` = `sherpa-onnx-nemo-parakeet-tdt-0.6b-v2-int8`, 460 MB; `european` = `sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8`, 464 MB, from sherpa-onnx's `asr-models` release). Pinned release: `sherpa-onnx v1.13.8`, the `shared` build per platform, which has both `sherpa-onnx-offline-tts` and `sherpa-onnx-offline`. No whisper.cpp on any platform (decided: it has no maintained macOS build, and one program for both jobs is simpler). A test checks every entry has a hash, a size, a checked licence and no banned word in its labels.
-3. **Paths.** `src/engine/speech.ts`: `speechPaths(userData)` → `<userData>/speech/{program,voices/<id>,models/<id>}`, and `speechStatus()` that reports what's installed, like `engineStatus()`.
-4. **Installer.** `src/engine/speech-install.ts`: export `download()` from `install.ts` and add an optional SHA-256 check; `installSpeechTool(kind)`, `installVoicePack(id)`, `installTranscribeModel(id)`, each extracting into a staging folder and renaming into place, `chmod 0o755` on programs; `removeSpeechItem(id)`. Models download with the same hashed `download()` as voice packs.
-5. **Worker and main.** A `install-speech` worker message beside `install-engine`, a `installSpeech(item)` IPC in `src/main/main.ts` wrapped in `track("Downloading speech files", …)`, progress events through the same shape as `EngineInstallEvent`.
-6. **App-wide secrets.** Unless `plans/ai-assist.md` has already done it:
-   - Add a `secrets` table to `src/main/db/schema.ts`: `id` integer primary key, `name` text not null, unique, `value` `encryptedText()` not null. Run `bun run db:schema`; development databases are replaced on the next start.
-   - Remove the `// TODO: To be used later` comment above `encryptedText` and the note about it in `AGENTS.md`.
-   - `src/main/app-secrets.ts`, shared with the assistant's key store: `writeAppSecret(name, value)`, `hasAppSecret(name)`, `clearAppSecret(name)`, and `readAppSecret(name)` for main only.
-
-   Service keys are named `speech:<service>`. Project sign-ins stay in the project's `secrets/` folder. New IPC `setServiceKey(service, key)` / `hasServiceKey(service)`; the renderer never reads a key back, and the worker asks main for a service key with a new `app-secret:read` message (`secret:read` takes a project folder), and only for the service it calls. Tests open the database with `openDatabase(IN_MEMORY)` and mock `safeStorage`.
-
-7. **Settings.** `appSettingsSchema` gains `speech: { voice: string, transcribe: "english" | "european", online: { elevenlabs: boolean, openai: boolean, openrouter: boolean, compatible: { enabled: boolean, address: string, voiceModel: string, transcribeModel: string } } }`, all off or empty by default. Add `"speech"` to `SettingsPage`, a `SpeechPage` in `src/renderer/app/settings/speech-page.tsx` and a `PAGES` row ("Voice and captions", icon `AudioLines`). Download buttons open an `AlertDialog` naming the size before anything is fetched. The `?` cards are one small `InfoHint` component (the installed shadcn `HoverCard` with a `CircleHelp` icon trigger) fed from the catalogue entry, so the details live in one place.
-8. **Licences.** Entries in `sources()` for the speech program (with the pronunciation data's GPL-3.0 text), each voice pack and each transcription model (CC-BY-4.0, crediting NVIDIA), read from the downloaded folders.
-9. **Tests.** Catalogue test; `speechPaths` per platform (like `paths.test.ts`); hash mismatch rejects and deletes the `.part`.
-
-### Licence
-
-`tar-stream`, `seek-bzip`: MIT. The downloaded programs keep their own licences (see the features below) and are shown in Settings → Licences once downloaded.
+1. **Runtime.** `cargo add ort` in `crates/voice`. Choose how ONNX Runtime ships by measuring the app both ways (`plans/release.md`, size work): linked statically from ort's prebuilt binaries (`download-binaries`, fetched at build time) or one shared library staged with the app and loaded with `load-dynamic`, which ort's docs recommend for apps. Either way it is one runtime for every model. A test loads each model's input and output names, so a model that needs an operator the build lacks fails in CI.
+2. **Catalogue.** `crates/voice/src/catalog.rs`: `VOICE_PACKS` and `TRANSCRIBE_MODELS` as Rust data (id, label, languages, voices with display names, files with URL pinned by Hugging Face commit, SHA-256 and size, licence), exported to the editor with the other generated types. A test checks every entry has a hash, a size, a checked licence and no banned word in its labels.
+3. **Paths and status.** `speech_paths(data)` → `<data folder>/speech/{voices/<id>,models/<id>}`; `speech_status()` reports what's installed.
+4. **Installer.** `install_speech_item(id)`: each file through `fetch_verified` (made public in `opsis-engine`) into a staging folder, renamed into place when all are there; `remove_speech_item(id)`. Models are plain files, so nothing is unpacked.
+5. **Commands.** `install_speech(item)` with progress over a `Channel`, listed in `AppState.tasks` ("Downloading speech files"); `remove_speech(item)`; `speech_status`.
+6. **Keys.** `Keyring::clear_key` (shared with `plans/ai-assist.md`); keys named `speech:<service>`. Commands `set_service_key(service, key)`, `has_service_key(service)`, `clear_service_key(service)`; windows never read a key back.
+7. **Settings.** `AppSettings` gains `speech: { voice, transcribe: english | european, online: { elevenlabs, openai, openrouter, compatible: { enabled, address, voice_model, transcribe_model } } }`, all off or empty by default. Add `SettingsPage::Voice`, `speech-page.tsx` and its sidebar row ("Voice and captions", icon `AudioLines`). Download buttons open an `AlertDialog` naming the size before anything is fetched. The `?` cards are one small `InfoHint` component (the installed `HoverCard` with a `CircleHelp` trigger) fed from the catalogue entry.
+8. **Licences.** `LicenceSource` entries for each voice pack and each transcription model (CC-BY-4.0, crediting NVIDIA), shown once downloaded; ONNX Runtime's notice in `THIRD_PARTY_NOTICES.md`.
+9. **Tests.** Catalogue test; `speech_paths` per platform; a hash mismatch rejects the download and leaves nothing behind (against `wiremock`).
 
 ### Risks
 
-- **Linux builds and old systems.** The `linux-x64-shared` build links the C++ runtime of the machine it was built on; an AppImage user on an older distribution may not have it. Check on the oldest supported distribution; fall back to building it in CI if it fails.
-- **macOS.** sherpa-onnx ships macOS builds (`osx-arm64-shared` 20.3 MB, `osx-x64-shared` 22.8 MB, and universal2). Check that a program the app downloads runs without Gatekeeper prompts on a notarized and an unsigned app (`plans/release.md`, section 5).
-- **No keyring.** `encryptedText` refuses to save when `safeStorage` can't encrypt or Linux's keyring is `basic_text`. Settings shows its message where the key is entered, and the online service stays off until a keyring is set up.
+- **Runtime size.** ONNX Runtime adds tens of MB to every install even for users who never speak; `load-dynamic` with the library downloaded beside the models would avoid that, at the cost of one more pinned download per platform.
+- **macOS.** A shared library loaded at run time must be signed with the app; check on a notarized build (`plans/release.md`, signing).
+- **No keyring.** Saving a key refuses without a secure store; Settings shows that where the key is entered, and the service stays off.
 
 ### Sources
 
-- Opsis source: `src/engine/install.ts`, `src/main/secrets.ts`, `src/main/licences.ts`, `src/renderer/app/settings/settings-window.tsx` (checked 2026-10-16)
-- [sherpa-onnx v1.13.8 release](https://github.com/k2-fsa/sherpa-onnx/releases/tag/v1.13.8): `linux-x64-shared` 28.2 MB, `linux-aarch64-shared-cpu` 28.1 MB, `osx-arm64-shared` 20.3 MB, `osx-x64-shared` 22.8 MB, `win-x64-shared-MD-Release` 20.5 MB (checked 2026-10-16)
-- npm metadata: `tar-stream@3.2.2`, `seek-bzip@2.0.0` (checked 2026-10-16)
+- crates.io / docs.rs: `ort` 2.0.0-rc.15 (MIT OR Apache-2.0, ONNX Runtime 1.31; `download-binaries`, `load-dynamic`), `sherpa-onnx-sys` 2.0.0 (`build.rs` links `onnxruntime`), `whisper-rs` 0.16.0 (builds ggml) (checked 2026-10-25)
+- [sherpa-onnx v1.13.8 release](https://github.com/k2-fsa/sherpa-onnx/releases/tag/v1.13.8): `linux-x64-shared` ships `lib/libonnxruntime.so` (checked 2026-10-16)
 
 ## Voiceover node
 
@@ -133,112 +106,104 @@ Missing:
 A **Voiceover** node (Audio): a script, a voice and a speed in, a voice track and its captions out.
 
 - **Script**: one line per spoken line, with variables (`VarText`). Each line is spoken separately, so its start and end are exact.
-- **Voice**: a picker grouped by pack ("Natural voices", "Small voices"), with a play button, and online voices when a service is on.
+- **Voice**: a picker of the pack's voices with a play button, and online voices when a service is on.
 - **Speed**, **Starts at**, **Pause between lines**, and a per-line nudge that the Timeline writes when a line is dragged.
 - **Lines on actions**: any line can start on a browser action of the clip it's added to, plus an offset, like Sound effect's **On an action**.
 - Outputs: **Sound** (to Add sound or Fit length) and **Captions** (to Show captions), so captions follow the voice word by word.
 
 ### Fit with Opsis
 
-Already in place:
+In place:
 
-- Sounds join a clip through Add sound (`addAudioNode`, `src/shared/nodes/audio.ts`), which takes any number of `audio` values (`many()`) and places anchored ones at their action's mark with `anchorSounds()` (via `flattenSpec`). Sound effect stores its action in `atAction` (`widget: "action"`) and an `offsetMs`.
-- `AudioItem` (`src/shared/schema/timeline.ts`) carries `channel`, `role`, `lengthFrames`, `anchor` and `handles`; each `channel` is one Mixer strip.
-- Ducking is a bus setting: `duckKeysFor` (`src/shared/mix/levels.ts`) keys a bus on the buses named in `bus.duck.keys`; `buildMixPlan` (`src/shared/mix/plan.ts`) renders it with `sidechaincompress`. A **Voice** strip preset already exists in `STRIP_PRESETS` (`src/shared/mix/types.ts`).
-- `CaptionsValue` (`src/shared/schema/values.ts`) is `{ text, startMs, endMs }` per word; `captionsNode` (Show captions, `src/shared/nodes/text.ts`) draws it with `core/captions`, whose `Captions` component (`src/video/core/captions.tsx`) groups words into lines of up to six or at sentence ends.
-- Executors that run FFmpeg and return files: `mediaResult()` and `transcode()` in `src/worker/executors/media.ts`; `ExecutorContext` has `ffmpeg`, `dir`, `progress()`, `signal`, and `projectFileRef(ctx, file)` (`src/worker/executors/util.ts`) makes a file's `project:` ref. A compile can read its executor's outputs from `result` (as `src/shared/nodes/media.ts` does).
+- Sounds join a clip through Add sound (`audio.mix`, `crates/compile/src/nodes/audio.rs`), which takes any number of `audio` values (`many()`) and places anchored ones at their action's mark with `anchor_sounds` (via `flatten_spec`). Sound effect stores its action through the `action` widget and an offset.
+- `AudioItem` (`crates/types/src/timeline.rs`) carries `channel`, `role` (`AudioRole`: Music, Effect), `length_frames`, `anchor` and `handles`; each `channel` is one Mixer strip.
+- Ducking is a bus setting: `duck_keys_for` (`crates/compile/src/mix/levels.rs`) keys a bus on the buses it names; the mix plan renders it with `sidechaincompress`. A **Voice** strip preset exists in the Mixer (`STRIP_PRESETS`).
+- `CaptionsValue` (`crates/types/src/values.rs`) is a list of `Caption { text, start_ms, end_ms }` per word; Show captions (`text.captions`, `crates/compile/src/nodes/text.rs`) draws it with `core/captions`, whose component groups words into lines of up to six or at sentence ends.
+- Media executors run FFmpeg behind `MediaTools` and return files (`crates/media/src/executors.rs`); a compile can read its executor's result.
 
 Missing:
 
-- No text-to-speech anywhere. Recordings carry no sound, so all speech comes from this node or from files.
-- `role` is `"music" | "effect"`; `ChannelKind` is `"music" | "effect" | "clip"`; `kindOfAudio` maps everything that isn't music to `effect`, so a voice would land on the Effects bus.
-- `DEFAULT_BUSES` has Music, Effects and Clips; there's no Voice bus to duck under.
-- Captions can't follow an action: `CaptionsValue` has no anchor, and Show captions doesn't resolve marks.
-- Icons: `icons.ts` has `AudioLines` and `Captions` but no microphone or speech icon.
+- Any text-to-speech. Recordings carry no sound, so all speech comes from this node or from files.
+- A voice role: `AudioRole` and `ChannelKind` (`crates/types/src/mix.rs`) know music, effects and clips; `default_buses` has Music, Effects and Clips, so there's no Voice bus to duck under.
+- Captions can't follow an action: `Caption` has no anchor, and Show captions doesn't resolve marks.
+- Icons: the `Icon` enum (`crates/types/src/cards.rs`) has `AudioLines` and `Captions` but no microphone or speech icon.
 
 ### Work
 
-1. **Speech program.** The voices run in sherpa-onnx's `sherpa-onnx-offline-tts` program (downloaded in the section above) as a separate process: `--kokoro-model`, `--kokoro-voices`, `--kokoro-tokens`, `--kokoro-data-dir` (or the Kitten equivalents), `--sid`, `--speed`, `--num-threads`, `--output-filename`. Keeping it out of Opsis's process avoids native addons in Electron and keeps the GPL-3.0 pronunciation part in a separate program, as with FFmpeg.
-2. **Voice packs** in `VOICE_PACKS`: "Natural voices" = `kokoro-int8-multi-lang-v1_0` (132 MB, 53 voices, English and Chinese); "Small voices" = `kitten-nano-en-v0_8-int8` (31 MB, English). Measure the full-precision Kokoro pack (350 MB) against int8 by ear before deciding whether to offer it. Piper voices are out (decided): licences differ per voice (`ryan` is CC BY-NC-SA 4.0, `lessac` uses the Blizzard licence).
-3. **Node.** `audio.voiceover` in `src/shared/nodes/audio.ts`: `phase: "media"`, `executes: true`, `inputs: {}`, outputs `audio` and `captions`. Params: `script` (`text(…, "textarea")`), `voice` (new `voice` widget: catalogue voices, installed or not, with a Download link to Settings), `speed` (0.5–2, step 0.05), `startMs`, `pauseMs` (`ms(400, "Pause between lines", 5000)`), `nudgesMs` (`offsets` widget, one per line), `lineActions` (`z.array(z.object({ line, atAction, offsetMs }))` with a new `lineActions` widget that lists the script's lines with the existing action picker, matched by line text so reordering keeps them), and `wordTiming` under `advanced` ("From the voice" when a transcription model is installed, else "Estimated"). Card: first line quoted, voice name, total length, "N lines on actions"; warn when the voice isn't downloaded.
-4. **Executor.** `voiceoverExecutor` in a new `src/worker/executors/speech.ts`, added to `EXECUTORS` (`src/worker/executors/index.ts`): for each line, synthesise to WAV in a shared cache `.opsis/cache/voice/<sha256 of pack, voice, speed, text>.wav`, so editing one line re-speaks only that line; probe each length with `ctx.ffmpeg.probe`; word times from `wordTiming` (see step 6). Outputs `{ lines: [{ src, durationMs, words }] }` as JSON in the node's folder, plus an `audio` artifact of the whole voice for the card.
-5. **Compile.** From `result` and the params (so moving or pausing never re-speaks): one `AudioItem` per line with `channel: nodeId`, `role: "voice"`, `lengthFrames`, `anchor` from `lineActions`, `from` = start + earlier lines + pauses + nudges, `handles.move` = `{ param: "nudgesMs", index: i }` (or the line's `offsetMs` when anchored). `AudioValue.durationInFrames` = end of the last unanchored line. `CaptionsValue` with each word's times, shifted the same way.
-6. **Word timing.** "Estimated": spread the line's length over its words by character count, with a short lead-in; a pure function in `src/shared/speech/words.ts`, unit-tested. "From the voice": run the transcriber on each line (Captions from speech's code) and keep its word times when the words match the script, else fall back to the estimate.
-7. **Voice role and bus.** `role` gains `"voice"` in `audioItemSchema`; `ChannelKind` and `DEFAULT_BUS_FOR` gain `voice → "voice"`; `kindOfAudio` returns `"voice"`; `soundLength` (`src/shared/compile/duck.ts`) treats voice like effects (natural length); the `flatten.ts` role union gains it. `DEFAULT_BUSES` gains a Voice bus starting from the Voice preset's EQ and compressor; `normalizeWorkflow` (`src/shared/nodes/registry.ts`) adds it to saved mixes that lack it. When the first Voiceover is added, the workflow store turns on the Music bus's ducking keyed on `"voice"` if it's off, in the same undo step.
-8. **Captions on actions.** `CaptionsValue` words gain an optional `anchor`; `captionsNode` resolves them against its **Over clip** input with the same marks as `anchorSounds()` (extract a shared `markFrame()` helper). Without a clip, anchored lines use their unanchored times and the card says so.
-9. **Icons.** Add `MicVocal` (`mic-vocal`) and `Speech` (`speech`) to `src/renderer/editor/icons.ts`.
-10. **Tests.** Executor exists (`executors.test.ts`); `card.test.ts`; compile placement with pauses, nudges and anchors; a round-trip in `edits.test.ts` for the line move handle; ducking keys include the voice; `normalizeWorkflow` adds the Voice bus once.
+1. **Kokoro in Rust.** `crates/voice/src/kokoro.rs`: text to phonemes with `misaki-rs` (MIT; grapheme-to-phoneme made for Kokoro, US and British English) with `default-features = false`, so espeak isn't linked; phoneme ids from the model's `tokenizer.json`; `input_ids` padded with 0, at most 510 tokens per call; `style` = the voice file's vector at index `len(tokens)` (256 values); `speed`. One `ort` session per process, kept while the app runs.
+2. **Voice pack.** "Natural voices" = `onnx-community/Kokoro-82M-v1.0-ONNX`: `onnx/model_quantized.onnx` (92.4 MB) and the 29 US and British English voices (`af_*`, `am_*`, `bf_*`, `bm_*`, about 0.5 MB each). Compare it with `model.onnx` (325.5 MB) by ear before the catalogue is final. Other languages and the small Kitten voices need espeak-ng phonemes; they are out of the first version and could come later with espeak-ng as a separate program that only turns text into phonemes (a phonemizer, not a second runtime, and the GPL boundary stays a process boundary). Piper voices are out (decided): licences differ per voice (`ryan` is CC BY-NC-SA 4.0, `lessac` uses the Blizzard licence).
+3. **Node.** `audio.voiceover` in `audio.rs`: media phase, `executes: true`, no inputs, outputs `audio` and `captions`. Settings: `script` (`textarea`), `voice` (a new `voice` widget: catalogue voices, installed or not, with a link to Settings), `speed` (0.5–2, step 0.05), `start_ms`, `pause_ms` ("Pause between lines", 0–5 s, default 0.4 s), `nudges_ms` (`offsets` widget, one per line), `line_actions` (rows of `{ line, action, offset_ms }` with a new `line-actions` widget that lists the script's lines with the action picker, matched by line text so reordering keeps them), and `word_timing` under advanced ("From the voice" when a transcription model is installed, else "Estimated"). Card: first line quoted, voice name, total length, "N lines on actions"; a warning when the voice isn't downloaded.
+4. **Executor.** In `opsis-voice`, registered like the media executors: for each line, synthesise to WAV in a shared cache `.opsis/cache/voice/<sha256 of pack, voice, speed, text>.wav`, so editing one line re-speaks only that line; probe each length; word times from `word_timing` (step 6). Outputs `{ lines: [{ src, duration_ms, words }] }` as JSON in the node's folder, plus the whole voice as an `audio` result for the card.
+5. **Compile.** From the result and the settings (so moving or pausing never re-speaks): one `AudioItem` per line with `channel` = the node id, `role: Voice`, `length_frames`, `anchor` from `line_actions`, `from` = start + earlier lines + pauses + nudges, `handles.move` pointing at the line's entry in `nudges_ms` (or its `offset_ms` when anchored). `AudioValue.duration_in_frames` = end of the last unanchored line. `CaptionsValue` with each word's times, shifted the same way.
+6. **Word timing.** "Estimated": spread the line's length over its words by character count, with a short lead-in; a pure function in `crates/voice/src/words.rs`, unit-tested. "From the voice": transcribe each line (Captions from speech's code) and keep its word times when the words match the script, else fall back to the estimate.
+7. **Voice role and bus.** `AudioRole::Voice` and `ChannelKind::Voice` with `VOICE_BUS`; `default_buses` gains a Voice bus starting from the Voice preset's EQ and compressor; `sound_length` (`crates/compile/src/audio.rs`) treats voice like effects (natural length); the flattener draws it. Mixes saved without the Voice bus get it where mixes are normalized. When the first Voiceover is added, the Music bus's ducking is keyed on the Voice bus if it's off, in the same undo step. `bun run types:export`.
+8. **Captions on actions.** `Caption` gains an optional `anchor`; Show captions resolves them against its **Over clip** input with the same marks as `anchor_sounds` (a shared `mark_frame` helper). Without a clip, anchored lines use their unanchored times and the card says so.
+9. **Icons.** `MicVocal` and `Speech` in `Icon` and `NODE_ICONS`; a look for the node in `NODE_LOOKS`, then `bun run glyphs:bundle`.
+10. **Tests.** The executor exists; descriptions and banned words; compile placement with pauses, nudges and anchors; a round-trip for the line move handle with the other timeline edit tests; ducking keys include the voice; the Voice bus is added once.
 11. **Check.** A film with music, a voiceover of five lines (two on actions) and Show captions: the music dips under each line, captions follow the words, dragging a line on the Timeline moves its captions, re-running after editing one line re-speaks only that line, and the export sounds and looks like the Preview.
 
 ### Licence
 
-- Speech program: sherpa-onnx, Apache-2.0. Its text-to-sound step uses espeak-ng (GPL-3.0) and ships `espeak-ng-data` in each Kokoro pack; it runs as a separate program, like FFmpeg, and its licence text and source link go in Settings → Licences.
-- Voices: Kokoro-82M weights Apache-2.0 (trained on public-domain, Apache/MIT and two CC BY datasets, credited in the notice); Kitten TTS 0.8 weights Apache-2.0 per their model cards.
+Kokoro-82M weights: Apache-2.0 (trained on public-domain, Apache/MIT and two CC BY datasets, credited in the notice). `misaki-rs`: MIT. No GPL part: espeak isn't linked.
 
 ### Risks
 
-- **Speed on slow computers.** sherpa-onnx's only published Kokoro numbers are for a Raspberry Pi 4 (real-time factor 3.2 with four threads, slower than real time). Measure Kokoro int8 and Kitten on the CI machines and a 4-core laptop; if Kokoro is slower than real time on the laptop, make Small voices the default.
-- **Numbers, names and URLs.** Neither pack normalises text much ("v2.1", "$29/mo", product names). Add a small, tested text tidy-up (`src/shared/speech/tidy.ts`) and show the tidied line as a hint under the script.
+- **Speed on slow computers.** Measure the int8 model on the CI machines and a 4-core laptop; if it's slower than real time on the laptop, say so next to the voice and speak lines in parallel up to the core count.
+- **Numbers, names and URLs.** `misaki-rs` without the espeak fallback spells unknown words letter by letter, and the model doesn't normalise "v2.1" or "$29/mo". Add a small, tested text tidy-up (`crates/voice/src/tidy.rs`) with **Fix words**-style replacements, and show the tidied line as a hint under the script.
 - **Long lines.** Very long lines lose pace; split lines over about 400 characters at sentence ends before speaking.
 
 ### Sources
 
-- [sherpa-onnx: Kokoro models](https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/kokoro.html) (command line, 53 speakers in v1.0, 24 kHz, Raspberry Pi RTF table) (checked 2026-10-16)
-- sherpa-onnx `sherpa-onnx/csrc/sherpa-onnx-offline-tts.cc` on GitHub (`--speed`, `--sid`, `--output-filename`; no word timestamps in `offline-tts.h`) (checked 2026-10-16)
-- [sherpa-onnx `tts-models` release](https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models): `kokoro-int8-multi-lang-v1_0` 132.3 MB, `kokoro-multi-lang-v1_0` 349.9 MB, `kitten-nano-en-v0_8-int8` 31.2 MB, `kitten-mini-en-v0_8` 67.5 MB, `vits-piper-en_US-libritts_r-medium` 82.0 MB (checked 2026-10-16)
-- [hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (Apache-2.0 weights, 82M parameters, training data) and [KittenML/KittenTTS](https://github.com/KittenML/KittenTTS); Hugging Face API for `KittenML/kitten-tts-mini-0.8` (apache-2.0) (checked 2026-10-16)
-- [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) model cards for `lessac`, `amy`, `ryan`, `libritts_r` (checked 2026-10-16); GitHub licence API: `espeak-ng/espeak-ng` GPL-3.0, `k2-fsa/sherpa-onnx` Apache-2.0, `OHF-Voice/piper1-gpl` GPL-3.0, `rhasspy/piper` MIT and archived (checked 2026-10-16)
-- npm metadata: `kokoro-js@1.2.1` (Apache-2.0, depends on `phonemizer`, an espeak-ng build, and `@huggingface/transformers`), `onnxruntime-node@1.30.0` (301 MB unpacked): the in-process route this plan doesn't take (checked 2026-10-16)
+- [onnx-community/Kokoro-82M-v1.0-ONNX](https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX): `onnx/model_quantized.onnx` 92.4 MB, `model.onnx` 325.5 MB, 55 voices in 28.7 MB, 29 of them English (Hugging Face API, checked 2026-10-26)
+- [hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (Apache-2.0 weights, 82M parameters, training data) (checked 2026-10-16)
+- crates.io: `misaki-rs` 0.6.0 (MIT, features) (checked 2026-10-25)
+- [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) model cards for `lessac`, `ryan` (checked 2026-10-16); GitHub licence API: `espeak-ng/espeak-ng` GPL-3.0 (checked 2026-10-16)
 
 ## Online voices and transcription (opt-in)
 
 ### What it adds
 
-The Voiceover node and Captions from speech can use an online service instead of this computer, once the user turns the service on in Settings and enters a key. Four choices: ElevenLabs, OpenAI, OpenRouter (a preset with its address filled in and its transcription format handled), and **Compatible service**, any address that speaks OpenAI's audio API, including speech servers the user runs on their own computer. Voices from the service appear in the voice picker under "Online voices". Results are saved in the node's cache, so a run with nothing changed sends nothing.
+The Voiceover node and Captions from speech can use an online service instead of this computer, once the user turns the service on in Settings and enters a key. Four choices: ElevenLabs, OpenAI, OpenRouter (its address filled in and its transcription format handled), and **Compatible service**, any address that speaks OpenAI's audio API, including speech servers the user runs on their own computer. Voices from the service appear in the voice picker under "Online voices". Results are saved in the node's cache, so a run with nothing changed sends nothing.
 
 ### Fit with Opsis
 
-Already in place:
+In place: the keys and the ask-first pattern from the first section; `reqwest` is already used by `opsis-engine` and `opsis-fonts`.
 
-- `@remotion/elevenlabs` (`elevenLabsTranscriptToCaptions`) and `@remotion/openai-whisper` (`openAiWhisperApiToCaptions`) turn the services' transcripts into `Caption[]` (`{ text, startMs, endMs, timestampMs, confidence }`); both are in `node_modules` at 4.0.536, MIT, and make no requests themselves.
-- Encrypted keys and the ask-first pattern from the first section.
-
-Missing:
-
-- Request code for the services, a voice list cache, and a first-use confirmation.
+Missing: request code for the services, a voice list cache, a first-use confirmation, and converters from each service's timings to `Caption`s.
 
 ### Work
 
-1. **Dependencies.** `bun add --exact @remotion/captions@4.0.536 @remotion/elevenlabs@4.0.536 @remotion/openai-whisper@4.0.536`.
-2. **Requests** in `src/worker/speech/online.ts`, with `fetch` and the key read through `secret:read` (app scope):
+1. **Requests** in `crates/voice/src/online.rs`, with `reqwest` and the key read from the keyring inside the crate:
    - ElevenLabs voice: `POST /v1/text-to-speech/{voice_id}/with-timestamps` (`xi-api-key` header, `voice_settings.speed`); decode `audio_base64`, turn `alignment` (per-character start and end times) into word times with a pure, tested function.
-   - OpenAI voice: `POST /v1/audio/speech` with `gpt-4o-mini-tts`, a built-in voice and `response_format: "wav"`. It returns no timestamps and documents no speed setting, so word timing uses the Voiceover's estimate or the transcriber, and Speed is applied with FFmpeg's `atempo`.
-   - ElevenLabs transcription: `POST /v1/speech-to-text` with `model_id: "scribe_v2"` and `timestamps_granularity: "word"`, then `elevenLabsTranscriptToCaptions`.
-   - OpenAI transcription: `POST /v1/audio/transcriptions` with `whisper-1`, `response_format: "verbose_json"` and `timestamp_granularities[]=word` (only `whisper-1` has word timestamps), then `openAiWhisperApiToCaptions`.
+   - OpenAI voice: `POST /v1/audio/speech` with `gpt-4o-mini-tts`, a built-in voice and `response_format: "wav"`. It returns no timestamps and documents no speed setting, so word timing uses the estimate or the transcriber, and Speed is applied with FFmpeg's `atempo`.
+   - ElevenLabs transcription: `POST /v1/speech-to-text` with `model_id: "scribe_v2"` and `timestamps_granularity: "word"`, words read into `Caption`s.
+   - OpenAI transcription: `POST /v1/audio/transcriptions` with `whisper-1`, `response_format: "verbose_json"` and `timestamp_granularities[]=word` (only `whisper-1` has word timestamps), multipart.
    - OpenRouter voice: `POST https://openrouter.ai/api/v1/audio/speech`, OpenAI-compatible (`model`, `input`, `voice`), raw audio back (MP3 or PCM). Models come from its model list filtered by `output_modalities`; no timestamps, so timing works as for OpenAI.
-   - OpenRouter transcription: `POST https://openrouter.ai/api/v1/audio/transcriptions` with JSON `{ model, input_audio: { data: <base64>, format } }`. Its docs disagree on whether OpenAI-style multipart uploads work, so use the JSON form. Check whether the response has word timestamps; if not, captions are timed by the local transcriber when installed, else estimated, and the card says so.
-   - Compatible service: the OpenAI requests above against the user's address (`{address}/audio/speech`, `{address}/audio/transcriptions`, multipart), with the user's model names and the key when one is set. Servers differ in what they return: use word timestamps when the response has them, else fall back as for OpenRouter. Check key sends one tiny request and reports what the server supports.
-3. **Voice list.** `GET /v1/voices` for ElevenLabs and OpenRouter's model list only when the user opens the picker with the service on; cached in `<userData>/speech/online-voices.json`. OpenAI's list is fixed in the catalogue; Compatible service uses the voice names the user types.
+   - OpenRouter transcription: `POST https://openrouter.ai/api/v1/audio/transcriptions` with JSON `{ model, input_audio: { data: <base64>, format } }`; its docs disagree on whether OpenAI-style multipart uploads work, so use the JSON form. Without word timestamps in the response, captions are timed by the local transcriber when installed, else estimated, and the card says so.
+   - Compatible service: the OpenAI requests against the user's address (`{address}/audio/speech`, `{address}/audio/transcriptions`), with the user's model names and the key when one is set. Use word timestamps when the response has them, else fall back as for OpenRouter. Check key sends one tiny request and reports what the server supports.
+   - `async-openai` (MIT) can replace the OpenAI request types if its request for transcriptions carries `timestamp_granularities[]`; otherwise plain `reqwest` multipart.
+2. **Converters.** The ElevenLabs alignment → words, the OpenAI `verbose_json` words and SRT writing are small Rust functions in `crates/voice/src/captions.rs`, tested on recorded responses.
+3. **Voice list.** `GET /v1/voices` for ElevenLabs and OpenRouter's model list only when the user opens the picker with the service on; cached in `<data folder>/speech/online-voices.json`. OpenAI's list is fixed in the catalogue; Compatible service uses the voice names the user types.
 4. **Asking first.** The first run that would send text or sound to a service shows a confirmation in the Run panel naming what is sent; "Don't ask again" is per service in `settings.speech.online`.
-5. **Errors.** Plain messages without service names in nodes ("The online voice refused the key. Check it in Settings."); the HTTP status goes to the Run log.
-6. **Tests.** Alignment → words; recorded fixture responses through both converters; no request is made when the service is off.
+5. **Errors.** Plain messages without service names in nodes ("The online voice refused the key. Check it in Settings."); the HTTP status goes to the app's log.
+6. **Tests.** Alignment → words; recorded responses through the converters; no request is made when the service is off (against `wiremock`).
 
 ### Licence
 
-`@remotion/captions`, `@remotion/elevenlabs`, `@remotion/openai-whisper`: MIT, entries in `THIRD_PARTY_NOTICES.md`. Use of the services is under each service's terms with the user's own key; Opsis ships nothing from them.
+Use of the services is under each service's terms with the user's own key; Opsis ships nothing from them.
 
 ### Risks
 
 - **Compatible servers vary.** Some ignore `speed`, some return no word timings, some need no key. Check key records what the server supports, and the node falls back instead of failing.
-- **Size limits.** Check the services' current upload limits before sending; for long films, send FFmpeg-made mono speech-band audio instead of the original file.
-- **Cost surprises.** Show the character count of the script next to an online voice; re-runs reuse the line cache.
+- **Size limits.** Check the services' current upload limits before sending; for long films, send mono speech-band audio made with FFmpeg instead of the original file.
+- **Cost surprises.** Show the script's character count next to an online voice; re-runs reuse the line cache.
 
 ### Sources
 
 - [ElevenLabs: Create speech with timing](https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps) and [Speech to text](https://elevenlabs.io/docs/api-reference/speech-to-text/convert) (checked 2026-10-16)
 - [OpenRouter: New audio APIs](https://openrouter.ai/blog/announcements/announcing-audio-apis/), [Text-to-speech](https://openrouter.ai/docs/guides/overview/multimodal/tts), [Create speech](https://openrouter.ai/docs/api/api-reference/tts/create-speech), [Speech-to-text](https://openrouter.ai/docs/guides/overview/multimodal/stt) and the [OpenRouter STT skill](https://github.com/OpenRouterTeam/skills/blob/main/skills/openrouter-stt/SKILL.md), which says the endpoint isn't OpenAI-compatible (checked 2026-10-17)
 - [OpenAI: Text to speech guide](https://developers.openai.com/docs/guides/text-to-speech) and [Speech to text guide](https://developers.openai.com/docs/guides/speech-to-text) (`timestamp_granularities` only for `whisper-1`) (checked 2026-10-16)
-- Package source of `@remotion/elevenlabs@4.0.536`, `@remotion/openai-whisper@4.0.536`, `@remotion/captions@4.0.536` in `node_modules` (exports, MIT) (checked 2026-10-19)
+- crates.io: `async-openai` 0.42.2 (MIT, configurable base URL, `audio` feature) (checked 2026-10-25)
 
 ## Captions from speech
 
@@ -248,45 +213,46 @@ A **Captions from speech** node (Text & overlays): a video or sound file in, wor
 
 ### Fit with Opsis
 
-Already in place:
+In place:
 
-- The captions pipeline: `CaptionsValue`, the `captions` port, Show captions, and Captions from script (`captionsFromTextNode`) as the model for the node's shape.
-- Files reach nodes as `MediaValue` from Import file, Extract audio (`media.extractAudio`) and the other Media nodes; `requireMedia()` and `refToPath()` (`src/worker/executors/util.ts`) give an executor the file's path; `transcode()` runs FFmpeg with progress.
+- The captions pipeline: `CaptionsValue`, the `captions` port, Show captions, and Captions from script (`text.captionsFromText`) as the model for the node's shape.
+- Files reach nodes as `MediaValue` on `media` ports from Import file, Extract audio and the other media nodes; media executors get the file's path and run FFmpeg with progress.
 
-Missing:
-
-- The speech program and models (first section), the node, its executor, and turning tokens into words.
+Missing: the transcription model in Rust, the node, its executor, and turning tokens into words.
 
 ### Work
 
-1. **Dependency.** `@remotion/captions` from the online section (for the `Caption` type and `serializeSrt`), imported only from `src/worker` and `src/shared/speech`.
-2. **Node.** `text.captionsFromSpeech` in `src/shared/nodes/text.ts`: `phase: "media"`, `executes: true`, input `media: port("media", "Speech")`, output `captions`. Params above; `language` defaults to `settings.speech.transcribe`. Card: first words of the result, language, "N words"; warn when the model isn't downloaded.
-3. **Executor** in `src/worker/executors/speech.ts`:
+1. **Parakeet in Rust.** `crates/voice/src/parakeet.rs`, everything in the same `ort`:
+   - Features: `nemo128.onnx`, NeMo's 128-band log-mel preprocessing (512-point STFT, 400-sample window, 160-sample hop, Slaney mel filter bank, per-feature normalisation) written as an ONNX graph by onnx-asr (MIT).
+   - Decoding: a TDT greedy loop: `encoder-model.int8.onnx` once per piece, then `decoder_joint-model.int8.onnx` per step, taking a token and a duration (frames to skip) until the audio ends. onnx-asr's Python implementation is the reference.
+   - Tokens: `vocab.txt` pieces (`▁` starts a word) and each token's encoder frame (16 kHz audio, 160-sample hop, subsampling factor 8 from `config.json`: 80 ms per frame).
+2. **Models.** `istupakov/parakeet-tdt-0.6b-v2-onnx` (English) and `istupakov/parakeet-tdt-0.6b-v3-onnx` (25 European languages), each `encoder-model.int8.onnx` (652.2 MB), `decoder_joint-model.int8.onnx` (9.0 and 18.2 MB), `nemo128.onnx`, `vocab.txt` and `config.json`, pinned by commit and SHA-256.
+3. **Node.** `text.captionsFromSpeech` in `text.rs`: media phase, `executes: true`, input `media` ("Speech"), output `captions`. Settings above; `language` defaults to `settings.speech.transcribe`. Card: first words of the result, language, "N words"; a warning when the model isn't downloaded.
+4. **Executor** in `opsis-voice`:
    1. FFmpeg to 16 kHz mono 16-bit WAV in the node folder (`-ar 16000 -ac 1 -c:a pcm_s16le`).
-   2. Long files: split at silences into pieces under 10 minutes (FFmpeg `silencedetect`), transcribe each, and offset their times.
-   3. `sherpa-onnx-offline --encoder=… --decoder=… --joiner=… --tokens=… --model-type=nemo_transducer <wav>` with `--num-threads`; read the one-line JSON it prints (`text`, `tokens`, `timestamps` in seconds).
-   4. `tokensToCaptions()` in `src/shared/speech/words.ts` (pure, tested): a token starting with a space starts a word; a word starts at its first token's time and ends at the next word's start, capped at 0.8 s after its last token; punctuation tokens join the word before them, so `/[.!?]$/` still ends lines in `Captions`. Then **Fix words** and **Starts at**.
-   5. Write `captions.json` and, with `serializeSrt`, `captions.srt` as artifacts.
-4. **Captions from speech and the Voiceover.** Expose the transcribe step as a function the Voiceover's "From the voice" word timing calls (Voiceover step 6).
-5. **Tests.** Executor exists; a recorded output line from each model through `tokensToCaptions` (spaces, punctuation, fixes, offset, the 0.8 s cap); the silence split keeps times continuous; `card.test.ts`.
-6. **Check.** Import a screen recording with narration, run Captions from speech with each model, show the captions with Show captions over the clip: words land within a frame or two of the speech in the Preview and the export, on Linux, Windows and macOS.
+   2. Long files: split at silences into pieces under 10 minutes (`silencedetect`), transcribe each, and offset their times.
+   3. Run the model (step 1) on each piece.
+   4. `tokens_to_captions` in `crates/voice/src/words.rs` (pure, tested): a word starts at its first token's time and ends at the next word's start, capped at 0.8 s after its last token; punctuation tokens join the word before them, so sentence ends still end lines in Show captions. Then **Fix words** and **Starts at**.
+   5. Write `captions.json` and `captions.srt` as results.
+5. **Shared with the Voiceover.** The transcribe step is a function the Voiceover's "From the voice" word timing calls.
+6. **Tests.** Golden token and frame lists recorded from onnx-asr on a few short files (checked in as test data with the script that wrote them), compared exactly with the Rust loop; `tokens_to_captions` on spaces, punctuation, fixes, offset and the 0.8 s cap; the silence split keeps times continuous; the executor exists.
+7. **Check.** Import a screen recording with narration, run Captions from speech with each model, show the captions over the clip: words land within a frame or two of the speech in the Preview and the export, on Linux, Windows and macOS.
 
 ### Licence
 
-NVIDIA Parakeet TDT 0.6B v2 and v3: CC-BY-4.0 (the Hugging Face model data for `nvidia/parakeet-tdt-0.6b-v2` and `-v3`; NVIDIA's hosted versions have separate terms that don't apply to the downloaded weights). Credit NVIDIA in Settings → Licences. sherpa-onnx: Apache-2.0.
+NVIDIA Parakeet TDT 0.6B v2 and v3: CC-BY-4.0 (the Hugging Face model data for `nvidia/parakeet-tdt-0.6b-v2` and `-v3`; NVIDIA's hosted versions have separate terms that don't apply to the downloaded weights). Credit NVIDIA in Settings → Licences. onnx-asr's preprocessing graph: MIT, in `THIRD_PARTY_NOTICES.md`.
 
 ### Risks
 
-- **Languages.** The models cover English and 24 more European languages, not the roughly 99 Whisper covers. Other languages need an online service.
-- **Word ends.** The program prints start times only (no durations in its output), so word ends are estimated; check by eye that captions don't linger.
-- **Speed.** Measure a 1-minute file on a laptop without a fast CPU; show the expected time from that measurement on first use.
+- **Languages.** The models cover English and 24 more European languages. Other languages need an online service.
+- **Word ends.** TDT gives start frames, so word ends are estimated; check by eye that captions don't linger.
+- **Speed and memory.** The int8 encoder is 652 MB; measure a 1-minute file and peak memory on a laptop without a fast CPU, and show the expected time from that measurement on first use.
 
 ### Sources
 
-- [sherpa-onnx: NeMo transducer models](https://k2-fsa.github.io/sherpa/onnx/pretrained_models/offline-transducer/nemo-transducer-models.html) (command line, output JSON with `tokens` and `timestamps`, model files, 25 languages for v3; checked 2026-10-17)
-- [sherpa-onnx `asr-models` release](https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models): `sherpa-onnx-nemo-parakeet-tdt-0.6b-v2-int8.tar.bz2` 460 MB, `…-v3-int8.tar.bz2` 464 MB (checked 2026-10-17)
-- Hugging Face model API for `nvidia/parakeet-tdt-0.6b-v2` and `nvidia/parakeet-tdt-0.6b-v3`: `license: cc-by-4.0` (checked 2026-10-17); [NVIDIA model card](https://build.nvidia.com/nvidia/parakeet-tdt-0_6b-v2/modelcard) (English, word timestamps)
-- [whisper.cpp PR #4029](https://github.com/ggml-org/whisper.cpp/pull/4029) (macOS CLI builds, closed 2026-10-02): why whisper.cpp was dropped
+- Hugging Face API for `istupakov/parakeet-tdt-0.6b-v2-onnx` and `-v3-onnx` (file list and sizes; checked 2026-10-26) and for `nvidia/parakeet-tdt-0.6b-v2` and `-v3` (`license: cc-by-4.0`; checked 2026-10-17)
+- onnx-asr (MIT): the Parakeet TDT decoder and `nemo128.onnx` preprocessing (read 2026-10-25)
+- [NVIDIA model card](https://build.nvidia.com/nvidia/parakeet-tdt-0_6b-v2/modelcard) (English, word timestamps)
 
 ## Fit length to the voiceover
 
@@ -296,81 +262,25 @@ Fit length makes a clip as long as the voiceover, by speeding up, holding the en
 
 ### Fit with Opsis
 
-Already in place:
+In place:
 
-- `durationFitNode` (`timeline.durationFit`, "Fit length", `src/shared/nodes/timeline.ts`) has an `audio` input "Fit to this sound" and uses `AudioValue.durationInFrames` as its target. A Voiceover that sets `durationInFrames` (Voiceover step 5) fits with no change to this node.
-- Add sound cuts sounds where the clip ends, so fitting first and adding the voice after keeps every line; action marks are read after the speed change (`anchorSounds` runs in Add sound), so lines on actions still land on them.
+- Fit length (`timeline.durationFit`, `crates/compile/src/nodes/timeline.rs`) has an `audio` input "Fit to this sound" and uses `AudioValue.duration_in_frames` as its target. Music sets it from its file's length, and a Voiceover that sets it (Voiceover step 5) fits with no change to this node.
+- Add sound cuts sounds where the clip ends, so fitting first and adding the voice after keeps every line; action marks are read after the speed change (`anchor_sounds` runs in Add sound), so lines on actions still land on them.
 
-Missing:
-
-- A connected file is ignored: the `audio` port accepts `media` (`ACCEPTS` in `src/shared/nodes/ports.ts`), but `compile` only reads `durationInFrames`, not `MediaValue.durationMs`.
-- No tail; the card says "Fits the sound" whatever is connected.
+Missing: a tail; the card says "Fits the sound" whatever is connected.
 
 ### Work
 
-1. **Target.** `durationInFrames ?? msToFrames(media.durationMs)` from the connected value, plus a new `tailMs` param (`ms(0, "Hold after the sound", 10_000)`, shown only when a sound is connected).
-2. **Card.** "Fits the sound + 1.5 s"; warn when the voiceover has lines on actions, since those don't count toward its length.
-3. **Template.** A "Narrated demo" template in `src/shared/templates/index.ts`: Record → Auto zoom → Fit length (voice) → Add sound (voice, music) → Show captions (voice) → Export; regenerate `examples/` with `bun run examples`.
-4. **Tests.** Fit to a Voiceover value, to a file's `durationMs`, with a tail, in all three modes.
-
-### Licence
-
-Opsis's own code.
+1. **Tail.** A `tail_ms` setting ("Hold after the sound", 0–10 s, shown only when a sound is connected) added to the target.
+2. **Card.** "Fits the sound + 1.5 s"; a warning when the voiceover has lines on actions, since those don't count toward its length.
+3. **Template.** A "Narrated demo" template in `crates/project/src/templates.json`: Record → Auto zoom → Fit length (voice) → Add sound (voice, music) → Show captions (voice) → Export; write `examples/` again with `bun run examples`.
+4. **Tests.** Fit to a Voiceover value and to Music, with a tail, in all three modes.
 
 ### Risks
 
-- **Large speed changes.** A 40-second take fitted to a 15-second voice plays at 2.7×. The existing `fitRow` warning covers it; the template starts in "Hold the end" mode.
-
-### Sources
-
-- Opsis source: `durationFitNode`, `fitRow` (`src/shared/nodes/timeline.ts`), `addAudioNode`, `anchorSounds` (`src/shared/nodes/audio.ts`), `canConnect` (`src/shared/nodes/ports.ts`) (checked 2026-10-16)
-
-## Rust
-
-How this plan is built in the Rust app, where executors, downloads, keys and online requests are Rust. Node definitions, compile, word timing and cards are Rust too (`crates/compile`). Crate facts checked on crates.io and docs.rs on 2026-10-25.
-
-**Where code goes.** The `opsis-voice` crate in `crates/voice`: the model catalogue and downloads, transcription, speech and word timing. Its executors register with `opsis-runner`, its nodes with `opsis-compile`, and keys come from `opsis-store` (`AGENTS.md`, **Workspace**).
-
-**Downloads and the catalogue.** `reqwest` 0.13.5 streams downloads with progress over a Tauri channel; `sha2` checks hashes; `tar` 0.4.46 and `bzip2` 0.6.1 unpack (`bzip2`'s default backend is `libbz2-rs-sys`; the C libbzip2 is opt-in), replacing `tar-stream` and `seek-bzip`. The catalogue is Rust data exported to the UI as generated types. Service keys live in the OS keyring through `keyring` 4.2.0 (`crates/store/src/keys.rs`), replacing the `secrets` table and `encryptedText()`.
-
-**One ONNX Runtime (decided).** Every on-device model runs through `ort` 2.0.0-rc.15 (MIT OR Apache-2.0, wrapping ONNX Runtime 1.31), with one ONNX Runtime build per platform. Either link it statically from ort's prebuilt binaries (`download-binaries`, the default, fetched at build time from pyke's CDN), or ship one shared library with the app and load it with `load-dynamic`, which ort's docs recommend. Nothing else may carry its own inference runtime:
-
-- **sherpa-onnx is out.** The static libraries its Rust crate links (`sherpa-onnx-sys` 2.0.0, list in its `build.rs`) include `onnxruntime`, next to `kaldi-native-fbank-core`, `kaldi-decoder-core`, the FST libraries, `ssentencepiece_core` and `utf8proc`. The program archive this plan pins carries its own too: `sherpa-onnx-v1.13.8-linux-x64-shared.tar.bz2` ships `lib/libonnxruntime.so` next to `bin/sherpa-onnx-offline` and `bin/sherpa-onnx-offline-tts`. Either way that's a second ONNX Runtime beside `ort`, so the speech program in **Speech downloads** above isn't downloaded.
-- **whisper.cpp is out.** `whisper-rs` 0.16.0 builds whisper.cpp's own inference engine (ggml).
-
-What sherpa-onnx did that `ort` alone doesn't, and what does it instead:
-
-| Job                         | In sherpa-onnx                           | With `ort` only                                                                                                                                                                                                                                                                                                                     |
-| --------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Audio features for Parakeet | `kaldi-native-fbank` (C++)               | `nemo128.onnx`: NeMo's 128-band log-mel preprocessing (512-point STFT, 400-sample window, 160-sample hop, Slaney mel filter bank, per-feature normalisation) written as an ONNX graph by onnx-asr (MIT); it runs in the same `ort`                                                                                                  |
-| Parakeet decoding           | its transducer decoder                   | our TDT greedy loop: `encoder-model.int8.onnx` once per piece, then `decoder_joint-model.int8.onnx` per step, taking a token and a duration (frames to skip) until the audio ends. onnx-asr's Python implementation is the reference                                                                                                |
-| Tokens to words and times   | its JSON output (`tokens`, `timestamps`) | `vocab.txt` pieces (`▁` starts a word) and each token's encoder frame (16 kHz audio, 160-sample hop, subsampling factor 8 from `config.json`: 80 ms per frame), fed to `tokensToCaptions`                                                                                                                                           |
-| Kokoro: text to model input | espeak-ng phonemes and its token table   | `misaki-rs` 0.6.0 (MIT; grapheme-to-phoneme made for Kokoro, US and British English) with `default-features = false` so espeak isn't linked; phoneme ids from the model's `tokenizer.json`; `input_ids` padded with 0 (at most 510 tokens per call); `style` = the voice file's vector at index `len(tokens)` (256 values); `speed` |
-| Kitten                      | espeak-ng phonemes                       | not available: Kitten's ONNX path phonemizes with espeak through `phonemizer` (`kittenml/kittentts_legacy` in KittenTTS), which is GPL code in the app                                                                                                                                                                              |
-
-The models come from Hugging Face instead of sherpa-onnx's archives:
-
-- `istupakov/parakeet-tdt-0.6b-v2-onnx` (English) and `istupakov/parakeet-tdt-0.6b-v3-onnx` (25 European languages), CC-BY-4.0. Each has `encoder-model.int8.onnx`, `decoder_joint-model.int8.onnx`, `nemo128.onnx`, `vocab.txt` and `config.json`.
-- `onnx-community/Kokoro-82M-v1.0-ONNX`, Apache-2.0: `onnx/model_*.onnx` in several precisions, `tokenizer.json`, and one `voices/<name>.bin` per voice.
-
-Pin each download by commit and SHA-256 in the catalogue, as the plan already does for archives.
-
-Consequences for the voices:
-
-- "Natural voices" are Kokoro's English voices, with no GPL part anywhere.
-- "Small voices" (Kitten) and Kokoro's other languages need espeak-ng. Either leave them out of the first version, or add espeak-ng later as a separate program that only turns text into phonemes. A phonemizer isn't a second inference runtime, and the GPL boundary stays a process boundary.
-- Unknown English words without the espeak fallback are spelled letter by letter (`misaki-rs`). Names and product terms go through **Fix words**-style replacements before speaking, added to the text tidy-up (`src/shared/speech/tidy.ts` in this plan, Rust after the move).
-
-Test the port against onnx-asr: transcribe the same files with onnx-asr in Python and with the Rust loop, and compare the tokens and frame indices exactly.
-
-**Online services.**
-
-- OpenAI and Compatible service: `async-openai` 0.42.2 (MIT). Its base URL is configurable (`OpenAIConfig`, or `OPENAI_BASE_URL`), and its `audio` feature covers the audio API ("Audio, Audio Streaming" in its feature list). Its docs don't say whether transcription requests carry `timestamp_granularities[]=word`; if its request type lacks it, send that one request with plain `reqwest` multipart, as for servers that differ.
-- ElevenLabs and OpenRouter: plain `reqwest`.
-- `@remotion/captions`, `@remotion/elevenlabs` and `@remotion/openai-whisper` aren't needed. Their two converters, `serializeSrt` and the ElevenLabs alignment→words function become small tested Rust functions in the executor.
-
-**Word timing and the Voice bus.** `tokensToCaptions`, the estimate and the text tidy-up are Rust functions next to the node definitions. The Voice role, bus and ducking keys are changes to the Rust mix plan. Their tests move with them.
+- **Large speed changes.** A 40-second take fitted to a 15-second voice plays at 2.7×. The existing fit warning covers it; the template starts in "Hold the end" mode.
 
 ## Decided
 
-- **Which voices ship** is settled by listening, not by a choice now: Work step 2 of the Voiceover section compares the int8 and full-precision Kokoro packs by ear before the catalogue is final.
+- **One inference runtime:** `ort` for every model on this computer; no sherpa-onnx, no whisper.cpp.
+- **Voices:** Kokoro's English voices first; Kitten and other languages wait for an espeak-ng phonemizer program. Piper is out. Which Kokoro precision ships is settled by ear (Voiceover step 2).

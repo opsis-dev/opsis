@@ -2,22 +2,6 @@
 
 Everything in the codebase that doesn't read as if Opsis had been written for Tauri and Rust from the start, in the order to fix it. Each item is removed when it is done. Release work (size, builds, signing, updates) is in `plans/release.md`.
 
-## 1. Docs that describe a migration
-
-`AGENTS.md` still tells the history of a port instead of describing the app:
-
-- the generated-code section calls `fixtures/**` "the output of the TS code from before the switch… frozen: what wrote them is gone";
-- the Layout lists `fixtures/` as "frozen output of the old TS code, read by the parity tests";
-- **Workspace** says "The rewrite from TS was greenfield: Rust matches the old output where output matters…";
-- **Prepared files** says the typefaces match "fontkit's output";
-- the drizzle pin says "they only write `crates/store/db/schema.generated.sql` now (Rust runs the SQL)".
-
-Rewrite those passages as plain descriptions of how things work, and check `README.md` and `THIRD_PARTY_NOTICES.md` for the same.
-
-## 2. Feature plans written against the old tree
-
-`plans/ai-assist.md`, `plans/motion-library.md` and `plans/voice-and-captions.md` describe their work in terms of the Electron app (`src/main`, `src/worker`, `src/shared`, zod `.meta()`, `BrowserWindow`, `utilityProcess`, Forge), with a "Rust" appendix explaining how it would change. Rewrite each as a plan for this app: crates, commands, events, JSON Schema settings, streamed views, with the appendix folded in.
-
 ## 3. Fixtures and parity tests
 
 `fixtures/` (11 MB) holds outputs recorded from the old TS code: compile results, node and param cases, catalogue, element metadata, workflows (`fixtures/compile`), FFmpeg arguments, filter graphs, mix graphs, analysis and probe results (`fixtures/media`), capture tables (`fixtures/capture`). Tests compare against it as "parity": `crates/compile/tests/parity_{catalog,nodes,timeline,workflows}.rs`, `crates/media/tests/parity/`, `crates/capture/tests/parity.rs`, with helpers named for the port (`ts_defaults`, `added_after_the_switch`, `prepared_files_replace_parsing_in_the_page`). Turn them into tests owned by the Rust code: golden files the tests can write again on request, named for the behaviour they check, with no "parity", "TS" or "switch" left, and no accepted-difference helpers.
@@ -94,7 +78,3 @@ Element props are `serde_json` maps read by camelCase key (`prepare_props` reads
 ## 19. Element metadata authored in zod
 
 `scripts/lib/element-meta.ts` writes registry element settings as zod schemas with `.meta()` and converts them to JSON Schema for Rust. The ingest reads the elements' TSX, so it stays in TS, but the metadata format could be JSON Schema with `x-` keywords from the start, as the Rust nodes use.
-
-## 20. Old build output in the checkout
-
-`.vite/` (Forge's output), `resources/` (files staged for the Electron package) and an Electron-era `node_modules/` are still in the main checkout. Delete them and run `bun install`.
