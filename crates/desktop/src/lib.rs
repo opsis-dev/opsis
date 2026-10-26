@@ -5,6 +5,7 @@ mod analysis;
 mod api;
 pub mod bindings;
 mod compile;
+mod document;
 mod engine;
 mod error;
 mod events;
@@ -107,11 +108,6 @@ pub fn run() {
         .on_window_event(windows::on_window_event)
         .on_page_load(|webview, payload| {
             log::info!(target: "page", "[{}] {:?} {}", webview.label(), payload.event(), payload.url());
-            if webview.label() == windows::MAIN_WINDOW
-                && payload.event() == tauri::webview::PageLoadEvent::Started
-            {
-                webview.app_handle().state::<api::Api>().editor_reloaded();
-            }
         })
         .build(tauri::generate_context!())
         .expect("the app starts")

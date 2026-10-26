@@ -1,18 +1,19 @@
 use opsis_compile::catalog::{CatalogNode, CatalogPort};
 use opsis_compile::check::ApiProblem;
+use opsis_types::events::RunTargets;
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use schemars::generate::SchemaSettings;
 use schemars::{JsonSchema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 
-use crate::bodies::{AddEdgeBody, AddNodeBody, OpenBody, RunBody, UpdateNodeBody, VariablesBody};
+use crate::bodies::{AddEdgeBody, AddNodeBody, OpenBody, UpdateNodeBody, VariablesBody};
 
 const SCHEMAS: &str = "#/components/schemas/";
 
 const DESCRIPTION: &str = "Reads, edits and runs the project open in Opsis. It listens only on a local socket (a named pipe on Windows) that only your user account can open, and only while it's switched on in Settings → API.
 
-Edits go through the open editor: each request is one undo step, saves itself and shows in every window.
+Each edit is one undo step, saves itself and shows in every window.
 
 Start with GET /nodes for the node types, GET /nodes/{type} for one type's ports and settings, and GET /project for the open project.
 
@@ -32,7 +33,7 @@ pub struct Edited {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(description = "The new node's or connection's id")]
     pub id: Option<String>,
-    pub revision: i64,
+    pub revision: u64,
     pub problems: Vec<ApiProblem>,
 }
 
@@ -53,7 +54,7 @@ pub struct ProjectState {
     pub dir: Option<String>,
     pub workflow: Workflow,
     #[schemars(description = "Goes up with every edit")]
-    pub revision: i64,
+    pub revision: u64,
     pub saved: bool,
 }
 
@@ -176,7 +177,7 @@ fn paths(doc: &mut Doc) -> Value {
         "/project/save": { "post": project_op(operation("Save now", &[("200", edited())])) },
         "/project/run": {
             "get": project_op(operation("Whether a run is going", &[("200", answer(reference("RunStatus")))])),
-            "post": project_op(with(with(operation("Start a run", &[("200", answer(reference("RunStatus"))), ("400", bad())]), "description", "With no body, runs everything that needs running. targetNodeIds runs those nodes and what they need; fromNodeId runs again from that node. Runs open the websites in the flow.".into()), "requestBody", body(doc.schema::<RunBody>(), false))),
+            "post": project_op(with(with(operation("Start a run", &[("200", answer(reference("RunStatus"))), ("400", bad())]), "description", "With no body, runs everything that needs running. targetNodeIds runs those nodes and what they need; fromNodeId runs again from that node. Runs open the websites in the flow.".into()), "requestBody", body(doc.schema::<RunTargets>(), false))),
         },
         "/project/run/stop": { "post": project_op(operation("Stop the run", &[("200", answer(reference("RunStatus")))])) },
         "/project/run/events": { "get": with(operation("Follow run progress", &[("200", json!({ "description": "text/event-stream" }))]), "description", "A server-sent event stream. Each event is a JSON run event (run:start, node:start, node:done, node:error, node:skipped, run:done, …).".into()) },

@@ -1,0 +1,13 @@
+[package]
+name = "opsis-document"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+opsis-compile = { version = "0.1.0", path = "../compile" }
+opsis-types = { version = "0.1.0", path = "../types" }
+
+[dev-dependencies]
+serde_json = "1.0.154"

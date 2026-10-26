@@ -1,17 +1,18 @@
 use indexmap::IndexMap;
-use opsis_types::workflow::{Position, Workflow};
+use opsis_types::edits::{EdgeEnds, NodePatch};
+use opsis_types::workflow::Position;
 use schemars::JsonSchema;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, specta::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct OpenBody {
     #[schemars(description = "The project folder")]
     pub dir: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, specta::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AddNodeBody {
     #[serde(rename = "type")]
     pub kind: String,
@@ -26,7 +27,7 @@ pub struct AddNodeBody {
     pub params: Option<Map<String, Value>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, specta::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct UpdateNodeBody {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<Option<String>>,
@@ -38,7 +39,7 @@ pub struct UpdateNodeBody {
     pub params: Option<Map<String, Value>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, specta::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AddEdgeBody {
     pub source: String,
@@ -49,68 +50,27 @@ pub struct AddEdgeBody {
 
 pub type VariablesBody = IndexMap<String, String>;
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-#[serde(tag = "op", rename_all = "camelCase")]
-pub enum EditorRequest {
-    Open {
-        dir: String,
-    },
-    Read,
-    Replace {
-        workflow: Box<Workflow>,
-    },
-    AddNode(AddNodeBody),
-    UpdateNode {
-        id: String,
-        #[serde(flatten)]
-        patch: UpdateNodeBody,
-    },
-    RemoveNodes {
-        ids: Vec<String>,
-    },
-    AddEdge(AddEdgeBody),
-    RemoveEdges {
-        ids: Vec<String>,
-    },
-    SetSettings {
-        #[specta(type = crate::bodies::SettingsPatch)]
-        settings: Map<String, Value>,
-    },
-    SetVariables {
-        variables: VariablesBody,
-    },
-    Problems,
-    Undo,
-    Redo,
-    Save,
-    Run(RunBody),
-    Stop,
+impl From<UpdateNodeBody> for NodePatch {
+    fn from(body: UpdateNodeBody) -> Self {
+        Self {
+            label: body.label.map(Option::unwrap_or_default),
+            disabled: body.disabled,
+            position: body.position,
+            size: None,
+            params: body.params,
+        }
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct SettingsPatch {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub width: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub height: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub fps: Option<f64>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub background: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub theme: Option<opsis_types::workflow::Theme>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub fonts: Option<opsis_types::fonts::ProjectFonts>,
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct RunBody {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub target_node_ids: Option<Vec<String>>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub from_node_id: Option<String>,
+impl From<AddEdgeBody> for EdgeEnds {
+    fn from(body: AddEdgeBody) -> Self {
+        Self {
+            source: body.source,
+            source_handle: body.source_handle,
+            target: body.target,
+            target_handle: body.target_handle,
+        }
+    }
 }
 
 fn friendly(message: &str) -> String {

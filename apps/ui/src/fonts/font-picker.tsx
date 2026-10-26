@@ -20,7 +20,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { FontFamilyDef } from "@/generated/bindings";
 import { useBusy } from "@/lib/use-busy";
-import { useWorkflowStore } from "../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { FontSample } from "./font-sample";
 import { useFontLibrary } from "./library";
 
@@ -62,7 +62,7 @@ async function copyIntoProject(def: FontFamilyDef): Promise<FontFamilyDef> {
   const projectDir = useWorkflowStore.getState().projectDir;
   if (!projectDir) throw new Error("Open a project to use this font.");
   const copied = await window.opsis.useFontInProject(projectDir, def.id);
-  useWorkflowStore.getState().addProjectFont(copied);
+  workflowEdits.addProjectFont(copied);
   return copied;
 }
 

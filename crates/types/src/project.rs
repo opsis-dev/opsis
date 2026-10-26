@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use specta::Type;
 
+use crate::edits::DocumentState;
 use crate::values::LastRun;
 use crate::workflow::Workflow;
 
@@ -25,9 +26,8 @@ pub type FileVersions = BTreeMap<String, String>;
 #[serde(rename_all = "camelCase")]
 pub struct OpenProject {
     pub dir: String,
-    pub workflow: Workflow,
+    pub document: DocumentState,
     pub last_run: Option<LastRun>,
-    pub version: String,
     #[specta(type = crate::JsonObject)]
     pub view: Map<String, Value>,
 }

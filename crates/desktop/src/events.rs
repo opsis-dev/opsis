@@ -1,7 +1,8 @@
+use opsis_types::edits::DocumentState;
 use opsis_types::engine::{EngineInstallEvent, EngineStatus};
 use opsis_types::events::RunEvent;
 use opsis_types::live::LiveEvent;
-use opsis_types::project::{ProjectFileChange, ProjectFilesChange};
+use opsis_types::project::ProjectFilesChange;
 use opsis_types::settings::AppSettings;
 use opsis_types::shell::{
     ApiServerStatus, CloseRequest, DockPanelName, MenuCommand, SettingsPage, ViewPrefChange,
@@ -15,7 +16,23 @@ use tauri_specta::Event;
 use crate::compile::EditorCompile;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
-pub struct ProjectFileChanged(pub ProjectFileChange);
+pub struct DocumentChanged {
+    pub document: DocumentState,
+    pub edited: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct DiskChangeAsked {
+    pub readable: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct ProjectReloaded;
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
+pub struct OpenRequested {
+    pub dir: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
 pub struct ProjectFilesChanged(pub ProjectFilesChange);
@@ -74,12 +91,4 @@ pub struct Relayed {
     pub from: String,
     #[specta(type = specta_typescript::Unknown)]
     pub message: Value,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type, Event)]
-#[serde(rename_all = "camelCase")]
-pub struct ApiRequestReceived {
-    pub id: String,
-    #[specta(type = opsis_api::bodies::EditorRequest)]
-    pub request: Value,
 }

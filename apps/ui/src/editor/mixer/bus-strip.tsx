@@ -1,9 +1,8 @@
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BUILT_IN_BUSES } from "@/core/mix";
-import type { MixResult, Bus, Mix } from "@/generated/bindings";
-import { removeBus, updateBus, updateChannels } from "@/mix/edits";
-import { useWorkflowStore } from "../../store/workflow";
+import type { Bus, BusPatch, Mix, MixResult } from "@/generated/bindings";
+import { workflowEdits } from "../../store/workflow";
 import { useRenaming } from "../inline-edit";
 import { bindChange, previewTarget } from "./bindings";
 import { DuckPopover } from "./dynamics-popovers";
@@ -64,20 +63,19 @@ export function BusStrip({
   onFold: () => void;
   result: MixResult | null;
 }) {
-  const setMix = useWorkflowStore((s) => s.setMix);
   const levels = result?.levels.buses[bus.id];
-  const update = (fn: (b: Bus) => Bus) => setMix((m) => updateBus(m, bus.id, fn));
+  const update = (patch: BusPatch) => workflowEdits.mix({ op: "bus", id: bus.id, patch });
   const binding = stripBinding(bus, previewTarget(`bus:${bus.id}`, result, levels), update);
   return (
     <StripShell className="bg-muted/30">
       <div className="flex w-full items-center gap-0.5">
-        <BusName bus={bus} onRename={(name) => update((b) => ({ ...b, name }))} />
+        <BusName bus={bus} onRename={(name) => update({ name })} />
         {!BUILT_IN_BUSES.has(bus.id) ? (
           <Button
             variant="ghost"
             size="icon-xs"
             aria-label="Remove bus"
-            onClick={() => setMix((m) => removeBus(m, bus.id))}
+            onClick={() => workflowEdits.mix({ op: "removeBus", id: bus.id })}
           >
             <Trash2 />
           </Button>
@@ -88,14 +86,12 @@ export function BusStrip({
         <BusMenu
           sounds={members.length}
           onBus={update}
-          onSounds={(fn) => setMix((m) => updateChannels(m, members, fn))}
+          onBusReset={() => workflowEdits.mix({ op: "resetBus", id: bus.id })}
+          onSounds={(patch) => workflowEdits.mix({ op: "channels", ids: members, patch })}
+          onSoundsReset={() => workflowEdits.mix({ op: "resetChannels", ids: members })}
         />
       </div>
-      <DuckPopover
-        bus={bus}
-        buses={mix.buses}
-        gesture={bindChange((duck) => update((b) => ({ ...b, duck })))}
-      />
+      <DuckPopover bus={bus} buses={mix.buses} gesture={bindChange((duck) => update({ duck }))} />
       <div className="flex w-full justify-center">
         <HighpassKnob {...binding} />
       </div>

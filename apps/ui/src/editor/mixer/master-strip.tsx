@@ -10,9 +10,15 @@ import {
   LOUDNESS_TARGETS,
 } from "@/core/mix";
 import { loudnessName } from "@/core/nodes";
-import type { Loudness, MixResult, LoudnessTarget, Master } from "@/generated/bindings";
+import type {
+  Loudness,
+  LoudnessTarget,
+  Master,
+  MasterPatch,
+  MixResult,
+} from "@/generated/bindings";
 import { usePlayback } from "../../store/playback";
-import { useWorkflowStore } from "../../store/workflow";
+import { workflowEdits } from "../../store/workflow";
 import { OptionSelect } from "../option-select";
 import { formatDb, formatReading } from "./audio-format";
 import { bindChange, bindEq, bindGain, MASTER_TARGET } from "./bindings";
@@ -30,10 +36,7 @@ function loudnessLabel(target: LoudnessTarget): string {
 
 const QUIET_LUFS = -70;
 
-function useUpdateMaster() {
-  const setMix = useWorkflowStore((s) => s.setMix);
-  return (fn: (m: Master) => Master) => setMix((mix) => ({ ...mix, master: fn(mix.master) }));
-}
+const updateMaster = (patch: MasterPatch) => workflowEdits.mix({ op: "master", patch });
 
 function Readout({
   label,
@@ -96,7 +99,6 @@ function LoudnessReadouts({
 }
 
 function LimiterRow({ limiter }: { limiter: Master["limiter"] }) {
-  const updateMaster = useUpdateMaster();
   return (
     <div className="flex w-full items-center justify-between gap-1">
       <Label className="text-[10px] font-normal">Limiter</Label>
@@ -104,7 +106,7 @@ function LimiterRow({ limiter }: { limiter: Master["limiter"] }) {
         size="sm"
         checked={limiter.on}
         aria-label="Limiter"
-        onCheckedChange={(on) => updateMaster((m) => ({ ...m, limiter: { ...m.limiter, on } }))}
+        onCheckedChange={(on) => updateMaster({ limiter: { ...limiter, on } })}
       />
       <Knob
         label="Ceiling"
@@ -115,16 +117,13 @@ function LimiterRow({ limiter }: { limiter: Master["limiter"] }) {
         format={formatDb}
         unit="dB"
         disabled={!limiter.on}
-        gesture={bindChange((ceiling) =>
-          updateMaster((m) => ({ ...m, limiter: { ...m.limiter, ceiling } })),
-        )}
+        gesture={bindChange((ceiling) => updateMaster({ limiter: { ...limiter, ceiling } }))}
       />
     </div>
   );
 }
 
 function LoudnessSelect({ value }: { value: LoudnessTarget }) {
-  const updateMaster = useUpdateMaster();
   return (
     <div className="flex w-full flex-col gap-0.5">
       <span className="text-muted-foreground text-[10px]">Loudness target</span>
@@ -134,7 +133,7 @@ function LoudnessSelect({ value }: { value: LoudnessTarget }) {
         options={LOUDNESS_CHOICES}
         optionLabel={loudnessLabel}
         className="h-6 w-full px-1.5 text-[11px]"
-        onChange={(loudness) => updateMaster((m) => ({ ...m, loudness }))}
+        onChange={(loudness) => updateMaster({ loudness })}
       />
     </div>
   );
@@ -142,7 +141,6 @@ function LoudnessSelect({ value }: { value: LoudnessTarget }) {
 
 export function MasterStrip({ master, result }: { master: Master; result: MixResult | null }) {
   const reduction = result?.reduction.master;
-  const updateMaster = useUpdateMaster();
   return (
     <div className="bg-sidebar sticky right-0 flex w-[250px] shrink-0 gap-2 border-l px-2 py-1.5">
       <div className="flex min-w-0 flex-1 flex-col gap-1 [&>*]:shrink-0">
@@ -153,7 +151,7 @@ export function MasterStrip({ master, result }: { master: Master; result: MixRes
             size="icon-xs"
             aria-label="Reset master"
             title="Reset master"
-            onClick={() => updateMaster(() => DEFAULT_MASTER)}
+            onClick={() => updateMaster(DEFAULT_MASTER)}
           >
             <Ellipsis />
           </Button>
@@ -161,13 +159,13 @@ export function MasterStrip({ master, result }: { master: Master; result: MixRes
         <EqPopover
           eq={master.eq}
           highpass={null}
-          gestures={bindEq(MASTER_TARGET, master.eq, (eq) => updateMaster((m) => ({ ...m, eq })))}
+          gestures={bindEq(MASTER_TARGET, master.eq, (eq) => updateMaster({ eq }))}
         />
         <div className="flex w-full">
           <CompPopover
             comp={master.comp}
             reduction={reduction}
-            gesture={bindChange((comp) => updateMaster((m) => ({ ...m, comp })))}
+            gesture={bindChange((comp) => updateMaster({ comp }))}
           />
         </div>
         <LimiterRow limiter={master.limiter} />
@@ -179,7 +177,7 @@ export function MasterStrip({ master, result }: { master: Master; result: MixRes
           label="Master fader"
           value={master.fader}
           gesture={bindGain(MASTER_TARGET, "fader", master.fader, (fader) =>
-            updateMaster((m) => ({ ...m, fader })),
+            updateMaster({ fader }),
           )}
           levels={result?.levels.master}
           reduction={reduction}

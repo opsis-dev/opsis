@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { targetRoleKey } from "@/core/schema";
 import type { InspectorContext, PickerTarget, Workflow } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
-import { useWorkflowStore } from "../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { fileUrl } from "./file-url";
 import type { FormContext } from "./form/types";
 import { useCompiledContext } from "./use-compiled";
@@ -18,7 +18,7 @@ async function pickTarget(nodeId: string, picker: PickerTarget | undefined, key:
   await attempt(async () => {
     const picked = await window.opsis.pickElement({ url: picker.url, viewport: picker.viewport });
     if (!picked) return;
-    useWorkflowStore.getState().updateParams(nodeId, {
+    workflowEdits.updateParams(nodeId, {
       [key]: picked.target,
       [targetRoleKey(key)]: picked.role || undefined,
     });

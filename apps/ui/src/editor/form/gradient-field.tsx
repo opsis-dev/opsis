@@ -18,7 +18,7 @@ import { parseNumberText } from "@/core/text-input";
 import { fractionIn } from "@/lib/dom";
 import { useCommitDraft } from "@/lib/use-commit-draft";
 import { usePointerDrag } from "@/lib/use-pointer-drag";
-import { useWorkflowStore } from "../../store/workflow";
+import { workflowEdits } from "../../store/workflow";
 import { ColorInput } from "./color-field";
 import { CHECKER } from "./color-picker";
 import { trimNumber, useDecimalInput } from "./decimal";
@@ -49,7 +49,7 @@ function StopBar({
     start: (e) => {
       const index = Number(e.currentTarget.dataset.stop);
       onSelect(index);
-      useWorkflowStore.getState().beginGesture();
+      workflowEdits.beginGesture();
       return index;
     },
     move: (e, index) =>
@@ -61,7 +61,7 @@ function StopBar({
       const sorted = sortStops(latest.current);
       onChange(sorted);
       onSelect(sorted.stops.indexOf(latest.current.stops[index]));
-      useWorkflowStore.getState().endGesture();
+      workflowEdits.endGesture();
     },
   });
   const linear = formatGradient({ ...gradient, type: "linear", angle: 90 });

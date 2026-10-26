@@ -18,7 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import type { Category as NodeCategory, EditorNode as NodeDef } from "@/generated/bindings";
 import { categoryLabel, nodeCategories, visibleNodes } from "@/store/catalog";
 import { useUiStore } from "../store/ui";
-import { useWorkflowStore } from "../store/workflow";
+import { workflowEdits } from "../store/workflow";
 import { NODE_DRAG_TYPE, snapToGrid } from "./canvas-grid";
 import { CategoryBadge, NodeBadge } from "./category-badge";
 import { GLYPH_HOST } from "./node-glyph";
@@ -40,7 +40,7 @@ const portLabels = (ports: NodeDef["inputs"]): string[] => Object.values(ports).
 
 function useAddAtCenter() {
   const flowStore = useStoreApi();
-  const addNode = useWorkflowStore((s) => s.addNode);
+  const addNode = workflowEdits.addNode;
   const setSelected = useUiStore((s) => s.setSelected);
   return (type: string) => {
     const {
@@ -49,7 +49,7 @@ function useAddAtCenter() {
       transform: [x, y, zoom],
     } = flowStore.getState();
     const center = { x: (width / 2 - x) / zoom, y: (height / 2 - y) / zoom };
-    setSelected([addNode(type, snapToGrid(center))]);
+    void addNode(type, snapToGrid(center)).then((id) => id && setSelected([id]));
   };
 }
 

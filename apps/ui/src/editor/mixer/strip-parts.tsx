@@ -23,16 +23,16 @@ export type StripBinding = {
   updateHighpass: (patch: Partial<StripControls["highpass"]>) => void;
 };
 
-export function stripBinding<T extends StripControls>(
-  controls: T,
+export function stripBinding(
+  controls: StripControls,
   target: PreviewTarget,
-  update: (fn: (c: T) => T) => void,
+  update: (patch: Partial<StripControls>) => void,
 ): StripBinding {
   return {
     controls,
     target,
-    update: (patch) => update((c) => ({ ...c, ...patch })),
-    updateHighpass: (patch) => update((c) => ({ ...c, highpass: { ...c.highpass, ...patch } })),
+    update,
+    updateHighpass: (patch) => update({ highpass: { ...controls.highpass, ...patch } }),
   };
 }
 

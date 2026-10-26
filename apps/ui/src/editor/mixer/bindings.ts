@@ -1,7 +1,7 @@
 import type { MixResult, Eq, EqType } from "@/generated/bindings";
 import { useAudioPreview, type Contribution } from "../../store/audio-preview";
 import { usePlayback } from "../../store/playback";
-import { useWorkflowStore } from "../../store/workflow";
+import { workflowEdits } from "../../store/workflow";
 import type { Gesture } from "./gesture";
 import { share, type Levels } from "./meter-levels";
 
@@ -30,9 +30,9 @@ export const previewTarget = (
 });
 
 export const bindChange = <T>(apply: (value: T) => void): Gesture<T> => ({
-  begin: () => useWorkflowStore.getState().beginGesture(),
+  begin: () => workflowEdits.beginGesture(),
   set: apply,
-  end: () => useWorkflowStore.getState().endGesture(),
+  end: () => workflowEdits.endGesture(),
 });
 
 function previewChange(

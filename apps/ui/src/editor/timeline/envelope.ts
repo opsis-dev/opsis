@@ -9,8 +9,7 @@ import { toast } from "sonner";
 import { envelopeSchema, type Envelope, type EnvelopeKey } from "@/core/timeline";
 import type { Keyframe, Workflow, WorkflowNode } from "@/generated/bindings";
 import { getNodeDef } from "@/store/catalog";
-import { patchNodeParams } from "@/workflow-edits";
-import { useWorkflowStore } from "../../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../../store/workflow";
 
 type EnvelopeInfo = MinMax & { rest: number };
 
@@ -73,7 +72,7 @@ export function setEnvelopeKeys(nodeId: string, prop: EnvelopeKey, keys: Keyfram
   const envelope = { ...current };
   if (keys.length) envelope[prop] = sortKeys(keys);
   else delete envelope[prop];
-  useWorkflowStore.getState().update((wf) => patchNodeParams(wf, nodeId, { envelope }));
+  workflowEdits.updateParams(nodeId, { envelope });
 }
 
 export function addKeyframe(nodeId: string, prop: EnvelopeKey, keys: Keyframe[], at: number) {

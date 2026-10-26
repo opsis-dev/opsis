@@ -8,7 +8,6 @@ publish.workspace = true
 [dependencies]
 gltf = { version = "1.4.1", default-features = false }
 log = "0.4.34"
-nanoid = "0.5.0"
 notify-debouncer-mini = "0.7.0"
 opsis-compile = { version = "0.1.0", path = "../compile" }
 opsis-engine = { version = "0.1.0", path = "../engine" }

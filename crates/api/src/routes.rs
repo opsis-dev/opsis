@@ -13,6 +13,8 @@ use opsis_compile::catalog::{catalog_entry, node_catalog};
 use opsis_compile::check::{ApiProblem, check_workflow, workflow_problems};
 use opsis_compile::graph::{IssueLevel, connection_problem};
 use opsis_compile::registry::node_def;
+use opsis_types::edits::{Edited, WorkflowEdit};
+use opsis_types::events::RunTargets;
 use opsis_types::workflow::{WORKFLOW_FILE, Workflow, WorkflowSettings};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -20,16 +22,41 @@ use serde_json::{Map, Value, json};
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::bodies::{
-    AddEdgeBody, AddNodeBody, EditorRequest, OpenBody, RunBody, UpdateNodeBody, VariablesBody,
-    parse_body,
+    AddEdgeBody, AddNodeBody, OpenBody, UpdateNodeBody, VariablesBody, parse_body,
 };
-use crate::openapi::{OpenProjectName, ProjectState, RunState, Status, openapi_document};
+use crate::openapi::{
+    Check, Edited as EditedReply, OpenProjectName, ProjectState, RunState, Status, openapi_document,
+};
 
 pub const MAX_BODY: usize = 20 * 1024 * 1024;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HostError {
+    pub status: u16,
+    pub message: String,
+}
+
+impl HostError {
+    pub fn new(status: u16, message: impl Into<String>) -> Self {
+        Self {
+            status,
+            message: message.into(),
+        }
+    }
+}
+
+pub type HostResult<T> = Result<T, HostError>;
+
 pub trait ApiHost: Send + Sync + 'static {
     fn version(&self) -> String;
-    fn ask_editor(&self, request: Value) -> BoxFuture<'static, Value>;
+    fn project(&self) -> HostResult<ProjectState>;
+    fn edit(&self, edit: WorkflowEdit) -> HostResult<Edited>;
+    fn undo(&self) -> HostResult<u64>;
+    fn redo(&self) -> HostResult<u64>;
+    fn save(&self) -> BoxFuture<'static, HostResult<u64>>;
+    fn open(&self, dir: String) -> BoxFuture<'static, HostResult<ProjectState>>;
+    fn run(&self, targets: RunTargets) -> BoxFuture<'static, HostResult<RunState>>;
+    fn stop(&self) -> RunState;
     fn run_events(&self) -> tokio::sync::broadcast::Receiver<String>;
 }
 
@@ -49,21 +76,11 @@ fn failure(status: StatusCode, error: &str) -> Response {
     json_reply(status, &json!({ "error": error }))
 }
 
-fn editor_reply(reply: &Value) -> Response {
-    if reply["ok"] == json!(true) {
-        return json_reply(StatusCode::OK, &reply["result"]);
-    }
-    let status = reply["status"]
-        .as_u64()
-        .and_then(|s| u16::try_from(s).ok())
-        .and_then(|s| StatusCode::from_u16(s).ok())
-        .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
-    let mut payload = Map::new();
-    payload.insert("error".into(), reply["error"].clone());
-    if let Some(problems) = reply.get("problems") {
-        payload.insert("problems".into(), problems.clone());
-    }
-    json_reply(status, &payload)
+fn host_failure(error: &HostError) -> Response {
+    failure(
+        StatusCode::from_u16(error.status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+        &error.message,
+    )
 }
 
 fn read_json(bytes: &Bytes, required: bool) -> Result<Value, Box<Response>> {
@@ -96,58 +113,39 @@ fn body_of<T: DeserializeOwned>(bytes: &Bytes, required: bool) -> Result<T, Box<
         .map_err(|e| Box::new(failure(StatusCode::BAD_REQUEST, &e)))
 }
 
-fn problems_in(workflow: &Value) -> Option<Vec<ApiProblem>> {
-    let workflow: Workflow = serde_json::from_value(workflow.clone()).ok()?;
-    Some(
-        workflow_problems(&workflow)
-            .into_iter()
-            .map(|issue| ApiProblem { issue, path: None })
-            .collect(),
-    )
+fn problems_of(workflow: &Workflow) -> Vec<ApiProblem> {
+    workflow_problems(workflow)
+        .into_iter()
+        .map(|issue| ApiProblem { issue, path: None })
+        .collect()
 }
 
-fn with_problems(mut reply: Value, check: bool) -> Value {
-    let Some(result) = reply.get_mut("result").and_then(Value::as_object_mut) else {
-        return reply;
-    };
-    let Some(problems) = result.remove("workflow").as_ref().and_then(problems_in) else {
-        return reply;
-    };
-    if check {
-        let ok = !problems.iter().any(|p| p.issue.level == IssueLevel::Error);
-        result.insert("ok".into(), json!(ok));
-    }
-    result.insert("problems".into(), json!(problems));
-    reply
-}
-
-async fn ask(host: &Host, request: EditorRequest) -> Response {
-    let check = matches!(request, EditorRequest::Problems);
-    let keeps_workflow = matches!(request, EditorRequest::Open { .. } | EditorRequest::Read);
-    match serde_json::to_value(&request) {
-        Ok(request) => {
-            let reply = host.ask_editor(request).await;
-            editor_reply(&if keeps_workflow {
-                reply
-            } else {
-                with_problems(reply, check)
-            })
-        }
-        Err(error) => failure(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string()),
+fn edited_reply(host: &Host, id: Option<String>, revision: u64) -> Response {
+    match host.project() {
+        Ok(project) => json_reply(
+            StatusCode::OK,
+            &EditedReply {
+                id,
+                revision,
+                problems: problems_of(&project.workflow),
+            },
+        ),
+        Err(error) => host_failure(&error),
     }
 }
 
-async fn read_project(host: &Host) -> Result<ProjectState, Box<Response>> {
-    let reply = host.ask_editor(json!({ "op": "read" })).await;
-    if reply["ok"] != json!(true) {
-        return Err(Box::new(editor_reply(&reply)));
+fn edit(host: &Host, edit: WorkflowEdit) -> Response {
+    match host.edit(edit) {
+        Ok(edited) => edited_reply(host, edited.ids.into_iter().next(), edited.revision),
+        Err(error) => host_failure(&error),
     }
-    serde_json::from_value(reply["result"].clone()).map_err(|_| {
-        Box::new(failure(
-            StatusCode::BAD_GATEWAY,
-            "The editor's answer couldn't be read.",
-        ))
-    })
+}
+
+fn after(host: &Host, revision: HostResult<u64>) -> Response {
+    match revision {
+        Ok(revision) => edited_reply(host, None, revision),
+        Err(error) => host_failure(&error),
+    }
 }
 
 async fn openapi(State(host): State<Host>) -> Response {
@@ -155,7 +153,7 @@ async fn openapi(State(host): State<Host>) -> Response {
 }
 
 async fn status(State(host): State<Host>) -> Response {
-    let project = read_project(&host).await.ok();
+    let project = host.project().ok();
     let answer = Status {
         app: "Opsis".to_owned(),
         version: host.version(),
@@ -213,11 +211,17 @@ async fn open(State(host): State<Host>, bytes: Bytes) -> Response {
             &format!("There's no Opsis project in {}.", body.dir),
         );
     }
-    ask(&host, EditorRequest::Open { dir: body.dir }).await
+    match host.open(body.dir).await {
+        Ok(project) => json_reply(StatusCode::OK, &project),
+        Err(error) => host_failure(&error),
+    }
 }
 
 async fn project(State(host): State<Host>) -> Response {
-    ask(&host, EditorRequest::Read).await
+    match host.project() {
+        Ok(project) => json_reply(StatusCode::OK, &project),
+        Err(error) => host_failure(&error),
+    }
 }
 
 async fn replace(State(host): State<Host>, bytes: Bytes) -> Response {
@@ -227,15 +231,12 @@ async fn replace(State(host): State<Host>, bytes: Bytes) -> Response {
     };
     let checked = check_workflow(&body);
     match checked.workflow {
-        Some(workflow) => {
-            ask(
-                &host,
-                EditorRequest::Replace {
-                    workflow: Box::new(workflow),
-                },
-            )
-            .await
-        }
+        Some(workflow) => edit(
+            &host,
+            WorkflowEdit::Replace {
+                workflow: Box::new(workflow),
+            },
+        ),
         None => json_reply(
             StatusCode::BAD_REQUEST,
             &json!({ "error": "That isn't a valid project.", "problems": checked.problems }),
@@ -254,7 +255,16 @@ async fn add_node(State(host): State<Host>, bytes: Bytes) -> Response {
             &format!("There's no node type “{}”. See GET /nodes.", body.kind),
         );
     }
-    ask(&host, EditorRequest::AddNode(body)).await
+    edit(
+        &host,
+        WorkflowEdit::AddNode {
+            kind: body.kind,
+            id: body.id,
+            label: body.label,
+            position: body.position,
+            params: body.params,
+        },
+    )
 }
 
 async fn update_node(
@@ -263,13 +273,19 @@ async fn update_node(
     bytes: Bytes,
 ) -> Response {
     match body_of::<UpdateNodeBody>(&bytes, true) {
-        Ok(patch) => ask(&host, EditorRequest::UpdateNode { id, patch }).await,
+        Ok(patch) => edit(
+            &host,
+            WorkflowEdit::UpdateNode {
+                id,
+                patch: patch.into(),
+            },
+        ),
         Err(response) => *response,
     }
 }
 
 async fn remove_node(State(host): State<Host>, UrlPath(id): UrlPath<String>) -> Response {
-    ask(&host, EditorRequest::RemoveNodes { ids: vec![id] }).await
+    edit(&host, WorkflowEdit::RemoveNodes { ids: vec![id] })
 }
 
 async fn add_edge(State(host): State<Host>, bytes: Bytes) -> Response {
@@ -277,7 +293,7 @@ async fn add_edge(State(host): State<Host>, bytes: Bytes) -> Response {
         Ok(body) => body,
         Err(response) => return *response,
     };
-    let project = match read_project(&host).await {
+    let project = match host.project().map_err(|e| Box::new(host_failure(&e))) {
         Ok(project) => project,
         Err(response) => return *response,
     };
@@ -295,11 +311,11 @@ async fn add_edge(State(host): State<Host>, bytes: Bytes) -> Response {
         };
         return failure(status, &problem.message);
     }
-    ask(&host, EditorRequest::AddEdge(body)).await
+    edit(&host, WorkflowEdit::AddEdge { ends: body.into() })
 }
 
 async fn remove_edge(State(host): State<Host>, UrlPath(id): UrlPath<String>) -> Response {
-    ask(&host, EditorRequest::RemoveEdges { ids: vec![id] }).await
+    edit(&host, WorkflowEdit::RemoveEdges { ids: vec![id] })
 }
 
 fn settings_problem(body: &Map<String, Value>) -> Option<String> {
@@ -320,9 +336,17 @@ fn settings_problem(body: &Map<String, Value>) -> Option<String> {
 
 async fn settings(State(host): State<Host>, bytes: Bytes) -> Response {
     match read_json(&bytes, true) {
-        Ok(Value::Object(body)) => match settings_problem(&body) {
+        Ok(Value::Object(mut body)) => match settings_problem(&body) {
             Some(problem) => failure(StatusCode::BAD_REQUEST, &problem),
-            None => ask(&host, EditorRequest::SetSettings { settings: body }).await,
+            None => {
+                if body.get("background") == Some(&Value::Null) {
+                    body.insert("background".into(), Value::String(String::new()));
+                }
+                match serde_json::from_value(Value::Object(body)) {
+                    Ok(patch) => edit(&host, WorkflowEdit::SetSettings { patch }),
+                    Err(error) => failure(StatusCode::BAD_REQUEST, &error.to_string()),
+                }
+            }
         },
         Ok(_) => failure(
             StatusCode::BAD_REQUEST,
@@ -334,29 +358,37 @@ async fn settings(State(host): State<Host>, bytes: Bytes) -> Response {
 
 async fn variables(State(host): State<Host>, bytes: Bytes) -> Response {
     match body_of::<VariablesBody>(&bytes, true) {
-        Ok(variables) => ask(&host, EditorRequest::SetVariables { variables }).await,
+        Ok(variables) => edit(&host, WorkflowEdit::SetVariables { variables }),
         Err(response) => *response,
     }
 }
 
 async fn problems(State(host): State<Host>) -> Response {
-    ask(&host, EditorRequest::Problems).await
+    match host.project() {
+        Ok(project) => {
+            let problems = problems_of(&project.workflow);
+            let ok = !problems.iter().any(|p| p.issue.level == IssueLevel::Error);
+            json_reply(StatusCode::OK, &Check { ok, problems })
+        }
+        Err(error) => host_failure(&error),
+    }
 }
 
 async fn undo(State(host): State<Host>) -> Response {
-    ask(&host, EditorRequest::Undo).await
+    after(&host, host.undo())
 }
 
 async fn redo(State(host): State<Host>) -> Response {
-    ask(&host, EditorRequest::Redo).await
+    after(&host, host.redo())
 }
 
 async fn save(State(host): State<Host>) -> Response {
-    ask(&host, EditorRequest::Save).await
+    let saved = host.save().await;
+    after(&host, saved)
 }
 
 async fn run_state(State(host): State<Host>) -> Response {
-    match read_project(&host).await {
+    match host.project() {
         Ok(project) => json_reply(
             StatusCode::OK,
             &RunState {
@@ -364,19 +396,23 @@ async fn run_state(State(host): State<Host>) -> Response {
                 run_id: project.run_id,
             },
         ),
-        Err(response) => *response,
+        Err(error) => host_failure(&error),
     }
 }
 
 async fn run(State(host): State<Host>, bytes: Bytes) -> Response {
-    match body_of::<RunBody>(&bytes, false) {
-        Ok(body) => ask(&host, EditorRequest::Run(body)).await,
-        Err(response) => *response,
+    let targets = match body_of::<RunTargets>(&bytes, false) {
+        Ok(targets) => targets,
+        Err(response) => return *response,
+    };
+    match host.run(targets).await {
+        Ok(state) => json_reply(StatusCode::OK, &state),
+        Err(error) => host_failure(&error),
     }
 }
 
 async fn stop(State(host): State<Host>) -> Response {
-    ask(&host, EditorRequest::Stop).await
+    json_reply(StatusCode::OK, &host.stop())
 }
 
 async fn run_events(State(host): State<Host>) -> Response {

@@ -171,7 +171,6 @@ function useTimelineScene({ scroller, scroll, zoom, film, workflow, commands }: 
   const gainFor = useDuckGains(film);
   const drag = useTimelineDrag({
     scroller,
-    workflow,
     flat,
     sourceNodeId,
     masterSrc,

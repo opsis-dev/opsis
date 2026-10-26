@@ -1,3 +1,4 @@
+import { pick } from "@opsis/video/common/objects";
 import { Ellipsis } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,17 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { stripSettings, STRIP_PRESETS, type StripSettings } from "@/core/mix";
-import type { Bus, Strip } from "@/generated/bindings";
-import { applyBusSettings, resetBus, resetStrip } from "@/mix/edits";
+import { BUS_SETTING_KEYS, stripSettings, STRIP_PRESETS, type StripSettings } from "@/core/mix";
+import type { BusPatch, Strip, StripPatch } from "@/generated/bindings";
 import { useMixerState } from "./mixer-state";
 
-type Apply<T> = (fn: (value: T) => T) => void;
+type Apply<T> = (patch: T) => void;
 
-const applyToStrips =
-  (onApply: Apply<Strip>) =>
-  (settings: Partial<StripSettings>): void =>
-    onApply((s) => ({ ...s, ...settings }));
+const busPart = (settings: Partial<StripSettings>): BusPatch => pick(settings, BUS_SETTING_KEYS);
 
 function SettingsMenu({
   label,
@@ -80,13 +77,15 @@ export function StripMenu({
   strip,
   count,
   onApply,
+  onReset,
 }: {
   strip: Strip;
   count: number;
-  onApply: Apply<Strip>;
+  onApply: Apply<StripPatch>;
+  onReset: () => void;
 }) {
   const several = count > 1;
-  const paste = applyToStrips(onApply);
+  const paste = onApply;
   return (
     <SettingsMenu label="Strip settings" className="w-52">
       <DropdownMenuGroup>
@@ -103,7 +102,7 @@ export function StripMenu({
         <PasteItem onPaste={paste}>
           {several ? `Paste onto ${count} strips` : "Paste settings"}
         </PasteItem>
-        <DropdownMenuItem onClick={() => onApply(resetStrip)}>
+        <DropdownMenuItem onClick={onReset}>
           {several ? `Reset ${count} strips` : "Reset"}
         </DropdownMenuItem>
       </DropdownMenuGroup>
@@ -114,21 +113,25 @@ export function StripMenu({
 export function BusMenu({
   sounds,
   onBus,
+  onBusReset,
   onSounds,
+  onSoundsReset,
 }: {
   sounds: number;
-  onBus: Apply<Bus>;
-  onSounds: Apply<Strip>;
+  onBus: Apply<BusPatch>;
+  onBusReset: () => void;
+  onSounds: Apply<StripPatch>;
+  onSoundsReset: () => void;
 }) {
-  const toBus = (settings: Partial<StripSettings>) => onBus((b) => applyBusSettings(b, settings));
-  const toSounds = applyToStrips(onSounds);
+  const toBus = (settings: Partial<StripSettings>) => onBus(busPart(settings));
+  const toSounds = onSounds;
   return (
     <SettingsMenu label="Bus settings" className="w-56">
       <DropdownMenuGroup>
         <DropdownMenuLabel>This bus</DropdownMenuLabel>
         <PresetItems onApply={toBus} />
         <PasteItem onPaste={toBus}>Paste settings</PasteItem>
-        <DropdownMenuItem onClick={() => onBus(resetBus)}>Reset</DropdownMenuItem>
+        <DropdownMenuItem onClick={onBusReset}>Reset</DropdownMenuItem>
       </DropdownMenuGroup>
       <DropdownMenuSeparator />
       <DropdownMenuGroup>
@@ -139,7 +142,7 @@ export function BusMenu({
         <PasteItem disabled={!sounds} onPaste={toSounds}>
           Paste settings
         </PasteItem>
-        <DropdownMenuItem disabled={!sounds} onClick={() => onSounds(resetStrip)}>
+        <DropdownMenuItem disabled={!sounds} onClick={onSoundsReset}>
           Reset
         </DropdownMenuItem>
       </DropdownMenuGroup>

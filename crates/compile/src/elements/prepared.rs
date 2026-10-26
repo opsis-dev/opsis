@@ -1,9 +1,9 @@
-use opsis_types::fonts::{FontFaceDef, FontFamilyDef, FontStyle, ProjectFonts};
+use opsis_types::fonts::{FontFaceDef, FontFamilyDef, FontRole, FontStyle, ProjectFonts};
 use serde_json::Value;
 
 use crate::asset_ref::{PreparedKind, PreparedRef, extension_of};
 use crate::elements::core::{Card3d, Logo3d, Model3d, Text3d};
-use crate::fonts::{FontRole, find_family, first_family, role_family_name};
+use crate::fonts::{find_family, first_family, role_family_name};
 use crate::params::{Values, typed_values};
 
 const HEADING_FAMILY: &str = "df-heading";

@@ -277,6 +277,18 @@ pub enum Platform {
     Windows,
 }
 
+impl Platform {
+    pub fn current() -> Self {
+        if cfg!(target_os = "macos") {
+            Self::Mac
+        } else if cfg!(windows) {
+            Self::Windows
+        } else {
+            Self::Linux
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct NodeDef {
     pub kind: Cow<'static, str>,

@@ -24,7 +24,7 @@ import { FontPicker } from "../fonts/font-picker";
 import { useMedia } from "../store/media";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
-import { useWorkflowStore } from "../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { InlineEdit } from "./inline-edit";
 import { useCompiledContext } from "./use-compiled";
 
@@ -46,7 +46,7 @@ const FONT_ROLES: Array<{ role: FontRole; label: string; empty?: string }> = [
 const MAX_PROBLEMS = 30;
 
 export function ProjectInspector({ workflow, multi }: { workflow: Workflow; multi: number }) {
-  const rename = useWorkflowStore((s) => s.rename);
+  const rename = workflowEdits.rename;
   return (
     <div className="flex flex-col gap-5 p-4">
       {multi > 1 ? <GroupSelection count={multi} /> : null}
@@ -67,7 +67,7 @@ export function ProjectInspector({ workflow, multi }: { workflow: Workflow; mult
 
 function GroupSelection({ count }: { count: number }) {
   const selected = useUiStore((s) => s.selectedIds);
-  const groupNodes = useWorkflowStore((s) => s.groupNodes);
+  const groupNodes = workflowEdits.groupNodes;
   return (
     <Alert>
       <AlertTitle>{count} nodes selected</AlertTitle>
@@ -109,7 +109,7 @@ function SizeInput({
 }
 
 function CanvasSettings({ settings }: { settings: WorkflowSettings }) {
-  const setSettings = useWorkflowStore((s) => s.setSettings);
+  const setSettings = workflowEdits.setSettings;
   const preset = CANVAS_PRESETS.find(
     ({ size }) => size.width === settings.width && size.height === settings.height,
   )?.variant;
@@ -153,7 +153,7 @@ function CanvasSettings({ settings }: { settings: WorkflowSettings }) {
 }
 
 function FrameRateField({ fps }: { fps: number }) {
-  const setSettings = useWorkflowStore((s) => s.setSettings);
+  const setSettings = workflowEdits.setSettings;
   return (
     <Field>
       <FieldLabel>Frame rate</FieldLabel>
@@ -174,7 +174,7 @@ function FrameRateField({ fps }: { fps: number }) {
 }
 
 function BackgroundField({ background, theme }: Pick<WorkflowSettings, "background" | "theme">) {
-  const setSettings = useWorkflowStore((s) => s.setSettings);
+  const setSettings = workflowEdits.setSettings;
   return (
     <Field>
       <FieldLabel htmlFor="wf-bg">Background</FieldLabel>
@@ -189,7 +189,7 @@ function BackgroundField({ background, theme }: Pick<WorkflowSettings, "backgrou
 }
 
 function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
-  const setFontRole = useWorkflowStore((s) => s.setFontRole);
+  const setFontRole = workflowEdits.setFontRole;
   return (
     <FieldSet>
       <FieldLegend variant="label">Fonts</FieldLegend>
@@ -214,8 +214,8 @@ function FontSettings({ fonts }: { fonts: WorkflowSettings["fonts"] }) {
 }
 
 function VariablesEditor({ variables }: { variables: Record<string, string> }) {
-  const setVariables = useWorkflowStore((s) => s.setVariables);
-  const renameVariable = useWorkflowStore((s) => s.renameVariable);
+  const setVariables = workflowEdits.setVariables;
+  const renameVariable = workflowEdits.renameVariable;
   const list = useItemKeys(Object.entries(variables));
   const renameAt = (from: string, raw: string) => {
     const to = raw.replace(/[{}]/g, "").trim();

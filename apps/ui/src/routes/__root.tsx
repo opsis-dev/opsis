@@ -1,5 +1,6 @@
 import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { useApiHost } from "../app/api-host";
+import { useDocumentMirror } from "../app/document-mirror";
 import { ExitDialog } from "../app/exit-dialog";
 import { useMenuShortcuts } from "../app/menu-shortcuts";
 import { isSecondaryWindow, useAppEvents } from "../app/use-app-events";
@@ -10,6 +11,7 @@ function Root() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   useMenuShortcuts();
   useApiHost();
+  useDocumentMirror();
   useAppEvents();
   useStartup();
 

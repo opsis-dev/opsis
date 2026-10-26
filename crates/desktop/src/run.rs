@@ -12,7 +12,7 @@ use opsis_runner::context::{Executors, RunEnv};
 use opsis_runner::progress::apply_run_event;
 use opsis_runner::runner::{RunDeps, run_workflow as run_runner};
 use opsis_stream::sign_in::StreamLogin;
-use opsis_types::events::{RunEvent, RunProgress, RunRequest};
+use opsis_types::events::{RunEvent, RunProgress, RunRequest, RunTargets};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{AppHandle, Manager, State};
@@ -238,7 +238,7 @@ fn on_event(app: &AppHandle, run_id: &str, event: RunEvent) {
             .editor()
             .results
             .insert(node_id.clone(), (**result).clone());
-        crate::compile::recompile(app);
+        crate::compile::request(app);
     }
     if matches!(event, RunEvent::RunDone { .. }) {
         let host = app.state::<RunHost>();
@@ -255,20 +255,39 @@ fn on_event(app: &AppHandle, run_id: &str, event: RunEvent) {
     }
 }
 
-#[tauri::command]
-#[specta::specta]
-pub async fn run_workflow(
-    app: AppHandle,
-    host: State<'_, RunHost>,
-    state: State<'_, AppState>,
-    request: RunRequest,
-) -> CommandResult<StartedRun> {
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum StartError {
+    #[error("No project is open.")]
+    NoProject,
+    #[error("A run is already in progress.")]
+    Busy,
+    #[error("{}", crate::document::VERSION_UNCHOSEN)]
+    VersionUnchosen,
+    #[error("{0}")]
+    Failed(String),
+}
+
+impl From<CommandError> for StartError {
+    fn from(error: CommandError) -> Self {
+        Self::Failed(error.0)
+    }
+}
+
+pub async fn start(app: &AppHandle, targets: RunTargets) -> Result<StartedRun, StartError> {
+    if !crate::document::save(app).await? {
+        return Err(StartError::VersionUnchosen);
+    }
+    let state = app.state::<AppState>();
+    let (dir, workflow) =
+        crate::document::document_workflow(&state).ok_or(StartError::NoProject)?;
+    let request = RunRequest::new(dir.to_string_lossy().into_owned(), workflow, targets);
+    let host = app.state::<RunHost>();
     let run_id = uuid::Uuid::new_v4().to_string();
     let cancel = CancellationToken::new();
     {
         let mut active = host.active.lock().expect("active run");
         if active.is_some() {
-            return Err(CommandError("A run is already in progress.".into()));
+            return Err(StartError::Busy);
         }
         *active = Some(ActiveRun {
             run_id: run_id.clone(),
@@ -279,7 +298,8 @@ pub async fn run_workflow(
     let temp_dir = make_child_temp(
         &state.paths.temp_root,
         &child_temp_name(ChildKind::Run, &run_id, std::process::id()),
-    )?;
+    )
+    .map_err(|e| StartError::Failed(e.to_string()))?;
     let settings = state.settings();
     let env = Arc::new(RunEnv {
         app_version: app.package_info().version.to_string(),
@@ -292,7 +312,7 @@ pub async fn run_workflow(
     let id = run_id.clone();
     let deps = RunDeps {
         env,
-        executors: Arc::new(executors(&app)),
+        executors: Arc::new(executors(app)),
         emit: Arc::new(move |event| on_event(&emitter, &id, event)),
         cancel,
     };
@@ -302,6 +322,21 @@ pub async fn run_workflow(
         remove_child_temp(&temp_dir);
     });
     Ok(StartedRun { run_id })
+}
+
+pub fn active_run(app: &AppHandle) -> Option<String> {
+    app.state::<RunHost>()
+        .active
+        .lock()
+        .expect("active run")
+        .as_ref()
+        .map(|r| r.run_id.clone())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn run_workflow(app: AppHandle, targets: RunTargets) -> CommandResult<StartedRun> {
+    Ok(start(&app, targets).await?)
 }
 
 #[tauri::command]

@@ -25,7 +25,6 @@ function TimelineEditor({ film, workflow }: { film: TimelineFilm; workflow: Work
   const scroll = useScrollerView(scroller);
   const zoom = useTimelineZoom(scroller, scroll.view.width, duration);
   const { commands, removal, confirmRemoval, closeRemoval } = useTimelineCommands({
-    workflow,
     flat,
     sourceNodeId,
     zoom,

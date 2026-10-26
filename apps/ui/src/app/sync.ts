@@ -2,7 +2,7 @@ import { hasTypeIn } from "@opsis/video/common/guards";
 import { useEffect, useEffectEvent } from "react";
 import { shallow } from "zustand/vanilla/shallow";
 import { randomId } from "@/core/ids";
-import type { MenuCommand, RunEvent, Workflow } from "@/generated/bindings";
+import type { MenuCommand, RunEvent } from "@/generated/bindings";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import { useMedia } from "../store/media";
@@ -19,7 +19,7 @@ import { runSnapshot, useRunStore, type RunSnapshot } from "../store/run";
 import { selection, useUiStore, type Selection } from "../store/ui";
 import { syncedView, useViewOptions, type SyncedView } from "../store/view-options";
 import { viewPrefs, type ViewPrefs } from "../store/view-prefs";
-import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
+import { useWorkflowStore } from "../store/workflow";
 import { dispatchMenuCommand } from "./menu-commands";
 import { relayChannel } from "./relay-channel";
 
@@ -30,19 +30,15 @@ type SyncMessage =
   | {
       type: "state";
       projectDir: string;
-      workflow: Workflow;
-      ack: number;
       run: RunSnapshot;
       selection: Selection;
       view: SyncedView;
       prefs: ViewPrefs;
       playback: PlaybackSnapshot;
     }
-  | { type: "workflow"; workflow: Workflow; ack: number }
   | { type: "run-event"; event: RunEvent }
   | { type: "selection"; selection: Selection; from: string }
   | { type: "view"; view: SyncedView }
-  | { type: "edit"; edit: RemoteEdit; seq: number }
   | { type: "menu"; command: MenuCommand }
   | { type: "replay"; nodeId: string | null }
   | { type: "playback"; command: PlaybackCommand }
@@ -59,11 +55,9 @@ type Handlers = { [T in keyof MessageOf]?: (message: MessageOf[T]) => void };
 const SYNC_TYPES: Record<SyncMessage["type"], true> = {
   hello: true,
   state: true,
-  workflow: true,
   "run-event": true,
   selection: true,
   view: true,
-  edit: true,
   menu: true,
   replay: true,
   playback: true,
@@ -181,14 +175,12 @@ function useLiveFrames(): void {
   useEffect(() => window.opsis.onLive((message) => useLiveStore.getState().apply(message)), []);
 }
 
-function sendState(post: Post, ack: number): void {
-  const { projectDir, workflow } = useWorkflowStore.getState();
-  if (!projectDir || !workflow) return;
+function sendState(post: Post): void {
+  const { projectDir } = useWorkflowStore.getState();
+  if (!projectDir) return;
   post({
     type: "state",
     projectDir,
-    workflow,
-    ack,
     run: runSnapshot(),
     selection: selection(),
     view: syncedView(),
@@ -197,56 +189,34 @@ function sendState(post: Post, ack: number): void {
   });
 }
 
-function watchWorkflow(post: Post, ack: () => number): () => void {
-  let lastWorkflow = useWorkflowStore.getState().workflow;
-  return useWorkflowStore.subscribe((s) => {
-    if (s.workflow === lastWorkflow || !s.workflow) return;
-    lastWorkflow = s.workflow;
-    post({ type: "workflow", workflow: s.workflow, ack: ack() });
-  });
-}
-
-function applyRemoteEdit(edit: RemoteEdit): void {
-  const store = useWorkflowStore.getState();
-  if (edit.type === "replace") store.applyPanelEdit(edit.workflow);
-  else if (edit.phase === "begin") store.beginGesture();
-  else store.endGesture();
-}
-
 export function useEditorSync(): void {
   useLiveFrames();
   useEffect(() => {
-    let ack = 0;
     const channel = openSyncChannel();
     channel.on({
-      hello: () => sendState(channel.post, ack),
-      edit: (m) => {
-        ack = Math.max(ack, m.seq);
-        applyRemoteEdit(m.edit);
-      },
+      hello: () => sendState(channel.post),
       menu: (m) => dispatchMenuCommand(m.command),
       replay: (m) => useUiStore.getState().setReplay(m.nodeId),
     });
-    const offs = [
-      watchWorkflow(channel.post, () => ack),
-      window.opsis.onRunEvent((event) => channel.post({ type: "run-event", event })),
-    ];
-    sendState(channel.post, ack);
+    const offRun = window.opsis.onRunEvent((event) => channel.post({ type: "run-event", event }));
+    sendState(channel.post);
     return () => {
-      for (const off of offs) off();
+      offRun();
       channel.post({ type: "editor-closed" });
       channel.close();
     };
   }, []);
 }
 
+let appliedDir: string | null = null;
+
 function applyState(m: MessageOf["state"], applying: Flag): void {
-  if (useWorkflowStore.getState().projectDir !== m.projectDir) {
+  if (appliedDir !== m.projectDir) {
+    appliedDir = m.projectDir;
     loadViewState(m.projectDir, m.prefs);
     useMedia.getState().reset(m.projectDir);
     useProjectFiles.getState().forget();
   }
-  useWorkflowStore.getState().mirrorProject(m.projectDir, m.workflow);
   useRunStore.setState(m.run);
   whileApplying(applying, () => {
     useUiStore.setState(m.selection);
@@ -259,22 +229,14 @@ export function useWindowSync(onClosed: () => void): void {
   useLiveFrames();
   const closed = useEffectEvent(onClosed);
   useEffect(() => {
-    let seq = 0;
     const channel = openSyncChannel();
     channel.on({
       state: (m) => applyState(m, channel.applying),
-      workflow: (m) => {
-        if (m.ack >= seq) useWorkflowStore.getState().mirrorSaved(m.workflow);
-      },
       "run-event": (m) => useRunStore.getState().apply(m.event),
       "editor-closed": () => closed(),
     });
-    mirrorEditsTo((edit) => channel.post({ type: "edit", edit, seq: ++seq }));
     channel.post({ type: "hello" });
-    return () => {
-      mirrorEditsTo(null);
-      channel.close();
-    };
+    return () => channel.close();
   }, []);
 }
 

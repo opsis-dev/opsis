@@ -8,10 +8,18 @@ export const commands = {
 	chooseFolder: (title: string, defaultPath: string | null) => typedError<string | null, CommandError>(__TAURI_INVOKE("choose_folder", { title, defaultPath })),
 	pickProjectDir: () => typedError<string | null, CommandError>(__TAURI_INVOKE("pick_project_dir")),
 	openProject: (dir: string) => typedError<OpenProject, CommandError>(__TAURI_INVOKE("open_project", { dir })),
+	documentState: () => __TAURI_INVOKE<DocumentState | null>("document_state"),
+	editWorkflow: (edit: WorkflowEdit) => typedError<Edited, CommandError>(__TAURI_INVOKE("edit_workflow", { edit })),
+	undo: () => typedError<null, CommandError>(__TAURI_INVOKE("undo")),
+	redo: () => typedError<null, CommandError>(__TAURI_INVOKE("redo")),
+	beginGesture: () => __TAURI_INVOKE<void>("begin_gesture"),
+	endGesture: () => __TAURI_INVOKE<void>("end_gesture"),
+	editTimeline: (edit: TimelineEdit) => typedError<TimelineReply, CommandError>(__TAURI_INVOKE("edit_timeline", { edit })),
+	timelineRemoval: (selected: string[]) => __TAURI_INVOKE<Removal | null>("timeline_removal", { selected }),
+	saveProject: () => typedError<boolean, CommandError>(__TAURI_INVOKE("save_project")),
+	resolveDiskChange: (choice: DiskChoice) => typedError<boolean, CommandError>(__TAURI_INVOKE("resolve_disk_change", { choice })),
 	projectFolder: (parent: string, name: string) => typedError<string, CommandError>(__TAURI_INVOKE("project_folder", { parent, name })),
 	createProject: (name: string, template: string, dir: string | null) => typedError<OpenProject | null, CommandError>(__TAURI_INVOKE("create_project", { name, template, dir })),
-	saveWorkflow: (dir: string, workflow: Workflow, base: string | null) => typedError<SaveResult, CommandError>(__TAURI_INVOKE("save_workflow", { dir, workflow, base })),
-	watchProject: (dir: string | null) => typedError<null, CommandError>(__TAURI_INVOKE("watch_project", { dir })),
 	watchProjectFiles: (dir: string, refs: string[]) => typedError<null, CommandError>(__TAURI_INVOKE("watch_project_files", { dir, refs })),
 	readLastRun: (dir: string) => typedError<LastRun | null, CommandError>(__TAURI_INVOKE("read_last_run", { dir })),
 	importAssets: (dir: string, paths: string[] | null) => typedError<string[], CommandError>(__TAURI_INVOKE("import_assets", { dir, paths })),
@@ -40,15 +48,15 @@ export const commands = {
 	getWindowState: () => __TAURI_INVOKE<WindowState>("get_window_state"),
 	setTitle: (title: string) => typedError<null, CommandError>(__TAURI_INVOKE("set_title", { title })),
 	windowRole: (role: WindowRole) => typedError<null, CommandError>(__TAURI_INVOKE("window_role", { role })),
-	reportUnsaved: (unsaved: boolean) => __TAURI_INVOKE<void>("report_unsaved", { unsaved }),
+	reportDrafts: (held: boolean) => __TAURI_INVOKE<void>("report_drafts", { held }),
 	closeShown: () => __TAURI_INVOKE<void>("close_shown"),
 	decideClose: (decision: CloseDecision) => typedError<null, CommandError>(__TAURI_INVOKE("decide_close", { decision })),
 	saveFlushed: () => __TAURI_INVOKE<void>("save_flushed"),
-	compile: (workflow: Workflow, selected: string | null, inspected: string | null) => typedError<EditorCompile, CommandError>(__TAURI_INVOKE("compile", { workflow, selected, inspected })),
-	latestCompile: () => __TAURI_INVOKE<EditorCompile | null>("latest_compile"),
+	setCompileFocus: (selected: string | null, inspected: string | null) => __TAURI_INVOKE<void>("set_compile_focus", { selected, inspected }),
+	latestCompile: () => typedError<EditorCompile | null, CommandError>(__TAURI_INVOKE("latest_compile")),
 	editorCatalog: () => __TAURI_INVOKE<EditorCatalog>("editor_catalog"),
 	fileRoot: () => __TAURI_INVOKE<string>("file_root"),
-	runWorkflow: (request: RunRequest) => typedError<StartedRun, CommandError>(__TAURI_INVOKE("run_workflow", { request })),
+	runWorkflow: (targets: RunTargets) => typedError<StartedRun, CommandError>(__TAURI_INVOKE("run_workflow", { targets })),
 	cancelRun: () => __TAURI_INVOKE<void>("cancel_run"),
 	runStatus: () => __TAURI_INVOKE<RunStatus>("run_status"),
 	watchLive: (frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<void>("watch_live", { frames }),
@@ -85,25 +93,25 @@ export const commands = {
 	pageLog: (level: PageLogLevel, message: string) => __TAURI_INVOKE<void>("page_log", { level, message }),
 	sendMenuToEditor: (command: MenuCommand) => typedError<null, CommandError>(__TAURI_INVOKE("send_menu_to_editor", { command })),
 	apiStatus: () => __TAURI_INVOKE<ApiServerStatus>("api_status"),
-	apiListening: (listening: boolean) => __TAURI_INVOKE<void>("api_listening", { listening }),
-	apiReply: (id: string, reply: Value) => __TAURI_INVOKE<void>("api_reply", { id, reply }),
 };
 
 /** Events */
 export const events = {
-	apiRequestReceived: makeEvent<ApiRequestReceived, ApiRequestReceived>("api-request-received"),
 	apiStatusChanged: makeEvent<ApiStatusChanged, ApiStatusChanged>("api-status-changed"),
 	compiled: makeEvent<Compiled, Compiled>("compiled"),
 	confirmClose: makeEvent<ConfirmClose, ConfirmClose>("confirm-close"),
+	diskChangeAsked: makeEvent<DiskChangeAsked, DiskChangeAsked>("disk-change-asked"),
+	documentChanged: makeEvent<DocumentChanged, DocumentChanged>("document-changed"),
 	engineChanged: makeEvent<EngineChanged, EngineChanged>("engine-changed"),
 	engineInstallProgress: makeEvent<EngineInstallProgress, EngineInstallProgress>("engine-install-progress"),
 	flushSave: makeEvent<FlushSave, FlushSave>("flush-save"),
 	liveNoted: makeEvent<LiveNoted, LiveNoted>("live-noted"),
 	menuCommandFired: makeEvent<MenuCommandFired, MenuCommandFired>("menu-command-fired"),
+	openRequested: makeEvent<OpenRequested, OpenRequested>("open-requested"),
 	panelWindowsChanged: makeEvent<PanelWindowsChanged, PanelWindowsChanged>("panel-windows-changed"),
 	previewReported: makeEvent<PreviewReported, PreviewReported>("preview-reported"),
-	projectFileChanged: makeEvent<ProjectFileChanged, ProjectFileChanged>("project-file-changed"),
 	projectFilesChanged: makeEvent<ProjectFilesChanged, ProjectFilesChanged>("project-files-changed"),
+	projectReloaded: makeEvent<ProjectReloaded, ProjectReloaded>("project-reloaded"),
 	relayed: makeEvent<Relayed, Relayed>("relayed"),
 	runEventFired: makeEvent<RunEventFired, RunEventFired>("run-event-fired"),
 	settingsChanged: makeEvent<SettingsChanged, SettingsChanged>("settings-changed"),
@@ -160,21 +168,6 @@ export type Action = {
 	drop?: Rect,
 };
 
-export type AddEdgeBody = {
-	source: string,
-	sourceHandle: string,
-	target: string,
-	targetHandle: string,
-};
-
-export type AddNodeBody = {
-	type: string,
-	id?: string,
-	label?: string,
-	position?: Position,
-	params?: { [key in string]: Value },
-};
-
 export type AnalysisRequest = { kind: "waveform"; projectDir: string; src: string } | { kind: "filmstrip"; projectDir: string; src: string } | { kind: "mix"; projectDir: string; plan: MixPlan };
 
 export type AnalysisResult = { kind: "waveform"; waveform: Waveform } | { kind: "filmstrip"; filmstrip: Filmstrip } | { kind: "mix"; mix: MixResult } | { kind: "skipped" } | { kind: "error"; error: string; engineMissing?: boolean };
@@ -203,11 +196,6 @@ export type AnnotationSpec = {
 export type ApiProblem = {
 	path?: string,
 } & GraphIssue;
-
-export type ApiRequestReceived = {
-	id: string,
-	request: EditorRequest,
-};
 
 export type ApiSection = {
 	enabled: boolean,
@@ -353,6 +341,17 @@ export type BusDuck = {
 	amount: number,
 	attack: number,
 	release: number,
+};
+
+export type BusPatch = {
+	name?: string,
+	highpass?: Highpass,
+	eq?: Eq,
+	comp?: Comp,
+	fader?: number,
+	mute?: boolean,
+	solo?: boolean,
+	duck?: DuckSettings,
 };
 
 export type BusPlan = {
@@ -584,7 +583,28 @@ export type Design = {
 	exact?: boolean,
 };
 
+export type DiskChangeAsked = {
+	readable: boolean,
+};
+
+export type DiskChoice = "load" | "keepMine" | "wait";
+
 export type DockPanelName = "timeline" | "mixer" | "run";
+
+export type DocumentChanged = {
+	document: DocumentState,
+	edited: string[],
+};
+
+export type DocumentState = {
+	session: string,
+	dir: string,
+	workflow: Workflow,
+	revision: number,
+	savedRevision: number,
+	canUndo: boolean,
+	canRedo: boolean,
+};
 
 export type Duck = {
 	level: number,
@@ -603,12 +623,24 @@ export type DuckSettings = {
 
 export type Ease = "linear" | "in" | "out" | "in-out" | "hold";
 
+export type EdgeEnds = {
+	source: string,
+	sourceHandle: string,
+	target: string,
+	targetHandle: string,
+};
+
 export type EditHandles = {
 	move?: ParamRef,
 	trimStart?: ParamRef,
 	trimEnd?: ParamRef,
 	speed?: ParamRef,
 	volume?: ParamRef,
+};
+
+export type Edited = {
+	revision: number,
+	ids: string[],
 };
 
 export type EditorCatalog = {
@@ -653,18 +685,6 @@ export type EditorNode = {
 	hasCard: boolean,
 	compiles: boolean,
 };
-
-export type EditorRequest = ({ op: "open"; dir: string }) & { ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "read" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "replace"; workflow: Workflow }) & { dir?: never; ids?: never; settings?: never; variables?: never } | {
-	op: "addNode",
-} & AddNodeBody | {
-	op: "updateNode",
-} & {
-	id: string,
-} & UpdateNodeBody | ({ op: "removeNodes"; ids: string[] }) & { dir?: never; settings?: never; variables?: never; workflow?: never } | {
-	op: "addEdge",
-} & AddEdgeBody | ({ op: "removeEdges"; ids: string[] }) & { dir?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "setSettings"; settings: SettingsPatch }) & { dir?: never; ids?: never; variables?: never; workflow?: never } | ({ op: "setVariables"; variables: { [key in string]: string } }) & { dir?: never; ids?: never; settings?: never; workflow?: never } | ({ op: "problems" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "undo" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "redo" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "save" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | {
-	op: "run",
-} & RunBody | ({ op: "stop" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never };
 
 export type EditorSection = {
 	canvasMode: CanvasMode,
@@ -807,6 +827,8 @@ export type FontFamilyDef = {
 };
 
 export type FontFormat = "woff2" | "woff" | "truetype" | "opentype";
+
+export type FontRole = "main" | "heading" | "code";
 
 export type FontSource = "bundled" | "online" | "file" | "installed";
 
@@ -971,10 +993,20 @@ export type Loudness = {
 	truePeak: number,
 };
 
+export type MarkerEdit = { op: "add"; atMs: number } | { op: "update"; id: string; atMs?: number; label?: string } | { op: "remove"; id: string };
+
 export type Marker = {
 	id: string,
 	atMs: number,
 	label: string,
+};
+
+export type MasterPatch = {
+	fader?: number,
+	eq?: Eq,
+	comp?: Comp,
+	limiter?: Limiter,
+	loudness?: LoudnessTarget,
 };
 
 export type MasterStem = {
@@ -1011,6 +1043,8 @@ export type MenuSection = {
 	label: string,
 	items: MenuEntry[],
 };
+
+export type MixEdit = { op: "channels"; ids: string[]; patch: StripPatch } | { op: "resetChannels"; ids: string[] } | { op: "bus"; id: string; patch: BusPatch } | { op: "resetBus"; id: string } | { op: "addBus" } | { op: "removeBus"; id: string } | { op: "master"; patch: MasterPatch };
 
 export type MixLevels = {
 	channels: { [key in string]: StemLevels },
@@ -1054,6 +1088,14 @@ export type NodeFailure = {
 	traceId?: string,
 };
 
+export type NodePatch = {
+	label?: string,
+	disabled?: boolean,
+	position?: Position,
+	size?: Viewport,
+	params?: { [key in string]: unknown },
+};
+
 export type NodeProgress = {
 	value: number,
 	message?: string,
@@ -1072,10 +1114,13 @@ export type NodeRunStatus = "idle" | "queued" | "running" | "cached" | "done" | 
 
 export type OpenProject = {
 	dir: string,
-	workflow: Workflow,
+	document: DocumentState,
 	lastRun: LastRun | null,
-	version: string,
 	view: { [key in string]: unknown },
+};
+
+export type OpenRequested = {
+	dir: string,
 };
 
 export type PageLogLevel = "error" | "warn";
@@ -1170,14 +1215,6 @@ export type PreviewTarget = {
 	sourceNodeId: string,
 };
 
-export type ProjectFileChange = {
-	dir: string,
-	workflow: Workflow | null,
-	version: string,
-};
-
-export type ProjectFileChanged = ProjectFileChange;
-
 export type ProjectFilesChange = {
 	dir: string,
 	files: { [key in string]: string },
@@ -1196,6 +1233,8 @@ export type ProjectLocations = {
 	defaultDir: string,
 	suggestedDir: string,
 };
+
+export type ProjectReloaded = null;
 
 export type ProjectsSection = {
 	defaultDir: string,
@@ -1262,6 +1301,11 @@ export type Relayed = {
 	message: unknown,
 };
 
+export type Removal = {
+	nodeIds: string[],
+	edgeIds: string[],
+};
+
 export type RenderSection = {
 	licenseKey: string,
 };
@@ -1270,11 +1314,6 @@ export type RippleLook = {
 	color: string,
 	size: number,
 	width: number,
-};
-
-export type RunBody = {
-	targetNodeIds?: string[],
-	fromNodeId?: string,
 };
 
 export type RunEventFired = RunEvent;
@@ -1291,20 +1330,16 @@ export type RunProgress = {
 	results: { [key in string]: NodeResult },
 };
 
-export type RunRequest = {
-	projectDir: string,
-	workflow: Workflow,
-	targetNodeIds?: string[],
-	fromNodeId?: string,
-};
-
 export type RunStatus = {
 	runId: string | null,
 	projectDir: string | null,
 	progress: RunProgress,
 };
 
-export type SaveResult = { outcome: "saved"; version: string } | { outcome: "changed"; version: string; workflow: Workflow | null };
+export type RunTargets = {
+	targetNodeIds?: string[],
+	fromNodeId?: string,
+};
 
 export type SequencerProps = {
 	component: string,
@@ -1391,6 +1426,18 @@ export type StemLevels = {
 	rms: (number)[],
 };
 
+export type StripPatch = {
+	trim?: number,
+	highpass?: Highpass,
+	eq?: Eq,
+	comp?: Comp,
+	fader?: number,
+	pan?: number,
+	mute?: boolean,
+	solo?: boolean,
+	bus?: string,
+};
+
 export type Strip = {
 	trim: number,
 	highpass: Highpass,
@@ -1427,6 +1474,8 @@ export type TemplateInfo = {
 
 export type Theme = "light" | "dark";
 
+export type TimelineEdit = { op: "move"; bar: string; delta: number; ripple: boolean } | { op: "trimStart"; bar: string; delta: number } | { op: "trimEnd"; bar: string; delta: number; ripple: boolean } | { op: "slip"; bar: string; delta: number } | { op: "speed"; bar: string; delta: number } | { op: "rollStart"; bar: string; delta: number } | { op: "rollEnd"; bar: string; delta: number } | { op: "audioMove"; bar: string; delta: number; ripple: boolean } | { op: "audioTrimStart"; bar: string; delta: number } | { op: "audioTrimEnd"; bar: string; delta: number } | { op: "volume"; bar: string; volume: number } | { op: "split"; at: number; selected: string[] } | { op: "splitBar"; bar: string; at: number } | { op: "cameraKey"; key: string; delta: number };
+
 export type TimelineItem = {
 	kind: "group",
 } & {
@@ -1441,6 +1490,11 @@ export type TimelineItem = {
 	component: string,
 	props: { [key in string]: unknown },
 } & ItemBase;
+
+export type TimelineReply = {
+	error?: string,
+	message?: string,
+};
 
 export type TimelineSpec = {
 	width: number,
@@ -1565,13 +1619,6 @@ export type TransitionRef = {
 	hold?: boolean,
 };
 
-export type UpdateNodeBody = {
-	label?: string,
-	position?: Position,
-	disabled?: boolean,
-	params?: { [key in string]: Value },
-};
-
 export type Value = null | boolean | number | string | Value[] | { [key in string]: Value };
 
 export type VarInfo = {
@@ -1671,6 +1718,8 @@ export type WorkflowEdge = {
 	target: string,
 	targetHandle: string,
 };
+
+export type WorkflowEdit = { op: "addNode"; type: string; id?: string; label?: string; position?: Position; params?: { [key in string]: unknown } } | { op: "updateNode"; id: string; patch: NodePatch } | { op: "moveNodes"; positions: { [key in string]: Position } } | { op: "removeNodes"; ids: string[] } | { op: "addEdge"; ends: EdgeEnds } | { op: "removeEdges"; ids: string[] } | { op: "removeParts"; nodeIds: string[]; edgeIds: string[] } | { op: "setSettings"; patch: SettingsPatch } | { op: "addProjectFont"; font: FontFamilyDef } | { op: "setFontRole"; role: FontRole; family: string } | { op: "setVariables"; variables: { [key in string]: string } } | { op: "renameVariable"; from: string; to: string } | { op: "rename"; name: string } | { op: "paste"; nodes: WorkflowNode[]; edges: WorkflowEdge[]; offset: Position } | { op: "group"; ids: string[]; title: string; sizes: { [key in string]: Viewport } } | { op: "ungroup"; id: string } | { op: "mix"; edit: MixEdit } | { op: "markers"; edit: MarkerEdit } | { op: "replace"; workflow: Workflow };
 
 export type WorkflowNode = {
 	id: string,

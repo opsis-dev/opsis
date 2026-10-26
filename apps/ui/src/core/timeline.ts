@@ -4,7 +4,6 @@ import type {
   AudioEnvelope,
   CameraPath,
   Ease,
-  EditHandles,
   Keyframe,
   PreviewQuality,
   VisualEnvelope,
@@ -26,8 +25,6 @@ export type AudioEnvelopeKey = keyof AudioEnvelope;
 export type EnvelopeKey = VisualEnvelopeKey | AudioEnvelopeKey;
 
 export type Envelope = Partial<Record<EnvelopeKey, Keyframe[]>>;
-
-export type EditHandleKind = keyof EditHandles;
 
 export const PREVIEW_QUALITIES: PreviewQuality[] = ["fast", "exact"];
 

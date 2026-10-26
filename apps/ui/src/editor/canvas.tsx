@@ -16,7 +16,7 @@ import { isMac } from "@/lib/platform";
 import { useAppSettings } from "../store/app-settings";
 import { useUiStore } from "../store/ui";
 import { useViewOptions } from "../store/view-options";
-import { useWorkflowStore } from "../store/workflow";
+import { workflowEdits } from "../store/workflow";
 import { MAX_ZOOM, MIN_ZOOM, SNAP_GRID } from "./canvas-grid";
 import { CanvasToolbar } from "./canvas-toolbar";
 import type { CanvasNode, FlowNodeType } from "./convert";
@@ -54,7 +54,7 @@ const minimapColor = (n: CanvasNode) => categoryColor(n.data.node.type);
 
 function connect(c: Connection): void {
   if (!c.sourceHandle || !c.targetHandle) return;
-  useWorkflowStore.getState().addEdge({
+  workflowEdits.addEdge({
     source: c.source,
     sourceHandle: c.sourceHandle,
     target: c.target,
@@ -63,13 +63,11 @@ function connect(c: Connection): void {
 }
 
 const dropDragged = (_e: unknown, _node: CanvasNode, dragged: CanvasNode[]) =>
-  useWorkflowStore.getState().moveNodes(Object.fromEntries(dragged.map((n) => [n.id, n.position])));
+  workflowEdits.moveNodes(Object.fromEntries(dragged.map((n) => [n.id, n.position])));
 
-const deleteNodes = (deleted: CanvasNode[]) =>
-  useWorkflowStore.getState().removeNodes(deleted.map((n) => n.id));
+const deleteNodes = (deleted: CanvasNode[]) => workflowEdits.removeNodes(deleted.map((n) => n.id));
 
-const deleteEdges = (deleted: Edge[]) =>
-  useWorkflowStore.getState().removeEdges(deleted.map((e) => e.id));
+const deleteEdges = (deleted: Edge[]) => workflowEdits.removeEdges(deleted.map((e) => e.id));
 
 const clearSelection = () => useUiStore.getState().setSelected([]);
 

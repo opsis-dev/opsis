@@ -112,3 +112,21 @@ impl Default for ProjectFonts {
         }
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "lowercase")]
+pub enum FontRole {
+    Main,
+    Heading,
+    Code,
+}
+
+impl FontRole {
+    pub fn family(self) -> &'static str {
+        match self {
+            Self::Main => "df-main",
+            Self::Heading => "df-heading",
+            Self::Code => "df-code",
+        }
+    }
+}

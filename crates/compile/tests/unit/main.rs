@@ -1,6 +1,7 @@
 mod checks;
 mod clip;
 mod compile;
+mod edits;
 mod graph;
 mod helpers;
 mod lengths;
@@ -15,3 +16,4 @@ mod nodes_g;
 mod small;
 mod time;
 mod timeline;
+mod timeline_edits;

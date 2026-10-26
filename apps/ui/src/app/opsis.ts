@@ -2,7 +2,6 @@ import { Channel } from "@tauri-apps/api/core";
 import type { UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import type { ApiEditorReply } from "@/core/api";
 import { platform } from "@/lib/platform";
 import {
   commands,
@@ -13,7 +12,11 @@ import {
   type AppSettings,
   type CloseDecision,
   type CloseRequest,
+  type DiskChoice,
   type DockPanelName,
+  type DocumentChanged,
+  type DocumentState,
+  type Edited,
   type EditorCompile,
   type EngineInstallEvent,
   type EngineStatus,
@@ -32,18 +35,18 @@ import {
   type PickRequest,
   type PickResult,
   type PreviewReported,
-  type EditorRequest,
-  type ProjectFileChange,
   type ProjectFilesChange,
   type ProjectLocations,
   type RecentProject,
+  type Removal,
   type Relayed,
   type RelayTarget,
   type RunEvent,
-  type RunRequest,
+  type RunTargets,
   type RunStatus,
-  type SaveResult,
   type SettingsPage,
+  type TimelineEdit,
+  type TimelineReply,
   type TimelineSpec,
   type TraceModel,
   type Value,
@@ -53,7 +56,7 @@ import {
   type ViewSize,
   type WindowRole,
   type WindowState,
-  type Workflow,
+  type WorkflowEdit,
 } from "../generated/bindings";
 
 type Result<T> = Promise<{ status: "ok"; data: T } | { status: "error"; error: string }>;
@@ -144,16 +147,31 @@ export function createOpsis() {
     projectFolder: (parent: string, name: string): Promise<string> =>
       unwrap(commands.projectFolder(parent, name)),
     openProject: (dir: string): Promise<OpenProject> => unwrap(commands.openProject(dir)),
-    saveWorkflow: (dir: string, workflow: Workflow, base: string | null): Promise<SaveResult> =>
-      unwrap(commands.saveWorkflow(dir, workflow, base)),
+    documentState: (): Promise<DocumentState | null> => commands.documentState(),
+    onDocumentChanged: (listener: (changed: DocumentChanged) => void) =>
+      on(events.documentChanged(here()), listener),
+    editWorkflow: (edit: WorkflowEdit): Promise<Edited> => unwrap(commands.editWorkflow(edit)),
+    editTimeline: (edit: TimelineEdit): Promise<TimelineReply> =>
+      unwrap(commands.editTimeline(edit)),
+    timelineRemoval: (selected: string[]): Promise<Removal | null> =>
+      commands.timelineRemoval(selected),
+    undo: () => unwrap(commands.undo()),
+    redo: () => unwrap(commands.redo()),
+    beginGesture: (): void => void commands.beginGesture(),
+    endGesture: (): void => void commands.endGesture(),
+    saveProject: (): Promise<boolean> => unwrap(commands.saveProject()),
+    resolveDiskChange: (choice: DiskChoice): Promise<boolean> =>
+      unwrap(commands.resolveDiskChange(choice)),
+    onDiskChangeAsked: (listener: (asked: { readable: boolean }) => void) =>
+      on(events.diskChangeAsked(here()), listener),
+    onProjectReloaded: (listener: () => void) => on(events.projectReloaded(here()), listener),
+    onOpenRequested: (listener: (request: { dir: string }) => void) =>
+      on(events.openRequested(here()), listener),
     projectLocations: (): Promise<ProjectLocations> => unwrap(commands.projectLocations()),
     chooseFolder: (opts: { title: string; defaultPath?: string }): Promise<string | null> =>
       unwrap(commands.chooseFolder(opts.title, opts.defaultPath ?? null)),
-    watchProject: (dir: string | null) => unwrap(commands.watchProject(dir)),
     watchProjectFiles: (dir: string, refs: readonly string[]) =>
       unwrap(commands.watchProjectFiles(dir, [...refs])),
-    onProjectFileChanged: (listener: (change: ProjectFileChange) => void) =>
-      on(events.projectFileChanged(here()), listener),
     onProjectFilesChanged: (listener: (change: ProjectFilesChange) => void) =>
       on(events.projectFilesChanged(here()), listener),
     readLastRun: (dir: string): Promise<LastRun | null> => unwrap(commands.readLastRun(dir)),
@@ -162,8 +180,8 @@ export function createOpsis() {
     pathForFile: (file: File): string => droppedPaths.get(file.name) ?? "",
     revealInFolder: (dir: string, relativePath?: string) =>
       unwrap(commands.revealInFolder(dir, relativePath ?? null)),
-    runWorkflow: (request: RunRequest): Promise<{ runId: string }> =>
-      unwrap(commands.runWorkflow(request)),
+    runWorkflow: (targets: RunTargets): Promise<{ runId: string }> =>
+      unwrap(commands.runWorkflow(targets)),
     cancelRun: () => commands.cancelRun(),
     runStatus: (): Promise<RunStatus> => commands.runStatus(),
     onRunEvent: (listener: (event: RunEvent) => void) => on(events.runEventFired(here()), listener),
@@ -195,22 +213,6 @@ export function createOpsis() {
     apiStatus: (): Promise<ApiServerStatus> => commands.apiStatus(),
     onApiStatus: (listener: (status: ApiServerStatus) => void) =>
       on(events.apiStatusChanged(here()), listener),
-    onApiRequest: (listener: (request: EditorRequest) => Promise<ApiEditorReply>) => {
-      const off = on(events.apiRequestReceived(here()), ({ id, request }) => {
-        void listener(request)
-          .catch((e: unknown): ApiEditorReply => ({
-            ok: false,
-            status: 500,
-            error: e instanceof Error ? e.message : String(e),
-          }))
-          .then((reply) => commands.apiReply(id, reply as Value));
-      });
-      void commands.apiListening(true);
-      return () => {
-        off();
-        void commands.apiListening(false);
-      };
-    },
     onLive: (listener: (message: LiveMessage) => void) => {
       void commands.watchLive(
         frameChannel(({ header, jpeg }) =>
@@ -250,11 +252,11 @@ export function createOpsis() {
     listPanelWindows: (): Promise<DockPanelName[]> => commands.listPanelWindows(),
     onPanelWindows: (listener: (open: DockPanelName[]) => void) =>
       on(events.panelWindowsChanged(here()), listener),
-    reportUnsaved: (unsaved: boolean): void => void commands.reportUnsaved(unsaved),
+    reportDrafts: (held: boolean): void => void commands.reportDrafts(held),
     onFlushSave: (listener: () => Promise<void>) =>
       on(events.flushSave(here()), () => {
         void listener()
-          .catch((e: unknown) => console.error("The project couldn't be saved before closing.", e))
+          .catch((e: unknown) => console.error("The values being typed couldn't be kept.", e))
           .finally(() => void commands.saveFlushed());
       }),
     onConfirmClose: (listener: (request: CloseRequest) => void) =>
@@ -280,12 +282,9 @@ export function createOpsis() {
     downloadFont: (id: string): Promise<FontFamilyDef> => unwrap(commands.downloadFont(id)),
     useFontInProject: (dir: string, fontId: string): Promise<FontFamilyDef> =>
       unwrap(commands.useFontInProject(dir, fontId)),
-    compile: (
-      workflow: Workflow,
-      selected: string | null,
-      inspected: string | null,
-    ): Promise<EditorCompile> => unwrap(commands.compile(workflow, selected, inspected)),
-    latestCompile: () => commands.latestCompile(),
+    setCompileFocus: (selected: string | null, inspected: string | null): void =>
+      void commands.setCompileFocus(selected, inspected),
+    latestCompile: (): Promise<EditorCompile | null> => unwrap(commands.latestCompile()),
     onCompiled: (listener: (compiled: EditorCompile) => void) =>
       on(events.compiled(here()), listener),
     relay: (to: RelayTarget, message: unknown) => unwrap(commands.relay(to, message as Value)),

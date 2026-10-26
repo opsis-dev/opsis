@@ -1,256 +1,124 @@
-import type { FontRole } from "@opsis/video/common/fonts";
-import { temporal } from "zundo";
 import { create } from "zustand";
-import { nodeIdFor, randomId } from "@/core/ids";
-import { defaultMix } from "@/core/mix";
-import { normalizeWorkflow, type EdgeEnds } from "@/core/workflow";
 import type {
+  DocumentState,
+  EdgeEnds,
+  Edited,
   FontFamilyDef,
-  Mix,
-  Marker,
+  FontRole,
+  MarkerEdit,
+  MixEdit,
+  NodePatch,
+  Removal,
+  Position,
+  SettingsPatch,
   Workflow,
   WorkflowEdge,
+  WorkflowEdit,
   WorkflowNode,
-  WorkflowSettings,
 } from "@/generated/bindings";
-import { createForwarder } from "@/lib/forwarder";
-import { newNodeParams } from "@/store/catalog";
-import * as edits from "@/workflow-edits";
+import { reportError } from "@/lib/toast";
 import { cardSize } from "../editor/card-size";
 import { useUiStore } from "./ui";
 
 type WorkflowState = {
+  session: string | null;
   projectDir: string | null;
   workflow: Workflow | null;
   revision: number;
   savedRevision: number;
-  fileVersion: string | null;
+  canUndo: boolean;
+  canRedo: boolean;
 };
 
-type Actions = {
-  load: (dir: string, workflow: Workflow, fileVersion?: string | null) => void;
-  setFileVersion: (version: string | null) => void;
-  markSaved: (revision: number, fileVersion: string) => void;
-  update: (fn: (wf: Workflow) => Workflow) => void;
-  addNode: (type: string, position: { x: number; y: number }, params?: NodeParams) => string;
-  updateParams: (id: string, patch: NodeParams) => void;
-  setNodeMeta: (
-    id: string,
-    patch: Partial<Pick<WorkflowNode, "label" | "disabled" | "position" | "parentId" | "size">>,
-  ) => void;
-  moveNodes: (positions: Record<string, { x: number; y: number }>) => void;
-  removeNodes: (ids: string[]) => void;
-  addEdge: (edge: EdgeEnds) => void;
-  removeEdges: (ids: string[]) => void;
-  setSettings: (patch: Partial<WorkflowSettings>) => void;
-  addProjectFont: (def: FontFamilyDef) => void;
-  setFontRole: (role: FontRole, family: string) => void;
-  setVariables: (vars: Record<string, string>) => void;
-  renameVariable: (from: string, to: string) => void;
-  rename: (name: string) => void;
-  paste: (
-    nodes: WorkflowNode[],
-    edges: WorkflowEdge[],
-    offset: { x: number; y: number },
-  ) => string[];
-  groupNodes: (ids: string[], title?: string) => void;
-  ungroup: (groupId: string) => void;
-  setMix: (fn: (mix: Mix) => Mix) => void;
-  setMarkers: (fn: (markers: Marker[]) => Marker[]) => void;
-  applyPanelEdit: (workflow: Workflow) => void;
-  mirrorProject: (dir: string, workflow: Workflow) => void;
-  mirrorSaved: (workflow: Workflow) => void;
-  undo: () => void;
-  redo: () => void;
-  beginGesture: () => void;
-  endGesture: () => void;
-};
-
-type NodeParams = WorkflowNode["params"];
-
-const MAX_UNDO_STEPS = 200;
-
-export type RemoteEdit =
-  | { type: "replace"; workflow: Workflow }
-  | { type: "gesture"; phase: "begin" | "end" };
-
-const remoteEdits = createForwarder<RemoteEdit>();
-
-export const mirrorEditsTo = remoteEdits.to;
-
-const opened = (projectDir: string | null, workflow: Workflow | null) => ({
-  projectDir,
-  workflow,
+const NO_DOCUMENT: WorkflowState = {
+  session: null,
+  projectDir: null,
+  workflow: null,
   revision: 0,
   savedRevision: 0,
-});
+  canUndo: false,
+  canRedo: false,
+};
 
-function edited(
-  s: WorkflowState,
-  workflow: Workflow,
-  { saved = false } = {},
-): Partial<WorkflowState> {
-  const revision = s.revision + 1;
-  return saved ? { workflow, revision, savedRevision: revision } : { workflow, revision };
+export const useWorkflowStore = create<WorkflowState>()(() => NO_DOCUMENT);
+
+export function showDocument(state: DocumentState): void {
+  const current = useWorkflowStore.getState();
+  if (current.session === state.session && state.revision < current.revision) return;
+  useWorkflowStore.setState({
+    session: state.session,
+    projectDir: state.dir,
+    workflow: state.workflow,
+    revision: state.revision,
+    savedRevision: state.savedRevision,
+    canUndo: state.canUndo,
+    canRedo: state.canRedo,
+  });
 }
 
-const history = () => useWorkflowStore.temporal.getState();
+export const editWorkflow = (edit: WorkflowEdit): Promise<Edited> =>
+  window.opsis.editWorkflow(edit);
 
-function stepHistory(step: "undo" | "redo"): void {
-  const before = useWorkflowStore.getState().workflow;
-  history()[step]();
-  const after = useWorkflowStore.getState().workflow;
-  if (before && after && before !== after)
-    useWorkflowStore.setState((s) => ({ revision: s.revision + 1 }));
+const CHANGE_FAILED = "Couldn't make that change";
+
+function send(edit: WorkflowEdit): void {
+  editWorkflow(edit).catch((e: unknown) => reportError(CHANGE_FAILED, e));
 }
 
-function gesturesAsOneUndoStep() {
-  let depth = 0;
-  let start: Workflow | null = null;
-  return {
-    begin: () => {
-      if (depth++ > 0) return;
-      start = useWorkflowStore.getState().workflow;
-      history().pause();
+const created = (edit: WorkflowEdit): Promise<string[]> =>
+  editWorkflow(edit).then(
+    (edited) => edited.ids,
+    (e: unknown) => {
+      reportError(CHANGE_FAILED, e);
+      return [];
     },
-    end: () => {
-      if (depth === 0 || --depth > 0) return;
-      const from = start;
-      start = null;
-      const to = useWorkflowStore.getState().workflow;
-      const changed = from !== null && to !== null && from !== to;
-      if (changed) useWorkflowStore.setState({ workflow: from });
-      history().resume();
-      if (changed) useWorkflowStore.setState({ workflow: to });
-    },
-    drop: () => {
-      if (depth === 0) return;
-      depth = 0;
-      start = null;
-      history().resume();
-    },
-  };
-}
+  );
 
-const gestures = gesturesAsOneUndoStep();
+const integerSize = (node: WorkflowNode) => {
+  const { width, height } = cardSize(node);
+  return { width: Math.round(width), height: Math.round(height) };
+};
 
-export const useWorkflowStore = create<WorkflowState & Actions>()(
-  temporal(
-    (set, get) => ({
-      projectDir: null,
-      workflow: null,
-      revision: 0,
-      savedRevision: 0,
-      fileVersion: null,
-
-      load: (dir, workflow, fileVersion = null) => {
-        gestures.drop();
-        set({ ...opened(dir, normalizeWorkflow(workflow)), fileVersion });
-        history().clear();
-      },
-      setFileVersion: (fileVersion) => set({ fileVersion }),
-      markSaved: (revision, fileVersion) => set({ savedRevision: revision, fileVersion }),
-
-      update: (fn) => {
-        const current = get().workflow;
-        if (!current) return;
-        const next = fn(current);
-        if (next === current) return;
-        set((s) => edited(s, next));
-        remoteEdits.send({ type: "replace", workflow: next });
-      },
-
-      applyPanelEdit: (workflow) => {
-        if (workflow === get().workflow) return;
-        set((s) => edited(s, workflow));
-      },
-
-      mirrorProject: (dir, workflow) => set(opened(dir, workflow)),
-
-      mirrorSaved: (workflow) => {
-        if (workflow === get().workflow) return;
-        set((s) => edited(s, workflow, { saved: true }));
-      },
-
-      undo: () => stepHistory("undo"),
-
-      redo: () => stepHistory("redo"),
-
-      beginGesture: () => {
-        if (!remoteEdits.send({ type: "gesture", phase: "begin" })) gestures.begin();
-      },
-
-      endGesture: () => {
-        if (!remoteEdits.send({ type: "gesture", phase: "end" })) gestures.end();
-      },
-
-      setMix: (fn) => get().update((wf) => ({ ...wf, mix: fn(wf.mix ?? defaultMix()) })),
-
-      setMarkers: (fn) => get().update((wf) => ({ ...wf, markers: fn(wf.markers) })),
-
-      addNode: (type, position, params) => {
-        const id = nodeIdFor(type);
-        const node: WorkflowNode = {
-          id,
-          type,
-          position,
-          params: newNodeParams(type, params),
-        };
-        get().update((wf) => ({ ...wf, nodes: [...wf.nodes, node] }));
-        return id;
-      },
-
-      updateParams: (id, patch) => get().update((wf) => edits.patchNodeParams(wf, id, patch)),
-
-      setNodeMeta: (id, patch) =>
-        get().update((wf) => edits.mapNode(wf, id, (n) => ({ ...n, ...patch }))),
-
-      moveNodes: (positions) =>
-        get().update((wf) => ({
-          ...wf,
-          nodes: wf.nodes.map((n) => (positions[n.id] ? { ...n, position: positions[n.id] } : n)),
-        })),
-
-      removeNodes: (ids) => get().update((wf) => edits.removeNodes(wf, ids)),
-
-      addEdge: (edge) => get().update((wf) => edits.connect(wf, edge)),
-
-      removeEdges: (ids) => {
-        const gone = new Set(ids);
-        get().update((wf) => ({ ...wf, edges: wf.edges.filter((e) => !gone.has(e.id)) }));
-      },
-
-      setSettings: (patch) =>
-        get().update((wf) => ({ ...wf, settings: { ...wf.settings, ...patch } })),
-      addProjectFont: (def) => get().update((wf) => edits.addProjectFont(wf, def)),
-      setFontRole: (role, family) => get().update((wf) => edits.setFontRole(wf, role, family)),
-      setVariables: (variables) => get().update((wf) => ({ ...wf, variables })),
-      renameVariable: (from, to) =>
-        get().update((wf) => edits.renameWorkflowVariable(wf, from, to)),
-      rename: (name) => get().update((wf) => ({ ...wf, name })),
-
-      paste: (nodes, edges, offset) => {
-        const current = get().workflow;
-        if (!current) return [];
-        const pasted = edits.pasteNodes(current, nodes, edges, offset);
-        get().update(() => pasted.workflow);
-        return pasted.ids;
-      },
-
-      groupNodes: (ids, title = "Group") =>
-        get().update((wf) =>
-          edits.groupNodes(wf, ids, { id: randomId("group"), title, sizeOf: cardSize }),
-        ),
-
-      ungroup: (groupId) => get().update((wf) => edits.ungroup(wf, groupId)),
-    }),
-    {
-      partialize: (s) => ({ workflow: s.workflow }),
-      limit: MAX_UNDO_STEPS,
-      equality: (a, b) => a.workflow === b.workflow,
-    },
-  ),
-);
+export const workflowEdits = {
+  addNode: async (
+    type: string,
+    position: Position,
+    params?: Record<string, unknown>,
+  ): Promise<string | undefined> =>
+    (await created({ op: "addNode", type, position, ...(params ? { params } : {}) }))[0],
+  updateParams: (id: string, params: Record<string, unknown>) =>
+    send({ op: "updateNode", id, patch: { params } }),
+  setNodeMeta: (id: string, patch: NodePatch) => send({ op: "updateNode", id, patch }),
+  moveNodes: (positions: Record<string, Position>) => send({ op: "moveNodes", positions }),
+  removeNodes: (ids: string[]) => send({ op: "removeNodes", ids }),
+  removeParts: ({ nodeIds, edgeIds }: Removal) => send({ op: "removeParts", nodeIds, edgeIds }),
+  addEdge: (ends: EdgeEnds) => send({ op: "addEdge", ends }),
+  removeEdges: (ids: string[]) => send({ op: "removeEdges", ids }),
+  setSettings: (patch: SettingsPatch) => send({ op: "setSettings", patch }),
+  addProjectFont: (font: FontFamilyDef) => send({ op: "addProjectFont", font }),
+  setFontRole: (role: FontRole, family: string) => send({ op: "setFontRole", role, family }),
+  setVariables: (variables: Record<string, string>) => send({ op: "setVariables", variables }),
+  renameVariable: (from: string, to: string) => send({ op: "renameVariable", from, to }),
+  rename: (name: string) => send({ op: "rename", name }),
+  paste: (nodes: WorkflowNode[], edges: WorkflowEdge[], offset: Position): Promise<string[]> =>
+    created({ op: "paste", nodes, edges, offset }),
+  groupNodes: (ids: string[], title = "Group") => {
+    const nodes = useWorkflowStore.getState().workflow?.nodes ?? [];
+    const sizes = Object.fromEntries(
+      nodes.filter((n) => ids.includes(n.id)).map((n) => [n.id, integerSize(n)]),
+    );
+    send({ op: "group", ids, title, sizes });
+  },
+  ungroup: (id: string) => send({ op: "ungroup", id }),
+  mix: (edit: MixEdit) => send({ op: "mix", edit }),
+  markers: async (edit: MarkerEdit): Promise<string | undefined> =>
+    (await created({ op: "markers", edit }))[0],
+  replace: (workflow: Workflow) => send({ op: "replace", workflow }),
+  undo: () => void window.opsis.undo(),
+  redo: () => void window.opsis.redo(),
+  beginGesture: () => window.opsis.beginGesture(),
+  endGesture: () => window.opsis.endGesture(),
+};
 
 useWorkflowStore.subscribe((s, prev) => {
   if (s.workflow && s.workflow.nodes !== prev.workflow?.nodes)

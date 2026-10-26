@@ -8,13 +8,9 @@ What's left outside the release plan: the places in the codebase that don't read
 
 `apps/ui/src/app/opsis.ts` (327 lines, `OpsisApi`, `createOpsis`) wraps every generated command and event in a preload-style object so call sites written for Electron keep working; 110 call sites use it. Call the generated `commands` and `events` from `@/generated/bindings` directly, with small typed helpers only where a channel or a frame decoder is involved.
 
-### 6. Project state and undo in the editor
-
-The editor's store owns the workflow, undo and autosave; Rust receives the whole workflow on every edit through `compile`. Local API edits are sent to the editor window (`apps/ui/src/editor/api-bridge.ts`), so the API depends on that window being awake. Move the document, undo, autosave and edits into Rust; windows render it and send edit commands.
-
 ### 7. Pop-out window sync
 
-`apps/ui/src/app/sync.ts` (286 lines) and `relay` mirror the editor store into panel windows with `replace` and gesture messages, the design of a `BroadcastChannel`. With state in Rust (item 6), every window follows Rust's state events instead.
+The document already lives in Rust and every window follows `DocumentChanged`. `apps/ui/src/app/sync.ts` (246 lines) and `relay` still mirror the selection, view options, run state and playhead between windows with `hello`/`state` messages, the design of a `BroadcastChannel`. Keep that state in Rust too, so windows follow Rust's events instead.
 
 ### 8. Logic written twice, in TS and in Rust
 
@@ -28,10 +24,6 @@ The editor's store owns the workflow, undo and autosave; Rust receives the whole
 - settings defaults: `schemaDefaults` in `apps/ui/src/core/schema.ts` and `NodeDef::defaults`.
 
 Keep one implementation in Rust and send the UI what it needs.
-
-### 9. Editing logic in TS
-
-Timeline edits (`apps/ui/src/timeline/edits.ts`, 696 lines), `apps/ui/src/workflow-edits.ts`, `apps/ui/src/mix/edits.ts` and `apps/ui/src/workflow-diff.ts` edit the workflow JSON in the editor. They belong in Rust commands next to the document (item 6), tested in Rust.
 
 ### 10. Folder names from the old packages
 

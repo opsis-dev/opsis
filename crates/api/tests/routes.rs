@@ -9,14 +9,28 @@ use hyper::Request;
 use hyper::body::Bytes;
 use hyper_util::rt::TokioIo;
 use opsis_api::address::ApiAddress;
-use opsis_api::routes::ApiHost;
+use opsis_api::openapi::{ProjectState, RunState};
+use opsis_api::routes::{ApiHost, HostError, HostResult};
 use opsis_api::server::ApiServer;
+use opsis_types::edits::{Edited, WorkflowEdit};
+use opsis_types::events::RunTargets;
 use serde_json::{Value, json};
 use tokio::sync::broadcast;
 
 struct FakeEditor {
-    asked: Mutex<Vec<Value>>,
+    asked: Mutex<Vec<WorkflowEdit>>,
     events: broadcast::Sender<String>,
+}
+
+fn demo() -> ProjectState {
+    ProjectState {
+        running: false,
+        run_id: None,
+        dir: Some("/p".into()),
+        workflow: serde_json::from_value(json!({ "version": 1, "id": "w", "name": "Demo", "settings": {}, "variables": {}, "nodes": [], "edges": [], "markers": [] })).unwrap(),
+        revision: 3,
+        saved: true,
+    }
 }
 
 impl ApiHost for FakeEditor {
@@ -24,19 +38,52 @@ impl ApiHost for FakeEditor {
         "9.9.9".into()
     }
 
-    fn ask_editor(&self, request: Value) -> BoxFuture<'static, Value> {
-        self.asked.lock().unwrap().push(request.clone());
-        let workflow = json!({ "version": 1, "id": "w", "name": "Demo", "settings": {}, "variables": {}, "nodes": [], "edges": [], "markers": [] });
-        Box::pin(async move {
-            match request["op"].as_str() {
-                Some("read") => {
-                    json!({ "ok": true, "result": { "running": false, "runId": null, "dir": "/p", "workflow": workflow, "revision": 3, "saved": true } })
-                }
-                Some("removeNodes") => json!({ "ok": false, "status": 404, "error": "No node x." }),
-                Some("problems") => json!({ "ok": true, "result": { "workflow": workflow } }),
-                _ => json!({ "ok": true, "result": { "revision": 4, "workflow": workflow } }),
-            }
+    fn project(&self) -> HostResult<ProjectState> {
+        Ok(demo())
+    }
+
+    fn edit(&self, edit: WorkflowEdit) -> HostResult<Edited> {
+        let missing = matches!(&edit, WorkflowEdit::RemoveNodes { ids } if ids == &["x"]);
+        self.asked.lock().unwrap().push(edit);
+        if missing {
+            return Err(HostError::new(404, "No node x."));
+        }
+        Ok(Edited {
+            revision: 4,
+            ids: Vec::new(),
         })
+    }
+
+    fn undo(&self) -> HostResult<u64> {
+        Ok(4)
+    }
+
+    fn redo(&self) -> HostResult<u64> {
+        Ok(4)
+    }
+
+    fn save(&self) -> BoxFuture<'static, HostResult<u64>> {
+        Box::pin(async { Ok(3) })
+    }
+
+    fn open(&self, _dir: String) -> BoxFuture<'static, HostResult<ProjectState>> {
+        Box::pin(async { Ok(demo()) })
+    }
+
+    fn run(&self, _targets: RunTargets) -> BoxFuture<'static, HostResult<RunState>> {
+        Box::pin(async {
+            Ok(RunState {
+                running: true,
+                run_id: Some("r".into()),
+            })
+        })
+    }
+
+    fn stop(&self) -> RunState {
+        RunState {
+            running: false,
+            run_id: None,
+        }
     }
 
     fn run_events(&self) -> broadcast::Receiver<String> {
@@ -184,7 +231,7 @@ async fn documents_every_route_it_serves() {
 }
 
 #[tokio::test]
-async fn sends_edits_to_the_editor_with_their_bodies_checked() {
+async fn sends_edits_to_the_document_with_their_bodies_checked() {
     let served = serve().await;
     let (code, error) = call(&served.socket, "POST", "/project/nodes", Some("{}")).await;
     assert_eq!(
@@ -280,13 +327,15 @@ async fn sends_edits_to_the_editor_with_their_bodies_checked() {
         (200, json!({ "running": false, "runId": null }))
     );
     let asked = served.editor.asked.lock().unwrap().clone();
-    assert!(asked.iter().any(|r| r["op"] == "addNode"
-        && r["type"] == "browser.click"
-        && r["params"]["target"] == "Save"));
+    assert!(asked.iter().any(|edit| matches!(
+        edit,
+        WorkflowEdit::AddNode { kind, params: Some(params), .. }
+            if kind == "browser.click" && params["target"] == "Save"
+    )));
     assert!(
         asked
             .iter()
-            .any(|r| r["op"] == "removeNodes" && r["ids"] == json!(["x"]))
+            .any(|edit| matches!(edit, WorkflowEdit::RemoveNodes { ids } if ids == &["x"]))
     );
     served.server.stop();
 }

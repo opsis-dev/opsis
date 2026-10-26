@@ -9,7 +9,6 @@ import {
   Settings,
   Undo2,
 } from "lucide-react";
-import { useStore } from "zustand";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
@@ -63,8 +62,8 @@ function PanelToggles() {
 }
 
 function HistoryButtons() {
-  const canUndo = useStore(useWorkflowStore.temporal, (s) => s.pastStates.length > 0);
-  const canRedo = useStore(useWorkflowStore.temporal, (s) => s.futureStates.length > 0);
+  const canUndo = useWorkflowStore((s) => s.canUndo);
+  const canRedo = useWorkflowStore((s) => s.canRedo);
   return (
     <>
       <TooltipButton

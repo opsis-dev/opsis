@@ -1,33 +1,30 @@
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::path::Path;
+use std::sync::Arc;
 
 use futures::future::BoxFuture;
 use opsis_api::address::{API_SOCKET_ENV, Host, api_address};
-use opsis_api::routes::ApiHost;
+use opsis_api::openapi::{ProjectState, RunState};
+use opsis_api::routes::{ApiHost, HostError, HostResult};
 use opsis_api::server::ApiServer;
-use opsis_types::events::RunEvent;
+use opsis_compile::edits::EditError;
+use opsis_document::Document;
+use opsis_types::edits::{Edited, WorkflowEdit};
+use opsis_types::events::{RunEvent, RunTargets};
 use opsis_types::shell::ApiServerStatus;
-use serde_json::{Value, json};
 use tauri::{AppHandle, Manager, State};
 use tauri_specta::Event;
-use tokio::sync::{broadcast, oneshot, watch};
+use tokio::sync::broadcast;
 
-use crate::events::{ApiRequestReceived, ApiStatusChanged};
+use crate::document::DocumentError;
+use crate::events::{ApiStatusChanged, OpenRequested};
+use crate::run::{RunHost, StartError};
 use crate::state::AppState;
 use crate::windows::MAIN_WINDOW;
 
-const EDITOR_WAIT: Duration = Duration::from_secs(20);
 const RUN_EVENTS_KEPT: usize = 256;
-
-fn failure(status: u16, error: &str) -> Value {
-    json!({ "ok": false, "status": status, "error": error })
-}
 
 pub struct Api {
     server: ApiServer,
-    pending: Mutex<HashMap<String, oneshot::Sender<Value>>>,
-    listening: watch::Sender<bool>,
     events: broadcast::Sender<String>,
 }
 
@@ -48,29 +45,63 @@ impl Api {
         });
         Self {
             server: ApiServer::new(address),
-            pending: Mutex::default(),
-            listening: watch::Sender::new(false),
             events: broadcast::Sender::new(RUN_EVENTS_KEPT),
         }
     }
+}
 
-    fn settle_all(&self, reply: &Value) {
-        for (_, waiting) in self.pending.lock().expect("API replies").drain() {
-            if waiting.send(reply.clone()).is_err() {
-                log::debug!("an API caller left before its answer");
-            }
-        }
-    }
+const NOT_FOUND: u16 = 404;
+const BAD_REQUEST: u16 = 400;
+const CONFLICT: u16 = 409;
+const UNREADABLE: u16 = 422;
 
-    pub fn editor_reloaded(&self) {
-        self.listening.send_replace(false);
-        self.settle_all(&failure(503, "The editor reloaded before it answered."));
-    }
+fn document_failure(error: &DocumentError) -> HostError {
+    let status = match error {
+        DocumentError::NoProject => CONFLICT,
+        DocumentError::Edit(
+            EditError::NoNode(_)
+            | EditError::NoEdge(_)
+            | EditError::NoBus(_)
+            | EditError::NoMarker(_),
+        ) => NOT_FOUND,
+        DocumentError::Edit(EditError::NodeExists(_) | EditError::NoNodeType(_)) => BAD_REQUEST,
+    };
+    HostError::new(status, error.to_string())
+}
 
-    pub fn editor_closed(&self) {
-        self.listening.send_replace(false);
-        self.settle_all(&failure(409, "No project is open."));
+fn start_failure(error: &StartError) -> HostError {
+    let status = match error {
+        StartError::NoProject | StartError::Busy | StartError::VersionUnchosen => CONFLICT,
+        StartError::Failed(_) => 500,
+    };
+    HostError::new(status, error.to_string())
+}
+
+fn run_state(app: &AppHandle) -> RunState {
+    let run_id = crate::run::active_run(app);
+    RunState {
+        running: run_id.is_some(),
+        run_id,
     }
+}
+
+fn project_state(app: &AppHandle) -> HostResult<ProjectState> {
+    let document = app
+        .state::<AppState>()
+        .editor()
+        .document
+        .as_ref()
+        .map(Document::state)
+        .ok_or_else(|| document_failure(&DocumentError::NoProject))?;
+    let run = run_state(app);
+    Ok(ProjectState {
+        running: run.running,
+        run_id: run.run_id,
+        dir: Some(document.dir),
+        workflow: document.workflow,
+        revision: document.revision,
+        saved: document.revision == document.saved_revision,
+    })
 }
 
 struct AppApi {
@@ -82,43 +113,65 @@ impl ApiHost for AppApi {
         self.app.package_info().version.to_string()
     }
 
-    fn ask_editor(&self, request: Value) -> BoxFuture<'static, Value> {
+    fn project(&self) -> HostResult<ProjectState> {
+        project_state(&self.app)
+    }
+
+    fn edit(&self, edit: WorkflowEdit) -> HostResult<Edited> {
+        crate::document::edit(&self.app, edit).map_err(|e| document_failure(&e))
+    }
+
+    fn undo(&self) -> HostResult<u64> {
+        crate::document::step(&self.app, false).map_err(|e| document_failure(&e))
+    }
+
+    fn redo(&self) -> HostResult<u64> {
+        crate::document::step(&self.app, true).map_err(|e| document_failure(&e))
+    }
+
+    fn save(&self) -> BoxFuture<'static, HostResult<u64>> {
         let app = self.app.clone();
         Box::pin(async move {
-            if app.get_webview_window(MAIN_WINDOW).is_none() {
-                return failure(409, "No project is open.");
-            }
-            let api = app.state::<Api>();
-            let mut listening = api.listening.subscribe();
-            if tokio::time::timeout(EDITOR_WAIT, listening.wait_for(|l| *l))
-                .await
-                .is_err()
-            {
-                return failure(504, "The editor didn't answer in time.");
-            }
-            let id = uuid::Uuid::new_v4().to_string();
-            let (sender, receiver) = oneshot::channel();
-            api.pending
-                .lock()
-                .expect("API replies")
-                .insert(id.clone(), sender);
-            if let Err(error) = (ApiRequestReceived {
-                id: id.clone(),
-                request,
-            })
-            .emit_to(&app, MAIN_WINDOW)
-            {
-                api.pending.lock().expect("API replies").remove(&id);
-                return failure(500, &error.to_string());
-            }
-            match tokio::time::timeout(EDITOR_WAIT, receiver).await {
-                Ok(Ok(reply)) => reply,
-                _ => {
-                    api.pending.lock().expect("API replies").remove(&id);
-                    failure(504, "The editor didn't answer in time.")
-                }
+            let revision = project_state(&app)?.revision;
+            match crate::document::save(&app).await {
+                Ok(true) => Ok(revision),
+                Ok(false) => Err(HostError::new(CONFLICT, crate::document::VERSION_UNCHOSEN)),
+                Err(error) => Err(HostError::new(500, error.0)),
             }
         })
+    }
+
+    fn open(&self, dir: String) -> BoxFuture<'static, HostResult<ProjectState>> {
+        let app = self.app.clone();
+        Box::pin(async move {
+            crate::document::open(&app, Path::new(&dir))
+                .await
+                .map_err(|e| {
+                    HostError::new(UNREADABLE, format!("Couldn't open the project. {}", e.0))
+                })?;
+            if let Err(error) = (OpenRequested { dir }).emit_to(&app, MAIN_WINDOW) {
+                log::warn!("showing the project the API opened: {error}");
+            }
+            project_state(&app)
+        })
+    }
+
+    fn run(&self, targets: RunTargets) -> BoxFuture<'static, HostResult<RunState>> {
+        let app = self.app.clone();
+        Box::pin(async move {
+            let started = crate::run::start(&app, targets)
+                .await
+                .map_err(|e| start_failure(&e))?;
+            Ok(RunState {
+                running: true,
+                run_id: Some(started.run_id),
+            })
+        })
+    }
+
+    fn stop(&self) -> RunState {
+        self.app.state::<RunHost>().cancel();
+        run_state(&self.app)
     }
 
     fn run_events(&self) -> broadcast::Receiver<String> {
@@ -171,20 +224,4 @@ pub fn run_event(app: &AppHandle, event: &RunEvent) {
 #[specta::specta]
 pub fn api_status(api: State<'_, Api>) -> ApiServerStatus {
     api.server.status()
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn api_listening(api: State<'_, Api>, listening: bool) {
-    api.listening.send_replace(listening);
-}
-
-#[tauri::command]
-#[specta::specta]
-pub fn api_reply(api: State<'_, Api>, id: String, reply: Value) {
-    if let Some(waiting) = api.pending.lock().expect("API replies").remove(&id)
-        && waiting.send(reply).is_err()
-    {
-        log::debug!("an API caller left before its answer");
-    }
 }

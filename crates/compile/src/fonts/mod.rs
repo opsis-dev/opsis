@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use opsis_types::fonts::{FontCategory, FontFamilyDef, ProjectFonts};
+use opsis_types::fonts::{FontCategory, FontFamilyDef, FontRole, ProjectFonts};
 
 static BUNDLED: LazyLock<Vec<FontFamilyDef>> = LazyLock::new(|| {
     serde_json::from_str(include_str!("bundled.generated.json")).expect("bundled font list parses")
@@ -8,23 +8,6 @@ static BUNDLED: LazyLock<Vec<FontFamilyDef>> = LazyLock::new(|| {
 
 pub fn bundled_fonts() -> &'static [FontFamilyDef] {
     &BUNDLED
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FontRole {
-    Main,
-    Heading,
-    Code,
-}
-
-impl FontRole {
-    pub fn family(self) -> &'static str {
-        match self {
-            Self::Main => "df-main",
-            Self::Heading => "df-heading",
-            Self::Code => "df-code",
-        }
-    }
 }
 
 pub fn same_family(a: &str, b: &str) -> bool {

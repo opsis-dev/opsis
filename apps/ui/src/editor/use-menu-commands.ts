@@ -6,7 +6,7 @@ import { isEditingElement } from "@/lib/dom";
 import { onMenuCommand } from "../app/menu-commands";
 import { useUiStore } from "../store/ui";
 import { useViewOptions } from "../store/view-options";
-import { useWorkflowStore } from "../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { tidyLayout } from "./layout";
 import { focusPanel, PANEL_SIDES, PANEL_TOGGLES, togglePanel } from "./panels";
 import { startRun } from "./run";
@@ -21,12 +21,12 @@ const actionsFor = <T>(
 ): MenuActions => Object.fromEntries(items.map((item) => [command(item), () => run(item)]));
 
 const MENU_ACTIONS: MenuActions = {
-  "edit:undo": () => useWorkflowStore.getState().undo(),
-  "edit:redo": () => useWorkflowStore.getState().redo(),
+  "edit:undo": () => workflowEdits.undo(),
+  "edit:redo": () => workflowEdits.redo(),
   "project:save": () => void saveWithToast().then((ok) => ok && toast.success("Saved")),
   "run:start": () => void startRun(),
   "run:cancel": () => void window.opsis.cancelRun(),
-  "edit:group": () => useWorkflowStore.getState().groupNodes(useUiStore.getState().selectedIds),
+  "edit:group": () => workflowEdits.groupNodes(useUiStore.getState().selectedIds),
   "edit:select-all": () => {
     if (isEditingElement(document.activeElement)) {
       void window.opsis.windowRole("selectAll");

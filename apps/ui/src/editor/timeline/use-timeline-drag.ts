@@ -20,10 +20,7 @@ import { RULER_H, SNAP_PX, clientXToFrame, contentPoint } from "./timeline-layou
 import { useTimeline } from "./timeline-state";
 import type { TimelineZoom } from "./use-timeline-zoom";
 
-type DragOptions = Pick<
-  GestureEnv,
-  "workflow" | "flat" | "layout" | "sourceNodeId" | "masterSrc"
-> & {
+type DragOptions = Pick<GestureEnv, "flat" | "layout" | "sourceNodeId" | "masterSrc"> & {
   scroller: React.RefObject<HTMLDivElement | null>;
   markers: Marker[];
   beats: number[];
@@ -72,7 +69,7 @@ function useDragSession(scroller: DragOptions["scroller"], zoom: TimelineZoom, o
 }
 
 export function useTimelineDrag(opts: DragOptions) {
-  const { workflow, flat, sourceNodeId, masterSrc, layout, zoom } = opts;
+  const { flat, sourceNodeId, masterSrc, layout, zoom } = opts;
   const ppf = zoom.ppf;
   const { snapOn, snapTargets, snapAt } = useTimelineSnap(opts, ppf);
   const [guide, setGuide] = useState<number | null>(null);
@@ -83,7 +80,6 @@ export function useTimelineDrag(opts: DragOptions) {
   const point = (clientX: number, clientY: number) => contentPoint(scrollerEl(), clientX, clientY);
   const xToFrame = (clientX: number) => clientXToFrame(scrollerEl(), clientX, ppf);
   const env: GestureEnv = {
-    workflow,
     flat,
     layout,
     ppf,
@@ -106,7 +102,7 @@ export function useTimelineDrag(opts: DragOptions) {
     begin(e, editGesture(env, e, target, ripple, setGuide));
 
   const startVolume = (e: React.PointerEvent, bar: AudioBar, height: number) =>
-    begin(e, volumeGesture(env, e, bar, height));
+    begin(e, volumeGesture(e, bar, height));
 
   const startKey = (e: React.PointerEvent, key: KeyStart) => {
     e.stopPropagation();

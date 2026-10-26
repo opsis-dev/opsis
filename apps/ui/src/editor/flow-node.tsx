@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { getNodeDef, nodeName } from "@/store/catalog";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
-import { useWorkflowStore } from "../store/workflow";
+import { workflowEdits } from "../store/workflow";
 import { CardRows, useCardRows } from "./card-rows";
 import { NodeBadge } from "./category-badge";
 import type { CanvasNode } from "./convert";
@@ -194,7 +194,7 @@ export const GroupFlowNode = memo(function GroupFlowNode({
   selected,
 }: NodeProps<CanvasNode>) {
   const { title, color } = groupLook(data.node);
-  const setMeta = useWorkflowStore((s) => s.setNodeMeta);
+  const setMeta = workflowEdits.setNodeMeta;
   return (
     <>
       <NodeResizer
@@ -202,7 +202,10 @@ export const GroupFlowNode = memo(function GroupFlowNode({
         minWidth={GROUP_MIN_WIDTH}
         minHeight={GROUP_MIN_HEIGHT}
         onResizeEnd={(_e, p) =>
-          setMeta(id, { size: { width: p.width, height: p.height }, position: { x: p.x, y: p.y } })
+          setMeta(id, {
+            size: { width: Math.round(p.width), height: Math.round(p.height) },
+            position: { x: p.x, y: p.y },
+          })
         }
       />
       <div

@@ -16,6 +16,7 @@ log = "0.4.34"
 opsis-api = { version = "0.1.0", path = "../api" }
 opsis-capture = { version = "0.1.0", path = "../capture" }
 opsis-compile = { version = "0.1.0", path = "../compile" }
+opsis-document = { version = "0.1.0", path = "../document" }
 opsis-engine = { version = "0.1.0", path = "../engine" }
 opsis-fonts = { version = "0.1.0", path = "../fonts" }
 opsis-image = { version = "0.1.0", path = "../image" }

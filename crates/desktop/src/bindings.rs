@@ -3,8 +3,8 @@ use opsis_types::ts_export::tidy_export;
 use tauri_specta::{Builder, collect_commands, collect_events};
 
 use crate::{
-    analysis, api, compile, engine, events, exit, file_server, fonts, page_log, projects, relay,
-    run, settings, views, windows,
+    analysis, api, compile, document, engine, events, exit, file_server, fonts, page_log, projects,
+    relay, run, settings, views, windows,
 };
 
 pub const BINDINGS_FILE: &str = "apps/ui/src/generated/bindings.ts";
@@ -17,10 +17,18 @@ pub fn builder() -> Builder<tauri::Wry> {
             projects::choose_folder,
             projects::pick_project_dir,
             projects::open_project,
+            document::document_state,
+            document::edit_workflow,
+            document::undo,
+            document::redo,
+            document::begin_gesture,
+            document::end_gesture,
+            document::edit_timeline,
+            document::timeline_removal,
+            document::save_project,
+            document::resolve_disk_change,
             projects::project_folder,
             projects::create_project,
-            projects::save_workflow,
-            projects::watch_project,
             projects::watch_project_files,
             projects::read_last_run,
             projects::import_assets,
@@ -49,11 +57,11 @@ pub fn builder() -> Builder<tauri::Wry> {
             windows::get_window_state,
             windows::set_title,
             windows::window_role,
-            exit::report_unsaved,
+            exit::report_drafts,
             exit::close_shown,
             exit::decide_close,
             exit::save_flushed,
-            compile::compile,
+            compile::set_compile_focus,
             compile::latest_compile,
             compile::editor_catalog,
             file_server::file_root,
@@ -94,11 +102,12 @@ pub fn builder() -> Builder<tauri::Wry> {
             page_log::page_log,
             relay::send_menu_to_editor,
             api::api_status,
-            api::api_listening,
-            api::api_reply,
         ])
         .events(collect_events![
-            events::ProjectFileChanged,
+            events::DocumentChanged,
+            events::DiskChangeAsked,
+            events::ProjectReloaded,
+            events::OpenRequested,
             events::ProjectFilesChanged,
             events::RunEventFired,
             events::EngineInstallProgress,
@@ -115,11 +124,10 @@ pub fn builder() -> Builder<tauri::Wry> {
             events::LiveNoted,
             events::Compiled,
             events::Relayed,
-            events::ApiRequestReceived,
             views::ViewEventFired,
             views::PreviewReported,
         ])
-        .types(&ui_types().register::<opsis_api::bodies::EditorRequest>())
+        .types(&ui_types())
         .dangerously_cast_bigints_to_number()
 }
 

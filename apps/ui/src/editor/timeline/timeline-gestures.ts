@@ -1,18 +1,15 @@
 import { clamp, round3 } from "@opsis/video/common/math";
 import { clampFrame, framesToMs, wholeFrames } from "@opsis/video/common/time";
-import { randomId } from "@/core/ids";
-import type { Marker, Workflow, AudioBar, CameraKeyMark, FlatTimeline } from "@/generated/bindings";
+import type { AudioBar, CameraKeyMark, FlatTimeline, Marker } from "@/generated/bindings";
 import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/lib/dom";
-import { moveCameraKeyMark, setAudioVolume } from "@/timeline/edits";
 import { snapFrame, type SnapTarget } from "@/timeline/snap";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";
-import { useWorkflowStore } from "../../store/workflow";
+import { workflowEdits } from "../../store/workflow";
 import { ENVELOPE_INFO, envelopeShift, setEnvelopeKeys } from "./envelope";
 import { scrubAt } from "./scrub";
-import { applyEdit, patchMarker, reportEdit, selectNodes } from "./timeline-actions";
+import { editTimeline, patchMarker, reportEdit, selectNodes } from "./timeline-actions";
 import {
-  editContext,
   editOutcome,
   isClick,
   marqueeIds,
@@ -31,7 +28,6 @@ import { useTimeline } from "./timeline-state";
 export type ActiveDrag = { move: (e: React.PointerEvent) => void; finish?: () => void };
 
 export type GestureEnv = {
-  workflow: Workflow;
   flat: FlatTimeline;
   layout: LaneLayout;
   ppf: number;
@@ -44,10 +40,9 @@ export type GestureEnv = {
 };
 
 const startEditOnceMoved = (d: ThresholdDrag, distance: number): boolean =>
-  startOnceMoved(d, distance, () => useWorkflowStore.getState().beginGesture());
+  startOnceMoved(d, distance, () => workflowEdits.beginGesture());
 
-const endEdit = (d: ThresholdDrag): boolean =>
-  endIfStarted(d, () => useWorkflowStore.getState().endGesture());
+const endEdit = (d: ThresholdDrag): boolean => endIfStarted(d, () => workflowEdits.endGesture());
 
 export function editGesture(
   env: GestureEnv,
@@ -59,10 +54,7 @@ export function editGesture(
   const d: EditDrag = {
     ...target,
     x0: e.clientX,
-    base: env.workflow,
-    flat: env.flat,
     targets: env.snapTargets(target.bar.key),
-    salt: randomId(),
     started: false,
     last: null,
     ripple,
@@ -70,43 +62,27 @@ export function editGesture(
   return {
     move: (ev) => {
       if (!startEditOnceMoved(d, Math.abs(ev.clientX - d.x0))) return;
-      const ctx = editContext(d.base, env.flat.fps, env.sourceNodeId, d.salt);
       const snap = {
         raw: (ev.clientX - d.x0) / env.ppf,
         threshold: env.snapOn(ev.altKey) ? SNAP_PX / env.ppf : 0,
       };
-      const { result, snappedAt } = editOutcome(ctx, d, snap, ev.shiftKey);
+      const { edit, snappedAt } = editOutcome(d, snap, ev.shiftKey);
       showGuide(snappedAt);
-      d.last = result;
-      applyEdit(result);
+      d.last = editTimeline(edit);
     },
     finish: () => {
-      if (endEdit(d) && d.last) reportEdit(d.last);
+      if (endEdit(d) && d.last) void d.last.then(reportEdit);
     },
   };
 }
 
-export function volumeGesture(
-  env: GestureEnv,
-  e: React.PointerEvent,
-  bar: AudioBar,
-  height: number,
-): ActiveDrag {
-  const d: VolumeDrag = {
-    bar,
-    y0: e.clientY,
-    v0: bar.volume,
-    base: env.workflow,
-    salt: randomId(),
-    started: false,
-    height,
-  };
+export function volumeGesture(e: React.PointerEvent, bar: AudioBar, height: number): ActiveDrag {
+  const d: VolumeDrag = { bar, y0: e.clientY, v0: bar.volume, started: false, height };
   return {
     move: (ev) => {
       if (!startEditOnceMoved(d, Math.abs(ev.clientY - d.y0))) return;
-      const v = d.v0 - envelopeShift("volume", ev.clientY - d.y0, d.height);
-      const ctx = editContext(d.base, env.flat.fps, env.sourceNodeId, d.salt);
-      applyEdit(setAudioVolume(ctx, d.bar, v));
+      const volume = d.v0 - envelopeShift("volume", ev.clientY - d.y0, d.height);
+      void editTimeline({ op: "volume", bar: d.bar.key, volume });
     },
     finish: () => endEdit(d),
   };
@@ -139,12 +115,12 @@ export function cameraKeyGesture(
   e: React.PointerEvent,
   mark: CameraKeyMark,
 ): ActiveDrag {
-  const d = { x0: e.clientX, base: env.workflow, salt: randomId(), started: false };
+  const d = { x0: e.clientX, started: false };
   return {
     move: (ev) => {
       if (!startEditOnceMoved(d, Math.abs(ev.clientX - d.x0))) return;
-      const ctx = editContext(d.base, env.flat.fps, env.sourceNodeId, d.salt);
-      applyEdit(moveCameraKeyMark(ctx, mark, Math.round((ev.clientX - d.x0) / env.ppf)));
+      const delta = Math.round((ev.clientX - d.x0) / env.ppf);
+      void editTimeline({ op: "cameraKey", key: mark.key, delta });
     },
     finish: () => {
       if (!endEdit(d)) selectNodes([mark.nodeId], false, env.sourceNodeId);

@@ -8,7 +8,7 @@ import { isEditingElement } from "@/lib/dom";
 import { platform } from "@/lib/platform";
 import { attempt, loadOrReport } from "@/lib/toast";
 import { useUiStore } from "../store/ui";
-import { useWorkflowStore } from "../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../store/workflow";
 
 const CLIPBOARD_TAG = "opsis/v1";
 const PASTE_OFFSET = { x: 60, y: 60 };
@@ -52,8 +52,9 @@ function selectedSubgraph(): Subgraph | null {
 }
 
 function pasteSubgraph({ nodes, edges }: Subgraph): void {
-  const ids = useWorkflowStore.getState().paste(nodes, edges, PASTE_OFFSET);
-  useUiStore.getState().setSelected(ids);
+  void workflowEdits
+    .paste(nodes, edges, PASTE_OFFSET)
+    .then((ids) => useUiStore.getState().setSelected(ids));
 }
 
 function readClipboard(text: string): Subgraph | "foreign" | "unreadable" {

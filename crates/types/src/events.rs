@@ -121,6 +121,30 @@ pub struct RunProgress {
     pub results: indexmap::IndexMap<String, NodeResult>,
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Type, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RunTargets {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_node_ids: Option<Vec<String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from_node_id: Option<String>,
+}
+
+impl RunRequest {
+    pub fn new(
+        project_dir: String,
+        workflow: crate::workflow::Workflow,
+        targets: RunTargets,
+    ) -> Self {
+        Self {
+            project_dir,
+            workflow,
+            target_node_ids: targets.target_node_ids,
+            from_node_id: targets.from_node_id,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct RunRequest {

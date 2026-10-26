@@ -4676,6 +4676,7 @@ dependencies = [
  "jiff",
  "jsonschema",
  "language-tags",
+ "nanoid",
  "num-format",
  "opsis-golden",
  "opsis-types",
@@ -4708,6 +4709,7 @@ dependencies = [
  "opsis-api",
  "opsis-capture",
  "opsis-compile",
+ "opsis-document",
  "opsis-engine",
  "opsis-fonts",
  "opsis-image",
@@ -4736,6 +4738,15 @@ dependencies = [
  "tokio-util",
  "tower",
  "uuid",
+]
+
+[[package]]
+name = "opsis-document"
+version = "0.1.0"
+dependencies = [
+ "opsis-compile",
+ "opsis-types",
+ "serde_json",
 ]
 
 [[package]]
@@ -4880,7 +4891,6 @@ dependencies = [
  "gltf",
  "indexmap 2.14.2",
  "log",
- "nanoid",
  "notify-debouncer-mini",
  "opsis-compile",
  "opsis-engine",

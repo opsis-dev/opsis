@@ -7,7 +7,6 @@ import { useEnvironment } from "../store/environment";
 import { useMedia } from "../store/media";
 import { useProjectFiles } from "../store/project-files";
 import { useWorkflowStore } from "../store/workflow";
-import { useApiBridge } from "./api-bridge";
 import { Canvas } from "./canvas";
 import { DiskChangeDialog } from "./disk-change";
 import { BottomDock } from "./dock";
@@ -20,12 +19,10 @@ import { ReplayDialog } from "./replay-dialog";
 import { SidePanel } from "./side-panel";
 import { TimelineClock } from "./timeline/timeline-clock";
 import { TopBar } from "./top-bar";
-import { useAutosave } from "./use-autosave";
 import { CompiledContext, useCompiled } from "./use-compiled";
 import { useFileChanges } from "./use-file-changes";
-import { useForgetStaleErrors } from "./use-forget-stale-errors";
+import { useHandOverDrafts } from "./use-hand-over-drafts";
 import { useMenuCommands } from "./use-menu-commands";
-import { useProjectFileWatch } from "./use-project-file-watch";
 import { useWatchLoadedFiles } from "./use-watch-loaded-files";
 
 function InspectorPanel() {
@@ -35,12 +32,9 @@ function InspectorPanel() {
 
 function useEditorSetup(projectDir: string): void {
   const name = useWorkflowStore((s) => s.workflow?.name);
-  useAutosave();
-  useForgetStaleErrors();
+  useHandOverDrafts();
   useMenuCommands();
-  useProjectFileWatch(projectDir);
   useFileChanges();
-  useApiBridge();
   useEffect(() => {
     if (name) window.opsis.setTitle(`${name} — Opsis`);
   }, [name]);

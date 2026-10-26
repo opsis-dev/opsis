@@ -24,7 +24,7 @@ import { categoryLabel, customLabel, getNodeDef, nodeName } from "@/store/catalo
 import { SwapFade } from "../app/motion";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
-import { useWorkflowStore } from "../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { NodeBadge } from "./category-badge";
 import { ProjectInspector } from "./project-inspector";
 import { ReplayButtons } from "./replay-buttons";
@@ -63,7 +63,7 @@ function NodeDetails({
   def: NodeDef;
 }) {
   const ctx = useFormContext(workflow, node.id);
-  const updateParams = useWorkflowStore((s) => s.updateParams);
+  const updateParams = workflowEdits.updateParams;
   return (
     <div className="flex flex-col gap-4 p-4">
       <NodeHeader node={node} def={def} />
@@ -143,7 +143,7 @@ function ProblemAlert({
 }
 
 function NodeMetaFields({ node, def }: { node: WorkflowNode; def: NodeDef }) {
-  const setNodeMeta = useWorkflowStore((s) => s.setNodeMeta);
+  const setNodeMeta = workflowEdits.setNodeMeta;
   return (
     <FieldGroup className="gap-4">
       <Field>
@@ -174,8 +174,8 @@ function NodeMetaFields({ node, def }: { node: WorkflowNode; def: NodeDef }) {
 
 function NodeActions({ node, def }: { node: WorkflowNode; def: NodeDef }) {
   const running = useRunStore((s) => s.running);
-  const removeNodes = useWorkflowStore((s) => s.removeNodes);
-  const ungroup = useWorkflowStore((s) => s.ungroup);
+  const removeNodes = workflowEdits.removeNodes;
+  const ungroup = workflowEdits.ungroup;
   const setSelected = useUiStore((s) => s.setSelected);
   return (
     <div className="flex flex-wrap gap-2">

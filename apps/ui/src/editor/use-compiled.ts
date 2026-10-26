@@ -38,18 +38,14 @@ export function useCompiled({ drive }: { drive: boolean }): Compiled {
   const [compiled, take] = useLatest();
   useEffect(() => window.opsis.onCompiled(take), [take]);
   useEffect(() => {
-    if (drive) return;
-    void window.opsis.latestCompile().then((latest) => {
+    void attempt(async () => {
+      const latest = await window.opsis.latestCompile();
       if (latest) take(latest);
-    });
-  }, [drive, take]);
+    }, "Couldn't work out the film");
+  }, [take]);
   useEffect(() => {
-    if (!drive || !workflow) return;
-    void attempt(
-      async () => take(await window.opsis.compile(workflow, selectedId, inspectedId)),
-      "Couldn't work out the film",
-    );
-  }, [drive, workflow, selectedId, inspectedId, take]);
+    if (drive) window.opsis.setCompileFocus(selectedId, inspectedId);
+  }, [drive, selectedId, inspectedId]);
   return workflow ? compiled : EMPTY;
 }
 

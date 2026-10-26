@@ -1,30 +1,14 @@
-import { atLeastOneFrame } from "@opsis/video/common/time";
 import type { EnvelopeKey } from "@/core/timeline";
 import type {
-  Keyframe,
-  Marker,
-  Workflow,
   AudioBar,
   FlatTimeline,
+  Keyframe,
+  Marker,
+  TimelineEdit,
+  TimelineReply,
   VideoBar,
 } from "@/generated/bindings";
 import { DRAG_START_PX } from "@/lib/dom";
-import {
-  HALF_FRAME,
-  applyRipple,
-  containerOf,
-  moveAudio,
-  moveBar,
-  moveHandleKey,
-  rippleTargets,
-  rollCut,
-  slipBar,
-  speedBar,
-  trimAudio,
-  trimBar,
-  type EditContext,
-  type EditResult,
-} from "@/timeline/edits";
 import { snapFrame, snapSpan, type SnapTarget } from "@/timeline/snap";
 import {
   AUDIO_H,
@@ -38,12 +22,9 @@ import {
 
 type EditDragBase = {
   x0: number;
-  base: Workflow;
-  flat: FlatTimeline;
   targets: SnapTarget[];
-  salt: string;
   started: boolean;
-  last: EditResult | null;
+  last: Promise<TimelineReply> | null;
   ripple: boolean;
 };
 
@@ -64,14 +45,10 @@ export type EditTarget =
 
 export type EditDrag = EditDragBase & EditTarget;
 
-const CUT_TOLERANCE_FRAMES = 1;
-
 export type VolumeDrag = {
   bar: AudioBar;
   y0: number;
   v0: number;
-  base: Workflow;
-  salt: string;
   started: boolean;
   height: number;
 };
@@ -93,24 +70,9 @@ export type KeyStart = Omit<KeyDrag, "x0" | "y0" | "started">;
 
 export type MarkerDrag = { id: string; x0: number; from: number; started: boolean };
 
-export function editContext(
-  base: Workflow,
-  fps: number,
-  sourceNodeId: string | null,
-  salt: string,
-): EditContext {
-  let n = 0;
-  return {
-    workflow: base,
-    fps,
-    sourceNodeId,
-    makeId: (prefix) => `${prefix}_${salt}${(n++).toString(36)}`,
-  };
-}
-
 type SnapInput = { raw: number; threshold: number };
 
-type EditOutcome = { result: EditResult; snappedAt: number | null };
+type EditOutcome = { edit: TimelineEdit; snappedAt: number | null };
 
 type Snapped = { delta: number; snappedAt: number | null };
 
@@ -131,124 +93,55 @@ function snapEdge(d: EditDrag, edge: number, { raw, threshold }: SnapInput): Sna
   return settled(s.frame - edge, s.target);
 }
 
-function rippleAfter(
-  ctx: EditContext,
-  d: EditDrag,
-  result: EditResult,
-  after: number,
-  exclude: { container?: string; refs: Set<string> },
-  delta: number,
-): EditResult {
-  if (!result.ok) return result;
-  const targets = rippleTargets(ctx, d.flat.bars, d.flat.audio, after, exclude);
-  return { ...result, workflow: applyRipple(result.workflow, targets, delta, ctx.fps) };
-}
-
-function rippleMove(ctx: EditContext, d: EditDrag, result: EditResult, delta: number) {
-  const key = moveHandleKey(d.bar);
-  return rippleAfter(
-    ctx,
-    d,
-    result,
-    d.bar.from + HALF_FRAME,
-    {
-      container: d.kind === "move" ? containerOf(d.bar) : undefined,
-      refs: new Set(key ? [key] : []),
-    },
-    delta,
-  );
-}
-
-function neighbour(
-  flat: FlatTimeline,
-  bar: VideoBar,
-  side: "left" | "right",
-): VideoBar | undefined {
-  const container = containerOf(bar);
-  return flat.bars.find(
-    (b) =>
-      b.key !== bar.key &&
-      containerOf(b) === container &&
-      Math.abs(side === "right" ? b.from - bar.to : b.to - bar.from) < CUT_TOLERANCE_FRAMES,
-  );
-}
-
-function moved(
-  ctx: EditContext,
-  d: EditDrag,
-  snap: SnapInput,
-  ripple: boolean,
-  move: (delta: number) => EditResult,
-): EditOutcome {
-  const { delta, snappedAt } = snapMove(d, snap);
-  const result = move(delta);
-  return { result: ripple ? rippleMove(ctx, d, result, delta) : result, snappedAt };
-}
+const EDGE_EDITS = {
+  "trim-start": "trimStart",
+  "roll-start": "rollStart",
+  "roll-end": "rollEnd",
+  speed: "speed",
+} as const;
 
 function videoOutcome(
-  ctx: EditContext,
   d: Extract<EditDrag, { domain: "video" }>,
   snap: SnapInput,
   shift: boolean,
 ): EditOutcome {
-  const edge = (at: number, edit: (delta: number) => EditResult): EditOutcome => {
-    const { delta, snappedAt } = snapEdge(d, at, snap);
-    return { result: edit(delta), snappedAt };
-  };
+  const bar = d.bar.key;
   switch (d.kind) {
-    case "move":
-      return moved(ctx, d, snap, d.ripple || shift, (delta) => moveBar(ctx, d.bar, delta));
+    case "move": {
+      const { delta, snappedAt } = snapMove(d, snap);
+      return { edit: { op: "move", bar, delta, ripple: d.ripple || shift }, snappedAt };
+    }
     case "slip":
-      return { result: slipBar(ctx, d.bar, Math.round(-snap.raw)), snappedAt: null };
-    case "trim-start":
-      return edge(d.bar.from, (delta) => trimBar(ctx, d.bar, "start", delta));
-    case "trim-end":
-      return edge(d.bar.to, (delta) => {
-        const trimmed = trimBar(ctx, d.bar, "end", delta);
-        if (!d.ripple) return trimmed;
-        const scope = { container: containerOf(d.bar), refs: new Set<string>() };
-        return rippleAfter(ctx, d, trimmed, d.bar.to - HALF_FRAME, scope, delta);
-      });
-    case "roll-start":
-      return edge(d.bar.from, (delta) => {
-        const left = neighbour(d.flat, d.bar, "left");
-        return left ? rollCut(ctx, left, d.bar, delta) : trimBar(ctx, d.bar, "start", delta);
-      });
-    case "roll-end":
-      return edge(d.bar.to, (delta) => {
-        const right = neighbour(d.flat, d.bar, "right");
-        return right ? rollCut(ctx, d.bar, right, delta) : trimBar(ctx, d.bar, "end", delta);
-      });
-    case "speed":
-      return edge(d.bar.to, (delta) =>
-        speedBar(ctx, d.bar, atLeastOneFrame(d.bar.to - d.bar.from + delta)),
-      );
+      return { edit: { op: "slip", bar, delta: Math.round(-snap.raw) }, snappedAt: null };
+    case "trim-end": {
+      const { delta, snappedAt } = snapEdge(d, d.bar.to, snap);
+      return { edit: { op: "trimEnd", bar, delta, ripple: d.ripple }, snappedAt };
+    }
+    default: {
+      const atEnd = d.kind === "roll-end" || d.kind === "speed";
+      const { delta, snappedAt } = snapEdge(d, atEnd ? d.bar.to : d.bar.from, snap);
+      return { edit: { op: EDGE_EDITS[d.kind], bar, delta }, snappedAt };
+    }
   }
 }
 
 function audioOutcome(
-  ctx: EditContext,
   d: Extract<EditDrag, { domain: "audio" }>,
   snap: SnapInput,
   shift: boolean,
 ): EditOutcome {
-  if (d.kind === "audio-move")
-    return moved(ctx, d, snap, d.ripple || shift, (delta) => moveAudio(ctx, d.bar, delta));
-  const side = d.kind === "audio-trim-start" ? "start" : "end";
-  const { delta, snappedAt } = snapEdge(d, side === "start" ? d.bar.from : d.bar.to, snap);
-  return { result: trimAudio(ctx, d.bar, side, delta), snappedAt };
+  const bar = d.bar.key;
+  if (d.kind === "audio-move") {
+    const { delta, snappedAt } = snapMove(d, snap);
+    return { edit: { op: "audioMove", bar, delta, ripple: d.ripple || shift }, snappedAt };
+  }
+  const atStart = d.kind === "audio-trim-start";
+  const { delta, snappedAt } = snapEdge(d, atStart ? d.bar.from : d.bar.to, snap);
+  return { edit: { op: atStart ? "audioTrimStart" : "audioTrimEnd", bar, delta }, snappedAt };
 }
 
-export function editOutcome(
-  ctx: EditContext,
-  d: EditDrag,
-  snap: SnapInput,
-  shift: boolean,
-): EditOutcome {
-  return d.domain === "audio"
-    ? audioOutcome(ctx, d, snap, shift)
-    : videoOutcome(ctx, d, snap, shift);
-}
+export const editOutcome = (d: EditDrag, snap: SnapInput, shift: boolean): EditOutcome =>
+  d.domain === "audio" ? audioOutcome(d, snap, shift) : videoOutcome(d, snap, shift);
 
 type SnapSources = {
   flat: FlatTimeline;

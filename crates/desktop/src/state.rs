@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, AtomicU64};
 use std::sync::{Arc, Mutex, MutexGuard, RwLock};
 
 use indexmap::IndexMap;
+use opsis_compile::edits::timeline::Film;
+use opsis_document::Document;
 use opsis_fonts::library::FontLibrary;
 use opsis_fonts::online::FontsOnline;
 use opsis_project::files::ProjectFiles;
@@ -19,13 +22,32 @@ use crate::engine::EngineChecks;
 use crate::paths::AppPaths;
 use crate::startup::StartupError;
 
+pub struct DiskChange {
+    pub workflow: Option<Workflow>,
+    pub version: String,
+}
+
 #[derive(Default)]
 pub struct Editor {
-    pub dir: Option<PathBuf>,
-    pub workflow: Option<Workflow>,
+    pub document: Option<Document>,
+    pub disk_change: Option<DiskChange>,
     pub results: IndexMap<String, NodeResult>,
     pub selected: Option<String>,
     pub inspected: Option<String>,
+    pub film: Option<Film>,
+    pub gesture_film: Option<Film>,
+}
+
+impl Editor {
+    pub fn dir(&self) -> Option<PathBuf> {
+        self.document.as_ref().map(|d| d.dir().to_path_buf())
+    }
+}
+
+#[derive(Default)]
+pub struct CompileQueue {
+    pub waiting: AtomicBool,
+    pub turn: tokio::sync::Mutex<()>,
 }
 
 #[derive(Default)]
@@ -78,6 +100,9 @@ pub struct AppState {
     pub editor: Mutex<Editor>,
     pub watching: Mutex<Watching>,
     pub tasks: Tasks,
+    pub saving: tokio::sync::Mutex<()>,
+    pub autosave: AtomicU64,
+    pub compiles: CompileQueue,
 }
 
 impl AppState {
@@ -104,6 +129,9 @@ impl AppState {
             editor: Mutex::default(),
             watching: Mutex::default(),
             tasks: Tasks::default(),
+            saving: tokio::sync::Mutex::new(()),
+            autosave: AtomicU64::new(0),
+            compiles: CompileQueue::default(),
             paths,
         })
     }

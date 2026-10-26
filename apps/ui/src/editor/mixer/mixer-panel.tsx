@@ -3,14 +3,12 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { randomId } from "@/core/ids";
 import { soloActive } from "@/core/mix";
-import { addBus } from "@/mix/edits";
 import { EmptyPanel } from "../../app/empty-panel";
 import { mixFailure, useMedia } from "../../store/media";
 import { toggleIds } from "../../store/ui";
 import { readPref, writePref } from "../../store/view-prefs";
-import { useWorkflowStore } from "../../store/workflow";
+import { workflowEdits } from "../../store/workflow";
 import { useFilm, type Film } from "../film";
 import { BusStrip } from "./bus-strip";
 import { ChannelStrip } from "./channel-strip";
@@ -49,13 +47,12 @@ function MixStatus({ film }: { film: Film }) {
 }
 
 function MixerToolbar({ film }: { film: Film }) {
-  const setMix = useWorkflowStore((s) => s.setMix);
   return (
     <div className="flex h-8 shrink-0 items-center gap-2 border-b px-2 text-xs">
       <MixStatus film={film} />
       {soloActive(film.mix) ? <Badge variant="outline">Solo on</Badge> : null}
       <div className="flex-1" />
-      <Button variant="ghost" size="sm" onClick={() => setMix((m) => addBus(m, randomId("bus")))}>
+      <Button variant="ghost" size="sm" onClick={() => workflowEdits.mix({ op: "addBus" })}>
         <Plus data-icon="inline-start" />
         Add bus
       </Button>

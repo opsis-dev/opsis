@@ -252,7 +252,7 @@ async fn save_bounds_now(window: &Window) {
         return;
     };
     if window.label() == MAIN_WINDOW {
-        let dir = state.editor().dir.clone();
+        let dir = state.editor().dir();
         if let Some(dir) = dir {
             let value = json!({ "x": bounds.x, "y": bounds.y, "width": bounds.width, "height": bounds.height, "maximized": maximized });
             if let Err(error) = state
@@ -306,7 +306,6 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
             tauri::async_runtime::spawn(async move { save_bounds_now(&destroyed).await });
             let app = window.app_handle();
             if window.label() == MAIN_WINDOW {
-                app.state::<crate::api::Api>().editor_closed();
                 for (label, other) in app.webview_windows() {
                     if label != MAIN_WINDOW
                         && let Err(error) = other.close()

@@ -2,7 +2,7 @@ import ELK from "elkjs/lib/elk.bundled.js";
 import { isGroupNode } from "@/core/nodes";
 import type { Workflow } from "@/generated/bindings";
 import { getNodeDef } from "@/store/catalog";
-import { useWorkflowStore } from "../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { cardSize } from "./card-size";
 
 const elk = new ELK();
@@ -65,5 +65,5 @@ async function autoLayout(wf: Workflow): Promise<Record<string, { x: number; y: 
 export async function tidyLayout(): Promise<void> {
   const wf = useWorkflowStore.getState().workflow;
   if (!wf) return;
-  useWorkflowStore.getState().moveNodes(await autoLayout(wf));
+  workflowEdits.moveNodes(await autoLayout(wf));
 }

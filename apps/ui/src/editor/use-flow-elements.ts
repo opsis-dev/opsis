@@ -9,7 +9,7 @@ import { useCallback, useMemo, useState } from "react";
 import { portOf } from "@/core/graph";
 import type { Workflow } from "@/generated/bindings";
 import { useUiStore } from "../store/ui";
-import { useWorkflowStore } from "../store/workflow";
+import { workflowEdits } from "../store/workflow";
 import { toFlowEdges, toFlowNodes, type CanvasNode } from "./convert";
 import { portTypeColor } from "./ports";
 
@@ -67,7 +67,7 @@ export function useFlowNodes(workflow: Workflow, selected: ReadonlySet<string>) 
   const onNodesChange = useCallback(
     (changes: NodeChange<CanvasNode>[]) => {
       const moved = keyboardMoves(changes, live);
-      if (Object.keys(moved).length) useWorkflowStore.getState().moveNodes(moved);
+      if (Object.keys(moved).length) workflowEdits.moveNodes(moved);
       setLive((prev) => {
         const next = applyNodeChanges(changes, withLive(base, prev));
         return new Map(next.map((n) => [n.id, liveFields(n)]));

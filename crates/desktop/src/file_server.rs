@@ -16,7 +16,7 @@ pub struct FileRoot(String);
 fn root_dir(app: &AppHandle, root: &str) -> Option<PathBuf> {
     let state = app.state::<AppState>();
     match root {
-        "project" => state.editor().dir.clone(),
+        "project" => state.editor().dir(),
         "fonts" => Some(state.paths.fonts_dir()),
         "app" => Some(state.paths.public_dir.clone()),
         _ => None,

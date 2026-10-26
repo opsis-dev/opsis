@@ -31,7 +31,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { fractionIn } from "@/lib/dom";
 import { useCommitDraft } from "@/lib/use-commit-draft";
 import { usePointerDrag } from "@/lib/use-pointer-drag";
-import { useWorkflowStore } from "../../store/workflow";
+import { workflowEdits } from "../../store/workflow";
 
 export const CHECKER: CSSProperties = {
   backgroundImage:
@@ -69,9 +69,8 @@ function useGestureWhileOpen() {
   const toggle = useCallback((next: boolean) => {
     if (next === open.current) return;
     open.current = next;
-    const store = useWorkflowStore.getState();
-    if (next) store.beginGesture();
-    else store.endGesture();
+    if (next) workflowEdits.beginGesture();
+    else workflowEdits.endGesture();
   }, []);
   useEffect(() => () => toggle(false), [toggle]);
   return toggle;

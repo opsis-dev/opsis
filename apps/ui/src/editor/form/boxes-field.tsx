@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { FieldDescription } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 import { SingleSlider } from "../../app/single-slider";
-import { useWorkflowStore } from "../../store/workflow";
+import { workflowEdits } from "../../store/workflow";
 import { FieldShell } from "./field-shell";
 import { SpotFrame } from "./spot-frame";
 import type { FormContext, ParamFieldProps } from "./types";
@@ -58,7 +58,6 @@ function FrameSlider({
   timeMs: number;
   onChange: (timeMs: number) => void;
 }) {
-  const store = useWorkflowStore.getState;
   const durationMs = ctx.spotBackground?.durationMs ?? 0;
   if (durationMs <= 0) return null;
   return (
@@ -70,8 +69,8 @@ function FrameSlider({
         step={FRAME_STEP_MS}
         value={Math.min(timeMs, durationMs)}
         onChange={onChange}
-        onPointerDown={() => store().beginGesture()}
-        onValueCommitted={() => store().endGesture()}
+        onPointerDown={() => workflowEdits.beginGesture()}
+        onValueCommitted={() => workflowEdits.endGesture()}
       />
       <span className="text-muted-foreground w-12 shrink-0 text-right text-xs tabular-nums">
         {formatDuration(Math.min(timeMs, durationMs))}

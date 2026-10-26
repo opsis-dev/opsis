@@ -1,6 +1,7 @@
 pub mod actions;
 pub mod analysis;
 pub mod cards;
+pub mod edits;
 pub mod engine;
 pub mod events;
 pub mod fonts;

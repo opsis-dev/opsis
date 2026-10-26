@@ -2,12 +2,11 @@ import { findById } from "@opsis/video/common/lists";
 import { AudioLines, Clapperboard, Music } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import { audibility, busOf, stripOf, PAN_RANGE, TRIM_RANGE } from "@/core/mix";
-import type { ChannelPlan, MixResult, Bus, Mix, Strip } from "@/generated/bindings";
+import type { Bus, ChannelPlan, Mix, MixResult, Strip, StripPatch } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
-import { updateChannels } from "@/mix/edits";
 import { nodeNameById } from "@/store/catalog";
 import { useUiStore } from "../../store/ui";
-import { useWorkflowStore } from "../../store/workflow";
+import { useWorkflowStore, workflowEdits } from "../../store/workflow";
 import { OptionSelect } from "../option-select";
 import { formatDb, formatPan } from "./audio-format";
 import { bindGain, bindPan, previewTarget } from "./bindings";
@@ -60,7 +59,7 @@ function ChannelKnobs({
   binding,
 }: {
   strip: Strip;
-  update: (fn: (s: Strip) => Strip) => void;
+  update: (patch: StripPatch) => void;
   binding: StripBinding;
 }) {
   const { target } = binding;
@@ -74,7 +73,7 @@ function ChannelKnobs({
         step={0.5}
         format={formatDb}
         unit="dB"
-        gesture={bindGain(target, "trim", strip.trim, (trim) => update((s) => ({ ...s, trim })))}
+        gesture={bindGain(target, "trim", strip.trim, (trim) => update({ trim }))}
       />
       <HighpassKnob {...binding} />
       <Knob
@@ -84,7 +83,7 @@ function ChannelKnobs({
         {...rangeProps(PAN_RANGE)}
         step={0.01}
         format={formatPan}
-        gesture={bindPan(target, strip.pan, (pan) => update((s) => ({ ...s, pan })))}
+        gesture={bindPan(target, strip.pan, (pan) => update({ pan }))}
       />
     </div>
   );
@@ -103,7 +102,6 @@ export function ChannelStrip({
   result: MixResult | null;
   sourceNodeId: string | null;
 }) {
-  const setMix = useWorkflowStore((s) => s.setMix);
   const strip = stripOf(mix, channel.id);
   const levels = result?.levels.channels[channel.id];
   const reduction = result?.reduction.channels[channel.id];
@@ -115,7 +113,8 @@ export function ChannelStrip({
     ),
   );
   const targets = group.length > 1 ? group : [channel.id];
-  const update = (fn: (s: Strip) => Strip) => setMix((m) => updateChannels(m, [channel.id], fn));
+  const update = (patch: StripPatch) =>
+    workflowEdits.mix({ op: "channels", ids: [channel.id], patch });
   const target = previewTarget(`ch:${channel.id}`, result, levels);
   const binding = stripBinding(strip, target, update);
   const name = useChannelName(channel.id);
@@ -140,12 +139,13 @@ export function ChannelStrip({
         <BusSelect
           bus={busOf(mix, channel.id, channel.kind)}
           buses={mix.buses}
-          onChange={(bus) => update((s) => ({ ...s, bus }))}
+          onChange={(bus) => update({ bus })}
         />
         <StripMenu
           strip={strip}
           count={targets.length}
-          onApply={(fn) => setMix((m) => updateChannels(m, targets, fn))}
+          onApply={(patch) => workflowEdits.mix({ op: "channels", ids: targets, patch })}
+          onReset={() => workflowEdits.mix({ op: "resetChannels", ids: targets })}
         />
       </div>
       <ChannelKnobs strip={strip} update={update} binding={binding} />

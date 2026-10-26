@@ -1,10 +1,11 @@
-use std::path::Path;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use indexmap::IndexMap;
 use opsis_compile::cards::{CardSources, workflow_cards};
 use opsis_compile::catalog::{EditorCatalog, editor_bundle};
 use opsis_compile::compile::{CompileResult, PreviewTarget, compile_workflow, preview_spec};
+use opsis_compile::edits::timeline::Film;
 use opsis_compile::graph::{GraphIssue, validate_workflow};
 use opsis_compile::inspector::{InspectorContext, inspector_context};
 use opsis_compile::mix::levels::apply_mix_levels;
@@ -14,6 +15,7 @@ use opsis_compile::timeline::flatten::{BarClock, FlatTimeline, flatten_spec};
 use opsis_store::secrets::list_secrets;
 use opsis_types::cards::CardRow;
 use opsis_types::timeline::TimelineSpec;
+use opsis_types::values::NodeResult;
 use opsis_types::workflow::Workflow;
 use serde::Serialize;
 use specta::Type;
@@ -22,7 +24,7 @@ use tauri_specta::Event;
 
 use crate::error::CommandResult;
 use crate::events::Compiled;
-use crate::state::{AppState, Editor};
+use crate::state::AppState;
 
 #[derive(Debug, Clone, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -41,39 +43,54 @@ pub struct EditorCompile {
 
 static COMPILES: AtomicU64 = AtomicU64::new(0);
 
-fn editor_compile(editor: &Editor, workflow: &Workflow) -> EditorCompile {
+struct CompileInput {
+    dir: PathBuf,
+    workflow: Workflow,
+    results: IndexMap<String, NodeResult>,
+    selected: Option<String>,
+    inspected: Option<String>,
+}
+
+fn compile_input(state: &AppState) -> Option<CompileInput> {
+    let editor = state.editor();
+    let doc = editor.document.as_ref()?;
+    Some(CompileInput {
+        dir: doc.dir().to_path_buf(),
+        workflow: doc.workflow().clone(),
+        results: editor.results.clone(),
+        selected: editor.selected.clone(),
+        inspected: editor.inspected.clone(),
+    })
+}
+
+fn editor_compile(input: &CompileInput) -> EditorCompile {
+    let workflow = &input.workflow;
     let seq = COMPILES.fetch_add(1, Ordering::Relaxed) + 1;
-    let result = compile_workflow(workflow, Some(&editor.results));
+    let result = compile_workflow(workflow, Some(&input.results));
     let issues = validate_workflow(workflow, Some(&result));
-    let preview = preview_spec(&workflow.settings, &result, editor.selected.as_deref());
+    let preview = preview_spec(&workflow.settings, &result, input.selected.as_deref());
     let flat = preview.as_ref().map(|p| flatten_spec(&p.spec));
     let film = preview.as_ref().zip(flat.as_ref());
     let plan = film.map(|(p, f)| build_mix_plan(&p.spec, workflow.mix.as_ref(), f));
     let levelled = film.map(|(p, f)| apply_mix_levels(&p.spec, workflow.mix.as_ref(), f));
-    let secrets = editor.dir.as_deref().map(|d| {
-        list_secrets(d).unwrap_or_else(|error| {
-            log::warn!("couldn't list the saved sign-ins: {error}");
-            Vec::new()
-        })
+    let secrets = list_secrets(&input.dir).unwrap_or_else(|error| {
+        log::warn!("couldn't list the saved sign-ins: {error}");
+        Vec::new()
     });
-    let dir = editor.dir.clone();
-    let gone = move |file: &str| {
-        dir.as_deref()
-            .is_some_and(|d: &Path| !d.join(file).exists())
-    };
+    let gone = |file: &str| !input.dir.join(file).exists();
     let cards = workflow_cards(
         workflow,
         &CardSources {
             compiled: &result,
-            results: Some(&editor.results),
-            secrets: secrets.as_deref(),
+            results: Some(&input.results),
+            secrets: Some(&secrets),
             gone: &gone,
         },
     );
-    let inspector = editor
+    let inspector = input
         .inspected
         .as_deref()
-        .and_then(|id| inspector_context(workflow, &result, &editor.results, id));
+        .and_then(|id| inspector_context(workflow, &result, &input.results, id));
     let clocks = flat
         .iter()
         .flat_map(|f| f.bars.iter())
@@ -93,18 +110,15 @@ fn editor_compile(editor: &Editor, workflow: &Workflow) -> EditorCompile {
     }
 }
 
-fn current_compile(app: &AppHandle) -> Option<EditorCompile> {
-    let state = app.state::<AppState>();
-    let editor = state.editor();
-    let workflow = editor.workflow.as_ref()?;
-    Some(editor_compile(&editor, workflow))
+fn film_of(compiled: &EditorCompile) -> Option<Film> {
+    Some(Film {
+        flat: compiled.flat.clone()?,
+        source: compiled.preview.as_ref().map(|p| p.source_node_id.clone()),
+    })
 }
 
-pub fn recompile(app: &AppHandle) {
-    let Some(compiled) = current_compile(app) else {
-        return;
-    };
-    if let Err(error) = serde_json::to_value(&compiled)
+fn emit(app: &AppHandle, compiled: &EditorCompile) {
+    if let Err(error) = serde_json::to_value(compiled)
         .map_err(tauri::Error::from)
         .and_then(|v| Compiled(v).emit(app))
     {
@@ -112,47 +126,64 @@ pub fn recompile(app: &AppHandle) {
     }
 }
 
-#[tauri::command]
-#[specta::specta]
-pub async fn compile(
-    app: AppHandle,
-    state: State<'_, AppState>,
-    workflow: Workflow,
-    selected: Option<String>,
-    inspected: Option<String>,
-) -> CommandResult<EditorCompile> {
-    let compiled = {
-        let mut editor = state.editor();
-        editor.selected = selected;
-        editor.inspected = inspected;
-        let compiled = editor_compile(&editor, &workflow);
-        editor.workflow = Some(workflow);
-        compiled
-    };
-    if let Err(error) = serde_json::to_value(&compiled)
-        .map_err(tauri::Error::from)
-        .and_then(|v| Compiled(v).emit(&app))
-    {
-        log::warn!("sending the compile result: {error}");
+pub fn request(app: &AppHandle) {
+    let state = app.state::<AppState>();
+    if state.compiles.waiting.swap(true, Ordering::AcqRel) {
+        return;
     }
-    Ok(compiled)
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let state = app.state::<AppState>();
+        let _turn = state.compiles.turn.lock().await;
+        state.compiles.waiting.store(false, Ordering::Release);
+        let Some(input) = compile_input(&state) else {
+            return;
+        };
+        let emitter = app.clone();
+        let compiled = tauri::async_runtime::spawn_blocking(move || {
+            let compiled = editor_compile(&input);
+            emitter.state::<AppState>().editor().film = film_of(&compiled);
+            emit(&emitter, &compiled);
+        })
+        .await;
+        if let Err(error) = compiled {
+            log::warn!("working out the film: {error}");
+        }
+    });
 }
 
 #[tauri::command]
 #[specta::specta]
-pub fn latest_compile(app: AppHandle) -> Option<EditorCompile> {
-    current_compile(&app)
+pub fn set_compile_focus(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    selected: Option<String>,
+    inspected: Option<String>,
+) {
+    {
+        let mut editor = state.editor();
+        if editor.selected == selected && editor.inspected == inspected {
+            return;
+        }
+        editor.selected = selected;
+        editor.inspected = inspected;
+    }
+    request(&app);
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn latest_compile(state: State<'_, AppState>) -> CommandResult<Option<EditorCompile>> {
+    let Some(input) = compile_input(&state) else {
+        return Ok(None);
+    };
+    Ok(Some(
+        tauri::async_runtime::spawn_blocking(move || editor_compile(&input)).await?,
+    ))
 }
 
 #[tauri::command]
 #[specta::specta]
 pub fn editor_catalog() -> EditorCatalog {
-    let platform = if cfg!(target_os = "macos") {
-        Platform::Mac
-    } else if cfg!(windows) {
-        Platform::Windows
-    } else {
-        Platform::Linux
-    };
-    editor_bundle(platform)
+    editor_bundle(Platform::current())
 }

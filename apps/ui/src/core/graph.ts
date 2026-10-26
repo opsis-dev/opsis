@@ -1,7 +1,7 @@
 import { findById } from "@opsis/video/common/lists";
 import type { CatalogPort, Workflow } from "@/generated/bindings";
+import type { EdgeEnds } from "@/generated/bindings";
 import { canConnect, getNodeDef } from "@/store/catalog";
-import type { EdgeEnds } from "./workflow";
 
 function reach(wf: Workflow, nodeId: string, direction: "up" | "down"): Set<string> {
   const links = new Map<string, string[]>();

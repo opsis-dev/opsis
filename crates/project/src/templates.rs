@@ -1,14 +1,10 @@
 use std::sync::LazyLock;
 
+use opsis_compile::ids::random_id;
 use opsis_types::cards::Icon;
 use opsis_types::workflow::Workflow;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-
-const ID_ALPHABET: [char; 36] = [
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
-    'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-];
 
 pub const DEFAULT_PROJECT_NAME: &str = "Demo";
 const BLANK_TEMPLATE: &str = "blank";
@@ -32,10 +28,6 @@ struct Template {
 static TEMPLATES: LazyLock<Vec<Template>> = LazyLock::new(|| {
     serde_json::from_str(include_str!("templates.json")).expect("templates parse")
 });
-
-pub fn random_id(prefix: &str) -> String {
-    format!("{prefix}_{}", nanoid::nanoid!(8, &ID_ALPHABET))
-}
 
 pub fn templates() -> Vec<TemplateInfo> {
     TEMPLATES.iter().map(|t| t.info.clone()).collect()

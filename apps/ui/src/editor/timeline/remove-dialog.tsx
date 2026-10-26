@@ -8,8 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { Removal } from "@/generated/bindings";
 import { useLastDefined } from "@/lib/use-last-defined";
-import type { Removal } from "@/timeline/edits";
 
 function RemoveContent({ count, onRemove }: { count: number; onRemove: () => void }) {
   return (

@@ -7,7 +7,7 @@ import type { CameraKey, CameraPath } from "@/generated/bindings";
 import { useItemKeys } from "@/lib/use-item-keys";
 import { SingleSlider } from "../../app/single-slider";
 import { usePlayback } from "../../store/playback";
-import { useWorkflowStore } from "../../store/workflow";
+import { workflowEdits } from "../../store/workflow";
 import { useFilm } from "../film";
 import { framesScale, parseShown, shownText, useDecimalInput } from "./decimal";
 import { EaseSelect } from "./envelope-field";
@@ -49,7 +49,6 @@ function DialSlider({
   value: number;
   onChange: (value: number) => void;
 }) {
-  const store = useWorkflowStore.getState;
   return (
     <div className="grid grid-cols-[4.5rem_1fr_3.5rem] items-center gap-2">
       <span className="text-muted-foreground text-xs">{dial.label}</span>
@@ -60,8 +59,8 @@ function DialSlider({
         step={dial.step}
         value={value}
         onChange={onChange}
-        onPointerDown={() => store().beginGesture()}
-        onValueCommitted={() => store().endGesture()}
+        onPointerDown={() => workflowEdits.beginGesture()}
+        onValueCommitted={() => workflowEdits.endGesture()}
       />
       <span className="text-right text-xs tabular-nums">
         {Number(value.toFixed(2))}

@@ -25,7 +25,7 @@ pub struct Exit {
     allow: AtomicBool,
     asking: AtomicBool,
     quitting: AtomicBool,
-    unsaved: AtomicBool,
+    drafts: AtomicBool,
     question: Mutex<Option<oneshot::Sender<CloseDecision>>>,
     shown: Notify,
     flushed: Notify,
@@ -38,7 +38,7 @@ fn ongoing(app: &AppHandle) -> Vec<String> {
         busy.push(RUN_BUSY.to_owned());
     }
     busy.extend(app.state::<AppState>().tasks.labels());
-    if exit.unsaved.load(Ordering::Relaxed) {
+    if exit.drafts.load(Ordering::Relaxed) || unsaved(app) {
         busy.push(SAVE_BUSY.to_owned());
     }
     busy
@@ -70,17 +70,27 @@ async fn ask(app: &AppHandle, request: CloseRequest) -> CloseDecision {
     decision
 }
 
+fn unsaved(app: &AppHandle) -> bool {
+    app.state::<AppState>()
+        .editor()
+        .document
+        .as_ref()
+        .is_some_and(opsis_document::Document::is_dirty)
+}
+
 async fn flush_save(app: &AppHandle) {
     let exit = app.state::<Exit>();
-    if !exit.unsaved.load(Ordering::Relaxed) {
-        return;
+    if exit.drafts.load(Ordering::Relaxed) {
+        let flushed = exit.flushed.notified();
+        if let Err(error) = FlushSave.emit_to(app, MAIN_WINDOW) {
+            log::warn!("asking the editor for the values being typed: {error}");
+        }
+        if tokio::time::timeout(FLUSH_WITHIN, flushed).await.is_err() {
+            log::warn!("the editor didn't hand over the values being typed before closing");
+        }
     }
-    let flushed = exit.flushed.notified();
-    if let Err(error) = FlushSave.emit_to(app, MAIN_WINDOW) {
-        log::warn!("asking the editor to save: {error}");
-    }
-    if tokio::time::timeout(FLUSH_WITHIN, flushed).await.is_err() {
-        log::warn!("the editor didn't finish saving before closing");
+    if let Err(error) = crate::document::save(app).await {
+        log::warn!("saving before closing: {}", error.0);
     }
 }
 
@@ -172,8 +182,8 @@ pub fn quit(app: &AppHandle) {
 
 #[tauri::command]
 #[specta::specta]
-pub fn report_unsaved(exit: State<'_, Exit>, unsaved: bool) {
-    exit.unsaved.store(unsaved, Ordering::Relaxed);
+pub fn report_drafts(exit: State<'_, Exit>, held: bool) {
+    exit.drafts.store(held, Ordering::Relaxed);
 }
 
 #[tauri::command]

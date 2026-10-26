@@ -1,28 +1,23 @@
 import type { NavigateFn } from "@tanstack/react-router";
 import { useEffect, useEffectEvent, useState } from "react";
 import { z } from "zod";
-import { create } from "zustand";
-import { errorMessage } from "@/core/errors";
 import type { OpenProject } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
-import { previousSave } from "../editor/save";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";
 import { useSecretsStore } from "../store/secrets";
 import { useUiStore } from "../store/ui";
-import { useWorkflowStore } from "../store/workflow";
+import { showDocument } from "../store/workflow";
 
 export const PROJECT_DIR_PARAM = z.coerce.string().default("");
-
-export const useOpenFailure = create<{ dir: string; error: string } | null>()(() => null);
 
 export const openEditor = (navigate: NavigateFn, dir: string): void =>
   void navigate({ to: "/editor", search: { dir } });
 
 function openProjectIntoStores(p: OpenProject): void {
   loadViewState(p.dir, p.view);
-  useWorkflowStore.getState().load(p.dir, p.workflow, p.version);
+  showDocument(p.document);
   useRunStore.getState().seed(p.lastRun);
   useUiStore.getState().setSelected([]);
   useUiStore.getState().setReplay(null);
@@ -34,21 +29,22 @@ function openProjectIntoStores(p: OpenProject): void {
 }
 
 export function useOpenProject(dir: string, onFailed: () => void): "opening" | "open" | "failed" {
-  const loadedDir = useWorkflowStore((s) => (s.workflow ? s.projectDir : null));
+  const [openedDir, setOpenedDir] = useState<string | null>(null);
   const [failedDir, setFailedDir] = useState<string | null>(null);
   const fail = useEffectEvent((failed: string, e: unknown) => {
     setFailedDir(failed);
-    useOpenFailure.setState({ dir: failed, error: errorMessage(e) }, true);
     reportError("Couldn't open the project", e);
     onFailed();
   });
 
   useEffect(() => {
     let cancelled = false;
-    previousSave()
-      .then(() => window.opsis.openProject(dir))
+    window.opsis
+      .openProject(dir)
       .then((p) => {
-        if (!cancelled && p) openProjectIntoStores(p);
+        if (cancelled) return;
+        openProjectIntoStores(p);
+        setOpenedDir(p.dir);
       })
       .catch((e: unknown) => {
         if (!cancelled) fail(dir, e);
@@ -58,6 +54,6 @@ export function useOpenProject(dir: string, onFailed: () => void): "opening" | "
     };
   }, [dir]);
 
-  if (loadedDir === dir) return "open";
+  if (openedDir === dir) return "open";
   return failedDir === dir ? "failed" : "opening";
 }
