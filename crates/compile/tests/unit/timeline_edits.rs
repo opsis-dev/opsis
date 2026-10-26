@@ -725,3 +725,30 @@ fn ripples_the_sounds_after_a_moved_clip() {
         audio_of(&before, "fx").from + 30.0
     );
 }
+
+#[test]
+fn ripples_the_sounds_of_a_moved_film_only_once() {
+    let wf = with_sound();
+    let before = flat_film(&wf);
+    let key = bar_of(&before, "t").key.clone();
+    let next = applied(&wf, |e, flat| {
+        e.apply(
+            TimelineEdit::Move {
+                bar: key,
+                delta: 30.0,
+                ripple: true,
+            },
+            flat,
+        )
+    });
+    let after = flat_film(&next);
+    assert!(near(bar_of(&after, "t").from, 30.0, 0.5));
+    assert_eq!(
+        audio_of(&after, "fx").from,
+        audio_of(&before, "fx").from + 30.0
+    );
+    assert_eq!(
+        audio_of(&after, "music").from,
+        audio_of(&before, "music").from + 30.0
+    );
+}

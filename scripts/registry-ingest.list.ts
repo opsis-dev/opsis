@@ -1335,7 +1335,38 @@ const SETTINGS: Partial<Record<string, Partial<CuratedElement>>> = {
   "dither-dissolve": { controls: { speed: advancedNumber("Speed", 1.5, SPEED_RANGE) } },
   "page-turn": { omit: { origin: "internal: the corner the page turns on, tuned with the angle" } },
   "shader-mesh-gradient": { controls: { colors: colorsControl(2, 10) } },
-  "shader-grain-gradient": { controls: { colors: colorsControl(2, 7) } },
+  "shader-grain-gradient": {
+    controls: {
+      colors: colorsControl(2, 7),
+      shape: {
+        type: "enum",
+        options: ["corners", "wave", "dots", "truchet", "ripple", "blob", "sphere"],
+        default: "corners",
+        description: "Pattern",
+      },
+      scale: numberControl(
+        "Scale",
+        1,
+        { min: 0.1, max: 4, step: 0.05 },
+        { help: "How large the pattern is in the frame.", advanced: true },
+      ),
+      rotation: numberControl(
+        "Turn",
+        0,
+        { min: 0, max: 360, step: 1 },
+        { unit: "°", help: "Turns the pattern around the middle of the frame.", advanced: true },
+      ),
+    },
+    omit: {
+      originX: "internal: the pattern turns and scales around the middle of the frame",
+      originY: "internal: the pattern turns and scales around the middle of the frame",
+      offsetX: "internal: the pattern stays centred in the frame",
+      offsetY: "internal: the pattern stays centred in the frame",
+      worldWidth: "internal: the pattern is sized to the frame, not to a fixed canvas",
+      worldHeight: "internal: the pattern is sized to the frame, not to a fixed canvas",
+      fit: "internal: the pattern always covers the frame",
+    },
+  },
   "shader-warp": { controls: { colors: colorsControl(2, 10) } },
   "shader-swirl": { controls: { colors: colorsControl(2, 10) } },
   "shader-god-rays": {

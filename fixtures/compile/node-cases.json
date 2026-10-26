@@ -12061,7 +12061,10 @@
           "#3a3a52",
           "#4a4a68",
           "#5a5a7e"
-         ]
+         ],
+         "shape": "corners",
+         "scale": 1,
+         "rotation": 0
         }
        }
       ]
@@ -12132,7 +12135,10 @@
           "#3a3a52",
           "#4a4a68",
           "#5a5a7e"
-         ]
+         ],
+         "shape": "corners",
+         "scale": 1,
+         "rotation": 0
         }
        }
       ]

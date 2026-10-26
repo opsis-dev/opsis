@@ -4379,6 +4379,9 @@
     "#4a4a68",
     "#5a5a7e"
    ],
+   "shape": "corners",
+   "scale": 1,
+   "rotation": 0,
    "clipDuration": 0,
    "envelope": {}
   }

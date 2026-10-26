@@ -21407,6 +21407,41 @@
        }
       }
      },
+     "shape": {
+      "default": "corners",
+      "description": "Pattern",
+      "type": "string",
+      "enum": [
+       "corners",
+       "wave",
+       "dots",
+       "truchet",
+       "ripple",
+       "blob",
+       "sphere"
+      ]
+     },
+     "scale": {
+      "default": 1,
+      "description": "Scale",
+      "x-step": 0.05,
+      "x-help": "How large the pattern is in the frame.",
+      "x-advanced": true,
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 4
+     },
+     "rotation": {
+      "default": 0,
+      "description": "Turn",
+      "x-step": 1,
+      "x-unit": "°",
+      "x-help": "Turns the pattern around the middle of the frame.",
+      "x-advanced": true,
+      "type": "number",
+      "minimum": 0,
+      "maximum": 360
+     },
      "clipDuration": {
       "description": "Length",
       "type": "integer",

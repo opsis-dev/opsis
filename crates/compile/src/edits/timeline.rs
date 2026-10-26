@@ -9,6 +9,7 @@ use opsis_types::workflow::{PortType, Position, Workflow, WorkflowEdge, Workflow
 use serde_json::{Map, Value, json};
 
 use crate::edits::workflow::{absolute_position, remove_nodes};
+use crate::graph::upstream_of;
 use crate::ids::{Ids, node_id_prefix};
 use crate::limits::{MAX_SPEED, MAX_VOLUME, MIN_SPEED};
 use crate::nodes::timeline::Cut;
@@ -1133,6 +1134,26 @@ fn neighbour<'a>(flat: &'a FlatTimeline, bar: &VideoBar, right: bool) -> Option<
     })
 }
 
+struct RippleScope<'a> {
+    after: f64,
+    container: Option<&'a str>,
+    exclude: Option<String>,
+}
+
+fn moved_by_edit(before: &Workflow, after: &Workflow) -> HashSet<String> {
+    let mut moved = HashSet::new();
+    for node in &after.nodes {
+        if before
+            .node(&node.id)
+            .is_none_or(|was| was.params != node.params)
+        {
+            moved.insert(node.id.clone());
+            moved.extend(upstream_of(after, &node.id));
+        }
+    }
+    moved
+}
+
 fn bar_under<'a>(flat: &'a FlatTimeline, at: f64, selected: &[String]) -> Option<&'a VideoBar> {
     let under: Vec<&VideoBar> = flat
         .bars
@@ -1150,15 +1171,19 @@ impl TimelineEdits<'_> {
     fn rippled(
         &mut self,
         flat: &FlatTimeline,
+        before: &Workflow,
         outcome: Outcome,
-        after: f64,
-        container: Option<&str>,
-        exclude: Option<String>,
+        scope: RippleScope<'_>,
         delta: f64,
     ) -> Outcome {
         let done = outcome?;
-        let exclude: HashSet<String> = exclude.into_iter().collect();
-        let targets = self.ripple_targets(flat, after, container, &exclude);
+        let exclude: HashSet<String> = scope.exclude.into_iter().collect();
+        let moved = moved_by_edit(before, &self.workflow);
+        let targets: Vec<RippleTarget> = self
+            .ripple_targets(flat, scope.after, scope.container, &exclude)
+            .into_iter()
+            .filter(|t| !moved.contains(&t.param.node_id))
+            .collect();
         self.apply_ripple(&targets, delta);
         Ok(done)
     }
@@ -1167,16 +1192,20 @@ impl TimelineEdits<'_> {
         match edit {
             TimelineEdit::Move { bar, delta, ripple } => {
                 let bar = video_bar(flat, &bar)?;
+                let before = self.workflow.clone();
                 let moved = self.move_bar(bar, delta);
                 if !ripple {
                     return moved;
                 }
                 self.rippled(
                     flat,
+                    &before,
                     moved,
-                    bar.from + HALF_FRAME,
-                    container_of(bar),
-                    move_handle_key(bar),
+                    RippleScope {
+                        after: bar.from + HALF_FRAME,
+                        container: container_of(bar),
+                        exclude: move_handle_key(bar),
+                    },
                     delta,
                 )
             }
@@ -1186,16 +1215,20 @@ impl TimelineEdits<'_> {
             }
             TimelineEdit::TrimEnd { bar, delta, ripple } => {
                 let bar = video_bar(flat, &bar)?;
+                let before = self.workflow.clone();
                 let trimmed = self.trim_bar(bar, false, delta);
                 if !ripple {
                     return trimmed;
                 }
                 self.rippled(
                     flat,
+                    &before,
                     trimmed,
-                    bar.to - HALF_FRAME,
-                    container_of(bar),
-                    None,
+                    RippleScope {
+                        after: bar.to - HALF_FRAME,
+                        container: container_of(bar),
+                        exclude: None,
+                    },
                     delta,
                 )
             }
@@ -1221,6 +1254,7 @@ impl TimelineEdits<'_> {
             }
             TimelineEdit::AudioMove { bar, delta, ripple } => {
                 let bar = audio_bar(flat, &bar)?;
+                let before = self.workflow.clone();
                 let moved = self.move_audio(bar, delta);
                 if !ripple {
                     return moved;
@@ -1229,7 +1263,17 @@ impl TimelineEdits<'_> {
                     Some(video) => move_handle_key(video),
                     None => audio_move_handle_key(bar),
                 };
-                self.rippled(flat, moved, bar.from + HALF_FRAME, None, key, delta)
+                self.rippled(
+                    flat,
+                    &before,
+                    moved,
+                    RippleScope {
+                        after: bar.from + HALF_FRAME,
+                        container: None,
+                        exclude: key,
+                    },
+                    delta,
+                )
             }
             TimelineEdit::AudioTrimStart { bar, delta } => {
                 self.trim_audio(audio_bar(flat, &bar)?, true, delta)
