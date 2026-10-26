@@ -355,11 +355,11 @@ No new packages.
 
 ## Rust
 
-How this plan is built if it lands after the move to Tauri (`plans/tauri-rewrite/`). There, element metadata and node definitions are Rust, there is no Remotion Player in the webview, and Remotion renders run in a Bun sidecar.
+How this plan is built in the Rust app. There, element metadata and node definitions are Rust, there is no Remotion Player in the webview, and Remotion renders run in a Bun sidecar.
 
 **Elements stay TS.** Ported components, Liquid contours, the crossed-off looks and the Rive element are video code in `packages/video` and are unchanged by the move. The porting recipe and the frame-purity rules hold as written.
 
-**Metadata moves.** Element metadata becomes Rust data with `schemars` field keywords (`plans/tauri-rewrite/types-and-contracts.md`), so `portedElementMeta` is a module in `opsis-compile` next to the core elements instead of `src/shared/elements/ported.ts`. The loaders (`portedElementLoaders`) stay TS in `packages/video`.
+**Metadata moves.** Element metadata becomes Rust data with `schemars` field keywords (`AGENTS.md`, **Rust is the source of types**), so `portedElementMeta` is a module in `opsis-compile` next to the core elements instead of `src/shared/elements/ported.ts`. The loaders (`portedElementLoaders`) stay TS in `packages/video`.
 
 **Rive hosting.** The `'wasm-unsafe-eval'` CSP change moves to the Tauri config in `crates/desktop` (`app.security.csp`). The `.wasm` and `.riv` MIME types go into the asset server in `opsis-render`. `riv` joins the asset import in `opsis-project`.
 

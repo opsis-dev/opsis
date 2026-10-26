@@ -117,7 +117,7 @@ Missing:
 ### Risks
 
 - **Linux builds and old systems.** The `linux-x64-shared` build links the C++ runtime of the machine it was built on; an AppImage user on an older distribution may not have it. Check on the oldest supported distribution; fall back to building it in CI if it fails.
-- **macOS.** sherpa-onnx ships macOS builds (`osx-arm64-shared` 20.3 MB, `osx-x64-shared` 22.8 MB, and universal2). Check that a program the app downloads runs without Gatekeeper prompts on a notarized and an unsigned app (`plans/shipping.md`).
+- **macOS.** sherpa-onnx ships macOS builds (`osx-arm64-shared` 20.3 MB, `osx-x64-shared` 22.8 MB, and universal2). Check that a program the app downloads runs without Gatekeeper prompts on a notarized and an unsigned app (`plans/release.md`, section 5).
 - **No keyring.** `encryptedText` refuses to save when `safeStorage` can't encrypt or Linux's keyring is `basic_text`. Settings shows its message where the key is entered, and the online service stays off until a keyring is set up.
 
 ### Sources
@@ -327,11 +327,11 @@ Opsis's own code.
 
 ## Rust
 
-How this plan is built if it lands after the move to Tauri (`plans/tauri-rewrite/`), where executors, downloads, keys and online requests are Rust. Node definitions, compile, word timing and cards are Rust too (`plans/tauri-rewrite/compile-in-rust.md`). Crate facts checked on crates.io and docs.rs on 2026-10-25.
+How this plan is built in the Rust app, where executors, downloads, keys and online requests are Rust. Node definitions, compile, word timing and cards are Rust too (`crates/compile`). Crate facts checked on crates.io and docs.rs on 2026-10-25.
 
-**Where code goes.** The `opsis-voice` crate in `crates/voice`: the model catalogue and downloads, transcription, speech and word timing. Its executors register with `opsis-runner`, its nodes with `opsis-compile`, and keys come from `opsis-store` (`plans/tauri-rewrite/workspace.md`, **The crates**).
+**Where code goes.** The `opsis-voice` crate in `crates/voice`: the model catalogue and downloads, transcription, speech and word timing. Its executors register with `opsis-runner`, its nodes with `opsis-compile`, and keys come from `opsis-store` (`AGENTS.md`, **Workspace**).
 
-**Downloads and the catalogue.** `reqwest` 0.13.5 streams downloads with progress over a Tauri channel; `sha2` checks hashes; `tar` 0.4.46 and `bzip2` 0.6.1 unpack (`bzip2`'s default backend is `libbz2-rs-sys`; the C libbzip2 is opt-in), replacing `tar-stream` and `seek-bzip`. The catalogue is Rust data exported to the UI as generated types. Service keys live in the OS keyring through `keyring` 4.2.0 (`plans/tauri-rewrite/desktop-shell.md`), replacing the `secrets` table and `encryptedText()`.
+**Downloads and the catalogue.** `reqwest` 0.13.5 streams downloads with progress over a Tauri channel; `sha2` checks hashes; `tar` 0.4.46 and `bzip2` 0.6.1 unpack (`bzip2`'s default backend is `libbz2-rs-sys`; the C libbzip2 is opt-in), replacing `tar-stream` and `seek-bzip`. The catalogue is Rust data exported to the UI as generated types. Service keys live in the OS keyring through `keyring` 4.2.0 (`crates/store/src/keys.rs`), replacing the `secrets` table and `encryptedText()`.
 
 **One ONNX Runtime (decided).** Every on-device model runs through `ort` 2.0.0-rc.15 (MIT OR Apache-2.0, wrapping ONNX Runtime 1.31), with one ONNX Runtime build per platform. Either link it statically from ort's prebuilt binaries (`download-binaries`, the default, fetched at build time from pyke's CDN), or ship one shared library with the app and load it with `load-dynamic`, which ort's docs recommend. Nothing else may carry its own inference runtime:
 

@@ -297,11 +297,11 @@ Missing:
 
 ## Rust
 
-How this plan is built if it lands after the move to Tauri (`plans/tauri-rewrite/`). There, node definitions, compile, validation, the catalogue, the app database, keys and the Local API are Rust. Crate facts checked on crates.io and docs.rs on 2026-10-25.
+How this plan is built in the Rust app. There, node definitions, compile, validation, the catalogue, the app database, keys and the Local API are Rust. Crate facts checked on crates.io and docs.rs on 2026-10-25.
 
 **Where code goes.**
 
-- `src/main/assist/` becomes its own crate, `opsis-assist` in `crates/assist` (`plans/tauri-rewrite/workspace.md`, **The crates**).
+- `src/main/assist/` becomes its own crate, `opsis-assist` in `crates/assist` (`AGENTS.md`, **Workspace**).
 - The pure functions in `src/shared/assist/` sit next to the node definitions in `opsis-compile`, because they create nodes and check them with `check_workflow`: the output schemas, prompt builders, `draftToWorkflow`, `chapterSpans` and `insertChapters`.
 - The dialogs stay in the editor, `apps/ui`.
 
@@ -318,22 +318,22 @@ How this plan is built if it lands after the move to Tauri (`plans/tauri-rewrite
 
 **Keys, consent and the log.**
 
-- Keys are stored with `keyring` 4.2.0 (`plans/tauri-rewrite/desktop-shell.md`) instead of a `secrets` table.
+- Keys are stored with `keyring` 4.2.0 (`crates/store/src/keys.rs`) instead of a `secrets` table.
 - Consent tokens are issued by Rust commands.
 - `assist_log` is a table in the `rusqlite` database; the drizzle schema still defines it, and `drizzle-kit export` still writes the SQL.
 
 **Page outline.**
 
 - Playwright's `page.ariaSnapshot({ mode: "ai" })` is gone with Playwright.
-- The outline is built from the CDP accessibility tree (`Accessibility.getFullAXTree`) in the capture module (`plans/tauri-rewrite/capture-cdp.md`), with our own ref ids.
+- The outline is built from the CDP accessibility tree (`Accessibility.getFullAXTree`) in the capture module (`crates/capture`), with our own ref ids.
 - agent-browser's snapshot code (`cli/src/native/snapshot.rs`, Apache-2.0) is a working model of the same idea.
 - **Try the actions** and **Walk the site** run on the same CDP session.
 
-**Picker suggestions.** `PICKER_SCRIPT` stays JS and gains the candidate counting. The picker itself is a streamed view of the headless shell (`plans/tauri-rewrite/streamed-views.md`), so candidates come back through its binding.
+**Picker suggestions.** `PICKER_SCRIPT` stays JS and gains the candidate counting. The picker itself is a streamed view of the headless shell (`crates/stream`), so candidates come back through its binding.
 
 **Copy variants.** Fields are marked with an `x-suggest` keyword in their Rust schema instead of a `FieldMeta` key.
 
-**Local API.** `POST /project/draft` is a Rust route that runs `draftToWorkflow` and `check_workflow` in-process (`plans/tauri-rewrite/local-api.md`).
+**Local API.** `POST /project/draft` is a Rust route that runs `draftToWorkflow` and `check_workflow` in-process (`crates/api`).
 
 ## Decided
 

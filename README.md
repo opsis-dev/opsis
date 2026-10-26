@@ -108,7 +108,7 @@ Each has a plan in [`plans/`](./plans):
 - Voiceover and captions from speech ([voice-and-captions](./plans/voice-and-captions.md)).
 - AI assist: a flow from a sentence, chapter names, headline variants, picker suggestions ([ai-assist](./plans/ai-assist.md)).
 - Ported web motion components, Rive animations and element thumbnails ([motion-library](./plans/motion-library.md)).
-- Windows and macOS builds (set up in CI, never run yet), code signing, updates and node packs ([shipping](./plans/shipping.md), [packaging](./plans/tauri-rewrite/packaging.md)).
+- Size work, Windows and macOS builds (set up in CI, never run yet), code signing, updates, the FFmpeg source offer, the release test pass, profiling and node packs ([release](./plans/release.md)).
 
 ## Licences
 
