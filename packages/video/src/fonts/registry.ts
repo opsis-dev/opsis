@@ -1,5 +1,14 @@
 import { resolveAssetRef } from "#video/assets.tsx";
 import {
+  canRegister,
+  loadedSignature,
+  registerFaces,
+  registeredNames,
+  signatureOf,
+  urlsOf,
+  type Resolve,
+} from "#video/common/font-faces.ts";
+import {
   findFamily,
   ROLE_ALIASES,
   roleFamilyName,
@@ -8,57 +17,12 @@ import {
 import { holdRender } from "#video/core/loading.ts";
 import type { FontFamilyDef, ProjectFonts } from "#video/generated/spec.ts";
 
-type Resolve = (ref: string) => string;
 type FontContext = { fonts: ProjectFonts; resolve: Resolve };
-type Entry = { signature: string; faces: FontFace[]; ready: Promise<void> };
 
-const registered = new Map<string, Entry>();
 let current: FontContext = {
   fonts: DEFAULT_PROJECT_FONTS,
   resolve: (ref) => resolveAssetRef(ref, {}),
 };
-
-const canRegister = () => typeof document !== "undefined" && typeof FontFace !== "undefined";
-
-const urlsOf = (def: FontFamilyDef, resolve: Resolve) => def.faces.map((f) => resolve(f.file));
-
-const signatureOf = (def: FontFamilyDef, urls: string[]) =>
-  [def.id, ...def.faces.map((f, i) => `${urls[i]} ${f.weight} ${f.style}`)].join("|");
-
-const settled = (face: FontFace) => face.status === "loaded" || face.status === "error";
-
-export function unregisterFaces(cssName: string): void {
-  for (const face of registered.get(cssName)?.faces ?? []) document.fonts.delete(face);
-  registered.delete(cssName);
-}
-
-export function registerFaces(
-  cssName: string,
-  def: FontFamilyDef,
-  resolve: Resolve,
-  onUnreadable?: () => void,
-): Promise<void> {
-  if (!canRegister()) return Promise.resolve();
-  const urls = urlsOf(def, resolve);
-  const signature = signatureOf(def, urls);
-  const existing = registered.get(cssName);
-  if (existing?.signature === signature) return existing.ready;
-  unregisterFaces(cssName);
-  const faces = def.faces.map(
-    (f, i) =>
-      new FontFace(cssName, `url("${urls[i]}") format("${f.format}")`, {
-        weight: f.weight,
-        style: f.style,
-        display: "block",
-      }),
-  );
-  for (const face of faces) document.fonts.add(face);
-  const ready = Promise.allSettled(faces.map((f) => f.load())).then((results) => {
-    if (results.some((r) => r.status === "rejected")) onUnreadable?.();
-  });
-  registered.set(cssName, { signature, faces, ready });
-  return ready;
-}
 
 function targetFor(name: string, ctx: FontContext): FontFamilyDef | undefined {
   const role = ROLE_ALIASES[name];
@@ -73,9 +37,8 @@ function ensureFont(name: string, ctx: FontContext): Promise<void> {
 
 function isLoaded(name: string, ctx: FontContext): boolean {
   const def = targetFor(name, ctx);
-  const entry = registered.get(name);
-  if (!def || !entry?.faces.every(settled)) return false;
-  return entry.signature === signatureOf(def, urlsOf(def, ctx.resolve));
+  const signature = loadedSignature(name);
+  return !!def && signature === signatureOf(def, urlsOf(def, ctx.resolve));
 }
 
 export function ensureFontNow(name: string): void {
@@ -92,7 +55,7 @@ export function applyProjectFonts(
 ): Promise<void> {
   const ctx = { fonts, resolve };
   current = ctx;
-  const names = new Set([...Object.keys(ROLE_ALIASES), ...registered.keys(), ...used]);
+  const names = new Set([...Object.keys(ROLE_ALIASES), ...registeredNames(), ...used]);
   return Promise.all([...names].map((name) => ensureFont(name, ctx))).then(() => undefined);
 }
 

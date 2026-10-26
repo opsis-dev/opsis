@@ -1,9 +1,4 @@
-import { defineConfig } from "oxfmt";
+import { formatConfig } from "./scripts/lib/oxfmt-base.ts";
 import { IGNORED_PATHS } from "./scripts/lib/tool-config.ts";
 
-export default defineConfig({
-  printWidth: 100,
-  sortPackageJson: false,
-  sortImports: { newlinesBetween: false },
-  ignorePatterns: [...IGNORED_PATHS, "bun.lock"],
-});
+export default formatConfig([...IGNORED_PATHS, "bun.lock", "e2e/**"]);

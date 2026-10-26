@@ -1,4 +1,4 @@
-import { registerFaces, unregisterFaces } from "@opsis/video/spec";
+import { registerFaces, unregisterFaces } from "@opsis/video/common/font-faces";
 import { useEffect } from "react";
 import { create } from "zustand";
 import type { FontFamilyDef } from "@/generated/bindings";

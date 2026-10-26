@@ -1,11 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { registerFaces, unregisterFaces } from "#video/common/font-faces.ts";
 import { DEFAULT_PROJECT_FONTS } from "#video/common/fonts.ts";
-import {
-  applyProjectFonts,
-  fontFileFor,
-  registerFaces,
-  unregisterFaces,
-} from "#video/fonts/registry.ts";
+import { applyProjectFonts, fontFileFor } from "#video/fonts/registry.ts";
 import type { FontFamilyDef } from "#video/generated/spec.ts";
 
 class UnreadableFace {

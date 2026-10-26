@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 
-export const ROOT = path.resolve(import.meta.dirname, "..", "..", "..", "..");
+export const ROOT = path.resolve(import.meta.dirname, "..", "..", "..");
 
 export const APP_BINARY = path.join(ROOT, "target", "e2e", "debug", "opsis-desktop");
 

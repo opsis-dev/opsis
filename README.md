@@ -94,7 +94,7 @@ crates/      Rust: types, compile, store, project, fonts, engine, traces, runner
 apps/ui/     the editor
 apps/preview the preview page the headless shell plays
 apps/sidecar Remotion renders on Bun
-apps/e2e     end-to-end tests
+e2e/         end-to-end tests (outside the workspace, own install)
 packages/video  Remotion root: DemoTimeline, registry, core elements, fonts, camera, registry elements
 scripts/     registry ingest, fonts, icons, engine downloads, packaging stage
 ```

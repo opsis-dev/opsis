@@ -56,7 +56,8 @@
     "db:schema": "drizzle-kit export --config drizzle.config.ts > crates/store/db/schema.generated.sql",
     "video:bundle": "tsx scripts/video-bundle.ts",
     "source:layout": "tsx scripts/source-layout.ts",
-    "test:e2e": "bun run --cwd apps/e2e build:app && bun run --cwd apps/e2e e2e",
+    "e2e:app": "cd crates/desktop && CARGO_TARGET_DIR=../../target/e2e tauri build --debug --no-bundle --features e2e",
+    "test:e2e": "bun run e2e:app && bun run --cwd e2e e2e",
     "stage": "tsx scripts/stage.ts",
     "make": "tsx scripts/make.ts"
   },
