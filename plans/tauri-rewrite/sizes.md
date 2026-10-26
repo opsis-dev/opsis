@@ -23,17 +23,21 @@ A measured basis for the size goal (from about 800–900 MB to about 600 MB) and
 
 ### After
 
-| Part                                           | Size       | Note                                                                                                                                                                                           |
-| ---------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tauri app (Rust binary + UI build + `public/`) | 93.4 MB    | measured in phase 6 (2026-10-26, Linux x64): the release binary with the editor build and `public/` embedded, 69.8 MB stripped; no size work yet (`opt-level`, LTO, `strip` come with phase 8) |
-| Bun 1.4.3                                      | 89.0 MB    | Node 26.12 would be 150.3 MB, 116.9 MB stripped                                                                                                                                                |
-| Remotion compositor                            | 27.3 MB    | unchanged, used by `renderMedia`                                                                                                                                                               |
-| `@remotion/renderer` and the sidecar's own JS  | about 3 MB | `@remotion/renderer` is 3.0 MB                                                                                                                                                                 |
-| Prebuilt Remotion bundle                       | 63.2 MB    | measured after phase 7 took the font parsers and the Draco decoder out (`asset-preparation.md`)                                                                                                |
-| Chrome Headless Shell                          | 247.0 MB   | unchanged                                                                                                                                                                                      |
-| FFmpeg                                         | 159.5 MB   | unchanged (out of scope)                                                                                                                                                                       |
+| Part                                           | Size       | Note                                                                                                                                                                                                                |
+| ---------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tauri app (Rust binary + UI build + `public/`) | 88.2 MB    | measured in phase 8 (2026-10-26, Linux x64): stripped release binary with the editor build and `public/` embedded (phase 6: 93.4 MB unstripped, 69.8 MB stripped; phase 7 added the image, SVG and model libraries) |
+| Bun 1.4.3                                      | 89.0 MB    | Node 26.12 would be 150.3 MB, 116.9 MB stripped                                                                                                                                                                     |
+| Remotion compositor                            | 27.3 MB    | unchanged, used by `renderMedia`                                                                                                                                                                                    |
+| `@remotion/renderer` and the sidecar's own JS  | about 3 MB | `@remotion/renderer` is 3.0 MB                                                                                                                                                                                      |
+| Prebuilt Remotion bundle                       | 63.2 MB    | measured after phase 7 took the font parsers and the Draco decoder out (`asset-preparation.md`)                                                                                                                     |
+| Chrome Headless Shell                          | 247.0 MB   | unchanged                                                                                                                                                                                                           |
+| FFmpeg                                         | 159.5 MB   | unchanged (out of scope)                                                                                                                                                                                            |
 
 Gone: Electron (286.8 MB) and `playwright-core` (13.7 MB). Added: Bun (89.0 MB) and the Rust binary. Without the Tauri binary, the listed parts come to about 593 MB; with it unstripped, about 686 MB.
+
+### Lite deb, measured (phase 8)
+
+Built locally on Linux x64, 2026-10-26: `Opsis_0.1.0_amd64.deb` is 122.0 MB (122,044,416 bytes) and installs 292 MB (`Installed-Size` 285,162 KiB). Inside: the app binary 88.2 MB, the compiled sidecar 91.7 MB (Bun, the sidecar's code and `@remotion/renderer` in one file), the compositor 27.3 MB, the video bundle 63.2 MB with 30.6 MB of it source maps, `public/` 6.2 MB, the Export as code sources 3.5 MB and the recording browser's licences 5.3 MB. Without the engine, the Electron app's parts came to about 407 MB. Not trimmed yet: the source maps, and `public/` copied into the editor build as well as shipped beside it.
 
 ## Work
 

@@ -44,17 +44,20 @@
     "registry:ingest": "tsx scripts/registry-ingest.ts",
     "fonts:bundle": "tsx scripts/fonts-bundle.ts",
     "brand:icons": "tsx scripts/brand-icons.ts",
+    "app:icons": "tsx scripts/app-icons.ts",
     "engine:licences": "tsx scripts/engine-licences.ts",
     "engine:downloads": "tsx scripts/engine-downloads.ts",
     "examples": "cargo run -q -p opsis-project --bin write-examples",
     "playwright:scripts": "tsx scripts/playwright-scripts.ts",
-    "types:export": "cargo run -q -p opsis-desktop --bin export-bindings && cargo run -q -p opsis-render --bin export-protocol && cargo run -q -p opsis-compile --bin export-spec",
+    "types:export": "cargo run -q -p opsis-desktop --features export-bindings --bin export-bindings && cargo run -q -p opsis-render --bin export-protocol && cargo run -q -p opsis-compile --bin export-spec",
     "elements:render": "cargo run -q --release -p opsis-render --bin render-elements --",
     "glyphs:bundle": "tsx scripts/node-glyphs.ts",
     "db:schema": "drizzle-kit export --config drizzle.config.ts > crates/store/db/schema.generated.sql",
     "video:bundle": "tsx scripts/video-bundle.ts",
     "source:layout": "tsx scripts/source-layout.ts",
-    "test:e2e": "bun run --cwd apps/e2e build:app && bun run --cwd apps/e2e e2e"
+    "test:e2e": "bun run --cwd apps/e2e build:app && bun run --cwd apps/e2e e2e",
+    "stage": "tsx scripts/stage.ts",
+    "make": "tsx scripts/make.ts"
   },
   "dependencies": {
     "@fontsource-variable/caveat": "^5.3.0",

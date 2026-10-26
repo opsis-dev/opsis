@@ -2,7 +2,7 @@
 
 Opsis moves from Electron to Tauri. Rust owns the app: windows, the project, compile, runs, capture, the Local API and everything the worker does today. The editor stays React, running in the system webview. Remotion renders run in a Bun sidecar. One Chrome Headless Shell does capture, renders and the streamed views (preview, sign-in, element picker).
 
-Status: phases 1 to 7 are done on branch `feat/tauri` (1 `b11b013`, 1.5 `6181b36`, 2 `2b457a8`, 3 `3e8562c`, 4 `bd4181e` and `8932925`, 5 `cfd70d5`, 6 `2946e50`, 7 the commit after it): the app is the Tauri app and Electron is gone. Measurements before phase 6 are from the tree at `df01ff0` (card stills already removed) on Linux x64, taken 2026-10-25.
+Status: phases 1 to 8 are done on branch `feat/tauri` (1 `b11b013`, 1.5 `6181b36`, 2 `2b457a8`, 3 `3e8562c`, 4 `bd4181e` and `8932925`, 5 `cfd70d5`, 6 `2946e50`, 7 `1ac0b65`, 8 the commit after it): the app is the Tauri app and Electron is gone. Measurements before phase 6 are from the tree at `df01ff0` (card stills already removed) on Linux x64, taken 2026-10-25.
 
 ## How to read this plan
 
@@ -24,7 +24,7 @@ Status: phases 1 to 7 are done on branch `feat/tauri` (1 `b11b013`, 1.5 `6181b36
 - **Rspack builds the video bundle (decided, phase 1.5).** Remotion's `bundle({ rspack: true })` with our `rspackOverride`; all 109 registry elements rendered byte-identically from webpack and Rspack bundles before the switch.
 - **No interim app (decided).** The Electron app isn't kept working while Rust is built. The TS code stays in the tree as the reference the Rust ports are tested against, and is deleted when the editor switches to the Tauri app (phase 6). Nothing is built only to bridge phases: no TS worker run as a child of Rust, no stop-gap sign-in or picker windows, no Local API routes forwarded to TS.
 - **Rust is the source of types (decided).** TS types are generated from Rust; JSON Schema for forms and the API comes from Rust (`types-and-contracts.md`).
-- **Linux ships deb and rpm only (decided).** No AppImage; anyone can build one from source (`packaging.md`).
+- **Linux ships deb, rpm and AppImage (decided, changed in phase 8).** Tauri's bundler builds the AppImage itself, without the community maker Forge needed, and it is the one Linux format Tauri's updater can update. The rpm and AppImage are built in CI only; local builds make the deb (`packaging.md`).
 - **FFmpeg is unchanged (decided).** Same two ffmpeg-static programs, run the same way (see **Not in this plan**).
 
 ## Shape

@@ -26,6 +26,20 @@ fn repo() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
+fn sidecar_program() -> PathBuf {
+    std::env::var_os("OPSIS_SIDECAR").map_or_else(|| PathBuf::from("bun"), PathBuf::from)
+}
+
+fn sidecar_args() -> Vec<OsString> {
+    if std::env::var_os("OPSIS_SIDECAR").is_some() {
+        Vec::new()
+    } else {
+        ["run", "apps/sidecar/src/main.ts"]
+            .map(OsString::from)
+            .to_vec()
+    }
+}
+
 fn home() -> PathBuf {
     std::env::var_os("HOME").map(PathBuf::from).expect("HOME")
 }
@@ -195,10 +209,8 @@ async fn draws_3d_elements_like_the_baseline() {
         .map(|k| (OsString::from(k), temp.clone().into_os_string()))
         .to_vec();
     let command = SidecarCommand {
-        program: "bun".into(),
-        args: ["run", "apps/sidecar/src/main.ts"]
-            .map(OsString::from)
-            .to_vec(),
+        program: sidecar_program(),
+        args: sidecar_args(),
         env,
         cwd: Some(repo()),
     };
@@ -221,7 +233,7 @@ async fn draws_3d_elements_like_the_baseline() {
                     .to_string_lossy()
                     .into_owned(),
                 browser_executable: shell.to_string_lossy().into_owned(),
-                binaries_directory: None,
+                binaries_directory: std::env::var("OPSIS_COMPOSITOR").ok(),
                 license_key: "free-license".into(),
                 composition: COMPOSITION_ID.into(),
                 spec,

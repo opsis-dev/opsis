@@ -143,9 +143,6 @@ vite.config.ts.timestamp-*
 .vite/
 
 # Opsis
-resources/engine/
-resources/engine-licences/
-resources/export-src/
 remotion-bundle/
 crates/desktop/gen/
 .opsis/
@@ -154,3 +151,4 @@ examples/**/secrets/
 scripts/.ingest/
 
 /target/
+resources/

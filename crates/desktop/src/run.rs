@@ -142,9 +142,12 @@ fn executors(app: &AppHandle) -> Executors {
         sidecar: Arc::clone(&state.sidecar),
         tools: Arc::clone(&tools),
         serve_url: state.paths.video_bundle.to_string_lossy().into_owned(),
-        binaries_directory: None,
+        binaries_directory: state
+            .paths
+            .compositor()
+            .map(|dir| dir.to_string_lossy().into_owned()),
         sources: ExportSources {
-            root: state.paths.resources.clone(),
+            root: state.paths.export_sources(),
             packaged: state.paths.packaged,
         },
     });

@@ -8,10 +8,12 @@ use opsis_compile::elements::{ElementKind, element_meta, element_node_type};
 use opsis_compile::node::{CLIP_PORT, Ctx};
 use opsis_compile::registry::node_def;
 use opsis_compile::vars::Vars;
+use opsis_engine::http_files::FileServer;
 use opsis_engine::paths::{ShellPlatform, engine_paths, find_headless_shell};
+use opsis_prepare::serve::{PreparedDirs, prepared_routes};
 use opsis_render::protocol::{COMPOSITION_ID, MediaJob, RenderTarget, SidecarCall, StillJob};
 use opsis_render::sidecar::{Sidecar, SidecarCommand, SidecarError};
-use opsis_types::timeline::TimelineSpec;
+use opsis_types::timeline::{SpecAssets, TimelineSpec};
 use opsis_types::values::{ClipValue, CompileValue, PortValues};
 use opsis_types::workflow::{Workflow, WorkflowSettings};
 use serde_json::{Map, json};
@@ -30,6 +32,20 @@ fn from_env(name: &str) -> PathBuf {
     std::env::var_os(name)
         .map(PathBuf::from)
         .unwrap_or_else(|| panic!("{name} isn't set"))
+}
+
+fn sidecar_program() -> PathBuf {
+    std::env::var_os("OPSIS_SIDECAR").map_or_else(|| PathBuf::from("bun"), PathBuf::from)
+}
+
+fn sidecar_args() -> Vec<OsString> {
+    if std::env::var_os("OPSIS_SIDECAR").is_some() {
+        Vec::new()
+    } else {
+        ["run", "apps/sidecar/src/main.ts"]
+            .map(OsString::from)
+            .to_vec()
+    }
 }
 
 fn home() -> PathBuf {
@@ -110,10 +126,11 @@ struct Setup {
     bundle: PathBuf,
     baseline: PathBuf,
     out: PathBuf,
+    assets: FileServer,
 }
 
 impl Setup {
-    fn new() -> Self {
+    async fn new() -> Self {
         let cache = home().join(".cache");
         let engine = engine_paths(
             &home().join(".config/Opsis/engine"),
@@ -129,11 +146,18 @@ impl Setup {
             .map(|k| (OsString::from(k), temp.clone().into_os_string()))
             .to_vec();
         let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let project = temp.join("project");
+        std::fs::create_dir_all(&project).unwrap();
+        let dirs = PreparedDirs {
+            project: project.clone(),
+            public: repo.join("public"),
+        };
+        let assets = FileServer::start_with(&project, prepared_routes(dirs))
+            .await
+            .unwrap();
         let command = SidecarCommand {
-            program: "bun".into(),
-            args: ["run", "apps/sidecar/src/main.ts"]
-                .map(OsString::from)
-                .to_vec(),
+            program: sidecar_program(),
+            args: sidecar_args(),
             env,
             cwd: Some(repo),
         };
@@ -143,6 +167,7 @@ impl Setup {
             bundle: existing(from_env("OPSIS_VIDEO_BUNDLE"), "the video bundle"),
             baseline: existing(from_env("OPSIS_RENDER_BASELINE"), "the Node renders"),
             out,
+            assets,
         }
     }
 
@@ -150,10 +175,16 @@ impl Setup {
         RenderTarget {
             serve_url: self.bundle.to_string_lossy().into_owned(),
             browser_executable: self.shell.to_string_lossy().into_owned(),
-            binaries_directory: None,
+            binaries_directory: std::env::var("OPSIS_COMPOSITOR").ok(),
             license_key: "free-license".into(),
             composition: COMPOSITION_ID.into(),
-            spec,
+            spec: TimelineSpec {
+                assets: Some(SpecAssets {
+                    project_base: Some(self.assets.url.clone()),
+                    versions: None,
+                }),
+                ..spec
+            },
             gl: serde_json::from_value(json!("angle")).unwrap(),
         }
     }
@@ -183,7 +214,7 @@ fn file_name(key: &str, ext: &str) -> String {
 #[tokio::test]
 #[ignore = "needs the dev engine, OPSIS_VIDEO_BUNDLE and the Node renders in OPSIS_RENDER_BASELINE"]
 async fn renders_through_the_sidecar_byte_identical_to_node() {
-    let setup = Setup::new();
+    let setup = Setup::new().await;
     let never = CancellationToken::new();
     for key in STILLS {
         let (spec, frames) = spec_for(key);
@@ -224,7 +255,7 @@ async fn renders_through_the_sidecar_byte_identical_to_node() {
 #[tokio::test]
 #[ignore = "needs the dev engine and a video bundle named by OPSIS_VIDEO_BUNDLE"]
 async fn stops_a_render_soon_after_it_is_cancelled() {
-    let setup = Setup::new();
+    let setup = Setup::new().await;
     let cancel = CancellationToken::new();
     let stop = cancel.clone();
     tokio::spawn(async move {
