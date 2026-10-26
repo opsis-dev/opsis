@@ -153,7 +153,7 @@ fn executors(app: &AppHandle) -> Executors {
     });
     let view_env = ViewEnv {
         executable: opsis_capture::browser::shell_in(&state.paths.engine_dir()).unwrap_or_default(),
-        temp_dir: state.paths.temp_root.clone(),
+        temp_dir: state.paths.views_temp.clone(),
     };
     let capture = Arc::new(CaptureDeps {
         tools: Arc::clone(&tools),

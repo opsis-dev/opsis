@@ -169,7 +169,7 @@ impl ViewHost for AppViewHost {
 fn view_env(state: &AppState) -> CommandResult<ViewEnv> {
     Ok(ViewEnv {
         executable: opsis_capture::browser::shell_in(&state.paths.engine_dir())?,
-        temp_dir: state.paths.temp_root.clone(),
+        temp_dir: state.paths.views_temp.clone(),
     })
 }
 

@@ -98,6 +98,9 @@ pub fn run() {
             if let RunEvent::Exit = event {
                 app.state::<RunHost>().cancel();
                 api::stop(app);
+                let paths = &app.state::<AppState>().paths;
+                opsis_engine::temp::remove_child_temp(&paths.views_temp);
+                opsis_engine::temp::remove_child_temp(&paths.sidecar_temp);
             }
         });
 }

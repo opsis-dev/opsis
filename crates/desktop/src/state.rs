@@ -81,7 +81,9 @@ impl AppState {
         paths: AppPaths,
         sidecar_log: Arc<dyn Fn(&str) + Send + Sync>,
     ) -> Result<Self, String> {
-        std::fs::create_dir_all(&paths.user_data).map_err(|e| e.to_string())?;
+        for dir in [&paths.user_data, &paths.views_temp, &paths.sidecar_temp] {
+            std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+        }
         let db = Database::open(&paths.database()).map_err(|e| e.to_string())?;
         let engine = opsis_engine::paths::engine_paths(&paths.engine_dir(), paths.platform);
         Ok(Self {

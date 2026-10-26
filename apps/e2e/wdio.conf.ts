@@ -23,6 +23,7 @@ export const config: WebdriverIO.Config = {
   specs: [
     "./src/specs/start.spec.ts",
     "./src/specs/examples.spec.ts",
+    "./src/specs/views.spec.ts",
     "./src/specs/export.spec.ts",
   ],
   maxInstances: 1,
