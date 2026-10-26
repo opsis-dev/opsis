@@ -11,7 +11,7 @@ const BUTTON = { x: 200, y: 130 };
 const WAIT_MS = 30_000;
 const PAGE = `<!doctype html><html><body style="margin:0;background:#fff"><button style="position:absolute;left:100px;top:100px;width:200px;height:60px;font-size:20px">Save draft</button></body></html>`;
 
-type Picking = { __picked?: string };
+type Picking = { opsisPicked?: string };
 
 describe("streamed views", function () {
   this.timeout(120_000);
@@ -51,19 +51,19 @@ describe("streamed views", function () {
         const page = window as unknown as Picking & {
           __TAURI_INTERNALS__: { invoke: (cmd: string, args: unknown) => Promise<unknown> };
         };
-        page.__picked = "waiting";
+        page.opsisPicked = "waiting";
         page.__TAURI_INTERNALS__
           .invoke("pick_element", { request: { url: address, viewport: { width, height } } })
           .then(
-            (result) => (page.__picked = JSON.stringify(result)),
-            (error: unknown) => (page.__picked = `error ${String(error)}`),
+            (result) => (page.opsisPicked = JSON.stringify(result)),
+            (error: unknown) => (page.opsisPicked = `error ${String(error)}`),
           );
       },
       url,
       PAGE_WIDTH,
       PAGE_HEIGHT,
     );
-    const pickedSoFar = () => browser.execute(() => (window as unknown as Picking).__picked);
+    const pickedSoFar = () => browser.execute(() => (window as unknown as Picking).opsisPicked);
     await browser.waitUntil(
       async () =>
         (await browser.getWindowHandles()).length > 1 || (await pickedSoFar()) !== "waiting",
@@ -110,10 +110,10 @@ describe("streamed views", function () {
     ]);
     await browser.switchToWindow(main);
     await browser.waitUntil(
-      () => browser.execute(() => (window as unknown as Picking).__picked !== "waiting"),
+      () => browser.execute(() => (window as unknown as Picking).opsisPicked !== "waiting"),
       { timeout: WAIT_MS },
     );
-    const picked = await browser.execute(() => (window as unknown as Picking).__picked);
+    const picked = await browser.execute(() => (window as unknown as Picking).opsisPicked);
     expect(picked).toContain("Save draft");
   });
 });
