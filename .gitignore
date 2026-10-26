@@ -25,6 +25,7 @@ scripts/.ingest/
 examples/**/secrets/
 .env
 .env.*
+/.tauri/opsis.key
 
 # Logs
 *.log
