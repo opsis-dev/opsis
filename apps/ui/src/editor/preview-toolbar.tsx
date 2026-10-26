@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { VARIANTS } from "@/core/nodes";
-import { PREVIEW_QUALITIES } from "@/core/timeline";
 import type { TimelineSpec } from "@/generated/bindings";
 import { whenFirstOneOf, whenOneOf } from "@/lib/one-of";
+import { PREVIEW_QUALITIES } from "@/timeline/envelopes";
+import { VARIANTS } from "@/workflow/nodes";
 import { PREVIEW_SHAPES, useViewOptions } from "../store/view-options";
 import { WithTooltip } from "./with-tooltip";
 

@@ -1,4 +1,4 @@
-import type { FieldMeta } from "@/core/schema";
+import type { FieldMeta } from "@/editor/form/schema";
 import { LabelledChoices } from "./field-shell";
 import type { ParamValues } from "./types";
 

@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { busSettings, stripSettings, type StripSettings } from "@/core/mix";
+import { busSettings, stripSettings, type StripSettings } from "@/editor/mixer/strip-settings";
 import type { BusPatch, Strip, StripPatch } from "@/generated/bindings";
 import { mixerBook } from "@/store/catalog";
 import { useMixerState } from "./mixer-state";

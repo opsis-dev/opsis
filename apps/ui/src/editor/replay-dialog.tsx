@@ -15,11 +15,11 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { outputOf } from "@/core/values";
 import type { ActionLog } from "@/generated/bindings";
 import { whenOneOf } from "@/lib/one-of";
 import { cn } from "@/lib/utils";
 import { nodeName } from "@/store/catalog";
+import { outputOf } from "@/workflow/values";
 import { useRunStore } from "../store/run";
 import { REPLAY_TABS, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";

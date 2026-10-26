@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mixerBook } from "@/store/catalog";
-import { stripSettings } from "./mix";
+import { stripSettings } from "./strip-settings";
 
 describe("strip settings", () => {
   it("copies a strip's settings without its routing", () => {

@@ -1,6 +1,6 @@
 import { create } from "zustand";
+import { DEFAULT_SETTINGS, mergeSettings, type SettingsPatch } from "@/app/settings/options";
 import { on } from "@/app/tauri";
-import { DEFAULT_SETTINGS, mergeSettings, type SettingsPatch } from "@/core/settings";
 import { commands, events, type ApiServerStatus, type AppSettings } from "@/generated/bindings";
 import { loadOrReport } from "@/lib/toast";
 

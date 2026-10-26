@@ -1,5 +1,5 @@
+import { START_OPTION_LABELS, START_OPTIONS } from "@/app/settings/options";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { START_OPTION_LABELS, START_OPTIONS } from "@/core/settings";
 import type { AppSettings } from "@/generated/bindings";
 import { patchAppSettings } from "../../store/app-settings";
 import { OptionToggle } from "../option-toggle";

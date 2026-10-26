@@ -2,7 +2,7 @@ import { isOneOf, isString } from "@opsis/video/common/guards";
 import { PanelBottom, PanelLeft, PanelRight, type LucideIcon } from "lucide-react";
 import type { LayoutStorage, PanelImperativeHandle } from "react-resizable-panels";
 import { create } from "zustand";
-import { DOCK_PANELS } from "@/core/shell";
+import { DOCK_PANELS } from "@/app/shell";
 import { commands, type DockPanelName, type MenuCommand } from "@/generated/bindings";
 import { readPref, writePref } from "../store/view-prefs";
 

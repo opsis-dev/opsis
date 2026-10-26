@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { asSchema, fieldMeta, shapeEntries } from "@/core/schema";
+import { asSchema, fieldMeta, shapeEntries } from "@/editor/form/schema";
 import { catalogNodes } from "@/store/catalog";
 import { typedField } from "./form/schema-kind";
 import { widgetTakes } from "./schema-form";

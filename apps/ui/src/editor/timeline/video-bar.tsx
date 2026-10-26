@@ -1,5 +1,4 @@
 import { findById } from "@opsis/video/common/lists";
-import { barLocalAt } from "@/core/clock";
 import type {
   Category as NodeCategory,
   Workflow,
@@ -8,6 +7,7 @@ import type {
 } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { getNodeDef, nodeNameById } from "@/store/catalog";
+import { barLocalAt } from "@/timeline/local-frames";
 import { FilmstripCanvas } from "./bar-canvas";
 import type { BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";

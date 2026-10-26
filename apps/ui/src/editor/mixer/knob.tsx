@@ -1,7 +1,7 @@
 import { clamp01 } from "@opsis/video/common/math";
 import { useRef, useState } from "react";
-import { parseNumberText } from "@/core/text-input";
 import { endIfStarted, onArrowKey, startOnceMoved, type ThresholdDrag } from "@/lib/dom";
+import { parseNumberText } from "@/lib/number-text";
 import { usePointerDrag } from "@/lib/use-pointer-drag";
 import { cn } from "@/lib/utils";
 import { commitOnce, type Gesture } from "./gesture";

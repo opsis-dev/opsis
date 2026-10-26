@@ -1,7 +1,5 @@
 import { keepLast } from "@opsis/video/common/lists";
 import { create } from "zustand";
-import { errorMessage } from "@/core/errors";
-import { debounce } from "@/core/timing";
 import {
   commands,
   type AnalysisRequest,
@@ -11,6 +9,8 @@ import {
   type MixResult,
   type Waveform,
 } from "@/generated/bindings";
+import { errorMessage } from "@/lib/errors";
+import { debounce } from "@/lib/timing";
 import { useAudioPreview } from "./audio-preview";
 
 type Entry<T> = T | "loading" | "error";

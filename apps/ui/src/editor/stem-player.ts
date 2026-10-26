@@ -1,7 +1,7 @@
 import { clamp } from "@opsis/video/common/math";
 import { useEffect, useState } from "react";
 import type { StoreApi } from "zustand";
-import { dbToGain } from "@/core/mix";
+import { dbToGain } from "@/editor/mixer/strip-settings";
 import { MAX_PREVIEW_FILTERS, previewTotals, useAudioPreview } from "../store/audio-preview";
 import { fileUrl } from "./file-url";
 

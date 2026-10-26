@@ -1,5 +1,5 @@
 import { Toggle } from "@/components/ui/toggle";
-import type { BusSettings } from "@/core/mix";
+import type { BusSettings } from "@/editor/mixer/strip-settings";
 import type { Strip } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { mixerBook } from "@/store/catalog";

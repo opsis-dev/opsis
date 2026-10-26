@@ -1,8 +1,8 @@
 import { samplePoints } from "@opsis/video/common/envelope";
 import { uniqueKeys } from "@opsis/video/common/lists";
 import { round3 } from "@opsis/video/common/math";
-import { ENVELOPE_LABELS, type EnvelopeKey } from "@/core/timeline";
 import type { Keyframe } from "@/generated/bindings";
+import { ENVELOPE_LABELS, type EnvelopeKey } from "@/timeline/envelopes";
 import type { BarContext } from "./bar-context";
 import {
   addKeyframe,

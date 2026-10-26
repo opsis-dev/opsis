@@ -1,5 +1,5 @@
-import type { JsonSchema } from "@/core/schema";
-import { parseNumberText } from "@/core/text-input";
+import type { JsonSchema } from "@/editor/form/schema";
+import { parseNumberText } from "@/lib/number-text";
 
 export type LengthLimits = { min: number; max: number };
 

@@ -2,7 +2,7 @@ import { isBoolean } from "@opsis/video/common/guards";
 import { clamp } from "@opsis/video/common/math";
 import { formatTime } from "@opsis/video/common/time";
 import { create } from "zustand";
-import type { AudioEnvelopeKey, VisualEnvelopeKey } from "@/core/timeline";
+import type { AudioEnvelopeKey, VisualEnvelopeKey } from "@/timeline/envelopes";
 import { usePlayback } from "../../store/playback";
 import { readPref, writePref } from "../../store/view-prefs";
 import type { TimelineTool } from "./timeline-tools";

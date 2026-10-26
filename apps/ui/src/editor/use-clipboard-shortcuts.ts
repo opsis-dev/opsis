@@ -2,7 +2,7 @@ import { tryParseJson } from "@opsis/video/common/guards";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { matchesAccelerator } from "@/core/menu";
+import { matchesAccelerator } from "@/app/accelerators";
 import type { WorkflowEdge, WorkflowNode } from "@/generated/bindings";
 import { isEditingElement } from "@/lib/dom";
 import { platform } from "@/lib/platform";

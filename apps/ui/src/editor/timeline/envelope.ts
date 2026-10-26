@@ -6,9 +6,9 @@ import type { MinMax } from "@opsis/video/common/math";
 import { parseOncePer } from "@opsis/video/common/memo";
 import { wholeFrames } from "@opsis/video/common/time";
 import { toast } from "sonner";
-import { envelopeSchema, type Envelope, type EnvelopeKey } from "@/core/timeline";
 import type { Keyframe, Workflow, WorkflowNode } from "@/generated/bindings";
 import { getNodeDef } from "@/store/catalog";
+import { envelopeSchema, type Envelope, type EnvelopeKey } from "@/timeline/envelopes";
 import { useWorkflowStore, workflowEdits } from "../../store/workflow";
 
 type EnvelopeInfo = MinMax & { rest: number };

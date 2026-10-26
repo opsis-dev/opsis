@@ -1,6 +1,6 @@
 import { round3 } from "@opsis/video/common/math";
 import type { ChangeEvent } from "react";
-import { parseNumberText } from "@/core/text-input";
+import { parseNumberText } from "@/lib/number-text";
 import { useCommitDraft } from "@/lib/use-commit-draft";
 
 export const trimNumber = (n: number): string => String(round3(n));

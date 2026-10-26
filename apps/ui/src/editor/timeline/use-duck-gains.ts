@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { duckGain } from "@/core/duck";
 import type { TimelineSpec } from "@/generated/bindings";
+import { duckGain } from "@/timeline/duck";
 import type { Gain } from "./bar-canvas";
 
 const NO_GAIN: Gain = () => 1;

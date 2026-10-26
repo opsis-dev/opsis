@@ -1,6 +1,5 @@
 import { framesToMs } from "@opsis/video/common/time";
 import { toast } from "sonner";
-import { errorMessage } from "@/core/errors";
 import {
   commands,
   type Marker,
@@ -8,6 +7,7 @@ import {
   type TimelineEdit,
   type TimelineReply,
 } from "@/generated/bindings";
+import { errorMessage } from "@/lib/errors";
 import { usePlayback } from "../../store/playback";
 import { toggleIds, useUiStore } from "../../store/ui";
 import { workflowEdits } from "../../store/workflow";

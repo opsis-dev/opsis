@@ -9,7 +9,7 @@ import {
   SortableItem,
   SortableItemHandle,
 } from "@/components/ui/sortable";
-import { parseNumberText } from "@/core/text-input";
+import { parseNumberText } from "@/lib/number-text";
 import { useItemKeys } from "@/lib/use-item-keys";
 import { VarText } from "../var-text";
 import { ColorChip, ColorPopover } from "./color-picker";

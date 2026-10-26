@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { isPrimaryModifier } from "@/core/menu";
-import type { StripSettings } from "@/core/mix";
+import { isPrimaryModifier } from "@/app/accelerators";
+import type { StripSettings } from "@/editor/mixer/strip-settings";
 import { platform } from "@/lib/platform";
 import { toggleIds, useUiStore } from "../../store/ui";
 

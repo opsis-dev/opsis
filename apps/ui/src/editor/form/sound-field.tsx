@@ -1,7 +1,7 @@
 import { Play } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { BUILTIN_SOUNDS, builtinSound } from "@/core/sounds";
+import { BUILTIN_SOUNDS, builtinSound } from "@/editor/form/builtin-sounds";
 import { fileName } from "@/lib/file-name";
 import { fileUrl } from "../file-url";
 import { ChoiceSelect } from "./choice-select";

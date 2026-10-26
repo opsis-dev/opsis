@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { on } from "@/app/tauri";
-import { listenerSet } from "@/core/listener-set";
 import { events, type MenuCommand } from "@/generated/bindings";
+import { listenerSet } from "@/lib/listener-set";
 
 type Listener = (command: MenuCommand) => void;
 

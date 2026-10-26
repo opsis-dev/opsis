@@ -1,7 +1,7 @@
 import ELK from "elkjs/lib/elk.bundled.js";
-import { isGroupNode } from "@/core/nodes";
 import type { Workflow } from "@/generated/bindings";
 import { getNodeDef } from "@/store/catalog";
+import { isGroupNode } from "@/workflow/nodes";
 import { useWorkflowStore, workflowEdits } from "../store/workflow";
 import { cardSize } from "./card-size";
 

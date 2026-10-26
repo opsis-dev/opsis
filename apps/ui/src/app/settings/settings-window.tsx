@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, type ReactNode } from "react";
+import { SETTINGS_PAGES } from "@/app/shell";
 import { on } from "@/app/tauri";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -25,7 +26,6 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
-import { SETTINGS_PAGES } from "@/core/shell";
 import { commands, events, type SettingsPage, type AppSettings } from "@/generated/bindings";
 import { FontsPanel } from "../../fonts/fonts-panel";
 import { useAppSettings } from "../../store/app-settings";

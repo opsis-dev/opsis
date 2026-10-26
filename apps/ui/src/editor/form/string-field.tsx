@@ -10,7 +10,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Textarea } from "@/components/ui/textarea";
-import { targetRoleKey } from "@/core/schema";
+import { targetRoleKey } from "@/editor/form/schema";
 import { FontPicker } from "../../fonts/font-picker";
 import { VarText } from "../var-text";
 import { FieldShell } from "./field-shell";

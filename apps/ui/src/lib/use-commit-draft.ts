@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { listenerSet } from "@/core/listener-set";
+import { listenerSet } from "@/lib/listener-set";
 
 type Pending = { text: string; commit: (text: string) => void };
 

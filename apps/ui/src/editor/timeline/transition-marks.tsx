@@ -1,9 +1,9 @@
 import { percentText } from "@opsis/video/common/format";
-import { coversTooMuch } from "@/core/nodes";
 import type { Workflow, FlatTimeline, TransitionMark } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { nodeNameById } from "@/store/catalog";
 import { transitionTitle } from "@/store/catalog";
+import { coversTooMuch } from "@/workflow/nodes";
 import {
   BAR_INSET,
   HEADER_W,

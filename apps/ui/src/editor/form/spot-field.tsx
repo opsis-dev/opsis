@@ -1,7 +1,7 @@
 import { percent, percentText } from "@opsis/video/common/format";
 import { clamp01, finiteNumber, numberOr, round3 } from "@opsis/video/common/math";
 import { useRef, type PointerEvent } from "react";
-import { spotYKey } from "@/core/schema";
+import { spotYKey } from "@/editor/form/schema";
 import { fractionIn } from "@/lib/dom";
 import { usePointerDrag } from "@/lib/use-pointer-drag";
 import { FieldShell } from "./field-shell";

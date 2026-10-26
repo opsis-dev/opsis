@@ -13,13 +13,13 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { VARIANTS, variantCanvas } from "@/core/nodes";
-import { THEME_BACKGROUNDS } from "@/core/workflow";
 import { commands, type FontRole } from "@/generated/bindings";
 import type { Workflow, WorkflowSettings } from "@/generated/bindings";
 import { whenFirstOneOf } from "@/lib/one-of";
 import { attempt } from "@/lib/toast";
 import { useItemKeys } from "@/lib/use-item-keys";
+import { THEME_BACKGROUNDS } from "@/workflow/defaults";
+import { VARIANTS, variantCanvas } from "@/workflow/nodes";
 import { FontPicker } from "../fonts/font-picker";
 import { useMedia } from "../store/media";
 import { useRunStore } from "../store/run";

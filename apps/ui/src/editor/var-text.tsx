@@ -9,7 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { pauseMark, tokenize, varToken, type TextToken } from "@/core/vars";
+import { pauseMark, tokenize, varToken, type TextToken } from "@/editor/var-tokens";
 import { cn } from "@/lib/utils";
 
 export type VarInfo = { name: string; value: string };

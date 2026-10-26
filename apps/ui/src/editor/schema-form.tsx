@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
-import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/core/nodes";
 import {
   ANY_VALUE,
   asSchema,
@@ -19,11 +18,12 @@ import {
   type FieldMeta,
   type FieldWidget,
   type JsonSchema,
-} from "@/core/schema";
+} from "@/editor/form/schema";
 import { fileName } from "@/lib/file-name";
 import { whenOneOf } from "@/lib/one-of";
 import { useItemKeys } from "@/lib/use-item-keys";
 import { transitionTitle } from "@/store/catalog";
+import { LOUDNESS_PRESETS, QUALITY_PRESETS } from "@/workflow/nodes";
 import { BoxesField } from "./form/boxes-field";
 import { CameraField } from "./form/camera-field";
 import { ColorField } from "./form/color-field";

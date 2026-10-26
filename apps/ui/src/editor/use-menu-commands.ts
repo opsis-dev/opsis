@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { DOCK_PANELS } from "@/core/shell";
+import { DOCK_PANELS } from "@/app/shell";
 import { commands, type MenuCommand } from "@/generated/bindings";
 import { isEditingElement } from "@/lib/dom";
 import { onMenuCommand } from "../app/menu-commands";

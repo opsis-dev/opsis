@@ -3,7 +3,6 @@ import { clamp } from "@opsis/video/common/math";
 import { lruCache } from "@opsis/video/common/memo";
 import { framesToRecordingMs, msToSeconds } from "@opsis/video/common/time";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { barLocalAt } from "@/core/clock";
 import type {
   AudioBar,
   LocalFrames,
@@ -14,6 +13,7 @@ import type {
   WaveformLevel,
 } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { barLocalAt } from "@/timeline/local-frames";
 import { loadedFilmstrip, loadedWaveform, useMedia } from "../../store/media";
 import { useFileUrl } from "../../store/project-files";
 import { OFFSCREEN_PX, type BarBox, type Viewport } from "./timeline-layout";

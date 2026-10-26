@@ -1,7 +1,7 @@
 import { atLeastOneFrame } from "@opsis/video/common/time";
 import { useEffect, useState } from "react";
-import { activeAt, loopOf, wrapInLoop, type Loop } from "@/core/playhead";
 import type { PreviewTarget } from "@/generated/bindings";
+import { activeAt, loopOf, wrapInLoop, type Loop } from "@/timeline/playhead";
 import { registerPlayer, usePlayback } from "../../store/playback";
 import { singleSelected, useUiStore } from "../../store/ui";
 import { useFilm } from "../film";

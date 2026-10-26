@@ -1,8 +1,8 @@
 import { FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { artifactName } from "@/core/values";
 import type { Artifact, WorkflowNode } from "@/generated/bindings";
+import { artifactName } from "@/workflow/values";
 import { useRunStore } from "../store/run";
 import { AudioFilePlayer, VideoFilePlayer } from "./file-player";
 import { fileUrl } from "./file-url";

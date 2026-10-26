@@ -15,15 +15,15 @@ import {
   shapeEntries,
   takesNull,
   type JsonSchema,
-} from "@/core/schema";
+} from "@/editor/form/schema";
+import type { CameraPath } from "@/generated/bindings";
 import {
   isCameraPath,
   isEnvelope,
   isEnvelopeKey,
   type Envelope,
   type EnvelopeKey,
-} from "@/core/timeline";
-import type { CameraPath } from "@/generated/bindings";
+} from "@/timeline/envelopes";
 import { lengthLimits, type LengthLimits } from "./list-values";
 import type { ParamValues } from "./types";
 

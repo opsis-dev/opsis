@@ -4,10 +4,6 @@ What's left outside the release plan: the places in the codebase that don't read
 
 ## Written for Tauri and Rust
 
-### 10. Folder names from the old packages
-
-`apps/ui/src/core` echoes the removed `packages/core`. Name folders for what they hold once items 5–9 have emptied most of it.
-
 ## Bugs
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { randomId } from "@/core/ids";
+import { randomId } from "@/workflow/ids";
 
 type KeyedItem<T> = { item: T; key: string };
 

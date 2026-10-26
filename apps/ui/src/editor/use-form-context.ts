@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
-import { targetRoleKey } from "@/core/schema";
+import { targetRoleKey } from "@/editor/form/schema";
 import {
   commands,
   type InspectorContext,

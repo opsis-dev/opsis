@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { errorMessage } from "@/core/errors";
+import { errorMessage } from "@/lib/errors";
 
 export function reportError(title: string, error: unknown): void {
   toast.error(title, { description: errorMessage(error) });

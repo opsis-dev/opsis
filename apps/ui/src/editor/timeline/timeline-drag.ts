@@ -1,4 +1,3 @@
-import type { EnvelopeKey } from "@/core/timeline";
 import type {
   AudioBar,
   FlatTimeline,
@@ -9,6 +8,7 @@ import type {
   VideoBar,
 } from "@/generated/bindings";
 import { DRAG_START_PX } from "@/lib/dom";
+import type { EnvelopeKey } from "@/timeline/envelopes";
 import { snapFrame, snapSpan, type SnapTarget } from "@/timeline/snap";
 import {
   AUDIO_H,

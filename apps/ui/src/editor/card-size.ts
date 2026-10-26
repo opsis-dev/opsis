@@ -1,6 +1,6 @@
-import { CARD_WIDTH } from "@/core/nodes";
 import type { WorkflowNode } from "@/generated/bindings";
 import { getNodeDef } from "@/store/catalog";
+import { CARD_WIDTH } from "@/workflow/nodes";
 
 const UNKNOWN_HEIGHT = 120;
 

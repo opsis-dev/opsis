@@ -1,9 +1,9 @@
 import { appendCapped } from "@opsis/video/common/lists";
 import { create } from "zustand";
 import type { LiveMessage } from "@/app/tauri";
-import { DEFAULT_VIEWPORT } from "@/core/workflow";
 import type { Rect } from "@/generated/bindings";
 import type { LiveEvent, LiveStepStatus } from "@/generated/bindings";
+import { DEFAULT_VIEWPORT } from "@/workflow/defaults";
 import { liveAutoOpen } from "./app-settings";
 
 type LiveStep = { nodeId: string; label: string; status?: LiveStepStatus; message?: string };

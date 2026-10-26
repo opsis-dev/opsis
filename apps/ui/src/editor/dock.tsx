@@ -1,10 +1,10 @@
 import { ChevronDown, ChevronUp, SquareArrowOutUpRight } from "lucide-react";
 import { useEffect } from "react";
+import { DOCK_PANELS, DOCK_TITLES } from "@/app/shell";
 import { on } from "@/app/tauri";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DOCK_PANELS, DOCK_TITLES } from "@/core/shell";
 import { commands, events, type DockPanelName } from "@/generated/bindings";
 import { whenOneOf } from "@/lib/one-of";
 import { commandShortcut } from "../app/menu-shortcuts";

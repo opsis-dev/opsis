@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
-import { errorMessage } from "@/core/errors";
 import {
   commands,
   events,
@@ -15,6 +14,7 @@ import {
   type EngineTool,
   type ToolStatus,
 } from "@/generated/bindings";
+import { errorMessage } from "@/lib/errors";
 import { useEnvironment, useFreshEnvironment } from "../store/environment";
 import { PageBar } from "./app-bar";
 import { AnimatedPercent } from "./motion";

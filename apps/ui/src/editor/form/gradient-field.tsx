@@ -13,9 +13,9 @@ import {
   parseGradient,
   sortStops,
   type Gradient,
-} from "@/core/gradient";
-import { parseNumberText } from "@/core/text-input";
+} from "@/editor/form/gradient";
 import { fractionIn } from "@/lib/dom";
+import { parseNumberText } from "@/lib/number-text";
 import { useCommitDraft } from "@/lib/use-commit-draft";
 import { usePointerDrag } from "@/lib/use-pointer-drag";
 import { workflowEdits } from "../../store/workflow";

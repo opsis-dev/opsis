@@ -3,7 +3,6 @@ import { Ellipsis } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { loudnessName } from "@/core/nodes";
 import type {
   Loudness,
   LoudnessTarget,
@@ -12,6 +11,7 @@ import type {
   MixResult,
 } from "@/generated/bindings";
 import { mixerBook } from "@/store/catalog";
+import { loudnessName } from "@/workflow/nodes";
 import { usePlayback } from "../../store/playback";
 import { workflowEdits } from "../../store/workflow";
 import { OptionSelect } from "../option-select";

@@ -1,4 +1,4 @@
-import SOUND_FILES from "../../../../crates/compile/src/data/sounds.json";
+import SOUND_FILES from "../../../../../crates/compile/src/data/sounds.json";
 
 type BuiltinSound = { id: string; label: string; durationMs: number; ref: string };
 

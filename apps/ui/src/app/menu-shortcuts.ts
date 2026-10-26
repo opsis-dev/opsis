@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { acceleratorLabel, matchesAccelerator, menuCommandEntry } from "@/core/menu";
+import { acceleratorLabel, matchesAccelerator, menuCommandEntry } from "@/app/accelerators";
 import { commands, type MenuCommand, type MenuEntry, type WindowRole } from "@/generated/bindings";
 import { isEditingElement } from "@/lib/dom";
 import { isMac, platform } from "@/lib/platform";

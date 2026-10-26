@@ -1,6 +1,6 @@
 import type { Edge, Node } from "@xyflow/react";
-import { isGroupNode, isNoteNode } from "@/core/nodes";
 import type { Workflow, WorkflowNode } from "@/generated/bindings";
+import { isGroupNode, isNoteNode } from "@/workflow/nodes";
 
 type FlowNodeData = { node: WorkflowNode };
 

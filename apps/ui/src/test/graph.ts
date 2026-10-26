@@ -1,5 +1,3 @@
-import { edgeId, randomId } from "@/core/ids";
-import { CLIP_PORT, COLUMN_WIDTH, ROW_HEIGHT } from "@/core/nodes";
 import type {
   LocalFrames,
   FlatTimeline,
@@ -11,6 +9,8 @@ import type {
   WorkflowSettings,
 } from "@/generated/bindings";
 import { defaultParams } from "@/store/catalog";
+import { edgeId, randomId } from "@/workflow/ids";
+import { CLIP_PORT, COLUMN_WIDTH, ROW_HEIGHT } from "@/workflow/nodes";
 import { editorData } from "./editor-data";
 
 export const TITLE = "fx.core.title";

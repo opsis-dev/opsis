@@ -6,8 +6,8 @@ import {
   type NodeChange,
 } from "@xyflow/react";
 import { useCallback, useMemo, useState } from "react";
-import { portOf } from "@/core/graph";
 import type { Workflow } from "@/generated/bindings";
+import { portOf } from "@/workflow/graph";
 import { useUiStore } from "../store/ui";
 import { workflowEdits } from "../store/workflow";
 import { toFlowEdges, toFlowNodes, type CanvasNode } from "./convert";

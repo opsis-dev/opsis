@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PanelBottomClose } from "lucide-react";
 import { useEffect } from "react";
+import { DOCK_TITLES } from "@/app/shell";
 import { Button } from "@/components/ui/button";
-import { DOCK_TITLES } from "@/core/shell";
 import { commands, type DockPanelName } from "@/generated/bindings";
 import { AppBar } from "../app/app-bar";
 import { LoadingPanel } from "../app/empty-panel";
