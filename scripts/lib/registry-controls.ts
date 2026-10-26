@@ -19,7 +19,7 @@ import {
   type CuratedElement,
 } from "../registry-ingest.list";
 import type { FieldMeta } from "./element-meta";
-import { zodFor } from "./registry-codegen";
+import { fieldSchema } from "./registry-codegen";
 import {
   inferColumns,
   isColorList,
@@ -505,7 +505,7 @@ export function resolveControls(
     control = withRows.control;
     if ((control.type === "colors" || control.type === "rows") && !Array.isArray(control.default))
       problems.push(`"${key}": no default list; give one in the list or the component`);
-    if (zodFor(key, control) === null)
+    if (fieldSchema(key, control) === null)
       problems.push(
         `"${key}": a ${control.type} setting the ingest can't write; give it in the list`,
       );

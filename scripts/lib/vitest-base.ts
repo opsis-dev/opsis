@@ -18,6 +18,7 @@ export const testConfig = ({
   defineConfig({
     resolve: { alias },
     test: {
+      fsModuleCachePath: "node_modules/.vitest-cache",
       setupFiles,
       globalSetup,
       projects: [

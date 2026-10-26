@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 type FieldPreset = { label: string; values: Record<string, unknown> };
 
 export const FIELD_WIDGETS = [
@@ -31,7 +29,7 @@ export const FIELD_WIDGETS = [
 
 export type FieldWidget = (typeof FIELD_WIDGETS)[number];
 
-const THEME_MODES = ["light", "dark"] as const;
+export const THEME_MODES = ["light", "dark"] as const;
 
 type ThemeMode = (typeof THEME_MODES)[number];
 
@@ -58,15 +56,6 @@ export type FieldMeta = {
   framesAt?: number;
 };
 
-declare module "zod" {
-  interface GlobalMeta extends FieldMeta {}
-}
-
-export const themeValueSchema = z.object({
-  mode: z.enum(THEME_MODES),
-  colors: z.record(z.string(), z.string()),
-});
-
 export type ElementCategory =
   | "core"
   | "text"
@@ -81,26 +70,24 @@ export type ElementCategory =
 
 export type ElementKind = "component" | "wrapper" | "presentation" | "sequencer";
 
-export type ElementProps = Record<string, unknown>;
-
-export interface ElementMeta {
-  key: string;
-  title: string;
-  description?: string;
-  category: ElementCategory;
-  kind: ElementKind;
-  source: { registry: string; url: string; license: string };
-  schema: z.ZodObject;
-  defaultProps: ElementProps;
-  fixedProps: ElementProps;
-  defaultDurationInFrames: number;
-  design?: { width: number; height: number; exact?: boolean };
-  optionalClip?: boolean;
-  thumbnail?: string;
-}
-
-export type ElementMetaInput = Omit<ElementMeta, "defaultProps">;
-
-export function defineElementMeta(def: ElementMetaInput): ElementMeta {
-  return { ...def, defaultProps: def.schema.parse({}) };
-}
+export const META_KEYWORDS: Record<Exclude<keyof FieldMeta, "description">, string> = {
+  help: "x-help",
+  widget: "x-widget",
+  step: "x-step",
+  unit: "x-unit",
+  accept: "x-accept",
+  advanced: "x-advanced",
+  hidden: "x-hidden",
+  labels: "x-labels",
+  zeroLabel: "x-zero-label",
+  unconnectedZeroLabel: "x-unconnected-zero-label",
+  presets: "x-presets",
+  presetsLabel: "x-presets-label",
+  pauses: "x-pauses",
+  timeKey: "x-time-key",
+  lengthKey: "x-length-key",
+  showIf: "x-show-if",
+  showIfFile: "x-show-if-file",
+  themes: "x-themes",
+  framesAt: "x-frames-at",
+};

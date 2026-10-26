@@ -6,12 +6,10 @@ import { pick } from "@opsis/video/common/objects";
 import { AUTHORED_FPS } from "@opsis/video/common/spec";
 import type * as framing from "@opsis/video/registry/framing";
 import { REGISTRIES, SECONDS, TITLE_ACRONYMS, type CuratedElement } from "../registry-ingest.list";
-import type { FieldMeta } from "./element-meta";
-import type { ElementKind } from "./element-meta";
+import type { ElementEntry, Json } from "./element-json";
+import { META_KEYWORDS, THEME_MODES, type ElementKind, type FieldMeta } from "./element-meta";
 import type { Control } from "./registry-controls";
 import { VIDEO_DIR } from "./tool-config";
-
-const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 
 const CONTROL_META_KEYS = [
   "step",
@@ -32,106 +30,137 @@ const controlMeta = (c: Control): FieldMeta =>
     CONTROL_META_KEYS.filter((k) => typeof c[k] === "number" || Boolean(c[k])),
   );
 
-function metaOf(key: string, c: Control, extra: FieldMeta = {}): string {
-  const meta: FieldMeta = {
-    description: c.description ?? c.label ?? key,
-    ...extra,
-    ...(c.emptyLabel ? { zeroLabel: c.emptyLabel } : {}),
-    ...controlMeta(c),
-  };
-  const body = Object.entries(meta)
-    .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
-    .join(", ");
-  return `.meta({ ${body} })`;
-}
+const keywordsOf = ({ description, ...meta }: FieldMeta): Json => ({
+  description,
+  ...Object.fromEntries(
+    Object.entries(meta).map(([k, v]) => [META_KEYWORDS[k as keyof typeof META_KEYWORDS], v]),
+  ),
+});
+
+const fieldMeta = (key: string, c: Control, extra: FieldMeta = {}): FieldMeta => ({
+  description: c.description ?? c.label ?? key,
+  ...extra,
+  ...(c.emptyLabel ? { zeroLabel: c.emptyLabel } : {}),
+  ...controlMeta(c),
+});
+
+const COLOUR: Json = { type: "string", "x-check": { rule: "colour", message: "Pick a colour" } };
+
+const THEME_VALUE: Json = {
+  type: "object",
+  properties: {
+    mode: { type: "string", enum: THEME_MODES },
+    colors: {
+      type: "object",
+      propertyNames: { type: "string" },
+      additionalProperties: { type: "string" },
+    },
+  },
+  required: ["mode", "colors"],
+};
+
+const listOf = (c: Control, items: Json): Json => ({
+  ...(typeof c.min === "number" ? { minItems: c.min } : {}),
+  ...(typeof c.max === "number" ? { maxItems: c.max } : {}),
+  type: "array",
+  items,
+});
 
 const COLLECTIONS = {
-  strings: { zod: "z.array(z.string())", empty: [] },
-  numbers: { zod: "z.array(z.number())", empty: [] },
-  object: { zod: "z.record(z.string(), z.unknown())", empty: {} },
+  strings: { items: { type: "string" }, empty: [] },
+  numbers: { items: { type: "number" }, empty: [] },
 } as const;
 
-const lengths = (c: Control) =>
-  `${typeof c.min === "number" ? `.min(${c.min})` : ""}${typeof c.max === "number" ? `.max(${c.max})` : ""}`;
-
-function rowsZod(c: Control): string | null {
-  const fields = Object.entries(c.columns ?? {}).map(([k, col]) => {
-    const schema = zodFor(k, col);
-    return schema ? `${IDENTIFIER.test(k) ? k : JSON.stringify(k)}: ${schema}` : null;
-  });
-  if (fields.length === 0 || fields.includes(null)) return null;
-  return `z.array(z.object({ ${fields.join(", ")} }))`;
+function rowSchema(c: Control): Json | null {
+  const fields = Object.entries(c.columns ?? {}).map(
+    ([k, col]) => [k, fieldSchema(k, col)] as const,
+  );
+  if (fields.length === 0 || fields.some(([, schema]) => schema === null)) return null;
+  return { type: "object", properties: Object.fromEntries(fields) };
 }
 
-function baseZod(c: Control): { zod: string; fallback: unknown; extra?: FieldMeta } | null {
+type Base = { schema: Json; fallback: unknown; extra?: FieldMeta };
+
+function baseSchema(c: Control): Base | null {
   const text = String(c.default ?? "");
+  const string = { type: "string" };
   switch (c.type) {
     case "text":
     case "text-content":
       return {
-        zod: "z.string()",
+        schema: string,
         fallback: text,
         extra: text.includes("\n") || text.length > 60 ? { widget: "textarea" } : {},
       };
     case "code":
-      return { zod: "z.string()", fallback: text, extra: { widget: "code" } };
+      return { schema: string, fallback: text, extra: { widget: "code" } };
     case "font":
-      return { zod: "z.string()", fallback: "", extra: { widget: "font" } };
+      return { schema: string, fallback: "", extra: { widget: "font" } };
     case "image":
     case "asset":
       return {
-        zod: "z.string()",
+        schema: string,
         fallback: text,
         extra: { widget: "asset", ...(c.accept ? { accept: c.accept } : {}) },
       };
     case "gradient":
-      return { zod: "z.string()", fallback: text, extra: { widget: "gradient" } };
-    case "number": {
-      let zod = "z.number()";
-      if (typeof c.min === "number") zod += `.min(${c.min})`;
-      if (typeof c.max === "number") zod += `.max(${c.max})`;
-      return { zod, fallback: typeof c.default === "number" ? c.default : 0 };
-    }
+      return { schema: string, fallback: text, extra: { widget: "gradient" } };
+    case "number":
+      return {
+        schema: {
+          type: "number",
+          ...(typeof c.min === "number" ? { minimum: c.min } : {}),
+          ...(typeof c.max === "number" ? { maximum: c.max } : {}),
+        },
+        fallback: typeof c.default === "number" ? c.default : 0,
+      };
     case "color":
       return c.emptyLabel
-        ? { zod: "z.string()", fallback: text, extra: { widget: "color" } }
-        : { zod: "zColor()", fallback: String(c.default ?? "#000000") };
+        ? { schema: string, fallback: text, extra: { widget: "color" } }
+        : { schema: COLOUR, fallback: String(c.default ?? "#000000") };
     case "boolean":
-      return { zod: "z.boolean()", fallback: c.default === true };
+      return { schema: { type: "boolean" }, fallback: c.default === true };
     case "enum":
     case "select": {
-      const opts = c.options ?? Object.keys(c.variants ?? {});
+      const opts = (c.options ?? Object.keys(c.variants ?? {})).map(String);
       if (opts.length === 0) return null;
       const def =
         c.default != null && opts.includes(String(c.default)) ? String(c.default) : opts[0];
-      return { zod: `z.enum(${JSON.stringify(opts.map(String))})`, fallback: def };
+      return { schema: { type: "string", enum: opts }, fallback: def };
     }
     case "colors":
-      return { zod: `z.array(zColor())${lengths(c)}`, fallback: c.default ?? [] };
+      return { schema: listOf(c, COLOUR), fallback: c.default ?? [] };
     case "theme":
       return {
-        zod: "themeValueSchema",
+        schema: THEME_VALUE,
         fallback: { mode: c.default === "light" ? "light" : "dark", colors: {} },
         extra: { widget: "theme" },
       };
     case "rows": {
-      const zod = rowsZod(c);
-      return zod ? { zod: `${zod}${lengths(c)}`, fallback: c.default ?? [] } : null;
+      const row = rowSchema(c);
+      return row ? { schema: listOf(c, row), fallback: c.default ?? [] } : null;
     }
     case "strings":
-    case "numbers":
-    case "object": {
-      const { zod, empty } = COLLECTIONS[c.type];
-      return { zod: `${zod}${lengths(c)}`, fallback: c.default ?? empty };
+    case "numbers": {
+      const { items, empty } = COLLECTIONS[c.type];
+      return { schema: listOf(c, items), fallback: c.default ?? empty };
     }
+    case "object":
+      return {
+        schema: { type: "object", propertyNames: { type: "string" }, additionalProperties: {} },
+        fallback: c.default ?? {},
+      };
   }
 }
 
-export function zodFor(key: string, c: Control): string | null {
-  const base = baseZod(c);
+export function fieldSchema(key: string, c: Control): Json | null {
+  const base = baseSchema(c);
   if (!base) return null;
-  const tail = c.optional ? ".optional()" : `.default(${JSON.stringify(base.fallback)})`;
-  return `${base.zod}${tail}${metaOf(key, c, base.extra)}`;
+  return {
+    ...(c.optional ? {} : { default: base.fallback }),
+    ...keywordsOf(fieldMeta(key, c, base.extra)),
+    ...base.schema,
+  };
 }
 
 const titleOf = (name: string): string =>
@@ -262,29 +291,39 @@ export function withSeconds(
   return out;
 }
 
-export function renderMetaEntry({ item, key, description, controls, duration }: Resolved): string {
+export function elementEntry({
+  item,
+  key,
+  description,
+  controls,
+  duration,
+}: Resolved): ElementEntry {
   const reg = REGISTRIES[item.registry];
-  const fields = withSeconds(item.name, controls)
-    .map(([k, c]) => [k, zodFor(k, c)] as const)
-    .filter((f): f is readonly [string, string] => f[1] != null)
-    .map(([k, schema]) => `      ${IDENTIFIER.test(k) ? k : JSON.stringify(k)}: ${schema},`);
-  return [
-    `  {`,
-    `    key: ${JSON.stringify(key)},`,
-    `    title: ${JSON.stringify(item.title ?? titleOf(item.name))},`,
-    ...(description ? [`    description: ${JSON.stringify(description)},`] : []),
-    `    category: ${JSON.stringify(item.category)},`,
-    `    kind: ${JSON.stringify(kindOf(item))},`,
-    `    source: { registry: ${JSON.stringify(reg.label)}, url: ${JSON.stringify(`${reg.docs}/${item.name}`)}, license: ${JSON.stringify(reg.license)} },`,
-    `    schema: z.object({`,
-    ...fields,
-    `    }),`,
-    `    fixedProps: ${JSON.stringify(item.fixedProps ?? {})},`,
-    `    defaultDurationInFrames: ${duration},`,
-    ...(item.design ? [`    design: ${JSON.stringify(item.design)},`] : []),
-    ...(item.optionalClip ? [`    optionalClip: true,`] : []),
-    `  },`,
-  ].join("\n");
+  const properties = Object.fromEntries(
+    withSeconds(item.name, controls).flatMap(([k, c]) => {
+      const schema = fieldSchema(k, c);
+      return schema ? [[k, schema]] : [];
+    }),
+  );
+  const defaultProps = Object.fromEntries(
+    Object.entries(properties).flatMap(([k, schema]) =>
+      "default" in schema ? [[k, schema.default]] : [],
+    ),
+  );
+  return {
+    key,
+    title: item.title ?? titleOf(item.name),
+    ...(description ? { description } : {}),
+    category: item.category,
+    kind: kindOf(item),
+    source: { registry: reg.label, url: `${reg.docs}/${item.name}`, license: reg.license },
+    schema: { type: "object", properties },
+    defaultProps,
+    fixedProps: item.fixedProps ?? {},
+    defaultDurationInFrames: duration,
+    ...(item.design ? { design: item.design } : {}),
+    ...(item.optionalClip ? { optionalClip: true } : {}),
+  };
 }
 
 function implOf(
@@ -320,20 +359,6 @@ export function renderLoaderEntry({ item, key, file, exportName }: Resolved): {
     helpers,
   };
 }
-
-export const renderMeta = (entries: string[]): string =>
-  [
-    'import { zColor } from "@remotion/zod-types";',
-    'import { z } from "zod";',
-    'import { defineElementMeta, themeValueSchema, type ElementMetaInput } from "../lib/element-meta";',
-    "",
-    "const defs: ElementMetaInput[] = [",
-    ...entries,
-    "];",
-    "",
-    "export const generatedElementMeta = defs.map(defineElementMeta);",
-    "",
-  ].join("\n");
 
 export const renderLoaders = (loaders: string[], helpers: Set<FramingHelper>): string =>
   [

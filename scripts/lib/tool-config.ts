@@ -25,7 +25,6 @@ export const IGNORED_PATHS = [
   "apps/ui/src/generated/bindings.ts",
   "apps/sidecar/src/generated/protocol.ts",
   "remotion-bundle/**",
-  "scripts/.ingest/**",
   "resources/**",
   "packages/*/dist/**",
   "apps/ui/src/routeTree.gen.ts",

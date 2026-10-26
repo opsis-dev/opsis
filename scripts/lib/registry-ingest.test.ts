@@ -4,22 +4,31 @@ import path from "node:path";
 import { parsePatch } from "diff";
 import { describe, expect, it } from "vitest";
 import type { CuratedElement } from "../registry-ingest.list";
-import { zodFor } from "./registry-codegen";
+import { fieldSchema } from "./registry-codegen";
 import { inferColumns, isColorList, rowTypeName } from "./registry-columns";
 import { namesLibrary, themeFallbacks } from "./registry-controls";
 import { hasReason, patchSource } from "./registry-patches";
 import { componentProps, hiddenDefaultTexts, hiddenPropProblems } from "./registry-props";
 import { bindingDefaults } from "./ts-literal";
 
-describe("zodFor", () => {
+const COLOUR = { type: "string", "x-check": { rule: "colour", message: "Pick a colour" } };
+
+describe("fieldSchema", () => {
   it("writes a palette with its length limits", () => {
-    expect(zodFor("colors", { type: "colors", min: 2, max: 7, default: ["#000", "#fff"] })).toBe(
-      'z.array(zColor()).min(2).max(7).default(["#000","#fff"]).meta({ description: "colors" })',
-    );
+    expect(
+      fieldSchema("colors", { type: "colors", min: 2, max: 7, default: ["#000", "#fff"] }),
+    ).toEqual({
+      default: ["#000", "#fff"],
+      description: "colors",
+      minItems: 2,
+      maxItems: 7,
+      type: "array",
+      items: COLOUR,
+    });
   });
 
   it("writes rows as objects built from their columns", () => {
-    const rows = zodFor("steps", {
+    const rows = fieldSchema("steps", {
       type: "rows",
       default: [{ at: 0, code: "a" }],
       description: "Versions",
@@ -28,38 +37,68 @@ describe("zodFor", () => {
         at: { type: "number", default: 0, description: "Show at", unit: "frames" },
       },
     });
-    expect(rows).toBe(
-      'z.array(z.object({ code: z.string().default("").meta({ description: "Code", widget: "code" }), at: z.number().default(0).meta({ description: "Show at", unit: "frames" }) })).default([{"at":0,"code":"a"}]).meta({ description: "Versions" })',
-    );
+    expect(rows).toEqual({
+      default: [{ at: 0, code: "a" }],
+      description: "Versions",
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          code: { default: "", description: "Code", "x-widget": "code", type: "string" },
+          at: { default: 0, description: "Show at", "x-unit": "frames", type: "number" },
+        },
+      },
+    });
   });
 
   it("refuses rows without columns", () => {
-    expect(zodFor("rows", { type: "rows", default: [] })).toBeNull();
+    expect(fieldSchema("rows", { type: "rows", default: [] })).toBeNull();
   });
 
   it("writes optional settings and colours that may be empty", () => {
-    expect(zodFor("max", { type: "number", optional: true, emptyLabel: "Auto" })).toBe(
-      'z.number().optional().meta({ description: "max", zeroLabel: "Auto" })',
-    );
-    expect(zodFor("bg", { type: "color", default: "", emptyLabel: "Theme" })).toBe(
-      'z.string().default("").meta({ description: "bg", widget: "color", zeroLabel: "Theme" })',
-    );
+    expect(fieldSchema("max", { type: "number", optional: true, emptyLabel: "Auto" })).toEqual({
+      description: "max",
+      "x-zero-label": "Auto",
+      type: "number",
+    });
+    expect(fieldSchema("bg", { type: "color", default: "", emptyLabel: "Theme" })).toEqual({
+      default: "",
+      description: "bg",
+      "x-widget": "color",
+      "x-zero-label": "Theme",
+      type: "string",
+    });
   });
 
   it("writes gradients and themes with their widgets", () => {
-    expect(zodFor("g", { type: "gradient", default: "linear-gradient(red, blue)" })).toBe(
-      'z.string().default("linear-gradient(red, blue)").meta({ description: "g", widget: "gradient" })',
-    );
+    expect(fieldSchema("g", { type: "gradient", default: "linear-gradient(red, blue)" })).toEqual({
+      default: "linear-gradient(red, blue)",
+      description: "g",
+      "x-widget": "gradient",
+      type: "string",
+    });
+    const themes = { light: { background: "#fff" }, dark: { background: "#000" } };
     expect(
-      zodFor("theme", {
-        type: "theme",
-        default: "light",
-        description: "Theme",
-        themes: { light: { background: "#fff" }, dark: { background: "#000" } },
-      }),
-    ).toBe(
-      'themeValueSchema.default({"mode":"light","colors":{}}).meta({ description: "Theme", widget: "theme", themes: {"light":{"background":"#fff"},"dark":{"background":"#000"}} })',
-    );
+      fieldSchema("theme", { type: "theme", default: "light", description: "Theme", themes }),
+    ).toMatchObject({
+      default: { mode: "light", colors: {} },
+      description: "Theme",
+      "x-widget": "theme",
+      "x-themes": themes,
+      type: "object",
+      required: ["mode", "colors"],
+    });
+  });
+
+  it("puts the default first, then the field's keywords, then its type", () => {
+    const schema = fieldSchema("size", { type: "number", default: 4, min: 1, step: 1 });
+    expect(Object.keys(schema ?? {})).toEqual([
+      "default",
+      "description",
+      "x-step",
+      "type",
+      "minimum",
+    ]);
   });
 });
 

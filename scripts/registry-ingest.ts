@@ -6,12 +6,11 @@ import { pascalCase } from "@opsis/video/common/format";
 import { isNumber, isRecord } from "@opsis/video/common/guards";
 import { z } from "zod";
 import { fetchOk } from "./lib/download";
-import { INGEST_META, writeElementsJson } from "./lib/element-json";
+import { writeElementsJson, type ElementEntry } from "./lib/element-json";
 import {
+  elementEntry,
   renderLoaderEntry,
   renderLoaders,
-  renderMeta,
-  renderMetaEntry,
   type Resolved,
 } from "./lib/registry-codegen";
 import {
@@ -39,7 +38,6 @@ import {
   type CuratedElement,
 } from "./registry-ingest.list";
 
-const OUT_META = INGEST_META;
 const OUT_COMPONENTS = path.join(VIDEO_DIR, "registry", "components.generated.ts");
 const skipAdd = process.argv.includes("--no-add");
 const onlyIndex = process.argv.indexOf("--only");
@@ -172,7 +170,7 @@ async function registryDuration(item: CuratedElement): Promise<number | undefine
   return byName[item.name] ?? fallback;
 }
 
-type Ingested = { meta: string } & ReturnType<typeof renderLoaderEntry>;
+type Ingested = { entry: ElementEntry } & ReturnType<typeof renderLoaderEntry>;
 
 const itemName = (item: CuratedElement) => `${item.registry}/${item.name}`;
 
@@ -256,7 +254,7 @@ async function resolveItem(item: CuratedElement): Promise<WithProblems<Resolved 
 async function ingest(item: CuratedElement): Promise<WithProblems<Ingested | null>> {
   const { value, problems } = await resolveItem(item);
   return {
-    value: value ? { meta: renderMetaEntry(value), ...renderLoaderEntry(value) } : null,
+    value: value ? { entry: elementEntry(value), ...renderLoaderEntry(value) } : null,
     problems,
   };
 }
@@ -270,21 +268,16 @@ async function generate(): Promise<void> {
     if (result.value) ingested.push(result.value);
   }
   const helpers = new Set(ingested.flatMap((i) => i.helpers));
-  for (const [file, text] of [
-    [OUT_META, renderMeta(ingested.map((i) => i.meta))],
-    [
-      OUT_COMPONENTS,
-      renderLoaders(
-        ingested.map((i) => i.loader),
-        helpers,
-      ),
-    ],
-  ] as const) {
-    mkdirSync(path.dirname(file), { recursive: true });
-    writeFileSync(file, text);
-    console.log(`wrote ${path.relative(ROOT, file)}`);
-  }
-  await writeElementsJson();
+  mkdirSync(path.dirname(OUT_COMPONENTS), { recursive: true });
+  writeFileSync(
+    OUT_COMPONENTS,
+    renderLoaders(
+      ingested.map((i) => i.loader),
+      helpers,
+    ),
+  );
+  console.log(`wrote ${path.relative(ROOT, OUT_COMPONENTS)}`);
+  writeElementsJson(ingested.map((i) => i.entry));
   console.log(`${ingested.length} elements`);
   if (problems.length) {
     console.warn(`\n${problems.length} problem(s):\n  ${problems.join("\n  ")}`);

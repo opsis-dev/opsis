@@ -18,7 +18,6 @@ vite.config.ts.timestamp-*
 apps/*/dist/
 remotion-bundle/
 /resources/
-scripts/.ingest/
 
 # Projects and secrets
 .opsis/

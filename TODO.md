@@ -37,10 +37,6 @@ Timeline edits (`apps/ui/src/timeline/edits.ts`, 696 lines), `apps/ui/src/workfl
 
 `apps/ui/src/core` echoes the removed `packages/core`. Name folders for what they hold once items 5–9 have emptied most of it.
 
-### 19. Element metadata authored in zod
-
-`scripts/lib/element-meta.ts` writes registry element settings as zod schemas with `.meta()` and converts them to JSON Schema for Rust. The ingest reads the elements' TSX, so it stays in TS, but the metadata format could be JSON Schema with `x-` keywords from the start, as the Rust nodes use.
-
 ## Bugs
 
 Wrong behaviour found in the session transcripts and confirmed in the current code.
