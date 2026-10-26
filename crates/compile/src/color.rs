@@ -33,15 +33,6 @@ pub fn parse_color(value: &str) -> Option<Hsva> {
     })
 }
 
-pub fn opaque_hex(value: &str) -> Option<String> {
-    let c = parsed(value)?;
-    Some(
-        csscolorparser::Color::new(c.r, c.g, c.b, 1.0)
-            .to_css_hex()
-            .to_string(),
-    )
-}
-
 pub fn css_hex(value: &str) -> Option<String> {
     parsed(value).map(|c| c.to_css_hex().to_string())
 }

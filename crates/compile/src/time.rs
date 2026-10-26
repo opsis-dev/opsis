@@ -52,10 +52,6 @@ pub fn frames_to_recording_ms(frames: f64, speed: f64, fps: f64) -> f64 {
     frames / fps * speed * 1000.0
 }
 
-pub fn clamp_frame(frame: f64, total: f64) -> f64 {
-    clamp(frame.round(), 0.0, (total - 1.0).max(0.0))
-}
-
 fn clock(total_seconds: u64) -> (u64, u64, u64) {
     (
         total_seconds / 3600,

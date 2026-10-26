@@ -72,11 +72,3 @@ pub fn node_name(node: &WorkflowNode) -> String {
             .unwrap_or_else(|| node.kind.clone()),
     }
 }
-
-pub fn node_name_by_id(nodes: &[WorkflowNode], id: &str) -> String {
-    nodes
-        .iter()
-        .find(|n| n.id == id)
-        .map(node_name)
-        .unwrap_or_else(|| id.to_owned())
-}

@@ -194,15 +194,6 @@ impl VideoBar {
             content_end: self.clock.content_end,
         }
     }
-
-    pub fn local_at(&self, abs: f64) -> f64 {
-        bisect(
-            &self.clock.inst,
-            self.clock.item_from,
-            self.clock.content_end,
-            abs,
-        ) - self.clock.item_from
-    }
 }
 
 #[derive(Debug, Clone, Serialize, specta::Type)]

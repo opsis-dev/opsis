@@ -169,21 +169,6 @@ fn nodes_by_id(wf: &Workflow) -> HashMap<&str, &WorkflowNode> {
     map
 }
 
-pub fn port_of(
-    wf: &Workflow,
-    node_id: &str,
-    input: bool,
-    handle: &str,
-) -> Option<&'static PortSpec> {
-    let node = wf.node(node_id)?;
-    let def = node_def(&node.kind)?;
-    if input {
-        def.input(handle)
-    } else {
-        def.output(handle)
-    }
-}
-
 enum EdgeFault<'a> {
     Node(&'a str),
     Output(&'a WorkflowNode, &'a str),

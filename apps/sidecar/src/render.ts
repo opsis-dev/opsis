@@ -1,26 +1,18 @@
-import {
-  makeCancelSignal,
-  openBrowser,
-  renderMedia,
-  renderStill,
-  selectComposition,
-  type HeadlessBrowser,
-} from "@remotion/renderer";
+import { makeCancelSignal, renderMedia, renderStill, selectComposition } from "@remotion/renderer";
 import { freeTcpPort } from "#sidecar/free-tcp-port";
-import type { Gl, MediaJob, RenderTarget, StillJob } from "#sidecar/generated/protocol";
+import type { MediaJob, RenderTarget, StillJob } from "#sidecar/generated/protocol";
 
 type CancelSignal = ReturnType<typeof makeCancelSignal>["cancelSignal"];
 
-export type RenderControl = { signal: AbortSignal; browser?: HeadlessBrowser };
+export type RenderControl = { signal: AbortSignal };
 
-async function compositionFor(target: RenderTarget, control: RenderControl) {
+async function compositionFor(target: RenderTarget) {
   const common = {
     serveUrl: target.serveUrl,
     inputProps: target.spec,
     binariesDirectory: target.binariesDirectory,
     browserExecutable: target.browserExecutable,
     chromiumOptions: { gl: target.gl },
-    ...(control.browser ? { puppeteerInstance: control.browser } : {}),
   };
   const composition = await selectComposition({
     ...common,
@@ -45,7 +37,7 @@ async function withComposition(
   const { cancel, cancelSignal } = makeCancelSignal();
   control.signal.addEventListener("abort", cancel, { once: true });
   try {
-    await render({ ...(await compositionFor(target, control)), cancelSignal });
+    await render({ ...(await compositionFor(target)), cancelSignal });
   } finally {
     control.signal.removeEventListener("abort", cancel);
   }
@@ -80,11 +72,4 @@ export function renderFrame(job: StillJob, control: RenderControl): Promise<void
       jpegQuality: job.jpegQuality,
     }),
   );
-}
-
-export function openRenderBrowser(browserExecutable: string, gl: Gl): Promise<HeadlessBrowser> {
-  return openBrowser("chrome", {
-    browserExecutable,
-    chromiumOptions: { gl },
-  });
 }

@@ -1,4 +1,5 @@
 import { clamp } from "@opsis/video/common/math";
+import { playRange } from "@opsis/video/common/time";
 import { useEffect, useRef, useState } from "react";
 import { dbToGain } from "@/core/mix";
 import type { PreviewTarget, TimelineSpec, ViewSize } from "@/generated/bindings";
@@ -121,16 +122,7 @@ function useControls(open: boolean, durationInFrames: number): void {
     if (open) void window.opsis.previewRate(rate);
   }, [open, rate]);
   useEffect(() => {
-    if (!open) return;
-    const last = durationInFrames - 1;
-    const range =
-      (inPoint === null && outPoint === null) || durationInFrames < 2
-        ? {}
-        : {
-            inFrame: clamp(inPoint ?? 0, 0, last - 1),
-            outFrame: clamp(outPoint ?? last, (inPoint ?? 0) + 1, last),
-          };
-    void window.opsis.previewRange(range);
+    if (open) void window.opsis.previewRange(playRange(inPoint, outPoint, durationInFrames));
   }, [open, inPoint, outPoint, durationInFrames]);
 }
 

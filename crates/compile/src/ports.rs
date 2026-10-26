@@ -67,10 +67,6 @@ pub fn in_port_index(handle: &str) -> Option<usize> {
     IN_PORTS.iter().position(|p| *p == handle)
 }
 
-pub fn next_in_port(handle: &str) -> Option<&'static str> {
-    in_port_index(handle).and_then(|i| IN_PORTS.get(i + 1).copied())
-}
-
 pub fn clip_label(i: usize) -> String {
     format!("Clip {}", i + 1)
 }

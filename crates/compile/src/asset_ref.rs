@@ -40,10 +40,6 @@ pub fn is_project_ref(r: &str) -> bool {
     r.starts_with(PROJECT_SCHEME)
 }
 
-pub fn is_asset_ref(value: &str) -> bool {
-    value.starts_with(PROJECT_SCHEME) || value.starts_with(APP_SCHEME)
-}
-
 pub fn is_external_ref(r: &str) -> bool {
     EXTERNAL_SCHEMES.iter().any(|s| r.starts_with(s))
 }
@@ -178,7 +174,9 @@ impl PreparedRef {
             RefTarget::Project(rel) if is_project_ref(source) && stays_in_project(source) => {
                 RefTarget::Project(rel)
             }
-            RefTarget::App(rel) if !rel.split('/').any(|p| p == "..") => RefTarget::App(rel),
+            RefTarget::App(rel) if !rel.split(['/', '\\']).any(|p| p == "..") => {
+                RefTarget::App(rel)
+            }
             _ => return None,
         };
         Some(Self { kind, source })

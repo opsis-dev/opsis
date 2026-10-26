@@ -49,10 +49,6 @@ impl Codec {
             Self::Gif => "GIF",
         }
     }
-
-    pub fn has_quality(self) -> bool {
-        matches!(self, Self::H264 | Self::H265 | Self::Vp8 | Self::Vp9)
-    }
 }
 
 pub const QUALITY_PRESETS: [(&str, i64); 4] =

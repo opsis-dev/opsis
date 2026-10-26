@@ -114,11 +114,6 @@ export function paddedRegion(
   };
 }
 
-export const captureCanvas = (project: Size): Size => ({
-  width: project.width * CAPTURE.maxExportScale,
-  height: project.height * CAPTURE.maxExportScale,
-});
-
 export function captureScale(
   look: StillLook,
   region: Size,

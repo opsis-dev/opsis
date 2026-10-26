@@ -35,10 +35,6 @@ fn sorted_envelope_at(sorted: &[Keyframe], frame: f64, fallback: f64) -> f64 {
     a.value + (b.value - a.value) * ease(a.ease, (frame - a.frame) / (b.frame - a.frame))
 }
 
-pub fn envelope_at(keys: Option<&[Keyframe]>, frame: f64, fallback: f64) -> f64 {
-    sorted_envelope_at(&sort_keys(keys.unwrap_or_default()), frame, fallback)
-}
-
 const STEPS_PER_SEGMENT: usize = 8;
 const HOLD_STEP_FRAMES: f64 = 1e-3;
 

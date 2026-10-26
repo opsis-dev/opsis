@@ -84,7 +84,3 @@ impl Backdrop {
 }
 
 pub const DEFAULT_BACKDROP: Backdrop = Backdrop::Glaze;
-
-pub fn backdrop_tone(name: &str) -> Option<Tone> {
-    Backdrop::named(name).map(Backdrop::tone)
-}

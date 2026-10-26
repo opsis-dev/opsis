@@ -109,9 +109,6 @@ export const spotYKey = (spotXKey: string): string =>
 export const shapeEntries = (schema: JsonSchema): Array<[string, JsonSchema]> =>
   Object.entries(schema.properties ?? {});
 
-export const hasWidget = (schema: JsonSchema, widget: FieldWidget): boolean =>
-  shapeEntries(schema).some(([, s]) => s["x-widget"] === widget);
-
 export function schemaDefaults(schema: JsonSchema): Record<string, unknown> {
   const own = isRecord(schema.default) ? schema.default : {};
   const out: Record<string, unknown> = { ...structuredClone(own) };

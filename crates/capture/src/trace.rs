@@ -382,10 +382,6 @@ impl Trace {
         });
     }
 
-    pub fn add_frames(&self, frames: Vec<TakeFrame>) {
-        self.state().frames.extend(frames);
-    }
-
     pub fn finish(&self, viewport: Viewport) -> TraceTake {
         let mut state = std::mem::take(&mut *self.state());
         let pending: Vec<TraceRequest> = state.pending.drain(..).map(|(_, p)| p.request).collect();

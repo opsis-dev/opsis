@@ -1,4 +1,3 @@
-use opsis_types::actions::Viewport;
 use opsis_types::recording::RecordingProps;
 use opsis_types::timeline::{
     AudioEnvelope, AudioItem, CameraPath, Design, EditHandles, GroupProps, ItemBase, Keyframe,
@@ -940,13 +939,5 @@ pub fn clip_to_spec(clip: &ClipValue, settings: &WorkflowSettings) -> TimelineSp
         quality: None,
         fonts: Some(settings.fonts.clone()),
         mix: None,
-    }
-}
-
-pub fn design_of(size: Viewport, exact: bool) -> Design {
-    Design {
-        width: size.width,
-        height: size.height,
-        exact: exact.then_some(true),
     }
 }

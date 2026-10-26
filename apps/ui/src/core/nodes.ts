@@ -4,7 +4,6 @@ import type { ReframeMode, WorkflowNode, WorkflowSettings } from "@/generated/bi
 import { getNodeDef } from "@/store/catalog";
 
 export const CARD_WIDTH = 256;
-export const CARD_GAP = 32;
 export const COLUMN_WIDTH = 300;
 export const ROW_HEIGHT = 170;
 
@@ -12,8 +11,6 @@ export const GROUP_TYPE = "core.group";
 export const NOTE_TYPE = "core.note";
 
 export const CLIP_PORT = "clip";
-export const SESSION_PORT = "session";
-
 export const IN_PORTS = ["in1", "in2", "in3", "in4", "in5", "in6"] as const;
 
 export type InPort = (typeof IN_PORTS)[number];

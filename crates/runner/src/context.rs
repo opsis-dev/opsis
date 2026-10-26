@@ -254,12 +254,4 @@ impl ExecutorContext {
         ref_to_path(&self.project_dir, &self.env.public_dir, reference)
             .map_err(|e| ExecError::new(e.to_string()))
     }
-
-    pub fn check_cancelled(&self) -> Result<(), ExecError> {
-        if self.cancel.is_cancelled() {
-            Err(ExecError::Cancelled)
-        } else {
-            Ok(())
-        }
-    }
 }

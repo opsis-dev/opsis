@@ -25,15 +25,6 @@ impl FontRole {
             Self::Code => "df-code",
         }
     }
-
-    fn stack(self) -> String {
-        let fallback = if self == Self::Code {
-            "ui-monospace, monospace"
-        } else {
-            "system-ui, sans-serif"
-        };
-        format!("\"{}\", {fallback}", self.family())
-    }
 }
 
 pub fn same_family(a: &str, b: &str) -> bool {
@@ -72,21 +63,6 @@ pub fn font_stack(name: &str, families: &[FontFamilyDef]) -> String {
 pub fn font_prop(value: &str) -> Option<String> {
     let name = value.trim();
     (!name.is_empty()).then(|| font_stack(name, &[]))
-}
-
-pub fn font_or(family: Option<&str>, role: FontRole) -> String {
-    family
-        .filter(|f| !f.is_empty())
-        .map(str::to_owned)
-        .unwrap_or_else(|| role.stack())
-}
-
-pub fn main_font() -> String {
-    FontRole::Main.stack()
-}
-
-pub fn code_font() -> String {
-    FontRole::Code.stack()
 }
 
 pub fn role_family_name(role: FontRole, fonts: &ProjectFonts) -> &str {
