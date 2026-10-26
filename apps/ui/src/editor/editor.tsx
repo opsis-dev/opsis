@@ -58,7 +58,7 @@ function useEditorSetup(projectDir: string): void {
 }
 
 export function Editor({ projectDir }: { projectDir: string }) {
-  const compiled = useCompiled();
+  const compiled = useCompiled({ drive: true });
   const horizontal = useDefaultLayout({
     id: "opsis:editor-columns",
     storage: layoutStorage,

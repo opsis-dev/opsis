@@ -1,9 +1,9 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
-import { fontOr } from "@opsis/core/fonts";
 import React from "react";
 import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED, exitOpacity } from "#video/core/anim.ts";
 import { useOverlayFrame } from "#video/core/frame.ts";
+import type { CoreElementProps } from "#video/generated/spec.ts";
 
 const CALLOUT = {
   drawFrames: 18,

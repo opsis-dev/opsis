@@ -1,4 +1,4 @@
-import { isPrimaryModifier } from "@opsis/core/menu";
+import { isPrimaryModifier } from "@/core/menu";
 import { platform } from "@/lib/platform";
 import { usePlayback } from "../../store/playback";
 import { useTimeline } from "./timeline-state";

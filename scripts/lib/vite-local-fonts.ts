@@ -5,7 +5,7 @@ import {
   GOOGLE_SHIM_SEGMENTS,
 } from "@opsis/video/fonts/google-font-imports";
 import type { Plugin } from "vite";
-import { VIDEO_DIR } from "./tool-config";
+import { VIDEO_DIR } from "./tool-config.ts";
 
 export const localFonts = (): Plugin => ({
   name: "opsis-local-fonts",

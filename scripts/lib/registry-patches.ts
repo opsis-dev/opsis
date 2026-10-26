@@ -1,8 +1,12 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { applyPatch, parsePatch, reversePatch, type StructuredPatch } from "diff";
-import { isInside } from "../../src/engine/project-paths";
 import { ROOT, VIDEO_DIR } from "./tool-config";
+
+function isInside(root: string, file: string): boolean {
+  const rel = path.relative(root, file);
+  return rel !== ".." && !rel.startsWith(`..${path.sep}`) && !path.isAbsolute(rel);
+}
 
 export const PATCH_DIR = path.join(ROOT, "scripts", "registry-patches");
 

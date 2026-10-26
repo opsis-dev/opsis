@@ -1,17 +1,17 @@
-import { POINTER_KINDS } from "@opsis/core/compile/recording";
-import {
-  pointRect,
-  rectCenter,
-  rectUnion,
-  type Action,
-  type ActionLog,
-  type Point,
-  type Rect,
-  type Viewport,
-} from "@opsis/core/schema/actions";
-import type { AnnotationKind, AnnotationSpec, HighlightLook } from "@opsis/core/schema/recording";
 import type { ClickEvent, ClickLog, KeyEvent } from "#video/camera/lib/click-log.ts";
 import { designScaleFor } from "#video/camera/lib/design-width.ts";
+import { pointRect, rectCenter, rectUnion } from "#video/common/geometry.ts";
+import { POINTER_KINDS } from "#video/common/recording.ts";
+import type {
+  Action,
+  ActionLog,
+  Point,
+  Rect,
+  Viewport,
+  AnnotationKind,
+  AnnotationSpec,
+  HighlightLook,
+} from "#video/generated/spec.ts";
 
 export type Annotation = {
   id: string;

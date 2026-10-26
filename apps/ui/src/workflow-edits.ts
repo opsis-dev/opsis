@@ -1,20 +1,19 @@
-import { sameFamily, type FontRole } from "@opsis/core/fonts";
-import type { FontFamilyDef } from "@opsis/core/fonts/types";
-import { isGroupNode } from "@opsis/core/graph";
-import { nonBlankString } from "@opsis/core/guards";
-import { edgeId, nodeIdFor } from "@opsis/core/ids";
-import { findById } from "@opsis/core/lists";
-import { defaultParams, getNodeDef } from "@opsis/core/nodes/registry";
-import { GROUP_TYPE } from "@opsis/core/nodes/utility";
-import type { Point, Viewport } from "@opsis/core/schema/actions";
-import {
-  normalizeWorkflow,
-  type EdgeEnds,
-  type Workflow,
-  type WorkflowEdge,
-  type WorkflowNode,
-} from "@opsis/core/schema/workflow";
-import { renameVariable } from "@opsis/core/vars";
+import { sameFamily, type FontRole } from "@opsis/video/common/fonts";
+import { nonBlankString } from "@opsis/video/common/guards";
+import { findById } from "@opsis/video/common/lists";
+import { edgeId, nodeIdFor } from "@/core/ids";
+import { GROUP_TYPE, isGroupNode } from "@/core/nodes";
+import { renameVariable } from "@/core/vars";
+import { normalizeWorkflow, type EdgeEnds } from "@/core/workflow";
+import type {
+  FontFamilyDef,
+  Point,
+  Viewport,
+  Workflow,
+  WorkflowEdge,
+  WorkflowNode,
+} from "@/generated/bindings";
+import { defaultParams, getNodeDef } from "@/store/catalog";
 
 export const GROUP_PAD = 40;
 export const GROUP_TITLE_HEIGHT = 24;

@@ -1,6 +1,4 @@
-import type { EngineInstallEvent } from "@opsis/core/engine";
-import { errorMessage } from "@opsis/core/errors";
-import { wholePercent } from "@opsis/core/format";
+import { wholePercent } from "@opsis/video/common/format";
 import { useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, Download } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -8,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
+import { errorMessage } from "@/core/errors";
+import type { EngineInstallEvent } from "@/generated/bindings";
 import { useEnvironment, useFreshEnvironment } from "../store/environment";
 import { PageBar } from "./app-bar";
 import { AnimatedPercent } from "./motion";

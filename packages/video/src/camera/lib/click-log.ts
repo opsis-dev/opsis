@@ -1,4 +1,4 @@
-import type { Point, Rect, Viewport } from "@opsis/core/schema/actions";
+import type { Point, Rect, Viewport } from "#video/generated/spec.ts";
 
 export type ClickEvent = {
   label?: string;

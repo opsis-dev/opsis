@@ -1,13 +1,12 @@
-import { errorMessage } from "@opsis/core/errors";
-import { BUNDLED_FONTS } from "@opsis/core/fonts/bundled.generated";
-import type { FontFamilyDef } from "@opsis/core/fonts/types";
-import type { LicenceEntry } from "@opsis/core/ipc";
+import { BUNDLED_FONTS } from "@opsis/video/common/bundled-fonts.generated";
 import { ChevronRight, ExternalLink } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Spinner } from "@/components/ui/spinner";
+import { errorMessage } from "@/core/errors";
+import type { FontFamilyDef, LicenceEntry } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
 import { fontFileUrl } from "../../editor/file-url";
 import { useFontLibrary } from "../../fonts/library";

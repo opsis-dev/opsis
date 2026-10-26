@@ -1,0 +1,506 @@
+[
+  {
+    "key": "remocn/word-push",
+    "usual": {
+      "text": "move at your own pace",
+      "fontSize": 72,
+      "wordGap": 10,
+      "accel": 0.8,
+      "color": "#171717",
+      "fontWeight": "400",
+      "background": "white",
+      "fontFamily": "",
+      "speed": 1
+    },
+    "settings": {
+      "text": "one two three four five six seven eight nine ten",
+      "fontSize": 72,
+      "wordGap": 10,
+      "accel": 0.8,
+      "color": "#171717",
+      "fontWeight": "400",
+      "background": "white",
+      "fontFamily": "",
+      "speed": 1
+    },
+    "growth": 14.0
+  },
+  {
+    "key": "remocn/search-reveal",
+    "usual": {
+      "text": "acme",
+      "fieldWidth": 464,
+      "fontSize": 34,
+      "framesPerCharacter": 4.0,
+      "showPanel": true,
+      "showGuides": true,
+      "color": "#26232b",
+      "fieldColor": "#ffffff",
+      "ringColor": "#cbc5cf",
+      "panelColor": "#a800b7",
+      "accentColor": "#e8f99a",
+      "backgroundColor": "#f5f1f5",
+      "reducedMotion": false,
+      "fontFamily": "",
+      "speed": 1
+    },
+    "settings": {
+      "text": "a much longer search phrase to type",
+      "fieldWidth": 464,
+      "fontSize": 34,
+      "framesPerCharacter": 6.0,
+      "showPanel": true,
+      "showGuides": true,
+      "color": "#26232b",
+      "fieldColor": "#ffffff",
+      "ringColor": "#cbc5cf",
+      "panelColor": "#a800b7",
+      "accentColor": "#e8f99a",
+      "backgroundColor": "#f5f1f5",
+      "reducedMotion": false,
+      "fontFamily": "",
+      "speed": 1
+    },
+    "growth": 184.0
+  },
+  {
+    "key": "remocn/check-list",
+    "usual": {
+      "fontSize": 40,
+      "itemGap": 18.0,
+      "closeGap": 9.0,
+      "perStep": 1.6,
+      "strokeWidth": 3,
+      "color": "#26242c",
+      "tickColor": "#6f7f35",
+      "step": 3.0,
+      "items": [
+        {
+          "text": "Record the walkthrough",
+          "checked": true
+        },
+        {
+          "text": "Add captions and zooms",
+          "checked": true
+        },
+        {
+          "text": "Export for the launch",
+          "checked": false
+        }
+      ],
+      "width": 720,
+      "boxColor": "#26242c",
+      "weight": "600",
+      "seed": "checklist",
+      "background": "white"
+    },
+    "settings": {
+      "fontSize": 40,
+      "itemGap": 24.0,
+      "closeGap": 9.0,
+      "perStep": 1.6,
+      "strokeWidth": 3,
+      "color": "#26242c",
+      "tickColor": "#6f7f35",
+      "step": 3.0,
+      "items": [
+        {
+          "text": "Write the script",
+          "checked": true
+        },
+        {
+          "text": "Record every scene in one take",
+          "checked": true
+        },
+        {
+          "text": "Add music",
+          "checked": false
+        },
+        {
+          "text": "Check the captions twice before sending",
+          "checked": true
+        },
+        {
+          "text": "Publish",
+          "checked": true
+        }
+      ],
+      "width": 720,
+      "boxColor": "#26242c",
+      "weight": "600",
+      "seed": "checklist",
+      "background": "white"
+    },
+    "growth": 87.0
+  },
+  {
+    "key": "remocn/code-morph",
+    "usual": {
+      "filename": "invoices.tsx",
+      "theme": "dark",
+      "accentColor": "#0ea5e9",
+      "morphDuration": 36.0,
+      "fontSize": 20,
+      "highlight": true,
+      "lineNumbers": true,
+      "windowDots": true,
+      "steps": [
+        {
+          "at": 0.0,
+          "code": "import { loadInvoices } from \"./api\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  const invoices = await loadInvoices();\n  list.textContent = \"\";\n  for (const invoice of invoices) {\n    const row = document.createElement(\"li\");\n    row.textContent = invoice.title;\n    list.append(row);\n  }\n}"
+        },
+        {
+          "at": 48.0,
+          "code": "import { loadInvoices } from \"./api\";\nimport { renderRows } from \"./rows\";\n\nexport async function showInvoices(list: HTMLElement) {\n  list.textContent = \"Loading…\";\n  renderRows(list, await loadInvoices());\n}"
+        }
+      ],
+      "speed": 1
+    },
+    "settings": {
+      "filename": "invoices.tsx",
+      "theme": "dark",
+      "accentColor": "#0ea5e9",
+      "morphDuration": 45.0,
+      "fontSize": 20,
+      "highlight": true,
+      "lineNumbers": true,
+      "windowDots": true,
+      "steps": [
+        {
+          "at": 0.0,
+          "code": "a"
+        },
+        {
+          "at": 60.0,
+          "code": "b"
+        },
+        {
+          "at": 120.0,
+          "code": "c"
+        }
+      ],
+      "speed": 1
+    },
+    "growth": 77.0
+  },
+  {
+    "key": "remocn/keystroke",
+    "usual": {
+      "platform": "mac",
+      "theme": "light",
+      "accent": "#0a84ff",
+      "size": 64,
+      "linger": 30.0,
+      "x": 0.5,
+      "y": 0.86,
+      "steps": [
+        {
+          "at": 20.0,
+          "keys": "mod+k"
+        },
+        {
+          "at": 78.0,
+          "keys": "g i"
+        },
+        {
+          "at": 114.0,
+          "keys": "shift+mod+p"
+        }
+      ],
+      "speed": 1
+    },
+    "settings": {
+      "platform": "mac",
+      "theme": "light",
+      "accent": "#0a84ff",
+      "size": 64,
+      "linger": 45.0,
+      "x": 0.5,
+      "y": 0.86,
+      "steps": [
+        {
+          "at": 20.0,
+          "keys": "mod+k"
+        },
+        {
+          "at": 78.0,
+          "keys": "g i"
+        },
+        {
+          "at": 114.0,
+          "keys": "shift+mod+p"
+        },
+        {
+          "at": 270.0,
+          "keys": "mod+s"
+        }
+      ],
+      "speed": 1
+    },
+    "growth": 171.0
+  },
+  {
+    "key": "remocn/agent-run",
+    "usual": {
+      "theme": "light",
+      "accentColor": "#2563eb",
+      "compression": 3,
+      "seed": 1,
+      "runTitle": "Checkout conversion drop",
+      "runPrompt": "Why did checkout conversion drop last week?",
+      "runPlan": [
+        "Compare the checkout funnel with the week before",
+        "Break the drop down by device and step",
+        "Check what shipped and what the error logs say"
+      ],
+      "runSteps": [
+        {
+          "icon": "chart",
+          "name": "Query analytics",
+          "detail": "checkout funnel, last 7 days vs prior 7",
+          "duration": 1.4
+        },
+        {
+          "icon": "database",
+          "name": "Run a query",
+          "detail": "conversion by device and step",
+          "duration": 2.3
+        },
+        {
+          "icon": "search",
+          "name": "Search logs",
+          "detail": "card payment errors on tablets",
+          "duration": 1.1
+        },
+        {
+          "icon": "book",
+          "name": "Read 12 sources",
+          "duration": 3.2,
+          "sources": [
+            "Checkout funnel",
+            "Device report",
+            "Release 4.12",
+            "Change #2186",
+            "Payments guide",
+            "Error log",
+            "Incident notes",
+            "Runbook",
+            "Support tickets",
+            "Status page",
+            "Team notes",
+            "Design spec"
+          ]
+        }
+      ],
+      "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
+      "speed": 1
+    },
+    "settings": {
+      "theme": "light",
+      "accentColor": "#2563eb",
+      "compression": 3,
+      "seed": 1,
+      "runTitle": "Checkout conversion drop",
+      "runPrompt": "Why did checkout conversion drop last week?",
+      "runPlan": [
+        "Compare the checkout funnel with the week before",
+        "Break the drop down by device and step",
+        "Check what shipped and what the error logs say"
+      ],
+      "runSteps": [
+        {
+          "icon": "chart",
+          "name": "Query analytics",
+          "detail": "checkout funnel, last 7 days vs prior 7",
+          "duration": 1.4
+        },
+        {
+          "icon": "database",
+          "name": "Run a query",
+          "detail": "conversion by device and step",
+          "duration": 2.3
+        },
+        {
+          "icon": "search",
+          "name": "Search logs",
+          "detail": "card payment errors on tablets",
+          "duration": 1.1
+        },
+        {
+          "icon": "book",
+          "name": "Read 12 sources",
+          "duration": 3.2,
+          "sources": [
+            "Checkout funnel",
+            "Device report",
+            "Release 4.12",
+            "Change #2186",
+            "Payments guide",
+            "Error log",
+            "Incident notes",
+            "Runbook",
+            "Support tickets",
+            "Status page",
+            "Team notes",
+            "Design spec"
+          ]
+        },
+        {
+          "name": "Write the summary",
+          "duration": 2
+        }
+      ],
+      "runAnswer": "## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.\n\n## Card payments broke on tablets in release 4.12\n\nCheckout conversion fell from 3.4% to 2.7% last week, a 21% drop [1]. All of it comes from the payment step on tablets, 41% of checkouts [2].\n\n- Tablet conversion halved, from 3.5% to 1.8%\n- Phones and desktops held steady at 3.3%\n- 4.12 moved the card form into a frame without the payment permission [3]\n\n```tsx\n<iframe\n  src={cardFormUrl}\n  allow=\"payment\"\n/>\n```\n\n**Fix:** add the permission and ship 4.12.1 today.",
+      "speed": 1
+    },
+    "growth": 122.0
+  },
+  {
+    "key": "remocn/command-menu",
+    "usual": {
+      "state": "opened",
+      "query": "new",
+      "selectedIndex": -1,
+      "highlightedIndex": -1,
+      "theme": {
+        "mode": "light",
+        "colors": {}
+      },
+      "items": [
+        {
+          "icon": "user",
+          "label": "Profile",
+          "shortcut": "⌘ P"
+        },
+        {
+          "icon": "settings",
+          "label": "Settings",
+          "shortcut": "⌘ S"
+        },
+        {
+          "icon": "file",
+          "label": "New File",
+          "shortcut": "⌘ N"
+        },
+        {
+          "icon": "search",
+          "label": "Search docs"
+        }
+      ],
+      "autoplay": true,
+      "pressedIndex": -1
+    },
+    "settings": {
+      "state": "opened",
+      "query": "settings",
+      "selectedIndex": -1,
+      "highlightedIndex": -1,
+      "theme": {
+        "mode": "light",
+        "colors": {}
+      },
+      "items": [
+        {
+          "icon": "user",
+          "label": "Profile",
+          "shortcut": "⌘ P"
+        },
+        {
+          "icon": "settings",
+          "label": "Settings",
+          "shortcut": "⌘ S"
+        },
+        {
+          "icon": "file",
+          "label": "New File",
+          "shortcut": "⌘ N"
+        },
+        {
+          "icon": "search",
+          "label": "Search docs"
+        }
+      ],
+      "autoplay": true,
+      "pressedIndex": -1
+    },
+    "growth": 13.0
+  },
+  {
+    "key": "snapcn/punch-lines",
+    "usual": {
+      "script": "Record it. / Edit it. | One take. | Ship.",
+      "styles": "slide,punch",
+      "sizes": "1,0.945,2.7",
+      "holds": "48",
+      "accentBeat": 3,
+      "fontSize": 93,
+      "fontWeight": "600",
+      "lineHeight": 0.89,
+      "letterSpacing": "-0.022em",
+      "wordSpacing": "-0.02em",
+      "ground": "",
+      "ink": "",
+      "accentColor": "#ff1c8e",
+      "lead": 4.0,
+      "slideFrom": -0.737,
+      "slideKick": 7.34,
+      "slideSettle": 2.846,
+      "lineStagger": 3.5,
+      "slideDrop": 0.313,
+      "motionBlur": 1,
+      "punchFrom": 0.32,
+      "punchFrames": 15.0,
+      "wordStagger": 2.8,
+      "pushFrom": 0.778,
+      "pushRate": 0.205,
+      "rushLead": 12.2,
+      "rushFrames": 18.0,
+      "rushTravel": 0.85,
+      "fit": 0.92,
+      "theme": {
+        "mode": "light",
+        "colors": {}
+      },
+      "fontFamily": "",
+      "speed": 1
+    },
+    "settings": {
+      "script": "One. | Two. | Three. | Four. | Five.",
+      "styles": "slide,punch",
+      "sizes": "1,0.945,2.7",
+      "holds": "45, 60",
+      "accentBeat": 3,
+      "fontSize": 93,
+      "fontWeight": "600",
+      "lineHeight": 0.89,
+      "letterSpacing": "-0.022em",
+      "wordSpacing": "-0.02em",
+      "ground": "",
+      "ink": "",
+      "accentColor": "#ff1c8e",
+      "lead": 4.0,
+      "slideFrom": -0.737,
+      "slideKick": 7.34,
+      "slideSettle": 2.846,
+      "lineStagger": 3.5,
+      "slideDrop": 0.313,
+      "motionBlur": 1,
+      "punchFrom": 0.32,
+      "punchFrames": 15.0,
+      "wordStagger": 2.8,
+      "pushFrom": 0.778,
+      "pushRate": 0.205,
+      "rushLead": 12.2,
+      "rushFrames": 18.0,
+      "rushTravel": 0.85,
+      "fit": 0.92,
+      "theme": {
+        "mode": "light",
+        "colors": {}
+      },
+      "fontFamily": "",
+      "speed": 1
+    },
+    "growth": 141.0
+  }
+]

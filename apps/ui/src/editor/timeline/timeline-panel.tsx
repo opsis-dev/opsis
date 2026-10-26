@@ -1,6 +1,6 @@
-import type { Workflow } from "@opsis/core/schema/workflow";
 import { SquareChartGantt } from "lucide-react";
 import { useRef } from "react";
+import type { Workflow } from "@/generated/bindings";
 import { isEditingElement } from "@/lib/dom";
 import { EmptyPanel } from "../../app/empty-panel";
 import { useWorkflowStore } from "../../store/workflow";

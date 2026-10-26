@@ -1,11 +1,11 @@
-import { isThemeValue, themeColors } from "@opsis/core/elements/theme";
-import type { ElementProps } from "@opsis/core/elements/types";
-import { isRecord, isString } from "@opsis/core/guards";
-import { numberOr } from "@opsis/core/math";
 import type { TransitionPresentation } from "@remotion/transitions";
 import type React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { AbsoluteFill, Img, Sequence, useVideoConfig } from "remotion";
+import { isRecord, isString } from "#video/common/guards.ts";
+import { numberOr } from "#video/common/math.ts";
+import type { ElementProps } from "#video/common/spec.ts";
+import { isThemeValue, themeColors } from "#video/common/theme.ts";
 import type { Size } from "#video/core/still-layout.ts";
 import {
   defaultDarkTheme,

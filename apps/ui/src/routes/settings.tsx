@@ -1,6 +1,6 @@
-import { SETTINGS_PAGES } from "@opsis/core/ipc";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { SETTINGS_PAGES } from "@/core/shell";
 import { SettingsWindow } from "../app/settings/settings-window";
 
 export const Route = createFileRoute("/settings")({

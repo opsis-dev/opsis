@@ -1,12 +1,11 @@
-import { walkItems } from "@opsis/core/compile/clip";
-import { firstFamily } from "@opsis/core/fonts";
-import { DEFAULT_PROJECT_FONTS, type ProjectFonts } from "@opsis/core/fonts/types";
-import { nonBlankString } from "@opsis/core/guards";
-import type { TimelineTrack } from "@opsis/core/schema/timeline";
 import React, { useMemo } from "react";
 import { resolveAssetRef, useAssetBase, type AssetBase } from "#video/assets.tsx";
+import { walkItems } from "#video/common/clip.ts";
+import { firstFamily, DEFAULT_PROJECT_FONTS } from "#video/common/fonts.ts";
+import { nonBlankString } from "#video/common/guards.ts";
 import { useHeldLoad } from "#video/core/loading.ts";
 import { applyProjectFonts } from "#video/fonts/registry.ts";
+import type { ProjectFonts, TimelineTrack } from "#video/generated/spec.ts";
 
 export function usedFontNames(tracks: TimelineTrack[]): string[] {
   const out = new Set<string>();

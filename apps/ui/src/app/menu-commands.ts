@@ -1,6 +1,6 @@
-import { listenerSet } from "@opsis/core/listener-set";
-import type { MenuCommand } from "@opsis/core/menu";
 import { create } from "zustand";
+import { listenerSet } from "@/core/listener-set";
+import type { MenuCommand } from "@/generated/bindings";
 
 type Listener = (command: MenuCommand) => void;
 

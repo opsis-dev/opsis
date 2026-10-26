@@ -1,12 +1,8 @@
-import { hasTypeIn } from "@opsis/core/guards";
-import { randomId } from "@opsis/core/ids";
-import type { DockPanelName, ViewPrefs } from "@opsis/core/ipc";
-import { isLiveMessage } from "@opsis/core/live";
-import type { MenuCommand } from "@opsis/core/menu";
-import type { RunEvent } from "@opsis/core/schema/events";
-import type { Workflow } from "@opsis/core/schema/workflow";
+import { hasTypeIn } from "@opsis/video/common/guards";
 import { useEffect, useEffectEvent } from "react";
 import { shallow } from "zustand/vanilla/shallow";
+import { randomId } from "@/core/ids";
+import type { DockPanelName, MenuCommand, RunEvent, Workflow } from "@/generated/bindings";
 import { loadViewState } from "../editor/view-state";
 import { useLiveStore } from "../store/live";
 import { useMedia } from "../store/media";
@@ -22,12 +18,12 @@ import { useProjectFiles } from "../store/project-files";
 import { runSnapshot, useRunStore, type RunSnapshot } from "../store/run";
 import { selection, useUiStore, type Selection } from "../store/ui";
 import { syncedView, useViewOptions, type SyncedView } from "../store/view-options";
-import { viewPrefs } from "../store/view-prefs";
+import { viewPrefs, type ViewPrefs } from "../store/view-prefs";
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "../store/workflow";
 import { dispatchMenuCommand } from "./menu-commands";
+import { relayChannel } from "./relay-channel";
 
 const CHANNEL = "opsis-sync";
-const LIVE_CHANNEL = "opsis-live";
 
 type SyncMessage =
   | { type: "hello"; panel: DockPanelName }
@@ -157,7 +153,7 @@ type SyncChannel = {
 };
 
 function openSyncChannel(): SyncChannel {
-  const bc = new BroadcastChannel(CHANNEL);
+  const bc = relayChannel(CHANNEL);
   const post: Post = (m) => bc.postMessage(m);
   const applying = { current: false };
   const table = sharedHandlers(applying);
@@ -182,18 +178,8 @@ function openSyncChannel(): SyncChannel {
   };
 }
 
-function useLiveRelay(): void {
-  useEffect(() => {
-    const bc = new BroadcastChannel(LIVE_CHANNEL);
-    const offLocal = window.opsis.onLive((message) => bc.postMessage(message));
-    bc.addEventListener("message", (e) => {
-      if (isLiveMessage(e.data)) useLiveStore.getState().apply(e.data);
-    });
-    return () => {
-      offLocal();
-      bc.close();
-    };
-  }, []);
+function useLiveFrames(): void {
+  useEffect(() => window.opsis.onLive((message) => useLiveStore.getState().apply(message)), []);
 }
 
 function sendState(post: Post, ack: number): void {
@@ -230,7 +216,7 @@ function applyRemoteEdit(edit: RemoteEdit): void {
 }
 
 export function useEditorSync(): void {
-  useLiveRelay();
+  useLiveFrames();
   useEffect(() => {
     let ack = 0;
     const channel = openSyncChannel();
@@ -272,7 +258,7 @@ function applyState(m: MessageOf["state"], applying: Flag): void {
 }
 
 export function usePanelSync(panel: DockPanelName, onClosed: () => void): void {
-  useLiveRelay();
+  useLiveFrames();
   const closed = useEffectEvent(onClosed);
   useEffect(() => {
     let seq = 0;
@@ -295,7 +281,6 @@ export function usePanelSync(panel: DockPanelName, onClosed: () => void): void {
 }
 
 export function forwardMenuCommand(command: MenuCommand): void {
-  const bc = new BroadcastChannel(CHANNEL);
-  bc.postMessage({ type: "menu", command } satisfies SyncMessage);
-  bc.close();
+  const message: SyncMessage = { type: "menu", command };
+  void window.opsis.relay("editor", { channel: CHANNEL, message });
 }

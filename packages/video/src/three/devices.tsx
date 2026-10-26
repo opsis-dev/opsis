@@ -1,4 +1,3 @@
-import type { Device } from "@opsis/core/elements/screen-3d";
 import React, { useEffect, useMemo } from "react";
 import {
   BoxGeometry,
@@ -9,6 +8,7 @@ import {
   type BufferGeometry,
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import type { ScreenDevice as Device } from "#video/generated/spec.ts";
 import type { Vec3 } from "#video/three/motion.ts";
 import { roundedRect } from "#video/three/shapes.ts";
 

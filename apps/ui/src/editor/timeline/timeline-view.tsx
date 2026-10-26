@@ -1,6 +1,5 @@
-import type { Workflow } from "@opsis/core/schema/workflow";
-import type { FlatTimeline } from "@opsis/core/timeline/flatten";
 import { useEffect, useLayoutEffect, useState } from "react";
+import type { Workflow, FlatTimeline } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { usePlayback } from "../../store/playback";
 import { selectedSet, useUiStore } from "../../store/ui";
@@ -198,6 +197,7 @@ function useTimelineScene({ scroller, scroll, zoom, film, workflow, commands }: 
     drag,
     select,
     splitAt: commands.splitAt,
+    clocks: film.clocks,
   };
   return { ...geometry, beats, gainFor, drag, select, ctx };
 }

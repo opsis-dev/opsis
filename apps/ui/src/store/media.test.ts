@@ -1,5 +1,6 @@
-import { buildMixPlan } from "@opsis/core/mix/plan";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { DEFAULT_MASTER } from "@/core/mix";
+import type { MixPlan } from "@/generated/bindings";
 import { useMedia } from "./media";
 
 const failingAnalyze = vi.fn(() => Promise.reject(new Error("worker gone")));
@@ -23,7 +24,14 @@ describe("media requests", () => {
   it("stops showing a mix as in progress when the request itself fails", async () => {
     vi.useFakeTimers();
     useMedia.getState().reset("/project");
-    const plan = buildMixPlan({ tracks: [], audio: [], durationInFrames: 30, fps: 30 }, undefined);
+    const plan: MixPlan = {
+      fps: 30,
+      durationInFrames: 30,
+      channels: [],
+      buses: [],
+      master: DEFAULT_MASTER,
+      key: "silent",
+    };
     useMedia.getState().requestMix("film", plan);
     expect(useMedia.getState().mix.status).toEqual({ kind: "pending", key: plan.key });
     await vi.runAllTimersAsync();

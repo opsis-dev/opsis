@@ -36,13 +36,33 @@ fn switch_key(switch: &str) -> &str {
     bare.split_once('=').map_or(bare, |(key, _)| key)
 }
 
+const FEATURE_LISTS: [&str; 2] = ["enable-features", "disable-features"];
+
+fn joined_features(earlier: &str, switch: &str) -> String {
+    let mut features: Vec<&str> = Vec::new();
+    for list in [earlier, switch] {
+        let values = list.split_once('=').map_or("", |(_, v)| v);
+        for feature in values.split(',').filter(|f| !f.is_empty()) {
+            if !features.contains(&feature) {
+                features.push(feature);
+            }
+        }
+    }
+    format!("{}={}", switch_key(switch), features.join(","))
+}
+
 pub fn effective_switches<'a>(lists: impl IntoIterator<Item = &'a str>) -> Vec<String> {
     let mut last: IndexMap<String, String> = IndexMap::new();
     for switch in lists {
-        last.insert(
-            switch_key(switch).to_owned(),
-            switch.trim_start_matches('-').to_owned(),
-        );
+        let key = switch_key(switch).to_owned();
+        let bare = switch.trim_start_matches('-');
+        let value = match last.get(&key) {
+            Some(earlier) if FEATURE_LISTS.contains(&key.as_str()) => {
+                joined_features(earlier, bare)
+            }
+            _ => bare.to_owned(),
+        };
+        last.insert(key, value);
     }
     last.into_values().collect()
 }
@@ -78,7 +98,7 @@ impl Launched {
     }
 }
 
-pub async fn launch(executable: &Path, temp_dir: &Path) -> Result<Launched> {
+pub async fn launch(executable: &Path, temp_dir: &Path, extra: &[&str]) -> Result<Launched> {
     let profile = tempfile::Builder::new()
         .prefix("opsis-profile-")
         .tempdir_in(temp_dir)?;
@@ -89,7 +109,8 @@ pub async fn launch(executable: &Path, temp_dir: &Path) -> Result<Launched> {
             .map(String::as_str)
             .chain(HEADLESS_SWITCHES)
             .chain(TAKE_SWITCHES)
-            .chain(STARTUP_SWITCHES),
+            .chain(STARTUP_SWITCHES)
+            .chain(extra.iter().copied()),
     );
     let mut config = BrowserConfig::builder()
         .chrome_executable(executable)
@@ -188,7 +209,16 @@ pub fn user_agent_metadata(ua: &str, mobile: bool) -> Option<Value> {
 
 impl Session {
     pub async fn open(params: &Open, executable: &Path, temp_dir: &Path) -> Result<Self> {
-        let launched = launch(executable, temp_dir).await?;
+        Self::open_with_switches(params, executable, temp_dir, &[]).await
+    }
+
+    pub async fn open_with_switches(
+        params: &Open,
+        executable: &Path,
+        temp_dir: &Path,
+        switches: &[&str],
+    ) -> Result<Self> {
+        let launched = launch(executable, temp_dir, switches).await?;
         let page = match new_page(&launched).await {
             Ok(page) => page,
             Err(error) => {
@@ -373,4 +403,30 @@ pub fn shell_in(engine_dir: &Path) -> Result<PathBuf> {
     opsis_engine::paths::require_engine_file(opsis_engine::paths::find_headless_shell(&paths))
         .map(Path::to_path_buf)
         .map_err(|e| CaptureError::Failed(e.to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::effective_switches;
+
+    #[test]
+    fn keeps_the_last_value_of_a_switch_and_joins_feature_lists() {
+        assert_eq!(
+            effective_switches([
+                "--hide-scrollbars",
+                "--lang=en",
+                "--enable-features=A,B",
+                "--disable-features=X",
+                "--lang=de",
+                "--enable-features=B,C",
+                "--disable-features=Y",
+            ]),
+            [
+                "hide-scrollbars",
+                "lang=de",
+                "enable-features=A,B,C",
+                "disable-features=X,Y",
+            ]
+        );
+    }
 }

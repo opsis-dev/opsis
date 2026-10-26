@@ -1,5 +1,5 @@
-import { errorMessage } from "@opsis/core/errors";
 import { toast } from "sonner";
+import { errorMessage } from "@/core/errors";
 
 export function reportError(title: string, error: unknown): void {
   toast.error(title, { description: errorMessage(error) });

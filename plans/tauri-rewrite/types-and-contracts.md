@@ -2,7 +2,7 @@
 
 Rust is the one source of the shapes that cross a boundary: the project file, the spec, run results, run events, settings, IPC messages, sidecar messages and API bodies. TS gets generated types; forms and the Local API get JSON Schema generated from the same Rust types. Nothing is kept twice by hand except 1,134 lines of small logic, which shared fixtures keep in step.
 
-Crate: `opsis-types` (phase 2; the editor and the video bundle move to the generated types in phase 6).
+Crate: `opsis-types` (phase 2; the editor and the video bundle moved to the generated types in phase 6).
 
 ## What it adds
 

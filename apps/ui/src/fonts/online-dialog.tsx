@@ -1,13 +1,12 @@
-import { errorMessage } from "@opsis/core/errors";
-import { familyKey, familyKeysWithBundled } from "@opsis/core/fonts";
-import type { FontFamilyDef } from "@opsis/core/fonts/types";
-import { plural } from "@opsis/core/format";
-import type { FontCatalogEntry } from "@opsis/core/ipc";
+import { familyKey, familyKeysWithBundled } from "@opsis/video/common/fonts";
+import { plural } from "@opsis/video/common/format";
 import { Download } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { errorMessage } from "@/core/errors";
+import type { FontFamilyDef, FontCatalogEntry } from "@/generated/bindings";
 import { useBusy } from "@/lib/use-busy";
 import { categoryLabel } from "./font-labels";
 import { FontRow } from "./font-row";

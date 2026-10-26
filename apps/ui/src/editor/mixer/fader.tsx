@@ -1,5 +1,5 @@
-import { percent } from "@opsis/core/format";
-import { MAX_DB, MIN_DB } from "@opsis/core/mix/types";
+import { percent } from "@opsis/video/common/format";
+import { MAX_DB, MIN_DB } from "@/core/mix";
 import { fractionIn, onArrowKey } from "@/lib/dom";
 import { usePointerDrag } from "@/lib/use-pointer-drag";
 import { formatDb } from "./audio-format";

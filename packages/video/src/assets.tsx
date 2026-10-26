@@ -1,16 +1,15 @@
+import { createContext, useContext } from "react";
+import { staticFile } from "remotion";
 import {
-  PROJECT_FILE_BASE,
   STATIC_PROJECT_BASE,
   isAssetRef,
   joinUrl,
   refTarget,
   versionedUrl,
   type FileVersions,
-} from "@opsis/core/asset-ref";
-import type { ElementProps } from "@opsis/core/elements/types";
-import type { PreviewQuality, ReframeMode } from "@opsis/core/schema/timeline";
-import { createContext, useContext } from "react";
-import { staticFile } from "remotion";
+} from "#video/common/asset-ref.ts";
+import type { ElementProps } from "#video/common/spec.ts";
+import type { PreviewQuality, ReframeMode } from "#video/generated/spec.ts";
 
 export type AssetBase = { projectBase?: string; versions?: FileVersions };
 
@@ -24,12 +23,9 @@ export function resolveAssetRef(ref: string, base: AssetBase): string {
   const target = refTarget(ref);
   if (target.kind === "app") return staticFile(target.rel);
   if (target.kind !== "project") return ref;
+  if (base.projectBase === undefined) return ref;
   if (base.projectBase === STATIC_PROJECT_BASE) return staticFile(`project/${target.rel}`);
-  return versionedUrl(
-    joinUrl(base.projectBase ?? PROJECT_FILE_BASE, target.rel),
-    ref,
-    base.versions,
-  );
+  return versionedUrl(joinUrl(base.projectBase, target.rel), ref, base.versions);
 }
 
 const MAX_PROP_DEPTH = 3;

@@ -1,7 +1,7 @@
-import type { MixResult } from "@opsis/core/mix/result";
-import { BUILT_IN_BUSES, type Bus, type Mix } from "@opsis/core/mix/types";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BUILT_IN_BUSES } from "@/core/mix";
+import type { MixResult, Bus, Mix } from "@/generated/bindings";
 import { removeBus, updateBus, updateChannels } from "@/mix/edits";
 import { useWorkflowStore } from "../../store/workflow";
 import { useRenaming } from "../inline-edit";

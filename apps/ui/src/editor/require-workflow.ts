@@ -1,5 +1,5 @@
-import { NO_PROJECT } from "@opsis/core/errors";
-import type { Workflow } from "@opsis/core/schema/workflow";
+import { NO_PROJECT } from "@/core/errors";
+import type { Workflow } from "@/generated/bindings";
 import { useWorkflowStore } from "../store/workflow";
 
 export function requireWorkflow(state: { workflow: Workflow | null }): Workflow {

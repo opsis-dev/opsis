@@ -1,13 +1,12 @@
-import { formatTimeAgo } from "@opsis/core/format";
-import type { RecentProject } from "@opsis/core/ipc";
-import type { MenuCommand } from "@opsis/core/menu";
-import { TEMPLATES } from "@opsis/core/templates";
+import { formatTimeAgo } from "@opsis/video/common/format";
 import { useNavigate } from "@tanstack/react-router";
 import { Download, FolderOpen, Plus, Settings, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
+import type { RecentProject, MenuCommand } from "@/generated/bindings";
+import { templates } from "@/store/catalog";
 import { NodeIcon } from "../editor/node-icon";
 import { useFreshEnvironment } from "../store/environment";
 import { AppBar } from "./app-bar";
@@ -123,7 +122,7 @@ function TemplateGrid({ onPick }: { onPick: (id: string) => void }) {
     <section className="flex flex-col gap-1">
       <SectionTitle>Start from a template</SectionTitle>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {TEMPLATES.map((t) => (
+        {templates().map((t) => (
           <button
             key={t.id}
             type="button"

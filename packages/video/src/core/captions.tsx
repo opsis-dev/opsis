@@ -1,10 +1,9 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
-import { fontOr } from "@opsis/core/fonts";
-import type { CaptionsValue } from "@opsis/core/schema/values";
-import { framesToMs, msToFrames } from "@opsis/core/timeline/time";
 import React, { useMemo } from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
+import { framesToMs, msToFrames } from "#video/common/time.ts";
 import { JUSTIFY_AT, overlayPadding, useOverlayFrame, verticalInsets } from "#video/core/frame.ts";
+import type { CoreElementProps, CaptionsValue } from "#video/generated/spec.ts";
 
 const MAX_WORDS_PER_LINE = 6;
 const CAPTION_LINGER_MS = 250;

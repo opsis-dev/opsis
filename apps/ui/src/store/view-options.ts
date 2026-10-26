@@ -1,8 +1,9 @@
-import { isBoolean, isOneOf } from "@opsis/core/guards";
-import { VARIANTS } from "@opsis/core/nodes/output";
-import { pick } from "@opsis/core/objects";
-import { PREVIEW_QUALITIES, type PreviewQuality } from "@opsis/core/schema/timeline";
+import { isBoolean, isOneOf } from "@opsis/video/common/guards";
+import { pick } from "@opsis/video/common/objects";
 import { create } from "zustand";
+import { VARIANTS } from "@/core/nodes";
+import { PREVIEW_QUALITIES } from "@/core/timeline";
+import type { PreviewQuality } from "@/generated/bindings";
 import { readPref, writePref } from "./view-prefs";
 
 const isPreviewQuality = (v: unknown): v is PreviewQuality => isOneOf(PREVIEW_QUALITIES, v);

@@ -1,12 +1,12 @@
 import path from "node:path";
-import { writeChromiumCredits } from "../src/engine/chromium-credits";
+import { devUserData } from "./lib/app-data";
+import { writeChromiumCredits } from "./lib/engine/chromium-credits";
 import {
   CHROMIUM_CREDITS_FILE,
   ENGINE_LICENCES_FOLDER,
   engineStatus,
   userEngineDir,
-} from "../src/engine/paths";
-import { devUserData } from "./lib/app-data";
+} from "./lib/engine/paths";
 import { ROOT } from "./lib/tool-config";
 
 const engine = process.argv[2] ?? userEngineDir(devUserData());

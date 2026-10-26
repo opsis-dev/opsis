@@ -1,6 +1,6 @@
-import { fontStack } from "@opsis/core/fonts";
-import type { FontFamilyDef } from "@opsis/core/fonts/types";
+import { fontStack } from "@opsis/video/common/fonts";
 import type { ReactNode } from "react";
+import type { FontFamilyDef } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { usePreviewFamily } from "./library";
 

@@ -1,6 +1,6 @@
-import type { WindowRole } from "@opsis/core/menu";
 import { Copy, Minus, Square, X } from "lucide-react";
 import type { ReactNode } from "react";
+import type { WindowRole } from "@/generated/bindings";
 import { isMac } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import { useWindowState } from "../store/window-state";

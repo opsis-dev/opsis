@@ -1,5 +1,5 @@
-import { MOTIONS } from "@opsis/core/elements/three";
 import { describe, expect, it } from "vitest";
+import type { Motion } from "#video/generated/spec.ts";
 import { boxDistance, fitDistance, poseAt, type MotionTime } from "#video/three/motion.ts";
 
 const at = (frame: number, extra: Partial<MotionTime> = {}): MotionTime => ({
@@ -9,6 +9,8 @@ const at = (frame: number, extra: Partial<MotionTime> = {}): MotionTime => ({
   seed: 1,
   ...extra,
 });
+
+const MOTIONS: Motion[] = ["spin", "tilt-in", "float", "orbit", "swing", "still", "keyframes"];
 
 describe("3D motion presets", () => {
   it("spins once every six seconds", () => {

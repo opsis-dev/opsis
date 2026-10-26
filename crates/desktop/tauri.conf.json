@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Opsis",
+  "identifier": "app.opsis.desktop",
+  "build": {
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../../apps/ui/dist",
+    "beforeDevCommand": "bun run --cwd ../apps/preview build && bun run --cwd ../apps/ui dev",
+    "beforeBuildCommand": "bun run --cwd ../apps/preview build && bun run --cwd ../apps/ui build"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "csp": {
+        "default-src": "'self' ipc: http://ipc.localhost",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "font-src": "'self' data: http://127.0.0.1:*",
+        "img-src": "'self' data: blob: http://127.0.0.1:*",
+        "media-src": "'self' blob: http://127.0.0.1:*",
+        "connect-src": "'self' ipc: http://ipc.localhost http://127.0.0.1:* blob: data:",
+        "worker-src": "'self' blob:"
+      }
+    }
+  },
+  "bundle": {
+    "active": false,
+    "icon": [
+      "../../brand/icons/32.png",
+      "../../brand/icons/128.png",
+      "../../brand/icons/256.png",
+      "../../brand/icons/512.png"
+    ]
+  }
+}

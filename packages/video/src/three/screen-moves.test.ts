@@ -1,8 +1,8 @@
-import { SCREEN_MOVES } from "@opsis/core/elements/screen-3d";
 import { describe, expect, it } from "vitest";
+import type { ScreenMove } from "#video/generated/spec.ts";
 import { screenPoseAt } from "#video/three/screen-moves.ts";
 
-const PRESETS = SCREEN_MOVES.filter((m) => m !== "keyframes");
+const PRESETS: ScreenMove[] = ["push-in", "orbit", "tilt-reveal", "rise"];
 
 describe("camera moves around a 3D screen", () => {
   it("ends every move facing the camera when asked, and holds it to the end", () => {

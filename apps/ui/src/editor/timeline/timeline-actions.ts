@@ -1,8 +1,7 @@
-import { randomId } from "@opsis/core/ids";
-import type { Marker } from "@opsis/core/schema/workflow";
-import type { FlatTimeline } from "@opsis/core/timeline/flatten";
-import { framesToMs } from "@opsis/core/timeline/time";
+import { framesToMs } from "@opsis/video/common/time";
 import { toast } from "sonner";
+import { randomId } from "@/core/ids";
+import type { Marker, FlatTimeline } from "@/generated/bindings";
 import {
   applyRemoval,
   removalFor,

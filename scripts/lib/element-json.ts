@@ -1,7 +1,7 @@
-import { writeFileSync } from "node:fs";
+import { rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import type { ElementMeta } from "@opsis/core/elements/types";
 import { z } from "zod";
+import type { ElementMeta } from "./element-meta";
 import { ROOT } from "./tool-config";
 
 export const ELEMENTS_JSON = path.join(
@@ -96,8 +96,15 @@ export const elementEntry = (meta: ElementMeta) => ({
 export const elementsJsonText = (elements: readonly ElementMeta[]): string =>
   `${JSON.stringify(elements.map(elementEntry), null, 1)}\n`;
 
+export const INGEST_DIR = path.join(ROOT, "scripts", ".ingest");
+
+export const INGEST_META = path.join(INGEST_DIR, "elements.generated.ts");
+
+type GeneratedMeta = { generatedElementMeta: ElementMeta[] };
+
 export async function writeElementsJson(): Promise<void> {
-  const { generatedElementMeta } = await import("@opsis/core/elements/elements.generated");
+  const { generatedElementMeta } = (await import(INGEST_META)) as GeneratedMeta;
   writeFileSync(ELEMENTS_JSON, elementsJsonText(generatedElementMeta));
+  rmSync(INGEST_DIR, { recursive: true, force: true });
   console.log(`wrote ${path.relative(ROOT, ELEMENTS_JSON)}`);
 }

@@ -1,4 +1,4 @@
-import type { Bounds } from "@opsis/core/schema/actions";
+import type { Bounds } from "@opsis/video/common/geometry";
 import type { ReactNode } from "react";
 
 const BOX_RADIUS = 6;

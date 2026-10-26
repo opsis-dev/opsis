@@ -1,12 +1,13 @@
-import { errorMessage } from "@opsis/core/errors";
-import { formatPreciseDuration } from "@opsis/core/format";
-import { findById } from "@opsis/core/lists";
-import { frameAt, type TraceAction, type TraceModel } from "@opsis/core/trace";
+import { formatPreciseDuration } from "@opsis/video/common/format";
+import { findById } from "@opsis/video/common/lists";
 import { CircleX, Folder, MousePointerClick } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { errorMessage } from "@/core/errors";
+import { frameAt } from "@/core/trace";
+import type { TraceAction, TraceModel } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { LoadingPanel } from "../app/empty-panel";
 import { OptionToggle } from "../app/option-toggle";

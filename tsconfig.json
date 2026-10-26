@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.base.json",
-  "include": ["src", "scripts", "*.ts"],
-  "exclude": ["node_modules", ".vite", "out", "remotion-bundle"]
+  "include": ["scripts", "crates/store/db", "*.ts"],
+  "exclude": ["node_modules", "remotion-bundle", "scripts/.ingest"]
 }

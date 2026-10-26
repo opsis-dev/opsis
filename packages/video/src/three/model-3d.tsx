@@ -1,4 +1,3 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
 import React, { useLayoutEffect, useMemo } from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import {
@@ -13,6 +12,7 @@ import {
 } from "three";
 import type { GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
+import type { CoreElementProps } from "#video/generated/spec.ts";
 import { GroundShadow } from "#video/three/card-3d.tsx";
 import { useModel } from "#video/three/load-model.ts";
 import { elementPose } from "#video/three/motion.ts";

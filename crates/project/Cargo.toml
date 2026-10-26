@@ -19,7 +19,7 @@ serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.154", features = ["preserve_order"] }
 serde_path_to_error = "0.1.20"
 shellexpand = "3.1.2"
-specta = { version = "2.0.0-rc.27", features = ["derive"] }
+specta = { version = "=2.0.0-rc.26", features = ["derive"] }
 thiserror = "2.0.21"
 url = "2.5.8"
 

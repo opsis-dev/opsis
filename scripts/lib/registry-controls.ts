@@ -1,11 +1,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { parseColor } from "@opsis/core/color";
-import type { FieldMeta } from "@opsis/core/elements/introspect";
-import { humanize } from "@opsis/core/format";
-import { isNumber, isRecord, isString, tryParseJson } from "@opsis/core/guards";
-import type { StepRange } from "@opsis/core/math";
-import { stringsIn } from "@opsis/core/vars";
+import { parseColor } from "@opsis/video/common/color";
+import { humanize } from "@opsis/video/common/format";
+import { isNumber, isRecord, isString, tryParseJson } from "@opsis/video/common/guards";
+import type { StepRange } from "@opsis/video/common/math";
 import { Node, type ObjectLiteralExpression } from "ts-morph";
 import { z } from "zod";
 import {
@@ -20,6 +18,7 @@ import {
   type ControlType,
   type CuratedElement,
 } from "../registry-ingest.list";
+import type { FieldMeta } from "./element-meta";
 import { zodFor } from "./registry-codegen";
 import {
   inferColumns,
@@ -31,6 +30,13 @@ import {
 } from "./registry-columns";
 import { VIDEO_DIR } from "./tool-config";
 import { bindingDefaults, literalOf, scratchFile, sourceDefaults } from "./ts-literal";
+
+function stringsIn(value: unknown, test: (text: string) => boolean): string[] {
+  if (typeof value === "string") return test(value) ? [value] : [];
+  if (Array.isArray(value)) return value.flatMap((v) => stringsIn(v, test));
+  if (isRecord(value)) return Object.values(value).flatMap((v) => stringsIn(v, test));
+  return [];
+}
 
 export type Control = ControlSpec & {
   label?: string;

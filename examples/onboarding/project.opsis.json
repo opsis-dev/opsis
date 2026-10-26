@@ -3,9 +3,9 @@
   "id": "example_onboarding",
   "name": "Onboarding walkthrough",
   "settings": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
     "theme": "dark",
     "fonts": {
       "main": "Inter",
@@ -22,8 +22,8 @@
       "id": "session",
       "type": "browser.open",
       "position": {
-        "x": 0,
-        "y": 0
+        "x": 0.0,
+        "y": 0.0
       },
       "params": {
         "viewportWidth": 1920,
@@ -41,8 +41,8 @@
       "id": "open",
       "type": "browser.navigate",
       "position": {
-        "x": 300,
-        "y": 0
+        "x": 300.0,
+        "y": 0.0
       },
       "params": {
         "url": "{{Site address}}",
@@ -54,8 +54,8 @@
       "id": "start",
       "type": "browser.startRecording",
       "position": {
-        "x": 600,
-        "y": 0
+        "x": 600.0,
+        "y": 0.0
       },
       "params": {}
     },
@@ -63,8 +63,8 @@
       "id": "chapter1",
       "type": "browser.chapter",
       "position": {
-        "x": 900,
-        "y": 0
+        "x": 900.0,
+        "y": 0.0
       },
       "params": {
         "title": "Create your first item",
@@ -77,8 +77,8 @@
       "id": "type",
       "type": "browser.type",
       "position": {
-        "x": 1200,
-        "y": 0
+        "x": 1200.0,
+        "y": 0.0
       },
       "params": {
         "text": "Invite the team",
@@ -96,8 +96,8 @@
       "id": "chapter2",
       "type": "browser.chapter",
       "position": {
-        "x": 1500,
-        "y": 0
+        "x": 1500.0,
+        "y": 0.0
       },
       "params": {
         "title": "Mark it done",
@@ -110,8 +110,8 @@
       "id": "done",
       "type": "browser.click",
       "position": {
-        "x": 1800,
-        "y": 0
+        "x": 1800.0,
+        "y": 0.0
       },
       "params": {
         "after": 1400,
@@ -129,8 +129,8 @@
       "id": "record",
       "type": "capture.record",
       "position": {
-        "x": 2100,
-        "y": 0
+        "x": 2100.0,
+        "y": 0.0
       },
       "params": {
         "fps": 30,
@@ -146,8 +146,8 @@
       "id": "camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 2100,
-        "y": 200
+        "x": 2100.0,
+        "y": 200.0
       },
       "params": {
         "zoom": true,
@@ -166,8 +166,8 @@
       "id": "highlight",
       "type": "cursor.highlightBox",
       "position": {
-        "x": 1500,
-        "y": 200
+        "x": 1500.0,
+        "y": 200.0
       },
       "params": {
         "match": "",
@@ -184,8 +184,8 @@
       "id": "tooltip",
       "type": "text.tooltip",
       "position": {
-        "x": 1800,
-        "y": 200
+        "x": 1800.0,
+        "y": 200.0
       },
       "params": {
         "match": "Done",
@@ -205,8 +205,8 @@
       "id": "script",
       "type": "text.captionsFromText",
       "position": {
-        "x": 1200,
-        "y": 510
+        "x": 1200.0,
+        "y": 510.0
       },
       "params": {
         "script": "Create an item. Then tick it off. That's it.",
@@ -219,8 +219,8 @@
       "id": "captions",
       "type": "text.captions",
       "position": {
-        "x": 2100,
-        "y": 510
+        "x": 2100.0,
+        "y": 510.0
       },
       "params": {
         "style": "word-by-word",
@@ -237,8 +237,8 @@
       "id": "render",
       "type": "output.render",
       "position": {
-        "x": 2400,
-        "y": 510
+        "x": 2400.0,
+        "y": 510.0
       },
       "params": {
         "fileName": "{{Project name}}",

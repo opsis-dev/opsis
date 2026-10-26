@@ -1,4 +1,4 @@
-import { fileVersionKey, versionedUrl, type FileVersions } from "@opsis/core/asset-ref";
+import { fileVersionKey, versionedUrl, type FileVersions } from "@opsis/video/common/asset-ref";
 import { create } from "zustand";
 import { fileUrl } from "../editor/file-url";
 

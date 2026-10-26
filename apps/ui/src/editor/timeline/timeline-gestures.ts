@@ -1,8 +1,7 @@
-import { randomId } from "@opsis/core/ids";
-import { clamp, round3 } from "@opsis/core/math";
-import type { Marker, Workflow } from "@opsis/core/schema/workflow";
-import type { AudioBar, CameraKeyMark, FlatTimeline } from "@opsis/core/timeline/flatten";
-import { clampFrame, framesToMs, wholeFrames } from "@opsis/core/timeline/time";
+import { clamp, round3 } from "@opsis/video/common/math";
+import { clampFrame, framesToMs, wholeFrames } from "@opsis/video/common/time";
+import { randomId } from "@/core/ids";
+import type { Marker, Workflow, AudioBar, CameraKeyMark, FlatTimeline } from "@/generated/bindings";
 import { endIfStarted, startOnceMoved, type ThresholdDrag } from "@/lib/dom";
 import { moveCameraKeyMark, setAudioVolume } from "@/timeline/edits";
 import { snapFrame, type SnapTarget } from "@/timeline/snap";

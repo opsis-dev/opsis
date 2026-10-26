@@ -1,5 +1,5 @@
-import type { Viewport } from "@opsis/core/schema/actions";
 import type { CameraPose } from "#video/camera/lib/camera.ts";
+import type { Viewport } from "#video/generated/spec.ts";
 
 export const isInFrame = (pose: CameraPose, vp: Viewport, x: number, y: number): boolean => {
   const half = 1 / (2 * pose.scale);

@@ -1,0 +1,25 @@
+{
+  "name": "@opsis/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build:app": "cd ../../crates/desktop && CARGO_TARGET_DIR=../../target/e2e tauri build --debug --no-bundle --features e2e",
+    "e2e": "env -u WAYLAND_DISPLAY GDK_BACKEND=x11 xvfb-run -a -s \"-screen 0 1600x1000x24\" sh -c \"wdio run wdio.conf.ts && tsx src/close-check.ts\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint -c oxlint.config.ts",
+    "lint:fix": "oxlint -c oxlint.config.ts --fix"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@wdio/cli": "^9.32.0",
+    "@wdio/globals": "^9.31.3",
+    "@wdio/local-runner": "^9.32.0",
+    "@wdio/mocha-framework": "^9.32.0",
+    "@wdio/spec-reporter": "^9.31.2",
+    "@wdio/tauri-service": "^1.5.1",
+    "tsx": "^4.23.15",
+    "webdriverio": "^9.31.9"
+  }
+}

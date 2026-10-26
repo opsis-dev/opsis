@@ -1,6 +1,10 @@
-import { familyKey, familyKeysOf, familyKeysWithBundled, sameFamily } from "@opsis/core/fonts";
-import { BUNDLED_FONTS } from "@opsis/core/fonts/bundled.generated";
-import type { FontFamilyDef } from "@opsis/core/fonts/types";
+import { BUNDLED_FONTS } from "@opsis/video/common/bundled-fonts.generated";
+import {
+  familyKey,
+  familyKeysOf,
+  familyKeysWithBundled,
+  sameFamily,
+} from "@opsis/video/common/fonts";
 import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +18,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { FontFamilyDef } from "@/generated/bindings";
 import { useBusy } from "@/lib/use-busy";
 import { useWorkflowStore } from "../store/workflow";
 import { FontSample } from "./font-sample";

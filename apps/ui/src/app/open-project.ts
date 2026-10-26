@@ -1,9 +1,9 @@
-import { errorMessage } from "@opsis/core/errors";
-import type { OpenProject } from "@opsis/core/ipc";
 import type { NavigateFn } from "@tanstack/react-router";
 import { useEffect, useEffectEvent, useState } from "react";
 import { z } from "zod";
 import { create } from "zustand";
+import { errorMessage } from "@/core/errors";
+import type { OpenProject } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 import { previousSave } from "../editor/save";
 import { loadViewState } from "../editor/view-state";

@@ -1,39 +1,54 @@
-import {
-  compileWorkflow,
-  previewSpec,
-  type CompileResult,
-  type PreviewTarget,
-} from "@opsis/core/compile/compile";
-import { validateWorkflow, type GraphIssue } from "@opsis/core/graph";
-import { createContext, useContext, useMemo } from "react";
-import { useRunStore } from "../store/run";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import type { EditorCompile } from "@/generated/bindings";
+import { attempt } from "@/lib/toast";
 import { singleSelected, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 
-type Compiled = {
-  result: CompileResult | null;
-  issues: GraphIssue[];
-  preview: PreviewTarget | null;
+export type Compiled = Omit<EditorCompile, "seq" | "result"> & {
+  result: EditorCompile["result"] | null;
 };
 
-export function useCompiled(): Compiled {
-  const workflow = useWorkflowStore((s) => s.workflow);
-  const results = useRunStore((s) => s.results);
-  const selectedId = useUiStore((s) => s.pinnedSource ?? singleSelected(s.selectedIds));
-  const result = useMemo(
-    () => (workflow ? compileWorkflow(workflow, { results }) : null),
-    [workflow, results],
-  );
-  const issues = useMemo(
-    () => (workflow && result ? validateWorkflow(workflow, result) : []),
-    [workflow, result],
-  );
-  const preview = useMemo(
-    () => (workflow && result ? previewSpec(workflow.settings, result, selectedId) : null),
-    [workflow, result, selectedId],
-  );
-  return { result, issues, preview };
+const EMPTY: Compiled = {
+  result: null,
+  issues: [],
+  preview: null,
+  flat: null,
+  plan: null,
+  levelled: null,
+  cards: {},
+  inspector: null,
+  clocks: {},
+};
+
+function useLatest(): [Compiled, (compiled: EditorCompile) => void] {
+  const [compiled, setCompiled] = useState<Compiled>(EMPTY);
+  const newest = useRef(0);
+  const take = useCallback((next: EditorCompile) => {
+    if (next.seq < newest.current) return;
+    newest.current = next.seq;
+    setCompiled(next);
+  }, []);
+  return [compiled, take];
 }
 
-export const CompiledContext = createContext<Compiled>({ result: null, issues: [], preview: null });
+export function useCompiled({ drive }: { drive: boolean }): Compiled {
+  const workflow = useWorkflowStore((s) => s.workflow);
+  const selectedId = useUiStore((s) => s.pinnedSource ?? singleSelected(s.selectedIds));
+  const inspectedId = useUiStore((s) => singleSelected(s.selectedIds));
+  const [compiled, take] = useLatest();
+  useEffect(() => window.opsis.onCompiled(take), [take]);
+  useEffect(() => {
+    if (!drive) void window.opsis.sendCompiled();
+  }, [drive]);
+  useEffect(() => {
+    if (!drive || !workflow) return;
+    void attempt(
+      async () => take(await window.opsis.compile(workflow, selectedId, inspectedId)),
+      "Couldn't work out the film",
+    );
+  }, [drive, workflow, selectedId, inspectedId, take]);
+  return workflow ? compiled : EMPTY;
+}
+
+export const CompiledContext = createContext<Compiled>(EMPTY);
 export const useCompiledContext = () => useContext(CompiledContext);

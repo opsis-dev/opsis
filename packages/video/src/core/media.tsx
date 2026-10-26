@@ -1,6 +1,3 @@
-import { DEFAULT_BACKDROP } from "@opsis/core/backdrops";
-import type { PictureLook } from "@opsis/core/schema/recording";
-import { msToFrames } from "@opsis/core/timeline/time";
 import { Video } from "@remotion/media";
 import React, { useMemo } from "react";
 import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig } from "remotion";
@@ -8,10 +5,13 @@ import { isLightBackdrop } from "#video/camera/lib/backdrop.ts";
 import { WINDOW_FIT } from "#video/camera/lib/style.ts";
 import { RimLight } from "#video/camera/stage.tsx";
 import { WindowFrame } from "#video/camera/window-frame.tsx";
+import { DEFAULT_BACKDROP } from "#video/common/backdrops.ts";
+import { msToFrames } from "#video/common/time.ts";
 import { zoomOver } from "#video/core/anim.ts";
 import { Backdrop, Backgrounded } from "#video/core/backgrounds.tsx";
 import { lookEffects } from "#video/core/picture-look.ts";
 import { stillLayout, type Box, type Shot, type StillLook } from "#video/core/still-layout.ts";
+import type { PictureLook } from "#video/generated/spec.ts";
 
 type Fit = "contain" | "cover" | "fill";
 

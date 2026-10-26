@@ -1,5 +1,5 @@
-import { NO_PROJECT } from "@opsis/core/errors";
-import type { RunRequest } from "@opsis/core/ipc";
+import { NO_PROJECT } from "@/core/errors";
+import type { RunRequest } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
 import { useLiveStore } from "../store/live";
 import { useRunStore } from "../store/run";

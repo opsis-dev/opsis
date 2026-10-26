@@ -1,6 +1,6 @@
-import { errorMessage } from "@opsis/core/errors";
-import { clamp } from "@opsis/core/math";
-import { lruCache } from "@opsis/core/memo";
+import { clamp } from "@opsis/video/common/math";
+import { lruCache } from "@opsis/video/common/memo";
+import { errorMessage } from "@/core/errors";
 import { currentFileUrl } from "../../store/project-files";
 
 const CACHED_SOURCES = 3;

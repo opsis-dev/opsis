@@ -1,4 +1,4 @@
-import { clamp } from "@opsis/core/math";
+import { clamp } from "#video/common/math.ts";
 
 export type Size = { width: number; height: number };
 export type Box = { x: number; y: number; width: number; height: number };

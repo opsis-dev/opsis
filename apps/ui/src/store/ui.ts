@@ -1,4 +1,4 @@
-import { pick } from "@opsis/core/objects";
+import { pick } from "@opsis/video/common/objects";
 import { create } from "zustand";
 
 export const singleSelected = (ids: string[]): string | null => (ids.length === 1 ? ids[0] : null);

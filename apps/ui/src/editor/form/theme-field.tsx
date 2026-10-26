@@ -1,7 +1,7 @@
-import { THEME_MODES } from "@opsis/core/elements/introspect";
-import type { ThemeValue } from "@opsis/core/elements/theme";
-import { humanize } from "@opsis/core/format";
-import { isOneOf } from "@opsis/core/guards";
+import { humanize } from "@opsis/video/common/format";
+import { isOneOf } from "@opsis/video/common/guards";
+import type { ThemeValue } from "@opsis/video/common/theme";
+import { THEME_MODES } from "@opsis/video/common/theme";
 import { ChevronRight, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";

@@ -1,4 +1,4 @@
-import { chordFromEvent, chordKeys } from "@opsis/core/chord";
+import { chordFromEvent, chordKeys } from "@opsis/video/common/chord";
 import { useState } from "react";
 import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";

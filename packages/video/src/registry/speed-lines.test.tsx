@@ -1,4 +1,3 @@
-import { compileClip, must } from "@opsis/core/test-fixtures";
 import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
@@ -22,9 +21,7 @@ const drawn = (mode: "trail" | "focus", frame: number) => {
   };
 };
 
-it("is an element of its own that draws only its lines", () => {
-  const item = must(compileClip("fx.remocn.speed-lines", {}).tracks[0]?.items[0], "item");
-  expect(item.props).toMatchObject({ children: null });
+it("draws only its lines", () => {
   const trail = drawn("trail", 6);
   expect(trail.path).not.toBe("");
   expect(trail.discs).toBe(0);

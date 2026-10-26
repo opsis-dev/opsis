@@ -58,12 +58,12 @@ impl CalmProgress {
 }
 
 pub struct Progress<'a> {
-    report: &'a mut dyn FnMut(EngineInstallUpdate),
+    report: &'a mut (dyn FnMut(EngineInstallUpdate) + Send),
     calm: CalmProgress,
 }
 
 impl<'a> Progress<'a> {
-    pub fn new(report: &'a mut dyn FnMut(EngineInstallUpdate)) -> Self {
+    pub fn new(report: &'a mut (dyn FnMut(EngineInstallUpdate) + Send)) -> Self {
         Self {
             report,
             calm: CalmProgress::default(),
@@ -104,7 +104,7 @@ async fn fetch_verified(
     pinned: &Pinned,
     into: &Path,
     cancel: &CancellationToken,
-    on_bytes: &mut dyn FnMut(u64, Option<u64>),
+    on_bytes: &mut (dyn FnMut(u64, Option<u64>) + Send),
 ) -> Result<PathBuf, InstallError> {
     let network = |source| InstallError::Network {
         url: pinned.url.clone(),
@@ -323,7 +323,7 @@ pub async fn install_headless_shell(
 pub async fn install_engine(
     dir: &Path,
     platform: ShellPlatform,
-    report: &mut dyn FnMut(EngineInstallUpdate),
+    report: &mut (dyn FnMut(EngineInstallUpdate) + Send),
     cancel: &CancellationToken,
 ) -> Result<(), InstallError> {
     let client = reqwest::Client::new();

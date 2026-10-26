@@ -1,15 +1,14 @@
-import { CANCELLED } from "@opsis/core/errors";
-import { appendCapped } from "@opsis/core/lists";
-import { pick } from "@opsis/core/objects";
+import { appendCapped } from "@opsis/video/common/lists";
+import { pick } from "@opsis/video/common/objects";
+import { create } from "zustand";
+import { CANCELLED } from "@/core/errors";
 import {
   applyRunEvent,
   emptyRunProgress,
   resumeRunProgress,
   type RunProgress,
-} from "@opsis/core/run-progress";
-import type { LogLevel, RunEvent } from "@opsis/core/schema/events";
-import type { LastRun } from "@opsis/core/schema/values";
-import { create } from "zustand";
+} from "@/core/run-progress";
+import type { LogLevel, RunEvent, LastRun } from "@/generated/bindings";
 
 export type LogLine = {
   id: number;

@@ -1,11 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { errorMessage } from "@opsis/core/errors";
-import { pascalCase } from "@opsis/core/format";
-import { isNumber, isRecord } from "@opsis/core/guards";
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+import { pascalCase } from "@opsis/video/common/format";
+import { isNumber, isRecord } from "@opsis/video/common/guards";
 import { z } from "zod";
-import { fetchOk } from "../src/engine/download";
-import { writeElementsJson } from "./lib/element-json";
+import { INGEST_META, writeElementsJson } from "./lib/element-json";
+import { fetchOk } from "./lib/engine/download";
 import {
   renderLoaderEntry,
   renderLoaders,
@@ -28,7 +29,7 @@ import {
 import { install, moveInstalled, rewriteImports } from "./lib/registry-install";
 import { applyPatches } from "./lib/registry-patches";
 import { hiddenPropProblems } from "./lib/registry-props";
-import { CORE_DIR, ROOT, VIDEO_DIR } from "./lib/tool-config";
+import { ROOT, VIDEO_DIR } from "./lib/tool-config";
 import { literalOf, scratchFile } from "./lib/ts-literal";
 import {
   CURATED,
@@ -38,7 +39,7 @@ import {
   type CuratedElement,
 } from "./registry-ingest.list";
 
-const OUT_META = path.join(CORE_DIR, "elements", "elements.generated.ts");
+const OUT_META = INGEST_META;
 const OUT_COMPONENTS = path.join(VIDEO_DIR, "registry", "components.generated.ts");
 const skipAdd = process.argv.includes("--no-add");
 const onlyIndex = process.argv.indexOf("--only");

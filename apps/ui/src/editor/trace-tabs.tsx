@@ -1,5 +1,4 @@
-import { formatBytes, formatPreciseDuration } from "@opsis/core/format";
-import type { TraceAction, TraceConsole, TraceModel } from "@opsis/core/trace";
+import { formatBytes, formatPreciseDuration } from "@opsis/video/common/format";
 import { CircleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { TraceAction, TraceConsole, TraceModel } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { MONO_TEXT } from "./text-styles";
 

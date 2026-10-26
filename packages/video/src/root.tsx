@@ -1,8 +1,9 @@
-import { EMPTY_SPEC, type TimelineSpec } from "@opsis/core/schema/timeline";
 import React from "react";
 import { Composition } from "remotion";
+import { EMPTY_SPEC } from "#video/common/spec.ts";
 import { COMPOSITION_ID } from "#video/composition-id.ts";
 import { DemoTimeline } from "#video/demo-timeline.tsx";
+import type { TimelineSpec } from "#video/generated/spec.ts";
 
 export const RemotionRoot: React.FC = () => (
   <Composition

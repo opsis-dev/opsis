@@ -1,4 +1,4 @@
-import { percentText } from "@opsis/core/format";
+import { percentText } from "@opsis/video/common/format";
 import {
   AnimatePresence,
   MotionConfig,

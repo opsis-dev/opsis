@@ -1,4 +1,3 @@
-import type { ElementProps } from "@opsis/core/elements/types";
 import type { TransitionPresentation } from "@remotion/transitions";
 import { clockWipe } from "@remotion/transitions/clock-wipe";
 import { fade } from "@remotion/transitions/fade";
@@ -6,6 +5,7 @@ import { flip } from "@remotion/transitions/flip";
 import { iris } from "@remotion/transitions/iris";
 import { slide } from "@remotion/transitions/slide";
 import { wipe } from "@remotion/transitions/wipe";
+import type { ElementProps } from "#video/common/spec.ts";
 import type { Size } from "#video/core/still-layout.ts";
 import { presentation } from "#video/registry/framing.tsx";
 import type { PresentationFactory } from "#video/registry/types.ts";

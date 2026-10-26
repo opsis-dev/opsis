@@ -121,14 +121,18 @@ pub fn downstream_of(wf: &Workflow, node_id: &str) -> IndexSet<String> {
     reach(wf, node_id, Direction::Down)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type, schemars::JsonSchema,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum IssueLevel {
     Error,
     Warning,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type, schemars::JsonSchema,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphIssue {
     pub level: IssueLevel,

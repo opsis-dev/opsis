@@ -1,5 +1,5 @@
-import { AUTHORED_FPS } from "@opsis/core/elements/lengths";
 import { useCurrentFrame, useVideoConfig } from "remotion";
+import { AUTHORED_FPS } from "#video/common/spec.ts";
 
 export function useAuthoredFrame(): number {
   const frame = useCurrentFrame();

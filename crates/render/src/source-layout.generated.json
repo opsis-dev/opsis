@@ -15,14 +15,6 @@
   },
   {
    "from": [
-    "packages",
-    "core",
-    "src"
-   ],
-   "to": "core"
-  },
-  {
-   "from": [
     "apps",
     "sidecar",
     "src",
@@ -32,18 +24,6 @@
   }
  ],
  "exportedPackages": [
-  {
-   "name": "@opsis/core",
-   "folder": "core",
-   "manifest": {
-    "from": [
-     "packages",
-     "core",
-     "package.json"
-    ],
-    "to": "manifests/core.json"
-   }
-  },
   {
    "name": "@opsis/video",
    "folder": "video",
@@ -63,14 +43,6 @@
     "package.json"
    ],
    "to": "manifests/app.json"
-  },
-  {
-   "from": [
-    "packages",
-    "core",
-    "package.json"
-   ],
-   "to": "manifests/core.json"
   },
   {
    "from": [

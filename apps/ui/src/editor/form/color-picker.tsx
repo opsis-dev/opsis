@@ -10,9 +10,9 @@ import {
   withChannel,
   type ColorFormat,
   type Hsva,
-} from "@opsis/core/color";
-import { percentText } from "@opsis/core/format";
-import { isOneOf } from "@opsis/core/guards";
+} from "@opsis/video/common/color";
+import { percentText } from "@opsis/video/common/format";
+import { isOneOf } from "@opsis/video/common/guards";
 import { cn } from "cn";
 import { Pipette } from "lucide-react";
 import {

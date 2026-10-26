@@ -1,9 +1,9 @@
-import { clamp } from "@opsis/core/math";
-import type { ReframeMode } from "@opsis/core/schema/timeline";
 import type React from "react";
 import { useVideoConfig } from "remotion";
 import { designScaleFor } from "#video/camera/lib/design-width.ts";
+import { clamp } from "#video/common/math.ts";
 import { containBox, type Size } from "#video/core/still-layout.ts";
+import type { ReframeMode } from "#video/generated/spec.ts";
 
 type Insets = { top: number; right: number; bottom: number; left: number };
 

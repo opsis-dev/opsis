@@ -1,6 +1,3 @@
-import { DEFAULT_CURSOR_LOOK } from "@opsis/core/compile/recording";
-import { percent } from "@opsis/core/format";
-import type { ArrowCursorLook, CursorLook, RippleLook } from "@opsis/core/schema/recording";
 import { resolveCursor } from "@remotion/mac-cursors";
 import React from "react";
 import { Img } from "remotion";
@@ -8,7 +5,10 @@ import type { ClickLog } from "#video/camera/lib/click-log.ts";
 import { cursorAt } from "#video/camera/lib/cursor.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { faded, ink } from "#video/camera/lib/style.ts";
+import { percent } from "#video/common/format.ts";
+import { DEFAULT_CURSOR_LOOK, type ArrowCursorLook } from "#video/common/recording.ts";
 import { isFadedOut } from "#video/core/anim.ts";
+import type { CursorLook, RippleLook } from "#video/generated/spec.ts";
 
 const CURSOR_SCALE_EXP = 0.58;
 const HOT_X = 1;

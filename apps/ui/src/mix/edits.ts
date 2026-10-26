@@ -1,16 +1,14 @@
-import { stripOf } from "@opsis/core/mix/levels";
+import { pick } from "@opsis/video/common/objects";
 import {
   BUS_SETTING_KEYS,
   DEFAULT_STRIP,
+  newBus,
+  stripOf,
   stripSettings,
-  busSchema,
-  type Bus,
   type BusSettings,
-  type Mix,
-  type Strip,
   type StripSettings,
-} from "@opsis/core/mix/types";
-import { pick } from "@opsis/core/objects";
+} from "@/core/mix";
+import type { Bus, Mix, Strip } from "@/generated/bindings";
 
 const busSettings = (settings: BusSettings): BusSettings => pick(settings, BUS_SETTING_KEYS);
 
@@ -38,7 +36,7 @@ export const updateBus = (mix: Mix, id: string, fn: (b: Bus) => Bus): Mix => ({
 
 export const addBus = (mix: Mix, id: string): Mix => ({
   ...mix,
-  buses: [...mix.buses, busSchema.parse({ id, name: `Bus ${mix.buses.length + 1}` })],
+  buses: [...mix.buses, newBus(id, `Bus ${mix.buses.length + 1}`)],
 });
 
 export function removeBus(mix: Mix, id: string): Mix {

@@ -1,5 +1,4 @@
-import type { Marker } from "@opsis/core/schema/workflow";
-import type { FlatTimeline } from "@opsis/core/timeline/flatten";
+import type { Marker, FlatTimeline } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { useRenaming } from "../inline-edit";
 import { patchMarker } from "./timeline-actions";

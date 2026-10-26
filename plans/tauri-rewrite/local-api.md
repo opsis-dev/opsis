@@ -32,6 +32,14 @@ Missing:
 6. **OpenAPI document.** Built in Rust from the route table and the `schemars` schemas of the bodies; a test keeps it under about 70 KB and checks every route is documented (today's rule: add an endpoint to the document whenever a route is added).
 7. **Tests.** Port the API tests; one test per route through a real socket in a temporary folder.
 
+## Phase 6 as built
+
+- **`opsis-api`.** `axum` on a Unix socket (`ApiServer`, `server.rs`) with today's address rules (`address.rs`: the 100-byte cap, relative paths refused, stale sockets replaced, live ones and non-sockets left alone, mode 0600), and on Windows a tokio named pipe served with `hyper-util`, `first_pipe_instance` and the default remote-client refusal.
+- **Checks in Rust.** The routes check bodies (`bodies.rs`), node types, connections (`connection_problem`) and project settings before asking the editor; the editor answers edits with the new workflow and Rust adds the problems (`workflow_problems`), so the editor bridge holds no validation. Requests to the editor are one typed enum, `EditorRequest`, exported to the editor's bindings.
+- **OpenAPI.** Built with `schemars` (OpenAPI 3 settings, definitions under `#/components/schemas/`); the TS document's `$ref` prefix `#core/components/schemas/` was wrong and is fixed.
+- **Not done here.** The pipe gets the default security descriptor; the current-user-only ACL of step 3 and its check from a second account need the Windows CI job, so they wait for packaging (phase 8).
+- **Tests.** Address rules (7) and routes through a real socket (6), including the editor-bound checks.
+
 ## Risks
 
 - **Two code paths for transport** (Unix socket, named pipe) need tests on Linux, macOS and Windows CI.

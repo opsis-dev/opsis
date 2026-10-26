@@ -1,9 +1,10 @@
-import { DOCK_PANELS, DOCK_TITLES, type DockPanelName } from "@opsis/core/ipc";
 import { ChevronDown, ChevronUp, SquareArrowOutUpRight } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DOCK_PANELS, DOCK_TITLES } from "@/core/shell";
+import type { DockPanelName } from "@/generated/bindings";
 import { whenOneOf } from "@/lib/one-of";
 import { commandShortcut } from "../app/menu-shortcuts";
 import { MixerPanel } from "./mixer/mixer-panel";

@@ -1,5 +1,3 @@
-import { SETTINGS_PAGES, type SettingsPage } from "@opsis/core/ipc";
-import type { AppSettings } from "@opsis/core/settings";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
   Clapperboard,
@@ -26,6 +24,8 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
+import { SETTINGS_PAGES } from "@/core/shell";
+import type { SettingsPage, AppSettings } from "@/generated/bindings";
 import { FontsPanel } from "../../fonts/fonts-panel";
 import { useAppSettings } from "../../store/app-settings";
 import { AppBar } from "../app-bar";

@@ -1,18 +1,14 @@
-import { MAX_VOLUME } from "@opsis/core/limits";
-import { findById } from "@opsis/core/lists";
-import type { MinMax } from "@opsis/core/math";
-import { parseOncePer } from "@opsis/core/memo";
-import { getNodeDef } from "@opsis/core/nodes/registry";
-import {
-  envelopeSchema,
-  type Envelope,
-  type EnvelopeKey,
-  type Keyframe,
-} from "@opsis/core/schema/timeline";
-import type { Workflow, WorkflowNode } from "@opsis/core/schema/workflow";
-import { envelopeAt, sortKeys } from "@opsis/core/timeline/envelope";
-import { wholeFrames } from "@opsis/core/timeline/time";
+import { envelopeAt, sortKeys } from "@opsis/video/common/envelope";
+import { isRecord } from "@opsis/video/common/guards";
+import { MAX_VOLUME } from "@opsis/video/common/limits";
+import { findById } from "@opsis/video/common/lists";
+import type { MinMax } from "@opsis/video/common/math";
+import { parseOncePer } from "@opsis/video/common/memo";
+import { wholeFrames } from "@opsis/video/common/time";
 import { toast } from "sonner";
+import { envelopeSchema, type Envelope, type EnvelopeKey } from "@/core/timeline";
+import type { Keyframe, Workflow, WorkflowNode } from "@/generated/bindings";
+import { getNodeDef } from "@/store/catalog";
 import { patchNodeParams } from "@/workflow-edits";
 import { useWorkflowStore } from "../../store/workflow";
 
@@ -41,6 +37,11 @@ export type EnvelopeTarget = { nodeId: string; prop: EnvelopeKey; keys: Keyframe
 
 const parseEnvelope = parseOncePer(envelopeSchema);
 
+const hasEnvelope = (type: string): boolean => {
+  const params = getNodeDef(type)?.params;
+  return isRecord(params) && isRecord(params.properties) && "envelope" in params.properties;
+};
+
 function readEnvelope(node: WorkflowNode): Envelope | null {
   const raw = node.params.envelope;
   if (raw === undefined) return {};
@@ -55,7 +56,7 @@ export function envelopeTarget(
 ): EnvelopeTarget | null {
   if (!nodeId || !prop) return null;
   const node = findById(wf.nodes, nodeId);
-  if (!node || !getNodeDef(node.type)?.params.shape.envelope) return null;
+  if (!node || !hasEnvelope(node.type)) return null;
   const envelope = readEnvelope(node);
   return envelope ? { nodeId, prop, keys: envelope[prop] ?? [] } : null;
 }

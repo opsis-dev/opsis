@@ -1,4 +1,3 @@
-import type { NodeIconName } from "@opsis/core/nodes/icon-name";
 import {
   AppWindowIcon,
   ArrowRightLeftIcon,
@@ -96,6 +95,7 @@ import {
   ZoomOutIcon,
   type LucideIcon,
 } from "lucide-react";
+import type { Icon as NodeIconName } from "@/generated/bindings";
 
 export const NODE_ICONS: Record<NodeIconName, LucideIcon> = {
   "app-window": AppWindowIcon,

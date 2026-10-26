@@ -1,18 +1,16 @@
-import { signedText } from "@opsis/core/format";
-import type { Loudness, MixResult } from "@opsis/core/mix/result";
+import { signedText } from "@opsis/video/common/format";
+import { Ellipsis } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   DEFAULT_MASTER,
   LIMITER_CEILING_RANGE,
   LOUDNESS_CHOICES,
   LOUDNESS_TARGETS,
-  type LoudnessTarget,
-  type Master,
-} from "@opsis/core/mix/types";
-import { loudnessName } from "@opsis/core/nodes/params";
-import { Ellipsis } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+} from "@/core/mix";
+import { loudnessName } from "@/core/nodes";
+import type { Loudness, MixResult, LoudnessTarget, Master } from "@/generated/bindings";
 import { usePlayback } from "../../store/playback";
 import { useWorkflowStore } from "../../store/workflow";
 import { OptionSelect } from "../option-select";

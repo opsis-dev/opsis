@@ -1,5 +1,5 @@
-import { listenerSet } from "@opsis/core/listener-set";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { listenerSet } from "@/core/listener-set";
 
 type Pending = { text: string; commit: (text: string) => void };
 

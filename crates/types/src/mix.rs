@@ -542,11 +542,7 @@ pub struct Loudness {
     pub true_peak: Option<f64>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
-pub struct MasterStem {
-    pub src: String,
-    pub hash: String,
-}
+pub use crate::timeline::MasterStem;
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, Type)]
 pub struct MixLevels {

@@ -1,8 +1,8 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
-import { fontOr } from "@opsis/core/fonts";
 import React from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { isLandscape, overlayPadding, useOverlayFrame } from "#video/core/frame.ts";
+import type { CoreElementProps } from "#video/generated/spec.ts";
 
 const LOWER_THIRD_SPRING = { damping: 200 };
 const LOWER_THIRD_EXIT_FRAMES = 14;

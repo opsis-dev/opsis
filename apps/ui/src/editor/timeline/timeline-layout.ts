@@ -1,6 +1,5 @@
-import type { Marker } from "@opsis/core/schema/workflow";
-import type { FlatTimeline } from "@opsis/core/timeline/flatten";
-import { msToExactFrames } from "@opsis/core/timeline/time";
+import { msToExactFrames } from "@opsis/video/common/time";
+import type { Marker, FlatTimeline } from "@/generated/bindings";
 
 export const HEADER_W = 84;
 export const RULER_H = 24;

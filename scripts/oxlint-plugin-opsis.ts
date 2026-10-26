@@ -66,9 +66,6 @@ const noThreeClock: Rule = {
 const isMember = (node: MaybeNode, property: string): node is StaticMember =>
   node?.type === "MemberExpression" && !node.computed && isIdentifier(node.property, property);
 
-const isLiteral = (node: MaybeNode, value: unknown): boolean =>
-  node?.type === "Literal" && node.value === value;
-
 const callRule = (
   description: string,
   message: string,
@@ -103,21 +100,13 @@ const comparesIdOf = (fn: MaybeNode): boolean => {
 
 const useFindById = callRule(
   "Find an item by id through findById",
-  "Use findById from packages/core/src/lists.ts.",
+  "Use findById from packages/video/src/common/lists.ts.",
   (call) => isMember(call.callee, "find") && comparesIdOf(call.arguments[0]),
-);
-
-const useOnAbort = callRule(
-  "Listen for an abort through onAbort",
-  "Use onAbort from packages/core/src/errors.ts.",
-  (call) =>
-    (isMember(call.callee, "addEventListener") || isMember(call.callee, "removeEventListener")) &&
-    isLiteral(call.arguments[0], "abort"),
 );
 
 const useParseJsonWith = callRule(
   "Parse and check JSON through parseJsonWith",
-  "Use parseJsonWith from packages/core/src/guards.ts.",
+  "Use parseJsonWith from packages/video/src/common/guards.ts.",
   (call) => {
     const arg: MaybeNode = call.arguments[0];
     return (
@@ -165,7 +154,10 @@ const useTypeGuards: Rule = {
         const kind = equality.sides.find((side) => side.type === "Literal");
         const guard = kind?.type === "Literal" ? TYPE_GUARDS[String(kind.value)] : undefined;
         if (typed && guard)
-          context.report({ node, message: `Use ${guard} from packages/core/src/guards.ts.` });
+          context.report({
+            node,
+            message: `Use ${guard} from packages/video/src/common/guards.ts.`,
+          });
       },
     };
   },
@@ -186,7 +178,10 @@ const usePercentText: Rule = {
             PERCENT_AFTER.test(quasis[i + 1].value.raw),
         );
         if (rounded)
-          context.report({ node, message: "Use percentText from packages/core/src/format.ts." });
+          context.report({
+            node,
+            message: "Use percentText from packages/video/src/common/format.ts.",
+          });
       },
     };
   },
@@ -198,7 +193,6 @@ export default {
     "no-animate-class": noAnimateClass,
     "no-three-clock": noThreeClock,
     "use-find-by-id": useFindById,
-    "use-on-abort": useOnAbort,
     "use-parse-json-with": useParseJsonWith,
     "use-percent-text": usePercentText,
     "use-root": useRoot,

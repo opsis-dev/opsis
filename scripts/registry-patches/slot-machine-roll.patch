@@ -11,7 +11,7 @@ index 985f0be..0702662 100644
 -import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 +import { useMemo } from "react";
 +import { spring } from "remotion";
-+import { MAIN_FONT } from "@opsis/core/fonts";
++import { MAIN_FONT } from "#video/common/fonts.ts";
 +import { useAuthoredConfig, useAuthoredFrame } from "#video/core/authored-clock.ts";
 +
 +const COLUMN_EM = 0.7;

@@ -79,3 +79,36 @@ async fn previews_the_film_frame_by_frame() {
     assert!(played > 315.0, "only reached frame {played}");
     preview.close().await;
 }
+
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "needs the dev engine and a built preview page"]
+async fn draws_canvas_transitions_as_renders_do() {
+    let temp = tempfile::tempdir().unwrap();
+    let engine = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/Opsis/engine");
+    let env = ViewEnv {
+        executable: shell_in(&engine).unwrap(),
+        temp_dir: temp.path().join("tmp"),
+    };
+    std::fs::create_dir_all(&env.temp_dir).unwrap();
+    let (page, public) = (root().join("apps/preview/dist"), root().join("public"));
+    let dirs = PreviewDirs {
+        page: &page,
+        public: &public,
+        project: temp.path(),
+    };
+    let size = ViewSize {
+        width: 320.0,
+        height: 180.0,
+        dpr: 1.0,
+    };
+    let preview = Preview::open(&env, &dirs, size, 80).await.unwrap();
+    let draws: bool = preview
+        .view()
+        .active_tab()
+        .await
+        .evaluate_main("typeof CanvasRenderingContext2D.prototype.drawElementImage === 'function'")
+        .await
+        .unwrap();
+    preview.close().await;
+    assert!(draws, "canvas transitions would fall back to CSS");
+}

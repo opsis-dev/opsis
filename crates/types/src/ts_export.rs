@@ -89,3 +89,10 @@ pub fn render_plain(types: &Types) -> String {
 pub fn render(types: &Types) -> String {
     number_literals(&render_plain(types))
 }
+
+pub fn tidy_export(text: &str) -> String {
+    let separated = text.replace("/* Types */\n", "/* Types */\n\n");
+    number_literals(&tidy(
+        &serialize_side(&separated).replace("_Deserialize", ""),
+    ))
+}

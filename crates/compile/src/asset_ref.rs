@@ -3,14 +3,12 @@ use std::sync::LazyLock;
 use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
 use regex::Regex;
 
-pub const FILE_SCHEME: &str = "opsis-file";
 pub const PROJECT_SCHEME: &str = "project:";
 pub const APP_SCHEME: &str = "app:";
 pub const LIBRARY_SCHEME: &str = "library:";
-pub const PROJECT_FILE_BASE: &str = "opsis-file://project/";
 pub const STATIC_PROJECT_BASE: &str = "static:";
 
-const EXTERNAL_SCHEMES: [&str; 5] = ["http:", "https:", "data:", "blob:", "opsis-file:"];
+const EXTERNAL_SCHEMES: [&str; 4] = ["http:", "https:", "data:", "blob:"];
 
 const COMPONENT: &AsciiSet = &NON_ALPHANUMERIC
     .remove(b'-')

@@ -1,12 +1,3 @@
-import { clamp, clamp01, lerp, partitionPoint, sampleKeyed } from "@opsis/core/math";
-import {
-  distance,
-  lerpPoint,
-  pointRect,
-  rectCenter,
-  type Rect,
-  type Viewport,
-} from "@opsis/core/schema/actions";
 import {
   BASE_POSE,
   interpolatePose,
@@ -17,6 +8,9 @@ import {
 } from "#video/camera/lib/camera.ts";
 import type { ClickEvent, ClickLog } from "#video/camera/lib/click-log.ts";
 import { designScaleFor } from "#video/camera/lib/design-width.ts";
+import { distance, lerpPoint, pointRect, rectCenter } from "#video/common/geometry.ts";
+import { clamp, clamp01, lerp, partitionPoint, sampleKeyed } from "#video/common/math.ts";
+import type { Rect, Viewport } from "#video/generated/spec.ts";
 
 export const S_MAX = 1.74;
 

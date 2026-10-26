@@ -1,5 +1,3 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
-import { isRecord } from "@opsis/core/guards";
 import React, { useEffect, useMemo } from "react";
 import { staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import {
@@ -17,6 +15,8 @@ import {
   type Object3D,
 } from "three";
 import type { SVGResult } from "three/addons/loaders/SVGLoader.js";
+import { isRecord } from "#video/common/guards.ts";
+import type { CoreElementProps } from "#video/generated/spec.ts";
 import { Card } from "#video/three/card-3d.tsx";
 import { isSvg, useSvg, useTexture } from "#video/three/load.ts";
 import { elementPose } from "#video/three/motion.ts";

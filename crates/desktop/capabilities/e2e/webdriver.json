@@ -1,0 +1,7 @@
+{
+  "$schema": "../../gen/schemas/desktop-schema.json",
+  "identifier": "e2e-webdriver",
+  "description": "Loads the embedded WebDriver's manifest in builds with the e2e feature",
+  "windows": ["main", "settings", "panel-*", "view-*"],
+  "permissions": ["wdio-webdriver:default"]
+}

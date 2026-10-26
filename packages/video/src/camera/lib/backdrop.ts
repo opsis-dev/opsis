@@ -1,7 +1,7 @@
-import { isExternalRef } from "@opsis/core/asset-ref";
-import { BACKDROP_TONES, DEFAULT_BACKDROP, type BackdropName } from "@opsis/core/backdrops";
-import { opaqueHex, parseColor } from "@opsis/core/color";
-import { isKeyOf, nonBlankString } from "@opsis/core/guards";
+import { isExternalRef } from "#video/common/asset-ref.ts";
+import { BACKDROP_TONES, DEFAULT_BACKDROP, type BackdropName } from "#video/common/backdrops.ts";
+import { opaqueHex, parseColor } from "#video/common/color.ts";
+import { isKeyOf, nonBlankString } from "#video/common/guards.ts";
 
 const LIGHT_LUMA = 0.6;
 const HEX_COLOUR = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;

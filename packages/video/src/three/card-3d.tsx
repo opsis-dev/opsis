@@ -1,4 +1,3 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
 import React, { useEffect, useMemo } from "react";
 import { staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import {
@@ -9,6 +8,7 @@ import {
   PlaneGeometry,
   type Texture,
 } from "three";
+import type { CoreElementProps } from "#video/generated/spec.ts";
 import { useTexture } from "#video/three/load.ts";
 import { elementPose } from "#video/three/motion.ts";
 import { faceGeometry, fittedSize, roundedRect } from "#video/three/shapes.ts";

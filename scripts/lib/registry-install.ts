@@ -10,7 +10,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { isKeyOf } from "@opsis/core/guards";
+import { isKeyOf } from "@opsis/video/common/guards";
 import type { CuratedElement } from "../registry-ingest.list";
 import { VIDEO_DIR, VIDEO_PACKAGE_DIR } from "./tool-config";
 import { walkFiles } from "./walk";

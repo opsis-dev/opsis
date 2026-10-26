@@ -3,9 +3,9 @@
   "id": "example_todomvc",
   "name": "Sample: to-do app",
   "settings": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
     "theme": "dark",
     "fonts": {
       "main": "Inter",
@@ -22,8 +22,8 @@
       "id": "session",
       "type": "browser.open",
       "position": {
-        "x": 0,
-        "y": 0
+        "x": 0.0,
+        "y": 0.0
       },
       "params": {
         "viewportWidth": 1920,
@@ -41,8 +41,8 @@
       "id": "open",
       "type": "browser.navigate",
       "position": {
-        "x": 300,
-        "y": 0
+        "x": 300.0,
+        "y": 0.0
       },
       "params": {
         "url": "{{Site address}}/#/",
@@ -54,8 +54,8 @@
       "id": "start",
       "type": "browser.startRecording",
       "position": {
-        "x": 600,
-        "y": 0
+        "x": 600.0,
+        "y": 0.0
       },
       "params": {}
     },
@@ -63,8 +63,8 @@
       "id": "todo1",
       "type": "browser.type",
       "position": {
-        "x": 900,
-        "y": 0
+        "x": 900.0,
+        "y": 0.0
       },
       "params": {
         "text": "Record a real product flow",
@@ -82,8 +82,8 @@
       "id": "todo2",
       "type": "browser.type",
       "position": {
-        "x": 1200,
-        "y": 0
+        "x": 1200.0,
+        "y": 0.0
       },
       "params": {
         "text": "Auto-zoom on every click",
@@ -101,8 +101,8 @@
       "id": "todo3",
       "type": "browser.type",
       "position": {
-        "x": 1500,
-        "y": 0
+        "x": 1500.0,
+        "y": 0.0
       },
       "params": {
         "text": "Render 16:9 and 9:16",
@@ -120,8 +120,8 @@
       "id": "complete",
       "type": "browser.click",
       "position": {
-        "x": 1800,
-        "y": 0
+        "x": 1800.0,
+        "y": 0.0
       },
       "params": {
         "after": 1100,
@@ -140,8 +140,8 @@
       "id": "filter",
       "type": "browser.click",
       "position": {
-        "x": 2100,
-        "y": 0
+        "x": 2100.0,
+        "y": 0.0
       },
       "params": {
         "after": 1500,
@@ -160,8 +160,8 @@
       "id": "record",
       "type": "capture.record",
       "position": {
-        "x": 2400,
-        "y": 0
+        "x": 2400.0,
+        "y": 0.0
       },
       "params": {
         "fps": 30,
@@ -177,8 +177,8 @@
       "id": "camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 2400,
-        "y": 200
+        "x": 2400.0,
+        "y": 200.0
       },
       "params": {
         "zoom": true,
@@ -197,8 +197,8 @@
       "id": "chips",
       "type": "cursor.keystrokeChips",
       "position": {
-        "x": 2100,
-        "y": 200
+        "x": 2100.0,
+        "y": 200.0
       },
       "params": {
         "position": "bottom",
@@ -213,8 +213,8 @@
       "id": "intro-bg",
       "type": "fx.remocn.shader-mesh-gradient",
       "position": {
-        "x": 1200,
-        "y": 340
+        "x": 1200.0,
+        "y": 340.0
       },
       "params": {
         "speed": 1,
@@ -229,8 +229,8 @@
       "id": "intro-title",
       "type": "fx.remocn.soft-blur-in",
       "position": {
-        "x": 1200,
-        "y": 540
+        "x": 1200.0,
+        "y": 540.0
       },
       "params": {
         "text": "TodoMVC in 20 seconds",
@@ -249,8 +249,8 @@
       "id": "intro",
       "type": "timeline.stack",
       "position": {
-        "x": 1500,
-        "y": 340
+        "x": 1500.0,
+        "y": 340.0
       },
       "params": {
         "duration": "first",
@@ -262,8 +262,8 @@
       "id": "outro",
       "type": "fx.core.title",
       "position": {
-        "x": 1500,
-        "y": 680
+        "x": 1500.0,
+        "y": 680.0
       },
       "params": {
         "eyebrow": "Made with",
@@ -288,8 +288,8 @@
       "id": "sequence",
       "type": "timeline.sequence",
       "position": {
-        "x": 2400,
-        "y": 422
+        "x": 2400.0,
+        "y": 422.0
       },
       "params": {
         "transition": "remocn/whip-pan",
@@ -302,8 +302,8 @@
       "id": "render",
       "type": "output.render",
       "position": {
-        "x": 2700,
-        "y": 340
+        "x": 2700.0,
+        "y": 340.0
       },
       "params": {
         "fileName": "{{Project name}}",
@@ -321,8 +321,8 @@
       "id": "note",
       "type": "core.note",
       "position": {
-        "x": 0,
-        "y": 340
+        "x": 0.0,
+        "y": 340.0
       },
       "params": {
         "text": "Sample project.\n\n1. Press Run. Opsis records the flow in a hidden browser.\n2. The preview updates with the real footage, camera moves and cursor.\n3. Finished videos appear in Outputs."

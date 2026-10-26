@@ -1,11 +1,12 @@
-import { findFamily, ROLE_ALIASES, roleFamilyName } from "@opsis/core/fonts";
-import {
-  DEFAULT_PROJECT_FONTS,
-  type FontFamilyDef,
-  type ProjectFonts,
-} from "@opsis/core/fonts/types";
 import { resolveAssetRef } from "#video/assets.tsx";
+import {
+  findFamily,
+  ROLE_ALIASES,
+  roleFamilyName,
+  DEFAULT_PROJECT_FONTS,
+} from "#video/common/fonts.ts";
 import { holdRender } from "#video/core/loading.ts";
+import type { FontFamilyDef, ProjectFonts } from "#video/generated/spec.ts";
 
 type Resolve = (ref: string) => string;
 type FontContext = { fonts: ProjectFonts; resolve: Resolve };

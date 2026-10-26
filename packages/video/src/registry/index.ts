@@ -1,7 +1,5 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
-import { isKeyOf } from "@opsis/core/guards";
-import type { CaptionsValue } from "@opsis/core/schema/values";
 import type React from "react";
+import { isKeyOf } from "#video/common/guards.ts";
 import {
   Backdrop,
   Gradient,
@@ -23,6 +21,7 @@ import { Placeholder } from "#video/core/placeholder.tsx";
 import type { Shot, Size, StillLook } from "#video/core/still-layout.ts";
 import { Title } from "#video/core/title.tsx";
 import { coreTransitions } from "#video/core/transitions.ts";
+import type { CoreElementProps, CaptionsValue } from "#video/generated/spec.ts";
 import { generatedElementLoaders } from "#video/registry/components.generated.ts";
 import { component } from "#video/registry/framing.tsx";
 import {

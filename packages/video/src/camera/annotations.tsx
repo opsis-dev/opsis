@@ -1,15 +1,16 @@
-import { TEXT_COLOR } from "@opsis/core/elements/colors";
-import { MAIN_FONT } from "@opsis/core/fonts";
-import { percent } from "@opsis/core/format";
-import { rectCenter, type Viewport } from "@opsis/core/schema/actions";
-import type { AnnotationKind, HandDrawnLook } from "@opsis/core/schema/recording";
 import React from "react";
 import { Easing, interpolate } from "remotion";
 import type { Annotation } from "#video/camera/action-log.ts";
 import { useDesignScale } from "#video/camera/lib/design-scale.ts";
 import { faded } from "#video/camera/lib/style.ts";
+import { TEXT_COLOR } from "#video/common/element-colors.ts";
+import { MAIN_FONT } from "#video/common/fonts.ts";
+import { percent } from "#video/common/format.ts";
+import { rectCenter } from "#video/common/geometry.ts";
+import type { HandDrawnLook } from "#video/common/recording.ts";
 import { drawOn, fadeWindow, isFadedOut } from "#video/core/anim.ts";
 import { HandDrawnMark } from "#video/core/hand-drawn.tsx";
+import type { Viewport, AnnotationKind } from "#video/generated/spec.ts";
 
 const FADE = {
   in: 0.18,

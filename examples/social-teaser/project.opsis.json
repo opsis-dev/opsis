@@ -3,9 +3,9 @@
   "id": "example_social_teaser",
   "name": "Social teaser (9:16)",
   "settings": {
-    "width": 1080,
-    "height": 1920,
-    "fps": 30,
+    "width": 1080.0,
+    "height": 1920.0,
+    "fps": 30.0,
     "theme": "dark",
     "fonts": {
       "main": "Inter",
@@ -22,8 +22,8 @@
       "id": "session",
       "type": "browser.open",
       "position": {
-        "x": 0,
-        "y": 0
+        "x": 0.0,
+        "y": 0.0
       },
       "params": {
         "viewportWidth": 1440,
@@ -41,8 +41,8 @@
       "id": "open",
       "type": "browser.navigate",
       "position": {
-        "x": 300,
-        "y": 0
+        "x": 300.0,
+        "y": 0.0
       },
       "params": {
         "url": "{{Site address}}",
@@ -54,8 +54,8 @@
       "id": "start",
       "type": "browser.startRecording",
       "position": {
-        "x": 600,
-        "y": 0
+        "x": 600.0,
+        "y": 0.0
       },
       "params": {}
     },
@@ -63,8 +63,8 @@
       "id": "type",
       "type": "browser.type",
       "position": {
-        "x": 900,
-        "y": 0
+        "x": 900.0,
+        "y": 0.0
       },
       "params": {
         "text": "Ship the teaser",
@@ -81,8 +81,8 @@
       "id": "record",
       "type": "capture.record",
       "position": {
-        "x": 1200,
-        "y": 0
+        "x": 1200.0,
+        "y": 0.0
       },
       "params": {
         "fps": 30,
@@ -98,8 +98,8 @@
       "id": "camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 1200,
-        "y": 200
+        "x": 1200.0,
+        "y": 200.0
       },
       "params": {
         "zoom": true,
@@ -118,8 +118,8 @@
       "id": "hook",
       "type": "fx.remocn.kinetic-center-build",
       "position": {
-        "x": 300,
-        "y": 340
+        "x": 300.0,
+        "y": 340.0
       },
       "params": {
         "text": "Words push left.",
@@ -138,8 +138,8 @@
       "id": "sequence",
       "type": "timeline.sequence",
       "position": {
-        "x": 1200,
-        "y": 422
+        "x": 1200.0,
+        "y": 422.0
       },
       "params": {
         "transition": "remocn/push-through",
@@ -152,8 +152,8 @@
       "id": "music",
       "type": "audio.music",
       "position": {
-        "x": 1200,
-        "y": 732
+        "x": 1200.0,
+        "y": 732.0
       },
       "params": {
         "src": "",
@@ -171,8 +171,8 @@
       "id": "mix",
       "type": "audio.mix",
       "position": {
-        "x": 1500,
-        "y": 340
+        "x": 1500.0,
+        "y": 340.0
       },
       "params": {}
     },
@@ -180,8 +180,8 @@
       "id": "render",
       "type": "output.render",
       "position": {
-        "x": 1800,
-        "y": 340
+        "x": 1800.0,
+        "y": 340.0
       },
       "params": {
         "fileName": "{{Project name}}",

@@ -1,6 +1,6 @@
-import type { EnvStatus } from "@opsis/core/ipc";
 import { useEffect } from "react";
 import { create } from "zustand";
+import type { EnvStatus } from "@/generated/bindings";
 import { loadOrReport } from "@/lib/toast";
 
 type EnvironmentState = {

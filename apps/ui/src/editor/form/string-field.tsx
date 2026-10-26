@@ -1,7 +1,6 @@
-import { BACKDROPS } from "@opsis/core/backdrops";
-import { targetRoleKey } from "@opsis/core/elements/introspect";
-import { humanize } from "@opsis/core/format";
-import { withCurrent } from "@opsis/core/lists";
+import { BACKDROPS } from "@opsis/video/common/backdrops";
+import { humanize } from "@opsis/video/common/format";
+import { withCurrent } from "@opsis/video/common/lists";
 import { Crosshair, FolderOpen, type LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,6 +10,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Textarea } from "@/components/ui/textarea";
+import { targetRoleKey } from "@/core/schema";
 import { FontPicker } from "../../fonts/font-picker";
 import { VarText } from "../var-text";
 import { FieldShell } from "./field-shell";

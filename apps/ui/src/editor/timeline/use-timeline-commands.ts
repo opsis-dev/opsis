@@ -1,7 +1,6 @@
-import { randomId } from "@opsis/core/ids";
-import type { Workflow } from "@opsis/core/schema/workflow";
-import type { FlatTimeline, VideoBar } from "@opsis/core/timeline/flatten";
 import { useState } from "react";
+import { randomId } from "@/core/ids";
+import type { Workflow, FlatTimeline, VideoBar } from "@/generated/bindings";
 import { splitBar, type Removal } from "@/timeline/edits";
 import { selectedSet } from "../../store/ui";
 import {

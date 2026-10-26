@@ -1,5 +1,3 @@
-import { portOf } from "@opsis/core/graph";
-import type { Workflow } from "@opsis/core/schema/workflow";
 import {
   applyEdgeChanges,
   applyNodeChanges,
@@ -8,6 +6,8 @@ import {
   type NodeChange,
 } from "@xyflow/react";
 import { useCallback, useMemo, useState } from "react";
+import { portOf } from "@/core/graph";
+import type { Workflow } from "@/generated/bindings";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { toFlowEdges, toFlowNodes, type CanvasNode } from "./convert";

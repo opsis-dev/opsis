@@ -244,6 +244,7 @@ async fn input_to_frame_latency() {
                 dpr: 1.0,
             },
             80,
+            &[],
         )
         .await
         .unwrap();

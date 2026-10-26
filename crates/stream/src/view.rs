@@ -23,7 +23,7 @@ const POPUP_ATTACH_TRIES: usize = 20;
 const POPUP_ATTACH_WAIT: std::time::Duration = std::time::Duration::from_millis(50);
 const UNBRANDED: (&str, &str) = ("Not.A/Brand", "99");
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewSize {
     pub width: f64,
@@ -31,14 +31,14 @@ pub struct ViewSize {
     pub dpr: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct TabInfo {
     pub id: String,
     pub url: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
 #[serde(
     tag = "kind",
     rename_all = "camelCase",
@@ -63,7 +63,7 @@ pub trait ViewSink: FrameSink {
     fn event(&self, event: ViewEvent);
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum MouseButton {
     None,
@@ -74,7 +74,7 @@ pub enum MouseButton {
     Forward,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, specta::Type)]
 #[serde(
     tag = "kind",
     rename_all = "camelCase",
@@ -376,6 +376,7 @@ impl StreamView {
         url: &str,
         size: ViewSize,
         quality: i64,
+        switches: &[&str],
     ) -> Result<Arc<Self>> {
         let params = Open {
             viewport_width: size.width as i64,
@@ -383,7 +384,7 @@ impl StreamView {
             dpr: size.dpr,
             ..Open::default()
         };
-        let session = Session::open(&params, executable, temp_dir).await?;
+        let session = Session::open_with_switches(&params, executable, temp_dir, switches).await?;
         let user_agent = match session.launched.browser.user_agent().await {
             Ok(headless) => desktop_user_agent(&headless),
             Err(error) => {

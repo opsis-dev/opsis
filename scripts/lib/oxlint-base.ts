@@ -6,13 +6,7 @@ type Override = NonNullable<OxlintConfig["overrides"]>[number];
 
 const WALL_CLOCK_LIBS = ["framer-motion", "motion", "motion/react", "motion/react-client", "gsap"];
 
-const NODE_ONLY = [
-  "node:*",
-  "electron",
-  "playwright-core",
-  "@remotion/renderer",
-  "@remotion/bundler",
-];
+const NODE_ONLY = ["node:*", "playwright-core", "@remotion/renderer", "@remotion/bundler"];
 
 export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfig {
   const prefix = path.relative(dir, ROOT).split(path.sep).join("/");
@@ -42,13 +36,12 @@ export function lintConfig(dir: string, overrides: Override[] = []): OxlintConfi
       "unicorn/no-array-sort": "off",
       "unicorn/consistent-function-scoping": "off",
       "unicorn/require-post-message-target-origin": "off",
-      "no-underscore-dangle": ["warn", { allow: ["_zod"] }],
+      "no-underscore-dangle": ["warn", { allow: ["_zod", "__TAURI_INTERNALS__"] }],
       "import/no-unassigned-import": ["warn", { allow: ["**/*.css"] }],
       "react/hooks": "off",
       "import/no-cycle": "off",
       "unicorn/filename-case": ["error", { case: "kebabCase", ignore: ["^__root\\.tsx$"] }],
       "opsis/use-find-by-id": "error",
-      "opsis/use-on-abort": "error",
       "opsis/use-parse-json-with": "error",
       "opsis/use-percent-text": "error",
       "opsis/use-type-guards": "error",

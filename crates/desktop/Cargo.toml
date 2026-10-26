@@ -1,0 +1,50 @@
+[package]
+name = "opsis-desktop"
+default-run = "opsis-desktop"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+axum = "0.8.9"
+env_logger = "0.11.11"
+futures = "0.3.34"
+http-body-util = "0.1.5"
+indexmap = "2.14.2"
+log = "0.4.34"
+opsis-api = { version = "0.1.0", path = "../api" }
+opsis-capture = { version = "0.1.0", path = "../capture" }
+opsis-compile = { version = "0.1.0", path = "../compile" }
+opsis-engine = { version = "0.1.0", path = "../engine" }
+opsis-fonts = { version = "0.1.0", path = "../fonts" }
+opsis-media = { version = "0.1.0", path = "../media" }
+opsis-project = { version = "0.1.0", path = "../project" }
+opsis-render = { version = "0.1.0", path = "../render" }
+opsis-runner = { version = "0.1.0", path = "../runner" }
+opsis-store = { version = "0.1.0", path = "../store" }
+opsis-stream = { version = "0.1.0", path = "../stream" }
+opsis-traces = { version = "0.1.0", path = "../traces" }
+opsis-types = { version = "0.1.0", path = "../types" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+specta = { version = "=2.0.0-rc.26", features = ["derive", "serde_json", "indexmap"] }
+specta-typescript = "=0.0.13"
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2.8.3"
+tauri-plugin-notification = "2.7.0"
+tauri-plugin-opener = "2.7.2"
+tauri-plugin-wdio-webdriver = { version = "1.5.1", optional = true }
+tauri-specta = { version = "2.0.0-rc.26", features = ["derive", "typescript"] }
+tempfile = "3.27.0"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread", "time", "sync", "fs"] }
+tokio-util = "0.7.20"
+tower = { version = "0.5.3", features = ["util"] }
+uuid = { version = "1.29.0", features = ["v4"] }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[features]
+e2e = ["dep:tauri-plugin-wdio-webdriver"]

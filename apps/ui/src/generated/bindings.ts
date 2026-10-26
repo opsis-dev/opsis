@@ -1,3 +1,118 @@
+import { invoke as __TAURI_INVOKE, Channel } from "@tauri-apps/api/core";
+import * as __TAURI_EVENT from "@tauri-apps/api/event";
+
+/** Commands */
+export const commands = {
+	listRecentProjects: () => typedError<RecentProject[], CommandError>(__TAURI_INVOKE("list_recent_projects")),
+	projectLocations: () => typedError<ProjectLocations, CommandError>(__TAURI_INVOKE("project_locations")),
+	chooseFolder: (title: string, defaultPath: string | null) => typedError<string | null, CommandError>(__TAURI_INVOKE("choose_folder", { title, defaultPath })),
+	pickProjectDir: () => typedError<string | null, CommandError>(__TAURI_INVOKE("pick_project_dir")),
+	openProject: (dir: string) => typedError<OpenProject, CommandError>(__TAURI_INVOKE("open_project", { dir })),
+	projectFolder: (parent: string, name: string) => typedError<string, CommandError>(__TAURI_INVOKE("project_folder", { parent, name })),
+	createProject: (name: string, template: string, dir: string | null) => typedError<OpenProject | null, CommandError>(__TAURI_INVOKE("create_project", { name, template, dir })),
+	saveWorkflow: (dir: string, workflow: Workflow, base: string | null) => typedError<SaveResult, CommandError>(__TAURI_INVOKE("save_workflow", { dir, workflow, base })),
+	watchProject: (dir: string | null) => typedError<null, CommandError>(__TAURI_INVOKE("watch_project", { dir })),
+	watchProjectFiles: (dir: string, refs: string[]) => typedError<null, CommandError>(__TAURI_INVOKE("watch_project_files", { dir, refs })),
+	readLastRun: (dir: string) => typedError<LastRun | null, CommandError>(__TAURI_INVOKE("read_last_run", { dir })),
+	importAssets: (dir: string, paths: string[] | null) => typedError<string[], CommandError>(__TAURI_INVOKE("import_assets", { dir, paths })),
+	clearCache: (dir: string) => typedError<null, CommandError>(__TAURI_INVOKE("clear_cache", { dir })),
+	listTemplates: () => __TAURI_INVOKE<TemplateInfo[]>("list_templates"),
+	getSettings: () => typedError<AppSettings, CommandError>(__TAURI_INVOKE("get_settings")),
+	patchSettings: (patch: { [key in string]: Value }) => typedError<AppSettings, CommandError>(__TAURI_INVOKE("patch_settings", { patch })),
+	setViewPref: (dir: string, key: string, value: Value) => typedError<null, CommandError>(__TAURI_INVOKE("set_view_pref", { dir, key, value })),
+	appMenuSections: () => __TAURI_INVOKE<MenuSection[]>("app_menu_sections"),
+	getEnvironment: () => __TAURI_INVOKE<EnvStatus>("get_environment"),
+	installEngine: () => typedError<null, CommandError>(__TAURI_INVOKE("install_engine")),
+	listLicences: () => typedError<LicenceEntry[], CommandError>(__TAURI_INVOKE("list_licences")),
+	openLicenceFile: (file: string) => typedError<null, CommandError>(__TAURI_INVOKE("open_licence_file", { file })),
+	revealInFolder: (dir: string, relativePath: string | null) => typedError<null, CommandError>(__TAURI_INVOKE("reveal_in_folder", { dir, relativePath })),
+	readTrace: (dir: string, traceId: string) => typedError<TraceModel, CommandError>(__TAURI_INVOKE("read_trace", { dir, traceId })),
+	listSecrets: (dir: string) => typedError<string[], CommandError>(__TAURI_INVOKE("list_secrets", { dir })),
+	openSettings: (page: SettingsPage | null) => typedError<null, CommandError>(__TAURI_INVOKE("open_settings", { page })),
+	openPanelWindow: (panel: DockPanelName) => typedError<null, CommandError>(__TAURI_INVOKE("open_panel_window", { panel })),
+	focusPanelWindow: (panel: DockPanelName) => __TAURI_INVOKE<void>("focus_panel_window", { panel }),
+	closePanelWindow: (panel: DockPanelName) => typedError<null, CommandError>(__TAURI_INVOKE("close_panel_window", { panel })),
+	closePanelWindows: () => typedError<null, CommandError>(__TAURI_INVOKE("close_panel_windows")),
+	listPanelWindows: () => __TAURI_INVOKE<DockPanelName[]>("list_panel_windows"),
+	getWindowState: () => __TAURI_INVOKE<WindowState>("get_window_state"),
+	setTitle: (title: string) => typedError<null, CommandError>(__TAURI_INVOKE("set_title", { title })),
+	windowRole: (role: WindowRole) => typedError<null, CommandError>(__TAURI_INVOKE("window_role", { role })),
+	reportUnsaved: (unsaved: boolean) => __TAURI_INVOKE<void>("report_unsaved", { unsaved }),
+	closeShown: () => __TAURI_INVOKE<void>("close_shown"),
+	decideClose: (decision: CloseDecision) => typedError<null, CommandError>(__TAURI_INVOKE("decide_close", { decision })),
+	saveFlushed: () => __TAURI_INVOKE<void>("save_flushed"),
+	compile: (workflow: Workflow, selected: string | null, inspected: string | null) => typedError<EditorCompile, CommandError>(__TAURI_INVOKE("compile", { workflow, selected, inspected })),
+	sendCompiled: () => __TAURI_INVOKE<void>("send_compiled"),
+	editorCatalog: () => __TAURI_INVOKE<EditorCatalog>("editor_catalog"),
+	fileRoot: () => __TAURI_INVOKE<string>("file_root"),
+	runWorkflow: (request: RunRequest) => typedError<StartedRun, CommandError>(__TAURI_INVOKE("run_workflow", { request })),
+	cancelRun: () => __TAURI_INVOKE<void>("cancel_run"),
+	runStatus: () => __TAURI_INVOKE<RunStatus>("run_status"),
+	watchLive: (frames: Channel<ArrayBuffer>) => __TAURI_INVOKE<void>("watch_live", { frames }),
+	listFonts: () => typedError<FontFamilyDef[], CommandError>(__TAURI_INVOKE("list_fonts")),
+	inspectFontFiles: (paths: string[] | null) => typedError<InspectedFonts | null, CommandError>(__TAURI_INVOKE("inspect_font_files", { paths })),
+	installedFontFamilies: () => typedError<InstalledFamily[], CommandError>(__TAURI_INVOKE("installed_font_families")),
+	inspectInstalledFonts: (families: string[]) => typedError<InspectedFonts, CommandError>(__TAURI_INVOKE("inspect_installed_fonts", { families })),
+	addInspectedFonts: (token: string, families: string[]) => typedError<FontFamilyDef[], CommandError>(__TAURI_INVOKE("add_inspected_fonts", { token, families })),
+	releaseInspectedFonts: (token: string) => __TAURI_INVOKE<void>("release_inspected_fonts", { token }),
+	removeFont: (id: string) => typedError<null, CommandError>(__TAURI_INVOKE("remove_font", { id })),
+	fontCatalog: () => typedError<FontCatalogEntry[], CommandError>(__TAURI_INVOKE("font_catalog")),
+	downloadFont: (id: string) => typedError<FontFamilyDef, CommandError>(__TAURI_INVOKE("download_font", { id })),
+	useFontInProject: (dir: string, fontId: string) => typedError<FontFamilyDef, CommandError>(__TAURI_INVOKE("use_font_in_project", { dir, fontId })),
+	analyze: (request: AnalysisRequest) => typedError<AnalysisResult, CommandError>(__TAURI_INVOKE("analyze", { request })),
+	pickElement: (request: PickRequest) => typedError<PickResult | null, CommandError>(__TAURI_INVOKE("pick_element", { request })),
+	attachView: (id: string, frames: Channel<ArrayBuffer>) => typedError<null, CommandError>(__TAURI_INVOKE("attach_view", { id, frames })),
+	viewInput: (id: string, input: ViewInput) => typedError<null, CommandError>(__TAURI_INVOKE("view_input", { id, input })),
+	viewResize: (id: string, size: ViewSize) => typedError<null, CommandError>(__TAURI_INVOKE("view_resize", { id, size })),
+	viewNavigate: (id: string, url: string) => typedError<null, CommandError>(__TAURI_INVOKE("view_navigate", { id, url })),
+	viewGo: (id: string, steps: number) => typedError<null, CommandError>(__TAURI_INVOKE("view_go", { id, steps })),
+	viewReload: (id: string) => typedError<null, CommandError>(__TAURI_INVOKE("view_reload", { id })),
+	viewSwitchTab: (id: string, tab: string) => typedError<null, CommandError>(__TAURI_INVOKE("view_switch_tab", { id, tab })),
+	viewAnswerDialog: (id: string, accept: boolean, prompt: string) => typedError<null, CommandError>(__TAURI_INVOKE("view_answer_dialog", { id, accept, prompt })),
+	viewChooseFiles: (id: string) => typedError<null, CommandError>(__TAURI_INVOKE("view_choose_files", { id })),
+	viewClose: (id: string) => __TAURI_INVOKE<void>("view_close", { id }),
+	previewOpen: (projectDir: string, size: ViewSize, frames: Channel<ArrayBuffer>) => typedError<string, CommandError>(__TAURI_INVOKE("preview_open", { projectDir, size, frames })),
+	previewLoad: (spec: TimelineSpec) => typedError<null, CommandError>(__TAURI_INVOKE("preview_load", { spec })),
+	previewPlay: () => typedError<null, CommandError>(__TAURI_INVOKE("preview_play")),
+	previewPause: () => typedError<null, CommandError>(__TAURI_INVOKE("preview_pause")),
+	previewSeek: (frame: number) => typedError<null, CommandError>(__TAURI_INVOKE("preview_seek", { frame })),
+	previewRate: (rate: number) => typedError<null, CommandError>(__TAURI_INVOKE("preview_rate", { rate })),
+	previewRange: (range: PlayRange) => typedError<null, CommandError>(__TAURI_INVOKE("preview_range", { range })),
+	previewResize: (size: ViewSize) => typedError<null, CommandError>(__TAURI_INVOKE("preview_resize", { size })),
+	previewClose: () => typedError<null, CommandError>(__TAURI_INVOKE("preview_close")),
+	relay: (to: RelayTarget, message: Value) => typedError<null, CommandError>(__TAURI_INVOKE("relay", { to, message })),
+	pageLog: (level: PageLogLevel, message: string) => __TAURI_INVOKE<void>("page_log", { level, message }),
+	sendMenuToEditor: (command: MenuCommand) => typedError<null, CommandError>(__TAURI_INVOKE("send_menu_to_editor", { command })),
+	apiStatus: () => __TAURI_INVOKE<ApiServerStatus>("api_status"),
+	apiListening: (listening: boolean) => __TAURI_INVOKE<void>("api_listening", { listening }),
+	apiReply: (id: string, reply: Value) => __TAURI_INVOKE<void>("api_reply", { id, reply }),
+};
+
+/** Events */
+export const events = {
+	apiRequestReceived: makeEvent<ApiRequestReceived, ApiRequestReceived>("api-request-received"),
+	apiStatusChanged: makeEvent<ApiStatusChanged, ApiStatusChanged>("api-status-changed"),
+	compiled: makeEvent<Compiled, Compiled>("compiled"),
+	confirmClose: makeEvent<ConfirmClose, ConfirmClose>("confirm-close"),
+	engineInstallProgress: makeEvent<EngineInstallProgress, EngineInstallProgress>("engine-install-progress"),
+	flushSave: makeEvent<FlushSave, FlushSave>("flush-save"),
+	liveNoted: makeEvent<LiveNoted, LiveNoted>("live-noted"),
+	menuCommandFired: makeEvent<MenuCommandFired, MenuCommandFired>("menu-command-fired"),
+	panelWindowsChanged: makeEvent<PanelWindowsChanged, PanelWindowsChanged>("panel-windows-changed"),
+	previewReported: makeEvent<PreviewReported, PreviewReported>("preview-reported"),
+	projectFileChanged: makeEvent<ProjectFileChanged, ProjectFileChanged>("project-file-changed"),
+	projectFilesChanged: makeEvent<ProjectFilesChanged, ProjectFilesChanged>("project-files-changed"),
+	relayed: makeEvent<Relayed, Relayed>("relayed"),
+	runEventFired: makeEvent<RunEventFired, RunEventFired>("run-event-fired"),
+	settingsChanged: makeEvent<SettingsChanged, SettingsChanged>("settings-changed"),
+	settingsPageShown: makeEvent<SettingsPageShown, SettingsPageShown>("settings-page-shown"),
+	viewEventFired: makeEvent<ViewEventFired, ViewEventFired>("view-event-fired"),
+	viewPrefChanged: makeEvent<ViewPrefChanged, ViewPrefChanged>("view-pref-changed"),
+	windowStateChanged: makeEvent<WindowStateChanged, WindowStateChanged>("window-state-changed"),
+};
+
+/* Types */
+
 export type ActionKind = "click" | "type" | "hover" | "scroll" | "navigate" | "wait" | "chapter" | "key" | "focus" | "drag";
 
 export type ActionLog = {
@@ -16,6 +131,11 @@ export type ActionMark = {
 	label: string,
 	nodeId?: string,
 	barKey: string,
+};
+
+export type ActionRef = {
+	id: string,
+	label: string,
 };
 
 export type Action = {
@@ -37,6 +157,25 @@ export type Action = {
 	path?: Point[],
 	drop?: Rect,
 };
+
+export type AddEdgeBody = {
+	source: string,
+	sourceHandle: string,
+	target: string,
+	targetHandle: string,
+};
+
+export type AddNodeBody = {
+	type: string,
+	id?: string,
+	label?: string,
+	position?: Position,
+	params?: { [key in string]: Value },
+};
+
+export type AnalysisRequest = { kind: "waveform"; projectDir: string; src: string } | { kind: "filmstrip"; projectDir: string; src: string } | { kind: "mix"; projectDir: string; plan: MixPlan };
+
+export type AnalysisResult = { kind: "waveform"; waveform: Waveform } | { kind: "filmstrip"; filmstrip: Filmstrip } | { kind: "mix"; mix: MixResult } | { kind: "skipped" } | { kind: "error"; error: string; engineMissing?: boolean };
 
 export type Anchor = {
 	nodeId: string,
@@ -62,6 +201,46 @@ export type AnnotationSpec = {
 export type ApiProblem = {
 	path?: string,
 } & GraphIssue;
+
+export type ApiRequestReceived = {
+	id: string,
+	request: EditorRequest,
+};
+
+export type ApiSection = {
+	enabled: boolean,
+};
+
+export type ApiServerStatus = {
+	enabled: boolean,
+	listening: boolean,
+	address: string,
+	error?: string,
+};
+
+export type ApiStatusChanged = ApiServerStatus;
+
+export type AppSection = {
+	onStart: StartOption,
+	confirmExit: boolean,
+	setupSkipped: boolean,
+};
+
+export type AppSettings = {
+	app: AppSection,
+	traces: TracesSection,
+	live: LiveSection,
+	render: RenderSection,
+	projects: ProjectsSection,
+	editor: EditorSection,
+	api: ApiSection,
+};
+
+export type AppVersions = {
+	app: string,
+	tauri: string,
+	webview: string,
+};
 
 export type ArtifactKind = "video" | "image" | "audio" | "json" | "file";
 
@@ -128,6 +307,12 @@ export type AudioTag = "audio";
 export type AudioValue = {
 	items: AudioItem[],
 	durationInFrames?: number,
+};
+
+export type BarClock = {
+	steps: ClockStep[],
+	itemFrom: number,
+	contentEnd: number,
 };
 
 export type BarKind = "recording" | "element";
@@ -220,6 +405,8 @@ export type CameraTuning = {
 	holdMinS?: number,
 };
 
+export type CanvasMode = "mouse" | "touchpad";
+
 export type Caption = {
 	text: string,
 	startMs: number,
@@ -237,6 +424,8 @@ export type CardRow = {
 	tone?: Tone,
 	swatches?: string[],
 };
+
+export type CatalogCategory = "sans-serif" | "serif" | "monospace" | "display" | "handwriting" | "icons" | "other";
 
 export type CatalogEntry = {
 	params: { [key in string]: unknown },
@@ -258,6 +447,8 @@ export type CatalogPort = {
 	optional: boolean,
 	many: boolean,
 };
+
+export type Category = "Browser" | "Capture" | "Camera" | "Cursor" | "Text & overlays" | "Transitions" | "Backgrounds" | "Effects" | "Grade" | "Elements" | "Audio" | "Timeline" | "Media" | "Output" | "Utility";
 
 export type ChainLink = {
 	itemId: string,
@@ -294,6 +485,25 @@ export type ClipValue = {
 	audio: AudioItem[],
 	recording?: TaggedRecording,
 };
+
+export type ClockStep = {
+	from: number,
+	startFrom: number,
+	loopOffset: number,
+	remap: ([number, number])[] | null,
+};
+
+export type CloseDecision = {
+	close: boolean,
+	dontAsk: boolean,
+};
+
+export type CloseRequest = {
+	ask: boolean,
+	busy: string[],
+};
+
+export type CommandError = string;
 
 export type Comp = {
 	on: boolean,
@@ -335,10 +545,16 @@ export type CompileValue = {
 	type: "captions",
 } & CaptionsValue;
 
+export type Compiled = EditorCompile;
+
+export type ConfirmClose = CloseRequest;
+
 export type ConnectionProblem = {
 	notFound: boolean,
 	message: string,
 };
+
+export type ConsoleLevel = "log" | "info" | "warning" | "error" | "debug";
 
 export type CursorLook = { shape: "arrow"; fill: string; edge: string } | { shape: "mac" };
 
@@ -354,6 +570,8 @@ export type Design = {
 	height: number,
 	exact?: boolean,
 };
+
+export type DockPanelName = "preview" | "timeline" | "mixer" | "run";
 
 export type Duck = {
 	level: number,
@@ -380,13 +598,108 @@ export type EditHandles = {
 	volume?: ParamRef,
 };
 
+export type Edition = "full" | "lite" | "dev";
+
+export type EditorCatalog = {
+	nodes: EditorNode[],
+	transitions: { [key in string]: string },
+	connects: PortLink[],
+};
+
+export type EditorCompile = {
+	seq: number,
+	result: CompileResult,
+	issues: GraphIssue[],
+	preview: PreviewTarget | null,
+	flat: FlatTimeline | null,
+	plan: MixPlan | null,
+	levelled: TimelineSpec | null,
+	cards: { [key in string]: CardRow[] },
+	inspector: InspectorContext | null,
+	clocks: { [key in string]: BarClock },
+};
+
+export type EditorNode = {
+	type: string,
+	title: string,
+	category: Category,
+	categoryLabel: string,
+	description?: string,
+	phase: Phase,
+	inputs: { [key in string]: CatalogPort },
+	outputs: { [key in string]: CatalogPort },
+	params: { [key in string]: unknown },
+	defaults: { [key in string]: unknown },
+	hostDefaults: { [key in string]: unknown },
+	virtual: boolean,
+	action: boolean,
+	executes: boolean,
+	hidden: boolean,
+	secretParams: string[],
+	usesProjectSize: boolean,
+	element?: string,
+	cardHeight: number,
+	hasCard: boolean,
+	compiles: boolean,
+};
+
+export type EditorRequest = ({ op: "open"; dir: string }) & { ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "read" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "replace"; workflow: Workflow }) & { dir?: never; ids?: never; settings?: never; variables?: never } | {
+	op: "addNode",
+} & AddNodeBody | {
+	op: "updateNode",
+} & {
+	id: string,
+} & UpdateNodeBody | ({ op: "removeNodes"; ids: string[] }) & { dir?: never; settings?: never; variables?: never; workflow?: never } | {
+	op: "addEdge",
+} & AddEdgeBody | ({ op: "removeEdges"; ids: string[] }) & { dir?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "setSettings"; settings: SettingsPatch }) & { dir?: never; ids?: never; variables?: never; workflow?: never } | ({ op: "setVariables"; variables: { [key in string]: string } }) & { dir?: never; ids?: never; settings?: never; workflow?: never } | ({ op: "problems" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "undo" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "redo" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | ({ op: "save" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never } | {
+	op: "run",
+} & RunBody | ({ op: "stop" }) & { dir?: never; ids?: never; settings?: never; variables?: never; workflow?: never };
+
+export type EditorSection = {
+	canvasMode: CanvasMode,
+};
+
 export type ElementRef = {
 	component: string,
 	props: { [key in string]: unknown },
 };
 
+export type EngineInstallEvent = {
+	done?: boolean,
+	error?: string,
+} & EngineInstallUpdate;
+
+export type EngineInstallProgress = EngineInstallEvent;
+
+export type EngineInstallUpdate = {
+	part: EnginePart,
+	step: string,
+	progress: number,
+	message: string,
+};
+
+export type EnginePart = "ffmpeg" | "headless-shell";
+
+export type EngineStatus = {
+	dir: string,
+	headlessShell: string | null,
+	ffmpeg: string | null,
+	ffprobe: string | null,
+	complete: boolean,
+};
+
 export type EntriesValue = {
 	entries: StyleEntry[],
+};
+
+export type EnvStatus = {
+	platform: string,
+	arch: string,
+	isPackaged: boolean,
+	edition: Edition,
+	userData: string,
+	versions: AppVersions,
+	engine: EngineStatus,
 };
 
 export type EqBand = {
@@ -409,6 +722,16 @@ export type FilmChapter = {
 	endMs: number,
 };
 
+export type Filmstrip = {
+	src: string,
+	image: string,
+	count: number,
+	intervalMs: number,
+	tileWidth: number,
+	tileHeight: number,
+	durationMs: number,
+};
+
 export type FlatTimeline = {
 	fps: number,
 	durationInFrames: number,
@@ -419,6 +742,29 @@ export type FlatTimeline = {
 	transitions: TransitionMark[],
 	marks: ActionMark[],
 	cameraKeys: CameraKeyMark[],
+};
+
+export type FlushSave = null;
+
+export type FontCandidate = {
+	name: string,
+	family: string,
+	weight: string,
+	style: FontStyle,
+	variable: boolean,
+	format: FontFormat,
+	size: number,
+};
+
+export type FontCatalogEntry = {
+	id: string,
+	family: string,
+	category: CatalogCategory,
+	variable: boolean,
+	styles: string[],
+	weights: number[],
+	license: string,
+	type: string,
 };
 
 export type FontCategory = "sans-serif" | "serif" | "monospace" | "display" | "handwriting";
@@ -489,6 +835,30 @@ export type ImageValue = {
 	body?: Bounds,
 };
 
+export type InspectedFonts = {
+	token: string,
+	families: PlannedFamily[],
+	license: string | null,
+	skipped: number,
+	unreadable: number,
+};
+
+export type InspectorContext = {
+	nodeId: string,
+	vars: VarInfo[],
+	layers: number,
+	actions: ActionRef[],
+	spotBackground: SpotBackground | null,
+	picker: PickerTarget,
+	swatches: string[],
+	connectedInputs: string[],
+};
+
+export type InstalledFamily = {
+	family: string,
+	faces: number,
+};
+
 export type IssueLevel = "error" | "warning";
 
 export type ItemBase = {
@@ -528,6 +898,14 @@ export type LastRun = {
 	failures?: { [key in string]: NodeFailure },
 };
 
+export type LicenceEntry = {
+	id: string,
+	title: string,
+	summary: string,
+	text?: string,
+	file?: string,
+};
+
 export type Limiter = {
 	on: boolean,
 	ceiling: number,
@@ -539,9 +917,39 @@ export type LinkedParam = {
 	ifNonZero?: boolean,
 };
 
+export type LiveEvent = { kind: "start"; title: string; viewport: Viewport; steps: LiveStep[] } | { kind: "step"; nodeId: string; status: LiveStepStatus; message?: string } | { kind: "cursor"; x: number; y: number } | { kind: "target"; rect: Rect; label: string; selector?: string } | { kind: "click"; x: number; y: number } | { kind: "end"; ok: boolean; message?: string };
+
+export type LiveNoted = {
+	captureId: string,
+	nodeId: string,
+	t: number,
+	event: LiveEvent,
+};
+
+export type LiveSection = {
+	fps: number,
+	autoOpen: boolean,
+};
+
+export type LiveStep = {
+	nodeId: string,
+	label: string,
+};
+
+export type LiveStepStatus = "running" | "done" | "error";
+
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
 export type LoudnessTarget = "off" | "web" | "podcast" | "broadcast";
+
+export type Loudness = {
+	fps: number,
+	momentary: (number)[],
+	shortTerm: (number)[],
+	integrated: number,
+	range: number,
+	truePeak: number,
+};
 
 export type Marker = {
 	id: string,
@@ -573,6 +981,23 @@ export type MediaValue = {
 	hasAudio?: boolean,
 };
 
+export type MenuCommand = "project:new" | "project:open" | "project:save" | "edit:undo" | "edit:redo" | "edit:group" | "edit:select-all" | "edit:layout" | "edit:add-node" | "run:start" | "run:cancel" | "view:settings" | "view:projects" | "view:toggle-left" | "view:toggle-bottom" | "view:toggle-right" | "view:toggle-minimap" | "view:focus-preview" | "view:focus-timeline" | "view:focus-mixer" | "view:focus-run";
+
+export type MenuCommandFired = MenuCommand;
+
+export type MenuEntry = { kind: "command"; label: string; command: MenuCommand; accelerator?: string } | { kind: "role"; label: string; role: WindowRole; accelerator?: string } | { kind: "separator" };
+
+export type MenuSection = {
+	label: string,
+	items: MenuEntry[],
+};
+
+export type MixLevels = {
+	channels: { [key in string]: StemLevels },
+	buses: { [key in string]: StemLevels },
+	master: StemLevels | null,
+};
+
 export type MixPlan = {
 	fps: number,
 	durationInFrames: number,
@@ -582,16 +1007,36 @@ export type MixPlan = {
 	key: string,
 };
 
+export type MixReduction = {
+	channels: { [key in string]: (number)[] },
+	master: (number)[] | null,
+};
+
+export type MixResult = {
+	key: string,
+	master: MasterStem | null,
+	levels: MixLevels,
+	reduction: MixReduction,
+	loudness: Loudness | null,
+};
+
 export type Mix = {
 	channels: { [key in string]: Strip },
 	buses: Bus[],
 	master: Master,
 };
 
+export type MouseButton = "none" | "left" | "middle" | "right" | "back" | "forward";
+
 export type NodeFailure = {
 	message: string,
 	at: number,
 	traceId?: string,
+};
+
+export type NodeProgress = {
+	value: number,
+	message?: string,
 };
 
 export type NodeResult = {
@@ -602,6 +1047,20 @@ export type NodeResult = {
 	durationMs: number,
 	traceId?: string,
 };
+
+export type NodeRunStatus = "idle" | "queued" | "running" | "cached" | "done" | "error" | "skipped";
+
+export type OpenProject = {
+	dir: string,
+	workflow: Workflow,
+	lastRun: LastRun | null,
+	version: string,
+	view: { [key in string]: unknown },
+};
+
+export type PageLogLevel = "error" | "warn";
+
+export type PanelWindowsChanged = DockPanelName[];
 
 export type ParamRef = {
 	nodeId: string,
@@ -614,6 +1073,31 @@ export type ParamRef = {
 
 export type ParamUnit = "ms" | "frames" | "rate" | "number";
 
+export type Phase = "capture" | "media" | "compile" | "render" | "post";
+
+export type PickRequest = {
+	url: string,
+	viewport: Viewport | null,
+};
+
+export type PickResult = {
+	target: string,
+	css: string,
+	role?: string,
+	selectorUsed: PickedBy,
+};
+
+export type PickedBy = "accessible name" | "css" | "spot";
+
+export type PickerPage = {
+	url: string,
+	viewport: Viewport | null,
+};
+
+export type PickerTarget = {
+	kind: "page",
+} & PickerPage | { kind: "problem"; message: string };
+
 export type PictureLook = {
 	brightness?: number,
 	contrast?: number,
@@ -623,9 +1107,32 @@ export type PictureLook = {
 	grain?: number,
 };
 
+export type PlannedFamily<C = {
+	name: string,
+	family: string,
+	weight: string,
+	style: FontStyle,
+	variable: boolean,
+	format: FontFormat,
+	size: number,
+}> = {
+	family: string,
+	faces: C[],
+};
+
+export type PlayRange = {
+	inFrame?: number,
+	outFrame?: number,
+};
+
 export type Point = {
 	x: number,
 	y: number,
+};
+
+export type PortLink = {
+	from: PortType,
+	to: PortType,
 };
 
 export type PortType = "browser-session" | "recording" | "recording-style" | "grade" | "clip" | "audio" | "captions" | "image" | "media" | "file-info" | "folder";
@@ -637,17 +1144,53 @@ export type Position = {
 
 export type PreviewQuality = "fast" | "exact";
 
+export type PreviewReported = {
+	frame: number,
+	playing: boolean,
+};
+
 export type PreviewTarget = {
 	spec: TimelineSpec,
 	spans: { [key in string]: FrameRange },
 	sourceNodeId: string,
 };
 
+export type ProjectFileChange = {
+	dir: string,
+	workflow: Workflow | null,
+	version: string,
+};
+
+export type ProjectFileChanged = ProjectFileChange;
+
+export type ProjectFilesChange = {
+	dir: string,
+	files: { [key in string]: string },
+};
+
+export type ProjectFilesChanged = ProjectFilesChange;
+
 export type ProjectFonts = {
 	main: string,
 	heading: string,
 	code: string,
 	families: FontFamilyDef[],
+};
+
+export type ProjectLocations = {
+	defaultDir: string,
+	suggestedDir: string,
+};
+
+export type ProjectsSection = {
+	defaultDir: string,
+	lastDir: string,
+};
+
+export type RecentProject = {
+	dir: string,
+	name: string,
+	openedAt: number,
 };
 
 export type RecordingProps = {
@@ -697,13 +1240,56 @@ export type Rect = {
 
 export type ReframeMode = "follow" | "center" | "fit";
 
+export type RelayTarget = "editor" | "others";
+
+export type Relayed = {
+	from: string,
+	message: unknown,
+};
+
+export type RenderSection = {
+	licenseKey: string,
+};
+
 export type RippleLook = {
 	color: string,
 	size: number,
 	width: number,
 };
 
+export type RunBody = {
+	targetNodeIds?: string[],
+	fromNodeId?: string,
+};
+
+export type RunEventFired = RunEvent;
+
 export type RunEvent = { type: "run:start"; runId: string; nodeIds: string[]; at: number } | { type: "node:start"; runId: string; nodeId: string; at: number } | { type: "node:progress"; runId: string; nodeId: string; progress: number; message?: string } | { type: "node:log"; runId: string; nodeId?: string; level: LogLevel; message: string; at: number } | { type: "node:done"; runId: string; nodeId: string; cached: boolean; result?: NodeResult } | { type: "node:error"; runId: string; nodeId: string; message: string; stack?: string; traceId?: string } | { type: "node:skipped"; runId: string; nodeId: string; reason: string } | { type: "run:done"; runId: string; ok: boolean; cancelled: boolean; error?: string; failedNodeIds?: string[]; skippedNodeIds?: string[]; outputs: string[]; at: number };
+
+export type RunProgress = {
+	runId: string | null,
+	statuses: { [key in string]: NodeRunStatus },
+	progress: { [key in string]: NodeProgress },
+	cached: { [key in string]: boolean },
+	errors: { [key in string]: string },
+	traces: { [key in string]: string },
+	results: { [key in string]: NodeResult },
+};
+
+export type RunRequest = {
+	projectDir: string,
+	workflow: Workflow,
+	targetNodeIds?: string[],
+	fromNodeId?: string,
+};
+
+export type RunStatus = {
+	runId: string | null,
+	projectDir: string | null,
+	progress: RunProgress,
+};
+
+export type SaveResult = { outcome: "saved"; version: string } | { outcome: "changed"; version: string; workflow: Workflow | null };
 
 export type SequencerProps = {
 	component: string,
@@ -721,6 +1307,21 @@ export type SessionStep = {
 	type: string,
 	label?: string,
 	params: { [key in string]: unknown },
+};
+
+export type SettingsChanged = AppSettings;
+
+export type SettingsPage = "general" | "projects" | "engine" | "recording" | "fonts" | "export" | "api" | "licences" | "about";
+
+export type SettingsPageShown = SettingsPage;
+
+export type SettingsPatch = {
+	width?: number,
+	height?: number,
+	fps?: number,
+	background?: string,
+	theme?: Theme,
+	fonts?: ProjectFonts,
 };
 
 export type Slot = {
@@ -752,8 +1353,27 @@ export type SpecAssets = {
 	versions?: { [key in string]: string },
 };
 
+export type SpotBackground = {
+	src: string,
+	timeMs: number,
+	durationMs: number,
+	still: boolean,
+};
+
 export type SrcValue = {
 	src: string | null,
+};
+
+export type StartOption = "start-screen" | "last-project" | "new-project";
+
+export type StartedRun = {
+	runId: string,
+};
+
+export type StemLevels = {
+	fps: number,
+	peak: (number)[],
+	rms: (number)[],
 };
 
 export type Strip = {
@@ -774,9 +1394,21 @@ export type StyleEntry = {
 	params: { [key in string]: unknown },
 };
 
+export type TabInfo = {
+	id: string,
+	url: string,
+};
+
 export type TaggedRecording = {
 	type: "recording",
 } & RecordingValue;
+
+export type TemplateInfo = {
+	id: string,
+	title: string,
+	description: string,
+	icon: Icon,
+};
 
 export type Theme = "light" | "dark";
 
@@ -818,6 +1450,80 @@ export type TimelineTrack = {
 
 export type Tone = "muted" | "warn";
 
+export type TraceAction = {
+	id: string,
+	parentId?: string,
+	group: boolean,
+	nodeId?: string,
+	title: string,
+	target?: string,
+	start: number,
+	end: number,
+	error?: string,
+	logs: string[],
+	point?: Point,
+	box?: Bounds,
+};
+
+export type TraceConsole = {
+	level: ConsoleLevel,
+	text: string,
+	time: number,
+	url?: string,
+};
+
+export type TraceError = {
+	message: string,
+	stack?: string,
+	time: number,
+	actionId?: string,
+};
+
+export type TraceFrame = {
+	src: string,
+	time: number,
+	width: number,
+	height: number,
+};
+
+export type TraceHeader = {
+	id: string,
+	nodeId: string,
+	label: string,
+	ok: boolean,
+	createdAt: number,
+};
+
+export type TraceModel = {
+	start: number,
+	end: number,
+	viewport: Viewport | null,
+	actions: TraceAction[],
+	frames: TraceFrame[],
+	console: TraceConsole[],
+	errors: TraceError[],
+	network: TraceRequest[],
+} & TraceHeader;
+
+export type TraceRequest = {
+	method: string,
+	url: string,
+	status: number,
+	mimeType: string,
+	resourceType: string,
+	size: number,
+	start: number,
+	duration: number,
+	failure?: string,
+};
+
+export type TraceRetention = "always" | "failures" | "last-n" | "off";
+
+export type TracesSection = {
+	retention: TraceRetention,
+	keepLast: number,
+};
+
 export type TransitionMark = {
 	key: string,
 	itemKey: string,
@@ -834,6 +1540,20 @@ export type TransitionRef = {
 	durationInFrames: number,
 	params?: { [key in string]: unknown },
 	hold?: boolean,
+};
+
+export type UpdateNodeBody = {
+	label?: string,
+	position?: Position,
+	disabled?: boolean,
+	params?: { [key in string]: Value },
+};
+
+export type Value = null | boolean | number | string | Value[] | { [key in string]: Value };
+
+export type VarInfo = {
+	name: string,
+	value: string,
 };
 
 export type VideoBar = {
@@ -860,6 +1580,29 @@ export type VideoBar = {
 
 export type VideoTag = "video";
 
+export type ViewEvent = { kind: "tabs"; tabs: TabInfo[]; active: number } | { kind: "dialog"; dialog: string; message: string; defaultPrompt: string } | { kind: "fileChooser"; multiple: boolean };
+
+export type ViewEventFired = {
+	id: string,
+	event: ViewEvent,
+};
+
+export type ViewInput = { kind: "mouseDown"; x: number; y: number; button: MouseButton; buttons: number; clickCount: number; modifiers: number } | { kind: "mouseUp"; x: number; y: number; button: MouseButton; buttons: number; clickCount: number; modifiers: number } | { kind: "mouseMove"; x: number; y: number; buttons: number; modifiers: number } | { kind: "wheel"; x: number; y: number; deltaX: number; deltaY: number; modifiers: number } | { kind: "keyDown"; key: string; code: string; text: string; keyCode: number; location: number; modifiers: number; repeat: boolean } | { kind: "keyUp"; key: string; code: string; keyCode: number; location: number; modifiers: number } | { kind: "text"; text: string } | { kind: "composition"; text: string; selectionStart: number; selectionEnd: number };
+
+export type ViewPrefChange = {
+	dir: string,
+	key: string,
+	value: unknown,
+};
+
+export type ViewPrefChanged = ViewPrefChange;
+
+export type ViewSize = {
+	width: number,
+	height: number,
+	dpr: number,
+};
+
 export type Viewport = {
 	width: number,
 	height: number,
@@ -871,6 +1614,30 @@ export type VisualEnvelope = {
 	y?: Keyframe[],
 	scale?: Keyframe[],
 };
+
+export type WaveformLevel = {
+	rate: number,
+	min: (number)[],
+	max: (number)[],
+};
+
+export type Waveform = {
+	src: string,
+	durationMs: number,
+	levels: WaveformLevel[],
+	beats: (number)[],
+	bpm: number,
+};
+
+export type WindowRole = "cut" | "copy" | "paste" | "selectAll" | "reload" | "toggleDevTools" | "resetZoom" | "zoomIn" | "zoomOut" | "togglefullscreen" | "minimize" | "toggleMaximize" | "close" | "quit";
+
+export type WindowState = {
+	maximized: boolean,
+	fullscreen: boolean,
+	focused: boolean,
+};
+
+export type WindowStateChanged = WindowState;
 
 export type WindowStyle = "macos" | "windows" | "linux";
 
@@ -913,3 +1680,38 @@ export type Workflow = {
 	mix?: Mix,
 	markers: Marker[],
 };
+
+/* Tauri Specta runtime */
+async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {
+    try {
+        return { status: "ok", data: await result };
+    } catch (e) {
+        if (e instanceof Error) throw e;
+        return { status: "error", error: e as any };
+    }
+}
+
+type EventEmit<T> = [T] extends [null] ? () => Promise<void> : (payload: T) => Promise<void>;
+
+type EventEmitTo<T> = [T] extends [null] ? (target: __TAURI_EVENT.EventTarget | string) => Promise<void> : (target: __TAURI_EVENT.EventTarget | string, payload: T) => Promise<void>;
+
+function makeEvent<TListen, TEmit = TListen>(name: string, serialize?: (payload: TEmit) => unknown, deserialize?: (payload: any) => TListen) {
+    const mapEvent = (cb: __TAURI_EVENT.EventCallback<TListen>) => (event: __TAURI_EVENT.Event<any>) => cb({ ...event, payload: deserialize ? deserialize(event.payload) : event.payload });
+    const mapPayload = (payload: TEmit) => serialize ? serialize(payload) : payload;
+
+    const base = {
+        listen: (cb: __TAURI_EVENT.EventCallback<TListen>) => __TAURI_EVENT.listen(name, mapEvent(cb)),
+        once: (cb: __TAURI_EVENT.EventCallback<TListen>) => __TAURI_EVENT.once(name, mapEvent(cb)),
+        emit: ((payload: TEmit) => __TAURI_EVENT.emit(name, mapPayload(payload)) as unknown) as EventEmit<TEmit>,
+        emitTo: ((to: __TAURI_EVENT.EventTarget | string, payload: TEmit) => __TAURI_EVENT.emitTo(to, name, mapPayload(payload)) as unknown) as EventEmitTo<TEmit>
+    };
+
+    const fn = (target: import("@tauri-apps/api/webview").Webview | import("@tauri-apps/api/window").Window) => ({
+        listen: (cb: __TAURI_EVENT.EventCallback<TListen>) => target.listen(name, mapEvent(cb)),
+        once: (cb: __TAURI_EVENT.EventCallback<TListen>) => target.once(name, mapEvent(cb)),
+        emit: ((payload: TEmit) => target.emit(name, mapPayload(payload)) as unknown) as EventEmit<TEmit>,
+        emitTo: ((to: __TAURI_EVENT.EventTarget | string, payload: TEmit) => target.emitTo(to, name, mapPayload(payload)) as unknown) as EventEmitTo<TEmit>
+    });
+
+    return Object.assign(fn, base);
+}

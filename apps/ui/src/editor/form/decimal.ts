@@ -1,6 +1,6 @@
-import { round3 } from "@opsis/core/math";
-import { parseNumberText } from "@opsis/core/text-input";
+import { round3 } from "@opsis/video/common/math";
 import type { ChangeEvent } from "react";
+import { parseNumberText } from "@/core/text-input";
 import { useCommitDraft } from "@/lib/use-commit-draft";
 
 export const trimNumber = (n: number): string => String(round3(n));

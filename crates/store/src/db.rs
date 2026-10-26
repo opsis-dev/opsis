@@ -4,7 +4,7 @@ use rusqlite::{Connection, OptionalExtension};
 use sha2::{Digest, Sha256};
 
 pub const DB_FILE: &str = "opsis.db";
-pub const SCHEMA_SQL: &str = include_str!("../../../src/main/db/schema.generated.sql");
+pub const SCHEMA_SQL: &str = include_str!("../db/schema.generated.sql");
 const META_ID: i64 = 1;
 const BUSY_TIMEOUT_MS: u32 = 5000;
 

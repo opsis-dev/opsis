@@ -40,6 +40,7 @@ impl ViewEnv {
                 dpr: 1.0,
             },
             VIEW_QUALITY,
+            &[],
         )
         .await
     }

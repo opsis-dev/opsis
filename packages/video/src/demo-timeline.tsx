@@ -1,26 +1,5 @@
-import { groupOf } from "@opsis/core/compile/clip";
-import { remapFrame } from "@opsis/core/compile/remap";
-import { ERROR_COLOR, STAGE_COLOR } from "@opsis/core/elements/colors";
-import { CODE_FONT, MAIN_FONT } from "@opsis/core/fonts";
-import { percent } from "@opsis/core/format";
-import { MIN_CROP } from "@opsis/core/limits";
-import { clamp01, EPSILON } from "@opsis/core/math";
-import type { Rect } from "@opsis/core/schema/actions";
-import type {
-  AudioItem,
-  ElementItem,
-  GroupProps,
-  SequencerProps,
-  TimelineItem,
-  TimelineSpec,
-  TimelineTrack,
-  TransitionRef,
-  VisualEnvelope,
-} from "@opsis/core/schema/timeline";
-import { envelopeAt } from "@opsis/core/timeline/envelope";
-import { flattenSpec, type FlatTimeline } from "@opsis/core/timeline/flatten";
 import { Audio } from "@remotion/media";
-import React, { createElement, useMemo } from "react";
+import React, { createElement } from "react";
 import {
   AbsoluteFill,
   Freeze,
@@ -40,12 +19,30 @@ import {
   resolveProps,
   useAssetBase,
 } from "#video/assets.tsx";
-import { CLAMP_RIGHT, fadeWindow } from "#video/core/anim.ts";
+import { groupOf } from "#video/common/clip.ts";
+import { ERROR_COLOR, STAGE_COLOR } from "#video/common/element-colors.ts";
+import { envelopeAt } from "#video/common/envelope.ts";
+import { CODE_FONT, MAIN_FONT } from "#video/common/fonts.ts";
+import { percent } from "#video/common/format.ts";
+import { MIN_CROP } from "#video/common/limits.ts";
+import { clamp01, EPSILON } from "#video/common/math.ts";
+import { remapFrame } from "#video/common/remap.ts";
+import type { ElementItem } from "#video/common/spec.ts";
+import { CLAMP_RIGHT } from "#video/core/anim.ts";
 import { RecordingClip } from "#video/core/recording-clip.tsx";
 import type { Size } from "#video/core/still-layout.ts";
 import { CutBoardProvider, useCutBoard } from "#video/core/transition-cuts.tsx";
 import { FontProvider } from "#video/fonts/font-provider.tsx";
-import { duckGain, duckingSpans, type Span } from "#video/mix/duck.ts";
+import type {
+  Rect,
+  GroupProps,
+  SequencerProps,
+  TimelineItem,
+  TimelineSpec,
+  TimelineTrack,
+  TransitionRef,
+  VisualEnvelope,
+} from "#video/generated/spec.ts";
 import { PaintRule } from "#video/registry/framing.tsx";
 import {
   getComponent,
@@ -78,7 +75,7 @@ export const DemoTimeline: React.FC<TimelineSpec> = (spec) => (
           <FontProvider fonts={spec.fonts} tracks={spec.tracks}>
             <Tracks tracks={spec.tracks} />
           </FontProvider>
-          {spec.mix ? <MasterStem src={spec.mix.src} /> : <AudioLayers spec={spec} />}
+          {spec.mix ? <MasterStem src={spec.mix.src} /> : null}
         </AbsoluteFill>
       </QualityProvider>
     </ReframeProvider>
@@ -358,66 +355,6 @@ function activeTransition(item: TimelineItem, frame: number): ActiveTransition |
     return { ref: exit, direction: "exiting", progress: progressFrom(exit, exitStart) };
   return null;
 }
-
-const NO_SPANS: Span[] = [];
-
-const duckKey = (keys: string[]) => keys.join("|");
-
-const AudioLayers: React.FC<{ spec: TimelineSpec }> = ({ spec }) => {
-  const layers = useMemo(() => {
-    const spansByKey = new Map<string, Span[]>();
-    let flat: FlatTimeline | null = null;
-    const spansFor = (keys: string[]) => {
-      const key = duckKey(keys);
-      const known = spansByKey.get(key);
-      if (known) return known;
-      flat ??= flattenSpec(spec);
-      const spans = duckingSpans(spec, new Set(keys), flat);
-      spansByKey.set(key, spans);
-      return spans;
-    };
-    return spec.audio
-      .filter((a) => a.gain !== 0)
-      .map((item) => ({ item, spans: item.duck ? spansFor(item.duck.keys) : NO_SPANS }));
-  }, [spec]);
-  return (
-    <>
-      {layers.map(({ item, spans }) => (
-        <AudioLayer key={item.id} item={item} spans={spans} />
-      ))}
-    </>
-  );
-};
-
-function audioGainAt(item: AudioItem, f: number, duration: number, spans: Span[]): number {
-  const baseVolume = (item.volume ?? 1) * (item.gain ?? 1);
-  const fade = fadeWindow(f, 0, duration, {
-    in: item.fadeInFrames ?? 0,
-    out: item.fadeOutFrames ?? 0,
-  });
-  const duck = item.duck
-    ? duckGain(item.from + f, spans, item.duck.level, item.duck.fadeFrames)
-    : 1;
-  const env = envelopeAt(item.envelope?.volume, f, 1);
-  return Math.max(0, baseVolume * fade * duck * env);
-}
-
-const AudioLayer: React.FC<{ item: AudioItem; spans: Span[] }> = ({ item, spans }) => {
-  const base = useAssetBase();
-  const { durationInFrames: total } = useVideoConfig();
-  const duration = item.durationInFrames ?? Math.max(1, total - item.from);
-  return (
-    <Sequence from={item.from} durationInFrames={duration} name={`audio ${item.id}`} layout="none">
-      <Audio
-        src={resolveAssetRef(item.src, base)}
-        loop={item.loop}
-        playbackRate={item.rate}
-        trimBefore={item.trimBefore}
-        volume={(f) => audioGainAt(item, f, duration, spans)}
-      />
-    </Sequence>
-  );
-};
 
 const MissingElement: React.FC<{ name: string }> = ({ name }) => (
   <AbsoluteFill

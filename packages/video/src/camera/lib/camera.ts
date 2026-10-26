@@ -1,7 +1,7 @@
-import { clamp, clamp01, lerp } from "@opsis/core/math";
-import type { Viewport } from "@opsis/core/schema/actions";
 import { Easing } from "remotion";
 import { designScaleFor } from "#video/camera/lib/design-width.ts";
+import { clamp, clamp01, lerp } from "#video/common/math.ts";
+import type { Viewport } from "#video/generated/spec.ts";
 
 const CAMERA_BEZIER = Easing.bezier(0.2, 0.2, 0.15, 1);
 

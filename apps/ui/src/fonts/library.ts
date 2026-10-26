@@ -1,7 +1,7 @@
-import type { FontFamilyDef } from "@opsis/core/fonts/types";
 import { registerFaces, unregisterFaces } from "@opsis/video/spec";
 import { useEffect } from "react";
 import { create } from "zustand";
+import type { FontFamilyDef } from "@/generated/bindings";
 import { reportError } from "@/lib/toast";
 import { fontFileUrl } from "../editor/file-url";
 

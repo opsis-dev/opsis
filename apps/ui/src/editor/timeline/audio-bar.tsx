@@ -1,6 +1,6 @@
-import { nodeNameById } from "@opsis/core/nodes/registry";
-import type { AudioBar } from "@opsis/core/timeline/flatten";
+import type { AudioBar } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { nodeNameById } from "@/store/catalog";
 import { WaveformCanvas, type Gain } from "./bar-canvas";
 import type { BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";

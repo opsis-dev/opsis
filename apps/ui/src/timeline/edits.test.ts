@@ -1,13 +1,11 @@
-import { randomId } from "@opsis/core/ids";
-import { findById } from "@opsis/core/lists";
-import { NODE_DEFS } from "@opsis/core/nodes/registry";
-import type { EditHandleKind } from "@opsis/core/schema/timeline";
-import type { Workflow } from "@opsis/core/schema/workflow";
-import type { GraphBuilder } from "@opsis/core/templates/build";
-import { buildFilm, flatFilm, must, TITLE } from "@opsis/core/test-fixtures";
-import type { AudioBar, ChainLink, FlatTimeline, VideoBar } from "@opsis/core/timeline/flatten";
-import { findHandle } from "@opsis/core/timeline/handles";
+import { findById } from "@opsis/video/common/lists";
 import { describe, expect, it } from "vitest";
+import { findHandle } from "@/core/handles";
+import { randomId } from "@/core/ids";
+import type { EditHandleKind } from "@/core/timeline";
+import type { Workflow, AudioBar, ChainLink, FlatTimeline, VideoBar } from "@/generated/bindings";
+import { catalogNodes } from "@/store/catalog";
+import { buildFilm, flatFilm, must, TITLE, type GraphBuilder } from "@/test/graph";
 import {
   moveAudio,
   moveBar,
@@ -117,7 +115,7 @@ const HANDLES: Record<BarHandle, HandleCase> = {
 
 function feedInputs(g: GraphBuilder, id: string, type: string): void {
   const def = must(
-    NODE_DEFS.find((d) => d.type === type),
+    catalogNodes().find((d) => d.type === type),
     `node def ${type}`,
   );
   Object.entries(def.inputs).forEach(([port, spec], i) => {
@@ -168,7 +166,7 @@ function roundTrips(type: string, params?: Record<string, unknown>): RoundTrip[]
 }
 
 describe("timeline edit handles round-trip", () => {
-  const clipNodes = NODE_DEFS.filter((d) => d.compile && d.outputs.clip && !d.hidden);
+  const clipNodes = catalogNodes().filter((d) => d.compiles && d.outputs.clip && !d.hidden);
   const trips = new Map(clipNodes.map((d) => [d.type, roundTrips(d.type)]));
   const tripsOf = (type: string): RoundTrip[] => trips.get(type) ?? [];
 

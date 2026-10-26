@@ -1,4 +1,4 @@
-import { clamp01 } from "@opsis/core/math";
+import { clamp01 } from "@opsis/video/common/math";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 
 export function isEditingElement(target: EventTarget | null): boolean {

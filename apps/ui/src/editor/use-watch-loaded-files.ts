@@ -1,6 +1,6 @@
-import type { CompileResult } from "@opsis/core/compile/compile";
-import { projectRefsIn } from "@opsis/core/named-files";
 import { useEffect, useMemo, useRef } from "react";
+import { projectRefsIn } from "@/core/named-files";
+import type { CompileResult } from "@/generated/bindings";
 import { useWorkflowStore } from "../store/workflow";
 
 export function useWatchLoadedFiles(projectDir: string, result: CompileResult | null): void {

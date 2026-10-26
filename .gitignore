@@ -142,16 +142,15 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
-# Electron-Forge
-out/
-
 # Opsis
 resources/engine/
 resources/engine-licences/
 resources/export-src/
 remotion-bundle/
+crates/desktop/gen/
 .opsis/
 examples/**/secrets/
 .turbo/
+scripts/.ingest/
 
 /target/

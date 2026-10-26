@@ -1,4 +1,4 @@
-import { clamp } from "@opsis/core/math";
+import { clamp } from "@opsis/video/common/math";
 import { MAX_ZOOM, MIN_ZOOM } from "./canvas-grid";
 
 const PINCH_SPEED = 0.02;

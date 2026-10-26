@@ -1,13 +1,13 @@
 import path from "node:path";
-import type { FieldMeta } from "@opsis/core/elements/introspect";
-import { AUTHORED_FPS } from "@opsis/core/elements/lengths";
-import type { ElementKind } from "@opsis/core/elements/types";
-import { humanize } from "@opsis/core/format";
-import { isNumber, isRecord, isString } from "@opsis/core/guards";
-import { roundTo } from "@opsis/core/math";
-import { pick } from "@opsis/core/objects";
+import { humanize } from "@opsis/video/common/format";
+import { isNumber, isRecord, isString } from "@opsis/video/common/guards";
+import { roundTo } from "@opsis/video/common/math";
+import { pick } from "@opsis/video/common/objects";
+import { AUTHORED_FPS } from "@opsis/video/common/spec";
 import type * as framing from "@opsis/video/registry/framing";
 import { REGISTRIES, SECONDS, TITLE_ACRONYMS, type CuratedElement } from "../registry-ingest.list";
+import type { FieldMeta } from "./element-meta";
+import type { ElementKind } from "./element-meta";
 import type { Control } from "./registry-controls";
 import { VIDEO_DIR } from "./tool-config";
 
@@ -325,8 +325,7 @@ export const renderMeta = (entries: string[]): string =>
   [
     'import { zColor } from "@remotion/zod-types";',
     'import { z } from "zod";',
-    'import { themeValueSchema } from "#core/elements/theme";',
-    'import { defineElementMeta, type ElementMetaInput } from "#core/elements/types";',
+    'import { defineElementMeta, themeValueSchema, type ElementMetaInput } from "../lib/element-meta";',
     "",
     "const defs: ElementMetaInput[] = [",
     ...entries,

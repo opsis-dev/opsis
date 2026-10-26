@@ -1,4 +1,4 @@
-import { normalizeWorkflow } from "@opsis/core/schema/workflow";
+import { normalizeWorkflow } from "@/core/workflow";
 import { reportError } from "@/lib/toast";
 import { useWorkflowStore } from "../store/workflow";
 import { useDiskChange, type DiskChange } from "./disk-change-store";
@@ -16,7 +16,7 @@ export function save(): Promise<boolean> {
     if (!projectDir || !workflow) return true;
     if (useDiskChange.getState().change) return false;
     const result = await window.opsis.saveWorkflow(projectDir, workflow, fileVersion);
-    if (!result.ok) {
+    if (result.outcome === "changed") {
       useDiskChange.getState().show({ workflow: result.workflow, version: result.version });
       return false;
     }

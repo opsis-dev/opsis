@@ -1,6 +1,6 @@
-import type { RunEvent } from "@opsis/core/schema/events";
-import { nodeResult } from "@opsis/core/test-fixtures";
 import { beforeEach, describe, expect, it } from "vitest";
+import type { RunEvent } from "@/generated/bindings";
+import { nodeResult } from "@/test/graph";
 import { MAX_LOG_LINES, useRunStore } from "./run";
 
 const result = (finishedAt: number, traceId: string) => nodeResult({ finishedAt, traceId });

@@ -1,8 +1,8 @@
-import { baseName } from "@opsis/core/asset-ref";
-import { BUILTIN_SOUNDS, builtinSound } from "@opsis/core/sounds";
+import { baseName } from "@opsis/video/common/asset-ref";
 import { Play } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { BUILTIN_SOUNDS, builtinSound } from "@/core/sounds";
 import { fileUrl } from "../file-url";
 import { ChoiceSelect } from "./choice-select";
 import { FieldShell } from "./field-shell";

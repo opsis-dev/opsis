@@ -1,4 +1,4 @@
-import { clamp, type MinMax, type StepRange } from "@opsis/core/math";
+import { clamp, type MinMax, type StepRange } from "@opsis/video/common/math";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SingleSlider } from "../../app/single-slider";

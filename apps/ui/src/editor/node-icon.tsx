@@ -1,5 +1,5 @@
-import type { NodeIconName } from "@opsis/core/nodes/icon-name";
 import { Box } from "lucide-react";
+import type { Icon as NodeIconName } from "@/generated/bindings";
 import { NODE_ICONS } from "./icons";
 
 export function NodeIcon({ name, className }: { name?: NodeIconName; className?: string }) {

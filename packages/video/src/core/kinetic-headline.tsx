@@ -1,5 +1,3 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
-import { fontOr } from "@opsis/core/fonts";
 import React, { useMemo } from "react";
 import {
   AbsoluteFill,
@@ -9,8 +7,10 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { fontOr } from "#video/common/fonts.ts";
 import { CLAMPED, exitOpacity } from "#video/core/anim.ts";
 import { Backgrounded } from "#video/core/backgrounds.tsx";
+import type { CoreElementProps } from "#video/generated/spec.ts";
 
 const WORD_SPRING = { damping: 18, stiffness: 160 };
 const EMPHASIS_SWEEP_FRAMES = [8, 22];

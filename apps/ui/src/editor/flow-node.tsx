@@ -1,12 +1,4 @@
-import { wholePercent } from "@opsis/core/format";
-import { parseOrDefault } from "@opsis/core/guards";
-import type { NodeDef, PortSpec } from "@opsis/core/nodes/define";
-import { portLabel } from "@opsis/core/nodes/ports";
-import { getNodeDef, nodeName } from "@opsis/core/nodes/registry";
-import { CARD_WIDTH } from "@opsis/core/nodes/size";
-import { groupParams, noteParams } from "@opsis/core/nodes/utility";
-import type { NodeRunStatus } from "@opsis/core/schema/events";
-import type { WorkflowNode } from "@opsis/core/schema/workflow";
+import { wholePercent } from "@opsis/video/common/format";
 import { NodeResizer, Position, type NodeProps } from "@xyflow/react";
 import {
   CheckCheck,
@@ -28,7 +20,10 @@ import { LabeledHandle } from "@/components/labeled-handle";
 import { NodeStatusIndicator, type NodeStatus } from "@/components/node-status-indicator";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { CARD_WIDTH, groupLook, noteText } from "@/core/nodes";
+import type { CatalogPort, EditorNode, NodeRunStatus, WorkflowNode } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { getNodeDef, nodeName } from "@/store/catalog";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
@@ -83,10 +78,10 @@ export const FlowNode = memo(function FlowNode({ id, data }: NodeProps<CanvasNod
   return <KnownNode id={id} node={data.node} def={def} />;
 });
 
-function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: NodeDef }) {
+function KnownNode({ id, node, def }: { id: string; node: WorkflowNode; def: EditorNode }) {
   const status = useRunStore((s) => s.statuses[id]);
   const active = useUiStore((s) => s.activeIds.includes(id));
-  const rows = useCardRows(node, def);
+  const rows = useCardRows(node);
   const { errors, warnings } = useNodeProblems(id);
   const indicator = (status && INDICATOR[status]) ?? "initial";
   const succeeded = status === "done" || status === "cached";
@@ -117,7 +112,7 @@ function NodeHeader({
   status,
 }: {
   title: string;
-  def: NodeDef;
+  def: EditorNode;
   status: NodeRunStatus | undefined;
 }) {
   const badge = status ? STATUS[status] : undefined;
@@ -138,7 +133,7 @@ function NodeHeader({
   );
 }
 
-function PortHandles({ ports, side }: { ports: Record<string, PortSpec>; side: "in" | "out" }) {
+function PortHandles({ ports, side }: { ports: Record<string, CatalogPort>; side: "in" | "out" }) {
   return Object.entries(ports).map(([portId, port]) => {
     const color = portTypeColor(port.type);
     return (
@@ -147,7 +142,7 @@ function PortHandles({ ports, side }: { ports: Record<string, PortSpec>; side: "
         id={portId}
         type={side === "in" ? "target" : "source"}
         position={side === "in" ? Position.Left : Position.Right}
-        title={portLabel(port)}
+        title={port.label}
         labelClassName={cn("text-xs", side === "in" && port.optional && "text-muted-foreground")}
         style={{ background: color, borderColor: color }}
       />
@@ -155,7 +150,7 @@ function PortHandles({ ports, side }: { ports: Record<string, PortSpec>; side: "
   });
 }
 
-function NodePorts({ def }: { def: NodeDef }) {
+function NodePorts({ def }: { def: EditorNode }) {
   if (!Object.keys(def.inputs).length && !Object.keys(def.outputs).length) return null;
   return (
     <div className="grid grid-cols-2 gap-y-1 text-xs">
@@ -198,7 +193,7 @@ export const GroupFlowNode = memo(function GroupFlowNode({
   data,
   selected,
 }: NodeProps<CanvasNode>) {
-  const { title, color } = parseOrDefault(groupParams, data.node.params, {});
+  const { title, color } = groupLook(data.node);
   const setMeta = useWorkflowStore((s) => s.setNodeMeta);
   return (
     <>
@@ -234,7 +229,7 @@ export const NoteFlowNode = memo(function NoteFlowNode({ data }: NodeProps<Canva
       className="rounded-lg border border-amber-300/40 bg-amber-200/10 p-3 text-xs leading-relaxed whitespace-pre-wrap text-amber-100"
       style={{ width: CARD_WIDTH }}
     >
-      {parseOrDefault(noteParams, data.node.params, {}).text}
+      {noteText(data.node)}
     </div>
   );
 });

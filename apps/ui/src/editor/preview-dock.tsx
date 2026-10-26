@@ -1,23 +1,19 @@
-import { PROJECT_FILE_BASE } from "@opsis/core/asset-ref";
-import { findById } from "@opsis/core/lists";
-import { exportReframe, variantSize } from "@opsis/core/nodes/output";
-import { nodeName } from "@opsis/core/nodes/registry";
-import { EMPTY_SPEC, type TimelineSpec } from "@opsis/core/schema/timeline";
-import { atLeastOneFrame, playRange } from "@opsis/core/timeline/time";
-import { Player, type PlayerRef } from "@remotion/player";
+import { findById } from "@opsis/video/common/lists";
+import { atLeastOneFrame } from "@opsis/video/common/time";
 import { Clapperboard } from "lucide-react";
 import { useMemo, useState } from "react";
+import { exportReframe, variantSize } from "@/core/nodes";
+import type { TimelineSpec } from "@/generated/bindings";
+import { nodeName } from "@/store/catalog";
 import { EmptyPanel } from "../app/empty-panel";
-import { usePlayback } from "../store/playback";
 import { useProjectFiles } from "../store/project-files";
 import { useViewOptions } from "../store/view-options";
 import { useWorkflowStore } from "../store/workflow";
 import { useFilm } from "./film";
-import { PreviewComposition } from "./preview-composition";
-import { PreviewStage } from "./preview-controls";
+import { PreviewStage, togglePlayback } from "./preview-controls";
+import { usePreviewSound, useStreamedPreview } from "./preview-stream";
 import { PreviewToolbar } from "./preview-toolbar";
 import { useCompiledContext } from "./use-compiled";
-import { usePlayerBridge, useSeekToSelection } from "./use-player-bridge";
 
 function NothingToPreview() {
   return (
@@ -36,9 +32,8 @@ function usePreviewSpec(): TimelineSpec | null {
   const shape = useViewOptions((s) => s.previewShape);
   const versions = useProjectFiles((s) => s.versions);
   return useMemo(() => {
-    if (!film.audible || !workflow) return null;
-    const assets = { projectBase: PROJECT_FILE_BASE, versions };
-    const base = { ...film.audible, assets, quality };
+    if (!film.spec || !workflow) return null;
+    const base = { ...film.spec, assets: { versions }, quality };
     return shape === "project"
       ? base
       : {
@@ -46,29 +41,24 @@ function usePreviewSpec(): TimelineSpec | null {
           ...variantSize(shape, workflow.settings),
           reframe: exportReframe(workflow.nodes),
         };
-  }, [film.audible, quality, shape, workflow, versions]);
+  }, [film.spec, quality, shape, workflow, versions]);
 }
 
 export function PreviewDock() {
   const { preview } = useCompiledContext();
   const film = useFilm();
   const spec = usePreviewSpec();
-  const [player, setPlayer] = useState<PlayerRef | null>(null);
-  const rate = usePlayback((s) => s.rate);
-  const inPoint = usePlayback((s) => s.inPoint);
-  const outPoint = usePlayback((s) => s.outPoint);
+  const projectDir = useWorkflowStore((s) => s.projectDir);
+  const [stage, setStage] = useState<HTMLDivElement | null>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const sound = usePreviewSound(film.stem);
   const sourceNodeId = preview?.sourceNodeId ?? null;
   const source = useWorkflowStore((s) => findById(s.workflow?.nodes, sourceNodeId));
-
-  const duration = atLeastOneFrame(spec?.durationInFrames ?? 1);
-  useSeekToSelection(player, preview);
-  usePlayerBridge(player, preview, {
-    fps: spec?.fps ?? EMPTY_SPEC.fps,
-    durationInFrames: duration,
-  });
+  useStreamedPreview({ projectDir, preview, spec, stage, canvas });
 
   if (!spec) return <NothingToPreview />;
 
+  const duration = atLeastOneFrame(spec.durationInFrames);
   return (
     <div className="flex h-full flex-col gap-2 p-3">
       <PreviewToolbar
@@ -76,22 +66,13 @@ export function PreviewDock() {
         sourceTitle={source ? nodeName(source) : null}
         stale={film.stale}
       />
-      <PreviewStage player={player} fps={spec.fps} duration={duration}>
-        <Player
-          ref={setPlayer}
-          component={PreviewComposition}
-          inputProps={spec}
-          durationInFrames={duration}
-          fps={spec.fps}
-          compositionWidth={spec.width}
-          compositionHeight={spec.height}
-          playbackRate={rate}
-          {...playRange(inPoint, outPoint, duration)}
-          controls={false}
-          loop
-          clickToPlay
-          acknowledgeRemotionLicense
-          style={{ width: "100%", height: "100%" }}
+      <PreviewStage sound={sound} fps={spec.fps} duration={duration} onStage={setStage}>
+        <canvas
+          ref={setCanvas}
+          aria-label="Preview"
+          onClick={() => togglePlayback(sound)}
+          className="size-full object-contain"
+          style={{ aspectRatio: `${spec.width} / ${spec.height}` }}
         />
       </PreviewStage>
     </div>

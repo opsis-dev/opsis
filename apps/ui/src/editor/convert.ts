@@ -1,6 +1,6 @@
-import { isGroupNode, isNoteNode } from "@opsis/core/graph";
-import type { Workflow, WorkflowNode } from "@opsis/core/schema/workflow";
 import type { Edge, Node } from "@xyflow/react";
+import { isGroupNode, isNoteNode } from "@/core/nodes";
+import type { Workflow, WorkflowNode } from "@/generated/bindings";
 
 type FlowNodeData = { node: WorkflowNode };
 

@@ -1,5 +1,5 @@
-import { MINUS, signedText } from "@opsis/core/format";
-import { MIN_DB, SILENCE_DB } from "@opsis/core/mix/types";
+import { MINUS, signedText } from "@opsis/video/common/format";
+import { MIN_DB, SILENCE_DB } from "@/core/mix";
 
 const WHOLE_MS_FROM = 100;
 const KILOHERTZ_FROM = 1000;

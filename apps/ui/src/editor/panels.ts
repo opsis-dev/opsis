@@ -1,9 +1,9 @@
-import { isOneOf, isString } from "@opsis/core/guards";
-import { DOCK_PANELS, type DockPanelName } from "@opsis/core/ipc";
-import type { MenuCommand } from "@opsis/core/menu";
+import { isOneOf, isString } from "@opsis/video/common/guards";
 import { PanelBottom, PanelLeft, PanelRight, type LucideIcon } from "lucide-react";
 import type { LayoutStorage, PanelImperativeHandle } from "react-resizable-panels";
 import { create } from "zustand";
+import { DOCK_PANELS } from "@/core/shell";
+import type { DockPanelName, MenuCommand } from "@/generated/bindings";
 import { readPref, writePref } from "../store/view-prefs";
 
 export const PANEL_SIDES = ["left", "bottom", "right"] as const;

@@ -1,20 +1,12 @@
-import { parseNumberText } from "@opsis/core/text-input";
-import { z } from "zod";
+import type { JsonSchema } from "@/core/schema";
+import { parseNumberText } from "@/core/text-input";
 
 export type LengthLimits = { min: number; max: number };
 
-export function lengthLimits(schema: z.ZodType): LengthLimits {
-  const limits: LengthLimits = { min: 0, max: Infinity };
-  if (!(schema instanceof z.ZodArray)) return limits;
-  for (const check of schema.def.checks ?? []) {
-    const def = check._zod.def;
-    if (def.check === "min_length" && "minimum" in def && typeof def.minimum === "number")
-      limits.min = def.minimum;
-    if (def.check === "max_length" && "maximum" in def && typeof def.maximum === "number")
-      limits.max = def.maximum;
-  }
-  return limits;
-}
+export const lengthLimits = (schema: JsonSchema): LengthLimits => ({
+  min: schema.minItems ?? 0,
+  max: schema.maxItems ?? Infinity,
+});
 
 const THOUSANDS = /^\D*\d{1,3}(,\d{3})+(\.\d+)?\D*$/;
 

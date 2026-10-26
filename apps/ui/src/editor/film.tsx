@@ -1,12 +1,15 @@
-import type { FileVersions } from "@opsis/core/asset-ref";
-import { lookupKey } from "@opsis/core/hash";
-import { applyMixLevels, resolveMix, withMasterStem } from "@opsis/core/mix/levels";
-import { buildMixPlan, hasSound, type MixPlan } from "@opsis/core/mix/plan";
-import type { MixResult } from "@opsis/core/mix/result";
-import type { Mix } from "@opsis/core/mix/types";
-import type { TimelineSpec } from "@opsis/core/schema/timeline";
-import { flattenSpec, type FlatTimeline } from "@opsis/core/timeline/flatten";
+import type { FileVersions } from "@opsis/video/common/asset-ref";
+import { lookupKey } from "@opsis/video/common/hash";
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
+import { resolveMix } from "@/core/mix";
+import type {
+  BarClock,
+  FlatTimeline,
+  Mix,
+  MixPlan,
+  MixResult,
+  TimelineSpec,
+} from "@/generated/bindings";
 import { mixFailure, useMedia } from "../store/media";
 import { useProjectFiles, versionsOf } from "../store/project-files";
 import { useWorkflowStore } from "../store/workflow";
@@ -22,7 +25,9 @@ export type Film = {
   stale: boolean;
   failed: boolean;
   mixing: boolean;
-  audible: TimelineSpec | null;
+  levelled: TimelineSpec | null;
+  stem: string | null;
+  clocks: Partial<Record<string, BarClock>>;
 };
 
 const EMPTY: Film = {
@@ -35,10 +40,14 @@ const EMPTY: Film = {
   stale: false,
   failed: false,
   mixing: false,
-  audible: null,
+  levelled: null,
+  stem: null,
+  clocks: {},
 };
 
 const FILM_SOURCE = "film";
+
+const hasSound = (plan: MixPlan): boolean => plan.channels.some((c) => c.sounds.length > 0);
 
 function keyedByFiles(plan: MixPlan, versions: FileVersions): MixPlan {
   const sounds = plan.channels.flatMap((c) => c.sounds.map((s) => s.src));
@@ -63,26 +72,20 @@ function useMixResult(sounding: MixPlan | null, source: string): MixState {
 }
 
 function useFilmState(): Film {
-  const { preview } = useCompiledContext();
+  const { preview, flat, plan: planned, levelled, clocks } = useCompiledContext();
   const storedMix = useWorkflowStore((s) => s.workflow?.mix);
   const mix = useMemo(() => resolveMix(storedMix), [storedMix]);
   const spec = preview?.spec ?? null;
-  const flat = useMemo(() => (spec ? flattenSpec(spec) : null), [spec]);
   const versions = useProjectFiles((s) => s.versions);
   const plan = useMemo(
-    () => (spec && flat ? keyedByFiles(buildMixPlan(spec, mix, flat), versions) : null),
-    [spec, flat, mix, versions],
+    () => (planned ? keyedByFiles(planned, versions) : null),
+    [planned, versions],
   );
   const sounding = plan !== null && hasSound(plan) ? plan : null;
   const { result, mixing, failedKey } = useMixResult(
     sounding,
     preview?.sourceNodeId ?? FILM_SOURCE,
   );
-  const audible = useMemo(() => {
-    if (!spec || !flat) return null;
-    if (result?.master && sounding) return withMasterStem(spec, result.master);
-    return applyMixLevels(spec, mix, flat);
-  }, [spec, flat, result, sounding, mix]);
   if (!preview) return EMPTY;
   const current = !!sounding && result?.key === sounding.key;
   return {
@@ -95,7 +98,9 @@ function useFilmState(): Film {
     stale: !!sounding && !current && failedKey !== sounding.key,
     failed: !!plan && failedKey === plan.key,
     mixing,
-    audible,
+    levelled,
+    stem: result?.master && sounding ? result.master.src : null,
+    clocks,
   };
 }
 

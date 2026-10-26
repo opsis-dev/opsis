@@ -1,7 +1,6 @@
-import type { Motion } from "@opsis/core/elements/three";
-import type { CameraPath } from "@opsis/core/schema/timeline";
-import { cameraAt, type CameraView } from "@opsis/core/timeline/camera-path";
 import { random, spring } from "remotion";
+import { cameraAt, type CameraView } from "#video/common/camera-path.ts";
+import type { Motion, CameraPath } from "#video/generated/spec.ts";
 
 export type Vec3 = [number, number, number];
 export type Pose = { rotation: Vec3; position: Vec3; scale: number };

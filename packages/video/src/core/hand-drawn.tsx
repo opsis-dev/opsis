@@ -1,6 +1,6 @@
-import type { HandDrawnLook } from "@opsis/core/schema/recording";
 import { Box, Circle, CrossedOff, Highlight, Underline } from "@remotion/rough-notation";
 import React from "react";
+import type { HandDrawnLook } from "#video/common/recording.ts";
 
 export type MarkLook = HandDrawnLook | "crossed-off";
 

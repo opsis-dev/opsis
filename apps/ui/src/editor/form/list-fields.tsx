@@ -1,4 +1,3 @@
-import { parseNumberText } from "@opsis/core/text-input";
 import { GripVertical, Plus, Trash2, X } from "lucide-react";
 import { useRef, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import {
   SortableItem,
   SortableItemHandle,
 } from "@/components/ui/sortable";
+import { parseNumberText } from "@/core/text-input";
 import { useItemKeys } from "@/lib/use-item-keys";
 import { VarText } from "../var-text";
 import { ColorChip, ColorPopover } from "./color-picker";

@@ -1,4 +1,4 @@
-import type { RecordingProps } from "@opsis/core/schema/recording";
+import type { RecordingProps } from "#video/generated/spec.ts";
 
 export const WINDOW_FIT = 0.86;
 export const WINDOW_RADIUS = 14;

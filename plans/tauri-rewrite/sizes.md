@@ -23,17 +23,17 @@ A measured basis for the size goal (from about 800–900 MB to about 600 MB) and
 
 ### After
 
-| Part                                           | Size          | Note                                                                              |
-| ---------------------------------------------- | ------------- | --------------------------------------------------------------------------------- |
-| Tauri app (Rust binary + UI build + `public/`) | not built yet | UI build 5.1 MB and `public/` 7.0 MB today; measure the release binary in phase 6 |
-| Bun 1.4.3                                      | 89.0 MB       | Node 26.12 would be 150.3 MB, 116.9 MB stripped                                   |
-| Remotion compositor                            | 27.3 MB       | unchanged, used by `renderMedia`                                                  |
-| `@remotion/renderer` and the sidecar's own JS  | about 3 MB    | `@remotion/renderer` is 3.0 MB                                                    |
-| Prebuilt Remotion bundle                       | 67 MB         | unchanged; shrinks once `asset-preparation.md` takes the font and 3D parsers out  |
-| Chrome Headless Shell                          | 247.0 MB      | unchanged                                                                         |
-| FFmpeg                                         | 159.5 MB      | unchanged (out of scope)                                                          |
+| Part                                           | Size       | Note                                                                                                                                                                                           |
+| ---------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tauri app (Rust binary + UI build + `public/`) | 93.4 MB    | measured in phase 6 (2026-10-26, Linux x64): the release binary with the editor build and `public/` embedded, 69.8 MB stripped; no size work yet (`opt-level`, LTO, `strip` come with phase 8) |
+| Bun 1.4.3                                      | 89.0 MB    | Node 26.12 would be 150.3 MB, 116.9 MB stripped                                                                                                                                                |
+| Remotion compositor                            | 27.3 MB    | unchanged, used by `renderMedia`                                                                                                                                                               |
+| `@remotion/renderer` and the sidecar's own JS  | about 3 MB | `@remotion/renderer` is 3.0 MB                                                                                                                                                                 |
+| Prebuilt Remotion bundle                       | 67 MB      | unchanged; shrinks once `asset-preparation.md` takes the font and 3D parsers out                                                                                                               |
+| Chrome Headless Shell                          | 247.0 MB   | unchanged                                                                                                                                                                                      |
+| FFmpeg                                         | 159.5 MB   | unchanged (out of scope)                                                                                                                                                                       |
 
-Gone: Electron (286.8 MB) and `playwright-core` (13.7 MB). Added: Bun (89.0 MB) and the Rust binary. Without the Tauri binary, the listed parts come to about 593 MB.
+Gone: Electron (286.8 MB) and `playwright-core` (13.7 MB). Added: Bun (89.0 MB) and the Rust binary. Without the Tauri binary, the listed parts come to about 593 MB; with it unstripped, about 686 MB.
 
 ## Work
 

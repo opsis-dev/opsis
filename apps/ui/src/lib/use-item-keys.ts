@@ -1,5 +1,5 @@
-import { randomId } from "@opsis/core/ids";
 import { useState } from "react";
+import { randomId } from "@/core/ids";
 
 type KeyedItem<T> = { item: T; key: string };
 

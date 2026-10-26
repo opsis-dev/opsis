@@ -1,6 +1,4 @@
-import { joinFolder, projectFolderName } from "@opsis/core/project-folder";
-import { getTemplate, TEMPLATES } from "@opsis/core/templates";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,15 +11,14 @@ import {
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import type { TemplateInfo } from "@/generated/bindings";
 import { whenFirstOneOf } from "@/lib/one-of";
-import { platform } from "@/lib/platform";
 import { useBusy } from "@/lib/use-busy";
+import { getTemplate, templates } from "@/store/catalog";
 import { FolderField } from "./folder-field";
 import { useProjectLocations } from "./use-loaded";
 
-type Template = (typeof TEMPLATES)[number];
-
-const TEMPLATE_IDS = TEMPLATES.map((t) => t.id);
+type Template = TemplateInfo;
 
 const DEFAULT_PROJECT_NAME = "My launch video";
 
@@ -62,10 +59,13 @@ function TemplateField({
           orientation="vertical"
           variant="outline"
           value={[value]}
-          onValueChange={whenFirstOneOf(TEMPLATE_IDS, onChange)}
+          onValueChange={whenFirstOneOf(
+            templates().map((t) => t.id),
+            onChange,
+          )}
           className="w-full"
         >
-          {TEMPLATES.map((t) => (
+          {templates().map((t) => (
             <ToggleGroupItem
               key={t.id}
               value={t.id}
@@ -77,11 +77,30 @@ function TemplateField({
         </ToggleGroup>
       ) : (
         <div className="bg-muted/40 flex flex-col gap-0.5 rounded-md border px-3 py-2 text-sm">
-          <TemplateSummary template={chosen} />
+          {chosen ? <TemplateSummary template={chosen} /> : null}
         </div>
       )}
     </Field>
   );
+}
+
+function useProjectFolder(parent: string, name: string): string {
+  const [folder, setFolder] = useState({ for: "", path: "" });
+  const wanted = `${parent}\n${name}`;
+  useEffect(() => {
+    if (!parent) return;
+    let current = true;
+    void window.opsis
+      .projectFolder(parent, name)
+      .then((path) => {
+        if (current) setFolder({ for: `${parent}\n${name}`, path });
+      })
+      .catch(() => undefined);
+    return () => {
+      current = false;
+    };
+  }, [parent, name]);
+  return parent && folder.for === wanted ? folder.path : "";
 }
 
 function useNewProject(initialTemplate: string, onCreated: (dir: string) => void) {
@@ -92,7 +111,7 @@ function useNewProject(initialTemplate: string, onCreated: (dir: string) => void
   const locations = useProjectLocations();
   const location = typedLocation ?? locations?.suggestedDir ?? "";
   const dir = location.trim();
-  const folder = dir ? joinFolder(dir, projectFolderName(name), platform) : "";
+  const folder = useProjectFolder(dir, name);
 
   const create = () =>
     run(

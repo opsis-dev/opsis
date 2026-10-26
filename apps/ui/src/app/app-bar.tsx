@@ -1,4 +1,3 @@
-import type { MenuEntry } from "@opsis/core/menu";
 import { Menu } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -27,12 +26,13 @@ import {
 } from "@/components/ui/menubar";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { MenuEntry } from "@/generated/bindings";
 import { isMac } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import logoUrl from "../../../../brand/logo.svg";
 import { useAppSettings } from "../store/app-settings";
 import {
-  MENU_SECTIONS,
+  menuSections,
   menuItemId,
   runMenuItem,
   shortcutLabel,
@@ -92,7 +92,7 @@ function SectionItems({ items, parts }: { items: MenuEntry[]; parts: MenuParts }
 function WideMenu() {
   return (
     <Menubar className="hidden h-8 border-0 bg-transparent p-0 xl:flex">
-      {MENU_SECTIONS.map((section) => (
+      {menuSections().map((section) => (
         <MenubarMenu key={section.label}>
           <MenubarTrigger className="px-2 font-normal">{section.label}</MenubarTrigger>
           <MenubarContent className="min-w-56">
@@ -114,7 +114,7 @@ function CompactMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48">
         <DropdownMenuGroup>
-          {MENU_SECTIONS.map((section) => (
+          {menuSections().map((section) => (
             <DropdownMenuSub key={section.label}>
               <DropdownMenuSubTrigger>{section.label}</DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="min-w-56">

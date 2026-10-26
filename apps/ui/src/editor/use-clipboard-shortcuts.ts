@@ -1,14 +1,9 @@
-import { tryParseJson } from "@opsis/core/guards";
-import { matchesAccelerator } from "@opsis/core/menu";
-import {
-  workflowEdgeSchema,
-  workflowNodeSchema,
-  type WorkflowEdge,
-  type WorkflowNode,
-} from "@opsis/core/schema/workflow";
+import { tryParseJson } from "@opsis/video/common/guards";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { matchesAccelerator } from "@/core/menu";
+import type { WorkflowEdge, WorkflowNode } from "@/generated/bindings";
 import { isEditingElement } from "@/lib/dom";
 import { platform } from "@/lib/platform";
 import { attempt, loadOrReport } from "@/lib/toast";
@@ -20,9 +15,28 @@ const PASTE_OFFSET = { x: 60, y: 60 };
 
 const clipboardTagSchema = z.object({ tag: z.literal(CLIPBOARD_TAG) });
 
+const nodeSchema = z.object({
+  id: z.string().min(1),
+  type: z.string().min(1),
+  position: z.object({ x: z.number(), y: z.number() }),
+  params: z.record(z.string(), z.unknown()).default({}),
+  label: z.string().optional(),
+  disabled: z.boolean().optional(),
+  parentId: z.string().optional(),
+  size: z.object({ width: z.number(), height: z.number() }).optional(),
+});
+
+const edgeSchema = z.object({
+  id: z.string().min(1),
+  source: z.string(),
+  sourceHandle: z.string(),
+  target: z.string(),
+  targetHandle: z.string(),
+});
+
 const clipboardSchema = clipboardTagSchema.extend({
-  nodes: z.array(workflowNodeSchema),
-  edges: z.array(workflowEdgeSchema),
+  nodes: z.array(nodeSchema),
+  edges: z.array(edgeSchema),
 });
 
 type Subgraph = { nodes: WorkflowNode[]; edges: WorkflowEdge[] };

@@ -1,7 +1,6 @@
-import type { Waveform } from "@opsis/core/analysis";
-import type { AudioBar, FlatTimeline } from "@opsis/core/timeline/flatten";
-import { msToSeconds } from "@opsis/core/timeline/time";
+import { msToSeconds } from "@opsis/video/common/time";
 import { useMemo } from "react";
+import type { Waveform, AudioBar, FlatTimeline } from "@/generated/bindings";
 import { loaded, useMedia } from "../../store/media";
 
 const MAX_LOOPS = 200;

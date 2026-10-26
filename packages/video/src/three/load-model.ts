@@ -1,9 +1,9 @@
-import { parseJsonWith } from "@opsis/core/guards";
 import { staticFile } from "remotion";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { z } from "zod";
+import { parseJsonWith } from "#video/common/guards.ts";
 import { useHeldLoad } from "#video/core/loading.ts";
 
 const GLB_MAGIC = 0x46546c67;

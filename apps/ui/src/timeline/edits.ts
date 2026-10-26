@@ -1,27 +1,28 @@
-import { isString } from "@opsis/core/guards";
-import { edgeId, nodeIdPrefix } from "@opsis/core/ids";
-import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "@opsis/core/limits";
-import { findById } from "@opsis/core/lists";
-import { clamp, numberOr, round2 } from "@opsis/core/math";
-import { CLIP_PORT } from "@opsis/core/nodes/define";
-import { IN_PORTS, inPortIndex, nextInPort } from "@opsis/core/nodes/ports";
-import { getNodeDef, defaultParams, nodeNameById } from "@opsis/core/nodes/registry";
-import { cutSchema } from "@opsis/core/nodes/timeline";
-import { NO_TRANSITION } from "@opsis/core/nodes/transitions";
-import { cameraPathSchema, type EditHandleKind, type ParamRef } from "@opsis/core/schema/timeline";
+import { moveCameraKey, sortedCameraKeys } from "@opsis/video/common/camera-path";
+import { isRecord, isString } from "@opsis/video/common/guards";
+import { MAX_SPEED, MAX_VOLUME, MIN_SPEED } from "@opsis/video/common/limits";
+import { findById } from "@opsis/video/common/lists";
+import { clamp, numberOr, round2 } from "@opsis/video/common/math";
+import { framesToMs, msToFrames, wholeFrames } from "@opsis/video/common/time";
+import { findHandle, slotIndex, slotLink } from "@/core/handles";
+import { edgeId, nodeIdPrefix } from "@/core/ids";
+import { CLIP_PORT, IN_PORTS, inPortIndex, nextInPort } from "@/core/nodes";
+import { asSchema, schemaDefaults } from "@/core/schema";
+import { formatNumberList, parseNumberList } from "@/core/text-input";
+import { cameraPathSchema, type EditHandleKind } from "@/core/timeline";
+import type { EdgeEnds } from "@/core/workflow";
 import type {
-  EdgeEnds,
+  ParamRef,
   PortType,
   Workflow,
   WorkflowEdge,
   WorkflowNode,
-} from "@opsis/core/schema/workflow";
-import { formatNumberList, parseNumberList } from "@opsis/core/text-input";
-import { moveCameraKey, sortedCameraKeys } from "@opsis/core/timeline/camera-path";
-import type { AudioBar, CameraKeyMark, ChainLink, VideoBar } from "@opsis/core/timeline/flatten";
-import { findHandle, slotIndex, slotLink } from "@opsis/core/timeline/handles";
-import { framesToMs, msToFrames, wholeFrames } from "@opsis/core/timeline/time";
-import { z } from "zod";
+  AudioBar,
+  CameraKeyMark,
+  ChainLink,
+  VideoBar,
+} from "@/generated/bindings";
+import { defaultParams, getNodeDef, NO_TRANSITION, nodeNameById } from "@/store/catalog";
 import { absPosition, mapNode, patchNodeParams, removeNodes } from "../workflow-edits";
 
 export type EditContext = {
@@ -439,7 +440,16 @@ export function speedBar(ctx: EditContext, bar: VideoBar, newLength: number): Ed
   return addNode(ctx, bar, edge, "timeline.speed", { rate: clampRate(factor) });
 }
 
-const cutsSchema = z.array(cutSchema);
+type Cut = Record<string, unknown> & { before: string };
+
+const isCutList = (value: unknown): value is Cut[] =>
+  Array.isArray(value) && value.every((c) => isRecord(c) && isString(c.before));
+
+const newCut = (before: string): Cut => {
+  const sequence = asSchema(getNodeDef("timeline.sequence")?.params);
+  const item = asSchema(asSchema(sequence.properties?.cuts).items);
+  return { ...schemaDefaults(item), before, transition: NO_TRANSITION };
+};
 
 function splitParts(ctx: EditContext, edge: WorkflowEdge, offset: number) {
   const near = { source: edge.source, target: edge.target };
@@ -471,12 +481,12 @@ function splitInSequence(
   const port = inPortIndex(edge.targetHandle);
   const shiftPort = (handle: string): string | undefined =>
     inPortIndex(handle) <= port ? handle : nextInPort(handle);
-  const cuts = cutsSchema.parse(container.params.cuts ?? []).flatMap((c) => {
+  const saved = isCutList(container.params.cuts) ? container.params.cuts : [];
+  const cuts = saved.flatMap((c) => {
     const before = shiftPort(c.before);
     return before ? [{ ...c, before }] : [];
   });
-  if (paramValue(container, "transition") !== NO_TRANSITION)
-    cuts.push(cutSchema.parse({ before: next, transition: NO_TRANSITION }));
+  if (paramValue(container, "transition") !== NO_TRANSITION) cuts.push(newCut(next));
   const wf = ctx.workflow;
   const shifted = wf.edges.flatMap((e) => {
     if (e.target !== edge.target || inPortIndex(e.targetHandle) === -1) return [e];

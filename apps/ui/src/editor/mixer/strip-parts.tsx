@@ -1,5 +1,6 @@
-import { HIGHPASS_RANGE, type BusSettings, type Strip } from "@opsis/core/mix/types";
 import { Toggle } from "@/components/ui/toggle";
+import { HIGHPASS_RANGE, type BusSettings } from "@/core/mix";
+import type { Strip } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { WithTooltip } from "../with-tooltip";
 import { formatDb, formatHz } from "./audio-format";

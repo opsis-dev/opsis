@@ -7,9 +7,8 @@ export function AboutPage() {
   if (!env) return <Spinner />;
   const rows: Array<[string, string]> = [
     ["App", `${env.versions.app} (${env.edition})`],
-    ["Electron", env.versions.electron],
-    ["Chromium", env.versions.chrome],
-    ["Node", env.versions.node],
+    ["Tauri", env.versions.tauri],
+    ["Web view", env.versions.webview],
     ["Platform", `${env.platform} / ${env.arch}`],
     ["Engine folder", env.engine.dir],
     ["Recording browser", env.engine.headlessShell ?? "Not set up"],

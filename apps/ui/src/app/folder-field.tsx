@@ -1,4 +1,4 @@
-import { nonBlankString } from "@opsis/core/guards";
+import { nonBlankString } from "@opsis/video/common/guards";
 import { FolderOpen } from "lucide-react";
 import {
   InputGroup,

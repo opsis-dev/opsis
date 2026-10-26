@@ -1,12 +1,12 @@
-import { CANCELLED } from "@opsis/core/errors";
-import { wholePercent } from "@opsis/core/format";
-import { nodeName, nodeNameById } from "@opsis/core/nodes/registry";
-import type { WorkflowNode } from "@opsis/core/schema/workflow";
+import { wholePercent } from "@opsis/video/common/format";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CANCELLED } from "@/core/errors";
+import type { WorkflowNode } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { nodeName, nodeNameById } from "@/store/catalog";
 import { AnimatedPercent } from "../app/motion";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";

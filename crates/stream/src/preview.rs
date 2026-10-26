@@ -24,6 +24,7 @@ use crate::view::{StreamView, ViewSize};
 const FRAME_BINDING: &str = "opsisFrame";
 const STATE_BINDING: &str = "opsisState";
 const PAGE_READY: Duration = Duration::from_secs(30);
+const PREVIEW_SWITCHES: [&str; 1] = ["--enable-features=CanvasDrawElement"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PlayerState {
@@ -105,8 +106,15 @@ impl Preview {
     ) -> Result<Self> {
         let page = PageServer::start(dirs.page, dirs.public).await?;
         let project = FileServer::start(dirs.project).await?;
-        let view =
-            StreamView::open(&env.executable, &env.temp_dir, "about:blank", size, quality).await?;
+        let view = StreamView::open(
+            &env.executable,
+            &env.temp_dir,
+            "about:blank",
+            size,
+            quality,
+            &PREVIEW_SWITCHES,
+        )
+        .await?;
         let tab = view.active_tab().await;
         let started = async {
             let mut calls = tab.page.event_listener::<EventBindingCalled>().await?;
@@ -166,6 +174,10 @@ impl Preview {
         self.frame.clone()
     }
 
+    pub fn states(&self) -> watch::Receiver<PlayerState> {
+        self.state.clone()
+    }
+
     pub fn state(&self) -> PlayerState {
         *self.state.borrow()
     }
@@ -215,6 +227,12 @@ impl Preview {
 
     pub async fn rate(&self, rate: f64) -> Result<()> {
         self.call(&format!("rate({rate})")).await
+    }
+
+    pub async fn range(&self, in_frame: Option<f64>, out_frame: Option<f64>) -> Result<()> {
+        let frame = |f: Option<f64>| f.map_or_else(|| "null".to_owned(), |f| f.to_string());
+        self.call(&format!("range({}, {})", frame(in_frame), frame(out_frame)))
+            .await
     }
 
     pub async fn still(&self) -> Result<Vec<u8>> {

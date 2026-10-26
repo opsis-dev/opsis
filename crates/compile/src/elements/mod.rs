@@ -1,5 +1,6 @@
 pub mod core;
 pub mod introspect;
+pub mod length_cases;
 pub mod lengths;
 
 use std::collections::HashMap;

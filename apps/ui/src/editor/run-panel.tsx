@@ -1,9 +1,9 @@
-import { findById } from "@opsis/core/lists";
-import type { WorkflowNode } from "@opsis/core/schema/workflow";
+import { findById } from "@opsis/video/common/lists";
 import { Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { WorkflowNode } from "@/generated/bindings";
 import { useRunStore } from "../store/run";
 import { singleSelected, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";

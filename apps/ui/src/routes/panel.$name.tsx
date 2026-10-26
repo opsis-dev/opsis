@@ -1,8 +1,9 @@
-import { DOCK_TITLES, type DockPanelName } from "@opsis/core/ipc";
 import { createFileRoute } from "@tanstack/react-router";
 import { PanelBottomClose } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { DOCK_TITLES } from "@/core/shell";
+import type { DockPanelName } from "@/generated/bindings";
 import { AppBar } from "../app/app-bar";
 import { LoadingPanel } from "../app/empty-panel";
 import { onMenuCommand, PROJECT_SWITCH_COMMANDS } from "../app/menu-commands";
@@ -17,7 +18,7 @@ import { useWorkflowStore } from "../store/workflow";
 const close = () => void window.opsis.windowRole("close");
 
 function PanelBody({ panel }: { panel: DockPanelName }) {
-  const compiled = useCompiled();
+  const compiled = useCompiled({ drive: false });
   return (
     <CompiledContext.Provider value={compiled}>
       <FilmProvider>

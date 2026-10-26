@@ -1,9 +1,4 @@
-import { isGroupNode } from "@opsis/core/graph";
-import { findById } from "@opsis/core/lists";
-import { CATEGORY_LABELS, type NodeDef } from "@opsis/core/nodes/define";
-import { customLabel, getNodeDef, nodeName } from "@opsis/core/nodes/registry";
-import { artifactName } from "@opsis/core/schema/values";
-import type { Workflow, WorkflowNode } from "@opsis/core/schema/workflow";
+import { findById } from "@opsis/video/common/lists";
 import { CircleAlert, ExternalLink, Play, RotateCcw, Trash2, Ungroup } from "lucide-react";
 import type { ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -21,6 +16,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { isGroupNode } from "@/core/nodes";
+import { artifactName } from "@/core/values";
+import type { Workflow, WorkflowNode } from "@/generated/bindings";
+import type { EditorNode as NodeDef } from "@/generated/bindings";
+import { categoryLabel, customLabel, getNodeDef, nodeName } from "@/store/catalog";
 import { SwapFade } from "../app/motion";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
@@ -29,10 +29,10 @@ import { NodeBadge } from "./category-badge";
 import { ProjectInspector } from "./project-inspector";
 import { ReplayButtons } from "./replay-buttons";
 import { startRun } from "./run";
+import { SchemaForm } from "./schema-form";
 import { useFormContext } from "./use-form-context";
 import { useNodeProblems } from "./use-node-problems";
 import { useTypingAsOneUndoStep } from "./use-typing-as-one-undo-step";
-import { ZodForm } from "./zod-form";
 
 export function Inspector() {
   const selected = useUiStore((s) => s.selectedIds);
@@ -62,7 +62,7 @@ function NodeDetails({
   node: WorkflowNode;
   def: NodeDef;
 }) {
-  const ctx = useFormContext(workflow, node.id, def);
+  const ctx = useFormContext(workflow, node.id);
   const updateParams = useWorkflowStore((s) => s.updateParams);
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -71,7 +71,7 @@ function NodeDetails({
       <NodeProblems nodeId={node.id} />
       <NodeMetaFields node={node} def={def} />
       <Separator />
-      <ZodForm
+      <SchemaForm
         schema={def.params}
         value={node.params}
         onChange={(patch) => updateParams(node.id, patch)}
@@ -91,7 +91,7 @@ function NodeHeader({ node, def }: { node: WorkflowNode; def: NodeDef }) {
       <div className="flex min-w-0 flex-col gap-1">
         <h2 className="truncate font-semibold">{nodeName(node)}</h2>
         <div className="flex flex-wrap gap-1">
-          <Badge variant="secondary">{CATEGORY_LABELS[def.category]}</Badge>
+          <Badge variant="secondary">{categoryLabel(def.category)}</Badge>
           {customLabel(node) ? <Badge variant="outline">{def.title}</Badge> : null}
         </div>
       </div>

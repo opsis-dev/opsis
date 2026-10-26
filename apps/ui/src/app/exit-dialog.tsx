@@ -1,4 +1,3 @@
-import type { CloseRequest } from "@opsis/core/ipc";
 import { useEffect, useState } from "react";
 import {
   AlertDialog,
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import type { CloseRequest } from "@/generated/bindings";
 
 export function ExitDialog() {
   const [request, setRequest] = useState<CloseRequest | null>(null);

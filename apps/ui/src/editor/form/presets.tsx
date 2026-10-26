@@ -1,4 +1,4 @@
-import type { FieldMeta } from "@opsis/core/elements/introspect";
+import type { FieldMeta } from "@/core/schema";
 import { LabelledChoices } from "./field-shell";
 import type { ParamValues } from "./types";
 

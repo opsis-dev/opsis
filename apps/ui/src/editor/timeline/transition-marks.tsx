@@ -1,10 +1,9 @@
-import { percentText } from "@opsis/core/format";
-import { coversTooMuch } from "@opsis/core/nodes/card";
-import { nodeNameById } from "@opsis/core/nodes/registry";
-import { transitionTitle } from "@opsis/core/nodes/transitions";
-import type { Workflow } from "@opsis/core/schema/workflow";
-import type { FlatTimeline, TransitionMark } from "@opsis/core/timeline/flatten";
+import { percentText } from "@opsis/video/common/format";
+import { coversTooMuch } from "@/core/nodes";
+import type { Workflow, FlatTimeline, TransitionMark } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { nodeNameById } from "@/store/catalog";
+import { transitionTitle } from "@/store/catalog";
 import {
   BAR_INSET,
   HEADER_W,

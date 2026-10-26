@@ -1,5 +1,5 @@
-import { NODE_DEFS } from "@opsis/core/nodes/registry";
 import { describe, expect, it } from "vitest";
+import { catalogNodes } from "@/store/catalog";
 import { NODE_LOOKS, NODE_MOTIONS, type NodeLook } from "./looks";
 
 const appearance = (look: NodeLook): string =>
@@ -7,7 +7,7 @@ const appearance = (look: NodeLook): string =>
 
 describe("node looks", () => {
   it("gives every node type a look, and only node types", () => {
-    const types = new Set(NODE_DEFS.map((def) => def.type));
+    const types = new Set(catalogNodes().map((def) => def.type));
     expect([...types].filter((type) => !NODE_LOOKS[type])).toEqual([]);
     expect(Object.keys(NODE_LOOKS).filter((type) => !types.has(type))).toEqual([]);
   });

@@ -1,16 +1,10 @@
-import {
-  EASES,
-  ENVELOPE_LABELS,
-  type Ease,
-  type Envelope,
-  type EnvelopeKey,
-  type Keyframe,
-} from "@opsis/core/schema/timeline";
-import { parseNumberText } from "@opsis/core/text-input";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FieldLegend, FieldSet } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { parseNumberText } from "@/core/text-input";
+import { EASES, ENVELOPE_LABELS, type Envelope, type EnvelopeKey } from "@/core/timeline";
+import type { Ease, Keyframe } from "@/generated/bindings";
 import { whenOneOf } from "@/lib/one-of";
 import { useItemKeys } from "@/lib/use-item-keys";
 import { ChoiceSelect } from "./choice-select";

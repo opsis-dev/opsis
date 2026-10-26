@@ -1,7 +1,7 @@
-import { isGroupNode } from "@opsis/core/graph";
-import { getNodeDef } from "@opsis/core/nodes/registry";
-import type { Workflow } from "@opsis/core/schema/workflow";
 import ELK from "elkjs/lib/elk.bundled.js";
+import { isGroupNode } from "@/core/nodes";
+import type { Workflow } from "@/generated/bindings";
+import { getNodeDef } from "@/store/catalog";
 import { useWorkflowStore } from "../store/workflow";
 import { cardSize } from "./card-size";
 

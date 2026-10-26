@@ -1,8 +1,9 @@
-import { appendCapped } from "@opsis/core/lists";
-import type { LiveEvent, LiveMessage, LiveStepStatus } from "@opsis/core/live";
-import type { Rect } from "@opsis/core/schema/actions";
-import { DEFAULT_VIEWPORT } from "@opsis/core/schema/workflow";
+import { appendCapped } from "@opsis/video/common/lists";
 import { create } from "zustand";
+import type { LiveMessage } from "@/app/opsis";
+import { DEFAULT_VIEWPORT } from "@/core/workflow";
+import type { Rect } from "@/generated/bindings";
+import type { LiveEvent, LiveStepStatus } from "@/generated/bindings";
 import { liveAutoOpen } from "./app-settings";
 
 type LiveStep = { nodeId: string; label: string; status?: LiveStepStatus; message?: string };

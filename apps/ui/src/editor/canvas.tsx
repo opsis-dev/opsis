@@ -1,5 +1,3 @@
-import { connectionProblem } from "@opsis/core/graph";
-import { DEFAULT_SETTINGS } from "@opsis/core/settings";
 import {
   Background,
   BackgroundVariant,
@@ -12,6 +10,8 @@ import {
 } from "@xyflow/react";
 import { useCallback, useMemo, useRef } from "react";
 import { ZoomSlider } from "@/components/zoom-slider";
+import { connects } from "@/core/graph";
+import { DEFAULT_SETTINGS } from "@/core/settings";
 import { isMac } from "@/lib/platform";
 import { useAppSettings } from "../store/app-settings";
 import { useUiStore } from "../store/ui";
@@ -94,7 +94,7 @@ export function Canvas({ projectDir }: { projectDir: string }) {
 
   const isValidConnection: IsValidConnection = useCallback(
     (c) =>
-      !connectionProblem(workflow, {
+      connects(workflow, {
         source: c.source,
         sourceHandle: c.sourceHandle ?? "",
         target: c.target,

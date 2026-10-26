@@ -1,12 +1,12 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
-import { firstFamily } from "@opsis/core/fonts";
 import React, { useEffect, useMemo } from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Box3, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { Font, type FontData } from "three/addons/loaders/FontLoader.js";
+import { firstFamily } from "#video/common/fonts.ts";
 import { useHeldLoad } from "#video/core/loading.ts";
 import { fontFileFor } from "#video/fonts/registry.ts";
+import type { CoreElementProps } from "#video/generated/spec.ts";
 import { elementPose } from "#video/three/motion.ts";
 import { FONT_UNREADABLE, loadOutlines, wrapLines } from "#video/three/outlines.ts";
 import { fitToSize } from "#video/three/shapes.ts";

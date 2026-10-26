@@ -1,13 +1,11 @@
-import { findById } from "@opsis/core/lists";
-import { audibility, busOf, stripOf } from "@opsis/core/mix/levels";
-import type { ChannelPlan } from "@opsis/core/mix/plan";
-import type { MixResult } from "@opsis/core/mix/result";
-import { PAN_RANGE, TRIM_RANGE, type Bus, type Mix, type Strip } from "@opsis/core/mix/types";
-import { nodeNameById } from "@opsis/core/nodes/registry";
+import { findById } from "@opsis/video/common/lists";
 import { AudioLines, Clapperboard, Music } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
+import { audibility, busOf, stripOf, PAN_RANGE, TRIM_RANGE } from "@/core/mix";
+import type { ChannelPlan, MixResult, Bus, Mix, Strip } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { updateChannels } from "@/mix/edits";
+import { nodeNameById } from "@/store/catalog";
 import { useUiStore } from "../../store/ui";
 import { useWorkflowStore } from "../../store/workflow";
 import { OptionSelect } from "../option-select";

@@ -1,6 +1,6 @@
-import { clamp } from "@opsis/core/math";
-import { pick } from "@opsis/core/objects";
-import { clampFrame } from "@opsis/core/timeline/time";
+import { clamp } from "@opsis/video/common/math";
+import { pick } from "@opsis/video/common/objects";
+import { clampFrame } from "@opsis/video/common/time";
 import { create } from "zustand";
 import { createForwarder } from "@/lib/forwarder";
 

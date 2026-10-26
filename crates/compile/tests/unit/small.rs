@@ -18,8 +18,8 @@ use serde_json::json;
 #[test]
 fn joins_a_base_and_an_encoded_path_with_or_without_the_slash() {
     assert_eq!(
-        join_url("opsis-file://project/", "assets/my clip#1.mp4"),
-        "opsis-file://project/assets/my%20clip%231.mp4"
+        join_url("http://127.0.0.1:5/project/", "assets/my clip#1.mp4"),
+        "http://127.0.0.1:5/project/assets/my%20clip%231.mp4"
     );
     assert_eq!(
         join_url("http://127.0.0.1:5000", "a b.png"),

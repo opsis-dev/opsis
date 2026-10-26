@@ -1,7 +1,9 @@
-import type { NodeCategory } from "@opsis/core/nodes/define";
-import type { NodeIconName } from "@opsis/core/nodes/icon-name";
-import { getNodeDef } from "@opsis/core/nodes/registry";
-import type { PortType } from "@opsis/core/schema/workflow";
+import type {
+  Category as NodeCategory,
+  Icon as NodeIconName,
+  PortType,
+} from "@/generated/bindings";
+import { getNodeDef } from "@/store/catalog";
 
 const NEUTRAL_COLOR = "#71717a";
 

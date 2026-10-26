@@ -1,5 +1,6 @@
-import { clamp } from "@opsis/core/math";
-import { SAMPLE_RATE, type EqBand } from "@opsis/core/mix/types";
+import { clamp } from "@opsis/video/common/math";
+import { SAMPLE_RATE } from "@/core/mix";
+import type { EqBand } from "@/generated/bindings";
 
 const MIN_HZ = 20;
 const MAX_HZ = 20_000;

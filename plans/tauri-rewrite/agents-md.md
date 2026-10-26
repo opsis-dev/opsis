@@ -2,6 +2,8 @@
 
 What `AGENTS.md` loses, keeps and gains when each phase ships. Edit `AGENTS.md` in the phase that changes the rule, not before; the code is the authority until then.
 
+Status: phase 6 rewrote `AGENTS.md` for the Tauri tree (every row below marked 2 to 6, plus the e2e tests, the specta and WebdriverIO pins, the file server and the page log). Left for later phases: prepared files and `PREPARED_VERSION` (7), packaging and the Tauri bundler rules (8), and the Windows pipe ACL (8).
+
 ## What it adds
 
 - A checklist so no Electron-era rule survives the move by accident, and every new rule (Rust types, the sidecar's stdout, streamed views, prepared files) is written down when it starts to hold.

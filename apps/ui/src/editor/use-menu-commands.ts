@@ -1,7 +1,7 @@
-import { DOCK_PANELS } from "@opsis/core/ipc";
-import type { MenuCommand } from "@opsis/core/menu";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { DOCK_PANELS } from "@/core/shell";
+import type { MenuCommand } from "@/generated/bindings";
 import { isEditingElement } from "@/lib/dom";
 import { onMenuCommand } from "../app/menu-commands";
 import { useUiStore } from "../store/ui";

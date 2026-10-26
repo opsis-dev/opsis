@@ -1,5 +1,5 @@
-import type { ViewPrefs } from "@opsis/core/ipc";
 import { storedViewOptions, useViewOptions } from "../store/view-options";
+import type { ViewPrefs } from "../store/view-prefs";
 import { setViewProject } from "../store/view-prefs";
 import { storedTab, usePanels } from "./panels";
 import { useTimeline } from "./timeline/timeline-state";

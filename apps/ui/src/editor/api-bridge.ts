@@ -1,5 +1,4 @@
-import { problemCheck, workflowProblems } from "@opsis/core/api/check";
-import { firstIssueText } from "@opsis/core/api/issue-text";
+import { useEffect } from "react";
 import {
   apiFailure,
   apiOk,
@@ -9,21 +8,15 @@ import {
   type ApiProjectState,
   type ApiReply,
   type ApiRunState,
-} from "@opsis/core/api/types";
-import { errorMessage, NO_PROJECT } from "@opsis/core/errors";
-import { connectionProblem } from "@opsis/core/graph";
-import { edgeId, nodeIdFor } from "@opsis/core/ids";
-import { getNodeDef } from "@opsis/core/nodes/registry";
-import {
-  workflowSettingsSchema,
-  type Workflow,
-  type WorkflowNode,
-} from "@opsis/core/schema/workflow";
-import { useEffect } from "react";
+} from "@/core/api";
+import { errorMessage, NO_PROJECT } from "@/core/errors";
+import { edgeId, nodeIdFor } from "@/core/ids";
+import type { Workflow, WorkflowNode, WorkflowSettings } from "@/generated/bindings";
+import { newNodeParams } from "@/store/catalog";
 import { mapNode } from "@/workflow-edits";
 import { setEditorApi } from "../app/api-host";
 import { useRunStore } from "../store/run";
-import { newNodeParams, useWorkflowStore } from "../store/workflow";
+import { useWorkflowStore } from "../store/workflow";
 import { beginRun } from "./run";
 import { save, VERSION_UNCHOSEN } from "./save";
 
@@ -32,12 +25,12 @@ type RequestOf<O extends Op> = Extract<ApiEditorRequest, { op: O }>;
 type Handler<O extends Op> = (
   request: RequestOf<O>,
   wf: Workflow,
-) => ApiEditorReply<O> | Promise<ApiEditorReply<O>>;
+) => ApiEditorReply | Promise<ApiEditorReply>;
 
-function edited(id?: string): ApiReply<ApiEdited> {
+function edited(id?: string): ApiReply<ApiEdited> | ApiEditorReply {
   const { workflow, revision } = useWorkflowStore.getState();
-  const problems = workflow ? workflowProblems(workflow) : [];
-  return apiOk({ ...(id ? { id } : {}), revision, problems });
+  if (!workflow) return apiFailure(409, NO_PROJECT);
+  return apiOk({ ...(id ? { id } : {}), revision, workflow });
 }
 
 function runState(): ApiRunState {
@@ -76,8 +69,6 @@ function applyNodePatch(node: WorkflowNode, patch: RequestOf<"updateNode">): Wor
 }
 
 const addNode: Handler<"addNode"> = (request, wf) => {
-  if (!getNodeDef(request.type))
-    return apiFailure(400, `There's no node type “${request.type}”. See GET /nodes.`);
   const id = request.id ?? nodeIdFor(request.type);
   if (hasNode(wf, id)) return apiFailure(400, `A node with the id “${id}” already exists.`);
   useWorkflowStore.getState().update((w) => ({
@@ -111,11 +102,9 @@ const removeNodes: Handler<"removeNodes"> = (request, wf) => {
   return edited();
 };
 
-const addEdge: Handler<"addEdge"> = (request, wf) => {
+const addEdge: Handler<"addEdge"> = (request) => {
   const { source, sourceHandle, target, targetHandle } = request;
   const edge = { source, sourceHandle, target, targetHandle };
-  const problem = connectionProblem(wf, edge);
-  if (problem) return apiFailure(problem.notFound ? 404 : 400, problem.message);
   useWorkflowStore.getState().addEdge(edge);
   return edited(edgeId(edge));
 };
@@ -128,9 +117,7 @@ const removeEdges: Handler<"removeEdges"> = (request, wf) => {
 };
 
 const setSettings: Handler<"setSettings"> = (request) => {
-  const parsed = workflowSettingsSchema.partial().strict().safeParse(request.settings);
-  if (!parsed.success) return apiFailure(400, firstIssueText(parsed.error));
-  useWorkflowStore.getState().setSettings(parsed.data);
+  useWorkflowStore.getState().setSettings(request.settings as Partial<WorkflowSettings>);
   return edited();
 };
 
@@ -157,7 +144,7 @@ const setVariables: Handler<"setVariables"> = (request) => {
   return edited();
 };
 
-const problems: Handler<"problems"> = (_request, wf) => apiOk(problemCheck(workflowProblems(wf)));
+const problems: Handler<"problems"> = (_request, workflow) => apiOk({ workflow });
 
 const undo: Handler<"undo"> = () => {
   useWorkflowStore.getState().undo();

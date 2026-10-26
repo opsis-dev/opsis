@@ -1,4 +1,3 @@
-import type { Lighting } from "@opsis/core/elements/three";
 import { useThree } from "@react-three/fiber";
 import { ThreeCanvas } from "@remotion/three";
 import React, { useEffect, useMemo } from "react";
@@ -6,6 +5,7 @@ import { useVideoConfig } from "remotion";
 import { PMREMGenerator } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { Backgrounded } from "#video/core/backgrounds.tsx";
+import type { Lighting } from "#video/generated/spec.ts";
 import { boxDistance, fitDistance, type Pose, type Vec3 } from "#video/three/motion.ts";
 
 const FOV = 30;

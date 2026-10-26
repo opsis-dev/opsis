@@ -1,4 +1,11 @@
-import { percentText } from "@opsis/core/format";
+import { percentText } from "@opsis/video/common/format";
+import { clamp } from "@opsis/video/common/math";
+import { Trash2 } from "lucide-react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   formatGradient,
   insertStop,
@@ -6,15 +13,8 @@ import {
   parseGradient,
   sortStops,
   type Gradient,
-} from "@opsis/core/gradient";
-import { clamp } from "@opsis/core/math";
-import { parseNumberText } from "@opsis/core/text-input";
-import { Trash2 } from "lucide-react";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+} from "@/core/gradient";
+import { parseNumberText } from "@/core/text-input";
 import { fractionIn } from "@/lib/dom";
 import { useCommitDraft } from "@/lib/use-commit-draft";
 import { usePointerDrag } from "@/lib/use-pointer-drag";

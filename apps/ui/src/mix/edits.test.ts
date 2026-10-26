@@ -1,11 +1,5 @@
-import {
-  DEFAULT_STRIP,
-  STRIP_PRESETS,
-  busSchema,
-  defaultMix,
-  stripSettings,
-} from "@opsis/core/mix/types";
 import { describe, expect, it } from "vitest";
+import { DEFAULT_STRIP, STRIP_PRESETS, defaultMix, newBus, stripSettings } from "@/core/mix";
 import { addBus, applyBusSettings, removeBus, resetBus, resetStrip, updateChannels } from "./edits";
 
 describe("mix edits", () => {
@@ -20,7 +14,7 @@ describe("mix edits", () => {
   });
 
   it("applies the bus part of a preset and resets it", () => {
-    const bus = busSchema.parse({ id: "b", name: "Voices", mute: true });
+    const bus = { ...newBus("b", "Voices"), mute: true };
     const preset = STRIP_PRESETS[0].strip;
     const applied = applyBusSettings(bus, { ...preset, trim: 6, fader: -3 });
     expect(applied).toMatchObject({ id: "b", name: "Voices", mute: true, fader: -3 });

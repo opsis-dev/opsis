@@ -1,4 +1,4 @@
-import type { FieldMeta } from "@opsis/core/elements/introspect";
+import type { FieldMeta } from "@/core/schema";
 import type { VarInfo } from "../var-text";
 
 export type SpotBackground = {

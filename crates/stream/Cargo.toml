@@ -19,6 +19,7 @@ opsis-runner = { version = "0.1.0", path = "../runner" }
 opsis-types = { version = "0.1.0", path = "../types" }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
+specta = { version = "=2.0.0-rc.26", features = ["derive"] }
 thiserror = "2.0.21"
 tokio = { version = "1.54.1", features = ["macros", "rt", "time", "sync", "net"] }
 tokio-util = "0.7.20"

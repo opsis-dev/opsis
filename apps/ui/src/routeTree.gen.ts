@@ -14,6 +14,7 @@ import { Route as EditorRouteImport } from './routes/editor'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as PanelNameRouteImport } from './routes/panel.$name'
+import { Route as ViewIdRouteImport } from './routes/view.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const PanelNameRoute = PanelNameRouteImport.update({
   path: '/panel/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ViewIdRoute = ViewIdRouteImport.update({
+  id: '/view/$id',
+  path: '/view/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/panel/$name': typeof PanelNameRoute
+  '/view/$id': typeof ViewIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/panel/$name': typeof PanelNameRoute
+  '/view/$id': typeof ViewIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,22 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/panel/$name': typeof PanelNameRoute
+  '/view/$id': typeof ViewIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/editor' | '/settings' | '/setup' | '/panel/$name'
+  fullPaths:
+    '/' | '/editor' | '/settings' | '/setup' | '/panel/$name' | '/view/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/editor' | '/settings' | '/setup' | '/panel/$name'
-  id: '__root__' | '/' | '/editor' | '/settings' | '/setup' | '/panel/$name'
+  to: '/' | '/editor' | '/settings' | '/setup' | '/panel/$name' | '/view/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/editor'
+    | '/settings'
+    | '/setup'
+    | '/panel/$name'
+    | '/view/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +94,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
   PanelNameRoute: typeof PanelNameRoute
+  ViewIdRoute: typeof ViewIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +134,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PanelNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/view/$id': {
+      id: '/view/$id'
+      path: '/view/$id'
+      fullPath: '/view/$id'
+      preLoaderRoute: typeof ViewIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +150,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,
   PanelNameRoute: PanelNameRoute,
+  ViewIdRoute: ViewIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

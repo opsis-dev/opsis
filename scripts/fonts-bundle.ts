@@ -8,19 +8,19 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { FONT_CATEGORIES, type FontFamilyDef } from "@opsis/core/fonts/types";
 import {
   googleFontModuleFile,
   googleImportName,
   GOOGLE_SHIM_SEGMENTS,
 } from "@opsis/video/fonts/google-font-imports";
+import type { FontCategory, FontFamilyDef } from "@opsis/video/generated/spec";
 import { z } from "zod";
 import { readJsonWith } from "./lib/read-json";
-import { CORE_DIR, ROOT, VIDEO_DIR } from "./lib/tool-config";
+import { ROOT, VIDEO_DIR } from "./lib/tool-config";
 import { walkFiles } from "./lib/walk";
 
 const OUT = path.join(ROOT, "public", "fonts", "bundled");
-const META_OUT = path.join(CORE_DIR, "fonts", "bundled.generated.ts");
+const META_OUT = path.join(VIDEO_DIR, "common", "bundled-fonts.generated.ts");
 const RUST_META_OUT = path.join(
   ROOT,
   "crates",
@@ -59,6 +59,14 @@ const GOOGLE_IMPORTS = new Map(
 );
 
 const STYLE_ORDER = ["normal", "italic"] as const;
+
+const FONT_CATEGORIES = [
+  "sans-serif",
+  "serif",
+  "monospace",
+  "display",
+  "handwriting",
+] as const satisfies FontCategory[];
 
 const metadataSchema = z.object({
   id: z.string(),
@@ -127,7 +135,7 @@ function writeBundle(): void {
   writeFileSync(
     META_OUT,
     [
-      'import type { FontFamilyDef } from "#core/fonts/types";',
+      'import type { FontFamilyDef } from "#video/generated/spec.ts";',
       "",
       "export const BUNDLED_FONTS: FontFamilyDef[] = [",
       ...defs.map((def) => `  ${JSON.stringify(def)},`),

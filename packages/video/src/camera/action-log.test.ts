@@ -1,9 +1,10 @@
-import { rectCenter, type ActionLog, type Rect } from "@opsis/core/schema/actions";
 import { describe, expect, it } from "vitest";
 import { resolveAnnotations, toClickLog } from "#video/camera/action-log.ts";
 import { buildCameraTrack, clusterize, sampleTrack } from "#video/camera/lib/camera-track.ts";
 import { BASE_POSE } from "#video/camera/lib/camera.ts";
 import { isInFrame } from "#video/camera/lib/test-fixtures.ts";
+import { rectCenter } from "#video/common/geometry.ts";
+import type { ActionLog, Rect } from "#video/generated/spec.ts";
 
 const log: ActionLog = {
   viewport: { width: 1920, height: 1080 },

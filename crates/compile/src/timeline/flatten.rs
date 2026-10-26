@@ -158,7 +158,43 @@ pub struct VideoBar {
     clock: LocalClock,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct ClockStep {
+    pub from: f64,
+    pub start_from: f64,
+    pub loop_offset: f64,
+    pub remap: Option<Vec<(f64, f64)>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct BarClock {
+    pub steps: Vec<ClockStep>,
+    pub item_from: f64,
+    pub content_end: f64,
+}
+
 impl VideoBar {
+    pub fn clock(&self) -> BarClock {
+        BarClock {
+            steps: self
+                .clock
+                .inst
+                .steps
+                .iter()
+                .map(|s| ClockStep {
+                    from: s.from,
+                    start_from: s.start_from,
+                    loop_offset: s.loop_offset,
+                    remap: s.remap.as_deref().cloned(),
+                })
+                .collect(),
+            item_from: self.clock.item_from,
+            content_end: self.clock.content_end,
+        }
+    }
+
     pub fn local_at(&self, abs: f64) -> f64 {
         bisect(
             &self.clock.inst,

@@ -1,5 +1,5 @@
-import type { VideoBar } from "@opsis/core/timeline/flatten";
 import { useState } from "react";
+import type { VideoBar } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import type { BarContext } from "./bar-context";
 import { EnvelopeOverlay, type BarEnvelope } from "./envelope-overlay";

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Easing, interpolate } from "remotion";
-import { MAIN_FONT } from "@opsis/core/fonts";
+import { MAIN_FONT } from "#video/common/fonts.ts";
 import { useAuthoredFrame } from "#video/core/authored-clock.ts";
 
 export interface WordPushProps {

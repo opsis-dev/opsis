@@ -1,7 +1,7 @@
-import type { FieldMeta } from "@opsis/core/elements/introspect";
 import type { ReactNode } from "react";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import type { FieldMeta } from "@/core/schema";
 import type { Choice } from "./choice-select";
 
 export function Help({ meta }: { meta?: FieldMeta }) {

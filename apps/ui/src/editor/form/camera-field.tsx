@@ -1,9 +1,9 @@
-import type { CameraKey, CameraPath } from "@opsis/core/schema/timeline";
-import { cameraKeyAt } from "@opsis/core/timeline/camera-path";
+import { cameraKeyAt } from "@opsis/video/common/camera-path";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FieldLegend, FieldSet } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import type { CameraKey, CameraPath } from "@/generated/bindings";
 import { useItemKeys } from "@/lib/use-item-keys";
 import { SingleSlider } from "../../app/single-slider";
 import { usePlayback } from "../../store/playback";

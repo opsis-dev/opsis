@@ -41,10 +41,10 @@ registerRoot(ExportRoot);
 
 const EXPORT_ROOT_TSX: &str = r#"import { Composition } from "remotion";
 import { DemoTimeline } from "./video/demo-timeline";
+import type { TimelineSpec } from "./video/generated/spec";
 import timeline from "./timeline.json";
-import { timelineSpecSchema } from "./core/schema/timeline";
 
-const spec = timelineSpecSchema.parse(timeline);
+const spec = timeline as TimelineSpec;
 
 export const ExportRoot = () => (
   <Composition

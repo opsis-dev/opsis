@@ -609,3 +609,11 @@ fn runs_a_device_mockup_with_or_without_a_clip() {
         "remotion-ui/device-mockup-zoom"
     );
 }
+
+#[test]
+fn speed_lines_are_an_element_of_their_own_with_no_clip_inside() {
+    let clip = compile_clip("fx.remocn.speed-lines", json!({}), json!({}));
+    let item = serde_json::to_value(&clip.tracks[0].items[0]).unwrap();
+    assert_eq!(item["props"]["children"], Value::Null);
+    assert!(item["props"].as_object().unwrap().contains_key("children"));
+}

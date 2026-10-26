@@ -1,5 +1,5 @@
-import type { WindowState } from "@opsis/core/ipc";
 import { create } from "zustand";
+import type { WindowState } from "@/generated/bindings";
 import { isMac } from "@/lib/platform";
 
 export const useWindowState = create<WindowState>()(() => ({

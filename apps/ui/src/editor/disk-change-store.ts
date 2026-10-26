@@ -1,5 +1,5 @@
-import type { Workflow } from "@opsis/core/schema/workflow";
 import { create } from "zustand";
+import type { Workflow } from "@/generated/bindings";
 
 export type DiskChange = { workflow: Workflow | null; version: string };
 

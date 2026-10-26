@@ -1,21 +1,11 @@
-import { plural } from "@opsis/core/format";
-import type { FontInstalledFace, InspectedFonts } from "@opsis/core/ipc";
+import { plural } from "@opsis/video/common/format";
 import { useMemo, useState, type ReactNode } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import type { InspectedFonts, InstalledFamily } from "@/generated/bindings";
 import { useBusy } from "@/lib/use-busy";
 import { ListRow } from "../editor/list-row";
 import { FontSample } from "./font-sample";
 import { matchesQuery, SearchListDialog } from "./search-list-dialog";
-
-async function readFaces(faces: LocalFontData[]): Promise<FontInstalledFace[]> {
-  const data: FontInstalledFace[] = [];
-  for (const face of faces)
-    data.push({
-      postscriptName: face.postscriptName,
-      data: await (await face.blob()).arrayBuffer(),
-    });
-  return data;
-}
 
 function BusyCount({ busy, children }: { busy: boolean; children: ReactNode }) {
   return (
@@ -26,27 +16,25 @@ function BusyCount({ busy, children }: { busy: boolean; children: ReactNode }) {
   );
 }
 
-const groupByFamily = (fonts: LocalFontData[]): Array<[string, LocalFontData[]]> =>
-  [...Map.groupBy(fonts, (f) => f.family)].toSorted(([a], [b]) => a.localeCompare(b));
-
 export function InstalledDialog({
   fonts,
   onClose,
   onPicked,
 }: {
-  fonts: LocalFontData[];
+  fonts: InstalledFamily[];
   onClose: () => void;
   onPicked: (fonts: InspectedFonts) => void;
 }) {
   const [query, setQuery] = useState("");
   const { busy, isBusy, run } = useBusy();
-  const families = useMemo(() => groupByFamily(fonts), [fonts]);
-  const shown = families.filter(([name]) => matchesQuery(query, name));
+  const families = useMemo(
+    () => fonts.toSorted((a, b) => a.family.localeCompare(b.family)),
+    [fonts],
+  );
+  const shown = families.filter(({ family }) => matchesQuery(query, family));
 
-  const pick = (family: string, faces: LocalFontData[]) =>
-    run(family, async () =>
-      onPicked(await window.opsis.inspectInstalledFonts(await readFaces(faces))),
-    );
+  const pick = (family: string) =>
+    run(family, async () => onPicked(await window.opsis.inspectInstalledFonts([family])));
 
   return (
     <SearchListDialog
@@ -58,15 +46,15 @@ export function InstalledDialog({
       onQuery={setQuery}
       items={shown}
     >
-      {([name, faces]) => (
+      {({ family, faces }) => (
         <ListRow
-          key={name}
+          key={family}
           className="justify-between"
           disabled={isBusy}
-          onClick={() => void pick(name, faces)}
+          onClick={() => void pick(family)}
         >
-          <FontSample family={name}>{name}</FontSample>
-          <BusyCount busy={busy === name}>{plural(faces.length, "style")}</BusyCount>
+          <FontSample family={family}>{family}</FontSample>
+          <BusyCount busy={busy === family}>{plural(faces, "style")}</BusyCount>
         </ListRow>
       )}
     </SearchListDialog>

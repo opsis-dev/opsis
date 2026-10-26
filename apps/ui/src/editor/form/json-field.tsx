@@ -1,4 +1,4 @@
-import { tryParseJson } from "@opsis/core/guards";
+import { tryParseJson } from "@opsis/video/common/guards";
 import { useState } from "react";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";

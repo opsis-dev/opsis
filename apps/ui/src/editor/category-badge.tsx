@@ -1,5 +1,8 @@
-import type { NodeCategory, NodeDef } from "@opsis/core/nodes/define";
-import type { NodeIconName } from "@opsis/core/nodes/icon-name";
+import type {
+  Category as NodeCategory,
+  EditorNode,
+  Icon as NodeIconName,
+} from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { NodeGlyph } from "./node-glyph";
 import { NodeIcon } from "./node-icon";
@@ -35,7 +38,7 @@ export function NodeBadge({
   def,
   size = "sm",
 }: {
-  def: Pick<NodeDef, "type" | "category">;
+  def: Pick<EditorNode, "type" | "category">;
   size?: keyof typeof SIZES;
 }) {
   return (

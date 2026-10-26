@@ -1,5 +1,7 @@
-import { getTemplate } from "@opsis/core/templates";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Workflow } from "@/generated/bindings";
 import { useUiStore } from "./ui";
 import { mirrorEditsTo, useWorkflowStore, type RemoteEdit } from "./workflow";
 
@@ -10,7 +12,15 @@ const pastSteps = () => useWorkflowStore.temporal.getState().pastStates.length;
 const rename = (name: string) => store().update((wf) => ({ ...wf, name }));
 const dirty = () => store().revision !== store().savedRevision;
 
-const project = () => getTemplate("todomvc").build("Start");
+const EXAMPLE = path.resolve(
+  import.meta.dirname,
+  "../../../../examples/todomvc/project.opsis.json",
+);
+
+const project = (): Workflow => ({
+  ...(JSON.parse(readFileSync(EXAMPLE, "utf8")) as Workflow),
+  name: "Start",
+});
 
 describe("workflow store history", () => {
   beforeEach(() => {

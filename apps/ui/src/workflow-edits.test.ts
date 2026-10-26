@@ -1,10 +1,9 @@
-import type { FontFamilyDef } from "@opsis/core/fonts/types";
-import { findById } from "@opsis/core/lists";
-import { DEFAULT_STRIP, defaultMix } from "@opsis/core/mix/types";
-import { GROUP_TYPE } from "@opsis/core/nodes/utility";
-import { GraphBuilder } from "@opsis/core/templates/build";
-import { must, workflowNode } from "@opsis/core/test-fixtures";
+import { findById } from "@opsis/video/common/lists";
 import { describe, expect, it } from "vitest";
+import { DEFAULT_STRIP, defaultMix } from "@/core/mix";
+import { GROUP_TYPE } from "@/core/nodes";
+import type { FontFamilyDef } from "@/generated/bindings";
+import { GraphBuilder, must, workflowNode } from "@/test/graph";
 import {
   addProjectFont,
   connect,

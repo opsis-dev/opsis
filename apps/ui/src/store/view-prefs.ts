@@ -1,4 +1,6 @@
-import type { ViewPrefChange, ViewPrefs } from "@opsis/core/ipc";
+import type { ViewPrefChange } from "@/generated/bindings";
+
+export type ViewPrefs = Record<string, unknown>;
 
 let project: string | null = null;
 let prefs: ViewPrefs = {};

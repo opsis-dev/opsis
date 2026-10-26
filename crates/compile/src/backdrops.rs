@@ -7,7 +7,9 @@ pub enum Tone {
     Dark,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Backdrop {
     Glaze,

@@ -1,21 +1,20 @@
-import type { FontRole } from "@opsis/core/fonts";
-import type { FontFamilyDef } from "@opsis/core/fonts/types";
-import { nodeIdFor, randomId } from "@opsis/core/ids";
-import { defaultMix, type Mix } from "@opsis/core/mix/types";
-import { defaultParams, getNodeDef } from "@opsis/core/nodes/registry";
-import {
-  normalizeWorkflow,
-  type EdgeEnds,
-  type Marker,
-  type Workflow,
-  type WorkflowEdge,
-  type WorkflowNode,
-  type WorkflowSettings,
-} from "@opsis/core/schema/workflow";
+import type { FontRole } from "@opsis/video/common/fonts";
 import { temporal } from "zundo";
 import { create } from "zustand";
+import { nodeIdFor, randomId } from "@/core/ids";
+import { defaultMix } from "@/core/mix";
+import { normalizeWorkflow, type EdgeEnds } from "@/core/workflow";
+import type {
+  FontFamilyDef,
+  Mix,
+  Marker,
+  Workflow,
+  WorkflowEdge,
+  WorkflowNode,
+  WorkflowSettings,
+} from "@/generated/bindings";
 import { createForwarder } from "@/lib/forwarder";
-import { platform } from "@/lib/platform";
+import { newNodeParams } from "@/store/catalog";
 import * as edits from "@/workflow-edits";
 import { cardSize } from "../editor/card-size";
 import { useUiStore } from "./ui";
@@ -256,12 +255,4 @@ export const useWorkflowStore = create<WorkflowState & Actions>()(
 useWorkflowStore.subscribe((s, prev) => {
   if (s.workflow && s.workflow.nodes !== prev.workflow?.nodes)
     useUiStore.getState().keepNodes(new Set(s.workflow.nodes.map((n) => n.id)));
-});
-
-const hostDefaults = (type: string): NodeParams => getNodeDef(type)?.hostDefaults?.(platform) ?? {};
-
-export const newNodeParams = (type: string, params?: NodeParams): NodeParams => ({
-  ...defaultParams(type),
-  ...hostDefaults(type),
-  ...params,
 });

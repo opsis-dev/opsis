@@ -14,7 +14,18 @@ use serde::{Deserialize, Serialize};
 use crate::params::{ParamSchema, Params, Values};
 use crate::vars::Vars;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+    specta::Type,
+)]
 pub enum Category {
     Browser,
     Capture,
@@ -74,7 +85,18 @@ impl Category {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    schemars::JsonSchema,
+    specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Phase {
     Capture,

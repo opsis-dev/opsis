@@ -11,6 +11,7 @@ pub mod project;
 pub mod recording;
 pub mod secrets;
 pub mod settings;
+pub mod shell;
 pub mod timeline;
 pub mod trace;
 pub mod ts_export;

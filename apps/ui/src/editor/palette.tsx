@@ -1,11 +1,3 @@
-import {
-  CATEGORY_LABELS,
-  NODE_CATEGORIES,
-  type NodeCategory,
-  type NodeDef,
-} from "@opsis/core/nodes/define";
-import { portLabels } from "@opsis/core/nodes/ports";
-import { VISIBLE_NODE_DEFS } from "@opsis/core/nodes/registry";
 import { useStoreApi } from "@xyflow/react";
 import { ArrowRight, PanelLeftOpen } from "lucide-react";
 import { useState, type DragEvent } from "react";
@@ -23,6 +15,8 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { Category as NodeCategory, EditorNode as NodeDef } from "@/generated/bindings";
+import { categoryLabel, nodeCategories, visibleNodes } from "@/store/catalog";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";
 import { NODE_DRAG_TYPE, snapToGrid } from "./canvas-grid";
@@ -33,13 +27,16 @@ import { CATEGORY_STYLES } from "./ports";
 
 type PaletteGroup = { category: NodeCategory; defs: NodeDef[] };
 
-const GROUPS: PaletteGroup[] = NODE_CATEGORIES.map((category) => ({
-  category,
-  defs: VISIBLE_NODE_DEFS.filter((d) => d.category === category),
-})).filter((g) => g.defs.length);
+const paletteGroups = (): PaletteGroup[] =>
+  nodeCategories().map((category) => ({
+    category,
+    defs: visibleNodes().filter((d) => d.category === category),
+  }));
 
 const groupsFor = (only?: NodeCategory): PaletteGroup[] =>
-  only ? GROUPS.filter((g) => g.category === only) : GROUPS;
+  paletteGroups().filter((g) => !only || g.category === only);
+
+const portLabels = (ports: NodeDef["inputs"]): string[] => Object.values(ports).map((p) => p.label);
 
 function useAddAtCenter() {
   const flowStore = useStoreApi();
@@ -65,7 +62,7 @@ function NodePreview({ def }: { def: NodeDef }) {
         <NodeBadge def={def} size="lg" />
         <div className="flex min-w-0 flex-col">
           <span className="truncate font-medium">{def.title}</span>
-          <span className="text-muted-foreground text-xs">{CATEGORY_LABELS[def.category]}</span>
+          <span className="text-muted-foreground text-xs">{categoryLabel(def.category)}</span>
         </div>
       </div>
       {def.description ? <p className="text-muted-foreground text-xs">{def.description}</p> : null}
@@ -103,14 +100,14 @@ function PaletteList({
       {groups.map(({ category, defs }) => (
         <CommandGroup
           key={category}
-          heading={only ? undefined : CATEGORY_LABELS[category]}
+          heading={only ? undefined : categoryLabel(category)}
           className={stickyHeadings ? STICKY_HEADINGS : undefined}
         >
           {defs.map((def) => (
             <CommandItem
               {...GLYPH_HOST}
               key={def.type}
-              value={`${def.title} ${CATEGORY_LABELS[category]} ${def.description ?? ""}`}
+              value={`${def.title} ${categoryLabel(category)} ${def.description ?? ""}`}
               onSelect={() => onPick(def.type)}
               draggable={draggable}
               onDragStart={(e: DragEvent) => {
@@ -150,7 +147,7 @@ function RailCategory({
   onOpenChange: (open: boolean) => void;
   onPick: (type: string) => void;
 }) {
-  const label = CATEGORY_LABELS[category];
+  const label = categoryLabel(category);
   const trigger = (
     <PopoverTrigger
       render={
@@ -207,7 +204,7 @@ function PaletteRail() {
         <TooltipContent side="right">Show node list</TooltipContent>
       </Tooltip>
       <Separator className="my-1 w-6" />
-      {GROUPS.map(({ category }) => (
+      {paletteGroups().map(({ category }) => (
         <RailCategory
           key={category}
           category={category}
@@ -226,7 +223,7 @@ export function Palette() {
   if (!open) return <PaletteRail />;
   return (
     <Command className="rounded-none! bg-transparent">
-      <CommandInput placeholder={`Search ${VISIBLE_NODE_DEFS.length} nodes…`} />
+      <CommandInput placeholder={`Search ${visibleNodes().length} nodes…`} />
       <PaletteList onPick={add} draggable stickyHeadings />
     </Command>
   );

@@ -1,8 +1,8 @@
-import { errorMessage } from "@opsis/core/errors";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { ChevronRight, RotateCcw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { errorMessage } from "@/core/errors";
 import { AppBar } from "./app-bar";
 import { EmptyPanel } from "./empty-panel";
 

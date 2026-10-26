@@ -1,31 +1,24 @@
-import type { PlayerRef } from "@remotion/player";
 import { Maximize2, Minimize2, Pause, Play, Volume2, VolumeX } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { SingleSlider } from "../app/single-slider";
 import { usePlayback } from "../store/playback";
+import type { PreviewSound } from "./preview-stream";
 import { useFormatTime } from "./timeline/timeline-state";
 
 type Fullscreen = { active: boolean; toggle: () => void };
 
-function togglePlayback(player: PlayerRef | null, gesture: React.SyntheticEvent) {
+export function togglePlayback(sound: PreviewSound) {
   const playback = usePlayback.getState();
-  if (!player || playback.playing) {
-    playback.toggle();
+  if (playback.playing) {
+    playback.pause();
     return;
   }
-  if (playback.rate !== 1) usePlayback.setState({ rate: 1 });
-  player.play(gesture);
+  playback.play();
+  sound.start();
 }
 
 function useFullscreen(target: HTMLElement | null): Fullscreen {
@@ -41,32 +34,6 @@ function useFullscreen(target: HTMLElement | null): Fullscreen {
       if (document.fullscreenElement) void document.exitFullscreen();
       else void target?.requestFullscreen();
     },
-  };
-}
-
-function usePlayerVolume(player: PlayerRef | null) {
-  const subscribe = useCallback(
-    (notify: () => void) => {
-      if (!player) return () => undefined;
-      player.addEventListener("volumechange", notify);
-      player.addEventListener("mutechange", notify);
-      return () => {
-        player.removeEventListener("volumechange", notify);
-        player.removeEventListener("mutechange", notify);
-      };
-    },
-    [player],
-  );
-  const volume = useSyncExternalStore(subscribe, () => player?.getVolume() ?? 1);
-  const muted = useSyncExternalStore(subscribe, () => player?.isMuted() ?? false);
-  return {
-    volume: muted ? 0 : volume,
-    muted,
-    setVolume: (next: number) => {
-      player?.setVolume(next);
-      if (next > 0 && muted) player?.unmute();
-    },
-    toggleMute: () => (muted ? player?.unmute() : player?.mute()),
   };
 }
 
@@ -140,13 +107,13 @@ function SeekBar({ duration }: { duration: number }) {
 }
 
 function PreviewControls({
-  player,
+  sound,
   fps,
   duration,
   fullscreen,
   container,
 }: {
-  player: PlayerRef | null;
+  sound: PreviewSound;
   fps: number;
   duration: number;
   fullscreen: Fullscreen;
@@ -155,7 +122,6 @@ function PreviewControls({
   const playing = usePlayback((s) => s.playing);
   const frame = usePlayback((s) => s.frame);
   const timeAt = useFormatTime(fps);
-  const sound = usePlayerVolume(player);
   return (
     <div className="@container flex h-9 shrink-0 items-center gap-1.5">
       <ControlButton
@@ -163,7 +129,7 @@ function PreviewControls({
         shortcut="Space"
         container={container}
         className="[&_svg]:fill-current"
-        onClick={(e) => togglePlayback(player, e)}
+        onClick={() => togglePlayback(sound)}
       >
         {playing ? <Pause /> : <Play />}
       </ControlButton>
@@ -200,22 +166,26 @@ function PreviewControls({
 }
 
 export function PreviewStage({
-  player,
+  sound,
   fps,
   duration,
+  onStage,
   children,
 }: {
-  player: PlayerRef | null;
+  sound: PreviewSound;
   fps: number;
   duration: number;
+  onStage: (stage: HTMLDivElement | null) => void;
   children: ReactNode;
 }) {
   const [stage, setStage] = useState<HTMLDivElement | null>(null);
+  const [view, setView] = useState<HTMLDivElement | null>(null);
+  useEffect(() => onStage(view), [view, onStage]);
   const fullscreen = useFullscreen(stage);
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== " " || e.target !== e.currentTarget) return;
     e.preventDefault();
-    togglePlayback(player, e);
+    togglePlayback(sound);
   };
   return (
     <div
@@ -227,9 +197,11 @@ export function PreviewStage({
         fullscreen.active && "bg-background p-3",
       )}
     >
-      <div className="grid min-h-0 flex-1 place-items-center">{children}</div>
+      <div ref={setView} className="grid min-h-0 flex-1 place-items-center">
+        {children}
+      </div>
       <PreviewControls
-        player={player}
+        sound={sound}
         fps={fps}
         duration={duration}
         fullscreen={fullscreen}

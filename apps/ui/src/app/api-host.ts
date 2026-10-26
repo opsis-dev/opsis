@@ -1,13 +1,9 @@
-import {
-  API_OPEN_TIMEOUT_MS,
-  type ApiEditorReply,
-  type ApiEditorRequest,
-} from "@opsis/core/api/types";
-import { NO_PROJECT } from "@opsis/core/errors";
-import { whenReady } from "@opsis/core/timing";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { create } from "zustand";
+import { API_OPEN_TIMEOUT_MS, type ApiEditorReply, type ApiEditorRequest } from "@/core/api";
+import { NO_PROJECT } from "@/core/errors";
+import { whenReady } from "@/core/timing";
 import { useWorkflowStore } from "../store/workflow";
 import { openEditor, useOpenFailure } from "./open-project";
 

@@ -3,8 +3,8 @@ import { createReadStream, existsSync, mkdirSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
-import { downloadTo } from "../src/engine/download";
-import { FFMPEG_RELEASE, FFMPEG_RELEASE_URL } from "../src/engine/paths";
+import { downloadTo } from "./lib/engine/download";
+import { FFMPEG_RELEASE, FFMPEG_RELEASE_URL } from "./lib/engine/paths";
 import { ROOT } from "./lib/tool-config";
 
 const CACHE = path.join(os.homedir(), ".cache", "opsis-engine-downloads");

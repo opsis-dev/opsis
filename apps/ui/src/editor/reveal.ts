@@ -1,8 +1,8 @@
-import { projectRelPath } from "@opsis/core/asset-ref";
-import { PROJECT_DIRS } from "@opsis/core/project-dirs";
+import { projectRelPath } from "@opsis/video/common/asset-ref";
+import { PROJECT_DIRS } from "@/core/project-dirs";
 
-export const revealOutputs = (projectDir: string): Promise<void> =>
+export const revealOutputs = (projectDir: string) =>
   window.opsis.revealInFolder(projectDir, PROJECT_DIRS.out);
 
-export const revealProjectFile = (projectDir: string, ref: string): Promise<void> =>
+export const revealProjectFile = (projectDir: string, ref: string) =>
   window.opsis.revealInFolder(projectDir, projectRelPath(ref) ?? undefined);

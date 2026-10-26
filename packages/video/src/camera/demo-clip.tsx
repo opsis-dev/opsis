@@ -1,6 +1,3 @@
-import { percent } from "@opsis/core/format";
-import type { CursorLook, RecordingProps, RippleLook } from "@opsis/core/schema/recording";
-import type { FrameTheme, WindowStyle } from "@opsis/core/window-styles";
 import { Video } from "@remotion/media";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import React from "react";
@@ -17,8 +14,16 @@ import { SHOT_STYLES, type WindowShot } from "#video/camera/lib/style.ts";
 import { logTimeS, zoomAt } from "#video/camera/lib/zoom.ts";
 import { RimLight, Stage } from "#video/camera/stage.tsx";
 import { CHROME_H, WindowFrame } from "#video/camera/window-frame.tsx";
+import { percent } from "#video/common/format.ts";
 import { Backdrop } from "#video/core/backgrounds.tsx";
 import type { Size } from "#video/core/still-layout.ts";
+import type {
+  CursorLook,
+  RecordingProps,
+  RippleLook,
+  FrameTheme,
+  WindowStyle,
+} from "#video/generated/spec.ts";
 
 type DemoClipProps = {
   src: string;

@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 import { lengthLimits, parseListNumbers } from "./list-values";
 
 describe("lengthLimits", () => {
   it("reads the array's min and max", () => {
-    expect(lengthLimits(z.array(z.string()).min(2).max(7))).toEqual({ min: 2, max: 7 });
+    expect(lengthLimits({ type: "array", minItems: 2, maxItems: 7 })).toEqual({ min: 2, max: 7 });
   });
 
   it("is open without checks", () => {
-    expect(lengthLimits(z.array(z.number()))).toEqual({ min: 0, max: Infinity });
+    expect(lengthLimits({ type: "array" })).toEqual({ min: 0, max: Infinity });
   });
 });
 

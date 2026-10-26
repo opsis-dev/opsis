@@ -1,8 +1,7 @@
-import { ELEMENTS } from "@opsis/core/elements";
-import type { ElementProps } from "@opsis/core/elements/types";
 import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import type { ElementProps } from "#video/common/spec.ts";
 import { BarChartRace } from "#video/elements/remotion-ui/bar-chart-race.tsx";
 import { ChangelogEntry } from "#video/elements/remotion-ui/changelog-entry/index.tsx";
 import { CommitGraph } from "#video/elements/remotion-ui/commit-graph/index.tsx";
@@ -16,6 +15,7 @@ import { LogoWall } from "#video/elements/remotion-ui/logo-wall/index.tsx";
 import { MetricTicker } from "#video/elements/remotion-ui/metric-ticker/index.tsx";
 import { PricingCard } from "#video/elements/remotion-ui/pricing-card/index.tsx";
 import type { ElementComponent } from "#video/registry/types.ts";
+import ELEMENTS from "../../../../crates/compile/src/elements/registry.generated.json";
 
 const ROW_ELEMENTS: [string, ElementComponent][] = [
   ["bar-chart-race", BarChartRace as ElementComponent],

@@ -1,6 +1,4 @@
-import { singleQuoted } from "@opsis/core/format";
-import type { ApiServerStatus } from "@opsis/core/ipc";
-import type { AppSettings } from "@opsis/core/settings";
+import { singleQuoted } from "@opsis/video/common/format";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -8,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
+import type { ApiServerStatus, AppSettings } from "@/generated/bindings";
 import { isWindows } from "@/lib/platform";
 import { patchAppSettings, useAppSettings } from "../../store/app-settings";
 import { SwitchField } from "./fields";

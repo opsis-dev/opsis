@@ -1,7 +1,13 @@
-import type { EnvelopeKey, Keyframe } from "@opsis/core/schema/timeline";
-import type { Marker, Workflow } from "@opsis/core/schema/workflow";
-import type { AudioBar, FlatTimeline, VideoBar } from "@opsis/core/timeline/flatten";
-import { atLeastOneFrame } from "@opsis/core/timeline/time";
+import { atLeastOneFrame } from "@opsis/video/common/time";
+import type { EnvelopeKey } from "@/core/timeline";
+import type {
+  Keyframe,
+  Marker,
+  Workflow,
+  AudioBar,
+  FlatTimeline,
+  VideoBar,
+} from "@/generated/bindings";
 import { DRAG_START_PX } from "@/lib/dom";
 import {
   HALF_FRAME,

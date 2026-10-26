@@ -29,7 +29,7 @@ struct Template {
 }
 
 static TEMPLATES: LazyLock<Vec<Template>> = LazyLock::new(|| {
-    serde_json::from_str(include_str!("templates.generated.json")).expect("templates parse")
+    serde_json::from_str(include_str!("templates.json")).expect("templates parse")
 });
 
 pub fn random_id(prefix: &str) -> String {

@@ -1,10 +1,10 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
-import { cameraAt } from "@opsis/core/timeline/camera-path";
 import { noise3D } from "@remotion/noise";
 import React, { useEffect, useMemo } from "react";
 import { random, useCurrentFrame, useVideoConfig } from "remotion";
 import { MeshStandardMaterial, SphereGeometry, TorusGeometry, type BufferGeometry } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { cameraAt } from "#video/common/camera-path.ts";
+import type { CoreElementProps } from "#video/generated/spec.ts";
 import { viewPose } from "#video/three/motion.ts";
 import { Posed, Stage3D } from "#video/three/stage.tsx";
 

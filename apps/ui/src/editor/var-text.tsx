@@ -1,4 +1,3 @@
-import { PAUSE_MARK, tokenize, varToken, type TextToken } from "@opsis/core/vars";
 import { Braces, Pause } from "lucide-react";
 import { useLayoutEffect, useRef, type RefObject } from "react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PAUSE_MARK, tokenize, varToken, type TextToken } from "@/core/vars";
 import { cn } from "@/lib/utils";
 
 export type VarInfo = { name: string; value: string };

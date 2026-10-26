@@ -1,4 +1,4 @@
-import { isRecord } from "@opsis/core/guards";
+import { isRecord } from "@opsis/video/common/guards";
 import { Node, Project, SyntaxKind, type SourceFile } from "ts-morph";
 
 const project = new Project({ useInMemoryFileSystem: true });

@@ -1,6 +1,6 @@
-import { formatDuration, percent } from "@opsis/core/format";
-import { numberOr } from "@opsis/core/math";
-import type { Bounds } from "@opsis/core/schema/actions";
+import { formatDuration, percent } from "@opsis/video/common/format";
+import type { Bounds } from "@opsis/video/common/geometry";
+import { numberOr } from "@opsis/video/common/math";
 import { X } from "lucide-react";
 import { FieldDescription } from "@/components/ui/field";
 import { cn } from "@/lib/utils";

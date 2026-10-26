@@ -3,9 +3,9 @@
   "id": "example_before_after",
   "name": "Before / after",
   "settings": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
     "theme": "dark",
     "fonts": {
       "main": "Inter",
@@ -23,8 +23,8 @@
       "id": "before-session",
       "type": "browser.open",
       "position": {
-        "x": 0,
-        "y": 0
+        "x": 0.0,
+        "y": 0.0
       },
       "params": {
         "viewportWidth": 1920,
@@ -42,8 +42,8 @@
       "id": "before-open",
       "type": "browser.navigate",
       "position": {
-        "x": 300,
-        "y": 0
+        "x": 300.0,
+        "y": 0.0
       },
       "params": {
         "url": "{{Before address}}",
@@ -55,8 +55,8 @@
       "id": "before-start",
       "type": "browser.startRecording",
       "position": {
-        "x": 600,
-        "y": 0
+        "x": 600.0,
+        "y": 0.0
       },
       "params": {}
     },
@@ -64,8 +64,8 @@
       "id": "before-record",
       "type": "capture.record",
       "position": {
-        "x": 900,
-        "y": 0
+        "x": 900.0,
+        "y": 0.0
       },
       "params": {
         "fps": 30,
@@ -81,8 +81,8 @@
       "id": "before-camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 900,
-        "y": 200
+        "x": 900.0,
+        "y": 200.0
       },
       "params": {
         "zoom": false,
@@ -101,8 +101,8 @@
       "id": "before-label",
       "type": "fx.core.lower-third",
       "position": {
-        "x": 900,
-        "y": 422
+        "x": 900.0,
+        "y": 422.0
       },
       "params": {
         "title": "Before",
@@ -120,8 +120,8 @@
       "id": "before-stack",
       "type": "timeline.stack",
       "position": {
-        "x": 1200,
-        "y": 0
+        "x": 1200.0,
+        "y": 0.0
       },
       "params": {
         "duration": "first",
@@ -133,8 +133,8 @@
       "id": "after-session",
       "type": "browser.open",
       "position": {
-        "x": 0,
-        "y": 850
+        "x": 0.0,
+        "y": 850.0
       },
       "params": {
         "viewportWidth": 1920,
@@ -152,8 +152,8 @@
       "id": "after-open",
       "type": "browser.navigate",
       "position": {
-        "x": 300,
-        "y": 850
+        "x": 300.0,
+        "y": 850.0
       },
       "params": {
         "url": "{{After address}}",
@@ -165,8 +165,8 @@
       "id": "after-start",
       "type": "browser.startRecording",
       "position": {
-        "x": 600,
-        "y": 850
+        "x": 600.0,
+        "y": 850.0
       },
       "params": {}
     },
@@ -174,8 +174,8 @@
       "id": "after-record",
       "type": "capture.record",
       "position": {
-        "x": 900,
-        "y": 850
+        "x": 900.0,
+        "y": 850.0
       },
       "params": {
         "fps": 30,
@@ -191,8 +191,8 @@
       "id": "after-camera",
       "type": "camera.autoZoom",
       "position": {
-        "x": 900,
-        "y": 1050
+        "x": 900.0,
+        "y": 1050.0
       },
       "params": {
         "zoom": false,
@@ -211,8 +211,8 @@
       "id": "after-label",
       "type": "fx.core.lower-third",
       "position": {
-        "x": 900,
-        "y": 1272
+        "x": 900.0,
+        "y": 1272.0
       },
       "params": {
         "title": "After",
@@ -230,8 +230,8 @@
       "id": "after-stack",
       "type": "timeline.stack",
       "position": {
-        "x": 1200,
-        "y": 850
+        "x": 1200.0,
+        "y": 850.0
       },
       "params": {
         "duration": "first",
@@ -243,8 +243,8 @@
       "id": "wipe",
       "type": "transition.core.wipe",
       "position": {
-        "x": 1500,
-        "y": 510
+        "x": 1500.0,
+        "y": 510.0
       },
       "params": {
         "direction": "from-left",
@@ -256,8 +256,8 @@
       "id": "render",
       "type": "output.render",
       "position": {
-        "x": 1800,
-        "y": 510
+        "x": 1800.0,
+        "y": 510.0
       },
       "params": {
         "fileName": "{{Project name}}",

@@ -1,9 +1,13 @@
-import { findById } from "@opsis/core/lists";
-import type { NodeCategory } from "@opsis/core/nodes/define";
-import { getNodeDef, nodeNameById } from "@opsis/core/nodes/registry";
-import type { Workflow } from "@opsis/core/schema/workflow";
-import type { FlatTimeline, VideoBar } from "@opsis/core/timeline/flatten";
+import { findById } from "@opsis/video/common/lists";
+import { barLocalAt } from "@/core/clock";
+import type {
+  Category as NodeCategory,
+  Workflow,
+  FlatTimeline,
+  VideoBar,
+} from "@/generated/bindings";
 import { cn } from "@/lib/utils";
+import { getNodeDef, nodeNameById } from "@/store/catalog";
 import { FilmstripCanvas } from "./bar-canvas";
 import type { BarContext } from "./bar-context";
 import { BarFrame, BarLabel } from "./bar-frame";
@@ -131,7 +135,7 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
   const { title, wrappers } = barTitles(ctx.workflow, bar);
   const envelope = useBarEnvelope(ctx, bar.nodeId, videoEnvelope, {
     toX: (local) => ((local - bar.contentStart) / bar.rate) * ppf,
-    toLocal: (abs) => bar.localAt(abs),
+    toLocal: (abs) => barLocalAt(ctx.clocks[bar.key], bar, abs),
   });
 
   const onPress = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -162,7 +166,14 @@ export function VideoBarView({ bar, ctx }: { bar: VideoBar; ctx: BarContext }) {
         </>
       }
     >
-      <FilmstripCanvas bar={bar} box={box} height={HEIGHT} view={ctx.viewport} fps={ctx.flat.fps} />
+      <FilmstripCanvas
+        bar={bar}
+        clock={ctx.clocks[bar.key]}
+        box={box}
+        height={HEIGHT}
+        view={ctx.viewport}
+        fps={ctx.flat.fps}
+      />
       <BarLabel className="block py-0.5 leading-tight">
         {title}
         {wrappers.length ? (

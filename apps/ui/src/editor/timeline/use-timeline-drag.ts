@@ -1,6 +1,5 @@
-import type { Marker } from "@opsis/core/schema/workflow";
-import type { AudioBar, CameraKeyMark } from "@opsis/core/timeline/flatten";
 import { useState } from "react";
+import type { Marker, AudioBar, CameraKeyMark } from "@/generated/bindings";
 import { usePointerSession } from "@/lib/use-pointer-drag";
 import { snapFrame } from "@/timeline/snap";
 import { usePlayback } from "../../store/playback";

@@ -1,7 +1,7 @@
-import type { NodeRunStatus } from "@opsis/core/schema/events";
 import { Circle, CircleCheck, CircleSlash, CircleX, History, Radio } from "lucide-react";
 import type { ComponentProps, ComponentType } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import type { NodeRunStatus } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { WithTooltip } from "./with-tooltip";
 

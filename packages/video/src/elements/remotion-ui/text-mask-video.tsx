@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { CSSProperties } from "react";
 import { Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
-import { kindFromPath } from "@opsis/core/mime";
+import { kindFromPath } from "#video/common/mime.ts";
 import { scaleFont } from "#video/lib/remotion-ui/layout.ts";
 import {
   useEnterExit,

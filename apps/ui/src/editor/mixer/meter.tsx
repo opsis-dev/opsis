@@ -1,5 +1,5 @@
-import { percent, signedText } from "@opsis/core/format";
-import { clamp01, normalize } from "@opsis/core/math";
+import { percent, signedText } from "@opsis/video/common/format";
+import { clamp01, normalize } from "@opsis/video/common/math";
 import { cn } from "@/lib/utils";
 import { usePlayback } from "../../store/playback";
 import { useFilm } from "../film";

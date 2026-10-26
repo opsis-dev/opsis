@@ -1,4 +1,4 @@
-import { nonBlankString } from "@opsis/core/guards";
+import { nonBlankString } from "@opsis/video/common/guards";
 import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 

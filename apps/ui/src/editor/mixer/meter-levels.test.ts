@@ -1,5 +1,5 @@
-import type { MixResult } from "@opsis/core/mix/result";
 import { describe, expect, it } from "vitest";
+import type { MixResult } from "@/generated/bindings";
 import { levelAt, reductionAt, sampleAt, share } from "./meter-levels";
 
 const withMaster = (rms: number[]): MixResult => ({

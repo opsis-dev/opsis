@@ -1,6 +1,6 @@
-import { getNodeDef } from "@opsis/core/nodes/registry";
 import { FileSearch, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getNodeDef } from "@/store/catalog";
 import { useRunStore } from "../store/run";
 import { useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";

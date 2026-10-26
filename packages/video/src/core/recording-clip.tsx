@@ -1,10 +1,3 @@
-import { PREVIEW_FILE_WIDTH } from "@opsis/core/compile/recording";
-import { STAGE_COLOR } from "@opsis/core/elements/colors";
-import { CODE_FONT } from "@opsis/core/fonts";
-import { displayAddress } from "@opsis/core/format";
-import { clamp } from "@opsis/core/math";
-import { pick } from "@opsis/core/objects";
-import type { KeystrokeLook, RecordingProps } from "@opsis/core/schema/recording";
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { useAsset, useQuality, useReframe } from "#video/assets.tsx";
@@ -20,6 +13,12 @@ import { blurEffects } from "#video/camera/lib/blur-areas.ts";
 import { DesignWidthContext } from "#video/camera/lib/design-scale.ts";
 import { faded, SHOT_STYLES } from "#video/camera/lib/style.ts";
 import { poseAt } from "#video/camera/lib/zoom.ts";
+import { STAGE_COLOR } from "#video/common/element-colors.ts";
+import { CODE_FONT } from "#video/common/fonts.ts";
+import { displayAddress } from "#video/common/format.ts";
+import { clamp } from "#video/common/math.ts";
+import { pick } from "#video/common/objects.ts";
+import { PREVIEW_FILE_WIDTH } from "#video/common/recording.ts";
 import { CLAMPED, fadeWindow } from "#video/core/anim.ts";
 import {
   JUSTIFY_AT,
@@ -31,6 +30,7 @@ import {
 } from "#video/core/frame.ts";
 import { lookEffects } from "#video/core/picture-look.ts";
 import type { Size } from "#video/core/still-layout.ts";
+import type { KeystrokeLook, RecordingProps } from "#video/generated/spec.ts";
 
 const TYPED_FADE_IN_S = 0.15;
 const TYPED_FADE_OUT_S = 0.2;

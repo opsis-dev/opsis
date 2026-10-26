@@ -1,5 +1,4 @@
-import { BUNDLED_FONTS } from "@opsis/core/fonts/bundled.generated";
-import type { FontFamilyDef } from "@opsis/core/fonts/types";
+import { BUNDLED_FONTS } from "@opsis/video/common/bundled-fonts.generated";
 import { FileArchive, Globe, HardDrive, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -14,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { FontFamilyDef, InstalledFamily } from "@/generated/bindings";
 import { attempt } from "@/lib/toast";
 import { SettingsCard } from "../app/settings/settings-card";
 import { describeFaces } from "./font-labels";
@@ -108,7 +108,7 @@ function RemoveFontDialog({ font, onClose }: { font: FontFamilyDef; onClose: () 
 
 type PanelDialog =
   | { kind: "review"; review: FontReview }
-  | { kind: "installed"; fonts: LocalFontData[] }
+  | { kind: "installed"; fonts: InstalledFamily[] }
   | { kind: "ask-online" }
   | { kind: "online" }
   | { kind: "remove"; font: FontFamilyDef };
@@ -133,9 +133,7 @@ export function FontsPanel() {
 
   const openInstalled = () =>
     attempt(async () => {
-      if (!window.queryLocalFonts)
-        throw new Error("This computer doesn't let apps list installed fonts.");
-      setDialog({ kind: "installed", fonts: await window.queryLocalFonts() });
+      setDialog({ kind: "installed", fonts: await window.opsis.installedFontFamilies() });
     });
 
   return (

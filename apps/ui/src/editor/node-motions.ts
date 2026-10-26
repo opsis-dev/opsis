@@ -1,4 +1,4 @@
-import { isKeyOf } from "@opsis/core/guards";
+import { isKeyOf } from "@opsis/video/common/guards";
 import { animate, steps, type Easing } from "motion/react";
 import type { NodeMotion } from "@/nodes/looks";
 

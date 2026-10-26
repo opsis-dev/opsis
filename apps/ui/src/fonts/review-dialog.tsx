@@ -1,11 +1,11 @@
-import { plural } from "@opsis/core/format";
-import type { InspectedFonts } from "@opsis/core/ipc";
+import { plural } from "@opsis/video/common/format";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
+import type { InspectedFonts } from "@/generated/bindings";
 import { useBusy } from "@/lib/use-busy";
 import { FontDialog } from "./font-dialog";
 import { describeFaces } from "./font-labels";

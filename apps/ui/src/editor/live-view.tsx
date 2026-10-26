@@ -1,5 +1,5 @@
-import { uniqueKeys } from "@opsis/core/lists";
-import { boundsFromRect } from "@opsis/core/schema/actions";
+import { boundsFromRect } from "@opsis/video/common/geometry";
+import { uniqueKeys } from "@opsis/video/common/lists";
 import { designScaleFor } from "@opsis/video/spec";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";

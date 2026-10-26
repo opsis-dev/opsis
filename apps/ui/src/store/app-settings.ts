@@ -1,11 +1,6 @@
-import type { ApiServerStatus } from "@opsis/core/ipc";
-import {
-  DEFAULT_SETTINGS,
-  mergeSettings,
-  type AppSettings,
-  type SettingsPatch,
-} from "@opsis/core/settings";
 import { create } from "zustand";
+import { DEFAULT_SETTINGS, mergeSettings, type SettingsPatch } from "@/core/settings";
+import type { ApiServerStatus, AppSettings } from "@/generated/bindings";
 import { loadOrReport } from "@/lib/toast";
 
 type AppSettingsState = {

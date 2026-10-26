@@ -3,6 +3,7 @@ mod clip;
 mod compile;
 mod graph;
 mod helpers;
+mod lengths;
 mod mix;
 mod nodes_a;
 mod nodes_b;

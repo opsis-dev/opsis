@@ -1,8 +1,5 @@
-import { formatDuration } from "@opsis/core/format";
-import { findById } from "@opsis/core/lists";
-import { nodeName } from "@opsis/core/nodes/registry";
-import type { ActionLog } from "@opsis/core/schema/actions";
-import { outputOf } from "@opsis/core/schema/values";
+import { formatDuration } from "@opsis/video/common/format";
+import { findById } from "@opsis/video/common/lists";
 import { CircleX, FolderOpen } from "lucide-react";
 import { useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -18,8 +15,11 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { outputOf } from "@/core/values";
+import type { ActionLog } from "@/generated/bindings";
 import { whenOneOf } from "@/lib/one-of";
 import { cn } from "@/lib/utils";
+import { nodeName } from "@/store/catalog";
 import { useRunStore } from "../store/run";
 import { REPLAY_TABS, useUiStore } from "../store/ui";
 import { useWorkflowStore } from "../store/workflow";

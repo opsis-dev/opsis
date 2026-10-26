@@ -1,10 +1,10 @@
-import { randomId } from "@opsis/core/ids";
-import { soloActive } from "@opsis/core/mix/levels";
 import { Plus, SlidersVertical } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { randomId } from "@/core/ids";
+import { soloActive } from "@/core/mix";
 import { addBus } from "@/mix/edits";
 import { EmptyPanel } from "../../app/empty-panel";
 import { mixFailure, useMedia } from "../../store/media";

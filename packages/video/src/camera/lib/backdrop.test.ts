@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { BACKDROPS, DEFAULT_BACKDROP } from "@opsis/core/backdrops";
 import { describe, expect, it } from "vitest";
 import { backdropSource, isLightBackdrop } from "#video/camera/lib/backdrop.ts";
+import { BACKDROPS, DEFAULT_BACKDROP } from "#video/common/backdrops.ts";
 
 const PUBLIC_DIR = path.resolve(import.meta.dirname, "../../../../../public");
 

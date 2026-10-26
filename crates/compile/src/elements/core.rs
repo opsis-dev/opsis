@@ -10,7 +10,9 @@ use crate::params::{ParamSchema, Values, to_values};
 pub const CAPTIONS_ELEMENT: &str = "core/captions";
 pub const PLACEHOLDER_ELEMENT: &str = "core/placeholder";
 
-#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(transparent)]
 #[schemars(extend("x-check" = { "rule": "colour", "message": "Pick a colour" }))]
 pub struct Colour(pub String);
@@ -21,7 +23,9 @@ impl From<&str> for Colour {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum MarkLook {
     Underline,
@@ -31,14 +35,18 @@ pub enum MarkLook {
     CrossedOff,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum TitleAlign {
     Center,
     Left,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Entrance {
     Rise,
@@ -48,7 +56,9 @@ pub enum Entrance {
     None,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum Corner {
     BottomLeft,
@@ -57,7 +67,9 @@ pub enum Corner {
     TopRight,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Side {
     Top,
@@ -66,7 +78,9 @@ pub enum Side {
     Right,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum CaptionStyle {
     WordByWord,
@@ -74,7 +88,9 @@ pub enum CaptionStyle {
     Line,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum CaptionPosition {
     Bottom,
@@ -82,7 +98,9 @@ pub enum CaptionPosition {
     Top,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Fit {
     Contain,
@@ -90,14 +108,18 @@ pub enum Fit {
     Fill,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum AnimationFit {
     Contain,
     Cover,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum Motion {
     Spin,
@@ -109,7 +131,9 @@ pub enum Motion {
     Keyframes,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum ModelMotion {
     Spin,
@@ -120,7 +144,9 @@ pub enum ModelMotion {
     Keyframes,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Lighting {
     Studio,
@@ -128,7 +154,9 @@ pub enum Lighting {
     Dramatic,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum TextAlign {
     Center,
@@ -136,7 +164,9 @@ pub enum TextAlign {
     Right,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum ScreenDevice {
     Laptop,
@@ -145,7 +175,9 @@ pub enum ScreenDevice {
     Floating,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum ScreenMove {
     PushIn,
@@ -155,7 +187,9 @@ pub enum ScreenMove {
     Keyframes,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum Direction {
     FromLeft,
@@ -164,7 +198,9 @@ pub enum Direction {
     FromBottom,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum WipeDirection {
     FromLeft,
@@ -177,7 +213,9 @@ pub enum WipeDirection {
     FromBottomRight,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Title {
     #[schemars(description = "Eyebrow")]
@@ -226,7 +264,9 @@ pub struct Title {
     pub font_family: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct KineticHeadline {
     #[default = "Ship *faster* with demos that *move*"]
@@ -251,7 +291,9 @@ pub struct KineticHeadline {
     pub font_family: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LowerThird {
     #[default = "Ada Lovelace"]
@@ -276,7 +318,9 @@ pub struct LowerThird {
     pub font_family: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Callout {
     #[default = "Click here"]
@@ -301,7 +345,9 @@ pub struct Callout {
     pub font_family: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Captions {
     #[default(CaptionStyle::WordByWord)]
@@ -337,7 +383,9 @@ pub struct Captions {
 
 impl crate::params::Params for Captions {}
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Image {
     #[schemars(description = "Image", extend("x-widget" = "asset", "x-accept" = "image/*"))]
@@ -352,7 +400,7 @@ pub struct Image {
     pub ken_burns: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema, specta::Type)]
 pub struct MosaicBox {
     #[schemars(range(min = 0, max = 1))]
     pub x: f64,
@@ -364,7 +412,9 @@ pub struct MosaicBox {
     pub height: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Mosaic {
     #[default(vec![MosaicBox { x: 0.62, y: 0.06, width: 0.3, height: 0.08 }])]
@@ -385,7 +435,9 @@ pub struct Mosaic {
     pub block_size: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Lottie {
     #[schemars(description = "Animation file", extend("x-widget" = "asset", "x-accept" = ".json,.lottie"))]
@@ -406,7 +458,9 @@ pub struct Lottie {
     pub background: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Video {
     #[schemars(description = "Video", extend("x-widget" = "asset", "x-accept" = "video/*"))]
@@ -429,7 +483,9 @@ pub struct Video {
     pub trim_before_ms: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Solid {
     #[default = "#09090b"]
@@ -437,7 +493,9 @@ pub struct Solid {
     pub color: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Gradient {
     #[default = "#1e1b4b"]
@@ -454,7 +512,9 @@ pub struct Gradient {
     pub grain: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Noise {
     #[default = "#0b1020"]
@@ -471,7 +531,9 @@ pub struct Noise {
     pub speed: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Starburst {
     #[default = "#18181b"]
@@ -488,7 +550,9 @@ pub struct Starburst {
     pub rotation_speed: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Paper {
     #[default = "#f5f1e8"]
@@ -499,7 +563,9 @@ pub struct Paper {
     pub grain: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct StudioBackdrop {
     #[default(Backdrop::Glaze)]
@@ -507,7 +573,9 @@ pub struct StudioBackdrop {
     pub name: Backdrop,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct VideoLoop {
     #[schemars(description = "Video", extend("x-widget" = "asset", "x-accept" = "video/*"))]
@@ -517,7 +585,9 @@ pub struct VideoLoop {
     pub dim: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LightLeak {
     #[default = 3.0]
@@ -527,7 +597,9 @@ pub struct LightLeak {
     pub hue_shift: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Logo3d {
     #[schemars(
@@ -574,7 +646,9 @@ pub struct Logo3d {
     pub background: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Card3d {
     #[schemars(description = "Image", extend("x-widget" = "asset", "x-accept" = "image/*", "x-zero-label" = "Sample screen"))]
@@ -618,7 +692,9 @@ pub struct Card3d {
     pub background: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Text3d {
     #[default = "Ship faster"]
@@ -679,7 +755,9 @@ pub struct Text3d {
     pub background: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Model3d {
     #[schemars(
@@ -734,7 +812,9 @@ pub struct Model3d {
     pub background: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Screen3d {
     #[default(ScreenDevice::Laptop)]
@@ -775,7 +855,9 @@ pub struct Screen3d {
     pub background: String,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Shapes3d {
     #[default = 14.0]
@@ -806,10 +888,12 @@ pub struct Shapes3d {
     pub background: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, JsonSchema, specta::Type)]
 pub struct NoSettings {}
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Slide {
     #[default(Direction::FromRight)]
@@ -817,7 +901,9 @@ pub struct Slide {
     pub direction: Direction,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Wipe {
     #[default(WipeDirection::FromLeft)]
@@ -825,7 +911,9 @@ pub struct Wipe {
     pub direction: WipeDirection,
 }
 
-#[derive(Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, SmartDefault, Serialize, Deserialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Flip {
     #[default(Direction::FromRight)]
@@ -1093,4 +1181,54 @@ pub fn core_elements() -> Vec<ElementMeta> {
         meta::<NoSettings>(presentation("core/clock-wipe", "Clock wipe", 24.0)),
         meta::<NoSettings>(presentation("core/iris", "Iris", 24.0)),
     ]
+}
+
+#[derive(Debug, Clone, Serialize, specta::Type)]
+pub struct CoreElementProps {
+    #[serde(rename = "core/title")]
+    pub title: Title,
+    #[serde(rename = "core/kinetic-headline")]
+    pub kinetic_headline: KineticHeadline,
+    #[serde(rename = "core/lower-third")]
+    pub lower_third: LowerThird,
+    #[serde(rename = "core/callout")]
+    pub callout: Callout,
+    #[serde(rename = "core/captions")]
+    pub captions: Captions,
+    #[serde(rename = "core/image")]
+    pub image: Image,
+    #[serde(rename = "core/mosaic")]
+    pub mosaic: Mosaic,
+    #[serde(rename = "core/lottie")]
+    pub lottie: Lottie,
+    #[serde(rename = "core/video")]
+    pub video: Video,
+    #[serde(rename = "core/solid")]
+    pub solid: Solid,
+    #[serde(rename = "core/gradient")]
+    pub gradient: Gradient,
+    #[serde(rename = "core/noise")]
+    pub noise: Noise,
+    #[serde(rename = "core/starburst")]
+    pub starburst: Starburst,
+    #[serde(rename = "core/paper")]
+    pub paper: Paper,
+    #[serde(rename = "core/backdrop")]
+    pub backdrop: StudioBackdrop,
+    #[serde(rename = "core/video-loop")]
+    pub video_loop: VideoLoop,
+    #[serde(rename = "core/light-leak")]
+    pub light_leak: LightLeak,
+    #[serde(rename = "core/logo-3d")]
+    pub logo_3d: Logo3d,
+    #[serde(rename = "core/card-3d")]
+    pub card_3d: Card3d,
+    #[serde(rename = "core/text-3d")]
+    pub text_3d: Text3d,
+    #[serde(rename = "core/model-3d")]
+    pub model_3d: Model3d,
+    #[serde(rename = "core/screen-3d")]
+    pub screen_3d: Screen3d,
+    #[serde(rename = "core/shapes-3d")]
+    pub shapes_3d: Shapes3d,
 }

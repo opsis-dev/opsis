@@ -1,7 +1,7 @@
-import { clamp01 } from "@opsis/core/math";
-import type { BlurArea } from "@opsis/core/schema/recording";
 import { regionBlur, type RegionBlurParams } from "@remotion/effects/region-blur";
 import type { EffectDescriptor } from "remotion";
+import { clamp01 } from "#video/common/math.ts";
+import type { BlurArea } from "#video/generated/spec.ts";
 
 const EASE_MS = 200;
 

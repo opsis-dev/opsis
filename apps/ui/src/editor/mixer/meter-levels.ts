@@ -1,5 +1,5 @@
-import type { MixResult, StemLevels } from "@opsis/core/mix/result";
-import { clampFrame } from "@opsis/core/timeline/time";
+import { clampFrame } from "@opsis/video/common/time";
+import type { MixResult, StemLevels } from "@/generated/bindings";
 
 const SILENT_POWER = 1e-12;
 

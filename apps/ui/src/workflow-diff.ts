@@ -1,5 +1,5 @@
-import { downstreamOf } from "@opsis/core/graph";
-import type { Workflow, WorkflowNode } from "@opsis/core/schema/workflow";
+import { downstreamOf } from "@/core/graph";
+import type { Workflow, WorkflowNode } from "@/generated/bindings";
 
 const incoming = (wf: Workflow, id: string): string =>
   JSON.stringify(

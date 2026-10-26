@@ -1,5 +1,5 @@
-import { GraphBuilder } from "@opsis/core/templates/build";
 import { describe, expect, it } from "vitest";
+import { GraphBuilder } from "@/test/graph";
 import { editedNodes } from "./workflow-diff";
 
 const film = () => {

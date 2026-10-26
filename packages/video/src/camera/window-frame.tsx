@@ -1,13 +1,12 @@
+import React from "react";
+import { useDesignScale } from "#video/camera/lib/design-scale.ts";
+import { ink, WINDOW_RADIUS } from "#video/camera/lib/style.ts";
 import {
   DEFAULT_ADDRESS_BAR,
   DEFAULT_FRAME_THEME,
   DEFAULT_WINDOW_STYLE,
-  type FrameTheme,
-  type WindowStyle,
-} from "@opsis/core/window-styles";
-import React from "react";
-import { useDesignScale } from "#video/camera/lib/design-scale.ts";
-import { ink, WINDOW_RADIUS } from "#video/camera/lib/style.ts";
+} from "#video/common/window-styles.ts";
+import type { FrameTheme, WindowStyle } from "#video/generated/spec.ts";
 
 export const CHROME_H = 38;
 const PILL_RADIUS = 9999;

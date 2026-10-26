@@ -1,5 +1,4 @@
-import type { MixResult } from "@opsis/core/mix/result";
-import type { Eq, EqType } from "@opsis/core/mix/types";
+import type { MixResult, Eq, EqType } from "@/generated/bindings";
 import { useAudioPreview, type Contribution } from "../../store/audio-preview";
 import { usePlayback } from "../../store/playback";
 import { useWorkflowStore } from "../../store/workflow";

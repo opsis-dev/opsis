@@ -1,7 +1,7 @@
-import type { FieldWidget } from "@opsis/core/elements/introspect";
-import type { ElementCategory } from "@opsis/core/elements/types";
-import { pascalCase } from "@opsis/core/format";
-import type { StepRange } from "@opsis/core/math";
+import { pascalCase } from "@opsis/video/common/format";
+import type { StepRange } from "@opsis/video/common/math";
+import type { FieldWidget } from "./lib/element-meta";
+import type { ElementCategory } from "./lib/element-meta";
 
 type RegistryCategory = Exclude<ElementCategory, "core">;
 

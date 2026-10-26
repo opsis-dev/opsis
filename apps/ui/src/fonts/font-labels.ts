@@ -1,4 +1,4 @@
-import type { CatalogCategory } from "@opsis/core/fonts/types";
+import type { CatalogCategory } from "@/generated/bindings";
 
 const FONT_CATEGORY_LABELS: Record<CatalogCategory, string> = {
   "sans-serif": "Sans serif",

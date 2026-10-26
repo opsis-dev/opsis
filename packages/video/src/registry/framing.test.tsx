@@ -1,8 +1,8 @@
-import type { ElementProps } from "@opsis/core/elements/types";
 import { Thumbnail } from "@remotion/player";
 import { render } from "@testing-library/react";
 import { isValidElement } from "react";
 import { describe, expect, it } from "vitest";
+import type { ElementProps } from "#video/common/spec.ts";
 import {
   listsFromRows,
   marksFromImages,

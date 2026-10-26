@@ -1,10 +1,10 @@
-import { exportedArtifacts } from "@opsis/core/run-progress";
-import { artifactName, type Artifact } from "@opsis/core/schema/values";
-import type { WorkflowNode } from "@opsis/core/schema/workflow";
 import { FolderOpen } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { exportedArtifacts } from "@/core/run-progress";
+import { artifactName } from "@/core/values";
+import type { Artifact, WorkflowNode } from "@/generated/bindings";
 import { useRunStore } from "../store/run";
 import { AudioFilePlayer, VideoFilePlayer } from "./file-player";
 import { fileUrl } from "./file-url";

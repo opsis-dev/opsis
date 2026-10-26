@@ -1,11 +1,11 @@
+import React from "react";
+import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
 import {
   PLACEHOLDER_COLOR,
   PLACEHOLDER_SUBTITLE_COLOR,
   PLACEHOLDER_TITLE_COLOR,
-} from "@opsis/core/elements/colors";
-import { MAIN_FONT } from "@opsis/core/fonts";
-import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
+} from "#video/common/element-colors.ts";
+import { MAIN_FONT } from "#video/common/fonts.ts";
 
 const SWEEP_FRAMES = 90;
 const SWEEP_FROM_PCT = -30;

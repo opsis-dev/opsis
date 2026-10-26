@@ -1,12 +1,4 @@
-import { findById } from "@opsis/core/lists";
-import { isOutputType, nodeName } from "@opsis/core/nodes/registry";
-import {
-  AUDIO_ENVELOPES,
-  VISUAL_ENVELOPES,
-  ENVELOPE_LABELS,
-  type VisualEnvelopeKey,
-} from "@opsis/core/schema/timeline";
-import type { Workflow } from "@opsis/core/schema/workflow";
+import { findById } from "@opsis/video/common/lists";
 import { Bookmark, Magnet, Scissors, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +6,14 @@ import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  AUDIO_ENVELOPES,
+  VISUAL_ENVELOPES,
+  ENVELOPE_LABELS,
+  type VisualEnvelopeKey,
+} from "@/core/timeline";
+import type { Workflow } from "@/generated/bindings";
+import { isOutputType, nodeName } from "@/store/catalog";
 import { shortcutLabel } from "../../app/menu-shortcuts";
 import { usePlayback } from "../../store/playback";
 import { useUiStore } from "../../store/ui";

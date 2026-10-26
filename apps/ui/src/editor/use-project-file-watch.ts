@@ -1,6 +1,6 @@
-import type { ProjectFileChange } from "@opsis/core/ipc";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import type { ProjectFileChange } from "@/generated/bindings";
 import { useWorkflowStore } from "../store/workflow";
 import { useDiskChange } from "./disk-change-store";
 import { loadFromDisk } from "./save";

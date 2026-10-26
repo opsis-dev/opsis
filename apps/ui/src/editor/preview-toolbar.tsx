@@ -1,7 +1,5 @@
-import { formatDuration } from "@opsis/core/format";
-import { VARIANTS } from "@opsis/core/nodes/output";
-import { PREVIEW_QUALITIES, type TimelineSpec } from "@opsis/core/schema/timeline";
-import { framesToMs } from "@opsis/core/timeline/time";
+import { formatDuration } from "@opsis/video/common/format";
+import { framesToMs } from "@opsis/video/common/time";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -13,6 +11,9 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { VARIANTS } from "@/core/nodes";
+import { PREVIEW_QUALITIES } from "@/core/timeline";
+import type { TimelineSpec } from "@/generated/bindings";
 import { whenFirstOneOf, whenOneOf } from "@/lib/one-of";
 import { PREVIEW_SHAPES, useViewOptions } from "../store/view-options";
 import { WithTooltip } from "./with-tooltip";

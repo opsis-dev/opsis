@@ -1,14 +1,9 @@
-import {
-  COMP_RANGES,
-  DUCK_RANGES,
-  type Bus,
-  type Comp,
-  type DuckSettings,
-} from "@opsis/core/mix/types";
 import type { ComponentProps } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { COMP_RANGES, DUCK_RANGES } from "@/core/mix";
+import type { Bus, Comp, DuckSettings } from "@/generated/bindings";
 import { cn } from "@/lib/utils";
 import { toggleIds } from "../../store/ui";
 import { formatDb, formatMs } from "./audio-format";

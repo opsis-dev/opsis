@@ -1,6 +1,6 @@
-import { isPrimaryModifier } from "@opsis/core/menu";
-import type { StripSettings } from "@opsis/core/mix/types";
 import { create } from "zustand";
+import { isPrimaryModifier } from "@/core/menu";
+import type { StripSettings } from "@/core/mix";
 import { platform } from "@/lib/platform";
 import { toggleIds, useUiStore } from "../../store/ui";
 

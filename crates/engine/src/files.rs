@@ -72,11 +72,17 @@ pub fn read_json_keeping_broken<T: DeserializeOwned>(file: &Path) -> std::io::Re
     }
 }
 
+fn partial_file<'a>() -> tempfile::Builder<'a, 'a> {
+    let mut builder = tempfile::Builder::new();
+    builder.prefix(".partial-");
+    #[cfg(unix)]
+    builder.permissions(std::os::unix::fs::PermissionsExt::from_mode(0o666));
+    builder
+}
+
 pub fn atomic_write(file: &Path, data: &[u8]) -> std::io::Result<()> {
     let dir = file.parent().unwrap_or(Path::new("."));
-    let mut temp = tempfile::Builder::new()
-        .prefix(".partial-")
-        .tempfile_in(dir)?;
+    let mut temp = partial_file().tempfile_in(dir)?;
     temp.write_all(data)?;
     temp.as_file().sync_all()?;
     temp.persist(file).map_err(|e| e.error)?;
@@ -94,8 +100,7 @@ where
         .extension()
         .map(|e| format!(".{}", e.to_string_lossy()))
         .unwrap_or_default();
-    let temp = tempfile::Builder::new()
-        .prefix(".partial-")
+    let temp = partial_file()
         .suffix(&ext)
         .tempfile_in(dir)?
         .into_temp_path();
@@ -307,6 +312,29 @@ mod tests {
         .await;
         assert!(failed.is_err());
         assert_eq!(read_dir_if_present(dir.path()).unwrap(), ["stem.wav"]);
+    }
+
+    #[tokio::test]
+    #[cfg(unix)]
+    async fn writes_files_with_the_modes_of_any_new_file() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let mode = |name: &str| {
+            std::fs::metadata(dir.path().join(name))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777
+        };
+        std::fs::write(dir.path().join("plain.txt"), "a").unwrap();
+        atomic_write(&dir.path().join("atomic.txt"), b"a").unwrap();
+        write_via_temp(&dir.path().join("made.mp4"), |temp| async move {
+            std::fs::write(temp, "a")
+        })
+        .await
+        .unwrap();
+        assert_eq!(mode("atomic.txt"), mode("plain.txt"));
+        assert_eq!(mode("made.mp4"), mode("plain.txt"));
     }
 
     #[test]

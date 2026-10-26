@@ -13,6 +13,7 @@ pub mod envelope;
 pub mod fonts;
 pub mod gradient;
 pub mod graph;
+pub mod inspector;
 pub mod limits;
 pub mod mix;
 pub mod node;

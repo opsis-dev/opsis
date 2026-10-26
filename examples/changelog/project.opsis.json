@@ -3,9 +3,9 @@
   "id": "example_changelog",
   "name": "Changelog clip",
   "settings": {
-    "width": 1920,
-    "height": 1080,
-    "fps": 30,
+    "width": 1920.0,
+    "height": 1080.0,
+    "fps": 30.0,
     "theme": "dark",
     "fonts": {
       "main": "Inter",
@@ -23,8 +23,8 @@
       "id": "title",
       "type": "fx.core.title",
       "position": {
-        "x": 0,
-        "y": 0
+        "x": 0.0,
+        "y": 0.0
       },
       "params": {
         "eyebrow": "Changelog",
@@ -49,8 +49,8 @@
       "id": "terminal",
       "type": "fx.remocn.terminal-simulator",
       "position": {
-        "x": 0,
-        "y": 200
+        "x": 0.0,
+        "y": 200.0
       },
       "params": {
         "prompt": "$",
@@ -106,8 +106,8 @@
       "id": "chart",
       "type": "fx.remocn.animated-bar-chart",
       "position": {
-        "x": 0,
-        "y": 400
+        "x": 0.0,
+        "y": 400.0
       },
       "params": {
         "barColor": "#0ea5e9",
@@ -160,8 +160,8 @@
       "id": "credit",
       "type": "fx.core.lower-third",
       "position": {
-        "x": 300,
-        "y": 540
+        "x": 300.0,
+        "y": 540.0
       },
       "params": {
         "title": "{{Product name}} {{Version}}",
@@ -179,8 +179,8 @@
       "id": "bg",
       "type": "fx.core.gradient",
       "position": {
-        "x": 300,
-        "y": 340
+        "x": 300.0,
+        "y": 340.0
       },
       "params": {
         "from": "#1e1b4b",
@@ -195,8 +195,8 @@
       "id": "chart-scene",
       "type": "timeline.stack",
       "position": {
-        "x": 600,
-        "y": 340
+        "x": 600.0,
+        "y": 340.0
       },
       "params": {
         "duration": "last",
@@ -208,8 +208,8 @@
       "id": "sequence",
       "type": "timeline.sequence",
       "position": {
-        "x": 900,
-        "y": 170
+        "x": 900.0,
+        "y": 170.0
       },
       "params": {
         "transition": "core/slide",
@@ -222,8 +222,8 @@
       "id": "render",
       "type": "output.render",
       "position": {
-        "x": 1200,
-        "y": 170
+        "x": 1200.0,
+        "y": 170.0
       },
       "params": {
         "fileName": "{{Project name}}",

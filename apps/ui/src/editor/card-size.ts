@@ -1,6 +1,8 @@
-import { getNodeDef } from "@opsis/core/nodes/registry";
-import { CARD_WIDTH, estimateCardHeight } from "@opsis/core/nodes/size";
-import type { WorkflowNode } from "@opsis/core/schema/workflow";
+import { CARD_WIDTH } from "@/core/nodes";
+import type { WorkflowNode } from "@/generated/bindings";
+import { getNodeDef } from "@/store/catalog";
+
+const UNKNOWN_HEIGHT = 120;
 
 function measured(id: string): { width: number; height: number } | null {
   const el = document.querySelector<HTMLElement>(`.react-flow__node[data-id="${CSS.escape(id)}"]`);
@@ -10,4 +12,7 @@ function measured(id: string): { width: number; height: number } | null {
 }
 
 export const cardSize = (node: Pick<WorkflowNode, "id" | "type">) =>
-  measured(node.id) ?? { width: CARD_WIDTH, height: estimateCardHeight(getNodeDef(node.type)) };
+  measured(node.id) ?? {
+    width: CARD_WIDTH,
+    height: getNodeDef(node.type)?.cardHeight ?? UNKNOWN_HEIGHT,
+  };

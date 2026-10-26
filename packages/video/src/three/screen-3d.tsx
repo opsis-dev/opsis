@@ -1,6 +1,6 @@
-import type { CoreElementProps } from "@opsis/core/elements/core";
 import React, { useMemo } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import type { CoreElementProps } from "#video/generated/spec.ts";
 import { DeviceBody } from "#video/three/devices.tsx";
 import {
   facesCamera,

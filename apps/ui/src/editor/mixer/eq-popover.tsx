@@ -1,12 +1,6 @@
-import {
-  DEFAULT_EQ_BANDS,
-  EQ_BAND_BOUNDS,
-  EQ_TYPES,
-  type Eq,
-  type EqBand,
-  type EqType,
-} from "@opsis/core/mix/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DEFAULT_EQ_BANDS, EQ_BAND_BOUNDS, EQ_TYPES } from "@/core/mix";
+import type { Eq, EqBand, EqType } from "@/generated/bindings";
 import { OptionSelect } from "../option-select";
 import { formatDb, formatHz } from "./audio-format";
 import type { EqGestures } from "./bindings";

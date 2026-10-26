@@ -1,4 +1,4 @@
-import type { TimelineSpec } from "@opsis/core/schema/timeline";
+import type { TimelineSpec } from "@opsis/video/generated/spec";
 import { DemoTimeline } from "@opsis/video/player";
 import { Player, type CallbackListener, type PlayerRef } from "@remotion/player";
 import { StrictMode, useEffect, useState } from "react";
@@ -13,7 +13,10 @@ type PreviewApi = {
   pause: () => void;
   seek: (frame: number) => void;
   rate: (rate: number) => void;
+  range: (inFrame: number | null, outFrame: number | null) => void;
 };
+
+type PlayRange = { inFrame: number | null; outFrame: number | null };
 
 declare global {
   interface Window {
@@ -29,6 +32,7 @@ function Preview() {
   const [spec, setSpec] = useState<TimelineSpec | null>(null);
   const [player, setPlayer] = useState<PlayerRef | null>(null);
   const [rate, setRate] = useState(1);
+  const [range, setRange] = useState<PlayRange>({ inFrame: null, outFrame: null });
 
   useEffect(() => {
     window.opsisPreview = {
@@ -37,6 +41,7 @@ function Preview() {
       pause: () => player?.pause(),
       seek: (frame) => player?.seekTo(frame),
       rate: setRate,
+      range: (inFrame, outFrame) => setRange({ inFrame, outFrame }),
     };
     window.opsisState?.(player ? "ready" : "waiting");
   }, [player]);
@@ -73,7 +78,11 @@ function Preview() {
       compositionWidth={spec.width}
       compositionHeight={spec.height}
       playbackRate={rate}
+      inFrame={range.inFrame}
+      outFrame={range.outFrame}
       controls={false}
+      loop
+      clickToPlay
       initiallyMuted
       style={{ width: "100%", height: "100%" }}
       acknowledgeRemotionLicense

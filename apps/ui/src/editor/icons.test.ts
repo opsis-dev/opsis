@@ -1,4 +1,4 @@
-import { pascalCase } from "@opsis/core/format";
+import { pascalCase } from "@opsis/video/common/format";
 import * as lucide from "lucide-react";
 import { iconNames } from "lucide-react/dynamic";
 import { describe, expect, it } from "vitest";

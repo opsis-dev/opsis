@@ -1,21 +1,26 @@
+import { fileVersionKey } from "@opsis/video/common/asset-ref";
+import { keepLast } from "@opsis/video/common/lists";
+import { create } from "zustand";
+import { errorMessage } from "@/core/errors";
+import { debounce } from "@/core/timing";
 import type {
-  AnalysisKind,
   AnalysisRequest,
   AnalysisResult,
-  AnalysisResultFor,
   Filmstrip,
+  MixPlan,
+  MixResult,
   Waveform,
-} from "@opsis/core/analysis";
-import { fileVersionKey } from "@opsis/core/asset-ref";
-import { errorMessage } from "@opsis/core/errors";
-import { keepLast } from "@opsis/core/lists";
-import type { MixPlan } from "@opsis/core/mix/plan";
-import type { MixResult } from "@opsis/core/mix/result";
-import { debounce } from "@opsis/core/timing";
-import { create } from "zustand";
+} from "@/generated/bindings";
 import { useAudioPreview } from "./audio-preview";
 
 type Entry<T> = T | "loading" | "error";
+
+type AnalysisKind = AnalysisRequest["kind"];
+
+type AnalysisResultFor<K extends AnalysisKind> = Extract<
+  AnalysisResult,
+  { kind: K | "skipped" | "error" }
+>;
 
 type MediaOf = { waveform: Waveform; filmstrip: Filmstrip };
 type MediaKind = keyof MediaOf;

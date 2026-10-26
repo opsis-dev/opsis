@@ -1,19 +1,24 @@
-import {
-  FILE_SCHEME,
-  joinUrl,
-  libraryRelPath,
-  PROJECT_FILE_BASE,
-  refTarget,
-} from "@opsis/core/asset-ref";
+import { joinUrl, libraryRelPath, refTarget } from "@opsis/video/common/asset-ref";
+import { commands } from "@/generated/bindings";
+
+let fileRoot = "";
+
+export async function loadFileRoot(): Promise<void> {
+  fileRoot = await commands.fileRoot();
+}
+
+export function projectFilesUrl(): string {
+  return `${fileRoot}project/`;
+}
 
 export function fileUrl(ref: string): string {
   const target = refTarget(ref);
-  if (target.kind === "project") return joinUrl(PROJECT_FILE_BASE, target.rel);
+  if (target.kind === "project") return joinUrl(projectFilesUrl(), target.rel);
   if (target.kind === "app") return new URL(target.rel, document.baseURI).href;
   return ref;
 }
 
 export function fontFileUrl(ref: string): string {
   const rel = libraryRelPath(ref);
-  return rel === null ? fileUrl(ref) : joinUrl(`${FILE_SCHEME}://fonts/`, rel);
+  return rel === null ? fileUrl(ref) : joinUrl(`${fileRoot}fonts/`, rel);
 }

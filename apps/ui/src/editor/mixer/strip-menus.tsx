@@ -1,5 +1,3 @@
-import { stripSettings } from "@opsis/core/mix/types";
-import { STRIP_PRESETS, type Bus, type Strip, type StripSettings } from "@opsis/core/mix/types";
 import { Ellipsis } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { stripSettings, STRIP_PRESETS, type StripSettings } from "@/core/mix";
+import type { Bus, Strip } from "@/generated/bindings";
 import { applyBusSettings, resetBus, resetStrip } from "@/mix/edits";
 import { useMixerState } from "./mixer-state";
 

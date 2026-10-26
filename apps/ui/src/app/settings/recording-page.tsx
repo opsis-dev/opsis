@@ -1,13 +1,13 @@
-import { clamp } from "@opsis/core/math";
+import { clamp } from "@opsis/video/common/math";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   KEEP_LAST_TRACES,
   LIVE_FPS,
   TRACE_RETENTION,
   TRACE_RETENTION_LABELS,
-  type AppSettings,
-} from "@opsis/core/settings";
-import { parseNumberText } from "@opsis/core/text-input";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+} from "@/core/settings";
+import { parseNumberText } from "@/core/text-input";
+import type { AppSettings } from "@/generated/bindings";
 import { patchAppSettings } from "../../store/app-settings";
 import { OptionToggle } from "../option-toggle";
 import { SingleSlider } from "../single-slider";
