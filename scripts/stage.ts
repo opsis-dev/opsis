@@ -31,11 +31,25 @@ function targetTriple(): string {
   return host.trim();
 }
 
+const BUN_ARCH: Record<string, string> = { x86_64: "x64", aarch64: "arm64" };
+const BUN_OS: Record<string, string> = { linux: "linux", darwin: "darwin", windows: "windows" };
+
+function bunTarget(triple: string): string {
+  const [arch] = triple.split("-");
+  const system = Object.keys(BUN_OS).find((name) => triple.includes(name));
+  if (!arch || !BUN_ARCH[arch] || !system) throw new Error(`Bun can't compile for ${triple}.`);
+  const musl = triple.endsWith("-musl") ? "-musl" : "";
+  return `bun-${BUN_OS[system]}-${BUN_ARCH[arch]}${musl}`;
+}
+
 function compileSidecar() {
-  const out = path.join(RESOURCES, "binaries", `${SIDECAR}-${targetTriple()}`);
+  const triple = targetTriple();
+  const out = path.join(RESOURCES, "binaries", `${SIDECAR}-${triple}`);
   run("bun", [
     "build",
     "--compile",
+    `--target=${bunTarget(triple)}`,
+    "--minify",
     path.join("apps", "sidecar", "src", "main.ts"),
     "--outfile",
     out,
@@ -99,7 +113,7 @@ async function stageEngine() {
 
 rmSync(RESOURCES, { recursive: true, force: true });
 mkdirSync(RESOURCES, { recursive: true });
-run("bun", ["run", "video:bundle"]);
+run("bun", ["run", "video:bundle", "--", "--release"]);
 compileSidecar();
 stageCompositor();
 stageExportSources();

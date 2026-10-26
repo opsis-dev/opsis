@@ -12,10 +12,12 @@ export async function bundleRemotionProject({
   projectRoot,
   outDir,
   onProgress,
+  sourceMaps = true,
 }: {
   projectRoot: string;
   outDir?: string;
   onProgress?: (percent: number) => void;
+  sourceMaps?: boolean;
 }): Promise<string> {
   const { bundle } = await import("@remotion/bundler");
   const { makeBundlerOverride } = await import("#sidecar/bundler-override");
@@ -25,7 +27,19 @@ export async function bundleRemotionProject({
     outDir,
     publicDir: path.join(projectRoot, "public"),
     rspack: true,
-    rspackOverride: makeBundlerOverride(path.join(projectRoot, ...VIDEO_SOURCE)),
+    rspackOverride: async (config) => {
+      const overridden = await makeBundlerOverride(path.join(projectRoot, ...VIDEO_SOURCE))(config);
+      if (sourceMaps) return overridden;
+      const rules = overridden.module?.rules ?? [];
+      return {
+        ...overridden,
+        devtool: false,
+        module: {
+          ...overridden.module,
+          rules: [...rules, { test: /\.m?js$/, extractSourceMap: true }],
+        },
+      };
+    },
     onProgress,
   });
 }

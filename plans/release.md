@@ -27,15 +27,13 @@ Status: plan only, except where a section says what is already in place.
 
 ## 1. Size work
 
-**In place.** The lite deb is 122 MB and installs 292 MB on Linux x64 (measured 2026-10-26): the app binary 88.2 MB stripped, the compiled sidecar 91.7 MB, the compositor 27.3 MB, the video bundle 63.2 MB with 30.6 MB of source maps, `public/` 6.2 MB, Export as code sources 3.5 MB and the recording browser's licences 5.3 MB. Release builds are stripped (`[profile.release] strip = true`).
+**In place.** The lite deb is 111.6 MB and installs 232 MB on Linux x64 (measured 2026-10-26, from 122 MB and 292 MB): the app binary 70.2 MB (`opt-level = 3`, full LTO, one codegen unit, stripped; 11 min 30 s at 8 cargo jobs), the compiled sidecar 91.3 MB (`--minify` for the host's Bun target; about 89 MB of it is the Bun runtime), the compositor 26 MB, the video bundle 31 MB with no source maps, `public/` 6.2 MB, Export as code sources 4.3 MB and the recording browser's licences 5.1 MB. `--bytecode` would start the sidecar in 20 ms instead of 56 ms for 4 MB more; it's left out.
 
 **Work.**
 
 1. **Measure first.** `cargo bloat --release -p opsis-desktop --crates` for the binary, `source-map-explorer` on the editor and video bundles, `dust` on the unpacked deb. Write the table here before changing anything, so each step below has a before and after.
 2. **Ship `public/` once.** Vite copies `public/` into the editor build (embedded in the binary) and into the preview page's build, and the bundle ships it again beside them. Point the editor's and the preview's `publicDir` at nothing for the packaged build and serve `app:` files from the shipped `public/` (the editor through the desktop file server, the preview page through its page server, which already serves `public/`). Check every `app:` asset still loads: fonts, backdrops, placeholders, sounds.
-3. **No source maps in the shipped video bundle.** Remotion's bundler sets `devtool: 'cheap-module-source-map'` for production builds (`shared-bundler-config.js` in `@remotion/bundler`); our `makeBundlerOverride` (`apps/sidecar/src/bundler-override.ts`) sets `devtool: false` when the stage builds the bundle, so no `.map` files are written. Development keeps them, so render errors there still point at source lines. Saves about 30 MB.
-4. **Link-time optimisation.** `[profile.release] lto = true` and `codegen-units = 1`, keeping `opt-level = 3` (the smaller `s` and `z` levels slow compile, runs and analysis, which matter more than a few MB). Release builds take longer and use more memory when linking; measure both and record them here.
-5. **Record** each installer's size per platform from the CI artifacts.
+3. **Record** each installer's size per platform from the CI artifacts.
 
 **Decided.** The notices of the crates and npm packages compiled into the app are not shipped: not worth the size.
 
