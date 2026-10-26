@@ -9,7 +9,7 @@ const appName = readJsonWith(
   path.join(ROOT, "package.json"),
 ).productName;
 
-function electronAppData(): string {
+function configDir(): string {
   if (process.platform === "darwin")
     return path.join(os.homedir(), "Library", "Application Support");
   if (process.platform === "win32")
@@ -17,4 +17,4 @@ function electronAppData(): string {
   return process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), ".config");
 }
 
-export const devUserData = (): string => path.join(electronAppData(), appName);
+export const devUserData = (): string => path.join(configDir(), appName);

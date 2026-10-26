@@ -82,7 +82,7 @@ Each phase is checked before the next starts. Line counts are from `code-split.m
 - **Phase 5: capture and streamed views** (`opsis-capture`, `opsis-stream`, `apps/preview`; done, `cfd70d5`). CDP client, sessions, selectors, actions, screencast encoder, sign-in steps; the stream transport and the view for preview, sign-in, picker and live frames. Check: the TodoMVC take's action log and frame count against a take from before the move (`capture-cdp.md`, `streamed-views.md`).
 - **Phase 6: the switch** (`opsis-desktop`, `opsis-api`; done, `desktop-shell.md` **Phase 6 as built**). The Tauri app: windows, title bar, menus, IPC commands and channels, protocols, exit; the Local API in Rust; the editor on the `window.opsis` facade, the Inspector on JSON Schema, the preview, sign-in and picker as streamed views, pop-out windows over Rust events. Electron, Forge, `src/`, `packages/core` and every TS duplicate of a Rust port are deleted, and `playwright-core` becomes a dev dependency (only `playwright:scripts` reads it). Check: the examples open, run and export on Linux with the same output as before (`desktop-shell.md`, `local-api.md`).
 - **Phase 7: asset preparation and image nodes** (`opsis-prepare`, `opsis-image`; done, `asset-preparation.md` and `image-nodes.md` **Phase 7 as built**).
-- **Phase 8: packaging** (`packaging.md`), then `AGENTS.md` (`agents-md.md`). Until here there is no packaged build: Forge can't package the Tauri app, so phases 6 and 7 are checked in development.
+- **Phase 8: packaging** (`packaging.md`; done, **Phase 8 as built**), then `AGENTS.md` (`agents-md.md`; done). Until here there is no packaged build: Forge can't package the Tauri app, so phases 6 and 7 are checked in development.
 
 ## Conventions
 

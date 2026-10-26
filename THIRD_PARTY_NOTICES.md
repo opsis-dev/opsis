@@ -82,7 +82,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## programatic-demo — packages/video/src/camera, src/worker/capture, crates/capture, public/backdrops
+## programatic-demo — packages/video/src/camera, crates/capture, public/backdrops
 
 ```
 MIT License
@@ -108,7 +108,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## remotion-dev/template-electron — src/worker/render/{compositor-package,bundle,render}.ts, forge.config.ts (adapted)
+## remotion-dev/template-electron — apps/sidecar/src/{compositor-package,bundle,render}.ts (adapted)
 
 Used under the Remotion licence (https://www.remotion.dev/docs/license).
 
@@ -354,12 +354,6 @@ SOFTWARE.
 ## Compressed 3D models — the draco-gltf crate
 
 Decodes 3D models with compressed meshes (Draco and meshoptimizer) into plain ones before they're drawn, in `crates/prepare`. https://github.com/Filyus/draco-rust, a Rust implementation of Google's Draco format (https://github.com/google/draco). Licensed under the Apache License, Version 2.0, the same licence as Opsis; its full text is in `LICENSE`.
-
-## Drizzle ORM — the drizzle-orm package
-
-Reads and writes the app's saved state (settings, recent projects, window positions, the font library and each project's view). Installed from npm and bundled into the app. By Drizzle Team, https://github.com/drizzle-team/drizzle-orm
-
-Licensed under the Apache License, Version 2.0, the same licence as Opsis; its full text is in `LICENSE`. The package ships no NOTICE file.
 
 ## Built-in sound effects — public/sfx
 
